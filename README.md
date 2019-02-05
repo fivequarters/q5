@@ -73,19 +73,19 @@ Also, it is highly recommended that you install the [Prettier VSCode extension](
 
 Here is a quick list of commands for working with the workspaces in the repository. _(A workspace is single **nodeJS** module with it's own **package.json**)_
 
-| Action                                | Command                                           |
-| ------------------------------------- | ------------------------------------------------- |
-| Build All Workspaces                  | `yarn build`                                      |
-| Test All Workspaces                   | `yarn test`                                       |
-| Launch a Web APP or API               | `yarn start <{path}/name>`                        |
-| Create a New Workspace                | `yarn new <path/name>`                            |
-| Build one or more Workspaces          | `yarn build <{path}/name-filter>`\*               |
-| Test one or more Workspaces           | `yarn test <{path}/name-filter>`\*                |
-| Lint one or more Workspaces           | `yarn lint <{path}/name-filter>`\*                |
-| Get Unit Test Coverage for Workspaces | `yarn coverage <{path}/name-filter>`\*            |
-| Add a Dependency to a Workspace       | `yarn require <workspace-name> <dependency-name>` |
-| Rename a Workspace                    | `yarn rename <workspace-name> <new-name>`         |
-| Move a Workspace                      | `yarn move <workspace-name> <new-path>`           |
-| Delete a Workspace                    | `yarn delete <workspace-name> <new-path>`         |
+| Action                                | Command                                                      |
+| ------------------------------------- | ------------------------------------------------------------ |
+| Build All Workspaces                  | `yarn build`                                                 |
+| Test All Workspaces                   | `yarn test`                                                  |
+| Launch a Web APP or API               | `yarn start <{path}/name>`                                   |
+| Create a New Workspace                | `yarn new <path/name>`                                       |
+| Build one or more Workspaces          | `yarn build <{path}/name-filter>`\*                          |
+| Test one or more Workspaces           | `yarn test <{path}/name-filter>`\*                           |
+| Lint one or more Workspaces           | `yarn lint <{path}/name-filter>`\*                           |
+| Get Unit Test Coverage for Workspaces | `yarn coverage <{path}/name-filter>`\*                       |
+| Add a Dependency to a Workspace       | `yarn require <workspace-name> <dependency-name> {--dev|-D}` |
+| Rename a Workspace                    | `yarn rename <workspace-name> <new-name>`                    |
+| Move a Workspace                      | `yarn move <workspace-name> <new-path>`                      |
+| Delete a Workspace                    | `yarn delete <workspace-name> <new-path>`                    |
 
 **\*** These commands will execute for all workspaces that have a path/name that match the filter
