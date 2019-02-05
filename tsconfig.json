@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "target": "es2015",
+    "module": "commonJs",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "strict": true,
+    "composite": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "jsx": "react",
+    "baseUrl": ".",
+    "paths": {
+      "@5qtrs/workspace": ["tool/workspace/src"],
+      "@5qtrs/yarn-tool": ["tool/yarn-tool/src"],
+      "@5qtrs/tool-config": ["tool/tool-config/src"],
+      "@5qtrs/file": ["lib/core/file/src"],
+      "@5qtrs/child-process": ["lib/core/child-process/src"],
+      "@5qtrs/stream": ["lib/core/stream/src"],
+      "@5qtrs/request": ["lib/core/request/src"],
+      "@5qtrs/type": ["lib/core/type/src"],
+      "@5qtrs/valid": ["lib/core/valid/src"],
+      "@5qtrs/clone": ["lib/core/clone/src"]
+    }
+  }
+}

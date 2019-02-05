@@ -1,0 +1,53 @@
+{
+  "private": true,
+  "org": "5qtrs",
+  "scripts": {
+    "setup": "yarn install; cd tool/yarn-tool; yarn build; yarn install --force",
+    "build": "yarn-tool yarn build",
+    "coverage": "yarn-tool yarn coverage",
+    "start": "yarn-tool yarn start",
+    "test": "yarn-tool yarn test",
+    "lint": "yarn-tool yarn lint",
+    "clean": "yarn-tool yarn clean",
+    "new": "yarn-tool new",
+    "move": "yarn-tool move",
+    "delete": "yarn-tool delete",
+    "rename": "yarn-tool rename",
+    "require": "yarn-tool require",
+    "ports": "yarn-tool ports",
+    "increment": "yarn-tool increment"
+  },
+  "devDependencies": {
+    "@types/html-webpack-plugin": "^3.2.0",
+    "@types/html-webpack-template": "^6.0.3",
+    "@types/jest": "^23.3.9",
+    "@types/node": "^8.0.28",
+    "html-webpack-plugin": "^3.2.0",
+    "html-webpack-template": "^6.2.0",
+    "jest": "^23.6.0",
+    "nodemon": "^1.18.9",
+    "prettier": "^1.15.1",
+    "react-svg-loader": "^2.1.0",
+    "ts-jest": "^23.10.4",
+    "ts-node": "^7.0.1",
+    "tslint": "^5.11.0",
+    "tslint-config-prettier": "^1.15.0",
+    "typescript": "^3.0.0",
+    "webpack": "^4.27.1",
+    "webpack-cli": "^3.1.2",
+    "webpack-dev-server": "^3.1.10",
+    "yarn": "^1.12.3"
+  },
+  "workspaces": [
+    "tool/tool-config",
+    "tool/workspace",
+    "tool/yarn-tool",
+    "lib/core/file",
+    "lib/core/child-process",
+    "lib/core/stream",
+    "lib/core/request",
+    "lib/core/type",
+    "lib/core/valid",
+    "lib/core/clone"
+  ]
+}
