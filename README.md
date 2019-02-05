@@ -82,7 +82,7 @@ Here is a quick list of commands for working with the workspaces in the reposito
 | Build one or more Workspaces          | `yarn build <{path}/name-filter>`\*               |
 | Test one or more Workspaces           | `yarn test <{path}/name-filter>`\*                |
 | Lint one or more Workspaces           | `yarn lint <{path}/name-filter>`\*                |
-| Get Unit Test Coverage for Workspaces | `yarn lint <{path}/name-filter>`\*                |
+| Get Unit Test Coverage for Workspaces | `yarn coverage <{path}/name-filter>`\*            |
 | Add a Dependency to a Workspace       | `yarn require <workspace-name> <dependency-name>` |
 | Rename a Workspace                    | `yarn rename <workspace-name> <new-name>`         |
 | Move a Workspace                      | `yarn move <workspace-name> <new-path>`           |
