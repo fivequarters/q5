@@ -151,6 +151,14 @@ describe('PackageJson', () => {
         '@org/rst': '^0.0.5',
       });
     });
+    it('should add a dev dependency to the package.json', async () => {
+      const path = join(tmpdir(), `testing-packageJson-9a-${Date.now()}`, 'package.json');
+      await writeFile(path, abcPackageJson);
+      const packageJson = new PackageJson(path);
+      await packageJson.SetDependency('@org/rst', '^0.0.5', true);
+      const actual = JSON.parse((await readFile(path)).toString());
+      expect(actual.devDependencies['@org/rst']).toBe('^0.0.5');
+    });
     it('should add a dependency if no dependencies in the package.json', async () => {
       const path = join(tmpdir(), `testing-packageJson-10-${Date.now()}`, 'package.json');
       await writeFile(path, abcPackageJsonNoDependencies);

@@ -98,11 +98,15 @@ export default class PackageJson extends JsonFile {
     return dependencies;
   }
 
-  public async SetDependency(name: string, version: string): Promise<void> {
+  public async SetDependency(name: string, version: string, isDev: boolean = false): Promise<void> {
     await super.Load();
-    const dependencies = this.contents.dependencies || {};
+    const dependencies = (isDev ? this.contents.devDependencies : this.contents.dependencies) || {};
     dependencies[name] = version;
-    this.contents.dependencies = dependencies;
+    if (isDev) {
+      this.contents.devDependencies = dependencies;
+    } else {
+      this.contents.dependencies = dependencies;
+    }
     await super.Save();
   }
 

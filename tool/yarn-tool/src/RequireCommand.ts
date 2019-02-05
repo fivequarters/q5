@@ -4,6 +4,8 @@ import { spawn } from '@5qtrs/child-process';
 import { Writable } from 'stream';
 import ICommand from './ICommand';
 
+const isDevFlags: Array<string> = ['-D', '--dev'];
+
 export default class RequireCommand implements ICommand {
   get Name() {
     return 'require';
@@ -20,6 +22,8 @@ export default class RequireCommand implements ICommand {
   public async Handler(args: string[], project: Project, output: Writable) {
     const name = args.shift() || '<unknown>';
     const dependency = args.shift() || '<unknown>';
+    const isDev = args.shift() as string;
+    const isDevEnabled = isDevFlags.indexOf(isDev) >= 0;
 
     let workspace;
     try {
@@ -29,7 +33,7 @@ export default class RequireCommand implements ICommand {
     }
 
     if (!workspace) {
-      throw new Error(`No such workspace'${name}'.`);
+      throw new Error(`No such workspace '${name}'.`);
     }
 
     let dependencyWorkspace;
@@ -40,9 +44,13 @@ export default class RequireCommand implements ICommand {
     }
 
     if (!dependencyWorkspace) {
-      output.write(`\nNo such workspace '${dependency}', executing 'yarn add ${dependency}'\n\n`);
+      const yarnCommand = `yarn add ${dependency}${isDevEnabled ? ' -D' : ''}`;
+      output.write(`\nNo such workspace '${dependency}', executing '${yarnCommand}'\n\n`);
       const cwd = await workspace.GetFullPath();
       const args = ['add', dependency];
+      if (isDevEnabled) {
+        args.push('--dev')
+      }
       const result = await spawn('yarn', { cwd, args, stdout: output });
 
       if (result.code) {
@@ -51,7 +59,7 @@ export default class RequireCommand implements ICommand {
     } else {
       try {
         const fullName = await dependencyWorkspace.GetName();
-        await workspace.AddDependency(fullName);
+        await workspace.AddDependency(fullName, '', isDevEnabled);
       } catch (error) {
         throw new Error(`Failed to add the dependency on '${dependency}' to workspace '${name}. ${error.message}`);
       }

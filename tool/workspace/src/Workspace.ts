@@ -96,7 +96,7 @@ export default class Workspace {
     }
   }
 
-  public async AddDependency(fullName: string, version?: string): Promise<void> {
+  public async AddDependency(fullName: string, version?: string, isDev: boolean = false): Promise<void> {
     const workspace = await this.project.GetWorkspace(fullName);
     if (workspace) {
       const path = await workspace.GetLocation();
@@ -110,7 +110,7 @@ export default class Workspace {
     }
     if (version) {
       const dependencyMatchVersion = this.project.DependencyVersionMatchPrefix;
-      await this.packageJson.SetDependency(fullName, dependencyMatchVersion + version);
+      await this.packageJson.SetDependency(fullName, dependencyMatchVersion + version, isDev);
     } else {
       const message = `A version parameter is required for non-workspace dependency '${fullName}'`;
       throw new Error(message);
