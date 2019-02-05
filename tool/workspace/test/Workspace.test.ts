@@ -2,7 +2,7 @@ import { isFile, readFile, writeFile } from '@5qtrs/file';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import { Writable } from 'stream';
-import Project from '../src/Project';
+import { Project } from '../src';
 import Workspace from '../src/Workspace';
 
 const rootPackageJson = `{
@@ -200,6 +200,25 @@ describe('Workspace', () => {
         'another-dependency': '^3.0.3',
       });
       expect(await workspace.GetWorkspaceDependencies()).toEqual({ '@org/abc': '^0.0.1' });
+    });
+
+    it('should add a dev dependency', async () => {
+      const path = join(tmpdir(), `testing-workspace-5a-${Date.now()}`);
+      await Promise.all([
+        writeFile(join(path, 'package.json'), rootPackageJson),
+        writeFile(join(path, 'tsconfig.json'), rootTsConfig),
+        writeFile(join(path, 'abc', 'package.json'), abcPackageJson),
+        writeFile(join(path, 'abc', 'tsconfig.json'), abcTsConfig),
+        writeFile(join(path, 'xyz', 'package.json'), xyzPackageJson),
+        writeFile(join(path, 'xyz', 'tsconfig.json'), xyzTsConfig),
+      ]);
+
+      const project = await Project.FromRootPath(path);
+      const workspace = await Workspace.FromLocation(project, 'xyz');
+      await workspace.AddDependency('another-dependency', '3.0.3', true);
+
+      const actual = JSON.parse((await readFile(join(path, 'xyz', 'package.json'))).toString());
+      expect(actual.devDependencies['another-dependency']).toBe('^3.0.3');
     });
 
     it('should add a workspace dependency with no explicit version', async () => {
