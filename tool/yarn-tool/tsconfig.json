@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": { "rootDir": "src", "outDir": "lib" },
+  "include": ["src/**/*"],
+  "references": [
+    { "path": "../workspace" },
+    { "path": "../../lib/core/stream" },
+    { "path": "../tool-config" },
+    { "path": "../../lib/core/child-process" }
+  ]
+}

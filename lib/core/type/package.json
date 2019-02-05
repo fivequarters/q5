@@ -1,0 +1,22 @@
+{
+  "name": "@5qtrs/type",
+  "version": "0.0.1",
+  "description": "",
+  "main": "lib/index.js",
+  "license": "UNLICENSED",
+  "author": "FiveQuarters.io",
+  "scripts": {
+    "all": "yarn run -s lint && yarn run -s build && yarn run -s coverage",
+    "build": "tsc -b",
+    "test": "jest --colors",
+    "coverage": "jest --colors --coverage",
+    "lint": "tslint --fix -t stylish src/** test/**",
+    "lint:src": "tslint --fix -t stylish src/**",
+    "lint:test": "tslint --fix -t stylish test/**",
+    "clean": "rm -r -f lib; rm -r -f coverage",
+    "clean:build": "rm -r -f lib",
+    "clean:coverage": "rm -r -f coverage"
+  },
+  "keywords": [],
+  "dependencies": {}
+}

@@ -1,0 +1,16 @@
+{
+  "name": "@5qtrs/tool-config",
+  "version": "0.0.1",
+  "description": "",
+  "main": "lib/index.js",
+  "license": "UNLICENSED",
+  "author": "FiveQuarters.io",
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "rm -r -f lib; rm -r -f coverage",
+    "clean:build": "rm -r -f lib",
+    "clean:coverage": "rm -r -f coverage"
+  },
+  "keywords": [],
+  "dependencies": {}
+}
