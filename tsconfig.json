@@ -21,7 +21,8 @@
       "@5qtrs/request": ["lib/core/request/src"],
       "@5qtrs/type": ["lib/core/type/src"],
       "@5qtrs/valid": ["lib/core/valid/src"],
-      "@5qtrs/clone": ["lib/core/clone/src"]
+      "@5qtrs/clone": ["lib/core/clone/src"],
+      "@5qtrs/q5-editor": ["lib/client/q5-editor/src"]
     }
   }
 }
