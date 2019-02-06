@@ -51,6 +51,7 @@
     "lib/core/type",
     "lib/core/valid",
     "lib/core/clone",
-    "lib/client/q5-editor"
+    "lib/client/q5-editor",
+    "lib/client/q5-hook"
   ]
 }
