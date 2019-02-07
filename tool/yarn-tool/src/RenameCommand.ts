@@ -34,7 +34,7 @@ export default class RenameCommand implements ICommand {
     }
 
     if (!workspace) {
-      throw new Error(`No such workspace'${name}'.`);
+      throw new Error(`No such workspace '${name}'.`);
     }
 
     try {

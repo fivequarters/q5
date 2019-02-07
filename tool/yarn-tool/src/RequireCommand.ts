@@ -49,7 +49,7 @@ export default class RequireCommand implements ICommand {
       const cwd = await workspace.GetFullPath();
       const args = ['add', dependency];
       if (isDevEnabled) {
-        args.push('--dev')
+        args.push('--dev');
       }
       const result = await spawn('yarn', { cwd, args, stdout: output });
 
