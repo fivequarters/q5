@@ -1,0 +1,51 @@
+{
+  "name": "@5qtrs/q5-editor",
+  "version": "0.0.1",
+  "description": "",
+  "main": "lib/index.js",
+  "license": "UNLICENSED",
+  "author": "FiveQuarters.io",
+  "scripts": {
+    "all": "yarn run -s lint && yarn run -s build && yarn run -s coverage",
+    "build:dev": "webpack --env dev",
+    "build:prod": "webpack --env build",
+    "build": "webpack --env build && webpack --env dev",
+    "test": "jest --colors",
+    "coverage": "jest --colors --coverage",
+    "lint": "tslint --fix -t stylish src/** test/**",
+    "lint:src": "tslint --fix -t stylish src/**",
+    "lint:test": "tslint --fix -t stylish test/**",
+    "clean": "rm -r -f lib; rm -r -f coverage",
+    "clean:build": "rm -r -f lib",
+    "clean:coverage": "rm -r -f coverage",
+    "publish": "echo NOT IMPLEMENTED && exit 1",
+    "dev": "webpack --progress --colors --watch --env dev"
+  },
+  "keywords": [],
+  "dependencies": {
+    "jqtree": "^1.4.9",
+    "jquery-resizable-dom": "^0.32.0",
+    "monaco-editor": "^0.15.6",
+    "superagent": "^4.1.0"
+  },
+  "devDependencies": {
+    "@fortawesome/fontawesome-svg-core": "^1.2.9",
+    "@fortawesome/free-brands-svg-icons": "^5.6.0",
+    "@fortawesome/free-regular-svg-icons": "^5.6.0",
+    "@fortawesome/free-solid-svg-icons": "^5.6.0",
+    "@types/jquery": "^3.3.22",
+    "@types/node": "^10.12.9",
+    "@types/superagent": "^3.8.6",
+    "chai": "^4.1.2",
+    "css-loader": "^1.0.1",
+    "jsdom": "11.11.0",
+    "jsdom-global": "3.0.2",
+    "mocha": "^4.0.1",
+    "monaco-editor-webpack-plugin": "^1.7.0",
+    "style-loader": "^0.23.1",
+    "ts-loader": "^5.3.0",
+    "typescript": "^3.1.6",
+    "uglifyjs-webpack-plugin": "^1.2.7",
+    "yargs": "^10.0.3"
+  }
+}

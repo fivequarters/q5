@@ -15,7 +15,9 @@
     "rename": "yarn-tool rename",
     "require": "yarn-tool require",
     "ports": "yarn-tool ports",
-    "increment": "yarn-tool increment"
+    "increment": "yarn-tool increment",
+    "build:dev": "yarn-tool yarn build:dev",
+    "build:prod": "yarn-tool yarn build:prod"
   },
   "devDependencies": {
     "@types/html-webpack-plugin": "^3.2.0",
@@ -50,6 +52,10 @@
     "lib/core/valid",
     "lib/core/clone",
     "lib/core/config",
-    "lib/core/server"
+    "lib/core/server",
+    "lib/client/q5-editor",
+    "lib/client/q5-hook",
+    "lib/server/q5-functions-lambda",
+    "api/ext/q5-functions"
   ]
 }
