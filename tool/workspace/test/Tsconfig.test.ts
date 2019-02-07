@@ -15,7 +15,7 @@ const qrtTsconfigNoReferences = `{}`;
 
 describe('Tsconfig', () => {
   describe('constructor()', () => {
-    it('should return an instance with properties set', async () => {
+    it.concurrent('should return an instance with properties set', async () => {
       const path = join(tmpdir(), `testing-tsconfig-1-${Date.now()}`, 'tsconfig.json');
       const tsconfig = new Tsconfig(path);
       expect(tsconfig.Path).toBe(path);
@@ -23,19 +23,19 @@ describe('Tsconfig', () => {
   });
 
   describe('GetWorkspaceReferences()', () => {
-    it('should return the workspace references from the tsconfig.json', async () => {
+    it.concurrent('should return the workspace references from the tsconfig.json', async () => {
       const path = join(tmpdir(), `testing-tsconfig-2-${Date.now()}`, 'tsconfig.json');
       await writeFile(path, qrtTsconfig);
       const tsconfig = new Tsconfig(path);
       expect(await tsconfig.GetWorkspaceReferences()).toEqual(['../packages/abc', '../packages/xyz']);
     });
-    it('should return an empty object if no references in the tsconfig.json', async () => {
+    it.concurrent('should return an empty object if no references in the tsconfig.json', async () => {
       const path = join(tmpdir(), `testing-tsconfig-3-${Date.now()}`, 'tsconfig.json');
       await writeFile(path, qrtTsconfigNoReferences);
       const tsconfig = new Tsconfig(path);
       expect(await tsconfig.GetWorkspaceReferences()).toEqual([]);
     });
-    it('should ignore empty workspace references array in the tsconfig.json', async () => {
+    it.concurrent('should ignore empty workspace references array in the tsconfig.json', async () => {
       const path = join(tmpdir(), `testing-tsconfig-4-${Date.now()}`, 'tsconfig.json');
       await writeFile(path, qrtTsconfigEmptyArray);
       const tsconfig = new Tsconfig(path);
@@ -44,7 +44,7 @@ describe('Tsconfig', () => {
   });
 
   describe('AddWorkspaceReference()', () => {
-    it('should add a workspace reference to the tsconfig.json', async () => {
+    it.concurrent('should add a workspace reference to the tsconfig.json', async () => {
       const path = join(tmpdir(), `testing-tsconfig-5-${Date.now()}`, 'tsconfig.json');
       await writeFile(path, qrtTsconfig);
       const tsconfig = new Tsconfig(path);
@@ -61,7 +61,7 @@ describe('Tsconfig', () => {
         '../packages/rst',
       ]);
     });
-    it('should add a workspace reference if no references in the tsconfig.json', async () => {
+    it.concurrent('should add a workspace reference if no references in the tsconfig.json', async () => {
       const path = join(tmpdir(), `testing-tsconfig-6-${Date.now()}`, 'tsconfig.json');
       await writeFile(path, qrtTsconfigNoReferences);
       const tsconfig = new Tsconfig(path);
@@ -73,7 +73,7 @@ describe('Tsconfig', () => {
   });
 
   describe('RemoveWorkspaceReference()', () => {
-    it('should remove a workspace reference from the tsconfig.json', async () => {
+    it.concurrent('should remove a workspace reference from the tsconfig.json', async () => {
       const path = join(tmpdir(), `testing-tsconfig-7-${Date.now()}`, 'tsconfig.json');
       await writeFile(path, qrtTsconfig);
       const tsconfig = new Tsconfig(path);
@@ -82,7 +82,7 @@ describe('Tsconfig', () => {
       expect(actual.references).toEqual([{ path: '../packages/xyz' }]);
       expect(await tsconfig.GetWorkspaceReferences()).toEqual(['../packages/xyz']);
     });
-    it('should do nothing if no workspace references in the tsconfig.json', async () => {
+    it.concurrent('should do nothing if no workspace references in the tsconfig.json', async () => {
       const path = join(tmpdir(), `testing-tsconfig-8-${Date.now()}`, 'tsconfig.json');
       await writeFile(path, qrtTsconfigNoReferences);
       const tsconfig = new Tsconfig(path);
@@ -91,7 +91,7 @@ describe('Tsconfig', () => {
       expect(actual.references).toEqual(undefined);
       expect(await tsconfig.GetWorkspaceReferences()).toEqual([]);
     });
-    it('should do nothing if empty references array in the tsconfig.json', async () => {
+    it.concurrent('should do nothing if empty references array in the tsconfig.json', async () => {
       const path = join(tmpdir(), `testing-tsconfig-9-${Date.now()}`, 'tsconfig.json');
       await writeFile(path, qrtTsconfigEmptyArray);
       const tsconfig = new Tsconfig(path);
@@ -100,7 +100,7 @@ describe('Tsconfig', () => {
       expect(actual.references).toEqual([]);
       expect(await tsconfig.GetWorkspaceReferences()).toEqual([]);
     });
-    it('should ignore a workspace reference that is not in the tsconfig.json', async () => {
+    it.concurrent('should ignore a workspace reference that is not in the tsconfig.json', async () => {
       const path = join(tmpdir(), `testing-tsconfig-10-${Date.now()}`, 'tsconfig.json');
       await writeFile(path, qrtTsconfig);
       const tsconfig = new Tsconfig(path);
@@ -112,7 +112,7 @@ describe('Tsconfig', () => {
   });
 
   describe('UpdateWorkspaceReference()', () => {
-    it('should update a workspace reference from the tsconfig.json', async () => {
+    it.concurrent('should update a workspace reference from the tsconfig.json', async () => {
       const path = join(tmpdir(), `testing-tsconfig-11-${Date.now()}`, 'tsconfig.json');
       await writeFile(path, qrtTsconfig);
       const tsconfig = new Tsconfig(path);
@@ -121,7 +121,7 @@ describe('Tsconfig', () => {
       expect(actual.references).toEqual([{ path: '../packages/core/abc' }, { path: '../packages/xyz' }]);
       expect(await tsconfig.GetWorkspaceReferences()).toEqual(['../packages/core/abc', '../packages/xyz']);
     });
-    it('should do nothing if no workspace references in the tsconfig.json', async () => {
+    it.concurrent('should do nothing if no workspace references in the tsconfig.json', async () => {
       const path = join(tmpdir(), `testing-tsconfig-12-${Date.now()}`, 'tsconfig.json');
       await writeFile(path, qrtTsconfigNoReferences);
       const tsconfig = new Tsconfig(path);
@@ -130,7 +130,7 @@ describe('Tsconfig', () => {
       expect(actual.references).toEqual(undefined);
       expect(await tsconfig.GetWorkspaceReferences()).toEqual([]);
     });
-    it('should do nothing if empty references array in the tsconfig.json', async () => {
+    it.concurrent('should do nothing if empty references array in the tsconfig.json', async () => {
       const path = join(tmpdir(), `testing-tsconfig-13-${Date.now()}`, 'tsconfig.json');
       await writeFile(path, qrtTsconfigEmptyArray);
       const tsconfig = new Tsconfig(path);
@@ -139,7 +139,7 @@ describe('Tsconfig', () => {
       expect(actual.references).toEqual([]);
       expect(await tsconfig.GetWorkspaceReferences()).toEqual([]);
     });
-    it('should ignore a workspace reference that is not in the tsconfig.json', async () => {
+    it.concurrent('should ignore a workspace reference that is not in the tsconfig.json', async () => {
       const path = join(tmpdir(), `testing-tsconfig-14-${Date.now()}`, 'tsconfig.json');
       await writeFile(path, qrtTsconfig);
       const tsconfig = new Tsconfig(path);

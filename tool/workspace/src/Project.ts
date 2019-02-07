@@ -1,7 +1,9 @@
 import { spawn } from '@5qtrs/child-process';
+import { batch } from '@5qtrs/batch';
 import { copyDirectory, isFile, replaceInFile, exists } from '@5qtrs/file';
 import { MergeStream } from '@5qtrs/stream';
 import { join, relative } from 'path';
+import { cpus } from 'os';
 import { Readable, Writable } from 'stream';
 import RootPackageJson from './RootPackageJson';
 import RootTsconfig from './RootTsconfig';
@@ -9,6 +11,7 @@ import Workspace from './Workspace';
 import WorkspaceInfo from './WorkspaceInfo';
 
 const assetsPath = join(__dirname, '..', 'assets');
+const numberOfCores = cpus().length;
 
 function getTemplatePath(type: string = 'default'): string {
   return join(assetsPath, `${type}Template`);
@@ -209,39 +212,45 @@ export default class Project {
     const stderrToStdout = options.stdout && options.stderr === options.stdout;
     const stdout = options.stdout ? new MergeStream(options.stdout) : undefined;
     const stderr = options.stderr && !stderrToStdout ? new MergeStream(options.stderr) : undefined;
-    const exitCodes = await Promise.all(
-      workspaces.map(async workspace => {
-        if (options.filter) {
-          const location = await workspace.GetLocation();
-          if (location.toLowerCase().indexOf(options.filter.toLowerCase()) === -1) {
-            return 0;
-          }
+
+    const perWorkspace = async (workspace: Workspace) => {
+      if (options.filter) {
+        const location = await workspace.GetLocation();
+        if (location.toLowerCase().indexOf(options.filter.toLowerCase()) === -1) {
+          return 0;
         }
+      }
 
-        const stdoutSourceStream = stdout ? stdout.createSourceStream() : undefined;
-        const stderrSourceStream = stderr ? stderr.createSourceStream() : undefined;
+      const stdoutSourceStream = stdout ? stdout.createSourceStream() : undefined;
+      const stderrSourceStream = stderr ? stderr.createSourceStream() : undefined;
 
-        const executeOptions = {
-          args: options.args,
-          isScript: options.isScript,
-          stderr: stderrToStdout ? stdoutSourceStream : stderrSourceStream,
-          stdin: options.stdin,
-          stdout: stdoutSourceStream,
-        };
+      const executeOptions = {
+        args: options.args,
+        isScript: options.isScript,
+        stderr: stderrToStdout ? stdoutSourceStream : stderrSourceStream,
+        stdin: options.stdin,
+        stdout: stdoutSourceStream,
+      };
 
-        const exitCode = await workspace.Execute(cmd, executeOptions);
+      const exitCode = await workspace.Execute(cmd, executeOptions);
 
-        if (stdoutSourceStream) {
-          stdoutSourceStream.end();
-        }
+      if (stdoutSourceStream) {
+        stdoutSourceStream.end();
+      }
 
-        if (stderrSourceStream) {
-          stderrSourceStream.end();
-        }
+      if (stderrSourceStream) {
+        stderrSourceStream.end();
+      }
 
-        return exitCode;
-      })
-    );
+      return exitCode;
+    };
+
+    const batched = batch(numberOfCores, workspaces);
+    const exitCodes: Array<Number> = [];
+    for (const batch of batched) {
+      const batchExitCodes = await Promise.all(batch.map(perWorkspace));
+      exitCodes.push(...batchExitCodes);
+    }
 
     if (options.stdout) {
       let isFirst = true;

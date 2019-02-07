@@ -5,6 +5,7 @@
   "references": [
     { "path": "../../lib/core/file" },
     { "path": "../../lib/core/child-process" },
-    { "path": "../../lib/core/stream" }
+    { "path": "../../lib/core/stream" },
+    { "path": "../../lib/core/batch" }
   ]
 }

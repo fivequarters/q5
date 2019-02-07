@@ -42,20 +42,20 @@ const rootPackageJsonEmptyWorkspaces = `{
 
 describe('RootPackageJson', () => {
   describe('constructor()', () => {
-    it('should return an instance with properties set', async () => {
+    it.concurrent('should return an instance with properties set', async () => {
       const path = join(tmpdir(), `testing-rootPackageJson-1-${Date.now()}`, 'package.json');
       const packageJson = new RootPackageJson(path);
       expect(packageJson.Path).toBe(path);
     });
   });
   describe('GetDevDependencies()', () => {
-    it('should return the dependencies from the package.json', async () => {
+    it.concurrent('should return the dependencies from the package.json', async () => {
       const path = join(tmpdir(), `testing-rootPackageJson-2-${Date.now()}`, 'package.json');
       await writeFile(path, rootPackageJson);
       const packageJson = new RootPackageJson(path);
       expect(await packageJson.GetDevDependencies()).toEqual({ '@org/lol': '^0.0.1', '@org/brb': '^0.0.1' });
     });
-    it('should return an empty object if no dependencies in the package.json', async () => {
+    it.concurrent('should return an empty object if no dependencies in the package.json', async () => {
       const path = join(tmpdir(), `testing-rootPackageJson-3-${Date.now()}`, 'package.json');
       await writeFile(path, rootPackageJsonNoDependencies);
       const packageJson = new RootPackageJson(path);
@@ -63,7 +63,7 @@ describe('RootPackageJson', () => {
     });
   });
   describe('SetDevDependency()', () => {
-    it('should add a dependency to the package.json', async () => {
+    it.concurrent('should add a dependency to the package.json', async () => {
       const path = join(tmpdir(), `testing-rootPackageJson-4-${Date.now()}`, 'package.json');
       await writeFile(path, rootPackageJson);
       const packageJson = new RootPackageJson(path);
@@ -76,7 +76,7 @@ describe('RootPackageJson', () => {
         '@org/rst': '^0.0.5',
       });
     });
-    it('should add a dependency if no dependencies in the package.json', async () => {
+    it.concurrent('should add a dependency if no dependencies in the package.json', async () => {
       const path = join(tmpdir(), `testing-rootPackageJson-5-${Date.now()}`, 'package.json');
       await writeFile(path, rootPackageJsonNoDependencies);
       const packageJson = new RootPackageJson(path);
@@ -85,7 +85,7 @@ describe('RootPackageJson', () => {
       expect(actual.devDependencies['@org/xyz']).toBe('^0.0.3');
       expect(await packageJson.GetDevDependencies()).toEqual({ '@org/xyz': '^0.0.3' });
     });
-    it('should update a dependency in the package.json', async () => {
+    it.concurrent('should update a dependency in the package.json', async () => {
       const path = join(tmpdir(), `testing-rootPackageJson-6-${Date.now()}`, 'package.json');
       await writeFile(path, rootPackageJson);
       const packageJson = new RootPackageJson(path);
@@ -96,7 +96,7 @@ describe('RootPackageJson', () => {
     });
   });
   describe('RemoveDevDependency()', () => {
-    it('should remove a dependency from the package.json', async () => {
+    it.concurrent('should remove a dependency from the package.json', async () => {
       const path = join(tmpdir(), `testing-rootPackageJson-7-${Date.now()}`, 'package.json');
       await writeFile(path, rootPackageJson);
       const packageJson = new RootPackageJson(path);
@@ -105,7 +105,7 @@ describe('RootPackageJson', () => {
       expect(actual.devDependencies).toEqual({ '@org/lol': '^0.0.1' });
       expect(await packageJson.GetDevDependencies()).toEqual({ '@org/lol': '^0.0.1' });
     });
-    it('should do nothing if no dependencies in the package.json', async () => {
+    it.concurrent('should do nothing if no dependencies in the package.json', async () => {
       const path = join(tmpdir(), `testing-rootPackageJson-8-${Date.now()}`, 'package.json');
       await writeFile(path, rootPackageJsonNoDependencies);
       const packageJson = new RootPackageJson(path);
@@ -114,7 +114,7 @@ describe('RootPackageJson', () => {
       expect(actual.devDependencies).toEqual(undefined);
       expect(await packageJson.GetDevDependencies()).toEqual({});
     });
-    it('should ignore a dependency that is not in the package.json', async () => {
+    it.concurrent('should ignore a dependency that is not in the package.json', async () => {
       const path = join(tmpdir(), `testing-rootPackageJson-9-${Date.now()}`, 'package.json');
       await writeFile(path, rootPackageJson);
       const packageJson = new RootPackageJson(path);
@@ -125,13 +125,13 @@ describe('RootPackageJson', () => {
     });
   });
   describe('GetWorkspacePaths()', () => {
-    it('should return the workspace paths from the package.json', async () => {
+    it.concurrent('should return the workspace paths from the package.json', async () => {
       const path = join(tmpdir(), `testing-rootPackageJson-10-${Date.now()}`, 'package.json');
       await writeFile(path, rootPackageJson);
       const packageJson = new RootPackageJson(path);
       expect(await packageJson.GetWorkspacePaths()).toEqual(['packages/abc', 'packages/xyz']);
     });
-    it('should return an empty object if no workspace paths in the package.json', async () => {
+    it.concurrent('should return an empty object if no workspace paths in the package.json', async () => {
       const path = join(tmpdir(), `testing-rootPackageJson-11-${Date.now()}`, 'package.json');
       await writeFile(path, rootPackageJsonNoWorkspaces);
       const packageJson = new RootPackageJson(path);
@@ -139,7 +139,7 @@ describe('RootPackageJson', () => {
     });
   });
   describe('AddWorkspacePath()', () => {
-    it('should add a workspace path to the package.json', async () => {
+    it.concurrent('should add a workspace path to the package.json', async () => {
       const path = join(tmpdir(), `testing-rootPackageJson-12-${Date.now()}`, 'package.json');
       await writeFile(path, rootPackageJson);
       const packageJson = new RootPackageJson(path);
@@ -148,7 +148,7 @@ describe('RootPackageJson', () => {
       expect(actual.workspaces).toEqual(['packages/abc', 'packages/xyz', 'packages/rst']);
       expect(await packageJson.GetWorkspacePaths()).toEqual(['packages/abc', 'packages/xyz', 'packages/rst']);
     });
-    it('should add a workspace path if no workspace paths in the package.json', async () => {
+    it.concurrent('should add a workspace path if no workspace paths in the package.json', async () => {
       const path = join(tmpdir(), `testing-rootPackageJson-13-${Date.now()}`, 'package.json');
       await writeFile(path, rootPackageJsonNoWorkspaces);
       const packageJson = new RootPackageJson(path);
@@ -159,7 +159,7 @@ describe('RootPackageJson', () => {
     });
   });
   describe('RemoveWorkspacePath()', () => {
-    it('should remove a workspace path from the package.json', async () => {
+    it.concurrent('should remove a workspace path from the package.json', async () => {
       const path = join(tmpdir(), `testing-rootPackageJson-14-${Date.now()}`, 'package.json');
       await writeFile(path, rootPackageJson);
       const packageJson = new RootPackageJson(path);
@@ -168,7 +168,7 @@ describe('RootPackageJson', () => {
       expect(actual.workspaces).toEqual(['packages/abc']);
       expect(await packageJson.GetWorkspacePaths()).toEqual(['packages/abc']);
     });
-    it('should ignore a workspace path not in the package.json', async () => {
+    it.concurrent('should ignore a workspace path not in the package.json', async () => {
       const path = join(tmpdir(), `testing-rootPackageJson-15-${Date.now()}`, 'package.json');
       await writeFile(path, rootPackageJson);
       const packageJson = new RootPackageJson(path);
@@ -177,7 +177,7 @@ describe('RootPackageJson', () => {
       expect(actual.workspaces).toEqual(['packages/abc', 'packages/xyz']);
       expect(await packageJson.GetWorkspacePaths()).toEqual(['packages/abc', 'packages/xyz']);
     });
-    it('should do nothing if no workspace paths in the package.json', async () => {
+    it.concurrent('should do nothing if no workspace paths in the package.json', async () => {
       const path = join(tmpdir(), `testing-rootPackageJson-16-${Date.now()}`, 'package.json');
       await writeFile(path, rootPackageJsonNoWorkspaces);
       const packageJson = new RootPackageJson(path);
@@ -188,7 +188,7 @@ describe('RootPackageJson', () => {
     });
   });
   describe('UpdateWorkspacePath()', () => {
-    it('should update a workspace path from the package.json', async () => {
+    it.concurrent('should update a workspace path from the package.json', async () => {
       const path = join(tmpdir(), `testing-rootPackageJson-17-${Date.now()}`, 'package.json');
       await writeFile(path, rootPackageJson);
       const packageJson = new RootPackageJson(path);
@@ -197,7 +197,7 @@ describe('RootPackageJson', () => {
       expect(actual.workspaces).toEqual(['packages/abc', 'packages/core/xyz']);
       expect(await packageJson.GetWorkspacePaths()).toEqual(['packages/abc', 'packages/core/xyz']);
     });
-    it('should ignore a workspace path not in the package.json', async () => {
+    it.concurrent('should ignore a workspace path not in the package.json', async () => {
       const path = join(tmpdir(), `testing-rootPackageJson-18-${Date.now()}`, 'package.json');
       await writeFile(path, rootPackageJson);
       const packageJson = new RootPackageJson(path);
@@ -206,7 +206,7 @@ describe('RootPackageJson', () => {
       expect(actual.workspaces).toEqual(['packages/abc', 'packages/xyz']);
       expect(await packageJson.GetWorkspacePaths()).toEqual(['packages/abc', 'packages/xyz']);
     });
-    it('should do nothing if no workspace paths in the package.json', async () => {
+    it.concurrent('should do nothing if no workspace paths in the package.json', async () => {
       const path = join(tmpdir(), `testing-rootPackageJson-19-${Date.now()}`, 'package.json');
       await writeFile(path, rootPackageJsonNoWorkspaces);
       const packageJson = new RootPackageJson(path);
@@ -217,20 +217,20 @@ describe('RootPackageJson', () => {
     });
   });
   describe('HasWorkspacesProperty()', () => {
-    it('should be true for a package.json with workspaces', async () => {
-      const path = join(tmpdir(), `testing-rootPackageJson-18-${Date.now()}`, 'package.json');
+    it.concurrent('should be true for a package.json with workspaces', async () => {
+      const path = join(tmpdir(), `testing-rootPackageJson-20-${Date.now()}`, 'package.json');
       await writeFile(path, rootPackageJson);
       const packageJson = new RootPackageJson(path);
       expect(await packageJson.HasWorkspacesProperty()).toBe(true);
     });
-    it('should be true for a package.json with an empty workspaces array', async () => {
-      const path = join(tmpdir(), `testing-rootPackageJson-19-${Date.now()}`, 'package.json');
+    it.concurrent('should be true for a package.json with an empty workspaces array', async () => {
+      const path = join(tmpdir(), `testing-rootPackageJson-21-${Date.now()}`, 'package.json');
       await writeFile(path, rootPackageJsonEmptyWorkspaces);
       const packageJson = new RootPackageJson(path);
       expect(await packageJson.HasWorkspacesProperty()).toBe(true);
     });
-    it('should be false for a package.json with no workspaces array', async () => {
-      const path = join(tmpdir(), `testing-rootPackageJson-19-${Date.now()}`, 'package.json');
+    it.concurrent('should be false for a package.json with no workspaces array', async () => {
+      const path = join(tmpdir(), `testing-rootPackageJson-22-${Date.now()}`, 'package.json');
       await writeFile(path, rootPackageJsonNoWorkspaces);
       const packageJson = new RootPackageJson(path);
       expect(await packageJson.HasWorkspacesProperty()).toBe(false);

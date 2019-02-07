@@ -29,14 +29,14 @@ const rootTsconfigEmptyArray = `{
 
 describe('RootTsconfig', () => {
   describe('constructor()', () => {
-    it('should return an instance with properties set', async () => {
+    it.concurrent('should return an instance with properties set', async () => {
       const path = join(tmpdir(), `testing-rootTsconfig-1-${Date.now()}`, 'tsconfig.json');
       const tsconfig = new RootTsconfig(path);
       expect(tsconfig.Path).toBe(path);
     });
   });
   describe('GetWorkspacePaths()', () => {
-    it('should return the workspace paths from the tsconfig.json', async () => {
+    it.concurrent('should return the workspace paths from the tsconfig.json', async () => {
       const path = join(tmpdir(), `testing-rootTsconfig-2-${Date.now()}`, 'tsconfig.json');
       await writeFile(path, rootTsconfig);
       const tsconfig = new RootTsconfig(path);
@@ -45,19 +45,19 @@ describe('RootTsconfig', () => {
         '@org/xyz': 'packages/xyz/src',
       });
     });
-    it('should return an empty object if no workspace paths in the tsconfig.json', async () => {
+    it.concurrent('should return an empty object if no workspace paths in the tsconfig.json', async () => {
       const path = join(tmpdir(), `testing-rootTsconfig-3-${Date.now()}`, 'tsconfig.json');
       await writeFile(path, rootTsconfigNoPaths);
       const tsconfig = new RootTsconfig(path);
       expect(await tsconfig.GetWorkspacePaths()).toEqual({});
     });
-    it('should return an empty object if no compilerOptions in the tsconfig.json', async () => {
+    it.concurrent('should return an empty object if no compilerOptions in the tsconfig.json', async () => {
       const path = join(tmpdir(), `testing-rootTsconfig-4-${Date.now()}`, 'tsconfig.json');
       await writeFile(path, rootTsconfigNoCompilerOptions);
       const tsconfig = new RootTsconfig(path);
       expect(await tsconfig.GetWorkspacePaths()).toEqual({});
     });
-    it('should ignore empty workspace paths array in the tsconfig.json', async () => {
+    it.concurrent('should ignore empty workspace paths array in the tsconfig.json', async () => {
       const path = join(tmpdir(), `testing-rootTsconfig-5-${Date.now()}`, 'tsconfig.json');
       await writeFile(path, rootTsconfigEmptyArray);
       const tsconfig = new RootTsconfig(path);
@@ -65,7 +65,7 @@ describe('RootTsconfig', () => {
     });
   });
   describe('SetWorkspacePath()', () => {
-    it('should add a workspace path to the tsconfig.json', async () => {
+    it.concurrent('should add a workspace path to the tsconfig.json', async () => {
       const path = join(tmpdir(), `testing-rootTsconfig-6-${Date.now()}`, 'tsconfig.json');
       await writeFile(path, rootTsconfig);
       const tsconfig = new RootTsconfig(path);
@@ -78,7 +78,7 @@ describe('RootTsconfig', () => {
         '@org/rst': 'packages/rst/src',
       });
     });
-    it('should add a workspace path if no workspace paths in the tsconfig.json', async () => {
+    it.concurrent('should add a workspace path if no workspace paths in the tsconfig.json', async () => {
       const path = join(tmpdir(), `testing-rootTsconfig-7-${Date.now()}`, 'tsconfig.json');
       await writeFile(path, rootTsconfigNoPaths);
       const tsconfig = new RootTsconfig(path);
@@ -87,7 +87,7 @@ describe('RootTsconfig', () => {
       expect(actual.compilerOptions.paths['@org/xyz']).toEqual(['packages/xyz/src']);
       expect(await tsconfig.GetWorkspacePaths()).toEqual({ '@org/xyz': 'packages/xyz/src' });
     });
-    it('should add a workspace path if no compiler options in the tsconfig.json', async () => {
+    it.concurrent('should add a workspace path if no compiler options in the tsconfig.json', async () => {
       const path = join(tmpdir(), `testing-rootTsconfig-7b-${Date.now()}`, 'tsconfig.json');
       await writeFile(path, rootTsconfigNoCompilerOptions);
       const tsconfig = new RootTsconfig(path);
@@ -96,7 +96,7 @@ describe('RootTsconfig', () => {
       expect(actual.compilerOptions.paths['@org/xyz']).toEqual(['packages/xyz/src']);
       expect(await tsconfig.GetWorkspacePaths()).toEqual({ '@org/xyz': 'packages/xyz/src' });
     });
-    it('should update a workspace path in the tsconfig.json', async () => {
+    it.concurrent('should update a workspace path in the tsconfig.json', async () => {
       const path = join(tmpdir(), `testing-rootTsconfig-8-${Date.now()}`, 'tsconfig.json');
       await writeFile(path, rootTsconfig);
       const tsconfig = new RootTsconfig(path);
@@ -110,7 +110,7 @@ describe('RootTsconfig', () => {
     });
   });
   describe('RemoveWorkspacePath()', () => {
-    it('should remove a workspace path from the tsconfig.json', async () => {
+    it.concurrent('should remove a workspace path from the tsconfig.json', async () => {
       const path = join(tmpdir(), `testing-rootTsconfig-9-${Date.now()}`, 'tsconfig.json');
       await writeFile(path, rootTsconfig);
       const tsconfig = new RootTsconfig(path);
@@ -119,7 +119,7 @@ describe('RootTsconfig', () => {
       expect(actual.compilerOptions.paths).toEqual({ '@org/abc': ['packages/abc/src'] });
       expect(await tsconfig.GetWorkspacePaths()).toEqual({ '@org/abc': 'packages/abc/src' });
     });
-    it('should do nothing if no workspace paths in the tsconfig.json', async () => {
+    it.concurrent('should do nothing if no workspace paths in the tsconfig.json', async () => {
       const path = join(tmpdir(), `testing-rootTsconfig-10-${Date.now()}`, 'tsconfig.json');
       await writeFile(path, rootTsconfigNoPaths);
       const tsconfig = new RootTsconfig(path);
@@ -128,7 +128,7 @@ describe('RootTsconfig', () => {
       expect(actual.compilerOptions.paths).toEqual(undefined);
       expect(await tsconfig.GetWorkspacePaths()).toEqual({});
     });
-    it('should ignore a workspace path that is not in the tsconfig.json', async () => {
+    it.concurrent('should ignore a workspace path that is not in the tsconfig.json', async () => {
       const path = join(tmpdir(), `testing-rootTsconfig-11-${Date.now()}`, 'tsconfig.json');
       await writeFile(path, rootTsconfig);
       const tsconfig = new RootTsconfig(path);
@@ -145,7 +145,7 @@ describe('RootTsconfig', () => {
     });
   });
   describe('UpdateWorkspacePath()', () => {
-    it('should update a workspace path from the tsconfig.json', async () => {
+    it.concurrent('should update a workspace path from the tsconfig.json', async () => {
       const path = join(tmpdir(), `testing-rootTsconfig-12-${Date.now()}`, 'tsconfig.json');
       await writeFile(path, rootTsconfig);
       const tsconfig = new RootTsconfig(path);
@@ -160,7 +160,7 @@ describe('RootTsconfig', () => {
         '@org/zyx': 'packages/zyx/src',
       });
     });
-    it('should update a workspace path and use the existing path in the tsconfig.json', async () => {
+    it.concurrent('should update a workspace path and use the existing path in the tsconfig.json', async () => {
       const path = join(tmpdir(), `testing-rootTsconfig-13-${Date.now()}`, 'tsconfig.json');
       await writeFile(path, rootTsconfig);
       const tsconfig = new RootTsconfig(path);
@@ -175,7 +175,7 @@ describe('RootTsconfig', () => {
         '@org/zyx': 'packages/xyz/src',
       });
     });
-    it('should do nothing if no workspace paths in the tsconfig.json', async () => {
+    it.concurrent('should do nothing if no workspace paths in the tsconfig.json', async () => {
       const path = join(tmpdir(), `testing-rootTsconfig-14-${Date.now()}`, 'tsconfig.json');
       await writeFile(path, rootTsconfigNoPaths);
       const tsconfig = new RootTsconfig(path);
@@ -184,7 +184,7 @@ describe('RootTsconfig', () => {
       expect(actual.compilerOptions.paths).toEqual(undefined);
       expect(await tsconfig.GetWorkspacePaths()).toEqual({});
     });
-    it('should ignore a workspace path that is not in the tsconfig.json', async () => {
+    it.concurrent('should ignore a workspace path that is not in the tsconfig.json', async () => {
       const path = join(tmpdir(), `testing-rootTsconfig-15-${Date.now()}`, 'tsconfig.json');
       await writeFile(path, rootTsconfig);
       const tsconfig = new RootTsconfig(path);

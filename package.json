@@ -53,6 +53,7 @@
     "lib/core/clone",
     "lib/core/config",
     "lib/core/server",
+    "lib/core/batch",
     "lib/client/q5-editor",
     "lib/client/q5-hook",
     "lib/server/q5-functions-lambda",
