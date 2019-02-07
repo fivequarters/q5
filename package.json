@@ -48,6 +48,8 @@
     "lib/core/request",
     "lib/core/type",
     "lib/core/valid",
-    "lib/core/clone"
+    "lib/core/clone",
+    "lib/core/config",
+    "lib/core/server"
   ]
 }

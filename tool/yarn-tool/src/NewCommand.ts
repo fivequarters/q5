@@ -8,8 +8,10 @@ const unknown = '<unknown>';
 const startPort = 8000;
 const defaultTemplateType = 'default';
 const webAppTemplateType = 'webApp';
+const apiTemplateType = 'api';
 const pathMap: { [index: string]: string } = {
   'app/web': webAppTemplateType,
+  api: apiTemplateType,
 };
 
 async function getNextFreePort(project: Project) {
@@ -80,9 +82,16 @@ export default class NewCommand implements ICommand {
     }
 
     if (workspace) {
-      if (templateType === webAppTemplateType) {
+      if (templateType === webAppTemplateType || templateType === apiTemplateType) {
         const port = await getNextFreePort(project);
         workspace.SetDevServerPort(port);
+      }
+
+      if (templateType === apiTemplateType) {
+        const org = await project.GetOrg();
+        await workspace.AddDependency(`@${org}/request`, '', true);
+        await workspace.AddDependency(`@${org}/server`);
+        await workspace.AddDependency(`@${org}/config`);
       }
 
       const cwd = await workspace.GetFullPath();

@@ -17,6 +17,7 @@
     ".gitignore": true,
 
     // Hide package level config files
+    "**/devServer.js": true,
     "**/jest.config.js": true,
     "**/jest.setup.js": true,
     "**/prettier.config.js": true,

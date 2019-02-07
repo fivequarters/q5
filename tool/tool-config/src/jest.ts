@@ -4,6 +4,7 @@ const config: any = {
     '\\.(ts|tsx)$': 'ts-jest',
   },
   testRegex: '/test/.*\\.(ts|tsx|js)$',
+  testEnvironment: 'node',
 };
 
 export default config;
