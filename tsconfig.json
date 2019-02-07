@@ -22,6 +22,8 @@
       "@5qtrs/type": ["lib/core/type/src"],
       "@5qtrs/valid": ["lib/core/valid/src"],
       "@5qtrs/clone": ["lib/core/clone/src"],
+      "@5qtrs/config": ["lib/core/config/src"],
+      "@5qtrs/server": ["lib/core/server/src"],
       "@5qtrs/q5-editor": ["lib/client/q5-editor/src"],
       "@5qtrs/q5-hook": ["lib/client/q5-hook/src"],
       "@5qtrs/q5-functions": ["api/ext/q5-functions/src"],

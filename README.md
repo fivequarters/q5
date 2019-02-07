@@ -23,6 +23,11 @@ For web apps, this repository also uses the following additional frameworks and 
 - [Enzyme](https://airbnb.io/enzyme/): A testing framework from Airbnb that plays well with Jest and makes testing React components easy.
 - [Webpack](https://webpack.js.org/): A code bundler for React to create front-end bundles for SPA web applications (Single Page App).
 
+For server apis, this repository also uses the following additional frameworks and tools:
+
+- [Koa](https://koajs.com/): A web-server from the folks that made Express that is built about async/await.
+- [nodemon](https://nodemon.io/): Reloads the web dev server automatically on file changes.
+
 # Getting Setup
 
 To get setup, simply follow the few easy steps below:

@@ -51,9 +51,11 @@
     "lib/core/type",
     "lib/core/valid",
     "lib/core/clone",
+    "lib/core/config",
+    "lib/core/server",
     "lib/client/q5-editor",
     "lib/client/q5-hook",
-    "api/ext/q5-functions",
-    "lib/server/q5-functions-lambda"
+    "lib/server/q5-functions-lambda",
+    "api/ext/q5-functions"
   ]
 }

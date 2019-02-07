@@ -1,53 +1,51 @@
-import { default as cors } from '@koa/cors';
-import { default as getPort } from 'get-port';
-import { default as Koa } from 'koa';
+import { createServer, Server } from 'http';
 import { request } from '../src';
+import packageJson from '../package.json';
 
-let port: number;
-let testServer: { close: () => void };
+//@ts-ignore
+const port = packageJson.devServer.port;
+let server: Server;
 
 beforeAll(async () => {
-  const app = new Koa();
-  app.use(cors());
-  app.use(async context => {
-    return new Promise(resolve => {
-      let data = '';
-      context.req.on('data', chunk => (data += chunk.toString()));
-      context.req.on('end', () => {
-        context.body = {
-          method: context.request.method,
-          url: context.request.url,
-          headers: context.request.headers,
-          data,
-        };
-        if (context.request.headers.accept === 'text/plain') {
-          context.body = '{ "Json-but-as": "a-string" }';
-          context.set('Content-Type', 'text/plain; charset=utf-8');
-        }
-        resolve();
-      });
+  server = createServer((req, res) => {
+    let data = '';
+    req.on('data', chunk => (data += chunk.toString()));
+    req.on('end', () => {
+      const body = {
+        method: req.method,
+        url: req.url,
+        headers: req.headers,
+        data,
+      };
+      let payload = JSON.stringify(body);
+      let contentType = 'application/json; charset=utf-8';
+      if (req.headers.accept === 'text/plain') {
+        payload = '{ "Json-but-as": "a-string" }';
+        contentType = 'text/plain; charset=utf-8';
+      }
+      res.setHeader('content-type', contentType);
+      res.write(payload);
+      res.statusCode = 200;
+      res.end();
+      //
     });
   });
 
-  port = await getPort();
-  testServer = app.listen(port);
+  server.listen(port);
 });
 
 afterAll(async () => {
-  testServer.close();
+  server.close();
 });
 
 describe('request', () => {
   it('should use GET when just a URL is given', async () => {
     const response = await request(`http://localhost:${port}`);
     expect(response.status).toBe(200);
-    expect(response.headers).toEqual({ 'content-type': 'application/json; charset=utf-8' });
+    expect(response.headers['content-type']).toEqual('application/json; charset=utf-8');
     expect(response.data.method).toBe('GET');
     expect(response.data.headers.accept).toBe('application/json, text/plain, */*');
-    expect(response.data.headers.referer).toBe('http://localhost/');
-    expect(response.data.headers['accept-language']).toBe('en');
     expect(response.data.headers.host).toBe(`localhost:${port}`);
-    expect(response.data.headers['accept-encoding']).toBe('gzip, deflate');
     expect(response.data.headers.connection).toBe('close');
     expect(response.data.data).toBe('');
   });
@@ -64,7 +62,7 @@ describe('request', () => {
   it('should not have any data with HEAD', async () => {
     const response = await request({ method: 'HEAD', url: `http://localhost:${port}` });
     expect(response.status).toBe(200);
-    expect(response.headers).toEqual({ 'content-type': 'application/json; charset=utf-8' });
+    expect(response.headers['content-type']).toEqual('application/json; charset=utf-8');
     expect(response.data).toBe(undefined);
   });
 
@@ -85,14 +83,11 @@ describe('request', () => {
       data: { 'here is some': 'data' },
     });
     expect(response.status).toBe(200);
-    expect(response.headers).toEqual({ 'content-type': 'application/json; charset=utf-8' });
+    expect(response.headers['content-type']).toEqual('application/json; charset=utf-8');
     expect(response.data.method).toBe('POST');
     expect(response.data.headers.accept).toBe('application/json, text/plain, */*');
     expect(response.data.headers['content-type']).toBe('application/json;charset=utf-8');
-    expect(response.data.headers.referer).toBe('http://localhost/');
-    expect(response.data.headers['accept-language']).toBe('en');
     expect(response.data.headers.host).toBe(`localhost:${port}`);
-    expect(response.data.headers['accept-encoding']).toBe('gzip, deflate');
     expect(response.data.headers.connection).toBe('close');
     expect(response.data.data).toBe('{"here is some":"data"}');
   });
@@ -104,14 +99,11 @@ describe('request', () => {
       data: '{ "message": "hello world" }',
     });
     expect(response.status).toBe(200);
-    expect(response.headers).toEqual({ 'content-type': 'application/json; charset=utf-8' });
+    expect(response.headers['content-type']).toEqual('application/json; charset=utf-8');
     expect(response.data.method).toBe('POST');
     expect(response.data.headers.accept).toBe('application/json, text/plain, */*');
     expect(response.data.headers['content-type']).toBe('text/plain;charset=utf-8');
-    expect(response.data.headers.referer).toBe('http://localhost/');
-    expect(response.data.headers['accept-language']).toBe('en');
     expect(response.data.headers.host).toBe(`localhost:${port}`);
-    expect(response.data.headers['accept-encoding']).toBe('gzip, deflate');
     expect(response.data.headers.connection).toBe('close');
     expect(response.data.data).toBe('{ "message": "hello world" }');
   });
@@ -124,14 +116,11 @@ describe('request', () => {
       data: '{ "message": "hello world" }',
     });
     expect(response.status).toBe(200);
-    expect(response.headers).toEqual({ 'content-type': 'application/json; charset=utf-8' });
+    expect(response.headers['content-type']).toEqual('application/json; charset=utf-8');
     expect(response.data.method).toBe('POST');
     expect(response.data.headers.accept).toBe('application/json, text/plain, */*');
     expect(response.data.headers['content-type']).toBe('application/json;charset=utf-8');
-    expect(response.data.headers.referer).toBe('http://localhost/');
-    expect(response.data.headers['accept-language']).toBe('en');
     expect(response.data.headers.host).toBe(`localhost:${port}`);
-    expect(response.data.headers['accept-encoding']).toBe('gzip, deflate');
     expect(response.data.headers.connection).toBe('close');
     expect(response.data.data).toBe('{ "message": "hello world" }');
   });
