@@ -184,13 +184,7 @@ export default class Project {
       const location = await workspace.GetLocation();
       await this.rootPackageJson.UpdateWorkspacePath(location, info.Location);
       await this.rootTsconfig.SetWorkspacePath(fullName, info.Location);
-      try {
-        await workspace.Move(info.Location);
-      } catch (error) {
-        await this.rootPackageJson.UpdateWorkspacePath(info.Location, location);
-        await this.rootTsconfig.SetWorkspacePath(fullName, location);
-        throw error;
-      }
+      await workspace.Move(info.Location);
     }
   }
 

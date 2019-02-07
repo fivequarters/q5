@@ -171,10 +171,10 @@ export default class Workspace {
       this.packageJson = new PackageJson(join(newWorkspacePath, 'package.json'));
       this.location = info.Location;
 
-      await this.UpdateOtherWorkspaceReferences(workspacePath, newWorkspacePath);
-      await this.UpdateOwnWorkspaceReferences(workspacePath, newWorkspacePath);
       const newPathToRoot = relative(newWorkspacePath, rootPath);
       await this.tsconfig.UpdateExtendsPath(join(newPathToRoot, 'tsconfig.json'));
+      await this.UpdateOwnWorkspaceReferences(workspacePath, newWorkspacePath);
+      await this.UpdateOtherWorkspaceReferences(workspacePath, newWorkspacePath);
     }
   }
 
@@ -253,14 +253,19 @@ export default class Workspace {
   private async UpdateOtherWorkspaceReferences(workspacePath: string, newWorkspacePath: string): Promise<void> {
     const rootPath = this.project.RootPath;
     const workspaces = await this.project.GetWorkspaces();
-    await Promise.all(
-      workspaces.map(async workspace => {
-        const path = await workspace.GetLocation();
-        const relativePath = relative(join(rootPath, path), workspacePath);
-        const newRelativePath = relative(join(rootPath, path), newWorkspacePath);
-        return workspace.tsconfig.UpdateWorkspaceReference(relativePath, newRelativePath);
-      })
-    );
+    try {
+      await Promise.all(
+        workspaces.map(async workspace => {
+          const path = await workspace.GetLocation();
+          const relativePath = relative(join(rootPath, path), workspacePath);
+          const newRelativePath = relative(join(rootPath, path), newWorkspacePath);
+          return workspace.tsconfig.UpdateWorkspaceReference(relativePath, newRelativePath);
+        })
+      );
+    } catch (error) {
+      const message = `One or more workspace references may not have been updated due to the following failure: ${error.message}`;
+      throw new Error(message);
+    }
   }
 
   private async UpdateOwnWorkspaceReferences(workspacePath: string, newWorkspacePath: string): Promise<void> {
