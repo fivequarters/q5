@@ -14,13 +14,13 @@
     "yarn.lock": true,
 
     // Hide .gitignore
-    ".gitignore": true
+    ".gitignore": true,
 
     // Hide package level config files
-    // "**/jest.config.js": true,
-    // "**/jest.setup.js": true,
-    // "**/prettier.config.js": true,
-    // "**/tslint.json": true,
-    // "**/webpack.config.js": true
+    "**/jest.config.js": true,
+    "**/jest.setup.js": true,
+    "**/prettier.config.js": true,
+    "**/tslint.json": true,
+    "**/webpack.config.js": true
   }
 }

@@ -26,7 +26,7 @@ export default class DeleteCommand implements ICommand {
     }
 
     if (!workspace) {
-      throw new Error(`No such workspace'${name}'.`);
+      throw new Error(`No such workspace '${name}'.`);
     }
 
     try {
