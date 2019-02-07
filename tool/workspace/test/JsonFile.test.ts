@@ -27,7 +27,7 @@ class JsonFileExtended extends JsonFile {
 
 describe('JsonFile', () => {
   describe('constructor()', () => {
-    it('should return an instance with properties set', async () => {
+    it.concurrent('should return an instance with properties set', async () => {
       const path = join(tmpdir(), `testing-jsonfile-1-${Date.now()}`);
       const jsonfile = new JsonFile(path);
       expect(jsonfile.Path).toBe(path);
@@ -35,7 +35,7 @@ describe('JsonFile', () => {
   });
 
   describe('load()', () => {
-    it('should load the json contents of a file', async () => {
+    it.concurrent('should load the json contents of a file', async () => {
       const path = join(tmpdir(), `testing-jsonfile-2-${Date.now()}`);
       const file1Path = join(path, 'file1.json');
       await writeFile(file1Path, '{"data": { "number": 1, "text":"hello"}}');
@@ -47,7 +47,7 @@ describe('JsonFile', () => {
       expect(actual.data.text).toBe('hello');
     });
 
-    it('should error if the file does not exist', async () => {
+    it.concurrent('should error if the file does not exist', async () => {
       const path = join(tmpdir(), `testing-jsonfile-3-${Date.now()}`);
       const file1Path = join(path, 'file1.json');
       const jsonfile = new JsonFileExtended(file1Path);
@@ -62,7 +62,7 @@ describe('JsonFile', () => {
       expect(actual.message).toBe(`Error reading '${file1Path}'; File not found`);
     });
 
-    it('should error if the json is invalid', async () => {
+    it.concurrent('should error if the json is invalid', async () => {
       const path = join(tmpdir(), `testing-jsonfile-4-${Date.now()}`);
       const file1Path = join(path, 'file1.json');
       await writeFile(file1Path, '{"data": { oops }}');
@@ -82,7 +82,7 @@ describe('JsonFile', () => {
   });
 
   describe('save()', () => {
-    it('should save the json content to the file', async () => {
+    it.concurrent('should save the json content to the file', async () => {
       const path = join(tmpdir(), `testing-jsonfile-5-${Date.now()}`);
       const file1Path = join(path, 'file1.json');
 
@@ -94,7 +94,7 @@ describe('JsonFile', () => {
       expect(actual).toBe('{"data":{"number":2,"text":"Hey"}}');
     });
 
-    it('should save the json content to the file', async () => {
+    it.concurrent('should save the json content to the file', async () => {
       const path = join(tmpdir(), `testing-jsonfile-6-${Date.now()}`);
       const file1Path = join(path, 'file1.json');
       await writeFile(file1Path, '{"data": { "number": 1, "text":"hello"}}');

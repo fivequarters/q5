@@ -2,7 +2,7 @@ import { WorkspaceInfo } from '../src';
 
 describe('WorkspaceInfo', () => {
   describe('Create()', () => {
-    it('should return an instance with correct properties', async () => {
+    it.concurrent('should return an instance with correct properties', async () => {
       const testSet = [
         ['', 'abc', '', '', 'abc', 'abc', 'abc'],
         ['@org', 'abc', '', 'org', 'abc', '@org/abc', 'abc'],
@@ -25,7 +25,7 @@ describe('WorkspaceInfo', () => {
       }
     });
 
-    it('should allow the location to be undefined', async () => {
+    it.concurrent('should allow the location to be undefined', async () => {
       const workspaceInfo = WorkspaceInfo.Create('org', 'abc');
       expect(workspaceInfo.Org).toBe('org');
       expect(workspaceInfo.Name).toBe('abc');
@@ -33,7 +33,7 @@ describe('WorkspaceInfo', () => {
       expect(workspaceInfo.Location).toBe('');
     });
 
-    it('should error if the name has an @ but no /', async () => {
+    it.concurrent('should error if the name has an @ but no /', async () => {
       let actual;
       try {
         const workspaceInfo = WorkspaceInfo.Create('', '@abc');
@@ -43,7 +43,7 @@ describe('WorkspaceInfo', () => {
       expect(actual.message).toBe("The workspace name '@abc' is invalid");
     });
 
-    it('should error if the name has ano @ but a /', async () => {
+    it.concurrent('should error if the name has ano @ but a /', async () => {
       let actual;
       try {
         const workspaceInfo = WorkspaceInfo.Create('', 'org/abc');

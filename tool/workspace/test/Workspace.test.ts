@@ -72,8 +72,9 @@ const xyzTsConfig = `{
 }`;
 
 describe('Workspace', () => {
+  jest.setTimeout(20000);
   describe('FromLocation()', () => {
-    it('should return an instance', async () => {
+    it.concurrent('should return an instance', async () => {
       const path = join(tmpdir(), `testing-workspace-1a-${Date.now()}`);
       await Promise.all([
         writeFile(join(path, 'package.json'), rootPackageJson),
@@ -93,7 +94,7 @@ describe('Workspace', () => {
       expect(await workspace.GetWorkspaceDependencies()).toEqual({ '@org/abc': '^0.0.1' });
     });
 
-    it('should return the same instance as the project has', async () => {
+    it.concurrent('should return the same instance as the project has', async () => {
       const path = join(tmpdir(), `testing-workspace-1b-${Date.now()}`);
       await Promise.all([
         writeFile(join(path, 'package.json'), rootPackageJson),
@@ -111,7 +112,7 @@ describe('Workspace', () => {
   });
 
   describe('Rename()', () => {
-    it('should update the name of the workspace', async () => {
+    it.concurrent('should update the name of the workspace', async () => {
       const path = join(tmpdir(), `testing-workspace-2-${Date.now()}`);
       await Promise.all([
         writeFile(join(path, 'package.json'), rootPackageJson),
@@ -132,7 +133,7 @@ describe('Workspace', () => {
       expect(await workspace.GetWorkspaceDependencies()).toEqual({ '@org/abc': '^0.0.1' });
     });
 
-    it('should update the name in dependent workspaces', async () => {
+    it.concurrent('should update the name in dependent workspaces', async () => {
       const path = join(tmpdir(), `testing-workspace-3-${Date.now()}`);
       await Promise.all([
         writeFile(join(path, 'package.json'), rootPackageJson),
@@ -155,7 +156,7 @@ describe('Workspace', () => {
       expect(await dependentWorkspace.GetWorkspaceDependencies()).toEqual({ '@org/cba': '^0.0.1' });
     });
 
-    it('should update the path in the root tsconfig', async () => {
+    it.concurrent('should update the path in the root tsconfig', async () => {
       const path = join(tmpdir(), `testing-workspace-4-${Date.now()}`);
       await Promise.all([
         writeFile(join(path, 'package.json'), rootPackageJson),
@@ -179,7 +180,7 @@ describe('Workspace', () => {
   });
 
   describe('AddDependency()', () => {
-    it('should add a non-workspace dependency', async () => {
+    it.concurrent('should add a non-workspace dependency', async () => {
       const path = join(tmpdir(), `testing-workspace-5-${Date.now()}`);
       await Promise.all([
         writeFile(join(path, 'package.json'), rootPackageJson),
@@ -202,7 +203,7 @@ describe('Workspace', () => {
       expect(await workspace.GetWorkspaceDependencies()).toEqual({ '@org/abc': '^0.0.1' });
     });
 
-    it('should add a dev dependency', async () => {
+    it.concurrent('should add a dev dependency', async () => {
       const path = join(tmpdir(), `testing-workspace-5a-${Date.now()}`);
       await Promise.all([
         writeFile(join(path, 'package.json'), rootPackageJson),
@@ -221,7 +222,7 @@ describe('Workspace', () => {
       expect(actual.devDependencies['another-dependency']).toBe('^3.0.3');
     });
 
-    it('should add a workspace dependency with no explicit version', async () => {
+    it.concurrent('should add a workspace dependency with no explicit version', async () => {
       const path = join(tmpdir(), `testing-workspace-6-${Date.now()}`);
       await Promise.all([
         writeFile(join(path, 'package.json'), rootPackageJson),
@@ -243,7 +244,7 @@ describe('Workspace', () => {
       expect(actual.references).toEqual([{ path: '../xyz' }]);
     });
 
-    it('should add a workspace dependency with an explicit version', async () => {
+    it.concurrent('should add a workspace dependency with an explicit version', async () => {
       const path = join(tmpdir(), `testing-workspace-7-${Date.now()}`);
       await Promise.all([
         writeFile(join(path, 'package.json'), rootPackageJson),
@@ -265,7 +266,7 @@ describe('Workspace', () => {
       expect(actual.references).toEqual([{ path: '../xyz' }]);
     });
 
-    it('should error for a non-workspace dependency with no version', async () => {
+    it.concurrent('should error for a non-workspace dependency with no version', async () => {
       const path = join(tmpdir(), `testing-workspace-8-${Date.now()}`);
       await Promise.all([
         writeFile(join(path, 'package.json'), rootPackageJson),
@@ -291,7 +292,7 @@ describe('Workspace', () => {
   });
 
   describe('RemoveDependency()', () => {
-    it('should remove a non-workspace dependency', async () => {
+    it.concurrent('should remove a non-workspace dependency', async () => {
       const path = join(tmpdir(), `testing-workspace-9-${Date.now()}`);
       await Promise.all([
         writeFile(join(path, 'package.json'), rootPackageJson),
@@ -310,7 +311,7 @@ describe('Workspace', () => {
       expect(await workspace.GetWorkspaceDependencies()).toEqual({ '@org/abc': '^0.0.1' });
     });
 
-    it('should remove a workspace dependency', async () => {
+    it.concurrent('should remove a workspace dependency', async () => {
       const path = join(tmpdir(), `testing-workspace-10-${Date.now()}`);
       await Promise.all([
         writeFile(join(path, 'package.json'), rootPackageJson),
@@ -332,7 +333,7 @@ describe('Workspace', () => {
       expect(actual.references).toEqual([]);
     });
 
-    it('should ignore a non-workplace dependency that is not a dependency', async () => {
+    it.concurrent('should ignore a non-workplace dependency that is not a dependency', async () => {
       const path = join(tmpdir(), `testing-workspace-11-${Date.now()}`);
       await Promise.all([
         writeFile(join(path, 'package.json'), rootPackageJson),
@@ -351,7 +352,7 @@ describe('Workspace', () => {
       expect(await workspace.GetWorkspaceDependencies()).toEqual({ '@org/abc': '^0.0.1' });
     });
 
-    it('should ignore a workplace dependency that is not a dependency', async () => {
+    it.concurrent('should ignore a workplace dependency that is not a dependency', async () => {
       const path = join(tmpdir(), `testing-workspace-12-${Date.now()}`);
       await Promise.all([
         writeFile(join(path, 'package.json'), rootPackageJson),
@@ -372,7 +373,7 @@ describe('Workspace', () => {
   });
 
   describe('IncrementPatchVersion()', () => {
-    it('should increment the version of the package.json', async () => {
+    it.concurrent('should increment the version of the package.json', async () => {
       const path = join(tmpdir(), `testing-workspace-13-${Date.now()}`);
       await Promise.all([
         writeFile(join(path, 'package.json'), rootPackageJson),
@@ -390,7 +391,7 @@ describe('Workspace', () => {
       expect(await workspace.GetVersion()).toEqual('0.0.2');
     });
 
-    it('should increment the version of dependent workspaces', async () => {
+    it.concurrent('should increment the version of dependent workspaces', async () => {
       const path = join(tmpdir(), `testing-workspace-14-${Date.now()}`);
       await Promise.all([
         writeFile(join(path, 'package.json'), rootPackageJson),
@@ -413,7 +414,7 @@ describe('Workspace', () => {
   });
 
   describe('IncrementMinorVersion()', () => {
-    it('should increment the version of the package.json', async () => {
+    it.concurrent('should increment the version of the package.json', async () => {
       const path = join(tmpdir(), `testing-workspace-15-${Date.now()}`);
       await Promise.all([
         writeFile(join(path, 'package.json'), rootPackageJson),
@@ -431,7 +432,7 @@ describe('Workspace', () => {
       expect(await workspace.GetVersion()).toEqual('0.1.0');
     });
 
-    it('should increment the version of dependent workspaces', async () => {
+    it.concurrent('should increment the version of dependent workspaces', async () => {
       const path = join(tmpdir(), `testing-workspace-16-${Date.now()}`);
       await Promise.all([
         writeFile(join(path, 'package.json'), rootPackageJson),
@@ -454,7 +455,7 @@ describe('Workspace', () => {
   });
 
   describe('IncrementMajorVersion()', () => {
-    it('should increment the version of the package.json', async () => {
+    it.concurrent('should increment the version of the package.json', async () => {
       const path = join(tmpdir(), `testing-workspace-17-${Date.now()}`);
       await Promise.all([
         writeFile(join(path, 'package.json'), rootPackageJson),
@@ -472,7 +473,7 @@ describe('Workspace', () => {
       expect(await workspace.GetVersion()).toEqual('1.0.0');
     });
 
-    it('should increment the version of dependent workspaces', async () => {
+    it.concurrent('should increment the version of dependent workspaces', async () => {
       const path = join(tmpdir(), `testing-workspace-18-${Date.now()}`);
       await Promise.all([
         writeFile(join(path, 'package.json'), rootPackageJson),
@@ -495,7 +496,7 @@ describe('Workspace', () => {
   });
 
   describe('Move()', () => {
-    it('should move the workspace files', async () => {
+    it.concurrent('should move the workspace files', async () => {
       const path = join(tmpdir(), `testing-workspace-19-${Date.now()}`);
       await Promise.all([
         writeFile(join(path, 'package.json'), rootPackageJson),
@@ -516,7 +517,7 @@ describe('Workspace', () => {
       expect(await isFile(join(path, 'core', 'abc', 'tsconfig.json'))).toBe(true);
     });
 
-    it('should update the paths in the root package.json and tsconfig.json', async () => {
+    it.concurrent('should update the paths in the root package.json and tsconfig.json', async () => {
       const path = join(tmpdir(), `testing-workspace-20-${Date.now()}`);
       await Promise.all([
         writeFile(join(path, 'package.json'), rootPackageJson),
@@ -540,7 +541,7 @@ describe('Workspace', () => {
       expect(rootTsconfigCompact.indexOf('"@org/abc":["core/abc/src"]')).toBeGreaterThan(0);
     });
 
-    it('should update the paths of dependent workspaces', async () => {
+    it.concurrent('should update the paths of dependent workspaces', async () => {
       const path = join(tmpdir(), `testing-workspace-21-${Date.now()}`);
       await Promise.all([
         writeFile(join(path, 'package.json'), rootPackageJson),
@@ -560,7 +561,7 @@ describe('Workspace', () => {
       expect(xyzTsconfigCompact.references).toEqual([{ path: '../core/abc' }]);
     });
 
-    it('should update the paths in the workspace tsconfig.json', async () => {
+    it.concurrent('should update the paths in the workspace tsconfig.json', async () => {
       const path = join(tmpdir(), `testing-workspace-22-${Date.now()}`);
       await Promise.all([
         writeFile(join(path, 'package.json'), rootPackageJson),
@@ -581,7 +582,7 @@ describe('Workspace', () => {
       expect(xyzTsconfigCompact.references).toEqual([{ path: '../../abc' }]);
     });
 
-    it('should do nothing if the new location is the current location', async () => {
+    it.concurrent('should do nothing if the new location is the current location', async () => {
       const path = join(tmpdir(), `testing-workspace-23-${Date.now()}`);
       await Promise.all([
         writeFile(join(path, 'package.json'), rootPackageJson),
@@ -602,7 +603,7 @@ describe('Workspace', () => {
       expect(await isFile(join(path, 'xyz', 'tsconfig.json'))).toBe(true);
     });
 
-    it('should error if the new location already exists', async () => {
+    it.concurrent('should error if the new location already exists', async () => {
       const path = join(tmpdir(), `testing-workspace-24-${Date.now()}`);
       await Promise.all([
         writeFile(join(path, 'package.json'), rootPackageJson),
@@ -637,7 +638,7 @@ describe('Workspace', () => {
   });
 
   describe('Execute()', () => {
-    it('should execute the cmd', async () => {
+    it.concurrent('should execute the cmd', async () => {
       const stdout = new Writable();
       let actual = '';
       stdout._write = (chunk, encoding, callback) => {
@@ -666,7 +667,7 @@ describe('Workspace', () => {
       );
     });
 
-    it('should write to stderr', async () => {
+    it.concurrent('should write to stderr', async () => {
       const stderr = new Writable();
       let actual = '';
       stderr._write = (chunk, encoding, callback) => {
@@ -692,7 +693,7 @@ describe('Workspace', () => {
       expect(actual).toBe('  warning package.json: No license field\n');
     });
 
-    it('should return an exit code', async () => {
+    it.concurrent('should return an exit code', async () => {
       const path = join(tmpdir(), `testing-workspace-27-${Date.now()}`);
       await Promise.all([
         writeFile(join(path, 'package.json'), rootPackageJson),
@@ -710,7 +711,7 @@ describe('Workspace', () => {
       expect(exitCode).toBe(5);
     });
 
-    it('should not require options', async () => {
+    it.concurrent('should not require options', async () => {
       const path = join(tmpdir(), `testing-workspace-28-${Date.now()}`);
       await Promise.all([
         writeFile(join(path, 'package.json'), rootPackageJson),
@@ -728,7 +729,7 @@ describe('Workspace', () => {
       expect(exitCode).toBe(0);
     });
 
-    it('should allow stderr and stdout to be the same stream', async () => {
+    it.concurrent('should allow stderr and stdout to be the same stream', async () => {
       const stdout = new Writable();
       let actual = '';
       stdout._write = (chunk, encoding, callback) => {
