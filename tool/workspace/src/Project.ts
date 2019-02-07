@@ -1,5 +1,5 @@
 import { spawn } from '@5qtrs/child-process';
-import { copyDirectory, isFile, replaceInFile } from '@5qtrs/file';
+import { copyDirectory, isFile, replaceInFile, exists } from '@5qtrs/file';
 import { MergeStream } from '@5qtrs/stream';
 import { join, relative } from 'path';
 import { Readable, Writable } from 'stream';
@@ -177,10 +177,16 @@ export default class Project {
   public async MoveWorkspace(workspace: Workspace, newLocation: string): Promise<void> {
     const fullName = await workspace.GetName();
     const info = WorkspaceInfo.Create('', fullName, newLocation);
-
     const workspacePaths = await this.rootTsconfig.GetWorkspacePaths();
-    const name = await workspace.GetName();
+
     if (workspacePaths[fullName] && workspacePaths[fullName] !== join(info.Location, 'src')) {
+      const rootPath = this.RootPath;
+      const newWorkspacePath = join(rootPath, info.Location);
+      const alreadyExists = await exists(newWorkspacePath);
+      if (alreadyExists) {
+        throw new Error(`Directory already exists: ${newWorkspacePath}`);
+      }
+
       const location = await workspace.GetLocation();
       await this.rootPackageJson.UpdateWorkspacePath(location, info.Location);
       await this.rootTsconfig.SetWorkspacePath(fullName, info.Location);
