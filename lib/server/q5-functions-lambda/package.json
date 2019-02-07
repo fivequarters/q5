@@ -1,0 +1,32 @@
+{
+  "name": "@5qtrs/q5-functions-lambda",
+  "version": "0.0.1",
+  "description": "",
+  "main": "lib/index.js",
+  "license": "UNLICENSED",
+  "author": "FiveQuarters.io",
+  "scripts": {
+    "all": "yarn run -s lint && yarn run -s build && yarn run -s coverage",
+    "build": "tsc -b",
+    "test": "jest --colors",
+    "coverage": "jest --colors --coverage",
+    "lint": "tslint --fix -t stylish src/** test/**",
+    "lint:src": "tslint --fix -t stylish src/**",
+    "lint:test": "tslint --fix -t stylish test/**",
+    "clean": "rm -r -f lib; rm -r -f coverage",
+    "clean:build": "rm -r -f lib",
+    "clean:coverage": "rm -r -f coverage"
+  },
+  "keywords": [],
+  "dependencies": {
+    "async": "^2.6.1",
+    "aws-sdk": "^2.397.0",
+    "http-errors": "^1.7.1",
+    "jszip": "^3.1.5",
+    "semver": "^5.6.0",
+    "superagent": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/async": "^2.4.0"
+  }
+}
