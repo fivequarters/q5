@@ -1,0 +1,10 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": { "rootDir": "src", "outDir": "lib" },
+  "include": ["src"],
+  "references": [
+    { "path": "../../../lib/core/request" },
+    { "path": "../../../lib/core/server" },
+    { "path": "../../../lib/core/config" }
+  ]
+}

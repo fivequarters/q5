@@ -1,15 +1,6 @@
 {
   "extends": "../../../tsconfig.json",
-  "compilerOptions": {
-    "rootDir": "src",
-    "outDir": "lib",
-    "lib": ["es6", "dom"],
-    "noImplicitAny": true,
-    "target": "es5",
-    "declaration": false,
-    "declarationMap": false,
-    "composite": false
-  },
+  "compilerOptions": { "rootDir": "src", "outDir": "lib" },
   "include": ["src"],
-  "references": []
+  "references": [{ "path": "../../core/event" }]
 }

@@ -1,0 +1,13 @@
+<svg viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <mask id="circle-mask">
+      <circle cx="300" cy="300" r="300" fill="white" />
+      <rect x="0" y="295" width="600" height="10" />
+      <rect x="295" y="0" width="10" height="600" />
+      <path d="M 305 600 A 295 295 0 0 1 600 305" fill="transparent" stroke="black" stroke-width="10"/>
+    </mask>
+  </defs>
+
+  <circle cx="300" cy="300" r="300" mask="url(#circle-mask)" />
+  <path d="M 315 595 l 280 0 l 0 -280" stroke-width="10" fill="transparent" stroke="black" stroke-linejoin="round"/>
+</svg>

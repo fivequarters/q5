@@ -16,8 +16,9 @@
     "require": "yarn-tool require",
     "ports": "yarn-tool ports",
     "increment": "yarn-tool increment",
-    "build:dev": "yarn-tool yarn build:dev",
-    "build:prod": "yarn-tool yarn build:prod"
+    "bundle:dev": "yarn-tool yarn bundle:dev",
+    "bundle:prod": "yarn-tool yarn bundle:prod",
+    "bundle": "yarn-tool yarn bundle"
   },
   "devDependencies": {
     "@types/html-webpack-plugin": "^3.2.0",
@@ -57,6 +58,8 @@
     "lib/client/q5-editor",
     "lib/client/q5-hook",
     "lib/server/q5-functions-lambda",
-    "api/ext/q5-functions"
+    "api/ext/q5-functions",
+    "lib/core/event",
+    "app/web/function-demo"
   ]
 }
