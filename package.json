@@ -60,6 +60,7 @@
     "lib/server/q5-functions-lambda",
     "api/ext/q5-functions",
     "lib/core/event",
-    "app/web/function-demo"
+    "app/web/function-demo",
+    "api/int/pubsub"
   ]
 }
