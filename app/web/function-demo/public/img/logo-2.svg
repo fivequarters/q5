@@ -1,0 +1,13 @@
+<svg viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <mask id="circle-mask">
+      <circle cx="500" cy="500" r="300" fill="white" />
+      <rect x="200" y="495" width="600" height="10" />
+      <rect x="495" y="200" width="10" height="600" />
+      <path d="M 505 800 A 295 295 0 0 1 800 505 A 295 295 0 0 1 505 800" stroke="black" />
+    </mask>
+  </defs>
+
+  <circle cx="500" cy="500" r="300" mask="url(#circle-mask)" />
+  <path d="M 505 800 l 295 0 l 0 -295 A 295 295 0 0 1 505 800"  fill="black" stroke="black" stroke-linejoin="round"/>
+</svg>

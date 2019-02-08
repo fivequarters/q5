@@ -1,7 +1,6 @@
 import { join } from 'path';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import HtmlWebpackTemplate from 'html-webpack-template';
-import ports from './ports';
 
 function prettyName(name: string) {
   const index = name.indexOf('/');

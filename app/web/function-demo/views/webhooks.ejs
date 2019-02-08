@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+    <link rel="icon" type="image/svg" href="/img/logo-0.png">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+
+    <title>Q5 Hooks</title>
+
+    <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0' name='viewport' />
+    <meta name="viewport" content="width=device-width" />
+
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.1/css/all.css" integrity="sha384-gfdkjb5BdAXd+lj+gudLWI+BXq4IuLW5IT+brZEZsLFm++aCMlF1V92rMkPaX4PP" crossorigin="anonymous">
+
+    <style>
+        html,body {
+            width: 100%;
+            height: 100%;
+            padding-top: 30px;
+            /* background: white url('/img/sunset.jpg') no-repeat center center fixed; */
+            /* background-size: cover; */
+            /* background: #eee; */
+        }
+        .top-buffer-lg {
+            margin-top: 60px;
+        }
+        .top-buffer-md {
+            margin-top: 30px;
+        }
+        .side-buffer-md {
+            margin-left: 30px;
+            margin-right: 30px;
+        }
+        .bottom-buffer-lg {
+            margin-bottom: 60px;
+        }
+    </style>
+
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col text-center">
+                <div class="jumbotron">
+                    <h1 class="display-2">Make your SaaS stick</h1>
+                    <h1 class="display-4">with Serverless Webhooks&trade;</h1>
+                    <p class="lead">Remove the friction from customizing and integrating your SaaS</p>
+                    <button class="btn btn-lg btn-success top-buffer-md">Get started</button>
+                </div>
+            </div>
+        </div>
+            
+        <div class="row top-buffer-lg">
+            <div class="col">
+                <h3>Webhooks today</h2>
+                <div class="input-group input-group-lg">
+                    <input type="text" placeholder="e.g. https://myserver.com/on_new_lead" class="form-control"/>
+                </div>
+                
+                <p class="lead top-buffer-md">Traditional webhooks are costly for your users. They must develop, deploy, secure, monitor, and maintain
+                    a web service in order to customize or integrate your SaaS. 
+                </p>
+            </div>
+            <div class="cal-auto side-buffer-md">
+                <h3>&nbsp;</h3>
+                <h1><i class="fa fa-arrow-circle-right"></i></h1>
+            </div>
+            <div class="col">
+                <h3>Serverless Webhooks&trade;</h2>
+                <div class="input-group input-group-lg">
+                    <div class="input-group-prepend">
+                        <button id="on_new_lead_btn" class="btn btn-primary" type="button"><i class="fa fa-file-code"></i> Edit</button>
+                    </div>
+                    <input id="on_new_lead" type="text" placeholder="e.g. https://myserver.com/on_new_lead" class="form-control"/>
+                </div>
+                <p class="lead top-buffer-md">Serverless Webhooks allow your users to focus on their business logic. Your users
+                    are more likely to customize your SaaS leading to higher retention, satisfaction, and revenue.
+                </p>    
+            </div>
+        </div>
+
+        <div class="row top-buffer-lg">
+            <div class="col text-center">
+                <div class="jumbotron">
+                    <!-- <h1 class="display-4">Make your users love your SaaS</h1> -->
+                    <!-- <h1 class="display-4">Empower your users, make your SaaS sticky</h1> -->
+                    <h1 class="display-4">A win-win for your users and your SaaS</h1>
+                    <!-- <h1 class="display-4">Minimal integration effort for you</h1> -->
+                    <!-- <h1 class="display-4">Giant improvement for you users</h1> -->
+                </div>
+            </div>
+        </div>
+    
+        <div class="row top-buffer-lg">
+            <div class="col">
+                <h3>Simplicity for you</h2>
+                <p class="lead top-buffer-md">You can integrate Serverless Webhooks with an existing webhook infrastructure with a few lines of code, and they can co-exist. 
+                </p>
+            </div>
+            <div class="col">
+                <h3>Power for your users</h3>
+                <p class="lead top-buffer-md">Your users can customize or integrate your SaaS with an embedded Node.js and NPM scripting experience.</p>
+            </div>
+        </div>
+
+        <div class="row top-buffer-lg">
+            <div class="col">
+                <h3>More adoption</h2>
+                <p class="lead top-buffer-md">With friction removed, your users are more likely to customize and integrate your SaaS. 
+                </p>
+            </div>
+            <div class="col">
+                <h3>Better retention</h3>
+                <p class="lead top-buffer-md">Users who invest in your SaaS by writing custom code are more likely to stay.</p>
+            </div>
+        </div>
+
+        <div class="row top-buffer-lg bottom-buffer-lg">
+            <div class="col text-center">
+                <button class="btn btn-lg btn-success top-buffer-md">Get started</button>
+            </div>
+        </div>
+    </div>
+</body>
+
+<script src="/js/<%- process.env.NODE_ENV === 'production' ? 'q5hook.min.js' : 'q5hook.js' %>" type="text/javascript"></script>
+
+<script type="text/javascript">
+    document.getElementById('on_new_lead_btn').addEventListener('click', function (e) {
+        e.preventDefault();
+        window.q5hook.edit({
+            baseUrl: "<%- process.env.API_SERVER %>",
+            token: "<%- process.env.API_AUTHORIZATION_KEY %>",
+            boundary: "myboundary",
+            function: "myfunction1",
+            template: "",
+        })
+        .then(result => {
+            document.getElementById('on_new_lead').value = result.url;
+        });
+    });
+</script>
+
+</html>

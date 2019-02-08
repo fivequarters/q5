@@ -18,6 +18,9 @@ coverage/
 lib/
 !/lib
 
+# Webpack bundles
+dist/
+
 # Dependency directories
 node_modules/
 

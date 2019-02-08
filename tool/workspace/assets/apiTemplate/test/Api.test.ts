@@ -11,7 +11,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   if (server) {
-    server.stop();
+    await server.stop();
   }
 });
 
