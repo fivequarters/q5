@@ -1,5 +1,6 @@
 import Koa from 'koa';
 import Cors from '@koa/cors';
+import Morgan from 'koa-morgan';
 import { Server, RequestListener } from '@5qtrs/server';
 import { ApiConfig } from './ApiConfig';
 import { routes } from './routes';
@@ -13,9 +14,14 @@ export class Api extends Server {
     const config = await ApiConfig.create(environment);
 
     const koa = new Koa();
+    if (config.enableDevLogs) {
+      koa.use(Morgan('dev'));
+    }
+
     if (config.useCors) {
       koa.use(Cors());
     }
+
     koa.use(routes(config));
 
     return new Api(koa.callback(), config.port);

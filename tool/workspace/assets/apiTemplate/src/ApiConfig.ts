@@ -9,6 +9,7 @@ export class ApiConfig extends Config {
     const settings = {
       port: process.env.PORT || 80,
       useCors: environment === 'local',
+      enableDevLogs: environment === 'local',
       message: 'Hello there',
     };
     return new ApiConfig(settings);
@@ -22,7 +23,11 @@ export class ApiConfig extends Config {
     return super.value('port') as number;
   }
 
-  public get useCors(): string {
-    return super.value('useCors') as string;
+  public get useCors(): boolean {
+    return super.value('useCors') as boolean;
+  }
+
+  public get enableDevLogs(): boolean {
+    return super.value('enableDevLogs') as boolean;
   }
 }

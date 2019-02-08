@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const Api = require('./lib').default;
 const packageJson = require('./package.json');
 
