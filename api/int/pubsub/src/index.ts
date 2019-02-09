@@ -7,8 +7,8 @@ export default class PubSub {
   xsubListener = `tcp://127.0.0.1:${process.env.XSUBPORT || 5000}`;
   hwm = 1000;
   verbose = 0;
-  xsubSock: Zmq.Socket | undefined = undefined;
-  xpubSock: Zmq.Socket | undefined = undefined;
+  xsubSock?: Zmq.Socket;
+  xpubSock?: Zmq.Socket;
 
   constructor() {}
 

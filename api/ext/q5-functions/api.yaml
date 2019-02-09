@@ -1,273 +1,332 @@
-swagger: "2.0"
+swagger: '2.0'
 info:
-  description: "Nextend APIs can be used to manage and execute serverless functions. The APIs support the notion of multi-tenanacy with appropriate isolation concepts and authorization mechanisms. The APIs aspire to enable the use of a variety of compute providers (AWS Lambda, Google Functions, Azure Functions, Heroku) as well as programming environments (Node, Python, Go). First cut of the APIs targets Node.js on Lambda."
-  version: "0.0.1"
-  title: "Nextend"
+  description: 'Nextend APIs can be used to manage and execute serverless functions. The APIs support the notion of multi-tenanacy with appropriate isolation concepts and authorization mechanisms. The APIs aspire to enable the use of a variety of compute providers (AWS Lambda, Google Functions, Azure Functions, Heroku) as well as programming environments (Node, Python, Go). First cut of the APIs targets Node.js on Lambda.'
+  version: '0.0.1'
+  title: 'Nextend'
 # host: "localhost:3000"
-basePath: "/api/v1"
+basePath: '/api/v1'
 # schemes:
 # - "http"
 # - "https"
 paths:
   /function/{boundary}/{name}:
     parameters:
-    - name: "boundary"
-      in: "path"
-      description: "Isolation boundary for function execution. Two functions created in distinct isolation boundaries are guaranteed to be isolated during execution. Two functions created in the same isolation boundary are not."
-      required: true
-      type: "string"
-    - name: "name"
-      in: "path"
-      description: "Function name unique within the isolation boundary."
-      required: true
-      type: "string"
+      - name: 'boundary'
+        in: 'path'
+        description: 'Isolation boundary for function execution. Two functions created in distinct isolation boundaries are guaranteed to be isolated during execution. Two functions created in the same isolation boundary are not.'
+        required: true
+        type: 'string'
+      - name: 'name'
+        in: 'path'
+        description: 'Function name unique within the isolation boundary.'
+        required: true
+        type: 'string'
     put:
       tags:
-      - Management
-      summary: "Initiate a new build and deployment of a serverless function"
-      description: "Initiates (re)creation of a named serverless function within the specified isolation boundary. This is an asynchronous operation that returns immediately with a **build_id** token representing the function build process. This token can be used to poll for completion using the GET /function/{boundary}/{name}/build/{build_id} API."
-      operationId: "createFunction"
+        - Management
+      summary: 'Initiate a new build and deployment of a serverless function'
+      description: 'Initiates (re)creation of a named serverless function within the specified isolation boundary. This is an asynchronous operation that returns immediately with a **build_id** token representing the function build process. This token can be used to poll for completion using the GET /function/{boundary}/{name}/build/{build_id} API.'
+      operationId: 'createFunction'
       consumes:
-      - "application/json"
+        - 'application/json'
       produces:
-      - "application/json"
+        - 'application/json'
       parameters:
-      - in: "body"
-        name: "body"
-        description: "Function specification"
-        required: true
-        schema:
-          $ref: "#/definitions/FunctionSpecification"
+        - in: 'body'
+          name: 'body'
+          description: 'Function specification'
+          required: true
+          schema:
+            $ref: '#/definitions/FunctionSpecification'
       responses:
         201:
-          description: "Function build and deployment initiated. This is an asynchronous operation and you can use the **build_id** from the response to poll for status."
+          description: 'Function build and deployment initiated. This is an asynchronous operation and you can use the **build_id** from the response to poll for status.'
           schema:
-            $ref: "#/definitions/FunctionCreationStatus"
+            $ref: '#/definitions/FunctionCreationStatus'
         400:
-          description: "Invalid input"
+          description: 'Invalid input'
         403:
-          description: "Not authorized"
+          description: 'Not authorized'
       security:
-      - token: []
+        - token: []
     get:
       tags:
-      - Management
-      summary: "Get the definition of a deployed serverless function"
-      description: "Returns the specification of a serverless function that was used to create it."
-      operationId: "getFunction"
+        - Management
+      summary: 'Get the definition of a deployed serverless function'
+      description: 'Returns the specification of a serverless function that was used to create it.'
+      operationId: 'getFunction'
       produces:
-      - "application/json"
+        - 'application/json'
       responses:
         200:
-          description: "Function specification originally used to create the function."
+          description: 'Function specification originally used to create the function.'
           schema:
-            $ref: "#/definitions/FunctionSpecification"
+            $ref: '#/definitions/FunctionSpecification'
         403:
-          description: "Not authorized"
+          description: 'Not authorized'
         404:
-          description: "Function not found"
+          description: 'Function not found'
       security:
-      - token: []
+        - token: []
     delete:
       tags:
-      - Management
-      summary: "Delete a deployed serverless function"
-      description: "Deletes a previously created serverless function along with all configuration data."
-      operationId: "deleteFunction"
+        - Management
+      summary: 'Delete a deployed serverless function'
+      description: 'Deletes a previously created serverless function along with all configuration data.'
+      operationId: 'deleteFunction'
       produces:
-      - "application/json"
+        - 'application/json'
       responses:
         204:
-          description: "Function was deleted"
+          description: 'Function was deleted'
         403:
-          description: "Not authorized"
+          description: 'Not authorized'
         404:
-          description: "Function not found"
+          description: 'Function not found'
       security:
-      - token: []
-          
-  /function/{boundary}:
+        - token: []
+
+  /logs/{boundary}/{name}:
     parameters:
-    - name: "boundary"
-      in: "path"
-      description: "Isolation boundary for function execution. Two functions created in distinct isolation boundaries are guaranteed to be isolated during execution. Two functions created in the same isolation boundary are not."
-      required: true
-      type: "string"
+      - name: 'boundary'
+        in: 'path'
+        description: 'Isolation boundary for function execution. Two functions created in distinct isolation boundaries are guaranteed to be isolated during execution. Two functions created in the same isolation boundary are not.'
+        required: true
+        type: 'string'
+      - name: 'name'
+        in: 'path'
+        description: 'Function name unique within the isolation boundary.'
+        required: true
+        type: 'string'
     get:
       tags:
-      - Management
-      summary: "List functions deployed within an isolation boundary"
-      description: "List of functions that have been created within a the isolation boundary. This API supports limits and continuation to enable paging."
-      operationId: "listFunctions"
-      parameters:
-      - name: "from"
-        in: "query"
-        description: "The name of the function within the boundary to continue the listing from. Used for paging."
-        type: "string"
-      - name: "limit"
-        in: "query"
-        description: "Maximum number of function names to return, not more than 100."
-        type: "integer"
+        - Monitoring
+      summary: 'Get an event stream with real time logs generated by this function'
+      description: 'Returns text/event-stream response with streaming real-time logs generated by the function'
+      operationId: 'getFunctionLogs'
       produces:
-      - "application/json"
+        - 'text/event-stream'
       responses:
         200:
-          description: "List of functions deployed within the isolation boundary. If the list is partial, the next chunk can be obtained by calling the API again and setting the *from* query parameter to the last function name in the list."
-          schema:
-            $ref: "#/definitions/FunctionList"
+          description: 'Response body streams text/event-stream data with logs'
         403:
-          description: "Not authorized"
+          description: 'Not authorized'
+        404:
+          description: 'Function not found'
+        503:
+          description: 'Server too busy'
       security:
-      - token: []
+        - token: []
+
+  /logs/{boundary}:
+    parameters:
+      - name: 'boundary'
+        in: 'path'
+        description: 'Isolation boundary for function execution. Two functions created in distinct isolation boundaries are guaranteed to be isolated during execution. Two functions created in the same isolation boundary are not.'
+        required: true
+        type: 'string'
+    get:
+      tags:
+        - Monitoring
+      summary: 'Get an event stream with real time logs related to all functions executing in a boundary'
+      description: 'Returns text/event-stream response with streaming real-time logs generated by all functions executing in a boundary'
+      operationId: 'getBoundaryLogs'
+      produces:
+        - 'text/event-stream'
+      responses:
+        200:
+          description: 'Response body streams text/event-stream data with logs'
+        403:
+          description: 'Not authorized'
+        404:
+          description: 'Function not found'
+        503:
+          description: 'Server too busy'
+      security:
+        - token: []
+
+  /function/{boundary}:
+    parameters:
+      - name: 'boundary'
+        in: 'path'
+        description: 'Isolation boundary for function execution. Two functions created in distinct isolation boundaries are guaranteed to be isolated during execution. Two functions created in the same isolation boundary are not.'
+        required: true
+        type: 'string'
+    get:
+      tags:
+        - Management
+      summary: 'List functions deployed within an isolation boundary'
+      description: 'List of functions that have been created within a the isolation boundary. This API supports limits and continuation to enable paging.'
+      operationId: 'listFunctions'
+      parameters:
+        - name: 'from'
+          in: 'query'
+          description: 'The name of the function within the boundary to continue the listing from. Used for paging.'
+          type: 'string'
+        - name: 'limit'
+          in: 'query'
+          description: 'Maximum number of function names to return, not more than 100.'
+          type: 'integer'
+      produces:
+        - 'application/json'
+      responses:
+        200:
+          description: 'List of functions deployed within the isolation boundary. If the list is partial, the next chunk can be obtained by calling the API again and setting the *from* query parameter to the last function name in the list.'
+          schema:
+            $ref: '#/definitions/FunctionList'
+        403:
+          description: 'Not authorized'
+      security:
+        - token: []
 
   /function/{boundary}/{name}/build/{build_id}:
     parameters:
-    - name: "boundary"
-      in: "path"
-      description: "Isolation boundary for function execution. Two functions created in distinct isolation boundaries are guaranteed to be isolated during execution. Two functions created in the same isolation boundary are not."
-      required: true
-      type: "string"
-    - name: "name"
-      in: "path"
-      description: "Function name unique within the isolation boundary."
-      required: true
-      type: "string"
-    - name: "build_id"
-      in: "path"
-      description: "Identifier of an asynchronous function build process previously initialized with a PUT call."
-      required: true
-      type: "string"
+      - name: 'boundary'
+        in: 'path'
+        description: 'Isolation boundary for function execution. Two functions created in distinct isolation boundaries are guaranteed to be isolated during execution. Two functions created in the same isolation boundary are not.'
+        required: true
+        type: 'string'
+      - name: 'name'
+        in: 'path'
+        description: 'Function name unique within the isolation boundary.'
+        required: true
+        type: 'string'
+      - name: 'build_id'
+        in: 'path'
+        description: 'Identifier of an asynchronous function build process previously initialized with a PUT call.'
+        required: true
+        type: 'string'
     get:
       tags:
-      - Management
-      summary: "Get the status of a build of a serverless function"
-      description: "Returns the status of the build of a serverless function. This API is used for polling the result of the asynchronous build proces of a serverless function that was initiated before with a PUT call. The **status** parameter progressess from **pending** to **building** to either of **success** or **failure**, which are the final states of the build process."
-      operationId: "getFunctionBuildStatus"
+        - Management
+      summary: 'Get the status of a build of a serverless function'
+      description: 'Returns the status of the build of a serverless function. This API is used for polling the result of the asynchronous build proces of a serverless function that was initiated before with a PUT call. The **status** parameter progressess from **pending** to **building** to either of **success** or **failure**, which are the final states of the build process.'
+      operationId: 'getFunctionBuildStatus'
       produces:
-      - "application/json"
+        - 'application/json'
       responses:
         200:
-          description: "Function build and deployment completed successfully"
+          description: 'Function build and deployment completed successfully'
           schema:
-            $ref: "#/definitions/FunctionCreationStatus"
+            $ref: '#/definitions/FunctionCreationStatus'
         201:
-          description: "Function build is pending or in progress"
+          description: 'Function build is pending or in progress'
           schema:
-            $ref: "#/definitions/FunctionCreationStatus"
+            $ref: '#/definitions/FunctionCreationStatus'
         410:
-          description: "Function build has failed"
+          description: 'Function build has failed'
           schema:
-            $ref: "#/definitions/FunctionCreationStatus"
+            $ref: '#/definitions/FunctionCreationStatus'
         403:
-          description: "Not authorized"
+          description: 'Not authorized'
         404:
-          description: "Function or build not found"
+          description: 'Function or build not found'
       security:
-      - token: []
+        - token: []
 
   /run/{boundary}/{name}:
     parameters:
-    - name: "boundary"
-      in: "path"
-      description: "Isolation boundary for function execution. Two functions created in distinct isolation boundaries are guaranteed to be isolated during execution. Two functions created in the same isolation boundary are not."
-      required: true
-      type: "string"
-    - name: "name"
-      in: "path"
-      description: "Function name unique within the isolation boundary."
-      required: true
-      type: "string"
+      - name: 'boundary'
+        in: 'path'
+        description: 'Isolation boundary for function execution. Two functions created in distinct isolation boundaries are guaranteed to be isolated during execution. Two functions created in the same isolation boundary are not.'
+        required: true
+        type: 'string'
+      - name: 'name'
+        in: 'path'
+        description: 'Function name unique within the isolation boundary.'
+        required: true
+        type: 'string'
     post:
       tags:
-      - Execution
-      summary: "Executes serverless function with POST"
-      description: ""
-      operationId: "executePOST"
+        - Execution
+      summary: 'Executes serverless function with POST'
+      description: ''
+      operationId: 'executePOST'
       consumes:
-      - "application/json"
+        - 'application/json'
       produces:
-      - "application/json"
+        - 'application/json'
       parameters:
-      - in: "body"
-        name: "body"
-        description: "Function payload"
-        required: true
-        schema:
-          type: "object"
+        - in: 'body'
+          name: 'body'
+          description: 'Function payload'
+          required: true
+          schema:
+            type: 'object'
       responses:
-          200:
-            description: "Success"
+        200:
+          description: 'Success'
     put:
       tags:
-      - Execution
-      summary: "Executes serverless function with PUT"
-      description: ""
-      operationId: "executePUT"
+        - Execution
+      summary: 'Executes serverless function with PUT'
+      description: ''
+      operationId: 'executePUT'
       consumes:
-      - "application/json"
+        - 'application/json'
       produces:
-      - "application/json"
+        - 'application/json'
       parameters:
-      - in: "body"
-        name: "body"
-        description: "Function payload"
-        required: true
-        schema:
-          type: "object"
+        - in: 'body'
+          name: 'body'
+          description: 'Function payload'
+          required: true
+          schema:
+            type: 'object'
       responses:
-          200:
-            description: "Success"
+        200:
+          description: 'Success'
     patch:
       tags:
-      - Execution
-      summary: "Executes serverless function with PATCH"
-      description: ""
-      operationId: "executePATCH"
+        - Execution
+      summary: 'Executes serverless function with PATCH'
+      description: ''
+      operationId: 'executePATCH'
       consumes:
-      - "application/json"
+        - 'application/json'
       produces:
-      - "application/json"
+        - 'application/json'
       parameters:
-      - in: "body"
-        name: "body"
-        description: "Function payload"
-        required: true
-        schema:
-          type: "object"
+        - in: 'body'
+          name: 'body'
+          description: 'Function payload'
+          required: true
+          schema:
+            type: 'object'
       responses:
-          200:
-            description: "Success"
+        200:
+          description: 'Success'
     get:
       tags:
-      - Execution
-      summary: "Executes serverless function with GET"
-      description: ""
-      operationId: "executeGET"
+        - Execution
+      summary: 'Executes serverless function with GET'
+      description: ''
+      operationId: 'executeGET'
       produces:
-      - "application/json"
+        - 'application/json'
       responses:
-          200:
-            description: "Success"
+        200:
+          description: 'Success'
     delete:
       tags:
-      - Execution
-      summary: "Executes serverless function with DELETE"
-      description: ""
-      operationId: "executeDELETE"
+        - Execution
+      summary: 'Executes serverless function with DELETE'
+      description: ''
+      operationId: 'executeDELETE'
       produces:
-      - "application/json"
+        - 'application/json'
       responses:
-          204:
-            description: "Success"
+        204:
+          description: 'Success'
     head:
       tags:
-      - Execution
-      summary: "Executes serverless function with HEAD"
-      description: ""
-      operationId: "executeHEAD"
+        - Execution
+      summary: 'Executes serverless function with HEAD'
+      description: ''
+      operationId: 'executeHEAD'
       responses:
-          200:
-            description: "Success"
+        200:
+          description: 'Success'
 
 securityDefinitions:
   token:
@@ -276,82 +335,82 @@ securityDefinitions:
     in: header
 definitions:
   FunctionList:
-    type: "object"
+    type: 'object'
     properties:
       has_more:
-        type: "boolean"
+        type: 'boolean'
       functions:
-        type: "array"
+        type: 'array'
         items:
-          type: "string"
+          type: 'string'
   FunctionCreationStatus:
-    type: "object"
+    type: 'object'
     properties:
       build_id:
-        type: "string"
+        type: 'string'
       boundary:
-        type: "string"
+        type: 'string'
       name:
-        type: "string"
+        type: 'string'
       status:
-        type: "string"
+        type: 'string'
         enum:
-        - "pending"
-        - "building"
-        - "success"
-        - "failure"
-      error: 
-        type: "object"
-      transitions: 
-        type: "object"
+          - 'pending'
+          - 'building'
+          - 'success'
+          - 'failure'
+      error:
+        type: 'object'
+      transitions:
+        type: 'object'
   FunctionSpecification:
-    type: "object"
+    type: 'object'
     properties:
       environment:
-        type: "string"
-        description: "Programming environment"
+        type: 'string'
+        description: 'Programming environment'
         enum:
-        - "nodejs"
+          - 'nodejs'
       provider:
-        type: "string"
-        description: "Compute provider"
+        type: 'string'
+        description: 'Compute provider'
         enum:
-        - "lambda"
+          - 'lambda'
       configuration:
-        type: "object"
+        type: 'object'
         properties:
-          secret1: 
-            type: "string"
-          secret2: 
-            type: "string"
+          secret1:
+            type: 'string'
+          secret2:
+            type: 'string'
       nodejs:
-        type: "object"
+        type: 'object'
         properties:
           files:
-            type: "object"
+            type: 'object'
             properties:
-              "index.js":
-                type: "string"
+              'index.js':
+                type: 'string'
                 example: "module.exports = (ctx, cb) => cb(null, {  body: 'Hello' });"
-              "package.json":
-                type: "object"
+              'package.json':
+                type: 'object'
                 properties:
-                  engines: 
-                    type: "object"
-                    properties: 
-                      node: 
-                        type: "string"
-                        example: "> 8"
+                  engines:
+                    type: 'object'
+                    properties:
+                      node:
+                        type: 'string'
+                        example: '> 8'
                   dependencies:
                     type: object
       lambda:
-        type: "object"
+        type: 'object'
         properties:
           memory_size:
-            type: "integer"
+            type: 'integer'
             example: 128
           timeout:
-            type: "integer"
+            type: 'integer'
             example: 30
 #externalDocs:
 #  description: "Find out more about Swagger"
