@@ -1,55 +1,52 @@
 import PubSub from '../src';
 import Zmq from 'zeromq';
+import { doesNotReject } from 'assert';
+
+const server = new PubSub();
 
 describe('pubsub', () => {
-  let server: PubSub | undefined = undefined;
-
   beforeAll(() => {
-    server = new PubSub();
     server.start();
   });
 
   afterAll(() => {
-    if (server) {
-      server.stop();
-      server = undefined;
-    }
+    server.stop();
   });
 
   it('server start and stop work', () => {
     expect(true);
   });
 
-  it('publish works', () => {
-    if (!server) return;
+  it('publish works', done => {
     let psock = Zmq.socket('pub');
-
-    // publish
+    psock.monitor(); // enables connect event
     psock.connect(server.xsubListener);
-    psock.send('channel5 message');
-    psock.disconnect(server.xsubListener);
+    psock.on('connect', () => {
+      psock.send('channel5 message');
+      psock.close();
+      done();
+    });
   });
 
-  it('subscribe works', () => {
-    if (!server) return;
-
-    // subscribe
+  it('subscribe works', done => {
     let ssock = Zmq.socket('sub');
     ssock.subscribe('channel5');
+    ssock.monitor(); // enables connect event
     ssock.connect(server.xpubListener);
-    ssock.disconnect(server.xpubListener);
+    ssock.on('connect', () => {
+      ssock.close();
+      done();
+    });
   });
 
   it('publish/subscribe works', done => {
-    if (!server) return;
-
     // subscribe
     let ssock = Zmq.socket('sub');
     ssock.connect(server.xpubListener);
     ssock.subscribe('channel5');
     ssock.on('message', data => {
       expect(data.toString()).toEqual('channel5 message');
-      server && ssock.disconnect(server.xpubListener);
+      ssock.disconnect(server.xpubListener);
       done();
     });
 
@@ -64,8 +61,6 @@ describe('pubsub', () => {
   });
 
   it('topic prefix publish/subscribe works', done => {
-    if (!server) return;
-
     // subscribe
     let ssock = Zmq.socket('sub');
     ssock.connect(server.xpubListener);
@@ -74,7 +69,7 @@ describe('pubsub', () => {
     ssock.on('message', data => {
       expect(data.toString()).toMatch(/^app\-/);
       if (++count == 2) {
-        server && ssock.disconnect(server.xpubListener);
+        ssock.disconnect(server.xpubListener);
         done();
       }
     });
