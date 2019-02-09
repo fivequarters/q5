@@ -30,7 +30,8 @@
       "@5qtrs/q5-functions": ["api/ext/q5-functions/src"],
       "@5qtrs/q5-functions-lambda": ["lib/server/q5-functions-lambda/src"],
       "@5qtrs/event": ["lib/core/event/src"],
-      "@5qtrs/function-demo": ["app/web/function-demo/src"]
+      "@5qtrs/function-demo": ["app/web/function-demo/src"],
+      "@5qtrs/pubsub": ["api/int/pubsub/src"]
     }
   }
 }

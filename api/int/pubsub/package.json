@@ -1,5 +1,5 @@
 {
-  "name": "@5qtrs/q5-functions",
+  "name": "@5qtrs/pubsub",
   "version": "0.0.1",
   "description": "",
   "main": "lib/index.js",
@@ -20,19 +20,15 @@
   },
   "keywords": [],
   "dependencies": {
-    "@5qtrs/q5-functions-lambda": "^0.0.1",
-    "cors": "^2.8.5",
     "dotenv": "^6.2.0",
-    "express": "^4.16.4",
-    "http-errors": "^1.7.1",
-    "joi": "^14.3.1",
-    "morgan": "^1.9.1",
-    "swagger-ui-express": "^4.0.2",
-    "yamljs": "^0.3.0",
     "zeromq": "^5.1.0"
   },
-  "devDependencies": {},
   "devServer": {
-    "port": 3001
+    "xpubport": 5000,
+    "xsubport": 5001
+  },
+  "devDependencies": {
+    "@types/dotenv": "^6.1.0",
+    "@types/zeromq": "^4.6.1"
   }
 }

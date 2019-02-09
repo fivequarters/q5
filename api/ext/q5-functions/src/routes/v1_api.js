@@ -3,6 +3,7 @@ var router = express.Router();
 var determine_provider = require('./middleware/determine_provider');
 var parse_body_conditional = require('./middleware/parse_body_conditional');
 var provider_handlers = require('./handlers/provider_handlers');
+var get_logs = require('./handlers/get_logs');
 var validate_schema = require('./middleware/validate_schema');
 var authorize = require('./middleware/authorize');
 var cors = require('cors');
@@ -22,13 +23,14 @@ var corsExecutionOptions = {
 };
 
 router.options('/function/:boundary/:name', cors(corsManagementOptions));
-router.put('/function/:boundary/:name', 
+router.put(
+  '/function/:boundary/:name',
   cors(corsManagementOptions),
-  authorize({ 
-    operation: 'function:put'
+  authorize({
+    operation: 'function:put',
   }),
   express.json(),
-  validate_schema({ 
+  validate_schema({
     body: require('./schemas/function_specification'),
     params: require('./schemas/api_params'),
   }),
@@ -37,12 +39,13 @@ router.put('/function/:boundary/:name',
 );
 
 router.options('/function/:boundary/:name/build/:build_id', cors(corsManagementOptions));
-router.get('/function/:boundary/:name/build/:build_id', 
+router.get(
+  '/function/:boundary/:name/build/:build_id',
   cors(corsManagementOptions),
-  authorize({ 
-    operation: 'function:build:get'
+  authorize({
+    operation: 'function:build:get',
   }),
-  validate_schema({ 
+  validate_schema({
     params: require('./schemas/api_params'),
   }),
   determine_provider(),
@@ -50,12 +53,13 @@ router.get('/function/:boundary/:name/build/:build_id',
 );
 
 router.options('/function/:boundary/:name', cors(corsManagementOptions));
-router.get('/function/:boundary/:name', 
+router.get(
+  '/function/:boundary/:name',
   cors(corsManagementOptions),
-  authorize({ 
-    operation: 'function:get'
+  authorize({
+    operation: 'function:get',
   }),
-  validate_schema({ 
+  validate_schema({
     params: require('./schemas/api_params'),
   }),
   determine_provider(),
@@ -63,12 +67,13 @@ router.get('/function/:boundary/:name',
 );
 
 router.options('/function/:boundary', cors(corsManagementOptions));
-router.get('/function/:boundary', 
+router.get(
+  '/function/:boundary',
   cors(corsManagementOptions),
-  authorize({ 
-    operation: 'functions:list'
+  authorize({
+    operation: 'functions:list',
   }),
-  validate_schema({ 
+  validate_schema({
     query: require('./schemas/api_query'),
     params: require('./schemas/api_params'),
   }),
@@ -77,47 +82,78 @@ router.get('/function/:boundary',
 );
 
 router.options('/function/:boundary/:name', cors(corsManagementOptions));
-router.delete('/function/:boundary/:name', 
+router.delete(
+  '/function/:boundary/:name',
   cors(corsManagementOptions),
-  authorize({ 
-    operation: 'function:delete'
+  authorize({
+    operation: 'function:delete',
   }),
-  validate_schema({ 
+  validate_schema({
     params: require('./schemas/api_params'),
   }),
   determine_provider(),
   (req, res, next) => provider_handlers[req.provider].delete_function(req, res, next)
 );
 
+router.options('/logs/:boundary', cors(corsManagementOptions));
+router.get(
+  '/logs/:boundary',
+  cors(corsManagementOptions),
+  authorize({
+    operation: 'boundary:logs',
+  }),
+  validate_schema({
+    params: require('./schemas/api_params'),
+  }),
+  get_logs({ scope: 'boundary' })
+);
+
+router.options('/logs/:boundary/:name', cors(corsManagementOptions));
+router.get(
+  '/logs/:boundary/:name',
+  cors(corsManagementOptions),
+  authorize({
+    operation: 'function:logs',
+  }),
+  validate_schema({
+    params: require('./schemas/api_params'),
+  }),
+  get_logs({ scope: 'function' })
+);
+
 let run_route = /^\/run\/([^\/]+)\/([^\/]+).*$/;
 function promote_to_name_params(req, res, next) {
-  req.params.boundary = req.params[0]; delete req.params[0];
-  req.params.name = req.params[1]; delete req.params[1];
+  req.params.boundary = req.params[0];
+  delete req.params[0];
+  req.params.name = req.params[1];
+  delete req.params[1];
   return next();
 }
 
 router.options(run_route, cors(corsExecutionOptions));
 
-['post','put','patch'].forEach(verb => {
-  router[verb](run_route, 
+['post', 'put', 'patch'].forEach(verb => {
+  router[verb](
+    run_route,
     cors(corsExecutionOptions),
     promote_to_name_params,
-    validate_schema({ 
+    validate_schema({
       params: require('./schemas/api_params'),
     }),
     determine_provider(),
-    parse_body_conditional({ 
-      condition: req => req.provider === 'lambda' 
+    parse_body_conditional({
+      condition: req => req.provider === 'lambda',
     }),
     (req, res, next) => provider_handlers[req.provider].execute_function(req, res, next)
   );
 });
 
-['delete','get','head'].forEach(verb => {
-  router[verb](run_route, 
+['delete', 'get', 'head'].forEach(verb => {
+  router[verb](
+    run_route,
     cors(corsExecutionOptions),
     promote_to_name_params,
-    validate_schema({ 
+    validate_schema({
       params: require('./schemas/api_params'),
     }),
     determine_provider(),
