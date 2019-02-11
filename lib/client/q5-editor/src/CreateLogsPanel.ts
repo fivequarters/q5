@@ -51,9 +51,11 @@ export function createLogsPanel(element: HTMLElement, workspace: Workspace, opti
         }`,
       ];
       if (e.response) {
-        for (var h in e.response.getHeaderNames()) {
+        // @ts-ignore
+        for (var h in e.response.headers) {
           if (h !== 'x-fx-logs') {
-            lines.push(`${h}: ${e.response.getHeader(h)}`);
+            // @ts-ignore
+            lines.push(`${h}: ${e.response.headers[h]}`);
           }
         }
         // @ts-ignore
