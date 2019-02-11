@@ -30,7 +30,16 @@
       "@5qtrs/q5-functions": ["api/ext/q5-functions/src"],
       "@5qtrs/q5-functions-lambda": ["lib/server/q5-functions-lambda/src"],
       "@5qtrs/event": ["lib/core/event/src"],
-      "@5qtrs/function-demo": ["app/web/function-demo/src"]
+      "@5qtrs/function-demo": ["app/web/function-demo/src"],
+      "@5qtrs/image": ["lib/comp/image/src"],
+      "@5qtrs/scroll-stick": ["lib/comp/scroll-stick/src"],
+      "@5qtrs/passive": ["lib/browser/passive/src"],
+      "@5qtrs/nav-bar": ["lib/comp/nav-bar/src"],
+      "@5qtrs/body": ["lib/comp/body/src"],
+      "@5qtrs/corp-logo": ["lib/comp/corp-logo/src"],
+      "@5qtrs/fade": ["lib/comp/fade/src"],
+      "@5qtrs/modal": ["lib/comp/modal/src"],
+      "@5qtrs/corp-logo-dynamic": ["lib/comp/corp-logo-dynamic/src"]
     }
   }
 }
