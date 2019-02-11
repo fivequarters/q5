@@ -5,19 +5,15 @@ import styled from 'styled-components';
 // Internal Components
 // -------------------
 
-export const Container = styled.div`
-  font-family: Verdana, san-serif;
-  font-size: 28px;
-  font-weight: 300;
-  margin: 0px;
-  margin-bottom: 20px;
+const Container = styled.div`
+  width: 100%;
 `;
 
 // --------------
 // Exported Types
 // --------------
 
-export type HeadingProps = {
+export type ComponentProps = {
   componentProp?: string;
 } & React.BaseHTMLAttributes<HTMLDivElement>;
 
@@ -25,6 +21,6 @@ export type HeadingProps = {
 // Exported Components
 // -------------------
 
-export function Heading({ children, ...props }: HeadingProps) {
-  return <Container {...props}>{children}</Container>;
+export function Component({ ...props }: ComponentProps) {
+  return <Container {...props} />;
 }
