@@ -1,0 +1,1 @@
+export { asPassive } from './asPassive';
