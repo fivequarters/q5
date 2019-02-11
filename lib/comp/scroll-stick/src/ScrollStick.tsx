@@ -63,7 +63,7 @@ export function ScrollStick({
   style,
   ...rest
 }: ScrollStickProps) {
-  useWindowScroll = useWindowScroll || true;
+  useWindowScroll = useWindowScroll === false ? false : true;
   const [sticky, setStickyState] = useState<IStickyState>({
     offset: -1,
     height: -1,
