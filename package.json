@@ -62,6 +62,6 @@
     "lib/core/event",
     "app/web/function-demo",
     "api/int/pubsub",
-    "lib/server/q5-logger"
+    "lib/server/logger"
   ]
 }

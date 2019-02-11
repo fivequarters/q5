@@ -1,5 +1,5 @@
 {
-  "name": "@5qtrs/q5-logger",
+  "name": "@5qtrs/logger",
   "version": "0.0.1",
   "description": "",
   "main": "lib/index.js",

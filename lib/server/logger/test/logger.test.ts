@@ -1,4 +1,4 @@
-describe('q5-logger', () => {
+describe('logger', () => {
   it('works', () => {
     expect(true);
   });
