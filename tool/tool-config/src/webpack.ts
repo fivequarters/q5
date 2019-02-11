@@ -35,6 +35,10 @@ export default function webpack(packageJson: any): any {
           test: /\.svg$/,
           use: [{ loader: 'svg-inline-loader' }],
         },
+        {
+          test: /\.(png|jpg|jpeg|gif)$/,
+          use: ['file-loader'],
+        },
       ],
     },
     output: {
