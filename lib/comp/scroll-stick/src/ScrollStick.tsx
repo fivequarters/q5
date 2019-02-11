@@ -1,5 +1,6 @@
+import { clone } from '@5qtrs/clone';
 import { asPassive } from '@5qtrs/passive';
-import React, { useEffect, useState } from 'react';
+import React, { useLayoutEffect, useState } from 'react';
 import styled from 'styled-components';
 
 // -------------------
@@ -9,6 +10,7 @@ import styled from 'styled-components';
 interface IStickyState {
   offset: number;
   height: number;
+  width: number;
   enabled: boolean;
   parent: Window | HTMLElement;
 }
@@ -53,9 +55,22 @@ export type ScrollStickProps = {
 // Exported Components
 // -------------------
 
-export function ScrollStick({ children, onStickyChange, useWindowScroll, className, ...rest }: ScrollStickProps) {
-  useWindowScroll = useWindowScroll || false;
-  const [sticky, setStickyState] = useState<IStickyState>({ offset: -1, height: -1, enabled: false, parent: window });
+export function ScrollStick({
+  children,
+  onStickyChange,
+  useWindowScroll,
+  className,
+  style,
+  ...rest
+}: ScrollStickProps) {
+  useWindowScroll = useWindowScroll || true;
+  const [sticky, setStickyState] = useState<IStickyState>({
+    offset: -1,
+    height: -1,
+    width: -1,
+    enabled: false,
+    parent: window,
+  });
 
   function onNavBarElement(element: HTMLDivElement): void {
     if (element && sticky.offset === -1) {
@@ -63,6 +78,7 @@ export function ScrollStick({ children, onStickyChange, useWindowScroll, classNa
         enabled: sticky.enabled,
         offset: element.offsetTop,
         height: element.offsetHeight,
+        width: element.offsetWidth,
         parent: useWindowScroll ? window : element.parentElement || window,
       });
       checkIfSticky();
@@ -82,7 +98,7 @@ export function ScrollStick({ children, onStickyChange, useWindowScroll, classNa
     }
   };
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (sticky.parent) {
       sticky.parent.addEventListener('scroll', checkIfSticky, asPassive());
       return () => sticky.parent.removeEventListener('scroll', checkIfSticky, asPassive());
@@ -91,9 +107,14 @@ export function ScrollStick({ children, onStickyChange, useWindowScroll, classNa
 
   const adjustedClassName = `${className || ''}${sticky.enabled ? ' sticky' : ''}`;
 
+  const styleWithWidth = style !== undefined ? clone(style) : {};
+  if (sticky.width !== -1) {
+    styleWithWidth.width = styleWithWidth.width || sticky.width;
+  }
+
   return (
     <>
-      <Container {...rest} className={adjustedClassName} ref={onNavBarElement}>
+      <Container {...rest} style={styleWithWidth} className={adjustedClassName} ref={onNavBarElement}>
         {children}
       </Container>
       <div style={{ height: sticky.enabled ? sticky.height : 0 }} />

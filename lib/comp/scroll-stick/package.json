@@ -22,7 +22,8 @@
   "dependencies": {
     "react": "16.7.0-alpha.2",
     "styled-components": "^4.1.3",
-    "@5qtrs/passive": "^0.0.1"
+    "@5qtrs/passive": "^0.0.1",
+    "@5qtrs/clone": "^0.0.1"
   },
   "devDependencies": {
     "react-dom": "16.7.0-alpha.2",
