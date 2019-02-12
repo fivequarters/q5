@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import styled, { createGlobalStyle, ThemeProvider } from 'styled-components';
+import { isString, isObject } from '@5qtrs/type';
+import { loadFonts } from '@5qtrs/font';
 
 // -------------------
 // Internal Components
@@ -27,6 +29,8 @@ const Container = styled.div`
 
 export type BodyProps = {
   theme?: any;
+  fonts?: Array<string>;
+  onReady?: () => void;
   children?: any;
 } & React.BaseHTMLAttributes<HTMLDivElement>;
 
@@ -34,7 +38,30 @@ export type BodyProps = {
 // Exported Components
 // -------------------
 
-export function Body({ children, theme = {}, ...rest }: BodyProps) {
+export function Body({ children, theme = {}, fonts = [], onReady, ...rest }: BodyProps) {
+  const allFonts: Array<string> = [];
+  allFonts.push(...fonts);
+  if (theme.fonts && isObject(theme.fonts)) {
+    for (const fontKey in theme.fonts) {
+      const font = theme.fonts[fontKey];
+      if (isString(font)) {
+        allFonts.push(font);
+      } else if (isObject(font) && font.name) {
+        allFonts.push(font.weight ? `${font.name}:${font.weight}` : font.name);
+      }
+    }
+  }
+
+  async function loadFontAsync() {
+    await loadFonts(allFonts);
+    if (onReady) {
+      onReady();
+    }
+  }
+  useEffect(() => {
+    loadFontAsync();
+  }, []);
+
   return (
     <ThemeProvider theme={theme}>
       <>

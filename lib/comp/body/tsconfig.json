@@ -2,5 +2,5 @@
   "extends": "../../../tsconfig.json",
   "compilerOptions": { "rootDir": "src", "outDir": "lib" },
   "include": ["src"],
-  "references": []
+  "references": [{ "path": "../../core/type" }, { "path": "../../browser/font" }]
 }
