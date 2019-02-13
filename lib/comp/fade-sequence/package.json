@@ -1,5 +1,5 @@
 {
-  "name": "@5qtrs/body",
+  "name": "@5qtrs/fade-sequence",
   "version": "0.0.1",
   "description": "",
   "main": "lib/index.js",
@@ -22,8 +22,7 @@
   "dependencies": {
     "react": "16.7.0-alpha.2",
     "styled-components": "^4.1.3",
-    "@5qtrs/type": "^0.0.1",
-    "@5qtrs/font": "^0.0.1"
+    "@5qtrs/fade": "^0.0.1"
   },
   "devDependencies": {
     "react-dom": "16.7.0-alpha.2",
@@ -36,6 +35,6 @@
     "@types/enzyme-adapter-react-16": "^1.0.3"
   },
   "devServer": {
-    "port": 8005
+    "port": 8010
   }
 }
