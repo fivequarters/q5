@@ -16,7 +16,6 @@ ctx => Superagent.get(ctx.url);
 // ctx => Superagent.post(ctx.url)
 //     .set('Authorization', \`Bearer \${ctx.configuration.MY_API_KEY}\`)
 //     .send({ hello: 'world' });
-
 `;
 
 export class Workspace extends EventEmitter {
@@ -109,6 +108,40 @@ export class Workspace extends EventEmitter {
     this.emit(event);
   }
 
+  addFile(fileName: string) {
+    this._ensureWritable();
+    if (!this.functionSpecification.nodejs) {
+      this.functionSpecification.nodejs = { files: {} };
+    }
+    if (this.functionSpecification.nodejs.files[fileName]) {
+      throw new Error(`File ${fileName} cannot be added because it already exists.`);
+    }
+    let content: string = `# ${fileName}`;
+    if (fileName.match(/\.js$/)) {
+      content = `module.exports = () => {};`;
+    } else if (fileName.match(/\.json$/)) {
+      content = `{}`;
+    }
+    this.functionSpecification.nodejs.files[fileName] = content;
+    let event = new Events.FileAddedEvent(fileName);
+    this.emit(event);
+    this.setDirtyState(true);
+  }
+
+  deleteFile(fileName: string) {
+    this._ensureWritable();
+    if (!this.functionSpecification.nodejs || !this.functionSpecification.nodejs.files[fileName]) {
+      throw new Error(`File ${fileName} does not exist.`);
+    }
+    let event = new Events.FileDeletedEvent(fileName);
+    this.emit(event);
+    this.setDirtyState(true);
+    if (this.selectedFileName === fileName) {
+      this.selectedFileName = undefined;
+    }
+    delete this.functionSpecification.nodejs.files[fileName];
+  }
+
   selectFile(fileName: string) {
     this._ensureWritable();
     if (fileName === this.selectedFileName) {
@@ -195,7 +228,7 @@ export class Workspace extends EventEmitter {
     } else if (this.selectedFileName.match(/\.json$/)) {
       return 'json';
     } else {
-      return undefined;
+      return 'text';
     }
   }
 

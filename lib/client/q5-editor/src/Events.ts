@@ -4,6 +4,8 @@ import { ServerResponse } from 'http';
 
 export enum Events {
   FileSelected = 'file:selected',
+  FileAdded = 'file:added',
+  FileDeleted = 'file:deleted',
   DirtyStateChanged = 'dirty-state:changed',
   ReadOnlyStateChanged = 'read-only-state:changed',
   SettingsComputeSelected = 'settings:compute:selected',
@@ -33,6 +35,16 @@ export class ClosedEvent implements EditorEvent {
 
 export class FileSelectedEvent implements EditorEvent {
   name: string = Events.FileSelected;
+  constructor(public fileName: string) {}
+}
+
+export class FileAddedEvent implements EditorEvent {
+  name: string = Events.FileAdded;
+  constructor(public fileName: string) {}
+}
+
+export class FileDeletedEvent implements EditorEvent {
+  name: string = Events.FileDeleted;
   constructor(public fileName: string) {}
 }
 

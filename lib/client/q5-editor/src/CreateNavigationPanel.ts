@@ -1,5 +1,6 @@
 import { Workspace } from './Workspace';
 import { INavigationPanelOptions, NavigationPanelOptions } from './Options';
+import * as Events from './Events';
 
 import 'jqtree';
 import './jqtree.css';
@@ -10,7 +11,8 @@ enum NodeIds {
   SettingsApplication = 103,
   Tools = 201,
   ToolsRunner = 202,
-  Code = 1001,
+  CodeAddRemove = 1001,
+  Code = 1002,
 }
 
 export function createNavigationPanel(element: HTMLElement, workspace: Workspace, options?: INavigationPanelOptions) {
@@ -20,9 +22,21 @@ export function createNavigationPanel(element: HTMLElement, workspace: Workspace
     ...options,
   };
 
-  let id = `q5-nav-${Math.floor(99999999 * Math.random()).toString(26)}`;
-  $(element).html(`<div id="${id}" class="q5-nav"></div>`);
-  let $nav = $(`#${id}`);
+  let idPrefix = `q5-nav-${Math.floor(99999999 * Math.random()).toString(26)}`;
+  let addButtonId = `${idPrefix}-add-file`;
+  let removeButtonId = `${idPrefix}-remove-file`;
+  let codeActionsId = `${idPrefix}-code-actions`;
+  let newFileId = `${idPrefix}-new-file`;
+  let deleteFileConfirmId = `${idPrefix}-delete-file`;
+  let confirmDeleteButtonId = `${idPrefix}-delete-file-confirm`;
+  let cancelDeleteButtonId = `${idPrefix}-delete-file-cancel`;
+  let newFileNameId = `${idPrefix}-new-file-name`;
+  $(element).html(`<div id="${idPrefix}-main" class="q5-nav"></div>`);
+  let $nav = $(`#${idPrefix}-main`);
+
+  let addingNewFile: boolean = false;
+  let deletingFile: boolean = false;
+  var fileNo = NodeIds.Code + 1;
 
   let data: any[] = [];
 
@@ -30,21 +44,19 @@ export function createNavigationPanel(element: HTMLElement, workspace: Workspace
     let code = {
       name: 'Code',
       id: NodeIds.Code,
-      children: <{ name: string; fileName: string; id: number }[]>[],
+      children: <{ name: string; fileName?: string; id: number }[]>[],
     };
     if (workspace.functionSpecification && workspace.functionSpecification.nodejs) {
-      var fileNo = NodeIds.Code + 1;
-      for (var fileName in workspace.functionSpecification.nodejs.files) {
+      let fileNames = Object.keys(workspace.functionSpecification.nodejs.files).sort();
+      for (var i = 0; i < fileNames.length; i++) {
+        let fileName = fileNames[i];
         if ((<string[]>effectiveOptions.hideFiles).indexOf(fileName) < 0) {
           let child = { name: fileName, fileName, id: fileNo++ };
-          if (!code.children) {
-            code.children = [child];
-          } else {
-            code.children.push(child);
-          }
+          code.children.push(child);
         }
       }
     }
+    code.children.push({ name: 'AddRemove', id: NodeIds.CodeAddRemove });
     data.push(code);
   }
   if (!effectiveOptions.hideComputeSettings || !effectiveOptions.hideApplicationSettings) {
@@ -70,19 +82,42 @@ export function createNavigationPanel(element: HTMLElement, workspace: Workspace
     data.push(tools);
   }
 
-  return $nav
+  let result = $nav
     .tree({
       data,
       autoOpen: true,
       dragAndDrop: true,
+      onCreateLi: (node, $li) => {
+        if (node.id === NodeIds.CodeAddRemove) {
+          let lines = [
+            `<span id="${deleteFileConfirmId}" style="display:none" class="q5-delete-file-confirm">Delete?&nbsp;<button id="${confirmDeleteButtonId}" class="q5-code-action-btn"><i class="far fa-check-circle"></i></button>`,
+            `<button id="${cancelDeleteButtonId}" class="q5-code-action-btn"><i class="far fa-times-circle"></i></button></span>`,
+            `<span id="${newFileId}" style="display:none"><input id="${newFileNameId}" placeholder="newFile.js" size="15" class="q5-new-file-input"></span>`,
+            `<span id="${codeActionsId}"><button id="${addButtonId}" class="q5-code-action-btn"><i class="far fa-plus-square"></i></button>`,
+            `<button id="${removeButtonId}" class="q5-code-action-btn"><i class="far fa-minus-square"></i></button></span>`,
+          ];
+          $li.find('.jqtree-element span').html(lines.join(''));
+        }
+      },
+      onCanSelectNode: node => {
+        return [NodeIds.CodeAddRemove, NodeIds.Settings, NodeIds.Tools, NodeIds.Code].indexOf(<number>node.id) < 0;
+      },
     })
     .on('tree.select', function(event: any) {
       if (event.node) {
+        if (addingNewFile) {
+          endAddingNewFile();
+        }
+        if (deletingFile) {
+          endDeletingFile(false);
+        }
+        if (event.node.id > NodeIds.Code) {
+          // an existing file was selected - enable the button to delete it
+          $(`#${removeButtonId}`).removeAttr('disabled');
+        } else {
+          $(`#${removeButtonId}`).attr('disabled', 'disabled');
+        }
         switch (event.node.id) {
-          case NodeIds.Settings:
-          case NodeIds.Tools:
-          case NodeIds.Code:
-            break; // "folder" level - ignore
           case NodeIds.SettingsApplication:
             workspace.selectSettingsApplication();
             break;
@@ -98,4 +133,122 @@ export function createNavigationPanel(element: HTMLElement, workspace: Workspace
         }
       }
     });
+
+  // Add event listeners to add/remove file controls
+  attachFileManipulationEvents();
+
+  workspace.on(Events.Events.FileAdded, (e: Events.FileAddedEvent) => {
+    let fileNodes = ($nav.tree('getNodeById', NodeIds.Code) || { children: [] }).children || [];
+    let largerNode: INode = <INode>$nav.tree('getNodeById', NodeIds.CodeAddRemove);
+    for (var i = 0; i < fileNodes.length; i++) {
+      if (fileNodes[i].fileName > e.fileName) {
+        largerNode = fileNodes[i];
+        break;
+      }
+    }
+    $nav.tree('addNodeBefore', { name: e.fileName, fileName: e.fileName, id: fileNo++ }, largerNode);
+    let newNode = $nav.tree('getNodeById', fileNo - 1);
+    $nav.tree('selectNode', newNode);
+    attachFileManipulationEvents(); // jqTree re-generates the DOM, so we need to re-attach events
+  });
+
+  workspace.on(Events.Events.FileDeleted, (e: Events.FileDeletedEvent) => {
+    let fileNodes = ($nav.tree('getNodeById', NodeIds.Code) || { children: [] }).children || [];
+    let node: INode | undefined = undefined;
+    for (var i = 0; i < fileNodes.length; i++) {
+      if (fileNodes[i].fileName === e.fileName) {
+        node = fileNodes[i];
+        break;
+      }
+    }
+    if (node) {
+      $nav.tree('removeNode', node);
+    }
+    fileNodes = ($nav.tree('getNodeById', NodeIds.Code) || { children: [] }).children || [];
+    if (fileNodes.length > 0) {
+      $nav.tree('selectNode', fileNodes[0]);
+    }
+    attachFileManipulationEvents(); // jqTree re-generates the DOM, so we need to re-attach events
+  });
+
+  function endAddingNewFile(fileName?: string) {
+    addingNewFile = false;
+    let $codeActions = $(`#${codeActionsId}`);
+    let $newFile = $(`#${newFileId}`);
+    $newFile.hide();
+    $codeActions.show();
+    if (fileName) {
+      if (workspace.functionSpecification.nodejs && workspace.functionSpecification.nodejs.files[fileName]) {
+        // file exists, select it
+        let fileNodes = ($nav.tree('getNodeById', NodeIds.Code) || { children: [] }).children || [];
+        for (var i = 0; i < fileNodes.length; i++) {
+          if (fileNodes[i].fileName === fileName) {
+            $nav.tree('selectNode', fileNodes[i]);
+          }
+        }
+      } else {
+        workspace.addFile(fileName);
+      }
+    }
+  }
+
+  function endDeletingFile(confirm: boolean) {
+    deletingFile = false;
+    let $codeActions = $(`#${codeActionsId}`);
+    let $deleteFileConfirm = $(`#${deleteFileConfirmId}`);
+    $deleteFileConfirm.hide();
+    $codeActions.show();
+    if (confirm) {
+      let node = $nav.tree('getSelectedNode');
+      workspace.deleteFile((<INode>node).fileName);
+    }
+  }
+
+  function attachFileManipulationEvents() {
+    let $addButton = $(`#${addButtonId}`);
+    let $removeButton = $(`#${removeButtonId}`);
+    let $confirmDeleteButton = $(`#${confirmDeleteButtonId}`);
+    let $cancelDeleteButton = $(`#${cancelDeleteButtonId}`);
+    let $newFileName = $(`#${newFileNameId}`);
+    let $codeActions = $(`#${codeActionsId}`);
+    let $deleteFileConfirm = $(`#${deleteFileConfirmId}`);
+    let $newFile = $(`#${newFileId}`);
+
+    $addButton.click(e => {
+      e.preventDefault();
+      addingNewFile = true;
+      $codeActions.hide();
+      $newFile.show();
+      $newFileName.val('').focus();
+    });
+
+    $removeButton.click(e => {
+      e.preventDefault();
+      deletingFile = true;
+      $codeActions.hide();
+      $deleteFileConfirm.show();
+    });
+
+    $newFileName.keyup(e => {
+      if (e.which == 13 || e.keyCode == 13) {
+        // enter
+        endAddingNewFile(<string>$newFileName.val());
+      } else if (e.which == 27 || e.keyCode == 27) {
+        // escape
+        endAddingNewFile();
+      }
+    });
+
+    $confirmDeleteButton.click(e => {
+      e.preventDefault();
+      endDeletingFile(true);
+    });
+
+    $cancelDeleteButton.click(e => {
+      e.preventDefault();
+      endDeletingFile(false);
+    });
+  }
+
+  return result;
 }

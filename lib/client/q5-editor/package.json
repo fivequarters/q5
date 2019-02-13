@@ -16,7 +16,7 @@
     "clean": "rm -r -f lib; rm -r -f coverage",
     "clean:build": "rm -r -f lib",
     "clean:coverage": "rm -r -f coverage",
-    "publish": "echo NOT IMPLEMENTED && exit 1",
+    "copy": "cp ./dist/* ../../../app/web/function-demo/public/js/",
     "dev": "webpack --progress --colors --watch --env dev",
     "bundle:dev": "webpack --env dev",
     "bundle:prod": "webpack --env build",
