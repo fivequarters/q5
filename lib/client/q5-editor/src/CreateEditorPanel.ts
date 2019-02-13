@@ -1,5 +1,5 @@
 import { Workspace } from './Workspace';
-import { Events } from './Events';
+import { Events, FileDeletedEvent } from './Events';
 import * as Monaco from 'monaco-editor/esm/vs/editor/editor.api.js';
 import { IEditorPanelOptions } from './Options';
 import * as Assert from 'assert';
@@ -41,6 +41,14 @@ export function createEditorPanel(element: HTMLElement, workspace: Workspace, op
     } else {
       Assert.fail('Model or language cannot be determined for the selected file.');
     }
+    $(element).show();
+  });
+
+  // When the edited file is deleted, hide the editor
+  workspace.on(Events.FileDeleted, function(e: FileDeletedEvent) {
+    if (workspace.selectedFileName === e.fileName) {
+      $(element).hide();
+    }
   });
 
   // When runner is selected in the workspace, update editor content and language
@@ -54,6 +62,7 @@ export function createEditorPanel(element: HTMLElement, workspace: Workspace, op
     } else {
       Assert.fail('Model cannot be determined the runner script.');
     }
+    $(element).show();
   });
 
   // When compute settings are selected, serialize them and display as INI for editing
@@ -69,6 +78,7 @@ export function createEditorPanel(element: HTMLElement, workspace: Workspace, op
     } else {
       Assert.fail('Model cannot be determined for compute node.');
     }
+    $(element).show();
   });
 
   // When application settings are selected, serialize them and display as INI for editing
@@ -85,6 +95,7 @@ export function createEditorPanel(element: HTMLElement, workspace: Workspace, op
     } else {
       Assert.fail('Model cannot be determined for app settings node.');
     }
+    $(element).show();
   });
 
   editor.onDidChangeModelContent(function(_: any) {
