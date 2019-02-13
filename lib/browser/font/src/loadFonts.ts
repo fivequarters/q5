@@ -89,7 +89,6 @@ function areFontsLoaded(fonts: FontData, keyPrefix?: string) {
   const data = getFontData(keyPrefix);
   for (const font in fonts) {
     const weights = data[font];
-    console.log(weights);
     if (!weights) {
       return false;
     }

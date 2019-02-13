@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useLayoutEffect, useState } from 'react';
 import styled from 'styled-components';
 
 // ------------------
@@ -57,7 +57,7 @@ export function Fade({ visible, fadeOut, fadeIn, fadeRate, onFadeIn, onFadeOut, 
     setVisibleLast(visible || false);
   }
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (opacity >= minOpacity && opacity <= maxOpacity) {
       setTimeout(() => {
         const newOpacity = updateOpacity(opacity, visible || false, fadeRate as number);

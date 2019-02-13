@@ -73,6 +73,8 @@
     "lib/comp/modal",
     "lib/comp/corp-logo-dynamic",
     "api/int/pubsub",
-    "lib/server/logger"
+    "lib/server/logger",
+    "lib/browser/font",
+    "lib/comp/fade-sequence"
   ]
 }

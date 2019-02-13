@@ -6,12 +6,13 @@ import styled from 'styled-components';
 // Internal Components
 // -------------------
 
+//  box-shadow: 0px 0px 20px #d5d8dc;
 const Container = styled.div`
   display: flex;
   width: 100%;
   padding: 20px;
   &.sticky {
-    box-shadow: 0px 0px 20px #d5d8dc;
+    border-bottom: 1px solid #d5d8dc;
   }
 `;
 

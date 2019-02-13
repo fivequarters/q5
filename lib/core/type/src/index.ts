@@ -80,6 +80,6 @@ export function asRegExp(value: any): RegExp | boolean {
   return isRegExp(value) ? value : undefined;
 }
 
-export function ensureArray(value: any): Array<any> {
-  return isArray(value) ? value : [value];
+export function ensureArray<T>(value: T | Array<T>): Array<T> {
+  return isArray(value) ? (value as Array<T>) : [value as T];
 }

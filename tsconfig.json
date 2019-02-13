@@ -41,7 +41,9 @@
       "@5qtrs/modal": ["lib/comp/modal/src"],
       "@5qtrs/corp-logo-dynamic": ["lib/comp/corp-logo-dynamic/src"],
       "@5qtrs/pubsub": ["api/int/pubsub/src"],
-      "@5qtrs/logger": ["lib/server/logger/src"]
+      "@5qtrs/logger": ["lib/server/logger/src"],
+      "@5qtrs/font": ["lib/browser/font/src"],
+      "@5qtrs/fade-sequence": ["lib/comp/fade-sequence/src"]
     }
   }
 }
