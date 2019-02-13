@@ -19,7 +19,7 @@ interface IHookOptions {
   baseUrl?: string;
   token?: string;
   accountResolver?: AccountResolver;
-  template?: any;
+  editorOptions?: any;
 }
 
 export function edit(options: IHookOptions): Promise<IQ5HookResult> {
@@ -39,6 +39,11 @@ export function edit(options: IHookOptions): Promise<IQ5HookResult> {
       throw new Error('either options.accountResolver or options.token and options.baseUrl must be specified.');
     }
   }
+
+  // Force the existence of the close button
+  options.editorOptions = options.editorOptions || {};
+  options.editorOptions.actionPanel = options.editorOptions.actionPanel || {};
+  options.editorOptions.actionPanel.enableClose = true;
 
   // Promise completes with IQ5HookResult when editor is closed by the user
   return new Promise((resolve, reject) => {
@@ -73,7 +78,7 @@ export function edit(options: IHookOptions): Promise<IQ5HookResult> {
             {
               boundary: options.boundary,
               function: options.function,
-              template: options.template,
+              editorOptions: options.editorOptions,
               requestId: event.data.requestId,
             },
             '*'

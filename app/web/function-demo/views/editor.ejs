@@ -96,11 +96,7 @@
 
         server.loadWorkspace(configuration.boundary, configuration.function, new q5.Workspace())
             .then(workspace => {
-                q5.createEditor(document.getElementById('editor'), workspace, server, {
-                    actionPanel: {
-                        enableClose: true,
-                    }
-                });
+                q5.createEditor(document.getElementById('editor'), workspace, server, configuration.editorOptions);
 
                 workspace.on('closed', function (e) {
                     window.removeEventListener('message', messageHandler);

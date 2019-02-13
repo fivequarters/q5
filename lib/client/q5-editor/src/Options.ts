@@ -1,67 +1,71 @@
 export interface IEditorOptions {
-    actionPanel?: IActionPanelOptions | boolean;
-    editorPanel?: IEditorPanelOptions | boolean;
-    logsPanel?: ILogsPanelOptions | boolean;
-    navigationPanel?: INavigationPanelOptions | boolean; 
-    statusPanel?: IStatusPanelOptions | boolean;
-    [property:string]: any;
+  actionPanel?: IActionPanelOptions | boolean;
+  editorPanel?: IEditorPanelOptions | boolean;
+  logsPanel?: ILogsPanelOptions | boolean;
+  navigationPanel?: INavigationPanelOptions | boolean;
+  statusPanel?: IStatusPanelOptions | boolean;
+  [property: string]: any;
 }
 
 export class EditorOptions implements IEditorOptions {
-    actionPanel = new ActionPanelOptions();
-    editorPanel = new EditorPanelOptions();
-    logsPanel = new LogsPanelOptions();
-    navigationPanel = new NavigationPanelOptions();
-    statusPanel = new StatusPanelOptions();
-    [property:string]: any;
+  actionPanel = new ActionPanelOptions();
+  editorPanel = new EditorPanelOptions();
+  logsPanel = new LogsPanelOptions();
+  navigationPanel = new NavigationPanelOptions();
+  statusPanel = new StatusPanelOptions();
+  [property: string]: any;
 }
 
 export interface IActionPanelOptions {
-    enableCodeOnlyToggle?: boolean;
-    enableFullScreen?: boolean;
-    enableClose?: boolean;
-    [property:string]: any;
+  enableCodeOnlyToggle?: boolean;
+  enableFullScreen?: boolean;
+  enableClose?: boolean;
+  [property: string]: any;
 }
 
 export class ActionPanelOptions implements IActionPanelOptions {
-    enableCodeOnlyToggle: boolean = true;
-    enableFullScreen: boolean = true;
-    enableClose: boolean = false;
-    constructor() {}
+  enableCodeOnlyToggle: boolean = true;
+  enableFullScreen: boolean = true;
+  enableClose: boolean = false;
+  constructor() {}
 }
 
 export interface IEditorPanelOptions {
-    [property:string]: any;
+  [property: string]: any;
 }
 
-export class EditorPanelOptions implements IEditorPanelOptions {
-    
-}
+export class EditorPanelOptions implements IEditorPanelOptions {}
 
 export interface ILogsPanelOptions {
-    maxSize?: number;
-    [property:string]: any;
+  maxSize?: number;
+  [property: string]: any;
 }
 
 export class LogsPanelOptions implements ILogsPanelOptions {
-    maxSize: number = 10 * 1024;
-    constructor() {}
+  maxSize: number = 10 * 1024;
+  constructor() {}
 }
 
 export interface INavigationPanelOptions {
-    [property:string]: any;
+  hideCode?: boolean;
+  hideFiles?: string[];
+  hideComputeSettings?: boolean;
+  hideApplicationSettings?: boolean;
+  hideRunnerTool?: boolean;
+  [property: string]: any;
 }
 
 export class NavigationPanelOptions implements INavigationPanelOptions {
-    
+  hideCode = false;
+  hideFiles = [];
+  hideComputeSettings = true; // hide Compute settings by default
+  hideApplicationSettings = false;
+  hideRunnerTool = false;
+  constructor() {}
 }
-
 
 export interface IStatusPanelOptions {
-    [property:string]: any;
+  [property: string]: any;
 }
 
-export class StatusPanelOptions implements IStatusPanelOptions {
-    
-}
-
+export class StatusPanelOptions implements IStatusPanelOptions {}

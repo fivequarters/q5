@@ -134,7 +134,7 @@
             token: "<%- process.env.API_AUTHORIZATION_KEY %>",
             boundary: "myboundary",
             function: "myfunction1",
-            template: "",
+            editorOptions: {},
         })
         .then(result => {
             document.getElementById('on_new_lead').value = result.url;

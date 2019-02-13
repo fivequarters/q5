@@ -3,13 +3,6 @@ import { Events } from './Events';
 import { Server } from './Server';
 import { IActionPanelOptions, ActionPanelOptions } from './Options';
 
-import { library, dom } from '@fortawesome/fontawesome-svg-core';
-import { faSave, faPlay, faArrowsAlt, faCompress, faFileCode, faWindowClose } from '@fortawesome/free-solid-svg-icons';
-import { faFileCode as farFileCode } from '@fortawesome/free-regular-svg-icons';
-
-library.add(faSave, faPlay, faArrowsAlt, faCompress, faFileCode, farFileCode, faWindowClose);
-dom.watch();
-
 export function createActionPanel(
   element: HTMLElement,
   workspace: Workspace,

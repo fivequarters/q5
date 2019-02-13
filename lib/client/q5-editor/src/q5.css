@@ -1,143 +1,186 @@
 .q5-main {
-    display:flex;
-    flex-flow:column;
-    align-items:stretch;
-    width:100%;
-    height:100%;
-    max-height: 100%;
-    font-family:Verdana,sans-serif;
-    color: #212529;
-    border: 3px solid #ccc;
-    background: white;
+  display: flex;
+  flex-flow: column;
+  align-items: stretch;
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  font-family: Verdana, sans-serif;
+  color: #212529;
+  border: 3px solid #ccc;
+  background: white;
 }
 
 .q5-action-container {
-    flex:0 0 0;
-    border-bottom: 1px solid #ccc;
-    font-family:Verdana,sans-serif;
-    color: #212529;
+  flex: 0 0 0;
+  border-bottom: 1px solid #ccc;
+  font-family: Verdana, sans-serif;
+  color: #212529;
 }
 
 .q5-nav-editor-container {
-    flex: 1 1 auto;
-    display:flex;
-    flex-flow:row;
-    align-items:stretch;
-    min-height: 100px;
-    overflow: hidden;
+  flex: 1 1 auto;
+  display: flex;
+  flex-flow: row;
+  align-items: stretch;
+  min-height: 100px;
+  overflow: hidden;
 }
 
 .q5-logs-splitter {
-    flex: 0 0 auto;
-    height: 3px;
-    background: #ccc;
-    cursor: row-resize;
+  flex: 0 0 auto;
+  height: 3px;
+  background: #ccc;
+  cursor: row-resize;
 }
 
 .q5-nav-container {
-    flex: 0 0 auto;
-    padding-left: 1em;
-    padding-right: 1em;
-    width: 200px;
-    min-width: 100px;
-    min-height: 100px
+  flex: 0 0 auto;
+  padding-left: 1em;
+  padding-right: 1em;
+  width: 200px;
+  min-width: 100px;
+  min-height: 100px;
 }
 
 .q5-nav-splitter {
-    flex: 0 0 auto;
-    width: 3px;  
-    min-width: 3px;
-    background: #ccc;
-    min-height: 100px;
-    cursor: col-resize;  
+  flex: 0 0 auto;
+  width: 3px;
+  min-width: 3px;
+  background: #ccc;
+  min-height: 100px;
+  cursor: col-resize;
 }
 
 .q5-editor-container {
-    flex: 1 1 auto;
-    width: 100%;
-    min-height: 100px;
-    min-width: 100px;
-    overflow: hidden;
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 100px;
+  min-width: 100px;
+  overflow: hidden;
 }
 
 .q5-logs-container {
-    flex: 0 0 auto;
-    min-height: 100px;
-    height: 100px;
-    overflow: hidden;
+  flex: 0 0 auto;
+  min-height: 100px;
+  height: 100px;
+  overflow: hidden;
 }
 
 .q5-status-container {
-    flex:0 0 0;
-    border-top: 1px solid #ccc;
+  flex: 0 0 0;
+  border-top: 1px solid #ccc;
 }
 
 .q5-nav {
-    overflow: scroll;
-    height: 100%;
-    width: 100%;
+  overflow: scroll;
+  height: 100%;
+  width: 100%;
 }
 
 .q5-logs {
-    overflow: scroll;
-    height: 100%;
-    width: 100%;
+  overflow: scroll;
+  height: 100%;
+  width: 100%;
 }
 
 .q5-logs pre {
-    font-family:Verdana,sans-serif;
-    color: #212529;
-    font-size: 90%;
+  font-family: Verdana, sans-serif;
+  color: #212529;
+  font-size: 90%;
 }
 
 .q5-logs-content {
-    white-space: pre-wrap;       /* Since CSS 2.1 */
-    white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
-    white-space: -pre-wrap;      /* Opera 4-6 */
-    white-space: -o-pre-wrap;    /* Opera 7 */
-    word-wrap: break-word;       /* Internet Explorer 5.5+ */
+  white-space: pre-wrap; /* Since CSS 2.1 */
+  white-space: -moz-pre-wrap; /* Mozilla, since 1999 */
+  white-space: -pre-wrap; /* Opera 4-6 */
+  white-space: -o-pre-wrap; /* Opera 7 */
+  word-wrap: break-word; /* Internet Explorer 5.5+ */
 }
 
 .q5-status {
-    height: 1.5em;
-    width: 100%;
-    vertical-align: middle;
-    padding-left: 1em;
-    font-size: 90%;
+  height: 1.5em;
+  width: 100%;
+  vertical-align: middle;
+  padding-left: 1em;
+  font-size: 90%;
 }
 
 .q5-action-wrapper {
-    display: flex;
-    justify-content: space-between;
+  display: flex;
+  justify-content: space-between;
 }
 
 .q5-action-btn {
-    background-color: white;
-    border: 0;
-    color: #212529;
-    padding: 0.2em 0.5em;
-    cursor: pointer;
-    font-family:Verdana,sans-serif;
+  background-color: white;
+  border: 0;
+  color: #212529;
+  padding: 0.2em 0.5em;
+  cursor: pointer;
+  font-family: Verdana, sans-serif;
 }
 
 .q5-action-btn:hover:enabled {
-    background-color: #ddd;
+  background-color: #ddd;
 }
 
 .q5-action-btn:disabled {
-    color: #aaa;
+  color: #aaa;
 }
 
 .q5-action-btn:focus {
-    outline: 0;
+  outline: 0;
 }
 
-.q5-fullscreen{
-    z-index: 9999; 
-    width: 100%; 
-    height: 100%; 
-    position: fixed; 
-    top: 0; 
-    left: 0; 
-    border: 0px;
- }
+.q5-delete-file-confirm {
+  line-height: 1.2em;
+  font-family: Verdana, sans-serif;
+  color: red;
+  white-space: nowrap;
+}
+
+.q5-code-action-btn {
+  line-height: 1.2em;
+  background-color: white;
+  border: 0;
+  color: #212529;
+  padding: 0.2em;
+  font-size: 1.4em;
+  cursor: pointer;
+  font-family: Verdana, sans-serif;
+}
+
+.q5-code-action-btn:hover:enabled {
+  background-color: #ddd;
+}
+
+.q5-code-action-btn:disabled {
+  color: #aaa;
+}
+
+.q5-code-action-btn:focus {
+  outline: 0;
+}
+
+.q5-new-file-input {
+  font-family: inherit;
+  border: 1px solid black;
+  padding: 0 0.2em;
+  line-height: 1.4em;
+  margin-top: 0.4em;
+  margin-bottom: 0.3em;
+}
+
+.q5-new-file-input:focus {
+  outline: none;
+}
+
+.q5-fullscreen {
+  z-index: 9999;
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  border: 0px;
+}
