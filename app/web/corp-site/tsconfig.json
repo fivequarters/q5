@@ -1,0 +1,17 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": { "rootDir": "src", "outDir": "lib" },
+  "include": ["src"],
+  "references": [
+    { "path": "../../../lib/comp/image" },
+    { "path": "../../../lib/comp/scroll-stick" },
+    { "path": "../../../lib/comp/nav-bar" },
+    { "path": "../../../lib/comp/body" },
+    { "path": "../../../lib/comp/corp-logo" },
+    { "path": "../../../lib/comp/fade" },
+    { "path": "../../../lib/comp/modal" },
+    { "path": "../../../lib/comp/corp-logo-dynamic" },
+    { "path": "../../../lib/browser/font" },
+    { "path": "../../../lib/comp/fade-sequence" }
+  ]
+}

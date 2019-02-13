@@ -76,6 +76,7 @@
     "api/int/pubsub",
     "lib/server/logger",
     "lib/browser/font",
-    "lib/comp/fade-sequence"
+    "lib/comp/fade-sequence",
+    "app/web/corp-site"
   ]
 }
