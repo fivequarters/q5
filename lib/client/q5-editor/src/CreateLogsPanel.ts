@@ -42,40 +42,39 @@ export function createLogsPanel(element: HTMLElement, workspace: Workspace, opti
   });
 
   workspace.on(Events.Events.RunnerFinished, function(e: Events.RunnerFinishedEvent) {
+    let response = e.response;
     if (e.error) {
-      append(`RUN: error ${e.error.stack || e.error}`);
-    } else {
-      let lines: string[] = [
-        `RUN: received response HTTP ${e.response ? e.response.statusCode : 'N/A'} ${
-          e.response ? e.response.statusMessage : ''
-        }`,
-      ];
-      if (e.response) {
+      response = response || (<any>e.error).response;
+      if (!response) {
+        return append(`RUN: error ${(<any>e.error).stack || e.error}`);
+      }
+    }
+    if (!response) return;
+    let lines: string[] = [`RUN: received response HTTP ${response.statusCode} ${response.statusMessage}`];
+    // @ts-ignore
+    for (var h in response.headers) {
+      if (h !== 'x-fx-logs') {
         // @ts-ignore
-        for (var h in e.response.headers) {
-          if (h !== 'x-fx-logs') {
-            // @ts-ignore
-            lines.push(`${h}: ${e.response.headers[h]}`);
-          }
-        }
-        // @ts-ignore
-        if (e.response.text) {
-          // @ts-ignore
-          lines.push(`\n${e.response.text}`);
-        }
-        append(lines.join('\n'));
-        let logs = e.response.getHeader('x-fx-logs');
-        if (logs) {
-          let logsStr: string | undefined = logs.toString();
-          try {
-            logsStr = atob(logsStr);
-          } catch (_) {
-            logsStr = undefined;
-          }
-          if (logsStr) {
-            append(`RUN: server logs\n${logsStr}`);
-          }
-        }
+        lines.push(`${h}: ${response.headers[h]}`);
+      }
+    }
+    // @ts-ignore
+    if (response.text) {
+      // @ts-ignore
+      lines.push(`\n${response.text}`);
+    }
+    append(lines.join('\n'));
+    // @ts-ignore
+    let logs = response.headers['x-fx-logs'];
+    if (logs) {
+      let logsStr: string | undefined = logs.toString();
+      try {
+        logsStr = atob(<string>logsStr);
+      } catch (_) {
+        logsStr = undefined;
+      }
+      if (logsStr) {
+        append(`RUN: server logs\n${logsStr}`);
       }
     }
   });

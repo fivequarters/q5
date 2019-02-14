@@ -1,6 +1,5 @@
 import PubSub from '../src';
 import Zmq from 'zeromq';
-import { doesNotReject } from 'assert';
 
 const server = new PubSub();
 
