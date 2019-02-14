@@ -29,14 +29,11 @@ export function createActionPanel(
     <div>`,
   ];
   if (opts.enableClose) {
-    lines.push(
-      `        <button id="${closeId}" class="q5-action-btn"><i class="fa fa-window-close"></i> Close</button>`
-    );
+    lines.push(`        <button id="${closeId}" class="q5-action-btn"><i class="fa fa-window-close"></i></button>`);
   }
-  lines.push(`        <button id="${saveId}" class="q5-action-btn"><i class="fa fa-save"></i> Save</button>
-        <button id="${runId}" class="q5-action-btn"><i class="fa fa-play"></i> Run</button>
-    </div>
-    <div>`);
+  lines.push(`        <button id="${saveId}" class="q5-action-btn"><i class="fa fa-save"></i></button>
+        <button id="${runId}" class="q5-action-btn"><i class="fa fa-play"></i></button>
+   `);
   if (opts.enableCodeOnlyToggle) {
     lines.push(`
         <button id="${hideNavLogsId}" class="q5-action-btn"><i class="far fa-file-code"></i></button>

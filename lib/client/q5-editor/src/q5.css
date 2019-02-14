@@ -1,27 +1,27 @@
-.q5-main {
-  display: flex;
-  flex-flow: column;
-  align-items: stretch;
+.q5-shell {
   width: 100%;
   height: 100%;
   max-height: 100%;
-  font-family: Verdana, sans-serif;
-  color: #212529;
-  border: 3px solid #ccc;
-  background: white;
+  font-family: Helvetica, Arial, sans-serif;
+  color: #d4d4d4;
+  border: 2px solid #283747;
+  background-color: #212f3c;
 }
 
-.q5-action-container {
-  flex: 0 0 0;
-  border-bottom: 1px solid #ccc;
-  font-family: Verdana, sans-serif;
-  color: #212529;
+.q5-main {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  height: calc(100% - 20px);
+  max-height: 100%;
+  font-family: Helvetica, Arial, sans-serif;
+  background: transparent;
 }
 
 .q5-nav-editor-container {
   flex: 1 1 auto;
   display: flex;
-  flex-flow: row;
+  flex-flow: column;
   align-items: stretch;
   min-height: 100px;
   overflow: hidden;
@@ -29,25 +29,24 @@
 
 .q5-logs-splitter {
   flex: 0 0 auto;
-  height: 3px;
-  background: #ccc;
+  height: 1px;
+  background: #2e4053;
   cursor: row-resize;
 }
 
 .q5-nav-container {
   flex: 0 0 auto;
-  padding-left: 1em;
-  padding-right: 1em;
-  width: 200px;
+  width: 150px;
   min-width: 100px;
   min-height: 100px;
+  background-color: #212f3c;
 }
 
 .q5-nav-splitter {
   flex: 0 0 auto;
-  width: 3px;
-  min-width: 3px;
-  background: #ccc;
+  width: 1px;
+  min-width: 1px;
+  background: #2e4053;
   min-height: 100px;
   cursor: col-resize;
 }
@@ -58,18 +57,24 @@
   min-height: 100px;
   min-width: 100px;
   overflow: hidden;
+  padding-top: 5px;
 }
 
 .q5-logs-container {
   flex: 0 0 auto;
   min-height: 100px;
   height: 100px;
+  background-color: #212f3c;
   overflow: hidden;
+  padding-left: 10px;
+  padding-top: 10px;
 }
 
 .q5-status-container {
   flex: 0 0 0;
-  border-top: 1px solid #ccc;
+  font-family: Helvetica, Arial, sans-serif;
+  color: #d4d4d4;
+  background-color: #1b2631;
 }
 
 .q5-nav {
@@ -85,9 +90,9 @@
 }
 
 .q5-logs pre {
-  font-family: Verdana, sans-serif;
-  color: #212529;
-  font-size: 90%;
+  font-family: Menlo, Monaco, 'Courier New', monospace;
+  color: #d4d4d4;
+  font-size: 11px;
 }
 
 .q5-logs-content {
@@ -99,11 +104,13 @@
 }
 
 .q5-status {
-  height: 1.5em;
+  height: 20px;
   width: 100%;
-  vertical-align: middle;
-  padding-left: 1em;
-  font-size: 90%;
+  margin: auto 0px;
+  text-align: right;
+  padding-right: 10px;
+  font-size: 12px;
+  padding-top: 2px;
 }
 
 .q5-action-wrapper {
@@ -111,64 +118,89 @@
   justify-content: space-between;
 }
 
+.q5-action-container {
+  flex: 0 0 0;
+  font-family: Verdana, sans-serif;
+  color: white;
+  width: 100px;
+  background-color: #283747;
+}
+
 .q5-action-btn {
-  background-color: white;
+  background-color: transparent;
   border: 0;
-  color: #212529;
+  color: #d4d4d4;
   padding: 0.2em 0.5em;
+  font-size: 22px;
   cursor: pointer;
   font-family: Verdana, sans-serif;
 }
 
 .q5-action-btn:hover:enabled {
-  background-color: #ddd;
+  color: white;
 }
 
 .q5-action-btn:disabled {
-  color: #aaa;
+  color: #5d6d7e;
 }
 
 .q5-action-btn:focus {
   outline: 0;
 }
 
-.q5-delete-file-confirm {
-  line-height: 1.2em;
-  font-family: Verdana, sans-serif;
-  color: red;
-  white-space: nowrap;
-}
-
-.q5-code-action-btn {
-  line-height: 1.2em;
-  background-color: white;
+.q5-code-action-add-btn {
+  float: right;
+  background-color: transparent;
   border: 0;
-  color: #212529;
-  padding: 0.2em;
-  font-size: 1.4em;
+  color: #d4d4d4;
+  font-size: 13px;
   cursor: pointer;
   font-family: Verdana, sans-serif;
 }
 
-.q5-code-action-btn:hover:enabled {
-  background-color: #ddd;
+.q5-code-file-icon {
+  color: #5499c7;
+  font-size: 12px;
+  margin-right: 7px;
 }
 
-.q5-code-action-btn:disabled {
-  color: #aaa;
+.q5-code-cogs-icon {
+  color: #5499c7;
+  font-size: 12px;
+  margin-right: 7px;
 }
 
-.q5-code-action-btn:focus {
-  outline: 0;
+.q5-code-secret-icon {
+  color: #5499c7;
+  font-size: 12px;
+  margin-right: 7px;
+}
+
+.q5-code-action-delete-btn {
+  display: none;
+  float: right;
+  background-color: transparent;
+  border: 0;
+  color: #d4d4d4;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: Verdana, sans-serif;
 }
 
 .q5-new-file-input {
   font-family: inherit;
-  border: 1px solid black;
+  border: 1px solid #5499c7;
   padding: 0 0.2em;
-  line-height: 1.4em;
-  margin-top: 0.4em;
-  margin-bottom: 0.3em;
+  margin-top: -4px;
+  background-color: #5d6d7e;
+  color: white;
+  width: calc(100% - 30px);
+  height: 23px;
+  font-size: 14px;
+}
+
+.q5-new-file-input::placeholder {
+  color: #d4d4d4;
 }
 
 .q5-new-file-input:focus {
