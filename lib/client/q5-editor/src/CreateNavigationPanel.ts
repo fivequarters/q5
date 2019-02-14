@@ -25,17 +25,11 @@ export function createNavigationPanel(element: HTMLElement, workspace: Workspace
   let idPrefix = `q5-nav-${Math.floor(99999999 * Math.random()).toString(26)}`;
   let addButtonId = `${idPrefix}-add-file`;
   let removeButtonId = `${idPrefix}-remove-file`;
-  let codeActionsId = `${idPrefix}-code-actions`;
   let newFileId = `${idPrefix}-new-file`;
-  let deleteFileConfirmId = `${idPrefix}-delete-file`;
-  let confirmDeleteButtonId = `${idPrefix}-delete-file-confirm`;
-  let cancelDeleteButtonId = `${idPrefix}-delete-file-cancel`;
   let newFileNameId = `${idPrefix}-new-file-name`;
   $(element).html(`<div id="${idPrefix}-main" class="q5-nav"></div>`);
   let $nav = $(`#${idPrefix}-main`);
 
-  let addingNewFile: boolean = false;
-  let deletingFile: boolean = false;
   var fileNo = NodeIds.Code + 1;
 
   let data: any[] = [];
@@ -122,30 +116,13 @@ export function createNavigationPanel(element: HTMLElement, workspace: Workspace
           ];
           $li.find('.jqtree-element span').html(lines.join(''));
         }
-
-        // if (node.id === NodeIds.CodeAddRemove) {
-        //   let lines = [
-        //     `<span id="${deleteFileConfirmId}" style="display:none" class="q5-delete-file-confirm">Delete?&nbsp;<button id="${confirmDeleteButtonId}" class="q5-code-action-btn"><i class="far fa-check-circle"></i></button>`,
-        //     `<button id="${cancelDeleteButtonId}" class="q5-code-action-btn"><i class="far fa-times-circle"></i></button></span>`,
-        //     `<span id="${newFileId}" style="display:none"><input id="${newFileNameId}" placeholder="newFile.js" size="15" class="q5-new-file-input"></span>`,
-        //     `<span id="${codeActionsId}"><button id="${addButtonId}" class="q5-code-action-btn"><i class="far fa-plus-square"></i></button>`,
-        //     `<button id="${removeButtonId}" class="q5-code-action-btn"><i class="far fa-minus-square"></i></button></span>`,
-        //   ];
-        //   $li.find('.jqtree-element span').html(lines.join(''));
-        // }
       },
       onCanSelectNode: node => {
-        return [NodeIds.Settings, NodeIds.Tools, NodeIds.Code].indexOf(<number>node.id) < 0;
+        return [NodeIds.CodeAdd, NodeIds.Settings, NodeIds.Tools, NodeIds.Code].indexOf(<number>node.id) < 0;
       },
     })
     .on('tree.select', function(event: any) {
       if (event.node) {
-        // if (addingNewFile) {
-        //   endAddingNewFile();
-        // }
-        // if (deletingFile) {
-        //   endDeletingFile(false);
-        // }
         switch (event.node.id) {
           case NodeIds.SettingsApplication:
             workspace.selectSettingsApplication();
@@ -201,11 +178,8 @@ export function createNavigationPanel(element: HTMLElement, workspace: Workspace
   });
 
   function endAddingNewFile(fileName?: string) {
-    addingNewFile = false;
-    let $codeActions = $(`#${codeActionsId}`);
     let $newFile = $(`#${newFileId}`);
     $newFile.hide();
-    $codeActions.show();
     if (fileName) {
       if (workspace.functionSpecification.nodejs && workspace.functionSpecification.nodejs.files[fileName]) {
         // file exists, select it
@@ -222,9 +196,6 @@ export function createNavigationPanel(element: HTMLElement, workspace: Workspace
   }
 
   function endDeletingFile(confirm: boolean, fileName: string) {
-    deletingFile = false;
-    let $codeActions = $(`#${codeActionsId}`);
-    $codeActions.show();
     if (confirm) {
       workspace.deleteFile(fileName);
     }
@@ -232,16 +203,11 @@ export function createNavigationPanel(element: HTMLElement, workspace: Workspace
 
   function attachFileManipulationEvents() {
     let $addButton = $(`#${addButtonId}`);
-    let $confirmDeleteButton = $(`#${confirmDeleteButtonId}`);
-    let $cancelDeleteButton = $(`#${cancelDeleteButtonId}`);
     let $newFileName = $(`#${newFileNameId}`);
-    let $codeActions = $(`#${codeActionsId}`);
     let $newFile = $(`#${newFileId}`);
 
     $addButton.click(e => {
       e.preventDefault();
-      addingNewFile = true;
-      $codeActions.hide();
       $newFile.show();
       $newFileName.val('').focus();
     });
@@ -252,8 +218,6 @@ export function createNavigationPanel(element: HTMLElement, workspace: Workspace
       const fileName = fileNodes[i].fileName;
       $(`#${removeButtonId}-${nodeId}`).click(e => {
         e.preventDefault();
-        deletingFile = true;
-        $codeActions.hide();
         endDeletingFile(true, fileName);
       });
     }
@@ -267,16 +231,6 @@ export function createNavigationPanel(element: HTMLElement, workspace: Workspace
         endAddingNewFile();
       }
     });
-
-    // $confirmDeleteButton.click(e => {
-    //   e.preventDefault();
-    //   endDeletingFile(true);
-    // });
-
-    // $cancelDeleteButton.click(e => {
-    //   e.preventDefault();
-    //   endDeletingFile(false);
-    // });
   }
 
   return result;

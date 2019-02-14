@@ -131,6 +131,7 @@ ul.jqtree-tree .jqtree-element:hover {
   background-color: #283747;
   color: white;
 }
+
 ul.jqtree-tree .jqtree-element:hover .q5-code-action-delete-btn {
   display: inline;
 }

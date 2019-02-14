@@ -126,7 +126,7 @@
   background-color: #283747;
 }
 
-.q5-action-btn-new {
+.q5-action-btn {
   background-color: transparent;
   border: 0;
   color: #d4d4d4;
@@ -136,15 +136,15 @@
   font-family: Verdana, sans-serif;
 }
 
-.q5-action-btn-new:hover:enabled {
+.q5-action-btn:hover:enabled {
   color: white;
 }
 
-.q5-action-btn-new:disabled {
+.q5-action-btn:disabled {
   color: #5d6d7e;
 }
 
-.q5-action-btn-new:focus {
+.q5-action-btn:focus {
   outline: 0;
 }
 
@@ -185,56 +185,6 @@
   font-size: 13px;
   cursor: pointer;
   font-family: Verdana, sans-serif;
-}
-.q5-action-btn {
-  background-color: transparent;
-  border: 0;
-  color: #212529;
-  padding: 0.2em 0.5em;
-  cursor: pointer;
-  font-family: Verdana, sans-serif;
-}
-
-.q5-action-btn:hover:enabled {
-  background-color: #ddd;
-}
-
-.q5-action-btn:disabled {
-  color: #aaa;
-}
-
-.q5-action-btn:focus {
-  outline: 0;
-}
-
-.q5-delete-file-confirm {
-  line-height: 1.2em;
-  font-family: Verdana, sans-serif;
-  color: red;
-  white-space: nowrap;
-}
-
-.q5-code-action-btn {
-  line-height: 1.2em;
-  background-color: white;
-  border: 0;
-  color: #212529;
-  padding: 0.2em;
-  font-size: 1.4em;
-  cursor: pointer;
-  font-family: Verdana, sans-serif;
-}
-
-.q5-code-action-btn:hover:enabled {
-  background-color: #ddd;
-}
-
-.q5-code-action-btn:disabled {
-  color: #aaa;
-}
-
-.q5-code-action-btn:focus {
-  outline: 0;
 }
 
 .q5-new-file-input {
