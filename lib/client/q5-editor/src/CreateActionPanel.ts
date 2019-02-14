@@ -30,23 +30,22 @@ export function createActionPanel(
   ];
   if (opts.enableClose) {
     lines.push(
-      `        <button id="${closeId}" class="q5-action-btn"><i class="fa fa-window-close"></i> Close</button>`
+      `        <button id="${closeId}" class="q5-action-btn-new"><i class="fa fa-window-close"></i> Close</button>`
     );
   }
-  lines.push(`        <button id="${saveId}" class="q5-action-btn"><i class="fa fa-save"></i> Save</button>
-        <button id="${runId}" class="q5-action-btn"><i class="fa fa-play"></i> Run</button>
-    </div>
-    <div>`);
+  lines.push(`        <button id="${saveId}" class="q5-action-btn-new"><i class="fa fa-save"></i></button>
+        <button id="${runId}" class="q5-action-btn-new"><i class="fa fa-play"></i></button>
+   `);
   if (opts.enableCodeOnlyToggle) {
     lines.push(`
-        <button id="${hideNavLogsId}" class="q5-action-btn"><i class="far fa-file-code"></i></button>
-        <button id="${showNavLogsId}" class="q5-action-btn" style="display: none"><i class="fas fa-file-code"></i></button>
+        <button id="${hideNavLogsId}" class="q5-action-btn-new"><i class="far fa-file-code"></i></button>
+        <button id="${showNavLogsId}" class="q5-action-btn-new" style="display: none"><i class="fas fa-file-code"></i></button>
 `);
   }
   if (opts.enableFullScreen) {
     lines.push(`
-        <button id="${expandId}" class="q5-action-btn"><i class="fa fa-arrows-alt"></i></button>
-        <button id="${compressId}" class="q5-action-btn" style="display: none"><i class="fa fa-compress"></i></button>
+        <button id="${expandId}" class="q5-action-btn-new"><i class="fa fa-arrows-alt"></i></button>
+        <button id="${compressId}" class="q5-action-btn-new" style="display: none"><i class="fa fa-compress"></i></button>
 `);
   }
   lines.push(`
