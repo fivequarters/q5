@@ -101,6 +101,7 @@ router.get(
   cors(corsManagementOptions),
   authorize({
     operation: 'system:logs',
+    getToken: req => req.query && req.query.token,
   }),
   get_logs({ topic: req => req.params.topic })
 );
@@ -111,6 +112,7 @@ router.get(
   cors(corsManagementOptions),
   authorize({
     operation: 'boundary:logs',
+    getToken: req => req.query && req.query.token,
   }),
   validate_schema({
     params: require('./schemas/api_params'),
@@ -124,6 +126,7 @@ router.get(
   cors(corsManagementOptions),
   authorize({
     operation: 'function:logs',
+    getToken: req => req.query && req.query.token,
   }),
   validate_schema({
     params: require('./schemas/api_params'),

@@ -101,6 +101,7 @@ export default class PubSub {
         Logger.info({ topic, activeConnections }, 'websocket publisher disconnected');
       });
 
+      // TODO tjanczuk, add limit for the max volume of data a single connection can log
       socket.on('message', message => {
         // console.log('MESSAGE', message);
         if (this.xpubSock) {

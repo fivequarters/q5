@@ -14,6 +14,24 @@ export function createLogsPanel(element: HTMLElement, workspace: Workspace, opti
     ...options,
   };
 
+  workspace.on(Events.Events.LogsAttached, e => {
+    // append('Server logs attached');
+  });
+
+  workspace.on(Events.Events.LogsDetached, (e: Events.LogsDetached) => {
+    // append(e.error ? e.error.message : 'Server logs detached');
+    if (e && e.error) {
+      append(e.error.message);
+    }
+  });
+
+  workspace.on(Events.Events.LogsEntry, (e: Events.LogsEntry) => {
+    try {
+      let json = JSON.parse(e.data);
+      append(`SERVER ${json.level === 30 ? 'STDOUT' : 'STDERR'}: ${json.msg}`);
+    } catch (_) {}
+  });
+
   workspace.on(Events.Events.BuildStarted, function(e: Events.BuildStartedEvent) {
     append(
       `BUILD: starting build of ${workspace.functionSpecification.boundary}/${workspace.functionSpecification.name}...`
@@ -50,7 +68,7 @@ export function createLogsPanel(element: HTMLElement, workspace: Workspace, opti
       }
     }
     if (!response) return;
-    let lines: string[] = [`RUN: received response HTTP ${response.statusCode} ${response.statusMessage}`];
+    let lines: string[] = [`RUN: received response HTTP ${response.statusCode}`];
     // @ts-ignore
     for (var h in response.headers) {
       if (h !== 'x-fx-logs') {

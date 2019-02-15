@@ -28,11 +28,18 @@ export interface BuildStatus {
   url?: string;
 }
 
+const logsExponentialBackoff = 1.5;
+const logsInitialBackoff = 5000;
+const logsMaxBackoff = 60000;
+
 export class Server {
   account: Account | undefined;
   buildTimeout: number = 60000;
   buildStatusCheckInterval: number = 5000;
   requestTimeout: number = 15000;
+  sse?: EventSource = undefined;
+  logsBackoff: number = 0;
+  logsTimeout?: number = undefined;
 
   static create(account: Account): Server {
     return new Server(currentAccount => Promise.resolve(account));
@@ -211,5 +218,62 @@ export class Server {
         workspace.finishRun(undefined, res);
         return res;
       });
+  }
+
+  attachServerLogs(workspace: Workspace): Promise<Server> {
+    if (this.sse) {
+      return Promise.resolve(this);
+    } else {
+      clearTimeout(this.logsTimeout);
+      return this.accountResolver(this.account).then(newAccount => {
+        this.account = this._normalizeAccount(newAccount);
+        let url = `${this.account.baseUrl}api/v1/logs/${workspace.functionSpecification.boundary}/${
+          workspace.functionSpecification.name
+        }?token=${this.account.token}`;
+
+        this.sse = new EventSource(url);
+        if (this.logsBackoff === 0) {
+          this.logsBackoff = logsInitialBackoff;
+        }
+        this.sse.addEventListener('log', e => {
+          //@ts-ignore
+          if (e && e.data) {
+            //@ts-ignore
+            workspace.serverLogsEntry(e.data);
+          }
+        });
+        this.sse.onopen = () => workspace.serverLogsAttached();
+        this.sse.onerror = e => {
+          let backoff = this.logsBackoff;
+          let msg =
+            'Server logs detached due to error. Re-attempting connection in ' + Math.floor(backoff / 1000) + 's.';
+          console.error(msg, e);
+          this.detachServerLogs(workspace, new Error(msg));
+          this.logsBackoff = Math.min(backoff * logsExponentialBackoff, logsMaxBackoff);
+          //@ts-ignore
+          this.logsTimeout = setTimeout(() => this.attachServerLogs(workspace), backoff);
+        };
+
+        // Re-connect to logs every 5 minutes
+        //@ts-ignore
+        this.logsTimeout = setTimeout(() => {
+          this.detachServerLogs(workspace);
+          this.attachServerLogs(workspace);
+        }, 5 * 60 * 1000);
+
+        return Promise.resolve(this);
+      });
+    }
+  }
+
+  detachServerLogs(workspace: Workspace, error?: Error) {
+    clearTimeout(this.logsTimeout);
+    this.logsTimeout = undefined;
+    this.logsBackoff = 0;
+    if (this.sse) {
+      this.sse.close();
+      this.sse = undefined;
+      workspace.serverLogsDetached(error);
+    }
   }
 }
