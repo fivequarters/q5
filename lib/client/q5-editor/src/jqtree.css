@@ -1,10 +1,9 @@
 ul.jqtree-tree {
   list-style: none outside;
-  margin-left: 0;
-  margin-bottom: 0;
+  margin: 0px;
   padding: 0;
   font-family: Ariel, sans-serif;
-  font-size: 13px;
+  font-size: 12px;
 }
 ul.jqtree-tree ul.jqtree_common {
   list-style: none outside;
@@ -12,7 +11,6 @@ ul.jqtree-tree ul.jqtree_common {
   margin-bottom: 0;
   padding: 0;
   display: block;
-  min-height: 120px;
 }
 
 ul.jqtree-tree li.jqtree-closed > ul.jqtree_common {
@@ -177,7 +175,6 @@ ul.jqtree-tree.jqtree-rtl span.jqtree-border {
 }
 
 li.jqtree-folder > div.jqtree-element.jqtree_common {
-  background-color: #1b2631;
   height: 30px;
   padding-top: 7px;
   position: relative;

@@ -29,7 +29,7 @@
 
 .q5-logs-splitter {
   flex: 0 0 auto;
-  height: 1px;
+  height: 2px;
   background: #2e4053;
   cursor: row-resize;
 }
@@ -44,8 +44,8 @@
 
 .q5-nav-splitter {
   flex: 0 0 auto;
-  width: 1px;
-  min-width: 1px;
+  width: 2px;
+  min-width: 2px;
   background: #2e4053;
   min-height: 100px;
   cursor: col-resize;
