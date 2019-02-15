@@ -13,7 +13,6 @@ const Container = styled.div`
   flex-direction: column;
   color: #34495e;
   padding: 20px;
-  padding-top: 60px;
 `;
 
 const SideNavItem = styled.div`

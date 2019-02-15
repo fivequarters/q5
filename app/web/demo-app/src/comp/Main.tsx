@@ -8,14 +8,16 @@ import styled from 'styled-components';
 const Container = styled.div`
   flex: 1;
   padding-top: 20px;
+  overflow-y: scroll;
 `;
 
 const Heading = styled.div`
-  font-family: 'Raleway', san-serif;
-  font-size: 26px;
-  font-weight: 400;
-  text-align: center;
+  font-family: 'Roboto', san-serif;
+  font-size: 15px;
+  font-weight: 300;
+  // text-align: center;
   color: #34495e;
+  margin-left: 80px;
   margin-bottom: 20px;
 `;
 

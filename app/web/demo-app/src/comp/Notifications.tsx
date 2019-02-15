@@ -12,7 +12,7 @@ const Container = styled.div`
   flex-direction: column;
   align-items: start;
   padding: 20px;
-  padding-top: 60px;
+  // padding-top: 60px;
   width: 260px;
 `;
 

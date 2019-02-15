@@ -28,6 +28,7 @@ const NavBarStyled = styled(NavBarBase)`
   align-items: center;
   border-bottom: 1px solid #d6dbdf;
   background-color: white;
+  z-index: 999;
 `;
 
 const Product = styled.div`

@@ -12,18 +12,16 @@ const Container = styled.div``;
 const Inner = styled.div`
   display: flex;
   flex-direction: column;
-  padding: 0px 50px;
-  max-width: 500px;
-  margin: 0px auto;
+  margin-left: 60px;
+  margin-top: -10px;
 `;
 
 const SubHeading = styled.div`
-  font-family: 'Raleway', san-serif;
-  font-size: 16px;
   font-weight: 300;
   color: #c0392b;
-  margin-left: 5px;
-  margin: 20px 0px;
+  padding: 10px;
+  margin: 10px 0px;
+  border-bottom: 1px solid #d6dbdf;
 `;
 
 const EventActionRow = styled.div`
@@ -32,7 +30,9 @@ const EventActionRow = styled.div`
     color: #c0392b;
     cursor: pointer;
   }
+  padding: 10px;
   color: #34495e;
+  // max-width: 400px;
 `;
 
 const EventBoltIcon = styled.div`

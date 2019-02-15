@@ -4,7 +4,7 @@ import { Body } from '@5qtrs/body';
 import { NavBar, Content, SideNav, Main, Notifications, Inquiries, EventActions } from './comp';
 import { getInquiries } from './data';
 
-const fonts = ['Raleway:400,300,200', 'Roboto:400,500', 'Staatliches:400'];
+const fonts = ['Raleway:400,300,200', 'Roboto:300,400,500'];
 
 const App = () => {
   const [selection, setSelection] = useState('New Inquiries');

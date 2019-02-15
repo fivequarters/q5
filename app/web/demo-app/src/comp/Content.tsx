@@ -6,7 +6,7 @@ import styled from 'styled-components';
 // -------------------
 
 export const Content = styled.div`
-  height: 100%;
+  height: calc(100% - 90px);
   width: 100%;
   display: flex;
   font-size: 14px;

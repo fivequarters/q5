@@ -10,10 +10,10 @@ const Container = styled.div`
 
 const TopBar = styled.div`
   display: flex;
-  width: 800px;
-  background-color: #1b2631;
+  width: 700px;
+  background-color: #e5e7e9;
   margin: 0px auto;
-  color: #d4d4d4;
+  color: #34495e;
   font-family: 'Roboto', san-serif;
   font-size: 14px;
   padding: 10px;
@@ -36,7 +36,7 @@ const Title = styled.div`
 
 const EditorContainer = styled.div`
   margin-top: -2px;
-  width: 800px;
+  width: 700px;
   height: 400px;
   margin: 0px auto;
 `;
@@ -63,9 +63,14 @@ export function Editor({ eventAction, onEditorBack, ...rest }: EditorProps) {
       token: 'p17',
     });
 
-    const workspace = await server.loadWorkspace('myboundary', 'myfunction', new Workspace());
+    const options = {
+      statusPanel: false,
+    };
+
+    const workspace = await server.loadWorkspace('myboundary', 'myfunction', new Workspace(), options);
     if (editorElement && editorElement.current) {
       createEditor(editorElement.current, workspace, server);
+      workspace.on('closed', onEditorBack);
     }
   }
 
@@ -75,12 +80,12 @@ export function Editor({ eventAction, onEditorBack, ...rest }: EditorProps) {
 
   return (
     <Container {...rest}>
-      <TopBar>
+      {/* <TopBar>
         <BackButton onClick={() => onEditorBack()}>
           <TiArrowBack />
         </BackButton>
         <Title>Event: On New Inquiry</Title>
-      </TopBar>
+      </TopBar> */}
       <EditorContainer id="editor" ref={editorElement} />;
     </Container>
   );

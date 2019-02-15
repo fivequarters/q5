@@ -26,7 +26,7 @@ export interface IActionPanelOptions {
 export class ActionPanelOptions implements IActionPanelOptions {
   enableCodeOnlyToggle: boolean = true;
   enableFullScreen: boolean = true;
-  enableClose: boolean = false;
+  enableClose: boolean = true;
   constructor() {}
 }
 

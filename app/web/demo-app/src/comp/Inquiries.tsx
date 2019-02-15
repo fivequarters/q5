@@ -10,7 +10,7 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   max-width: 700px;
-  margin: 0px auto;
+  margin-left: 60px;
 `;
 
 const Table = styled.div``;
@@ -25,7 +25,7 @@ const HeaderLabel = styled.div`
 const Header = styled.div`
   display: grid;
   grid-template-columns: 200px 1fr 120px;
-  padding: 10px 10px;
+  padding: 10px;
   grid-gap: 20px;
   border-bottom: 1px solid #d6dbdf;
 `;
@@ -33,7 +33,7 @@ const Header = styled.div`
 const Row = styled.div`
   display: grid;
   grid-template-columns: 200px 1fr 120px;
-  padding: 10px 10px;
+  padding: 10px;
   min-height: 70px;
   grid-gap: 20px;
   border-bottom: 1px solid #d6dbdf;
@@ -42,6 +42,7 @@ const Row = styled.div`
 const RowLabel = styled.div`
   display: flex;
   font-size: 13px;
+  padding: 10px;
   text-align: initial;
   color: #34495e;
   font-family: 'Roboto', san-serif;
