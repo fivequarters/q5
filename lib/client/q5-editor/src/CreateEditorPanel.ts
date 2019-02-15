@@ -16,13 +16,13 @@ const SettingsComputePlaceholder = `# Compute settings control resources availab
 
 export function createEditorPanel(element: HTMLElement, workspace: Workspace, options?: IEditorPanelOptions) {
   Monaco.editor.defineTheme('customTheme', {
-    base: 'vs-dark', // can also be vs-dark or hc-black
+    base: 'vs', // can also be vs-dark or hc-black
     inherit: true, // can also be false to completely replace the builtin rules
     rules: [],
     colors: {
-      'editor.background': '#212F3C',
-      'scrollbar.shadow': '#212f3c',
-      'editor.lineHighlightBackground': '#283747',
+      // 'editor.background': '#212F3C',
+      'scrollbar.shadow': '#ffffff',
+      'editor.lineHighlightBackground': '#f7f9f9',
     },
   });
 

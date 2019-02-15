@@ -43,7 +43,9 @@
       "@5qtrs/pubsub": ["api/int/pubsub/src"],
       "@5qtrs/logger": ["lib/server/logger/src"],
       "@5qtrs/font": ["lib/browser/font/src"],
-      "@5qtrs/fade-sequence": ["lib/comp/fade-sequence/src"]
+      "@5qtrs/fade-sequence": ["lib/comp/fade-sequence/src"],
+      "@5qtrs/demo-app": ["app/web/demo-app/src"],
+      "@5qtrs/demo-saas": ["api/demo/demo-saas/src"]
     }
   }
 }

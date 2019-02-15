@@ -3,9 +3,9 @@
   height: 100%;
   max-height: 100%;
   font-family: Helvetica, Arial, sans-serif;
-  color: #d4d4d4;
+  color: #34495e;
   border: 2px solid #283747;
-  background-color: #212f3c;
+  background-color: white;
 }
 
 .q5-main {
@@ -29,8 +29,8 @@
 
 .q5-logs-splitter {
   flex: 0 0 auto;
-  height: 1px;
-  background: #2e4053;
+  height: 2px;
+  background: #f8f9f9;
   cursor: row-resize;
 }
 
@@ -39,14 +39,14 @@
   width: 150px;
   min-width: 100px;
   min-height: 100px;
-  background-color: #212f3c;
+  background-color: #f7f9f9;
 }
 
 .q5-nav-splitter {
   flex: 0 0 auto;
-  width: 1px;
-  min-width: 1px;
-  background: #2e4053;
+  width: 2px;
+  min-width: 2px;
+  background: #f8f9f9;
   min-height: 100px;
   cursor: col-resize;
 }
@@ -64,7 +64,7 @@
   flex: 0 0 auto;
   min-height: 100px;
   height: 100px;
-  background-color: #212f3c;
+  background-color: white;
   overflow: hidden;
   padding-left: 10px;
   padding-top: 10px;
@@ -73,8 +73,8 @@
 .q5-status-container {
   flex: 0 0 0;
   font-family: Helvetica, Arial, sans-serif;
-  color: #d4d4d4;
-  background-color: #1b2631;
+  color: #34495e;
+  background-color: #e5e8e8;
 }
 
 .q5-nav {
@@ -91,7 +91,7 @@
 
 .q5-logs pre {
   font-family: Menlo, Monaco, 'Courier New', monospace;
-  color: #d4d4d4;
+  color: #34495e;
   font-size: 11px;
 }
 
@@ -121,15 +121,15 @@
 .q5-action-container {
   flex: 0 0 0;
   font-family: Verdana, sans-serif;
-  color: white;
+  color: #34495e;
   width: 100px;
-  background-color: #283747;
+  background-color: #ebedef;
 }
 
 .q5-action-btn {
   background-color: transparent;
   border: 0;
-  color: #d4d4d4;
+  color: #34495e;
   padding: 0.2em 0.5em;
   font-size: 22px;
   cursor: pointer;
@@ -137,7 +137,7 @@
 }
 
 .q5-action-btn:hover:enabled {
-  color: white;
+  color: #c0392b;
 }
 
 .q5-action-btn:disabled {
@@ -152,26 +152,30 @@
   float: right;
   background-color: transparent;
   border: 0;
-  color: #d4d4d4;
+  color: #34495e;
   font-size: 13px;
   cursor: pointer;
   font-family: Verdana, sans-serif;
 }
 
+.q5-code-action-add-btn:hover {
+  color: #c0392b;
+}
+
 .q5-code-file-icon {
-  color: #5499c7;
+  color: #c0392b;
   font-size: 12px;
   margin-right: 7px;
 }
 
 .q5-code-cogs-icon {
-  color: #5499c7;
+  color: #c0392b;
   font-size: 12px;
   margin-right: 7px;
 }
 
 .q5-code-secret-icon {
-  color: #5499c7;
+  color: #c0392b;
   font-size: 12px;
   margin-right: 7px;
 }
@@ -181,10 +185,14 @@
   float: right;
   background-color: transparent;
   border: 0;
-  color: #d4d4d4;
+  color: #34495e;
   font-size: 13px;
   cursor: pointer;
   font-family: Verdana, sans-serif;
+}
+
+.q5-code-action-delete-btn:hover {
+  color: #c0392b;
 }
 
 .q5-new-file-input {
@@ -192,15 +200,15 @@
   border: 1px solid #5499c7;
   padding: 0 0.2em;
   margin-top: -4px;
-  background-color: #5d6d7e;
-  color: white;
+  background-color: white;
+  color: #34495e;
   width: calc(100% - 30px);
   height: 23px;
   font-size: 14px;
 }
 
 .q5-new-file-input::placeholder {
-  color: #d4d4d4;
+  color: #34495e;
 }
 
 .q5-new-file-input:focus {
