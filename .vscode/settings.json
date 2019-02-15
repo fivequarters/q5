@@ -7,21 +7,21 @@
     ".vscode/**": true,
 
     // Hide node_modules
-    //"node_modules/**": true,
+    "node_modules/**": true,
 
     // Hide yarn related files
     ".yarnrc": true,
     "yarn.lock": true,
 
     // Hide .gitignore
-    ".gitignore": true
+    ".gitignore": true,
 
     // Hide package level config files
-    // "**/devServer.js": true,
-    // "**/jest.config.js": true,
-    // "**/jest.setup.js": true,
-    // "**/prettier.config.js": true,
-    // "**/tslint.json": true,
-    // "**/webpack.config.js": true
+    "**/devServer.js": true,
+    "**/jest.config.js": true,
+    "**/jest.setup.js": true,
+    "**/prettier.config.js": true,
+    "**/tslint.json": true,
+    "**/webpack.config.js": true
   }
 }
