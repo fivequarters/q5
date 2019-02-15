@@ -139,6 +139,7 @@ export function createEditor(
   }
   if (opts.logsPanel !== false) {
     createLogsPanel(<HTMLElement>document.getElementById(logsId), workspace, <Options.ILogsPanelOptions>opts.logsPanel);
+    server.attachServerLogs(workspace);
   }
 
   workspace.on(Events.Events.NavStateChanged, function(e: Events.NavStateChangedEvent) {

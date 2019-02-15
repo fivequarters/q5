@@ -145,6 +145,33 @@ paths:
       security:
         - token: []
 
+  /system-logs/{topic}:
+    parameters:
+      - name: 'topic'
+        in: 'path'
+        description: 'Topic prefix to subscribe to.'
+        required: true
+        type: 'string'
+    get:
+      tags:
+        - Monitoring
+      summary: 'Get an event stream with real time system logs published to topics with specified topic prefix.'
+      description: 'Returns text/event-stream response with streaming real-time logs published to topics with specified topic prefix.'
+      operationId: 'getSystemLogs'
+      produces:
+        - 'text/event-stream'
+      responses:
+        200:
+          description: 'Response body streams text/event-stream data with logs'
+        403:
+          description: 'Not authorized'
+        404:
+          description: 'Function not found'
+        503:
+          description: 'Server too busy'
+      security:
+        - token: []
+
   /function/{boundary}:
     parameters:
       - name: 'boundary'

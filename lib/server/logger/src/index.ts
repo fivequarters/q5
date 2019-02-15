@@ -8,7 +8,7 @@ export interface IQ5LoggerOptions extends Bunyan.LoggerOptions {
 
 export default function createLogger(options: IQ5LoggerOptions): Bunyan {
   let logger = Bunyan.createLogger(options);
-  let zmqPublishUrl = options.zmqPublishUrl || process.env.ZMQ_PUBLISH_URL;
+  let zmqPublishUrl = options.zmqPublishUrl || process.env.ZMQ_XSUB;
   if (zmqPublishUrl) {
     logger.addStream({
       type: 'raw',
@@ -21,3 +21,5 @@ export default function createLogger(options: IQ5LoggerOptions): Bunyan {
   }
   return logger;
 }
+
+export { Bunyan };
