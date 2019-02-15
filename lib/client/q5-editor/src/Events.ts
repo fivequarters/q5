@@ -20,12 +20,30 @@ export enum Events {
   LogsStateChanged = 'logs-state:changed',
   NavStateChanged = 'nav-state:changed',
   FullScreenChanged = 'full-screen:changed',
+  LogsAttached = 'logs:attached',
+  LogsDetached = 'logs:detached',
+  LogsEntry = 'logs:entry',
   Closed = 'closed',
 }
 
 export interface EditorEvent extends Event {
   name: string;
   status?: BuildStatus;
+}
+
+export class LogsAttached implements EditorEvent {
+  name: string = Events.LogsAttached;
+  constructor() {}
+}
+
+export class LogsDetached implements EditorEvent {
+  name: string = Events.LogsDetached;
+  constructor(public error?: Error) {}
+}
+
+export class LogsEntry implements EditorEvent {
+  name: string = Events.LogsEntry;
+  constructor(public data: string) {}
 }
 
 export class ClosedEvent implements EditorEvent {

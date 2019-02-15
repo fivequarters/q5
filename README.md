@@ -22,6 +22,7 @@ For web apps, this repository also uses the following additional frameworks and 
 - [React](https://reactjs.org/): The popular front-end framework open-sourced by Facebook.
 - [Enzyme](https://airbnb.io/enzyme/): A testing framework from Airbnb that plays well with Jest and makes testing React components easy.
 - [Webpack](https://webpack.js.org/): A code bundler for React to create front-end bundles for SPA web applications (Single Page App).
+- [Ngrok](https://ngrok.com/): a tunnel for HTTP/TCP that allows localhost endpoint to be accessed from the internet during development.
 
 For server apis, this repository also uses the following additional frameworks and tools:
 
@@ -56,13 +57,15 @@ nvm use node
 npm i -g yarn
 ```
 
-5. At the root of this repo, run the **setup** cmd:
+5. Install the **ngrok** tool from [here](https://ngrok.com/download) and put the executable someplace on the PATH.
+
+6. At the root of this repo, run the **setup** cmd:
 
 ```
 yarn setup
 ```
 
-6. And lastly, build everything in the repo with the **build** cmd:
+7. And lastly, build everything in the repo with the **build** cmd:
 
 ```
 yarn build

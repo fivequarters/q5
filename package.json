@@ -19,7 +19,8 @@
     "bundle:dev": "yarn-tool yarn bundle:dev",
     "bundle:prod": "yarn-tool yarn bundle:prod",
     "bundle": "yarn-tool yarn bundle",
-    "copy": "yarn-tool yarn copy"
+    "copy": "yarn-tool yarn copy",
+    "ngrok": "yarn-tool yarn ngrok"
   },
   "devDependencies": {
     "@types/html-webpack-plugin": "^3.2.0",

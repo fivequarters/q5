@@ -7,7 +7,11 @@ const maxActiveConnections = +process.env.API_LOG_MAX_ACTIVE_CONNECTIONS || 1000
 
 module.exports = options => {
   Assert.ok(options);
-  Assert.ok(['boundary', 'function'].indexOf(options.scope) > -1, 'options.scope must be boundary or function');
+  Assert.equal(
+    typeof options.topic,
+    'function',
+    'options.topic must be a function mapping request to ZMQ topic prefix'
+  );
 
   return (req, res, next) => {
     if (activeConnections >= maxActiveConnections) {
@@ -15,12 +19,7 @@ module.exports = options => {
     }
 
     // Subscribe to appropriate topic
-
-    // Topic structure is logs:boundary:{boundary_name}:[function:{function_name}:]
-    let topicPrefix = `logs:boundary:${req.params.boundary}:`;
-    if (options.scope === 'function') {
-      topicPrefix += `function:${req.params.name}:`;
-    }
+    let topicPrefix = options.topic(req);
     let xpub = process.env.ZMQ_XPUB || 'tcp://127.0.0.1:5001';
     let ssoc;
     try {
@@ -40,11 +39,7 @@ module.exports = options => {
 
     try {
       res.writeHead(200, { 'content-type': 'text/event-stream', 'cache-control': 'no-cache' });
-      res.write(
-        options.scope === 'function'
-          ? `: subscribed to "${req.params.boundary}/${req.params.name}" function logs\n\n`
-          : `: subscribed to "${req.params.boundary}" boundary logs\n\n`
-      );
+      res.write(`: subscribed to ${topicPrefix}\n\n`);
     } catch (e) {
       return done(e);
     }
@@ -75,11 +70,16 @@ module.exports = options => {
       }
     });
 
-    res.on('error', e => done(e));
-    ssoc.on('error', e => done(e));
+    req.once('close', () => done());
+    req.socket.once('error', e => done(e));
+    req.socket.once('close', () => done());
+    res.once('finish', () => done());
+    res.once('close', () => done());
+    res.once('error', e => done(e));
+    ssoc.once('error', e => done(e));
+    ssoc.once('close', () => done());
 
     // Cleanup logic
-
     let isDone;
     function done(error) {
       if (isDone) return;
@@ -87,6 +87,9 @@ module.exports = options => {
       activeConnections--;
       try {
         res.end();
+      } catch (_) {}
+      try {
+        ssoc.unsubscribe(topicPrefix);
       } catch (_) {}
       try {
         ssoc.close();
