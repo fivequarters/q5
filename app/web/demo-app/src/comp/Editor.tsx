@@ -60,16 +60,22 @@ export function Editor({ eventAction, onEditorBack, ...rest }: EditorProps) {
   async function loadEditor() {
     const server = Server.create({
       baseUrl: 'http://localhost:3001',
-      token: 'p17',
+      token: 'p89s4J57pMA85D57szI2gjDQH1rh4K4CM37DYl58oQc',
     });
 
-    const options = {
-      statusPanel: false,
+    const editorOptions = {
+      navigationPanel: {
+        hideFiles: ['index.js'],
+      },
+      // actionPanel: {
+      //   enableFullScreen: false,
+      // },
     };
 
-    const workspace = await server.loadWorkspace('myboundary', 'myfunction', new Workspace(), options);
+    const workspace = await server.loadWorkspace('contoso', 'on-new-inquiry', new Workspace());
     if (editorElement && editorElement.current) {
-      createEditor(editorElement.current, workspace, server);
+      createEditor(editorElement.current, workspace, server, editorOptions);
+      workspace.selectFile('onNewInquiry.js');
       workspace.on('closed', onEditorBack);
     }
   }

@@ -27,13 +27,17 @@ function generateInquiry(config: ApiConfig) {
       const response = await request({
         method: 'POST',
         data: inquiry,
-        url: `http://localhost:3001/api/v1/run/myboundary/myfunction`,
+        url: `http://localhost:3001/api/v1/run/contoso/on-new-inquiry`,
       });
 
       if (response.status === 200) {
         const updatedInquiry = response.data;
         if (updatedInquiry && updatedInquiry.email && updatedInquiry.message) {
-          inquiry = response.data;
+          if (!isNaN(updatedInquiry.agentId)) {
+            updatedInquiry.assignedTo = salesAgents[updatedInquiry.agentId];
+          }
+          console.log(updatedInquiry);
+          inquiry = updatedInquiry;
         }
       }
     } catch (error) {

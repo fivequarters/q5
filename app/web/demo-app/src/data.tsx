@@ -15,7 +15,9 @@ export function getInquiries() {
 
   useEffect(() => {
     document.addEventListener('keyup', async event => {
-      if (event.code === 'ShiftLeft') {
+      console.log('KEYUP', event);
+      if (event.code === 'ShiftRight' && event.metaKey) {
+        console.log('TRIGGERING NEW INQUIRY');
         await request({ method: 'POST', url: `${baseUrl}/inquiries` });
       }
     });
