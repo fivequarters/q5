@@ -15,12 +15,26 @@ const SettingsComputePlaceholder = `# Compute settings control resources availab
 # timeout=30`;
 
 export function createEditorPanel(element: HTMLElement, workspace: Workspace, options?: IEditorPanelOptions) {
+  Monaco.editor.defineTheme('customTheme', {
+    base: 'vs', // can also be vs-dark or hc-black
+    inherit: true, // can also be false to completely replace the builtin rules
+    rules: [],
+    colors: {
+      // 'editor.background': '#212F3C',
+      'scrollbar.shadow': '#ffffff',
+      'editor.lineHighlightBackground': '#f7f9f9',
+    },
+  });
+
   let monacoOptions = {
-    theme: 'vs-light',
+    theme: 'customTheme',
     ...options,
     value: workspace.getSelectedFileContent(),
     language: workspace.getSelectedFileLanguage(),
     automaticLayout: true,
+    minimap: {
+      enabled: false,
+    },
   };
 
   let editor = Monaco.editor.create(element, monacoOptions);

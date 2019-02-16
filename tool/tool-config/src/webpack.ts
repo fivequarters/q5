@@ -16,7 +16,7 @@ function prettyName(name: string) {
   return characters.join('');
 }
 
-export default function webpack(packageJson: any): any {
+export default function webpack(packageJson: any, scripts: Array<string> = []): any {
   const fullName = packageJson.name;
   const title = prettyName(fullName);
   const devServer = packageJson.devServer || { port: 6000 };
@@ -39,19 +39,28 @@ export default function webpack(packageJson: any): any {
           test: /\.(png|jpg|jpeg|gif)$/,
           use: ['file-loader'],
         },
+        {
+          test: /\.css$/,
+          use: ['style-loader', 'css-loader'],
+        },
       ],
     },
     output: {
       path: join(__dirname, './dist'),
       filename: 'bundle.js',
+      globalObject: 'this',
     },
     devServer,
+    externals: {
+      q5: 'q5',
+    },
     plugins: [
       new HtmlWebpackPlugin({
         title,
         inject: false,
         template: HtmlWebpackTemplate,
         appMountId: 'app',
+        scripts,
       }),
     ],
   };

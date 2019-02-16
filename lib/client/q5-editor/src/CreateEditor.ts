@@ -47,25 +47,27 @@ export function createEditor(
   let logsSplitterId = `${idPrefix}-logs-splitter`;
   let statusId = `${idPrefix}-status`;
 
-  let lines: string[] = [`<div id="${idPrefix}" class="q5-main">`];
+  let lines: string[] = [`<div id="${idPrefix}" class="q5-shell"><div id="${idPrefix}-main" class="q5-main">`];
   if (opts.actionPanel !== false) {
     lines.push(`    <div id="${actionId}" class="q5-action-container"></div>`);
   }
-  if (opts.navigationPanel !== false || opts.editorPanel !== false) {
+  if (opts.navigationPanel !== false) {
+    lines.push(`    <div class="q5-nav-container" id="${navId}"></div>`);
+  }
+  if (opts.navigationPanel !== false && opts.editorPanel !== false) {
+    lines.push(`    <div class="q5-nav-splitter" id="${navSplitterId}"></div>`);
+  }
+  if (opts.editorPanel !== false) {
     lines.push(`    <div class="q5-nav-editor-container" id="${navEditorContainerId}">`);
-    if (opts.navigationPanel !== false) {
-      lines.push(`        <div class="q5-nav-container" id="${navId}"></div>`);
-      lines.push(`        <div class="q5-nav-splitter" id="${navSplitterId}"></div>`);
-    }
-    if (opts.editorPanel !== false) {
-      lines.push(`        <div class="q5-editor-container" id="${editorId}"></div>`);
+
+    lines.push(`        <div class="q5-editor-container" id="${editorId}"></div>`);
+    if (opts.logsPanel !== false) {
+      lines.push(`    <div class="q5-logs-splitter" id="${logsSplitterId}"></div>`);
+      lines.push(`    <div class="q5-logs-container" id="${logsId}"></div>`);
     }
     lines.push('    </div>');
   }
-  if (opts.logsPanel !== false) {
-    lines.push(`    <div class="q5-logs-splitter" id="${logsSplitterId}"></div>`);
-    lines.push(`    <div class="q5-logs-container" id="${logsId}"></div>`);
-  }
+  lines.push('</div>');
   if (opts.statusPanel !== false) {
     lines.push(`    <div class="q5-status-container" id="${statusId}"></div>`);
   }
@@ -137,6 +139,7 @@ export function createEditor(
   }
   if (opts.logsPanel !== false) {
     createLogsPanel(<HTMLElement>document.getElementById(logsId), workspace, <Options.ILogsPanelOptions>opts.logsPanel);
+    server.attachServerLogs(workspace);
   }
 
   workspace.on(Events.Events.NavStateChanged, function(e: Events.NavStateChangedEvent) {

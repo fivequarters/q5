@@ -282,4 +282,19 @@ export class Workspace extends EventEmitter {
     let event = new Events.ClosedEvent();
     this.emit(event);
   }
+
+  serverLogsAttached() {
+    let event = new Events.LogsAttached();
+    this.emit(event);
+  }
+
+  serverLogsDetached(error?: Error) {
+    let event = new Events.LogsDetached(error);
+    this.emit(event);
+  }
+
+  serverLogsEntry(data: string) {
+    let event = new Events.LogsEntry(data);
+    this.emit(event);
+  }
 }

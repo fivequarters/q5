@@ -95,17 +95,29 @@ router.delete(
   (req, res, next) => provider_handlers[req.provider].delete_function(req, res, next)
 );
 
+router.options('/system-logs/:topic', cors(corsManagementOptions));
+router.get(
+  '/system-logs/:topic',
+  cors(corsManagementOptions),
+  authorize({
+    operation: 'system:logs',
+    getToken: req => req.query && req.query.token,
+  }),
+  get_logs({ topic: req => req.params.topic })
+);
+
 router.options('/logs/:boundary', cors(corsManagementOptions));
 router.get(
   '/logs/:boundary',
   cors(corsManagementOptions),
   authorize({
     operation: 'boundary:logs',
+    getToken: req => req.query && req.query.token,
   }),
   validate_schema({
     params: require('./schemas/api_params'),
   }),
-  get_logs({ scope: 'boundary' })
+  get_logs({ topic: req => `logs:application:${req.params.boundary}:` })
 );
 
 router.options('/logs/:boundary/:name', cors(corsManagementOptions));
@@ -114,11 +126,12 @@ router.get(
   cors(corsManagementOptions),
   authorize({
     operation: 'function:logs',
+    getToken: req => req.query && req.query.token,
   }),
   validate_schema({
     params: require('./schemas/api_params'),
   }),
-  get_logs({ scope: 'function' })
+  get_logs({ topic: req => `logs:application:${req.params.boundary}:${req.params.name}:` })
 );
 
 let run_route = /^\/run\/([^\/]+)\/([^\/]+).*$/;

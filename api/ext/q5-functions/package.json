@@ -16,7 +16,7 @@
     "clean": "rm -r -f lib; rm -r -f coverage",
     "clean:build": "rm -r -f lib",
     "clean:coverage": "rm -r -f coverage",
-    "start": "node lib/index.js"
+    "start": "LOGS_WS_URL=${LOGS_WS_URL:=`node ./getNgrokLogsWsUrl.js`} node lib/index.js"
   },
   "keywords": [],
   "dependencies": {
@@ -31,7 +31,9 @@
     "yamljs": "^0.3.0",
     "zeromq": "^5.1.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "superagent": "^4.1.0"
+  },
   "devServer": {
     "port": 3001
   }

@@ -3,7 +3,21 @@
 import './q5.css';
 
 import { library, dom } from '@fortawesome/fontawesome-svg-core';
-import { faSave, faPlay, faArrowsAlt, faCompress, faFileCode, faWindowClose } from '@fortawesome/free-solid-svg-icons';
+import {
+  faSave,
+  faPlay,
+  faArrowsAlt,
+  faCompress,
+  faFileCode,
+  faWindowClose,
+  faChevronRight,
+  faChevronDown,
+  faPlus,
+  faFile,
+  faTrash,
+  faCogs,
+  faUserSecret,
+} from '@fortawesome/free-solid-svg-icons';
 import {
   faFileCode as farFileCode,
   faPlusSquare as farPlusSquare,
@@ -23,7 +37,14 @@ library.add(
   farPlusSquare,
   faMinusSquare,
   faCheckCircle,
-  faTimesCircle
+  faTimesCircle,
+  faChevronRight,
+  faChevronDown,
+  faPlus,
+  faFile,
+  faTrash,
+  faCogs,
+  faUserSecret
 );
 dom.watch();
 

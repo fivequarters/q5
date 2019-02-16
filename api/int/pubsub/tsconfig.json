@@ -2,5 +2,5 @@
   "extends": "../../../tsconfig.json",
   "compilerOptions": { "rootDir": "src", "outDir": "lib" },
   "include": ["src"],
-  "references": []
+  "references": [{ "path": "../../../lib/server/logger" }]
 }
