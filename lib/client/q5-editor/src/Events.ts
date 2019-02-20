@@ -1,4 +1,4 @@
-import { Event } from '@5qtrs/event';
+import { IEvent } from '@5qtrs/event';
 import { BuildStatus } from './Server';
 import { ServerResponse } from 'http';
 
@@ -26,7 +26,7 @@ export enum Events {
   Closed = 'closed',
 }
 
-export interface EditorEvent extends Event {
+export interface EditorEvent extends IEvent {
   name: string;
   status?: BuildStatus;
 }

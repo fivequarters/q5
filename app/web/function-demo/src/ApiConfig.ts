@@ -1,8 +1,8 @@
-import { Config, ConfigSettings } from '@5qtrs/config';
+import { Config, IConfigSettings } from '@5qtrs/config';
 require('dotenv').config();
 
 export class ApiConfig extends Config {
-  private constructor(settings: ConfigSettings) {
+  private constructor(settings: IConfigSettings) {
     super(settings);
   }
 
