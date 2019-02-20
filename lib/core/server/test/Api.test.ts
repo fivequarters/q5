@@ -1,8 +1,8 @@
-import { Server, RequestListener } from '../src';
 import { request } from '@5qtrs/request';
 import packageJson from '../package.json';
+import { RequestListener, Server } from '../src';
 
-//@ts-ignore
+// @ts-ignore
 const port = packageJson.devServer.port;
 const requestListener: RequestListener = (req, res) => {
   res.statusCode = 205;
@@ -12,7 +12,9 @@ const requestListener: RequestListener = (req, res) => {
 describe('Server', () => {
   describe('constructor()', () => {
     it('should return an Server instance', () => {
-      const server = new Server((req, res) => {}, port);
+      const server = new Server((req, res) => {
+        // do nothing
+      }, port);
       expect(server).toBeInstanceOf(Server);
     });
   });

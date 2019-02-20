@@ -1,12 +1,14 @@
 import { clone } from '@5qtrs/clone';
 
 export type ConfigValue = string | number | boolean | RegExp | Date | null;
-export type ConfigSettings = { [index: string]: ConfigValue };
+export interface IConfigSettings {
+  [index: string]: ConfigValue;
+}
 
 export class Config {
-  private settings: ConfigSettings;
+  private settings: IConfigSettings;
 
-  public constructor(settings: ConfigSettings) {
+  public constructor(settings: IConfigSettings) {
     this.settings = clone(settings);
   }
 

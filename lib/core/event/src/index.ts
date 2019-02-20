@@ -1,1 +1,1 @@
-export { EventEmitter, Event, EventListener } from './EventEmitter';
+export { EventEmitter, IEvent, EventListener } from './EventEmitter';

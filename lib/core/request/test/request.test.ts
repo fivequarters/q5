@@ -1,8 +1,8 @@
 import { createServer, Server } from 'http';
-import { request } from '../src';
 import packageJson from '../package.json';
+import { request } from '../src';
 
-//@ts-ignore
+// @ts-ignore
 const port = packageJson.devServer.port;
 let server: Server;
 

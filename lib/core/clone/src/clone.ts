@@ -1,4 +1,4 @@
-import { isObject, isArray, isDate } from '@5qtrs/type';
+import { isArray, isDate, isObject } from '@5qtrs/type';
 
 export function clone(value: any): any {
   if (isDate(value)) {

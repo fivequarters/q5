@@ -1,4 +1,4 @@
-import { Server as HttpServer, IncomingMessage, ServerResponse, createServer } from 'http';
+import { createServer, IncomingMessage, Server as HttpServer, ServerResponse } from 'http';
 
 // --------------
 // Internal Types

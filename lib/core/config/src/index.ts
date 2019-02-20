@@ -1,1 +1,1 @@
-export { Config, ConfigSettings, ConfigValue } from './Config';
+export { Config, IConfigSettings, ConfigValue } from './Config';
