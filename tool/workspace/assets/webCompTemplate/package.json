@@ -12,7 +12,7 @@
     "coverage": "jest --colors --coverage",
     "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x} test/{,**/}*.ts{,x}",
     "clean": "rm -r -f lib; rm -r -f coverage",
-    "start": "tsc -b -w & webpack-dev-server --mode development --open --hot"
+    "start": "tsc -b -w & webpack-dev-server --open --hot"
   },
   "keywords": [],
   "dependencies": {
