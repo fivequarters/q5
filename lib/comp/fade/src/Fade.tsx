@@ -1,5 +1,4 @@
-import React, { useLayoutEffect, useState } from 'react';
-import styled from 'styled-components';
+import React, { useEffect, useState } from 'react';
 
 // ------------------
 // Internal Constants
@@ -46,7 +45,6 @@ export function Fade({ visible, fadeOut, fadeIn, fadeRate, onFadeIn, onFadeOut, 
   const [opacity, setOpacity] = useState(minOpacity);
 
   fadeRate = fadeRate || 3;
-
   if (visible !== visibleLast) {
     if (visible && !fadeIn) {
       setOpacity(maxOpacity);
@@ -57,9 +55,10 @@ export function Fade({ visible, fadeOut, fadeIn, fadeRate, onFadeIn, onFadeOut, 
     setVisibleLast(visible || false);
   }
 
-  useLayoutEffect(() => {
+  useEffect(() => {
+    let timer: NodeJS.Timer;
     if (opacity >= minOpacity && opacity <= maxOpacity) {
-      setTimeout(() => {
+      timer = setTimeout(() => {
         const newOpacity = updateOpacity(opacity, visible || false, fadeRate as number);
         if (opacity !== newOpacity) {
           if (newOpacity === maxOpacity && onFadeIn) {
@@ -71,6 +70,11 @@ export function Fade({ visible, fadeOut, fadeIn, fadeRate, onFadeIn, onFadeOut, 
         }
       }, 10);
     }
+    return () => {
+      if (timer) {
+        clearTimeout(timer);
+      }
+    };
   }, [opacity, visible]);
 
   style = style || {};
@@ -80,28 +84,4 @@ export function Fade({ visible, fadeOut, fadeIn, fadeRate, onFadeIn, onFadeOut, 
       {children}
     </div>
   );
-}
-
-// -------------------
-// Internal Components
-// -------------------
-
-const Container = styled.div`
-  width: 100%;
-`;
-
-// --------------
-// Exported Types
-// --------------
-
-export type ComponentProps = {
-  componentProp?: string;
-} & React.BaseHTMLAttributes<HTMLDivElement>;
-
-// -------------------
-// Exported Components
-// -------------------
-
-export function Component({ ...props }: ComponentProps) {
-  return <Container {...props} />;
 }

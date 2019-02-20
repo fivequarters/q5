@@ -1,5 +1,5 @@
 import { Fade } from '@5qtrs/fade';
-import React, { useState } from 'react';
+import React, { useState, useLayoutEffect } from 'react';
 
 // --------------
 // Exported Types
@@ -33,22 +33,11 @@ export function FadeSequence({ children, duration, fadeRate, repeat, ...rest }: 
     }
   }
 
-  const wrapped = children.map((child: any, index: number) => {
-    return (
-      <div key={index} style={{ display: index === current ? '' : 'none' }}>
-        <Fade
-          visible={index === current && visible}
-          fadeIn
-          fadeOut
-          fadeRate={fadeRate}
-          onFadeOut={onNext}
-          onFadeIn={onNext}
-        >
-          {child}
-        </Fade>
-      </div>
-    );
-  });
+  const currentChild = children[current];
 
-  return <div {...rest}>{wrapped}</div>;
+  return (
+    <Fade {...rest} visible={visible} fadeIn fadeOut fadeRate={fadeRate} onFadeOut={onNext} onFadeIn={onNext}>
+      {currentChild}
+    </Fade>
+  );
 }

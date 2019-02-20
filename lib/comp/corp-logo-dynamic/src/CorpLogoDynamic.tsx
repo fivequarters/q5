@@ -5,59 +5,156 @@ import styled from 'styled-components';
 // Internal Constants
 // ------------------
 
-const delayAtEnd = 1000;
-const delayAtStart = 200;
-const animations = [
-  { start: 270, end: 270 },
-  { start: 270, end: 360 },
-  { start: 360, end: 450 },
-  { start: 450, end: 540 },
-  { start: 540, end: 630 },
-  { start: 0, end: 90 },
+const pauseDelay = 50;
+const timerDelay = 20;
+const animation: IAnimationQuarter[] = [
+  {
+    invert: true,
+    visible: { before: true, after: false },
+    first: { start: 90, end: 0 },
+    second: { start: 270, end: 270 },
+    third: { start: 0, end: 0 },
+  },
+  {
+    visible: { before: true, after: false },
+    first: { start: 270, end: 180 },
+    second: { start: 0, end: 0 },
+    third: { start: 0, end: 0 },
+  },
+  {
+    visible: { before: true, after: false },
+    first: { start: 180, end: 90 },
+    second: { start: 0, end: 0 },
+    third: { start: 0, end: 0 },
+  },
+  {
+    visible: { before: true, after: true },
+    first: { start: 90, end: 0 },
+    second: { start: 0, end: 0 },
+    third: { start: 0, end: 0 },
+  },
+  {
+    visible: { before: true, after: true },
+    first: { start: 0, end: -90 },
+    second: { start: 0, end: 0 },
+    third: { start: 0, end: 0 },
+  },
+  {
+    visible: { before: false, after: true },
+    first: { start: -90, end: -180 },
+    second: { start: 0, end: 0 },
+    third: { start: 0, end: 0 },
+  },
+  {
+    visible: { before: false, after: true },
+    first: { start: -180, end: -270 },
+    second: { start: 0, end: 0 },
+    third: { start: 0, end: 0 },
+  },
+  {
+    visible: { before: false, after: true },
+    first: { start: 90, end: 90 },
+    second: { start: 0, end: 0 },
+    third: { start: 0, end: -90 },
+  },
 ];
 
 // --------------
 // Internal Types
 // --------------
 
-interface IRotationAnimation {
+interface IRotation {
   start: number;
   end: number;
 }
 
-interface IQuarterProps {
+interface IAnimationQuarter {
+  invert?: boolean;
+  visible: { before: boolean; after: boolean };
+  first: IRotation;
+  second: IRotation;
+  third: IRotation;
+}
+
+interface IState {
+  quarter: number;
+  first: number;
+  second: number;
+  third: number;
+  delay: number;
+}
+
+type QuarterProps = {
   size: number | string;
-  rate: number;
-  visible: boolean;
-  reverse: boolean;
   strokeWidth: number;
   color: string;
-  primaryAnimation: IRotationAnimation;
-  secondaryAnimation?: IRotationAnimation;
-  onAnimationEnd: () => void;
-}
+  visible: boolean;
+  first: number;
+  second: number;
+  third: number;
+  invert?: boolean;
+} & React.BaseHTMLAttributes<HTMLDivElement>;
 
 // ------------------
 // Internal Functions
 // ------------------
 
-function rotate(current: number, min: number, max: number, rate: number, reverse: boolean): number {
-  let result = current + (reverse ? -rate : rate);
-  if (result > max) {
-    result = max;
-  }
-  if (result < min) {
-    result = min;
-  }
-  return result;
+function newState(): IState {
+  return {
+    quarter: 0,
+    first: animation[0].first.start,
+    second: animation[0].second.start,
+    third: animation[0].third.start,
+    delay: pauseDelay,
+  };
 }
 
-function allFalse() {
-  return [false, false, false, false, false];
+function rotate(rotation: IRotation, degree: number, rate: number): number {
+  const direction = rotation.start > rotation.end ? -1 : 1;
+  let rotated = degree + rate * direction;
+  if (direction > 0) {
+    if (rotated > rotation.end) {
+      rotated = rotation.end;
+    } else if (rotated < rotation.start) {
+      rotated = rotation.end;
+    }
+  } else {
+    if (rotated < rotation.end) {
+      rotated = rotation.end;
+    } else if (rotated > rotation.start) {
+      rotated = rotation.end;
+    }
+  }
+
+  return rotated;
 }
 
-function firstTrueRestFalse() {
-  return [true, false, false, false, false];
+function updateState(state: IState, rate: number): IState {
+  if (state.quarter === 0 && state.delay < pauseDelay) {
+    state.delay++;
+  } else {
+    const step = animation[state.quarter];
+    if (state.first === step.first.end) {
+      if (state.second === step.second.end) {
+        if (state.third === step.third.end) {
+          state.quarter = (state.quarter + 1) % animation.length;
+          state.first = animation[state.quarter].first.start;
+          state.second = animation[state.quarter].second.start;
+          state.third = animation[state.quarter].third.start;
+          state.delay = 0;
+          return updateState(state, rate);
+        } else {
+          state.third = rotate(step.third, state.third, rate);
+        }
+      } else {
+        state.second = rotate(step.second, state.second, rate);
+      }
+    } else {
+      state.first = rotate(step.first, state.first, rate);
+    }
+  }
+
+  return state;
 }
 
 // -------------------
@@ -74,54 +171,9 @@ const Wrapper = styled.div`
   left: 0px;
 `;
 
-function Quarter({
-  size,
-  rate,
-  visible,
-  reverse,
-  strokeWidth,
-  color,
-  primaryAnimation,
-  secondaryAnimation,
-  onAnimationEnd,
-}: IQuarterProps) {
-  const [primary, setPrimary] = useState(primaryAnimation.start);
-  const onRotatePrimary = () =>
-    setPrimary(rotate(primary, primaryAnimation.start, primaryAnimation.end, rate, reverse));
-
-  const secondaryStart = secondaryAnimation ? secondaryAnimation.start : 0;
-  const secondaryEnd = secondaryAnimation ? secondaryAnimation.end : 0;
-  const [secondary, setSecondary] = useState(secondaryStart);
-  const onRotateSecondary = () => setSecondary(rotate(secondary, secondaryStart, secondaryEnd, rate, reverse));
-
-  useEffect(() => {
-    if (visible) {
-      if (reverse) {
-        if (secondary === secondaryStart) {
-          if (primary === primaryAnimation.start) {
-            onAnimationEnd();
-          } else {
-            setTimeout(onRotatePrimary, rate);
-          }
-        } else {
-          setTimeout(onRotateSecondary, rate);
-        }
-      } else {
-        if (primary === primaryAnimation.end) {
-          if (secondary === secondaryEnd) {
-            onAnimationEnd();
-          } else {
-            setTimeout(onRotateSecondary, rate);
-          }
-        } else {
-          setTimeout(onRotatePrimary, rate);
-        }
-      }
-    }
-  }, [primary, secondary, reverse, visible]);
-
+function Quarter({ size, strokeWidth, color, visible, first, second, third, invert, ...rest }: QuarterProps) {
   return (
-    <Wrapper style={{ display: visible ? 'block' : 'none' }}>
+    <Wrapper {...rest} style={{ display: visible ? '' : 'none' }}>
       <svg width={size} height={size} viewBox="0 0 110 110">
         <path
           d="M 55 5 A 50 50 0 0 0 5 55 h 50 z"
@@ -129,7 +181,11 @@ function Quarter({
           stroke={color}
           strokeWidth={strokeWidth}
           strokeLinejoin="round"
-          transform={`rotate(${primary}, 55 55) rotate(${secondary}, 5 55)`}
+          transform={[
+            `rotate(${invert ? second : first}, 55 55)`,
+            `rotate(${invert ? first : second}, 5 55)`,
+            `rotate(${third}, 55 5)`,
+          ].join(' ')}
         />
       </svg>
     </Wrapper>
@@ -163,106 +219,55 @@ export function CorpLogoDynamic({
   onAnimationEnd,
   ...rest
 }: CorpLogoDynamicProps) {
-  const [reverse, setReverse] = useState(allFalse());
-  const [quarterVisibility, setQuarterVisibility] = useState(firstTrueRestFalse());
-
-  visible = visible === false ? false : true;
-
-  function animationNext() {
-    const currentReverse = reverse.findIndex(value => value === true);
-    if (currentReverse === -1) {
-      const nextIndex = quarterVisibility.findIndex(value => value === false);
-      if (nextIndex === -1) {
-        onLastAnimation();
-      } else {
-        quarterVisibility[nextIndex] = true;
-        setQuarterVisibility(quarterVisibility);
-      }
-    } else {
-      if (currentReverse === 0) {
-        onLastAnimation();
-      } else {
-        quarterVisibility[currentReverse] = false;
-        reverse[currentReverse - 1] = true;
-        setQuarterVisibility(quarterVisibility);
-        setReverse(reverse);
-      }
-    }
-  }
-
-  function onLastAnimation() {
-    if (reverse[0] === true) {
-      setTimeout(() => setReverse(allFalse()), delayAtStart);
-    } else {
-      setTimeout(() => {
-        reverse[reverse.length - 1] = true;
-        setReverse(reverse);
-      }, delayAtEnd);
-    }
-  }
-
-  size = size || 50;
   rate = rate || 4;
-  strokeWidth = strokeWidth || 2;
-  color = color || 'black';
+  const [state, setState] = useState(newState());
+
+  useEffect(() => {
+    let timer: NodeJS.Timer;
+    if (visible) {
+      timer = setInterval(() => {
+        setState(updateState(state, rate as number));
+      }, timerDelay);
+    }
+    return () => {
+      if (timer) {
+        clearInterval(timer);
+      }
+    };
+  }, [visible]);
+
+  const settings = { size: size || 50, strokeWidth: strokeWidth || 2, color: color || 'black' };
+
+  const quarters = animation.map((quarter: IAnimationQuarter, index: number) => {
+    const animation = { visible: false, first: 0, second: 0, third: 0, invert: quarter.invert || false };
+
+    if (index === state.quarter) {
+      animation.visible = true;
+      animation.first = state.first;
+      animation.second = state.second;
+      animation.third = state.third;
+    } else if (index > state.quarter) {
+      animation.visible = quarter.visible.before;
+      animation.first = quarter.first.start;
+      animation.second = quarter.second.start;
+      animation.third = quarter.third.start;
+    } else {
+      animation.visible = quarter.visible.after;
+      animation.first = quarter.first.end;
+      animation.second = quarter.second.end;
+      animation.third = quarter.third.end;
+    }
+    return <Quarter key={index} {...settings} {...animation} />;
+  });
+
   style = style || {};
   style.width = size;
   style.height = size;
   style.display = visible ? '' : 'none';
 
   return (
-    <Container style={style}>
-      <Quarter
-        rate={rate}
-        size={size}
-        reverse={reverse[0]}
-        strokeWidth={strokeWidth}
-        color={color}
-        visible={quarterVisibility[0]}
-        primaryAnimation={animations[0]}
-        onAnimationEnd={animationNext}
-      />
-      <Quarter
-        rate={rate}
-        size={size}
-        reverse={reverse[1]}
-        strokeWidth={strokeWidth}
-        color={color}
-        visible={quarterVisibility[1]}
-        primaryAnimation={animations[1]}
-        onAnimationEnd={animationNext}
-      />
-      <Quarter
-        rate={rate}
-        size={size}
-        reverse={reverse[2]}
-        strokeWidth={strokeWidth}
-        color={color}
-        visible={quarterVisibility[2]}
-        primaryAnimation={animations[2]}
-        onAnimationEnd={animationNext}
-      />
-      <Quarter
-        rate={rate}
-        size={size}
-        reverse={reverse[3]}
-        strokeWidth={strokeWidth}
-        color={color}
-        visible={quarterVisibility[3]}
-        primaryAnimation={animations[3]}
-        onAnimationEnd={animationNext}
-      />
-      <Quarter
-        rate={rate}
-        size={size}
-        reverse={reverse[4]}
-        visible={quarterVisibility[4]}
-        strokeWidth={strokeWidth}
-        color={color}
-        primaryAnimation={animations[4]}
-        secondaryAnimation={animations[5]}
-        onAnimationEnd={animationNext}
-      />
+    <Container {...rest} style={style}>
+      {quarters}
     </Container>
   );
 }

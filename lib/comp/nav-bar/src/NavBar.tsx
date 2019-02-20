@@ -6,7 +6,6 @@ import styled from 'styled-components';
 // Internal Components
 // -------------------
 
-//  box-shadow: 0px 0px 20px #d5d8dc;
 const Container = styled.div`
   display: flex;
   width: 100%;
