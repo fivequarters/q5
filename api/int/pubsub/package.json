@@ -10,12 +10,8 @@
     "build": "tsc -b",
     "test": "jest --colors",
     "coverage": "jest --colors --coverage",
-    "lint": "tslint --fix -t stylish src/** test/**",
-    "lint:src": "tslint --fix -t stylish src/**",
-    "lint:test": "tslint --fix -t stylish test/**",
+    "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x} test/{,**/}*.ts{,x}",
     "clean": "rm -r -f lib; rm -r -f coverage",
-    "clean:build": "rm -r -f lib",
-    "clean:coverage": "rm -r -f coverage",
     "start": "node lib/index.js",
     "ngrok": "env LOGS_WS_PORT=${LOGS_WS_PORT:-5002} $(grep '^LOGS_WS_PORT=' .env) bash -c 'ngrok http $LOGS_WS_PORT'"
   },

@@ -10,12 +10,8 @@
     "build": "tsc -b",
     "test": "jest --colors -w 2",
     "coverage": "jest --colors --coverage",
-    "lint": "tslint --fix -t stylish src/** test/**",
-    "lint:src": "tslint --fix -t stylish src/**",
-    "lint:test": "tslint --fix -t stylish test/**",
-    "clean": "rm -r -f lib; rm -r -f coverage",
-    "clean:build": "rm -r -f lib",
-    "clean:coverage": "rm -r -f coverage"
+    "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x} test/{,**/}*.ts{,x}",
+    "clean": "rm -r -f lib; rm -r -f coverage"
   },
   "keywords": [],
   "dependencies": {

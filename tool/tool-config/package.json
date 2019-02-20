@@ -7,9 +7,7 @@
   "author": "FiveQuarters.io",
   "scripts": {
     "build": "tsc -b",
-    "clean": "rm -r -f lib; rm -r -f coverage",
-    "clean:build": "rm -r -f lib",
-    "clean:coverage": "rm -r -f coverage"
+    "clean": "rm -r -f lib; rm -r -f coverage"
   },
   "keywords": [],
   "dependencies": {}
