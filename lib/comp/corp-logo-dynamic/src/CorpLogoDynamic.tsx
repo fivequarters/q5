@@ -7,7 +7,7 @@ import styled from 'styled-components';
 
 const pauseDelay = 50;
 const timerDelay = 20;
-const animation: IAnimationQuarter[] = [
+const quarters: IAnimationQuarter[] = [
   {
     invert: true,
     visible: { before: true, after: false },
@@ -102,9 +102,9 @@ type QuarterProps = {
 function newState(): IState {
   return {
     quarter: 0,
-    first: animation[0].first.start,
-    second: animation[0].second.start,
-    third: animation[0].third.start,
+    first: quarters[0].first.start,
+    second: quarters[0].second.start,
+    third: quarters[0].third.start,
     delay: pauseDelay,
   };
 }
@@ -133,14 +133,14 @@ function updateState(state: IState, rate: number): IState {
   if (state.quarter === 0 && state.delay < pauseDelay) {
     state.delay++;
   } else {
-    const step = animation[state.quarter];
+    const step = quarters[state.quarter];
     if (state.first === step.first.end) {
       if (state.second === step.second.end) {
         if (state.third === step.third.end) {
-          state.quarter = (state.quarter + 1) % animation.length;
-          state.first = animation[state.quarter].first.start;
-          state.second = animation[state.quarter].second.start;
-          state.third = animation[state.quarter].third.start;
+          state.quarter = (state.quarter + 1) % quarters.length;
+          state.first = quarters[state.quarter].first.start;
+          state.second = quarters[state.quarter].second.start;
+          state.third = quarters[state.quarter].third.start;
           state.delay = 0;
           return updateState(state, rate);
         } else {
@@ -238,7 +238,7 @@ export function CorpLogoDynamic({
 
   const settings = { size: size || 50, strokeWidth: strokeWidth || 2, color: color || 'black' };
 
-  const quarters = animation.map((quarter: IAnimationQuarter, index: number) => {
+  const quarterElements = quarters.map((quarter: IAnimationQuarter, index: number) => {
     const animation = { visible: false, first: 0, second: 0, third: 0, invert: quarter.invert || false };
 
     if (index === state.quarter) {
@@ -267,7 +267,7 @@ export function CorpLogoDynamic({
 
   return (
     <Container {...rest} style={style}>
-      {quarters}
+      {quarterElements}
     </Container>
   );
 }

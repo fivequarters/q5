@@ -5,7 +5,7 @@ import { NavBar, NavBarSpacer } from './NavBar';
 
 const App = () => (
   <Body>
-    <NavBar sticky style={{ padding: 20 }}>
+    <NavBar sticky={true} style={{ padding: 20 }}>
       <div> ICON </div>
       <div style={{ marginLeft: 20 }}> CompanyName </div>
       <NavBarSpacer />
