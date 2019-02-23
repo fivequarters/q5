@@ -1,0 +1,21 @@
+{
+  "name": "@5qtrs/zmq-logger",
+  "version": "0.0.1",
+  "description": "",
+  "main": "libc/index.js",
+  "license": "UNLICENSED",
+  "author": "FiveQuarters.io",
+  "scripts": {
+    "build": "tsc -b",
+    "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x}",
+    "clean": "rm -r -f libc"
+  },
+  "keywords": [],
+  "dependencies": {
+    "bunyan": "^1.8.12",
+    "zeromq": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/bunyan": "^1.8.5"
+  }
+}

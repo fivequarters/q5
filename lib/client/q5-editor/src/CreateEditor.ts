@@ -1,12 +1,12 @@
-import { Workspace } from './Workspace';
-import { Server } from './Server';
-import * as Options from './Options';
-import { createEditorPanel } from './CreateEditorPanel';
-import { createStatusPanel } from './CreateStatusPanel';
-import { createNavigationPanel } from './CreateNavigationPanel';
 import { createActionPanel } from './CreateActionPanel';
+import { createEditorPanel } from './CreateEditorPanel';
 import { createLogsPanel } from './CreateLogsPanel';
+import { createNavigationPanel } from './CreateNavigationPanel';
+import { createStatusPanel } from './CreateStatusPanel';
 import * as Events from './Events';
+import * as Options from './Options';
+import { Server } from './Server';
+import { Workspace } from './Workspace';
 
 import 'jquery-resizable-dom';
 
@@ -16,38 +16,38 @@ export function createEditor(
   server: Server,
   options?: Options.IEditorOptions
 ) {
-  let defaultOptions = new Options.EditorOptions();
-  let opts = {
+  const defaultOptions = new Options.EditorOptions();
+  const opts = {
     ...defaultOptions,
     ...options,
   };
   Object.keys(defaultOptions).forEach(k => {
-    //@ts-ignore
+    // @ts-ignore
     if (opts[k] !== false) {
-      //@ts-ignore
+      // @ts-ignore
       opts[k] = {
         ...defaultOptions[k],
-        //@ts-ignore
+        // @ts-ignore
         ...opts[k],
       };
     }
   });
 
   if (opts.navigationPanel === false && opts.logsPanel === false && opts.actionPanel !== false) {
-    (<Options.IActionPanelOptions>opts.actionPanel).enableCodeOnlyToggle = false;
+    (opts.actionPanel as Options.IActionPanelOptions).enableCodeOnlyToggle = false;
   }
 
-  let idPrefix = `q5-${Math.floor(99999999 * Math.random()).toString(26)}`;
-  let actionId = `${idPrefix}-action`;
-  let navEditorContainerId = `${idPrefix}-nav-editor-container`;
-  let navId = `${idPrefix}-nav`;
-  let navSplitterId = `${idPrefix}-nav-splitter`;
-  let editorId = `${idPrefix}-editor`;
-  let logsId = `${idPrefix}-logs`;
-  let logsSplitterId = `${idPrefix}-logs-splitter`;
-  let statusId = `${idPrefix}-status`;
+  const idPrefix = `q5-${Math.floor(99999999 * Math.random()).toString(26)}`;
+  const actionId = `${idPrefix}-action`;
+  const navEditorContainerId = `${idPrefix}-nav-editor-container`;
+  const navId = `${idPrefix}-nav`;
+  const navSplitterId = `${idPrefix}-nav-splitter`;
+  const editorId = `${idPrefix}-editor`;
+  const logsId = `${idPrefix}-logs`;
+  const logsSplitterId = `${idPrefix}-logs-splitter`;
+  const statusId = `${idPrefix}-status`;
 
-  let lines: string[] = [`<div id="${idPrefix}" class="q5-shell"><div id="${idPrefix}-main" class="q5-main">`];
+  const lines: string[] = [`<div id="${idPrefix}" class="q5-shell"><div id="${idPrefix}-main" class="q5-main">`];
   if (opts.actionPanel !== false) {
     lines.push(`    <div id="${actionId}" class="q5-action-container"></div>`);
   }
@@ -75,23 +75,23 @@ export function createEditor(
 
   $(element).html(lines.join('\n'));
 
-  let $main = $(`#${idPrefix}`);
-  let $nav = $(`#${navId}`);
-  let $logs = $(`#${logsId}`);
-  let $editor = $(`#${editorId}`);
-  let $navEditorContainer = $(`#${navEditorContainerId}`);
-  let $logsSplitter = $(`#${logsSplitterId}`);
-  let $navSplitter = $(`#${navSplitterId}`);
+  const $main = $(`#${idPrefix}`);
+  const $nav = $(`#${navId}`);
+  const $logs = $(`#${logsId}`);
+  const $editor = $(`#${editorId}`);
+  const $navEditorContainer = $(`#${navEditorContainerId}`);
+  const $logsSplitter = $(`#${logsSplitterId}`);
+  const $navSplitter = $(`#${navSplitterId}`);
 
   if (opts.navigationPanel !== false) {
     // Keep editorMinWidth in sync with min-width of .q5-editor-container class
-    let editorMinWidth = 100;
+    const editorMinWidth = 100;
     // @ts-ignore
     $nav.resizable({
       handleSelector: `#${navSplitterId}`,
       resizeHeight: false,
       // @ts-ignore
-      onDrag: function(e, $el, newWidth, newHeight, opt) {
+      onDrag(e, $el, newWidth, newHeight, opt) {
         if (($editor.width() || 0) - (newWidth - $el.width()) < editorMinWidth) {
           return false;
         }
@@ -101,14 +101,14 @@ export function createEditor(
   }
   if (opts.logsPanel !== false) {
     // Keep navEditorMinHeight in sync with min-height of .q5-nav-editor-container class
-    let navEditorMinHeight = 100;
+    const navEditorMinHeight = 100;
     // @ts-ignore
     $logs.resizable({
       handleSelector: `#${logsSplitterId}`,
       resizeWidth: false,
       resizeHeightFrom: 'top',
       // @ts-ignore
-      onDrag: function(e, $el, newWidth, newHeight, opt) {
+      onDrag(e, $el, newWidth, newHeight, opt) {
         if (($navEditorContainer.height() || 0) - (newHeight - $el.height()) < navEditorMinHeight) {
           return false;
         }
@@ -118,31 +118,44 @@ export function createEditor(
   }
 
   if (opts.editorPanel !== false) {
-    createEditorPanel(<HTMLElement>document.getElementById(editorId), workspace, <Options.IEditorPanelOptions>(
-      opts.editorPanel
-    ));
+    createEditorPanel(
+      document.getElementById(editorId) as HTMLElement,
+      workspace,
+      opts.editorPanel as Options.IEditorPanelOptions
+    );
   }
   if (opts.statusPanel !== false) {
-    createStatusPanel(<HTMLElement>document.getElementById(statusId), workspace, <Options.IStatusPanelOptions>(
-      opts.statusPanel
-    ));
+    createStatusPanel(
+      document.getElementById(statusId) as HTMLElement,
+      workspace,
+      opts.statusPanel as Options.IStatusPanelOptions
+    );
   }
   if (opts.navigationPanel !== false) {
-    createNavigationPanel(<HTMLElement>document.getElementById(navId), workspace, <Options.INavigationPanelOptions>(
-      opts.navigationPanel
-    ));
+    createNavigationPanel(
+      document.getElementById(navId) as HTMLElement,
+      workspace,
+      opts.navigationPanel as Options.INavigationPanelOptions
+    );
   }
   if (opts.actionPanel !== false) {
-    createActionPanel(<HTMLElement>document.getElementById(actionId), workspace, server, <Options.IActionPanelOptions>(
-      opts.actionPanel
-    ));
+    createActionPanel(
+      document.getElementById(actionId) as HTMLElement,
+      workspace,
+      server,
+      opts.actionPanel as Options.IActionPanelOptions
+    );
   }
   if (opts.logsPanel !== false) {
-    createLogsPanel(<HTMLElement>document.getElementById(logsId), workspace, <Options.ILogsPanelOptions>opts.logsPanel);
+    createLogsPanel(
+      document.getElementById(logsId) as HTMLElement,
+      workspace,
+      opts.logsPanel as Options.ILogsPanelOptions
+    );
     server.attachServerLogs(workspace);
   }
 
-  workspace.on(Events.Events.NavStateChanged, function(e: Events.NavStateChangedEvent) {
+  workspace.on(Events.Events.NavStateChanged, (e: Events.NavStateChangedEvent) => {
     if (e.newState) {
       $nav.show();
       $navSplitter.show();
@@ -152,7 +165,7 @@ export function createEditor(
     }
   });
 
-  workspace.on(Events.Events.LogsStateChanged, function(e: Events.LogsStateChangedEvent) {
+  workspace.on(Events.Events.LogsStateChanged, (e: Events.LogsStateChangedEvent) => {
     if (e.newState) {
       $logs.show();
       $logsSplitter.show();
@@ -162,7 +175,7 @@ export function createEditor(
     }
   });
 
-  workspace.on(Events.Events.FullScreenChanged, function(e: Events.FullScreenChangedEvent) {
+  workspace.on(Events.Events.FullScreenChanged, (e: Events.FullScreenChangedEvent) => {
     if (e.newState) {
       // expand
       $main.addClass('q5-fullscreen');

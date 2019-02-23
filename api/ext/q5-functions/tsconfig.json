@@ -2,7 +2,8 @@
   "extends": "../../../tsconfig.json",
   "compilerOptions": {
     "rootDir": "src",
-    "outDir": "lib",
+    "outDir": "libc",
+    "module": "CommonJS",
     "allowJs": true,
     "declaration": false,
     "declarationMap": false,

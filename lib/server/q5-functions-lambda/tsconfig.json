@@ -2,12 +2,13 @@
   "extends": "../../../tsconfig.json",
   "compilerOptions": {
     "rootDir": "src",
-    "outDir": "lib",
+    "module": "CommonJS",
+    "outDir": "libc",
     "allowJs": true,
     "declaration": false,
     "declarationMap": false,
     "composite": false
   },
   "include": ["src"],
-  "references": [{ "path": "../logger" }]
+  "references": [{ "path": "../zmq-logger" }]
 }

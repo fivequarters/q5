@@ -1,0 +1,38 @@
+{
+  "name": "@5qtrs/functions-app",
+  "version": "0.0.1",
+  "description": "",
+  "main": "libc/index.js",
+  "license": "UNLICENSED",
+  "author": "FiveQuarters.io",
+  "scripts": {
+    "build": "tsc -b",
+    "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x}",
+    "clean": "rm -r -f libc",
+    "copy:editor": "cp ../../../lib/client/q5-editor/dist/* assets/js",
+    "copy:hook": "cp ../../../lib/client/q5-hook/dist/* assets/js",
+    "copy": "yarn copy:editor && yarn copy:hook",
+    "start": "yarn copy && tsc -b && nodemon ./devServer.js & tsc -b -W"
+  },
+  "keywords": [],
+  "dependencies": {
+    "@5qtrs/config": "^0.0.1",
+    "@5qtrs/server": "^0.0.1",
+    "cookie-parser": "^1.4.3",
+    "dotenv": "^6.2.0",
+    "ejs": "^2.6.1",
+    "express": "^4.16.4",
+    "http-errors": "^1.7.1",
+    "morgan": "^1.9.1"
+  },
+  "devDependencies": {
+    "@5qtrs/request": "^0.0.1",
+    "@types/cookie-parser": "^1.4.1",
+    "@types/express": "^4.16.1",
+    "@types/http-errors": "^1.6.1",
+    "@types/morgan": "^1.7.35"
+  },
+  "devServer": {
+    "port": 4000
+  }
+}

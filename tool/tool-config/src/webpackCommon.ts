@@ -1,25 +1,49 @@
-import { resolve } from 'path';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import HtmlWebpackTemplate from 'html-webpack-template';
+import { resolve } from 'path';
 import { prettifyName } from './prettifyName';
-import { GetOption } from 'cookies';
 
 // ------------------
 // Internal Functions
 // ------------------
 
-function getHtmlPluginOptions(packageJson: any, options?: IWebpackCommonOptions) {
+function getHtmlPluginOptions(packageJson: any, options?: IWebpackCommonOptions, prod: boolean = false) {
   const htmlPluginOptions: any = {
     title: prettifyName(packageJson.name),
     inject: false,
     template: HtmlWebpackTemplate,
     appMountId: 'app',
+    links: [
+      { rel: 'icon', type: 'image/png', sizes: '32x32', href: '/favicon-32x32.png' },
+      { rel: 'icon', type: 'image/png', sizes: '16x16', href: '/favicon-16x16.png' },
+      { rel: 'apple-touch-icon', sizes: '180x180', href: '/apple-touch-icon.png' },
+      { rel: 'manifest', href: '/site.webmanifest' },
+      { rel: 'mask-icon', href: '/safari-pinned-tab.svg', color: '#fc4445' },
+    ],
+    meta: [
+      { name: 'viewport', content: 'width=device-width, initial-scale=1, user-scalable=no' },
+      { name: 'fragment', content: '!' },
+      { name: 'msapplication-TileColor', content: '#2b5797' },
+      { name: 'theme-color', content: '#ffffff' },
+    ],
   };
   if (options) {
     const html = options.html;
     if (html) {
-      for (const key in html) {
-        htmlPluginOptions[key] = html[key];
+      if (html.title) {
+        htmlPluginOptions.title = html.title;
+      }
+      if (html.scripts) {
+        htmlPluginOptions.scripts = htmlPluginOptions.scripts || [];
+        htmlPluginOptions.scripts.push(...html.scripts);
+      }
+      if (html.meta) {
+        htmlPluginOptions.scripts = htmlPluginOptions.scripts || [];
+        htmlPluginOptions.scripts.push(...html.meta);
+      }
+      if (html.links) {
+        htmlPluginOptions.scripts = htmlPluginOptions.scripts || [];
+        htmlPluginOptions.scripts.push(...html.links);
       }
     }
   }
@@ -27,10 +51,14 @@ function getHtmlPluginOptions(packageJson: any, options?: IWebpackCommonOptions)
   return htmlPluginOptions;
 }
 
-function getOutput(packageJson: any, options?: IWebpackCommonOptions) {
+function getOutput(packageJson: any, options?: IWebpackCommonOptions, prod: boolean = false) {
+  const libraryName = options && options.libraryName ? options.libraryName : '[name]';
+  const postfix = options && options.hash ? '.[contenthash]' : '';
+  const min = prod ? '.min' : '';
+
   const output: any = {
-    filename: '[name].bundle.js',
-    path: resolve(process.cwd(), 'dist'),
+    filename: `${libraryName}${postfix}${min}.js`,
+    path: resolve('dist'),
   };
 
   if (options && options.globalObject) {
@@ -44,35 +72,45 @@ function getOutput(packageJson: any, options?: IWebpackCommonOptions) {
 // -------------------
 
 export interface IWebpackCommonOptions {
+  targetNode?: boolean;
+  libraryName?: string;
   entry?: string;
+  hash?: boolean;
   externals?: { [index: string]: string };
   globalObject?: string;
-  html?: { [index: string]: any; title?: string; scripts?: string[]; links?: string[]; favicon?: string };
+  html?: {
+    title?: string;
+    scripts?: string[];
+    links?: { [index: string]: string }[];
+    meta?: { [index: string]: string }[];
+  };
 }
 
 // ------------------
 // Exported Functions
 // ------------------
 
-export function webpackCommon(packageJson: any, options?: IWebpackCommonOptions): any {
-  const htmlPluginOptions = getHtmlPluginOptions(packageJson, options);
-  const output = getOutput(packageJson, options);
+export function webpackCommon(packageJson: any, options?: IWebpackCommonOptions, prod: boolean = false): any {
+  const htmlPluginOptions = getHtmlPluginOptions(packageJson, options, prod);
+  const output = getOutput(packageJson, options, prod);
   const entry = options && options.entry ? options.entry : 'app';
   const externals = options && options.externals ? options.externals : {};
+  const targetNode = options && options.targetNode ? options.targetNode : false;
 
   return {
+    target: targetNode ? 'node' : 'web',
     entry: {
-      app: `./lib/${entry}.js`,
+      app: `./lib${targetNode ? 'c' : 'm'}/${entry}.js`,
     },
     resolve: {
-      extensions: ['.js', '.json'],
+      extensions: ['.mjs', '.js', '.jsx'],
     },
     plugins: [new HtmlWebpackPlugin(htmlPluginOptions)],
     module: {
       rules: [
         {
-          test: /\.(png|jpg|jpeg|gif)$/,
-          use: ['file-loader'],
+          test: /\.(png|jpg|jpeg|gif|xml|ico|svg|webmanifest)$/,
+          use: ['file-loader?name=[name].[ext]'],
         },
       ],
     },

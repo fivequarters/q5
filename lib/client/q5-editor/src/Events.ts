@@ -1,6 +1,6 @@
 import { IEvent } from '@5qtrs/event';
-import { BuildStatus } from './Server';
 import { ServerResponse } from 'http';
+import { IBuildStatus } from './Server';
 
 export enum Events {
   FileSelected = 'file:selected',
@@ -26,112 +26,154 @@ export enum Events {
   Closed = 'closed',
 }
 
-export interface EditorEvent extends IEvent {
+export interface IEditorEvent extends IEvent {
   name: string;
-  status?: BuildStatus;
+  status?: IBuildStatus;
 }
 
-export class LogsAttached implements EditorEvent {
-  name: string = Events.LogsAttached;
-  constructor() {}
+export class LogsAttached implements IEditorEvent {
+  public name: string = Events.LogsAttached;
+  constructor() {
+    // do nothing
+  }
 }
 
-export class LogsDetached implements EditorEvent {
-  name: string = Events.LogsDetached;
-  constructor(public error?: Error) {}
+export class LogsDetached implements IEditorEvent {
+  public name: string = Events.LogsDetached;
+  constructor(public error?: Error) {
+    // do nothing
+  }
 }
 
-export class LogsEntry implements EditorEvent {
-  name: string = Events.LogsEntry;
-  constructor(public data: string) {}
+export class LogsEntry implements IEditorEvent {
+  public name: string = Events.LogsEntry;
+  constructor(public data: string) {
+    // do nothing
+  }
 }
 
-export class ClosedEvent implements EditorEvent {
-  name: string = Events.Closed;
-  constructor() {}
+export class ClosedEvent implements IEditorEvent {
+  public name: string = Events.Closed;
+  constructor() {
+    // do nothing
+  }
 }
 
-export class FileSelectedEvent implements EditorEvent {
-  name: string = Events.FileSelected;
-  constructor(public fileName: string) {}
+export class FileSelectedEvent implements IEditorEvent {
+  public name: string = Events.FileSelected;
+  constructor(public fileName: string) {
+    // do nothing
+  }
 }
 
-export class FileAddedEvent implements EditorEvent {
-  name: string = Events.FileAdded;
-  constructor(public fileName: string) {}
+export class FileAddedEvent implements IEditorEvent {
+  public name: string = Events.FileAdded;
+  constructor(public fileName: string) {
+    // do nothing
+  }
 }
 
-export class FileDeletedEvent implements EditorEvent {
-  name: string = Events.FileDeleted;
-  constructor(public fileName: string) {}
+export class FileDeletedEvent implements IEditorEvent {
+  public name: string = Events.FileDeleted;
+  constructor(public fileName: string) {
+    // do nothing
+  }
 }
 
-export class RunnerSelectedEvent implements EditorEvent {
-  name: string = Events.RunnerSelected;
-  constructor() {}
+export class RunnerSelectedEvent implements IEditorEvent {
+  public name: string = Events.RunnerSelected;
+  constructor() {
+    // do nothing
+  }
 }
 
-export class DirtyStateChangedEvent implements EditorEvent {
-  name: string = Events.DirtyStateChanged;
-  constructor(public newState: boolean) {}
+export class DirtyStateChangedEvent implements IEditorEvent {
+  public name: string = Events.DirtyStateChanged;
+  constructor(public newState: boolean) {
+    // do nothing
+  }
 }
 
-export class FullScreenChangedEvent implements EditorEvent {
-  name: string = Events.FullScreenChanged;
-  constructor(public newState: boolean) {}
+export class FullScreenChangedEvent implements IEditorEvent {
+  public name: string = Events.FullScreenChanged;
+  constructor(public newState: boolean) {
+    // do nothing
+  }
 }
 
-export class LogsStateChangedEvent implements EditorEvent {
-  name: string = Events.LogsStateChanged;
-  constructor(public newState: boolean) {}
+export class LogsStateChangedEvent implements IEditorEvent {
+  public name: string = Events.LogsStateChanged;
+  constructor(public newState: boolean) {
+    // do nothing
+  }
 }
 
-export class NavStateChangedEvent implements EditorEvent {
-  name: string = Events.NavStateChanged;
-  constructor(public newState: boolean) {}
+export class NavStateChangedEvent implements IEditorEvent {
+  public name: string = Events.NavStateChanged;
+  constructor(public newState: boolean) {
+    // do nothing
+  }
 }
 
-export class ReadOnlyStateChangedEvent implements EditorEvent {
-  name: string = Events.ReadOnlyStateChanged;
-  constructor(public newState: boolean) {}
+export class ReadOnlyStateChangedEvent implements IEditorEvent {
+  public name: string = Events.ReadOnlyStateChanged;
+  constructor(public newState: boolean) {
+    // do nothing
+  }
 }
 
-export class SettingsComputeSelectedEvent implements EditorEvent {
-  name: string = Events.SettingsComputeSelected;
-  constructor() {}
+export class SettingsComputeSelectedEvent implements IEditorEvent {
+  public name: string = Events.SettingsComputeSelected;
+  constructor() {
+    // do nothing
+  }
 }
 
-export class SettingsApplicationSelectedEvent implements EditorEvent {
-  name: string = Events.SettingsApplicationSelected;
-  constructor() {}
+export class SettingsApplicationSelectedEvent implements IEditorEvent {
+  public name: string = Events.SettingsApplicationSelected;
+  constructor() {
+    // do nothing
+  }
 }
 
-export class BuildStartedEvent implements EditorEvent {
-  name: string = Events.BuildStarted;
-  constructor() {}
+export class BuildStartedEvent implements IEditorEvent {
+  public name: string = Events.BuildStarted;
+  constructor() {
+    // do nothing
+  }
 }
 
-export class BuildErrorEvent implements EditorEvent {
-  name: string = Events.BuildError;
-  constructor(public error: Error) {}
+export class BuildErrorEvent implements IEditorEvent {
+  public name: string = Events.BuildError;
+  constructor(public error: Error) {
+    // do nothing
+  }
 }
 
-export class BuildProgressEvent implements EditorEvent {
-  name: string = Events.BuildProgress;
-  constructor(public status: BuildStatus) {}
+export class BuildProgressEvent implements IEditorEvent {
+  public name: string = Events.BuildProgress;
+  constructor(public status: IBuildStatus) {
+    // do nothing
+  }
 }
 
-export class BuildFinishedEvent implements EditorEvent {
-  name: string = Events.BuildFinished;
-  constructor(public status: BuildStatus) {}
+export class BuildFinishedEvent implements IEditorEvent {
+  public name: string = Events.BuildFinished;
+  constructor(public status: IBuildStatus) {
+    // do nothing
+  }
 }
 
-export class RunnerStartedEvent implements EditorEvent {
-  name: string = Events.RunnerStarted;
-  constructor(public url: string) {}
+export class RunnerStartedEvent implements IEditorEvent {
+  public name: string = Events.RunnerStarted;
+  constructor(public url: string) {
+    // do nothing
+  }
 }
 
-export class RunnerFinishedEvent implements EditorEvent {
-  name: string = Events.RunnerFinished;
-  constructor(public error?: Error, public response?: ServerResponse) {}
+export class RunnerFinishedEvent implements IEditorEvent {
+  public name: string = Events.RunnerFinished;
+  constructor(public error?: Error, public response?: ServerResponse) {
+    // do nothing
+  }
 }

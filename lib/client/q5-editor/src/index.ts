@@ -2,29 +2,29 @@
 
 import './q5.css';
 
-import { library, dom } from '@fortawesome/fontawesome-svg-core';
+import { dom, library } from '@fortawesome/fontawesome-svg-core';
 import {
-  faSave,
-  faPlay,
-  faArrowsAlt,
-  faCompress,
-  faFileCode,
-  faWindowClose,
-  faChevronRight,
-  faChevronDown,
-  faPlus,
-  faFile,
-  faTrash,
-  faCogs,
-  faUserSecret,
-} from '@fortawesome/free-solid-svg-icons';
-import {
-  faFileCode as farFileCode,
-  faPlusSquare as farPlusSquare,
-  faMinusSquare,
   faCheckCircle,
+  faFileCode as farFileCode,
+  faMinusSquare,
+  faPlusSquare as farPlusSquare,
   faTimesCircle,
 } from '@fortawesome/free-regular-svg-icons';
+import {
+  faArrowsAlt,
+  faChevronDown,
+  faChevronRight,
+  faCogs,
+  faCompress,
+  faFile,
+  faFileCode,
+  faPlay,
+  faPlus,
+  faSave,
+  faTrash,
+  faUserSecret,
+  faWindowClose,
+} from '@fortawesome/free-solid-svg-icons';
 
 library.add(
   faSave,

@@ -1,15 +1,15 @@
-import { Workspace } from './Workspace';
 import * as Events from './Events';
 import { ILogsPanelOptions, LogsPanelOptions } from './Options';
+import { Workspace } from './Workspace';
 
 export function createLogsPanel(element: HTMLElement, workspace: Workspace, options?: ILogsPanelOptions) {
-  let id = `q5-logs-${Math.floor(99999999 * Math.random()).toString(26)}`;
+  const id = `q5-logs-${Math.floor(99999999 * Math.random()).toString(26)}`;
   $(element).html(`<div class="q5-logs" id="${id}"><pre class="q5-logs-content" id="${id}-content"></pre></div>`);
-  let $content = $(`#${id}-content`);
-  let $container = $(`#${id}`);
+  const $content = $(`#${id}-content`);
+  const $container = $(`#${id}`);
 
-  let defaultOptions = new LogsPanelOptions();
-  let effectiveOptions = {
+  const defaultOptions = new LogsPanelOptions();
+  const effectiveOptions = {
     ...defaultOptions,
     ...options,
   };
@@ -27,50 +27,56 @@ export function createLogsPanel(element: HTMLElement, workspace: Workspace, opti
 
   workspace.on(Events.Events.LogsEntry, (e: Events.LogsEntry) => {
     try {
-      let json = JSON.parse(e.data);
+      const json = JSON.parse(e.data);
       append(`SERVER ${json.level === 30 ? 'STDOUT' : 'STDERR'}: ${json.msg}`);
-    } catch (_) {}
+    } catch (_) {
+      // do nothing
+    }
   });
 
-  workspace.on(Events.Events.BuildStarted, function(e: Events.BuildStartedEvent) {
+  workspace.on(Events.Events.BuildStarted, (e: Events.BuildStartedEvent) => {
     append(
       `BUILD: starting build of ${workspace.functionSpecification.boundary}/${workspace.functionSpecification.name}...`
     );
   });
 
-  workspace.on(Events.Events.BuildProgress, function(e: Events.BuildProgressEvent) {
+  workspace.on(Events.Events.BuildProgress, (e: Events.BuildProgressEvent) => {
     append(`BUILD ${e.status.build_id}: progress ${Math.floor((e.status.progress || 0) * 100)}% (${e.status.status})`);
   });
 
-  workspace.on(Events.Events.BuildFinished, function(e: Events.BuildFinishedEvent) {
-    if (e.status.build_id)
+  workspace.on(Events.Events.BuildFinished, (e: Events.BuildFinishedEvent) => {
+    if (e.status.build_id) {
       append(
         `BUILD ${e.status.build_id}: progress ${Math.floor((e.status.progress || 0) * 100)}% (${e.status.status}) ${e
           .status.url || JSON.stringify(e.status.error, null, 2)}`
       );
-    else append(`BUILD: success (no changes) ${e.status.url || JSON.stringify(e.status.error, null, 2)}`);
+    } else {
+      append(`BUILD: success (no changes) ${e.status.url || JSON.stringify(e.status.error, null, 2)}`);
+    }
   });
 
-  workspace.on(Events.Events.BuildError, function(e: Events.BuildErrorEvent) {
+  workspace.on(Events.Events.BuildError, (e: Events.BuildErrorEvent) => {
     append(`BUILD: error ${e.error}`);
   });
 
-  workspace.on(Events.Events.RunnerStarted, function(e: Events.RunnerStartedEvent) {
+  workspace.on(Events.Events.RunnerStarted, (e: Events.RunnerStartedEvent) => {
     append(`RUN: calling ${e.url}`);
   });
 
-  workspace.on(Events.Events.RunnerFinished, function(e: Events.RunnerFinishedEvent) {
+  workspace.on(Events.Events.RunnerFinished, (e: Events.RunnerFinishedEvent) => {
     let response = e.response;
     if (e.error) {
-      response = response || (<any>e.error).response;
+      response = response || (e.error as any).response;
       if (!response) {
-        return append(`RUN: error ${(<any>e.error).stack || e.error}`);
+        return append(`RUN: error ${(e.error as any).stack || e.error}`);
       }
     }
-    if (!response) return;
-    let lines: string[] = [`RUN: received response HTTP ${response.statusCode}`];
+    if (!response) {
+      return;
+    }
+    const lines: string[] = [`RUN: received response HTTP ${response.statusCode}`];
     // @ts-ignore
-    for (var h in response.headers) {
+    for (const h in response.headers) {
       if (h !== 'x-fx-logs') {
         // @ts-ignore
         lines.push(`${h}: ${response.headers[h]}`);
@@ -83,11 +89,11 @@ export function createLogsPanel(element: HTMLElement, workspace: Workspace, opti
     }
     append(lines.join('\n'));
     // @ts-ignore
-    let logs = response.headers['x-fx-logs'];
+    const logs = response.headers['x-fx-logs'];
     if (logs) {
       let logsStr: string | undefined = logs.toString();
       try {
-        logsStr = atob(<string>logsStr);
+        logsStr = atob(logsStr as string);
       } catch (_) {
         logsStr = undefined;
       }
@@ -98,7 +104,7 @@ export function createLogsPanel(element: HTMLElement, workspace: Workspace, opti
   });
 
   function append(line: string) {
-    let annotatedLine = `[${new Date().toLocaleTimeString()}] ${line}\n`;
+    const annotatedLine = `[${new Date().toLocaleTimeString()}] ${line}\n`;
     let newContent = $content.text() + annotatedLine;
     if (newContent.length > effectiveOptions.maxSize) {
       newContent = newContent.substring(newContent.length - effectiveOptions.maxSize);

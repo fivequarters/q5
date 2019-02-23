@@ -1,24 +1,24 @@
-export interface ApplicationSettings {
-    [property: string]: string | number;
+export interface IApplicationSettings {
+  [property: string]: string | number;
 }
 
-export interface NodejsFileSettings {
-    [property: string]: string | Object;
+export interface INodejsFileSettings {
+  [property: string]: string | object;
 }
 
-export interface NodejsSettings {
-    files: NodejsFileSettings;
+export interface INodejsSettings {
+  files: INodejsFileSettings;
 }
 
-export interface LambdaSettings {
-    [property: string]: string | number;
+export interface ILambdaSettings {
+  [property: string]: string | number;
 }
 
-export interface FunctionSpecification {
-    name: string;
-    boundary: string;
-    configuration?: ApplicationSettings;
-    lambda?: LambdaSettings;
-    nodejs?: NodejsSettings;
-    metadata?: { [property: string] : any };
+export interface IFunctionSpecification {
+  name: string;
+  boundary: string;
+  configuration?: IApplicationSettings;
+  lambda?: ILambdaSettings;
+  nodejs?: INodejsSettings;
+  metadata?: { [property: string]: any };
 }

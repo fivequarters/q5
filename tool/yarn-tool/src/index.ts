@@ -6,9 +6,9 @@ import DeleteCommand from './DeleteCommand';
 import IncrementCommand from './IncrementCommand';
 import MoveCommand from './MoveCommand';
 import NewCommand from './NewCommand';
+import PortsCommand from './PortsCommand';
 import RenameCommand from './RenameCommand';
 import RequireCommand from './RequireCommand';
-import PortsCommand from './PortsCommand';
 import YarnCommand from './YarnCommand';
 
 const commands = [

@@ -1,23 +1,45 @@
-import { Project } from '@5qtrs/workspace';
 import { spawn } from '@5qtrs/child-process';
+import { Project } from '@5qtrs/workspace';
 import { join, sep } from 'path';
 import { Writable } from 'stream';
 import ICommand from './ICommand';
 
 const unknown = '<unknown>';
-const startPort = 8000;
-const defaultTemplateType = 'default';
-const webAppTemplateType = 'webApp';
-const webCompTemplateType = 'webComp';
-const apiTemplateType = 'api';
-const pathMap: { [index: string]: string } = {
-  'app/web': webAppTemplateType,
-  api: apiTemplateType,
-  'lib/comp': webCompTemplateType,
+
+enum TemplateType {
+  default = 'default',
+  sharedLib = 'sharedLib',
+  serverLib = 'serverLib',
+  clientLib = 'clientLib',
+  webApp = 'webApp',
+  webComp = 'webComp',
+  api = 'api',
+  demo = 'demo',
+}
+
+const startPorts: { [index: string]: number } = {
+  api: 7000,
+  app: 8000,
+  webComp: 9000,
+  sharedLib: 9500,
+  serverLib: 9500,
+  clientLib: 9500,
+  site: 9900,
+  demo: 4000,
 };
 
-async function getNextFreePort(project: Project) {
-  let ports = [];
+const pathToTemplateMap: { [index: string]: TemplateType } = {
+  'app/web': TemplateType.webApp,
+  'lib/shared': TemplateType.sharedLib,
+  'lib/server': TemplateType.serverLib,
+  'lib/client': TemplateType.clientLib,
+  api: TemplateType.api,
+  comp: TemplateType.webComp,
+  demo: TemplateType.demo,
+};
+
+async function getNextFreePort(project: Project, startPort: number) {
+  const ports = [];
   try {
     const workspaces = await project.GetWorkspaces();
     for (const workspace of workspaces) {
@@ -69,13 +91,34 @@ export default class NewCommand implements ICommand {
       path = segments.length ? join(...segments) : '';
     }
 
-    let templateType = defaultTemplateType;
-    for (const pathPrefix in pathMap) {
+    let templateType = TemplateType.sharedLib;
+    for (const pathPrefix in pathToTemplateMap) {
       if (path.indexOf(pathPrefix) === 0) {
-        templateType = pathMap[pathPrefix];
+        templateType = pathToTemplateMap[pathPrefix];
       }
     }
 
+    if (templateType === TemplateType.demo) {
+      const newPath = join(path, name);
+      const appName = `${name}-app`;
+      const apiName = `${name}-api`;
+      await this.CreateWorkspace(appName, newPath, TemplateType.webApp, startPorts.demo, project, output);
+      await this.CreateWorkspace(apiName, newPath, TemplateType.api, startPorts.demo, project, output);
+      return;
+    }
+
+    const startPort = startPorts[templateType] || 0;
+    await this.CreateWorkspace(name, path, templateType, startPort, project, output);
+  }
+
+  private async CreateWorkspace(
+    name: string,
+    path: string,
+    templateType: TemplateType,
+    startPort: number,
+    project: Project,
+    output: Writable
+  ) {
     let workspace;
     try {
       workspace = await project.NewWorkspace(name, path, templateType);
@@ -84,16 +127,12 @@ export default class NewCommand implements ICommand {
     }
 
     if (workspace) {
-      if (
-        templateType === webAppTemplateType ||
-        templateType === apiTemplateType ||
-        templateType === webCompTemplateType
-      ) {
-        const port = await getNextFreePort(project);
+      if (startPort) {
+        const port = await getNextFreePort(project, startPort);
         workspace.SetDevServerPort(port);
       }
 
-      if (templateType === apiTemplateType) {
+      if (templateType === TemplateType.api) {
         const org = await project.GetOrg();
         await workspace.AddDependency(`@${org}/request`, '', true);
         await workspace.AddDependency(`@${org}/server`);

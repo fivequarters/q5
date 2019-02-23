@@ -16,7 +16,7 @@ export default class PortsCommand implements ICommand {
   }
 
   public async Handler(args: string[], project: Project, output: Writable) {
-    let entries = [];
+    const entries = [];
     try {
       const workspaces = await project.GetWorkspaces();
       for (const workspace of workspaces) {

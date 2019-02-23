@@ -1,0 +1,6 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": { "rootDir": "src", "outDir": "libm" },
+  "include": ["src"],
+  "references": [{ "path": "../../lib/shared/type" }, { "path": "../../lib/client/font" }]
+}

@@ -1,4 +1,4 @@
-import { webpackCommon, IWebpackCommonOptions } from './webpackCommon';
+import { IWebpackCommonOptions, webpackCommon } from './webpackCommon';
 
 // ------------------
 // Internal Constants
@@ -57,7 +57,7 @@ export interface IWebpackDevOptions extends IWebpackCommonOptions {
 
 export function webpackDev(packageJson: any, options?: IWebpackDevOptions) {
   const devOptions = addReactFromCdn(options);
-  const config = webpackCommon(packageJson, devOptions);
+  const config = webpackCommon(packageJson, devOptions, false);
   const devServer = getDevServer(packageJson, devOptions);
 
   config.mode = 'development';

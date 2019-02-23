@@ -1,23 +1,22 @@
-import PubSub from '../src';
 import Zmq from 'zeromq';
+import { PubSub } from '../src/Pubsub';
 
 const server = new PubSub();
+beforeAll(() => {
+  server.start();
+});
+
+afterAll(() => {
+  server.stop();
+});
 
 describe('pubsub', () => {
-  beforeAll(() => {
-    server.start();
-  });
-
-  afterAll(() => {
-    server.stop();
-  });
-
   it('server start and stop work', () => {
     expect(true);
   });
 
   it('publish works', done => {
-    let psock = Zmq.socket('pub');
+    const psock = Zmq.socket('pub');
     psock.monitor(); // enables connect event
     psock.connect(server.xsubListener);
     psock.on('connect', () => {
@@ -28,7 +27,7 @@ describe('pubsub', () => {
   });
 
   it('subscribe works', done => {
-    let ssock = Zmq.socket('sub');
+    const ssock = Zmq.socket('sub');
     ssock.subscribe('channel5');
     ssock.monitor(); // enables connect event
     ssock.connect(server.xpubListener);
@@ -40,17 +39,18 @@ describe('pubsub', () => {
 
   it('publish/subscribe works', done => {
     // subscribe
-    let ssock = Zmq.socket('sub');
+    const ssock = Zmq.socket('sub');
     ssock.connect(server.xpubListener);
     ssock.subscribe('channel5');
     ssock.on('message', data => {
       expect(data.toString()).toEqual('channel5 message');
       ssock.disconnect(server.xpubListener);
+      ssock.close();
       done();
     });
 
     // publish
-    let psock = Zmq.socket('pub');
+    const psock = Zmq.socket('pub');
     psock.monitor(); // enables connect event
     psock.connect(server.xsubListener);
     psock.on('connect', () => {
@@ -61,20 +61,21 @@ describe('pubsub', () => {
 
   it('topic prefix publish/subscribe works', done => {
     // subscribe
-    let ssock = Zmq.socket('sub');
+    const ssock = Zmq.socket('sub');
     ssock.connect(server.xpubListener);
     ssock.subscribe('app-');
     let count = 0;
     ssock.on('message', data => {
       expect(data.toString()).toMatch(/^app\-/);
-      if (++count == 2) {
+      if (++count === 2) {
         ssock.disconnect(server.xpubListener);
+        ssock.close();
         done();
       }
     });
 
     // publish
-    let psock = Zmq.socket('pub');
+    const psock = Zmq.socket('pub');
     psock.monitor(); // enables connect event
     psock.connect(server.xsubListener);
     psock.on('connect', () => {
