@@ -263,7 +263,10 @@ export default class Workspace {
         })
       );
     } catch (error) {
-      const message = `One or more workspace references may not have been updated due to the following failure: ${error.message}`;
+      const message = [
+        'One or more workspace references may not have been updated due to',
+        `the following failure: ${error.message}`,
+      ].join(' ');
       throw new Error(message);
     }
   }

@@ -16,6 +16,8 @@ coverage/
 
 # Built Typescript library
 lib/
+libc/
+libm/
 !/lib
 
 # Webpack bundles

@@ -1,3 +1,5 @@
-export { default as jest } from './jest';
-export { default as prettier } from './prettier';
-export { default as webpack } from './webpack';
+export { jest } from './jest';
+export { prettier } from './prettier';
+export { webpackCommon } from './webpackCommon';
+export { webpackDev } from './webpackDev';
+export { webpackProd } from './webpackProd';

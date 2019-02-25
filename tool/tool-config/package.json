@@ -2,15 +2,23 @@
   "name": "@5qtrs/tool-config",
   "version": "0.0.1",
   "description": "",
-  "main": "lib/index.js",
+  "main": "libc/index.js",
   "license": "UNLICENSED",
   "author": "FiveQuarters.io",
   "scripts": {
     "build": "tsc -b",
-    "clean": "rm -r -f lib; rm -r -f coverage",
-    "clean:build": "rm -r -f lib",
-    "clean:coverage": "rm -r -f coverage"
+    "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x}",
+    "clean": "rm -r -f libc; rm -r -f libm"
   },
   "keywords": [],
-  "dependencies": {}
+  "dependencies": {
+    "clean-webpack-plugin": "^1.0.1",
+    "html-webpack-plugin": "^3.2.0",
+    "html-webpack-template": "^6.2.0"
+  },
+  "devDependencies": {
+    "@types/clean-webpack-plugin": "^0.1.2",
+    "@types/html-webpack-plugin": "^3.2.0",
+    "@types/html-webpack-template": "^6.0.3"
+  }
 }

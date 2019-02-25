@@ -1,24 +1,24 @@
-import { Workspace } from './Workspace';
+import * as Assert from 'assert';
 import * as Events from './Events';
 import { IStatusPanelOptions } from './Options';
-import * as Assert from 'assert';
+import { Workspace } from './Workspace';
 
 export function createStatusPanel(element: HTMLElement, workspace: Workspace, options?: IStatusPanelOptions) {
-  let id = `q5-status-${Math.floor(99999999 * Math.random()).toString(26)}`;
+  const id = `q5-status-${Math.floor(99999999 * Math.random()).toString(26)}`;
   $(element).html(`<div id="${id}" class="q5-status">Status</div>`);
-  let $status = $(`#${id}`);
+  const $status = $(`#${id}`);
 
-  workspace.on(Events.Events.BuildStarted, function(e: Events.BuildStartedEvent) {
+  workspace.on(Events.Events.BuildStarted, (e: Events.BuildStartedEvent) => {
     setStatus(
       `Starting build of ${workspace.functionSpecification.boundary}/${workspace.functionSpecification.name}...`
     );
   });
 
-  workspace.on(Events.Events.BuildProgress, function(e: Events.BuildProgressEvent) {
+  workspace.on(Events.Events.BuildProgress, (e: Events.BuildProgressEvent) => {
     setStatus(`Building ${Math.floor((e.status.progress || 0) * 100)}%...`);
   });
 
-  workspace.on(Events.Events.BuildFinished, function(e: Events.BuildFinishedEvent) {
+  workspace.on(Events.Events.BuildFinished, (e: Events.BuildFinishedEvent) => {
     if (e.status.url) {
       setStatus(`Build successful: ${e.status.url}`);
     } else {
@@ -26,15 +26,15 @@ export function createStatusPanel(element: HTMLElement, workspace: Workspace, op
     }
   });
 
-  workspace.on(Events.Events.BuildError, function(e: Events.BuildErrorEvent) {
+  workspace.on(Events.Events.BuildError, (e: Events.BuildErrorEvent) => {
     setStatus(`Build failed: ${e.error}`);
   });
 
-  workspace.on(Events.Events.RunnerStarted, function(e: Events.RunnerStartedEvent) {
+  workspace.on(Events.Events.RunnerStarted, (e: Events.RunnerStartedEvent) => {
     setStatus(`Running ${e.url}...`);
   });
 
-  workspace.on(Events.Events.RunnerFinished, function(e: Events.RunnerFinishedEvent) {
+  workspace.on(Events.Events.RunnerFinished, (e: Events.RunnerFinishedEvent) => {
     if (e.error) {
       setStatus(`Run error: ${e.error}`);
     } else if (e.response) {

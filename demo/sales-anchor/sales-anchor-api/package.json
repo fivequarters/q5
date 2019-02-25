@@ -1,0 +1,33 @@
+{
+  "name": "@5qtrs/sales-anchor-api",
+  "version": "0.0.1",
+  "description": "",
+  "main": "libc/index.js",
+  "license": "UNLICENSED",
+  "author": "FiveQuarters.io",
+  "scripts": {
+    "build": "tsc -b",
+    "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x}",
+    "clean": "rm -r -f libc",
+    "start": "tsc -b && nodemon ./devServer.js & tsc -b -W"
+  },
+  "keywords": [],
+  "dependencies": {
+    "koa": "^2.7.0",
+    "koa-router": "^7.4.0",
+    "koa-morgan": "^1.0.1",
+    "@koa/cors": "^2.2.3",
+    "@5qtrs/server": "^0.0.1",
+    "@5qtrs/config": "^0.0.1",
+    "@5qtrs/request": "^0.0.1"
+  },
+  "devDependencies": {
+    "@types/koa__cors": "^2.2.3",
+    "@types/koa-morgan": "^1.0.4",
+    "@types/koa": "^2.0.48",
+    "@types/koa-router": "^7.0.39"
+  },
+  "devServer": {
+    "port": 4001
+  }
+}

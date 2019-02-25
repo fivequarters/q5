@@ -1,7 +1,7 @@
-import { Workspace } from './Workspace';
 import { Events } from './Events';
+import { ActionPanelOptions, IActionPanelOptions } from './Options';
 import { Server } from './Server';
-import { IActionPanelOptions, ActionPanelOptions } from './Options';
+import { Workspace } from './Workspace';
 
 export function createActionPanel(
   element: HTMLElement,
@@ -9,22 +9,22 @@ export function createActionPanel(
   server: Server,
   options?: IActionPanelOptions
 ) {
-  let defaultOptions = new ActionPanelOptions();
-  let opts = {
+  const defaultOptions = new ActionPanelOptions();
+  const opts = {
     ...defaultOptions,
     ...options,
   };
 
-  let idPrefix = `q5-action-${Math.floor(99999999 * Math.random()).toString(26)}`;
-  let closeId = `${idPrefix}-close`;
-  let saveId = `${idPrefix}-save`;
-  let runId = `${idPrefix}-run`;
-  let expandId = `${idPrefix}-expand`;
-  let compressId = `${idPrefix}-compress`;
-  let hideNavLogsId = `${idPrefix}-hide-nav-logs`;
-  let showNavLogsId = `${idPrefix}-show-nav-logs`;
+  const idPrefix = `q5-action-${Math.floor(99999999 * Math.random()).toString(26)}`;
+  const closeId = `${idPrefix}-close`;
+  const saveId = `${idPrefix}-save`;
+  const runId = `${idPrefix}-run`;
+  const expandId = `${idPrefix}-expand`;
+  const compressId = `${idPrefix}-compress`;
+  const hideNavLogsId = `${idPrefix}-hide-nav-logs`;
+  const showNavLogsId = `${idPrefix}-show-nav-logs`;
 
-  let lines: string[] = [
+  const lines: string[] = [
     `<div class="q5-action-wrapper">
     <div>`,
   ];
@@ -36,8 +36,12 @@ export function createActionPanel(
    `);
   if (opts.enableCodeOnlyToggle) {
     lines.push(`
-        <button id="${hideNavLogsId}" class="q5-action-btn"><i class="far fa-file-code"></i></button>
-        <button id="${showNavLogsId}" class="q5-action-btn" style="display: none"><i class="fas fa-file-code"></i></button>
+        <button id="${hideNavLogsId}" class="q5-action-btn">
+          <i class="far fa-file-code"></i>
+        </button>
+        <button id="${showNavLogsId}" class="q5-action-btn" style="display: none">
+          <i class="fas fa-file-code"></i>
+        </button>
 `);
   }
   if (opts.enableFullScreen) {
@@ -52,20 +56,20 @@ export function createActionPanel(
 
   $(element).html(lines.join('\n'));
 
-  let $save = $(`#${saveId}`);
-  let $close = $(`#${closeId}`);
-  let $run = $(`#${runId}`);
-  let $expand = $(`#${expandId}`);
-  let $compress = $(`#${compressId}`);
-  let $hideNavLogs = $(`#${hideNavLogsId}`);
-  let $showNavLogs = $(`#${showNavLogsId}`);
+  const $save = $(`#${saveId}`);
+  const $close = $(`#${closeId}`);
+  const $run = $(`#${runId}`);
+  const $expand = $(`#${expandId}`);
+  const $compress = $(`#${compressId}`);
+  const $hideNavLogs = $(`#${hideNavLogsId}`);
+  const $showNavLogs = $(`#${showNavLogsId}`);
 
-  $close.click(function(e) {
+  $close.click(e => {
     e.preventDefault();
     workspace.close();
   });
 
-  $hideNavLogs.click(function(e) {
+  $hideNavLogs.click(e => {
     e.preventDefault();
     $hideNavLogs.hide();
     $showNavLogs.show();
@@ -73,7 +77,7 @@ export function createActionPanel(
     workspace.updateNavState(false);
   });
 
-  $showNavLogs.click(function(e) {
+  $showNavLogs.click(e => {
     e.preventDefault();
     $hideNavLogs.show();
     $showNavLogs.hide();
@@ -81,21 +85,21 @@ export function createActionPanel(
     workspace.updateNavState(true);
   });
 
-  $expand.click(function(e) {
+  $expand.click(e => {
     e.preventDefault();
     $expand.hide();
     $compress.show();
     workspace.setFullScreen(true);
   });
 
-  $compress.click(function(e) {
+  $compress.click(e => {
     e.preventDefault();
     $expand.show();
     $compress.hide();
     workspace.setFullScreen(false);
   });
 
-  $save.click(function(e) {
+  $save.click(e => {
     e.preventDefault();
     workspace.setDirtyState(false);
     workspace.setReadOnly(true);
@@ -111,9 +115,11 @@ export function createActionPanel(
       });
   });
 
-  $run.click(function(e) {
+  $run.click(e => {
     e.preventDefault();
-    server.runFunction(workspace).catch(_ => {});
+    server.runFunction(workspace).catch(_ => {
+      // do nothing
+    });
   });
 
   workspace.on(Events.DirtyStateChanged, updateState);

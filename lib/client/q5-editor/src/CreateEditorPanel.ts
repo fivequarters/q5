@@ -1,8 +1,8 @@
-import { Workspace } from './Workspace';
-import { Events, FileDeletedEvent } from './Events';
-import * as Monaco from 'monaco-editor/esm/vs/editor/editor.api.js';
-import { IEditorPanelOptions } from './Options';
 import * as Assert from 'assert';
+import * as Monaco from 'monaco-editor/esm/vs/editor/editor.api.js';
+import { Events, FileDeletedEvent } from './Events';
+import { IEditorPanelOptions } from './Options';
+import { Workspace } from './Workspace';
 
 const SettingsApplicationPlaceholder = `# Application settings are available within function code
 
@@ -26,7 +26,7 @@ export function createEditorPanel(element: HTMLElement, workspace: Workspace, op
     },
   });
 
-  let monacoOptions = {
+  const monacoOptions = {
     theme: 'customTheme',
     ...options,
     value: workspace.getSelectedFileContent(),
@@ -37,19 +37,19 @@ export function createEditorPanel(element: HTMLElement, workspace: Workspace, op
     },
   };
 
-  let editor = Monaco.editor.create(element, monacoOptions);
+  const editor = Monaco.editor.create(element, monacoOptions);
   let suppressNextChangeEvent: boolean;
   let activeCategory: Events = Events.FileSelected;
-  let computeSettings: string | undefined = undefined;
-  let applicationSettings: string | undefined = undefined;
+  let computeSettings: string | undefined;
+  let applicationSettings: string | undefined;
 
   // When a file is selected in the workspace, update editor content and language
-  workspace.on(Events.FileSelected, function(_) {
+  workspace.on(Events.FileSelected, () => {
     suppressNextChangeEvent = true;
     activeCategory = Events.FileSelected;
     editor.setValue(workspace.getSelectedFileContent() || '');
-    let model = editor.getModel();
-    let language = workspace.getSelectedFileLanguage();
+    const model = editor.getModel();
+    const language = workspace.getSelectedFileLanguage();
     if (model && language) {
       Monaco.editor.setModelLanguage(model, language);
     } else {
@@ -59,18 +59,18 @@ export function createEditorPanel(element: HTMLElement, workspace: Workspace, op
   });
 
   // When the edited file is deleted, hide the editor
-  workspace.on(Events.FileDeleted, function(e: FileDeletedEvent) {
+  workspace.on(Events.FileDeleted, (e: FileDeletedEvent) => {
     if (workspace.selectedFileName === e.fileName) {
       $(element).hide();
     }
   });
 
   // When runner is selected in the workspace, update editor content and language
-  workspace.on(Events.RunnerSelected, function(_) {
+  workspace.on(Events.RunnerSelected, () => {
     suppressNextChangeEvent = true;
     activeCategory = Events.RunnerSelected;
     editor.setValue(workspace.getRunnerContent());
-    let model = editor.getModel();
+    const model = editor.getModel();
     if (model) {
       Monaco.editor.setModelLanguage(model, 'javascript');
     } else {
@@ -80,13 +80,13 @@ export function createEditorPanel(element: HTMLElement, workspace: Workspace, op
   });
 
   // When compute settings are selected, serialize them and display as INI for editing
-  workspace.on(Events.SettingsComputeSelected, function(_) {
+  workspace.on(Events.SettingsComputeSelected, _ => {
     suppressNextChangeEvent = true;
     activeCategory = Events.SettingsComputeSelected;
     computeSettings =
       computeSettings || serializeKeyValue(workspace.functionSpecification.lambda || {}, SettingsComputePlaceholder);
     editor.setValue(computeSettings);
-    let model = editor.getModel();
+    const model = editor.getModel();
     if (model) {
       Monaco.editor.setModelLanguage(model, 'ini');
     } else {
@@ -96,14 +96,14 @@ export function createEditorPanel(element: HTMLElement, workspace: Workspace, op
   });
 
   // When application settings are selected, serialize them and display as INI for editing
-  workspace.on(Events.SettingsApplicationSelected, function(_) {
+  workspace.on(Events.SettingsApplicationSelected, () => {
     suppressNextChangeEvent = true;
     activeCategory = Events.SettingsApplicationSelected;
     applicationSettings =
       applicationSettings ||
       serializeKeyValue(workspace.functionSpecification.configuration || {}, SettingsApplicationPlaceholder);
     editor.setValue(applicationSettings);
-    let model = editor.getModel();
+    const model = editor.getModel();
     if (model) {
       Monaco.editor.setModelLanguage(model, 'ini');
     } else {
@@ -112,7 +112,7 @@ export function createEditorPanel(element: HTMLElement, workspace: Workspace, op
     $(element).show();
   });
 
-  editor.onDidChangeModelContent(function(_: any) {
+  editor.onDidChangeModelContent(() => {
     if (!suppressNextChangeEvent) {
       switch (activeCategory) {
         case Events.FileSelected:
@@ -139,12 +139,14 @@ export function createEditorPanel(element: HTMLElement, workspace: Workspace, op
 }
 
 function parseKeyValue(data: string) {
-  var param = /^\s*([^=]+?)\s*=\s*(.*?)\s*$/;
-  var value: { [property: string]: string | number } = {};
-  var lines = data.split(/[\r\n]+/);
-  lines.forEach(function(line) {
-    if (/^\s*\#/.test(line)) return;
-    var match = line.match(param);
+  const param = /^\s*([^=]+?)\s*=\s*(.*?)\s*$/;
+  const value: { [property: string]: string | number } = {};
+  const lines = data.split(/[\r\n]+/);
+  lines.forEach(line => {
+    if (/^\s*\#/.test(line)) {
+      return;
+    }
+    const match = line.match(param);
     if (match) {
       value[match[1]] = isNaN(+match[2]) ? match[2] : +match[2];
     }
@@ -153,10 +155,10 @@ function parseKeyValue(data: string) {
 }
 
 function serializeKeyValue(data: { [property: string]: string | number }, placeholder: string) {
-  let lines: string[] = [];
+  const lines: string[] = [];
   Object.keys(data)
     .sort()
-    .forEach(function(key) {
+    .forEach(key => {
       lines.push(`${key}=${data[key]}`);
     });
   if (lines.length === 0) {

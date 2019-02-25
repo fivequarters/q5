@@ -1,6 +1,6 @@
 {
   "extends": "../../../tsconfig.json",
-  "compilerOptions": { "rootDir": "src", "outDir": "lib" },
+  "compilerOptions": { "rootDir": "src", "outDir": "libm" },
   "include": ["src"],
-  "references": [{ "path": "../../core/event" }]
+  "references": [{ "path": "../../shared/event" }]
 }

@@ -1,0 +1,26 @@
+{
+  "name": "@5qtrs/convert-module",
+  "version": "0.0.1",
+  "description": "",
+  "main": "libc/index.js",
+  "license": "UNLICENSED",
+  "author": "FiveQuarters.io",
+  "bin": {
+    "convert-module": "libc/index.js"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x}",
+    "clean": "rm -r -f libc"
+  },
+  "keywords": [],
+  "dependencies": {
+    "@5qtrs/file": "^0.0.1",
+    "@babel/core": "^7.3.3",
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.26.2"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.2.3",
+    "@types/babel__core": "^7.0.5"
+  }
+}

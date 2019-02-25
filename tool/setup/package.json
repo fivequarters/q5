@@ -1,0 +1,13 @@
+{
+  "name": "@5qtrs/setup",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "license": "UNLICENSED",
+  "author": "FiveQuarters.io",
+  "keywords": [],
+  "dependencies": {
+    "@5qtrs/convert-module": "./tool/convert-module",
+    "@5qtrs/yarn-tool": "./tool/yarn-tool"
+  }
+}

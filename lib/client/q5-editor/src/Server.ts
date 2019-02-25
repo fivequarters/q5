@@ -1,24 +1,22 @@
-import { Workspace } from './Workspace';
-import * as Superagent from 'superagent';
 import { ServerResponse } from 'http';
-let Superagent1 = Superagent;
+import * as Superagent from 'superagent';
+import { Workspace } from './Workspace';
+const Superagent1 = Superagent;
 
 class BuildError extends Error {
-  constructor(public details: BuildStatus) {
+  constructor(public details: IBuildStatus) {
     super('Build failed.');
   }
 }
 
-export interface Account {
+export interface IAccount {
   baseUrl: string;
   token: string;
 }
 
-export interface AccountResolver {
-  (account: Account | undefined): Promise<Account>;
-}
+export type AccountResolver = (account: IAccount | undefined) => Promise<IAccount>;
 
-export interface BuildStatus {
+export interface IBuildStatus {
   status: string;
   boundary: string;
   name: string;
@@ -33,28 +31,27 @@ const logsInitialBackoff = 5000;
 const logsMaxBackoff = 60000;
 
 export class Server {
-  account: Account | undefined;
-  buildTimeout: number = 60000;
-  buildStatusCheckInterval: number = 5000;
-  requestTimeout: number = 15000;
-  sse?: EventSource = undefined;
-  logsBackoff: number = 0;
-  logsTimeout?: number = undefined;
-
-  static create(account: Account): Server {
+  public static create(account: IAccount): Server {
     return new Server(currentAccount => Promise.resolve(account));
   }
+  public account: IAccount | undefined;
+  public buildTimeout: number = 60000;
+  public buildStatusCheckInterval: number = 5000;
+  public requestTimeout: number = 15000;
+  public sse?: EventSource = undefined;
+  public logsBackoff: number = 0;
+  public logsTimeout?: number = undefined;
 
   constructor(public accountResolver: AccountResolver) {}
 
-  _normalizeAccount(account: Account): Account {
+  public _normalizeAccount(account: IAccount): IAccount {
     if (!account.baseUrl.match(/\/$/)) {
       account.baseUrl += '/';
     }
     return account;
   }
 
-  getFunctionUrl(workspace: Workspace): string | undefined {
+  public getFunctionUrl(workspace: Workspace): string | undefined {
     if (!this.account) {
       return undefined;
     }
@@ -63,11 +60,11 @@ export class Server {
     }`;
   }
 
-  loadWorkspace(boundary: string, name: string, createIfNotExist?: Workspace): Promise<Workspace> {
+  public loadWorkspace(boundary: string, name: string, createIfNotExist?: Workspace): Promise<Workspace> {
     return this.accountResolver(this.account)
       .then(newAccount => {
         this.account = this._normalizeAccount(newAccount);
-        let url = `${this.account.baseUrl}api/v1/function/${boundary}/${name}`;
+        const url = `${this.account.baseUrl}api/v1/function/${boundary}/${name}`;
         return Superagent.get(url)
           .set('Authorization', `Bearer ${this.account.token}`)
           .timeout(this.requestTimeout);
@@ -87,16 +84,15 @@ export class Server {
       });
   }
 
-  buildFunction(workspace: Workspace): Promise<BuildStatus> {
+  public buildFunction(workspace: Workspace): Promise<IBuildStatus> {
     let startTime: number;
-    let self = this;
 
     workspace.startBuild();
 
     return this.accountResolver(this.account)
       .then(newAccount => {
         this.account = this._normalizeAccount(newAccount);
-        let url = `${this.account.baseUrl}api/v1/function/${workspace.functionSpecification.boundary}/${
+        const url = `${this.account.baseUrl}api/v1/function/${workspace.functionSpecification.boundary}/${
           workspace.functionSpecification.name
         }`;
         startTime = Date.now();
@@ -113,10 +109,10 @@ export class Server {
           });
       })
       .then(res => {
-        let build = <BuildStatus>res.body;
+        let build = res.body as IBuildStatus;
         if (res.status === 200) {
           // Completed synchronously
-          //@ts-ignore
+          // @ts-ignore
           build.url = `${self.account.baseUrl}api/v1/run/${workspace.functionSpecification.boundary}/${
             workspace.functionSpecification.name
           }`;
@@ -126,7 +122,7 @@ export class Server {
         if (res.status === 204) {
           // Completed synchronously, no changes
           build = {
-            //@ts-ignore
+            // @ts-ignore
             url: `${self.account.baseUrl}api/v1/run/${workspace.functionSpecification.boundary}/${
               workspace.functionSpecification.name
             }`,
@@ -146,29 +142,29 @@ export class Server {
         throw err;
       });
 
-    function waitForBuild(build: BuildStatus): Promise<BuildStatus> {
-      let elapsed = Date.now() - startTime;
-      build.progress = Math.min(elapsed / self.buildTimeout, 1);
+    const waitForBuild = (build: IBuildStatus): Promise<IBuildStatus> => {
+      const elapsed = Date.now() - startTime;
+      build.progress = Math.min(elapsed / this.buildTimeout, 1);
       workspace.buildProgress(build);
-      if (elapsed > self.buildTimeout) {
-        throw new Error(`Build process did not complete within the ${self.buildTimeout}ms timeout.`);
+      if (elapsed > this.buildTimeout) {
+        throw new Error(`Build process did not complete within the ${this.buildTimeout}ms timeout.`);
       }
-      return new Promise(resolve => setTimeout(resolve, self.buildStatusCheckInterval))
+      return new Promise(resolve => setTimeout(resolve, this.buildStatusCheckInterval))
         .then(() => {
           // @ts-ignore
-          let url = `${self.account.baseUrl}api/v1/function/${workspace.functionSpecification.boundary}/${
+          const url = `${this.account.baseUrl}api/v1/function/${workspace.functionSpecification.boundary}/${
             workspace.functionSpecification.name
           }/build/${build.build_id}`;
           return (
             Superagent.get(url)
               // @ts-ignore
               .set('Authorization', `Bearer ${self.account.token}`)
-              .ok(res => res.status == 200 || res.status == 201 || res.status == 410)
-              .timeout(self.requestTimeout)
+              .ok(res => res.status === 200 || res.status === 201 || res.status === 410)
+              .timeout(this.requestTimeout)
           );
         })
         .then(res => {
-          if (res.status == 200) {
+          if (res.status === 200) {
             // success
             // @ts-ignore
             res.body.url = `${self.account.baseUrl}api/v1/run/${workspace.functionSpecification.boundary}/${
@@ -176,7 +172,7 @@ export class Server {
             }`;
             workspace.buildFinished(res.body);
             return res.body;
-          } else if (res.status == 410) {
+          } else if (res.status === 410) {
             // failure
             workspace.buildFinished(res.body);
             throw new BuildError(res.body);
@@ -185,25 +181,25 @@ export class Server {
             return waitForBuild(res.body);
           }
         });
-    }
+    };
   }
 
-  runFunction(workspace: Workspace): Promise<ServerResponse> {
+  public runFunction(workspace: Workspace): Promise<ServerResponse> {
     return this.accountResolver(this.account)
       .then(newAccount => {
         this.account = this._normalizeAccount(newAccount);
-        let url = `${this.account.baseUrl}api/v1/run/${workspace.functionSpecification.boundary}/${
+        const url = `${this.account.baseUrl}api/v1/run/${workspace.functionSpecification.boundary}/${
           workspace.functionSpecification.name
         }`;
 
         workspace.startRun(url);
 
-        function runnerFactory(ctx: Object) {
-          let Superagent = Superagent1;
-          return eval(workspace.getRunnerContent())(ctx);
+        function runnerFactory(ctx: object) {
+          const Superagent = Superagent1; // tslint:disable-line
+          return eval(workspace.getRunnerContent())(ctx); // tslint:disable-line
         }
 
-        let runnerPromise = runnerFactory({
+        const runnerPromise = runnerFactory({
           url,
           configuration: workspace.functionSpecification.configuration,
         });
@@ -220,14 +216,14 @@ export class Server {
       });
   }
 
-  attachServerLogs(workspace: Workspace): Promise<Server> {
+  public attachServerLogs(workspace: Workspace): Promise<Server> {
     if (this.sse) {
       return Promise.resolve(this);
     } else {
       clearTimeout(this.logsTimeout);
       return this.accountResolver(this.account).then(newAccount => {
         this.account = this._normalizeAccount(newAccount);
-        let url = `${this.account.baseUrl}api/v1/logs/${workspace.functionSpecification.boundary}/${
+        const url = `${this.account.baseUrl}api/v1/logs/${workspace.functionSpecification.boundary}/${
           workspace.functionSpecification.name
         }?token=${this.account.token}`;
 
@@ -236,26 +232,26 @@ export class Server {
           this.logsBackoff = logsInitialBackoff;
         }
         this.sse.addEventListener('log', e => {
-          //@ts-ignore
+          // @ts-ignore
           if (e && e.data) {
-            //@ts-ignore
+            // @ts-ignore
             workspace.serverLogsEntry(e.data);
           }
         });
         this.sse.onopen = () => workspace.serverLogsAttached();
         this.sse.onerror = e => {
-          let backoff = this.logsBackoff;
-          let msg =
+          const backoff = this.logsBackoff;
+          const msg =
             'Server logs detached due to error. Re-attempting connection in ' + Math.floor(backoff / 1000) + 's.';
           console.error(msg, e);
           this.detachServerLogs(workspace, new Error(msg));
           this.logsBackoff = Math.min(backoff * logsExponentialBackoff, logsMaxBackoff);
-          //@ts-ignore
+          // @ts-ignore
           this.logsTimeout = setTimeout(() => this.attachServerLogs(workspace), backoff);
         };
 
         // Re-connect to logs every 5 minutes
-        //@ts-ignore
+        // @ts-ignore
         this.logsTimeout = setTimeout(() => {
           this.detachServerLogs(workspace);
           this.attachServerLogs(workspace);
@@ -266,7 +262,7 @@ export class Server {
     }
   }
 
-  detachServerLogs(workspace: Workspace, error?: Error) {
+  public detachServerLogs(workspace: Workspace, error?: Error) {
     clearTimeout(this.logsTimeout);
     this.logsTimeout = undefined;
     this.logsBackoff = 0;

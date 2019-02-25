@@ -1,8 +1,8 @@
 import { EventEmitter } from '@5qtrs/event';
-import * as Events from './Events';
-import { FunctionSpecification, LambdaSettings, ApplicationSettings } from './FunctionSpecification';
-import { BuildStatus } from './Server';
 import { ServerResponse } from 'http';
+import * as Events from './Events';
+import { IApplicationSettings, IFunctionSpecification, ILambdaSettings } from './FunctionSpecification';
+import { IBuildStatus } from './Server';
 
 const RunnerPlaceholder = `// Return a function that evaluates to a Superagent request promise
 
@@ -19,12 +19,12 @@ ctx => Superagent.get(ctx.url);
 `;
 
 export class Workspace extends EventEmitter {
-  readOnly: boolean = false;
-  selectedFileName: string | undefined = undefined;
-  dirtyState: boolean = false;
-  functionSpecification: FunctionSpecification = { boundary: '', name: '' };
+  public readOnly: boolean = false;
+  public selectedFileName: string | undefined = undefined;
+  public dirtyState: boolean = false;
+  public functionSpecification: IFunctionSpecification = { boundary: '', name: '' };
 
-  constructor(functionSpecification?: FunctionSpecification) {
+  constructor(functionSpecification?: IFunctionSpecification) {
     super();
     if (functionSpecification) {
       this.functionSpecification = functionSpecification;
@@ -61,7 +61,7 @@ export class Workspace extends EventEmitter {
       if (this.functionSpecification.nodejs.files['index.js']) {
         this.selectFile('index.js');
       } else {
-        let fileName = Object.keys(this.functionSpecification.nodejs.files)[0];
+        const fileName = Object.keys(this.functionSpecification.nodejs.files)[0];
         if (fileName) {
           this.selectFile(fileName);
         } else {
@@ -73,42 +73,42 @@ export class Workspace extends EventEmitter {
     }
   }
 
-  setReadOnly(value: boolean) {
+  public setReadOnly(value: boolean) {
     if (value !== this.readOnly) {
       this.readOnly = value;
-      let event = new Events.ReadOnlyStateChangedEvent(this.readOnly);
+      const event = new Events.ReadOnlyStateChangedEvent(this.readOnly);
       this.emit(event);
     }
   }
 
-  _ensureWritable() {
+  public _ensureWritable() {
     if (this.readOnly) {
       throw new Error('Operation not permitted while workspace is in read-only state.');
     }
   }
 
-  selectSettingsApplication() {
+  public selectSettingsApplication() {
     this._ensureWritable();
     this.selectedFileName = undefined;
-    let event = new Events.SettingsApplicationSelectedEvent();
+    const event = new Events.SettingsApplicationSelectedEvent();
     this.emit(event);
   }
 
-  selectSettingsCompute() {
+  public selectSettingsCompute() {
     this._ensureWritable();
     this.selectedFileName = undefined;
-    let event = new Events.SettingsComputeSelectedEvent();
+    const event = new Events.SettingsComputeSelectedEvent();
     this.emit(event);
   }
 
-  selectToolsRunner() {
+  public selectToolsRunner() {
     this._ensureWritable();
     this.selectedFileName = undefined;
-    let event = new Events.RunnerSelectedEvent();
+    const event = new Events.RunnerSelectedEvent();
     this.emit(event);
   }
 
-  addFile(fileName: string) {
+  public addFile(fileName: string) {
     this._ensureWritable();
     if (!this.functionSpecification.nodejs) {
       this.functionSpecification.nodejs = { files: {} };
@@ -123,17 +123,17 @@ export class Workspace extends EventEmitter {
       content = `{}`;
     }
     this.functionSpecification.nodejs.files[fileName] = content;
-    let event = new Events.FileAddedEvent(fileName);
+    const event = new Events.FileAddedEvent(fileName);
     this.emit(event);
     this.setDirtyState(true);
   }
 
-  deleteFile(fileName: string) {
+  public deleteFile(fileName: string) {
     this._ensureWritable();
     if (!this.functionSpecification.nodejs || !this.functionSpecification.nodejs.files[fileName]) {
       throw new Error(`File ${fileName} does not exist.`);
     }
-    let event = new Events.FileDeletedEvent(fileName);
+    const event = new Events.FileDeletedEvent(fileName);
     this.emit(event);
     this.setDirtyState(true);
     if (this.selectedFileName === fileName) {
@@ -142,7 +142,7 @@ export class Workspace extends EventEmitter {
     delete this.functionSpecification.nodejs.files[fileName];
   }
 
-  selectFile(fileName: string) {
+  public selectFile(fileName: string) {
     this._ensureWritable();
     if (fileName === this.selectedFileName) {
       return;
@@ -151,11 +151,11 @@ export class Workspace extends EventEmitter {
       throw new Error(`File ${fileName} does not exist in the function specification.`);
     }
     this.selectedFileName = fileName;
-    let event = new Events.FileSelectedEvent(fileName);
+    const event = new Events.FileSelectedEvent(fileName);
     this.emit(event);
   }
 
-  setSelectedFileContent(content: string) {
+  public setSelectedFileContent(content: string) {
     this._ensureWritable();
     if (!this.selectedFileName || !this.functionSpecification.nodejs) {
       throw new Error('Cannot set selected file content because no file is selected.');
@@ -164,7 +164,7 @@ export class Workspace extends EventEmitter {
     this.setDirtyState(true);
   }
 
-  setRunnerContent(content: string) {
+  public setRunnerContent(content: string) {
     this._ensureWritable();
     if (!this.functionSpecification.metadata) {
       this.functionSpecification.metadata = {};
@@ -173,27 +173,27 @@ export class Workspace extends EventEmitter {
     this.setDirtyState(true);
   }
 
-  setDirtyState(state: boolean) {
+  public setDirtyState(state: boolean) {
     this._ensureWritable();
     if (this.dirtyState !== state) {
       this.dirtyState = state;
-      let event = new Events.DirtyStateChangedEvent(state);
+      const event = new Events.DirtyStateChangedEvent(state);
       this.emit(event);
     }
   }
 
-  setSettingsCompute(settings: LambdaSettings) {
+  public setSettingsCompute(settings: ILambdaSettings) {
     this._ensureWritable();
-    var isDirty = !this.dirtyState && JSON.stringify(settings) !== JSON.stringify(this.functionSpecification.lambda);
+    const isDirty = !this.dirtyState && JSON.stringify(settings) !== JSON.stringify(this.functionSpecification.lambda);
     this.functionSpecification.lambda = settings;
     if (isDirty) {
       this.setDirtyState(true);
     }
   }
 
-  setSettingsApplication(settings: ApplicationSettings) {
+  public setSettingsApplication(settings: IApplicationSettings) {
     this._ensureWritable();
-    var isDirty =
+    const isDirty =
       !this.dirtyState && JSON.stringify(settings) !== JSON.stringify(this.functionSpecification.configuration);
     this.functionSpecification.configuration = settings;
     if (isDirty) {
@@ -201,15 +201,15 @@ export class Workspace extends EventEmitter {
     }
   }
 
-  getRunnerContent() {
+  public getRunnerContent() {
     return this.functionSpecification.metadata && this.functionSpecification.metadata.runner;
   }
 
-  getSelectedFileContent() {
+  public getSelectedFileContent() {
     if (!this.selectedFileName) {
       return undefined;
     }
-    let content = this.functionSpecification.nodejs && this.functionSpecification.nodejs.files[this.selectedFileName];
+    const content = this.functionSpecification.nodejs && this.functionSpecification.nodejs.files[this.selectedFileName];
     if (typeof content === 'string') {
       return content;
     } else if (content && typeof content === 'object') {
@@ -219,7 +219,7 @@ export class Workspace extends EventEmitter {
     }
   }
 
-  getSelectedFileLanguage() {
+  public getSelectedFileLanguage() {
     if (!this.selectedFileName) {
       return undefined;
     }
@@ -232,69 +232,69 @@ export class Workspace extends EventEmitter {
     }
   }
 
-  startBuild() {
-    let event = new Events.BuildStartedEvent();
+  public startBuild() {
+    const event = new Events.BuildStartedEvent();
     this.emit(event);
   }
 
-  buildProgress(status: BuildStatus) {
-    let event = new Events.BuildProgressEvent(status);
+  public buildProgress(status: IBuildStatus) {
+    const event = new Events.BuildProgressEvent(status);
     this.emit(event);
   }
 
-  buildFinished(status: BuildStatus) {
+  public buildFinished(status: IBuildStatus) {
     status.progress = 1;
-    let event = new Events.BuildFinishedEvent(status);
+    const event = new Events.BuildFinishedEvent(status);
     this.emit(event);
   }
 
-  buildError(error: Error) {
-    let event = new Events.BuildErrorEvent(error);
+  public buildError(error: Error) {
+    const event = new Events.BuildErrorEvent(error);
     this.emit(event);
   }
 
-  startRun(url: string) {
-    let event = new Events.RunnerStartedEvent(url);
+  public startRun(url: string) {
+    const event = new Events.RunnerStartedEvent(url);
     this.emit(event);
   }
 
-  finishRun(error?: Error, res?: ServerResponse) {
-    let event = new Events.RunnerFinishedEvent(error, res);
+  public finishRun(error?: Error, res?: ServerResponse) {
+    const event = new Events.RunnerFinishedEvent(error, res);
     this.emit(event);
   }
 
-  updateLogsState(state: boolean) {
-    let event = new Events.LogsStateChangedEvent(state);
+  public updateLogsState(state: boolean) {
+    const event = new Events.LogsStateChangedEvent(state);
     this.emit(event);
   }
 
-  updateNavState(state: boolean) {
-    let event = new Events.NavStateChangedEvent(state);
+  public updateNavState(state: boolean) {
+    const event = new Events.NavStateChangedEvent(state);
     this.emit(event);
   }
 
-  setFullScreen(state: boolean) {
-    let event = new Events.FullScreenChangedEvent(state);
+  public setFullScreen(state: boolean) {
+    const event = new Events.FullScreenChangedEvent(state);
     this.emit(event);
   }
 
-  close() {
-    let event = new Events.ClosedEvent();
+  public close() {
+    const event = new Events.ClosedEvent();
     this.emit(event);
   }
 
-  serverLogsAttached() {
-    let event = new Events.LogsAttached();
+  public serverLogsAttached() {
+    const event = new Events.LogsAttached();
     this.emit(event);
   }
 
-  serverLogsDetached(error?: Error) {
-    let event = new Events.LogsDetached(error);
+  public serverLogsDetached(error?: Error) {
+    const event = new Events.LogsDetached(error);
     this.emit(event);
   }
 
-  serverLogsEntry(data: string) {
-    let event = new Events.LogsEntry(data);
+  public serverLogsEntry(data: string) {
+    const event = new Events.LogsEntry(data);
     this.emit(event);
   }
 }

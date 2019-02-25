@@ -8,11 +8,11 @@ export interface IEditorOptions {
 }
 
 export class EditorOptions implements IEditorOptions {
-  actionPanel = new ActionPanelOptions();
-  editorPanel = new EditorPanelOptions();
-  logsPanel = new LogsPanelOptions();
-  navigationPanel = new NavigationPanelOptions();
-  statusPanel = new StatusPanelOptions();
+  public actionPanel = new ActionPanelOptions();
+  public editorPanel = new EditorPanelOptions();
+  public logsPanel = new LogsPanelOptions();
+  public navigationPanel = new NavigationPanelOptions();
+  public statusPanel = new StatusPanelOptions();
   [property: string]: any;
 }
 
@@ -24,10 +24,12 @@ export interface IActionPanelOptions {
 }
 
 export class ActionPanelOptions implements IActionPanelOptions {
-  enableCodeOnlyToggle: boolean = true;
-  enableFullScreen: boolean = true;
-  enableClose: boolean = true;
-  constructor() {}
+  public enableCodeOnlyToggle: boolean = true;
+  public enableFullScreen: boolean = true;
+  public enableClose: boolean = true;
+  constructor() {
+    // do nothing
+  }
 }
 
 export interface IEditorPanelOptions {
@@ -42,8 +44,10 @@ export interface ILogsPanelOptions {
 }
 
 export class LogsPanelOptions implements ILogsPanelOptions {
-  maxSize: number = 10 * 1024;
-  constructor() {}
+  public maxSize: number = 10 * 1024;
+  constructor() {
+    // do nothing
+  }
 }
 
 export interface INavigationPanelOptions {
@@ -56,12 +60,14 @@ export interface INavigationPanelOptions {
 }
 
 export class NavigationPanelOptions implements INavigationPanelOptions {
-  hideCode = false;
-  hideFiles = [];
-  hideComputeSettings = true; // hide Compute settings by default
-  hideApplicationSettings = false;
-  hideRunnerTool = false;
-  constructor() {}
+  public hideCode = false;
+  public hideFiles = [];
+  public hideComputeSettings = true; // hide Compute settings by default
+  public hideApplicationSettings = false;
+  public hideRunnerTool = false;
+  constructor() {
+    // do nothing
+  }
 }
 
 export interface IStatusPanelOptions {

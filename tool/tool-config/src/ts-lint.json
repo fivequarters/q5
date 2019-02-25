@@ -1,5 +1,5 @@
 {
-  "extends": ["tslint:latest", "tslint-config-prettier"],
+  "extends": ["tslint:latest", "tslint-react", "tslint-config-prettier"],
   "rules": {
     "max-line-length": {
       "options": [120]
@@ -11,6 +11,7 @@
     "no-conditional-assignment": true,
     "no-consecutive-blank-lines": false,
     "object-literal-sort-keys": false,
+    "no-submodule-imports": false,
     "no-implicit-dependencies": [true, "dev"],
     "no-console": {
       "severity": "warning",

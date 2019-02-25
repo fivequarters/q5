@@ -1,6 +1,6 @@
-import path from 'path';
-import { Project } from '@5qtrs/workspace';
 import { spawn } from '@5qtrs/child-process';
+import { Project } from '@5qtrs/workspace';
+import path from 'path';
 import { Writable } from 'stream';
 import ICommand from './ICommand';
 
@@ -47,11 +47,11 @@ export default class RequireCommand implements ICommand {
       const yarnCommand = `yarn add ${dependency}${isDevEnabled ? ' -D' : ''}`;
       output.write(`\nNo such workspace '${dependency}', executing '${yarnCommand}'\n\n`);
       const cwd = await workspace.GetFullPath();
-      const args = ['add', dependency];
+      const commandArgs = ['add', dependency];
       if (isDevEnabled) {
-        args.push('--dev');
+        commandArgs.push('--dev');
       }
-      const result = await spawn('yarn', { cwd, args, stdout: output });
+      const result = await spawn('yarn', { cwd, args: commandArgs, stdout: output });
 
       if (result.code) {
         throw new Error(`Failed to add the module '${dependency}' to workspace '${name}`);

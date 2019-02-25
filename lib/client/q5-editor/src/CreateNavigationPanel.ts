@@ -1,6 +1,6 @@
-import { Workspace } from './Workspace';
-import { INavigationPanelOptions, NavigationPanelOptions } from './Options';
 import * as Events from './Events';
+import { INavigationPanelOptions, NavigationPanelOptions } from './Options';
+import { Workspace } from './Workspace';
 
 import 'jqtree';
 import './jqtree.css';
@@ -16,36 +16,35 @@ enum NodeIds {
 }
 
 export function createNavigationPanel(element: HTMLElement, workspace: Workspace, options?: INavigationPanelOptions) {
-  let defaultOptions = new NavigationPanelOptions();
-  let effectiveOptions = {
+  const defaultOptions = new NavigationPanelOptions();
+  const effectiveOptions = {
     ...defaultOptions,
     ...options,
   };
 
-  let idPrefix = `q5-nav-${Math.floor(99999999 * Math.random()).toString(26)}`;
-  let addButtonId = `${idPrefix}-add-file`;
-  let removeButtonId = `${idPrefix}-remove-file`;
-  let newFileId = `${idPrefix}-new-file`;
-  let newFileNameId = `${idPrefix}-new-file-name`;
+  const idPrefix = `q5-nav-${Math.floor(99999999 * Math.random()).toString(26)}`;
+  const addButtonId = `${idPrefix}-add-file`;
+  const removeButtonId = `${idPrefix}-remove-file`;
+  const newFileId = `${idPrefix}-new-file`;
+  const newFileNameId = `${idPrefix}-new-file-name`;
   $(element).html(`<div id="${idPrefix}-main" class="q5-nav"></div>`);
-  let $nav = $(`#${idPrefix}-main`);
+  const $nav = $(`#${idPrefix}-main`);
 
-  var fileNo = NodeIds.Code + 1;
+  let fileNo = NodeIds.Code + 1;
 
-  let data: any[] = [];
+  const data: any[] = [];
 
   if (!effectiveOptions.hideCode) {
-    let code = {
+    const code = {
       name: 'Code',
       id: NodeIds.Code,
-      children: <{ name: string; fileName?: string; id: number }[]>[],
+      children: [] as { name: string; fileName?: string; id: number }[],
     };
     if (workspace.functionSpecification && workspace.functionSpecification.nodejs) {
-      let fileNames = Object.keys(workspace.functionSpecification.nodejs.files).sort();
-      for (var i = 0; i < fileNames.length; i++) {
-        let fileName = fileNames[i];
-        if ((<string[]>effectiveOptions.hideFiles).indexOf(fileName) < 0) {
-          let child = { name: fileName, fileName, id: fileNo++ };
+      const fileNames = Object.keys(workspace.functionSpecification.nodejs.files).sort();
+      for (const fileName of fileNames) {
+        if ((effectiveOptions.hideFiles as string[]).indexOf(fileName) < 0) {
+          const child = { name: fileName, fileName, id: fileNo++ };
           code.children.push(child);
         }
       }
@@ -54,7 +53,7 @@ export function createNavigationPanel(element: HTMLElement, workspace: Workspace
     data.push(code);
   }
   if (!effectiveOptions.hideComputeSettings || !effectiveOptions.hideApplicationSettings) {
-    let settings: any = {
+    const settings: any = {
       name: 'Settings',
       id: NodeIds.Settings,
       children: [],
@@ -68,7 +67,7 @@ export function createNavigationPanel(element: HTMLElement, workspace: Workspace
     data.push(settings);
   }
   if (!effectiveOptions.hideRunnerTool) {
-    let tools = {
+    const tools = {
       name: 'Tools',
       id: NodeIds.Tools,
       children: [{ name: 'Runner', id: NodeIds.ToolsRunner }],
@@ -76,7 +75,7 @@ export function createNavigationPanel(element: HTMLElement, workspace: Workspace
     data.push(tools);
   }
 
-  let result = $nav
+  const result = $nav
     .tree({
       data,
       closedIcon: $('<i class="fa fa-chevron-right" aria-hidden="true"></i>').get(0),
@@ -85,12 +84,12 @@ export function createNavigationPanel(element: HTMLElement, workspace: Workspace
       dragAndDrop: true,
       onCreateLi: (node, $li) => {
         if (node.id === NodeIds.Code) {
-          let lines = [
+          const lines = [
             `Code<button id="${addButtonId}" class="q5-code-action-add-btn"><i class="fa fa-plus"></i></button>`,
           ];
           $li.find('.jqtree-element span').html(lines.join(''));
         } else if (node.id > NodeIds.Code) {
-          let lines = [
+          const lines = [
             `<span class="q5-code-file-icon"><i class="fa fa-file"></i></span>`,
             `<span id="codefile-${node.id}"class="q5-code-file">${node.fileName}</span>`,
             `<button id="${removeButtonId}-${
@@ -99,29 +98,34 @@ export function createNavigationPanel(element: HTMLElement, workspace: Workspace
           ];
           $li.find('.jqtree-element span').html(lines.join(''));
         } else if (node.id === NodeIds.ToolsRunner) {
-          let lines = [
+          const lines = [
             `<span class="q5-code-cogs-icon"><i class="fa fa-cogs"></i></span>`,
             `<span class="q5-runner-file">Runner</span>`,
           ];
           $li.find('.jqtree-element span').html(lines.join(''));
         } else if (node.id === NodeIds.SettingsApplication) {
-          let lines = [
+          const lines = [
             `<span class="q5-code-secret-icon"><i class="fa fa-user-secret"></i></span>`,
             `<span class="q5-application-file">Application</span>`,
           ];
           $li.find('.jqtree-element span').html(lines.join(''));
         } else if (node.id === NodeIds.CodeAdd) {
-          let lines = [
-            `<span id="${newFileId}" style="display:none"><span class="q5-code-file-icon"><i class="fa fa-file"></i></span><input id="${newFileNameId}" placeholder="newFile.js" size="15" class="q5-new-file-input"></span>`,
+          const lines = [
+            `<span id="${newFileId}" style="display:none">`,
+            `<span class="q5-code-file-icon">`,
+            `<i class="fa fa-file"></i>`,
+            `</span>`,
+            `<input id="${newFileNameId}" placeholder="newFile.js" size="15" class="q5-new-file-input">`,
+            `</span>`,
           ];
           $li.find('.jqtree-element span').html(lines.join(''));
         }
       },
       onCanSelectNode: node => {
-        return [NodeIds.CodeAdd, NodeIds.Settings, NodeIds.Tools, NodeIds.Code].indexOf(<number>node.id) < 0;
+        return [NodeIds.CodeAdd, NodeIds.Settings, NodeIds.Tools, NodeIds.Code].indexOf(node.id as number) < 0;
       },
     })
-    .on('tree.select', function(event: any) {
+    .on('tree.select', (event: any) => {
       if (event.node) {
         switch (event.node.id) {
           case NodeIds.SettingsApplication:
@@ -144,26 +148,26 @@ export function createNavigationPanel(element: HTMLElement, workspace: Workspace
   attachFileManipulationEvents();
 
   workspace.on(Events.Events.FileAdded, (e: Events.FileAddedEvent) => {
-    let fileNodes = ($nav.tree('getNodeById', NodeIds.Code) || { children: [] }).children || [];
-    let largerNode: INode = <INode>$nav.tree('getNodeById', NodeIds.CodeAdd);
-    for (var i = 0; i < fileNodes.length; i++) {
-      if (fileNodes[i].fileName > e.fileName) {
-        largerNode = fileNodes[i];
+    const fileNodes = ($nav.tree('getNodeById', NodeIds.Code) || { children: [] }).children || [];
+    let largerNode: INode = $nav.tree('getNodeById', NodeIds.CodeAdd) as INode;
+    for (const fileNode of fileNodes) {
+      if (fileNode.fileName > e.fileName) {
+        largerNode = fileNode;
         break;
       }
     }
     $nav.tree('addNodeBefore', { name: e.fileName, fileName: e.fileName, id: fileNo++ }, largerNode);
-    let newNode = $nav.tree('getNodeById', fileNo - 1);
+    const newNode = $nav.tree('getNodeById', fileNo - 1);
     $nav.tree('selectNode', newNode);
     attachFileManipulationEvents(); // jqTree re-generates the DOM, so we need to re-attach events
   });
 
   workspace.on(Events.Events.FileDeleted, (e: Events.FileDeletedEvent) => {
     let fileNodes = ($nav.tree('getNodeById', NodeIds.Code) || { children: [] }).children || [];
-    let node: INode | undefined = undefined;
-    for (var i = 0; i < fileNodes.length; i++) {
-      if (fileNodes[i].fileName === e.fileName) {
-        node = fileNodes[i];
+    let node: INode | undefined;
+    for (const fileNode of fileNodes) {
+      if (fileNode.fileName > e.fileName) {
+        node = fileNode;
         break;
       }
     }
@@ -178,15 +182,15 @@ export function createNavigationPanel(element: HTMLElement, workspace: Workspace
   });
 
   function endAddingNewFile(fileName?: string) {
-    let $newFile = $(`#${newFileId}`);
+    const $newFile = $(`#${newFileId}`);
     $newFile.hide();
     if (fileName) {
       if (workspace.functionSpecification.nodejs && workspace.functionSpecification.nodejs.files[fileName]) {
         // file exists, select it
-        let fileNodes = ($nav.tree('getNodeById', NodeIds.Code) || { children: [] }).children || [];
-        for (var i = 0; i < fileNodes.length; i++) {
-          if (fileNodes[i].fileName === fileName) {
-            $nav.tree('selectNode', fileNodes[i]);
+        const fileNodes = ($nav.tree('getNodeById', NodeIds.Code) || { children: [] }).children || [];
+        for (const fileNode of fileNodes) {
+          if (fileNode.fileName === fileName) {
+            $nav.tree('selectNode', fileNode);
           }
         }
       } else {
@@ -202,9 +206,9 @@ export function createNavigationPanel(element: HTMLElement, workspace: Workspace
   }
 
   function attachFileManipulationEvents() {
-    let $addButton = $(`#${addButtonId}`);
-    let $newFileName = $(`#${newFileNameId}`);
-    let $newFile = $(`#${newFileId}`);
+    const $addButton = $(`#${addButtonId}`);
+    const $newFileName = $(`#${newFileNameId}`);
+    const $newFile = $(`#${newFileId}`);
 
     $addButton.click(e => {
       e.preventDefault();
@@ -212,10 +216,10 @@ export function createNavigationPanel(element: HTMLElement, workspace: Workspace
       $newFileName.val('').focus();
     });
 
-    let fileNodes = ($nav.tree('getNodeById', NodeIds.Code) || { children: [] }).children || [];
-    for (var i = 0; i < fileNodes.length; i++) {
-      const nodeId = fileNodes[i].id;
-      const fileName = fileNodes[i].fileName;
+    const fileNodes = ($nav.tree('getNodeById', NodeIds.Code) || { children: [] }).children || [];
+    for (const fileNode of fileNodes) {
+      const nodeId = fileNode.id;
+      const fileName = fileNode.fileName;
       $(`#${removeButtonId}-${nodeId}`).click(e => {
         e.preventDefault();
         endDeletingFile(true, fileName);
@@ -223,10 +227,10 @@ export function createNavigationPanel(element: HTMLElement, workspace: Workspace
     }
 
     $newFileName.keyup(e => {
-      if (e.which == 13 || e.keyCode == 13) {
+      if (e.which === 13 || e.keyCode === 13) {
         // enter
-        endAddingNewFile(<string>$newFileName.val());
-      } else if (e.which == 27 || e.keyCode == 27) {
+        endAddingNewFile($newFileName.val() as string);
+      } else if (e.which === 27 || e.keyCode === 27) {
         // escape
         endAddingNewFile();
       }

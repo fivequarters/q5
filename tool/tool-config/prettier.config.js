@@ -1,2 +1,2 @@
-const { prettier } = require('./lib');
+const { prettier } = require('./libc');
 module.exports = prettier;

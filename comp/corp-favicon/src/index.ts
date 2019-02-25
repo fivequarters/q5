@@ -1,0 +1,9 @@
+export { faveicon16x16 } from '../assets/icon/favicon-16x16.png';
+export { faveicon32x32 } from '../assets/icon/favicon-32x32.png';
+export { androidChrome192x192 } from '../assets/icon/android-chrome-192x192.png';
+export { androidChrome384x384 } from '../assets/icon/android-chrome-384x384.png';
+export { appleTouchIcon } from '../assets/icon/apple-touch-icon.png';
+export { mstile150x150 } from '../assets/icon/mstile-150x150.png';
+export { safariPinnedTab } from '../assets/icon/safari-pinned-tab.svg';
+export { siteWebmanifest } from '../assets/icon/site.webmanifest';
+export { browserConfig } from '../assets/icon/browserconfig.xml';

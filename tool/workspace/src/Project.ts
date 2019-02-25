@@ -1,9 +1,9 @@
-import { spawn } from '@5qtrs/child-process';
 import { batch } from '@5qtrs/batch';
-import { copyDirectory, isFile, replaceInFile, exists } from '@5qtrs/file';
+import { spawn } from '@5qtrs/child-process';
+import { copyDirectory, exists, isFile, replaceInFile } from '@5qtrs/file';
 import { MergeStream } from '@5qtrs/stream';
-import { join, relative } from 'path';
 import { cpus } from 'os';
+import { join, relative } from 'path';
 import { Readable, Writable } from 'stream';
 import RootPackageJson from './RootPackageJson';
 import RootTsconfig from './RootTsconfig';
@@ -246,9 +246,9 @@ export default class Project {
     };
 
     const batched = batch(numberOfCores, workspaces);
-    const exitCodes: Array<Number> = [];
-    for (const batch of batched) {
-      const batchExitCodes = await Promise.all(batch.map(perWorkspace));
+    const exitCodes: number[] = [];
+    for (const batchItem of batched) {
+      const batchExitCodes = await Promise.all(batchItem.map(perWorkspace));
       exitCodes.push(...batchExitCodes);
     }
 
