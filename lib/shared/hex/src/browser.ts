@@ -1,5 +1,3 @@
-import utf8 from 'utf8';
-
 // ------------------
 // Exported Functions
 // ------------------
@@ -17,7 +15,7 @@ export function toHex(value: string) {
 }
 
 export function fromHex(value: string) {
-  if (value.length % 2 != 0) {
+  if (value.length % 2 !== 0) {
     throw new Error('Uneven number of hex characters.');
   }
   let converted = '';

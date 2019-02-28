@@ -1,5 +1,5 @@
 import { fromBase64, toBase64 } from '@5qtrs/base64';
-import { toHex, fromHex } from '@5qtrs/hex';
+import { fromHex, toHex } from '@5qtrs/hex';
 import { request } from '@5qtrs/request';
 import jwt from 'jsonwebtoken';
 
@@ -26,12 +26,12 @@ function prepadSigned(hex: string) {
   return hex;
 }
 
-function numberToHex(number: number) {
-  const nstr = number.toString(16);
-  if (nstr.length % 2) {
-    return `0${nstr}`;
+function numberToHex(value: number) {
+  const asString = value.toString(16);
+  if (asString.length % 2) {
+    return `0${asString}`;
   }
-  return nstr;
+  return asString;
 }
 
 function encodeLengthHex(length: number) {
@@ -81,12 +81,8 @@ function parseJwks(kid: string, url: string, json: any) {
   try {
     for (const key of json.keys) {
       if (key.use === 'sig' && key.kty === 'RSA' && key.kid && ((key.x5c && key.x5c.length) || (key.n && key.e))) {
-        urlToKey[url] = urlToKey[url] || {};
-        if (key.x5c && key.x5c.length) {
-          urlToKey[url][key.kid] = certToPEM(key.x5c[0]);
-        } else {
-          urlToKey[url][key.kid] = rsaPublicKeyToPEM(key.n, key.e);
-        }
+        const keyLookup = (urlToKey[url] = urlToKey[url] || {});
+        keyLookup[key.kid] = key.x5c && key.x5c.length ? certToPEM(key.x5c[0]) : rsaPublicKeyToPEM(key.n, key.e);
       }
     }
   } catch (error) {
@@ -163,12 +159,12 @@ export async function verifyJwt(token: string, secretOrUrl: string, options?: an
   return new Promise(async (resolve, reject) => {
     const resolvedSecret = await resolveSecret(token, secretOrUrl);
 
-    jwt.verify(token, resolvedSecret.secret, options || {}, (error, token) => {
+    jwt.verify(token, resolvedSecret.secret, options || {}, (error, verifiedToken) => {
       if (error) {
         return reject(error);
       }
 
-      resolve(token);
+      resolve(verifiedToken);
     });
   });
 }

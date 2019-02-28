@@ -80,7 +80,7 @@ function getEditorConfig(config: ApiConfig) {
       baseUrl: config.functionsBaseUrl,
     };
 
-    if (context.params['generate-token']) {
+    if (context.query['generate-token']) {
       settings.token = await signJwt(
         {
           aud: config.fiveQuartersAudience,
@@ -98,18 +98,21 @@ function getEditorConfig(config: ApiConfig) {
 
 function authenticate(config: ApiConfig, authGoogle: AuthGoogle, authAuth0: AuthAuth0) {
   return async (context: any, next: () => void) => {
+    let deocodedAccessToken;
     const authorization = context.request.headers.authorization;
-    const accessToken = authorization.replace('Bearer ', '');
-    let deocodedAccessToken = await authGoogle.verifyAccessToken(accessToken);
-    if (!deocodedAccessToken) {
-      deocodedAccessToken = await authAuth0.verifyAccessToken(accessToken);
+    if (authorization) {
+      const accessToken = authorization.replace('Bearer ', '');
+      deocodedAccessToken = await authGoogle.verifyAccessToken(accessToken);
+      if (!deocodedAccessToken) {
+        deocodedAccessToken = await authAuth0.verifyAccessToken(accessToken);
+      }
     }
     if (!deocodedAccessToken) {
       context.status = 403;
       return;
     }
     context.deocodedAccessToken = deocodedAccessToken;
-    next();
+    await next();
   };
 }
 

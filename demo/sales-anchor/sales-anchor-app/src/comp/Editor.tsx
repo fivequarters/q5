@@ -60,7 +60,7 @@ export function Editor({ eventAction, onEditorBack, ...rest }: EditorProps) {
 
   async function loadEditor() {
     const config = await api.getEditorConfig();
-    const server = new Server(async () => api.getEditorConfig());
+    const server = new Server(async () => await api.getEditorConfig());
 
     const editorOptions = {
       navigationPanel: {

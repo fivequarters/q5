@@ -1,5 +1,5 @@
-import { verifyJwt, signJwt, decodeJwt } from '../src';
 import { createKeyPair } from '@5qtrs/key-pair';
+import { decodeJwt, signJwt, verifyJwt } from '../src';
 
 describe('signJwt', () => {
   it('should create a JWT', async () => {

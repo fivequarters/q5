@@ -1,4 +1,4 @@
-import { toHex, fromHex } from '../src/browser';
+import { fromHex, toHex } from '../src/browser';
 
 describe('toHex', () => {
   it('should convert a string to hex string', () => {

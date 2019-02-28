@@ -77,7 +77,7 @@ export class Api {
     // the backend to mint us an editor access token
     const editorAccessToken = this.authAuth0.editorAccessToken;
     if (!editorAccessToken) {
-      url += `?generate-token`;
+      url += `?generate-token=true`;
     }
     const config = await this.request('GET', url);
 

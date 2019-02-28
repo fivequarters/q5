@@ -1,5 +1,5 @@
-import { createKeyPair } from '../src';
 import crypto from 'crypto';
+import { createKeyPair } from '../src';
 
 describe('creatKeyPair', () => {
   it('should return a new key pair by default', async () => {

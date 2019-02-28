@@ -1,4 +1,4 @@
-import { toHex, fromHex } from '../src/index';
+import { fromHex, toHex } from '../src/index';
 
 describe('toHex', () => {
   it('should convert a string to hex string', () => {

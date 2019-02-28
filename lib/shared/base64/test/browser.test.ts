@@ -1,4 +1,4 @@
-import { toBase64, fromBase64 } from '../src/browser';
+import { fromBase64, toBase64 } from '../src/browser';
 
 describe('toBase64', () => {
   it('should convert a string to base64', () => {
