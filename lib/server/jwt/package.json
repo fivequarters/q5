@@ -1,0 +1,30 @@
+{
+  "name": "@5qtrs/jwt",
+  "version": "0.0.1",
+  "description": "",
+  "main": "libc/index.js",
+  "sideEffects": false,
+  "license": "UNLICENSED",
+  "author": "FiveQuarters.io",
+  "scripts": {
+    "build": "tsc -b",
+    "test": "jest --colors",
+    "coverage": "jest --colors --coverage",
+    "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x} test/{,**/}*.ts{,x}",
+    "clean": "rm -r -f libc;  rm -r -f coverage"
+  },
+  "keywords": [],
+  "dependencies": {
+    "@5qtrs/base64": "^0.0.1",
+    "@5qtrs/request": "^0.0.1",
+    "jsonwebtoken": "^8.5.0",
+    "@5qtrs/hex": "^0.0.1"
+  },
+  "devServer": {
+    "port": 9517
+  },
+  "devDependencies": {
+    "@types/jsonwebtoken": "^8.3.0",
+    "@5qtrs/key-pair": "^0.0.1"
+  }
+}
