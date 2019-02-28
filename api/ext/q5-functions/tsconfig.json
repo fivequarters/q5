@@ -9,5 +9,6 @@
     "declarationMap": false,
     "composite": false
   },
-  "include": ["src"]
+  "include": ["src"],
+  "references": [{ "path": "../../../lib/shared/request" }]
 }
