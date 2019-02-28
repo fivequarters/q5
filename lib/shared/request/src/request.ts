@@ -64,7 +64,7 @@ export interface IHttpResponse {
 // Exported Functions
 // ------------------
 
-export default async function request(urlOrRequest: string | IHttpRequest): Promise<IHttpResponse> {
+export async function request(urlOrRequest: string | IHttpRequest): Promise<IHttpResponse> {
   const httpRequest = typeof urlOrRequest === 'string' ? { url: urlOrRequest } : urlOrRequest;
   const axiosRequest = getAxiosRequest(httpRequest);
   const axiosResponse = await axios.request(axiosRequest);
