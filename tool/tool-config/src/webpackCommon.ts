@@ -38,12 +38,12 @@ function getHtmlPluginOptions(packageJson: any, options?: IWebpackCommonOptions,
         htmlPluginOptions.scripts.push(...html.scripts);
       }
       if (html.meta) {
-        htmlPluginOptions.scripts = htmlPluginOptions.scripts || [];
-        htmlPluginOptions.scripts.push(...html.meta);
+        htmlPluginOptions.meta = htmlPluginOptions.meta || [];
+        htmlPluginOptions.meta.push(...html.meta);
       }
       if (html.links) {
-        htmlPluginOptions.scripts = htmlPluginOptions.scripts || [];
-        htmlPluginOptions.scripts.push(...html.links);
+        htmlPluginOptions.links = htmlPluginOptions.links || [];
+        htmlPluginOptions.links.push(...html.links);
       }
     }
   }
