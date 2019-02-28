@@ -32,8 +32,8 @@
     "@5qtrs/corp-favicon": "^0.0.1"
   },
   "devDependencies": {
-    "@types/react": "^16.7.17",
-    "@types/react-dom": "^16.0.11",
+    "@types/react": "^16.8.4",
+    "@types/react-dom": "^16.8.2",
     "@types/styled-components": "^4.1.4"
   },
   "devServer": {
