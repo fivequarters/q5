@@ -1,6 +1,7 @@
 import { createEditor, Server, Workspace } from 'q5'; // tslint:disable-line
-import React, { useLayoutEffect, useRef } from 'react';
+import React, { useContext, useLayoutEffect, useRef } from 'react';
 import styled from 'styled-components';
+import { ApiContext } from './ApiContext';
 
 const Container = styled.div`
   display: flex;
@@ -55,23 +56,22 @@ export type EditorProps = {
 
 export function Editor({ eventAction, onEditorBack, ...rest }: EditorProps) {
   const editorElement = useRef(null);
+  const api = useContext(ApiContext);
 
   async function loadEditor() {
-    const server = Server.create({
-      baseUrl: 'http://localhost:3001',
-      token: 'p89s4J57pMA85D57szI2gjDQH1rh4K4CM37DYl58oQc',
-    });
+    const config = await api.getEditorConfig();
+    const server = new Server(async () => api.getEditorConfig());
 
     const editorOptions = {
       navigationPanel: {
-        hideFiles: ['index.js'],
+        //   hideFiles: ['index.js'],
       },
     };
 
-    const workspace = await server.loadWorkspace('contoso', 'on-new-inquiry', new Workspace());
+    const workspace = await server.loadWorkspace(config.boundary, eventAction, new Workspace());
     if (editorElement && editorElement.current) {
       createEditor(editorElement.current, workspace, server, editorOptions);
-      workspace.selectFile('onNewInquiry.js');
+      //  workspace.selectFile('onNewInquiry.js');
       workspace.on('closed', onEditorBack);
     }
   }

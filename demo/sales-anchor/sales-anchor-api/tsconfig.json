@@ -5,6 +5,8 @@
   "references": [
     { "path": "../../../lib/server/server" },
     { "path": "../../../lib/shared/config" },
-    { "path": "../../../lib/shared/request" }
+    { "path": "../../../lib/shared/request" },
+    { "path": "../../../lib/server/key-pair" },
+    { "path": "../../../lib/server/jwt" }
   ]
 }

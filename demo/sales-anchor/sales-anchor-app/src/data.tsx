@@ -1,15 +1,15 @@
-import { request } from '@5qtrs/request';
 import { useEffect, useState } from 'react';
+import { Api } from './api';
 
 // ------------------
 // Exported Functions
 // ------------------
 
-export function getInquiries(saasBaseUrl: string) {
+export function getInquiries(api: Api) {
   const [inquiries, setInquiries] = useState([]);
 
   async function pollForInquiries() {
-    const { data } = await request(`${saasBaseUrl}/inquiries`);
+    const { data } = await api.getInquiries();
     if (data.length > inquiries.length) {
       setInquiries(data);
     }
@@ -18,7 +18,7 @@ export function getInquiries(saasBaseUrl: string) {
   useEffect(() => {
     document.addEventListener('keyup', async event => {
       if (event.code === 'ShiftRight' && event.metaKey) {
-        await request({ method: 'POST', url: `${saasBaseUrl}/inquiries` });
+        await api.generateInquiry();
       }
     });
   }, []);

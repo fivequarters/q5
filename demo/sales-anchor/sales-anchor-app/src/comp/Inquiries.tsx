@@ -54,16 +54,16 @@ const RowLabel = styled.div`
 // --------------
 
 export type InquiriesProps = {
-  data?: any;
+  inquiries?: any;
 } & React.BaseHTMLAttributes<HTMLDivElement>;
 
 // -------------------
 // Exported Components
 // -------------------
 
-export function Inquiries({ data, ...rest }: InquiriesProps) {
-  const inquiries = data
-    ? data.map((inquiry: any, index: number) => {
+export function Inquiries({ inquiries, ...rest }: InquiriesProps) {
+  const rows = inquiries
+    ? inquiries.map((inquiry: any, index: number) => {
         if (!inquiry) {
           return '';
         }
@@ -95,7 +95,7 @@ export function Inquiries({ data, ...rest }: InquiriesProps) {
           <HeaderLabel>Message</HeaderLabel>
           <HeaderLabel>Assigned To</HeaderLabel>
         </Header>
-        {inquiries}
+        {rows}
       </Table>
     </Container>
   );

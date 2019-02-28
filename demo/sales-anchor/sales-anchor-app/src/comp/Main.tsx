@@ -1,38 +1,73 @@
-import React from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import styled from 'styled-components';
+import { ApiContext } from './ApiContext';
+import { EventActions } from './EventActions';
+import { Inquiries } from './Inquiries';
+import { MainContent } from './MainContent';
+import { NavBar } from './NavBar';
+import { Notifications } from './Notifications';
+import { SideNav } from './SideNav';
 
-// -------------------
-// Internal Components
-// -------------------
+enum Selections {
+  newInquiries = 'New Inquiries',
+  eventActions = 'Event Actions',
+}
 
-const Container = styled.div`
-  flex: 1;
-  padding-top: 20px;
-  overflow-y: scroll;
-`;
-
-const Heading = styled.div`
+export const Content = styled.div`
+  height: calc(100% - 90px);
+  width: 100%;
+  display: flex;
+  font-size: 14px;
+  color: white;
   font-family: 'Roboto', san-serif;
-  font-size: 15px;
-  font-weight: 300;
-  color: #34495e;
-  margin-left: 80px;
-  margin-bottom: 20px;
+  background-color: #f7f9f9;
 `;
 
-// --------------
-// Exported Types
-// --------------
+export function Main() {
+  const [selection, setSelection] = useState(Selections.newInquiries as string);
+  const [inquiries, setInquiries] = useState([]);
+  const api = useContext(ApiContext);
 
-export type MainProps = {
-  heading: string;
-} & React.BaseHTMLAttributes<HTMLDivElement>;
+  async function pollForInquiries() {
+    const data = await api.getInquiries();
+    if (data.length > inquiries.length) {
+      setInquiries(data);
+    }
+  }
 
-export function Main({ heading, children }: MainProps) {
+  useEffect(() => {
+    document.addEventListener('keyup', async event => {
+      if (event.code === 'ShiftRight' && event.metaKey) {
+        await api.generateInquiry();
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      return pollForInquiries();
+    }, 500);
+    return () => {
+      clearInterval(timer);
+    };
+  }, [inquiries]);
+
+  const display = [
+    selection === Selections.newInquiries ? '' : 'none',
+    selection === Selections.eventActions ? '' : 'none',
+  ];
+
   return (
-    <Container>
-      <Heading>{heading}</Heading>
-      {children}
-    </Container>
+    <>
+      <NavBar />
+      <Content>
+        <SideNav selection={selection} onSelection={setSelection} />
+        <MainContent heading={selection}>
+          <Inquiries inquiries={inquiries} style={{ display: display[0] }} />
+          <EventActions style={{ display: display[1] }} />
+        </MainContent>
+        <Notifications inquiries={inquiries} />
+      </Content>
+    </>
   );
 }
