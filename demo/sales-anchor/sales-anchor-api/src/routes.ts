@@ -1,11 +1,21 @@
+import { signJwt } from '@5qtrs/jwt';
 import { request } from '@5qtrs/request';
 import Router from 'koa-router';
 import { ApiConfig } from './ApiConfig';
-import { getNextInquiry, inquiries, salesAgents } from './data';
+import { AuthAuth0 } from './AuthAuth0';
+import { AuthGoogle } from './AuthGoogle';
+import { getAdmin, getNextInquiry, inquiries, salesAgents } from './data';
 
 // ------------------
 // Internal Functions
 // ------------------
+
+function login(config: ApiConfig, authGoogle: AuthGoogle) {
+  return async (context: any) => {
+    const accessToken = await authGoogle.createAccessToken(context.request.body.idToken);
+    context.body = { accessToken };
+  };
+}
 
 function getAgents(config: ApiConfig) {
   return async (context: any) => {
@@ -59,15 +69,68 @@ function assignInquiry(config: ApiConfig) {
   };
 }
 
+function getEditorConfig(config: ApiConfig) {
+  return async (context: any) => {
+    const decodedAccessToken = context.deocodedAccessToken;
+    const userId = decodedAccessToken.sub;
+    const admin = getAdmin(userId);
+
+    const settings: any = {
+      boundary: admin.company,
+      baseUrl: config.functionsBaseUrl,
+    };
+
+    if (context.query['generate-token']) {
+      settings.token = await signJwt(
+        {
+          aud: config.fiveQuartersAudience,
+          iss: config.salesAnchorIssuer,
+          sub: decodedAccessToken.sub,
+        },
+        config.fiveQuartersPrivateKey,
+        { expiresIn: '1h', algorithm: 'RS256' }
+      );
+    }
+
+    context.body = settings;
+  };
+}
+
+function authenticate(config: ApiConfig, authGoogle: AuthGoogle, authAuth0: AuthAuth0) {
+  return async (context: any, next: () => void) => {
+    let deocodedAccessToken;
+    const authorization = context.request.headers.authorization;
+    if (authorization) {
+      const accessToken = authorization.replace('Bearer ', '');
+      deocodedAccessToken = await authGoogle.verifyAccessToken(accessToken);
+      if (!deocodedAccessToken) {
+        deocodedAccessToken = await authAuth0.verifyAccessToken(accessToken);
+      }
+    }
+    if (!deocodedAccessToken) {
+      context.status = 403;
+      return;
+    }
+    context.deocodedAccessToken = deocodedAccessToken;
+    await next();
+  };
+}
+
 // ------------------
 // Exported Functions
 // ------------------
 
 export function routes(config: ApiConfig) {
   const router = new Router();
-  router.get('/agents', getAgents(config));
-  router.get('/inquiries', getInquiries(config));
-  router.post('/inquiries', generateInquiry(config));
-  router.post('/agents/:agentid/inquires/:inquiryid', assignInquiry(config));
+  const authGoogle = new AuthGoogle(config);
+  const authAuth0 = new AuthAuth0(config);
+  const auth = authenticate(config, authGoogle, authAuth0);
+
+  router.post('/login', login(config, authGoogle));
+  router.get('/editor', auth, getEditorConfig(config));
+  router.get('/agents', auth, getAgents(config));
+  router.get('/inquiries', auth, getInquiries(config));
+  router.post('/inquiries', auth, generateInquiry(config));
+  router.post('/agents/:agentid/inquires/:inquiryid', auth, assignInquiry(config));
   return router.routes();
 }

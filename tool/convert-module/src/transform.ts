@@ -23,7 +23,10 @@ async function tranformFile(path: string) {
     }
 
     const tranformOptions: any = {
-      plugins: [require('babel-plugin-transform-es2015-modules-commonjs')],
+      plugins: [
+        require('babel-plugin-transform-es2015-modules-commonjs'),
+        require('@babel/plugin-syntax-dynamic-import'),
+      ],
     };
 
     if (inputSourceMap) {

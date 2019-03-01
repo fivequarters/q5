@@ -1,8 +1,10 @@
-import { GoChevronDown, TiAnchor } from '@5qtrs/icon';
+import { GoChevronDown } from '@5qtrs/icon';
 import { Image } from '@5qtrs/image';
 import { NavBar as NavBarBase, NavBarSpacer } from '@5qtrs/nav-bar';
-import React from 'react';
+import React, { useContext } from 'react';
 import styled from 'styled-components';
+import { ApiContext } from './ApiContext';
+import { Logo } from './Logo';
 
 // -------------------
 // Internal Components
@@ -28,24 +30,6 @@ const NavBarStyled = styled(NavBarBase)`
   border-bottom: 1px solid #d6dbdf;
   background-color: white;
   z-index: 999;
-`;
-
-const Product = styled.div`
-  display: flex;
-  flex-direction: column;
-  font-family: 'Raleway', san-serif;
-  font-weight: 300;
-`;
-
-const ProdutName = styled.div`
-  font-size: 28px;
-  font-weight: 300;
-`;
-
-const ProductTagLine = styled.div`
-  font-size: 10px;
-  text-align: center;
-  color: #c0392b;
 `;
 
 const UserProfile = styled.div`
@@ -78,19 +62,17 @@ const UserRole = styled.div`
 // -------------------
 
 export function NavBar() {
+  const api = useContext(ApiContext);
+
   return (
     <div>
       <NavBarStyled sticky={true}>
-        <TiAnchor style={{ fontSize: 40 }} />
-        <Product>
-          <ProdutName>Sales Anchor</ProdutName>
-          <ProductTagLine>Never Let a Sale Drift Away</ProductTagLine>
-        </Product>
+        <Logo />
         <NavBarSpacer />
         <UserProfile>
-          <Image src="../../assets/img/admin.png" style={{ width: 50, height: 50 }} />
+          <Image src={api.imageUrl} style={{ width: 50, height: 50 }} />
           <UserNameAndRole>
-            <UserName>James Davidson</UserName>
+            <UserName>{api.name}</UserName>
             <UserRole>Admin</UserRole>
           </UserNameAndRole>
           <GoChevronDown style={{ fontSize: 10 }} />

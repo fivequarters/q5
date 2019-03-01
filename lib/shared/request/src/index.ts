@@ -1,1 +1,1 @@
-export { default as request } from './request';
+export { request, IHttpRequest, IHttpResponse } from './request';

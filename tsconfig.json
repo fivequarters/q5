@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES6",
-    "module": "ES6",
+    "module": "ESNEXT",
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
@@ -51,7 +51,13 @@
       "@5qtrs/sales-anchor-app": ["demo/sales-anchor/sales-anchor-app/src"],
       "@5qtrs/sales-anchor-api": ["demo/sales-anchor/sales-anchor-api/src"],
       "@5qtrs/zmq-logger": ["lib/server/zmq-logger/src"],
-      "@5qtrs/cron": ["api/int/cron/src"]
+      "@5qtrs/cron": ["api/int/cron/src"],
+      "@5qtrs/user-api": ["api/int/user-api/src"],
+      "@5qtrs/random": ["lib/shared/random/src"],
+      "@5qtrs/key-pair": ["lib/server/key-pair/src"],
+      "@5qtrs/jwt": ["lib/server/jwt/src"],
+      "@5qtrs/base64": ["lib/shared/base64/src"],
+      "@5qtrs/hex": ["lib/shared/hex/src"]
     }
   }
 }

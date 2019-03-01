@@ -22,7 +22,6 @@
   },
   "devDependencies": {
     "@types/async": "^2.4.1",
-    "@types/aws-sdk": "^2.7.0",
     "aws-sdk": "^2.411.0",
     "dotenv": "^6.2.0"
   }

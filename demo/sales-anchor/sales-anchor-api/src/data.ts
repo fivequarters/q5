@@ -4,10 +4,15 @@
 
 let nextMessage = 0;
 let nextInquiry = 3;
+let nextCompany = 0;
 
 // ------------------
 // Internal Constants
 // ------------------
+
+const companies = ['abc-company', 'the-xyz-store', 'qrs-unlimited'];
+
+const admins: { [index: string]: IAdmin } = {};
 
 const messages = [
   "I'd love to schedule a demo to see your product in action!",
@@ -237,6 +242,11 @@ export interface IAgent {
   inquiries: Array<Inquiry>;
 }
 
+export interface IAdmin {
+  userId: string;
+  company: string;
+}
+
 // ------------------
 // Exported Functions
 // ------------------
@@ -247,4 +257,13 @@ export function getNextInquiry(): Inquiry {
     nextInquiry = 0;
   }
   return inquiry;
+}
+
+export function getAdmin(userId: string) {
+  if (!admins[userId]) {
+    admins[userId] = { userId, company: companies[nextCompany] };
+    nextCompany = (nextCompany + 1) % companies.length;
+  }
+
+  return admins[userId];
 }

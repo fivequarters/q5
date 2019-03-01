@@ -78,9 +78,13 @@ export function SideNav({ selection, onSelection }: SideNavProps) {
       }
     }
     return sideNavItem.name === 'divider' ? (
-      <Divider key={0} />
+      <Divider key={'divider'} />
     ) : (
-      <SideNavItem className={selection === sideNavItem.name ? 'selected' : ''} onClick={onClick}>
+      <SideNavItem
+        key={sideNavItem.name}
+        className={selection === sideNavItem.name ? 'selected' : ''}
+        onClick={onClick}
+      >
         <SideNavIcon>{React.createElement(sideNavItem.icon)}</SideNavIcon>
         <SideNavLabel>{sideNavItem.name}</SideNavLabel>
       </SideNavItem>

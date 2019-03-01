@@ -3,26 +3,16 @@
   "editor.formatOnSave": true,
   "editor.tabSize": 2,
   "files.exclude": {
-    // Hide VSCode settings file
-    ".vscode/**": true,
-
-    // Hide node_modules
-    "**/node_modules/**": true,
-
-    // Hide yarn related files
-    ".yarnrc": true,
-    "yarn.lock": true,
-
-    // Hide .gitignore
     ".gitignore": true,
-
-    // Hide package level config files
+    ".vscode/**": true,
+    ".yarnrc": true,
     "**/devServer.js": true,
+    "**/imports.d.ts": true,
     "**/jest.config.js": true,
     "**/jest.setup.js": true,
+    "**/node_modules/**": true,
     "**/prettier.config.js": true,
     "**/tslint.json": true,
-    "**/webpack.config.js": true,
-    "**/imports.d.ts": true
+    "**/webpack.config.js": true
   }
 }
