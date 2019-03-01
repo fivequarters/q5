@@ -55,6 +55,7 @@ export interface INavigationPanelOptions {
   hideFiles?: string[];
   hideComputeSettings?: boolean;
   hideApplicationSettings?: boolean;
+  hideCronSettings?: boolean;
   hideRunnerTool?: boolean;
   [property: string]: any;
 }
@@ -64,6 +65,7 @@ export class NavigationPanelOptions implements INavigationPanelOptions {
   public hideFiles = [];
   public hideComputeSettings = true; // hide Compute settings by default
   public hideApplicationSettings = false;
+  public hideCronSettings = false;
   public hideRunnerTool = false;
   constructor() {
     // do nothing

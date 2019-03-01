@@ -10,6 +10,7 @@ export enum Events {
   ReadOnlyStateChanged = 'read-only-state:changed',
   SettingsComputeSelected = 'settings:compute:selected',
   SettingsApplicationSelected = 'settings:application:selected',
+  SettingsCronSelected = 'settings:cron:selected',
   BuildStarted = 'build:started',
   BuildProgress = 'build:progressed',
   BuildFinished = 'build:finished',
@@ -131,6 +132,13 @@ export class SettingsComputeSelectedEvent implements IEditorEvent {
 
 export class SettingsApplicationSelectedEvent implements IEditorEvent {
   public name: string = Events.SettingsApplicationSelected;
+  constructor() {
+    // do nothing
+  }
+}
+
+export class SettingsCronSelectedEvent implements IEditorEvent {
+  public name: string = Events.SettingsCronSelected;
   constructor() {
     // do nothing
   }

@@ -105,8 +105,12 @@ export function createActionPanel(
     workspace.setReadOnly(true);
     server
       .buildFunction(workspace)
-      .then(_ => {
+      .then(build => {
         workspace.setReadOnly(false);
+        if (build.error) {
+          workspace.setDirtyState(true);
+          updateState();
+        }
       })
       .catch(_ => {
         workspace.setReadOnly(false);

@@ -50,7 +50,8 @@
       "@5qtrs/functions-app": ["demo/functions/functions-app/src"],
       "@5qtrs/sales-anchor-app": ["demo/sales-anchor/sales-anchor-app/src"],
       "@5qtrs/sales-anchor-api": ["demo/sales-anchor/sales-anchor-api/src"],
-      "@5qtrs/zmq-logger": ["lib/server/zmq-logger/src"]
+      "@5qtrs/zmq-logger": ["lib/server/zmq-logger/src"],
+      "@5qtrs/cron": ["api/int/cron/src"]
     }
   }
 }
