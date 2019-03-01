@@ -14,3 +14,4 @@ cd libc
 zip -r ../dist/cron.zip node_modules *.js
 cd ..
 rm -rf libc/node_modules
+ls -al dist/cron.zip

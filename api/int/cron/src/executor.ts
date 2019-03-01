@@ -1,6 +1,7 @@
 import * as AWS from 'aws-sdk';
 import * as Async from 'async';
 import * as Crypto from 'crypto';
+import * as Jwt from 'jsonwebtoken';
 
 const s3 = new AWS.S3({
   apiVersion: '2006-03-01',
@@ -48,10 +49,31 @@ export function executor(event: any, context: any, cb: any) {
         result.skipped.push(msg);
         return cb();
       }
+
+      let options: any = {
+        body,
+        headers: {},
+        query: {},
+        method: 'CRON',
+      };
+
+      if (process.env.LOGS_WS_URL) {
+        options.logs = {
+          token: Jwt.sign(
+            { boundary: body.boundary, name: body.name },
+            <string>process.env.LOGS_WS_TOKEN_SIGNATURE_KEY,
+            {
+              expiresIn: +(<string>process.env.LOGS_WS_TOKEN_EXPIRY) || 30,
+            }
+          ),
+          url: process.env.LOGS_WS_URL,
+        };
+      }
+
       return lambda.invokeAsync(
         {
           FunctionName: get_user_function_name(body),
-          InvokeArgs: JSON.stringify(body),
+          InvokeArgs: JSON.stringify(options),
         },
         e => {
           if (e) {

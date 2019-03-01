@@ -134,6 +134,9 @@ function createExecutor(cb) {
       Variables: {
         AWS_S3_BUCKET: process.env.AWS_S3_BUCKET,
         CRON_CONCURRENT_EXECUTION_LIMIT: Config.executor.concurrentExecutionLimit,
+        LOGS_WS_URL: process.env.LOGS_WS_URL,
+        LOGS_WS_TOKEN_SIGNATURE_KEY: process.env.LOGS_WS_TOKEN_SIGNATURE_KEY,
+        LOGS_WS_TOKEN_EXPIRY: process.env.LOGS_WS_TOKEN_EXPIRY,
       },
     },
   };

@@ -271,13 +271,6 @@
   resolved "https://registry.yarnpkg.com/@types/auth0-js/-/auth0-js-8.11.11.tgz#c6e72f9b6c938c144cc4e022af175a1c20d52968"
   integrity sha512-uKwTZHPBTTZFZwQhSR2gCLeRdWnWKq3F2WJIllvJH9b//Jq8S541c+P42yur3obbjkp7BnqQ5gpCd6GLCpgRww==
 
-"@types/aws-sdk@^2.7.0":
-  version "2.7.0"
-  resolved "https://registry.yarnpkg.com/@types/aws-sdk/-/aws-sdk-2.7.0.tgz#83588b3d14ebdca1d4ce5e023387577568ce82f3"
-  integrity sha1-g1iLPRTr3KHUzl4CM4dXdWjOgvM=
-  dependencies:
-    aws-sdk "*"
-
 "@types/babel__core@^7.0.5":
   version "7.1.0"
   resolved "https://registry.yarnpkg.com/@types/babel__core/-/babel__core-7.1.0.tgz#710f2487dda4dcfd010ca6abb2b4dc7394365c51"
@@ -1125,21 +1118,6 @@ auth0-js@^9.10.0:
     superagent "^3.8.2"
     url-join "^4.0.0"
     winchan "^0.2.1"
-
-aws-sdk@*:
-  version "2.412.0"
-  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.412.0.tgz#d6b4731111ee1e0855ef22dfcdc9b6cb4e5b7233"
-  integrity sha512-Bjj/vB4fcnH5KE/nc6v513ueGeB9WxCE40fZVcpRdASMY7K7rYe1GIHwp+W2gddvFvz0BCinJgWBRtbai9++tg==
-  dependencies:
-    buffer "4.9.1"
-    events "1.1.1"
-    ieee754 "1.1.8"
-    jmespath "0.15.0"
-    querystring "0.2.0"
-    sax "1.2.1"
-    url "0.10.3"
-    uuid "3.3.2"
-    xml2js "0.4.19"
 
 aws-sdk@^2.397.0:
   version "2.398.0"
