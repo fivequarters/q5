@@ -32,7 +32,6 @@ const EventActionRow = styled.div`
   }
   padding: 10px;
   color: #34495e;
-  // max-width: 400px;
 `;
 
 const EventBoltIcon = styled.div`
@@ -67,7 +66,7 @@ export function EventActions({ ...rest }: EventActionsProps) {
   }
 
   function onClick() {
-    setEventAction('onNewInquiry');
+    setEventAction('on-new-inquiry');
   }
 
   const displayEditor = { display: eventAction ? '' : 'none' };

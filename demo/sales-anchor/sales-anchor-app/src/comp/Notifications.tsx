@@ -20,7 +20,6 @@ const Container = styled.div`
   flex-direction: column;
   align-items: start;
   padding: 20px;
-  // padding-top: 60px;
   width: 260px;
 `;
 
@@ -85,19 +84,19 @@ function NotificationItem({ email }: NotidficationItemProps) {
 // --------------
 
 export type NotificationsProps = {
-  data?: { email?: string }[];
+  inquiries?: { email?: string }[];
 } & React.BaseHTMLAttributes<HTMLDivElement>;
 
 // -------------------
 // Exported Components
 // -------------------
 
-export function Notifications({ data }: NotificationsProps) {
+export function Notifications({ inquiries }: NotificationsProps) {
   const [notificationCount, setNotificationCount] = useState(3);
 
   let notifications: any = [];
-  if (data) {
-    const toShow = data.slice(notificationCount);
+  if (inquiries) {
+    const toShow = inquiries.slice(notificationCount);
     notifications = toShow.map(item => <NotificationItem key={item.email} email={item.email} />);
   }
 

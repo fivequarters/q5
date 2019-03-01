@@ -16,24 +16,24 @@
   "keywords": [],
   "dependencies": {
     "@5qtrs/body": "^0.0.1",
+    "@5qtrs/corp-favicon": "^0.0.1",
     "@5qtrs/corp-logo": "^0.0.1",
     "@5qtrs/corp-logo-dynamic": "^0.0.1",
     "@5qtrs/fade": "^0.0.1",
     "@5qtrs/fade-sequence": "^0.0.1",
     "@5qtrs/font": "^0.0.1",
-    "@5qtrs/image": "^0.0.1",
     "@5qtrs/icon": "^0.0.1",
+    "@5qtrs/image": "^0.0.1",
     "@5qtrs/modal": "^0.0.1",
     "@5qtrs/nav-bar": "^0.0.1",
     "@5qtrs/request": "^0.0.1",
     "react": "^16.8.2",
     "react-dom": "^16.8.2",
-    "styled-components": "^4.1.3",
-    "@5qtrs/corp-favicon": "^0.0.1"
+    "styled-components": "^4.1.3"
   },
   "devDependencies": {
-    "@types/react": "^16.7.17",
-    "@types/react-dom": "^16.0.11",
+    "@types/react": "^16.8.6",
+    "@types/react-dom": "^16.8.2",
     "@types/styled-components": "^4.1.4"
   },
   "devServer": {
