@@ -18,6 +18,40 @@ ctx => Superagent.get(ctx.url);
 //     .send({ hello: 'world' });
 `;
 
+const SettingsApplicationPlaceholder = `# Application settings are available within function code
+
+# KEY1=VALUE1
+# KEY2=VALUE2`;
+
+const SettingsComputePlaceholder = `# Compute settings control resources available to the executing function
+
+# memory_size=128
+# timeout=30`;
+
+const SettingsCronPlaceholder = `# Set the 'cron' value to execute this function on a schedule
+
+# Check available timezone identifiers at https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+# Default is UTC.
+# timezone=US/Pacific
+
+# Design a CRON schedule at https://crontab.guru/
+
+# Every day at midnight
+# cron=0 0 * * *
+
+# Every day at 5am
+# cron=0 5 * * *
+
+# Every hour
+# cron=0 */1 * * *
+
+# Every 15 minutes
+# cron=*/15 * * * *
+
+# At 10pm every Friday
+# cron=0 22 * * Fri
+`;
+
 export class Workspace extends EventEmitter {
   public readOnly: boolean = false;
   public selectedFileName: string | undefined = undefined;
@@ -98,6 +132,13 @@ export class Workspace extends EventEmitter {
     this._ensureWritable();
     this.selectedFileName = undefined;
     const event = new Events.SettingsComputeSelectedEvent();
+    this.emit(event);
+  }
+
+  public selectSettingsCron() {
+    this._ensureWritable();
+    this.selectedFileName = undefined;
+    const event = new Events.SettingsCronSelectedEvent();
     this.emit(event);
   }
 
@@ -182,20 +223,43 @@ export class Workspace extends EventEmitter {
     }
   }
 
-  public setSettingsCompute(settings: ILambdaSettings) {
+  public setSettingsCompute(settings: string) {
     this._ensureWritable();
-    const isDirty = !this.dirtyState && JSON.stringify(settings) !== JSON.stringify(this.functionSpecification.lambda);
-    this.functionSpecification.lambda = settings;
+    const isDirty =
+      !this.dirtyState &&
+      (!this.functionSpecification.metadata || this.functionSpecification.metadata.computeSettings !== settings);
+    this.functionSpecification.lambda = parseKeyValue(settings);
+    this.functionSpecification.metadata = this.functionSpecification.metadata || {};
+    this.functionSpecification.metadata.computeSettings = settings;
     if (isDirty) {
       this.setDirtyState(true);
     }
   }
 
-  public setSettingsApplication(settings: IApplicationSettings) {
+  public setSettingsApplication(settings: string) {
     this._ensureWritable();
     const isDirty =
-      !this.dirtyState && JSON.stringify(settings) !== JSON.stringify(this.functionSpecification.configuration);
-    this.functionSpecification.configuration = settings;
+      !this.dirtyState &&
+      (!this.functionSpecification.metadata || this.functionSpecification.metadata.applicationSettings !== settings);
+    this.functionSpecification.configuration = parseKeyValue(settings);
+    this.functionSpecification.metadata = this.functionSpecification.metadata || {};
+    this.functionSpecification.metadata.applicationSettings = settings;
+    if (isDirty) {
+      this.setDirtyState(true);
+    }
+  }
+
+  public setSettingsCron(settings: string) {
+    this._ensureWritable();
+    const isDirty =
+      !this.dirtyState &&
+      (!this.functionSpecification.metadata || this.functionSpecification.metadata.cronSettings !== settings);
+    this.functionSpecification.schedule = parseKeyValue(settings);
+    if (Object.keys(this.functionSpecification.schedule).length === 0) {
+      delete this.functionSpecification.schedule;
+    }
+    this.functionSpecification.metadata = this.functionSpecification.metadata || {};
+    this.functionSpecification.metadata.cronSettings = settings;
     if (isDirty) {
       this.setDirtyState(true);
     }
@@ -297,4 +361,73 @@ export class Workspace extends EventEmitter {
     const event = new Events.LogsEntry(data);
     this.emit(event);
   }
+
+  public getComputeSettings(): string {
+    return this.getSettings('computeSettings', SettingsComputePlaceholder, this.functionSpecification.lambda);
+  }
+
+  public getApplicationSettings(): string {
+    return this.getSettings(
+      'applicationSettings',
+      SettingsApplicationPlaceholder,
+      this.functionSpecification.configuration
+    );
+  }
+
+  public getCronSettings(): string {
+    return this.getSettings('cronSettings', SettingsCronPlaceholder, this.functionSpecification.schedule || {});
+  }
+
+  getSettings(
+    metadataProperty: string,
+    defaultSettings: string,
+    effectiveSettings?: { [property: string]: string | number }
+  ): string {
+    if (effectiveSettings) {
+      // Effective settings always win - if metadata settings are out of sync, adjust them and set dirty state
+      let metadataSettings =
+        this.functionSpecification.metadata && this.functionSpecification.metadata[metadataProperty];
+      let serializedEffectiveSettings = serializeKeyValue(effectiveSettings, defaultSettings);
+      if (
+        !metadataSettings ||
+        serializedEffectiveSettings !== serializeKeyValue(parseKeyValue(<string>metadataSettings), defaultSettings)
+      ) {
+        this.functionSpecification.metadata = this.functionSpecification.metadata || {};
+        metadataSettings = this.functionSpecification.metadata[metadataProperty] = serializedEffectiveSettings;
+        this.setDirtyState(true);
+      }
+      return metadataSettings;
+    } else {
+      return defaultSettings;
+    }
+  }
+}
+
+function serializeKeyValue(data: { [property: string]: string | number }, placeholder: string) {
+  const lines: string[] = [];
+  Object.keys(data)
+    .sort()
+    .forEach(key => {
+      lines.push(`${key}=${data[key]}`);
+    });
+  if (lines.length === 0) {
+    return placeholder;
+  }
+  return lines.join('\n');
+}
+
+function parseKeyValue(data: string) {
+  const param = /^\s*([^=]+?)\s*=\s*(.*?)\s*$/;
+  const value: { [property: string]: string | number } = {};
+  const lines = data.split(/[\r\n]+/);
+  lines.forEach(line => {
+    if (/^\s*\#/.test(line)) {
+      return;
+    }
+    const match = line.match(param);
+    if (match) {
+      value[match[1]] = isNaN(+match[2]) ? match[2] : +match[2];
+    }
+  });
+  return value;
 }

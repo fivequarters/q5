@@ -16,6 +16,7 @@ function getDevServer(packageJson: any, options?: IWebpackDevOptions) {
     port: 6000,
     noInfo: true,
     historyApiFallback: true,
+    allowedHosts: ['localhost.com', 'localhost'],
   };
 
   if (packageJson.devServer && packageJson.devServer.port) {

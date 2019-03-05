@@ -111,17 +111,22 @@ export class AuthAuth0 {
           return reject(error);
         }
         if (decodedHash) {
-          this.fiveQuartersWebAuth.checkSession({ prompt: 'none' }, (__, response) => {
-            const idTokenPayload = decodedHash.idTokenPayload || {};
-            this.loginData = {
-              accessToken: decodedHash.accessToken || '',
-              name: idTokenPayload.name,
-              email: idTokenPayload.email,
-              imageUrl: idTokenPayload.picture,
-              editorAccessToken: response ? response.accessToken : '',
-            };
-            saveLoginData(this.loginData);
-          });
+          this.fiveQuartersWebAuth.checkSession(
+            {
+              prompt: 'none',
+            },
+            (__, response) => {
+              const idTokenPayload = decodedHash.idTokenPayload || {};
+              this.loginData = {
+                accessToken: decodedHash.accessToken || '',
+                name: idTokenPayload.name,
+                email: idTokenPayload.email,
+                imageUrl: idTokenPayload.picture,
+                editorAccessToken: response ? response.accessToken : '',
+              };
+              saveLoginData(this.loginData);
+            }
+          );
         }
         resolve();
       });

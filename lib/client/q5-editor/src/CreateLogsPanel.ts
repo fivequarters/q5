@@ -56,7 +56,7 @@ export function createLogsPanel(element: HTMLElement, workspace: Workspace, opti
   });
 
   workspace.on(Events.Events.BuildError, (e: Events.BuildErrorEvent) => {
-    append(`BUILD: error ${e.error}`);
+    append(`BUILD: error ${e.error.message}`);
   });
 
   workspace.on(Events.Events.RunnerStarted, (e: Events.RunnerStartedEvent) => {

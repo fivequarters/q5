@@ -439,6 +439,17 @@ definitions:
           timeout:
             type: 'integer'
             example: 30
+      schedule:
+        type: 'object'
+        properties:
+          cron:
+            type: 'string'
+            example: '*/15 * * * *'
+          timezone:
+            type: 'string'
+            example: 'US/Pacific'
+      metadata:
+        type: 'object'
 #externalDocs:
 #  description: "Find out more about Swagger"
 #  url: "http://swagger.io"

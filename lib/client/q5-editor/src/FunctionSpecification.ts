@@ -14,6 +14,10 @@ export interface ILambdaSettings {
   [property: string]: string | number;
 }
 
+export interface ISchedule {
+  [property: string]: string | number;
+}
+
 export interface IFunctionSpecification {
   name: string;
   boundary: string;
@@ -21,4 +25,5 @@ export interface IFunctionSpecification {
   lambda?: ILambdaSettings;
   nodejs?: INodejsSettings;
   metadata?: { [property: string]: any };
+  schedule?: ISchedule;
 }

@@ -180,6 +180,18 @@
   margin-right: 7px;
 }
 
+.q5-code-cron-icon {
+  color: #c0392b;
+  font-size: 12px;
+  margin-right: 7px;
+}
+
+.q5-code-compute-icon {
+  color: #c0392b;
+  font-size: 12px;
+  margin-right: 7px;
+}
+
 .q5-code-action-delete-btn {
   display: none;
   float: right;

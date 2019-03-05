@@ -9,6 +9,7 @@ enum NodeIds {
   Settings = 101,
   SettingsCompute = 102,
   SettingsApplication = 103,
+  SettingsCron = 104,
   Tools = 201,
   ToolsRunner = 202,
   CodeAdd = 1001,
@@ -52,7 +53,11 @@ export function createNavigationPanel(element: HTMLElement, workspace: Workspace
     code.children.push({ name: 'Add', id: NodeIds.CodeAdd });
     data.push(code);
   }
-  if (!effectiveOptions.hideComputeSettings || !effectiveOptions.hideApplicationSettings) {
+  if (
+    !effectiveOptions.hideComputeSettings ||
+    !effectiveOptions.hideApplicationSettings ||
+    !effectiveOptions.hideCronSettings
+  ) {
     const settings: any = {
       name: 'Settings',
       id: NodeIds.Settings,
@@ -63,6 +68,9 @@ export function createNavigationPanel(element: HTMLElement, workspace: Workspace
     }
     if (!effectiveOptions.hideApplicationSettings) {
       settings.children.push({ name: 'Application', id: NodeIds.SettingsApplication });
+    }
+    if (!effectiveOptions.hideCronSettings) {
+      settings.children.push({ name: 'Schedule', id: NodeIds.SettingsCron });
     }
     data.push(settings);
   }
@@ -109,6 +117,18 @@ export function createNavigationPanel(element: HTMLElement, workspace: Workspace
             `<span class="q5-application-file">Application</span>`,
           ];
           $li.find('.jqtree-element span').html(lines.join(''));
+        } else if (node.id === NodeIds.SettingsCron) {
+          const lines = [
+            `<span class="q5-code-cron-icon"><i class="fa fa-clock"></i></span>`,
+            `<span class="q5-cron-file">Schedule</span>`,
+          ];
+          $li.find('.jqtree-element span').html(lines.join(''));
+        } else if (node.id === NodeIds.SettingsCompute) {
+          const lines = [
+            `<span class="q5-code-compute-icon"><i class="fa fa-tools"></i></span>`,
+            `<span class="q5-compute-file">Compute</span>`,
+          ];
+          $li.find('.jqtree-element span').html(lines.join(''));
         } else if (node.id === NodeIds.CodeAdd) {
           const lines = [
             `<span id="${newFileId}" style="display:none">`,
@@ -133,6 +153,9 @@ export function createNavigationPanel(element: HTMLElement, workspace: Workspace
             break;
           case NodeIds.SettingsCompute:
             workspace.selectSettingsCompute();
+            break;
+          case NodeIds.SettingsCron:
+            workspace.selectSettingsCron();
             break;
           case NodeIds.ToolsRunner:
             workspace.selectToolsRunner();

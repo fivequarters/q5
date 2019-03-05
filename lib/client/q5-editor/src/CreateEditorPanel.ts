@@ -4,16 +4,6 @@ import { Events, FileDeletedEvent } from './Events';
 import { IEditorPanelOptions } from './Options';
 import { Workspace } from './Workspace';
 
-const SettingsApplicationPlaceholder = `# Application settings are available within function code
-
-# KEY1=VALUE1
-# KEY2=VALUE2`;
-
-const SettingsComputePlaceholder = `# Compute settings control resources available to the executing function
-
-# memory_size=128
-# timeout=30`;
-
 export function createEditorPanel(element: HTMLElement, workspace: Workspace, options?: IEditorPanelOptions) {
   Monaco.editor.defineTheme('customTheme', {
     base: 'vs', // can also be vs-dark or hc-black
@@ -40,8 +30,6 @@ export function createEditorPanel(element: HTMLElement, workspace: Workspace, op
   const editor = Monaco.editor.create(element, monacoOptions);
   let suppressNextChangeEvent: boolean;
   let activeCategory: Events = Events.FileSelected;
-  let computeSettings: string | undefined;
-  let applicationSettings: string | undefined;
 
   // When a file is selected in the workspace, update editor content and language
   workspace.on(Events.FileSelected, () => {
@@ -83,9 +71,7 @@ export function createEditorPanel(element: HTMLElement, workspace: Workspace, op
   workspace.on(Events.SettingsComputeSelected, _ => {
     suppressNextChangeEvent = true;
     activeCategory = Events.SettingsComputeSelected;
-    computeSettings =
-      computeSettings || serializeKeyValue(workspace.functionSpecification.lambda || {}, SettingsComputePlaceholder);
-    editor.setValue(computeSettings);
+    editor.setValue(workspace.getComputeSettings());
     const model = editor.getModel();
     if (model) {
       Monaco.editor.setModelLanguage(model, 'ini');
@@ -99,15 +85,26 @@ export function createEditorPanel(element: HTMLElement, workspace: Workspace, op
   workspace.on(Events.SettingsApplicationSelected, () => {
     suppressNextChangeEvent = true;
     activeCategory = Events.SettingsApplicationSelected;
-    applicationSettings =
-      applicationSettings ||
-      serializeKeyValue(workspace.functionSpecification.configuration || {}, SettingsApplicationPlaceholder);
-    editor.setValue(applicationSettings);
+    editor.setValue(workspace.getApplicationSettings());
     const model = editor.getModel();
     if (model) {
       Monaco.editor.setModelLanguage(model, 'ini');
     } else {
       Assert.fail('Model cannot be determined for app settings node.');
+    }
+    $(element).show();
+  });
+
+  // When cron settings are selected, serialize them and display as INI for editing
+  workspace.on(Events.SettingsCronSelected, () => {
+    suppressNextChangeEvent = true;
+    activeCategory = Events.SettingsCronSelected;
+    editor.setValue(workspace.getCronSettings());
+    const model = editor.getModel();
+    if (model) {
+      Monaco.editor.setModelLanguage(model, 'ini');
+    } else {
+      Assert.fail('Model cannot be determined for CRON settings node.');
     }
     $(element).show();
   });
@@ -122,12 +119,13 @@ export function createEditorPanel(element: HTMLElement, workspace: Workspace, op
           workspace.setRunnerContent(editor.getValue());
           break;
         case Events.SettingsComputeSelected:
-          computeSettings = editor.getValue();
-          workspace.setSettingsCompute(parseKeyValue(computeSettings));
+          workspace.setSettingsCompute(editor.getValue());
           break;
         case Events.SettingsApplicationSelected:
-          applicationSettings = editor.getValue();
-          workspace.setSettingsApplication(parseKeyValue(applicationSettings));
+          workspace.setSettingsApplication(editor.getValue());
+          break;
+        case Events.SettingsCronSelected:
+          workspace.setSettingsCron(editor.getValue());
           break;
       }
     } else {
@@ -136,33 +134,4 @@ export function createEditorPanel(element: HTMLElement, workspace: Workspace, op
   });
 
   return workspace;
-}
-
-function parseKeyValue(data: string) {
-  const param = /^\s*([^=]+?)\s*=\s*(.*?)\s*$/;
-  const value: { [property: string]: string | number } = {};
-  const lines = data.split(/[\r\n]+/);
-  lines.forEach(line => {
-    if (/^\s*\#/.test(line)) {
-      return;
-    }
-    const match = line.match(param);
-    if (match) {
-      value[match[1]] = isNaN(+match[2]) ? match[2] : +match[2];
-    }
-  });
-  return value;
-}
-
-function serializeKeyValue(data: { [property: string]: string | number }, placeholder: string) {
-  const lines: string[] = [];
-  Object.keys(data)
-    .sort()
-    .forEach(key => {
-      lines.push(`${key}=${data[key]}`);
-    });
-  if (lines.length === 0) {
-    return placeholder;
-  }
-  return lines.join('\n');
 }

@@ -1,0 +1,30 @@
+{
+  "name": "@5qtrs/cron",
+  "version": "0.0.1",
+  "description": "",
+  "main": "libc/index.js",
+  "license": "UNLICENSED",
+  "author": "FiveQuarters.io",
+  "scripts": {
+    "build": "tsc -b",
+    "bundle": "./bundle.sh",
+    "test": "jest --colors",
+    "coverage": "jest --colors --coverage",
+    "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x} test/{,**/}*.ts{,x}",
+    "clean": "rm -r -f libc; rm -r -f coverage",
+    "deploy": "LOGS_WS_URL=${LOGS_WS_URL:=`node ./getNgrokLogsWsUrl.js`} ./deploy.js",
+    "destroy": "./destroy.js"
+  },
+  "keywords": [],
+  "dependencies": {
+    "async": "^2.6.2",
+    "cron-parser": "^2.7.3",
+    "jsonwebtoken": "^8.5.0"
+  },
+  "devDependencies": {
+    "@types/jsonwebtoken": "^8.3.0",
+    "@types/async": "^2.4.1",
+    "aws-sdk": "^2.411.0",
+    "dotenv": "^6.2.0"
+  }
+}

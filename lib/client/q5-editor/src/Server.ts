@@ -86,6 +86,7 @@ export class Server {
 
   public buildFunction(workspace: Workspace): Promise<IBuildStatus> {
     let startTime: number;
+    let self = this;
 
     workspace.startBuild();
 
@@ -96,34 +97,40 @@ export class Server {
           workspace.functionSpecification.name
         }`;
         startTime = Date.now();
+        let params: any = {
+          environment: 'nodejs',
+          provider: 'lambda',
+          configuration: workspace.functionSpecification.configuration,
+          lambda: workspace.functionSpecification.lambda,
+          nodejs: workspace.functionSpecification.nodejs,
+          metadata: workspace.functionSpecification.metadata,
+        };
+        if (workspace.functionSpecification.schedule) {
+          params.schedule = workspace.functionSpecification.schedule;
+        }
         return Superagent.put(url)
           .set('Authorization', `Bearer ${this.account.token}`)
           .timeout(this.requestTimeout)
-          .send({
-            environment: 'nodejs',
-            provider: 'lambda',
-            configuration: workspace.functionSpecification.configuration,
-            lambda: workspace.functionSpecification.lambda,
-            nodejs: workspace.functionSpecification.nodejs,
-            metadata: workspace.functionSpecification.metadata,
-          });
+          .send(params);
       })
       .then(res => {
         let build = res.body as IBuildStatus;
         if (res.status === 200) {
-          // Completed synchronously
-          // @ts-ignore
-          build.url = `${self.account.baseUrl}api/v1/run/${workspace.functionSpecification.boundary}/${
-            workspace.functionSpecification.name
-          }`;
-          workspace.buildFinished(build);
+          // Completed synchronously)
+          if (build.error) {
+            workspace.buildError(build.error);
+          } else {
+            build.url = `${(<IAccount>self.account).baseUrl}api/v1/run/${workspace.functionSpecification.boundary}/${
+              workspace.functionSpecification.name
+            }`;
+            workspace.buildFinished(build);
+          }
           return build;
         }
         if (res.status === 204) {
           // Completed synchronously, no changes
           build = {
-            // @ts-ignore
-            url: `${self.account.baseUrl}api/v1/run/${workspace.functionSpecification.boundary}/${
+            url: `${(<IAccount>self.account).baseUrl}api/v1/run/${workspace.functionSpecification.boundary}/${
               workspace.functionSpecification.name
             }`,
             status: 'unchanged',

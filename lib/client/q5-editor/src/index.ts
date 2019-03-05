@@ -24,9 +24,13 @@ import {
   faTrash,
   faUserSecret,
   faWindowClose,
+  faClock,
+  faTools,
 } from '@fortawesome/free-solid-svg-icons';
 
 library.add(
+  faTools,
+  faClock,
   faSave,
   faPlay,
   faArrowsAlt,
