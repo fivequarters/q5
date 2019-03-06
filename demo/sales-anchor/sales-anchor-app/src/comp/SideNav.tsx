@@ -7,9 +7,9 @@ import styled from 'styled-components';
 // ------------------
 
 const sideNavItems = [
-  { name: 'New Inquiries', icon: GoInbox, canSelect: true },
-  { name: 'Qualified Leads', icon: GoCheck, canSelect: false },
-  { name: 'Contract Negotiations', icon: GoQuote, canSelect: false },
+  { name: 'Leads', icon: GoInbox, canSelect: true },
+  { name: 'Opportunities', icon: GoCheck, canSelect: false },
+  { name: 'Customers', icon: GoQuote, canSelect: false },
   { name: 'Upcoming Renewals', icon: GoClock, canSelect: false },
   { name: 'divider', icon: GoAlert, canSelect: false },
   { name: 'Event Actions', icon: FaBolt, canSelect: true },
