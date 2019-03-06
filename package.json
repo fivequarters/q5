@@ -98,6 +98,8 @@
     "lib/server/key-pair",
     "lib/server/jwt",
     "lib/shared/base64",
-    "lib/shared/hex"
+    "lib/shared/hex",
+    "lib/server/aws-cred",
+    "lib/server/aws-deployment"
   ]
 }

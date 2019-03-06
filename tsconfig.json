@@ -57,7 +57,9 @@
       "@5qtrs/key-pair": ["lib/server/key-pair/src"],
       "@5qtrs/jwt": ["lib/server/jwt/src"],
       "@5qtrs/base64": ["lib/shared/base64/src"],
-      "@5qtrs/hex": ["lib/shared/hex/src"]
+      "@5qtrs/hex": ["lib/shared/hex/src"],
+      "@5qtrs/aws-cred": ["lib/server/aws-cred/src"],
+      "@5qtrs/aws-deployment": ["lib/server/aws-deployment/src"]
     }
   }
 }
