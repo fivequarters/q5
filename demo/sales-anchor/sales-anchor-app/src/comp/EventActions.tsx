@@ -48,6 +48,17 @@ const EventEditIcon = styled.div`
   font-size: 20px;
 `;
 
+const WebhookInput = styled.input`
+  font-size: 14px;
+  padding: 5px;
+  width: 400px;
+`;
+
+const WebhookContainer = styled.div`
+  display: flex;
+  margin-left: 20px;
+`;
+
 // --------------
 // Exported Types
 // --------------
@@ -61,77 +72,67 @@ export type EventActionsProps = {} & React.BaseHTMLAttributes<HTMLDivElement>;
 export function EventActions({ ...rest }: EventActionsProps) {
   const [eventAction, setEventAction] = useState('');
 
-  function onEditorBack() {
-    setEventAction('');
+  function onClickNewInquiry() {
+    setEventAction(eventAction === 'on-new-inquiry' ? '' : 'on-new-inquiry');
   }
 
-  function onClick() {
-    setEventAction('on-new-inquiry');
+  function onClickNewQualifiedLead() {
+    setEventAction(eventAction === 'on-new-qualified-lead' ? '' : 'on-new-qualified-lead');
   }
 
-  const displayEditor = { display: eventAction ? '' : 'none' };
-  const displayEventActions = { display: eventAction ? 'none' : '' };
-
+  const displayEditor = { display: eventAction === 'on-new-inquiry' ? '' : 'none' };
+  console.log(eventAction);
   return (
     <Container {...rest}>
-      <Fade visible={eventAction !== ''} fadeIn={true} fadeOut={true} fadeRate={3}>
+      {/* <Fade visible={eventAction === 'on-new-inquiry'} fadeIn={true} fadeOut={true} fadeRate={3}>
         <Editor style={displayEditor} onEditorBack={onEditorBack} eventAction={eventAction} />
-      </Fade>
-      <Fade visible={eventAction === ''} fadeIn={true} fadeOut={true} fadeRate={3}>
-        <Inner style={displayEventActions}>
-          <SubHeading>Inquiries</SubHeading>
-          <EventActionRow onClick={onClick}>
+      </Fade> */}
+      <Fade visible={true} fadeIn={true} fadeOut={true} fadeRate={3}>
+        <Inner>
+          <SubHeading>Leads</SubHeading>
+          <EventActionRow onClick={onClickNewInquiry}>
             <EventBoltIcon>
               <FaBolt />
             </EventBoltIcon>
-            <EventName>On New Inquiry</EventName>
+            <EventName>On New Lead</EventName>
             <EventEditIcon>
               <FaEdit />
             </EventEditIcon>
+          </EventActionRow>
+          <EventActionRow style={{ display: eventAction === 'on-new-inquiry' ? '' : 'none' }}>
+            <WebhookContainer>
+              <Editor style={displayEditor} onEditorBack={onClickNewInquiry} eventAction={eventAction} />
+            </WebhookContainer>
           </EventActionRow>
           <EventActionRow>
             <EventBoltIcon>
               <FaBolt />
             </EventBoltIcon>
-            <EventName>On Outgoing Response</EventName>
+            <EventName>On Lead Changed</EventName>
             <EventEditIcon>
               <FaEdit />
             </EventEditIcon>
+          </EventActionRow>
+          <SubHeading>Opportunities</SubHeading>
+          <EventActionRow onClick={onClickNewQualifiedLead}>
+            <EventBoltIcon>
+              <FaBolt />
+            </EventBoltIcon>
+            <EventName>On New Opportunity</EventName>
+            <EventEditIcon>
+              <FaEdit />
+            </EventEditIcon>
+          </EventActionRow>
+          <EventActionRow style={{ display: eventAction === 'on-new-qualified-lead' ? '' : 'none' }}>
+            <WebhookContainer>
+              <WebhookInput placeholder="e.g. https://myserver.com/on-new-opportunity" />
+            </WebhookContainer>
           </EventActionRow>
           <EventActionRow>
             <EventBoltIcon>
               <FaBolt />
             </EventBoltIcon>
-            <EventName>On Incoming Response</EventName>
-            <EventEditIcon>
-              <FaEdit />
-            </EventEditIcon>
-          </EventActionRow>
-
-          <SubHeading>Qualified Leads</SubHeading>
-          <EventActionRow>
-            <EventBoltIcon>
-              <FaBolt />
-            </EventBoltIcon>
-            <EventName>On New Qualified Lead</EventName>
-            <EventEditIcon>
-              <FaEdit />
-            </EventEditIcon>
-          </EventActionRow>
-          <EventActionRow>
-            <EventBoltIcon>
-              <FaBolt />
-            </EventBoltIcon>
-            <EventName>On Outgoing Response</EventName>
-            <EventEditIcon>
-              <FaEdit />
-            </EventEditIcon>
-          </EventActionRow>
-          <EventActionRow>
-            <EventBoltIcon>
-              <FaBolt />
-            </EventBoltIcon>
-            <EventName>On Incoming Response</EventName>
+            <EventName>On Opportunity Changed</EventName>
             <EventEditIcon>
               <FaEdit />
             </EventEditIcon>
