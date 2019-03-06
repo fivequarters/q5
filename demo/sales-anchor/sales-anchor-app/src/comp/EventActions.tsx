@@ -48,6 +48,17 @@ const EventEditIcon = styled.div`
   font-size: 20px;
 `;
 
+const WebhookInput = styled.input`
+  font-size: 14px;
+  padding: 5px;
+  width: 400px;
+`;
+
+const WebhookContainer = styled.div`
+  display: flex;
+  margin-left: 20px;
+`;
+
 // --------------
 // Exported Types
 // --------------
@@ -65,22 +76,26 @@ export function EventActions({ ...rest }: EventActionsProps) {
     setEventAction('');
   }
 
-  function onClick() {
+  function onClickNewInquiry() {
     setEventAction('on-new-inquiry');
   }
 
-  const displayEditor = { display: eventAction ? '' : 'none' };
-  const displayEventActions = { display: eventAction ? 'none' : '' };
+  function onClickNewQualifiedLead() {
+    setEventAction(eventAction === 'on-new-qualified-lead' ? '' : 'on-new-qualified-lead');
+  }
 
+  const displayEditor = { display: eventAction === 'on-new-inquiry' ? '' : 'none' };
+  const displayEventActions = { display: eventAction !== 'on-new-inquiry' ? '' : 'none' };
+  console.log(eventAction);
   return (
     <Container {...rest}>
-      <Fade visible={eventAction !== ''} fadeIn={true} fadeOut={true} fadeRate={3}>
+      <Fade visible={eventAction === 'on-new-inquiry'} fadeIn={true} fadeOut={true} fadeRate={3}>
         <Editor style={displayEditor} onEditorBack={onEditorBack} eventAction={eventAction} />
       </Fade>
-      <Fade visible={eventAction === ''} fadeIn={true} fadeOut={true} fadeRate={3}>
+      <Fade visible={eventAction !== 'on-new-inquiry'} fadeIn={true} fadeOut={true} fadeRate={3}>
         <Inner style={displayEventActions}>
           <SubHeading>Inquiries</SubHeading>
-          <EventActionRow onClick={onClick}>
+          <EventActionRow onClick={onClickNewInquiry}>
             <EventBoltIcon>
               <FaBolt />
             </EventBoltIcon>
@@ -107,9 +122,8 @@ export function EventActions({ ...rest }: EventActionsProps) {
               <FaEdit />
             </EventEditIcon>
           </EventActionRow>
-
           <SubHeading>Qualified Leads</SubHeading>
-          <EventActionRow>
+          <EventActionRow onClick={onClickNewQualifiedLead}>
             <EventBoltIcon>
               <FaBolt />
             </EventBoltIcon>
@@ -117,6 +131,11 @@ export function EventActions({ ...rest }: EventActionsProps) {
             <EventEditIcon>
               <FaEdit />
             </EventEditIcon>
+          </EventActionRow>
+          <EventActionRow style={{ display: eventAction === 'on-new-qualified-lead' ? '' : 'none' }}>
+            <WebhookContainer>
+              <WebhookInput placeholder="e.g. https://myserver.com/on-new-qualified-lead" />
+            </WebhookContainer>
           </EventActionRow>
           <EventActionRow>
             <EventBoltIcon>
