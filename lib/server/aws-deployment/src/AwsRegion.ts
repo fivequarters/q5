@@ -175,22 +175,6 @@ interface IAwsRegion {
 // ----------------
 
 export class AwsRegion {
-  private region: IAwsRegion;
-
-  private constructor(region: IAwsRegion) {
-    this.region = region;
-  }
-
-  public static async fromCode(code: string) {
-    if (!awsRegionInstances[code]) {
-      const regionData = awsRegions[code];
-      if (!regionData) {
-        throw new Error(`Unknown AWS region code '${code}'`);
-      }
-      awsRegionInstances[code] = new AwsRegion(regionData);
-    }
-    return awsRegionInstances[code];
-  }
 
   public get code() {
     return this.region.code;
@@ -214,5 +198,21 @@ export class AwsRegion {
 
   public get zones() {
     return this.region.zones.slice(0);
+  }
+
+  public static async fromCode(code: string) {
+    if (!awsRegionInstances[code]) {
+      const regionData = awsRegions[code];
+      if (!regionData) {
+        throw new Error(`Unknown AWS region code '${code}'`);
+      }
+      awsRegionInstances[code] = new AwsRegion(regionData);
+    }
+    return awsRegionInstances[code];
+  }
+  private region: IAwsRegion;
+
+  private constructor(region: IAwsRegion) {
+    this.region = region;
   }
 }

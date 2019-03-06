@@ -1,5 +1,5 @@
 {
-  "name": "@5qtrs/aws-env",
+  "name": "@5qtrs/aws-deployment",
   "version": "0.0.1",
   "description": "",
   "main": "libc/index.js",

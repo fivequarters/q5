@@ -1,11 +1,11 @@
-import { AwsEnv } from '../src';
+import { AwsDeployment } from '../src';
 
-describe('AwsEnv', () => {
+describe('AwsDeployment', () => {
   describe('create', () => {
     it('should return an instance', async () => {
-      const awsEnv = await AwsEnv.create({ regionCode: 'us-east-1', account: '00000005', environment: 'local' });
+      const awsEnv = await AwsDeployment.create({ regionCode: 'us-east-1', account: '00000005', key: 'local' });
       expect(awsEnv.account).toBe('00000005');
-      expect(awsEnv.environment).toBe('local');
+      expect(awsEnv.key).toBe('local');
       expect(awsEnv.region.code).toBe('us-east-1');
       expect(awsEnv.region.name).toBe('N. Virginia');
       expect(awsEnv.region.fullName).toBe('US East (N. Virginia)');
