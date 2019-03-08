@@ -24,8 +24,12 @@ function getAgents(config: ApiConfig) {
 }
 
 function generateInquiry(config: ApiConfig) {
-  const functionsUrl = `${config.functionsBaseUrl}/api/v1/run/${config.functionBoundary}/${config.functionName}`;
   return async (context: any) => {
+    const decodedAccessToken = context.deocodedAccessToken;
+    const userId = decodedAccessToken.sub;
+    const admin = getAdmin(userId);
+    const functionsUrl = `${config.functionsBaseUrl}/api/v1/run/${admin.company}/${config.functionName}`;
+
     let inquiry = getNextInquiry();
     try {
       const response = await request({
