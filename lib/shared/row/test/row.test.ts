@@ -137,26 +137,22 @@ describe('format', () => {
 
   it('should call the formatter if one is set', () => {
     const values = [{ lines: ['1 2 3'] }, { lines: ['1', '2', '3'] }, { lines: ['1', '2'] }];
-    const formatter = (value: string) => `${value} ${value}`;
+    const formatter = (value: string) => `${parseInt(value, 10) + 1}`;
     const constraint = { cells: [{ formatter }] };
 
     const widths = [1, 1, 1];
     const formatted = format(values, widths, constraint);
-    expect(formatted).toEqual([
-      { lines: ['1', '2', '3', '1', '2', '3'] },
-      { lines: ['1', '2', '3', ' ', ' ', ' '] },
-      { lines: ['1', '2', ' ', ' ', ' ', ' '] },
-    ]);
+    expect(formatted).toEqual([{ lines: ['2', '3', '4'] }, { lines: ['1', '2', '3'] }, { lines: ['1', '2', ' '] }]);
   });
 
   it('should format with a line max of 1', () => {
     const values = [{ lines: ['1 2 3'] }, { lines: ['1', '2', '3'] }, { lines: ['1', '2'] }];
-    const formatter = (value: string) => `${value} ${value}`;
+    const formatter = (value: string) => `${parseInt(value, 10) + 1}`;
     const constraint = { max: 1, cells: [{ formatter }] };
 
     const widths = [1, 1, 1];
     const formatted = format(values, widths, constraint);
-    expect(formatted).toEqual([{ lines: ['1'] }, { lines: ['1'] }, { lines: ['1'] }]);
+    expect(formatted).toEqual([{ lines: ['2'] }, { lines: ['1'] }, { lines: ['1'] }]);
   });
 
   it('should format with a column width of 0', () => {

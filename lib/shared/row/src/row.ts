@@ -61,7 +61,8 @@ function alignCell(lines: string[], width: number, align: CellAlignment = CellAl
 
   const alignedLines = [];
   for (const line of lines) {
-    alignedLines.push(alignFunc(line, width));
+    const aligned = alignFunc(line, width);
+    alignedLines.push(aligned);
   }
 
   return alignedLines;
@@ -117,10 +118,10 @@ export function format(values: ICell[], widths: number[], constraint?: IRowConst
   for (let i = 0; i < values.length; i++) {
     const cellConstraint = constraint.cells[i] || {};
     let lines = values[i].lines;
-    lines = formatCell(lines, cellConstraint.formatter);
     lines = removeOverflow(lines, widths[i], cellConstraint.wrapIndent, cellConstraint.overflow);
     lines = truncateCell(lines, constraint.max, constraint.ellipsis);
     lines = alignCell(lines, widths[i], cellConstraint.align);
+    lines = formatCell(lines, cellConstraint.formatter);
     if (lines.length > height) {
       height = lines.length;
     }
