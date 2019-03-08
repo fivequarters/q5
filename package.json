@@ -100,6 +100,11 @@
     "lib/shared/base64",
     "lib/shared/hex",
     "lib/server/aws-cred",
-    "lib/server/aws-deployment"
+    "lib/server/aws-deployment",
+    "lib/server/console-color",
+    "lib/shared/string",
+    "lib/shared/column",
+    "lib/shared/row",
+    "lib/shared/table"
   ]
 }
