@@ -17,14 +17,22 @@ module.exports = function authorize_factory(options) {
     }
     const data = { token, subscription: '12345' };
     const url = `${usersServiceUrl}/authorize`;
-
-    request({ method: 'POST', url, data }).then(response => {
-      if (response.status !== 200) {
-        next(create_error(403));
-      } else {
-        next();
-      }
-    });
+    request({
+      method: 'POST',
+      url,
+      data,
+      validateStatus: status => (status >= 200 && status < 300) || status === 403,
+    })
+      .then(response => {
+        if (response.status !== 200) {
+          next(create_error(403));
+        } else {
+          next();
+        }
+      })
+      .catch(e => {
+        next(create_error(500, 'Unable to authenticate the caller: ' + e.message));
+      });
   };
 
   function getTokenFromAuthorizationHeader(req) {
