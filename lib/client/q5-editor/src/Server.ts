@@ -105,7 +105,10 @@ export class Server {
           nodejs: workspace.functionSpecification.nodejs,
           metadata: workspace.functionSpecification.metadata,
         };
-        if (workspace.functionSpecification.schedule) {
+        if (
+          workspace.functionSpecification.schedule &&
+          Object.keys(workspace.functionSpecification.schedule).length > 0
+        ) {
           params.schedule = workspace.functionSpecification.schedule;
         }
         return Superagent.put(url)

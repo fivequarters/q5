@@ -9,7 +9,7 @@ import { Notifications } from './Notifications';
 import { SideNav } from './SideNav';
 
 enum Selections {
-  newInquiries = 'New Inquiries',
+  newInquiries = 'Leads',
   eventActions = 'Event Actions',
 }
 
