@@ -4,6 +4,13 @@ import { Events, FileDeletedEvent } from './Events';
 import { IEditorPanelOptions } from './Options';
 import { Workspace } from './Workspace';
 
+/**
+ * Not part of MVP
+ * @ignore
+ * @param element
+ * @param workspace
+ * @param options
+ */
 export function createEditorPanel(element: HTMLElement, workspace: Workspace, options?: IEditorPanelOptions) {
   Monaco.editor.defineTheme('customTheme', {
     base: 'vs', // can also be vs-dark or hc-black

@@ -16,6 +16,13 @@ enum NodeIds {
   Code = 1002,
 }
 
+/**
+ * Not part of MVP
+ * @ignore
+ * @param element
+ * @param workspace
+ * @param options
+ */
 export function createNavigationPanel(element: HTMLElement, workspace: Workspace, options?: INavigationPanelOptions) {
   const defaultOptions = new NavigationPanelOptions();
   const effectiveOptions = {

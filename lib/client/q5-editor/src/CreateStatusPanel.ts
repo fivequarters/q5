@@ -3,6 +3,13 @@ import * as Events from './Events';
 import { IStatusPanelOptions } from './Options';
 import { Workspace } from './Workspace';
 
+/**
+ * Not part of MVP
+ * @ignore
+ * @param element
+ * @param workspace
+ * @param options
+ */
 export function createStatusPanel(element: HTMLElement, workspace: Workspace, options?: IStatusPanelOptions) {
   const id = `q5-status-${Math.floor(99999999 * Math.random()).toString(26)}`;
   $(element).html(`<div id="${id}" class="q5-status">Status</div>`);
