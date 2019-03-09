@@ -2,6 +2,13 @@ import * as Events from './Events';
 import { ILogsPanelOptions, LogsPanelOptions } from './Options';
 import { Workspace } from './Workspace';
 
+/**
+ * Not part of MVP
+ * @ignore
+ * @param element
+ * @param workspace
+ * @param options
+ */
 export function createLogsPanel(element: HTMLElement, workspace: Workspace, options?: ILogsPanelOptions) {
   const id = `q5-logs-${Math.floor(99999999 * Math.random()).toString(26)}`;
   $(element).html(`<div class="q5-logs" id="${id}"><pre class="q5-logs-content" id="${id}-content"></pre></div>`);
@@ -18,14 +25,14 @@ export function createLogsPanel(element: HTMLElement, workspace: Workspace, opti
     // append('Server logs attached');
   });
 
-  workspace.on(Events.Events.LogsDetached, (e: Events.LogsDetached) => {
+  workspace.on(Events.Events.LogsDetached, (e: Events.LogsDetachedEvent) => {
     // append(e.error ? e.error.message : 'Server logs detached');
     if (e && e.error) {
       append(e.error.message);
     }
   });
 
-  workspace.on(Events.Events.LogsEntry, (e: Events.LogsEntry) => {
+  workspace.on(Events.Events.LogsEntry, (e: Events.LogsEntryEvent) => {
     try {
       const json = JSON.parse(e.data);
       append(`SERVER ${json.level === 30 ? 'STDOUT' : 'STDERR'}: ${json.msg}`);

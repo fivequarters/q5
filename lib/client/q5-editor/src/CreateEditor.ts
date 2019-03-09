@@ -10,6 +10,13 @@ import { Workspace } from './Workspace';
 
 import 'jquery-resizable-dom';
 
+/**
+ * Creates the editor within the specified HTML element.
+ * @param element The HTML element to create the editor within, typically a `div`.
+ * @param workspace The workspace representing the function to edit.
+ * @param server The server representing the Q5 Service APIs.
+ * @param options Editor configuration options.
+ */
 export function createEditor(
   element: HTMLElement,
   workspace: Workspace,
@@ -154,16 +161,6 @@ export function createEditor(
     );
     server.attachServerLogs(workspace);
   }
-
-  workspace.on(Events.Events.NavStateChanged, (e: Events.NavStateChangedEvent) => {
-    if (e.newState) {
-      $nav.show();
-      $navSplitter.show();
-    } else {
-      $nav.hide();
-      $navSplitter.hide();
-    }
-  });
 
   workspace.on(Events.Events.LogsStateChanged, (e: Events.LogsStateChangedEvent) => {
     if (e.newState) {

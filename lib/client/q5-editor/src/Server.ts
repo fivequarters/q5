@@ -9,20 +9,66 @@ class BuildError extends Error {
   }
 }
 
+/**
+ * Represents the Q5 account to connect to.
+ */
 export interface IAccount {
+  /**
+   * The base URL of the Q5 service APIs.
+   */
   baseUrl: string;
+  /**
+   * The access token to authorize calls to Q5 service APIs.
+   */
   token: string;
 }
 
+/**
+ * A callback function implemented by the application embedding the Q5 editor and used by the [[Server]]
+ * to request current access credentials to the Q5 service APIs. The callback is called before every API call
+ * the _Server_ initiates, so the implementation is responsible for any cashing if appropriate.
+ *
+ * The last value of [[IAccount]] returned from the _AccountResolver_ is provided to it as input on subsequent invocation.
+ * It is therefore a convenient place to store any additional context beyond what [[IAccount]] requires.
+ *
+ * In a typical use case, _AccountResolver_ would call an authenticated API on the application's own backend to obtain
+ * a new access token for Q5 service APIs, or initiate an authorization flow with a third party authorization service to
+ * obtain such token.
+ */
 export type AccountResolver = (account: IAccount | undefined) => Promise<IAccount>;
 
+/**
+ * Represents the status of the build a function initiated with [[buildFunction]].
+ */
 export interface IBuildStatus {
+  /**
+   * Status of the build, which is either 'success' or 'failure'.
+   */
   status: string;
+  /**
+   * Function boundary.
+   */
   boundary: string;
+  /**
+   * Function name.
+   */
   name: string;
+  /**
+   * Unique build identifier of the build.
+   */
   build_id?: string;
+  /**
+   * Additional information about the build error in case build failure.
+   */
   error?: any;
+  /**
+   * Build progress, which is a number between 0 and 1.
+   */
   progress?: number;
+  /**
+   * If the build was successful, this indicates the URL to use to invoke the function. Please note you should never
+   * construct this URL yourself as it may change from build to build.
+   */
   url?: string;
 }
 
@@ -30,27 +76,75 @@ const logsExponentialBackoff = 1.5;
 const logsInitialBackoff = 5000;
 const logsMaxBackoff = 60000;
 
+/**
+ * The _Server_ class is the only component that directly calls the Q5 service APIs to manipulate Q5 Functions.
+ * It is also responsible for keeping track of the authorization token and requesting the hosting application
+ * to refresh it when necessary using the [[AccountResolver]] callback.
+ *
+ * An instance of the _Server_ class is typically created using the [[constructor]] in cases when the access token
+ * is dynamically resolved using the [[AccountResolver]], or using the [[create]] static method when the credentials
+ * are known ahead of time and will not change during the time the user interacts with the editor.
+ */
 export class Server {
+  /**
+   * Creates an instance of the _Server_ using static Q5 service API credentials. This is used in situations where the
+   * access token is known ahead of time and will not change during the user's session with the editor.
+   * @param account Static credentials to the Q5 service APIs.
+   */
   public static create(account: IAccount): Server {
     return new Server(currentAccount => Promise.resolve(account));
   }
+  /**
+   * Current credentials used by the _Server_ to call Q5 service APIs.
+   */
   public account: IAccount | undefined;
+  /**
+   * Maximum amount of time in milliseconds the [[buildFunction]] method is going to wait for a function build to complete
+   * before timing out.
+   */
   public buildTimeout: number = 60000;
+  /**
+   * Interval in milliseconds at which the [[buildFunction]] will poll for the status of an asynchronous function build.
+   */
   public buildStatusCheckInterval: number = 5000;
+  /**
+   * Timeout in milliseconds for calls to Q5 service APIs.
+   */
   public requestTimeout: number = 15000;
+  /**
+   * @ignore
+   */
   public sse?: EventSource = undefined;
+  /**
+   * @ignore
+   */
   public logsBackoff: number = 0;
+  /**
+   * @ignore
+   */
   public logsTimeout?: number = undefined;
 
+  /**
+   * Creates an instance of the _Server_ using a dynamic [[AsyncResolver]] callback to resolve credentials.
+   * This is used in situations where the access token is expected to change and must be refreshed during
+   * the lifetime of the end user's interaction with the editor, for example due to expiry.
+   * @param accountResolver The callback _Server_ will invoke before every Q5 service API call to ensure it has fresh credentials.
+   */
   constructor(public accountResolver: AccountResolver) {}
 
+  /**
+   * @ignore
+   */
   public _normalizeAccount(account: IAccount): IAccount {
     if (!account.baseUrl.match(/\/$/)) {
       account.baseUrl += '/';
     }
     return account;
   }
-
+  /**
+   * We need to finalize the decision on whether this can be determined locally or requires a call to the backend.
+   * @ignore
+   */
   public getFunctionUrl(workspace: Workspace): string | undefined {
     if (!this.account) {
       return undefined;
@@ -60,6 +154,12 @@ export class Server {
     }`;
   }
 
+  /**
+   * Loads an existing function. If the function does not exist, creates one using the provided template.
+   * @param boundary The name of the function boundary.
+   * @param name The name of the function.
+   * @param createIfNotExist A template of a function to create if one does not yet exist.
+   */
   public loadWorkspace(boundary: string, name: string, createIfNotExist?: Workspace): Promise<Workspace> {
     return this.accountResolver(this.account)
       .then(newAccount => {
@@ -84,6 +184,10 @@ export class Server {
       });
   }
 
+  /**
+   * Not needed for MVP - builds can only be initiated from editor
+   * @param workspace
+   */
   public buildFunction(workspace: Workspace): Promise<IBuildStatus> {
     let startTime: number;
     let self = this;
@@ -194,6 +298,11 @@ export class Server {
     };
   }
 
+  /**
+   * Not needed for MVP - function can only be run from editor
+   * @param workspace
+   * @ignore
+   */
   public runFunction(workspace: Workspace): Promise<ServerResponse> {
     return this.accountResolver(this.account)
       .then(newAccount => {
@@ -226,6 +335,11 @@ export class Server {
       });
   }
 
+  /**
+   * Not needed for MVP - logs can only be attached to from editor
+   * @param workspace
+   * @ignore
+   */
   public attachServerLogs(workspace: Workspace): Promise<Server> {
     if (this.sse) {
       return Promise.resolve(this);
@@ -272,6 +386,11 @@ export class Server {
     }
   }
 
+  /**
+   * Not needed for MVP - logs can only be detached from by the editor
+   * @param workspace
+   * @ignore
+   */
   public detachServerLogs(workspace: Workspace, error?: Error) {
     clearTimeout(this.logsTimeout);
     this.logsTimeout = undefined;

@@ -1,7 +1,7 @@
 import { EventEmitter } from '@5qtrs/event';
 import { ServerResponse } from 'http';
 import * as Events from './Events';
-import { IApplicationSettings, IFunctionSpecification, ILambdaSettings } from './FunctionSpecification';
+import { IApplicationSettings, IFunctionSpecification, ILambdaSettings, ISchedule } from './FunctionSpecification';
 import { IBuildStatus } from './Server';
 
 const RunnerPlaceholder = `// Return a function that evaluates to a Superagent request promise
@@ -52,12 +52,42 @@ const SettingsCronPlaceholder = `# Set the 'cron' value to execute this function
 # cron=0 22 * * Fri
 `;
 
+/**
+ * The _Workspace_ class class represents client side state of a single function, including its files,
+ * application settings, schedule of execution (in case of a CRON job), and metadata.
+ * It exposes methods to manupulate this in-memory state, and emits events other components can subscribe to when
+ * that state changes.
+ *
+ * The _Workspace_ is an _EventEmitter_ that emits events on changes in the function specification and interactions
+ * with the Q5 service APIs. For the full list of of events that can be subscribed to, see [[Events]].
+ */
 export class Workspace extends EventEmitter {
+  /**
+   * Not relevant for MVP
+   * @ignore
+   */
   public readOnly: boolean = false;
+  /**
+   * Not relevant for MVP
+   * @ignore
+   */
   public selectedFileName: string | undefined = undefined;
+  /**
+   * Not relevant for MVP
+   * @ignore
+   */
   public dirtyState: boolean = false;
+  /**
+   * The current state of the in-memory specification of the function. Do not modify this property directly,
+   * treat it as read only.
+   */
   public functionSpecification: IFunctionSpecification = { boundary: '', name: '' };
 
+  /**
+   * Creates a _Workspace_ given the optional function specification. If you do not provide a function specification,
+   * the default is a boilerplate "hello, world" function.
+   * @param functionSpecification
+   */
   constructor(functionSpecification?: IFunctionSpecification) {
     super();
     if (functionSpecification) {
@@ -107,6 +137,10 @@ export class Workspace extends EventEmitter {
     }
   }
 
+  /**
+   * Not relevant for MVP
+   * @ignore
+   */
   public setReadOnly(value: boolean) {
     if (value !== this.readOnly) {
       this.readOnly = value;
@@ -115,12 +149,19 @@ export class Workspace extends EventEmitter {
     }
   }
 
+  /**
+   * Not relevant for MVP
+   * @ignore
+   */
   public _ensureWritable() {
     if (this.readOnly) {
       throw new Error('Operation not permitted while workspace is in read-only state.');
     }
   }
 
+  /**
+   * Navigates to the Application Settings view.
+   */
   public selectSettingsApplication() {
     this._ensureWritable();
     this.selectedFileName = undefined;
@@ -128,6 +169,10 @@ export class Workspace extends EventEmitter {
     this.emit(event);
   }
 
+  /**
+   * Not relevant for MVP
+   * @ignore
+   */
   public selectSettingsCompute() {
     this._ensureWritable();
     this.selectedFileName = undefined;
@@ -135,6 +180,9 @@ export class Workspace extends EventEmitter {
     this.emit(event);
   }
 
+  /**
+   * Navigates to the Schedule view.
+   */
   public selectSettingsCron() {
     this._ensureWritable();
     this.selectedFileName = undefined;
@@ -142,6 +190,9 @@ export class Workspace extends EventEmitter {
     this.emit(event);
   }
 
+  /**
+   * Navigates to the Runner view.
+   */
   public selectToolsRunner() {
     this._ensureWritable();
     this.selectedFileName = undefined;
@@ -149,6 +200,10 @@ export class Workspace extends EventEmitter {
     this.emit(event);
   }
 
+  /**
+   * Not relevant to MVP
+   * @ignore
+   */
   public addFile(fileName: string) {
     this._ensureWritable();
     if (!this.functionSpecification.nodejs) {
@@ -169,6 +224,10 @@ export class Workspace extends EventEmitter {
     this.setDirtyState(true);
   }
 
+  /**
+   * Not relevant to MVP
+   * @ignore
+   */
   public deleteFile(fileName: string) {
     this._ensureWritable();
     if (!this.functionSpecification.nodejs || !this.functionSpecification.nodejs.files[fileName]) {
@@ -183,6 +242,10 @@ export class Workspace extends EventEmitter {
     delete this.functionSpecification.nodejs.files[fileName];
   }
 
+  /**
+   * Navigates to edit a specific file. The file name must exist in the [[functionSpecification]].
+   * @param fileName The name of the file to edit.
+   */
   public selectFile(fileName: string) {
     this._ensureWritable();
     if (fileName === this.selectedFileName) {
@@ -196,6 +259,10 @@ export class Workspace extends EventEmitter {
     this.emit(event);
   }
 
+  /**
+   * Not relevant to MVP
+   * @ignore
+   */
   public setSelectedFileContent(content: string) {
     this._ensureWritable();
     if (!this.selectedFileName || !this.functionSpecification.nodejs) {
@@ -205,6 +272,10 @@ export class Workspace extends EventEmitter {
     this.setDirtyState(true);
   }
 
+  /**
+   * Not relevant to MVP
+   * @ignore
+   */
   public setRunnerContent(content: string) {
     this._ensureWritable();
     if (!this.functionSpecification.metadata) {
@@ -214,6 +285,10 @@ export class Workspace extends EventEmitter {
     this.setDirtyState(true);
   }
 
+  /**
+   * Not relevant to MVP
+   * @ignore
+   */
   public setDirtyState(state: boolean) {
     this._ensureWritable();
     if (this.dirtyState !== state) {
@@ -223,6 +298,10 @@ export class Workspace extends EventEmitter {
     }
   }
 
+  /**
+   * Not relevant to MVP
+   * @ignore
+   */
   public setSettingsCompute(settings: string) {
     this._ensureWritable();
     const isDirty =
@@ -236,6 +315,10 @@ export class Workspace extends EventEmitter {
     }
   }
 
+  /**
+   * Not relevant to MVP
+   * @ignore
+   */
   public setSettingsApplication(settings: string) {
     this._ensureWritable();
     const isDirty =
@@ -249,12 +332,16 @@ export class Workspace extends EventEmitter {
     }
   }
 
+  /**
+   * Not relevant to MVP
+   * @ignore
+   */
   public setSettingsCron(settings: string) {
     this._ensureWritable();
     const isDirty =
       !this.dirtyState &&
       (!this.functionSpecification.metadata || this.functionSpecification.metadata.cronSettings !== settings);
-    this.functionSpecification.schedule = parseKeyValue(settings);
+    this.functionSpecification.schedule = <ISchedule>parseKeyValue(settings);
     if (Object.keys(this.functionSpecification.schedule).length === 0) {
       delete this.functionSpecification.schedule;
     }
@@ -265,10 +352,18 @@ export class Workspace extends EventEmitter {
     }
   }
 
+  /**
+   * Not relevant to MVP
+   * @ignore
+   */
   public getRunnerContent() {
     return this.functionSpecification.metadata && this.functionSpecification.metadata.runner;
   }
 
+  /**
+   * Not relevant to MVP
+   * @ignore
+   */
   public getSelectedFileContent() {
     if (!this.selectedFileName) {
       return undefined;
@@ -283,6 +378,10 @@ export class Workspace extends EventEmitter {
     }
   }
 
+  /**
+   * Not relevant to MVP
+   * @ignore
+   */
   public getSelectedFileLanguage() {
     if (!this.selectedFileName) {
       return undefined;
@@ -296,76 +395,136 @@ export class Workspace extends EventEmitter {
     }
   }
 
+  /**
+   * Not relevant to MVP
+   * @ignore
+   */
   public startBuild() {
     const event = new Events.BuildStartedEvent();
     this.emit(event);
   }
 
+  /**
+   * Not relevant to MVP
+   * @ignore
+   */
   public buildProgress(status: IBuildStatus) {
     const event = new Events.BuildProgressEvent(status);
     this.emit(event);
   }
 
+  /**
+   * Not relevant to MVP
+   * @ignore
+   */
   public buildFinished(status: IBuildStatus) {
     status.progress = 1;
     const event = new Events.BuildFinishedEvent(status);
     this.emit(event);
   }
 
+  /**
+   * Not relevant to MVP
+   * @ignore
+   */
   public buildError(error: Error) {
     const event = new Events.BuildErrorEvent(error);
     this.emit(event);
   }
 
+  /**
+   * Not relevant to MVP
+   * @ignore
+   */
   public startRun(url: string) {
     const event = new Events.RunnerStartedEvent(url);
     this.emit(event);
   }
 
+  /**
+   * Not relevant to MVP
+   * @ignore
+   */
   public finishRun(error?: Error, res?: ServerResponse) {
     const event = new Events.RunnerFinishedEvent(error, res);
     this.emit(event);
   }
 
+  /**
+   * Not relevant to MVP
+   * @ignore
+   */
   public updateLogsState(state: boolean) {
     const event = new Events.LogsStateChangedEvent(state);
     this.emit(event);
   }
 
+  /**
+   * Not relevant to MVP
+   * @ignore
+   */
   public updateNavState(state: boolean) {
     const event = new Events.NavStateChangedEvent(state);
     this.emit(event);
   }
 
+  /**
+   * Not relevant to MVP
+   * @ignore
+   */
   public setFullScreen(state: boolean) {
     const event = new Events.FullScreenChangedEvent(state);
     this.emit(event);
   }
 
+  /**
+   * Not relevant to MVP
+   * @ignore
+   */
   public close() {
     const event = new Events.ClosedEvent();
     this.emit(event);
   }
 
+  /**
+   * Not relevant to MVP
+   * @ignore
+   */
   public serverLogsAttached() {
-    const event = new Events.LogsAttached();
+    const event = new Events.LogsAttachedEvent();
     this.emit(event);
   }
 
+  /**
+   * Not relevant to MVP
+   * @ignore
+   */
   public serverLogsDetached(error?: Error) {
-    const event = new Events.LogsDetached(error);
+    const event = new Events.LogsDetachedEvent(error);
     this.emit(event);
   }
 
+  /**
+   * Not relevant to MVP
+   * @ignore
+   */
   public serverLogsEntry(data: string) {
-    const event = new Events.LogsEntry(data);
+    const event = new Events.LogsEntryEvent(data);
     this.emit(event);
   }
 
+  /**
+   * Not relevant to MVP
+   * @ignore
+   */
   public getComputeSettings(): string {
     return this.getSettings('computeSettings', SettingsComputePlaceholder, this.functionSpecification.lambda);
   }
 
+  /**
+   * Not relevant to MVP
+   * @ignore
+   */
   public getApplicationSettings(): string {
     return this.getSettings(
       'applicationSettings',
@@ -374,14 +533,22 @@ export class Workspace extends EventEmitter {
     );
   }
 
+  /**
+   * Not relevant to MVP
+   * @ignore
+   */
   public getCronSettings(): string {
     return this.getSettings('cronSettings', SettingsCronPlaceholder, this.functionSpecification.schedule || {});
   }
 
+  /**
+   * Not relevant to MVP
+   * @ignore
+   */
   getSettings(
     metadataProperty: string,
     defaultSettings: string,
-    effectiveSettings?: { [property: string]: string | number }
+    effectiveSettings?: { [property: string]: string | number | undefined }
   ): string {
     if (effectiveSettings) {
       // Effective settings always win - if metadata settings are out of sync, adjust them and set dirty state
@@ -403,12 +570,14 @@ export class Workspace extends EventEmitter {
   }
 }
 
-function serializeKeyValue(data: { [property: string]: string | number }, placeholder: string) {
+function serializeKeyValue(data: { [property: string]: string | number | undefined }, placeholder: string) {
   const lines: string[] = [];
   Object.keys(data)
     .sort()
     .forEach(key => {
-      lines.push(`${key}=${data[key]}`);
+      if (data[key]) {
+        lines.push(`${key}=${data[key]}`);
+      }
     });
   if (lines.length === 0) {
     return placeholder;

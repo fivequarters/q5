@@ -3,6 +3,14 @@ import { ActionPanelOptions, IActionPanelOptions } from './Options';
 import { Server } from './Server';
 import { Workspace } from './Workspace';
 
+/**
+ * Not part of MVP
+ * @ignore
+ * @param element
+ * @param workspace
+ * @param server
+ * @param options
+ */
 export function createActionPanel(
   element: HTMLElement,
   workspace: Workspace,

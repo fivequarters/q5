@@ -22,7 +22,8 @@
     "copy": "yarn-tool yarn copy",
     "ngrok": "yarn-tool yarn ngrok",
     "destroy": "yarn-tool yarn destroy",
-    "deploy": "yarn-tool yarn deploy"
+    "deploy": "yarn-tool yarn deploy",
+    "doc": "yarn-tool yarn doc"
   },
   "devDependencies": {
     "@babel/core": "^7.3.3",
