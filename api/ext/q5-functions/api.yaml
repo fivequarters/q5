@@ -4,7 +4,7 @@ servers:
     url: https://virtserver.swaggerhub.com/rwtombaugh/Five-Quarters-Functions-API/1.0.0
 info:
   description: 'Five Quarters Functions API for the management and execute of serverless functions'
-  version: "1.0.0"
+  version: '1.0.0'
   title: 'Five Quarters Functions API'
   contact:
     email: randall@fivequarters.io
@@ -40,7 +40,7 @@ paths:
       operationId: getAccount
       description: |
         Returns details about the given account.
-        
+
         The caller must have 'manage' access to the given account in order to retrieve the details of the given account.
       responses:
         200:
@@ -55,7 +55,7 @@ paths:
           description: Account not found
       security:
         - accessToken: []
-  
+
   /account/{accountId}/issuer:
     parameters:
       - in: path
@@ -71,19 +71,19 @@ paths:
       operationId: getAccountIssuerList
       description: |
         Returns a list of issuers associated with the given account.
-        
+
         The caller must have 'manage' access to the given account in order to retrieve the list of issuers of the given account.
       parameters:
         - in: query
           name: next
           required: false
-          description: Optional issuer id to start returning results from 
+          description: Optional issuer id to start returning results from
           schema:
             $ref: '#/components/schemas/IssuerId'
         - in: query
           name: count
           required: false
-          description: Optional number of results to return; max is 100 
+          description: Optional number of results to return; max is 100
           schema:
             type: number
             minimum: 1
@@ -96,10 +96,10 @@ paths:
               schema:
                 $ref: '#/components/schemas/IssuerList'
         403:
-          description: Not authorized  
+          description: Not authorized
       security:
         - accessToken: []
-  
+
   /account/{accountId}/issuer/{issuerId}:
     parameters:
       - in: path
@@ -121,7 +121,7 @@ paths:
       operationId: getAccountIssuer
       description: |
         Returns an issuer associated with the given account.
-        
+
         The caller must have 'manage' access to the given account in order to retrieve the given issuer of the given account.
       responses:
         200:
@@ -143,7 +143,7 @@ paths:
       operationId: putAccountIssuer
       description: |
         Adds or updates an issuer associated with the given account.
-        
+
         The caller must have 'manage' access to the given account in order to add or update the given issuer of the given account.
       requestBody:
         description: The issuer to add or update
@@ -162,7 +162,7 @@ paths:
         400:
           description: Invalid issuer
         403:
-          description: Not authorized 
+          description: Not authorized
         404:
           description: Account or issuer not found
       security:
@@ -173,7 +173,7 @@ paths:
       summary: Delete an issuer of an account
       description: |
         Deletes an issuer that was previously associated with the given account.
-        
+
         The caller must have 'manage' access to the given account in order to delete the given issuer of the given account.
       operationId: deleteIssuer
       responses:
@@ -184,8 +184,8 @@ paths:
         404:
           description: Account or issuer not found
       security:
-        - token: []
-    
+        - accessToken: []
+
   /account/{accountId}/subscription:
     parameters:
       - in: path
@@ -201,19 +201,19 @@ paths:
       operationId: getAccountSubscriptionList
       description: |
         Returns a list of the subscriptions of the given account.
-        
+
         The list of subscriptions is filtered based on the access of the caller. If the caller has 'manage' access to the given account, the list will include all subscriptions of the given account. If the caller has 'manage' access to a subscription, the list will include that given subscription.
       parameters:
         - in: query
           name: next
           required: false
-          description: Optional subscription id to start returning results from 
+          description: Optional subscription id to start returning results from
           schema:
             $ref: '#/components/schemas/SubscriptionId'
         - in: query
           name: count
           required: false
-          description: Optional number of results to return; max is 100 
+          description: Optional number of results to return; max is 100
           schema:
             type: number
             minimum: 1
@@ -226,12 +226,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/SubscriptionList'
         403:
-          description: Not authorized 
+          description: Not authorized
         404:
           description: Account not found
       security:
         - accessToken: []
-  
+
   /account/{accountId}/subscription/{subscriptionId}:
     parameters:
       - in: path
@@ -253,7 +253,7 @@ paths:
       operationId: getSubscription
       description: |
         Returns the details of the given subscription of the given account.
-        
+
         The caller must have 'manage' access to the given account or 'manage' access to the given subscription in order to retrieve the subscription.
       responses:
         200:
@@ -268,7 +268,7 @@ paths:
           description: Account or subscription not found
       security:
         - accessToken: []
-  
+
   /user:
     get:
       tags:
@@ -277,33 +277,33 @@ paths:
       operationId: getUserList
       description: |
         Returns a list of users.
-        
+
         The list of users is filtered based on the access of the caller. If the caller has 'manage' access to an account, the list will include all users with access to the given account. If the caller has 'manage' access to a subscription, the list will include all users with access to the given subscription.
-        
+
         In addition, the list of access statements of each user is filtered based on the access of the caller. If the caller has 'manage' access to an account, the list of access statements will include the access to the given account. If the caller has 'manage' access to a subscription,the list of access statements will include the access to the given subscription.
       parameters:
         - in: query
           name: accountId
           required: false
-          description: Optional account id to filter by 
+          description: Optional account id to filter by
           schema:
             $ref: '#/components/schemas/AccountId'
         - in: query
           name: subscriptionId
           required: false
-          description: Optional subscription id to filter by 
+          description: Optional subscription id to filter by
           schema:
             $ref: '#/components/schemas/SubscriptionId'
         - in: query
           name: next
           required: false
-          description: Optional user id to start returning results from 
+          description: Optional user id to start returning results from
           schema:
             $ref: '#/components/schemas/UserId'
         - in: query
           name: count
           required: false
-          description: Optional number of results to return; max is 100 
+          description: Optional number of results to return; max is 100
           schema:
             type: number
             minimum: 1
@@ -316,7 +316,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/UserList'
         403:
-          description: Not authorized 
+          description: Not authorized
       security:
         - accessToken: []
     post:
@@ -326,8 +326,8 @@ paths:
       operationId: postUser
       description: |
         Adds a user to the platform. 
-        
-        A caller must have 'manage' access to an account in order to add a user to the platform that has access to that given account. A caller must have 'manage' access to a subscription in order to add a user to the platform that has access to that given subscription. 
+
+        A caller must have 'manage' access to an account in order to add a user to the platform that has access to that given account. A caller must have 'manage' access to a subscription in order to add a user to the platform that has access to that given subscription.
       requestBody:
         description: The new user to add
         required: true
@@ -337,7 +337,7 @@ paths:
               $ref: '#/components/schemas/NewUser'
       responses:
         200:
-          description:  The user that was added
+          description: The user that was added
           content:
             application/json:
               schema:
@@ -345,10 +345,10 @@ paths:
         400:
           description: Invalid user
         403:
-          description: Not authorized 
+          description: Not authorized
       security:
         - accessToken: []
-  
+
   /user/{userId}:
     parameters:
       - in: path
@@ -364,7 +364,7 @@ paths:
       operationId: getUser
       description: |
         Returns details of a user.
-        
+
         The list of access statements of each user is filtered based on the access of the caller. If the caller has 'manage' access to an account, the list of access statements will include the access to the given account. If the caller has 'manage' access to a subscription,the list of access statements will include the access to the given subscription.
       responses:
         200:
@@ -373,9 +373,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
-                  
+
         403:
-          description: 'Not authorized'  
+          description: 'Not authorized'
       security:
         - accessToken: []
     put:
@@ -385,7 +385,7 @@ paths:
       operationId: putUser
       description: |
         Updates the details of a user.
-        
+
         A caller must have 'manage' access to an account in order to update a user to alter access to that given account. A caller must have 'manage' access to a subscription in order to update a user to alter access to that given subscription.
       requestBody:
         description: The user to update
@@ -404,9 +404,9 @@ paths:
         400:
           description: Invalid user
         403:
-          description: Not authorized 
+          description: Not authorized
         404:
-          description: User not found 
+          description: User not found
       security:
         - accessToken: []
     delete:
@@ -422,7 +422,7 @@ paths:
             $ref: '#/components/schemas/AccountId'
       description: |
         Removes all identities and access from the given user to the given account if the account id is specified in the query string. If the account id is not specified, the identities and access for all of the accounts that the caller has 'manange' access of are removed from the given user.
-        
+
         The caller must have 'manage' access to the given account in order to remove the given user's identities and access to that account.
       operationId: deleteUser
       responses:
@@ -433,8 +433,8 @@ paths:
         404:
           description: user not found
       security:
-        - token: []
-  
+        - accessToken: []
+
   /subscription/{subscriptionId}/boundary:
     parameters:
       - name: subscriptionId
@@ -449,20 +449,20 @@ paths:
       summary: Get boundaries of a subscription
       description: |
         Returns the list of boundaries that have one or more functions in the subscription.
-        
+
         A caller must have 'manage' access to the given account or the subscription in order to retrieve the list of boundaries of the subscription.
       operationId: getBoundaryList
       parameters:
         - in: query
           name: next
           required: false
-          description: Optional boundary id to start returning results from 
+          description: Optional boundary id to start returning results from
           schema:
             $ref: '#/components/schemas/BoundaryId'
         - in: query
           name: count
           required: false
-          description: Optional number of results to return; max is 100 
+          description: Optional number of results to return; max is 100
           schema:
             type: number
             minimum: 1
@@ -479,8 +479,8 @@ paths:
         404:
           description: Subscription not found
       security:
-        - token: []
-  
+        - accessToken: []
+
   /subscription/{subscriptionId}/boundary/{boundaryId}/function:
     parameters:
       - name: subscriptionId
@@ -501,20 +501,20 @@ paths:
       summary: Get the functions of a boundary
       description: |
         Returns the list of functions in a given boundary of a given subscription.
-        
+
         A caller must have 'manage' access to the given account, subscription or boundary in order to retrieve the list of functions in the boundary.
       operationId: getFunctionList
       parameters:
         - in: query
           name: next
           required: false
-          description: Optional function id to start returning results from 
+          description: Optional function id to start returning results from
           schema:
             $ref: '#/components/schemas/FunctionId'
         - in: query
           name: count
           required: false
-          description: Optional number of results to return; max is 100 
+          description: Optional number of results to return; max is 100
           schema:
             type: number
             minimum: 1
@@ -531,8 +531,8 @@ paths:
         404:
           description: Subscription or boundary not found
       security:
-        - token: []
-  
+        - accessToken: []
+
   /subscription/{subscriptionId}/boundary/{boundaryId}/log:
     parameters:
       - name: subscriptionId
@@ -553,7 +553,7 @@ paths:
       summary: Get real-time logs of all functions of a boundary
       description: |
         Returns a text/event-stream response with streaming real-time logs generated by all functions executing in a boundary
-        
+
         A caller must have 'manage' access to the given account, subscription or boundary in order to retrieve real-time streaming logs of functions in the boundary.
       operationId: getBoundaryLogs
       responses:
@@ -564,8 +564,8 @@ paths:
         404:
           description: Subscription or boundary not found
       security:
-        - token: []
-      
+        - accessToken: []
+
   /subscription/{subscriptionId}/boundary/{boundaryId}/function/{functionId}:
     parameters:
       - name: subscriptionId
@@ -584,14 +584,14 @@ paths:
         in: path
         description: The function id, unique within the boundary.
         required: true
-        schema: 
+        schema:
           $ref: '#/components/schemas/FunctionId'
     get:
       tags:
         - Functions
       summary: Get the definition of a deployed function
       description: |
-        Returns the specification of a previously deployed function 
+        Returns the specification of a previously deployed function
       operationId: getFunction
       responses:
         200:
@@ -605,14 +605,14 @@ paths:
         404:
           description: Subscription, boundary or function not found
       security:
-        - token: []
+        - accessToken: []
     put:
       tags:
         - Functions
       summary: Initiate a new build and deployment of a function
       description: |
         Initiates a build and deployment of the function within the isolation boundary. This is an asynchronous operation that returns immediately with a 'buildId' representing the function build process. This 'buildId' can be used to poll for completion by calling 'GET /build/{buildId}'.
-        
+
         The URL for executing the function will be provided as the 'location' property of the response.
       operationId: putFunction
       requestBody:
@@ -636,7 +636,7 @@ paths:
         404:
           description: Subscription, boundary or function not found
       security:
-        - token: []
+        - accessToken: []
     delete:
       tags:
         - Functions
@@ -652,7 +652,7 @@ paths:
         404:
           description: Subscription, boundary or function not found
       security:
-        - token: []
+        - accessToken: []
 
   /subscription/{subscriptionId}/boundary/{boundaryId}/function/{functionId}/log:
     parameters:
@@ -672,16 +672,16 @@ paths:
         in: path
         description: The function id, unique within the boundary.
         required: true
-        schema: 
+        schema:
           $ref: '#/components/schemas/FunctionId'
     get:
       tags:
         - Functions
       summary: Get real-time logs of a function
       description: |
-         Returns a text/event-stream response with streaming real-time logs generated by the function
-        
-         A caller must have 'manage' access to the given account, subscription, boundary or function in order to retrieve real-time streaming logs of the function.
+        Returns a text/event-stream response with streaming real-time logs generated by the function
+
+        A caller must have 'manage' access to the given account, subscription, boundary or function in order to retrieve real-time streaming logs of the function.
       operationId: getFunctionLog
       responses:
         200:
@@ -691,8 +691,8 @@ paths:
         404:
           description: Subscription, boundary of function not found
       security:
-        - token: []
-  
+        - accessToken: []
+
   /subscription/{subscriptionId}/boundary/{boundaryId}/function/{functionId}/location:
     parameters:
       - name: subscriptionId
@@ -711,17 +711,17 @@ paths:
         in: path
         description: The function id, unique within the boundary.
         required: true
-        schema: 
+        schema:
           $ref: '#/components/schemas/FunctionId'
     get:
       tags:
         - Functions
-      summary: Get the URL for executing the function 
+      summary: Get the URL for executing the function
       description: |
-         Returns the URL to use to execute the function.
-        
-         A caller must have 'manage' access to the given account, subscription, boundary or function in order to retrieve
-         the URL for executing the function.
+        Returns the URL to use to execute the function.
+
+        A caller must have 'manage' access to the given account, subscription, boundary or function in order to retrieve
+        the URL for executing the function.
       operationId: getFunctionLocation
       responses:
         200:
@@ -735,7 +735,7 @@ paths:
         404:
           description: Subscription, boundary of function not found
       security:
-        - token: []
+        - accessToken: []
 
   /subscription/{subscriptionId}/boundary/{boundaryId}/function/{functionId}/build/{buildId}:
     parameters:
@@ -755,22 +755,22 @@ paths:
         in: path
         description: The function id, unique within the boundary.
         required: true
-        schema: 
+        schema:
           $ref: '#/components/schemas/FunctionId'
       - name: buildId
         in: path
         description: The build id, unique to the function.
         required: true
-        schema: 
+        schema:
           $ref: '#/components/schemas/BuildId'
     get:
       tags:
         - Functions
       summary: Get the status of a build of a function
       description: |
-         Returns the status of the build of a function. This is used for polling the result of the asynchronous build process of a function. The 'status' parameter progressess from 'pending' to 'building' to either 'success' or 'failure', which are the final states of the build process.
-        
-         A caller must have 'manage' access to the given account, subscription, boundary or function in order to retrieve the build status of the given function.
+        Returns the status of the build of a function. This is used for polling the result of the asynchronous build process of a function. The 'status' parameter progressess from 'pending' to 'building' to either 'success' or 'failure', which are the final states of the build process.
+
+        A caller must have 'manage' access to the given account, subscription, boundary or function in order to retrieve the build status of the given function.
       operationId: getFunctionBuild
       responses:
         200:
@@ -784,15 +784,15 @@ paths:
         404:
           description: Subscription, boundary, function or build not found
       security:
-        - token: []
+        - accessToken: []
 
 components:
   securitySchemes:
-    accessToken:            
+    accessToken:
       type: http
       scheme: bearer
       bearerFormat: JWT
-  
+
   schemas:
     AccountId:
       type: string
@@ -810,7 +810,7 @@ components:
           type: string
           description: Account display name
           example: ABC Company
-    
+
     SubscriptionId:
       type: string
       description: Subscription id
@@ -839,7 +839,7 @@ components:
           description: A list of subscriptions
           items:
             $ref: '#/components/schemas/Subscription'
-    
+
     PublicKey:
       type: object
       description: A key id and the public key for a public/private key pair
@@ -871,12 +871,12 @@ components:
           type: array
           description: |
             The public keys of the key pairs used to sign access tokens from the issuer. Either the 'publicKeys' or the jsonKeyUri' must be provided.
-          items: 
+          items:
             $ref: '#/components/schemas/PublicKey'
         jsonKeyUri:
           type: string
           description: |
-             The uri key of json key file that contains the public key of the key pair used to sign access tokens from the issuer. Either the 'publicKey' or the jsonKeyUri' must be provided.
+            The uri key of json key file that contains the public key of the key pair used to sign access tokens from the issuer. Either the 'publicKey' or the jsonKeyUri' must be provided.
         client:
           type: object
           required:
@@ -898,7 +898,7 @@ components:
                 allow:
                   type: array
                   items:
-                    $ref: '#/components/schemas/AccessStatement'    
+                    $ref: '#/components/schemas/AccessStatement'
     Issuer:
       allOf:
         - type: object
@@ -909,7 +909,7 @@ components:
             id:
               $ref: '#/components/schemas/IssuerId'
         - $ref: '#/components/schemas/NewIssuer'
-    
+
     IssuerList:
       type: object
       required:
@@ -921,7 +921,7 @@ components:
           type: array
           description: A list of issuers
           items:
-            $ref: '#/components/schemas/Issuer'       
+            $ref: '#/components/schemas/Issuer'
 
     Identity:
       type: object
@@ -930,7 +930,7 @@ components:
         - sub
       properties:
         iss:
-          $ref:  '#/components/schemas/IssuerId'
+          $ref: '#/components/schemas/IssuerId'
         sub:
           type: string
           description: The 'sub' claim value in access tokens
@@ -952,7 +952,7 @@ components:
           $ref: '#/components/schemas/BoundaryId'
         function:
           $ref: '#/components/schemas/FunctionId'
-    
+
     UserId:
       type: string
       description: User id
@@ -1002,8 +1002,8 @@ components:
           type: array
           description: A list of users
           items:
-            $ref: '#/components/schemas/User'       
-    
+            $ref: '#/components/schemas/User'
+
     BoundaryId:
       type: string
       description: Boundary id
@@ -1019,8 +1019,8 @@ components:
           type: array
           description: A list of boundaries
           items:
-            $ref: '#/components/schemas/BoundaryId'  
-    
+            $ref: '#/components/schemas/BoundaryId'
+
     FunctionId:
       type: string
       description: Function id
@@ -1096,7 +1096,7 @@ components:
               type: string
               example: US/Pacific
         metadata:
-          type: object      
+          type: object
     FunctionList:
       type: object
       required:
@@ -1108,8 +1108,8 @@ components:
           type: array
           description: A list of functions
           items:
-            $ref: '#/components/schemas/FunctionId' 
-            
+            $ref: '#/components/schemas/FunctionId'
+
     BuildId:
       type: string
       description: Build id
