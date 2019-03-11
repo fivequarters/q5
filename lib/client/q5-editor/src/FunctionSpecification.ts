@@ -53,8 +53,6 @@ export interface ISchedule {
  *
  * ```javascript
  * {
- *   boundary: 'myboundary',
- *   name: 'myname',
  *   nodejs: {
  *     files: {
  *       'index.js': 'module.exports = (ctx, cb) => cb(null, { body: "hello" });',
@@ -68,15 +66,6 @@ export interface ISchedule {
  * ```
  */
 export interface IFunctionSpecification {
-  /**
-   * Name of the function, unique within the boundary.
-   */
-  name: string;
-  /**
-   * Isolation boundary within which this function executes. Functions running in different boundaries are guaranteed to be isolated.
-   * Functions running in the same boundary may or may not be isolated.
-   */
-  boundary: string;
   /**
    * Application settings of the function. Application settings are key value pairs stored encrypted at rest and only
    * made available to the function at the time of execution. Good storage place for API keys, connections strings, and other

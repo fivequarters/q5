@@ -12,7 +12,6 @@
     "**/jest.setup.js": true,
     "**/node_modules/**": true,
     "**/prettier.config.js": true,
-    "**/tslint.json": true,
-    "**/webpack.config.js": true
+    "**/tslint.json": true
   }
 }

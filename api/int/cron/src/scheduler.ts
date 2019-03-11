@@ -58,14 +58,16 @@ export function scheduler(event: any, context: any, cb: any) {
     function scheduleExecutions(contents: any[]) {
       stats.considered += contents.length;
       contents.forEach(i => {
+        // Format of the S3 key is 'function-cron/{subscriptionId}/{boundaryId}/{functionId}/{encoded_schedule}'
         let segments = i.Key.split('/');
         let ctx: { [property: string]: string } = {
           key: i.Key,
-          boundary: segments[1],
-          name: segments[2],
+          subscriptionId: segments[1],
+          boundaryId: segments[2],
+          functionId: segments[3],
         };
         if (!filter(ctx)) return;
-        let tmp = JSON.parse(Buffer.from(segments[3], 'hex').toString());
+        let tmp = JSON.parse(Buffer.from(segments[4], 'hex').toString());
         ctx.cron = tmp[0];
         ctx.timezone = tmp[1];
         let cron = Cron.parseExpression(ctx.cron, {

@@ -68,7 +68,7 @@ export function Editor({ eventAction, onEditorBack, ...rest }: EditorProps) {
       },
     };
 
-    const workspace = await server.loadWorkspace(config.boundary, eventAction, new Workspace());
+    const workspace = await server.loadWorkspace(config.boundaryId, eventAction, {});
     if (editorElement && editorElement.current) {
       createEditor(editorElement.current, workspace, server, editorOptions);
       //  workspace.selectFile('onNewInquiry.js');

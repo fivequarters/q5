@@ -63,6 +63,19 @@ const SettingsCronPlaceholder = `# Set the 'cron' value to execute this function
  */
 export class Workspace extends EventEmitter {
   /**
+   * Name of the function, unique within the boundary.
+   */
+  public functionId: string = '';
+  /**
+   * Isolation boundary within which this function executes. Functions running in different boundaries are guaranteed to be isolated.
+   * Functions running in the same boundary may or may not be isolated.
+   */
+  public boundaryId: string = '';
+  /**
+   * Execution URL of the function.
+   */
+  public location?: string;
+  /**
    * Not relevant for MVP
    * @ignore
    */
@@ -81,15 +94,21 @@ export class Workspace extends EventEmitter {
    * The current state of the in-memory specification of the function. Do not modify this property directly,
    * treat it as read only.
    */
-  public functionSpecification: IFunctionSpecification = { boundary: '', name: '' };
+  public functionSpecification: IFunctionSpecification = {};
 
   /**
    * Creates a _Workspace_ given the optional function specification. If you do not provide a function specification,
    * the default is a boilerplate "hello, world" function.
    * @param functionSpecification
    */
-  constructor(functionSpecification?: IFunctionSpecification) {
+  constructor(boundaryId?: string, id?: string, functionSpecification?: IFunctionSpecification) {
     super();
+    if (boundaryId) {
+      this.boundaryId = boundaryId;
+    }
+    if (id) {
+      this.functionId = id;
+    }
     if (functionSpecification) {
       this.functionSpecification = functionSpecification;
     }

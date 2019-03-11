@@ -1,6 +1,7 @@
 import { ServerResponse } from 'http';
 import * as Superagent from 'superagent';
 import { Workspace } from './Workspace';
+import { IFunctionSpecification } from './FunctionSpecification';
 const Superagent1 = Superagent;
 
 class BuildError extends Error {
@@ -14,13 +15,17 @@ class BuildError extends Error {
  */
 export interface IAccount {
   /**
+   * Subscription ID of the Q5 service.
+   */
+  subscriptionId: string;
+  /**
    * The base URL of the Q5 service APIs.
    */
   baseUrl: string;
   /**
    * The access token to authorize calls to Q5 service APIs.
    */
-  token: string;
+  accessToken: string;
 }
 
 /**
@@ -46,17 +51,21 @@ export interface IBuildStatus {
    */
   status: string;
   /**
+   * Subscription ID
+   */
+  subscriptionId: string;
+  /**
    * Function boundary.
    */
-  boundary: string;
+  boundaryId: string;
   /**
    * Function name.
    */
-  name: string;
+  functionId: string;
   /**
    * Unique build identifier of the build.
    */
-  build_id?: string;
+  id?: string;
   /**
    * Additional information about the build error in case build failure.
    */
@@ -66,10 +75,10 @@ export interface IBuildStatus {
    */
   progress?: number;
   /**
-   * If the build was successful, this indicates the URL to use to invoke the function. Please note you should never
+   * If the build was successful, this indicates the URL to use to invoke the function. Note you should never
    * construct this URL yourself as it may change from build to build.
    */
-  url?: string;
+  location?: string;
 }
 
 const logsExponentialBackoff = 1.5;
@@ -141,46 +150,56 @@ export class Server {
     }
     return account;
   }
+
   /**
-   * We need to finalize the decision on whether this can be determined locally or requires a call to the backend.
-   * @ignore
+   * Obtains the execution URL of the function.
+   * @param boundaryId The name of the function boundary.
+   * @param id The name of the function.
    */
-  public getFunctionUrl(workspace: Workspace): string | undefined {
-    if (!this.account) {
-      return undefined;
-    }
-    return `${this.account.baseUrl}api/v1/run/${workspace.functionSpecification.boundary}/${
-      workspace.functionSpecification.name
-    }`;
+  public getFunctionUrl(boundaryId: string, id: string): Promise<string> {
+    return this.accountResolver(this.account)
+      .then(newAccount => {
+        this.account = this._normalizeAccount(newAccount);
+        const url = `${this.account.baseUrl}api/v1/subscription/${
+          this.account.subscriptionId
+        }/boundary/${boundaryId}/function/${id}/location`;
+        return Superagent.get(url)
+          .set('Authorization', `Bearer ${this.account.accessToken}`)
+          .timeout(this.requestTimeout);
+      })
+      .then(res => {
+        return res.body.location;
+      });
   }
 
   /**
    * Loads an existing function. If the function does not exist, creates one using the provided template.
-   * @param boundary The name of the function boundary.
-   * @param name The name of the function.
+   * @param boundaryId The name of the function boundary.
+   * @param id The name of the function.
    * @param createIfNotExist A template of a function to create if one does not yet exist.
    */
-  public loadWorkspace(boundary: string, name: string, createIfNotExist?: Workspace): Promise<Workspace> {
+  public loadWorkspace(boundaryId: string, id: string, createIfNotExist?: IFunctionSpecification): Promise<Workspace> {
     return this.accountResolver(this.account)
       .then(newAccount => {
         this.account = this._normalizeAccount(newAccount);
-        const url = `${this.account.baseUrl}api/v1/function/${boundary}/${name}`;
+        const url = `${this.account.baseUrl}api/v1/subscription/${
+          this.account.subscriptionId
+        }/boundary/${boundaryId}/function/${id}`;
         return Superagent.get(url)
-          .set('Authorization', `Bearer ${this.account.token}`)
+          .set('Authorization', `Bearer ${this.account.accessToken}`)
           .timeout(this.requestTimeout);
       })
       .then(res => {
-        res.body.boundary = boundary;
-        res.body.name = name;
-        return new Workspace(res.body);
+        let workspace = new Workspace(res.body.boundaryId, res.body.id, res.body);
+        workspace.location = res.body.location;
+        return workspace;
       })
       .catch(error => {
         if (!createIfNotExist) {
           throw error;
         }
-        createIfNotExist.functionSpecification.boundary = boundary;
-        createIfNotExist.functionSpecification.name = name;
-        return this.buildFunction(createIfNotExist).then(_ => createIfNotExist);
+        let workspace = new Workspace(boundaryId, id, createIfNotExist);
+        return this.buildFunction(workspace).then(_ => workspace);
       });
   }
 
@@ -197,9 +216,9 @@ export class Server {
     return this.accountResolver(this.account)
       .then(newAccount => {
         this.account = this._normalizeAccount(newAccount);
-        const url = `${this.account.baseUrl}api/v1/function/${workspace.functionSpecification.boundary}/${
-          workspace.functionSpecification.name
-        }`;
+        const url = `${this.account.baseUrl}api/v1/subscription/${this.account.subscriptionId}/boundary/${
+          workspace.boundaryId
+        }/function/${workspace.functionId}`;
         startTime = Date.now();
         let params: any = {
           environment: 'nodejs',
@@ -216,35 +235,23 @@ export class Server {
           params.schedule = workspace.functionSpecification.schedule;
         }
         return Superagent.put(url)
-          .set('Authorization', `Bearer ${this.account.token}`)
+          .set('Authorization', `Bearer ${this.account.accessToken}`)
           .timeout(this.requestTimeout)
           .send(params);
       })
       .then(res => {
         let build = res.body as IBuildStatus;
-        if (res.status === 200) {
-          // Completed synchronously)
+        if (res.status === 204) {
+          // No changes
+          workspace.buildFinished(build);
+          return build;
+        } else if (res.status === 200) {
+          // Completed synchronously
           if (build.error) {
             workspace.buildError(build.error);
           } else {
-            build.url = `${(<IAccount>self.account).baseUrl}api/v1/run/${workspace.functionSpecification.boundary}/${
-              workspace.functionSpecification.name
-            }`;
             workspace.buildFinished(build);
           }
-          return build;
-        }
-        if (res.status === 204) {
-          // Completed synchronously, no changes
-          build = {
-            url: `${(<IAccount>self.account).baseUrl}api/v1/run/${workspace.functionSpecification.boundary}/${
-              workspace.functionSpecification.name
-            }`,
-            status: 'unchanged',
-            name: workspace.functionSpecification.name,
-            boundary: workspace.functionSpecification.boundary,
-          };
-          workspace.buildFinished(build);
           return build;
         }
         return waitForBuild(build);
@@ -266,13 +273,13 @@ export class Server {
       return new Promise(resolve => setTimeout(resolve, this.buildStatusCheckInterval))
         .then(() => {
           // @ts-ignore
-          const url = `${this.account.baseUrl}api/v1/function/${workspace.functionSpecification.boundary}/${
-            workspace.functionSpecification.name
-          }/build/${build.build_id}`;
+          const url = `${this.account.baseUrl}api/v1/subscription/${self.account.subscriptionId}/boundary/${
+            workspace.boundaryId
+          }/function/${workspace.functionId}/build/${build.id}`;
           return (
             Superagent.get(url)
               // @ts-ignore
-              .set('Authorization', `Bearer ${self.account.token}`)
+              .set('Authorization', `Bearer ${self.account.accessToken}`)
               .ok(res => res.status === 200 || res.status === 201 || res.status === 410)
               .timeout(this.requestTimeout)
           );
@@ -280,10 +287,6 @@ export class Server {
         .then(res => {
           if (res.status === 200) {
             // success
-            // @ts-ignore
-            res.body.url = `${self.account.baseUrl}api/v1/run/${workspace.functionSpecification.boundary}/${
-              workspace.functionSpecification.name
-            }`;
             workspace.buildFinished(res.body);
             return res.body;
           } else if (res.status === 410) {
@@ -307,10 +310,14 @@ export class Server {
     return this.accountResolver(this.account)
       .then(newAccount => {
         this.account = this._normalizeAccount(newAccount);
-        const url = `${this.account.baseUrl}api/v1/run/${workspace.functionSpecification.boundary}/${
-          workspace.functionSpecification.name
-        }`;
-
+        if (workspace.location) {
+          return workspace.location;
+        } else {
+          return this.getFunctionUrl(workspace.boundaryId, workspace.functionId);
+        }
+      })
+      .then(url => {
+        workspace.location = url;
         workspace.startRun(url);
 
         function runnerFactory(ctx: object) {
@@ -347,9 +354,9 @@ export class Server {
       clearTimeout(this.logsTimeout);
       return this.accountResolver(this.account).then(newAccount => {
         this.account = this._normalizeAccount(newAccount);
-        const url = `${this.account.baseUrl}api/v1/logs/${workspace.functionSpecification.boundary}/${
-          workspace.functionSpecification.name
-        }?token=${this.account.token}`;
+        const url = `${this.account.baseUrl}api/v1/subscription/${this.account.subscriptionId}/boundary/${
+          workspace.boundaryId
+        }/function/${workspace.functionId}/log?token=${this.account.accessToken}`;
 
         this.sse = new EventSource(url);
         if (this.logsBackoff === 0) {

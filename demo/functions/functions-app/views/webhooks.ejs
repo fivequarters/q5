@@ -128,13 +128,15 @@
         e.preventDefault();
         window.q5hook.edit({
             baseUrl: "<%- process.env.API_SERVER %>",
-            token: "<%- process.env.API_AUTHORIZATION_KEY %>",
-            boundary: "myboundary",
-            function: "myfunction1",
+            subscriptionId: '12345',
+            accessToken: "<%- process.env.API_AUTHORIZATION_KEY %>",
+            boundaryId: "myboundary",
+            functionId: "myfunction1",
+            template: {},
             editorOptions: {},
         })
         .then(result => {
-            document.getElementById('on_new_lead').value = result.url;
+            document.getElementById('on_new_lead').value = result.location;
         });
     });
 </script>
