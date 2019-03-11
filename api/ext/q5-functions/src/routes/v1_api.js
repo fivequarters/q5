@@ -7,6 +7,7 @@ var get_logs = require('./handlers/get_logs');
 var validate_schema = require('./middleware/validate_schema');
 var authorize = require('./middleware/authorize');
 var cors = require('cors');
+const create_error = require('http-errors');
 
 var corsManagementOptions = {
   origins: '*',
@@ -22,53 +23,45 @@ var corsExecutionOptions = {
   credentials: true,
 };
 
-router.options('/function/:boundary/:name', cors(corsManagementOptions));
-router.put(
-  '/function/:boundary/:name',
-  cors(corsManagementOptions),
-  authorize({
-    operation: 'function:put',
-  }),
-  express.json(),
-  validate_schema({
-    body: require('./schemas/function_specification'),
-    params: require('./schemas/api_params'),
-  }),
-  determine_provider(),
-  (req, res, next) => provider_handlers[req.provider].put_function(req, res, next)
-);
+const NotImplemented = (_, __, next) => next(create_error(501, 'Not implemented'));
 
-router.options('/function/:boundary/:name/build/:build_id', cors(corsManagementOptions));
-router.get(
-  '/function/:boundary/:name/build/:build_id',
-  cors(corsManagementOptions),
-  authorize({
-    operation: 'function:build:get',
-  }),
-  validate_schema({
-    params: require('./schemas/api_params'),
-  }),
-  determine_provider(),
-  (req, res, next) => provider_handlers[req.provider].get_function_build(req, res, next)
-);
+// Accounts
 
-router.options('/function/:boundary/:name', cors(corsManagementOptions));
-router.get(
-  '/function/:boundary/:name',
-  cors(corsManagementOptions),
-  authorize({
-    operation: 'function:get',
-  }),
-  validate_schema({
-    params: require('./schemas/api_params'),
-  }),
-  determine_provider(),
-  (req, res, next) => provider_handlers[req.provider].get_function(req, res, next)
-);
+router.options('/account/:accountId', cors(corsManagementOptions));
+router.get('/account/:accountId', NotImplemented);
 
-router.options('/function/:boundary', cors(corsManagementOptions));
+router.options('/account/:accountId/issuer', cors(corsManagementOptions));
+router.get('/account/:accountId/issuer', NotImplemented);
+
+router.options('/account/:accountId/issuer/:issuerId', cors(corsManagementOptions));
+router.get('/account/:accountId/issuer/:issuerId', NotImplemented);
+router.put('/account/:accountId/issuer/:issuerId', NotImplemented);
+router.delete('/account/:accountId/issuer/:issuerId', NotImplemented);
+
+router.options('/account/:accountId/subscription', cors(corsManagementOptions));
+router.get('/account/:accountId/subscription', NotImplemented);
+
+router.options('/account/:accountId/subscription/:subscriptionId', cors(corsManagementOptions));
+router.get('/account/:accountId/subscription/:subscriptionId', NotImplemented);
+
+// Users
+
+router.options('/user', cors(corsManagementOptions));
+router.get('/user', NotImplemented);
+router.post('/user', NotImplemented);
+
+router.options('/user/:userId', cors(corsManagementOptions));
+router.get('/user/:userId', NotImplemented);
+router.put('/user/:userId', NotImplemented);
+
+// Boundaries
+
+router.options('/subscription/:subscriptionId/boundary', cors(corsManagementOptions));
+router.get('/subscription/:subscriptionId/boundary', NotImplemented);
+
+router.options('/subscription/:subscriptionId/boundary/:boundaryId/function', cors(corsManagementOptions));
 router.get(
-  '/function/:boundary',
+  '/subscription/:subscriptionId/boundary/:boundaryId/function',
   cors(corsManagementOptions),
   authorize({
     operation: 'functions:list',
@@ -81,9 +74,51 @@ router.get(
   (req, res, next) => provider_handlers[req.provider].list_functions(req, res, next)
 );
 
-router.options('/function/:boundary/:name', cors(corsManagementOptions));
+router.options('/subscription/:subscriptionId/boundary/:boundaryId/log', cors(corsManagementOptions));
+router.get(
+  '/subscription/:subscriptionId/boundary/:boundaryId/log',
+  cors(corsManagementOptions),
+  authorize({
+    operation: 'boundary:logs',
+    getToken: req => req.query && req.query.token,
+  }),
+  validate_schema({
+    params: require('./schemas/api_params'),
+  }),
+  get_logs({ topic: req => `logs:application:${req.params.subscriptionId}:${req.params.boundaryId}:` })
+);
+
+// Functions
+
+router.options('/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId', cors(corsManagementOptions));
+router.get(
+  '/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId',
+  cors(corsManagementOptions),
+  authorize({
+    operation: 'function:get',
+  }),
+  validate_schema({
+    params: require('./schemas/api_params'),
+  }),
+  determine_provider(),
+  (req, res, next) => provider_handlers[req.provider].get_function(req, res, next)
+);
+router.put(
+  '/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId',
+  cors(corsManagementOptions),
+  authorize({
+    operation: 'function:put',
+  }),
+  express.json(),
+  validate_schema({
+    body: require('./schemas/function_specification'),
+    params: require('./schemas/api_params'),
+  }),
+  determine_provider(),
+  (req, res, next) => provider_handlers[req.provider].put_function(req, res, next)
+);
 router.delete(
-  '/function/:boundary/:name',
+  '/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId',
   cors(corsManagementOptions),
   authorize({
     operation: 'function:delete',
@@ -94,6 +129,61 @@ router.delete(
   determine_provider(),
   (req, res, next) => provider_handlers[req.provider].delete_function(req, res, next)
 );
+
+router.options(
+  '/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/log',
+  cors(corsManagementOptions)
+);
+router.get(
+  '/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/log',
+  cors(corsManagementOptions),
+  authorize({
+    operation: 'function:logs',
+    getToken: req => req.query && req.query.token,
+  }),
+  validate_schema({
+    params: require('./schemas/api_params'),
+  }),
+  get_logs({
+    topic: req => `logs:application:${req.params.subscriptionId}:${req.params.boundaryId}:${req.params.functionId}:`,
+  })
+);
+
+router.options(
+  '/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/location',
+  cors(corsManagementOptions)
+);
+router.get(
+  '/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/location',
+  cors(corsManagementOptions),
+  authorize({
+    operation: 'function:get',
+  }),
+  validate_schema({
+    params: require('./schemas/api_params'),
+  }),
+  determine_provider(),
+  (req, res, next) => provider_handlers[req.provider].get_location(req, res, next)
+);
+
+router.options(
+  '/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/build/:buildId',
+  cors(corsManagementOptions)
+);
+router.get(
+  '/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/build/:buildId',
+  cors(corsManagementOptions),
+  authorize({
+    operation: 'function:build:get',
+  }),
+  validate_schema({
+    params: require('./schemas/api_params'),
+  }),
+  determine_provider(),
+  (req, res, next) => provider_handlers[req.provider].get_function_build(req, res, next)
+);
+
+// Not part of public contract
 
 router.options('/system-logs/:topic', cors(corsManagementOptions));
 router.get(
@@ -106,40 +196,14 @@ router.get(
   get_logs({ topic: req => req.params.topic })
 );
 
-router.options('/logs/:boundary', cors(corsManagementOptions));
-router.get(
-  '/logs/:boundary',
-  cors(corsManagementOptions),
-  authorize({
-    operation: 'boundary:logs',
-    getToken: req => req.query && req.query.token,
-  }),
-  validate_schema({
-    params: require('./schemas/api_params'),
-  }),
-  get_logs({ topic: req => `logs:application:${req.params.boundary}:` })
-);
-
-router.options('/logs/:boundary/:name', cors(corsManagementOptions));
-router.get(
-  '/logs/:boundary/:name',
-  cors(corsManagementOptions),
-  authorize({
-    operation: 'function:logs',
-    getToken: req => req.query && req.query.token,
-  }),
-  validate_schema({
-    params: require('./schemas/api_params'),
-  }),
-  get_logs({ topic: req => `logs:application:${req.params.boundary}:${req.params.name}:` })
-);
-
-let run_route = /^\/run\/([^\/]+)\/([^\/]+).*$/;
+let run_route = /^\/run\/([^\/]+)\/([^\/]+)\/([^\/]+).*$/;
 function promote_to_name_params(req, res, next) {
-  req.params.boundary = req.params[0];
+  req.params.subscriptionId = req.params[0];
+  req.params.boundaryId = req.params[1];
+  req.params.functionId = req.params[2];
   delete req.params[0];
-  req.params.name = req.params[1];
   delete req.params[1];
+  delete req.params[2];
   return next();
 }
 

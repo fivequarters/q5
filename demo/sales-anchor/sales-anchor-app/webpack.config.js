@@ -8,7 +8,7 @@ const options = {
     scripts: [
       'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js',
       'https://cdnjs.cloudflare.com/ajax/libs/jquery-resize/1.1/jquery.ba-resize.min.js',
-      'js/q5.min.js',
+      'js/q5.js',
     ],
   },
 };

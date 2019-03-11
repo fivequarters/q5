@@ -41,11 +41,12 @@
 <script type="text/javascript">
     $(function () {
         var server = q5.Server.create({
+            subscriptionId: '12345',
             baseUrl: '<%- process.env.API_SERVER %>',
-            token: '<%- process.env.API_AUTHORIZATION_KEY %>',
+            accessToken: '<%- process.env.API_AUTHORIZATION_KEY %>',
         });
 
-        server.loadWorkspace('myboundary', 'myfunction17', new q5.Workspace())
+        server.loadWorkspace('myboundary', 'myfunction17', {})
             .then(workspace => {
                 // workspace.setDirtyState(true);
 

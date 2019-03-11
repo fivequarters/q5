@@ -94,14 +94,13 @@
             })
         })
 
-        server.loadWorkspace(configuration.boundary, configuration.function, new q5.Workspace())
+        server.loadWorkspace(configuration.boundaryId, configuration.functionId, configuration.template)
             .then(workspace => {
                 q5.createEditor(document.getElementById('editor'), workspace, server, configuration.editorOptions);
 
                 workspace.on('closed', function (e) {
                     window.removeEventListener('message', messageHandler);
-                    var url = server.getFunctionUrl(workspace);
-                    hostRpc({ request: 'closed', url });
+                    hostRpc({ request: 'closed', location: workspace.location });
                 });
             });
     });

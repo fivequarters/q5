@@ -1,41 +1,47 @@
 import './q5-hook.css';
 
 export interface IQ5HookResult {
-  url: string;
+  location: string;
 }
 
 export interface IAccount {
+  subscriptionId: string;
   baseUrl: string;
-  token: string;
+  accessToken: string;
 }
 
 export type AccountResolver = (account: IAccount) => Promise<IAccount>;
 
 interface IHookOptions {
-  boundary: string;
-  function: string;
+  boundaryId: string;
+  functionId: string;
+  subscriptionId?: string;
   baseUrl?: string;
-  token?: string;
+  accessToken?: string;
   accountResolver?: AccountResolver;
   editorOptions?: any;
+  template?: any;
 }
 
 export function edit(options: IHookOptions): Promise<IQ5HookResult> {
   // Normalize options
-  if (!options || !options.function || !options.boundary) {
-    throw new Error('options.function and options.boundary must be specified.');
+  if (!options || !options.functionId || !options.boundaryId) {
+    throw new Error('options.functionId and options.boundaryId must be specified.');
   }
 
   if (!options.accountResolver) {
-    if (options.token && options.baseUrl) {
+    if (options.accessToken && options.baseUrl && options.subscriptionId) {
       // @ts-ignore
       options.accountResolver = account =>
         Promise.resolve({
-          token: options.token,
+          subscriptionId: options.subscriptionId,
+          accessToken: options.accessToken,
           baseUrl: options.baseUrl,
         });
     } else {
-      throw new Error('either options.accountResolver or options.token and options.baseUrl must be specified.');
+      throw new Error(
+        'either options.accountResolver or options.accessToken, options.baseUrl, and options.subscriptionId must be specified.'
+      );
     }
   }
 
@@ -82,9 +88,10 @@ export function edit(options: IHookOptions): Promise<IQ5HookResult> {
           }
           contentWindow.postMessage(
             {
-              boundary: options.boundary,
-              function: options.function,
+              boundaryId: options.boundaryId,
+              functionId: options.functionId,
               editorOptions: options.editorOptions,
+              template: options.template,
               requestId: event.data.requestId,
             },
             '*'
@@ -109,7 +116,7 @@ export function edit(options: IHookOptions): Promise<IQ5HookResult> {
           break;
         case 'closed':
           closeModal();
-          resolve({ url: event.data.url });
+          resolve({ location: event.data.location });
           break;
         default:
           closeModal();

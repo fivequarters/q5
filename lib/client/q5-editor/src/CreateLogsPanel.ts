@@ -42,23 +42,21 @@ export function createLogsPanel(element: HTMLElement, workspace: Workspace, opti
   });
 
   workspace.on(Events.Events.BuildStarted, (e: Events.BuildStartedEvent) => {
-    append(
-      `BUILD: starting build of ${workspace.functionSpecification.boundary}/${workspace.functionSpecification.name}...`
-    );
+    append(`BUILD: starting build of ${workspace.boundaryId}/${workspace.functionId}...`);
   });
 
   workspace.on(Events.Events.BuildProgress, (e: Events.BuildProgressEvent) => {
-    append(`BUILD ${e.status.build_id}: progress ${Math.floor((e.status.progress || 0) * 100)}% (${e.status.status})`);
+    append(`BUILD ${e.status.id}: progress ${Math.floor((e.status.progress || 0) * 100)}% (${e.status.status})`);
   });
 
   workspace.on(Events.Events.BuildFinished, (e: Events.BuildFinishedEvent) => {
-    if (e.status.build_id) {
+    if (e.status.id) {
       append(
-        `BUILD ${e.status.build_id}: progress ${Math.floor((e.status.progress || 0) * 100)}% (${e.status.status}) ${e
-          .status.url || JSON.stringify(e.status.error, null, 2)}`
+        `BUILD ${e.status.id}: progress ${Math.floor((e.status.progress || 0) * 100)}% (${e.status.status}) ${e.status
+          .location || JSON.stringify(e.status.error, null, 2)}`
       );
     } else {
-      append(`BUILD: success (no changes) ${e.status.url || JSON.stringify(e.status.error, null, 2)}`);
+      append(`BUILD: success (no changes) ${e.status.location || JSON.stringify(e.status.error, null, 2)}`);
     }
   });
 

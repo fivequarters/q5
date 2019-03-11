@@ -16,9 +16,7 @@ export function createStatusPanel(element: HTMLElement, workspace: Workspace, op
   const $status = $(`#${id}`);
 
   workspace.on(Events.Events.BuildStarted, (e: Events.BuildStartedEvent) => {
-    setStatus(
-      `Starting build of ${workspace.functionSpecification.boundary}/${workspace.functionSpecification.name}...`
-    );
+    setStatus(`Starting build of ${workspace.boundaryId}/${workspace.functionId}...`);
   });
 
   workspace.on(Events.Events.BuildProgress, (e: Events.BuildProgressEvent) => {
@@ -26,8 +24,8 @@ export function createStatusPanel(element: HTMLElement, workspace: Workspace, op
   });
 
   workspace.on(Events.Events.BuildFinished, (e: Events.BuildFinishedEvent) => {
-    if (e.status.url) {
-      setStatus(`Build successful: ${e.status.url}`);
+    if (e.status.location) {
+      setStatus(`Build successful: ${e.status.location}`);
     } else {
       setStatus(`Build failed: ${e.status.error}`);
     }

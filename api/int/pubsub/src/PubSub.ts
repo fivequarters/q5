@@ -3,6 +3,7 @@ import Dotenv from 'dotenv';
 import Jwt from 'jsonwebtoken';
 import { Server } from 'ws';
 import Zmq from 'zeromq';
+import { tsModuleBlock } from '@babel/types';
 
 Dotenv.config();
 
@@ -93,11 +94,11 @@ export class PubSub {
       } catch (e) {
         return socket.terminate();
       }
-      if (!token.boundary || !token.name) {
+      if (!token.subscriptionId || !token.boundaryId || !token.functionId) {
         return socket.terminate();
       }
 
-      const topic = `logs:application:${token.boundary}:${token.name}:`;
+      const topic = `logs:application:${token.subscriptionId}:${token.boundaryId}:${token.functionId}:`;
 
       activeConnections++;
       if (this.logger) {
