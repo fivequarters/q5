@@ -6,7 +6,7 @@
     <!--<link rel="apple-touch-icon" sizes="76x76" href="/img/apple-icon.png"> -->
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
 
-    <title>Q5 Hook Editor</title>
+    <title>Flexd</title>
 
     <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0' name='viewport' />
     <meta name="viewport" content="width=device-width" />
@@ -84,25 +84,24 @@
             throw error;
         }
 
-        var server = new q5.Server((account) => {
+        q5.createEditor(document.getElementById('editor'), configuration.boundaryId, configuration.functionId, (account) => {
             return new Promise(function (resolve, reject) {
                 hostRpc({ request: 'resolveAccount', account }, (error, account) => {
                     return error
                         ? reject(error)
                         : resolve(account);
                 });
-            })
-        })
-
-        server.loadWorkspace(configuration.boundaryId, configuration.functionId, configuration.template)
-            .then(workspace => {
-                q5.createEditor(document.getElementById('editor'), workspace, server, configuration.editorOptions);
-
-                workspace.on('closed', function (e) {
-                    window.removeEventListener('message', messageHandler);
-                    hostRpc({ request: 'closed', location: workspace.location });
-                });
             });
+        }, {
+            template: configuration.template,
+            editor: configuration.editorOptions,
+        }).then(editorContext => {
+            editorContext.on('closed', function (e) {
+                window.removeEventListener('message', messageHandler);
+                hostRpc({ request: 'closed', location: editorContext.location });
+            });
+        });
+
     });
 
 </script>

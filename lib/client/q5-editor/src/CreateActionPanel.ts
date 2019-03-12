@@ -1,19 +1,19 @@
 import { Events } from './Events';
 import { ActionPanelOptions, IActionPanelOptions } from './Options';
 import { Server } from './Server';
-import { Workspace } from './Workspace';
+import { EditorContext } from './EditorContext';
 
 /**
  * Not part of MVP
  * @ignore
  * @param element
- * @param workspace
+ * @param editorContext
  * @param server
  * @param options
  */
 export function createActionPanel(
   element: HTMLElement,
-  workspace: Workspace,
+  editorContext: EditorContext,
   server: Server,
   options?: IActionPanelOptions
 ) {
@@ -74,72 +74,72 @@ export function createActionPanel(
 
   $close.click(e => {
     e.preventDefault();
-    workspace.close();
+    editorContext.close();
   });
 
   $hideNavLogs.click(e => {
     e.preventDefault();
     $hideNavLogs.hide();
     $showNavLogs.show();
-    workspace.updateLogsState(false);
-    workspace.updateNavState(false);
+    editorContext.updateLogsState(false);
+    editorContext.updateNavState(false);
   });
 
   $showNavLogs.click(e => {
     e.preventDefault();
     $hideNavLogs.show();
     $showNavLogs.hide();
-    workspace.updateLogsState(true);
-    workspace.updateNavState(true);
+    editorContext.updateLogsState(true);
+    editorContext.updateNavState(true);
   });
 
   $expand.click(e => {
     e.preventDefault();
     $expand.hide();
     $compress.show();
-    workspace.setFullScreen(true);
+    editorContext.setFullScreen(true);
   });
 
   $compress.click(e => {
     e.preventDefault();
     $expand.show();
     $compress.hide();
-    workspace.setFullScreen(false);
+    editorContext.setFullScreen(false);
   });
 
   $save.click(e => {
     e.preventDefault();
-    workspace.setDirtyState(false);
-    workspace.setReadOnly(true);
+    editorContext.setDirtyState(false);
+    editorContext.setReadOnly(true);
     server
-      .buildFunction(workspace)
+      .buildFunction(editorContext)
       .then(build => {
-        workspace.setReadOnly(false);
+        editorContext.setReadOnly(false);
         if (build.error) {
-          workspace.setDirtyState(true);
+          editorContext.setDirtyState(true);
           updateState();
         }
       })
       .catch(_ => {
-        workspace.setReadOnly(false);
-        workspace.setDirtyState(true);
+        editorContext.setReadOnly(false);
+        editorContext.setDirtyState(true);
         updateState();
       });
   });
 
   $run.click(e => {
     e.preventDefault();
-    server.runFunction(workspace).catch(_ => {
+    server.runFunction(editorContext).catch(_ => {
       // do nothing
     });
   });
 
-  workspace.on(Events.DirtyStateChanged, updateState);
-  workspace.on(Events.ReadOnlyStateChanged, updateState);
+  editorContext.on(Events.DirtyStateChanged, updateState);
+  editorContext.on(Events.ReadOnlyStateChanged, updateState);
 
   function updateState() {
-    workspace.dirtyState ? $save.removeAttr('disabled') : $save.attr('disabled', 'disabled');
-    workspace.readOnly ? $run.attr('disabled', 'disabled') : $run.removeAttr('disabled');
+    editorContext.dirtyState ? $save.removeAttr('disabled') : $save.attr('disabled', 'disabled');
+    editorContext.readOnly ? $run.attr('disabled', 'disabled') : $run.removeAttr('disabled');
   }
 
   updateState();

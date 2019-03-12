@@ -2,16 +2,16 @@ import * as Assert from 'assert';
 import * as Monaco from 'monaco-editor/esm/vs/editor/editor.api.js';
 import { Events, FileDeletedEvent } from './Events';
 import { IEditorPanelOptions } from './Options';
-import { Workspace } from './Workspace';
+import { EditorContext } from './EditorContext';
 
 /**
  * Not part of MVP
  * @ignore
  * @param element
- * @param workspace
+ * @param editorContext
  * @param options
  */
-export function createEditorPanel(element: HTMLElement, workspace: Workspace, options?: IEditorPanelOptions) {
+export function createEditorPanel(element: HTMLElement, editorContext: EditorContext, options?: IEditorPanelOptions) {
   Monaco.editor.defineTheme('customTheme', {
     base: 'vs', // can also be vs-dark or hc-black
     inherit: true, // can also be false to completely replace the builtin rules
@@ -26,8 +26,8 @@ export function createEditorPanel(element: HTMLElement, workspace: Workspace, op
   const monacoOptions = {
     theme: 'customTheme',
     ...options,
-    value: workspace.getSelectedFileContent(),
-    language: workspace.getSelectedFileLanguage(),
+    value: editorContext.getSelectedFileContent(),
+    language: editorContext.getSelectedFileLanguage(),
     automaticLayout: true,
     minimap: {
       enabled: false,
@@ -38,13 +38,13 @@ export function createEditorPanel(element: HTMLElement, workspace: Workspace, op
   let suppressNextChangeEvent: boolean;
   let activeCategory: Events = Events.FileSelected;
 
-  // When a file is selected in the workspace, update editor content and language
-  workspace.on(Events.FileSelected, () => {
+  // When a file is selected in the editor context, update editor content and language
+  editorContext.on(Events.FileSelected, () => {
     suppressNextChangeEvent = true;
     activeCategory = Events.FileSelected;
-    editor.setValue(workspace.getSelectedFileContent() || '');
+    editor.setValue(editorContext.getSelectedFileContent() || '');
     const model = editor.getModel();
-    const language = workspace.getSelectedFileLanguage();
+    const language = editorContext.getSelectedFileLanguage();
     if (model && language) {
       Monaco.editor.setModelLanguage(model, language);
     } else {
@@ -54,17 +54,17 @@ export function createEditorPanel(element: HTMLElement, workspace: Workspace, op
   });
 
   // When the edited file is deleted, hide the editor
-  workspace.on(Events.FileDeleted, (e: FileDeletedEvent) => {
-    if (workspace.selectedFileName === e.fileName) {
+  editorContext.on(Events.FileDeleted, (e: FileDeletedEvent) => {
+    if (editorContext.selectedFileName === e.fileName) {
       $(element).hide();
     }
   });
 
-  // When runner is selected in the workspace, update editor content and language
-  workspace.on(Events.RunnerSelected, () => {
+  // When runner is selected in the editor context, update editor content and language
+  editorContext.on(Events.RunnerSelected, () => {
     suppressNextChangeEvent = true;
     activeCategory = Events.RunnerSelected;
-    editor.setValue(workspace.getRunnerContent());
+    editor.setValue(editorContext.getRunnerContent());
     const model = editor.getModel();
     if (model) {
       Monaco.editor.setModelLanguage(model, 'javascript');
@@ -75,10 +75,10 @@ export function createEditorPanel(element: HTMLElement, workspace: Workspace, op
   });
 
   // When compute settings are selected, serialize them and display as INI for editing
-  workspace.on(Events.SettingsComputeSelected, _ => {
+  editorContext.on(Events.SettingsComputeSelected, _ => {
     suppressNextChangeEvent = true;
     activeCategory = Events.SettingsComputeSelected;
-    editor.setValue(workspace.getComputeSettings());
+    editor.setValue(editorContext.getComputeSettings());
     const model = editor.getModel();
     if (model) {
       Monaco.editor.setModelLanguage(model, 'ini');
@@ -89,10 +89,10 @@ export function createEditorPanel(element: HTMLElement, workspace: Workspace, op
   });
 
   // When application settings are selected, serialize them and display as INI for editing
-  workspace.on(Events.SettingsApplicationSelected, () => {
+  editorContext.on(Events.SettingsApplicationSelected, () => {
     suppressNextChangeEvent = true;
     activeCategory = Events.SettingsApplicationSelected;
-    editor.setValue(workspace.getApplicationSettings());
+    editor.setValue(editorContext.getApplicationSettings());
     const model = editor.getModel();
     if (model) {
       Monaco.editor.setModelLanguage(model, 'ini');
@@ -103,10 +103,10 @@ export function createEditorPanel(element: HTMLElement, workspace: Workspace, op
   });
 
   // When cron settings are selected, serialize them and display as INI for editing
-  workspace.on(Events.SettingsCronSelected, () => {
+  editorContext.on(Events.SettingsCronSelected, () => {
     suppressNextChangeEvent = true;
     activeCategory = Events.SettingsCronSelected;
-    editor.setValue(workspace.getCronSettings());
+    editor.setValue(editorContext.getCronSettings());
     const model = editor.getModel();
     if (model) {
       Monaco.editor.setModelLanguage(model, 'ini');
@@ -120,19 +120,19 @@ export function createEditorPanel(element: HTMLElement, workspace: Workspace, op
     if (!suppressNextChangeEvent) {
       switch (activeCategory) {
         case Events.FileSelected:
-          workspace.setSelectedFileContent(editor.getValue());
+          editorContext.setSelectedFileContent(editor.getValue());
           break;
         case Events.RunnerSelected:
-          workspace.setRunnerContent(editor.getValue());
+          editorContext.setRunnerContent(editor.getValue());
           break;
         case Events.SettingsComputeSelected:
-          workspace.setSettingsCompute(editor.getValue());
+          editorContext.setSettingsCompute(editor.getValue());
           break;
         case Events.SettingsApplicationSelected:
-          workspace.setSettingsApplication(editor.getValue());
+          editorContext.setSettingsApplication(editor.getValue());
           break;
         case Events.SettingsCronSelected:
-          workspace.setSettingsCron(editor.getValue());
+          editorContext.setSettingsCron(editor.getValue());
           break;
       }
     } else {
@@ -140,5 +140,5 @@ export function createEditorPanel(element: HTMLElement, workspace: Workspace, op
     }
   });
 
-  return workspace;
+  return editorContext;
 }

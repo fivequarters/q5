@@ -1,15 +1,15 @@
 import * as Events from './Events';
 import { ILogsPanelOptions, LogsPanelOptions } from './Options';
-import { Workspace } from './Workspace';
+import { EditorContext } from './EditorContext';
 
 /**
  * Not part of MVP
  * @ignore
  * @param element
- * @param workspace
+ * @param editorContext
  * @param options
  */
-export function createLogsPanel(element: HTMLElement, workspace: Workspace, options?: ILogsPanelOptions) {
+export function createLogsPanel(element: HTMLElement, editorContext: EditorContext, options?: ILogsPanelOptions) {
   const id = `q5-logs-${Math.floor(99999999 * Math.random()).toString(26)}`;
   $(element).html(`<div class="q5-logs" id="${id}"><pre class="q5-logs-content" id="${id}-content"></pre></div>`);
   const $content = $(`#${id}-content`);
@@ -21,18 +21,18 @@ export function createLogsPanel(element: HTMLElement, workspace: Workspace, opti
     ...options,
   };
 
-  workspace.on(Events.Events.LogsAttached, e => {
+  editorContext.on(Events.Events.LogsAttached, e => {
     // append('Server logs attached');
   });
 
-  workspace.on(Events.Events.LogsDetached, (e: Events.LogsDetachedEvent) => {
+  editorContext.on(Events.Events.LogsDetached, (e: Events.LogsDetachedEvent) => {
     // append(e.error ? e.error.message : 'Server logs detached');
     if (e && e.error) {
       append(e.error.message);
     }
   });
 
-  workspace.on(Events.Events.LogsEntry, (e: Events.LogsEntryEvent) => {
+  editorContext.on(Events.Events.LogsEntry, (e: Events.LogsEntryEvent) => {
     try {
       const json = JSON.parse(e.data);
       append(`SERVER ${json.level === 30 ? 'STDOUT' : 'STDERR'}: ${json.msg}`);
@@ -41,15 +41,15 @@ export function createLogsPanel(element: HTMLElement, workspace: Workspace, opti
     }
   });
 
-  workspace.on(Events.Events.BuildStarted, (e: Events.BuildStartedEvent) => {
-    append(`BUILD: starting build of ${workspace.boundaryId}/${workspace.functionId}...`);
+  editorContext.on(Events.Events.BuildStarted, (e: Events.BuildStartedEvent) => {
+    append(`BUILD: starting build of ${editorContext.boundaryId}/${editorContext.functionId}...`);
   });
 
-  workspace.on(Events.Events.BuildProgress, (e: Events.BuildProgressEvent) => {
+  editorContext.on(Events.Events.BuildProgress, (e: Events.BuildProgressEvent) => {
     append(`BUILD ${e.status.id}: progress ${Math.floor((e.status.progress || 0) * 100)}% (${e.status.status})`);
   });
 
-  workspace.on(Events.Events.BuildFinished, (e: Events.BuildFinishedEvent) => {
+  editorContext.on(Events.Events.BuildFinished, (e: Events.BuildFinishedEvent) => {
     if (e.status.id) {
       append(
         `BUILD ${e.status.id}: progress ${Math.floor((e.status.progress || 0) * 100)}% (${e.status.status}) ${e.status
@@ -60,15 +60,15 @@ export function createLogsPanel(element: HTMLElement, workspace: Workspace, opti
     }
   });
 
-  workspace.on(Events.Events.BuildError, (e: Events.BuildErrorEvent) => {
+  editorContext.on(Events.Events.BuildError, (e: Events.BuildErrorEvent) => {
     append(`BUILD: error ${e.error.message}`);
   });
 
-  workspace.on(Events.Events.RunnerStarted, (e: Events.RunnerStartedEvent) => {
+  editorContext.on(Events.Events.RunnerStarted, (e: Events.RunnerStartedEvent) => {
     append(`RUN: calling ${e.url}`);
   });
 
-  workspace.on(Events.Events.RunnerFinished, (e: Events.RunnerFinishedEvent) => {
+  editorContext.on(Events.Events.RunnerFinished, (e: Events.RunnerFinishedEvent) => {
     let response = e.response;
     if (e.error) {
       response = response || (e.error as any).response;

@@ -1,6 +1,6 @@
 import { ServerResponse } from 'http';
 import * as Superagent from 'superagent';
-import { Workspace } from './Workspace';
+import { EditorContext } from './EditorContext';
 import { IFunctionSpecification } from './FunctionSpecification';
 const Superagent1 = Superagent;
 
@@ -93,6 +93,7 @@ const logsMaxBackoff = 60000;
  * An instance of the _Server_ class is typically created using the [[constructor]] in cases when the access token
  * is dynamically resolved using the [[AccountResolver]], or using the [[create]] static method when the credentials
  * are known ahead of time and will not change during the time the user interacts with the editor.
+ * @ignore Reducing MVP surface area
  */
 export class Server {
   /**
@@ -178,7 +179,11 @@ export class Server {
    * @param id The name of the function.
    * @param createIfNotExist A template of a function to create if one does not yet exist.
    */
-  public loadWorkspace(boundaryId: string, id: string, createIfNotExist?: IFunctionSpecification): Promise<Workspace> {
+  public loadEditorContext(
+    boundaryId: string,
+    id: string,
+    createIfNotExist?: IFunctionSpecification
+  ): Promise<EditorContext> {
     return this.accountResolver(this.account)
       .then(newAccount => {
         this.account = this._normalizeAccount(newAccount);
@@ -190,49 +195,49 @@ export class Server {
           .timeout(this.requestTimeout);
       })
       .then(res => {
-        let workspace = new Workspace(res.body.boundaryId, res.body.id, res.body);
-        workspace.location = res.body.location;
-        return workspace;
+        let editorContext = new EditorContext(res.body.boundaryId, res.body.id, res.body);
+        editorContext.location = res.body.location;
+        return editorContext;
       })
       .catch(error => {
         if (!createIfNotExist) {
           throw error;
         }
-        let workspace = new Workspace(boundaryId, id, createIfNotExist);
-        return this.buildFunction(workspace).then(_ => workspace);
+        let editorContext = new EditorContext(boundaryId, id, createIfNotExist);
+        return this.buildFunction(editorContext).then(_ => editorContext);
       });
   }
 
   /**
    * Not needed for MVP - builds can only be initiated from editor
-   * @param workspace
+   * @param editorContext
    */
-  public buildFunction(workspace: Workspace): Promise<IBuildStatus> {
+  public buildFunction(editorContext: EditorContext): Promise<IBuildStatus> {
     let startTime: number;
     let self = this;
 
-    workspace.startBuild();
+    editorContext.startBuild();
 
     return this.accountResolver(this.account)
       .then(newAccount => {
         this.account = this._normalizeAccount(newAccount);
         const url = `${this.account.baseUrl}api/v1/subscription/${this.account.subscriptionId}/boundary/${
-          workspace.boundaryId
-        }/function/${workspace.functionId}`;
+          editorContext.boundaryId
+        }/function/${editorContext.functionId}`;
         startTime = Date.now();
         let params: any = {
           environment: 'nodejs',
           provider: 'lambda',
-          configuration: workspace.functionSpecification.configuration,
-          lambda: workspace.functionSpecification.lambda,
-          nodejs: workspace.functionSpecification.nodejs,
-          metadata: workspace.functionSpecification.metadata,
+          configuration: editorContext.functionSpecification.configuration,
+          lambda: editorContext.functionSpecification.lambda,
+          nodejs: editorContext.functionSpecification.nodejs,
+          metadata: editorContext.functionSpecification.metadata,
         };
         if (
-          workspace.functionSpecification.schedule &&
-          Object.keys(workspace.functionSpecification.schedule).length > 0
+          editorContext.functionSpecification.schedule &&
+          Object.keys(editorContext.functionSpecification.schedule).length > 0
         ) {
-          params.schedule = workspace.functionSpecification.schedule;
+          params.schedule = editorContext.functionSpecification.schedule;
         }
         return Superagent.put(url)
           .set('Authorization', `Bearer ${this.account.accessToken}`)
@@ -243,14 +248,14 @@ export class Server {
         let build = res.body as IBuildStatus;
         if (res.status === 204) {
           // No changes
-          workspace.buildFinished(build);
+          editorContext.buildFinished(build);
           return build;
         } else if (res.status === 200) {
           // Completed synchronously
           if (build.error) {
-            workspace.buildError(build.error);
+            editorContext.buildError(build.error);
           } else {
-            workspace.buildFinished(build);
+            editorContext.buildFinished(build);
           }
           return build;
         }
@@ -258,7 +263,7 @@ export class Server {
       })
       .catch(err => {
         if (!(err instanceof BuildError)) {
-          workspace.buildError(err);
+          editorContext.buildError(err);
         }
         throw err;
       });
@@ -266,7 +271,7 @@ export class Server {
     const waitForBuild = (build: IBuildStatus): Promise<IBuildStatus> => {
       const elapsed = Date.now() - startTime;
       build.progress = Math.min(elapsed / this.buildTimeout, 1);
-      workspace.buildProgress(build);
+      editorContext.buildProgress(build);
       if (elapsed > this.buildTimeout) {
         throw new Error(`Build process did not complete within the ${this.buildTimeout}ms timeout.`);
       }
@@ -274,8 +279,8 @@ export class Server {
         .then(() => {
           // @ts-ignore
           const url = `${this.account.baseUrl}api/v1/subscription/${self.account.subscriptionId}/boundary/${
-            workspace.boundaryId
-          }/function/${workspace.functionId}/build/${build.id}`;
+            editorContext.boundaryId
+          }/function/${editorContext.functionId}/build/${build.id}`;
           return (
             Superagent.get(url)
               // @ts-ignore
@@ -287,11 +292,11 @@ export class Server {
         .then(res => {
           if (res.status === 200) {
             // success
-            workspace.buildFinished(res.body);
+            editorContext.buildFinished(res.body);
             return res.body;
           } else if (res.status === 410) {
             // failure
-            workspace.buildFinished(res.body);
+            editorContext.buildFinished(res.body);
             throw new BuildError(res.body);
           } else {
             // wait some more
@@ -303,51 +308,51 @@ export class Server {
 
   /**
    * Not needed for MVP - function can only be run from editor
-   * @param workspace
+   * @param editorContext
    * @ignore
    */
-  public runFunction(workspace: Workspace): Promise<ServerResponse> {
+  public runFunction(editorContext: EditorContext): Promise<ServerResponse> {
     return this.accountResolver(this.account)
       .then(newAccount => {
         this.account = this._normalizeAccount(newAccount);
-        if (workspace.location) {
-          return workspace.location;
+        if (editorContext.location) {
+          return editorContext.location;
         } else {
-          return this.getFunctionUrl(workspace.boundaryId, workspace.functionId);
+          return this.getFunctionUrl(editorContext.boundaryId, editorContext.functionId);
         }
       })
       .then(url => {
-        workspace.location = url;
-        workspace.startRun(url);
+        editorContext.location = url;
+        editorContext.startRun(url);
 
         function runnerFactory(ctx: object) {
           const Superagent = Superagent1; // tslint:disable-line
-          return eval(workspace.getRunnerContent())(ctx); // tslint:disable-line
+          return eval(editorContext.getRunnerContent())(ctx); // tslint:disable-line
         }
 
         const runnerPromise = runnerFactory({
           url,
-          configuration: workspace.functionSpecification.configuration,
+          configuration: editorContext.functionSpecification.configuration,
         });
 
         return runnerPromise;
       })
       .catch(error => {
-        workspace.finishRun(error);
+        editorContext.finishRun(error);
         throw error;
       })
       .then(res => {
-        workspace.finishRun(undefined, res);
+        editorContext.finishRun(undefined, res);
         return res;
       });
   }
 
   /**
    * Not needed for MVP - logs can only be attached to from editor
-   * @param workspace
+   * @param editorContext
    * @ignore
    */
-  public attachServerLogs(workspace: Workspace): Promise<Server> {
+  public attachServerLogs(editorContext: EditorContext): Promise<Server> {
     if (this.sse) {
       return Promise.resolve(this);
     } else {
@@ -355,8 +360,8 @@ export class Server {
       return this.accountResolver(this.account).then(newAccount => {
         this.account = this._normalizeAccount(newAccount);
         const url = `${this.account.baseUrl}api/v1/subscription/${this.account.subscriptionId}/boundary/${
-          workspace.boundaryId
-        }/function/${workspace.functionId}/log?token=${this.account.accessToken}`;
+          editorContext.boundaryId
+        }/function/${editorContext.functionId}/log?token=${this.account.accessToken}`;
 
         this.sse = new EventSource(url);
         if (this.logsBackoff === 0) {
@@ -366,26 +371,26 @@ export class Server {
           // @ts-ignore
           if (e && e.data) {
             // @ts-ignore
-            workspace.serverLogsEntry(e.data);
+            editorContext.serverLogsEntry(e.data);
           }
         });
-        this.sse.onopen = () => workspace.serverLogsAttached();
+        this.sse.onopen = () => editorContext.serverLogsAttached();
         this.sse.onerror = e => {
           const backoff = this.logsBackoff;
           const msg =
             'Server logs detached due to error. Re-attempting connection in ' + Math.floor(backoff / 1000) + 's.';
           console.error(msg, e);
-          this.detachServerLogs(workspace, new Error(msg));
+          this.detachServerLogs(editorContext, new Error(msg));
           this.logsBackoff = Math.min(backoff * logsExponentialBackoff, logsMaxBackoff);
           // @ts-ignore
-          this.logsTimeout = setTimeout(() => this.attachServerLogs(workspace), backoff);
+          this.logsTimeout = setTimeout(() => this.attachServerLogs(editorContext), backoff);
         };
 
         // Re-connect to logs every 5 minutes
         // @ts-ignore
         this.logsTimeout = setTimeout(() => {
-          this.detachServerLogs(workspace);
-          this.attachServerLogs(workspace);
+          this.detachServerLogs(editorContext);
+          this.attachServerLogs(editorContext);
         }, 5 * 60 * 1000);
 
         return Promise.resolve(this);
@@ -395,17 +400,17 @@ export class Server {
 
   /**
    * Not needed for MVP - logs can only be detached from by the editor
-   * @param workspace
+   * @param editorContext
    * @ignore
    */
-  public detachServerLogs(workspace: Workspace, error?: Error) {
+  public detachServerLogs(editorContext: EditorContext, error?: Error) {
     clearTimeout(this.logsTimeout);
     this.logsTimeout = undefined;
     this.logsBackoff = 0;
     if (this.sse) {
       this.sse.close();
       this.sse = undefined;
-      workspace.serverLogsDetached(error);
+      editorContext.serverLogsDetached(error);
     }
   }
 }
