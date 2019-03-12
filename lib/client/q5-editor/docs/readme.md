@@ -11,35 +11,33 @@ This documentation covers the Q5 Editor APIs which are used to embed the Q5 Edit
 <script src="/js/q5.js" type="text/javascript"></script>
 
 <script type="text/javascript">
-  // How to connect to the Q5 service APIs
-  var server = q5.Server.create({
+  // Create a new function from this template if it does not exist yet
+  var functionTemplate = {}; // IFunctionSpecification
+  // Configure the editor
+  var editorOptions = {}; // IEditorOptions
+
+  // Load existing function or create one from template
+  q5.createEditor(document.getElementById('editor'), '{boundaryId}', '{functionId}', {
       subscriptionId: '{subscriptionId}',
       baseUrl: 'https://5qtrs.com',
       accessToken: '{accessToken}',
-  });
-
-  // Create a new function from this template if it does not exist yet
-  var template = {}; // IFunctionSpecification
-
-  // Load existing function or create one from template
-  server.loadWorkspace('{boundaryId}', '{functionId}', template)
-      .then(workspace => {
-          // Configure the editor
-          var editorOptions = {}; // IEditorOptions
-
-          // Create the editor in the 'editor' div
-          q5.createEditor(document.getElementById('editor'), workspace, server, editorOptions);
-      });
+  }, {
+    template: functionTemplate,
+    editor: editorOptions,
+  }.then(editorContext => { // EditorContext
+    // ... subscribe to events etc.
   });
 </script>
 ```
 
 ## Conceptual Overview
 
-In a typical integration you would first create a [[Server]], then load a [[Workspace]] using the [[loadWorkspace]] method, and lastly instantiate the Q5 Editor using the [[createEditor]] call.
+In a typical integration you would initialize the editor on a page to edit a function using the [[createEditor]] method. You must specify the HTML element within which to create the editor, function boundary name, function name, and the account details to communicate with the Q5 service APIs.
 
-The [[Server]] class represents the Q5 Functions service. It is the only component that directly calls the Q5 service APIs to load, create, or run Q5 Functions. It is also responsible for keeping track of the authorization token and requesting the hosting application to refresh it when necessary using the [[AccountResolver]] callback.
+The account details can be specified as [[IAccount]] or [[AccountResolver]]. Use _IAccount_ in cases when the access token is known ahead of time and does not need to be refreshed during the session. Use _AccountResolver_ if you want to priodically refresh the access token and want the editor to call back to hosting application before every call to the Q5 service APIs.
 
-The [[Workspace]] class represents client side state of a single function, including its files, application settings, schedule of execution (in case of a CRON job), and metadata. It exposes a number of methods to manupulate this in-memory state, and emits events other components can subscribe to when that state changes.
+By default, if the function identified with the boundary and function name does not exist yet, _createEditor_ will fail. You can optionally specify _options.template_ in [[ICreateEditorOptions]] to provide a template of a function to create if one does not yet exist. This allows you to implement the "load or create" semantics.
 
-The [[createEditor]] method creates the editor UI in a given HTML element and associates it with an instance of the [[Server]] and [[Workspace]]. The actions the user performs in the editor result in local changes of the state of the _Workspace_ or performing specific calls to the Q5 service APIs via the _Server_. The editor's look and behavior is customizable via the [[IEditorOptions]].
+You can customize many aspects of the editor's presentation or behavior using the _options.editor_ in [[ICreateEditorOptions]].
+
+On success, _createEditor_ will return a promise resolving to [[EditorContext]]. This allows you to subscribe to many interesting [[Events]] and perform simple operations on the editor.

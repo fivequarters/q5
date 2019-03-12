@@ -47,7 +47,7 @@ export interface ISchedule {
 }
 
 /**
- * Specification of a single function. Used when creating a [[Workspace]].
+ * Specification of a single function. Used when creating a [[EditorContext]].
  *
  * Example of a simple function specification:
  *

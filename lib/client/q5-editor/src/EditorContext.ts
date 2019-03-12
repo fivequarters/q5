@@ -53,15 +53,15 @@ const SettingsCronPlaceholder = `# Set the 'cron' value to execute this function
 `;
 
 /**
- * The _Workspace_ class class represents client side state of a single function, including its files,
+ * The _EditorContext_ class class represents client side state of a single function, including its files,
  * application settings, schedule of execution (in case of a CRON job), and metadata.
  * It exposes methods to manupulate this in-memory state, and emits events other components can subscribe to when
  * that state changes.
  *
- * The _Workspace_ is an _EventEmitter_ that emits events on changes in the function specification and interactions
+ * The _EditorContext_ is an _EventEmitter_ that emits events on changes in the function specification and interactions
  * with the Q5 service APIs. For the full list of of events that can be subscribed to, see [[Events]].
  */
-export class Workspace extends EventEmitter {
+export class EditorContext extends EventEmitter {
   /**
    * Name of the function, unique within the boundary.
    */
@@ -97,9 +97,10 @@ export class Workspace extends EventEmitter {
   public functionSpecification: IFunctionSpecification = {};
 
   /**
-   * Creates a _Workspace_ given the optional function specification. If you do not provide a function specification,
+   * Creates a _EditorContext_ given the optional function specification. If you do not provide a function specification,
    * the default is a boilerplate "hello, world" function.
    * @param functionSpecification
+   * @ignore Not relevant for MVP
    */
   constructor(boundaryId?: string, id?: string, functionSpecification?: IFunctionSpecification) {
     super();
@@ -174,7 +175,7 @@ export class Workspace extends EventEmitter {
    */
   public _ensureWritable() {
     if (this.readOnly) {
-      throw new Error('Operation not permitted while workspace is in read-only state.');
+      throw new Error('Operation not permitted while the editor context is in read-only state.');
     }
   }
 

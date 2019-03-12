@@ -1,4 +1,4 @@
-import { createEditor, Server, Workspace } from 'q5'; // tslint:disable-line
+import { createEditor, EditorContext } from 'q5'; // tslint:disable-line
 import React, { useContext, useLayoutEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { ApiContext } from './ApiContext';
@@ -60,19 +60,20 @@ export function Editor({ eventAction, onEditorBack, ...rest }: EditorProps) {
 
   async function loadEditor() {
     const config = await api.getEditorConfig();
-    const server = new Server(async () => await api.getEditorConfig());
 
-    const editorOptions = {
-      navigationPanel: {
-        //   hideFiles: ['index.js'],
-      },
-    };
-
-    const workspace = await server.loadWorkspace(config.boundaryId, eventAction, {});
     if (editorElement && editorElement.current) {
-      createEditor(editorElement.current, workspace, server, editorOptions);
-      //  workspace.selectFile('onNewInquiry.js');
-      workspace.on('closed', onEditorBack);
+      createEditor(editorElement.current, config.boundaryId, eventAction, async () => await api.getEditorConfig(), {
+        template: {},
+        editor: {
+          navigationPanel: {
+            //   hideFiles: ['index.js'],
+          },
+        },
+        // @ts-ignore
+      }).then(editorContext => {
+        // editorContext.selectFile('onNewInquiry.js');
+        editorContext.on('closed', onEditorBack);
+      });
     }
   }
 

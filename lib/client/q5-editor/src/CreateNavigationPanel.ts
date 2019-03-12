@@ -1,6 +1,6 @@
 import * as Events from './Events';
 import { INavigationPanelOptions, NavigationPanelOptions } from './Options';
-import { Workspace } from './Workspace';
+import { EditorContext } from './EditorContext';
 
 import 'jqtree';
 import './jqtree.css';
@@ -20,10 +20,14 @@ enum NodeIds {
  * Not part of MVP
  * @ignore
  * @param element
- * @param workspace
+ * @param editorContext
  * @param options
  */
-export function createNavigationPanel(element: HTMLElement, workspace: Workspace, options?: INavigationPanelOptions) {
+export function createNavigationPanel(
+  element: HTMLElement,
+  editorContext: EditorContext,
+  options?: INavigationPanelOptions
+) {
   const defaultOptions = new NavigationPanelOptions();
   const effectiveOptions = {
     ...defaultOptions,
@@ -48,8 +52,8 @@ export function createNavigationPanel(element: HTMLElement, workspace: Workspace
       id: NodeIds.Code,
       children: [] as { name: string; fileName?: string; id: number }[],
     };
-    if (workspace.functionSpecification && workspace.functionSpecification.nodejs) {
-      const fileNames = Object.keys(workspace.functionSpecification.nodejs.files).sort();
+    if (editorContext.functionSpecification && editorContext.functionSpecification.nodejs) {
+      const fileNames = Object.keys(editorContext.functionSpecification.nodejs.files).sort();
       for (const fileName of fileNames) {
         if ((effectiveOptions.hideFiles as string[]).indexOf(fileName) < 0) {
           const child = { name: fileName, fileName, id: fileNo++ };
@@ -156,20 +160,20 @@ export function createNavigationPanel(element: HTMLElement, workspace: Workspace
       if (event.node) {
         switch (event.node.id) {
           case NodeIds.SettingsApplication:
-            workspace.selectSettingsApplication();
+            editorContext.selectSettingsApplication();
             break;
           case NodeIds.SettingsCompute:
-            workspace.selectSettingsCompute();
+            editorContext.selectSettingsCompute();
             break;
           case NodeIds.SettingsCron:
-            workspace.selectSettingsCron();
+            editorContext.selectSettingsCron();
             break;
           case NodeIds.ToolsRunner:
-            workspace.selectToolsRunner();
+            editorContext.selectToolsRunner();
             break;
           default:
             // A file was selected
-            workspace.selectFile(event.node.fileName);
+            editorContext.selectFile(event.node.fileName);
         }
       }
     });
@@ -177,7 +181,7 @@ export function createNavigationPanel(element: HTMLElement, workspace: Workspace
   // Add event listeners to add/remove file controls
   attachFileManipulationEvents();
 
-  workspace.on(Events.Events.FileAdded, (e: Events.FileAddedEvent) => {
+  editorContext.on(Events.Events.FileAdded, (e: Events.FileAddedEvent) => {
     const fileNodes = ($nav.tree('getNodeById', NodeIds.Code) || { children: [] }).children || [];
     let largerNode: INode = $nav.tree('getNodeById', NodeIds.CodeAdd) as INode;
     for (const fileNode of fileNodes) {
@@ -192,7 +196,7 @@ export function createNavigationPanel(element: HTMLElement, workspace: Workspace
     attachFileManipulationEvents(); // jqTree re-generates the DOM, so we need to re-attach events
   });
 
-  workspace.on(Events.Events.FileDeleted, (e: Events.FileDeletedEvent) => {
+  editorContext.on(Events.Events.FileDeleted, (e: Events.FileDeletedEvent) => {
     let fileNodes = ($nav.tree('getNodeById', NodeIds.Code) || { children: [] }).children || [];
     let node: INode | undefined;
     for (const fileNode of fileNodes) {
@@ -215,7 +219,7 @@ export function createNavigationPanel(element: HTMLElement, workspace: Workspace
     const $newFile = $(`#${newFileId}`);
     $newFile.hide();
     if (fileName) {
-      if (workspace.functionSpecification.nodejs && workspace.functionSpecification.nodejs.files[fileName]) {
+      if (editorContext.functionSpecification.nodejs && editorContext.functionSpecification.nodejs.files[fileName]) {
         // file exists, select it
         const fileNodes = ($nav.tree('getNodeById', NodeIds.Code) || { children: [] }).children || [];
         for (const fileNode of fileNodes) {
@@ -224,14 +228,14 @@ export function createNavigationPanel(element: HTMLElement, workspace: Workspace
           }
         }
       } else {
-        workspace.addFile(fileName);
+        editorContext.addFile(fileName);
       }
     }
   }
 
   function endDeletingFile(confirm: boolean, fileName: string) {
     if (confirm) {
-      workspace.deleteFile(fileName);
+      editorContext.deleteFile(fileName);
     }
   }
 
