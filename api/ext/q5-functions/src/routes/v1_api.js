@@ -90,6 +90,21 @@ router.get(
 
 // Functions
 
+router.options('/subscription/:subscriptionId/function', cors(corsManagementOptions));
+router.get(
+  '/subscription/:subscriptionId/function',
+  cors(corsManagementOptions),
+  authorize({
+    operation: 'functions:list',
+  }),
+  validate_schema({
+    query: require('./schemas/api_query'),
+    params: require('./schemas/api_params'),
+  }),
+  determine_provider(),
+  (req, res, next) => provider_handlers[req.provider].list_functions(req, res, next)
+);
+
 router.options('/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId', cors(corsManagementOptions));
 router.get(
   '/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId',
