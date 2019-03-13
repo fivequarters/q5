@@ -129,7 +129,8 @@ export class Table {
       for (const cell of formmatedRow) {
         line.push(cell.lines[i]);
       }
-      lines.push(line.join(gutter));
+      const fullLine = line.join(gutter);
+      lines.push(fullLine.trimRight());
     }
 
     return lines.join(EOL);
