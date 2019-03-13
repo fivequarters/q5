@@ -1072,7 +1072,7 @@ components:
       example: 'https://auth-server.company-abc.com'
     NewIssuer:
       type: object
-      description: An issuer of access accessTokens that should be accepted
+      description: An issuer of access tokens that should be accepted
       required:
         - displayName
       properties:
@@ -1083,13 +1083,13 @@ components:
         publicKeys:
           type: array
           description: |
-            The public keys of the key pairs used to sign access accessTokens from the issuer. Either the 'publicKeys' or the jsonKeyUri' must be provided.
+            The public keys of the key pairs used to sign access tokens from the issuer. Either the 'publicKeys' or the jsonKeyUri' must be provided.
           items:
             $ref: '#/components/schemas/PublicKey'
         jsonKeyUri:
           type: string
           description: |
-            The uri key of json key file that contains the public key of the key pair used to sign access accessTokens from the issuer. Either the 'publicKey' or the jsonKeyUri' must be provided.
+            The uri key of json key file that contains the public key of the key pair used to sign access tokens from the issuer. Either the 'publicKey' or the jsonKeyUri' must be provided.
     Issuer:
       allOf:
         - type: object
@@ -1123,7 +1123,7 @@ components:
           $ref: '#/components/schemas/IssuerId'
         sub:
           type: string
-          description: The 'sub' claim value in access accessTokens
+          description: The 'sub' claim value in access tokens
     AccessStatement:
       type: object
       required:
