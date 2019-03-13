@@ -1153,7 +1153,7 @@ components:
         displayName:
           type: string
           description: The client's display name
-          example: John
+          example: production-service
         identities:
           type: array
           items:
