@@ -1,11 +1,9 @@
 openapi: 3.0.0
-servers:
-  - description: SwaggerHub API Auto Mocking
-    url: https://virtserver.swaggerhub.com/rwtombaugh/Five-Quarters-Functions-API/1.0.0
+
 info:
-  description: 'Five Quarters Functions API for the management and execute of serverless functions'
+  description: 'Flexd HTTP API for the management and execution of Flexd accounts, users, functions and more'
   version: '1.0.0'
-  title: 'Five Quarters Functions API'
+  title: 'Flexd HTTP API'
   contact:
     email: randall@fivequarters.io
   license:
@@ -21,8 +19,6 @@ tags:
     description: Boundary management operations
   - name: Functions
     description: Function management operations
-  - name: Execution
-    description: Function execution
 
 paths:
   /account/{accountId}:
@@ -184,7 +180,166 @@ paths:
         404:
           description: Account or issuer not found
       security:
+        - token: []
+
+  /account/{accountId}/client:
+    parameters:
+      - in: path
+        name: accountId
+        required: true
+        description: Account id
+        schema:
+          $ref: '#/components/schemas/AccountId'
+    get:
+      tags:
+        - Accounts
+      summary: Get clients of an account
+      operationId: getAccountClientList
+      description: |
+        Returns a list of clients associated with the given account.
+
+        The caller must have 'manage' access to the given account in order to retrieve the list of clients of the given account.
+      parameters:
+        - in: query
+          name: next
+          required: false
+          description: Optional client id to start returning results from
+          schema:
+            $ref: '#/components/schemas/ClientId'
+        - in: query
+          name: count
+          required: false
+          description: Optional number of results to return; max is 100
+          schema:
+            type: number
+            minimum: 1
+            maximum: 100
+      responses:
+        200:
+          description: A list of clients
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientList'
+        403:
+          description: Not authorized
+      security:
         - accessToken: []
+    post:
+      tags:
+        - Accounts
+      summary: Add a client
+      operationId: postClient
+      description: |
+        Adds a client to given account. 
+
+        The caller must have 'manage' access to the given account in order to retrieve the list of clients of the given account.
+      requestBody:
+        description: The new client to add
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewClient'
+      responses:
+        200:
+          description: The client that was added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+        400:
+          description: Invalid client
+        403:
+          description: Not authorized
+      security:
+        - accessToken: []
+
+  /account/{accountId}/client/{clientId}:
+    parameters:
+      - in: path
+        name: accountId
+        required: true
+        description: Account id
+        schema:
+          $ref: '#/components/schemas/AccountId'
+      - in: path
+        name: clientId
+        required: true
+        description: Client id
+        schema:
+          $ref: '#/components/schemas/ClientId'
+    get:
+      tags:
+        - Accounts
+      summary: Get a client of an account
+      operationId: getAccountClient
+      description: |
+        Returns a client associated with the given account.
+
+        The caller must have 'manage' access to the given account in order to retrieve the given client of the given account.
+      responses:
+        200:
+          description: The client
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+        403:
+          description: Not authorized
+        404:
+          description: Account or client not found
+      security:
+        - accessToken: []
+    put:
+      tags:
+        - Accounts
+      summary: Update a client of an account
+      operationId: putAccountClient
+      description: |
+        Updates a client associated with the given account.
+
+        The caller must have 'manage' access to the given account in order to update the given client of the given account.
+      requestBody:
+        description: The client to update
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewClient'
+      responses:
+        200:
+          description: The client that was updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+        400:
+          description: Invalid client
+        403:
+          description: Not authorized
+        404:
+          description: Account or client not found
+      security:
+        - accessToken: []
+    delete:
+      tags:
+        - Accounts
+      summary: Delete a client of an account
+      description: |
+        Deletes a client that was previously associated with the given account.
+
+        The caller must have 'manage' access to the given account in order to delete the given client of the given account.
+      operationId: deleteClient
+      responses:
+        204:
+          description: Client was deleted
+        403:
+          description: Not authorized
+        404:
+          description: Account or client not found
+      security:
+        - token: []
 
   /account/{accountId}/subscription:
     parameters:
@@ -411,7 +566,7 @@ paths:
         - accessToken: []
     delete:
       tags:
-        - User
+        - Users
       summary: Delete a User
       parameters:
         - in: query
@@ -433,7 +588,7 @@ paths:
         404:
           description: user not found
       security:
-        - accessToken: []
+        - token: []
 
   /subscription/{subscriptionId}/boundary:
     parameters:
@@ -479,7 +634,59 @@ paths:
         404:
           description: Subscription not found
       security:
-        - accessToken: []
+        - token: []
+
+  /subscription/{subscriptionId}/function:
+    parameters:
+      - name: subscriptionId
+        in: path
+        description: The subscription id
+        required: true
+        schema:
+          $ref: '#/components/schemas/SubscriptionId'
+    get:
+      tags:
+        - Functions
+      summary: Get the functions of a subscription
+      description: |
+        Returns the list of functions of a given subscription.
+
+        A caller must have 'manage' access to the given account or subscription in order to retrieve the list of functions in the subscription.
+      operationId: getSubscriptionFunctionList
+      parameters:
+        - in: query
+          name: next
+          required: false
+          description: Optional function id to start returning results from
+          schema:
+            $ref: '#/components/schemas/FunctionId'
+        - in: query
+          name: count
+          required: false
+          description: Optional number of results to return; max is 100
+          schema:
+            type: number
+            minimum: 1
+            maximum: 100
+        - in: query
+          name: cron
+          required: false
+          description: If 'true' only functions with cron enabled will be returnd. If 'false' only functions without cron enabled will be returned. If not specified, all functions will be returned.
+          schema:
+            type: boolean
+      responses:
+        200:
+          description: A list of functions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FunctionList'
+        403:
+          description: Not authorized
+        404:
+          description: Subscription not found
+      security:
+        - token: []
 
   /subscription/{subscriptionId}/boundary/{boundaryId}/function:
     parameters:
@@ -519,6 +726,12 @@ paths:
             type: number
             minimum: 1
             maximum: 100
+        - in: query
+          name: cron
+          required: false
+          description: If 'true' only functions with cron enabled will be returnd. If 'false' only functions without cron enabled will be returned. If not specified, all functions will be returned.
+          schema:
+            type: boolean
       responses:
         200:
           description: A list of functions
@@ -531,7 +744,7 @@ paths:
         404:
           description: Subscription or boundary not found
       security:
-        - accessToken: []
+        - token: []
 
   /subscription/{subscriptionId}/boundary/{boundaryId}/log:
     parameters:
@@ -564,7 +777,7 @@ paths:
         404:
           description: Subscription or boundary not found
       security:
-        - accessToken: []
+        - token: []
 
   /subscription/{subscriptionId}/boundary/{boundaryId}/function/{functionId}:
     parameters:
@@ -605,7 +818,7 @@ paths:
         404:
           description: Subscription, boundary or function not found
       security:
-        - accessToken: []
+        - token: []
     put:
       tags:
         - Functions
@@ -636,7 +849,7 @@ paths:
         404:
           description: Subscription, boundary or function not found
       security:
-        - accessToken: []
+        - token: []
     delete:
       tags:
         - Functions
@@ -652,7 +865,7 @@ paths:
         404:
           description: Subscription, boundary or function not found
       security:
-        - accessToken: []
+        - token: []
 
   /subscription/{subscriptionId}/boundary/{boundaryId}/function/{functionId}/log:
     parameters:
@@ -691,7 +904,7 @@ paths:
         404:
           description: Subscription, boundary of function not found
       security:
-        - accessToken: []
+        - token: []
 
   /subscription/{subscriptionId}/boundary/{boundaryId}/function/{functionId}/location:
     parameters:
@@ -735,7 +948,7 @@ paths:
         404:
           description: Subscription, boundary of function not found
       security:
-        - accessToken: []
+        - token: []
 
   /subscription/{subscriptionId}/boundary/{boundaryId}/function/{functionId}/build/{buildId}:
     parameters:
@@ -784,7 +997,7 @@ paths:
         404:
           description: Subscription, boundary, function or build not found
       security:
-        - accessToken: []
+        - token: []
 
 components:
   securitySchemes:
@@ -877,28 +1090,6 @@ components:
           type: string
           description: |
             The uri key of json key file that contains the public key of the key pair used to sign access tokens from the issuer. Either the 'publicKey' or the jsonKeyUri' must be provided.
-        client:
-          type: object
-          required:
-            - displayName
-            - sub
-            - access
-          properties:
-            displayName:
-              type: string
-              description: The client display name
-              example: Production Service Account
-            sub:
-              type: string
-              description: The 'sub' claim in access tokens generated by the issuer
-              example: prod-service
-            access:
-              type: object
-              properties:
-                allow:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/AccessStatement'
     Issuer:
       allOf:
         - type: object
@@ -909,7 +1100,6 @@ components:
             id:
               $ref: '#/components/schemas/IssuerId'
         - $ref: '#/components/schemas/NewIssuer'
-
     IssuerList:
       type: object
       required:
@@ -952,6 +1142,50 @@ components:
           $ref: '#/components/schemas/BoundaryId'
         function:
           $ref: '#/components/schemas/FunctionId'
+
+    ClientId:
+      type: string
+      description: Client id
+      example: 'clt-cc46f3ab0760a9f411b72096e65cd1cc'
+    NewClient:
+      type: object
+      properties:
+        displayName:
+          type: string
+          description: The client's display name
+          example: John
+        identities:
+          type: array
+          items:
+            $ref: '#/components/schemas/Identity'
+        access:
+          type: object
+          properties:
+            allow:
+              type: array
+              items:
+                $ref: '#/components/schemas/AccessStatement'
+    Client:
+      allOf:
+        - type: object
+          required:
+            - id
+          properties:
+            id:
+              $ref: '#/components/schemas/ClientId'
+        - $ref: '#/components/schemas/NewClient'
+    ClientList:
+      type: object
+      required:
+        - items
+      properties:
+        next:
+          $ref: '#/components/schemas/ClientId'
+        items:
+          type: array
+          description: A list of clients
+          items:
+            $ref: '#/components/schemas/Client'
 
     UserId:
       type: string
@@ -1034,6 +1268,19 @@ components:
           type: string
           description: The URL for executing the function
           example: 'https://domain.com/task-abc'
+    FunctionShort:
+      type: object
+      required:
+        - functionId
+        - boundaryId
+      properties:
+        functionId:
+          $ref: '#/components/schemas/FunctionId'
+        boundaryId:
+          $ref: '#/components/schemas/BoundaryId'
+        cron:
+          type: string
+          example: '*/15 * * * *'
     Function:
       allOf:
         - type: object
@@ -1108,7 +1355,7 @@ components:
           type: array
           description: A list of functions
           items:
-            $ref: '#/components/schemas/FunctionId'
+            $ref: '#/components/schemas/FunctionShort'
 
     BuildId:
       type: string
