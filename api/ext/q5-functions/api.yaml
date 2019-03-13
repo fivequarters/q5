@@ -180,7 +180,7 @@ paths:
         404:
           description: Account or issuer not found
       security:
-        - token: []
+        - accessToken: []
 
   /account/{accountId}/client:
     parameters:
@@ -339,7 +339,7 @@ paths:
         404:
           description: Account or client not found
       security:
-        - token: []
+        - accessToken: []
 
   /account/{accountId}/subscription:
     parameters:
@@ -588,7 +588,7 @@ paths:
         404:
           description: user not found
       security:
-        - token: []
+        - accessToken: []
 
   /subscription/{subscriptionId}/boundary:
     parameters:
@@ -634,7 +634,7 @@ paths:
         404:
           description: Subscription not found
       security:
-        - token: []
+        - accessToken: []
 
   /subscription/{subscriptionId}/function:
     parameters:
@@ -686,7 +686,7 @@ paths:
         404:
           description: Subscription not found
       security:
-        - token: []
+        - accessToken: []
 
   /subscription/{subscriptionId}/boundary/{boundaryId}/function:
     parameters:
@@ -744,7 +744,7 @@ paths:
         404:
           description: Subscription or boundary not found
       security:
-        - token: []
+        - accessToken: []
 
   /subscription/{subscriptionId}/boundary/{boundaryId}/log:
     parameters:
@@ -777,7 +777,7 @@ paths:
         404:
           description: Subscription or boundary not found
       security:
-        - token: []
+        - accessToken: []
 
   /subscription/{subscriptionId}/boundary/{boundaryId}/function/{functionId}:
     parameters:
@@ -818,7 +818,7 @@ paths:
         404:
           description: Subscription, boundary or function not found
       security:
-        - token: []
+        - accessToken: []
     put:
       tags:
         - Functions
@@ -849,7 +849,7 @@ paths:
         404:
           description: Subscription, boundary or function not found
       security:
-        - token: []
+        - accessToken: []
     delete:
       tags:
         - Functions
@@ -865,7 +865,7 @@ paths:
         404:
           description: Subscription, boundary or function not found
       security:
-        - token: []
+        - accessToken: []
 
   /subscription/{subscriptionId}/boundary/{boundaryId}/function/{functionId}/log:
     parameters:
@@ -904,7 +904,7 @@ paths:
         404:
           description: Subscription, boundary of function not found
       security:
-        - token: []
+        - accessToken: []
 
   /subscription/{subscriptionId}/boundary/{boundaryId}/function/{functionId}/location:
     parameters:
@@ -948,7 +948,7 @@ paths:
         404:
           description: Subscription, boundary of function not found
       security:
-        - token: []
+        - accessToken: []
 
   /subscription/{subscriptionId}/boundary/{boundaryId}/function/{functionId}/build/{buildId}:
     parameters:
@@ -997,7 +997,7 @@ paths:
         404:
           description: Subscription, boundary, function or build not found
       security:
-        - token: []
+        - accessToken: []
 
 components:
   securitySchemes:
@@ -1072,7 +1072,7 @@ components:
       example: 'https://auth-server.company-abc.com'
     NewIssuer:
       type: object
-      description: An issuer of access tokens that should be accepted
+      description: An issuer of access accessTokens that should be accepted
       required:
         - displayName
       properties:
@@ -1083,13 +1083,13 @@ components:
         publicKeys:
           type: array
           description: |
-            The public keys of the key pairs used to sign access tokens from the issuer. Either the 'publicKeys' or the jsonKeyUri' must be provided.
+            The public keys of the key pairs used to sign access accessTokens from the issuer. Either the 'publicKeys' or the jsonKeyUri' must be provided.
           items:
             $ref: '#/components/schemas/PublicKey'
         jsonKeyUri:
           type: string
           description: |
-            The uri key of json key file that contains the public key of the key pair used to sign access tokens from the issuer. Either the 'publicKey' or the jsonKeyUri' must be provided.
+            The uri key of json key file that contains the public key of the key pair used to sign access accessTokens from the issuer. Either the 'publicKey' or the jsonKeyUri' must be provided.
     Issuer:
       allOf:
         - type: object
@@ -1123,7 +1123,7 @@ components:
           $ref: '#/components/schemas/IssuerId'
         sub:
           type: string
-          description: The 'sub' claim value in access tokens
+          description: The 'sub' claim value in access accessTokens
     AccessStatement:
       type: object
       required:
