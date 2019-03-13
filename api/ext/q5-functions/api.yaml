@@ -671,7 +671,7 @@ paths:
         - in: query
           name: cron
           required: false
-          description: If 'true' only functions with cron enabled will be returnd. If 'false' only functions without cron enabled will be returned. If not specified, all functions will be returned.
+          description: If 'true' only functions with cron enabled will be returned. If 'false' only functions without cron enabled will be returned. If not specified, all functions will be returned.
           schema:
             type: boolean
       responses:
@@ -729,7 +729,7 @@ paths:
         - in: query
           name: cron
           required: false
-          description: If 'true' only functions with cron enabled will be returnd. If 'false' only functions without cron enabled will be returned. If not specified, all functions will be returned.
+          description: If 'true' only functions with cron enabled will be returned. If 'false' only functions without cron enabled will be returned. If not specified, all functions will be returned.
           schema:
             type: boolean
       responses:
