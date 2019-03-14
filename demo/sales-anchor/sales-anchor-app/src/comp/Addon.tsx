@@ -74,6 +74,10 @@ const Input = styled.input`
   width: 300px;
 `;
 
+const Label = styled.label`
+  margin-right: 30px;
+`;
+
 // --------------
 // Exported Types
 // --------------
@@ -84,21 +88,39 @@ export enum AddonState {
   HasUpdate,
 }
 
+export type AddonSecret = {
+  name: string;
+  value: string;
+};
+
 export type AddonProps = {
   logoUrl: string;
   name: string;
   description: string;
   version: string;
   state: AddonState;
+  secrets: AddonSecret[];
   onInstall: () => void;
   onUninstall: () => void;
+  onSecretChange: (secret: AddonSecret) => void;
 } & React.BaseHTMLAttributes<HTMLDivElement>;
 
 // -------------------
 // Exported Components
 // -------------------
 
-export function Addon({ logoUrl, name, description, version, state, onInstall, onUninstall, ...rest }: AddonProps) {
+export function Addon({
+  logoUrl,
+  name,
+  description,
+  version,
+  state,
+  secrets,
+  onInstall,
+  onUninstall,
+  onSecretChange,
+  ...rest
+}: AddonProps) {
   const [installModalVisible, setInstallModalVisible] = useState(false);
   const [configModalVisible, setConfigModalVisible] = useState(false);
 
@@ -117,8 +139,6 @@ export function Addon({ logoUrl, name, description, version, state, onInstall, o
   }
 
   function installModalClick(e: React.MouseEvent<HTMLElement>) {
-    //
-
     setInstallModalVisible(false);
   }
 
@@ -128,6 +148,24 @@ export function Addon({ logoUrl, name, description, version, state, onInstall, o
 
   function configModalClick() {
     setConfigModalVisible(false);
+  }
+
+  function renderSecrets() {
+    const items = secrets.map(secret => {
+      function handleChange(event: React.FormEvent<HTMLInputElement>) {
+        secret.value = event.currentTarget.value;
+        onSecretChange(secret);
+      }
+
+      return (
+        <p key={secret.name}>
+          <Label>{secret.name}</Label>
+          <Input type="password" value={secret.value} onChange={handleChange} />
+        </p>
+      );
+    });
+
+    return items;
   }
 
   //const displayEditor = { display: addon === 'on-new-inquiry' ? '' : 'none' };
@@ -143,8 +181,7 @@ export function Addon({ logoUrl, name, description, version, state, onInstall, o
           <AddonImage src={logoUrl} />
           <AddonName>{name}</AddonName>
           <AddonDescription>{description}</AddonDescription>
-          <p>API Key:</p>
-          <Input />
+          {renderSecrets()}
           <FaCloudDownloadAlt onClick={installConfirmClick} />
         </ModalInnerStyle>
       </StyledModal>
@@ -154,7 +191,8 @@ export function Addon({ logoUrl, name, description, version, state, onInstall, o
             event.stopPropagation();
           }}
         >
-          Configure
+          {renderSecrets()}
+          <button>Drop to code</button>
         </ModalInnerStyle>
       </StyledModal>
       <AddonImage src={logoUrl} />

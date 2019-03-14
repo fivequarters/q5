@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { Editor } from './Editor';
 import { Modal } from '@5qtrs/modal';
-import { Addon, AddonState } from './Addon';
+import { Addon, AddonState, AddonSecret } from './Addon';
 
 // -------------------
 // Internal Components
@@ -42,6 +42,7 @@ const addonList = [
       'Clearbit is the marketing data engine for all of your customer interactions. Deeply understand your customers, identify future prospects, and personalize every single marketing and sales interaction.',
     version: '1.1.0.0',
     state: AddonState.NotInstalled,
+    secrets: [{ name: 'API Key', value: '' }],
   },
   {
     name: 'Salesforce',
@@ -50,6 +51,7 @@ const addonList = [
       'Salesforce is the world’s #1 customer relationship management (CRM) platform. Our cloud-based, CRM applications for sales, service, marketing, and more don’t require IT experts to set up or manage — simply log in and start connecting to customers in a whole new way.',
     version: '3.4.0.0',
     state: AddonState.NotInstalled,
+    secrets: [{ name: 'Client ID', value: '' }, { name: 'Client Secret', value: '' }],
   },
   {
     name: 'Intercom',
@@ -58,6 +60,7 @@ const addonList = [
       'A new and better way to acquire, engage and retain customers. Modern products for sales, marketing and support to connect with customers and grow faster.',
     version: '1.0.0.0',
     state: AddonState.NotInstalled,
+    secrets: [{ name: 'API Key', value: '' }],
   },
   {
     name: 'Slack',
@@ -66,6 +69,7 @@ const addonList = [
       'Slack is a collaboration hub, where the right people and the right information come together, helping everyone get work done.',
     version: '0.5.6.0',
     state: AddonState.NotInstalled,
+    secrets: [{ name: 'API Key', value: '' }],
   },
 ];
 
@@ -85,6 +89,7 @@ interface AddonItem {
   description: string;
   version: string;
   state: AddonState;
+  secrets: AddonSecret[];
 }
 
 export function Addons({ ...rest }: AddonsProps) {
@@ -110,6 +115,13 @@ export function Addons({ ...rest }: AddonsProps) {
       setAvailableAddons(availableAddons.slice().concat(addon));
     }
 
+    function onSecretChange(secret: AddonSecret) {
+      console.log(addon.secrets[addon.secrets.indexOf(secret)].value);
+      console.log(secret.value);
+
+      addon.secrets[addon.secrets.indexOf(secret)].value = secret.value;
+    }
+
     return (
       <Addon
         key={addon.name}
@@ -118,8 +130,10 @@ export function Addons({ ...rest }: AddonsProps) {
         description={addon.description}
         version={addon.version}
         state={addon.state}
+        secrets={addon.secrets}
         onInstall={onInstall}
         onUninstall={onUninstall}
+        onSecretChange={onSecretChange}
       />
     );
   }
