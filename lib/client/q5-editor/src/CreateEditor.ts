@@ -34,7 +34,7 @@ export interface ICreateEditorOptions {
  * @param element The HTML element (typically a div) within which to create the function editor.
  * @param boundaryId The boundaryId of the function.
  * @param functionId The function name.
- * @param account Account information to use when calling Q5 Service APIs.
+ * @param account Account information to use when calling Flexd HTTP APIs.
  * @param options Editor creation options.
  */
 export function createEditor(

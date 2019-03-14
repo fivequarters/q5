@@ -59,7 +59,7 @@ const SettingsCronPlaceholder = `# Set the 'cron' value to execute this function
  * that state changes.
  *
  * The _EditorContext_ is an _EventEmitter_ that emits events on changes in the function specification and interactions
- * with the Q5 service APIs. For the full list of of events that can be subscribed to, see [[Events]].
+ * with the Flexd HTTP APIs. For the full list of of events that can be subscribed to, see [[Events]].
  */
 export class EditorContext extends EventEmitter {
   /**
