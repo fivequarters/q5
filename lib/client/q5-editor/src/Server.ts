@@ -11,39 +11,39 @@ class BuildError extends Error {
 }
 
 /**
- * Represents the Q5 account to connect to.
+ * Represents the Flexd account to connect to.
  */
 export interface IAccount {
   /**
-   * Subscription ID of the Q5 service.
+   * Subscription ID of the Flexd service.
    */
   subscriptionId: string;
   /**
-   * The base URL of the Q5 service APIs.
+   * The base URL of the Flexd HTTP APIs.
    */
   baseUrl: string;
   /**
-   * The access token to authorize calls to Q5 service APIs.
+   * The access token to authorize calls to Flexd HTTP APIs.
    */
   accessToken: string;
 }
 
 /**
- * A callback function implemented by the application embedding the Q5 editor and used by the [[Server]]
- * to request current access credentials to the Q5 service APIs. The callback is called before every API call
- * the _Server_ initiates, so the implementation is responsible for any cashing if appropriate.
+ * A callback function implemented by the application embedding the Flexd Editor used 
+ * to request current access credentials to the Flexd HTTP APIs. The callback is called before every API call
+ * the editor initiates, so the implementation is responsible for any cashing if appropriate.
  *
  * The last value of [[IAccount]] returned from the _AccountResolver_ is provided to it as input on subsequent invocation.
  * It is therefore a convenient place to store any additional context beyond what [[IAccount]] requires.
  *
  * In a typical use case, _AccountResolver_ would call an authenticated API on the application's own backend to obtain
- * a new access token for Q5 service APIs, or initiate an authorization flow with a third party authorization service to
+ * a new access token for Flexd HTTP APIs, or initiate an authorization flow with a third party authorization service to
  * obtain such token.
  */
 export type AccountResolver = (account: IAccount | undefined) => Promise<IAccount>;
 
 /**
- * Represents the status of the build a function initiated with [[buildFunction]].
+ * Represents the status of the build a function.
  */
 export interface IBuildStatus {
   /**
@@ -86,7 +86,7 @@ const logsInitialBackoff = 5000;
 const logsMaxBackoff = 60000;
 
 /**
- * The _Server_ class is the only component that directly calls the Q5 service APIs to manipulate Q5 Functions.
+ * The _Server_ class is the only component that directly calls the Flexd HTTP APIs to manipulate Flexd Functions.
  * It is also responsible for keeping track of the authorization token and requesting the hosting application
  * to refresh it when necessary using the [[AccountResolver]] callback.
  *
@@ -97,15 +97,15 @@ const logsMaxBackoff = 60000;
  */
 export class Server {
   /**
-   * Creates an instance of the _Server_ using static Q5 service API credentials. This is used in situations where the
+   * Creates an instance of the _Server_ using static Flexd HTTP API credentials. This is used in situations where the
    * access token is known ahead of time and will not change during the user's session with the editor.
-   * @param account Static credentials to the Q5 service APIs.
+   * @param account Static credentials to the Flexd HTTP APIs.
    */
   public static create(account: IAccount): Server {
     return new Server(currentAccount => Promise.resolve(account));
   }
   /**
-   * Current credentials used by the _Server_ to call Q5 service APIs.
+   * Current credentials used by the _Server_ to call Flexd HTTP APIs.
    */
   public account: IAccount | undefined;
   /**
@@ -118,7 +118,7 @@ export class Server {
    */
   public buildStatusCheckInterval: number = 5000;
   /**
-   * Timeout in milliseconds for calls to Q5 service APIs.
+   * Timeout in milliseconds for calls to Flexd HTTP APIs.
    */
   public requestTimeout: number = 15000;
   /**
@@ -138,7 +138,7 @@ export class Server {
    * Creates an instance of the _Server_ using a dynamic [[AsyncResolver]] callback to resolve credentials.
    * This is used in situations where the access token is expected to change and must be refreshed during
    * the lifetime of the end user's interaction with the editor, for example due to expiry.
-   * @param accountResolver The callback _Server_ will invoke before every Q5 service API call to ensure it has fresh credentials.
+   * @param accountResolver The callback _Server_ will invoke before every Flexd HTTP API call to ensure it has fresh credentials.
    */
   constructor(public accountResolver: AccountResolver) {}
 

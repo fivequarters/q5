@@ -9,7 +9,7 @@
     "readme": "docs/readme.md",
     "theme": "minimal",
     "hideGenerator": "true",
-    "name": "Q5 Editor API",
+    "name": "Flexd Editor API",
     "ignoreCompilerErrors": true,
     "excludeNotExported": true,
     "excludeExternals": true,
