@@ -10,8 +10,8 @@ import { EditorContext } from './EditorContext';
  * @param options
  */
 export function createLogsPanel(element: HTMLElement, editorContext: EditorContext, options?: ILogsPanelOptions) {
-  const id = `q5-logs-${Math.floor(99999999 * Math.random()).toString(26)}`;
-  $(element).html(`<div class="q5-logs" id="${id}"><pre class="q5-logs-content" id="${id}-content"></pre></div>`);
+  const id = `flexd-logs-${Math.floor(99999999 * Math.random()).toString(26)}`;
+  $(element).html(`<div class="flexd-logs" id="${id}"><pre class="flexd-logs-content" id="${id}-content"></pre></div>`);
   const $content = $(`#${id}-content`);
   const $container = $(`#${id}`);
 

@@ -1,4 +1,4 @@
-import './q5-hook.css';
+import './flexd-hook.css';
 
 export interface IHookResult {
   location: string;
@@ -66,7 +66,7 @@ export function edit(options: IHookOptions): Promise<IHookResult> {
     const editorFrameId = `${prefixId}-editor`;
     // TODO: set iframe URL to production URL in production build
     const editorHtml = [
-      `<div id="${editorContainerId}" class="q5-hook-editor-container">`,
+      `<div id="${editorContainerId}" class="flexd-hook-editor-container">`,
       `<iframe id="${editorFrameId}" width="100%" height="100%"`,
       `frameborder="0" src="http://localhost.com:4000/editor" />`,
       `</div>`,
