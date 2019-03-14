@@ -1,5 +1,5 @@
 {
-  "name": "@5qtrs/q5-functions-lambda",
+  "name": "@5qtrs/flexd-functions-lambda",
   "version": "0.0.1",
   "description": "",
   "main": "libc/index.js",
