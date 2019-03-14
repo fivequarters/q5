@@ -1,4 +1,4 @@
-import { createEditor, EditorContext } from 'q5'; // tslint:disable-line
+import { createEditor, EditorContext } from '@5qtrs/flexd-editor'; // tslint:disable-line
 import React, { useContext, useLayoutEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { ApiContext } from './ApiContext';
@@ -62,6 +62,7 @@ export function Editor({ eventAction, onEditorBack, ...rest }: EditorProps) {
     const config = await api.getEditorConfig();
 
     if (editorElement && editorElement.current) {
+      // @ts-ignore
       createEditor(editorElement.current, config.boundaryId, eventAction, async () => await api.getEditorConfig(), {
         template: {},
         editor: {

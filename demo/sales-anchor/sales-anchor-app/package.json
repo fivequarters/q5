@@ -9,7 +9,7 @@
     "build": "tsc -b",
     "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x}",
     "clean": "rm -r -f libm; rm -r -f coverage",
-    "copy": "cp ../../../lib/client/q5-editor/dist/* js",
+    "copy": "cp ../../../lib/client/flexd-editor/dist/* js",
     "start": "yarn copy && tsc -b -w & webpack-dev-server --open --hot"
   },
   "keywords": [],
