@@ -26,8 +26,6 @@
       "@5qtrs/config": ["lib/shared/config/src"],
       "@5qtrs/server": ["lib/server/server/src"],
       "@5qtrs/batch": ["lib/shared/batch/src"],
-      "@5qtrs/q5-editor": ["lib/client/q5-editor/src"],
-      "@5qtrs/q5-hook": ["lib/client/q5-hook/src"],
       "@5qtrs/q5-functions": ["api/ext/q5-functions/src"],
       "@5qtrs/q5-functions-lambda": ["lib/server/q5-functions-lambda/src"],
       "@5qtrs/event": ["lib/shared/event/src"],
@@ -59,7 +57,9 @@
       "@5qtrs/base64": ["lib/shared/base64/src"],
       "@5qtrs/hex": ["lib/shared/hex/src"],
       "@5qtrs/aws-cred": ["lib/server/aws-cred/src"],
-      "@5qtrs/aws-deployment": ["lib/server/aws-deployment/src"]
+      "@5qtrs/aws-deployment": ["lib/server/aws-deployment/src"],
+      "@5qtrs/flexd-editor": ["lib/client/flexd-editor/src"],
+      "@5qtrs/flexd-hook": ["lib/client/flexd-hook/src"]
     }
   }
 }

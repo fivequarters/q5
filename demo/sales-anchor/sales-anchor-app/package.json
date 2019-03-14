@@ -9,7 +9,7 @@
     "build": "tsc -b",
     "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x}",
     "clean": "rm -r -f libm; rm -r -f coverage",
-    "copy": "cp ../../../lib/client/q5-editor/dist/* js",
+    "copy": "cp ../../../lib/client/flexd-editor/dist/* js",
     "start": "yarn copy && tsc -b -w & webpack-dev-server --open --hot"
   },
   "keywords": [],
@@ -20,7 +20,6 @@
     "@5qtrs/image": "^0.0.1",
     "@5qtrs/modal": "^0.0.1",
     "@5qtrs/nav-bar": "^0.0.1",
-    "@5qtrs/q5-editor": "^0.0.1",
     "@5qtrs/request": "^0.0.1",
     "auth0-js": "^9.10.0",
     "jqtree": "^1.4.9",
@@ -30,7 +29,8 @@
     "react-dom": "^16.8.2",
     "react-google-login": "^5.0.2",
     "styled-components": "^4.1.3",
-    "superagent": "^4.1.0"
+    "superagent": "^4.1.0",
+    "@5qtrs/flexd-editor": "^0.0.1"
   },
   "devDependencies": {
     "@types/auth0-js": "^8.11.11",

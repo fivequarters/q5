@@ -34,12 +34,12 @@ export function createNavigationPanel(
     ...options,
   };
 
-  const idPrefix = `q5-nav-${Math.floor(99999999 * Math.random()).toString(26)}`;
+  const idPrefix = `flexd-nav-${Math.floor(99999999 * Math.random()).toString(26)}`;
   const addButtonId = `${idPrefix}-add-file`;
   const removeButtonId = `${idPrefix}-remove-file`;
   const newFileId = `${idPrefix}-new-file`;
   const newFileNameId = `${idPrefix}-new-file-name`;
-  $(element).html(`<div id="${idPrefix}-main" class="q5-nav"></div>`);
+  $(element).html(`<div id="${idPrefix}-main" class="flexd-nav"></div>`);
   const $nav = $(`#${idPrefix}-main`);
 
   let fileNo = NodeIds.Code + 1;
@@ -104,49 +104,49 @@ export function createNavigationPanel(
       onCreateLi: (node, $li) => {
         if (node.id === NodeIds.Code) {
           const lines = [
-            `Code<button id="${addButtonId}" class="q5-code-action-add-btn"><i class="fa fa-plus"></i></button>`,
+            `Code<button id="${addButtonId}" class="flexd-code-action-add-btn"><i class="fa fa-plus"></i></button>`,
           ];
           $li.find('.jqtree-element span').html(lines.join(''));
         } else if (node.id > NodeIds.Code) {
           const lines = [
-            `<span class="q5-code-file-icon"><i class="fa fa-file"></i></span>`,
-            `<span id="codefile-${node.id}"class="q5-code-file">${node.fileName}</span>`,
+            `<span class="flexd-code-file-icon"><i class="fa fa-file"></i></span>`,
+            `<span id="codefile-${node.id}"class="flexd-code-file">${node.fileName}</span>`,
             `<button id="${removeButtonId}-${
               node.id
-            }" class="q5-code-action-delete-btn"><i class="fa fa-trash"></i></button>`,
+            }" class="flexd-code-action-delete-btn"><i class="fa fa-trash"></i></button>`,
           ];
           $li.find('.jqtree-element span').html(lines.join(''));
         } else if (node.id === NodeIds.ToolsRunner) {
           const lines = [
-            `<span class="q5-code-cogs-icon"><i class="fa fa-cogs"></i></span>`,
-            `<span class="q5-runner-file">Runner</span>`,
+            `<span class="flexd-code-cogs-icon"><i class="fa fa-cogs"></i></span>`,
+            `<span class="flexd-runner-file">Runner</span>`,
           ];
           $li.find('.jqtree-element span').html(lines.join(''));
         } else if (node.id === NodeIds.SettingsApplication) {
           const lines = [
-            `<span class="q5-code-secret-icon"><i class="fa fa-user-secret"></i></span>`,
-            `<span class="q5-application-file">Application</span>`,
+            `<span class="flexd-code-secret-icon"><i class="fa fa-user-secret"></i></span>`,
+            `<span class="flexd-application-file">Application</span>`,
           ];
           $li.find('.jqtree-element span').html(lines.join(''));
         } else if (node.id === NodeIds.SettingsCron) {
           const lines = [
-            `<span class="q5-code-cron-icon"><i class="fa fa-clock"></i></span>`,
-            `<span class="q5-cron-file">Schedule</span>`,
+            `<span class="flexd-code-cron-icon"><i class="fa fa-clock"></i></span>`,
+            `<span class="flexd-cron-file">Schedule</span>`,
           ];
           $li.find('.jqtree-element span').html(lines.join(''));
         } else if (node.id === NodeIds.SettingsCompute) {
           const lines = [
-            `<span class="q5-code-compute-icon"><i class="fa fa-tools"></i></span>`,
-            `<span class="q5-compute-file">Compute</span>`,
+            `<span class="flexd-code-compute-icon"><i class="fa fa-tools"></i></span>`,
+            `<span class="flexd-compute-file">Compute</span>`,
           ];
           $li.find('.jqtree-element span').html(lines.join(''));
         } else if (node.id === NodeIds.CodeAdd) {
           const lines = [
             `<span id="${newFileId}" style="display:none">`,
-            `<span class="q5-code-file-icon">`,
+            `<span class="flexd-code-file-icon">`,
             `<i class="fa fa-file"></i>`,
             `</span>`,
-            `<input id="${newFileNameId}" placeholder="newFile.js" size="15" class="q5-new-file-input">`,
+            `<input id="${newFileNameId}" placeholder="newFile.js" size="15" class="flexd-new-file-input">`,
             `</span>`,
           ];
           $li.find('.jqtree-element span').html(lines.join(''));
