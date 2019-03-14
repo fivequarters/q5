@@ -79,7 +79,7 @@ export function createEditor(
       (opts.actionPanel as Options.IActionPanelOptions).enableCodeOnlyToggle = false;
     }
 
-    const idPrefix = `q5-${Math.floor(99999999 * Math.random()).toString(26)}`;
+    const idPrefix = `flexd-${Math.floor(99999999 * Math.random()).toString(26)}`;
     const actionId = `${idPrefix}-action`;
     const navEditorContainerId = `${idPrefix}-nav-editor-container`;
     const navId = `${idPrefix}-nav`;
@@ -89,29 +89,29 @@ export function createEditor(
     const logsSplitterId = `${idPrefix}-logs-splitter`;
     const statusId = `${idPrefix}-status`;
 
-    const lines: string[] = [`<div id="${idPrefix}" class="q5-shell"><div id="${idPrefix}-main" class="q5-main">`];
+    const lines: string[] = [`<div id="${idPrefix}" class="flexd-shell"><div id="${idPrefix}-main" class="flexd-main">`];
     if (opts.actionPanel !== false) {
-      lines.push(`    <div id="${actionId}" class="q5-action-container"></div>`);
+      lines.push(`    <div id="${actionId}" class="flexd-action-container"></div>`);
     }
     if (opts.navigationPanel !== false) {
-      lines.push(`    <div class="q5-nav-container" id="${navId}"></div>`);
+      lines.push(`    <div class="flexd-nav-container" id="${navId}"></div>`);
     }
     if (opts.navigationPanel !== false && opts.editorPanel !== false) {
-      lines.push(`    <div class="q5-nav-splitter" id="${navSplitterId}"></div>`);
+      lines.push(`    <div class="flexd-nav-splitter" id="${navSplitterId}"></div>`);
     }
     if (opts.editorPanel !== false) {
-      lines.push(`    <div class="q5-nav-editor-container" id="${navEditorContainerId}">`);
+      lines.push(`    <div class="flexd-nav-editor-container" id="${navEditorContainerId}">`);
 
-      lines.push(`        <div class="q5-editor-container" id="${editorId}"></div>`);
+      lines.push(`        <div class="flexd-editor-container" id="${editorId}"></div>`);
       if (opts.logsPanel !== false) {
-        lines.push(`    <div class="q5-logs-splitter" id="${logsSplitterId}"></div>`);
-        lines.push(`    <div class="q5-logs-container" id="${logsId}"></div>`);
+        lines.push(`    <div class="flexd-logs-splitter" id="${logsSplitterId}"></div>`);
+        lines.push(`    <div class="flexd-logs-container" id="${logsId}"></div>`);
       }
       lines.push('    </div>');
     }
     lines.push('</div>');
     if (opts.statusPanel !== false) {
-      lines.push(`    <div class="q5-status-container" id="${statusId}"></div>`);
+      lines.push(`    <div class="flexd-status-container" id="${statusId}"></div>`);
     }
     lines.push('</div>');
 
@@ -126,7 +126,7 @@ export function createEditor(
     const $navSplitter = $(`#${navSplitterId}`);
 
     if (opts.navigationPanel !== false) {
-      // Keep editorMinWidth in sync with min-width of .q5-editor-container class
+      // Keep editorMinWidth in sync with min-width of .flexd-editor-container class
       const editorMinWidth = 100;
       // @ts-ignore
       $nav.resizable({
@@ -142,7 +142,7 @@ export function createEditor(
       });
     }
     if (opts.logsPanel !== false) {
-      // Keep navEditorMinHeight in sync with min-height of .q5-nav-editor-container class
+      // Keep navEditorMinHeight in sync with min-height of .flexd-nav-editor-container class
       const navEditorMinHeight = 100;
       // @ts-ignore
       $logs.resizable({
@@ -210,10 +210,10 @@ export function createEditor(
     editorContext.on(Events.Events.FullScreenChanged, (e: Events.FullScreenChangedEvent) => {
       if (e.newState) {
         // expand
-        $main.addClass('q5-fullscreen');
+        $main.addClass('flexd-fullscreen');
       } else {
         // collapse
-        $main.removeClass('q5-fullscreen');
+        $main.removeClass('flexd-fullscreen');
       }
     });
   }

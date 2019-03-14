@@ -23,7 +23,7 @@ export function createActionPanel(
     ...options,
   };
 
-  const idPrefix = `q5-action-${Math.floor(99999999 * Math.random()).toString(26)}`;
+  const idPrefix = `flexd-action-${Math.floor(99999999 * Math.random()).toString(26)}`;
   const closeId = `${idPrefix}-close`;
   const saveId = `${idPrefix}-save`;
   const runId = `${idPrefix}-run`;
@@ -33,29 +33,29 @@ export function createActionPanel(
   const showNavLogsId = `${idPrefix}-show-nav-logs`;
 
   const lines: string[] = [
-    `<div class="q5-action-wrapper">
+    `<div class="flexd-action-wrapper">
     <div>`,
   ];
   if (opts.enableClose) {
-    lines.push(`        <button id="${closeId}" class="q5-action-btn"><i class="fa fa-window-close"></i></button>`);
+    lines.push(`        <button id="${closeId}" class="flexd-action-btn"><i class="fa fa-window-close"></i></button>`);
   }
-  lines.push(`        <button id="${saveId}" class="q5-action-btn"><i class="fa fa-save"></i></button>
-        <button id="${runId}" class="q5-action-btn"><i class="fa fa-play"></i></button>
+  lines.push(`        <button id="${saveId}" class="flexd-action-btn"><i class="fa fa-save"></i></button>
+        <button id="${runId}" class="flexd-action-btn"><i class="fa fa-play"></i></button>
    `);
   if (opts.enableCodeOnlyToggle) {
     lines.push(`
-        <button id="${hideNavLogsId}" class="q5-action-btn">
+        <button id="${hideNavLogsId}" class="flexd-action-btn">
           <i class="far fa-file-code"></i>
         </button>
-        <button id="${showNavLogsId}" class="q5-action-btn" style="display: none">
+        <button id="${showNavLogsId}" class="flexd-action-btn" style="display: none">
           <i class="fas fa-file-code"></i>
         </button>
 `);
   }
   if (opts.enableFullScreen) {
     lines.push(`
-        <button id="${expandId}" class="q5-action-btn"><i class="fa fa-arrows-alt"></i></button>
-        <button id="${compressId}" class="q5-action-btn" style="display: none"><i class="fa fa-compress"></i></button>
+        <button id="${expandId}" class="flexd-action-btn"><i class="fa fa-arrows-alt"></i></button>
+        <button id="${compressId}" class="flexd-action-btn" style="display: none"><i class="fa fa-compress"></i></button>
 `);
   }
   lines.push(`
