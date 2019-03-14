@@ -2,7 +2,7 @@ import debug from 'debug';
 import http from 'http';
 import app from './app';
 
-debug('q5-functions:server');
+debug('flexd-functions:server');
 
 const normalizedPort = normalizePort(process.env.PORT || 3001);
 app.set('port', normalizedPort);
