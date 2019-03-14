@@ -1,6 +1,6 @@
 import './q5-hook.css';
 
-export interface IQ5HookResult {
+export interface IHookResult {
   location: string;
 }
 
@@ -23,7 +23,7 @@ interface IHookOptions {
   template?: any;
 }
 
-export function edit(options: IHookOptions): Promise<IQ5HookResult> {
+export function edit(options: IHookOptions): Promise<IHookResult> {
   // Normalize options
   if (!options || !options.functionId || !options.boundaryId) {
     throw new Error('options.functionId and options.boundaryId must be specified.');
@@ -50,7 +50,7 @@ export function edit(options: IHookOptions): Promise<IQ5HookResult> {
   options.editorOptions.actionPanel = options.editorOptions.actionPanel || {};
   options.editorOptions.actionPanel.enableClose = true;
 
-  // Promise completes with IQ5HookResult when editor is closed by the user
+  // Promise completes with IHookResult when editor is closed by the user
   return new Promise((resolve, reject) => {
     // Set up messaging with modal iframe; the interaction is started by the
     // content of the iframe posting the { request: 'getConfiguration' }
@@ -123,8 +123,8 @@ export function edit(options: IHookOptions): Promise<IQ5HookResult> {
           reject(
             new Error(
               [
-                `Unsupported request from Q5 Hook Editor: ${request}.`,
-                'Make sure the version of the q5-hook.js you are using is up to date.',
+                `Unsupported request from Flexd Webhook Editor: ${request}.`,
+                'Make sure the version of the flexd-hook.js you are using is up to date.',
               ].join(' ')
             )
           );

@@ -43,7 +43,7 @@
 <script src="/js/jquery-3.2.1.js" type="text/javascript"></script>
 <script src="/js/popper.js" type="text/javascript"></script>
 <script src="/js/bootstrap.min.js" type="text/javascript"></script>
-<script src="/js/<%- process.env.NODE_ENV === 'production' ? 'q5.min.js' : 'q5.js' %>" type="text/javascript"></script>
+<script src="/js/<%- process.env.NODE_ENV === 'production' ? 'flexd-editor.min.js' : 'flexd-editor.js' %>" type="text/javascript"></script>
 <script type="text/javascript">
 
     var rpcInitialized;
@@ -68,7 +68,7 @@
             }
 
             if (!activeRequests[event.data.requestId]) {
-                throw new Error('Unexpected message from Q5 Hook Editor host.');
+                throw new Error('Unexpected message from Flexd Webhook Editor host.');
             }
 
             var tmp = activeRequests[event.data.requestId];
@@ -84,7 +84,7 @@
             throw error;
         }
 
-        q5.createEditor(document.getElementById('editor'), configuration.boundaryId, configuration.functionId, (account) => {
+        flexd.createEditor(document.getElementById('editor'), configuration.boundaryId, configuration.functionId, (account) => {
             return new Promise(function (resolve, reject) {
                 hostRpc({ request: 'resolveAccount', account }, (error, account) => {
                     return error
