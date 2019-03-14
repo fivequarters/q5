@@ -64,14 +64,14 @@
                 <h1><i class="fa fa-arrow-circle-right"></i></h1>
             </div>
             <div class="col">
-                <h3>Serverless Webhooks&trade;</h2>
+                <h3>Flexd Webhooks&trade;</h2>
                 <div class="input-group input-group-lg">
                     <div class="input-group-prepend">
                         <button id="on_new_lead_btn" class="btn btn-primary" type="button"><i class="fa fa-file-code"></i> Edit</button>
                     </div>
                     <input id="on_new_lead" type="text" placeholder="e.g. https://myserver.com/on_new_lead" class="form-control"/>
                 </div>
-                <p class="lead top-buffer-md">Serverless Webhooks allow your users to focus on their business logic. Your users
+                <p class="lead top-buffer-md">Flexd Webhooks allow your users to focus on their business logic. Your users
                     are more likely to customize your SaaS leading to higher retention, satisfaction, and revenue.
                 </p>    
             </div>
@@ -92,7 +92,7 @@
         <div class="row top-buffer-lg">
             <div class="col">
                 <h3>Simplicity for you</h2>
-                <p class="lead top-buffer-md">You can integrate Serverless Webhooks with an existing webhook infrastructure with a few lines of code, and they can co-exist. 
+                <p class="lead top-buffer-md">You can integrate Flexd Webhooks with an existing webhook infrastructure with a few lines of code, and they can co-exist. 
                 </p>
             </div>
             <div class="col">
@@ -121,12 +121,12 @@
     </div>
 </body>
 
-<script src="/js/<%- process.env.NODE_ENV === 'production' ? 'q5hook.min.js' : 'q5hook.js' %>" type="text/javascript"></script>
+<script src="/js/<%- process.env.NODE_ENV === 'production' ? 'flexd-hook.min.js' : 'flexd-hook.js' %>" type="text/javascript"></script>
 
 <script type="text/javascript">
     document.getElementById('on_new_lead_btn').addEventListener('click', function (e) {
         e.preventDefault();
-        window.q5hook.edit({
+        window.flexdHook.edit({
             baseUrl: "<%- process.env.API_SERVER %>",
             subscriptionId: '12345',
             accessToken: "<%- process.env.API_AUTHORIZATION_KEY %>",

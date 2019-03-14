@@ -35,11 +35,11 @@
 <script src="/js/jquery-3.2.1.js" type="text/javascript"></script>
 <script src="/js/popper.js" type="text/javascript"></script>
 <script src="/js/bootstrap.min.js" type="text/javascript"></script>
-<script src="/js/<%- process.env.NODE_ENV === 'production' ? 'q5.min.js' : 'q5.js' %>" type="text/javascript"></script>
+<script src="/js/<%- process.env.NODE_ENV === 'production' ? 'flexd-editor.min.js' : 'flexd-editor.js' %>" type="text/javascript"></script>
 <script type="text/javascript">
     $(function () {
 
-        q5.createEditor(document.getElementById('editor'), 'myboundary', 'myfunction17', {
+        flexd.createEditor(document.getElementById('editor'), 'myboundary', 'myfunction17', {
             subscriptionId: '12345',
             baseUrl: '<%- process.env.API_SERVER %>',
             accessToken: '<%- process.env.API_AUTHORIZATION_KEY %>',

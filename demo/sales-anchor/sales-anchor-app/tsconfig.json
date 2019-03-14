@@ -7,7 +7,7 @@
     { "path": "../../../comp/body" },
     { "path": "../../../comp/image" },
     { "path": "../../../comp/scroll-stick" },
-    { "path": "../../../lib/client/q5-editor" },
+    { "path": "../../../lib/client/flexd-editor" },
     { "path": "../../../comp/modal" },
     { "path": "../../../comp/fade" },
     { "path": "../../../lib/shared/request" },
