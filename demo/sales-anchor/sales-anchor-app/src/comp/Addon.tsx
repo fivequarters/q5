@@ -1,5 +1,5 @@
 import { Fade } from '@5qtrs/fade';
-import { FaTrash, FaEdit, FaCloudDownloadAlt } from '@5qtrs/icon';
+import { FaTrash, FaEdit, FaCloudDownloadAlt, FaArrowUp } from '@5qtrs/icon';
 import { Image } from '@5qtrs/image';
 import React, { useState } from 'react';
 import styled from 'styled-components';
@@ -13,7 +13,7 @@ import { Modal } from '@5qtrs/modal';
 const Container = styled.div`
   display: flex;
   flex-direction: row;
-  flex-basis: 33%;
+  width: 260px;
   flex-wrap: wrap;
   align-content: flex-start;
   padding: 10px;
@@ -37,7 +37,7 @@ const AddonDescription = styled.div`
 
 const AddonEditIcon = styled.div`
   font-size: 20px;
-  width: 30px;
+  width: 45px;
   height: 30px;
   align-content: center;
   &:hover {
@@ -57,6 +57,14 @@ const AddonManagementIcon = styled.div`
   }
 `;
 
+const SubHeading = styled.div`
+  font-weight: 300;
+  color: #c0392b;
+  padding: 10px;
+  margin: 10px 0px;
+  border-bottom: 1px solid #d6dbdf;
+`;
+
 const StyledModal = styled(Modal)`
   background-color: rgba(255, 255, 255, 0.45);
 `;
@@ -68,10 +76,22 @@ const ModalInnerStyle = styled.div`
   padding: 30px;
 `;
 
+const ModalInnerHeader = styled.div`
+  flex-direction: row;
+  display: flex;
+`;
+
 const Input = styled.input`
   font-size: 14px;
   padding: 5px;
   width: 300px;
+`;
+
+const Button = styled.div`
+  background-color: #d3d3d3;
+  padding: 5px 15px;
+  width: 250px;
+  content-align: center;
 `;
 
 const Label = styled.label`
@@ -88,21 +108,17 @@ export enum AddonState {
   HasUpdate,
 }
 
-export type AddonSecret = {
-  name: string;
-  value: string;
-};
-
 export type AddonProps = {
   logoUrl: string;
   name: string;
   description: string;
   version: string;
   state: AddonState;
-  secrets: AddonSecret[];
+  secretName: string;
+  secretValue: string;
   onInstall: () => void;
   onUninstall: () => void;
-  onSecretChange: (secret: AddonSecret) => void;
+  onSecretChange: (secretValue: string) => void;
 } & React.BaseHTMLAttributes<HTMLDivElement>;
 
 // -------------------
@@ -115,7 +131,8 @@ export function Addon({
   description,
   version,
   state,
-  secrets,
+  secretName,
+  secretValue,
   onInstall,
   onUninstall,
   onSecretChange,
@@ -123,6 +140,7 @@ export function Addon({
 }: AddonProps) {
   const [installModalVisible, setInstallModalVisible] = useState(false);
   const [configModalVisible, setConfigModalVisible] = useState(false);
+  const [secretDisplayValue, setSecretDisplayValue] = useState(secretValue);
 
   function onClickAddonManagement() {
     if (state === AddonState.Installed) {
@@ -150,22 +168,9 @@ export function Addon({
     setConfigModalVisible(false);
   }
 
-  function renderSecrets() {
-    const items = secrets.map(secret => {
-      function handleChange(event: React.FormEvent<HTMLInputElement>) {
-        secret.value = event.currentTarget.value;
-        onSecretChange(secret);
-      }
-
-      return (
-        <p key={secret.name}>
-          <Label>{secret.name}</Label>
-          <Input type="password" value={secret.value} onChange={handleChange} />
-        </p>
-      );
-    });
-
-    return items;
+  function handleChange(event: React.FormEvent<HTMLInputElement>) {
+    setSecretDisplayValue(event.currentTarget.value);
+    onSecretChange(secretDisplayValue);
   }
 
   //const displayEditor = { display: addon === 'on-new-inquiry' ? '' : 'none' };
@@ -178,11 +183,19 @@ export function Addon({
             event.stopPropagation();
           }}
         >
-          <AddonImage src={logoUrl} />
-          <AddonName>{name}</AddonName>
+          <SubHeading>Install addon</SubHeading>
+          <ModalInnerHeader>
+            <AddonImage src={logoUrl} />
+            <AddonName>{name}</AddonName>
+          </ModalInnerHeader>
           <AddonDescription>{description}</AddonDescription>
-          {renderSecrets()}
-          <FaCloudDownloadAlt onClick={installConfirmClick} />
+          <p key={secretName}>
+            <Label>{secretName}</Label>
+            <Input type="password" value={secretDisplayValue} onChange={handleChange} />
+          </p>
+          <Button onClick={installConfirmClick}>
+            <p>Install addon</p>
+          </Button>
         </ModalInnerStyle>
       </StyledModal>
       <StyledModal visible={configModalVisible} onClick={configModalClick}>
@@ -191,13 +204,25 @@ export function Addon({
             event.stopPropagation();
           }}
         >
-          {renderSecrets()}
-          <button>Drop to code</button>
+          <SubHeading>Configure addon</SubHeading>
+          <ModalInnerHeader>
+            <AddonImage src={logoUrl} />
+            <AddonName>{name}</AddonName>
+          </ModalInnerHeader>
+          <p>Configure this addon by setting the properties below:</p>
+          <p key={secretName}>
+            <Label>{secretName}</Label>
+            <Input type="password" value={secretDisplayValue} onChange={handleChange} />
+          </p>
+          <Button>
+            <p>Customize with code (advanced)</p>
+          </Button>
         </ModalInnerStyle>
       </StyledModal>
       <AddonImage src={logoUrl} />
       <AddonName>{name}</AddonName>
       <AddonEditIcon style={{ display: state === AddonState.Installed ? 'block' : 'none' }}>
+        <FaArrowUp style={{ color: '#d3d3d3', marginRight: 5 }} />
         <FaEdit onClick={onClickEdit} />
       </AddonEditIcon>
       <AddonManagementIcon onClick={onClickAddonManagement}>
