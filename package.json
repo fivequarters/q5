@@ -102,12 +102,10 @@
     "lib/shared/hex",
     "lib/server/aws-cred",
     "lib/server/aws-deployment",
-    "lib/server/console-color",
-    "lib/shared/string",
-    "lib/shared/column",
-    "lib/shared/row",
     "lib/shared/table",
     "lib/server/cli",
-    "lib/server/function-cli"
+    "cli/flexd-cli",
+    "lib/shared/text",
+    "lib/shared/array"
   ]
 }

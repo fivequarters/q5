@@ -60,13 +60,11 @@
       "@5qtrs/hex": ["lib/shared/hex/src"],
       "@5qtrs/aws-cred": ["lib/server/aws-cred/src"],
       "@5qtrs/aws-deployment": ["lib/server/aws-deployment/src"],
-      "@5qtrs/console-color": ["lib/server/console-color/src"],
-      "@5qtrs/string": ["lib/shared/string/src"],
-      "@5qtrs/column": ["lib/shared/column/src"],
-      "@5qtrs/row": ["lib/shared/row/src"],
       "@5qtrs/table": ["lib/shared/table/src"],
       "@5qtrs/cli": ["lib/server/cli/src"],
-      "@5qtrs/function-cli": ["lib/server/function-cli/src"]
+      "@5qtrs/flexd-cli": ["cli/flexd-cli/src"],
+      "@5qtrs/text": ["lib/shared/text/src"],
+      "@5qtrs/array": ["lib/shared/array/src"]
     }
   }
 }
