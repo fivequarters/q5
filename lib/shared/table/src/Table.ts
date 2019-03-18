@@ -1,18 +1,33 @@
-import { IColumnsConstraint, resize, validate } from '@5qtrs/column';
-import { format, ICell, ICellConstraint, IRowConstraint } from '@5qtrs/row';
-import { padLeft, toLines, width } from '@5qtrs/string';
+import { IText, Text } from '@5qtrs/text';
 import { EOL } from 'os';
+import { IColumnsConstraint, resize, validate } from './column';
+import { format, ICell, ICellConstraint, IRowConstraint } from './row';
 
-export { IColumnsConstraint, IColumnConstraint } from '@5qtrs/column';
-export { IRowConstraint, ICellConstraint, CellAlignment, CellOverflow } from '@5qtrs/row';
+// ------------------
+// Internal Functions
+// ------------------
 
-// ----------------
-// Exported Classes
-// ----------------
+function width(lines: Text[]) {
+  let max = 0;
+  for (const line of lines) {
+    if (line.length > max) {
+      max = line.length;
+    }
+  }
+  return max;
+}
+
+// -------------------
+// Internal Interfaces
+// -------------------
 
 interface IRow {
   cells: ICell[];
 }
+
+// ----------------
+// Exported Classes
+// ----------------
 
 export class Table {
   public get columnCount() {
@@ -30,7 +45,7 @@ export class Table {
 
   private columnConstraint: IColumnsConstraint;
   private rowConstraint: IRowConstraint;
-  private rows: { values: string[]; constraint: IRowConstraint }[];
+  private rows: { values: Text[]; constraint: IRowConstraint }[];
 
   private constructor(constraints: IColumnsConstraint) {
     this.columnConstraint = constraints;
@@ -38,10 +53,15 @@ export class Table {
     this.rows = [];
   }
 
-  public addRow(values: string[]) {
-    if (values.length !== this.columnCount) {
+  public addRow(cellValues: IText[]) {
+    if (cellValues.length !== this.columnCount) {
       throw new Error(`A row must have as many values as there are columns: ${this.columnCount}`);
     }
+    const values: Text[] = [];
+    for (const cellValue of cellValues) {
+      values.push(cellValue instanceof Text ? cellValue : Text.create(cellValue));
+    }
+
     this.rows.push({
       values,
       constraint: {
@@ -74,7 +94,6 @@ export class Table {
       overflow: constraint.overflow,
       wrapIndent: constraint.wrapIndent,
       ellipsis: constraint.ellipsis,
-      formatter: constraint.formatter,
     };
   }
 
@@ -84,7 +103,11 @@ export class Table {
     this.rowConstraint.cells[column] = undefined;
   }
 
-  public toString() {
+  public toString(enableStyle?: boolean) {
+    return this.toText().toString(enableStyle);
+  }
+
+  public toText() {
     const allRowValues = this.getAllRowValues();
     const columnWidths = this.getColumnWidths(allRowValues);
     const rowStrings = [];
@@ -93,7 +116,7 @@ export class Table {
       rowStrings.push(this.rowToString(formattedRow));
     }
 
-    return rowStrings.join(EOL);
+    return Text.join(rowStrings, EOL);
   }
 
   private getAllRowValues() {
@@ -101,7 +124,7 @@ export class Table {
     for (const row of this.rows) {
       const rowValues: IRow = { cells: [] };
       for (const value of row.values) {
-        rowValues.cells.push({ lines: toLines(value) });
+        rowValues.cells.push({ lines: value.lines() });
       }
       allRowValues.push(rowValues);
     }
@@ -113,7 +136,7 @@ export class Table {
     for (const rowValues of allRowValues) {
       for (let i = 0; i < rowValues.cells.length; i++) {
         const cellWidth = width(rowValues.cells[i].lines);
-        if (cellWidth > (columnWidths[i] || 0)) {
+        if (cellWidth >= (columnWidths[i] || 0)) {
           columnWidths[i] = cellWidth;
         }
       }
@@ -122,18 +145,18 @@ export class Table {
   }
 
   private rowToString(formmatedRow: ICell[]) {
-    const gutter = padLeft('', this.columnConstraint.gutter || 0);
+    const gutter = Text.empty().pad(this.columnConstraint.gutter || 0);
     const lines = [];
     for (let i = 0; i < formmatedRow[0].lines.length; i++) {
       const line = [];
       for (const cell of formmatedRow) {
         line.push(cell.lines[i]);
       }
-      const fullLine = line.join(gutter);
+      const fullLine = Text.join(line, gutter);
       lines.push(fullLine.trimRight());
     }
 
-    return lines.join(EOL);
+    return Text.join(lines, EOL);
   }
 
   private validateColumnIndex(column: number) {

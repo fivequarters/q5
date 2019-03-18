@@ -1,4 +1,4 @@
-import { padCenter, padLeft, padRight, truncate, wrap } from '@5qtrs/string';
+import { IText, Text } from '@5qtrs/text';
 
 // ------------------
 // Internal Constants
@@ -20,52 +20,45 @@ function validate(values: ICell[], widths: number[]) {
   }
 }
 
-function formatCell(lines: string[], formatter?: (line: string) => string) {
-  const formattedLines = [];
-  for (const line of lines) {
-    formattedLines.push(formatter ? formatter(line) : line);
-  }
-  return formattedLines;
-}
-
-function removeOverflow(lines: string[], width: number, indent?: string, overflow: CellOverflow = CellOverflow.wrap) {
+function removeOverflow(lines: Text[], width: number, indent?: string, overflow: CellOverflow = CellOverflow.wrap) {
   if (width === 0) {
-    return [''];
+    return [Text.empty()];
   }
+
+  const result = [];
   if (overflow === CellOverflow.wrap) {
-    return wrap(lines, width, indent);
+    for (const line of lines) {
+      result.push(...line.wrap(width, indent));
+    }
   } else {
     const ellipsis = overflow === CellOverflow.truncate ? '' : undefined;
-    return truncate(lines, width, ellipsis);
+    for (const line of lines) {
+      result.push(...line.truncate(width, ellipsis));
+    }
   }
+
+  return result;
 }
 
-function truncateCell(lines: string[], max?: number, ellipsis: string = defaultEllipsis) {
+function truncateCell(lines: Text[], max?: number, ellipsis: string = defaultEllipsis) {
   if (max !== undefined && lines.length > max) {
     lines = lines.slice(0, max);
     if (ellipsis && max > 1) {
       lines.pop();
-      lines.push(ellipsis);
+      lines.push(Text.create(ellipsis));
     }
   }
   return lines;
 }
 
-function alignCell(lines: string[], width: number, align: CellAlignment = CellAlignment.left) {
-  let alignFunc = padRight;
+function alignCell(lines: Text[], width: number, align: CellAlignment = CellAlignment.left) {
+  let func = (line: Text) => line.padRight(width);
   if (align === CellAlignment.right) {
-    alignFunc = padLeft;
+    func = (line: Text) => line.padLeft(width);
   } else if (align === CellAlignment.center) {
-    alignFunc = padCenter;
+    func = (line: Text) => line.pad(width);
   }
-
-  const alignedLines = [];
-  for (const line of lines) {
-    const aligned = alignFunc(line, width);
-    alignedLines.push(aligned);
-  }
-
-  return alignedLines;
+  return lines.map(func);
 }
 
 // -------------------
@@ -89,7 +82,6 @@ export interface ICellConstraint {
   overflow?: CellOverflow;
   wrapIndent?: string;
   ellipsis?: string;
-  formatter?: (line: string) => string;
 }
 
 export interface IRowConstraint {
@@ -100,7 +92,7 @@ export interface IRowConstraint {
 }
 
 export interface ICell {
-  lines: string[];
+  lines: Text[];
 }
 
 // ------------------
@@ -121,7 +113,6 @@ export function format(values: ICell[], widths: number[], constraint?: IRowConst
     lines = removeOverflow(lines, widths[i], cellConstraint.wrapIndent, cellConstraint.overflow);
     lines = truncateCell(lines, constraint.max, constraint.ellipsis);
     lines = alignCell(lines, widths[i], cellConstraint.align);
-    lines = formatCell(lines, cellConstraint.formatter);
     if (lines.length > height) {
       height = lines.length;
     }
@@ -131,7 +122,8 @@ export function format(values: ICell[], widths: number[], constraint?: IRowConst
   for (let i = 0; i < formatted.length; i++) {
     const lines = formatted[i].lines;
     while (lines.length < height) {
-      lines.push(padLeft('', widths[i]));
+      const emptyLine = Text.empty().pad(widths[i]);
+      lines.push(emptyLine);
     }
   }
 

@@ -1,4 +1,4 @@
-import { resize, validate } from '../src';
+import { resize, validate } from '../src/column';
 
 describe('resize', () => {
   it('should do nothing with already correctly sized columns', () => {

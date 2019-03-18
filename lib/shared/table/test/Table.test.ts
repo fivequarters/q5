@@ -87,9 +87,7 @@ describe('Table', () => {
       table.addRow(['value 1 that will be truncated', 'value 2']);
       table.clearRowConstraint();
       table.addRow(['value 3 that will wrap', 'value 4']);
-      expect(table.toString()).toBe(
-        ['value 1 that   value', 'value 3 that   value', '  will wrap      4  '].join('\n')
-      );
+      expect(table.toString()).toBe(['value 1 that   value', 'value 3 that   value', 'will wrap      4'].join('\n'));
     });
 
     it('should do nothing if the row constraint was not set', async () => {
@@ -143,7 +141,7 @@ describe('Table', () => {
       table.addRow(['value 1', 'value 2']);
       table.clearCellConstraint(1);
       table.addRow(['value 3', 'value 4']);
-      expect(table.toString()).toBe(['value 1      value 2', 'value 3   value 4   '].join('\n'));
+      expect(table.toString()).toBe(['value 1      value 2', 'value 3   value 4'].join('\n'));
     });
 
     it('should error if the column index is invalid', async () => {
@@ -192,7 +190,7 @@ describe('Table', () => {
       const table = await Table.create(columnsConstraint);
       table.addRow(['value 1', 'value 2']);
       table.addRow(['value 3', 'value 4']);
-      expect(table.toString()).toBe(['value 1   value 2   ', 'value 3   value 4   '].join('\n'));
+      expect(table.toString()).toBe(['value 1   value 2', 'value 3   value 4'].join('\n'));
     });
 
     it('should stringify the table with cell constraints', async () => {
@@ -210,7 +208,7 @@ describe('Table', () => {
       table.setRowConstraint({ max: 1 });
       table.addRow(['value 1 that will be truncated', 'value 2']);
       table.addRow(['value 3', 'value 4']);
-      expect(table.toString()).toBe(['value 1 that will be', 'value 3             '].join('\n'));
+      expect(table.toString()).toBe(['value 1 that will be', 'value 3'].join('\n'));
     });
   });
 });

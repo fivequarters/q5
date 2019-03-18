@@ -17,9 +17,7 @@
   },
   "keywords": [],
   "dependencies": {
-    "@5qtrs/column": "^0.0.1",
-    "@5qtrs/row": "^0.0.1",
-    "@5qtrs/string": "^0.0.1"
+    "@5qtrs/text": "^0.0.1"
   },
   "devServer": {
     "port": 9511

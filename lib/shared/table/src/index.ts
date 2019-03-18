@@ -1,9 +1,3 @@
-export {
-  Table,
-  IColumnsConstraint,
-  IColumnConstraint,
-  IRowConstraint,
-  ICellConstraint,
-  CellAlignment,
-  CellOverflow,
-} from './Table';
+export { Table } from './Table';
+export { IColumnsConstraint, IColumnConstraint } from './column';
+export { IRowConstraint, ICellConstraint, CellAlignment, CellOverflow } from './row';
