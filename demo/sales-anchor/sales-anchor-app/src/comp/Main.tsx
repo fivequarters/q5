@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { ApiContext } from './ApiContext';
 import { EventActions } from './EventActions';
+import { Addons } from './Addons';
 import { Inquiries } from './Inquiries';
 import { MainContent } from './MainContent';
 import { NavBar } from './NavBar';
@@ -11,6 +12,7 @@ import { SideNav } from './SideNav';
 enum Selections {
   newInquiries = 'Leads',
   eventActions = 'Event Actions',
+  addons = 'Addons',
 }
 
 export const Content = styled.div`
@@ -55,6 +57,7 @@ export function Main() {
   const display = [
     selection === Selections.newInquiries ? '' : 'none',
     selection === Selections.eventActions ? '' : 'none',
+    selection === Selections.addons ? '' : 'none',
   ];
 
   return (
@@ -65,6 +68,7 @@ export function Main() {
         <MainContent heading={selection}>
           <Inquiries inquiries={inquiries} style={{ display: display[0] }} />
           <EventActions style={{ display: display[1] }} />
+          <Addons style={{ display: display[2] }} />
         </MainContent>
         <Notifications inquiries={inquiries} />
       </Content>

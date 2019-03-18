@@ -1,4 +1,4 @@
-import { FaBolt, GoAlert, GoCheck, GoClock, GoGear, GoInbox, GoQuote, GoTools } from '@5qtrs/icon';
+import { FaBolt, FaPuzzlePiece, GoAlert, GoCheck, GoClock, GoGear, GoInbox, GoQuote, GoTools } from '@5qtrs/icon';
 import React from 'react';
 import styled from 'styled-components';
 
@@ -13,6 +13,7 @@ const sideNavItems = [
   { name: 'Upcoming Renewals', icon: GoClock, canSelect: false },
   { name: 'divider', icon: GoAlert, canSelect: false },
   { name: 'Event Actions', icon: FaBolt, canSelect: true },
+  { name: 'Addons', icon: FaPuzzlePiece, canSelect: true },
   { name: 'Settings', icon: GoGear, canSelect: false },
   { name: 'Tools', icon: GoTools, canSelect: false },
 ];
