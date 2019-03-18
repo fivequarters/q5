@@ -33,20 +33,10 @@ const AddonImage = styled(Image)`
 
 const AddonDescription = styled.div`
   flex-basis: 100%;
+  margin-bottom: 30px;
 `;
 
-const AddonEditIcon = styled.div`
-  font-size: 20px;
-  width: 45px;
-  height: 30px;
-  align-content: center;
-  &:hover {
-    color: #c0392b;
-    cursor: pointer;
-  }
-`;
-
-const AddonManagementIcon = styled.div`
+const AddonIcon = styled.div`
   font-size: 20px;
   width: 30px;
   height: 30px;
@@ -66,13 +56,13 @@ const SubHeading = styled.div`
 `;
 
 const StyledModal = styled(Modal)`
-  background-color: rgba(255, 255, 255, 0.45);
+  background-color: rgba(100, 100, 100, 0.45);
 `;
 
 const ModalInnerStyle = styled.div`
   background-color: white;
   width: 800px;
-  height: 500px;
+  height: 550px;
   padding: 30px;
 `;
 
@@ -88,10 +78,13 @@ const Input = styled.input`
 `;
 
 const Button = styled.div`
+  margin-top: 30px;
+  margin-bottom: 30px;
   background-color: #d3d3d3;
-  padding: 5px 15px;
+  padding: 15px;
   width: 250px;
   content-align: center;
+  cursor: pointer;
 `;
 
 const Label = styled.label`
@@ -115,10 +108,12 @@ export type AddonProps = {
   version: string;
   state: AddonState;
   secretName: string;
+  secretKey: string;
   secretValue: string;
   onInstall: () => void;
   onUninstall: () => void;
   onSecretChange: (secretValue: string) => void;
+  template?: any;
 } & React.BaseHTMLAttributes<HTMLDivElement>;
 
 // -------------------
@@ -132,15 +127,18 @@ export function Addon({
   version,
   state,
   secretName,
+  secretKey,
   secretValue,
   onInstall,
   onUninstall,
   onSecretChange,
+  template,
   ...rest
 }: AddonProps) {
   const [installModalVisible, setInstallModalVisible] = useState(false);
   const [configModalVisible, setConfigModalVisible] = useState(false);
   const [secretDisplayValue, setSecretDisplayValue] = useState(secretValue);
+  const [editorFunction, setEditorFunction] = useState('');
 
   function onClickAddonManagement() {
     if (state === AddonState.Installed) {
@@ -168,12 +166,23 @@ export function Addon({
     setConfigModalVisible(false);
   }
 
+  function onCodeButtonClick() {
+    setEditorFunction('usr-' + name.replace(/\s/g, '').toLowerCase() + '-' + version.replace(/[.]/g, ''));
+  }
+
+  function onEditorBack() {
+    setEditorFunction('');
+  }
+
   function handleChange(event: React.FormEvent<HTMLInputElement>) {
     setSecretDisplayValue(event.currentTarget.value);
     onSecretChange(secretDisplayValue);
   }
 
-  //const displayEditor = { display: addon === 'on-new-inquiry' ? '' : 'none' };
+  // Add settings to template
+  if (!template) template = {};
+  if (!template.configuration) template.configuration = {};
+  template.configuration[secretKey] = secretDisplayValue;
 
   return (
     <Container {...rest}>
@@ -186,16 +195,16 @@ export function Addon({
           <SubHeading>Install addon</SubHeading>
           <ModalInnerHeader>
             <AddonImage src={logoUrl} />
-            <AddonName>{name}</AddonName>
+            <AddonName>
+              {name}
+              <br />
+              {version}
+            </AddonName>
           </ModalInnerHeader>
           <AddonDescription>{description}</AddonDescription>
-          <p key={secretName}>
-            <Label>{secretName}</Label>
-            <Input type="password" value={secretDisplayValue} onChange={handleChange} />
-          </p>
-          <Button onClick={installConfirmClick}>
-            <p>Install addon</p>
-          </Button>
+          <Label>{secretName}</Label>
+          <Input type="password" value={secretDisplayValue} onChange={handleChange} />
+          <Button onClick={installConfirmClick}>Install addon</Button>
         </ModalInnerStyle>
       </StyledModal>
       <StyledModal visible={configModalVisible} onClick={configModalClick}>
@@ -209,26 +218,36 @@ export function Addon({
             <AddonImage src={logoUrl} />
             <AddonName>{name}</AddonName>
           </ModalInnerHeader>
-          <p>Configure this addon by setting the properties below:</p>
-          <p key={secretName}>
+          <div style={{ display: editorFunction !== '' ? 'none' : 'block' }}>
+            <p>Configure this addon by setting the properties below:</p>
             <Label>{secretName}</Label>
             <Input type="password" value={secretDisplayValue} onChange={handleChange} />
-          </p>
-          <Button>
-            <p>Customize with code (advanced)</p>
-          </Button>
+            <Button onClick={onCodeButtonClick}> Customize with code (advanced)</Button>
+          </div>
+          <Editor
+            style={{ display: editorFunction === '' ? 'none' : 'block' }}
+            onEditorBack={onEditorBack}
+            eventAction={editorFunction}
+            template={template}
+          />
         </ModalInnerStyle>
       </StyledModal>
       <AddonImage src={logoUrl} />
-      <AddonName>{name}</AddonName>
-      <AddonEditIcon style={{ display: state === AddonState.Installed ? 'block' : 'none' }}>
-        <FaArrowUp style={{ color: '#d3d3d3', marginRight: 5 }} />
+      <AddonName>
+        {name}
+        <br />
+        {version}
+      </AddonName>
+      <AddonIcon style={{ display: state === AddonState.Installed ? 'block' : 'none' }}>
+        <FaArrowUp style={{ color: '#d3d3d3' }} />
+      </AddonIcon>
+      <AddonIcon style={{ display: state === AddonState.Installed ? 'block' : 'none' }}>
         <FaEdit onClick={onClickEdit} />
-      </AddonEditIcon>
-      <AddonManagementIcon onClick={onClickAddonManagement}>
+      </AddonIcon>
+      <AddonIcon onClick={onClickAddonManagement}>
         <FaCloudDownloadAlt style={{ display: state === AddonState.Installed ? 'none' : 'block' }} />
         <FaTrash style={{ display: state === AddonState.Installed ? 'block' : 'none' }} />
-      </AddonManagementIcon>
+      </AddonIcon>
       <AddonDescription>{description}</AddonDescription>
     </Container>
   );

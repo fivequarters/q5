@@ -2,7 +2,6 @@ import { Fade } from '@5qtrs/fade';
 import { Image } from '@5qtrs/image';
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { Editor } from './Editor';
 import { Addon, AddonState } from './Addon';
 
 // -------------------
@@ -42,7 +41,35 @@ const addonList = [
     version: '1.1.0.0',
     state: AddonState.NotInstalled,
     secretName: 'API Key',
+    secretKey: 'CLEARBIT_KEY',
     secretValue: '',
+    template: {
+      nodejs: {
+        files: {
+          'index.js': `
+          const lookupSocial = require('./lookupSocial.js');
+
+          module.exports = (ctx, cb) => { 
+              lookupSocial(ctx.body, ctx.configuration, e => cb(e, { body: ctx.body }));
+          }`,
+          'lookupSocial.js': `
+          module.exports = (lead, configuration, cb) => {
+            const clearbit_key = ctx.configuration.CLEARBIT_KEY;
+            const clearbit = require('clearbit')(clearbit_key);
+            var Person = clearbit.Person;
+            
+            Person.find({email: lead.email}). 
+              then(person => {
+                lead.github = person.github.handle;
+                lead.twitter = person.twitter.handle;
+                lead.linkedin = person.linkedin.handle;
+                cb();
+              });
+          }`,
+          'package.json': { dependencies: { clearbit: '*' } },
+        },
+      },
+    },
   },
   {
     name: 'Salesforce',
@@ -52,6 +79,7 @@ const addonList = [
     version: '3.4.0.0',
     state: AddonState.NotInstalled,
     secretName: 'Client Secret',
+    secretKey: 'SALESFORCE_SECRET',
     secretValue: '',
   },
   {
@@ -62,6 +90,7 @@ const addonList = [
     version: '1.0.0.0',
     state: AddonState.NotInstalled,
     secretName: 'API Key',
+    secretKey: 'INTERCOM_KEY',
     secretValue: '',
   },
   {
@@ -72,6 +101,7 @@ const addonList = [
     version: '0.5.6.0',
     state: AddonState.NotInstalled,
     secretName: 'API Key',
+    secretKey: 'SLACK_KEY',
     secretValue: '',
   },
 ];
@@ -93,7 +123,9 @@ interface AddonItem {
   version: string;
   state: AddonState;
   secretName: string;
+  secretKey: string;
   secretValue: string;
+  template?: any;
 }
 
 export function Addons({ ...rest }: AddonsProps) {
@@ -132,10 +164,12 @@ export function Addons({ ...rest }: AddonsProps) {
         version={addon.version}
         state={addon.state}
         secretName={addon.secretName}
+        secretKey={addon.secretKey}
         secretValue={addon.secretValue}
         onInstall={onInstall}
         onUninstall={onUninstall}
         onSecretChange={onSecretChange}
+        template={addon.template}
       />
     );
   }
@@ -148,7 +182,7 @@ export function Addons({ ...rest }: AddonsProps) {
       <Fade visible={true} fadeIn={true} fadeOut={true} fadeRate={3}>
         <Inner>
           <SubHeading style={{ display: installedItems.length ? 'block' : 'none' }}>Installed</SubHeading>
-          <AddonList style={{ display: installedItems.length ? 'block' : 'none' }}>{installedItems}</AddonList>
+          <AddonList style={{ display: installedItems.length ? 'flex' : 'none' }}>{installedItems}</AddonList>
           <SubHeading>Available</SubHeading>
           <AddonList>{availableItems}</AddonList>
         </Inner>

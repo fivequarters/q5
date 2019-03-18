@@ -48,13 +48,14 @@ const EditorContainer = styled.div`
 export type EditorProps = {
   eventAction: string;
   onEditorBack: () => void;
+  template?: any;
 } & React.BaseHTMLAttributes<HTMLDivElement>;
 
 // -------------------
 // Exported Components
 // -------------------
 
-export function Editor({ eventAction, onEditorBack, ...rest }: EditorProps) {
+export function Editor({ eventAction, onEditorBack, template, ...rest }: EditorProps) {
   const editorElement = useRef(null);
   const api = useContext(ApiContext);
 
@@ -64,7 +65,7 @@ export function Editor({ eventAction, onEditorBack, ...rest }: EditorProps) {
     if (editorElement && editorElement.current) {
       // @ts-ignore
       createEditor(editorElement.current, config.boundaryId, eventAction, async () => await api.getEditorConfig(), {
-        template: {},
+        template: template,
         editor: {
           navigationPanel: {
             //   hideFiles: ['index.js'],
