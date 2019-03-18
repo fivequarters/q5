@@ -1,0 +1,19 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": { "rootDir": "src", "outDir": "libm" },
+  "include": ["src"],
+  "references": [{ "path": "../../shared/event" }],
+  "typedocOptions": {
+    "mode": "file",
+    "out": "docs/dist",
+    "readme": "docs/readme.md",
+    "theme": "minimal",
+    "hideGenerator": "true",
+    "name": "Flexd Editor API",
+    "ignoreCompilerErrors": true,
+    "excludeNotExported": true,
+    "excludeExternals": true,
+    "excludePrivate": true,
+    "excludeProtected": true
+  }
+}

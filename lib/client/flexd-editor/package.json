@@ -1,0 +1,47 @@
+{
+  "name": "@5qtrs/flexd-editor",
+  "version": "0.0.1",
+  "description": "",
+  "main": "libm/index.js",
+  "browser": "libm/index.js",
+  "module": "libm/index.js",
+  "sideEffects": false,
+  "license": "UNLICENSED",
+  "author": "FiveQuarters.io",
+  "scripts": {
+    "build": "tsc -b && cp ./src/*.css libm/",
+    "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x}",
+    "clean": "rm -r -f libm; rm -r -f dist; rm -r -f coverage",
+    "copy": "cp ./dist/* ../../../demo/functions/functions-app/assets/js/ && cp ./dist/* ../../../demo/sales-anchor/sales-anchor-app/js/",
+    "bundle:dev": "webpack --env dev",
+    "bundle:prod": "webpack --env build",
+    "bundle": "webpack --env dev && webpack --env build",
+    "doc": "typedoc"
+  },
+  "keywords": [],
+  "dependencies": {
+    "jqtree": "^1.4.9",
+    "jquery-resizable-dom": "^0.32.0",
+    "monaco-editor": "^0.15.6",
+    "superagent": "^4.1.0",
+    "@5qtrs/event": "^0.0.1"
+  },
+  "devDependencies": {
+    "@fortawesome/fontawesome-svg-core": "^1.2.9",
+    "@fortawesome/free-brands-svg-icons": "^5.6.0",
+    "@fortawesome/free-regular-svg-icons": "^5.6.0",
+    "@fortawesome/free-solid-svg-icons": "^5.6.0",
+    "@types/jquery": "^3.3.22",
+    "@types/node": "^10.12.9",
+    "@types/superagent": "^3.8.6",
+    "css-loader": "^1.0.1",
+    "jsdom": "11.11.0",
+    "jsdom-global": "3.0.2",
+    "monaco-editor-webpack-plugin": "^1.7.0",
+    "style-loader": "^0.23.1",
+    "ts-loader": "^5.3.0",
+    "typescript": "^3.1.6",
+    "uglifyjs-webpack-plugin": "^1.2.7",
+    "yargs": "^10.0.3"
+  }
+}

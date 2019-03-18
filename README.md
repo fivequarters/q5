@@ -59,13 +59,19 @@ npm i -g yarn
 
 5. Install the **ngrok** tool from [here](https://ngrok.com/download) and put the executable someplace on the PATH.
 
-6. At the root of this repo, run the **setup** cmd:
+6. Install `typedoc` tool by running
+
+```
+npm i -g typedoc
+```
+
+7. At the root of this repo, run the **setup** cmd:
 
 ```
 yarn setup
 ```
 
-7. And lastly, build everything in the repo with the **build** cmd:
+8. And lastly, build everything in the repo with the **build** cmd:
 
 ```
 yarn build
@@ -95,5 +101,6 @@ Here is a quick list of commands for working with the workspaces in the reposito
 | Rename a Workspace                    | `yarn rename <workspace-name> <new-name>`                    |
 | Move a Workspace                      | `yarn move <workspace-name> <new-path>`                      |
 | Delete a Workspace                    | `yarn delete <workspace-name> <new-path>`                    |
+| Generate API documentati              | `yarn doc <workspace-name>`                                  |
 
 **\*** These commands will execute for all workspaces that have a path/name that match the filter

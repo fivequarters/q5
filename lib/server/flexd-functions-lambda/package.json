@@ -1,0 +1,28 @@
+{
+  "name": "@5qtrs/flexd-functions-lambda",
+  "version": "0.0.1",
+  "description": "",
+  "main": "libc/index.js",
+  "license": "UNLICENSED",
+  "author": "FiveQuarters.io",
+  "scripts": {
+    "build": "tsc -b",
+    "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x}",
+    "clean": "rm -r -f libc"
+  },
+  "keywords": [],
+  "dependencies": {
+    "@5qtrs/zmq-logger": "^0.0.1",
+    "async": "^2.6.1",
+    "aws-sdk": "^2.397.0",
+    "cron-parser": "^2.7.3",
+    "http-errors": "^1.7.1",
+    "jsonwebtoken": "^8.4.0",
+    "jszip": "^3.1.5",
+    "semver": "^5.6.0",
+    "superagent": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/async": "^2.4.0"
+  }
+}

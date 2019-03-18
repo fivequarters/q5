@@ -60,7 +60,7 @@ export function executor(event: any, context: any, cb: any) {
       if (process.env.LOGS_WS_URL) {
         options.logs = {
           token: Jwt.sign(
-            { boundary: body.boundary, name: body.name },
+            { subscriptionId: body.subscriptionId, boundaryId: body.boundaryId, functionId: body.functionId },
             <string>process.env.LOGS_WS_TOKEN_SIGNATURE_KEY,
             {
               expiresIn: +(<string>process.env.LOGS_WS_TOKEN_EXPIRY) || 30,
@@ -89,7 +89,7 @@ export function executor(event: any, context: any, cb: any) {
 }
 
 function get_user_function_description(options: any) {
-  return `function:${options.boundary}:${options.name}`;
+  return `function:${options.subscriptionId}:${options.boundaryId}:${options.functionId}`;
 }
 
 function get_user_function_name(options: any): string {

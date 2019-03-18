@@ -82,7 +82,7 @@ export class Api {
     const config = await this.request('GET', url);
 
     if (editorAccessToken) {
-      config.token = editorAccessToken;
+      config.accessToken = editorAccessToken;
     }
     return config;
   }
