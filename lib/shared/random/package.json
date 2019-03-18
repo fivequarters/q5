@@ -16,7 +16,9 @@
     "clean": "rm -r -f libc; rm -r -f libm; rm -r -f coverage"
   },
   "keywords": [],
-  "dependencies": {},
+  "dependencies": {
+    "uuid": "^3.3.2"
+  },
   "devServer": {
     "port": 9506
   },

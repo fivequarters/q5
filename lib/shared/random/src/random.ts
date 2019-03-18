@@ -4,7 +4,7 @@ import uuidv4 from 'uuid/v4';
 // Internal Constants
 // ------------------
 const hexLookup: string[] = [];
-for (var i = 0; i < 256; ++i) {
+for (let i = 0; i < 256; ++i) {
   hexLookup[i] = (i + 0x100).toString(16).substr(1);
 }
 
@@ -25,8 +25,8 @@ function toHexString(buffer: number[]) {
 // ------------------
 
 export function random(options?: { lengthInBytes?: number; asByteArray?: boolean }) {
-  const length = options && options.lengthInBytes != undefined ? options.lengthInBytes : 16;
-  const asByteArray = options && options.asByteArray != undefined ? options.asByteArray : false;
+  const length = options && options.lengthInBytes !== undefined ? options.lengthInBytes : 16;
+  const asByteArray = options && options.asByteArray !== undefined ? options.asByteArray : false;
 
   const buffer: number[] = [];
   let iteration: number = 0;
