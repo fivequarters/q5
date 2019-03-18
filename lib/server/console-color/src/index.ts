@@ -1,1 +1,0 @@
-export { ConsoleColor } from './ConsoleColor';
