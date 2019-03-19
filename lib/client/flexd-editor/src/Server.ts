@@ -216,6 +216,43 @@ export class Server {
     let startTime: number;
     let self = this;
 
+    const waitForBuild = (build: IBuildStatus): Promise<IBuildStatus> => {
+      const elapsed = Date.now() - startTime;
+      build.progress = Math.min(elapsed / this.buildTimeout, 1);
+      editorContext.buildProgress(build);
+      if (elapsed > this.buildTimeout) {
+        throw new Error(`Build process did not complete within the ${this.buildTimeout}ms timeout.`);
+      }
+      return new Promise(resolve => setTimeout(resolve, this.buildStatusCheckInterval))
+        .then(() => {
+          // @ts-ignore
+          const url = `${this.account.baseUrl}api/v1/subscription/${self.account.subscriptionId}/boundary/${
+            editorContext.boundaryId
+          }/function/${editorContext.functionId}/build/${build.id}`;
+          return (
+            Superagent.get(url)
+              // @ts-ignore
+              .set('Authorization', `Bearer ${self.account.accessToken}`)
+              .ok(res => res.status === 200 || res.status === 201 || res.status === 410)
+              .timeout(this.requestTimeout)
+          );
+        })
+        .then(res => {
+          if (res.status === 200) {
+            // success
+            editorContext.buildFinished(res.body);
+            return res.body;
+          } else if (res.status === 410) {
+            // failure
+            editorContext.buildFinished(res.body);
+            throw new BuildError(res.body);
+          } else {
+            // wait some more
+            return waitForBuild(res.body);
+          }
+        });
+    };
+
     editorContext.startBuild();
 
     return this.accountResolver(this.account)
@@ -267,43 +304,6 @@ export class Server {
         }
         throw err;
       });
-
-    const waitForBuild = (build: IBuildStatus): Promise<IBuildStatus> => {
-      const elapsed = Date.now() - startTime;
-      build.progress = Math.min(elapsed / this.buildTimeout, 1);
-      editorContext.buildProgress(build);
-      if (elapsed > this.buildTimeout) {
-        throw new Error(`Build process did not complete within the ${this.buildTimeout}ms timeout.`);
-      }
-      return new Promise(resolve => setTimeout(resolve, this.buildStatusCheckInterval))
-        .then(() => {
-          // @ts-ignore
-          const url = `${this.account.baseUrl}api/v1/subscription/${self.account.subscriptionId}/boundary/${
-            editorContext.boundaryId
-          }/function/${editorContext.functionId}/build/${build.id}`;
-          return (
-            Superagent.get(url)
-              // @ts-ignore
-              .set('Authorization', `Bearer ${self.account.accessToken}`)
-              .ok(res => res.status === 200 || res.status === 201 || res.status === 410)
-              .timeout(this.requestTimeout)
-          );
-        })
-        .then(res => {
-          if (res.status === 200) {
-            // success
-            editorContext.buildFinished(res.body);
-            return res.body;
-          } else if (res.status === 410) {
-            // failure
-            editorContext.buildFinished(res.body);
-            throw new BuildError(res.body);
-          } else {
-            // wait some more
-            return waitForBuild(res.body);
-          }
-        });
-    };
   }
 
   /**
