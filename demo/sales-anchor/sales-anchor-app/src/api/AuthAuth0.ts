@@ -111,6 +111,7 @@ export class AuthAuth0 {
           return reject(error);
         }
         if (decodedHash) {
+          // this.fiveQuartersWebAuth.authorize();
           this.fiveQuartersWebAuth.checkSession(
             {
               prompt: 'none',
