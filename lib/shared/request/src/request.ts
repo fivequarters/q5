@@ -21,12 +21,20 @@ function getAxiosRequest(httpRequest: IHttpRequest) {
   return axiosRequest;
 }
 
-function getHttpResponse(axiosResponse: any, parseJson: boolean = true) {
+function getHttpResponse(axiosResponse: any, parseJson: boolean = true, validStatus?: (status: number) => boolean) {
   const httpResponse = {
     status: axiosResponse.status,
     headers: axiosResponse.headers,
     data: axiosResponse.data || undefined,
   };
+
+  if (validStatus !== undefined) {
+    const isValid = validStatus(httpResponse.status);
+    if (!isValid) {
+      const message = `Request failed with response status code: ${httpResponse.status}`;
+      throw new Error(message);
+    }
+  }
 
   if (parseJson && typeof httpResponse.data === 'string') {
     const contentType = httpResponse.headers['content-type'];
@@ -52,6 +60,7 @@ export interface IHttpRequest {
   headers?: { [index: string]: string };
   data?: any;
   parseJson?: boolean;
+  validStatus?: (status: number) => boolean;
 }
 
 export interface IHttpResponse {
@@ -68,5 +77,5 @@ export async function request(urlOrRequest: string | IHttpRequest): Promise<IHtt
   const httpRequest = typeof urlOrRequest === 'string' ? { url: urlOrRequest } : urlOrRequest;
   const axiosRequest = getAxiosRequest(httpRequest);
   const axiosResponse = await axios.request(axiosRequest);
-  return getHttpResponse(axiosResponse, httpRequest.parseJson);
+  return getHttpResponse(axiosResponse, httpRequest.parseJson, httpRequest.validStatus);
 }
