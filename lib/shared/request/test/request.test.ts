@@ -124,4 +124,32 @@ describe('request', () => {
     expect(response.data.headers.connection).toBe('close');
     expect(response.data.data).toBe('{ "message": "hello world" }');
   });
+
+  it('should validate the response status code', async () => {
+    let message = '';
+    try {
+      const response = await request({
+        url: `http://localhost:${port}`,
+        validStatus: (status: number) => status !== 200,
+      });
+    } catch (error) {
+      message = error.message;
+    }
+    expect(message).toBe('Request failed with response status code: 200');
+  });
+
+  it('should allow the validate check to throw its own error', async () => {
+    let message = '';
+    try {
+      const response = await request({
+        url: `http://localhost:${port}`,
+        validStatus: (status: number) => {
+          throw new Error(`Custom error: ${status}`);
+        },
+      });
+    } catch (error) {
+      message = error.message;
+    }
+    expect(message).toBe(`Custom error: 200`);
+  });
 });
