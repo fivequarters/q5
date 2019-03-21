@@ -58,6 +58,9 @@ function authorize(config: ApiConfig) {
               context.body = {
                 authorized: true,
                 userId: verified.sub,
+                iss: verified.iss,
+                sub: verified.sub,
+                accountId: data.subscription,
               };
               return;
             }

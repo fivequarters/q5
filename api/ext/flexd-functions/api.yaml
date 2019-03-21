@@ -52,6 +52,93 @@ paths:
       security:
         - accessToken: []
 
+  /account/{accountId}/audit:
+    parameters:
+      - in: path
+        name: accountId
+        required: true
+        description: Account id
+        schema:
+          $ref: '#/components/schemas/AccountId'
+      - in: query
+        name: next
+        required: false
+        description: Optional opaque continuation token to start returning results from
+        schema:
+          type: string
+      - in: query
+        name: resource
+        required: false
+        description: Optional prefix of the resource to match against audit entries
+        schema:
+          type: string
+      - in: query
+        name: action
+        required: false
+        description: Optional action to match against audit entries
+        schema:
+          type: string
+      - in: query
+        name: issuer
+        required: false
+        description: Optional issuer identifier to match against audit entries
+        schema:
+          type: string
+      - in: query
+        name: from
+        required: false
+        description: Optional time from which to return audit entries; can be any format accepted by Date, or a relative time frame like '-15m', '-24h' etc.
+        schema:
+          type: string
+      - in: query
+        name: to
+        required: false
+        description: Optional time up to which to return audit entries; can be any format accepted by Date, or a relative time frame like '-15m', '-24h' etc.
+        schema:
+          type: string
+      - in: query
+        name: resource
+        required: false
+        description: Optional prefix of the resource to match against audit entries
+        schema:
+          type: string
+      - in: query
+        name: count
+        required: false
+        description: Optional maximum number of results to return; 
+        schema:
+          type: number
+          minimum: 1
+    get:
+      tags:
+        - Accounts
+      summary: Get audit trail
+      operationId: getAccountAudit
+      description: |
+        Returns the audit trail of calls to Flexd HTTP APIs related to resources that belong to the accountId. 
+        Each entry of the audit trail contains the timestamp of the call, resource, action, and the identity of 
+        the caller represented as the (issuer, subject) pair. Use query string parameters to filter the entries. 
+        This HTTP API supports paging. If the response contains the 'next' property, it indicates more results matching
+        the criteria may be available. Make another call to the HTTP API and provide the value of 'next' response parameter
+        in the 'next' query param. 
+
+        By default, only the most recent 15 minutes of audit logs are returned. You can change this with the 'from' query parameter.
+
+        The caller must have 'manage' access to the given account in order to retrieve the audit trail of the given account.
+      responses:
+        200:
+          description: Entries of the audit trail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountAudit'
+        403:
+          description: Not authorized
+        404:
+          description: Account not found
+      security:
+        - accessToken: []
+
   /account/{accountId}/issuer:
     parameters:
       - in: path
@@ -1023,6 +1110,54 @@ components:
           type: string
           description: Account display name
           example: ABC Company
+
+    AccountAudit:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          description: A list audit trail entries
+          items:
+            $ref: '#/components/schemas/AccountAuditEntry'
+        next:
+          type: string
+          description: Continuation token to get the next batch of results. Submit as the 'next' query parameter on subsequent call.
+          example: d5k7
+
+    AccountAuditEntry:
+      type: object
+      required:
+        - timestamp
+        - action
+        - resource
+        - accountId
+        - issuer
+        - subject
+      properties:
+        accountId:
+          $ref: '#/components/schemas/AccountId'
+        timestamp:
+          type: string
+          description: Timestamp of the audit entry in ISO format
+          example: 2019-03-21T03:48:36.408Z
+        action:
+          type: string
+          description: Name of the action peformed
+          example: function:put
+        resource:
+          type: string
+          description: Name of the resource on which the action was performed
+          example: /subscription/12345/boundary/myboundary/function/myfunction17
+        issuer: 
+          type: string
+          description: Identifier of the issuer that authenticated the user
+          example: https://sales-anchor.auth0.com/
+        subject:
+          type: string
+          description: Identifier of the user, unique within the issuer
+          example: google-oauth2|skjdhfsadhfalkajsdhf
 
     SubscriptionId:
       type: string

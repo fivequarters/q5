@@ -64,7 +64,10 @@
       "@5qtrs/flexd-editor": ["lib/client/flexd-editor/src"],
       "@5qtrs/flexd-hook": ["lib/client/flexd-hook/src"],
       "@5qtrs/flexd-functions": ["api/ext/flexd-functions/src"],
-      "@5qtrs/flexd-functions-lambda": ["lib/server/flexd-functions-lambda/src"]
+      "@5qtrs/flexd-functions-lambda": [
+        "lib/server/flexd-functions-lambda/src"
+      ],
+      "@5qtrs/aws-audit": ["lib/server/aws-audit/src"]
     }
   }
 }
