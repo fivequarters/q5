@@ -8,6 +8,7 @@ var validate_schema = require('./middleware/validate_schema');
 var authorize = require('./middleware/authorize');
 var cors = require('cors');
 const create_error = require('http-errors');
+let { readAudit } = require('./auditing');
 
 var corsManagementOptions = {
   origins: '*',
@@ -29,6 +30,20 @@ const NotImplemented = (_, __, next) => next(create_error(501, 'Not implemented'
 
 router.options('/account/:accountId', cors(corsManagementOptions));
 router.get('/account/:accountId', NotImplemented);
+
+router.options('/account/:accountId/audit', cors(corsManagementOptions));
+router.get(
+  '/account/:accountId/audit', 
+  cors(corsManagementOptions),
+  authorize({
+    operation: 'audit:get',
+  }),
+  validate_schema({
+    query: require('./schemas/api_query'),
+    params: require('./schemas/api_params'),
+  }),
+  readAudit(),
+);
 
 router.options('/account/:accountId/issuer', cors(corsManagementOptions));
 router.get('/account/:accountId/issuer', NotImplemented);

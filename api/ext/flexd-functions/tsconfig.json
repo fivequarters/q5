@@ -10,5 +10,5 @@
     "composite": false
   },
   "include": ["src"],
-  "references": [{ "path": "../../../lib/shared/request" }]
+  "references": [{ "path": "../../../lib/shared/request" }, { "path": "../../../lib/server/aws-auditing" }]
 }
