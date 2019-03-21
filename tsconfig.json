@@ -67,7 +67,7 @@
       "@5qtrs/flexd-functions-lambda": [
         "lib/server/flexd-functions-lambda/src"
       ],
-      "@5qtrs/aws-auditing": ["lib/server/aws-auditing/src"]
+      "@5qtrs/aws-audit": ["lib/server/aws-audit/src"]
     }
   }
 }
