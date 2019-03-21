@@ -101,6 +101,11 @@
     "lib/shared/base64",
     "lib/shared/hex",
     "lib/server/aws-cred",
-    "lib/server/aws-deployment"
+    "lib/server/aws-deployment",
+    "lib/shared/table",
+    "lib/server/cli",
+    "cli/flexd-cli",
+    "lib/shared/text",
+    "lib/shared/array"
   ]
 }

@@ -1,28 +1,25 @@
 {
-  "name": "@5qtrs/random",
+  "name": "@5qtrs/flexd-cli",
   "version": "0.0.1",
   "description": "",
   "main": "libc/index.js",
-  "browser": "libm/index.js",
-  "module": "libm/index.js",
-  "sideEffects": false,
+  "bin": {
+    "flx": "libc/index.js"
+  },
   "license": "UNLICENSED",
   "author": "FiveQuarters.io",
   "scripts": {
-    "build": "tsc -b && convert-module",
+    "build": "tsc -b",
     "test": "jest --colors",
     "coverage": "jest --colors --coverage",
     "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x} test/{,**/}*.ts{,x}",
-    "clean": "rm -r -f libc; rm -r -f libm; rm -r -f coverage"
+    "clean": "rm -r -f libc; rm -r -f coverage"
   },
   "keywords": [],
   "dependencies": {
-    "uuid": "^3.3.2"
+    "@5qtrs/cli": "^0.0.1"
   },
   "devServer": {
-    "port": 9506
-  },
-  "devDependencies": {
-    "@types/uuid": "^3.4.4"
+    "port": 9512
   }
 }

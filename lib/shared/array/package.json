@@ -1,5 +1,5 @@
 {
-  "name": "@5qtrs/random",
+  "name": "@5qtrs/array",
   "version": "0.0.1",
   "description": "",
   "main": "libc/index.js",
@@ -16,13 +16,8 @@
     "clean": "rm -r -f libc; rm -r -f libm; rm -r -f coverage"
   },
   "keywords": [],
-  "dependencies": {
-    "uuid": "^3.3.2"
-  },
+  "dependencies": {},
   "devServer": {
-    "port": 9506
-  },
-  "devDependencies": {
-    "@types/uuid": "^3.4.4"
+    "port": 9504
   }
 }
