@@ -615,7 +615,7 @@ function parseKeyValue(data: string) {
     }
     const match = line.match(param);
     if (match) {
-      value[match[1]] = isNaN(+match[2]) ? match[2] : +match[2];
+      value[match[1]] = match[2];
     }
   });
   return value;

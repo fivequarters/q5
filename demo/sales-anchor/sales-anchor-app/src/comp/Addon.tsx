@@ -5,6 +5,7 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { Editor } from './Editor';
 import { Modal } from '@5qtrs/modal';
+import { AddonState } from '../api/Api';
 
 // -------------------
 // Internal Components
@@ -94,12 +95,6 @@ const Label = styled.label`
 // --------------
 // Exported Types
 // --------------
-
-export enum AddonState {
-  NotInstalled,
-  Installed,
-  HasUpdate,
-}
 
 export type AddonProps = {
   logoUrl: string;
