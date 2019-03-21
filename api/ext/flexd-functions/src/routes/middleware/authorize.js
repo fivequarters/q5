@@ -1,6 +1,8 @@
+
 const Assert = require('assert');
 const { request } = require('@5qtrs/request');
 var create_error = require('http-errors');
+const { writeAudit } = require('../auditing');
 
 module.exports = function authorize_factory(options) {
   Assert.ok(options, 'options must be provided');
@@ -13,7 +15,14 @@ module.exports = function authorize_factory(options) {
     // TODO implement actual authorization by sending resource and action being performed
     const token = options.getToken(req);
     if (token === process.env.API_AUTHORIZATION_KEY) {
-      return next();
+      return writeAudit({
+        // TODO where do we obtain accountId from for requests where it is implied by subscriptionId?
+        accountId: req.params.accountId || req.params.subscriptionId || 'NONE',
+        issuer: 'flexd:root',
+        subject: 'flexd:root',
+        action: options.operation,
+        resource: req.path,
+      }, next);
     }
     const data = { token, subscription: '12345' };
     const url = `${usersServiceUrl}/authorize`;
@@ -27,7 +36,14 @@ module.exports = function authorize_factory(options) {
         if (response.status !== 200) {
           next(create_error(403));
         } else {
-          next();
+          // TODO randall, move auditing his to user-api
+          return writeAudit({
+            accountId: response.data.accountId || 'NONE',
+            issuer: response.data.iss,
+            subject: response.data.sub,
+            action: options.operation,
+            resource: req.path,
+          }, next);    
         }
       })
       .catch(e => {

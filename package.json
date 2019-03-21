@@ -117,6 +117,7 @@
     "lib/server/aws-network",
     "lib/server/aws-route53",
     "lib/server/flexd-ops-cli",
-    "lib/server/aws-cert"
+    "lib/server/aws-cert",
+    "lib/server/aws-audit"
   ]
 }

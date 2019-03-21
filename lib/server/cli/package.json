@@ -1,0 +1,25 @@
+{
+  "name": "@5qtrs/cli",
+  "version": "0.0.1",
+  "description": "",
+  "main": "libc/index.js",
+  "license": "UNLICENSED",
+  "author": "FiveQuarters.io",
+  "scripts": {
+    "build": "tsc -b",
+    "test": "jest --colors",
+    "coverage": "jest --colors --coverage",
+    "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x} test/{,**/}*.ts{,x}",
+    "clean": "rm -r -f libc; rm -r -f coverage"
+  },
+  "keywords": [],
+  "dependencies": {
+    "@5qtrs/table": "^0.0.1",
+    "@5qtrs/clone": "^0.0.1",
+    "@5qtrs/text": "^0.0.1",
+    "@5qtrs/array": "^0.0.1"
+  },
+  "devServer": {
+    "port": 9507
+  }
+}

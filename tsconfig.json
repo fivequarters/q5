@@ -77,7 +77,8 @@
       "@5qtrs/aws-network": ["lib/server/aws-network/src"],
       "@5qtrs/aws-route53": ["lib/server/aws-route53/src"],
       "@5qtrs/flexd-ops-cli": ["lib/server/flexd-ops-cli/src"],
-      "@5qtrs/aws-cert": ["lib/server/aws-cert/src"]
+      "@5qtrs/aws-cert": ["lib/server/aws-cert/src"],
+      "@5qtrs/aws-audit": ["lib/server/aws-audit/src"]
     }
   }
 }

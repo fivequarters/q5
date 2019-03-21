@@ -1,0 +1,30 @@
+{
+  "name": "@5qtrs/aws-audit",
+  "version": "0.0.1",
+  "description": "",
+  "main": "libc/index.js",
+  "license": "UNLICENSED",
+  "author": "FiveQuarters.io",
+  "scripts": {
+    "build": "tsc -b",
+    "test": "jest --colors",
+    "coverage": "jest --colors --coverage",
+    "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x} test/{,**/}*.ts{,x}",
+    "clean": "rm -r -f libc; rm -r -f coverage",
+    "deploy": "./deploy.js",
+    "destroy": "./destroy.js"
+  },
+  "keywords": [],
+  "dependencies": {
+    "async": "^2.6.2",
+    "aws-sdk": "^2.424.0",
+    "http-errors": "^1.7.2"
+  },
+  "devServer": {
+    "port": 9507
+  },
+  "devDependencies": {
+    "async": "^2.6.2",
+    "dotenv": "^7.0.0"
+  }
+}

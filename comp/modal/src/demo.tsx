@@ -20,7 +20,14 @@ const App = () => {
   return (
     <div style={outerStyle}>
       <Modal visible={visible} style={modalStyle} onClick={modalClick}>
-        <div style={innerStyle}>Click outside to close</div>
+        <div
+          style={innerStyle}
+          onClick={event => {
+            event.stopPropagation();
+          }}
+        >
+          Click outside to close
+        </div>
       </Modal>
       <button onClick={buttonClick}>Click here to open the modal</button>
     </div>
