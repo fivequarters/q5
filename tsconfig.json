@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "ES6",
+    "target": "es2017",
     "module": "ESNEXT",
     "declaration": true,
     "declarationMap": true,
@@ -56,10 +56,28 @@
       "@5qtrs/hex": ["lib/shared/hex/src"],
       "@5qtrs/aws-cred": ["lib/server/aws-cred/src"],
       "@5qtrs/aws-deployment": ["lib/server/aws-deployment/src"],
+      "@5qtrs/table": ["lib/shared/table/src"],
+      "@5qtrs/cli": ["lib/server/cli/src"],
+      "@5qtrs/flexd-cli": ["cli/flexd-cli/src"],
+      "@5qtrs/text": ["lib/shared/text/src"],
+      "@5qtrs/array": ["lib/shared/array/src"],
       "@5qtrs/flexd-editor": ["lib/client/flexd-editor/src"],
       "@5qtrs/flexd-hook": ["lib/client/flexd-hook/src"],
       "@5qtrs/flexd-functions": ["api/ext/flexd-functions/src"],
-      "@5qtrs/flexd-functions-lambda": ["lib/server/flexd-functions-lambda/src"]
+      "@5qtrs/flexd-functions-lambda": [
+        "lib/server/flexd-functions-lambda/src"
+      ],
+      "@5qtrs/test1": ["service/test1/src"],
+      "@5qtrs/aws-lambda": ["lib/server/aws-lambda/src"],
+      "@5qtrs/zip": ["lib/server/zip/src"],
+      "@5qtrs/aws-s3": ["lib/server/aws-s3/src"],
+      "@5qtrs/aws-role": ["lib/server/aws-role/src"],
+      "@5qtrs/aws-log": ["lib/server/aws-log/src"],
+      "@5qtrs/aws-base": ["lib/server/aws-base/src"],
+      "@5qtrs/aws-network": ["lib/server/aws-network/src"],
+      "@5qtrs/aws-route53": ["lib/server/aws-route53/src"],
+      "@5qtrs/flexd-ops-cli": ["lib/server/flexd-ops-cli/src"],
+      "@5qtrs/aws-cert": ["lib/server/aws-cert/src"]
     }
   }
 }
