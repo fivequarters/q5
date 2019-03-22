@@ -107,6 +107,7 @@
     "cli/flexd-cli",
     "lib/shared/text",
     "lib/shared/array",
-    "lib/server/aws-audit"
+    "lib/server/aws-audit",
+    "site/flexd"
   ]
 }
