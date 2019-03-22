@@ -45,6 +45,9 @@ function getHtmlPluginOptions(packageJson: any, options?: IWebpackCommonOptions,
         htmlPluginOptions.links = htmlPluginOptions.links || [];
         htmlPluginOptions.links.push(...html.links);
       }
+      if (html.bodySnippet) {
+        htmlPluginOptions.bodyHtmlSnippet = html.bodySnippet;
+      }
     }
   }
 
@@ -64,6 +67,11 @@ function getOutput(packageJson: any, options?: IWebpackCommonOptions, prod: bool
   if (options && options.globalObject) {
     output.globalObject = options.globalObject;
   }
+
+  if (options && options.libraryTarget) {
+    output.libraryTarget = options.libraryTarget;
+  }
+
   return output;
 }
 
@@ -74,6 +82,7 @@ function getOutput(packageJson: any, options?: IWebpackCommonOptions, prod: bool
 export interface IWebpackCommonOptions {
   targetNode?: boolean;
   libraryName?: string;
+  libraryTarget?: string;
   entry?: string;
   hash?: boolean;
   externals?: { [index: string]: string };
@@ -83,6 +92,7 @@ export interface IWebpackCommonOptions {
     scripts?: string[];
     links?: { [index: string]: string }[];
     meta?: { [index: string]: string }[];
+    bodySnippet?: string;
   };
 }
 
@@ -97,6 +107,11 @@ export function webpackCommon(packageJson: any, options?: IWebpackCommonOptions,
   const externals = options && options.externals ? options.externals : {};
   const targetNode = options && options.targetNode ? options.targetNode : false;
 
+  const plugins = [];
+  if (!targetNode) {
+    plugins.push(new HtmlWebpackPlugin(htmlPluginOptions));
+  }
+
   return {
     target: targetNode ? 'node' : 'web',
     entry: {
@@ -105,7 +120,7 @@ export function webpackCommon(packageJson: any, options?: IWebpackCommonOptions,
     resolve: {
       extensions: ['.mjs', '.js', '.jsx'],
     },
-    plugins: [new HtmlWebpackPlugin(htmlPluginOptions)],
+    plugins,
     module: {
       rules: [
         {
