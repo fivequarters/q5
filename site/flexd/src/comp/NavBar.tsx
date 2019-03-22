@@ -1,4 +1,4 @@
-import { CorpLogo } from '@5qtrs/corp-logo';
+// import { CorpLogo } from '@5qtrs/corp-logo';
 import { FaTwitter } from '@5qtrs/icon';
 import { NavBar as NavBarBase, NavBarSpacer } from '@5qtrs/nav-bar';
 import React, { useContext } from 'react';
@@ -47,7 +47,7 @@ export function NavBar() {
     <Container>
       <AboveNavBar>{content.announcement}</AboveNavBar>
       <StyledNavBar sticky={true}>
-        <CorpLogo {...logoTheme} />
+        {/* <CorpLogo {...logoTheme} /> */}
         <CorpName>
           <Text content={content.coporateName || ''} />
         </CorpName>

@@ -11,7 +11,7 @@ export const content = {
   },
   corporateTwitter: 'https://twitter.com/getflexd',
   emailForm: {
-    message: "Keeping up with the demand for integrations and customizations in your SaaS is hard.\nSounds familiar? Get in touch!",
+    message: "Keeping up with the demand for integrations and customizations in your SaaS is hard.\nFind out how Flexd can help.  ",
     inputPlaceholder: 'Enter Your Email',
     emailSent: "Thanks, we'll keep you updated!",
   },
