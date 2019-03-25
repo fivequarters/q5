@@ -28,3 +28,7 @@ const App = () => {
 };
 
 ReactDOM.render(<App />, document.getElementById('app'));
+
+import ReactGA from 'react-ga';
+ReactGA.initialize('UA-136792777-1');
+ReactGA.pageview(window.location.pathname + window.location.search);
