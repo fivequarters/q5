@@ -73,7 +73,7 @@ const bios = [
     twitter: 'https://twitter.com/YavorGeorgiev',
     linkedIn: 'http://linkedin.com/in/yavorg',
     description: [
-      'Yavor runs Product at Five Quarters, and spends his time talking to customers, designing features,',
+      'Yavor runs Product at Flexd, and spends his time talking to customers, designing features,',
       'and shepherding the product roadmap. Previously, he worked at Auth0, Hulu, and Microsoft, where he',
       'led some early efforts to enable serverless computing on Azure with a focus on mobile developers,',
       'and also worked on open-source frameworks that aim to make the cloud accessible from any platform.',
