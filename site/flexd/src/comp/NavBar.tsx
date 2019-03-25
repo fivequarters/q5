@@ -3,8 +3,7 @@ import { FaTwitter } from '@5qtrs/icon';
 import { NavBar as NavBarBase, NavBarSpacer } from '@5qtrs/nav-bar';
 import React, { useContext } from 'react';
 import styled, { ThemeContext } from 'styled-components';
-import { content } from '../content';
-import { applyTheme, getTheme } from '../util';
+import { applyTheme } from '../util';
 import { Text } from './Text';
 
 const Container = styled.div`
@@ -40,21 +39,19 @@ const Twitter = styled(FaTwitter)`
 
 export function NavBar() {
   const context = useContext(ThemeContext);
-  const logoTheme = getTheme(context, 'navbar', 'logo');
-  const twitterTheme = getTheme(context, 'navbar', 'twitter');
 
   return (
     <Container>
-      <AboveNavBar>{content.announcement}</AboveNavBar>
-      <StyledNavBar sticky={true}>
+      {/* <AboveNavBar>{content.announcement}</AboveNavBar> */}
+      <StyledNavBar sticky={false}>
         {/* <CorpLogo {...logoTheme} /> */}
         <CorpName>
-          <Text content={content.coporateName || ''} />
+          <Text content="Flexd" />
         </CorpName>
         <NavBarSpacer />
-        <Link href="#about_us">About Us</Link>
-        <Link href={content.corporateTwitter} target="_blank">
-          <Twitter size={twitterTheme.size || 15} />
+        <Link href="mailto:contact@flexd.io">contact@flexd.io</Link>
+        <Link href="https://twitter.com/getflexed" target="_blank">
+          <Twitter size={15} />
         </Link>
       </StyledNavBar>
     </Container>

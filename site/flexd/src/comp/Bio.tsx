@@ -5,6 +5,7 @@ import styled from 'styled-components';
 import { applyTheme } from '../util';
 
 const Container = styled.div`
+  max-width: 800px;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -56,7 +57,7 @@ const LinkedIn = styled(FaLinkedin)`
 `;
 
 const Description = styled.div`
-  margin-top: 30px;
+  margin-top: 10px;
   ${props => applyTheme(props, 'bio', 'description')}
 `;
 

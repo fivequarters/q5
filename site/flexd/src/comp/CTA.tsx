@@ -2,7 +2,6 @@ import { IoIosAddCircleOutline } from '@5qtrs/icon';
 import { request } from '@5qtrs/request';
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { content } from '../content';
 import { applyTheme } from '../util';
 import { Text } from './Text';
 
@@ -20,19 +19,16 @@ const displayEmailSentInterval = 10000;
 // -------------------
 
 const Container = styled.div`
+  flex: 1;
   display: flex;
+  max-width: 370px;
   flex-wrap: wrap;
   align-items: center;
   justify-items: center;
-  padding-top: 60px;
-  ${props => applyTheme(props, 'email')}
-`;
-
-const Gutter = styled.div`
-  min-width: 20px;
-  @media only screen and (min-width: 600px) {
-    min-width: 100px;
-  }
+  justify-content: flex-start;
+  padding: 60px;
+  padding-bottom: 0px;
+  ${props => applyTheme(props, 'splash', 'cta')}
 `;
 
 const InnerContainer = styled.div`
@@ -46,32 +42,31 @@ const InnerContainer = styled.div`
 const Column = styled.div`
   flex: 1;
   text-align: center;
-  min-width: 400px;
   margin-bottom: 50px;
 `;
 
 const Message = styled.div`
-  max-width: 400px;
+  max-width: 250px;
   margin: auto;
   margin-bottom: 30px;
   line-height: 2;
-  ${props => applyTheme(props, 'email', 'message')}
+  ${props => applyTheme(props, 'splash', 'cta', 'message')}
 `;
 
 const PlusIcon = styled(IoIosAddCircleOutline)`
   &.enabled {
     cursor: pointer;
   }
-  ${props => applyTheme(props, 'email', 'button')}
+  ${props => applyTheme(props, 'splash', 'cta', 'button')}
 `;
 
 const Input = styled.input`
-  width: 250px;
+  width: 210px;
   outline: none;
   margin-right: 10px;
   border: 0px;
   border-bottom: 1px dotted white;
-  ${props => applyTheme(props, 'email', 'input')}
+  ${props => applyTheme(props, 'splash', 'cta', 'input')}
 `;
 
 const Form = styled.form`
@@ -83,10 +78,10 @@ const Form = styled.form`
 const EmailSent = styled.div`
   font-size: 20px;
   margin-top: 20px;
-  ${props => applyTheme(props, 'email', 'sent')}
+  ${props => applyTheme(props, 'splash', 'cta', 'sent')}
 `;
 
-export function EmailForm() {
+export function CTA() {
   const [email, setEmail] = useState('');
   const [validEmail, setValidEmail] = useState(false);
   const [showEmailMessage, setShowEmailMessage] = useState(false);
@@ -112,27 +107,25 @@ export function EmailForm() {
 
   return (
     <Container>
-      <Gutter />
       <InnerContainer>
         <Column>
           <Message>
-            <Text content={content.emailForm.message || ''} />
+            <Text content="Want to learn more?" />
           </Message>
           <Form>
             <Input
               type="text"
-              placeholder={content.emailForm.inputPlaceholder}
+              placeholder="Enter your email"
               value={email}
               onChange={onEmailChange}
             />
             <PlusIcon className={validEmail ? 'enabled' : ''} onClick={onButtonClicked} />
           </Form>
           <EmailSent style={{ visibility: showEmailMessage ? undefined : 'hidden' }}>
-            <Text content={content.emailForm.emailSent || ''} />
+            <Text content="Thanks, we'll keep you updated!" />
           </EmailSent>
         </Column>
       </InnerContainer>
-      <Gutter />
     </Container>
   );
 }
