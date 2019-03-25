@@ -93,6 +93,7 @@
     "demo/sales-anchor/sales-anchor-app",
     "demo/functions/functions-app",
     "comp/corp-favicon",
+    "comp/flexd-favicon",
     "api/int/cron",
     "api/int/user-api",
     "lib/shared/random",

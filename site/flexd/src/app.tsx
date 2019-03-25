@@ -1,5 +1,5 @@
 import { Body } from '@5qtrs/body';
-import '@5qtrs/corp-favicon';
+import '@5qtrs/flexd-favicon';
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
 import { AppLoading, Footer, NavBar, Splash, Features, VP, Problem, FooterCTA, AboutUs } from './comp';

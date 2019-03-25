@@ -20,7 +20,7 @@
   "keywords": [],
   "dependencies": {
     "@5qtrs/body": "^0.0.1",
-    "@5qtrs/corp-favicon": "^0.0.1",
+    "@5qtrs/flexd-favicon": "^0.0.1",
     "@5qtrs/corp-logo": "^0.0.1",
     "@5qtrs/corp-logo-dynamic": "^0.0.1",
     "@5qtrs/fade": "^0.0.1",
