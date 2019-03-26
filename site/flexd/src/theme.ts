@@ -1,15 +1,11 @@
-const namedColors = {
-  pdfOrange: '#DA6028',
-  pdfGreen: '#479788',
-}
-
 const colors = {
   darkPrimary: '#34495e',
   darkSecondary: '#283747',
   darkTertiary: '#85929E',
   lightPrimary: 'white',
-  accentPrimary: '#fc4445',
-  accentSecondary: '#abebc6',
+  lightSecondary: '#eaedee',
+  accentPrimary: '#DA6028',
+  accentSecondary: '#479788',
   twitterLogo: '#00aced',
   linkedInLogo: '#4875B4',
 };
@@ -33,17 +29,16 @@ const fonts = {
     name: 'Raleway',
     weight: 300,
     color: colors.darkPrimary,
-    size: 20,
+    size: 24,
     type: 'sans-serif',
   },
   h3: {
-    name: 'Raleway',
+    name: 'Lato',
     weight: 300,
     color: colors.darkPrimary,
-    size: 14,
+    size: 20,
     type: 'sans-serif',
   },
-
 
   // corporateName: {
   //   name: 'Josefin Sans',
@@ -152,99 +147,101 @@ const fonts = {
 
 const components = {
   splash: {
-    background: namedColors.pdfGreen,
+    background: colors.lightSecondary,
     mainMessage: {
       font: {
         ...fonts.splash,
-        color: colors.lightPrimary,
-      }
+        color: colors.accentPrimary,
+      },
     },
     subMessage: {
       font: {
-        ...fonts.h2,
-        color: colors.lightPrimary,
-      }
+        ...fonts.h3,
+      },
     },
     cta: {
-      background: namedColors.pdfOrange,
+      background: colors.accentPrimary,
       message: {
-        font: { ...fonts.h2, color: colors.lightPrimary }
+        font: { ...fonts.h3, color: colors.lightPrimary },
       },
       input: {
-        font: { // fonts.emailInput,
-          ...fonts.h2,
+        font: {
+          // fonts.emailInput,
+          ...fonts.h3,
           color: colors.lightPrimary,
         },
         background: 'transparent',
-        placeholder: colors.accentSecondary,
+        placeholder: colors.lightSecondary,
       },
       button: {
         font: {
           size: 30,
-          color: colors.accentSecondary, //colors.darkTertiary,
+          color: colors.lightSecondary,
         },
         enabled: colors.lightPrimary,
-        enabledHover: colors.accentSecondary,
+        enabledHover: colors.lightPrimary,
       },
       sent: {
-        font: { //fonts.emailSent,
-          ...fonts.h2,
-          color: colors.accentSecondary,
+        font: {
+          //fonts.emailSent,
+          ...fonts.h3,
+          color: colors.lightPrimary,
           align: 'center',
-        }
+        },
       },
-    }
+    },
   },
   feature: {
-    background: namedColors.pdfOrange,
+    background: colors.accentSecondary,
     heading: {
-      font: { 
-        ...fonts.splash, 
+      font: {
+        ...fonts.h1,
         color: colors.lightPrimary,
-      }
+      },
     },
     title: {
-      font: { 
-        ...fonts.h2, 
+      font: {
+        ...fonts.h3,
         weight: 'bold',
         color: colors.lightPrimary,
-      }
+      },
     },
     description: {
-      font: { 
-        ...fonts.h2,
+      font: {
+        ...fonts.h3,
         color: colors.lightPrimary,
-      }
-    }
+      },
+    },
   },
   vp: {
     title: {
-      font: { ...fonts.h1, weight: 'bold' }
+      font: { ...fonts.h2, weight: 'bold' },
     },
     description: {
-      font: { ...fonts.h2 }
-    }
+      font: { ...fonts.h3 },
+    },
   },
   problem: {
     heading: {
-      font: { ...fonts.h1, weight: 'bold' }
+      font: { ...fonts.h1, weight: 'bold' },
     },
     title: {
-      font: { ...fonts.h1 }
+      font: { ...fonts.h2 },
     },
     description: {
-      font: { ...fonts.h2 }
-    }
+      font: { ...fonts.h3 },
+    },
   },
   footerCta: {
-    background: namedColors.pdfGreen,
+    background: colors.lightSecondary,
     message: {
-      font: { ...fonts.h2, color: colors.lightPrimary }
+      font: { ...fonts.h3, color: colors.darkPrimary },
     },
     input: {
-      font: { // fonts.emailInput,
-        ...fonts.h2,
-        color: colors.lightPrimary,
+      font: {
+        // fonts.emailInput,
+        ...fonts.h3,
+        color: colors.darkPrimary,
       },
       background: 'transparent',
       placeholder: colors.accentSecondary,
@@ -252,43 +249,44 @@ const components = {
     button: {
       font: {
         size: 30,
-        color: colors.accentSecondary, //colors.darkTertiary,
+        color: colors.accentSecondary,
       },
-      enabled: colors.lightPrimary,
-      enabledHover: colors.accentSecondary,
+      enabled: colors.darkPrimary,
+      enabledHover: colors.darkPrimary,
     },
     sent: {
-      font: { //fonts.emailSent,
-        ...fonts.h2,
-        color: colors.accentSecondary,
+      font: {
+        //fonts.emailSent,
+        ...fonts.h3,
+        color: colors.darkPrimary,
         align: 'center',
       },
     },
   },
   footer: {
-    font: { 
+    font: {
       ...fonts.h3,
       align: 'center',
     },
     link: {
       font: {
-        ...fonts.h3
+        ...fonts.h3,
       },
-      hover: namedColors.pdfGreen,
-    }
+      hover: colors.accentSecondary,
+    },
   },
   navbar: {
     background: colors.lightPrimary,
     // announcement: {
     //   color: colors.lightPrimary,
-    //   background: namedColors.pdfOrange,//colors.accentPrimary,
+    //   background: colors.accentPrimary,//colors.accentPrimary,
     //   font: fonts.announcement,
     // },
     corporateName: {
-      font: {//fonts.corporateName, 
+      font: {
+        //fonts.corporateName,
         ...fonts.h1,
-        color: namedColors.pdfOrange,
-      }
+      },
     },
     logo: {
       size: 40,
@@ -299,71 +297,76 @@ const components = {
       font: {
         ...fonts.h3,
       },
-      hover: namedColors.pdfGreen,
+      hover: colors.accentSecondary,
     },
     twitter: {
       font: {
         color: colors.darkPrimary,
+        size: 25,
       },
       hover: colors.twitterLogo,
     },
   },
   bio: {
     heading: {
-      font: { 
+      font: {
         ...fonts.h1,
         weight: 'bold',
-      }
+      },
     },
     intro: {
       font: {
-        ...fonts.h3
+        ...fonts.h3,
       },
     },
-    name: { 
+    name: {
       font: {
         ...fonts.h2,
         weight: 'bold',
         align: 'center',
-      } 
+      },
     },
     title: {
       font: {
         ...fonts.h3,
         weight: 'bold',
-        color: namedColors.pdfOrange,
+        color: colors.accentPrimary,
         align: 'center',
       },
     },
     twitter: {
       font: {
         color: colors.darkPrimary,
+        size: 20,
       },
       hover: colors.twitterLogo,
     },
     linkedIn: {
       font: {
         color: colors.darkPrimary,
+        size: 25,
       },
       hover: colors.linkedInLogo,
     },
     description: {
       font: {
         ...fonts.h3,
-      }
+      },
     },
   },
   email: {
     background: colors.darkPrimary,
     message: {
-      font: { //fonts.emailMessage,
+      font: {
+        //fonts.emailMessage,
         ...fonts.h2,
         color: colors.lightPrimary,
         align: 'center',
-      }
+      },
     },
     input: {
-      font: { // fonts.emailInput,
+      font: {
+        // fonts.emailInput,
         ...fonts.h2,
         color: colors.lightPrimary,
       },
@@ -379,7 +382,8 @@ const components = {
       enabledHover: colors.accentSecondary,
     },
     sent: {
-      font: { //fonts.emailSent,
+      font: {
+        //fonts.emailSent,
         ...fonts.h2,
         color: colors.accentSecondary,
         align: 'center',
@@ -387,11 +391,7 @@ const components = {
     },
   },
 
-
-
   /// OLD
-
-
 
   loading: {
     logo: {

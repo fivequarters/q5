@@ -100,13 +100,11 @@ export function AboutUs() {
     <Section>
       <Container>
         <InnerContainer>
-          <Heading>
-              About Us
-          </Heading>
+          <Heading>About Us</Heading>
           <IntroParagraph>
-              Prior to co-founding Flexd, the team worked together for years on cloud technologies, 
-              platforms, and products across Microsoft and Auth0. The team is excited to bring their collective 
-              experience to collaborate again on bringing novel products to the market.
+            Prior to co-founding Flexd, the team worked together for years on cloud technologies, platforms, and
+            products across Microsoft and Auth0. The team is excited to bring their collective experience to collaborate
+            again on bringing novel products to the market.
           </IntroParagraph>
           {bios.map((bio: any) => (
             <StyledBio

@@ -51,7 +51,7 @@ export function NavBar() {
         <NavBarSpacer />
         <Link href="mailto:contact@flexd.io">contact@flexd.io</Link>
         <Link href="https://twitter.com/getflexed" target="_blank">
-          <Twitter size={15} />
+          <Twitter />
         </Link>
       </StyledNavBar>
     </Container>

@@ -66,7 +66,7 @@ const Input = styled.input`
   outline: none;
   margin-right: 10px;
   border: 0px;
-  border-bottom: 1px dotted white;
+  border-bottom: 1px dotted #34495e;
   ${props => applyTheme(props, 'footerCta', 'input')}
 `;
 
@@ -114,12 +114,7 @@ export function FooterCTA() {
             <Text content="Want to learn more?" />
           </Message>
           <Form>
-            <Input
-              type="text"
-              placeholder="Enter your email"
-              value={email}
-              onChange={onEmailChange}
-            />
+            <Input type="text" placeholder="Enter your email" value={email} onChange={onEmailChange} />
             <PlusIcon className={validEmail ? 'enabled' : ''} onClick={onButtonClicked} />
           </Form>
           <EmailSent style={{ visibility: showEmailMessage ? undefined : 'hidden' }}>

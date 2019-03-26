@@ -28,7 +28,7 @@ const PersonasContainer = styled.div`
 
 const PersonaContainer = styled.div`
   flex: 1;
-  min-width: 300px;
+  min-width: 266;
   margin-left: 10px;
   margin-right: 10px;
   display: flex;
@@ -37,26 +37,26 @@ const PersonaContainer = styled.div`
   align-items: center;
 `;
 
-const PersonaTitle = styled.div` 
+const PersonaTitle = styled.div`
   flex: 1;
   padding-bottom: 10px;
-  max-width: 300px;
-  min-width: 300px;
+  max-width: 266px;
+  min-width: 266px;
   ${props => applyTheme(props, 'problem', 'title')}
 `;
 
 const PersonaDescription = styled.div` 
   flex: 1;
-  max-width 300px;
-  min-width: 300px; 
+  max-width 266px;
+  min-width: 266px; 
   padding-bottom: 30px;
   ${props => applyTheme(props, 'problem', 'description')}
 `;
 
 const Heading = styled.div`
     flex: 1;
-    max-width 600px;
-    width: 600px;
+    max-width 800px;
+    min-width: 300px;
     margin-bottom: 100px;
     text-align: center;
     ${props => applyTheme(props, 'problem', 'heading')}
@@ -66,31 +66,28 @@ export function Problem() {
   return (
     <Section>
       <Container>
-        <Heading>
-            Keeping up with the demand for customizations and integrations
-            in your platform is hard
-        </Heading>
+        <Heading>Keeping up with the demand for customizations and integrations in your platform is hard</Heading>
         <PersonasContainer>
-            <PersonaContainer>
-                <PersonaTitle>Product</PersonaTitle>
-                <PersonaDescription>
-                New integrations and unique requirements our customers are 
-                asking for are stuck in the product backlog and never get done
-                </PersonaDescription>
-            </PersonaContainer>
-            <PersonaContainer>
-                <PersonaTitle>Sales</PersonaTitle>
-                <PersonaDescription>
-                Sales cycles take long and opportunities are lost due to missing integrations 
-                or custom functionality, and the need to involve Engineering to go the last mile
-                </PersonaDescription>
-            </PersonaContainer>
-            <PersonaContainer>
-                <PersonaTitle>Engineering</PersonaTitle>
-                <PersonaDescription>
-                Stream of custom requirements coming from Sales and Product is impossible to keep up with
-                </PersonaDescription>
-            </PersonaContainer>
+          <PersonaContainer>
+            <PersonaTitle>Product</PersonaTitle>
+            <PersonaDescription>
+              New integrations and unique requirements our customers are asking for are stuck in the product backlog and
+              never get done
+            </PersonaDescription>
+          </PersonaContainer>
+          <PersonaContainer>
+            <PersonaTitle>Sales</PersonaTitle>
+            <PersonaDescription>
+              Sales cycles take long and opportunities are lost due to missing integrations or custom functionality, and
+              the need to involve Engineering to go the last mile
+            </PersonaDescription>
+          </PersonaContainer>
+          <PersonaContainer>
+            <PersonaTitle>Engineering</PersonaTitle>
+            <PersonaDescription>
+              Stream of custom requirements coming from Sales and Product is impossible to keep up with
+            </PersonaDescription>
+          </PersonaContainer>
         </PersonasContainer>
       </Container>
     </Section>

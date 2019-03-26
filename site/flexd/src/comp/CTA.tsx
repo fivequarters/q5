@@ -26,8 +26,7 @@ const Container = styled.div`
   align-items: center;
   justify-items: center;
   justify-content: flex-start;
-  padding: 60px;
-  padding-bottom: 0px;
+  padding: 30px;
   ${props => applyTheme(props, 'splash', 'cta')}
 `;
 
@@ -42,7 +41,6 @@ const InnerContainer = styled.div`
 const Column = styled.div`
   flex: 1;
   text-align: center;
-  margin-bottom: 50px;
 `;
 
 const Message = styled.div`
@@ -113,12 +111,7 @@ export function CTA() {
             <Text content="Want to learn more?" />
           </Message>
           <Form>
-            <Input
-              type="text"
-              placeholder="Enter your email"
-              value={email}
-              onChange={onEmailChange}
-            />
+            <Input type="text" placeholder="Enter your email" value={email} onChange={onEmailChange} />
             <PlusIcon className={validEmail ? 'enabled' : ''} onClick={onButtonClicked} />
           </Form>
           <EmailSent style={{ visibility: showEmailMessage ? undefined : 'hidden' }}>

@@ -57,17 +57,24 @@ const SubMessage = styled.div`
 export function Splash() {
   return (
     <Section>
-      <Gutter/>
+      <Gutter />
       <SplashContainer>
         <MainMessageContainer>
           {/* <MainMessage>Integrations<br/>Your Users Want</MainMessage> */}
-          <MainMessage>Integrations<br/>Your Users Want</MainMessage>
+          <MainMessage>
+            Integrations
+            <br />
+            your users want
+          </MainMessage>
           {/* <SubMessage>Improve the stickiness and differentiation of your platform with powerful customizations and integrations</SubMessage> */}
-          <SubMessage>Accelerate customer acquisition and improve retention in your platform with powerful customizations and integrations</SubMessage>
+          <SubMessage>
+            Accelerate customer acquisition and improve retention in your platform with powerful customizations and
+            integrations
+          </SubMessage>
         </MainMessageContainer>
-        <CTA></CTA>
+        <CTA />
       </SplashContainer>
-      <Gutter/>
+      <Gutter />
     </Section>
   );
 }
