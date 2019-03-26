@@ -109,6 +109,7 @@
     "lib/shared/text",
     "lib/shared/array",
     "lib/server/aws-audit",
-    "site/flexd"
+    "site/flexd",
+    "mono"
   ]
 }

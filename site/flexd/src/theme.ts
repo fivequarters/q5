@@ -329,7 +329,6 @@ const components = {
     title: {
       font: {
         ...fonts.h3,
-        weight: 'bold',
         color: colors.accentPrimary,
         align: 'center',
       },

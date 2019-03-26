@@ -77,6 +77,29 @@ yarn setup
 yarn build
 ```
 
+# Docker
+
+Docker is a temporary hack to quickly create a monolithic deployment of flexd-functions and pubsub and run it EC2 behind an application proxy.
+
+Key notes: 
+* The image exposes two ports: 3001 for product APIs, and 5002 for the websocket endpoint that accepts real time logs from clients running in user Lambda functions. 
+* Both endpoints are unsecured, so SSL needs to be terminated at the application proxy. 
+* A new project `/mono` has been created that is the entry point of the image. It acts as a simple process manager: it starts flexd-functions and pubsub, watches for their termination, and if either exits, it folds down all other processes and exits itself. It also propagates SIGINT and SIGTERM from outside to children. 
+
+Install Docker for Mac from [here](https://docs.docker.com/v17.12/docker-for-mac/install/).
+
+Building the docker image:
+
+```
+docker build -t flexd .
+```
+
+Running the image: 
+
+```
+docker run -it --rm -name flexd-functions --env-file .env -p 3001:3001 -p 5002:5002 flexd
+```
+
 # Visual Studio Code
 
 Using [VSCode](https://code.visualstudio.com/) is highly recommended. This repository includes VSCode specific settings to hide some boiler-plate files that are required.
