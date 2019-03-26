@@ -1,0 +1,13 @@
+*
+!package.json
+!tsconfig.json
+!yarn.lock
+!api/ext/flexd-functions
+#api/ext/flexd-functions/node_modules
+!api/int/pubsub
+#api/int/pubsub/node_modules
+!lib/shared
+!lib/server
+!tool
+!mono
+**/node_modules
