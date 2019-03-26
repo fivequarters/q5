@@ -94,6 +94,7 @@
     "demo/sales-anchor/sales-anchor-app",
     "demo/functions/functions-app",
     "comp/corp-favicon",
+    "comp/flexd-favicon",
     "api/int/cron",
     "api/int/user-api-old",
     "lib/shared/random",
@@ -134,6 +135,9 @@
     "lib/ops/ops-api-aws",
     "lib/ops/ops-user-aws",
     "lib/server/aws-ecr",
-    "lib/server/aws-ec2"
+    "lib/server/aws-ec2",
+    "lib/server/aws-audit",
+    "site/flexd",
+    "mono"
   ]
 }

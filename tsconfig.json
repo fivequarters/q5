@@ -43,6 +43,7 @@
       "@5qtrs/convert-module": ["tool/convert-module/src"],
       "@5qtrs/corp": ["site/corp/src"],
       "@5qtrs/corp-favicon": ["comp/corp-favicon/src"],
+      "@5qtrs/flexd-favicon": ["comp/flexd-favicon/src"],
       "@5qtrs/functions-app": ["demo/functions/functions-app/src"],
       "@5qtrs/sales-anchor-app": ["demo/sales-anchor/sales-anchor-app/src"],
       "@5qtrs/sales-anchor-api": ["demo/sales-anchor/sales-anchor-api/src"],
@@ -93,7 +94,10 @@
       "@5qtrs/user-api": ["api/user-api/src"],
       "@5qtrs/ops-user-aws": ["lib/ops/ops-user-aws/src"],
       "@5qtrs/aws-ecr": ["lib/server/aws-ecr/src"],
-      "@5qtrs/aws-ec2": ["lib/server/aws-ec2/src"]
+      "@5qtrs/aws-ec2": ["lib/server/aws-ec2/src"],
+      "@5qtrs/aws-audit": ["lib/server/aws-audit/src"],
+      "@5qtrs/flexd": ["site/flexd/src"],
+      "@5qtrs/mono": ["mono/src"]
     }
   }
 }
