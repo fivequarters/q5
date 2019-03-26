@@ -1,1 +1,1 @@
-export { AwsCreds, IAwsCredentials, IAwsCredsCache, IAwsCredsOptions } from './AwsCreds';
+export { AwsCreds, IMfaCodeResolver, IAwsCredentials, IAwsCredsCache, IAwsCredsOptions } from './AwsCreds';

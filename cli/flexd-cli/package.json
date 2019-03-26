@@ -13,7 +13,8 @@
     "test": "jest --colors",
     "coverage": "jest --colors --coverage",
     "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x} test/{,**/}*.ts{,x}",
-    "clean": "rm -r -f libc; rm -r -f coverage"
+    "clean": "rm -r -f libc; rm -r -f coverage",
+    "cli-link": "yarn link"
   },
   "keywords": [],
   "dependencies": {

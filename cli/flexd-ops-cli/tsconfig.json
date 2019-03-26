@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": { "rootDir": "src", "module": "CommonJS", "outDir": "libc" },
+  "include": ["src"],
+  "references": [
+    { "path": "../../lib/server/cli" },
+    { "path": "../../lib/ops/flexd-ops-core" },
+    { "path": "../../lib/shared/text" },
+    { "path": "../../lib/shared/table" }
+  ]
+}

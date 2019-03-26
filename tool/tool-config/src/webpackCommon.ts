@@ -57,19 +57,21 @@ function getHtmlPluginOptions(packageJson: any, options?: IWebpackCommonOptions,
 function getOutput(packageJson: any, options?: IWebpackCommonOptions, prod: boolean = false) {
   const libraryName = options && options.libraryName ? options.libraryName : '[name]';
   const postfix = options && options.hash ? '.[contenthash]' : '';
-  const min = prod ? '.min' : '';
+  let min = prod && !(options && options.noMin) ? '.min' : '';
 
   const output: any = {
     filename: `${libraryName}${postfix}${min}.js`,
     path: resolve('dist'),
   };
 
-  if (options && options.globalObject) {
-    output.globalObject = options.globalObject;
-  }
+  if (options) {
+    if (options.globalObject) {
+      output.globalObject = options.globalObject;
+    }
 
-  if (options && options.libraryTarget) {
-    output.libraryTarget = options.libraryTarget;
+    if (options.libraryTarget) {
+      output.libraryTarget = options.libraryTarget;
+    }
   }
 
   return output;
@@ -85,6 +87,7 @@ export interface IWebpackCommonOptions {
   libraryTarget?: string;
   entry?: string;
   hash?: boolean;
+  noMin?: boolean;
   externals?: { [index: string]: string };
   globalObject?: string;
   html?: {

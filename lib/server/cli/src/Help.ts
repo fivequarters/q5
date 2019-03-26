@@ -11,14 +11,15 @@ import { IOption } from './Option';
 // ------------------
 
 const emptyCell = '';
-const emptyRow = [emptyCell, emptyCell, emptyCell];
+const emptyRow = [emptyCell, emptyCell];
 const defaultConsoleWidth = 80;
-const commandsHeader = 'Commands:';
+const commandsHeader = 'Commands';
 const commandArgument = 'command';
-const usageHeader = 'Usage:';
-const descriptionHeader = 'Description:';
-const argumentsHeader = 'Arguments:';
-const optionsHeader = 'Options:';
+const optionsTerm = 'options';
+const usageHeader = 'Usage';
+const descriptionHeader = 'Description';
+const argumentsHeader = 'Arguments';
+const optionsHeader = 'Options';
 const propertyOpenChar = '[';
 const propertyCloseChar = ']';
 const propertyDelimiter = ' ';
@@ -36,9 +37,10 @@ const docsAdditionalHelpText = `• Visit ${docsUrlReplaceText} for general docu
 
 const alignRightCellConstraint = { align: CellAlignment.right };
 const emptyCellConstraint = {};
-const headerRowConstraint = { cells: [emptyCellConstraint, alignRightCellConstraint] };
-const descriptionRowConstraint = { cells: [emptyCellConstraint, alignRightCellConstraint] };
-const propertiesRowConstraint = { cells: [emptyCellConstraint, emptyCellConstraint, alignRightCellConstraint] };
+const headerRowConstraint = { cells: [alignRightCellConstraint] };
+const itemsRowContraint = { cells: [alignRightCellConstraint] };
+const descriptionRowConstraint = { cells: [alignRightCellConstraint] };
+const propertiesRowConstraint = { cells: [emptyCellConstraint, alignRightCellConstraint] };
 
 // ------------------
 // Internal Functions
@@ -51,7 +53,7 @@ function addProperty(properties: string[], name: string, value: string) {
 }
 
 function addHypensToSwitch(optionName: IText) {
-  return Text.create(hypenChar, optionName.length > 1 ? hypenChar : '', optionName);
+  return Text.create(Text.dim(hypenChar, optionName.length > 1 ? hypenChar : ''), optionName);
 }
 
 // ----------------
@@ -91,7 +93,7 @@ export class Help {
   }
 
   protected async formatHeader(text: IText) {
-    return Text.yellow(text);
+    return Text.blue(text);
   }
 
   protected async addUsage(table: Table) {
@@ -99,7 +101,7 @@ export class Help {
     if (usage) {
       const header = await this.formatHeader(usageHeader);
       table.setRowConstraint(headerRowConstraint);
-      table.addRow([emptyCell, header, usage]);
+      table.addRow([header, usage]);
       table.addRow(emptyRow);
     }
   }
@@ -125,6 +127,9 @@ export class Help {
       for (const name of names) {
         terms.push(Text.boldItalic(`<${name}>`));
       }
+      if (this.command.options.length) {
+        terms.push(Text.boldItalic(`[${optionsTerm}]`));
+      }
 
       usage = Text.join(terms, ' ');
     }
@@ -136,7 +141,7 @@ export class Help {
     if (description) {
       const header = await this.formatHeader(descriptionHeader);
       table.setRowConstraint(headerRowConstraint);
-      table.addRow([emptyCell, header, description]);
+      table.addRow([header, description]);
       table.addRow(emptyRow);
     }
   }
@@ -145,13 +150,14 @@ export class Help {
     if (this.command.subCommands.length > 0) {
       const header = await this.formatHeader(commandsHeader);
       table.setRowConstraint(headerRowConstraint);
-      table.addRow([emptyCell, header, emptyCell]);
+      table.addRow([header, emptyCell]);
       table.addRow(emptyRow);
 
+      table.setRowConstraint(itemsRowContraint);
       for (const subCommand of this.command.subCommands) {
         const summary = subCommand.summary;
-        const cmd = Text.boldItalic(subCommand.cmd);
-        table.addRow([emptyCell, cmd, summary]);
+        const cmd = Text.italic(subCommand.cmd);
+        table.addRow([cmd, summary]);
         table.addRow(emptyRow);
       }
     }
@@ -171,19 +177,20 @@ export class Help {
     if (this.command.arguments.length > 0) {
       const header = await this.formatHeader(argumentsHeader);
       table.setRowConstraint(headerRowConstraint);
-      table.addRow([emptyCell, header, emptyCell]);
+      table.addRow([header, emptyCell]);
       table.addRow(emptyRow);
 
+      table.setRowConstraint(itemsRowContraint);
       for (const argument of this.command.arguments) {
         table.setRowConstraint(descriptionRowConstraint);
         const description = argument.description;
-        const argumentName = Text.boldItalic(argument.name);
-        table.addRow([emptyCell, argumentName, description]);
+        const argumentName = Text.italic(argument.name);
+        table.addRow([argumentName, description]);
 
         table.setRowConstraint(propertiesRowConstraint);
         const properties = await this.getArgumentProperties(argument);
-        if (properties) {
-          table.addRow([emptyCell, emptyCell, properties]);
+        if (properties.length) {
+          table.addRow([emptyCell, properties]);
         }
         table.addRow(emptyRow);
       }
@@ -191,7 +198,7 @@ export class Help {
   }
 
   protected async getOptionSwitches(option: IOption) {
-    const switches = [addHypensToSwitch(Text.bold(option.name))];
+    const switches = [addHypensToSwitch(Text.italic(option.name))];
     if (option.aliases && option.aliases.length) {
       for (const alias of option.aliases) {
         switches.push(addHypensToSwitch(alias));
@@ -219,19 +226,20 @@ export class Help {
     if (this.command.options.length > 0) {
       const header = await this.formatHeader(optionsHeader);
       table.setRowConstraint(headerRowConstraint);
-      table.addRow([emptyCell, header, emptyCell]);
+      table.addRow([header, emptyCell]);
       table.addRow(emptyRow);
 
+      table.setRowConstraint(itemsRowContraint);
       for (const option of this.command.options) {
         table.setRowConstraint(descriptionRowConstraint);
         const description = option.description;
         const optionSwitches = await this.getOptionSwitches(option);
-        table.addRow([emptyCell, optionSwitches, description]);
+        table.addRow([optionSwitches, description]);
 
         table.setRowConstraint(propertiesRowConstraint);
         const properties = await this.getOptionProperties(option);
-        if (properties) {
-          table.addRow([emptyCell, emptyCell, properties]);
+        if (properties.length) {
+          table.addRow([emptyCell, properties]);
         }
         table.addRow(emptyRow);
       }
@@ -251,9 +259,9 @@ export class Help {
   protected async getHelpTable(consoleWidth: number): Promise<Table> {
     return Table.create({
       width: consoleWidth,
-      count: 3,
+      count: 2,
       gutter: 3,
-      columns: [{ min: 0, max: 0 }, { flexShrink: 0, flexGrow: 0 }, { flexShrink: 1, flexGrow: 1 }],
+      columns: [{ flexShrink: 0, flexGrow: 0 }, { flexShrink: 1, flexGrow: 1 }],
     });
   }
 

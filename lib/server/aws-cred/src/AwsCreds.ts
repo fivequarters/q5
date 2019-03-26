@@ -1,5 +1,6 @@
-import { AwsDeployment } from '@5qtrs/aws-deployment';
 import { STS } from 'aws-sdk';
+import { clone } from '@5qtrs/clone';
+import { toBase64, fromBase64 } from '@5qtrs/base64';
 import { InMemoryCredsCache } from './InMemoryCredsCache';
 
 // ---------
@@ -38,16 +39,21 @@ export interface IAwsCredentials {
 
 export interface IAwsCredsCache {
   set: (key: string, value: string) => Promise<void>;
-  get: (key: string) => Promise<string>;
+  get: (key: string) => Promise<string | undefined>;
+}
+
+export interface IMfaCodeResolver {
+  (accountId: string): Promise<{ code: string }>;
 }
 
 export interface IAwsCredsOptions {
+  account: string;
   accessKeyId?: string;
   secretAccessKey?: string;
   useMfa?: boolean;
   mfaSerialNumber?: string;
   userName?: string;
-  mfaCodeResolver?: (mfaSerialNumber: string) => Promise<{ code: string }>;
+  mfaCodeResolver?: IMfaCodeResolver;
 }
 
 // ----------------
@@ -55,33 +61,29 @@ export interface IAwsCredsOptions {
 // ----------------
 
 export class AwsCreds {
-  public static async create(deployment: AwsDeployment, baseCreds?: IAwsCredsOptions, cache?: IAwsCredsCache) {
+  public static async create(options: IAwsCredsOptions, cache?: IAwsCredsCache) {
     cache = cache || new InMemoryCredsCache();
-    baseCreds = baseCreds || {};
-
-    if (baseCreds.useMfa && !baseCreds.mfaCodeResolver) {
+    if (options.useMfa && !options.mfaCodeResolver) {
       throw new Error("If using MFA, the 'mfaCodeResolver' must be provided.");
     }
 
-    return new AwsCreds(deployment, baseCreds, cache);
+    return new AwsCreds(options, cache);
   }
 
-  private deployment: AwsDeployment;
   private cache: IAwsCredsCache;
-  private baseCreds: IAwsCredsOptions;
+  private options: IAwsCredsOptions;
   private parentCreds?: AwsCreds;
   private roleAccount?: string;
   private roleName?: string;
   private rolePath?: string;
 
-  private constructor(deployment: AwsDeployment, baseCreds: IAwsCredsOptions, cache: IAwsCredsCache) {
-    this.deployment = deployment;
-    this.baseCreds = baseCreds;
+  private constructor(options: IAwsCredsOptions, cache: IAwsCredsCache) {
+    this.options = clone(options);
     this.cache = cache;
   }
 
   public asRole({ account, name }: { account: string; name: string }) {
-    const credsForRole = new AwsCreds(this.deployment, this.baseCreds, this.cache);
+    const credsForRole = new AwsCreds(this.options, this.cache);
     credsForRole.parentCreds = this;
     credsForRole.roleAccount = account;
     credsForRole.roleName = name;
@@ -90,7 +92,7 @@ export class AwsCreds {
   }
 
   public async getCredentials(): Promise<IAwsCredentials> {
-    const baseCreds = this.baseCreds;
+    const baseCreds = this.options;
     const parentCreds = this.parentCreds;
     let creds: IAwsCredentials = {};
     if (!parentCreds) {
@@ -110,21 +112,27 @@ export class AwsCreds {
     return creds;
   }
 
+  private getCacheKey() {
+    return `${this.roleAccount}.${this.rolePath}`;
+  }
+
   private async setCachedCredentials(creds: IAwsCredentials): Promise<void> {
     if (this.rolePath && creds.expires && creds.expires > Date.now() + minExpiredWindow) {
-      const toCache = JSON.stringify(creds);
-      await this.cache.set(this.rolePath, toCache);
+      const toCache = toBase64(JSON.stringify(creds));
+      const key = this.getCacheKey();
+      await this.cache.set(key, toCache);
     }
   }
 
   private async getCachedCredentials(): Promise<IAwsCredentials | undefined> {
     let creds: IAwsCredentials | undefined;
     if (this.rolePath) {
-      const credsString = await this.cache.get(this.rolePath);
+      const key = this.getCacheKey();
+      const credsString = await this.cache.get(key);
       if (credsString) {
         let cached: any;
         try {
-          cached = JSON.parse(credsString);
+          cached = JSON.parse(fromBase64(credsString));
         } catch (error) {
           // do nothing;
         }
@@ -139,9 +147,7 @@ export class AwsCreds {
   }
 
   private async assumeRole(): Promise<IAwsCredentials> {
-    const stsOptions: any = {
-      region: this.deployment.region.code,
-    };
+    const stsOptions: any = {};
 
     if (this.parentCreds) {
       const creds = await this.parentCreds.getCredentials();
@@ -152,30 +158,30 @@ export class AwsCreds {
           stsOptions.sessionToken = creds.sessionToken;
         }
       }
-    } else if (this.baseCreds.secretAccessKey && this.baseCreds.accessKeyId) {
-      stsOptions.accessKeyId = this.baseCreds.accessKeyId;
-      stsOptions.secretAccessKey = this.baseCreds.secretAccessKey;
+    } else if (this.options.secretAccessKey && this.options.accessKeyId) {
+      stsOptions.accessKeyId = this.options.accessKeyId;
+      stsOptions.secretAccessKey = this.options.secretAccessKey;
     }
 
     const sts = createSTS(stsOptions);
 
-    const assumeRoleOptions: any = {
+    const params: any = {
       RoleArn: `arn:aws:iam::${this.roleAccount}:role/${this.roleName}`,
-      RoleSessionName: `assumed-role-${this.rolePath}`,
+      RoleSessionName: `assumed-role-${this.rolePath}-${this.roleAccount}`,
     };
-    if (this.baseCreds.useMfa && this.baseCreds.mfaCodeResolver) {
+    if (this.options.useMfa && this.options.mfaCodeResolver) {
       const serialNumber =
-        this.baseCreds.mfaSerialNumber || `arn:aws:iam::${this.deployment.account}:mfa/${this.baseCreds.userName}`;
-      const resolved = await this.baseCreds.mfaCodeResolver(serialNumber);
-      assumeRoleOptions.SerialNumber = serialNumber;
-      assumeRoleOptions.TokenCode = resolved.code;
+        this.options.mfaSerialNumber || `arn:aws:iam::${this.options.account}:mfa/${this.options.userName}`;
+      const resolved = await this.options.mfaCodeResolver(this.roleAccount || '<unknown>');
+      params.SerialNumber = serialNumber;
+      params.TokenCode = resolved.code;
     }
 
     return new Promise((resolve, reject) => {
-      sts.assumeRole(assumeRoleOptions, (error, result) => {
+      sts.assumeRole(params, (error, result) => {
         if (error) {
           const message = [
-            `Failed to assume role '${this.roleName}' in account '${this.roleAccount}`,
+            `Failed to assume role '${this.roleName}' in account '${this.roleAccount}'`,
             `due to the following error: '${error.message}'`,
           ].join(' ');
           return reject(new Error(message));

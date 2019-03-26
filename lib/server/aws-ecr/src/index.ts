@@ -1,0 +1,1 @@
+export { AwsEcr } from './AwsEcr';

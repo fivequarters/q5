@@ -15,7 +15,8 @@
   "keywords": [],
   "dependencies": {
     "aws-sdk": "^2.413.0",
-    "@5qtrs/aws-deployment": "^0.0.1"
+    "@5qtrs/clone": "^0.0.1",
+    "@5qtrs/base64": "^0.0.1"
   },
   "devServer": {
     "port": 9502

@@ -1,0 +1,13 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": { "rootDir": "src", "module": "CommonJS", "outDir": "libc" },
+  "include": ["src"],
+  "references": [
+    { "path": "../../server/aws-cred" },
+    { "path": "../../server/aws-deployment" },
+    { "path": "../../server/aws-base" },
+    { "path": "../../server/aws-dynamo" },
+    { "path": "../../server/aws-lambda" },
+    { "path": "../ops-api-aws" }
+  ]
+}

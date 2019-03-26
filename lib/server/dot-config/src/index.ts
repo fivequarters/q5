@@ -1,0 +1,1 @@
+export { DotConfig } from './DotConfig';

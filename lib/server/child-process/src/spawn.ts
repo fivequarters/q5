@@ -22,6 +22,7 @@ export default function spawn(
     stdin?: Readable;
     stdout?: Writable;
     stderr?: Writable;
+    shell?: boolean;
   } = {}
 ): Promise<{
   code?: number;
@@ -29,7 +30,7 @@ export default function spawn(
   stderr: Buffer;
 }> {
   return new Promise((resolve, reject) => {
-    const spawnOptions = {
+    const spawnOptions: any = {
       cwd: options.cwd,
       env: options.env,
     };
@@ -38,6 +39,10 @@ export default function spawn(
       stderr: emptyBuffer,
       stdout: emptyBuffer,
     };
+
+    if (options.shell) {
+      spawnOptions.shell = true;
+    }
 
     const child = childProcess.spawn(command, options.args || [], spawnOptions);
     process.on('beforeExit', () => {

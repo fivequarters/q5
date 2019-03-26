@@ -111,9 +111,13 @@ export class Table {
     const allRowValues = this.getAllRowValues();
     const columnWidths = this.getColumnWidths(allRowValues);
     const rowStrings = [];
+    const gutter =
+      typeof this.columnConstraint.gutter === 'number'
+        ? Text.empty().pad(this.columnConstraint.gutter || 0)
+        : this.columnConstraint.gutter || '';
     for (let i = 0; i < allRowValues.length; i++) {
       const formattedRow = format(allRowValues[i].cells, columnWidths, this.rows[i].constraint);
-      rowStrings.push(this.rowToString(formattedRow));
+      rowStrings.push(this.rowToString(formattedRow, gutter));
     }
 
     return Text.join(rowStrings, EOL);
@@ -144,8 +148,7 @@ export class Table {
     return resize(columnWidths, this.columnConstraint);
   }
 
-  private rowToString(formmatedRow: ICell[]) {
-    const gutter = Text.empty().pad(this.columnConstraint.gutter || 0);
+  private rowToString(formmatedRow: ICell[], gutter: IText) {
     const lines = [];
     for (let i = 0; i < formmatedRow[0].lines.length; i++) {
       const line = [];
@@ -153,7 +156,7 @@ export class Table {
         line.push(cell.lines[i]);
       }
       const fullLine = Text.join(line, gutter);
-      lines.push(fullLine.trimRight());
+      lines.push(fullLine);
     }
 
     return Text.join(lines, EOL);
