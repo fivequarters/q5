@@ -1,0 +1,15 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": { "rootDir": "src", "module": "CommonJS", "outDir": "libc" },
+  "include": ["src"],
+  "references": [
+    { "path": "../../server/dot-config" },
+    { "path": "../../server/aws-cred" },
+    { "path": "../ops-core-aws" },
+    { "path": "../ops-publish-aws" },
+    { "path": "../ops-deploy-aws" },
+    { "path": "../ops-account-aws" },
+    { "path": "../ops-api-aws" },
+    { "path": "../ops-user-aws" }
+  ]
+}

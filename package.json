@@ -23,7 +23,8 @@
     "ngrok": "yarn-tool yarn ngrok",
     "destroy": "yarn-tool yarn destroy",
     "deploy": "yarn-tool yarn deploy",
-    "doc": "yarn-tool yarn doc"
+    "doc": "yarn-tool yarn doc",
+    "cli-link": "yarn-tool yarn cli-link"
   },
   "devDependencies": {
     "@babel/core": "^7.3.3",
@@ -94,7 +95,7 @@
     "demo/functions/functions-app",
     "comp/corp-favicon",
     "api/int/cron",
-    "api/int/user-api",
+    "api/int/user-api-old",
     "lib/shared/random",
     "lib/server/key-pair",
     "lib/server/jwt",
@@ -107,7 +108,6 @@
     "cli/flexd-cli",
     "lib/shared/text",
     "lib/shared/array",
-    "service/test1",
     "lib/server/aws-lambda",
     "lib/server/zip",
     "lib/server/aws-s3",
@@ -116,8 +116,24 @@
     "lib/server/aws-base",
     "lib/server/aws-network",
     "lib/server/aws-route53",
-    "lib/server/flexd-ops-cli",
+    "cli/flexd-ops-cli",
     "lib/server/aws-cert",
-    "lib/server/aws-audit"
+    "lib/server/aws-audit",
+    "lib/server/aws-alb",
+    "lib/server/aws-dynamo",
+    "lib/server/dot-config",
+    "lib/ops/flexd-ops-core",
+    "lib/ops/ops-core-aws",
+    "api/int/test-service",
+    "lib/ops/ops-publish-aws",
+    "api/user-api",
+    "api/account-api",
+    "api/function-api",
+    "lib/ops/ops-account-aws",
+    "lib/ops/ops-deploy-aws",
+    "lib/ops/ops-api-aws",
+    "lib/ops/ops-user-aws",
+    "lib/server/aws-ecr",
+    "lib/server/aws-ec2"
   ]
 }

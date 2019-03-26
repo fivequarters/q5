@@ -1,6 +1,5 @@
 import { startsWith } from '@5qtrs/array';
 import { IText, Text } from '@5qtrs/text';
-import { EOL } from 'os';
 import { ArgType } from './ArgType';
 import { Argument, IArgument } from './Argument';
 import { ICommandIO } from './CommandIO';
@@ -211,15 +210,27 @@ export class Command implements ICommand {
 
       const input = await this.getExecuteInput(command, parsedArgs, io);
       if (input) {
-        return command.onExecute(input);
+        await this.onSubCommandExecuting(command, input);
+        const result = await command.onExecute(input);
+        await this.onSubCommandExecuted(command, input, result);
+        return result;
       }
     }
 
     return 1;
   }
 
+  protected async onSubCommandExecuting(command: Command, input: IExecuteInput) {
+    return;
+  }
+
+  protected async onSubCommandExecuted(command: Command, input: IExecuteInput, result: number) {
+    return;
+  }
+
   protected async getCommandToExecute(parsedArgs: ParsedArgs, io: ICommandIO) {
-    let commands = await this.getPotentialCommandsToExecute(parsedArgs);
+    const mode = await this.onGetMode(parsedArgs, io);
+    let commands = await this.getPotentialCommandsToExecute(parsedArgs, mode);
 
     if (commands.length > 1) {
       commands = await this.onMulitplePotentialCommands(parsedArgs, commands, io);
@@ -247,11 +258,13 @@ export class Command implements ICommand {
     return commands[0];
   }
 
-  protected async getPotentialCommandsToExecute(parsedArgs: ParsedArgs) {
+  protected async getPotentialCommandsToExecute(parsedArgs: ParsedArgs, mode?: string) {
     const potentialCommands: Command[] = [];
     for (const command of this.allSubCommands) {
       if (startsWith(parsedArgs.termsAndArguments, command.terms)) {
-        potentialCommands.push(command);
+        if (!mode || command.modes.indexOf(mode) !== -1) {
+          potentialCommands.push(command);
+        }
       }
     }
 
@@ -274,9 +287,10 @@ export class Command implements ICommand {
 
   protected async onMulitplePotentialCommands(parsedArgs: ParsedArgs, commands: Command[], io: ICommandIO) {
     const helpCommand = this.cli ? Text.create("'", Text.boldItalic(this.cli), "' ") : '';
+    io.writeLine();
     const message = await Message.create({
       kind: MessageKind.error,
-      header: 'Mulitple Commands:',
+      header: 'Mulitple Commands',
       message: Text.create(
         "The command '",
         Text.boldItalic(parsedArgs.termsAndArguments.join(' ')),
@@ -294,9 +308,10 @@ export class Command implements ICommand {
   }
 
   protected async onNoPotentialCommands(parsedArgs: ParsedArgs, io: ICommandIO): Promise<Command[]> {
+    io.writeLine();
     const message = await Message.create({
       kind: MessageKind.error,
-      header: 'Unknown Command:',
+      header: 'Unknown Command',
       message: Text.create(
         "The command '",
         Text.boldItalic(parsedArgs.termsAndArguments.join(' ')),
@@ -315,9 +330,10 @@ export class Command implements ICommand {
   protected async onUnknownOption(parsedArgs: ParsedArgs, command: Command, option: string, io: ICommandIO) {
     const commandTerms = command.terms.join(' ');
     const commandName = commandTerms ? Text.create("'", Text.boldItalic(commandTerms), "' ") : Text.empty();
+    io.writeLine();
     const message = await Message.create({
       kind: MessageKind.error,
-      header: 'Unknown Option:',
+      header: 'Unknown Option',
       message: Text.create(
         "The option '",
         Text.boldItalic(option),
@@ -335,9 +351,10 @@ export class Command implements ICommand {
   }
 
   protected async onInvalidOptionType(parsedArgs: ParsedArgs, command: Command, option: Option, io: ICommandIO) {
+    io.writeLine();
     const message = await Message.create({
       kind: MessageKind.error,
-      header: 'Invalid Option:',
+      header: 'Invalid Option',
       message: Text.create(
         "The option '",
         Text.boldItalic(option.name),
@@ -357,9 +374,10 @@ export class Command implements ICommand {
   protected async onUnknownArguments(parsedArgs: ParsedArgs, command: Command, args: string[], io: ICommandIO) {
     const commandTerms = command.terms.join(' ');
     const commandName = commandTerms ? Text.create("'", Text.boldItalic(commandTerms), "' ") : Text.empty();
+    io.writeLine();
     const message = await Message.create({
       kind: MessageKind.error,
-      header: 'Unknown Argument:',
+      header: 'Unknown Argument',
       message: Text.create(
         `The argument value${args.length > 1 ? 's' : ''} '`,
         Text.boldItalic(args.join(' ')),
@@ -377,9 +395,10 @@ export class Command implements ICommand {
   }
 
   protected async onMissingArgument(parsedArgs: ParsedArgs, command: Command, argument: string, io: ICommandIO) {
+    io.writeLine();
     const message = await Message.create({
       kind: MessageKind.error,
-      header: 'Missing Argument:',
+      header: 'Missing Argument',
       message: Text.create(
         "The required argument '",
         Text.boldItalic(argument),
@@ -395,9 +414,10 @@ export class Command implements ICommand {
   }
 
   protected async onInvalidArgumentType(parsedArgs: ParsedArgs, command: Command, argument: Argument, io: ICommandIO) {
+    io.writeLine();
     const message = await Message.create({
       kind: MessageKind.error,
-      header: 'Invalid Argument:',
+      header: 'Invalid Argument',
       message: Text.create(
         "The argument '",
         Text.boldItalic(argument.name),
@@ -415,13 +435,35 @@ export class Command implements ICommand {
   }
 
   protected async onMultipleOptionValues(parsedArgs: ParsedArgs, command: Command, option: Option, io: ICommandIO) {
+    io.writeLine();
     const message = await Message.create({
       kind: MessageKind.error,
-      header: 'Multiple Options:',
+      header: 'Multiple Options',
       message: Text.create(
         "Multiple option values were provided for the option '",
         Text.boldItalic(option.name),
         `' but only one value is supported.`,
+        Text.eol(),
+        Text.eol(),
+        "Execute '",
+        Text.boldItalic(getHelpCommand(this.cli, command.terms)),
+        "' to see a description of the '",
+        Text.boldItalic(option.name),
+        "' command option."
+      ),
+    });
+    message.write(io);
+  }
+
+  protected async onNoOptionValues(parsedArgs: ParsedArgs, command: Command, option: Option, io: ICommandIO) {
+    io.writeLine();
+    const message = await Message.create({
+      kind: MessageKind.error,
+      header: 'No Option Value',
+      message: Text.create(
+        "No option value was provided for the option '",
+        Text.boldItalic(option.name),
+        `'.`,
         Text.eol(),
         Text.eol(),
         "Execute '",
@@ -462,7 +504,7 @@ export class Command implements ICommand {
           await this.onMissingArgument(parsedArgs, command, argumentName, io);
           return undefined;
         }
-        value = argument.default;
+        value = argument.type === ArgType.boolean ? 'true' : argument.default;
       }
       if (value !== undefined) {
         value = parseArgType(value as string, argument.type);
@@ -490,7 +532,19 @@ export class Command implements ICommand {
         }
 
         const parsedValues = [];
-        for (const value of parsedArgs.options[option]) {
+        const values = parsedArgs.options[option];
+        if (!values.length) {
+          if (matchedOption.type === ArgType.boolean) {
+            values.push('true');
+          }
+        }
+
+        if (!values.length) {
+          await this.onNoOptionValues(parsedArgs, command, matchedOption, io);
+          return undefined;
+        }
+
+        for (const value of values) {
           const parsed = parseArgType(value, matchedOption.type);
           if (parsed === undefined) {
             await this.onInvalidOptionType(parsedArgs, command, matchedOption, io);
@@ -499,6 +553,17 @@ export class Command implements ICommand {
           parsedValues.push(parsed);
         }
         options[matchedOption.name] = matchedOption.allowMany ? parsedValues : parsedValues[0];
+      }
+    }
+
+    for (const option of command.options) {
+      if (option.default !== undefined && options[option.name] === undefined) {
+        const parsed = parseArgType(option.default, option.type);
+        if (parsed === undefined) {
+          await this.onInvalidOptionType(parsedArgs, command, option, io);
+          return undefined;
+        }
+        options[option.name] = parsed;
       }
     }
 
@@ -520,6 +585,10 @@ export class Command implements ICommand {
     });
     message.write(input.io);
     return new Promise(resolve => setImmediate(() => resolve(1)));
+  }
+
+  protected async onGetMode(parsedArgs: ParsedArgs, io: ICommandIO): Promise<string | undefined> {
+    return undefined;
   }
 
   protected async onHelp(io: ICommandIO) {

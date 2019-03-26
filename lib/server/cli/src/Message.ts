@@ -1,4 +1,4 @@
-import { CellAlignment, Table } from '@5qtrs/table';
+import { CellOverflow, Table } from '@5qtrs/table';
 import { IText, Text } from '@5qtrs/text';
 import { ICommandIO } from './CommandIO';
 
@@ -45,24 +45,26 @@ export class Message {
 
   public async write(io: ICommandIO) {
     const header = await this.getHeaderText();
-    const columns: any = [{ flexShrink: 0, flexGrow: 0 }, { flexShrink: 1, flexGrow: 1 }];
-    if (header.length) {
-      columns.unshift({ min: 0, max: 0 });
+    const columns: any = [{ min: 17, max: 17 }, { flexShrink: 1, flexGrow: 1 }];
+    if (!header.length) {
+      columns.shift();
     }
 
     const table = await Table.create({
       width: io.outputWidth || defaultConsoleWidth,
       count: columns.length,
-      gutter: 3,
+      gutter: Text.dim('  │  '),
       columns,
     });
 
-    const row = header.length ? ['', header, this.message] : ['', this.message];
+    const row = header.length ? [header, this.message] : [this.message];
     table.addRow(row);
+    io.writeLine(table.toText());
     io.writeLine();
-    io.write(table.toText());
-    io.writeLine();
-    io.writeLine();
+  }
+
+  public toString() {
+    return this.header ? `${this.header}: ${this.message}` : this.message.toString();
   }
 
   private async getHeaderText() {

@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": { "rootDir": "src", "module": "CommonJS", "outDir": "libc" },
+  "include": ["src"],
+  "references": [
+    { "path": "../../lib/shared/request" },
+    { "path": "../../lib/server/server" },
+    { "path": "../../lib/shared/config" },
+    { "path": "../../lib/server/aws-dynamo" },
+    { "path": "../../lib/server/aws-cred" },
+    { "path": "../../lib/server/aws-deployment" },
+    { "path": "../../lib/shared/random" },
+    { "path": "../../lib/shared/clone" }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "name": "@5qtrs/ops-publish-aws",
+  "version": "0.0.1",
+  "description": "",
+  "main": "libc/index.js",
+  "license": "UNLICENSED",
+  "author": "FiveQuarters.io",
+  "scripts": {
+    "build": "tsc -b",
+    "test": "jest --colors",
+    "coverage": "jest --colors --coverage",
+    "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x} test/{,**/}*.ts{,x}",
+    "clean": "rm -r -f libc; rm -r -f coverage"
+  },
+  "keywords": [],
+  "dependencies": {
+    "@5qtrs/stream": "^0.0.1",
+    "@5qtrs/workspace": "^0.0.1",
+    "@5qtrs/ops-core-aws": "^0.0.1",
+    "@5qtrs/zip": "^0.0.1",
+    "@5qtrs/file": "^0.0.1",
+    "@5qtrs/aws-cred": "^0.0.1",
+    "@5qtrs/aws-dynamo": "^0.0.1",
+    "@5qtrs/aws-s3": "^0.0.1",
+    "@5qtrs/random": "^0.0.1",
+    "@5qtrs/base64": "^0.0.1",
+    "@5qtrs/aws-ecr": "^0.0.1"
+  }
+}

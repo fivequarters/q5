@@ -3,43 +3,45 @@ import { AwsCreds } from '../src';
 import { mockSts } from '../src/AwsCreds';
 
 describe('AwsCreds', () => {
-  //
   // ** Uncomment to manually test with real credentials **
-  //
+
   // it('should work with real creds', async () => {
-  //   const awsDeployment = await AwsDeployment.create({
-  //     regionCode: 'us-west-1',
-  //     account: '<users account>',
-  //     key: 'foo'
-  //   });
-  //   const awsCreds = await AwsCreds.create(awsDeployment, {
-  //     secretAccessKey: '<secret access key>',
-  //     accessKeyId: '<access key id>',
+
+  //   const usersAccount = '';
+  //   const secretAccessKey = '';
+  //   const accessKeyId = '';
+  //   const userName = '';
+  //   const mfaCode = '';
+  //   const prodAccount = '';
+  //   const prodRoleName = '';
+
+  //   const awsCreds = await AwsCreds.create({
+  //     account: usersAccount,
+  //     secretAccessKey,
+  //     accessKeyId,
   //     useMfa: true,
-  //     userName: '<user name>',
-  //     mfaCodeResolver: __ => Promise.resolve({ code: '<mfa code>' }),
+  //     userName,
+  //     mfaCodeResolver: __ => Promise.resolve({ code: mfaCode }),
   //   });
-  //   const roleCreds = awsCreds.asRole({ account: '<prod account>', name: '<role name>' });
+  //   const roleCreds = awsCreds.asRole({ account: prodAccount, name: prodRoleName });
   //   const creds = await roleCreds.getCredentials();
-  //   console.log(creds)
+  //   console.log(creds);
   // });
 
   describe('create()', () => {
-    it('should accept base creds', async () => {
-      const deployment = await AwsDeployment.create({ regionCode: 'us-west-1', account: '01', key: 'foo' });
-      const awsCreds = await AwsCreds.create(deployment, { secretAccessKey: 'ABCD', accessKeyId: '005' });
+    it('should accept a secret access key', async () => {
+      const awsCreds = await AwsCreds.create({ account: '01', secretAccessKey: 'ABCD', accessKeyId: '005' });
       expect(awsCreds).toBeInstanceOf(AwsCreds);
     });
-    it('should not require base creds', async () => {
-      const deployment = await AwsDeployment.create({ regionCode: 'us-west-1', account: '01', key: 'foo' });
-      const awsCreds = await AwsCreds.create(deployment);
+    it('should not require a secret access key', async () => {
+      const awsCreds = await AwsCreds.create({ account: '01' });
       expect(awsCreds).toBeInstanceOf(AwsCreds);
     });
     it('should require an MFA code resolver if using MFA', async () => {
-      const deployment = await AwsDeployment.create({ regionCode: 'us-west-1', account: '01', key: 'foo' });
       let message = '';
       try {
-        const awsCreds = await AwsCreds.create(deployment, {
+        const awsCreds = await AwsCreds.create({
+          account: '01',
           secretAccessKey: 'ABCD',
           accessKeyId: '005',
           useMfa: true,
@@ -50,8 +52,8 @@ describe('AwsCreds', () => {
       expect(message).toBe("If using MFA, the 'mfaCodeResolver' must be provided.");
     });
     it('should accept an MFA code resolver', async () => {
-      const deployment = await AwsDeployment.create({ regionCode: 'us-west-1', account: '01', key: 'foo' });
-      const awsCreds = await AwsCreds.create(deployment, {
+      const awsCreds = await AwsCreds.create({
+        account: '01',
         secretAccessKey: 'ABCD',
         accessKeyId: '005',
         useMfa: true,
@@ -63,8 +65,7 @@ describe('AwsCreds', () => {
 
   describe('getCredentials()', () => {
     it('should return base creds for the base', async () => {
-      const deployment = await AwsDeployment.create({ regionCode: 'us-west-1', account: '01', key: 'foo' });
-      const awsCreds = await AwsCreds.create(deployment, { secretAccessKey: 'ABCD', accessKeyId: '005' });
+      const awsCreds = await AwsCreds.create({ account: '01', secretAccessKey: 'ABCD', accessKeyId: '005' });
       const creds = await awsCreds.getCredentials();
       expect(creds).toEqual({ secretAccessKey: 'ABCD', accessKeyId: '005' });
     });

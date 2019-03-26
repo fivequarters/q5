@@ -1,3 +1,5 @@
+import { IText } from '@5qtrs/text';
+
 // ------------------
 // Internal Constants
 // ------------------
@@ -8,6 +10,13 @@ const defaultFlexShrink = 1;
 // ------------------
 // Internal Functions
 // ------------------
+
+function getGutterWidth(gutter?: number | IText) {
+  if (gutter === undefined) {
+    return 0;
+  }
+  return typeof gutter === 'number' ? gutter : gutter.length;
+}
 
 function ensureMinMaxWidths(columnWidths: number[], constraint: IColumnsConstraint) {
   const columnContraints = constraint.columns || [];
@@ -27,7 +36,7 @@ function getRemainingWidth(columnWidths: number[], constraint: IColumnsConstrain
   let currentWidth = 0;
   for (let i = 0; i < columnWidths.length; i++) {
     if (i > 0) {
-      currentWidth += constraint.gutter || 0;
+      currentWidth += getGutterWidth(constraint.gutter);
     }
     currentWidth += columnWidths[i];
   }
@@ -122,7 +131,7 @@ export interface IColumnConstraint {
 export interface IColumnsConstraint {
   width: number;
   count: number;
-  gutter?: number;
+  gutter?: number | IText;
   columns?: (IColumnConstraint | undefined)[];
 }
 
@@ -143,7 +152,7 @@ export function validate(constraints: IColumnsConstraint) {
 
   if (constraints.columns) {
     if (constraints.gutter) {
-      totalMinWidth += constraints.gutter * (constraints.columns.length - 1);
+      totalMinWidth += getGutterWidth(constraints.gutter) * (constraints.columns.length - 1);
     }
 
     for (const column of constraints.columns) {

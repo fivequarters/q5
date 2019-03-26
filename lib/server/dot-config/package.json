@@ -1,0 +1,20 @@
+{
+  "name": "@5qtrs/dot-config",
+  "version": "0.0.1",
+  "description": "",
+  "main": "libc/index.js",
+  "license": "UNLICENSED",
+  "author": "FiveQuarters.io",
+  "scripts": {
+    "build": "tsc -b",
+    "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x} test/{,**/}*.ts{,x}",
+    "clean": "rm -r -f libc"
+  },
+  "keywords": [],
+  "dependencies": {
+    "@5qtrs/file": "^0.0.1"
+  },
+  "devServer": {
+    "port": 9523
+  }
+}

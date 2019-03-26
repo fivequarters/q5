@@ -1,0 +1,18 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": { "rootDir": "src", "module": "CommonJS", "outDir": "libc" },
+  "include": ["src"],
+  "references": [
+    { "path": "../../server/stream" },
+    { "path": "../../../tool/workspace" },
+    { "path": "../ops-core-aws" },
+    { "path": "../../server/zip" },
+    { "path": "../../server/file" },
+    { "path": "../../server/aws-cred" },
+    { "path": "../../server/aws-dynamo" },
+    { "path": "../../server/aws-s3" },
+    { "path": "../../shared/random" },
+    { "path": "../../shared/base64" },
+    { "path": "../../server/aws-ecr" }
+  ]
+}
