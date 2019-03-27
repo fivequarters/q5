@@ -1,9 +1,8 @@
 import { EventEmitter } from '@5qtrs/event';
 import { ServerResponse } from 'http';
 import * as Events from './Events';
-import { IApplicationSettings, IFunctionSpecification, ILambdaSettings, ISchedule } from './FunctionSpecification';
+import { IFunctionSpecification, ISchedule } from './FunctionSpecification';
 import { IBuildStatus } from './Server';
-import { stat } from 'fs';
 
 const RunnerPlaceholder = `// Return a function that evaluates to a Superagent request promise
 
