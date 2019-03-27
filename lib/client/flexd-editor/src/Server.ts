@@ -29,7 +29,7 @@ export interface IAccount {
 }
 
 /**
- * A callback function implemented by the application embedding the Flexd Editor used 
+ * A callback function implemented by the application embedding the Flexd Editor used
  * to request current access credentials to the Flexd HTTP APIs. The callback is called before every API call
  * the editor initiates, so the implementation is responsible for any cashing if appropriate.
  *
@@ -161,7 +161,7 @@ export class Server {
     return this.accountResolver(this.account)
       .then(newAccount => {
         this.account = this._normalizeAccount(newAccount);
-        const url = `${this.account.baseUrl}api/v1/subscription/${
+        const url = `${this.account.baseUrl}v1/subscription/${
           this.account.subscriptionId
         }/boundary/${boundaryId}/function/${id}/location`;
         return Superagent.get(url)
@@ -187,7 +187,7 @@ export class Server {
     return this.accountResolver(this.account)
       .then(newAccount => {
         this.account = this._normalizeAccount(newAccount);
-        const url = `${this.account.baseUrl}api/v1/subscription/${
+        const url = `${this.account.baseUrl}v1/subscription/${
           this.account.subscriptionId
         }/boundary/${boundaryId}/function/${id}`;
         return Superagent.get(url)
@@ -226,7 +226,7 @@ export class Server {
       return new Promise(resolve => setTimeout(resolve, this.buildStatusCheckInterval))
         .then(() => {
           // @ts-ignore
-          const url = `${this.account.baseUrl}api/v1/subscription/${self.account.subscriptionId}/boundary/${
+          const url = `${this.account.baseUrl}v1/subscription/${self.account.subscriptionId}/boundary/${
             editorContext.boundaryId
           }/function/${editorContext.functionId}/build/${build.id}`;
           return (
@@ -258,7 +258,7 @@ export class Server {
     return this.accountResolver(this.account)
       .then(newAccount => {
         this.account = this._normalizeAccount(newAccount);
-        const url = `${this.account.baseUrl}api/v1/subscription/${this.account.subscriptionId}/boundary/${
+        const url = `${this.account.baseUrl}v1/subscription/${this.account.subscriptionId}/boundary/${
           editorContext.boundaryId
         }/function/${editorContext.functionId}`;
         startTime = Date.now();
@@ -359,7 +359,7 @@ export class Server {
       clearTimeout(this.logsTimeout);
       return this.accountResolver(this.account).then(newAccount => {
         this.account = this._normalizeAccount(newAccount);
-        const url = `${this.account.baseUrl}api/v1/subscription/${this.account.subscriptionId}/boundary/${
+        const url = `${this.account.baseUrl}v1/subscription/${this.account.subscriptionId}/boundary/${
           editorContext.boundaryId
         }/function/${editorContext.functionId}/log?token=${this.account.accessToken}`;
 

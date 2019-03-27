@@ -35,7 +35,12 @@ export function scheduler(event: any, context: any, cb: any) {
   function processCronJobs(continuationToken: string | undefined, cb: any): any {
     return Async.series([cb => listCronJobs(cb), cb => sendToSqs(cb)], e => {
       if (e) return cb(e);
-      return listedCronJobs.IsTruncated ? processCronJobs(listedCronJobs.NextContinuationToken, cb) : cb(null, stats);
+      if (listedCronJobs.IsTruncated) {
+        return processCronJobs(listedCronJobs.NextContinuationToken, cb);
+      } else {
+        console.log('DONE', stats);
+        return cb(null, stats);
+      }
     });
 
     function listCronJobs(cb: any) {

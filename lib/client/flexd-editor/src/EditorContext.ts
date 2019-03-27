@@ -1,7 +1,7 @@
 import { EventEmitter } from '@5qtrs/event';
 import { ServerResponse } from 'http';
 import * as Events from './Events';
-import { IApplicationSettings, IFunctionSpecification, ILambdaSettings, ISchedule } from './FunctionSpecification';
+import { IFunctionSpecification, ISchedule } from './FunctionSpecification';
 import { IBuildStatus } from './Server';
 
 const RunnerPlaceholder = `// Return a function that evaluates to a Superagent request promise
@@ -438,6 +438,11 @@ export class EditorContext extends EventEmitter {
    * @ignore
    */
   public buildFinished(status: IBuildStatus) {
+    if (status.location) {
+      this.location = status.location;
+    } else {
+      this.location = undefined;
+    }
     status.progress = 1;
     const event = new Events.BuildFinishedEvent(status);
     this.emit(event);

@@ -11,8 +11,10 @@ export interface IAwsEc2LaunchInstance {
   subnetId: string;
   securityGroupId: string;
   instanceType: string;
-  dockerPort: string;
-  albPort: string;
+  albLogPort: string;
+  albApiPort: string;
+  logPort: string;
+  apiPort: string;
   role: string;
   image: {
     repository: string;
@@ -44,8 +46,6 @@ export class AwsEc2 extends AwsBase<typeof EC2> {
     const deploymentName = launch.deploymentName;
     const region = launch.image.region;
     const account = launch.image.account;
-    const albPort = launch.albPort;
-    const dockerPort = launch.dockerPort;
     const repo = launch.image.repository;
     const tag = launch.image.tag;
 
@@ -69,10 +69,16 @@ Requires=docker.service
 [Service]
 TimeoutStartSec=0
 Restart=always
-ExecStart=/usr/bin/docker run -p ${albPort}:${dockerPort} --name flexd ${account}.dkr.ecr.${region}.amazonaws.com/${repo}:${tag}
+ExecStart=/usr/bin/docker run -p ${launch.albApiPort}:${launch.apiPort} -p ${launch.albLogPort}:${
+      launch.logPort
+    } --name flexd -rm --env-file /etc/systemd/system/docker.flexd.env ${account}.dkr.ecr.${region}.amazonaws.com/${repo}:${tag}
 
 [Install]
 WantedBy=multi-user.target
+EOF
+
+cat > /etc/systemd/system/docker.flexd.env << EOF
+${require('fs').readFileSync(require('path').join(__dirname, '../../../../.aws.' + deploymentName + '.env'), 'utf8')}
 EOF
 
 systemctl start docker.flexd`;

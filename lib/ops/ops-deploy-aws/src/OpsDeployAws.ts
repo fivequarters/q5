@@ -299,8 +299,10 @@ export class OpsDeployAws {
       subnetId: networkDetails.privateSubnets[0].id,
       securityGroupId: networkDetails.securityGroupId,
       instanceType: 't2.medium',
-      dockerPort: '8080',
-      albPort: '80',
+      logPort: '5002',
+      apiPort: '3001',
+      albApiPort: '3001',
+      albLogPort: '5002',
       role: 'arn:aws:iam::321612923577:instance-profile/Flexd-EC2-Instance',
       image: {
         repository,
