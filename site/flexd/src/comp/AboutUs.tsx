@@ -26,18 +26,19 @@ const InnerContainer = styled.div`
   align-items: stretch;
 `;
 
-const Heading = styled.div`
+const Heading = styled.h1`
     flex: 1;
     max-width 800px;
+    margin-top: 0;
     margin-bottom: 10px;
     text-align: center;
     ${props => applyTheme(props, 'bio', 'heading')}
 `;
 
-const IntroParagraph = styled.div`
+const IntroParagraph = styled.h3`
     flex: 1;
     max-width 800px;
-    margin-bottom: 10px;
+    margin-top: 0;
     margin-bottom: 30px;
     // text-align: center;
     ${props => applyTheme(props, 'bio', 'intro')}

@@ -42,15 +42,17 @@ const MainMessageContainer = styled.div`
   align-items: flex-start;
 `;
 
-const MainMessage = styled.div`
+const MainMessage = styled.h1`
   flex: 1;
   padding-bottom: 30px;
+  margin: 0;
   ${props => applyTheme(props, 'splash', 'mainMessage')}
 `;
 
-const SubMessage = styled.div`
+const SubMessage = styled.h3`
   flex: 1;
   padding-bottom: 30px;
+  margin: 0;
   ${props => applyTheme(props, 'splash', 'subMessage')}
 `;
 

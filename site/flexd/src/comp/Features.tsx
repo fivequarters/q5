@@ -7,13 +7,13 @@ import { applyTheme } from '../util';
 // import { Section } from './Section';
 
 const Section = styled.div`
-    padding-top: 100px;
-    padding-bottom: 100px;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-items: center;
-    ${props => applyTheme(props, 'feature')}
+  padding-top: 100px;
+  padding-bottom: 100px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-items: center;
+  ${props => applyTheme(props, 'feature')}
 `;
 
 const Gutter = styled.div`
@@ -50,10 +50,12 @@ const FeatureContainer = styled.div`
   align-items: center;
 `;
 
-const FeatureTitle = styled.div` 
+const FeatureTitle = styled.h3`
   flex: 1;
   padding-bottom: 10px;
   max-width: 500px;
+  margin-top: 0;
+  margin-bottom: 0;
   ${props => applyTheme(props, 'feature', 'title')}
 `;
 
@@ -62,17 +64,20 @@ const FeaturePicture = styled.img`
   max-width: 500px;
 `;
 
-const FeatureDescription = styled.div` 
+const FeatureDescription = styled.h3` 
   flex: 1;
   max-width 500px;
   padding: 0px 30px 30px 30px;
+  margin-top: 0;
+  margin-bottom: 0;
   ${props => applyTheme(props, 'feature', 'description')}
 `;
 
-const Heading = styled.div`
+const Heading = styled.h1`
     flex: 1;
     max-width 300px;
-    margin-bottom: 50px;
+    margin-bottom: 30px;
+    margin-top: 0;
     text-align: center;
     ${props => applyTheme(props, 'feature', 'heading')}
 `;
@@ -80,29 +85,29 @@ const Heading = styled.div`
 export function Features() {
   return (
     <Section>
-    <Gutter/>
+      <Gutter />
       <Column>
         <Heading>Flexd</Heading>
         <Container>
-            <FeatureContainer>
-                <FeatureTitle>Ultimate customization through code</FeatureTitle>
-                <FeaturePicture src={FlexdEditor}></FeaturePicture>
-                <FeatureDescription>
-                    Embedded scripting environment empowers your customers, sales engineers, 
-                    and partners to address unique customization and integration requirements
-                </FeatureDescription>
-            </FeatureContainer>
-            <FeatureContainer>
-                <FeatureTitle>Flexible addons, specific to your platform</FeatureTitle>
-                <FeaturePicture src={FlexdGallery}></FeaturePicture>
-                <FeatureDescription>
-                    Embedded addon framework that accelerates delivery of integrations and extensions 
-                    in your platform, while allowing  customization of the last mile through code
-                </FeatureDescription>
-            </FeatureContainer>
+          <FeatureContainer>
+            <FeatureTitle>Ultimate customization through code</FeatureTitle>
+            <FeaturePicture src={FlexdEditor} />
+            <FeatureDescription>
+              Embedded scripting environment empowers your customers, sales engineers, and partners to address unique
+              customization and integration requirements
+            </FeatureDescription>
+          </FeatureContainer>
+          <FeatureContainer>
+            <FeatureTitle>Flexible addons, specific to your platform</FeatureTitle>
+            <FeaturePicture src={FlexdGallery} />
+            <FeatureDescription>
+              Embedded addon framework that accelerates delivery of integrations and extensions in your platform, while
+              allowing customization of the last mile through code
+            </FeatureDescription>
+          </FeatureContainer>
         </Container>
       </Column>
-    <Gutter/>
+      <Gutter />
     </Section>
   );
 }

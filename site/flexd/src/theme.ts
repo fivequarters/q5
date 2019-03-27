@@ -215,7 +215,7 @@ const components = {
   },
   vp: {
     title: {
-      font: { ...fonts.h2, weight: 'bold' },
+      font: { ...fonts.h2 },
     },
     description: {
       font: { ...fonts.h3 },
@@ -223,7 +223,7 @@ const components = {
   },
   problem: {
     heading: {
-      font: { ...fonts.h1, weight: 'bold' },
+      font: { ...fonts.h1 },
     },
     title: {
       font: { ...fonts.h2 },
@@ -311,7 +311,6 @@ const components = {
     heading: {
       font: {
         ...fonts.h1,
-        weight: 'bold',
       },
     },
     intro: {
@@ -322,7 +321,6 @@ const components = {
     name: {
       font: {
         ...fonts.h2,
-        weight: 'bold',
         align: 'center',
       },
     },

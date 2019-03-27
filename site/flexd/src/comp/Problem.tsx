@@ -37,27 +37,32 @@ const PersonaContainer = styled.div`
   align-items: center;
 `;
 
-const PersonaTitle = styled.div`
+const PersonaTitle = styled.h2`
   flex: 1;
   padding-bottom: 10px;
   max-width: 266px;
   min-width: 266px;
+  margin-top: 0;
+  margin-bottom: 0;
   ${props => applyTheme(props, 'problem', 'title')}
 `;
 
-const PersonaDescription = styled.div` 
+const PersonaDescription = styled.h3` 
   flex: 1;
   max-width 266px;
   min-width: 266px; 
   padding-bottom: 30px;
+  margin-top: 0;
+  margin-bottom: 0;
   ${props => applyTheme(props, 'problem', 'description')}
 `;
 
-const Heading = styled.div`
+const Heading = styled.h1`
     flex: 1;
     max-width 800px;
     min-width: 300px;
-    margin-bottom: 100px;
+    margin-top: 0;
+    margin-bottom: 70px;
     text-align: center;
     ${props => applyTheme(props, 'problem', 'heading')}
 `;

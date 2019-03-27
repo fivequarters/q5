@@ -27,12 +27,15 @@ const Content = styled.div`
   }
 `;
 
-const Name = styled.div`
+const Name = styled.h2`
+  margin-top: 0;
+  margin-bottom: 0;
   ${props => applyTheme(props, 'bio', 'name')}
 `;
 
-const Title = styled.div`
+const Title = styled.h3`
   margin-top: 10px;
+  margin-bottom: 0;
   ${props => applyTheme(props, 'bio', 'title')}
 `;
 
@@ -56,8 +59,9 @@ const LinkedIn = styled(FaLinkedin)`
   ${props => applyTheme(props, 'bio', 'linkedIn')}
 `;
 
-const Description = styled.div`
+const Description = styled.h3`
   margin-top: 10px;
+  margin-bottom: 0;
   ${props => applyTheme(props, 'bio', 'description')}
 `;
 
