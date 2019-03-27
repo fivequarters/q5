@@ -28,9 +28,7 @@ function generateInquiry(config: ApiConfig) {
     const decodedAccessToken = context.deocodedAccessToken;
     const userId = decodedAccessToken.sub;
     const admin = getAdmin(userId);
-    const functionsUrl = `${config.functionsBaseUrl}/api/v1/run/${admin.company}/${admin.company}/${
-      config.functionName
-    }`;
+    const functionsUrl = `${config.functionsBaseUrl}/v1/run/${admin.company}/${admin.company}/${config.functionName}`;
 
     let inquiry = getNextInquiry();
     try {

@@ -7,10 +7,10 @@
   "license": "UNLICENSED",
   "author": "FiveQuarters.io",
   "scripts": {
-    "build": "tsc -b",
+    "build": "rm -rf node_modules && tsc -b",
     "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x}",
     "clean": "rm -r -f libm; rm -r -f dist",
-    "start": "tsc -b -w & webpack-dev-server --open --hot",
+    "start": "rm -rf node_modules && tsc -b -w & webpack-dev-server --open --hot",
     "bundle": "webpack --config webpack.prod.js"
   },
   "keywords": [],

@@ -26,6 +26,10 @@ var corsExecutionOptions = {
 
 const NotImplemented = (_, __, next) => next(create_error(501, 'Not implemented'));
 
+// Health
+
+router.get('/health', (_, res) => res.end());
+
 // Accounts
 
 router.options('/account/:accountId', cors(corsManagementOptions));
@@ -33,7 +37,7 @@ router.get('/account/:accountId', NotImplemented);
 
 router.options('/account/:accountId/audit', cors(corsManagementOptions));
 router.get(
-  '/account/:accountId/audit', 
+  '/account/:accountId/audit',
   cors(corsManagementOptions),
   authorize({
     operation: 'audit:get',
@@ -42,7 +46,7 @@ router.get(
     query: require('./schemas/api_query'),
     params: require('./schemas/api_params'),
   }),
-  readAudit(),
+  readAudit()
 );
 
 router.options('/account/:accountId/issuer', cors(corsManagementOptions));
