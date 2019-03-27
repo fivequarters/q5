@@ -45,6 +45,7 @@ export function executor(event: any, context: any, cb: any) {
     }
 
     function runIfExists(exists: boolean, cb: any) {
+      console.log(exists ? 'RUNNING CRON JOB' : 'SKIPPING CRON JOB', msg);
       if (!exists) {
         result.skipped.push(msg);
         return cb();

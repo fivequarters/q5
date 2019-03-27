@@ -31,7 +31,7 @@ export class PubSub {
     if (this.xsubSock) {
       throw new Error('Server is already started');
     }
-    this.logger = ZmqLogger.create({ zmqPublishUrl, zmqPublishLevel, name: 'pubsub' });
+    this.logger = ZmqLogger.create({ zmqPublishUrl, zmqPublishLevel, name: 'pubsub', zmqKeepStdoutStream: true });
 
     // The xsub listener is where pubs connect to
     this.xsubSock = Zmq.socket('xsub');

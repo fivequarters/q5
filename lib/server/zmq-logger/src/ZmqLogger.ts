@@ -10,6 +10,7 @@ export { LogLevelString } from 'bunyan';
 export interface IZmqLoggerOptions extends Bunyan.LoggerOptions {
   zmqPublishUrl: string;
   zmqPublishLevel?: LogLevelString;
+  zmqKeepStdoutStream?: boolean;
 }
 
 // ----------------
@@ -17,7 +18,6 @@ export interface IZmqLoggerOptions extends Bunyan.LoggerOptions {
 // ----------------
 
 export class ZmqLogger extends Bunyan {
-
   public static create(options: IZmqLoggerOptions) {
     return new ZmqLogger(options);
   }
@@ -25,7 +25,7 @@ export class ZmqLogger extends Bunyan {
 
   private constructor(options: IZmqLoggerOptions) {
     const bunyanOptions = options as Bunyan.LoggerOptions;
-    if (!bunyanOptions.streams && !bunyanOptions.stream) {
+    if (!bunyanOptions.streams && !bunyanOptions.stream && !options.zmqKeepStdoutStream) {
       bunyanOptions.streams = [];
     }
     super(options);
