@@ -126,7 +126,6 @@
     "lib/server/dot-config",
     "lib/ops/flexd-ops-core",
     "lib/ops/ops-core-aws",
-    "api/int/test-service",
     "lib/ops/ops-publish-aws",
     "api/user-api",
     "api/account-api",
