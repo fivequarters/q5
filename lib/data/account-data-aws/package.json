@@ -1,0 +1,30 @@
+{
+  "name": "@5qtrs/account-data-aws",
+  "version": "0.0.1",
+  "description": "",
+  "main": "libc/index.js",
+  "browser": "libm/index.js",
+  "module": "libm/index.js",
+  "sideEffects": false,
+  "license": "UNLICENSED",
+  "author": "FiveQuarters.io",
+  "scripts": {
+    "build": "tsc -b && convert-module",
+    "test": "jest --colors",
+    "coverage": "jest --colors --coverage",
+    "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x} test/{,**/}*.ts{,x}",
+    "clean": "rm -r -f libc; rm -r -f libm; rm -r -f coverage"
+  },
+  "keywords": [],
+  "dependencies": {
+    "@5qtrs/aws-dynamo": "^0.0.1",
+    "@5qtrs/aws-cred": "^0.0.1",
+    "@5qtrs/aws-deployment": "^0.0.1",
+    "@5qtrs/random": "^0.0.1",
+    "@5qtrs/base64": "^0.0.1",
+    "@5qtrs/array": "^0.0.1"
+  },
+  "devServer": {
+    "port": 9525
+  }
+}

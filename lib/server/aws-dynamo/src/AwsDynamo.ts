@@ -2,6 +2,13 @@ import { AwsBase, IAwsOptions } from '@5qtrs/aws-base';
 import { DynamoDB } from 'aws-sdk';
 
 // ------------------
+// Internal Constants
+// ------------------
+
+const defaultCollisionRetries = 5;
+const alreadyExistsCode = 'ConditionalCheckFailedException';
+
+// ------------------
 // Internal Functions
 // ------------------
 
@@ -91,6 +98,14 @@ export interface IAwsLambdaPutOptions {
   expressionValues?: { [index: string]: any };
   condition?: string;
   returnOld?: boolean;
+}
+
+export interface IAwsLambdaAddOptions {
+  expressionNames?: { [index: string]: any };
+  expressionValues?: { [index: string]: any };
+  condition: string;
+  collisionRetries?: number;
+  onCollision: (item: any) => any;
 }
 
 export interface IAwsLambdaUpdateOptions extends IAwsLambdaPutOptions {
@@ -184,6 +199,29 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
     });
   }
 
+  public async addItem(tableName: string, item: any, options?: IAwsLambdaAddOptions): Promise<any> {
+    if (options && options.onCollision) {
+      let tries = (options && options.collisionRetries) || defaultCollisionRetries;
+      while (true) {
+        try {
+          await this.putItem(tableName, item, options);
+          return item;
+        } catch (error) {
+          if (error.code !== alreadyExistsCode || tries < 0) {
+            throw error;
+          }
+          const returnedItem = options.onCollision(item);
+          if (returnedItem) {
+            item = returnedItem;
+          }
+          tries--;
+        }
+      }
+    }
+
+    return this.putItem(tableName, item, options);
+  }
+
   public async putItem(tableName: string, item: any, options?: IAwsLambdaPutOptions): Promise<any> {
     const dynamo = await this.getAws();
     const params: any = {
@@ -202,6 +240,15 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
         resolve(data.Attributes);
       });
     });
+  }
+
+  public async putAll(tableName: string, items: any[]): Promise<void> {
+    items = items.slice();
+    while (items.length) {
+      const next = items.splice(0, 25);
+      const unprocessed = await this.putBatch(tableName, next);
+      items.unshift(...unprocessed);
+    }
   }
 
   public async updateItem(tableName: string, key: any, options?: IAwsLambdaUpdateOptions): Promise<any> {
@@ -242,6 +289,15 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
         resolve(data.Attributes);
       });
     });
+  }
+
+  public async deleteAll(tableName: string, keys: any[]): Promise<void> {
+    keys = keys.slice();
+    while (keys.length) {
+      const next = keys.splice(0, 25);
+      const unprocessed = await this.deleteBatch(tableName, next);
+      keys.unshift(...unprocessed);
+    }
   }
 
   public async queryTable(tableName: string, options?: IAwsLambdaQueryOptions): Promise<IAwsLambdaItems> {
@@ -338,6 +394,38 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
           return reject(error);
         }
         resolve();
+      });
+    });
+  }
+
+  private async putBatch(tableName: string, items: any[]): Promise<any[]> {
+    const dynamo = await this.getAws();
+    const params: any = { RequestItems: {} };
+    params.RequestItems[tableName] = items.map(item => ({ PutRequest: { Item: item } }));
+
+    return new Promise((resolve, reject) => {
+      dynamo.batchWriteItem(params, (error: any, data: any) => {
+        if (error) {
+          return reject(error);
+        }
+        const unprocessed = data.UnprocessedItems[tableName];
+        resolve(unprocessed ? unprocessed.map((item: any) => item.PutRequest.Item) : []);
+      });
+    });
+  }
+
+  private async deleteBatch(tableName: string, keys: any[]): Promise<any[]> {
+    const dynamo = await this.getAws();
+    const params: any = { RequestItems: {} };
+    params.RequestItems[tableName] = keys.map(key => ({ DeleteRequest: { Key: key } }));
+
+    return new Promise((resolve, reject) => {
+      dynamo.batchWriteItem(params, (error: any, data: any) => {
+        if (error) {
+          return reject(error);
+        }
+        const unprocessed = data.UnprocessedItems[tableName];
+        resolve(unprocessed ? unprocessed.map((key: any) => key.DeleteRequest.Key) : []);
       });
     });
   }
