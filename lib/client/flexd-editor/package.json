@@ -1,6 +1,6 @@
 {
   "name": "@5qtrs/flexd-editor",
-  "version": "0.0.1",
+  "version": "0.9.0",
   "description": "",
   "main": "libm/index.js",
   "browser": "libm/index.js",
