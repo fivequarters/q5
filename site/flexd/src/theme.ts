@@ -39,110 +39,6 @@ const fonts = {
     size: 20,
     type: 'sans-serif',
   },
-
-  // corporateName: {
-  //   name: 'Josefin Sans',
-  //   weight: 300,
-  //   size: 20,
-  //   type: 'sans-serif',
-  //   color: colors.darkSecondary,
-  // },
-  // announcement: {
-  //   name: 'Open Sans',
-  //   weight: 300,
-  //   size: 16,
-  //   type: 'sans-serif',
-  //   color: colors.lightPrimary,
-  //   align: 'center',
-  // },
-  // link: {
-  //   name: 'Open Sans',
-  //   weight: 400,
-  //   size: 13,
-  //   type: 'sans-serif',
-  //   align: 'center',
-  //   color: colors.darkSecondary,
-  // },
-  // // splash: {
-  // //   name: 'Josefin Sans',
-  // //   weight: 300,
-  // //   color: colors.accentPrimary,
-  // //   size: 54,
-  // //   align: 'center',
-  // //   type: 'sans-serif',
-  // // },
-  // splashRevolving: {
-  //   name: 'Josefin Sans',
-  //   weight: 300,
-  //   color: colors.darkSecondary,
-  //   size: 54,
-  //   align: 'center',
-  //   type: 'sans-serif',
-  // },
-  // emailMessage: {
-  //   name: 'Josefin Sans',
-  //   weight: 300,
-  //   size: 20,
-  //   type: 'sans-serif',
-  //   color: colors.lightPrimary,
-  //   align: 'center',
-  // },
-  // emailInput: {
-  //   name: 'Josefin Sans',
-  //   weight: 300,
-  //   size: 20,
-  //   type: 'sans-serif',
-  //   color: colors.lightPrimary,
-  // },
-  // emailSent: {
-  //   name: 'Open Sans',
-  //   weight: 400,
-  //   size: 14,
-  //   type: 'sans-serif',
-  //   color: colors.accentSecondary,
-  //   align: 'center',
-  // },
-  // section: {
-  //   name: 'Josefin Sans',
-  //   weight: 400,
-  //   size: 30,
-  //   align: 'center',
-  //   type: 'sans-serif',
-  //   color: colors.accentPrimary,
-  //   variant: 'small-caps',
-  // },
-  // body: {
-  //   name: 'Open Sans',
-  //   weight: 400,
-  //   size: 15,
-  //   type: 'sans-serif',
-  //   color: colors.darkPrimary,
-  // },
-  // bioName: {
-  //   name: 'Josefin Sans',
-  //   weight: 400,
-  //   size: 20,
-  //   color: colors.darkPrimary,
-  //   type: 'sans-serif',
-  //   align: 'center',
-  //   variant: 'small-caps',
-  // },
-  // bioTitle: {
-  //   name: 'Josefin Sans',
-  //   weight: 400,
-  //   size: 16,
-  //   type: 'sans-serif',
-  //   color: colors.accentPrimary,
-  //   align: 'center',
-  // },
-  // footer: {
-  //   name: 'Open Sans',
-  //   weight: 300,
-  //   size: 12,
-  //   type: 'sans-serif',
-  //   color: colors.lightPrimary,
-  //   align: 'center',
-  // },
 };
 
 const components = {
@@ -166,7 +62,6 @@ const components = {
       },
       input: {
         font: {
-          // fonts.emailInput,
           ...fonts.h3,
           color: colors.lightPrimary,
         },
@@ -183,7 +78,6 @@ const components = {
       },
       sent: {
         font: {
-          //fonts.emailSent,
           ...fonts.h3,
           color: colors.lightPrimary,
           align: 'center',
@@ -239,7 +133,6 @@ const components = {
     },
     input: {
       font: {
-        // fonts.emailInput,
         ...fonts.h3,
         color: colors.darkPrimary,
       },
@@ -256,7 +149,6 @@ const components = {
     },
     sent: {
       font: {
-        //fonts.emailSent,
         ...fonts.h3,
         color: colors.darkPrimary,
         align: 'center',
@@ -277,14 +169,8 @@ const components = {
   },
   navbar: {
     background: colors.lightPrimary,
-    // announcement: {
-    //   color: colors.lightPrimary,
-    //   background: colors.accentPrimary,//colors.accentPrimary,
-    //   font: fonts.announcement,
-    // },
     corporateName: {
       font: {
-        //fonts.corporateName,
         ...fonts.h1,
       },
     },
@@ -363,7 +249,6 @@ const components = {
     },
     input: {
       font: {
-        // fonts.emailInput,
         ...fonts.h2,
         color: colors.lightPrimary,
       },
@@ -380,15 +265,12 @@ const components = {
     },
     sent: {
       font: {
-        //fonts.emailSent,
         ...fonts.h2,
         color: colors.accentSecondary,
         align: 'center',
       },
     },
   },
-
-  /// OLD
 
   loading: {
     logo: {
@@ -398,16 +280,6 @@ const components = {
       rate: 5,
     },
   },
-  // section: {
-  //   title: {
-  //     font: fonts.section,
-  //   },
-  // },
-  // aboutUs: {
-  //   paragraph: {
-  //     font: fonts.body,
-  //   },
-  // },
 };
 
 export const theme: any = {
