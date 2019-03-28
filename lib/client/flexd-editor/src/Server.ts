@@ -212,6 +212,28 @@ export class Server {
    * Not needed for MVP - builds can only be initiated from editor
    * @param editorContext
    */
+  public saveFunction(editorContext: EditorContext): Promise<IBuildStatus> {
+    editorContext.setDirtyState(false);
+    editorContext.setReadOnly(true);
+    return this.buildFunction(editorContext)
+      .then(build => {
+        editorContext.setReadOnly(false);
+        if (build.error) {
+          editorContext.setDirtyState(true);
+        }
+        return build;
+      })
+      .catch(e => {
+        editorContext.setReadOnly(false);
+        editorContext.setDirtyState(true);
+        throw e;
+      });
+  }
+
+  /**
+   * Not needed for MVP - builds can only be initiated from editor
+   * @param editorContext
+   */
   public buildFunction(editorContext: EditorContext): Promise<IBuildStatus> {
     let startTime: number;
     let self = this;

@@ -89,7 +89,9 @@ export function createEditor(
     const logsSplitterId = `${idPrefix}-logs-splitter`;
     const statusId = `${idPrefix}-status`;
 
-    const lines: string[] = [`<div id="${idPrefix}" class="flexd-shell"><div id="${idPrefix}-main" class="flexd-main">`];
+    const lines: string[] = [
+      `<div id="${idPrefix}" class="flexd-shell"><div id="${idPrefix}-main" class="flexd-main">`,
+    ];
     if (opts.actionPanel !== false) {
       lines.push(`    <div id="${actionId}" class="flexd-action-container"></div>`);
     }
@@ -196,6 +198,16 @@ export function createEditor(
       );
       server.attachServerLogs(editorContext);
     }
+
+    $main.on('keydown', function(e) {
+      // Ctrl-S (Windows) or Command-S (Mac)
+      if ((window.navigator.platform.match('Mac') ? e.metaKey : e.ctrlKey) && e.keyCode == 83) {
+        e.preventDefault();
+        if (editorContext.dirtyState) {
+          server.saveFunction(editorContext).catch(_ => {});
+        }
+      }
+    });
 
     editorContext.on(Events.Events.LogsStateChanged, (e: Events.LogsStateChangedEvent) => {
       if (e.newState) {

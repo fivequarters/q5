@@ -100,7 +100,7 @@ export function createNavigationPanel(
       closedIcon: $('<i class="fa fa-chevron-right" aria-hidden="true"></i>').get(0),
       openedIcon: $('<i class="fa fa-chevron-down" aria-hidden="true"></i>').get(0),
       autoOpen: true,
-      dragAndDrop: true,
+      dragAndDrop: false,
       onCreateLi: (node, $li) => {
         if (node.id === NodeIds.Code) {
           const lines = [
@@ -200,7 +200,7 @@ export function createNavigationPanel(
     let fileNodes = ($nav.tree('getNodeById', NodeIds.Code) || { children: [] }).children || [];
     let node: INode | undefined;
     for (const fileNode of fileNodes) {
-      if (fileNode.fileName > e.fileName) {
+      if (fileNode.fileName === e.fileName) {
         node = fileNode;
         break;
       }

@@ -109,22 +109,7 @@ export function createActionPanel(
 
   $save.click(e => {
     e.preventDefault();
-    editorContext.setDirtyState(false);
-    editorContext.setReadOnly(true);
-    server
-      .buildFunction(editorContext)
-      .then(build => {
-        editorContext.setReadOnly(false);
-        if (build.error) {
-          editorContext.setDirtyState(true);
-          updateState();
-        }
-      })
-      .catch(_ => {
-        editorContext.setReadOnly(false);
-        editorContext.setDirtyState(true);
-        updateState();
-      });
+    server.saveFunction(editorContext).catch(_ => {});
   });
 
   $run.click(e => {
