@@ -3,7 +3,6 @@ import { request } from '@5qtrs/request';
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { applyTheme } from '../util';
-import { Text } from './Text';
 
 // ------------------
 // Internal Constants
@@ -43,10 +42,9 @@ const Column = styled.div`
   text-align: center;
 `;
 
-const Message = styled.div`
+const Message = styled.h3`
   max-width: 250px;
-  margin: auto;
-  margin-bottom: 30px;
+  margin: 0 auto 30px auto;
   line-height: 2;
   ${props => applyTheme(props, 'splash', 'cta', 'message')}
 `;
@@ -73,9 +71,10 @@ const Form = styled.form`
   justify-content: center;
 `;
 
-const EmailSent = styled.div`
+const EmailSent = styled.h3`
   font-size: 20px;
   margin-top: 20px;
+  margin-bottom: 0;
   ${props => applyTheme(props, 'splash', 'cta', 'sent')}
 `;
 
@@ -107,15 +106,13 @@ export function CTA() {
     <Container>
       <InnerContainer>
         <Column>
-          <Message>
-            <Text content="Want to learn more?" />
-          </Message>
+          <Message>Want to learn more?</Message>
           <Form>
             <Input type="text" placeholder="Enter your email" value={email} onChange={onEmailChange} />
             <PlusIcon className={validEmail ? 'enabled' : ''} onClick={onButtonClicked} />
           </Form>
           <EmailSent style={{ visibility: showEmailMessage ? undefined : 'hidden' }}>
-            <Text content="Thanks, we'll keep you updated!" />
+            Thanks, we'll keep you updated!
           </EmailSent>
         </Column>
       </InnerContainer>

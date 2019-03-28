@@ -4,23 +4,10 @@ import FlexdGallery from '../../assets/img/flexd-gallery.png';
 import React from 'react';
 import styled from 'styled-components';
 import { applyTheme } from '../util';
-// import { Section } from './Section';
+import { Section } from './Section';
 
-const Section = styled.div`
-    padding-top: 100px;
-    padding-bottom: 100px;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-items: center;
-    ${props => applyTheme(props, 'feature')}
-`;
-
-const Gutter = styled.div`
-  min-width: 20px;
-  @media only screen and (min-width: 600px) {
-    min-width: 100px;
-  }
+const StyledSection = styled(Section)`
+  ${props => applyTheme(props, 'feature')}
 `;
 
 const Column = styled.div`
@@ -43,66 +30,70 @@ const Container = styled.div`
 
 const FeatureContainer = styled.div`
   flex: 1;
-  max-width: 1000px;
+  min-width: 300px;
+  max-width: 500px;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
+  margin-right: 30px;
 `;
 
-const FeatureTitle = styled.div` 
+const FeatureTitle = styled.h3`
   flex: 1;
   padding-bottom: 10px;
-  max-width: 500px;
+  margin-top: 0;
+  margin-bottom: 0;
   ${props => applyTheme(props, 'feature', 'title')}
 `;
 
 const FeaturePicture = styled.img`
   flex: 1;
-  max-width: 500px;
+  width: 100%;
+  height: auto;
 `;
 
-const FeatureDescription = styled.div` 
+const FeatureDescription = styled.h3`
   flex: 1;
-  max-width 500px;
-  padding: 0px 30px 30px 30px;
+  margin-top: 0;
+  margin-bottom: 0;
+  padding: 0 25px 25px 25px;
   ${props => applyTheme(props, 'feature', 'description')}
 `;
 
-const Heading = styled.div`
+const Heading = styled.h1`
     flex: 1;
-    max-width 300px;
-    margin-bottom: 50px;
+    max-width 800px;
+    margin-bottom: 30px;
+    margin-top: 0;
     text-align: center;
     ${props => applyTheme(props, 'feature', 'heading')}
 `;
 
 export function Features() {
   return (
-    <Section>
-    <Gutter/>
+    <StyledSection>
       <Column>
         <Heading>Flexd</Heading>
         <Container>
-            <FeatureContainer>
-                <FeatureTitle>Ultimate customization through code</FeatureTitle>
-                <FeaturePicture src={FlexdEditor}></FeaturePicture>
-                <FeatureDescription>
-                    Embedded scripting environment empowers your customers, sales engineers, 
-                    and partners to address unique customization and integration requirements
-                </FeatureDescription>
-            </FeatureContainer>
-            <FeatureContainer>
-                <FeatureTitle>Flexible addons, specific to your platform</FeatureTitle>
-                <FeaturePicture src={FlexdGallery}></FeaturePicture>
-                <FeatureDescription>
-                    Embedded addon framework that accelerates delivery of integrations and extensions 
-                    in your platform, while allowing  customization of the last mile through code
-                </FeatureDescription>
-            </FeatureContainer>
+          <FeatureContainer>
+            <FeatureTitle>Ultimate customization through code</FeatureTitle>
+            <FeaturePicture src={FlexdEditor} />
+            <FeatureDescription>
+              Embedded scripting environment empowers your customers, sales engineers, and partners to address unique
+              customization and integration requirements
+            </FeatureDescription>
+          </FeatureContainer>
+          <FeatureContainer>
+            <FeatureTitle>Flexible addons, specific to your platform</FeatureTitle>
+            <FeaturePicture src={FlexdGallery} />
+            <FeatureDescription>
+              Embedded addon framework that accelerates delivery of integrations and extensions in your platform, while
+              allowing customization of the last mile through code
+            </FeatureDescription>
+          </FeatureContainer>
         </Container>
       </Column>
-    <Gutter/>
-    </Section>
+    </StyledSection>
   );
 }

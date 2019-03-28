@@ -21,7 +21,7 @@ const AboveNavBar = styled.div`
   ${props => applyTheme(props, 'navbar', 'announcement')}
 `;
 
-const CorpName = styled.div`
+const CorpName = styled.h1`
   margin: auto 10px;
   padding-top: 3px;
   ${props => applyTheme(props, 'navbar', 'corporateName')}

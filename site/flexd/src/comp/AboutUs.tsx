@@ -4,43 +4,29 @@ import { applyTheme } from '../util';
 import { Bio } from './Bio';
 import { Section } from './Section';
 
-const Container = styled.div`
-  margin-top: 100px;
-  margin-bottom: 100px;
-  max-width: 1000px;
-  width: 1000px;
-  min-width: 300px;
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  align-items: center;
-`;
-
 const InnerContainer = styled.div`
   flex: 1;
-  margin-left: 10px;
-  margin-right: 10px;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   align-items: stretch;
+  max-width: 800px;
 `;
 
-const Heading = styled.div`
+const Heading = styled.h1`
     flex: 1;
     max-width 800px;
-    margin-bottom: 10px;
+    margin-top: 0;
+    margin-bottom: 30px;
     text-align: center;
     ${props => applyTheme(props, 'bio', 'heading')}
 `;
 
-const IntroParagraph = styled.div`
-    flex: 1;
-    max-width 800px;
-    margin-bottom: 10px;
-    margin-bottom: 30px;
-    // text-align: center;
-    ${props => applyTheme(props, 'bio', 'intro')}
+const IntroParagraph = styled.h3`
+  flex: 1;
+  margin-top: 0;
+  margin-bottom: 30px;
+  ${props => applyTheme(props, 'bio', 'intro')}
 `;
 
 const StyledBio = styled(Bio)`
@@ -98,27 +84,25 @@ const bios = [
 export function AboutUs() {
   return (
     <Section>
-      <Container>
-        <InnerContainer>
-          <Heading>About Us</Heading>
-          <IntroParagraph>
-            Prior to co-founding Flexd, the team worked together for years on cloud technologies, platforms, and
-            products across Microsoft and Auth0. The team is excited to bring their collective experience to collaborate
-            again on bringing novel products to the market.
-          </IntroParagraph>
-          {bios.map((bio: any) => (
-            <StyledBio
-              key={bio.name}
-              name={bio.name}
-              title={bio.title}
-              description={bio.description}
-              image={bio.picture}
-              linkedIn={bio.linkedIn}
-              twitter={bio.twitter}
-            />
-          ))}
-        </InnerContainer>
-      </Container>
+      <InnerContainer>
+        <Heading>About Us</Heading>
+        <IntroParagraph>
+          Prior to co-founding Flexd, the team worked together for years on cloud technologies, platforms, and products
+          across Microsoft and Auth0. The team is excited to bring their collective experience to collaborate again on
+          bringing novel products to the market.
+        </IntroParagraph>
+        {bios.map((bio: any) => (
+          <StyledBio
+            key={bio.name}
+            name={bio.name}
+            title={bio.title}
+            description={bio.description}
+            image={bio.picture}
+            linkedIn={bio.linkedIn}
+            twitter={bio.twitter}
+          />
+        ))}
+      </InnerContainer>
     </Section>
   );
 }
