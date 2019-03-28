@@ -1,0 +1,13 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": { "rootDir": "src", "outDir": "libm" },
+  "include": ["src"],
+  "references": [
+    { "path": "../../server/aws-dynamo" },
+    { "path": "../../server/aws-cred" },
+    { "path": "../../server/aws-deployment" },
+    { "path": "../../shared/random" },
+    { "path": "../../shared/base64" },
+    { "path": "../../shared/array" }
+  ]
+}

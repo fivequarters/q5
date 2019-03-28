@@ -138,6 +138,7 @@
     "lib/server/aws-ec2",
     "lib/server/aws-audit",
     "site/flexd",
-    "mono"
+    "mono",
+    "lib/data/account-data-aws"
   ]
 }
