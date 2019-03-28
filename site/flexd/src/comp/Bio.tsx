@@ -5,7 +5,6 @@ import styled from 'styled-components';
 import { applyTheme } from '../util';
 
 const Container = styled.div`
-  max-width: 800px;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -15,7 +14,7 @@ const Container = styled.div`
 const Picture = styled.div`
   flex: 1;
   text-align: center;
-  min-width: 200px;
+  min-width: 150px;
   margin: 20px;
 `;
 

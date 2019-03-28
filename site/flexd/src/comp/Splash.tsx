@@ -2,31 +2,15 @@ import React from 'react';
 import styled from 'styled-components';
 import { applyTheme } from '../util';
 import { CTA } from './';
+import { Section } from './Section';
 
-const Section = styled.div`
-  display: flex;
-  min-width: 100%;
-  width: 100%;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  padding-top: 60px;
-  padding-bottom: 60px;
+const StyledSection = styled(Section)`
   ${props => applyTheme(props, 'splash')}
-`;
-
-const Gutter = styled.div`
-  min-width: 50px;
-  @media only screen and (min-width: 600px) {
-    min-width: 100px;
-  }
 `;
 
 const SplashContainer = styled.div`
   display: flex;
   flex: 1;
-  max-width: 1000px;
-  width: 1000px;
   flex-direction: row;
   justify-content: space-between;
   flex-wrap: wrap;
@@ -36,10 +20,12 @@ const SplashContainer = styled.div`
 const MainMessageContainer = styled.div`
   flex: 1;
   max-width: 500px;
+  min-width: 250px;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   align-items: flex-start;
+  margin-right: 30px;
 `;
 
 const MainMessage = styled.h1`
@@ -58,8 +44,7 @@ const SubMessage = styled.h3`
 
 export function Splash() {
   return (
-    <Section>
-      <Gutter />
+    <StyledSection>
       <SplashContainer>
         <MainMessageContainer>
           {/* <MainMessage>Integrations<br/>Your Users Want</MainMessage> */}
@@ -76,7 +61,6 @@ export function Splash() {
         </MainMessageContainer>
         <CTA />
       </SplashContainer>
-      <Gutter />
-    </Section>
+    </StyledSection>
   );
 }

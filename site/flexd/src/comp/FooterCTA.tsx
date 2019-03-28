@@ -3,6 +3,7 @@ import { request } from '@5qtrs/request';
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { applyTheme } from '../util';
+import { Section } from './Section';
 
 // ------------------
 // Internal Constants
@@ -17,32 +18,18 @@ const displayEmailSentInterval = 10000;
 // Internal Components
 // -------------------
 
-const Container = styled.div`
-  flex: 1;
-  display: flex;
-  min-width: 100%;
-  width: 100%;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-items: center;
-  justify-content: flex-start;
-  padding: 60px;
-  padding-bottom: 0px;
+const StyledSection = styled(Section)`
   ${props => applyTheme(props, 'footerCta')}
 `;
 
 const InnerContainer = styled.div`
   flex: 1;
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-items: center;
 `;
 
 const Column = styled.div`
   flex: 1;
   text-align: center;
-  margin-bottom: 50px;
 `;
 
 const Message = styled.h3`
@@ -106,19 +93,17 @@ export function FooterCTA() {
   }
 
   return (
-    <Container>
-      <InnerContainer>
-        <Column>
-          <Message>Want to learn more? Interested in trying out Flexd?</Message>
-          <Form>
-            <Input type="text" placeholder="Enter your email" value={email} onChange={onEmailChange} />
-            <PlusIcon className={validEmail ? 'enabled' : ''} onClick={onButtonClicked} />
-          </Form>
-          <EmailSent style={{ visibility: showEmailMessage ? undefined : 'hidden' }}>
-            Thanks, we'll keep you updated!
-          </EmailSent>
-        </Column>
-      </InnerContainer>
-    </Container>
+    <StyledSection>
+      <Column>
+        <Message>Want to learn more? Interested in trying out Flexd?</Message>
+        <Form>
+          <Input type="text" placeholder="Enter your email" value={email} onChange={onEmailChange} />
+          <PlusIcon className={validEmail ? 'enabled' : ''} onClick={onButtonClicked} />
+        </Form>
+        <EmailSent style={{ visibility: showEmailMessage ? undefined : 'hidden' }}>
+          Thanks, we'll keep you updated!
+        </EmailSent>
+      </Column>
+    </StyledSection>
   );
 }

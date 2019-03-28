@@ -7,8 +7,6 @@ import { applyTheme } from '../util';
 import { Section } from './Section';
 
 const Container = styled.div`
-  margin-top: 100px;
-  margin-bottom: 100px;
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -21,36 +19,32 @@ const PersonasContainer = styled.div`
   display: flex;
   flex: 1;
   flex-direction: row;
-  justify-content: space-between;
+  justify-content: center;
   flex-wrap: wrap;
   align-items: flex-start;
 `;
 
 const PersonaContainer = styled.div`
   flex: 1;
-  min-width: 266;
-  margin-left: 10px;
-  margin-right: 10px;
+  min-width: 300px;
+  max-width: 300px;
+  margin-right: 20px;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  align-items: center;
+  align-items: flex-start;
 `;
 
 const PersonaTitle = styled.h2`
   flex: 1;
   padding-bottom: 10px;
-  max-width: 266px;
-  min-width: 266px;
   margin-top: 0;
   margin-bottom: 0;
   ${props => applyTheme(props, 'problem', 'title')}
 `;
 
-const PersonaDescription = styled.h3` 
+const PersonaDescription = styled.h3`
   flex: 1;
-  max-width 266px;
-  min-width: 266px; 
   padding-bottom: 30px;
   margin-top: 0;
   margin-bottom: 0;
@@ -60,7 +54,6 @@ const PersonaDescription = styled.h3`
 const Heading = styled.h1`
     flex: 1;
     max-width 800px;
-    min-width: 300px;
     margin-top: 0;
     margin-bottom: 70px;
     text-align: center;
