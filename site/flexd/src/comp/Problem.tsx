@@ -17,7 +17,7 @@ const Container = styled.div`
 
 const PersonasContainer = styled.div`
   display: flex;
-  flex: 1;
+  flex-basis: auto;
   flex-direction: row;
   justify-content: center;
   flex-wrap: wrap;
@@ -52,7 +52,7 @@ const PersonaDescription = styled.h3`
 `;
 
 const Heading = styled.h1`
-    flex: 1;
+    flex-basis: 0;
     max-width 800px;
     margin-top: 0;
     margin-bottom: 70px;

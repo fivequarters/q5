@@ -21,7 +21,7 @@ const Column = styled.div`
 
 const Container = styled.div`
   display: flex;
-  flex: 1;
+  flex-basis: auto;
   flex-direction: row;
   justify-content: space-evenly;
   flex-wrap: wrap;
@@ -62,7 +62,7 @@ const FeatureDescription = styled.h3`
 `;
 
 const Heading = styled.h1`
-    flex: 1;
+    flex-basis: 0;
     max-width 800px;
     margin-bottom: 30px;
     margin-top: 0;
