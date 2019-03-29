@@ -2,5 +2,10 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": { "rootDir": "src", "module": "CommonJS", "outDir": "libc" },
   "include": ["src"],
-  "references": [{ "path": "../../lib/server/cli" }]
+  "references": [
+    { "path": "../../lib/server/cli" },
+    { "path": "../../lib/server/dot-config" },
+    { "path": "../../lib/server/flexd-profile" },
+    { "path": "../../lib/shared/random" }
+  ]
 }

@@ -1,11 +1,8 @@
 {
-  "name": "@5qtrs/flexd-cli",
+  "name": "@5qtrs/flexd-profile",
   "version": "0.0.1",
   "description": "",
   "main": "libc/index.js",
-  "bin": {
-    "flx": "libc/index.js"
-  },
   "license": "UNLICENSED",
   "author": "FiveQuarters.io",
   "scripts": {
@@ -13,17 +10,18 @@
     "test": "jest --colors",
     "coverage": "jest --colors --coverage",
     "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x} test/{,**/}*.ts{,x}",
-    "clean": "rm -r -f libc; rm -r -f coverage",
-    "cli-link": "yarn link"
+    "clean": "rm -r -f libc; rm -r -f coverage"
   },
   "keywords": [],
   "dependencies": {
-    "@5qtrs/cli": "^0.0.1",
     "@5qtrs/dot-config": "^0.0.1",
-    "@5qtrs/flexd-profile": "^0.0.1",
-    "@5qtrs/random": "^0.0.1"
+    "@5qtrs/jwt": "^0.0.1",
+    "@5qtrs/key-pair": "^0.0.1",
+    "@5qtrs/random": "^0.0.1",
+    "@5qtrs/clone": "^0.0.1",
+    "@5qtrs/base64": "^0.0.1"
   },
   "devServer": {
-    "port": 9512
+    "port": 9526
   }
 }

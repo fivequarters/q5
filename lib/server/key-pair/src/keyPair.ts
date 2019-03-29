@@ -30,7 +30,7 @@ export function createKeyPair(): Promise<IKeyPairResult> {
         },
         privateKeyEncoding,
       },
-      (error, publicKey, privateKey) => {
+      (error, privateKey, publicKey) => {
         if (error) {
           return reject(error);
         }

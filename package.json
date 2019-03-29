@@ -139,6 +139,7 @@
     "lib/server/aws-audit",
     "site/flexd",
     "mono",
-    "lib/data/account-data-aws"
+    "lib/data/account-data-aws",
+    "lib/server/flexd-profile"
   ]
 }
