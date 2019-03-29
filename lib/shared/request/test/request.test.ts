@@ -1,6 +1,7 @@
 import { createServer, Server } from 'http';
 import packageJson from '../package.json';
 import { request } from '../src';
+import { response } from 'express';
 
 // @ts-ignore
 const port = packageJson.devServer.port;
@@ -151,5 +152,13 @@ describe('request', () => {
       message = error.message;
     }
     expect(message).toBe(`Custom error: 200`);
+  });
+
+  it('should support query parameters', async () => {
+    const response = await request({
+      url: `http://localhost:${port}/somePath`,
+      query: { a: 'hello', b: 5, c: false, d: null, e: undefined },
+    });
+    expect(response.data.url).toBe('/somePath?a=hello&b=5&c=false');
   });
 });
