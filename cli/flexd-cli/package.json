@@ -19,11 +19,6 @@
   "keywords": [],
   "dependencies": {
     "@5qtrs/cli": "^0.0.1",
-    "@5qtrs/dot-config": "^0.0.1",
-    "@5qtrs/flexd-profile": "^0.0.1",
-    "@5qtrs/random": "^0.0.1"
-  },
-  "devServer": {
-    "port": 9512
+    "@5qtrs/flexd-profile": "^0.0.1"
   }
 }
