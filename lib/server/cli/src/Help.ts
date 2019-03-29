@@ -46,10 +46,10 @@ const propertiesRowConstraint = { cells: [emptyCellConstraint, alignRightCellCon
 // Internal Functions
 // ------------------
 
-function addProperty(properties: string[], name: string, value: string) {
+function addProperty(properties: IText[], name: IText, value: IText) {
   const delimiter = name && value ? propertyNameValueDelimiter : '';
-  const property = `${name}${delimiter}${value}`;
-  properties.push(`${propertyOpenChar}${property}${propertyCloseChar}`);
+  const property = Text.create(name, delimiter, value);
+  properties.push(Text.create(propertyOpenChar, property, propertyCloseChar));
 }
 
 function addHypensToSwitch(optionName: IText) {
@@ -212,14 +212,16 @@ export class Help {
     if (option.type !== undefined && option.type !== ArgType.string) {
       addProperty(properties, typePropertyName, option.type);
     }
-    if (option.default !== undefined) {
+    if (option.defaultText !== undefined && option.defaultText.length) {
+      addProperty(properties, defaultPropertyName, option.defaultText);
+    } else if (option.default !== undefined) {
       addProperty(properties, defaultPropertyName, option.default);
     }
     if (option.allowMany === true) {
       addProperty(properties, manyAllowedPropertyName, '');
     }
 
-    return Text.dim(properties.join(propertyDelimiter));
+    return Text.dim(Text.join(properties, propertyDelimiter));
   }
 
   protected async addOptions(table: Table) {

@@ -11,6 +11,7 @@ export interface IOption {
   aliases?: string[];
   type?: ArgType;
   default?: string;
+  defaultText?: IText;
   description?: IText;
   allowMany?: boolean;
 }
@@ -40,6 +41,10 @@ export class Option implements IOption {
 
   public get default() {
     return this.option.default;
+  }
+
+  public get defaultText() {
+    return this.option.defaultText || Text.empty();
   }
 
   public get description() {

@@ -29,7 +29,7 @@ export class ClientIdentityRemoveCommand extends Command {
           name: 'profile',
           aliases: ['p'],
           description: 'The name of the profile to use when executing the command.',
-          default: 'default profile',
+          defaultText: 'default profile',
         },
         {
           name: 'account',
