@@ -1,6 +1,6 @@
 import { Message, MessageKind, IExecuteInput } from '@5qtrs/cli';
-import { IText } from '@5qtrs/text';
-import { FlexdProfile, IFlexdProfile, IFlexdExecutionProfile } from '@5qtrs/flexd-profile';
+import { Text } from '@5qtrs/text';
+import { FlexdProfile, IFlexdExecutionProfile } from '@5qtrs/flexd-profile';
 import { random } from '@5qtrs/random';
 
 // ------------------
@@ -9,6 +9,7 @@ import { random } from '@5qtrs/random';
 
 const defaultBaseUrl = 'api.flexd.io';
 const defaultProfileName = 'default';
+const profileOptions = ['account', 'subscription', 'boundary', 'function'];
 
 // ------------------
 // Internal Functions
@@ -44,21 +45,31 @@ export class ProfileService {
     return new ProfileService(flexdProfile, input);
   }
 
-  public async getExecutionProfile(): Promise<IFlexdExecutionProfile> {
+  public async getExecutionProfile(expected?: string[]): Promise<IFlexdExecutionProfile> {
     const profileName = this.input.options.profile as string;
     const executionProfile = await this.profile.getExecutionProfile(profileName);
-    if (this.input.options.account) {
-      executionProfile.accountId = this.input.options.account as string;
+
+    for (const option of profileOptions) {
+      if (this.input.options[option]) {
+        executionProfile[option] = this.input.options[option] as string;
+      }
     }
-    if (this.input.options.subscription) {
-      executionProfile.subscriptionId = this.input.options.subscription as string;
+
+    for (const expect of expected || []) {
+      if (executionProfile[expect] === undefined) {
+        const message = await Message.create({
+          header: 'Option Required',
+          message: Text.create(
+            "The '",
+            Text.bold(expect),
+            "' option must be specified as it is not specified in the profile."
+          ),
+          kind: MessageKind.error,
+        });
+        await message.write(this.input.io);
+      }
     }
-    if (this.input.options.boundary) {
-      executionProfile.boundaryId = this.input.options.boundary as string;
-    }
-    if (this.input.options.function) {
-      executionProfile.functionId = this.input.options.function as string;
-    }
+
     return executionProfile;
   }
 
