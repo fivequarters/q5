@@ -17,7 +17,15 @@ const minExpireInterval = 1000 * 60 * 5;
 // ------------------
 
 function getKeyHash(profile: IFlexdProfile) {
-  return `${toBase64(profile.issuer)}:${toBase64(profile.subject)}:${toBase64(profile.baseUrl)}`;
+  return `${toBase64(profile.issuer as string)}:${toBase64(profile.subject as string)}:${toBase64(profile.baseUrl)}`;
+}
+
+function generateIssuer(baseUrl: string) {
+  return `${random()}.cli.${baseUrl}`;
+}
+
+function generateSubject() {
+  return `cli-installation-${random({ lengthInBytes: 4 })}`;
 }
 
 // -------------------
@@ -25,20 +33,21 @@ function getKeyHash(profile: IFlexdProfile) {
 // -------------------
 
 export interface IFlexdProfileSettings {
-  accountId?: string;
-  subscriptionId?: string;
-  boundaryId?: string;
-  functionId?: string;
+  [index: string]: string | undefined;
+  account?: string;
+  subscription?: string;
+  boundary?: string;
+  function?: string;
 }
 
 export interface IFlexdNewProfile extends IFlexdProfileSettings {
   baseUrl: string;
-  issuer: string;
-  subject: string;
-  accountId?: string;
-  subscriptionId?: string;
-  boundaryId?: string;
-  functionId?: string;
+  issuer?: string;
+  subject?: string;
+  account?: string;
+  subscription?: string;
+  boundary?: string;
+  function?: string;
 }
 
 export interface IFlexdProfile extends IFlexdNewProfile {
@@ -67,9 +76,9 @@ export class FlexdProfile {
     return new FlexdProfile(dotConfig);
   }
 
-  public async getProfile(name?: string): Promise<IFlexdProfile> {
+  public async getProfile(name?: string): Promise<IFlexdProfile | undefined> {
     const profile: unknown = this.dotConfig.getProfile(name);
-    return profile as IFlexdProfile;
+    return profile as IFlexdProfile | undefined;
   }
 
   public async getExecutionProfile(name?: string): Promise<IFlexdExecutionProfile> {
@@ -109,6 +118,8 @@ export class FlexdProfile {
     const kid = await this.addKeyPair(keyPairName, publicKey, privateKey);
 
     const profile = clone(newProfile) as IFlexdProfile;
+    profile.issuer = profile.issuer || generateIssuer(profile.baseUrl);
+    profile.subject = profile.subject || generateSubject();
     profile.keyPair = keyPairName;
     profile.kid = kid;
 
@@ -154,6 +165,15 @@ export class FlexdProfile {
 
   public async setDefaultProfile(name: string) {
     return this.dotConfig.setDefaultProfile(name);
+  }
+
+  public async getPublicKey(name: string) {
+    const profile = await this.getProfile(name);
+    if (!profile) {
+      const message = `There is no '${name}' profile.`;
+      throw new Error(message);
+    }
+    return this.dotConfig.getPublicKey(name, profile.kid);
   }
 
   private async addKeyPair(name: string, publicKey: string, privateKey: string): Promise<string> {
