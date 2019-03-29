@@ -10,6 +10,7 @@ function getAxiosRequest(httpRequest: IHttpRequest) {
     url: httpRequest.url,
     headers: httpRequest.headers || {},
     data: httpRequest.data,
+    params: httpRequest.query || {},
     transformResponse: undefined,
   };
 
@@ -58,6 +59,7 @@ export interface IHttpRequest {
   method?: string;
   url: string;
   headers?: { [index: string]: string };
+  query?: { [index: string]: string | number | boolean | null | undefined };
   data?: any;
   parseJson?: boolean;
   validStatus?: (status: number) => boolean;
