@@ -46,6 +46,19 @@ export class ProfileService {
   }
 
   public async getExecutionProfile(expected?: string[]): Promise<IFlexdExecutionProfile> {
+    // TODO randall, remove this after we have end to end user and profile support
+    if (process.env.API_AUTHORIZATION_KEY) {
+      return {
+        account: (this.input.options.account as string) || '12345',
+        subscription: (this.input.options.subscription as string) || '12345',
+        boundary: this.input.options.boundary as string,
+        function: this.input.options.function as string,
+        baseUrl: process.env.API_SERVER || 'https://stage.flexd.io',
+        // baseUrl: 'http://localhost:3001',
+        token: process.env.API_AUTHORIZATION_KEY,
+      };
+    }
+    // end of TODO
     const profileName = this.input.options.profile as string;
     const executionProfile = await this.profile.getExecutionProfile(profileName);
 

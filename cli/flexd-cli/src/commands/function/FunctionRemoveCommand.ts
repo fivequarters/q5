@@ -1,5 +1,7 @@
 import { EOL } from 'os';
-import { Command, ArgType } from '@5qtrs/cli';
+import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
+import { request, IHttpResponse } from '@5qtrs/request';
+import { ProfileService } from '../../services';
 
 export class FunctionRemoveCommand extends Command {
   private constructor() {
@@ -8,12 +10,8 @@ export class FunctionRemoveCommand extends Command {
       cmd: 'rm',
       summary: 'Remove a deployed function',
       description: [
-        'Removes a deployed function with a given subscription id,',
-        `boundary id, and function id.${EOL}${EOL}If the profile does not`,
-        'specify the subscription, boundary, or function, the relevant',
-        `command options are required.${EOL}${EOL}A profile must have 'manage'`,
-        `access to function to remove it.${EOL}${EOL}This is a destructive action`,
-        'and can not be undone.',
+        'Permanently removes a deployed function.',
+        `${EOL}${EOL}This is a destructive action and can not be undone.`,
       ].join(' '),
       options: [
         {
@@ -24,12 +22,10 @@ export class FunctionRemoveCommand extends Command {
         },
         {
           name: 'confirm',
-          description: [
-            'If set to true, the details regarding removing the function will be displayed along with a',
-            'prompt for confirmation.',
-          ].join(' '),
+          aliases: ['c'],
+          description: ['If set to true, the function will be deleted without asking you for confirmation.'].join(' '),
           type: ArgType.boolean,
-          default: 'true',
+          default: 'false',
         },
       ],
       modes: [],
@@ -38,5 +34,35 @@ export class FunctionRemoveCommand extends Command {
 
   public static async create() {
     return new FunctionRemoveCommand();
+  }
+
+  protected async onExecute(input: IExecuteInput): Promise<number> {
+    let profileService = await ProfileService.create(input);
+    let profile = await profileService.getExecutionProfile(['subscription', 'boundary', 'function']);
+
+    if (
+      !input.options.confirm &&
+      !(await input.io.prompt({
+        prompt: `Remove function ${profile.boundary}/${profile.function}? This cannot be undone.`,
+        yesNo: true,
+      }))
+    ) {
+      console.log('No changes made.');
+      return 0;
+    }
+
+    let response = await request({
+      method: 'DELETE',
+      url: `${profile.baseUrl}/v1/subscription/${profile.subscription}/boundary/${profile.boundary}/function/${
+        profile.function
+      }`,
+      headers: {
+        Authorization: `Bearer ${profile.token}`,
+      },
+    });
+
+    console.log('Function removed.');
+
+    return 0;
   }
 }
