@@ -6,8 +6,8 @@
     { "path": "../../lib/server/cli" },
     { "path": "../../lib/server/flexd-profile" },
     { "path": "../../lib/shared/random" },
-    { "path": "../../lib/shared/request" },
     { "path": "../../lib/server/file" },
-    { "path": "../../lib/shared/clone" }
+    { "path": "../../lib/shared/clone" },
+    { "path": "../../lib/shared/request" }
   ]
 }

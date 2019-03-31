@@ -23,6 +23,12 @@
     "@5qtrs/random": "^0.0.1",
     "@5qtrs/request": "^0.0.1",
     "@5qtrs/file": "^0.0.1",
-    "@5qtrs/clone": "^0.0.1"
+    "@5qtrs/clone": "^0.0.1",
+    "@types/open": "^6.0.0",
+    "open": "^6.0.0",
+    "opn": "^6.0.0"
+  },
+  "devDependencies": {
+    "@types/opn": "^5.5.0"
   }
 }
