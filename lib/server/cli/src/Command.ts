@@ -139,6 +139,7 @@ export interface ICommand {
   description?: IText;
   summary?: IText;
   options?: IOption[];
+  ignoreOptions?: string[];
   arguments?: IArgument[];
   modes?: string[];
   subCommands?: ICommand[];
@@ -169,6 +170,7 @@ export class Command implements ICommand {
   private descriptionProp: Text;
   private summaryProp: Text;
   private optionsProp: Option[];
+  private ignoreOptionsProp: string[];
   private argumentsProp: Argument[];
   private subCommandsProp: Command[];
   private modesProp: string[];
@@ -188,6 +190,7 @@ export class Command implements ICommand {
     this.subCommandsProp = ensureSubCommands(command.subCommands);
     this.docsUrlProp = command.docsUrl || '';
     this.cliProp = command.cli || '';
+    this.ignoreOptionsProp = command.ignoreOptions || [];
     for (const subCommand of this.subCommands) {
       subCommand.parent = this;
     }
@@ -630,10 +633,18 @@ export class Command implements ICommand {
   public get options() {
     const options: Option[] = [];
     if (this.parent) {
-      options.push(...this.parent.options);
+      for (const option of this.parent.options) {
+        if (this.ignoreOptions.indexOf(option.name) === -1) {
+          options.push(option);
+        }
+      }
     }
     options.push(...this.optionsProp);
     return options;
+  }
+
+  public get ignoreOptions() {
+    return this.ignoreOptionsProp.slice();
   }
 
   public get arguments() {
