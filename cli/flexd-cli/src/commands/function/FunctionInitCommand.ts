@@ -7,11 +7,11 @@ import * as Fs from 'fs';
 export class FunctionInitCommand extends Command {
   private constructor() {
     super({
-      name: 'Initialize function',
+      name: 'Initialize Function',
       cmd: 'init',
       summary: 'Scaffold a new function in the specified directory.',
       description: [
-        'Creates scaffolding of a new function in the specified direcgtory on disk.',
+        'Creates scaffolding of a new function in the specified directory on disk.',
         'If the directory is not specified, working directory is used. The directory must be empty',
         'unless the --force option is specified.',
         `${EOL}${EOL}The function can be later deployed using \`flx function deploy\`.`,
@@ -20,7 +20,7 @@ export class FunctionInitCommand extends Command {
         {
           name: 'dest',
           description: [
-            'A path to the directory with the function files will be placed.',
+            'A path to the directory where the function files will be placed.',
             `If not specified, the current working directory is used.`,
           ].join(' '),
           required: false,
@@ -29,18 +29,13 @@ export class FunctionInitCommand extends Command {
       ],
       options: [
         {
-          name: 'function',
-          aliases: ['f'],
-          description: 'The function id of the function to remove.',
-          default: 'profile value',
-        },
-        {
           name: 'force',
           description: 'Enables initialization of a function in a non-empty directory.',
           type: ArgType.boolean,
           default: 'false',
         },
       ],
+      ignoreOptions: ['profile', 'boundary', 'subscription'],
       modes: [],
     });
   }

@@ -12,17 +12,14 @@ export class FunctionGetCommand extends Command {
       cmd: 'get',
       summary: 'Get a deployed function',
       description: [
-        'Retrieves details of a deployed function with a given subscription id,',
-        `boundary id, and function id.${EOL}${EOL}If the profile does not`,
-        'specify the subscription, boundary, or function, the relevant',
-        `command options are required.${EOL}${EOL}A profile must have 'manage'`,
-        'access to function to retrieve it.',
+        `Retrieves details of a deployed function. When --download is specified, function can be saved to disk`,
+        `for local development.`,
       ].join(' '),
       options: [
         {
           name: 'function',
           aliases: ['f'],
-          description: 'The function id to retrieve.',
+          description: 'The id of the unction id to retrieve.',
         },
         {
           name: 'download',

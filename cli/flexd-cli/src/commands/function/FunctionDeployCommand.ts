@@ -35,7 +35,7 @@ export class FunctionDeployCommand extends Command {
         {
           name: 'function',
           aliases: ['f'],
-          description: 'The function id to deploy.',
+          description: 'The id of the function deploy.',
         },
         {
           name: 'cron',
@@ -53,7 +53,7 @@ export class FunctionDeployCommand extends Command {
           name: 'confirm',
           aliases: ['c'],
           description: [
-            'If set to true, the function will be deployed without asking you for confirmation of the details.',
+            'If set to true, the function will be deployed without asking for confirmation of the details.',
           ].join(' '),
           type: ArgType.boolean,
           default: 'false',

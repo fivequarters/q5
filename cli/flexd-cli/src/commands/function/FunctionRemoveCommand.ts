@@ -23,7 +23,7 @@ export class FunctionRemoveCommand extends Command {
         {
           name: 'confirm',
           aliases: ['c'],
-          description: ['If set to true, the function will be deleted without asking you for confirmation.'].join(' '),
+          description: ['If set to true, the function will be deleted without asking for confirmation.'].join(' '),
           type: ArgType.boolean,
           default: 'false',
         },

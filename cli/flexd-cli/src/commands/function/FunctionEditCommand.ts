@@ -11,15 +11,12 @@ export class FunctionEditCommand extends Command {
       cmd: 'edit',
       summary: 'Edit a function in the Flexd Editor',
       description: `Opens the Flexd Editor in your default browser to edit a function. If the function does 
-not exit, it is created.
-
-If the profile does not specify the subscription, boundary, or function, the relevant 
-command options are required.`,
+not exist, it is created.`,
       options: [
         {
           name: 'function',
           aliases: ['f'],
-          description: 'The function id to edit.',
+          description: 'The id of the function to edit.',
         },
       ],
     });
