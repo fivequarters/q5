@@ -26,7 +26,7 @@ export class IssuerUpdateCommand extends Command {
           description: 'The display name of the issuer',
         },
         {
-          name: 'jsonKeysUrl',
+          name: 'jsonKeysUri',
           description: [
             'The URL of the hosted json keys file. The file may be either in the',
             'JSON Web Key Specification format (RFC 7517) or may be a JSON object with key ids as the',

@@ -35,6 +35,9 @@ export class FunctionListCommand extends Command {
   protected async onExecute(input: IExecuteInput): Promise<number> {
     let profileService = await ProfileService.create(input);
     let profile = await profileService.getExecutionProfile(['subscription']);
+    if (!profile) {
+      return 1;
+    }
 
     let next: string | undefined;
 

@@ -1,5 +1,6 @@
-import { EOL } from 'os';
-import { Command, ArgType } from '@5qtrs/cli';
+import { Command, ArgType, IExecuteInput} from '@5qtrs/cli';
+import { ExecuteService, UserService } from '../../services';
+import { Text } from '@5qtrs/text';
 
 export class UserAddCommand extends Command {
   private constructor() {
@@ -7,11 +8,16 @@ export class UserAddCommand extends Command {
       name: 'Add User',
       cmd: 'add',
       summary: 'Add a user',
-      description: [
-        `Adds a user with the given first and last name and email.${EOL}${EOL}Identities can be`,
-        "associated with the user using the 'user identity' commands and access can be given",
-        "to the user using the 'user access' commands.",
-      ].join(' '),
+      description: Text.create(
+        'Adds a user with the given first and last name and email.',
+        Text.eol(),
+        Text.eol(),
+        "Identities can be associated with the user using the '",
+        Text.bold('user identity'),
+        "' commands and access can be given to the user using the '",
+        Text.bold('user access'),
+        "' commands."
+      ),
       options: [
         {
           name: 'first',
@@ -40,5 +46,41 @@ export class UserAddCommand extends Command {
 
   public static async create() {
     return new UserAddCommand();
+  }
+
+  protected async onExecute(input: IExecuteInput): Promise<number> {
+    await input.io.writeLine();
+    const [id] = input.arguments as string[];
+    const confirm = input.options.confirm as boolean;
+    const firstName = input.options.first as string;
+    const lastName = input.options.last as string;
+    const primaryEmail = input.options.email as string;
+
+    const userService = await UserService.create(input);
+    const executeService = await ExecuteService.create(input);
+
+    const newUser = { firstName, lastName, primaryEmail };
+
+    if (confirm) {
+      const confirmed = await userService.confirmAddUser(newUser);
+      if (!confirmed) {
+        return 1;
+      }
+    }
+
+    const user = await userService.addUser(id, newUser);
+    if (!user) {
+      executeService.verbose();
+      return 1;
+    }
+
+    await executeService.result({
+      header: 'User Added',
+      message: Text.create("User '", Text.bold(user.id), "' was successfully added'"),
+    });
+
+    await userService.displayUser(user);
+
+    return 0;
   }
 }

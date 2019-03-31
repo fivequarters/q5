@@ -1,5 +1,6 @@
 import { AwsDynamo } from '@5qtrs/aws-dynamo';
 import { random } from '@5qtrs/random';
+import { toBase64, fromBase64 } from '@5qtrs/base64';
 
 // ------------------
 // Internal Constants
@@ -11,6 +12,8 @@ const subscriptionIdPostFixLength = 4;
 const defaultLimit = 25;
 const maxLimit = 100;
 const baseAccountSubscriptionMarker = '<account>';
+const rootAccountDisplayName = 'Root Account';
+const conditionalCheckFailed = 'ConditionalCheckFailedException';
 
 // ------------------
 // Internal Functions
@@ -20,10 +23,14 @@ function generateAccountId() {
   return `acc-${random({ lengthInBytes: accountIdLength / 2 })}`;
 }
 
+function generateRootAccountId() {
+  return 'acc-root';
+}
+
 function toDynamoKey(accountId: string, subscriptionId: string) {
   return {
     accountId: { S: accountId },
-    userId: { S: subscriptionId },
+    subscriptionId: { S: subscriptionId },
   };
 }
 
@@ -31,42 +38,58 @@ function accountToDynamoItem(account: IAccount) {
   const item: any = toDynamoKey(account.id, baseAccountSubscriptionMarker);
   item.displayName = account.displayName ? { S: account.displayName } : undefined;
   item.primaryEmail = account.primaryEmail ? { S: account.primaryEmail } : undefined;
+  item.archived = { BOOL: account.archived || false };
   return item;
 }
 
 function mergeAccountFromDynamoItem(account: IAccount, item: any) {
-  account.displayName = !account.displayName && item.displayName ? item.displayName.S : account.displayName || '';
-  account.primaryEmail = !account.primaryEmail && item.primaryEmail ? item.primaryEmail.S : account.primaryEmail || '';
+  account.displayName =
+    !account.displayName && item.displayName ? item.displayName.S : account.displayName || undefined;
+  account.primaryEmail =
+    !account.primaryEmail && item.primaryEmail ? item.primaryEmail.S : account.primaryEmail || undefined;
 }
 
 function accountFromDynamoItem(item: any): IAccount {
-  const account: IAccount = { id: item.accountId.S, archived: item.archived.BOOL == false ? true : undefined };
+  const account: IAccount = { id: item.accountId.S, archived: item.archived.BOOL !== false ? true : undefined };
   mergeAccountFromDynamoItem(account, item);
   return account;
 }
 
 function generateSubscriptionId(accountId: string) {
-  return `sub-${accountId}-${random({ lengthInBytes: subscriptionIdPostFixLength / 2 })}`;
+  return `sub-${accountId.substring(4)}-${random({ lengthInBytes: subscriptionIdPostFixLength / 2 })}`;
 }
 
 function mergeSubscriptionFromDynamoItem(subscription: ISubscription, item: any) {
   subscription.displayName =
-    !subscription.displayName && item.displayName ? item.displayName.S : subscription.displayName || '';
+    !subscription.displayName && item.displayName ? item.displayName.S : subscription.displayName || undefined;
 }
 
 function subscriptionToDynamoItem(accountId: string, subscription: ISubscription) {
   const item: any = toDynamoKey(accountId, subscription.id);
-  item.displayName = subscription.displayName || undefined;
+  item.displayName = { S: subscription.displayName } || undefined;
+  item.archived = { BOOL: subscription.archived || false };
   return item;
 }
 
 function subscriptionFromDynamoItem(item: any): IAccount {
   const subscription: ISubscription = {
     id: item.subscriptionId.S,
-    archived: item.archived.BOOL == false ? true : undefined,
+    archived: item.archived.BOOL !== false ? true : undefined,
   };
   mergeAccountFromDynamoItem(subscription, item);
   return subscription;
+}
+
+function filterOutAccount(item: any) {
+  return item.subscriptionId.S !== baseAccountSubscriptionMarker;
+}
+
+function nextToMarker(next: any) {
+  return next ? toBase64(next.subscriptionId.S.split('-')[2]) : undefined;
+}
+
+function nextFromMarker(accountId: string, marker: string) {
+  return marker ? toDynamoKey(accountId, `sub-${accountId.substring(4)}-${fromBase64(marker)}`) : undefined;
 }
 
 // -------------------
@@ -139,11 +162,36 @@ export class AccountStore {
     });
   }
 
+  public async addRootAccount(): Promise<IAccount> {
+    const options = {
+      expressionNames: { '#accountId': 'accountId' },
+      condition: 'attribute_not_exists(#accountId)',
+    };
+
+    const account = {
+      id: generateRootAccountId(),
+      displayName: rootAccountDisplayName,
+    };
+
+    const item = accountToDynamoItem(account);
+    try {
+      await this.dynamo.putItem(tableName, item, options);
+    } catch (error) {
+      if (error.code !== conditionalCheckFailed) {
+        throw error;
+      }
+    }
+    return accountFromDynamoItem(item);
+  }
+
   public async addAccount(newAccount: INewAccount): Promise<IAccount> {
     const options = {
       expressionNames: { '#accountId': 'accountId' },
       condition: 'attribute_not_exists(#accountId)',
-      onCollision: (item: any) => (item.accountId.S = generateAccountId()),
+      onCollision: (item: any) => {
+        item.accountId.S = generateAccountId();
+        return item;
+      },
     };
 
     const account = {
@@ -162,19 +210,19 @@ export class AccountStore {
     const expressionNames: any = { '#archived': 'archived' };
     const expressionValues: any = { ':archived': { BOOL: true } };
     if (account.displayName) {
-      updates.push('SET #displayName = :displayName');
+      updates.push('#displayName = :displayName');
       expressionNames['#displayName'] = 'displayName';
       expressionValues[':displayName'] = { S: account.displayName };
     }
 
     if (account.primaryEmail) {
-      updates.push('SET #primaryEmail = :primaryEmail');
+      updates.push('#primaryEmail = :primaryEmail');
       expressionNames['#primaryEmail'] = 'primaryEmail';
       expressionValues[':primaryEmail'] = { S: account.primaryEmail };
     }
 
     const options = {
-      update: updates.join(),
+      update: `SET ${updates.join(', ')}`,
       condtion: '#archived = :archived',
       expressionNames,
       expressionValues,
@@ -200,11 +248,22 @@ export class AccountStore {
     return undefined;
   }
 
-  public async addSubscription(accountId: string, newSubscription: INewSubscription): Promise<ISubscription> {
+  public async addSubscription(
+    accountId: string,
+    newSubscription: INewSubscription
+  ): Promise<ISubscription | undefined> {
+    const account = await this.getAccount(accountId);
+    if (!account) {
+      return undefined;
+    }
+
     const options = {
       expressionNames: { '#subscriptionId': 'subscriptionId' },
       condition: 'attribute_not_exists(#subscriptionId)',
-      onCollision: (item: any) => (item.subscriptionId.S = generateSubscriptionId(accountId)),
+      onCollision: (item: any) => {
+        item.subscriptionId.S = generateSubscriptionId(accountId);
+        return item;
+      },
     };
 
     const subscription = {
@@ -214,7 +273,7 @@ export class AccountStore {
 
     const item = subscriptionToDynamoItem(accountId, subscription);
     const finalItem = await this.dynamo.addItem(tableName, item, options);
-    return accountFromDynamoItem(finalItem);
+    return subscriptionFromDynamoItem(finalItem);
   }
 
   public async updateSubscription(accountId: string, subscription: ISubscription): Promise<IAccount> {
@@ -222,13 +281,13 @@ export class AccountStore {
     const expressionNames: any = { '#archived': 'archived' };
     const expressionValues: any = { ':archived': { BOOL: true } };
     if (subscription.displayName) {
-      updates.push('SET #displayName = :displayName');
+      updates.push('#displayName = :displayName');
       expressionNames['#displayName'] = 'displayName';
       expressionValues[':displayName'] = { S: subscription.displayName };
     }
 
     const options = {
-      update: updates.join(),
+      update: `SET ${updates.join(', ')}`,
       condtion: '#archived = :archived',
       expressionNames,
       expressionValues,
@@ -269,23 +328,25 @@ export class AccountStore {
   public async listSubscriptions(
     accountId: string,
     options?: IListSubscriptionsOptions
-  ): Promise<IListSubscriptionsResult> {
-    const next = options && options.next ? options.next : undefined;
+  ): Promise<IListSubscriptionsResult | undefined> {
+    const next = options && options.next ? nextFromMarker(accountId, options.next) : undefined;
     const includeArchived = options && options.includeArchived !== undefined ? options.includeArchived : false;
     const displayNameContains = options && options.displayNameContains ? options.displayNameContains : undefined;
     let limit = options && options.limit ? options.limit : defaultLimit;
-    limit = limit < maxLimit ? limit : maxLimit;
+    limit = limit > maxLimit ? maxLimit : limit;
 
-    const filters = ['#subscriptionId <> :subscriptionId'];
-    const expressionNames: any = { '#accountId': 'accountId', '#subscriptionId': 'subscriptionId' };
-    const expressionValues: any = {
-      ':accountId': { S: accountId },
-      ':subscriptionId': { S: baseAccountSubscriptionMarker },
-    };
+    // Because we may get the record that represents the account and not
+    // a subscription; we need to ask for 1 more since we may be filtering
+    // out the account-only record
+    limit++;
+
+    const filters = [];
+    const expressionNames: any = { '#accountId': 'accountId' };
+    const expressionValues: any = { ':accountId': { S: accountId } };
 
     if (!includeArchived) {
       filters.push('#archived = :archived');
-      expressionNames['#archived'] = 'firstName';
+      expressionNames['#archived'] = 'archived';
       expressionValues[':archived'] = { BOOL: false };
     }
 
@@ -298,18 +359,28 @@ export class AccountStore {
     const queryOptions = {
       expressionNames,
       expressionValues,
-      keyCondtion: '#accountId = :accountId',
-      limit: limit || undefined,
+      keyCondition: '#accountId = :accountId',
       next: next || undefined,
       filter: filters.length ? filters.join(' and ') : undefined,
     };
 
     const result = await this.dynamo.queryTable(tableName, queryOptions);
-    const items = result.items.map(subscriptionFromDynamoItem);
-    return {
-      next: result.next || undefined,
-      items,
-    };
+    if (result.items.length) {
+      const items = result.items
+        .filter(filterOutAccount) // Filter out the account-only record
+        .slice(0, limit - 1); // Or just drop the last record if we didn't get the account-only record
+
+      return {
+        next: items.length ? nextToMarker(items[items.length - 1]) : undefined,
+        items: items.map(subscriptionFromDynamoItem),
+      };
+    }
+
+    if (limit == undefined) {
+      return undefined;
+    }
+    const account = await this.getAccount(accountId);
+    return account ? { items: [] } : undefined;
   }
 
   private async setArchived(accountId: string, subscriptionId: string, archived: boolean): Promise<void> {

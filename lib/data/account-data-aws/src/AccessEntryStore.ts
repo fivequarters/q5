@@ -136,8 +136,9 @@ export class AccessEntryStore {
     accessEntries: IAccessEntry[]
   ): Promise<IAccessEntry[]> {
     const existingAccessEntries = await this.listAllAccessEntries(agentId);
-    const toAdd = notIn(accessEntries, existingAccessEntries);
-    const toRemove = notIn(existingAccessEntries, accessEntries);
+    const toAdd = notIn(accessEntries, existingAccessEntries, areEqual);
+    const toRemove = notIn(existingAccessEntries, accessEntries, areEqual);
+    console.log('Replace access', toAdd, toRemove);
     await Promise.all([
       this.addAllAccessEntries(accountId, agentId, toAdd),
       this.removeAllAccessEntries(agentId, toRemove),
@@ -178,7 +179,7 @@ export class AccessEntryStore {
     const queryOptions = {
       expressionNames,
       expressionValues,
-      keyCondtion: '#agentId = :agentId',
+      keyCondition: '#agentId = :agentId',
       limit: limit || undefined,
       next: next || undefined,
       filter: filters.length ? filters.join(' and ') : undefined,

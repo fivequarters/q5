@@ -1,5 +1,6 @@
-import { EOL } from 'os';
-import { Command, ArgType } from '@5qtrs/cli';
+import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
+import { ExecuteService, IssuerService } from '../../services';
+import { Text } from '@5qtrs/text';
 
 export class IssuerRemoveCommand extends Command {
   private constructor() {
@@ -7,12 +8,7 @@ export class IssuerRemoveCommand extends Command {
       name: 'Remove Issuer',
       cmd: 'rm',
       summary: 'Remove an issuer',
-      description: [
-        `Removes the association between the account and the given issuer.${EOL}${EOL}If`,
-        'the profile does not specify the account, the relevant command options are required.',
-        `${EOL}${EOL}A profile must have 'manage' access to an account in order to remove`,
-        'the association with an issuer of that account.',
-      ].join(' '),
+      description: 'Removes the association between the account and the issuer.',
       arguments: [
         {
           name: 'issuer',
@@ -35,5 +31,40 @@ export class IssuerRemoveCommand extends Command {
 
   public static async create() {
     return new IssuerRemoveCommand();
+  }
+
+  protected async onExecute(input: IExecuteInput): Promise<number> {
+    await input.io.writeLine();
+    const [id] = input.arguments as string[];
+    const confirm = input.options.confirm as boolean;
+
+    const issuerService = await IssuerService.create(input);
+    const executeService = await ExecuteService.create(input);
+
+    const issuer = await issuerService.getIssuer(id);
+    if (!issuer) {
+      executeService.verbose();
+      return 1;
+    }
+
+    if (confirm) {
+      const confirmed = await issuerService.confirmRemoveIssuer(id, issuer);
+      if (!confirmed) {
+        return 1;
+      }
+    }
+
+    const removeOk = await issuerService.removeIssuer(id);
+    if (!removeOk) {
+      executeService.verbose();
+      return 1;
+    }
+
+    await executeService.result({
+      header: 'Issuer Removed',
+      message: Text.create("The '", Text.bold(id), "' issuer was successfully remove'"),
+    });
+
+    return 0;
   }
 }

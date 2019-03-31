@@ -43,7 +43,11 @@ export class ExecuteService {
           this.input.io.spin(true);
         }
       }
-      return func ? func() : undefined;
+      if (func) {
+        const result = await func();
+        return result;
+      }
+      return undefined;
     } catch (error) {
       const message = await Message.create({
         header: messages.errorHeader,
@@ -51,6 +55,7 @@ export class ExecuteService {
         kind: MessageKind.error,
       });
       await message.write(this.input.io);
+      console.log(error);
       await this.core.logError(error, message.toString());
       return undefined;
     }

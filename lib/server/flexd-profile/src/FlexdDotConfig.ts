@@ -1,5 +1,6 @@
 import { join } from 'path';
 import { DotConfig } from '@5qtrs/dot-config';
+import { clone } from '@5qtrs/clone';
 
 // ------------------
 // Internal Constants
@@ -34,8 +35,15 @@ export class FlexdDotConfig extends DotConfig {
     return settings && settings.profiles && settings.profiles[name] !== undefined;
   }
 
-  public async getDefaultProfile(): Promise<string | undefined> {
+  public async listProfileNames(): Promise<string[]> {
     let settings: any = await this.readJson(settingsPath);
+    settings = settings || {};
+    settings.profiles = settings.profiles || {};
+    return Object.keys(settings.profiles);
+  }
+
+  public async getDefaultProfile(): Promise<string | undefined> {
+    const settings: any = await this.readJson(settingsPath);
     return settings && settings.defaults ? settings.defaults.profile : undefined;
   }
 
@@ -129,39 +137,70 @@ export class FlexdDotConfig extends DotConfig {
       const message = `The '${name}' profile already exists.`;
       throw new Error(message);
     }
+    if (!settings.profiles[name]) {
+      profile.created = new Date().toLocaleString();
+      profile.updated = profile.created;
+    } else {
+      profile.updated = new Date().toLocaleString();
+    }
     settings.profiles[name] = profile;
     await this.writeJson(settingsPath, settings);
   }
 
-  public async copyProfile(name: string, newName: string, overWrite: boolean): Promise<void> {
+  public async copyProfile(source: string, target: string, overWrite: boolean): Promise<any> {
     let settings: any = await this.readJson(settingsPath);
     settings = settings || {};
     settings.profiles = settings.profiles || {};
-    const profile = settings.profiles[name];
+    const profile = settings.profiles[source];
     if (profile === undefined) {
-      const message = `The '${name}' profile does not exist.`;
+      const message = `The '${source}' profile does not exist.`;
       throw new Error(message);
     }
-    if (settings.profile[newName] !== undefined && !overWrite) {
-      const message = `The '${newName}' profile already exists.`;
+    if (settings.profiles[target] !== undefined && !overWrite) {
+      const message = `The '${target}' profile already exists.`;
       throw new Error(message);
     }
-    settings.profiles[newName] = profile;
+    const copy = clone(profile);
+    copy.created = new Date().toLocaleString();
+    copy.updated = copy.created;
+    settings.profiles[target] = copy;
 
     await this.writeJson(settingsPath, settings);
+    return profile;
   }
 
-  public async removeProfile(name: string) {
+  public async removeProfile(target: string) {
     let settings: any = await this.readJson(settingsPath);
     settings = settings || {};
     settings.profiles = settings.profiles || {};
-    settings.profiles[name] = undefined;
+    settings.profiles[target] = undefined;
     await this.writeJson(settingsPath, settings);
   }
 
-  public async renameProfile(name: string, newName: string, overWrite: boolean): Promise<void> {
-    await this.copyProfile(name, newName, overWrite);
-    await this.removeProfile(name);
+  public async renameProfile(source: string, target: string, overWrite: boolean): Promise<any> {
+    let settings: any = await this.readJson(settingsPath);
+    settings = settings || {};
+    settings.profiles = settings.profiles || {};
+    const profile = settings.profiles[source];
+    if (profile === undefined) {
+      const message = `The '${source}' profile does not exist.`;
+      throw new Error(message);
+    }
+    if (settings.profiles[target] !== undefined && !overWrite) {
+      const message = `The '${target}' profile already exists.`;
+      throw new Error(message);
+    }
+    profile.updated = new Date().toLocaleString();
+    settings.profiles[target] = profile;
+    settings.profiles[source] = undefined;
+
+    if (settings.defaults && settings.defaults.profile === source) {
+      settings.defaults = settings.defaults || {};
+      settings.defaults.profile = target;
+    }
+
+    await this.writeJson(settingsPath, settings);
+    return profile;
   }
 
   public async getCachedCreds(name: string, kid: string): Promise<any> {

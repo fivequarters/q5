@@ -105,7 +105,7 @@ export interface IAwsLambdaAddOptions {
   expressionValues?: { [index: string]: any };
   condition: string;
   collisionRetries?: number;
-  onCollision: (item: any) => any;
+  onCollision?: (item: any) => any;
 }
 
 export interface IAwsLambdaUpdateOptions extends IAwsLambdaPutOptions {
@@ -263,6 +263,7 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
 
     return new Promise((resolve, reject) => {
       dynamo.updateItem(params, (error: any, data: any) => {
+        console.log(error);
         if (error) {
           return reject(error);
         }
@@ -401,6 +402,7 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
   private async putBatch(tableName: string, items: any[]): Promise<any[]> {
     const dynamo = await this.getAws();
     const params: any = { RequestItems: {} };
+    tableName = this.getPrefixedName(tableName);
     params.RequestItems[tableName] = items.map(item => ({ PutRequest: { Item: item } }));
 
     return new Promise((resolve, reject) => {
@@ -417,9 +419,11 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
   private async deleteBatch(tableName: string, keys: any[]): Promise<any[]> {
     const dynamo = await this.getAws();
     const params: any = { RequestItems: {} };
+    tableName = this.getPrefixedName(tableName);
     params.RequestItems[tableName] = keys.map(key => ({ DeleteRequest: { Key: key } }));
 
     return new Promise((resolve, reject) => {
+      console.log(params);
       dynamo.batchWriteItem(params, (error: any, data: any) => {
         if (error) {
           return reject(error);

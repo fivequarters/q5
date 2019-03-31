@@ -39,6 +39,9 @@ export class FunctionRemoveCommand extends Command {
   protected async onExecute(input: IExecuteInput): Promise<number> {
     let profileService = await ProfileService.create(input);
     let profile = await profileService.getExecutionProfile(['subscription', 'boundary', 'function']);
+    if (!profile) {
+      return 1;
+    }
 
     if (
       !input.options.confirm &&

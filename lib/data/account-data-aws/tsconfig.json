@@ -8,6 +8,7 @@
     { "path": "../../server/aws-deployment" },
     { "path": "../../shared/random" },
     { "path": "../../shared/base64" },
-    { "path": "../../shared/array" }
+    { "path": "../../shared/array" },
+    { "path": "../../server/aws-base" }
   ]
 }

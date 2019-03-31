@@ -17,33 +17,53 @@ const delimiter = '::';
 // Internal Functions
 // ------------------
 
-function getIdentityId(accountId: string, iss: string, sub: string) {
-  return [accountId, iss, sub].map(toBase64).join(delimiter);
+function getIdentityMap(iss: string, sub: string, agentId: string) {
+  return [toBase64(iss), toBase64(sub), agentId].join(delimiter);
 }
 
 function toDynamoKey(accountId: string, agentId: string, identity: IIdentity) {
-  const id = getIdentityId(accountId, identity.iss, identity.sub);
+  const identityMap = getIdentityMap(identity.iss, identity.sub, agentId);
   return {
-    id: { S: id },
-    agentId: { S: agentId },
+    accountId: { S: accountId },
+    identityMap: { S: identityMap },
   };
 }
 
 function toDynamoItem(accountId: string, agentId: string, identity: IIdentity) {
   const item: any = toDynamoKey(accountId, agentId, identity);
-  item.accountId = { S: accountId };
+  item.agentId = { S: agentId };
   item.issSub = { S: [toBase64(identity.iss), toBase64(identity.sub)].join(delimiter) };
+  item.iss = { S: identity.iss };
+  item.sub = { S: identity.sub };
   return item;
 }
 
-function fromDynamoItem(item: any): IFullIdentity {
-  const id = item.id.S;
-  const [accountId, iss, sub] = id.split(delimiter).map((segment: string) => fromBase64(segment));
+function fromDynamoItem(item: any, full: boolean = false): IFullIdentity {
+  const identityMap = item.identityMap.S;
+  const [issEncoded, subEncoded, __] = identityMap.split(delimiter);
   return {
-    iss,
-    sub,
+    accountId: full ? item.accountId.S : undefined,
+    iss: fromBase64(issEncoded),
+    sub: fromBase64(subEncoded),
+    agentId: full ? item.agentId.S : undefined,
+  };
+}
+
+function areEqual(identity1: IFullIdentity, identity2: IFullIdentity) {
+  return (
+    identity1.iss === identity2.iss &&
+    identity1.sub === identity2.sub &&
+    identity1.accountId === identity2.accountId &&
+    identity1.agentId === identity2.agentId
+  );
+}
+
+function toFullIdentity(accountId: string, agentId: string, identity: IIdentity) {
+  return {
     accountId,
-    agentId: item.agentId.S,
+    agentId,
+    iss: identity.iss,
+    sub: identity.sub,
   };
 }
 
@@ -58,12 +78,13 @@ export interface IIdentity {
 
 export interface IListIdentitiesOptions {
   next?: string;
+  full?: boolean;
   limit?: number;
 }
 
 export interface IListIdentitiesResult {
   next?: string;
-  items: IIdentity[];
+  items: IFullIdentity[];
 }
 
 export interface IFullIdentity extends IIdentity {
@@ -93,13 +114,15 @@ export class IdentityStore {
   public async setup() {
     return this.dynamo.ensureTable({
       name: tableName,
-      attributes: { id: 'S', agentId: 'S', accountId: 'S', issSub: 'S' },
-      keys: ['id', 'agentId'],
-      globalIndexes: [
+      attributes: { accountId: 'S', identityMap: 'S', agentId: 'S', issSub: 'S' },
+      keys: ['accountId', 'identityMap'],
+      localIndexes: [
         {
           name: accountAgentIdIndex,
           keys: ['accountId', 'agentId'],
         },
+      ],
+      globalIndexes: [
         {
           name: issSubIndex,
           keys: ['issSub'],
@@ -110,8 +133,8 @@ export class IdentityStore {
 
   public async addIdentity(accountId: string, agentId: string, newIdentity: IIdentity): Promise<IIdentity> {
     const options = {
-      expressionNames: { '#id': 'id', '#agentId': 'agentId' },
-      condition: 'attribute_not_exists(#id) and attribute_not_exists(#agentId)',
+      expressionNames: { '#accountId': 'iaccountIdd', '#identityMap': 'identityMap' },
+      condition: 'attribute_not_exists(#accountId) and attribute_not_exists(#identityMap)',
     };
 
     const item = toDynamoItem(accountId, agentId, newIdentity);
@@ -129,15 +152,18 @@ export class IdentityStore {
   }
 
   public async removeAllIdentities(accountId: string, agentId: string, identities?: IIdentity[]): Promise<void> {
-    const toRemove = identities ? identities : await this.listAllIdentities(accountId, agentId);
+    const toRemove = identities ? identities : await this.listAllIdentities(accountId, agentId, true);
+    console.log(toRemove);
     const keys = toRemove.map(identity => toDynamoKey(accountId, agentId, identity));
+    console.log(keys);
     return this.dynamo.deleteAll(tableName, keys);
   }
 
   public async replaceAllIdentities(accountId: string, agentId: string, identities: IIdentity[]): Promise<IIdentity[]> {
-    const existingIdentities = await this.listAllIdentities(accountId, agentId);
-    const toAdd = notIn(identities, existingIdentities);
-    const toRemove = notIn(existingIdentities, identities);
+    const existingIdentities = await this.listAllIdentities(accountId, agentId, true);
+    const fullIdentities = identities.map(id => toFullIdentity(accountId, agentId, id));
+    const toAdd = notIn(fullIdentities, existingIdentities, areEqual);
+    const toRemove = notIn(existingIdentities, fullIdentities, areEqual);
     await Promise.all([
       this.addAllIdentities(accountId, agentId, toAdd),
       this.removeAllIdentities(accountId, agentId, toRemove),
@@ -145,9 +171,9 @@ export class IdentityStore {
     return identities;
   }
 
-  public async listAllIdentities(accountId: string, agentId: string): Promise<IIdentity[]> {
+  public async listAllIdentities(accountId: string, agentId: string, full: boolean = false): Promise<IFullIdentity[]> {
     const all = [];
-    const options: IListIdentitiesOptions = { next: undefined, limit: maxLimit };
+    const options: IListIdentitiesOptions = { next: undefined, limit: maxLimit, full };
     do {
       const result = await this.listIdentities(accountId, agentId, options);
       all.push(...result.items);
@@ -164,18 +190,19 @@ export class IdentityStore {
     const next = options && options.next ? options.next : undefined;
     let limit = options && options.limit ? options.limit : defaultLimit;
     limit = limit < maxLimit ? limit : maxLimit;
+    const full = options && options.full !== undefined ? options.full : false;
 
     const queryOptions = {
-      indexName: accountAgentIdIndex,
+      index: accountAgentIdIndex,
       expressionNames: { '#agentId': 'agentId', '#accountId': 'accountId' },
       expressionValues: { ':agentId': { S: agentId }, ':accountId': { S: accountId } },
-      keyCondtion: '#agentId = :agentId && #accountId = :accountId',
+      keyCondition: '#agentId = :agentId and #accountId = :accountId',
       limit: limit || undefined,
       next: next || undefined,
     };
 
     const result = await this.dynamo.queryTable(tableName, queryOptions);
-    const items = result.items.map(fromDynamoItem);
+    const items = result.items.map(item => fromDynamoItem(item, full));
     return {
       next: result.next || undefined,
       items,
@@ -184,9 +211,12 @@ export class IdentityStore {
 
   public async getAgentId(accountId: string, iss: string, sub: string): Promise<IFullIdentity | undefined> {
     const queryOptions = {
-      expressionNames: { '#id': 'id' },
-      expressionValues: { ':id': { S: getIdentityId(accountId, iss, sub) } },
-      keyCondtion: '#id = :id',
+      expressionNames: { '#accountId': 'accountId', '#identityMap': 'identityMap' },
+      expressionValues: {
+        ':accountId': { S: accountId },
+        ':identityMap': { S: [iss, sub].map(toBase64).join(delimiter) },
+      },
+      keyCondition: '#accountId = :accountId and begins_with(#identityMap, :identityMap)',
     };
 
     const result = await this.dynamo.queryTable(tableName, queryOptions);
@@ -201,18 +231,19 @@ export class IdentityStore {
     const next = options && options.next ? options.next : undefined;
     let limit = options && options.limit ? options.limit : defaultLimit;
     limit = limit < maxLimit ? limit : maxLimit;
+    const full = options && options.full !== undefined ? options.full : true;
 
     const queryOptions = {
-      indexName: issSubIndex,
+      index: issSubIndex,
       expressionNames: { '#issSub': 'issSub' },
       expressionValues: { ':issSub': { S: [iss, sub].map(toBase64).join(delimiter) } },
-      keyCondtion: '#issSub = :issSub',
+      keyCondition: '#issSub = :issSub',
       limit: limit || undefined,
       next: next || undefined,
     };
 
     const result = await this.dynamo.queryTable(tableName, queryOptions);
-    const items = result.items.map(fromDynamoItem);
+    const items = result.items.map(item => fromDynamoItem(item, full));
     return {
       next: result.next || undefined,
       items,

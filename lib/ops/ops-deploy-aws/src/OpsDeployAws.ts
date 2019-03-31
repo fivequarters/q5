@@ -503,7 +503,7 @@ export class OpsDeployAws {
     return undefined;
   }
 
-  private async getOptions(deploymentName: string) {
+  public async getOptions(deploymentName: string) {
     const awsDeployment = await this.getAwsDeployment(deploymentName);
     if (awsDeployment) {
       const network = await this.opsCore.getAwsNetwork(awsDeployment.network);

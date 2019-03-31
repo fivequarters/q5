@@ -1,5 +1,4 @@
-import { AwsCreds } from '@5qtrs/aws-cred';
-import { AwsDeployment } from '@5qtrs/aws-deployment';
+import { IAwsOptions } from '@5qtrs/aws-base';
 import { AwsDynamo } from '@5qtrs/aws-dynamo';
 import {
   AccessEntryStore,
@@ -7,13 +6,21 @@ import {
   IListAccessEntriesOptions,
   IListAccessEntriesResult,
 } from './AccessEntryStore';
-import { AccountStore, IListSubscriptionsOptions, IListSubscriptionsResult } from './AccountStore';
+import {
+  AccountStore,
+  INewAccount,
+  INewSubscription,
+  IListSubscriptionsOptions,
+  IListSubscriptionsResult,
+} from './AccountStore';
 import { IdentityStore, IIdentity } from './IdentityStore';
-import { ClientStore, INewBaseClient, IBaseClient, IListClientsOptions } from './ClientStore';
+import { ClientStore, INewBaseClient, IBaseClient, IListBaseClientsOptions } from './ClientStore';
 import { IssuerStore, IIssuer, IListIssuersOptions, IListIssuersResult } from './IssuerStore';
-import { UserStore, IBaseUser, INewBaseUser, IListUsersOptions, IListUsersResult } from './UserStore';
+import { UserStore, IBaseUser, INewBaseUser, IListBaseUsersOptions, IListUsersResult } from './UserStore';
 
 export { IListAccessEntriesOptions, IListAccessEntriesResult } from './AccessEntryStore';
+export { IIssuer } from './IssuerStore';
+export { IListUsersResult } from './UserStore';
 
 // -------------------
 // Internal Interfaces
@@ -49,10 +56,13 @@ function toClient(baseClient?: IBaseClient, identities?: IIdentity[], accessEntr
     ? {
         id: baseClient.id,
         displayName: baseClient.displayName,
-        identities: identities || [],
-        access: {
-          allow: accessEntries ? accessEntries.map(toAccessStatement) : [],
-        },
+        identities: identities && identities.length ? identities : undefined,
+        access:
+          accessEntries && accessEntries.length
+            ? {
+                allow: accessEntries ? accessEntries.map(toAccessStatement) : undefined,
+              }
+            : undefined,
       }
     : undefined;
 }
@@ -64,10 +74,13 @@ function toUser(baseUser?: IBaseUser, identities?: IIdentity[], accessEntries?: 
         firstName: baseUser.firstName,
         lastName: baseUser.lastName,
         primaryEmail: baseUser.primaryEmail,
-        identities: identities || [],
-        access: {
-          allow: accessEntries ? accessEntries.map(toAccessStatement) : [],
-        },
+        identities: identities && identities.length ? identities : undefined,
+        access:
+          accessEntries && accessEntries.length
+            ? {
+                allow: accessEntries ? accessEntries.map(toAccessStatement) : undefined,
+              }
+            : undefined,
       }
     : undefined;
 }
@@ -119,9 +132,12 @@ export interface IUser extends IBaseUser {
   };
 }
 
-export interface IListUserResult {
-  next?: string;
-  items: IClient[];
+export interface IListUsersOptions extends IListBaseUsersOptions {
+  full?: boolean;
+}
+
+export interface IListClientsOptions extends IListBaseClientsOptions {
+  full?: boolean;
 }
 
 // ----------------
@@ -135,8 +151,8 @@ export class AccountDataAws {
     this.stores = stores;
   }
 
-  public static async create(creds: AwsCreds, deployment: AwsDeployment) {
-    const dynamo = await AwsDynamo.create({ creds, deployment });
+  public static async create(options: IAwsOptions) {
+    const dynamo = await AwsDynamo.create(options);
     const stores = {
       accessEntry: await AccessEntryStore.create(dynamo),
       account: await AccountStore.create(dynamo),
@@ -149,39 +165,78 @@ export class AccountDataAws {
     return new AccountDataAws(stores);
   }
 
-  public async listAccessEntries(
+  public async isSetup(): Promise<boolean> {
+    const isSetup = await Promise.all([
+      this.stores.accessEntry.isSetup(),
+      this.stores.account.isSetup(),
+      this.stores.client.isSetup(),
+      this.stores.identity.isSetup(),
+      this.stores.issuer.isSetup(),
+      this.stores.user.isSetup(),
+    ]);
+    return isSetup.indexOf(false) === -1;
+  }
+
+  public async setup(): Promise<void> {
+    await Promise.all([
+      this.stores.accessEntry.setup(),
+      this.stores.account.setup(),
+      this.stores.client.setup(),
+      this.stores.identity.setup(),
+      this.stores.issuer.setup(),
+      this.stores.user.setup(),
+    ]);
+  }
+
+  public async listAllAccessEntries(
     accountId: string,
     issuer: string,
-    subject: string,
-    options: IListAccessEntriesOptions
-  ): Promise<IListAccessEntriesResult> {
+    subject: string
+    //  options: IListAccessEntriesOptions
+  ): Promise<IAccessEntry[]> {
     const identity = await this.stores.identity.getAgentId(accountId, issuer, subject);
     if (identity === undefined) {
-      return { items: [] };
+      return [];
     }
-    return this.stores.accessEntry.listAccessEntries(identity.agentId, options);
+    return this.stores.accessEntry.listAllAccessEntries(identity.agentId);
   }
 
   public async getPublicKeyOrJsonKeyUri(
     accountId: string,
     issuerId: string,
-    kid: string
-  ): Promise<IPublicKeyOrJsonKeysUri | undefined> {
+    keyId: string
+  ): Promise<string | undefined> {
     const issuer = await this.stores.issuer.getIssuer(accountId, issuerId);
     if (issuer) {
       if (issuer.jsonKeyUri) {
-        return { jsonKeyUri: issuer.jsonKeyUri };
+        return issuer.jsonKeyUri;
       }
       if (issuer.publicKeys) {
         for (const publicKey of issuer.publicKeys) {
-          if (publicKey.kid === kid) {
-            return { publicKey: publicKey.publicKey };
+          if (publicKey.keyId === keyId) {
+            return publicKey.publicKey;
           }
         }
       }
     }
 
     return undefined;
+  }
+
+  public async addRootUser(issuer: IIssuer, user: INewUser) {
+    const account = await this.stores.account.addRootAccount();
+    user.access = user.access || { allow: [] };
+    user.access.allow = user.access.allow || [];
+    user.access.allow.push({
+      action: 'root:*',
+      resource: `/root`,
+    });
+    await this.stores.issuer.addIssuer(account.id, issuer);
+    return this.addUser(account.id, user);
+  }
+
+  public async addAccount(newAccount: INewAccount) {
+    return this.stores.account.addAccount(newAccount);
   }
 
   public async getAccount(accountId: string) {
@@ -191,44 +246,80 @@ export class AccountDataAws {
   public async listSubscriptions(
     accountId: string,
     options?: IListSubscriptionsOptions
-  ): Promise<IListSubscriptionsResult> {
+  ): Promise<IListSubscriptionsResult | undefined> {
     return this.stores.account.listSubscriptions(accountId, options);
+  }
+
+  public async addSubscription(accountId: string, subscription: INewSubscription) {
+    return this.stores.account.addSubscription(accountId, subscription);
   }
 
   public async getSubscription(accountId: string, subscriptionId: string) {
     return this.stores.account.getSubscription(accountId, subscriptionId);
   }
 
-  public async listIssuers(accountId: string, options?: IListIssuersOptions): Promise<IListIssuersResult> {
-    return this.stores.issuer.listIssuers(accountId, options);
+  public async listIssuers(accountId: string, options?: IListIssuersOptions): Promise<IListIssuersResult | undefined> {
+    const accountPromise = this.getAccount(accountId);
+    const issuers = await this.stores.issuer.listIssuers(accountId, options);
+    const account = await accountPromise;
+    if (!account) {
+      return undefined;
+    }
+    return issuers;
+  }
+
+  public async addIssuer(accountId: string, issuer: IIssuer): Promise<IIssuer | undefined> {
+    const accountPromise = this.getAccount(accountId);
+
+    const existing = await this.stores.issuer.getIssuer(accountId, issuer.id);
+    const account = await accountPromise;
+    if (!account) {
+      return undefined;
+    }
+
+    return existing
+      ? this.stores.issuer.updateIssuer(accountId, issuer)
+      : this.stores.issuer.addIssuer(accountId, issuer);
   }
 
   public async getIssuer(accountId: string, issuerId: string): Promise<IIssuer | undefined> {
     return this.stores.issuer.getIssuer(accountId, issuerId);
   }
 
-  public async removeIssuer(accountId: string, issuerId: string): Promise<void> {
+  public async removeIssuer(accountId: string, issuerId: string): Promise<boolean> {
     return this.stores.issuer.removeIssuer(accountId, issuerId);
   }
 
-  public async listClients(accountId: string, options: IListClientsOptions): Promise<IListClientsResult> {
+  public async listClients(accountId: string, options: IListClientsOptions): Promise<IListClientsResult | undefined> {
+    const accountPromise = this.getAccount(accountId);
+
+    const full = options && options.full !== undefined ? options.full : false;
     const { next, items } = await this.stores.client.listClients(accountId, options);
 
-    const identityListPromise = Promise.all(
-      items.map(client => this.stores.identity.listAllIdentities(accountId, client.id))
-    );
-    const accessEntryListPromise = Promise.all(
-      items.map(client => this.stores.accessEntry.listAllAccessEntries(client.id))
-    );
+    const account = await accountPromise;
+    if (!account) {
+      return undefined;
+    }
 
     const clients = [];
-    const identityLists = await identityListPromise;
-    const accessEntryLists = await accessEntryListPromise;
-    for (let i = 0; i < items.length; i++) {
-      const client = toClient(items[i], identityLists[i], accessEntryLists[i]);
-      if (client) {
-        clients.push(client);
+    if (full) {
+      const identityListPromise = Promise.all(
+        items.map(client => this.stores.identity.listAllIdentities(accountId, client.id))
+      );
+      const accessEntryListPromise = Promise.all(
+        items.map(client => this.stores.accessEntry.listAllAccessEntries(client.id))
+      );
+
+      const identityLists = await identityListPromise;
+      const accessEntryLists = await accessEntryListPromise;
+      for (let i = 0; i < items.length; i++) {
+        const client = toClient(items[i], identityLists[i], accessEntryLists[i]);
+        if (client) {
+          clients.push(client);
+        }
       }
+    } else {
+      clients.push(...items);
     }
 
     return { next, items: clients };
@@ -243,7 +334,12 @@ export class AccountDataAws {
     return toClient(...result);
   }
 
-  public async addClient(accountId: string, newClient: INewClient): Promise<IClient> {
+  public async addClient(accountId: string, newClient: INewClient): Promise<IClient | undefined> {
+    const account = await this.getAccount(accountId);
+    if (!account) {
+      return undefined;
+    }
+
     const client = await this.stores.client.addClient(accountId, newClient);
 
     let identitiesPromise;
@@ -256,13 +352,16 @@ export class AccountDataAws {
       accessEntriesPromise = this.stores.accessEntry.addAllAccessEntries(accountId, client.id, accessEntries);
     }
 
-    const identities = identitiesPromise ? await identitiesPromise : [];
-    const accessEntries = accessEntriesPromise ? await accessEntriesPromise : [];
+    const identities = identitiesPromise ? await identitiesPromise : undefined;
+    const accessEntries = accessEntriesPromise ? await accessEntriesPromise : undefined;
     return toClient(client, identities, accessEntries) as IClient;
   }
 
-  public async updateClient(accountId: string, client: IClient): Promise<IClient> {
+  public async updateClient(accountId: string, client: IClient): Promise<IClient | undefined> {
     const updatedClient = await this.stores.client.updateClient(accountId, client);
+    if (!updatedClient) {
+      return undefined;
+    }
 
     const access = client.access && client.access.allow ? client.access.allow.map(fromAccessStatement) : [];
     const [identities, accessEntries] = await Promise.all([
@@ -273,32 +372,45 @@ export class AccountDataAws {
     return toClient(updatedClient, identities, accessEntries) as IClient;
   }
 
-  public async removeClient(accountId: string, clientId: string): Promise<void> {
-    await this.stores.client.archiveClient(accountId, clientId);
+  public async removeClient(accountId: string, clientId: string): Promise<boolean> {
+    const removed = await this.stores.client.archiveClient(accountId, clientId);
     await Promise.all([
       this.stores.identity.removeAllIdentities(accountId, clientId),
       this.stores.accessEntry.removeAllAccessEntries(clientId),
     ]);
+    return removed;
   }
 
-  public async listUsers(accountId: string, options: IListUsersOptions): Promise<IListUsersResult> {
+  public async listUsers(accountId: string, options: IListUsersOptions): Promise<IListUsersResult | undefined> {
+    const accountPromise = this.getAccount(accountId);
+
+    const full = options && options.full !== undefined ? options.full : false;
     const { next, items } = await this.stores.user.listUsers(accountId, options);
 
-    const identityListPromise = Promise.all(
-      items.map(user => this.stores.identity.listAllIdentities(accountId, user.id))
-    );
-    const accessEntryListPromise = Promise.all(
-      items.map(user => this.stores.accessEntry.listAllAccessEntries(user.id))
-    );
+    const account = await accountPromise;
+    if (!account) {
+      return undefined;
+    }
 
     const users = [];
-    const identityLists = await identityListPromise;
-    const accessEntryLists = await accessEntryListPromise;
-    for (let i = 0; i < items.length; i++) {
-      const user = toUser(items[i], identityLists[i], accessEntryLists[i]);
-      if (user) {
-        users.push(user);
+    if (full) {
+      const identityListPromise = Promise.all(
+        items.map(user => this.stores.identity.listAllIdentities(accountId, user.id))
+      );
+      const accessEntryListPromise = Promise.all(
+        items.map(user => this.stores.accessEntry.listAllAccessEntries(user.id))
+      );
+
+      const identityLists = await identityListPromise;
+      const accessEntryLists = await accessEntryListPromise;
+      for (let i = 0; i < items.length; i++) {
+        const user = toUser(items[i], identityLists[i], accessEntryLists[i]);
+        if (user) {
+          users.push(user);
+        }
       }
+    } else {
+      users.push(...items);
     }
 
     return { next, items: users };
@@ -313,7 +425,12 @@ export class AccountDataAws {
     return toUser(...result);
   }
 
-  public async addUser(accountId: string, newUser: INewUser): Promise<IUser> {
+  public async addUser(accountId: string, newUser: INewUser): Promise<IUser | undefined> {
+    const account = await this.getAccount(accountId);
+    if (!account) {
+      return undefined;
+    }
+
     const user = await this.stores.user.addUser(accountId, newUser);
 
     let identitiesPromise;
@@ -326,28 +443,31 @@ export class AccountDataAws {
       accessEntriesPromise = this.stores.accessEntry.addAllAccessEntries(accountId, user.id, accessEntries);
     }
 
-    const identities = identitiesPromise ? await identitiesPromise : [];
-    const accessEntries = accessEntriesPromise ? await accessEntriesPromise : [];
+    const identities = identitiesPromise ? await identitiesPromise : undefined;
+    const accessEntries = accessEntriesPromise ? await accessEntriesPromise : undefined;
     return toUser(user, identities, accessEntries) as IUser;
   }
 
-  public async updateUser(accountId: string, user: IUser): Promise<IUser> {
+  public async updateUser(accountId: string, user: IUser): Promise<IUser | undefined> {
     const updatedUser = await this.stores.user.updateUser(accountId, user);
+    if (!updatedUser) {
+      return undefined;
+    }
 
     const access = user.access && user.access.allow ? user.access.allow.map(fromAccessStatement) : [];
     const [identities, accessEntries] = await Promise.all([
       this.stores.identity.replaceAllIdentities(accountId, user.id, user.identities || []),
       this.stores.accessEntry.replaceAllAccessEntries(accountId, user.id, access),
     ]);
-
     return toUser(updatedUser, identities, accessEntries) as IUser;
   }
 
-  public async removeUser(accountId: string, userId: string): Promise<void> {
-    await this.stores.user.archiveUser(accountId, userId);
+  public async removeUser(accountId: string, userId: string): Promise<boolean> {
+    const removed = await this.stores.user.archiveUser(accountId, userId);
     await Promise.all([
       this.stores.identity.removeAllIdentities(accountId, userId),
       this.stores.accessEntry.removeAllAccessEntries(userId),
     ]);
+    return removed;
   }
 }

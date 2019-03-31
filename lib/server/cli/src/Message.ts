@@ -23,6 +23,7 @@ export interface IMessageInput {
   kind?: MessageKind;
   header?: IText;
   message: IText;
+  flex?: boolean;
 }
 
 // ----------------
@@ -34,18 +35,21 @@ export class Message {
     return new Message(input);
   }
   private kind: MessageKind;
+  private flex: boolean;
   private header: IText;
   private message: IText;
 
   private constructor(input: IMessageInput) {
     this.kind = input.kind !== undefined ? input.kind : MessageKind.result;
     this.header = input.header || '';
+    this.flex = input.flex !== undefined ? input.flex : false;
     this.message = input.message;
   }
 
   public async write(io: ICommandIO) {
     const header = await this.getHeaderText();
-    const columns: any = [{ min: 17, max: 17 }, { flexShrink: 1, flexGrow: 1 }];
+    const firstColumn = this.flex ? { flexShrink: 0, flexGrow: 0 } : { min: 12, max: 12 };
+    const columns: any = [firstColumn, { flexShrink: 1, flexGrow: 1 }];
     if (!header.length) {
       columns.shift();
     }

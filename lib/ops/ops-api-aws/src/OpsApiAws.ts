@@ -55,29 +55,29 @@ export class OpsApiAws {
   protected async onSetupApi(setup: IOpsApiSetup, options: IAwsOptions): Promise<void> {}
 
   public async isApiSetup(options: IAwsOptions): Promise<boolean> {
-    const lambdaName = this.getLambdaName();
-    const lambda = await AwsLambda.create(options);
-    const functionExists = await lambda.functionExists(lambdaName);
-    if (!functionExists) {
-      return false;
-    }
+    // const lambdaName = this.getLambdaName();
+    // const lambda = await AwsLambda.create(options);
+    // const functionExists = await lambda.functionExists(lambdaName);
+    // if (!functionExists) {
+    //   return false;
+    // }
 
     return this.onIsApiSetup(options);
   }
 
   public async setupApi(setup: IOpsApiSetup, options: IAwsOptions): Promise<void> {
-    const lambdaName = this.getLambdaName();
-    const lambda = await AwsLambda.create(options);
-    await lambda.ensureFunction(lambdaName, setup.s3Bucket, setup.s3Key, setup.apiOptions);
+    // const lambdaName = this.getLambdaName();
+    // const lambda = await AwsLambda.create(options);
+    // await lambda.ensureFunction(lambdaName, setup.s3Bucket, setup.s3Key, setup.apiOptions);
     await this.onSetupApi(setup, options);
     return;
   }
 
   public async deployApi(deploy: IOpsApiDeploy, options: IAwsOptions) {
-    const apiName = this.getApiName();
-    const lambda = await AwsLambda.create(options);
-    const detail = await lambda.deployFunction(apiName, deploy.s3Bucket, deploy.s3Key, deploy.apiOptions);
-    await lambda.promoteFunction(apiName, detail.version);
-    return detail;
+    // const apiName = this.getApiName();
+    // const lambda = await AwsLambda.create(options);
+    // const detail = await lambda.deployFunction(apiName, deploy.s3Bucket, deploy.s3Key, deploy.apiOptions);
+    // await lambda.promoteFunction(apiName, detail.version);
+    // return detail;
   }
 }

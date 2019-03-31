@@ -1,4 +1,3 @@
-import { EOL } from 'os';
 import { Command, ICommand } from '@5qtrs/cli';
 import { IssuerListCommand } from './IssuerListCommand';
 import { IssuerGetCommand } from './IssuerGetCommand';
@@ -15,12 +14,7 @@ const command: ICommand = {
   name: 'Issuer',
   cmd: 'issuer',
   summary: 'Manage issuers',
-  description: [
-    `Retrieves and manages issuers associated with a given account.${EOL}${EOL}The ability`,
-    'to retrieve and manage issuers depends on the access of the profile used. A profile',
-    "must have 'manage' access to an account in order to retrieve or manage issuers",
-    'associated with that account.',
-  ].join(' '),
+  description: 'Retrieves and manages issuers associated with a given account.',
   options: [
     {
       name: 'profile',
@@ -35,7 +29,6 @@ const command: ICommand = {
       defaultText: 'profile value',
     },
   ],
-  modes: ['account'],
 };
 
 // ------------------

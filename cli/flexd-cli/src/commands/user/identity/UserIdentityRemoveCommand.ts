@@ -1,4 +1,4 @@
-import { Command } from '@5qtrs/cli';
+import { Command, ArgType } from '@5qtrs/cli';
 
 export class UserIdentityRemoveCommand extends Command {
   private constructor() {
@@ -16,12 +16,23 @@ export class UserIdentityRemoveCommand extends Command {
           description: 'The id of the user from which to remove the associate with the identity.',
         },
         {
-          name: 'issuer',
+          name: 'iss',
           description: 'The issuer claim of access tokens that currently identify the user.',
         },
         {
-          name: 'subject',
+          name: 'sub',
           description: 'The subject claim of access tokens that currently identify the user.',
+        },
+      ],
+      options: [
+        {
+          name: 'confirm',
+          description: [
+            'If set to true, the details regarding adding the identity to the user will be displayed along with a',
+            'prompt for confirmation.',
+          ].join(' '),
+          type: ArgType.boolean,
+          default: 'true',
         },
       ],
     });

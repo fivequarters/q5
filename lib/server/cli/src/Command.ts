@@ -539,6 +539,8 @@ export class Command implements ICommand {
         if (!values.length) {
           if (matchedOption.type === ArgType.boolean) {
             values.push('true');
+          } else if (matchedOption.type === ArgType.string) {
+            values.push('');
           }
         }
 

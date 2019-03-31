@@ -4,9 +4,10 @@
   "include": ["src"],
   "references": [
     { "path": "../../lib/server/cli" },
-    { "path": "../../lib/server/dot-config" },
     { "path": "../../lib/server/flexd-profile" },
     { "path": "../../lib/shared/random" },
+    { "path": "../../lib/server/file" },
+    { "path": "../../lib/shared/clone" },
     { "path": "../../lib/shared/request" }
   ]
 }

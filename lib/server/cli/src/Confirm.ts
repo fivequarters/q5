@@ -1,5 +1,6 @@
 import { CellAlignment, Table } from '@5qtrs/table';
 import { IText, Text } from '@5qtrs/text';
+import { Message, MessageKind } from './Message';
 import { ICommandIO } from './CommandIO';
 
 // ------------------
@@ -19,6 +20,7 @@ export interface IConfirmDetail {
 
 export interface IConfirmInput {
   header?: IText;
+  message?: IText;
   details?: IConfirmDetail[];
 }
 
@@ -32,32 +34,42 @@ export class Confirm {
   }
 
   private header: IText;
+  private message: IText;
   private details: IConfirmDetail[];
 
   private constructor(input: IConfirmInput) {
     this.header = input.header || '';
+    this.message = input.message || '';
     this.details = input.details ? input.details.slice() : [];
   }
 
   public async prompt(io: ICommandIO) {
-    if (this.header) {
+    if (this.header && !this.message) {
       const header = this.header instanceof Text ? this.header : Text.blue(this.header);
       await io.writeLine(header);
       await io.writeLine();
+    } else if (this.header && this.message) {
+      const message = await Message.create({
+        header: this.header,
+        message: this.message || '',
+        kind: MessageKind.info,
+      });
+      await message.write(io);
     }
 
     if (this.details && this.details.length) {
-      const columns: any = [{ min: 0, max: 0 }, { flexShrink: 0, flexGrow: 0 }, { flexShrink: 1, flexGrow: 1 }];
+      const columns: any = [{ max: 12, min: 12 }, { flexShrink: 1, flexGrow: 1 }];
       const table = await Table.create({
         width: io.outputWidth || defaultConsoleWidth,
-        count: 3,
-        gutter: 3,
+        count: 2,
+        gutter: 5,
         columns,
       });
+      table.setCellConstraint(0, { align: CellAlignment.right });
       for (const detail of this.details) {
         const name = detail.name instanceof Text ? detail.name : Text.create(detail.name);
         const value = detail.value instanceof Text ? detail.value : Text.bold(detail.value);
-        table.addRow(['', name, value]);
+        table.addRow([name, value]);
       }
       await io.writeLine(table.toText());
       await io.writeLine();

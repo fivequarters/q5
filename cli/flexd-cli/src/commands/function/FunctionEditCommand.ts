@@ -34,6 +34,10 @@ command options are required.`,
   protected async onExecute(input: IExecuteInput): Promise<number> {
     let profileService = await ProfileService.create(input);
     let profile = await profileService.getExecutionProfile(['subscription', 'boundary', 'function']);
+    if (!profile) {
+      return 1;
+    }
+
     let port = 8000 + Math.floor(Math.random() * 100);
     let editorHtml = getEditorHtml(port, profile);
     return new Promise((resolve, reject) => {
@@ -59,7 +63,9 @@ command options are required.`,
             }
           }
           console.log(
+            // @ts-ignore
             `Hosting the function editor for function ${profile.boundary}/${
+              // @ts-ignore
               profile.function
             } at http://127.0.0.1:${port}.\nIf the browser does not open automatically, navigate to this URL.\n\nCtrl-C to terminate...`
           );

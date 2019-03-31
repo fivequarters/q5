@@ -1,25 +1,22 @@
-import { Command, IExecuteInput, ArgType, MessageKind, Confirm } from '@5qtrs/cli';
+import { Command, IExecuteInput, ArgType } from '@5qtrs/cli';
 import { Text } from '@5qtrs/text';
 import { ExecuteService, ProfileService } from '../../services';
 
-export class ProfileCopyCommand extends Command {
+export class ProfileRenameCommand extends Command {
   private constructor() {
     super({
-      name: 'Copy Profile',
-      cmd: 'cp',
-      summary: 'Copy a profile',
-      description: [
-        'Creates a new stored profile by copying the credentials and',
-        'and configured command options of an existing stored profile.',
-      ].join(' '),
+      name: 'Rename Profile',
+      cmd: 'rename',
+      summary: 'Rename a profile',
+      description: ['Renames a stored profile.'].join(' '),
       arguments: [
         {
-          name: 'source',
-          description: 'The name of the profile to copy',
+          name: 'name',
+          description: 'The name of the profile to rename',
         },
         {
-          name: 'target',
-          description: 'The name of the new profile to create',
+          name: 'new',
+          description: 'The new name of the profile',
         },
       ],
       options: [
@@ -35,7 +32,7 @@ export class ProfileCopyCommand extends Command {
   }
 
   public static async create() {
-    return new ProfileCopyCommand();
+    return new ProfileRenameCommand();
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
@@ -54,25 +51,25 @@ export class ProfileCopyCommand extends Command {
     if (confirm) {
       const targetProfile = await profileService.getProfile(target, false);
       if (targetProfile) {
-        const confirmed = await profileService.confirmCopyProfile(source, target, targetProfile);
+        const confirmed = await profileService.confirmRenameProfile(source, target, targetProfile);
         if (!confirmed) {
           return 1;
         }
       }
     }
 
-    const profile = await profileService.copyProfile(source, target);
+    const profile = await profileService.renameProfile(source, target);
     if (!profile) {
       await executeService.verbose();
       return 1;
     }
 
     await executeService.result({
-      header: 'Profile Copied',
+      header: 'Profile Renamed',
       message: Text.create(
         "The '",
         Text.bold(source),
-        "' profile was successfully copied to create the '",
+        "' profile was successfully renamed to the '",
         Text.bold(target),
         "' profile"
       ),

@@ -8,6 +8,7 @@
     { "path": "../../server/aws-base" },
     { "path": "../../server/aws-dynamo" },
     { "path": "../../server/aws-lambda" },
-    { "path": "../ops-api-aws" }
+    { "path": "../ops-api-aws" },
+    { "path": "../../data/account-data-aws" }
   ]
 }
