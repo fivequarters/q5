@@ -6,6 +6,7 @@
     { "path": "../../lib/server/cli" },
     { "path": "../../lib/server/dot-config" },
     { "path": "../../lib/server/flexd-profile" },
-    { "path": "../../lib/shared/random" }
+    { "path": "../../lib/shared/random" },
+    { "path": "../../lib/shared/request" }
   ]
 }

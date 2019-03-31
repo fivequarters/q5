@@ -5,6 +5,8 @@ import { FunctionLogCommand } from './FunctionLogCommand';
 import { FunctionGetCommand } from './FunctionGetCommand';
 import { FunctionRemoveCommand } from './FunctionRemoveCommand';
 import { FunctionDeployCommand } from './FunctionDeployCommand';
+import { FunctionEditCommand } from './FunctionEditCommand';
+import { FunctionInitCommand } from './FunctionInitCommand';
 
 // ------------------
 // Internal Constants
@@ -48,7 +50,9 @@ const command: ICommand = {
 
 async function getSubCommands() {
   const subCommands = [];
+  subCommands.push(await FunctionInitCommand.create());
   subCommands.push(await FunctionListCommand.create());
+  subCommands.push(await FunctionEditCommand.create());
   subCommands.push(await FunctionGetCommand.create());
   subCommands.push(await FunctionDeployCommand.create());
   subCommands.push(await FunctionRemoveCommand.create());
