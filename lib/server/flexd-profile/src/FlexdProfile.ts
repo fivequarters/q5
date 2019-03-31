@@ -51,6 +51,9 @@ export interface IFlexdNewProfile extends IFlexdProfileSettings {
 }
 
 export interface IFlexdProfile extends IFlexdNewProfile {
+  name: string;
+  created: string;
+  updated: string;
   keyPair: string;
   kid: string;
 }
@@ -77,8 +80,28 @@ export class FlexdProfile {
   }
 
   public async getProfile(name?: string): Promise<IFlexdProfile | undefined> {
-    const profile: unknown = this.dotConfig.getProfile(name);
-    return profile as IFlexdProfile | undefined;
+    const profile = (await this.dotConfig.getProfile(name)) as IFlexdProfile;
+    if (!profile) {
+      return undefined;
+    }
+    if (!name) {
+      name = await this.getDefaultProfile();
+    }
+    profile.name = name || '<unknown>';
+    return profile;
+  }
+
+  public async listProfiles(): Promise<IFlexdProfile[]> {
+    const names = await this.dotConfig.listProfileNames();
+    const profiles: IFlexdProfile[] = [];
+    for (const name of names) {
+      const profile = await this.getProfile(name);
+      if (profile) {
+        profile.name = name;
+        profiles.push(profile);
+      }
+    }
+    return profiles;
   }
 
   public async getExecutionProfile(name?: string): Promise<IFlexdExecutionProfile> {
@@ -96,13 +119,15 @@ export class FlexdProfile {
       throw new Error(message);
     }
 
+    let baseUrl = profile.baseUrl.indexOf('http') === -1 ? `https://${profile.baseUrl}` : profile.baseUrl;
+    baseUrl = baseUrl[baseUrl.length - 1] === '/' ? baseUrl.substring(0, baseUrl.length - 1) : baseUrl;
     return {
       token,
-      baseUrl: profile.baseUrl,
-      accountId: profile.accountId || undefined,
-      subscriptionId: profile.subscriptionId || undefined,
-      boundaryId: profile.boundaryId || undefined,
-      functionId: profile.functionId || undefined,
+      baseUrl: `${baseUrl}/v1`,
+      account: profile.account || undefined,
+      subscription: profile.subscription || undefined,
+      boundary: profile.boundary || undefined,
+      function: profile.function || undefined,
     };
   }
 
@@ -130,33 +155,36 @@ export class FlexdProfile {
       await this.setDefaultProfile(name);
     }
 
+    profile.name = name;
     return profile;
   }
 
   public async updateProfile(name: string, settings: IFlexdProfileSettings): Promise<IFlexdProfile> {
     const profile = await this.dotConfig.getProfile(name);
-    if (settings.accountId) {
-      profile.accountId = settings.accountId;
-    }
-    if (settings.subscriptionId) {
-      profile.subscriptionId = settings.subscriptionId;
-    }
-    if (settings.boundaryId) {
-      profile.boundaryId = settings.boundaryId;
-    }
-    if (settings.functionId) {
-      profile.functionId = settings.functionId;
-    }
+    profile.account = settings.account;
+    profile.subscription = settings.subscription;
+    profile.boundary = settings.boundary;
+    profile.function = settings.function;
+
     await this.dotConfig.setProfile(name, profile, true);
+    profile.name = name;
     return profile;
   }
 
-  public async copyProfile(name: string, toName: string, overWrite: boolean = false) {
-    return this.dotConfig.copyProfile(name, toName, overWrite);
+  public async copyProfile(source: string, target: string, overWrite: boolean = false): Promise<IFlexdProfile> {
+    const profile = await this.dotConfig.copyProfile(source, target, overWrite);
+    profile.name = target;
+    return profile;
   }
 
-  public async renameProfile(name: string, newName: string, overWrite: boolean = false) {
-    return this.dotConfig.renameProfile(name, newName, overWrite);
+  public async renameProfile(source: string, target: string, overWrite: boolean = false): Promise<IFlexdProfile> {
+    const profile = await this.dotConfig.renameProfile(source, target, overWrite);
+    profile.name = target;
+    return profile;
+  }
+
+  public async removeProfile(name: string): Promise<void> {
+    return this.dotConfig.removeProfile(name);
   }
 
   public async getDefaultProfile() {
@@ -173,7 +201,7 @@ export class FlexdProfile {
       const message = `There is no '${name}' profile.`;
       throw new Error(message);
     }
-    return this.dotConfig.getPublicKey(name, profile.kid);
+    return this.dotConfig.getPublicKey(profile.keyPair, profile.kid);
   }
 
   private async addKeyPair(name: string, publicKey: string, privateKey: string): Promise<string> {

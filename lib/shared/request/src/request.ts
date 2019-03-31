@@ -12,6 +12,7 @@ function getAxiosRequest(httpRequest: IHttpRequest) {
     data: httpRequest.data,
     params: httpRequest.query || {},
     transformResponse: undefined,
+    validateStatus: () => true,
   };
 
   const contentType = axiosRequest.headers['content-type'] || axiosRequest.headers['Content-Type'] || '';

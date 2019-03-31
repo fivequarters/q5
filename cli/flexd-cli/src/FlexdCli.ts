@@ -1,4 +1,4 @@
-import { Command, ICommand } from '@5qtrs/cli';
+import { Command, ICommand, ArgType } from '@5qtrs/cli';
 import {
   BoundaryCommand,
   ClientCommand,
@@ -15,7 +15,6 @@ import {
 // ----------------
 
 export class FlexdCli extends Command {
-
   public static async create() {
     const subCommands: Command[] = [];
     subCommands.push(await InitCommand.create());
@@ -33,6 +32,15 @@ export class FlexdCli extends Command {
       cli: 'flx',
       docsUrl: 'https://fivequarters.github.io/docs',
       subCommands,
+      options: [
+        {
+          name: 'verbose',
+          aliases: ['v'],
+          description: 'Provide error details on command execution failure',
+          type: ArgType.boolean,
+          default: 'false',
+        },
+      ],
     };
 
     return new FlexdCli(cli);

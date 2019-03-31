@@ -59,6 +59,10 @@ export class FunctionGetCommand extends Command {
   protected async onExecute(input: IExecuteInput): Promise<number> {
     let profileService = await ProfileService.create(input);
     let profile = await profileService.getExecutionProfile(['subscription', 'boundary', 'function']);
+    if (!profile) {
+      return 1;
+    }
+
     let response = await request({
       url: `${profile.baseUrl}/v1/subscription/${profile.subscription}/boundary/${profile.boundary}/function/${
         profile.function

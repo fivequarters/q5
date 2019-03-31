@@ -3,7 +3,8 @@ const Joi = require('joi');
 module.exports = Joi.object().keys({
   next: Joi.string(),
   count: Joi.number().integer(),
-  cron: Joi.string().regex(/^true|false|0|1$/),
+  include: Joi.string().valid('all'),
+  cron: Joi.string().valid('true', 'false', '1', '0'),
   action: Joi.string(),
   resource: Joi.string(),
   issuer: Joi.string(),

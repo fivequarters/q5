@@ -7,7 +7,7 @@
     { "path": "../jwt" },
     { "path": "../key-pair" },
     { "path": "../../shared/random" },
-    { "path": "../../shared/clone" },
-    { "path": "../../shared/base64" }
+    { "path": "../../shared/base64" },
+    { "path": "../../shared/clone" }
   ]
 }

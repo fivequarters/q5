@@ -9,6 +9,7 @@ var authorize = require('./middleware/authorize');
 var cors = require('cors');
 const create_error = require('http-errors');
 let { readAudit } = require('./auditing');
+const account = require('./handlers/account_handlers');
 
 var corsManagementOptions = {
   origins: '*',
@@ -32,15 +33,39 @@ router.get('/health', (_, res) => res.end());
 
 // Accounts
 
+router.options('/account', cors(corsManagementOptions));
+router.post(
+  '/account',
+  cors(corsManagementOptions),
+  authorize({
+    operation: 'account:post',
+  }),
+  express.json(),
+  validate_schema({
+    body: require('./schemas/account'),
+  }),
+  account.accountPost()
+);
+
 router.options('/account/:accountId', cors(corsManagementOptions));
-router.get('/account/:accountId', NotImplemented);
+router.get(
+  '/account/:accountId',
+  cors(corsManagementOptions),
+  authorize({
+    operation: 'account:get',
+  }),
+  validate_schema({
+    params: require('./schemas/api_params'),
+  }),
+  account.accountGet()
+);
 
 router.options('/account/:accountId/audit', cors(corsManagementOptions));
 router.get(
   '/account/:accountId/audit',
   cors(corsManagementOptions),
   authorize({
-    operation: 'audit:get',
+    operation: 'account:audit:get',
   }),
   validate_schema({
     query: require('./schemas/api_query'),
@@ -49,29 +74,235 @@ router.get(
   readAudit()
 );
 
+// Issuers
+
 router.options('/account/:accountId/issuer', cors(corsManagementOptions));
-router.get('/account/:accountId/issuer', NotImplemented);
+router.get(
+  '/account/:accountId/issuer',
+  cors(corsManagementOptions),
+  authorize({
+    operation: 'account:issuer:list',
+  }),
+  validate_schema({
+    query: require('./schemas/api_query'),
+    params: require('./schemas/api_params'),
+  }),
+  account.issuerList()
+);
 
 router.options('/account/:accountId/issuer/:issuerId', cors(corsManagementOptions));
-router.get('/account/:accountId/issuer/:issuerId', NotImplemented);
-router.put('/account/:accountId/issuer/:issuerId', NotImplemented);
-router.delete('/account/:accountId/issuer/:issuerId', NotImplemented);
+router.get(
+  '/account/:accountId/issuer/:issuerId',
+  cors(corsManagementOptions),
+  authorize({
+    operation: 'account:issuer:get',
+  }),
+  validate_schema({
+    params: require('./schemas/api_params'),
+  }),
+  account.issuerGet()
+);
+
+router.put(
+  '/account/:accountId/issuer/:issuerId',
+  cors(corsManagementOptions),
+  authorize({
+    operation: 'account:issuer:put',
+  }),
+  express.json(),
+  validate_schema({
+    body: require('./schemas/issuer'),
+  }),
+  account.issuerPut()
+);
+
+router.delete(
+  '/account/:accountId/issuer/:issuerId',
+  cors(corsManagementOptions),
+  authorize({
+    operation: 'account:issuer:delete',
+  }),
+  validate_schema({
+    params: require('./schemas/api_params'),
+  }),
+  account.issuerDelete()
+);
+
+// Subscriptions
 
 router.options('/account/:accountId/subscription', cors(corsManagementOptions));
-router.get('/account/:accountId/subscription', NotImplemented);
+router.post(
+  '/account/:accountId/subscription',
+  cors(corsManagementOptions),
+  authorize({
+    operation: 'account:subscription:post',
+  }),
+  express.json(),
+  validate_schema({
+    params: require('./schemas/api_params'),
+    body: require('./schemas/subscription'),
+  }),
+  account.subscriptionPost()
+);
+
+router.options('/account/:accountId/subscription', cors(corsManagementOptions));
+router.get(
+  '/account/:accountId/subscription',
+  cors(corsManagementOptions),
+  authorize({
+    operation: 'account:subscription:list',
+  }),
+  validate_schema({
+    query: require('./schemas/api_query'),
+    params: require('./schemas/api_params'),
+  }),
+  account.subscriptionList()
+);
 
 router.options('/account/:accountId/subscription/:subscriptionId', cors(corsManagementOptions));
-router.get('/account/:accountId/subscription/:subscriptionId', NotImplemented);
+router.get(
+  '/account/:accountId/subscription/:subscriptionId',
+  cors(corsManagementOptions),
+  authorize({
+    operation: 'account:subscription:get',
+  }),
+  validate_schema({
+    params: require('./schemas/api_params'),
+  }),
+  account.subscriptionGet()
+);
 
 // Users
 
-router.options('/user', cors(corsManagementOptions));
-router.get('/user', NotImplemented);
-router.post('/user', NotImplemented);
+router.options('/account/:accountId/user', cors(corsManagementOptions));
+router.get(
+  '/account/:accountId/user',
+  cors(corsManagementOptions),
+  authorize({
+    operation: 'account:user:list',
+  }),
+  validate_schema({
+    query: require('./schemas/api_query'),
+    params: require('./schemas/api_params'),
+  }),
+  account.userList()
+);
+router.post(
+  '/account/:accountId/user',
+  cors(corsManagementOptions),
+  authorize({
+    operation: 'account:user:post',
+  }),
+  express.json(),
+  validate_schema({
+    params: require('./schemas/api_params'),
+    body: require('./schemas/user'),
+  }),
+  account.userPost()
+);
 
-router.options('/user/:userId', cors(corsManagementOptions));
-router.get('/user/:userId', NotImplemented);
-router.put('/user/:userId', NotImplemented);
+router.options('/account/:accountId/user/:userId', cors(corsManagementOptions));
+router.get(
+  '/account/:accountId/user/:userId',
+  cors(corsManagementOptions),
+  authorize({
+    operation: 'account:user:get',
+  }),
+  validate_schema({
+    params: require('./schemas/api_params'),
+  }),
+  account.userGet()
+);
+router.put(
+  '/account/:accountId/user/:userId',
+  cors(corsManagementOptions),
+  authorize({
+    operation: 'account:user:put',
+  }),
+  express.json(),
+  validate_schema({
+    params: require('./schemas/api_params'),
+    body: require('./schemas/user'),
+  }),
+  account.userPut()
+);
+router.delete(
+  '/account/:accountId/user/:userId',
+  cors(corsManagementOptions),
+  authorize({
+    operation: 'account:user:delete',
+  }),
+  validate_schema({
+    params: require('./schemas/api_params'),
+  }),
+  account.userDelete()
+);
+
+// Clients
+
+router.options('/account/:accountId/client', cors(corsManagementOptions));
+router.get(
+  '/account/:accountId/client',
+  cors(corsManagementOptions),
+  authorize({
+    operation: 'account:client:list',
+  }),
+  validate_schema({
+    query: require('./schemas/api_query'),
+    params: require('./schemas/api_params'),
+  }),
+  account.clientList()
+);
+router.post(
+  '/account/:accountId/client',
+  cors(corsManagementOptions),
+  authorize({
+    operation: 'account:client:post',
+  }),
+  express.json(),
+  validate_schema({
+    params: require('./schemas/api_params'),
+    body: require('./schemas/client'),
+  }),
+  account.clientPost()
+);
+
+router.options('/account/:accountId/client/:clientId', cors(corsManagementOptions));
+router.get(
+  '/account/:accountId/client/:clientId',
+  cors(corsManagementOptions),
+  authorize({
+    operation: 'account:client:get',
+  }),
+  validate_schema({
+    params: require('./schemas/api_params'),
+  }),
+  account.clientGet()
+);
+router.put(
+  '/account/:accountId/client/:clientId',
+  cors(corsManagementOptions),
+  authorize({
+    operation: 'account:client:put',
+  }),
+  express.json(),
+  validate_schema({
+    params: require('./schemas/api_params'),
+    body: require('./schemas/client'),
+  }),
+  account.clientPut()
+);
+router.delete(
+  '/account/:accountId/client/:clientId',
+  cors(corsManagementOptions),
+  authorize({
+    operation: 'account:client:delete',
+  }),
+  validate_schema({
+    params: require('./schemas/api_params'),
+  }),
+  account.clientDelete()
+);
 
 // Boundaries
 

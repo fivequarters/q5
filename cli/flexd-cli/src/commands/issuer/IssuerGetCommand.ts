@@ -1,5 +1,6 @@
 import { EOL } from 'os';
-import { Command } from '@5qtrs/cli';
+import { Command, IExecuteInput } from '@5qtrs/cli';
+import { ExecuteService, IssuerService } from '../../services';
 
 export class IssuerGetCommand extends Command {
   private constructor() {
@@ -7,16 +8,12 @@ export class IssuerGetCommand extends Command {
       name: 'Get Issuer',
       cmd: 'get',
       summary: 'Get an issuer',
-      description: [
-        `Retrieves the details of an issuer with the given issuer id.${EOL}${EOL}If`,
-        'the profile does not specify the account, the relevant command options are required.',
-        `${EOL}${EOL}A profile must have 'manage' access to an account in order to retrieve an`,
-        'issuer associated with that account.',
-      ].join(' '),
+      description: 'Retrieves the details of the issuer',
+
       arguments: [
         {
           name: 'issuer',
-          description: 'The id of the issuer to retrieve the details of.',
+          description: 'The id of the issuer to retrieve the details of',
         },
       ],
     });
@@ -24,5 +21,23 @@ export class IssuerGetCommand extends Command {
 
   public static async create() {
     return new IssuerGetCommand();
+  }
+
+  protected async onExecute(input: IExecuteInput): Promise<number> {
+    await input.io.writeLine();
+    const [id] = input.arguments as string[];
+
+    const issuerService = await IssuerService.create(input);
+    const executeService = await ExecuteService.create(input);
+
+    const issuer = await issuerService.getIssuer(id);
+    if (!issuer) {
+      executeService.verbose();
+      return 1;
+    }
+
+    await issuerService.displayIssuer(issuer);
+
+    return 0;
   }
 }

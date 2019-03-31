@@ -10,6 +10,7 @@
     { "path": "../ops-deploy-aws" },
     { "path": "../ops-account-aws" },
     { "path": "../ops-api-aws" },
-    { "path": "../ops-user-aws" }
+    { "path": "../ops-user-aws" },
+    { "path": "../../server/flexd-profile" }
   ]
 }

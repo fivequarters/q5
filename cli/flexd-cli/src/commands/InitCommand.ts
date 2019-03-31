@@ -31,14 +31,14 @@ export class InitCommand extends Command {
   protected async onExecute(input: IExecuteInput): Promise<number> {
     await input.io.writeLine();
 
-    // const profile = input.options.profile as string;
+    const profile = input.options.profile as string;
 
     // const executeService = await ExecuteService.create(input);
-    // const profileService = await ProfileService.create(input);
+    const profileService = await ProfileService.create(input);
 
-    // await profileService.addProfile(profile);
+    await profileService.addProfile(profile);
 
-    // const execute = await profileService.getExecutionProfile();
+    //const execute = await profileService.getExecutionProfile(['account']);
     // console.log(execute);
 
     return 0;

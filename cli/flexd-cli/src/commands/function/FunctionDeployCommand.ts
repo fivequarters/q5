@@ -71,6 +71,9 @@ export class FunctionDeployCommand extends Command {
   protected async onExecute(input: IExecuteInput): Promise<number> {
     let profileService = await ProfileService.create(input);
     let profile = await profileService.getExecutionProfile([]);
+    if (!profile) {
+      return 1;
+    }
 
     let sourceDirectory = Path.join(process.cwd(), (input.arguments[0] as string) || '');
     let flexd: any;
@@ -94,6 +97,7 @@ export class FunctionDeployCommand extends Command {
     profile.function = input.options.function || flexd.id || profile.function;
 
     ['subscription', 'boundary', 'function'].forEach(x => {
+      // @ts-ignore
       if (!profile[x]) {
         throw new Error(
           `The ${x} id must be specified. You can specify usin the --${x} option, or by using a profile which defines this value.`

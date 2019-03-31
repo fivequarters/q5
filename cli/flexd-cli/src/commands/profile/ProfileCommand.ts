@@ -3,8 +3,9 @@ import { Command, ICommand } from '@5qtrs/cli';
 import { ProfileListCommand } from './ProfileListCommand';
 import { ProfileDefaultCommand } from './ProfileDefaultCommand';
 import { ProfileCopyCommand } from './ProfileCopyCommand';
+import { ProfileRenameCommand } from './ProfileRenameCommand';
 import { ProfileRemoveCommand } from './ProfileRemoveCommand';
-import { ProfileSetCommand } from './ProfileSetCommand';
+import { ProfileUpdateCommand } from './ProfileUpdateCommand';
 
 // ------------------
 // Internal Constants
@@ -15,14 +16,13 @@ const command: ICommand = {
   cmd: 'profile',
   summary: 'Manage profiles',
   description: [
-    'Manage locally stored profiles.',
+    'Manage stored profiles.',
     `${EOL}${EOL}A profile encapsulates stored credentials and common`,
     'command options so that they do not need to be individually',
     `specified each time a command is executed.${EOL}${EOL}If no profile`,
     'is specified when a command is executed, the default profile credentials',
     'and command options are used.',
   ].join(' '),
-  modes: ['account', 'subscription', 'boundary', 'function'],
 };
 
 // ------------------
@@ -34,7 +34,8 @@ async function getSubCommands() {
   subCommands.push(await ProfileListCommand.create());
   subCommands.push(await ProfileDefaultCommand.create());
   subCommands.push(await ProfileCopyCommand.create());
-  subCommands.push(await ProfileSetCommand.create());
+  subCommands.push(await ProfileRenameCommand.create());
+  subCommands.push(await ProfileUpdateCommand.create());
   subCommands.push(await ProfileRemoveCommand.create());
   return subCommands;
 }
