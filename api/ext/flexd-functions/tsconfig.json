@@ -10,5 +10,11 @@
     "composite": false
   },
   "include": ["src"],
-  "references": [{ "path": "../../../lib/shared/request" }, { "path": "../../../lib/server/aws-audit" }]
+  "references": [
+    { "path": "../../../lib/shared/request" },
+    { "path": "../../../lib/server/aws-audit" },
+    { "path": "../../../lib/data/account-data-aws" },
+    { "path": "../../../lib/server/aws-cred" },
+    { "path": "../../../lib/server/aws-deployment" }
+  ]
 }

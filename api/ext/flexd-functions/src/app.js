@@ -5,7 +5,6 @@ var express = require('express');
 var logger = require('morgan');
 
 var app = express();
-
 app.use(logger('dev'));
 app.use('/v1/', require('./routes/v1_api'));
 if (process.env.API_EXPOSE_DOCS) {

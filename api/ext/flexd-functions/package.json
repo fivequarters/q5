@@ -9,7 +9,8 @@
     "build": "tsc -b",
     "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x}",
     "clean": "rm -r -f libc",
-    "start": "LOGS_WS_URL=${LOGS_WS_URL:=`node ./getNgrokLogsWsUrl.js`} node libc/index.js"
+    "start": "LOGS_WS_URL=${LOGS_WS_URL:=`node ./getNgrokLogsWsUrl.js`} node libc/index.js",
+    "dynamo": "tsc -b && node libc/setup.js"
   },
   "keywords": [],
   "dependencies": {
@@ -25,7 +26,10 @@
     "zeromq": "^5.1.0",
     "@5qtrs/request": "^0.0.1",
     "@5qtrs/flexd-functions-lambda": "^0.0.1",
-    "@5qtrs/aws-audit": "^0.0.1"
+    "@5qtrs/aws-audit": "^0.0.1",
+    "@5qtrs/account-data-aws": "^0.0.1",
+    "@5qtrs/aws-cred": "^0.0.1",
+    "@5qtrs/aws-deployment": "^0.0.1"
   },
   "devDependencies": {
     "@types/debug": "^4.1.2",
