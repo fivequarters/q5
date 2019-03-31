@@ -21,6 +21,7 @@
     "@5qtrs/ops-deploy-aws": "^0.0.1",
     "@5qtrs/ops-account-aws": "^0.0.1",
     "@5qtrs/ops-api-aws": "^0.0.1",
-    "@5qtrs/ops-user-aws": "^0.0.1"
+    "@5qtrs/ops-user-aws": "^0.0.1",
+    "@5qtrs/flexd-profile": "^0.0.1"
   }
 }

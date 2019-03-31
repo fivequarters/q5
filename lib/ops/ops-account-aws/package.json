@@ -19,6 +19,7 @@
     "@5qtrs/aws-base": "^0.0.1",
     "@5qtrs/aws-dynamo": "^0.0.1",
     "@5qtrs/aws-lambda": "^0.0.1",
-    "@5qtrs/ops-api-aws": "^0.0.1"
+    "@5qtrs/ops-api-aws": "^0.0.1",
+    "@5qtrs/account-data-aws": "^0.0.1"
   }
 }

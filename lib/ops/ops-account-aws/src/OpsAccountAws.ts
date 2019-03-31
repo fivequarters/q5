@@ -1,7 +1,9 @@
 import { IAwsOptions } from '@5qtrs/aws-base';
 import { OpsApiAws, IOpsApiSetup } from '@5qtrs/ops-api-aws';
 import { OpsCoreAws } from '@5qtrs/ops-core-aws';
-import { AwsDynamo } from '@5qtrs/aws-dynamo';
+import { AccountDataAws, INewUser, IUser, IIssuer } from '@5qtrs/account-data-aws';
+
+export { INewUser } from '@5qtrs/account-data-aws';
 
 // ------------------
 // Internal Constants
@@ -37,16 +39,17 @@ export class OpsAccountAws extends OpsApiAws {
   }
 
   public async onIsApiSetup(options: IAwsOptions): Promise<boolean> {
-    const dynamo = await AwsDynamo.create(options);
-    return await dynamo.tableExists(apiName);
+    const accountData = await AccountDataAws.create(options);
+    return accountData.isSetup();
   }
 
   public async onSetupApi(setup: IOpsApiSetup, options: IAwsOptions): Promise<void> {
-    const dynamo = await AwsDynamo.create(options);
-    await dynamo.ensureTable({
-      name: apiName,
-      attributes: { id: 'S' },
-      keys: ['id'],
-    });
+    const accountData = await AccountDataAws.create(options);
+    return accountData.setup();
+  }
+
+  public async addRootUser(issuer: IIssuer, rootUser: INewUser, options: IAwsOptions): Promise<IUser> {
+    const accountData = await AccountDataAws.create(options);
+    return accountData.addRootUser(issuer, rootUser);
   }
 }

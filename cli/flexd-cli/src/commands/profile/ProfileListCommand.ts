@@ -1,16 +1,17 @@
 import { EOL } from 'os';
-import { Command } from '@5qtrs/cli';
+import { Command, IExecuteInput, Message, MessageKind, ArgType } from '@5qtrs/cli';
+import { ExecuteService, ProfileService } from '../../services';
 
 export class ProfileListCommand extends Command {
   private constructor() {
     super({
       name: 'List Profiles',
       cmd: 'ls',
-      summary: 'List local profiles',
+      summary: 'List profiles',
       description: [
-        `Returns a list of locally stored profiles.${EOL}${EOL}Use`,
+        `Returns a list of stored profiles.${EOL}${EOL}Use`,
         'the command options below to filter the list of profiles.',
-        `Filters are combined using a logical OR.${EOL}${EOL}The default`,
+        `Filters are combined using a logical AND.${EOL}${EOL}The default`,
         'profile command options are not applied when executing this',
         'command.',
       ].join(' '),
@@ -18,20 +19,33 @@ export class ProfileListCommand extends Command {
         {
           name: 'contains',
           aliases: ['c'],
-          description: 'List profiles with the given text in the profile name.',
-          allowMany: true,
+          description: 'Only list profiles with the given text in the profile name',
         },
         {
           name: 'account',
           aliases: ['a'],
-          description: 'List profiles with the given account id.',
-          allowMany: true,
+          description: 'Only list profiles with the given account',
         },
         {
           name: 'subscription',
           aliases: ['s'],
-          description: 'List profiles with the given subscription id.',
+          description: 'Only list profiles with the given subscription',
           allowMany: true,
+        },
+        {
+          name: 'boundary',
+          aliases: ['b'],
+          description: 'Only list profiles with the given boundary',
+        },
+        {
+          name: 'function',
+          aliases: ['f'],
+          description: 'Only list profiles with the given boundary',
+        },
+        {
+          name: 'format',
+          description: "The format to display the output: 'table', 'json'",
+          default: 'table',
         },
       ],
     });
@@ -39,5 +53,75 @@ export class ProfileListCommand extends Command {
 
   public static async create() {
     return new ProfileListCommand();
+  }
+
+  protected async onExecute(input: IExecuteInput): Promise<number> {
+    await input.io.writeLine();
+    const contains = input.options.contains as string;
+    const account = input.options.account as string;
+    const subscription = input.options.subscription as string;
+    const boundary = input.options.boundary as string;
+    const func = input.options.function as string;
+
+    const profileService = await ProfileService.create(input);
+    const executeService = await ExecuteService.create(input);
+
+    const profiles = await profileService.listProfiles();
+    if (!profiles) {
+      executeService.verbose();
+      return 1;
+    }
+
+    const filtered = profiles.filter(profile => {
+      if (contains !== undefined) {
+        if (profile.name && profile.name.indexOf(contains) === -1) {
+          return false;
+        }
+      }
+
+      if (account !== undefined) {
+        if (profile.account !== account) {
+          return false;
+        }
+      }
+
+      if (subscription !== undefined) {
+        if (profile.subscription !== subscription) {
+          return false;
+        }
+      }
+
+      if (boundary !== undefined) {
+        if (profile.boundary !== boundary) {
+          return false;
+        }
+      }
+
+      if (func !== undefined) {
+        if (profile.function !== func) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+
+    if (!filtered.length) {
+      if (profiles.length) {
+        await executeService.result({
+          header: 'No Profiles',
+          message: 'There are no profiles that match the search criteria',
+        });
+      } else {
+        await executeService.result({
+          header: 'No Profiles',
+          message: 'There are currently no profiles stored in the Flexd CLI settings file',
+        });
+      }
+      return 0;
+    }
+
+    await profileService.displayProfiles(filtered);
+    return 0;
   }
 }

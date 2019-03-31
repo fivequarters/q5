@@ -19,6 +19,10 @@
   "keywords": [],
   "dependencies": {
     "@5qtrs/cli": "^0.0.1",
-    "@5qtrs/flexd-profile": "^0.0.1"
+    "@5qtrs/flexd-profile": "^0.0.1",
+    "@5qtrs/random": "^0.0.1",
+    "@5qtrs/request": "^0.0.1",
+    "@5qtrs/file": "^0.0.1",
+    "@5qtrs/clone": "^0.0.1"
   }
 }

@@ -6,7 +6,7 @@ export class IssuerKeyAddCommand extends Command {
     super({
       name: 'Add Key Issuer',
       cmd: 'add',
-      summary: 'Add an public key to an issuer',
+      summary: 'Add a public key to an issuer',
       description: [
         `Adds a public key to an issuer.${EOL}${EOL}If the profile does not specify`,
         `the account, the relevant command options are required.${EOL}${EOL}A profile must`,

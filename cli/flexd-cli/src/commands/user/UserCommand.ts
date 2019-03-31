@@ -1,4 +1,3 @@
-import { EOL } from 'os';
 import { Command, ICommand } from '@5qtrs/cli';
 import { UserIdentityCommand } from './identity/UserIdentityCommand';
 import { UserAccessCommand } from './access/UserAccessCommand';
@@ -17,17 +16,7 @@ const command: ICommand = {
   name: 'User',
   cmd: 'user',
   summary: 'Manage users',
-  description: [
-    `Retrieves and manages users and their identities and access.${EOL}${EOL}The ability`,
-    'to retrieve and manage a user depends on the access of the profile used. A profile',
-    "must have 'manage' access to an account or a subscription within that account in order",
-    'to retrieve or manage a user with access to that given account or any subscriptions,',
-    `boundaries or functions within the account.${EOL}${EOL}A profile that only has 'manage'`,
-    'access to a boundary or function is not able to retrieve, list or manage any users.',
-    `${EOL}${EOL}Furthermore, all indentities and access statements for a user will be filtered`,
-    'to only include those identities and access statements of accounts or subscriptions to',
-    'which the profile has access.',
-  ].join(' '),
+  description: 'Retrieves and manages users and their identities and access.',
   options: [
     {
       name: 'profile',
@@ -35,8 +24,13 @@ const command: ICommand = {
       description: 'The name of the profile to use when executing the command.',
       defaultText: 'default profile',
     },
+    {
+      name: 'account',
+      aliases: ['a'],
+      description: 'The account id to use when executing the command.',
+      defaultText: 'profile value',
+    },
   ],
-  modes: ['account', 'subscription'],
 };
 
 // ------------------

@@ -37,6 +37,8 @@ export {
 } from '@5qtrs/ops-core-aws';
 export { IMfaCodeResolver as IFlexdOpsMfaCodeResolver } from '@5qtrs/aws-cred';
 
+import { FlexdProfile } from '@5qtrs/flexd-profile';
+
 // ------------------
 // Internal Constants
 // ------------------
@@ -403,6 +405,83 @@ export class FlexdOpsCore {
       this.flexdDeployment[userApiName] = userApi;
     }
     return this.flexdDeployment;
+  }
+
+  public async setupAccountApi(deploymentName: string) {
+    const deployment = await this.getDeployment(deploymentName);
+    if (!deployment) {
+      const message = `There is no '${deploymentName}' deployment on the Flexd platform.`;
+      throw new Error(message);
+    }
+
+    const opsDeploy = await this.getOpsDeploy();
+    const options = await opsDeploy.getOptions(deploymentName);
+    if (!options) {
+      const message = `There was an issue resolving the '${deploymentName}' deployment options.`;
+      throw new Error(message);
+    }
+
+    const opsCore = await this.getOpsCore();
+    const accountApi = await OpsAccountAws.create(opsCore);
+    const apiSetup = {
+      deployment: deployment.name,
+      network: deployment.network,
+      s3Bucket: '',
+      s3Key: '',
+    };
+    return accountApi.setupApi(apiSetup, options);
+  }
+
+  public async addRootUser(deploymentName: string, firstName: string, lastName: string) {
+    const deployment = await this.getDeployment(deploymentName);
+    if (!deployment) {
+      const message = `There is no '${deploymentName}' deployment on the Flexd platform.`;
+      throw new Error(message);
+    }
+    const domain = await this.getDomain(deployment.domain);
+    if (!domain) {
+      const message = `There is no '${deployment.domain}' domain on the Flexd platform.`;
+      throw new Error(message);
+    }
+
+    const flexdProfile = await FlexdProfile.create();
+    const profileName = `${deploymentName}-root`;
+    const baseUrl = `${deploymentName}.${domain.name}`;
+
+    const rootUserProfile = await flexdProfile.addProfile(profileName, { baseUrl });
+    if (!rootUserProfile.issuer || !rootUserProfile.subject) {
+      const message = `There was an issue generating the issuer for the new '${profileName}' profile.`;
+      throw new Error(message);
+    }
+
+    const publicKey = await flexdProfile.getPublicKey(profileName);
+    if (!publicKey) {
+      const message = `There was an issue generating the public key for the new '${profileName}' profile.`;
+      throw new Error(message);
+    }
+
+    const rootUser = {
+      firstName,
+      lastName,
+      identities: [{ iss: rootUserProfile.issuer, sub: rootUserProfile.subject }],
+    };
+
+    const issuer = {
+      id: rootUserProfile.issuer,
+      displayName: `Root User CLI Access - ${firstName} ${lastName}`,
+      publicKeys: [{ kid: rootUserProfile.kid, publicKey }],
+    };
+
+    const opsDeploy = await this.getOpsDeploy();
+    const options = await opsDeploy.getOptions(deploymentName);
+    if (!options) {
+      const message = `There was an issue resolving the '${deploymentName}' deployment options.`;
+      throw new Error(message);
+    }
+
+    const opsCore = await this.getOpsCore();
+    const accountApi = await OpsAccountAws.create(opsCore);
+    return accountApi.addRootUser(issuer, rootUser, options);
   }
 
   private async errorIfNotAnApi(name: string) {

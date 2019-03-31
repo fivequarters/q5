@@ -67,31 +67,31 @@ export class AddDeploymentCommand extends Command {
     const publishService = await ApiPublishService.create(this.core, input);
     const setupService = await ApiSetupService.create(this.core, input);
 
-    const deploymentExists = await executeService.execute(
-      {
-        header: 'Deployment Check',
-        message: Text.create("Determining if the '", Text.bold(name), "' deployment already exists... "),
-        errorHeader: 'Check Error',
-        errorMessage: Text.create(
-          "An error was encountered when trying to determine if the '",
-          Text.bold(name),
-          "' deployment already exists. "
-        ),
-      },
-      async () => this.core.deploymentExists(deployment)
-    );
+    // const deploymentExists = await executeService.execute(
+    //   {
+    //     header: 'Deployment Check',
+    //     message: Text.create("Determining if the '", Text.bold(name), "' deployment already exists... "),
+    //     errorHeader: 'Check Error',
+    //     errorMessage: Text.create(
+    //       "An error was encountered when trying to determine if the '",
+    //       Text.bold(name),
+    //       "' deployment already exists. "
+    //     ),
+    //   },
+    //   async () => this.core.deploymentExists(deployment)
+    // );
 
-    if (deploymentExists === undefined) {
-      return 1;
-    }
+    // if (deploymentExists === undefined) {
+    //   return 1;
+    // }
 
-    if (deploymentExists) {
-      await executeService.execute({
-        header: 'Already Exists',
-        message: Text.create("The '", Text.bold(name), "' deployment already exists. "),
-      });
-      return 0;
-    }
+    // if (deploymentExists) {
+    //   await executeService.execute({
+    //     header: 'Already Exists',
+    //     message: Text.create("The '", Text.bold(name), "' deployment already exists. "),
+    //   });
+    //   return 0;
+    // }
 
     const user = await settingsService.getUser();
     if (!user) {
@@ -127,7 +127,7 @@ export class AddDeploymentCommand extends Command {
       return 1;
     }
 
-    for (const publishedApi of publishedApis) {
+    for (const publishedApi of apis) {
       const setupOk = await setupService.setupApi(addedDeployment, publishedApi);
       if (!setupOk) {
         return 1;
@@ -184,23 +184,23 @@ export class AddDeploymentCommand extends Command {
       }
     }
 
-    const albAdded = await executeService.execute(
-      {
-        header: 'Creating Load Balancer',
-        message: Text.create('Creating a load balancer for the deployment... '),
-        errorHeader: 'Load Balancer Error',
-        errorMessage: Text.create(
-          'An error was encountered when trying to create a load balancer for the deployment. '
-        ),
-      },
-      async () => {
-        await this.core.addDeploymentAlb(deployment);
-        return true;
-      }
-    );
-    if (!albAdded) {
-      return 0;
-    }
+    // const albAdded = await executeService.execute(
+    //   {
+    //     header: 'Creating Load Balancer',
+    //     message: Text.create('Creating a load balancer for the deployment... '),
+    //     errorHeader: 'Load Balancer Error',
+    //     errorMessage: Text.create(
+    //       'An error was encountered when trying to create a load balancer for the deployment. '
+    //     ),
+    //   },
+    //   async () => {
+    //     await this.core.addDeploymentAlb(deployment);
+    //     return true;
+    //   }
+    // );
+    // if (!albAdded) {
+    //   return 0;
+    // }
 
     return 0;
   }
