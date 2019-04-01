@@ -1,7 +1,6 @@
 import { EOL } from 'os';
 import { Command, ICommand } from '@5qtrs/cli';
 import { BoundaryListCommand } from './BoundaryListCommand';
-import { BoundaryLogCommand } from './BoundaryLogCommand';
 
 // ------------------
 // Internal Constants
