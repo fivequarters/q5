@@ -469,7 +469,7 @@ export class FlexdOpsCore {
     const issuer = {
       id: rootUserProfile.issuer,
       displayName: `Root User CLI Access - ${firstName} ${lastName}`,
-      publicKeys: [{ kid: rootUserProfile.kid, publicKey }],
+      publicKeys: [{ keyId: rootUserProfile.kid, publicKey }],
     };
 
     const opsDeploy = await this.getOpsDeploy();
