@@ -22,6 +22,7 @@ libm/
 
 # Webpack bundles
 dist/
+package/
 
 # Dependency directories
 node_modules/

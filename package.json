@@ -12,6 +12,7 @@
     "clean": "yarn-tool yarn clean",
     "new": "yarn-tool new",
     "move": "yarn-tool move",
+    "package": "yarn-tool package",
     "delete": "yarn-tool delete",
     "rename": "yarn-tool rename",
     "require": "yarn-tool require",

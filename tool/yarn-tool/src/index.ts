@@ -10,6 +10,7 @@ import PortsCommand from './PortsCommand';
 import RenameCommand from './RenameCommand';
 import RequireCommand from './RequireCommand';
 import YarnCommand from './YarnCommand';
+import PackageCommand from './PackageCommand';
 
 const commands = [
   new YarnCommand(),
@@ -20,6 +21,7 @@ const commands = [
   new IncrementCommand(),
   new PortsCommand(),
   new RequireCommand(),
+  new PackageCommand(),
 ];
 
 const output = new NewlineLimitedStream(2);
