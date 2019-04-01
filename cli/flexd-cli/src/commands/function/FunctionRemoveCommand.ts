@@ -2,6 +2,7 @@ import { EOL } from 'os';
 import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
 import { request, IHttpResponse } from '@5qtrs/request';
 import { ProfileService } from '../../services';
+import { inferredPredicate } from '@babel/types';
 
 export class FunctionRemoveCommand extends Command {
   private constructor() {
@@ -47,7 +48,7 @@ export class FunctionRemoveCommand extends Command {
         yesNo: true,
       }))
     ) {
-      console.log('No changes made.');
+      input.io.writeLine('No changes made.');
       return 0;
     }
 
@@ -61,7 +62,7 @@ export class FunctionRemoveCommand extends Command {
       },
     });
 
-    console.log('Function removed.');
+    input.io.writeLine('Function removed.');
 
     return 0;
   }

@@ -1,8 +1,8 @@
-import { Command, IExecuteInput } from '@5qtrs/cli';
-import { ProfileService } from '../../services';
+import { Command, IExecuteInput, Message } from '@5qtrs/cli';
+import { ProfileService, ExecuteService } from '../../services';
 import * as http from 'http';
-import { IFlexdExecutionProfile } from 'lib/server/flexd-profile/libc';
 const open = require('open');
+import { Text } from '@5qtrs/text';
 
 export class FunctionEditCommand extends Command {
   private constructor() {
@@ -30,46 +30,72 @@ not exist, it is created.`,
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
     let profileService = await ProfileService.create(input);
+    const executeService = await ExecuteService.create(input);
     let profile = await profileService.getExecutionProfile(['subscription', 'boundary', 'function']);
 
-    let port = 8000 + Math.floor(Math.random() * 100);
-    let editorHtml = getEditorHtml(port, profile);
-    return new Promise((resolve, reject) => {
-      http
-        .createServer((req, res) => {
-          if (req.method === 'GET') {
-            res.writeHead(200, { 'Content-Type': 'text/html' });
-            return res.end(editorHtml);
-          } else {
-            res.writeHead(404);
-            return res.end();
-          }
-        })
-        .listen(port, (e: any) => {
-          if (e) {
-            this.attempts++;
-            if (this.attempts > 10) {
-              return reject(
-                new Error('Unable to find a free port in the 80xx range to host a local service. Try again.')
-              );
-            } else {
-              return this.onExecute(input);
-            }
-          }
-          console.log(
-            // @ts-ignore
-            `Hosting the function editor for function ${profile.boundary}/${
-              // @ts-ignore
-              profile.function
-            } at http://127.0.0.1:${port}.\nIf the browser does not open automatically, navigate to this URL.\n\nCtrl-C to terminate...`
-          );
-          open(`http://127.0.0.1:${port}`);
+    const result = await executeService.execute(
+      {
+        header: 'Edit Function',
+        message: Text.create(
+          'Editing function ',
+          Text.bold(`${profile.boundary}/${profile.function}`),
+          ' on account ',
+          Text.bold(profile.account || ''),
+          ' and subscription ',
+          Text.bold(profile.subscription || ''),
+          '.'
+        ),
+        errorHeader: 'Edit Function Error',
+        errorMessage: 'Unable to edit the function',
+      },
+      async () => {
+        let port = 8000 + Math.floor(Math.random() * 100);
+        let editorHtml = getEditorHtml(port, profile);
+        return new Promise((resolve, reject) => {
+          http
+            .createServer((req, res) => {
+              if (req.method === 'GET') {
+                res.writeHead(200, { 'Content-Type': 'text/html' });
+                return res.end(editorHtml);
+              } else {
+                res.writeHead(404);
+                return res.end();
+              }
+            })
+            .listen(port, async (e: any) => {
+              if (e) {
+                this.attempts++;
+                if (this.attempts > 10) {
+                  return reject(
+                    new Error('Unable to find a free port in the 80xx range to host a local service. Try again.')
+                  );
+                } else {
+                  return this.onExecute(input);
+                }
+              }
+              const message = await Message.create({
+                message: Text.create([
+                  'Hosting the Flexd Editor at ',
+                  Text.bold(`http://127.0.0.1:${port}`),
+                  Text.eol(),
+                  'If the browser does not open automatically, navigate to this URL.',
+                  Text.eol(),
+                  Text.eol(),
+                  'Ctrl-C to terminate...',
+                ]),
+              });
+              await message.write(input.io);
+              open(`http://127.0.0.1:${port}`);
+            });
         });
-    });
+      }
+    );
+
+    return 0;
   }
 }
 
-function getEditorHtml(port: number, profile: IFlexdExecutionProfile): string {
+function getEditorHtml(port: number, profile: any): string {
   return `<!doctype html>
 <html lang="en">
 <head>

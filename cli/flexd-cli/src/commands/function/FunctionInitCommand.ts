@@ -1,8 +1,9 @@
 import { EOL } from 'os';
-import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
-import { ProfileService } from '../../services';
+import { Command, ArgType, IExecuteInput, Message } from '@5qtrs/cli';
+import { ProfileService, ExecuteService } from '../../services';
 import * as Path from 'path';
 import * as Fs from 'fs';
+import { Text } from '@5qtrs/text';
 
 export class FunctionInitCommand extends Command {
   private constructor() {
@@ -46,32 +47,47 @@ export class FunctionInitCommand extends Command {
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
     let profileService = await ProfileService.create(input);
+    const executeService = await ExecuteService.create(input);
     let profile = await profileService.getExecutionProfile(['subscription', 'boundary', 'function']);
 
     let destDirectory = Path.join(process.cwd(), input.arguments[0] as string);
 
-    // Ensure directory
+    const result = await executeService.execute(
+      {
+        header: 'Initialize Function',
+        message: Text.create('Initialize a new function in ', Text.bold(destDirectory), ' directory'),
+        errorHeader: 'Initialize Function Error',
+        errorMessage: 'Unable to initialize the function',
+      },
+      async () => {
+        // Ensure directory
 
-    if (Fs.existsSync(destDirectory)) {
-      if (!input.options.force && Fs.readdirSync(destDirectory).length > 0) {
-        throw new Error(
-          `The destination directory ${destDirectory} is not empty. To force the function files to be saved there anyway, use the --force option.`
-        );
+        if (Fs.existsSync(destDirectory)) {
+          if (!input.options.force && Fs.readdirSync(destDirectory).length > 0) {
+            throw new Error(
+              `The destination directory ${destDirectory} is not empty. To force the function files to be saved there anyway, use the --force option.`
+            );
+          }
+        } else {
+          Fs.mkdirSync(destDirectory, { recursive: true });
+        }
+
+        await input.io.writeLine(`Creating function files in ${destDirectory}:`);
+        let dirs = Fs.readdirSync(Path.join(__dirname, '../../../template'));
+        for (var i = 0; i < dirs.length; i++) {
+          let f = dirs[i];
+          await input.io.writeLine(f);
+          Fs.writeFileSync(
+            Path.join(destDirectory, f),
+            Fs.readFileSync(Path.join(__dirname, '../../../template', f), 'utf8'),
+            'utf8'
+          );
+        }
+        await input.io.writeLine('Done. You can deploy the function with `flx function deploy`.');
+
+        return 0;
       }
-    } else {
-      Fs.mkdirSync(destDirectory, { recursive: true });
-    }
-
-    console.log(`Creating function files in ${destDirectory}:`);
-    Fs.readdirSync(Path.join(__dirname, '../../../template')).forEach(f => {
-      console.log(f);
-      Fs.writeFileSync(
-        Path.join(destDirectory, f),
-        Fs.readFileSync(Path.join(__dirname, '../../../template', f), 'utf8'),
-        'utf8'
-      );
-    });
-    console.log('Done. You can deploy the function with `flx function deploy`.');
+    );
 
     return 0;
   }
