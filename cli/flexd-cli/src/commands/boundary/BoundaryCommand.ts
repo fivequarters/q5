@@ -40,7 +40,6 @@ const command: ICommand = {
 async function getSubCommands() {
   const subCommands = [];
   subCommands.push(await BoundaryListCommand.create());
-  subCommands.push(await BoundaryLogCommand.create());
   return subCommands;
 }
 
