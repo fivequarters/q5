@@ -48,7 +48,7 @@ export class OpsAccountAws extends OpsApiAws {
     return accountData.setup();
   }
 
-  public async addRootUser(issuer: IIssuer, rootUser: INewUser, options: IAwsOptions): Promise<IUser> {
+  public async addRootUser(issuer: IIssuer, rootUser: INewUser, options: IAwsOptions): Promise<IUser | undefined> {
     const accountData = await AccountDataAws.create(options);
     return accountData.addRootUser(issuer, rootUser);
   }
