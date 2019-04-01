@@ -142,7 +142,7 @@ export class CommandIO implements ICommandIO {
           } else {
             let finalValue = value.toString();
             if (options.yesNo) {
-              finalValue = affirmKeys.indexOf(finalValue) ? '' : 'Y';
+              finalValue = affirmKeys.indexOf(finalValue) === -1 ? '' : 'Y';
             }
             resolve(finalValue);
           }
