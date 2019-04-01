@@ -1,7 +1,6 @@
 import { EOL } from 'os';
 import { Command, ICommand } from '@5qtrs/cli';
 import { BoundaryListCommand } from './BoundaryListCommand';
-import { BoundaryLogCommand } from './BoundaryLogCommand';
 
 // ------------------
 // Internal Constants
@@ -41,7 +40,6 @@ const command: ICommand = {
 async function getSubCommands() {
   const subCommands = [];
   subCommands.push(await BoundaryListCommand.create());
-  subCommands.push(await BoundaryLogCommand.create());
   return subCommands;
 }
 

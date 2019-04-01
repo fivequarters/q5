@@ -7,6 +7,7 @@ import { FunctionRemoveCommand } from './FunctionRemoveCommand';
 import { FunctionDeployCommand } from './FunctionDeployCommand';
 import { FunctionEditCommand } from './FunctionEditCommand';
 import { FunctionInitCommand } from './FunctionInitCommand';
+import { FunctionUrlCommand } from './FunctionUrlCommand';
 
 // ------------------
 // Internal Constants
@@ -31,7 +32,7 @@ const command: ICommand = {
     {
       name: 'subscription',
       aliases: ['s'],
-      description: 'The sunscription id to use when executing the command.',
+      description: 'The subscription id to use when executing the command.',
       defaultText: 'profile value',
     },
     {
@@ -54,6 +55,7 @@ async function getSubCommands() {
   subCommands.push(await FunctionListCommand.create());
   subCommands.push(await FunctionEditCommand.create());
   subCommands.push(await FunctionGetCommand.create());
+  subCommands.push(await FunctionUrlCommand.create());
   subCommands.push(await FunctionDeployCommand.create());
   subCommands.push(await FunctionRemoveCommand.create());
   subCommands.push(await FunctionLogCommand.create());
