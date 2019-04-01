@@ -71,9 +71,6 @@ export class FunctionDeployCommand extends Command {
   protected async onExecute(input: IExecuteInput): Promise<number> {
     let profileService = await ProfileService.create(input);
     let profile = await profileService.getExecutionProfile([]);
-    if (!profile) {
-      return 1;
-    }
 
     let sourceDirectory = Path.join(process.cwd(), (input.arguments[0] as string) || '');
     let flexd: any;

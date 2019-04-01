@@ -19,14 +19,23 @@ export class FunctionGetCommand extends Command {
         {
           name: 'function',
           aliases: ['f'],
-          description: 'The id of the unction id to retrieve.',
+          description: 'The id of the function to retrieve.',
         },
         {
           name: 'download',
+          aliases: ['d'],
           description: [
-            'Downloads the function source code and saves it to disk in the specified directory.',
-            'Destination directory must be empty or non-existent, unless the --force flag is specified.',
+            'Downloads the source code of the function and saves it to disk in the current working directory.',
+            'You can set a different destination directory using --dir. Destination directory must be empty or non-existent, unless the --force flag is specified.',
           ].join(' '),
+          type: ArgType.boolean,
+          default: 'false',
+        },
+        {
+          name: 'dir',
+          aliases: ['i'],
+          description: 'The destination directory for saving the function when --download is used.',
+          default: '.',
         },
         {
           name: 'force',
@@ -59,9 +68,6 @@ export class FunctionGetCommand extends Command {
   protected async onExecute(input: IExecuteInput): Promise<number> {
     let profileService = await ProfileService.create(input);
     let profile = await profileService.getExecutionProfile(['subscription', 'boundary', 'function']);
-    if (!profile) {
-      return 1;
-    }
 
     let response = await request({
       url: `${profile.baseUrl}/v1/subscription/${profile.subscription}/boundary/${profile.boundary}/function/${
@@ -79,7 +85,7 @@ export class FunctionGetCommand extends Command {
     return 0;
 
     async function saveToDisk(): Promise<void> {
-      let destDirectory = Path.join(process.cwd(), input.options.download as string);
+      let destDirectory = Path.join(process.cwd(), input.options.dir as string);
 
       // Ensure directory
 
