@@ -1,5 +1,5 @@
 import { spawn } from '@5qtrs/child-process';
-import { moveDirectory, readDirectory, removeDirectory } from '@5qtrs/file';
+import { moveDirectory, readDirectory, removeDirectory, copyDirectory, readFile, writeFile } from '@5qtrs/file';
 import { IndentTextStream } from '@5qtrs/stream';
 import { join, relative } from 'path';
 import { Readable, Writable } from 'stream';
@@ -64,6 +64,22 @@ export default class Workspace {
     return this.packageJson.GetDependencies();
   }
 
+  public async GetAllDescendantDependencies(): Promise<any> {
+    const childrenDependencies = await this.GetDependencies();
+    const allDependencies: { [index: string]: string } = {};
+    for (const child in childrenDependencies) {
+      allDependencies[child] = childrenDependencies[child];
+      const workspace = await this.project.GetWorkspace(child);
+      if (workspace) {
+        const descendants = await workspace.GetAllDescendantDependencies();
+        for (const descendant in descendants) {
+          allDependencies[descendant] = descendants[descendant];
+        }
+      }
+    }
+    return allDependencies;
+  }
+
   public async GetWorkspaceDependencies(): Promise<any> {
     const workspaces = await this.project.GetWorkspaces();
     const dependencies = await this.GetDependencies();
@@ -115,6 +131,48 @@ export default class Workspace {
       const message = `A version parameter is required for non-workspace dependency '${fullName}'`;
       throw new Error(message);
     }
+  }
+
+  public async Package() {
+    const org = await this.project.GetOrg();
+    const location = await this.GetLocation();
+    const packagePath = join(location, 'package');
+    const libcPath = join(location, 'libc');
+    const sourcePath = join(packagePath, 'libc');
+    await removeDirectory(packagePath, { recursive: true });
+    await copyDirectory(libcPath, sourcePath, { ensurePath: true, recursive: true });
+
+    const dependencies = await this.GetAllDescendantDependencies();
+    const npmModules: { [index: string]: string } = {};
+    for (const dependencyName in dependencies) {
+      if (dependencyName.startsWith(`@${org}/`)) {
+        const dependency = await this.project.GetWorkspace(dependencyName);
+        if (dependency) {
+          const dependencyPath = await dependency.GetFullPath();
+          const dependencyLibc = join(dependencyPath, 'libc');
+          const nodeModules = join(packagePath, 'node_modules', dependencyName);
+          await copyDirectory(dependencyLibc, nodeModules, { ensurePath: true, recursive: true });
+        }
+      } else {
+        npmModules[dependencyName] = dependencies[dependencyName];
+      }
+    }
+
+    const packageJsonPath = join(location, 'package.json');
+    let packageJson;
+    try {
+      const contents = await readFile(packageJsonPath);
+      packageJson = JSON.parse(contents.toString());
+    } catch (error) {
+      throw new Error(`Error reading '${packageJsonPath}'; File not found`);
+    }
+
+    packageJson.dependencies = npmModules;
+    packageJson.devDependencies = undefined;
+    packageJson.scripts = undefined;
+
+    const newPackageJsonPath = join(packagePath, 'package.json');
+    await writeFile(newPackageJsonPath, JSON.stringify(packageJson, null, 2));
   }
 
   public async RemoveDependency(fullName: string): Promise<void> {
