@@ -40,6 +40,9 @@ function doesResouceAuthorize(grantedResource, requestedResource) {
 function doesActionAuthorize(grantedAction, requestedAction) {
   const grantedSegments = grantedAction.split(':');
   const requestedSegments = requestedAction.split(':');
+  if (grantedAction === requestedAction) {
+    return true;
+  }
   for (let i = 0; i < requestedSegments.length; i++) {
     if (grantedSegments[i]) {
       if (grantedSegments[i] === '*') {
@@ -57,7 +60,9 @@ function doesActionAuthorize(grantedAction, requestedAction) {
 }
 
 function doesAccessEntryAuthorize(accessEntry, action, resource) {
-  return doesActionAuthorize(accessEntry.action, action) && doesResouceAuthorize(accessEntry.resource, resource);
+  const actionAuth = doesActionAuthorize(accessEntry.action, action);
+  const resourceAuth = doesResouceAuthorize(accessEntry.resource, resource);
+  return actionAuth && resourceAuth;
 }
 
 function isAuthorized(accessEntries, action, resource) {
@@ -79,19 +84,38 @@ module.exports = function authorize_factory(options) {
   return function authorize(req, res, next) {
     let accountId = req.params.accountId;
     if (!accountId) {
-      const segments = req.params.subscriptionId.split('-');
-      segments.pop;
-      accountId = segments.join('-');
+      const subscriptionId = req.params.subscriptionId;
+      if (subscriptionId) {
+        const segments = subscriptionId.split('-');
+        segments.pop;
+        accountId = segments.join('-');
+      }
     }
 
     getDataAccess().then(dataAccess => {
       const token = options.getToken(req);
+      if (token === process.env.API_AUTHORIZATION_KEY) {
+        req.isRoot = true;
+        //return next();
+        return writeAudit(
+          {
+            // TODO where do we obtain accountId from for requests where it is implied by subscriptionId?
+            accountId,
+            issuer: 'flexd:root',
+            subject: 'flexd:root',
+            action: options.operation,
+            resource: res.path,
+          },
+          next
+        );
+      }
+
       const jwtHeader = decodeJwtHeader(token);
       const decodedJwt = decodeJwt(token);
       const iss = decodedJwt.iss;
       const sub = decodedJwt.sub;
       const action = options.operation;
-      const resource = res.path;
+      const resource = req.path;
 
       const context = {
         error: undefined,
@@ -99,25 +123,22 @@ module.exports = function authorize_factory(options) {
         isAuthorized: undefined,
       };
 
-      console.log('jwtHeader', jwtHeader);
-      console.log('decodedJwt', decodedJwt);
-      console.log('iss, sub:', iss, sub);
-
       function auditAndContinue() {
-        if (context.error) {
-          console.log('Error during Authorization: ', context.error);
-          if (jwtValid === true && isAuthorized === true) {
-            return writeAudit(
-              {
-                accountId,
-                issuer: iss,
-                subject: sub,
-                action,
-                resource,
-              },
-              next
-            );
-          }
+        if (context.jwtValid === true && context.isAuthorized === true) {
+          //return next();
+          return writeAudit(
+            {
+              accountId,
+              issuer: iss,
+              subject: sub,
+              action,
+              resource,
+            },
+            next
+          );
+        }
+        if (context.error || context.jwtValid === false || context.isAuthorized === false) {
+          res.status(403).end();
         }
       }
 
@@ -125,8 +146,12 @@ module.exports = function authorize_factory(options) {
         .listAllAccessEntries(accountId, iss, sub)
         .then(accessEntries => {
           if (!accessEntries || !accessEntries.length) {
-            return res.status(403).end();
+            context.isAuthorized = false;
+            return auditAndContinue();
           }
+          // Pass this along to the user resource that needs this
+          // to ensure that users are not elevating their own access
+          req.accessEntries = accessEntries;
           if (isAuthorized(accessEntries, action, resource)) {
             context.isAuthorized = true;
             return auditAndContinue();
@@ -136,6 +161,7 @@ module.exports = function authorize_factory(options) {
         })
         .catch(error => {
           context.error = error;
+          context.isAuthorized = false;
           return auditAndContinue();
         });
 
@@ -153,11 +179,13 @@ module.exports = function authorize_factory(options) {
             })
             .catch(error => {
               context.error = error;
+              context.isAuthorized = false;
               return auditAndContinue();
             });
         })
         .catch(error => {
           context.error = error;
+          context.isAuthorized = false;
           return auditAndContinue();
         });
     });

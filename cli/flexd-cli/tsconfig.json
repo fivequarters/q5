@@ -8,6 +8,7 @@
     { "path": "../../lib/shared/random" },
     { "path": "../../lib/server/file" },
     { "path": "../../lib/shared/clone" },
-    { "path": "../../lib/shared/request" }
+    { "path": "../../lib/shared/request" },
+    { "path": "../../lib/shared/base64" }
   ]
 }

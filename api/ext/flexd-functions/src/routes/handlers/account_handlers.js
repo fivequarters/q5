@@ -170,8 +170,22 @@ function issuerDelete() {
 function userPost() {
   return (req, res) => {
     const accountId = req.params.accountId;
+
     getDataAccess().then(dataAccess => {
       const newUser = req.body;
+
+      if (!req.isRoot) {
+        const agentAccessEntries = req.accessEntries;
+        if (newUser.access && newUser.access.allow && newUser.access.allow.length) {
+          newUser.access.allow = newUser.access.allow.map(normalizeAccessEntry);
+          for (const accessEntry of newUser.access.allow) {
+            if (agentCanGiveAccess(agentAccessEntries, accessEntry)) {
+              return res.status(403).end();
+            }
+          }
+        }
+      }
+
       dataAccess
         .addUser(accountId, newUser)
         .then(user => {
@@ -196,6 +210,18 @@ function userPut() {
     getDataAccess().then(dataAccess => {
       const userToUpdate = req.body;
       userToUpdate.id = userId;
+
+      if (!req.isRoot) {
+        const agentAccessEntries = req.accessEntries;
+        if (userToUpdate.access && userToUpdate.access.allow && userToUpdate.access.allow.length) {
+          userToUpdate.access.allow = userToUpdate.access.allow.map(normalizeAccessEntry);
+          for (const accessEntry of userToUpdate.access.allow) {
+            if (!agentCanGiveAccess(agentAccessEntries, accessEntry)) {
+              return res.status(403).end();
+            }
+          }
+        }
+      }
 
       dataAccess
         .updateUser(accountId, userToUpdate)
@@ -258,6 +284,38 @@ function userDelete() {
         }
         res.status(204);
         res.end();
+      });
+    });
+  };
+}
+
+function userInit() {
+  return (req, res) => {
+    const accountId = req.params.accountId;
+    const userId = req.params.userId;
+    getDataAccess().then(dataAccess => {
+      dataAccess.initUser(accountId, userId).then(initEntry => {
+        if (!initEntry) {
+          return res.status(404).json({ message: 'Not Found' });
+        }
+        res.json(initEntry);
+      });
+    });
+  };
+}
+
+function userInitResolve() {
+  return (req, res) => {
+    const accountId = req.params.accountId;
+    const userId = req.params.userId;
+    const initId = req.params.initId;
+    getDataAccess().then(dataAccess => {
+      const initResolve = req.body;
+      dataAccess.initResolveUser(accountId, userId, initId, initResolve).then(user => {
+        if (!user) {
+          return res.status(404).json({ message: 'Not Found' });
+        }
+        res.json(user);
       });
     });
   };
@@ -361,6 +419,58 @@ function clientDelete() {
   };
 }
 
+function normalizeAccessEntry(accessEntry) {
+  accessEntry.resource = normalizeAuthResource(accessEntry.resource);
+  return accessEntry;
+}
+
+function normalizeAuthResource(authResource) {
+  if (authResource[0] !== '/') {
+    authResource = `/${authResource}`;
+  }
+  if (authResource[authResource.length - 1] !== '/') {
+    authResource = `${authResource}/`;
+  }
+  return authResource;
+}
+
+function doesResouceAuthorize(grantedResource, requestedResource) {
+  return requestedResource.indexOf(grantedResource) === 0;
+}
+
+function doesActionAuthorize(grantedAction, requestedAction) {
+  const grantedSegments = grantedAction.split(':');
+  const requestedSegments = requestedAction.split(':');
+  if (grantedAction === requestedAction) {
+    return true;
+  }
+  for (let i = 0; i < requestedSegments.length; i++) {
+    if (grantedSegments[i]) {
+      if (grantedSegments[i] === '*') {
+        return true;
+      } else if (grantedSegments[i] === requestedSegments[i]) {
+        // ok, continue to check the next segment
+      } else {
+        return false;
+      }
+    } else {
+      return false;
+    }
+  }
+  return false;
+}
+
+function agentCanGiveAccess(agentAccessEntries, accessEntry) {
+  for (const agentAccessEntry of agentAccessEntries) {
+    const actionAuth = doesActionAuthorize(agentAccessEntry.action, accessEntry.action);
+    const resourceAuth = doesResouceAuthorize(agentAccessEntry.resource, accessEntry.resource);
+    if (actionAuth && resourceAuth) {
+      return true;
+    }
+  }
+  return false;
+}
+
 module.exports = {
   accountGet,
   accountPost,
@@ -376,6 +486,8 @@ module.exports = {
   userGet,
   userPut,
   userDelete,
+  userInit,
+  userInitResolve,
   clientPost,
   clientList,
   clientGet,
