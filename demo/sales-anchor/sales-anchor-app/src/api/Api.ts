@@ -100,11 +100,8 @@ export class Api {
     const config = await this.request('GET', url);
     console.log('GET EDITOR CONFIG', config);
     if (config) {
-      config.accessToken = config.token;
+      config.accessToken = config.token || editorAccessToken;
     }
-    // if (editorAccessToken) {
-    //   // config.accessToken = editorAccessToken;
-    // }
     return config;
   }
 

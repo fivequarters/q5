@@ -80,7 +80,7 @@ function getEditorConfig(config: ApiConfig) {
     const admin = getAdmin(userId);
 
     const settings: any = {
-      subscriptionId: admin.company,
+      subscriptionId: 'sub-b503fb00e15248c6-1234',
       boundaryId: admin.company,
       baseUrl: config.functionsBaseUrl,
     };

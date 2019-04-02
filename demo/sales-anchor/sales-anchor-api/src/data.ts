@@ -10,7 +10,7 @@ let nextCompany = 0;
 // Internal Constants
 // ------------------
 
-const companies = ['sub-b503fb00e15248c6-1234', 'sub-b503fb00e15248c6-1235', 'sub-b503fb00e15248c6-1236'];
+const companies = ['abc-company', 'the-xyz-store', 'qrs-unlimited'];
 
 const admins: { [index: string]: IAdmin } = {};
 
