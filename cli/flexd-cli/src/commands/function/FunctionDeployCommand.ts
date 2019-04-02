@@ -1,9 +1,11 @@
 import { EOL } from 'os';
-import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
+import { Command, ArgType, IExecuteInput, Message, MessageKind } from '@5qtrs/cli';
 import { request, IHttpResponse } from '@5qtrs/request';
-import { ProfileService, serializeKeyValue, parseKeyValue } from '../../services';
+import { ProfileService, serializeKeyValue, parseKeyValue, ExecuteService } from '../../services';
 import * as Path from 'path';
 import * as Fs from 'fs';
+import { Text } from '@5qtrs/text';
+import { Table } from '@5qtrs/table';
 
 export class FunctionDeployCommand extends Command {
   private constructor() {
@@ -70,6 +72,7 @@ export class FunctionDeployCommand extends Command {
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
     let profileService = await ProfileService.create(input);
+    const executeService = await ExecuteService.create(input);
     let profile = await profileService.getExecutionProfile([]);
 
     let sourceDirectory = Path.join(process.cwd(), (input.arguments[0] as string) || '');
@@ -93,165 +96,218 @@ export class FunctionDeployCommand extends Command {
     profile.boundary = input.options.boundary || flexd.boundaryId || profile.boundary;
     profile.function = input.options.function || flexd.id || profile.function;
 
-    ['subscription', 'boundary', 'function'].forEach(x => {
-      // @ts-ignore
-      if (!profile[x]) {
-        throw new Error(
-          `The ${x} id must be specified. You can specify usin the --${x} option, or by using a profile which defines this value.`
-        );
-      }
-    });
-
-    let tmp: any = {
-      nodejs: { files: {} },
-    };
-    ['lambda', 'metadata', 'schedule'].forEach(x => {
-      if (flexd[x]) tmp[x] = flexd[x];
-    });
-    flexd = tmp;
-    if (flexd.schedule && Object.keys(flexd.schedule).length === 0) {
-      delete flexd.schedule;
-    }
-
-    if (input.options.cron) {
-      flexd.schedule = flexd.schedule || {};
-      flexd.schedule.cron = input.options.cron;
-      if (input.options.timezone) {
-        flexd.schedule.timezone = input.options.timezone;
-        flexd.metadata = flexd.metadata || {};
-        flexd.metadata.cronSettings = serializeKeyValue(flexd.schedule);
-      }
-    } else if (input.options.timezone) {
-      throw new Error('If you specify --timezone, you must also specify --cron.');
-    }
-
-    let files = Fs.readdirSync(sourceDirectory, { withFileTypes: true });
-    files.forEach(f => {
-      if (!f.isFile()) {
-        console.log(`Ignoring ${f.name}`);
-        return;
-      }
-      if (f.name === '.flexd.json') {
-        console.log(`The .flexd.json is present, defaults specified in this file are used.`);
-        return;
-      }
-      let content = Fs.readFileSync(Path.join(sourceDirectory, f.name), 'utf8');
-      if (f.name === '.env') {
-        console.log(`The .env file is present, function configuration will use the values specified in the file.`);
-        flexd.configuration = parseKeyValue(content) || {};
-        flexd.metadata = flexd.metadata || {};
-        flexd.metadata.applicationSettings = content;
-        return;
-      }
-      console.log(`Adding ${f.name} file`);
-      flexd.nodejs.files[f.name] = content;
-    });
-
-    if (!flexd.nodejs.files['index.js']) {
-      throw new Error('The function must include the index.js file. Make sure it exists in the source directory.');
-    }
-
-    console.log();
-    console.log('Ready to deploy the function:');
-    console.log(`Subscription: ${profile.subscription}`);
-    console.log(`Name: ${profile.boundary}/${profile.function}`);
-    console.log(
-      `Files: ${Object.keys(flexd.nodejs.files)
-        .sort()
-        .join(', ')}`
-    );
-    if (flexd.configuration && Object.keys(flexd.configuration).length > 0) {
-      console.log(
-        `Configuration: ${Object.keys(flexd.configuration)
-          .sort()
-          .join(', ')}`
-      );
-    } else {
-      console.log('Configuration: not specified');
-    }
-    if (flexd.schedule && flexd.schedule.cron) {
-      console.log(`CRON: ${flexd.schedule.cron}, timezone: ${flexd.schedule.timezone || 'UTC'}`);
-    } else {
-      console.log('CRON: not specified');
-    }
-
-    if (!input.options.confirm && !(await input.io.prompt({ prompt: 'Deploy?', yesNo: true }))) {
-      return 0;
-    }
-
-    // Deploy
-
-    console.log('Deploying...');
-    input.io.spin(true);
-    let response: IHttpResponse;
-    try {
-      response = await request({
-        method: 'PUT',
-        url: `${profile.baseUrl}/v1/subscription/${profile.subscription}/boundary/${profile.boundary}/function/${
-          profile.function
-        }`,
-        headers: {
-          Authorization: `Bearer ${profile.token}`,
-        },
-        data: flexd,
-        validStatus: status => status === 200 || status === 201 || status === 204 || status === 400,
-      });
-      while (response.status === 201) {
-        await sleep(2000);
-        response = await request({
-          url: `${profile.baseUrl}/v1/subscription/${profile.subscription}/boundary/${profile.boundary}/function/${
-            profile.function
-          }/build/${response.data.id}`,
-          headers: {
-            Authorization: `Bearer ${profile.token}`,
-          },
-          validStatus: status => status === 200 || status === 201 || status === 204 || status === 410,
+    const result = await executeService.execute(
+      {
+        header: 'Deploy Function',
+        message: Text.create(
+          'Deploying function ',
+          Text.bold(`${profile.boundary}/${profile.function}`),
+          ' on account ',
+          Text.bold(profile.account || ''),
+          ' and subscription ',
+          Text.bold(profile.subscription || ''),
+          '.'
+        ),
+        errorHeader: 'Deploy Function Error',
+        errorMessage: 'Unable to deploy the function',
+      },
+      async () => {
+        ['subscription', 'boundary', 'function'].forEach(x => {
+          // @ts-ignore
+          if (!profile[x]) {
+            throw new Error(
+              `The ${x} id must be specified. You can specify usin the --${x} option, or by using a profile which defines this value.`
+            );
+          }
         });
-      }
-    } catch (e) {
-      if (e.response) {
-        response = e.response;
-        if (typeof response.data === 'string') {
-          try {
-            // best effort
-            response.data = JSON.parse(response.data);
-          } catch (_) {}
+
+        let tmp: any = {
+          nodejs: { files: {} },
+        };
+        ['lambda', 'metadata', 'schedule'].forEach(x => {
+          if (flexd[x]) tmp[x] = flexd[x];
+        });
+        flexd = tmp;
+        if (flexd.schedule && Object.keys(flexd.schedule).length === 0) {
+          delete flexd.schedule;
         }
-      } else {
-        input.io.spin(false);
-        throw e;
+
+        if (input.options.cron) {
+          flexd.schedule = flexd.schedule || {};
+          flexd.schedule.cron = input.options.cron;
+          if (input.options.timezone) {
+            flexd.schedule.timezone = input.options.timezone;
+            flexd.metadata = flexd.metadata || {};
+            flexd.metadata.cronSettings = serializeKeyValue(flexd.schedule);
+          }
+        } else if (input.options.timezone) {
+          throw new Error('If you specify --timezone, you must also specify --cron.');
+        }
+
+        let files = Fs.readdirSync(sourceDirectory, { withFileTypes: true });
+        for (var i = 0; i < files.length; i++) {
+          var f = files[i];
+          if (!f.isFile()) {
+            await (await Message.create({
+              header: f.name,
+              message: `Ignoring`,
+              kind: MessageKind.warning,
+            })).write(input.io);
+            continue;
+          }
+          if (f.name === '.flexd.json') {
+            await (await Message.create({
+              header: f.name,
+              message: `The .flexd.json is present, defaults specified in this file are used.`,
+              kind: MessageKind.info,
+            })).write(input.io);
+            continue;
+          }
+          let content = Fs.readFileSync(Path.join(sourceDirectory, f.name), 'utf8');
+          if (f.name === '.env') {
+            await (await Message.create({
+              header: f.name,
+              message: `The .env file is present, function configuration will use the values specified in the file.`,
+              kind: MessageKind.info,
+            })).write(input.io);
+            flexd.configuration = parseKeyValue(content) || {};
+            flexd.metadata = flexd.metadata || {};
+            flexd.metadata.applicationSettings = content;
+            continue;
+          }
+          flexd.nodejs.files[f.name] = content;
+        }
+
+        if (!flexd.nodejs.files['index.js']) {
+          throw new Error('The function must include the index.js file. Make sure it exists in the source directory.');
+        }
+
+        await input.io.writeLine(Text.create([Text.eol(), Text.eol(), Text.bold('Ready to deploy the function:')]));
+
+        const table = await Table.create({
+          width: input.io.outputWidth,
+          count: 2,
+          gutter: Text.dim('  │  '),
+          columns: [{ flexShrink: 0, flexGrow: 0 }, { flexGrow: 1 }],
+        });
+
+        table.addRow(['Account', Text.bold(profile.account || '')]);
+        table.addRow(['Subscription', Text.bold(profile.subscription || '')]);
+        table.addRow(['Boundary', Text.bold(`${profile.boundary}`)]);
+        table.addRow(['Function', Text.bold(`${profile.function}`)]);
+        table.addRow([
+          'Files',
+          Text.bold(
+            Object.keys(flexd.nodejs.files)
+              .sort()
+              .join(', ')
+          ),
+        ]);
+        if (flexd.configuration && Object.keys(flexd.configuration).length > 0) {
+          table.addRow([
+            'Configuration',
+            Object.keys(flexd.configuration)
+              .sort()
+              .join(', '),
+          ]);
+        } else {
+          table.addRow(['Configuration', 'Not specified']);
+        }
+        if (flexd.schedule && flexd.schedule.cron) {
+          table.addRow(['CRON', `${flexd.schedule.cron}, timezone: ${flexd.schedule.timezone || 'UTC'}`]);
+        } else {
+          table.addRow(['CRON', 'Not specified']);
+        }
+        await input.io.write(table.toString());
+
+        await input.io.writeLine();
+        await input.io.writeLine();
+        if (!input.options.confirm && !(await input.io.prompt({ prompt: 'Deploy?', yesNo: true }))) {
+          return 0;
+        }
+
+        // Deploy
+
+        let response: IHttpResponse;
+        try {
+          response = await request({
+            method: 'PUT',
+            url: `${profile.baseUrl}/v1/subscription/${profile.subscription}/boundary/${profile.boundary}/function/${
+              profile.function
+            }`,
+            headers: {
+              Authorization: `Bearer ${profile.token}`,
+            },
+            data: flexd,
+            validStatus: status => status === 200 || status === 201 || status === 204 || status === 400,
+          });
+          while (response.status === 201) {
+            await sleep(2000);
+            response = await request({
+              url: `${profile.baseUrl}/v1/subscription/${profile.subscription}/boundary/${profile.boundary}/function/${
+                profile.function
+              }/build/${response.data.id}`,
+              headers: {
+                Authorization: `Bearer ${profile.token}`,
+              },
+              validStatus: status => status === 200 || status === 201 || status === 204 || status === 410,
+            });
+          }
+        } catch (e) {
+          if (e.response) {
+            response = e.response;
+            if (typeof response.data === 'string') {
+              try {
+                // best effort
+                response.data = JSON.parse(response.data);
+              } catch (_) {}
+            }
+          } else {
+            // input.io.spin(false);
+            throw e;
+          }
+        }
+        // input.io.spin(false);
+        if ((response.status === 200 && response.data.status === 'success') || response.status === 204) {
+          if (response.status === 204) {
+            await (await Message.create({
+              header: 'No changes',
+              message: `Function has not changed since previous deployment.`,
+              kind: MessageKind.warning,
+            })).write(input.io);
+          } else {
+            await (await Message.create({
+              header: 'Location',
+              message: response.data.location,
+              kind: MessageKind.info,
+            })).write(input.io);
+            flexd.location = response.data.location;
+          }
+          flexd.subscriptionId = profile.subscription;
+          flexd.boundaryId = profile.boundary;
+          flexd.id = profile.function;
+          flexd.flxVersion = require('../../../package.json').version;
+          if (flexd.metadata) {
+            delete flexd.metadata.applicationSettings;
+          }
+          delete flexd.configuration;
+          delete flexd.nodejs;
+          Fs.writeFileSync(Path.join(sourceDirectory, '.flexd.json'), JSON.stringify(flexd, null, 2), 'utf8');
+          // await input.io.writeLine(
+          //   'NOTE: all options were saved to .flexd.json. Next time you can run just `flx function deploy`.'
+          // );
+          return 0;
+        } else {
+          throw new Error(
+            `Error deploying function. HTTP status ${response.status}. Details: ${(response.data &&
+              (response.data.error || response.data.message || response.data)) ||
+              'Unknown error.'}`
+          );
+        }
       }
-    }
-    input.io.spin(false);
-    if ((response.status === 200 && response.data.status === 'success') || response.status === 204) {
-      if (response.status === 204) {
-        console.log('Function has not changed since previous deployment.');
-      } else {
-        console.log('Success. Function location:');
-        console.log(response.data.location);
-        flexd.location = response.data.location;
-      }
-      flexd.subscriptionId = profile.subscription;
-      flexd.boundaryId = profile.boundary;
-      flexd.id = profile.function;
-      flexd.flxVersion = require('../../../package.json').version;
-      if (flexd.metadata) {
-        delete flexd.metadata.applicationSettings;
-      }
-      delete flexd.configuration;
-      delete flexd.nodejs;
-      Fs.writeFileSync(Path.join(sourceDirectory, '.flexd.json'), JSON.stringify(flexd, null, 2), 'utf8');
-      console.log('NOTE: all options were saved to .flexd.json. Next time you can run just `flx function deploy`.');
-      return 0;
-    } else {
-      console.log('Error deploying function.');
-      console.log(`Status: ${response.status}`);
-      console.log(
-        `Details: ${(response.data && (response.data.error || response.data.message || response.data)) ||
-          'Unknown error.'}`
-      );
-      return 1;
-    }
+    );
+
+    return 0;
   }
 }
 

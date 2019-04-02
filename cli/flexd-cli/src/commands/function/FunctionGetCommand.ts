@@ -1,9 +1,10 @@
 import { EOL } from 'os';
-import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
+import { Command, ArgType, IExecuteInput, Message } from '@5qtrs/cli';
 import { request } from '@5qtrs/request';
-import { ProfileService, serializeKeyValue, parseKeyValue } from '../../services';
+import { ProfileService, serializeKeyValue, parseKeyValue, ExecuteService } from '../../services';
 import * as Path from 'path';
 import * as Fs from 'fs';
+import { Text } from '@5qtrs/text';
 
 export class FunctionGetCommand extends Command {
   private constructor() {
@@ -67,103 +68,133 @@ export class FunctionGetCommand extends Command {
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
     let profileService = await ProfileService.create(input);
+    const executeService = await ExecuteService.create(input);
     let profile = await profileService.getExecutionProfile(['subscription', 'boundary', 'function']);
 
-    let response = await request({
-      url: `${profile.baseUrl}/v1/subscription/${profile.subscription}/boundary/${profile.boundary}/function/${
-        profile.function
-      }`,
-      headers: {
-        Authorization: `Bearer ${profile.token}`,
+    const result = await executeService.execute(
+      {
+        header: 'Get Function',
+        message: Text.create(
+          'Get function ',
+          Text.bold(`${profile.boundary}/${profile.function}`),
+          ' on account ',
+          Text.bold(profile.account || ''),
+          ' and subscription ',
+          Text.bold(profile.subscription || ''),
+          '.'
+        ),
+        errorHeader: 'Get Function Error',
+        errorMessage: 'Unable to get the function',
       },
-    });
-    if (input.options.download) {
-      await saveToDisk();
-    } else {
-      await displayFunction();
-    }
-    return 0;
-
-    async function saveToDisk(): Promise<void> {
-      let destDirectory = Path.join(process.cwd(), input.options.dir as string);
-
-      // Ensure directory
-
-      if (Fs.existsSync(destDirectory)) {
-        if (!input.options.force && Fs.readdirSync(destDirectory).length > 0) {
-          throw new Error(
-            `The destination directory ${destDirectory} is not empty. To force the function files to be saved there anyway, use the --force option.`
-          );
-        }
-      } else {
-        Fs.mkdirSync(destDirectory, { recursive: true });
-      }
-
-      console.log(`Saving function files to ${destDirectory}:`);
-
-      // Save application settings to .env file
-
-      let applicationSettings = getSettings(response.data, 'applicationSettings', response.data.configuration);
-      if (applicationSettings) {
-        Fs.writeFileSync(Path.join(destDirectory, '.env'), applicationSettings, 'utf8');
-        console.log('.env');
-        delete response.data.configuration;
-        if (response.data.metadata) {
-          delete response.data.metadata.applicationSettings;
-        }
-      }
-
-      // Save individual files
-
-      for (var f in response.data.nodejs.files) {
-        let contents = response.data.nodejs.files[f];
-        if (typeof contents !== 'string') {
-          contents = JSON.stringify(contents, null, 2);
-        }
-        Fs.writeFileSync(Path.join(destDirectory, f), contents, 'utf8');
-        console.log(f);
-      }
-      delete response.data.nodejs;
-
-      // Save remaining metadata to allow for roundtrip on deploy
-
-      response.data.flxVersion = require('../../../package.json').version;
-      Fs.writeFileSync(Path.join(destDirectory, '.flexd.json'), JSON.stringify(response.data, null, 2), 'utf8');
-      console.log('.flexd.json');
-    }
-
-    async function displayFunction(): Promise<void> {
-      console.log('Files:');
-      console.log();
-      Object.keys(response.data.nodejs.files)
-        .sort()
-        .forEach(f => {
-          console.log(`${f} (${response.data.nodejs.files[f].length} bytes)`);
-          if (input.options['show-code']) {
-            console.log();
-            console.log(response.data.nodejs.files[f]);
-            console.log();
-          }
+      async () => {
+        let response = await request({
+          url: `${profile.baseUrl}/v1/subscription/${profile.subscription}/boundary/${profile.boundary}/function/${
+            profile.function
+          }`,
+          headers: {
+            Authorization: `Bearer ${profile.token}`,
+          },
         });
-      let configurationKeys = Object.keys(response.data.configuration);
-      console.log();
-      if (configurationKeys.length === 0) {
-        console.log('No configuration parameters.');
-      } else {
-        console.log('Configuration:');
-        console.log();
-        configurationKeys.forEach(k => {
-          if (input.options['show-configuration']) {
-            console.log(`${k}=${response.data.configuration[k]}`);
+        if (input.options.download) {
+          await saveToDisk();
+        } else {
+          await displayFunction();
+        }
+        return 0;
+
+        async function saveToDisk(): Promise<void> {
+          let destDirectory = Path.join(process.cwd(), input.options.dir as string);
+
+          // Ensure directory
+
+          if (Fs.existsSync(destDirectory)) {
+            if (!input.options.force && Fs.readdirSync(destDirectory).length > 0) {
+              throw new Error(
+                `The destination directory ${destDirectory} is not empty. To force the function files to be saved there anyway, use the --force option.`
+              );
+            }
           } else {
-            console.log(k);
+            Fs.mkdirSync(destDirectory, { recursive: true });
           }
-        });
+
+          input.io.writeLine(Text.create(['Saving function to ', Text.bold(destDirectory), '...', Text.eol()]));
+
+          // Save application settings to .env file
+
+          let applicationSettings = getSettings(response.data, 'applicationSettings', response.data.configuration);
+          if (applicationSettings) {
+            Fs.writeFileSync(Path.join(destDirectory, '.env'), applicationSettings, 'utf8');
+            input.io.writeLine('.env');
+            delete response.data.configuration;
+            if (response.data.metadata) {
+              delete response.data.metadata.applicationSettings;
+            }
+          }
+
+          // Save individual files
+
+          let files = Object.keys(response.data.nodejs.files).sort();
+          for (let i = 0; i < files.length; i++) {
+            let f = files[i];
+            let contents = response.data.nodejs.files[f];
+            if (typeof contents !== 'string') {
+              contents = JSON.stringify(contents, null, 2);
+            }
+            Fs.writeFileSync(Path.join(destDirectory, f), contents, 'utf8');
+            input.io.writeLine(f);
+          }
+          delete response.data.nodejs;
+
+          // Save remaining metadata to allow for roundtrip on deploy
+
+          response.data.flxVersion = require('../../../package.json').version;
+          Fs.writeFileSync(Path.join(destDirectory, '.flexd.json'), JSON.stringify(response.data, null, 2), 'utf8');
+          input.io.writeLine('.flexd.json');
+
+          input.io.writeLine();
+          input.io.writeLine(Text.green('Done.'));
+        }
+
+        async function displayFunction(): Promise<void> {
+          (await Message.create({ message: Text.bold('Files:') })).write(input.io);
+          let files = Object.keys(response.data.nodejs.files).sort();
+          for (let i = 0; i < files.length; i++) {
+            let f = files[i];
+            await (await Message.create({
+              header: f,
+              message: `${response.data.nodejs.files[f].length ||
+                JSON.stringify(response.data.nodejs.files[f]).length} bytes`,
+            })).write(input.io);
+            if (input.options['show-code']) {
+              let message =
+                typeof response.data.nodejs.files[f] === 'string'
+                  ? response.data.nodejs.files[f]
+                  : JSON.stringify(response.data.nodejs.files[f], null, 2);
+              await (await Message.create({ message })).write(input.io);
+            }
+          }
+
+          let configurationKeys = Object.keys(response.data.configuration);
+          if (configurationKeys.length === 0) {
+            await (await Message.create({ message: Text.bold('No configuration parameters.') })).write(input.io);
+          } else {
+            await (await Message.create({ message: Text.bold('Configuration:') })).write(input.io);
+            for (var k in configurationKeys) {
+              await (await Message.create({
+                header: configurationKeys[k],
+                message: input.options['show-configuration']
+                  ? response.data.configuration[configurationKeys[k]]
+                  : '*****',
+              })).write(input.io);
+            }
+          }
+          await (await Message.create({ message: Text.bold('Location:') })).write(input.io);
+          await (await Message.create({ message: Text.blue(response.data.location) })).write(input.io);
+        }
       }
-      console.log();
-      console.log('Location:');
-      console.log(response.data.location);
-    }
+    );
+
+    return result || 1;
   }
 }
 
