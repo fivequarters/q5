@@ -153,14 +153,19 @@ export class IdentityStore {
 
   public async removeAllIdentities(accountId: string, agentId: string, identities?: IIdentity[]): Promise<void> {
     const toRemove = identities ? identities : await this.listAllIdentities(accountId, agentId, true);
-    console.log(toRemove);
     const keys = toRemove.map(identity => toDynamoKey(accountId, agentId, identity));
-    console.log(keys);
     return this.dynamo.deleteAll(tableName, keys);
   }
 
-  public async replaceAllIdentities(accountId: string, agentId: string, identities: IIdentity[]): Promise<IIdentity[]> {
+  public async replaceAllIdentities(
+    accountId: string,
+    agentId: string,
+    identities?: IIdentity[]
+  ): Promise<IIdentity[]> {
     const existingIdentities = await this.listAllIdentities(accountId, agentId, true);
+    if (identities === undefined) {
+      return existingIdentities;
+    }
     const fullIdentities = identities.map(id => toFullIdentity(accountId, agentId, id));
     const toAdd = notIn(fullIdentities, existingIdentities, areEqual);
     const toRemove = notIn(existingIdentities, fullIdentities, areEqual);
@@ -220,7 +225,7 @@ export class IdentityStore {
     };
 
     const result = await this.dynamo.queryTable(tableName, queryOptions);
-    return result && result.items && result.items[0] ? fromDynamoItem(result.items[0]) : undefined;
+    return result && result.items && result.items[0] ? fromDynamoItem(result.items[0], true) : undefined;
   }
 
   public async listIssuerSubjectAccounts(

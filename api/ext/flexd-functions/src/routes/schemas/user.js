@@ -6,15 +6,15 @@ module.exports = Joi.object().keys({
   primaryEmail: Joi.string(),
   identities: Joi.array().items(
     Joi.object().keys({
-      iss: Joi.string(),
-      sub: Joi.string(),
+      iss: Joi.string().required(),
+      sub: Joi.string().required(),
     })
   ),
   access: Joi.object().keys({
     allow: Joi.array().items(
       Joi.object().keys({
-        action: Joi.string(),
-        resource: Joi.string(),
+        action: Joi.string().required(),
+        resource: Joi.string().required(),
       })
     ),
   }),

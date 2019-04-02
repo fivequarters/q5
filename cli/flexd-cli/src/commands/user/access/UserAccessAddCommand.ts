@@ -21,12 +21,6 @@ export class UserAccessAddCommand extends Command {
       ],
       options: [
         {
-          name: 'account',
-          aliases: ['a'],
-          description: ['The account to which access should be given to the user'].join(' '),
-          defaultText: 'profile value',
-        },
-        {
           name: 'subscription',
           aliases: ['s'],
           description: ['The subscription to which access should be given to the user'].join(' '),
@@ -70,33 +64,33 @@ export class UserAccessAddCommand extends Command {
     const executeService = await ExecuteService.create(input);
     const profileService = await ProfileService.create(input);
 
-    const allowedActions = ['account:*', 'subscription:*', 'boundary:*', 'function:*'];
-    if (allowedActions.indexOf(action) === -1) {
-      const text = ["The '", Text.bold('action'), "' options must be one of the following values:"];
-      text.push(...allowedActions.map(act => Text.create(" '", Text.bold(act), "'")));
-      await executeService.result({
-        header: 'Invalid Options',
-        message: Text.create(text),
-        kind: MessageKind.error,
-      });
-      return 1;
-    }
+    // const allowedActions = ['account:*', 'subscription:*', 'boundary:*', 'function:*'];
+    // if (allowedActions.indexOf(action) === -1) {
+    //   const text = ["The '", Text.bold('action'), "' options must be one of the following values:"];
+    //   text.push(...allowedActions.map(act => Text.create(" '", Text.bold(act), "'")));
+    //   await executeService.result({
+    //     header: 'Invalid Options',
+    //     message: Text.create(text),
+    //     kind: MessageKind.error,
+    //   });
+    //   return 1;
+    // }
 
-    const expectedOptions = ['account'];
-    if (action === 'subscription:*') {
-      expectedOptions.push('subscription');
-    }
-    if (action === 'boundary:*') {
-      expectedOptions.push('subscription');
-      expectedOptions.push('boundary');
-    }
-    if (action === 'function:*') {
-      expectedOptions.push('subscription');
-      expectedOptions.push('boundary');
-      expectedOptions.push('function');
-    }
+    // const expectedOptions = ['account'];
+    // if (action === 'subscription:*') {
+    //   expectedOptions.push('subscription');
+    // }
+    // if (action === 'boundary:*') {
+    //   expectedOptions.push('subscription');
+    //   expectedOptions.push('boundary');
+    // }
+    // if (action === 'function:*') {
+    //   expectedOptions.push('subscription');
+    //   expectedOptions.push('boundary');
+    //   expectedOptions.push('function');
+    // }
 
-    const profile = await profileService.getExecutionProfile(expectedOptions);
+    const profile = await profileService.getExecutionProfile(); //expectedOptions);
     if (!profile) {
       return 1;
     }

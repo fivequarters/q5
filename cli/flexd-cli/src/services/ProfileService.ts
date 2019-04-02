@@ -60,6 +60,14 @@ export class ProfileService {
     );
   }
 
+  public async getDefaultProfile(): Promise<string | undefined> {
+    return this.profile.getDefaultProfile();
+  }
+
+  public async getPublicKey(name: string): Promise<string | undefined> {
+    return this.profile.getPublicKey(name);
+  }
+
   public async getProfile(name?: string, expectProfile: boolean = true): Promise<IFlexdProfile | undefined> {
     const profileName = Text.bold(name || '<default>');
     let profileError = false;
@@ -124,6 +132,26 @@ export class ProfileService {
     return confirmed;
   }
 
+  public async confirmInitProfile(name: string, profile: IFlexdProfile): Promise<boolean> {
+    const confirmPrompt = await Confirm.create({
+      header: 'Overwrite?',
+      message: Text.create(
+        "The '",
+        Text.bold(name),
+        "' profile already exists. Initialize and overwrite the existing profile shown below?"
+      ),
+      details: this.getProfileConfirmDetails(profile),
+    });
+    const confirmed = await confirmPrompt.prompt(this.input.io);
+    if (!confirmed) {
+      await this.executeService.result({
+        header: 'Init Canceled',
+        message: Text.create("Initializing the '", Text.bold(name), "' profile was canceled"),
+        kind: MessageKind.warning,
+      });
+    }
+    return confirmed;
+  }
   public async updateProfile(name: string, profile: IFlexdProfileSettings): Promise<IFlexdProfile | undefined> {
     return this.executeService.execute(
       {
@@ -246,7 +274,6 @@ export class ProfileService {
         boundary: this.input.options.boundary as string,
         function: this.input.options.function as string,
         baseUrl: process.env.API_SERVER || 'https://stage.flexd.io',
-        // baseUrl: 'http://localhost:3001',
         token: process.env.API_AUTHORIZATION_KEY,
       };
     }
@@ -279,17 +306,29 @@ export class ProfileService {
     return executionProfile;
   }
 
-  public async addProfile(name: string = defaultProfileName, baseUrl: string = defaultBaseUrl) {
-    const issuer = generateIssuer(baseUrl);
+  public async addProfile(name: string, account: string, baseUrl: string = defaultBaseUrl) {
+    if (!name) {
+      if (baseUrl.startsWith('http')) {
+        name = 'local';
+      } else {
+        name = baseUrl.split('.')[0];
+      }
+    }
+
+    const issuerBase = baseUrl.replace('https://', '').split('/')[0];
+
+    const issuer = generateIssuer(name === 'local' ? name : issuerBase);
     const subject = generateSubject();
 
     const newProfile = {
       baseUrl,
       issuer,
       subject,
+      account,
     };
 
-    return this.profile.addProfile(name, newProfile);
+    await this.profile.addProfile(name, newProfile);
+    return this.profile.getProfile(name);
   }
 
   public async displayProfiles(profiles: IFlexdProfile[]) {
@@ -347,10 +386,10 @@ export class ProfileService {
 
     details.push(
       ...[
-        Text.dim('Created:'),
+        Text.dim('Created: '),
         this.getDateString(new Date(profile.created)),
         Text.dim(' • '),
-        Text.dim('Last Updated:'),
+        Text.dim('Last Updated: '),
         this.getDateString(new Date(profile.updated)),
       ]
     );
@@ -371,7 +410,7 @@ export class ProfileService {
 
     const dateOnlyMs = dateOnly.valueOf();
     const [dateString, timeString] = date.toLocaleString().split(',');
-    return dateOnlyMs === today.valueOf() ? timeString : dateString;
+    return dateOnlyMs === today.valueOf() ? timeString.trim() : dateString.trim();
   }
 
   private getProfileUpdateConfirmDetails(profile: IFlexdProfile, settings: IFlexdProfileSettings) {

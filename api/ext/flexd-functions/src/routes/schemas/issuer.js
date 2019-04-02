@@ -7,8 +7,8 @@ module.exports = Joi.object().keys({
     .max(3)
     .items(
       Joi.object().keys({
-        keyId: Joi.string(),
-        publicKey: Joi.string(),
+        keyId: Joi.string().required(),
+        publicKey: Joi.string().required(),
       })
     ),
 });

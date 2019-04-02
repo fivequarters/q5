@@ -11,4 +11,5 @@ export {
   IPublicKeyOrJsonKeysUri,
   IUser,
   IIssuer,
+  IInitEntry,
 } from './AccountDataAws';

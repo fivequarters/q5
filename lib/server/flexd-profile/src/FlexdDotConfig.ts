@@ -55,6 +55,16 @@ export class FlexdDotConfig extends DotConfig {
     await this.writeJson(settingsPath, settings);
   }
 
+  public async getPublicKeyPath(name: string, kid: string): Promise<string | undefined> {
+    let settings: any = await this.readJson(settingsPath);
+    const keyPair = settings && settings.keyPairs && settings.keyPairs[name] ? settings.keyPairs[name][kid] : undefined;
+    if (keyPair && keyPair.publicKeyPath) {
+      return join(this.path, keyPair.publicKeyPath);
+    }
+
+    return undefined;
+  }
+
   public async getPublicKey(name: string, kid: string): Promise<string | undefined> {
     let settings: any = await this.readJson(settingsPath);
     const keyPair = settings && settings.keyPairs && settings.keyPairs[name] ? settings.keyPairs[name][kid] : undefined;
