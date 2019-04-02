@@ -98,10 +98,13 @@ export class Api {
       url += `?generate-token=true`;
     }
     const config = await this.request('GET', url);
-
-    if (editorAccessToken) {
-      config.accessToken = editorAccessToken;
+    console.log('GET EDITOR CONFIG', config);
+    if (config) {
+      config.accessToken = config.token;
     }
+    // if (editorAccessToken) {
+    //   // config.accessToken = editorAccessToken;
+    // }
     return config;
   }
 

@@ -85,7 +85,9 @@ function getEditorConfig(config: ApiConfig) {
       baseUrl: config.functionsBaseUrl,
     };
 
-    if (context.query['generate-token']) {
+    if (process.env.API_AUTHORIZATION_KEY) {
+      settings.token = process.env.API_AUTHORIZATION_KEY;
+    } else if (context.query['generate-token']) {
       settings.token = await signJwt(
         {
           aud: config.fiveQuartersAudience,

@@ -5,7 +5,7 @@ import { Config, IConfigSettings } from '@5qtrs/config';
 // ------------------
 
 const defaultPort = 80;
-const defaultFunctionsBaseUrl = 'http://localhost:3001';
+const defaultFunctionsBaseUrl = process.env.API_SERVER || 'http://localhost:3001';
 const defualtFunctionBoundary = 'contoso';
 const defaultFunctionName = 'on-new-inquiry';
 const googleIssuer = 'accounts.google.com';
