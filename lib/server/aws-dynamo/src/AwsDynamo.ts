@@ -423,7 +423,6 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
     params.RequestItems[tableName] = keys.map(key => ({ DeleteRequest: { Key: key } }));
 
     return new Promise((resolve, reject) => {
-      console.log(params);
       dynamo.batchWriteItem(params, (error: any, data: any) => {
         if (error) {
           return reject(error);

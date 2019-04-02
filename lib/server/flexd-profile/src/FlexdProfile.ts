@@ -123,7 +123,7 @@ export class FlexdProfile {
     baseUrl = baseUrl[baseUrl.length - 1] === '/' ? baseUrl.substring(0, baseUrl.length - 1) : baseUrl;
     return {
       token,
-      baseUrl: `${baseUrl}/v1`,
+      baseUrl: baseUrl.indexOf('/v1') === -1 ? `${baseUrl}/v1` : baseUrl,
       account: profile.account || undefined,
       subscription: profile.subscription || undefined,
       boundary: profile.boundary || undefined,
@@ -202,6 +202,15 @@ export class FlexdProfile {
       throw new Error(message);
     }
     return this.dotConfig.getPublicKey(profile.keyPair, profile.kid);
+  }
+
+  public async getPublicKeyPath(name: string) {
+    const profile = await this.getProfile(name);
+    if (!profile) {
+      const message = `There is no '${name}' profile.`;
+      throw new Error(message);
+    }
+    return this.dotConfig.getPublicKeyPath(profile.keyPair, profile.kid);
   }
 
   private async addKeyPair(name: string, publicKey: string, privateKey: string): Promise<string> {

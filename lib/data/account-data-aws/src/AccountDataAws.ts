@@ -1,11 +1,6 @@
 import { IAwsOptions } from '@5qtrs/aws-base';
 import { AwsDynamo } from '@5qtrs/aws-dynamo';
-import {
-  AccessEntryStore,
-  IAccessEntry,
-  IListAccessEntriesOptions,
-  IListAccessEntriesResult,
-} from './AccessEntryStore';
+import { AccessEntryStore, IAccessEntry } from './AccessEntryStore';
 import {
   AccountStore,
   INewAccount,
@@ -17,10 +12,13 @@ import { IdentityStore, IIdentity } from './IdentityStore';
 import { ClientStore, INewBaseClient, IBaseClient, IListBaseClientsOptions } from './ClientStore';
 import { IssuerStore, IIssuer, IListIssuersOptions, IListIssuersResult } from './IssuerStore';
 import { UserStore, IBaseUser, INewBaseUser, IListBaseUsersOptions, IListUsersResult } from './UserStore';
+import { InitStore, IInitEntry } from './InitStore';
+import { Agent } from 'http';
 
 export { IListAccessEntriesOptions, IListAccessEntriesResult } from './AccessEntryStore';
 export { IIssuer } from './IssuerStore';
 export { IListUsersResult } from './UserStore';
+export { IInitEntry } from './InitStore';
 
 // -------------------
 // Internal Interfaces
@@ -33,6 +31,7 @@ interface IAccountStores {
   identity: IdentityStore;
   issuer: IssuerStore;
   user: UserStore;
+  init: InitStore;
 }
 
 // ------------------
@@ -140,6 +139,14 @@ export interface IListClientsOptions extends IListBaseClientsOptions {
   full?: boolean;
 }
 
+export interface IInitResolve {
+  iss: string;
+  sub: string;
+  publicKey: string;
+  keyId: string;
+  displayName: string;
+}
+
 // ----------------
 // Exported Classes
 // ----------------
@@ -160,6 +167,7 @@ export class AccountDataAws {
       identity: await IdentityStore.create(dynamo),
       issuer: await IssuerStore.create(dynamo),
       user: await UserStore.create(dynamo),
+      init: await InitStore.create(dynamo),
     };
 
     return new AccountDataAws(stores);
@@ -173,6 +181,7 @@ export class AccountDataAws {
       this.stores.identity.isSetup(),
       this.stores.issuer.isSetup(),
       this.stores.user.isSetup(),
+      this.stores.init.isSetup(),
     ]);
     return isSetup.indexOf(false) === -1;
   }
@@ -185,6 +194,7 @@ export class AccountDataAws {
       this.stores.identity.setup(),
       this.stores.issuer.setup(),
       this.stores.user.setup(),
+      this.stores.init.setup(),
     ]);
   }
 
@@ -381,6 +391,46 @@ export class AccountDataAws {
     return removed;
   }
 
+  public async initClient(accountId: string, clientId: string): Promise<IInitEntry | undefined> {
+    const user = await this.getClient(accountId, clientId);
+    if (!user) {
+      return undefined;
+    }
+
+    return this.stores.init.addInitId(accountId, clientId);
+  }
+
+  public async initResolveClient(
+    accountId: string,
+    clientId: string,
+    initId: string,
+    initResolve: IInitResolve
+  ): Promise<IUser | undefined> {
+    const initOk = await this.stores.init.resolveInitId(accountId, clientId, initId);
+    if (!initOk) {
+      return undefined;
+    }
+
+    const newIssuer = {
+      displayName: initResolve.displayName,
+      id: initResolve.iss,
+      keyId: initResolve.keyId,
+      publicKey: initResolve.publicKey,
+    };
+
+    const issuer = await this.addIssuer(accountId, newIssuer);
+    if (!issuer) {
+      return undefined;
+    }
+
+    const updateUser = {
+      id: clientId,
+      identities: [{ iss: initResolve.iss, sub: initResolve.sub }],
+    };
+
+    return this.updateClient(accountId, updateUser);
+  }
+
   public async listUsers(accountId: string, options: IListUsersOptions): Promise<IListUsersResult | undefined> {
     const accountPromise = this.getAccount(accountId);
 
@@ -454,9 +504,9 @@ export class AccountDataAws {
       return undefined;
     }
 
-    const access = user.access && user.access.allow ? user.access.allow.map(fromAccessStatement) : [];
+    const access = user.access && user.access.allow ? user.access.allow.map(fromAccessStatement) : undefined;
     const [identities, accessEntries] = await Promise.all([
-      this.stores.identity.replaceAllIdentities(accountId, user.id, user.identities || []),
+      this.stores.identity.replaceAllIdentities(accountId, user.id, user.identities),
       this.stores.accessEntry.replaceAllAccessEntries(accountId, user.id, access),
     ]);
     return toUser(updatedUser, identities, accessEntries) as IUser;
@@ -469,5 +519,46 @@ export class AccountDataAws {
       this.stores.accessEntry.removeAllAccessEntries(userId),
     ]);
     return removed;
+  }
+
+  public async initUser(accountId: string, userId: string): Promise<IInitEntry | undefined> {
+    const user = await this.getUser(accountId, userId);
+    if (!user) {
+      return undefined;
+    }
+
+    return this.stores.init.addInitId(accountId, userId);
+  }
+
+  public async initResolveUser(
+    accountId: string,
+    userId: string,
+    initId: string,
+    initResolve: IInitResolve
+  ): Promise<IUser | undefined> {
+    const initOk = await this.stores.init.resolveInitId(accountId, userId, initId);
+    if (!initOk) {
+      return undefined;
+    }
+
+    const newIssuer = {
+      displayName: initResolve.displayName,
+      id: initResolve.iss,
+      publicKeys: [{ keyId: initResolve.keyId, publicKey: initResolve.publicKey }],
+    };
+
+    console.log('newIssuer', newIssuer);
+
+    const issuer = await this.addIssuer(accountId, newIssuer);
+    if (!issuer) {
+      return undefined;
+    }
+
+    const updateUser = {
+      id: userId,
+      identities: [{ iss: initResolve.iss, sub: initResolve.sub }],
+    };
+
+    return this.updateUser(accountId, updateUser);
   }
 }

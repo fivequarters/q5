@@ -133,12 +133,15 @@ export class AccessEntryStore {
   public async replaceAllAccessEntries(
     accountId: string,
     agentId: string,
-    accessEntries: IAccessEntry[]
+    accessEntries?: IAccessEntry[]
   ): Promise<IAccessEntry[]> {
     const existingAccessEntries = await this.listAllAccessEntries(agentId);
+    if (accessEntries === undefined) {
+      return existingAccessEntries;
+    }
     const toAdd = notIn(accessEntries, existingAccessEntries, areEqual);
     const toRemove = notIn(existingAccessEntries, accessEntries, areEqual);
-    console.log('Replace access', toAdd, toRemove);
+
     await Promise.all([
       this.addAllAccessEntries(accountId, agentId, toAdd),
       this.removeAllAccessEntries(agentId, toRemove),

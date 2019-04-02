@@ -1,5 +1,6 @@
 import { Message, MessageKind, IExecuteInput } from '@5qtrs/cli';
 import { Text, IText } from '@5qtrs/text';
+import { IHttpRequest, request as sendRequest } from '@5qtrs/request';
 import { Table } from '@5qtrs/table';
 
 // -------------------
@@ -70,6 +71,37 @@ export class ExecuteService {
       this.logs.push({ header: messages.errorHeader, message: messages.errorMessage, error, date: new Date() });
       return undefined;
     }
+  }
+
+  public async executeRequest<T>(messages: IExcuteMessages, request: IHttpRequest) {
+    const headers = (request.headers = request.headers || {});
+    if (!headers['Content-Type'] && !headers['content-type']) {
+      headers['Content-Type'] = 'application/json';
+    }
+
+    const func = async () => {
+      const response = await sendRequest(request);
+      if (response.status === 404) {
+        const message = 'The given entity does not exist.';
+        throw new Error(message);
+      }
+      if (response.status === 403) {
+        const message = 'Access was not authorized. Contact an account admin to request access.';
+        throw new Error(message);
+      }
+      if (response.status >= 500) {
+        const message = 'An unknown error occured on the server.';
+        throw new Error(message);
+      }
+      if (response.status >= 400) {
+        const message = 'An unknown error occured.';
+        throw new Error(message);
+      }
+
+      return response.data;
+    };
+
+    return this.execute(messages, func);
   }
 
   public async result(messages: IExcuteMessages) {

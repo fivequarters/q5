@@ -1,4 +1,4 @@
-import { Command, ArgType, IExecuteInput} from '@5qtrs/cli';
+import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
 import { ExecuteService, UserService } from '../../services';
 import { Text } from '@5qtrs/text';
 
@@ -76,7 +76,7 @@ export class UserAddCommand extends Command {
 
     await executeService.result({
       header: 'User Added',
-      message: Text.create("User '", Text.bold(user.id), "' was successfully added'"),
+      message: Text.create("User '", Text.bold(user.id), "' was successfully added"),
     });
 
     await userService.displayUser(user);

@@ -4,6 +4,7 @@ import { ProfileService } from './ProfileService';
 import { Text } from '@5qtrs/text';
 import { request } from '@5qtrs/request';
 import { clone } from '@5qtrs/clone';
+import { toBase64 } from '@5qtrs/base64';
 
 // ------------------
 // Internal Constants
@@ -50,6 +51,14 @@ export interface IFlexdUser extends IFlexdUpdateUser {
   id: string;
 }
 
+export interface IFlexdInitResolve {
+  displayName: string;
+  publicKey: string;
+  keyId: string;
+  iss: string;
+  sub: string;
+}
+
 // ----------------
 // Exported Classes
 // ----------------
@@ -77,39 +86,21 @@ export class UserService {
       return undefined;
     }
 
-    const added = await this.executeService.execute(
+    const result = await this.executeService.executeRequest(
       {
         header: 'Get Users',
         message: Text.create("Getting the users of account '", Text.bold(profile.account || ''), "'..."),
         errorHeader: 'Get User Error',
         errorMessage: Text.create("Unable to get the users of account '", Text.bold(profile.account || ''), "'"),
       },
-      async () => {
-        const result = await request({
-          method: 'GET',
-          url: `${profile.baseUrl}/account/${profile.account}/user`,
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `bearer ${profile.token}`,
-          },
-        });
-        if (result.status === 404) {
-          const message = 'Either the configured deployment URL is in correct, or the account does not exist';
-          throw new Error(message);
-        }
-        if (result.status >= 500) {
-          const message = 'An error occurred on the server.';
-          throw new Error(message);
-        }
-        if (result.status !== 200) {
-          const message = 'An unknown error occurred.';
-          throw new Error(message);
-        }
-        return result.data.items;
+      {
+        method: 'GET',
+        url: `${profile.baseUrl}/account/${profile.account}/user`,
+        headers: { Authorization: `bearer ${profile.token}` },
       }
     );
 
-    return added;
+    return result ? result.items : undefined;
   }
 
   public async getUser(id: string): Promise<IFlexdUser | undefined> {
@@ -118,41 +109,21 @@ export class UserService {
       return undefined;
     }
 
-    const added = await this.executeService.execute(
+    const user = await this.executeService.executeRequest(
       {
         header: 'Get User',
         message: Text.create("Getting user '", Text.bold(id), "'..."),
         errorHeader: 'Get User Error',
         errorMessage: Text.create("Unable to get user '", Text.bold(id), "'"),
       },
-      async () => {
-        const result = await request({
-          method: 'GET',
-          url: `${profile.baseUrl}/account/${profile.account}/user/${id}`,
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `bearer ${profile.token}`,
-          },
-        });
-        if (result.status === 404) {
-          const message =
-            'Either the configured deployment URL is in correct, the account does not exist or the user does not exist';
-          throw new Error(message);
-        }
-        if (result.status >= 500) {
-          const message = 'An error occurred on the server.';
-          throw new Error(message);
-        }
-        if (result.status !== 200) {
-          const message = 'An unknown error occurred.';
-          throw new Error(message);
-        }
-
-        return result.data;
+      {
+        method: 'GET',
+        url: `${profile.baseUrl}/account/${profile.account}/user/${id}`,
+        headers: { Authorization: `bearer ${profile.token}` },
       }
     );
 
-    return added;
+    return user;
   }
 
   public async addUser(id: string, newUser: INewFlexdUser): Promise<IFlexdUser | undefined> {
@@ -161,40 +132,21 @@ export class UserService {
       return undefined;
     }
 
-    const added = await this.executeService.execute(
+    const user = await this.executeService.executeRequest(
       {
         header: 'Add User',
         message: Text.create('Adding the user...'),
         errorHeader: 'Add User Error',
         errorMessage: Text.create('Unable to add the user'),
       },
-      async () => {
-        const result = await request({
-          method: 'POST',
-          url: `${profile.baseUrl}/account/${profile.account}/user`,
-          data: newUser,
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `bearer ${profile.token}`,
-          },
-        });
-        if (result.status === 404) {
-          const message = 'Either the configured deployment URL is in correct, or the account does not exist.';
-          throw new Error(message);
-        }
-        if (result.status >= 500) {
-          const message = 'An error occurred on the server.';
-          throw new Error(message);
-        }
-        if (result.status !== 200) {
-          const message = 'An unknown error occurred.';
-          throw new Error(message);
-        }
-        return result.data;
+      {
+        method: 'POST',
+        url: `${profile.baseUrl}/account/${profile.account}/user`,
+        data: newUser,
+        headers: { Authorization: `bearer ${profile.token}` },
       }
     );
-
-    return added;
+    return user;
   }
 
   public async confirmAddUser(newUser: INewFlexdUser): Promise<boolean> {
@@ -216,6 +168,7 @@ export class UserService {
         kind: MessageKind.warning,
       });
     }
+
     return confirmed;
   }
 
@@ -225,40 +178,21 @@ export class UserService {
       return false;
     }
 
-    const removedOk = await this.executeService.execute(
+    const success = await this.executeService.executeRequest(
       {
         header: 'Remove User',
         message: Text.create("Removing user '", Text.bold(id), "'..."),
         errorHeader: 'Remove User Error',
         errorMessage: Text.create("Unable to remove user '", Text.bold(id), "'"),
       },
-      async () => {
-        const result = await request({
-          method: 'DELETE',
-          url: `${profile.baseUrl}/account/${profile.account}/user/${id}`,
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `bearer ${profile.token}`,
-          },
-        });
-        if (result.status === 404) {
-          const message =
-            'Either the configured deployment URL is in correct, the account does not exist or the user does not exist.';
-          throw new Error(message);
-        }
-        if (result.status >= 500) {
-          const message = 'An error occurred on the server.';
-          throw new Error(message);
-        }
-        if (result.status !== 204) {
-          const message = 'An unknown error occurred.';
-          throw new Error(message);
-        }
-        return true;
+      {
+        method: 'DELETE',
+        url: `${profile.baseUrl}/account/${profile.account}/user/${id}`,
+        headers: { Authorization: `bearer ${profile.token}` },
       }
     );
 
-    return removedOk === true;
+    return success === true;
   }
 
   public async confirmRemoveUser(id: string, user: IFlexdUser): Promise<boolean> {
@@ -291,42 +225,97 @@ export class UserService {
 
     const userSansId = clone(user);
     userSansId.id = undefined;
-
-    const updatedUser = await this.executeService.execute(
+    const updatedUser = await this.executeService.executeRequest(
       {
         header: 'Update User',
         message: Text.create("Updating user '", Text.bold(user.id), "'..."),
         errorHeader: 'Update User Error',
         errorMessage: Text.create("Unable to update user '", Text.bold(user.id), "'"),
       },
-      async () => {
-        const result = await request({
-          method: 'PUT',
-          url: `${profile.baseUrl}/account/${profile.account}/user/${user.id}`,
-          data: userSansId,
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `bearer ${profile.token}`,
-          },
-        });
-        if (result.status === 404) {
-          const message =
-            'Either the configured deployment URL is in correct, the account does not exist or the user does not exist.';
-          throw new Error(message);
-        }
-        if (result.status >= 500) {
-          const message = 'An error occurred on the server.';
-          throw new Error(message);
-        }
-        if (result.status !== 200) {
-          const message = 'An unknown error occurred.';
-          throw new Error(message);
-        }
-        return result.data;
+      {
+        method: 'PUT',
+        url: `${profile.baseUrl}/account/${profile.account}/user/${user.id}`,
+        data: userSansId,
+        headers: { Authorization: `bearer ${profile.token}` },
       }
     );
 
-    return updatedUser || undefined;
+    return updatedUser;
+  }
+
+  public async initUser(id: string): Promise<string | undefined> {
+    const profile = await this.profileService.getExecutionProfile(['account']);
+    if (!profile) {
+      return undefined;
+    }
+
+    const initEntry = await this.executeService.executeRequest(
+      {
+        header: 'Generate Token',
+        message: Text.create("Generating an init token for user '", Text.bold(id), "'..."),
+        errorHeader: 'Token Error',
+        errorMessage: Text.create("Unable to generate an init token for user '", Text.bold(id), "'"),
+      },
+      {
+        method: 'POST',
+        url: `${profile.baseUrl}/account/${profile.account}/user/${id}/init`,
+        headers: { Authorization: `bearer ${profile.token}` },
+      }
+    );
+
+    const initId = initEntry.initId;
+    const token = toBase64([profile.baseUrl, profile.account, id, initId].join('::'));
+    return token;
+  }
+
+  public async confirmInitUser(user: IFlexdUser): Promise<boolean> {
+    const profile = await this.profileService.getExecutionProfile(['account']);
+    if (!profile) {
+      return false;
+    }
+
+    const confirmPrompt = await Confirm.create({
+      header: 'Generate Init Token?',
+      message: Text.create("Generate an init token for user '", Text.bold(user.id), "'?"),
+      details: this.getUserConfirmDetails(profile.account as string, user),
+    });
+    const confirmed = await confirmPrompt.prompt(this.input.io);
+    if (!confirmed) {
+      await this.executeService.result({
+        header: 'Init Token Canceled',
+        message: Text.create("Generating an init token for user '", Text.bold(user.id), "' was canceled."),
+        kind: MessageKind.warning,
+      });
+    }
+    return confirmed;
+  }
+
+  public async resolveInitId(
+    accountId: string,
+    agentId: string,
+    initId: string,
+    initResolve: IFlexdInitResolve
+  ): Promise<IFlexdUser | undefined> {
+    const profile = await this.profileService.getExecutionProfile(['account']);
+    if (!profile) {
+      return undefined;
+    }
+
+    const user = await this.executeService.executeRequest(
+      {
+        header: 'Verifying Token',
+        message: Text.create("Verifying the init token for user '", Text.bold(agentId), "'..."),
+        errorHeader: 'Token Error',
+        errorMessage: Text.create("Unable to verify the init token for user '", Text.bold(agentId), "'"),
+      },
+      {
+        method: 'PUT',
+        url: `${profile.baseUrl}/account/${accountId}/user/${agentId}/init/${initId}`,
+        data: initResolve,
+      }
+    );
+
+    return user;
   }
 
   public async confirmAddUserAccess(user: IFlexdUser, access: IAddUserAccess): Promise<boolean> {
@@ -399,6 +388,26 @@ export class UserService {
     await this.writeUser(user);
   }
 
+  public async displayInitToken(initToken: string) {
+    if (this.input.options.format === 'json') {
+      await this.input.io.writeLine(JSON.stringify(initToken, null, 2));
+      return;
+    }
+    await this.executeService.result({
+      header: 'Init Token',
+      message: Text.create(
+        'Provide the following init token to the user. ',
+        'It is a single use token that will expire in 8 hours.',
+        Text.eol(),
+        Text.eol(),
+        'Have the user execute the following command:'
+      ),
+      kind: MessageKind.result,
+    });
+    console.log(`flx init ${initToken}`);
+    console.log();
+  }
+
   private async writeUser(user: IFlexdUser) {
     const details = [Text.dim('Id: '), user.id || ''];
 
@@ -412,7 +421,7 @@ export class UserService {
       details.push(...[Text.eol(), Text.eol()]);
       details.push(Text.italic('Identities: '));
       for (const identity of user.identities) {
-        details.push(...[Text.eol(), Text.dim('• iss: '), identity.iss, Text.dim('  sub:'), identity.sub]);
+        details.push(...[Text.eol(), Text.dim('• iss: '), identity.iss, Text.eol(), Text.dim('  sub:'), identity.sub]);
       }
     }
 

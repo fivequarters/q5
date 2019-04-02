@@ -6,7 +6,7 @@ import { UserAddCommand } from './UserAddCommand';
 import { UserRemoveCommand } from './UserRemoveCommand';
 import { UserUpdateCommand } from './UserUpdateCommand';
 import { UserGetCommand } from './UserGetCommand';
-import { UserCliCommand } from './UserCliCommand';
+import { UserInitCommand } from './UserInitCommand';
 
 // ------------------
 // Internal Constants
@@ -46,7 +46,7 @@ async function getSubCommands() {
   subCommands.push(await UserRemoveCommand.create());
   subCommands.push(await UserIdentityCommand.create());
   subCommands.push(await UserAccessCommand.create());
-  subCommands.push(await UserCliCommand.create());
+  subCommands.push(await UserInitCommand.create());
   return subCommands;
 }
 
