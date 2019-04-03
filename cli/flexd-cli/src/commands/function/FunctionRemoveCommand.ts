@@ -1,8 +1,7 @@
 import { EOL } from 'os';
 import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
-import { request, IHttpResponse } from '@5qtrs/request';
-import { ProfileService } from '../../services';
-import { inferredPredicate } from '@babel/types';
+import { request } from '@5qtrs/request';
+import { ProfileService, tryGetFlexd, getProfileSettingsFromFlexd } from '../../services';
 
 export class FunctionRemoveCommand extends Command {
   private constructor() {
@@ -39,7 +38,10 @@ export class FunctionRemoveCommand extends Command {
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
     let profileService = await ProfileService.create(input);
-    let profile = await profileService.getExecutionProfile(['subscription', 'boundary', 'function']);
+    let profile = await profileService.getExecutionProfile(
+      ['subscription', 'boundary', 'function'],
+      getProfileSettingsFromFlexd(tryGetFlexd())
+    );
 
     if (
       !input.options.confirm &&
@@ -60,6 +62,7 @@ export class FunctionRemoveCommand extends Command {
       headers: {
         Authorization: `Bearer ${profile.token}`,
       },
+      validStatus: status => status === 200,
     });
 
     input.io.writeLine('Function removed.');

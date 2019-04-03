@@ -1,9 +1,6 @@
-import { EOL } from 'os';
 import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
 import { request } from '@5qtrs/request';
-import { ProfileService, serializeKeyValue, parseKeyValue } from '../../services';
-import * as Path from 'path';
-import * as Fs from 'fs';
+import { ProfileService, tryGetFlexd, getProfileSettingsFromFlexd } from '../../services';
 
 export class FunctionUrlCommand extends Command {
   private constructor() {
@@ -30,7 +27,10 @@ export class FunctionUrlCommand extends Command {
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
     let profileService = await ProfileService.create(input);
-    let profile = await profileService.getExecutionProfile(['subscription', 'boundary', 'function']);
+    let profile = await profileService.getExecutionProfile(
+      ['subscription', 'boundary', 'function'],
+      getProfileSettingsFromFlexd(tryGetFlexd())
+    );
 
     let response = await request({
       url: `${profile.baseUrl}/v1/subscription/${profile.subscription}/boundary/${profile.boundary}/function/${
@@ -39,8 +39,10 @@ export class FunctionUrlCommand extends Command {
       headers: {
         Authorization: `Bearer ${profile.token}`,
       },
+      validStatus: status => status === 200,
     });
 
+    // This is intentionally bare output - for scripting
     console.log(response.data.location);
 
     return 0;

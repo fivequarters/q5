@@ -1,3 +1,6 @@
+import * as Path from 'path';
+import { IFlexdProfileSettings } from '@5qtrs/flexd-profile';
+
 export function serializeKeyValue(data: { [property: string]: string | number | undefined }) {
   const lines: string[] = [];
   Object.keys(data)
@@ -24,4 +27,22 @@ export function parseKeyValue(data: string) {
     }
   });
   return value;
+}
+
+export function tryGetFlexd(srcDir?: string) {
+  let flexd: any = undefined;
+  try {
+    flexd = require(Path.join(srcDir || process.cwd(), '.flexd', 'function.json'));
+  } catch (_) {}
+  return flexd;
+}
+
+export function getProfileSettingsFromFlexd(flexd: any): IFlexdProfileSettings {
+  let result: IFlexdProfileSettings = {};
+  if (flexd) {
+    if (flexd.subscriptionId) result.subscription = flexd.subscriptionId;
+    if (flexd.boundaryId) result.boundary = flexd.boundaryId;
+    if (flexd.id) result.function = flexd.id;
+  }
+  return result;
 }

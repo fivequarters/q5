@@ -1,7 +1,14 @@
 import { EOL } from 'os';
 import { Command, ArgType, IExecuteInput, Message, MessageKind } from '@5qtrs/cli';
 import { request, IHttpResponse } from '@5qtrs/request';
-import { ProfileService, serializeKeyValue, parseKeyValue, ExecuteService } from '../../services';
+import {
+  ProfileService,
+  serializeKeyValue,
+  parseKeyValue,
+  ExecuteService,
+  tryGetFlexd,
+  getProfileSettingsFromFlexd,
+} from '../../services';
 import * as Path from 'path';
 import * as Fs from 'fs';
 import { Text } from '@5qtrs/text';
@@ -41,8 +48,10 @@ export class FunctionDeployCommand extends Command {
         },
         {
           name: 'cron',
-          description:
-            'The cron schedule to use to invoke the function. Construct a CRON string at https://crontab.guru/.',
+          description: [
+            'The cron schedule to use to invoke the function, or "off" to turn the cron off. Construct a CRON string at https://crontab.guru/.',
+            'For example: --cron "0 */1 * * *" runs every hour, --cron "*/15 * * * *" runs every 15 minutes, --cron "off" turns the cron off.',
+          ].join(' '),
         },
         {
           name: 'timezone',
@@ -73,13 +82,14 @@ export class FunctionDeployCommand extends Command {
   protected async onExecute(input: IExecuteInput): Promise<number> {
     let profileService = await ProfileService.create(input);
     const executeService = await ExecuteService.create(input);
-    let profile = await profileService.getExecutionProfile([]);
-
     let sourceDirectory = Path.join(process.cwd(), (input.arguments[0] as string) || '');
-    let flexd: any;
-    try {
-      flexd = require(Path.join(sourceDirectory, '.flexd.json'));
-    } catch (_) {
+    let flexd = tryGetFlexd(sourceDirectory);
+    let profile = await profileService.getExecutionProfile(
+      ['subscription', 'boundary', 'function'],
+      getProfileSettingsFromFlexd(flexd)
+    );
+
+    if (!flexd) {
       flexd = {
         lambda: {
           memory_size: 128,
@@ -92,11 +102,7 @@ export class FunctionDeployCommand extends Command {
       flexd.metadata.computeSettings = serializeKeyValue(flexd.lambda);
     }
 
-    profile.subscription = input.options.subscription || flexd.subscriptionId || profile.subscription;
-    profile.boundary = input.options.boundary || flexd.boundaryId || profile.boundary;
-    profile.function = input.options.function || flexd.id || profile.function;
-
-    const result = await executeService.execute(
+    await executeService.execute(
       {
         header: 'Deploy Function',
         message: Text.create(
@@ -112,15 +118,6 @@ export class FunctionDeployCommand extends Command {
         errorMessage: 'Unable to deploy the function',
       },
       async () => {
-        ['subscription', 'boundary', 'function'].forEach(x => {
-          // @ts-ignore
-          if (!profile[x]) {
-            throw new Error(
-              `The ${x} id must be specified. You can specify usin the --${x} option, or by using a profile which defines this value.`
-            );
-          }
-        });
-
         let tmp: any = {
           nodejs: { files: {} },
         };
@@ -133,12 +130,19 @@ export class FunctionDeployCommand extends Command {
         }
 
         if (input.options.cron) {
-          flexd.schedule = flexd.schedule || {};
-          flexd.schedule.cron = input.options.cron;
-          if (input.options.timezone) {
-            flexd.schedule.timezone = input.options.timezone;
-            flexd.metadata = flexd.metadata || {};
-            flexd.metadata.cronSettings = serializeKeyValue(flexd.schedule);
+          if ((<string>input.options.cron).match(/^off$/i)) {
+            delete flexd.schedule;
+            if (flexd.metadata) {
+              delete flexd.metadata.cronSettings;
+            }
+          } else {
+            flexd.schedule = flexd.schedule || {};
+            flexd.schedule.cron = input.options.cron;
+            if (input.options.timezone) {
+              flexd.schedule.timezone = input.options.timezone;
+              flexd.metadata = flexd.metadata || {};
+              flexd.metadata.cronSettings = serializeKeyValue(flexd.schedule);
+            }
           }
         } else if (input.options.timezone) {
           throw new Error('If you specify --timezone, you must also specify --cron.');
@@ -148,19 +152,22 @@ export class FunctionDeployCommand extends Command {
         for (var i = 0; i < files.length; i++) {
           var f = files[i];
           if (!f.isFile()) {
-            await (await Message.create({
-              header: f.name,
-              message: `Ignoring`,
-              kind: MessageKind.warning,
-            })).write(input.io);
+            if (f.name !== '.flexd') {
+              await (await Message.create({
+                header: f.name,
+                message: `Ignoring`,
+                kind: MessageKind.warning,
+              })).write(input.io);
+            } else {
+              await (await Message.create({
+                header: f.name,
+                message: `The .flexd/function.json is present, defaults specified in this file are used.`,
+                kind: MessageKind.info,
+              })).write(input.io);
+            }
             continue;
           }
-          if (f.name === '.flexd.json') {
-            await (await Message.create({
-              header: f.name,
-              message: `The .flexd.json is present, defaults specified in this file are used.`,
-              kind: MessageKind.info,
-            })).write(input.io);
+          if (f.name === '.gitignore') {
             continue;
           }
           let content = Fs.readFileSync(Path.join(sourceDirectory, f.name), 'utf8');
@@ -214,9 +221,9 @@ export class FunctionDeployCommand extends Command {
           table.addRow(['Configuration', 'Not specified']);
         }
         if (flexd.schedule && flexd.schedule.cron) {
-          table.addRow(['CRON', `${flexd.schedule.cron}, timezone: ${flexd.schedule.timezone || 'UTC'}`]);
+          table.addRow(['Schedule', `${flexd.schedule.cron}, timezone: ${flexd.schedule.timezone || 'UTC'}`]);
         } else {
-          table.addRow(['CRON', 'Not specified']);
+          table.addRow(['Schedule', 'Not specified']);
         }
         await input.io.write(table.toString());
 
@@ -292,10 +299,12 @@ export class FunctionDeployCommand extends Command {
           }
           delete flexd.configuration;
           delete flexd.nodejs;
-          Fs.writeFileSync(Path.join(sourceDirectory, '.flexd.json'), JSON.stringify(flexd, null, 2), 'utf8');
-          // await input.io.writeLine(
-          //   'NOTE: all options were saved to .flexd.json. Next time you can run just `flx function deploy`.'
-          // );
+          Fs.mkdirSync(Path.join(sourceDirectory, '.flexd'), { recursive: true });
+          Fs.writeFileSync(
+            Path.join(sourceDirectory, '.flexd', 'function.json'),
+            JSON.stringify(flexd, null, 2),
+            'utf8'
+          );
           return 0;
         } else {
           throw new Error(

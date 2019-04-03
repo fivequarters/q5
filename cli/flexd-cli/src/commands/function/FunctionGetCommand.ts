@@ -1,10 +1,17 @@
-import { EOL } from 'os';
 import { Command, ArgType, IExecuteInput, Message } from '@5qtrs/cli';
 import { request } from '@5qtrs/request';
-import { ProfileService, serializeKeyValue, parseKeyValue, ExecuteService } from '../../services';
+import {
+  ProfileService,
+  serializeKeyValue,
+  parseKeyValue,
+  ExecuteService,
+  tryGetFlexd,
+  getProfileSettingsFromFlexd,
+} from '../../services';
 import * as Path from 'path';
 import * as Fs from 'fs';
 import { Text } from '@5qtrs/text';
+import { Table } from '@5qtrs/table';
 
 export class FunctionGetCommand extends Command {
   private constructor() {
@@ -69,7 +76,10 @@ export class FunctionGetCommand extends Command {
   protected async onExecute(input: IExecuteInput): Promise<number> {
     let profileService = await ProfileService.create(input);
     const executeService = await ExecuteService.create(input);
-    let profile = await profileService.getExecutionProfile(['subscription', 'boundary', 'function']);
+    let profile = await profileService.getExecutionProfile(
+      ['subscription', 'boundary', 'function'],
+      input.options.download ? undefined : getProfileSettingsFromFlexd(tryGetFlexd())
+    );
 
     const result = await executeService.execute(
       {
@@ -94,6 +104,7 @@ export class FunctionGetCommand extends Command {
           headers: {
             Authorization: `Bearer ${profile.token}`,
           },
+          validStatus: status => status === 200,
         });
         if (input.options.download) {
           await saveToDisk();
@@ -147,31 +158,51 @@ export class FunctionGetCommand extends Command {
 
           // Save remaining metadata to allow for roundtrip on deploy
 
+          Fs.mkdirSync(Path.join(destDirectory, '.flexd'), { recursive: true });
           response.data.flxVersion = require('../../../package.json').version;
-          Fs.writeFileSync(Path.join(destDirectory, '.flexd.json'), JSON.stringify(response.data, null, 2), 'utf8');
-          input.io.writeLine('.flexd.json');
+          Fs.writeFileSync(
+            Path.join(destDirectory, '.flexd', 'function.json'),
+            JSON.stringify(response.data, null, 2),
+            'utf8'
+          );
+          input.io.writeLine('.flexd/function.json');
 
           input.io.writeLine();
           input.io.writeLine(Text.green('Done.'));
         }
 
         async function displayFunction(): Promise<void> {
-          (await Message.create({ message: Text.bold('Files:') })).write(input.io);
+          await (await Message.create({ message: Text.bold('Files:') })).write(input.io);
           let files = Object.keys(response.data.nodejs.files).sort();
-          for (let i = 0; i < files.length; i++) {
-            let f = files[i];
-            await (await Message.create({
-              header: f,
-              message: `${response.data.nodejs.files[f].length ||
-                JSON.stringify(response.data.nodejs.files[f]).length} bytes`,
-            })).write(input.io);
-            if (input.options['show-code']) {
+          if (input.options['show-code']) {
+            for (let i = 0; i < files.length; i++) {
+              let f = files[i];
+              await (await Message.create({
+                header: f,
+                message: `${response.data.nodejs.files[f].length ||
+                  JSON.stringify(response.data.nodejs.files[f]).length} bytes`,
+              })).write(input.io);
               let message =
                 typeof response.data.nodejs.files[f] === 'string'
                   ? response.data.nodejs.files[f]
                   : JSON.stringify(response.data.nodejs.files[f], null, 2);
               await (await Message.create({ message })).write(input.io);
             }
+          } else {
+            const table = await Table.create({
+              width: input.io.outputWidth,
+              count: 2,
+              gutter: Text.dim('  │  '),
+              columns: [{ flexShrink: 0, flexGrow: 0 }, { flexGrow: 1 }],
+            });
+
+            for (let i = 0; i < files.length; i++) {
+              let f = files[i];
+              table.addRow([f, `${f.length || JSON.stringify(f).length} bytes`]);
+            }
+
+            await input.io.writeLine(table.toText());
+            await input.io.writeLine();
           }
 
           let configurationKeys = Object.keys(response.data.configuration);
@@ -179,13 +210,38 @@ export class FunctionGetCommand extends Command {
             await (await Message.create({ message: Text.bold('No configuration parameters.') })).write(input.io);
           } else {
             await (await Message.create({ message: Text.bold('Configuration:') })).write(input.io);
+            const table = await Table.create({
+              width: input.io.outputWidth,
+              count: 2,
+              gutter: Text.dim('  │  '),
+              columns: [{ flexShrink: 0, flexGrow: 0 }, { flexGrow: 1 }],
+            });
             for (var k in configurationKeys) {
+              table.addRow([
+                configurationKeys[k],
+                input.options['show-configuration'] ? response.data.configuration[configurationKeys[k]] : '*****',
+              ]);
+            }
+            await input.io.writeLine(table.toText());
+            await input.io.writeLine();
+
+            let cronKeys = Object.keys(response.data.schedule);
+            if (cronKeys.length === 0) {
               await (await Message.create({
-                header: configurationKeys[k],
-                message: input.options['show-configuration']
-                  ? response.data.configuration[configurationKeys[k]]
-                  : '*****',
+                message: Text.bold('The function does not have a schedule of execution.'),
               })).write(input.io);
+            } else {
+              await (await Message.create({ message: Text.bold('Schedule:') })).write(input.io);
+              const table = await Table.create({
+                width: input.io.outputWidth,
+                count: 2,
+                gutter: Text.dim('  │  '),
+                columns: [{ flexShrink: 0, flexGrow: 0 }, { flexGrow: 1 }],
+              });
+              table.addRow(['CRON', response.data.schedule.cron]);
+              table.addRow(['Timezone', response.data.schedule.timezone || 'UTC']);
+              await input.io.writeLine(table.toText());
+              await input.io.writeLine();
             }
           }
           await (await Message.create({ message: Text.bold('Location:') })).write(input.io);

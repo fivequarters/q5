@@ -1,5 +1,5 @@
 import { Command, ArgType, IExecuteInput, Message } from '@5qtrs/cli';
-import { ProfileService, ExecuteService } from '../../services';
+import { ProfileService, ExecuteService, tryGetFlexd, getProfileSettingsFromFlexd } from '../../services';
 import { Text } from '@5qtrs/text';
 
 export class FunctionLogCommand extends Command {
@@ -37,7 +37,10 @@ export class FunctionLogCommand extends Command {
   protected async onExecute(input: IExecuteInput): Promise<number> {
     let profileService = await ProfileService.create(input);
     const executeService = await ExecuteService.create(input);
-    let profile = await profileService.getExecutionProfile(['subscription', 'boundary']);
+    let profile = await profileService.getExecutionProfile(
+      ['subscription', 'boundary'],
+      getProfileSettingsFromFlexd(tryGetFlexd())
+    );
 
     const result = await executeService.execute(
       {
@@ -70,15 +73,15 @@ export class FunctionLogCommand extends Command {
             if (res.statusCode !== 200) {
               throw new Error(`Error attaching to streaming logs. HTTP status ${res.statusCode}.`);
             }
-            if (input.options.function) {
+            if (profile.function) {
               await (await Message.create({
                 header: `Connected to function logs`,
-                message: `${input.options.boundary}/${input.options.function}`,
+                message: `${profile.boundary}/${profile.function}`,
               })).write(input.io);
             } else {
               await (await Message.create({
                 header: `Connected to boundary logs`,
-                message: `${input.options.boundary}`,
+                message: `${profile.boundary}`,
               })).write(input.io);
             }
             res.setEncoding('utf8');

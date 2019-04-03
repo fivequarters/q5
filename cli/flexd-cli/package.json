@@ -6,8 +6,8 @@
   "bin": {
     "flx": "libc/index.js"
   },
-  "license": "UNLICENSED",
-  "author": "FiveQuarters.io",
+  "license": "MIT",
+  "author": "flexd.io",
   "scripts": {
     "build": "tsc -b",
     "test": "jest --colors",

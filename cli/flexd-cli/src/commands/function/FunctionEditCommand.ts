@@ -1,5 +1,5 @@
 import { Command, IExecuteInput, Message } from '@5qtrs/cli';
-import { ProfileService, ExecuteService } from '../../services';
+import { ProfileService, ExecuteService, tryGetFlexd, getProfileSettingsFromFlexd } from '../../services';
 import * as http from 'http';
 const open = require('open');
 import { Text } from '@5qtrs/text';
@@ -31,7 +31,10 @@ not exist, it is created.`,
   protected async onExecute(input: IExecuteInput): Promise<number> {
     let profileService = await ProfileService.create(input);
     const executeService = await ExecuteService.create(input);
-    let profile = await profileService.getExecutionProfile(['subscription', 'boundary', 'function']);
+    let profile = await profileService.getExecutionProfile(
+      ['subscription', 'boundary', 'function'],
+      getProfileSettingsFromFlexd(tryGetFlexd())
+    );
 
     const result = await executeService.execute(
       {
