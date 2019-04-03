@@ -95,7 +95,7 @@ export class UserService {
       },
       {
         method: 'GET',
-        url: `${profile.baseUrl}/account/${profile.account}/user`,
+        url: `${profile.baseUrl}/v1/account/${profile.account}/user`,
         headers: { Authorization: `bearer ${profile.token}` },
       }
     );
@@ -118,7 +118,7 @@ export class UserService {
       },
       {
         method: 'GET',
-        url: `${profile.baseUrl}/account/${profile.account}/user/${id}`,
+        url: `${profile.baseUrl}/v1/account/${profile.account}/user/${id}`,
         headers: { Authorization: `bearer ${profile.token}` },
       }
     );
@@ -141,7 +141,7 @@ export class UserService {
       },
       {
         method: 'POST',
-        url: `${profile.baseUrl}/account/${profile.account}/user`,
+        url: `${profile.baseUrl}/v1/account/${profile.account}/user`,
         data: newUser,
         headers: { Authorization: `bearer ${profile.token}` },
       }
@@ -187,7 +187,7 @@ export class UserService {
       },
       {
         method: 'DELETE',
-        url: `${profile.baseUrl}/account/${profile.account}/user/${id}`,
+        url: `${profile.baseUrl}/v1/account/${profile.account}/user/${id}`,
         headers: { Authorization: `bearer ${profile.token}` },
       }
     );
@@ -234,7 +234,7 @@ export class UserService {
       },
       {
         method: 'PUT',
-        url: `${profile.baseUrl}/account/${profile.account}/user/${user.id}`,
+        url: `${profile.baseUrl}/v1/account/${profile.account}/user/${user.id}`,
         data: userSansId,
         headers: { Authorization: `bearer ${profile.token}` },
       }
@@ -258,7 +258,7 @@ export class UserService {
       },
       {
         method: 'POST',
-        url: `${profile.baseUrl}/account/${profile.account}/user/${id}/init`,
+        url: `${profile.baseUrl}/v1/account/${profile.account}/user/${id}/init`,
         headers: { Authorization: `bearer ${profile.token}` },
       }
     );
@@ -310,7 +310,7 @@ export class UserService {
       },
       {
         method: 'PUT',
-        url: `${profile.baseUrl}/account/${accountId}/user/${agentId}/init/${initId}`,
+        url: `${profile.baseUrl}/v1/account/${accountId}/user/${agentId}/init/${initId}`,
         data: initResolve,
       }
     );
@@ -421,7 +421,7 @@ export class UserService {
       details.push(...[Text.eol(), Text.eol()]);
       details.push(Text.italic('Identities: '));
       for (const identity of user.identities) {
-        details.push(...[Text.eol(), Text.dim('• iss: '), identity.iss, Text.eol(), Text.dim('  sub:'), identity.sub]);
+        details.push(...[Text.eol(), Text.dim('• iss: '), identity.iss, Text.eol(), Text.dim('  sub: '), identity.sub]);
       }
     }
 
@@ -430,15 +430,7 @@ export class UserService {
       details.push(Text.italic('Allow: '));
       for (const access of user.access.allow) {
         details.push(
-          ...[
-            Text.eol(),
-            Text.dim('• action: '),
-            access.action,
-            Text.eol(),
-            '  ',
-            Text.dim('resource:'),
-            access.resource,
-          ]
+          ...[Text.eol(), Text.dim('• action: '), access.action, Text.eol(), Text.dim('  resource:'), access.resource]
         );
       }
     }

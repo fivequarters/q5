@@ -110,10 +110,12 @@ export class FlexdProfile {
       const message = `The '${name || '<default>'}' profile does not exist.`;
       throw new Error(message);
     }
+
     let token = await this.getCachedAccessToken(name as string, profile);
     if (!token) {
       token = await this.createAccessToken(name as string, profile);
     }
+
     if (!token) {
       const message = `Unable to generate an access token for the '${name || '<default>'}' profile.`;
       throw new Error(message);
@@ -123,7 +125,7 @@ export class FlexdProfile {
     baseUrl = baseUrl[baseUrl.length - 1] === '/' ? baseUrl.substring(0, baseUrl.length - 1) : baseUrl;
     return {
       token,
-      baseUrl: baseUrl.indexOf('/v1') === -1 ? `${baseUrl}/v1` : baseUrl,
+      baseUrl: baseUrl,
       account: profile.account || undefined,
       subscription: profile.subscription || undefined,
       boundary: profile.boundary || undefined,
