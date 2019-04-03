@@ -87,16 +87,19 @@ module.exports = function authorize_factory(options) {
       const subscriptionId = req.params.subscriptionId;
       if (subscriptionId) {
         const segments = subscriptionId.split('-');
-        segments.pop;
-        accountId = segments.join('-');
+        accountId = `acc-${segments[1]}`;
       }
     }
+    let resource = req.path;
+    if (resource.indexOf('/subscription') === 0) {
+      resource = `/account/${accountId}/${resource}`;
+    }
+    const action = options.operation;
 
     getDataAccess().then(dataAccess => {
       const token = options.getToken(req);
       if (token === process.env.API_AUTHORIZATION_KEY) {
         req.isRoot = true;
-        //return next();
         return writeAudit(
           {
             // TODO where do we obtain accountId from for requests where it is implied by subscriptionId?
@@ -114,8 +117,6 @@ module.exports = function authorize_factory(options) {
       const decodedJwt = decodeJwt(token);
       const iss = decodedJwt.iss;
       const sub = decodedJwt.sub;
-      const action = options.operation;
-      const resource = req.path;
 
       const context = {
         error: undefined,
@@ -125,7 +126,6 @@ module.exports = function authorize_factory(options) {
 
       function auditAndContinue() {
         if (context.jwtValid === true && context.isAuthorized === true) {
-          //return next();
           return writeAudit(
             {
               accountId,
