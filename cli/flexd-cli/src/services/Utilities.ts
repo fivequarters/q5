@@ -1,5 +1,5 @@
 import * as Path from 'path';
-import { IFlexdProfileSettings } from 'lib/server/flexd-profile/libc';
+import { IFlexdProfileSettings } from '@5qtrs/flexd-profile';
 
 export function serializeKeyValue(data: { [property: string]: string | number | undefined }) {
   const lines: string[] = [];
