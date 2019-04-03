@@ -90,7 +90,7 @@ export class UserAccessAddCommand extends Command {
     //   expectedOptions.push('function');
     // }
 
-    const profile = await profileService.getExecutionProfile(); //expectedOptions);
+    const profile = await profileService.getExecutionProfile();
     if (!profile) {
       return 1;
     }

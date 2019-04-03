@@ -71,7 +71,7 @@ export class IssuerService {
       async () => {
         const result = await request({
           method: 'GET',
-          url: `${profile.baseUrl}/account/${profile.account}/issuer`,
+          url: `${profile.baseUrl}/v1/account/${profile.account}/issuer`,
           headers: {
             'Content-Type': 'application/json',
             Authorization: `bearer ${profile.token}`,
@@ -112,7 +112,7 @@ export class IssuerService {
       async () => {
         const result = await request({
           method: 'GET',
-          url: `${profile.baseUrl}/account/${profile.account}/issuer/${encodeURIComponent(id)}`,
+          url: `${profile.baseUrl}/v1/account/${profile.account}/issuer/${encodeURIComponent(id)}`,
           headers: {
             'Content-Type': 'application/json',
             Authorization: `bearer ${profile.token}`,
@@ -175,7 +175,7 @@ export class IssuerService {
       async () => {
         const result = await request({
           method: 'PUT',
-          url: `${profile.baseUrl}/account/${profile.account}/issuer/${encodeURIComponent(id)}`,
+          url: `${profile.baseUrl}/v1/account/${profile.account}/issuer/${encodeURIComponent(id)}`,
           data: issuer,
           headers: {
             'Content-Type': 'application/json',
@@ -239,7 +239,7 @@ export class IssuerService {
       async () => {
         const result = await request({
           method: 'DELETE',
-          url: `${profile.baseUrl}/account/${profile.account}/issuer/${encodeURIComponent(id)}`,
+          url: `${profile.baseUrl}/v1/account/${profile.account}/issuer/${encodeURIComponent(id)}`,
           headers: {
             'Content-Type': 'application/json',
             Authorization: `bearer ${profile.token}`,
