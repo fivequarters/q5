@@ -80,12 +80,14 @@ function getEditorConfig(config: ApiConfig) {
     const admin = getAdmin(userId);
 
     const settings: any = {
-      subscriptionId: admin.company,
+      subscriptionId: 'sub-b503fb00e15248c6-1234',
       boundaryId: admin.company,
       baseUrl: config.functionsBaseUrl,
     };
 
-    if (context.query['generate-token']) {
+    if (process.env.API_AUTHORIZATION_KEY) {
+      settings.token = process.env.API_AUTHORIZATION_KEY;
+    } else if (context.query['generate-token']) {
       settings.token = await signJwt(
         {
           aud: config.fiveQuartersAudience,

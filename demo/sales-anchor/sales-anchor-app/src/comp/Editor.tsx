@@ -61,18 +61,31 @@ export function Editor({ eventAction, onEditorBack, template, ...rest }: EditorP
 
   async function loadEditor() {
     const config = await api.getEditorConfig();
+    // console.log('FIRST CONFIG', config);
 
-    if (editorElement && editorElement.current) {
+    if (eventAction && config && editorElement && editorElement.current) {
       // @ts-ignore
-      createEditor(editorElement.current, config.boundaryId, eventAction, async () => await api.getEditorConfig(), {
-        template: template,
-        editor: {
-          navigationPanel: {
-            //   hideFiles: ['index.js'],
-          },
-        },
+      createEditor(
         // @ts-ignore
-      }).then(editorContext => {
+        editorElement.current,
+        config.boundaryId,
+        eventAction,
+        async () => {
+          let config: any = await api.getEditorConfig();
+          // console.log('EDITOR INIT', config);
+          return config;
+        },
+        {
+          template: template || {},
+          editor: {
+            navigationPanel: {
+              //   hideFiles: ['index.js'],
+            },
+          },
+          // @ts-ignore
+        }
+        // @ts-ignore
+      ).then(editorContext => {
         // editorContext.selectFile('onNewInquiry.js');
         editorContext.on('closed', onEditorBack);
       });
@@ -91,7 +104,7 @@ export function Editor({ eventAction, onEditorBack, template, ...rest }: EditorP
         </BackButton>
         <Title>Event: On New Inquiry</Title>
       </TopBar> */}
-      <EditorContainer id="editor" ref={editorElement} />;
+      <EditorContainer id="editor" ref={editorElement} />
     </Container>
   );
 }
