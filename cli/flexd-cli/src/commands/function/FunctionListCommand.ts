@@ -68,8 +68,8 @@ export class FunctionListCommand extends Command {
               Authorization: `Bearer ${profile.token}`,
             },
             query,
+            validStatus: status => status === 200,
           });
-
           let functions = response.data.items
             .map((x: { functionId: string; boundaryId: string }) => `${x.boundaryId}/${x.functionId}`)
             .sort();

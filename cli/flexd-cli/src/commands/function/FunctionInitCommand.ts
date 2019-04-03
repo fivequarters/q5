@@ -72,17 +72,35 @@ export class FunctionInitCommand extends Command {
           Fs.mkdirSync(destDirectory, { recursive: true });
         }
 
-        await input.io.writeLine(`Creating function files in ${destDirectory}:`);
+        let files: string[] = [];
         let dirs = Fs.readdirSync(Path.join(__dirname, '../../../template'));
         for (var i = 0; i < dirs.length; i++) {
           let f = dirs[i];
-          await input.io.writeLine(f);
-          Fs.writeFileSync(
-            Path.join(destDirectory, f),
-            Fs.readFileSync(Path.join(__dirname, '../../../template', f), 'utf8'),
-            'utf8'
-          );
+          if (f === '.flexd.json') {
+            files.push('.flexd/function.json');
+            Fs.mkdirSync(Path.join(destDirectory, '.flexd'), { recursive: true });
+            Fs.writeFileSync(
+              Path.join(destDirectory, '.flexd', 'function.json'),
+              Fs.readFileSync(Path.join(__dirname, '../../../template', f), 'utf8'),
+              'utf8'
+            );
+          } else {
+            files.push(f);
+            Fs.writeFileSync(
+              Path.join(destDirectory, f),
+              Fs.readFileSync(Path.join(__dirname, '../../../template', f), 'utf8'),
+              'utf8'
+            );
+          }
         }
+        Fs.writeFileSync(Path.join(destDirectory, '.gitignore'), `.env`, 'utf8');
+        files.push('.gitignore');
+
+        await (await Message.create({
+          header: 'Generated Files',
+          message: files.join('\n'),
+        })).write(input.io);
+
         await input.io.writeLine('Done. You can deploy the function with `flx function deploy`.');
 
         return 0;

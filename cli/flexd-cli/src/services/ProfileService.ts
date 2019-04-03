@@ -3,6 +3,7 @@ import { Text } from '@5qtrs/text';
 import { FlexdProfile, IFlexdExecutionProfile, IFlexdProfile, IFlexdProfileSettings } from '@5qtrs/flexd-profile';
 import { ExecuteService } from './ExecuteService';
 import { random } from '@5qtrs/random';
+import { exec } from 'child_process';
 
 // ------------------
 // Internal Constants
@@ -265,14 +266,17 @@ export class ProfileService {
     return setOk === true;
   }
 
-  public async getExecutionProfile(expected?: string[]): Promise<IFlexdExecutionProfile> {
+  public async getExecutionProfile(
+    expected?: string[],
+    defaults?: IFlexdProfileSettings
+  ): Promise<IFlexdExecutionProfile> {
     // // TODO randall, remove this after we have end to end user and profile support
     if (process.env.API_AUTHORIZATION_KEY) {
       return {
-        account: (this.input.options.account as string) || '12345',
-        subscription: (this.input.options.subscription as string) || '12345',
-        boundary: this.input.options.boundary as string,
-        function: this.input.options.function as string,
+        account: (defaults && defaults.account) || 'acc-b503fb00e15248c6',
+        subscription: (defaults && defaults.subscription) || 'sub-b503fb00e15248c6-1234',
+        boundary: (this.input.options.boundary as string) || (defaults && defaults.boundary),
+        function: (this.input.options.function as string) || (defaults && defaults.function),
         baseUrl: process.env.API_SERVER || 'https://stage.flexd.io',
         token: process.env.API_AUTHORIZATION_KEY,
       };
@@ -284,6 +288,8 @@ export class ProfileService {
     for (const option of profileOptions) {
       if (this.input.options[option]) {
         executionProfile[option] = this.input.options[option] as string;
+      } else if (defaults && defaults[option]) {
+        executionProfile[option] = defaults[option];
       }
     }
 
