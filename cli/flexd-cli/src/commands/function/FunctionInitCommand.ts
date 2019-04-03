@@ -46,13 +46,11 @@ export class FunctionInitCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    let profileService = await ProfileService.create(input);
     const executeService = await ExecuteService.create(input);
-    let profile = await profileService.getExecutionProfile(['subscription', 'boundary', 'function']);
 
     let destDirectory = Path.join(process.cwd(), input.arguments[0] as string);
 
-    const result = await executeService.execute(
+    await executeService.execute(
       {
         header: 'Initialize Function',
         message: Text.create('Initialize a new function in ', Text.bold(destDirectory), ' directory'),
