@@ -3,6 +3,7 @@ import * as Monaco from 'monaco-editor/esm/vs/editor/editor.api.js';
 import { Events, FileDeletedEvent } from './Events';
 import { IEditorPanelOptions } from './Options';
 import { EditorContext } from './EditorContext';
+import { updateFlexdContextTypings, addStaticTypings, updateNodejsTypings, updateDependencyTypings } from './Typings';
 
 /**
  * Not part of MVP
@@ -26,8 +27,11 @@ export function createEditorPanel(element: HTMLElement, editorContext: EditorCon
   const monacoOptions = {
     theme: 'customTheme',
     ...options,
-    value: editorContext.getSelectedFileContent(),
-    language: editorContext.getSelectedFileLanguage(),
+    model: Monaco.editor.createModel(
+      editorContext.getSelectedFileContent() || '',
+      editorContext.getSelectedFileLanguage(),
+      Monaco.Uri.parse('file:///index.js')
+    ),
     automaticLayout: true,
     minimap: {
       enabled: false,
@@ -45,6 +49,9 @@ export function createEditorPanel(element: HTMLElement, editorContext: EditorCon
     editor.setValue(editorContext.getSelectedFileContent() || '');
     const model = editor.getModel();
     const language = editorContext.getSelectedFileLanguage();
+    let packageJson: any = editorContext.getPackageJson();
+    updateNodejsTypings(editorContext.getNodeVersion(packageJson));
+    updateDependencyTypings(editorContext.getDependencies(packageJson));
     if (model && language) {
       Monaco.editor.setModelLanguage(model, language);
     } else {
@@ -130,6 +137,7 @@ export function createEditorPanel(element: HTMLElement, editorContext: EditorCon
           break;
         case Events.SettingsApplicationSelected:
           editorContext.setSettingsApplication(editor.getValue());
+          updateFlexdContextTypings(editorContext.functionSpecification.configuration || {});
           break;
         case Events.SettingsCronSelected:
           editorContext.setSettingsCron(editor.getValue());
@@ -139,6 +147,12 @@ export function createEditorPanel(element: HTMLElement, editorContext: EditorCon
       suppressNextChangeEvent = false;
     }
   });
+
+  addStaticTypings();
+  updateFlexdContextTypings(editorContext.functionSpecification.configuration || {});
+  let packageJson: any = editorContext.getPackageJson();
+  updateNodejsTypings(editorContext.getNodeVersion(packageJson));
+  updateDependencyTypings(editorContext.getDependencies(packageJson));
 
   return editorContext;
 }
