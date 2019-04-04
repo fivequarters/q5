@@ -211,10 +211,15 @@ export class Command implements ICommand {
         return 0;
       }
 
+      let result = 1;
       const input = await this.getExecuteInput(command, parsedArgs, io);
       if (input) {
         await this.onSubCommandExecuting(command, input);
-        const result = await command.onExecute(input);
+        try {
+          result = await command.onExecute(input);
+        } catch (error) {
+          result = await this.onSubCommandError(command, input, error);
+        }
         await this.onSubCommandExecuted(command, input, result);
         return result;
       }
@@ -229,6 +234,10 @@ export class Command implements ICommand {
 
   protected async onSubCommandExecuted(command: Command, input: IExecuteInput, result: number) {
     return;
+  }
+
+  protected async onSubCommandError(command: Command, input: IExecuteInput, error: Error) {
+    return 1;
   }
 
   protected async getCommandToExecute(parsedArgs: ParsedArgs, io: ICommandIO) {
