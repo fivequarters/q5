@@ -33,9 +33,9 @@ export class FunctionUrlCommand extends Command {
     );
 
     let response = await request({
-      url: `${profile.baseUrl}/v1/subscription/${profile.subscription}/boundary/${profile.boundary}/function/${
-        profile.function
-      }/location`,
+      url: `${profile.baseUrl}/v1/account/${profile.account}/subscription/${profile.subscription}/boundary/${
+        profile.boundary
+      }/function/${profile.function}/location`,
       headers: {
         Authorization: `Bearer ${profile.token}`,
       },

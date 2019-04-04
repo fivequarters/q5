@@ -52,6 +52,15 @@ const SettingsCronPlaceholder = `# Set the 'cron' value to execute this function
 # cron=0 22 * * Fri
 `;
 
+const IndexPlaceholder = `/**
+* @param ctx {FlexdContext}
+* @param cb {FlexdCallback}
+*/
+module.exports = (ctx, cb) => {
+    cb(null, { body: "Hello" });
+};
+`;
+
 /**
  * The _EditorContext_ class class represents client side state of a single function, including its files,
  * application settings, schedule of execution (in case of a CRON job), and metadata.
@@ -116,7 +125,7 @@ export class EditorContext extends EventEmitter {
     if (!this.functionSpecification.nodejs) {
       this.functionSpecification.nodejs = {
         files: {
-          'index.js': 'module.exports = (ctx, cb) => {\n  cb(null, { body: "Hello" });\n};',
+          'index.js': IndexPlaceholder,
           'package.json': {
             engines: {
               node: '8',
@@ -564,6 +573,41 @@ export class EditorContext extends EventEmitter {
    */
   public getCronSettings(): string {
     return this.getSettings('cronSettings', SettingsCronPlaceholder, this.functionSpecification.schedule || {});
+  }
+
+  /**
+   * Not relevant to MVP
+   * @ignore
+   */
+  public getPackageJson(): any {
+    let packageJson: any = this.functionSpecification.nodejs && this.functionSpecification.nodejs.files['package.json'];
+    if (packageJson) {
+      if (typeof packageJson === 'string') {
+        try {
+          packageJson = JSON.parse(packageJson);
+        } catch (_) {
+          packageJson = undefined;
+        }
+      }
+    }
+    return packageJson;
+  }
+  /**
+   * Not relevant to MVP
+   * @ignore
+   */
+  getNodeVersion(pj: any): string {
+    let packageJson: any = pj || this.getPackageJson();
+    return (packageJson && packageJson.engines && packageJson.engines.node) || '8';
+  }
+
+  /**
+   * Not relevant to MVP
+   * @ignore
+   */
+  getDependencies(pj: any): { [property: string]: string } {
+    let packageJson: any = pj || this.getPackageJson();
+    return (pj && pj.dependencies) || {};
   }
 
   /**

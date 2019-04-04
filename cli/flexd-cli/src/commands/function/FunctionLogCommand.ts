@@ -60,12 +60,12 @@ export class FunctionLogCommand extends Command {
       },
       async () => {
         let url: string = input.options.function
-          ? `${profile.baseUrl}/v1/subscription/${profile.subscription}/boundary/${profile.boundary}/function/${
-              profile.function
-            }/log?token=${profile.token}`
-          : `${profile.baseUrl}/v1/subscription/${profile.subscription}/boundary/${profile.boundary}/log?token=${
-              profile.token
-            }`;
+          ? `${profile.baseUrl}/v1/account/${profile.account}/subscription/${profile.subscription}/boundary/${
+              profile.boundary
+            }/function/${profile.function}/log?token=${profile.token}`
+          : `${profile.baseUrl}/v1/account/${profile.account}/subscription/${profile.subscription}/boundary/${
+              profile.boundary
+            }/log?token=${profile.token}`;
 
         let driver = url.match(/^https/i) ? require('https') : require('http');
         return new Promise<number>(async (resolve, reject) => {

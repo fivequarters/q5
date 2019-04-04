@@ -62,8 +62,10 @@ export class FunctionListCommand extends Command {
           }
           let response = await request({
             url: profile.boundary
-              ? `${profile.baseUrl}/v1/subscription/${profile.subscription}/boundary/${profile.boundary}/function`
-              : `${profile.baseUrl}/v1/subscription/${profile.subscription}/function`,
+              ? `${profile.baseUrl}/v1/account/${profile.account}/subscription/${profile.subscription}/boundary/${
+                  profile.boundary
+                }/function`
+              : `${profile.baseUrl}/v1/account/${profile.account}/subscription/${profile.subscription}/function`,
             headers: {
               Authorization: `Bearer ${profile.token}`,
             },

@@ -16,6 +16,7 @@ interface IHookOptions {
   boundaryId: string;
   functionId: string;
   subscriptionId?: string;
+  accountId?: string;
   baseUrl?: string;
   accessToken?: string;
   accountResolver?: AccountResolver;
@@ -30,17 +31,18 @@ export function edit(options: IHookOptions): Promise<IHookResult> {
   }
 
   if (!options.accountResolver) {
-    if (options.accessToken && options.baseUrl && options.subscriptionId) {
+    if (options.accessToken && options.baseUrl && options.subscriptionId && options.accountId) {
       // @ts-ignore
       options.accountResolver = account =>
         Promise.resolve({
+          accountId: options.accountId,
           subscriptionId: options.subscriptionId,
           accessToken: options.accessToken,
           baseUrl: options.baseUrl,
         });
     } else {
       throw new Error(
-        'either options.accountResolver or options.accessToken, options.baseUrl, and options.subscriptionId must be specified.'
+        'either options.accountResolver or options.accessToken, options.baseUrl, options.subscriptionId, and options.accountId must be specified.'
       );
     }
   }
