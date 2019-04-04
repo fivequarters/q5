@@ -7,7 +7,9 @@
   "author": "FiveQuarters.io",
   "scripts": {
     "build": "tsc -b",
-    "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x}",
+    "test": "jest --colors",
+    "coverage": "jest --colors --coverage --detectOpenHandles",
+    "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x} test/{,**/}*.ts{,x}",
     "clean": "rm -r -f libc",
     "start": "LOGS_WS_URL=${LOGS_WS_URL:=`node ./getNgrokLogsWsUrl.js`} node libc/index.js",
     "dynamo": "tsc -b && node libc/setup.js"

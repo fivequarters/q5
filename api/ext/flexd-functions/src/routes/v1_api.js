@@ -332,12 +332,15 @@ router.delete(
 
 // Boundaries
 
-router.options('/subscription/:subscriptionId/boundary', cors(corsManagementOptions));
-router.get('/subscription/:subscriptionId/boundary', NotImplemented);
+router.options('/account/:accountId/subscription/:subscriptionId/boundary', cors(corsManagementOptions));
+router.get('/account/:accountId/subscription/:subscriptionId/boundary', NotImplemented);
 
-router.options('/subscription/:subscriptionId/boundary/:boundaryId/function', cors(corsManagementOptions));
+router.options(
+  '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function',
+  cors(corsManagementOptions)
+);
 router.get(
-  '/subscription/:subscriptionId/boundary/:boundaryId/function',
+  '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function',
   cors(corsManagementOptions),
   authorize({
     operation: 'boundary:list-function',
@@ -350,9 +353,12 @@ router.get(
   (req, res, next) => provider_handlers[req.provider].list_functions(req, res, next)
 );
 
-router.options('/subscription/:subscriptionId/boundary/:boundaryId/log', cors(corsManagementOptions));
+router.options(
+  '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/log',
+  cors(corsManagementOptions)
+);
 router.get(
-  '/subscription/:subscriptionId/boundary/:boundaryId/log',
+  '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/log',
   cors(corsManagementOptions),
   authorize({
     operation: 'boundary:get-log',
@@ -366,9 +372,9 @@ router.get(
 
 // Functions
 
-router.options('/subscription/:subscriptionId/function', cors(corsManagementOptions));
+router.options('/account/:accountId/subscription/:subscriptionId/function', cors(corsManagementOptions));
 router.get(
-  '/subscription/:subscriptionId/function',
+  '/account/:accountId/subscription/:subscriptionId/function',
   cors(corsManagementOptions),
   authorize({
     operation: 'subscription:list-function',
@@ -381,9 +387,12 @@ router.get(
   (req, res, next) => provider_handlers[req.provider].list_functions(req, res, next)
 );
 
-router.options('/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId', cors(corsManagementOptions));
+router.options(
+  '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId',
+  cors(corsManagementOptions)
+);
 router.get(
-  '/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId',
+  '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId',
   cors(corsManagementOptions),
   authorize({
     operation: 'function:get',
@@ -395,7 +404,7 @@ router.get(
   (req, res, next) => provider_handlers[req.provider].get_function(req, res, next)
 );
 router.put(
-  '/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId',
+  '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId',
   cors(corsManagementOptions),
   authorize({
     operation: 'function:put',
@@ -409,7 +418,7 @@ router.put(
   (req, res, next) => provider_handlers[req.provider].put_function(req, res, next)
 );
 router.delete(
-  '/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId',
+  '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId',
   cors(corsManagementOptions),
   authorize({
     operation: 'function:delete',
@@ -422,11 +431,11 @@ router.delete(
 );
 
 router.options(
-  '/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/log',
+  '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/log',
   cors(corsManagementOptions)
 );
 router.get(
-  '/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/log',
+  '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/log',
   cors(corsManagementOptions),
   authorize({
     operation: 'function:get-log',
@@ -441,11 +450,11 @@ router.get(
 );
 
 router.options(
-  '/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/location',
+  '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/location',
   cors(corsManagementOptions)
 );
 router.get(
-  '/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/location',
+  '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/location',
   cors(corsManagementOptions),
   authorize({
     operation: 'function:get-location',
@@ -458,11 +467,11 @@ router.get(
 );
 
 router.options(
-  '/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/build/:buildId',
+  '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/build/:buildId',
   cors(corsManagementOptions)
 );
 router.get(
-  '/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/build/:buildId',
+  '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/build/:buildId',
   cors(corsManagementOptions),
   authorize({
     operation: 'function:get-build',

@@ -98,9 +98,9 @@ export class FunctionGetCommand extends Command {
       },
       async () => {
         let response = await request({
-          url: `${profile.baseUrl}/v1/subscription/${profile.subscription}/boundary/${profile.boundary}/function/${
-            profile.function
-          }`,
+          url: `${profile.baseUrl}/v1/account/${profile.account}/subscription/${profile.subscription}/boundary/${
+            profile.boundary
+          }/function/${profile.function}`,
           headers: {
             Authorization: `Bearer ${profile.token}`,
           },

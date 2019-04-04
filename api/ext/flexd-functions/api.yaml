@@ -5,7 +5,7 @@ info:
   version: '1.0.0'
   title: 'Flexd HTTP API'
   contact:
-    email: randall@fivequarters.io
+    email: contact@flexd.io
   license:
     name: Apache 2.0
     url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
@@ -105,7 +105,7 @@ paths:
       - in: query
         name: count
         required: false
-        description: Optional maximum number of results to return; 
+        description: Optional maximum number of results to return;
         schema:
           type: number
           minimum: 1
@@ -511,7 +511,14 @@ paths:
       security:
         - accessToken: []
 
-  /user:
+  /account/{accountId}/user:
+    parameters:
+      - in: path
+        name: accountId
+        required: true
+        description: Account id
+        schema:
+          $ref: '#/components/schemas/AccountId'
     get:
       tags:
         - Users
@@ -524,12 +531,6 @@ paths:
 
         In addition, the list of access statements of each user is filtered based on the access of the caller. If the caller has 'manage' access to an account, the list of access statements will include the access to the given account. If the caller has 'manage' access to a subscription,the list of access statements will include the access to the given subscription.
       parameters:
-        - in: query
-          name: accountId
-          required: false
-          description: Optional account id to filter by
-          schema:
-            $ref: '#/components/schemas/AccountId'
         - in: query
           name: subscriptionId
           required: false
@@ -591,8 +592,14 @@ paths:
       security:
         - accessToken: []
 
-  /user/{userId}:
+  /account/{accountId}/user/{userId}:
     parameters:
+      - in: path
+        name: accountId
+        required: true
+        description: Account id
+        schema:
+          $ref: '#/components/schemas/AccountId'
       - in: path
         name: userId
         required: true
@@ -677,8 +684,14 @@ paths:
       security:
         - accessToken: []
 
-  /subscription/{subscriptionId}/boundary:
+  /account/{accountId}/subscription/{subscriptionId}/boundary:
     parameters:
+      - in: path
+        name: accountId
+        required: true
+        description: Account id
+        schema:
+          $ref: '#/components/schemas/AccountId'
       - name: subscriptionId
         in: path
         description: The subscription id
@@ -723,8 +736,14 @@ paths:
       security:
         - accessToken: []
 
-  /subscription/{subscriptionId}/function:
+  /account/{accountId}/subscription/{subscriptionId}/function:
     parameters:
+      - in: path
+        name: accountId
+        required: true
+        description: Account id
+        schema:
+          $ref: '#/components/schemas/AccountId'
       - name: subscriptionId
         in: path
         description: The subscription id
@@ -775,8 +794,14 @@ paths:
       security:
         - accessToken: []
 
-  /subscription/{subscriptionId}/boundary/{boundaryId}/function:
+  /account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/function:
     parameters:
+      - in: path
+        name: accountId
+        required: true
+        description: Account id
+        schema:
+          $ref: '#/components/schemas/AccountId'
       - name: subscriptionId
         in: path
         description: The subscription id
@@ -833,8 +858,14 @@ paths:
       security:
         - accessToken: []
 
-  /subscription/{subscriptionId}/boundary/{boundaryId}/log:
+  /account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/log:
     parameters:
+      - in: path
+        name: accountId
+        required: true
+        description: Account id
+        schema:
+          $ref: '#/components/schemas/AccountId'
       - name: subscriptionId
         in: path
         description: The subscription id
@@ -866,8 +897,14 @@ paths:
       security:
         - accessToken: []
 
-  /subscription/{subscriptionId}/boundary/{boundaryId}/function/{functionId}:
+  /account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/function/{functionId}:
     parameters:
+      - in: path
+        name: accountId
+        required: true
+        description: Account id
+        schema:
+          $ref: '#/components/schemas/AccountId'
       - name: subscriptionId
         in: path
         description: The subscription id
@@ -954,8 +991,14 @@ paths:
       security:
         - accessToken: []
 
-  /subscription/{subscriptionId}/boundary/{boundaryId}/function/{functionId}/log:
+  /account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/function/{functionId}/log:
     parameters:
+      - in: path
+        name: accountId
+        required: true
+        description: Account id
+        schema:
+          $ref: '#/components/schemas/AccountId'
       - name: subscriptionId
         in: path
         description: The subscription id
@@ -993,8 +1036,14 @@ paths:
       security:
         - accessToken: []
 
-  /subscription/{subscriptionId}/boundary/{boundaryId}/function/{functionId}/location:
+  /account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/function/{functionId}/location:
     parameters:
+      - in: path
+        name: accountId
+        required: true
+        description: Account id
+        schema:
+          $ref: '#/components/schemas/AccountId'
       - name: subscriptionId
         in: path
         description: The subscription id
@@ -1037,8 +1086,14 @@ paths:
       security:
         - accessToken: []
 
-  /subscription/{subscriptionId}/boundary/{boundaryId}/function/{functionId}/build/{buildId}:
+  /account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/function/{functionId}/build/{buildId}:
     parameters:
+      - in: path
+        name: accountId
+        required: true
+        description: Account id
+        schema:
+          $ref: '#/components/schemas/AccountId'
       - name: subscriptionId
         in: path
         description: The subscription id
@@ -1150,7 +1205,7 @@ components:
           type: string
           description: Name of the resource on which the action was performed
           example: /subscription/12345/boundary/myboundary/function/myfunction17
-        issuer: 
+        issuer:
           type: string
           description: Identifier of the issuer that authenticated the user
           example: https://sales-anchor.auth0.com/
