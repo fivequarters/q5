@@ -6,6 +6,8 @@ import { AuthAuth0 } from './AuthAuth0';
 import { AuthGoogle } from './AuthGoogle';
 import { getAdmin, getNextInquiry, inquiries, salesAgents } from './data';
 
+const subscriptionId = 'sub-b503fb00e15248c6-1234';
+
 // ------------------
 // Internal Functions
 // ------------------
@@ -28,7 +30,7 @@ function generateInquiry(config: ApiConfig) {
     const decodedAccessToken = context.deocodedAccessToken;
     const userId = decodedAccessToken.sub;
     const admin = getAdmin(userId);
-    const functionsUrl = `${config.functionsBaseUrl}/v1/run/${admin.company}/${admin.company}/${config.functionName}`;
+    const functionsUrl = `${config.functionsBaseUrl}/v1/run/${subscriptionId}/${admin.company}/${config.functionName}`;
 
     let inquiry = getNextInquiry();
     try {
@@ -80,7 +82,7 @@ function getEditorConfig(config: ApiConfig) {
     const admin = getAdmin(userId);
 
     const settings: any = {
-      subscriptionId: 'sub-b503fb00e15248c6-1234',
+      subscriptionId,
       boundaryId: admin.company,
       baseUrl: config.functionsBaseUrl,
     };
