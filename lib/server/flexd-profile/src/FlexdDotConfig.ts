@@ -1,228 +1,233 @@
 import { join } from 'path';
 import { DotConfig } from '@5qtrs/dot-config';
-import { clone } from '@5qtrs/clone';
+import { FlexdProfileError } from './FlexdProfileError';
 
 // ------------------
 // Internal Constants
 // ------------------
 
-const dotFolderName = 'flexd';
+const dotFolderName = '.flexd';
 const settingsPath = 'settings.json';
 const keyPairPath = 'keys';
-const publicKeyPathSegment = 'pub';
-const privateKeyPathSegment = 'pri';
-const credsCachePath = join('cache', 'creds.json');
+const publicKeyFileName = 'pub';
+const privateKeyFileName = 'pri';
+const credsCachePath = join('cache', 'creds');
+const credsFileName = 'creds.json';
 
 // ----------------
 // Exported Classes
 // ----------------
 
 export class FlexdDotConfig extends DotConfig {
-  private constructor() {
-    super(dotFolderName);
+  private constructor(directory?: string) {
+    super(dotFolderName, directory);
   }
 
-  public static async create() {
-    return new FlexdDotConfig();
+  public static async create(directory?: string) {
+    return new FlexdDotConfig(directory);
   }
 
   public async getSettingsPath(): Promise<string> {
     return join(this.path, settingsPath);
   }
 
-  public async profileExists(name: string): Promise<boolean> {
-    let settings: any = await this.readJson(settingsPath);
-    return settings && settings.profiles && settings.profiles[name] !== undefined;
-  }
-
   public async listProfileNames(): Promise<string[]> {
-    let settings: any = await this.readJson(settingsPath);
-    settings = settings || {};
-    settings.profiles = settings.profiles || {};
+    const settings = await this.readSettings();
     return Object.keys(settings.profiles);
   }
 
-  public async getDefaultProfile(): Promise<string | undefined> {
-    const settings: any = await this.readJson(settingsPath);
-    return settings && settings.defaults ? settings.defaults.profile : undefined;
+  public async defaultProfileNameExists(): Promise<boolean> {
+    const profileName = await this.getDefaultProfileName();
+    return profileName !== undefined;
   }
 
-  public async setDefaultProfile(name: string): Promise<void> {
-    let settings: any = await this.readJson(settingsPath);
-    settings = settings || {};
-    settings.defaults = settings.defaults || {};
+  public async getDefaultProfileName(): Promise<string | undefined> {
+    const settings = await this.readSettings();
+    return settings.defaults.profile || undefined;
+  }
+
+  public async setDefaultProfileName(name: string): Promise<void> {
+    const settings = await this.readSettings();
     settings.defaults.profile = name;
-    await this.writeJson(settingsPath, settings);
+    await this.writeSettings(settings);
   }
 
-  public async getPublicKeyPath(name: string, kid: string): Promise<string | undefined> {
-    let settings: any = await this.readJson(settingsPath);
-    const keyPair = settings && settings.keyPairs && settings.keyPairs[name] ? settings.keyPairs[name][kid] : undefined;
-    if (keyPair && keyPair.publicKeyPath) {
-      return join(this.path, keyPair.publicKeyPath);
-    }
-
-    return undefined;
+  public async profileExists(name: string): Promise<boolean> {
+    const profile = await this.getProfile(name);
+    return profile !== undefined;
   }
 
-  public async getPublicKey(name: string, kid: string): Promise<string | undefined> {
-    let settings: any = await this.readJson(settingsPath);
-    const keyPair = settings && settings.keyPairs && settings.keyPairs[name] ? settings.keyPairs[name][kid] : undefined;
-    if (keyPair && keyPair.publicKeyPath) {
-      const buffer = await this.readBinary(keyPair.publicKeyPath);
-      if (buffer) {
-        return buffer.toString();
-      }
-    }
-
-    return undefined;
+  public async getProfile(name: string): Promise<any> {
+    const settings = await this.readSettings();
+    return settings.profiles[name] || undefined;
   }
 
-  public async getPrivateKey(name: string, kid: string): Promise<string | undefined> {
-    let settings: any = await this.readJson(settingsPath);
-    const keyPair = settings && settings.keyPairs && settings.keyPairs[name] ? settings.keyPairs[name][kid] : undefined;
-    if (keyPair && keyPair.privateKeyPath) {
-      const buffer = await this.readBinary(keyPair.privateKeyPath);
-      if (buffer) {
-        return buffer.toString();
-      }
-    }
-
-    return undefined;
-  }
-
-  public async setKeyPair(
-    name: string,
-    privateKey: string,
-    publicKey: string,
-    kid: string,
-    overWrite: boolean = false
-  ): Promise<boolean> {
-    let settings: any = await this.readJson(settingsPath);
-    settings = settings || {};
-    settings.keyPairs = settings.keyPairs || {};
-    const keyPairs = (settings.keyPairs[name] = settings.keyPairs[name] || {});
-    if (keyPairs[kid] !== undefined && !overWrite) {
-      return false;
-    }
-
-    const privateKeyPath = join(keyPairPath, name, kid, privateKeyPathSegment);
-    const publicKeyPath = join(keyPairPath, name, kid, publicKeyPathSegment);
-
-    await Promise.all([
-      this.writeBinary(privateKeyPath, Buffer.from(privateKey)),
-      this.writeBinary(publicKeyPath, Buffer.from(publicKey)),
-    ]);
-
-    const entry = {
-      publicKeyPath,
-      privateKeyPath,
-      generatedOn: new Date().toLocaleString(),
-    };
-
-    keyPairs[kid] = entry;
-    await this.writeJson(settingsPath, settings);
-    return true;
-  }
-
-  public async getProfile(name?: string): Promise<any> {
-    let settings: any = await this.readJson(settingsPath);
-    if (settings) {
-      if (!name && settings.defaults) {
-        name = settings.defaults.profile;
-      }
-      if (name && settings.profiles) {
-        return settings.profiles[name];
-      }
-    }
-
-    return undefined;
-  }
-
-  public async setProfile(name: string, profile: any, overWrite: boolean): Promise<void> {
-    let settings: any = await this.readJson(settingsPath);
-    settings = settings || {};
-    settings.profiles = settings.profiles || {};
-    if (settings.profiles[name] !== undefined && !overWrite) {
-      const message = `The '${name}' profile already exists.`;
-      throw new Error(message);
-    }
-    if (!settings.profiles[name]) {
-      profile.created = new Date().toLocaleString();
-      profile.updated = profile.created;
-    } else {
-      profile.updated = new Date().toLocaleString();
-    }
+  public async setProfile(name: string, profile: any): Promise<any> {
+    const settings = await this.readSettings();
     settings.profiles[name] = profile;
-    await this.writeJson(settingsPath, settings);
-  }
-
-  public async copyProfile(source: string, target: string, overWrite: boolean): Promise<any> {
-    let settings: any = await this.readJson(settingsPath);
-    settings = settings || {};
-    settings.profiles = settings.profiles || {};
-    const profile = settings.profiles[source];
-    if (profile === undefined) {
-      const message = `The '${source}' profile does not exist.`;
-      throw new Error(message);
-    }
-    if (settings.profiles[target] !== undefined && !overWrite) {
-      const message = `The '${target}' profile already exists.`;
-      throw new Error(message);
-    }
-    const copy = clone(profile);
-    copy.created = new Date().toLocaleString();
-    copy.updated = copy.created;
-    settings.profiles[target] = copy;
-
-    await this.writeJson(settingsPath, settings);
+    await this.writeSettings(settings);
     return profile;
   }
 
-  public async removeProfile(target: string) {
-    let settings: any = await this.readJson(settingsPath);
-    settings = settings || {};
-    settings.profiles = settings.profiles || {};
-    settings.profiles[target] = undefined;
-    await this.writeJson(settingsPath, settings);
+  public async removeProfile(name: string): Promise<void> {
+    const settings = await this.readSettings();
+    settings.profiles[name] = undefined;
+    await this.writeSettings(settings);
   }
 
-  public async renameProfile(source: string, target: string, overWrite: boolean): Promise<any> {
-    let settings: any = await this.readJson(settingsPath);
-    settings = settings || {};
-    settings.profiles = settings.profiles || {};
-    const profile = settings.profiles[source];
-    if (profile === undefined) {
-      const message = `The '${source}' profile does not exist.`;
-      throw new Error(message);
-    }
-    if (settings.profiles[target] !== undefined && !overWrite) {
-      const message = `The '${target}' profile already exists.`;
-      throw new Error(message);
-    }
-    profile.updated = new Date().toLocaleString();
-    settings.profiles[target] = profile;
-    settings.profiles[source] = undefined;
+  public async publicKeyExists(name: string, kid: string): Promise<boolean> {
+    const publicKey = await this.getPublicKey(name, kid);
+    return publicKey !== undefined;
+  }
 
-    if (settings.defaults && settings.defaults.profile === source) {
-      settings.defaults = settings.defaults || {};
-      settings.defaults.profile = target;
-    }
+  public async getPublicKey(name: string, kid: string): Promise<string> {
+    const publicKeyPath = await this.getPublicKeyPath(name, kid);
+    return this.readPublicKeyFile(publicKeyPath, name);
+  }
 
-    await this.writeJson(settingsPath, settings);
-    return profile;
+  public async setPublicKey(name: string, kid: string, privateKey: string): Promise<void> {
+    const publicKeyPath = await this.getPublicKeyPath(name, kid);
+    this.writePublicKeyFile(publicKeyPath, privateKey, name);
+  }
+
+  public async privateKeyExists(name: string, kid: string): Promise<boolean> {
+    const privateKey = await this.getPrivateKey(name, kid);
+    return privateKey !== undefined;
+  }
+
+  public async getPrivateKey(name: string, kid: string): Promise<string> {
+    const privateKeyPath = await this.getPrivateKeyPath(name, kid);
+    return this.readPrivateKeyFile(privateKeyPath, name);
+  }
+
+  public async setPrivateKey(name: string, kid: string, privateKey: string): Promise<void> {
+    const privateKeyPath = await this.getPrivateKeyPath(name, kid);
+    this.writePrivateKeyFile(privateKeyPath, privateKey, name);
+  }
+
+  public async removeKeyPair(name: string, kid: string): Promise<void> {
+    const path = await this.getKeyPairPath(name, kid);
+    this.removeKeysDirectory(path, name);
+  }
+
+  public async cachedCredsExist(name: string, kid: string): Promise<boolean> {
+    const creds = await this.getCachedCreds(name, kid);
+    return creds !== undefined;
   }
 
   public async getCachedCreds(name: string, kid: string): Promise<any> {
-    const cache: any = await this.readJson(credsCachePath);
-    return cache && cache[name] && cache[name][kid] ? cache[name][kid] : undefined;
+    const path = await this.getCachedCredsPath(name, kid);
+    return this.readCachedCredsFile(path, name);
   }
 
   public async setCachedCreds(name: string, kid: string, creds: any) {
-    let cache: any = await this.readJson(credsCachePath);
-    cache = cache || {};
-    cache[name] = cache[name] || {};
-    cache[name][kid] = creds;
-    await this.writeJson(credsCachePath, cache);
+    const path = await this.getCachedCredsPath(name, kid);
+    this.writeCachedCredsFile(path, creds, name);
+  }
+
+  public async removeCachedCreds(name: string, kid: string): Promise<void> {
+    const path = await this.getCachedCredsPath(name, kid);
+    this.removeCachedCredsDirectory(path, name);
+  }
+
+  private async readSettings(): Promise<any> {
+    try {
+      let settings: any = await this.readJson(settingsPath);
+      settings = settings || {};
+      settings.profiles = settings.profiles || {};
+      settings.defaults = settings.defaults || {};
+      settings.keyPairs = settings.keyPairs || {};
+      return settings;
+    } catch (error) {
+      throw FlexdProfileError.readFileError('settings', error);
+    }
+  }
+
+  private async writeSettings(settings: any): Promise<void> {
+    try {
+      await this.writeJson(settingsPath, settings);
+    } catch (error) {
+      throw FlexdProfileError.writeFileError('settings', error);
+    }
+  }
+
+  private async readBinaryFile(path: string, fileName: string): Promise<string> {
+    try {
+      const buffer = await this.readBinary(path);
+      if (!buffer || !buffer.length) {
+        const message = `The file '${path}' is empty`;
+        throw new Error(message);
+      }
+      return buffer.toString();
+    } catch (error) {
+      throw FlexdProfileError.readFileError(fileName, error);
+    }
+  }
+
+  private async writeBinaryFile(path: string, contents: string, fileName: string): Promise<void> {
+    try {
+      const buffer = Buffer.from(contents);
+      await this.writeBinary(path, buffer);
+    } catch (error) {
+      throw FlexdProfileError.writeFileError(fileName, error);
+    }
+  }
+
+  private async getKeyPairPath(name: string, kid: string): Promise<string> {
+    return join(keyPairPath, name, kid);
+  }
+
+  private async getPublicKeyPath(name: string, kid: string): Promise<string> {
+    const path = await this.getKeyPairPath(name, kid);
+    return join(path, publicKeyFileName);
+  }
+
+  private async readPublicKeyFile(path: string, name: string): Promise<string> {
+    return this.readBinaryFile(path, `'${name}' public key`);
+  }
+
+  private async readPrivateKeyFile(path: string, name: string): Promise<string> {
+    return this.readBinaryFile(path, `'${name}' private key`);
+  }
+
+  private async writePublicKeyFile(path: string, key: string, name: string): Promise<void> {
+    return this.writeBinaryFile(path, key, `'${name}' public key`);
+  }
+
+  private async getPrivateKeyPath(name: string, kid: string): Promise<string> {
+    const path = await this.getKeyPairPath(name, kid);
+    return join(path, privateKeyFileName);
+  }
+
+  private async writePrivateKeyFile(path: string, key: string, name: string): Promise<void> {
+    return this.writeBinaryFile(path, key, `'${name}' private key`);
+  }
+
+  private async removeKeysDirectory(path: string, name: string): Promise<void> {
+    try {
+      await this.removeDirectory(path);
+    } catch (error) {
+      throw FlexdProfileError.removeDirectoryError(`${name} keys`, error);
+    }
+  }
+
+  private async getCachedCredsPath(name: string, kid: string): Promise<string> {
+    return join(credsCachePath, name, kid, credsFileName);
+  }
+
+  private async readCachedCredsFile(path: string, name: string): Promise<string> {
+    return this.readBinaryFile(path, `'${name}' cached credentials`);
+  }
+
+  private async writeCachedCredsFile(path: string, key: string, name: string): Promise<void> {
+    return this.writeBinaryFile(path, key, `'${name}' cached credentials`);
+  }
+
+  private async removeCachedCredsDirectory(path: string, name: string): Promise<void> {
+    try {
+      await this.removeDirectory(path);
+    } catch (error) {
+      throw FlexdProfileError.removeDirectoryError(`${name} cached credentials`, error);
+    }
   }
 }
