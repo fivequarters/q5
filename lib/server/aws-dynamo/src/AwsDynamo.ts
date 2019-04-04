@@ -263,7 +263,6 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
 
     return new Promise((resolve, reject) => {
       dynamo.updateItem(params, (error: any, data: any) => {
-        console.log(error);
         if (error) {
           return reject(error);
         }
