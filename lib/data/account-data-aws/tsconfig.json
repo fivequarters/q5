@@ -9,6 +9,7 @@
     { "path": "../../shared/random" },
     { "path": "../../shared/base64" },
     { "path": "../../shared/array" },
-    { "path": "../../server/aws-base" }
+    { "path": "../../server/aws-base" },
+    { "path": "../../server/jwt" }
   ]
 }
