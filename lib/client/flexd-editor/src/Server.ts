@@ -15,6 +15,10 @@ class BuildError extends Error {
  */
 export interface IAccount {
   /**
+   * Account ID of the Flexd service.
+   */
+  accountId: string;
+  /**
    * Subscription ID of the Flexd service.
    */
   subscriptionId: string;
@@ -161,7 +165,7 @@ export class Server {
     return this.accountResolver(this.account)
       .then(newAccount => {
         this.account = this._normalizeAccount(newAccount);
-        const url = `${this.account.baseUrl}v1/subscription/${
+        const url = `${this.account.baseUrl}v1/account/${this.account.accountId}/subscription/${
           this.account.subscriptionId
         }/boundary/${boundaryId}/function/${id}/location`;
         return Superagent.get(url)
@@ -187,7 +191,7 @@ export class Server {
     return this.accountResolver(this.account)
       .then(newAccount => {
         this.account = this._normalizeAccount(newAccount);
-        const url = `${this.account.baseUrl}v1/subscription/${
+        const url = `${this.account.baseUrl}v1/account/${this.account.accountId}/subscription/${
           this.account.subscriptionId
         }/boundary/${boundaryId}/function/${id}`;
         return Superagent.get(url)
@@ -248,9 +252,10 @@ export class Server {
       return new Promise(resolve => setTimeout(resolve, this.buildStatusCheckInterval))
         .then(() => {
           // @ts-ignore
-          const url = `${this.account.baseUrl}v1/subscription/${self.account.subscriptionId}/boundary/${
-            editorContext.boundaryId
-          }/function/${editorContext.functionId}/build/${build.id}`;
+          const url = `${this.account.baseUrl}v1/account/${self.account.accountId}/subscription/${
+            // @ts-ignore
+            self.account.subscriptionId
+          }/boundary/${editorContext.boundaryId}/function/${editorContext.functionId}/build/${build.id}`;
           return (
             Superagent.get(url)
               // @ts-ignore
@@ -280,9 +285,9 @@ export class Server {
     return this.accountResolver(this.account)
       .then(newAccount => {
         this.account = this._normalizeAccount(newAccount);
-        const url = `${this.account.baseUrl}v1/subscription/${this.account.subscriptionId}/boundary/${
-          editorContext.boundaryId
-        }/function/${editorContext.functionId}`;
+        const url = `${this.account.baseUrl}v1/account/${this.account.accountId}/subscription/${
+          this.account.subscriptionId
+        }/boundary/${editorContext.boundaryId}/function/${editorContext.functionId}`;
         startTime = Date.now();
         let params: any = {
           environment: 'nodejs',
@@ -381,9 +386,11 @@ export class Server {
       clearTimeout(this.logsTimeout);
       return this.accountResolver(this.account).then(newAccount => {
         this.account = this._normalizeAccount(newAccount);
-        const url = `${this.account.baseUrl}v1/subscription/${this.account.subscriptionId}/boundary/${
-          editorContext.boundaryId
-        }/function/${editorContext.functionId}/log?token=${this.account.accessToken}`;
+        const url = `${this.account.baseUrl}v1/account/${this.account.accountId}/subscription/${
+          this.account.subscriptionId
+        }/boundary/${editorContext.boundaryId}/function/${editorContext.functionId}/log?token=${
+          this.account.accessToken
+        }`;
 
         this.sse = new EventSource(url);
         if (this.logsBackoff === 0) {

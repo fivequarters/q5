@@ -28,11 +28,11 @@
   </body>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js" type="text/javascript"></script>
-  <!-- <script src="https://cdn.flexd.io/flexd/js/flexd-editor/latest/flexd-editor.js"></script> -->
-  <script
+  <script src="https://cdn.flexd.io/flexd/js/flexd-editor/latest/flexd-editor.js"></script>
+  <!-- <script
     src="/js/<%- process.env.NODE_ENV === 'production' ? 'flexd-editor.min.js' : 'flexd-editor.js' %>"
     type="text/javascript"
-  ></script>
+  ></script> -->
   <script type="text/javascript">
     $(function() {
       flexd
@@ -41,6 +41,7 @@
           'myboundary',
           'myfunction17',
           {
+            accountId: 'acc-b503fb00e15248c6',
             subscriptionId: 'sub-b503fb00e15248c6-0000',
             baseUrl: '<%- process.env.API_SERVER %>',
             accessToken: '<%- process.env.API_AUTHORIZATION_KEY %>',

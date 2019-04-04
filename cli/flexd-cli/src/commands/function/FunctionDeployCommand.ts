@@ -239,9 +239,9 @@ export class FunctionDeployCommand extends Command {
         try {
           response = await request({
             method: 'PUT',
-            url: `${profile.baseUrl}/v1/subscription/${profile.subscription}/boundary/${profile.boundary}/function/${
-              profile.function
-            }`,
+            url: `${profile.baseUrl}/v1/account/${profile.account}/subscription/${profile.subscription}/boundary/${
+              profile.boundary
+            }/function/${profile.function}`,
             headers: {
               Authorization: `Bearer ${profile.token}`,
             },
@@ -251,9 +251,9 @@ export class FunctionDeployCommand extends Command {
           while (response.status === 201) {
             await sleep(2000);
             response = await request({
-              url: `${profile.baseUrl}/v1/subscription/${profile.subscription}/boundary/${profile.boundary}/function/${
-                profile.function
-              }/build/${response.data.id}`,
+              url: `${profile.baseUrl}/v1/account/${profile.account}/subscription/${profile.subscription}/boundary/${
+                profile.boundary
+              }/function/${profile.function}/build/${response.data.id}`,
               headers: {
                 Authorization: `Bearer ${profile.token}`,
               },

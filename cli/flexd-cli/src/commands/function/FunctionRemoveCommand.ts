@@ -56,9 +56,9 @@ export class FunctionRemoveCommand extends Command {
 
     let response = await request({
       method: 'DELETE',
-      url: `${profile.baseUrl}/v1/subscription/${profile.subscription}/boundary/${profile.boundary}/function/${
-        profile.function
-      }`,
+      url: `${profile.baseUrl}/v1/account/${profile.account}/subscription/${profile.subscription}/boundary/${
+        profile.boundary
+      }/function/${profile.function}`,
       headers: {
         Authorization: `Bearer ${profile.token}`,
       },

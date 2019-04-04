@@ -6,6 +6,7 @@ import { AuthAuth0 } from './AuthAuth0';
 import { AuthGoogle } from './AuthGoogle';
 import { getAdmin, getNextInquiry, inquiries, salesAgents } from './data';
 
+const accountId = 'acc-b503fb00e15248c6';
 const subscriptionId = 'sub-b503fb00e15248c6-1234';
 
 // ------------------
@@ -82,6 +83,7 @@ function getEditorConfig(config: ApiConfig) {
     const admin = getAdmin(userId);
 
     const settings: any = {
+      accountId,
       subscriptionId,
       boundaryId: admin.company,
       baseUrl: config.functionsBaseUrl,

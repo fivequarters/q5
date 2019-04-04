@@ -83,17 +83,7 @@ module.exports = function authorize_factory(options) {
 
   return function authorize(req, res, next) {
     let accountId = req.params.accountId;
-    if (!accountId) {
-      const subscriptionId = req.params.subscriptionId;
-      if (subscriptionId) {
-        const segments = subscriptionId.split('-');
-        accountId = `acc-${segments[1]}`;
-      }
-    }
     let resource = req.path;
-    if (resource.indexOf('/subscription') === 0) {
-      resource = `/account/${accountId}/${resource}`;
-    }
     const action = options.operation;
 
     getDataAccess().then(dataAccess => {
@@ -102,12 +92,11 @@ module.exports = function authorize_factory(options) {
         req.isRoot = true;
         return writeAudit(
           {
-            // TODO where do we obtain accountId from for requests where it is implied by subscriptionId?
             accountId,
             issuer: 'flexd:root',
             subject: 'flexd:root',
-            action: options.operation,
-            resource: res.path,
+            action,
+            resource,
           },
           next
         );
