@@ -1,5 +1,5 @@
 import { EOL } from 'os';
-import { Command, IExecuteInput, MessageKind } from '@5qtrs/cli';
+import { Command, IExecuteInput } from '@5qtrs/cli';
 import { ExecuteService, ProfileService } from '../../services';
 
 // ------------------

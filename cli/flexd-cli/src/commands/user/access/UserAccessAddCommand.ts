@@ -1,54 +1,63 @@
 import { Command, ArgType, IExecuteInput, MessageKind } from '@5qtrs/cli';
 import { ExecuteService, UserService, ProfileService } from '../../../services';
-import { Text } from '@5qtrs/text';
+
+// ------------------
+// Internal Constants
+// ------------------
+
+const command = {
+  name: 'Add User Access',
+  cmd: 'add',
+  summary: 'Add access to a user',
+  description: 'Adds an access statement to the given user.',
+  arguments: [
+    {
+      name: 'user',
+      description: 'The id of the user to give access to',
+    },
+    {
+      name: 'action',
+      description: 'The action to allow the user to perform',
+    },
+  ],
+  options: [
+    {
+      name: 'subscription',
+      aliases: ['s'],
+      description: ['The subscription to which access should be given to the user'].join(' '),
+      defaultText: 'profile value',
+    },
+    {
+      name: 'boundary',
+      aliases: ['b'],
+      description: ['The boundary to which access should be given to the user'].join(' '),
+      defaultText: 'profile value',
+    },
+    {
+      name: 'function',
+      aliases: ['f'],
+      description: 'The function to which access should be given to the user',
+      defaultText: 'profile value',
+    },
+    {
+      name: 'confirm',
+      description: [
+        'If set to true, the details regarding adding the access to the user will be displayed along with a',
+        'prompt for confirmation.',
+      ].join(' '),
+      type: ArgType.boolean,
+      default: 'true',
+    },
+  ],
+};
+
+// ----------------
+// Exported Classes
+// ----------------
 
 export class UserAccessAddCommand extends Command {
   private constructor() {
-    super({
-      name: 'Add User Access',
-      cmd: 'add',
-      summary: 'Add access to a user',
-      description: 'Adds an access statement to the given user.',
-      arguments: [
-        {
-          name: 'user',
-          description: 'The id of the user to give access to',
-        },
-        {
-          name: 'action',
-          description: 'The action to allow the user to perform',
-        },
-      ],
-      options: [
-        {
-          name: 'subscription',
-          aliases: ['s'],
-          description: ['The subscription to which access should be given to the user'].join(' '),
-          defaultText: 'profile value',
-        },
-        {
-          name: 'boundary',
-          aliases: ['b'],
-          description: ['The boundary to which access should be given to the user'].join(' '),
-          defaultText: 'profile value',
-        },
-        {
-          name: 'function',
-          aliases: ['f'],
-          description: 'The function to which access should be given to the user',
-          defaultText: 'profile value',
-        },
-        {
-          name: 'confirm',
-          description: [
-            'If set to true, the details regarding adding the access to the user will be displayed along with a',
-            'prompt for confirmation.',
-          ].join(' '),
-          type: ArgType.boolean,
-          default: 'true',
-        },
-      ],
-    });
+    super(command);
   }
 
   public static async create() {

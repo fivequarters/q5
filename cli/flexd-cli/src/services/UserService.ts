@@ -181,7 +181,7 @@ export class UserService {
         header: 'Add Identity',
         message: Text.create("Adding the identity to user '", Text.bold(id), "'..."),
         errorHeader: 'Add Identity Error',
-        errorMessage: Text.create("Unable add the identity to user '", Text.bold(id), "'"),
+        errorMessage: Text.create("Unable to add the identity to user '", Text.bold(id), "'"),
       },
       {
         method: 'PUT',
@@ -199,6 +199,32 @@ export class UserService {
     return updatedUser;
   }
 
+  public async removeUserIdentity(id: string, user: IFlexdUpdateUser): Promise<IFlexdUser> {
+    const profile = await this.profileService.getExecutionProfile(['account']);
+
+    const updatedUser = await this.executeService.executeRequest(
+      {
+        header: 'Remove Identity',
+        message: Text.create("Removing the identity from user '", Text.bold(id), "'..."),
+        errorHeader: 'Remove Identity Error',
+        errorMessage: Text.create("Unable to remove the identity from user '", Text.bold(id), "'"),
+      },
+      {
+        method: 'PUT',
+        url: `${profile.baseUrl}/v1/account/${profile.account}/user/${id}`,
+        data: user,
+        headers: { Authorization: `bearer ${profile.accessToken}` },
+      }
+    );
+
+    await this.executeService.result(
+      'Identity Removed',
+      Text.create("The identity was successfully removed from user '", Text.bold(id), "'")
+    );
+
+    return updatedUser;
+  }
+
   public async addUserAccess(id: string, user: IFlexdUpdateUser): Promise<IFlexdUser> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
@@ -207,7 +233,7 @@ export class UserService {
         header: 'Add Access',
         message: Text.create("Adding the access to user '", Text.bold(id), "'..."),
         errorHeader: 'Add Access Error',
-        errorMessage: Text.create("Unable add the access to user '", Text.bold(id), "'"),
+        errorMessage: Text.create("Unable to add the access to user '", Text.bold(id), "'"),
       },
       {
         method: 'PUT',
@@ -220,6 +246,32 @@ export class UserService {
     await this.executeService.result(
       'Access Added',
       Text.create("The access was successfully added to user '", Text.bold(id), "'")
+    );
+
+    return updatedUser;
+  }
+
+  public async removeUserAccess(id: string, user: IFlexdUpdateUser): Promise<IFlexdUser> {
+    const profile = await this.profileService.getExecutionProfile(['account']);
+
+    const updatedUser = await this.executeService.executeRequest(
+      {
+        header: 'Remove Access',
+        message: Text.create("Removing the access from user '", Text.bold(id), "'..."),
+        errorHeader: 'Remove Access Error',
+        errorMessage: Text.create("Unable to remove the access from user '", Text.bold(id), "'"),
+      },
+      {
+        method: 'PUT',
+        url: `${profile.baseUrl}/v1/account/${profile.account}/user/${id}`,
+        data: user,
+        headers: { Authorization: `bearer ${profile.accessToken}` },
+      }
+    );
+
+    await this.executeService.result(
+      'Access Removed',
+      Text.create("The access was successfully removed from user '", Text.bold(id), "'")
     );
 
     return updatedUser;
@@ -426,21 +478,57 @@ export class UserService {
     }
   }
 
+  public async confirmRemoveUserAccess(user: IFlexdUser, access: IAddUserAccess): Promise<void> {
+    const profile = await this.profileService.getExecutionProfile(['account']);
+
+    const confirmPrompt = await Confirm.create({
+      header: 'Remove User Access?',
+      message: Text.create("Remove the access shown below from user '", Text.bold(user.id), "'?"),
+      details: this.getUserAccessConfirmDetails(profile.account as string, user, access),
+    });
+    const confirmed = await confirmPrompt.prompt(this.input.io);
+    if (!confirmed) {
+      await this.executeService.warning(
+        'Remove Access Canceled',
+        Text.create("Removing access from user '", Text.bold(user.id), "' was canceled.")
+      );
+      throw new Error('Remove Access Canceled');
+    }
+  }
+
   public async confirmAddUserIdentity(user: IFlexdUser, identity: IFlexdIdentitiy): Promise<void> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     const confirmPrompt = await Confirm.create({
-      header: 'Add User Identity?',
+      header: 'Add Identity?',
       message: Text.create("Add the identity shown below to user '", Text.bold(user.id), "'?"),
       details: this.getUserIdentityConfirmDetails(profile.account as string, user, identity),
     });
     const confirmed = await confirmPrompt.prompt(this.input.io);
     if (!confirmed) {
       await this.executeService.warning(
-        'Add User Identity Canceled',
+        'Add Identity Canceled',
         Text.create("Adding the identity to user '", Text.bold(user.id), "' was canceled.")
       );
       throw new Error('Add Identity Canceled');
+    }
+  }
+
+  public async confirmRemoveUserIdentity(user: IFlexdUser, identity: IFlexdIdentitiy): Promise<void> {
+    const profile = await this.profileService.getExecutionProfile(['account']);
+
+    const confirmPrompt = await Confirm.create({
+      header: 'Remove Identity?',
+      message: Text.create("Remove the identity shown below from user '", Text.bold(user.id), "'?"),
+      details: this.getUserIdentityConfirmDetails(profile.account as string, user, identity),
+    });
+    const confirmed = await confirmPrompt.prompt(this.input.io);
+    if (!confirmed) {
+      await this.executeService.warning(
+        'Remove Identity Canceled',
+        Text.create("Removing the identity from user '", Text.bold(user.id), "' was canceled.")
+      );
+      throw new Error('Remove Identity Canceled');
     }
   }
 

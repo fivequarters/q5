@@ -1,46 +1,56 @@
 import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
-import { UserService } from '../../../services';
+import { ExecuteService, UserService } from '../../../services';
 import { Text } from '@5qtrs/text';
+
+// ------------------
+// Internal Constants
+// ------------------
+
+const command = {
+  name: 'Remove User Identity',
+  cmd: 'rm',
+  summary: 'Removes an identity from a user',
+  description: Text.create(
+    "Removes an identity from a user. The user will no longer be associated with access tokens with the given '",
+    Text.bold('iss'),
+    "' (issuer) and '",
+    Text.bold('sub'),
+    "' (subject) claims."
+  ),
+  arguments: [
+    {
+      name: 'user',
+      description: 'The id of the user from which to remove the associate with the identity.',
+    },
+    {
+      name: 'iss',
+      description: 'The issuer claim of access tokens that currently identify the user.',
+    },
+    {
+      name: 'sub',
+      description: 'The subject claim of access tokens that currently identify the user.',
+    },
+  ],
+  options: [
+    {
+      name: 'confirm',
+      description: [
+        'If set to true, the details regarding adding the identity to the user will be displayed along with a',
+        'prompt for confirmation.',
+      ].join(' '),
+      type: ArgType.boolean,
+      default: 'true',
+    },
+  ],
+};
+
+// ----------------
+// Exported Classes
+// ----------------
 
 export class UserIdentityRemoveCommand extends Command {
   private constructor() {
-    super({
-      name: 'Remove User Identity',
-      cmd: 'rm',
-      summary: 'Removes an identity from a user',
-      description: Text.create(
-        "Removes an identity from a user. The user will no longer be associated with access tokens with the given '",
-        Text.bold('iss'),
-        "' (issuer) and '",
-        Text.bold('sub'),
-        "' (subject) claims."
-      ),
-      arguments: [
-        {
-          name: 'user',
-          description: 'The id of the user from which to remove the associate with the identity.',
-        },
-        {
-          name: 'iss',
-          description: 'The issuer claim of access tokens that currently identify the user.',
-        },
-        {
-          name: 'sub',
-          description: 'The subject claim of access tokens that currently identify the user.',
-        },
-      ],
-      options: [
-        {
-          name: 'confirm',
-          description: [
-            'If set to true, the details regarding adding the identity to the user will be displayed along with a',
-            'prompt for confirmation.',
-          ].join(' '),
-          type: ArgType.boolean,
-          default: 'true',
-        },
-      ],
-    });
+    super(command);
   }
 
   public static async create() {
@@ -49,21 +59,51 @@ export class UserIdentityRemoveCommand extends Command {
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
     await input.io.writeLine();
+
     const [id, iss, sub] = input.arguments as string[];
     const confirm = input.options.confirm as boolean;
 
     const userService = await UserService.create(input);
+    const executeService = await ExecuteService.create(input);
 
     const user = await userService.getUser(id);
+    user.identities = user.identities || [];
 
-    const newIdentity = { iss, sub };
-
-    if (confirm) {
-      await userService.confirmAddUserIdentity(user, newIdentity);
+    let identityIndex = -1;
+    for (let i = 0; i < user.identities.length; i++) {
+      const identity = user.identities[i];
+      if (identity.iss === iss && identity.sub === sub) {
+        identityIndex = i;
+        i = user.identities.length;
+      }
     }
 
-    const update = { identities: [newIdentity] };
-    const updatedUser = await userService.addUserIdentity(user.id, update);
+    if (identityIndex === -1) {
+      await executeService.warning(
+        'No Identity',
+        Text.create(
+          "The user '",
+          Text.bold(user.id),
+          "' does not have an identity with an issuer of '",
+          Text.bold(iss),
+          "' and a subject of '",
+          Text.bold(sub),
+          "'"
+        )
+      );
+      return 1;
+    }
+
+    const identity = { iss, sub };
+
+    if (confirm) {
+      await userService.confirmRemoveUserIdentity(user, identity);
+    }
+
+    user.identities.splice(identityIndex, 1);
+
+    const update = { identities: user.identities };
+    const updatedUser = await userService.removeUserIdentity(user.id, update);
 
     await userService.displayUser(updatedUser);
 
