@@ -21,7 +21,7 @@ tags:
     description: Function management operations
 
 paths:
-  /account/{accountId}:
+  /v1/account/{accountId}:
     parameters:
       - in: path
         name: accountId
@@ -52,7 +52,7 @@ paths:
       security:
         - accessToken: []
 
-  /account/{accountId}/audit:
+  /v1/account/{accountId}/audit:
     parameters:
       - in: path
         name: accountId
@@ -139,7 +139,7 @@ paths:
       security:
         - accessToken: []
 
-  /account/{accountId}/issuer:
+  /v1/account/{accountId}/issuer:
     parameters:
       - in: path
         name: accountId
@@ -183,7 +183,7 @@ paths:
       security:
         - accessToken: []
 
-  /account/{accountId}/issuer/{issuerId}:
+  /v1/account/{accountId}/issuer/{issuerId}:
     parameters:
       - in: path
         name: accountId
@@ -269,7 +269,7 @@ paths:
       security:
         - accessToken: []
 
-  /account/{accountId}/client:
+  /v1/account/{accountId}/client:
     parameters:
       - in: path
         name: accountId
@@ -342,7 +342,7 @@ paths:
       security:
         - accessToken: []
 
-  /account/{accountId}/client/{clientId}:
+  /v1/account/{accountId}/client/{clientId}:
     parameters:
       - in: path
         name: accountId
@@ -428,7 +428,7 @@ paths:
       security:
         - accessToken: []
 
-  /account/{accountId}/subscription:
+  /v1/account/{accountId}/subscription:
     parameters:
       - in: path
         name: accountId
@@ -474,7 +474,7 @@ paths:
       security:
         - accessToken: []
 
-  /account/{accountId}/subscription/{subscriptionId}:
+  /v1/account/{accountId}/subscription/{subscriptionId}:
     parameters:
       - in: path
         name: accountId
@@ -511,7 +511,7 @@ paths:
       security:
         - accessToken: []
 
-  /account/{accountId}/user:
+  /v1/account/{accountId}/user:
     parameters:
       - in: path
         name: accountId
@@ -592,7 +592,7 @@ paths:
       security:
         - accessToken: []
 
-  /account/{accountId}/user/{userId}:
+  /v1/account/{accountId}/user/{userId}:
     parameters:
       - in: path
         name: accountId
@@ -684,7 +684,7 @@ paths:
       security:
         - accessToken: []
 
-  /account/{accountId}/subscription/{subscriptionId}/boundary:
+  /v1/account/{accountId}/subscription/{subscriptionId}/boundary:
     parameters:
       - in: path
         name: accountId
@@ -736,7 +736,7 @@ paths:
       security:
         - accessToken: []
 
-  /account/{accountId}/subscription/{subscriptionId}/function:
+  /v1/account/{accountId}/subscription/{subscriptionId}/function:
     parameters:
       - in: path
         name: accountId
@@ -794,7 +794,7 @@ paths:
       security:
         - accessToken: []
 
-  /account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/function:
+  /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/function:
     parameters:
       - in: path
         name: accountId
@@ -858,7 +858,7 @@ paths:
       security:
         - accessToken: []
 
-  /account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/log:
+  /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/log:
     parameters:
       - in: path
         name: accountId
@@ -897,7 +897,7 @@ paths:
       security:
         - accessToken: []
 
-  /account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/function/{functionId}:
+  /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/function/{functionId}:
     parameters:
       - in: path
         name: accountId
@@ -991,7 +991,7 @@ paths:
       security:
         - accessToken: []
 
-  /account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/function/{functionId}/log:
+  /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/function/{functionId}/log:
     parameters:
       - in: path
         name: accountId
@@ -1036,7 +1036,7 @@ paths:
       security:
         - accessToken: []
 
-  /account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/function/{functionId}/location:
+  /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/function/{functionId}/location:
     parameters:
       - in: path
         name: accountId
@@ -1086,7 +1086,7 @@ paths:
       security:
         - accessToken: []
 
-  /account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/function/{functionId}/build/{buildId}:
+  /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/function/{functionId}/build/{buildId}:
     parameters:
       - in: path
         name: accountId

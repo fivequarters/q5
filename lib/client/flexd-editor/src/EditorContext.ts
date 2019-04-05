@@ -64,7 +64,7 @@ module.exports = (ctx, cb) => {
 /**
  * The _EditorContext_ class class represents client side state of a single function, including its files,
  * application settings, schedule of execution (in case of a CRON job), and metadata.
- * It exposes methods to manupulate this in-memory state, and emits events other components can subscribe to when
+ * It exposes methods to manipulate this in-memory state, and emits events other components can subscribe to when
  * that state changes.
  *
  * The _EditorContext_ is an _EventEmitter_ that emits events on changes in the function specification and interactions
