@@ -269,9 +269,10 @@ export class ProfileService {
     }
 
     this.executeService.message(Text.blue('Profiles'), Text.blue('Details'));
+    const defaultProfileName = await this.profile.getDefaultProfileName();
 
     for (const profile of profiles) {
-      await this.writeProfile(profile);
+      await this.writeProfile(profile, profile.name === defaultProfileName);
     }
   }
 
@@ -281,7 +282,9 @@ export class ProfileService {
       return;
     }
 
-    await this.writeProfile(profile);
+    const defaultProfileName = await this.profile.getDefaultProfileName();
+
+    await this.writeProfile(profile, profile.name === defaultProfileName);
   }
 
   private getProfileUpdateConfirmDetails(profile: IFlexdProfile, settings: IFlexdProfileSettings) {
@@ -378,7 +381,7 @@ export class ProfileService {
     this.executeService.error('Profile Error', error.message);
   }
 
-  private async writeProfile(profile: IFlexdProfile) {
+  private async writeProfile(profile: IFlexdProfile, isDefault: boolean) {
     const details = [
       Text.dim('Deployment: '),
       profile.baseUrl,
@@ -415,6 +418,10 @@ export class ProfileService {
       ]
     );
 
-    await this.executeService.message(Text.bold(profile.name), Text.create(details));
+    const name = isDefault
+      ? Text.create(Text.bold(profile.name), Text.eol(), Text.dim(Text.italic('<default>')))
+      : Text.bold(profile.name);
+
+    await this.executeService.message(name, Text.create(details));
   }
 }
