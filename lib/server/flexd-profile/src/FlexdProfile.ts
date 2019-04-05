@@ -69,7 +69,7 @@ function generateSubject(): string {
 
 export interface IFlexdProfileSettings {
   [index: string]: string | undefined;
-  account?: string;
+  account: string;
   subscription?: string;
   boundary?: string;
   function?: string;
@@ -190,6 +190,7 @@ export class FlexdProfile {
     const fullProfileToAdd = {
       created,
       updated: created,
+      agent: toAdd.agent,
       account: toAdd.account || undefined,
       subscription: toAdd.subscription || undefined,
       boundary: toAdd.boundary || undefined,
@@ -292,7 +293,7 @@ export class FlexdProfile {
     return {
       accessToken,
       baseUrl: profile.baseUrl,
-      account: profile.account || undefined,
+      account: profile.account,
       subscription: profile.subscription || undefined,
       boundary: profile.boundary || undefined,
       function: profile.function || undefined,

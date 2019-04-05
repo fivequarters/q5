@@ -51,7 +51,7 @@ export class InitCommand extends Command {
     const userService = await UserService.create(input);
 
     const decodedToken = await userService.decodeInitToken(token);
-    const { accountId, agentId, baseUrl, iss, sub } = decodedToken;
+    const { accountId, subscriptionId, boundaryId, functionId, agentId, baseUrl, iss, sub } = decodedToken;
 
     if (!profileName) {
       profileName = await profileService.getProfileNameFromBaseUrl(baseUrl);
@@ -66,6 +66,9 @@ export class InitCommand extends Command {
     const newProfile = {
       baseUrl,
       account: accountId,
+      subscription: subscriptionId,
+      boundary: boundaryId,
+      function: functionId,
       agent: agentId,
       issuer: iss,
       subject: sub,

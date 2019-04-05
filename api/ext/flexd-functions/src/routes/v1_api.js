@@ -248,8 +248,10 @@ router.post(
   authorize({
     operation: 'user:init',
   }),
+  express.json(),
   validate_schema({
     params: require('./schemas/api_params'),
+    body: require('./schemas/init'),
   }),
   account.userInit()
 );
@@ -260,7 +262,7 @@ router.post(
   express.json(),
   validate_schema({
     params: require('./schemas/api_params'),
-    body: require('./schemas/init'),
+    body: require('./schemas/initResolve'),
   }),
   account.userInitResolve()
 );

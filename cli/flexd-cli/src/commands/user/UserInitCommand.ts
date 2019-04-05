@@ -1,5 +1,5 @@
 import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
-import { UserService } from '../../services';
+import { UserService, ProfileService } from '../../services';
 
 // ------------------
 // Internal Constants
@@ -17,6 +17,21 @@ const command = {
     },
   ],
   options: [
+    {
+      name: 'subscription',
+      aliases: ['s'],
+      description: 'The subscription to set by default when the user initializes',
+    },
+    {
+      name: 'boundary',
+      aliases: ['b'],
+      description: 'The boundary to set by default when the user initializes',
+    },
+    {
+      name: 'function',
+      aliases: ['f'],
+      description: 'The function to set by default when the user initializes',
+    },
     {
       name: 'confirm',
       description: [
@@ -49,14 +64,23 @@ export class UserInitCommand extends Command {
     const confirm = input.options.confirm as boolean;
 
     const userService = await UserService.create(input);
+    const profileService = await ProfileService.create(input);
 
     const user = await userService.getUser(id);
 
+    const executionProfile = await profileService.getExecutionProfile();
+
+    const initEntry = {
+      subscriptionId: executionProfile.subscription || undefined,
+      boundaryId: executionProfile.boundary || undefined,
+      functionId: executionProfile.function || undefined,
+    };
+
     if (confirm) {
-      await userService.confirmInitUser(user);
+      await userService.confirmInitUser(user, initEntry);
     }
 
-    const initToken = await userService.initUser(id);
+    const initToken = await userService.initUser(id, initEntry);
 
     await userService.displayInitToken(initToken);
 
