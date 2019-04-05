@@ -1,14 +1,31 @@
 import { Command, IExecuteInput } from '@5qtrs/cli';
-import { ExecuteService, IssuerService } from '../../services';
+import { IssuerService } from '../../services';
+
+// ------------------
+// Internal Constants
+// ------------------
+
+const command = {
+  name: 'List Issuers',
+  cmd: 'ls',
+  summary: 'List issuers',
+  description: 'Retrieves a list of trusted issuers associated with the account.',
+  options: [
+    {
+      name: 'format',
+      description: "The format to display the output: 'table', 'json'",
+      default: 'table',
+    },
+  ],
+};
+
+// ----------------
+// Exported Classes
+// ----------------
 
 export class IssuerListCommand extends Command {
   private constructor() {
-    super({
-      name: 'List Issuers',
-      cmd: 'ls',
-      summary: 'List issuers',
-      description: 'Retrieves a list of issuers that are associated with a given account.',
-    });
+    super(command);
   }
 
   public static async create() {
@@ -19,13 +36,8 @@ export class IssuerListCommand extends Command {
     await input.io.writeLine();
 
     const issuerService = await IssuerService.create(input);
-    const executeService = await ExecuteService.create(input);
 
     const issuers = await issuerService.listIssuers();
-    if (!issuers) {
-      executeService.verbose();
-      return 1;
-    }
 
     await issuerService.displayIssuers(issuers);
 

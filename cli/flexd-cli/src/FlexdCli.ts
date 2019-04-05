@@ -1,6 +1,5 @@
 import { Command, ICommand, ArgType } from '@5qtrs/cli';
 import {
-  BoundaryCommand,
   ClientCommand,
   FunctionCommand,
   InitCommand,
@@ -11,43 +10,54 @@ import {
   VersionCommand,
 } from './commands';
 
+// ------------------
+// Internal Constants
+// ------------------
+
+const cli: ICommand = {
+  name: 'Flexd CLI',
+  description: 'A command-line tool (CLI) for the management of Flexd accounts, users, functions and more.',
+  cli: 'flx',
+  docsUrl: 'https://fivequarters.github.io/docs',
+  options: [
+    {
+      name: 'verbose',
+      aliases: ['v'],
+      description: 'Provide error details on command execution failure',
+      type: ArgType.boolean,
+      default: 'false',
+    },
+  ],
+};
+
+// ------------------
+// Internal Functions
+// ------------------
+
+async function getSubCommands() {
+  const subCommands: Command[] = [];
+  subCommands.push(await InitCommand.create());
+  subCommands.push(await FunctionCommand.create());
+  subCommands.push(await ProfileCommand.create());
+  subCommands.push(await TokenCommand.create());
+  subCommands.push(await UserCommand.create());
+  subCommands.push(await ClientCommand.create());
+  subCommands.push(await IssuerCommand.create());
+  subCommands.push(await VersionCommand.create());
+  return subCommands;
+}
+
 // ----------------
 // Exported Classes
 // ----------------
 
 export class FlexdCli extends Command {
-  public static async create() {
-    const subCommands: Command[] = [];
-    subCommands.push(await InitCommand.create());
-    subCommands.push(await FunctionCommand.create());
-    subCommands.push(await ProfileCommand.create());
-    subCommands.push(await TokenCommand.create());
-    subCommands.push(await UserCommand.create());
-    subCommands.push(await ClientCommand.create());
-    subCommands.push(await IssuerCommand.create());
-    subCommands.push(await BoundaryCommand.create());
-    subCommands.push(await VersionCommand.create());
-
-    const cli = {
-      name: 'Flexd CLI',
-      description: 'A command-line tool (CLI) for the management of Flexd accounts, users, functions and more.',
-      cli: 'flx',
-      docsUrl: 'https://fivequarters.github.io/docs',
-      subCommands,
-      options: [
-        {
-          name: 'verbose',
-          aliases: ['v'],
-          description: 'Provide error details on command execution failure',
-          type: ArgType.boolean,
-          default: 'false',
-        },
-      ],
-    };
-
-    return new FlexdCli(cli);
+  private constructor(command: ICommand) {
+    super(command);
   }
-  private constructor(cli: ICommand) {
-    super(cli);
+
+  public static async create() {
+    cli.subCommands = await getSubCommands();
+    return new FlexdCli(cli);
   }
 }

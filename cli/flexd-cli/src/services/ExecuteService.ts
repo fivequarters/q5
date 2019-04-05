@@ -69,7 +69,7 @@ export class ExecuteService {
       });
       await message.write(this.input.io);
       this.logs.push({ header: messages.errorHeader, message: messages.errorMessage, error, date: new Date() });
-      return undefined;
+      throw error;
     }
   }
 

@@ -14,7 +14,7 @@ const command: ICommand = {
   name: 'Issuer',
   cmd: 'issuer',
   summary: 'Manage issuers',
-  description: 'Retrieves and manages issuers associated with a given account.',
+  description: 'Retrieves and manages trusted issuers associated with the account.',
   options: [
     {
       name: 'profile',

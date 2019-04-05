@@ -1,4 +1,3 @@
-import { EOL } from 'os';
 import { Command, ICommand } from '@5qtrs/cli';
 import { IssuerKeyAddCommand } from './IssuerKeyAddCommand';
 import { IssuerKeyRemoveCommand } from './IssuerKeyRemoveCommand';
@@ -11,11 +10,7 @@ const command: ICommand = {
   name: 'Issuer Key',
   cmd: 'key',
   summary: 'Manage issuer public keys',
-  description: [
-    `Add and remove public keys used by the given issuer.${EOL}${EOL}A profile`,
-    "must have 'manage' access to an account in order to add or remove public keys",
-    'used by an issuer.',
-  ].join(' '),
+  description: 'Add and remove public keys of a trusted issuer.',
 };
 
 // ------------------
