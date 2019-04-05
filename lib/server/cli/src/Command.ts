@@ -274,9 +274,9 @@ export class Command implements ICommand {
     const potentialCommands: Command[] = [];
     for (const command of this.allSubCommands) {
       if (startsWith(parsedArgs.termsAndArguments, command.terms)) {
-        if (!mode || command.modes.indexOf(mode) !== -1) {
-          potentialCommands.push(command);
-        }
+        // if (!mode || command.modes.indexOf(mode) !== -1) {
+        potentialCommands.push(command);
+        // }
       }
     }
 
