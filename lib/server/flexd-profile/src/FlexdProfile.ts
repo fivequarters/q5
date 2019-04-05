@@ -239,7 +239,7 @@ export class FlexdProfile {
     profile.updated = profile.created;
 
     await this.dotConfig.setProfile(copyTo, profile);
-    profile.name = name;
+    profile.name = copyTo;
 
     return profile;
   }
@@ -256,7 +256,7 @@ export class FlexdProfile {
 
     await this.dotConfig.setProfile(renameTo, profile);
     await this.dotConfig.removeProfile(name);
-    profile.name = name;
+    profile.name = renameTo;
 
     return profile;
   }
