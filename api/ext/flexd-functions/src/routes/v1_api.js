@@ -8,8 +8,8 @@ var validate_schema = require('./middleware/validate_schema');
 var authorize = require('./middleware/authorize');
 var cors = require('cors');
 const create_error = require('http-errors');
-const { join } = require('path');
 let { readAudit } = require('./auditing');
+const health = require('./handlers/health');
 const account = require('./handlers/account_handlers');
 
 var corsManagementOptions = {
@@ -30,23 +30,7 @@ const NotImplemented = (_, __, next) => next(create_error(501, 'Not implemented'
 
 // Health
 
-router.get('/health', (_, res) => {
-  const packageJsonPath = join(__dirname, '..', '..', '..', '..', '..', 'package.json');
-  require('fs').readFile(packageJsonPath, (error, buffer) => {
-    let version = '<unknown>';
-    if (!error) {
-      const content = buffer.toString();
-      try {
-        const json = JSON.parse(content);
-        version = json.version;
-      } catch (__) {
-        // do nothing
-      }
-    }
-
-    res.json({ version });
-  });
-});
+router.get('/health', health.getHealth());
 
 // Accounts
 
