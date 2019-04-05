@@ -9,6 +9,7 @@ var authorize = require('./middleware/authorize');
 var cors = require('cors');
 const create_error = require('http-errors');
 let { readAudit } = require('./auditing');
+const health = require('./handlers/health');
 const account = require('./handlers/account_handlers');
 
 var corsManagementOptions = {
@@ -29,7 +30,7 @@ const NotImplemented = (_, __, next) => next(create_error(501, 'Not implemented'
 
 // Health
 
-router.get('/health', (_, res) => res.end());
+router.get('/health', health.getHealth());
 
 // Accounts
 
@@ -343,7 +344,7 @@ router.get(
   '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function',
   cors(corsManagementOptions),
   authorize({
-    operation: 'boundary:list-function',
+    operation: 'function:list',
   }),
   validate_schema({
     query: require('./schemas/api_query'),
@@ -377,7 +378,7 @@ router.get(
   '/account/:accountId/subscription/:subscriptionId/function',
   cors(corsManagementOptions),
   authorize({
-    operation: 'subscription:list-function',
+    operation: 'function:list',
   }),
   validate_schema({
     query: require('./schemas/api_query'),

@@ -1,7 +1,7 @@
 import { AwsBase, IAwsOptions } from '@5qtrs/aws-base';
 import { Route53 } from 'aws-sdk';
 import { ensureArray } from '@5qtrs/type';
-import { sameItems } from '@5qtrs/array';
+import { same } from '@5qtrs/array';
 
 // ------------------
 // Internal Functions
@@ -70,7 +70,7 @@ export class AwsRoute53 extends AwsBase<typeof Route53> {
     const name = normalizeDomain(record.name);
     const values = ensureArray(record.values);
     for (const existing of records) {
-      if (existing.name === name && existing.type === record.type && sameItems(values, existing.values)) {
+      if (existing.name === name && existing.type === record.type && same(values, existing.values)) {
         return;
       }
     }
@@ -88,7 +88,7 @@ export class AwsRoute53 extends AwsBase<typeof Route53> {
     const name = normalizeDomain(record.name);
     const values = ensureArray(record.values);
     for (const existing of records) {
-      if (existing.name === name && existing.type === record.type && sameItems(values, existing.values)) {
+      if (existing.name === name && existing.type === record.type && same(values, existing.values)) {
         await this.deleteHostedZoneRecord(id, existing);
       }
     }

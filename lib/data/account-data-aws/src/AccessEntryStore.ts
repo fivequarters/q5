@@ -1,5 +1,5 @@
 import { AwsDynamo } from '@5qtrs/aws-dynamo';
-import { notIn } from '@5qtrs/array';
+import { difference } from '@5qtrs/array';
 
 // ------------------
 // Internal Constants
@@ -139,14 +139,17 @@ export class AccessEntryStore {
     if (accessEntries === undefined) {
       return existingAccessEntries;
     }
-    const toAdd = notIn(accessEntries, existingAccessEntries, areEqual);
-    const toRemove = notIn(existingAccessEntries, accessEntries, areEqual);
+    const toAdd = difference(accessEntries, existingAccessEntries, areEqual);
+    const toRemove = difference(existingAccessEntries, accessEntries, areEqual);
 
     await Promise.all([
       this.addAllAccessEntries(accountId, agentId, toAdd),
       this.removeAllAccessEntries(agentId, toRemove),
     ]);
-    return accessEntries;
+
+    const actual = difference(existingAccessEntries, toRemove);
+    actual.push(...toAdd);
+    return actual;
   }
 
   public async listAllAccessEntries(agentId: string): Promise<IAccessEntry[]> {

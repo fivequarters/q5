@@ -24,11 +24,6 @@ const command = {
       defaultText: 'default profile',
     },
     {
-      name: 'account',
-      aliases: ['a'],
-      description: 'Set the account command option of the profile to the given account',
-    },
-    {
       name: 'subscription',
       aliases: ['s'],
       description: 'Set the subscription command option of the profile to the given subscription',
@@ -69,7 +64,6 @@ export class ProfileUpdateCommand extends Command {
   protected async onExecute(input: IExecuteInput): Promise<number> {
     await input.io.writeLine();
     const name = input.options.profile as string;
-    const account = input.options.account as string;
     const subscription = input.options.subscription as string;
     const boundary = input.options.boundary as string;
     const func = input.options.function as string;
@@ -80,7 +74,6 @@ export class ProfileUpdateCommand extends Command {
     const profile = await profileService.getProfileOrDefaultOrThrow(name);
 
     const settings = {
-      account: account === '' ? undefined : account || profile.account,
       subscription: subscription === '' ? undefined : subscription || profile.subscription,
       boundary: boundary === '' ? undefined : boundary || profile.boundary,
       function: func === '' ? undefined : func || profile.function,

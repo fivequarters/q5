@@ -1,3 +1,3 @@
 export { startsWith } from './startsWith';
-export { sameItems } from './sameItems';
-export { notIn } from './notIn';
+export { same } from './same';
+export { difference } from './difference';

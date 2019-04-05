@@ -1,6 +1,6 @@
 import { startsWith } from '../src';
 
-describe('startsWith', () => {
+describe('startsWith()', () => {
   it('should return false if the target array is shorter than the search array', () => {
     expect(startsWith([0, 1], [0, 1, 2])).toBe(false);
   });
@@ -30,6 +30,23 @@ describe('startsWith', () => {
     ];
     for (const test of tests) {
       expect(startsWith(test.target, test.search)).toBe(true);
+    }
+  });
+
+  it('should return false if the target array does not start with the search array', () => {
+    const obj1 = { x: 'foo1', y: 'bar1' };
+    const obj2 = { x: 'foo2', y: 'bar2' };
+    const obj3 = { x: 'foo3', y: 'bar3' };
+
+    const tests: any = [
+      { target: [0, 2, 1], search: [0, 1, 2] },
+      { target: [0, 2], search: [0, 1, 2] },
+      { target: [false], search: [true] },
+      { target: ['abc', 'abc', 'abc'], search: ['abc', 'qrs', 'xyz'] },
+      { target: [obj1, obj3, obj3], search: [obj1, obj2, obj3] },
+    ];
+    for (const test of tests) {
+      expect(startsWith(test.target, test.search)).toBe(false);
     }
   });
 });
