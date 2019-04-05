@@ -50,7 +50,7 @@ export function NavBar() {
         </CorpName>
         <NavBarSpacer />
         <Link href="mailto:contact@flexd.io">contact@flexd.io</Link>
-        <Link href="https://twitter.com/getflexed" target="_blank">
+        <Link href="https://twitter.com/getflexdio" target="_blank">
           <Twitter />
         </Link>
       </StyledNavBar>
