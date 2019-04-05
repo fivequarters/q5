@@ -317,20 +317,14 @@ export class ProfileService {
   }
 
   private getProfileUpdateConfirmDetails(profile: IFlexdProfile, settings: IFlexdProfileSettings) {
-    const account = profile.account || notSet;
     const subscription = profile.subscription || notSet;
     const boundary = profile.boundary || notSet;
     const func = profile.function || notSet;
 
-    const newAccount = settings.account || notSet;
     const newSubscription = settings.subscription || notSet;
     const newBoundary = settings.boundary || notSet;
     const newFunction = settings.function || notSet;
 
-    const accountValue =
-      account === newAccount
-        ? Text.create(account, Text.dim(' (no change)'))
-        : Text.create(account, Text.dim(' → '), newAccount);
     const subscriptionValue =
       subscription === newSubscription
         ? Text.create(subscription, Text.dim(' (no change)'))
@@ -346,7 +340,7 @@ export class ProfileService {
 
     return [
       { name: 'Deployment', value: profile.baseUrl },
-      { name: 'Account', value: accountValue },
+      { name: 'Account', value: profile.account },
       { name: 'Subscription', value: subscriptionValue },
       { name: 'Boundary', value: boundaryValue },
       { name: 'Function', value: functionValue },

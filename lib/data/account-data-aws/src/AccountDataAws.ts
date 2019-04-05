@@ -12,7 +12,7 @@ import { IdentityStore, IIdentity } from './IdentityStore';
 import { ClientStore, INewBaseClient, IBaseClient, IListBaseClientsOptions } from './ClientStore';
 import { IssuerStore, IIssuer, IListIssuersOptions, IListIssuersResult } from './IssuerStore';
 import { UserStore, IBaseUser, INewBaseUser, IListBaseUsersOptions, IListUsersResult } from './UserStore';
-import { InitStore, IResolvedInitEntry } from './InitStore';
+import { InitStore, INewInitEntry } from './InitStore';
 
 export { IListAccessEntriesOptions, IListAccessEntriesResult } from './AccessEntryStore';
 export { IIssuer } from './IssuerStore';
@@ -380,13 +380,13 @@ export class AccountDataAws {
     return removed;
   }
 
-  public async initClient(accountId: string, clientId: string, baseUrl: string): Promise<string | undefined> {
-    const client = await this.getClient(accountId, clientId);
+  public async initClient(newEntry: INewInitEntry): Promise<string | undefined> {
+    const client = await this.getClient(newEntry.accountId, newEntry.agentId);
     if (!client) {
       return undefined;
     }
 
-    return this.stores.init.addInitEntry(accountId, clientId, baseUrl);
+    return this.stores.init.addInitEntry(newEntry);
   }
 
   public async initResolveClient(initResolve: IInitResolve): Promise<IUser | undefined> {
@@ -509,13 +509,13 @@ export class AccountDataAws {
     return removed;
   }
 
-  public async initUser(accountId: string, userId: string, baseUrl: string): Promise<string | undefined> {
-    const user = await this.getUser(accountId, userId);
+  public async initUser(newEntry: INewInitEntry): Promise<string | undefined> {
+    const user = await this.getUser(newEntry.accountId, newEntry.agentId);
     if (!user) {
       return undefined;
     }
 
-    return this.stores.init.addInitEntry(accountId, userId, baseUrl);
+    return this.stores.init.addInitEntry(newEntry);
   }
 
   public async initResolveUser(initResolve: IInitResolve): Promise<IUser | undefined> {

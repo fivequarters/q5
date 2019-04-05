@@ -1,4 +1,4 @@
-import { Message, IExecuteInput, Confirm } from '@5qtrs/cli';
+import { Message, IExecuteInput, Confirm, IConfirmDetail } from '@5qtrs/cli';
 import { ExecuteService } from './ExecuteService';
 import { ProfileService } from './ProfileService';
 import { Text } from '@5qtrs/text';
@@ -49,7 +49,13 @@ export interface IFlexdUser extends IFlexdUpdateUser {
   id: string;
 }
 
-export interface IFlexdInit {
+export interface IFlexdNewInitEntry {
+  subscriptionId?: string;
+  boundaryId?: string;
+  functionId?: string;
+}
+
+export interface IFlexdInit extends IFlexdNewInitEntry {
   accountId: string;
   agentId: string;
   baseUrl: string;
@@ -303,7 +309,7 @@ export class UserService {
     return updatedUser;
   }
 
-  public async initUser(id: string): Promise<string> {
+  public async initUser(id: string, initEntry: IFlexdNewInitEntry): Promise<string> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     const initToken = await this.executeService.executeRequest(
@@ -316,6 +322,7 @@ export class UserService {
       {
         method: 'POST',
         url: `${profile.baseUrl}/v1/account/${profile.account}/user/${id}/init`,
+        data: initEntry,
         headers: { Authorization: `bearer ${profile.accessToken}` },
       }
     );
@@ -361,6 +368,9 @@ export class UserService {
     return {
       accountId: decoded.accountId,
       agentId: decoded.agentId,
+      subscriptionId: decoded.subscriptionId,
+      boundaryId: decoded.boundaryId,
+      functionId: decoded.functionId,
       baseUrl: decoded.baseUrl,
       iss: decoded.iss,
       sub: decoded.sub,
@@ -424,13 +434,13 @@ export class UserService {
     }
   }
 
-  public async confirmInitUser(user: IFlexdUser): Promise<void> {
+  public async confirmInitUser(user: IFlexdUser, entry: IFlexdNewInitEntry): Promise<void> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     const confirmPrompt = await Confirm.create({
       header: 'Generate Init Token?',
       message: Text.create("Generate an init token for user '", Text.bold(user.id), "'?"),
-      details: this.getUserConfirmDetails(profile.account as string, user),
+      details: this.getUserConfirmDetails(profile.account as string, user, entry),
     });
     const confirmed = await confirmPrompt.prompt(this.input.io);
     if (!confirmed) {
@@ -615,13 +625,24 @@ export class UserService {
     await message.write(this.input.io);
   }
 
-  private getUserConfirmDetails(account: string, user: INewFlexdUser) {
-    const details = [
+  private getUserConfirmDetails(account: string, user: INewFlexdUser, entry?: IFlexdNewInitEntry) {
+    const details: IConfirmDetail[] = [
       { name: 'Account', value: account },
       { name: 'First Name', value: user.firstName || notSet },
       { name: 'Last Name', value: user.lastName || notSet },
       { name: 'Email', value: user.primaryEmail || notSet },
     ];
+
+    if (entry) {
+      details.push(
+        ...[
+          { name: Text.dim('•'), value: Text.dim('•') },
+          { name: 'Subscription', value: entry.subscriptionId || notSet },
+          { name: 'Boundary', value: entry.boundaryId || notSet },
+          { name: 'Function', value: entry.functionId || notSet },
+        ]
+      );
+    }
 
     return details;
   }

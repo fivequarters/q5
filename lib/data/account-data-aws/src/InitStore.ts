@@ -83,6 +83,15 @@ interface IInitEntry {
 // Exported Interfaces
 // -------------------
 
+export interface INewInitEntry {
+  accountId: string;
+  subscriptionId?: string;
+  boundaryId?: string;
+  functionId?: string;
+  agentId: string;
+  baseUrl: string;
+}
+
 export interface IResolvedInitEntry {
   accountId: string;
   agentId: string;
@@ -118,12 +127,12 @@ export class InitStore {
     });
   }
 
-  public async addInitEntry(accountId: string, agentId: string, baseUrl: string): Promise<string | undefined> {
+  public async addInitEntry(entry: INewInitEntry): Promise<string | undefined> {
     const expires = Date.now() + 1000 * expireInSeconds;
     const jwtSecret = random() as string;
     const initEntry = {
-      accountId,
-      agentId,
+      accountId: entry.accountId,
+      agentId: entry.agentId,
       ttl: expires,
       jwtSecret,
     };
@@ -132,10 +141,13 @@ export class InitStore {
     await this.dynamo.putItem(tableName, item);
 
     const payload = {
-      accountId,
-      agentId,
-      baseUrl,
-      iss: generateIssuer(agentId, baseUrl),
+      accountId: entry.accountId,
+      subscriptionId: entry.subscriptionId || undefined,
+      boundaryId: entry.boundaryId || undefined,
+      functionId: entry.functionId || undefined,
+      agentId: entry.agentId,
+      baseUrl: entry.baseUrl,
+      iss: generateIssuer(entry.agentId, entry.baseUrl),
       sub: generateSubject(),
     };
 

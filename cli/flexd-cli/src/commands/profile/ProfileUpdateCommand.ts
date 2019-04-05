@@ -74,6 +74,7 @@ export class ProfileUpdateCommand extends Command {
     const profile = await profileService.getProfileOrDefaultOrThrow(name);
 
     const settings = {
+      account: profile.account,
       subscription: subscription === '' ? undefined : subscription || profile.subscription,
       boundary: boundary === '' ? undefined : boundary || profile.boundary,
       function: func === '' ? undefined : func || profile.function,

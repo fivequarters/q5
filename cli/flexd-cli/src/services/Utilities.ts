@@ -38,7 +38,7 @@ export function tryGetFlexd(srcDir?: string) {
 }
 
 export function getProfileSettingsFromFlexd(flexd: any): IFlexdProfileSettings {
-  let result: IFlexdProfileSettings = {};
+  let result: IFlexdProfileSettings = { account: flexd.accountId as string };
   if (flexd) {
     if (flexd.subscriptionId) result.subscription = flexd.subscriptionId;
     if (flexd.boundaryId) result.boundary = flexd.boundaryId;

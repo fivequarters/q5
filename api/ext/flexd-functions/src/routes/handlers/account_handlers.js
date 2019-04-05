@@ -293,9 +293,12 @@ function userInit() {
   return (req, res) => {
     const accountId = req.params.accountId;
     const userId = req.params.userId;
-    const baseUrl = process.env.API_SERVER;
     getDataAccess().then(dataAccess => {
-      dataAccess.initUser(accountId, userId, baseUrl).then(jwt => {
+      const initEntry = req.body;
+      initEntry.baseUrl = process.env.API_SERVER;
+      initEntry.accountId = accountId;
+      initEntry.agentId = userId;
+      dataAccess.initUser(initEntry).then(jwt => {
         if (!jwt) {
           return res.status(404).json({ message: 'Not Found' });
         }
