@@ -69,11 +69,19 @@ export async function listFunctions(account: IAccount, boundaryId?: string, cron
 }
 
 export async function deleteAllFunctions(account: IAccount, boundaryId?: string) {
-  return await listFunctions(account, boundaryId).then(response => {
-    return Promise.all(
-      response.data.items.map((x: { boundaryId: string; functionId: string }) =>
-        deleteFunction(account, x.boundaryId, x.functionId)
-      )
+  let response = await listFunctions(account, boundaryId);
+  if (response.status !== 200) {
+    throw new Error(
+      `The FLEXD_PROFILE does not come with enough permissions to run tests (HTTP ${
+        response.status
+      }). Unable to list functions in account ${account.accountId}, subscription ${
+        account.subscriptionId
+      }, boundary ${boundaryId || '*'} on deployment ${account.baseUrl}.`
     );
-  });
+  }
+  return Promise.all(
+    response.data.items.map((x: { boundaryId: string; functionId: string }) =>
+      deleteFunction(account, x.boundaryId, x.functionId)
+    )
+  );
 }

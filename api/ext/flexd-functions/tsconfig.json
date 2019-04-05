@@ -16,6 +16,7 @@
     { "path": "../../../lib/server/aws-cred" },
     { "path": "../../../lib/server/aws-deployment" },
     { "path": "../../../lib/server/jwt" },
-    { "path": "../../../lib/shared/request" }
+    { "path": "../../../lib/shared/request" },
+    { "path": "../../../lib/server/flexd-profile" }
   ]
 }
