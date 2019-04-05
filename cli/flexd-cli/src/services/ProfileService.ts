@@ -287,6 +287,35 @@ export class ProfileService {
     await this.writeProfile(profile, profile.name === defaultProfileName);
   }
 
+  public async displayTokenContext(profileName?: string) {
+    if (!profileName) {
+      profileName = await this.profile.getDefaultProfileName();
+    }
+
+    const profile = await this.profile.getExecutionProfile(profileName, true);
+
+    if (this.input.options.format === 'json') {
+      await console.log(JSON.stringify(profile, null, 2));
+      return;
+    }
+
+    const details = [
+      Text.dim('Deployment: '),
+      profile.baseUrl,
+      Text.eol(),
+      Text.dim('Account: '),
+      profile.account || notSet,
+      Text.eol(),
+      Text.dim('Access Token: '),
+      'Token below will be valid for the next 2 hours...',
+    ];
+
+    await this.executeService.info(profileName as string, Text.create(details));
+
+    console.log(profile.accessToken);
+    console.log();
+  }
+
   private getProfileUpdateConfirmDetails(profile: IFlexdProfile, settings: IFlexdProfileSettings) {
     const account = profile.account || notSet;
     const subscription = profile.subscription || notSet;
