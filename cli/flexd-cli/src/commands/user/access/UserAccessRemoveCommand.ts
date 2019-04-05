@@ -1,74 +1,107 @@
-import { Command, ArgType } from '@5qtrs/cli';
+import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
+import { ExecuteService, UserService } from '../../../services';
+import { Text } from '@5qtrs/text';
+
+// ------------------
+// Internal Constants
+// ------------------
+
+const command = {
+  name: 'Remove User Access',
+  cmd: 'rm',
+  summary: 'Removes access from a user',
+  description: "Removes a user's access to a given account, subscription, boundary or function.",
+  arguments: [
+    {
+      name: 'user',
+      description: 'The id of the user from which to remove access.',
+    },
+    {
+      name: 'action',
+      description: 'The action to remove from the user',
+    },
+    {
+      name: 'resource',
+      description: 'The resource to remove from the user',
+    },
+  ],
+  options: [
+    {
+      name: 'confirm',
+      description: [
+        'If set to true, the details regarding removing access from the user will be displayed along with a',
+        'prompt for confirmation.',
+      ].join(' '),
+      type: ArgType.boolean,
+      default: 'true',
+    },
+  ],
+};
+
+// ----------------
+// Exported Classes
+// ----------------
 
 export class UserAccessRemoveCommand extends Command {
   private constructor() {
-    super({
-      name: 'Remove User Access',
-      cmd: 'rm',
-      summary: 'Removes access from a user',
-      description: "Removes a user's access to a given account, subscription, boundary or function.",
-      arguments: [
-        {
-          name: 'user',
-          description: 'The id of the user from which to remove access.',
-        },
-      ],
-      options: [
-        {
-          name: 'account',
-          aliases: ['a'],
-          description: [
-            "The account id that the user should no longer have access to. If the 'subscription'",
-            'option is not specified, the user will no longer have access to any subscriptions, boundaries,',
-            'or functions within the account.',
-          ].join(' '),
-          default: 'profile value',
-        },
-        {
-          name: 'subscription',
-          aliases: ['s'],
-          description: [
-            "The subscription id that the user should no longer have access to. If the 'boundary'",
-            'option is not specified, the user will mp longer have access to any boundaries or functions',
-            'within the subscription.',
-          ].join(' '),
-          default: 'profile value',
-        },
-        {
-          name: 'boundary',
-          aliases: ['b'],
-          description: [
-            "The boundary id that the user should no longer have access to. If the 'function'",
-            'option is not specified, the user will no longer have access to any functions within the',
-            'boundary.',
-          ].join(' '),
-          default: 'profile value',
-        },
-        {
-          name: 'function',
-          aliases: ['f'],
-          description: 'The function id that the user should no longer have access to.',
-          default: 'profile value',
-        },
-        {
-          name: 'action',
-          description: 'The access action to no longer allow the user to perform.',
-          default: 'manage',
-        },
-        {
-          name: 'confirm',
-          description: [
-            'If set to true, the details regarding removing access from the user will be displayed along with a',
-            'prompt for confirmation.',
-          ].join(' '),
-          type: ArgType.boolean,
-          default: 'true',
-        },
-      ],
-    });
+    super(command);
   }
 
   public static async create() {
     return new UserAccessRemoveCommand();
+  }
+
+  protected async onExecute(input: IExecuteInput): Promise<number> {
+    await input.io.writeLine();
+
+    const [id, action, resource] = input.arguments as string[];
+    const confirm = input.options.confirm as boolean;
+
+    const userService = await UserService.create(input);
+    const executeService = await ExecuteService.create(input);
+
+    const user = await userService.getUser(id);
+    user.access = user.access || {};
+    user.access.allow = user.access.allow || [];
+
+    let accessIndex = -1;
+    for (let i = 0; i < user.access.allow.length; i++) {
+      const access = user.access.allow[i];
+      if (access.action === action && access.resource === resource) {
+        accessIndex = i;
+        i = user.access.allow.length;
+      }
+    }
+
+    if (accessIndex === -1) {
+      await executeService.warning(
+        'No Access',
+        Text.create(
+          "The user '",
+          Text.bold(user.id),
+          "' does not have any access with action '",
+          Text.bold(action),
+          "' for resource '",
+          Text.bold(resource),
+          "'"
+        )
+      );
+      return 1;
+    }
+
+    const access = { action, resource };
+
+    if (confirm) {
+      await userService.confirmRemoveUserAccess(user, access);
+    }
+
+    user.access.allow.splice(accessIndex, 1);
+
+    const update = { access: { allow: user.access.allow } };
+    const updatedUser = await userService.removeUserAccess(user.id, update);
+
+    await userService.displayUser(updatedUser);
+
+    return 0;
   }
 }

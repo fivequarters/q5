@@ -31,6 +31,10 @@ const command = {
   ],
 };
 
+// ----------------
+// Exported Classes
+// ----------------
+
 export class TokenCommand extends Command {
   private constructor() {
     super(command);

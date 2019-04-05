@@ -2,7 +2,6 @@ import { Message, IExecuteInput, Confirm, MessageKind } from '@5qtrs/cli';
 import { ExecuteService } from './ExecuteService';
 import { ProfileService } from './ProfileService';
 import { Text } from '@5qtrs/text';
-import { request } from '@5qtrs/request';
 import { readFile } from '@5qtrs/file';
 
 // ------------------
@@ -55,157 +54,183 @@ export class IssuerService {
     return new IssuerService(profileService, executeService, input);
   }
 
-  public async listIssuers(): Promise<IFlexdIssuer[] | undefined> {
+  public async listIssuers(): Promise<IFlexdIssuer[]> {
     const profile = await this.profileService.getExecutionProfile(['account']);
-    if (!profile) {
-      return undefined;
-    }
 
-    const added = await this.executeService.execute(
+    const issuers = await this.executeService.executeRequest(
       {
         header: 'Get Issuers',
         message: Text.create("Getting the issuers of account '", Text.bold(profile.account || ''), "'..."),
         errorHeader: 'Get Issuer Error',
         errorMessage: Text.create("Unable to get the issuers of account '", Text.bold(profile.account || ''), "'"),
       },
-      async () => {
-        const result = await request({
-          method: 'GET',
-          url: `${profile.baseUrl}/v1/account/${profile.account}/issuer`,
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `bearer ${profile.accessToken}`,
-          },
-        });
-        if (result.status === 404) {
-          const message = 'Either the configured deployment URL is in correct, or the account does not exist';
-          throw new Error(message);
-        }
-        if (result.status >= 500) {
-          const message = 'An error occurred on the server.';
-          throw new Error(message);
-        }
-        if (result.status !== 200) {
-          const message = 'An unknown error occurred.';
-          throw new Error(message);
-        }
-        return result.data.items;
+      {
+        method: 'GET',
+        url: `${profile.baseUrl}/v1/account/${profile.account}/issuer`,
+        headers: { Authorization: `bearer ${profile.accessToken}` },
       }
     );
 
-    return added;
+    return issuers;
   }
 
-  public async getIssuer(id: string): Promise<IFlexdIssuer | undefined> {
+  public async getIssuer(id: string): Promise<IFlexdIssuer> {
     const profile = await this.profileService.getExecutionProfile(['account']);
-    if (!profile) {
-      return undefined;
-    }
 
-    const added = await this.executeService.execute(
+    const issuer = await this.executeService.executeRequest(
       {
         header: 'Get Issuer',
         message: Text.create("Getting issuer '", Text.bold(id), "'..."),
         errorHeader: 'Get Issuer Error',
         errorMessage: Text.create("Unable to get the issuer '", Text.bold(id), "'"),
       },
-      async () => {
-        const result = await request({
-          method: 'GET',
-          url: `${profile.baseUrl}/v1/account/${profile.account}/issuer/${encodeURIComponent(id)}`,
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `bearer ${profile.accessToken}`,
-          },
-        });
-        if (result.status === 404) {
-          const message =
-            'Either the configured deployment URL is in correct, the account does not exist or the issuer does not exist';
-          throw new Error(message);
-        }
-        if (result.status >= 500) {
-          const message = 'An error occurred on the server.';
-          throw new Error(message);
-        }
-        if (result.status !== 200) {
-          const message = 'An unknown error occurred.';
-          throw new Error(message);
-        }
-        return result.data;
+      {
+        method: 'GET',
+        url: `${profile.baseUrl}/v1/account/${profile.account}/issuer/${encodeURIComponent(id)}`,
+        headers: { Authorization: `bearer ${profile.accessToken}` },
       }
     );
 
-    return added;
+    return issuer;
   }
 
-  public async addIssuer(id: string, newIssuer: INewFlexdIssuer): Promise<IFlexdIssuer | undefined> {
+  public async addIssuer(id: string, newIssuer: INewFlexdIssuer): Promise<IFlexdIssuer> {
     const profile = await this.profileService.getExecutionProfile(['account']);
-    if (!profile) {
-      return undefined;
-    }
 
-    const issuer = {
-      displayName: newIssuer.displayName,
-      jsonKeyUri: newIssuer.jsonKeyUri,
-      publicKeys: newIssuer.publicKeyId ? [{ keyId: newIssuer.publicKeyId, publicKey: '<to replace>' }] : undefined,
-    };
-
+    let issuer;
     if (newIssuer.publicKeyPath) {
-      const publicKey = await this.executeService.execute(
-        {
-          errorHeader: 'Key File Error',
-          errorMessage: Text.create("Unable to read the '", Text.bold(newIssuer.publicKeyPath), "' public key file"),
-        },
-        async () => readFile(newIssuer.publicKeyPath as string, { errorIfNotExist: true })
-      );
-      if (!publicKey) {
-        return undefined;
-      } else if (issuer.publicKeys) {
-        issuer.publicKeys[0].publicKey = publicKey.toString();
-      }
+      const publicKey = await this.readPublicKeyFile(newIssuer.publicKeyPath);
+      issuer = {
+        displayName: newIssuer.displayName,
+        publicKeys: [{ keyId: newIssuer.publicKeyId, publicKey }],
+      };
+    } else {
+      issuer = {
+        displayName: newIssuer.displayName,
+        jsonKeyUri: newIssuer.jsonKeyUri,
+      };
     }
 
-    const added = await this.executeService.execute(
+    const addedIssuer = await this.executeService.executeRequest(
       {
         header: 'Add Issuer',
         message: Text.create("Adding the '", Text.bold(id), "' issuer..."),
         errorHeader: 'Add Issuer Error',
         errorMessage: Text.create("Unable to add the '", Text.bold(id), "' issuer"),
       },
-      async () => {
-        const result = await request({
-          method: 'PUT',
-          url: `${profile.baseUrl}/v1/account/${profile.account}/issuer/${encodeURIComponent(id)}`,
-          data: issuer,
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `bearer ${profile.accessToken}`,
-          },
-        });
-        if (result.status === 404) {
-          const message = 'Either the configured deployment URL is in correct, or the account does not exist.';
-          throw new Error(message);
-        }
-        if (result.status >= 500) {
-          const message = 'An error occurred on the server.';
-          throw new Error(message);
-        }
-        if (result.status !== 200) {
-          const message = 'An unknown error occurred.';
-          throw new Error(message);
-        }
-        return result.data;
+      {
+        method: 'PUT',
+        url: `${profile.baseUrl}/v1/account/${profile.account}/issuer/${encodeURIComponent(id)}`,
+        data: issuer,
+        headers: { Authorization: `bearer ${profile.accessToken}` },
       }
     );
 
-    return added;
+    await this.executeService.result(
+      'Issuer Added',
+      Text.create("The '", Text.bold(id), "' issuer was successfully added")
+    );
+
+    return addedIssuer;
   }
 
-  public async confirmAddIssuer(id: string, newIssuer: INewFlexdIssuer): Promise<boolean> {
+  public async removeIssuer(id: string): Promise<void> {
     const profile = await this.profileService.getExecutionProfile(['account']);
-    if (!profile) {
-      return false;
-    }
+
+    await this.executeService.executeRequest(
+      {
+        header: 'Remove Issuer',
+        message: Text.create("Removing the '", Text.bold(id), "' issuer..."),
+        errorHeader: 'Remove Issuer Error',
+        errorMessage: Text.create("Unable to remove the '", Text.bold(id), "' issuer"),
+      },
+      {
+        method: 'DELETE',
+        url: `${profile.baseUrl}/v1/account/${profile.account}/issuer/${encodeURIComponent(id)}`,
+        headers: { Authorization: `bearer ${profile.accessToken}` },
+      }
+    );
+
+    await this.executeService.result(
+      'Issuer Removed',
+      Text.create("The '", Text.bold(id), "' issuer was successfully remove")
+    );
+  }
+
+  public async updateIssuer(id: string, issuer: INewFlexdIssuer): Promise<void> {
+    const profile = await this.profileService.getExecutionProfile(['account']);
+
+    await this.executeService.executeRequest(
+      {
+        header: 'Update Issuer',
+        message: Text.create("Updating the '", Text.bold(id), "' issuer..."),
+        errorHeader: 'Update Issuer Error',
+        errorMessage: Text.create("Unable to update the '", Text.bold(id), "' issuer"),
+      },
+      {
+        method: 'PUT',
+        url: `${profile.baseUrl}/v1/account/${profile.account}/issuer/${encodeURIComponent(id)}`,
+        data: issuer,
+        headers: { Authorization: `bearer ${profile.accessToken}` },
+      }
+    );
+
+    await this.executeService.result(
+      'Issuer Updated',
+      Text.create("The '", Text.bold(id), "' issuer was successfully updated")
+    );
+  }
+
+  public async addPublicKey(id: string, issuer: INewFlexdIssuer): Promise<void> {
+    const profile = await this.profileService.getExecutionProfile(['account']);
+
+    await this.executeService.executeRequest(
+      {
+        header: 'Add Public Key',
+        message: Text.create("Adding the public key to the '", Text.bold(id), "' issuer..."),
+        errorHeader: 'Add Public Key Error',
+        errorMessage: Text.create("Unable to add the public key to the '", Text.bold(id), "' issuer"),
+      },
+      {
+        method: 'PUT',
+        url: `${profile.baseUrl}/v1/account/${profile.account}/issuer/${encodeURIComponent(id)}`,
+        data: issuer,
+        headers: { Authorization: `bearer ${profile.accessToken}` },
+      }
+    );
+
+    await this.executeService.result(
+      'Public Key Added',
+      Text.create("The public key was successfully added to the '", Text.bold(id), "' issuer")
+    );
+  }
+
+  public async removePublicKey(id: string, issuer: INewFlexdIssuer): Promise<void> {
+    const profile = await this.profileService.getExecutionProfile(['account']);
+
+    await this.executeService.executeRequest(
+      {
+        header: 'Remove Public Key',
+        message: Text.create("Removing the public key from the '", Text.bold(id), "' issuer..."),
+        errorHeader: 'Remove Public Key Error',
+        errorMessage: Text.create("Unable to remove the public key from the '", Text.bold(id), "' issuer"),
+      },
+      {
+        method: 'PUT',
+        url: `${profile.baseUrl}/v1/account/${profile.account}/issuer/${encodeURIComponent(id)}`,
+        data: issuer,
+        headers: { Authorization: `bearer ${profile.accessToken}` },
+      }
+    );
+
+    await this.executeService.result(
+      'Public Key Removed',
+      Text.create("The public key was successfully removed from the '", Text.bold(id), "' issuer")
+    );
+  }
+
+  public async confirmAddIssuer(id: string, newIssuer: INewFlexdIssuer): Promise<void> {
+    const profile = await this.profileService.getExecutionProfile(['account']);
 
     const confirmPrompt = await Confirm.create({
       header: 'Add Issuer?',
@@ -219,57 +244,31 @@ export class IssuerService {
         Text.create("Adding the '", Text.bold(id), "' issuer was canceled."),
         MessageKind.warning
       );
+      throw new Error('Add Issuer Canceled');
     }
-    return confirmed;
   }
 
-  public async removeIssuer(id: string): Promise<boolean> {
+  public async confirmUpdateIssuer(issuer: IFlexdIssuer, newIssuer: INewFlexdIssuer): Promise<void> {
     const profile = await this.profileService.getExecutionProfile(['account']);
-    if (!profile) {
-      return false;
+
+    const confirmPrompt = await Confirm.create({
+      header: 'Update Issuer?',
+      message: Text.create("Update the '", Text.bold(issuer.id), "' issuer shown below?"),
+      details: this.getUpdateIssuerConfirmDetails(profile.account as string, issuer, newIssuer),
+    });
+    const confirmed = await confirmPrompt.prompt(this.input.io);
+    if (!confirmed) {
+      await this.executeService.message(
+        'Update Issuer Canceled',
+        Text.create("Updating the '", Text.bold(issuer.id), "' issuer was canceled."),
+        MessageKind.warning
+      );
+      throw new Error('Update Issuer Canceled');
     }
-
-    const removedOk = await this.executeService.execute(
-      {
-        header: 'Remove Issuer',
-        message: Text.create("Removing the '", Text.bold(id), "' issuer..."),
-        errorHeader: 'Remove Issuer Error',
-        errorMessage: Text.create("Unable to remove the '", Text.bold(id), "' issuer"),
-      },
-      async () => {
-        const result = await request({
-          method: 'DELETE',
-          url: `${profile.baseUrl}/v1/account/${profile.account}/issuer/${encodeURIComponent(id)}`,
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `bearer ${profile.accessToken}`,
-          },
-        });
-        if (result.status === 404) {
-          const message =
-            'Either the configured deployment URL is in correct, the account does not exist or the issuer does not exist.';
-          throw new Error(message);
-        }
-        if (result.status >= 500) {
-          const message = 'An error occurred on the server.';
-          throw new Error(message);
-        }
-        if (result.status !== 204) {
-          const message = 'An unknown error occurred.';
-          throw new Error(message);
-        }
-        return true;
-      }
-    );
-
-    return removedOk === true;
   }
 
-  public async confirmRemoveIssuer(id: string, issuer: IFlexdIssuer): Promise<boolean> {
+  public async confirmRemoveIssuer(id: string, issuer: IFlexdIssuer): Promise<void> {
     const profile = await this.profileService.getExecutionProfile(['account']);
-    if (!profile) {
-      return false;
-    }
 
     const confirmPrompt = await Confirm.create({
       header: 'Remove Issuer?',
@@ -283,8 +282,46 @@ export class IssuerService {
         Text.create("Removing the '", Text.bold(id), "' issuer was canceled."),
         MessageKind.warning
       );
+      throw new Error('Remove Issuer Canceled');
     }
-    return confirmed;
+  }
+
+  public async confirmAddPublicKey(issuer: IFlexdIssuer, keyId: string): Promise<void> {
+    const profile = await this.profileService.getExecutionProfile(['account']);
+
+    const confirmPrompt = await Confirm.create({
+      header: 'Add Public Key?',
+      message: Text.create("Add the public key to the '", Text.bold(issuer.id), "' issuer shown below?"),
+      details: this.getPublicKeyConfirmDetails(issuer.id, profile.account as string, keyId),
+    });
+    const confirmed = await confirmPrompt.prompt(this.input.io);
+    if (!confirmed) {
+      await this.executeService.message(
+        'Add Public Key Canceled',
+        Text.create("Adding the public key to the '", Text.bold(issuer.id), "' issuer was canceled."),
+        MessageKind.warning
+      );
+      throw new Error('Add Public Key Canceled');
+    }
+  }
+
+  public async confirmRemovePublicKey(issuer: IFlexdIssuer, keyId: string): Promise<void> {
+    const profile = await this.profileService.getExecutionProfile(['account']);
+
+    const confirmPrompt = await Confirm.create({
+      header: 'Remove Public Key?',
+      message: Text.create("Remove the public key from the '", Text.bold(issuer.id), "' issuer shown below?"),
+      details: this.getPublicKeyConfirmDetails(issuer.id, profile.account as string, keyId),
+    });
+    const confirmed = await confirmPrompt.prompt(this.input.io);
+    if (!confirmed) {
+      await this.executeService.message(
+        'Remove Public Key Canceled',
+        Text.create("Removing the public key from the '", Text.bold(issuer.id), "' issuer was canceled."),
+        MessageKind.warning
+      );
+      throw new Error('Remove Public Key Canceled');
+    }
   }
 
   public async displayIssuers(issuers: IFlexdIssuer[]) {
@@ -350,5 +387,58 @@ export class IssuerService {
       details.push({ name: 'Key Id', value: issuer.publicKeyId });
     }
     return details;
+  }
+
+  private getUpdateIssuerConfirmDetails(account: string, issuer: IFlexdIssuer, update: INewFlexdIssuer) {
+    const displayName = issuer.displayName || notSet;
+    const jsonKeyUri = issuer.jsonKeyUri || notSet;
+    const publicKeys = issuer.publicKeys ? `${issuer.publicKeys.length} keys` : notSet;
+
+    const newDisplayName = update.displayName || notSet;
+    const newJsonKeyUri = update.jsonKeyUri || notSet;
+    const newPublicKeys = newJsonKeyUri === notSet ? publicKeys : '0 Keys';
+
+    const displayNameValue =
+      displayName === newDisplayName
+        ? Text.create(displayName, Text.dim(' (no change)'))
+        : Text.create(displayName, Text.dim(' → '), displayName);
+    const jsonKeyUriValue =
+      jsonKeyUri === newJsonKeyUri
+        ? Text.create(jsonKeyUri, Text.dim(' (no change)'))
+        : Text.create(jsonKeyUri, Text.dim(' → '), newJsonKeyUri);
+    const publicKeysValue =
+      publicKeys === newPublicKeys
+        ? Text.create(publicKeys, Text.dim(' (no change)'))
+        : Text.create(publicKeys, Text.dim(' → '), newPublicKeys);
+
+    const details = [
+      { name: 'Account', value: account },
+      { name: 'Issuer', value: issuer.id },
+      { name: 'Display Name', value: displayNameValue },
+      { name: 'Json Key URI', value: jsonKeyUriValue },
+      { name: 'Public Keys', value: publicKeysValue },
+    ];
+
+    return details;
+  }
+
+  private getPublicKeyConfirmDetails(id: string, account: string, keyId: string) {
+    const details = [
+      { name: 'Account', value: account },
+      { name: 'Issuer', value: id },
+      { name: 'Key Id', value: keyId },
+    ];
+    return details;
+  }
+
+  private async readPublicKeyFile(path: string): Promise<string> {
+    const buffer = await this.executeService.execute(
+      {
+        errorHeader: 'Key File Error',
+        errorMessage: Text.create("Unable to read the '", Text.bold(path), "' public key file"),
+      },
+      async () => readFile(path as string, { errorIfNotExist: true })
+    );
+    return buffer.toString();
   }
 }
