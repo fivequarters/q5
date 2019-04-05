@@ -1,12 +1,12 @@
-import { sameItems } from '../src';
+import { same } from '../src';
 
-describe('sameItems', () => {
+describe('same()', () => {
   it('should return false if the array1 is shorter than array2', () => {
-    expect(sameItems([0, 1], [0, 1, 2])).toBe(false);
+    expect(same([0, 1], [0, 1, 2])).toBe(false);
   });
 
   it('should return false if the array2 is shorter than array1', () => {
-    expect(sameItems([0, 1, 2, 3], [0, 1, 2])).toBe(false);
+    expect(same([0, 1, 2, 3], [0, 1, 2])).toBe(false);
   });
 
   it('should return true if arrays contain the same items', () => {
@@ -27,7 +27,7 @@ describe('sameItems', () => {
       { array1: [obj1, obj2, obj3], array2: [obj1, obj2, obj3] },
     ];
     for (const test of tests) {
-      expect(sameItems(test.array1, test.array2)).toBe(true);
+      expect(same(test.array1, test.array2)).toBe(true);
     }
   });
 
@@ -47,7 +47,7 @@ describe('sameItems', () => {
       { array1: [obj1, obj2, obj3], array2: [obj1, obj2] },
     ];
     for (const test of tests) {
-      expect(sameItems(test.array1, test.array2)).toBe(false);
+      expect(same(test.array1, test.array2)).toBe(false);
     }
   });
 });

@@ -8,6 +8,7 @@ var validate_schema = require('./middleware/validate_schema');
 var authorize = require('./middleware/authorize');
 var cors = require('cors');
 const create_error = require('http-errors');
+const { join } = require('path');
 let { readAudit } = require('./auditing');
 const account = require('./handlers/account_handlers');
 
@@ -29,7 +30,23 @@ const NotImplemented = (_, __, next) => next(create_error(501, 'Not implemented'
 
 // Health
 
-router.get('/health', (_, res) => res.end());
+router.get('/health', (_, res) => {
+  const packageJsonPath = join(__dirname, '..', '..', '..', '..', '..', 'package.json');
+  require('fs').readFile(packageJsonPath, (error, buffer) => {
+    let version = '<unknown>';
+    if (!error) {
+      const content = buffer.toString();
+      try {
+        const json = JSON.parse(content);
+        version = json.version;
+      } catch (__) {
+        // do nothing
+      }
+    }
+
+    res.json({ version });
+  });
+});
 
 // Accounts
 
@@ -343,7 +360,7 @@ router.get(
   '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function',
   cors(corsManagementOptions),
   authorize({
-    operation: 'boundary:list-function',
+    operation: 'function:list',
   }),
   validate_schema({
     query: require('./schemas/api_query'),
@@ -377,7 +394,7 @@ router.get(
   '/account/:accountId/subscription/:subscriptionId/function',
   cors(corsManagementOptions),
   authorize({
-    operation: 'subscription:list-function',
+    operation: 'function:list',
   }),
   validate_schema({
     query: require('./schemas/api_query'),

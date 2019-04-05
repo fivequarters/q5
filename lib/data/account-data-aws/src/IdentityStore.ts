@@ -1,6 +1,6 @@
 import { AwsDynamo } from '@5qtrs/aws-dynamo';
 import { toBase64, fromBase64 } from '@5qtrs/base64';
-import { notIn } from '@5qtrs/array';
+import { difference } from '@5qtrs/array';
 
 // ------------------
 // Internal Constants
@@ -167,13 +167,17 @@ export class IdentityStore {
       return existingIdentities;
     }
     const fullIdentities = identities.map(id => toFullIdentity(accountId, agentId, id));
-    const toAdd = notIn(fullIdentities, existingIdentities, areEqual);
-    const toRemove = notIn(existingIdentities, fullIdentities, areEqual);
+    const toAdd = difference(fullIdentities, existingIdentities, areEqual);
+    const toRemove = difference(existingIdentities, fullIdentities, areEqual);
+
     await Promise.all([
       this.addAllIdentities(accountId, agentId, toAdd),
       this.removeAllIdentities(accountId, agentId, toRemove),
     ]);
-    return identities;
+
+    const actual = difference(existingIdentities, toRemove);
+    actual.push(...toAdd);
+    return actual;
   }
 
   public async listAllIdentities(accountId: string, agentId: string, full: boolean = false): Promise<IFullIdentity[]> {

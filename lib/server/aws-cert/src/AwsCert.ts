@@ -1,4 +1,4 @@
-import { sameItems } from '@5qtrs/array';
+import { same } from '@5qtrs/array';
 import { AwsBase, IAwsOptions } from '@5qtrs/aws-base';
 import { ACM } from 'aws-sdk';
 
@@ -93,7 +93,7 @@ export class AwsCert extends AwsBase<typeof ACM> {
     const alternateDomains = options && options.alternateDomains ? options.alternateDomains.slice() : [];
     alternateDomains.push(domain);
     for (const cert of certsWithDomain) {
-      if (cert.status === 'ISSUED' && sameItems(cert.alternateDomains, alternateDomains)) {
+      if (cert.status === 'ISSUED' && same(cert.alternateDomains, alternateDomains)) {
         return cert;
       }
     }
