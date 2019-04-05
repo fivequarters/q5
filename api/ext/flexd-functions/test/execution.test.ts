@@ -44,7 +44,6 @@ describe('execution', () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
     expect(response.status).toEqual(200);
     response = await request(response.data.location);
-    console.log(typeof response.data, response.data);
     expect(response.status).toEqual(200);
     expect(response.data).toEqual('hello');
   });
