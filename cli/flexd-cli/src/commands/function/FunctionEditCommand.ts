@@ -131,6 +131,7 @@ function getEditorHtml(port: number, profile: any): string {
     $(function () {
 
         flexd.createEditor(document.getElementById('editor'), '${profile.boundary}', '${profile.function}', {
+            accountId: '${profile.account}',
             subscriptionId: '${profile.subscription}',
             baseUrl: '${profile.baseUrl}',
             accessToken: '${profile.accessToken}',
