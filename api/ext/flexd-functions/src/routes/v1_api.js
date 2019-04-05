@@ -253,8 +253,8 @@ router.post(
   account.userInit()
 );
 
-router.put(
-  '/account/:accountId/user/:userId/init/:initId',
+router.post(
+  '/account/:accountId/init',
   cors(corsManagementOptions),
   express.json(),
   validate_schema({
