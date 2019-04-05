@@ -1,24 +1,15 @@
-beforeAll(() => {
-  // server.start();
-});
+import { IAccount, FakeAccount, resolveAccount } from './accountResolver';
+import { request } from '@5qtrs/request';
 
-afterAll(() => {
-  // server.stop();
+let account: IAccount = FakeAccount;
+
+beforeAll(async () => {
+  account = await resolveAccount();
 });
 
 describe('health', () => {
-  it('is healthy', () => {
-    expect(true);
+  test('is healthy', async () => {
+    let response = await request(`${account.baseUrl}/v1/health`);
+    expect(response.status).toEqual(200);
   });
-
-  // it('publish works', done => {
-  //   const psock = Zmq.socket('pub');
-  //   psock.monitor(); // enables connect event
-  //   psock.connect(server.xsubListener);
-  //   psock.on('connect', () => {
-  //     psock.send('channel5 message');
-  //     psock.close();
-  //     done();
-  //   });
-  // });
 });

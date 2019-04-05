@@ -7,6 +7,6 @@ export const jest: any = {
   transform: {
     '\\.(ts|tsx)$': 'ts-jest',
   },
-  testRegex: '/test/.*\\.(ts|tsx|js)$',
+  testRegex: '/test/.*\\.test.(ts|tsx|js)$',
   testEnvironment: 'node',
 };
