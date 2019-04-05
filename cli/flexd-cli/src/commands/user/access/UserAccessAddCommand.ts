@@ -110,10 +110,7 @@ export class UserAccessAddCommand extends Command {
     };
 
     if (confirm) {
-      const confirmed = await userService.confirmAddUserAccess(user, newAccess);
-      if (!confirmed) {
-        return 1;
-      }
+      await userService.confirmAddUserAccess(user, newAccess);
     }
 
     const resourcePath = [];
@@ -129,25 +126,14 @@ export class UserAccessAddCommand extends Command {
       resourcePath.push(`/account/${newAccess.account}`);
     }
 
-    user.access = user.access || {};
-    user.access.allow = user.access.allow || [];
-    user.access.allow.push({
-      action,
-      resource: resourcePath.join(''),
-    });
-
-    const updatedUser = await userService.updateUser(user);
-    if (!updatedUser) {
-      executeService.verbose();
-      return 1;
+    const update = { access: { allow: [{ action, resource: resourcePath.join('') }] } };
+    if (user.access && user.access.allow) {
+      update.access.allow.push(...user.access.allow);
     }
 
-    await executeService.result(
-      'User Access Added',
-      Text.create("User access was successfully added to user '", Text.bold(user.id), "'")
-    );
+    const updatedUser = await userService.addUserAccess(user.id, update);
 
-    await userService.displayUser(user);
+    await userService.displayUser(updatedUser);
 
     return 0;
   }
