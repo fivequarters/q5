@@ -1,14 +1,24 @@
 import { Command, IExecuteInput } from '@5qtrs/cli';
-import { ExecuteService, UserService } from '../../services';
+import { UserService } from '../../services';
+
+// ------------------
+// Internal Constants
+// ------------------
+
+const command = {
+  name: 'List Users',
+  cmd: 'ls',
+  summary: 'List users',
+  description: 'Lists users of the given account',
+};
+
+// ----------------
+// Exported Classes
+// ----------------
 
 export class UserListCommand extends Command {
   private constructor() {
-    super({
-      name: 'List Users',
-      cmd: 'ls',
-      summary: 'List users',
-      description: 'Lists users of the given account',
-    });
+    super(command);
   }
 
   public static async create() {
@@ -19,13 +29,8 @@ export class UserListCommand extends Command {
     await input.io.writeLine();
 
     const userService = await UserService.create(input);
-    const executeService = await ExecuteService.create(input);
 
     const users = await userService.listUsers();
-    if (!users) {
-      executeService.verbose();
-      return 1;
-    }
 
     await userService.displayUsers(users);
 

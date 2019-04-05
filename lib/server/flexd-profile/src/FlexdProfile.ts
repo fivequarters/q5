@@ -9,7 +9,7 @@ import { FlexdProfileError } from './FlexdProfileError';
 // Internal Constants
 // ------------------
 
-const expireInSeconds = 60 * 60;
+const expireInSeconds = 60 * 60 * 2;
 const minExpireInterval = 1000 * 60 * 5;
 const kidLength = 8;
 const jwtAlgorithm = 'RS256';
@@ -276,15 +276,19 @@ export class FlexdProfile {
     return this.dotConfig.getPublicKey(profile.keyPair, profile.kid);
   }
 
-  public async getAccessToken(name?: string): Promise<string> {
+  public async getAccessToken(name?: string, ignoreCache: boolean = false): Promise<string> {
     const profile = await this.getProfileOrDefaultOrThrow(name);
+    if (!ignoreCache) {
+      return this.generateAccessToken(profile);
+    }
+
     let accessToken = await this.getCachedAccessToken(profile);
     return accessToken !== undefined ? accessToken : await this.generateAccessToken(profile);
   }
 
-  public async getExecutionProfile(name?: string): Promise<IFlexdExecutionProfile> {
+  public async getExecutionProfile(name?: string, ignoreCache: boolean = false): Promise<IFlexdExecutionProfile> {
     const profile = await this.getProfileOrDefaultOrThrow(name);
-    const accessToken = await this.getAccessToken(name);
+    const accessToken = await this.getAccessToken(name, ignoreCache);
     return {
       accessToken,
       baseUrl: profile.baseUrl,

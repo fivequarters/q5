@@ -1,12 +1,8 @@
-import { Message, IExecuteInput, Confirm, MessageKind } from '@5qtrs/cli';
+import { Message, IExecuteInput, Confirm } from '@5qtrs/cli';
 import { ExecuteService } from './ExecuteService';
 import { ProfileService } from './ProfileService';
 import { Text } from '@5qtrs/text';
 import { decodeJwt } from '@5qtrs/jwt';
-import { request } from '@5qtrs/request';
-import { clone } from '@5qtrs/clone';
-import { toBase64 } from '@5qtrs/base64';
-import { StringLiteral } from '@babel/types';
 
 // ------------------
 // Internal Constants
@@ -88,17 +84,14 @@ export class UserService {
     return new UserService(profileService, executeService, input);
   }
 
-  public async listUsers(): Promise<IFlexdUser[] | undefined> {
+  public async listUsers(): Promise<IFlexdUser[]> {
     const profile = await this.profileService.getExecutionProfile(['account']);
-    if (!profile) {
-      return undefined;
-    }
 
     const result = await this.executeService.executeRequest(
       {
         header: 'Get Users',
         message: Text.create("Getting the users of account '", Text.bold(profile.account || ''), "'..."),
-        errorHeader: 'Get User Error',
+        errorHeader: 'Get Users Error',
         errorMessage: Text.create("Unable to get the users of account '", Text.bold(profile.account || ''), "'"),
       },
       {
@@ -108,14 +101,11 @@ export class UserService {
       }
     );
 
-    return result ? result.items : undefined;
+    return result.items;
   }
 
-  public async getUser(id: string): Promise<IFlexdUser | undefined> {
+  public async getUser(id: string): Promise<IFlexdUser> {
     const profile = await this.profileService.getExecutionProfile(['account']);
-    if (!profile) {
-      return undefined;
-    }
 
     const user = await this.executeService.executeRequest(
       {
@@ -134,11 +124,8 @@ export class UserService {
     return user;
   }
 
-  public async addUser(id: string, newUser: INewFlexdUser): Promise<IFlexdUser | undefined> {
+  public async addUser(newUser: INewFlexdUser): Promise<IFlexdUser> {
     const profile = await this.profileService.getExecutionProfile(['account']);
-    if (!profile) {
-      return undefined;
-    }
 
     const user = await this.executeService.executeRequest(
       {
@@ -154,35 +141,19 @@ export class UserService {
         headers: { Authorization: `bearer ${profile.accessToken}` },
       }
     );
+
+    await this.executeService.result(
+      'User Added',
+      Text.create("User '", Text.bold(user.id), "' was successfully added")
+    );
+
     return user;
   }
 
-  public async confirmAddUser(newUser: INewFlexdUser): Promise<boolean> {
+  public async removeUser(id: string): Promise<void> {
     const profile = await this.profileService.getExecutionProfile(['account']);
-    if (!profile) {
-      return false;
-    }
 
-    const confirmPrompt = await Confirm.create({
-      header: 'Add User?',
-      message: Text.create('Add the new user shown below?'),
-      details: this.getUserConfirmDetails(profile.account as string, newUser),
-    });
-    const confirmed = await confirmPrompt.prompt(this.input.io);
-    if (!confirmed) {
-      await this.executeService.warning('Add User Canceled', Text.create('Adding the new user was canceled.'));
-    }
-
-    return confirmed;
-  }
-
-  public async removeUser(id: string): Promise<boolean> {
-    const profile = await this.profileService.getExecutionProfile(['account']);
-    if (!profile) {
-      return false;
-    }
-
-    const success = await this.executeService.executeRequest(
+    await this.executeService.executeRequest(
       {
         header: 'Remove User',
         message: Text.create("Removing user '", Text.bold(id), "'..."),
@@ -196,61 +167,92 @@ export class UserService {
       }
     );
 
-    return success === true;
+    await this.executeService.result(
+      'User Removed',
+      Text.create("User '", Text.bold(id), "' was successfully remove'")
+    );
   }
 
-  public async confirmRemoveUser(id: string, user: IFlexdUser): Promise<boolean> {
+  public async addUserIdentity(id: string, user: IFlexdUpdateUser): Promise<IFlexdUser> {
     const profile = await this.profileService.getExecutionProfile(['account']);
-    if (!profile) {
-      return false;
-    }
 
-    const confirmPrompt = await Confirm.create({
-      header: 'Remove User?',
-      message: Text.create("Remove user '", Text.bold(id), "' shown below?"),
-      details: this.getUserConfirmDetails(profile.account as string, user),
-    });
-    const confirmed = await confirmPrompt.prompt(this.input.io);
-    if (!confirmed) {
-      await this.executeService.warning(
-        'Remove User Canceled',
-        Text.create("Removing user '", Text.bold(id), "' was canceled.")
-      );
-    }
-    return confirmed;
-  }
-
-  public async updateUser(user: IFlexdUser): Promise<IFlexdUser | undefined> {
-    const profile = await this.profileService.getExecutionProfile(['account']);
-    if (!profile) {
-      return undefined;
-    }
-
-    const userSansId = clone(user);
-    userSansId.id = undefined;
     const updatedUser = await this.executeService.executeRequest(
       {
-        header: 'Update User',
-        message: Text.create("Updating user '", Text.bold(user.id), "'..."),
-        errorHeader: 'Update User Error',
-        errorMessage: Text.create("Unable to update user '", Text.bold(user.id), "'"),
+        header: 'Add Identity',
+        message: Text.create("Adding the identity to user '", Text.bold(id), "'..."),
+        errorHeader: 'Add Identity Error',
+        errorMessage: Text.create("Unable add the identity to user '", Text.bold(id), "'"),
       },
       {
         method: 'PUT',
-        url: `${profile.baseUrl}/v1/account/${profile.account}/user/${user.id}`,
-        data: userSansId,
+        url: `${profile.baseUrl}/v1/account/${profile.account}/user/${id}`,
+        data: user,
         headers: { Authorization: `bearer ${profile.accessToken}` },
       }
+    );
+
+    await this.executeService.result(
+      'Identity Added',
+      Text.create("The identity was successfully added to user '", Text.bold(id), "'")
     );
 
     return updatedUser;
   }
 
-  public async initUser(id: string): Promise<string | undefined> {
+  public async addUserAccess(id: string, user: IFlexdUpdateUser): Promise<IFlexdUser> {
     const profile = await this.profileService.getExecutionProfile(['account']);
-    if (!profile) {
-      return undefined;
-    }
+
+    const updatedUser = await this.executeService.executeRequest(
+      {
+        header: 'Add Access',
+        message: Text.create("Adding the access to user '", Text.bold(id), "'..."),
+        errorHeader: 'Add Access Error',
+        errorMessage: Text.create("Unable add the access to user '", Text.bold(id), "'"),
+      },
+      {
+        method: 'PUT',
+        url: `${profile.baseUrl}/v1/account/${profile.account}/user/${id}`,
+        data: user,
+        headers: { Authorization: `bearer ${profile.accessToken}` },
+      }
+    );
+
+    await this.executeService.result(
+      'Access Added',
+      Text.create("The access was successfully added to user '", Text.bold(id), "'")
+    );
+
+    return updatedUser;
+  }
+
+  public async updateUser(id: string, user: IFlexdUpdateUser): Promise<IFlexdUser> {
+    const profile = await this.profileService.getExecutionProfile(['account']);
+
+    const updatedUser = await this.executeService.executeRequest(
+      {
+        header: 'Update User',
+        message: Text.create("Updating user '", Text.bold(id), "'..."),
+        errorHeader: 'Update User Error',
+        errorMessage: Text.create("Unable to update user '", Text.bold(id), "'"),
+      },
+      {
+        method: 'PUT',
+        url: `${profile.baseUrl}/v1/account/${profile.account}/user/${id}`,
+        data: user,
+        headers: { Authorization: `bearer ${profile.accessToken}` },
+      }
+    );
+
+    await this.executeService.result(
+      'User Updated',
+      Text.create("User '", Text.bold(id), "' was successfully updated")
+    );
+
+    return updatedUser;
+  }
+
+  public async initUser(id: string): Promise<string> {
+    const profile = await this.profileService.getExecutionProfile(['account']);
 
     const initToken = await this.executeService.executeRequest(
       {
@@ -313,27 +315,6 @@ export class UserService {
     };
   }
 
-  public async confirmInitUser(user: IFlexdUser): Promise<boolean> {
-    const profile = await this.profileService.getExecutionProfile(['account']);
-    if (!profile) {
-      return false;
-    }
-
-    const confirmPrompt = await Confirm.create({
-      header: 'Generate Init Token?',
-      message: Text.create("Generate an init token for user '", Text.bold(user.id), "'?"),
-      details: this.getUserConfirmDetails(profile.account as string, user),
-    });
-    const confirmed = await confirmPrompt.prompt(this.input.io);
-    if (!confirmed) {
-      await this.executeService.warning(
-        'Init Token Canceled',
-        Text.create("Generating an init token for user '", Text.bold(user.id), "' was canceled.")
-      );
-    }
-    return confirmed;
-  }
-
   public async resolveInitId(
     accountId: string,
     agentId: string,
@@ -358,11 +339,77 @@ export class UserService {
     return user;
   }
 
-  public async confirmAddUserAccess(user: IFlexdUser, access: IAddUserAccess): Promise<boolean> {
+  public async confirmAddUser(newUser: INewFlexdUser): Promise<void> {
     const profile = await this.profileService.getExecutionProfile(['account']);
-    if (!profile) {
-      return false;
+
+    const confirmPrompt = await Confirm.create({
+      header: 'Add User?',
+      message: Text.create('Add the new user shown below?'),
+      details: this.getUserConfirmDetails(profile.account as string, newUser),
+    });
+    const confirmed = await confirmPrompt.prompt(this.input.io);
+    if (!confirmed) {
+      await this.executeService.warning('Add User Canceled', Text.create('Adding the new user was canceled.'));
+      throw new Error('Add User Canceled');
     }
+  }
+
+  public async confirmRemoveUser(id: string, user: IFlexdUser): Promise<void> {
+    const profile = await this.profileService.getExecutionProfile(['account']);
+
+    const confirmPrompt = await Confirm.create({
+      header: 'Remove User?',
+      message: Text.create("Remove user '", Text.bold(id), "' shown below?"),
+      details: this.getUserConfirmDetails(profile.account as string, user),
+    });
+    const confirmed = await confirmPrompt.prompt(this.input.io);
+    if (!confirmed) {
+      await this.executeService.warning(
+        'Remove User Canceled',
+        Text.create("Removing user '", Text.bold(id), "' was canceled.")
+      );
+      throw new Error('Remove User Canceled');
+    }
+  }
+
+  public async confirmInitUser(user: IFlexdUser): Promise<void> {
+    const profile = await this.profileService.getExecutionProfile(['account']);
+
+    const confirmPrompt = await Confirm.create({
+      header: 'Generate Init Token?',
+      message: Text.create("Generate an init token for user '", Text.bold(user.id), "'?"),
+      details: this.getUserConfirmDetails(profile.account as string, user),
+    });
+    const confirmed = await confirmPrompt.prompt(this.input.io);
+    if (!confirmed) {
+      await this.executeService.warning(
+        'Init Token Canceled',
+        Text.create("Generating an init token for user '", Text.bold(user.id), "' was canceled.")
+      );
+      throw new Error('Init Token Canceled');
+    }
+  }
+
+  public async confirmUpdateUser(user: IFlexdUser, update: INewFlexdUser): Promise<void> {
+    const profile = await this.profileService.getExecutionProfile(['account']);
+
+    const confirmPrompt = await Confirm.create({
+      header: 'Update User?',
+      message: Text.create("Update user '", Text.bold(user.id), "' as shown below?"),
+      details: this.getUpdateUserConfirmDetails(profile.account as string, user, update),
+    });
+    const confirmed = await confirmPrompt.prompt(this.input.io);
+    if (!confirmed) {
+      await this.executeService.warning(
+        'Update User Canceled',
+        Text.create("Updating user '", Text.bold(user.id), "' was canceled.")
+      );
+      throw new Error('Update User Canceled');
+    }
+  }
+
+  public async confirmAddUserAccess(user: IFlexdUser, access: IAddUserAccess): Promise<void> {
+    const profile = await this.profileService.getExecutionProfile(['account']);
 
     const confirmPrompt = await Confirm.create({
       header: 'Add User Access?',
@@ -372,18 +419,15 @@ export class UserService {
     const confirmed = await confirmPrompt.prompt(this.input.io);
     if (!confirmed) {
       await this.executeService.warning(
-        'Add User Access Canceled',
+        'Add Access Canceled',
         Text.create("Adding access to user '", Text.bold(user.id), "' was canceled.")
       );
+      throw new Error('Add Access Canceled');
     }
-    return confirmed;
   }
 
-  public async confirmAddUserIdentity(user: IFlexdUser, identity: IFlexdIdentitiy): Promise<boolean> {
+  public async confirmAddUserIdentity(user: IFlexdUser, identity: IFlexdIdentitiy): Promise<void> {
     const profile = await this.profileService.getExecutionProfile(['account']);
-    if (!profile) {
-      return false;
-    }
 
     const confirmPrompt = await Confirm.create({
       header: 'Add User Identity?',
@@ -396,8 +440,8 @@ export class UserService {
         'Add User Identity Canceled',
         Text.create("Adding the identity to user '", Text.bold(user.id), "' was canceled.")
       );
+      throw new Error('Add Identity Canceled');
     }
-    return confirmed;
   }
 
   public async displayUsers(users: IFlexdUser[]) {
@@ -467,7 +511,7 @@ export class UserService {
       details.push(Text.italic('Allow: '));
       for (const access of user.access.allow) {
         details.push(
-          ...[Text.eol(), Text.dim('• action: '), access.action, Text.eol(), Text.dim('  resource:'), access.resource]
+          ...[Text.eol(), Text.dim('• action: '), access.action, Text.eol(), Text.dim('  resource: '), access.resource]
         );
       }
     }
@@ -489,6 +533,38 @@ export class UserService {
       { name: 'First Name', value: user.firstName || notSet },
       { name: 'Last Name', value: user.lastName || notSet },
       { name: 'Email', value: user.primaryEmail || notSet },
+    ];
+
+    return details;
+  }
+
+  private getUpdateUserConfirmDetails(account: string, user: IFlexdUser, update: INewFlexdUser) {
+    const firstName = user.firstName || notSet;
+    const lastName = user.lastName || notSet;
+    const primaryEmail = user.primaryEmail || notSet;
+
+    const newFirstName = update.firstName || notSet;
+    const newLastName = update.lastName || notSet;
+    const newPrimaryEmail = update.primaryEmail || notSet;
+
+    const firstNameValue =
+      firstName === newFirstName
+        ? Text.create(firstName, Text.dim(' (no change)'))
+        : Text.create(firstName, Text.dim(' → '), newFirstName);
+    const lastNameValue =
+      lastName === newLastName
+        ? Text.create(lastName, Text.dim(' (no change)'))
+        : Text.create(lastName, Text.dim(' → '), newLastName);
+    const primaryEmailValue =
+      primaryEmail === newPrimaryEmail
+        ? Text.create(primaryEmail, Text.dim(' (no change)'))
+        : Text.create(primaryEmail, Text.dim(' → '), newPrimaryEmail);
+
+    const details = [
+      { name: 'Account', value: account },
+      { name: 'First Name', value: firstNameValue },
+      { name: 'Last Name', value: lastNameValue },
+      { name: 'Email', value: primaryEmailValue },
     ];
 
     return details;

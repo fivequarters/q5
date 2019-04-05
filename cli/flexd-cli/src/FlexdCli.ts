@@ -4,6 +4,7 @@ import {
   ClientCommand,
   FunctionCommand,
   InitCommand,
+  TokenCommand,
   IssuerCommand,
   ProfileCommand,
   UserCommand,
@@ -20,6 +21,7 @@ export class FlexdCli extends Command {
     subCommands.push(await InitCommand.create());
     subCommands.push(await FunctionCommand.create());
     subCommands.push(await ProfileCommand.create());
+    subCommands.push(await TokenCommand.create());
     subCommands.push(await UserCommand.create());
     subCommands.push(await ClientCommand.create());
     subCommands.push(await IssuerCommand.create());

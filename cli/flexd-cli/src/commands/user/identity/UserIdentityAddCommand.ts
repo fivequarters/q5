@@ -1,5 +1,5 @@
 import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
-import { ExecuteService, UserService } from '../../../services';
+import { UserService } from '../../../services';
 import { Text } from '@5qtrs/text';
 
 export class UserIdentityAddCommand extends Command {
@@ -8,10 +8,13 @@ export class UserIdentityAddCommand extends Command {
       name: 'Add User Identity',
       cmd: 'add',
       summary: 'Add an identity to a user',
-      description: [
-        `Adds an identity to a user. The user will be associated with`,
-        "all access tokens with the given 'iss' (issuer) and 'sub' (subject) claims.",
-      ].join(' '),
+      description: Text.create(
+        "Adds an identity to a user. The user will be associated with all access tokens with the given '",
+        Text.bold('iss'),
+        "' (issuer) and '",
+        Text.bold('sub'),
+        "' (subject) claims."
+      ),
       arguments: [
         {
           name: 'user',
@@ -50,38 +53,23 @@ export class UserIdentityAddCommand extends Command {
     const confirm = input.options.confirm as boolean;
 
     const userService = await UserService.create(input);
-    const executeService = await ExecuteService.create(input);
 
     const user = await userService.getUser(id);
-    if (!user) {
-      executeService.verbose();
-      return 1;
-    }
 
     const newIdentity = { iss, sub };
 
     if (confirm) {
-      const confirmed = await userService.confirmAddUserIdentity(user, newIdentity);
-      if (!confirmed) {
-        return 1;
-      }
+      await userService.confirmAddUserIdentity(user, newIdentity);
     }
 
-    user.identities = user.identities || [];
-    user.identities.push(newIdentity);
-
-    const updatedUser = await userService.updateUser(user);
-    if (!updatedUser) {
-      executeService.verbose();
-      return 1;
+    const update = { identities: [newIdentity] };
+    if (user.identities) {
+      update.identities.push(...user.identities);
     }
 
-    await executeService.result(
-      'User Identity Added',
-      Text.create("User identity was successfully added to user '", Text.bold(user.id), "'")
-    );
+    const updatedUser = await userService.addUserIdentity(user.id, update);
 
-    await userService.displayUser(user);
+    await userService.displayUser(updatedUser);
 
     return 0;
   }
