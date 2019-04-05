@@ -1,3 +1,5 @@
+import { FlexdProfile } from '@5qtrs/flexd-profile';
+
 export interface IAccount {
   accountId: string;
   subscriptionId: string;
@@ -13,10 +15,16 @@ export const FakeAccount: IAccount = {
 };
 
 export async function resolveAccount(): Promise<IAccount> {
-  return {
-    accountId: 'acc-0000000000000000',
-    subscriptionId: 'sub-0000000000000000',
-    baseUrl: process.env.API_SERVER || 'http://localhost:3001',
-    accessToken: process.env.API_AUTHORIZATION_KEY || 'NA',
-  };
+  if (process.env.FLEXD_PROFILE) {
+    let profile = await FlexdProfile.create();
+    let executionProfile = await profile.getExecutionProfile(process.env.FLEXD_PROFILE, true);
+    return {
+      accountId: executionProfile.account as string,
+      subscriptionId: 'sub-0000000000000000',
+      baseUrl: executionProfile.baseUrl,
+      accessToken: executionProfile.accessToken,
+    };
+  } else {
+    throw new Error('You must provide FLEXD_PROFILE environment variable to choose the deployment to test.');
+  }
 }

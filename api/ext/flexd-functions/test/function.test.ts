@@ -10,9 +10,9 @@ import {
 
 let account: IAccount = FakeAccount;
 
-const boundaryId = 'flx-test-boundary';
-const function1Id = 'flx-test-function-1';
-const function2Id = 'flx-test-function-2';
+const boundaryId = `test-boundary-${Math.floor(Math.random() * 99999999).toString(32)}`;
+const function1Id = 'test-function-1';
+const function2Id = 'test-function-2';
 
 const helloWorld = {
   nodejs: {
