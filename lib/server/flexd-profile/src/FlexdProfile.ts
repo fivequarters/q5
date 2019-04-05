@@ -1,9 +1,9 @@
 import { FlexdDotConfig } from './FlexdDotConfig';
 import { createKeyPair } from '@5qtrs/key-pair';
 import { signJwt } from '@5qtrs/jwt';
-import { clone } from '@5qtrs/clone';
 import { random } from '@5qtrs/random';
 import { toBase64 } from '@5qtrs/base64';
+import { FlexdProfileError } from './FlexdProfileError';
 
 // ------------------
 // Internal Constants
@@ -11,21 +11,56 @@ import { toBase64 } from '@5qtrs/base64';
 
 const expireInSeconds = 60 * 60;
 const minExpireInterval = 1000 * 60 * 5;
+const kidLength = 8;
+const jwtAlgorithm = 'RS256';
 
 // ------------------
 // Internal Functions
 // ------------------
 
-function getKeyHash(profile: IFlexdProfile) {
+function getKeyHash(profile: IFlexdProfile): string {
   return `${toBase64(profile.issuer as string)}:${toBase64(profile.subject as string)}:${toBase64(profile.baseUrl)}`;
 }
 
-function generateIssuer(baseUrl: string) {
-  return `${random()}.cli.${baseUrl}`;
+function nomarlizeBaseUrl(baseUrl: string): string {
+  baseUrl = baseUrl.toLowerCase();
+  if (baseUrl[baseUrl.length - 1] === '/') {
+    baseUrl = baseUrl.substring(0, baseUrl.length - 1);
+  }
+  if (baseUrl.indexOf('http') === -1) {
+    throw FlexdProfileError.baseUrlMissingProtocol(baseUrl);
+  }
+  return baseUrl;
 }
 
-function generateSubject() {
-  return `cli-installation-${random({ lengthInBytes: 4 })}`;
+function getDomainFromBaseUrl(baseUrl: string): string {
+  let domain = baseUrl.toLowerCase();
+  domain = domain.replace('https://', '').replace('http://', '');
+  const indexOfPort = domain.indexOf(':');
+  if (indexOfPort !== -1) {
+    domain = domain.substring(0, indexOfPort);
+  }
+
+  const indexOfForwardSlash = domain.indexOf('/');
+  if (indexOfForwardSlash !== -1) {
+    domain = domain.substring(0, indexOfForwardSlash);
+  }
+
+  return domain;
+}
+
+function getProfileNameFromBaseUrl(baseUrl: string) {
+  const domain = getDomainFromBaseUrl(baseUrl);
+  return domain.split('.')[0];
+}
+
+function generateIssuer(baseUrl: string): string {
+  const domain = getDomainFromBaseUrl(baseUrl);
+  return `${random()}.cli.${domain}`;
+}
+
+function generateSubject(): string {
+  return `cli-${random({ lengthInBytes: 4 })}`;
 }
 
 // -------------------
@@ -41,13 +76,10 @@ export interface IFlexdProfileSettings {
 }
 
 export interface IFlexdNewProfile extends IFlexdProfileSettings {
+  agent: string;
   baseUrl: string;
-  issuer?: string;
-  subject?: string;
-  account?: string;
-  subscription?: string;
-  boundary?: string;
-  function?: string;
+  issuer: string;
+  subject: string;
 }
 
 export interface IFlexdProfile extends IFlexdNewProfile {
@@ -59,7 +91,7 @@ export interface IFlexdProfile extends IFlexdNewProfile {
 }
 
 export interface IFlexdExecutionProfile extends IFlexdProfileSettings {
-  token: string;
+  accessToken: string;
   baseUrl: string;
 }
 
@@ -79,16 +111,21 @@ export class FlexdProfile {
     return new FlexdProfile(dotConfig);
   }
 
-  public async getProfile(name?: string): Promise<IFlexdProfile | undefined> {
-    const profile = (await this.dotConfig.getProfile(name)) as IFlexdProfile;
-    if (!profile) {
-      return undefined;
-    }
-    if (!name) {
-      name = await this.getDefaultProfile();
-    }
-    profile.name = name || '<unknown>';
-    return profile;
+  public async profileExists(name: string): Promise<boolean> {
+    return this.dotConfig.profileExists(name);
+  }
+
+  public async getProfileNameFromBaseUrl(baseUrl: string): Promise<string> {
+    return getProfileNameFromBaseUrl(baseUrl);
+  }
+
+  public async getDefaultProfileName(): Promise<string | undefined> {
+    return this.dotConfig.getDefaultProfileName();
+  }
+
+  public async setDefaultProfileName(name: string): Promise<void> {
+    await this.getProfileOrThrow(name);
+    return this.dotConfig.setDefaultProfileName(name);
   }
 
   public async listProfiles(): Promise<IFlexdProfile[]> {
@@ -104,28 +141,153 @@ export class FlexdProfile {
     return profiles;
   }
 
-  public async getExecutionProfile(name?: string): Promise<IFlexdExecutionProfile> {
+  public async getProfile(name: string): Promise<IFlexdProfile | undefined> {
+    const profile = (await this.dotConfig.getProfile(name)) as IFlexdProfile;
+    if (profile) {
+      profile.name = name;
+    }
+    return profile || undefined;
+  }
+
+  public async getProfileOrThrow(name: string): Promise<IFlexdProfile> {
     const profile = await this.getProfile(name);
-    if (!profile) {
-      const message = `The '${name || '<default>'}' profile does not exist.`;
-      throw new Error(message);
+    if (profile === undefined) {
+      throw FlexdProfileError.profileDoesNotExist(name);
+    }
+    return profile;
+  }
+
+  public async getProfileOrDefault(name?: string): Promise<IFlexdProfile | undefined> {
+    if (!name) {
+      name = await this.dotConfig.getDefaultProfileName();
+      if (!name) {
+        return undefined;
+      }
+    }
+    return this.getProfile(name);
+  }
+
+  public async getProfileOrDefaultOrThrow(name?: string): Promise<IFlexdProfile> {
+    if (!name) {
+      name = await this.dotConfig.getDefaultProfileName();
+      if (!name) {
+        throw FlexdProfileError.noDefaultProfile();
+      }
     }
 
-    let token = await this.getCachedAccessToken(name as string, profile);
-    if (!token) {
-      token = await this.createAccessToken(name as string, profile);
+    return this.getProfileOrThrow(name);
+  }
+
+  public async addProfile(name: string, toAdd: IFlexdNewProfile): Promise<IFlexdProfile> {
+    const { publicKey, privateKey } = await createKeyPair();
+    const kid = await this.generateKid(name);
+
+    await this.dotConfig.setPrivateKey(name, kid, privateKey);
+    await this.dotConfig.setPublicKey(name, kid, publicKey);
+
+    const created = new Date().toLocaleDateString();
+
+    const fullProfileToAdd = {
+      created,
+      updated: created,
+      account: toAdd.account || undefined,
+      subscription: toAdd.subscription || undefined,
+      boundary: toAdd.boundary || undefined,
+      function: toAdd.function || undefined,
+      baseUrl: nomarlizeBaseUrl(toAdd.baseUrl),
+      issuer: toAdd.issuer,
+      subject: toAdd.subject,
+      keyPair: name,
+      kid,
+    };
+
+    const profile = await this.dotConfig.setProfile(name, fullProfileToAdd);
+    profile.name = name;
+
+    const defaultProfileName = await this.getDefaultProfileName();
+    if (!defaultProfileName) {
+      await this.setDefaultProfileName(name);
     }
 
-    if (!token) {
-      const message = `Unable to generate an access token for the '${name || '<default>'}' profile.`;
-      throw new Error(message);
+    return profile;
+  }
+
+  public async updateProfile(name: string, settings: IFlexdProfileSettings): Promise<IFlexdProfile> {
+    const profile = await this.getProfileOrThrow(name);
+
+    profile.account = settings.account;
+    profile.subscription = settings.subscription;
+    profile.boundary = settings.boundary;
+    profile.function = settings.function;
+    profile.updated = new Date().toLocaleString();
+
+    await this.dotConfig.setProfile(name, profile);
+    profile.name = name;
+
+    return profile;
+  }
+
+  public async copyProfile(name: string, copyTo: string, overWrite: boolean): Promise<IFlexdProfile> {
+    const profile = await this.getProfileOrThrow(name);
+    const copyToExists = await this.profileExists(copyTo);
+
+    if (copyToExists && !overWrite) {
+      throw FlexdProfileError.profileAlreadyExists(copyTo);
     }
 
-    let baseUrl = profile.baseUrl.indexOf('http') === -1 ? `https://${profile.baseUrl}` : profile.baseUrl;
-    baseUrl = baseUrl[baseUrl.length - 1] === '/' ? baseUrl.substring(0, baseUrl.length - 1) : baseUrl;
+    profile.created = new Date().toLocaleString();
+    profile.updated = profile.created;
+
+    await this.dotConfig.setProfile(copyTo, profile);
+    profile.name = name;
+
+    return profile;
+  }
+
+  public async renameProfile(name: string, renameTo: string, overWrite: boolean): Promise<IFlexdProfile> {
+    const profile = await this.getProfileOrThrow(name);
+    const renameToExists = await this.profileExists(renameTo);
+
+    if (renameToExists && !overWrite) {
+      throw FlexdProfileError.profileAlreadyExists(renameTo);
+    }
+
+    profile.updated = new Date().toLocaleString();
+
+    await this.dotConfig.setProfile(renameTo, profile);
+    await this.dotConfig.removeProfile(name);
+    profile.name = name;
+
+    return profile;
+  }
+
+  public async removeProfile(name: string): Promise<void> {
+    const profile = await this.getProfileOrThrow(name);
+    await this.dotConfig.removeProfile(name);
+
+    const kid = profile.kid;
+    if (!(await this.isKeyUsedByAnyProfiles(name, kid))) {
+      await Promise.all([this.dotConfig.removeKeyPair(name, kid), this.dotConfig.removeCachedCreds(name, kid)]);
+    }
+  }
+
+  public async getPublicKey(name: string): Promise<string> {
+    const profile = await this.getProfileOrThrow(name);
+    return this.dotConfig.getPublicKey(profile.keyPair, profile.kid);
+  }
+
+  public async getAccessToken(name?: string): Promise<string> {
+    const profile = await this.getProfileOrDefaultOrThrow(name);
+    let accessToken = await this.getCachedAccessToken(profile);
+    return accessToken !== undefined ? accessToken : await this.generateAccessToken(profile);
+  }
+
+  public async getExecutionProfile(name?: string): Promise<IFlexdExecutionProfile> {
+    const profile = await this.getProfileOrDefaultOrThrow(name);
+    const accessToken = await this.getAccessToken(name);
     return {
-      token,
-      baseUrl: baseUrl,
+      accessToken,
+      baseUrl: profile.baseUrl,
       account: profile.account || undefined,
       subscription: profile.subscription || undefined,
       boundary: profile.boundary || undefined,
@@ -133,137 +295,55 @@ export class FlexdProfile {
     };
   }
 
-  public async addProfile(name: string, newProfile: IFlexdNewProfile): Promise<IFlexdProfile> {
-    const exists = await this.dotConfig.profileExists(name);
-    if (exists) {
-      const message = `The '${name}' profile already exists.`;
-      throw new Error(message);
-    }
-
-    const { publicKey, privateKey } = await createKeyPair();
-    const keyPairName = `${name}-keys`;
-    const kid = await this.addKeyPair(keyPairName, publicKey, privateKey);
-
-    const profile = clone(newProfile) as IFlexdProfile;
-    profile.issuer = profile.issuer || generateIssuer(profile.baseUrl);
-    profile.subject = profile.subject || generateSubject();
-    profile.keyPair = keyPairName;
-    profile.kid = kid;
-
-    await this.dotConfig.setProfile(name, profile, false);
-
-    const defaultProfile = await this.getDefaultProfile();
-    if (!defaultProfile) {
-      await this.setDefaultProfile(name);
-    }
-
-    profile.name = name;
-    return profile;
+  private async isKeyUsedByAnyProfiles(name: string, kid: string): Promise<boolean> {
+    const profiles = await this.getProfilesUsingKey(name, kid);
+    return profiles.length > 0;
   }
 
-  public async updateProfile(name: string, settings: IFlexdProfileSettings): Promise<IFlexdProfile> {
-    const profile = await this.dotConfig.getProfile(name);
-    profile.account = settings.account;
-    profile.subscription = settings.subscription;
-    profile.boundary = settings.boundary;
-    profile.function = settings.function;
-
-    await this.dotConfig.setProfile(name, profile, true);
-    profile.name = name;
-    return profile;
+  private async getProfilesUsingKey(name: string, kid: string): Promise<IFlexdProfile[]> {
+    const profiles = await this.listProfiles();
+    return profiles.filter(profile => profile.keyPair === name && profile.kid === kid);
   }
 
-  public async copyProfile(source: string, target: string, overWrite: boolean = false): Promise<IFlexdProfile> {
-    const profile = await this.dotConfig.copyProfile(source, target, overWrite);
-    profile.name = target;
-    return profile;
-  }
-
-  public async renameProfile(source: string, target: string, overWrite: boolean = false): Promise<IFlexdProfile> {
-    const profile = await this.dotConfig.renameProfile(source, target, overWrite);
-    profile.name = target;
-    return profile;
-  }
-
-  public async removeProfile(name: string): Promise<void> {
-    return this.dotConfig.removeProfile(name);
-  }
-
-  public async getDefaultProfile() {
-    return this.dotConfig.getDefaultProfile();
-  }
-
-  public async setDefaultProfile(name: string) {
-    return this.dotConfig.setDefaultProfile(name);
-  }
-
-  public async getPublicKey(name: string) {
-    const profile = await this.getProfile(name);
-    if (!profile) {
-      const message = `There is no '${name}' profile.`;
-      throw new Error(message);
-    }
-    return this.dotConfig.getPublicKey(profile.keyPair, profile.kid);
-  }
-
-  public async getPublicKeyPath(name: string) {
-    const profile = await this.getProfile(name);
-    if (!profile) {
-      const message = `There is no '${name}' profile.`;
-      throw new Error(message);
-    }
-    return this.dotConfig.getPublicKeyPath(profile.keyPair, profile.kid);
-  }
-
-  private async addKeyPair(name: string, publicKey: string, privateKey: string): Promise<string> {
+  private async generateKid(name: string) {
     let kid;
-    let added = false;
-    while (!added) {
-      kid = random({ lengthInBytes: 4 }) as string;
-      added = await this.dotConfig.setKeyPair(name, publicKey, privateKey, kid);
-    }
-
-    return kid as string;
+    do {
+      kid = random({ lengthInBytes: kidLength / 2 }) as string;
+    } while (await this.dotConfig.publicKeyExists(name, kid));
+    return kid;
   }
 
-  private async createAccessToken(name: string, profile: IFlexdProfile) {
+  private async generateAccessToken(profile: IFlexdProfile): Promise<string> {
     const privateKey = await this.dotConfig.getPrivateKey(profile.keyPair, profile.kid);
-    if (privateKey) {
-      const expires = new Date(Date.now() + 1000 * expireInSeconds);
-      const options = {
-        algorithm: 'RS256',
-        expiresIn: expireInSeconds,
-        audience: profile.baseUrl,
-        issuer: profile.issuer,
-        subject: profile.subject,
-        keyid: profile.kid,
-        header: {
-          jwtId: random(),
-        },
-      };
 
-      const token = await signJwt({}, privateKey, options);
-      await this.cacheAccessToken(name, token, expires, profile);
-      return token;
-    }
-    return undefined;
+    const expires = new Date(Date.now() + 1000 * expireInSeconds);
+    const options = {
+      algorithm: jwtAlgorithm,
+      expiresIn: expireInSeconds,
+      audience: profile.baseUrl,
+      issuer: profile.issuer,
+      subject: profile.subject,
+      keyid: profile.kid,
+      header: {
+        jwtId: random(),
+      },
+    };
+
+    const accessToken = await signJwt({}, privateKey, options);
+    const cachedCredsEntry = { accessToken, has: getKeyHash(profile), expires: expires.toLocaleString() };
+    await this.dotConfig.setCachedCreds(profile.keyPair, profile.kid, cachedCredsEntry);
+
+    return accessToken;
   }
 
-  private async cacheAccessToken(name: string, token: string, expires: Date, profile: IFlexdProfile): Promise<void> {
-    const hash = getKeyHash(profile);
-    const entry = { token, expires: expires.toLocaleString(), hash };
-    return this.dotConfig.setCachedCreds(name, profile.kid, entry);
-  }
-
-  private async getCachedAccessToken(name: string, profile: IFlexdProfile): Promise<string | undefined> {
-    const entry: any = await this.dotConfig.getCachedCreds(name, profile.kid);
-    if (entry) {
-      const { token, expires, hash } = entry;
-      if (hash === getKeyHash(profile)) {
-        const expireInMs = new Date(expires).valueOf();
-        const cutoffInMs = Date.now() - minExpireInterval;
-        if (expireInMs > cutoffInMs) {
-          return token;
+  private async getCachedAccessToken(profile: IFlexdProfile): Promise<string | undefined> {
+    const cachedCredsEntry = await this.dotConfig.getCachedCreds(profile.name, profile.kid);
+    if (cachedCredsEntry) {
+      if (cachedCredsEntry.hash === getKeyHash(profile)) {
+        const expires = new Date(cachedCredsEntry.expires).valueOf();
+        const cutOff = Date.now() - minExpireInterval;
+        if (expires > cutOff) {
+          return cachedCredsEntry.accessToken;
         }
       }
     }

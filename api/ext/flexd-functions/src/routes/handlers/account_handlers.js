@@ -293,12 +293,13 @@ function userInit() {
   return (req, res) => {
     const accountId = req.params.accountId;
     const userId = req.params.userId;
+    const baseUrl = process.env.API_SERVER;
     getDataAccess().then(dataAccess => {
-      dataAccess.initUser(accountId, userId).then(initEntry => {
-        if (!initEntry) {
+      dataAccess.initUser(accountId, userId, baseUrl).then(jwt => {
+        if (!jwt) {
           return res.status(404).json({ message: 'Not Found' });
         }
-        res.json(initEntry);
+        res.json(jwt);
       });
     });
   };
@@ -306,12 +307,9 @@ function userInit() {
 
 function userInitResolve() {
   return (req, res) => {
-    const accountId = req.params.accountId;
-    const userId = req.params.userId;
-    const initId = req.params.initId;
     getDataAccess().then(dataAccess => {
       const initResolve = req.body;
-      dataAccess.initResolveUser(accountId, userId, initId, initResolve).then(user => {
+      dataAccess.initResolveUser(initResolve).then(user => {
         if (!user) {
           return res.status(404).json({ message: 'Not Found' });
         }

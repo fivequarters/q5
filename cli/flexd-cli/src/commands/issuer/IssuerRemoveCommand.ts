@@ -60,10 +60,10 @@ export class IssuerRemoveCommand extends Command {
       return 1;
     }
 
-    await executeService.result({
-      header: 'Issuer Removed',
-      message: Text.create("The '", Text.bold(id), "' issuer was successfully remove'"),
-    });
+    await executeService.result(
+      'Issuer Removed',
+      Text.create("The '", Text.bold(id), "' issuer was successfully remove'")
+    );
 
     return 0;
   }

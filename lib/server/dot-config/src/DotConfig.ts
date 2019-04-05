@@ -1,12 +1,14 @@
 import { homedir } from 'os';
 import { join } from 'path';
-import { readFile, writeFile } from '@5qtrs/file';
+import { readFile, writeFile, removeFile, removeDirectory, readDirectory } from '@5qtrs/file';
 
 export class DotConfig {
   protected nameProp: string;
+  protected directory: string;
 
-  constructor(name: string) {
+  constructor(name: string, directory?: string) {
     this.nameProp = name;
+    this.directory = directory || homedir();
   }
 
   public get name() {
@@ -14,7 +16,7 @@ export class DotConfig {
   }
 
   public get path() {
-    return join(homedir(), this.name.indexOf('.') === 0 ? this.name : `.${this.name}`);
+    return join(this.directory, this.nameProp);
   }
 
   protected async readBinary(path: string): Promise<Buffer> {
@@ -26,6 +28,23 @@ export class DotConfig {
   protected async writeBinary(path: string, contents: Buffer) {
     const fullPath = join(this.path, path);
     return writeFile(fullPath, contents);
+  }
+
+  protected async removeFile(path: string) {
+    const fullPath = join(this.path, path);
+    return removeFile(fullPath);
+  }
+
+  protected async removeDirectory(path: string) {
+    let fullPath = join(this.path, path);
+    while (fullPath !== this.path) {
+      await removeDirectory(fullPath);
+      fullPath = join(fullPath, '..');
+      const remamining = await readDirectory(fullPath);
+      if (remamining.length) {
+        return;
+      }
+    }
   }
 
   protected async readJson(path: string): Promise<any> {

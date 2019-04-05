@@ -37,7 +37,7 @@ export class FunctionUrlCommand extends Command {
         profile.boundary
       }/function/${profile.function}/location`,
       headers: {
-        Authorization: `Bearer ${profile.token}`,
+        Authorization: `Bearer ${profile.accessToken}`,
       },
       validStatus: status => status === 200,
     });

@@ -81,7 +81,7 @@ router.get(
   '/account/:accountId/issuer',
   cors(corsManagementOptions),
   authorize({
-    operation: 'issuer:list',
+    operation: 'account:list-issuer',
   }),
   validate_schema({
     query: require('./schemas/api_query'),
@@ -150,7 +150,7 @@ router.get(
   '/account/:accountId/subscription',
   cors(corsManagementOptions),
   authorize({
-    operation: 'subscription:list',
+    operation: 'account:list-subscription',
   }),
   validate_schema({
     query: require('./schemas/api_query'),
@@ -253,8 +253,8 @@ router.post(
   account.userInit()
 );
 
-router.put(
-  '/account/:accountId/user/:userId/init/:initId',
+router.post(
+  '/account/:accountId/init',
   cors(corsManagementOptions),
   express.json(),
   validate_schema({

@@ -7,13 +7,6 @@ import { Table } from '@5qtrs/table';
 // Internal Interfaces
 // -------------------
 
-interface ILogEntry {
-  header?: IText;
-  message?: IText;
-  error?: Error;
-  date: Date;
-}
-
 // -------------------
 // Exported Interfaces
 // -------------------
@@ -24,6 +17,13 @@ export interface IExcuteMessages {
   kind?: MessageKind;
   errorHeader?: IText;
   errorMessage?: IText;
+}
+
+export interface ILogEntry {
+  header?: IText;
+  message?: IText;
+  error?: Error;
+  date: Date;
 }
 
 // ----------------
@@ -104,17 +104,27 @@ export class ExecuteService {
     return this.execute(messages, func);
   }
 
-  public async result(messages: IExcuteMessages) {
-    if (messages.header || messages.message) {
-      if (!this.input.options.quiet) {
-        const message = await Message.create({
-          header: messages.header,
-          message: messages.message || '',
-          kind: messages.kind || MessageKind.result,
-        });
-        await message.write(this.input.io);
-      }
+  public async message(header: IText, message: IText, kind: MessageKind = MessageKind.result) {
+    if (!this.input.options.quiet) {
+      const formattedMessage = await Message.create({ header, message, kind });
+      await formattedMessage.write(this.input.io);
     }
+  }
+
+  public async result(header: IText, message: IText) {
+    return this.message(header, message, MessageKind.result);
+  }
+
+  public async warning(header: IText, message: IText) {
+    return this.message(header, message, MessageKind.warning);
+  }
+
+  public async error(header: IText, message: IText) {
+    return this.message(header, message, MessageKind.error);
+  }
+
+  public async info(header: IText, message: IText) {
+    return this.message(header, message, MessageKind.info);
   }
 
   public async verbose() {
@@ -126,7 +136,7 @@ export class ExecuteService {
         columns: [{ flexShrink: 0, flexGrow: 0 }, { flexGrow: 1 }],
       });
 
-      table.addRow([Text.yellow('Error Logs'), 'The following error were captured during command execution']);
+      table.addRow([Text.yellow('Error Logs'), 'The following errors were captured during command execution']);
 
       for (const log of this.logs) {
         if (log.message || log.error) {

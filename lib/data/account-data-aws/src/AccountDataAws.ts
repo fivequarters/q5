@@ -1,24 +1,22 @@
 import { IAwsOptions } from '@5qtrs/aws-base';
 import { AwsDynamo } from '@5qtrs/aws-dynamo';
 import { AccessEntryStore, IAccessEntry } from './AccessEntryStore';
+import { AccountTable, INewAccount } from './AccountTable';
 import {
-  AccountStore,
-  INewAccount,
+  SubscriptionTable,
   INewSubscription,
   IListSubscriptionsOptions,
   IListSubscriptionsResult,
-} from './AccountStore';
+} from './SubscriptionTable';
 import { IdentityStore, IIdentity } from './IdentityStore';
 import { ClientStore, INewBaseClient, IBaseClient, IListBaseClientsOptions } from './ClientStore';
 import { IssuerStore, IIssuer, IListIssuersOptions, IListIssuersResult } from './IssuerStore';
 import { UserStore, IBaseUser, INewBaseUser, IListBaseUsersOptions, IListUsersResult } from './UserStore';
-import { InitStore, IInitEntry } from './InitStore';
-import { Agent } from 'http';
+import { InitStore, IResolvedInitEntry } from './InitStore';
 
 export { IListAccessEntriesOptions, IListAccessEntriesResult } from './AccessEntryStore';
 export { IIssuer } from './IssuerStore';
 export { IListUsersResult } from './UserStore';
-export { IInitEntry } from './InitStore';
 
 // -------------------
 // Internal Interfaces
@@ -26,7 +24,8 @@ export { IInitEntry } from './InitStore';
 
 interface IAccountStores {
   accessEntry: AccessEntryStore;
-  account: AccountStore;
+  account: AccountTable;
+  subscription: SubscriptionTable;
   client: ClientStore;
   identity: IdentityStore;
   issuer: IssuerStore;
@@ -140,11 +139,9 @@ export interface IListClientsOptions extends IListBaseClientsOptions {
 }
 
 export interface IInitResolve {
-  iss: string;
-  sub: string;
   publicKey: string;
   keyId: string;
-  displayName: string;
+  jwt: string;
 }
 
 // ----------------
@@ -162,7 +159,8 @@ export class AccountDataAws {
     const dynamo = await AwsDynamo.create(options);
     const stores = {
       accessEntry: await AccessEntryStore.create(dynamo),
-      account: await AccountStore.create(dynamo),
+      account: await AccountTable.create(dynamo),
+      subscription: await SubscriptionTable.create(dynamo),
       client: await ClientStore.create(dynamo),
       identity: await IdentityStore.create(dynamo),
       issuer: await IssuerStore.create(dynamo),
@@ -177,6 +175,7 @@ export class AccountDataAws {
     const isSetup = await Promise.all([
       this.stores.accessEntry.isSetup(),
       this.stores.account.isSetup(),
+      this.stores.subscription.isSetup(),
       this.stores.client.isSetup(),
       this.stores.identity.isSetup(),
       this.stores.issuer.isSetup(),
@@ -190,6 +189,7 @@ export class AccountDataAws {
     await Promise.all([
       this.stores.accessEntry.setup(),
       this.stores.account.setup(),
+      this.stores.subscription.setup(),
       this.stores.client.setup(),
       this.stores.identity.setup(),
       this.stores.issuer.setup(),
@@ -233,39 +233,28 @@ export class AccountDataAws {
     return undefined;
   }
 
-  public async addRootUser(issuer: IIssuer, user: INewUser) {
-    const account = await this.stores.account.addRootAccount();
-    user.access = user.access || { allow: [] };
-    user.access.allow = user.access.allow || [];
-    user.access.allow.push({
-      action: 'root:*',
-      resource: `/root`,
-    });
-    await this.stores.issuer.addIssuer(account.id, issuer);
-    return this.addUser(account.id, user);
-  }
-
   public async addAccount(newAccount: INewAccount) {
-    return this.stores.account.addAccount(newAccount);
+    return this.stores.account.add(newAccount);
   }
 
   public async getAccount(accountId: string) {
-    return this.stores.account.getAccount(accountId);
+    return this.stores.account.get(accountId);
   }
 
   public async listSubscriptions(
     accountId: string,
     options?: IListSubscriptionsOptions
-  ): Promise<IListSubscriptionsResult | undefined> {
-    return this.stores.account.listSubscriptions(accountId, options);
+  ): Promise<IListSubscriptionsResult> {
+    return this.stores.subscription.list(accountId, options);
   }
 
   public async addSubscription(accountId: string, subscription: INewSubscription) {
-    return this.stores.account.addSubscription(accountId, subscription);
+    await this.getAccount(accountId);
+    return this.stores.subscription.add(accountId, subscription);
   }
 
   public async getSubscription(accountId: string, subscriptionId: string) {
-    return this.stores.account.getSubscription(accountId, subscriptionId);
+    return this.stores.subscription.get(accountId, subscriptionId);
   }
 
   public async listIssuers(accountId: string, options?: IListIssuersOptions): Promise<IListIssuersResult | undefined> {
@@ -391,31 +380,32 @@ export class AccountDataAws {
     return removed;
   }
 
-  public async initClient(accountId: string, clientId: string): Promise<IInitEntry | undefined> {
-    const user = await this.getClient(accountId, clientId);
-    if (!user) {
+  public async initClient(accountId: string, clientId: string, baseUrl: string): Promise<string | undefined> {
+    const client = await this.getClient(accountId, clientId);
+    if (!client) {
       return undefined;
     }
 
-    return this.stores.init.addInitId(accountId, clientId);
+    return this.stores.init.addInitEntry(accountId, clientId, baseUrl);
   }
 
-  public async initResolveClient(
-    accountId: string,
-    clientId: string,
-    initId: string,
-    initResolve: IInitResolve
-  ): Promise<IUser | undefined> {
-    const initOk = await this.stores.init.resolveInitId(accountId, clientId, initId);
-    if (!initOk) {
+  public async initResolveClient(initResolve: IInitResolve): Promise<IUser | undefined> {
+    const resolvedEntry = await this.stores.init.resolveInitEntry(initResolve.jwt);
+    if (!resolvedEntry) {
+      return undefined;
+    }
+
+    const { accountId, agentId, iss, sub } = resolvedEntry;
+
+    const client = await this.getClient(accountId, agentId);
+    if (!client) {
       return undefined;
     }
 
     const newIssuer = {
-      displayName: initResolve.displayName,
-      id: initResolve.iss,
-      keyId: initResolve.keyId,
-      publicKey: initResolve.publicKey,
+      displayName: `CLI for ${agentId}`,
+      id: iss,
+      publicKeys: [{ keyId: initResolve.keyId, publicKey: initResolve.publicKey }],
     };
 
     const issuer = await this.addIssuer(accountId, newIssuer);
@@ -423,12 +413,10 @@ export class AccountDataAws {
       return undefined;
     }
 
-    const updateUser = {
-      id: clientId,
-      identities: [{ iss: initResolve.iss, sub: initResolve.sub }],
-    };
+    client.identities = client.identities || [];
+    client.identities.push({ iss, sub });
 
-    return this.updateClient(accountId, updateUser);
+    return this.updateClient(accountId, client);
   }
 
   public async listUsers(accountId: string, options: IListUsersOptions): Promise<IListUsersResult | undefined> {
@@ -521,44 +509,42 @@ export class AccountDataAws {
     return removed;
   }
 
-  public async initUser(accountId: string, userId: string): Promise<IInitEntry | undefined> {
+  public async initUser(accountId: string, userId: string, baseUrl: string): Promise<string | undefined> {
     const user = await this.getUser(accountId, userId);
     if (!user) {
       return undefined;
     }
 
-    return this.stores.init.addInitId(accountId, userId);
+    return this.stores.init.addInitEntry(accountId, userId, baseUrl);
   }
 
-  public async initResolveUser(
-    accountId: string,
-    userId: string,
-    initId: string,
-    initResolve: IInitResolve
-  ): Promise<IUser | undefined> {
-    const initOk = await this.stores.init.resolveInitId(accountId, userId, initId);
-    if (!initOk) {
+  public async initResolveUser(initResolve: IInitResolve): Promise<IUser | undefined> {
+    const resolvedEntry = await this.stores.init.resolveInitEntry(initResolve.jwt);
+    if (!resolvedEntry) {
+      return undefined;
+    }
+
+    const { accountId, agentId, iss, sub } = resolvedEntry;
+
+    const user = await this.getUser(accountId, agentId);
+    if (!user) {
       return undefined;
     }
 
     const newIssuer = {
-      displayName: initResolve.displayName,
-      id: initResolve.iss,
+      displayName: `CLI for ${agentId}`,
+      id: iss,
       publicKeys: [{ keyId: initResolve.keyId, publicKey: initResolve.publicKey }],
     };
-
-    console.log('newIssuer', newIssuer);
 
     const issuer = await this.addIssuer(accountId, newIssuer);
     if (!issuer) {
       return undefined;
     }
 
-    const updateUser = {
-      id: userId,
-      identities: [{ iss: initResolve.iss, sub: initResolve.sub }],
-    };
+    user.identities = user.identities || [];
+    user.identities.push({ iss, sub });
 
-    return this.updateUser(accountId, updateUser);
+    return this.updateUser(accountId, user);
   }
 }

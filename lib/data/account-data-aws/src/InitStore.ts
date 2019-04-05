@@ -1,54 +1,93 @@
 import { AwsDynamo } from '@5qtrs/aws-dynamo';
 import { random } from '@5qtrs/random';
+import { all } from 'async';
+import { signJwt, verifyJwt, decodeJwt } from '@5qtrs/jwt';
 
 // ------------------
 // Internal Constants
 // ------------------
 
 const tableName = 'init';
-const inviteIdLength = 16;
-const delimiter = '::';
-const ttlInterval = 1000 * 60 * 60 * 8; // 8 hours
+const delimiter = ':';
+const issuerSegmentLength = 8;
+const subjectSegmentLength = 8;
+const expireInSeconds = 60 * 60 * 8; // 8 hours
+const jwtAlgorithm = 'HS256';
 
 // ------------------
 // Internal Functions
 // ------------------
 
-function generateInitId() {
-  return `int-${random({ lengthInBytes: inviteIdLength / 2 })}`;
-}
-
-function toDynamoKey(accountId: string, agentId: string, initId: string) {
-  const initMap = [accountId, agentId, initId].join(delimiter);
+function toDynamoKey(accountId: string, agentId: string) {
+  const initMap = [accountId, agentId].join(delimiter);
   return {
     initMap: { S: initMap },
   };
 }
 
-function toDynamoItem(accountId: string, agentId: string, initId: string, ttl: number) {
-  const item: any = toDynamoKey(accountId, agentId, initId);
-  item.ttl = { N: ttl.toString() };
+function toDynamoItem(initEntry: IInitEntry) {
+  const item: any = toDynamoKey(initEntry.accountId, initEntry.agentId);
+  item.ttl = { N: initEntry.ttl.toString() };
+  item.jwtSecret = { S: initEntry.jwtSecret };
   return item;
 }
 
 function fromDynamoItem(item: any, full: boolean = false): IInitEntry {
   const initMap = item.initMap.S;
-  const [accountId, agentId, initId] = initMap.split(delimiter);
+  const [accountId, agentId] = initMap.split(delimiter);
   return {
     accountId,
     agentId,
-    initId,
+    jwtSecret: item.jwtSecret.S,
+    ttl: parseInt(item.ttl.N),
   };
+}
+
+function getDomainFromBaseUrl(baseUrl: string): string {
+  let domain = baseUrl.toLowerCase();
+  domain = domain.replace('https://', '').replace('http://', '');
+  const indexOfPort = domain.indexOf(':');
+  if (indexOfPort !== -1) {
+    domain = domain.substring(0, indexOfPort);
+  }
+
+  const indexOfForwardSlash = domain.indexOf('/');
+  if (indexOfForwardSlash !== -1) {
+    domain = domain.substring(0, indexOfForwardSlash);
+  }
+
+  return domain;
+}
+
+function generateIssuer(agentId: string, baseUrl: string): string {
+  const domain = getDomainFromBaseUrl(baseUrl);
+  return `${random({ lengthInBytes: issuerSegmentLength / 2 })}.${agentId}.${domain}`;
+}
+
+function generateSubject(): string {
+  return `cli-${random({ lengthInBytes: subjectSegmentLength / 2 })}`;
+}
+
+// -------------------
+// Internal Interfaces
+// -------------------
+
+interface IInitEntry {
+  accountId: string;
+  agentId: string;
+  jwtSecret: string;
+  ttl: number;
 }
 
 // -------------------
 // Exported Interfaces
 // -------------------
 
-export interface IInitEntry {
+export interface IResolvedInitEntry {
   accountId: string;
   agentId: string;
-  initId: string;
+  iss: string;
+  sub: string;
 }
 
 // ----------------
@@ -79,32 +118,68 @@ export class InitStore {
     });
   }
 
-  public async addInitId(accountId: string, agentId: string): Promise<IInitEntry | undefined> {
-    const options = {
-      expressionNames: { '#initMap': 'initMap' },
-      condition: 'attribute_not_exists(#initMap)',
-      onCollision: (item: any) => {
-        const ttl = Date.now() + ttlInterval;
-        const initId = generateInitId();
-        return toDynamoItem(accountId, agentId, initId, ttl);
-      },
+  public async addInitEntry(accountId: string, agentId: string, baseUrl: string): Promise<string | undefined> {
+    const expires = Date.now() + 1000 * expireInSeconds;
+    const jwtSecret = random() as string;
+    const initEntry = {
+      accountId,
+      agentId,
+      ttl: expires,
+      jwtSecret,
     };
 
-    const ttl = Date.now() + ttlInterval;
-    const initId = generateInitId();
-    const item = toDynamoItem(accountId, agentId, initId, ttl);
-    const finalItem = await this.dynamo.addItem(tableName, item, options);
-    return fromDynamoItem(finalItem);
+    const item = toDynamoItem(initEntry);
+    await this.dynamo.putItem(tableName, item);
+
+    const payload = {
+      accountId,
+      agentId,
+      baseUrl,
+      iss: generateIssuer(agentId, baseUrl),
+      sub: generateSubject(),
+    };
+
+    const options = {
+      algorithm: jwtAlgorithm,
+      expiresIn: expireInSeconds,
+    };
+
+    return signJwt(payload, jwtSecret, options);
   }
 
-  public async resolveInitId(accountId: string, agentId: string, initId: string): Promise<boolean> {
-    const key = toDynamoKey(accountId, agentId, initId);
+  public async resolveInitEntry(jwt: string): Promise<IResolvedInitEntry | undefined> {
+    const decoded = await decodeJwt(jwt);
+
+    const key = toDynamoKey(decoded.accountId, decoded.agentId);
     const item = await this.dynamo.getItem(tableName, key);
-    if (!item || !item.ttl || item.ttl.N < Date.now()) {
-      return false;
+    this.dynamo.deleteItem(tableName, key);
+
+    if (!item) {
+      return undefined;
     }
 
-    await this.dynamo.deleteItem(tableName, key);
-    return true;
+    const initEntry = fromDynamoItem(item);
+    if (!initEntry.ttl || initEntry.ttl < Date.now()) {
+      return undefined;
+    }
+
+    if (decoded.agentId !== initEntry.agentId || decoded.accountId != initEntry.accountId) {
+      return undefined;
+    }
+
+    try {
+      verifyJwt(jwt, initEntry.jwtSecret, { algorithms: [jwtAlgorithm] });
+    } catch (error) {
+      return undefined;
+    }
+
+    const resolvedEntry = {
+      accountId: decoded.accountId,
+      agentId: decoded.agentId,
+      iss: decoded.iss,
+      sub: decoded.sub,
+    };
+
+    return resolvedEntry;
   }
 }

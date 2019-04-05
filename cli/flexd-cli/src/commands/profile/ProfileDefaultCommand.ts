@@ -1,28 +1,43 @@
 import { Command, IExecuteInput } from '@5qtrs/cli';
 import { Text } from '@5qtrs/text';
-import { ExecuteService, ProfileService } from '../../services';
+import { ProfileService } from '../../services';
+
+// ------------------
+// Internal Constants
+// ------------------
+
+const command = {
+  name: 'Set Default Profile',
+  cmd: 'default',
+  summary: 'Get or set the default profile',
+  description: Text.create(
+    "Returns the current default profile if the '",
+    Text.bold('name'),
+    "' argument is not specified. Sets the stored default profile if the '",
+    Text.bold('name'),
+    "' argument is not specified."
+  ),
+  arguments: [
+    {
+      name: 'name',
+      description: 'The name of the profile to use as the default',
+      required: false,
+    },
+    {
+      name: 'format',
+      description: "The format to display the output: 'table', 'json'",
+      default: 'table',
+    },
+  ],
+};
+
+// ----------------
+// Exported Classes
+// ----------------
 
 export class ProfileDefaultCommand extends Command {
   private constructor() {
-    super({
-      name: 'Set Default Profile',
-      cmd: 'default',
-      summary: 'Get or set the default profile',
-      description: Text.create(
-        "Returns the current default profile if the '",
-        Text.bold('name'),
-        "' argument is not specified. Sets the stored default profile if the '",
-        Text.bold('name'),
-        "' argument is not specified."
-      ),
-      arguments: [
-        {
-          name: 'name',
-          description: 'The name of the profile to use as the default',
-          required: false,
-        },
-      ],
-    });
+    super(command);
   }
 
   public static async create() {
@@ -34,36 +49,17 @@ export class ProfileDefaultCommand extends Command {
     const [name] = input.arguments as string[];
 
     const profileService = await ProfileService.create(input);
-    const executeService = await ExecuteService.create(input);
 
+    let profile;
     if (!name) {
-      const defaultProfile = await profileService.getProfile();
-      if (!defaultProfile) {
-        executeService.verbose();
-        return 1;
-      }
-      await profileService.displayProfile(defaultProfile);
-      return 0;
+      profile = await profileService.getDefaultProfileOrThrow();
+    } else {
+      profile = await profileService.getProfileOrThrow(name);
+      await profileService.setDefaultProfileName(name);
     }
 
-    const newDefaultProfile = await profileService.getProfile(name);
-    if (!newDefaultProfile) {
-      executeService.verbose();
-      return 1;
-    }
+    await profileService.displayProfile(profile);
 
-    const setOk = await profileService.setDefaultProfile(name);
-    if (!setOk) {
-      executeService.verbose();
-      return 1;
-    }
-
-    await executeService.result({
-      header: 'Profile set',
-      message: Text.create("The '", Text.bold(name), "' profile was successfully set as the default profile"),
-    });
-
-    await profileService.displayProfile(newDefaultProfile);
     return 0;
   }
 }

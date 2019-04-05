@@ -73,47 +73,44 @@ export class IssuerAddCommand extends Command {
     const executeService = await ExecuteService.create(input);
 
     if (jsonKeyUri && publicKey) {
-      await executeService.result({
-        header: 'Invaild Options',
-        message: Text.create(
+      await executeService.error(
+        'Invaild Options',
+        Text.create(
           "The '",
           Text.bold('publicKey'),
           "' option can not be specified if the '",
           Text.bold('jsonKeyUri'),
           "' option is specified."
-        ),
-        kind: MessageKind.error,
-      });
+        )
+      );
       return 1;
     }
 
     if (jsonKeyUri && keyId) {
-      await executeService.result({
-        header: 'Invaild Options',
-        message: Text.create(
+      await executeService.error(
+        'Invaild Options',
+        Text.create(
           "The '",
           Text.bold('keyId'),
           "' option can not be specified if the '",
           Text.bold('jsonKeyUri'),
           "' option is specified."
-        ),
-        kind: MessageKind.error,
-      });
+        )
+      );
       return 1;
     }
 
     if ((keyId === undefined && publicKey !== undefined) || (keyId !== undefined && publicKey === undefined)) {
-      await executeService.result({
-        header: 'Invaild Options',
-        message: Text.create(
+      await executeService.error(
+        'Invaild Options',
+        Text.create(
           "Both the '",
           Text.bold('keyId'),
           "' option can and the '",
           Text.bold('publicKey'),
           "' option must be specified."
-        ),
-        kind: MessageKind.error,
-      });
+        )
+      );
       return 1;
     }
 
@@ -137,10 +134,10 @@ export class IssuerAddCommand extends Command {
       return 1;
     }
 
-    await executeService.result({
-      header: 'Issuer Added',
-      message: Text.create("The '", Text.bold(id), "' issuer was successfully added'"),
-    });
+    await executeService.result(
+      'Issuer Added',
+      Text.create("The '", Text.bold(id), "' issuer was successfully added'")
+    );
 
     await issuerService.displayIssuer(issuer);
 

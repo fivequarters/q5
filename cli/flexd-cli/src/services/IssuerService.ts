@@ -74,7 +74,7 @@ export class IssuerService {
           url: `${profile.baseUrl}/v1/account/${profile.account}/issuer`,
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `bearer ${profile.token}`,
+            Authorization: `bearer ${profile.accessToken}`,
           },
         });
         if (result.status === 404) {
@@ -115,7 +115,7 @@ export class IssuerService {
           url: `${profile.baseUrl}/v1/account/${profile.account}/issuer/${encodeURIComponent(id)}`,
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `bearer ${profile.token}`,
+            Authorization: `bearer ${profile.accessToken}`,
           },
         });
         if (result.status === 404) {
@@ -179,7 +179,7 @@ export class IssuerService {
           data: issuer,
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `bearer ${profile.token}`,
+            Authorization: `bearer ${profile.accessToken}`,
           },
         });
         if (result.status === 404) {
@@ -214,11 +214,11 @@ export class IssuerService {
     });
     const confirmed = await confirmPrompt.prompt(this.input.io);
     if (!confirmed) {
-      await this.executeService.result({
-        header: 'Add Issuer Canceled',
-        message: Text.create("Adding the '", Text.bold(id), "' issuer was canceled."),
-        kind: MessageKind.warning,
-      });
+      await this.executeService.message(
+        'Add Issuer Canceled',
+        Text.create("Adding the '", Text.bold(id), "' issuer was canceled."),
+        MessageKind.warning
+      );
     }
     return confirmed;
   }
@@ -242,7 +242,7 @@ export class IssuerService {
           url: `${profile.baseUrl}/v1/account/${profile.account}/issuer/${encodeURIComponent(id)}`,
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `bearer ${profile.token}`,
+            Authorization: `bearer ${profile.accessToken}`,
           },
         });
         if (result.status === 404) {
@@ -278,11 +278,11 @@ export class IssuerService {
     });
     const confirmed = await confirmPrompt.prompt(this.input.io);
     if (!confirmed) {
-      await this.executeService.result({
-        header: 'Remove Issuer Canceled',
-        message: Text.create("Removing the '", Text.bold(id), "' issuer was canceled."),
-        kind: MessageKind.warning,
-      });
+      await this.executeService.message(
+        'Remove Issuer Canceled',
+        Text.create("Removing the '", Text.bold(id), "' issuer was canceled."),
+        MessageKind.warning
+      );
     }
     return confirmed;
   }
