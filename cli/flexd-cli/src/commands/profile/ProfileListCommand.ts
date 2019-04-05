@@ -1,54 +1,64 @@
 import { EOL } from 'os';
-import { Command, IExecuteInput, Message, MessageKind, ArgType } from '@5qtrs/cli';
+import { Command, IExecuteInput, MessageKind } from '@5qtrs/cli';
 import { ExecuteService, ProfileService } from '../../services';
+
+// ------------------
+// Internal Constants
+// ------------------
+
+const command = {
+  name: 'List Profiles',
+  cmd: 'ls',
+  summary: 'List profiles',
+  description: [
+    `Returns a list of stored profiles.${EOL}${EOL}Use`,
+    'the command options below to filter the list of profiles.',
+    `Filters are combined using a logical AND.${EOL}${EOL}The default`,
+    'profile command options are not applied when executing this',
+    'command.',
+  ].join(' '),
+  options: [
+    {
+      name: 'contains',
+      aliases: ['c'],
+      description: 'Only list profiles with the given text in the profile name',
+    },
+    {
+      name: 'account',
+      aliases: ['a'],
+      description: 'Only list profiles with the given account',
+    },
+    {
+      name: 'subscription',
+      aliases: ['s'],
+      description: 'Only list profiles with the given subscription',
+      allowMany: true,
+    },
+    {
+      name: 'boundary',
+      aliases: ['b'],
+      description: 'Only list profiles with the given boundary',
+    },
+    {
+      name: 'function',
+      aliases: ['f'],
+      description: 'Only list profiles with the given boundary',
+    },
+    {
+      name: 'format',
+      description: "The format to display the output: 'table', 'json'",
+      default: 'table',
+    },
+  ],
+};
+
+// ----------------
+// Exported Classes
+// ----------------
 
 export class ProfileListCommand extends Command {
   private constructor() {
-    super({
-      name: 'List Profiles',
-      cmd: 'ls',
-      summary: 'List profiles',
-      description: [
-        `Returns a list of stored profiles.${EOL}${EOL}Use`,
-        'the command options below to filter the list of profiles.',
-        `Filters are combined using a logical AND.${EOL}${EOL}The default`,
-        'profile command options are not applied when executing this',
-        'command.',
-      ].join(' '),
-      options: [
-        {
-          name: 'contains',
-          aliases: ['c'],
-          description: 'Only list profiles with the given text in the profile name',
-        },
-        {
-          name: 'account',
-          aliases: ['a'],
-          description: 'Only list profiles with the given account',
-        },
-        {
-          name: 'subscription',
-          aliases: ['s'],
-          description: 'Only list profiles with the given subscription',
-          allowMany: true,
-        },
-        {
-          name: 'boundary',
-          aliases: ['b'],
-          description: 'Only list profiles with the given boundary',
-        },
-        {
-          name: 'function',
-          aliases: ['f'],
-          description: 'Only list profiles with the given boundary',
-        },
-        {
-          name: 'format',
-          description: "The format to display the output: 'table', 'json'",
-          default: 'table',
-        },
-      ],
-    });
+    super(command);
   }
 
   public static async create() {
@@ -67,10 +77,6 @@ export class ProfileListCommand extends Command {
     const executeService = await ExecuteService.create(input);
 
     const profiles = await profileService.listProfiles();
-    if (!profiles) {
-      executeService.verbose();
-      return 1;
-    }
 
     const filtered = profiles.filter(profile => {
       if (contains !== undefined) {
@@ -107,21 +113,14 @@ export class ProfileListCommand extends Command {
     });
 
     if (!filtered.length) {
-      if (profiles.length) {
-        await executeService.result({
-          header: 'No Profiles',
-          message: 'There are no profiles that match the search criteria',
-        });
-      } else {
-        await executeService.result({
-          header: 'No Profiles',
-          message: 'There are currently no profiles stored in the Flexd CLI settings file',
-        });
-      }
-      return 0;
+      const message = profiles.length
+        ? 'There are no stored profiles that match the search criteria'
+        : 'There are no stored profiles';
+      await executeService.warning('No Profiles', message);
+    } else {
+      await profileService.displayProfiles(filtered);
     }
 
-    await profileService.displayProfiles(filtered);
     return 0;
   }
 }

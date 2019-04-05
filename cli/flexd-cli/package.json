@@ -27,7 +27,8 @@
     "@types/open": "^6.0.0",
     "open": "^6.0.0",
     "opn": "^6.0.0",
-    "@5qtrs/base64": "^0.0.1"
+    "@5qtrs/base64": "^0.0.1",
+    "@5qtrs/jwt": "^0.0.1"
   },
   "devDependencies": {
     "@types/opn": "^5.5.0"

@@ -142,10 +142,10 @@ export class UserAccessAddCommand extends Command {
       return 1;
     }
 
-    await executeService.result({
-      header: 'User Access Added',
-      message: Text.create("User access was successfully added to user '", Text.bold(user.id), "'"),
-    });
+    await executeService.result(
+      'User Access Added',
+      Text.create("User access was successfully added to user '", Text.bold(user.id), "'")
+    );
 
     await userService.displayUser(user);
 

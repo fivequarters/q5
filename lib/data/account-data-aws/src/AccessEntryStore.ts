@@ -5,7 +5,7 @@ import { notIn } from '@5qtrs/array';
 // Internal Constants
 // ------------------
 
-const tableName = 'access-entry';
+const tableName = 'access';
 const fromRoleIndex = 'byFromRole';
 const accountIndex = 'byAccountId';
 const defaultLimit = 25;

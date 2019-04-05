@@ -9,6 +9,7 @@
     { "path": "../../lib/server/file" },
     { "path": "../../lib/shared/clone" },
     { "path": "../../lib/shared/request" },
-    { "path": "../../lib/shared/base64" }
+    { "path": "../../lib/shared/base64" },
+    { "path": "../../lib/server/jwt" }
   ]
 }

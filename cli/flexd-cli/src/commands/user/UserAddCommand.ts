@@ -74,10 +74,7 @@ export class UserAddCommand extends Command {
       return 1;
     }
 
-    await executeService.result({
-      header: 'User Added',
-      message: Text.create("User '", Text.bold(user.id), "' was successfully added"),
-    });
+    await executeService.result('User Added', Text.create("User '", Text.bold(user.id), "' was successfully added"));
 
     await userService.displayUser(user);
 

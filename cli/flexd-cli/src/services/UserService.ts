@@ -2,9 +2,11 @@ import { Message, IExecuteInput, Confirm, MessageKind } from '@5qtrs/cli';
 import { ExecuteService } from './ExecuteService';
 import { ProfileService } from './ProfileService';
 import { Text } from '@5qtrs/text';
+import { decodeJwt } from '@5qtrs/jwt';
 import { request } from '@5qtrs/request';
 import { clone } from '@5qtrs/clone';
 import { toBase64 } from '@5qtrs/base64';
+import { StringLiteral } from '@babel/types';
 
 // ------------------
 // Internal Constants
@@ -51,12 +53,18 @@ export interface IFlexdUser extends IFlexdUpdateUser {
   id: string;
 }
 
-export interface IFlexdInitResolve {
-  displayName: string;
-  publicKey: string;
-  keyId: string;
+export interface IFlexdInit {
+  accountId: string;
+  agentId: string;
+  baseUrl: string;
   iss: string;
   sub: string;
+}
+
+export interface IFlexdInitResolve {
+  publicKey: string;
+  keyId: string;
+  jwt: string;
 }
 
 // ----------------
@@ -96,7 +104,7 @@ export class UserService {
       {
         method: 'GET',
         url: `${profile.baseUrl}/v1/account/${profile.account}/user`,
-        headers: { Authorization: `bearer ${profile.token}` },
+        headers: { Authorization: `bearer ${profile.accessToken}` },
       }
     );
 
@@ -119,7 +127,7 @@ export class UserService {
       {
         method: 'GET',
         url: `${profile.baseUrl}/v1/account/${profile.account}/user/${id}`,
-        headers: { Authorization: `bearer ${profile.token}` },
+        headers: { Authorization: `bearer ${profile.accessToken}` },
       }
     );
 
@@ -143,7 +151,7 @@ export class UserService {
         method: 'POST',
         url: `${profile.baseUrl}/v1/account/${profile.account}/user`,
         data: newUser,
-        headers: { Authorization: `bearer ${profile.token}` },
+        headers: { Authorization: `bearer ${profile.accessToken}` },
       }
     );
     return user;
@@ -162,11 +170,7 @@ export class UserService {
     });
     const confirmed = await confirmPrompt.prompt(this.input.io);
     if (!confirmed) {
-      await this.executeService.result({
-        header: 'Add User Canceled',
-        message: Text.create('Adding the new user was canceled.'),
-        kind: MessageKind.warning,
-      });
+      await this.executeService.warning('Add User Canceled', Text.create('Adding the new user was canceled.'));
     }
 
     return confirmed;
@@ -188,7 +192,7 @@ export class UserService {
       {
         method: 'DELETE',
         url: `${profile.baseUrl}/v1/account/${profile.account}/user/${id}`,
-        headers: { Authorization: `bearer ${profile.token}` },
+        headers: { Authorization: `bearer ${profile.accessToken}` },
       }
     );
 
@@ -208,11 +212,10 @@ export class UserService {
     });
     const confirmed = await confirmPrompt.prompt(this.input.io);
     if (!confirmed) {
-      await this.executeService.result({
-        header: 'Remove User Canceled',
-        message: Text.create("Removing user '", Text.bold(id), "' was canceled."),
-        kind: MessageKind.warning,
-      });
+      await this.executeService.warning(
+        'Remove User Canceled',
+        Text.create("Removing user '", Text.bold(id), "' was canceled.")
+      );
     }
     return confirmed;
   }
@@ -236,7 +239,7 @@ export class UserService {
         method: 'PUT',
         url: `${profile.baseUrl}/v1/account/${profile.account}/user/${user.id}`,
         data: userSansId,
-        headers: { Authorization: `bearer ${profile.token}` },
+        headers: { Authorization: `bearer ${profile.accessToken}` },
       }
     );
 
@@ -249,7 +252,7 @@ export class UserService {
       return undefined;
     }
 
-    const initEntry = await this.executeService.executeRequest(
+    const initToken = await this.executeService.executeRequest(
       {
         header: 'Generate Token',
         message: Text.create("Generating an init token for user '", Text.bold(id), "'..."),
@@ -259,13 +262,55 @@ export class UserService {
       {
         method: 'POST',
         url: `${profile.baseUrl}/v1/account/${profile.account}/user/${id}/init`,
-        headers: { Authorization: `bearer ${profile.token}` },
+        headers: { Authorization: `bearer ${profile.accessToken}` },
       }
     );
 
-    const initId = initEntry.initId;
-    const token = toBase64([profile.baseUrl, profile.account, id, initId].join('::'));
-    return token;
+    return initToken;
+  }
+
+  public async decodeInitToken(token: string): Promise<IFlexdInit> {
+    let decoded;
+    try {
+      decoded = await decodeJwt(token);
+    } catch (error) {
+      this.executeService.error('Init Error', 'The init token is not a valid Json Web Token (JWT)');
+      throw new Error('Init Error');
+    }
+
+    const missingValues = [];
+    if (!decoded.accountId) {
+      missingValues.push('accountId');
+    }
+    if (!decoded.agentId) {
+      missingValues.push('agentId');
+    }
+    if (!decoded.baseUrl) {
+      missingValues.push('baseUrl');
+    }
+    if (!decoded.iss) {
+      missingValues.push('iss');
+    }
+    if (!decoded.sub) {
+      missingValues.push('sub');
+    }
+
+    if (missingValues.length) {
+      const message = Text.create(
+        'The init token is missing required properties: ',
+        Text.join(missingValues.map(value => Text.bold(value)), ', ')
+      );
+      this.executeService.error('Init Error', message);
+      throw new Error('Init Error');
+    }
+
+    return {
+      accountId: decoded.accountId,
+      agentId: decoded.agentId,
+      baseUrl: decoded.baseUrl,
+      iss: decoded.iss,
+      sub: decoded.sub,
+    };
   }
 
   public async confirmInitUser(user: IFlexdUser): Promise<boolean> {
@@ -281,11 +326,10 @@ export class UserService {
     });
     const confirmed = await confirmPrompt.prompt(this.input.io);
     if (!confirmed) {
-      await this.executeService.result({
-        header: 'Init Token Canceled',
-        message: Text.create("Generating an init token for user '", Text.bold(user.id), "' was canceled."),
-        kind: MessageKind.warning,
-      });
+      await this.executeService.warning(
+        'Init Token Canceled',
+        Text.create("Generating an init token for user '", Text.bold(user.id), "' was canceled.")
+      );
     }
     return confirmed;
   }
@@ -293,13 +337,9 @@ export class UserService {
   public async resolveInitId(
     accountId: string,
     agentId: string,
-    initId: string,
     initResolve: IFlexdInitResolve
   ): Promise<IFlexdUser | undefined> {
-    const profile = await this.profileService.getExecutionProfile(['account']);
-    if (!profile) {
-      return undefined;
-    }
+    const profile = await this.profileService.getExecutionProfile(['account'], { account: accountId });
 
     const user = await this.executeService.executeRequest(
       {
@@ -309,8 +349,8 @@ export class UserService {
         errorMessage: Text.create("Unable to verify the init token for user '", Text.bold(agentId), "'"),
       },
       {
-        method: 'PUT',
-        url: `${profile.baseUrl}/v1/account/${accountId}/user/${agentId}/init/${initId}`,
+        method: 'POST',
+        url: `${profile.baseUrl}/v1/account/${accountId}/init`,
         data: initResolve,
       }
     );
@@ -331,11 +371,10 @@ export class UserService {
     });
     const confirmed = await confirmPrompt.prompt(this.input.io);
     if (!confirmed) {
-      await this.executeService.result({
-        header: 'Add User Access Canceled',
-        message: Text.create("Adding access to user '", Text.bold(user.id), "' was canceled."),
-        kind: MessageKind.warning,
-      });
+      await this.executeService.warning(
+        'Add User Access Canceled',
+        Text.create("Adding access to user '", Text.bold(user.id), "' was canceled.")
+      );
     }
     return confirmed;
   }
@@ -353,11 +392,10 @@ export class UserService {
     });
     const confirmed = await confirmPrompt.prompt(this.input.io);
     if (!confirmed) {
-      await this.executeService.result({
-        header: 'Add User Identity Canceled',
-        message: Text.create("Adding the identity to user '", Text.bold(user.id), "' was canceled."),
-        kind: MessageKind.warning,
-      });
+      await this.executeService.warning(
+        'Add User Identity Canceled',
+        Text.create("Adding the identity to user '", Text.bold(user.id), "' was canceled.")
+      );
     }
     return confirmed;
   }
@@ -393,17 +431,16 @@ export class UserService {
       await this.input.io.writeLine(JSON.stringify(initToken, null, 2));
       return;
     }
-    await this.executeService.result({
-      header: 'Init Token',
-      message: Text.create(
+    await this.executeService.result(
+      'Init Token',
+      Text.create(
         'Provide the following init token to the user. ',
         'It is a single use token that will expire in 8 hours.',
         Text.eol(),
         Text.eol(),
         'Have the user execute the following command:'
-      ),
-      kind: MessageKind.result,
-    });
+      )
+    );
     console.log(`flx init ${initToken}`);
     console.log();
   }

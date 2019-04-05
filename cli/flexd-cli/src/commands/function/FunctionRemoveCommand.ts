@@ -60,7 +60,7 @@ export class FunctionRemoveCommand extends Command {
         profile.boundary
       }/function/${profile.function}`,
       headers: {
-        Authorization: `Bearer ${profile.token}`,
+        Authorization: `Bearer ${profile.accessToken}`,
       },
       validStatus: status => status === 200,
     });

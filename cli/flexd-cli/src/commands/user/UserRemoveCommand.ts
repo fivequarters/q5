@@ -60,10 +60,7 @@ export class UserRemoveCommand extends Command {
       return 1;
     }
 
-    await executeService.result({
-      header: 'User Removed',
-      message: Text.create("The '", Text.bold(id), "' user was successfully remove'"),
-    });
+    await executeService.result('User Removed', Text.create("The '", Text.bold(id), "' user was successfully remove'"));
 
     return 0;
   }

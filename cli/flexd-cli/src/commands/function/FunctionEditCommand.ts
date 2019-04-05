@@ -133,7 +133,7 @@ function getEditorHtml(port: number, profile: any): string {
         flexd.createEditor(document.getElementById('editor'), '${profile.boundary}', '${profile.function}', {
             subscriptionId: '${profile.subscription}',
             baseUrl: '${profile.baseUrl}',
-            accessToken: '${profile.token}',
+            accessToken: '${profile.accessToken}',
         }, {
             template: {},
             // editor: {},

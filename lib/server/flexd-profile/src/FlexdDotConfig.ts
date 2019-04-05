@@ -76,7 +76,12 @@ export class FlexdDotConfig extends DotConfig {
   }
 
   public async publicKeyExists(name: string, kid: string): Promise<boolean> {
-    const publicKey = await this.getPublicKey(name, kid);
+    let publicKey;
+    try {
+      publicKey = await this.getPublicKey(name, kid);
+    } catch (error) {
+      // do nothing
+    }
     return publicKey !== undefined;
   }
 
@@ -91,7 +96,12 @@ export class FlexdDotConfig extends DotConfig {
   }
 
   public async privateKeyExists(name: string, kid: string): Promise<boolean> {
-    const privateKey = await this.getPrivateKey(name, kid);
+    let privateKey;
+    try {
+      privateKey = await this.getPrivateKey(name, kid);
+    } catch (error) {
+      // do nothing
+    }
     return privateKey !== undefined;
   }
 
@@ -117,16 +127,16 @@ export class FlexdDotConfig extends DotConfig {
 
   public async getCachedCreds(name: string, kid: string): Promise<any> {
     const path = await this.getCachedCredsPath(name, kid);
-    return this.readCachedCredsFile(path, name);
+    return this.readJson(path);
   }
 
   public async setCachedCreds(name: string, kid: string, creds: any) {
     const path = await this.getCachedCredsPath(name, kid);
-    this.writeCachedCredsFile(path, creds, name);
+    this.writeJson(path, creds);
   }
 
   public async removeCachedCreds(name: string, kid: string): Promise<void> {
-    const path = await this.getCachedCredsPath(name, kid);
+    const path = await join(credsCachePath, name, kid);
     this.removeCachedCredsDirectory(path, name);
   }
 
@@ -136,7 +146,6 @@ export class FlexdDotConfig extends DotConfig {
       settings = settings || {};
       settings.profiles = settings.profiles || {};
       settings.defaults = settings.defaults || {};
-      settings.keyPairs = settings.keyPairs || {};
       return settings;
     } catch (error) {
       throw FlexdProfileError.readFileError('settings', error);
@@ -213,14 +222,6 @@ export class FlexdDotConfig extends DotConfig {
 
   private async getCachedCredsPath(name: string, kid: string): Promise<string> {
     return join(credsCachePath, name, kid, credsFileName);
-  }
-
-  private async readCachedCredsFile(path: string, name: string): Promise<string> {
-    return this.readBinaryFile(path, `'${name}' cached credentials`);
-  }
-
-  private async writeCachedCredsFile(path: string, key: string, name: string): Promise<void> {
-    return this.writeBinaryFile(path, key, `'${name}' cached credentials`);
   }
 
   private async removeCachedCredsDirectory(path: string, name: string): Promise<void> {

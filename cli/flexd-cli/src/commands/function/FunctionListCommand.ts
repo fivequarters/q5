@@ -67,7 +67,7 @@ export class FunctionListCommand extends Command {
                 }/function`
               : `${profile.baseUrl}/v1/account/${profile.account}/subscription/${profile.subscription}/function`,
             headers: {
-              Authorization: `Bearer ${profile.token}`,
+              Authorization: `Bearer ${profile.accessToken}`,
             },
             query,
             validStatus: status => status === 200,

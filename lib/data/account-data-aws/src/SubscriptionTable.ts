@@ -21,9 +21,9 @@ function generateSubscriptionId() {
   return `sub-${random({ lengthInBytes: subscriptionIdLength / 2 })}`;
 }
 
-function toDynamoKey(accountId: string, id: string) {
+function toDynamoKey(accountId: string, subscriptionId: string) {
   return {
-    id: { S: id },
+    subscriptionId: { S: subscriptionId },
     accountId: { S: accountId },
   };
 }
@@ -43,7 +43,7 @@ function mergeFromDynamoItem(subscription: ISubscription, item: any) {
 
 function fromDynamoItem(item: any): ISubscription {
   const subscription: ISubscription = {
-    id: item.id.S,
+    id: item.subscriptionId.S,
     displayName: item.displayName.S,
     archived: item.archived.BOOL !== false ? true : undefined,
   };
@@ -109,8 +109,8 @@ export class SubscriptionTable {
   public async setup() {
     return this.dynamo.ensureTable({
       name: tableName,
-      attributes: { id: 'S' },
-      keys: ['id'],
+      attributes: { accountId: 'S', subscriptionId: 'S' },
+      keys: ['accountId', 'subscriptionId'],
     });
   }
 

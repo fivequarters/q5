@@ -243,7 +243,7 @@ export class FunctionDeployCommand extends Command {
               profile.boundary
             }/function/${profile.function}`,
             headers: {
-              Authorization: `Bearer ${profile.token}`,
+              Authorization: `Bearer ${profile.accessToken}`,
             },
             data: flexd,
             validStatus: status => status === 200 || status === 201 || status === 204 || status === 400,
@@ -255,7 +255,7 @@ export class FunctionDeployCommand extends Command {
                 profile.boundary
               }/function/${profile.function}/build/${response.data.id}`,
               headers: {
-                Authorization: `Bearer ${profile.token}`,
+                Authorization: `Bearer ${profile.accessToken}`,
               },
               validStatus: status => status === 200 || status === 201 || status === 204 || status === 410,
             });

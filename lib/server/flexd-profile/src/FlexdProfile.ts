@@ -76,7 +76,10 @@ export interface IFlexdProfileSettings {
 }
 
 export interface IFlexdNewProfile extends IFlexdProfileSettings {
+  agent: string;
   baseUrl: string;
+  issuer: string;
+  subject: string;
 }
 
 export interface IFlexdProfile extends IFlexdNewProfile {
@@ -85,8 +88,6 @@ export interface IFlexdProfile extends IFlexdNewProfile {
   updated: string;
   keyPair: string;
   kid: string;
-  issuer: string;
-  subject: string;
 }
 
 export interface IFlexdExecutionProfile extends IFlexdProfileSettings {
@@ -178,8 +179,6 @@ export class FlexdProfile {
   }
 
   public async addProfile(name: string, toAdd: IFlexdNewProfile): Promise<IFlexdProfile> {
-    await this.getProfileOrThrow(name);
-
     const { publicKey, privateKey } = await createKeyPair();
     const kid = await this.generateKid(name);
 
@@ -196,8 +195,8 @@ export class FlexdProfile {
       boundary: toAdd.boundary || undefined,
       function: toAdd.function || undefined,
       baseUrl: nomarlizeBaseUrl(toAdd.baseUrl),
-      issuer: generateIssuer(toAdd.baseUrl),
-      subject: generateSubject(),
+      issuer: toAdd.issuer,
+      subject: toAdd.subject,
       keyPair: name,
       kid,
     };
@@ -332,7 +331,7 @@ export class FlexdProfile {
 
     const accessToken = await signJwt({}, privateKey, options);
     const cachedCredsEntry = { accessToken, has: getKeyHash(profile), expires: expires.toLocaleString() };
-    await this.dotConfig.setCachedCreds(name, profile.kid, cachedCredsEntry);
+    await this.dotConfig.setCachedCreds(profile.keyPair, profile.kid, cachedCredsEntry);
 
     return accessToken;
   }

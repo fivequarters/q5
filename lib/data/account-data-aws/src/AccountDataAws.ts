@@ -189,6 +189,7 @@ export class AccountDataAws {
     await Promise.all([
       this.stores.accessEntry.setup(),
       this.stores.account.setup(),
+      this.stores.subscription.setup(),
       this.stores.client.setup(),
       this.stores.identity.setup(),
       this.stores.issuer.setup(),

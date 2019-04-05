@@ -76,10 +76,10 @@ export class UserIdentityAddCommand extends Command {
       return 1;
     }
 
-    await executeService.result({
-      header: 'User Identity Added',
-      message: Text.create("User identity was successfully added to user '", Text.bold(user.id), "'"),
-    });
+    await executeService.result(
+      'User Identity Added',
+      Text.create("User identity was successfully added to user '", Text.bold(user.id), "'")
+    );
 
     await userService.displayUser(user);
 
