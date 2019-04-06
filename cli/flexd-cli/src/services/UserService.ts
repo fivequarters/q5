@@ -9,6 +9,38 @@ import { decodeJwt } from '@5qtrs/jwt';
 // ------------------
 
 const notSet = Text.dim(Text.italic('<not set>'));
+const resourcePathSegments = ['/subscription/', '/boundary/', '/function/'];
+
+// ------------------
+// Internal Functions
+// ------------------
+
+function trimTrailingSlash(segment: string) {
+  return segment[segment.length - 1] === '/' ? segment.substring(0, segment.length - 1) : segment;
+}
+
+function formatResourcePath(resource: string) {
+  const segments: string[] = [];
+
+  for (const segment of resourcePathSegments) {
+    const index = resource.indexOf(segment);
+    const nextSegment = index === -1 ? resource : resource.substring(0, index);
+    segments.push(trimTrailingSlash(nextSegment));
+    if (index !== -1) {
+      resource = resource.substring(index);
+    } else {
+      break;
+    }
+  }
+
+  const resourceText = [Text.dim('  resource: '), segments.shift() as string];
+  for (const segment of segments) {
+    resourceText.push(Text.eol());
+    resourceText.push('            ');
+    resourceText.push(segment);
+  }
+  return Text.create(resourceText);
+}
 
 // -------------------
 // Exported Interfaces
@@ -32,6 +64,7 @@ export interface INewFlexdUser {
 
 export interface IAddUserAccess {
   action: string;
+  resource?: string;
   account?: string;
   subscription?: string;
   boundary?: string;
@@ -251,7 +284,7 @@ export class UserService {
 
     await this.executeService.result(
       'Access Added',
-      Text.create("The access was successfully added to user '", Text.bold(id), "'")
+      Text.create("The access was successfully added to the user '", Text.bold(id), "'")
     );
 
     return updatedUser;
@@ -588,7 +621,7 @@ export class UserService {
   }
 
   private async writeUser(user: IFlexdUser) {
-    const details = [Text.dim('Id: '), user.id || ''];
+    const details = [Text.dim('Id:    '), user.id || ''];
 
     if (user.primaryEmail) {
       details.push(Text.eol());
@@ -608,9 +641,8 @@ export class UserService {
       details.push(...[Text.eol(), Text.eol()]);
       details.push(Text.italic('Allow: '));
       for (const access of user.access.allow) {
-        details.push(
-          ...[Text.eol(), Text.dim('• action: '), access.action, Text.eol(), Text.dim('  resource: '), access.resource]
-        );
+        const resource = formatResourcePath(access.resource);
+        details.push(...[Text.eol(), Text.dim('• action:   '), access.action, Text.eol(), resource]);
       }
     }
 
@@ -688,6 +720,10 @@ export class UserService {
       { name: Text.dim('•'), value: Text.dim('•') },
       { name: 'Action', value: access.action },
     ];
+
+    if (access.resource) {
+      details.push({ name: 'Resource', value: access.resource });
+    }
 
     if (access.account) {
       details.push({ name: 'Account', value: access.account });
