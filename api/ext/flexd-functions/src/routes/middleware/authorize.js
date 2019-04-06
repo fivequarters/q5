@@ -92,7 +92,7 @@ module.exports = function authorize_factory(options) {
         req.isRoot = true;
         return writeAudit(
           {
-            accountId,
+            accountId: accountId || 'acc-0000000000000000',
             issuer: 'flexd:root',
             subject: 'flexd:root',
             action,
