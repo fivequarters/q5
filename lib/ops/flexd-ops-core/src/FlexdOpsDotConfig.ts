@@ -5,7 +5,7 @@ import { DotConfig } from '@5qtrs/dot-config';
 // Internal Constants
 // ------------------
 
-const dotFolderName = 'flexd-ops';
+const dotFolderName = '.flexd-ops';
 const settingsPath = 'settings.json';
 const credsCachePath = join('cache', 'creds', 'aws.json');
 
