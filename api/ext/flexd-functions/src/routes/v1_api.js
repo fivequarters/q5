@@ -364,7 +364,7 @@ router.get(
   '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/log',
   cors(corsManagementOptions),
   authorize({
-    operation: 'boundary:get-log',
+    operation: 'function:get-log',
     getToken: req => req.query && req.query.token,
   }),
   validate_schema({

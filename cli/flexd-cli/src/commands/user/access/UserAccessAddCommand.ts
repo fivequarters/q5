@@ -1,5 +1,6 @@
 import { Command, ArgType, IExecuteInput, MessageKind } from '@5qtrs/cli';
 import { ExecuteService, UserService, ProfileService } from '../../../services';
+import { Text } from '@5qtrs/text';
 
 // ------------------
 // Internal Constants
@@ -73,66 +74,41 @@ export class UserAccessAddCommand extends Command {
     const executeService = await ExecuteService.create(input);
     const profileService = await ProfileService.create(input);
 
-    // const allowedActions = ['account:*', 'subscription:*', 'boundary:*', 'function:*'];
-    // if (allowedActions.indexOf(action) === -1) {
-    //   const text = ["The '", Text.bold('action'), "' options must be one of the following values:"];
-    //   text.push(...allowedActions.map(act => Text.create(" '", Text.bold(act), "'")));
-    //   await executeService.result({
-    //     header: 'Invalid Options',
-    //     message: Text.create(text),
-    //     kind: MessageKind.error,
-    //   });
-    //   return 1;
-    // }
-
-    // const expectedOptions = ['account'];
-    // if (action === 'subscription:*') {
-    //   expectedOptions.push('subscription');
-    // }
-    // if (action === 'boundary:*') {
-    //   expectedOptions.push('subscription');
-    //   expectedOptions.push('boundary');
-    // }
-    // if (action === 'function:*') {
-    //   expectedOptions.push('subscription');
-    //   expectedOptions.push('boundary');
-    //   expectedOptions.push('function');
-    // }
-
-    const profile = await profileService.getExecutionProfile();
-    if (!profile) {
+    const allowedActions = ['user:*', 'client:*', 'issuer:*', 'function:*'];
+    if (allowedActions.indexOf(action) === -1) {
+      const text = ["The '", Text.bold('action'), "' options must be one of the following values:"];
+      text.push(...allowedActions.map(act => Text.create(" '", Text.bold(act), "'")));
+      await executeService.error('Invalid Options', Text.create(text));
       return 1;
     }
+
+    const profile = await profileService.getExecutionProfile(['account']);
 
     const user = await userService.getUser(id);
-    if (!user) {
-      executeService.verbose();
-      return 1;
-    }
 
     const newAccess = {
       action,
       account: profile.account,
-      subscription: profile.subscription,
-      boundary: profile.boundary,
-      function: profile.function,
+      subscription: action === 'function:*' ? profile.subscription : undefined,
+      boundary: action === 'function:*' ? profile.boundary : undefined,
+      function: action === 'function:*' ? profile.function : undefined,
     };
 
     if (confirm) {
       await userService.confirmAddUserAccess(user, newAccess);
     }
 
-    const resourcePath = [];
-    if (newAccess.subscription) {
-      resourcePath.push(`/subscription/${newAccess.subscription}`);
-      if (newAccess.boundary) {
-        resourcePath.push(`/boundary/${newAccess.boundary}`);
-        if (newAccess.function) {
-          resourcePath.push(`/function/${newAccess.function}`);
+    const resourcePath = [`/account/${newAccess.account}`];
+    if (action === 'function:*') {
+      if (newAccess.subscription) {
+        resourcePath.push(`/subscription/${newAccess.subscription}`);
+        if (newAccess.boundary) {
+          resourcePath.push(`/boundary/${newAccess.boundary}`);
+          if (newAccess.function) {
+            resourcePath.push(`/function/${newAccess.function}`);
+          }
         }
       }
-    } else {
-      resourcePath.push(`/account/${newAccess.account}`);
     }
 
     const update = { access: { allow: [{ action, resource: resourcePath.join('') }] } };
