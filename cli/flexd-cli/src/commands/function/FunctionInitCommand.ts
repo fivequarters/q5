@@ -46,6 +46,8 @@ export class FunctionInitCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
+    await input.io.writeLine();
+
     const executeService = await ExecuteService.create(input);
 
     let destDirectory = Path.join(process.cwd(), input.arguments[0] as string);

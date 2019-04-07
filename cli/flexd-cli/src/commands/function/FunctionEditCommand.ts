@@ -1,7 +1,7 @@
 import { Command, IExecuteInput, Message } from '@5qtrs/cli';
 import { ProfileService, ExecuteService, tryGetFlexd, getProfileSettingsFromFlexd } from '../../services';
 import * as http from 'http';
-const open = require('open');
+import open from 'open';
 import { Text } from '@5qtrs/text';
 
 export class FunctionEditCommand extends Command {
@@ -29,6 +29,8 @@ not exist, it is created.`,
   attempts: number = 0;
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
+    await input.io.writeLine();
+
     let profileService = await ProfileService.create(input);
     const executeService = await ExecuteService.create(input);
     let profile = await profileService.getExecutionProfile(
@@ -36,7 +38,7 @@ not exist, it is created.`,
       getProfileSettingsFromFlexd(tryGetFlexd())
     );
 
-    const result = await executeService.execute(
+    await executeService.execute(
       {
         header: 'Edit Function',
         message: Text.create(

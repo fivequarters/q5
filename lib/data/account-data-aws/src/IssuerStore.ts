@@ -164,9 +164,8 @@ export class IssuerStore {
       expressionNames: { '#accountId': 'accountId', '#identityId': 'identityId' },
       condition: 'attribute_not_exists(#accountId) and attribute_not_exists(#identityId)',
     };
-    console.log(issuer);
+
     const item = toDynamoItem(accountId, issuer);
-    console.log(item);
     await this.dynamo.putItem(tableName, item, options);
     return issuer;
   }

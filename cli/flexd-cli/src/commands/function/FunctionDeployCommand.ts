@@ -80,6 +80,8 @@ export class FunctionDeployCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
+    await input.io.writeLine();
+
     let profileService = await ProfileService.create(input);
     const executeService = await ExecuteService.create(input);
     let sourceDirectory = Path.join(process.cwd(), (input.arguments[0] as string) || '');

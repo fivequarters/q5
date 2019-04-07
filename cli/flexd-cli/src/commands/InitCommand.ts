@@ -1,6 +1,5 @@
-import { Command, IExecuteInput, MessageKind } from '@5qtrs/cli';
-import { ExecuteService, ProfileService, UserService } from '../services';
-import { fromBase64 } from '@5qtrs/base64';
+import { Command, IExecuteInput } from '@5qtrs/cli';
+import { ExecuteService, ProfileService, UserService, ClientService } from '../services';
 import { Text } from '@5qtrs/text';
 
 // ------------------
@@ -49,6 +48,7 @@ export class InitCommand extends Command {
     const executeService = await ExecuteService.create(input);
     const profileService = await ProfileService.create(input);
     const userService = await UserService.create(input);
+    const clientService = await ClientService.create(input);
 
     const decodedToken = await userService.decodeInitToken(token);
     const { accountId, subscriptionId, boundaryId, functionId, agentId, baseUrl, iss, sub } = decodedToken;
@@ -89,17 +89,25 @@ export class InitCommand extends Command {
       jwt: token,
     };
 
-    const user = await userService.resolveInitId(accountId, agentId, initResolve);
-    if (!user) {
-      return 1;
+    if (agentId.indexOf('usr') === 0) {
+      const user = await userService.resolveInit(accountId, agentId, initResolve);
+
+      executeService.result(
+        'Initialized',
+        Text.create("The CLI has been successfully initalized with profile '", Text.bold(profileName), "'")
+      );
+
+      await userService.displayUser(user);
+    } else {
+      const client = await clientService.resolveInit(accountId, agentId, initResolve);
+
+      executeService.result(
+        'Initialized',
+        Text.create("The CLI has been successfully initalized with profile '", Text.bold(profileName), "'")
+      );
+
+      await clientService.displayClient(client);
     }
-
-    executeService.result(
-      'Initialized',
-      Text.create("The CLI has been successfully initalized with profile '", Text.bold(profileName), "'")
-    );
-
-    await userService.displayUser(user);
 
     return 0;
   }

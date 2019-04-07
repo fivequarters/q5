@@ -1,5 +1,13 @@
 import { spawn } from '@5qtrs/child-process';
-import { moveDirectory, readDirectory, removeDirectory, copyDirectory, readFile, writeFile } from '@5qtrs/file';
+import {
+  moveDirectory,
+  readDirectory,
+  removeDirectory,
+  copyDirectory,
+  readFile,
+  writeFile,
+  copyFile,
+} from '@5qtrs/file';
 import { IndentTextStream } from '@5qtrs/stream';
 import { join, relative } from 'path';
 import { Readable, Writable } from 'stream';
@@ -144,16 +152,20 @@ export default class Workspace {
 
     const dependencies = await this.GetAllDescendantDependencies();
     const npmModules: { [index: string]: string } = {};
+    const bundledDependencies: string[] = [];
     for (const dependencyName in dependencies) {
       if (dependencyName.startsWith(`@${org}/`)) {
         const dependency = await this.project.GetWorkspace(dependencyName);
         if (dependency) {
+          bundledDependencies.push(dependencyName);
           const dependencyPath = await dependency.GetFullPath();
           const dependencyLibc = join(dependencyPath, 'libc');
           const nodeModules = join(packagePath, 'node_modules', dependencyName);
           await copyDirectory(dependencyLibc, nodeModules, { ensurePath: true, recursive: true });
+          const packageJsonDependencyPath = join(dependencyPath, 'package.json');
+          await copyFile(packageJsonDependencyPath, join(nodeModules, 'package.json'));
         }
-      } else {
+      } else if (!dependencyName.startsWith(`@types/`)) {
         npmModules[dependencyName] = dependencies[dependencyName];
       }
     }
@@ -168,11 +180,17 @@ export default class Workspace {
     }
 
     packageJson.dependencies = npmModules;
+    packageJson.bundledDependencies = bundledDependencies;
     packageJson.devDependencies = undefined;
     packageJson.scripts = undefined;
+    packageJson.name = packageJson.name.replace(`@${org}/`, '');
 
     const newPackageJsonPath = join(packagePath, 'package.json');
     await writeFile(newPackageJsonPath, JSON.stringify(packageJson, null, 2));
+
+    const licenseFile = join(location, 'LICENSE');
+    const copylicenseFile = join(packagePath, 'LICENSE');
+    await copyFile(licenseFile, copylicenseFile, { errorIfNotExist: false });
   }
 
   public async RemoveDependency(fullName: string): Promise<void> {

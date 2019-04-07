@@ -11,13 +11,7 @@ const command: ICommand = {
   name: 'User Access',
   cmd: 'access',
   summary: 'Manage user access',
-  description: [
-    `Add or remove access for a user.${EOL}${EOL}A`,
-    'user may have access to an account, subscriptions within an account,',
-    'boundaries within a subscription, or a function within a boundary.',
-    `${EOL}${EOL}A profile must have 'manage' access to an account or a subscription`,
-    'in that account in order to add or remove access for a user.',
-  ].join(' '),
+  description: 'Add or remove access from a user.',
 };
 
 // ------------------

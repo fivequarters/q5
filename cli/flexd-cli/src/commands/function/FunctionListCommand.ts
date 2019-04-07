@@ -1,6 +1,6 @@
 import { Command, IExecuteInput, ArgType, Message } from '@5qtrs/cli';
 import { request } from '@5qtrs/request';
-import { ProfileService, ExecuteService } from '../../services';
+import { ProfileService, ExecuteService, FunctionService } from '../../services';
 import { Text } from '@5qtrs/text';
 import { Table } from '@5qtrs/table';
 
@@ -29,8 +29,11 @@ export class FunctionListCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    let profileService = await ProfileService.create(input);
+    await input.io.writeLine();
+
+    const profileService = await ProfileService.create(input);
     const executeService = await ExecuteService.create(input);
+    const functionService = await FunctionService.create(input);
     let profile = await profileService.getExecutionProfile(['subscription']);
 
     const result = await executeService.execute(
@@ -88,27 +91,10 @@ export class FunctionListCommand extends Command {
     if (result === undefined) {
       executeService.verbose();
       return 1;
-    } else if (result.length === 0) {
-      const message = await Message.create({
-        message: 'No matching functions found',
-      });
-      await message.write(input.io);
-    } else {
-      const table = await Table.create({
-        width: input.io.outputWidth,
-        count: 2,
-        gutter: Text.dim('  │  '),
-        columns: [{ flexShrink: 0, flexGrow: 0 }, { flexGrow: 1 }],
-      });
-
-      table.addRow([Text.bold('Boundary'), Text.bold('Function')]);
-
-      for (const entry of result) {
-        table.addRow(entry.split('/'));
-      }
-
-      input.io.writeLine(table.toText());
     }
+
+    await functionService.displayFunctions(result);
+
     return 0;
   }
 }

@@ -308,11 +308,11 @@ function userInit() {
   };
 }
 
-function userInitResolve() {
+function initResolve() {
   return (req, res) => {
     getDataAccess().then(dataAccess => {
       const initResolve = req.body;
-      dataAccess.initResolveUser(initResolve).then(user => {
+      dataAccess.initResolve(initResolve).then(user => {
         if (!user) {
           return res.status(404).json({ message: 'Not Found' });
         }
@@ -420,6 +420,25 @@ function clientDelete() {
   };
 }
 
+function clientInit() {
+  return (req, res) => {
+    const accountId = req.params.accountId;
+    const clientId = req.params.clientId;
+    getDataAccess().then(dataAccess => {
+      const initEntry = req.body;
+      initEntry.baseUrl = process.env.API_SERVER;
+      initEntry.accountId = accountId;
+      initEntry.agentId = clientId;
+      dataAccess.initClient(initEntry).then(jwt => {
+        if (!jwt) {
+          return res.status(404).json({ message: 'Not Found' });
+        }
+        res.json(jwt);
+      });
+    });
+  };
+}
+
 function normalizeAccessEntry(accessEntry) {
   accessEntry.resource = normalizeAuthResource(accessEntry.resource);
   return accessEntry;
@@ -488,10 +507,11 @@ module.exports = {
   userPut,
   userDelete,
   userInit,
-  userInitResolve,
   clientPost,
   clientList,
   clientGet,
   clientPut,
   clientDelete,
+  clientInit,
+  initResolve,
 };

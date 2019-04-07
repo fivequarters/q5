@@ -82,7 +82,7 @@ router.get(
   '/account/:accountId/issuer',
   cors(corsManagementOptions),
   authorize({
-    operation: 'account:list-issuer',
+    operation: 'issuer:list',
   }),
   validate_schema({
     query: require('./schemas/api_query'),
@@ -264,7 +264,7 @@ router.post(
     params: require('./schemas/api_params'),
     body: require('./schemas/initResolve'),
   }),
-  account.userInitResolve()
+  account.initResolve()
 );
 
 // Clients
@@ -331,6 +331,20 @@ router.delete(
     params: require('./schemas/api_params'),
   }),
   account.clientDelete()
+);
+
+router.post(
+  '/account/:accountId/client/:clientId/init',
+  cors(corsManagementOptions),
+  authorize({
+    operation: 'client:init',
+  }),
+  express.json(),
+  validate_schema({
+    params: require('./schemas/api_params'),
+    body: require('./schemas/init'),
+  }),
+  account.clientInit()
 );
 
 // Boundaries
