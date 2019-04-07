@@ -37,12 +37,13 @@ export function tryGetFlexd(srcDir?: string) {
   return flexd;
 }
 
-export function getProfileSettingsFromFlexd(flexd: any): IFlexdProfileSettings {
-  let result: IFlexdProfileSettings = { account: flexd.accountId as string };
+export function getProfileSettingsFromFlexd(flexd: any): IFlexdProfileSettings | undefined {
   if (flexd) {
+    let result: IFlexdProfileSettings = { account: flexd.accountId as string };
     if (flexd.subscriptionId) result.subscription = flexd.subscriptionId;
     if (flexd.boundaryId) result.boundary = flexd.boundaryId;
     if (flexd.id) result.function = flexd.id;
+    return result;
   }
-  return result;
+  return undefined;
 }
