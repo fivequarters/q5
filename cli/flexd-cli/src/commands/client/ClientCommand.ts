@@ -1,4 +1,3 @@
-import { EOL } from 'os';
 import { Command, ICommand } from '@5qtrs/cli';
 import { ClientIdentityCommand } from './identity/ClientIdentityCommand';
 import { ClientAccessCommand } from './access/ClientAccessCommand';
@@ -7,7 +6,7 @@ import { ClientAddCommand } from './ClientAddCommand';
 import { ClientRemoveCommand } from './ClientRemoveCommand';
 import { ClientUpdateCommand } from './ClientUpdateCommand';
 import { ClientGetCommand } from './ClientGetCommand';
-import { ClientCliCommand } from './ClientCliCommand';
+import { ClientInitCommand } from './ClientInitCommand';
 
 // ------------------
 // Internal Constants
@@ -17,11 +16,7 @@ const command: ICommand = {
   name: 'Client',
   cmd: 'client',
   summary: 'Manage clients',
-  description: [
-    `Retrieves and manages clients and their identities and access.${EOL}${EOL}The ability`,
-    'to retrieve and manage a client depends on the access of the profile used. A profile',
-    "must have 'manage' access to an account in order to retrieve or manage a client",
-  ].join(' '),
+  description: 'Retrieves and manages clients and their identities and access.',
   options: [
     {
       name: 'profile',
@@ -36,7 +31,6 @@ const command: ICommand = {
       defaultText: 'profile value',
     },
   ],
-  modes: ['account'],
 };
 
 // ------------------
@@ -52,7 +46,7 @@ async function getSubCommands() {
   subCommands.push(await ClientRemoveCommand.create());
   subCommands.push(await ClientIdentityCommand.create());
   subCommands.push(await ClientAccessCommand.create());
-  subCommands.push(await ClientCliCommand.create());
+  subCommands.push(await ClientInitCommand.create());
   return subCommands;
 }
 

@@ -1,6 +1,6 @@
 {
   "name": "@5qtrs/flexd-cli",
-  "version": "0.0.1",
+  "version": "0.0.5",
   "description": "",
   "main": "libc/index.js",
   "bin": {
@@ -14,7 +14,8 @@
     "coverage": "jest --colors --coverage",
     "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x} test/{,**/}*.ts{,x}",
     "clean": "rm -r -f libc; rm -r -f coverage",
-    "cli-link": "yarn link"
+    "cli-link": "yarn link && chmod +x ~/.yarn/bin/flx",
+    "cli-unlink": "yarn unlink"
   },
   "keywords": [],
   "dependencies": {
@@ -26,7 +27,6 @@
     "@5qtrs/clone": "^0.0.1",
     "@types/open": "^6.0.0",
     "open": "^6.0.0",
-    "opn": "^6.0.0",
     "@5qtrs/base64": "^0.0.1",
     "@5qtrs/jwt": "^0.0.1"
   },

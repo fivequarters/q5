@@ -26,7 +26,8 @@
     "destroy": "yarn-tool yarn destroy",
     "deploy": "yarn-tool yarn deploy",
     "doc": "yarn-tool yarn doc",
-    "cli-link": "yarn-tool yarn cli-link"
+    "cli-link": "yarn-tool yarn cli-link",
+    "cli-unlink": "yarn-tool yarn cli-unlink"
   },
   "devDependencies": {
     "@babel/core": "^7.3.3",

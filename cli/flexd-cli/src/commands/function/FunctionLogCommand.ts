@@ -35,6 +35,8 @@ export class FunctionLogCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
+    await input.io.writeLine();
+
     let profileService = await ProfileService.create(input);
     const executeService = await ExecuteService.create(input);
     let profile = await profileService.getExecutionProfile(
@@ -42,7 +44,7 @@ export class FunctionLogCommand extends Command {
       getProfileSettingsFromFlexd(tryGetFlexd())
     );
 
-    const result = await executeService.execute(
+    await executeService.execute(
       {
         header: 'Get Function Logs',
         message: Text.create(

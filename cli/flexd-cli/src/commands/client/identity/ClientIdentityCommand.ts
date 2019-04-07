@@ -1,5 +1,5 @@
-import { EOL } from 'os';
 import { Command, ICommand } from '@5qtrs/cli';
+import { Text } from '@5qtrs/text';
 import { ClientIdentityAddCommand } from './ClientIdentityAddCommand';
 import { ClientIdentityRemoveCommand } from './ClientIdentityRemoveCommand';
 
@@ -11,13 +11,16 @@ const command: ICommand = {
   name: 'Client Identity',
   cmd: 'identity',
   summary: 'Manage client identities',
-  description: [
-    `Add or remove identities associated with a client.${EOL}${EOL}A`,
-    "client identity is a set of 'iss' (issuer) and 'sub' (subject) claims in an access",
-    `token that identify the client.${EOL}${EOL}A profile must have 'manage' access to`,
-    'an account in order to add or remove the identities of clients.',
-  ].join(' '),
-  modes: ['account'],
+  description: Text.create(
+    'Add or remove identities associated with a client.',
+    Text.eol(),
+    Text.eol(),
+    "A client identity is a set of '",
+    Text.bold('iss'),
+    "' (issuer) and '",
+    Text.bold('sub'),
+    "' (subject) claims in an access token that identify the client."
+  ),
 };
 
 // ------------------

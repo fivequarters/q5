@@ -74,6 +74,8 @@ export class FunctionGetCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
+    await input.io.writeLine();
+
     let profileService = await ProfileService.create(input);
     const executeService = await ExecuteService.create(input);
     let profile = await profileService.getExecutionProfile(
