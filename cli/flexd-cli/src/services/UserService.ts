@@ -206,7 +206,7 @@ export class UserService {
       }
     );
 
-    await this.executeService.result('User Removed', Text.create("User '", Text.bold(id), "' was successfully remove"));
+    await this.executeService.result('User Removed', Text.create("User '", Text.bold(id), "' was successfully removed"));
   }
 
   public async addUserIdentity(id: string, user: IFlexdUpdateUser): Promise<IFlexdUser> {
