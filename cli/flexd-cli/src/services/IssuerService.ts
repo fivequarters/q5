@@ -71,7 +71,7 @@ export class IssuerService {
       }
     );
 
-    return issuers;
+    return issuers.items;
   }
 
   public async getIssuer(id: string): Promise<IFlexdIssuer> {

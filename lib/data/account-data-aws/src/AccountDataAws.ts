@@ -12,7 +12,7 @@ import { IdentityStore, IIdentity } from './IdentityStore';
 import { ClientStore, INewBaseClient, IBaseClient, IListBaseClientsOptions } from './ClientStore';
 import { IssuerStore, IIssuer, IListIssuersOptions, IListIssuersResult } from './IssuerStore';
 import { UserStore, IBaseUser, INewBaseUser, IListBaseUsersOptions, IListUsersResult } from './UserStore';
-import { InitStore, INewInitEntry } from './InitStore';
+import { InitStore, INewInitEntry, IResolvedInitEntry } from './InitStore';
 
 export { IListAccessEntriesOptions, IListAccessEntriesResult } from './AccessEntryStore';
 export { IIssuer } from './IssuerStore';
@@ -389,36 +389,6 @@ export class AccountDataAws {
     return this.stores.init.addInitEntry(newEntry);
   }
 
-  public async initResolveClient(initResolve: IInitResolve): Promise<IUser | undefined> {
-    const resolvedEntry = await this.stores.init.resolveInitEntry(initResolve.jwt);
-    if (!resolvedEntry) {
-      return undefined;
-    }
-
-    const { accountId, agentId, iss, sub } = resolvedEntry;
-
-    const client = await this.getClient(accountId, agentId);
-    if (!client) {
-      return undefined;
-    }
-
-    const newIssuer = {
-      displayName: `CLI for ${agentId}`,
-      id: iss,
-      publicKeys: [{ keyId: initResolve.keyId, publicKey: initResolve.publicKey }],
-    };
-
-    const issuer = await this.addIssuer(accountId, newIssuer);
-    if (!issuer) {
-      return undefined;
-    }
-
-    client.identities = client.identities || [];
-    client.identities.push({ iss, sub });
-
-    return this.updateClient(accountId, client);
-  }
-
   public async listUsers(accountId: string, options: IListUsersOptions): Promise<IListUsersResult | undefined> {
     const accountPromise = this.getAccount(accountId);
 
@@ -518,12 +488,23 @@ export class AccountDataAws {
     return this.stores.init.addInitEntry(newEntry);
   }
 
-  public async initResolveUser(initResolve: IInitResolve): Promise<IUser | undefined> {
+  public async initResolve(initResolve: IInitResolve): Promise<IUser | IClient | undefined> {
     const resolvedEntry = await this.stores.init.resolveInitEntry(initResolve.jwt);
     if (!resolvedEntry) {
       return undefined;
     }
 
+    if (resolvedEntry.agentId.indexOf('usr') === 0) {
+      return this.initResolveUser(initResolve, resolvedEntry);
+    } else {
+      return this.initResolveClient(initResolve, resolvedEntry);
+    }
+  }
+
+  public async initResolveUser(
+    initResolve: IInitResolve,
+    resolvedEntry: IResolvedInitEntry
+  ): Promise<IUser | undefined> {
     const { accountId, agentId, iss, sub } = resolvedEntry;
 
     const user = await this.getUser(accountId, agentId);
@@ -546,5 +527,33 @@ export class AccountDataAws {
     user.identities.push({ iss, sub });
 
     return this.updateUser(accountId, user);
+  }
+
+  public async initResolveClient(
+    initResolve: IInitResolve,
+    resolvedEntry: IResolvedInitEntry
+  ): Promise<IUser | undefined> {
+    const { accountId, agentId, iss, sub } = resolvedEntry;
+
+    const client = await this.getClient(accountId, agentId);
+    if (!client) {
+      return undefined;
+    }
+
+    const newIssuer = {
+      displayName: `CLI for ${agentId}`,
+      id: iss,
+      publicKeys: [{ keyId: initResolve.keyId, publicKey: initResolve.publicKey }],
+    };
+
+    const issuer = await this.addIssuer(accountId, newIssuer);
+    if (!issuer) {
+      return undefined;
+    }
+
+    client.identities = client.identities || [];
+    client.identities.push({ iss, sub });
+
+    return this.updateClient(accountId, client);
   }
 }

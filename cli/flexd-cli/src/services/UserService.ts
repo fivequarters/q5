@@ -206,10 +206,7 @@ export class UserService {
       }
     );
 
-    await this.executeService.result(
-      'User Removed',
-      Text.create("User '", Text.bold(id), "' was successfully remove'")
-    );
+    await this.executeService.result('User Removed', Text.create("User '", Text.bold(id), "' was successfully remove"));
   }
 
   public async addUserIdentity(id: string, user: IFlexdUpdateUser): Promise<IFlexdUser> {
@@ -621,7 +618,7 @@ export class UserService {
   }
 
   private async writeUser(user: IFlexdUser) {
-    const details = [Text.dim('Id:    '), user.id || ''];
+    const details = [Text.dim('Id: '), user.id || ''];
 
     if (user.primaryEmail) {
       details.push(Text.eol());
