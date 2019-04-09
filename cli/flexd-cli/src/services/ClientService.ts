@@ -408,11 +408,7 @@ export class ClientService {
     };
   }
 
-  public async resolveInit(
-    accountId: string,
-    agentId: string,
-    initResolve: IFlexdInitResolve
-  ): Promise<IFlexdClient> {
+  public async resolveInit(accountId: string, agentId: string, initResolve: IFlexdInitResolve): Promise<IFlexdClient> {
     const profile = await this.profileService.getExecutionProfile(['account'], { account: accountId });
 
     const client = await this.executeService.executeRequest(

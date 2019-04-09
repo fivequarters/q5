@@ -4,9 +4,9 @@
   "include": ["src"],
   "references": [
     { "path": "../ops-core-aws" },
-    { "path": "../../server/aws-base" },
-    { "path": "../../server/aws-cred" },
-    { "path": "../../server/aws-deployment" },
-    { "path": "../../server/aws-lambda" }
+    { "path": "../../../aws/aws-base" },
+    { "path": "../../aws/aws-cred" },
+    { "path": "../../aws/aws-deployment" },
+    { "path": "../../aws/aws-lambda" }
   ]
 }

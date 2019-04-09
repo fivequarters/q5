@@ -1,1 +1,1 @@
-module.exports = require('@5qtrs/aws-audit');
+module.exports = require('@5qtrs/audit-data-aws');

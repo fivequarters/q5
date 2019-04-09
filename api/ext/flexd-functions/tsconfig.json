@@ -11,10 +11,10 @@
   },
   "include": ["src"],
   "references": [
-    { "path": "../../../lib/server/aws-audit" },
+    { "path": "../../../lib/data/audit-data-aws" },
     { "path": "../../../lib/data/account-data-aws" },
-    { "path": "../../../lib/server/aws-cred" },
-    { "path": "../../../lib/server/aws-deployment" },
+    { "path": "../../../lib/aws/aws-cred" },
+    { "path": "../../../lib/aws/aws-deployment" },
     { "path": "../../../lib/server/jwt" },
     { "path": "../../../lib/shared/request" },
     { "path": "../../../lib/server/flexd-profile" }

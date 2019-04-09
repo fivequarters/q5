@@ -4,7 +4,7 @@
   "include": ["src"],
   "references": [
     { "path": "../../server/dot-config" },
-    { "path": "../../server/aws-cred" },
+    { "path": "../../aws/aws-cred" },
     { "path": "../ops-core-aws" },
     { "path": "../ops-publish-aws" },
     { "path": "../ops-deploy-aws" },

@@ -3,10 +3,10 @@
   "compilerOptions": { "rootDir": "src", "module": "CommonJS", "outDir": "libc" },
   "include": ["src"],
   "references": [
-    { "path": "../../server/aws-cred" },
-    { "path": "../../server/aws-dynamo" },
-    { "path": "../../server/aws-deployment" },
-    { "path": "../../server/aws-network" },
-    { "path": "../../server/aws-route53" }
+    { "path": "../../aws/aws-cred" },
+    { "path": "../../aws/aws-dynamo" },
+    { "path": "../../aws/aws-deployment" },
+    { "path": "../../aws/aws-network" },
+    { "path": "../../aws/aws-route53" }
   ]
 }

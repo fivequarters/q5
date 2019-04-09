@@ -1,5 +1,5 @@
 {
-  "name": "@5qtrs/aws-audit",
+  "name": "@5qtrs/audit-data-aws",
   "version": "0.0.1",
   "description": "",
   "main": "libc/index.js",
