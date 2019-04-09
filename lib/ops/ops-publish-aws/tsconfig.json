@@ -8,11 +8,11 @@
     { "path": "../ops-core-aws" },
     { "path": "../../server/zip" },
     { "path": "../../server/file" },
-    { "path": "../../server/aws-cred" },
-    { "path": "../../server/aws-dynamo" },
-    { "path": "../../server/aws-s3" },
+    { "path": "../../aws/aws-cred" },
+    { "path": "../../aws/aws-dynamo" },
+    { "path": "../../aws/aws-s3" },
     { "path": "../../shared/random" },
     { "path": "../../shared/base64" },
-    { "path": "../../server/aws-ecr" }
+    { "path": "../../aws/aws-ecr" }
   ]
 }
