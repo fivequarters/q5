@@ -1,5 +1,5 @@
 import { Body } from '@5qtrs/body';
-import '@5qtrs/flexd-favicon';
+import '@5qtrs/fusebit-favicon';
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
 import { AppLoading, Footer, NavBar, Splash, Features, VP, Problem, FooterCTA, AboutUs } from './comp';
@@ -20,7 +20,7 @@ const App = () => {
       <Problem />
       <Features />
       <VP />
-      <FooterCTA/>
+      <FooterCTA />
       <AboutUs />
       <Footer />
     </Body>

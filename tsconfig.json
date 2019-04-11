@@ -43,7 +43,7 @@
       "@5qtrs/convert-module": ["tool/convert-module/src"],
       "@5qtrs/corp": ["site/corp/src"],
       "@5qtrs/corp-favicon": ["comp/corp-favicon/src"],
-      "@5qtrs/flexd-favicon": ["comp/flexd-favicon/src"],
+      "@5qtrs/fusebit-favicon": ["comp/fusebit-favicon/src"],
       "@5qtrs/functions-app": ["demo/functions/functions-app/src"],
       "@5qtrs/sales-anchor-app": ["demo/sales-anchor/sales-anchor-app/src"],
       "@5qtrs/sales-anchor-api": ["demo/sales-anchor/sales-anchor-api/src"],

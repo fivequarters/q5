@@ -97,7 +97,7 @@
     "demo/sales-anchor/sales-anchor-app",
     "demo/functions/functions-app",
     "comp/corp-favicon",
-    "comp/flexd-favicon",
+    "comp/fusebit-favicon",
     "api/int/cron",
     "api/int/user-api-old",
     "lib/shared/random",
