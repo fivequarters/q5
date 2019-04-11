@@ -97,7 +97,7 @@
     "demo/sales-anchor/sales-anchor-app",
     "demo/functions/functions-app",
     "comp/corp-favicon",
-    "comp/flexd-favicon",
+    "comp/fusebit-favicon",
     "api/int/cron",
     "api/int/user-api-old",
     "lib/shared/random",
@@ -136,7 +136,7 @@
     "lib/aws/aws-ecr",
     "lib/aws/aws-ec2",
     "lib/data/audit-data-aws",
-    "site/flexd",
+    "site/fusebit",
     "mono",
     "lib/data/account-data-aws",
     "lib/server/flexd-profile"
