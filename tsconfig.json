@@ -72,7 +72,7 @@
       "@5qtrs/aws-s3": ["lib/aws/aws-s3/src"],
       "@5qtrs/aws-role": ["lib/aws/aws-role/src"],
       "@5qtrs/aws-log": ["lib/aws/aws-log/src"],
-      "@5qtrs/aws-base": ["aws/aws-base/src"],
+      "@5qtrs/aws-base": ["lib/aws/aws-base/src"],
       "@5qtrs/aws-network": ["lib/aws/aws-network/src"],
       "@5qtrs/aws-route53": ["lib/aws/aws-route53/src"],
       "@5qtrs/flexd-ops-cli": ["cli/flexd-ops-cli/src"],

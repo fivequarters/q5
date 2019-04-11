@@ -78,4 +78,8 @@ export class AwsBase<TAws extends new (...args: any[]) => any> {
   protected getPrefixedName(name: string) {
     return `${this.deployment.key}-${name}`;
   }
+
+  protected getUnprefixedName(name: string) {
+    return name.replace(`${this.deployment.key}-`, '');
+  }
 }

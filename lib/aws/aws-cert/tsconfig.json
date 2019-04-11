@@ -2,5 +2,5 @@
   "extends": "../../../tsconfig.json",
   "compilerOptions": { "rootDir": "src", "module": "CommonJS", "outDir": "libc" },
   "include": ["src"],
-  "references": [{ "path": "../../../aws/aws-base" }, { "path": "../aws-route53" }, { "path": "../../shared/array" }]
+  "references": [{ "path": "../aws-base" }, { "path": "../aws-route53" }, { "path": "../../shared/array" }]
 }

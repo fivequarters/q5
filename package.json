@@ -1,5 +1,5 @@
 {
-  "version": "0.9.9",
+  "version": "0.9.10",
   "private": true,
   "org": "5qtrs",
   "scripts": {
@@ -117,7 +117,7 @@
     "lib/aws/aws-s3",
     "lib/aws/aws-role",
     "lib/aws/aws-log",
-    "aws/aws-base",
+    "lib/aws/aws-base",
     "lib/aws/aws-network",
     "lib/aws/aws-route53",
     "cli/flexd-ops-cli",

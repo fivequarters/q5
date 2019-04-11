@@ -1,5 +1,5 @@
 import { AwsDynamo } from '@5qtrs/aws-dynamo';
-import { toBase64, fromBase64 } from '@5qtrs/base64';
+import { toBase64 } from '@5qtrs/base64';
 import { difference } from '@5qtrs/array';
 
 // ------------------
@@ -17,34 +17,27 @@ const delimiter = '::';
 // Internal Functions
 // ------------------
 
-function getIdentityMap(iss: string, sub: string, agentId: string) {
-  return [toBase64(iss), toBase64(sub), agentId].join(delimiter);
-}
-
-function toDynamoKey(accountId: string, agentId: string, identity: IIdentity) {
-  const identityMap = getIdentityMap(identity.iss, identity.sub, agentId);
+function toDynamoKey(accountId: string, identity: IIdentity) {
+  const issSub = [toBase64(identity.iss), toBase64(identity.sub)].join(delimiter);
   return {
     accountId: { S: accountId },
-    identityMap: { S: identityMap },
+    issSub: { S: issSub },
   };
 }
 
 function toDynamoItem(accountId: string, agentId: string, identity: IIdentity) {
-  const item: any = toDynamoKey(accountId, agentId, identity);
+  const item: any = toDynamoKey(accountId, identity);
   item.agentId = { S: agentId };
-  item.issSub = { S: [toBase64(identity.iss), toBase64(identity.sub)].join(delimiter) };
   item.iss = { S: identity.iss };
   item.sub = { S: identity.sub };
   return item;
 }
 
 function fromDynamoItem(item: any, full: boolean = false): IFullIdentity {
-  const identityMap = item.identityMap.S;
-  const [issEncoded, subEncoded, __] = identityMap.split(delimiter);
   return {
     accountId: full ? item.accountId.S : undefined,
-    iss: fromBase64(issEncoded),
-    sub: fromBase64(subEncoded),
+    iss: item.iss.S,
+    sub: item.sub.S,
     agentId: full ? item.agentId.S : undefined,
   };
 }
@@ -76,6 +69,11 @@ export interface IIdentity {
   sub: string;
 }
 
+export interface IFullIdentity extends IIdentity {
+  accountId: string;
+  agentId: string;
+}
+
 export interface IListIdentitiesOptions {
   next?: string;
   full?: boolean;
@@ -85,11 +83,6 @@ export interface IListIdentitiesOptions {
 export interface IListIdentitiesResult {
   next?: string;
   items: IFullIdentity[];
-}
-
-export interface IFullIdentity extends IIdentity {
-  accountId: string;
-  agentId: string;
 }
 
 // ----------------
@@ -114,8 +107,8 @@ export class IdentityStore {
   public async setup() {
     return this.dynamo.ensureTable({
       name: tableName,
-      attributes: { accountId: 'S', identityMap: 'S', agentId: 'S', issSub: 'S' },
-      keys: ['accountId', 'identityMap'],
+      attributes: { accountId: 'S', issSub: 'S', agentId: 'S' },
+      keys: ['accountId', 'issSub'],
       localIndexes: [
         {
           name: accountAgentIdIndex,
@@ -133,8 +126,8 @@ export class IdentityStore {
 
   public async addIdentity(accountId: string, agentId: string, newIdentity: IIdentity): Promise<IIdentity> {
     const options = {
-      expressionNames: { '#accountId': 'iaccountIdd', '#identityMap': 'identityMap' },
-      condition: 'attribute_not_exists(#accountId) and attribute_not_exists(#identityMap)',
+      expressionNames: { '#accountId': 'accountId', '#issSub': 'issSub' },
+      condition: 'attribute_not_exists(#accountId) and attribute_not_exists(#issSub)',
     };
 
     const item = toDynamoItem(accountId, agentId, newIdentity);
@@ -142,8 +135,8 @@ export class IdentityStore {
     return newIdentity;
   }
 
-  public async removeIdentity(accountId: string, agentId: string, identity: IIdentity): Promise<void> {
-    const key = toDynamoKey(accountId, agentId, identity);
+  public async removeIdentity(accountId: string, identity: IIdentity): Promise<void> {
+    const key = toDynamoKey(accountId, identity);
     return this.dynamo.deleteItem(tableName, key);
   }
 
@@ -153,7 +146,7 @@ export class IdentityStore {
 
   public async removeAllIdentities(accountId: string, agentId: string, identities?: IIdentity[]): Promise<void> {
     const toRemove = identities ? identities : await this.listAllIdentities(accountId, agentId, true);
-    const keys = toRemove.map(identity => toDynamoKey(accountId, agentId, identity));
+    const keys = toRemove.map(identity => toDynamoKey(accountId, identity));
     return this.dynamo.deleteAll(tableName, keys);
   }
 
@@ -203,8 +196,8 @@ export class IdentityStore {
 
     const queryOptions = {
       index: accountAgentIdIndex,
-      expressionNames: { '#agentId': 'agentId', '#accountId': 'accountId' },
-      expressionValues: { ':agentId': { S: agentId }, ':accountId': { S: accountId } },
+      expressionNames: { '#accountId': 'accountId', '#agentId': 'agentId' },
+      expressionValues: { ':accountId': { S: accountId }, ':agentId': { S: agentId } },
       keyCondition: '#agentId = :agentId and #accountId = :accountId',
       limit: limit || undefined,
       next: next || undefined,
@@ -218,23 +211,14 @@ export class IdentityStore {
     };
   }
 
-  public async getAgentId(accountId: string, iss: string, sub: string): Promise<IFullIdentity | undefined> {
-    const queryOptions = {
-      expressionNames: { '#accountId': 'accountId', '#identityMap': 'identityMap' },
-      expressionValues: {
-        ':accountId': { S: accountId },
-        ':identityMap': { S: [iss, sub].map(toBase64).join(delimiter) },
-      },
-      keyCondition: '#accountId = :accountId and begins_with(#identityMap, :identityMap)',
-    };
-
-    const result = await this.dynamo.queryTable(tableName, queryOptions);
-    return result && result.items && result.items[0] ? fromDynamoItem(result.items[0], true) : undefined;
+  public async getAgentId(accountId: string, identity: IIdentity): Promise<IFullIdentity | undefined> {
+    const key = toDynamoKey(accountId, identity);
+    const item = await this.dynamo.getItem(tableName, key);
+    return item ? fromDynamoItem(item, true) : undefined;
   }
 
   public async listIssuerSubjectAccounts(
-    iss: string,
-    sub: string,
+    identity: IIdentity,
     options: IListIdentitiesOptions
   ): Promise<IListIdentitiesResult> {
     const next = options && options.next ? options.next : undefined;
@@ -245,7 +229,7 @@ export class IdentityStore {
     const queryOptions = {
       index: issSubIndex,
       expressionNames: { '#issSub': 'issSub' },
-      expressionValues: { ':issSub': { S: [iss, sub].map(toBase64).join(delimiter) } },
+      expressionValues: { ':issSub': { S: [identity.iss, identity.sub].map(toBase64).join(delimiter) } },
       keyCondition: '#issSub = :issSub',
       limit: limit || undefined,
       next: next || undefined,

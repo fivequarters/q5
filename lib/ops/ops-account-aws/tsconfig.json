@@ -5,7 +5,7 @@
   "references": [
     { "path": "../../aws/aws-cred" },
     { "path": "../../aws/aws-deployment" },
-    { "path": "../../../aws/aws-base" },
+    { "path": "../../aws/aws-base" },
     { "path": "../../aws/aws-dynamo" },
     { "path": "../../aws/aws-lambda" },
     { "path": "../ops-api-aws" },

@@ -2,5 +2,5 @@
   "extends": "../../../tsconfig.json",
   "compilerOptions": { "rootDir": "src", "module": "CommonJS", "outDir": "libc" },
   "include": ["src"],
-  "references": [{ "path": "../../server/child-process" }, { "path": "../aws-base" }, { "path": "../../shared/base64" }]
+  "references": [{ "path": "../aws-cred" }, { "path": "../aws-deployment" }]
 }
