@@ -8,6 +8,7 @@
 #api/int/pubsub/node_modules
 !lib/shared
 !lib/data
+!lib/aws
 !lib/server
 !tool
 !mono

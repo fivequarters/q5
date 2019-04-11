@@ -198,13 +198,8 @@ export class AccountDataAws {
     ]);
   }
 
-  public async listAllAccessEntries(
-    accountId: string,
-    issuer: string,
-    subject: string
-    //  options: IListAccessEntriesOptions
-  ): Promise<IAccessEntry[]> {
-    const identity = await this.stores.identity.getAgentId(accountId, issuer, subject);
+  public async listAllAccessEntries(accountId: string, issuer: string, subject: string): Promise<IAccessEntry[]> {
+    const identity = await this.stores.identity.getAgentId(accountId, { iss: issuer, sub: subject });
     if (identity === undefined) {
       return [];
     }
