@@ -46,11 +46,11 @@ export function NavBar() {
       <StyledNavBar sticky={false}>
         {/* <CorpLogo {...logoTheme} /> */}
         <CorpName>
-          <Text content="Flexd" />
+          <Text content="Fusebit" />
         </CorpName>
         <NavBarSpacer />
-        <Link href="mailto:contact@flexd.io">contact@flexd.io</Link>
-        <Link href="https://twitter.com/getflexdio" target="_blank">
+        <Link href="mailto:contact@fusebit.io">contact@fusebit.io</Link>
+        <Link href="https://twitter.com/fusebitio" target="_blank">
           <Twitter />
         </Link>
       </StyledNavBar>

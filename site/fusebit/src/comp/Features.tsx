@@ -1,5 +1,5 @@
-import FlexdEditor from '../../assets/img/flexd-editor.png';
-import FlexdGallery from '../../assets/img/flexd-gallery.png';
+import FusebitEditor from '../../assets/img/fusebit-editor.png';
+import FusebitGallery from '../../assets/img/fusebit-gallery.png';
 
 import React from 'react';
 import styled from 'styled-components';
@@ -74,11 +74,11 @@ export function Features() {
   return (
     <StyledSection>
       <Column>
-        <Heading>Flexd</Heading>
+        <Heading>Fusebit</Heading>
         <Container>
           <FeatureContainer>
             <FeatureTitle>Ultimate customization through code</FeatureTitle>
-            <FeaturePicture src={FlexdEditor} />
+            <FeaturePicture src={FusebitEditor} />
             <FeatureDescription>
               Embedded scripting environment empowers your customers, sales engineers, and partners to address unique
               customization and integration requirements
@@ -86,7 +86,7 @@ export function Features() {
           </FeatureContainer>
           <FeatureContainer>
             <FeatureTitle>Flexible addons, specific to your platform</FeatureTitle>
-            <FeaturePicture src={FlexdGallery} />
+            <FeaturePicture src={FusebitGallery} />
             <FeatureDescription>
               Embedded addon framework that accelerates delivery of integrations and extensions in your platform, while
               allowing customization of the last mile through code

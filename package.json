@@ -136,7 +136,7 @@
     "lib/aws/aws-ecr",
     "lib/aws/aws-ec2",
     "lib/data/audit-data-aws",
-    "site/flexd",
+    "site/fusebit",
     "mono",
     "lib/data/account-data-aws",
     "lib/server/flexd-profile"

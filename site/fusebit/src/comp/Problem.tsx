@@ -1,6 +1,3 @@
-import FlexdEditor from '../../assets/img/flexd-editor.png';
-import FlexdGallery from '../../assets/img/flexd-gallery.png';
-
 import React from 'react';
 import styled from 'styled-components';
 import { applyTheme } from '../util';

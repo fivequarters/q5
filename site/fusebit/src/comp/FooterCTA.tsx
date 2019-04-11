@@ -95,7 +95,7 @@ export function FooterCTA() {
   return (
     <StyledSection>
       <Column>
-        <Message>Want to learn more? Interested in trying out Flexd?</Message>
+        <Message>Want to learn more? Interested in trying out Fusebit?</Message>
         <Form>
           <Input type="text" placeholder="Enter your email" value={email} onChange={onEmailChange} />
           <PlusIcon className={validEmail ? 'enabled' : ''} onClick={onButtonClicked} />

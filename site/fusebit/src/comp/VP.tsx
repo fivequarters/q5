@@ -1,6 +1,3 @@
-import FlexdEditor from '../../assets/img/flexd-editor.png';
-import FlexdGallery from '../../assets/img/flexd-gallery.png';
-
 import React from 'react';
 import styled from 'styled-components';
 import { applyTheme } from '../util';
@@ -42,7 +39,7 @@ export function VP() {
         </VPDescription>
         <VPTitle>Go to market fast and in style</VPTitle>
         <VPDescription>
-          Using the Flexd managed platform with embeddable editor and gallery saves months of development time and
+          Using the Fusebit managed platform with embeddable editor and gallery saves months of development time and
           ongoing maintenance, while providing superior user experience.
         </VPDescription>
         <VPTitle>Reliable, scalable, and secure</VPTitle>
