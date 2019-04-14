@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { ApiContext } from '../ApiContext';
-import { LoginButton } from './LoginButton';
+import { Button } from '../Button';
 import { GoogleLogin } from 'react-google-login';
 
 // --------------
@@ -30,7 +30,7 @@ export function GoogleLoginButton({ onLogin }: GoogleLoginButtonProps) {
   return (
     <GoogleLogin
       clientId={api.authGoogle.clientId}
-      render={props => <LoginButton onClick={onClick(props)}>Sign In - Google</LoginButton>}
+      render={props => <Button onClick={onClick(props)}>Sign In - Google</Button>}
       onSuccess={responseGoogle}
       onFailure={responseGoogle}
     />
