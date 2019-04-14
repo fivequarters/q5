@@ -28,7 +28,7 @@ const CorpName = styled.h1`
 `;
 
 const Link = styled.a`
-  margin: auto 20px;
+  margin: auto 20px auto 0;
   text-decoration: inherit;
   ${props => applyTheme(props, 'navbar', 'link')}
 `;
