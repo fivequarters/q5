@@ -6,6 +6,7 @@ import styled from 'styled-components';
 import { Editor } from './Editor';
 import { Modal } from '@5qtrs/modal';
 import { AddonState } from '../api/Api';
+import { Button } from './Button';
 
 // -------------------
 // Internal Components
@@ -78,6 +79,7 @@ const Input = styled.input`
   width: 300px;
 `;
 
+/*
 const Button = styled.div`
   margin-top: 30px;
   margin-bottom: 30px;
@@ -87,6 +89,7 @@ const Button = styled.div`
   content-align: center;
   cursor: pointer;
 `;
+*/
 
 const Label = styled.label`
   margin-right: 30px;
@@ -171,7 +174,7 @@ export function Addon({
 
   function handleChange(event: React.FormEvent<HTMLInputElement>) {
     setSecretDisplayValue(event.currentTarget.value);
-    onSecretChange(secretDisplayValue);
+    onSecretChange(event.currentTarget.value);
   }
 
   // Add settings to template
@@ -199,7 +202,10 @@ export function Addon({
           <AddonDescription>{description}</AddonDescription>
           <Label>{secretName}</Label>
           <Input type="password" value={secretDisplayValue} onChange={handleChange} />
-          <Button onClick={installConfirmClick}>Install addon</Button>
+          <br />
+          <Button onClick={installConfirmClick} disabled={secretDisplayValue === null || secretDisplayValue.length < 1}>
+            Install addon
+          </Button>
         </ModalInnerStyle>
       </StyledModal>
       <StyledModal visible={configModalVisible} onClick={configModalClick}>
@@ -217,6 +223,7 @@ export function Addon({
             <p>Configure this addon by setting the properties below:</p>
             <Label>{secretName}</Label>
             <Input type="password" value={secretDisplayValue} onChange={handleChange} />
+            <br />
             <Button onClick={onCodeButtonClick}> Customize with code (advanced)</Button>
           </div>
           <Editor

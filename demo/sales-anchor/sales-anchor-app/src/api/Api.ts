@@ -112,7 +112,7 @@ export class Api {
         logoUrl: './assets/img/clearbit.png',
         description:
           'Clearbit is the marketing data engine for all of your customer interactions. Deeply understand your customers, identify future prospects, and personalize every single marketing and sales interaction.',
-        version: '1.1.0.0',
+        version: '1.2.0.0',
         state: AddonState.NotInstalled,
         secretName: 'API Key',
         secretKey: 'CLEARBIT_KEY',
@@ -121,26 +121,28 @@ export class Api {
           nodejs: {
             files: {
               'index.js': `
-              const lookupSocial = require('./lookupSocial.js');
-    
-              module.exports = (ctx, cb) => { 
-                  lookupSocial(ctx.body, ctx.configuration, e => cb(e, { body: ctx.body }));
-              }`,
+const lookupSocial = require('./lookupSocial.js');
+
+module.exports = (ctx, cb) => { 
+    lookupSocial(ctx.body, ctx.configuration, e => cb(e, { body: ctx.body }));
+}`,
               'lookupSocial.js': `
-              module.exports = (lead, configuration, cb) => {
-                const clearbit_key = ctx.configuration.CLEARBIT_KEY;
-                const clearbit = require('clearbit')(clearbit_key);
-                var Person = clearbit.Person;
-                
-                Person.find({email: lead.email}). 
-                  then(person => {
-                    lead.github = person.github.handle;
-                    lead.twitter = person.twitter.handle;
-                    lead.linkedin = person.linkedin.handle;
-                    cb();
-                  });
-              }`,
-              'package.json': { dependencies: { clearbit: '*' } },
+module.exports = (lead, configuration, cb) => {
+  const clearbit_key = ctx.configuration.CLEARBIT_KEY;
+  const clearbit = require('clearbit')(clearbit_key);
+  var Person = clearbit.Person;
+  
+  Person.find({email: lead.email}). 
+    then(person => {
+      lead.github = person.github.handle;
+      lead.twitter = person.twitter.handle;
+      lead.linkedin = person.linkedin.handle;
+      cb();
+    });
+  }`,
+              // Broken for now because of #106
+              // 'package.json': { dependencies: { clearbit: '*' } },
+              'package.json': { dependencies: null },
             },
           },
         },

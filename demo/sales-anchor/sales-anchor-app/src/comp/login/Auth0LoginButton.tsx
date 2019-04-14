@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { ApiContext } from '../ApiContext';
-import { LoginButton } from './LoginButton';
+import { Button } from '../Button';
 
 // --------------
 // Exported Types
@@ -31,5 +31,5 @@ export function Auth0LoginButton({ onLogin }: Auht0LoginButtonProps) {
 
   checkForCallback();
 
-  return <LoginButton onClick={onClick}>Sign In - Auth0</LoginButton>;
+  return <Button onClick={onClick}>Sign In - Auth0</Button>;
 }

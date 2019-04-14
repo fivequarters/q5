@@ -4,7 +4,7 @@ import styled from 'styled-components';
 // Exported Components
 // -------------------
 
-export const LoginButton = styled.button`
+export const Button = styled.button`
   padding: 10px;
   margin-top: 10px;
   border: 2px solid #34495e;
@@ -20,11 +20,10 @@ export const LoginButton = styled.button`
     color: #34495e;
     background-color: transparent;
   }
-  &:hover.disable {
-    color: white;
-    background-color: #34495e;
-  }
-  &.disable {
-    cursor: wait;
+  &:disabled,
+  &:hover:disabled {
+    color: gray;
+    border-color: gray;
+    background-color: #f7f9f9;
   }
 `;
