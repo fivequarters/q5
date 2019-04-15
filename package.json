@@ -139,6 +139,7 @@
     "site/fusebit",
     "mono",
     "lib/data/account-data-aws",
-    "lib/server/flexd-profile"
+    "lib/server/flexd-profile",
+    "data/dwh-export"
   ]
 }
