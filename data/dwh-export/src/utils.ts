@@ -50,7 +50,9 @@ export async function exportDynamoTable(
   skipDelete?: boolean
 ) {
   if (!skipDelete) {
-    await ctx.bq.query(`DELETE FROM \`dwh.${dynamoTable}\` WHERE ts = '${config.ts}'`);
+    await ctx.bq.query(
+      `DELETE FROM \`dwh.${dynamoTable}\` WHERE ts = '${config.ts}' AND deploymentId = '${config.deploymentId}'`
+    );
   }
   await exportDynamoTableCore();
 

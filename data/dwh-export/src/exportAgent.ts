@@ -1,7 +1,7 @@
 import { IExportConfig, IExportContext, exportDynamoTable } from './utils';
 
 export async function exportAgent(ctx: IExportContext, config: IExportConfig) {
-  await ctx.bq.query(`DELETE FROM \`dwh.agent\` WHERE ts = '${config.ts}'`);
+  await ctx.bq.query(`DELETE FROM \`dwh.agent\` WHERE ts = '${config.ts}' AND deploymentId = '${config.deploymentId}'`);
   await exportDynamoTable(
     ctx,
     config,

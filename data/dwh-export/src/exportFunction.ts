@@ -19,7 +19,9 @@ export async function exportFunction(ctx: IExportContext, config: IExportConfig)
   cronJobList.forEach(x => {
     cronJobs[`${x.subscriptionId}/${x.boundaryId}/${x.functionId}`] = x;
   });
-  await ctx.bq.query(`DELETE FROM \`dwh.function\` WHERE ts = '${config.ts}'`);
+  await ctx.bq.query(
+    `DELETE FROM \`dwh.function\` WHERE ts = '${config.ts}' AND deploymentId = '${config.deploymentId}'`
+  );
   await exportFunctionCore();
 
   return;
