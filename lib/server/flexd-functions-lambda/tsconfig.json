@@ -10,5 +10,5 @@
     "composite": false
   },
   "include": ["src"],
-  "references": [{ "path": "../zmq-logger" }]
+  "references": [{ "path": "../zmq-logger" }, { "path": "../bq-metering" }]
 }

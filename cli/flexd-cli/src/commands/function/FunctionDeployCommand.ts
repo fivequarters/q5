@@ -246,6 +246,7 @@ export class FunctionDeployCommand extends Command {
             }/function/${profile.function}`,
             headers: {
               Authorization: `Bearer ${profile.accessToken}`,
+              'User-Agent': `fusebit-cli/${require('../../package.json').version}`,
             },
             data: flexd,
             validStatus: status => status === 200 || status === 201 || status === 204 || status === 400,
@@ -258,6 +259,7 @@ export class FunctionDeployCommand extends Command {
               }/function/${profile.function}/build/${response.data.id}`,
               headers: {
                 Authorization: `Bearer ${profile.accessToken}`,
+                'User-Agent': `fusebit-cli/${require('../../package.json').version}`,
               },
               validStatus: status => status === 200 || status === 201 || status === 204 || status === 410,
             });

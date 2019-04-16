@@ -17,6 +17,7 @@
     { "path": "../../../lib/aws/aws-deployment" },
     { "path": "../../../lib/server/jwt" },
     { "path": "../../../lib/shared/request" },
-    { "path": "../../../lib/server/flexd-profile" }
+    { "path": "../../../lib/server/flexd-profile" },
+    { "path": "../../../lib/server/bq-metering" }
   ]
 }

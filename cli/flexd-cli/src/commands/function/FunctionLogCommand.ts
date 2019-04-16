@@ -71,51 +71,59 @@ export class FunctionLogCommand extends Command {
 
         let driver = url.match(/^https/i) ? require('https') : require('http');
         return new Promise<number>(async (resolve, reject) => {
-          let req = driver.request(url, async (res: any) => {
-            if (res.statusCode !== 200) {
-              throw new Error(`Error attaching to streaming logs. HTTP status ${res.statusCode}.`);
-            }
-            if (profile.function) {
-              await (await Message.create({
-                header: `Connected to function logs`,
-                message: `${profile.boundary}/${profile.function}`,
-              })).write(input.io);
-            } else {
-              await (await Message.create({
-                header: `Connected to boundary logs`,
-                message: `${profile.boundary}`,
-              })).write(input.io);
-            }
-            res.setEncoding('utf8');
-            res.on('data', processChunk);
-            res.on('end', () => {
-              input.io.writeLine('Streaming logs connection terminated.');
-              return resolve(0);
-            });
+          let req = driver.request(
+            {
+              url,
+              headers: {
+                'User-Agent': `fusebit-cli/${require('../../package.json').version}`,
+              },
+            },
+            async (res: any) => {
+              if (res.statusCode !== 200) {
+                throw new Error(`Error attaching to streaming logs. HTTP status ${res.statusCode}.`);
+              }
+              if (profile.function) {
+                await (await Message.create({
+                  header: `Connected to function logs`,
+                  message: `${profile.boundary}/${profile.function}`,
+                })).write(input.io);
+              } else {
+                await (await Message.create({
+                  header: `Connected to boundary logs`,
+                  message: `${profile.boundary}`,
+                })).write(input.io);
+              }
+              res.setEncoding('utf8');
+              res.on('data', processChunk);
+              res.on('end', () => {
+                input.io.writeLine('Streaming logs connection terminated.');
+                return resolve(0);
+              });
 
-            let buffer: string = '';
-            function processChunk(chunk: string) {
-              buffer += chunk;
-              let lines = buffer.split('\n');
-              // console.log('LINES', lines.length, lines);
-              for (let i = 0; i < lines.length - 1; i++) {
-                let match = lines[i].match(/^data: (.+)/);
-                if (match && lines[i + 1].length === 0) {
-                  let entry = match[1];
-                  if (input.options.format === 'console') {
-                    let parsed: any = JSON.parse(entry);
-                    console.log(`${parsed.time} ${parsed.level === 30 ? 'stdout' : 'stderr'}: ${parsed.msg}`);
-                  } else {
-                    console.log(entry);
+              let buffer: string = '';
+              function processChunk(chunk: string) {
+                buffer += chunk;
+                let lines = buffer.split('\n');
+                // console.log('LINES', lines.length, lines);
+                for (let i = 0; i < lines.length - 1; i++) {
+                  let match = lines[i].match(/^data: (.+)/);
+                  if (match && lines[i + 1].length === 0) {
+                    let entry = match[1];
+                    if (input.options.format === 'console') {
+                      let parsed: any = JSON.parse(entry);
+                      console.log(`${parsed.time} ${parsed.level === 30 ? 'stdout' : 'stderr'}: ${parsed.msg}`);
+                    } else {
+                      console.log(entry);
+                    }
                   }
                 }
+                // console.log(`RECEIVED "${buffer}"`);
+                // Since SSE data is delimited with newlines, put last line back into the buffer to be processed
+                // only after next chunk is received.
+                buffer = lines[lines.length - 1];
               }
-              // console.log(`RECEIVED "${buffer}"`);
-              // Since SSE data is delimited with newlines, put last line back into the buffer to be processed
-              // only after next chunk is received.
-              buffer = lines[lines.length - 1];
             }
-          });
+          );
           req.on('error', (e: Error) => reject(e));
           req.end();
         });

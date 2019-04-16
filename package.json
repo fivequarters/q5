@@ -140,6 +140,7 @@
     "mono",
     "lib/data/account-data-aws",
     "lib/server/flexd-profile",
-    "data/dwh-export"
+    "data/dwh-export",
+    "lib/server/bq-metering"
   ]
 }

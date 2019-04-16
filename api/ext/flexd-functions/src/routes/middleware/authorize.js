@@ -1,8 +1,7 @@
 const Assert = require('assert');
-const { request } = require('@5qtrs/request');
-var create_error = require('http-errors');
 const { writeAudit } = require('../auditing');
 const { decodeJwt, decodeJwtHeader, verifyJwt } = require('@5qtrs/jwt');
+const { meterApiCall } = require('@5qtrs/bq-metering');
 
 var { AccountDataAws } = require('@5qtrs/account-data-aws');
 var { AwsCreds } = require('@5qtrs/aws-cred');
@@ -90,6 +89,20 @@ module.exports = function authorize_factory(options) {
       const token = options.getToken(req);
       if (token === process.env.API_AUTHORIZATION_KEY) {
         req.isRoot = true;
+        meterApiCall({
+          deploymentId: process.env.DEPLOYMENT_KEY,
+          accountId: accountId || 'acc-0000000000000000',
+          issuer: 'flexd:root',
+          subject: 'flexd:root',
+          action,
+          resource,
+          subscriptionId: req.params.subscriptionId,
+          boundaryId: req.params.boundaryId,
+          functionId: req.params.functionId,
+          issuerId: req.params.issuerId,
+          agentId: req.params.userId || req.params.clientId,
+          userAgent: req.headers['x-user-agent'] || req.headers['user-agent'],
+        });
         return writeAudit(
           {
             accountId: accountId || 'acc-0000000000000000',
@@ -115,6 +128,20 @@ module.exports = function authorize_factory(options) {
 
       function auditAndContinue() {
         if (context.jwtValid === true && context.isAuthorized === true) {
+          meterApiCall({
+            deploymentId: process.env.DEPLOYMENT_KEY,
+            accountId,
+            issuer: iss,
+            subject: sub,
+            action,
+            resource,
+            subscriptionId: req.params.subscriptionId,
+            boundaryId: req.params.boundaryId,
+            functionId: req.params.functionId,
+            issuerId: req.params.issuerId,
+            agentId: req.params.userId || req.params.clientId,
+            userAgent: req.headers['x-user-agent'] || req.headers['user-agent'],
+          });
           return writeAudit(
             {
               accountId,

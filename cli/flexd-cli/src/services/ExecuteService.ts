@@ -78,6 +78,7 @@ export class ExecuteService {
     if (!headers['Content-Type'] && !headers['content-type']) {
       headers['Content-Type'] = 'application/json';
     }
+    headers['User-Agent'] = `fusebit-cli/${require('../../package.json').version}`;
 
     const func = async () => {
       const response = await sendRequest(request);
