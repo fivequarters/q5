@@ -4,6 +4,8 @@ import { EditorContext } from './EditorContext';
 import { IFunctionSpecification } from './FunctionSpecification';
 const Superagent1 = Superagent;
 
+const userAgent = `fusebit-editor/${require('../package.json').version} ${navigator.userAgent}`;
+
 class BuildError extends Error {
   constructor(public details: IBuildStatus) {
     super('Build failed.');
@@ -170,6 +172,7 @@ export class Server {
         }/boundary/${boundaryId}/function/${id}/location`;
         return Superagent.get(url)
           .set('Authorization', `Bearer ${this.account.accessToken}`)
+          .set('x-user-agent', userAgent)
           .timeout(this.requestTimeout);
       })
       .then(res => {
@@ -196,6 +199,7 @@ export class Server {
         }/boundary/${boundaryId}/function/${id}`;
         return Superagent.get(url)
           .set('Authorization', `Bearer ${this.account.accessToken}`)
+          .set('x-user-agent', userAgent)
           .timeout(this.requestTimeout);
       })
       .then(res => {
@@ -260,6 +264,7 @@ export class Server {
             Superagent.get(url)
               // @ts-ignore
               .set('Authorization', `Bearer ${self.account.accessToken}`)
+              .set('x-user-agent', userAgent)
               .ok(res => res.status === 200 || res.status === 201 || res.status === 410)
               .timeout(this.requestTimeout)
           );
@@ -305,6 +310,7 @@ export class Server {
         }
         return Superagent.put(url)
           .set('Authorization', `Bearer ${this.account.accessToken}`)
+          .set('x-user-agent', userAgent)
           .timeout(this.requestTimeout)
           .send(params);
       })

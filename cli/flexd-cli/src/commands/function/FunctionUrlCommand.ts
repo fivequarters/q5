@@ -38,6 +38,7 @@ export class FunctionUrlCommand extends Command {
       }/function/${profile.function}/location`,
       headers: {
         Authorization: `Bearer ${profile.accessToken}`,
+        'User-Agent': `fusebit-cli/${require('../../package.json').version}`,
       },
       validStatus: status => status === 200,
     });

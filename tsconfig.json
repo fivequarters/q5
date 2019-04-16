@@ -94,7 +94,9 @@
       "@5qtrs/mono": ["mono/src"],
       "@5qtrs/account-data-aws": ["lib/data/account-data-aws/src"],
       "@5qtrs/flexd-profile": ["lib/server/flexd-profile/src"],
-      "@5qtrs/audit-data-aws": ["lib/data/audit-data-aws/src"]
+      "@5qtrs/audit-data-aws": ["lib/data/audit-data-aws/src"],
+      "@5qtrs/dwh-export": ["data/dwh-export/src"],
+      "@5qtrs/bq-metering": ["lib/server/bq-metering/src"]
     }
   }
 }

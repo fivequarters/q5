@@ -71,6 +71,7 @@ export class FunctionListCommand extends Command {
               : `${profile.baseUrl}/v1/account/${profile.account}/subscription/${profile.subscription}/function`,
             headers: {
               Authorization: `Bearer ${profile.accessToken}`,
+              'User-Agent': `fusebit-cli/${require('../../package.json').version}`,
             },
             query,
             validStatus: status => status === 200,

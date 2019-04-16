@@ -20,7 +20,8 @@
     "jsonwebtoken": "^8.4.0",
     "jszip": "^3.1.5",
     "semver": "^5.6.0",
-    "superagent": "^4.1.0"
+    "superagent": "^4.1.0",
+    "@5qtrs/bq-metering": "^0.0.1"
   },
   "devDependencies": {
     "@types/async": "^2.4.0"

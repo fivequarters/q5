@@ -63,6 +63,7 @@ export class FunctionRemoveCommand extends Command {
       }/function/${profile.function}`,
       headers: {
         Authorization: `Bearer ${profile.accessToken}`,
+        'User-Agent': `fusebit-cli/${require('../../package.json').version}`,
       },
       validStatus: status => status === 200,
     });
