@@ -12,7 +12,7 @@ import { EditorContext } from './EditorContext';
  */
 export function createStatusPanel(element: HTMLElement, editorContext: EditorContext, options?: IStatusPanelOptions) {
   const id = `flexd-status-${Math.floor(99999999 * Math.random()).toString(26)}`;
-  $(element).html(`<div id="${id}" class="flexd-status">Powered by Flexd.io</div>`);
+  $(element).html(`<div id="${id}" class="flexd-status">Powered by Fusebit.io</div>`);
   const $status = $(`#${id}`);
 
   editorContext.on(Events.Events.BuildStarted, (e: Events.BuildStartedEvent) => {
