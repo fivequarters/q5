@@ -5,7 +5,11 @@ const options = {
   html: {
     title: 'Fusebit',
     meta: [
-      { name: 'description', content: 'Fusebit. Flexible customizations and integrations of your SaaS.' },
+      {
+        name: 'description',
+        content:
+          'Fusebit - Integrations your users want. Accelerate customer acquisition and improve retention in your platform with powerful customizations and integrations.',
+      },
       // { name: 'google-site-verification', content: 'Xsqrjgp5Y9GZRzH9jGGwqQmI0tP-jSVRfUYXX5l4EGc' },
     ],
     // bodySnippet: '<div>my html</div>'
