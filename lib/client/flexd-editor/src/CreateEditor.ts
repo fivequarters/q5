@@ -219,6 +219,16 @@ export function createEditor(
       }
     });
 
+    editorContext.on(Events.Events.NavStateChanged, (e: Events.NavStateChangedEvent) => {
+      if (e.newState) {
+        $nav.show();
+        $navSplitter.show();
+      } else {
+        $nav.hide();
+        $navSplitter.hide();
+      }
+    });
+
     editorContext.on(Events.Events.FullScreenChanged, (e: Events.FullScreenChangedEvent) => {
       if (e.newState) {
         // expand
