@@ -52,6 +52,7 @@ export function NavBar() {
           <Text content={content.coporateName || ''} />
         </CorpName>
         <NavBarSpacer />
+        <Link href="#products">Products</Link>
         <Link href="#about_us">About Us</Link>
         <Link href={content.corporateTwitter} target="_blank">
           <Twitter size={twitterTheme.size || 15} />
