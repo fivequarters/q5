@@ -63,5 +63,13 @@ export const content = {
       ].join(' '),
     },
   ],
+  products: {
+    name: 'Fusebit',
+    link:
+      'https://fusebit.io/?utm_source=fivequarters&utm_medium=referral&utm_campaign=fivequarters-homepage&utm_content=products-link',
+    heading: 'Integrations your users want',
+    description:
+      'Accelerate customer acquisition and improve retention in your platform with powerful customizations and integrations',
+  },
   footer: '© Five Quarters LLC. - All rights reserved.',
 };

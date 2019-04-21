@@ -113,6 +113,20 @@ const fonts = {
     color: colors.lightPrimary,
     align: 'center',
   },
+  fusebit: {
+    name: 'Raleway',
+    type: 'sans-serif',
+    size: 36,
+    color: colors.darkPrimary,
+  },
+  productHeaing: {
+    name: 'Josefin Sans',
+    weight: 400,
+    size: 20,
+    color: colors.darkPrimary,
+    type: 'sans-serif',
+    variant: 'small-caps',
+  },
 };
 
 const components = {
@@ -189,6 +203,11 @@ const components = {
   footer: {
     font: fonts.footer,
     background: colors.darkPrimary,
+  },
+  products: {
+    logo: { font: fonts.fusebit },
+    heading: { font: fonts.productHeaing },
+    description: { font: fonts.body },
   },
   aboutUs: {
     paragraph: {
