@@ -62,7 +62,6 @@ function errorHandler(res) {
 module.exports = {
   getAccountContext,
   getResolvedAgent,
-  getBaseUrl,
   errorHandler,
   getBaseUrl,
 };
