@@ -29,7 +29,7 @@ function toKey(agentId: string, accountId: string) {
 
 function toItem(initEntry: IInitEntry, ttl: number) {
   const item: any = toKey(initEntry.agentId, initEntry.accountId);
-  item.ttl = { N: resolveTtlInHours(ttl).toString() };
+  item.ttl = { N: (ttl * 60 * 60 * 1000).toString() };
   item.jwtSecret = { S: initEntry.jwtSecret };
   return item;
 }
@@ -39,12 +39,7 @@ function fromItem(item: any): IInitEntry {
     accountId: item.accountId.S,
     agentId: item.agentId.S,
     jwtSecret: item.jwtSecret.S,
-    ttl: parseInt(item.ttl.N, 10) * 1000,
   };
-}
-
-function resolveTtlInHours(ttl: number) {
-  return (Date.now() + ttl * 60 * 60 * 1000) / 1000;
 }
 
 function onNoInitEntry(agentId: string) {
@@ -59,7 +54,6 @@ export interface IInitEntry {
   accountId: string;
   agentId: string;
   jwtSecret: string;
-  ttl?: number;
 }
 
 // ----------------

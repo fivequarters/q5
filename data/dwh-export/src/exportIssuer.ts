@@ -9,7 +9,7 @@ export async function exportIssuer(ctx: IExportContext, config: IExportConfig) {
         accountId: x.accountId && x.accountId.S,
         issuerId: x.issuerId && x.issuerId.S,
         displayName: x.displayName && x.displayName.S,
-        jsonKeyUri: x.jsonKeyUri && x.jsonKeyUri.S,
+        jsonKeyUri: x.jsonKeysUrl && x.jsonKeysUrl.S,
       },
     };
     if (x.publicKeys && x.publicKeys.L) {

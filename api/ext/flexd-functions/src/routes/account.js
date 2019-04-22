@@ -44,7 +44,6 @@ function errorHandler(res) {
     }
 
     if (error.code) {
-      console.log(error.message);
       const status = error.code.indexOf('no') === 0 ? 404 : 400;
       return res.status(status).json({ message: error.message });
     }
