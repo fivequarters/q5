@@ -22,6 +22,30 @@ const alreadyExistsCode = 'ConditionalCheckFailedException';
 // Internal Functions
 // ------------------
 
+const accountId = {
+  name: awsAccountIdTableName,
+  attributes: { id: 'S' },
+  keys: ['id'],
+};
+
+const account = {
+  name: awsAccountTableName,
+  attributes: { name: 'S' },
+  keys: ['name'],
+};
+
+const network = {
+  name: awsNetworkTableName,
+  attributes: { name: 'S' },
+  keys: ['name'],
+};
+
+const domain = {
+  name: awsDomainTableName,
+  attributes: { name: 'S' },
+  keys: ['name'],
+};
+
 function awsAccountToDynamo(deployment: IOpsAwsAccount) {
   return {
     name: { S: deployment.name },
@@ -118,26 +142,10 @@ export class OpsCoreAws {
   public async setup() {
     const dynamo = await this.getDynamo();
 
-    await dynamo.ensureTable({
-      name: awsAccountIdTableName,
-      attributes: { id: 'S' },
-      keys: ['id'],
-    });
-    await dynamo.ensureTable({
-      name: awsAccountTableName,
-      attributes: { name: 'S' },
-      keys: ['name'],
-    });
-    await dynamo.ensureTable({
-      name: awsNetworkTableName,
-      attributes: { name: 'S' },
-      keys: ['name'],
-    });
-    await dynamo.ensureTable({
-      name: awsDomainTableName,
-      attributes: { name: 'S' },
-      keys: ['name'],
-    });
+    await dynamo.ensureTable(accountId);
+    await dynamo.ensureTable(account);
+    await dynamo.ensureTable(network);
+    await dynamo.ensureTable(domain);
   }
 
   public async ensureAwsAccount(awsAccount: IOpsAwsAccount) {
@@ -174,7 +182,7 @@ export class OpsCoreAws {
     const dynamo = await this.getDynamo();
     const key = { name: { S: accountName } };
 
-    const item = await dynamo.getItem(awsAccountTableName, key);
+    const item = await dynamo.getItem(account, key);
     return item === undefined ? undefined : awsAccountFromDynamo(item);
   }
 
@@ -188,7 +196,7 @@ export class OpsCoreAws {
       if (result && result.next) {
         options.next = result.next;
       }
-      result = await dynamo.scanTable(awsAccountTableName, options);
+      result = await dynamo.scanTable(account, options);
       items.push(...result.items.map(awsAccountFromDynamo));
     } while (result && result.next !== undefined);
 
@@ -213,7 +221,7 @@ export class OpsCoreAws {
     };
     const item = awsAccountToDynamo(awsAccount);
     try {
-      await dynamo.putItem(awsAccountTableName, item, options);
+      await dynamo.putItem(account, item, options);
     } catch (error) {
       if (error.code !== alreadyExistsCode) {
         throw error;
@@ -262,15 +270,15 @@ export class OpsCoreAws {
     const dynamo = await this.getDynamo();
     const key = { name: { S: networkName } };
 
-    const item = await dynamo.getItem(awsNetworkTableName, key);
+    const item = await dynamo.getItem(network, key);
     if (item === undefined) {
       return undefined;
     }
 
     const awsNetwork = awsNetworkFromDynamo(item);
     const awsAccount = await this.getAwsAccountOrThrow(awsNetwork.account);
-    const network = await this.getNetwork(awsNetwork, awsAccount);
-    await network.ensureNetwork(awsNetwork.name);
+    const networks = await this.getNetwork(awsNetwork, awsAccount);
+    await networks.ensureNetwork(awsNetwork.name);
     return awsNetwork;
   }
 
@@ -289,7 +297,7 @@ export class OpsCoreAws {
     };
     const item = awsNetworkToDynamo(awsNetwork);
     try {
-      await dynamo.putItem(awsNetworkTableName, item, options);
+      await dynamo.putItem(network, item, options);
     } catch (error) {
       if (error.code !== alreadyExistsCode) {
         throw error;
@@ -298,8 +306,8 @@ export class OpsCoreAws {
       throw new Error(message);
     }
 
-    const network = await this.getNetwork(awsNetwork, awsAccount);
-    await network.ensureNetwork(awsNetwork.name);
+    const networks = await this.getNetwork(awsNetwork, awsAccount);
+    await networks.ensureNetwork(awsNetwork.name);
   }
 
   public async listAwsNetworks(): Promise<IOpsAwsNetwork[]> {
@@ -312,7 +320,7 @@ export class OpsCoreAws {
       if (result && result.next) {
         options.next = result.next;
       }
-      result = await dynamo.scanTable(awsNetworkTableName, options);
+      result = await dynamo.scanTable(network, options);
       items.push(...result.items.map(awsNetworkFromDynamo));
     } while (result && result.next !== undefined);
 
@@ -344,7 +352,7 @@ export class OpsCoreAws {
     const dynamo = await this.getDynamo();
     const key = { name: { S: domainName } };
 
-    const item = await dynamo.getItem(awsDomainTableName, key);
+    const item = await dynamo.getItem(domain, key);
     if (item === undefined) {
       return undefined;
     }
@@ -371,7 +379,7 @@ export class OpsCoreAws {
     };
     const item = awsDomainToDynamo(awsDomain);
     try {
-      await dynamo.putItem(awsDomainTableName, item, options);
+      await dynamo.putItem(domain, item, options);
     } catch (error) {
       if (error.code !== alreadyExistsCode) {
         throw error;
@@ -394,7 +402,7 @@ export class OpsCoreAws {
       if (result && result.next) {
         options.next = result.next;
       }
-      result = await dynamo.scanTable(awsDomainTableName, options);
+      result = await dynamo.scanTable(domain, options);
       items.push(...result.items.map(awsDomainFromDynamo));
     } while (result && result.next !== undefined);
 
@@ -434,7 +442,7 @@ export class OpsCoreAws {
     const item = { id: { S: id } };
     let putOk = true;
     try {
-      await dynamo.putItem(awsAccountIdTableName, item, options);
+      await dynamo.putItem(accountId, item, options);
     } catch (error) {
       if (error && error.code !== alreadyExistsCode) {
         throw error;

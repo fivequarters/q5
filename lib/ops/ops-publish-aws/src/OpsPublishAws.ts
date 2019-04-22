@@ -1,4 +1,4 @@
-import { AwsDynamo, IAwsLambdaQueryOptions } from '@5qtrs/aws-dynamo';
+import { AwsDynamo, IAwsDynamoQueryOptions } from '@5qtrs/aws-dynamo';
 import { AwsCreds } from '@5qtrs/aws-cred';
 import { AwsS3 } from '@5qtrs/aws-s3';
 import { AwsDeployment } from '@5qtrs/aws-deployment';
@@ -16,6 +16,21 @@ const globalRegion = 'us-west-2';
 const globalKey = 'global';
 const awsPublishTableName = 'aws-publish';
 const alreadyExistsCode = 'ConditionalCheckFailedException';
+const table = {
+  name: awsPublishTableName,
+  attributes: { api: 'S', id: 'S', timestamp: 'N', bucketKey: 'S' },
+  keys: ['api', 'id'],
+  localIndexes: [
+    {
+      name: 'timestamp',
+      keys: ['api', 'timestamp'],
+    },
+    {
+      name: 'bucketKey',
+      keys: ['api', 'bucketKey'],
+    },
+  ],
+};
 
 // ------------------
 // Internal Functions
@@ -145,27 +160,13 @@ export class OpsPublishAws {
 
   public async isSetup(): Promise<boolean> {
     const dynamo = await this.getDynamo();
-    return dynamo.tableExists(awsPublishTableName);
+    return dynamo.tableExists(table.name);
   }
 
   public async setup() {
     const dynamo = await this.getDynamo();
 
-    await dynamo.ensureTable({
-      name: awsPublishTableName,
-      attributes: { api: 'S', id: 'S', timestamp: 'N', bucketKey: 'S' },
-      keys: ['api', 'id'],
-      localIndexes: [
-        {
-          name: 'timestamp',
-          keys: ['api', 'timestamp'],
-        },
-        {
-          name: 'bucketKey',
-          keys: ['api', 'bucketKey'],
-        },
-      ],
-    });
+    await dynamo.ensureTable(table);
   }
 
   public async buildApi(workspace: string) {
@@ -185,17 +186,17 @@ export class OpsPublishAws {
     const dynamo = await this.getDynamo();
     const key = { name: { S: name }, id: { S: publishId } };
 
-    const item = await dynamo.getItem(awsPublishTableName, key);
+    const item = await dynamo.getItem(table, key);
     return item === undefined ? undefined : awsPublishFromDynamo(item);
   }
 
   public async listPublishedApi(name: string, user?: string, limit?: number, next?: any) {
     const dynamo = await this.getDynamo();
 
-    const options: IAwsLambdaQueryOptions = {
+    const options: IAwsDynamoQueryOptions = {
       expressionNames: { '#api': 'api' },
       expressionValues: { ':api': { S: name } },
-      keyCondition: '#api = :api',
+      keyConditions: ['#api = :api'],
       index: 'timestamp',
       scanForward: false,
     };
@@ -205,7 +206,7 @@ export class OpsPublishAws {
 
       options.expressionValues = options.expressionValues || {};
       options.expressionValues[':user'] = { S: user };
-      options.filter = '#user = :user';
+      options.filters = ['#user = :user'];
     }
     if (next) {
       options.next = next;
@@ -214,7 +215,7 @@ export class OpsPublishAws {
       options.limit = limit;
     }
 
-    const result = await dynamo.queryTable(awsPublishTableName, options);
+    const result = await dynamo.queryTable(table, options);
     const items = result.items.map(awsPublishFromDynamo);
     return { items, next: result.next };
   }
@@ -257,7 +258,7 @@ export class OpsPublishAws {
     while (tryLimit > 0) {
       try {
         const item = awsPublishToDynamo(awsPublish);
-        await dynamo.putItem(awsPublishTableName, item, options);
+        await dynamo.putItem(table, item, options);
         return awsPublish;
       } catch (error) {
         if (error.code !== alreadyExistsCode) {
@@ -274,15 +275,15 @@ export class OpsPublishAws {
 
   private async getPublishedApiFromS3(name: string, s3Bucket: string, s3Key: string) {
     const dynamo = await this.getDynamo();
-    const options: IAwsLambdaQueryOptions = {
+    const options = {
       expressionNames: { '#bucketKey': 'bucketKey', '#api': 'api' },
       expressionValues: { ':bucketKey': { S: getBucketKey(s3Bucket, s3Key) }, ':api': { S: name } },
-      keyCondition: '#api = :api and #bucketKey = :bucketKey',
+      keyConditions: ['#api = :api', '#bucketKey = :bucketKey'],
       index: 'bucketKey',
       scanForward: false,
     };
 
-    const result = await dynamo.queryTable(awsPublishTableName, options);
+    const result = await dynamo.queryTable(table, options);
     const items = result.items.map(awsPublishFromDynamo);
     return items && items.length ? items[0] : undefined;
   }

@@ -1,9 +1,8 @@
+import { Config } from '@5qtrs/config';
 import { IAwsOptions } from '@5qtrs/aws-base';
 import { OpsApiAws, IOpsApiSetup } from '@5qtrs/ops-api-aws';
 import { OpsCoreAws } from '@5qtrs/ops-core-aws';
-import { AccountDataAws, INewUser, IUser, IIssuer } from '@5qtrs/account-data-aws';
-
-export { INewUser } from '@5qtrs/account-data-aws';
+import { AccountDataAwsContextFactory } from '@5qtrs/account-data-aws';
 
 // ------------------
 // Internal Constants
@@ -39,17 +38,18 @@ export class OpsAccountAws extends OpsApiAws {
   }
 
   public async onIsApiSetup(options: IAwsOptions): Promise<boolean> {
-    const accountData = await AccountDataAws.create(options);
-    return accountData.isSetup();
+    const { creds, deployment } = options;
+    // @ts-ignore;
+    const factory = await AccountDataAwsContextFactory.create(creds, deployment);
+    const dataContext = await factory.create(new Config({}));
+    return dataContext.isSetup();
   }
 
   public async onSetupApi(setup: IOpsApiSetup, options: IAwsOptions): Promise<void> {
-    const accountData = await AccountDataAws.create(options);
-    return accountData.setup();
+    const { creds, deployment } = options;
+    // @ts-ignore;
+    const factory = await AccountDataAwsContextFactory.create(creds, deployment);
+    const dataContext = await factory.create(new Config({}));
+    return dataContext.setup();
   }
-
-  // public async addRootUser(issuer: IIssuer, rootUser: INewUser, options: IAwsOptions): Promise<IUser | undefined> {
-  //   const accountData = await AccountDataAws.create(options);
-  //   return accountData.addRootUser(issuer, rootUser);
-  // }
 }

@@ -1,4 +1,4 @@
-import { AwsDynamo, IAwsLambdaQueryOptions } from '@5qtrs/aws-dynamo';
+import { AwsDynamo, IAwsDynamoQueryOptions } from '@5qtrs/aws-dynamo';
 import { AwsCreds } from '@5qtrs/aws-cred';
 import { AwsDeployment } from '@5qtrs/aws-deployment';
 import { AwsCert, IAwsCertDetail, IAwsCertValidateDetail } from '@5qtrs/aws-cert';
@@ -17,6 +17,11 @@ const globalRegion = 'us-west-2';
 const globalKey = 'global';
 const awsDeploymentTableName = 'aws-deployment';
 const alreadyExistsCode = 'ConditionalCheckFailedException';
+const deploymentTable = {
+  name: awsDeploymentTableName,
+  attributes: { name: 'S' },
+  keys: ['name'],
+};
 
 // ------------------
 // Internal Functions
@@ -161,11 +166,7 @@ export class OpsDeployAws {
   public async setup() {
     const dynamo = await this.getDynamo();
 
-    await dynamo.ensureTable({
-      name: awsDeploymentTableName,
-      attributes: { name: 'S' },
-      keys: ['name'],
-    });
+    await dynamo.ensureTable(deploymentTable);
   }
 
   public async awsDeploymentExists(deployment: IOpsAwsDeployment) {
@@ -198,21 +199,21 @@ export class OpsDeployAws {
   public async getAwsDeployment(deploymentName: string): Promise<IOpsAwsDeployment | undefined> {
     const dynamo = await this.getDynamo();
     const key = { name: { S: deploymentName } };
-    const item = await dynamo.getItem(awsDeploymentTableName, key);
+    const item = await dynamo.getItem(deploymentTable, key);
     return item === undefined ? undefined : awsDeploymentFromDynamo(item);
   }
 
   public async listAwsDeployments(createdBy?: string, limit?: number, next?: any) {
     const dynamo = await this.getDynamo();
 
-    const options: IAwsLambdaQueryOptions = {};
+    const options: IAwsDynamoQueryOptions = {};
     if (createdBy) {
       options.expressionNames = options.expressionNames || {};
       options.expressionNames['#createdBy'] = 'createdBy';
 
       options.expressionValues = options.expressionValues || {};
       options.expressionValues[':createdBy'] = { S: createdBy };
-      options.filter = '#createdBy = :createdBy';
+      options.filters = ['#createdBy = :createdBy'];
     }
     if (next) {
       options.next = next;
@@ -221,7 +222,7 @@ export class OpsDeployAws {
       options.limit = limit;
     }
 
-    const result = await dynamo.scanTable(awsDeploymentTableName, options);
+    const result = await dynamo.scanTable(deploymentTable, options);
     const items = result.items.map(awsDeploymentFromDynamo);
     return { items, next: result.next };
   }
@@ -252,7 +253,7 @@ export class OpsDeployAws {
     const item = awsDeploymentToDynamo(fullDeployment);
 
     try {
-      await dynamo.putItem(awsDeploymentTableName, item, options);
+      await dynamo.putItem(deploymentTable, item, options);
     } catch (error) {
       if (error.code !== alreadyExistsCode) {
         throw error;
