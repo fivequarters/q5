@@ -100,6 +100,12 @@ export interface IFlexdInitResolve {
   jwt: string;
 }
 
+export interface IFlexdClientListOptions {
+  displayNameContains?: string;
+  issuerContains?: string;
+  subjectContains?: string;
+}
+
 // ----------------
 // Exported Classes
 // ----------------
@@ -121,8 +127,20 @@ export class ClientService {
     return new ClientService(profileService, executeService, input);
   }
 
-  public async listClients(): Promise<IFlexdClient[]> {
+  public async listClients(options: IFlexdClientListOptions): Promise<IFlexdClient[]> {
     const profile = await this.profileService.getExecutionProfile(['account']);
+
+    const query = [];
+    if (options.displayNameContains) {
+      query.push(`name=${encodeURIComponent(options.displayNameContains)}`);
+    }
+    if (options.issuerContains) {
+      query.push(`iss=${encodeURIComponent(options.issuerContains)}`);
+    }
+    if (options.subjectContains) {
+      query.push(`sub=${encodeURIComponent(options.subjectContains)}`);
+    }
+    const queryString = query.length ? `?${query.join('&')}` : '';
 
     const result = await this.executeService.executeRequest(
       {
@@ -133,7 +151,7 @@ export class ClientService {
       },
       {
         method: 'GET',
-        url: `${profile.baseUrl}/v1/account/${profile.account}/client`,
+        url: `${profile.baseUrl}/v1/account/${profile.account}/client${queryString}`,
         headers: { Authorization: `bearer ${profile.accessToken}` },
       }
     );

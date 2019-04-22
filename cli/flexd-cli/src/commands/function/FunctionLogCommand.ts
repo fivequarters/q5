@@ -1,5 +1,11 @@
 import { Command, ArgType, IExecuteInput, Message } from '@5qtrs/cli';
-import { ProfileService, ExecuteService, tryGetFlexd, getProfileSettingsFromFlexd } from '../../services';
+import {
+  ProfileService,
+  ExecuteService,
+  VersionService,
+  tryGetFlexd,
+  getProfileSettingsFromFlexd,
+} from '../../services';
 import { Text } from '@5qtrs/text';
 
 export class FunctionLogCommand extends Command {
@@ -39,11 +45,14 @@ export class FunctionLogCommand extends Command {
 
     let profileService = await ProfileService.create(input);
     const executeService = await ExecuteService.create(input);
+    const versionService = await VersionService.create(input);
+
     let profile = await profileService.getExecutionProfile(
       ['subscription', 'boundary'],
       getProfileSettingsFromFlexd(tryGetFlexd())
     );
 
+    const version = await versionService.getVersion();
     await executeService.execute(
       {
         header: 'Get Function Logs',
@@ -75,7 +84,7 @@ export class FunctionLogCommand extends Command {
             {
               url,
               headers: {
-                'User-Agent': `fusebit-cli/${require('../../package.json').version}`,
+                'User-Agent': `fusebit-cli/${version}`,
               },
             },
             async (res: any) => {

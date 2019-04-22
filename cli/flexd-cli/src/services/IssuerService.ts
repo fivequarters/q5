@@ -21,7 +21,7 @@ export interface IFlexdPublicKey {
 
 export interface INewFlexdIssuer {
   displayName?: string;
-  jsonKeyUri?: string;
+  jsonKeysUrl?: string;
   publicKeyPath?: string;
   publicKeyId?: string;
 }
@@ -29,7 +29,7 @@ export interface INewFlexdIssuer {
 export interface IFlexdIssuer {
   id: string;
   displayName?: string;
-  jsonKeyUri?: string;
+  jsonKeysUrl?: string;
   publicKeys?: IFlexdPublicKey[];
 }
 
@@ -107,7 +107,7 @@ export class IssuerService {
     } else {
       issuer = {
         displayName: newIssuer.displayName,
-        jsonKeyUri: newIssuer.jsonKeyUri,
+        jsonKeysUrl: newIssuer.jsonKeysUrl,
       };
     }
 
@@ -119,7 +119,7 @@ export class IssuerService {
         errorMessage: Text.create("Unable to add the '", Text.bold(id), "' issuer"),
       },
       {
-        method: 'PUT',
+        method: 'POST',
         url: `${profile.baseUrl}/v1/account/${profile.account}/issuer/${encodeURIComponent(id)}`,
         data: issuer,
         headers: { Authorization: `bearer ${profile.accessToken}` },
@@ -353,13 +353,13 @@ export class IssuerService {
   private async writeIssuer(issuer: IFlexdIssuer) {
     const details = [Text.dim('Issuer: '), issuer.id || ''];
 
-    if (!issuer.jsonKeyUri && !issuer.publicKeys) {
+    if (!issuer.jsonKeysUrl && !issuer.publicKeys) {
       details.push(Text.eol());
       details.push(Text.dim('[no key signature mechanism set]'));
-    } else if (issuer.jsonKeyUri) {
+    } else if (issuer.jsonKeysUrl) {
       details.push(Text.eol());
       details.push(Text.dim('Json Key Uri: '));
-      details.push(issuer.jsonKeyUri || '');
+      details.push(issuer.jsonKeysUrl || '');
     } else if (issuer.publicKeys) {
       details.push(Text.eol());
       details.push(Text.dim('Public Key Ids: '));
@@ -381,8 +381,8 @@ export class IssuerService {
       { name: 'Display Name', value: issuer.displayName || notSet },
     ];
 
-    if (issuer.jsonKeyUri) {
-      details.push({ name: 'Json Key Uri', value: issuer.jsonKeyUri });
+    if (issuer.jsonKeysUrl) {
+      details.push({ name: 'Json Key Uri', value: issuer.jsonKeysUrl });
     } else if (issuer.publicKeyId) {
       details.push({ name: 'Key Id', value: issuer.publicKeyId });
     }
@@ -391,21 +391,21 @@ export class IssuerService {
 
   private getUpdateIssuerConfirmDetails(account: string, issuer: IFlexdIssuer, update: INewFlexdIssuer) {
     const displayName = issuer.displayName || notSet;
-    const jsonKeyUri = issuer.jsonKeyUri || notSet;
+    const jsonKeysUrl = issuer.jsonKeysUrl || notSet;
     const publicKeys = issuer.publicKeys ? `${issuer.publicKeys.length} keys` : notSet;
 
     const newDisplayName = update.displayName || notSet;
-    const newJsonKeyUri = update.jsonKeyUri || notSet;
+    const newJsonKeyUri = update.jsonKeysUrl || notSet;
     const newPublicKeys = newJsonKeyUri === notSet ? publicKeys : '0 Keys';
 
     const displayNameValue =
       displayName === newDisplayName
         ? Text.create(displayName, Text.dim(' (no change)'))
         : Text.create(displayName, Text.dim(' → '), displayName);
-    const jsonKeyUriValue =
-      jsonKeyUri === newJsonKeyUri
-        ? Text.create(jsonKeyUri, Text.dim(' (no change)'))
-        : Text.create(jsonKeyUri, Text.dim(' → '), newJsonKeyUri);
+    const jsonKeysUrlValue =
+      jsonKeysUrl === newJsonKeyUri
+        ? Text.create(jsonKeysUrl, Text.dim(' (no change)'))
+        : Text.create(jsonKeysUrl, Text.dim(' → '), newJsonKeyUri);
     const publicKeysValue =
       publicKeys === newPublicKeys
         ? Text.create(publicKeys, Text.dim(' (no change)'))
@@ -415,7 +415,7 @@ export class IssuerService {
       { name: 'Account', value: account },
       { name: 'Issuer', value: issuer.id },
       { name: 'Display Name', value: displayNameValue },
-      { name: 'Json Key URI', value: jsonKeyUriValue },
+      { name: 'Json Key URI', value: jsonKeysUrlValue },
       { name: 'Public Keys', value: publicKeysValue },
     ];
 

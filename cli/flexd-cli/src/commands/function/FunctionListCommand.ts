@@ -1,6 +1,6 @@
 import { Command, IExecuteInput, ArgType, Message } from '@5qtrs/cli';
 import { request } from '@5qtrs/request';
-import { ProfileService, ExecuteService, FunctionService } from '../../services';
+import { ProfileService, ExecuteService, FunctionService, VersionService } from '../../services';
 import { Text } from '@5qtrs/text';
 import { Table } from '@5qtrs/table';
 
@@ -34,6 +34,8 @@ export class FunctionListCommand extends Command {
     const profileService = await ProfileService.create(input);
     const executeService = await ExecuteService.create(input);
     const functionService = await FunctionService.create(input);
+    const versionService = await VersionService.create(input);
+
     let profile = await profileService.getExecutionProfile(['subscription']);
 
     const result = await executeService.execute(
@@ -55,6 +57,7 @@ export class FunctionListCommand extends Command {
         let result: string[] = [];
         let next: string | undefined;
 
+        const version = await versionService.getVersion();
         while (true) {
           let query: any = {};
           if (next) {
@@ -71,7 +74,7 @@ export class FunctionListCommand extends Command {
               : `${profile.baseUrl}/v1/account/${profile.account}/subscription/${profile.subscription}/function`,
             headers: {
               Authorization: `Bearer ${profile.accessToken}`,
-              'User-Agent': `fusebit-cli/${require('../../package.json').version}`,
+              'User-Agent': `fusebit-cli/${version}`,
             },
             query,
             validStatus: status => status === 200,

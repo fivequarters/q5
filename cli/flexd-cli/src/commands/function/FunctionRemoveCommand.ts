@@ -1,7 +1,7 @@
 import { EOL } from 'os';
 import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
 import { request } from '@5qtrs/request';
-import { ProfileService, tryGetFlexd, getProfileSettingsFromFlexd } from '../../services';
+import { ProfileService, VersionService, tryGetFlexd, getProfileSettingsFromFlexd } from '../../services';
 
 export class FunctionRemoveCommand extends Command {
   private constructor() {
@@ -40,6 +40,8 @@ export class FunctionRemoveCommand extends Command {
     await input.io.writeLine();
 
     let profileService = await ProfileService.create(input);
+    const versionService = await VersionService.create(input);
+
     let profile = await profileService.getExecutionProfile(
       ['subscription', 'boundary', 'function'],
       getProfileSettingsFromFlexd(tryGetFlexd())
@@ -56,14 +58,15 @@ export class FunctionRemoveCommand extends Command {
       return 0;
     }
 
-    let response = await request({
+    const version = await versionService.getVersion();
+    await request({
       method: 'DELETE',
       url: `${profile.baseUrl}/v1/account/${profile.account}/subscription/${profile.subscription}/boundary/${
         profile.boundary
       }/function/${profile.function}`,
       headers: {
         Authorization: `Bearer ${profile.accessToken}`,
-        'User-Agent': `fusebit-cli/${require('../../package.json').version}`,
+        'User-Agent': `fusebit-cli/${version}`,
       },
       validStatus: status => status === 200,
     });

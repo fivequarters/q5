@@ -1,7 +1,5 @@
 import { Command, IExecuteInput } from '@5qtrs/cli';
-import { join } from 'path';
-import { readFile } from '@5qtrs/file';
-import { ExecuteService } from '../services/ExecuteService';
+import { ExecuteService, VersionService } from '../services';
 
 // ------------------
 // Internal Constants
@@ -31,22 +29,10 @@ export class VersionCommand extends Command {
     await input.io.writeLine();
 
     const excuteService = await ExecuteService.create(input);
+    const versionService = await VersionService.create(input);
 
-    let version;
-    try {
-      const path = join(__dirname, '..', '..', 'package.json');
-      const buffer = await readFile(path);
-      const content = buffer.toString();
-      const json = JSON.parse(content);
-      version = json.version;
-    } catch (error) {
-      excuteService.error('Version Error', 'Unable to read the version of the current Flexd CLI installation');
-      throw error;
-    }
-
-    if (version) {
-      await excuteService.info('Version', version);
-    }
+    const version = await versionService.getVersion();
+    await excuteService.info('Version', version);
 
     return 0;
   }
