@@ -8,8 +8,8 @@ export async function exportIdentity(ctx: IExportContext, config: IExportConfig)
         deploymentId: config.deploymentId,
         accountId: x.accountId && x.accountId.S,
         agentId: x.agentId && x.agentId.S,
-        issuerId: x.iss && x.iss.S,
-        subject: x.sub && x.sub.S,
+        issuerId: x.issuerId && x.issuerId.S,
+        subject: x.subject && x.subject.S,
       },
     };
     item.insertId = `${item.json.deploymentId}/${item.json.accountId}/${item.json.agentId}/${item.json.issuerId}/${
