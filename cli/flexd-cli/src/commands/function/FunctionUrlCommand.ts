@@ -1,6 +1,6 @@
 import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
 import { request } from '@5qtrs/request';
-import { ProfileService, tryGetFlexd, getProfileSettingsFromFlexd } from '../../services';
+import { ProfileService, VersionService, tryGetFlexd, getProfileSettingsFromFlexd } from '../../services';
 
 export class FunctionUrlCommand extends Command {
   private constructor() {
@@ -27,18 +27,20 @@ export class FunctionUrlCommand extends Command {
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
     let profileService = await ProfileService.create(input);
+    const versionService = await VersionService.create(input);
     let profile = await profileService.getExecutionProfile(
       ['subscription', 'boundary', 'function'],
       getProfileSettingsFromFlexd(tryGetFlexd())
     );
 
+    const version = await versionService.getVersion();
     let response = await request({
       url: `${profile.baseUrl}/v1/account/${profile.account}/subscription/${profile.subscription}/boundary/${
         profile.boundary
       }/function/${profile.function}/location`,
       headers: {
         Authorization: `Bearer ${profile.accessToken}`,
-        'User-Agent': `fusebit-cli/${require('../../package.json').version}`,
+        'User-Agent': `fusebit-cli/${version}`,
       },
       validStatus: status => status === 200,
     });

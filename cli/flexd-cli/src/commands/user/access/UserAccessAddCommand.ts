@@ -98,14 +98,14 @@ export class UserAccessAddCommand extends Command {
       await userService.confirmAddUserAccess(user, newAccess);
     }
 
-    const resourcePath = [`/account/${newAccess.account}`];
+    const resourcePath = [`/account/${newAccess.account}/`];
     if (action === 'function:*') {
       if (newAccess.subscription) {
-        resourcePath.push(`/subscription/${newAccess.subscription}`);
+        resourcePath.push(`subscription/${newAccess.subscription}/`);
         if (newAccess.boundary) {
-          resourcePath.push(`/boundary/${newAccess.boundary}`);
+          resourcePath.push(`boundary/${newAccess.boundary}/`);
           if (newAccess.function) {
-            resourcePath.push(`/function/${newAccess.function}`);
+            resourcePath.push(`function/${newAccess.function}/`);
           }
         }
       }

@@ -36,8 +36,6 @@ paths:
       operationId: getAccount
       description: |
         Returns details about the given account.
-
-        The caller must have 'manage' access to the given account in order to retrieve the details of the given account.
       responses:
         200:
           description: The account
@@ -79,9 +77,15 @@ paths:
         schema:
           type: string
       - in: query
-        name: issuer
+        name: iss
         required: false
         description: Optional issuer identifier to match against audit entries
+        schema:
+          type: string
+      - in: query
+        name: sub
+        required: false
+        description: Optional subject identifier to match against audit entries
         schema:
           type: string
       - in: query
@@ -123,8 +127,6 @@ paths:
         in the 'next' query param. 
 
         By default, only the most recent 15 minutes of audit logs are returned. You can change this with the 'from' query parameter.
-
-        The caller must have 'manage' access to the given account in order to retrieve the audit trail of the given account.
       responses:
         200:
           description: Entries of the audit trail
@@ -154,8 +156,6 @@ paths:
       operationId: getAccountIssuerList
       description: |
         Returns a list of issuers associated with the given account.
-
-        The caller must have 'manage' access to the given account in order to retrieve the list of issuers of the given account.
       parameters:
         - in: query
           name: next
@@ -204,8 +204,6 @@ paths:
       operationId: getAccountIssuer
       description: |
         Returns an issuer associated with the given account.
-
-        The caller must have 'manage' access to the given account in order to retrieve the given issuer of the given account.
       responses:
         200:
           description: The issuer
@@ -219,17 +217,15 @@ paths:
           description: Account or issuer not found
       security:
         - accessToken: []
-    put:
+    post:
       tags:
         - Accounts
-      summary: Add or update an issuer of an account
-      operationId: putAccountIssuer
+      summary: Add a new issuer to an account
+      operationId: postAccountIssuer
       description: |
-        Adds or updates an issuer associated with the given account.
-
-        The caller must have 'manage' access to the given account in order to add or update the given issuer of the given account.
+        Adds a new issuer to be associated with the given account.
       requestBody:
-        description: The issuer to add or update
+        description: The issuer to add
         required: true
         content:
           application/json:
@@ -237,7 +233,36 @@ paths:
               $ref: '#/components/schemas/NewIssuer'
       responses:
         200:
-          description: The issuer that was added or updated
+          description: The issuer that was added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Issuer'
+        400:
+          description: Invalid issuer
+        403:
+          description: Not authorized
+        404:
+          description: Account or issuer not found
+      security:
+        - accessToken: []
+    put:
+      tags:
+        - Accounts
+      summary: Update an existing issuer of an account
+      operationId: putAccountIssuer
+      description: |
+        Updates an existing issuer associated with the given account.
+      requestBody:
+        description: The issuer to update
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewIssuer'
+      responses:
+        200:
+          description: The issuer that was updated
           content:
             application/json:
               schema:
@@ -256,8 +281,6 @@ paths:
       summary: Delete an issuer of an account
       description: |
         Deletes an issuer that was previously associated with the given account.
-
-        The caller must have 'manage' access to the given account in order to delete the given issuer of the given account.
       operationId: deleteIssuer
       responses:
         204:
@@ -284,8 +307,6 @@ paths:
       operationId: getAccountClientList
       description: |
         Returns a list of clients associated with the given account.
-
-        The caller must have 'manage' access to the given account in order to retrieve the list of clients of the given account.
       parameters:
         - in: query
           name: next
@@ -318,9 +339,7 @@ paths:
       summary: Add a client
       operationId: postClient
       description: |
-        Adds a client to given account. 
-
-        The caller must have 'manage' access to the given account in order to retrieve the list of clients of the given account.
+        Adds a client to given account.
       requestBody:
         description: The new client to add
         required: true
@@ -359,12 +378,51 @@ paths:
     get:
       tags:
         - Accounts
+      parameters:
+        - in: query
+          name: include
+          required: false
+          description: Optional switch to include all properties of the clients
+          schema:
+            type: string
+            enum:
+              - all
+        - in: query
+          name: name
+          required: false
+          description: Optional name identifier to match against the displayName of the clients
+          schema:
+            type: string
+        - in: query
+          name: iss
+          required: false
+          description: Optional iss identifier to match against the identities of the clients
+          schema:
+            type: string
+        - in: query
+          name: sub
+          required: false
+          description: Optional sub identifier to match against the identities of the clients
+          schema:
+            type: string
+        - in: query
+          name: next
+          required: false
+          description: Optional opaque token to start returning results from
+          schema:
+            type: string
+        - in: query
+          name: count
+          required: false
+          description: Optional number of results to return; max is 100
+          schema:
+            type: number
+            minimum: 1
+            maximum: 100
       summary: Get a client of an account
       operationId: getAccountClient
       description: |
         Returns a client associated with the given account.
-
-        The caller must have 'manage' access to the given account in order to retrieve the given client of the given account.
       responses:
         200:
           description: The client
@@ -385,8 +443,6 @@ paths:
       operationId: putAccountClient
       description: |
         Updates a client associated with the given account.
-
-        The caller must have 'manage' access to the given account in order to update the given client of the given account.
       requestBody:
         description: The client to update
         required: true
@@ -415,8 +471,6 @@ paths:
       summary: Delete a client of an account
       description: |
         Deletes a client that was previously associated with the given account.
-
-        The caller must have 'manage' access to the given account in order to delete the given client of the given account.
       operationId: deleteClient
       responses:
         204:
@@ -443,8 +497,6 @@ paths:
       operationId: getAccountSubscriptionList
       description: |
         Returns a list of the subscriptions of the given account.
-
-        The list of subscriptions is filtered based on the access of the caller. If the caller has 'manage' access to the given account, the list will include all subscriptions of the given account. If the caller has 'manage' access to a subscription, the list will include that given subscription.
       parameters:
         - in: query
           name: next
@@ -495,8 +547,6 @@ paths:
       operationId: getSubscription
       description: |
         Returns the details of the given subscription of the given account.
-
-        The caller must have 'manage' access to the given account or 'manage' access to the given subscription in order to retrieve the subscription.
       responses:
         200:
           description: A Subscription
@@ -526,23 +576,45 @@ paths:
       operationId: getUserList
       description: |
         Returns a list of users.
-
-        The list of users is filtered based on the access of the caller. If the caller has 'manage' access to an account, the list will include all users with access to the given account. If the caller has 'manage' access to a subscription, the list will include all users with access to the given subscription.
-
-        In addition, the list of access statements of each user is filtered based on the access of the caller. If the caller has 'manage' access to an account, the list of access statements will include the access to the given account. If the caller has 'manage' access to a subscription,the list of access statements will include the access to the given subscription.
       parameters:
         - in: query
-          name: subscriptionId
+          name: include
           required: false
-          description: Optional subscription id to filter by
+          description: Optional switch to include all properties of the users
           schema:
-            $ref: '#/components/schemas/SubscriptionId'
+            type: string
+            enum:
+              - all
+        - in: query
+          name: name
+          required: false
+          description: Optional name identifier to match against the firstName or LastName of the user
+          schema:
+            type: string
+        - in: query
+          name: email
+          required: false
+          description: Optional name identifier to match against the primaryEmail of the user
+          schema:
+            type: string
+        - in: query
+          name: iss
+          required: false
+          description: Optional iss identifier to match against the identities of the users
+          schema:
+            type: string
+        - in: query
+          name: sub
+          required: false
+          description: Optional sub identifier to match against the identities of the users
+          schema:
+            type: string
         - in: query
           name: next
           required: false
-          description: Optional user id to start returning results from
+          description: Optional opaque token to start returning results from
           schema:
-            $ref: '#/components/schemas/UserId'
+            type: string
         - in: query
           name: count
           required: false
@@ -568,9 +640,7 @@ paths:
       summary: Add a user
       operationId: postUser
       description: |
-        Adds a user to the platform. 
-
-        A caller must have 'manage' access to an account in order to add a user to the platform that has access to that given account. A caller must have 'manage' access to a subscription in order to add a user to the platform that has access to that given subscription.
+        Adds a user to the platform.
       requestBody:
         description: The new user to add
         required: true
@@ -613,8 +683,6 @@ paths:
       operationId: getUser
       description: |
         Returns details of a user.
-
-        The list of access statements of each user is filtered based on the access of the caller. If the caller has 'manage' access to an account, the list of access statements will include the access to the given account. If the caller has 'manage' access to a subscription,the list of access statements will include the access to the given subscription.
       responses:
         200:
           description: The user
@@ -634,8 +702,6 @@ paths:
       operationId: putUser
       description: |
         Updates the details of a user.
-
-        A caller must have 'manage' access to an account in order to update a user to alter access to that given account. A caller must have 'manage' access to a subscription in order to update a user to alter access to that given subscription.
       requestBody:
         description: The user to update
         required: true
@@ -671,8 +737,6 @@ paths:
             $ref: '#/components/schemas/AccountId'
       description: |
         Removes all identities and access from the given user to the given account if the account id is specified in the query string. If the account id is not specified, the identities and access for all of the accounts that the caller has 'manange' access of are removed from the given user.
-
-        The caller must have 'manage' access to the given account in order to remove the given user's identities and access to that account.
       operationId: deleteUser
       responses:
         204:
@@ -704,8 +768,6 @@ paths:
       summary: Get boundaries of a subscription
       description: |
         Returns the list of boundaries that have one or more functions in the subscription.
-
-        A caller must have 'manage' access to the given account or the subscription in order to retrieve the list of boundaries of the subscription.
       operationId: getBoundaryList
       parameters:
         - in: query
@@ -756,8 +818,6 @@ paths:
       summary: Get the functions of a subscription
       description: |
         Returns the list of functions of a given subscription.
-
-        A caller must have 'manage' access to the given account or subscription in order to retrieve the list of functions in the subscription.
       operationId: getSubscriptionFunctionList
       parameters:
         - in: query
@@ -820,8 +880,6 @@ paths:
       summary: Get the functions of a boundary
       description: |
         Returns the list of functions in a given boundary of a given subscription.
-
-        A caller must have 'manage' access to the given account, subscription or boundary in order to retrieve the list of functions in the boundary.
       operationId: getFunctionList
       parameters:
         - in: query
@@ -884,8 +942,6 @@ paths:
       summary: Get real-time logs of all functions of a boundary
       description: |
         Returns a text/event-stream response with streaming real-time logs generated by all functions executing in a boundary
-
-        A caller must have 'manage' access to the given account, subscription or boundary in order to retrieve real-time streaming logs of functions in the boundary.
       operationId: getBoundaryLogs
       responses:
         200:
@@ -1023,8 +1079,6 @@ paths:
       summary: Get real-time logs of a function
       description: |
         Returns a text/event-stream response with streaming real-time logs generated by the function
-
-        A caller must have 'manage' access to the given account, subscription, boundary or function in order to retrieve real-time streaming logs of the function.
       operationId: getFunctionLog
       responses:
         200:
@@ -1068,9 +1122,6 @@ paths:
       summary: Get the URL for executing the function
       description: |
         Returns the URL to use to execute the function.
-
-        A caller must have 'manage' access to the given account, subscription, boundary or function in order to retrieve
-        the URL for executing the function.
       operationId: getFunctionLocation
       responses:
         200:
@@ -1124,8 +1175,6 @@ paths:
       summary: Get the status of a build of a function
       description: |
         Returns the status of the build of a function. This is used for polling the result of the asynchronous build process of a function. The 'status' parameter progressess from 'pending' to 'building' to either 'success' or 'failure', which are the final states of the build process.
-
-        A caller must have 'manage' access to the given account, subscription, boundary or function in order to retrieve the build status of the given function.
       operationId: getFunctionBuild
       responses:
         200:
@@ -1218,6 +1267,7 @@ components:
       type: string
       description: Subscription id
       example: 'sub-387669ef70700237a24517f60baea488'
+
     Subscription:
       type: object
       required:
@@ -1230,6 +1280,7 @@ components:
           type: string
           description: Subscription display name
           example: Production Subscription
+
     SubscriptionList:
       type: object
       required:
@@ -1256,10 +1307,12 @@ components:
         publicKey:
           type: string
           description: The public key of a public/private key pair
+
     IssuerId:
       type: string
       description: Issuer id
       example: 'https://auth-server.company-abc.com'
+
     NewIssuer:
       type: object
       description: An issuer of access tokens that should be accepted
@@ -1273,13 +1326,14 @@ components:
         publicKeys:
           type: array
           description: |
-            The public keys of the key pairs used to sign access tokens from the issuer. Either the 'publicKeys' or the jsonKeyUri' must be provided.
+            The public keys of the key pairs used to sign access tokens from the issuer. Either the 'publicKeys' or the jsonKeysUrl' must be provided.
           items:
             $ref: '#/components/schemas/PublicKey'
-        jsonKeyUri:
+        jsonKeysUrl:
           type: string
           description: |
-            The uri key of json key file that contains the public key of the key pair used to sign access tokens from the issuer. Either the 'publicKey' or the jsonKeyUri' must be provided.
+            The uri key of json key file that contains the public key of the key pair used to sign access tokens from the issuer. Either the 'publicKey' or the jsonKeysUrl' must be provided.
+
     Issuer:
       allOf:
         - type: object
@@ -1290,6 +1344,7 @@ components:
             id:
               $ref: '#/components/schemas/IssuerId'
         - $ref: '#/components/schemas/NewIssuer'
+
     IssuerList:
       type: object
       required:
@@ -1314,6 +1369,7 @@ components:
         sub:
           type: string
           description: The 'sub' claim value in access tokens
+
     AccessStatement:
       type: object
       required:
@@ -1321,17 +1377,10 @@ components:
       properties:
         action:
           type: string
-          enum:
-            - manage
           description: The action to perform
-        account:
-          $ref: '#/components/schemas/AccountId'
-        subscription:
-          $ref: '#/components/schemas/SubscriptionId'
-        boundary:
-          $ref: '#/components/schemas/BoundaryId'
-        function:
-          $ref: '#/components/schemas/FunctionId'
+        resource:
+          type: string
+          description: The resource to perform the action on
 
     ClientId:
       type: string

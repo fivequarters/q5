@@ -14,6 +14,10 @@ export interface IConfigSettings {
   [index: string]: ConfigValue;
 }
 
+export interface IConfig {
+  value(settingsName: string): ConfigValue;
+}
+
 // ----------------
 // Exported Classes
 // ----------------
@@ -26,6 +30,6 @@ export class Config {
   }
 
   public value(settingName: string): ConfigValue {
-    return this.settings[settingName];
+    return this.settings ? this.settings[settingName] : undefined;
   }
 }

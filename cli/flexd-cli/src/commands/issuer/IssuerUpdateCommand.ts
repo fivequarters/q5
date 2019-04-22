@@ -31,7 +31,7 @@ const command = {
       description: 'The display name of the issuer',
     },
     {
-      name: 'jsonKeyUri',
+      name: 'jsonKeysUrl',
       description: [
         'The URL of the hosted json keys file. The file may be either in the',
         'JSON Web Key Specification format (RFC 7517) or may be a JSON object with key ids as the',
@@ -73,7 +73,7 @@ export class IssuerUpdateCommand extends Command {
 
     const [id] = input.arguments as string[];
     const displayName = input.options.displayName as string;
-    const jsonKeyUri = input.options.jsonKeyUri as string;
+    const jsonKeysUrl = input.options.jsonKeysUrl as string;
     const confirm = input.options.confirm as boolean;
 
     const issuerService = await IssuerService.create(input);
@@ -82,8 +82,8 @@ export class IssuerUpdateCommand extends Command {
 
     const update = {
       displayName: displayName === '' ? undefined : displayName || issuer.displayName,
-      jsonKeyUri: jsonKeyUri === '' ? undefined : jsonKeyUri || issuer.jsonKeyUri,
-      publicKeys: jsonKeyUri === '' ? issuer.publicKeys : [],
+      jsonKeysUrl: jsonKeysUrl === '' ? undefined : jsonKeysUrl || issuer.jsonKeysUrl,
+      publicKeys: jsonKeysUrl === '' ? issuer.publicKeys : [],
     };
 
     if (confirm) {

@@ -8,9 +8,15 @@ var validate_schema = require('./middleware/validate_schema');
 var authorize = require('./middleware/authorize');
 var cors = require('cors');
 const create_error = require('http-errors');
-let { readAudit } = require('./auditing');
+const { AccountActions } = require('@5qtrs/account');
 const health = require('./handlers/health');
-const account = require('./handlers/account_handlers');
+const account = require('./handlers/account');
+const subscription = require('./handlers/subscription');
+const issuer = require('./handlers/issuer');
+const user = require('./handlers/user');
+const client = require('./handlers/client');
+const init = require('./handlers/init');
+const audit = require('./handlers/audit');
 
 var corsManagementOptions = {
   origins: '*',
@@ -38,9 +44,7 @@ router.options('/account', cors(corsManagementOptions));
 router.post(
   '/account',
   cors(corsManagementOptions),
-  authorize({
-    operation: 'global:create-account',
-  }),
+  authorize({ operation: AccountActions.addAccount }),
   express.json(),
   validate_schema({
     body: require('./schemas/account'),
@@ -52,9 +56,7 @@ router.options('/account/:accountId', cors(corsManagementOptions));
 router.get(
   '/account/:accountId',
   cors(corsManagementOptions),
-  authorize({
-    operation: 'account:get',
-  }),
+  authorize({ operation: AccountActions.getAccount }),
   validate_schema({
     params: require('./schemas/api_params'),
   }),
@@ -65,14 +67,12 @@ router.options('/account/:accountId/audit', cors(corsManagementOptions));
 router.get(
   '/account/:accountId/audit',
   cors(corsManagementOptions),
-  authorize({
-    operation: 'audit:get',
-  }),
+  authorize({ operation: AccountActions.getAudit }),
   validate_schema({
     query: require('./schemas/api_query'),
     params: require('./schemas/api_params'),
   }),
-  readAudit()
+  audit.auditGet()
 );
 
 // Issuers
@@ -81,52 +81,55 @@ router.options('/account/:accountId/issuer', cors(corsManagementOptions));
 router.get(
   '/account/:accountId/issuer',
   cors(corsManagementOptions),
-  authorize({
-    operation: 'issuer:list',
-  }),
+  authorize({ operation: AccountActions.getIssuer }),
   validate_schema({
     query: require('./schemas/api_query'),
     params: require('./schemas/api_params'),
   }),
-  account.issuerList()
+  issuer.issuerList()
 );
 
 router.options('/account/:accountId/issuer/:issuerId', cors(corsManagementOptions));
 router.get(
   '/account/:accountId/issuer/:issuerId',
   cors(corsManagementOptions),
-  authorize({
-    operation: 'issuer:get',
-  }),
+  authorize({ operation: AccountActions.getIssuer }),
   validate_schema({
     params: require('./schemas/api_params'),
   }),
-  account.issuerGet()
+  issuer.issuerGet()
+);
+
+router.post(
+  '/account/:accountId/issuer/:issuerId',
+  cors(corsManagementOptions),
+  authorize({ operation: AccountActions.addIssuer }),
+  express.json(),
+  validate_schema({
+    body: require('./schemas/issuer'),
+  }),
+  issuer.issuerPost()
 );
 
 router.put(
   '/account/:accountId/issuer/:issuerId',
   cors(corsManagementOptions),
-  authorize({
-    operation: 'issuer:put',
-  }),
+  authorize({ operation: AccountActions.updateIssuer }),
   express.json(),
   validate_schema({
     body: require('./schemas/issuer'),
   }),
-  account.issuerPut()
+  issuer.issuerPut()
 );
 
 router.delete(
   '/account/:accountId/issuer/:issuerId',
   cors(corsManagementOptions),
-  authorize({
-    operation: 'issuer:delete',
-  }),
+  authorize({ operation: AccountActions.deleteIssuer }),
   validate_schema({
     params: require('./schemas/api_params'),
   }),
-  account.issuerDelete()
+  issuer.issuerDelete()
 );
 
 // Subscriptions
@@ -135,42 +138,36 @@ router.options('/account/:accountId/subscription', cors(corsManagementOptions));
 router.post(
   '/account/:accountId/subscription',
   cors(corsManagementOptions),
-  authorize({
-    operation: 'global:create-subscription',
-  }),
+  authorize({ operation: AccountActions.addSubscription }),
   express.json(),
   validate_schema({
     params: require('./schemas/api_params'),
     body: require('./schemas/subscription'),
   }),
-  account.subscriptionPost()
+  subscription.subscriptionPost()
 );
 
 router.options('/account/:accountId/subscription', cors(corsManagementOptions));
 router.get(
   '/account/:accountId/subscription',
   cors(corsManagementOptions),
-  authorize({
-    operation: 'account:list-subscription',
-  }),
+  authorize({ operation: AccountActions.getSubscription }),
   validate_schema({
     query: require('./schemas/api_query'),
     params: require('./schemas/api_params'),
   }),
-  account.subscriptionList()
+  subscription.subscriptionList()
 );
 
 router.options('/account/:accountId/subscription/:subscriptionId', cors(corsManagementOptions));
 router.get(
   '/account/:accountId/subscription/:subscriptionId',
   cors(corsManagementOptions),
-  authorize({
-    operation: 'subscription:get',
-  }),
+  authorize({ operation: AccountActions.getSubscription }),
   validate_schema({
     params: require('./schemas/api_params'),
   }),
-  account.subscriptionGet()
+  subscription.subscriptionGet()
 );
 
 // Users
@@ -179,81 +176,69 @@ router.options('/account/:accountId/user', cors(corsManagementOptions));
 router.get(
   '/account/:accountId/user',
   cors(corsManagementOptions),
-  authorize({
-    operation: 'user:list',
-  }),
+  authorize({ operation: AccountActions.getUser }),
   validate_schema({
     query: require('./schemas/api_query'),
     params: require('./schemas/api_params'),
   }),
-  account.userList()
+  user.userList()
 );
 
 router.post(
   '/account/:accountId/user',
   cors(corsManagementOptions),
-  authorize({
-    operation: 'user:post',
-  }),
+  authorize({ operation: AccountActions.addUser }),
   express.json(),
   validate_schema({
     params: require('./schemas/api_params'),
     body: require('./schemas/user'),
   }),
-  account.userPost()
+  user.userPost()
 );
 
 router.options('/account/:accountId/user/:userId', cors(corsManagementOptions));
 router.get(
   '/account/:accountId/user/:userId',
   cors(corsManagementOptions),
-  authorize({
-    operation: 'user:get',
-  }),
+  authorize({ operation: AccountActions.getUser }),
   validate_schema({
     params: require('./schemas/api_params'),
   }),
-  account.userGet()
+  user.userGet()
 );
 
 router.put(
   '/account/:accountId/user/:userId',
   cors(corsManagementOptions),
-  authorize({
-    operation: 'user:put',
-  }),
+  authorize({ operation: AccountActions.updateUser }),
   express.json(),
   validate_schema({
     params: require('./schemas/api_params'),
     body: require('./schemas/user'),
   }),
-  account.userPut()
+  user.userPut()
 );
 
 router.delete(
   '/account/:accountId/user/:userId',
   cors(corsManagementOptions),
-  authorize({
-    operation: 'user:delete',
-  }),
+  authorize({ operation: AccountActions.deleteUser }),
   validate_schema({
     params: require('./schemas/api_params'),
   }),
-  account.userDelete()
+  user.userDelete()
 );
 
 router.post(
   '/account/:accountId/user/:userId/init',
   cors(corsManagementOptions),
-  authorize({
-    operation: 'user:init',
-  }),
+  authorize({ operation: AccountActions.initUser }),
   express.json(),
   validate_schema({
     params: require('./schemas/api_params'),
     body: require('./schemas/init'),
   }),
-  account.userInit()
+  user.userInit()
 );
 
 router.post(
@@ -264,7 +249,7 @@ router.post(
     params: require('./schemas/api_params'),
     body: require('./schemas/initResolve'),
   }),
-  account.initResolve()
+  init.initResolve()
 );
 
 // Clients
@@ -273,78 +258,66 @@ router.options('/account/:accountId/client', cors(corsManagementOptions));
 router.get(
   '/account/:accountId/client',
   cors(corsManagementOptions),
-  authorize({
-    operation: 'client:list',
-  }),
+  authorize({ operation: AccountActions.getClient }),
   validate_schema({
     query: require('./schemas/api_query'),
     params: require('./schemas/api_params'),
   }),
-  account.clientList()
+  client.clientList()
 );
 router.post(
   '/account/:accountId/client',
   cors(corsManagementOptions),
-  authorize({
-    operation: 'client:post',
-  }),
+  authorize(),
   express.json(),
   validate_schema({
     params: require('./schemas/api_params'),
     body: require('./schemas/client'),
   }),
-  account.clientPost()
+  client.clientPost()
 );
 
 router.options('/account/:accountId/client/:clientId', cors(corsManagementOptions));
 router.get(
   '/account/:accountId/client/:clientId',
   cors(corsManagementOptions),
-  authorize({
-    operation: 'client:get',
-  }),
+  authorize({ operation: AccountActions.getClient }),
   validate_schema({
     params: require('./schemas/api_params'),
   }),
-  account.clientGet()
+  client.clientGet()
 );
 router.put(
   '/account/:accountId/client/:clientId',
   cors(corsManagementOptions),
-  authorize({
-    operation: 'client:put',
-  }),
+  authorize({ operation: AccountActions.updateClient }),
   express.json(),
   validate_schema({
     params: require('./schemas/api_params'),
     body: require('./schemas/client'),
   }),
-  account.clientPut()
+  client.clientPut()
 );
 router.delete(
   '/account/:accountId/client/:clientId',
   cors(corsManagementOptions),
-  authorize({
-    operation: 'client:delete',
-  }),
+  authorize({ operation: AccountActions.deleteClient }),
   validate_schema({
     params: require('./schemas/api_params'),
   }),
-  account.clientDelete()
+  client.clientDelete()
 );
 
 router.post(
   '/account/:accountId/client/:clientId/init',
   cors(corsManagementOptions),
-  authorize({
-    operation: 'client:init',
-  }),
+  authorize({ operation: AccountActions.initClient }),
   express.json(),
   validate_schema({
     params: require('./schemas/api_params'),
     body: require('./schemas/init'),
   }),
-  account.clientInit()
+  client.clientInit()
 );
 
 // Boundaries

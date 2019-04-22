@@ -23,7 +23,7 @@ const command = {
       description: 'The display name of the issuer',
     },
     {
-      name: 'jsonKeyUri',
+      name: 'jsonKeysUrl',
       description: [
         'The URL of the hosted json keys file. The file may be either in the',
         'JSON Web Key Specification format (RFC 7517) or may be a JSON object with key ids as the',
@@ -83,14 +83,14 @@ export class IssuerAddCommand extends Command {
     const [id] = input.arguments as string[];
     const confirm = input.options.confirm as boolean;
     const displayName = input.options.displayName as string;
-    const jsonKeyUri = input.options.jsonKeyUri as string;
+    const jsonKeysUrl = input.options.jsonKeysUrl as string;
     const publicKey = input.options.publicKey as string;
     const keyId = input.options.keyId as string;
 
     const issuerService = await IssuerService.create(input);
     const executeService = await ExecuteService.create(input);
 
-    if (jsonKeyUri) {
+    if (jsonKeysUrl) {
       if (publicKey || keyId) {
         const option = publicKey ? 'publicKey' : 'keyId';
         await executeService.error(
@@ -99,7 +99,7 @@ export class IssuerAddCommand extends Command {
             "The '",
             Text.bold(option),
             "' option can not be specified if the '",
-            Text.bold('jsonKeyUri'),
+            Text.bold('jsonKeysUrl'),
             "' option is specified."
           )
         );
@@ -120,7 +120,7 @@ export class IssuerAddCommand extends Command {
 
     const newIssuer = {
       displayName,
-      jsonKeyUri,
+      jsonKeysUrl,
       publicKeyPath: publicKey,
       publicKeyId: keyId,
     };

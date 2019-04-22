@@ -10,6 +10,10 @@
     { "path": "../../shared/base64" },
     { "path": "../../shared/array" },
     { "path": "../../aws/aws-base" },
-    { "path": "../../server/jwt" }
+    { "path": "../../server/jwt" },
+    { "path": "../account-data" },
+    { "path": "../../shared/exception" },
+    { "path": "../../shared/data" },
+    { "path": "../../shared/config" }
   ]
 }

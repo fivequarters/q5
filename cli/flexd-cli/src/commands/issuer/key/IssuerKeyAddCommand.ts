@@ -66,7 +66,7 @@ export class IssuerKeyAddCommand extends Command {
 
     issuer.publicKeys = issuer.publicKeys || [];
     issuer.publicKeys.push({ publicKey, keyId });
-    issuer.jsonKeyUri = undefined;
+    issuer.jsonKeysUrl = undefined;
 
     await issuerService.addPublicKey(id, issuer);
 

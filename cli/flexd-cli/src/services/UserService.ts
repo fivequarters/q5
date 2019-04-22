@@ -102,6 +102,13 @@ export interface IFlexdInitResolve {
   jwt: string;
 }
 
+export interface IFlexdUserListOptions {
+  nameContains?: string;
+  primaryEmailContains?: string;
+  issuerContains?: string;
+  subjectContains?: string;
+}
+
 // ----------------
 // Exported Classes
 // ----------------
@@ -123,8 +130,23 @@ export class UserService {
     return new UserService(profileService, executeService, input);
   }
 
-  public async listUsers(): Promise<IFlexdUser[]> {
+  public async listUsers(options: IFlexdUserListOptions): Promise<IFlexdUser[]> {
     const profile = await this.profileService.getExecutionProfile(['account']);
+
+    const query = [];
+    if (options.nameContains) {
+      query.push(`name=${encodeURIComponent(options.nameContains)}`);
+    }
+    if (options.primaryEmailContains) {
+      query.push(`email=${encodeURIComponent(options.primaryEmailContains)}`);
+    }
+    if (options.issuerContains) {
+      query.push(`iss=${encodeURIComponent(options.issuerContains)}`);
+    }
+    if (options.subjectContains) {
+      query.push(`sub=${encodeURIComponent(options.subjectContains)}`);
+    }
+    const queryString = query.length ? `?${query.join('&')}` : '';
 
     const result = await this.executeService.executeRequest(
       {
@@ -135,7 +157,7 @@ export class UserService {
       },
       {
         method: 'GET',
-        url: `${profile.baseUrl}/v1/account/${profile.account}/user`,
+        url: `${profile.baseUrl}/v1/account/${profile.account}/user${queryString}`,
         headers: { Authorization: `bearer ${profile.accessToken}` },
       }
     );

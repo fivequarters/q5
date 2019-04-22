@@ -5,6 +5,7 @@ import {
   serializeKeyValue,
   parseKeyValue,
   ExecuteService,
+  VersionService,
   tryGetFlexd,
   getProfileSettingsFromFlexd,
 } from '../../services';
@@ -78,10 +79,14 @@ export class FunctionGetCommand extends Command {
 
     let profileService = await ProfileService.create(input);
     const executeService = await ExecuteService.create(input);
+    const versionService = await VersionService.create(input);
+
     let profile = await profileService.getExecutionProfile(
       ['subscription', 'boundary', 'function'],
       input.options.download ? undefined : getProfileSettingsFromFlexd(tryGetFlexd())
     );
+
+    const version = await versionService.getVersion();
 
     const result = await executeService.execute(
       {
@@ -105,7 +110,7 @@ export class FunctionGetCommand extends Command {
           }/function/${profile.function}`,
           headers: {
             Authorization: `Bearer ${profile.accessToken}`,
-            'User-Agent': `fusebit-cli/${require('../../package.json').version}`,
+            'User-Agent': `fusebit-cli/${version}`,
           },
           validStatus: status => status === 200,
         });

@@ -2,7 +2,7 @@ const Joi = require('joi');
 
 module.exports = Joi.object().keys({
   displayName: Joi.string(),
-  jsonKeyUri: Joi.string(),
+  jsonKeysUrl: Joi.string(),
   publicKeys: Joi.array()
     .max(3)
     .items(
