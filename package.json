@@ -122,7 +122,6 @@
     "lib/aws/aws-route53",
     "cli/flexd-ops-cli",
     "lib/aws/aws-cert",
-    "lib/data/audit-data-aws",
     "lib/aws/aws-alb",
     "lib/aws/aws-dynamo",
     "lib/server/dot-config",
@@ -135,12 +134,16 @@
     "lib/ops/ops-user-aws",
     "lib/aws/aws-ecr",
     "lib/aws/aws-ec2",
-    "lib/data/audit-data-aws",
     "site/fusebit",
     "mono",
     "lib/data/account-data-aws",
     "lib/server/flexd-profile",
+    "lib/shared/exception",
+    "lib/server/account",
+    "lib/data/account-data",
+    "lib/shared/promise",
     "data/dwh-export",
-    "lib/server/bq-metering"
+    "lib/server/bq-metering",
+    "lib/shared/data"
   ]
 }
