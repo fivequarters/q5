@@ -1,11 +1,11 @@
 openapi: 3.0.0
 
 info:
-  description: 'Flexd HTTP API for the management and execution of Flexd accounts, users, functions and more'
+  description: 'Fusebit HTTP API for the management and execution of Fusebit accounts, users, functions and more'
   version: '1.0.0'
-  title: 'Flexd HTTP API'
+  title: 'Fusebit HTTP API'
   contact:
-    email: contact@flexd.io
+    email: contact@fusebit.io
   license:
     name: Apache 2.0
     url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
@@ -119,7 +119,7 @@ paths:
       summary: Get audit trail
       operationId: getAccountAudit
       description: |
-        Returns the audit trail of calls to Flexd HTTP APIs related to resources that belong to the accountId. 
+        Returns the audit trail of calls to Fusebit HTTP APIs related to resources that belong to the accountId. 
         Each entry of the audit trail contains the timestamp of the call, resource, action, and the identity of 
         the caller represented as the (issuer, subject) pair. Use query string parameters to filter the entries. 
         This HTTP API supports paging. If the response contains the 'next' property, it indicates more results matching
