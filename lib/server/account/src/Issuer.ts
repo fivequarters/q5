@@ -54,9 +54,7 @@ export class Issuer {
 
   public async add(resolvedAgent: ResolvedAgent, accountId: string, issuer: IIssuer): Promise<IIssuer> {
     validateIssuer(issuer);
-    console.log(accountId);
     await this.dataContext.accountData.get(accountId);
-    console.log(issuer);
     return this.dataContext.issuerData.add(accountId, issuer);
   }
 
