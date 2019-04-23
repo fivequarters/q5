@@ -12,7 +12,7 @@ ADD mono ./mono
 
 RUN yarn setup \
     && yarn build pubsub \
-    && yarn build flexd-functions \
+    && yarn build function-api \
     && yarn build mono 
 
 EXPOSE 3001
