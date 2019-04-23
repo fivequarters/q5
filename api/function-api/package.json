@@ -27,13 +27,13 @@
     "yamljs": "^0.3.0",
     "zeromq": "^5.1.0",
     "@5qtrs/request": "^0.0.1",
-    "@5qtrs/flexd-functions-lambda": "^0.0.1",
     "@5qtrs/account-data-aws": "^0.0.1",
     "@5qtrs/aws-cred": "^0.0.1",
     "@5qtrs/aws-deployment": "^0.0.1",
     "@5qtrs/jwt": "^0.0.1",
     "@5qtrs/account": "^0.0.1",
-    "@5qtrs/bq-metering": "^0.0.1"
+    "@5qtrs/bq-metering": "^0.0.1",
+    "@5qtrs/function-lambda": "^0.0.1"
   },
   "devDependencies": {
     "@types/debug": "^4.1.2",
