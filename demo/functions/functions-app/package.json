@@ -9,8 +9,8 @@
     "build": "tsc -b",
     "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x}",
     "clean": "rm -r -f libc",
-    "copy:editor": "cp ../../../lib/client/flexd-editor/dist/* assets/js",
-    "copy:hook": "cp ../../../lib/client/flexd-hook/dist/* assets/js",
+    "copy:editor": "cp ../../../lib/client/fusebit-editor/dist/* assets/js",
+    "copy:hook": "cp ../../../lib/client/fusebit-hook/dist/* assets/js",
     "copy": "yarn copy:editor && yarn copy:hook",
     "start": "yarn copy && tsc -b && nodemon ./devServer.js & tsc -b -W"
   },
