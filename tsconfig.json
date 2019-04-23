@@ -60,8 +60,6 @@
       "@5qtrs/cli": ["lib/node/cli/src"],
       "@5qtrs/text": ["lib/shared/text/src"],
       "@5qtrs/array": ["lib/shared/array/src"],
-      "@5qtrs/flexd-editor": ["lib/client/flexd-editor/src"],
-      "@5qtrs/flexd-hook": ["lib/client/flexd-hook/src"],
       "@5qtrs/aws-lambda": ["lib/aws/aws-lambda/src"],
       "@5qtrs/zip": ["lib/node/zip/src"],
       "@5qtrs/aws-s3": ["lib/aws/aws-s3/src"],
@@ -97,7 +95,9 @@
       "@5qtrs/fusebit-cli": ["cli/fusebit-cli/src"],
       "@5qtrs/fusebit-ops-cli": ["cli/fusebit-ops-cli/src"],
       "@5qtrs/fusebit-ops-core": ["lib/ops/fusebit-ops-core/src"],
-      "@5qtrs/function-lambda": ["lib/server/function-lambda/src"]
+      "@5qtrs/function-lambda": ["lib/server/function-lambda/src"],
+      "@5qtrs/fusebit-editor": ["lib/client/fusebit-editor/src"],
+      "@5qtrs/fusebit-hook": ["lib/client/fusebit-hook/src"]
     }
   }
 }

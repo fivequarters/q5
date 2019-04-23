@@ -1,6 +1,0 @@
-{
-  "extends": ["@5qtrs/tool-config/tslint.json"],
-  "rules": {
-    "max-classes-per-file": false
-  }
-}

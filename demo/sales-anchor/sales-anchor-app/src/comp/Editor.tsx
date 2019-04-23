@@ -1,4 +1,4 @@
-import { createEditor, EditorContext } from '@5qtrs/flexd-editor'; // tslint:disable-line
+import { createEditor, EditorContext } from '@5qtrs/fusebit-editor'; // tslint:disable-line
 import React, { useContext, useLayoutEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { ApiContext } from './ApiContext';
