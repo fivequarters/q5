@@ -15,7 +15,7 @@
     { "path": "../../lib/aws/aws-deployment" },
     { "path": "../../lib/node/jwt" },
     { "path": "../../lib/shared/request" },
-    { "path": "../../lib/server/flexd-profile" },
+    { "path": "../../sdk/fusebit-profile-sdk" },
     { "path": "../../lib/server/account" },
     { "path": "../../lib/data/account-data-aws" },
     { "path": "../../lib/server/bq-metering" }

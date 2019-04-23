@@ -1,0 +1,36 @@
+{
+  "name": "@5qtrs/fusebit-cli",
+  "version": "0.0.9",
+  "description": "",
+  "main": "libc/index.js",
+  "bin": {
+    "flx": "libc/index.js"
+  },
+  "license": "MIT",
+  "author": "flexd.io",
+  "scripts": {
+    "build": "tsc -b",
+    "test": "jest --colors",
+    "coverage": "jest --colors --coverage",
+    "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x} test/{,**/}*.ts{,x}",
+    "clean": "rm -r -f libc; rm -r -f coverage",
+    "cli-link": "yarn link && chmod +x ~/.yarn/bin/flx",
+    "cli-unlink": "yarn unlink"
+  },
+  "keywords": [],
+  "dependencies": {
+    "@5qtrs/cli": "^0.0.1",
+    "@5qtrs/random": "^0.0.1",
+    "@5qtrs/request": "^0.0.1",
+    "@5qtrs/file": "^0.0.1",
+    "@5qtrs/clone": "^0.0.1",
+    "@types/open": "^6.0.0",
+    "open": "^6.0.0",
+    "@5qtrs/base64": "^0.0.1",
+    "@5qtrs/jwt": "^0.0.1",
+    "@5qtrs/fusebit-profile-sdk": "^0.0.1"
+  },
+  "devDependencies": {
+    "@types/opn": "^5.5.0"
+  }
+}
