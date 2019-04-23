@@ -34,7 +34,7 @@ async function getResolvedAgent(accountId, token) {
 
 function getBaseUrl(req) {
   const host = req.headers.host;
-  const proto = req.headers['x-forwarded-proto'] ? req.headers['x-forwarded-proto'] : 'http';
+  const proto = req.headers['x-forwarded-proto'] ? req.headers['x-forwarded-proto'].split(',')[0] : 'http';
   return `${proto}://${host}`;
 }
 
