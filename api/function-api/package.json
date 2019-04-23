@@ -39,7 +39,7 @@
     "@types/debug": "^4.1.2",
     "superagent": "^4.1.0",
     "@5qtrs/request": "^0.0.1",
-    "@5qtrs/flexd-profile": "^0.0.1"
+    "@5qtrs/fusebit-profile-sdk": "^0.0.1"
   },
   "devServer": {
     "port": 3001
