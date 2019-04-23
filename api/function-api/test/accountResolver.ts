@@ -1,4 +1,4 @@
-import { FlexdProfile } from '@5qtrs/flexd-profile';
+import { FlexdProfile } from '@5qtrs/fusebit-profile-sdk';
 
 export interface IAccount {
   accountId: string;

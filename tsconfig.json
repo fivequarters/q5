@@ -58,7 +58,6 @@
       "@5qtrs/aws-deployment": ["lib/aws/aws-deployment/src"],
       "@5qtrs/table": ["lib/shared/table/src"],
       "@5qtrs/cli": ["lib/node/cli/src"],
-      "@5qtrs/flexd-cli": ["cli/flexd-cli/src"],
       "@5qtrs/text": ["lib/shared/text/src"],
       "@5qtrs/array": ["lib/shared/array/src"],
       "@5qtrs/flexd-editor": ["lib/client/flexd-editor/src"],
@@ -74,12 +73,10 @@
       "@5qtrs/aws-base": ["lib/aws/aws-base/src"],
       "@5qtrs/aws-network": ["lib/aws/aws-network/src"],
       "@5qtrs/aws-route53": ["lib/aws/aws-route53/src"],
-      "@5qtrs/flexd-ops-cli": ["cli/flexd-ops-cli/src"],
       "@5qtrs/aws-cert": ["lib/aws/aws-cert/src"],
       "@5qtrs/aws-alb": ["lib/aws/aws-alb/src"],
       "@5qtrs/aws-dynamo": ["lib/aws/aws-dynamo/src"],
       "@5qtrs/dot-config": ["lib/node/dot-config/src"],
-      "@5qtrs/flexd-ops-core": ["lib/ops/flexd-ops-core/src"],
       "@5qtrs/ops-core-aws": ["lib/ops/ops-core-aws/src"],
       "@5qtrs/ops-publish-aws": ["lib/ops/ops-publish-aws/src"],
       "@5qtrs/ops-account-aws": ["lib/ops/ops-account-aws/src"],
@@ -91,7 +88,6 @@
       "@5qtrs/fusebit": ["site/fusebit/src"],
       "@5qtrs/mono": ["mono/src"],
       "@5qtrs/account-data-aws": ["lib/data/account-data-aws/src"],
-      "@5qtrs/flexd-profile": ["lib/server/flexd-profile/src"],
       "@5qtrs/exception": ["lib/shared/exception/src"],
       "@5qtrs/account": ["lib/server/account/src"],
       "@5qtrs/account-data": ["lib/data/account-data/src"],
@@ -99,7 +95,11 @@
       "@5qtrs/dwh-export": ["data/dwh-export/src"],
       "@5qtrs/bq-metering": ["lib/server/bq-metering/src"],
       "@5qtrs/data": ["lib/shared/data/src"],
-      "@5qtrs/function-api": ["api/function-api/src"]
+      "@5qtrs/function-api": ["api/function-api/src"],
+      "@5qtrs/fusebit-profile-sdk": ["sdk/fusebit-profile-sdk/src"],
+      "@5qtrs/fusebit-cli": ["cli/fusebit-cli/src"],
+      "@5qtrs/fusebit-ops-cli": ["cli/fusebit-ops-cli/src"],
+      "@5qtrs/fusebit-ops-core": ["lib/ops/fusebit-ops-core/src"]
     }
   }
 }
