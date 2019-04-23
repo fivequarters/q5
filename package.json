@@ -77,7 +77,7 @@
     "lib/node/child-process",
     "lib/node/stream",
     "lib/node/server",
-    "lib/server/flexd-functions-lambda",
+    "lib/server/function-lambda",
     "lib/server/zmq-logger",
     "comp/image",
     "comp/scroll-stick",
