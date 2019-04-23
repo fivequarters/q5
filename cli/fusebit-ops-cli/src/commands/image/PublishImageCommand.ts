@@ -1,5 +1,5 @@
 import { Command, IExecuteInput, ArgType } from '@5qtrs/cli';
-import { FlexdOpsCore } from '@5qtrs/fusebit-ops-core';
+import { FusebitOpsCore } from '@5qtrs/fusebit-ops-core';
 import { ExecuteService } from '../../services';
 import { Text } from '@5qtrs/text';
 
@@ -8,18 +8,18 @@ import { Text } from '@5qtrs/text';
 // ----------------
 
 export class PublishImageCommand extends Command {
-  private core: FlexdOpsCore;
+  private core: FusebitOpsCore;
 
-  public static async create(core: FlexdOpsCore) {
+  public static async create(core: FusebitOpsCore) {
     return new PublishImageCommand(core);
   }
 
-  private constructor(core: FlexdOpsCore) {
+  private constructor(core: FusebitOpsCore) {
     super({
       name: 'Publish Image',
       cmd: 'publish',
       summary: 'Publish image',
-      description: 'Publishes the local image for a given api to the Flexd platform',
+      description: 'Publishes the local image for a given api to the Fusebit platform',
       arguments: [
         {
           name: 'image',

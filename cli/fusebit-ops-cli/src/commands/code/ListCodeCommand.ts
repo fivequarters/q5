@@ -1,5 +1,5 @@
 import { Command, IExecuteInput, ArgType } from '@5qtrs/cli';
-import { FlexdOpsCore } from '@5qtrs/fusebit-ops-core';
+import { FusebitOpsCore } from '@5qtrs/fusebit-ops-core';
 import { Text } from '@5qtrs/text';
 import { ExecuteService, DisplayService, SettingsService } from '../../services';
 
@@ -8,18 +8,18 @@ import { ExecuteService, DisplayService, SettingsService } from '../../services'
 // ----------------
 
 export class ListCodeCommand extends Command {
-  private core: FlexdOpsCore;
+  private core: FusebitOpsCore;
 
-  public static async create(core: FlexdOpsCore) {
+  public static async create(core: FusebitOpsCore) {
     return new ListCodeCommand(core);
   }
 
-  private constructor(core: FlexdOpsCore) {
+  private constructor(core: FusebitOpsCore) {
     super({
       name: 'List Code',
       cmd: 'ls',
       summary: 'Lists published code',
-      description: 'Lists the published code for the given api on the Flexd platform.',
+      description: 'Lists the published code for the given api on the Fusebit platform.',
       arguments: [
         {
           name: 'api',
@@ -108,7 +108,7 @@ export class ListCodeCommand extends Command {
         }
         return 0;
       }
- 
+
       await displayService.displayPublishedApi(pubilshedApis.items, true);
       if (!pubilshedApis.next || !(await input.io.prompt({ prompt: 'List more?', yesNo: true }))) {
         return 0;

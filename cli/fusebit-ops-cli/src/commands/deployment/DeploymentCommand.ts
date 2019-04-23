@@ -1,5 +1,5 @@
 import { Command, ICommand } from '@5qtrs/cli';
-import { FlexdOpsCore } from '@5qtrs/fusebit-ops-core';
+import { FusebitOpsCore } from '@5qtrs/fusebit-ops-core';
 import { AddDeploymentCommand } from './AddDeploymentCommand';
 import { RootDeploymentCommand } from './RootDeploymentCommand';
 
@@ -8,9 +8,9 @@ import { RootDeploymentCommand } from './RootDeploymentCommand';
 // ----------------
 
 export class DeploymentCommand extends Command {
-  private core: FlexdOpsCore;
+  private core: FusebitOpsCore;
 
-  public static async create(core: FlexdOpsCore) {
+  public static async create(core: FusebitOpsCore) {
     const subCommands = [];
     subCommands.push(await AddDeploymentCommand.create(core));
     subCommands.push(await RootDeploymentCommand.create(core));
@@ -25,7 +25,7 @@ export class DeploymentCommand extends Command {
     return new DeploymentCommand(command, core);
   }
 
-  private constructor(command: ICommand, core: FlexdOpsCore) {
+  private constructor(command: ICommand, core: FusebitOpsCore) {
     super(command);
     this.core = core;
   }

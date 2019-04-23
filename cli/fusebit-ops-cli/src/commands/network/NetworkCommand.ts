@@ -1,5 +1,5 @@
 import { Command, ICommand } from '@5qtrs/cli';
-import { FlexdOpsCore } from '@5qtrs/fusebit-ops-core';
+import { FusebitOpsCore } from '@5qtrs/fusebit-ops-core';
 import { AddNetworkCommand } from './AddNetworkCommand';
 import { ListNetworkCommand } from './ListNetworkCommand';
 
@@ -8,9 +8,9 @@ import { ListNetworkCommand } from './ListNetworkCommand';
 // ----------------
 
 export class NetworkCommand extends Command {
-  private core: FlexdOpsCore;
+  private core: FusebitOpsCore;
 
-  public static async create(core: FlexdOpsCore) {
+  public static async create(core: FusebitOpsCore) {
     const subCommands = [];
     subCommands.push(await AddNetworkCommand.create(core));
     subCommands.push(await ListNetworkCommand.create(core));
@@ -25,7 +25,7 @@ export class NetworkCommand extends Command {
     return new NetworkCommand(command, core);
   }
 
-  private constructor(command: ICommand, core: FlexdOpsCore) {
+  private constructor(command: ICommand, core: FusebitOpsCore) {
     super(command);
     this.core = core;
   }

@@ -1,5 +1,5 @@
 import { Command, IExecuteInput, Message, MessageKind, ArgType } from '@5qtrs/cli';
-import { FlexdOpsCore, IFlexdOpsNetwork } from '@5qtrs/fusebit-ops-core';
+import { FusebitOpsCore, IFusebitOpsNetwork } from '@5qtrs/fusebit-ops-core';
 import { Text } from '@5qtrs/text';
 import { Table } from '@5qtrs/table';
 
@@ -8,18 +8,18 @@ import { Table } from '@5qtrs/table';
 // ----------------
 
 export class ListNetworkCommand extends Command {
-  private core: FlexdOpsCore;
+  private core: FusebitOpsCore;
 
-  public static async create(core: FlexdOpsCore) {
+  public static async create(core: FusebitOpsCore) {
     return new ListNetworkCommand(core);
   }
 
-  private constructor(core: FlexdOpsCore) {
+  private constructor(core: FusebitOpsCore) {
     super({
       name: 'List Networks',
       cmd: 'ls',
       summary: 'Lists networks',
-      description: 'Lists the networks in the Flexd platform.',
+      description: 'Lists the networks in the Fusebit platform.',
       options: [
         {
           name: 'quiet',
@@ -57,7 +57,7 @@ export class ListNetworkCommand extends Command {
         header: 'List Error',
         message:
           error.code !== undefined
-            ? 'An error was encountered when trying to list the networks in the Flexd platform.'
+            ? 'An error was encountered when trying to list the networks in the Fusebit platform.'
             : error.message,
         kind: MessageKind.error,
       });
@@ -71,13 +71,13 @@ export class ListNetworkCommand extends Command {
   private async noNetworks(input: IExecuteInput) {
     const message = await Message.create({
       header: 'No Networks',
-      message: 'There are currently no networks in the Flexd platform.',
+      message: 'There are currently no networks in the Fusebit platform.',
       kind: MessageKind.info,
     });
     await message.write(input.io);
   }
 
-  private async displayNetworks(networks: IFlexdOpsNetwork[], input: IExecuteInput) {
+  private async displayNetworks(networks: IFusebitOpsNetwork[], input: IExecuteInput) {
     if (input.options.format === 'json') {
       input.io.writeLine(JSON.stringify(networks, null, 2));
     } else {

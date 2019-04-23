@@ -1,5 +1,5 @@
 import { Command, IExecuteInput, Confirm, ArgType, Message, MessageKind } from '@5qtrs/cli';
-import { FlexdOpsCore, IFlexdOpsAccount } from '@5qtrs/fusebit-ops-core';
+import { FusebitOpsCore, IFusebitOpsAccount } from '@5qtrs/fusebit-ops-core';
 import { Text } from '@5qtrs/text';
 
 // ------------------
@@ -11,18 +11,18 @@ import { Text } from '@5qtrs/text';
 // ----------------
 
 export class AddAccountCommand extends Command {
-  private core: FlexdOpsCore;
+  private core: FusebitOpsCore;
 
-  public static async create(core: FlexdOpsCore) {
+  public static async create(core: FusebitOpsCore) {
     return new AddAccountCommand(core);
   }
 
-  private constructor(core: FlexdOpsCore) {
+  private constructor(core: FusebitOpsCore) {
     super({
       name: 'Add Account',
       cmd: 'add',
       summary: 'Add an account',
-      description: 'Adds an account to the Flexd platform with the given AWS account id.',
+      description: 'Adds an account to the Fusebit platform with the given AWS account id.',
       arguments: [
         {
           name: 'name',
@@ -41,7 +41,7 @@ export class AddAccountCommand extends Command {
         {
           name: 'confirm',
           aliases: ['c'],
-          description: 'If set to true, prompts for confirmation before adding the account to the Flexd platform',
+          description: 'If set to true, prompts for confirmation before adding the account to the Fusebit platform',
           type: ArgType.boolean,
           default: 'true',
         },
@@ -50,7 +50,7 @@ export class AddAccountCommand extends Command {
     this.core = core;
   }
 
-  private async doesAccountExist(account: IFlexdOpsAccount, input: IExecuteInput) {
+  private async doesAccountExist(account: IFusebitOpsAccount, input: IExecuteInput) {
     let accountExists = undefined;
     try {
       const message = await Message.create({
@@ -77,7 +77,7 @@ export class AddAccountCommand extends Command {
     return accountExists;
   }
 
-  private async alreadyExists(account: IFlexdOpsAccount, input: IExecuteInput) {
+  private async alreadyExists(account: IFusebitOpsAccount, input: IExecuteInput) {
     const message = await Message.create({
       header: 'Already Exists',
       message: Text.create("The '", Text.bold(account.name), "' account already exists."),
@@ -86,12 +86,12 @@ export class AddAccountCommand extends Command {
     await message.write(input.io);
   }
 
-  private async confirmAccount(account: IFlexdOpsAccount, input: IExecuteInput) {
+  private async confirmAccount(account: IFusebitOpsAccount, input: IExecuteInput) {
     const confirm = input.options.confirm as boolean;
     let add = !confirm;
     if (confirm) {
       const confirmPrompt = await Confirm.create({
-        header: 'Add the account to the Flexd platform?',
+        header: 'Add the account to the Fusebit platform?',
         details: [
           { name: 'Account Name', value: account.name },
           { name: 'Aws Account Id', value: account.id },
@@ -113,7 +113,7 @@ export class AddAccountCommand extends Command {
     await message.write(input.io);
   }
 
-  private async addAccount(account: IFlexdOpsAccount, input: IExecuteInput) {
+  private async addAccount(account: IFusebitOpsAccount, input: IExecuteInput) {
     try {
       const message = await Message.create({
         header: 'Add Account',
@@ -128,7 +128,7 @@ export class AddAccountCommand extends Command {
         header: 'Add Error',
         message:
           error.code !== undefined
-            ? 'An error was encountered when trying to add the account to the Flexd platform.'
+            ? 'An error was encountered when trying to add the account to the Fusebit platform.'
             : error.message,
         kind: MessageKind.error,
       });
@@ -139,10 +139,10 @@ export class AddAccountCommand extends Command {
     return true;
   }
 
-  private async addComplete(account: IFlexdOpsAccount, input: IExecuteInput) {
+  private async addComplete(account: IFusebitOpsAccount, input: IExecuteInput) {
     const message = await Message.create({
       header: 'Add Complete',
-      message: Text.create("The '", Text.bold(account.name), "' account was successfully added to the Flexd platform."),
+      message: Text.create("The '", Text.bold(account.name), "' account was successfully added to the Fusebit platform."),
       kind: MessageKind.result,
     });
     await message.write(input.io);

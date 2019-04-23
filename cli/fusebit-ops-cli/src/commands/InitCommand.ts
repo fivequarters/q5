@@ -1,12 +1,12 @@
 import { Command, IExecuteInput, IOptionsSet, Message, MessageKind, ICommandIO } from '@5qtrs/cli';
-import { FlexdOpsCore, IFlexdOpsCoreSettings } from '@5qtrs/fusebit-ops-core';
+import { FusebitOpsCore, IFusebitOpsCoreSettings } from '@5qtrs/fusebit-ops-core';
 import { Text } from '@5qtrs/text';
 
 // ------------------
 // Internal Functions
 // ------------------
 
-function optionsToSettings(options: IOptionsSet, settings: IFlexdOpsCoreSettings) {
+function optionsToSettings(options: IOptionsSet, settings: IFusebitOpsCoreSettings) {
   if (options.awsProdAccount) {
     settings.awsProdAccount = options.awsProdAccount as string;
   }
@@ -32,18 +32,18 @@ function optionsToSettings(options: IOptionsSet, settings: IFlexdOpsCoreSettings
 // ----------------
 
 export class InitCommand extends Command {
-  private core: FlexdOpsCore;
+  private core: FusebitOpsCore;
 
-  public static async create(core: FlexdOpsCore) {
+  public static async create(core: FusebitOpsCore) {
     return new InitCommand(core);
   }
 
-  private constructor(core: FlexdOpsCore) {
+  private constructor(core: FusebitOpsCore) {
     super({
       name: 'CLI Initialize',
       cmd: 'init',
       summary: 'Initialize the CLI',
-      description: 'Initializes use of the CLI to be able to perform operations on the Flexd platform.',
+      description: 'Initializes use of the CLI to be able to perform operations on the Fusebit platform.',
       options: [
         {
           name: 'awsProdAccount',
@@ -93,12 +93,12 @@ export class InitCommand extends Command {
     return settings;
   }
 
-  private async promptForMissingSettings(settings: IFlexdOpsCoreSettings, io: ICommandIO) {
+  private async promptForMissingSettings(settings: IFusebitOpsCoreSettings, io: ICommandIO) {
     const accountInfoNeeded = !settings.awsProdAccount || !settings.awsProdRole || !settings.awsUserAccount;
     const userInfoNeeded = !settings.awsUserAccessKeyId || !settings.awsUserSecretAccessKey || !settings.awsUserName;
 
     if (accountInfoNeeded || userInfoNeeded) {
-      await io.writeLine(Text.bold("To initialize the Flexd Ops CLI we'll need to collect some information."));
+      await io.writeLine(Text.bold("To initialize the Fusebit Ops CLI we'll need to collect some information."));
       await io.writeLine();
     }
 
@@ -106,7 +106,7 @@ export class InitCommand extends Command {
       await io.writeLine(
         [
           'Please provide the following information about the AWS accounts on which you are hosting',
-          'your installation of the Flexd platform. The AWS production account number',
+          'your installation of the Fusebit platform. The AWS production account number',
           'is required. If you use a different account for your AWS users, you can also',
           'provide an optional AWS user account and the role in your AWS production',
           'account to assume to gain access to your AWS production account.',
@@ -148,7 +148,7 @@ export class InitCommand extends Command {
           'Please provide information about your ',
           Text.bold('individual'),
           ' AWS user account that you use to access the AWS accounts on which you are ',
-          'hosting your installation of the Flexd platform.',
+          'hosting your installation of the Fusebit platform.',
           Text.eol(),
           Text.eol(),
           Text.boldItalic(`Note: Your secret access key will be stored on disk at '${settingsPath}'`)
@@ -222,7 +222,7 @@ export class InitCommand extends Command {
     const message = await Message.create({
       header: 'Init Complete',
       message: Text.create(
-        'The Flexd Ops CLI has been successfully initialized.',
+        'The Fusebit Ops CLI has been successfully initialized.',
         Text.eol(),
         Text.eol(),
         'Any initialization setting can be updated in the future by excuting ',

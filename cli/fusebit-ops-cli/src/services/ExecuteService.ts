@@ -1,5 +1,5 @@
 import { Message, MessageKind, IExecuteInput } from '@5qtrs/cli';
-import { FlexdOpsCore } from '@5qtrs/fusebit-ops-core';
+import { FusebitOpsCore } from '@5qtrs/fusebit-ops-core';
 import { IText } from '@5qtrs/text';
 
 // -------------------
@@ -18,15 +18,15 @@ export interface IExcuteMessages {
 // ----------------
 
 export class ExecuteService {
-  private core: FlexdOpsCore;
+  private core: FusebitOpsCore;
   private input: IExecuteInput;
 
-  private constructor(core: FlexdOpsCore, input: IExecuteInput) {
+  private constructor(core: FusebitOpsCore, input: IExecuteInput) {
     this.core = core;
     this.input = input;
   }
 
-  public static async create(core: FlexdOpsCore, input: IExecuteInput) {
+  public static async create(core: FusebitOpsCore, input: IExecuteInput) {
     return new ExecuteService(core, input);
   }
 

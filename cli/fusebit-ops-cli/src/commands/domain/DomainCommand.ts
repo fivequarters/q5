@@ -1,5 +1,5 @@
 import { Command, ICommand } from '@5qtrs/cli';
-import { FlexdOpsCore } from '@5qtrs/fusebit-ops-core';
+import { FusebitOpsCore } from '@5qtrs/fusebit-ops-core';
 import { AddDomainCommand } from './AddDomainCommand';
 import { GetDomainCommand } from './GetDomainCommand';
 import { ListDomainCommand } from './ListDomainCommand';
@@ -9,9 +9,9 @@ import { ListDomainCommand } from './ListDomainCommand';
 // ----------------
 
 export class DomainCommand extends Command {
-  private core: FlexdOpsCore;
+  private core: FusebitOpsCore;
 
-  public static async create(core: FlexdOpsCore) {
+  public static async create(core: FusebitOpsCore) {
     const subCommands = [];
     subCommands.push(await AddDomainCommand.create(core));
     subCommands.push(await GetDomainCommand.create(core));
@@ -27,7 +27,7 @@ export class DomainCommand extends Command {
     return new DomainCommand(command, core);
   }
 
-  private constructor(command: ICommand, core: FlexdOpsCore) {
+  private constructor(command: ICommand, core: FusebitOpsCore) {
     super(command);
     this.core = core;
   }

@@ -1,5 +1,5 @@
 import { Command, ICommand, IExecuteInput, Message, MessageKind, ArgType, Confirm } from '@5qtrs/cli';
-import { FlexdOpsCore } from '@5qtrs/fusebit-ops-core';
+import { FusebitOpsCore } from '@5qtrs/fusebit-ops-core';
 import { Text } from '@5qtrs/text';
 
 // ----------------
@@ -7,19 +7,19 @@ import { Text } from '@5qtrs/text';
 // ----------------
 
 export class InstallCommand extends Command {
-  private core: FlexdOpsCore;
+  private core: FusebitOpsCore;
 
-  public static async create(core: FlexdOpsCore) {
+  public static async create(core: FusebitOpsCore) {
     const command = {
-      name: 'Flexd Platform Install',
+      name: 'Fusebit Platform Install',
       cmd: 'install',
-      summary: 'Installs the Flexd platform',
-      description: 'Installs the Flexd platform on the AWS production account.',
+      summary: 'Installs the Fusebit platform',
+      description: 'Installs the Fusebit platform on the AWS production account.',
       options: [
         {
           name: 'confirm',
           aliases: ['c'],
-          description: 'If set to true, prompts for confirmation before installing the Flexd platform',
+          description: 'If set to true, prompts for confirmation before installing the Fusebit platform',
           type: ArgType.boolean,
           default: 'true',
         },
@@ -29,7 +29,7 @@ export class InstallCommand extends Command {
     return new InstallCommand(command, core);
   }
 
-  private constructor(commnd: ICommand, core: FlexdOpsCore) {
+  private constructor(commnd: ICommand, core: FusebitOpsCore) {
     super(commnd);
     this.core = core;
   }
@@ -39,7 +39,7 @@ export class InstallCommand extends Command {
     try {
       const message = await Message.create({
         header: 'Install Check',
-        message: 'Determining if the Flexd platform is already installed...',
+        message: 'Determining if the Fusebit platform is already installed...',
         kind: MessageKind.info,
       });
       await message.write(input.io);
@@ -48,7 +48,7 @@ export class InstallCommand extends Command {
     } catch (error) {
       const message = await Message.create({
         header: 'Install Error',
-        message: 'An error was encountered when trying to determine if the Flexd platform was installed.',
+        message: 'An error was encountered when trying to determine if the Fusebit platform was installed.',
         kind: MessageKind.error,
       });
       await message.write(input.io);
@@ -78,7 +78,7 @@ export class InstallCommand extends Command {
   private async alreadyInstalled(prodAccount: string, input: IExecuteInput) {
     const message = await Message.create({
       header: 'Already Installed',
-      message: Text.create('The Flexd platform is already installed on AWS account: ', Text.boldItalic(prodAccount)),
+      message: Text.create('The Fusebit platform is already installed on AWS account: ', Text.boldItalic(prodAccount)),
       kind: MessageKind.info,
     });
     await message.write(input.io);
@@ -89,7 +89,7 @@ export class InstallCommand extends Command {
     let install = !confirm;
     if (confirm) {
       const confirmPrompt = await Confirm.create({
-        header: 'Install the Flexd platform?',
+        header: 'Install the Fusebit platform?',
         details: [{ name: 'Aws Production Account', value: prodAccount }],
       });
       install = await confirmPrompt.prompt(input.io);
@@ -101,7 +101,7 @@ export class InstallCommand extends Command {
   private async cancelInstall(input: IExecuteInput) {
     const message = await Message.create({
       header: 'Install Canceled',
-      message: 'The Flexd platform installation was canceled.',
+      message: 'The Fusebit platform installation was canceled.',
       kind: MessageKind.warning,
     });
     await message.write(input.io);
@@ -111,7 +111,7 @@ export class InstallCommand extends Command {
     try {
       const message = await Message.create({
         header: 'Install',
-        message: 'Installing the Flexd platform...',
+        message: 'Installing the Fusebit platform...',
         kind: MessageKind.info,
       });
       await message.write(input.io);
@@ -120,7 +120,7 @@ export class InstallCommand extends Command {
     } catch (error) {
       const message = await Message.create({
         header: 'Install Error',
-        message: 'An error was encountered when trying to install the Flexd platform.',
+        message: 'An error was encountered when trying to install the Fusebit platform.',
         kind: MessageKind.error,
       });
       await message.write(input.io);
@@ -134,7 +134,7 @@ export class InstallCommand extends Command {
     const message = await Message.create({
       header: 'Install Complete',
       message: Text.create(
-        'The Flexd platform has been successfully installed on AWS account: ',
+        'The Fusebit platform has been successfully installed on AWS account: ',
         Text.boldItalic(prodAccount)
       ),
       kind: MessageKind.result,

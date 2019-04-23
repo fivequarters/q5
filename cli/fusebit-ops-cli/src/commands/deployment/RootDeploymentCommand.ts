@@ -1,5 +1,5 @@
 import { Command, IExecuteInput, Confirm, ArgType, MessageKind, Message } from '@5qtrs/cli';
-import { FlexdOpsCore, IFlexdOpsPublishDetails, IFlexdOpsDeployment } from '@5qtrs/fusebit-ops-core';
+import { FusebitOpsCore, IFusebitOpsPublishDetails, IFusebitOpsDeployment } from '@5qtrs/fusebit-ops-core';
 import { ExecuteService, ApiPublishService, DisplayService, SettingsService, ApiSetupService } from '../../services';
 import { Text } from '@5qtrs/text';
 
@@ -8,18 +8,18 @@ import { Text } from '@5qtrs/text';
 // ----------------
 
 export class RootDeploymentCommand extends Command {
-  private core: FlexdOpsCore;
+  private core: FusebitOpsCore;
 
-  public static async create(core: FlexdOpsCore) {
+  public static async create(core: FusebitOpsCore) {
     return new RootDeploymentCommand(core);
   }
 
-  private constructor(core: FlexdOpsCore) {
+  private constructor(core: FusebitOpsCore) {
     super({
       name: 'Deployment',
       cmd: 'root',
       summary: 'Root user access to a deployment',
-      description: 'Provides root user access to a deployment in the Flexd platform.',
+      description: 'Provides root user access to a deployment in the Fusebit platform.',
       arguments: [
         {
           name: 'name',
@@ -34,7 +34,7 @@ export class RootDeploymentCommand extends Command {
         {
           name: 'confirm',
           aliases: ['c'],
-          description: 'If set to true, prompts for confirmation before adding the deployment to the Flexd platform',
+          description: 'If set to true, prompts for confirmation before adding the deployment to the Fusebit platform',
           type: ArgType.boolean,
           default: 'true',
         },

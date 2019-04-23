@@ -1,5 +1,5 @@
 import { Command, IExecuteInput, Confirm, ArgType, Message, MessageKind } from '@5qtrs/cli';
-import { FlexdOpsCore, IFlexdOpsNetwork } from '@5qtrs/fusebit-ops-core';
+import { FusebitOpsCore, IFusebitOpsNetwork } from '@5qtrs/fusebit-ops-core';
 import { Text } from '@5qtrs/text';
 
 // ------------------
@@ -11,18 +11,18 @@ import { Text } from '@5qtrs/text';
 // ----------------
 
 export class AddNetworkCommand extends Command {
-  private core: FlexdOpsCore;
+  private core: FusebitOpsCore;
 
-  public static async create(core: FlexdOpsCore) {
+  public static async create(core: FusebitOpsCore) {
     return new AddNetworkCommand(core);
   }
 
-  private constructor(core: FlexdOpsCore) {
+  private constructor(core: FusebitOpsCore) {
     super({
       name: 'Add Network',
       cmd: 'add',
       summary: 'Add a network',
-      description: 'Adds a network to the Flexd platform in the given AWS account and region.',
+      description: 'Adds a network to the Fusebit platform in the given AWS account and region.',
       arguments: [
         {
           name: 'name',
@@ -41,7 +41,7 @@ export class AddNetworkCommand extends Command {
         {
           name: 'confirm',
           aliases: ['c'],
-          description: 'If set to true, prompts for confirmation before adding the network to the Flexd platform',
+          description: 'If set to true, prompts for confirmation before adding the network to the Fusebit platform',
           type: ArgType.boolean,
           default: 'true',
         },
@@ -50,7 +50,7 @@ export class AddNetworkCommand extends Command {
     this.core = core;
   }
 
-  private async doesNetworkExist(network: IFlexdOpsNetwork, input: IExecuteInput) {
+  private async doesNetworkExist(network: IFusebitOpsNetwork, input: IExecuteInput) {
     let networkExists = undefined;
     try {
       const message = await Message.create({
@@ -77,7 +77,7 @@ export class AddNetworkCommand extends Command {
     return networkExists;
   }
 
-  private async alreadyExists(network: IFlexdOpsNetwork, input: IExecuteInput) {
+  private async alreadyExists(network: IFusebitOpsNetwork, input: IExecuteInput) {
     const message = await Message.create({
       header: 'Already Exists',
       message: Text.create("The '", Text.bold(network.name), "' network already exists."),
@@ -86,12 +86,12 @@ export class AddNetworkCommand extends Command {
     await message.write(input.io);
   }
 
-  private async confirmNetwork(network: IFlexdOpsNetwork, input: IExecuteInput) {
+  private async confirmNetwork(network: IFusebitOpsNetwork, input: IExecuteInput) {
     const confirm = input.options.confirm as boolean;
     let add = !confirm;
     if (confirm) {
       const confirmPrompt = await Confirm.create({
-        header: 'Add the network to the Flexd platform?',
+        header: 'Add the network to the Fusebit platform?',
         details: [
           { name: 'Network Name', value: network.name },
           { name: 'Aws Account Name', value: network.account },
@@ -113,7 +113,7 @@ export class AddNetworkCommand extends Command {
     await message.write(input.io);
   }
 
-  private async addNetwork(network: IFlexdOpsNetwork, input: IExecuteInput) {
+  private async addNetwork(network: IFusebitOpsNetwork, input: IExecuteInput) {
     try {
       const message = await Message.create({
         header: 'Add Network',
@@ -128,7 +128,7 @@ export class AddNetworkCommand extends Command {
         header: 'Add Error',
         message:
           error.code !== undefined
-            ? 'An error was encountered when trying to add the network to the Flexd platform.'
+            ? 'An error was encountered when trying to add the network to the Fusebit platform.'
             : error.message,
         kind: MessageKind.error,
       });
@@ -139,10 +139,10 @@ export class AddNetworkCommand extends Command {
     return true;
   }
 
-  private async addComplete(network: IFlexdOpsNetwork, input: IExecuteInput) {
+  private async addComplete(network: IFusebitOpsNetwork, input: IExecuteInput) {
     const message = await Message.create({
       header: 'Add Complete',
-      message: Text.create("The '", Text.bold(network.name), "' network was successfully added to the Flexd platform."),
+      message: Text.create("The '", Text.bold(network.name), "' network was successfully added to the Fusebit platform."),
       kind: MessageKind.result,
     });
     await message.write(input.io);

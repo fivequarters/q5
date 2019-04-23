@@ -1,5 +1,5 @@
 import { Command, IExecuteInput, Message, MessageKind, ArgType } from '@5qtrs/cli';
-import { FlexdOpsCore, IFlexdOpsDomain } from '@5qtrs/fusebit-ops-core';
+import { FusebitOpsCore, IFusebitOpsDomain } from '@5qtrs/fusebit-ops-core';
 import { Text } from '@5qtrs/text';
 import { Table } from '@5qtrs/table';
 
@@ -8,18 +8,18 @@ import { Table } from '@5qtrs/table';
 // ----------------
 
 export class ListDomainCommand extends Command {
-  private core: FlexdOpsCore;
+  private core: FusebitOpsCore;
 
-  public static async create(core: FlexdOpsCore) {
+  public static async create(core: FusebitOpsCore) {
     return new ListDomainCommand(core);
   }
 
-  private constructor(core: FlexdOpsCore) {
+  private constructor(core: FusebitOpsCore) {
     super({
       name: 'List Domains',
       cmd: 'ls',
       summary: 'Lists domains',
-      description: 'Lists the domains in the Flexd platform.',
+      description: 'Lists the domains in the Fusebit platform.',
       options: [
         {
           name: 'quiet',
@@ -57,7 +57,7 @@ export class ListDomainCommand extends Command {
         header: 'List Error',
         message:
           error.code !== undefined
-            ? 'An error was encountered when trying to list the domains in the Flexd platform.'
+            ? 'An error was encountered when trying to list the domains in the Fusebit platform.'
             : error.message,
         kind: MessageKind.error,
       });
@@ -71,13 +71,13 @@ export class ListDomainCommand extends Command {
   private async noDomains(input: IExecuteInput) {
     const message = await Message.create({
       header: 'No Domains',
-      message: 'There are currently no domains in the Flexd platform.',
+      message: 'There are currently no domains in the Fusebit platform.',
       kind: MessageKind.info,
     });
     await message.write(input.io);
   }
 
-  private async displayDomains(domains: IFlexdOpsDomain[], input: IExecuteInput) {
+  private async displayDomains(domains: IFusebitOpsDomain[], input: IExecuteInput) {
     if (input.options.format === 'json') {
       input.io.writeLine(JSON.stringify(domains, null, 2));
     } else {

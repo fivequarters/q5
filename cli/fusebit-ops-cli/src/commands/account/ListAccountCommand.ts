@@ -1,5 +1,5 @@
 import { Command, IExecuteInput, Message, MessageKind, ArgType } from '@5qtrs/cli';
-import { FlexdOpsCore, IFlexdOpsAccount } from '@5qtrs/fusebit-ops-core';
+import { FusebitOpsCore, IFusebitOpsAccount } from '@5qtrs/fusebit-ops-core';
 import { Text } from '@5qtrs/text';
 import { Table } from '@5qtrs/table';
 
@@ -8,18 +8,18 @@ import { Table } from '@5qtrs/table';
 // ----------------
 
 export class ListAccountCommand extends Command {
-  private core: FlexdOpsCore;
+  private core: FusebitOpsCore;
 
-  public static async create(core: FlexdOpsCore) {
+  public static async create(core: FusebitOpsCore) {
     return new ListAccountCommand(core);
   }
 
-  private constructor(core: FlexdOpsCore) {
+  private constructor(core: FusebitOpsCore) {
     super({
       name: 'List Accounts',
       cmd: 'ls',
       summary: 'Lists accounts',
-      description: 'Lists the accounts in the Flexd platform.',
+      description: 'Lists the accounts in the Fusebit platform.',
       options: [
         {
           name: 'quiet',
@@ -57,7 +57,7 @@ export class ListAccountCommand extends Command {
         header: 'List Error',
         message:
           error.code !== undefined
-            ? 'An error was encountered when trying to list the accounts in the Flexd platform.'
+            ? 'An error was encountered when trying to list the accounts in the Fusebit platform.'
             : error.message,
         kind: MessageKind.error,
       });
@@ -71,13 +71,13 @@ export class ListAccountCommand extends Command {
   private async noAccounts(input: IExecuteInput) {
     const message = await Message.create({
       header: 'No Accounts',
-      message: 'There are currently no accounts in the Flexd platform.',
+      message: 'There are currently no accounts in the Fusebit platform.',
       kind: MessageKind.info,
     });
     await message.write(input.io);
   }
 
-  private async displayAccounts(accounts: IFlexdOpsAccount[], input: IExecuteInput) {
+  private async displayAccounts(accounts: IFusebitOpsAccount[], input: IExecuteInput) {
     if (input.options.format === 'json') {
       input.io.writeLine(JSON.stringify(accounts, null, 2));
     } else {

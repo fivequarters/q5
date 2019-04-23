@@ -1,43 +1,43 @@
-import { FlexdOpsDotConfig, AwsAccountType, IAwsUser } from './FlexdOpsDotConfig';
-import { AwsCreds, IMfaCodeResolver as IFlexdOpsMfaCodeResolver } from '@5qtrs/aws-cred';
+import { FusebitOpsDotConfig, AwsAccountType, IAwsUser } from './FusebitOpsDotConfig';
+import { AwsCreds, IMfaCodeResolver as IFusebitOpsMfaCodeResolver } from '@5qtrs/aws-cred';
 import {
   OpsCoreAws,
-  IOpsAwsAccount as IFlexdOpsAccount,
-  IOpsAwsNetwork as IFlexdOpsNetwork,
-  IOpsAwsDomain as IFlexdOpsDomain,
+  IOpsAwsAccount as IFusebitOpsAccount,
+  IOpsAwsNetwork as IFusebitOpsNetwork,
+  IOpsAwsDomain as IFusebitOpsDomain,
 } from '@5qtrs/ops-core-aws';
 
 import {
   OpsDeployAws,
-  IOpsAwsDeployment as IFlexdOpsDeployment,
-  IOpsAwsDeploymentDetails as IFlexdOpsDeploymentDetails,
-  IOpsAwsDeploymentDetailsList as IFlexdOpsDeploymentDetailsList,
+  IOpsAwsDeployment as IFusebitOpsDeployment,
+  IOpsAwsDeploymentDetails as IFusebitOpsDeploymentDetails,
+  IOpsAwsDeploymentDetailsList as IFusebitOpsDeploymentDetailsList,
 } from '@5qtrs/ops-deploy-aws';
 
-import { OpsPublishAws, IOpsAwsPublishDetails as IFlexdOpsPublishDetails } from '@5qtrs/ops-publish-aws';
+import { OpsPublishAws, IOpsAwsPublishDetails as IFusebitOpsPublishDetails } from '@5qtrs/ops-publish-aws';
 import { OpsApiAws } from '@5qtrs/ops-api-aws';
 import { OpsAccountAws } from '@5qtrs/ops-account-aws';
 import { OpsUserAws } from '@5qtrs/ops-user-aws';
 
 export {
-  IOpsAwsPublishDetails as IFlexdOpsPublishDetails,
-  IOpsAwsPublishDetailsList as IFlexdOpsPublishDetailsList,
+  IOpsAwsPublishDetails as IFusebitOpsPublishDetails,
+  IOpsAwsPublishDetailsList as IFusebitOpsPublishDetailsList,
 } from '@5qtrs/ops-publish-aws';
 
 export {
-  IOpsAwsDeployment as IFlexdOpsDeployment,
-  IOpsAwsDeploymentDetails as IFlexdOpsDeploymentDetails,
-  IOpsAwsDeploymentDetailsList as IFlexdOpsDeploymentDetailsList,
+  IOpsAwsDeployment as IFusebitOpsDeployment,
+  IOpsAwsDeploymentDetails as IFusebitOpsDeploymentDetails,
+  IOpsAwsDeploymentDetailsList as IFusebitOpsDeploymentDetailsList,
 } from '@5qtrs/ops-deploy-aws';
 
 export {
-  IOpsAwsAccount as IFlexdOpsAccount,
-  IOpsAwsNetwork as IFlexdOpsNetwork,
-  IOpsAwsDomain as IFlexdOpsDomain,
+  IOpsAwsAccount as IFusebitOpsAccount,
+  IOpsAwsNetwork as IFusebitOpsNetwork,
+  IOpsAwsDomain as IFusebitOpsDomain,
 } from '@5qtrs/ops-core-aws';
-export { IMfaCodeResolver as IFlexdOpsMfaCodeResolver } from '@5qtrs/aws-cred';
+export { IMfaCodeResolver as IFusebitOpsMfaCodeResolver } from '@5qtrs/aws-cred';
 
-import { FlexdProfile } from '@5qtrs/fusebit-profile-sdk';
+import { FusebitProfile } from '@5qtrs/fusebit-profile-sdk';
 
 // ------------------
 // Internal Constants
@@ -49,7 +49,7 @@ const mainProdRole = 'main';
 // Internal Interfaces
 // -------------------
 
-interface IFlexdDeployment {
+interface IFusebitDeployment {
   [index: string]: OpsApiAws;
 }
 
@@ -57,7 +57,7 @@ interface IFlexdDeployment {
 // Exported Interfaces
 // -------------------
 
-export interface IFlexdOpsCoreSettings {
+export interface IFusebitOpsCoreSettings {
   awsProdAccount?: string;
   awsUserAccount?: string;
   awsProdRole?: string;
@@ -66,7 +66,7 @@ export interface IFlexdOpsCoreSettings {
   awsUserAccessKeyId?: string;
 }
 
-export interface IFlexdOpsLogEntry {
+export interface IFusebitOpsLogEntry {
   error?: Error;
   message?: string;
 }
@@ -75,25 +75,25 @@ export interface IFlexdOpsLogEntry {
 // Exported Classes
 // ----------------
 
-export class FlexdOpsCore {
-  private dotConfig: FlexdOpsDotConfig;
-  private flexdDeployment?: IFlexdDeployment;
-  private mfaCodeResolver?: IFlexdOpsMfaCodeResolver;
+export class FusebitOpsCore {
+  private dotConfig: FusebitOpsDotConfig;
+  private fusebitDeployment?: IFusebitDeployment;
+  private mfaCodeResolver?: IFusebitOpsMfaCodeResolver;
   private opsDeploy?: OpsDeployAws;
   private opsPublish?: OpsPublishAws;
   private opsCore?: OpsCoreAws;
   private userCreds?: AwsCreds;
-  private log: IFlexdOpsLogEntry[];
+  private log: IFusebitOpsLogEntry[];
 
-  private constructor(dotConfig: FlexdOpsDotConfig, mfaCodeResolver?: IFlexdOpsMfaCodeResolver) {
+  private constructor(dotConfig: FusebitOpsDotConfig, mfaCodeResolver?: IFusebitOpsMfaCodeResolver) {
     this.dotConfig = dotConfig;
     this.mfaCodeResolver = mfaCodeResolver;
     this.log = [];
   }
 
-  public static async create(mfaCodeResolver?: IFlexdOpsMfaCodeResolver) {
-    const dotConfig = await FlexdOpsDotConfig.create();
-    return new FlexdOpsCore(dotConfig, mfaCodeResolver);
+  public static async create(mfaCodeResolver?: IFusebitOpsMfaCodeResolver) {
+    const dotConfig = await FusebitOpsDotConfig.create();
+    return new FusebitOpsCore(dotConfig, mfaCodeResolver);
   }
 
   public async getMode(): Promise<string | undefined> {
@@ -117,7 +117,7 @@ export class FlexdOpsCore {
     return this.log.slice();
   }
 
-  public async setSettings(settings: IFlexdOpsCoreSettings) {
+  public async setSettings(settings: IFusebitOpsCoreSettings) {
     if (settings.awsProdAccount) {
       await this.dotConfig.setAwsAccount(AwsAccountType.prod, settings.awsProdAccount);
     }
@@ -214,13 +214,13 @@ export class FlexdOpsCore {
     return opsDeploy.setup();
   }
 
-  public async accountExists(account: IFlexdOpsAccount) {
+  public async accountExists(account: IFusebitOpsAccount) {
     await this.errorIfNotInstalled();
     const opsCore = await this.getOpsCore();
     return opsCore.awsAccountExists(account);
   }
 
-  public async addAccount(account: IFlexdOpsAccount) {
+  public async addAccount(account: IFusebitOpsAccount) {
     await this.errorIfNotInstalled();
     const opsCore = await this.getOpsCore();
     return opsCore.addAwsAccount(account);
@@ -232,13 +232,13 @@ export class FlexdOpsCore {
     return opsCore.listAwsAccounts();
   }
 
-  public async networkExists(network: IFlexdOpsNetwork) {
+  public async networkExists(network: IFusebitOpsNetwork) {
     await this.errorIfNotInstalled();
     const opsCore = await this.getOpsCore();
     return opsCore.awsNetworkExists(network);
   }
 
-  public async addNetwork(network: IFlexdOpsNetwork) {
+  public async addNetwork(network: IFusebitOpsNetwork) {
     await this.errorIfNotInstalled();
     const opsCore = await this.getOpsCore();
     return opsCore.addAwsNetwork(network);
@@ -250,13 +250,13 @@ export class FlexdOpsCore {
     return opsCore.listAwsNetworks();
   }
 
-  public async domainExists(domain: IFlexdOpsDomain) {
+  public async domainExists(domain: IFusebitOpsDomain) {
     await this.errorIfNotInstalled();
     const opsCore = await this.getOpsCore();
     return opsCore.awsDomainExists(domain);
   }
 
-  public async addDomain(domain: IFlexdOpsDomain) {
+  public async addDomain(domain: IFusebitOpsDomain) {
     await this.errorIfNotInstalled();
     const opsCore = await this.getOpsCore();
     return opsCore.addAwsDomain(domain);
@@ -277,32 +277,32 @@ export class FlexdOpsCore {
   public async buildApi(apiName: string) {
     await this.errorIfNotAnApi(apiName);
     const publish = await this.getOpsPublish();
-    const flexdDeployment = await this.getFlexdDeployment();
-    const api = flexdDeployment[apiName];
+    const fusebitDeployment = await this.getFusebitDeployment();
+    const api = fusebitDeployment[apiName];
     return publish.buildApi(api.getApiWorkspaceName());
   }
 
   public async bundleApi(apiName: string) {
     await this.errorIfNotAnApi(apiName);
     const publish = await this.getOpsPublish();
-    const flexdDeployment = await this.getFlexdDeployment();
-    const api = flexdDeployment[apiName];
+    const fusebitDeployment = await this.getFusebitDeployment();
+    const api = fusebitDeployment[apiName];
     return publish.bundleApi(api.getApiWorkspaceName());
   }
 
   public async publishApi(apiName: string, user: string, comment?: string) {
     await this.errorIfNotAnApi(apiName);
     const publish = await this.getOpsPublish();
-    const flexdDeployment = await this.getFlexdDeployment();
-    const api = flexdDeployment[apiName];
+    const fusebitDeployment = await this.getFusebitDeployment();
+    const api = fusebitDeployment[apiName];
     const workspace = api.getApiWorkspaceName();
     return publish.publishApi({ api: apiName, workspace, user, comment });
   }
 
   public async listApis() {
-    const flexdDeployment = await this.getFlexdDeployment();
+    const fusebitDeployment = await this.getFusebitDeployment();
     return [];
-    //return Object.keys(flexdDeployment);
+    //return Object.keys(fusebitDeployment);
   }
 
   public async getPublishedApi(api: string, publishId: string) {
@@ -322,37 +322,37 @@ export class FlexdOpsCore {
     return deploy.getAwsDeployment(deploymentName);
   }
 
-  public async deploymentExists(deployment: IFlexdOpsDeployment) {
+  public async deploymentExists(deployment: IFusebitOpsDeployment) {
     const deploy = await this.getOpsDeploy();
     return deploy.awsDeploymentExists(deployment);
   }
 
-  public async addDeployment(deployment: IFlexdOpsDeployment, publishDetails: IFlexdOpsPublishDetails[]) {
+  public async addDeployment(deployment: IFusebitOpsDeployment, publishDetails: IFusebitOpsPublishDetails[]) {
     const deploy = await this.getOpsDeploy();
     deployment.apis = publishDetails.map(detail => ({ name: detail.api, publishId: detail.id }));
     return deploy.addAwsDeployment(deployment);
   }
 
-  public async certExists(deployment: IFlexdOpsDeployment) {
+  public async certExists(deployment: IFusebitOpsDeployment) {
     const deploy = await this.getOpsDeploy();
     return deploy.awsCertExists(deployment.name);
   }
 
-  public async issueCert(deployment: IFlexdOpsDeployment) {
+  public async issueCert(deployment: IFusebitOpsDeployment) {
     const deploy = await this.getOpsDeploy();
     return deploy.issueAwsCert(deployment.name);
   }
 
-  public async isApiSetup(deployment: IFlexdOpsDeployment, apiName: string) {
-    const flexdDeployment = await this.getFlexdDeployment();
-    const opsApi = flexdDeployment[apiName];
+  public async isApiSetup(deployment: IFusebitOpsDeployment, apiName: string) {
+    const fusebitDeployment = await this.getFusebitDeployment();
+    const opsApi = fusebitDeployment[apiName];
     const deploy = await this.getOpsDeploy();
     return deploy.isApiSetup(deployment.name, opsApi);
   }
 
-  public async setupApi(deployment: IFlexdOpsDeployment, publishDetails: IFlexdOpsPublishDetails) {
-    const flexdDeployment = await this.getFlexdDeployment();
-    const opsApi = flexdDeployment[publishDetails.api];
+  public async setupApi(deployment: IFusebitOpsDeployment, publishDetails: IFusebitOpsPublishDetails) {
+    const fusebitDeployment = await this.getFusebitDeployment();
+    const opsApi = fusebitDeployment[publishDetails.api];
     const deployApi = {
       s3Bucket: publishDetails.s3Bucket,
       s3Key: publishDetails.s3Key,
@@ -363,9 +363,9 @@ export class FlexdOpsCore {
     return deploy.setupApi(deployment.name, deployApi, opsApi);
   }
 
-  public async deployApi(deployment: IFlexdOpsDeployment, publishDetails: IFlexdOpsPublishDetails) {
-    const flexdDeployment = await this.getFlexdDeployment();
-    const opsApi = flexdDeployment[publishDetails.api];
+  public async deployApi(deployment: IFusebitOpsDeployment, publishDetails: IFusebitOpsPublishDetails) {
+    const fusebitDeployment = await this.getFusebitDeployment();
+    const opsApi = fusebitDeployment[publishDetails.api];
     const deployApi = {
       s3Bucket: publishDetails.s3Bucket,
       s3Key: publishDetails.s3Key,
@@ -376,7 +376,7 @@ export class FlexdOpsCore {
     return deploy.deployApi(deployment.name, deployApi, opsApi);
   }
 
-  public async addDeploymentAlb(deployment: IFlexdOpsDeployment) {
+  public async addDeploymentAlb(deployment: IFusebitOpsDeployment) {
     const deploy = await this.getOpsDeploy();
     return deploy.addAwsAlb(deployment.name);
   }
@@ -391,26 +391,26 @@ export class FlexdOpsCore {
     return deploy.deployInstance(deploymentName, image);
   }
 
-  private async getFlexdDeployment() {
-    if (!this.flexdDeployment) {
+  private async getFusebitDeployment() {
+    if (!this.fusebitDeployment) {
       const opsCore = await this.getOpsCore();
       const accountApi = await OpsAccountAws.create(opsCore);
       const userApi = await OpsUserAws.create(opsCore);
-      this.flexdDeployment = {};
+      this.fusebitDeployment = {};
 
       const accountApiName = accountApi.getApiName();
-      this.flexdDeployment[accountApiName] = accountApi;
+      this.fusebitDeployment[accountApiName] = accountApi;
 
       const userApiName = userApi.getApiName();
-      this.flexdDeployment[userApiName] = userApi;
+      this.fusebitDeployment[userApiName] = userApi;
     }
-    return this.flexdDeployment;
+    return this.fusebitDeployment;
   }
 
   public async setupAccountApi(deploymentName: string) {
     const deployment = await this.getDeployment(deploymentName);
     if (!deployment) {
-      const message = `There is no '${deploymentName}' deployment on the Flexd platform.`;
+      const message = `There is no '${deploymentName}' deployment on the Fusebit platform.`;
       throw new Error(message);
     }
 
@@ -435,26 +435,26 @@ export class FlexdOpsCore {
   // public async addRootUser(deploymentName: string, firstName: string, lastName: string) {
   //   const deployment = await this.getDeployment(deploymentName);
   //   if (!deployment) {
-  //     const message = `There is no '${deploymentName}' deployment on the Flexd platform.`;
+  //     const message = `There is no '${deploymentName}' deployment on the Fusebit platform.`;
   //     throw new Error(message);
   //   }
   //   const domain = await this.getDomain(deployment.domain);
   //   if (!domain) {
-  //     const message = `There is no '${deployment.domain}' domain on the Flexd platform.`;
+  //     const message = `There is no '${deployment.domain}' domain on the Fusebit platform.`;
   //     throw new Error(message);
   //   }
 
-  //   const flexdProfile = await FlexdProfile.create();
+  //   const FusebitProfile = await FusebitProfile.create();
   //   const profileName = `${deploymentName}-root`;
   //   const baseUrl = `${deploymentName}.${domain.name}`;
 
-  //   const rootUserProfile = await flexdProfile.addProfile(profileName, { baseUrl });
+  //   const rootUserProfile = await FusebitProfile.addProfile(profileName, { baseUrl });
   //   if (!rootUserProfile.issuer || !rootUserProfile.subject) {
   //     const message = `There was an issue generating the issuer for the new '${profileName}' profile.`;
   //     throw new Error(message);
   //   }
 
-  //   const publicKey = await flexdProfile.getPublicKey(profileName);
+  //   const publicKey = await FusebitProfile.getPublicKey(profileName);
   //   if (!publicKey) {
   //     const message = `There was an issue generating the public key for the new '${profileName}' profile.`;
   //     throw new Error(message);
@@ -485,10 +485,10 @@ export class FlexdOpsCore {
   // }
 
   private async errorIfNotAnApi(name: string) {
-    const flexdDeployment = await this.getFlexdDeployment();
-    const api = flexdDeployment[name];
+    const fusebitDeployment = await this.getFusebitDeployment();
+    const api = fusebitDeployment[name];
     if (!api) {
-      const message = `There is no '${name}' api on the Flexd platform.`;
+      const message = `There is no '${name}' api on the Fusebit platform.`;
       throw new Error(message);
     }
   }
@@ -497,7 +497,7 @@ export class FlexdOpsCore {
     const installed = await this.installationExists();
     if (!installed) {
       const message = [
-        'The Flexd platform is not installed. Ensure that the Flexd platform',
+        'The Fusebit platform is not installed. Ensure that the Fusebit platform',
         'is installed and then try again.',
       ].join(' ');
       throw new Error(message);

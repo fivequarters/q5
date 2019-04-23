@@ -1,5 +1,5 @@
 import { IExecuteInput } from '@5qtrs/cli';
-import { FlexdOpsCore, IFlexdOpsDeployment, IFlexdOpsPublishDetails } from '@5qtrs/fusebit-ops-core';
+import { FusebitOpsCore, IFusebitOpsDeployment, IFusebitOpsPublishDetails } from '@5qtrs/fusebit-ops-core';
 import { Text } from '@5qtrs/text';
 import { ExecuteService } from './ExecuteService';
 
@@ -8,22 +8,22 @@ import { ExecuteService } from './ExecuteService';
 // ----------------
 
 export class ApiSetupService {
-  private core: FlexdOpsCore;
+  private core: FusebitOpsCore;
   private input: IExecuteInput;
   private executeService: ExecuteService;
 
-  private constructor(core: FlexdOpsCore, input: IExecuteInput, executeService: ExecuteService) {
+  private constructor(core: FusebitOpsCore, input: IExecuteInput, executeService: ExecuteService) {
     this.core = core;
     this.input = input;
     this.executeService = executeService;
   }
 
-  public static async create(core: FlexdOpsCore, input: IExecuteInput) {
+  public static async create(core: FusebitOpsCore, input: IExecuteInput) {
     const executeService = await ExecuteService.create(core, input);
     return new ApiSetupService(core, input, executeService);
   }
 
-  public async setupApi(deployment: IFlexdOpsDeployment, publishDetails: IFlexdOpsPublishDetails) {
+  public async setupApi(deployment: IFusebitOpsDeployment, publishDetails: IFusebitOpsPublishDetails) {
     return this.executeService.execute(
       {
         header: 'Setting up Api',
