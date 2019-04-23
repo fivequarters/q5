@@ -1,5 +1,5 @@
 {
-  "name": "@5qtrs/flexd-functions",
+  "name": "@5qtrs/function-api",
   "version": "0.0.1",
   "description": "",
   "main": "libc/index.js",

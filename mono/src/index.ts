@@ -4,17 +4,16 @@ const spawn = require('child_process').spawn;
 const Path = require('path');
 
 function execute() {
-
   const processes = [
-    [ Path.join(__dirname, '../../api/int/pubsub/libc/index.js') ],
-    [ Path.join(__dirname, '../../api/ext/flexd-functions/libc/index.js') ],
+    [Path.join(__dirname, '../../api/int/pubsub/libc/index.js')],
+    [Path.join(__dirname, '../../api/ext/function-api/libc/index.js')],
   ];
 
   let children: any[] = [];
 
   processes.forEach(p => {
     let child = spawn('node', p, {
-      stdio: ['inherit', 'inherit', 'inherit']
+      stdio: ['inherit', 'inherit', 'inherit'],
     });
     children.push(child);
     child.on('close', onClose(p));
@@ -34,23 +33,22 @@ function execute() {
     return (code, signal) => {
       console.log(`Process ${p} exited with code ${code} and signal ${signal}.`);
       terminate(code);
-    }
+    };
   }
 
   function onError(p: string[]) {
     // @ts-ignore
-    return error  => {
+    return error => {
       console.log(`Process ${p} exited with error ${error.message || error}.`);
       terminate(13);
-    }
+    };
   }
 
   function terminate(code: any) {
     children.forEach(c => {
       try {
         c.kill();
-      }
-      catch (_) {}
+      } catch (_) {}
     });
     setTimeout(() => process.exit(code), 100);
   }
