@@ -8,8 +8,8 @@ import { ExecuteService, VersionService } from '../services';
 const command = {
   name: 'Version',
   cmd: 'version',
-  summary: 'Returns the version of the flx CLI',
-  description: 'Returns the current version of the flx CLI.',
+  summary: 'Returns the version of the Fusebit CLI',
+  description: 'Returns the current version of the Fusebit CLI.',
 };
 
 // ----------------

@@ -6,7 +6,7 @@
   "license": "UNLICENSED",
   "author": "FiveQuarters.io",
   "bin": {
-    "flx-ops": "libc/index.js"
+    "fuse-ops": "libc/index.js"
   },
   "scripts": {
     "build": "tsc -b",
@@ -14,7 +14,7 @@
     "coverage": "jest --colors --coverage",
     "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x} test/{,**/}*.ts{,x}",
     "clean": "rm -r -f libc; rm -r -f coverage",
-    "cli-link": "yarn link"
+    "cli-link": "yarn link && chmod +x ~/.yarn/bin/fuse-ops"
   },
   "keywords": [],
   "dependencies": {

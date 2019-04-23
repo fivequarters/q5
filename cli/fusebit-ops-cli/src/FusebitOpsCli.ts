@@ -77,7 +77,7 @@ export class FusebitOpsCli extends Command {
     const cli = {
       name: 'Fusebit Ops CLI',
       description: 'A command-line tool (CLI) for the managing the operations of the Fusebit platform.',
-      cli: 'flx-ops',
+      cli: 'fuse-ops',
       options: [
         {
           name: 'verbose',
