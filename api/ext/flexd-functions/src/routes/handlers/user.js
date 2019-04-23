@@ -1,4 +1,4 @@
-const { getAccountContext, errorHandler } = require('../account');
+const { getAccountContext, getBaseUrl, errorHandler } = require('../account');
 
 function userPost() {
   return (req, res) => {
@@ -100,7 +100,7 @@ function userInit() {
     getAccountContext().then(accountContext => {
       const resolvedAgent = req.resolvedAgent;
       const initEntry = req.body;
-      initEntry.baseUrl = process.env.API_SERVER;
+      initEntry.baseUrl = getBaseUrl(req);
       initEntry.accountId = req.params.accountId;
       initEntry.agentId = req.params.userId;
 

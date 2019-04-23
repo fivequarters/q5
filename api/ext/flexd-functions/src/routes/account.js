@@ -32,6 +32,12 @@ async function getResolvedAgent(accountId, token) {
   return accountContext.getResolvedAgent(accountId, token, isRootAgent);
 }
 
+function getBaseUrl(req) {
+  const host = req.headers.host;
+  const proto = req.headers['x-forwarded-proto'] ? req.headers['x-forwarded-proto'].split(',')[0] : 'http';
+  return `${proto}://${host}`;
+}
+
 function errorHandler(res) {
   return error => {
     if (error.code === 'unauthorized') {
@@ -57,4 +63,5 @@ module.exports = {
   getAccountContext,
   getResolvedAgent,
   errorHandler,
+  getBaseUrl,
 };
