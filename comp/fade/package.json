@@ -23,7 +23,7 @@
     "react-dom": "^16.8.2",
     "@types/react": "^16.7.17",
     "@types/react-dom": "^16.0.11",
-    "@types/styled-components": "^4.1.4"
+    "@types/styled-components": "4.1.8"
   },
   "devServer": {
     "port": 9003

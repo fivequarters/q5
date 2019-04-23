@@ -4,7 +4,7 @@
   "include": ["src"],
   "references": [
     { "path": "../../../lib/shared/request" },
-    { "path": "../../../lib/server/server" },
+    { "path": "../../../lib/node/server" },
     { "path": "../../../lib/shared/config" }
   ]
 }

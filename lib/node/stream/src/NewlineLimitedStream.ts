@@ -2,39 +2,42 @@ import { EOL } from 'os';
 import { PassThrough } from 'stream';
 import { StringDecoder } from 'string_decoder';
 
-function indentFromNumber(value: number) {
-  let indent = '';
-  while (value-- > 0) {
-    indent += ' ';
-  }
-  return indent;
-}
+const defaultLimit = 1;
 
-export class IndentTextStream extends PassThrough {
-  private indent: number = 0;
-  private indentString: string = '';
+export class NewlineLimitedStream extends PassThrough {
+  private enabled: boolean = true;
+  private limit: number = defaultLimit;
+  private newlineCount: number = 0;
   private trailingWhitespace: string = '';
 
-  constructor(indent: number = 0) {
+  constructor(limit: number = defaultLimit) {
     super();
-    this.Indent = indent;
+    this.Limit = limit;
   }
 
-  get Indent(): number {
-    return this.indent;
+  get Enabled(): boolean {
+    return this.enabled;
   }
 
-  set Indent(value: number) {
+  set Enabled(value: boolean) {
+    this.enabled = value;
+  }
+
+  get Limit(): number {
+    return this.limit;
+  }
+
+  set Limit(value: number) {
     if (value >= 0) {
-      this.indent = value;
-      this.indentString = indentFromNumber(value);
+      this.limit = value;
     }
   }
 
   public push(chunk: any, encoding?: string): boolean {
-    if (chunk) {
+    if (this.Enabled && chunk) {
       const decoder = new StringDecoder(encoding);
       let text = decoder.write(chunk);
+
       if (this.trailingWhitespace.length) {
         text = this.trailingWhitespace + text;
         this.trailingWhitespace = '';
@@ -49,17 +52,23 @@ export class IndentTextStream extends PassThrough {
           if (text.trim() === '') {
             this.trailingWhitespace = text;
           } else {
-            lines.push(this.indentString + text);
+            lines.push(text);
+            this.newlineCount = 0;
           }
           break;
         }
 
         const segment = text.substr(start, end);
         if (segment.trim() !== '') {
-          lines.push(this.indentString + segment);
+          lines.push(segment);
+          this.newlineCount = 0;
         }
 
-        lines.push(EOL);
+        if (this.newlineCount < this.limit) {
+          lines.push(EOL);
+        }
+
+        this.newlineCount++;
 
         if (end + 1 >= text.length) {
           break;
@@ -67,7 +76,7 @@ export class IndentTextStream extends PassThrough {
 
         text = text.substr(end + 1);
       }
-      chunk = Buffer.from(lines.join(''), encoding);
+      chunk = Buffer.from(lines.join(''), encoding as BufferEncoding);
     }
     return super.push(chunk, encoding);
   }

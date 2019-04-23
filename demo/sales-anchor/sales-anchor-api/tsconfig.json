@@ -3,10 +3,10 @@
   "compilerOptions": { "rootDir": "src", "module": "CommonJS", "outDir": "libc" },
   "include": ["src"],
   "references": [
-    { "path": "../../../lib/server/server" },
+    { "path": "../../../lib/node/server" },
     { "path": "../../../lib/shared/config" },
     { "path": "../../../lib/shared/request" },
-    { "path": "../../../lib/server/key-pair" },
-    { "path": "../../../lib/server/jwt" }
+    { "path": "../../../lib/node/key-pair" },
+    { "path": "../../../lib/node/jwt" }
   ]
 }

@@ -20,6 +20,9 @@ libc/
 libm/
 !/lib
 
+# Typescript compiler
+*.tsbuildinfo
+
 # Webpack bundles
 dist/
 package/

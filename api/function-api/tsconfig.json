@@ -13,7 +13,7 @@
   "references": [
     { "path": "../../lib/aws/aws-cred" },
     { "path": "../../lib/aws/aws-deployment" },
-    { "path": "../../lib/server/jwt" },
+    { "path": "../../lib/node/jwt" },
     { "path": "../../lib/shared/request" },
     { "path": "../../lib/server/flexd-profile" },
     { "path": "../../lib/server/account" },
