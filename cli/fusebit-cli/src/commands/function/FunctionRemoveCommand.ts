@@ -1,7 +1,7 @@
 import { EOL } from 'os';
 import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
 import { request } from '@5qtrs/request';
-import { ProfileService, VersionService, tryGetFlexd, getProfileSettingsFromFlexd } from '../../services';
+import { ProfileService, VersionService, tryGetFusebit, getProfileSettingsFromFusebit } from '../../services';
 
 export class FunctionRemoveCommand extends Command {
   private constructor() {
@@ -44,7 +44,7 @@ export class FunctionRemoveCommand extends Command {
 
     let profile = await profileService.getExecutionProfile(
       ['subscription', 'boundary', 'function'],
-      getProfileSettingsFromFlexd(tryGetFlexd())
+      getProfileSettingsFromFusebit(tryGetFusebit())
     );
 
     if (

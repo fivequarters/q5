@@ -7,8 +7,8 @@ import {
   parseKeyValue,
   ExecuteService,
   VersionService,
-  tryGetFlexd,
-  getProfileSettingsFromFlexd,
+  tryGetFusebit,
+  getProfileSettingsFromFusebit,
 } from '../../services';
 import * as Path from 'path';
 import * as Fs from 'fs';
@@ -27,8 +27,8 @@ export class FunctionDeployCommand extends Command {
         'You can specify function configuration using the .env file, and NPM module dependenies using',
         'the package.json file. All files must be located directly in the specified directory; subdirectories',
         'are not considered.',
-        `${EOL}${EOL}If the source directory contains .flexd.json file with metadata of an existing function,`,
-        'that metadata is used, but can be overriden using command line options. The .flexd.json file is created',
+        `${EOL}${EOL}If the source directory contains .fusebit.json file with metadata of an existing function,`,
+        'that metadata is used, but can be overriden using command line options. The .fusebit.json file is created',
         'when you run the `flx function get` command to download an existing function.',
       ].join(' '),
       arguments: [
@@ -87,23 +87,23 @@ export class FunctionDeployCommand extends Command {
     const executeService = await ExecuteService.create(input);
     const versionService = await VersionService.create(input);
     let sourceDirectory = Path.join(process.cwd(), (input.arguments[0] as string) || '');
-    let flexd = tryGetFlexd(sourceDirectory);
+    let fusebit = tryGetFusebit(sourceDirectory);
     let profile = await profileService.getExecutionProfile(
       ['subscription', 'boundary', 'function'],
-      getProfileSettingsFromFlexd(flexd)
+      getProfileSettingsFromFusebit(fusebit)
     );
 
-    if (!flexd) {
-      flexd = {
+    if (!fusebit) {
+      fusebit = {
         lambda: {
           memory_size: 128,
           timeout: 30,
         },
       };
     }
-    if (flexd.lambda) {
-      flexd.metadata = flexd.metadata || {};
-      flexd.metadata.computeSettings = serializeKeyValue(flexd.lambda);
+    if (fusebit.lambda) {
+      fusebit.metadata = fusebit.metadata || {};
+      fusebit.metadata.computeSettings = serializeKeyValue(fusebit.lambda);
     }
 
     await executeService.execute(
@@ -126,26 +126,26 @@ export class FunctionDeployCommand extends Command {
           nodejs: { files: {} },
         };
         ['lambda', 'metadata', 'schedule'].forEach(x => {
-          if (flexd[x]) tmp[x] = flexd[x];
+          if (fusebit[x]) tmp[x] = fusebit[x];
         });
-        flexd = tmp;
-        if (flexd.schedule && Object.keys(flexd.schedule).length === 0) {
-          delete flexd.schedule;
+        fusebit = tmp;
+        if (fusebit.schedule && Object.keys(fusebit.schedule).length === 0) {
+          delete fusebit.schedule;
         }
 
         if (input.options.cron) {
           if ((<string>input.options.cron).match(/^off$/i)) {
-            delete flexd.schedule;
-            if (flexd.metadata) {
-              delete flexd.metadata.cronSettings;
+            delete fusebit.schedule;
+            if (fusebit.metadata) {
+              delete fusebit.metadata.cronSettings;
             }
           } else {
-            flexd.schedule = flexd.schedule || {};
-            flexd.schedule.cron = input.options.cron;
+            fusebit.schedule = fusebit.schedule || {};
+            fusebit.schedule.cron = input.options.cron;
             if (input.options.timezone) {
-              flexd.schedule.timezone = input.options.timezone;
-              flexd.metadata = flexd.metadata || {};
-              flexd.metadata.cronSettings = serializeKeyValue(flexd.schedule);
+              fusebit.schedule.timezone = input.options.timezone;
+              fusebit.metadata = fusebit.metadata || {};
+              fusebit.metadata.cronSettings = serializeKeyValue(fusebit.schedule);
             }
           }
         } else if (input.options.timezone) {
@@ -156,7 +156,7 @@ export class FunctionDeployCommand extends Command {
         for (var i = 0; i < files.length; i++) {
           var f = files[i];
           if (!f.isFile()) {
-            if (f.name !== '.flexd') {
+            if (f.name !== '.fusebit') {
               await (await Message.create({
                 header: f.name,
                 message: `Ignoring`,
@@ -165,7 +165,7 @@ export class FunctionDeployCommand extends Command {
             } else {
               await (await Message.create({
                 header: f.name,
-                message: `The .flexd/function.json is present, defaults specified in this file are used.`,
+                message: `The .fusebit/function.json is present, defaults specified in this file are used.`,
                 kind: MessageKind.info,
               })).write(input.io);
             }
@@ -181,15 +181,15 @@ export class FunctionDeployCommand extends Command {
               message: `The .env file is present, function configuration will use the values specified in the file.`,
               kind: MessageKind.info,
             })).write(input.io);
-            flexd.configuration = parseKeyValue(content) || {};
-            flexd.metadata = flexd.metadata || {};
-            flexd.metadata.applicationSettings = content;
+            fusebit.configuration = parseKeyValue(content) || {};
+            fusebit.metadata = fusebit.metadata || {};
+            fusebit.metadata.applicationSettings = content;
             continue;
           }
-          flexd.nodejs.files[f.name] = content;
+          fusebit.nodejs.files[f.name] = content;
         }
 
-        if (!flexd.nodejs.files['index.js']) {
+        if (!fusebit.nodejs.files['index.js']) {
           throw new Error('The function must include the index.js file. Make sure it exists in the source directory.');
         }
 
@@ -209,23 +209,23 @@ export class FunctionDeployCommand extends Command {
         table.addRow([
           'Files',
           Text.bold(
-            Object.keys(flexd.nodejs.files)
+            Object.keys(fusebit.nodejs.files)
               .sort()
               .join(', ')
           ),
         ]);
-        if (flexd.configuration && Object.keys(flexd.configuration).length > 0) {
+        if (fusebit.configuration && Object.keys(fusebit.configuration).length > 0) {
           table.addRow([
             'Configuration',
-            Object.keys(flexd.configuration)
+            Object.keys(fusebit.configuration)
               .sort()
               .join(', '),
           ]);
         } else {
           table.addRow(['Configuration', 'Not specified']);
         }
-        if (flexd.schedule && flexd.schedule.cron) {
-          table.addRow(['Schedule', `${flexd.schedule.cron}, timezone: ${flexd.schedule.timezone || 'UTC'}`]);
+        if (fusebit.schedule && fusebit.schedule.cron) {
+          table.addRow(['Schedule', `${fusebit.schedule.cron}, timezone: ${fusebit.schedule.timezone || 'UTC'}`]);
         } else {
           table.addRow(['Schedule', 'Not specified']);
         }
@@ -251,7 +251,7 @@ export class FunctionDeployCommand extends Command {
               Authorization: `Bearer ${profile.accessToken}`,
               'User-Agent': `fusebit-cli/${version}`,
             },
-            data: flexd,
+            data: fusebit,
             validStatus: status => status === 200 || status === 201 || status === 204 || status === 400,
           });
           while (response.status === 201) {
@@ -295,21 +295,21 @@ export class FunctionDeployCommand extends Command {
               message: response.data.location,
               kind: MessageKind.info,
             })).write(input.io);
-            flexd.location = response.data.location;
+            fusebit.location = response.data.location;
           }
-          flexd.subscriptionId = profile.subscription;
-          flexd.boundaryId = profile.boundary;
-          flexd.id = profile.function;
-          flexd.flxVersion = require('../../../package.json').version;
-          if (flexd.metadata) {
-            delete flexd.metadata.applicationSettings;
+          fusebit.subscriptionId = profile.subscription;
+          fusebit.boundaryId = profile.boundary;
+          fusebit.id = profile.function;
+          fusebit.flxVersion = require('../../../package.json').version;
+          if (fusebit.metadata) {
+            delete fusebit.metadata.applicationSettings;
           }
-          delete flexd.configuration;
-          delete flexd.nodejs;
-          Fs.mkdirSync(Path.join(sourceDirectory, '.flexd'), { recursive: true });
+          delete fusebit.configuration;
+          delete fusebit.nodejs;
+          Fs.mkdirSync(Path.join(sourceDirectory, '.fusebit'), { recursive: true });
           Fs.writeFileSync(
-            Path.join(sourceDirectory, '.flexd', 'function.json'),
-            JSON.stringify(flexd, null, 2),
+            Path.join(sourceDirectory, '.fusebit', 'function.json'),
+            JSON.stringify(fusebit, null, 2),
             'utf8'
           );
           return 0;

@@ -46,17 +46,17 @@ function formatResourcePath(resource: string) {
 // Exported Interfaces
 // -------------------
 
-export interface IFlexdIdentitiy {
+export interface IFusebitIdentitiy {
   iss: string;
   sub: string;
 }
 
-export interface IFlexdAccess {
+export interface IFusebitAccess {
   action: string;
   resource: string;
 }
 
-export interface INewFlexdUser {
+export interface INewFusebitUser {
   firstName?: string;
   lastName?: string;
   primaryEmail?: string;
@@ -71,24 +71,24 @@ export interface IAddUserAccess {
   function?: string;
 }
 
-export interface IFlexdUpdateUser extends INewFlexdUser {
-  identities?: IFlexdIdentitiy[];
+export interface IFusebitUpdateUser extends INewFusebitUser {
+  identities?: IFusebitIdentitiy[];
   access?: {
-    allow?: IFlexdAccess[];
+    allow?: IFusebitAccess[];
   };
 }
 
-export interface IFlexdUser extends IFlexdUpdateUser {
+export interface IFusebitUser extends IFusebitUpdateUser {
   id: string;
 }
 
-export interface IFlexdNewInitEntry {
+export interface IFusebitNewInitEntry {
   subscriptionId?: string;
   boundaryId?: string;
   functionId?: string;
 }
 
-export interface IFlexdInit extends IFlexdNewInitEntry {
+export interface IFusebitInit extends IFusebitNewInitEntry {
   accountId: string;
   agentId: string;
   baseUrl: string;
@@ -96,13 +96,13 @@ export interface IFlexdInit extends IFlexdNewInitEntry {
   sub: string;
 }
 
-export interface IFlexdInitResolve {
+export interface IFusebitInitResolve {
   publicKey: string;
   keyId: string;
   jwt: string;
 }
 
-export interface IFlexdUserListOptions {
+export interface IFusebitUserListOptions {
   nameContains?: string;
   primaryEmailContains?: string;
   issuerContains?: string;
@@ -130,7 +130,7 @@ export class UserService {
     return new UserService(profileService, executeService, input);
   }
 
-  public async listUsers(options: IFlexdUserListOptions): Promise<IFlexdUser[]> {
+  public async listUsers(options: IFusebitUserListOptions): Promise<IFusebitUser[]> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     const query = [];
@@ -165,7 +165,7 @@ export class UserService {
     return result.items;
   }
 
-  public async getUser(id: string): Promise<IFlexdUser> {
+  public async getUser(id: string): Promise<IFusebitUser> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     const user = await this.executeService.executeRequest(
@@ -185,7 +185,7 @@ export class UserService {
     return user;
   }
 
-  public async addUser(newUser: INewFlexdUser): Promise<IFlexdUser> {
+  public async addUser(newUser: INewFusebitUser): Promise<IFusebitUser> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     const user = await this.executeService.executeRequest(
@@ -234,7 +234,7 @@ export class UserService {
     );
   }
 
-  public async addUserIdentity(id: string, user: IFlexdUpdateUser): Promise<IFlexdUser> {
+  public async addUserIdentity(id: string, user: IFusebitUpdateUser): Promise<IFusebitUser> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     const updatedUser = await this.executeService.executeRequest(
@@ -260,7 +260,7 @@ export class UserService {
     return updatedUser;
   }
 
-  public async removeUserIdentity(id: string, user: IFlexdUpdateUser): Promise<IFlexdUser> {
+  public async removeUserIdentity(id: string, user: IFusebitUpdateUser): Promise<IFusebitUser> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     const updatedUser = await this.executeService.executeRequest(
@@ -286,7 +286,7 @@ export class UserService {
     return updatedUser;
   }
 
-  public async addUserAccess(id: string, user: IFlexdUpdateUser): Promise<IFlexdUser> {
+  public async addUserAccess(id: string, user: IFusebitUpdateUser): Promise<IFusebitUser> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     const updatedUser = await this.executeService.executeRequest(
@@ -312,7 +312,7 @@ export class UserService {
     return updatedUser;
   }
 
-  public async removeUserAccess(id: string, user: IFlexdUpdateUser): Promise<IFlexdUser> {
+  public async removeUserAccess(id: string, user: IFusebitUpdateUser): Promise<IFusebitUser> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     const updatedUser = await this.executeService.executeRequest(
@@ -338,7 +338,7 @@ export class UserService {
     return updatedUser;
   }
 
-  public async updateUser(id: string, user: IFlexdUpdateUser): Promise<IFlexdUser> {
+  public async updateUser(id: string, user: IFusebitUpdateUser): Promise<IFusebitUser> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     const updatedUser = await this.executeService.executeRequest(
@@ -364,7 +364,7 @@ export class UserService {
     return updatedUser;
   }
 
-  public async initUser(id: string, initEntry: IFlexdNewInitEntry): Promise<string> {
+  public async initUser(id: string, initEntry: IFusebitNewInitEntry): Promise<string> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     const initToken = await this.executeService.executeRequest(
@@ -385,7 +385,7 @@ export class UserService {
     return initToken;
   }
 
-  public async decodeInitToken(token: string): Promise<IFlexdInit> {
+  public async decodeInitToken(token: string): Promise<IFusebitInit> {
     let decoded;
     try {
       decoded = await decodeJwt(token);
@@ -432,7 +432,7 @@ export class UserService {
     };
   }
 
-  public async resolveInit(accountId: string, agentId: string, initResolve: IFlexdInitResolve): Promise<IFlexdUser> {
+  public async resolveInit(accountId: string, agentId: string, initResolve: IFusebitInitResolve): Promise<IFusebitUser> {
     const profile = await this.profileService.getExecutionProfile(['account'], { account: accountId });
 
     const user = await this.executeService.executeRequest(
@@ -452,7 +452,7 @@ export class UserService {
     return user;
   }
 
-  public async confirmAddUser(newUser: INewFlexdUser): Promise<void> {
+  public async confirmAddUser(newUser: INewFusebitUser): Promise<void> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     const confirmPrompt = await Confirm.create({
@@ -467,7 +467,7 @@ export class UserService {
     }
   }
 
-  public async confirmRemoveUser(id: string, user: IFlexdUser): Promise<void> {
+  public async confirmRemoveUser(id: string, user: IFusebitUser): Promise<void> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     const confirmPrompt = await Confirm.create({
@@ -485,7 +485,7 @@ export class UserService {
     }
   }
 
-  public async confirmInitUser(user: IFlexdUser, entry: IFlexdNewInitEntry): Promise<void> {
+  public async confirmInitUser(user: IFusebitUser, entry: IFusebitNewInitEntry): Promise<void> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     const confirmPrompt = await Confirm.create({
@@ -503,7 +503,7 @@ export class UserService {
     }
   }
 
-  public async confirmUpdateUser(user: IFlexdUser, update: INewFlexdUser): Promise<void> {
+  public async confirmUpdateUser(user: IFusebitUser, update: INewFusebitUser): Promise<void> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     const confirmPrompt = await Confirm.create({
@@ -521,7 +521,7 @@ export class UserService {
     }
   }
 
-  public async confirmAddUserAccess(user: IFlexdUser, access: IAddUserAccess): Promise<void> {
+  public async confirmAddUserAccess(user: IFusebitUser, access: IAddUserAccess): Promise<void> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     const confirmPrompt = await Confirm.create({
@@ -539,7 +539,7 @@ export class UserService {
     }
   }
 
-  public async confirmRemoveUserAccess(user: IFlexdUser, access: IAddUserAccess): Promise<void> {
+  public async confirmRemoveUserAccess(user: IFusebitUser, access: IAddUserAccess): Promise<void> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     const confirmPrompt = await Confirm.create({
@@ -557,7 +557,7 @@ export class UserService {
     }
   }
 
-  public async confirmAddUserIdentity(user: IFlexdUser, identity: IFlexdIdentitiy): Promise<void> {
+  public async confirmAddUserIdentity(user: IFusebitUser, identity: IFusebitIdentitiy): Promise<void> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     const confirmPrompt = await Confirm.create({
@@ -575,7 +575,7 @@ export class UserService {
     }
   }
 
-  public async confirmRemoveUserIdentity(user: IFlexdUser, identity: IFlexdIdentitiy): Promise<void> {
+  public async confirmRemoveUserIdentity(user: IFusebitUser, identity: IFusebitIdentitiy): Promise<void> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     const confirmPrompt = await Confirm.create({
@@ -593,7 +593,7 @@ export class UserService {
     }
   }
 
-  public async displayUsers(users: IFlexdUser[]) {
+  public async displayUsers(users: IFusebitUser[]) {
     if (this.input.options.format === 'json') {
       await this.input.io.writeLine(JSON.stringify(users, null, 2));
       return;
@@ -615,7 +615,7 @@ export class UserService {
     }
   }
 
-  public async displayUser(user: IFlexdUser) {
+  public async displayUser(user: IFusebitUser) {
     if (this.input.options.format === 'json') {
       await this.input.io.writeLine(JSON.stringify(user, null, 2));
       return;
@@ -643,7 +643,7 @@ export class UserService {
     console.log();
   }
 
-  private async writeUser(user: IFlexdUser) {
+  private async writeUser(user: IFusebitUser) {
     const details = [Text.dim('Id: '), user.id || ''];
 
     if (user.primaryEmail) {
@@ -680,7 +680,7 @@ export class UserService {
     await message.write(this.input.io);
   }
 
-  private getUserConfirmDetails(account: string, user: INewFlexdUser, entry?: IFlexdNewInitEntry) {
+  private getUserConfirmDetails(account: string, user: INewFusebitUser, entry?: IFusebitNewInitEntry) {
     const details: IConfirmDetail[] = [
       { name: 'Account', value: account },
       { name: 'First Name', value: user.firstName || notSet },
@@ -702,7 +702,7 @@ export class UserService {
     return details;
   }
 
-  private getUpdateUserConfirmDetails(account: string, user: IFlexdUser, update: INewFlexdUser) {
+  private getUpdateUserConfirmDetails(account: string, user: IFusebitUser, update: INewFusebitUser) {
     const firstName = user.firstName || notSet;
     const lastName = user.lastName || notSet;
     const primaryEmail = user.primaryEmail || notSet;
@@ -734,7 +734,7 @@ export class UserService {
     return details;
   }
 
-  private getUserAccessConfirmDetails(account: string, user: IFlexdUser, access: IAddUserAccess) {
+  private getUserAccessConfirmDetails(account: string, user: IFusebitUser, access: IAddUserAccess) {
     const details = [
       { name: 'Account', value: account },
       { name: 'First Name', value: user.firstName || notSet },
@@ -764,7 +764,7 @@ export class UserService {
     return details;
   }
 
-  private getUserIdentityConfirmDetails(account: string, user: IFlexdUser, identity: IFlexdIdentitiy) {
+  private getUserIdentityConfirmDetails(account: string, user: IFusebitUser, identity: IFusebitIdentitiy) {
     const details = [
       { name: 'Account', value: account },
       { name: 'First Name', value: user.firstName || notSet },

@@ -1,9 +1,9 @@
 export {
-  FlexdProfile,
-  IFlexdExecutionProfile,
-  IFlexdNewProfile,
-  IFlexdProfile,
-  IFlexdProfileSettings,
-} from './FlexdProfile';
+  FusebitProfile,
+  IFusebitExecutionProfile,
+  IFusebitNewProfile,
+  IFusebitProfile,
+  IFusebitProfileSettings,
+} from './FusebitProfile';
 
-export { FlexdProfileError, FlexdProfileErrorCode } from './FlexdProfileError';
+export { FusebitProfileError, FusebitProfileErrorCode } from './FusebitProfileError';

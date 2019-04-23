@@ -76,11 +76,11 @@ export class FunctionInitCommand extends Command {
         let dirs = Fs.readdirSync(Path.join(__dirname, '../../../template'));
         for (var i = 0; i < dirs.length; i++) {
           let f = dirs[i];
-          if (f === '.flexd.json') {
-            files.push('.flexd/function.json');
-            Fs.mkdirSync(Path.join(destDirectory, '.flexd'), { recursive: true });
+          if (f === '.fusebit.json') {
+            files.push('.fusebit/function.json');
+            Fs.mkdirSync(Path.join(destDirectory, '.fusebit'), { recursive: true });
             Fs.writeFileSync(
-              Path.join(destDirectory, '.flexd', 'function.json'),
+              Path.join(destDirectory, '.fusebit', 'function.json'),
               Fs.readFileSync(Path.join(__dirname, '../../../template', f), 'utf8'),
               'utf8'
             );

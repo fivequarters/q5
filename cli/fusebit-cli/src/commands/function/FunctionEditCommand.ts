@@ -1,5 +1,5 @@
 import { Command, IExecuteInput, Message } from '@5qtrs/cli';
-import { ProfileService, ExecuteService, tryGetFlexd, getProfileSettingsFromFlexd } from '../../services';
+import { ProfileService, ExecuteService, tryGetFusebit, getProfileSettingsFromFusebit } from '../../services';
 import * as http from 'http';
 import open from 'open';
 import { Text } from '@5qtrs/text';
@@ -9,8 +9,8 @@ export class FunctionEditCommand extends Command {
     super({
       name: 'Edit Function',
       cmd: 'edit',
-      summary: 'Edit a function in the Flexd Editor',
-      description: `Opens the Flexd Editor in your default browser to edit a function. If the function does 
+      summary: 'Edit a function in the Fusebit Editor',
+      description: `Opens the Fusebit Editor in your default browser to edit a function. If the function does 
 not exist, it is created.`,
       options: [
         {
@@ -35,7 +35,7 @@ not exist, it is created.`,
     const executeService = await ExecuteService.create(input);
     let profile = await profileService.getExecutionProfile(
       ['subscription', 'boundary', 'function'],
-      getProfileSettingsFromFlexd(tryGetFlexd())
+      getProfileSettingsFromFusebit(tryGetFusebit())
     );
 
     await executeService.execute(
@@ -80,7 +80,7 @@ not exist, it is created.`,
             .listen(port, async () => {
               const message = await Message.create({
                 message: Text.create([
-                  'Hosting the Flexd Editor at ',
+                  'Hosting the Fusebit Editor at ',
                   Text.bold(`http://127.0.0.1:${port}`),
                   Text.eol(),
                   'If the browser does not open automatically, navigate to this URL.',
@@ -106,11 +106,11 @@ function getEditorHtml(port: number, profile: any): string {
 <head>
   <meta charset="utf-8" />
 
-    <link rel="icon" type="image/png" sizes="32x32" href="https://flexd.io/favicon-32x32.png" />
-    <link rel="icon" type="image/png" sizes="16x16" href="https://flexd.io/favicon-16x16.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="https://fusebit.io/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="https://fusebit.io/favicon-16x16.png" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
 
-    <title>Flexd ${profile.function}</title>
+    <title>Fusebit ${profile.function}</title>
 
     <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0' name='viewport' />
     <meta name="viewport" content="width=device-width" />
@@ -128,11 +128,11 @@ function getEditorHtml(port: number, profile: any): string {
 </body>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js" type="text/javascript"></script>
-<script src="https://cdn.flexd.io/flexd/js/flexd-editor/latest/flexd-editor.js"></script>
+<script src="https://cdn.fusebit.io/fusebit/js/fusebit-editor/latest/fusebit-editor.js"></script>
 <script type="text/javascript">
     $(function () {
 
-        flexd.createEditor(document.getElementById('editor'), '${profile.boundary}', '${profile.function}', {
+        fusebit.createEditor(document.getElementById('editor'), '${profile.boundary}', '${profile.function}', {
             accountId: '${profile.account}',
             subscriptionId: '${profile.subscription}',
             baseUrl: '${profile.baseUrl}',

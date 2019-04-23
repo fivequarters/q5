@@ -5,4 +5,4 @@ export { UserService } from './UserService';
 export { ClientService } from './ClientService';
 export { FunctionService } from './FunctionService';
 export { VersionService } from './VersionService';
-export { serializeKeyValue, parseKeyValue, tryGetFlexd, getProfileSettingsFromFlexd } from './Utilities';
+export { serializeKeyValue, parseKeyValue, tryGetFusebit, getProfileSettingsFromFusebit } from './Utilities';

@@ -1,5 +1,5 @@
 import * as Path from 'path';
-import { IFlexdProfileSettings } from '@5qtrs/fusebit-profile-sdk';
+import { IFusebitProfileSettings } from '@5qtrs/fusebit-profile-sdk';
 
 export function serializeKeyValue(data: { [property: string]: string | number | undefined }) {
   const lines: string[] = [];
@@ -29,20 +29,20 @@ export function parseKeyValue(data: string) {
   return value;
 }
 
-export function tryGetFlexd(srcDir?: string) {
-  let flexd: any = undefined;
+export function tryGetFusebit(srcDir?: string) {
+  let fusebit: any = undefined;
   try {
-    flexd = require(Path.join(srcDir || process.cwd(), '.flexd', 'function.json'));
+    fusebit = require(Path.join(srcDir || process.cwd(), '.fusebit', 'function.json'));
   } catch (_) {}
-  return flexd;
+  return fusebit;
 }
 
-export function getProfileSettingsFromFlexd(flexd: any): IFlexdProfileSettings | undefined {
-  if (flexd) {
-    let result: IFlexdProfileSettings = { account: flexd.accountId as string };
-    if (flexd.subscriptionId) result.subscription = flexd.subscriptionId;
-    if (flexd.boundaryId) result.boundary = flexd.boundaryId;
-    if (flexd.id) result.function = flexd.id;
+export function getProfileSettingsFromFusebit(fusebit: any): IFusebitProfileSettings | undefined {
+  if (fusebit) {
+    let result: IFusebitProfileSettings = { account: fusebit.accountId as string };
+    if (fusebit.subscriptionId) result.subscription = fusebit.subscriptionId;
+    if (fusebit.boundaryId) result.boundary = fusebit.boundaryId;
+    if (fusebit.id) result.function = fusebit.id;
     return result;
   }
   return undefined;

@@ -14,23 +14,23 @@ const notSet = Text.dim(Text.italic('<not set>'));
 // Exported Interfaces
 // -------------------
 
-export interface IFlexdPublicKey {
+export interface IFusebitPublicKey {
   keyId: string;
   publicKey: string;
 }
 
-export interface INewFlexdIssuer {
+export interface INewFusebitIssuer {
   displayName?: string;
   jsonKeyUri?: string;
   publicKeyPath?: string;
   publicKeyId?: string;
 }
 
-export interface IFlexdIssuer {
+export interface IFusebitIssuer {
   id: string;
   displayName?: string;
   jsonKeyUri?: string;
-  publicKeys?: IFlexdPublicKey[];
+  publicKeys?: IFusebitPublicKey[];
 }
 
 // ----------------
@@ -58,7 +58,7 @@ export class VersionService {
       const json = JSON.parse(content);
       version = json.version;
     } catch (error) {
-      this.executeService.error('Version Error', 'Unable to read the version of the current Flexd CLI installation');
+      this.executeService.error('Version Error', 'Unable to read the version of the current Fusebit CLI installation');
       throw error;
     }
     return version;

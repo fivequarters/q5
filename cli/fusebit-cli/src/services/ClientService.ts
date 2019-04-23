@@ -46,17 +46,17 @@ function formatResourcePath(resource: string) {
 // Exported Interfaces
 // -------------------
 
-export interface IFlexdIdentitiy {
+export interface IFusebitIdentitiy {
   iss: string;
   sub: string;
 }
 
-export interface IFlexdAccess {
+export interface IFusebitAccess {
   action: string;
   resource: string;
 }
 
-export interface INewFlexdClient {
+export interface INewFusebitClient {
   displayName?: string;
 }
 
@@ -69,24 +69,24 @@ export interface IAddClientAccess {
   function?: string;
 }
 
-export interface IFlexdUpdateClient extends INewFlexdClient {
-  identities?: IFlexdIdentitiy[];
+export interface IFusebitUpdateClient extends INewFusebitClient {
+  identities?: IFusebitIdentitiy[];
   access?: {
-    allow?: IFlexdAccess[];
+    allow?: IFusebitAccess[];
   };
 }
 
-export interface IFlexdClient extends IFlexdUpdateClient {
+export interface IFusebitClient extends IFusebitUpdateClient {
   id: string;
 }
 
-export interface IFlexdNewInitEntry {
+export interface IFusebitNewInitEntry {
   subscriptionId?: string;
   boundaryId?: string;
   functionId?: string;
 }
 
-export interface IFlexdInit extends IFlexdNewInitEntry {
+export interface IFusebitInit extends IFusebitNewInitEntry {
   accountId: string;
   agentId: string;
   baseUrl: string;
@@ -94,13 +94,13 @@ export interface IFlexdInit extends IFlexdNewInitEntry {
   sub: string;
 }
 
-export interface IFlexdInitResolve {
+export interface IFusebitInitResolve {
   publicKey: string;
   keyId: string;
   jwt: string;
 }
 
-export interface IFlexdClientListOptions {
+export interface IFusebitClientListOptions {
   displayNameContains?: string;
   issuerContains?: string;
   subjectContains?: string;
@@ -127,7 +127,7 @@ export class ClientService {
     return new ClientService(profileService, executeService, input);
   }
 
-  public async listClients(options: IFlexdClientListOptions): Promise<IFlexdClient[]> {
+  public async listClients(options: IFusebitClientListOptions): Promise<IFusebitClient[]> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     const query = [];
@@ -159,7 +159,7 @@ export class ClientService {
     return result.items;
   }
 
-  public async getClient(id: string): Promise<IFlexdClient> {
+  public async getClient(id: string): Promise<IFusebitClient> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     const client = await this.executeService.executeRequest(
@@ -179,7 +179,7 @@ export class ClientService {
     return client;
   }
 
-  public async addClient(newClient: INewFlexdClient): Promise<IFlexdClient> {
+  public async addClient(newClient: INewFusebitClient): Promise<IFusebitClient> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     const client = await this.executeService.executeRequest(
@@ -228,7 +228,7 @@ export class ClientService {
     );
   }
 
-  public async addClientIdentity(id: string, client: IFlexdUpdateClient): Promise<IFlexdClient> {
+  public async addClientIdentity(id: string, client: IFusebitUpdateClient): Promise<IFusebitClient> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     const updatedClient = await this.executeService.executeRequest(
@@ -254,7 +254,7 @@ export class ClientService {
     return updatedClient;
   }
 
-  public async removeClientIdentity(id: string, client: IFlexdUpdateClient): Promise<IFlexdClient> {
+  public async removeClientIdentity(id: string, client: IFusebitUpdateClient): Promise<IFusebitClient> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     const updatedClient = await this.executeService.executeRequest(
@@ -280,7 +280,7 @@ export class ClientService {
     return updatedClient;
   }
 
-  public async addClientAccess(id: string, client: IFlexdUpdateClient): Promise<IFlexdClient> {
+  public async addClientAccess(id: string, client: IFusebitUpdateClient): Promise<IFusebitClient> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     const updatedClient = await this.executeService.executeRequest(
@@ -306,7 +306,7 @@ export class ClientService {
     return updatedClient;
   }
 
-  public async removeClientAccess(id: string, client: IFlexdUpdateClient): Promise<IFlexdClient> {
+  public async removeClientAccess(id: string, client: IFusebitUpdateClient): Promise<IFusebitClient> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     const updatedClient = await this.executeService.executeRequest(
@@ -332,7 +332,7 @@ export class ClientService {
     return updatedClient;
   }
 
-  public async updateClient(id: string, client: IFlexdUpdateClient): Promise<IFlexdClient> {
+  public async updateClient(id: string, client: IFusebitUpdateClient): Promise<IFusebitClient> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     const updatedClient = await this.executeService.executeRequest(
@@ -358,7 +358,7 @@ export class ClientService {
     return updatedClient;
   }
 
-  public async initClient(id: string, initEntry: IFlexdNewInitEntry): Promise<string> {
+  public async initClient(id: string, initEntry: IFusebitNewInitEntry): Promise<string> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     const initToken = await this.executeService.executeRequest(
@@ -379,7 +379,7 @@ export class ClientService {
     return initToken;
   }
 
-  public async decodeInitToken(token: string): Promise<IFlexdInit> {
+  public async decodeInitToken(token: string): Promise<IFusebitInit> {
     let decoded;
     try {
       decoded = await decodeJwt(token);
@@ -426,7 +426,7 @@ export class ClientService {
     };
   }
 
-  public async resolveInit(accountId: string, agentId: string, initResolve: IFlexdInitResolve): Promise<IFlexdClient> {
+  public async resolveInit(accountId: string, agentId: string, initResolve: IFusebitInitResolve): Promise<IFusebitClient> {
     const profile = await this.profileService.getExecutionProfile(['account'], { account: accountId });
 
     const client = await this.executeService.executeRequest(
@@ -446,7 +446,7 @@ export class ClientService {
     return client;
   }
 
-  public async confirmAddClient(newClient: INewFlexdClient): Promise<void> {
+  public async confirmAddClient(newClient: INewFusebitClient): Promise<void> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     const confirmPrompt = await Confirm.create({
@@ -461,7 +461,7 @@ export class ClientService {
     }
   }
 
-  public async confirmRemoveClient(id: string, client: IFlexdClient): Promise<void> {
+  public async confirmRemoveClient(id: string, client: IFusebitClient): Promise<void> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     const confirmPrompt = await Confirm.create({
@@ -479,7 +479,7 @@ export class ClientService {
     }
   }
 
-  public async confirmInitClient(client: IFlexdClient, entry: IFlexdNewInitEntry): Promise<void> {
+  public async confirmInitClient(client: IFusebitClient, entry: IFusebitNewInitEntry): Promise<void> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     const confirmPrompt = await Confirm.create({
@@ -497,7 +497,7 @@ export class ClientService {
     }
   }
 
-  public async confirmUpdateClient(client: IFlexdClient, update: INewFlexdClient): Promise<void> {
+  public async confirmUpdateClient(client: IFusebitClient, update: INewFusebitClient): Promise<void> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     const confirmPrompt = await Confirm.create({
@@ -515,7 +515,7 @@ export class ClientService {
     }
   }
 
-  public async confirmAddClientAccess(client: IFlexdClient, access: IAddClientAccess): Promise<void> {
+  public async confirmAddClientAccess(client: IFusebitClient, access: IAddClientAccess): Promise<void> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     const confirmPrompt = await Confirm.create({
@@ -533,7 +533,7 @@ export class ClientService {
     }
   }
 
-  public async confirmRemoveClientAccess(client: IFlexdClient, access: IAddClientAccess): Promise<void> {
+  public async confirmRemoveClientAccess(client: IFusebitClient, access: IAddClientAccess): Promise<void> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     const confirmPrompt = await Confirm.create({
@@ -551,7 +551,7 @@ export class ClientService {
     }
   }
 
-  public async confirmAddClientIdentity(client: IFlexdClient, identity: IFlexdIdentitiy): Promise<void> {
+  public async confirmAddClientIdentity(client: IFusebitClient, identity: IFusebitIdentitiy): Promise<void> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     const confirmPrompt = await Confirm.create({
@@ -569,7 +569,7 @@ export class ClientService {
     }
   }
 
-  public async confirmRemoveClientIdentity(client: IFlexdClient, identity: IFlexdIdentitiy): Promise<void> {
+  public async confirmRemoveClientIdentity(client: IFusebitClient, identity: IFusebitIdentitiy): Promise<void> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     const confirmPrompt = await Confirm.create({
@@ -587,7 +587,7 @@ export class ClientService {
     }
   }
 
-  public async displayClients(clients: IFlexdClient[]) {
+  public async displayClients(clients: IFusebitClient[]) {
     if (this.input.options.format === 'json') {
       await this.input.io.writeLine(JSON.stringify(clients, null, 2));
       return;
@@ -609,7 +609,7 @@ export class ClientService {
     }
   }
 
-  public async displayClient(client: IFlexdClient) {
+  public async displayClient(client: IFusebitClient) {
     if (this.input.options.format === 'json') {
       await this.input.io.writeLine(JSON.stringify(client, null, 2));
       return;
@@ -637,7 +637,7 @@ export class ClientService {
     console.log();
   }
 
-  private async writeClient(client: IFlexdClient) {
+  private async writeClient(client: IFusebitClient) {
     const details = [Text.dim('Id: '), client.id || ''];
 
     if (client.identities && client.identities.length) {
@@ -667,7 +667,7 @@ export class ClientService {
     await message.write(this.input.io);
   }
 
-  private getClientConfirmDetails(account: string, client: INewFlexdClient, entry?: IFlexdNewInitEntry) {
+  private getClientConfirmDetails(account: string, client: INewFusebitClient, entry?: IFusebitNewInitEntry) {
     const details: IConfirmDetail[] = [
       { name: 'Account', value: account },
       { name: 'Display Name', value: client.displayName || notSet },
@@ -687,7 +687,7 @@ export class ClientService {
     return details;
   }
 
-  private getUpdateClientConfirmDetails(account: string, client: IFlexdClient, update: INewFlexdClient) {
+  private getUpdateClientConfirmDetails(account: string, client: IFusebitClient, update: INewFusebitClient) {
     const displayName = client.displayName || notSet;
     const newDisplayName = update.displayName || notSet;
     const displayNameValue =
@@ -700,7 +700,7 @@ export class ClientService {
     return details;
   }
 
-  private getClientAccessConfirmDetails(account: string, client: IFlexdClient, access: IAddClientAccess) {
+  private getClientAccessConfirmDetails(account: string, client: IFusebitClient, access: IAddClientAccess) {
     const details = [
       { name: 'Account', value: account },
       { name: 'Display Name', value: client.displayName || notSet },
@@ -728,7 +728,7 @@ export class ClientService {
     return details;
   }
 
-  private getClientIdentityConfirmDetails(account: string, client: IFlexdClient, identity: IFlexdIdentitiy) {
+  private getClientIdentityConfirmDetails(account: string, client: IFusebitClient, identity: IFusebitIdentitiy) {
     const details = [
       { name: 'Account', value: account },
       { name: 'Display Name', value: client.displayName || notSet },

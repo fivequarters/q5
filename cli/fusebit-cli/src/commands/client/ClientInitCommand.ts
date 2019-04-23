@@ -9,7 +9,7 @@ const command = {
   name: 'Init Client',
   cmd: 'init',
   summary: 'Generate an init token for a client',
-  description: 'Generates a token with which a client can use to initialize the Flexd CLI.',
+  description: 'Generates a token with which a client can use to initialize the Fusebit CLI.',
   arguments: [
     {
       name: 'client',

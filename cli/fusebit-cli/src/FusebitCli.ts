@@ -15,10 +15,10 @@ import {
 // ------------------
 
 const cli: ICommand = {
-  name: 'Flexd CLI',
-  description: 'A command-line tool (CLI) for the management of Flexd accounts, users, functions and more.',
-  cli: 'flx',
-  docsUrl: 'https://fivequarters.github.io/docs',
+  name: 'Fusebit CLI',
+  description: 'A command-line tool (CLI) for the management of Fusebit accounts, users, functions and more.',
+  cli: 'fuse',
+  docsUrl: 'https://fusebit.io/docs',
   options: [
     {
       name: 'verbose',
@@ -51,13 +51,13 @@ async function getSubCommands() {
 // Exported Classes
 // ----------------
 
-export class FlexdCli extends Command {
+export class FusebitCli extends Command {
   private constructor(command: ICommand) {
     super(command);
   }
 
   public static async create() {
     cli.subCommands = await getSubCommands();
-    return new FlexdCli(cli);
+    return new FusebitCli(cli);
   }
 }

@@ -1,6 +1,6 @@
 import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
 import { request } from '@5qtrs/request';
-import { ProfileService, VersionService, tryGetFlexd, getProfileSettingsFromFlexd } from '../../services';
+import { ProfileService, VersionService, tryGetFusebit, getProfileSettingsFromFusebit } from '../../services';
 
 export class FunctionUrlCommand extends Command {
   private constructor() {
@@ -30,7 +30,7 @@ export class FunctionUrlCommand extends Command {
     const versionService = await VersionService.create(input);
     let profile = await profileService.getExecutionProfile(
       ['subscription', 'boundary', 'function'],
-      getProfileSettingsFromFlexd(tryGetFlexd())
+      getProfileSettingsFromFusebit(tryGetFusebit())
     );
 
     const version = await versionService.getVersion();
