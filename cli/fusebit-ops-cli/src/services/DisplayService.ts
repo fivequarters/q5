@@ -1,5 +1,5 @@
 import { IExecuteInput } from '@5qtrs/cli';
-import { FlexdOpsCore, IFlexdOpsPublishDetails } from '@5qtrs/fusebit-ops-core';
+import { FusebitOpsCore, IFusebitOpsPublishDetails } from '@5qtrs/fusebit-ops-core';
 import { Text } from '@5qtrs/text';
 import { Table } from '@5qtrs/table';
 
@@ -14,11 +14,11 @@ export class DisplayService {
     this.input = input;
   }
 
-  public static async create(core: FlexdOpsCore, input: IExecuteInput) {
+  public static async create(core: FusebitOpsCore, input: IExecuteInput) {
     return new DisplayService(input);
   }
 
-  public async displayPublishedApi(items: IFlexdOpsPublishDetails[], showHeader: boolean) {
+  public async displayPublishedApi(items: IFusebitOpsPublishDetails[], showHeader: boolean) {
     if (this.input.options.format === 'json') {
       this.input.io.writeLine(JSON.stringify(items, null, 2));
     } else {

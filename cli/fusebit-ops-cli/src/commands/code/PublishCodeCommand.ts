@@ -1,5 +1,5 @@
 import { Command, IExecuteInput, ArgType } from '@5qtrs/cli';
-import { FlexdOpsCore } from '@5qtrs/fusebit-ops-core';
+import { FusebitOpsCore } from '@5qtrs/fusebit-ops-core';
 import { DisplayService, SettingsService, ApiPublishService, ExecuteService } from '../../services';
 import { Text } from '@5qtrs/text';
 
@@ -8,18 +8,18 @@ import { Text } from '@5qtrs/text';
 // ----------------
 
 export class PublishCodeCommand extends Command {
-  private core: FlexdOpsCore;
+  private core: FusebitOpsCore;
 
-  public static async create(core: FlexdOpsCore) {
+  public static async create(core: FusebitOpsCore) {
     return new PublishCodeCommand(core);
   }
 
-  private constructor(core: FlexdOpsCore) {
+  private constructor(core: FusebitOpsCore) {
     super({
       name: 'Publish Code',
       cmd: 'publish',
       summary: 'Publish code',
-      description: 'Publishes the local code for a given api to the Flexd platform',
+      description: 'Publishes the local code for a given api to the Fusebit platform',
       arguments: [
         {
           name: 'api',

@@ -1,5 +1,5 @@
 import { Command, ICommand } from '@5qtrs/cli';
-import { FlexdOpsCore } from '@5qtrs/fusebit-ops-core';
+import { FusebitOpsCore } from '@5qtrs/fusebit-ops-core';
 import { AddAccountCommand } from './AddAccountCommand';
 import { ListAccountCommand } from './ListAccountCommand';
 
@@ -8,9 +8,9 @@ import { ListAccountCommand } from './ListAccountCommand';
 // ----------------
 
 export class AccountCommand extends Command {
-  private core: FlexdOpsCore;
+  private core: FusebitOpsCore;
 
-  public static async create(core: FlexdOpsCore) {
+  public static async create(core: FusebitOpsCore) {
     const subCommands = [];
     subCommands.push(await AddAccountCommand.create(core));
     subCommands.push(await ListAccountCommand.create(core));
@@ -25,7 +25,7 @@ export class AccountCommand extends Command {
     return new AccountCommand(command, core);
   }
 
-  private constructor(command: ICommand, core: FlexdOpsCore) {
+  private constructor(command: ICommand, core: FusebitOpsCore) {
     super(command);
     this.core = core;
   }

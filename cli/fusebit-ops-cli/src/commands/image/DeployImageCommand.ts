@@ -1,5 +1,5 @@
 import { Command, IExecuteInput, Confirm, ArgType } from '@5qtrs/cli';
-import { FlexdOpsCore, IFlexdOpsPublishDetails, IFlexdOpsDeployment } from '@5qtrs/fusebit-ops-core';
+import { FusebitOpsCore, IFusebitOpsPublishDetails, IFusebitOpsDeployment } from '@5qtrs/fusebit-ops-core';
 import { ExecuteService, ApiPublishService, DisplayService, SettingsService, ApiSetupService } from '../../services';
 import { Text } from '@5qtrs/text';
 
@@ -8,13 +8,13 @@ import { Text } from '@5qtrs/text';
 // ----------------
 
 export class DeployImageCommand extends Command {
-  private core: FlexdOpsCore;
+  private core: FusebitOpsCore;
 
-  public static async create(core: FlexdOpsCore) {
+  public static async create(core: FusebitOpsCore) {
     return new DeployImageCommand(core);
   }
 
-  private constructor(core: FlexdOpsCore) {
+  private constructor(core: FusebitOpsCore) {
     super({
       name: 'Image Deploy',
       cmd: 'deploy',
@@ -39,7 +39,7 @@ export class DeployImageCommand extends Command {
         {
           name: 'confirm',
           aliases: ['c'],
-          description: 'If set to true, prompts for confirmation before adding the deployment to the Flexd platform',
+          description: 'If set to true, prompts for confirmation before adding the deployment to the Fusebit platform',
           type: ArgType.boolean,
           default: 'true',
         },
@@ -89,9 +89,9 @@ export class DeployImageCommand extends Command {
     const instanceLaunched = await executeService.execute(
       {
         header: 'Launching Instance',
-        message: Text.create('Launching the Flexd service instance... '),
+        message: Text.create('Launching the Fusebit service instance... '),
         errorHeader: 'Check Error',
-        errorMessage: Text.create('An error was encountered when trying to launch the Flexd service instance. '),
+        errorMessage: Text.create('An error was encountered when trying to launch the Fusebit service instance. '),
       },
       async () => {
         await this.core.deployInstance(name, image);

@@ -1,5 +1,5 @@
 import { Command, IExecuteInput, Confirm, ArgType, Message, MessageKind } from '@5qtrs/cli';
-import { FlexdOpsCore, IFlexdOpsDomain } from '@5qtrs/fusebit-ops-core';
+import { FusebitOpsCore, IFusebitOpsDomain } from '@5qtrs/fusebit-ops-core';
 import { Text } from '@5qtrs/text';
 
 // ------------------
@@ -11,18 +11,18 @@ import { Text } from '@5qtrs/text';
 // ----------------
 
 export class AddDomainCommand extends Command {
-  private core: FlexdOpsCore;
+  private core: FusebitOpsCore;
 
-  public static async create(core: FlexdOpsCore) {
+  public static async create(core: FusebitOpsCore) {
     return new AddDomainCommand(core);
   }
 
-  private constructor(core: FlexdOpsCore) {
+  private constructor(core: FusebitOpsCore) {
     super({
       name: 'Add Domain',
       cmd: 'add',
       summary: 'Add a domain',
-      description: 'Adds a domain to the Flexd platform in the given AWS account.',
+      description: 'Adds a domain to the Fusebit platform in the given AWS account.',
       arguments: [
         {
           name: 'name',
@@ -37,7 +37,7 @@ export class AddDomainCommand extends Command {
         {
           name: 'confirm',
           aliases: ['c'],
-          description: 'If set to true, prompts for confirmation before adding the domain to the Flexd platform',
+          description: 'If set to true, prompts for confirmation before adding the domain to the Fusebit platform',
           type: ArgType.boolean,
           default: 'true',
         },
@@ -46,7 +46,7 @@ export class AddDomainCommand extends Command {
     this.core = core;
   }
 
-  private async doesDomainExist(domain: IFlexdOpsDomain, input: IExecuteInput) {
+  private async doesDomainExist(domain: IFusebitOpsDomain, input: IExecuteInput) {
     let domainExists = undefined;
     try {
       const message = await Message.create({
@@ -73,7 +73,7 @@ export class AddDomainCommand extends Command {
     return domainExists;
   }
 
-  private async alreadyExists(domain: IFlexdOpsDomain, input: IExecuteInput) {
+  private async alreadyExists(domain: IFusebitOpsDomain, input: IExecuteInput) {
     const message = await Message.create({
       header: 'Already Exists',
       message: Text.create("The '", Text.bold(domain.name), "' domain already exists."),
@@ -82,12 +82,12 @@ export class AddDomainCommand extends Command {
     await message.write(input.io);
   }
 
-  private async confirmDomain(domain: IFlexdOpsDomain, input: IExecuteInput) {
+  private async confirmDomain(domain: IFusebitOpsDomain, input: IExecuteInput) {
     const confirm = input.options.confirm as boolean;
     let add = !confirm;
     if (confirm) {
       const confirmPrompt = await Confirm.create({
-        header: 'Add the domain to the Flexd platform?',
+        header: 'Add the domain to the Fusebit platform?',
         details: [{ name: 'Domain Name', value: domain.name }, { name: 'Aws Account Name', value: domain.account }],
       });
       add = await confirmPrompt.prompt(input.io);
@@ -105,7 +105,7 @@ export class AddDomainCommand extends Command {
     await message.write(input.io);
   }
 
-  private async addDomain(domain: IFlexdOpsDomain, input: IExecuteInput) {
+  private async addDomain(domain: IFusebitOpsDomain, input: IExecuteInput) {
     try {
       const message = await Message.create({
         header: 'Add Domain',
@@ -120,7 +120,7 @@ export class AddDomainCommand extends Command {
         header: 'Add Error',
         message:
           error.code !== undefined
-            ? 'An error was encountered when trying to add the domain to the Flexd platform.'
+            ? 'An error was encountered when trying to add the domain to the Fusebit platform.'
             : error.message,
         kind: MessageKind.error,
       });
@@ -131,10 +131,10 @@ export class AddDomainCommand extends Command {
     return true;
   }
 
-  private async addComplete(domain: IFlexdOpsDomain, input: IExecuteInput) {
+  private async addComplete(domain: IFusebitOpsDomain, input: IExecuteInput) {
     const message = await Message.create({
       header: 'Add Complete',
-      message: Text.create("The '", Text.bold(domain.name), "' domain was successfully added to the Flexd platform."),
+      message: Text.create("The '", Text.bold(domain.name), "' domain was successfully added to the Fusebit platform."),
       kind: MessageKind.result,
     });
     await message.write(input.io);

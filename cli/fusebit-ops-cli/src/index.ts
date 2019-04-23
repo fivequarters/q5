@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 
-export { FlexdOpsCli } from './FlexdOpsCli';
-import { FlexdOpsCli } from './FlexdOpsCli';
+export { FusebitOpsCli } from './FusebitOpsCli';
+import { FusebitOpsCli } from './FusebitOpsCli';
 import { CommandIO } from '@5qtrs/cli';
 
 async function execute() {
   const args = process.argv.slice(2);
   const io = await CommandIO.create();
-  const flexdOpsCli = await FlexdOpsCli.create(io);
-  const exitCode = await flexdOpsCli.execute(args, io);
+  const fusebitOpsCli = await FusebitOpsCli.create(io);
+  const exitCode = await fusebitOpsCli.execute(args, io);
   process.exit(exitCode);
 }
 

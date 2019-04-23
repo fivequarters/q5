@@ -5,7 +5,7 @@ import { DotConfig } from '@5qtrs/dot-config';
 // Internal Constants
 // ------------------
 
-const dotFolderName = '.flexd-ops';
+const dotFolderName = '.fusebit-ops';
 const settingsPath = 'settings.json';
 const credsCachePath = join('cache', 'creds', 'aws.json');
 
@@ -28,13 +28,13 @@ export interface IAwsUser {
 // Exported Classes
 // ----------------
 
-export class FlexdOpsDotConfig extends DotConfig {
+export class FusebitOpsDotConfig extends DotConfig {
   private constructor() {
     super(dotFolderName);
   }
 
   public static async create() {
-    return new FlexdOpsDotConfig();
+    return new FusebitOpsDotConfig();
   }
 
   public async getAwsAccount(type: AwsAccountType): Promise<string | undefined> {

@@ -1,5 +1,5 @@
 import { Command, IExecuteInput, Confirm, ArgType } from '@5qtrs/cli';
-import { FlexdOpsCore, IFlexdOpsPublishDetails, IFlexdOpsDeployment } from '@5qtrs/fusebit-ops-core';
+import { FusebitOpsCore, IFusebitOpsPublishDetails, IFusebitOpsDeployment } from '@5qtrs/fusebit-ops-core';
 import { ExecuteService, ApiPublishService, DisplayService, SettingsService, ApiSetupService } from '../../services';
 import { Text } from '@5qtrs/text';
 
@@ -8,18 +8,18 @@ import { Text } from '@5qtrs/text';
 // ----------------
 
 export class AddDeploymentCommand extends Command {
-  private core: FlexdOpsCore;
+  private core: FusebitOpsCore;
 
-  public static async create(core: FlexdOpsCore) {
+  public static async create(core: FusebitOpsCore) {
     return new AddDeploymentCommand(core);
   }
 
-  private constructor(core: FlexdOpsCore) {
+  private constructor(core: FusebitOpsCore) {
     super({
       name: 'Deployment',
       cmd: 'add',
       summary: 'Add a deployment',
-      description: 'Adds a new deployment to the Flexd platform.',
+      description: 'Adds a new deployment to the Fusebit platform.',
       arguments: [
         {
           name: 'name',
@@ -47,7 +47,7 @@ export class AddDeploymentCommand extends Command {
         {
           name: 'confirm',
           aliases: ['c'],
-          description: 'If set to true, prompts for confirmation before adding the deployment to the Flexd platform',
+          description: 'If set to true, prompts for confirmation before adding the deployment to the Fusebit platform',
           type: ArgType.boolean,
           default: 'true',
         },
@@ -60,7 +60,7 @@ export class AddDeploymentCommand extends Command {
     await input.io.writeLine();
     const [name, network, domain, image] = input.arguments as string[];
     const comment = input.options.comment as string;
-    const deployment: IFlexdOpsDeployment = { name, network, domain, comment, image };
+    const deployment: IFusebitOpsDeployment = { name, network, domain, comment, image };
 
     const executeService = await ExecuteService.create(this.core, input);
     const settingsService = await SettingsService.create(this.core, input);
@@ -103,7 +103,7 @@ export class AddDeploymentCommand extends Command {
     const apis = await this.core.listApis();
     const publishcomment = `Build for new '${name}' deployment`;
 
-    const publishedApis: IFlexdOpsPublishDetails[] = [];
+    const publishedApis: IFusebitOpsPublishDetails[] = [];
     for (const api of apis) {
       const publishedApi = await publishService.publishApi(api, user, publishcomment);
       if (!publishedApi) {
@@ -116,9 +116,9 @@ export class AddDeploymentCommand extends Command {
     const addedDeployment = await executeService.execute(
       {
         header: 'Adding the Deployment',
-        message: Text.create('Adding the deployment to the Flexd platform... '),
+        message: Text.create('Adding the deployment to the Fusebit platform... '),
         errorHeader: 'Check Error',
-        errorMessage: Text.create('An error was encountered when trying to add the deployment to the Flexd platform. '),
+        errorMessage: Text.create('An error was encountered when trying to add the deployment to the Fusebit platform. '),
       },
       async () => this.core.addDeployment(deployment, publishedApis)
     );
@@ -137,9 +137,9 @@ export class AddDeploymentCommand extends Command {
     const instanceLaunched = await executeService.execute(
       {
         header: 'Launching Instance',
-        message: Text.create('Launching the Flexd service instance... '),
+        message: Text.create('Launching the Fusebit service instance... '),
         errorHeader: 'Check Error',
-        errorMessage: Text.create('An error was encountered when trying to launch the Flexd service instance. '),
+        errorMessage: Text.create('An error was encountered when trying to launch the Fusebit service instance. '),
       },
       async () => {
         await this.core.deployInstance(deployment.name, image);

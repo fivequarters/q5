@@ -1,5 +1,5 @@
 import { IExecuteInput } from '@5qtrs/cli';
-import { FlexdOpsCore } from '@5qtrs/fusebit-ops-core';
+import { FusebitOpsCore } from '@5qtrs/fusebit-ops-core';
 import { Text } from '@5qtrs/text';
 import { ExecuteService } from './ExecuteService';
 
@@ -8,17 +8,17 @@ import { ExecuteService } from './ExecuteService';
 // ----------------
 
 export class ApiPublishService {
-  private core: FlexdOpsCore;
+  private core: FusebitOpsCore;
   private input: IExecuteInput;
   private executeService: ExecuteService;
 
-  private constructor(core: FlexdOpsCore, input: IExecuteInput, executeService: ExecuteService) {
+  private constructor(core: FusebitOpsCore, input: IExecuteInput, executeService: ExecuteService) {
     this.core = core;
     this.input = input;
     this.executeService = executeService;
   }
 
-  public static async create(core: FlexdOpsCore, input: IExecuteInput) {
+  public static async create(core: FusebitOpsCore, input: IExecuteInput) {
     const executeService = await ExecuteService.create(core, input);
     return new ApiPublishService(core, input, executeService);
   }

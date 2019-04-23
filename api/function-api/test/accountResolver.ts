@@ -1,4 +1,4 @@
-import { FlexdProfile } from '@5qtrs/fusebit-profile-sdk';
+import { FusebitProfile } from '@5qtrs/fusebit-profile-sdk';
 
 export interface IAccount {
   accountId: string;
@@ -16,7 +16,7 @@ export const FakeAccount: IAccount = {
 
 export async function resolveAccount(): Promise<IAccount> {
   if (process.env.FLEXD_PROFILE) {
-    let profile = await FlexdProfile.create();
+    let profile = await FusebitProfile.create();
     let executionProfile = await profile.getExecutionProfile(process.env.FLEXD_PROFILE, true);
     return {
       accountId: executionProfile.account as string,

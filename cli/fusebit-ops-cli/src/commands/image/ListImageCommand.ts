@@ -1,5 +1,5 @@
 import { Command, IExecuteInput, ArgType } from '@5qtrs/cli';
-import { FlexdOpsCore } from '@5qtrs/fusebit-ops-core';
+import { FusebitOpsCore } from '@5qtrs/fusebit-ops-core';
 import { Text } from '@5qtrs/text';
 import { ExecuteService, DisplayService, SettingsService } from '../../services';
 
@@ -8,18 +8,18 @@ import { ExecuteService, DisplayService, SettingsService } from '../../services'
 // ----------------
 
 export class ListImageCommand extends Command {
-  private core: FlexdOpsCore;
+  private core: FusebitOpsCore;
 
-  public static async create(core: FlexdOpsCore) {
+  public static async create(core: FusebitOpsCore) {
     return new ListImageCommand(core);
   }
 
-  private constructor(core: FlexdOpsCore) {
+  private constructor(core: FusebitOpsCore) {
     super({
       name: 'List Image',
       cmd: 'ls',
       summary: 'Lists published image',
-      description: 'Lists the published image for the given api on the Flexd platform.',
+      description: 'Lists the published image for the given api on the Fusebit platform.',
       arguments: [
         {
           name: 'api',

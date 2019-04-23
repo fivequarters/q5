@@ -1,21 +1,21 @@
 import { IExecuteInput } from '@5qtrs/cli';
 import { ExecuteService } from './ExecuteService';
-import { FlexdOpsCore } from '@5qtrs/fusebit-ops-core';
+import { FusebitOpsCore } from '@5qtrs/fusebit-ops-core';
 
 // ----------------
 // Exported Classes
 // ----------------
 
 export class SettingsService {
-  private core: FlexdOpsCore;
+  private core: FusebitOpsCore;
   private executeService: ExecuteService;
 
-  private constructor(core: FlexdOpsCore, executeService: ExecuteService) {
+  private constructor(core: FusebitOpsCore, executeService: ExecuteService) {
     this.core = core;
     this.executeService = executeService;
   }
 
-  public static async create(core: FlexdOpsCore, input: IExecuteInput) {
+  public static async create(core: FusebitOpsCore, input: IExecuteInput) {
     const executeService = await ExecuteService.create(core, input);
     return new SettingsService(core, executeService);
   }

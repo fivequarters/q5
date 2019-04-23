@@ -1,5 +1,5 @@
 import { Command, IExecuteInput, Message, MessageKind, ArgType } from '@5qtrs/cli';
-import { FlexdOpsCore, IFlexdOpsDomain } from '@5qtrs/fusebit-ops-core';
+import { FusebitOpsCore, IFusebitOpsDomain } from '@5qtrs/fusebit-ops-core';
 import { Text } from '@5qtrs/text';
 import { Table, CellAlignment } from '@5qtrs/table';
 
@@ -8,18 +8,18 @@ import { Table, CellAlignment } from '@5qtrs/table';
 // ----------------
 
 export class GetDomainCommand extends Command {
-  private core: FlexdOpsCore;
+  private core: FusebitOpsCore;
 
-  public static async create(core: FlexdOpsCore) {
+  public static async create(core: FusebitOpsCore) {
     return new GetDomainCommand(core);
   }
 
-  private constructor(core: FlexdOpsCore) {
+  private constructor(core: FusebitOpsCore) {
     super({
       name: 'Get Domain',
       cmd: 'get',
       summary: 'Gets a domain',
-      description: 'Retrieve the details of a given domain in the Flexd platform.',
+      description: 'Retrieve the details of a given domain in the Fusebit platform.',
       arguments: [
         {
           name: 'name',
@@ -63,7 +63,7 @@ export class GetDomainCommand extends Command {
         header: 'Get Error',
         message:
           error.code !== undefined
-            ? 'An error was encountered when trying to get the domain in the Flexd platform.'
+            ? 'An error was encountered when trying to get the domain in the Fusebit platform.'
             : error.message,
         kind: MessageKind.error,
       });
@@ -75,7 +75,7 @@ export class GetDomainCommand extends Command {
     if (domain === undefined) {
       const message = await Message.create({
         header: 'No Domain',
-        message: Text.create("There is no '", Text.bold(name), "' domain in the Flexd platform."),
+        message: Text.create("There is no '", Text.bold(name), "' domain in the Fusebit platform."),
         kind: MessageKind.error,
       });
       await message.write(input.io);
@@ -84,7 +84,7 @@ export class GetDomainCommand extends Command {
     return domain;
   }
 
-  private async displayDomain(domain: IFlexdOpsDomain, input: IExecuteInput) {
+  private async displayDomain(domain: IFusebitOpsDomain, input: IExecuteInput) {
     if (input.options.format === 'json') {
       input.io.writeLine(JSON.stringify(domain, null, 2));
     } else {

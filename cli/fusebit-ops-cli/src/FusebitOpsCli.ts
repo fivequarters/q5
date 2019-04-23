@@ -1,6 +1,6 @@
 import { Command, ICommand, Message, MessageKind, ICommandIO, IExecuteInput, ArgType } from '@5qtrs/cli';
 import { Text } from '@5qtrs/text';
-import { FlexdOpsCore } from '@5qtrs/fusebit-ops-core';
+import { FusebitOpsCore } from '@5qtrs/fusebit-ops-core';
 import {
   InitCommand,
   InstallCommand,
@@ -57,12 +57,12 @@ function getMfaCodeResolver(io: ICommandIO) {
 // Exported Classes
 // ----------------
 
-export class FlexdOpsCli extends Command {
-  private core: FlexdOpsCore;
+export class FusebitOpsCli extends Command {
+  private core: FusebitOpsCore;
 
   public static async create(io: ICommandIO) {
     const mfaResolver = getMfaCodeResolver(io);
-    const core = await FlexdOpsCore.create(mfaResolver);
+    const core = await FusebitOpsCore.create(mfaResolver);
 
     const subCommands: Command[] = [];
     subCommands.push(await InitCommand.create(core));
@@ -75,8 +75,8 @@ export class FlexdOpsCli extends Command {
     subCommands.push(await DeploymentCommand.create(core));
 
     const cli = {
-      name: 'Flexd Ops CLI',
-      description: 'A command-line tool (CLI) for the managing the operations of the Flexd platform.',
+      name: 'Fusebit Ops CLI',
+      description: 'A command-line tool (CLI) for the managing the operations of the Fusebit platform.',
       cli: 'flx-ops',
       options: [
         {
@@ -90,10 +90,10 @@ export class FlexdOpsCli extends Command {
       subCommands,
     };
 
-    return new FlexdOpsCli(cli, core);
+    return new FusebitOpsCli(cli, core);
   }
 
-  private constructor(cli: ICommand, core: FlexdOpsCore) {
+  private constructor(cli: ICommand, core: FusebitOpsCore) {
     super(cli);
     this.core = core;
   }
