@@ -3,6 +3,7 @@ import { request } from '@5qtrs/request';
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { applyTheme } from '../util';
+import ReactGA from 'react-ga';
 
 // ------------------
 // Internal Constants
@@ -95,6 +96,11 @@ export function CTA() {
       await request({
         method: 'POST',
         url: `${googleSheetUrl}?Email=${email}`,
+      });
+      ReactGA.event({
+        category: 'CTA',
+        action: 'Form Fill',
+        label: 'Top Banner - Learn More',
       });
       setTimeout(async () => {
         setShowEmailMessage(false);

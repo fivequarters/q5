@@ -5,6 +5,7 @@ import React, { useContext } from 'react';
 import styled, { ThemeContext } from 'styled-components';
 import { applyTheme } from '../util';
 import { Text } from './Text';
+import { outboundLink } from './OutboundLink';
 
 const Container = styled.div`
   position: relative;
@@ -40,6 +41,16 @@ const Twitter = styled(FaTwitter)`
 export function NavBar() {
   const context = useContext(ThemeContext);
 
+  function mailClick() {
+    outboundLink('mailto:contact@fusebit.io');
+    return false;
+  }
+
+  function twitterClick() {
+    outboundLink('https://twitter.com/fusebitio', undefined, '_blank');
+    return false;
+  }
+
   return (
     <Container>
       {/* <AboveNavBar>{content.announcement}</AboveNavBar> */}
@@ -49,8 +60,10 @@ export function NavBar() {
           <Text content="Fusebit" />
         </CorpName>
         <NavBarSpacer />
-        <Link href="mailto:contact@fusebit.io">contact@fusebit.io</Link>
-        <Link href="https://twitter.com/fusebitio" target="_blank">
+        <Link href="mailto:contact@fusebit.io" onClick={mailClick}>
+          contact@fusebit.io
+        </Link>
+        <Link href="https://twitter.com/fusebitio" target="_blank" onClick={twitterClick}>
           <Twitter />
         </Link>
       </StyledNavBar>
