@@ -3,6 +3,7 @@ import { Image } from '@5qtrs/image';
 import React from 'react';
 import styled from 'styled-components';
 import { applyTheme } from '../util';
+import { outboundLink } from './OutboundLink';
 
 const Container = styled.div`
   display: flex;
@@ -77,14 +78,24 @@ export type BioProps = {
 export function Bio({ name, title, description, image, imageSize, twitter, linkedIn, ...rest }: BioProps) {
   imageSize = imageSize || 140;
 
+  function linkedinClick() {
+    outboundLink(linkedIn as string, undefined, '_blank');
+    return false;
+  }
+
+  function twitterClick() {
+    outboundLink(twitter as string, undefined, '_blank');
+    return false;
+  }
+
   const linkedInLink = linkedIn ? (
-    <Link href={linkedIn} target="_blank">
+    <Link href={linkedIn} target="_blank" onClick={linkedinClick}>
       <LinkedIn />
     </Link>
   ) : null;
 
   const twitterLink = twitter ? (
-    <Link href={twitter} target="_blank">
+    <Link href={twitter} target="_blank" onClick={twitterClick}>
       <Twitter />
     </Link>
   ) : null;

@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { applyTheme } from '../util';
 import { Section } from './Section';
+import ReactGA from 'react-ga';
 
 // ------------------
 // Internal Constants
@@ -85,6 +86,11 @@ export function FooterCTA() {
       await request({
         method: 'POST',
         url: `${googleSheetUrl}?Email=${email}`,
+      });
+      ReactGA.event({
+        category: 'CTA',
+        action: 'Form Fill',
+        label: 'Bottom Banner - Learn More',
       });
       setTimeout(async () => {
         setShowEmailMessage(false);
