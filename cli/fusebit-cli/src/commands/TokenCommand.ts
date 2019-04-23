@@ -11,7 +11,7 @@ const command = {
   cmd: 'token',
   summary: 'Generates an access token',
   description: Text.create(
-    'Generates an access token that can be used with the Flexd HTTP API.',
+    'Generates an access token that can be used with the Fusebit HTTP API.',
     Text.eol(),
     Text.eol(),
     'The token will have an expiration of 2 hours from the time it is generated.'

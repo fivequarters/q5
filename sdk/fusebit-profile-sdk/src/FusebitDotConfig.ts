@@ -1,12 +1,12 @@
 import { join } from 'path';
 import { DotConfig } from '@5qtrs/dot-config';
-import { FlexdProfileError } from './FlexdProfileError';
+import { FusebitProfileError } from './FusebitProfileError';
 
 // ------------------
 // Internal Constants
 // ------------------
 
-const dotFolderName = '.flexd';
+const dotFolderName = '.fusebit';
 const settingsPath = 'settings.json';
 const keyPairPath = 'keys';
 const publicKeyFileName = 'pub';
@@ -18,13 +18,13 @@ const credsFileName = 'creds.json';
 // Exported Classes
 // ----------------
 
-export class FlexdDotConfig extends DotConfig {
+export class FusebitDotConfig extends DotConfig {
   private constructor(directory?: string) {
     super(dotFolderName, directory);
   }
 
   public static async create(directory?: string) {
-    return new FlexdDotConfig(directory);
+    return new FusebitDotConfig(directory);
   }
 
   public async getSettingsPath(): Promise<string> {
@@ -148,7 +148,7 @@ export class FlexdDotConfig extends DotConfig {
       settings.defaults = settings.defaults || {};
       return settings;
     } catch (error) {
-      throw FlexdProfileError.readFileError('settings', error);
+      throw FusebitProfileError.readFileError('settings', error);
     }
   }
 
@@ -156,7 +156,7 @@ export class FlexdDotConfig extends DotConfig {
     try {
       await this.writeJson(settingsPath, settings);
     } catch (error) {
-      throw FlexdProfileError.writeFileError('settings', error);
+      throw FusebitProfileError.writeFileError('settings', error);
     }
   }
 
@@ -169,7 +169,7 @@ export class FlexdDotConfig extends DotConfig {
       }
       return buffer.toString();
     } catch (error) {
-      throw FlexdProfileError.readFileError(fileName, error);
+      throw FusebitProfileError.readFileError(fileName, error);
     }
   }
 
@@ -178,7 +178,7 @@ export class FlexdDotConfig extends DotConfig {
       const buffer = Buffer.from(contents);
       await this.writeBinary(path, buffer);
     } catch (error) {
-      throw FlexdProfileError.writeFileError(fileName, error);
+      throw FusebitProfileError.writeFileError(fileName, error);
     }
   }
 
@@ -216,7 +216,7 @@ export class FlexdDotConfig extends DotConfig {
     try {
       await this.removeDirectory(path);
     } catch (error) {
-      throw FlexdProfileError.removeDirectoryError(`${name} keys`, error);
+      throw FusebitProfileError.removeDirectoryError(`${name} keys`, error);
     }
   }
 
@@ -228,7 +228,7 @@ export class FlexdDotConfig extends DotConfig {
     try {
       await this.removeDirectory(path);
     } catch (error) {
-      throw FlexdProfileError.removeDirectoryError(`${name} cached credentials`, error);
+      throw FusebitProfileError.removeDirectoryError(`${name} cached credentials`, error);
     }
   }
 }

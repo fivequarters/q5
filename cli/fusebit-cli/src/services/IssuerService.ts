@@ -14,23 +14,23 @@ const notSet = Text.dim(Text.italic('<not set>'));
 // Exported Interfaces
 // -------------------
 
-export interface IFlexdPublicKey {
+export interface IFusebitPublicKey {
   keyId: string;
   publicKey: string;
 }
 
-export interface INewFlexdIssuer {
+export interface INewFusebitIssuer {
   displayName?: string;
   jsonKeysUrl?: string;
   publicKeyPath?: string;
   publicKeyId?: string;
 }
 
-export interface IFlexdIssuer {
+export interface IFusebitIssuer {
   id: string;
   displayName?: string;
   jsonKeysUrl?: string;
-  publicKeys?: IFlexdPublicKey[];
+  publicKeys?: IFusebitPublicKey[];
 }
 
 // ----------------
@@ -54,7 +54,7 @@ export class IssuerService {
     return new IssuerService(profileService, executeService, input);
   }
 
-  public async listIssuers(): Promise<IFlexdIssuer[]> {
+  public async listIssuers(): Promise<IFusebitIssuer[]> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     const issuers = await this.executeService.executeRequest(
@@ -74,7 +74,7 @@ export class IssuerService {
     return issuers.items;
   }
 
-  public async getIssuer(id: string): Promise<IFlexdIssuer> {
+  public async getIssuer(id: string): Promise<IFusebitIssuer> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     const issuer = await this.executeService.executeRequest(
@@ -94,7 +94,7 @@ export class IssuerService {
     return issuer;
   }
 
-  public async addIssuer(id: string, newIssuer: INewFlexdIssuer): Promise<IFlexdIssuer> {
+  public async addIssuer(id: string, newIssuer: INewFusebitIssuer): Promise<IFusebitIssuer> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     let issuer;
@@ -157,7 +157,7 @@ export class IssuerService {
     );
   }
 
-  public async updateIssuer(id: string, issuer: INewFlexdIssuer): Promise<void> {
+  public async updateIssuer(id: string, issuer: INewFusebitIssuer): Promise<void> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     await this.executeService.executeRequest(
@@ -181,7 +181,7 @@ export class IssuerService {
     );
   }
 
-  public async addPublicKey(id: string, issuer: INewFlexdIssuer): Promise<void> {
+  public async addPublicKey(id: string, issuer: INewFusebitIssuer): Promise<void> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     await this.executeService.executeRequest(
@@ -205,7 +205,7 @@ export class IssuerService {
     );
   }
 
-  public async removePublicKey(id: string, issuer: INewFlexdIssuer): Promise<void> {
+  public async removePublicKey(id: string, issuer: INewFusebitIssuer): Promise<void> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     await this.executeService.executeRequest(
@@ -229,7 +229,7 @@ export class IssuerService {
     );
   }
 
-  public async confirmAddIssuer(id: string, newIssuer: INewFlexdIssuer): Promise<void> {
+  public async confirmAddIssuer(id: string, newIssuer: INewFusebitIssuer): Promise<void> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     const confirmPrompt = await Confirm.create({
@@ -248,7 +248,7 @@ export class IssuerService {
     }
   }
 
-  public async confirmUpdateIssuer(issuer: IFlexdIssuer, newIssuer: INewFlexdIssuer): Promise<void> {
+  public async confirmUpdateIssuer(issuer: IFusebitIssuer, newIssuer: INewFusebitIssuer): Promise<void> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     const confirmPrompt = await Confirm.create({
@@ -267,7 +267,7 @@ export class IssuerService {
     }
   }
 
-  public async confirmRemoveIssuer(id: string, issuer: IFlexdIssuer): Promise<void> {
+  public async confirmRemoveIssuer(id: string, issuer: IFusebitIssuer): Promise<void> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     const confirmPrompt = await Confirm.create({
@@ -286,7 +286,7 @@ export class IssuerService {
     }
   }
 
-  public async confirmAddPublicKey(issuer: IFlexdIssuer, keyId: string): Promise<void> {
+  public async confirmAddPublicKey(issuer: IFusebitIssuer, keyId: string): Promise<void> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     const confirmPrompt = await Confirm.create({
@@ -305,7 +305,7 @@ export class IssuerService {
     }
   }
 
-  public async confirmRemovePublicKey(issuer: IFlexdIssuer, keyId: string): Promise<void> {
+  public async confirmRemovePublicKey(issuer: IFusebitIssuer, keyId: string): Promise<void> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     const confirmPrompt = await Confirm.create({
@@ -324,7 +324,7 @@ export class IssuerService {
     }
   }
 
-  public async displayIssuers(issuers: IFlexdIssuer[]) {
+  public async displayIssuers(issuers: IFusebitIssuer[]) {
     if (this.input.options.format === 'json') {
       await this.input.io.writeLine(JSON.stringify(issuers, null, 2));
       return;
@@ -341,7 +341,7 @@ export class IssuerService {
     }
   }
 
-  public async displayIssuer(issuer: IFlexdIssuer) {
+  public async displayIssuer(issuer: IFusebitIssuer) {
     if (this.input.options.format === 'json') {
       await this.input.io.writeLine(JSON.stringify(issuer, null, 2));
       return;
@@ -350,7 +350,7 @@ export class IssuerService {
     await this.writeIssuer(issuer);
   }
 
-  private async writeIssuer(issuer: IFlexdIssuer) {
+  private async writeIssuer(issuer: IFusebitIssuer) {
     const details = [Text.dim('Issuer: '), issuer.id || ''];
 
     if (!issuer.jsonKeysUrl && !issuer.publicKeys) {
@@ -374,7 +374,7 @@ export class IssuerService {
     await message.write(this.input.io);
   }
 
-  private getIssuerConfirmDetails(id: string, account: string, issuer: INewFlexdIssuer) {
+  private getIssuerConfirmDetails(id: string, account: string, issuer: INewFusebitIssuer) {
     const details = [
       { name: 'Account', value: account },
       { name: 'Issuer', value: id },
@@ -389,7 +389,7 @@ export class IssuerService {
     return details;
   }
 
-  private getUpdateIssuerConfirmDetails(account: string, issuer: IFlexdIssuer, update: INewFlexdIssuer) {
+  private getUpdateIssuerConfirmDetails(account: string, issuer: IFusebitIssuer, update: INewFusebitIssuer) {
     const displayName = issuer.displayName || notSet;
     const jsonKeysUrl = issuer.jsonKeysUrl || notSet;
     const publicKeys = issuer.publicKeys ? `${issuer.publicKeys.length} keys` : notSet;

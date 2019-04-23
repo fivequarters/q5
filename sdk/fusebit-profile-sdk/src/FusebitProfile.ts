@@ -1,9 +1,9 @@
-import { FlexdDotConfig } from './FlexdDotConfig';
+import { FusebitDotConfig } from './FusebitDotConfig';
 import { createKeyPair } from '@5qtrs/key-pair';
 import { signJwt } from '@5qtrs/jwt';
 import { random } from '@5qtrs/random';
 import { toBase64 } from '@5qtrs/base64';
-import { FlexdProfileError } from './FlexdProfileError';
+import { FusebitProfileError } from './FusebitProfileError';
 
 // ------------------
 // Internal Constants
@@ -18,7 +18,7 @@ const jwtAlgorithm = 'RS256';
 // Internal Functions
 // ------------------
 
-function getKeyHash(profile: IFlexdProfile): string {
+function getKeyHash(profile: IFusebitProfile): string {
   return `${toBase64(profile.issuer as string)}:${toBase64(profile.subject as string)}:${toBase64(profile.baseUrl)}`;
 }
 
@@ -28,7 +28,7 @@ function nomarlizeBaseUrl(baseUrl: string): string {
     baseUrl = baseUrl.substring(0, baseUrl.length - 1);
   }
   if (baseUrl.indexOf('http') === -1) {
-    throw FlexdProfileError.baseUrlMissingProtocol(baseUrl);
+    throw FusebitProfileError.baseUrlMissingProtocol(baseUrl);
   }
   return baseUrl;
 }
@@ -54,20 +54,11 @@ function getProfileNameFromBaseUrl(baseUrl: string) {
   return domain.split('.')[0];
 }
 
-function generateIssuer(baseUrl: string): string {
-  const domain = getDomainFromBaseUrl(baseUrl);
-  return `${random()}.cli.${domain}`;
-}
-
-function generateSubject(): string {
-  return `cli-${random({ lengthInBytes: 4 })}`;
-}
-
 // -------------------
 // Exported Interfaces
 // -------------------
 
-export interface IFlexdProfileSettings {
+export interface IFusebitProfileSettings {
   [index: string]: string | undefined;
   account: string;
   subscription?: string;
@@ -75,14 +66,14 @@ export interface IFlexdProfileSettings {
   function?: string;
 }
 
-export interface IFlexdNewProfile extends IFlexdProfileSettings {
+export interface IFusebitNewProfile extends IFusebitProfileSettings {
   agent: string;
   baseUrl: string;
   issuer: string;
   subject: string;
 }
 
-export interface IFlexdProfile extends IFlexdNewProfile {
+export interface IFusebitProfile extends IFusebitNewProfile {
   name: string;
   created: string;
   updated: string;
@@ -90,7 +81,7 @@ export interface IFlexdProfile extends IFlexdNewProfile {
   kid: string;
 }
 
-export interface IFlexdExecutionProfile extends IFlexdProfileSettings {
+export interface IFusebitExecutionProfile extends IFusebitProfileSettings {
   accessToken: string;
   baseUrl: string;
 }
@@ -99,16 +90,16 @@ export interface IFlexdExecutionProfile extends IFlexdProfileSettings {
 // Exported Classes
 // ----------------
 
-export class FlexdProfile {
-  private dotConfig: FlexdDotConfig;
+export class FusebitProfile {
+  private dotConfig: FusebitDotConfig;
 
-  private constructor(dotConfig: FlexdDotConfig) {
+  private constructor(dotConfig: FusebitDotConfig) {
     this.dotConfig = dotConfig;
   }
 
   public static async create() {
-    const dotConfig = await FlexdDotConfig.create();
-    return new FlexdProfile(dotConfig);
+    const dotConfig = await FusebitDotConfig.create();
+    return new FusebitProfile(dotConfig);
   }
 
   public async profileExists(name: string): Promise<boolean> {
@@ -128,9 +119,9 @@ export class FlexdProfile {
     return this.dotConfig.setDefaultProfileName(name);
   }
 
-  public async listProfiles(): Promise<IFlexdProfile[]> {
+  public async listProfiles(): Promise<IFusebitProfile[]> {
     const names = await this.dotConfig.listProfileNames();
-    const profiles: IFlexdProfile[] = [];
+    const profiles: IFusebitProfile[] = [];
     for (const name of names) {
       const profile = await this.getProfile(name);
       if (profile) {
@@ -141,23 +132,23 @@ export class FlexdProfile {
     return profiles;
   }
 
-  public async getProfile(name: string): Promise<IFlexdProfile | undefined> {
-    const profile = (await this.dotConfig.getProfile(name)) as IFlexdProfile;
+  public async getProfile(name: string): Promise<IFusebitProfile | undefined> {
+    const profile = (await this.dotConfig.getProfile(name)) as IFusebitProfile;
     if (profile) {
       profile.name = name;
     }
     return profile || undefined;
   }
 
-  public async getProfileOrThrow(name: string): Promise<IFlexdProfile> {
+  public async getProfileOrThrow(name: string): Promise<IFusebitProfile> {
     const profile = await this.getProfile(name);
     if (profile === undefined) {
-      throw FlexdProfileError.profileDoesNotExist(name);
+      throw FusebitProfileError.profileDoesNotExist(name);
     }
     return profile;
   }
 
-  public async getProfileOrDefault(name?: string): Promise<IFlexdProfile | undefined> {
+  public async getProfileOrDefault(name?: string): Promise<IFusebitProfile | undefined> {
     if (!name) {
       name = await this.dotConfig.getDefaultProfileName();
       if (!name) {
@@ -167,18 +158,18 @@ export class FlexdProfile {
     return this.getProfile(name);
   }
 
-  public async getProfileOrDefaultOrThrow(name?: string): Promise<IFlexdProfile> {
+  public async getProfileOrDefaultOrThrow(name?: string): Promise<IFusebitProfile> {
     if (!name) {
       name = await this.dotConfig.getDefaultProfileName();
       if (!name) {
-        throw FlexdProfileError.noDefaultProfile();
+        throw FusebitProfileError.noDefaultProfile();
       }
     }
 
     return this.getProfileOrThrow(name);
   }
 
-  public async addProfile(name: string, toAdd: IFlexdNewProfile): Promise<IFlexdProfile> {
+  public async addProfile(name: string, toAdd: IFusebitNewProfile): Promise<IFusebitProfile> {
     const { publicKey, privateKey } = await createKeyPair();
     const kid = await this.generateKid(name);
 
@@ -213,7 +204,7 @@ export class FlexdProfile {
     return profile;
   }
 
-  public async updateProfile(name: string, settings: IFlexdProfileSettings): Promise<IFlexdProfile> {
+  public async updateProfile(name: string, settings: IFusebitProfileSettings): Promise<IFusebitProfile> {
     const profile = await this.getProfileOrThrow(name);
 
     profile.account = settings.account;
@@ -228,12 +219,12 @@ export class FlexdProfile {
     return profile;
   }
 
-  public async copyProfile(name: string, copyTo: string, overWrite: boolean): Promise<IFlexdProfile> {
+  public async copyProfile(name: string, copyTo: string, overWrite: boolean): Promise<IFusebitProfile> {
     const profile = await this.getProfileOrThrow(name);
     const copyToExists = await this.profileExists(copyTo);
 
     if (copyToExists && !overWrite) {
-      throw FlexdProfileError.profileAlreadyExists(copyTo);
+      throw FusebitProfileError.profileAlreadyExists(copyTo);
     }
 
     profile.created = new Date().toLocaleString();
@@ -245,12 +236,12 @@ export class FlexdProfile {
     return profile;
   }
 
-  public async renameProfile(name: string, renameTo: string, overWrite: boolean): Promise<IFlexdProfile> {
+  public async renameProfile(name: string, renameTo: string, overWrite: boolean): Promise<IFusebitProfile> {
     const profile = await this.getProfileOrThrow(name);
     const renameToExists = await this.profileExists(renameTo);
 
     if (renameToExists && !overWrite) {
-      throw FlexdProfileError.profileAlreadyExists(renameTo);
+      throw FusebitProfileError.profileAlreadyExists(renameTo);
     }
 
     profile.updated = new Date().toLocaleString();
@@ -287,7 +278,7 @@ export class FlexdProfile {
     return accessToken !== undefined ? accessToken : await this.generateAccessToken(profile);
   }
 
-  public async getExecutionProfile(name?: string, ignoreCache: boolean = false): Promise<IFlexdExecutionProfile> {
+  public async getExecutionProfile(name?: string, ignoreCache: boolean = false): Promise<IFusebitExecutionProfile> {
     const profile = await this.getProfileOrDefaultOrThrow(name);
     const accessToken = await this.getAccessToken(name, ignoreCache);
     return {
@@ -305,7 +296,7 @@ export class FlexdProfile {
     return profiles.length > 0;
   }
 
-  private async getProfilesUsingKey(name: string, kid: string): Promise<IFlexdProfile[]> {
+  private async getProfilesUsingKey(name: string, kid: string): Promise<IFusebitProfile[]> {
     const profiles = await this.listProfiles();
     return profiles.filter(profile => profile.keyPair === name && profile.kid === kid);
   }
@@ -318,7 +309,7 @@ export class FlexdProfile {
     return kid;
   }
 
-  private async generateAccessToken(profile: IFlexdProfile): Promise<string> {
+  private async generateAccessToken(profile: IFusebitProfile): Promise<string> {
     const privateKey = await this.dotConfig.getPrivateKey(profile.keyPair, profile.kid);
 
     const expires = new Date(Date.now() + 1000 * expireInSeconds);
@@ -341,7 +332,7 @@ export class FlexdProfile {
     return accessToken;
   }
 
-  private async getCachedAccessToken(profile: IFlexdProfile): Promise<string | undefined> {
+  private async getCachedAccessToken(profile: IFusebitProfile): Promise<string | undefined> {
     const cachedCredsEntry = await this.dotConfig.getCachedCreds(profile.name, profile.kid);
     if (cachedCredsEntry) {
       if (cachedCredsEntry.hash === getKeyHash(profile)) {

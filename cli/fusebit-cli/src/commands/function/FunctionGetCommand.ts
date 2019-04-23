@@ -6,8 +6,8 @@ import {
   parseKeyValue,
   ExecuteService,
   VersionService,
-  tryGetFlexd,
-  getProfileSettingsFromFlexd,
+  tryGetFusebit,
+  getProfileSettingsFromFusebit,
 } from '../../services';
 import * as Path from 'path';
 import * as Fs from 'fs';
@@ -83,7 +83,7 @@ export class FunctionGetCommand extends Command {
 
     let profile = await profileService.getExecutionProfile(
       ['subscription', 'boundary', 'function'],
-      input.options.download ? undefined : getProfileSettingsFromFlexd(tryGetFlexd())
+      input.options.download ? undefined : getProfileSettingsFromFusebit(tryGetFusebit())
     );
 
     const version = await versionService.getVersion();
@@ -173,14 +173,14 @@ export class FunctionGetCommand extends Command {
 
           // Save remaining metadata to allow for roundtrip on deploy
 
-          Fs.mkdirSync(Path.join(destDirectory, '.flexd'), { recursive: true });
+          Fs.mkdirSync(Path.join(destDirectory, '.fusebit'), { recursive: true });
           response.data.flxVersion = require('../../../package.json').version;
           Fs.writeFileSync(
-            Path.join(destDirectory, '.flexd', 'function.json'),
+            Path.join(destDirectory, '.fusebit', 'function.json'),
             JSON.stringify(response.data, null, 2),
             'utf8'
           );
-          input.io.writeLine('.flexd/function.json');
+          input.io.writeLine('.fusebit/function.json');
 
           input.io.writeLine();
           input.io.writeLine(Text.green('Done.'));

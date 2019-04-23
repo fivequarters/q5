@@ -1,13 +1,13 @@
 {
   "name": "@5qtrs/fusebit-cli",
-  "version": "0.0.9",
+  "version": "0.0.1",
   "description": "",
   "main": "libc/index.js",
   "bin": {
-    "flx": "libc/index.js"
+    "fuse": "libc/index.js"
   },
   "license": "MIT",
-  "author": "flexd.io",
+  "author": "https://fusebit.io",
   "scripts": {
     "build": "tsc -b",
     "test": "jest --colors",

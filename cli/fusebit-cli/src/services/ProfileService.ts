@@ -1,14 +1,15 @@
 import { IExecuteInput, Confirm } from '@5qtrs/cli';
 import { Text } from '@5qtrs/text';
 import {
-  FlexdProfile,
-  IFlexdExecutionProfile,
-  IFlexdNewProfile,
-  IFlexdProfile,
-  IFlexdProfileSettings,
-  FlexdProfileError,
-  FlexdProfileErrorCode,
+  FusebitProfile,
+  IFusebitExecutionProfile,
+  IFusebitNewProfile,
+  IFusebitProfile,
+  IFusebitProfileSettings,
+  FusebitProfileError,
+  FusebitProfileErrorCode,
 } from '@5qtrs/fusebit-profile-sdk';
+import { profileConvert } from './profileConvert';
 import { ExecuteService } from './ExecuteService';
 
 // ------------------
@@ -40,22 +41,22 @@ function getDateString(date: Date) {
 
 export class ProfileService {
   private input: IExecuteInput;
-  private profile: FlexdProfile;
+  private profile: FusebitProfile;
   private executeService: ExecuteService;
 
-  private constructor(profile: FlexdProfile, executeService: ExecuteService, input: IExecuteInput) {
+  private constructor(profile: FusebitProfile, executeService: ExecuteService, input: IExecuteInput) {
     this.input = input;
     this.profile = profile;
     this.executeService = executeService;
   }
 
   public static async create(input: IExecuteInput) {
-    const flexdProfile = await FlexdProfile.create();
+    const flexdProfile = await FusebitProfile.create();
     const executeService = await ExecuteService.create(input);
     return new ProfileService(flexdProfile, executeService, input);
   }
 
-  public async listProfiles(): Promise<IFlexdProfile[]> {
+  public async listProfiles(): Promise<IFusebitProfile[]> {
     return this.execute(() => this.profile.listProfiles());
   }
 
@@ -67,19 +68,19 @@ export class ProfileService {
     return this.execute(() => this.profile.getPublicKey(name));
   }
 
-  public async getProfile(name: string): Promise<IFlexdProfile | undefined> {
+  public async getProfile(name: string): Promise<IFusebitProfile | undefined> {
     return this.execute(() => this.profile.getProfile(name));
   }
 
-  public async getProfileOrThrow(name: string): Promise<IFlexdProfile> {
+  public async getProfileOrThrow(name: string): Promise<IFusebitProfile> {
     return this.execute(() => this.profile.getProfileOrThrow(name));
   }
 
-  public async getDefaultProfileOrThrow(): Promise<IFlexdProfile> {
+  public async getDefaultProfileOrThrow(): Promise<IFusebitProfile> {
     return this.execute(() => this.profile.getProfileOrDefaultOrThrow());
   }
 
-  public async getProfileOrDefaultOrThrow(name?: string): Promise<IFlexdProfile> {
+  public async getProfileOrDefaultOrThrow(name?: string): Promise<IFusebitProfile> {
     return this.execute(() => this.profile.getProfileOrDefaultOrThrow(name));
   }
 
@@ -95,11 +96,11 @@ export class ProfileService {
     );
   }
 
-  public async addProfile(name: string, newProfile: IFlexdNewProfile): Promise<IFlexdProfile> {
+  public async addProfile(name: string, newProfile: IFusebitNewProfile): Promise<IFusebitProfile> {
     return this.execute(() => this.profile.addProfile(name, newProfile));
   }
 
-  public async copyProfile(name: string, copyTo: string): Promise<IFlexdProfile> {
+  public async copyProfile(name: string, copyTo: string): Promise<IFusebitProfile> {
     const profile = await this.execute(() => this.profile.copyProfile(name, copyTo, true));
     await this.executeService.result(
       'Profile Copied',
@@ -115,7 +116,7 @@ export class ProfileService {
     return profile;
   }
 
-  public async updateProfile(name: string, profile: IFlexdProfileSettings): Promise<IFlexdProfile> {
+  public async updateProfile(name: string, profile: IFusebitProfileSettings): Promise<IFusebitProfile> {
     const updatedProfile = await this.execute(() => this.profile.updateProfile(name, profile));
     await this.executeService.result(
       'Profile Updated',
@@ -125,7 +126,7 @@ export class ProfileService {
     return updatedProfile;
   }
 
-  public async renameProfile(name: string, renameTo: string): Promise<IFlexdProfile> {
+  public async renameProfile(name: string, renameTo: string): Promise<IFusebitProfile> {
     const profile = await this.execute(() => this.profile.renameProfile(name, renameTo, true));
     await this.executeService.result(
       'Profile Renamed',
@@ -142,7 +143,7 @@ export class ProfileService {
     );
   }
 
-  public async confirmCopyProfile(name: string, copyTo: string, profile: IFlexdProfile): Promise<void> {
+  public async confirmCopyProfile(name: string, copyTo: string, profile: IFusebitProfile): Promise<void> {
     const confirmPrompt = await Confirm.create({
       header: 'Overwrite?',
       message: Text.create(
@@ -162,7 +163,7 @@ export class ProfileService {
     }
   }
 
-  public async confirmInitProfile(name: string, profile: IFlexdProfile): Promise<void> {
+  public async confirmInitProfile(name: string, profile: IFusebitProfile): Promise<void> {
     const confirmPrompt = await Confirm.create({
       header: 'Overwrite?',
       message: Text.create(
@@ -182,7 +183,7 @@ export class ProfileService {
     }
   }
 
-  public async confirmUpdateProfile(profile: IFlexdProfile, settings: IFlexdProfileSettings): Promise<void> {
+  public async confirmUpdateProfile(profile: IFusebitProfile, settings: IFusebitProfileSettings): Promise<void> {
     const confirmPrompt = await Confirm.create({
       header: 'Update?',
       message: Text.create("Update the '", Text.bold(profile.name), "' profile as shown below?"),
@@ -198,7 +199,7 @@ export class ProfileService {
     }
   }
 
-  public async confirmRenameProfile(source: string, target: string, profile: IFlexdProfile): Promise<void> {
+  public async confirmRenameProfile(source: string, target: string, profile: IFusebitProfile): Promise<void> {
     const confirmPrompt = await Confirm.create({
       header: 'Overwrite?',
       message: Text.create(
@@ -218,7 +219,7 @@ export class ProfileService {
     }
   }
 
-  public async confirmRemoveProfile(name: string, profile: IFlexdProfile): Promise<void> {
+  public async confirmRemoveProfile(name: string, profile: IFusebitProfile): Promise<void> {
     const confirmPrompt = await Confirm.create({
       header: 'Remove?',
       message: Text.create("Remove the '", Text.bold(name), "' profile shown below?"),
@@ -236,8 +237,14 @@ export class ProfileService {
 
   public async getExecutionProfile(
     expected?: string[],
-    defaults?: IFlexdProfileSettings
-  ): Promise<IFlexdExecutionProfile> {
+    defaults?: IFusebitProfileSettings
+  ): Promise<IFusebitExecutionProfile> {
+    try {
+      await profileConvert();
+    } catch (__) {
+      // do_nothing
+    }
+
     const profileName = this.input.options.profile as string;
     const profile = await this.execute(() => this.profile.getExecutionProfile(profileName));
 
@@ -262,7 +269,7 @@ export class ProfileService {
     return profile;
   }
 
-  public async displayProfiles(profiles: IFlexdProfile[]) {
+  public async displayProfiles(profiles: IFusebitProfile[]) {
     if (this.input.options.format === 'json') {
       await this.input.io.writeLine(JSON.stringify(profiles, null, 2));
       return;
@@ -276,7 +283,7 @@ export class ProfileService {
     }
   }
 
-  public async displayProfile(profile: IFlexdProfile) {
+  public async displayProfile(profile: IFusebitProfile) {
     if (this.input.options.format === 'json') {
       await this.input.io.writeLine(JSON.stringify(profile, null, 2));
       return;
@@ -316,7 +323,7 @@ export class ProfileService {
     console.log();
   }
 
-  private getProfileUpdateConfirmDetails(profile: IFlexdProfile, settings: IFlexdProfileSettings) {
+  private getProfileUpdateConfirmDetails(profile: IFusebitProfile, settings: IFusebitProfileSettings) {
     const subscription = profile.subscription || notSet;
     const boundary = profile.boundary || notSet;
     const func = profile.function || notSet;
@@ -347,7 +354,7 @@ export class ProfileService {
     ];
   }
 
-  private getProfileConfirmDetails(profile: IFlexdProfile) {
+  private getProfileConfirmDetails(profile: IFusebitProfile) {
     return [
       { name: 'Deployment', value: profile.baseUrl },
       { name: 'Account', value: profile.account || notSet },
@@ -362,8 +369,8 @@ export class ProfileService {
       const result = await func();
       return result;
     } catch (error) {
-      if (error instanceof FlexdProfileError) {
-        await this.writeFlexdProfileErrorMessage(error);
+      if (error instanceof FusebitProfileError) {
+        await this.writeFusebitProfileErrorMessage(error);
       } else {
         await this.writeErrorMessage(error);
       }
@@ -371,27 +378,27 @@ export class ProfileService {
     }
   }
 
-  private async writeFlexdProfileErrorMessage(error: FlexdProfileError) {
+  private async writeFusebitProfileErrorMessage(error: FusebitProfileError) {
     switch (error.code) {
-      case FlexdProfileErrorCode.profileDoesNotExist:
+      case FusebitProfileErrorCode.profileDoesNotExist:
         this.executeService.error(
           'No Profile',
           Text.create("The profile '", Text.bold(error.entity), "' does not exist")
         );
         return;
-      case FlexdProfileErrorCode.profileAlreadyExists:
+      case FusebitProfileErrorCode.profileAlreadyExists:
         this.executeService.error(
           'Profile Exists',
           Text.create("The profile '", Text.bold(error.entity), "' already exists")
         );
         return;
-      case FlexdProfileErrorCode.baseUrlMissingProtocol:
+      case FusebitProfileErrorCode.baseUrlMissingProtocol:
         this.executeService.error(
           'Base Url',
           Text.create("The base url '", Text.bold(error.entity), "' does not include the protocol, 'http' or 'https'")
         );
         return;
-      case FlexdProfileErrorCode.noDefaultProfile:
+      case FusebitProfileErrorCode.noDefaultProfile:
         this.executeService.error('No Profile', 'There is no default profile set');
         return;
       default:
@@ -404,7 +411,7 @@ export class ProfileService {
     this.executeService.error('Profile Error', error.message);
   }
 
-  private async writeProfile(profile: IFlexdProfile, isDefault: boolean) {
+  private async writeProfile(profile: IFusebitProfile, isDefault: boolean) {
     const details = [
       Text.dim('Deployment: '),
       profile.baseUrl,

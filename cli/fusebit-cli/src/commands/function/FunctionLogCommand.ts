@@ -3,8 +3,8 @@ import {
   ProfileService,
   ExecuteService,
   VersionService,
-  tryGetFlexd,
-  getProfileSettingsFromFlexd,
+  tryGetFusebit,
+  getProfileSettingsFromFusebit,
 } from '../../services';
 import { Text } from '@5qtrs/text';
 
@@ -49,7 +49,7 @@ export class FunctionLogCommand extends Command {
 
     let profile = await profileService.getExecutionProfile(
       ['subscription', 'boundary'],
-      getProfileSettingsFromFlexd(tryGetFlexd())
+      getProfileSettingsFromFusebit(tryGetFusebit())
     );
 
     const version = await versionService.getVersion();
