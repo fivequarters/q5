@@ -1,4 +1,4 @@
-import { Command, ArgType, IExecuteInput, Message } from '@5qtrs/cli';
+import { Command, ArgType, IExecuteInput, Message, MessageKind } from '@5qtrs/cli';
 import { request } from '@5qtrs/request';
 import {
   ProfileService,
@@ -117,6 +117,13 @@ export class FunctionGetCommand extends Command {
         if (input.options.download) {
           await saveToDisk();
         } else {
+          if (input.options.dir) {
+            await (await Message.create({
+              header: '--dir',
+              message: `The --dir option is ignored when --download is not specified.`,
+              kind: MessageKind.warning,
+            })).write(input.io);
+          }
           await displayFunction();
         }
         return 0;
