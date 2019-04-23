@@ -4,8 +4,8 @@
   "include": ["src"],
   "references": [
     { "path": "../workspace" },
-    { "path": "../../lib/server/stream" },
+    { "path": "../../lib/node/stream" },
     { "path": "../tool-config" },
-    { "path": "../../lib/server/child-process" }
+    { "path": "../../lib/node/child-process" }
   ]
 }

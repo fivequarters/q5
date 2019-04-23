@@ -39,7 +39,7 @@
   "devDependencies": {
     "@types/react": "^16.8.6",
     "@types/react-dom": "^16.8.2",
-    "@types/styled-components": "^4.1.4"
+    "@types/styled-components": "4.1.8"
   },
   "devServer": {
     "port": 9508

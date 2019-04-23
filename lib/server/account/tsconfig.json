@@ -4,7 +4,7 @@
   "include": ["src"],
   "references": [
     { "path": "../../data/account-data" },
-    { "path": "../jwt" },
+    { "path": "../../node/jwt" },
     { "path": "../../shared/exception" },
     { "path": "../../shared/promise" },
     { "path": "../../shared/random" }

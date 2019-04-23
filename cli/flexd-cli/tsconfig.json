@@ -3,13 +3,13 @@
   "compilerOptions": { "rootDir": "src", "module": "CommonJS", "outDir": "libc" },
   "include": ["src"],
   "references": [
-    { "path": "../../lib/server/cli" },
+    { "path": "../../lib/node/cli" },
     { "path": "../../lib/server/flexd-profile" },
     { "path": "../../lib/shared/random" },
-    { "path": "../../lib/server/file" },
+    { "path": "../../lib/node/file" },
     { "path": "../../lib/shared/clone" },
     { "path": "../../lib/shared/request" },
     { "path": "../../lib/shared/base64" },
-    { "path": "../../lib/server/jwt" }
+    { "path": "../../lib/node/jwt" }
   ]
 }

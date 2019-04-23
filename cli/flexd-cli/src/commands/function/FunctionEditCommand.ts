@@ -67,17 +67,17 @@ not exist, it is created.`,
                 return res.end();
               }
             })
-            .listen(port, async (e: any) => {
-              if (e) {
-                this.attempts++;
-                if (this.attempts > 10) {
-                  return reject(
-                    new Error('Unable to find a free port in the 80xx range to host a local service. Try again.')
-                  );
-                } else {
-                  return this.onExecute(input);
-                }
+            .on('error', () => {
+              this.attempts++;
+              if (this.attempts > 10) {
+                reject(new Error('Unable to find a free port in the 80xx range to host a local service. Try again.'));
+                return;
+              } else {
+                this.onExecute(input);
+                return;
               }
+            })
+            .listen(port, async () => {
               const message = await Message.create({
                 message: Text.create([
                   'Hosting the Flexd Editor at ',
