@@ -226,6 +226,7 @@ function updateTtlOnSet(table: IAwsDynamoTable, item: any) {
       item[attribute].N = Math.floor((Date.now() + parsed) / 1000).toString();
     }
   }
+  return item;
 }
 
 function updateTtlOnGet(table: IAwsDynamoTable, item: any) {
@@ -238,6 +239,7 @@ function updateTtlOnGet(table: IAwsDynamoTable, item: any) {
       item[attribute].N = (inMilliseconds - now).toString();
     }
   }
+  return item;
 }
 
 function ttlExpired(table: IAwsDynamoTable, item: any) {

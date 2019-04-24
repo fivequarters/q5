@@ -166,12 +166,14 @@ export class AuditEntryTable extends AwsDynamoTable {
 
       const expression = timeStampFilter ? filters : keyConditions;
       if (options.from) {
-        expression.push('timestamp >= :from');
+        expression.push('#timestamp >= :from');
+        expressionNames['#timestamp'] = 'timestamp';
         expressionValues[':from'] = { N: options.from.getTime().toString() };
       }
 
       if (options.to) {
-        expression.push('timestamp <= :to');
+        expression.push('#timestamp <= :to');
+        expressionNames['#timestamp'] = 'timestamp';
         expressionValues[':to'] = { N: options.to.getTime().toString() };
       }
 
