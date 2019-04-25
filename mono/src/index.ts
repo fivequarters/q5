@@ -6,7 +6,7 @@ const Path = require('path');
 function execute() {
   const processes = [
     [Path.join(__dirname, '../../api/int/pubsub/libc/index.js')],
-    [Path.join(__dirname, '../../api/ext/function-api/libc/index.js')],
+    [Path.join(__dirname, '../../api/function-api/libc/index.js')],
   ];
 
   let children: any[] = [];
