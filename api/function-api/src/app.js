@@ -16,12 +16,12 @@ app.use(function(req, res, next) {
 app.use(function(err, req, res, next) {
   // console.log('ERROR', typeof err, err, err.status, err.statusCode, err.message);
   let status = err.statusCode || err.status || 500;
-  if (status >= 500) {
+  if (status == 500) {
     console.error('ERROR', err);
   }
 
   res.status(status);
-  return status >= 500
+  return status == 500
     ? res.json(jsonifyError(status, create_error(status, 'Internal error')))
     : res.json(jsonifyError(status, err));
 });
