@@ -44,7 +44,6 @@ export class FunctionGetCommand extends Command {
           name: 'dir',
           aliases: ['i'],
           description: 'The destination directory for saving the function when --download is used.',
-          default: '.',
         },
         {
           name: 'force',
@@ -129,6 +128,9 @@ export class FunctionGetCommand extends Command {
         return 0;
 
         async function saveToDisk(): Promise<void> {
+          if (!input.options.dir) {
+            input.options.dir = '.';
+          }
           let destDirectory = Path.join(process.cwd(), input.options.dir as string);
 
           // Ensure directory
@@ -192,15 +194,12 @@ export class FunctionGetCommand extends Command {
           if (input.options['show-code']) {
             for (let i = 0; i < files.length; i++) {
               let f = files[i];
+              let c = response.data.nodejs.files[f];
               await (await Message.create({
                 header: f,
-                message: `${response.data.nodejs.files[f].length ||
-                  JSON.stringify(response.data.nodejs.files[f]).length} bytes`,
+                message: `${c.length || JSON.stringify(c).length} bytes`,
               })).write(input.io);
-              let message =
-                typeof response.data.nodejs.files[f] === 'string'
-                  ? response.data.nodejs.files[f]
-                  : JSON.stringify(response.data.nodejs.files[f], null, 2);
+              let message = typeof c === 'string' ? c : JSON.stringify(c, null, 2);
               await (await Message.create({ message })).write(input.io);
             }
           } else {
@@ -213,7 +212,8 @@ export class FunctionGetCommand extends Command {
 
             for (let i = 0; i < files.length; i++) {
               let f = files[i];
-              table.addRow([f, `${f.length || JSON.stringify(f).length} bytes`]);
+              let c = response.data.nodejs.files[f];
+              table.addRow([f, `${c.length || JSON.stringify(c).length} bytes`]);
             }
 
             await input.io.writeLine(table.toText());
