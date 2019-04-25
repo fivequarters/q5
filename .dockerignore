@@ -9,6 +9,7 @@
 !lib/shared
 !lib/data
 !lib/aws
+!lib/node
 !lib/server
 !tool
 !mono
