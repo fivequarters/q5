@@ -2,8 +2,8 @@
 !package.json
 !tsconfig.json
 !yarn.lock
-!api/ext/flexd-functions
-#api/ext/flexd-functions/node_modules
+!api/function-api
+#api/function-api/node_modules
 !api/int/pubsub
 #api/int/pubsub/node_modules
 !lib/shared
@@ -11,6 +11,7 @@
 !lib/aws
 !lib/node
 !lib/server
+!sdk
 !tool
 !mono
 **/node_modules
