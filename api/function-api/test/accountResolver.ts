@@ -15,9 +15,9 @@ export const FakeAccount: IAccount = {
 };
 
 export async function resolveAccount(): Promise<IAccount> {
-  if (process.env.FLEXD_PROFILE) {
+  if (process.env.FUSE_PROFILE) {
     let profile = await FusebitProfile.create();
-    let executionProfile = await profile.getExecutionProfile(process.env.FLEXD_PROFILE, true);
+    let executionProfile = await profile.getExecutionProfile(process.env.FUSE_PROFILE, true);
     return {
       accountId: executionProfile.account as string,
       subscriptionId: 'sub-0000000000000000',
@@ -25,6 +25,6 @@ export async function resolveAccount(): Promise<IAccount> {
       accessToken: executionProfile.accessToken,
     };
   } else {
-    throw new Error('You must provide FLEXD_PROFILE environment variable to choose the deployment to test.');
+    throw new Error('You must provide FUSE_PROFILE environment variable to choose the deployment to test.');
   }
 }
