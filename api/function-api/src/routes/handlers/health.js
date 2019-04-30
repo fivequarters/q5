@@ -1,30 +1,12 @@
 const { join } = require('path');
-const { readFile } = require('fs');
 
-const packageJsonPath = join(__dirname, '..', '..', '..', '..', '..', '..', 'package.json');
-let version;
+let version = '<unknown>';
+try {
+  version = require(join(__dirname, '..', '..', '..', '..', '..', 'package.json')).version;
+} catch (_) {}
 
 function getHealth() {
-  return (req, res) => {
-    if (version) {
-      return res.json({ version });
-    }
-
-    readFile(packageJsonPath, (error, buffer) => {
-      version = '<unknown>';
-      if (!error) {
-        const content = buffer.toString();
-        try {
-          const json = JSON.parse(content);
-          version = json.version;
-        } catch (__) {
-          // do nothing
-        }
-      }
-
-      res.json({ version });
-    });
-  };
+  return (req, res) => res.json({ version });
 }
 
 module.exports = {
