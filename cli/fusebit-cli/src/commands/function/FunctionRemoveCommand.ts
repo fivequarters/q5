@@ -18,7 +18,6 @@ export class FunctionRemoveCommand extends Command {
           name: 'function',
           aliases: ['f'],
           description: 'The function id of the function to remove.',
-          default: 'profile value',
         },
         {
           name: 'confirm',
@@ -68,7 +67,7 @@ export class FunctionRemoveCommand extends Command {
         Authorization: `Bearer ${profile.accessToken}`,
         'User-Agent': `fusebit-cli/${version}`,
       },
-      validStatus: status => status === 200,
+      validStatus: status => status === 204,
     });
 
     input.io.writeLine('Function removed.');

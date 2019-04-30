@@ -1,0 +1,9 @@
+{
+  "engines": {
+    "node": "8"
+  },
+  "dependencies": {
+      "loadtest": "*",
+      "superagent": "*"
+  }
+}

@@ -94,7 +94,8 @@
       "@5qtrs/fusebit-ops-core": ["lib/ops/fusebit-ops-core/src"],
       "@5qtrs/function-lambda": ["lib/server/function-lambda/src"],
       "@5qtrs/fusebit-editor": ["lib/client/fusebit-editor/src"],
-      "@5qtrs/fusebit-hook": ["lib/client/fusebit-hook/src"]
+      "@5qtrs/fusebit-hook": ["lib/client/fusebit-hook/src"],
+      "@5qtrs/perf": ["test/perf/src"]
     }
   }
 }

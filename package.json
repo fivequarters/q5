@@ -139,6 +139,7 @@
     "lib/shared/promise",
     "data/dwh-export",
     "lib/server/bq-metering",
-    "lib/shared/data"
+    "lib/shared/data",
+    "test/perf"
   ]
 }
