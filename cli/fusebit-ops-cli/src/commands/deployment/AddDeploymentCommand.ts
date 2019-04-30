@@ -1,6 +1,6 @@
 import { Command, IExecuteInput, Confirm, ArgType } from '@5qtrs/cli';
 import { FusebitOpsCore, IFusebitOpsPublishDetails, IFusebitOpsDeployment } from '@5qtrs/fusebit-ops-core';
-import { ExecuteService, ApiPublishService, DisplayService, SettingsService } from '../../services';
+import { ExecuteService, ApiPublishService, SettingsService } from '../../services';
 import { Text } from '@5qtrs/text';
 
 // ----------------
