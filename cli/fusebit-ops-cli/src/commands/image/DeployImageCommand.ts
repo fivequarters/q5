@@ -1,6 +1,6 @@
-import { Command, IExecuteInput, Confirm, ArgType } from '@5qtrs/cli';
-import { FusebitOpsCore, IFusebitOpsPublishDetails, IFusebitOpsDeployment } from '@5qtrs/fusebit-ops-core';
-import { ExecuteService, ApiPublishService, DisplayService, SettingsService, ApiSetupService } from '../../services';
+import { Command, IExecuteInput, ArgType } from '@5qtrs/cli';
+import { FusebitOpsCore } from '@5qtrs/fusebit-ops-core';
+import { ExecuteService, ApiPublishService, SettingsService } from '../../services';
 import { Text } from '@5qtrs/text';
 
 // ----------------
@@ -55,7 +55,6 @@ export class DeployImageCommand extends Command {
     const executeService = await ExecuteService.create(this.core, input);
     const settingsService = await SettingsService.create(this.core, input);
     const publishService = await ApiPublishService.create(this.core, input);
-    const setupService = await ApiSetupService.create(this.core, input);
 
     const deployment = await executeService.execute(
       {

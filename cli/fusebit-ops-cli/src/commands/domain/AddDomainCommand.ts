@@ -109,7 +109,7 @@ export class AddDomainCommand extends Command {
     try {
       const message = await Message.create({
         header: 'Add Domain',
-        message: 'Adding the domain to the Flex platform...',
+        message: 'Adding the domain to the Fusebit platform...',
         kind: MessageKind.info,
       });
       await message.write(input.io);

@@ -7,7 +7,6 @@
     { "path": "../../aws/aws-deployment" },
     { "path": "../../aws/aws-dynamo" },
     { "path": "../ops-core-aws" },
-    { "path": "../ops-api-aws" },
     { "path": "../../aws/aws-route53" },
     { "path": "../../aws/aws-cert" },
     { "path": "../../aws/aws-alb" },

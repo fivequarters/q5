@@ -142,7 +142,11 @@ export class AddAccountCommand extends Command {
   private async addComplete(account: IFusebitOpsAccount, input: IExecuteInput) {
     const message = await Message.create({
       header: 'Add Complete',
-      message: Text.create("The '", Text.bold(account.name), "' account was successfully added to the Fusebit platform."),
+      message: Text.create(
+        "The '",
+        Text.bold(account.name),
+        "' account was successfully added to the Fusebit platform."
+      ),
       kind: MessageKind.result,
     });
     await message.write(input.io);
