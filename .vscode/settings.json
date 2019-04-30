@@ -3,16 +3,16 @@
   "editor.formatOnSave": true,
   "editor.tabSize": 2,
   "files.exclude": {
-    // ".gitignore": true,
-    // ".vscode/**": true,
-    // "**/*.tsbuildinfo": true,
-    // ".yarnrc": true,
-    // "**/devServer.js": true,
-    // "**/imports.d.ts": true,
-    // "**/jest.config.js": true,
-    // "**/jest.setup.js": true,
-    // "**/node_modules/**": true,
-    // "**/prettier.config.js": true,
-    // "**/tslint.json": true
+    ".gitignore": true,
+    ".vscode/**": true,
+    "**/*.tsbuildinfo": true,
+    ".yarnrc": true,
+    "**/devServer.js": true,
+    "**/imports.d.ts": true,
+    "**/jest.config.js": true,
+    "**/jest.setup.js": true,
+    "**/node_modules/**": true,
+    "**/prettier.config.js": true,
+    "**/tslint.json": true
   }
 }
