@@ -8,9 +8,6 @@
     { "path": "../ops-core-aws" },
     { "path": "../ops-publish-aws" },
     { "path": "../ops-deploy-aws" },
-    { "path": "../ops-account-aws" },
-    { "path": "../ops-api-aws" },
-    { "path": "../ops-user-aws" },
     { "path": "../../../sdk/fusebit-profile-sdk" }
   ]
 }
