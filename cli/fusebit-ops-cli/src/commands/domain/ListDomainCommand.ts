@@ -45,7 +45,7 @@ export class ListDomainCommand extends Command {
       if (!input.options.quiet) {
         const message = await Message.create({
           header: 'Listing Domains',
-          message: 'Fetching a list of domains in the Flex platform...',
+          message: 'Fetching a list of domains in the Fusebit platform...',
           kind: MessageKind.info,
         });
         await message.write(input.io);

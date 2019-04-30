@@ -45,7 +45,7 @@ export class ListNetworkCommand extends Command {
       if (!input.options.quiet) {
         const message = await Message.create({
           header: 'Listing Networks',
-          message: 'Fetching a list of networks in the Flex platform...',
+          message: 'Fetching a list of networks in the Fusebit platform...',
           kind: MessageKind.info,
         });
         await message.write(input.io);

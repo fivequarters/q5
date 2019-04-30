@@ -7,7 +7,6 @@ import {
   AccountCommand,
   NetworkCommand,
   DomainCommand,
-  CodeCommand,
   ImageCommand,
   DeploymentCommand,
 } from './commands';
@@ -19,7 +18,7 @@ import {
 function getMfaCodeResolver(io: ICommandIO) {
   return async (accountId: string) => {
     const message = await Message.create({
-      header: 'Authentication Required',
+      header: 'Auth Required',
       message: Text.create(
         "Access to AWS account '",
         Text.bold(accountId),
@@ -41,7 +40,7 @@ function getMfaCodeResolver(io: ICommandIO) {
     }
 
     const message2 = await Message.create({
-      header: 'Authenticating',
+      header: 'Auth',
       message: 'Authenticating with AWS...',
       kind: MessageKind.info,
     });
@@ -70,7 +69,6 @@ export class FusebitOpsCli extends Command {
     subCommands.push(await AccountCommand.create(core));
     subCommands.push(await NetworkCommand.create(core));
     subCommands.push(await DomainCommand.create(core));
-    subCommands.push(await CodeCommand.create(core));
     subCommands.push(await ImageCommand.create(core));
     subCommands.push(await DeploymentCommand.create(core));
 

@@ -18,7 +18,6 @@
     "@5qtrs/aws-deployment": "^0.0.1",
     "@5qtrs/aws-dynamo": "^0.0.1",
     "@5qtrs/ops-core-aws": "^0.0.1",
-    "@5qtrs/ops-api-aws": "^0.0.1",
     "@5qtrs/aws-cert": "^0.0.1",
     "@5qtrs/aws-route53": "^0.0.1",
     "@5qtrs/aws-alb": "^0.0.1",

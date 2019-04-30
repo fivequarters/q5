@@ -7,7 +7,6 @@ import { AwsEc2 } from '@5qtrs/aws-ec2';
 import { AwsNetwork } from '@5qtrs/aws-network';
 import { AwsAlb } from '@5qtrs/aws-alb';
 import { OpsCoreAws, IOpsAwsNetwork, IOpsAwsAccount } from '@5qtrs/ops-core-aws';
-import { OpsApiAws, IOpsApiDeploy, IOpsApiSetup } from '@5qtrs/ops-api-aws';
 
 // ------------------
 // Internal Constants
@@ -35,7 +34,6 @@ function awsDeploymentToDynamo(deployment: IOpsAwsDeploymentDetails) {
     hostedAt: { S: deployment.hostedAt },
     createdBy: { S: deployment.createdBy },
     updatedBy: { S: deployment.updatedBy },
-    image: { S: deployment.image },
     created: { N: deployment.created.valueOf().toString() },
     updated: { N: deployment.updated.valueOf().toString() },
   };
@@ -52,10 +50,6 @@ function awsDeploymentToDynamo(deployment: IOpsAwsDeploymentDetails) {
     item.updatedBy = { S: deployment.updatedBy };
   }
 
-  if (deployment.apis && deployment.apis.length) {
-    item.apis = { S: deployment.apis.map(api => `${api.name}:${api.publishId}`).join(' ') };
-  }
-
   if (deployment.alternateDomains && deployment.alternateDomains.length) {
     item.alternateDomains = { S: deployment.alternateDomains.join(' ') };
   }
@@ -64,12 +58,6 @@ function awsDeploymentToDynamo(deployment: IOpsAwsDeploymentDetails) {
 }
 
 function awsDeploymentFromDynamo(item: any) {
-  const apis = item.api
-    ? item.apis.split(' ').map((api: string) => {
-        const [name, publishId] = api.split(':');
-        return { name, publishId };
-      })
-    : [];
   const alternateDomains = item.alternateDomains ? item.alternateDomains.split(' ') : [];
 
   return {
@@ -82,8 +70,6 @@ function awsDeploymentFromDynamo(item: any) {
     created: new Date(parseInt(item.created.N, 10)),
     updated: new Date(parseInt(item.updated.N, 10)),
     hostedAt: item.hostedAt.S,
-    image: item.image.S,
-    apis,
     alternateDomains,
   };
 }
@@ -106,11 +92,6 @@ function getParentDomain(domain: string) {
 // Exported Interfaces
 // -------------------
 
-export interface IOpsDeploymentApi {
-  name: string;
-  publishId: string;
-}
-
 export interface IOpsAwsDeployment {
   name: string;
   network: string;
@@ -118,8 +99,6 @@ export interface IOpsAwsDeployment {
   createdBy?: string;
   updatedBy?: string;
   comment?: string;
-  apis?: IOpsDeploymentApi[];
-  image: string;
   alternateDomains?: string[];
 }
 
@@ -242,8 +221,6 @@ export class OpsDeployAws {
       createdBy: deployment.createdBy,
       updatedBy: deployment.updatedBy || deployment.createdBy,
       comment: deployment.comment,
-      apis: deployment.apis,
-      image: deployment.image,
       created: now,
       updated: now,
       hostedAt: getHostedAt(deployment),
@@ -263,25 +240,6 @@ export class OpsDeployAws {
     }
 
     return fullDeployment;
-  }
-
-  public async isApiSetup(deploymentName: string, opsApi: OpsApiAws) {
-    const options = await this.getOptions(deploymentName);
-    if (!options) {
-      return false;
-    }
-
-    return opsApi.isApiSetup(options);
-  }
-
-  public async setupApi(deploymentName: string, setup: IOpsApiSetup, opsApi: OpsApiAws) {
-    const options = await this.getOptionsOrThrow(deploymentName);
-    return opsApi.setupApi(setup, options);
-  }
-
-  public async deployApi(deploymentName: string, deploy: IOpsApiDeploy, opsApi: OpsApiAws) {
-    const options = await this.getOptionsOrThrow(deploymentName);
-    return opsApi.deployApi(deploy, options);
   }
 
   public async deployInstance(deploymentName: string, image: string) {

@@ -117,7 +117,7 @@ export class AddNetworkCommand extends Command {
     try {
       const message = await Message.create({
         header: 'Add Network',
-        message: 'Adding the network to the Flex platform...',
+        message: 'Adding the network to the Fusebit platform...',
         kind: MessageKind.info,
       });
       await message.write(input.io);
@@ -142,7 +142,11 @@ export class AddNetworkCommand extends Command {
   private async addComplete(network: IFusebitOpsNetwork, input: IExecuteInput) {
     const message = await Message.create({
       header: 'Add Complete',
-      message: Text.create("The '", Text.bold(network.name), "' network was successfully added to the Fusebit platform."),
+      message: Text.create(
+        "The '",
+        Text.bold(network.name),
+        "' network was successfully added to the Fusebit platform."
+      ),
       kind: MessageKind.result,
     });
     await message.write(input.io);

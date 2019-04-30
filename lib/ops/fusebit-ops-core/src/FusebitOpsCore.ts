@@ -15,9 +15,6 @@ import {
 } from '@5qtrs/ops-deploy-aws';
 
 import { OpsPublishAws, IOpsAwsPublishDetails as IFusebitOpsPublishDetails } from '@5qtrs/ops-publish-aws';
-import { OpsApiAws } from '@5qtrs/ops-api-aws';
-import { OpsAccountAws } from '@5qtrs/ops-account-aws';
-import { OpsUserAws } from '@5qtrs/ops-user-aws';
 
 export {
   IOpsAwsPublishDetails as IFusebitOpsPublishDetails,
@@ -46,14 +43,6 @@ import { FusebitProfile } from '@5qtrs/fusebit-profile-sdk';
 const mainProdRole = 'main';
 
 // -------------------
-// Internal Interfaces
-// -------------------
-
-interface IFusebitDeployment {
-  [index: string]: OpsApiAws;
-}
-
-// -------------------
 // Exported Interfaces
 // -------------------
 
@@ -77,7 +66,6 @@ export interface IFusebitOpsLogEntry {
 
 export class FusebitOpsCore {
   private dotConfig: FusebitOpsDotConfig;
-  private fusebitDeployment?: IFusebitDeployment;
   private mfaCodeResolver?: IFusebitOpsMfaCodeResolver;
   private opsDeploy?: OpsDeployAws;
   private opsPublish?: OpsPublishAws;
@@ -274,49 +262,6 @@ export class FusebitOpsCore {
     return opsCore.listAwsDomains();
   }
 
-  public async buildApi(apiName: string) {
-    await this.errorIfNotAnApi(apiName);
-    const publish = await this.getOpsPublish();
-    const fusebitDeployment = await this.getFusebitDeployment();
-    const api = fusebitDeployment[apiName];
-    return publish.buildApi(api.getApiWorkspaceName());
-  }
-
-  public async bundleApi(apiName: string) {
-    await this.errorIfNotAnApi(apiName);
-    const publish = await this.getOpsPublish();
-    const fusebitDeployment = await this.getFusebitDeployment();
-    const api = fusebitDeployment[apiName];
-    return publish.bundleApi(api.getApiWorkspaceName());
-  }
-
-  public async publishApi(apiName: string, user: string, comment?: string) {
-    await this.errorIfNotAnApi(apiName);
-    const publish = await this.getOpsPublish();
-    const fusebitDeployment = await this.getFusebitDeployment();
-    const api = fusebitDeployment[apiName];
-    const workspace = api.getApiWorkspaceName();
-    return publish.publishApi({ api: apiName, workspace, user, comment });
-  }
-
-  public async listApis() {
-    const fusebitDeployment = await this.getFusebitDeployment();
-    return [];
-    //return Object.keys(fusebitDeployment);
-  }
-
-  public async getPublishedApi(api: string, publishId: string) {
-    await this.errorIfNotAnApi(api);
-    const publish = await this.getOpsPublish();
-    return publish.getPublishedApi(api, publishId);
-  }
-
-  public async listPublishedApi(api: string, user?: string, limit?: number, next?: any) {
-    await this.errorIfNotAnApi(api);
-    const publish = await this.getOpsPublish();
-    return publish.listPublishedApi(api, user, limit, next);
-  }
-
   public async getDeployment(deploymentName: string) {
     const deploy = await this.getOpsDeploy();
     return deploy.getAwsDeployment(deploymentName);
@@ -329,7 +274,6 @@ export class FusebitOpsCore {
 
   public async addDeployment(deployment: IFusebitOpsDeployment, publishDetails: IFusebitOpsPublishDetails[]) {
     const deploy = await this.getOpsDeploy();
-    deployment.apis = publishDetails.map(detail => ({ name: detail.api, publishId: detail.id }));
     return deploy.addAwsDeployment(deployment);
   }
 
@@ -341,39 +285,6 @@ export class FusebitOpsCore {
   public async issueCert(deployment: IFusebitOpsDeployment) {
     const deploy = await this.getOpsDeploy();
     return deploy.issueAwsCert(deployment.name);
-  }
-
-  public async isApiSetup(deployment: IFusebitOpsDeployment, apiName: string) {
-    const fusebitDeployment = await this.getFusebitDeployment();
-    const opsApi = fusebitDeployment[apiName];
-    const deploy = await this.getOpsDeploy();
-    return deploy.isApiSetup(deployment.name, opsApi);
-  }
-
-  public async setupApi(deployment: IFusebitOpsDeployment, publishDetails: IFusebitOpsPublishDetails) {
-    const fusebitDeployment = await this.getFusebitDeployment();
-    const opsApi = fusebitDeployment[publishDetails.api];
-    const deployApi = {
-      s3Bucket: publishDetails.s3Bucket,
-      s3Key: publishDetails.s3Key,
-      deployment: deployment.name,
-      network: deployment.network,
-    };
-    const deploy = await this.getOpsDeploy();
-    return deploy.setupApi(deployment.name, deployApi, opsApi);
-  }
-
-  public async deployApi(deployment: IFusebitOpsDeployment, publishDetails: IFusebitOpsPublishDetails) {
-    const fusebitDeployment = await this.getFusebitDeployment();
-    const opsApi = fusebitDeployment[publishDetails.api];
-    const deployApi = {
-      s3Bucket: publishDetails.s3Bucket,
-      s3Key: publishDetails.s3Key,
-      deployment: deployment.name,
-      network: deployment.network,
-    };
-    const deploy = await this.getOpsDeploy();
-    return deploy.deployApi(deployment.name, deployApi, opsApi);
   }
 
   public async addDeploymentAlb(deployment: IFusebitOpsDeployment) {
@@ -389,108 +300,6 @@ export class FusebitOpsCore {
   public async deployInstance(deploymentName: string, image: string) {
     const deploy = await this.getOpsDeploy();
     return deploy.deployInstance(deploymentName, image);
-  }
-
-  private async getFusebitDeployment() {
-    if (!this.fusebitDeployment) {
-      const opsCore = await this.getOpsCore();
-      const accountApi = await OpsAccountAws.create(opsCore);
-      const userApi = await OpsUserAws.create(opsCore);
-      this.fusebitDeployment = {};
-
-      const accountApiName = accountApi.getApiName();
-      this.fusebitDeployment[accountApiName] = accountApi;
-
-      const userApiName = userApi.getApiName();
-      this.fusebitDeployment[userApiName] = userApi;
-    }
-    return this.fusebitDeployment;
-  }
-
-  public async setupAccountApi(deploymentName: string) {
-    const deployment = await this.getDeployment(deploymentName);
-    if (!deployment) {
-      const message = `There is no '${deploymentName}' deployment on the Fusebit platform.`;
-      throw new Error(message);
-    }
-
-    const opsDeploy = await this.getOpsDeploy();
-    const options = await opsDeploy.getOptions(deploymentName);
-    if (!options) {
-      const message = `There was an issue resolving the '${deploymentName}' deployment options.`;
-      throw new Error(message);
-    }
-
-    const opsCore = await this.getOpsCore();
-    const accountApi = await OpsAccountAws.create(opsCore);
-    const apiSetup = {
-      deployment: deployment.name,
-      network: deployment.network,
-      s3Bucket: '',
-      s3Key: '',
-    };
-    return accountApi.setupApi(apiSetup, options);
-  }
-
-  // public async addRootUser(deploymentName: string, firstName: string, lastName: string) {
-  //   const deployment = await this.getDeployment(deploymentName);
-  //   if (!deployment) {
-  //     const message = `There is no '${deploymentName}' deployment on the Fusebit platform.`;
-  //     throw new Error(message);
-  //   }
-  //   const domain = await this.getDomain(deployment.domain);
-  //   if (!domain) {
-  //     const message = `There is no '${deployment.domain}' domain on the Fusebit platform.`;
-  //     throw new Error(message);
-  //   }
-
-  //   const FusebitProfile = await FusebitProfile.create();
-  //   const profileName = `${deploymentName}-root`;
-  //   const baseUrl = `${deploymentName}.${domain.name}`;
-
-  //   const rootUserProfile = await FusebitProfile.addProfile(profileName, { baseUrl });
-  //   if (!rootUserProfile.issuer || !rootUserProfile.subject) {
-  //     const message = `There was an issue generating the issuer for the new '${profileName}' profile.`;
-  //     throw new Error(message);
-  //   }
-
-  //   const publicKey = await FusebitProfile.getPublicKey(profileName);
-  //   if (!publicKey) {
-  //     const message = `There was an issue generating the public key for the new '${profileName}' profile.`;
-  //     throw new Error(message);
-  //   }
-
-  //   const rootUser = {
-  //     firstName,
-  //     lastName,
-  //     identities: [{ iss: rootUserProfile.issuer, sub: rootUserProfile.subject }],
-  //   };
-
-  //   const issuer = {
-  //     id: rootUserProfile.issuer,
-  //     displayName: `Root User CLI Access - ${firstName} ${lastName}`,
-  //     publicKeys: [{ keyId: rootUserProfile.kid, publicKey }],
-  //   };
-
-  //   const opsDeploy = await this.getOpsDeploy();
-  //   const options = await opsDeploy.getOptions(deploymentName);
-  //   if (!options) {
-  //     const message = `There was an issue resolving the '${deploymentName}' deployment options.`;
-  //     throw new Error(message);
-  //   }
-
-  //   const opsCore = await this.getOpsCore();
-  //   const accountApi = await OpsAccountAws.create(opsCore);
-  //   return accountApi.addRootUser(issuer, rootUser, options);
-  // }
-
-  private async errorIfNotAnApi(name: string) {
-    const fusebitDeployment = await this.getFusebitDeployment();
-    const api = fusebitDeployment[name];
-    if (!api) {
-      const message = `There is no '${name}' api on the Fusebit platform.`;
-      throw new Error(message);
-    }
   }
 
   private async errorIfNotInstalled() {

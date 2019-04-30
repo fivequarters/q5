@@ -51,7 +51,7 @@ export class GetDomainCommand extends Command {
       if (!input.options.quiet) {
         const message = await Message.create({
           header: 'Getting Domain',
-          message: 'Retrieving the details of the domain in the Flex platform...',
+          message: 'Retrieving the details of the domain in the Fusebit platform...',
           kind: MessageKind.info,
         });
         await message.write(input.io);
