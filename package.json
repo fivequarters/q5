@@ -1,5 +1,5 @@
 {
-  "version": "0.9.30",
+  "version": "0.9.31",
   "private": true,
   "org": "5qtrs",
   "scripts": {
@@ -78,7 +78,6 @@
     "lib/node/stream",
     "lib/node/server",
     "lib/server/function-lambda",
-    "lib/server/zmq-logger",
     "comp/image",
     "comp/scroll-stick",
     "comp/nav-bar",
