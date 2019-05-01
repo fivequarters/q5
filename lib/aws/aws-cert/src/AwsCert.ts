@@ -1,5 +1,5 @@
 import { same } from '@5qtrs/array';
-import { AwsBase, IAwsOptions } from '@5qtrs/aws-base';
+import { AwsBase, IAwsConfig } from '@5qtrs/aws-base';
 import { ACM } from 'aws-sdk';
 
 // -------------------
@@ -41,11 +41,11 @@ export interface IAwsCertValidateDetail {
 // ----------------
 
 export class AwsCert extends AwsBase<typeof ACM> {
-  public static async create(options: IAwsOptions) {
-    return new AwsCert(options);
+  public static async create(config: IAwsConfig) {
+    return new AwsCert(config);
   }
-  private constructor(options: IAwsOptions) {
-    super(options);
+  private constructor(config: IAwsConfig) {
+    super(config);
   }
 
   public async issueCert(domain: string, options?: IAwsCertOptions): Promise<IAwsCertDetail> {
@@ -84,8 +84,8 @@ export class AwsCert extends AwsBase<typeof ACM> {
     });
   }
 
-  protected onGetAws(options: any) {
-    return new ACM(options);
+  protected onGetAws(config: IAwsConfig) {
+    return new ACM(config);
   }
 
   private async getMatchingCert(domain: string, options?: IAwsCertOptions): Promise<IAwsCertDetail | undefined> {

@@ -1,4 +1,3 @@
-import { AwsDeployment } from '@5qtrs/aws-deployment';
 import { AwsCreds } from '../src';
 import { mockSts } from '../src/AwsCreds';
 

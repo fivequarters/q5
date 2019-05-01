@@ -14,11 +14,9 @@
   },
   "keywords": [],
   "dependencies": {
-    "@5qtrs/child-process": "^0.0.1",
     "@5qtrs/aws-base": "^0.0.1",
-    "@5qtrs/base64": "^0.0.1"
-  },
-  "devServer": {
-    "port": 9522
+    "@5qtrs/base64": "^0.0.1",
+    "@5qtrs/child-process": "^0.0.1",
+    "aws-sdk": "^2.446.0"
   }
 }

@@ -175,7 +175,6 @@ interface IAwsRegion {
 // ----------------
 
 export class AwsRegion {
-
   public get code() {
     return this.region.code;
   }

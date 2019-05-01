@@ -14,10 +14,6 @@
   },
   "keywords": [],
   "dependencies": {
-    "@5qtrs/aws-cred": "^0.0.1",
-    "@5qtrs/aws-deployment": "^0.0.1"
-  },
-  "devServer": {
-    "port": 9504
+    "@5qtrs/aws-config": "^0.0.1"
   }
 }

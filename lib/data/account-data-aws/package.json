@@ -16,16 +16,14 @@
   "keywords": [],
   "dependencies": {
     "@5qtrs/aws-dynamo": "^0.0.1",
-    "@5qtrs/aws-cred": "^0.0.1",
-    "@5qtrs/aws-deployment": "^0.0.1",
     "@5qtrs/random": "^0.0.1",
     "@5qtrs/base64": "^0.0.1",
     "@5qtrs/array": "^0.0.1",
-    "@5qtrs/aws-base": "^0.0.1",
     "@5qtrs/jwt": "^0.0.1",
     "@5qtrs/account-data": "^0.0.1",
     "@5qtrs/exception": "^0.0.1",
     "@5qtrs/data": "^0.0.1",
-    "@5qtrs/config": "^0.0.1"
+    "@5qtrs/config": "^0.0.1",
+    "@5qtrs/aws-config": "^0.0.1"
   }
 }

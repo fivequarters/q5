@@ -1,15 +1,15 @@
 import { IDataSource } from '@5qtrs/data';
 import {
   AwsDynamo,
-  IAwsDynamoTable,
-  IAwsDynamoGetOptions,
-  IAwsDynamoGetAllOptions,
-  IAwsDynamoSetOptions,
   IAwsDynamoAllOptions,
-  IAwsDynamoUpdateOptions,
+  IAwsDynamoGetAllOptions,
+  IAwsDynamoGetOptions,
+  IAwsDynamoItems,
   IAwsDynamoQueryOptions,
   IAwsDynamoScanOptions,
-  IAwsDynamoItems,
+  IAwsDynamoSetOptions,
+  IAwsDynamoTable,
+  IAwsDynamoUpdateOptions,
 } from './AwsDynamo';
 
 // ----------------

@@ -1,7 +1,6 @@
 import { AwsDynamo, IAwsDynamoQueryOptions } from '@5qtrs/aws-dynamo';
 import { AwsCreds } from '@5qtrs/aws-cred';
 import { AwsS3 } from '@5qtrs/aws-s3';
-import { AwsDeployment } from '@5qtrs/aws-deployment';
 import { Zip } from '@5qtrs/zip';
 import { AwsEcr } from '@5qtrs/aws-ecr';
 import { random } from '@5qtrs/random';
@@ -290,39 +289,29 @@ export class OpsPublishAws {
 
   private async getDynamo() {
     if (!this.dynamo) {
-      const deployment = await AwsDeployment.create({
-        regionCode: globalRegion,
-        key: globalKey,
+      const creds = this.userCreds.asRole(this.prodAccount, this.prodRole);
+      this.dynamo = await AwsDynamo.create({
+        creds,
+        region: globalRegion,
+        prefix: globalKey,
         account: this.prodAccount,
       });
-      const creds = this.userCreds.asRole({ account: this.prodAccount, name: this.prodRole });
-      this.dynamo = await AwsDynamo.create({ creds, deployment });
     }
     return this.dynamo;
   }
 
   private async getEcr() {
     if (!this.ecr) {
-      const deployment = await AwsDeployment.create({
-        regionCode: globalRegion,
-        key: globalKey,
-        account: this.prodAccount,
-      });
-      const creds = this.userCreds.asRole({ account: this.prodAccount, name: this.prodRole });
-      this.ecr = await AwsEcr.create({ creds, deployment });
+      const creds = this.userCreds.asRole(this.prodAccount, this.prodRole);
+      this.ecr = await AwsEcr.create({ creds, region: globalRegion, prefix: globalKey, account: this.prodAccount });
     }
     return this.ecr;
   }
 
   private async getS3() {
     if (!this.s3) {
-      const deployment = await AwsDeployment.create({
-        regionCode: globalRegion,
-        key: globalKey,
-        account: this.prodAccount,
-      });
-      const creds = this.userCreds.asRole({ account: this.prodAccount, name: this.prodRole });
-      this.s3 = await AwsS3.create({ creds, deployment });
+      const creds = this.userCreds.asRole(this.prodAccount, this.prodRole);
+      this.s3 = await AwsS3.create({ creds, region: globalRegion, prefix: globalKey, account: this.prodAccount });
     }
     return this.s3;
   }

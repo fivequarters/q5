@@ -1,13 +1,14 @@
-import { AwsBase, IAwsOptions } from '@5qtrs/aws-base';
+import { AwsBase, IAwsConfig } from '@5qtrs/aws-base';
 import { IAwsRolePolicy } from '@5qtrs/aws-role';
 import { batch } from '@5qtrs/batch';
 import { S3 } from 'aws-sdk';
+import { basename } from 'path';
 
 // ------------------
 // Internal Constants
 // ------------------
 
-const credentialsMinExpiration = 5 * 60 * 1000;
+const delimiter = '.';
 const locationContraints = [
   'eu-west-1',
   'us-west-1',
@@ -49,15 +50,11 @@ export interface IAwsS3ObjectPolicyOptions {
 // ----------------
 
 export class AwsS3 extends AwsBase<typeof S3> {
-  public static async create(options: IAwsOptions) {
-    return new AwsS3(options);
+  public static async create(config: IAwsConfig) {
+    return new AwsS3(config);
   }
-  private constructor(options: IAwsOptions) {
-    super(options);
-  }
-
-  protected getPrefixedName(name: string) {
-    return `${this.deployment.region.code}.${this.deployment.key}.${name}`;
+  private constructor(config: IAwsConfig) {
+    super(config, delimiter);
   }
 
   public getBucketPolicy(name: string, options?: IAwsS3BucketPolicyOptions): IAwsRolePolicy {
@@ -69,7 +66,7 @@ export class AwsS3 extends AwsBase<typeof S3> {
     }
     return {
       actions,
-      resource: `arn:aws:s3:::${this.getPrefixedName(name)}`,
+      resource: `arn:aws:s3:::${this.getFullName(name)}`,
     };
   }
 
@@ -82,7 +79,7 @@ export class AwsS3 extends AwsBase<typeof S3> {
     }
     return {
       actions,
-      resource: `arn:aws:s3:::${this.getPrefixedName(bucketName)}/${key}`,
+      resource: `arn:aws:s3:::${this.getFullName(bucketName)}/${key}`,
     };
   }
 
@@ -95,7 +92,7 @@ export class AwsS3 extends AwsBase<typeof S3> {
         }
 
         const result: string[] = [];
-        const keyPrefix = this.getPrefixedName('');
+        const keyPrefix = this.getFullName('');
         if (data && data.Buckets) {
           for (const bucket of data.Buckets) {
             const name = bucket.Name;
@@ -111,13 +108,13 @@ export class AwsS3 extends AwsBase<typeof S3> {
 
   public async ensureBucket(name: string, options?: IAwsS3BucketOptions): Promise<string> {
     const s3 = await this.getAws();
-    const bucketName = this.getPrefixedName(name);
+    const bucketName = this.getFullName(name);
     const publicRead = options && options.publicRead !== undefined ? options.publicRead : false;
     const params: any = {
       Bucket: bucketName,
       ACL: publicRead ? 'public-read' : 'private',
     };
-    const locationContraint = this.getLocationConstraint(this.deployment.region.code);
+    const locationContraint = this.getLocationConstraint(this.awsRegion);
     if (locationContraint) {
       params.CreateBucketConfiguration = { LocationConstraint: locationContraint };
     }
@@ -142,7 +139,7 @@ export class AwsS3 extends AwsBase<typeof S3> {
 
   public async deleteBucket(name: string): Promise<void> {
     const s3 = await this.getAws();
-    const bucketName = this.getPrefixedName(name);
+    const bucketName = this.getFullName(name);
     const params: any = {
       Bucket: bucketName,
     };
@@ -175,7 +172,7 @@ export class AwsS3 extends AwsBase<typeof S3> {
 
   public async bucketExists(name: string): Promise<boolean> {
     const s3 = await this.getAws();
-    const bucketName = this.getPrefixedName(name);
+    const bucketName = this.getFullName(name);
     const params = { Bucket: bucketName };
     return new Promise((resolve, reject) => {
       s3.headBucket(params, (error: any, data: any) => {
@@ -193,7 +190,7 @@ export class AwsS3 extends AwsBase<typeof S3> {
 
   public async objectExists(name: string, key: string): Promise<boolean> {
     const s3 = await this.getAws();
-    const bucketName = this.getPrefixedName(name);
+    const bucketName = this.getFullName(name);
     const params = { Bucket: bucketName, Key: key };
 
     return new Promise((resolve, reject) => {
@@ -212,7 +209,7 @@ export class AwsS3 extends AwsBase<typeof S3> {
 
   public async listObjectKeys(bucketName: string, keyPrefix?: string): Promise<string[]> {
     const s3 = await this.getAws();
-    const fullBucketName = this.getPrefixedName(bucketName);
+    const fullBucketName = this.getFullName(bucketName);
     const params: any = {
       Bucket: fullBucketName,
     };
@@ -250,7 +247,7 @@ export class AwsS3 extends AwsBase<typeof S3> {
 
   public async getObject(bucketName: string, key: string): Promise<Buffer> {
     const s3 = await this.getAws();
-    const fullBucketName = this.getPrefixedName(bucketName);
+    const fullBucketName = this.getFullName(bucketName);
     const params = {
       Bucket: fullBucketName,
       Key: key,
@@ -281,7 +278,7 @@ export class AwsS3 extends AwsBase<typeof S3> {
     }
 
     const s3 = await this.getAws();
-    const fullBucketName = this.getPrefixedName(bucketName);
+    const fullBucketName = this.getFullName(bucketName);
     const publicRead = options && options.publicRead !== undefined ? options.publicRead : false;
     const params: any = {
       Bucket: fullBucketName,
@@ -320,7 +317,7 @@ export class AwsS3 extends AwsBase<typeof S3> {
 
   public async deleteObject(bucketName: string, key: string): Promise<void> {
     const s3 = await this.getAws();
-    const fullBucketName = this.getPrefixedName(bucketName);
+    const fullBucketName = this.getFullName(bucketName);
     const params = {
       Bucket: fullBucketName,
       Key: key,
@@ -343,8 +340,12 @@ export class AwsS3 extends AwsBase<typeof S3> {
     });
   }
 
-  protected onGetAws(options: any) {
-    return new S3(options);
+  protected getFullPrefix() {
+    return `${this.awsRegion}${delimiter}${super.getFullPrefix()}`;
+  }
+
+  protected onGetAws(config: IAwsConfig) {
+    return new S3(config);
   }
 
   private getLocationConstraint(regionCode: string) {

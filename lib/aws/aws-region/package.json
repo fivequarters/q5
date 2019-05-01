@@ -1,5 +1,5 @@
 {
-  "name": "@5qtrs/aws-deployment",
+  "name": "@5qtrs/aws-region",
   "version": "0.0.1",
   "description": "",
   "main": "libc/index.js",
@@ -13,8 +13,5 @@
     "clean": "rm -r -f libc; rm -r -f coverage"
   },
   "keywords": [],
-  "dependencies": {},
-  "devServer": {
-    "port": 9503
-  }
+  "dependencies": {}
 }

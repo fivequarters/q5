@@ -5,7 +5,6 @@
   "references": [
     { "path": "../../aws/aws-cred" },
     { "path": "../../aws/aws-dynamo" },
-    { "path": "../../aws/aws-deployment" },
     { "path": "../../aws/aws-network" },
     { "path": "../../aws/aws-route53" }
   ]
