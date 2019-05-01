@@ -6,6 +6,8 @@
     { "path": "../../lib/node/cli" },
     { "path": "../../lib/ops/fusebit-ops-core" },
     { "path": "../../lib/shared/text" },
-    { "path": "../../lib/shared/table" }
+    { "path": "../../lib/shared/table" },
+    { "path": "../../lib/aws/aws-cred" },
+    { "path": "../../lib/node/dot-config" }
   ]
 }

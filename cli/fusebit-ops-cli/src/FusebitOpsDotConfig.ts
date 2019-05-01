@@ -37,12 +37,18 @@ export class FusebitOpsDotConfig extends DotConfig {
     return new FusebitOpsDotConfig();
   }
 
-  public async getAwsAccount(type: AwsAccountType): Promise<string | undefined> {
+  public async getAwsAccount(type: AwsAccountType): Promise<string> {
     const settings: any = await this.readJson(settingsPath);
+    let account;
     if (settings && settings.aws && settings.aws.accounts) {
-      return settings.aws.accounts[type.toString()] || undefined;
+      account = settings.aws.accounts[type.toString()] || undefined;
     }
-    return undefined;
+
+    if (!account) {
+      throw new Error(`The AWS '${type.toString()}' account is not configured`);
+    }
+
+    return account;
   }
 
   public async getSettingsPath(): Promise<string> {
@@ -58,13 +64,19 @@ export class FusebitOpsDotConfig extends DotConfig {
     await this.writeJson(settingsPath, settings);
   }
 
-  public async getAwsRole(type: AwsAccountType, name: string): Promise<string | undefined> {
+  public async getAwsRole(type: AwsAccountType, name: string): Promise<string> {
     const settings: any = await this.readJson(settingsPath);
+    let role;
     if (settings && settings.aws && settings.aws.roles) {
       const roles = settings.aws.roles[type.toString()] || {};
-      return roles[name] || undefined;
+      role = roles[name] || undefined;
     }
-    return undefined;
+
+    if (!role) {
+      throw new Error(`The AWS '${type.toString()}' account role '${name}' is not configured`);
+    }
+
+    return role;
   }
 
   public async setAwsRole(type: AwsAccountType, name: string, role: string) {
@@ -77,12 +89,18 @@ export class FusebitOpsDotConfig extends DotConfig {
     await this.writeJson(settingsPath, settings);
   }
 
-  public async getAwsUser(): Promise<IAwsUser | undefined> {
+  public async getAwsUser(): Promise<IAwsUser> {
     const settings: any = await this.readJson(settingsPath);
+    let user;
     if (settings && settings.aws && settings.aws) {
-      return settings.aws.user || undefined;
+      user = settings.aws.user || undefined;
     }
-    return undefined;
+
+    if (!user) {
+      throw new Error(`The AWS user is not configured`);
+    }
+
+    return user;
   }
 
   public async setAwsUser(user: IAwsUser) {

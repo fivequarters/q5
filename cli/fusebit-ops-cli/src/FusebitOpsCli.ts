@@ -76,15 +76,6 @@ export class FusebitOpsCli extends Command {
       name: 'Fusebit Ops CLI',
       description: 'A command-line tool (CLI) for the managing the operations of the Fusebit platform.',
       cli: 'fuse-ops',
-      options: [
-        {
-          name: 'verbose',
-          aliases: ['v'],
-          description: 'Provide error details on command execution failure',
-          type: ArgType.boolean,
-          default: 'false',
-        },
-      ],
       subCommands,
     };
 
@@ -94,28 +85,5 @@ export class FusebitOpsCli extends Command {
   private constructor(cli: ICommand, core: FusebitOpsCore) {
     super(cli);
     this.core = core;
-  }
-
-  protected async onSubCommandExecuted(command: Command, input: IExecuteInput, result: number) {
-    if (result && input.options.verbose) {
-      const logs = await this.core.getLogs();
-      for (const entry of logs) {
-        const message = await Message.create({
-          header: 'Log Entry',
-          message: Text.create(
-            entry.message ? entry.message : '',
-            Text.eol(),
-            Text.eol(),
-            entry.error ? Text.dim(entry.error.message) : ''
-          ),
-          kind: MessageKind.warning,
-        });
-        await message.write(input.io);
-      }
-    }
-  }
-
-  protected async onGetMode() {
-    return this.core.getMode();
   }
 }

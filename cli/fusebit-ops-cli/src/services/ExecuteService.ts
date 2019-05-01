@@ -1,5 +1,4 @@
 import { Message, MessageKind, IExecuteInput } from '@5qtrs/cli';
-import { FusebitOpsCore } from '@5qtrs/fusebit-ops-core';
 import { IText } from '@5qtrs/text';
 
 // -------------------
@@ -9,6 +8,7 @@ import { IText } from '@5qtrs/text';
 export interface IExcuteMessages {
   header?: IText;
   message?: IText;
+  kind?: MessageKind;
   errorHeader?: IText;
   errorMessage?: IText;
 }
@@ -18,16 +18,14 @@ export interface IExcuteMessages {
 // ----------------
 
 export class ExecuteService {
-  private core: FusebitOpsCore;
   private input: IExecuteInput;
 
-  private constructor(core: FusebitOpsCore, input: IExecuteInput) {
-    this.core = core;
+  private constructor(input: IExecuteInput) {
     this.input = input;
   }
 
-  public static async create(core: FusebitOpsCore, input: IExecuteInput) {
-    return new ExecuteService(core, input);
+  public static async create(input: IExecuteInput) {
+    return new ExecuteService(input);
   }
 
   public async execute<T>(messages: IExcuteMessages, func?: () => Promise<T | undefined>) {
@@ -55,23 +53,30 @@ export class ExecuteService {
         kind: MessageKind.error,
       });
       await message.write(this.input.io);
-      console.log(error);
-      await this.core.logError(error, message.toString());
-      return undefined;
+      throw error;
     }
   }
 
-  public async result(messages: IExcuteMessages) {
-    if (messages.header || messages.message) {
-      if (!this.input.options.quiet) {
-        const message = await Message.create({
-          header: messages.header,
-          message: messages.message || '',
-          kind: MessageKind.result,
-        });
-        await message.write(this.input.io);
-        this.input.io.spin(true);
-      }
+  public async message(header: IText, message: IText, kind: MessageKind = MessageKind.result) {
+    if (!this.input.options.quiet) {
+      const formattedMessage = await Message.create({ header, message, kind });
+      await formattedMessage.write(this.input.io);
     }
+  }
+
+  public async result(header: IText, message: IText) {
+    return this.message(header, message, MessageKind.result);
+  }
+
+  public async warning(header: IText, message: IText) {
+    return this.message(header, message, MessageKind.warning);
+  }
+
+  public async error(header: IText, message: IText) {
+    return this.message(header, message, MessageKind.error);
+  }
+
+  public async info(header: IText, message: IText) {
+    return this.message(header, message, MessageKind.info);
   }
 }

@@ -139,6 +139,8 @@
     "lib/shared/promise",
     "data/dwh-export",
     "lib/server/bq-metering",
-    "lib/shared/data"
+    "lib/shared/data",
+    "lib/data/ops-data",
+    "lib/data/ops-data-aws"
   ]
 }
