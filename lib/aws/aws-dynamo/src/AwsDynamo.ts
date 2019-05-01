@@ -1,5 +1,5 @@
-import { AwsBase, IAwsOptions } from '@5qtrs/aws-base';
-import { toBase64, fromBase64 } from '@5qtrs/base64';
+import { AwsBase, IAwsConfig } from '@5qtrs/aws-base';
+import { fromBase64, toBase64 } from '@5qtrs/base64';
 import { DynamoDB } from 'aws-sdk';
 import { AwsDynamoException } from './AwsDynamoException';
 
@@ -7,6 +7,7 @@ import { AwsDynamoException } from './AwsDynamoException';
 // Internal Constants
 // ------------------
 
+const delimiter = '.';
 const defaultLimit = 25;
 const maxLimit = 100;
 const conditionCheckFailed = 'ConditionalCheckFailedException';
@@ -57,7 +58,7 @@ function applyOptions(options: any, params: any) {
     }
     if (options.limit) {
       const parsed = parseInt(options.limit, 10);
-      if (parsed === NaN || parsed <= 0) {
+      if (isNaN(parsed) || parsed <= 0) {
         throw AwsDynamoException.invalidLimit(options.limit);
       }
       params.Limit = parsed;
@@ -203,7 +204,7 @@ function mapItems(table: IAwsDynamoTable, items: any[], options?: IAwsDynamoAllO
 }
 
 function onGetItem(table: IAwsDynamoTable, key: any, item: any, options?: IAwsDynamoGetOptions) {
-  let result = undefined;
+  let result;
   if (item && (!table.archive || !isItemArchived(item))) {
     updateTtlOnGet(table, item);
     result = table.fromItem ? table.fromItem(item) : item;
@@ -220,7 +221,7 @@ function updateTtlOnSet(table: IAwsDynamoTable, item: any) {
     const delta = item[attribute];
     if (delta) {
       const parsed = parseInt(delta.N, 10);
-      if (parsed === NaN) {
+      if (isNaN(parsed)) {
         throw AwsDynamoException.invalidTtl(delta.N);
       }
       item[attribute].N = Math.floor((Date.now() + parsed) / 1000).toString();
@@ -348,15 +349,11 @@ export interface IAwsDynamoTable {
 // ----------------
 
 export class AwsDynamo extends AwsBase<typeof DynamoDB> {
-  public static async create(options: IAwsOptions) {
-    return new AwsDynamo(options);
+  public static async create(config: IAwsConfig) {
+    return new AwsDynamo(config);
   }
-  private constructor(options: IAwsOptions) {
-    super(options);
-  }
-
-  protected onGetAws(options: any) {
-    return new DynamoDB(options);
+  private constructor(config: IAwsConfig) {
+    super(config, delimiter);
   }
 
   public async ensureTable(table: IAwsDynamoTable): Promise<void> {
@@ -375,7 +372,7 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
 
   public async getItem(table: IAwsDynamoTable, key: any, options?: IAwsDynamoGetOptions): Promise<any> {
     const dynamo = await this.getAws();
-    const fullTableName = this.getPrefixedName(table.name);
+    const fullTableName = this.getFullName(table.name);
 
     const params: any = {
       TableName: fullTableName,
@@ -404,7 +401,7 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
   public async getAllItems(table: IAwsDynamoTable, keys: any[], options?: IAwsDynamoGetAllOptions): Promise<any[]> {
     keys = mapKeys(table, keys, options);
 
-    let all = [];
+    const all = [];
     while (keys.length) {
       const next = keys.splice(0, 25);
       const [items, unprocessed] = await this.getBatch(table.name, next);
@@ -424,7 +421,7 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
 
   public async putItem(table: IAwsDynamoTable, item: any, options?: IAwsDynamoSetOptions): Promise<void> {
     const dynamo = await this.getAws();
-    const fullTableName = this.getPrefixedName(table.name);
+    const fullTableName = this.getFullName(table.name);
 
     const params: any = {
       TableName: fullTableName,
@@ -466,7 +463,7 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
 
   public async updateItem(table: IAwsDynamoTable, key: any, options?: IAwsDynamoUpdateOptions): Promise<any> {
     const dynamo = await this.getAws();
-    const fullTableName = this.getPrefixedName(table.name);
+    const fullTableName = this.getFullName(table.name);
 
     const params: any = {
       TableName: fullTableName,
@@ -519,7 +516,7 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
 
   public async deleteItem(table: IAwsDynamoTable, key: any, options?: IAwsDynamoSetOptions): Promise<void> {
     const dynamo = await this.getAws();
-    const fullTableName = this.getPrefixedName(table.name);
+    const fullTableName = this.getFullName(table.name);
 
     const params: any = {
       TableName: fullTableName,
@@ -562,7 +559,7 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
 
   public async queryTable(table: IAwsDynamoTable, options?: IAwsDynamoQueryOptions): Promise<IAwsDynamoItems> {
     const dynamo = await this.getAws();
-    const fullTableName = this.getPrefixedName(table.name);
+    const fullTableName = this.getFullName(table.name);
 
     const params: any = {
       TableName: fullTableName,
@@ -600,7 +597,7 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
 
   public async scanTable(table: IAwsDynamoTable, options?: IAwsDynamoScanOptions): Promise<IAwsDynamoItems> {
     const dynamo = await this.getAws();
-    const fullTableName = this.getPrefixedName(table.name);
+    const fullTableName = this.getFullName(table.name);
 
     const params: any = {
       TableName: fullTableName,
@@ -637,7 +634,7 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
 
   public async deleteTable(tableName: string): Promise<void> {
     const dynamo = await this.getAws();
-    const fullTableName = this.getPrefixedName(tableName);
+    const fullTableName = this.getFullName(tableName);
     const params = {
       TableName: fullTableName,
     };
@@ -655,7 +652,7 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
 
   public async tableExists(tableName: string): Promise<boolean> {
     const dynamo = await this.getAws();
-    const fullTableName = this.getPrefixedName(tableName);
+    const fullTableName = this.getFullName(tableName);
     const params = {
       TableName: fullTableName,
     };
@@ -672,9 +669,13 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
     });
   }
 
+  protected onGetAws(config: IAwsConfig) {
+    return new DynamoDB(config);
+  }
+
   private async waitForTable(tableName: string): Promise<void> {
     const dynamo = await this.getAws();
-    const fullTableName = this.getPrefixedName(tableName);
+    const fullTableName = this.getFullName(tableName);
     const params = {
       TableName: fullTableName,
     };
@@ -690,7 +691,7 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
 
   private async getBatch(tableName: string, keys: any[]): Promise<[any[], any[]]> {
     const dynamo = await this.getAws();
-    const fullTableName = this.getPrefixedName(tableName);
+    const fullTableName = this.getFullName(tableName);
 
     const params: any = { RequestItems: {} };
     params.RequestItems[fullTableName] = { Keys: keys };
@@ -709,7 +710,7 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
 
   private async putBatch(tableName: string, items: any[]): Promise<any[]> {
     const dynamo = await this.getAws();
-    const fullTableName = this.getPrefixedName(tableName);
+    const fullTableName = this.getFullName(tableName);
 
     const params: any = { RequestItems: {} };
     params.RequestItems[fullTableName] = items.map(item => ({ PutRequest: { Item: item } }));
@@ -728,7 +729,7 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
 
   private async deleteBatch(tableName: string, keys: any[]): Promise<any[]> {
     const dynamo = await this.getAws();
-    const fullTableName = this.getPrefixedName(tableName);
+    const fullTableName = this.getFullName(tableName);
 
     const params: any = { RequestItems: {} };
     params.RequestItems[fullTableName] = keys.map(key => ({ DeleteRequest: { Key: key } }));
@@ -755,7 +756,7 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
       throw AwsDynamoException.archiveNotEnabled(table.name);
     }
     const dynamo = await this.getAws();
-    const fullTableName = this.getPrefixedName(table.name);
+    const fullTableName = this.getFullName(table.name);
 
     const params: any = {
       TableName: fullTableName,
@@ -797,7 +798,7 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
 
   private async updateTtl(tableName: string, attribute: string): Promise<void> {
     const dynamo = await this.getAws();
-    const fullTableName = this.getPrefixedName(tableName);
+    const fullTableName = this.getFullName(tableName);
     const params = {
       TableName: fullTableName,
       TimeToLiveSpecification: {
@@ -822,19 +823,23 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
       ResourceArn: arn,
       Tags: [
         {
-          Key: 'deployment',
-          Value: this.deployment.key,
-        },
-        {
           Key: 'account',
-          Value: this.deployment.account,
+          Value: this.awsAccount,
         },
         {
           Key: 'region',
-          Value: this.deployment.region.code,
+          Value: this.awsRegion,
         },
       ],
     };
+
+    const prefix = this.getPrefix();
+    if (prefix) {
+      params.Tags.push({
+        Key: 'prefix',
+        Value: prefix,
+      });
+    }
 
     return new Promise((resolve, reject) => {
       dynamo.tagResource(params, (error: any) => {
@@ -848,7 +853,7 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
 
   private async createTable(table: IAwsDynamoTable): Promise<string> {
     const dynamo = await this.getAws();
-    const fullTableName = this.getPrefixedName(table.name);
+    const fullTableName = this.getFullName(table.name);
     const params: any = {
       TableName: fullTableName,
       AttributeDefinitions: toAttributeDefinitions(table.attributes),
@@ -876,9 +881,5 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
         resolve(data.TableDescription.TableArn);
       });
     });
-  }
-
-  protected getPrefixedName(name: string) {
-    return `${this.deployment.key}.${name}`;
   }
 }

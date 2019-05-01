@@ -1,4 +1,4 @@
-import { AwsBase, IAwsOptions } from '@5qtrs/aws-base';
+import { AwsBase, IAwsConfig } from '@5qtrs/aws-base';
 import { IAwsRolePolicy } from '@5qtrs/aws-role';
 import { CloudWatchLogs } from 'aws-sdk';
 
@@ -51,15 +51,11 @@ export interface IAwsLogsStreamDetail {
 // ----------------
 
 export class AwsLogs extends AwsBase<typeof CloudWatchLogs> {
-  public static async create(options: IAwsOptions) {
-    return new AwsLogs(options);
+  public static async create(config: IAwsConfig) {
+    return new AwsLogs(config);
   }
-  private constructor(options: IAwsOptions) {
-    super(options);
-  }
-
-  protected onGetAws(options: any) {
-    return new CloudWatchLogs(options);
+  private constructor(config: IAwsConfig) {
+    super(config);
   }
 
   public getLogGroupPolicy(options?: IAwsLogsGroupPolicyOptions): IAwsRolePolicy {
@@ -78,7 +74,7 @@ export class AwsLogs extends AwsBase<typeof CloudWatchLogs> {
     }
     return {
       actions,
-      resource: `arn:aws:logs:${this.deployment.region.code}:${this.deployment.account}:*`,
+      resource: `arn:aws:logs:${this.awsRegion}:${this.awsAccount}:*`,
     };
   }
 
@@ -104,12 +100,8 @@ export class AwsLogs extends AwsBase<typeof CloudWatchLogs> {
     }
     return {
       actions,
-      resource: `arn:aws:logs:${this.deployment.region.code}:${this.deployment.account}:log-group:${groupName}:*`,
+      resource: `arn:aws:logs:${this.awsRegion}:${this.awsAccount}:log-group:${groupName}:*`,
     };
-  }
-
-  private getLambdaPrefixedName(name: string) {
-    return `/aws/lambda/${this.getPrefixedName(name)}`;
   }
 
   public async createLogGroup(name: string, options?: IAwsLogsCreateGroupOptions): Promise<string> {
@@ -120,7 +112,7 @@ export class AwsLogs extends AwsBase<typeof CloudWatchLogs> {
     }
 
     const forLambda = options && options.forLambda !== undefined ? options.forLambda : true;
-    const logGroupName = forLambda ? this.getLambdaPrefixedName(name) : this.getPrefixedName(name);
+    const logGroupName = forLambda ? this.getLambdaPrefixedName(name) : this.getFullName(name);
 
     const logs = await this.getAws();
     const params: any = { logGroupName };
@@ -149,7 +141,7 @@ export class AwsLogs extends AwsBase<typeof CloudWatchLogs> {
 
   public async listLogGroups(prefix?: string, options?: IAwsLogsOptions): Promise<IAwsLogsGroupDetail[]> {
     const forLambda = options && options.forLambda !== undefined ? options.forLambda : true;
-    const logGroupName = forLambda ? this.getLambdaPrefixedName(prefix || '') : this.getPrefixedName(prefix || '');
+    const logGroupName = forLambda ? this.getLambdaPrefixedName(prefix || '') : this.getFullName(prefix || '');
     const logs = await this.getAws();
     const params: any = {
       logGroupNamePrefix: logGroupName,
@@ -187,7 +179,7 @@ export class AwsLogs extends AwsBase<typeof CloudWatchLogs> {
 
   public async deleteLogGroup(name: string, options?: IAwsLogsOptions): Promise<void> {
     const forLambda = options && options.forLambda !== undefined ? options.forLambda : true;
-    const logGroupName = forLambda ? this.getLambdaPrefixedName(name) : this.getPrefixedName(name);
+    const logGroupName = forLambda ? this.getLambdaPrefixedName(name) : this.getFullName(name);
 
     const logs = await this.getAws();
     const params: any = { logGroupName };
@@ -205,7 +197,7 @@ export class AwsLogs extends AwsBase<typeof CloudWatchLogs> {
   public async createLogStrem(groupName: string, streamName: string): Promise<void> {
     const logs = await this.getAws();
     const params: any = {
-      logGroupName: this.getPrefixedName(groupName),
+      logGroupName: this.getFullName(groupName),
       logStreamName: streamName,
     };
 
@@ -223,7 +215,7 @@ export class AwsLogs extends AwsBase<typeof CloudWatchLogs> {
   public async listLogStreams(groupName: string, prefix?: string): Promise<IAwsLogsStreamDetail[]> {
     const logs = await this.getAws();
     const params: any = {
-      logGroupName: this.getPrefixedName(groupName),
+      logGroupName: this.getFullName(groupName),
     };
     if (prefix) {
       params.logStreamNamePrefix = prefix;
@@ -263,7 +255,7 @@ export class AwsLogs extends AwsBase<typeof CloudWatchLogs> {
   public async deleteLogStream(groupName: string, streamName: string): Promise<void> {
     const logs = await this.getAws();
     const params: any = {
-      logGroupName: this.getPrefixedName(groupName),
+      logGroupName: this.getFullName(groupName),
       logStreamName: streamName,
     };
 
@@ -275,5 +267,13 @@ export class AwsLogs extends AwsBase<typeof CloudWatchLogs> {
         resolve();
       });
     });
+  }
+
+  protected onGetAws(config: IAwsConfig) {
+    return new CloudWatchLogs(config);
+  }
+
+  private getLambdaPrefixedName(name: string) {
+    return `/aws/lambda/${this.getFullName(name)}`;
   }
 }

@@ -1,4 +1,4 @@
-import { AwsBase, IAwsOptions } from '@5qtrs/aws-base';
+import { AwsBase, IAwsConfig } from '@5qtrs/aws-base';
 import { IAM } from 'aws-sdk';
 
 // -----------------
@@ -33,7 +33,7 @@ function parseAssumeRolePolicyDocument(document: string): IAwsRolePrincipal {
 }
 
 function principalsAreEquivalent(principal1: IAwsRolePrincipal, principal2: IAwsRolePrincipal) {
-  return principal1.account == principal2.account && principal1.service === principal2.service;
+  return principal1.account === principal2.account && principal1.service === principal2.service;
 }
 
 // -------------------
@@ -78,11 +78,11 @@ export interface IAwsRoleDetail {
 // ----------------
 
 export class AwsRole extends AwsBase<typeof IAM> {
-  public static async create(options: IAwsOptions) {
-    return new AwsRole(options);
+  public static async create(config: IAwsConfig) {
+    return new AwsRole(config);
   }
-  private constructor(options: IAwsOptions) {
-    super(options);
+  private constructor(config: IAwsConfig) {
+    super(config);
   }
 
   public async ensureRole(
@@ -97,7 +97,7 @@ export class AwsRole extends AwsBase<typeof IAM> {
     const params = {
       AssumeRolePolicyDocument: this.getAssumeRolePolicyDocument(principal),
       Path: this.getPath(path),
-      RoleName: this.getPrefixedName(name),
+      RoleName: this.getFullName(name),
     };
     return new Promise((resolve, reject) => {
       iam.createRole(params, async (error: any, data: any) => {
@@ -155,7 +155,7 @@ export class AwsRole extends AwsBase<typeof IAM> {
   public async getRole(name: string): Promise<IAwsRoleDetail> {
     const iam = await this.getAws();
     const params = {
-      RoleName: this.getPrefixedName(name),
+      RoleName: this.getFullName(name),
     };
 
     return new Promise((resolve, reject) => {
@@ -219,7 +219,7 @@ export class AwsRole extends AwsBase<typeof IAM> {
   public async deleteRole(name: string): Promise<void> {
     const iam = await this.getAws();
     const params = {
-      RoleName: this.getPrefixedName(name),
+      RoleName: this.getFullName(name),
     };
 
     return new Promise((resolve, reject) => {
@@ -233,8 +233,8 @@ export class AwsRole extends AwsBase<typeof IAM> {
     });
   }
 
-  protected onGetAws(options: any) {
-    return new IAM(options);
+  protected onGetAws(config: IAwsConfig) {
+    return new IAM(config);
   }
 
   private getAssumeRolePolicyDocument(principal: IAwsRolePrincipal) {
@@ -281,6 +281,7 @@ export class AwsRole extends AwsBase<typeof IAM> {
   }
 
   private getPath(path?: string) {
-    return `/${this.deployment.key}${path ? '/' + path : ''}/`;
+    const fullName = this.getFullName(path || '');
+    return fullName ? `/${fullName}/` : undefined;
   }
 }

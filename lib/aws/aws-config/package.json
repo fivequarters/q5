@@ -1,5 +1,5 @@
 {
-  "name": "@5qtrs/aws-s3",
+  "name": "@5qtrs/aws-config",
   "version": "0.0.1",
   "description": "",
   "main": "libc/index.js",
@@ -14,9 +14,6 @@
   },
   "keywords": [],
   "dependencies": {
-    "@5qtrs/batch": "^0.0.1",
-    "@5qtrs/aws-role": "^0.0.1",
-    "@5qtrs/aws-base": "^0.0.1",
-    "aws-sdk": "^2.423.0"
+    "@5qtrs/aws-cred": "^0.0.1"
   }
 }

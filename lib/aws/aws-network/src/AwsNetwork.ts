@@ -1,4 +1,4 @@
-import { AwsBase, IAwsOptions } from '@5qtrs/aws-base';
+import { AwsBase, IAwsConfig } from '@5qtrs/aws-base';
 import { EC2 } from 'aws-sdk';
 
 // ------------------
@@ -47,24 +47,19 @@ export interface IAwsSubnetDetail {
 // ----------------
 
 export class AwsNetwork extends AwsBase<typeof EC2> {
-  public static async create(options: IAwsOptions) {
-    return new AwsNetwork(options);
+  public static async create(config: IAwsConfig) {
+    return new AwsNetwork(config);
   }
-  private constructor(options: IAwsOptions) {
-    super(options);
-  }
-
-  protected onGetAws(options: any) {
-    return new EC2(options);
+  private constructor(config: IAwsConfig) {
+    super(config);
   }
 
-  public async networkExists(name?: string): Promise<boolean> {
-    const vpcId = await this.getVpcId(name || '');
+  public async networkExists(name: string): Promise<boolean> {
+    const vpcId = await this.getVpcId(name);
     return vpcId !== undefined;
   }
 
-  public async ensureNetwork(name?: string): Promise<IAwsNetworkDetail> {
-    name = name || '';
+  public async ensureNetwork(name: string): Promise<IAwsNetworkDetail> {
     const vpcId = await this.ensureVpc(name);
     const securityGroupId = await this.ensureSecurityGroup(name, vpcId);
 
@@ -88,6 +83,96 @@ export class AwsNetwork extends AwsBase<typeof EC2> {
     };
   }
 
+  public async getVpcId(name: string): Promise<string | undefined> {
+    const ec2 = await this.getAws();
+
+    const params = {
+      Filters: [
+        {
+          Name: 'tag:Name',
+          Values: [this.getResourceName(name, vpcType)],
+        },
+      ],
+    };
+    return new Promise((resolve, reject) => {
+      ec2.describeVpcs(params, (error: any, data: any) => {
+        if (error) {
+          return reject(error);
+        }
+
+        if (data.Vpcs.length > 1) {
+          return reject(this.getMultipleResourceError(name, vpcType));
+        }
+        const id = data && data.Vpcs && data.Vpcs[0] ? data.Vpcs[0].VpcId : undefined;
+        resolve(id);
+      });
+    });
+  }
+
+  public async getNatGateway(name: string, vpcId: string): Promise<string> {
+    const ec2 = await this.getAws();
+    const params = {
+      Filter: [
+        {
+          Name: 'vpc-id',
+          Values: [vpcId],
+        },
+      ],
+    };
+
+    return new Promise((resolve, reject) => {
+      ec2.describeNatGateways(params, (error: any, data: any) => {
+        if (error) {
+          return reject(error);
+        }
+
+        if (data.NatGateways.length > 1) {
+          return reject(this.getMultipleResourceError(name, natGatewayType));
+        }
+        const id = data && data.NatGateways && data.NatGateways[0] ? data.NatGateways[0].NatGatewayId : undefined;
+        resolve(id);
+      });
+    });
+  }
+
+  public async getSubnet(name: string, vpcId: string, cidr: string): Promise<IAwsSubnetDetail | undefined> {
+    const ec2 = await this.getAws();
+    const params = {
+      Filters: [
+        {
+          Name: 'vpc-id',
+          Values: [vpcId],
+        },
+        {
+          Name: 'cidr-block',
+          Values: [cidr],
+        },
+      ],
+    };
+
+    return new Promise((resolve, reject) => {
+      ec2.describeSubnets(params, (error: any, data: any) => {
+        if (error) {
+          return reject(error);
+        }
+
+        const subnet = data && data.Subnets && data.Subnets.length ? data.Subnets[0] : undefined;
+        resolve(
+          subnet
+            ? {
+                id: subnet.SubnetId,
+                availabilityZone: subnet.AvailabilityZone,
+              }
+            : undefined
+        );
+      });
+    });
+  }
+
+  protected onGetAws(config: IAwsConfig) {
+    return new EC2(config);
+  }
+
   private async ensureVpc(name: string): Promise<string> {
     let vpcId = await this.getVpcId(name);
     if (!vpcId) {
@@ -101,7 +186,7 @@ export class AwsNetwork extends AwsBase<typeof EC2> {
   private async ensureSecurityGroup(name: string, vpcId: string): Promise<string> {
     let securityGroupId = await this.getSecurityGroup(name, vpcId);
     if (!securityGroupId) {
-      securityGroupId = await this.createSecurityGroup(vpcId);
+      securityGroupId = await this.createSecurityGroup(name, vpcId);
     }
     await this.authorizeSecurityGroupIngress(securityGroupId);
     await this.tagResource(securityGroupId, name, securityGroupType);
@@ -186,32 +271,6 @@ export class AwsNetwork extends AwsBase<typeof EC2> {
     });
   }
 
-  public async getVpcId(name: string): Promise<string | undefined> {
-    const ec2 = await this.getAws();
-
-    const params = {
-      Filters: [
-        {
-          Name: 'tag:Name',
-          Values: [this.getResourceName(name, vpcType)],
-        },
-      ],
-    };
-    return new Promise((resolve, reject) => {
-      ec2.describeVpcs(params, (error: any, data: any) => {
-        if (error) {
-          return reject(error);
-        }
-
-        if (data.Vpcs.length > 1) {
-          return reject(this.getMultipleResourceError(name || '', vpcType));
-        }
-        const id = data && data.Vpcs && data.Vpcs[0] ? data.Vpcs[0].VpcId : undefined;
-        resolve(id);
-      });
-    });
-  }
-
   private async waitForVpc(id: string): Promise<string> {
     const ec2 = await this.getAws();
     const params = { VpcIds: [id] };
@@ -234,32 +293,6 @@ export class AwsNetwork extends AwsBase<typeof EC2> {
           return reject(error);
         }
         resolve(data.AllocationId);
-      });
-    });
-  }
-
-  public async getNatGateway(name: string, vpcId: string): Promise<string> {
-    const ec2 = await this.getAws();
-    const params = {
-      Filter: [
-        {
-          Name: 'vpc-id',
-          Values: [vpcId],
-        },
-      ],
-    };
-
-    return new Promise((resolve, reject) => {
-      ec2.describeNatGateways(params, (error: any, data: any) => {
-        if (error) {
-          return reject(error);
-        }
-
-        if (data.NatGateways.length > 1) {
-          return reject(this.getMultipleResourceError(name, natGatewayType));
-        }
-        const id = data && data.NatGateways && data.NatGateways[0] ? data.NatGateways[0].NatGatewayId : undefined;
-        resolve(id);
       });
     });
   }
@@ -294,40 +327,6 @@ export class AwsNetwork extends AwsBase<typeof EC2> {
     });
   }
 
-  public async getSubnet(name: string, vpcId: string, cidr: string): Promise<IAwsSubnetDetail | undefined> {
-    const ec2 = await this.getAws();
-    const params = {
-      Filters: [
-        {
-          Name: 'vpc-id',
-          Values: [vpcId],
-        },
-        {
-          Name: 'cidr-block',
-          Values: [cidr],
-        },
-      ],
-    };
-
-    return new Promise((resolve, reject) => {
-      ec2.describeSubnets(params, (error: any, data: any) => {
-        if (error) {
-          return reject(error);
-        }
-
-        const subnet = data && data.Subnets && data.Subnets.length ? data.Subnets[0] : undefined;
-        resolve(
-          subnet
-            ? {
-                id: subnet.SubnetId,
-                availabilityZone: subnet.AvailabilityZone,
-              }
-            : undefined
-        );
-      });
-    });
-  }
-
   private async createSubnet(vpcId: string, cidr: string, availabilityZone: string): Promise<IAwsSubnetDetail> {
     const ec2 = await this.getAws();
     const params = {
@@ -340,9 +339,9 @@ export class AwsNetwork extends AwsBase<typeof EC2> {
         if (error) {
           return reject(error);
         }
-        const availabilityZone = data.Subnet.AvailabilityZone;
+        const subnetAvailabilityZone = data.Subnet.AvailabilityZone;
         const id = data.Subnet.SubnetId;
-        resolve({ id, availabilityZone });
+        resolve({ id, availabilityZone: subnetAvailabilityZone });
       });
     });
   }
@@ -516,9 +515,9 @@ export class AwsNetwork extends AwsBase<typeof EC2> {
           Values: [vpcId],
         },
         {
-          Name: "tag:Name", 
-          Values: [ `${name}-${securityGroupType}`]
-        }
+          Name: 'tag:Name',
+          Values: [`${name}-${securityGroupType}`],
+        },
       ],
     };
 
@@ -537,11 +536,12 @@ export class AwsNetwork extends AwsBase<typeof EC2> {
     });
   }
 
-  private async createSecurityGroup(vpcId: string): Promise<string> {
+  private async createSecurityGroup(name: string, vpcId: string): Promise<string> {
     const ec2 = await this.getAws();
+    const fullName = this.getFullName(name);
     const params = {
-      Description: `Security Group for ${this.deployment.key} Deployment`,
-      GroupName: `SG-${this.deployment.key}`,
+      Description: `Security Group for ${fullName} Deployment`,
+      GroupName: `SG-${fullName}`,
       VpcId: vpcId,
     };
 
@@ -649,16 +649,8 @@ export class AwsNetwork extends AwsBase<typeof EC2> {
       Resources: [id],
       Tags: [
         {
-          Key: 'deployment',
-          Value: name ? name : this.deployment.key,
-        },
-        {
-          Key: 'account',
-          Value: this.deployment.account,
-        },
-        {
           Key: 'region',
-          Value: this.deployment.region.code,
+          Value: this.awsRegion,
         },
         {
           Key: 'Name',
@@ -678,14 +670,13 @@ export class AwsNetwork extends AwsBase<typeof EC2> {
   }
 
   private getMultipleResourceError(name: string, resourceName: string) {
-    const message = [
-      `Mulitple ${resourceName} instances found for network`,
-      `'${name ? name : this.deployment.key}'.`,
-    ].join(' ');
+    const fullName = this.getFullName(name);
+    const message = `Mulitple ${resourceName} instances found for the '${fullName}' network`;
     return new Error(message);
   }
 
   private getResourceName(name: string, type: string) {
-    return `${name ? name : this.deployment.key}-${type}`;
+    const fullName = this.getFullName(name);
+    return `${fullName}-${type}`;
   }
 }

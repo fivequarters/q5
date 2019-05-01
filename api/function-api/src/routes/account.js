@@ -1,6 +1,5 @@
 const { Config } = require('@5qtrs/config');
-const { AwsCreds } = require('@5qtrs/aws-cred');
-const { AwsDeployment } = require('@5qtrs/aws-deployment');
+const { IAwsConfig, AwsCreds } = require('@5qtrs/aws-config');
 const { AccountContext } = require('@5qtrs/account');
 const { AccountDataAwsContextFactory } = require('@5qtrs/account-data-aws');
 
@@ -15,12 +14,13 @@ async function getAccountContext() {
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
       useMfa: false,
     });
-    const deployment = await AwsDeployment.create({
-      regionCode: process.env.AWS_REGION,
+    const awsConfig = {
+      creds,
+      region: process.env.AWS_REGION,
       account: process.env.AWS_ACCOUNT,
-      key: process.env.DEPLOYMENT_KEY,
-    });
-    const factory = await AccountDataAwsContextFactory.create(creds, deployment);
+      prefix: process.env.DEPLOYMENT_KEY,
+    };
+    const factory = await AccountDataAwsContextFactory.create(awsConfig);
     accountContext = await AccountContext.create(config, factory);
   }
   return accountContext;

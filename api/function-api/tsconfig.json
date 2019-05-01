@@ -11,13 +11,12 @@
   },
   "include": ["src"],
   "references": [
-    { "path": "../../lib/aws/aws-cred" },
-    { "path": "../../lib/aws/aws-deployment" },
     { "path": "../../lib/node/jwt" },
     { "path": "../../lib/shared/request" },
     { "path": "../../sdk/fusebit-profile-sdk" },
     { "path": "../../lib/server/account" },
     { "path": "../../lib/data/account-data-aws" },
-    { "path": "../../lib/server/bq-metering" }
+    { "path": "../../lib/server/bq-metering" },
+    { "path": "../../lib/aws/aws-config" }
   ]
 }

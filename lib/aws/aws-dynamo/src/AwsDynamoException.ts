@@ -18,9 +18,6 @@ export enum AwsDynamoExceptionCode {
 // ----------------
 
 export class AwsDynamoException extends Exception {
-  private constructor(code: string, message?: string, params?: any[], inner?: Error | Exception) {
-    super(code, message, params, inner);
-  }
 
   public static invalidNext(next: string) {
     const message = `The next token '${next}' is invalid`;
@@ -55,5 +52,8 @@ export class AwsDynamoException extends Exception {
       error.message
     }'`;
     return new AwsDynamoException(AwsDynamoExceptionCode.databaseError, message, [table, action], error);
+  }
+  private constructor(code: string, message?: string, params?: any[], inner?: Error | Exception) {
+    super(code, message, params, inner);
   }
 }

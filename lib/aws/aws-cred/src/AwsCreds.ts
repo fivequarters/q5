@@ -1,6 +1,6 @@
-import { STS } from 'aws-sdk';
+import { fromBase64, toBase64 } from '@5qtrs/base64';
 import { clone } from '@5qtrs/clone';
-import { toBase64, fromBase64 } from '@5qtrs/base64';
+import { STS } from 'aws-sdk';
 import { InMemoryCredsCache } from './InMemoryCredsCache';
 
 // ---------
@@ -42,9 +42,7 @@ export interface IAwsCredsCache {
   get: (key: string) => Promise<string | undefined>;
 }
 
-export interface IMfaCodeResolver {
-  (accountId: string): Promise<{ code: string }>;
-}
+export type IMfaCodeResolver = (accountId: string) => Promise<{ code: string }>;
 
 export interface IAwsCredsOptions {
   account: string;
@@ -82,7 +80,7 @@ export class AwsCreds {
     this.cache = cache;
   }
 
-  public asRole({ account, name }: { account: string; name: string }) {
+  public asRole(account: string, role: string) {
     const credsForRole = new AwsCreds(this.options, this.cache);
     credsForRole.parentCreds = this;
     credsForRole.roleAccount = account;

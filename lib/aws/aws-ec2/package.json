@@ -15,9 +15,7 @@
   "keywords": [],
   "dependencies": {
     "@5qtrs/aws-base": "^0.0.1",
-    "@5qtrs/base64": "^0.0.1"
-  },
-  "devServer": {
-    "port": 9524
+    "@5qtrs/base64": "^0.0.1",
+    "aws-sdk": "^2.446.0"
   }
 }

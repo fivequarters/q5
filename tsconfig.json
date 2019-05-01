@@ -55,7 +55,6 @@
       "@5qtrs/base64": ["lib/shared/base64/src"],
       "@5qtrs/hex": ["lib/shared/hex/src"],
       "@5qtrs/aws-cred": ["lib/aws/aws-cred/src"],
-      "@5qtrs/aws-deployment": ["lib/aws/aws-deployment/src"],
       "@5qtrs/table": ["lib/shared/table/src"],
       "@5qtrs/cli": ["lib/node/cli/src"],
       "@5qtrs/text": ["lib/shared/text/src"],
@@ -95,7 +94,9 @@
       "@5qtrs/function-lambda": ["lib/server/function-lambda/src"],
       "@5qtrs/fusebit-editor": ["lib/client/fusebit-editor/src"],
       "@5qtrs/fusebit-hook": ["lib/client/fusebit-hook/src"],
-      "@5qtrs/perf": ["test/perf/src"]
+      "@5qtrs/perf": ["test/perf/src"],
+      "@5qtrs/aws-region": ["lib/aws/aws-region/src"],
+      "@5qtrs/aws-config": ["lib/aws/aws-config/src"]
     }
   }
 }

@@ -1,8 +1,8 @@
 import { IAccountDataContextFactory } from '@5qtrs/account-data';
 import { IConfig } from '@5qtrs/config';
-import { AwsCreds } from '@5qtrs/aws-cred';
-import { AwsDeployment } from '@5qtrs/aws-deployment';
+import { IAwsConfig } from '@5qtrs/aws-config';
 import { AwsDynamo } from '@5qtrs/aws-dynamo';
+
 import { AccountDataAwsContext } from './AccountDataAwsContext';
 import { AccountDataAwsConfig } from './AccountDataAwsConfig';
 
@@ -11,20 +11,19 @@ import { AccountDataAwsConfig } from './AccountDataAwsConfig';
 // ----------------
 
 export class AccountDataAwsContextFactory implements IAccountDataContextFactory {
-  public static async create(creds: AwsCreds, deployment: AwsDeployment) {
-    return new AccountDataAwsContextFactory(creds, deployment);
+  public static async create(awsConfig: IAwsConfig) {
+    return new AccountDataAwsContextFactory(awsConfig);
   }
-  private creds: AwsCreds;
-  private deployment: AwsDeployment;
 
-  private constructor(creds: AwsCreds, deployment: AwsDeployment) {
-    this.creds = creds;
-    this.deployment = deployment;
+  private awsConfig: IAwsConfig;
+
+  private constructor(awsConfig: IAwsConfig) {
+    this.awsConfig = awsConfig;
   }
 
   public async create(config: IConfig): Promise<AccountDataAwsContext> {
     const awsConfig = await AccountDataAwsConfig.create(config);
-    const dynamo = await AwsDynamo.create({ creds: this.creds, deployment: this.deployment });
+    const dynamo = await AwsDynamo.create(this.awsConfig);
     return AccountDataAwsContext.create(awsConfig, dynamo);
   }
 }

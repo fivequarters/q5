@@ -104,7 +104,7 @@
     "lib/shared/base64",
     "lib/shared/hex",
     "lib/aws/aws-cred",
-    "lib/aws/aws-deployment",
+    "lib/aws/aws-region",
     "lib/shared/table",
     "lib/node/cli",
     "cli/fusebit-cli",
@@ -140,6 +140,7 @@
     "data/dwh-export",
     "lib/server/bq-metering",
     "lib/shared/data",
-    "test/perf"
+    "test/perf",
+    "lib/aws/aws-config"
   ]
 }
