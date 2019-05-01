@@ -1,6 +1,6 @@
-import { AwsBase, IAwsOptions } from '@5qtrs/aws-base';
+import { AwsBase, IAwsConfig } from '@5qtrs/aws-base';
 import { AwsLogs } from '@5qtrs/aws-log';
-import { AwsRole, IAwsRolePolicy, AwsRoleService } from '@5qtrs/aws-role';
+import { AwsRole, AwsRoleService, IAwsRolePolicy } from '@5qtrs/aws-role';
 import { Lambda } from 'aws-sdk';
 
 // ------------------
@@ -74,11 +74,11 @@ export interface IAwsLambdaDetail {
 // ----------------
 
 export class AwsLambda extends AwsBase<typeof Lambda> {
-  public static async create(options: IAwsOptions) {
-    return new AwsLambda(options);
+  public static async create(config: IAwsConfig) {
+    return new AwsLambda(config);
   }
-  private constructor(options: IAwsOptions) {
-    super(options);
+  private constructor(config: IAwsConfig) {
+    super(config);
   }
 
   public async ensureFunction(
@@ -130,7 +130,7 @@ export class AwsLambda extends AwsBase<typeof Lambda> {
 
   public async getFunction(name: string): Promise<IAwsLambdaDetail> {
     const lambda = await this.getAws();
-    const fullName = this.getPrefixedName(name);
+    const fullName = this.getFullName(name);
     const params = { FunctionName: fullName };
 
     return new Promise((resolve, reject) => {
@@ -164,7 +164,7 @@ export class AwsLambda extends AwsBase<typeof Lambda> {
 
   public async listFunctionVersions(name: string): Promise<IAwsLambdaDetail[]> {
     const lambda = await this.getAws();
-    const fullName = this.getPrefixedName(name);
+    const fullName = this.getFullName(name);
     const params: any = {
       FunctionName: fullName,
     };
@@ -206,7 +206,7 @@ export class AwsLambda extends AwsBase<typeof Lambda> {
 
   public async deleteFunctionVersion(name: string, version: string): Promise<void> {
     const lambda = await this.getAws();
-    const fullName = this.getPrefixedName(name);
+    const fullName = this.getFullName(name);
     const params = {
       FunctionName: fullName,
       FunctionVersion: version,
@@ -224,7 +224,7 @@ export class AwsLambda extends AwsBase<typeof Lambda> {
 
   public async deleteFunction(name: string): Promise<void> {
     const lambda = await this.getAws();
-    const fullName = this.getPrefixedName(name);
+    const fullName = this.getFullName(name);
     const params = { FunctionName: fullName };
 
     return new Promise((resolve, reject) => {
@@ -238,13 +238,33 @@ export class AwsLambda extends AwsBase<typeof Lambda> {
     });
   }
 
-  protected onGetAws(options: any) {
-    return new Lambda(options);
+  public async createAlias(name: string, version: string): Promise<void> {
+    const lambda = await this.getAws();
+    const fullName = this.getFullName(name);
+
+    const params = {
+      FunctionName: fullName,
+      FunctionVersion: version,
+      Name: currentAlias,
+    };
+
+    return new Promise((resolve, reject) => {
+      lambda.createAlias(params, async (error: any) => {
+        if (error) {
+          reject(error);
+        }
+        resolve();
+      });
+    });
+  }
+
+  protected onGetAws(config: IAwsConfig) {
+    return new Lambda(config);
   }
 
   private async updateFunctionCode(name: string, s3Bucket: string, s3Key: string): Promise<string> {
     const lambda = await this.getAws();
-    const fullName = this.getPrefixedName(name);
+    const fullName = this.getFullName(name);
 
     const params = {
       FunctionName: fullName,
@@ -271,7 +291,7 @@ export class AwsLambda extends AwsBase<typeof Lambda> {
     options?: IAwsLambdaOptions
   ): Promise<IAwsLambdaDetail> {
     const lambda = await this.getAws();
-    const fullName = this.getPrefixedName(name);
+    const fullName = this.getFullName(name);
     const normalized = normalizeUploadOptions(options);
 
     const params = {
@@ -325,7 +345,7 @@ export class AwsLambda extends AwsBase<typeof Lambda> {
 
   private async updateFunctionConfiguration(name: string, options: IAwsLambdaOptions): Promise<IAwsLambdaDetail> {
     const lambda = await this.getAws();
-    const fullName = this.getPrefixedName(name);
+    const fullName = this.getFullName(name);
     let logGroupName;
     if (options.daysToRetain !== undefined || options.policies !== undefined) {
       logGroupName = await this.createLogGroup(name, options.daysToRetain);
@@ -372,7 +392,7 @@ export class AwsLambda extends AwsBase<typeof Lambda> {
 
   private async publishFunction(name: string, hash: string): Promise<IAwsLambdaDetail> {
     const lambda = await this.getAws();
-    const fullName = this.getPrefixedName(name);
+    const fullName = this.getFullName(name);
     const params = {
       FunctionName: fullName,
       CodeSha256: hash,
@@ -398,29 +418,9 @@ export class AwsLambda extends AwsBase<typeof Lambda> {
     });
   }
 
-  public async createAlias(name: string, version: string): Promise<void> {
-    const lambda = await this.getAws();
-    const fullName = this.getPrefixedName(name);
-
-    const params = {
-      FunctionName: fullName,
-      FunctionVersion: version,
-      Name: currentAlias,
-    };
-
-    return new Promise((resolve, reject) => {
-      lambda.createAlias(params, async (error: any) => {
-        if (error) {
-          reject(error);
-        }
-        resolve();
-      });
-    });
-  }
-
   private async updateAlias(name: string, version: string): Promise<void> {
     const lambda = await this.getAws();
-    const fullName = this.getPrefixedName(name);
+    const fullName = this.getFullName(name);
 
     const params = {
       FunctionName: fullName,
@@ -443,7 +443,7 @@ export class AwsLambda extends AwsBase<typeof Lambda> {
     const logPolicies = await this.getLogPolicies(logGroupName);
     allPolicies.push(...logPolicies);
 
-    const role = await AwsRole.create(this.options);
+    const role = await AwsRole.create(this.config);
 
     const principal = { service: AwsRoleService.lambda };
     const options = {
@@ -456,23 +456,23 @@ export class AwsLambda extends AwsBase<typeof Lambda> {
   }
 
   private async getLogPolicies(logGroupName: string) {
-    const logs = await AwsLogs.create(this.options);
+    const logs = await AwsLogs.create(this.config);
     const streamPolicy = logs.getLogStreamPolicy(logGroupName, { create: true, write: true });
     return [streamPolicy];
   }
 
   private async createLogGroup(name: string, daysToRetain?: number): Promise<string> {
-    const logs = await AwsLogs.create(this.options);
+    const logs = await AwsLogs.create(this.config);
     return logs.createLogGroup(name, { daysToRetain, forLambda: true });
   }
 
   private async deleteLogGroup(name: string): Promise<void> {
-    const logs = await AwsLogs.create(this.options);
+    const logs = await AwsLogs.create(this.config);
     return logs.deleteLogGroup(name, { forLambda: true });
   }
 
   private async deleteRole(name: string): Promise<void> {
-    const role = await AwsRole.create(this.options);
+    const role = await AwsRole.create(this.config);
     role.deleteRole(name);
   }
 }

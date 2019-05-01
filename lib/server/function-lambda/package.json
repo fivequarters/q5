@@ -12,16 +12,16 @@
   },
   "keywords": [],
   "dependencies": {
-    "@5qtrs/zmq-logger": "^0.0.1",
+    "@5qtrs/bq-metering": "^0.0.1",
     "async": "^2.6.1",
     "aws-sdk": "^2.397.0",
+    "bunyan": "^1.8.12",
     "cron-parser": "^2.7.3",
     "http-errors": "^1.7.1",
     "jsonwebtoken": "^8.4.0",
     "jszip": "^3.1.5",
     "semver": "^5.6.0",
-    "superagent": "^4.1.0",
-    "@5qtrs/bq-metering": "^0.0.1"
+    "superagent": "^4.1.0"
   },
   "devDependencies": {
     "@types/async": "^2.4.0"

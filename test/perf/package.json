@@ -1,0 +1,20 @@
+{
+  "name": "@5qtrs/perf",
+  "version": "0.0.1",
+  "description": "",
+  "main": "libc/index.js",
+  "browser": "libm/index.js",
+  "module": "libm/index.js",
+  "sideEffects": false,
+  "license": "UNLICENSED",
+  "author": "FiveQuarters.io",
+  "scripts": {
+    "deploy": "fuse function deploy ./src -c -f performance-test -p $FUSE_PROFILE && fuse function url -f performance-test -p $FUSE_PROFILE",
+    "test": "PERF_FUNC_URL=$(fuse function url -f performance-test -p $FUSE_PROFILE) ./run.js",
+    "clean": "fuse function rm -c -f performance-test -p $FUSE_PROFILE"
+  },
+  "keywords": [],
+  "dependencies": {
+    "superagent": "^5.0.3"
+  }
+}

@@ -15,9 +15,7 @@
   "keywords": [],
   "dependencies": {
     "@5qtrs/aws-base": "^0.0.1",
-    "@5qtrs/aws-network": "^0.0.1"
-  },
-  "devServer": {
-    "port": 9520
+    "@5qtrs/aws-network": "^0.0.1",
+    "aws-sdk": "^2.446.0"
   }
 }

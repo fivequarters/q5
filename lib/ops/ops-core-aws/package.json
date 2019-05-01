@@ -16,7 +16,6 @@
   "dependencies": {
     "@5qtrs/aws-cred": "^0.0.1",
     "@5qtrs/aws-dynamo": "^0.0.1",
-    "@5qtrs/aws-deployment": "^0.0.1",
     "@5qtrs/aws-network": "^0.0.1",
     "@5qtrs/aws-route53": "^0.0.1"
   }

@@ -1,7 +1,7 @@
-import { AwsBase, IAwsOptions } from '@5qtrs/aws-base';
-import { Route53 } from 'aws-sdk';
-import { ensureArray } from '@5qtrs/type';
 import { same } from '@5qtrs/array';
+import { AwsBase, IAwsConfig } from '@5qtrs/aws-base';
+import { ensureArray } from '@5qtrs/type';
+import { Route53 } from 'aws-sdk';
 
 // ------------------
 // Internal Functions
@@ -43,15 +43,11 @@ export interface IHostedZoneRecord {
 // ----------------
 
 export class AwsRoute53 extends AwsBase<typeof Route53> {
-  public static async create(options: IAwsOptions) {
-    return new AwsRoute53(options);
+  public static async create(config: IAwsConfig) {
+    return new AwsRoute53(config);
   }
-  private constructor(options: IAwsOptions) {
-    super(options);
-  }
-
-  protected onGetAws(options: any) {
-    return new Route53(options);
+  private constructor(config: IAwsConfig) {
+    super(config);
   }
 
   public async getRecords(domain: string, type?: string): Promise<IHostedZoneRecordDetail[]> {
@@ -79,7 +75,7 @@ export class AwsRoute53 extends AwsBase<typeof Route53> {
   }
 
   public async deleteRecord(domain: string, record: IHostedZoneRecord): Promise<void> {
-    let id = await this.getHostedZoneId(domain);
+    const id = await this.getHostedZoneId(domain);
     if (!id) {
       return;
     }
@@ -120,6 +116,10 @@ export class AwsRoute53 extends AwsBase<typeof Route53> {
         resolve({ domain, id: data.HostedZone.Id });
       });
     });
+  }
+
+  protected onGetAws(config: IAwsConfig) {
+    return new Route53(config);
   }
 
   private async createHostedZoneRecord(id: string, record: IHostedZoneRecord): Promise<void> {

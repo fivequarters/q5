@@ -4,16 +4,14 @@
   "include": ["src"],
   "references": [
     { "path": "../../aws/aws-dynamo" },
-    { "path": "../../aws/aws-cred" },
-    { "path": "../../aws/aws-deployment" },
     { "path": "../../shared/random" },
     { "path": "../../shared/base64" },
     { "path": "../../shared/array" },
-    { "path": "../../aws/aws-base" },
     { "path": "../../node/jwt" },
     { "path": "../account-data" },
     { "path": "../../shared/exception" },
     { "path": "../../shared/data" },
-    { "path": "../../shared/config" }
+    { "path": "../../shared/config" },
+    { "path": "../../aws/aws-config" }
   ]
 }

@@ -1,5 +1,5 @@
 {
-  "version": "0.9.30",
+  "version": "0.9.31",
   "private": true,
   "org": "5qtrs",
   "scripts": {
@@ -78,7 +78,6 @@
     "lib/node/stream",
     "lib/node/server",
     "lib/server/function-lambda",
-    "lib/server/zmq-logger",
     "comp/image",
     "comp/scroll-stick",
     "comp/nav-bar",
@@ -104,7 +103,7 @@
     "lib/shared/base64",
     "lib/shared/hex",
     "lib/aws/aws-cred",
-    "lib/aws/aws-deployment",
+    "lib/aws/aws-region",
     "lib/shared/table",
     "lib/node/cli",
     "cli/fusebit-cli",
@@ -141,6 +140,8 @@
     "lib/server/bq-metering",
     "lib/shared/data",
     "lib/data/ops-data",
-    "lib/data/ops-data-aws"
+    "lib/data/ops-data-aws",
+    "test/perf",
+    "lib/aws/aws-config"
   ]
 }

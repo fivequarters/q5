@@ -1,6 +1,6 @@
 {
   "name": "@5qtrs/fusebit-editor",
-  "version": "0.9.3",
+  "version": "0.9.4",
   "description": "",
   "main": "libm/index.js",
   "browser": "libm/index.js",

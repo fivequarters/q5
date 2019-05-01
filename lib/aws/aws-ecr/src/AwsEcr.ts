@@ -1,6 +1,6 @@
-import { AwsBase, IAwsOptions } from '@5qtrs/aws-base';
-import { spawn } from '@5qtrs/child-process';
+import { AwsBase, IAwsConfig } from '@5qtrs/aws-base';
 import { fromBase64 } from '@5qtrs/base64';
+import { spawn } from '@5qtrs/child-process';
 import { ECR } from 'aws-sdk';
 
 // ------------------
@@ -32,15 +32,11 @@ interface IAwsRepository {
 // ----------------
 
 export class AwsEcr extends AwsBase<typeof ECR> {
-  public static async create(options: IAwsOptions) {
-    return new AwsEcr(options);
+  public static async create(config: IAwsConfig) {
+    return new AwsEcr(config);
   }
-  private constructor(options: IAwsOptions) {
-    super(options);
-  }
-
-  protected onGetAws(options: any) {
-    return new ECR(options);
+  private constructor(config: IAwsConfig) {
+    super(config);
   }
 
   public async pushImage(repository: string, tag: string) {
@@ -50,8 +46,8 @@ export class AwsEcr extends AwsBase<typeof ECR> {
       throw new Error(message);
     }
 
-    const accountId = this.options.deployment.account;
-    const region = this.options.deployment.region.code;
+    const accountId = this.awsAccount;
+    const region = this.awsRegion;
     const auth = await this.getAuth();
     const decoded = fromBase64(auth.token);
     const token = decoded.substring(4);
@@ -66,18 +62,6 @@ export class AwsEcr extends AwsBase<typeof ECR> {
       const message = `Docker login and push failed with output: ${result.stderr.toString()}`;
       throw new Error(message);
     }
-
-    // const result1 = await spawn('docker', {
-    //   args: ['tag', 'test:latest', '321612923577.dkr.ecr.us-east-2.amazonaws.com/test:latest'],
-    // });
-    // const result = await spawn('docker', { args: ['push', image] });
-    // console.log(result.code);
-    // console.log(result.stderr.toString());
-    // console.log(result.stdout.toString());
-    // if (result.code !== 0) {
-    //   const message = `Docker push failed with output: ${result.stdout}`;
-    //   throw new Error(message);
-    // }
   }
 
   public async createRepository(name: string): Promise<IAwsRepository> {
@@ -116,6 +100,10 @@ export class AwsEcr extends AwsBase<typeof ECR> {
         resolve(repo);
       });
     });
+  }
+
+  protected onGetAws(config: IAwsConfig) {
+    return new ECR(config);
   }
 
   private async getAuth(): Promise<any> {

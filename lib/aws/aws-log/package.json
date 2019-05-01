@@ -17,8 +17,5 @@
     "@5qtrs/aws-base": "^0.0.1",
     "@5qtrs/aws-role": "^0.0.1",
     "aws-sdk": "^2.424.0"
-  },
-  "devServer": {
-    "port": 9516
   }
 }

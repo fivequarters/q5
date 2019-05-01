@@ -1,17 +1,12 @@
-import { AwsBase, IAwsOptions } from '@5qtrs/aws-base';
+import { AwsBase, IAwsConfig } from '@5qtrs/aws-base';
 import { AwsNetwork } from '@5qtrs/aws-network';
 import { ELBv2 } from 'aws-sdk';
-
-// ------------------
-// Internal Functions
-// ------------------
 
 // -------------------
 // Exported Interfaces
 // -------------------
 
 export interface IAwsAlbOptions {
-  networkName?: string;
   albName?: string;
   certArns?: string[];
   lambdas?: IAwsAlbLambdaTarget[];
@@ -28,20 +23,15 @@ export interface IAwsAlbLambdaTarget {
 // ----------------
 
 export class AwsAlb extends AwsBase<typeof ELBv2> {
-  public static async create(options: IAwsOptions) {
-    return new AwsAlb(options);
+  public static async create(config: IAwsConfig) {
+    return new AwsAlb(config);
   }
-  private constructor(options: IAwsOptions) {
-    super(options);
-  }
-
-  protected onGetAws(options: any) {
-    return new ELBv2(options);
+  private constructor(config: IAwsConfig) {
+    super(config);
   }
 
-  public async ensureAlb(options?: IAwsAlbOptions): Promise<string> {
-    const awsNetwork = await AwsNetwork.create(this.options);
-    const networkName = options && options.networkName ? options.networkName : undefined;
+  public async ensureAlb(networkName: string, options?: IAwsAlbOptions): Promise<string> {
+    const awsNetwork = await AwsNetwork.create(this.config);
     const network = await awsNetwork.ensureNetwork(networkName);
 
     const albName = options && options.albName ? options.albName : '';
@@ -55,7 +45,7 @@ export class AwsAlb extends AwsBase<typeof ELBv2> {
     }
 
     const lambdas = options && options.lambdas ? options.lambdas : [];
-    let priority = 0;
+    const priority = 0;
     for (const lambda of lambdas) {
       const targetGroupArn = await this.createLambdaTargetGroup(albName, lambda.name);
       await this.registerLambdaTarget(targetGroupArn, lambda.arn);
@@ -63,6 +53,10 @@ export class AwsAlb extends AwsBase<typeof ELBv2> {
     }
 
     return albArn;
+  }
+
+  protected onGetAws(options: any) {
+    return new ELBv2(options);
   }
 
   private async createLambdaTargetGroup(name: string, groupName: string): Promise<string> {
@@ -216,18 +210,6 @@ export class AwsAlb extends AwsBase<typeof ELBv2> {
       Type: 'application',
       Tags: [
         {
-          Key: 'deployment',
-          Value: name || this.deployment.key,
-        },
-        {
-          Key: 'account',
-          Value: this.deployment.account,
-        },
-        {
-          Key: 'region',
-          Value: this.deployment.region.code,
-        },
-        {
           Key: 'Name',
           Value: fullName,
         },
@@ -236,7 +218,6 @@ export class AwsAlb extends AwsBase<typeof ELBv2> {
 
     return new Promise((resolve, reject) => {
       elb.createLoadBalancer(params, (error: any, data: any) => {
-        console.log(error, data);
         if (error) {
           reject(error);
         }
@@ -247,10 +228,12 @@ export class AwsAlb extends AwsBase<typeof ELBv2> {
   }
 
   private getAlbName(name: string, type: string) {
-    return `${name ? name : this.deployment.key}-${type}`;
+    const fullName = this.getFullName(name);
+    return `${fullName}-${type}`;
   }
 
   private getTargetGroupName(name: string, group: string, type: string) {
-    return `${name ? name : this.deployment.key}-${group}-${type}`;
+    const fullName = this.getFullName(name);
+    return `${fullName}-${group}-${type}`;
   }
 }

@@ -1,4 +1,4 @@
-import { AwsBase, IAwsOptions } from '@5qtrs/aws-base';
+import { AwsBase, IAwsConfig } from '@5qtrs/aws-base';
 import { toBase64 } from '@5qtrs/base64';
 import { EC2 } from 'aws-sdk';
 
@@ -29,15 +29,11 @@ export interface IAwsEc2LaunchInstance {
 // ----------------
 
 export class AwsEc2 extends AwsBase<typeof EC2> {
-  public static async create(options: IAwsOptions) {
-    return new AwsEc2(options);
+  public static async create(config: IAwsConfig) {
+    return new AwsEc2(config);
   }
-  private constructor(options: IAwsOptions) {
-    super(options);
-  }
-
-  protected onGetAws(options: any) {
-    return new EC2(options);
+  private constructor(config: IAwsConfig) {
+    super(config);
   }
 
   public async launchInstance(launch: IAwsEc2LaunchInstance) {
@@ -201,5 +197,9 @@ systemctl start docker.flexd`;
         resolve(data.Instances[0].InstanceId);
       });
     });
+  }
+
+  protected onGetAws(config: IAwsConfig) {
+    return new EC2(config);
   }
 }

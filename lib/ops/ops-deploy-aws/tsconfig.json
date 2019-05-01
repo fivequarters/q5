@@ -4,7 +4,7 @@
   "include": ["src"],
   "references": [
     { "path": "../../aws/aws-cred" },
-    { "path": "../../aws/aws-deployment" },
+    { "path": "../../aws/aws-region" },
     { "path": "../../aws/aws-dynamo" },
     { "path": "../ops-core-aws" },
     { "path": "../../aws/aws-route53" },

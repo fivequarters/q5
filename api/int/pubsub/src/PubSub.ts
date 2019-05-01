@@ -1,26 +1,25 @@
-import { LogLevelString, ZmqLogger } from '@5qtrs/zmq-logger';
+import * as AWS from 'aws-sdk';
 import Dotenv from 'dotenv';
 import Jwt from 'jsonwebtoken';
 import { Server } from 'ws';
-import Zmq from 'zeromq';
+import { AWSError } from 'aws-sdk';
+import { createLogger } from 'bunyan';
 
 Dotenv.config();
 
-const xpubPort = process.env.XPUBPORT || 5001;
-const xsubPort = process.env.XSUBPORT || 5000;
+const dynamo = new AWS.DynamoDB({
+  apiVersion: '2012-08-10',
+});
+
 const wsPort = +(process.env.LOGS_WS_PORT as string) || 5002;
-const zmqPublishUrl = process.env.ZMQ_XSUB || '';
-const zmqPublishLevel = (process.env.ZMQ_PUBLISH_LEVEL || 'info') as LogLevelString;
+if (!process.env.DEPLOYMENT_KEY) {
+  throw new Error('DEPLOYMENT_KEY environment variable must be set');
+}
+const logTableName = `${process.env.DEPLOYMENT_KEY}.log`;
 
 export class PubSub {
-  public xpubListener = `tcp://127.0.0.1:${xpubPort}`;
-  public xsubListener = `tcp://127.0.0.1:${xsubPort}`;
-  public hwm = 1000;
-  public verbose = 0;
-  public xsubSock?: Zmq.Socket;
-  public xpubSock?: Zmq.Socket;
   public ws?: Server;
-  public logger?: ZmqLogger;
+  public logger: any = createLogger({ name: 'pubsub' });
   public maxActiveWsConnections: number = +(process.env.LOGS_WS_MAX_ACTIVE_CONNECTIONS as string) || 1000;
 
   constructor() {
@@ -28,55 +27,8 @@ export class PubSub {
   }
 
   public start() {
-    if (this.xsubSock) {
-      throw new Error('Server is already started');
-    }
-    this.logger = ZmqLogger.create({ zmqPublishUrl, zmqPublishLevel, name: 'pubsub', zmqKeepStdoutStream: true });
+    // Set up Websocket listener and pump messages to DynamoDB
 
-    // The xsub listener is where pubs connect to
-    this.xsubSock = Zmq.socket('xsub');
-    this.xsubSock.identity = `subscriber:${process.pid}`;
-    this.xsubSock.bindSync(this.xsubListener);
-
-    // The xpub listener is where subs connect to
-    this.xpubSock = Zmq.socket('xpub');
-    this.xpubSock.identity = `publisher-${process.pid}`;
-    // @ts-ignore
-    this.xpubSock.setsockopt(Zmq.ZMQ_SNDHWM, this.hwm);
-    // By default xpub only signals new subscriptions
-    // Settings it to verbose = 1 , will signal on every new subscribe
-    // @ts-ignore
-    this.xpubSock.setsockopt(Zmq.ZMQ_XPUB_VERBOSE, this.verbose);
-    this.xpubSock.bindSync(this.xpubListener);
-
-    // When we receive data on xsub, it means someone is publishing
-    this.xsubSock.on('message', (data: any) => {
-      // We just relay it to the pubSock, so subscribers can receive it
-      if (this.xpubSock) {
-        this.xpubSock.send(data);
-      }
-    });
-
-    // When xpub receives a message, it is a subscribe requests
-    this.xpubSock.on('message', (data: any) => {
-      if (this.xsubSock) {
-        // The data is a slow Buffer
-        // The first byte is the subscribe (1) /unsubscribe flag (0)
-        // The channel name is the rest of the buffer
-        if (this.logger) {
-          this.logger.info(
-            { topic: data.slice(1).toString() },
-            data[0] === 0 ? 'zmq topic unsubscribed' : 'zmq topic subscribed'
-          );
-        }
-        // We send it to subSock, so it knows to what channels to listen to
-        this.xsubSock.send(data);
-      }
-    });
-
-    // Set up Websocket listener and pump messages to ZeroMQ
-
-    // TODO tjanczuk move to secure websockets (terminate at ELB?)
     this.ws = new Server({ port: wsPort });
     let activeConnections = 0;
     this.ws.on('connection', (socket, req) => {
@@ -118,35 +70,45 @@ export class PubSub {
 
       // TODO tjanczuk, add limit for the max volume of data a single connection can log
       socket.on('message', message => {
-        if (this.xpubSock) {
-          this.xpubSock.send(`${topic} ${message.toString()}`);
-        }
+        let now = Date.now();
+        dynamo.putItem(
+          {
+            Item: {
+              subscriptionBoundary: { S: `${token.subscriptionId}/${token.boundaryId}` },
+              // Precision of timestamp field is 1/1000 of a millisecond, with the sub-millisecond part
+              // randomized to ensure uniqueness of the hash/sort key.
+              timestamp: { N: (now * 1000 + Math.floor(Math.random() * 999)).toString() },
+              functionId: { S: token.functionId },
+              entry: { S: message.toString() },
+              // The TTL is merely 60 seconds from now
+              ttl: { N: (Math.floor(now / 1000) + 60).toString() },
+            },
+            TableName: logTableName,
+          },
+          (e: AWSError) => {
+            if (e && this.logger) {
+              this.logger.warn({ topic, activeConnections, error: e.message }, 'error publishing logs to DynamoDB');
+            }
+          }
+        );
       });
     });
 
     if (this.logger) {
-      this.logger.info({ ports: { xsub: xsubPort, xpub: xpubPort, ws: wsPort } }, 'pubsub server started');
+      this.logger.info({ ports: { ws: wsPort } }, 'pubsub server started');
     }
   }
 
   public stop() {
-    if (!this.xsubSock) {
-      throw new Error('Server is not started.');
-    }
-
-    if (this.xpubSock) {
-      this.xpubSock.close();
-    }
-    this.xsubSock.close();
     if (this.ws) {
       this.ws.close();
     }
 
     if (this.logger) {
-      this.logger.info({ ports: { xsub: xsubPort, xpub: xpubPort, ws: wsPort } }, 'pubsub server stopped');
+      this.logger.info({ ports: { ws: wsPort } }, 'pubsub server stopped');
       this.logger.close();
     }
 
-    this.ws = this.xpubSock = this.xsubSock = this.logger = undefined;
+    this.ws = undefined;
   }
 }
