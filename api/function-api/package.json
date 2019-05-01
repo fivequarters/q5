@@ -25,7 +25,6 @@
     "morgan": "^1.9.1",
     "swagger-ui-express": "^4.0.2",
     "yamljs": "^0.3.0",
-    "zeromq": "^5.1.0",
     "@5qtrs/request": "^0.0.1",
     "@5qtrs/account-data-aws": "^0.0.1",
     "@5qtrs/aws-cred": "^0.0.1",

@@ -71,41 +71,72 @@ export function createLogsPanel(element: HTMLElement, editorContext: EditorConte
   });
 
   editorContext.on(Events.Events.RunnerFinished, (e: Events.RunnerFinishedEvent) => {
-    let response = e.response;
-    if (e.error) {
-      response = response || (e.error as any).response;
+    let response: any = e.response;
+
+    // Show response immediately if real time logs were disabled, otherwise delay showing response
+    // to allow for logs to be pulled.
+
+    let requestUrl = response && response.req && response.req.url;
+    let tokens = requestUrl.split('?');
+    tokens.shift();
+    let requestQuery = tokens.join('?');
+    let logsEnabled = requestQuery.indexOf('x-fx-logs') > -1 || response.req.header['x-fx-logs'] !== undefined;
+    if (logsEnabled) {
+      setTimeout(showResponse, 1500);
+    } else {
+      showResponse();
+    }
+
+    function showResponse() {
+      if (e.error) {
+        response = response || (e.error as any).response;
+        if (!response) {
+          return append(`RUN: error ${(e.error as any).stack || e.error}`);
+        }
+      }
       if (!response) {
-        return append(`RUN: error ${(e.error as any).stack || e.error}`);
+        return;
       }
-    }
-    if (!response) {
-      return;
-    }
-    const lines: string[] = [`RUN: received response HTTP ${response.statusCode}`];
-    // @ts-ignore
-    for (const h in response.headers) {
-      if (h !== 'x-fx-logs') {
-        // @ts-ignore
-        lines.push(`${h}: ${response.headers[h]}`);
+      const lines: string[] = [`RUN: finished`, `HTTP ${response.statusCode}`];
+      for (const h in response.headers) {
+        if (h !== 'x-fx-logs') {
+          lines.push(`${h}: ${response.headers[h]}`);
+        }
       }
-    }
-    // @ts-ignore
-    if (response.text) {
-      // @ts-ignore
-      lines.push(`\n${response.text}`);
-    }
-    append(lines.join('\n'));
-    // @ts-ignore
-    const logs = response.headers['x-fx-logs'];
-    if (logs) {
-      let logsStr: string | undefined = logs.toString();
-      try {
-        logsStr = atob(logsStr as string);
-      } catch (_) {
-        logsStr = undefined;
+      if ((response.headers['content-type'] || '').match(/application\/json/)) {
+        try {
+          response.text = JSON.stringify(JSON.parse(response.text), null, 2);
+        } catch (_) {}
       }
-      if (logsStr) {
-        append(`RUN: server logs\n${logsStr}`);
+      if (response.text) {
+        if (response.text.length > 2048) {
+          response.text = response.text.substring(0, 2048);
+          lines.push(`\n${response.text}...`, `...response body truncated to 2KB`);
+        } else {
+          lines.push(`\n${response.text}`);
+        }
+      }
+      append(lines.join('\n'));
+      const logs = response.headers['x-fx-logs'];
+      if (logs) {
+        let logsStr: string | undefined = logs.toString();
+        try {
+          logsStr = atob(logsStr as string);
+        } catch (_) {
+          logsStr = undefined;
+        }
+        if (logsStr) {
+          if (logsStr.indexOf('\n') > -1) {
+            append(`RUN: server logs\n${logsStr}`);
+          } else {
+            append(`RUN: ${logsStr}`);
+          }
+        }
+      }
+      if (!logsEnabled) {
+        append(
+          'NOTE: logging was disabled for the last request. To enable, add x-fx-logs=1 query parameter to the test request.'
+        );
       }
     }
   });

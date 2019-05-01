@@ -3,7 +3,6 @@ var router = express.Router();
 var determine_provider = require('./middleware/determine_provider');
 var parse_body_conditional = require('./middleware/parse_body_conditional');
 var provider_handlers = require('./handlers/provider_handlers');
-var get_logs = require('./handlers/get_logs');
 var validate_schema = require('./middleware/validate_schema');
 var authorize = require('./middleware/authorize');
 var cors = require('cors');
@@ -357,7 +356,8 @@ router.get(
   validate_schema({
     params: require('./schemas/api_params'),
   }),
-  get_logs({ topic: req => `logs:application:${req.params.subscriptionId}:${req.params.boundaryId}:` })
+  determine_provider(),
+  (req, res, next) => provider_handlers[req.provider].get_logs(req, res, next)
 );
 
 // Functions
@@ -434,9 +434,8 @@ router.get(
   validate_schema({
     params: require('./schemas/api_params'),
   }),
-  get_logs({
-    topic: req => `logs:application:${req.params.subscriptionId}:${req.params.boundaryId}:${req.params.functionId}:`,
-  })
+  determine_provider(),
+  (req, res, next) => provider_handlers[req.provider].get_logs(req, res, next)
 );
 
 router.options(
@@ -474,17 +473,6 @@ router.get(
 );
 
 // Not part of public contract
-
-router.options('/system-logs/:topic', cors(corsManagementOptions));
-router.get(
-  '/system-logs/:topic',
-  cors(corsManagementOptions),
-  authorize({
-    operation: 'system:logs',
-    getToken: req => req.query && req.query.token,
-  }),
-  get_logs({ topic: req => req.params.topic })
-);
 
 let run_route = /^\/run\/([^\/]+)\/([^\/]+)\/([^\/]+).*$/;
 function promote_to_name_params(req, res, next) {
