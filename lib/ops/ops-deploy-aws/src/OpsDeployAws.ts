@@ -1,6 +1,5 @@
 import { AwsDynamo, IAwsDynamoQueryOptions } from '@5qtrs/aws-dynamo';
 import { AwsCreds } from '@5qtrs/aws-cred';
-import { AwsDeployment } from '@5qtrs/aws-deployment';
 import { AwsCert, IAwsCertDetail, IAwsCertValidateDetail } from '@5qtrs/aws-cert';
 import { AwsRoute53 } from '@5qtrs/aws-route53';
 import { AwsEc2 } from '@5qtrs/aws-ec2';
@@ -323,11 +322,10 @@ export class OpsDeployAws {
     const alb = await this.getAlb(deploymentName, network, account);
 
     const options = {
-      networkName: deployment.network,
       albName: deploymentName,
       certArns: [certDetails.arn],
     };
-    await alb.ensureAlb(options);
+    await alb.ensureAlb(deployment.network, options);
   }
 
   private async getCertDetails(deployment: IOpsAwsDeployment, network: IOpsAwsNetwork, account: IOpsAwsAccount) {
@@ -395,14 +393,9 @@ export class OpsDeployAws {
     const awsDeployment = await this.getAwsDeploymentOrThrow(deploymentName);
     const network = await this.getAwsNetworkOrThrow(awsDeployment.network);
     const account = await this.getAwsAccountOrThrow(network.account);
-    const deployment = await AwsDeployment.create({
-      account: account.id,
-      regionCode: network.region,
-      key: deploymentName,
-    });
 
-    const creds = this.userCreds.asRole({ account: account.id, name: account.role });
-    return { creds, deployment };
+    const creds = this.userCreds.asRole(account.id, account.role);
+    return { creds, account: account.id, region: network.region, prefix: deploymentName };
   }
 
   private async getAwsNetworkOrThrow(networkName: string) {
@@ -469,14 +462,8 @@ export class OpsDeployAws {
       if (network) {
         const account = await this.opsCore.getAwsAccount(network.account);
         if (account) {
-          const deployment = await AwsDeployment.create({
-            account: account.id,
-            regionCode: network.region,
-            key: deploymentName,
-          });
-
-          const creds = this.userCreds.asRole({ account: account.id, name: account.role });
-          return { creds, deployment };
+          const creds = this.userCreds.asRole(account.id, account.role);
+          return { creds, account: account.id, region: network.region, prefix: deploymentName };
         }
       }
     }
@@ -485,13 +472,13 @@ export class OpsDeployAws {
 
   private async getDynamo() {
     if (!this.dynamo) {
-      const deployment = await AwsDeployment.create({
-        regionCode: globalRegion,
-        key: globalKey,
+      const creds = this.userCreds.asRole(this.prodAccount, this.prodRole);
+      this.dynamo = await AwsDynamo.create({
+        creds,
         account: this.prodAccount,
+        region: globalRegion,
+        prefix: globalKey,
       });
-      const creds = this.userCreds.asRole({ account: this.prodAccount, name: this.prodRole });
-      this.dynamo = await AwsDynamo.create({ creds, deployment });
     }
     return this.dynamo;
   }
@@ -525,52 +512,32 @@ export class OpsDeployAws {
   }
 
   private async getNetwork(awsNetwork: IOpsAwsNetwork, awsAccount: IOpsAwsAccount) {
-    const deployment = await AwsDeployment.create({
-      regionCode: awsNetwork.region,
-      key: awsNetwork.name,
+    const creds = this.userCreds.asRole(awsAccount.id, awsAccount.role);
+    return await AwsNetwork.create({
+      creds,
       account: awsAccount.id,
+      region: awsNetwork.region,
+      prefix: awsNetwork.name,
     });
-    const creds = this.userCreds.asRole({ account: awsAccount.id, name: awsAccount.role });
-    return await AwsNetwork.create({ creds, deployment });
   }
 
   private async getCert(deploymentName: string, awsNetwork: IOpsAwsNetwork, awsAccount: IOpsAwsAccount) {
-    const deployment = await AwsDeployment.create({
-      regionCode: awsNetwork.region,
-      key: deploymentName,
-      account: awsAccount.id,
-    });
-    const creds = this.userCreds.asRole({ account: awsAccount.id, name: awsAccount.role });
-    return await AwsCert.create({ creds, deployment });
+    const creds = this.userCreds.asRole(awsAccount.id, awsAccount.role);
+    return await AwsCert.create({ creds, region: awsNetwork.region, prefix: deploymentName, account: awsAccount.id });
   }
 
   private async getEc2(deploymentName: string, awsNetwork: IOpsAwsNetwork, awsAccount: IOpsAwsAccount) {
-    const deployment = await AwsDeployment.create({
-      regionCode: awsNetwork.region,
-      key: deploymentName,
-      account: awsAccount.id,
-    });
-    const creds = this.userCreds.asRole({ account: awsAccount.id, name: awsAccount.role });
-    return await AwsEc2.create({ creds, deployment });
+    const creds = this.userCreds.asRole(awsAccount.id, awsAccount.role);
+    return await AwsEc2.create({ creds, region: awsNetwork.region, prefix: deploymentName, account: awsAccount.id });
   }
 
   private async getRoute53(awsAccount: IOpsAwsAccount) {
-    const deployment = await AwsDeployment.create({
-      regionCode: 'us-east-1',
-      key: awsAccount.name,
-      account: awsAccount.id,
-    });
-    const creds = this.userCreds.asRole({ account: awsAccount.id, name: awsAccount.role });
-    return await AwsRoute53.create({ creds, deployment });
+    const creds = this.userCreds.asRole(awsAccount.id, awsAccount.role);
+    return await AwsRoute53.create({ creds, region: 'us-east-1', prefix: awsAccount.name, account: awsAccount.id });
   }
 
   private async getAlb(deploymentName: string, awsNetwork: IOpsAwsNetwork, awsAccount: IOpsAwsAccount) {
-    const deployment = await AwsDeployment.create({
-      regionCode: awsNetwork.region,
-      key: deploymentName,
-      account: awsAccount.id,
-    });
-    const creds = this.userCreds.asRole({ account: awsAccount.id, name: awsAccount.role });
-    return await AwsAlb.create({ creds, deployment });
+    const creds = this.userCreds.asRole(awsAccount.id, awsAccount.role);
+    return await AwsAlb.create({ creds, region: awsNetwork.region, prefix: deploymentName, account: awsAccount.id });
   }
 }

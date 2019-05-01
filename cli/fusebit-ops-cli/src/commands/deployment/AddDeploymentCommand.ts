@@ -1,7 +1,6 @@
-import { Command, IExecuteInput, Confirm, ArgType } from '@5qtrs/cli';
-import { FusebitOpsCore, IFusebitOpsPublishDetails, IFusebitOpsDeployment } from '@5qtrs/fusebit-ops-core';
-import { ExecuteService, ApiPublishService, SettingsService } from '../../services';
-import { Text } from '@5qtrs/text';
+import { Command, IExecuteInput, ArgType } from '@5qtrs/cli';
+import { FusebitOpsCore, IFusebitOpsDeployment } from '@5qtrs/fusebit-ops-core';
+import { ExecuteService, SettingsService } from '../../services';
 
 // ----------------
 // Exported Classes
@@ -54,7 +53,6 @@ export class AddDeploymentCommand extends Command {
 
     const executeService = await ExecuteService.create(this.core, input);
     const settingsService = await SettingsService.create(this.core, input);
-    const publishService = await ApiPublishService.create(this.core, input);
 
     // const deploymentExists = await executeService.execute(
     //   {

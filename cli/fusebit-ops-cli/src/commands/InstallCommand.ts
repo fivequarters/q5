@@ -145,8 +145,6 @@ export class InstallCommand extends Command {
   protected async onExecute(input: IExecuteInput): Promise<number> {
     await input.io.writeLine();
 
-    await this.core.setupAccountApi('stage');
-
     const isPlatformInstalled = await this.isPlatfromInstalled(input);
     if (isPlatformInstalled === undefined) {
       return 1;
