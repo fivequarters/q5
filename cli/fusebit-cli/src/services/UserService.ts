@@ -432,7 +432,11 @@ export class UserService {
     };
   }
 
-  public async resolveInit(accountId: string, agentId: string, initResolve: IFusebitInitResolve): Promise<IFusebitUser> {
+  public async resolveInit(
+    accountId: string,
+    agentId: string,
+    initResolve: IFusebitInitResolve
+  ): Promise<IFusebitUser> {
     const profile = await this.profileService.getExecutionProfile(['account'], { account: accountId });
 
     const user = await this.executeService.executeRequest(

@@ -426,7 +426,11 @@ export class ClientService {
     };
   }
 
-  public async resolveInit(accountId: string, agentId: string, initResolve: IFusebitInitResolve): Promise<IFusebitClient> {
+  public async resolveInit(
+    accountId: string,
+    agentId: string,
+    initResolve: IFusebitInitResolve
+  ): Promise<IFusebitClient> {
     const profile = await this.profileService.getExecutionProfile(['account'], { account: accountId });
 
     const client = await this.executeService.executeRequest(
