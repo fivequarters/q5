@@ -24,6 +24,11 @@ const fonts = {
     color: colors.darkPrimary,
     size: 36,
     type: 'sans-serif',
+    media: {
+      '500px': {
+        size: 24,
+      },
+    },
   },
   h2: {
     name: 'Raleway',
