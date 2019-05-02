@@ -23,14 +23,21 @@ const AboveNavBar = styled.div`
 `;
 
 const CorpName = styled.h1`
-  margin: auto 10px;
+  margin: auto 20px;
   padding-top: 3px;
+  @media screen and (max-width: 500px) {
+    margin-right: 10px;
+    margin-left: 10px;
+  }
   ${props => applyTheme(props, 'navbar', 'corporateName')}
 `;
 
 const Link = styled.a`
   margin: auto 20px auto 0;
   text-decoration: inherit;
+  @media screen and (max-width: 500px) {
+    margin-right: 10px;
+  }
   ${props => applyTheme(props, 'navbar', 'link')}
 `;
 
@@ -60,9 +67,8 @@ export function NavBar() {
           <Text content="Fusebit" />
         </CorpName>
         <NavBarSpacer />
-        <Link href="mailto:contact@fusebit.io" onClick={mailClick}>
-          contact@fusebit.io
-        </Link>
+        <Link href="/docs">Docs</Link>
+        <Link onClick={mailClick}>contact@fusebit.io</Link>
         <Link href="https://twitter.com/fusebitio" target="_blank" onClick={twitterClick}>
           <Twitter />
         </Link>
