@@ -1,4 +1,10 @@
-export enum FusebitProfileErrorCode {
+import { Exception } from '@5qtrs/exception';
+
+// -------------------
+// Exported Interfaces
+// -------------------
+
+export enum FusebitProfileExceptionCode {
   noDefaultProfile = 'noDefaultProfile',
   profileDoesNotExist = 'profileDoesNotExist',
   profileAlreadyExists = 'profileAlreadyExists',
@@ -8,56 +14,47 @@ export enum FusebitProfileErrorCode {
   baseUrlMissingProtocol = 'baseUrlMissingProtocol',
 }
 
-export class FusebitProfileError extends Error {
-  private entityProp: string;
-  private codeProp: FusebitProfileErrorCode;
+// ----------------
+// Exported Classes
+// ----------------
 
-  private constructor(entity: string, code: FusebitProfileErrorCode, message?: string) {
-    super(message);
-    this.entityProp = entity;
-    this.codeProp = code;
-  }
+export class FusebitProfileException extends Exception {
 
   public static profileAlreadyExists(name: string) {
     const message = `The '${name}' profile already exists`;
-    return new FusebitProfileError(name, FusebitProfileErrorCode.profileAlreadyExists, message);
+    return new FusebitProfileException(FusebitProfileExceptionCode.profileAlreadyExists, message, [name]);
   }
 
   public static profileDoesNotExist(name: string) {
     const message = `The '${name}' profile does not exist`;
-    return new FusebitProfileError(name, FusebitProfileErrorCode.profileDoesNotExist, message);
+    return new FusebitProfileException(FusebitProfileExceptionCode.profileDoesNotExist, message, [name]);
   }
 
   public static readFileError(fileName: string, error: Error) {
     const message = `Unable to read the ${fileName} file due to the following error: '${error.message}'`;
-    return new FusebitProfileError(fileName, FusebitProfileErrorCode.readFileError, message);
+    return new FusebitProfileException(FusebitProfileExceptionCode.readFileError, message, [fileName]);
   }
 
   public static writeFileError(fileName: string, error: Error) {
     const message = `Unable to write to the ${fileName} file due to the following error: '${error.message}'`;
-    return new FusebitProfileError(fileName, FusebitProfileErrorCode.writeFileError, message);
+    return new FusebitProfileException(FusebitProfileExceptionCode.writeFileError, message, [fileName]);
   }
 
   public static removeDirectoryError(directoryName: string, error: Error) {
     const message = `Unable to remove the ${directoryName} directory due to the following error: '${error.message}'`;
-    return new FusebitProfileError(directoryName, FusebitProfileErrorCode.removeDirectoryError, message);
+    return new FusebitProfileException(FusebitProfileExceptionCode.removeDirectoryError, message, [directoryName]);
   }
 
   public static noDefaultProfile() {
     const message = 'There is no default profile set';
-    return new FusebitProfileError('<default>', FusebitProfileErrorCode.noDefaultProfile, message);
+    return new FusebitProfileException(FusebitProfileExceptionCode.noDefaultProfile, message);
   }
 
   public static baseUrlMissingProtocol(baseUrl: string) {
     const message = `The base url '${baseUrl}' does not include the protocol, 'http' or 'https'`;
-    return new FusebitProfileError(baseUrl, FusebitProfileErrorCode.baseUrlMissingProtocol, message);
+    return new FusebitProfileException(FusebitProfileExceptionCode.baseUrlMissingProtocol, message, [baseUrl]);
   }
-
-  public get entity() {
-    return this.entityProp;
-  }
-
-  public get code() {
-    return this.codeProp;
+  private constructor(code: string, message?: string, params?: any[], inner?: Error | Exception) {
+    super(code, message, params, inner);
   }
 }

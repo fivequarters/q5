@@ -6,4 +6,4 @@ export {
   IFusebitProfileSettings,
 } from './FusebitProfile';
 
-export { FusebitProfileError, FusebitProfileErrorCode } from './FusebitProfileError';
+export { FusebitProfileException, FusebitProfileExceptionCode } from './FusebitProfileException';
