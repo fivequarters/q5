@@ -9,8 +9,7 @@ import { IEditorOptions } from './Options';
 import { Server, IAccount, AccountResolver } from './Server';
 import { EditorContext } from './EditorContext';
 import { IFunctionSpecification } from './FunctionSpecification';
-
-import 'jquery-resizable-dom';
+import { resizable, height, width } from './Resizable';
 
 /**
  * Editor creation options.
@@ -93,50 +92,50 @@ export function createEditor(
       `<div id="${idPrefix}" class="fusebit-shell"><div id="${idPrefix}-main" class="fusebit-main">`,
     ];
     if (opts.actionPanel !== false) {
-      lines.push(`    <div id="${actionId}" class="fusebit-action-container"></div>`);
+      lines.push(`<div id="${actionId}" class="fusebit-action-container"></div>`);
     }
     if (opts.navigationPanel !== false) {
-      lines.push(`    <div class="fusebit-nav-container" id="${navId}"></div>`);
+      lines.push(`<div class="fusebit-nav-container" id="${navId}"></div>`);
     }
     if (opts.navigationPanel !== false && opts.editorPanel !== false) {
-      lines.push(`    <div class="fusebit-nav-splitter" id="${navSplitterId}"></div>`);
+      lines.push(`<div class="fusebit-nav-splitter" id="${navSplitterId}"></div>`);
     }
     if (opts.editorPanel !== false) {
-      lines.push(`    <div class="fusebit-nav-editor-container" id="${navEditorContainerId}">`);
+      lines.push(`<div class="fusebit-nav-editor-container" id="${navEditorContainerId}">`);
 
-      lines.push(`        <div class="fusebit-editor-container" id="${editorId}"></div>`);
+      lines.push(`<div class="fusebit-editor-container" id="${editorId}"></div>`);
       if (opts.logsPanel !== false) {
-        lines.push(`    <div class="fusebit-logs-splitter" id="${logsSplitterId}"></div>`);
-        lines.push(`    <div class="fusebit-logs-container" id="${logsId}"></div>`);
+        lines.push(
+          `<div class="fusebit-logs-splitter" id="${logsSplitterId}"></div>`,
+          `<div class="fusebit-logs-container" id="${logsId}"></div>`
+        );
       }
-      lines.push('    </div>');
+      lines.push('</div>');
     }
     lines.push('</div>');
     if (opts.statusPanel !== false) {
-      lines.push(`    <div class="fusebit-status-container" id="${statusId}"></div>`);
+      lines.push(`<div class="fusebit-status-container" id="${statusId}"></div>`);
     }
     lines.push('</div>');
 
-    $(element).html(lines.join('\n'));
+    element.innerHTML = lines.join('');
 
-    const $main = $(`#${idPrefix}`);
-    const $nav = $(`#${navId}`);
-    const $logs = $(`#${logsId}`);
-    const $editor = $(`#${editorId}`);
-    const $navEditorContainer = $(`#${navEditorContainerId}`);
-    const $logsSplitter = $(`#${logsSplitterId}`);
-    const $navSplitter = $(`#${navSplitterId}`);
+    const mainElement = document.getElementById(idPrefix) as HTMLElement;
+    const navElement = document.getElementById(navId) as HTMLElement;
+    const logsElement = document.getElementById(logsId) as HTMLElement;
+    const editorElement = document.getElementById(editorId) as HTMLElement;
+    const navEditorContainerElement = document.getElementById(navEditorContainerId) as HTMLElement;
+    const logsSplitterElement = document.getElementById(logsSplitterId) as HTMLElement;
+    const navSplitterElement = document.getElementById(navSplitterId) as HTMLElement;
 
     if (opts.navigationPanel !== false) {
       // Keep editorMinWidth in sync with min-width of .fusebit-editor-container class
       const editorMinWidth = 100;
-      // @ts-ignore
-      $nav.resizable({
-        handleSelector: `#${navSplitterId}`,
+      resizable(navElement, navSplitterElement, {
         resizeHeight: false,
         // @ts-ignore
-        onDrag(e, $el, newWidth, newHeight, opt) {
-          if (($editor.width() || 0) - (newWidth - $el.width()) < editorMinWidth) {
+        onDrag(e, element, newWidth, newHeight, opt) {
+          if ((width(editorElement) || 0) - (newWidth - width(element)) < editorMinWidth) {
             return false;
           }
           return true;
@@ -146,14 +145,12 @@ export function createEditor(
     if (opts.logsPanel !== false) {
       // Keep navEditorMinHeight in sync with min-height of .fusebit-nav-editor-container class
       const navEditorMinHeight = 100;
-      // @ts-ignore
-      $logs.resizable({
-        handleSelector: `#${logsSplitterId}`,
+      resizable(logsElement, logsSplitterElement, {
         resizeWidth: false,
         resizeHeightFrom: 'top',
         // @ts-ignore
-        onDrag(e, $el, newWidth, newHeight, opt) {
-          if (($navEditorContainer.height() || 0) - (newHeight - $el.height()) < navEditorMinHeight) {
+        onDrag(e, element, newWidth, newHeight, opt) {
+          if ((height(navEditorContainerElement) || 0) - (newHeight - height(element)) < navEditorMinHeight) {
             return false;
           }
           return true;
@@ -179,7 +176,8 @@ export function createEditor(
       createNavigationPanel(
         document.getElementById(navId) as HTMLElement,
         editorContext,
-        opts.navigationPanel as Options.INavigationPanelOptions
+        opts.navigationPanel as Options.INavigationPanelOptions,
+        document.getElementById(idPrefix) as HTMLElement
       );
     }
     if (opts.actionPanel !== false) {
@@ -199,7 +197,7 @@ export function createEditor(
       server.attachServerLogs(editorContext);
     }
 
-    $main.on('keydown', function(e) {
+    mainElement.addEventListener('keydown', function(e: KeyboardEvent) {
       // Ctrl-S (Windows) or Command-S (Mac)
       if ((window.navigator.platform.match('Mac') ? e.metaKey : e.ctrlKey) && e.keyCode == 83) {
         e.preventDefault();
@@ -211,31 +209,31 @@ export function createEditor(
 
     editorContext.on(Events.Events.LogsStateChanged, (e: Events.LogsStateChangedEvent) => {
       if (e.newState) {
-        $logs.show();
-        $logsSplitter.show();
+        logsElement.style.display = null;
+        logsSplitterElement.style.display = null;
       } else {
-        $logs.hide();
-        $logsSplitter.hide();
+        logsElement.style.display = 'none';
+        logsSplitterElement.style.display = 'none';
       }
     });
 
     editorContext.on(Events.Events.NavStateChanged, (e: Events.NavStateChangedEvent) => {
       if (e.newState) {
-        $nav.show();
-        $navSplitter.show();
+        navElement.style.display = null;
+        navSplitterElement.style.display = null;
       } else {
-        $nav.hide();
-        $navSplitter.hide();
+        navElement.style.display = 'none';
+        navSplitterElement.style.display = 'none';
       }
     });
 
     editorContext.on(Events.Events.FullScreenChanged, (e: Events.FullScreenChangedEvent) => {
       if (e.newState) {
         // expand
-        $main.addClass('fusebit-fullscreen');
+        mainElement.classList.add('fusebit-fullscreen');
       } else {
         // collapse
-        $main.removeClass('fusebit-fullscreen');
+        mainElement.classList.remove('fusebit-fullscreen');
       }
     });
   }
