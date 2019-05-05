@@ -237,7 +237,11 @@ export class Server {
         }
       });
       let editorContext = new EditorContext(boundaryId, id, functionSpecification);
-      if (createIfNotExist && createIfNotExist.editor) {
+      if (
+        (createIfNotExist && createIfNotExist.editor) ||
+        !editorContext.functionSpecification.metadata ||
+        !editorContext.functionSpecification.metadata.editor
+      ) {
         editorContext.functionSpecification.metadata = editorContext.functionSpecification.metadata || {};
         editorContext.functionSpecification.metadata.editor = editorOptions;
       }
