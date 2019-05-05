@@ -48,32 +48,15 @@ export function createEditor(
   if (!functionId) throw new Error('functionId must be specified.');
   if (!account) throw new Error('account must be specified.');
 
-  options = options || {};
-  const defaultEditorOptions = new Options.EditorOptions();
-  const opts = {
-    ...defaultEditorOptions,
-    ...options.editor,
-  };
-  Object.keys(defaultEditorOptions).forEach(k => {
-    // @ts-ignore
-    if (opts[k] !== false) {
-      // @ts-ignore
-      opts[k] = {
-        ...defaultEditorOptions[k],
-        // @ts-ignore
-        ...opts[k],
-      };
-    }
-  });
-
   let server = typeof account === 'function' ? new Server(<AccountResolver>account) : Server.create(<IAccount>account);
 
-  return server.loadEditorContext(boundaryId, functionId, options.template).then(editorContext => {
+  return server.loadEditorContext(boundaryId, functionId, options).then(editorContext => {
     createEditorImpl(editorContext);
     return editorContext;
   });
 
   function createEditorImpl(editorContext: EditorContext) {
+    let opts = (editorContext.functionSpecification.metadata as { [property: string]: any }).editor;
     if (opts.navigationPanel === false && opts.logsPanel === false && opts.actionPanel !== false) {
       (opts.actionPanel as Options.IActionPanelOptions).enableCodeOnlyToggle = false;
     }
