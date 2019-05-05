@@ -67,7 +67,7 @@ export function createNavigationPanel(
     if (!effectiveOptions.hideApplicationSettings) {
       html.push(
         `<div class="fusebit-nav-item" data-type="applicationSettings">`,
-        `<span class="fusebit-code-secret-icon"><i class="fa fa-user-secret"></i></span>`,
+        `<span class="fusebit-code-secret-icon"><i class="fa fa-cogs"></i></span>`,
         `<span class="fusebit-compute-file">Application</span>`,
         `</div>`
       );
@@ -83,7 +83,7 @@ export function createNavigationPanel(
     if (!effectiveOptions.hideRunnerTool) {
       html.push(
         `<div class="fusebit-nav-item" data-type="runnerSettings">`,
-        `<span class="fusebit-code-cron-icon"><i class="fa fa-cogs"></i></span>`,
+        `<span class="fusebit-code-cron-icon"><i class="fa fa-play"></i></span>`,
         `<span class="fusebit-compute-file">Runner</span>`,
         `</div>`
       );
