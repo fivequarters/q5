@@ -5,7 +5,7 @@ import { IDataSource } from '@5qtrs/data';
 // -------------------
 
 export interface IOpsDomain {
-  name: string;
+  domainName: string;
   accountName: string;
   nameServers?: string[];
 }
@@ -21,7 +21,9 @@ export interface IListOpsDomainResult {
 }
 
 export interface IOpsDomainData extends IDataSource {
-  add(domain: IOpsDomain): Promise<void>;
+  exists(domain: IOpsDomain): Promise<boolean>;
+  add(domain: IOpsDomain): Promise<IOpsDomain>;
   get(domainName: string): Promise<IOpsDomain>;
   list(options?: IListOpsDomainOptions): Promise<IListOpsDomainResult>;
+  listAll(): Promise<IOpsDomain[]>;
 }

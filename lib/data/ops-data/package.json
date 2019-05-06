@@ -13,5 +13,9 @@
     "clean": "rm -r -f libc; rm -r -f coverage"
   },
   "keywords": [],
-  "dependencies": {}
+  "dependencies": {
+    "@5qtrs/exception": "^0.0.1",
+    "@5qtrs/data": "^0.0.1",
+    "@5qtrs/config": "^0.0.1"
+  }
 }

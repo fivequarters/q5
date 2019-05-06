@@ -1,4 +1,5 @@
 import { IDataSource } from '@5qtrs/data';
+import { avoidRace } from '@5qtrs/promise';
 import {
   AwsDynamo,
   IAwsDynamoAllOptions,
@@ -19,10 +20,12 @@ import {
 export class AwsDynamoTable implements IDataSource {
   private table: IAwsDynamoTable;
   private dynamo: AwsDynamo;
+  private setupRaceFree: () => Promise<void>;
 
   protected constructor(table: IAwsDynamoTable, dynamo: AwsDynamo) {
     this.table = table;
     this.dynamo = dynamo;
+    this.setupRaceFree = () => this.dynamo.ensureTable(this.table);
   }
 
   public async isSetup() {
@@ -30,7 +33,7 @@ export class AwsDynamoTable implements IDataSource {
   }
 
   public async setup() {
-    return this.dynamo.ensureTable(this.table);
+    return this.setupRaceFree();
   }
 
   protected async getItem(key: any, options?: IAwsDynamoGetOptions): Promise<any> {

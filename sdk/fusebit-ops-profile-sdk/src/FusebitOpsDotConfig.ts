@@ -16,7 +16,6 @@ const credsFileName = 'creds.json';
 // ----------------
 
 export class FusebitOpsDotConfig extends DotConfig {
-
   public static async create(directory?: string) {
     return new FusebitOpsDotConfig(directory);
   }
@@ -72,23 +71,23 @@ export class FusebitOpsDotConfig extends DotConfig {
     await this.writeSettings(settings);
   }
 
-  public async cachedCredsExist(name: string, kid: string): Promise<boolean> {
-    const creds = await this.getCachedCreds(name, kid);
+  public async cachedCredsExist(name: string, key: string): Promise<boolean> {
+    const creds = await this.getCachedCreds(name, key);
     return creds !== undefined;
   }
 
-  public async getCachedCreds(name: string, kid: string): Promise<any> {
-    const path = await this.getCachedCredsPath(name, kid);
+  public async getCachedCreds(name: string, key: string): Promise<any> {
+    const path = await this.getCachedCredsPath(name, key);
     return this.readJson(path);
   }
 
-  public async setCachedCreds(name: string, kid: string, creds: any) {
-    const path = await this.getCachedCredsPath(name, kid);
+  public async setCachedCreds(name: string, key: string, creds: any) {
+    const path = await this.getCachedCredsPath(name, key);
     this.writeJson(path, creds);
   }
 
-  public async removeCachedCreds(name: string, kid: string): Promise<void> {
-    const path = await join(credsCachePath, name, kid);
+  public async removeCachedCreds(name: string): Promise<void> {
+    const path = await join(credsCachePath, name);
     this.removeCachedCredsDirectory(path, name);
   }
 
@@ -112,8 +111,8 @@ export class FusebitOpsDotConfig extends DotConfig {
     }
   }
 
-  private async getCachedCredsPath(name: string, kid: string): Promise<string> {
-    return join(credsCachePath, name, kid, credsFileName);
+  private async getCachedCredsPath(name: string, key: string): Promise<string> {
+    return join(credsCachePath, name, key, credsFileName);
   }
 
   private async removeCachedCredsDirectory(path: string, name: string): Promise<void> {

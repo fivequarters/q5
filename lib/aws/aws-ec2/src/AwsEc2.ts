@@ -36,7 +36,7 @@ export class AwsEc2 extends AwsBase<typeof EC2> {
     super(config);
   }
 
-  public async launchInstance(launch: IAwsEc2LaunchInstance) {
+  public async launchInstance(launch: IAwsEc2LaunchInstance): Promise<string> {
     const ec2 = await this.getAws();
 
     const deploymentName = launch.deploymentName;
@@ -52,7 +52,7 @@ apt-get update
 apt-get install -y docker-ce
 apt-get install -y awscli
 
-# Get docker image of Flexd
+# Get docker image of Fusebit
 
 $(aws ecr get-login --region ${region} --no-include-email)
 
@@ -71,7 +71,7 @@ cat > /opt/aws/amazon-cloudwatch-agent/bin/config.json << EOF
 				"collect_list": [
 					{
 						"file_path": "/var/log/syslog",
-						"log_group_name": "/flexd-mono/${deploymentName}",
+						"log_group_name": "/fusebit-mono/${deploymentName}",
 						"log_stream_name": "{instance_id}"
 					}
 				]
@@ -80,7 +80,7 @@ cat > /opt/aws/amazon-cloudwatch-agent/bin/config.json << EOF
 	},
 	"metrics": {
 		"append_dimensions": {
-      "FlexdDeploymentName": "${deploymentName}",
+      "FusebitDeploymentName": "${deploymentName}",
 			"AutoScalingGroupName": "\\\${aws:AutoScalingGroupName}",
 			"ImageId": "\\\${aws:ImageId}",
 			"InstanceId": "\\\${aws:InstanceId}",
@@ -138,11 +138,11 @@ EOF
 /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/bin/config.json -s
 systemctl start amazon-cloudwatch-agent.service
 
-# Set up Flexd service
+# Set up Fusebit service
 
-cat > /etc/systemd/system/docker.flexd.service << EOF
+cat > /etc/systemd/system/docker.fusebit.service << EOF
 [Unit]
-Description=Flexd Service
+Description=Fusebit Service
 After=docker.service
 Requires=docker.service
 
@@ -151,21 +151,21 @@ TimeoutStartSec=0
 Restart=always
 ExecStart=/usr/bin/docker run -p ${launch.albApiPort}:${launch.apiPort} -p ${launch.albLogPort}:${
       launch.logPort
-    } --name flexd --rm --env-file /etc/systemd/system/docker.flexd.env ${account}.dkr.ecr.${region}.amazonaws.com/${repo}:${tag}
+    } --name fusebit --rm --env-file /etc/systemd/system/docker.fusebit.env ${account}.dkr.ecr.${region}.amazonaws.com/${repo}:${tag}
 
 [Install]
 WantedBy=multi-user.target
 EOF
 
-# Drop Flexd configuration file
+# Drop Fusebit configuration file
 
-cat > /etc/systemd/system/docker.flexd.env << EOF
+cat > /etc/systemd/system/docker.fusebit.env << EOF
 ${require('fs').readFileSync(require('path').join(__dirname, '../../../../.aws.' + deploymentName + '.env'), 'utf8')}
 EOF
 
-# Start Flexd service
+# Start Fusebit service
 
-systemctl start docker.flexd`;
+systemctl start docker.fusebit`;
 
     const encoded = toBase64(userData);
 

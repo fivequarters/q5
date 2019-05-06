@@ -1,5 +1,6 @@
 import { fromBase64, toBase64 } from '@5qtrs/base64';
 import { clone } from '@5qtrs/clone';
+import { avoidRace } from '@5qtrs/promise';
 import { STS } from 'aws-sdk';
 import { InMemoryCredsCache } from './InMemoryCredsCache';
 
@@ -74,18 +75,20 @@ export class AwsCreds {
   private roleAccount?: string;
   private roleName?: string;
   private rolePath?: string;
+  private assumeRoleRaceFree: () => Promise<IAwsCredentials>;
 
   private constructor(options: IAwsCredsOptions, cache: IAwsCredsCache) {
     this.options = clone(options);
     this.cache = cache;
+    this.assumeRoleRaceFree = avoidRace(() => this.assumeRole());
   }
 
   public asRole(account: string, role: string) {
     const credsForRole = new AwsCreds(this.options, this.cache);
     credsForRole.parentCreds = this;
     credsForRole.roleAccount = account;
-    credsForRole.roleName = name;
-    credsForRole.rolePath = this.rolePath ? `${this.rolePath}.${name}` : name;
+    credsForRole.roleName = role;
+    credsForRole.rolePath = this.rolePath ? `${this.rolePath}.${role}` : role;
     return credsForRole;
   }
 
@@ -103,7 +106,7 @@ export class AwsCreds {
       if (cachedCreds) {
         creds = cachedCreds;
       } else {
-        creds = await this.assumeRole();
+        creds = await this.assumeRoleRaceFree();
         await this.setCachedCredentials(creds);
       }
     }

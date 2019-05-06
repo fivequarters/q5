@@ -6,7 +6,7 @@ import {
   IListSubscriptionsResult,
   AccountDataException,
 } from '@5qtrs/account-data';
-import { AwsDynamo } from '@5qtrs/aws-dynamo';
+import { AccountDataTables } from './AccountDataTables';
 import { AccountDataAwsConfig } from './AccountDataAwsConfig';
 import { SubscriptionTable, ISubscription as ISubscriptionWithId } from './tables/SubscriptionTable';
 
@@ -15,9 +15,8 @@ import { SubscriptionTable, ISubscription as ISubscriptionWithId } from './table
 // ----------------
 
 export class SubscriptionData extends DataSource implements ISubscriptionData {
-  public static async create(config: AccountDataAwsConfig, dynamo: AwsDynamo) {
-    const subscriptionTable = await SubscriptionTable.create(config, dynamo);
-    return new SubscriptionData(subscriptionTable);
+  public static async create(config: AccountDataAwsConfig, tables: AccountDataTables) {
+    return new SubscriptionData(tables.subscriptionTable);
   }
   private subscriptionTable: SubscriptionTable;
 

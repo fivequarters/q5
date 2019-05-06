@@ -1,185 +1,70 @@
-import { Command, IExecuteInput, Confirm, ArgType, Message, MessageKind } from '@5qtrs/cli';
-import { FusebitOpsCore, IFusebitOpsNetwork } from '@5qtrs/fusebit-ops-core';
-import { Text } from '@5qtrs/text';
+import { Command, IExecuteInput, ArgType } from '@5qtrs/cli';
+import { NetworkService } from '../../services';
 
 // ------------------
-// Internal Functions
+// Internal Constants
 // ------------------
+
+const command = {
+  name: 'Add Network',
+  cmd: 'add',
+  summary: 'Add a network',
+  description: 'Adds a network to the Fusebit platform in the given AWS account and region.',
+  arguments: [
+    {
+      name: 'name',
+      description: 'The name of the network',
+    },
+    {
+      name: 'account',
+      description: 'The name of the AWS account to create the network in',
+    },
+    {
+      name: 'region',
+      description: 'The region code of the AWS region to create the network in',
+    },
+  ],
+  options: [
+    {
+      name: 'confirm',
+      aliases: ['c'],
+      description: 'If set to true, prompts for confirmation before adding the network to the Fusebit platform',
+      type: ArgType.boolean,
+      default: 'true',
+    },
+  ],
+};
 
 // ----------------
 // Exported Classes
 // ----------------
 
 export class AddNetworkCommand extends Command {
-  private core: FusebitOpsCore;
-
-  public static async create(core: FusebitOpsCore) {
-    return new AddNetworkCommand(core);
+  public static async create() {
+    return new AddNetworkCommand();
   }
 
-  private constructor(core: FusebitOpsCore) {
-    super({
-      name: 'Add Network',
-      cmd: 'add',
-      summary: 'Add a network',
-      description: 'Adds a network to the Fusebit platform in the given AWS account and region.',
-      arguments: [
-        {
-          name: 'name',
-          description: 'The name of the network',
-        },
-        {
-          name: 'account',
-          description: 'The name of the AWS account to create the network in',
-        },
-        {
-          name: 'region',
-          description: 'The region code of the AWS region to create the network in',
-        },
-      ],
-      options: [
-        {
-          name: 'confirm',
-          aliases: ['c'],
-          description: 'If set to true, prompts for confirmation before adding the network to the Fusebit platform',
-          type: ArgType.boolean,
-          default: 'true',
-        },
-      ],
-    });
-    this.core = core;
-  }
-
-  private async doesNetworkExist(network: IFusebitOpsNetwork, input: IExecuteInput) {
-    let networkExists = undefined;
-    try {
-      const message = await Message.create({
-        header: 'Network Check',
-        message: 'Determining if the network already exists...',
-        kind: MessageKind.info,
-      });
-      await message.write(input.io);
-      input.io.spin(true);
-      networkExists = await this.core.networkExists(network);
-    } catch (error) {
-      const message = await Message.create({
-        header: 'Check Error',
-        message:
-          error.code !== undefined
-            ? 'An error was encountered when trying to determine if the network already exists.'
-            : error.message,
-        kind: MessageKind.error,
-      });
-      await message.write(input.io);
-      await this.core.logError(error, message.toString());
-    }
-
-    return networkExists;
-  }
-
-  private async alreadyExists(network: IFusebitOpsNetwork, input: IExecuteInput) {
-    const message = await Message.create({
-      header: 'Already Exists',
-      message: Text.create("The '", Text.bold(network.name), "' network already exists."),
-      kind: MessageKind.info,
-    });
-    await message.write(input.io);
-  }
-
-  private async confirmNetwork(network: IFusebitOpsNetwork, input: IExecuteInput) {
-    const confirm = input.options.confirm as boolean;
-    let add = !confirm;
-    if (confirm) {
-      const confirmPrompt = await Confirm.create({
-        header: 'Add the network to the Fusebit platform?',
-        details: [
-          { name: 'Network Name', value: network.name },
-          { name: 'Aws Account Name', value: network.account },
-          { name: 'Aws Region', value: network.region },
-        ],
-      });
-      add = await confirmPrompt.prompt(input.io);
-    }
-
-    return add;
-  }
-
-  private async cancelAdd(input: IExecuteInput) {
-    const message = await Message.create({
-      header: 'Add Canceled',
-      message: 'Adding the network was canceled.',
-      kind: MessageKind.warning,
-    });
-    await message.write(input.io);
-  }
-
-  private async addNetwork(network: IFusebitOpsNetwork, input: IExecuteInput) {
-    try {
-      const message = await Message.create({
-        header: 'Add Network',
-        message: 'Adding the network to the Fusebit platform...',
-        kind: MessageKind.info,
-      });
-      await message.write(input.io);
-      input.io.spin(true);
-      await this.core.addNetwork(network);
-    } catch (error) {
-      const message = await Message.create({
-        header: 'Add Error',
-        message:
-          error.code !== undefined
-            ? 'An error was encountered when trying to add the network to the Fusebit platform.'
-            : error.message,
-        kind: MessageKind.error,
-      });
-      await message.write(input.io);
-      await this.core.logError(error, message.toString());
-      return false;
-    }
-    return true;
-  }
-
-  private async addComplete(network: IFusebitOpsNetwork, input: IExecuteInput) {
-    const message = await Message.create({
-      header: 'Add Complete',
-      message: Text.create(
-        "The '",
-        Text.bold(network.name),
-        "' network was successfully added to the Fusebit platform."
-      ),
-      kind: MessageKind.result,
-    });
-    await message.write(input.io);
+  private constructor() {
+    super(command);
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
     await input.io.writeLine();
-    const [name, account, region] = input.arguments as string[];
-    const network = { name, account, region };
 
-    const networkExists = await this.doesNetworkExist(network, input);
-    if (networkExists === undefined) {
-      return 1;
+    const [networkName, accountName, region] = input.arguments as string[];
+    const confirm = input.options.confirm as boolean;
+
+    const networkService = await NetworkService.create(input);
+
+    const network = { networkName, accountName, region };
+    await networkService.checkNetworkExists(network);
+
+    if (confirm) {
+      await networkService.confirmAddNetwork(network);
     }
 
-    if (networkExists) {
-      await this.alreadyExists(network, input);
-      return 0;
-    }
-
-    const confirmed = await this.confirmNetwork(network, input);
-
-    if (!confirmed) {
-      await this.cancelAdd(input);
-    } else {
-      const platformInstalled = await this.addNetwork(network, input);
-      if (!platformInstalled) {
-        return 1;
-      }
-
-      await this.addComplete(network, input);
-    }
-
+    const addedNetwork = await networkService.addNetwork(network);
+    await networkService.displayNetwork(addedNetwork);
     return 0;
   }
 }

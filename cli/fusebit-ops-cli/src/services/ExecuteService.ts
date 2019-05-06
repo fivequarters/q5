@@ -49,7 +49,7 @@ export class ExecuteService {
     } catch (error) {
       const message = await Message.create({
         header: messages.errorHeader,
-        message: error.code !== undefined ? messages.errorMessage || '' : error.message,
+        message: messages.errorMessage || error.message,
         kind: MessageKind.error,
       });
       await message.write(this.input.io);

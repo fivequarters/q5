@@ -1,6 +1,12 @@
 import { FusebitOpsDotConfig } from './FusebitOpsDotConfig';
 import { FusebitOpsProfileException } from './FusebitOpsProfileException';
 
+// ------------------
+// Internal Constants
+// ------------------
+
+const defaultDefaultProfileName = 'default';
+
 // -------------------
 // Exported Interfaces
 // -------------------
@@ -25,7 +31,6 @@ export interface IFusebitOpsProfile extends IFusebitOpsProfileSettings {
 // ----------------
 
 export class FusebitOpsProfile {
-
   public static async create() {
     const dotConfig = await FusebitOpsDotConfig.create();
     return new FusebitOpsProfile(dotConfig);
@@ -34,6 +39,14 @@ export class FusebitOpsProfile {
 
   private constructor(dotConfig: FusebitOpsDotConfig) {
     this.dotConfig = dotConfig;
+  }
+
+  public get defaultDefaultProfileName() {
+    return defaultDefaultProfileName;
+  }
+
+  public async getSettingsPath(): Promise<string> {
+    return this.dotConfig.getSettingsPath();
   }
 
   public async profileExists(name: string): Promise<boolean> {
@@ -100,7 +113,7 @@ export class FusebitOpsProfile {
   }
 
   public async addProfile(name: string, settings: IFusebitOpsProfileSettings): Promise<IFusebitOpsProfile> {
-    const created = new Date().toLocaleDateString();
+    const created = new Date().toLocaleString();
 
     const fullProfileToAdd = {
       created,
@@ -183,5 +196,13 @@ export class FusebitOpsProfile {
   public async removeProfile(name: string): Promise<void> {
     await this.getProfileOrThrow(name);
     await this.dotConfig.removeProfile(name);
+  }
+
+  public async getCachedCreds(name: string, key: string): Promise<any> {
+    return this.dotConfig.getCachedCreds(name, key);
+  }
+
+  public async setCachedCreds(name: string, key: string, creds: any): Promise<void> {
+    return this.dotConfig.setCachedCreds(name, key, creds);
   }
 }

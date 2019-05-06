@@ -27,7 +27,8 @@
     "deploy": "yarn-tool yarn deploy",
     "doc": "yarn-tool yarn doc",
     "cli-link": "yarn-tool yarn cli-link",
-    "cli-unlink": "yarn-tool yarn cli-unlink"
+    "cli-unlink": "yarn-tool yarn cli-unlink",
+    "image": "VERSION=$(cat package.json | grep version | head -1 | awk -F: '{ print $2 }' | sed 's/[\",]//g' | tr -d '[[:space:]]') && docker build . -t fusebit-mono:$VERSION"
   },
   "devDependencies": {
     "@babel/core": "^7.3.3",
@@ -142,6 +143,7 @@
     "lib/data/ops-data",
     "lib/data/ops-data-aws",
     "test/perf",
-    "lib/aws/aws-config"
+    "lib/aws/aws-config",
+    "sdk/fusebit-ops-profile-sdk"
   ]
 }

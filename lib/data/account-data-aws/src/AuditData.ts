@@ -1,6 +1,6 @@
 import { DataSource } from '@5qtrs/data';
 import { IAuditData, IAuditEntry, IListAuditEntriesOptions, IListAuditEntriesResult } from '@5qtrs/account-data';
-import { AwsDynamo } from '@5qtrs/aws-dynamo';
+import { AccountDataTables } from './AccountDataTables';
 import { AccountDataAwsConfig } from './AccountDataAwsConfig';
 import { AuditEntryTable } from './tables/AuditEntryTable';
 
@@ -9,9 +9,8 @@ import { AuditEntryTable } from './tables/AuditEntryTable';
 // ----------------
 
 export class AuditData extends DataSource implements IAuditData {
-  public static async create(config: AccountDataAwsConfig, dynamo: AwsDynamo) {
-    const auditEntryTable = await AuditEntryTable.create(config, dynamo);
-    return new AuditData(auditEntryTable);
+  public static async create(config: AccountDataAwsConfig, tables: AccountDataTables) {
+    return new AuditData(tables.auditEntryTable);
   }
 
   private auditEntryTable: AuditEntryTable;

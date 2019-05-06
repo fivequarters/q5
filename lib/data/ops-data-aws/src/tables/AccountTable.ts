@@ -28,7 +28,7 @@ function toKey(accountName: string) {
 function toItem(account: IOpsAccount) {
   const item: any = toKey(account.name);
   item.accountId = { S: account.id };
-  item.role = { S: account.role };
+  item.role = account.role ? { S: account.role } : undefined;
   return item;
 }
 
@@ -36,7 +36,7 @@ function fromItem(item: any): IOpsAccount {
   return {
     id: item.accountId.S,
     name: item.accountName.S,
-    role: item.role.S,
+    role: item.role ? item.role.S : '',
   };
 }
 
@@ -80,6 +80,8 @@ export interface IListOpsAccountResult {
 // ----------------
 
 export class AccountTable extends AwsDynamoTable {
+  private config: OpsDataAwsConfig;
+
   public static async create(config: OpsDataAwsConfig, dynamo: AwsDynamo) {
     return new AccountTable(config, dynamo);
   }
@@ -87,6 +89,7 @@ export class AccountTable extends AwsDynamoTable {
   private constructor(config: OpsDataAwsConfig, dynamo: AwsDynamo) {
     table.getConfig = getConfig(config);
     super(table, dynamo);
+    this.config = config;
   }
 
   public async add(account: IOpsAccount): Promise<void> {
@@ -101,5 +104,16 @@ export class AccountTable extends AwsDynamoTable {
 
   public async list(options?: IListOpsAccountOptions): Promise<IListOpsAccountResult> {
     return this.scanTable(options);
+  }
+
+  public async listAll(): Promise<IOpsAccount[]> {
+    const accounts = [];
+    const options: IListOpsAccountOptions = { limit: this.config.accountMaxLimit };
+    do {
+      const result = await this.list(options);
+      accounts.push(...result.items);
+      options.next = result.next;
+    } while (options.next);
+    return accounts;
   }
 }

@@ -1,4 +1,3 @@
-import { Table } from '@5qtrs/table';
 import { IText, Text } from '@5qtrs/text';
 import { EOL } from 'os';
 import { Readable, Writable } from 'stream';
@@ -16,6 +15,18 @@ const maskCharacter = '•';
 const affirmKeys = ['y', 'Y'];
 const denyKeys = ['n', 'N'];
 const allowedKeys = affirmKeys.slice().concat(denyKeys);
+
+// ------------------
+// Internal Functions
+// ------------------
+
+function getMaskedKey(key: string) {
+  let masked = '';
+  for (let i = 0; i < key.length; i++) {
+    masked += maskCharacter;
+  }
+  return masked;
+}
 
 // -------------------
 // Exported Interfaces
@@ -170,13 +181,13 @@ export class CommandIO implements ICommandIO {
             if (options.singleKeys.indexOf(key) !== -1) {
               value += key;
               this.clearLine(1);
-              await this.write(options.mask ? maskCharacter : key);
+              await this.write(options.mask ? getMaskedKey(key) : key);
               done(false);
             }
           } else {
             value += key;
             this.clearLine(1);
-            await this.write(options.mask ? maskCharacter : key);
+            await this.write(options.mask ? getMaskedKey(key) : key);
           }
         }
       };

@@ -15,9 +15,12 @@
   "keywords": [],
   "dependencies": {
     "@5qtrs/ops-data": "^0.0.1",
-    "@5qtrs/aws-deployment": "^0.0.1"
-  },
-  "devServer": {
-    "port": 9521
+    "@5qtrs/aws-config": "^0.0.1",
+    "@5qtrs/aws-dynamo": "^0.0.1",
+    "@5qtrs/aws-route53": "^0.0.1",
+    "@5qtrs/aws-network": "^0.0.1",
+    "@5qtrs/aws-ecr": "^0.0.1",
+    "@5qtrs/aws-ec2": "^0.0.1",
+    "@5qtrs/account-data-aws": "^0.0.1"
   }
 }

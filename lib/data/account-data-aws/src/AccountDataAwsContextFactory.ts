@@ -2,7 +2,6 @@ import { IAccountDataContextFactory } from '@5qtrs/account-data';
 import { IConfig } from '@5qtrs/config';
 import { IAwsConfig } from '@5qtrs/aws-config';
 import { AwsDynamo } from '@5qtrs/aws-dynamo';
-
 import { AccountDataAwsContext } from './AccountDataAwsContext';
 import { AccountDataAwsConfig } from './AccountDataAwsConfig';
 
@@ -22,8 +21,8 @@ export class AccountDataAwsContextFactory implements IAccountDataContextFactory 
   }
 
   public async create(config: IConfig): Promise<AccountDataAwsContext> {
-    const awsConfig = await AccountDataAwsConfig.create(config);
+    const fullConfig = await AccountDataAwsConfig.create(config);
     const dynamo = await AwsDynamo.create(this.awsConfig);
-    return AccountDataAwsContext.create(awsConfig, dynamo);
+    return AccountDataAwsContext.create(fullConfig, dynamo);
   }
 }

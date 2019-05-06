@@ -1,1 +1,1 @@
-export { default as NewClass } from './NewClass';
+export { OpsDataAwsContextFactory } from './OpsDataAwsContextFactory';

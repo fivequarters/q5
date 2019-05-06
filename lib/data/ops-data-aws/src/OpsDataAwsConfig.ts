@@ -9,12 +9,18 @@ const defaultDefaultLimit = 25;
 const defaultMaxLimit = 100;
 const defaultUserAccountEnabled = false;
 const defaultRegion = 'us-west-2';
+const defaultMainAccountName = 'main';
+const defaultMainPrefix = 'ops';
+const defaultMonoRepoName = 'fusebit-mono';
+const defaultMonoInstanceType = 't2.medium';
+const defaultMonoLogPort = 5002;
+const defaultMonoApiPort = 3001;
 
 // ----------------
 // Exported Classes
 // ----------------
 
-export class OpsDataAwsConfig {
+export class OpsDataAwsConfig implements IConfig {
   public static async create(config: IConfig) {
     return new OpsDataAwsConfig(config);
   }
@@ -30,15 +36,19 @@ export class OpsDataAwsConfig {
 
   public get mainAccountId(): string {
     const value = this.config.value('mainAccountId');
-    if (!value) {
+    if (!value && this.userAccountEnabled) {
       throw OpsDataException.configNotProvided('mainAccountId');
     }
     return value as string;
   }
 
+  public get mainAccountName(): string {
+    return (this.config.value('mainAccountName') as string) || defaultMainAccountName;
+  }
+
   public get mainAccountRole(): string {
     const value = this.config.value('mainAccountRole');
-    if (!value) {
+    if (!value && this.userAccountEnabled) {
       throw OpsDataException.configNotProvided('mainAccountRole');
     }
     return value as string;
@@ -46,6 +56,34 @@ export class OpsDataAwsConfig {
 
   public get mainRegion(): string {
     return (this.config.value('mainRegion') as string) || defaultRegion;
+  }
+
+  public get mainPrefix(): string {
+    return (this.config.value('mainPrefix') as string) || defaultMainPrefix;
+  }
+
+  public get monoRepoName(): string {
+    return (this.config.value('monoRepoName') as string) || defaultMonoRepoName;
+  }
+
+  public get monoInstanceType(): string {
+    return (this.config.value('monoInstanceType') as string) || defaultMonoInstanceType;
+  }
+
+  public get monoLogPort(): number {
+    return (this.config.value('monoLogPort') as number) || defaultMonoLogPort;
+  }
+
+  public get monoApiPort(): number {
+    return (this.config.value('monoApiPort') as number) || defaultMonoApiPort;
+  }
+
+  public get monoAlbLogPort(): number {
+    return (this.config.value('monoAlbLogPort') as number) || defaultMonoLogPort;
+  }
+
+  public get monoAlbApiPort(): number {
+    return (this.config.value('monoAlbApiPort') as number) || defaultMonoApiPort;
   }
 
   public get accountDefaultLimit(): number {
@@ -88,5 +126,25 @@ export class OpsDataAwsConfig {
     return (
       (this.config.value('networkMaxLimit') as number) || (this.config.value('maxLimit') as number) || defaultMaxLimit
     );
+  }
+
+  public get deploymentDefaultLimit(): number {
+    return (
+      (this.config.value('deploymentDefaultLimit') as number) ||
+      (this.config.value('defaultLimit') as number) ||
+      defaultDefaultLimit
+    );
+  }
+
+  public get deploymentMaxLimit(): number {
+    return (
+      (this.config.value('deploymentMaxLimit') as number) ||
+      (this.config.value('maxLimit') as number) ||
+      defaultMaxLimit
+    );
+  }
+
+  public value(settingName: string) {
+    return this.config.value(settingName);
   }
 }

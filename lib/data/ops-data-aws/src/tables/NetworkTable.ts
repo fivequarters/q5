@@ -26,16 +26,16 @@ function toKey(networkName: string) {
 }
 
 function toItem(network: IOpsNetwork) {
-  const item: any = toKey(network.name);
-  item.accountName = { S: network.account };
+  const item: any = toKey(network.networkName);
+  item.accountName = { S: network.accountName };
   item.region = { S: network.region };
   return item;
 }
 
 function fromItem(item: any): IOpsNetwork {
   return {
-    name: item.networkName.S,
-    account: item.accountName.S,
+    networkName: item.networkName.S,
+    accountName: item.accountName.S,
     region: item.region.S,
   };
 }
@@ -48,7 +48,7 @@ function getConfig(config: OpsDataAwsConfig) {
 }
 
 function onNetworkAlreadyExists(account: IOpsNetwork) {
-  throw OpsDataException.networkAlreadyExists(account.name);
+  throw OpsDataException.networkAlreadyExists(account.accountName);
 }
 
 function onNetworkDoesNotExist(networkName: string) {
@@ -60,8 +60,8 @@ function onNetworkDoesNotExist(networkName: string) {
 // -------------------
 
 export interface IOpsNetwork {
-  name: string;
-  account: string;
+  networkName: string;
+  accountName: string;
   region: string;
 }
 
@@ -83,10 +83,12 @@ export class NetworkTable extends AwsDynamoTable {
   public static async create(config: OpsDataAwsConfig, dynamo: AwsDynamo) {
     return new NetworkTable(config, dynamo);
   }
+  private config: OpsDataAwsConfig;
 
   private constructor(config: OpsDataAwsConfig, dynamo: AwsDynamo) {
     table.getConfig = getConfig(config);
     super(table, dynamo);
+    this.config = config;
   }
 
   public async add(domain: IOpsNetwork): Promise<void> {
@@ -101,5 +103,21 @@ export class NetworkTable extends AwsDynamoTable {
 
   public async list(options?: IListOpsNetworkOptions): Promise<IListOpsNetworkResult> {
     return this.scanTable(options);
+  }
+
+  public async listAll(): Promise<IOpsNetwork[]> {
+    const networks = [];
+    const options: IListOpsNetworkOptions = { limit: this.config.accountMaxLimit };
+    do {
+      const result = await this.list(options);
+      networks.push(...result.items);
+      options.next = result.next;
+    } while (options.next);
+    return networks;
+  }
+
+  public async delete(networkName: string): Promise<void> {
+    const options = { onConditionCheckFailed: onNetworkDoesNotExist };
+    await this.deleteItem(networkName, options);
   }
 }

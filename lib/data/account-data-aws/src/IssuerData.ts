@@ -1,6 +1,6 @@
 import { DataSource } from '@5qtrs/data';
 import { IIssuer, IIssuerData, IListIssuersOptions, IListIssuersResult } from '@5qtrs/account-data';
-import { AwsDynamo } from '@5qtrs/aws-dynamo';
+import { AccountDataTables } from './AccountDataTables';
 import { AccountDataAwsConfig } from './AccountDataAwsConfig';
 import { IssuerTable } from './tables/IssuerTable';
 
@@ -9,9 +9,8 @@ import { IssuerTable } from './tables/IssuerTable';
 // ----------------
 
 export class IssuerData extends DataSource implements IIssuerData {
-  public static async create(config: AccountDataAwsConfig, dynamo: AwsDynamo) {
-    const issuerTable = await IssuerTable.create(config, dynamo);
-    return new IssuerData(issuerTable);
+  public static async create(config: AccountDataAwsConfig, tables: AccountDataTables) {
+    return new IssuerData(tables.issuerTable);
   }
   private issuerTable: IssuerTable;
 

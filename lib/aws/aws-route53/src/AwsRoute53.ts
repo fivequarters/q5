@@ -110,9 +110,8 @@ export class AwsRoute53 extends AwsBase<typeof Route53> {
     return new Promise((resolve, reject) => {
       route53.createHostedZone(params, (error: any, data: any) => {
         if (error) {
-          reject(error);
+          return reject(error);
         }
-
         resolve({ domain, id: data.HostedZone.Id });
       });
     });

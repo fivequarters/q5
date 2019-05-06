@@ -1,184 +1,68 @@
-import { Command, IExecuteInput, Confirm, ArgType, Message, MessageKind } from '@5qtrs/cli';
-import { FusebitOpsCore, IFusebitOpsAccount } from '@5qtrs/fusebit-ops-core';
-import { Text } from '@5qtrs/text';
+import { Command, IExecuteInput, ArgType } from '@5qtrs/cli';
+import { AccountService } from '../../services';
 
 // ------------------
-// Internal Functions
+// Internal Constants
 // ------------------
+
+const command = {
+  name: 'Add Account',
+  cmd: 'add',
+  summary: 'Add an account',
+  description: 'Adds an account to the Fusebit platform with the given AWS account id.',
+  arguments: [
+    {
+      name: 'name',
+      description: 'The name of the account',
+    },
+    {
+      name: 'id',
+      description: 'The id of the AWS account to add',
+    },
+    {
+      name: 'role',
+      description: 'The role that needs to be assumed to access the AWS account',
+    },
+  ],
+  options: [
+    {
+      name: 'confirm',
+      aliases: ['c'],
+      description: 'If set to true, prompts for confirmation before adding the account to the Fusebit platform',
+      type: ArgType.boolean,
+      default: 'true',
+    },
+  ],
+};
 
 // ----------------
 // Exported Classes
 // ----------------
 
 export class AddAccountCommand extends Command {
-  private core: FusebitOpsCore;
-
-  public static async create(core: FusebitOpsCore) {
-    return new AddAccountCommand(core);
+  public static async create() {
+    return new AddAccountCommand();
   }
 
-  private constructor(core: FusebitOpsCore) {
-    super({
-      name: 'Add Account',
-      cmd: 'add',
-      summary: 'Add an account',
-      description: 'Adds an account to the Fusebit platform with the given AWS account id.',
-      arguments: [
-        {
-          name: 'name',
-          description: 'The name of the account',
-        },
-        {
-          name: 'id',
-          description: 'The id of the AWS account to add',
-        },
-        {
-          name: 'role',
-          description: 'The role that needs to be assumed to access the AWS account',
-        },
-      ],
-      options: [
-        {
-          name: 'confirm',
-          aliases: ['c'],
-          description: 'If set to true, prompts for confirmation before adding the account to the Fusebit platform',
-          type: ArgType.boolean,
-          default: 'true',
-        },
-      ],
-    });
-    this.core = core;
-  }
-
-  private async doesAccountExist(account: IFusebitOpsAccount, input: IExecuteInput) {
-    let accountExists = undefined;
-    try {
-      const message = await Message.create({
-        header: 'Account Check',
-        message: 'Determining if the account already exists...',
-        kind: MessageKind.info,
-      });
-      await message.write(input.io);
-      input.io.spin(true);
-      accountExists = await this.core.accountExists(account);
-    } catch (error) {
-      const message = await Message.create({
-        header: 'Check Error',
-        message:
-          error.code !== undefined
-            ? 'An error was encountered when trying to determine if the account already exists.'
-            : error.message,
-        kind: MessageKind.error,
-      });
-      await message.write(input.io);
-      await this.core.logError(error, message.toString());
-    }
-
-    return accountExists;
-  }
-
-  private async alreadyExists(account: IFusebitOpsAccount, input: IExecuteInput) {
-    const message = await Message.create({
-      header: 'Already Exists',
-      message: Text.create("The '", Text.bold(account.name), "' account already exists."),
-      kind: MessageKind.info,
-    });
-    await message.write(input.io);
-  }
-
-  private async confirmAccount(account: IFusebitOpsAccount, input: IExecuteInput) {
-    const confirm = input.options.confirm as boolean;
-    let add = !confirm;
-    if (confirm) {
-      const confirmPrompt = await Confirm.create({
-        header: 'Add the account to the Fusebit platform?',
-        details: [
-          { name: 'Account Name', value: account.name },
-          { name: 'Aws Account Id', value: account.id },
-          { name: 'Aws Role', value: account.role },
-        ],
-      });
-      add = await confirmPrompt.prompt(input.io);
-    }
-
-    return add;
-  }
-
-  private async cancelAdd(input: IExecuteInput) {
-    const message = await Message.create({
-      header: 'Add Canceled',
-      message: 'Adding the account was canceled.',
-      kind: MessageKind.warning,
-    });
-    await message.write(input.io);
-  }
-
-  private async addAccount(account: IFusebitOpsAccount, input: IExecuteInput) {
-    try {
-      const message = await Message.create({
-        header: 'Add Account',
-        message: 'Adding the account to the Flex platform...',
-        kind: MessageKind.info,
-      });
-      await message.write(input.io);
-      input.io.spin(true);
-      await this.core.addAccount(account);
-    } catch (error) {
-      const message = await Message.create({
-        header: 'Add Error',
-        message:
-          error.code !== undefined
-            ? 'An error was encountered when trying to add the account to the Fusebit platform.'
-            : error.message,
-        kind: MessageKind.error,
-      });
-      await message.write(input.io);
-      await this.core.logError(error, message.toString());
-      return false;
-    }
-    return true;
-  }
-
-  private async addComplete(account: IFusebitOpsAccount, input: IExecuteInput) {
-    const message = await Message.create({
-      header: 'Add Complete',
-      message: Text.create(
-        "The '",
-        Text.bold(account.name),
-        "' account was successfully added to the Fusebit platform."
-      ),
-      kind: MessageKind.result,
-    });
-    await message.write(input.io);
+  private constructor() {
+    super(command);
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
     await input.io.writeLine();
     const [name, id, role] = input.arguments as string[];
+    const confirm = input.options.confirm as boolean;
+
+    const accountService = await AccountService.create(input);
+
     const account = { name, id, role };
+    await accountService.checkAccountExists(account);
 
-    const accountExists = await this.doesAccountExist(account, input);
-    if (accountExists === undefined) {
-      return 1;
+    if (confirm) {
+      await accountService.confirmAddAccount(account);
     }
 
-    if (accountExists) {
-      await this.alreadyExists(account, input);
-      return 0;
-    }
-
-    const confirmed = await this.confirmAccount(account, input);
-
-    if (!confirmed) {
-      await this.cancelAdd(input);
-    } else {
-      const platformInstalled = await this.addAccount(account, input);
-      if (!platformInstalled) {
-        return 1;
-      }
-
-      await this.addComplete(account, input);
-    }
+    await accountService.addAccount(account);
 
     return 0;
   }

@@ -21,7 +21,9 @@ export interface IListOpsAccountResult {
 }
 
 export interface IOpsAccountData extends IDataSource {
+  exists(account: IOpsAccount): Promise<boolean>;
   add(account: IOpsAccount): Promise<void>;
   get(accountName: string): Promise<IOpsAccount>;
   list(options?: IListOpsAccountOptions): Promise<IListOpsAccountResult>;
+  listAll(): Promise<IOpsAccount[]>;
 }

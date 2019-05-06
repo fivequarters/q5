@@ -6,8 +6,8 @@ import {
   IListAccountsResult,
   AccountDataException,
 } from '@5qtrs/account-data';
-import { AwsDynamo } from '@5qtrs/aws-dynamo';
 import { AccountDataAwsConfig } from './AccountDataAwsConfig';
+import { AccountDataTables } from './AccountDataTables';
 import { AccountTable, IAccount as IAccountWithId } from './tables/AccountTable';
 
 // ----------------
@@ -15,9 +15,8 @@ import { AccountTable, IAccount as IAccountWithId } from './tables/AccountTable'
 // ----------------
 
 export class AccountData extends DataSource implements IAccountData {
-  public static async create(config: AccountDataAwsConfig, dynamo: AwsDynamo) {
-    const accountTable = await AccountTable.create(config, dynamo);
-    return new AccountData(accountTable);
+  public static async create(config: AccountDataAwsConfig, tables: AccountDataTables) {
+    return new AccountData(tables.accountTable);
   }
   private accountTable: AccountTable;
 

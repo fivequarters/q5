@@ -11,6 +11,7 @@ import {
 } from '@5qtrs/account-data';
 import { union } from '@5qtrs/array';
 import { AwsDynamo } from '@5qtrs/aws-dynamo';
+import { AccountDataTables } from './AccountDataTables';
 import { AccountDataAwsConfig } from './AccountDataAwsConfig';
 import { AgentData } from './AgentData';
 import { ClientTable, IClient as IClientWithId } from './tables/ClientTable';
@@ -41,10 +42,8 @@ function toClient(client: IClient, agent: IAgent): IClient {
 // ----------------
 
 export class ClientData extends DataSource implements IClientData {
-  public static async create(config: AccountDataAwsConfig, dynamo: AwsDynamo) {
-    const clientTable = await ClientTable.create(config, dynamo);
-    const agentData = await AgentData.create(config, dynamo);
-    return new ClientData(config, clientTable, agentData);
+  public static async create(config: AccountDataAwsConfig, tables: AccountDataTables, agentData: AgentData) {
+    return new ClientData(config, tables.clientTable, agentData);
   }
   private config: AccountDataAwsConfig;
   private clientTable: ClientTable;

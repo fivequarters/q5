@@ -91,7 +91,6 @@ export interface IFusebitExecutionProfile extends IFusebitProfileSettings {
 // ----------------
 
 export class FusebitProfile {
-
   public static async create() {
     const dotConfig = await FusebitDotConfig.create();
     return new FusebitProfile(dotConfig);
@@ -176,7 +175,7 @@ export class FusebitProfile {
     await this.dotConfig.setPrivateKey(name, kid, privateKey);
     await this.dotConfig.setPublicKey(name, kid, publicKey);
 
-    const created = new Date().toLocaleDateString();
+    const created = new Date().toLocaleString();
 
     const fullProfileToAdd = {
       created,
