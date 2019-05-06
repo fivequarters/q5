@@ -1,9 +1,9 @@
-import { FusebitDotConfig } from './FusebitDotConfig';
-import { createKeyPair } from '@5qtrs/key-pair';
-import { signJwt } from '@5qtrs/jwt';
-import { random } from '@5qtrs/random';
 import { toBase64 } from '@5qtrs/base64';
-import { FusebitProfileError } from './FusebitProfileError';
+import { signJwt } from '@5qtrs/jwt';
+import { createKeyPair } from '@5qtrs/key-pair';
+import { random } from '@5qtrs/random';
+import { FusebitDotConfig } from './FusebitDotConfig';
+import { FusebitProfileException } from './FusebitProfileException';
 
 // ------------------
 // Internal Constants
@@ -28,7 +28,7 @@ function nomarlizeBaseUrl(baseUrl: string): string {
     baseUrl = baseUrl.substring(0, baseUrl.length - 1);
   }
   if (baseUrl.indexOf('http') === -1) {
-    throw FusebitProfileError.baseUrlMissingProtocol(baseUrl);
+    throw FusebitProfileException.baseUrlMissingProtocol(baseUrl);
   }
   return baseUrl;
 }
@@ -91,15 +91,14 @@ export interface IFusebitExecutionProfile extends IFusebitProfileSettings {
 // ----------------
 
 export class FusebitProfile {
+  public static async create() {
+    const dotConfig = await FusebitDotConfig.create();
+    return new FusebitProfile(dotConfig);
+  }
   private dotConfig: FusebitDotConfig;
 
   private constructor(dotConfig: FusebitDotConfig) {
     this.dotConfig = dotConfig;
-  }
-
-  public static async create() {
-    const dotConfig = await FusebitDotConfig.create();
-    return new FusebitProfile(dotConfig);
   }
 
   public async profileExists(name: string): Promise<boolean> {
@@ -143,7 +142,7 @@ export class FusebitProfile {
   public async getProfileOrThrow(name: string): Promise<IFusebitProfile> {
     const profile = await this.getProfile(name);
     if (profile === undefined) {
-      throw FusebitProfileError.profileDoesNotExist(name);
+      throw FusebitProfileException.profileDoesNotExist(name);
     }
     return profile;
   }
@@ -162,7 +161,7 @@ export class FusebitProfile {
     if (!name) {
       name = await this.dotConfig.getDefaultProfileName();
       if (!name) {
-        throw FusebitProfileError.noDefaultProfile();
+        throw FusebitProfileException.noDefaultProfile();
       }
     }
 
@@ -176,7 +175,7 @@ export class FusebitProfile {
     await this.dotConfig.setPrivateKey(name, kid, privateKey);
     await this.dotConfig.setPublicKey(name, kid, publicKey);
 
-    const created = new Date().toLocaleDateString();
+    const created = new Date().toLocaleString();
 
     const fullProfileToAdd = {
       created,
@@ -224,7 +223,7 @@ export class FusebitProfile {
     const copyToExists = await this.profileExists(copyTo);
 
     if (copyToExists && !overWrite) {
-      throw FusebitProfileError.profileAlreadyExists(copyTo);
+      throw FusebitProfileException.profileAlreadyExists(copyTo);
     }
 
     profile.created = new Date().toLocaleString();
@@ -241,7 +240,7 @@ export class FusebitProfile {
     const renameToExists = await this.profileExists(renameTo);
 
     if (renameToExists && !overWrite) {
-      throw FusebitProfileError.profileAlreadyExists(renameTo);
+      throw FusebitProfileException.profileAlreadyExists(renameTo);
     }
 
     profile.updated = new Date().toLocaleString();
@@ -274,8 +273,8 @@ export class FusebitProfile {
       return this.generateAccessToken(profile);
     }
 
-    let accessToken = await this.getCachedAccessToken(profile);
-    return accessToken !== undefined ? accessToken : await this.generateAccessToken(profile);
+    const accessToken = await this.getCachedAccessToken(profile);
+    return accessToken !== undefined ? accessToken : this.generateAccessToken(profile);
   }
 
   public async getExecutionProfile(name?: string, ignoreCache: boolean = false): Promise<IFusebitExecutionProfile> {

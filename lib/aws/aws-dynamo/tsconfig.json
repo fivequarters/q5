@@ -6,6 +6,7 @@
     { "path": "../aws-base" },
     { "path": "../../shared/base64" },
     { "path": "../../shared/exception" },
-    { "path": "../../shared/data" }
+    { "path": "../../shared/data" },
+    { "path": "../../shared/promise" }
   ]
 }

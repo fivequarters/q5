@@ -1,7 +1,7 @@
 import { DataSource } from '@5qtrs/data';
 import { IAgentData, IAgent, IIdentity, IAccessEntry, Resource } from '@5qtrs/account-data';
 import { difference } from '@5qtrs/array';
-import { AwsDynamo } from '@5qtrs/aws-dynamo';
+import { AccountDataTables } from './AccountDataTables';
 import { AccountDataAwsConfig } from './AccountDataAwsConfig';
 import { AccessEntryTable } from './tables/AccessEntryTable';
 import { IdentityTable } from './tables/IdentityTable';
@@ -69,11 +69,8 @@ export interface IListAgentIdsResult {
 // ----------------
 
 export class AgentData extends DataSource implements IAgentData {
-  public static async create(config: AccountDataAwsConfig, dynamo: AwsDynamo) {
-    const identityTable = await IdentityTable.create(config, dynamo);
-    const accessEntryTable = await AccessEntryTable.create(config, dynamo);
-    const initTable = await InitTable.create(config, dynamo);
-    return new AgentData(identityTable, accessEntryTable, initTable);
+  public static async create(config: AccountDataAwsConfig, tables: AccountDataTables) {
+    return new AgentData(tables.identityTable, tables.accessEntryTable, tables.initTable);
   }
 
   private identityTable: IdentityTable;

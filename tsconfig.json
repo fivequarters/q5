@@ -93,9 +93,12 @@
       "@5qtrs/function-lambda": ["lib/server/function-lambda/src"],
       "@5qtrs/fusebit-editor": ["lib/client/fusebit-editor/src"],
       "@5qtrs/fusebit-hook": ["lib/client/fusebit-hook/src"],
+      "@5qtrs/ops-data": ["lib/data/ops-data/src"],
+      "@5qtrs/ops-data-aws": ["lib/data/ops-data-aws/src"],
       "@5qtrs/perf": ["test/perf/src"],
       "@5qtrs/aws-region": ["lib/aws/aws-region/src"],
-      "@5qtrs/aws-config": ["lib/aws/aws-config/src"]
+      "@5qtrs/aws-config": ["lib/aws/aws-config/src"],
+      "@5qtrs/fusebit-ops-profile-sdk": ["sdk/fusebit-ops-profile-sdk/src"]
     }
   }
 }

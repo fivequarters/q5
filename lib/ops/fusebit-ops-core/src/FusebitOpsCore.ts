@@ -34,8 +34,6 @@ export {
 } from '@5qtrs/ops-core-aws';
 export { IMfaCodeResolver as IFusebitOpsMfaCodeResolver } from '@5qtrs/aws-cred';
 
-import { FusebitProfile } from '@5qtrs/fusebit-profile-sdk';
-
 // ------------------
 // Internal Constants
 // ------------------

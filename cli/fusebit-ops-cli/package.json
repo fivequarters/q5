@@ -21,9 +21,11 @@
     "@5qtrs/cli": "^0.0.1",
     "@5qtrs/text": "^0.0.1",
     "@5qtrs/table": "^0.0.1",
-    "@5qtrs/fusebit-ops-core": "^0.0.1"
-  },
-  "devServer": {
-    "port": 9512
+    "@5qtrs/aws-cred": "^0.0.1",
+    "@5qtrs/dot-config": "^0.0.1",
+    "@5qtrs/fusebit-ops-profile-sdk": "^0.0.1",
+    "@5qtrs/ops-data-aws": "^0.0.1",
+    "@5qtrs/ops-data": "^0.0.1",
+    "@5qtrs/config": "^0.0.1"
   }
 }

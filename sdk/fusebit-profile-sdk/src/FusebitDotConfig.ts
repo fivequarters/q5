@@ -1,6 +1,6 @@
-import { join } from 'path';
 import { DotConfig } from '@5qtrs/dot-config';
-import { FusebitProfileError } from './FusebitProfileError';
+import { join } from 'path';
+import { FusebitProfileException } from './FusebitProfileException';
 
 // ------------------
 // Internal Constants
@@ -19,12 +19,12 @@ const credsFileName = 'creds.json';
 // ----------------
 
 export class FusebitDotConfig extends DotConfig {
-  private constructor(directory?: string) {
-    super(dotFolderName, directory);
-  }
 
   public static async create(directory?: string) {
     return new FusebitDotConfig(directory);
+  }
+  private constructor(directory?: string) {
+    super(dotFolderName, directory);
   }
 
   public async getSettingsPath(): Promise<string> {
@@ -148,7 +148,7 @@ export class FusebitDotConfig extends DotConfig {
       settings.defaults = settings.defaults || {};
       return settings;
     } catch (error) {
-      throw FusebitProfileError.readFileError('settings', error);
+      throw FusebitProfileException.readFileError('settings', error);
     }
   }
 
@@ -156,7 +156,7 @@ export class FusebitDotConfig extends DotConfig {
     try {
       await this.writeJson(settingsPath, settings);
     } catch (error) {
-      throw FusebitProfileError.writeFileError('settings', error);
+      throw FusebitProfileException.writeFileError('settings', error);
     }
   }
 
@@ -169,7 +169,7 @@ export class FusebitDotConfig extends DotConfig {
       }
       return buffer.toString();
     } catch (error) {
-      throw FusebitProfileError.readFileError(fileName, error);
+      throw FusebitProfileException.readFileError(fileName, error);
     }
   }
 
@@ -178,7 +178,7 @@ export class FusebitDotConfig extends DotConfig {
       const buffer = Buffer.from(contents);
       await this.writeBinary(path, buffer);
     } catch (error) {
-      throw FusebitProfileError.writeFileError(fileName, error);
+      throw FusebitProfileException.writeFileError(fileName, error);
     }
   }
 
@@ -216,7 +216,7 @@ export class FusebitDotConfig extends DotConfig {
     try {
       await this.removeDirectory(path);
     } catch (error) {
-      throw FusebitProfileError.removeDirectoryError(`${name} keys`, error);
+      throw FusebitProfileException.removeDirectoryError(`${name} keys`, error);
     }
   }
 
@@ -228,7 +228,7 @@ export class FusebitDotConfig extends DotConfig {
     try {
       await this.removeDirectory(path);
     } catch (error) {
-      throw FusebitProfileError.removeDirectoryError(`${name} cached credentials`, error);
+      throw FusebitProfileException.removeDirectoryError(`${name} cached credentials`, error);
     }
   }
 }

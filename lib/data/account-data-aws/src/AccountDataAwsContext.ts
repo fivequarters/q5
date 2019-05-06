@@ -17,6 +17,7 @@ import { AgentData } from './AgentData';
 import { UserData } from './UserData';
 import { ClientData } from './ClientData';
 import { AuditData } from './AuditData';
+import { AccountDataTables } from './AccountDataTables';
 import { AccountDataAwsConfig } from './AccountDataAwsConfig';
 
 // ----------------
@@ -25,17 +26,19 @@ import { AccountDataAwsConfig } from './AccountDataAwsConfig';
 
 export class AccountDataAwsContext extends DataSource implements IAccountDataContext {
   public static async create(config: AccountDataAwsConfig, dynamo: AwsDynamo) {
-    const account = await AccountData.create(config, dynamo);
-    const subscription = await SubscriptionData.create(config, dynamo);
-    const issuer = await IssuerData.create(config, dynamo);
-    const agent = await AgentData.create(config, dynamo);
-    const user = await UserData.create(config, dynamo);
-    const client = await ClientData.create(config, dynamo);
-    const audit = await AuditData.create(config, dynamo);
-    return new AccountDataAwsContext(account, subscription, issuer, agent, user, client, audit);
+    const tables = await AccountDataTables.create(config, dynamo);
+    const account = await AccountData.create(config, tables);
+    const subscription = await SubscriptionData.create(config, tables);
+    const issuer = await IssuerData.create(config, tables);
+    const agent = await AgentData.create(config, tables);
+    const user = await UserData.create(config, tables, agent);
+    const client = await ClientData.create(config, tables, agent);
+    const audit = await AuditData.create(config, tables);
+    return new AccountDataAwsContext(tables, account, subscription, issuer, agent, user, client, audit);
   }
 
   private constructor(
+    tables: AccountDataTables,
     account: AccountData,
     subscription: SubscriptionData,
     issuer: IssuerData,
@@ -44,7 +47,7 @@ export class AccountDataAwsContext extends DataSource implements IAccountDataCon
     client: ClientData,
     audit: AuditData
   ) {
-    super([account, subscription, issuer, agent, user, client, audit]);
+    super([tables]);
     this.account = account;
     this.subscription = subscription;
     this.issuer = issuer;

@@ -1,0 +1,10 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": { "rootDir": "src", "module": "CommonJS", "outDir": "libc" },
+  "include": ["src"],
+  "references": [
+    { "path": "../../shared/exception" },
+    { "path": "../../shared/data" },
+    { "path": "../../shared/config" }
+  ]
+}

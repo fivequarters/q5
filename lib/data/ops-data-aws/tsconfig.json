@@ -1,0 +1,15 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": { "rootDir": "src", "module": "CommonJS", "outDir": "libc" },
+  "include": ["src"],
+  "references": [
+    { "path": "../../aws/aws-config" },
+    { "path": "../ops-data" },
+    { "path": "../../aws/aws-dynamo" },
+    { "path": "../../aws/aws-route53" },
+    { "path": "../../aws/aws-network" },
+    { "path": "../../aws/aws-ecr" },
+    { "path": "../../aws/aws-ec2" },
+    { "path": "../account-data-aws" }
+  ]
+}

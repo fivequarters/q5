@@ -4,6 +4,12 @@ import { spawn } from '@5qtrs/child-process';
 import { ECR } from 'aws-sdk';
 
 // ------------------
+// Internal Constants
+// ------------------
+
+const repositoryNotFoundCode = 'RepositoryNotFoundException';
+
+// ------------------
 // Internal Functions
 // ------------------
 
@@ -64,6 +70,19 @@ export class AwsEcr extends AwsBase<typeof ECR> {
     }
   }
 
+  public async repositoryExists(name: string): Promise<boolean> {
+    try {
+      await this.getRepository(name);
+      return true;
+    } catch (error) {
+      if (error.code === repositoryNotFoundCode) {
+        return false;
+      }
+
+      throw error;
+    }
+  }
+
   public async createRepository(name: string): Promise<IAwsRepository> {
     const ecr = await this.getAws();
 
@@ -83,7 +102,7 @@ export class AwsEcr extends AwsBase<typeof ECR> {
     });
   }
 
-  public async getRepository(name: string): Promise<IAwsRepository | undefined> {
+  public async getRepository(name: string): Promise<IAwsRepository> {
     const ecr = await this.getAws();
 
     const params = {
@@ -96,7 +115,7 @@ export class AwsEcr extends AwsBase<typeof ECR> {
           return reject(error);
         }
 
-        const repo = data.repositories && data.repositories.length ? mapToRepo(data.repositories[0]) : undefined;
+        const repo = mapToRepo(data.repositories[0]);
         resolve(repo);
       });
     });

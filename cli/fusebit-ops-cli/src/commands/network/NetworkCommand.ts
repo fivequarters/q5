@@ -1,32 +1,32 @@
 import { Command, ICommand } from '@5qtrs/cli';
-import { FusebitOpsCore } from '@5qtrs/fusebit-ops-core';
 import { AddNetworkCommand } from './AddNetworkCommand';
 import { ListNetworkCommand } from './ListNetworkCommand';
+
+// ------------------
+// Internal Constants
+// ------------------
+
+const command: ICommand = {
+  name: 'Manage Network',
+  cmd: 'network',
+  summary: 'Manage networks',
+  description: 'Add and list networks',
+};
 
 // ----------------
 // Exported Classes
 // ----------------
 
 export class NetworkCommand extends Command {
-  private core: FusebitOpsCore;
-
-  public static async create(core: FusebitOpsCore) {
+  public static async create() {
     const subCommands = [];
-    subCommands.push(await AddNetworkCommand.create(core));
-    subCommands.push(await ListNetworkCommand.create(core));
-
-    const command = {
-      name: 'Manage Network',
-      cmd: 'network',
-      summary: 'Manage networks',
-      description: 'Add and list networks',
-      subCommands,
-    };
-    return new NetworkCommand(command, core);
+    subCommands.push(await AddNetworkCommand.create());
+    subCommands.push(await ListNetworkCommand.create());
+    command.subCommands = subCommands;
+    return new NetworkCommand(command);
   }
 
-  private constructor(command: ICommand, core: FusebitOpsCore) {
+  private constructor(command: ICommand) {
     super(command);
-    this.core = core;
   }
 }

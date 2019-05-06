@@ -6,8 +6,8 @@ import {
   IFusebitNewProfile,
   IFusebitProfile,
   IFusebitProfileSettings,
-  FusebitProfileError,
-  FusebitProfileErrorCode,
+  FusebitProfileException,
+  FusebitProfileExceptionCode,
 } from '@5qtrs/fusebit-profile-sdk';
 import { profileConvert } from './profileConvert';
 import { ExecuteService } from './ExecuteService';
@@ -369,7 +369,7 @@ export class ProfileService {
       const result = await func();
       return result;
     } catch (error) {
-      if (error instanceof FusebitProfileError) {
+      if (error instanceof FusebitProfileException) {
         await this.writeFusebitProfileErrorMessage(error);
       } else {
         await this.writeErrorMessage(error);
@@ -378,31 +378,35 @@ export class ProfileService {
     }
   }
 
-  private async writeFusebitProfileErrorMessage(error: FusebitProfileError) {
-    switch (error.code) {
-      case FusebitProfileErrorCode.profileDoesNotExist:
+  private async writeFusebitProfileErrorMessage(exception: FusebitProfileException) {
+    switch (exception.code) {
+      case FusebitProfileExceptionCode.profileDoesNotExist:
         this.executeService.error(
           'No Profile',
-          Text.create("The profile '", Text.bold(error.entity), "' does not exist")
+          Text.create("The profile '", Text.bold(exception.params[0]), "' does not exist")
         );
         return;
-      case FusebitProfileErrorCode.profileAlreadyExists:
+      case FusebitProfileExceptionCode.profileAlreadyExists:
         this.executeService.error(
           'Profile Exists',
-          Text.create("The profile '", Text.bold(error.entity), "' already exists")
+          Text.create("The profile '", Text.bold(exception.params[0]), "' already exists")
         );
         return;
-      case FusebitProfileErrorCode.baseUrlMissingProtocol:
+      case FusebitProfileExceptionCode.baseUrlMissingProtocol:
         this.executeService.error(
           'Base Url',
-          Text.create("The base url '", Text.bold(error.entity), "' does not include the protocol, 'http' or 'https'")
+          Text.create(
+            "The base url '",
+            Text.bold(exception.params[0]),
+            "' does not include the protocol, 'http' or 'https'"
+          )
         );
         return;
-      case FusebitProfileErrorCode.noDefaultProfile:
+      case FusebitProfileExceptionCode.noDefaultProfile:
         this.executeService.error('No Profile', 'There is no default profile set');
         return;
       default:
-        this.executeService.error('Profile Error', error.message);
+        this.executeService.error('Profile Error', exception.message);
         return;
     }
   }

@@ -10,7 +10,7 @@ import {
   AccountDataExceptionCode,
 } from '@5qtrs/account-data';
 import { union } from '@5qtrs/array';
-import { AwsDynamo } from '@5qtrs/aws-dynamo';
+import { AccountDataTables } from './AccountDataTables';
 import { AccountDataAwsConfig } from './AccountDataAwsConfig';
 import { AgentData } from './AgentData';
 import { UserTable, IUser as IUserWithId } from './tables/UserTable';
@@ -43,10 +43,8 @@ function toUser(user: IUser, agent: IAgent) {
 // ----------------
 
 export class UserData extends DataSource implements IUserData {
-  public static async create(config: AccountDataAwsConfig, dynamo: AwsDynamo) {
-    const userTable = await UserTable.create(config, dynamo);
-    const agentData = await AgentData.create(config, dynamo);
-    return new UserData(config, userTable, agentData);
+  public static async create(config: AccountDataAwsConfig, tables: AccountDataTables, agentData: AgentData) {
+    return new UserData(config, tables.userTable, agentData);
   }
   private config: AccountDataAwsConfig;
   private userTable: UserTable;

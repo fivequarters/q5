@@ -13,6 +13,7 @@ export interface IDataSource {
 
 export class DataSource implements IDataSource {
   private dataSources?: IDataSource[];
+  private setupPromise?: Promise<void[]>;
 
   protected constructor(dataSources?: IDataSource[]) {
     this.dataSources = dataSources;
@@ -29,14 +30,15 @@ export class DataSource implements IDataSource {
 
   public async setup(): Promise<void> {
     if (this.dataSources) {
-      await Promise.all(
-        this.dataSources.map(async dataSource => {
-          const isSetup = await dataSource.isSetup();
-          if (!isSetup) {
-            dataSource.setup();
-          }
-        })
-      );
+      if (!this.setupPromise) {
+        this.setupPromise = Promise.all(
+          this.dataSources.map(async dataSource => {
+            const isSetup = await dataSource.isSetup();
+            return isSetup ? Promise.resolve() : dataSource.setup();
+          })
+        );
+      }
+      await this.setupPromise;
     }
   }
 }

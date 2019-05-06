@@ -1,117 +1,56 @@
-import { Command, IExecuteInput, Message, MessageKind, ArgType } from '@5qtrs/cli';
-import { FusebitOpsCore, IFusebitOpsNetwork } from '@5qtrs/fusebit-ops-core';
-import { Text } from '@5qtrs/text';
-import { Table } from '@5qtrs/table';
+import { Command, IExecuteInput } from '@5qtrs/cli';
+import { NetworkService } from '../../services';
+
+// ------------------
+// Internal Constants
+// ------------------
+
+const command = {
+  name: 'List Networks',
+  cmd: 'ls',
+  summary: 'Lists networks',
+  description: 'Lists the networks in the Fusebit platform.',
+  options: [
+    {
+      name: 'format',
+      aliases: ['f'],
+      description: "The format to display the output: 'table', 'json'",
+      default: 'table',
+    },
+  ],
+};
 
 // ----------------
 // Exported Classes
 // ----------------
 
 export class ListNetworkCommand extends Command {
-  private core: FusebitOpsCore;
-
-  public static async create(core: FusebitOpsCore) {
-    return new ListNetworkCommand(core);
+  public static async create() {
+    return new ListNetworkCommand();
   }
 
-  private constructor(core: FusebitOpsCore) {
-    super({
-      name: 'List Networks',
-      cmd: 'ls',
-      summary: 'Lists networks',
-      description: 'Lists the networks in the Fusebit platform.',
-      options: [
-        {
-          name: 'quiet',
-          aliases: ['q'],
-          description: 'Only write the result to stdout',
-          type: ArgType.boolean,
-          default: 'false',
-        },
-        {
-          name: 'format',
-          aliases: ['f'],
-          description: "The format to display the output: 'table', 'json'",
-          default: 'table',
-        },
-      ],
-    });
-    this.core = core;
-  }
-
-  private async listNetworks(input: IExecuteInput) {
-    let networks = [];
-    try {
-      if (!input.options.quiet) {
-        const message = await Message.create({
-          header: 'Listing Networks',
-          message: 'Fetching a list of networks in the Fusebit platform...',
-          kind: MessageKind.info,
-        });
-        await message.write(input.io);
-        input.io.spin(true);
-      }
-      networks = await this.core.listNetworks();
-    } catch (error) {
-      const message = await Message.create({
-        header: 'List Error',
-        message:
-          error.code !== undefined
-            ? 'An error was encountered when trying to list the networks in the Fusebit platform.'
-            : error.message,
-        kind: MessageKind.error,
-      });
-      await message.write(input.io);
-      await this.core.logError(error, message.toString());
-      return undefined;
-    }
-    return networks;
-  }
-
-  private async noNetworks(input: IExecuteInput) {
-    const message = await Message.create({
-      header: 'No Networks',
-      message: 'There are currently no networks in the Fusebit platform.',
-      kind: MessageKind.info,
-    });
-    await message.write(input.io);
-  }
-
-  private async displayNetworks(networks: IFusebitOpsNetwork[], input: IExecuteInput) {
-    if (input.options.format === 'json') {
-      input.io.writeLine(JSON.stringify(networks, null, 2));
-    } else {
-      const table = await Table.create({
-        width: input.io.outputWidth,
-        count: 2,
-        gutter: Text.dim('  │  '),
-        columns: [{ flexShrink: 0, flexGrow: 0 }, { flexGrow: 1 }],
-      });
-
-      table.addRow([Text.blue('Network Name'), Text.blue('Account & Region')]);
-      for (const network of networks) {
-        table.addRow(['', '']);
-        const details = Text.create(network.account, Text.dim(' • '), network.region);
-        table.addRow([network.name, details]);
-      }
-      input.io.writeLine(table.toText());
-    }
-
-    input.io.writeLine();
+  private constructor() {
+    super(command);
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
     await input.io.writeLine();
 
-    const networks = await this.listNetworks(input);
-    if (networks === undefined) {
-      return 1;
-    }
+    const format = input.options.format as string;
 
-    if (!networks.length) {
-      await this.noNetworks(input);
+    const networkService = await NetworkService.create(input);
+
+    if (format === 'json') {
+      const accounts = await networkService.listAllNetworks();
+      await networkService.displayNetworks(accounts);
     } else {
-      await this.displayNetworks(networks, input);
+      let getMore = true;
+      let result;
+      while (getMore) {
+        result = await networkService.listNetworks(result);
+        await networkService.displayNetworks(result.items);
+        getMore = result.next ? await networkService.confirmListMore() : false;
+      }
     }
 
     return 0;
