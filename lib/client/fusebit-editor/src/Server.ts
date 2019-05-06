@@ -1,6 +1,8 @@
 import { ServerResponse } from 'http';
 import * as Superagent from 'superagent';
 import { EditorContext } from './EditorContext';
+import * as Options from './Options';
+import { ICreateEditorOptions } from './CreateEditor';
 import { IFunctionSpecification } from './FunctionSpecification';
 const Superagent1 = Superagent;
 
@@ -189,7 +191,7 @@ export class Server {
   public loadEditorContext(
     boundaryId: string,
     id: string,
-    createIfNotExist?: IFunctionSpecification
+    createIfNotExist?: ICreateEditorOptions
   ): Promise<EditorContext> {
     return this.accountResolver(this.account)
       .then(newAccount => {
@@ -203,17 +205,48 @@ export class Server {
           .timeout(this.requestTimeout);
       })
       .then(res => {
-        let editorContext = new EditorContext(res.body.boundaryId, res.body.id, res.body);
-        editorContext.location = res.body.location;
+        let editorContext = createEditorContext(res.body);
         return editorContext;
       })
       .catch(error => {
         if (!createIfNotExist) {
-          throw error;
+          throw new Error(
+            `Fusebit editor failed to load function ${boundaryId}/${id} because it does not exist, and IEditorCreationOptions were not specified. Specify IEditorCreationOptions to create a function in case one does not exist.`
+          );
         }
-        let editorContext = new EditorContext(boundaryId, id, createIfNotExist);
+        let editorContext = createEditorContext(createIfNotExist.template);
         return this.buildFunction(editorContext).then(_ => editorContext);
       });
+
+    function createEditorContext(functionSpecification?: IFunctionSpecification) {
+      const defaultEditorOptions = new Options.EditorOptions();
+      let editorOptions = {
+        ...defaultEditorOptions,
+        ...(createIfNotExist && createIfNotExist.editor),
+        version: require('../package.json').version,
+      };
+      Object.keys(defaultEditorOptions).forEach(k => {
+        // @ts-ignore
+        if (editorOptions[k] !== false) {
+          // @ts-ignore
+          editorOptions[k] = {
+            ...defaultEditorOptions[k],
+            // @ts-ignore
+            ...(createIfNotExist && createIfNotExist[k]),
+          };
+        }
+      });
+      let editorContext = new EditorContext(boundaryId, id, functionSpecification);
+      if (
+        (createIfNotExist && createIfNotExist.editor) ||
+        !editorContext.functionSpecification.metadata ||
+        !editorContext.functionSpecification.metadata.editor
+      ) {
+        editorContext.functionSpecification.metadata = editorContext.functionSpecification.metadata || {};
+        editorContext.functionSpecification.metadata.editor = editorOptions;
+      }
+      return editorContext;
+    }
   }
 
   /**

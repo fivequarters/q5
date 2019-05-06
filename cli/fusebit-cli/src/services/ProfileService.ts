@@ -251,8 +251,8 @@ export class ProfileService {
     for (const option of profileOptions) {
       if (this.input.options[option]) {
         profile[option] = this.input.options[option] as string;
-      } else if (defaults && defaults[option]) {
-        profile[option] = defaults[option];
+      } else if (defaults && (defaults[option] || defaults[`${option}Id`])) {
+        profile[option] = defaults[option] || defaults[`${option}Id`];
       }
     }
 

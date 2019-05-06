@@ -11,11 +11,9 @@ import { EditorContext } from './EditorContext';
  */
 export function createLogsPanel(element: HTMLElement, editorContext: EditorContext, options?: ILogsPanelOptions) {
   const id = `fusebit-logs-${Math.floor(99999999 * Math.random()).toString(26)}`;
-  $(element).html(
-    `<div class="fusebit-logs" id="${id}"><pre class="fusebit-logs-content" id="${id}-content"></pre></div>`
-  );
-  const $content = $(`#${id}-content`);
-  const $container = $(`#${id}`);
+  element.innerHTML = `<div class="fusebit-logs" id="${id}"><pre class="fusebit-logs-content" id="${id}-content"></pre></div>`;
+  const contentElement = document.getElementById(`${id}-content`) as HTMLElement;
+  const containerElement = document.getElementById(id) as HTMLElement;
 
   const defaultOptions = new LogsPanelOptions();
   const effectiveOptions = {
@@ -143,11 +141,11 @@ export function createLogsPanel(element: HTMLElement, editorContext: EditorConte
 
   function append(line: string) {
     const annotatedLine = `[${new Date().toLocaleTimeString()}] ${line}\n`;
-    let newContent = $content.text() + annotatedLine;
+    let newContent = contentElement.textContent + annotatedLine;
     if (newContent.length > effectiveOptions.maxSize) {
       newContent = newContent.substring(newContent.length - effectiveOptions.maxSize);
     }
-    $content.text(newContent);
-    setTimeout(() => ($container[0].scrollTop = $container[0].scrollHeight), 100);
+    contentElement.textContent = newContent;
+    setTimeout(() => (containerElement.scrollTop = containerElement.scrollHeight), 100);
   }
 }
