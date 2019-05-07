@@ -81,6 +81,13 @@ export interface IFusebitProfile extends IFusebitNewProfile {
   kid: string;
 }
 
+export interface IFusebitKeyPair {
+  publicKey: string;
+  privateKey: string;
+  kid: string;
+  name: string;
+}
+
 export interface IFusebitExecutionProfile extends IFusebitProfileSettings {
   accessToken: string;
   baseUrl: string;
@@ -168,12 +175,15 @@ export class FusebitProfile {
     return this.getProfileOrThrow(name);
   }
 
-  public async addProfile(name: string, toAdd: IFusebitNewProfile): Promise<IFusebitProfile> {
+  public async generateKeyPair(name: string): Promise<IFusebitKeyPair> {
     const { publicKey, privateKey } = await createKeyPair();
     const kid = await this.generateKid(name);
+    return { publicKey, privateKey, kid, name };
+  }
 
-    await this.dotConfig.setPrivateKey(name, kid, privateKey);
-    await this.dotConfig.setPublicKey(name, kid, publicKey);
+  public async addProfile(name: string, toAdd: IFusebitNewProfile, keyPair: IFusebitKeyPair): Promise<IFusebitProfile> {
+    await this.dotConfig.setPrivateKey(name, keyPair.kid, keyPair.privateKey);
+    await this.dotConfig.setPublicKey(name, keyPair.kid, keyPair.publicKey);
 
     const created = new Date().toLocaleString();
 
@@ -188,8 +198,8 @@ export class FusebitProfile {
       baseUrl: nomarlizeBaseUrl(toAdd.baseUrl),
       issuer: toAdd.issuer,
       subject: toAdd.subject,
-      keyPair: name,
-      kid,
+      keyPair: keyPair.name,
+      kid: keyPair.kid,
     };
 
     const profile = await this.dotConfig.setProfile(name, fullProfileToAdd);

@@ -1,5 +1,6 @@
 export {
   FusebitProfile,
+  IFusebitKeyPair,
   IFusebitExecutionProfile,
   IFusebitNewProfile,
   IFusebitProfile,

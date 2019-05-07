@@ -19,7 +19,6 @@ const credsFileName = 'creds.json';
 // ----------------
 
 export class FusebitDotConfig extends DotConfig {
-
   public static async create(directory?: string) {
     return new FusebitDotConfig(directory);
   }
