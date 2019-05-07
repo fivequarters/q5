@@ -1,6 +1,5 @@
 import { Command, IExecuteInput } from '@5qtrs/cli';
-import { ExecuteService, ProfileService, UserService, ClientService } from '../services';
-import { Text } from '@5qtrs/text';
+import { ProfileService, UserService, ClientService } from '../services';
 
 // ------------------
 // Internal Constants
@@ -45,7 +44,6 @@ export class InitCommand extends Command {
     const token = input.arguments[0] as string;
     let profileName = input.options.profile as string;
 
-    const executeService = await ExecuteService.create(input);
     const profileService = await ProfileService.create(input);
     const userService = await UserService.create(input);
     const clientService = await ClientService.create(input);
@@ -60,8 +58,18 @@ export class InitCommand extends Command {
     const existing = await profileService.getProfile(profileName);
     if (existing) {
       await profileService.confirmInitProfile(profileName, existing);
-      await profileService.removeProfile(profileName);
     }
+
+    const keyPair = await profileService.generateKeyPair(profileName);
+
+    const initResolve = {
+      publicKey: keyPair.publicKey,
+      keyId: keyPair.kid,
+      jwt: token,
+    };
+
+    const agentService = agentId.indexOf('usr') === 0 ? userService : clientService;
+    const agent = await agentService.resolveInit(baseUrl, accountId, agentId, initResolve);
 
     const newProfile = {
       baseUrl,
@@ -74,40 +82,14 @@ export class InitCommand extends Command {
       subject: sub,
     };
 
-    const profile = await profileService.addProfile(profileName, newProfile);
+    await profileService.addProfile(profileName, newProfile, keyPair);
 
     const defaultProfileName = await profileService.getDefaultProfileName();
     if (!defaultProfileName) {
       await profileService.setDefaultProfileName(profileName);
     }
 
-    const publicKey = await profileService.getPublicKey(profileName);
-
-    const initResolve = {
-      publicKey,
-      keyId: profile.kid,
-      jwt: token,
-    };
-
-    if (agentId.indexOf('usr') === 0) {
-      const user = await userService.resolveInit(accountId, agentId, initResolve);
-
-      executeService.result(
-        'Initialized',
-        Text.create("The CLI has been successfully initalized with profile '", Text.bold(profileName), "'")
-      );
-
-      await userService.displayUser(user);
-    } else {
-      const client = await clientService.resolveInit(accountId, agentId, initResolve);
-
-      executeService.result(
-        'Initialized',
-        Text.create("The CLI has been successfully initalized with profile '", Text.bold(profileName), "'")
-      );
-
-      await clientService.displayClient(client);
-    }
+    await agentService.initSuccess(profileName, agent);
 
     return 0;
   }

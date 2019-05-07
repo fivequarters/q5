@@ -4,6 +4,7 @@ import {
   FusebitProfile,
   IFusebitExecutionProfile,
   IFusebitNewProfile,
+  IFusebitKeyPair,
   IFusebitProfile,
   IFusebitProfileSettings,
   FusebitProfileException,
@@ -96,8 +97,17 @@ export class ProfileService {
     );
   }
 
-  public async addProfile(name: string, newProfile: IFusebitNewProfile): Promise<IFusebitProfile> {
-    return this.execute(() => this.profile.addProfile(name, newProfile));
+  public async generateKeyPair(name: string): Promise<IFusebitKeyPair> {
+    return this.execute(() => this.profile.generateKeyPair(name));
+  }
+
+  public async addProfile(name: string, newProfile: IFusebitNewProfile, keyPair: IFusebitKeyPair): Promise<void> {
+    await this.execute(async () => {
+      if (await this.profile.profileExists(name)) {
+        await this.profile.removeProfile(name);
+      }
+      await this.profile.addProfile(name, newProfile, keyPair);
+    });
   }
 
   public async copyProfile(name: string, copyTo: string): Promise<IFusebitProfile> {

@@ -433,12 +433,11 @@ export class UserService {
   }
 
   public async resolveInit(
+    baseUrl: string,
     accountId: string,
     agentId: string,
     initResolve: IFusebitInitResolve
   ): Promise<IFusebitUser> {
-    const profile = await this.profileService.getExecutionProfile(['account'], { account: accountId });
-
     const user = await this.executeService.executeRequest(
       {
         header: 'Verifying Token',
@@ -448,12 +447,20 @@ export class UserService {
       },
       {
         method: 'POST',
-        url: `${profile.baseUrl}/v1/account/${accountId}/init`,
+        url: `${baseUrl}/v1/account/${accountId}/init`,
         data: initResolve,
       }
     );
-
     return user;
+  }
+
+  public async initSuccess(profileName: string, user: IFusebitUser): Promise<void> {
+    this.executeService.result(
+      'Initialized',
+      Text.create("The CLI has been successfully initalized with profile '", Text.bold(profileName), "'")
+    );
+
+    await this.displayUser(user);
   }
 
   public async confirmAddUser(newUser: INewFusebitUser): Promise<void> {
@@ -643,7 +650,7 @@ export class UserService {
         'Have the user execute the following command:'
       )
     );
-    console.log(`flx init ${initToken}`);
+    console.log(`fuse init ${initToken}`);
     console.log();
   }
 
