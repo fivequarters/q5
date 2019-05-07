@@ -1,5 +1,5 @@
 const { Config } = require('@5qtrs/config');
-const { IAwsConfig, AwsCreds } = require('@5qtrs/aws-config');
+const { AwsCreds } = require('@5qtrs/aws-config');
 const { AccountContext } = require('@5qtrs/account');
 const { AccountDataAwsContextFactory } = require('@5qtrs/account-data-aws');
 
@@ -40,7 +40,7 @@ function getBaseUrl(req) {
 
 function errorHandler(res) {
   return error => {
-    if (error.code === 'unauthorized') {
+    if (error.code === 'unauthorized' || error.code === 'invalidJwt' || error.code === 'noPublicKey') {
       console.log(error.message);
       return res.status(403).json({ message: 'Unauthorized' });
     }
