@@ -140,10 +140,10 @@ export class ResolvedAgent implements IAgent {
     return false;
   }
 
-  public ensureAuthorized(action: string, resource: string) {
+  public async ensureAuthorized(action: string, resource: string): Promise<void> {
     resource = Resource.normalize(resource);
     const authorized = this.isAuthorized(action, resource);
-    ignoreError(this.addAuditEntry(action, resource, authorized));
+    await this.addAuditEntry(action, resource, authorized);
     if (!authorized) {
       throw AccountDataException.unauthorized(this.id as string, action, resource);
     }
