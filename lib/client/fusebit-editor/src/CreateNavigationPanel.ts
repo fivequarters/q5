@@ -2,20 +2,6 @@ import * as Events from './Events';
 import { INavigationPanelOptions, NavigationPanelOptions } from './Options';
 import { EditorContext } from './EditorContext';
 
-import 'jqtree';
-import './jqtree.css';
-
-enum NodeIds {
-  Settings = 101,
-  SettingsCompute = 102,
-  SettingsApplication = 103,
-  SettingsCron = 104,
-  Tools = 201,
-  ToolsRunner = 202,
-  CodeAdd = 1001,
-  Code = 1002,
-}
-
 /**
  * Not part of MVP
  * @ignore
@@ -26,7 +12,8 @@ enum NodeIds {
 export function createNavigationPanel(
   element: HTMLElement,
   editorContext: EditorContext,
-  options?: INavigationPanelOptions
+  options?: INavigationPanelOptions,
+  mainEditorElement?: HTMLElement
 ) {
   const defaultOptions = new NavigationPanelOptions();
   const effectiveOptions = {
@@ -36,196 +23,230 @@ export function createNavigationPanel(
 
   const idPrefix = `fusebit-nav-${Math.floor(99999999 * Math.random()).toString(26)}`;
   const addButtonId = `${idPrefix}-add-file`;
-  const removeButtonId = `${idPrefix}-remove-file`;
+  const codeCategoryId = `${idPrefix}-code`;
   const newFileId = `${idPrefix}-new-file`;
   const newFileNameId = `${idPrefix}-new-file-name`;
-  $(element).html(`<div id="${idPrefix}-main" class="fusebit-nav"></div>`);
-  const $nav = $(`#${idPrefix}-main`);
 
-  let fileNo = NodeIds.Code + 1;
-
-  const data: any[] = [];
-
+  let html = [`<div id="${idPrefix}-main" class="fusebit-nav">`];
   if (!effectiveOptions.hideCode) {
-    const code = {
-      name: 'Code',
-      id: NodeIds.Code,
-      children: [] as { name: string; fileName?: string; id: number }[],
-    };
+    html.push(
+      `<div id="${codeCategoryId}" class="fusebit-nav-category">Code`,
+      `<button id="${addButtonId}" class="fusebit-code-action-add-btn"><i class="fa fa-plus"></i></button></div>`
+    );
     if (editorContext.functionSpecification && editorContext.functionSpecification.nodejs) {
       const fileNames = Object.keys(editorContext.functionSpecification.nodejs.files).sort();
       for (const fileName of fileNames) {
         if ((effectiveOptions.hideFiles as string[]).indexOf(fileName) < 0) {
-          const child = { name: fileName, fileName, id: fileNo++ };
-          code.children.push(child);
+          html.push(createFileNameNavigationItemHtml(fileName));
         }
       }
     }
-    code.children.push({ name: 'Add', id: NodeIds.CodeAdd });
-    data.push(code);
+    html.push(
+      `<div id="${newFileId}" style="display:none" class="fusebit-nav-new-file">`,
+      `<span class="fusebit-code-file-icon"><i class="fa fa-file"></i></span>`,
+      `<input id="${newFileNameId}" placeholder="" size="15" class="fusebit-new-file-input">`,
+      `</span></div>`
+    );
+    html.push(`<div>&nbsp;</div>`);
   }
   if (
     !effectiveOptions.hideComputeSettings ||
     !effectiveOptions.hideApplicationSettings ||
-    !effectiveOptions.hideCronSettings
+    !effectiveOptions.hideCronSettings ||
+    !effectiveOptions.hideRunnerTool
   ) {
-    const settings: any = {
-      name: 'Settings',
-      id: NodeIds.Settings,
-      children: [],
-    };
+    html.push(`<div class="fusebit-nav-category">Settings</div>`);
     if (!effectiveOptions.hideComputeSettings) {
-      settings.children.push({ name: 'Compute', id: NodeIds.SettingsCompute });
+      html.push(
+        `<div class="fusebit-nav-item" data-type="computeSettings">`,
+        `<span class="fusebit-code-compute-icon"><i class="fa fa-tools"></i></span>`,
+        `<span class="fusebit-compute-file">Compute</span>`,
+        `</div>`
+      );
     }
     if (!effectiveOptions.hideApplicationSettings) {
-      settings.children.push({ name: 'Application', id: NodeIds.SettingsApplication });
+      html.push(
+        `<div class="fusebit-nav-item" data-type="applicationSettings">`,
+        `<span class="fusebit-code-secret-icon"><i class="fa fa-cogs"></i></span>`,
+        `<span class="fusebit-compute-file">Application</span>`,
+        `</div>`
+      );
     }
     if (!effectiveOptions.hideCronSettings) {
-      settings.children.push({ name: 'Schedule', id: NodeIds.SettingsCron });
+      html.push(
+        `<div class="fusebit-nav-item" data-type="cronSettings">`,
+        `<span class="fusebit-code-cron-icon"><i class="fa fa-clock"></i></span>`,
+        `<span class="fusebit-compute-file">Schedule</span>`,
+        `</div>`
+      );
     }
-    data.push(settings);
+    if (!effectiveOptions.hideRunnerTool) {
+      html.push(
+        `<div class="fusebit-nav-item" data-type="runnerSettings">`,
+        `<span class="fusebit-code-cron-icon"><i class="fa fa-play"></i></span>`,
+        `<span class="fusebit-compute-file">Runner</span>`,
+        `</div>`
+      );
+    }
   }
-  if (!effectiveOptions.hideRunnerTool) {
-    const tools = {
-      name: 'Tools',
-      id: NodeIds.Tools,
-      children: [{ name: 'Runner', id: NodeIds.ToolsRunner }],
-    };
-    data.push(tools);
+  html.push('</div>'); // fusebit-nav
+
+  // Insert into DOM and attach events
+
+  element.innerHTML = html.join('');
+  let navElement = document.getElementById(`${idPrefix}-main`) as HTMLElement;
+  let navItems = navElement.getElementsByClassName('fusebit-nav-item');
+  for (var i = 0; i < navItems.length; i++) {
+    if (navItems[i].classList.contains('fusebit-nav-file')) {
+      attachFileNameNavigationItemEvents(navItems[i] as HTMLElement);
+    } else {
+      navItems[i].addEventListener('click', navigationItemClicked);
+    }
   }
 
-  const result = $nav
-    .tree({
-      data,
-      closedIcon: $('<i class="fa fa-chevron-right" aria-hidden="true"></i>').get(0),
-      openedIcon: $('<i class="fa fa-chevron-down" aria-hidden="true"></i>').get(0),
-      autoOpen: true,
-      dragAndDrop: false,
-      onCreateLi: (node, $li) => {
-        if (node.id === NodeIds.Code) {
-          const lines = [
-            `Code<button id="${addButtonId}" class="fusebit-code-action-add-btn"><i class="fa fa-plus"></i></button>`,
-          ];
-          $li.find('.jqtree-element span').html(lines.join(''));
-        } else if (node.id > NodeIds.Code) {
-          const lines = [
-            `<span class="fusebit-code-file-icon"><i class="fa fa-file"></i></span>`,
-            `<span id="codefile-${node.id}"class="fusebit-code-file">${node.fileName}</span>`,
-            `<button id="${removeButtonId}-${
-              node.id
-            }" class="fusebit-code-action-delete-btn"><i class="fa fa-trash"></i></button>`,
-          ];
-          $li.find('.jqtree-element span').html(lines.join(''));
-        } else if (node.id === NodeIds.ToolsRunner) {
-          const lines = [
-            `<span class="fusebit-code-cogs-icon"><i class="fa fa-cogs"></i></span>`,
-            `<span class="fusebit-runner-file">Runner</span>`,
-          ];
-          $li.find('.jqtree-element span').html(lines.join(''));
-        } else if (node.id === NodeIds.SettingsApplication) {
-          const lines = [
-            `<span class="fusebit-code-secret-icon"><i class="fa fa-user-secret"></i></span>`,
-            `<span class="fusebit-application-file">Application</span>`,
-          ];
-          $li.find('.jqtree-element span').html(lines.join(''));
-        } else if (node.id === NodeIds.SettingsCron) {
-          const lines = [
-            `<span class="fusebit-code-cron-icon"><i class="fa fa-clock"></i></span>`,
-            `<span class="fusebit-cron-file">Schedule</span>`,
-          ];
-          $li.find('.jqtree-element span').html(lines.join(''));
-        } else if (node.id === NodeIds.SettingsCompute) {
-          const lines = [
-            `<span class="fusebit-code-compute-icon"><i class="fa fa-tools"></i></span>`,
-            `<span class="fusebit-compute-file">Compute</span>`,
-          ];
-          $li.find('.jqtree-element span').html(lines.join(''));
-        } else if (node.id === NodeIds.CodeAdd) {
-          const lines = [
-            `<span id="${newFileId}" style="display:none">`,
-            `<span class="fusebit-code-file-icon">`,
-            `<i class="fa fa-file"></i>`,
-            `</span>`,
-            `<input id="${newFileNameId}" placeholder="newFile.js" size="15" class="fusebit-new-file-input">`,
-            `</span>`,
-          ];
-          $li.find('.jqtree-element span').html(lines.join(''));
-        }
-      },
-      onCanSelectNode: node => {
-        return [NodeIds.CodeAdd, NodeIds.Settings, NodeIds.Tools, NodeIds.Code].indexOf(node.id as number) < 0;
-      },
-    })
-    .on('tree.select', (event: any) => {
-      if (event.node) {
-        switch (event.node.id) {
-          case NodeIds.SettingsApplication:
-            editorContext.selectSettingsApplication();
-            break;
-          case NodeIds.SettingsCompute:
-            editorContext.selectSettingsCompute();
-            break;
-          case NodeIds.SettingsCron:
-            editorContext.selectSettingsCron();
-            break;
-          case NodeIds.ToolsRunner:
-            editorContext.selectToolsRunner();
-            break;
-          default:
-            // A file was selected
-            editorContext.selectFile(event.node.fileName);
-        }
-      }
-    });
-
-  // Add event listeners to add/remove file controls
-  attachFileManipulationEvents();
+  let addButton = document.getElementById(addButtonId) as HTMLElement;
+  let codeCategory = document.getElementById(codeCategoryId) as HTMLElement;
+  addButton.addEventListener('click', addButtonClicked);
+  let newFileNameElement = document.getElementById(newFileNameId) as HTMLInputElement;
+  newFileNameElement.addEventListener('keyup', newFileNameKeyup);
 
   editorContext.on(Events.Events.FileAdded, (e: Events.FileAddedEvent) => {
-    const fileNodes = ($nav.tree('getNodeById', NodeIds.Code) || { children: [] }).children || [];
-    let largerNode: INode = $nav.tree('getNodeById', NodeIds.CodeAdd) as INode;
-    for (const fileNode of fileNodes) {
-      if (fileNode.fileName > e.fileName) {
-        largerNode = fileNode;
+    let insertAfter: HTMLElement | undefined;
+    let navigationItems = navElement.getElementsByClassName('fusebit-nav-file');
+    for (var i = 0; i < navigationItems.length; i++) {
+      if ((navigationItems[i].getAttribute('data-file') as string) > e.fileName) {
         break;
+      } else {
+        insertAfter = navigationItems[i] as HTMLElement;
       }
     }
-    $nav.tree('addNodeBefore', { name: e.fileName, fileName: e.fileName, id: fileNo++ }, largerNode);
-    const newNode = $nav.tree('getNodeById', fileNo - 1);
-    $nav.tree('selectNode', newNode);
-    attachFileManipulationEvents(); // jqTree re-generates the DOM, so we need to re-attach events
+
+    let html = createFileNameNavigationItemHtml(e.fileName);
+    if (insertAfter) {
+      insertAfter.insertAdjacentHTML('afterend', html);
+    } else {
+      codeCategory.insertAdjacentHTML('afterend', html);
+    }
+    let element = findFileNameNavigationItemElement(e.fileName) as HTMLElement;
+    attachFileNameNavigationItemEvents(element);
+    selectNavigationItem(element);
+    editorContext.selectFile(e.fileName);
   });
 
   editorContext.on(Events.Events.FileDeleted, (e: Events.FileDeletedEvent) => {
-    let fileNodes = ($nav.tree('getNodeById', NodeIds.Code) || { children: [] }).children || [];
-    let node: INode | undefined;
-    for (const fileNode of fileNodes) {
-      if (fileNode.fileName === e.fileName) {
-        node = fileNode;
-        break;
+    let element = findFileNameNavigationItemElement(e.fileName);
+    if (element) {
+      element.remove();
+      let firstFileElement = navElement.getElementsByClassName('fusebit-nav-file')[0] as HTMLElement;
+      if (firstFileElement) {
+        selectNavigationItem(firstFileElement);
+        editorContext.selectFile(firstFileElement.getAttribute('data-file') as string);
       }
     }
-    if (node) {
-      $nav.tree('removeNode', node);
-    }
-    fileNodes = ($nav.tree('getNodeById', NodeIds.Code) || { children: [] }).children || [];
-    if (fileNodes.length > 0) {
-      $nav.tree('selectNode', fileNodes[0]);
-    }
-    attachFileManipulationEvents(); // jqTree re-generates the DOM, so we need to re-attach events
   });
 
+  let newFileElement = document.getElementById(newFileId) as HTMLElement;
+  function addButtonClicked(e: Event) {
+    e.preventDefault();
+    newFileElement.style.display = null;
+    newFileNameElement.value = '';
+    newFileNameElement.focus();
+    detectClickOutsideElement(
+      newFileElement,
+      () => {
+        newFileElement.style.display = 'none';
+      },
+      e
+    );
+  }
+
+  // Functions
+
+  function deleteButtonClicked(fileName: string) {
+    return function deleteButtonClickedCore(e: Event) {
+      e.preventDefault();
+      editorContext.deleteFile(fileName);
+    };
+  }
+
+  function createFileNameNavigationItemHtml(fileName: string) {
+    let html = [
+      `<div class="fusebit-nav-item fusebit-nav-file" data-type="file" data-file="${fileName}">`,
+      `<span><span class="fusebit-code-file-icon"><i class="fa fa-file"></i></span>${fileName}</span>`,
+      `<button class="fusebit-code-action-delete-btn"><i class="fa fa-trash"></i></button>`,
+      `</div>`,
+    ];
+    return html.join('');
+  }
+
+  function attachFileNameNavigationItemEvents(element: HTMLElement) {
+    element.addEventListener('click', navigationItemClicked);
+    let deleteButton = element.getElementsByClassName('fusebit-code-action-delete-btn')[0];
+    if (deleteButton) {
+      (deleteButton as HTMLElement).addEventListener(
+        'click',
+        deleteButtonClicked(element.getAttribute('data-file') as string)
+      );
+    }
+  }
+
+  function findFileNameNavigationItemElement(fileName: string): HTMLElement | undefined {
+    let navigationItems = navElement.getElementsByClassName('fusebit-nav-file');
+    for (var i = 0; i < navigationItems.length; i++) {
+      if (navigationItems[i].getAttribute('data-file') === fileName) {
+        return navigationItems[i] as HTMLElement;
+      }
+    }
+    return undefined;
+  }
+
+  function newFileNameKeyup(e: KeyboardEvent) {
+    if (e.which === 13 || e.keyCode === 13) {
+      // enter
+      endAddingNewFile(newFileNameElement.value as string);
+    } else if (e.which === 27 || e.keyCode === 27) {
+      // escape
+      endAddingNewFile();
+    }
+  }
+
+  let outsideClickListener: ((event: Event) => any) | undefined;
+  function detectClickOutsideElement(element: HTMLElement, cb: () => void, trigger?: Event) {
+    if (!mainEditorElement) {
+      return;
+    }
+    if (outsideClickListener) {
+      throw new Error('Only one outsideClickListener supported at a time.');
+    }
+    outsideClickListener = (event: Event) => {
+      if (!element.contains(event.target as Node) && isVisible(element) && trigger !== event) {
+        cancelDetectionOfClickOutsideElement();
+        cb();
+      }
+    };
+
+    const isVisible = (elem: HTMLElement) =>
+      !!elem && !!(elem.offsetWidth || elem.offsetHeight || elem.getClientRects().length);
+
+    mainEditorElement.addEventListener('click', outsideClickListener);
+  }
+
+  function cancelDetectionOfClickOutsideElement() {
+    if (outsideClickListener && mainEditorElement) {
+      mainEditorElement.removeEventListener('click', outsideClickListener);
+      outsideClickListener = undefined;
+    }
+  }
+
   function endAddingNewFile(fileName?: string) {
-    const $newFile = $(`#${newFileId}`);
-    $newFile.hide();
+    newFileElement.style.display = 'none';
+    cancelDetectionOfClickOutsideElement();
     if (fileName) {
       if (editorContext.functionSpecification.nodejs && editorContext.functionSpecification.nodejs.files[fileName]) {
         // file exists, select it
-        const fileNodes = ($nav.tree('getNodeById', NodeIds.Code) || { children: [] }).children || [];
-        for (const fileNode of fileNodes) {
-          if (fileNode.fileName === fileName) {
-            $nav.tree('selectNode', fileNode);
-          }
+        let element = findFileNameNavigationItemElement(fileName);
+        if (element) {
+          selectNavigationItem(element);
         }
       } else {
         editorContext.addFile(fileName);
@@ -233,43 +254,48 @@ export function createNavigationPanel(
     }
   }
 
-  function endDeletingFile(confirm: boolean, fileName: string) {
-    if (confirm) {
-      editorContext.deleteFile(fileName);
+  function navigationItemClicked(e: Event) {
+    e.preventDefault();
+    let currentElement = e.currentTarget as HTMLElement;
+    if (currentElement.classList.contains('fusebit-nav-item-selected')) {
+      return;
+    }
+    if (
+      currentElement.classList.contains('fusebit-nav-file') &&
+      !findFileNameNavigationItemElement(currentElement.getAttribute('data-file') as string)
+    ) {
+      // file no longer exists
+      return;
+    }
+
+    selectNavigationItem(currentElement);
+    let nodeType = currentElement.getAttribute('data-type');
+    switch (nodeType) {
+      case 'file':
+        editorContext.selectFile(currentElement.getAttribute('data-file') as string);
+        break;
+      case 'computeSettings':
+        editorContext.selectSettingsCompute();
+        break;
+      case 'applicationSettings':
+        editorContext.selectSettingsApplication();
+        break;
+      case 'runnerSettings':
+        editorContext.selectToolsRunner();
+        break;
+      case 'cronSettings':
+        editorContext.selectSettingsCron();
+        break;
     }
   }
 
-  function attachFileManipulationEvents() {
-    const $addButton = $(`#${addButtonId}`);
-    const $newFileName = $(`#${newFileNameId}`);
-    const $newFile = $(`#${newFileId}`);
-
-    $addButton.click(e => {
-      e.preventDefault();
-      $newFile.show();
-      $newFileName.val('').focus();
-    });
-
-    const fileNodes = ($nav.tree('getNodeById', NodeIds.Code) || { children: [] }).children || [];
-    for (const fileNode of fileNodes) {
-      const nodeId = fileNode.id;
-      const fileName = fileNode.fileName;
-      $(`#${removeButtonId}-${nodeId}`).click(e => {
-        e.preventDefault();
-        endDeletingFile(true, fileName);
-      });
+  function selectNavigationItem(element: HTMLElement) {
+    let selectedElements = navElement.getElementsByClassName('fusebit-nav-item-selected');
+    for (var i = 0; i < selectedElements.length; i++) {
+      selectedElements[i].classList.remove('fusebit-nav-item-selected');
     }
-
-    $newFileName.keyup(e => {
-      if (e.which === 13 || e.keyCode === 13) {
-        // enter
-        endAddingNewFile($newFileName.val() as string);
-      } else if (e.which === 27 || e.keyCode === 27) {
-        // escape
-        endAddingNewFile();
-      }
-    });
+    element.classList.add('fusebit-nav-item-selected');
   }
 
-  return result;
+  return element;
 }

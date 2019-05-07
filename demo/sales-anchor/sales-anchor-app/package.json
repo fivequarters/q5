@@ -22,8 +22,6 @@
     "@5qtrs/nav-bar": "^0.0.1",
     "@5qtrs/request": "^0.0.1",
     "auth0-js": "^9.10.0",
-    "jqtree": "^1.4.9",
-    "jquery-resizable-dom": "^0.32.0",
     "monaco-editor": "^0.15.6",
     "react": "^16.8.2",
     "react-dom": "^16.8.2",

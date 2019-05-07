@@ -1,6 +1,6 @@
 {
   "name": "@5qtrs/fusebit-editor",
-  "version": "0.9.4",
+  "version": "0.9.5",
   "description": "",
   "main": "libm/index.js",
   "browser": "libm/index.js",
@@ -20,8 +20,6 @@
   },
   "keywords": [],
   "dependencies": {
-    "jqtree": "^1.4.9",
-    "jquery-resizable-dom": "^0.32.0",
     "monaco-editor": "^0.15.6",
     "superagent": "^4.1.0",
     "@5qtrs/event": "^0.0.1"

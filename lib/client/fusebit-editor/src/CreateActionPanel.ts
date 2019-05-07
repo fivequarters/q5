@@ -32,89 +32,82 @@ export function createActionPanel(
   const hideNavLogsId = `${idPrefix}-hide-nav-logs`;
   const showNavLogsId = `${idPrefix}-show-nav-logs`;
 
-  const lines: string[] = [
-    `<div class="fusebit-action-wrapper">
-    <div>`,
-  ];
+  const lines: string[] = [`<div class="fusebit-action-wrapper">`, `<div>`];
   if (opts.enableClose) {
+    lines.push(`<button id="${closeId}" class="fusebit-action-btn"><i class="fa fa-window-close"></i></button>`);
+  }
+  lines.push(
+    `<button id="${saveId}" class="fusebit-action-btn"><i class="fa fa-save"></i></button><button id="${runId}" class="fusebit-action-btn"><i class="fa fa-play"></i></button>`
+  );
+  if (opts.enableCodeOnlyToggle) {
     lines.push(
-      `        <button id="${closeId}" class="fusebit-action-btn"><i class="fa fa-window-close"></i></button>`
+      `<button id="${hideNavLogsId}" class="fusebit-action-btn">`,
+      `<i class="far fa-file-code"></i>`,
+      `</button>`,
+      `<button id="${showNavLogsId}" class="fusebit-action-btn" style="display: none">`,
+      `<i class="fas fa-file-code"></i>`,
+      `</button>`
     );
   }
-  lines.push(`        <button id="${saveId}" class="fusebit-action-btn"><i class="fa fa-save"></i></button>
-        <button id="${runId}" class="fusebit-action-btn"><i class="fa fa-play"></i></button>
-   `);
-  if (opts.enableCodeOnlyToggle) {
-    lines.push(`
-        <button id="${hideNavLogsId}" class="fusebit-action-btn">
-          <i class="far fa-file-code"></i>
-        </button>
-        <button id="${showNavLogsId}" class="fusebit-action-btn" style="display: none">
-          <i class="fas fa-file-code"></i>
-        </button>
-`);
-  }
   if (opts.enableFullScreen) {
-    lines.push(`
-        <button id="${expandId}" class="fusebit-action-btn"><i class="fa fa-arrows-alt"></i></button>
-        <button id="${compressId}" class="fusebit-action-btn" style="display: none"><i class="fa fa-compress"></i></button>
-`);
+    lines.push(
+      `<button id="${expandId}" class="fusebit-action-btn"><i class="fa fa-arrows-alt"></i></button>`,
+      `<button id="${compressId}" class="fusebit-action-btn" style="display: none"><i class="fa fa-compress"></i></button>`
+    );
   }
-  lines.push(`
-    </div>
-</div>`);
+  lines.push(`</div></div>`);
 
-  $(element).html(lines.join('\n'));
+  element.innerHTML = lines.join('');
 
-  const $save = $(`#${saveId}`);
-  const $close = $(`#${closeId}`);
-  const $run = $(`#${runId}`);
-  const $expand = $(`#${expandId}`);
-  const $compress = $(`#${compressId}`);
-  const $hideNavLogs = $(`#${hideNavLogsId}`);
-  const $showNavLogs = $(`#${showNavLogsId}`);
+  const saveElement = document.getElementById(saveId) as HTMLElement;
+  const closeElement = document.getElementById(closeId) as HTMLElement;
+  const runElement = document.getElementById(runId) as HTMLElement;
+  const expandElement = document.getElementById(expandId) as HTMLElement;
+  const compressElement = document.getElementById(compressId) as HTMLElement;
+  const hideNavLogsElement = document.getElementById(hideNavLogsId) as HTMLElement;
+  const showNavLogsElement = document.getElementById(showNavLogsId) as HTMLElement;
 
-  $close.click(e => {
+  closeElement.addEventListener('click', e => {
     e.preventDefault();
     editorContext.close();
   });
 
-  $hideNavLogs.click(e => {
+  hideNavLogsElement.addEventListener('click', e => {
     e.preventDefault();
-    $hideNavLogs.hide();
-    $showNavLogs.show();
+    hideNavLogsElement.style.display = 'none';
+    showNavLogsElement.style.display = null;
     editorContext.updateLogsState(false);
     editorContext.updateNavState(false);
   });
 
-  $showNavLogs.click(e => {
+  showNavLogsElement.addEventListener('click', e => {
     e.preventDefault();
-    $hideNavLogs.show();
-    $showNavLogs.hide();
+    hideNavLogsElement.style.display = null;
+    showNavLogsElement.style.display = 'none';
     editorContext.updateLogsState(true);
     editorContext.updateNavState(true);
   });
 
-  $expand.click(e => {
+  expandElement.addEventListener('click', e => {
     e.preventDefault();
-    $expand.hide();
-    $compress.show();
+    expandElement.style.display = 'none';
+    compressElement.style.display = null;
     editorContext.setFullScreen(true);
   });
 
-  $compress.click(e => {
+  compressElement.addEventListener('click', e => {
     e.preventDefault();
-    $expand.show();
-    $compress.hide();
+    expandElement.style.display = null;
+    compressElement.style.display = 'none';
     editorContext.setFullScreen(false);
   });
 
-  $save.click(e => {
+  saveElement.addEventListener('click', e => {
     e.preventDefault();
     server.saveFunction(editorContext).catch(_ => {});
   });
 
-  $run.click(e => {
+  runElement.addEventListener('click', e => {
     e.preventDefault();
     server.runFunction(editorContext).catch(_ => {
       // do nothing
@@ -125,8 +118,10 @@ export function createActionPanel(
   editorContext.on(Events.ReadOnlyStateChanged, updateState);
 
   function updateState() {
-    editorContext.dirtyState ? $save.removeAttr('disabled') : $save.attr('disabled', 'disabled');
-    editorContext.readOnly ? $run.attr('disabled', 'disabled') : $run.removeAttr('disabled');
+    editorContext.dirtyState
+      ? saveElement.removeAttribute('disabled')
+      : saveElement.setAttribute('disabled', 'disabled');
+    editorContext.readOnly ? runElement.setAttribute('disabled', 'disabled') : runElement.removeAttribute('disabled');
   }
 
   updateState();

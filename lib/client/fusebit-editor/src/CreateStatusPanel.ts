@@ -12,8 +12,8 @@ import { EditorContext } from './EditorContext';
  */
 export function createStatusPanel(element: HTMLElement, editorContext: EditorContext, options?: IStatusPanelOptions) {
   const id = `fusebit-status-${Math.floor(99999999 * Math.random()).toString(26)}`;
-  $(element).html(`<div id="${id}" class="fusebit-status">Powered by Fusebit.io</div>`);
-  const $status = $(`#${id}`);
+  element.innerHTML = `<div id="${id}" class="fusebit-status">Powered by Fusebit.io</div>`;
+  const statusElement = document.getElementById(id) as HTMLElement;
 
   editorContext.on(Events.Events.BuildStarted, (e: Events.BuildStartedEvent) => {
     setStatus(`Starting build of ${editorContext.boundaryId}/${editorContext.functionId}...`);
@@ -50,6 +50,6 @@ export function createStatusPanel(element: HTMLElement, editorContext: EditorCon
   });
 
   function setStatus(line: string) {
-    $status.text(line);
+    statusElement.innerText = line;
   }
 }

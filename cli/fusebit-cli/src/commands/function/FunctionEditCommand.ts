@@ -127,24 +127,19 @@ function getEditorHtml(port: number, profile: any): string {
     <div id="editor" style="width:800px;height:500px;margin-top:30px;margin-left:auto;margin-right:auto">
 </body>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js" type="text/javascript"></script>
 <script src="https://cdn.fusebit.io/fusebit/js/fusebit-editor/latest/fusebit-editor.js"></script>
 <script type="text/javascript">
-    $(function () {
-
-        fusebit.createEditor(document.getElementById('editor'), '${profile.boundary}', '${profile.function}', {
-            accountId: '${profile.account}',
-            subscriptionId: '${profile.subscription}',
-            baseUrl: '${profile.baseUrl}',
-            accessToken: '${profile.accessToken}',
-        }, {
-            template: {},
-            // editor: {},
-        }).then(editorContext => {
-            editorContext.setFullScreen(true);
-        });
-
-    });
+  fusebit.createEditor(document.getElementById('editor'), '${profile.boundary}', '${profile.function}', {
+      accountId: '${profile.account}',
+      subscriptionId: '${profile.subscription}',
+      baseUrl: '${profile.baseUrl}',
+      accessToken: '${profile.accessToken}',
+  }, {
+      template: {},
+      // editor: {},
+  }).then(editorContext => {
+      editorContext.setFullScreen(true);
+  });
 </script>
 
 </html>  

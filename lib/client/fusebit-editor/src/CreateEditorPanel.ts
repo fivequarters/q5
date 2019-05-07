@@ -57,13 +57,13 @@ export function createEditorPanel(element: HTMLElement, editorContext: EditorCon
     } else {
       Assert.fail('Model or language cannot be determined for the selected file.');
     }
-    $(element).show();
+    element.style.display = null;
   });
 
   // When the edited file is deleted, hide the editor
   editorContext.on(Events.FileDeleted, (e: FileDeletedEvent) => {
     if (editorContext.selectedFileName === e.fileName) {
-      $(element).hide();
+      element.style.display = 'none';
     }
   });
 
@@ -78,7 +78,7 @@ export function createEditorPanel(element: HTMLElement, editorContext: EditorCon
     } else {
       Assert.fail('Model cannot be determined the runner script.');
     }
-    $(element).show();
+    element.style.display = null;
   });
 
   // When compute settings are selected, serialize them and display as INI for editing
@@ -92,7 +92,7 @@ export function createEditorPanel(element: HTMLElement, editorContext: EditorCon
     } else {
       Assert.fail('Model cannot be determined for compute node.');
     }
-    $(element).show();
+    element.style.display = null;
   });
 
   // When application settings are selected, serialize them and display as INI for editing
@@ -106,7 +106,7 @@ export function createEditorPanel(element: HTMLElement, editorContext: EditorCon
     } else {
       Assert.fail('Model cannot be determined for app settings node.');
     }
-    $(element).show();
+    element.style.display = null;
   });
 
   // When cron settings are selected, serialize them and display as INI for editing
@@ -120,7 +120,7 @@ export function createEditorPanel(element: HTMLElement, editorContext: EditorCon
     } else {
       Assert.fail('Model cannot be determined for CRON settings node.');
     }
-    $(element).show();
+    element.style.display = null;
   });
 
   editor.onDidChangeModelContent(() => {
