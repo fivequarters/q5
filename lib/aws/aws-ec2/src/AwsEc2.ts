@@ -58,6 +58,14 @@ $(aws ecr get-login --region ${region} --no-include-email)
 
 docker pull ${account}.dkr.ecr.${region}.amazonaws.com/${repo}:${tag}
 
+# Install SSH keys
+
+mkdir -p ~/.ssh
+cat > ~/.ssh/authorized_keys << EOF
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC+ssNVUTjyrPUULL/rGxH3wu2vMXCyZiekkzVPtiGHWFTpkBp3xeI5EYzjJSF5Qe8CCGGC39Zpfaf2OX8gnPbDDcF4LXdFQKyKPKknMQwNcuGNI/NhseN955yQNoF8y1R0K9JRSQdCyJ/XHcFXZknvRq3eMOtY2p0xGAA6n+CsCYyLiw6TKFNHewHts55apWtdTiCDRCfG/W6x60EqrfyRFjwpoDr3BirBpmYaH7G0GyBWC3o1bLIZMVqfUvpWY2vWoWQywr2mdhrHqVU1i/OpUXXt9JLXeuSkclVg0roYyZDHExejirrs5OHk8M2K0X+4M+ttxg4aq1pyqAb9Klrm9s2XnQOecTw9NEGxRoiPhlRNTTFH6T2GBBdrUzaKIa4IV2Q+29ZUGwsioikTYONO/Af7O/C+jKoZP5azpFVekFi0QoB5Fxd/bfq+EIRyYzr3ucDtbsOtMpee7nIS95dTPPTwhag+4cdxHeApLLjh7NqyzxDCVNTuaNtbhjEdis5lim4Vsaep6IASNO+uF8TywBF0MmMaJQa3vkvR7H6RiTHd+8jNUqMDCCmTokpLT4TtpRpzJkNdRxULWi4BJm41/hYx4ry8EsHqXtoeSZF52D8Wa81OnWcoNC/PqIEzY1W3ntM9NesMUd4iFUvy3pdlDr7HEitkcq+4FZDt03bO8w== randall@fivequarters.io
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDG87WkJmsG2clnvK6FluKUsdMW5tLmi9xB326iPi0HVrSwP933z1b6uOsmLS9kAJqpzUhJLN2UPS1qYwf5INw0SnnPcFarj02RwYim3Ya33dr2XpKr1rf1PxCAzO5Cx5iQKKX/oDqCzBRsILTmgDwstYubudsx5u//V93pC9+5w9MR+xtz8bbAwQRMAF5TZeQCeAbBi/Eit6emzTBJiIKO3Pq6SzLu2CZZMav964PSS7rTylXoeiUT4eC5XqhXaAzQVHck9iViK2BlI9Zgtm3wM+LzuMcj08gjZqQ6OnQ0AFt6dvTXsLOnECc4A4hxJqDbx9SY/giBQQFMrOuJ3h/l tomek@fivequarters.io
+EOF
+
 # Install and configure AWS Unified Cloud Watch Agent
 
 wget https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb
