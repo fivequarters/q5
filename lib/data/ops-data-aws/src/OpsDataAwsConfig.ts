@@ -15,6 +15,8 @@ const defaultMonoRepoName = 'fusebit-mono';
 const defaultMonoInstanceType = 't2.medium';
 const defaultMonoLogPort = 5002;
 const defaultMonoApiPort = 3001;
+const defaultCronFilter = 'ctx => true;';
+const defaultCronMaxExecutionsPerWindow = 120;
 
 // ----------------
 // Exported Classes
@@ -142,6 +144,18 @@ export class OpsDataAwsConfig implements IConfig {
       (this.config.value('maxLimit') as number) ||
       defaultMaxLimit
     );
+  }
+
+  public get cronFilter(): string {
+    return (this.config.value('cronFilter') as string) || defaultCronFilter;
+  }
+
+  public get cronMaxExecutionsPerWindow(): number {
+    return (this.config.value('cronMaxExecutionsPerWindow') as number) || defaultCronMaxExecutionsPerWindow;
+  }
+
+  public getS3Bucket(options: { region: string; prefix?: string }): string {
+    return `fusebit-${options.prefix || 'global'}-${options.region}`;
   }
 
   public value(settingName: string) {

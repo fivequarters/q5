@@ -13,6 +13,8 @@ import { OpsNetworkData } from './OpsNetworkData';
 import { DeploymentTable } from './tables/DeploymentTable';
 import { OpsDataAwsProvider } from './OpsDataAwsProvider';
 import { OpsDataAwsConfig } from './OpsDataAwsConfig';
+import { createFunctionStorage } from './OpsFunctionStorage';
+import { createCron } from './OpsCron';
 
 // ----------------
 // Exported Classes
@@ -93,5 +95,7 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
     const accountData = await accountDataFactory.create(this.config);
 
     await accountData.setup();
+    await createFunctionStorage(this.config, awsConfig);
+    await createCron(this.config, awsConfig);
   }
 }
