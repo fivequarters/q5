@@ -1240,6 +1240,21 @@ aws-sdk@^2.445.0, aws-sdk@^2.446.0:
     uuid "3.3.2"
     xml2js "0.4.19"
 
+aws-sdk@^2.451.0:
+  version "2.451.0"
+  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.451.0.tgz#d2c0e92dc0d35276063d8030a668bc4a5a94ea52"
+  integrity sha512-ruVK/fnUFHumSgcqVkJTHLS9eWXc8lf14ZW2G6RVR0baj2MMNDS5gxInuy8GM24Exe0GfnDFk6PnPiSuQs4AVQ==
+  dependencies:
+    buffer "4.9.1"
+    events "1.1.1"
+    ieee754 "1.1.8"
+    jmespath "0.15.0"
+    querystring "0.2.0"
+    sax "1.2.1"
+    url "0.10.3"
+    uuid "3.3.2"
+    xml2js "0.4.19"
+
 aws-sign2@~0.7.0:
   version "0.7.0"
   resolved "https://registry.yarnpkg.com/aws-sign2/-/aws-sign2-0.7.0.tgz#b46e890934a9591f2d2f6f86d7e6a9f1b3fe76a8"
@@ -4847,30 +4862,6 @@ joi@^14.3.1:
     hoek "6.x.x"
     isemail "3.x.x"
     topo "3.x.x"
-
-jqtree@^1.4.9:
-  version "1.4.10"
-  resolved "https://registry.yarnpkg.com/jqtree/-/jqtree-1.4.10.tgz#ef3a348773f820e0844f05e9cd905da989ea1f4d"
-  integrity sha512-SKefhiz4tPW8jal608GVcX2FgYKa1RC8b3bpOp6xd2Br26UeuunaNCZABWk9QGzKDMoZyNwbfVf9N3xDVjy5XQ==
-  dependencies:
-    jquery ">=1.9"
-
-jquery-resizable-dom@^0.32.0:
-  version "0.32.0"
-  resolved "https://registry.yarnpkg.com/jquery-resizable-dom/-/jquery-resizable-dom-0.32.0.tgz#85269fdc604fce3e0b15fe65f2ebb7ca7d4dd247"
-  integrity sha512-xohe50mzkN7VZ3YWHZ9B/Ntr/jv/IEK/17CkebRkTtE1yHgqn/0UKPCQ38O15dkWmDnkh/6D7k+o3sJnarbfIg==
-  dependencies:
-    jquery "~3.3.1"
-
-jquery@>=1.9:
-  version "3.4.0"
-  resolved "https://registry.yarnpkg.com/jquery/-/jquery-3.4.0.tgz#8de513fa0fa4b2c7d2e48a530e26f0596936efdf"
-  integrity sha512-ggRCXln9zEqv6OqAGXFEcshF5dSBvCkzj6Gm2gzuR5fWawaX8t7cxKVkkygKODrDAzKdoYw3l/e3pm3vlT4IbQ==
-
-jquery@~3.3.1:
-  version "3.3.1"
-  resolved "https://registry.yarnpkg.com/jquery/-/jquery-3.3.1.tgz#958ce29e81c9790f31be7792df5d4d95fc57fbca"
-  integrity sha512-Ubldcmxp5np52/ENotGxlLe6aGMvmF4R8S6tZjsP6Knsaxd/xp3Zrh50cG93lR6nPXyUFwzN3ZSOQI0wRJNdGg==
 
 js-cookie@^2.2.0:
   version "2.2.0"
