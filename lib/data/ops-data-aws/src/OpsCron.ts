@@ -323,7 +323,7 @@ export async function createCron(config: OpsDataAwsConfig, awsConfig: IAwsConfig
 function createCronConfig(config: OpsDataAwsConfig, awsConfig: IAwsConfig) {
   // CRON_PREFIX is a deployment time setting that can be used to create isolated deployments of the CRON pipeline,
   // e.g. for testing purposes, especially along with CRON_FILTER
-  const CronPrefix = awsConfig.prefix ? `${awsConfig.prefix}-` : '';
+  const CronPrefix = `${awsConfig.prefix || 'global'}-`;
 
   return {
     prefix: CronPrefix,

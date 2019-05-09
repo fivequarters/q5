@@ -82,7 +82,6 @@
       "@5qtrs/account": ["lib/server/account/src"],
       "@5qtrs/account-data": ["lib/data/account-data/src"],
       "@5qtrs/promise": ["lib/shared/promise/src"],
-      "@5qtrs/dwh-export": ["data/dwh-export/src"],
       "@5qtrs/bq-metering": ["lib/server/bq-metering/src"],
       "@5qtrs/data": ["lib/shared/data/src"],
       "@5qtrs/function-api": ["api/function-api/src"],
