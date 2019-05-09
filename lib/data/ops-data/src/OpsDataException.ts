@@ -10,6 +10,7 @@ export enum OpsDataExceptionCode {
   noDomain = 'noDomain',
   noNetwork = 'noNetwork',
   noDeployment = 'noDeployment',
+  noStack = 'noStack',
   invalidDomainName = 'invalidDomainName',
   accountDifferentId = 'accountDifferentId',
   accountDifferentRole = 'accountDifferentRole',
@@ -23,6 +24,7 @@ export enum OpsDataExceptionCode {
   deploymentDifferentDomain = 'deploymentDifferentDomain',
   deploymentDifferentNetwork = 'deploymentDifferentNetwork',
   deploymentAlreadyExists = 'deploymentAlreadyExists',
+  stackAlreadyExists = 'stackAlreadyExists',
   configNotProvided = 'configNotProvided',
 }
 
@@ -58,6 +60,11 @@ export class OpsDataException extends Exception {
   public static noDeployment(deploymentName: string) {
     const message = `The deployment '${deploymentName}' does not exist`;
     return new OpsDataException(OpsDataExceptionCode.noDeployment, message, [deploymentName]);
+  }
+
+  public static noStack(stackId: number, deploymentName: string) {
+    const message = `The stack '${stackId}' for '${deploymentName}' does not exist`;
+    return new OpsDataException(OpsDataExceptionCode.noStack, message, [stackId, deploymentName]);
   }
 
   public static invalidDomainName(domainName: string) {
@@ -144,6 +151,11 @@ export class OpsDataException extends Exception {
   public static deploymentAlreadyExists(deploymentName: string) {
     const message = `The deployment '${deploymentName}' already exists`;
     return new OpsDataException(OpsDataExceptionCode.deploymentAlreadyExists, message, [deploymentName]);
+  }
+
+  public static stackAlreadyExists(stackId: number, deploymentName: string) {
+    const message = `The stack '${stackId}' for '${deploymentName}' already exists`;
+    return new OpsDataException(OpsDataExceptionCode.stackAlreadyExists, message, [stackId, deploymentName]);
   }
 
   public static configNotProvided(configName: string) {
