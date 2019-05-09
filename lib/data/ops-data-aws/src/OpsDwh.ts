@@ -6,9 +6,7 @@ const Fs = require('fs');
 const Path = require('path');
 
 export async function createDwhExport(config: OpsDataAwsConfig, awsConfig: IAwsConfig) {
-  if (!process.env.FUSEBIT_GC_BQ_KEY_BASE64) {
-    throw new Error('You must specify the FUSEBIT_GC_BQ_KEY_BASE64 environment variable.');
-  }
+  const dataWarehouseKeyBase64 = config.dataWarehouseKeyBase64;
 
   const Config = {
     // Lambda function that is triggered by scheduled Cloud Watch Events to exports data to DWH
@@ -38,14 +36,16 @@ export async function createDwhExport(config: OpsDataAwsConfig, awsConfig: IAwsC
   };
 
   const credentials = await (awsConfig.creds as AwsCreds).getCredentials();
-  AWS.config.accessKeyId = credentials.accessKeyId;
-  AWS.config.secretAccessKey = credentials.secretAccessKey;
-  AWS.config.sessionToken = credentials.sessionToken;
-  AWS.config.region = awsConfig.region;
-  AWS.config.signatureVersion = 'v4';
+  const options = {
+    signatureVersion: 'v4',
+    region: awsConfig.region,
+    accessKeyId: credentials.accessKeyId,
+    secretAccessKey: credentials.secretAccessKey,
+    sessionToken: credentials.sessionToken,
+  };
 
-  let lambda = new AWS.Lambda();
-  let cloudwatchevents = new AWS.CloudWatchEvents();
+  let lambda = new AWS.Lambda(options);
+  let cloudwatchevents = new AWS.CloudWatchEvents(options);
 
   return new Promise((resolve, reject) => {
     return Async.series(
@@ -143,7 +143,7 @@ export async function createDwhExport(config: OpsDataAwsConfig, awsConfig: IAwsC
         Variables: {
           AWS_S3_BUCKET: config.getS3Bucket(awsConfig),
           DEPLOYMENT_ID: awsConfig.prefix || 'global',
-          FUSEBIT_GC_BQ_KEY_BASE64: process.env.FUSEBIT_GC_BQ_KEY_BASE64 as string,
+          FUSEBIT_GC_BQ_KEY_BASE64: dataWarehouseKeyBase64,
         },
       },
     };

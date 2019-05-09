@@ -9,6 +9,7 @@ export interface IOpsDeployment {
   networkName: string;
   domainName: string;
   size: number;
+  dataWarehouseEnabled: boolean;
 }
 
 export interface IListOpsDeploymentOptions {

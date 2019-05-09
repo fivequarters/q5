@@ -90,10 +90,6 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
   }
 
   private async ensureDeploymentSetup(deployment: IOpsDeployment): Promise<void> {
-    ['FUSEBIT_GC_BQ_KEY_BASE64'].forEach(x => {
-      if (!process.env[x]) throw new Error(`You must specify ${x} environment variable.`);
-    });
-
     const network = await this.networkData.get(deployment.networkName);
     const awsConfig = await this.provider.getAwsConfig(network.accountName, network.region, deployment.deploymentName);
     const accountDataFactory = await AccountDataAwsContextFactory.create(awsConfig);
@@ -102,6 +98,8 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
     await accountData.setup();
     await createFunctionStorage(this.config, awsConfig);
     await createCron(this.config, awsConfig);
-    await createDwhExport(this.config, awsConfig);
+    if (deployment.dataWarehouseEnabled) {
+      await createDwhExport(this.config, awsConfig);
+    }
   }
 }

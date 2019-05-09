@@ -32,6 +32,12 @@ const command = {
       default: '2',
     },
     {
+      name: 'dataWarehouse',
+      description: 'If set to true, the deployment will export data to the data warehouse',
+      type: ArgType.boolean,
+      default: 'true',
+    },
+    {
       name: 'confirm',
       aliases: ['c'],
       description: 'If set to true, prompts for confirmation before adding the deployment to the Fusebit platform',
@@ -59,10 +65,11 @@ export class AddDeploymentCommand extends Command {
     const [deploymentName, networkName, domainName] = input.arguments as string[];
     const size = input.options.size as number;
     const confirm = input.options.confirm as boolean;
+    const dataWarehouseEnabled = input.options.dataWarehouse as boolean;
 
     const deploymentService = await DeploymentService.create(input);
 
-    const deployment = { deploymentName, networkName, domainName, size };
+    const deployment = { deploymentName, networkName, domainName, size, dataWarehouseEnabled };
     await deploymentService.checkDeploymentExists(deployment);
 
     if (confirm) {

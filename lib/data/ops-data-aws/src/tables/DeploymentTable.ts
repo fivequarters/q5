@@ -30,6 +30,7 @@ function toItem(deployment: IOpsDeployment) {
   item.networkName = { S: deployment.networkName };
   item.domainName = { S: deployment.domainName };
   item.size = { N: deployment.size.toString() };
+  item.dataWarehouseEnabled = { BOOL: deployment.dataWarehouseEnabled };
   return item;
 }
 
@@ -39,6 +40,7 @@ function fromItem(item: any): IOpsDeployment {
     networkName: item.networkName.S,
     domainName: item.domainName.S,
     size: parseInt(item.size.N, 10),
+    dataWarehouseEnabled: item.dataWarehouseEnabled.BOOL,
   };
 }
 
@@ -66,6 +68,7 @@ export interface IOpsDeployment {
   networkName: string;
   domainName: string;
   size: number;
+  dataWarehouseEnabled: boolean;
 }
 
 export interface IListOpsDeploymentOptions {

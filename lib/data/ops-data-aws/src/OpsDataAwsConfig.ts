@@ -103,6 +103,15 @@ export class OpsDataAwsConfig implements IConfig {
     return (this.config.value('monoHealthCheckGracePeriod') as number) || defaultMonoHealthCheckGracePeriod;
   }
 
+  public get dataWarehouseKeyBase64(): string {
+    const dataWarehouseKey = process.env.FUSEBIT_GC_BQ_KEY_BASE64;
+    if (!dataWarehouseKey) {
+      throw OpsDataException.configNotProvided('env variable FUSEBIT_GC_BQ_KEY_BASE64');
+    }
+
+    return dataWarehouseKey;
+  }
+
   public get accountDefaultLimit(): number {
     return (
       (this.config.value('accountDefaultLimit') as number) ||

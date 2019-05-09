@@ -18,15 +18,17 @@ export async function createCron(config: OpsDataAwsConfig, awsConfig: IAwsConfig
   };
 
   const credentials = await (awsConfig.creds as AwsCreds).getCredentials();
-  AWS.config.accessKeyId = credentials.accessKeyId;
-  AWS.config.secretAccessKey = credentials.secretAccessKey;
-  AWS.config.sessionToken = credentials.sessionToken;
-  AWS.config.region = awsConfig.region;
-  AWS.config.signatureVersion = 'v4';
+  const options = {
+    signatureVersion: 'v4',
+    region: awsConfig.region,
+    accessKeyId: credentials.accessKeyId,
+    secretAccessKey: credentials.secretAccessKey,
+    sessionToken: credentials.sessionToken,
+  };
 
-  let sqs = new AWS.SQS();
-  let lambda = new AWS.Lambda();
-  let cloudwatchevents = new AWS.CloudWatchEvents();
+  let sqs = new AWS.SQS(options);
+  let lambda = new AWS.Lambda(options);
+  let cloudwatchevents = new AWS.CloudWatchEvents(options);
 
   return new Promise((resolve, reject) => {
     return Async.series(

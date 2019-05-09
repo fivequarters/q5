@@ -55,6 +55,7 @@ export class DeploymentService {
         { name: 'Domain', value: deployment.domainName },
         { name: 'Network', value: deployment.networkName },
         { name: 'Size', value: deployment.size.toString() },
+        { name: 'DWH', value: deployment.dataWarehouseEnabled ? 'Enabled' : 'Disabled' },
       ],
     });
     const confirmed = await confirmPrompt.prompt(this.input.io);
@@ -178,6 +179,9 @@ export class DeploymentService {
       Text.eol(),
       Text.dim('Default Size: '),
       deployment.size.toString(),
+      Text.eol(),
+      Text.dim('Data Warehouse: '),
+      deployment.dataWarehouseEnabled ? 'Enabled' : 'Disabled',
     ];
 
     await this.executeService.message(Text.bold(deployment.deploymentName), Text.create(details));

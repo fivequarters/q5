@@ -5,14 +5,14 @@ const Async = require('async');
 
 export async function createFunctionStorage(config: OpsDataAwsConfig, awsConfig: IAwsConfig) {
   const credentials = await (awsConfig.creds as AwsCreds).getCredentials();
-  AWS.config.accessKeyId = credentials.accessKeyId;
-  AWS.config.secretAccessKey = credentials.secretAccessKey;
-  AWS.config.sessionToken = credentials.sessionToken;
 
   const s3 = new AWS.S3({
     apiVersion: '2006-03-01',
     signatureVersion: 'v4',
     region: awsConfig.region,
+    accessKeyId: credentials.accessKeyId,
+    secretAccessKey: credentials.secretAccessKey,
+    sessionToken: credentials.sessionToken,
   });
 
   return new Promise((resolve, reject) => {
