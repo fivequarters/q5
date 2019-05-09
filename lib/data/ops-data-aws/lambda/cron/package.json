@@ -5,9 +5,7 @@
   "main": "libc/index.js",
   "license": "UNLICENSED",
   "author": "FiveQuarters.io",
-  "scripts": {
-    "destroy": "./destroy.js"
-  },
+  "scripts": {},
   "keywords": [],
   "dependencies": {
     "async": "^2.6.2",

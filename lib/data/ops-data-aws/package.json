@@ -6,7 +6,8 @@
   "license": "UNLICENSED",
   "author": "FiveQuarters.io",
   "scripts": {
-    "build": "tsc -b",
+    "build": "yarn build:cron && tsc -b",
+    "build:cron": "tsc -b ./lambda/cron/tsconfig.json && ./lambda/cron/bundle.sh",
     "test": "jest --colors",
     "coverage": "jest --colors --coverage",
     "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x} test/{,**/}*.ts{,x}",
@@ -14,16 +15,21 @@
   },
   "keywords": [],
   "dependencies": {
-    "@5qtrs/ops-data": "^0.0.1",
     "@5qtrs/aws-config": "^0.0.1",
     "@5qtrs/aws-dynamo": "^0.0.1",
-    "@5qtrs/aws-route53": "^0.0.1",
-    "@5qtrs/aws-network": "^0.0.1",
-    "@5qtrs/aws-ecr": "^0.0.1",
     "@5qtrs/aws-ec2": "^0.0.1",
     "@5qtrs/account-data-aws": "^0.0.1",
     "@5qtrs/aws-ami": "^0.0.1",
     "@5qtrs/aws-autoscale": "^0.0.1",
-    "@5qtrs/base64": "^0.0.1"
+    "@5qtrs/base64": "^0.0.1",
+    "@5qtrs/aws-ecr": "^0.0.1",
+    "@5qtrs/aws-network": "^0.0.1",
+    "@5qtrs/aws-route53": "^0.0.1",
+    "@5qtrs/ops-data": "^0.0.1",
+    "async": "^2.6.2",
+    "aws-sdk": "^2.451.0"
+  },
+  "devDependencies": {
+    "@types/async": "^2.4.1"
   }
 }

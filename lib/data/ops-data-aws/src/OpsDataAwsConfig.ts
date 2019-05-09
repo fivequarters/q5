@@ -19,6 +19,8 @@ const defaultUbuntuServerVersion = '18.04';
 const defaultMonoInstanceSize = 2;
 const defaultMonoInstanceProfile = 'arn:aws:iam::321612923577:instance-profile/Flexd-EC2-Instance';
 const defaultMonoHealthCheckGracePeriod = 180;
+const defaultCronFilter = 'ctx => true;';
+const defaultCronMaxExecutionsPerWindow = 120;
 
 // ----------------
 // Exported Classes
@@ -162,6 +164,18 @@ export class OpsDataAwsConfig implements IConfig {
       (this.config.value('maxLimit') as number) ||
       defaultMaxLimit
     );
+  }
+
+  public get cronFilter(): string {
+    return (this.config.value('cronFilter') as string) || defaultCronFilter;
+  }
+
+  public get cronMaxExecutionsPerWindow(): number {
+    return (this.config.value('cronMaxExecutionsPerWindow') as number) || defaultCronMaxExecutionsPerWindow;
+  }
+
+  public getS3Bucket(options: { region: string; prefix?: string }): string {
+    return `fusebit-${options.prefix || 'global'}-${options.region}`;
   }
 
   public value(settingName: string) {
