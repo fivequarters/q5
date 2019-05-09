@@ -26,8 +26,26 @@ export function createNavigationPanel(
   const codeCategoryId = `${idPrefix}-code`;
   const newFileId = `${idPrefix}-new-file`;
   const newFileNameId = `${idPrefix}-new-file-name`;
+  const deleteId = `${idPrefix}-delete`;
+  const deleteFileNameId = `${idPrefix}-delete-file-name`;
+  const deleteConfirmId = `${idPrefix}-delete-confirm`;
+  const treeId = `${idPrefix}-tree`;
 
-  let html = [`<div id="${idPrefix}-main" class="fusebit-nav">`];
+  let isDeletingFile: string | undefined;
+
+  let html: string[] = [];
+  if (!effectiveOptions.hideCode) {
+    html.push(
+      `<div id="${deleteId}" class="fusebit-nav-delete" style="display:none">`,
+      `<div>Delete<br><span id="${deleteFileNameId}"></span>?</div>`,
+      `<div class="fusebit-nav-delete-confirm-container">`,
+      `<button id="${deleteConfirmId}" class="fusebit-nav-delete-action-btn"><i class="far fa-check-circle"></i></button>`,
+      `<button class="fusebit-nav-delete-action-btn"><i class="far fa-times-circle"></i></button>`,
+      `</div>`,
+      `</div>`
+    );
+  }
+  html.push(`<div id="${treeId}" class="fusebit-nav">`);
   if (!effectiveOptions.hideCode) {
     html.push(
       `<div id="${codeCategoryId}" class="fusebit-nav-category">Code`,
@@ -94,8 +112,10 @@ export function createNavigationPanel(
   // Insert into DOM and attach events
 
   element.innerHTML = html.join('');
-  let navElement = document.getElementById(`${idPrefix}-main`) as HTMLElement;
-  let navItems = navElement.getElementsByClassName('fusebit-nav-item');
+  let deleteElement = document.getElementById(deleteId) as HTMLElement;
+  let deleteFileNameElement = document.getElementById(deleteFileNameId) as HTMLElement;
+  let treeElement = document.getElementById(treeId) as HTMLElement;
+  let navItems = treeElement.getElementsByClassName('fusebit-nav-item');
   for (var i = 0; i < navItems.length; i++) {
     if (navItems[i].classList.contains('fusebit-nav-file')) {
       attachFileNameNavigationItemEvents(navItems[i] as HTMLElement);
@@ -112,7 +132,7 @@ export function createNavigationPanel(
 
   editorContext.on(Events.Events.FileAdded, (e: Events.FileAddedEvent) => {
     let insertAfter: HTMLElement | undefined;
-    let navigationItems = navElement.getElementsByClassName('fusebit-nav-file');
+    let navigationItems = treeElement.getElementsByClassName('fusebit-nav-file');
     for (var i = 0; i < navigationItems.length; i++) {
       if ((navigationItems[i].getAttribute('data-file') as string) > e.fileName) {
         break;
@@ -137,7 +157,7 @@ export function createNavigationPanel(
     let element = findFileNameNavigationItemElement(e.fileName);
     if (element) {
       element.remove();
-      let firstFileElement = navElement.getElementsByClassName('fusebit-nav-file')[0] as HTMLElement;
+      let firstFileElement = treeElement.getElementsByClassName('fusebit-nav-file')[0] as HTMLElement;
       if (firstFileElement) {
         selectNavigationItem(firstFileElement);
         editorContext.selectFile(firstFileElement.getAttribute('data-file') as string);
@@ -160,20 +180,47 @@ export function createNavigationPanel(
     );
   }
 
+  let deleteConfirmButton = document.getElementById(deleteConfirmId) as HTMLElement;
+  deleteConfirmButton.addEventListener('click', confirmDeleteButtonClicked);
+
   // Functions
 
   function deleteButtonClicked(fileName: string) {
     return function deleteButtonClickedCore(e: Event) {
       e.preventDefault();
-      editorContext.deleteFile(fileName);
+      isDeletingFile = fileName;
+      deleteFileNameElement.innerText = fileName;
+      treeElement.style.display = 'none';
+      deleteElement.style.display = null;
+      detectClickOutsideElement(
+        deleteConfirmButton,
+        () => {
+          isDeletingFile = undefined;
+          treeElement.style.display = null;
+          deleteElement.style.display = 'none';
+        },
+        e
+      );
     };
+  }
+
+  function confirmDeleteButtonClicked(e: Event) {
+    e.preventDefault();
+    cancelDetectionOfClickOutsideElement();
+    let tmp = isDeletingFile;
+    isDeletingFile = undefined;
+    treeElement.style.display = null;
+    deleteElement.style.display = 'none';
+    editorContext.deleteFile(tmp as string);
   }
 
   function createFileNameNavigationItemHtml(fileName: string) {
     let html = [
       `<div class="fusebit-nav-item fusebit-nav-file" data-type="file" data-file="${fileName}">`,
       `<span><span class="fusebit-code-file-icon"><i class="fa fa-file"></i></span>${fileName}</span>`,
-      `<button class="fusebit-code-action-delete-btn"><i class="fa fa-trash"></i></button>`,
+      fileName === 'index.js'
+        ? `<span></span>`
+        : `<button class="fusebit-code-action-delete-btn"><i class="fa fa-trash"></i></button>`,
       `</div>`,
     ];
     return html.join('');
@@ -191,7 +238,7 @@ export function createNavigationPanel(
   }
 
   function findFileNameNavigationItemElement(fileName: string): HTMLElement | undefined {
-    let navigationItems = navElement.getElementsByClassName('fusebit-nav-file');
+    let navigationItems = treeElement.getElementsByClassName('fusebit-nav-file');
     for (var i = 0; i < navigationItems.length; i++) {
       if (navigationItems[i].getAttribute('data-file') === fileName) {
         return navigationItems[i] as HTMLElement;
@@ -267,6 +314,9 @@ export function createNavigationPanel(
       // file no longer exists
       return;
     }
+    if (isDeletingFile) {
+      return;
+    }
 
     selectNavigationItem(currentElement);
     let nodeType = currentElement.getAttribute('data-type');
@@ -290,7 +340,7 @@ export function createNavigationPanel(
   }
 
   function selectNavigationItem(element: HTMLElement) {
-    let selectedElements = navElement.getElementsByClassName('fusebit-nav-item-selected');
+    let selectedElements = treeElement.getElementsByClassName('fusebit-nav-item-selected');
     for (var i = 0; i < selectedElements.length; i++) {
       selectedElements[i].classList.remove('fusebit-nav-item-selected');
     }
