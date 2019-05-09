@@ -9,7 +9,7 @@ set -e
 mkdir -p dist
 rm -rf dist/*
 mkdir -p libc/node_modules
-rm -rf \libc/node_modules/*
+rm -rf libc/node_modules/*
 cp package.json libc/
 npm install --no-package-lock --prod --prefix ./libc 
 rm -f libc/package.json
