@@ -26,6 +26,12 @@ const command = {
   ],
   options: [
     {
+      name: 'size',
+      description: 'The default number of instances to include in stacks of the deployment',
+      type: ArgType.integer,
+      default: '2',
+    },
+    {
       name: 'confirm',
       aliases: ['c'],
       description: 'If set to true, prompts for confirmation before adding the deployment to the Fusebit platform',
@@ -51,11 +57,12 @@ export class AddDeploymentCommand extends Command {
   protected async onExecute(input: IExecuteInput): Promise<number> {
     await input.io.writeLine();
     const [deploymentName, networkName, domainName] = input.arguments as string[];
+    const size = input.options.size as number;
     const confirm = input.options.confirm as boolean;
 
     const deploymentService = await DeploymentService.create(input);
 
-    const deployment = { deploymentName, networkName, domainName };
+    const deployment = { deploymentName, networkName, domainName, size };
     await deploymentService.checkDeploymentExists(deployment);
 
     if (confirm) {

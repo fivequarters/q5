@@ -8,6 +8,7 @@ export interface IOpsDeployment {
   deploymentName: string;
   networkName: string;
   domainName: string;
+  size: number;
 }
 
 export interface IListOpsDeploymentOptions {

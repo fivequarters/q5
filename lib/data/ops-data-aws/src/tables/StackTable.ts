@@ -29,6 +29,7 @@ function toKey(id: number, deploymentName: string) {
 function toItem(stack: IOpsStack) {
   const item: any = toKey(stack.id, stack.deploymentName);
   item.tag = { S: stack.tag };
+  item.size = { N: stack.size.toString() };
   return item;
 }
 
@@ -37,6 +38,7 @@ function fromItem(item: any): IOpsStack {
     id: parseInt(item.stackId.N, 10),
     deploymentName: item.deploymentName.S,
     tag: item.tag.S,
+    size: parseInt(item.size.N, 10),
   };
 }
 
@@ -65,6 +67,7 @@ export interface IOpsStack {
   id: number;
   deploymentName: string;
   tag: string;
+  size: number;
 }
 
 export interface IListOpsStackOptions {

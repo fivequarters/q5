@@ -4,10 +4,15 @@ import { IDataSource } from '@5qtrs/data';
 // Exported Interfaces
 // -------------------
 
-export interface IOpsStack {
-  id: number;
+export interface IOpsNewStack {
   deploymentName: string;
   tag: string;
+  size?: number;
+}
+
+export interface IOpsStack extends IOpsNewStack {
+  id: number;
+  size: number;
 }
 
 export interface IListOpsStackOptions {
@@ -22,7 +27,7 @@ export interface IListOpsStackResult {
 }
 
 export interface IOpsStackData extends IDataSource {
-  deploy(deploymentName: string, tag: string): Promise<void>;
+  deploy(stack: IOpsNewStack): Promise<IOpsStack>;
   list(options?: IListOpsStackOptions): Promise<IListOpsStackResult>;
   listAll(deploymentName?: string): Promise<IOpsStack[]>;
 }

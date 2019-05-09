@@ -15,5 +15,5 @@ export {
   IListOpsDeploymentOptions,
   IListOpsDeploymentResult,
 } from './IOpsDeploymentData';
-export { IOpsStackData, IOpsStack, IListOpsStackOptions, IListOpsStackResult } from './IOpsStackData';
+export { IOpsStackData, IOpsNewStack, IOpsStack, IListOpsStackOptions, IListOpsStackResult } from './IOpsStackData';
 export { OpsDataException, OpsDataExceptionCode } from './OpsDataException';

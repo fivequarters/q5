@@ -1,6 +1,6 @@
 import { IExecuteInput, Confirm } from '@5qtrs/cli';
 import { Text } from '@5qtrs/text';
-import { IOpsStack, IListOpsStackOptions, IListOpsStackResult } from '@5qtrs/ops-data';
+import { IOpsStack, IOpsNewStack, IListOpsStackOptions, IListOpsStackResult } from '@5qtrs/ops-data';
 import { OpsService } from './OpsService';
 import { ExecuteService } from './ExecuteService';
 
@@ -25,23 +25,46 @@ export class StackService {
     return new StackService(input, opsService, executeService);
   }
 
-  public async deploy(deploymentName: string, tag: string): Promise<void> {
+  public async confirmDeployStack(stack: IOpsNewStack) {
+    const confirmPrompt = await Confirm.create({
+      header: 'Deploy the stack to the Fusebit platform?',
+      details: [
+        { name: 'Deployment', value: stack.deploymentName },
+        { name: 'Tag', value: stack.tag },
+        { name: 'Size', value: stack.size ? stack.size.toString() : '<default>' },
+      ],
+    });
+    const confirmed = await confirmPrompt.prompt(this.input.io);
+    if (!confirmed) {
+      await this.executeService.warning(
+        'Deploy Canceled',
+        Text.create('Deploying the stack to the Fusebit platform was canceled')
+      );
+      throw new Error('Deploy Canceled');
+    }
+  }
+
+  public async deploy(newStack: IOpsNewStack): Promise<IOpsStack> {
     const opsDataContext = await this.opsService.getOpsDataContext();
     const stackData = opsDataContext.stackData;
 
-    await this.executeService.execute(
+    const { deploymentName, tag } = newStack;
+
+    const stack = await this.executeService.execute(
       {
         header: 'Deploying Stack',
         message: `Deploying a stack for deployment '${Text.bold(deploymentName)}' with tag '${Text.bold(tag)}'`,
         errorHeader: 'Deploy Error',
       },
-      () => stackData.deploy(deploymentName, tag)
+      () => stackData.deploy(newStack)
     );
 
     await this.executeService.result(
       'Stack Deployed',
       `A stack for deployment '${Text.bold(deploymentName)}' with tag '${Text.bold(tag)}' was successfully deployed`
     );
+
+    return stack as IOpsStack;
   }
 
   public async listAllStacks(deploymentName?: string): Promise<IOpsStack[]> {
@@ -109,7 +132,7 @@ export class StackService {
   }
 
   private async writeStacks(stack: IOpsStack) {
-    const details = [Text.dim('Tag: '), stack.tag];
+    const details = [Text.dim('Tag: '), stack.tag, Text.eol(), Text.dim('Size: '), stack.size.toString()];
     const stackName = [Text.bold(stack.deploymentName), ':', Text.bold(stack.id.toString())];
 
     await this.executeService.message(Text.create(stackName), Text.create(details));
