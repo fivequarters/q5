@@ -98,7 +98,9 @@
       "@5qtrs/perf": ["test/perf/src"],
       "@5qtrs/aws-region": ["lib/aws/aws-region/src"],
       "@5qtrs/aws-config": ["lib/aws/aws-config/src"],
-      "@5qtrs/fusebit-ops-profile-sdk": ["sdk/fusebit-ops-profile-sdk/src"]
+      "@5qtrs/fusebit-ops-profile-sdk": ["sdk/fusebit-ops-profile-sdk/src"],
+      "@5qtrs/aws-autoscale": ["lib/aws/aws-autoscale/src"],
+      "@5qtrs/aws-ami": ["lib/aws/aws-ami/src"]
     }
   }
 }

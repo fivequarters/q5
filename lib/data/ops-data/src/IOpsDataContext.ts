@@ -5,6 +5,7 @@ import { IOpsDomainData } from './IOpsDomainData';
 import { IOpsNetworkData } from './IOpsNetworkData';
 import { IOpsImageData } from './IOpsImageData';
 import { IOpsDeploymentData } from './IOpsDeploymentData';
+import { IOpsStackData } from './IOpsStackData';
 
 // -------------------
 // Exported Interfaces
@@ -16,6 +17,7 @@ export interface IOpsDataContext extends IDataSource {
   readonly networkData: IOpsNetworkData;
   readonly imageData: IOpsImageData;
   readonly deploymentData: IOpsDeploymentData;
+  readonly stackData: IOpsStackData;
 }
 
 export interface IOpsDataContextFactory {

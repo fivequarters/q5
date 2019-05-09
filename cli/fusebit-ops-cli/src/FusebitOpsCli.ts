@@ -8,6 +8,7 @@ import {
   DomainCommand,
   ImageCommand,
   DeploymentCommand,
+  StackCommand,
 } from './commands';
 
 // ------------------
@@ -35,6 +36,7 @@ export class FusebitOpsCli extends Command {
     subCommands.push(await DomainCommand.create());
     subCommands.push(await ImageCommand.create());
     subCommands.push(await DeploymentCommand.create());
+    subCommands.push(await StackCommand.create());
     cli.subCommands = subCommands;
     return new FusebitOpsCli(cli);
   }

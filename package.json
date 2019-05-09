@@ -144,6 +144,8 @@
     "lib/data/ops-data-aws",
     "test/perf",
     "lib/aws/aws-config",
-    "sdk/fusebit-ops-profile-sdk"
+    "sdk/fusebit-ops-profile-sdk",
+    "lib/aws/aws-autoscale",
+    "lib/aws/aws-ami"
   ]
 }

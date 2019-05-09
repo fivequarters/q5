@@ -6,6 +6,7 @@ import {
   IOpsNetworkData,
   IOpsImageData,
   IOpsDeploymentData,
+  IOpsStackData,
 } from '@5qtrs/ops-data';
 import { OpsDataAwsProvider } from './OpsDataAwsProvider';
 import { OpsAccountData } from './OpsAccountData';
@@ -13,6 +14,7 @@ import { OpsDomainData } from './OpsDomainData';
 import { OpsNetworkData } from './OpsNetworkData';
 import { OpsImageData } from './OpsImageData';
 import { OpsDeploymentData } from './OpsDeploymentData';
+import { OpsStackData } from './OpsStackData';
 import { OpsDataAwsConfig } from './OpsDataAwsConfig';
 
 // ----------------
@@ -26,7 +28,8 @@ export class OpsDataAwsContext extends DataSource implements IOpsDataContext {
     const network = await OpsNetworkData.create(config, awsProvider);
     const image = await OpsImageData.create(config, awsProvider);
     const deployment = await OpsDeploymentData.create(config, awsProvider);
-    return new OpsDataAwsContext(account, domain, network, image, deployment);
+    const stack = await OpsStackData.create(config, awsProvider);
+    return new OpsDataAwsContext(account, domain, network, image, deployment, stack);
   }
 
   private constructor(
@@ -34,14 +37,16 @@ export class OpsDataAwsContext extends DataSource implements IOpsDataContext {
     domain: OpsDomainData,
     network: OpsNetworkData,
     image: OpsImageData,
-    deployment: OpsDeploymentData
+    deployment: OpsDeploymentData,
+    stack: OpsStackData
   ) {
-    super([account, domain, network, image, deployment]);
+    super([account, domain, network, image, deployment, stack]);
     this.account = account;
     this.domain = domain;
     this.network = network;
     this.image = image;
     this.deployment = deployment;
+    this.stack = stack;
   }
 
   private account: OpsAccountData;
@@ -49,6 +54,7 @@ export class OpsDataAwsContext extends DataSource implements IOpsDataContext {
   private network: OpsNetworkData;
   private image: OpsImageData;
   private deployment: OpsDeploymentData;
+  private stack: OpsStackData;
 
   public get accountData(): IOpsAccountData {
     return this.account;
@@ -68,5 +74,9 @@ export class OpsDataAwsContext extends DataSource implements IOpsDataContext {
 
   public get deploymentData(): IOpsDeploymentData {
     return this.deployment;
+  }
+
+  public get stackData(): IOpsStackData {
+    return this.stack;
   }
 }

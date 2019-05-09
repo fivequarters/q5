@@ -1,0 +1,1 @@
+export { AwsAutoScale } from './AwsAutoScale';

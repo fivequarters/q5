@@ -12,9 +12,13 @@ const defaultRegion = 'us-west-2';
 const defaultMainAccountName = 'main';
 const defaultMainPrefix = 'ops';
 const defaultMonoRepoName = 'fusebit-mono';
-const defaultMonoInstanceType = 't2.medium';
+const defaultMonoInstanceType = 't3.medium';
 const defaultMonoLogPort = 5002;
 const defaultMonoApiPort = 3001;
+const defaultUbuntuServerVersion = '18.04';
+const defaultMonoInstanceSize = 2;
+const defaultMonoInstanceProfile = 'arn:aws:iam::321612923577:instance-profile/Flexd-EC2-Instance';
+const defaultMonoHealthCheckGracePeriod = 180;
 
 // ----------------
 // Exported Classes
@@ -84,6 +88,22 @@ export class OpsDataAwsConfig implements IConfig {
 
   public get monoAlbApiPort(): number {
     return (this.config.value('monoAlbApiPort') as number) || defaultMonoApiPort;
+  }
+
+  public get ubuntuServerVersion(): string {
+    return (this.config.value('ubuntuServerVersion') as string) || defaultUbuntuServerVersion;
+  }
+
+  public get monoInstanceSize(): number {
+    return (this.config.value('monoInstanceSize') as number) || defaultMonoInstanceSize;
+  }
+
+  public get monoInstanceProfile(): string {
+    return (this.config.value('monoInstanceProfile') as string) || defaultMonoInstanceProfile;
+  }
+
+  public get monoHealthCheckGracePeriod(): number {
+    return (this.config.value('monoHealthCheckGracePeriod') as number) || defaultMonoHealthCheckGracePeriod;
   }
 
   public get accountDefaultLimit(): number {

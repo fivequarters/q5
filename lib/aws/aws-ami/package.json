@@ -1,5 +1,5 @@
 {
-  "name": "@5qtrs/ops-data-aws",
+  "name": "@5qtrs/aws-ami",
   "version": "0.0.1",
   "description": "",
   "main": "libc/index.js",
@@ -14,16 +14,10 @@
   },
   "keywords": [],
   "dependencies": {
-    "@5qtrs/ops-data": "^0.0.1",
-    "@5qtrs/aws-config": "^0.0.1",
-    "@5qtrs/aws-dynamo": "^0.0.1",
-    "@5qtrs/aws-route53": "^0.0.1",
-    "@5qtrs/aws-network": "^0.0.1",
-    "@5qtrs/aws-ecr": "^0.0.1",
-    "@5qtrs/aws-ec2": "^0.0.1",
-    "@5qtrs/account-data-aws": "^0.0.1",
-    "@5qtrs/aws-ami": "^0.0.1",
-    "@5qtrs/aws-autoscale": "^0.0.1",
-    "@5qtrs/base64": "^0.0.1"
+    "@5qtrs/aws-base": "^0.0.1",
+    "@5qtrs/exception": "^0.0.1"
+  },
+  "devServer": {
+    "port": 9502
   }
 }
