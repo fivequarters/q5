@@ -29,6 +29,7 @@ function toItem(deployment: IOpsDeployment) {
   const item: any = toKey(deployment.deploymentName);
   item.networkName = { S: deployment.networkName };
   item.domainName = { S: deployment.domainName };
+  item.size = { N: deployment.size.toString() };
   return item;
 }
 
@@ -37,6 +38,7 @@ function fromItem(item: any): IOpsDeployment {
     deploymentName: item.deploymentName.S,
     networkName: item.networkName.S,
     domainName: item.domainName.S,
+    size: parseInt(item.size.N, 10),
   };
 }
 
@@ -63,6 +65,7 @@ export interface IOpsDeployment {
   deploymentName: string;
   networkName: string;
   domainName: string;
+  size: number;
 }
 
 export interface IListOpsDeploymentOptions {

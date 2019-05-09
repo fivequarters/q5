@@ -54,6 +54,7 @@ export class DeploymentService {
         { name: 'Deployment', value: deployment.deploymentName },
         { name: 'Domain', value: deployment.domainName },
         { name: 'Network', value: deployment.networkName },
+        { name: 'Size', value: deployment.size.toString() },
       ],
     });
     const confirmed = await confirmPrompt.prompt(this.input.io);
@@ -85,6 +86,22 @@ export class DeploymentService {
     );
 
     return deployment as IOpsDeployment;
+  }
+
+  public async getDeployment(name: string): Promise<IOpsDeployment> {
+    const opsDataContext = await this.opsService.getOpsDataContext();
+    const deploymentData = opsDataContext.deploymentData;
+
+    const network = await this.executeService.execute(
+      {
+        header: 'Get Deployment',
+        message: `Getting the '${Text.bold(name)}' deployment...`,
+        errorHeader: 'Deployment Error',
+      },
+      () => deploymentData.get(name)
+    );
+
+    return network as IOpsDeployment;
   }
 
   public async listAllDeployments(): Promise<IOpsDeployment[]> {
@@ -158,6 +175,9 @@ export class DeploymentService {
       Text.eol(),
       Text.dim('Network: '),
       deployment.networkName,
+      Text.eol(),
+      Text.dim('Default Size: '),
+      deployment.size.toString(),
     ];
 
     await this.executeService.message(Text.bold(deployment.deploymentName), Text.create(details));

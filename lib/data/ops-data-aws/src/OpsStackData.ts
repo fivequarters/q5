@@ -1,5 +1,5 @@
 import { DataSource } from '@5qtrs/data';
-import { IOpsStackData, IListOpsStackOptions, IListOpsStackResult } from '@5qtrs/ops-data';
+import { IOpsStackData, IOpsNewStack, IOpsStack, IListOpsStackOptions, IListOpsStackResult } from '@5qtrs/ops-data';
 import { AwsDynamo } from '@5qtrs/aws-dynamo';
 import { AwsAutoScale } from '@5qtrs/aws-autoscale';
 import { AwsAmi } from '@5qtrs/aws-ami';
@@ -7,7 +7,7 @@ import { OpsDeploymentData } from './OpsDeploymentData';
 import { OpsNetworkData } from './OpsNetworkData';
 import { OpsDataAwsProvider } from './OpsDataAwsProvider';
 import { OpsDataAwsConfig } from './OpsDataAwsConfig';
-import { StackTable, IOpsStack } from './tables/StackTable';
+import { StackTable } from './tables/StackTable';
 
 // ------------------
 // Internal Functions
@@ -57,12 +57,15 @@ export class OpsStackData extends DataSource implements IOpsStackData {
     this.deploymentData = deploymentData;
   }
 
-  public async deploy(deploymentName: string, tag: string): Promise<void> {
+  public async deploy(newStack: IOpsNewStack): Promise<IOpsStack> {
+    const { deploymentName, tag } = newStack;
     const deployment = await this.deploymentData.get(deploymentName);
+
     const network = await this.networkData.get(deployment.networkName);
     const awsConfig = await this.provider.getAwsConfig(network.accountName, network.region, deploymentName);
 
-    const id = await this.getNextStackId(deploymentName);
+    const size = newStack.size || deployment.size;
+    const id = await this.getNextStackId(newStack.deploymentName);
 
     const awsAmi = await AwsAmi.create(awsConfig);
     const ami = await awsAmi.getUbuntuServerAmi(this.config.ubuntuServerVersion);
@@ -85,12 +88,15 @@ export class OpsStackData extends DataSource implements IOpsStackData {
       securityGroups: [network.securityGroupId],
       userData,
       instanceProfile: this.config.monoInstanceProfile,
-      size: this.config.monoInstanceSize,
+      size,
       healthCheckGracePeriod: this.config.monoHealthCheckGracePeriod,
       subnets: network.privateSubnets.map(subnet => subnet.id),
     });
 
-    await this.stackTable.add({ id, deploymentName, tag });
+    const stack = { id, deploymentName, tag, size };
+
+    await this.stackTable.add(stack);
+    return stack;
   }
 
   public async list(options?: IListOpsStackOptions): Promise<IListOpsStackResult> {

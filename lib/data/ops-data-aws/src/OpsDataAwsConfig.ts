@@ -16,7 +16,6 @@ const defaultMonoInstanceType = 't3.medium';
 const defaultMonoLogPort = 5002;
 const defaultMonoApiPort = 3001;
 const defaultUbuntuServerVersion = '18.04';
-const defaultMonoInstanceSize = 2;
 const defaultMonoInstanceProfile = 'arn:aws:iam::321612923577:instance-profile/Flexd-EC2-Instance';
 const defaultMonoHealthCheckGracePeriod = 180;
 const defaultCronFilter = 'ctx => true;';
@@ -94,10 +93,6 @@ export class OpsDataAwsConfig implements IConfig {
 
   public get ubuntuServerVersion(): string {
     return (this.config.value('ubuntuServerVersion') as string) || defaultUbuntuServerVersion;
-  }
-
-  public get monoInstanceSize(): number {
-    return (this.config.value('monoInstanceSize') as number) || defaultMonoInstanceSize;
   }
 
   public get monoInstanceProfile(): string {
