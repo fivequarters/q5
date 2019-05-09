@@ -137,7 +137,6 @@
     "lib/server/account",
     "lib/data/account-data",
     "lib/shared/promise",
-    "data/dwh-export",
     "lib/server/bq-metering",
     "lib/shared/data",
     "lib/data/ops-data",
