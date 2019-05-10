@@ -61,7 +61,7 @@ export function createNavigationPanel(
     }
     html.push(
       `<div id="${newFileId}" style="display:none" class="fusebit-nav-new-file">`,
-      `<span class="fusebit-code-file-icon"><i class="fa fa-file"></i></span>`,
+      `<span class="fusebit-nav-icon"><i class="fa fa-file"></i></span>`,
       `<input id="${newFileNameId}" placeholder="" size="15" class="fusebit-new-file-input">`,
       `</span></div>`
     );
@@ -77,7 +77,7 @@ export function createNavigationPanel(
     if (!effectiveOptions.hideComputeSettings) {
       html.push(
         `<div class="fusebit-nav-item" data-type="computeSettings">`,
-        `<span class="fusebit-code-compute-icon"><i class="fa fa-tools"></i></span>`,
+        `<span class="fusebit-nav-icon"><i class="fa fa-tools"></i></span>`,
         `<span class="fusebit-compute-file">Compute</span>`,
         `</div>`
       );
@@ -85,7 +85,7 @@ export function createNavigationPanel(
     if (!effectiveOptions.hideApplicationSettings) {
       html.push(
         `<div class="fusebit-nav-item" data-type="applicationSettings">`,
-        `<span class="fusebit-code-secret-icon"><i class="fa fa-cogs"></i></span>`,
+        `<span class="fusebit-nav-icon"><i class="fa fa-cogs"></i></span>`,
         `<span class="fusebit-compute-file">Application</span>`,
         `</div>`
       );
@@ -93,7 +93,7 @@ export function createNavigationPanel(
     if (!effectiveOptions.hideCronSettings) {
       html.push(
         `<div class="fusebit-nav-item" data-type="cronSettings">`,
-        `<span class="fusebit-code-cron-icon"><i class="fa fa-clock"></i></span>`,
+        `<span class="fusebit-nav-icon"><i class="fa fa-clock"></i></span>`,
         `<span class="fusebit-compute-file">Schedule</span>`,
         `</div>`
       );
@@ -101,7 +101,7 @@ export function createNavigationPanel(
     if (!effectiveOptions.hideRunnerTool) {
       html.push(
         `<div class="fusebit-nav-item" data-type="runnerSettings">`,
-        `<span class="fusebit-code-cron-icon"><i class="fa fa-play"></i></span>`,
+        `<span class="fusebit-nav-icon"><i class="fa fa-play"></i></span>`,
         `<span class="fusebit-compute-file">Runner</span>`,
         `</div>`
       );
@@ -217,7 +217,7 @@ export function createNavigationPanel(
   function createFileNameNavigationItemHtml(fileName: string) {
     let html = [
       `<div class="fusebit-nav-item fusebit-nav-file" data-type="file" data-file="${fileName}">`,
-      `<span><span class="fusebit-code-file-icon"><i class="fa fa-file"></i></span>${fileName}</span>`,
+      `<span><span class="fusebit-nav-icon"><i class="fa fa-file"></i></span>${fileName}</span>`,
       fileName === 'index.js'
         ? `<span></span>`
         : `<button class="fusebit-code-action-delete-btn"><i class="fa fa-trash"></i></button>`,

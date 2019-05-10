@@ -1,4 +1,5 @@
-import './fusebit.css';
+import './fusebit-light.css';
+import './fusebit-dark.css';
 
 import { dom, library } from '@fortawesome/fontawesome-svg-core';
 import {

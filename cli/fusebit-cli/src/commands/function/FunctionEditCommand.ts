@@ -18,6 +18,12 @@ not exist, it is created.`,
           aliases: ['f'],
           description: 'The id of the function to edit.',
         },
+        {
+          name: 'theme',
+          aliases: ['t'],
+          description: 'The theme of the editor: light (default) or dark.',
+          default: 'light',
+        },
       ],
     });
   }
@@ -55,7 +61,7 @@ not exist, it is created.`,
       },
       async () => {
         let port = 8000 + Math.floor(Math.random() * 100);
-        let editorHtml = getEditorHtml(port, profile);
+        let editorHtml = getEditorHtml(port, profile, input);
         return new Promise((resolve, reject) => {
           http
             .createServer((req, res) => {
@@ -100,7 +106,7 @@ not exist, it is created.`,
   }
 }
 
-function getEditorHtml(port: number, profile: any): string {
+function getEditorHtml(port: number, profile: any, input: IExecuteInput): string {
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -136,7 +142,9 @@ function getEditorHtml(port: number, profile: any): string {
       accessToken: '${profile.accessToken}',
   }, {
       template: {},
-      // editor: {},
+      editor: {
+        theme: '${input.options.theme}',
+      },
   }).then(editorContext => {
       editorContext.setFullScreen(true);
   });
