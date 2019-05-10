@@ -5,6 +5,7 @@
  *
  * ```javascript
  * {
+ *    theme: 'light',
  *    actionPanel: {
  *      enableCodeOnlyToggle: true,
  *      enableFullScreen: true,
@@ -26,6 +27,10 @@
  * ```
  */
 export interface IEditorOptions {
+  /**
+   * Editor style theme.
+   */
+  theme?: EditorTheme;
   /**
    * Options of the action panel of the editor. If set to `false`, hides the action panel.
    */
@@ -50,9 +55,18 @@ export interface IEditorOptions {
 }
 
 /**
+ * Choice of the editor style: light or dark.
+ */
+enum EditorTheme {
+  Light = 'light',
+  Dark = 'dark',
+}
+
+/**
  * Default values for the [[IEditorPanel]].
  */
 export class EditorOptions implements IEditorOptions {
+  public theme = EditorTheme.Light;
   public actionPanel = new ActionPanelOptions();
   public editorPanel = new EditorPanelOptions();
   public logsPanel = new LogsPanelOptions();
@@ -65,6 +79,10 @@ export class EditorOptions implements IEditorOptions {
  * Options of the action panel of the editor. Default values are represented by the [[ActionPanelOptions]] class.
  */
 export interface IActionPanelOptions {
+  /**
+   * Editor style theme.
+   */
+  theme?: EditorTheme;
   /**
    * Enables or disables the button that allows the editor to enter the "Zen" mode showing just the code editor.
    */
@@ -84,6 +102,7 @@ export interface IActionPanelOptions {
  * Default values for the [[IActionPanelOptions]].
  */
 export class ActionPanelOptions implements IActionPanelOptions {
+  public theme = EditorTheme.Light;
   public enableCodeOnlyToggle: boolean = true;
   public enableFullScreen: boolean = true;
   public enableClose: boolean = true;
@@ -96,18 +115,31 @@ export class ActionPanelOptions implements IActionPanelOptions {
  * Options of the editor panel that hosts the code editor. At present there are none, but check back soon.
  */
 export interface IEditorPanelOptions {
+  /**
+   * Editor style theme.
+   */
+  theme?: EditorTheme;
   [property: string]: any;
 }
 
 /**
  * Default values for the [[IEditorPanelOptions]].
  */
-export class EditorPanelOptions implements IEditorPanelOptions {}
+export class EditorPanelOptions implements IEditorPanelOptions {
+  public theme = EditorTheme.Light;
+  constructor() {
+    // do nothing
+  }
+}
 
 /**
  * Options of the logs panel. Default values are represented by the [[LogsPanelOptions]] class.
  */
 export interface ILogsPanelOptions {
+  /**
+   * Editor style theme.
+   */
+  theme?: EditorTheme;
   /**
    * Maximum number of characters that the logs panel shows. If that nunber is exceededm, older logs are discarded.
    */
@@ -119,6 +151,7 @@ export interface ILogsPanelOptions {
  * Default values for the [[ILogsPanelOptions]].
  */
 export class LogsPanelOptions implements ILogsPanelOptions {
+  public theme = EditorTheme.Light;
   public maxSize: number = 10 * 1024;
   constructor() {
     // do nothing
@@ -129,6 +162,10 @@ export class LogsPanelOptions implements ILogsPanelOptions {
  * Options of the navigation panel. Default values are represented by the [[NavigationPanelOptions]] class.
  */
 export interface INavigationPanelOptions {
+  /**
+   * Editor style theme.
+   */
+  theme?: EditorTheme;
   /**
    * Hides the node of the navigation that shows the list of files making up the function.
    */
@@ -161,6 +198,7 @@ export interface INavigationPanelOptions {
  * Default values for the [[INavigationPanelOptions]].
  */
 export class NavigationPanelOptions implements INavigationPanelOptions {
+  public theme = EditorTheme.Light;
   public hideCode = false;
   public hideFiles = [];
   /**
@@ -180,10 +218,19 @@ export class NavigationPanelOptions implements INavigationPanelOptions {
  * Options of the status panel. At present there are none, but check back soon.
  */
 export interface IStatusPanelOptions {
+  /**
+   * Editor style theme.
+   */
+  theme?: EditorTheme;
   [property: string]: any;
 }
 
 /**
  * Default values for the [[IStatusPanelOptions]].
  */
-export class StatusPanelOptions implements IStatusPanelOptions {}
+export class StatusPanelOptions implements IStatusPanelOptions {
+  public theme = EditorTheme.Light;
+  constructor() {
+    // do nothing
+  }
+}

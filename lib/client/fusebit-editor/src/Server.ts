@@ -227,10 +227,11 @@ export class Server {
       };
       Object.keys(defaultEditorOptions).forEach(k => {
         // @ts-ignore
-        if (editorOptions[k] !== false) {
+        if (editorOptions[k] !== false && typeof editorOptions[k] !== 'string') {
           // @ts-ignore
           editorOptions[k] = {
             ...defaultEditorOptions[k],
+            theme: editorOptions.theme,
             // @ts-ignore
             ...(createIfNotExist && createIfNotExist[k]),
           };

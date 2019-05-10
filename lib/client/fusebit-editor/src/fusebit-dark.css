@@ -1,0 +1,310 @@
+.fusebit-theme-dark.fusebit-shell {
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  font-family: Helvetica, Arial, sans-serif;
+  color: #c1c1c1;
+  /* border: 2px solid #283747; */
+  background-color: #1d1d1d;
+}
+
+.fusebit-theme-dark .fusebit-main {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  height: calc(100% - 20px);
+  max-height: 100%;
+  font-family: Helvetica, Arial, sans-serif;
+  background: transparent;
+}
+
+.fusebit-theme-dark .fusebit-nav-editor-container {
+  flex: 1 1 auto;
+  display: flex;
+  flex-flow: column;
+  align-items: stretch;
+  min-height: 100px;
+  overflow: hidden;
+}
+
+.fusebit-theme-dark .fusebit-logs-splitter {
+  flex: 0 0 auto;
+  height: 2px;
+  background: #414141;
+  cursor: row-resize;
+}
+
+.fusebit-theme-dark .fusebit-nav-container {
+  flex: 0 0 auto;
+  width: 150px;
+  min-width: 100px;
+  min-height: 100px;
+  background-color: #252526;
+}
+
+.fusebit-theme-dark .fusebit-nav-splitter {
+  flex: 0 0 auto;
+  width: 2px;
+  min-width: 2px;
+  background: #252526;
+  min-height: 100px;
+  cursor: col-resize;
+}
+
+.fusebit-theme-dark .fusebit-editor-container {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 100px;
+  min-width: 100px;
+  overflow: hidden;
+  padding-top: 5px;
+}
+
+.fusebit-theme-dark .fusebit-logs-container {
+  flex: 0 0 auto;
+  min-height: 100px;
+  height: 100px;
+  background-color: #1e1e1e;
+  overflow: hidden;
+  padding-left: 10px;
+  padding-top: 10px;
+}
+
+.fusebit-theme-dark .fusebit-status-container {
+  flex: 0 0 0;
+  font-family: Helvetica, Arial, sans-serif;
+  color: #c1c1c1;
+  background-color: #383838;
+}
+
+.fusebit-theme-dark .fusebit-nav {
+  display: flex;
+  flex-flow: column;
+  align-items: stretch;
+  min-height: 100px;
+  overflow: scroll;
+  height: 100%;
+  width: 100%;
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 22px;
+  font-family: Verdana, sans-serif;
+  user-select: none;
+}
+
+.fusebit-theme-dark .fusebit-nav-delete {
+  display: flex;
+  flex-flow: column;
+  align-items: stretch;
+  min-height: 100px;
+  overflow: hidden;
+  height: 100%;
+  width: 100%;
+  margin-top: 60px;
+  font-size: 14px;
+  font-family: Verdana, sans-serif;
+  user-select: none;
+  text-align: center;
+}
+
+.fusebit-theme-dark .fusebit-nav-delete-confirm-container {
+  flex: 0 0 0;
+  padding-left: 20px;
+  padding-right: 20px;
+  white-space: nowrap;
+  margin-top: 20px;
+  justify-content: center;
+}
+
+.fusebit-theme-dark .fusebit-nav-delete-action-btn {
+  background-color: transparent;
+  border: 0;
+  color: #adadad;
+  font-size: 22px;
+  cursor: pointer;
+  font-family: Verdana, sans-serif;
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+.fusebit-theme-dark .fusebit-nav-delete-action-btn:hover {
+  color: #e5e5e5;
+}
+
+.fusebit-theme-dark .fusebit-nav-delete-action-btn:focus {
+  outline: 0;
+}
+
+.fusebit-theme-dark .fusebit-nav-category {
+  flex: 0 0 0;
+  padding-left: 5px;
+  padding-right: 5px;
+  white-space: nowrap;
+}
+
+.fusebit-theme-dark .fusebit-nav-item {
+  flex: 0 0 0;
+  padding-left: 15px;
+  padding-right: 5px;
+  white-space: nowrap;
+}
+
+.fusebit-theme-dark .fusebit-nav-file {
+  display: flex;
+  justify-content: space-between;
+}
+
+.fusebit-theme-dark .fusebit-nav-new-file {
+  flex: 0 0 0;
+  padding-left: 15px;
+  padding-right: 5px;
+  white-space: nowrap;
+}
+
+.fusebit-theme-dark .fusebit-nav-item:hover {
+  background: #2b2d2e;
+  cursor: pointer;
+}
+
+.fusebit-theme-dark .fusebit-nav-item-selected {
+  background: #37373d;
+}
+
+.fusebit-theme-dark .fusebit-logs {
+  overflow: scroll;
+  height: 100%;
+  width: 100%;
+}
+
+.fusebit-theme-dark .fusebit-logs pre {
+  font-family: Menlo, Monaco, 'Courier New', monospace;
+  color: #c1c1c1;
+  font-size: 11px;
+}
+
+.fusebit-theme-dark .fusebit-logs-content {
+  white-space: pre-wrap; /* Since CSS 2.1 */
+  white-space: -moz-pre-wrap; /* Mozilla, since 1999 */
+  white-space: -pre-wrap; /* Opera 4-6 */
+  white-space: -o-pre-wrap; /* Opera 7 */
+  word-wrap: break-word; /* Internet Explorer 5.5+ */
+}
+
+.fusebit-theme-dark .fusebit-status {
+  height: 18px;
+  /* width: 100%; */
+  /* margin: auto 0px; */
+  text-align: right;
+  margin-right: 10px;
+  font-size: 13px;
+  padding-top: 2px;
+}
+
+.fusebit-theme-dark .fusebit-action-wrapper {
+  display: flex;
+  justify-content: space-between;
+}
+
+.fusebit-theme-dark .fusebit-action-container {
+  flex: 0 0 0;
+  font-family: Verdana, sans-serif;
+  color: #adadad;
+  width: 100px;
+  background-color: #333333;
+}
+
+.fusebit-theme-dark .fusebit-action-btn {
+  background-color: transparent;
+  border: 0;
+  color: #adadad;
+  padding: 0.2em 0.5em;
+  font-size: 22px;
+  cursor: pointer;
+  font-family: Verdana, sans-serif;
+}
+
+.fusebit-theme-dark .fusebit-action-btn:hover:enabled {
+  color: #eeeeee;
+}
+
+.fusebit-theme-dark .fusebit-action-btn:disabled {
+  color: #8b8b8b;
+}
+
+.fusebit-theme-dark .fusebit-action-btn:focus {
+  outline: 0;
+}
+
+.fusebit-theme-dark .fusebit-code-action-add-btn {
+  float: right;
+  background-color: transparent;
+  border: 0;
+  color: #c1c1c1;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: Verdana, sans-serif;
+}
+
+.fusebit-theme-dark .fusebit-code-action-add-btn:hover {
+  color: #e5e5e5;
+}
+
+.fusebit-theme-dark .fusebit-code-action-add-btn:focus {
+  outline: none;
+}
+
+.fusebit-theme-dark .fusebit-nav-icon {
+  color: #e5e5e5;
+  font-size: 12px;
+  margin-right: 7px;
+  display: inline-block;
+  width: 14px;
+}
+
+.fusebit-theme-dark .fusebit-code-action-delete-btn {
+  display: none;
+  background-color: transparent;
+  border: 0;
+  color: #adadad;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: Verdana, sans-serif;
+}
+
+.fusebit-theme-dark .fusebit-nav-file:hover .fusebit-code-action-delete-btn {
+  display: inline;
+}
+
+.fusebit-theme-dark .fusebit-code-action-delete-btn:hover {
+  color: #e5e5e5;
+}
+
+.fusebit-theme-dark .fusebit-code-action-delete-btn:focus {
+  outline: 0;
+}
+
+.fusebit-theme-dark .fusebit-new-file-input {
+  font-family: inherit;
+  border: 1px solid #5499c7;
+  padding: 0 0.2em;
+  margin-top: -4px;
+  background-color: #3c3c3c;
+  color: #c1c1c1;
+  width: calc(100% - 30px);
+  height: 20px;
+  font-size: 12px;
+}
+
+.fusebit-theme-dark .fusebit-new-file-input:focus {
+  outline: none;
+}
+
+.fusebit-theme-dark.fusebit-fullscreen {
+  z-index: 9999;
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  border: 0px;
+}

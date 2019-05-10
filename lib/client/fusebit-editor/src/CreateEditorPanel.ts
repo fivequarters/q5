@@ -13,20 +13,34 @@ import { updateFusebitContextTypings, addStaticTypings, updateNodejsTypings, upd
  * @param options
  */
 export function createEditorPanel(element: HTMLElement, editorContext: EditorContext, options?: IEditorPanelOptions) {
-  Monaco.editor.defineTheme('customTheme', {
-    base: 'vs', // can also be vs-dark or hc-black
-    inherit: true, // can also be false to completely replace the builtin rules
-    rules: [],
-    colors: {
-      // 'editor.background': '#212F3C',
-      'scrollbar.shadow': '#ffffff',
-      'editor.lineHighlightBackground': '#f7f9f9',
-    },
-  });
+  let theme = (options && options.theme) || 'light';
+  let monacoTheme: any;
+  switch (theme) {
+    case 'dark':
+      monacoTheme = {
+        base: 'vs-dark',
+        inherit: true, // can also be false to completely replace the builtin rules
+        rules: [],
+      };
+      break;
+    default:
+      monacoTheme = {
+        base: 'vs', // can also be vs-dark or hc-black
+        inherit: true, // can also be false to completely replace the builtin rules
+        rules: [],
+        colors: {
+          // 'editor.background': '#212F3C',
+          'scrollbar.shadow': '#ffffff',
+          'editor.lineHighlightBackground': '#f7f9f9',
+        },
+      };
+      break;
+  }
+  Monaco.editor.defineTheme('customTheme', monacoTheme);
 
   const monacoOptions = {
-    theme: 'customTheme',
     ...options,
+    theme: 'customTheme',
     model: Monaco.editor.createModel(
       editorContext.getSelectedFileContent() || '',
       editorContext.getSelectedFileLanguage(),

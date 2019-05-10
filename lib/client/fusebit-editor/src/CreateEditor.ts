@@ -72,7 +72,8 @@ export function createEditor(
     const statusId = `${idPrefix}-status`;
 
     const lines: string[] = [
-      `<div id="${idPrefix}" class="fusebit-shell"><div id="${idPrefix}-main" class="fusebit-main">`,
+      `<div id="${idPrefix}" class="fusebit-theme-${opts.theme ||
+        'light'} fusebit-shell"><div id="${idPrefix}-main" class="fusebit-main">`,
     ];
     if (opts.actionPanel !== false) {
       lines.push(`<div id="${actionId}" class="fusebit-action-container"></div>`);
