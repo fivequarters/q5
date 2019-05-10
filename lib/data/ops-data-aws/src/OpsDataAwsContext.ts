@@ -8,6 +8,7 @@ import {
   IOpsDeploymentData,
   IOpsStackData,
 } from '@5qtrs/ops-data';
+import { OpsDataTables } from './OpsDataTables';
 import { OpsDataAwsProvider } from './OpsDataAwsProvider';
 import { OpsAccountData } from './OpsAccountData';
 import { OpsDomainData } from './OpsDomainData';
@@ -22,17 +23,19 @@ import { OpsDataAwsConfig } from './OpsDataAwsConfig';
 // ----------------
 
 export class OpsDataAwsContext extends DataSource implements IOpsDataContext {
-  public static async create(config: OpsDataAwsConfig, awsProvider: OpsDataAwsProvider) {
-    const account = await OpsAccountData.create(config, awsProvider);
-    const domain = await OpsDomainData.create(config, awsProvider);
-    const network = await OpsNetworkData.create(config, awsProvider);
-    const image = await OpsImageData.create(config, awsProvider);
-    const deployment = await OpsDeploymentData.create(config, awsProvider);
-    const stack = await OpsStackData.create(config, awsProvider);
-    return new OpsDataAwsContext(account, domain, network, image, deployment, stack);
+  public static async create(config: OpsDataAwsConfig, provider: OpsDataAwsProvider) {
+    const tables = await OpsDataTables.create(config, provider);
+    const account = await OpsAccountData.create(config, provider, tables);
+    const domain = await OpsDomainData.create(config, provider, tables);
+    const network = await OpsNetworkData.create(config, provider, tables);
+    const image = await OpsImageData.create(config, provider, tables);
+    const deployment = await OpsDeploymentData.create(config, provider, tables);
+    const stack = await OpsStackData.create(config, provider, tables);
+    return new OpsDataAwsContext(tables, account, domain, network, image, deployment, stack);
   }
 
   private constructor(
+    tables: OpsDataTables,
     account: OpsAccountData,
     domain: OpsDomainData,
     network: OpsNetworkData,
@@ -40,7 +43,7 @@ export class OpsDataAwsContext extends DataSource implements IOpsDataContext {
     deployment: OpsDeploymentData,
     stack: OpsStackData
   ) {
-    super([account, domain, network, image, deployment, stack]);
+    super([tables]);
     this.account = account;
     this.domain = domain;
     this.network = network;

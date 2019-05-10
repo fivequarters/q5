@@ -2,6 +2,27 @@ import { same } from '@5qtrs/array';
 import { AwsBase, IAwsConfig } from '@5qtrs/aws-base';
 import { ACM } from 'aws-sdk';
 
+// ------------------
+// Internal Constants
+// ------------------
+
+const getCertDelayInMs = 500;
+const defaultName = 'cert';
+
+// ------------------
+// Internal Functions
+// ------------------
+
+function mapTags(tags: { [index: string]: string }) {
+  const mapped = [];
+  for (const key in tags) {
+    if (key) {
+      mapped.push({ Key: key, Value: tags[key] });
+    }
+  }
+  return mapped;
+}
+
 // -------------------
 // Internal Interfaces
 // -------------------
@@ -16,7 +37,8 @@ interface IAwsCertShort {
 // -------------------
 
 export interface IAwsCertOptions {
-  alternateDomains: string[];
+  name?: string;
+  alternateDomains?: string[];
 }
 
 export interface IAwsCertDetail {
@@ -55,11 +77,18 @@ export class AwsCert extends AwsBase<typeof ACM> {
     }
 
     const arn = await this.requestCert(domain, options);
-    cert = await this.getCert(arn);
-    if (!cert) {
-      const message = `Failed to issue certificate for the '${domain}' domain`;
-      throw new Error(message);
+    while (!cert || !cert.validations || !cert.validations.length) {
+      cert = await this.getCert(arn);
+      if (!cert) {
+        const message = `Failed to issue certificate for the '${domain}' domain`;
+        throw new Error(message);
+      }
+
+      await new Promise(resolve => setTimeout(resolve, getCertDelayInMs));
     }
+
+    const fullName = this.getFullName(options && options.name ? options.name : defaultName);
+    await this.addTagsToCertificate(cert.arn, { Name: fullName });
     return cert;
   }
 
@@ -207,6 +236,24 @@ export class AwsCert extends AwsBase<typeof ACM> {
         }
 
         resolve(data.CertificateArn);
+      });
+    });
+  }
+
+  private async addTagsToCertificate(certificateArn: string, tags: { [index: string]: string }): Promise<string> {
+    const cert = await this.getAws();
+    const params: any = {
+      CertificateArn: certificateArn,
+      Tags: mapTags(tags),
+    };
+
+    return new Promise((resolve, reject) => {
+      cert.addTagsToCertificate(params, (error: any) => {
+        if (error) {
+          reject(error);
+        }
+
+        resolve();
       });
     });
   }

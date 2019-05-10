@@ -8,35 +8,32 @@ import {
   OpsDataException,
   OpsDataExceptionCode,
 } from '@5qtrs/ops-data';
-import { AwsDynamo } from '@5qtrs/aws-dynamo';
-import { AwsNetwork } from '@5qtrs/aws-network';
+import { OpsDataTables } from './OpsDataTables';
 import { OpsDataAwsProvider } from './OpsDataAwsProvider';
 import { OpsDataAwsConfig } from './OpsDataAwsConfig';
-import { NetworkTable } from './tables/NetworkTable';
 
 // ----------------
 // Exported Classes
 // ----------------
 
 export class OpsNetworkData extends DataSource implements IOpsNetworkData {
-  public static async create(config: OpsDataAwsConfig, provider: OpsDataAwsProvider) {
-    const awsConfig = await provider.getAwsConfigForMain();
-    const dynamo = await AwsDynamo.create(awsConfig);
-    const networkTable = await NetworkTable.create(config, dynamo);
-    return new OpsNetworkData(networkTable, provider);
+  public static async create(config: OpsDataAwsConfig, provider: OpsDataAwsProvider, tables: OpsDataTables) {
+    return new OpsNetworkData(config, provider, tables);
   }
-  private networkTable: NetworkTable;
+  private config: OpsDataAwsConfig;
   private provider: OpsDataAwsProvider;
+  private tables: OpsDataTables;
 
-  private constructor(networkTable: NetworkTable, provider: OpsDataAwsProvider) {
-    super([networkTable]);
-    this.networkTable = networkTable;
+  private constructor(config: OpsDataAwsConfig, provider: OpsDataAwsProvider, tables: OpsDataTables) {
+    super([]);
+    this.config = config;
+    this.tables = tables;
     this.provider = provider;
   }
 
   public async exists(network: IOpsNetwork): Promise<boolean> {
     try {
-      const existing = await this.networkTable.get(network.networkName);
+      const existing = await this.tables.networkTable.get(network.networkName);
       if (existing.accountName !== network.accountName) {
         throw OpsDataException.networkDifferentAccount(network.networkName, existing.accountName);
       }
@@ -54,17 +51,17 @@ export class OpsNetworkData extends DataSource implements IOpsNetworkData {
   }
 
   public async add(network: IOpsNewNetwork): Promise<IOpsNetwork> {
-    await this.networkTable.add(network);
+    await this.tables.networkTable.add(network);
     return this.attachNetworkDetails(network);
   }
 
   public async get(networkName: string): Promise<IOpsNetwork> {
-    const network = await this.networkTable.get(networkName);
+    const network = await this.tables.networkTable.get(networkName);
     return this.attachNetworkDetails(network);
   }
 
   public async list(options?: IListOpsNetworkOptions): Promise<IListOpsNetworkResult> {
-    const result = await this.networkTable.list(options);
+    const result = await this.tables.networkTable.list(options);
     const items = await Promise.all(result.items.map(network => this.attachNetworkDetails(network)));
     return {
       next: result.next,
@@ -73,17 +70,12 @@ export class OpsNetworkData extends DataSource implements IOpsNetworkData {
   }
 
   public async listAll(): Promise<IOpsNetwork[]> {
-    const networks = await this.networkTable.listAll();
+    const networks = await this.tables.networkTable.listAll();
     return Promise.all(networks.map(network => this.attachNetworkDetails(network)));
   }
 
-  private async getAwsNetwork(network: IOpsNewNetwork): Promise<AwsNetwork> {
-    const awsConfig = await this.provider.getAwsConfig(network.accountName, network.region);
-    return AwsNetwork.create(awsConfig);
-  }
-
   private async attachNetworkDetails(network: IOpsNewNetwork): Promise<IOpsNetwork> {
-    const awsNetwork = await this.getAwsNetwork(network);
+    const awsNetwork = await this.provider.getAwsNetworkFromAccount(network.accountName, network.region);
     const networkDetails = await awsNetwork.ensureNetwork(network.networkName);
     return {
       networkName: network.networkName,
