@@ -48,7 +48,6 @@ const FeatureTitle = styled.h3`
 `;
 
 const FeaturePicture = styled.img`
-  flex: 1;
   width: 100%;
   height: auto;
 `;
