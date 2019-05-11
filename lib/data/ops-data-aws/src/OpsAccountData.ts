@@ -7,48 +7,38 @@ import {
   OpsDataException,
   OpsDataExceptionCode,
 } from '@5qtrs/ops-data';
-import { AwsDynamo } from '@5qtrs/aws-dynamo';
+import { OpsDataTables } from './OpsDataTables';
 import { OpsDataAwsProvider } from './OpsDataAwsProvider';
 import { OpsDataAwsConfig } from './OpsDataAwsConfig';
-import { AccountTable } from './tables/AccountTable';
-import { AccountIdTable } from './tables/AccountIdTable';
 
 // ----------------
 // Exported Classes
 // ----------------
 
 export class OpsAccountData extends DataSource implements IOpsAccountData {
-  public static async create(config: OpsDataAwsConfig, provider: OpsDataAwsProvider) {
-    const awsConfig = await provider.getAwsConfigForMain();
-    const dynamo = await AwsDynamo.create(awsConfig);
-    const accountIdTable = await AccountIdTable.create(config, dynamo);
-    const accountTable = await AccountTable.create(config, dynamo);
-    return new OpsAccountData(accountIdTable, accountTable, config);
+  public static async create(config: OpsDataAwsConfig, provider: OpsDataAwsProvider, tables: OpsDataTables) {
+    return new OpsAccountData(config, tables);
   }
-  private accountIdTable: AccountIdTable;
-  private accountTable: AccountTable;
   private config: OpsDataAwsConfig;
+  private tables: OpsDataTables;
 
-  private constructor(accountIdTable: AccountIdTable, accountTable: AccountTable, config: OpsDataAwsConfig) {
-    super([accountIdTable, accountTable]);
-    this.accountIdTable = accountIdTable;
-    this.accountTable = accountTable;
+  private constructor(config: OpsDataAwsConfig, tables: OpsDataTables) {
+    super([]);
     this.config = config;
+    this.tables = tables;
   }
 
   public async isSetup(): Promise<boolean> {
-    const superIsSetup = await super.isSetup();
-    return superIsSetup ? await this.exists(this.getMainAccount()) : false;
+    return this.exists(this.getMainAccount());
   }
 
   public async setup(): Promise<void> {
-    await super.setup();
     await this.add(this.getMainAccount());
   }
 
   public async exists(account: IOpsAccount): Promise<boolean> {
     try {
-      const existing = await this.accountTable.get(account.name);
+      const existing = await this.tables.accountTable.get(account.name);
       if (existing.id !== account.id) {
         throw OpsDataException.accountDifferentId(account.name, existing.id);
       }
@@ -65,20 +55,20 @@ export class OpsAccountData extends DataSource implements IOpsAccountData {
   }
 
   public async add(account: IOpsAccount): Promise<void> {
-    await this.accountIdTable.add(account);
-    await this.accountTable.add(account);
+    await this.tables.accountIdTable.add(account);
+    await this.tables.accountTable.add(account);
   }
 
   public async get(accountName: string): Promise<IOpsAccount> {
-    return this.accountTable.get(accountName);
+    return this.tables.accountTable.get(accountName);
   }
 
   public async list(options?: IListOpsAccountOptions): Promise<IListOpsAccountResult> {
-    return this.accountTable.list(options);
+    return this.tables.accountTable.list(options);
   }
 
   public async listAll(): Promise<IOpsAccount[]> {
-    return this.accountTable.listAll();
+    return this.tables.accountTable.listAll();
   }
 
   private getMainAccount(): IOpsAccount {

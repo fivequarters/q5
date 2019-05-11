@@ -6,13 +6,15 @@
     { "path": "../../aws/aws-config" },
     { "path": "../ops-data" },
     { "path": "../../aws/aws-dynamo" },
-    { "path": "../../aws/aws-route53" },
     { "path": "../../aws/aws-network" },
     { "path": "../../aws/aws-ecr" },
     { "path": "../../aws/aws-ec2" },
     { "path": "../account-data-aws" },
     { "path": "../../aws/aws-ami" },
     { "path": "../../aws/aws-autoscale" },
-    { "path": "../../shared/base64" }
+    { "path": "../../shared/base64" },
+    { "path": "../../aws/aws-cert" },
+    { "path": "../../aws/aws-alb" },
+    { "path": "../../aws/aws-route53" }
   ]
 }

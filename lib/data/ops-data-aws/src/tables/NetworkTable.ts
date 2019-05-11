@@ -91,14 +91,14 @@ export class NetworkTable extends AwsDynamoTable {
     this.config = config;
   }
 
-  public async add(domain: IOpsNetwork): Promise<void> {
+  public async add(network: IOpsNetwork): Promise<void> {
     const options = { onConditionCheckFailed: onNetworkAlreadyExists };
-    return this.addItem(domain, options);
+    return this.addItem(network, options);
   }
 
-  public async get(domainName: string): Promise<IOpsNetwork> {
+  public async get(networkName: string): Promise<IOpsNetwork> {
     const options = { onNotFound: onNetworkDoesNotExist };
-    return this.getItem(domainName, options);
+    return this.getItem(networkName, options);
   }
 
   public async list(options?: IListOpsNetworkOptions): Promise<IListOpsNetworkResult> {

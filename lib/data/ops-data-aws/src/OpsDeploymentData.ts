@@ -8,11 +8,10 @@ import {
   OpsDataExceptionCode,
 } from '@5qtrs/ops-data';
 import { AccountDataAwsContextFactory } from '@5qtrs/account-data-aws';
-import { AwsDynamo } from '@5qtrs/aws-dynamo';
-import { OpsNetworkData } from './OpsNetworkData';
-import { DeploymentTable } from './tables/DeploymentTable';
+import { OpsDataTables } from './OpsDataTables';
 import { OpsDataAwsProvider } from './OpsDataAwsProvider';
 import { OpsDataAwsConfig } from './OpsDataAwsConfig';
+import { OpsAlb } from './OpsAlb';
 import { createFunctionStorage } from './OpsFunctionStorage';
 import { createCron } from './OpsCron';
 import { createDwhExport } from './OpsDwh';
@@ -22,35 +21,24 @@ import { createDwhExport } from './OpsDwh';
 // ----------------
 
 export class OpsDeploymentData extends DataSource implements IOpsDeploymentData {
-  public static async create(config: OpsDataAwsConfig, provider: OpsDataAwsProvider) {
-    const awsConfig = await provider.getAwsConfigForMain();
-    const dynamo = await AwsDynamo.create(awsConfig);
-    const networkData = await OpsNetworkData.create(config, provider);
-    const deploymentTable = await DeploymentTable.create(config, dynamo);
-    return new OpsDeploymentData(config, deploymentTable, provider, networkData);
+  public static async create(config: OpsDataAwsConfig, provider: OpsDataAwsProvider, tables: OpsDataTables) {
+    return new OpsDeploymentData(config, provider, tables);
   }
 
   private config: OpsDataAwsConfig;
-  private deploymentTable: DeploymentTable;
+  private tables: OpsDataTables;
   private provider: OpsDataAwsProvider;
-  private networkData: OpsNetworkData;
 
-  private constructor(
-    config: OpsDataAwsConfig,
-    deploymentTable: DeploymentTable,
-    provider: OpsDataAwsProvider,
-    networkData: OpsNetworkData
-  ) {
-    super([deploymentTable]);
+  private constructor(config: OpsDataAwsConfig, provider: OpsDataAwsProvider, tables: OpsDataTables) {
+    super([]);
     this.config = config;
-    this.deploymentTable = deploymentTable;
+    this.tables = tables;
     this.provider = provider;
-    this.networkData = networkData;
   }
 
   public async exists(deployment: IOpsDeployment): Promise<boolean> {
     try {
-      const existing = await this.deploymentTable.get(deployment.deploymentName);
+      const existing = await this.tables.deploymentTable.get(deployment.deploymentName);
       if (existing.domainName !== deployment.domainName) {
         throw OpsDataException.deploymentDifferentDomain(deployment.deploymentName, existing.domainName);
       }
@@ -68,38 +56,41 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
   }
 
   public async add(deployment: IOpsDeployment): Promise<void> {
-    await this.deploymentTable.add(deployment);
+    await this.tables.deploymentTable.add(deployment);
     try {
       await this.ensureDeploymentSetup(deployment);
     } catch (error) {
-      await this.deploymentTable.delete(deployment.deploymentName);
+      await this.tables.deploymentTable.delete(deployment.deploymentName);
       throw error;
     }
   }
 
   public async get(deploymentName: string): Promise<IOpsDeployment> {
-    return this.deploymentTable.get(deploymentName);
+    return this.tables.deploymentTable.get(deploymentName);
   }
 
   public async list(options?: IListOpsDeploymentOptions): Promise<IListOpsDeploymentResult> {
-    return this.deploymentTable.list(options);
+    return this.tables.deploymentTable.list(options);
   }
 
   public async listAll(): Promise<IOpsDeployment[]> {
-    return this.deploymentTable.listAll();
+    return this.tables.deploymentTable.listAll();
   }
 
   private async ensureDeploymentSetup(deployment: IOpsDeployment): Promise<void> {
-    const network = await this.networkData.get(deployment.networkName);
-    const awsConfig = await this.provider.getAwsConfig(network.accountName, network.region, deployment.deploymentName);
+    const awsConfig = await this.provider.getAwsConfigForDeployment(deployment.deploymentName);
+
     const accountDataFactory = await AccountDataAwsContextFactory.create(awsConfig);
     const accountData = await accountDataFactory.create(this.config);
-
     await accountData.setup();
+
     await createFunctionStorage(this.config, awsConfig);
     await createCron(this.config, awsConfig);
     if (deployment.dataWarehouseEnabled) {
       await createDwhExport(this.config, awsConfig);
     }
+
+    const awsAlb = await OpsAlb.create(this.config, this.provider, this.tables);
+    await awsAlb.addAlb(deployment);
   }
 }

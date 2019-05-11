@@ -1,5 +1,4 @@
 import { Command, ICommand } from '@5qtrs/cli';
-import { DeployImageCommand } from './DeployImageCommand';
 import { PublishImageCommand } from './PublishImageCommand';
 
 // ------------------
@@ -21,7 +20,6 @@ export class ImageCommand extends Command {
   public static async create() {
     const subCommands = [];
     subCommands.push(await PublishImageCommand.create());
-    subCommands.push(await DeployImageCommand.create());
     command.subCommands = subCommands;
     return new ImageCommand(command);
   }
