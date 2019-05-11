@@ -1,1 +1,1 @@
-export { AwsAlb, IAwsAlbOptions, IAwsAlbLambdaTarget } from './AwsAlb';
+export { AwsAlb, IAwsAlbSettings, IAwsAlbLambdaTarget } from './AwsAlb';

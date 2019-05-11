@@ -1,15 +1,16 @@
 import { AwsBase, IAwsConfig } from '@5qtrs/aws-base';
-import { AwsNetwork } from '@5qtrs/aws-network';
 import { ELBv2 } from 'aws-sdk';
 
 // -------------------
 // Exported Interfaces
 // -------------------
 
-export interface IAwsAlbOptions {
-  albName?: string;
-  certArns?: string[];
+export interface IAwsAlbSettings {
+  certArns: string[];
+  subnets: string[];
+  securityGroups: string[];
   lambdas?: IAwsAlbLambdaTarget[];
+  name?: string;
 }
 
 export interface IAwsAlbLambdaTarget {
@@ -30,24 +31,17 @@ export class AwsAlb extends AwsBase<typeof ELBv2> {
     super(config);
   }
 
-  public async ensureAlb(networkName: string, options?: IAwsAlbOptions): Promise<string> {
-    const awsNetwork = await AwsNetwork.create(this.config);
-    const network = await awsNetwork.ensureNetwork(networkName);
+  public async ensureAlb(settings: IAwsAlbSettings): Promise<string> {
+    const name = settings.name || '';
+    const albArn = await this.createAlb(name, settings.subnets, settings.securityGroups);
 
-    const albName = options && options.albName ? options.albName : '';
-    const subnets = network.publicSubnets.map(subnet => subnet.id);
-    const albArn = await this.createAlb(albName, subnets, network.securityGroupId);
+    const listenerArn = await this.createListener(albArn, settings.certArns);
+    await this.createHttpRedirect(albArn);
 
-    const certArns = options && options.certArns ? options.certArns : undefined;
-    const listenerArn = await this.createListener(albArn, certArns);
-    if (certArns && certArns.length) {
-      await this.createHttpRedirect(albArn);
-    }
-
-    const lambdas = options && options.lambdas ? options.lambdas : [];
+    const lambdas = settings.lambdas ? settings.lambdas : [];
     const priority = 0;
     for (const lambda of lambdas) {
-      const targetGroupArn = await this.createLambdaTargetGroup(albName, lambda.name);
+      const targetGroupArn = await this.createLambdaTargetGroup(name, lambda.name);
       await this.registerLambdaTarget(targetGroupArn, lambda.arn);
       await this.createPathForwardRule(listenerArn, lambda.paths, priority, targetGroupArn);
     }
@@ -61,7 +55,7 @@ export class AwsAlb extends AwsBase<typeof ELBv2> {
 
   private async createLambdaTargetGroup(name: string, groupName: string): Promise<string> {
     const elb = await this.getAws();
-    const fullName = this.getTargetGroupName(name, groupName, 'tg');
+    const fullName = this.getTargetGroupName(groupName);
     const params = {
       Name: fullName,
       TargetType: 'lambda',
@@ -113,13 +107,13 @@ export class AwsAlb extends AwsBase<typeof ELBv2> {
     const elb = await this.getAws();
     const params: any = {
       LoadBalancerArn: albArn,
-      Port: certArns && certArns.length ? 443 : 80,
-      Protocol: certArns && certArns.length ? 'HTTPS' : 'HTTP',
+      Port: 443,
+      Protocol: 'HTTPS',
       DefaultActions: [
         {
           Type: 'fixed-response',
           FixedResponseConfig: {
-            MessageBody: '{ "status": 404, message": "resource not found" }',
+            MessageBody: '{ "message": "Not Found" }',
             StatusCode: '404',
             ContentType: 'application/json',
           },
@@ -199,13 +193,13 @@ export class AwsAlb extends AwsBase<typeof ELBv2> {
     });
   }
 
-  private async createAlb(name: string, subnetIds: string[], securityGroupId: string): Promise<string> {
+  private async createAlb(name: string, subnetIds: string[], securityGroups: string[]): Promise<string> {
     const elb = await this.getAws();
-    const fullName = this.getAlbName(name, 'alb');
+    const fullName = this.getAlbName();
     const params = {
       Name: fullName,
       Scheme: 'internet-facing',
-      SecurityGroups: [securityGroupId],
+      SecurityGroups: securityGroups,
       Subnets: subnetIds,
       Type: 'application',
       Tags: [
@@ -227,13 +221,11 @@ export class AwsAlb extends AwsBase<typeof ELBv2> {
     });
   }
 
-  private getAlbName(name: string, type: string) {
-    const fullName = this.getFullName(name);
-    return `${fullName}-${type}`;
+  private getAlbName() {
+    return this.getFullName('alb');
   }
 
-  private getTargetGroupName(name: string, group: string, type: string) {
-    const fullName = this.getFullName(name);
-    return `${fullName}-${group}-${type}`;
+  private getTargetGroupName(group: string) {
+    return this.getFullName(`${group}-tg`);
   }
 }

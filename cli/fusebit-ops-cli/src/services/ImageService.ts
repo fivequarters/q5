@@ -42,27 +42,4 @@ export class ImageService {
       `The fusebit-mono image with tag '${Text.bold(tag)}' was successfully published`
     );
   }
-
-  public async deploy(deploymentName: string, tag: string): Promise<void> {
-    const opsDataContext = await this.opsService.getOpsDataContext();
-    const imageData = opsDataContext.imageData;
-
-    await this.executeService.execute(
-      {
-        header: 'Deploying Instance',
-        message: `Deploying an instance of the fusebit-mono image with tag '${Text.bold(tag)}' to '${Text.bold(
-          deploymentName
-        )}'`,
-        errorHeader: 'Publish Error',
-      },
-      () => imageData.deploy(deploymentName, tag)
-    );
-
-    await this.executeService.result(
-      'Image Deployed',
-      `An instance of fusebit-mono image with tag '${Text.bold(tag)}' was successfully deployed to '${Text.bold(
-        deploymentName
-      )}'`
-    );
-  }
 }

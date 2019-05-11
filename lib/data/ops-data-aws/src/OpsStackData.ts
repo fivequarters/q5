@@ -1,13 +1,12 @@
 import { DataSource } from '@5qtrs/data';
 import { IOpsStackData, IOpsNewStack, IOpsStack, IListOpsStackOptions, IListOpsStackResult } from '@5qtrs/ops-data';
-import { AwsDynamo } from '@5qtrs/aws-dynamo';
 import { AwsAutoScale } from '@5qtrs/aws-autoscale';
 import { AwsAmi } from '@5qtrs/aws-ami';
+import { OpsDataTables } from './OpsDataTables';
 import { OpsDeploymentData } from './OpsDeploymentData';
 import { OpsNetworkData } from './OpsNetworkData';
 import { OpsDataAwsProvider } from './OpsDataAwsProvider';
 import { OpsDataAwsConfig } from './OpsDataAwsConfig';
-import { StackTable } from './tables/StackTable';
 
 // ------------------
 // Internal Functions
@@ -27,32 +26,29 @@ function stackIdIsUsed(id: number, stacks: IOpsStack[]) {
 // ----------------
 
 export class OpsStackData extends DataSource implements IOpsStackData {
-  public static async create(config: OpsDataAwsConfig, provider: OpsDataAwsProvider) {
-    const awsConfig = await provider.getAwsConfigForMain();
-    const dynamo = await AwsDynamo.create(awsConfig);
-    const stackTable = await StackTable.create(config, dynamo);
-    const networkData = await OpsNetworkData.create(config, provider);
-    const deploymentData = await OpsDeploymentData.create(config, provider);
-    return new OpsStackData(config, provider, stackTable, networkData, deploymentData);
+  public static async create(config: OpsDataAwsConfig, provider: OpsDataAwsProvider, tables: OpsDataTables) {
+    const networkData = await OpsNetworkData.create(config, provider, tables);
+    const deploymentData = await OpsDeploymentData.create(config, provider, tables);
+    return new OpsStackData(config, provider, tables, networkData, deploymentData);
   }
 
   private config: OpsDataAwsConfig;
   private provider: OpsDataAwsProvider;
-  private stackTable: StackTable;
+  private tables: OpsDataTables;
   private networkData: OpsNetworkData;
   private deploymentData: OpsDeploymentData;
 
   private constructor(
     config: OpsDataAwsConfig,
     provider: OpsDataAwsProvider,
-    stackTable: StackTable,
+    tables: OpsDataTables,
     networkData: OpsNetworkData,
     deploymentData: OpsDeploymentData
   ) {
-    super([stackTable]);
+    super([]);
     this.config = config;
     this.provider = provider;
-    this.stackTable = stackTable;
+    this.tables = tables;
     this.networkData = networkData;
     this.deploymentData = deploymentData;
   }
@@ -62,7 +58,7 @@ export class OpsStackData extends DataSource implements IOpsStackData {
     const deployment = await this.deploymentData.get(deploymentName);
 
     const network = await this.networkData.get(deployment.networkName);
-    const awsConfig = await this.provider.getAwsConfig(network.accountName, network.region, deploymentName);
+    const awsConfig = await this.provider.getAwsConfigForDeployment(deploymentName);
 
     const size = newStack.size || deployment.size;
     const id = await this.getNextStackId(newStack.deploymentName);
@@ -95,20 +91,20 @@ export class OpsStackData extends DataSource implements IOpsStackData {
 
     const stack = { id, deploymentName, tag, size };
 
-    await this.stackTable.add(stack);
+    await this.tables.stackTable.add(stack);
     return stack;
   }
 
   public async list(options?: IListOpsStackOptions): Promise<IListOpsStackResult> {
-    return this.stackTable.list(options);
+    return this.tables.stackTable.list(options);
   }
 
   public async listAll(deploymentName?: string): Promise<IOpsStack[]> {
-    return this.stackTable.listAll(deploymentName);
+    return this.tables.stackTable.listAll(deploymentName);
   }
 
   private async getNextStackId(deploymentName: string): Promise<number> {
-    const stacks = await this.stackTable.listAll(deploymentName);
+    const stacks = await this.tables.stackTable.listAll(deploymentName);
     let nextStackId = 0;
     while (stackIdIsUsed(nextStackId, stacks)) {
       nextStackId++;
