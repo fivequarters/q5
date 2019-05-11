@@ -97,7 +97,6 @@
     "demo/functions/functions-app",
     "comp/corp-favicon",
     "comp/fusebit-favicon",
-    "api/int/cron",
     "lib/shared/random",
     "lib/node/key-pair",
     "lib/node/jwt",

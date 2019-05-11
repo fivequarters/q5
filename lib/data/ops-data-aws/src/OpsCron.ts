@@ -367,3 +367,143 @@ function createCronConfig(config: OpsDataAwsConfig, awsConfig: IAwsConfig) {
     },
   };
 }
+
+export async function deleteCron(config: OpsDataAwsConfig, awsConfig: IAwsConfig): Promise<void> {
+  const Config = createCronConfig(config, awsConfig);
+  AWS.config.apiVersions = {
+    sqs: '2012-11-05',
+    lambda: '2015-03-31',
+    cloudwatchevents: '2015-10-07',
+  };
+
+  const credentials = await (awsConfig.creds as AwsCreds).getCredentials();
+  const options = {
+    signatureVersion: 'v4',
+    region: awsConfig.region,
+    accessKeyId: credentials.accessKeyId,
+    secretAccessKey: credentials.secretAccessKey,
+    sessionToken: credentials.sessionToken,
+  };
+
+  let sqs = new AWS.SQS(options);
+  let lambda = new AWS.Lambda(options);
+  let cloudwatchevents = new AWS.CloudWatchEvents(options);
+
+  return new Promise((resolve, reject) => {
+    return Async.series(
+      [
+        (cb: any) => deleteQueue(Config.queue.deadLetterName, cb),
+        (cb: any) => deleteQueue(Config.queue.name, cb),
+        (cb: any) => deleteEventSourceMappings(Config.executor.name, cb),
+        (cb: any) => deleteLambda(Config.executor.name, cb),
+        (cb: any) => deleteScheduledTriggerTargets(cb),
+        (cb: any) => deleteScheduledTrigger(cb),
+        (cb: any) => deleteLambda(Config.scheduler.name, cb),
+      ],
+      (e: any) => {
+        if (e) {
+          return reject(e);
+        }
+        //console.log('CRON DESTROYED SUCCESSFULLY');
+        resolve();
+      }
+    );
+  });
+
+  function deleteScheduledTriggerTargets(cb: any) {
+    //console.log(`Deleting rule targets for Cloud Watch Event '${Config.trigger.name}'...`);
+    return cloudwatchevents.listTargetsByRule({ Rule: Config.trigger.name }, (e: any, d: any) => {
+      if (e) {
+        //console.log('Error deleting rule targets:', e.message);
+        cb();
+      } else {
+        let ids = d.Targets.map((t: any) => t.Id);
+        if (ids.length > 0) {
+          return cloudwatchevents.removeTargets({ Ids: ids, Rule: Config.trigger.name }, (e, d) => {
+            // if (e) console.log('Error deleting rule targets', e.message);
+            // else console.log('Deleted rule targets');
+            cb();
+          });
+        } else {
+          console.log('No targets to delete');
+          cb();
+        }
+      }
+    });
+  }
+
+  function deleteScheduledTrigger(cb: any) {
+    // console.log(`Deleting Cloud Watch Event '${Config.trigger.name}'...`);
+    return cloudwatchevents.deleteRule(
+      {
+        Name: Config.trigger.name,
+      },
+      e => {
+        // if (e) console.log('Error deleting scheduled Cloud Watch Event:', e.message);
+        // else console.log('Deleted scheduled Cloud Watch Event.');
+        cb();
+      }
+    );
+  }
+
+  function deleteEventSourceMappings(name: string, cb: any) {
+    //console.log(`Deleting event source mappings for Lambda function '${name}'...`);
+    return lambda.listEventSourceMappings({ FunctionName: name }, (e: any, d: any) => {
+      if (e) {
+        //console.log('Error deleting event source mappings for Lambda:', e.message);
+        cb();
+      } else {
+        if (d.EventSourceMappings.length > 0) {
+          return Async.each(
+            d.EventSourceMappings,
+            (mapping: any, cb: any) =>
+              lambda.deleteEventSourceMapping({ UUID: mapping.UUID }, e => {
+                // if (e) console.log('Error deleting UUID mapping:', mapping.UUID, e.message);
+                // else console.log('Deleted event mapping:', mapping.UUID);
+                cb();
+              }),
+            cb
+          );
+        } else {
+          //console.log('No event mappings to delete.');
+          cb();
+        }
+      }
+    });
+  }
+
+  function deleteLambda(name: string, cb: any) {
+    //console.log(`Deleting Lambda function '${name}'...`);
+    return lambda.deleteFunction(
+      {
+        FunctionName: name,
+      },
+      (e, d) => {
+        // if (e) console.log('Error deleting Lambda:', e.message);
+        // else console.log('Function deleted');
+        cb();
+      }
+    );
+  }
+
+  function deleteQueue(queueName: string, cb: any) {
+    //console.log(`Deleting SQS queue '${queueName}'...`);
+    return sqs.getQueueUrl({ QueueName: queueName }, (e: any, d: any) => {
+      if (e) {
+        //console.log('Error deleting queue:', e.message);
+        return cb();
+      } else {
+        return sqs.deleteQueue(
+          {
+            QueueUrl: d.QueueUrl,
+          },
+          (e, d) => {
+            // if (e) console.log('Error deleting queue:', e.message);
+            // else console.log('Queue deleted');
+            cb();
+          }
+        );
+      }
+    });
+  }
+}
