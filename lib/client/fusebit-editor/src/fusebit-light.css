@@ -128,7 +128,7 @@
 }
 
 .fusebit-theme-light .fusebit-nav-delete-action-btn:hover {
-  color: #c0392b;
+  color: #263238;
 }
 
 .fusebit-theme-light .fusebit-nav-delete-action-btn:focus {
@@ -224,11 +224,11 @@
 }
 
 .fusebit-theme-light .fusebit-action-btn:hover:enabled {
-  color: #c0392b;
+  color: #263238;
 }
 
 .fusebit-theme-light .fusebit-action-btn:disabled {
-  color: #5d6d7e;
+  color: #90a4ae;
 }
 
 .fusebit-theme-light .fusebit-action-btn:focus {
@@ -246,7 +246,7 @@
 }
 
 .fusebit-theme-light .fusebit-code-action-add-btn:hover {
-  color: #c0392b;
+  color: #263238;
 }
 
 .fusebit-theme-light .fusebit-code-action-add-btn:focus {
@@ -254,7 +254,7 @@
 }
 
 .fusebit-theme-light .fusebit-nav-icon {
-  color: #c0392b;
+  color: #455a64;
   font-size: 12px;
   margin-right: 7px;
   display: inline-block;
@@ -265,7 +265,7 @@
   display: none;
   background-color: transparent;
   border: 0;
-  color: #34495e;
+  color: #455a64;
   font-size: 13px;
   cursor: pointer;
   font-family: Verdana, sans-serif;
@@ -276,7 +276,7 @@
 }
 
 .fusebit-theme-light .fusebit-code-action-delete-btn:hover {
-  color: #c0392b;
+  color: #263238;
 }
 
 .fusebit-theme-light .fusebit-code-action-delete-btn:focus {
