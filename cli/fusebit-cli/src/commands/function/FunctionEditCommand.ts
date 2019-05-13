@@ -133,7 +133,7 @@ function getEditorHtml(port: number, profile: any, input: IExecuteInput): string
     <div id="editor" style="width:800px;height:500px;margin-top:30px;margin-left:auto;margin-right:auto">
 </body>
 
-<script src="https://cdn.fusebit.io/fusebit/js/fusebit-editor/latest/fusebit-editor.js"></script>
+<script src="https://cdn.fusebit.io/fusebit/js/fusebit-editor/latest/fusebit-editor.min.js"></script>
 <script type="text/javascript">
   fusebit.createEditor(document.getElementById('editor'), '${profile.boundary}', '${profile.function}', {
       accountId: '${profile.account}',
