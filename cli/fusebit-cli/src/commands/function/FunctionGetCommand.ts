@@ -175,7 +175,7 @@ export class FunctionGetCommand extends Command {
 
           // Save remaining metadata to allow for roundtrip on deploy
 
-          response.data.fuseVersion = require('../../../package.json').version;
+          response.data.fuseVersion = version;
           Fs.writeFileSync(Path.join(destDirectory, 'fusebit.json'), JSON.stringify(response.data, null, 2), 'utf8');
           input.io.writeLine('fusebit.json');
 

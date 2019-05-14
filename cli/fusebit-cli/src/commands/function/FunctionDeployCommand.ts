@@ -300,7 +300,7 @@ export class FunctionDeployCommand extends Command {
           fusebit.subscriptionId = profile.subscription;
           fusebit.boundaryId = profile.boundary;
           fusebit.id = profile.function;
-          fusebit.fuseVersion = require('../../../package.json').version;
+          fusebit.fuseVersion = version;
           if (fusebit.metadata) {
             delete fusebit.metadata.applicationSettings;
           }
