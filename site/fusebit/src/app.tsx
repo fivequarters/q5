@@ -2,7 +2,9 @@ import { Body } from '@5qtrs/body';
 import '@5qtrs/fusebit-favicon';
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
-import { AppLoading, Footer, NavBar, Splash, Features, VP, Problem, FooterCTA, AboutUs } from './comp';
+import { Home, Support, Legal } from './page';
+import { BrowserRouter as Router, Route } from 'react-router-dom';
+import { AppLoading, Footer, NavBar } from './comp';
 import { theme } from './theme';
 
 const App = () => {
@@ -16,12 +18,11 @@ const App = () => {
     <Body theme={theme} onReady={onReady}>
       <AppLoading visible={loading} logoDisplayDelay={500} />
       <NavBar />
-      <Splash />
-      <Problem />
-      <Features />
-      <VP />
-      <FooterCTA />
-      <AboutUs />
+      <Router>
+        <Route path="/" exact component={Home} />
+        <Route path="/legal/" component={Legal} />
+        <Route path="/support/" component={Support} />
+      </Router>
       <Footer />
     </Body>
   );
