@@ -9,6 +9,7 @@ import {
   tryGetFusebit,
   getProfileSettingsFromFusebit,
 } from '../../services';
+import { ensureFusebitMetadata } from '../../services/Utilities';
 import * as Path from 'path';
 import * as Fs from 'fs';
 import { Text } from '@5qtrs/text';
@@ -154,9 +155,7 @@ export class FunctionGetCommand extends Command {
             Fs.writeFileSync(Path.join(destDirectory, '.env'), applicationSettings, 'utf8');
             input.io.writeLine('.env');
             delete response.data.configuration;
-            if (response.data.metadata) {
-              delete response.data.metadata.applicationSettings;
-            }
+            delete ensureFusebitMetadata(response.data).applicationSettings;
           }
 
           // Save individual files
@@ -271,7 +270,7 @@ function getSettings(
 ): string | undefined {
   if (effectiveSettings) {
     // Effective settings always win - if metadata settings are out of sync, adjust them and set dirty state
-    let metadataSettings = functionSpecification.metadata && functionSpecification.metadata[metadataProperty];
+    let metadataSettings = ensureFusebitMetadata(functionSpecification)[metadataProperty];
     let serializedEffectiveSettings = serializeKeyValue(effectiveSettings);
     if (
       !metadataSettings ||

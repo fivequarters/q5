@@ -47,3 +47,21 @@ export function getProfileSettingsFromFusebit(fusebit: any): IFusebitProfileSett
   }
   return undefined;
 }
+
+export function ensureFusebitMetadata(obj: any, create?: boolean): { [property: string]: any } {
+  if (!obj.metadata) {
+    if (create) {
+      obj.metadata = {};
+    } else {
+      return {};
+    }
+  }
+  if (!obj.metadata.fusebit) {
+    if (create) {
+      obj.metadata.fusebit = {};
+    } else {
+      return {};
+    }
+  }
+  return obj.metadata.fusebit;
+}

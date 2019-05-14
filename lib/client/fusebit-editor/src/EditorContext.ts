@@ -146,11 +146,8 @@ export class EditorContext extends EventEmitter {
     if (!this.functionSpecification.configuration) {
       this.functionSpecification.configuration = {};
     }
-    if (!this.functionSpecification.metadata) {
-      this.functionSpecification.metadata = {};
-    }
-    if (!this.functionSpecification.metadata.runner) {
-      this.functionSpecification.metadata.runner = RunnerPlaceholder;
+    if (!this._ensureFusebitMetadata().runner) {
+      this._ensureFusebitMetadata(true).runner = RunnerPlaceholder;
     }
     if (this.functionSpecification.nodejs.files) {
       if (this.functionSpecification.nodejs.files['index.js']) {
@@ -188,6 +185,28 @@ export class EditorContext extends EventEmitter {
     if (this.readOnly) {
       throw new Error('Operation not permitted while the editor context is in read-only state.');
     }
+  }
+
+  /**
+   * Not relevant for MVP
+   * @ignore
+   */
+  public _ensureFusebitMetadata(create?: boolean): { [property: string]: any } {
+    if (!this.functionSpecification.metadata) {
+      if (create) {
+        this.functionSpecification.metadata = {};
+      } else {
+        return {};
+      }
+    }
+    if (!this.functionSpecification.metadata.fusebit) {
+      if (create) {
+        this.functionSpecification.metadata.fusebit = {};
+      } else {
+        return {};
+      }
+    }
+    return this.functionSpecification.metadata.fusebit;
   }
 
   /**
@@ -309,10 +328,7 @@ export class EditorContext extends EventEmitter {
    */
   public setRunnerContent(content: string) {
     this._ensureWritable();
-    if (!this.functionSpecification.metadata) {
-      this.functionSpecification.metadata = {};
-    }
-    this.functionSpecification.metadata.runner = content;
+    this._ensureFusebitMetadata(true).runner = content;
     this.setDirtyState(true);
   }
 
@@ -335,12 +351,9 @@ export class EditorContext extends EventEmitter {
    */
   public setSettingsCompute(settings: string) {
     this._ensureWritable();
-    const isDirty =
-      !this.dirtyState &&
-      (!this.functionSpecification.metadata || this.functionSpecification.metadata.computeSettings !== settings);
+    const isDirty = !this.dirtyState && this._ensureFusebitMetadata().computeSettings !== settings;
     this.functionSpecification.lambda = parseKeyValue(settings);
-    this.functionSpecification.metadata = this.functionSpecification.metadata || {};
-    this.functionSpecification.metadata.computeSettings = settings;
+    this._ensureFusebitMetadata(true).computeSettings = settings;
     if (isDirty) {
       this.setDirtyState(true);
     }
@@ -352,12 +365,9 @@ export class EditorContext extends EventEmitter {
    */
   public setSettingsApplication(settings: string) {
     this._ensureWritable();
-    const isDirty =
-      !this.dirtyState &&
-      (!this.functionSpecification.metadata || this.functionSpecification.metadata.applicationSettings !== settings);
+    const isDirty = !this.dirtyState && this._ensureFusebitMetadata().applicationSettings !== settings;
     this.functionSpecification.configuration = parseKeyValue(settings);
-    this.functionSpecification.metadata = this.functionSpecification.metadata || {};
-    this.functionSpecification.metadata.applicationSettings = settings;
+    this._ensureFusebitMetadata(true).applicationSettings = settings;
     if (isDirty) {
       this.setDirtyState(true);
     }
@@ -369,15 +379,12 @@ export class EditorContext extends EventEmitter {
    */
   public setSettingsCron(settings: string) {
     this._ensureWritable();
-    const isDirty =
-      !this.dirtyState &&
-      (!this.functionSpecification.metadata || this.functionSpecification.metadata.cronSettings !== settings);
+    const isDirty = !this.dirtyState && this._ensureFusebitMetadata().cronSettings !== settings;
     this.functionSpecification.schedule = <ISchedule>parseKeyValue(settings);
     if (Object.keys(this.functionSpecification.schedule).length === 0) {
       delete this.functionSpecification.schedule;
     }
-    this.functionSpecification.metadata = this.functionSpecification.metadata || {};
-    this.functionSpecification.metadata.cronSettings = settings;
+    this._ensureFusebitMetadata(true).cronSettings = settings;
     if (isDirty) {
       this.setDirtyState(true);
     }
@@ -388,7 +395,7 @@ export class EditorContext extends EventEmitter {
    * @ignore
    */
   public getRunnerContent() {
-    return this.functionSpecification.metadata && this.functionSpecification.metadata.runner;
+    return this._ensureFusebitMetadata().runner;
   }
 
   /**
@@ -623,15 +630,13 @@ export class EditorContext extends EventEmitter {
   ): string {
     if (effectiveSettings) {
       // Effective settings always win - if metadata settings are out of sync, adjust them and set dirty state
-      let metadataSettings =
-        this.functionSpecification.metadata && this.functionSpecification.metadata[metadataProperty];
+      let metadataSettings = this._ensureFusebitMetadata()[metadataProperty];
       let serializedEffectiveSettings = serializeKeyValue(effectiveSettings, defaultSettings);
       if (
         !metadataSettings ||
         serializedEffectiveSettings !== serializeKeyValue(parseKeyValue(<string>metadataSettings), defaultSettings)
       ) {
-        this.functionSpecification.metadata = this.functionSpecification.metadata || {};
-        metadataSettings = this.functionSpecification.metadata[metadataProperty] = serializedEffectiveSettings;
+        metadataSettings = this._ensureFusebitMetadata(true)[metadataProperty] = serializedEffectiveSettings;
         this.setDirtyState(true);
       }
       return metadataSettings;
