@@ -4,8 +4,8 @@
   max-height: 100%;
   font-family: Helvetica, Arial, sans-serif;
   color: #34495e;
-  /* border: 2px solid #283747; */
   background-color: white;
+  position: relative;
 }
 
 .fusebit-theme-light .fusebit-main {
@@ -40,6 +40,7 @@
   min-width: 100px;
   min-height: 100px;
   background-color: #f7f9f9;
+  position: relative;
 }
 
 .fusebit-theme-light .fusebit-nav-splitter {
@@ -92,22 +93,33 @@
   user-select: none;
 }
 
-.fusebit-theme-light .fusebit-nav-delete {
+.fusebit-theme-light .fusebit-modal-container {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  z-index: 9999;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.fusebit-theme-light .fusebit-modal {
+  background: #f7f9f9;
+  padding: 50px;
+  flex: 0 0 0;
   display: flex;
   flex-flow: column;
-  align-items: stretch;
-  min-height: 100px;
-  overflow: hidden;
-  height: 100%;
-  width: 100%;
-  margin-top: 60px;
+  justify-content: center;
   font-size: 14px;
   font-family: Verdana, sans-serif;
   user-select: none;
   text-align: center;
 }
 
-.fusebit-theme-light .fusebit-nav-delete-confirm-container {
+.fusebit-theme-light .fusebit-modal-confirm-cancel-container {
   flex: 0 0 0;
   padding-left: 20px;
   padding-right: 20px;
@@ -116,7 +128,7 @@
   justify-content: center;
 }
 
-.fusebit-theme-light .fusebit-nav-delete-action-btn {
+.fusebit-theme-light .fusebit-modal-action-btn {
   background-color: transparent;
   border: 0;
   color: #34495e;
@@ -127,11 +139,11 @@
   padding-right: 15px;
 }
 
-.fusebit-theme-light .fusebit-nav-delete-action-btn:hover {
-  color: #c0392b;
+.fusebit-theme-light .fusebit-modal-action-btn:hover {
+  color: #263238;
 }
 
-.fusebit-theme-light .fusebit-nav-delete-action-btn:focus {
+.fusebit-theme-light .fusebit-modal-action-btn:focus {
   outline: 0;
 }
 
@@ -224,11 +236,11 @@
 }
 
 .fusebit-theme-light .fusebit-action-btn:hover:enabled {
-  color: #c0392b;
+  color: #263238;
 }
 
 .fusebit-theme-light .fusebit-action-btn:disabled {
-  color: #5d6d7e;
+  color: #90a4ae;
 }
 
 .fusebit-theme-light .fusebit-action-btn:focus {
@@ -246,7 +258,7 @@
 }
 
 .fusebit-theme-light .fusebit-code-action-add-btn:hover {
-  color: #c0392b;
+  color: #263238;
 }
 
 .fusebit-theme-light .fusebit-code-action-add-btn:focus {
@@ -254,7 +266,7 @@
 }
 
 .fusebit-theme-light .fusebit-nav-icon {
-  color: #c0392b;
+  color: #455a64;
   font-size: 12px;
   margin-right: 7px;
   display: inline-block;
@@ -265,7 +277,7 @@
   display: none;
   background-color: transparent;
   border: 0;
-  color: #34495e;
+  color: #455a64;
   font-size: 13px;
   cursor: pointer;
   font-family: Verdana, sans-serif;
@@ -276,7 +288,7 @@
 }
 
 .fusebit-theme-light .fusebit-code-action-delete-btn:hover {
-  color: #c0392b;
+  color: #263238;
 }
 
 .fusebit-theme-light .fusebit-code-action-delete-btn:focus {

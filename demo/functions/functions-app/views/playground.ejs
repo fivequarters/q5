@@ -17,7 +17,7 @@
       }
       body {
         min-height: 100%;
-        background: grey;
+        background: lightgrey;
       }
     </style>
   </head>
@@ -28,7 +28,7 @@
     ></div>
   </body>
 
-  <!-- <script src="https://cdn.fusebit.io/fusebit/js/fusebit-editor/latest/fusebit-editor.js"></script> -->
+  <!-- <script src="https://cdn.fusebit.io/fusebit/js/fusebit-editor/latest/fusebit-editor.min.js"></script> -->
   <script
     src="/js/<%- process.env.NODE_ENV === 'production' ? 'fusebit-editor.min.js' : 'fusebit-editor.js' %>"
     type="text/javascript"
@@ -39,7 +39,7 @@
       .createEditor(
         document.getElementById('editor'),
         'myboundary',
-        'myfunction17',
+        'myfunction18',
         {
           accountId: 'acc-b503fb00e15248c6',
           subscriptionId: 'sub-b503fb00e15248c6-0000',
@@ -49,7 +49,7 @@
         {
           template: {},
           editor: {
-            theme: 'dark',
+            // theme: 'dark',
             // theme: 'light', // (default)
           },
         }

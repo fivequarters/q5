@@ -10,6 +10,7 @@ import {
   tryGetFusebit,
   getProfileSettingsFromFusebit,
 } from '../../services';
+import { ensureFusebitMetadata } from '../../services/Utilities';
 import * as Path from 'path';
 import * as Fs from 'fs';
 import { Text } from '@5qtrs/text';
@@ -27,9 +28,9 @@ export class FunctionDeployCommand extends Command {
         'You can specify function configuration using the .env file, and NPM module dependenies using',
         'the package.json file. All files must be located directly in the specified directory; subdirectories',
         'are not considered.',
-        `${EOL}${EOL}If the source directory contains .fusebit.json file with metadata of an existing function,`,
-        'that metadata is used, but can be overriden using command line options. The .fusebit.json file is created',
-        'when you run the `flx function get` command to download an existing function.',
+        `${EOL}${EOL}If the source directory contains fusebit.json file with metadata of an existing function,`,
+        'that metadata is used, but can be overriden using command line options. The fusebit.json file is created',
+        'when you run the `fuse function get` command to download an existing function.',
       ].join(' '),
       arguments: [
         {
@@ -102,8 +103,7 @@ export class FunctionDeployCommand extends Command {
       };
     }
     if (fusebit.lambda) {
-      fusebit.metadata = fusebit.metadata || {};
-      fusebit.metadata.computeSettings = serializeKeyValue(fusebit.lambda);
+      ensureFusebitMetadata(fusebit, true).computeSettings = serializeKeyValue(fusebit.lambda);
     }
 
     await executeService.execute(
@@ -136,16 +136,13 @@ export class FunctionDeployCommand extends Command {
         if (input.options.cron) {
           if ((<string>input.options.cron).match(/^off$/i)) {
             delete fusebit.schedule;
-            if (fusebit.metadata) {
-              delete fusebit.metadata.cronSettings;
-            }
+            delete ensureFusebitMetadata(fusebit).cronSettings;
           } else {
             fusebit.schedule = fusebit.schedule || {};
             fusebit.schedule.cron = input.options.cron;
             if (input.options.timezone) {
               fusebit.schedule.timezone = input.options.timezone;
-              fusebit.metadata = fusebit.metadata || {};
-              fusebit.metadata.cronSettings = serializeKeyValue(fusebit.schedule);
+              ensureFusebitMetadata(fusebit, true).cronSettings = serializeKeyValue(fusebit.schedule);
             }
           }
         } else if (input.options.timezone) {
@@ -156,22 +153,22 @@ export class FunctionDeployCommand extends Command {
         for (var i = 0; i < files.length; i++) {
           var f = files[i];
           if (!f.isFile()) {
-            if (f.name !== '.fusebit') {
-              await (await Message.create({
-                header: f.name,
-                message: `Ignoring`,
-                kind: MessageKind.warning,
-              })).write(input.io);
-            } else {
-              await (await Message.create({
-                header: f.name,
-                message: `The .fusebit/function.json is present, defaults specified in this file are used.`,
-                kind: MessageKind.info,
-              })).write(input.io);
-            }
+            await (await Message.create({
+              header: f.name,
+              message: `Ignoring`,
+              kind: MessageKind.warning,
+            })).write(input.io);
             continue;
           }
           if (f.name === '.gitignore') {
+            continue;
+          }
+          if (f.name === 'fusebit.json') {
+            await (await Message.create({
+              header: f.name,
+              message: `The fusebit.json file is present, defaults specified in this file are used.`,
+              kind: MessageKind.info,
+            })).write(input.io);
             continue;
           }
           let content = Fs.readFileSync(Path.join(sourceDirectory, f.name), 'utf8');
@@ -182,8 +179,7 @@ export class FunctionDeployCommand extends Command {
               kind: MessageKind.info,
             })).write(input.io);
             fusebit.configuration = parseKeyValue(content) || {};
-            fusebit.metadata = fusebit.metadata || {};
-            fusebit.metadata.applicationSettings = content;
+            ensureFusebitMetadata(fusebit, true).applicationSettings = content;
             continue;
           }
           fusebit.nodejs.files[f.name] = content;
@@ -300,18 +296,11 @@ export class FunctionDeployCommand extends Command {
           fusebit.subscriptionId = profile.subscription;
           fusebit.boundaryId = profile.boundary;
           fusebit.id = profile.function;
-          fusebit.flxVersion = require('../../../package.json').version;
-          if (fusebit.metadata) {
-            delete fusebit.metadata.applicationSettings;
-          }
+          fusebit.fuseVersion = version;
+          delete ensureFusebitMetadata(fusebit).applicationSettings;
           delete fusebit.configuration;
           delete fusebit.nodejs;
-          Fs.mkdirSync(Path.join(sourceDirectory, '.fusebit'), { recursive: true });
-          Fs.writeFileSync(
-            Path.join(sourceDirectory, '.fusebit', 'function.json'),
-            JSON.stringify(fusebit, null, 2),
-            'utf8'
-          );
+          Fs.writeFileSync(Path.join(sourceDirectory, 'fusebit.json'), JSON.stringify(fusebit, null, 2), 'utf8');
           return 0;
         } else {
           throw new Error(

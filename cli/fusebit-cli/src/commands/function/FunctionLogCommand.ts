@@ -81,8 +81,8 @@ export class FunctionLogCommand extends Command {
         let driver = url.match(/^https/i) ? require('https') : require('http');
         return new Promise<number>(async (resolve, reject) => {
           let req = driver.request(
+            url,
             {
-              url,
               headers: {
                 'User-Agent': `fusebit-cli/${version}`,
               },
@@ -102,6 +102,10 @@ export class FunctionLogCommand extends Command {
                   message: `${profile.boundary}`,
                 })).write(input.io);
               }
+              await (await Message.create({
+                header: `NOTE`,
+                message: `To enable real-time logging for a request, add the x-fx-logs=1 query parameter or x-fx-logs request header to the request.`,
+              })).write(input.io);
               res.setEncoding('utf8');
               res.on('data', processChunk);
               res.on('end', () => {
@@ -133,7 +137,9 @@ export class FunctionLogCommand extends Command {
               }
             }
           );
-          req.on('error', (e: Error) => reject(e));
+          req.on('error', (e: Error) => {
+            reject(e);
+          });
           req.end();
         });
       }

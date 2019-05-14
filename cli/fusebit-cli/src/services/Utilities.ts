@@ -32,7 +32,7 @@ export function parseKeyValue(data: string) {
 export function tryGetFusebit(srcDir?: string) {
   let fusebit: any = undefined;
   try {
-    fusebit = require(Path.join(srcDir || process.cwd(), '.fusebit', 'function.json'));
+    fusebit = require(Path.join(srcDir || process.cwd(), 'fusebit.json'));
   } catch (_) {}
   return fusebit;
 }
@@ -46,4 +46,22 @@ export function getProfileSettingsFromFusebit(fusebit: any): IFusebitProfileSett
     return result;
   }
   return undefined;
+}
+
+export function ensureFusebitMetadata(obj: any, create?: boolean): { [property: string]: any } {
+  if (!obj.metadata) {
+    if (create) {
+      obj.metadata = {};
+    } else {
+      return {};
+    }
+  }
+  if (!obj.metadata.fusebit) {
+    if (create) {
+      obj.metadata.fusebit = {};
+    } else {
+      return {};
+    }
+  }
+  return obj.metadata.fusebit;
 }

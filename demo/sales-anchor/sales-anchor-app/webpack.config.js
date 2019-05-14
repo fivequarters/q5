@@ -7,7 +7,7 @@ const options = {
   html: {
     scripts: [
       // 'js/fusebit-editor.js',
-      'https://cdn.fusebit.io/fusebit/js/fusebit-editor/latest/fusebit-editor.js',
+      'https://cdn.fusebit.io/fusebit/js/fusebit-editor/latest/fusebit-editor.min.js',
     ],
   },
 };

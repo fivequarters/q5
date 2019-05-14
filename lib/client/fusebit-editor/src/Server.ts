@@ -238,13 +238,8 @@ export class Server {
         }
       });
       let editorContext = new EditorContext(boundaryId, id, functionSpecification);
-      if (
-        (createIfNotExist && createIfNotExist.editor) ||
-        !editorContext.functionSpecification.metadata ||
-        !editorContext.functionSpecification.metadata.editor
-      ) {
-        editorContext.functionSpecification.metadata = editorContext.functionSpecification.metadata || {};
-        editorContext.functionSpecification.metadata.editor = editorOptions;
+      if ((createIfNotExist && createIfNotExist.editor) || !editorContext._ensureFusebitMetadata().editor) {
+        editorContext._ensureFusebitMetadata(true).editor = editorOptions;
       }
       return editorContext;
     }
@@ -352,7 +347,7 @@ export class Server {
         let build = res.body as IBuildStatus;
         if (res.status === 204) {
           // No changes
-          editorContext.buildFinished(build);
+          editorContext.buildFinished(build || {});
           return build;
         } else if (res.status === 200) {
           // Completed synchronously
