@@ -1,5 +1,5 @@
 {
-  "version": "0.9.32",
+  "version": "0.9.33",
   "private": true,
   "org": "5qtrs",
   "scripts": {
@@ -89,7 +89,6 @@
     "comp/corp-logo-dynamic",
     "comp/fade-sequence",
     "comp/icon",
-    "api/int/pubsub",
     "demo/sales-anchor/sales-anchor-api",
     "api/function-api",
     "site/corp",
@@ -125,7 +124,6 @@
     "lib/aws/aws-ecr",
     "lib/aws/aws-ec2",
     "site/fusebit",
-    "mono",
     "lib/data/account-data-aws",
     "sdk/fusebit-profile-sdk",
     "lib/shared/exception",

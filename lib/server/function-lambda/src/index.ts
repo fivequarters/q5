@@ -6,6 +6,7 @@ import get_location from './get_location';
 import list_functions from './list_functions';
 import put_function from './put_function.js';
 import get_logs from './get_logs.js';
+import post_logs from './post_logs.js';
 
 export {
   put_function,
@@ -16,4 +17,5 @@ export {
   execute_function,
   get_location,
   get_logs,
+  post_logs,
 };
