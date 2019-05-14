@@ -347,7 +347,7 @@ export class Server {
         let build = res.body as IBuildStatus;
         if (res.status === 204) {
           // No changes
-          editorContext.buildFinished(build);
+          editorContext.buildFinished(build || {});
           return build;
         } else if (res.status === 200) {
           // Completed synchronously
