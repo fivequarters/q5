@@ -27,9 +27,9 @@ export class FunctionDeployCommand extends Command {
         'You can specify function configuration using the .env file, and NPM module dependenies using',
         'the package.json file. All files must be located directly in the specified directory; subdirectories',
         'are not considered.',
-        `${EOL}${EOL}If the source directory contains .fusebit.json file with metadata of an existing function,`,
-        'that metadata is used, but can be overriden using command line options. The .fusebit.json file is created',
-        'when you run the `flx function get` command to download an existing function.',
+        `${EOL}${EOL}If the source directory contains fusebit.json file with metadata of an existing function,`,
+        'that metadata is used, but can be overriden using command line options. The fusebit.json file is created',
+        'when you run the `fuse function get` command to download an existing function.',
       ].join(' '),
       arguments: [
         {
@@ -156,22 +156,22 @@ export class FunctionDeployCommand extends Command {
         for (var i = 0; i < files.length; i++) {
           var f = files[i];
           if (!f.isFile()) {
-            if (f.name !== '.fusebit') {
-              await (await Message.create({
-                header: f.name,
-                message: `Ignoring`,
-                kind: MessageKind.warning,
-              })).write(input.io);
-            } else {
-              await (await Message.create({
-                header: f.name,
-                message: `The .fusebit/function.json is present, defaults specified in this file are used.`,
-                kind: MessageKind.info,
-              })).write(input.io);
-            }
+            await (await Message.create({
+              header: f.name,
+              message: `Ignoring`,
+              kind: MessageKind.warning,
+            })).write(input.io);
             continue;
           }
           if (f.name === '.gitignore') {
+            continue;
+          }
+          if (f.name === 'fusebit.json') {
+            await (await Message.create({
+              header: f.name,
+              message: `The fusebit.json file is present, defaults specified in this file are used.`,
+              kind: MessageKind.info,
+            })).write(input.io);
             continue;
           }
           let content = Fs.readFileSync(Path.join(sourceDirectory, f.name), 'utf8');
@@ -300,18 +300,13 @@ export class FunctionDeployCommand extends Command {
           fusebit.subscriptionId = profile.subscription;
           fusebit.boundaryId = profile.boundary;
           fusebit.id = profile.function;
-          fusebit.flxVersion = require('../../../package.json').version;
+          fusebit.fuseVersion = version;
           if (fusebit.metadata) {
             delete fusebit.metadata.applicationSettings;
           }
           delete fusebit.configuration;
           delete fusebit.nodejs;
-          Fs.mkdirSync(Path.join(sourceDirectory, '.fusebit'), { recursive: true });
-          Fs.writeFileSync(
-            Path.join(sourceDirectory, '.fusebit', 'function.json'),
-            JSON.stringify(fusebit, null, 2),
-            'utf8'
-          );
+          Fs.writeFileSync(Path.join(sourceDirectory, 'fusebit.json'), JSON.stringify(fusebit, null, 2), 'utf8');
           return 0;
         } else {
           throw new Error(

@@ -32,7 +32,7 @@ export function parseKeyValue(data: string) {
 export function tryGetFusebit(srcDir?: string) {
   let fusebit: any = undefined;
   try {
-    fusebit = require(Path.join(srcDir || process.cwd(), '.fusebit', 'function.json'));
+    fusebit = require(Path.join(srcDir || process.cwd(), 'fusebit.json'));
   } catch (_) {}
   return fusebit;
 }
