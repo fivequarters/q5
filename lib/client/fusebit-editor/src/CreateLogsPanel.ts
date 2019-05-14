@@ -55,8 +55,10 @@ export function createLogsPanel(element: HTMLElement, editorContext: EditorConte
         `BUILD ${e.status.id}: progress ${Math.floor((e.status.progress || 0) * 100)}% (${e.status.status}) ${e.status
           .location || JSON.stringify(e.status.error, null, 2)}`
       );
+    } else if (e.status.error) {
+      append(`BUILD: error: ${JSON.stringify(e.status.error, null, 2)}`);
     } else {
-      append(`BUILD: success (no changes) ${e.status.location || JSON.stringify(e.status.error, null, 2)}`);
+      append(`BUILD: success (no changes)`);
     }
   });
 
