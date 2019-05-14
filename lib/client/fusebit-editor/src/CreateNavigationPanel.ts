@@ -1,6 +1,7 @@
 import * as Events from './Events';
 import { INavigationPanelOptions, NavigationPanelOptions } from './Options';
 import { EditorContext } from './EditorContext';
+import { modalConfirmCancelQuestion } from './Modal';
 
 /**
  * Not part of MVP
@@ -26,25 +27,11 @@ export function createNavigationPanel(
   const codeCategoryId = `${idPrefix}-code`;
   const newFileId = `${idPrefix}-new-file`;
   const newFileNameId = `${idPrefix}-new-file-name`;
-  const deleteId = `${idPrefix}-delete`;
-  const deleteFileNameId = `${idPrefix}-delete-file-name`;
-  const deleteConfirmId = `${idPrefix}-delete-confirm`;
   const treeId = `${idPrefix}-tree`;
 
   let isDeletingFile: string | undefined;
 
   let html: string[] = [];
-  if (!effectiveOptions.hideCode) {
-    html.push(
-      `<div id="${deleteId}" class="fusebit-nav-delete" style="display:none">`,
-      `<div>Delete<br><span id="${deleteFileNameId}"></span>?</div>`,
-      `<div class="fusebit-nav-delete-confirm-container">`,
-      `<button id="${deleteConfirmId}" class="fusebit-nav-delete-action-btn"><i class="far fa-check-circle"></i></button>`,
-      `<button class="fusebit-nav-delete-action-btn"><i class="far fa-times-circle"></i></button>`,
-      `</div>`,
-      `</div>`
-    );
-  }
   html.push(`<div id="${treeId}" class="fusebit-nav">`);
   if (!effectiveOptions.hideCode) {
     html.push(
@@ -112,8 +99,6 @@ export function createNavigationPanel(
   // Insert into DOM and attach events
 
   element.innerHTML = html.join('');
-  let deleteElement = document.getElementById(deleteId) as HTMLElement;
-  let deleteFileNameElement = document.getElementById(deleteFileNameId) as HTMLElement;
   let treeElement = document.getElementById(treeId) as HTMLElement;
   let navItems = treeElement.getElementsByClassName('fusebit-nav-item');
   for (var i = 0; i < navItems.length; i++) {
@@ -180,38 +165,20 @@ export function createNavigationPanel(
     );
   }
 
-  let deleteConfirmButton = document.getElementById(deleteConfirmId) as HTMLElement;
-  deleteConfirmButton.addEventListener('click', confirmDeleteButtonClicked);
-
   // Functions
 
   function deleteButtonClicked(fileName: string) {
     return function deleteButtonClickedCore(e: Event) {
       e.preventDefault();
       isDeletingFile = fileName;
-      deleteFileNameElement.innerText = fileName;
-      treeElement.style.display = 'none';
-      deleteElement.style.display = null;
-      detectClickOutsideElement(
-        deleteConfirmButton,
-        () => {
+      modalConfirmCancelQuestion(mainEditorElement || element, `<div>Delete<br>${fileName}?</div>`, confirm => {
+        if (confirm) {
+          let tmp = isDeletingFile;
           isDeletingFile = undefined;
-          treeElement.style.display = null;
-          deleteElement.style.display = 'none';
-        },
-        e
-      );
+          editorContext.deleteFile(tmp as string);
+        }
+      });
     };
-  }
-
-  function confirmDeleteButtonClicked(e: Event) {
-    e.preventDefault();
-    cancelDetectionOfClickOutsideElement();
-    let tmp = isDeletingFile;
-    isDeletingFile = undefined;
-    treeElement.style.display = null;
-    deleteElement.style.display = 'none';
-    editorContext.deleteFile(tmp as string);
   }
 
   function createFileNameNavigationItemHtml(fileName: string) {

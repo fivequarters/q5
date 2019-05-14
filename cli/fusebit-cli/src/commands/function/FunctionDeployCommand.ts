@@ -10,6 +10,7 @@ import {
   tryGetFusebit,
   getProfileSettingsFromFusebit,
 } from '../../services';
+import { ensureFusebitMetadata } from '../../services/Utilities';
 import * as Path from 'path';
 import * as Fs from 'fs';
 import { Text } from '@5qtrs/text';
@@ -102,8 +103,7 @@ export class FunctionDeployCommand extends Command {
       };
     }
     if (fusebit.lambda) {
-      fusebit.metadata = fusebit.metadata || {};
-      fusebit.metadata.computeSettings = serializeKeyValue(fusebit.lambda);
+      ensureFusebitMetadata(fusebit, true).computeSettings = serializeKeyValue(fusebit.lambda);
     }
 
     await executeService.execute(
@@ -136,16 +136,13 @@ export class FunctionDeployCommand extends Command {
         if (input.options.cron) {
           if ((<string>input.options.cron).match(/^off$/i)) {
             delete fusebit.schedule;
-            if (fusebit.metadata) {
-              delete fusebit.metadata.cronSettings;
-            }
+            delete ensureFusebitMetadata(fusebit).cronSettings;
           } else {
             fusebit.schedule = fusebit.schedule || {};
             fusebit.schedule.cron = input.options.cron;
             if (input.options.timezone) {
               fusebit.schedule.timezone = input.options.timezone;
-              fusebit.metadata = fusebit.metadata || {};
-              fusebit.metadata.cronSettings = serializeKeyValue(fusebit.schedule);
+              ensureFusebitMetadata(fusebit, true).cronSettings = serializeKeyValue(fusebit.schedule);
             }
           }
         } else if (input.options.timezone) {
@@ -182,8 +179,7 @@ export class FunctionDeployCommand extends Command {
               kind: MessageKind.info,
             })).write(input.io);
             fusebit.configuration = parseKeyValue(content) || {};
-            fusebit.metadata = fusebit.metadata || {};
-            fusebit.metadata.applicationSettings = content;
+            ensureFusebitMetadata(fusebit, true).applicationSettings = content;
             continue;
           }
           fusebit.nodejs.files[f.name] = content;
@@ -301,9 +297,7 @@ export class FunctionDeployCommand extends Command {
           fusebit.boundaryId = profile.boundary;
           fusebit.id = profile.function;
           fusebit.fuseVersion = version;
-          if (fusebit.metadata) {
-            delete fusebit.metadata.applicationSettings;
-          }
+          delete ensureFusebitMetadata(fusebit).applicationSettings;
           delete fusebit.configuration;
           delete fusebit.nodejs;
           Fs.writeFileSync(Path.join(sourceDirectory, 'fusebit.json'), JSON.stringify(fusebit, null, 2), 'utf8');

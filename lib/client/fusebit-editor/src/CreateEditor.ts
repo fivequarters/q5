@@ -56,7 +56,7 @@ export function createEditor(
   });
 
   function createEditorImpl(editorContext: EditorContext) {
-    let opts = (editorContext.functionSpecification.metadata as { [property: string]: any }).editor;
+    let opts = editorContext._ensureFusebitMetadata().editor;
     if (opts.navigationPanel === false && opts.logsPanel === false && opts.actionPanel !== false) {
       (opts.actionPanel as Options.IActionPanelOptions).enableCodeOnlyToggle = false;
     }

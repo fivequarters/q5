@@ -238,13 +238,8 @@ export class Server {
         }
       });
       let editorContext = new EditorContext(boundaryId, id, functionSpecification);
-      if (
-        (createIfNotExist && createIfNotExist.editor) ||
-        !editorContext.functionSpecification.metadata ||
-        !editorContext.functionSpecification.metadata.editor
-      ) {
-        editorContext.functionSpecification.metadata = editorContext.functionSpecification.metadata || {};
-        editorContext.functionSpecification.metadata.editor = editorOptions;
+      if ((createIfNotExist && createIfNotExist.editor) || !editorContext._ensureFusebitMetadata().editor) {
+        editorContext._ensureFusebitMetadata(true).editor = editorOptions;
       }
       return editorContext;
     }
