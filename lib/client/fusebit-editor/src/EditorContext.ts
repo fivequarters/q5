@@ -98,8 +98,7 @@ export class EditorContext extends EventEmitter {
    */
   public selectedFileName: string | undefined = undefined;
   /**
-   * Not relevant for MVP
-   * @ignore
+   * Indicates whether the editor has any unsaved changes.
    */
   public dirtyState: boolean = false;
   /**

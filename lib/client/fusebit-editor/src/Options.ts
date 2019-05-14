@@ -9,7 +9,6 @@
  *    actionPanel: {
  *      enableCodeOnlyToggle: true,
  *      enableFullScreen: true,
- *      enableClose: true,
  *    },
  *    editorPanel: {},
  *    logsPanel: {
@@ -20,7 +19,7 @@
  *      hideFiles: [],
  *      hideApplicationSettings: false,
  *      hideCronSettings: false,
- *      hideRunnerTool: false
+ *      hideRunnerTool: false,
  *    },
  *    statusPanel: {},
  * }
@@ -93,6 +92,7 @@ export interface IActionPanelOptions {
   enableFullScreen?: boolean;
   /**
    * Enables or disables the "close" button of the editor. The "close" button facilitates the use of the editor in a context of a modal view.
+   * @ignore
    */
   enableClose?: boolean;
   [property: string]: any;
@@ -105,7 +105,10 @@ export class ActionPanelOptions implements IActionPanelOptions {
   public theme = EditorTheme.Light;
   public enableCodeOnlyToggle: boolean = true;
   public enableFullScreen: boolean = true;
-  public enableClose: boolean = true;
+  /**
+   * @ignore
+   */
+  public enableClose: boolean = false;
   constructor() {
     // do nothing
   }

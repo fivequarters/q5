@@ -67,61 +67,70 @@ export function createActionPanel(
   const hideNavLogsElement = document.getElementById(hideNavLogsId) as HTMLElement;
   const showNavLogsElement = document.getElementById(showNavLogsId) as HTMLElement;
 
-  closeElement.addEventListener('click', e => {
-    e.preventDefault();
-    editorContext.close();
-  });
-
-  hideNavLogsElement.addEventListener('click', e => {
-    e.preventDefault();
-    hideNavLogsElement.style.display = 'none';
-    showNavLogsElement.style.display = null;
-    editorContext.updateLogsState(false);
-    editorContext.updateNavState(false);
-  });
-
-  showNavLogsElement.addEventListener('click', e => {
-    e.preventDefault();
-    hideNavLogsElement.style.display = null;
-    showNavLogsElement.style.display = 'none';
-    editorContext.updateLogsState(true);
-    editorContext.updateNavState(true);
-  });
-
-  expandElement.addEventListener('click', e => {
-    e.preventDefault();
-    expandElement.style.display = 'none';
-    compressElement.style.display = null;
-    editorContext.setFullScreen(true);
-  });
-
-  compressElement.addEventListener('click', e => {
-    e.preventDefault();
-    expandElement.style.display = null;
-    compressElement.style.display = 'none';
-    editorContext.setFullScreen(false);
-  });
-
-  saveElement.addEventListener('click', e => {
-    e.preventDefault();
-    server.saveFunction(editorContext).catch(_ => {});
-  });
-
-  runElement.addEventListener('click', e => {
-    e.preventDefault();
-    server.runFunction(editorContext).catch(_ => {
-      // do nothing
+  closeElement &&
+    closeElement.addEventListener('click', e => {
+      e.preventDefault();
+      editorContext.close();
     });
-  });
+
+  hideNavLogsElement &&
+    hideNavLogsElement.addEventListener('click', e => {
+      e.preventDefault();
+      hideNavLogsElement.style.display = 'none';
+      showNavLogsElement.style.display = null;
+      editorContext.updateLogsState(false);
+      editorContext.updateNavState(false);
+    });
+
+  showNavLogsElement &&
+    showNavLogsElement.addEventListener('click', e => {
+      e.preventDefault();
+      hideNavLogsElement.style.display = null;
+      showNavLogsElement.style.display = 'none';
+      editorContext.updateLogsState(true);
+      editorContext.updateNavState(true);
+    });
+
+  expandElement &&
+    expandElement.addEventListener('click', e => {
+      e.preventDefault();
+      expandElement.style.display = 'none';
+      compressElement.style.display = null;
+      editorContext.setFullScreen(true);
+    });
+
+  compressElement &&
+    compressElement.addEventListener('click', e => {
+      e.preventDefault();
+      expandElement.style.display = null;
+      compressElement.style.display = 'none';
+      editorContext.setFullScreen(false);
+    });
+
+  saveElement &&
+    saveElement.addEventListener('click', e => {
+      e.preventDefault();
+      server.saveFunction(editorContext).catch(_ => {});
+    });
+
+  runElement &&
+    runElement.addEventListener('click', e => {
+      e.preventDefault();
+      server.runFunction(editorContext).catch(_ => {
+        // do nothing
+      });
+    });
 
   editorContext.on(Events.DirtyStateChanged, updateState);
   editorContext.on(Events.ReadOnlyStateChanged, updateState);
 
   function updateState() {
-    editorContext.dirtyState
+    saveElement && editorContext.dirtyState
       ? saveElement.removeAttribute('disabled')
       : saveElement.setAttribute('disabled', 'disabled');
-    editorContext.readOnly ? runElement.setAttribute('disabled', 'disabled') : runElement.removeAttribute('disabled');
+    runElement && editorContext.readOnly
+      ? runElement.setAttribute('disabled', 'disabled')
+      : runElement.removeAttribute('disabled');
   }
 
   updateState();
