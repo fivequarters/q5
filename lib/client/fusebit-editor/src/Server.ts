@@ -183,7 +183,11 @@ export class Server {
   }
 
   /**
-   * Loads an existing function. If the function does not exist, creates one using the provided template.
+   * Creates the EditorContext representing a function. If the function already exists, it is loaded.
+   * If the function does not exist, behavior depends on ICreateEditorOptions.editor.ensureFunctionExists.
+   * When set to false (default), a new EditorContext is created representing the function, but the user
+   * must manually save the function for it to be created. If set to true, the function will be created before
+   * the EditorContext is returned.
    * @param boundaryId The name of the function boundary.
    * @param id The name of the function.
    * @param createIfNotExist A template of a function to create if one does not yet exist.
@@ -211,11 +215,16 @@ export class Server {
       .catch(error => {
         if (!createIfNotExist) {
           throw new Error(
-            `Fusebit editor failed to load function ${boundaryId}/${id} because it does not exist, and IEditorCreationOptions were not specified. Specify IEditorCreationOptions to create a function in case one does not exist.`
+            `Fusebit editor failed to load function ${boundaryId}/${id} because it does not exist, and IEditorCreationOptions were not specified. Specify IEditorCreationOptions to allow a function to be created if one does not exist.`
           );
         }
         let editorContext = createEditorContext(createIfNotExist.template);
-        return this.buildFunction(editorContext).then(_ => editorContext);
+        if (createIfNotExist.editor && createIfNotExist.editor.ensureFunctionExists) {
+          return this.buildFunction(editorContext).then(_ => editorContext);
+        } else {
+          editorContext.setDirtyState(true);
+          return editorContext;
+        }
       });
 
     function createEditorContext(functionSpecification?: IFunctionSpecification) {

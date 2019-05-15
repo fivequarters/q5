@@ -27,6 +27,13 @@
  */
 export interface IEditorOptions {
   /**
+   * Ensures that the function exists when the editor opens. When set to true, either an existing function
+   * is loaded, or a new function is created from the provided template before the editor opens. When set
+   * to false (default) and the function does not yet exist, the editor opens showing the provided template,
+   * but the user must explicitly save the function for it to be created.
+   */
+  ensureFunctionExists?: boolean;
+  /**
    * Editor style theme.
    */
   theme?: EditorTheme;
@@ -65,6 +72,7 @@ enum EditorTheme {
  * Default values for the [[IEditorPanel]].
  */
 export class EditorOptions implements IEditorOptions {
+  public ensureFunctionExists = false;
   public theme = EditorTheme.Light;
   public actionPanel = new ActionPanelOptions();
   public editorPanel = new EditorPanelOptions();
