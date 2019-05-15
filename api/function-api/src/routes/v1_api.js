@@ -37,6 +37,18 @@ const NotImplemented = (_, __, next) => next(create_error(501, 'Not implemented'
 
 router.get('/health', health.getHealth());
 
+// Real-time logs from execution
+
+router.post(
+  '/internal/logs',
+  authorize({
+    logs: true,
+  }),
+  express.json(),
+  determine_provider(),
+  (req, res, next) => provider_handlers[req.provider].post_logs(req, res, next)
+);
+
 // Accounts
 
 router.options('/account', cors(corsManagementOptions));

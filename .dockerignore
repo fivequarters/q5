@@ -4,8 +4,6 @@
 !yarn.lock
 !api/function-api
 #api/function-api/node_modules
-!api/int/pubsub
-#api/int/pubsub/node_modules
 !lib/shared
 !lib/data
 !lib/aws
@@ -13,5 +11,4 @@
 !lib/server
 !sdk
 !tool
-!mono
 **/node_modules

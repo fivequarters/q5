@@ -1,4 +1,5 @@
 const { getResolvedAgent, errorHandler } = require('../account');
+const { verifyJwt } = require('@5qtrs/jwt');
 const { meterApiCall } = require('@5qtrs/bq-metering');
 
 const meteringEnabled = process.env.METERING_ENABLED === 'false' ? false : true;
@@ -17,6 +18,20 @@ module.exports = function authorize_factory(options) {
 
     if (!token) {
       return res.status(403).json({ message: 'Unauthorized' });
+    }
+
+    if (options.logs) {
+      let logs;
+      try {
+        logs = await verifyJwt(token, process.env.LOGS_TOKEN_SIGNATURE_KEY);
+      } catch (e) {
+        // do nothing
+      }
+      if (!logs || !logs.subscriptionId || !logs.boundaryId || !logs.functionId) {
+        return res.status(403).json({ message: 'Unauthorized' });
+      }
+      req.logs = logs;
+      return next();
     }
 
     const accountId = req.params.accountId;

@@ -8,7 +8,7 @@ require('superagent')
     if (r.body && r.body.tunnels) {
       for (var i = 0; i < r.body.tunnels.length; i++) {
         if (r.body.tunnels[i].proto === 'http') {
-          return console.log(r.body.tunnels[i].public_url.replace('http://', 'ws://'));
+          return console.log(r.body.tunnels[i].public_url.replace('http://', ''));
         }
       }
     }

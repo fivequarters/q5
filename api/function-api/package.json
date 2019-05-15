@@ -11,8 +11,8 @@
     "coverage": "jest --colors --coverage --detectOpenHandles",
     "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x} test/{,**/}*.ts{,x}",
     "clean": "rm -r -f libc",
-    "start": "LOGS_WS_URL=${LOGS_WS_URL:=`node ./getNgrokLogsWsUrl.js`} node libc/index.js",
-    "dynamo": "tsc -b && node libc/setup.js"
+    "start": "LOGS_HOST=${LOGS_HOST:=`node ./getNgrokLogsWsUrl.js`} node libc/index.js",
+    "ngrok": "ngrok http 3001"
   },
   "keywords": [],
   "dependencies": {
