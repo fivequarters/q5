@@ -10,6 +10,7 @@ ADD lib ./lib
 ADD tool ./tool
 ADD sdk ./sdk
 
+RUN apt-get update && apt-get install -y zip
 RUN yarn setup \
   && yarn build function-lambda \
   && yarn build function-api

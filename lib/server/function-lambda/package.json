@@ -1,6 +1,6 @@
 {
   "name": "@5qtrs/function-lambda",
-  "version": "0.0.2",
+  "version": "0.0.1",
   "description": "",
   "main": "libc/index.js",
   "license": "UNLICENSED",
