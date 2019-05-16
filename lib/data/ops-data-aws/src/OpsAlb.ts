@@ -45,18 +45,82 @@ export class OpsAlb extends DataSource {
     this.networkData = networkData;
   }
 
-  public async addAlb(deployment: IOpsDeployment) {
-    const alb = await this.provider.getAwsAlb(deployment.deploymentName);
+  public async addAlb(deployment: IOpsDeployment): Promise<void> {
+    const awsAlb = await this.provider.getAwsAlb(deployment.deploymentName);
     const certDetails = await this.issueCert(deployment);
     const network = await this.networkData.get(deployment.networkName);
 
     const options = {
+      name: this.config.monoAlbDeploymentName,
       certArns: [certDetails.arn],
+      vpcId: network.vpcId,
       subnets: network.publicSubnets.map(subnet => subnet.id),
       securityGroups: [network.securityGroupId],
+      defaultTarget: {
+        name: this.config.monoAlbDefaultTargetName,
+        port: this.config.monoAlbApiPort,
+        healthCheck: { path: this.config.monoAlbHealthCheckPath },
+      },
     };
 
-    await alb.ensureAlb(options);
+    const alb = await awsAlb.ensureAlb(options);
+
+    const route53 = await this.provider.getAwsRoute53FromDomain(deployment.domainName);
+    await route53.ensureRecord(deployment.domainName, {
+      name: `${deployment.deploymentName}.${deployment.domainName}`,
+      alias: alb.dns,
+      type: 'A',
+    });
+  }
+
+  public async addTargetGroup(deployment: IOpsDeployment, id: number): Promise<string> {
+    const awsAlb = await this.provider.getAwsAlb(deployment.deploymentName);
+    const route53 = await this.provider.getAwsRoute53FromDomain(deployment.domainName);
+
+    const targetGroupName = this.getTargetGroupName(id);
+    const hostName = this.getHostName(deployment, id);
+    const targetGroup = {
+      name: targetGroupName,
+      host: hostName,
+      port: this.config.monoAlbApiPort,
+      healthCheck: { path: this.config.monoAlbHealthCheckPath },
+    };
+
+    const alb = await awsAlb.getAlb(this.config.monoAlbDeploymentName);
+    await route53.ensureRecord(deployment.domainName, { name: hostName, alias: alb.dns, type: 'A' });
+
+    return awsAlb.addTarget(this.config.monoAlbDeploymentName, targetGroup);
+  }
+
+  public async getTargetGroupArn(deployment: IOpsDeployment, id?: number): Promise<string> {
+    const awsAlb = await this.provider.getAwsAlb(deployment.deploymentName);
+    const alb = await awsAlb.getAlb(this.config.monoAlbDeploymentName);
+    const targetGroupName = this.getTargetGroupName(id);
+    return alb.targets[targetGroupName];
+  }
+
+  public async removeTargetGroup(deployment: IOpsDeployment, id: number): Promise<void> {
+    const awsAlb = await this.provider.getAwsAlb(deployment.deploymentName);
+    const route53 = await this.provider.getAwsRoute53FromDomain(deployment.domainName);
+
+    const targetGroupName = this.getTargetGroupName(id);
+    const hostName = this.getHostName(deployment, id);
+
+    const alb = await awsAlb.getAlb(this.config.monoAlbDeploymentName);
+    await route53.deleteRecord(deployment.domainName, { name: hostName, alias: alb.dns, type: 'A' });
+
+    await awsAlb.removeTarget(this.config.monoAlbDeploymentName, targetGroupName);
+  }
+
+  private getHostName(deployment: IOpsDeployment, id: number): string {
+    const targetGroupName = this.getTargetGroupName(id);
+    return `${targetGroupName}.${deployment.deploymentName}.${deployment.domainName}`;
+  }
+
+  private getTargetGroupName(id?: number): string {
+    return id === undefined
+      ? `${this.config.monoAlbDefaultTargetName}`
+      : `${this.config.monoAlbTargetNamePrefix}-${id}`;
   }
 
   private async issueCert(deployment: IOpsDeployment): Promise<IAwsCertDetail> {

@@ -1,6 +1,7 @@
 import { AwsDynamo, IAwsDynamoTable, AwsDynamoTable } from '@5qtrs/aws-dynamo';
 import { OpsDataException } from '@5qtrs/ops-data';
 import { OpsDataAwsConfig } from '../OpsDataAwsConfig';
+import { identifier } from '@babel/types';
 
 // ------------------
 // Internal Constants
@@ -30,6 +31,7 @@ function toItem(stack: IOpsStack) {
   const item: any = toKey(stack.id, stack.deploymentName);
   item.tag = { S: stack.tag };
   item.size = { N: stack.size.toString() };
+  item.active = { BOOL: stack.active };
   return item;
 }
 
@@ -39,6 +41,7 @@ function fromItem(item: any): IOpsStack {
     deploymentName: item.deploymentName.S,
     tag: item.tag.S,
     size: parseInt(item.size.N, 10),
+    active: item.active.BOOL,
   };
 }
 
@@ -68,6 +71,7 @@ export interface IOpsStack {
   deploymentName: string;
   tag: string;
   size: number;
+  active: boolean;
 }
 
 export interface IListOpsStackOptions {
@@ -103,9 +107,26 @@ export class StackTable extends AwsDynamoTable {
     return this.addItem(stack, options);
   }
 
-  public async get(stackId: number, deploymentName: string): Promise<IOpsStack> {
+  public async get(deploymentName: string, id: number): Promise<IOpsStack> {
     const options = { onNotFound: onStackDoesNotExist(deploymentName), context: deploymentName };
-    return this.getItem(stackId, options);
+    return this.getItem(id, options);
+  }
+
+  public async update(deploymentName: string, id: number, active: boolean): Promise<IOpsStack> {
+    const sets = [];
+    const expressionValues: any = {};
+
+    sets.push('active = :active');
+    expressionValues[':active'] = { BOOL: active };
+
+    const options = {
+      sets,
+      expressionValues,
+      context: deploymentName,
+      onConditionCheckFailed: onStackDoesNotExist(deploymentName),
+    };
+
+    return this.updateItem(id, options);
   }
 
   public async list(options?: IListOpsStackOptions): Promise<IListOpsStackResult> {
@@ -132,8 +153,8 @@ export class StackTable extends AwsDynamoTable {
     return deployments;
   }
 
-  public async delete(stackId: string, deploymentName: string): Promise<void> {
+  public async delete(deploymentName: string, id: number): Promise<void> {
     const options = { onConditionCheckFailed: onStackDoesNotExist(deploymentName), context: deploymentName };
-    await this.deleteItem(stackId, options);
+    await this.deleteItem(id, options);
   }
 }

@@ -11,6 +11,31 @@ function normalizeDomain(domain: string) {
   return domain[domain.length - 1] === '.' ? domain : `${domain}.`;
 }
 
+function getMatchingDetail(
+  record: IHostedZoneRecord,
+  details: IHostedZoneRecordDetail[]
+): IHostedZoneRecordDetail | undefined {
+  const name = normalizeDomain(record.name);
+  const values = record.values ? ensureArray(record.values) : undefined;
+
+  for (const detail of details) {
+    if (detail.name === name && detail.type === record.type) {
+      if (
+        record.alias &&
+        detail.alias &&
+        detail.alias.hostedZone === record.alias.hostedZone &&
+        detail.alias.name === record.alias.name
+      ) {
+        return detail;
+      } else if (values && detail.values && same(values, detail.values)) {
+        return detail;
+      }
+    }
+  }
+
+  return undefined;
+}
+
 // -------------------
 // Internal Interfaces
 // -------------------
@@ -20,7 +45,11 @@ interface IHostedZoneRecordDetail {
   type: string;
   setId?: string;
   ttl: number;
-  values: string[];
+  values?: string[];
+  alias?: {
+    name: string;
+    hostedZone: string;
+  };
 }
 
 interface IHostedZoneDetail {
@@ -35,7 +64,11 @@ interface IHostedZoneDetail {
 export interface IHostedZoneRecord {
   name: string;
   type: string;
-  values: string | string[];
+  values?: string | string[];
+  alias?: {
+    name: string;
+    hostedZone: string;
+  };
 }
 
 // ----------------
@@ -62,13 +95,10 @@ export class AwsRoute53 extends AwsBase<typeof Route53> {
 
   public async ensureRecord(domain: string, record: IHostedZoneRecord): Promise<void> {
     const hostedZone = await this.ensureHostedZone(domain);
-    const records = await this.getHostedZoneRecords(hostedZone.id);
-    const name = normalizeDomain(record.name);
-    const values = ensureArray(record.values);
-    for (const existing of records) {
-      if (existing.name === name && existing.type === record.type && same(values, existing.values)) {
-        return;
-      }
+    const details = await this.getHostedZoneRecords(hostedZone.id);
+    const match = getMatchingDetail(record, details);
+    if (match) {
+      return;
     }
 
     await this.createHostedZoneRecord(hostedZone.id, record);
@@ -80,13 +110,10 @@ export class AwsRoute53 extends AwsBase<typeof Route53> {
       return;
     }
 
-    const records = await this.getHostedZoneRecords(id);
-    const name = normalizeDomain(record.name);
-    const values = ensureArray(record.values);
-    for (const existing of records) {
-      if (existing.name === name && existing.type === record.type && same(values, existing.values)) {
-        await this.deleteHostedZoneRecord(id, existing);
-      }
+    const details = await this.getHostedZoneRecords(id);
+    const match = getMatchingDetail(record, details);
+    if (match) {
+      await this.deleteHostedZoneRecord(id, match);
     }
   }
 
@@ -130,9 +157,16 @@ export class AwsRoute53 extends AwsBase<typeof Route53> {
             Action: 'UPSERT',
             ResourceRecordSet: {
               Name: record.name,
-              ResourceRecords: ensureArray(record.values).map(value => ({ Value: value })),
+              ResourceRecords: record.values ? ensureArray(record.values).map(value => ({ Value: value })) : undefined,
+              AliasTarget: record.alias
+                ? {
+                    DNSName: record.alias.name,
+                    EvaluateTargetHealth: false,
+                    HostedZoneId: record.alias.hostedZone,
+                  }
+                : undefined,
               Type: record.type,
-              TTL: 60,
+              TTL: record.values ? 60 : undefined,
             },
           },
         ],
@@ -160,9 +194,16 @@ export class AwsRoute53 extends AwsBase<typeof Route53> {
             Action: 'DELETE',
             ResourceRecordSet: {
               Name: record.name,
-              ResourceRecords: ensureArray(record.values).map(value => ({ Value: value })),
+              ResourceRecords: record.values ? ensureArray(record.values).map(value => ({ Value: value })) : undefined,
+              AliasTarget: record.alias
+                ? {
+                    DNSName: record.alias.name,
+                    EvaluateTargetHealth: false,
+                    HostedZoneId: record.alias.hostedZone,
+                  }
+                : undefined,
               Type: record.type,
-              TTL: record.ttl,
+              TTL: record.values ? record.ttl : undefined,
             },
           },
         ],
@@ -170,8 +211,10 @@ export class AwsRoute53 extends AwsBase<typeof Route53> {
       HostedZoneId: id,
     };
 
+    console.log(params);
     return new Promise((resolve, reject) => {
       route53.changeResourceRecordSets(params, (error: any, data: any) => {
+        console.log(error, data);
         if (error) {
           reject(error);
         }
@@ -197,15 +240,27 @@ export class AwsRoute53 extends AwsBase<typeof Route53> {
           if (data.ResourceRecordSets) {
             for (const record of data.ResourceRecordSets) {
               const values = [];
-              for (const value of record.ResourceRecords) {
-                values.push(value.Value);
+              if (record.ResourceRecords) {
+                for (const value of record.ResourceRecords) {
+                  values.push(value.Value);
+                }
               }
+
+              let alias = undefined;
+              if (record.AliasTarget) {
+                alias = {
+                  name: record.AliasTarget.DNSName,
+                  hostedZone: record.AliasTarget.HostedZoneId,
+                };
+              }
+
               results.push({
                 name: record.Name,
                 type: record.Type,
                 setId: record.SetIdentifier,
                 ttl: record.TTL,
-                values,
+                values: values.length ? values : undefined,
+                alias,
               });
             }
           }

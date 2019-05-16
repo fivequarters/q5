@@ -26,6 +26,8 @@ export enum OpsDataExceptionCode {
   deploymentAlreadyExists = 'deploymentAlreadyExists',
   stackAlreadyExists = 'stackAlreadyExists',
   configNotProvided = 'configNotProvided',
+  demoteLastStackNotAllowed = 'demoteLastStackNotAllowed',
+  removeActiveStackNotAllowed = 'removeActiveStackNotAllowed',
 }
 
 // ----------------
@@ -161,5 +163,21 @@ export class OpsDataException extends Exception {
   public static configNotProvided(configName: string) {
     const message = `A value for the the config setting '${configName}' was not provided`;
     return new OpsDataException(OpsDataExceptionCode.configNotProvided, message, [configName]);
+  }
+
+  public static demoteLastStackNotAllowed(deploymentName: string, id: number) {
+    const message = [
+      `The stack '${id}' is the last active stack of deployment '${deploymentName}'`,
+      "and can not be demoted without the 'force' option",
+    ].join(' ');
+    return new OpsDataException(OpsDataExceptionCode.demoteLastStackNotAllowed, message, [id, deploymentName]);
+  }
+
+  public static removeActiveStackNotAllowed(deploymentName: string, id: number) {
+    const message = [
+      `The stack '${id}' is an active stack of deployment '${deploymentName}'`,
+      "and can not be removed without the 'force' option",
+    ].join(' ');
+    return new OpsDataException(OpsDataExceptionCode.removeActiveStackNotAllowed, message, [id, deploymentName]);
   }
 }

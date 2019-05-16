@@ -15,6 +15,7 @@ import { OpsAlb } from './OpsAlb';
 import { createFunctionStorage } from './OpsFunctionStorage';
 import { createCron } from './OpsCron';
 import { createDwhExport } from './OpsDwh';
+import { createLogsTable } from './OpsLogs';
 
 // ----------------
 // Exported Classes
@@ -84,6 +85,7 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
     const accountData = await accountDataFactory.create(this.config);
     await accountData.setup();
 
+    await createLogsTable(this.config, awsConfig);
     await createFunctionStorage(this.config, awsConfig);
     await createCron(this.config, awsConfig);
     if (deployment.dataWarehouseEnabled) {
