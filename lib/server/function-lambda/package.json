@@ -1,12 +1,13 @@
 {
   "name": "@5qtrs/function-lambda",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "",
   "main": "libc/index.js",
   "license": "UNLICENSED",
   "author": "FiveQuarters.io",
   "scripts": {
-    "build": "tsc -b",
+    "build": "tsc -b && yarn bundle:builder",
+    "bundle:builder": "./bundle_builder.sh",
     "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x}",
     "clean": "rm -r -f libc"
   },
@@ -19,7 +20,6 @@
     "cron-parser": "^2.7.3",
     "http-errors": "^1.7.1",
     "jsonwebtoken": "^8.4.0",
-    "jszip": "^3.1.5",
     "moment-timezone": "^0.5.25",
     "semver": "^5.6.0",
     "superagent": "^4.1.0"
