@@ -13,13 +13,16 @@ const defaultMainAccountName = 'main';
 const defaultMainPrefix = 'ops';
 const defaultMonoRepoName = 'fusebit-mono';
 const defaultMonoInstanceType = 't3.medium';
-const defaultMonoLogPort = 5002;
-const defaultMonoApiPort = 3001;
+const defaultMonoApiPort = 80;
 const defaultUbuntuServerVersion = '18.04';
 const defaultMonoInstanceProfile = 'arn:aws:iam::321612923577:instance-profile/Flexd-EC2-Instance';
-const defaultMonoHealthCheckGracePeriod = 180;
+const defaultMonoHealthCheckGracePeriod = 300;
 const defaultCronFilter = 'ctx => true;';
 const defaultCronMaxExecutionsPerWindow = 120;
+const defaultMonoAlbDeploymentName = 'deployment';
+const defaultMonoAlbDefaultTargetName = 'main';
+const defaultMonoAlbTargetNamePrefix = 'stack';
+const defaultMonoAlbHealthCheckPath = '/v1/health';
 
 // ----------------
 // Exported Classes
@@ -75,20 +78,28 @@ export class OpsDataAwsConfig implements IConfig {
     return (this.config.value('monoInstanceType') as string) || defaultMonoInstanceType;
   }
 
-  public get monoLogPort(): number {
-    return (this.config.value('monoLogPort') as number) || defaultMonoLogPort;
-  }
-
   public get monoApiPort(): number {
     return (this.config.value('monoApiPort') as number) || defaultMonoApiPort;
   }
 
-  public get monoAlbLogPort(): number {
-    return (this.config.value('monoAlbLogPort') as number) || defaultMonoLogPort;
-  }
-
   public get monoAlbApiPort(): number {
     return (this.config.value('monoAlbApiPort') as number) || defaultMonoApiPort;
+  }
+
+  public get monoAlbDeploymentName(): string {
+    return (this.config.value('monoAlbDeploymentName') as string) || defaultMonoAlbDeploymentName;
+  }
+
+  public get monoAlbDefaultTargetName(): string {
+    return (this.config.value('monoAlbDefaultTargetName') as string) || defaultMonoAlbDefaultTargetName;
+  }
+
+  public get monoAlbTargetNamePrefix(): string {
+    return (this.config.value('monoAlbTargetNamePrefix') as string) || defaultMonoAlbTargetNamePrefix;
+  }
+
+  public get monoAlbHealthCheckPath(): string {
+    return (this.config.value('monoAlbHealthCheckPath') as string) || defaultMonoAlbHealthCheckPath;
   }
 
   public get ubuntuServerVersion(): string {

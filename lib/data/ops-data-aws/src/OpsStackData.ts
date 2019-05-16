@@ -1,7 +1,15 @@
 import { DataSource } from '@5qtrs/data';
-import { IOpsStackData, IOpsNewStack, IOpsStack, IListOpsStackOptions, IListOpsStackResult } from '@5qtrs/ops-data';
+import {
+  IOpsStackData,
+  IOpsNewStack,
+  IOpsStack,
+  IListOpsStackOptions,
+  IListOpsStackResult,
+  OpsDataException,
+} from '@5qtrs/ops-data';
 import { AwsAutoScale } from '@5qtrs/aws-autoscale';
 import { AwsAmi } from '@5qtrs/aws-ami';
+import { OpsAlb } from './OpsAlb';
 import { OpsDataTables } from './OpsDataTables';
 import { OpsDeploymentData } from './OpsDeploymentData';
 import { OpsNetworkData } from './OpsNetworkData';
@@ -29,7 +37,8 @@ export class OpsStackData extends DataSource implements IOpsStackData {
   public static async create(config: OpsDataAwsConfig, provider: OpsDataAwsProvider, tables: OpsDataTables) {
     const networkData = await OpsNetworkData.create(config, provider, tables);
     const deploymentData = await OpsDeploymentData.create(config, provider, tables);
-    return new OpsStackData(config, provider, tables, networkData, deploymentData);
+    const opsAlb = await OpsAlb.create(config, provider, tables);
+    return new OpsStackData(config, provider, tables, networkData, deploymentData, opsAlb);
   }
 
   private config: OpsDataAwsConfig;
@@ -37,13 +46,15 @@ export class OpsStackData extends DataSource implements IOpsStackData {
   private tables: OpsDataTables;
   private networkData: OpsNetworkData;
   private deploymentData: OpsDeploymentData;
+  private opsAlb: OpsAlb;
 
   private constructor(
     config: OpsDataAwsConfig,
     provider: OpsDataAwsProvider,
     tables: OpsDataTables,
     networkData: OpsNetworkData,
-    deploymentData: OpsDeploymentData
+    deploymentData: OpsDeploymentData,
+    opsAlb: OpsAlb
   ) {
     super([]);
     this.config = config;
@@ -51,6 +62,7 @@ export class OpsStackData extends DataSource implements IOpsStackData {
     this.tables = tables;
     this.networkData = networkData;
     this.deploymentData = deploymentData;
+    this.opsAlb = opsAlb;
   }
 
   public async deploy(newStack: IOpsNewStack): Promise<IOpsStack> {
@@ -72,13 +84,14 @@ export class OpsStackData extends DataSource implements IOpsStackData {
       '#!/bin/bash',
       this.dockerImageForUserData(tag),
       this.installSshKeysForUserData(),
-      this.envFileForUserData(deploymentName),
+      this.envFileForUserData(deploymentName, network.region),
       this.cloudWatchAgentForUserData(deploymentName),
       this.fusebitServiceForUserData(tag),
     ].join('\n');
 
+    const autoScaleName = this.getAutoScaleName(id);
     await awsAutoScale.createAutoScale({
-      name: `${id}-${this.config.monoRepoName}-${tag}`,
+      name: autoScaleName,
       amiId: ami.id,
       instanceType: this.config.monoInstanceType,
       securityGroups: [network.securityGroupId],
@@ -89,10 +102,78 @@ export class OpsStackData extends DataSource implements IOpsStackData {
       subnets: network.privateSubnets.map(subnet => subnet.id),
     });
 
-    const stack = { id, deploymentName, tag, size };
+    const targetGroupArn = await this.opsAlb.addTargetGroup(deployment, id);
+    await awsAutoScale.attachToTargetGroup(autoScaleName, targetGroupArn);
 
+    const stack = { id, deploymentName, tag, size, active: false };
     await this.tables.stackTable.add(stack);
+
     return stack;
+  }
+
+  public async promote(deploymentName: string, id: number): Promise<IOpsStack> {
+    const deployment = await this.deploymentData.get(deploymentName);
+
+    const awsConfig = await this.provider.getAwsConfigForDeployment(deploymentName);
+    const awsAutoScale = await AwsAutoScale.create(awsConfig);
+    const autoScaleName = this.getAutoScaleName(id);
+
+    const targetGroupArn = await this.opsAlb.getTargetGroupArn(deployment);
+    await awsAutoScale.attachToTargetGroup(autoScaleName, targetGroupArn);
+    return this.tables.stackTable.update(deploymentName, id, true);
+  }
+
+  public async demote(deploymentName: string, id: number, force: boolean = false): Promise<IOpsStack> {
+    const deployment = await this.deploymentData.get(deploymentName);
+
+    if (!force) {
+      const stacks = await this.tables.stackTable.listAll(deploymentName);
+      let activeStacks = [];
+      for (const stack of stacks) {
+        if (stack.active) {
+          activeStacks.push(stack.id);
+        }
+      }
+      if (activeStacks.length === 1 && activeStacks[0] === id) {
+        throw OpsDataException.demoteLastStackNotAllowed(deploymentName, id);
+      }
+    }
+
+    const awsConfig = await this.provider.getAwsConfigForDeployment(deploymentName);
+    const awsAutoScale = await AwsAutoScale.create(awsConfig);
+    const autoScaleName = this.getAutoScaleName(id);
+
+    const targetGroupArn = await this.opsAlb.getTargetGroupArn(deployment);
+    await awsAutoScale.detachFromTargetGroup(autoScaleName, targetGroupArn);
+    return this.tables.stackTable.update(deploymentName, id, false);
+  }
+
+  public async remove(deploymentName: string, id: number, force: boolean = false): Promise<void> {
+    const deployment = await this.deploymentData.get(deploymentName);
+
+    const stack = await this.tables.stackTable.get(deploymentName, id);
+    if (stack.active)
+      if (!force) {
+        throw OpsDataException.removeActiveStackNotAllowed(deploymentName, id);
+      } else {
+        await this.demote(deploymentName, id, true);
+      }
+
+    const awsConfig = await this.provider.getAwsConfigForDeployment(deploymentName);
+    const awsAutoScale = await AwsAutoScale.create(awsConfig);
+    const autoScaleName = this.getAutoScaleName(id);
+
+    const targetGroupArn = await this.opsAlb.getTargetGroupArn(deployment, id);
+    await awsAutoScale.detachFromTargetGroup(autoScaleName, targetGroupArn);
+
+    await this.opsAlb.removeTargetGroup(deployment, id);
+    await awsAutoScale.deleteAutoScale(autoScaleName);
+
+    return this.tables.stackTable.delete(deploymentName, id);
+  }
+
+  public async get(deploymentName: string, id: number): Promise<IOpsStack> {
+    return this.tables.stackTable.get(deploymentName, id);
   }
 
   public async list(options?: IListOpsStackOptions): Promise<IListOpsStackResult> {
@@ -101,6 +182,10 @@ export class OpsStackData extends DataSource implements IOpsStackData {
 
   public async listAll(deploymentName?: string): Promise<IOpsStack[]> {
     return this.tables.stackTable.listAll(deploymentName);
+  }
+
+  private getAutoScaleName(id: number) {
+    return `${this.config.monoAlbDeploymentName}-${id}`;
   }
 
   private async getNextStackId(deploymentName: string): Promise<number> {
@@ -128,7 +213,6 @@ export class OpsStackData extends DataSource implements IOpsStackData {
   private fusebitServiceForUserData(tag: string) {
     const executeCommandArgs = [
       `-p ${this.config.monoAlbApiPort}:${this.config.monoApiPort}`,
-      `-p ${this.config.monoAlbLogPort}:${this.config.monoLogPort}`,
       '--name fusebit',
       '--rm',
       `--env-file ${this.getEnvFilePath()}`,
@@ -157,9 +241,13 @@ EOF
 systemctl start docker.fusebit`;
   }
 
-  private envFileForUserData(deploymentName: string) {
+  private envFileForUserData(deploymentName: string, region: string) {
     return `
 cat > ${this.getEnvFilePath()} << EOF
+PORT=${this.config.monoApiPort}
+DEPLOYMENT_KEY=${deploymentName}
+AWS_REGION=${region}
+AWS_S3_BUCKET=fusebit-${deploymentName}-${region}
 ${require('fs').readFileSync(require('path').join(__dirname, '../../../../.aws.' + deploymentName + '.env'), 'utf8')}
 EOF`;
   }

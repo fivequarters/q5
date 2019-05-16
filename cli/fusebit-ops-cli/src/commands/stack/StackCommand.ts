@@ -1,6 +1,9 @@
 import { Command, ICommand } from '@5qtrs/cli';
 import { DeployStackCommand } from './DeployStackCommand';
 import { ListStackCommand } from './ListStackCommand';
+import { PromoteStackCommand } from './PromoteStackCommand';
+import { DemoteStackCommand } from './DemoteStackCommand';
+import { RemoveStackCommand } from './RemoveStackCommand';
 
 // ------------------
 // Internal Constants
@@ -22,6 +25,9 @@ export class StackCommand extends Command {
     const subCommands = [];
     subCommands.push(await DeployStackCommand.create());
     subCommands.push(await ListStackCommand.create());
+    subCommands.push(await PromoteStackCommand.create());
+    subCommands.push(await DemoteStackCommand.create());
+    subCommands.push(await RemoveStackCommand.create());
     command.subCommands = subCommands;
     return new StackCommand(command);
   }

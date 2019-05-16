@@ -99,7 +99,9 @@ export class OpsDomainData extends DataSource implements IOpsDomainData {
     domain.nameServers = [];
     if (records !== undefined) {
       for (const record of records) {
-        domain.nameServers.push(...record.values);
+        if (record.values) {
+          domain.nameServers.push(...record.values);
+        }
       }
     }
 

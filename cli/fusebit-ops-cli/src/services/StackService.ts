@@ -44,6 +44,57 @@ export class StackService {
     }
   }
 
+  public async confirmPromoteStack(stack: IOpsStack) {
+    const confirmPrompt = await Confirm.create({
+      header: 'Promote the stack?',
+      details: [
+        { name: 'Deployment', value: stack.deploymentName },
+        { name: 'Id', value: stack.id.toString() },
+        { name: 'Tag', value: stack.tag },
+        { name: 'Size', value: stack.size.toString() },
+      ],
+    });
+    const confirmed = await confirmPrompt.prompt(this.input.io);
+    if (!confirmed) {
+      await this.executeService.warning('Promote Canceled', Text.create('Promoting the stack was canceled'));
+      throw new Error('Promote Canceled');
+    }
+  }
+
+  public async confirmDemoteStack(stack: IOpsStack) {
+    const confirmPrompt = await Confirm.create({
+      header: 'Demote the stack?',
+      details: [
+        { name: 'Deployment', value: stack.deploymentName },
+        { name: 'Id', value: stack.id.toString() },
+        { name: 'Tag', value: stack.tag },
+        { name: 'Size', value: stack.size.toString() },
+      ],
+    });
+    const confirmed = await confirmPrompt.prompt(this.input.io);
+    if (!confirmed) {
+      await this.executeService.warning('Demote Canceled', Text.create('Demoting the stack was canceled'));
+      throw new Error('Demote Canceled');
+    }
+  }
+
+  public async confirmRemoveStack(stack: IOpsStack) {
+    const confirmPrompt = await Confirm.create({
+      header: 'Remove the stack?',
+      details: [
+        { name: 'Deployment', value: stack.deploymentName },
+        { name: 'Id', value: stack.id.toString() },
+        { name: 'Tag', value: stack.tag },
+        { name: 'Size', value: stack.size.toString() },
+      ],
+    });
+    const confirmed = await confirmPrompt.prompt(this.input.io);
+    if (!confirmed) {
+      await this.executeService.warning('Remove Canceled', Text.create('Removing the stack was canceled'));
+      throw new Error('Remove Canceled');
+    }
+  }
+
   public async deploy(newStack: IOpsNewStack): Promise<IOpsStack> {
     const opsDataContext = await this.opsService.getOpsDataContext();
     const stackData = opsDataContext.stackData;
@@ -65,6 +116,82 @@ export class StackService {
     );
 
     return stack as IOpsStack;
+  }
+
+  public async promote(deploymentName: string, id: number): Promise<IOpsStack> {
+    const opsDataContext = await this.opsService.getOpsDataContext();
+    const stackData = opsDataContext.stackData;
+
+    const result = await this.executeService.execute(
+      {
+        header: 'Promote Stack',
+        message: `Promoting stack '${Text.bold(id.toString())}' of deployment '${Text.bold(deploymentName)}'`,
+        errorHeader: 'Promote Error',
+      },
+      () => stackData.promote(deploymentName, id)
+    );
+
+    await this.executeService.result(
+      'Stack Promoted',
+      `Stack '${Text.bold(id.toString())}' of deployment '${Text.bold(deploymentName)}' was successfully promoted`
+    );
+
+    return result as IOpsStack;
+  }
+
+  public async demote(deploymentName: string, id: number, force: boolean): Promise<IOpsStack> {
+    const opsDataContext = await this.opsService.getOpsDataContext();
+    const stackData = opsDataContext.stackData;
+
+    const result = await this.executeService.execute(
+      {
+        header: 'Demote Stack',
+        message: `Demote stack '${Text.bold(id.toString())}' of deployment '${Text.bold(deploymentName)}'`,
+        errorHeader: 'Demote Error',
+      },
+      () => stackData.demote(deploymentName, id, force)
+    );
+
+    await this.executeService.result(
+      'Stack Demoted',
+      `Stack '${Text.bold(id.toString())}' of deployment '${Text.bold(deploymentName)}' was successfully demoted`
+    );
+
+    return result as IOpsStack;
+  }
+
+  public async remove(deploymentName: string, id: number, force: boolean): Promise<void> {
+    const opsDataContext = await this.opsService.getOpsDataContext();
+    const stackData = opsDataContext.stackData;
+
+    await this.executeService.execute(
+      {
+        header: 'Remove Stack',
+        message: `Remove stack '${Text.bold(id.toString())}' of deployment '${Text.bold(deploymentName)}'`,
+        errorHeader: 'Remove Error',
+      },
+      () => stackData.remove(deploymentName, id, force)
+    );
+
+    await this.executeService.result(
+      'Stack Removed',
+      `Stack '${Text.bold(id.toString())}' of deployment '${Text.bold(deploymentName)}' was successfully removed`
+    );
+  }
+
+  public async getStack(deploymentName: string, id: number): Promise<IOpsStack> {
+    const opsDataContext = await this.opsService.getOpsDataContext();
+    const stackData = opsDataContext.stackData;
+
+    const result = await this.executeService.execute(
+      {
+        header: 'Get Stack',
+        message: `Getting stack '${Text.bold(id.toString())}' of deployment '${Text.bold(deploymentName)}'`,
+        errorHeader: 'Stack Error',
+      },
+      () => stackData.get(deploymentName, id)
+    );
+    return result as IOpsStack;
   }
 
   public async listAllStacks(deploymentName?: string): Promise<IOpsStack[]> {
@@ -132,7 +259,16 @@ export class StackService {
   }
 
   private async writeStacks(stack: IOpsStack) {
-    const details = [Text.dim('Tag: '), stack.tag, Text.eol(), Text.dim('Size: '), stack.size.toString()];
+    const details = [
+      Text.dim('Tag: '),
+      stack.tag,
+      Text.eol(),
+      Text.dim('Size: '),
+      stack.size.toString(),
+      Text.eol(),
+      Text.dim('Status: '),
+      stack.active ? 'ACTIVE' : 'NOT ACTIVE',
+    ];
     const stackName = [Text.bold(stack.deploymentName), ':', Text.bold(stack.id.toString())];
 
     await this.executeService.message(Text.create(stackName), Text.create(details));

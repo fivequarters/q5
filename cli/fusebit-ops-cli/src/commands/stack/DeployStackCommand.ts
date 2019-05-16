@@ -30,7 +30,7 @@ const command = {
     {
       name: 'confirm',
       aliases: ['c'],
-      description: 'If set to true, prompts for confirmation before adding the deployment to the Fusebit platform',
+      description: 'If set to true, prompts for confirmation before deploying the stack',
       type: ArgType.boolean,
       default: 'true',
     },
