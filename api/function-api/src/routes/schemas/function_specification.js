@@ -19,7 +19,8 @@ module.exports = Joi.object().keys({
   lambda: Joi.object().keys({
     memory_size: Joi.number()
       .integer()
-      .min(64),
+      .min(64)
+      .max(3008),
     timeout: Joi.number()
       .integer()
       .min(1)
