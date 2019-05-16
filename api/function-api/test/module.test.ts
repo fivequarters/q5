@@ -12,7 +12,7 @@ const helloWorldWithSuperagentDependency = {
       'index.js': 'var s = require("superagent"); module.exports = (ctx, cb) => cb(null, { body: typeof s });',
       'package.json': {
         engines: {
-          node: '8',
+          node: '10',
         },
         dependencies: {
           superagent: '*',
@@ -53,7 +53,7 @@ describe('module', () => {
       },
       location: expect.stringMatching(/^http:|https:/),
     });
-  }, 15000);
+  }, 20000);
 
   test('PUT completes synchronously for function with superagent dependency if it was built before', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithSuperagentDependency);
@@ -77,7 +77,7 @@ describe('module', () => {
           'index.js': 'module.exports = (ctx, cb) => cb(null, { body: "hello" });',
           'package.json': {
             engines: {
-              node: '8',
+              node: '10',
             },
             dependencies: {
               superagent: '*',
@@ -116,7 +116,7 @@ describe('module', () => {
           'index.js': 'module.exports = (ctx, cb) => cb(null, { body: "hello" });',
           'package.json': {
             engines: {
-              node: '8',
+              node: '10',
             },
             dependencies: {
               'i-dont-exits': '*',
@@ -140,7 +140,7 @@ describe('module', () => {
           'index.js': 'module.exports = (ctx, cb) => cb(null, { body: "hello" });',
           'package.json': {
             engines: {
-              node: '8',
+              node: '10',
             },
             dependencies: {
               clearbit: '1.3.4',
@@ -149,21 +149,29 @@ describe('module', () => {
         },
       },
     });
-    expect([200, 201]).toContain(response.status);
-    if (response.status === 201) {
-      response = await waitForBuild(account, response.data, 20, 1000);
+    expect([200, 201, 429]).toContain(response.status);
+    if (response.status === 429) {
+      expect(response.data).toMatchObject({
+        status: 429,
+        statusCode: 429,
+        message: expect.stringMatching(/failed to build previously and another attempt is delayed until/),
+      });
+    } else {
+      if (response.status === 201) {
+        response = await waitForBuild(account, response.data, 20, 1000);
+      }
+      expect(response.status).toEqual(410);
+      expect(response.data).toMatchObject({
+        status: 'failed',
+        subscriptionId: account.subscriptionId,
+        boundaryId: boundaryId,
+        functionId: function1Id,
+        id: expect.any(String),
+        transitions: {
+          failed: expect.any(String),
+        },
+        error: expect.any(Object),
+      });
     }
-    expect(response.status).toEqual(410);
-    expect(response.data).toMatchObject({
-      status: 'failed',
-      subscriptionId: account.subscriptionId,
-      boundaryId: boundaryId,
-      functionId: function1Id,
-      id: expect.any(String),
-      transitions: {
-        failed: expect.any(String),
-      },
-      error: expect.any(Object),
-    });
   }, 15000);
 });

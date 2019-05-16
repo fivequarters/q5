@@ -51,3 +51,4 @@ typings/
 # dotenv environment variables file
 .env
 .aws.*.env
+.aws.*.env.bak

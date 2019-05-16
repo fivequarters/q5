@@ -57,7 +57,7 @@ const helloWorldWithNode8JavaScript = {
       'index.js': 'module.exports = (ctx, cb) => cb(null, { body: "hello" });',
       'package.json': {
         engines: {
-          node: '8',
+          node: '10',
         },
         dependencies: {},
       },
@@ -71,7 +71,7 @@ const helloWorldWithNode8String = {
       'index.js': 'module.exports = (ctx, cb) => cb(null, { body: "hello" });',
       'package.json': JSON.stringify({
         engines: {
-          node: '8',
+          node: '10',
         },
         dependencies: {},
       }),

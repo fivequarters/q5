@@ -130,7 +130,7 @@ export class EditorContext extends EventEmitter {
           'index.js': IndexPlaceholder,
           'package.json': {
             engines: {
-              node: '8',
+              node: '10',
             },
             dependencies: {},
           },

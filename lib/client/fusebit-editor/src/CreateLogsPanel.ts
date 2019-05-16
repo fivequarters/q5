@@ -71,25 +71,28 @@ export function createLogsPanel(element: HTMLElement, editorContext: EditorConte
   });
 
   editorContext.on(Events.Events.RunnerFinished, (e: Events.RunnerFinishedEvent) => {
-    let response: any = e.response;
+    let response: any = e.response || (e.error && (e.error as any).response);
 
     // Show response immediately if real time logs were disabled, otherwise delay showing response
     // to allow for logs to be pulled.
 
-    let requestUrl = response && response.req && response.req.url;
-    let tokens = requestUrl.split('?');
-    tokens.shift();
-    let requestQuery = tokens.join('?');
-    let logsEnabled = requestQuery.indexOf('x-fx-logs') > -1 || response.req.header['x-fx-logs'] !== undefined;
-    if (logsEnabled) {
-      setTimeout(showResponse, 1500);
+    let logsEnabled = false;
+    if (response && response.req && response.req.url) {
+      let tokens = response.req.url.split('?');
+      tokens.shift();
+      let requestQuery = tokens.join('?');
+      logsEnabled = requestQuery.indexOf('x-fx-logs') > -1 || response.req.header['x-fx-logs'] !== undefined;
+      if (logsEnabled) {
+        setTimeout(showResponse, 1500);
+      } else {
+        showResponse();
+      }
     } else {
       showResponse();
     }
 
     function showResponse() {
       if (e.error) {
-        response = response || (e.error as any).response;
         if (!response) {
           return append(`RUN: error ${(e.error as any).stack || e.error}`);
         }
@@ -97,23 +100,43 @@ export function createLogsPanel(element: HTMLElement, editorContext: EditorConte
       if (!response) {
         return;
       }
-      const lines: string[] = [`RUN: finished`, `HTTP ${response.statusCode}`];
-      for (const h in response.headers) {
-        if (h !== 'x-fx-logs') {
-          lines.push(`${h}: ${response.headers[h]}`);
+      const lines: string[] = [];
+      let responseSource = response.headers['x-fx-response-source'];
+      if (responseSource === 'provider' && response.body) {
+        lines.push(`RUN: function error HTTP ${response.statusCode}`);
+        if (response.body.properties) {
+          let trace = response.body.properties.trace || response.body.properties.stackTrace;
+          if (trace && Array.isArray(trace)) {
+            trace.forEach(x => lines.push(x));
+          }
         }
-      }
-      if ((response.headers['content-type'] || '').match(/application\/json/)) {
-        try {
-          response.text = JSON.stringify(JSON.parse(response.text), null, 2);
-        } catch (_) {}
-      }
-      if (response.text) {
-        if (response.text.length > 2048) {
-          response.text = response.text.substring(0, 2048);
-          lines.push(`\n${response.text}...`, `...response body truncated to 2KB`);
-        } else {
-          lines.push(`\n${response.text}`);
+        if (lines.length === 1 && response.body.message) {
+          lines.push(response.body.message);
+        }
+      } else if (responseSource === 'proxy' && response.body) {
+        lines.push(`RUN: infrastructure error HTTP ${response.statusCode}`);
+        if (response.body.message) {
+          lines.push(response.body.message);
+        }
+      } else {
+        lines.push(`RUN: function finished`, `HTTP ${response.statusCode}`);
+        for (const h in response.headers) {
+          if (h !== 'x-fx-logs') {
+            lines.push(`${h}: ${response.headers[h]}`);
+          }
+        }
+        if ((response.headers['content-type'] || '').match(/application\/json/)) {
+          try {
+            response.text = JSON.stringify(JSON.parse(response.text), null, 2);
+          } catch (_) {}
+        }
+        if (response.text) {
+          if (response.text.length > 2048) {
+            response.text = response.text.substring(0, 2048);
+            lines.push(`\n${response.text}...`, `...response body truncated to 2KB`);
+          } else {
+            lines.push(`\n${response.text}`);
+          }
         }
       }
       append(lines.join('\n'));

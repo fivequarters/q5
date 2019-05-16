@@ -21,11 +21,16 @@ beforeEach(async () => {
 });
 
 describe('execution', () => {
-  test('hello, world succeeds', async () => {
+  test('hello, world succeeds on node 8', async () => {
     let response = await putFunction(account, boundaryId, function1Id, {
       nodejs: {
         files: {
           'index.js': 'module.exports = (ctx, cb) => cb(null, { body: "hello" });',
+          'package.json': {
+            engines: {
+              node: '8',
+            },
+          },
         },
       },
     });
@@ -36,6 +41,83 @@ describe('execution', () => {
     expect(response.data).toEqual('hello');
     expect(response.headers['x-fx-response-source']).toEqual('function');
   });
+
+  test('hello, world succeeds on node 10', async () => {
+    let response = await putFunction(account, boundaryId, function1Id, {
+      nodejs: {
+        files: {
+          'index.js': 'module.exports = (ctx, cb) => cb(null, { body: "hello" });',
+          'package.json': {
+            engines: {
+              node: '10',
+            },
+          },
+        },
+      },
+    });
+    expect(response.status).toEqual(200);
+    expect(response.data.status).toEqual('success');
+    response = await request(response.data.location);
+    expect(response.status).toEqual(200);
+    expect(response.data).toEqual('hello');
+    expect(response.headers['x-fx-response-source']).toEqual('function');
+  });
+
+  test('function with module succeeds on node 8', async () => {
+    let response = await putFunction(account, boundaryId, function1Id, {
+      nodejs: {
+        files: {
+          'index.js': 'module.exports = (ctx, cb) => cb(null, { body: typeof require("superagent") });',
+          'package.json': {
+            dependencies: {
+              superagent: '*',
+            },
+            engines: {
+              node: '8',
+            },
+          },
+        },
+      },
+    });
+    expect([200, 201]).toContain(response.status);
+    if (response.status === 201) {
+      response = await waitForBuild(account, response.data, 15, 1000);
+      expect(response.status).toEqual(200);
+    }
+    expect(response.data.status).toEqual('success');
+    response = await request(response.data.location);
+    expect(response.status).toEqual(200);
+    expect(response.data).toEqual('function');
+    expect(response.headers['x-fx-response-source']).toEqual('function');
+  }, 15000);
+
+  test('function with module succeeds on node 10', async () => {
+    let response = await putFunction(account, boundaryId, function1Id, {
+      nodejs: {
+        files: {
+          'index.js': 'module.exports = (ctx, cb) => cb(null, { body: typeof require("superagent") });',
+          'package.json': {
+            dependencies: {
+              superagent: '*',
+            },
+            engines: {
+              node: '10',
+            },
+          },
+        },
+      },
+    });
+    expect([200, 201]).toContain(response.status);
+    if (response.status === 201) {
+      response = await waitForBuild(account, response.data, 15, 1000);
+      expect(response.status).toEqual(200);
+    }
+    expect(response.data.status).toEqual('success');
+    response = await request(response.data.location);
+    expect(response.status).toEqual(200);
+    expect(response.data).toEqual('function');
+    expect(response.headers['x-fx-response-source']).toEqual('function');
+  }, 15000);
 
   test('function context APIs work as expected', async () => {
     const reflectContext = {
@@ -147,7 +229,7 @@ describe('execution', () => {
           'index.js': 'var s = require("superagent"); module.exports = (ctx, cb) => cb(null, { body: typeof s });',
           'package.json': {
             engines: {
-              node: '8',
+              node: '10',
             },
             dependencies: {
               superagent: '*',
@@ -187,11 +269,11 @@ describe('execution', () => {
     expect(response.data).toMatchObject({
       status: 500,
       statusCode: 500,
-      message: expect.stringMatching(/^Unexpected token/),
+      message: expect.stringMatching(/Unexpected token/),
       properties: {
-        errorMessage: expect.stringMatching(/^Unexpected token/),
-        errorType: 'SyntaxError',
-        stackTrace: expect.any(Array),
+        errorMessage: expect.stringMatching(/Unexpected token/),
+        errorType: expect.stringMatching(/SyntaxError/),
+        // stackTrace: expect.any(Array),
       },
     });
   });
@@ -216,7 +298,7 @@ describe('execution', () => {
       properties: {
         errorMessage: 'Some error',
         errorType: 'Error',
-        stackTrace: expect.any(Array),
+        // stackTrace: expect.any(Array),
       },
     });
   });
@@ -241,7 +323,7 @@ describe('execution', () => {
       properties: {
         errorMessage: 'Sync error',
         errorType: 'Error',
-        stackTrace: expect.any(Array),
+        // stackTrace: expect.any(Array),
       },
     });
   });
@@ -266,7 +348,7 @@ describe('execution', () => {
       properties: {
         errorMessage: 'Response error',
         errorType: 'Error',
-        stackTrace: expect.any(Array),
+        // stackTrace: expect.any(Array),
       },
     });
   });
@@ -279,6 +361,11 @@ describe('execution', () => {
             setTimeout(() => { throw new Error("Async error"); }, 500);
             setTimeout(() => cb(null, { body: "hello" }), 1000);
           };`,
+          'package.json': {
+            engines: {
+              node: '8',
+            },
+          },
         },
       },
     });
@@ -317,7 +404,7 @@ describe('execution', () => {
       properties: {
         errorMessage: 'The function must take two parameters: (ctx, cb).',
         errorType: expect.any(String),
-        stackTrace: expect.any(Array),
+        // stackTrace: expect.any(Array),
       },
     });
   });
