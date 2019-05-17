@@ -119,6 +119,7 @@ describe('cron', () => {
       }
     }
 
+    expect(responses.length).toBeGreaterThanOrEqual(8);
     responses.sort((a, b) => a.body.timestamp - b.body.timestamp);
     let avgTimespan = (responses[responses.length - 1].body.timestamp - responses[0].body.timestamp) / responses.length;
     let minTimespan = 999999;
@@ -130,7 +131,6 @@ describe('cron', () => {
       maxTimespan = Math.max(maxTimespan, timespan);
     }
     // console.log('RESPONSES', responses.length, avgTimespan, minTimespan, maxTimespan);
-    expect(responses.length).toBeGreaterThanOrEqual(8);
     expect(maxTimespan).toBeLessThan(2000);
     expect(avgTimespan).toBeGreaterThan(500);
     expect(avgTimespan).toBeLessThan(1500);
