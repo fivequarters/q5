@@ -1,4 +1,5 @@
 import { DataSource } from '@5qtrs/data';
+import { AwsRegion } from '@5qtrs/aws-region';
 import { AwsCert, IAwsCertDetail, IAwsCertValidateDetail } from '@5qtrs/aws-cert';
 import { IOpsDeployment } from '@5qtrs/ops-data';
 import { OpsDataTables } from './OpsDataTables';
@@ -10,18 +11,23 @@ import { OpsDataAwsConfig } from './OpsDataAwsConfig';
 // Internal Functions
 // ------------------
 
-function getHostedAt(deployment: IOpsDeployment) {
-  return `${deployment.deploymentName}.${deployment.domainName}`;
-}
-
-function getHostedAtWildcard(deployment: IOpsDeployment) {
-  return `*.${deployment.deploymentName}.${deployment.domainName}`;
-}
-
 function getParentDomain(domain: string) {
-  let normalized = domain.indexOf('*.') === 0 ? domain.replace('*.', '') : domain;
-  const indexOfDot = normalized.indexOf('.');
-  return normalized.substring(indexOfDot + 1);
+  // domain may start with a wildcard segment
+  const segments = domain.split('.');
+  if (segments[0] === '*') {
+    segments.shift();
+  }
+
+  // next segment will be the deployment name
+  segments.shift();
+
+  // next segment is possible a region
+  if (AwsRegion.isRegion(segments[0])) {
+    segments.shift();
+  }
+
+  // remaining segments are the parent domain
+  return segments.join('.');
 }
 
 // ----------------
@@ -46,10 +52,11 @@ export class OpsAlb extends DataSource {
   }
 
   public async addAlb(deployment: IOpsDeployment): Promise<void> {
-    const awsAlb = await this.provider.getAwsAlb(deployment.deploymentName);
-    const certDetails = await this.issueCert(deployment);
-    const network = await this.networkData.get(deployment.networkName);
+    const awsAlb = await this.provider.getAwsAlb(deployment.deploymentName, deployment.region);
+    const network = await this.networkData.get(deployment.networkName, deployment.region);
+    const hostName = this.getHostName(network.region, deployment);
 
+    const certDetails = await this.issueCert(deployment, hostName);
     const options = {
       name: this.config.monoAlbDeploymentName,
       certArns: [certDetails.arn],
@@ -66,19 +73,16 @@ export class OpsAlb extends DataSource {
     const alb = await awsAlb.ensureAlb(options);
 
     const route53 = await this.provider.getAwsRoute53FromDomain(deployment.domainName);
-    await route53.ensureRecord(deployment.domainName, {
-      name: `${deployment.deploymentName}.${deployment.domainName}`,
-      alias: alb.dns,
-      type: 'A',
-    });
+    await route53.ensureRecord(deployment.domainName, { name: hostName, alias: alb.dns, type: 'A' });
   }
 
   public async addTargetGroup(deployment: IOpsDeployment, id: number): Promise<string> {
-    const awsAlb = await this.provider.getAwsAlb(deployment.deploymentName);
+    const awsAlb = await this.provider.getAwsAlb(deployment.deploymentName, deployment.region);
     const route53 = await this.provider.getAwsRoute53FromDomain(deployment.domainName);
+    const network = await this.networkData.get(deployment.networkName, deployment.region);
 
     const targetGroupName = this.getTargetGroupName(id);
-    const hostName = this.getHostName(deployment, id);
+    const hostName = this.getHostName(network.region, deployment, id);
     const targetGroup = {
       name: targetGroupName,
       host: hostName,
@@ -93,18 +97,19 @@ export class OpsAlb extends DataSource {
   }
 
   public async getTargetGroupArn(deployment: IOpsDeployment, id?: number): Promise<string> {
-    const awsAlb = await this.provider.getAwsAlb(deployment.deploymentName);
+    const awsAlb = await this.provider.getAwsAlb(deployment.deploymentName, deployment.region);
     const alb = await awsAlb.getAlb(this.config.monoAlbDeploymentName);
     const targetGroupName = this.getTargetGroupName(id);
     return alb.targets[targetGroupName];
   }
 
   public async removeTargetGroup(deployment: IOpsDeployment, id: number): Promise<void> {
-    const awsAlb = await this.provider.getAwsAlb(deployment.deploymentName);
+    const awsAlb = await this.provider.getAwsAlb(deployment.deploymentName, deployment.region);
     const route53 = await this.provider.getAwsRoute53FromDomain(deployment.domainName);
+    const network = await this.networkData.get(deployment.networkName, deployment.region);
 
     const targetGroupName = this.getTargetGroupName(id);
-    const hostName = this.getHostName(deployment, id);
+    const hostName = this.getHostName(network.region, deployment, id);
 
     const alb = await awsAlb.getAlb(this.config.monoAlbDeploymentName);
     await route53.deleteRecord(deployment.domainName, { name: hostName, alias: alb.dns, type: 'A' });
@@ -112,9 +117,13 @@ export class OpsAlb extends DataSource {
     await awsAlb.removeTarget(this.config.monoAlbDeploymentName, targetGroupName);
   }
 
-  private getHostName(deployment: IOpsDeployment, id: number): string {
-    const targetGroupName = this.getTargetGroupName(id);
-    return `${targetGroupName}.${deployment.deploymentName}.${deployment.domainName}`;
+  private getHostName(region: string, deployment: IOpsDeployment, id?: number): string {
+    let hostname = `${deployment.deploymentName}.${region}.${deployment.domainName}`;
+    if (id !== undefined) {
+      const targetGroupName = this.getTargetGroupName(id);
+      hostname = `${targetGroupName}.${hostname}`;
+    }
+    return hostname;
   }
 
   private getTargetGroupName(id?: number): string {
@@ -123,12 +132,11 @@ export class OpsAlb extends DataSource {
       : `${this.config.monoAlbTargetNamePrefix}-${id}`;
   }
 
-  private async issueCert(deployment: IOpsDeployment): Promise<IAwsCertDetail> {
-    const awsConfig = await this.provider.getAwsConfigForDeployment(deployment.deploymentName);
+  private async issueCert(deployment: IOpsDeployment, hostName: string): Promise<IAwsCertDetail> {
+    const awsConfig = await this.provider.getAwsConfigForDeployment(deployment.deploymentName, deployment.region);
     const awsCert = await AwsCert.create(awsConfig);
-    const hostDomain = getHostedAt(deployment);
-    const alternateDomains = [getHostedAtWildcard(deployment)];
-    const certDetails = await awsCert.issueCert(hostDomain, { alternateDomains });
+    const alternateDomains = [`*.${hostName}`];
+    const certDetails = await awsCert.issueCert(hostName, { alternateDomains });
 
     if (certDetails.status === 'ISSUED') {
       return certDetails;
@@ -156,6 +164,7 @@ export class OpsAlb extends DataSource {
     if (validation.status === 'PENDING_VALIDATION') {
       const validationDomain = validation.domain;
       const parentDomain = getParentDomain(validationDomain);
+      console.log(parentDomain);
       const route53 = await this.provider.getAwsRoute53FromDomain(parentDomain);
 
       return route53.ensureRecord(parentDomain, {

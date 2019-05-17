@@ -39,7 +39,7 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
 
   public async exists(deployment: IOpsDeployment): Promise<boolean> {
     try {
-      const existing = await this.tables.deploymentTable.get(deployment.deploymentName);
+      const existing = await this.tables.deploymentTable.get(deployment.deploymentName, deployment.region);
       if (existing.domainName !== deployment.domainName) {
         throw OpsDataException.deploymentDifferentDomain(deployment.deploymentName, existing.domainName);
       }
@@ -61,25 +61,25 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
     try {
       await this.ensureDeploymentSetup(deployment);
     } catch (error) {
-      await this.tables.deploymentTable.delete(deployment.deploymentName);
+      await this.tables.deploymentTable.delete(deployment.deploymentName, deployment.region);
       throw error;
     }
   }
 
-  public async get(deploymentName: string): Promise<IOpsDeployment> {
-    return this.tables.deploymentTable.get(deploymentName);
+  public async get(deploymentName: string, region: string): Promise<IOpsDeployment> {
+    return this.tables.deploymentTable.get(deploymentName, region);
   }
 
   public async list(options?: IListOpsDeploymentOptions): Promise<IListOpsDeploymentResult> {
     return this.tables.deploymentTable.list(options);
   }
 
-  public async listAll(): Promise<IOpsDeployment[]> {
-    return this.tables.deploymentTable.listAll();
+  public async listAll(deploymentName?: string): Promise<IOpsDeployment[]> {
+    return this.tables.deploymentTable.listAll(deploymentName);
   }
 
   private async ensureDeploymentSetup(deployment: IOpsDeployment): Promise<void> {
-    const awsConfig = await this.provider.getAwsConfigForDeployment(deployment.deploymentName);
+    const awsConfig = await this.provider.getAwsConfigForDeployment(deployment.deploymentName, deployment.region);
 
     const accountDataFactory = await AccountDataAwsContextFactory.create(awsConfig);
     const accountData = await accountDataFactory.create(this.config);

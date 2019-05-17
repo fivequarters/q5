@@ -8,8 +8,8 @@ import { OpsDataAwsConfig } from '../OpsDataAwsConfig';
 
 const table: IAwsDynamoTable = {
   name: 'network',
-  attributes: { networkName: 'S' },
-  keys: ['networkName'],
+  attributes: { networkName: 'S', region: 'S' },
+  keys: ['networkName', 'region'],
   toKey,
   toItem,
   fromItem,
@@ -19,16 +19,16 @@ const table: IAwsDynamoTable = {
 // Internal Functions
 // ------------------
 
-function toKey(networkName: string) {
+function toKey(key: { networkName: string; region: string }) {
   return {
-    networkName: { S: networkName },
+    networkName: { S: key.networkName },
+    region: { S: key.region },
   };
 }
 
 function toItem(network: IOpsNetwork) {
-  const item: any = toKey(network.networkName);
+  const item: any = toKey(network);
   item.accountName = { S: network.accountName };
-  item.region = { S: network.region };
   return item;
 }
 
@@ -66,6 +66,7 @@ export interface IOpsNetwork {
 }
 
 export interface IListOpsNetworkOptions {
+  networkName?: string;
   next?: string;
   limit?: number;
 }
@@ -96,18 +97,27 @@ export class NetworkTable extends AwsDynamoTable {
     return this.addItem(network, options);
   }
 
-  public async get(networkName: string): Promise<IOpsNetwork> {
+  public async get(networkName: string, region: string): Promise<IOpsNetwork> {
     const options = { onNotFound: onNetworkDoesNotExist };
-    return this.getItem(networkName, options);
+    return this.getItem({ networkName, region }, options);
   }
 
   public async list(options?: IListOpsNetworkOptions): Promise<IListOpsNetworkResult> {
+    if (options && options.networkName) {
+      const queryOptions = {
+        limit: options && options.limit ? options.limit : undefined,
+        next: options && options.next ? options.next : undefined,
+        expressionValues: { ':networkName': { S: options.networkName } },
+        keyConditions: ['networkName = :networkName'],
+      };
+      return this.queryTable(queryOptions);
+    }
     return this.scanTable(options);
   }
 
-  public async listAll(): Promise<IOpsNetwork[]> {
+  public async listAll(networkName?: string): Promise<IOpsNetwork[]> {
     const networks = [];
-    const options: IListOpsNetworkOptions = { limit: this.config.accountMaxLimit };
+    const options: IListOpsNetworkOptions = { limit: this.config.accountMaxLimit, networkName };
     do {
       const result = await this.list(options);
       networks.push(...result.items);
@@ -116,8 +126,8 @@ export class NetworkTable extends AwsDynamoTable {
     return networks;
   }
 
-  public async delete(networkName: string): Promise<void> {
+  public async delete(networkName: string, region: string): Promise<void> {
     const options = { onConditionCheckFailed: onNetworkDoesNotExist };
-    await this.deleteItem(networkName, options);
+    await this.deleteItem({ networkName, region }, options);
   }
 }

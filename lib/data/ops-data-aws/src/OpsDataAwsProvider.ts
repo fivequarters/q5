@@ -42,12 +42,12 @@ export class OpsDataAwsProvider {
     return this.mainAwsConfig;
   }
 
-  public async getAwsConfigForDeployment(deploymentName: string): Promise<IAwsConfig> {
+  public async getAwsConfigForDeployment(deploymentName: string, region: string): Promise<IAwsConfig> {
     const deploymentTable = await this.getDeploymentTable();
-    const deployment = await deploymentTable.get(deploymentName);
+    const deployment = await deploymentTable.get(deploymentName, region);
 
     const networkTable = await this.getNetworkTable();
-    const network = await networkTable.get(deployment.networkName);
+    const network = await networkTable.get(deployment.networkName, deployment.region);
 
     const accountTable = await this.getAccountTable();
     const account = await accountTable.get(network.accountName);
@@ -76,9 +76,9 @@ export class OpsDataAwsProvider {
     };
   }
 
-  public async getAwsNetworkFromNetwork(networkName: string): Promise<AwsNetwork> {
+  public async getAwsNetworkFromNetwork(networkName: string, region: string): Promise<AwsNetwork> {
     const networkTable = await this.getNetworkTable();
-    const network = await networkTable.get(networkName);
+    const network = await networkTable.get(networkName, region);
     return this.getAwsNetworkFromAccount(network.accountName, network.region);
   }
 
@@ -115,8 +115,8 @@ export class OpsDataAwsProvider {
     return this.getAwsRoute53FromAccount(domain.accountName);
   }
 
-  public async getAwsAlb(deploymentName: string): Promise<AwsAlb> {
-    const config = await this.getAwsConfigForDeployment(deploymentName);
+  public async getAwsAlb(deploymentName: string, region: string): Promise<AwsAlb> {
+    const config = await this.getAwsConfigForDeployment(deploymentName, region);
     return AwsAlb.create(config);
   }
 

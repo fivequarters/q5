@@ -1,16 +1,16 @@
 import { AwsDynamo, IAwsDynamoTable, AwsDynamoTable } from '@5qtrs/aws-dynamo';
 import { OpsDataException } from '@5qtrs/ops-data';
 import { OpsDataAwsConfig } from '../OpsDataAwsConfig';
-import { identifier } from '@babel/types';
 
 // ------------------
 // Internal Constants
 // ------------------
 
+const delimiter = '::';
 const table: IAwsDynamoTable = {
   name: 'stack',
-  attributes: { deploymentName: 'S', stackId: 'N' },
-  keys: ['deploymentName', 'stackId'],
+  attributes: { deploymentName: 'S', regionStackId: 'S' },
+  keys: ['deploymentName', 'regionStackId'],
   toKey,
   toItem,
   fromItem,
@@ -20,15 +20,15 @@ const table: IAwsDynamoTable = {
 // Internal Functions
 // ------------------
 
-function toKey(id: number, deploymentName: string) {
+function toKey(key: { id: number; deploymentName: string; region: string }) {
   return {
-    stackId: { N: id.toString() },
-    deploymentName: { S: deploymentName },
+    regionStackId: { S: [key.region, key.id.toString()].join(delimiter) },
+    deploymentName: { S: key.deploymentName },
   };
 }
 
 function toItem(stack: IOpsStack) {
-  const item: any = toKey(stack.id, stack.deploymentName);
+  const item: any = toKey(stack);
   item.tag = { S: stack.tag };
   item.size = { N: stack.size.toString() };
   item.active = { BOOL: stack.active };
@@ -36,9 +36,11 @@ function toItem(stack: IOpsStack) {
 }
 
 function fromItem(item: any): IOpsStack {
+  const [region, stackId] = item.regionStackId.S.split(delimiter);
   return {
-    id: parseInt(item.stackId.N, 10),
     deploymentName: item.deploymentName.S,
+    region,
+    id: parseInt(stackId, 10),
     tag: item.tag.S,
     size: parseInt(item.size.N, 10),
     active: item.active.BOOL,
@@ -69,6 +71,7 @@ function onStackDoesNotExist(deploymentName: string) {
 export interface IOpsStack {
   id: number;
   deploymentName: string;
+  region: string;
   tag: string;
   size: number;
   active: boolean;
@@ -107,12 +110,12 @@ export class StackTable extends AwsDynamoTable {
     return this.addItem(stack, options);
   }
 
-  public async get(deploymentName: string, id: number): Promise<IOpsStack> {
-    const options = { onNotFound: onStackDoesNotExist(deploymentName), context: deploymentName };
-    return this.getItem(id, options);
+  public async get(deploymentName: string, region: string, id: number): Promise<IOpsStack> {
+    const options = { onNotFound: onStackDoesNotExist(deploymentName) };
+    return this.getItem({ deploymentName, region, id }, options);
   }
 
-  public async update(deploymentName: string, id: number, active: boolean): Promise<IOpsStack> {
+  public async update(deploymentName: string, region: string, id: number, active: boolean): Promise<IOpsStack> {
     const sets = [];
     const expressionValues: any = {};
 
@@ -122,11 +125,10 @@ export class StackTable extends AwsDynamoTable {
     const options = {
       sets,
       expressionValues,
-      context: deploymentName,
       onConditionCheckFailed: onStackDoesNotExist(deploymentName),
     };
 
-    return this.updateItem(id, options);
+    return this.updateItem({ deploymentName, region, id }, options);
   }
 
   public async list(options?: IListOpsStackOptions): Promise<IListOpsStackResult> {
@@ -153,8 +155,8 @@ export class StackTable extends AwsDynamoTable {
     return deployments;
   }
 
-  public async delete(deploymentName: string, id: number): Promise<void> {
-    const options = { onConditionCheckFailed: onStackDoesNotExist(deploymentName), context: deploymentName };
-    await this.deleteItem(id, options);
+  public async delete(deploymentName: string, region: string, id: number): Promise<void> {
+    const options = { onConditionCheckFailed: onStackDoesNotExist(deploymentName) };
+    await this.deleteItem({ deploymentName, region, id }, options);
   }
 }

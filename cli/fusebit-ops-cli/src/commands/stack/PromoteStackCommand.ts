@@ -1,5 +1,5 @@
 import { Command, IExecuteInput, ArgType } from '@5qtrs/cli';
-import { StackService } from '../../services';
+import { StackService, DeploymentService } from '../../services';
 
 // ------------------
 // Internal Constants
@@ -22,6 +22,11 @@ const command = {
     },
   ],
   options: [
+    {
+      name: 'region',
+      description: 'The region of the deployment; required if the deployment is not globally unique',
+      defaultText: 'deployment region',
+    },
     {
       name: 'confirm',
       aliases: ['c'],
@@ -49,19 +54,22 @@ export class PromoteStackCommand extends Command {
     await input.io.writeLine();
 
     const deploymentName = input.arguments[0] as string;
+    const region = input.options.region as string;
     const id = input.arguments[1] as number;
     const confirm = input.options.confirm as boolean;
 
+    const deploymentService = await DeploymentService.create(input);
     const stackService = await StackService.create(input);
 
-    let stack = await stackService.getStack(deploymentName, id);
+    const deployment = await deploymentService.getSingleDeployment(deploymentName, region);
+    let stack = await stackService.getStack(deploymentName, deployment.region, id);
 
     if (!stack.active) {
       if (confirm) {
         await stackService.confirmPromoteStack(stack);
       }
 
-      stack = await stackService.promote(deploymentName, id);
+      stack = await stackService.promote(deploymentName, stack.region, id);
     }
 
     await stackService.displayStack(stack);

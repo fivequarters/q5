@@ -15,6 +15,7 @@
     { "path": "../../shared/base64" },
     { "path": "../../aws/aws-cert" },
     { "path": "../../aws/aws-alb" },
-    { "path": "../../aws/aws-route53" }
+    { "path": "../../aws/aws-route53" },
+    { "path": "../../aws/aws-region" }
   ]
 }

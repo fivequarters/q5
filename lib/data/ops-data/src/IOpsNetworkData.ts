@@ -27,6 +27,7 @@ export interface IOpsSubnetDetail {
 }
 
 export interface IListOpsNetworkOptions {
+  networkName?: string;
   next?: string;
   limit?: number;
 }
@@ -39,7 +40,7 @@ export interface IListOpsNetworkResult {
 export interface IOpsNetworkData extends IDataSource {
   exists(network: IOpsNewNetwork): Promise<boolean>;
   add(network: IOpsNewNetwork): Promise<IOpsNetwork>;
-  get(networkName: string): Promise<IOpsNetwork>;
+  get(networkName: string, region: string): Promise<IOpsNetwork>;
   list(options?: IListOpsNetworkOptions): Promise<IListOpsNetworkResult>;
-  listAll(options?: IListOpsNetworkOptions): Promise<IOpsNetwork[]>;
+  listAll(networkName?: string): Promise<IOpsNetwork[]>;
 }

@@ -71,11 +71,11 @@ export class OpsStackData extends DataSource implements IOpsStackData {
   }
 
   public async deploy(newStack: IOpsNewStack): Promise<IOpsStack> {
-    const { deploymentName, tag } = newStack;
-    const deployment = await this.deploymentData.get(deploymentName);
+    const { deploymentName, tag, region } = newStack;
+    const deployment = await this.deploymentData.get(deploymentName, region);
 
-    const network = await this.networkData.get(deployment.networkName);
-    const awsConfig = await this.provider.getAwsConfigForDeployment(deploymentName);
+    const network = await this.networkData.get(deployment.networkName, deployment.region);
+    const awsConfig = await this.provider.getAwsConfigForDeployment(deploymentName, deployment.region);
 
     const size = newStack.size || deployment.size;
     const id = await this.getNextStackId(newStack.deploymentName);
@@ -111,26 +111,26 @@ export class OpsStackData extends DataSource implements IOpsStackData {
     const targetGroupArn = await this.opsAlb.addTargetGroup(deployment, id);
     await awsAutoScale.attachToTargetGroup(autoScaleName, targetGroupArn);
 
-    const stack = { id, deploymentName, tag, size, active: false };
+    const stack = { id, deploymentName, tag, size, region: deployment.region, active: false };
     await this.tables.stackTable.add(stack);
 
     return stack;
   }
 
-  public async promote(deploymentName: string, id: number): Promise<IOpsStack> {
-    const deployment = await this.deploymentData.get(deploymentName);
+  public async promote(deploymentName: string, region: string, id: number): Promise<IOpsStack> {
+    const deployment = await this.deploymentData.get(deploymentName, region);
 
-    const awsConfig = await this.provider.getAwsConfigForDeployment(deploymentName);
+    const awsConfig = await this.provider.getAwsConfigForDeployment(deploymentName, deployment.region);
     const awsAutoScale = await AwsAutoScale.create(awsConfig);
     const autoScaleName = this.getAutoScaleName(id);
 
     const targetGroupArn = await this.opsAlb.getTargetGroupArn(deployment);
     await awsAutoScale.attachToTargetGroup(autoScaleName, targetGroupArn);
-    return this.tables.stackTable.update(deploymentName, id, true);
+    return this.tables.stackTable.update(deploymentName, region, id, true);
   }
 
-  public async demote(deploymentName: string, id: number, force: boolean = false): Promise<IOpsStack> {
-    const deployment = await this.deploymentData.get(deploymentName);
+  public async demote(deploymentName: string, region: string, id: number, force: boolean = false): Promise<IOpsStack> {
+    const deployment = await this.deploymentData.get(deploymentName, region);
 
     if (!force) {
       const stacks = await this.tables.stackTable.listAll(deploymentName);
@@ -145,27 +145,27 @@ export class OpsStackData extends DataSource implements IOpsStackData {
       }
     }
 
-    const awsConfig = await this.provider.getAwsConfigForDeployment(deploymentName);
+    const awsConfig = await this.provider.getAwsConfigForDeployment(deploymentName, region);
     const awsAutoScale = await AwsAutoScale.create(awsConfig);
     const autoScaleName = this.getAutoScaleName(id);
 
     const targetGroupArn = await this.opsAlb.getTargetGroupArn(deployment);
     await awsAutoScale.detachFromTargetGroup(autoScaleName, targetGroupArn);
-    return this.tables.stackTable.update(deploymentName, id, false);
+    return this.tables.stackTable.update(deploymentName, region, id, false);
   }
 
-  public async remove(deploymentName: string, id: number, force: boolean = false): Promise<void> {
-    const deployment = await this.deploymentData.get(deploymentName);
+  public async remove(deploymentName: string, region: string, id: number, force: boolean = false): Promise<void> {
+    const deployment = await this.deploymentData.get(deploymentName, region);
 
-    const stack = await this.tables.stackTable.get(deploymentName, id);
+    const stack = await this.tables.stackTable.get(deploymentName, region, id);
     if (stack.active)
       if (!force) {
         throw OpsDataException.removeActiveStackNotAllowed(deploymentName, id);
       } else {
-        await this.demote(deploymentName, id, true);
+        await this.demote(deploymentName, region, id, true);
       }
 
-    const awsConfig = await this.provider.getAwsConfigForDeployment(deploymentName);
+    const awsConfig = await this.provider.getAwsConfigForDeployment(deploymentName, region);
     const awsAutoScale = await AwsAutoScale.create(awsConfig);
     const autoScaleName = this.getAutoScaleName(id);
 
@@ -175,11 +175,11 @@ export class OpsStackData extends DataSource implements IOpsStackData {
     await this.opsAlb.removeTargetGroup(deployment, id);
     await awsAutoScale.deleteAutoScale(autoScaleName);
 
-    return this.tables.stackTable.delete(deploymentName, id);
+    return this.tables.stackTable.delete(deploymentName, region, id);
   }
 
-  public async get(deploymentName: string, id: number): Promise<IOpsStack> {
-    return this.tables.stackTable.get(deploymentName, id);
+  public async get(deploymentName: string, region: string, id: number): Promise<IOpsStack> {
+    return this.tables.stackTable.get(deploymentName, region, id);
   }
 
   public async list(options?: IListOpsStackOptions): Promise<IListOpsStackResult> {
@@ -257,7 +257,7 @@ AWS_S3_BUCKET=fusebit-${deploymentName}-${region}
 LAMBDA_BUILDER_ROLE=arn:aws:iam::${account}:role/flexd-builder
 LAMBDA_MODULE_BUILDER_ROLE=arn:aws:iam::${account}:role/flexd-builder
 LAMBDA_USER_FUNCTION_ROLE=arn:aws:iam::${account}:role/no-permissions
-CRON_QUEUE_URL=https://sqs.${region}.amazonaws.com/${account}/stage-cron
+CRON_QUEUE_URL=https://sqs.${region}.amazonaws.com/${account}/${deploymentName}-cron
 ${require('fs').readFileSync(require('path').join(__dirname, '../../../../.aws.' + deploymentName + '.env'), 'utf8')}
 EOF`;
   }

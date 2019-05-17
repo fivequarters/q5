@@ -6,6 +6,7 @@ import { IDataSource } from '@5qtrs/data';
 
 export interface IOpsDeployment {
   deploymentName: string;
+  region: string;
   networkName: string;
   domainName: string;
   size: number;
@@ -13,6 +14,7 @@ export interface IOpsDeployment {
 }
 
 export interface IListOpsDeploymentOptions {
+  deploymentName?: string;
   next?: string;
   limit?: number;
 }
@@ -25,7 +27,7 @@ export interface IListOpsDeploymentResult {
 export interface IOpsDeploymentData extends IDataSource {
   exists(deployment: IOpsDeployment): Promise<boolean>;
   add(deployment: IOpsDeployment): Promise<void>;
-  get(deploymentName: string): Promise<IOpsDeployment>;
+  get(deploymentName: string, region: string): Promise<IOpsDeployment>;
   list(options?: IListOpsDeploymentOptions): Promise<IListOpsDeploymentResult>;
-  listAll(): Promise<IOpsDeployment[]>;
+  listAll(deploymentName?: string): Promise<IOpsDeployment[]>;
 }
