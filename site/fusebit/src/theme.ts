@@ -172,6 +172,32 @@ const components = {
       hover: colors.accentSecondary,
     },
   },
+  legal: {
+    background: colors.lightSecondary,
+    heading: {
+      font: {
+        ...fonts.h1,
+      },
+    },
+    body: {
+      font: {
+        ...fonts.h3,
+      },
+    },
+  },
+  support: {
+    background: colors.lightSecondary,
+    heading: {
+      font: {
+        ...fonts.h1,
+      },
+    },
+    body: {
+      font: {
+        ...fonts.h3,
+      },
+    },
+  },
   navbar: {
     background: colors.lightPrimary,
     corporateName: {
