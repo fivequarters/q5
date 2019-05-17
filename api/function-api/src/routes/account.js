@@ -40,22 +40,23 @@ function getBaseUrl(req) {
 
 function errorHandler(res) {
   return error => {
+    let status = 500;
+    let message = 'An unknown error occured on the server';
+    let log = true;
+
     if (error.code === 'unauthorized' || error.code === 'invalidJwt' || error.code === 'noPublicKey') {
-      console.log(error.message);
-      return res.status(403).json({ message: 'Unauthorized' });
-    }
-    if (error.code === 'databaseError') {
-      console.log(error.message);
-      return res.status(500).json({ message: 'An unknown error occured on the server' });
-    }
-
-    if (error.code) {
-      const status = error.code.indexOf('no') === 0 ? 404 : 400;
-      return res.status(status).json({ message: error.message });
+      status = 403;
+      message = 'Unauthorized';
+    } else if (error.code && error.code !== 'databaseError') {
+      status = error.code.indexOf('no') === 0 ? 404 : 400;
+      message = error.message;
+      log = false;
     }
 
-    console.log(error);
-    return res.status(500).json({ message: 'An unknown error occured on the server' });
+    if (log) {
+      console.log(error);
+    }
+    return res.status(status).json({ status, statusCode: status, message });
   };
 }
 
