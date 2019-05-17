@@ -47,6 +47,7 @@ function errorHandler(res) {
     if (error.code === 'unauthorized' || error.code === 'invalidJwt' || error.code === 'noPublicKey') {
       status = 403;
       message = 'Unauthorized';
+      log = false;
     } else if (error.code && error.code !== 'databaseError') {
       status = error.code.indexOf('no') === 0 ? 404 : 400;
       message = error.message;
