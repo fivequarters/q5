@@ -15,6 +15,7 @@ import { OpsDeploymentData } from './OpsDeploymentData';
 import { OpsNetworkData } from './OpsNetworkData';
 import { OpsDataAwsProvider } from './OpsDataAwsProvider';
 import { OpsDataAwsConfig } from './OpsDataAwsConfig';
+import { OpsAccountData } from './OpsAccountData';
 
 // ------------------
 // Internal Functions
@@ -36,15 +37,17 @@ function stackIdIsUsed(id: number, stacks: IOpsStack[]) {
 export class OpsStackData extends DataSource implements IOpsStackData {
   public static async create(config: OpsDataAwsConfig, provider: OpsDataAwsProvider, tables: OpsDataTables) {
     const networkData = await OpsNetworkData.create(config, provider, tables);
+    const accountData = await OpsAccountData.create(config, provider, tables);
     const deploymentData = await OpsDeploymentData.create(config, provider, tables);
     const opsAlb = await OpsAlb.create(config, provider, tables);
-    return new OpsStackData(config, provider, tables, networkData, deploymentData, opsAlb);
+    return new OpsStackData(config, provider, tables, networkData, accountData, deploymentData, opsAlb);
   }
 
   private config: OpsDataAwsConfig;
   private provider: OpsDataAwsProvider;
   private tables: OpsDataTables;
   private networkData: OpsNetworkData;
+  private accountData: OpsAccountData;
   private deploymentData: OpsDeploymentData;
   private opsAlb: OpsAlb;
 
@@ -53,6 +56,7 @@ export class OpsStackData extends DataSource implements IOpsStackData {
     provider: OpsDataAwsProvider,
     tables: OpsDataTables,
     networkData: OpsNetworkData,
+    accountData: OpsAccountData,
     deploymentData: OpsDeploymentData,
     opsAlb: OpsAlb
   ) {
@@ -61,6 +65,7 @@ export class OpsStackData extends DataSource implements IOpsStackData {
     this.provider = provider;
     this.tables = tables;
     this.networkData = networkData;
+    this.accountData = accountData;
     this.deploymentData = deploymentData;
     this.opsAlb = opsAlb;
   }
@@ -79,12 +84,13 @@ export class OpsStackData extends DataSource implements IOpsStackData {
     const ami = await awsAmi.getUbuntuServerAmi(this.config.ubuntuServerVersion);
 
     const awsAutoScale = await AwsAutoScale.create(awsConfig);
+    const account = await this.accountData.get(network.accountName);
 
     const userData = [
       '#!/bin/bash',
       this.dockerImageForUserData(tag),
       this.installSshKeysForUserData(),
-      this.envFileForUserData(deploymentName, network.region),
+      this.envFileForUserData(deploymentName, network.region, account.id),
       this.cloudWatchAgentForUserData(deploymentName),
       this.fusebitServiceForUserData(tag),
     ].join('\n');
@@ -241,13 +247,17 @@ EOF
 systemctl start docker.fusebit`;
   }
 
-  private envFileForUserData(deploymentName: string, region: string) {
+  private envFileForUserData(deploymentName: string, region: string, account: string) {
     return `
 cat > ${this.getEnvFilePath()} << EOF
 PORT=${this.config.monoApiPort}
 DEPLOYMENT_KEY=${deploymentName}
 AWS_REGION=${region}
 AWS_S3_BUCKET=fusebit-${deploymentName}-${region}
+LAMBDA_BUILDER_ROLE=arn:aws:iam::${account}:role/flexd-builder
+LAMBDA_MODULE_BUILDER_ROLE=arn:aws:iam::${account}:role/flexd-builder
+LAMBDA_USER_FUNCTION_ROLE=arn:aws:iam::${account}:role/no-permissions
+CRON_QUEUE_URL=https://sqs.${region}.amazonaws.com/${account}/stage-cron
 ${require('fs').readFileSync(require('path').join(__dirname, '../../../../.aws.' + deploymentName + '.env'), 'utf8')}
 EOF`;
   }

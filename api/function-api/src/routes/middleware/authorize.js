@@ -17,7 +17,7 @@ module.exports = function authorize_factory(options) {
     }
 
     if (!token) {
-      return res.status(403).json({ message: 'Unauthorized' });
+      return res.status(403).json({ status: 403, statusCode: 403, message: 'Unauthorized' });
     }
 
     if (options.logs) {
@@ -28,7 +28,7 @@ module.exports = function authorize_factory(options) {
         // do nothing
       }
       if (!logs || !logs.subscriptionId || !logs.boundaryId || !logs.functionId) {
-        return res.status(403).json({ message: 'Unauthorized' });
+        return res.status(403).json({ status: 403, statusCode: 403, message: 'Unauthorized' });
       }
       req.logs = logs;
       return next();
