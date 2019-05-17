@@ -319,6 +319,13 @@ export class BuildStartedEvent implements IEditorEvent {
   }
 }
 
+export interface IError {
+  message: string;
+  status?: number;
+  statusCode?: number;
+  properties?: any;
+}
+
 /**
  * Function build finished with an error.
  */
@@ -328,7 +335,7 @@ export class BuildErrorEvent implements IEditorEvent {
    *
    * @param error The build error.
    */
-  constructor(public error: Error) {
+  constructor(public error: IError) {
     // do nothing
   }
 }

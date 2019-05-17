@@ -276,7 +276,7 @@ describe('execution', () => {
         // stackTrace: expect.any(Array),
       },
     });
-  });
+  }, 15000);
 
   test('function with global exception fails', async () => {
     let response = await putFunction(account, boundaryId, function1Id, {

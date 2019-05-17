@@ -160,7 +160,7 @@ describe('module', () => {
       if (response.status === 201) {
         response = await waitForBuild(account, response.data, 20, 1000);
       }
-      expect(response.status).toEqual(410);
+      expect(response.status).toEqual(400);
       expect(response.data).toMatchObject({
         status: 'failed',
         subscriptionId: account.subscriptionId,

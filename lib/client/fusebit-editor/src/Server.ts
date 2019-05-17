@@ -4,6 +4,7 @@ import { EditorContext } from './EditorContext';
 import * as Options from './Options';
 import { ICreateEditorOptions } from './CreateEditor';
 import { IFunctionSpecification } from './FunctionSpecification';
+import { IError } from './Events';
 const Superagent1 = Superagent;
 
 const userAgent = `fusebit-editor/${require('../package.json').version} ${navigator.userAgent}`;
@@ -303,7 +304,7 @@ export class Server {
               // @ts-ignore
               .set('Authorization', `Bearer ${self.account.accessToken}`)
               .set('x-user-agent', userAgent)
-              .ok(res => res.status === 200 || res.status === 201 || res.status === 410)
+              .ok(res => true)
               .timeout(this.requestTimeout)
           );
         })
@@ -312,13 +313,13 @@ export class Server {
             // success
             editorContext.buildFinished(res.body);
             return res.body;
-          } else if (res.status === 410) {
-            // failure
-            editorContext.buildFinished(res.body);
-            throw new BuildError(res.body);
-          } else {
+          } else if (res.status === 201) {
             // wait some more
             return waitForBuild(res.body);
+          } else {
+            // failure
+            editorContext.buildError((res.body.error || res.body) as IError);
+            throw new BuildError(res.body.error || res.body);
           }
         });
     };
@@ -350,6 +351,7 @@ export class Server {
           .set('Authorization', `Bearer ${this.account.accessToken}`)
           .set('x-user-agent', userAgent)
           .timeout(this.requestTimeout)
+          .ok(res => true)
           .send(params);
       })
       .then(res => {
@@ -360,14 +362,14 @@ export class Server {
           return build;
         } else if (res.status === 200) {
           // Completed synchronously
-          if (build.error) {
-            editorContext.buildError(build.error);
-          } else {
-            editorContext.buildFinished(build);
-          }
+          editorContext.buildFinished(build);
           return build;
+        } else if (res.status === 201) {
+          return waitForBuild(build);
+        } else {
+          editorContext.buildError((res.body.error || res.body) as IError);
+          throw new BuildError(build);
         }
-        return waitForBuild(build);
       })
       .catch(err => {
         if (!(err instanceof BuildError)) {
