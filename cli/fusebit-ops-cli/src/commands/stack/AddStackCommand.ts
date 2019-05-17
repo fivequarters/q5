@@ -6,10 +6,10 @@ import { StackService, DeploymentService } from '../../services';
 // ------------------
 
 const command = {
-  name: 'Deploy Stack',
-  cmd: 'deploy',
-  summary: 'Deploy a stack of a deployment',
-  description: 'Deploys a new stack of a deployment to the Fusebit platform.',
+  name: 'Add Stack',
+  cmd: 'add',
+  summary: 'Add a stack to a deployment',
+  description: 'Adds a new stack to a deployment to the Fusebit platform.',
   arguments: [
     {
       name: 'deployment',
@@ -21,6 +21,11 @@ const command = {
     },
   ],
   options: [
+    {
+      name: 'region',
+      description: 'The region of the deployment; required if the deployment is not globally unique',
+      defaultText: 'deployment region',
+    },
     {
       name: 'size',
       description: 'The number of instances to include in the stack',
@@ -41,9 +46,9 @@ const command = {
 // Exported Classes
 // ----------------
 
-export class DeployStackCommand extends Command {
+export class AddStackCommand extends Command {
   public static async create() {
-    return new DeployStackCommand();
+    return new AddStackCommand();
   }
 
   private constructor() {
@@ -54,14 +59,20 @@ export class DeployStackCommand extends Command {
     await input.io.writeLine();
 
     const [deploymentName, tag] = input.arguments as string[];
+    const region = input.options.region as string;
     const size = input.options.size as number;
     const confirm = input.options.confirm as boolean;
 
     const stackService = await StackService.create(input);
     const deploymentService = await DeploymentService.create(input);
 
-    const deployment = await deploymentService.getDeployment(deploymentName);
-    const newStack = { deploymentName, tag, size: size || deployment.size };
+    const deployment = await deploymentService.getSingleDeployment(deploymentName, region);
+    const newStack = {
+      deploymentName,
+      tag,
+      size: size || deployment.size,
+      region: deployment.region,
+    };
 
     if (confirm) {
       await stackService.confirmDeployStack(newStack);

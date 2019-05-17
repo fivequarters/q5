@@ -1,5 +1,5 @@
 import { Command, ICommand } from '@5qtrs/cli';
-import { DeployStackCommand } from './DeployStackCommand';
+import { AddStackCommand } from './AddStackCommand';
 import { ListStackCommand } from './ListStackCommand';
 import { PromoteStackCommand } from './PromoteStackCommand';
 import { DemoteStackCommand } from './DemoteStackCommand';
@@ -23,7 +23,7 @@ const command: ICommand = {
 export class StackCommand extends Command {
   public static async create() {
     const subCommands = [];
-    subCommands.push(await DeployStackCommand.create());
+    subCommands.push(await AddStackCommand.create());
     subCommands.push(await ListStackCommand.create());
     subCommands.push(await PromoteStackCommand.create());
     subCommands.push(await DemoteStackCommand.create());

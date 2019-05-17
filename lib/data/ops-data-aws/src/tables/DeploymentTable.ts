@@ -8,8 +8,8 @@ import { OpsDataAwsConfig } from '../OpsDataAwsConfig';
 
 const table: IAwsDynamoTable = {
   name: 'deployment',
-  attributes: { deploymentName: 'S' },
-  keys: ['deploymentName'],
+  attributes: { deploymentName: 'S', region: 'S' },
+  keys: ['deploymentName', 'region'],
   toKey,
   toItem,
   fromItem,
@@ -19,14 +19,15 @@ const table: IAwsDynamoTable = {
 // Internal Functions
 // ------------------
 
-function toKey(deploymentName: string) {
+function toKey(key: { deploymentName: string; region: string }) {
   return {
-    deploymentName: { S: deploymentName },
+    deploymentName: { S: key.deploymentName },
+    region: { S: key.region },
   };
 }
 
 function toItem(deployment: IOpsDeployment) {
-  const item: any = toKey(deployment.deploymentName);
+  const item: any = toKey(deployment);
   item.networkName = { S: deployment.networkName };
   item.domainName = { S: deployment.domainName };
   item.size = { N: deployment.size.toString() };
@@ -37,6 +38,7 @@ function toItem(deployment: IOpsDeployment) {
 function fromItem(item: any): IOpsDeployment {
   return {
     deploymentName: item.deploymentName.S,
+    region: item.region.S,
     networkName: item.networkName.S,
     domainName: item.domainName.S,
     size: parseInt(item.size.N, 10),
@@ -65,6 +67,7 @@ function onDeploymentDoesNotExist(deploymentName: string) {
 
 export interface IOpsDeployment {
   deploymentName: string;
+  region: string;
   networkName: string;
   domainName: string;
   size: number;
@@ -72,6 +75,7 @@ export interface IOpsDeployment {
 }
 
 export interface IListOpsDeploymentOptions {
+  deploymentName?: string;
   next?: string;
   limit?: number;
 }
@@ -103,18 +107,27 @@ export class DeploymentTable extends AwsDynamoTable {
     return this.addItem(deployment, options);
   }
 
-  public async get(deploymentName: string): Promise<IOpsDeployment> {
+  public async get(deploymentName: string, region: string): Promise<IOpsDeployment> {
     const options = { onNotFound: onDeploymentDoesNotExist };
-    return this.getItem(deploymentName, options);
+    return this.getItem({ deploymentName, region }, options);
   }
 
   public async list(options?: IListOpsDeploymentOptions): Promise<IListOpsDeploymentResult> {
+    if (options && options.deploymentName) {
+      const queryOptions = {
+        limit: options && options.limit ? options.limit : undefined,
+        next: options && options.next ? options.next : undefined,
+        expressionValues: { ':deploymentName': { S: options.deploymentName } },
+        keyConditions: ['deploymentName = :deploymentName'],
+      };
+      return this.queryTable(queryOptions);
+    }
     return this.scanTable(options);
   }
 
-  public async listAll(): Promise<IOpsDeployment[]> {
+  public async listAll(deploymentName?: string): Promise<IOpsDeployment[]> {
     const deployments = [];
-    const options: IListOpsDeploymentOptions = { limit: this.config.accountMaxLimit };
+    const options: IListOpsDeploymentOptions = { limit: this.config.accountMaxLimit, deploymentName };
     do {
       const result = await this.list(options);
       deployments.push(...result.items);
@@ -123,8 +136,8 @@ export class DeploymentTable extends AwsDynamoTable {
     return deployments;
   }
 
-  public async delete(deploymentName: string): Promise<void> {
+  public async delete(deploymentName: string, region: string): Promise<void> {
     const options = { onConditionCheckFailed: onDeploymentDoesNotExist };
-    await this.deleteItem(deploymentName, options);
+    await this.deleteItem({ deploymentName, region }, options);
   }
 }

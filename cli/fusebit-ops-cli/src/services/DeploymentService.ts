@@ -52,6 +52,7 @@ export class DeploymentService {
       header: 'Add the deployment to the Fusebit platform?',
       details: [
         { name: 'Deployment', value: deployment.deploymentName },
+        { name: 'Region', value: deployment.region },
         { name: 'Domain', value: deployment.domainName },
         { name: 'Network', value: deployment.networkName },
         { name: 'Size', value: deployment.size.toString() },
@@ -89,20 +90,69 @@ export class DeploymentService {
     return deployment as IOpsDeployment;
   }
 
-  public async getDeployment(name: string): Promise<IOpsDeployment> {
+  public async getDeployment(name: string, region: string): Promise<IOpsDeployment> {
     const opsDataContext = await this.opsService.getOpsDataContext();
     const deploymentData = opsDataContext.deploymentData;
 
     const network = await this.executeService.execute(
       {
         header: 'Get Deployment',
-        message: `Getting the '${Text.bold(name)}' deployment...`,
+        message: `Getting the '${Text.bold(name)}' deployment in region '${Text.bold(region)}'...`,
         errorHeader: 'Deployment Error',
       },
-      () => deploymentData.get(name)
+      () => deploymentData.get(name, region)
     );
 
     return network as IOpsDeployment;
+  }
+
+  public async getSingleDeployment(deploymentName: string, region?: string): Promise<IOpsDeployment> {
+    const deployments = await this.getDeployments(deploymentName);
+    if (!deployments || deployments.length === 0) {
+      await this.executeService.error(
+        'No Deployment',
+        Text.create(`There are no deployments with the name '${Text.bold(deploymentName)}'`)
+      );
+      throw new Error('No such deployment');
+    }
+    if (deployments.length > 1) {
+      if (!region) {
+        await this.executeService.error(
+          'Many Deployments',
+          Text.create(`There is more than one '${Text.bold(deploymentName)}' deployment. You must sepcify the region.'`)
+        );
+        throw new Error('Unspecified deployment');
+      }
+
+      for (const deployment of deployments) {
+        if (deployment.region === region) {
+          return deployment;
+        }
+      }
+      await this.executeService.error(
+        'No Deployment',
+        Text.create(`There is no '${Text.bold(deploymentName)}' deployment in region '${Text.bold(region)}'`)
+      );
+      throw new Error('No such deployment');
+    }
+
+    return deployments[0];
+  }
+
+  public async getDeployments(deploymentName: string): Promise<IOpsDeployment[]> {
+    const opsDataContext = await this.opsService.getOpsDataContext();
+    const deploymentData = opsDataContext.deploymentData;
+
+    const deployments = await this.executeService.execute(
+      {
+        header: 'Get Deployments',
+        message: `Getting deployments with the '${Text.bold(deploymentName)}' name...`,
+        errorHeader: 'Deployment Error',
+      },
+      () => deploymentData.listAll(deploymentName)
+    );
+
+    return deployments as IOpsDeployment[];
   }
 
   public async listAllDeployments(): Promise<IOpsDeployment[]> {
@@ -171,6 +221,9 @@ export class DeploymentService {
 
   private async writeDeployments(deployment: IOpsDeployment) {
     const details = [
+      Text.dim('Region: '),
+      deployment.region,
+      Text.eol(),
       Text.dim('Domain: '),
       deployment.domainName,
       Text.eol(),

@@ -33,7 +33,7 @@ export class OpsNetworkData extends DataSource implements IOpsNetworkData {
 
   public async exists(network: IOpsNetwork): Promise<boolean> {
     try {
-      const existing = await this.tables.networkTable.get(network.networkName);
+      const existing = await this.tables.networkTable.get(network.networkName, network.region);
       if (existing.accountName !== network.accountName) {
         throw OpsDataException.networkDifferentAccount(network.networkName, existing.accountName);
       }
@@ -55,8 +55,8 @@ export class OpsNetworkData extends DataSource implements IOpsNetworkData {
     return this.attachNetworkDetails(network);
   }
 
-  public async get(networkName: string): Promise<IOpsNetwork> {
-    const network = await this.tables.networkTable.get(networkName);
+  public async get(networkName: string, region: string): Promise<IOpsNetwork> {
+    const network = await this.tables.networkTable.get(networkName, region);
     return this.attachNetworkDetails(network);
   }
 
@@ -69,8 +69,8 @@ export class OpsNetworkData extends DataSource implements IOpsNetworkData {
     };
   }
 
-  public async listAll(): Promise<IOpsNetwork[]> {
-    const networks = await this.tables.networkTable.listAll();
+  public async listAll(networkName?: string): Promise<IOpsNetwork[]> {
+    const networks = await this.tables.networkTable.listAll(networkName);
     return Promise.all(networks.map(network => this.attachNetworkDetails(network)));
   }
 

@@ -211,6 +211,10 @@ export class AwsRegion {
   }
   private region: IAwsRegion;
 
+  public static isRegion(code: string) {
+    return awsRegionInstances[code] !== undefined;
+  }
+
   private constructor(region: IAwsRegion) {
     this.region = region;
   }

@@ -3,6 +3,7 @@ import { Text } from '@5qtrs/text';
 import { IOpsNetwork, IOpsNewNetwork, IListOpsNetworkOptions, IListOpsNetworkResult } from '@5qtrs/ops-data';
 import { OpsService } from './OpsService';
 import { ExecuteService } from './ExecuteService';
+import { SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION } from 'constants';
 
 // ----------------
 // Exported Classes
@@ -44,20 +45,69 @@ export class NetworkService {
     }
   }
 
-  public async getNetwork(name: string): Promise<IOpsNetwork> {
+  public async getNetwork(name: string, region: string): Promise<IOpsNetwork> {
     const opsDataContext = await this.opsService.getOpsDataContext();
     const networkData = opsDataContext.networkData;
 
     const network = await this.executeService.execute(
       {
         header: 'Get Network',
-        message: `Getting the '${Text.bold(name)}' network...`,
+        message: `Getting the '${Text.bold(name)}' network in '${Text.bold(region)}'...`,
         errorHeader: 'Network Error',
       },
-      () => networkData.get(name)
+      () => networkData.get(name, region)
     );
 
     return network as IOpsNetwork;
+  }
+
+  public async getSingleNetwork(networkName: string, region?: string): Promise<IOpsNetwork> {
+    const networks = await this.getNetworks(networkName);
+    if (!networks || networks.length === 0) {
+      await this.executeService.error(
+        'No Network',
+        Text.create(`There are no networks with the name '${Text.bold(networkName)}'`)
+      );
+      throw new Error('No such network');
+    }
+    if (networks.length > 1) {
+      if (!region) {
+        await this.executeService.error(
+          'Many Networks',
+          Text.create(`There is more than one '${Text.bold(networkName)}' network. You must sepcify the region.'`)
+        );
+        throw new Error('Unspecified network');
+      }
+
+      for (const network of networks) {
+        if (network.region === region) {
+          return network;
+        }
+      }
+      await this.executeService.error(
+        'No Network',
+        Text.create(`There is no '${Text.bold(networkName)}' in region '${Text.bold(region)}'`)
+      );
+      throw new Error('No such network');
+    }
+
+    return networks[0];
+  }
+
+  public async getNetworks(networkName: string): Promise<IOpsNetwork[]> {
+    const opsDataContext = await this.opsService.getOpsDataContext();
+    const networkData = opsDataContext.networkData;
+
+    const networks = await this.executeService.execute(
+      {
+        header: 'Get Networks',
+        message: `Getting networks with the '${Text.bold(networkName)}' name...`,
+        errorHeader: 'Network Error',
+      },
+      () => networkData.listAll(networkName)
+    );
+
+    return networks as IOpsNetwork[];
   }
 
   public async confirmAddNetwork(network: IOpsNewNetwork) {

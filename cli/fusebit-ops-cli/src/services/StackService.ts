@@ -118,7 +118,7 @@ export class StackService {
     return stack as IOpsStack;
   }
 
-  public async promote(deploymentName: string, id: number): Promise<IOpsStack> {
+  public async promote(deploymentName: string, region: string, id: number): Promise<IOpsStack> {
     const opsDataContext = await this.opsService.getOpsDataContext();
     const stackData = opsDataContext.stackData;
 
@@ -128,7 +128,7 @@ export class StackService {
         message: `Promoting stack '${Text.bold(id.toString())}' of deployment '${Text.bold(deploymentName)}'`,
         errorHeader: 'Promote Error',
       },
-      () => stackData.promote(deploymentName, id)
+      () => stackData.promote(deploymentName, region, id)
     );
 
     await this.executeService.result(
@@ -139,7 +139,7 @@ export class StackService {
     return result as IOpsStack;
   }
 
-  public async demote(deploymentName: string, id: number, force: boolean): Promise<IOpsStack> {
+  public async demote(deploymentName: string, region: string, id: number, force: boolean): Promise<IOpsStack> {
     const opsDataContext = await this.opsService.getOpsDataContext();
     const stackData = opsDataContext.stackData;
 
@@ -149,7 +149,7 @@ export class StackService {
         message: `Demote stack '${Text.bold(id.toString())}' of deployment '${Text.bold(deploymentName)}'`,
         errorHeader: 'Demote Error',
       },
-      () => stackData.demote(deploymentName, id, force)
+      () => stackData.demote(deploymentName, region, id, force)
     );
 
     await this.executeService.result(
@@ -160,7 +160,7 @@ export class StackService {
     return result as IOpsStack;
   }
 
-  public async remove(deploymentName: string, id: number, force: boolean): Promise<void> {
+  public async remove(deploymentName: string, region: string, id: number, force: boolean): Promise<void> {
     const opsDataContext = await this.opsService.getOpsDataContext();
     const stackData = opsDataContext.stackData;
 
@@ -170,7 +170,7 @@ export class StackService {
         message: `Remove stack '${Text.bold(id.toString())}' of deployment '${Text.bold(deploymentName)}'`,
         errorHeader: 'Remove Error',
       },
-      () => stackData.remove(deploymentName, id, force)
+      () => stackData.remove(deploymentName, region, id, force)
     );
 
     await this.executeService.result(
@@ -179,7 +179,7 @@ export class StackService {
     );
   }
 
-  public async getStack(deploymentName: string, id: number): Promise<IOpsStack> {
+  public async getStack(deploymentName: string, region: string, id: number): Promise<IOpsStack> {
     const opsDataContext = await this.opsService.getOpsDataContext();
     const stackData = opsDataContext.stackData;
 
@@ -189,7 +189,7 @@ export class StackService {
         message: `Getting stack '${Text.bold(id.toString())}' of deployment '${Text.bold(deploymentName)}'`,
         errorHeader: 'Stack Error',
       },
-      () => stackData.get(deploymentName, id)
+      () => stackData.get(deploymentName, region, id)
     );
     return result as IOpsStack;
   }

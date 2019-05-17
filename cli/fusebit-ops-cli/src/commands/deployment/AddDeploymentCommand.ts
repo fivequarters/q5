@@ -1,5 +1,5 @@
 import { Command, IExecuteInput, ArgType } from '@5qtrs/cli';
-import { DeploymentService } from '../../services';
+import { DeploymentService, NetworkService } from '../../services';
 
 // ------------------
 // Internal Constants
@@ -25,6 +25,11 @@ const command = {
     },
   ],
   options: [
+    {
+      name: 'region',
+      description: 'The region of the deployment; required if the network is not globally unique',
+      defaultText: 'network region',
+    },
     {
       name: 'size',
       description: 'The default number of instances to include in stacks of the deployment',
@@ -63,13 +68,25 @@ export class AddDeploymentCommand extends Command {
   protected async onExecute(input: IExecuteInput): Promise<number> {
     await input.io.writeLine();
     const [deploymentName, networkName, domainName] = input.arguments as string[];
+    const region = input.options.region as string;
     const size = input.options.size as number;
     const confirm = input.options.confirm as boolean;
     const dataWarehouseEnabled = input.options.dataWarehouse as boolean;
 
     const deploymentService = await DeploymentService.create(input);
+    const networkService = await NetworkService.create(input);
 
-    const deployment = { deploymentName, networkName, domainName, size, dataWarehouseEnabled };
+    const network = await networkService.getSingleNetwork(networkName, region);
+
+    const deployment = {
+      deploymentName,
+      networkName,
+      domainName,
+      size,
+      dataWarehouseEnabled,
+      region: network.region,
+    };
+
     await deploymentService.checkDeploymentExists(deployment);
 
     if (confirm) {

@@ -32,9 +32,12 @@ export async function createFunctionStorage(config: OpsDataAwsConfig, awsConfig:
   function ensureS3Bucket(cb: any) {
     let params = {
       Bucket: config.getS3Bucket(awsConfig),
-      CreateBucketConfiguration: {
-        LocationConstraint: awsConfig.region,
-      },
+      CreateBucketConfiguration:
+        awsConfig.region === 'us-east-1'
+          ? undefined
+          : {
+              LocationConstraint: awsConfig.region,
+            },
     };
     s3.createBucket(params, (e, d) => {
       if (e) {
