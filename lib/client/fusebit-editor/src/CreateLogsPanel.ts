@@ -63,7 +63,17 @@ export function createLogsPanel(element: HTMLElement, editorContext: EditorConte
   });
 
   editorContext.on(Events.Events.BuildError, (e: Events.BuildErrorEvent) => {
-    append(`BUILD: error ${e.error.message}`);
+    let status = e.error.status || e.error.statusCode;
+    let message = e.error.message;
+    if (status) {
+      let lines = [`BUILD: error HTTP ${status}`];
+      if (message) {
+        lines.push(message);
+      }
+      append(lines.join('\n'));
+    } else if (message) {
+      append(`BUILD: error ${e.error.message}`);
+    }
   });
 
   editorContext.on(Events.Events.RunnerStarted, (e: Events.RunnerStartedEvent) => {

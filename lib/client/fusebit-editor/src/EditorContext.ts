@@ -470,7 +470,7 @@ export class EditorContext extends EventEmitter {
    * Not relevant to MVP
    * @ignore
    */
-  public buildError(error: Error) {
+  public buildError(error: Events.IError) {
     const event = new Events.BuildErrorEvent(error);
     this.emit(event);
   }

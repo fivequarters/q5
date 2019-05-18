@@ -134,5 +134,5 @@ describe('cron', () => {
     expect(maxTimespan).toBeLessThan(2000);
     expect(avgTimespan).toBeGreaterThan(500);
     expect(avgTimespan).toBeLessThan(1500);
-  }, 20000);
+  }, 30000);
 });
