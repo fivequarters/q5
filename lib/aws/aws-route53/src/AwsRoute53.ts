@@ -101,7 +101,7 @@ export class AwsRoute53 extends AwsBase<typeof Route53> {
       return;
     }
 
-    await this.createHostedZoneRecord(hostedZone.id, record);
+    await this.changeHostedZoneRecord(hostedZone.id, 'UPSERT', record);
   }
 
   public async deleteRecord(domain: string, record: IHostedZoneRecord): Promise<void> {
@@ -113,7 +113,7 @@ export class AwsRoute53 extends AwsBase<typeof Route53> {
     const details = await this.getHostedZoneRecords(id);
     const match = getMatchingDetail(record, details);
     if (match) {
-      await this.deleteHostedZoneRecord(id, match);
+      await this.changeHostedZoneRecord(id, 'DELETE', match);
     }
   }
 
@@ -148,29 +148,29 @@ export class AwsRoute53 extends AwsBase<typeof Route53> {
     return new Route53(config);
   }
 
-  private async createHostedZoneRecord(id: string, record: IHostedZoneRecord): Promise<void> {
+  private async changeHostedZoneRecord(id: string, action: string, record: IHostedZoneRecord): Promise<void> {
     const route53 = await this.getAws();
-    const params: any = {
-      ChangeBatch: {
-        Changes: [
-          {
-            Action: 'UPSERT',
-            ResourceRecordSet: {
-              Name: record.name,
-              ResourceRecords: record.values ? ensureArray(record.values).map(value => ({ Value: value })) : undefined,
-              AliasTarget: record.alias
-                ? {
-                    DNSName: record.alias.name,
-                    EvaluateTargetHealth: false,
-                    HostedZoneId: record.alias.hostedZone,
-                  }
-                : undefined,
-              Type: record.type,
-              TTL: record.values ? 60 : undefined,
-            },
-          },
-        ],
-      },
+
+    const resourceRecords = record.values ? ensureArray(record.values).map(value => ({ Value: value })) : undefined;
+
+    const aliasTarget = record.alias
+      ? {
+          DNSName: record.alias.name,
+          EvaluateTargetHealth: false,
+          HostedZoneId: record.alias.hostedZone,
+        }
+      : undefined;
+
+    const resourceRecordSet: any = { Name: record.name, Type: record.type };
+    if (aliasTarget) {
+      resourceRecordSet.AliasTarget = aliasTarget;
+    } else if (resourceRecords) {
+      resourceRecordSet.ResourceRecords = resourceRecords;
+      resourceRecordSet.TTL = 60;
+    }
+
+    const params = {
+      ChangeBatch: { Changes: [{ Action: action, ResourceRecordSet: resourceRecordSet }] },
       HostedZoneId: id,
     };
 
@@ -180,44 +180,6 @@ export class AwsRoute53 extends AwsBase<typeof Route53> {
           reject(error);
         }
 
-        resolve();
-      });
-    });
-  }
-
-  private async deleteHostedZoneRecord(id: string, record: IHostedZoneRecordDetail): Promise<void> {
-    const route53 = await this.getAws();
-    const params: any = {
-      ChangeBatch: {
-        Changes: [
-          {
-            Action: 'DELETE',
-            ResourceRecordSet: {
-              Name: record.name,
-              ResourceRecords: record.values ? ensureArray(record.values).map(value => ({ Value: value })) : undefined,
-              AliasTarget: record.alias
-                ? {
-                    DNSName: record.alias.name,
-                    EvaluateTargetHealth: false,
-                    HostedZoneId: record.alias.hostedZone,
-                  }
-                : undefined,
-              Type: record.type,
-              TTL: record.values ? record.ttl : undefined,
-            },
-          },
-        ],
-      },
-      HostedZoneId: id,
-    };
-
-    console.log(params);
-    return new Promise((resolve, reject) => {
-      route53.changeResourceRecordSets(params, (error: any, data: any) => {
-        console.log(error, data);
-        if (error) {
-          reject(error);
-        }
         resolve();
       });
     });
