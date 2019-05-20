@@ -161,16 +161,24 @@ describe('module', () => {
         response = await waitForBuild(account, response.data, 20, 1000);
       }
       expect(response.status).toEqual(400);
+      console.log(response.status, response.data);
       expect(response.data).toMatchObject({
-        status: 'failed',
-        subscriptionId: account.subscriptionId,
-        boundaryId: boundaryId,
-        functionId: function1Id,
-        id: expect.any(String),
-        transitions: {
-          failed: expect.any(String),
+        status: 400,
+        statusCode: 400,
+        message: expect.stringMatching(/Command failed/),
+        properties: {
+          build: {
+            status: 'failed',
+            subscriptionId: account.subscriptionId,
+            boundaryId: boundaryId,
+            functionId: function1Id,
+            id: expect.any(String),
+            transitions: {
+              failed: expect.any(String),
+            },
+            originalError: expect.any(Object),
+          },
         },
-        error: expect.any(Object),
       });
     }
   }, 15000);
