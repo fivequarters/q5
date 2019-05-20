@@ -4,7 +4,7 @@ The simple performance test framework uses a cluster of Fusebit functions as tes
 
 Overall flow:
 
-1. Create a Fusebit function that implements the test framework with `yarn deploy perf`.
+1. Create a Fusebit function that implements the test framework with `yarn deploy perf`. Optionally specify the fusebit profile to use with `FUSE_PROFILE={profile} yarn deploy perf` unless you want to use the default. **NOTE** This will create or override a function called `performance-test` in the subscription and boundary indicated by the profile. 
 2. Run performance test against a specific Fusebit function with `yarn test perf {fusebit-function-url} [options]`. You can run it any number of times, even in parallel, against different target functions. Run `yarn test perf` without parameters for help.
 3. Clean up the test framework with `yarn clean perf`.
 

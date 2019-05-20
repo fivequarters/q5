@@ -1,0 +1,17 @@
+{
+  "lambda": {
+    "memory_size": 128,
+    "timeout": 30
+  },
+  "metadata": {
+    "computeSettings": "memory_size=128\ntimeout=30",
+    "fusebit": {
+      "computeSettings": "memory_size=128\ntimeout=30"
+    }
+  },
+  "location": "https://stage.us-west-2.fusebit.io/v1/run/sub-ed9d9341ea356841/tomek/performance-test",
+  "subscriptionId": "sub-ed9d9341ea356841",
+  "boundaryId": "tomek",
+  "id": "performance-test",
+  "fuseVersion": "0.0.7"
+}
