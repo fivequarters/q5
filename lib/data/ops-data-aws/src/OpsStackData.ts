@@ -258,7 +258,7 @@ LAMBDA_BUILDER_ROLE=arn:aws:iam::${account}:role/flexd-builder
 LAMBDA_MODULE_BUILDER_ROLE=arn:aws:iam::${account}:role/flexd-builder
 LAMBDA_USER_FUNCTION_ROLE=arn:aws:iam::${account}:role/no-permissions
 CRON_QUEUE_URL=https://sqs.${region}.amazonaws.com/${account}/${deploymentName}-cron
-${require('fs').readFileSync(require('path').join(__dirname, '../../../../.aws.' + deploymentName + '.env'), 'utf8')}
+${require('fs').readFileSync(require('path').join(__dirname, '../../../../.aws.env'), 'utf8')}
 EOF`;
   }
 
