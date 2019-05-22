@@ -141,7 +141,7 @@ paths:
       security:
         - accessToken: []
 
-  /v1/account/{accountId}/issuer:
+    /v1/account/{accountId}/issuer:
     parameters:
       - in: path
         name: accountId
@@ -158,15 +158,21 @@ paths:
         Returns a list of issuers associated with the given account.
       parameters:
         - in: query
+          name: name
+          required: false
+          description: Optional name identifier to match against the displayName of the issuer (case-sensitive) (matches if contains)
+          schema:
+            type: string
+        - in: query
           name: next
           required: false
-          description: Optional issuer id to start returning results from
+          description: Optional opaque token to start returning results from
           schema:
-            $ref: '#/components/schemas/IssuerId'
+            type: string
         - in: query
           name: count
           required: false
-          description: Optional number of results to return; max is 100
+          description: Optional number of results to return
           schema:
             type: number
             minimum: 1
@@ -180,6 +186,8 @@ paths:
                 $ref: '#/components/schemas/IssuerList'
         403:
           description: Not authorized
+        404:
+          description: Account not found
       security:
         - accessToken: []
 
@@ -243,10 +251,10 @@ paths:
         403:
           description: Not authorized
         404:
-          description: Account or issuer not found
+          description: Account not found
       security:
         - accessToken: []
-    put:
+    patch:
       tags:
         - Accounts
       summary: Update an existing issuer of an account
@@ -1316,8 +1324,6 @@ components:
     NewIssuer:
       type: object
       description: An issuer of access tokens that should be accepted
-      required:
-        - displayName
       properties:
         displayName:
           type: string
@@ -1332,14 +1338,13 @@ components:
         jsonKeysUrl:
           type: string
           description: |
-            The uri key of json key file that contains the public key of the key pair used to sign access tokens from the issuer. Either the 'publicKey' or the jsonKeysUrl' must be provided.
+            The URL of a json key file that contains the public key of the key pair used to sign access tokens from the issuer. Either the 'publicKey' or the jsonKeysUrl' must be provided.
 
     Issuer:
       allOf:
         - type: object
           required:
             - id
-            - displayName
           properties:
             id:
               $ref: '#/components/schemas/IssuerId'
@@ -1351,7 +1356,8 @@ components:
         - items
       properties:
         next:
-          $ref: '#/components/schemas/IssuerId'
+          description: Opaque token to continue listing from
+          type: string
         items:
           type: array
           description: A list of issuers
