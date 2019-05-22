@@ -1,6 +1,8 @@
 import { IAccount } from './accountResolver';
 import { request } from '@5qtrs/request';
 
+const testIssuers: string[] = [];
+
 export async function sleep(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -120,4 +122,86 @@ export async function deleteAllFunctions(account: IAccount, boundaryId?: string)
       deleteFunction(account, x.boundaryId, x.functionId)
     )
   );
+}
+
+export async function addIssuer(account: IAccount, issuerId: string, data: any) {
+  const response = await request({
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${account.accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    url: `${account.baseUrl}/v1/account/${account.accountId}/issuer/${encodeURIComponent(issuerId)}`,
+    data: JSON.stringify(data),
+  });
+  if (response.status === 200) {
+    testIssuers.push(issuerId);
+  }
+  return response;
+}
+
+export async function listIssuers(account: IAccount, count?: number, next?: string, name?: string) {
+  const queryStringParams = [];
+  if (count !== undefined) {
+    queryStringParams.push(`count=${count}`);
+  }
+  if (next !== undefined) {
+    queryStringParams.push(`next=${encodeURIComponent(next)}`);
+  }
+  if (name !== undefined) {
+    queryStringParams.push(`name=${encodeURIComponent(name)}`);
+  }
+  const queryString = queryStringParams.length ? `?${queryStringParams.join('&')}` : '';
+
+  const response = await request({
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${account.accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    url: `${account.baseUrl}/v1/account/${account.accountId}/issuer${queryString}`,
+  });
+  return response;
+}
+
+export async function getIssuer(account: IAccount, issuerId: string) {
+  return request({
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${account.accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    url: `${account.baseUrl}/v1/account/${account.accountId}/issuer/${encodeURIComponent(issuerId)}`,
+  });
+}
+
+export async function updateIssuer(account: IAccount, issuerId: string, data: any) {
+  const response = await request({
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${account.accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    url: `${account.baseUrl}/v1/account/${account.accountId}/issuer/${encodeURIComponent(issuerId)}`,
+    data: JSON.stringify(data),
+  });
+  return response;
+}
+
+export async function removeIssuer(account: IAccount, issuerId: string) {
+  return request({
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${account.accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    url: `${account.baseUrl}/v1/account/${account.accountId}/issuer/${encodeURIComponent(issuerId)}`,
+  });
+}
+
+export async function cleanUpIssuers(account: IAccount) {
+  while (testIssuers.length) {
+    const toRemove = testIssuers.splice(0, 5);
+    await Promise.all(toRemove.map(issuerId => removeIssuer(account, issuerId)));
+  }
 }
