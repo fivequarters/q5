@@ -104,7 +104,9 @@ function applyLimit(table: IAwsDynamoTable, params: any) {
   const config = table.getConfig ? table.getConfig() : undefined;
   const configuredDefaultLimit = (config ? config.defaultLimit : undefined) || defaultLimit;
   const configuredMaxLimit = (config ? config.maxLimit : undefined) || maxLimit;
-  if (!params.Limit || params.Limit < 0) {
+  if (params.FilterExpression && params.Limit) {
+    params.Limit = configuredMaxLimit;
+  } else if (!params.Limit || params.Limit < 0) {
     params.Limit = configuredDefaultLimit;
   } else if (params.Limit > configuredMaxLimit) {
     params.Limit = configuredMaxLimit;
@@ -120,8 +122,15 @@ function nextToExclusiveStartKey(next: string): any {
   }
 }
 
-function lastEvaluatedKeyToNext(lastEvaluatedKey: any) {
-  const json = JSON.stringify(lastEvaluatedKey);
+function lastEvaluatedKeyToNext(table: IAwsDynamoTable, lastEvaluatedKey: any) {
+  const key: any = {};
+  const hashKey = table.keys[0];
+  const sortKey = table.keys[1];
+  key[hashKey] = lastEvaluatedKey[hashKey];
+  if (sortKey) {
+    key[sortKey] = lastEvaluatedKey[sortKey];
+  }
+  const json = JSON.stringify(key);
   return toBase64(json);
 }
 
@@ -234,7 +243,7 @@ function updateTtlOnGet(table: IAwsDynamoTable, item: any) {
   if (item && table.ttlAttribute) {
     const attribute = table.ttlAttribute;
     const absolute = item[attribute];
-    if (absolute) {
+    if (absolute && absolute.N) {
       const inMilliseconds = parseInt(absolute.N, 10) * 1000;
       const now = Date.now();
       item[attribute].N = (inMilliseconds - now).toString();
@@ -558,78 +567,11 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
   }
 
   public async queryTable(table: IAwsDynamoTable, options?: IAwsDynamoQueryOptions): Promise<IAwsDynamoItems> {
-    const dynamo = await this.getAws();
-    const fullTableName = this.getFullName(table.name);
-
-    const params: any = {
-      TableName: fullTableName,
-      ScanIndexForward: options && options.scanForward === false ? false : true,
-    };
-
-    if (table.archive) {
-      options = setScanOptionsForArchive(options);
-    }
-
-    applyOptions(options, params);
-    applyLimit(table, params);
-
-    return new Promise((resolve, reject) => {
-      reject = rejectOnce(reject);
-      dynamo.query(params, (error: any, data: any) => {
-        if (error) {
-          return reject(errorToException(fullTableName, 'queryTable', error));
-        }
-
-        let items;
-        try {
-          if (table.ttlAttribute) {
-            data.Items = data.Items.map((item: any) => updateTtlOnGet(table, item));
-          }
-          items = table.fromItem ? data.Items.map(table.fromItem) : data.Items;
-        } catch (thrownError) {
-          return reject(thrownError);
-        }
-        const next = data.LastEvaluatedKey ? lastEvaluatedKeyToNext(data.LastEvaluatedKey) : undefined;
-        resolve({ items, next });
-      });
-    });
+    return this.queryScan(table, false, options);
   }
 
   public async scanTable(table: IAwsDynamoTable, options?: IAwsDynamoScanOptions): Promise<IAwsDynamoItems> {
-    const dynamo = await this.getAws();
-    const fullTableName = this.getFullName(table.name);
-
-    const params: any = {
-      TableName: fullTableName,
-    };
-
-    if (table.archive) {
-      options = setScanOptionsForArchive(options);
-    }
-
-    applyOptions(options, params);
-    applyLimit(table, params);
-
-    return new Promise((resolve, reject) => {
-      reject = rejectOnce(reject);
-      dynamo.scan(params, (error: any, data: any) => {
-        if (error) {
-          return reject(errorToException(fullTableName, 'scanTable', error));
-        }
-
-        let items;
-        try {
-          if (table.ttlAttribute) {
-            data.Items = data.Items.map((item: any) => updateTtlOnGet(table, item));
-          }
-          items = table.fromItem ? data.Items.map(table.fromItem) : data.Items;
-        } catch (thrownError) {
-          return reject(thrownError);
-        }
-        const next = data.LastEvaluatedKey ? lastEvaluatedKeyToNext(data.LastEvaluatedKey) : undefined;
-        resolve({ items, next });
-      });
-    });
+    return this.queryScan(table, true, options ? (options as IAwsDynamoQueryOptions) : undefined);
   }
 
   public async deleteTable(tableName: string): Promise<void> {
@@ -671,6 +613,75 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
 
   protected onGetAws(config: IAwsConfig) {
     return new DynamoDB(config);
+  }
+
+  private async queryScan(
+    table: IAwsDynamoTable,
+    isScan: boolean,
+    options?: IAwsDynamoQueryOptions
+  ): Promise<IAwsDynamoItems> {
+    const dynamo = await this.getAws();
+    const fullTableName = this.getFullName(table.name);
+
+    const params: any = {
+      TableName: fullTableName,
+      ScanIndexForward: options && options.scanForward === false ? false : true,
+    };
+
+    if (table.archive) {
+      options = setScanOptionsForArchive(options);
+    }
+
+    applyOptions(options, params);
+    applyLimit(table, params);
+
+    const action = isScan ? 'scan' : 'query';
+
+    return new Promise((resolve, reject) => {
+      reject = rejectOnce(reject);
+      let items: any[] = [];
+      let lastEvaluatedKey: any = undefined;
+
+      const func = () => {
+        // @ts-ignore
+        dynamo[action](params, (error: any, data: any) => {
+          if (error) {
+            return reject(errorToException(fullTableName, `${action}Table`, error));
+          }
+
+          items.push(...data.Items);
+          lastEvaluatedKey = data.LastEvaluatedKey;
+
+          if (options && options.limit) {
+            if (items.length < options.limit && lastEvaluatedKey) {
+              params.ExclusiveStartKey = lastEvaluatedKey;
+              return func();
+            }
+            if (items.length >= options.limit) {
+              items = items.splice(0, options.limit);
+              lastEvaluatedKey = items[items.length - 1];
+            }
+          }
+
+          if (table.ttlAttribute) {
+            items = items.map((item: any) => updateTtlOnGet(table, item));
+          }
+
+          if (table.fromItem) {
+            try {
+              items = items.map(table.fromItem);
+            } catch (thrownError) {
+              return reject(thrownError);
+            }
+          }
+
+          const next = lastEvaluatedKey ? lastEvaluatedKeyToNext(table, lastEvaluatedKey) : undefined;
+          resolve({ items, next });
+        });
+      };
+
+      func();
+    });
   }
 
   private async waitForTable(tableName: string): Promise<void> {

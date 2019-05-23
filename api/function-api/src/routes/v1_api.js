@@ -122,7 +122,7 @@ router.post(
   issuer.issuerPost()
 );
 
-router.put(
+router.patch(
   '/account/:accountId/issuer/:issuerId',
   cors(corsManagementOptions),
   authorize({ operation: AccountActions.updateIssuer }),
@@ -130,7 +130,7 @@ router.put(
   validate_schema({
     body: require('./schemas/issuer'),
   }),
-  issuer.issuerPut()
+  issuer.issuerPatch()
 );
 
 router.delete(
@@ -332,9 +332,6 @@ router.post(
 );
 
 // Boundaries
-
-router.options('/account/:accountId/subscription/:subscriptionId/boundary', cors(corsManagementOptions));
-router.get('/account/:accountId/subscription/:subscriptionId/boundary', NotImplemented);
 
 router.options(
   '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function',

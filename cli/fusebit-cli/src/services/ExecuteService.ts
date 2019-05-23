@@ -4,10 +4,6 @@ import { IHttpRequest, request as sendRequest } from '@5qtrs/request';
 import { Table } from '@5qtrs/table';
 
 // -------------------
-// Internal Interfaces
-// -------------------
-
-// -------------------
 // Exported Interfaces
 // -------------------
 
@@ -95,8 +91,7 @@ export class ExecuteService {
         throw new Error(message);
       }
       if (response.status >= 400) {
-        const message = 'An unknown error occured.';
-        throw new Error(message);
+        throw new Error(response.data.message);
       }
 
       return response.data;

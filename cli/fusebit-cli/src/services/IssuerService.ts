@@ -168,7 +168,7 @@ export class IssuerService {
         errorMessage: Text.create("Unable to update the '", Text.bold(id), "' issuer"),
       },
       {
-        method: 'PUT',
+        method: 'PATCH',
         url: `${profile.baseUrl}/v1/account/${profile.account}/issuer/${encodeURIComponent(id)}`,
         data: issuer,
         headers: { Authorization: `bearer ${profile.accessToken}` },
@@ -396,12 +396,12 @@ export class IssuerService {
 
     const newDisplayName = update.displayName || notSet;
     const newJsonKeyUri = update.jsonKeysUrl || notSet;
-    const newPublicKeys = newJsonKeyUri === notSet ? publicKeys : '0 Keys';
+    const newPublicKeys = newJsonKeyUri === notSet ? publicKeys : notSet;
 
     const displayNameValue =
       displayName === newDisplayName
         ? Text.create(displayName, Text.dim(' (no change)'))
-        : Text.create(displayName, Text.dim(' → '), displayName);
+        : Text.create(displayName, Text.dim(' → '), newDisplayName);
     const jsonKeysUrlValue =
       jsonKeysUrl === newJsonKeyUri
         ? Text.create(jsonKeysUrl, Text.dim(' (no change)'))

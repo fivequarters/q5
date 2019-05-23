@@ -29,6 +29,7 @@ export enum AccountDataExceptionCode {
   invalidFilterDate = 'invalidFilterDate',
   invalidFilterDateOrder = 'invalidFilterDateOrder',
   issuerTooManyKeys = 'issuerTooManyKeys',
+  issuerEmptyPublicKeys = 'issuerEmptyPublicKeys',
   issuerMissingKeyId = 'issuerMissingKeyId',
   issuerMissingPublicKey = 'issuerMissingPublicKey',
   issuerJsonKeyUriAndPublicKeys = 'issuerJsonKeyUriAndPublicKeys',
@@ -165,6 +166,11 @@ export class AccountDataException extends Exception {
   public static issuerTooManyKeys(issuerId: string) {
     const message = `The issuer '${issuerId}' can only have 3 public keys`;
     return new AccountDataException(AccountDataExceptionCode.issuerTooManyKeys, message, [issuerId]);
+  }
+
+  public static issuerEmptyPublicKeys(issuerId: string) {
+    const message = `The issuer '${issuerId}' can not have an empty array of public keys`;
+    return new AccountDataException(AccountDataExceptionCode.issuerEmptyPublicKeys, message, [issuerId]);
   }
 
   public static issuerMissingKeyId(issuerId: string) {

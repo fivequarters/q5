@@ -13,12 +13,17 @@ import { ResolvedAgent } from './ResolvedAgent';
 // Internal Functions
 // ------------------
 
-function validateIssuer(issuer: IIssuer) {
+function validateKeyCount(issuer: IIssuer) {
   if (issuer.publicKeys && issuer.publicKeys.length > 3) {
     throw AccountDataException.issuerTooManyKeys(issuer.id);
   }
+}
 
-  if (issuer.publicKeys && issuer.publicKeys.length) {
+function validatePublicKeys(issuer: IIssuer) {
+  if (issuer.publicKeys) {
+    if (!issuer.publicKeys.length) {
+      throw AccountDataException.issuerEmptyPublicKeys(issuer.id);
+    }
     if (issuer.jsonKeysUrl) {
       throw AccountDataException.issuerJsonKeyUriAndPublicKeys(issuer.id);
     }
@@ -30,6 +35,14 @@ function validateIssuer(issuer: IIssuer) {
         throw AccountDataException.issuerMissingPublicKey(issuer.id);
       }
     }
+  }
+}
+
+function validateIssuer(issuer: IIssuer) {
+  validateKeyCount(issuer);
+
+  if (issuer.publicKeys) {
+    validatePublicKeys(issuer);
   } else if (!issuer.jsonKeysUrl) {
     throw AccountDataException.issuerMissingJsonKeyUriAndPublicKeys(issuer.id);
   }
@@ -75,7 +88,9 @@ export class Issuer {
   }
 
   public async update(resolvedAgent: ResolvedAgent, accountId: string, issuer: IIssuer): Promise<IIssuer> {
-    validateIssuer(issuer);
+    validateKeyCount(issuer);
+    validatePublicKeys(issuer);
+
     const accountPromise = this.dataContext.accountData.get(accountId);
     const issuerPromise = this.dataContext.issuerData.update(accountId, issuer);
     return cancelOnError(accountPromise, issuerPromise);

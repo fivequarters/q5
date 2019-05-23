@@ -166,20 +166,17 @@ export class IssuerTable extends AwsDynamoTable {
     if (issuer.jsonKeysUrl) {
       sets.push('jsonKeysUrl = :jsonKeysUrl');
       expressionValues[':jsonKeysUrl'] = { S: issuer.jsonKeysUrl };
+      removes.push('publicKeys');
     }
 
     if (issuer.publicKeys) {
-      for (let i = 0; i < issuer.publicKeys.length; i++) {
-        sets.push(`kid${i} = :kid${i}`);
-        expressionValues[`:kid${i}`] = { S: issuer.publicKeys[i].keyId };
-        sets.push(`publicKey${i} = :publicKey${i}`);
-        expressionValues[`:publicKey${i}`] = { S: issuer.publicKeys[i].publicKey };
-      }
-      for (let i = issuer.publicKeys.length; i < 3; i++) {
-        removes.push(`kid${i}`);
-        removes.push(`publicKey${i}`);
-      }
+      sets.push('publicKeys = :publicKeys');
+      expressionValues[':publicKeys'] = toItemPublicKeys(issuer.publicKeys);
       removes.push('jsonKeysUrl');
+    }
+
+    if (!sets.length) {
+      return this.get(accountId, issuer.id);
     }
 
     const options = {
