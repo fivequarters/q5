@@ -28,7 +28,7 @@ const SettingsApplicationPlaceholder = `# Application settings are available wit
 
 const SettingsComputePlaceholder = `# Compute settings control resources available to the executing function
 
-# memory_size=128
+# memorySize=128
 # timeout=30`;
 
 const SettingsCronPlaceholder = `# Set the 'cron' value to execute this function on a schedule
@@ -139,7 +139,7 @@ export class EditorContext extends EventEmitter {
     }
     if (!this.functionSpecification.lambda) {
       this.functionSpecification.lambda = {
-        memory_size: 128,
+        memorySize: 128,
         timeout: 30,
       };
     }

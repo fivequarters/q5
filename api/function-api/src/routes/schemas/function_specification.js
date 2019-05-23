@@ -17,6 +17,10 @@ module.exports = Joi.object().keys({
       .unknown(),
   }),
   lambda: Joi.object().keys({
+    memorySize: Joi.number()
+      .integer()
+      .min(64)
+      .max(3008),
     memory_size: Joi.number()
       .integer()
       .min(64)

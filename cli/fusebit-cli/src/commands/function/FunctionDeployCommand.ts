@@ -97,7 +97,7 @@ export class FunctionDeployCommand extends Command {
     if (!fusebit) {
       fusebit = {
         lambda: {
-          memory_size: 128,
+          memorySize: 128,
           timeout: 30,
         },
       };
