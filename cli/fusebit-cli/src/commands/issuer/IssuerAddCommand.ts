@@ -109,13 +109,14 @@ export class IssuerAddCommand extends Command {
       await executeService.error(
         'Invaild Options',
         Text.create(
-          "Both the '",
+          "Either the '",
           Text.bold('keyId'),
-          "' option and the '",
+          "' option or the '",
           Text.bold('publicKey'),
           "' option must be specified."
         )
       );
+      return 1;
     }
 
     const newIssuer = {

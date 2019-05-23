@@ -83,7 +83,7 @@ export class IssuerUpdateCommand extends Command {
     const update = {
       displayName: displayName === '' ? undefined : displayName || issuer.displayName,
       jsonKeysUrl: jsonKeysUrl === '' ? undefined : jsonKeysUrl || issuer.jsonKeysUrl,
-      publicKeys: jsonKeysUrl === '' ? issuer.publicKeys : [],
+      publicKeys: jsonKeysUrl === '' ? issuer.publicKeys : undefined,
     };
 
     if (confirm) {
