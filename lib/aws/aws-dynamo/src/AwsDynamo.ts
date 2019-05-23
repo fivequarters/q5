@@ -490,9 +490,7 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
 
     return new Promise((resolve, reject) => {
       reject = rejectOnce(reject);
-      console.log(params);
       dynamo.updateItem(params, (error: any, data: any) => {
-        console.log(error, data);
         if (error) {
           if (error.code === conditionCheckFailed && options && options.onConditionCheckFailed) {
             try {

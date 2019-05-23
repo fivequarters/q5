@@ -130,7 +130,7 @@ router.patch(
   validate_schema({
     body: require('./schemas/issuer'),
   }),
-  issuer.issuerPut()
+  issuer.issuerPatch()
 );
 
 router.delete(

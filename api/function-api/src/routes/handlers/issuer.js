@@ -17,7 +17,7 @@ function issuerPost() {
   };
 }
 
-function issuerPut() {
+function issuerPatch() {
   return (req, res) => {
     getAccountContext().then(accountContext => {
       const resolvedAgent = req.resolvedAgent;
@@ -87,7 +87,7 @@ function issuerDelete() {
 
 module.exports = {
   issuerPost,
-  issuerPut,
+  issuerPatch,
   issuerGet,
   issuerList,
   issuerDelete,
