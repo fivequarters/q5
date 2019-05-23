@@ -14,6 +14,7 @@ let account: IAccount = FakeAccount;
 const boundaryId = `test-boundary-${Math.floor(Math.random() * 99999999).toString(32)}`;
 const function1Id = 'test-function-1';
 const function2Id = 'test-function-2';
+const function3Id = 'test-function-3';
 
 const helloWorld = {
   nodejs: {
@@ -100,7 +101,6 @@ describe('function', () => {
       subscriptionId: account.subscriptionId,
       boundaryId: boundaryId,
       functionId: function1Id,
-      id: expect.any(String),
       transitions: {
         success: expect.any(String),
       },
@@ -147,7 +147,7 @@ describe('function', () => {
     expect(response.data.nodejs).toEqual(helloWorld.nodejs);
     expect(response.data.configuration).toEqual({});
     expect(response.data.metadata).toEqual({});
-    expect(response.data.schedule).toEqual({});
+    expect(response.data.schedule).toEqual(undefined);
   });
 
   test('GET retrieves information of function with package.json as JavaScript object', async () => {
@@ -165,7 +165,7 @@ describe('function', () => {
     expect(response.data.nodejs).toEqual(helloWorldWithNode8JavaScript.nodejs);
     expect(response.data.configuration).toEqual({});
     expect(response.data.metadata).toEqual({});
-    expect(response.data.schedule).toEqual({});
+    expect(response.data.schedule).toEqual(undefined);
   });
 
   test('GET retrieves information of function with package.json as string', async () => {
@@ -183,7 +183,7 @@ describe('function', () => {
     expect(response.data.nodejs).toEqual(helloWorldWithNode8String.nodejs);
     expect(response.data.configuration).toEqual({});
     expect(response.data.metadata).toEqual({});
-    expect(response.data.schedule).toEqual({});
+    expect(response.data.schedule).toEqual(undefined);
   });
 
   test('GET location retrieves function location', async () => {
@@ -208,7 +208,7 @@ describe('function', () => {
     expect(response.data.nodejs).toEqual(helloWorldWithConfigurationAndMetadata.nodejs);
     expect(response.data.configuration).toEqual(helloWorldWithConfigurationAndMetadata.configuration);
     expect(response.data.metadata).toEqual(helloWorldWithConfigurationAndMetadata.metadata);
-    expect(response.data.schedule).toEqual({});
+    expect(response.data.schedule).toEqual(undefined);
   });
 
   test('GET retrieves information of a cron function', async () => {
@@ -244,6 +244,27 @@ describe('function', () => {
       ])
     );
   }, 10000);
+
+  test('LIST on boundary with paging works', async () => {
+    let response = await putFunction(account, boundaryId, function1Id, helloWorld);
+    expect(response.status).toEqual(200);
+    response = await putFunction(account, boundaryId, function2Id, helloWorld);
+    expect(response.status).toEqual(200);
+    response = await putFunction(account, boundaryId, function3Id, helloWorld);
+    expect(response.status).toEqual(200);
+    response = await listFunctions(account, boundaryId, undefined, 2);
+    expect(response.status).toEqual(200);
+    expect(response.data).toEqual({ items: expect.any(Array), next: expect.any(String) });
+    expect(response.data.items).toHaveLength(2);
+    expect(response.data.items).toEqual(
+      expect.arrayContaining([{ boundaryId, functionId: function1Id }, { boundaryId, functionId: function2Id }])
+    );
+    response = await listFunctions(account, boundaryId, undefined, undefined, response.data.next);
+    expect(response.status).toEqual(200);
+    expect(response.data).toEqual({ items: expect.any(Array) });
+    expect(response.data.items).toHaveLength(1);
+    expect(response.data.items).toEqual(expect.arrayContaining([{ boundaryId, functionId: function3Id }]));
+  }, 15000);
 
   test('LIST on boundary retrieves the list of non-cron functions', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
@@ -410,14 +431,14 @@ describe('function', () => {
         },
       },
       lambda: {
-        memory_size: 0,
+        memorySize: 0,
       },
     });
     expect(response.status).toEqual(400);
     expect(response.data).toMatchObject({
       status: 400,
       statusCode: 400,
-      message: '"memory_size" must be larger than or equal to 64',
+      message: '"memorySize" must be larger than or equal to 64',
     });
   });
 
@@ -429,14 +450,14 @@ describe('function', () => {
         },
       },
       lambda: {
-        memory_size: 999999999999,
+        memorySize: 999999999999,
       },
     });
     expect(response.status).toEqual(400);
     expect(response.data).toMatchObject({
       status: 400,
       statusCode: 400,
-      message: '"memory_size" must be less than or equal to 3008',
+      message: '"memorySize" must be less than or equal to 3008',
     });
   });
 

@@ -47,7 +47,6 @@ describe('module', () => {
       subscriptionId: account.subscriptionId,
       boundaryId: boundaryId,
       functionId: function1Id,
-      id: expect.any(String),
       transitions: {
         success: expect.any(String),
       },
@@ -101,7 +100,6 @@ describe('module', () => {
       subscriptionId: account.subscriptionId,
       boundaryId: boundaryId,
       functionId: function1Id,
-      id: expect.any(String),
       transitions: {
         success: expect.any(String),
       },
@@ -161,7 +159,6 @@ describe('module', () => {
         response = await waitForBuild(account, response.data, 20, 1000);
       }
       expect(response.status).toEqual(400);
-      console.log(response.status, response.data);
       expect(response.data).toMatchObject({
         status: 400,
         statusCode: 400,
@@ -172,11 +169,10 @@ describe('module', () => {
             subscriptionId: account.subscriptionId,
             boundaryId: boundaryId,
             functionId: function1Id,
-            id: expect.any(String),
+            buildId: expect.any(String),
             transitions: {
               failed: expect.any(String),
             },
-            originalError: expect.any(Object),
           },
         },
       });

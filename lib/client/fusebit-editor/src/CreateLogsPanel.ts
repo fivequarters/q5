@@ -46,14 +46,14 @@ export function createLogsPanel(element: HTMLElement, editorContext: EditorConte
   });
 
   editorContext.on(Events.Events.BuildProgress, (e: Events.BuildProgressEvent) => {
-    append(`BUILD ${e.status.id}: progress ${Math.floor((e.status.progress || 0) * 100)}% (${e.status.status})`);
+    append(`BUILD ${e.status.buildId}: progress ${Math.floor((e.status.progress || 0) * 100)}% (${e.status.status})`);
   });
 
   editorContext.on(Events.Events.BuildFinished, (e: Events.BuildFinishedEvent) => {
-    if (e.status.id) {
+    if (e.status.buildId) {
       append(
-        `BUILD ${e.status.id}: progress ${Math.floor((e.status.progress || 0) * 100)}% (${e.status.status}) ${e.status
-          .location || JSON.stringify(e.status.error, null, 2)}`
+        `BUILD ${e.status.buildId}: progress ${Math.floor((e.status.progress || 0) * 100)}% (${e.status.status}) ${e
+          .status.location || JSON.stringify(e.status.error, null, 2)}`
       );
     } else if (e.status.error) {
       append(`BUILD: error: ${JSON.stringify(e.status.error, null, 2)}`);
