@@ -1610,7 +1610,7 @@ components:
       allOf:
         - type: object
           properties:
-            id:
+            buildId:
               $ref: '#/components/schemas/BuildId'
             functionId:
               $ref: '#/components/schemas/FunctionId'
