@@ -1,5 +1,5 @@
-import FusebitEditor from '../../assets/img/fusebit-editor.png';
-import FusebitGallery from '../../assets/img/fusebit-gallery.png';
+import FusebitEditor from '../../assets/img/fusebit-editor.v2.png';
+import FusebitGallery from '../../assets/img/fusebit-gallery.v2.png';
 
 import React from 'react';
 import styled from 'styled-components';
