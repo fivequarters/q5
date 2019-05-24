@@ -7,7 +7,6 @@ import {
   AccountDataException,
 } from '@5qtrs/account-data';
 import { decodeJwt, decodeJwtHeader, verifyJwt } from '@5qtrs/jwt';
-import { ignoreError } from '@5qtrs/promise';
 
 // ------------------
 // Internal Constants
@@ -15,7 +14,7 @@ import { ignoreError } from '@5qtrs/promise';
 
 const rootAgent = {
   id: 'root-user',
-  identities: [{ iss: 'root', sub: 'root' }],
+  identities: [{ issuerId: 'root', subject: 'root' }],
   access: {
     allow: [{ action: '*', resource: '/' }],
   },
@@ -25,14 +24,14 @@ const rootAgent = {
 // Internal Functions
 // ------------------
 
-async function resolveAgent(dataContext: IAccountDataContext, accountId: string, iss: string, sub: string) {
-  return dataContext.agentData.get(accountId, { iss, sub });
+async function resolveAgent(dataContext: IAccountDataContext, accountId: string, issuerId: string, subject: string) {
+  return dataContext.agentData.get(accountId, { issuerId, subject });
 }
 
-async function validateJwt(dataContext: IAccountDataContext, accountId: string, jwt: string, iss: string) {
+async function validateJwt(dataContext: IAccountDataContext, accountId: string, jwt: string, issuerId: string) {
   const decodedJwtHeader = decodeJwtHeader(jwt);
   const kid = decodedJwtHeader.kid;
-  const issuer = await dataContext.issuerData.get(accountId, iss);
+  const issuer = await dataContext.issuerData.get(accountId, issuerId);
   let secretOrUrl;
   if (issuer.jsonKeysUrl) {
     secretOrUrl = issuer.jsonKeysUrl;
@@ -116,12 +115,12 @@ export class ResolvedAgent implements IAgent {
     }
 
     const decodedJwtPayload = decodeJwt(jwt);
-    const iss = decodedJwtPayload.iss;
-    const sub = decodedJwtPayload.sub;
-    const identity = { iss, sub };
+    const issuerId = decodedJwtPayload.iss;
+    const subject = decodedJwtPayload.sub;
+    const identity = { issuerId, subject };
 
-    const agentPromise = resolveAgent(dataContext, accountId, iss, sub);
-    const validatePromise = validateJwt(dataContext, accountId, jwt, iss);
+    const agentPromise = resolveAgent(dataContext, accountId, issuerId, subject);
+    const validatePromise = validateJwt(dataContext, accountId, jwt, issuerId);
 
     await validatePromise;
     const agent = await agentPromise;
@@ -154,8 +153,8 @@ export class ResolvedAgent implements IAgent {
   }
 
   public get identities() {
-    const { iss, sub } = this.identity;
-    return [{ iss, sub }];
+    const { issuerId, subject } = this.identity;
+    return [{ issuerId, subject }];
   }
 
   public get access() {
@@ -171,8 +170,8 @@ export class ResolvedAgent implements IAgent {
   private async addAuditEntry(action: string, resource: string, authorized: boolean): Promise<void> {
     const auditEntry = {
       accountId: this.accountId,
-      issuerId: this.identity.iss,
-      subject: this.identity.sub,
+      issuerId: this.identity.issuerId,
+      subject: this.identity.subject,
       action,
       resource,
       authorized,

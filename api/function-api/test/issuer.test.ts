@@ -106,13 +106,31 @@ describe('Issuer', () => {
       expect(issuer.data.message).toBe(`The issuer '${issuerId}' must have at least one public key or a json keys URL`);
     }, 10000);
 
+    test('Adding an issuer with an empty jsonKeysUrl is not supported', async () => {
+      const issuerId = `test-${random()}`;
+      const issuer = await addIssuer(account, issuerId, { jsonKeysUrl: '' });
+      expect(issuer.status).toBe(400);
+      expect(issuer.data.status).toBe(400);
+      expect(issuer.data.statusCode).toBe(400);
+      expect(issuer.data.message).toBe('"jsonKeysUrl" is not allowed to be empty');
+    }, 10000);
+
+    test('Adding an issuer with an empty displayName is not supported', async () => {
+      const issuerId = `test-${random()}`;
+      const issuer = await addIssuer(account, issuerId, { displayName: '', jsonKeysUrl: 'foo' });
+      expect(issuer.status).toBe(400);
+      expect(issuer.data.status).toBe(400);
+      expect(issuer.data.statusCode).toBe(400);
+      expect(issuer.data.message).toBe('"displayName" is not allowed to be empty');
+    }, 10000);
+
     test('Adding an issuer with an empty publicKeys array is not supported', async () => {
       const issuerId = `test-${random()}`;
       const issuer = await addIssuer(account, issuerId, { publicKeys: [] });
       expect(issuer.status).toBe(400);
       expect(issuer.data.status).toBe(400);
       expect(issuer.data.statusCode).toBe(400);
-      expect(issuer.data.message).toBe(`The issuer '${issuerId}' can not have an empty array of public keys`);
+      expect(issuer.data.message).toBe(`"publicKeys" must contain at least 1 items`);
     }, 10000);
 
     test('Adding an issuer with a publicKey without a key id is not supported', async () => {
@@ -124,6 +142,15 @@ describe('Issuer', () => {
       expect(issuer.data.message).toBe('"keyId" is required');
     }, 10000);
 
+    test('Adding an issuer with a publicKey with an empty string key id is not supported', async () => {
+      const issuerId = `test-${random()}`;
+      const issuer = await addIssuer(account, issuerId, { publicKeys: [{ publicKey: 'bar', keyId: '' }] });
+      expect(issuer.status).toBe(400);
+      expect(issuer.data.status).toBe(400);
+      expect(issuer.data.statusCode).toBe(400);
+      expect(issuer.data.message).toBe('"keyId" is not allowed to be empty');
+    }, 10000);
+
     test('Adding an issuer with a publicKey without an actual publicKey is not supported', async () => {
       const issuerId = `test-${random()}`;
       const issuer = await addIssuer(account, issuerId, { publicKeys: [{ keyId: 'bar' }] });
@@ -131,6 +158,15 @@ describe('Issuer', () => {
       expect(issuer.data.status).toBe(400);
       expect(issuer.data.statusCode).toBe(400);
       expect(issuer.data.message).toBe('"publicKey" is required');
+    }, 10000);
+
+    test('Adding an issuer with a publicKey with an empty string publicKey is not supported', async () => {
+      const issuerId = `test-${random()}`;
+      const issuer = await addIssuer(account, issuerId, { publicKeys: [{ keyId: 'bar', publicKey: '' }] });
+      expect(issuer.status).toBe(400);
+      expect(issuer.data.status).toBe(400);
+      expect(issuer.data.statusCode).toBe(400);
+      expect(issuer.data.message).toBe('"publicKey" is not allowed to be empty');
     }, 10000);
 
     test('Adding an issuer that already exists is not supported', async () => {
@@ -474,6 +510,28 @@ describe('Issuer', () => {
       expect(issuer.data.message).toBe(`The issuer '${issuerId}' can not have both public keys and a json keys URL`);
     }, 10000);
 
+    test('Updating an issuer with empty string jsonKeysUrl is be supported', async () => {
+      const issuerId = `test-${random()}`;
+      await addIssuer(account, issuerId, { jsonKeysUrl: 'foo' });
+
+      const issuer = await updateIssuer(account, issuerId, { jsonKeysUrl: '' });
+      expect(issuer.status).toBe(400);
+      expect(issuer.data.status).toBe(400);
+      expect(issuer.data.statusCode).toBe(400);
+      expect(issuer.data.message).toBe('"jsonKeysUrl" is not allowed to be empty');
+    }, 10000);
+
+    test('Updating an issuer with empty string displayName is be supported', async () => {
+      const issuerId = `test-${random()}`;
+      await addIssuer(account, issuerId, { jsonKeysUrl: 'foo' });
+
+      const issuer = await updateIssuer(account, issuerId, { displayName: '' });
+      expect(issuer.status).toBe(400);
+      expect(issuer.data.status).toBe(400);
+      expect(issuer.data.statusCode).toBe(400);
+      expect(issuer.data.message).toBe('"displayName" is not allowed to be empty');
+    }, 10000);
+
     test('Updating an issuer with four publicKeys is not supported', async () => {
       const issuerId = `test-${random()}`;
       await addIssuer(account, issuerId, { jsonKeysUrl: 'foo' });
@@ -510,7 +568,7 @@ describe('Issuer', () => {
       expect(issuer.status).toBe(400);
       expect(issuer.data.status).toBe(400);
       expect(issuer.data.statusCode).toBe(400);
-      expect(issuer.data.message).toBe(`The issuer '${issuerId}' can not have an empty array of public keys`);
+      expect(issuer.data.message).toBe(`"publicKeys" must contain at least 1 items`);
     }, 10000);
 
     test('Updating an issuer with a publicKey without a key id is not supported', async () => {
@@ -524,6 +582,17 @@ describe('Issuer', () => {
       expect(issuer.data.message).toBe('"keyId" is required');
     }, 10000);
 
+    test('Updating an issuer with a publicKey with an empty key id is not supported', async () => {
+      const issuerId = `test-${random()}`;
+      await addIssuer(account, issuerId, { jsonKeysUrl: 'foo' });
+
+      const issuer = await updateIssuer(account, issuerId, { publicKeys: [{ publicKey: 'bar', keyId: '' }] });
+      expect(issuer.status).toBe(400);
+      expect(issuer.data.status).toBe(400);
+      expect(issuer.data.statusCode).toBe(400);
+      expect(issuer.data.message).toBe('"keyId" is not allowed to be empty');
+    }, 10000);
+
     test('Updating an issuer with a publicKey without an actual publicKey is not supported', async () => {
       const issuerId = `test-${random()}`;
       await addIssuer(account, issuerId, { jsonKeysUrl: 'foo' });
@@ -533,6 +602,17 @@ describe('Issuer', () => {
       expect(issuer.data.status).toBe(400);
       expect(issuer.data.statusCode).toBe(400);
       expect(issuer.data.message).toBe('"publicKey" is required');
+    }, 10000);
+
+    test('Updating an issuer with a publicKey with an empty publicKey is not supported', async () => {
+      const issuerId = `test-${random()}`;
+      await addIssuer(account, issuerId, { jsonKeysUrl: 'foo' });
+
+      const issuer = await updateIssuer(account, issuerId, { publicKeys: [{ keyId: 'bar', publicKey: '' }] });
+      expect(issuer.status).toBe(400);
+      expect(issuer.data.status).toBe(400);
+      expect(issuer.data.statusCode).toBe(400);
+      expect(issuer.data.message).toBe('"publicKey" is not allowed to be empty');
     }, 10000);
 
     test('Updating a non-existing issuer should return an error', async () => {
@@ -569,6 +649,9 @@ describe('Issuer', () => {
       const issuer = await removeIssuer(account, issuerId);
       expect(issuer.status).toBe(204);
       expect(issuer.data).toBeUndefined();
+
+      const removed = await getIssuer(account, issuerId);
+      expect(removed.status).toBe(404);
     }, 10000);
 
     test('Removing a non-existing issuer should return an error', async () => {

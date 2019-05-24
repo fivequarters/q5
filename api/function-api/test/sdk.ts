@@ -1,7 +1,31 @@
 import { IAccount } from './accountResolver';
 import { request } from '@5qtrs/request';
 
+// ------------------
+// Internal Constants
+// ------------------
+
+const testUsers: string[] = [];
 const testIssuers: string[] = [];
+
+// -------------------
+// Exported Interfaces
+// -------------------
+
+export interface IListUserOptions {
+  count?: number;
+  next?: string;
+  name?: string;
+  email?: string;
+  issuerId?: string;
+  subject?: string;
+  include?: boolean;
+  exact?: boolean;
+}
+
+// ------------------
+// Exported Functions
+// ------------------
 
 export async function sleep(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -203,5 +227,104 @@ export async function cleanUpIssuers(account: IAccount) {
   while (testIssuers.length) {
     const toRemove = testIssuers.splice(0, 5);
     await Promise.all(toRemove.map(issuerId => removeIssuer(account, issuerId)));
+  }
+}
+
+export async function addUser(account: IAccount, data: any) {
+  const response = await request({
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${account.accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    url: `${account.baseUrl}/v1/account/${account.accountId}/user`,
+    data: JSON.stringify(data),
+  });
+  if (response.status === 200) {
+    testUsers.push(response.data.id);
+  }
+  return response;
+}
+
+export async function getUser(account: IAccount, userId: string) {
+  return request({
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${account.accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    url: `${account.baseUrl}/v1/account/${account.accountId}/user/${userId}`,
+  });
+}
+
+export async function listUsers(account: IAccount, options?: IListUserOptions) {
+  const queryStringParams = [];
+  if (options) {
+    if (options.count !== undefined) {
+      queryStringParams.push(`count=${options.count}`);
+    }
+    if (options.next !== undefined) {
+      queryStringParams.push(`next=${encodeURIComponent(options.next)}`);
+    }
+    if (options.name !== undefined) {
+      queryStringParams.push(`name=${encodeURIComponent(options.name)}`);
+    }
+    if (options.email !== undefined) {
+      queryStringParams.push(`email=${encodeURIComponent(options.email)}`);
+    }
+    if (options.issuerId !== undefined) {
+      queryStringParams.push(`issuerId=${encodeURIComponent(options.issuerId)}`);
+    }
+    if (options.subject !== undefined) {
+      queryStringParams.push(`subject=${encodeURIComponent(options.subject)}`);
+    }
+    if (options.include === true) {
+      queryStringParams.push(`include=all`);
+    }
+    if (options.exact === true) {
+      queryStringParams.push(`exact=true`);
+    }
+  }
+  const queryString = queryStringParams.length ? `?${queryStringParams.join('&')}` : '';
+
+  const response = await request({
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${account.accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    url: `${account.baseUrl}/v1/account/${account.accountId}/user${queryString}`,
+  });
+  return response;
+}
+
+export async function updateUser(account: IAccount, userId: string, data: any) {
+  const response = await request({
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${account.accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    url: `${account.baseUrl}/v1/account/${account.accountId}/user/${userId}`,
+    data: JSON.stringify(data),
+  });
+  return response;
+}
+
+export async function removeUser(account: IAccount, userId: string) {
+  return request({
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${account.accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    url: `${account.baseUrl}/v1/account/${account.accountId}/user/${userId}`,
+  });
+}
+
+export async function cleanUpUsers(account: IAccount) {
+  while (testUsers.length) {
+    const toRemove = testUsers.splice(0, 5);
+    await Promise.all(toRemove.map(userId => removeUser(account, userId)));
   }
 }

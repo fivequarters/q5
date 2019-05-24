@@ -95,7 +95,7 @@ export class Client {
     while (true) {
       try {
         client.id = this.idFactory.getClientId();
-        await this.dataContext.clientData.add(accountId, client);
+        client = await this.dataContext.clientData.add(accountId, client);
         return client;
       } catch (error) {
         tries--;

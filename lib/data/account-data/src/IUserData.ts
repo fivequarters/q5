@@ -20,6 +20,7 @@ export interface IListUsersOptions {
   next?: string;
   limit?: number;
   include?: UserInclude;
+  exact?: boolean;
   nameContains?: string;
   primaryEmailContains?: string;
   issuerContains?: string;

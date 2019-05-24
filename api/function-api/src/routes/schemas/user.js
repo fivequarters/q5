@@ -4,18 +4,23 @@ module.exports = Joi.object().keys({
   firstName: Joi.string(),
   lastName: Joi.string(),
   primaryEmail: Joi.string(),
-  identities: Joi.array().items(
-    Joi.object().keys({
-      iss: Joi.string().required(),
-      sub: Joi.string().required(),
-    })
-  ),
-  access: Joi.object().keys({
-    allow: Joi.array().items(
+  identities: Joi.array()
+    .min(1)
+    .items(
       Joi.object().keys({
-        action: Joi.string().required(),
-        resource: Joi.string().required(),
+        issuerId: Joi.string().required(),
+        subject: Joi.string().required(),
       })
     ),
+  access: Joi.object().keys({
+    allow: Joi.array()
+      .required()
+      .min(1)
+      .items(
+        Joi.object().keys({
+          action: Joi.string().required(),
+          resource: Joi.string().required(),
+        })
+      ),
   }),
 });

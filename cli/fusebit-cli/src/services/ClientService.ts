@@ -47,8 +47,8 @@ function formatResourcePath(resource: string) {
 // -------------------
 
 export interface IFusebitIdentitiy {
-  iss: string;
-  sub: string;
+  issuerId: string;
+  subject: string;
 }
 
 export interface IFusebitAccess {
@@ -90,8 +90,8 @@ export interface IFusebitInit extends IFusebitNewInitEntry {
   accountId: string;
   agentId: string;
   baseUrl: string;
-  iss: string;
-  sub: string;
+  issuerId: string;
+  subject: string;
 }
 
 export interface IFusebitInitResolve {
@@ -135,10 +135,10 @@ export class ClientService {
       query.push(`name=${encodeURIComponent(options.displayNameContains)}`);
     }
     if (options.issuerContains) {
-      query.push(`iss=${encodeURIComponent(options.issuerContains)}`);
+      query.push(`issuerId=${encodeURIComponent(options.issuerContains)}`);
     }
     if (options.subjectContains) {
-      query.push(`sub=${encodeURIComponent(options.subjectContains)}`);
+      query.push(`subject=${encodeURIComponent(options.subjectContains)}`);
     }
     const queryString = query.length ? `?${query.join('&')}` : '';
 
@@ -239,7 +239,7 @@ export class ClientService {
         errorMessage: Text.create("Unable to add the identity to client '", Text.bold(id), "'"),
       },
       {
-        method: 'PUT',
+        method: 'PATCH',
         url: `${profile.baseUrl}/v1/account/${profile.account}/client/${id}`,
         data: client,
         headers: { Authorization: `bearer ${profile.accessToken}` },
@@ -265,7 +265,7 @@ export class ClientService {
         errorMessage: Text.create("Unable to remove the identity from client '", Text.bold(id), "'"),
       },
       {
-        method: 'PUT',
+        method: 'PATCH',
         url: `${profile.baseUrl}/v1/account/${profile.account}/client/${id}`,
         data: client,
         headers: { Authorization: `bearer ${profile.accessToken}` },
@@ -291,7 +291,7 @@ export class ClientService {
         errorMessage: Text.create("Unable to add the access to client '", Text.bold(id), "'"),
       },
       {
-        method: 'PUT',
+        method: 'PATCH',
         url: `${profile.baseUrl}/v1/account/${profile.account}/client/${id}`,
         data: client,
         headers: { Authorization: `bearer ${profile.accessToken}` },
@@ -317,7 +317,7 @@ export class ClientService {
         errorMessage: Text.create("Unable to remove the access from client '", Text.bold(id), "'"),
       },
       {
-        method: 'PUT',
+        method: 'PATCH',
         url: `${profile.baseUrl}/v1/account/${profile.account}/client/${id}`,
         data: client,
         headers: { Authorization: `bearer ${profile.accessToken}` },
@@ -343,7 +343,7 @@ export class ClientService {
         errorMessage: Text.create("Unable to update client '", Text.bold(id), "'"),
       },
       {
-        method: 'PUT',
+        method: 'PATCH',
         url: `${profile.baseUrl}/v1/account/${profile.account}/client/${id}`,
         data: client,
         headers: { Authorization: `bearer ${profile.accessToken}` },
@@ -421,8 +421,8 @@ export class ClientService {
       boundaryId: decoded.boundaryId,
       functionId: decoded.functionId,
       baseUrl: decoded.baseUrl,
-      iss: decoded.iss,
-      sub: decoded.sub,
+      issuerId: decoded.iss,
+      subject: decoded.sub,
     };
   }
 
@@ -656,7 +656,16 @@ export class ClientService {
       details.push(...[Text.eol(), Text.eol()]);
       details.push(Text.italic('Identities: '));
       for (const identity of client.identities) {
-        details.push(...[Text.eol(), Text.dim('• iss: '), identity.iss, Text.eol(), Text.dim('  sub: '), identity.sub]);
+        details.push(
+          ...[
+            Text.eol(),
+            Text.dim('• issuer: '),
+            identity.issuerId,
+            Text.eol(),
+            Text.dim('  subject: '),
+            identity.subject,
+          ]
+        );
       }
     }
 
@@ -745,8 +754,8 @@ export class ClientService {
       { name: 'Account', value: account },
       { name: 'Display Name', value: client.displayName || notSet },
       { name: Text.dim('•'), value: Text.dim('•') },
-      { name: 'Issuer', value: identity.iss },
-      { name: 'Subject', value: identity.sub },
+      { name: 'Issuer', value: identity.issuerId },
+      { name: 'Subject', value: identity.subject },
     ];
 
     return details;

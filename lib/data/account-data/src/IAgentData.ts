@@ -10,8 +10,8 @@ export interface IAccessEntry {
 }
 
 export interface IIdentity {
-  iss: string;
-  sub: string;
+  issuerId: string;
+  subject: string;
 }
 
 export interface IAgent {
