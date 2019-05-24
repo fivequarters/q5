@@ -623,10 +623,10 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
     const dynamo = await this.getAws();
     const fullTableName = this.getFullName(table.name);
 
-    const params: any = {
-      TableName: fullTableName,
-      ScanIndexForward: options && options.scanForward === false ? false : true,
-    };
+    const params: any = { TableName: fullTableName };
+    if (options && options && options.scanForward === false) {
+      params.ScanIndexForward = false;
+    }
 
     if (table.archive) {
       options = setScanOptionsForArchive(options);
