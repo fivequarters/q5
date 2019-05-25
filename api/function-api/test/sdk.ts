@@ -56,7 +56,7 @@ export async function putFunction(account: IAccount, boundaryId: string, functio
   });
 }
 
-export async function getBuild(account: IAccount, build: { boundaryId: string; functionId: string; id: string }) {
+export async function getBuild(account: IAccount, build: { boundaryId: string; functionId: string; buildId: string }) {
   return await request({
     method: 'GET',
     headers: {
@@ -64,13 +64,13 @@ export async function getBuild(account: IAccount, build: { boundaryId: string; f
     },
     url: `${account.baseUrl}/v1/account/${account.accountId}/subscription/${account.subscriptionId}/boundary/${
       build.boundaryId
-    }/function/${build.functionId}/build/${build.id}`,
+    }/function/${build.functionId}/build/${build.buildId}`,
   });
 }
 
 export async function waitForBuild(
   account: IAccount,
-  build: { boundaryId: string; functionId: string; id: string },
+  build: { boundaryId: string; functionId: string; buildId: string },
   count: number,
   delay: number
 ) {
@@ -112,14 +112,30 @@ export async function getFunctionLocation(account: IAccount, boundaryId: string,
   });
 }
 
-export async function listFunctions(account: IAccount, boundaryId?: string, cron?: boolean) {
+export async function listFunctions(
+  account: IAccount,
+  boundaryId?: string,
+  cron?: boolean,
+  count?: number,
+  next?: string
+) {
   let url = boundaryId
     ? `${account.baseUrl}/v1/account/${account.accountId}/subscription/${
         account.subscriptionId
       }/boundary/${boundaryId}/function`
     : `${account.baseUrl}/v1/account/${account.accountId}/subscription/${account.subscriptionId}/function`;
+  let query = [];
   if (cron !== undefined) {
-    url += `?cron=${cron}`;
+    query.push(`cron=${cron}`);
+  }
+  if (count) {
+    query.push(`count=${count}`);
+  }
+  if (next) {
+    query.push(`next=${next}`);
+  }
+  if (query.length > 0) {
+    url += `?${query.join('&')}`;
   }
   return await request({
     method: 'GET',

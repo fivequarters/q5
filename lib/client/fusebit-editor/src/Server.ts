@@ -74,7 +74,7 @@ export interface IBuildStatus {
   /**
    * Unique build identifier of the build.
    */
-  id?: string;
+  buildId?: string;
   /**
    * Additional information about the build error in case build failure.
    */
@@ -298,7 +298,7 @@ export class Server {
           const url = `${this.account.baseUrl}v1/account/${self.account.accountId}/subscription/${
             // @ts-ignore
             self.account.subscriptionId
-          }/boundary/${editorContext.boundaryId}/function/${editorContext.functionId}/build/${build.id}`;
+          }/boundary/${editorContext.boundaryId}/function/${editorContext.functionId}/build/${build.buildId}`;
           return (
             Superagent.get(url)
               // @ts-ignore
