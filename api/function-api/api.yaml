@@ -13,8 +13,12 @@ info:
 tags:
   - name: Accounts
     description: Account management operations
+  - name: Issuers
+    description: Issuer management operations
   - name: Users
     description: User management operations
+  - name: Clients
+    description: Client management operations
   - name: Boundaries
     description: Boundary management operations
   - name: Functions
@@ -47,446 +51,6 @@ paths:
           description: Not authorized
         404:
           description: Account not found
-      security:
-        - accessToken: []
-
-  /v1/account/{accountId}/audit:
-    parameters:
-      - in: path
-        name: accountId
-        required: true
-        description: Account id
-        schema:
-          $ref: '#/components/schemas/AccountId'
-      - in: query
-        name: next
-        required: false
-        description: Optional opaque continuation token to start returning results from
-        schema:
-          type: string
-      - in: query
-        name: resource
-        required: false
-        description: Optional prefix of the resource to match against audit entries
-        schema:
-          type: string
-      - in: query
-        name: action
-        required: false
-        description: Optional action to match against audit entries
-        schema:
-          type: string
-      - in: query
-        name: iss
-        required: false
-        description: Optional issuer identifier to match against audit entries
-        schema:
-          type: string
-      - in: query
-        name: sub
-        required: false
-        description: Optional subject identifier to match against audit entries
-        schema:
-          type: string
-      - in: query
-        name: from
-        required: false
-        description: Optional time from which to return audit entries; can be any format accepted by Date, or a relative time frame like '-15m', '-24h' etc.
-        schema:
-          type: string
-      - in: query
-        name: to
-        required: false
-        description: Optional time up to which to return audit entries; can be any format accepted by Date, or a relative time frame like '-15m', '-24h' etc.
-        schema:
-          type: string
-      - in: query
-        name: resource
-        required: false
-        description: Optional prefix of the resource to match against audit entries
-        schema:
-          type: string
-      - in: query
-        name: count
-        required: false
-        description: Optional maximum number of results to return;
-        schema:
-          type: number
-          minimum: 1
-    get:
-      tags:
-        - Accounts
-      summary: Get audit trail
-      operationId: getAccountAudit
-      description: |
-        Returns the audit trail of calls to the HTTP APIs related to resources that belong to the accountId. 
-        Each entry of the audit trail contains the timestamp of the call, resource, action, and the identity of 
-        the caller represented as the (issuer, subject) pair. Use query string parameters to filter the entries. 
-        This HTTP API supports paging. If the response contains the 'next' property, it indicates more results matching
-        the criteria may be available. Make another call to the HTTP API and provide the value of 'next' response parameter
-        in the 'next' query param. 
-
-        By default, only the most recent 15 minutes of audit logs are returned. You can change this with the 'from' query parameter.
-      responses:
-        200:
-          description: Entries of the audit trail
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AccountAudit'
-        403:
-          description: Not authorized
-        404:
-          description: Account not found
-      security:
-        - accessToken: []
-
-    /v1/account/{accountId}/issuer:
-    parameters:
-      - in: path
-        name: accountId
-        required: true
-        description: Account id
-        schema:
-          $ref: '#/components/schemas/AccountId'
-    get:
-      tags:
-        - Accounts
-      summary: Get issuers of an account
-      operationId: getAccountIssuerList
-      description: |
-        Returns a list of issuers associated with the given account.
-      parameters:
-        - in: query
-          name: name
-          required: false
-          description: Optional name identifier to match against the displayName of the issuer (case-sensitive) (matches if contains)
-          schema:
-            type: string
-        - in: query
-          name: next
-          required: false
-          description: Optional opaque token to start returning results from
-          schema:
-            type: string
-        - in: query
-          name: count
-          required: false
-          description: Optional number of results to return
-          schema:
-            type: number
-            minimum: 1
-            maximum: 100
-      responses:
-        200:
-          description: A list of issuers
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/IssuerList'
-        403:
-          description: Not authorized
-        404:
-          description: Account not found
-      security:
-        - accessToken: []
-
-  /v1/account/{accountId}/issuer/{issuerId}:
-    parameters:
-      - in: path
-        name: accountId
-        required: true
-        description: Account id
-        schema:
-          $ref: '#/components/schemas/AccountId'
-      - in: path
-        name: issuerId
-        required: true
-        description: Issuer id
-        schema:
-          $ref: '#/components/schemas/IssuerId'
-    get:
-      tags:
-        - Accounts
-      summary: Get an issuer of an account
-      operationId: getAccountIssuer
-      description: |
-        Returns an issuer associated with the given account.
-      responses:
-        200:
-          description: The issuer
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Issuer'
-        403:
-          description: Not authorized
-        404:
-          description: Account or issuer not found
-      security:
-        - accessToken: []
-    post:
-      tags:
-        - Accounts
-      summary: Add a new issuer to an account
-      operationId: postAccountIssuer
-      description: |
-        Adds a new issuer to be associated with the given account.
-      requestBody:
-        description: The issuer to add
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/NewIssuer'
-      responses:
-        200:
-          description: The issuer that was added
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Issuer'
-        400:
-          description: Invalid issuer
-        403:
-          description: Not authorized
-        404:
-          description: Account not found
-      security:
-        - accessToken: []
-    patch:
-      tags:
-        - Accounts
-      summary: Update an existing issuer of an account
-      operationId: putAccountIssuer
-      description: |
-        Updates an existing issuer associated with the given account.
-      requestBody:
-        description: The issuer to update
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/NewIssuer'
-      responses:
-        200:
-          description: The issuer that was updated
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Issuer'
-        400:
-          description: Invalid issuer
-        403:
-          description: Not authorized
-        404:
-          description: Account or issuer not found
-      security:
-        - accessToken: []
-    delete:
-      tags:
-        - Accounts
-      summary: Delete an issuer of an account
-      description: |
-        Deletes an issuer that was previously associated with the given account.
-      operationId: deleteIssuer
-      responses:
-        204:
-          description: Issuer was deleted
-        403:
-          description: Not authorized
-        404:
-          description: Account or issuer not found
-      security:
-        - accessToken: []
-
-  /v1/account/{accountId}/client:
-    parameters:
-      - in: path
-        name: accountId
-        required: true
-        description: Account id
-        schema:
-          $ref: '#/components/schemas/AccountId'
-    get:
-      tags:
-        - Accounts
-      summary: Get clients of an account
-      operationId: getAccountClientList
-      description: |
-        Returns a list of clients associated with the given account.
-      parameters:
-        - in: query
-          name: next
-          required: false
-          description: Optional client id to start returning results from
-          schema:
-            $ref: '#/components/schemas/ClientId'
-        - in: query
-          name: count
-          required: false
-          description: Optional number of results to return; max is 100
-          schema:
-            type: number
-            minimum: 1
-            maximum: 100
-      responses:
-        200:
-          description: A list of clients
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ClientList'
-        403:
-          description: Not authorized
-      security:
-        - accessToken: []
-    post:
-      tags:
-        - Accounts
-      summary: Add a client
-      operationId: postClient
-      description: |
-        Adds a client to given account.
-      requestBody:
-        description: The new client to add
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/NewClient'
-      responses:
-        200:
-          description: The client that was added
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Client'
-        400:
-          description: Invalid client
-        403:
-          description: Not authorized
-      security:
-        - accessToken: []
-
-  /v1/account/{accountId}/client/{clientId}:
-    parameters:
-      - in: path
-        name: accountId
-        required: true
-        description: Account id
-        schema:
-          $ref: '#/components/schemas/AccountId'
-      - in: path
-        name: clientId
-        required: true
-        description: Client id
-        schema:
-          $ref: '#/components/schemas/ClientId'
-    get:
-      tags:
-        - Accounts
-      parameters:
-        - in: query
-          name: include
-          required: false
-          description: Optional switch to include all properties of the clients
-          schema:
-            type: string
-            enum:
-              - all
-        - in: query
-          name: name
-          required: false
-          description: Optional name identifier to match against the displayName of the clients
-          schema:
-            type: string
-        - in: query
-          name: iss
-          required: false
-          description: Optional iss identifier to match against the identities of the clients
-          schema:
-            type: string
-        - in: query
-          name: sub
-          required: false
-          description: Optional sub identifier to match against the identities of the clients
-          schema:
-            type: string
-        - in: query
-          name: next
-          required: false
-          description: Optional opaque token to start returning results from
-          schema:
-            type: string
-        - in: query
-          name: count
-          required: false
-          description: Optional number of results to return; max is 100
-          schema:
-            type: number
-            minimum: 1
-            maximum: 100
-      summary: Get a client of an account
-      operationId: getAccountClient
-      description: |
-        Returns a client associated with the given account.
-      responses:
-        200:
-          description: The client
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Client'
-        403:
-          description: Not authorized
-        404:
-          description: Account or client not found
-      security:
-        - accessToken: []
-    put:
-      tags:
-        - Accounts
-      summary: Update a client of an account
-      operationId: putAccountClient
-      description: |
-        Updates a client associated with the given account.
-      requestBody:
-        description: The client to update
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/NewClient'
-      responses:
-        200:
-          description: The client that was updated
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Client'
-        400:
-          description: Invalid client
-        403:
-          description: Not authorized
-        404:
-          description: Account or client not found
-      security:
-        - accessToken: []
-    delete:
-      tags:
-        - Accounts
-      summary: Delete a client of an account
-      description: |
-        Deletes a client that was previously associated with the given account.
-      operationId: deleteClient
-      responses:
-        204:
-          description: Client was deleted
-        403:
-          description: Not authorized
-        404:
-          description: Account or client not found
       security:
         - accessToken: []
 
@@ -569,6 +133,444 @@ paths:
       security:
         - accessToken: []
 
+  /v1/account/{accountId}/audit:
+    parameters:
+      - in: path
+        name: accountId
+        required: true
+        description: Account id
+        schema:
+          $ref: '#/components/schemas/AccountId'
+      - in: query
+        name: next
+        required: false
+        description: Optional opaque continuation token to start returning results from
+        schema:
+          type: string
+      - in: query
+        name: resource
+        required: false
+        description: Optional prefix of the resource to match against audit entries
+        schema:
+          type: string
+      - in: query
+        name: action
+        required: false
+        description: Optional action to match against audit entries
+        schema:
+          type: string
+      - in: query
+        name: issuerId
+        required: false
+        description: Optional issuer identifier to match against audit entries
+        schema:
+          $ref: '#/components/schemas/IssuerId'
+      - in: query
+        name: subject
+        required: false
+        description: Optional subject identifier to match against audit entries
+        schema:
+          type: string
+      - in: query
+        name: from
+        required: false
+        description: Optional time from which to return audit entries; can be any format accepted by Date, or a relative time frame like '-15m', '-24h' etc.
+        schema:
+          type: string
+      - in: query
+        name: to
+        required: false
+        description: Optional time up to which to return audit entries; can be any format accepted by Date, or a relative time frame like '-15m', '-24h' etc.
+        schema:
+          type: string
+      - in: query
+        name: count
+        required: false
+        description: Optional maximum number of results to return;
+        schema:
+          type: number
+          minimum: 1
+    get:
+      tags:
+        - Accounts
+      summary: Get audit trail
+      operationId: getAccountAudit
+      description: |
+        Returns the audit trail of calls to the HTTP APIs related to resources that belong to the accountId. 
+        Each entry of the audit trail contains the timestamp of the call, resource, action, and the identity of 
+        the caller represented as the (issuer, subject) pair. Use query string parameters to filter the entries. 
+        This HTTP API supports paging. If the response contains the 'next' property, it indicates more results matching
+        the criteria may be available. Make another call to the HTTP API and provide the value of 'next' response parameter
+        in the 'next' query param. 
+
+        By default, only the most recent 15 minutes of audit logs are returned. You can change this with the 'from' query parameter.
+      responses:
+        200:
+          description: Entries of the audit trail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountAudit'
+        403:
+          description: Not authorized
+        404:
+          description: Account not found
+      security:
+        - accessToken: []
+
+  /v1/account/{accountId}/issuer:
+    parameters:
+      - in: path
+        name: accountId
+        required: true
+        description: Account id
+        schema:
+          $ref: '#/components/schemas/AccountId'
+    get:
+      tags:
+        - Issuers
+      summary: Get issuers of an account
+      operationId: getAccountIssuerList
+      description: |
+        Returns a list of issuers associated with the given account.
+      parameters:
+        - in: query
+          name: name
+          required: false
+          description: Optional name identifier to match against the displayName of the issuer (case-sensitive) (matches if contains)
+          schema:
+            type: string
+        - in: query
+          name: next
+          required: false
+          description: Optional opaque token to start returning results from
+          schema:
+            type: string
+        - in: query
+          name: count
+          required: false
+          description: Optional number of results to return
+          schema:
+            type: number
+            minimum: 1
+            maximum: 100
+      responses:
+        200:
+          description: A list of issuers
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IssuerList'
+        403:
+          description: Not authorized
+        404:
+          description: Account not found
+      security:
+        - accessToken: []
+
+  /v1/account/{accountId}/issuer/{issuerId}:
+    parameters:
+      - in: path
+        name: accountId
+        required: true
+        description: Account id
+        schema:
+          $ref: '#/components/schemas/AccountId'
+      - in: path
+        name: issuerId
+        required: true
+        description: Issuer id
+        schema:
+          $ref: '#/components/schemas/IssuerId'
+    get:
+      tags:
+        - Issuers
+      summary: Get an issuer of an account
+      operationId: getAccountIssuer
+      description: |
+        Returns an issuer associated with the given account.
+      responses:
+        200:
+          description: The issuer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Issuer'
+        403:
+          description: Not authorized
+        404:
+          description: Account or issuer not found
+      security:
+        - accessToken: []
+    post:
+      tags:
+        - Issuers
+      summary: Add a new issuer to an account
+      operationId: postAccountIssuer
+      description: |
+        Adds a new issuer to be associated with the given account.
+      requestBody:
+        description: The issuer to add
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewIssuer'
+      responses:
+        200:
+          description: The issuer that was added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Issuer'
+        400:
+          description: Invalid issuer
+        403:
+          description: Not authorized
+        404:
+          description: Account not found
+      security:
+        - accessToken: []
+    patch:
+      tags:
+        - Issuers
+      summary: Update an existing issuer of an account
+      operationId: putAccountIssuer
+      description: |
+        Updates an existing issuer associated with the given account.
+      requestBody:
+        description: The issuer to update
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewIssuer'
+      responses:
+        200:
+          description: The issuer that was updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Issuer'
+        400:
+          description: Invalid issuer
+        403:
+          description: Not authorized
+        404:
+          description: Account or issuer not found
+      security:
+        - accessToken: []
+    delete:
+      tags:
+        - Issuers
+      summary: Delete an issuer of an account
+      description: |
+        Deletes an issuer that was previously associated with the given account.
+      operationId: deleteIssuer
+      responses:
+        204:
+          description: Issuer was deleted
+        403:
+          description: Not authorized
+        404:
+          description: Account or issuer not found
+      security:
+        - accessToken: []
+
+  /v1/account/{accountId}/client:
+    parameters:
+      - in: path
+        name: accountId
+        required: true
+        description: Account id
+        schema:
+          $ref: '#/components/schemas/AccountId'
+    get:
+      tags:
+        - Clients
+      summary: Get clients of an account
+      operationId: getAccountClientList
+      description: |
+        Returns a list of clients associated with the given account.
+      parameters:
+        - in: query
+          name: next
+          required: false
+          description: Optional client id to start returning results from
+          schema:
+            $ref: '#/components/schemas/ClientId'
+        - in: query
+          name: count
+          required: false
+          description: Optional number of results to return; max is 100
+          schema:
+            type: number
+            minimum: 1
+            maximum: 100
+      responses:
+        200:
+          description: A list of clients
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientList'
+        403:
+          description: Not authorized
+        404:
+          description: Account not found
+      security:
+        - accessToken: []
+    post:
+      tags:
+        - Clients
+      summary: Add a client
+      operationId: postClient
+      description: |
+        Adds a client to given account.
+      requestBody:
+        description: The new client to add
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewClient'
+      responses:
+        200:
+          description: The client that was added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+        400:
+          description: Invalid client
+        403:
+          description: Not authorized
+        404:
+          description: Account not found
+      security:
+        - accessToken: []
+
+  /v1/account/{accountId}/client/{clientId}:
+    parameters:
+      - in: path
+        name: accountId
+        required: true
+        description: Account id
+        schema:
+          $ref: '#/components/schemas/AccountId'
+      - in: path
+        name: clientId
+        required: true
+        description: Client id
+        schema:
+          $ref: '#/components/schemas/ClientId'
+    get:
+      tags:
+        - Clients
+      parameters:
+        - in: query
+          name: include
+          required: false
+          description: Optional switch to include all properties of the clients
+          schema:
+            type: string
+            enum:
+              - all
+        - in: query
+          name: name
+          required: false
+          description: Optional name identifier to match against the displayName of the clients
+          schema:
+            type: string
+        - in: query
+          name: issuerId
+          required: false
+          description: Optional iss identifier to match against the identities of the clients
+          schema:
+            $ref: '#/components/schemas/IssuerId'
+        - in: query
+          name: subject
+          required: false
+          description: Optional sub identifier to match against the identities of the clients
+          schema:
+            type: string
+        - in: query
+          name: next
+          required: false
+          description: Optional opaque token to start returning results from
+          schema:
+            type: string
+        - in: query
+          name: count
+          required: false
+          description: Optional number of results to return; max is 100
+          schema:
+            type: number
+            minimum: 1
+            maximum: 100
+      summary: Get a client of an account
+      operationId: getAccountClient
+      description: |
+        Returns a client associated with the given account.
+      responses:
+        200:
+          description: The client
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+        403:
+          description: Not authorized
+        404:
+          description: Account or client not found
+      security:
+        - accessToken: []
+    put:
+      tags:
+        - Clients
+      summary: Update a client of an account
+      operationId: putAccountClient
+      description: |
+        Updates a client associated with the given account.
+      requestBody:
+        description: The client to update
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewClient'
+      responses:
+        200:
+          description: The client that was updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+        400:
+          description: Invalid client
+        403:
+          description: Not authorized
+        404:
+          description: Account or client not found
+      security:
+        - accessToken: []
+    delete:
+      tags:
+        - Clients
+      summary: Delete a client of an account
+      description: |
+        Deletes a client that was previously associated with the given account.
+      operationId: deleteClient
+      responses:
+        204:
+          description: Client was deleted
+        403:
+          description: Not authorized
+        404:
+          description: Account or client not found
+      security:
+        - accessToken: []
+
   /v1/account/{accountId}/user:
     parameters:
       - in: path
@@ -594,27 +596,33 @@ paths:
             enum:
               - all
         - in: query
+          name: exact
+          required: false
+          description: Optional switch to require all match identifiers to match exactly, instead of matching if value contains the identifier
+          schema:
+            type: boolean
+        - in: query
           name: name
           required: false
-          description: Optional name identifier to match against the firstName or LastName of the user
+          description: Optional name identifier to match against the firstName or LastName of the users (case-sensitive)
           schema:
             type: string
         - in: query
           name: email
           required: false
-          description: Optional name identifier to match against the primaryEmail of the user
+          description: Optional name identifier to match against the primaryEmail of the users (case-sensitive)
           schema:
             type: string
         - in: query
-          name: iss
+          name: issuerId
           required: false
-          description: Optional iss identifier to match against the identities of the users
+          description: Optional issuerId identifier to match against the identities of the users (case-sensitive)
           schema:
             type: string
         - in: query
-          name: sub
+          name: subject
           required: false
-          description: Optional sub identifier to match against the identities of the users
+          description: Optional subject identifier to match against the identities of the users (case-sensitive)
           schema:
             type: string
         - in: query
@@ -626,7 +634,7 @@ paths:
         - in: query
           name: count
           required: false
-          description: Optional number of results to return; max is 100
+          description: Optional number of results to return
           schema:
             type: number
             minimum: 1
@@ -638,8 +646,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserList'
+        400:
+          description: Invalid query
         403:
           description: Not authorized
+        404:
+          description: Account not found
       security:
         - accessToken: []
     post:
@@ -667,6 +679,8 @@ paths:
           description: Invalid user
         403:
           description: Not authorized
+        404:
+          description: Account not found
       security:
         - accessToken: []
 
@@ -698,20 +712,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
-
+        400:
+          description: Invalid userId
         403:
-          description: 'Not authorized'
+          description: Not authorized
+        404:
+          description: Account or user not found
       security:
         - accessToken: []
-    put:
+    patch:
       tags:
         - Users
       summary: Update an existing user
-      operationId: putUser
+      operationId: patchUser
       description: |
         Updates the details of a user.
       requestBody:
-        description: The user to update
+        description: The details of the user to update
         required: true
         content:
           application/json:
@@ -725,11 +742,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/User'
         400:
-          description: Invalid user
+          description: Invalid user or userId
         403:
           description: Not authorized
         404:
-          description: User not found
+          description: Account or user not found
       security:
         - accessToken: []
     delete:
@@ -740,69 +757,21 @@ paths:
         - in: query
           name: accountId
           required: false
-          description: Account id from which to remove the user's access
+          description: Account id from which to remove the user
           schema:
             $ref: '#/components/schemas/AccountId'
       description: |
-        Removes all identities and access from the given user to the given account if the account id is specified in the query string. If the account id is not specified, the identities and access for all of the accounts that the caller has 'manange' access of are removed from the given user.
+        Removes the user and all of their access and identities
       operationId: deleteUser
       responses:
         204:
           description: User was deleted
+        400:
+          description: Invalid userId
         403:
           description: Not authorized
         404:
-          description: user not found
-      security:
-        - accessToken: []
-
-  /v1/account/{accountId}/subscription/{subscriptionId}/boundary:
-    parameters:
-      - in: path
-        name: accountId
-        required: true
-        description: Account id
-        schema:
-          $ref: '#/components/schemas/AccountId'
-      - name: subscriptionId
-        in: path
-        description: The subscription id
-        required: true
-        schema:
-          $ref: '#/components/schemas/SubscriptionId'
-    get:
-      tags:
-        - Boundaries
-      summary: Get boundaries of a subscription
-      description: |
-        Returns the list of boundaries that have one or more functions in the subscription.
-      operationId: getBoundaryList
-      parameters:
-        - in: query
-          name: next
-          required: false
-          description: Optional boundary id to start returning results from
-          schema:
-            $ref: '#/components/schemas/BoundaryId'
-        - in: query
-          name: count
-          required: false
-          description: Optional number of results to return; max is 100
-          schema:
-            type: number
-            minimum: 1
-            maximum: 100
-      responses:
-        200:
-          description: A list of boundaries
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BoundaryList'
-        403:
-          description: Not authorized
-        404:
-          description: Subscription not found
+          description: Account or user not found
       security:
         - accessToken: []
 
@@ -831,7 +800,7 @@ paths:
         - in: query
           name: next
           required: false
-          description: Optional function id to start returning results from
+          description: Optional opaque token to start returning results from
           schema:
             $ref: '#/components/schemas/FunctionId'
         - in: query
@@ -858,7 +827,7 @@ paths:
         403:
           description: Not authorized
         404:
-          description: Subscription not found
+          description: Account or subscription not found
       security:
         - accessToken: []
 
@@ -893,7 +862,7 @@ paths:
         - in: query
           name: next
           required: false
-          description: Optional function id to start returning results from
+          description: Optional opaque token to start returning results from
           schema:
             $ref: '#/components/schemas/FunctionId'
         - in: query
@@ -920,7 +889,7 @@ paths:
         403:
           description: Not authorized
         404:
-          description: Subscription or boundary not found
+          description: Account, subscription or boundary not found
       security:
         - accessToken: []
 
@@ -947,7 +916,7 @@ paths:
     get:
       tags:
         - Boundaries
-      summary: Get real-time logs of all functions of a boundary
+      summary: Get real-time logs of all functions executed within the given boundary with 'x-fx-logs=1' as a query parameter or http header
       description: |
         Returns a text/event-stream response with streaming real-time logs generated by all functions executing in a boundary
       operationId: getBoundaryLogs
@@ -957,7 +926,7 @@ paths:
         403:
           description: Not authorized
         404:
-          description: Subscription or boundary not found
+          description: Account, subscription or boundary not found
       security:
         - accessToken: []
 
@@ -1004,7 +973,7 @@ paths:
         403:
           description: Not authorized
         404:
-          description: Subscription, boundary or function not found
+          description: Account, subscription, boundary or function not found
       security:
         - accessToken: []
     put:
@@ -1012,7 +981,7 @@ paths:
         - Functions
       summary: Initiate a new build and deployment of a function
       description: |
-        Initiates a build and deployment of the function within the isolation boundary. This is an asynchronous operation that returns immediately with a 'buildId' representing the function build process. This 'buildId' can be used to poll for completion by calling 'GET /build/{buildId}'.
+        Initiates a build and deployment of the function within the isolation boundary. This may complete synchronously with a status code of 200, or asynchronously with a status code of 201. If it completes asynchronously, it returns immediately with a response that includes a 'buildId' representing the function build process. This 'buildId' can be used to poll for completion by calling 'GET /build/{buildId}'.
 
         The URL for executing the function will be provided as the 'location' property of the response.
       operationId: putFunction
@@ -1024,20 +993,31 @@ paths:
             schema:
               $ref: '#/components/schemas/NewFunction'
       responses:
-        201:
-          description: Function build status
+        200:
+          description: Function build complete
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Build'
+        201:
+          description: Function build in progress
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Build'
+        204:
+          description: No change to function
         400:
           description: Invalid function
         403:
           description: Not authorized
         404:
-          description: Subscription, boundary or function not found
+          description: Account, subscription, boundary or function not found
+        429:
+          description: Module dependency failed to build
       security:
         - accessToken: []
+
     delete:
       tags:
         - Functions
@@ -1141,7 +1121,7 @@ paths:
         403:
           description: Not authorized
         404:
-          description: Subscription, boundary of function not found
+          description: Account, subscription, boundary of function not found
       security:
         - accessToken: []
 
@@ -1186,15 +1166,25 @@ paths:
       operationId: getFunctionBuild
       responses:
         200:
-          description: Function build status
+          description: Function build complete - success
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Build'
+        201:
+          description: Function build in progress
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Build'
+        400:
+          description: Invalid function
         403:
           description: Not authorized
         404:
-          description: Subscription, boundary, function or build not found
+          description: Account, subscription, boundary or function not found
+        429:
+          description: Module dependency failed to build
       security:
         - accessToken: []
 
@@ -1210,11 +1200,11 @@ components:
       type: string
       description: Account id
       example: 'acc-02387f60baea4887a24669ef70705173'
+
     Account:
       type: object
       required:
         - id
-        - displayName
       properties:
         id:
           $ref: '#/components/schemas/AccountId'
@@ -1228,15 +1218,13 @@ components:
       required:
         - items
       properties:
-        items:
-          type: array
-          description: A list audit trail entries
-          items:
-            $ref: '#/components/schemas/AccountAuditEntry'
         next:
           type: string
-          description: Continuation token to get the next batch of results. Submit as the 'next' query parameter on subsequent call.
-          example: d5k7
+          description: Opaque token to continue listing from
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccountAuditEntry'
 
     AccountAuditEntry:
       type: object
@@ -1261,8 +1249,8 @@ components:
         resource:
           type: string
           description: Name of the resource on which the action was performed
-          example: /subscription/12345/boundary/myboundary/function/myfunction17
-        issuer:
+          example: /account/acc-abcde/subscription/sub-12345/boundary/myboundary/function/myfunction17
+        issuerId:
           type: string
           description: Identifier of the issuer that authenticated the user
           example: https://sales-anchor.auth0.com/
@@ -1280,7 +1268,6 @@ components:
       type: object
       required:
         - id
-        - displayName
       properties:
         id:
           $ref: '#/components/schemas/SubscriptionId'
@@ -1295,7 +1282,8 @@ components:
         - items
       properties:
         next:
-          $ref: '#/components/schemas/SubscriptionId'
+          type: string
+          description: Opaque token to continue listing from
         items:
           type: array
           description: A list of subscriptions
@@ -1338,7 +1326,7 @@ components:
         jsonKeysUrl:
           type: string
           description: |
-            The URL of a json key file that contains the public key of the key pair used to sign access tokens from the issuer. Either the 'publicKey' or the jsonKeysUrl' must be provided.
+            The uri key of json key file that contains the public key of the key pair used to sign access tokens from the issuer. Either the 'publicKey' or the jsonKeysUrl' must be provided.
 
     Issuer:
       allOf:
@@ -1356,8 +1344,8 @@ components:
         - items
       properties:
         next:
-          description: Opaque token to continue listing from
           type: string
+          description: Opaque token to continue listing from
         items:
           type: array
           description: A list of issuers
@@ -1367,12 +1355,12 @@ components:
     Identity:
       type: object
       required:
-        - iss
-        - sub
+        - issuerId
+        - subject
       properties:
-        iss:
+        issuerId:
           $ref: '#/components/schemas/IssuerId'
-        sub:
+        subject:
           type: string
           description: The 'sub' claim value in access tokens
 
@@ -1380,6 +1368,7 @@ components:
       type: object
       required:
         - action
+        - resource
       properties:
         action:
           type: string
@@ -1425,7 +1414,8 @@ components:
         - items
       properties:
         next:
-          $ref: '#/components/schemas/ClientId'
+          type: string
+          description: Opaque token to continue listing from
         items:
           type: array
           description: A list of clients
@@ -1476,7 +1466,8 @@ components:
         - items
       properties:
         next:
-          $ref: '#/components/schemas/UserId'
+          type: string
+          description: Opaque token to continue listing from
         items:
           type: array
           description: A list of users
@@ -1487,23 +1478,12 @@ components:
       type: string
       description: Boundary id
       example: 'tenant-xyz'
-    BoundaryList:
-      type: object
-      required:
-        - items
-      properties:
-        next:
-          $ref: '#/components/schemas/BoundaryId'
-        items:
-          type: array
-          description: A list of boundaries
-          items:
-            $ref: '#/components/schemas/BoundaryId'
 
     FunctionId:
       type: string
       description: Function id
       example: 'task-123'
+
     FunctionLocation:
       type: object
       required:
@@ -1513,6 +1493,7 @@ components:
           type: string
           description: The URL for executing the function
           example: 'https://domain.com/task-abc'
+
     FunctionShort:
       type: object
       required:
@@ -1526,6 +1507,7 @@ components:
         cron:
           type: string
           example: '*/15 * * * *'
+
     Function:
       allOf:
         - type: object
@@ -1542,6 +1524,7 @@ components:
               $ref: '#/components/schemas/SubscriptionId'
         - $ref: '#/components/schemas/NewFunction'
         - $ref: '#/components/schemas/FunctionLocation'
+
     NewFunction:
       type: object
       properties:
@@ -1555,6 +1538,15 @@ components:
           description: Compute provider
           enum:
             - lambda
+        lambda:
+          type: object
+          properties:
+            memorySize:
+              type: number
+              default: 128
+            timeout:
+              type: number
+              default: 30
         configuration:
           type: object
         nodejs:
@@ -1589,6 +1581,7 @@ components:
               example: US/Pacific
         metadata:
           type: object
+
     FunctionList:
       type: object
       required:
@@ -1606,11 +1599,12 @@ components:
       type: string
       description: Build id
       example: 'bld-9f411b7209cc46f3ab0760a6e65cd1cc'
+
     Build:
       allOf:
         - type: object
           properties:
-            id:
+            buildId:
               $ref: '#/components/schemas/BuildId'
             functionId:
               $ref: '#/components/schemas/FunctionId'
