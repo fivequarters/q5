@@ -218,7 +218,7 @@ router.get(
   user.userGet()
 );
 
-router.put(
+router.patch(
   '/account/:accountId/user/:userId',
   cors(corsManagementOptions),
   authorize({ operation: AccountActions.updateUser }),
@@ -227,7 +227,7 @@ router.put(
     params: require('./schemas/api_params'),
     body: require('./schemas/user'),
   }),
-  user.userPut()
+  user.userPatch()
 );
 
 router.delete(
@@ -298,7 +298,7 @@ router.get(
   }),
   client.clientGet()
 );
-router.put(
+router.patch(
   '/account/:accountId/client/:clientId',
   cors(corsManagementOptions),
   authorize({ operation: AccountActions.updateClient }),
@@ -307,7 +307,7 @@ router.put(
     params: require('./schemas/api_params'),
     body: require('./schemas/client'),
   }),
-  client.clientPut()
+  client.clientPatch()
 );
 router.delete(
   '/account/:accountId/client/:clientId',

@@ -68,6 +68,7 @@ export interface IListBaseClientsOptions {
   next?: string;
   limit?: number;
   displayNameContains?: string;
+  exact?: boolean;
 }
 
 export interface IListClientsResult {
@@ -108,10 +109,11 @@ export class ClientTable extends AwsDynamoTable {
     const filters = [];
     const keyConditions = ['accountId = :accountId'];
     const expressionValues: any = { ':accountId': { S: accountId } };
+    const exact = options && options.exact === true;
 
     if (options) {
       if (options.displayNameContains) {
-        filters.push('contains(displayName, :displayName)');
+        filters.push(exact ? 'displayName = :displayName' : 'contains(displayName, :displayName)');
         expressionValues[':displayName'] = { S: options.displayNameContains };
       }
     }

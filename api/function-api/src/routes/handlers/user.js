@@ -15,7 +15,7 @@ function userPost() {
   };
 }
 
-function userPut() {
+function userPatch() {
   return (req, res) => {
     getAccountContext().then(accountContext => {
       const resolvedAgent = req.resolvedAgent;
@@ -56,13 +56,15 @@ function userList() {
       const next = req.query.next;
       const nameContains = req.query.name;
       const primaryEmailContains = req.query.email;
-      const issuerContains = req.query.iss;
-      const subjectContains = req.query.sub;
+      const issuerContains = req.query.issuerId;
+      const subjectContains = req.query.subject;
       const include = req.query.include;
+      const exact = req.query.exact === 'true' || req.query.exact == 1 ? true : false;
       const options = {
         limit,
         next,
         include,
+        exact,
         nameContains,
         primaryEmailContains,
         issuerContains,
@@ -114,7 +116,7 @@ function userInit() {
 
 module.exports = {
   userPost,
-  userPut,
+  userPatch,
   userGet,
   userList,
   userDelete,

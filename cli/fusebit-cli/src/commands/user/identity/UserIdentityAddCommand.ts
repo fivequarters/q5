@@ -23,11 +23,11 @@ const command = {
       description: 'The id of the user to associate with the identity.',
     },
     {
-      name: 'iss',
+      name: 'issuerId',
       description: 'The issuer claim of access tokens that will identify the user.',
     },
     {
-      name: 'sub',
+      name: 'subject',
       description: 'The subject claim of access tokens that will identify the user.',
     },
   ],
@@ -59,14 +59,14 @@ export class UserIdentityAddCommand extends Command {
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
     await input.io.writeLine();
-    const [id, iss, sub] = input.arguments as string[];
+    const [id, issuerId, subject] = input.arguments as string[];
     const confirm = input.options.confirm as boolean;
 
     const userService = await UserService.create(input);
 
     const user = await userService.getUser(id);
 
-    const newIdentity = { iss, sub };
+    const newIdentity = { issuerId, subject };
 
     if (confirm) {
       await userService.confirmAddUserIdentity(user, newIdentity);

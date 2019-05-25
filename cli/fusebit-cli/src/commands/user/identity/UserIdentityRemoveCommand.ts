@@ -23,11 +23,11 @@ const command = {
       description: 'The id of the user from which to remove the associate with the identity.',
     },
     {
-      name: 'iss',
+      name: 'issuerId',
       description: 'The issuer claim of access tokens that currently identify the user.',
     },
     {
-      name: 'sub',
+      name: 'subject',
       description: 'The subject claim of access tokens that currently identify the user.',
     },
   ],
@@ -60,7 +60,7 @@ export class UserIdentityRemoveCommand extends Command {
   protected async onExecute(input: IExecuteInput): Promise<number> {
     await input.io.writeLine();
 
-    const [id, iss, sub] = input.arguments as string[];
+    const [id, issuerId, subject] = input.arguments as string[];
     const confirm = input.options.confirm as boolean;
 
     const userService = await UserService.create(input);
@@ -72,7 +72,7 @@ export class UserIdentityRemoveCommand extends Command {
     let identityIndex = -1;
     for (let i = 0; i < user.identities.length; i++) {
       const identity = user.identities[i];
-      if (identity.iss === iss && identity.sub === sub) {
+      if (identity.issuerId === issuerId && identity.subject === subject) {
         identityIndex = i;
         i = user.identities.length;
       }
@@ -85,16 +85,16 @@ export class UserIdentityRemoveCommand extends Command {
           "The user '",
           Text.bold(user.id),
           "' does not have an identity with an issuer of '",
-          Text.bold(iss),
+          Text.bold(issuerId),
           "' and a subject of '",
-          Text.bold(sub),
+          Text.bold(subject),
           "'"
         )
       );
       return 1;
     }
 
-    const identity = { iss, sub };
+    const identity = { issuerId, subject };
 
     if (confirm) {
       await userService.confirmRemoveUserIdentity(user, identity);

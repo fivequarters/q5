@@ -652,15 +652,15 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
           items.push(...data.Items);
           lastEvaluatedKey = data.LastEvaluatedKey;
 
-          if (options && options.limit) {
-            if (items.length < options.limit && lastEvaluatedKey) {
-              params.ExclusiveStartKey = lastEvaluatedKey;
-              return func();
-            }
-            if (items.length >= options.limit) {
-              items = items.splice(0, options.limit);
-              lastEvaluatedKey = items[items.length - 1];
-            }
+          const limit = options && options.limit ? options.limit : params.Limit;
+
+          if (items.length < limit && lastEvaluatedKey) {
+            params.ExclusiveStartKey = lastEvaluatedKey;
+            return func();
+          }
+          if (items.length >= limit) {
+            items = items.splice(0, limit);
+            lastEvaluatedKey = items[items.length - 1];
           }
 
           if (table.ttlAttribute) {

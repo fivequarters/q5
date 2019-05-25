@@ -15,7 +15,7 @@ function clientPost() {
   };
 }
 
-function clientPut() {
+function clientPatch() {
   return (req, res) => {
     getAccountContext().then(accountContext => {
       const resolvedAgent = req.resolvedAgent;
@@ -55,8 +55,8 @@ function clientList() {
       const limit = req.query.count;
       const next = req.query.next;
       const displayNameContains = req.query.name;
-      const issuerContains = req.query.iss;
-      const subjectContains = req.query.sub;
+      const issuerContains = req.query.issuerId;
+      const subjectContains = req.query.subject;
       const include = req.query.include;
       const options = {
         limit,
@@ -112,7 +112,7 @@ function clientInit() {
 
 module.exports = {
   clientPost,
-  clientPut,
+  clientPatch,
   clientGet,
   clientList,
   clientDelete,

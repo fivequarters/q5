@@ -14,7 +14,7 @@ import { InitTable } from './tables/InitTable';
 function toAgent(agentId: string, identities: IIdentity[], accessEntries: IAccessEntry[]) {
   return {
     id: agentId,
-    identities: identities ? identities.map(toIdentity) : undefined,
+    identities: identities && identities.length ? identities.map(toIdentity) : undefined,
     access:
       accessEntries && accessEntries.length
         ? {
@@ -26,8 +26,8 @@ function toAgent(agentId: string, identities: IIdentity[], accessEntries: IAcces
 
 function toIdentity(identity: IIdentity): IIdentity {
   // to ensure that extra identity properties are not returned
-  const { iss, sub } = identity;
-  return { iss, sub };
+  const { issuerId, subject } = identity;
+  return { issuerId, subject };
 }
 
 function toAccessEntries(entry: any): IAccessEntry {
@@ -41,7 +41,7 @@ function fromAccessEntries(entry: IAccessEntry) {
 }
 
 function identityEquality(identity1: IIdentity, identity2: IIdentity) {
-  return identity1.iss === identity2.iss && identity1.sub === identity2.sub;
+  return identity1.issuerId === identity2.issuerId && identity1.subject === identity2.subject;
 }
 
 function accessEquality(entry1: IAccessEntry, entry2: IAccessEntry) {
@@ -84,22 +84,23 @@ export class AgentData extends DataSource implements IAgentData {
     this.initTable = initTable;
   }
 
-  public async add(accountId: string, agent: IAgent): Promise<void> {
+  public async add(accountId: string, agent: IAgent): Promise<IAgent> {
     const agentId = agent.id as string;
     let identitiesPromise;
     if (agent.identities && agent.identities.length) {
       identitiesPromise = this.identityTable.addAllForAgent(accountId, agentId, agent.identities);
     }
 
+    let accessEntries;
     let accessEntryPromise;
     if (agent.access && agent.access.allow && agent.access.allow.length) {
-      const accessEntries = agent.access.allow.map(fromAccessEntries);
+      accessEntries = agent.access.allow.map(fromAccessEntries);
       accessEntryPromise = this.accessEntryTable.addAll(accountId, agentId, accessEntries);
     }
 
     await identitiesPromise;
     await accessEntryPromise;
-    return;
+    return toAgent(agentId, agent.identities || [], accessEntries || []);
   }
 
   public async init(accountId: string, agentId: string, jwtSecret: string): Promise<void> {

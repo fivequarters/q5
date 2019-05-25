@@ -64,12 +64,12 @@ export class UserData extends DataSource implements IUserData {
 
     await this.userTable.add(accountId, user as IUserWithId);
     try {
-      await this.agentData.add(accountId, user);
+      const agent = await this.agentData.add(accountId, user);
+      return toUser(user, agent);
     } catch (error) {
       await this.userTable.delete(accountId, user.id as string);
       throw error;
     }
-    return user;
   }
 
   public async get(accountId: string, userId: string): Promise<IUser> {
@@ -114,8 +114,8 @@ export class UserData extends DataSource implements IUserData {
 
   private async tryGetIssuerSubject(accountId: string, options: IListUsersOptions): Promise<IListUsersResult> {
     const identity = {
-      iss: options.issuerContains as string,
-      sub: options.subjectContains as string,
+      issuerId: options.issuerContains as string,
+      subject: options.subjectContains as string,
     };
 
     let agent;
@@ -128,7 +128,7 @@ export class UserData extends DataSource implements IUserData {
     }
 
     if (!agent) {
-      return this.listIssuerSubject(accountId, options);
+      return options.exact ? { items: [] } : this.listIssuerSubject(accountId, options);
     }
 
     const agentId = agent.id as string;
@@ -163,12 +163,14 @@ export class UserData extends DataSource implements IUserData {
     const usersOptions = {
       primaryEmailContains: options.primaryEmailContains,
       nameContains: options.nameContains,
+      exact: options.exact,
       next: options.next,
       limit: options.limit,
     };
     const agentOptions = {
       issuerContains: options.issuerContains,
       subjectContains: options.subjectContains,
+      exact: options.exact,
       next: options.next,
       limit: options.limit,
     };

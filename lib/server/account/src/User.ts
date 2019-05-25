@@ -97,7 +97,7 @@ export class User {
     while (true) {
       try {
         user.id = this.idFactory.getUserId();
-        await this.dataContext.userData.add(accountId, user);
+        user = await this.dataContext.userData.add(accountId, user);
         return user;
       } catch (error) {
         tries--;

@@ -49,7 +49,7 @@ export class InitCommand extends Command {
     const clientService = await ClientService.create(input);
 
     const decodedToken = await userService.decodeInitToken(token);
-    const { accountId, subscriptionId, boundaryId, functionId, agentId, baseUrl, iss, sub } = decodedToken;
+    const { accountId, subscriptionId, boundaryId, functionId, agentId, baseUrl, issuerId, subject } = decodedToken;
 
     if (!profileName) {
       profileName = await profileService.getProfileNameFromBaseUrl(baseUrl);
@@ -78,8 +78,8 @@ export class InitCommand extends Command {
       boundary: boundaryId,
       function: functionId,
       agent: agentId,
-      issuer: iss,
-      subject: sub,
+      issuer: issuerId,
+      subject: subject,
     };
 
     await profileService.addProfile(profileName, newProfile, keyPair);

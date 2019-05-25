@@ -47,8 +47,8 @@ function formatResourcePath(resource: string) {
 // -------------------
 
 export interface IFusebitIdentitiy {
-  iss: string;
-  sub: string;
+  issuerId: string;
+  subject: string;
 }
 
 export interface IFusebitAccess {
@@ -92,8 +92,8 @@ export interface IFusebitInit extends IFusebitNewInitEntry {
   accountId: string;
   agentId: string;
   baseUrl: string;
-  iss: string;
-  sub: string;
+  issuerId: string;
+  subject: string;
 }
 
 export interface IFusebitInitResolve {
@@ -141,10 +141,10 @@ export class UserService {
       query.push(`email=${encodeURIComponent(options.primaryEmailContains)}`);
     }
     if (options.issuerContains) {
-      query.push(`iss=${encodeURIComponent(options.issuerContains)}`);
+      query.push(`issuerId=${encodeURIComponent(options.issuerContains)}`);
     }
     if (options.subjectContains) {
-      query.push(`sub=${encodeURIComponent(options.subjectContains)}`);
+      query.push(`subject=${encodeURIComponent(options.subjectContains)}`);
     }
     const queryString = query.length ? `?${query.join('&')}` : '';
 
@@ -245,7 +245,7 @@ export class UserService {
         errorMessage: Text.create("Unable to add the identity to user '", Text.bold(id), "'"),
       },
       {
-        method: 'PUT',
+        method: 'PATCH',
         url: `${profile.baseUrl}/v1/account/${profile.account}/user/${id}`,
         data: user,
         headers: { Authorization: `bearer ${profile.accessToken}` },
@@ -271,7 +271,7 @@ export class UserService {
         errorMessage: Text.create("Unable to remove the identity from user '", Text.bold(id), "'"),
       },
       {
-        method: 'PUT',
+        method: 'PATCH',
         url: `${profile.baseUrl}/v1/account/${profile.account}/user/${id}`,
         data: user,
         headers: { Authorization: `bearer ${profile.accessToken}` },
@@ -297,7 +297,7 @@ export class UserService {
         errorMessage: Text.create("Unable to add the access to user '", Text.bold(id), "'"),
       },
       {
-        method: 'PUT',
+        method: 'PATCH',
         url: `${profile.baseUrl}/v1/account/${profile.account}/user/${id}`,
         data: user,
         headers: { Authorization: `bearer ${profile.accessToken}` },
@@ -323,7 +323,7 @@ export class UserService {
         errorMessage: Text.create("Unable to remove the access from user '", Text.bold(id), "'"),
       },
       {
-        method: 'PUT',
+        method: 'PATCH',
         url: `${profile.baseUrl}/v1/account/${profile.account}/user/${id}`,
         data: user,
         headers: { Authorization: `bearer ${profile.accessToken}` },
@@ -349,7 +349,7 @@ export class UserService {
         errorMessage: Text.create("Unable to update user '", Text.bold(id), "'"),
       },
       {
-        method: 'PUT',
+        method: 'PATCH',
         url: `${profile.baseUrl}/v1/account/${profile.account}/user/${id}`,
         data: user,
         headers: { Authorization: `bearer ${profile.accessToken}` },
@@ -427,8 +427,8 @@ export class UserService {
       boundaryId: decoded.boundaryId,
       functionId: decoded.functionId,
       baseUrl: decoded.baseUrl,
-      iss: decoded.iss,
-      sub: decoded.sub,
+      issuerId: decoded.iss,
+      subject: decoded.sub,
     };
   }
 
@@ -667,7 +667,16 @@ export class UserService {
       details.push(...[Text.eol(), Text.eol()]);
       details.push(Text.italic('Identities: '));
       for (const identity of user.identities) {
-        details.push(...[Text.eol(), Text.dim('• iss: '), identity.iss, Text.eol(), Text.dim('  sub: '), identity.sub]);
+        details.push(
+          ...[
+            Text.eol(),
+            Text.dim('• issuer: '),
+            identity.issuerId,
+            Text.eol(),
+            Text.dim('  subject: '),
+            identity.subject,
+          ]
+        );
       }
     }
 
@@ -782,8 +791,8 @@ export class UserService {
       { name: 'Last Name', value: user.lastName || notSet },
       { name: 'Email', value: user.primaryEmail || notSet },
       { name: Text.dim('•'), value: Text.dim('•') },
-      { name: 'Issuer', value: identity.iss },
-      { name: 'Subject', value: identity.sub },
+      { name: 'Issuer', value: identity.issuerId },
+      { name: 'Subject', value: identity.subject },
     ];
 
     return details;

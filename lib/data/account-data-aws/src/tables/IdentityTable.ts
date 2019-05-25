@@ -46,16 +46,16 @@ function toKey(identity: IIdentity, accountId: string) {
 function toItem(identity: IIdentity, { accountId, agentId }: { accountId: string; agentId: string }) {
   const item: any = toKey(identity, accountId);
   item.agentId = { S: agentId };
-  item.issuerId = { S: identity.iss };
-  item.subject = { S: identity.sub };
+  item.issuerId = { S: identity.issuerId };
+  item.subject = { S: identity.subject };
   return item;
 }
 
 function fromItem(item: any): IFullIdentity {
   return {
     accountId: item.accountId.S,
-    iss: item.issuerId.S,
-    sub: item.subject.S,
+    issuerId: item.issuerId.S,
+    subject: item.subject.S,
     agentId: item.agentId.S,
   };
 }
@@ -68,15 +68,15 @@ function getConfig(config: AccountDataAwsConfig) {
 }
 
 function toIdentity(identity: IIdentity) {
-  return `${toBase64(identity.iss)}${delimiter}${toBase64(identity.sub)}`;
+  return `${toBase64(identity.issuerId)}${delimiter}${toBase64(identity.subject)}`;
 }
 
 function onIdentityAlreadyExists(identity: IIdentity) {
-  throw AccountDataException.identityAlreadyExists(identity.iss, identity.sub);
+  throw AccountDataException.identityAlreadyExists(identity.issuerId, identity.subject);
 }
 
 function onNoIdentity(identity: IIdentity) {
-  throw AccountDataException.noIdentity(identity.iss, identity.sub);
+  throw AccountDataException.noIdentity(identity.issuerId, identity.subject);
 }
 
 // -------------------
@@ -84,8 +84,8 @@ function onNoIdentity(identity: IIdentity) {
 // -------------------
 
 export interface IIdentity {
-  iss: string;
-  sub: string;
+  issuerId: string;
+  subject: string;
 }
 
 export interface IFullIdentity extends IIdentity {
@@ -99,6 +99,7 @@ export interface IListIdentitiesOptions {
   agentId?: string;
   issuerContains?: string;
   subjectContains?: string;
+  exact?: boolean;
 }
 
 export interface IListIdentitiesResult {
@@ -137,6 +138,7 @@ export class IdentityTable extends AwsDynamoTable {
     const filters = [];
     const keyConditions = ['accountId = :accountId'];
     const expressionValues: any = { ':accountId': { S: accountId } };
+    const exact = options && options.exact === true;
 
     if (options) {
       if (options.agentId) {
@@ -146,12 +148,12 @@ export class IdentityTable extends AwsDynamoTable {
       }
 
       if (options.issuerContains) {
-        filters.push('contains(issuerId, :issuerId)');
+        filters.push(exact ? 'issuerId = :issuerId' : 'contains(issuerId, :issuerId)');
         expressionValues[':issuerId'] = { S: options.issuerContains };
       }
 
       if (options.subjectContains) {
-        filters.push('contains(subject, :subject)');
+        filters.push(exact ? 'subject = :subject' : 'contains(subject, :subject)');
         expressionValues[':subject'] = { S: options.subjectContains };
       }
     }

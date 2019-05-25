@@ -75,6 +75,7 @@ export interface IListUsersOptions {
   limit?: number;
   nameContains?: string;
   primaryEmailContains?: string;
+  exact?: boolean;
 }
 
 export interface IListUsersResult {
@@ -115,15 +116,18 @@ export class UserTable extends AwsDynamoTable {
     const filters = [];
     const keyConditions = ['accountId = :accountId'];
     const expressionValues: any = { ':accountId': { S: accountId } };
+    const exact = options && options.exact === true;
 
     if (options) {
       if (options.nameContains) {
-        filters.push('(contains(lastName, :name) or contains(firstName, :name))');
+        filters.push(
+          exact ? '(lastName = :name or firstName =:name)' : '(contains(lastName, :name) or contains(firstName, :name))'
+        );
         expressionValues[':name'] = { S: options.nameContains };
       }
 
       if (options.primaryEmailContains) {
-        filters.push('contains(primaryEmail, :primaryEmail)');
+        filters.push(exact ? 'primaryEmail = :primaryEmail' : 'contains(primaryEmail, :primaryEmail)');
         expressionValues[':primaryEmail'] = { S: options.primaryEmailContains };
       }
     }

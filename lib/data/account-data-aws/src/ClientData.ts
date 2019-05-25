@@ -63,12 +63,12 @@ export class ClientData extends DataSource implements IClientData {
 
     await this.clientTable.add(accountId, client as IClientWithId);
     try {
-      await this.agentData.add(accountId, client);
+      const agent = await this.agentData.add(accountId, client);
+      return toClient(client, agent);
     } catch (error) {
       await this.clientTable.delete(accountId, client.id as string);
       throw error;
     }
-    return client;
   }
 
   public async get(accountId: string, clientId: string): Promise<IClient> {
@@ -114,8 +114,8 @@ export class ClientData extends DataSource implements IClientData {
 
   private async tryGetIssuerSubject(accountId: string, options: IListClientsOptions): Promise<IListClientsResult> {
     const identity = {
-      iss: options.issuerContains as string,
-      sub: options.subjectContains as string,
+      issuerId: options.issuerContains as string,
+      subject: options.subjectContains as string,
     };
 
     let agent;
