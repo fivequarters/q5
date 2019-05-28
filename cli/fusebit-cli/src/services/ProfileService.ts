@@ -276,6 +276,10 @@ export class ProfileService {
       }
     }
 
+    if (typeof profile.function === 'string') {
+      profile.function = profile.function.toLowerCase();
+    }
+
     return profile;
   }
 
