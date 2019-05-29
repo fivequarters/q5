@@ -6,6 +6,7 @@ import { request } from '@5qtrs/request';
 // ------------------
 
 const testUsers: string[] = [];
+const testClients: string[] = [];
 const testIssuers: string[] = [];
 
 // -------------------
@@ -17,6 +18,16 @@ export interface IListUserOptions {
   next?: string;
   name?: string;
   email?: string;
+  issuerId?: string;
+  subject?: string;
+  include?: boolean;
+  exact?: boolean;
+}
+
+export interface IListClientOptions {
+  count?: number;
+  next?: string;
+  name?: string;
   issuerId?: string;
   subject?: string;
   include?: boolean;
@@ -342,5 +353,101 @@ export async function cleanUpUsers(account: IAccount) {
   while (testUsers.length) {
     const toRemove = testUsers.splice(0, 5);
     await Promise.all(toRemove.map(userId => removeUser(account, userId)));
+  }
+}
+
+export async function addClient(account: IAccount, data: any) {
+  const response = await request({
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${account.accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    url: `${account.baseUrl}/v1/account/${account.accountId}/client`,
+    data: JSON.stringify(data),
+  });
+  if (response.status === 200) {
+    testClients.push(response.data.id);
+  }
+  return response;
+}
+
+export async function getClient(account: IAccount, clientId: string) {
+  return request({
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${account.accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    url: `${account.baseUrl}/v1/account/${account.accountId}/client/${clientId}`,
+  });
+}
+
+export async function listClients(account: IAccount, options?: IListClientOptions) {
+  const queryStringParams = [];
+  if (options) {
+    if (options.count !== undefined) {
+      queryStringParams.push(`count=${options.count}`);
+    }
+    if (options.next !== undefined) {
+      queryStringParams.push(`next=${encodeURIComponent(options.next)}`);
+    }
+    if (options.name !== undefined) {
+      queryStringParams.push(`name=${encodeURIComponent(options.name)}`);
+    }
+    if (options.issuerId !== undefined) {
+      queryStringParams.push(`issuerId=${encodeURIComponent(options.issuerId)}`);
+    }
+    if (options.subject !== undefined) {
+      queryStringParams.push(`subject=${encodeURIComponent(options.subject)}`);
+    }
+    if (options.include === true) {
+      queryStringParams.push(`include=all`);
+    }
+    if (options.exact === true) {
+      queryStringParams.push(`exact=true`);
+    }
+  }
+  const queryString = queryStringParams.length ? `?${queryStringParams.join('&')}` : '';
+
+  const response = await request({
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${account.accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    url: `${account.baseUrl}/v1/account/${account.accountId}/client${queryString}`,
+  });
+  return response;
+}
+
+export async function updateClient(account: IAccount, clientId: string, data: any) {
+  const response = await request({
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${account.accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    url: `${account.baseUrl}/v1/account/${account.accountId}/client/${clientId}`,
+    data: JSON.stringify(data),
+  });
+  return response;
+}
+
+export async function removeClient(account: IAccount, clientId: string) {
+  return request({
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${account.accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    url: `${account.baseUrl}/v1/account/${account.accountId}/client/${clientId}`,
+  });
+}
+
+export async function cleanUpClients(account: IAccount) {
+  while (testClients.length) {
+    const toRemove = testClients.splice(0, 5);
+    await Promise.all(toRemove.map(clientId => removeClient(account, clientId)));
   }
 }

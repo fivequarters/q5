@@ -1,5 +1,5 @@
 import { IAccount, FakeAccount, resolveAccount } from './accountResolver';
-import { addUser, cleanUpUsers } from './sdk';
+import { addUser, addClient, cleanUpUsers } from './sdk';
 import { random } from '@5qtrs/random';
 
 let account: IAccount = FakeAccount;
@@ -144,7 +144,20 @@ describe('User', () => {
       expect(user.data.status).toBe(400);
       expect(user.data.statusCode).toBe(400);
       expect(user.data.message).toBe(
-        `The identity with issuer 'test' and subject '${subject}' is already associated with a user`
+        `The identity with issuer 'test' and subject '${subject}' is already associated with a user or client`
+      );
+    }, 20000);
+
+    test('Adding a user with an exisitng client identity returns an error', async () => {
+      const subject = `sub-${random()}`;
+      const identities = [{ issuerId: 'test', subject }];
+      await addClient(account, { identities });
+      const user = await addUser(account, { identities });
+      expect(user.status).toBe(400);
+      expect(user.data.status).toBe(400);
+      expect(user.data.statusCode).toBe(400);
+      expect(user.data.message).toBe(
+        `The identity with issuer 'test' and subject '${subject}' is already associated with a user or client`
       );
     }, 20000);
 
