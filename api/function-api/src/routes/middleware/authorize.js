@@ -34,6 +34,11 @@ module.exports = function authorize_factory(options) {
       return next();
     }
 
+    if (options.resolve) {
+      req.token = token;
+      return next();
+    }
+
     const accountId = req.params.accountId;
 
     try {
@@ -43,14 +48,14 @@ module.exports = function authorize_factory(options) {
       if (options && options.operation) {
         const resource = req.path;
         const action = options.operation;
-        const { iss, sub } = resolvedAgent.identities[0];
+        const { issuerId, subject } = resolvedAgent.identities[0];
         await resolvedAgent.ensureAuthorized(action, resource);
         if (meteringEnabled) {
           meterApiCall({
             deploymentId: process.env.DEPLOYMENT_KEY,
             accountId,
-            issuer: iss,
-            subject: sub,
+            issuer: issuerId,
+            subject: subject,
             action,
             resource,
             subscriptionId: req.params.subscriptionId,

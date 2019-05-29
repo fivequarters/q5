@@ -5,6 +5,7 @@ function initResolve() {
     getAccountContext().then(accountContext => {
       const accountId = req.params.accountId;
       const initResolve = req.body;
+      initResolve.jwt = req.token;
 
       accountContext.init
         .resolve(accountId, initResolve)

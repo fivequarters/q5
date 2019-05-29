@@ -65,11 +65,10 @@ export class InitCommand extends Command {
     const initResolve = {
       publicKey: keyPair.publicKey,
       keyId: keyPair.kid,
-      jwt: token,
     };
 
     const agentService = agentId.indexOf('usr') === 0 ? userService : clientService;
-    const agent = await agentService.resolveInit(baseUrl, accountId, agentId, initResolve);
+    const agent = await agentService.resolveInit(baseUrl, accountId, agentId, token, initResolve);
 
     const newProfile = {
       baseUrl,

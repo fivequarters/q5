@@ -6,6 +6,7 @@ import { AccountDataAwsConfig } from './AccountDataAwsConfig';
 import { AccessEntryTable } from './tables/AccessEntryTable';
 import { IdentityTable } from './tables/IdentityTable';
 import { InitTable } from './tables/InitTable';
+import { IssuerTable } from './tables/IssuerTable';
 
 // ------------------
 // Internal Functions
@@ -48,6 +49,11 @@ function accessEquality(entry1: IAccessEntry, entry2: IAccessEntry) {
   return entry1.resource === entry2.resource && entry1.action === entry2.action;
 }
 
+function isCliIssuer(issuerId: string, agentId: string) {
+  const issuerIdSegments = issuerId.split('.');
+  return issuerIdSegments.length === 3 && issuerIdSegments[1] === agentId;
+}
+
 // -------------------
 // Exported Interfaces
 // -------------------
@@ -70,18 +76,25 @@ export interface IListAgentIdsResult {
 
 export class AgentData extends DataSource implements IAgentData {
   public static async create(config: AccountDataAwsConfig, tables: AccountDataTables) {
-    return new AgentData(tables.identityTable, tables.accessEntryTable, tables.initTable);
+    return new AgentData(tables.identityTable, tables.accessEntryTable, tables.initTable, tables.issuerTable);
   }
 
   private identityTable: IdentityTable;
   private accessEntryTable: AccessEntryTable;
   private initTable: InitTable;
+  private issuerTable: IssuerTable;
 
-  private constructor(identityTable: IdentityTable, accessEntryTable: AccessEntryTable, initTable: InitTable) {
+  private constructor(
+    identityTable: IdentityTable,
+    accessEntryTable: AccessEntryTable,
+    initTable: InitTable,
+    issuerTable: IssuerTable
+  ) {
     super([identityTable, accessEntryTable, initTable]);
     this.identityTable = identityTable;
     this.accessEntryTable = accessEntryTable;
     this.initTable = initTable;
+    this.issuerTable = issuerTable;
   }
 
   public async add(accountId: string, agent: IAgent): Promise<IAgent> {
@@ -154,8 +167,14 @@ export class AgentData extends DataSource implements IAgentData {
     const identitiesPromise = this.identityTable.deleteAllForAgent(accountId, agentId);
     const accessEntryPromise = this.accessEntryTable.deleteAll(agentId);
 
-    await identitiesPromise;
+    const deletedIdentities = await identitiesPromise;
+    const promises = [];
+    for (const identity of deletedIdentities) {
+      promises.push(this.deleteCliIdentityIssuer(accountId, agentId, identity));
+    }
+
     await accessEntryPromise;
+    await Promise.all(promises);
   }
 
   public async replaceIdentities(accountId: string, agentId: string, identities?: IIdentity[]): Promise<IIdentity[]> {
@@ -202,5 +221,18 @@ export class AgentData extends DataSource implements IAgentData {
     const actual = difference(existingAccessEntries, toRemove);
     actual.push(...toAdd);
     return actual;
+  }
+
+  private async deleteCliIdentityIssuer(accountId: string, agentId: string, identity: IIdentity): Promise<void> {
+    const issuerId = identity.issuerId;
+    if (isCliIssuer(issuerId, agentId)) {
+      const remainingIdentities = await this.identityTable.list(accountId, {
+        issuerContains: issuerId,
+        exact: true,
+      });
+      if (remainingIdentities.items.length === 0) {
+        await this.issuerTable.delete(accountId, issuerId);
+      }
+    }
   }
 }

@@ -7,11 +7,13 @@ import {
   AccountDataException,
 } from '@5qtrs/account-data';
 import { decodeJwt, decodeJwtHeader, verifyJwt } from '@5qtrs/jwt';
+import { AccountConfig } from './AccountConfig';
 
 // ------------------
 // Internal Constants
 // ------------------
 
+const algorithms = ['RS256', 'RS384', 'RS512', 'PS256', 'PS384', 'PS512', 'ES256', 'ES384', 'ES512'];
 const rootAgent = {
   id: 'root-user',
   identities: [{ issuerId: 'root', subject: 'root' }],
@@ -28,7 +30,13 @@ async function resolveAgent(dataContext: IAccountDataContext, accountId: string,
   return dataContext.agentData.get(accountId, { issuerId, subject });
 }
 
-async function validateJwt(dataContext: IAccountDataContext, accountId: string, jwt: string, issuerId: string) {
+async function validateJwt(
+  dataContext: IAccountDataContext,
+  accountId: string,
+  audience: string,
+  jwt: string,
+  issuerId: string
+) {
   const decodedJwtHeader = decodeJwtHeader(jwt);
   const kid = decodedJwtHeader.kid;
   const issuer = await dataContext.issuerData.get(accountId, issuerId);
@@ -48,7 +56,7 @@ async function validateJwt(dataContext: IAccountDataContext, accountId: string, 
   }
 
   try {
-    await verifyJwt(jwt, secretOrUrl);
+    await verifyJwt(jwt, secretOrUrl, { audience, algorithms, issuer });
   } catch (error) {
     throw AccountDataException.invalidJwt(error);
   }
@@ -104,6 +112,7 @@ export class ResolvedAgent implements IAgent {
   }
 
   public static async create(
+    accountConfig: AccountConfig,
     dataContext: IAccountDataContext,
     accountId: string,
     jwt: string,
@@ -118,9 +127,10 @@ export class ResolvedAgent implements IAgent {
     const issuerId = decodedJwtPayload.iss;
     const subject = decodedJwtPayload.sub;
     const identity = { issuerId, subject };
+    const audience = accountConfig.jwtAudience;
 
     const agentPromise = resolveAgent(dataContext, accountId, issuerId, subject);
-    const validatePromise = validateJwt(dataContext, accountId, jwt, issuerId);
+    const validatePromise = validateJwt(dataContext, accountId, audience, jwt, issuerId);
 
     await validatePromise;
     const agent = await agentPromise;

@@ -175,8 +175,9 @@ export class IdentityTable extends AwsDynamoTable {
     return this.deleteItem(identity, options);
   }
 
-  public async addAllForAgent(accountId: string, agentId: string, identities: IIdentity[]): Promise<void> {
+  public async addAllForAgent(accountId: string, agentId: string, identities: IIdentity[]): Promise<IIdentity[]> {
     await Promise.all(identities.map(identity => this.add(accountId, agentId, identity)));
+    return identities;
   }
 
   public async getAllForAgent(accountId: string, agentId: string): Promise<IFullIdentity[]> {
@@ -190,10 +191,11 @@ export class IdentityTable extends AwsDynamoTable {
     return all;
   }
 
-  public async deleteAllForAgent(accountId: string, agentId: string, identities?: IIdentity[]): Promise<void> {
+  public async deleteAllForAgent(accountId: string, agentId: string, identities?: IIdentity[]): Promise<IIdentity[]> {
     identities = identities ? identities : await this.getAllForAgent(accountId, agentId);
     const options = { context: accountId };
     await this.deleteAllItems(identities, options);
+    return identities;
   }
 
   public async listByIdentity(identity: IIdentity, options: IListIdentitiesOptions): Promise<IListIdentitiesResult> {

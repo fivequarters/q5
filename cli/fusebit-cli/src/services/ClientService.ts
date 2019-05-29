@@ -97,7 +97,6 @@ export interface IFusebitInit extends IFusebitNewInitEntry {
 export interface IFusebitInitResolve {
   publicKey: string;
   keyId: string;
-  jwt: string;
 }
 
 export interface IFusebitClientListOptions {
@@ -430,6 +429,7 @@ export class ClientService {
     baseUrl: string,
     accountId: string,
     agentId: string,
+    accessToken: string,
     initResolve: IFusebitInitResolve
   ): Promise<IFusebitClient> {
     const client = await this.executeService.executeRequest(
@@ -441,6 +441,7 @@ export class ClientService {
       },
       {
         method: 'POST',
+        headers: { Authorization: `bearer ${accessToken}` },
         url: `${baseUrl}/v1/account/${accountId}/init`,
         data: initResolve,
       }

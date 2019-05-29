@@ -7,7 +7,10 @@ let accountContext;
 
 async function getAccountContext() {
   if (!accountContext) {
-    const config = new Config();
+    const config = new Config({
+      jwtAudience: process.env.API_SERVER,
+      jwtIssuer: process.env.API_SERVER,
+    });
     const creds = await AwsCreds.create({
       account: process.env.AWS_ACCOUNT,
       accessKeyId: process.env.AWS_ACCESS_KEY_ID,

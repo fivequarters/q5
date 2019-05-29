@@ -33,7 +33,7 @@ function getDomainFromBaseUrl(baseUrl: string): string {
   return domain;
 }
 
-function generateIssuer(agentId: string, baseUrl: string): string {
+function generateIssuerId(agentId: string, baseUrl: string): string {
   const domain = getDomainFromBaseUrl(baseUrl);
   return `${random({ lengthInBytes: issuerSegmentLength / 2 })}.${agentId}.${domain}`;
 }
@@ -89,8 +89,10 @@ export class Init {
       boundaryId: initEntry.boundaryId || undefined,
       functionId: initEntry.functionId || undefined,
       baseUrl: initEntry.baseUrl,
-      iss: generateIssuer(initEntry.agentId, initEntry.baseUrl),
-      sub: generateSubject(),
+      issuerId: generateIssuerId(initEntry.agentId, initEntry.baseUrl),
+      subject: generateSubject(),
+      iss: this.config.jwtIssuer,
+      aud: this.config.jwtAudience,
     };
 
     const options = {
@@ -103,10 +105,24 @@ export class Init {
 
   public async resolve(accountId: string, initResolve: IInitResolve): Promise<IUser | IClient> {
     const decodedJwt = await decodeJwt(initResolve.jwt);
+    if (!decodedJwt) {
+      throw AccountDataException.invalidJwt(new Error('Unable to decode jwt'));
+    }
+    if (!decodedJwt.accountId) {
+      throw AccountDataException.invalidJwt(new Error("Init jwt missing 'accountId' field"));
+    }
+    if (!decodedJwt.agentId) {
+      throw AccountDataException.invalidJwt(new Error("Init jwt missing 'agentId' field"));
+    }
+
     const jwtSecret = await this.dataContext.agentData.resolve(decodedJwt.accountId, decodedJwt.agentId);
 
     try {
-      verifyJwt(initResolve.jwt, jwtSecret, { algorithms: [jwtAlgorithm] });
+      await verifyJwt(initResolve.jwt, jwtSecret, {
+        algorithms: [jwtAlgorithm],
+        audience: this.config.jwtAudience,
+        issuer: this.config.jwtIssuer,
+      });
     } catch (error) {
       throw AccountDataException.invalidJwt(error);
     }
@@ -117,14 +133,14 @@ export class Init {
 
     const newIssuer = {
       displayName: `CLI for ${decodedJwt.agentId}`,
-      id: decodedJwt.iss,
+      id: decodedJwt.issuerId,
       publicKeys: [{ keyId: initResolve.keyId, publicKey: initResolve.publicKey }],
     };
 
     await this.dataContext.issuerData.add(accountId, newIssuer);
 
     agent.identities = agent.identities || [];
-    agent.identities.push({ iss: decodedJwt.iss, sub: decodedJwt.sub });
+    agent.identities.push({ issuerId: decodedJwt.issuerId, subject: decodedJwt.subject });
 
     return data.update(accountId, agent);
   }

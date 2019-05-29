@@ -99,7 +99,6 @@ export interface IFusebitInit extends IFusebitNewInitEntry {
 export interface IFusebitInitResolve {
   publicKey: string;
   keyId: string;
-  jwt: string;
 }
 
 export interface IFusebitUserListOptions {
@@ -404,11 +403,11 @@ export class UserService {
     if (!decoded.baseUrl) {
       missingValues.push('baseUrl');
     }
-    if (!decoded.iss) {
-      missingValues.push('iss');
+    if (!decoded.issuerId) {
+      missingValues.push('issuerId');
     }
-    if (!decoded.sub) {
-      missingValues.push('sub');
+    if (!decoded.subject) {
+      missingValues.push('subject');
     }
 
     if (missingValues.length) {
@@ -436,6 +435,7 @@ export class UserService {
     baseUrl: string,
     accountId: string,
     agentId: string,
+    accessToken: string,
     initResolve: IFusebitInitResolve
   ): Promise<IFusebitUser> {
     const user = await this.executeService.executeRequest(
@@ -447,6 +447,7 @@ export class UserService {
       },
       {
         method: 'POST',
+        headers: { Authorization: `bearer ${accessToken}` },
         url: `${baseUrl}/v1/account/${accountId}/init`,
         data: initResolve,
       }
