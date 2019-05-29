@@ -58,10 +58,12 @@ function clientList() {
       const issuerContains = req.query.issuerId;
       const subjectContains = req.query.subject;
       const include = req.query.include;
+      const exact = req.query.exact === 'true' || req.query.exact == 1 ? true : false;
       const options = {
         limit,
         next,
         include,
+        exact,
         displayNameContains,
         issuerContains,
         subjectContains,

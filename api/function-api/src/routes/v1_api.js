@@ -279,7 +279,7 @@ router.get(
 router.post(
   '/account/:accountId/client',
   cors(corsManagementOptions),
-  authorize(),
+  authorize({ operation: AccountActions.addClient }),
   express.json(),
   validate_schema({
     params: require('./schemas/api_params'),

@@ -101,7 +101,7 @@ export class AccountDataException extends Exception {
   }
 
   public static identityAlreadyExists(issuer: string, subject: string) {
-    const message = `The identity with issuer '${issuer}' and subject '${subject}' is already associated with a user`;
+    const message = `The identity with issuer '${issuer}' and subject '${subject}' is already associated with a user or client`;
     return new AccountDataException(AccountDataExceptionCode.identityAlreadyExists, message, [issuer, subject]);
   }
 
