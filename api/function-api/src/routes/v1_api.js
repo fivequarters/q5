@@ -255,6 +255,7 @@ router.post(
 router.post(
   '/account/:accountId/init',
   cors(corsManagementOptions),
+  authorize({ resolve: true }),
   express.json(),
   validate_schema({
     params: require('./schemas/api_params'),

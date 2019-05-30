@@ -34,6 +34,7 @@ export enum AccountDataExceptionCode {
   issuerMissingPublicKey = 'issuerMissingPublicKey',
   issuerJsonKeyUriAndPublicKeys = 'issuerJsonKeyUriAndPublicKeys',
   issuerMissingJsonKeyUriAndPublicKeys = 'issuerMissingJsonKeyUriAndPublicKeys',
+  configNotProvided = 'configNotProvided',
 }
 
 // ----------------
@@ -191,5 +192,10 @@ export class AccountDataException extends Exception {
   public static issuerMissingJsonKeyUriAndPublicKeys(issuerId: string) {
     const message = `The issuer '${issuerId}' must have at least one public key or a json keys URL`;
     return new AccountDataException(AccountDataExceptionCode.issuerMissingJsonKeyUriAndPublicKeys, message, [issuerId]);
+  }
+
+  public static configNotProvided(configName: string) {
+    const message = `A value for the the config setting '${configName}' was not provided`;
+    return new AccountDataException(AccountDataExceptionCode.configNotProvided, message, [configName]);
   }
 }

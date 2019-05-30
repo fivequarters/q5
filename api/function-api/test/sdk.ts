@@ -34,6 +34,29 @@ export interface IListClientOptions {
   exact?: boolean;
 }
 
+export interface IListAuditOptions {
+  count?: number;
+  next?: string;
+  action?: string;
+  resource?: string;
+  issuerId?: string;
+  subject?: string;
+  from?: string;
+  to?: string;
+}
+
+export interface IInitOptions {
+  subscriptionId?: string;
+  boundaryId?: string;
+  functionId?: string;
+}
+
+export interface IInitResolve {
+  publicKey?: string;
+  keyId?: string;
+  jwt?: string;
+}
+
 // ------------------
 // Exported Functions
 // ------------------
@@ -349,6 +372,18 @@ export async function removeUser(account: IAccount, userId: string) {
   });
 }
 
+export async function initUser(account: IAccount, userId: string, init?: IInitOptions) {
+  return request({
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${account.accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    url: `${account.baseUrl}/v1/account/${account.accountId}/user/${userId}/init`,
+    data: JSON.stringify(init || {}),
+  });
+}
+
 export async function cleanUpUsers(account: IAccount) {
   while (testUsers.length) {
     const toRemove = testUsers.splice(0, 5);
@@ -445,9 +480,77 @@ export async function removeClient(account: IAccount, clientId: string) {
   });
 }
 
+export async function initClient(account: IAccount, clientId: string, init?: IInitOptions) {
+  return request({
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${account.accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    url: `${account.baseUrl}/v1/account/${account.accountId}/client/${clientId}/init`,
+    data: JSON.stringify(init || {}),
+  });
+}
+
 export async function cleanUpClients(account: IAccount) {
   while (testClients.length) {
     const toRemove = testClients.splice(0, 5);
     await Promise.all(toRemove.map(clientId => removeClient(account, clientId)));
   }
+}
+
+export async function resolveInit(account: IAccount, jwt: string | undefined, initResolve: IInitResolve) {
+  const headers: { [index: string]: string } = {
+    'Content-Type': 'application/json',
+  };
+  if (jwt !== undefined) {
+    headers['Authorization'] = `Bearer ${jwt}`;
+  }
+
+  return request({
+    method: 'POST',
+    headers,
+    url: `${account.baseUrl}/v1/account/${account.accountId}/init`,
+    data: JSON.stringify(initResolve),
+  });
+}
+
+export async function listAudit(account: IAccount, options: IListAuditOptions) {
+  const queryStringParams = [];
+  if (options) {
+    if (options.count !== undefined) {
+      queryStringParams.push(`count=${options.count}`);
+    }
+    if (options.next !== undefined) {
+      queryStringParams.push(`next=${encodeURIComponent(options.next)}`);
+    }
+    if (options.action !== undefined) {
+      queryStringParams.push(`action=${encodeURIComponent(options.action)}`);
+    }
+    if (options.resource !== undefined) {
+      queryStringParams.push(`resource=${encodeURIComponent(options.resource)}`);
+    }
+    if (options.issuerId !== undefined) {
+      queryStringParams.push(`issuerId=${encodeURIComponent(options.issuerId)}`);
+    }
+    if (options.subject !== undefined) {
+      queryStringParams.push(`subject=${encodeURIComponent(options.subject)}`);
+    }
+    if (options.from !== undefined) {
+      queryStringParams.push(`from=${encodeURIComponent(options.from)}`);
+    }
+    if (options.to !== undefined) {
+      queryStringParams.push(`to=${encodeURIComponent(options.to)}`);
+    }
+  }
+  const queryString = queryStringParams.length ? `?${queryStringParams.join('&')}` : '';
+
+  return request({
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${account.accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    url: `${account.baseUrl}/v1/account/${account.accountId}/audit${queryString}`,
+  });
 }

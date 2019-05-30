@@ -254,6 +254,7 @@ PORT=${this.config.monoApiPort}
 DEPLOYMENT_KEY=${deploymentName}
 AWS_REGION=${region}
 AWS_S3_BUCKET=fusebit-${deploymentName}-${region}
+API_SERVER=https://${deploymentName}.${region}.fusebit.io
 LAMBDA_BUILDER_ROLE=arn:aws:iam::${account}:role/flexd-builder
 LAMBDA_MODULE_BUILDER_ROLE=arn:aws:iam::${account}:role/flexd-builder
 LAMBDA_USER_FUNCTION_ROLE=arn:aws:iam::${account}:role/no-permissions

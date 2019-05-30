@@ -57,6 +57,7 @@ export class Client {
   }
 
   public async init(resolvedAgent: ResolvedAgent, initEntry: IInitEntry): Promise<string> {
+    await this.get(resolvedAgent, initEntry.accountId, initEntry.agentId);
     const initHelper = await Init.create(this.config, this.dataContext);
     return initHelper.init(initEntry);
   }

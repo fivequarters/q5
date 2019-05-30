@@ -1,4 +1,5 @@
 import { IConfig } from '@5qtrs/config';
+import { AccountDataException } from '@5qtrs/account-data';
 
 // ------------------
 // Internal Constants
@@ -76,5 +77,21 @@ export class AccountConfig implements IConfig {
 
   public get newUserTries(): number {
     return (this.config.value('newUserTries') as number) || defaultNewUserTries;
+  }
+
+  public get jwtAudience(): string {
+    const value = this.config.value('jwtAudience') as string;
+    if (!value) {
+      throw AccountDataException.configNotProvided('jwtAudience');
+    }
+    return value;
+  }
+
+  public get jwtIssuer(): string {
+    const value = this.config.value('jwtIssuer') as string;
+    if (!value) {
+      throw AccountDataException.configNotProvided('jwtIssuer');
+    }
+    return value;
   }
 }

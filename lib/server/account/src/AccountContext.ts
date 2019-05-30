@@ -16,6 +16,7 @@ import { User } from './User';
 
 export class AccountContext {
   private dataContext: IAccountDataContext;
+  private accountConfig: AccountConfig;
   private accountProp: Account;
   private subscriptionProp: Subscription;
   private initProp: Init;
@@ -25,6 +26,7 @@ export class AccountContext {
   private userProp: User;
 
   private constructor(
+    accountConfig: AccountConfig,
     dataContext: IAccountDataContext,
     account: Account,
     subscription: Subscription,
@@ -34,6 +36,7 @@ export class AccountContext {
     client: Client,
     user: User
   ) {
+    this.accountConfig = accountConfig;
     this.dataContext = dataContext;
     this.accountProp = account;
     this.subscriptionProp = subscription;
@@ -54,11 +57,11 @@ export class AccountContext {
     const issuer = await Issuer.create(accountConfig, dataContext);
     const client = await Client.create(accountConfig, dataContext);
     const user = await User.create(accountConfig, dataContext);
-    return new AccountContext(dataContext, account, subscription, init, audit, issuer, client, user);
+    return new AccountContext(accountConfig, dataContext, account, subscription, init, audit, issuer, client, user);
   }
 
   public async getResolvedAgent(accountId: string, jwt: string, isRootAgent: boolean = false) {
-    return ResolvedAgent.create(this.dataContext, accountId, jwt, isRootAgent);
+    return ResolvedAgent.create(this.accountConfig, this.dataContext, accountId, jwt, isRootAgent);
   }
 
   public get account() {

@@ -223,7 +223,7 @@ describe('User', () => {
       expect(user.data.status).toBe(400);
       expect(user.data.statusCode).toBe(400);
       expect(user.data.message).toBe(
-        `The identity with issuer 'test' and subject '${subject}' is already associated with a user`
+        `The identity with issuer 'test' and subject '${subject}' is already associated with a user or client`
       );
     }, 20000);
 
