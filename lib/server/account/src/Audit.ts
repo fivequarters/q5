@@ -23,22 +23,42 @@ function getRelativeTime(value: number, interval: string): Date {
   return new Date(new Date().getTime() - value * intervalLookup[interval]);
 }
 
+function isValidDate(date: Date) {
+  return date.toString() !== 'Invalid Date';
+}
+
 function parseFilterTime(type: string, value: string): Date {
   try {
     let match = value.match(relativeTimeRegex);
     if (match) {
       return getRelativeTime(parseInt(match[1], 10), match[2]);
     } else {
-      return new Date(value);
+      const parsedDateString = new Date(value);
+      if (isValidDate(parsedDateString)) {
+        return parsedDateString;
+      }
+
+      const timestamp = parseInt(value);
+      if (!isNaN(timestamp)) {
+        const asParsedTimestamp = new Date(timestamp);
+        if (isValidDate(asParsedTimestamp)) {
+          return asParsedTimestamp;
+        }
+      }
     }
   } catch (error) {
-    throw AccountDataException.invalidFilterDate(type, value);
+    // do nothing
   }
+  throw AccountDataException.invalidFilterDate(type, value);
 }
 
 function normalizeOptions(options?: IListAuditEntriesOptions) {
   if (!options) {
     return undefined;
+  }
+
+  if (options.subject && !options.issuerId) {
+    throw AccountDataException.invalidFilterIdentity(options.subject);
   }
 
   const to = options.to ? parseFilterTime('to', options.to) : undefined;
@@ -53,7 +73,7 @@ function normalizeOptions(options?: IListAuditEntriesOptions) {
     from,
     next: options.next,
     limit: options.limit,
-    issuer: options.issuer,
+    issuerId: options.issuerId,
     subject: options.subject,
     actionContains: options.actionContains,
     resourceStartsWith: options.resourceStartsWith,
@@ -73,7 +93,7 @@ export interface IListAuditEntriesOptions {
   to?: string;
   resourceStartsWith?: string;
   actionContains?: string;
-  issuer?: string;
+  issuerId?: string;
   subject?: string;
 }
 

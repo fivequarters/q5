@@ -16,6 +16,13 @@
   },
   "keywords": [],
   "dependencies": {
+    "@5qtrs/account": "^0.0.1",
+    "@5qtrs/account-data-aws": "^0.0.1",
+    "@5qtrs/aws-config": "^0.0.1",
+    "@5qtrs/bq-metering": "^0.0.1",
+    "@5qtrs/function-lambda": "^0.0.1",
+    "@5qtrs/jwt": "^0.0.1",
+    "@5qtrs/request": "^0.0.1",
     "cors": "^2.8.5",
     "debug": "^4.1.1",
     "dotenv": "^6.2.0",
@@ -24,20 +31,15 @@
     "joi": "^14.3.1",
     "morgan": "^1.9.1",
     "swagger-ui-express": "^4.0.2",
-    "yamljs": "^0.3.0",
-    "@5qtrs/request": "^0.0.1",
-    "@5qtrs/account-data-aws": "^0.0.1",
-    "@5qtrs/jwt": "^0.0.1",
-    "@5qtrs/account": "^0.0.1",
-    "@5qtrs/bq-metering": "^0.0.1",
-    "@5qtrs/function-lambda": "^0.0.1",
-    "@5qtrs/aws-config": "^0.0.1"
+    "yamljs": "^0.3.0"
   },
   "devDependencies": {
-    "@types/debug": "^4.1.2",
-    "superagent": "^4.1.0",
+    "@5qtrs/fusebit-profile-sdk": "^0.0.1",
     "@5qtrs/request": "^0.0.1",
-    "@5qtrs/fusebit-profile-sdk": "^0.0.1"
+    "@types/debug": "^4.1.2",
+    "@types/pem-jwk": "^1.5.0",
+    "pem-jwk": "^2.0.0",
+    "superagent": "^4.1.0"
   },
   "devServer": {
     "port": 3001

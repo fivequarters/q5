@@ -1,5 +1,9 @@
 import { IAccount } from './accountResolver';
 import { request } from '@5qtrs/request';
+import { random } from '@5qtrs/random';
+import { signJwt } from '@5qtrs/jwt';
+import { createKeyPair } from '@5qtrs/key-pair';
+import { pem2jwk } from 'pem-jwk';
 
 // ------------------
 // Internal Constants
@@ -8,6 +12,9 @@ import { request } from '@5qtrs/request';
 const testUsers: string[] = [];
 const testClients: string[] = [];
 const testIssuers: string[] = [];
+const testHostedIssuers: string[] = [];
+
+const hostedIssuersBoundary = 'test-issuers';
 
 // -------------------
 // Exported Interfaces
@@ -54,7 +61,31 @@ export interface IInitOptions {
 export interface IInitResolve {
   publicKey?: string;
   keyId?: string;
-  jwt?: string;
+}
+
+export interface ITestUser {
+  id: string;
+  keyPair: IKeyPair;
+  accessToken: string;
+  firstName?: string;
+  lastName?: string;
+  primaryEmail?: string;
+  access?: {
+    allow: { action: string; resource: string }[];
+  };
+  identities: { issuerId: string; subject: string }[];
+}
+
+export interface IKeyPair {
+  publicKey: string;
+  privateKey: string;
+  keyId: string;
+}
+
+export interface ITestIssuer {
+  jsonKeysUrl: string;
+  keys: IKeyPair[];
+  getAccessToken: (index: number, subject: string) => Promise<string>;
 }
 
 // ------------------
@@ -515,7 +546,7 @@ export async function resolveInit(account: IAccount, jwt: string | undefined, in
   });
 }
 
-export async function listAudit(account: IAccount, options: IListAuditOptions) {
+export async function listAudit(account: IAccount, options?: IListAuditOptions) {
   const queryStringParams = [];
   if (options) {
     if (options.count !== undefined) {
@@ -553,4 +584,129 @@ export async function listAudit(account: IAccount, options: IListAuditOptions) {
     },
     url: `${account.baseUrl}/v1/account/${account.accountId}/audit${queryString}`,
   });
+}
+
+export async function createTestUser(account: IAccount, data: any): Promise<ITestUser> {
+  const user = await addUser(account, data);
+  if (user.status !== 200) {
+    throw new Error(`Failed to add test user: ${user.data ? user.data.message : '<no data>'}`);
+  }
+
+  const init = await initUser(account, user.data.id);
+  if (init.status !== 200) {
+    throw new Error(`Failed to init test user: ${init.data ? init.data.message : '<no data>'}`);
+  }
+
+  const keyPairs = await createKeyPairs(1);
+  const keyPair = keyPairs[0];
+  const resolved = await resolveInit(account, init.data, { publicKey: keyPair.publicKey, keyId: keyPair.keyId });
+  if (resolved.status !== 200) {
+    throw new Error(
+      `Failed to resolve init token for test user: ${resolved.data ? resolved.data.message : '<no data>'}`
+    );
+  }
+
+  const accessToken = await generateAccessToken(
+    account.baseUrl,
+    keyPairs[0],
+    resolved.data.identities[0].issuerId,
+    resolved.data.identities[0].subject
+  );
+
+  return {
+    id: user.data.id,
+    keyPair: keyPairs[0],
+    accessToken,
+    firstName: user.data.firstName,
+    lastName: user.data.lastName,
+    primaryEmail: user.data.primaryEmail,
+    access: user.data.access,
+    identities: resolved.data.identities,
+  };
+}
+
+export async function createTestJwksIssuer(account: IAccount) {
+  const keyPairs = await createKeyPairs(2);
+  const jwksKeys = await createJwksKeys(keyPairs);
+  const issuerId = `issuer-${random({ lengthInBytes: 8 })}`;
+  const jsonKeysUrl = await hostIssuer(account, issuerId, jwksKeys);
+
+  await addIssuer(account, issuerId, { jsonKeysUrl });
+
+  const getAccessToken = async (subject: string) => {
+    return generateAccessToken(account.baseUrl, keyPairs[0], issuerId, subject);
+  };
+
+  return { issuerId, keys: keyPairs, getAccessToken };
+}
+
+export async function hostIssuer(account: IAccount, issuerId: string, keys: any) {
+  const issuerSpec = {
+    nodejs: {
+      files: {
+        'index.js': `module.exports = (ctx, cb) => cb(null, { body: ${JSON.stringify(keys)} });`,
+      },
+    },
+  };
+
+  const result = await putFunction(account, hostedIssuersBoundary, issuerId, issuerSpec);
+  if (result.status !== 200) {
+    throw new Error('Failed to create issuers function');
+  }
+
+  testHostedIssuers.push(issuerId);
+  return result.data.location;
+}
+
+export async function cleanUpHostedIssuers(account: IAccount) {
+  while (testHostedIssuers.length) {
+    const toRemove = testHostedIssuers.splice(0, 5);
+    await Promise.all(toRemove.map(functionId => deleteFunction(account, hostedIssuersBoundary, functionId)));
+  }
+}
+
+export async function createJwksKeys(keyPairs: IKeyPair[]) {
+  const keys = [];
+  for (const key of keyPairs) {
+    const jwk = pem2jwk(key.publicKey);
+    keys.push({
+      alg: 'RS512',
+      kty: 'RSA',
+      use: 'sig',
+      n: jwk.n,
+      e: jwk.e,
+      kid: key.keyId,
+    });
+  }
+  return { keys };
+}
+
+export async function createKeyPairs(count: number) {
+  const keyPairs = [];
+  for (let i = 0; i < count; i++) {
+    const keyPair = await createKeyPair();
+    keyPairs.push({
+      publicKey: keyPair.publicKey,
+      privateKey: keyPair.privateKey,
+      keyId: random({ lengthInBytes: 8 }) as string,
+    });
+  }
+
+  return keyPairs;
+}
+
+export async function generateAccessToken(baseUrl: string, keyPair: IKeyPair, issuerId: string, subject: string) {
+  const options = {
+    algorithm: 'RS256',
+    expiresIn: 600,
+    audience: baseUrl,
+    issuer: issuerId,
+    subject: subject,
+    keyid: keyPair.keyId,
+    header: {
+      jwtId: random(),
+    },
+  };
+
+  return signJwt({}, keyPair.privateKey, options);
 }
