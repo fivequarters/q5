@@ -9,8 +9,8 @@ function auditGet() {
       const next = req.query.next;
       const actionContains = req.query.action;
       const resourceStartsWith = req.query.resource;
-      const issuer = req.query.iss;
-      const subject = req.query.sub;
+      const issuerId = req.query.issuerId;
+      const subject = req.query.subject;
       const from = req.query.from;
       const to = req.query.to;
       const options = {
@@ -18,7 +18,7 @@ function auditGet() {
         next,
         actionContains,
         resourceStartsWith,
-        issuer,
+        issuerId,
         subject,
         from,
         to,

@@ -1,5 +1,3 @@
-import { fromBase64, toBase64 } from '@5qtrs/base64';
-import { fromHex, toHex } from '@5qtrs/hex';
 import { request } from '@5qtrs/request';
 import jwt from 'jsonwebtoken';
 
@@ -43,9 +41,13 @@ function encodeLengthHex(length: number) {
   return numberToHex(lengthOfLengthByte) + hexNumber;
 }
 
-function rsaPublicKeyToPEM(modulusBase64: string, exponentBase64: string) {
-  const modulusHex = prepadSigned(toHex(fromBase64(modulusBase64)));
-  const exponentHex = prepadSigned(toHex(fromBase64(exponentBase64)));
+function rsaPublicKeyToPEM(modulusB64: string, exponentB64: string) {
+  const modulus = Buffer.from(modulusB64, 'base64');
+  const exponent = Buffer.from(exponentB64, 'base64');
+
+  const modulusHex = prepadSigned(modulus.toString('hex'));
+  const exponentHex = prepadSigned(exponent.toString('hex'));
+
   const modlen = modulusHex.length / 2;
   const explen = exponentHex.length / 2;
 
@@ -61,7 +63,7 @@ function rsaPublicKeyToPEM(modulusBase64: string, exponentBase64: string) {
     encodedExplen +
     exponentHex;
 
-  const der = toBase64(fromHex(encodedPubkey));
+  const der = Buffer.from(encodedPubkey, 'hex').toString('base64') as string;
 
   let pem = `-----BEGIN RSA PUBLIC KEY-----\n`;
   pem += `${(der.match(/.{1,64}/g) || []).join('\n')}`;

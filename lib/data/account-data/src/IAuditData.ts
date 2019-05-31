@@ -22,7 +22,7 @@ export interface IListAuditEntriesOptions {
   to?: Date;
   resourceStartsWith?: string;
   actionContains?: string;
-  issuer?: string;
+  issuerId?: string;
   subject?: string;
 }
 

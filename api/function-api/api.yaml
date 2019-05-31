@@ -49,10 +49,18 @@ paths:
                 $ref: '#/components/schemas/Account'
         403:
           description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         404:
           description: Account not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       security:
-        - accessToken: []
+        - AccessToken: []
 
   /v1/account/{accountId}/subscription:
     parameters:
@@ -93,10 +101,18 @@ paths:
                 $ref: '#/components/schemas/SubscriptionList'
         403:
           description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         404:
           description: Account not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       security:
-        - accessToken: []
+        - AccessToken: []
 
   /v1/account/{accountId}/subscription/{subscriptionId}:
     parameters:
@@ -128,10 +144,18 @@ paths:
                 $ref: '#/components/schemas/Subscription'
         403:
           description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         404:
           description: Account or subscription not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       security:
-        - accessToken: []
+        - AccessToken: []
 
   /v1/account/{accountId}/audit:
     parameters:
@@ -142,33 +166,27 @@ paths:
         schema:
           $ref: '#/components/schemas/AccountId'
       - in: query
-        name: next
-        required: false
-        description: Optional opaque continuation token to start returning results from
-        schema:
-          type: string
-      - in: query
         name: resource
         required: false
-        description: Optional prefix of the resource to match against audit entries
+        description: Optional prefix of the resource to match against audit entries (case-sensitive)
         schema:
           type: string
       - in: query
         name: action
         required: false
-        description: Optional action to match against audit entries
+        description: Optional action to match against audit entries (case-sensitive)
         schema:
           type: string
       - in: query
         name: issuerId
         required: false
-        description: Optional issuer identifier to match against audit entries
+        description: Optional issuer identifier to match against audit entries (case-sensitive)
         schema:
           $ref: '#/components/schemas/IssuerId'
       - in: query
         name: subject
         required: false
-        description: Optional subject identifier to match against audit entries
+        description: Optional subject identifier to match against audit entries (case-sensitive)
         schema:
           type: string
       - in: query
@@ -184,12 +202,19 @@ paths:
         schema:
           type: string
       - in: query
-        name: count
-        required: false
-        description: Optional maximum number of results to return;
-        schema:
-          type: number
-          minimum: 1
+          name: next
+          required: false
+          description: Optional opaque token to start returning results from
+          schema:
+            type: string
+      - in: query
+          name: count
+          required: false
+          description: Optional number of results to return
+          schema:
+            type: number
+            minimum: 1
+            maximum: 100
     get:
       tags:
         - Accounts
@@ -199,10 +224,7 @@ paths:
         Returns the audit trail of calls to the HTTP APIs related to resources that belong to the accountId. 
         Each entry of the audit trail contains the timestamp of the call, resource, action, and the identity of 
         the caller represented as the (issuer, subject) pair. Use query string parameters to filter the entries. 
-        This HTTP API supports paging. If the response contains the 'next' property, it indicates more results matching
-        the criteria may be available. Make another call to the HTTP API and provide the value of 'next' response parameter
-        in the 'next' query param. 
-
+        
         By default, only the most recent 15 minutes of audit logs are returned. You can change this with the 'from' query parameter.
       responses:
         200:
@@ -211,12 +233,26 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AccountAudit'
+        400:
+          description: Invalid query
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         403:
           description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         404:
           description: Account not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       security:
-        - accessToken: []
+        - AccessToken: []
 
   /v1/account/{accountId}/issuer:
     parameters:
@@ -237,7 +273,7 @@ paths:
         - in: query
           name: name
           required: false
-          description: Optional name identifier to match against the displayName of the issuer (case-sensitive) (matches if contains)
+          description: Optional name identifier to match against the displayName of the issuer (case-sensitive)
           schema:
             type: string
         - in: query
@@ -263,10 +299,18 @@ paths:
                 $ref: '#/components/schemas/IssuerList'
         403:
           description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         404:
           description: Account not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       security:
-        - accessToken: []
+        - AccessToken: []
 
   /v1/account/{accountId}/issuer/{issuerId}:
     parameters:
@@ -298,10 +342,18 @@ paths:
                 $ref: '#/components/schemas/Issuer'
         403:
           description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         404:
           description: Account or issuer not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       security:
-        - accessToken: []
+        - AccessToken: []
     post:
       tags:
         - Issuers
@@ -325,12 +377,24 @@ paths:
                 $ref: '#/components/schemas/Issuer'
         400:
           description: Invalid issuer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         403:
           description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         404:
           description: Account not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       security:
-        - accessToken: []
+        - AccessToken: []
     patch:
       tags:
         - Issuers
@@ -354,12 +418,24 @@ paths:
                 $ref: '#/components/schemas/Issuer'
         400:
           description: Invalid issuer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         403:
           description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         404:
           description: Account or issuer not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       security:
-        - accessToken: []
+        - AccessToken: []
     delete:
       tags:
         - Issuers
@@ -372,10 +448,18 @@ paths:
           description: Issuer was deleted
         403:
           description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         404:
           description: Account or issuer not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       security:
-        - accessToken: []
+        - AccessToken: []
 
   /v1/account/{accountId}/client:
     parameters:
@@ -394,15 +478,47 @@ paths:
         Returns a list of clients associated with the given account.
       parameters:
         - in: query
+          name: include
+          required: false
+          description: Optional switch to include all properties of the clients
+          schema:
+            type: string
+            enum:
+              - all
+        - in: query
+          name: exact
+          required: false
+          description: Optional switch to require all match identifiers to match exactly, instead of matching if value contains the identifier
+          schema:
+            type: boolean
+        - in: query
+          name: name
+          required: false
+          description: Optional name identifier to match against the displayName of the clients (case-sensitive)
+          schema:
+            type: string
+        - in: query
+          name: issuerId
+          required: false
+          description: Optional iss identifier to match against the identities of the clients (case-sensitive)
+          schema:
+            $ref: '#/components/schemas/IssuerId'
+        - in: query
+          name: subject
+          required: false
+          description: Optional sub identifier to match against the identities of the clients (case-sensitive)
+          schema:
+            type: string
+        - in: query
           name: next
           required: false
-          description: Optional client id to start returning results from
+          description: Optional opaque token to start returning results from
           schema:
-            $ref: '#/components/schemas/ClientId'
+            type: string
         - in: query
           name: count
           required: false
-          description: Optional number of results to return; max is 100
+          description: Optional number of results to return
           schema:
             type: number
             minimum: 1
@@ -414,12 +530,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ClientList'
+        400:
+          description: Invalid query
         403:
           description: Not authorized
         404:
           description: Account not found
       security:
-        - accessToken: []
+        - AccessToken: []
     post:
       tags:
         - Clients
@@ -443,12 +561,24 @@ paths:
                 $ref: '#/components/schemas/Client'
         400:
           description: Invalid client
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         403:
           description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         404:
           description: Account not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       security:
-        - accessToken: []
+        - AccessToken: []
 
   /v1/account/{accountId}/client/{clientId}:
     parameters:
@@ -467,47 +597,6 @@ paths:
     get:
       tags:
         - Clients
-      parameters:
-        - in: query
-          name: include
-          required: false
-          description: Optional switch to include all properties of the clients
-          schema:
-            type: string
-            enum:
-              - all
-        - in: query
-          name: name
-          required: false
-          description: Optional name identifier to match against the displayName of the clients
-          schema:
-            type: string
-        - in: query
-          name: issuerId
-          required: false
-          description: Optional iss identifier to match against the identities of the clients
-          schema:
-            $ref: '#/components/schemas/IssuerId'
-        - in: query
-          name: subject
-          required: false
-          description: Optional sub identifier to match against the identities of the clients
-          schema:
-            type: string
-        - in: query
-          name: next
-          required: false
-          description: Optional opaque token to start returning results from
-          schema:
-            type: string
-        - in: query
-          name: count
-          required: false
-          description: Optional number of results to return; max is 100
-          schema:
-            type: number
-            minimum: 1
-            maximum: 100
       summary: Get a client of an account
       operationId: getAccountClient
       description: |
@@ -521,11 +610,19 @@ paths:
                 $ref: '#/components/schemas/Client'
         403:
           description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         404:
           description: Account or client not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       security:
-        - accessToken: []
-    put:
+        - AccessToken: []
+    patch:
       tags:
         - Clients
       summary: Update a client of an account
@@ -548,12 +645,24 @@ paths:
                 $ref: '#/components/schemas/Client'
         400:
           description: Invalid client
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         403:
           description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         404:
           description: Account or client not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       security:
-        - accessToken: []
+        - AccessToken: []
     delete:
       tags:
         - Clients
@@ -566,10 +675,18 @@ paths:
           description: Client was deleted
         403:
           description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         404:
           description: Account or client not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       security:
-        - accessToken: []
+        - AccessToken: []
 
   /v1/account/{accountId}/user:
     parameters:
@@ -648,12 +765,24 @@ paths:
                 $ref: '#/components/schemas/UserList'
         400:
           description: Invalid query
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         403:
           description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         404:
           description: Account not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       security:
-        - accessToken: []
+        - AccessToken: []
     post:
       tags:
         - Users
@@ -677,12 +806,24 @@ paths:
                 $ref: '#/components/schemas/User'
         400:
           description: Invalid user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         403:
           description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         404:
           description: Account not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       security:
-        - accessToken: []
+        - AccessToken: []
 
   /v1/account/{accountId}/user/{userId}:
     parameters:
@@ -714,12 +855,24 @@ paths:
                 $ref: '#/components/schemas/User'
         400:
           description: Invalid userId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         403:
           description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         404:
           description: Account or user not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       security:
-        - accessToken: []
+        - AccessToken: []
     patch:
       tags:
         - Users
@@ -743,12 +896,24 @@ paths:
                 $ref: '#/components/schemas/User'
         400:
           description: Invalid user or userId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         403:
           description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         404:
           description: Account or user not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       security:
-        - accessToken: []
+        - AccessToken: []
     delete:
       tags:
         - Users
@@ -768,12 +933,24 @@ paths:
           description: User was deleted
         400:
           description: Invalid userId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         403:
           description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         404:
           description: Account or user not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       security:
-        - accessToken: []
+        - AccessToken: []
 
   /v1/account/{accountId}/subscription/{subscriptionId}/function:
     parameters:
@@ -826,10 +1003,18 @@ paths:
                 $ref: '#/components/schemas/FunctionList'
         403:
           description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         404:
           description: Account or subscription not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       security:
-        - accessToken: []
+        - AccessToken: []
 
   /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/function:
     parameters:
@@ -888,10 +1073,18 @@ paths:
                 $ref: '#/components/schemas/FunctionList'
         403:
           description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         404:
           description: Account, subscription or boundary not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       security:
-        - accessToken: []
+        - AccessToken: []
 
   /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/log:
     parameters:
@@ -925,10 +1118,18 @@ paths:
           description: Stream of text/event-stream log data
         403:
           description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         404:
           description: Account, subscription or boundary not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       security:
-        - accessToken: []
+        - AccessToken: []
 
   /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/function/{functionId}:
     parameters:
@@ -972,10 +1173,18 @@ paths:
                 $ref: '#/components/schemas/Function'
         403:
           description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         404:
           description: Account, subscription, boundary or function not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       security:
-        - accessToken: []
+        - AccessToken: []
     put:
       tags:
         - Functions
@@ -1009,14 +1218,30 @@ paths:
           description: No change to function
         400:
           description: Invalid function
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         403:
           description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         404:
           description: Account, subscription, boundary or function not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         429:
           description: Module dependency failed to build
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       security:
-        - accessToken: []
+        - AccessToken: []
 
     delete:
       tags:
@@ -1030,10 +1255,18 @@ paths:
           description: Function was deleted
         403:
           description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         404:
           description: Subscription, boundary or function not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       security:
-        - accessToken: []
+        - AccessToken: []
 
   /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/function/{functionId}/log:
     parameters:
@@ -1073,10 +1306,18 @@ paths:
           description: Stream of text/event-stream log data
         403:
           description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         404:
           description: Subscription, boundary of function not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       security:
-        - accessToken: []
+        - AccessToken: []
 
   /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/function/{functionId}/location:
     parameters:
@@ -1120,10 +1361,18 @@ paths:
                 $ref: '#/components/schemas/FunctionLocation'
         403:
           description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         404:
           description: Account, subscription, boundary of function not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       security:
-        - accessToken: []
+        - AccessToken: []
 
   /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/function/{functionId}/build/{buildId}:
     parameters:
@@ -1179,23 +1428,59 @@ paths:
                 $ref: '#/components/schemas/Build'
         400:
           description: Invalid function
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         403:
           description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         404:
           description: Account, subscription, boundary or function not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         429:
           description: Module dependency failed to build
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       security:
-        - accessToken: []
+        - AccessToken: []
 
 components:
   securitySchemes:
-    accessToken:
+    AccessToken:
       type: http
       scheme: bearer
       bearerFormat: JWT
 
   schemas:
+    Error:
+      type: object
+      required:
+        - status
+        - statusCode
+        - message
+      properties:
+        status:
+          type: number
+          description: The HTTP status code
+          example: 404
+        statusCode:
+          type: number
+          description: The HTTP status code
+          example: 404
+        message:
+          type: string
+          description: A message with details regarding the error
+          example: The user 'usr-12345' does not exist
+
     AccountId:
       type: string
       description: Account id
@@ -1212,6 +1497,10 @@ components:
           type: string
           description: Account display name
           example: ABC Company
+        primaryEmail:
+          type: string
+          description: Account owner primary email
+          example: john.doe@abc-compnay.com
 
     AccountAudit:
       type: object
@@ -1233,7 +1522,7 @@ components:
         - action
         - resource
         - accountId
-        - issuer
+        - issuerId
         - subject
       properties:
         accountId:
@@ -1440,6 +1729,7 @@ components:
         primaryEmail:
           type: string
           description: The user's primary email
+          example: john.doe@abc-compnay.com
         identities:
           type: array
           items:

@@ -14,6 +14,15 @@ export const FakeAccount: IAccount = {
   accessToken: 'NA',
 };
 
+export function cloneWithAccessToken(account: IAccount, accessToken: string) {
+  return {
+    accountId: account.accountId,
+    subscriptionId: account.subscriptionId,
+    baseUrl: account.baseUrl,
+    accessToken,
+  };
+}
+
 export async function resolveAccount(): Promise<IAccount> {
   if (process.env.API_SERVER && process.env.API_AUTHORIZATION_KEY) {
     return {

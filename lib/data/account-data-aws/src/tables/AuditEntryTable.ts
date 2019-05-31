@@ -107,7 +107,7 @@ export interface IListAuditEntriesOptions {
   to?: Date;
   resourceStartsWith?: string;
   actionContains?: string;
-  issuer?: string;
+  issuerId?: string;
   subject?: string;
 }
 
@@ -140,6 +140,7 @@ export class AuditEntryTable extends AwsDynamoTable {
   public async list(accountId: string, options?: IListAuditEntriesOptions): Promise<IListAuditEntriesResult> {
     let index = undefined;
     let timeStampFilter = true;
+    let resourceFilter = true;
     let identityFilter = true;
     const filters: string[] = [];
     const keyConditions = ['accountId = :accountId'];
@@ -147,51 +148,55 @@ export class AuditEntryTable extends AwsDynamoTable {
     const expressionValues: any = { ':accountId': { S: accountId } };
 
     if (options) {
-      if (options.resourceStartsWith) {
-        keyConditions.push('begins_with(#resource, :resource)');
-        expressionNames['#resource'] = 'resource';
-        expressionValues[':resource'] = { S: options.resourceStartsWith };
-      } else if (options.issuer && options.subject) {
-        const { issuer, subject } = options;
+      if (options.issuerId) {
+        const { issuerId, subject } = options;
         index = identityIndex;
         identityFilter = false;
-        const identity = { S: toIdentity({ issuerId: issuer, subject }) };
+        const identity = { S: toIdentity({ issuerId, subject: subject || '' }) };
         keyConditions.push('begins_with(#identity, :identity)');
         expressionNames['#identity'] = 'identity';
         expressionValues[':identity'] = identity;
+      } else if (options.resourceStartsWith) {
+        resourceFilter = false;
+        keyConditions.push('begins_with(#resource, :resource)');
+        expressionNames['#resource'] = 'resource';
+        expressionValues[':resource'] = { S: options.resourceStartsWith };
       } else if (options.from || options.to) {
         index = timestampIndex;
         timeStampFilter = false;
       }
 
       const expression = timeStampFilter ? filters : keyConditions;
-      if (options.from) {
-        expression.push('#timestamp >= :from');
+      if (options.from || options.to) {
         expressionNames['#timestamp'] = 'timestamp';
-        expressionValues[':from'] = { N: options.from.getTime().toString() };
-      }
+        let keyCondition;
+        if (options.from) {
+          expressionValues[':from'] = { N: options.from.getTime().toString() };
+          keyCondition = '#timestamp >= :from';
+        }
+        if (options.to) {
+          expressionValues[':to'] = { N: options.to.getTime().toString() };
+          keyCondition = '#timestamp <= :to';
+        }
+        if (options.from && options.to) {
+          keyCondition = '#timestamp BETWEEN :from AND :to';
+        }
 
-      if (options.to) {
-        expression.push('#timestamp <= :to');
-        expressionNames['#timestamp'] = 'timestamp';
-        expressionValues[':to'] = { N: options.to.getTime().toString() };
+        if (keyCondition) {
+          expression.push(keyCondition);
+        }
       }
 
       if (options.actionContains) {
-        filters.push('contains(action, :action)');
+        filters.push('begins_with(#action, :action)');
+        expressionNames['#action'] = 'action';
         expressionValues[':action'] = { S: options.actionContains };
       }
 
-      if (identityFilter) {
-        if (options.issuer) {
-          filters.push('contains(issuerId, :issuerId)');
-          expressionValues[':issuerId'] = { S: options.issuer };
-        }
-
-        if (options.subject) {
-          filters.push('contains(subject, :subject)');
-          expressionValues[':subject'] = { S: options.subject };
-        }
+      if (options.resourceStartsWith && resourceFilter) {
+        filters.push('begins_with(#resource, :resource)');
+        expressionNames['#resource'] = 'resource';
+        expressionValues[':resource'] = { S: options.resourceStartsWith };
       }
     }
 

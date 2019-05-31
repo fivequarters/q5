@@ -28,6 +28,7 @@ export enum AccountDataExceptionCode {
   invalidNext = 'invalidNext',
   invalidFilterDate = 'invalidFilterDate',
   invalidFilterDateOrder = 'invalidFilterDateOrder',
+  invalidFilterIdentity = 'invalidFilterIdentity',
   issuerTooManyKeys = 'issuerTooManyKeys',
   issuerEmptyPublicKeys = 'issuerEmptyPublicKeys',
   issuerMissingKeyId = 'issuerMissingKeyId',
@@ -152,6 +153,11 @@ export class AccountDataException extends Exception {
       `than the 'from' filter date/time of '${from.toISOString()}'`,
     ].join(' ');
     return new AccountDataException(AccountDataExceptionCode.invalidFilterDateOrder, message, [from, to]);
+  }
+
+  public static invalidFilterIdentity(subject: string) {
+    const message = `The 'subject' filter '${subject}' can not be specified without the 'issuerId' filter`;
+    return new AccountDataException(AccountDataExceptionCode.invalidFilterIdentity, message, [subject]);
   }
 
   public static noPublicKey(keyId: string) {

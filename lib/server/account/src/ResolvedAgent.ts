@@ -8,6 +8,7 @@ import {
 } from '@5qtrs/account-data';
 import { decodeJwt, decodeJwtHeader, verifyJwt } from '@5qtrs/jwt';
 import { AccountConfig } from './AccountConfig';
+import { cancelOnError } from '@5qtrs/promise';
 
 // ------------------
 // Internal Constants
@@ -131,9 +132,7 @@ export class ResolvedAgent implements IAgent {
 
     const agentPromise = resolveAgent(dataContext, accountId, issuerId, subject);
     const validatePromise = validateJwt(dataContext, accountId, audience, jwt, issuerId);
-
-    await validatePromise;
-    const agent = await agentPromise;
+    const agent = await cancelOnError(validatePromise, agentPromise);
     return new ResolvedAgent(dataContext, accountId, agent, identity);
   }
 
