@@ -1,19 +1,15 @@
-import { IAccount, FakeAccount, resolveAccount } from './accountResolver';
+import { IAccount, FakeAccount, resolveAccount, getMalformedAccount, getNonExistingAccount } from './accountResolver';
 import { addClient, listClients, cleanUpClients } from './sdk';
 import { random } from '@5qtrs/random';
+import { extendExpect } from './extendJest';
+
+const expectMore = extendExpect(expect);
 
 let account: IAccount = FakeAccount;
-let invalidAccount: IAccount = FakeAccount;
 let testRunId: string = '00000';
 
 beforeAll(async () => {
   account = await resolveAccount();
-  invalidAccount = {
-    accountId: 'acc-9999999999999999',
-    subscriptionId: account.subscriptionId,
-    baseUrl: account.baseUrl,
-    accessToken: account.accessToken,
-  };
   testRunId = random() as string;
 });
 
@@ -266,10 +262,7 @@ describe('Client', () => {
 
     test('Listing all clients with a negative count should return an error', async () => {
       const result = await listClients(account, { count: -5 });
-      expect(result.status).toBe(400);
-      expect(result.data.status).toBe(400);
-      expect(result.data.statusCode).toBe(400);
-      expect(result.data.message).toBe("The limit value '-5' is invalid; must be a positive number");
+      expectMore(result).toBeHttpError(400, "The limit value '-5' is invalid; must be a positive number");
     }, 10000);
 
     test('Listing all clients with an overly large count should use default max count', async () => {
@@ -291,14 +284,15 @@ describe('Client', () => {
       }
     }, 50000);
 
-    test('Listing clients with a non-existing account should return an error', async () => {
-      const client = await listClients(invalidAccount);
-      expect(client.status).toBe(404);
-      expect(client.data.status).toBe(404);
-      expect(client.data.statusCode).toBe(404);
+    test('Listing clients with a malformed account should return an error', async () => {
+      const malformed = await getMalformedAccount();
+      const client = await listClients(malformed);
+      expectMore(client).toBeMalformedAccountError(malformed.accountId);
+    }, 20000);
 
-      const message = client.data.message.replace(/'[^']*'/, '<issuer>');
-      expect(message).toBe(`The issuer <issuer> is not associated with the account`);
+    test('Listing clients with a non-existing account should return an error', async () => {
+      const client = await listClients(await getNonExistingAccount());
+      expectMore(client).toBeUnauthorizedError();
     }, 20000);
   });
 });

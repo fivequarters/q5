@@ -1,19 +1,15 @@
-import { IAccount, FakeAccount, resolveAccount } from './accountResolver';
+import { IAccount, FakeAccount, resolveAccount, getMalformedAccount, getNonExistingAccount } from './accountResolver';
 import { addUser, listUsers, cleanUpUsers } from './sdk';
 import { random } from '@5qtrs/random';
+import { extendExpect } from './extendJest';
+
+const expectMore = extendExpect(expect);
 
 let account: IAccount = FakeAccount;
-let invalidAccount: IAccount = FakeAccount;
 let testRunId: string = '00000';
 
 beforeAll(async () => {
   account = await resolveAccount();
-  invalidAccount = {
-    accountId: 'acc-9999999999999999',
-    subscriptionId: account.subscriptionId,
-    baseUrl: account.baseUrl,
-    accessToken: account.accessToken,
-  };
   testRunId = random() as string;
 });
 
@@ -385,10 +381,7 @@ describe('User', () => {
 
     test('Listing all users with a negative count should return an error', async () => {
       const result = await listUsers(account, { count: -5 });
-      expect(result.status).toBe(400);
-      expect(result.data.status).toBe(400);
-      expect(result.data.statusCode).toBe(400);
-      expect(result.data.message).toBe("The limit value '-5' is invalid; must be a positive number");
+      expectMore(result).toBeHttpError(400, "The limit value '-5' is invalid; must be a positive number");
     }, 10000);
 
     test('Listing all users with an overly large count should use default max count', async () => {
@@ -410,14 +403,15 @@ describe('User', () => {
       }
     }, 50000);
 
-    test('Listing users with a non-existing account should return an error', async () => {
-      const user = await listUsers(invalidAccount);
-      expect(user.status).toBe(404);
-      expect(user.data.status).toBe(404);
-      expect(user.data.statusCode).toBe(404);
+    test('Listing users with a malformed account should return an error', async () => {
+      const malformed = await getMalformedAccount();
+      const user = await listUsers(malformed);
+      expectMore(user).toBeMalformedAccountError(malformed.accountId);
+    }, 20000);
 
-      const message = user.data.message.replace(/'[^']*'/, '<issuer>');
-      expect(message).toBe(`The issuer <issuer> is not associated with the account`);
+    test('Listing users with a non-existing account should return an error', async () => {
+      const user = await listUsers(await getNonExistingAccount());
+      expectMore(user).toBeUnauthorizedError();
     }, 20000);
   });
 });

@@ -1,18 +1,14 @@
-import { IAccount, FakeAccount, resolveAccount } from './accountResolver';
+import { IAccount, FakeAccount, resolveAccount, getMalformedAccount, getNonExistingAccount } from './accountResolver';
 import { addUser, getUser, cleanUpUsers } from './sdk';
 import { random } from '@5qtrs/random';
+import { extendExpect } from './extendJest';
+
+const expectMore = extendExpect(expect);
 
 let account: IAccount = FakeAccount;
-let invalidAccount: IAccount = FakeAccount;
 
 beforeAll(async () => {
   account = await resolveAccount();
-  invalidAccount = {
-    accountId: 'acc-9999999999999999',
-    subscriptionId: account.subscriptionId,
-    baseUrl: account.baseUrl,
-    accessToken: account.accessToken,
-  };
 });
 
 afterEach(async () => {
@@ -45,10 +41,8 @@ describe('User', () => {
     test('Getting a user with an invalid user id should return an error', async () => {
       const userId = `usr-${random()}`;
       const user = await getUser(account, userId);
-      expect(user.status).toBe(400);
-      expect(user.data.status).toBe(400);
-      expect(user.data.statusCode).toBe(400);
-      expect(user.data.message).toBe(
+      expectMore(user).toBeHttpError(
+        400,
         `"userId" with value "${userId}" fails to match the required pattern: /^usr-[a-g0-9]{16}$/`
       );
     }, 20000);
@@ -56,21 +50,20 @@ describe('User', () => {
     test('Getting a non-existing user should return an error', async () => {
       const userId = `usr-${random({ lengthInBytes: 8 })}`;
       const user = await getUser(account, userId);
-      expect(user.status).toBe(404);
-      expect(user.data.status).toBe(404);
-      expect(user.data.statusCode).toBe(404);
-      expect(user.data.message).toBe(`The user '${userId}' does not exist`);
+      expectMore(user).toBeHttpError(404, `The user '${userId}' does not exist`);
     }, 20000);
 
-    test('Getting an user with a non-existing account should return an error', async () => {
+    test('Getting a user with a malformed account should return an error', async () => {
+      const malformed = await getMalformedAccount();
       const original = await addUser(account, {});
-      const user = await getUser(invalidAccount, original.data.id);
-      expect(user.status).toBe(404);
-      expect(user.data.status).toBe(404);
-      expect(user.data.statusCode).toBe(404);
+      const user = await getUser(malformed, original.data.id);
+      expectMore(user).toBeMalformedAccountError(malformed.accountId);
+    }, 10000);
 
-      const message = user.data.message.replace(/'[^']*'/, '<issuer>');
-      expect(message).toBe(`The issuer <issuer> is not associated with the account`);
+    test('Getting a user with a non-existing account should return an error', async () => {
+      const original = await addUser(account, {});
+      const user = await getUser(await getNonExistingAccount(), original.data.id);
+      expectMore(user).toBeUnauthorizedError();
     }, 10000);
   });
 });

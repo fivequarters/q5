@@ -114,6 +114,11 @@ export class Init {
     if (!decodedJwt.agentId) {
       throw AccountDataException.invalidJwt(new Error("Init jwt missing 'agentId' field"));
     }
+    if (accountId !== decodedJwt.accountId) {
+      throw AccountDataException.invalidJwt(
+        new Error("Jwt 'accountId' field value does not match URL accountId value")
+      );
+    }
 
     const jwtSecret = await this.dataContext.agentData.resolve(decodedJwt.accountId, decodedJwt.agentId);
 

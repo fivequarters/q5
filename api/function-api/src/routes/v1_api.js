@@ -55,6 +55,7 @@ router.options('/account', cors(corsManagementOptions));
 router.post(
   '/account',
   cors(corsManagementOptions),
+  validate_schema({ params: require('./schemas/api_account') }),
   authorize({ operation: AccountActions.addAccount }),
   express.json(),
   validate_schema({
@@ -67,6 +68,7 @@ router.options('/account/:accountId', cors(corsManagementOptions));
 router.get(
   '/account/:accountId',
   cors(corsManagementOptions),
+  validate_schema({ params: require('./schemas/api_account') }),
   authorize({ operation: AccountActions.getAccount }),
   validate_schema({
     params: require('./schemas/api_params'),
@@ -78,6 +80,7 @@ router.options('/account/:accountId/audit', cors(corsManagementOptions));
 router.get(
   '/account/:accountId/audit',
   cors(corsManagementOptions),
+  validate_schema({ params: require('./schemas/api_account') }),
   authorize({ operation: AccountActions.getAudit }),
   validate_schema({
     query: require('./schemas/api_query'),
@@ -92,6 +95,7 @@ router.options('/account/:accountId/issuer', cors(corsManagementOptions));
 router.get(
   '/account/:accountId/issuer',
   cors(corsManagementOptions),
+  validate_schema({ params: require('./schemas/api_account') }),
   authorize({ operation: AccountActions.getIssuer }),
   validate_schema({
     query: require('./schemas/api_query'),
@@ -104,6 +108,7 @@ router.options('/account/:accountId/issuer/:issuerId', cors(corsManagementOption
 router.get(
   '/account/:accountId/issuer/:issuerId',
   cors(corsManagementOptions),
+  validate_schema({ params: require('./schemas/api_account') }),
   authorize({ operation: AccountActions.getIssuer }),
   validate_schema({
     params: require('./schemas/api_params'),
@@ -114,6 +119,7 @@ router.get(
 router.post(
   '/account/:accountId/issuer/:issuerId',
   cors(corsManagementOptions),
+  validate_schema({ params: require('./schemas/api_account') }),
   authorize({ operation: AccountActions.addIssuer }),
   express.json(),
   validate_schema({
@@ -125,6 +131,7 @@ router.post(
 router.patch(
   '/account/:accountId/issuer/:issuerId',
   cors(corsManagementOptions),
+  validate_schema({ params: require('./schemas/api_account') }),
   authorize({ operation: AccountActions.updateIssuer }),
   express.json(),
   validate_schema({
@@ -136,6 +143,7 @@ router.patch(
 router.delete(
   '/account/:accountId/issuer/:issuerId',
   cors(corsManagementOptions),
+  validate_schema({ params: require('./schemas/api_account') }),
   authorize({ operation: AccountActions.deleteIssuer }),
   validate_schema({
     params: require('./schemas/api_params'),
@@ -149,6 +157,7 @@ router.options('/account/:accountId/subscription', cors(corsManagementOptions));
 router.post(
   '/account/:accountId/subscription',
   cors(corsManagementOptions),
+  validate_schema({ params: require('./schemas/api_account') }),
   authorize({ operation: AccountActions.addSubscription }),
   express.json(),
   validate_schema({
@@ -162,6 +171,7 @@ router.options('/account/:accountId/subscription', cors(corsManagementOptions));
 router.get(
   '/account/:accountId/subscription',
   cors(corsManagementOptions),
+  validate_schema({ params: require('./schemas/api_account') }),
   authorize({ operation: AccountActions.getSubscription }),
   validate_schema({
     query: require('./schemas/api_query'),
@@ -174,6 +184,7 @@ router.options('/account/:accountId/subscription/:subscriptionId', cors(corsMana
 router.get(
   '/account/:accountId/subscription/:subscriptionId',
   cors(corsManagementOptions),
+  validate_schema({ params: require('./schemas/api_account') }),
   authorize({ operation: AccountActions.getSubscription }),
   validate_schema({
     params: require('./schemas/api_params'),
@@ -187,6 +198,7 @@ router.options('/account/:accountId/user', cors(corsManagementOptions));
 router.get(
   '/account/:accountId/user',
   cors(corsManagementOptions),
+  validate_schema({ params: require('./schemas/api_account') }),
   authorize({ operation: AccountActions.getUser }),
   validate_schema({
     query: require('./schemas/api_query'),
@@ -198,6 +210,7 @@ router.get(
 router.post(
   '/account/:accountId/user',
   cors(corsManagementOptions),
+  validate_schema({ params: require('./schemas/api_account') }),
   authorize({ operation: AccountActions.addUser }),
   express.json(),
   validate_schema({
@@ -211,6 +224,7 @@ router.options('/account/:accountId/user/:userId', cors(corsManagementOptions));
 router.get(
   '/account/:accountId/user/:userId',
   cors(corsManagementOptions),
+  validate_schema({ params: require('./schemas/api_account') }),
   authorize({ operation: AccountActions.getUser }),
   validate_schema({
     params: require('./schemas/api_params'),
@@ -221,6 +235,7 @@ router.get(
 router.patch(
   '/account/:accountId/user/:userId',
   cors(corsManagementOptions),
+  validate_schema({ params: require('./schemas/api_account') }),
   authorize({ operation: AccountActions.updateUser }),
   express.json(),
   validate_schema({
@@ -233,6 +248,7 @@ router.patch(
 router.delete(
   '/account/:accountId/user/:userId',
   cors(corsManagementOptions),
+  validate_schema({ params: require('./schemas/api_account') }),
   authorize({ operation: AccountActions.deleteUser }),
   validate_schema({
     params: require('./schemas/api_params'),
@@ -243,6 +259,7 @@ router.delete(
 router.post(
   '/account/:accountId/user/:userId/init',
   cors(corsManagementOptions),
+  validate_schema({ params: require('./schemas/api_account') }),
   authorize({ operation: AccountActions.initUser }),
   express.json(),
   validate_schema({
@@ -255,6 +272,7 @@ router.post(
 router.post(
   '/account/:accountId/init',
   cors(corsManagementOptions),
+  validate_schema({ params: require('./schemas/api_account') }),
   authorize({ resolve: true }),
   express.json(),
   validate_schema({
@@ -270,6 +288,7 @@ router.options('/account/:accountId/client', cors(corsManagementOptions));
 router.get(
   '/account/:accountId/client',
   cors(corsManagementOptions),
+  validate_schema({ params: require('./schemas/api_account') }),
   authorize({ operation: AccountActions.getClient }),
   validate_schema({
     query: require('./schemas/api_query'),
@@ -280,6 +299,7 @@ router.get(
 router.post(
   '/account/:accountId/client',
   cors(corsManagementOptions),
+  validate_schema({ params: require('./schemas/api_account') }),
   authorize({ operation: AccountActions.addClient }),
   express.json(),
   validate_schema({
@@ -293,6 +313,7 @@ router.options('/account/:accountId/client/:clientId', cors(corsManagementOption
 router.get(
   '/account/:accountId/client/:clientId',
   cors(corsManagementOptions),
+  validate_schema({ params: require('./schemas/api_account') }),
   authorize({ operation: AccountActions.getClient }),
   validate_schema({
     params: require('./schemas/api_params'),
@@ -302,6 +323,7 @@ router.get(
 router.patch(
   '/account/:accountId/client/:clientId',
   cors(corsManagementOptions),
+  validate_schema({ params: require('./schemas/api_account') }),
   authorize({ operation: AccountActions.updateClient }),
   express.json(),
   validate_schema({
@@ -313,6 +335,7 @@ router.patch(
 router.delete(
   '/account/:accountId/client/:clientId',
   cors(corsManagementOptions),
+  validate_schema({ params: require('./schemas/api_account') }),
   authorize({ operation: AccountActions.deleteClient }),
   validate_schema({
     params: require('./schemas/api_params'),
@@ -323,6 +346,7 @@ router.delete(
 router.post(
   '/account/:accountId/client/:clientId/init',
   cors(corsManagementOptions),
+  validate_schema({ params: require('./schemas/api_account') }),
   authorize({ operation: AccountActions.initClient }),
   express.json(),
   validate_schema({
@@ -341,6 +365,7 @@ router.options(
 router.get(
   '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function',
   cors(corsManagementOptions),
+  validate_schema({ params: require('./schemas/api_account') }),
   authorize({
     operation: 'function:list',
   }),
@@ -359,6 +384,7 @@ router.options(
 router.get(
   '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/log',
   cors(corsManagementOptions),
+  validate_schema({ params: require('./schemas/api_account') }),
   authorize({
     operation: 'function:get-log',
     getToken: req => req.query && req.query.token,
@@ -376,6 +402,7 @@ router.options('/account/:accountId/subscription/:subscriptionId/function', cors
 router.get(
   '/account/:accountId/subscription/:subscriptionId/function',
   cors(corsManagementOptions),
+  validate_schema({ params: require('./schemas/api_account') }),
   authorize({
     operation: 'function:list',
   }),
@@ -394,6 +421,7 @@ router.options(
 router.get(
   '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId',
   cors(corsManagementOptions),
+  validate_schema({ params: require('./schemas/api_account') }),
   authorize({
     operation: 'function:get',
   }),
@@ -406,6 +434,7 @@ router.get(
 router.put(
   '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId',
   cors(corsManagementOptions),
+  validate_schema({ params: require('./schemas/api_account') }),
   authorize({
     operation: 'function:put',
   }),
@@ -420,6 +449,7 @@ router.put(
 router.delete(
   '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId',
   cors(corsManagementOptions),
+  validate_schema({ params: require('./schemas/api_account') }),
   authorize({
     operation: 'function:delete',
   }),
@@ -437,6 +467,7 @@ router.options(
 router.get(
   '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/log',
   cors(corsManagementOptions),
+  validate_schema({ params: require('./schemas/api_account') }),
   authorize({
     operation: 'function:get-log',
     getToken: req => req.query && req.query.token,
@@ -455,6 +486,7 @@ router.options(
 router.get(
   '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/location',
   cors(corsManagementOptions),
+  validate_schema({ params: require('./schemas/api_account') }),
   authorize({
     operation: 'function:get-location',
   }),
@@ -472,6 +504,7 @@ router.options(
 router.get(
   '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/build/:buildId',
   cors(corsManagementOptions),
+  validate_schema({ params: require('./schemas/api_account') }),
   authorize({
     operation: 'function:get-build',
   }),

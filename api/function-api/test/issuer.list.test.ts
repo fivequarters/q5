@@ -1,19 +1,15 @@
 import { random } from '@5qtrs/random';
-import { IAccount, FakeAccount, resolveAccount } from './accountResolver';
+import { IAccount, FakeAccount, resolveAccount, getMalformedAccount, getNonExistingAccount } from './accountResolver';
 import { addIssuer, listIssuers, cleanUpIssuers } from './sdk';
+import { extendExpect } from './extendJest';
+
+const expectMore = extendExpect(expect);
 
 let account: IAccount = FakeAccount;
-let invalidAccount: IAccount = FakeAccount;
 let testRunId: string = '00000';
 
 beforeAll(async () => {
   account = await resolveAccount();
-  invalidAccount = {
-    accountId: 'acc-9999999999999999',
-    subscriptionId: account.subscriptionId,
-    baseUrl: account.baseUrl,
-    accessToken: account.accessToken,
-  };
   testRunId = random() as string;
 });
 
@@ -192,14 +188,15 @@ describe('Issuer', () => {
       }
     }, 10000);
 
-    test('Listing an issuer with a non-existing account should return an error', async () => {
-      const issuer = await listIssuers(invalidAccount);
-      expect(issuer.status).toBe(404);
-      expect(issuer.data.status).toBe(404);
-      expect(issuer.data.statusCode).toBe(404);
+    test('Listing issuers with a malformed account should return an error', async () => {
+      const malformed = await getMalformedAccount();
+      const issuer = await listIssuers(malformed);
+      expectMore(issuer).toBeMalformedAccountError(malformed.accountId);
+    }, 10000);
 
-      const message = issuer.data.message.replace(/'[^']*'/, '<issuer>');
-      expect(message).toBe(`The issuer <issuer> is not associated with the account`);
+    test('Listing issuers with a non-existing account should return an error', async () => {
+      const issuer = await listIssuers(await getNonExistingAccount());
+      expectMore(issuer).toBeUnauthorizedError();
     }, 10000);
   });
 });
