@@ -404,7 +404,7 @@ router.get(
   cors(corsManagementOptions),
   validate_schema({ params: require('./schemas/api_account') }),
   authorize({
-    operation: 'function:list',
+    operation: 'function:get',
   }),
   validate_schema({
     query: require('./schemas/api_query'),

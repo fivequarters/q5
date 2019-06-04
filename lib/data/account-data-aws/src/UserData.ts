@@ -82,10 +82,10 @@ export class UserData extends DataSource implements IUserData {
 
   public async list(accountId: string, options?: IListUsersOptions): Promise<IListUsersResult> {
     if (options) {
-      if (options.issuerContains && options.subjectContains) {
+      if (options.issuerId && options.subject) {
         return this.tryGetIssuerSubject(accountId, options);
       }
-      if (options.issuerContains || options.subjectContains) {
+      if (options.issuerId || options.subject) {
         return this.listIssuerSubject(accountId, options);
       }
     }
@@ -114,8 +114,8 @@ export class UserData extends DataSource implements IUserData {
 
   private async tryGetIssuerSubject(accountId: string, options: IListUsersOptions): Promise<IListUsersResult> {
     const identity = {
-      issuerId: options.issuerContains as string,
-      subject: options.subjectContains as string,
+      issuerId: options.issuerId as string,
+      subject: options.subject as string,
     };
 
     let agent;
@@ -128,7 +128,7 @@ export class UserData extends DataSource implements IUserData {
     }
 
     if (!agent) {
-      return options.exact ? { items: [] } : this.listIssuerSubject(accountId, options);
+      return { items: [] };
     }
 
     const agentId = agent.id as string;
@@ -163,14 +163,12 @@ export class UserData extends DataSource implements IUserData {
     const usersOptions = {
       primaryEmailContains: options.primaryEmailContains,
       nameContains: options.nameContains,
-      exact: options.exact,
       next: options.next,
       limit: options.limit,
     };
     const agentOptions = {
-      issuerContains: options.issuerContains,
-      subjectContains: options.subjectContains,
-      exact: options.exact,
+      issuerId: options.issuerId,
+      subject: options.subject,
       next: options.next,
       limit: options.limit,
     };

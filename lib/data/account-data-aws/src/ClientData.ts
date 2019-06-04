@@ -81,10 +81,10 @@ export class ClientData extends DataSource implements IClientData {
 
   public async list(accountId: string, options?: IListClientsOptions): Promise<IListClientsResult> {
     if (options) {
-      if (options.issuerContains && options.subjectContains) {
+      if (options.issuerId && options.subject) {
         return this.tryGetIssuerSubject(accountId, options);
       }
-      if (options.issuerContains || options.subjectContains) {
+      if (options.issuerId || options.subject) {
         return this.listIssuerSubject(accountId, options);
       }
     }
@@ -114,8 +114,8 @@ export class ClientData extends DataSource implements IClientData {
 
   private async tryGetIssuerSubject(accountId: string, options: IListClientsOptions): Promise<IListClientsResult> {
     const identity = {
-      issuerId: options.issuerContains as string,
-      subject: options.subjectContains as string,
+      issuerId: options.issuerId as string,
+      subject: options.subject as string,
     };
 
     let agent;
@@ -128,7 +128,7 @@ export class ClientData extends DataSource implements IClientData {
     }
 
     if (!agent) {
-      return this.listIssuerSubject(accountId, options);
+      return { items: [] };
     }
 
     const agentId = agent.id as string;
@@ -166,8 +166,8 @@ export class ClientData extends DataSource implements IClientData {
       limit,
     };
     const agentOptions = {
-      issuerContains: options.issuerContains,
-      subjectContains: options.subjectContains,
+      issuerId: options.issuerId,
+      subject: options.subject,
       next: options.next,
       limit,
     };

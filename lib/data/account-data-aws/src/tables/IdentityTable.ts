@@ -97,9 +97,8 @@ export interface IListIdentitiesOptions {
   next?: string;
   limit?: number;
   agentId?: string;
-  issuerContains?: string;
-  subjectContains?: string;
-  exact?: boolean;
+  issuerId?: string;
+  subject?: string;
 }
 
 export interface IListIdentitiesResult {
@@ -138,7 +137,6 @@ export class IdentityTable extends AwsDynamoTable {
     const filters = [];
     const keyConditions = ['accountId = :accountId'];
     const expressionValues: any = { ':accountId': { S: accountId } };
-    const exact = options && options.exact === true;
 
     if (options) {
       if (options.agentId) {
@@ -147,14 +145,14 @@ export class IdentityTable extends AwsDynamoTable {
         keyConditions.push('agentId = :agentId');
       }
 
-      if (options.issuerContains) {
-        filters.push(exact ? 'issuerId = :issuerId' : 'contains(issuerId, :issuerId)');
-        expressionValues[':issuerId'] = { S: options.issuerContains };
+      if (options.issuerId) {
+        filters.push('issuerId = :issuerId');
+        expressionValues[':issuerId'] = { S: options.issuerId };
       }
 
-      if (options.subjectContains) {
-        filters.push(exact ? 'subject = :subject' : 'contains(subject, :subject)');
-        expressionValues[':subject'] = { S: options.subjectContains };
+      if (options.subject) {
+        filters.push('subject = :subject');
+        expressionValues[':subject'] = { S: options.subject };
       }
     }
 

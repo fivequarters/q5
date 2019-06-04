@@ -64,18 +64,17 @@ function clientList() {
       const limit = req.query.count;
       const next = req.query.next;
       const displayNameContains = req.query.name;
-      const issuerContains = req.query.issuerId;
-      const subjectContains = req.query.subject;
+      const issuerId = req.query.issuerId;
+      const subject = req.query.subject;
       const include = req.query.include;
-      const exact = req.query.exact === 'true' || req.query.exact == 1 ? true : false;
       const options = {
         limit,
         next,
         include,
         exact,
         displayNameContains,
-        issuerContains,
-        subjectContains,
+        issuerId,
+        subject,
       };
 
       accountContext.client

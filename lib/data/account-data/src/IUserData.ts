@@ -20,11 +20,10 @@ export interface IListUsersOptions {
   next?: string;
   limit?: number;
   include?: UserInclude;
-  exact?: boolean;
   nameContains?: string;
   primaryEmailContains?: string;
-  issuerContains?: string;
-  subjectContains?: string;
+  issuerId?: string;
+  subject?: string;
 }
 
 export interface IListUsersResult {
