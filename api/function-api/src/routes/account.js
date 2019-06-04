@@ -5,6 +5,8 @@ const { AccountDataAwsContextFactory } = require('@5qtrs/account-data-aws');
 
 let accountContext;
 
+const unauthorizedErrorCodes = ['unauthorized', 'invalidJwt', 'noPublicKey', 'unresolvedAgent'];
+
 async function getAccountContext() {
   if (!accountContext) {
     const config = new Config({
@@ -47,7 +49,7 @@ function errorHandler(res) {
     let message = 'An unknown error occured on the server';
     let log = true;
 
-    if (error.code === 'unauthorized' || error.code === 'invalidJwt' || error.code === 'noPublicKey') {
+    if (unauthorizedErrorCodes.indexOf(error.code) !== -1) {
       status = 403;
       message = 'Unauthorized';
       log = false;

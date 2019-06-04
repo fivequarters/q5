@@ -1,4 +1,11 @@
-import { IAccount, FakeAccount, cloneWithAccessToken, resolveAccount } from './accountResolver';
+import {
+  IAccount,
+  FakeAccount,
+  cloneWithAccessToken,
+  resolveAccount,
+  getMalformedAccount,
+  getNonExistingAccount,
+} from './accountResolver';
 import {
   createTestUser,
   createTestJwksIssuer,
@@ -11,18 +18,14 @@ import {
   cleanUpHostedIssuers,
 } from './sdk';
 import { random } from '@5qtrs/random';
+import { extendExpect } from './extendJest';
+
+const expectMore = extendExpect(expect);
 
 let account: IAccount = FakeAccount;
-let invalidAccount: IAccount = FakeAccount;
 
 beforeAll(async () => {
   account = await resolveAccount();
-  invalidAccount = {
-    accountId: 'acc-9999999999999999',
-    subscriptionId: account.subscriptionId,
-    baseUrl: account.baseUrl,
-    accessToken: account.accessToken,
-  };
 });
 
 afterEach(async () => {
@@ -145,10 +148,8 @@ describe('Audit', () => {
 
       const subject = testUser.identities[0].subject;
       const audit = await listAudit(account, { subject });
-      expect(audit.status).toBe(400);
-      expect(audit.data.status).toBe(400);
-      expect(audit.data.statusCode).toBe(400);
-      expect(audit.data.message).toBe(
+      expectMore(audit).toBeHttpError(
+        400,
         `The 'subject' filter '${subject}' can not be specified without the 'issuerId' filter`
       );
     }, 50000);
@@ -466,10 +467,8 @@ describe('Audit', () => {
 
     test('Listing audit entries filtered by from with an invalid date/time returns an error', async () => {
       const audit = await listAudit(account, { from: 'nope' });
-      expect(audit.status).toBe(400);
-      expect(audit.data.status).toBe(400);
-      expect(audit.data.statusCode).toBe(400);
-      expect(audit.data.message).toBe(
+      expectMore(audit).toBeHttpError(
+        400,
         [
           "The 'from' filter date/time 'nope' is invalid.",
           "Specify an absolute date/time, or a relative time such as '-15m', '-2h', or '-6d'",
@@ -479,10 +478,8 @@ describe('Audit', () => {
 
     test('Listing audit entries filtered by to with an invalid date/time returns an error', async () => {
       const audit = await listAudit(account, { to: 'blah' });
-      expect(audit.status).toBe(400);
-      expect(audit.data.status).toBe(400);
-      expect(audit.data.statusCode).toBe(400);
-      expect(audit.data.message).toBe(
+      expectMore(audit).toBeHttpError(
+        400,
         [
           "The 'to' filter date/time 'blah' is invalid.",
           "Specify an absolute date/time, or a relative time such as '-15m', '-2h', or '-6d'",
@@ -498,14 +495,15 @@ describe('Audit', () => {
       expect(audit.data.message.indexOf("must be later in time than the 'from' filter")).toBeGreaterThan(0);
     }, 50000);
 
-    test('Listing audit entries with a non-existing account should return an error', async () => {
-      const audit = await listAudit(invalidAccount);
-      expect(audit.status).toBe(404);
-      expect(audit.data.status).toBe(404);
-      expect(audit.data.statusCode).toBe(404);
+    test('Listing audit entries with a malformed account should return an error', async () => {
+      const malformed = await getMalformedAccount();
+      const audit = await listAudit(malformed);
+      expectMore(audit).toBeMalformedAccountError(malformed.accountId);
+    }, 20000);
 
-      const message = audit.data.message.replace(/'[^']*'/, '<issuer>');
-      expect(message).toBe(`The issuer <issuer> is not associated with the account`);
+    test('Listing audit entries with a non-existing account should return an error', async () => {
+      const audit = await listAudit(await getNonExistingAccount());
+      expectMore(audit).toBeUnauthorizedError();
     }, 20000);
   });
 });

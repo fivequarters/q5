@@ -5,6 +5,7 @@ import {
   Resource,
   IIdentity,
   AccountDataException,
+  AccountDataExceptionCode,
 } from '@5qtrs/account-data';
 import { decodeJwt, decodeJwtHeader, verifyJwt } from '@5qtrs/jwt';
 import { AccountConfig } from './AccountConfig';
@@ -26,10 +27,6 @@ const rootAgent = {
 // ------------------
 // Internal Functions
 // ------------------
-
-async function resolveAgent(dataContext: IAccountDataContext, accountId: string, issuerId: string, subject: string) {
-  return dataContext.agentData.get(accountId, { issuerId, subject });
-}
 
 async function validateJwt(
   dataContext: IAccountDataContext,
@@ -123,17 +120,25 @@ export class ResolvedAgent implements IAgent {
       accountId = accountId || 'root';
       return new ResolvedAgent(dataContext, accountId, rootAgent, rootAgent.identities[0]);
     }
-
     const decodedJwtPayload = decodeJwt(jwt);
     const issuerId = decodedJwtPayload.iss;
     const subject = decodedJwtPayload.sub;
     const identity = { issuerId, subject };
     const audience = accountConfig.jwtAudience;
 
-    const agentPromise = resolveAgent(dataContext, accountId, issuerId, subject);
+    const agentPromise = dataContext.agentData.get(accountId, { issuerId, subject });
     const validatePromise = validateJwt(dataContext, accountId, audience, jwt, issuerId);
-    const agent = await cancelOnError(validatePromise, agentPromise);
-    return new ResolvedAgent(dataContext, accountId, agent, identity);
+
+    try {
+      const agent = await cancelOnError(validatePromise, agentPromise);
+      return new ResolvedAgent(dataContext, accountId, agent, identity);
+    } catch (error) {
+      if (error.code === AccountDataExceptionCode.noIssuer || error.code === AccountDataExceptionCode.noIdentity) {
+        throw AccountDataException.unresolvedAgent(error);
+      } else {
+        throw error;
+      }
+    }
   }
 
   public isAuthorized(action: string, resource: string) {

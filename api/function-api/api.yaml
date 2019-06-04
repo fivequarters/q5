@@ -47,14 +47,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Account'
-        403:
-          description: Not authorized
+        400: 
+          description: Malformed account id
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-        404:
-          description: Account not found
+        403:
+          description: Not authorized
           content:
             application/json:
               schema:
@@ -77,17 +77,19 @@ paths:
       operationId: getAccountSubscriptionList
       description: |
         Returns a list of the subscriptions of the given account.
+
+        Use query string parameters to filter the list of subscriptions. All query filters are combined with a logical AND operator.
       parameters:
         - in: query
           name: next
           required: false
-          description: Optional subscription id to start returning results from
+          description: Optional opaque token to start returning results from
           schema:
-            $ref: '#/components/schemas/SubscriptionId'
+            type: string
         - in: query
           name: count
           required: false
-          description: Optional number of results to return; max is 100
+          description: Optional number of results to return
           schema:
             type: number
             minimum: 1
@@ -99,14 +101,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SubscriptionList'
-        403:
-          description: Not authorized
+        400: 
+          description: Malformed account id or invalid query
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-        404:
-          description: Account not found
+        403:
+          description: Not authorized
           content:
             application/json:
               schema:
@@ -148,8 +150,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+        400: 
+          description: Malformed account or subscription id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         404:
-          description: Account or subscription not found
+          description: Subscription not found
           content:
             application/json:
               schema:
@@ -192,13 +200,35 @@ paths:
       - in: query
         name: from
         required: false
-        description: Optional time from which to return audit entries; can be any format accepted by Date, or a relative time frame like '-15m', '-24h' etc.
+        description: |
+        Optional time from which to return audit entries. Can be any format accepted by the JavaScript Date constructor
+        or a relative date of the format '-{integer}{s|m|h|d}', where 's' is seconds, 'm' is minutes, 'h' is hours and 'd' is days.
+        
+        All of the following are valid:
+          - from=1559605282105 (absolute time in milliseconds since 1 January 1970 UTC)
+          - from=2019-06-03T23:42:16.976Z
+          - from=Mon, 03 Jun 2019 23:42:30 GMT
+          - from=-30s (30 seconds prior to now)
+          - from=-5m (5 minutes prior to now)
+          - from=-2h (2 hours prior to now)
+          - from=-1d (1 day prior to now)
         schema:
           type: string
       - in: query
         name: to
         required: false
-        description: Optional time up to which to return audit entries; can be any format accepted by Date, or a relative time frame like '-15m', '-24h' etc.
+        description: |
+        Optional time up to which to return audit entries. Can be any format accepted by the JavaScript Date constructor 
+        or a relative date of the format '-{integer}{s|m|h|d}', where 's' is seconds, 'm' is minutes, 'h' is hours and 'd' is days.
+        
+        All of the following are valid:
+          - from=1559605282105 (absolute time in milliseconds since 1 January 1970 UTC)
+          - from=2019-06-03T23:42:16.976Z
+          - from=Mon, 03 Jun 2019 23:42:30 GMT
+          - from=-30s (30 seconds prior to now)
+          - from=-5m (5 minutes prior to now)
+          - from=-2h (2 hours prior to now)
+          - from=-1d (1 day prior to now)
         schema:
           type: string
       - in: query
@@ -224,6 +254,7 @@ paths:
         Returns the audit trail of calls to the HTTP APIs related to resources that belong to the accountId. 
         Each entry of the audit trail contains the timestamp of the call, resource, action, and the identity of 
         the caller represented as the (issuer, subject) pair. Use query string parameters to filter the entries. 
+        All query filters are combined with a logical AND operator.
         
         By default, only the most recent 15 minutes of audit logs are returned. You can change this with the 'from' query parameter.
       responses:
@@ -234,19 +265,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/AccountAudit'
         400:
-          description: Invalid query
+          description: Malformed account id or invalid query
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
         403:
           description: Not authorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        404:
-          description: Account not found
           content:
             application/json:
               schema:
@@ -269,6 +294,8 @@ paths:
       operationId: getAccountIssuerList
       description: |
         Returns a list of issuers associated with the given account.
+
+        Use query string parameters to filter the list of issuers. All query filters are combined with a logical AND operator.
       parameters:
         - in: query
           name: name
@@ -297,14 +324,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IssuerList'
-        403:
-          description: Not authorized
+        400:
+          description: Malformed account id or invalid query
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-        404:
-          description: Account not found
+        403:
+          description: Not authorized
           content:
             application/json:
               schema:
@@ -340,6 +367,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Issuer'
+        400: 
+          description: Malformed account or issuer id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         403:
           description: Not authorized
           content:
@@ -347,7 +380,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         404:
-          description: Account or issuer not found
+          description: Issuer not found
           content:
             application/json:
               schema:
@@ -376,19 +409,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/Issuer'
         400:
-          description: Invalid issuer
+          description: Malformed account id, invalid issuer or issuer already exists
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
         403:
           description: Not authorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        404:
-          description: Account not found
           content:
             application/json:
               schema:
@@ -417,7 +444,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Issuer'
         400:
-          description: Invalid issuer
+          description: Malformed account or issuer id, or invalid issuer
           content:
             application/json:
               schema:
@@ -429,7 +456,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         404:
-          description: Account or issuer not found
+          description: Issuer not found
           content:
             application/json:
               schema:
@@ -446,6 +473,12 @@ paths:
       responses:
         204:
           description: Issuer was deleted
+        400: 
+          description: Malformed account or issuer id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         403:
           description: Not authorized
           content:
@@ -453,7 +486,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         404:
-          description: Account or issuer not found
+          description: Issuer not found
           content:
             application/json:
               schema:
@@ -475,7 +508,9 @@ paths:
       summary: Get clients of an account
       operationId: getAccountClientList
       description: |
-        Returns a list of clients associated with the given account.
+        Returns a list of clients associated with the given account. 
+
+        Use query string parameters to filter the list of clients. All query filters are combined with a logical AND operator.
       parameters:
         - in: query
           name: include
@@ -500,13 +535,13 @@ paths:
         - in: query
           name: issuerId
           required: false
-          description: Optional iss identifier to match against the identities of the clients (case-sensitive)
+          description: Optional issuerId identifier to match against the identities of the clients (case-sensitive)
           schema:
             $ref: '#/components/schemas/IssuerId'
         - in: query
           name: subject
           required: false
-          description: Optional sub identifier to match against the identities of the clients (case-sensitive)
+          description: Optional subject identifier to match against the identities of the clients (case-sensitive)
           schema:
             type: string
         - in: query
@@ -531,11 +566,18 @@ paths:
               schema:
                 $ref: '#/components/schemas/ClientList'
         400:
-          description: Invalid query
+          description: Malformed account id or invalid query
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         403:
           description: Not authorized
-        404:
-          description: Account not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
       security:
         - AccessToken: []
     post:
@@ -560,19 +602,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/Client'
         400:
-          description: Invalid client
+          description: Malformed account id or invalid client
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
         403:
           description: Not authorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        404:
-          description: Account not found
           content:
             application/json:
               schema:
@@ -608,6 +644,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Client'
+        400: 
+          description: Malformed account or client id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         403:
           description: Not authorized
           content:
@@ -615,7 +657,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         404:
-          description: Account or client not found
+          description: Client not found
           content:
             application/json:
               schema:
@@ -644,7 +686,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Client'
         400:
-          description: Invalid client
+          description: Malformed account or client id, or invalid client
           content:
             application/json:
               schema:
@@ -656,7 +698,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         404:
-          description: Account or client not found
+          description: Client not found
           content:
             application/json:
               schema:
@@ -673,6 +715,12 @@ paths:
       responses:
         204:
           description: Client was deleted
+        400: 
+          description: Malformed account or client id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         403:
           description: Not authorized
           content:
@@ -680,7 +728,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         404:
-          description: Account or client not found
+          description: Client not found
           content:
             application/json:
               schema:
@@ -702,7 +750,9 @@ paths:
       summary: Get users
       operationId: getUserList
       description: |
-        Returns a list of users.
+        Returns a list of users associated with the given account.
+
+        Use query string parameters to filter the list of users. All query filters are combined with a logical AND operator.
       parameters:
         - in: query
           name: include
@@ -764,19 +814,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/UserList'
         400:
-          description: Invalid query
+          description: Malformed account id or invalid query
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
         403:
           description: Not authorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        404:
-          description: Account not found
           content:
             application/json:
               schema:
@@ -805,19 +849,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/User'
         400:
-          description: Invalid user
+          description: Malformed account id or invalid user
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
         403:
           description: Not authorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        404:
-          description: Account not found
           content:
             application/json:
               schema:
@@ -854,7 +892,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/User'
         400:
-          description: Invalid userId
+          description: Malformed account or user id
           content:
             application/json:
               schema:
@@ -866,7 +904,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         404:
-          description: Account or user not found
+          description: User not found
           content:
             application/json:
               schema:
@@ -895,7 +933,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/User'
         400:
-          description: Invalid user or userId
+          description: Malformed account or user id, or invalid user
           content:
             application/json:
               schema:
@@ -907,7 +945,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         404:
-          description: Account or user not found
+          description: User not found
           content:
             application/json:
               schema:
@@ -918,13 +956,6 @@ paths:
       tags:
         - Users
       summary: Delete a User
-      parameters:
-        - in: query
-          name: accountId
-          required: false
-          description: Account id from which to remove the user
-          schema:
-            $ref: '#/components/schemas/AccountId'
       description: |
         Removes the user and all of their access and identities
       operationId: deleteUser
@@ -932,7 +963,7 @@ paths:
         204:
           description: User was deleted
         400:
-          description: Invalid userId
+          description: Malformed account or user id
           content:
             application/json:
               schema:
@@ -944,7 +975,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         404:
-          description: Account or user not found
+          description: User not found
           content:
             application/json:
               schema:
@@ -972,6 +1003,8 @@ paths:
       summary: Get the functions of a subscription
       description: |
         Returns the list of functions of a given subscription.
+
+        Use query string parameters to filter the list of functions. All query filters are combined with a logical AND operator.
       operationId: getSubscriptionFunctionList
       parameters:
         - in: query
@@ -979,11 +1012,11 @@ paths:
           required: false
           description: Optional opaque token to start returning results from
           schema:
-            $ref: '#/components/schemas/FunctionId'
+            type: string
         - in: query
           name: count
           required: false
-          description: Optional number of results to return; max is 100
+          description: Optional number of results to return
           schema:
             type: number
             minimum: 1
@@ -1001,6 +1034,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/FunctionList'
+        400: 
+          description: Malformed account or subscription id, or invalid query
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         403:
           description: Not authorized
           content:
@@ -1008,7 +1047,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         404:
-          description: Account or subscription not found
+          description: Subscription not found
           content:
             application/json:
               schema:
@@ -1042,6 +1081,8 @@ paths:
       summary: Get the functions of a boundary
       description: |
         Returns the list of functions in a given boundary of a given subscription.
+
+        Use query string parameters to filter the list of functions. All query filters are combined with a logical AND operator.
       operationId: getFunctionList
       parameters:
         - in: query
@@ -1049,11 +1090,11 @@ paths:
           required: false
           description: Optional opaque token to start returning results from
           schema:
-            $ref: '#/components/schemas/FunctionId'
+            type: string
         - in: query
           name: count
           required: false
-          description: Optional number of results to return; max is 100
+          description: Optional number of results to return
           schema:
             type: number
             minimum: 1
@@ -1071,6 +1112,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/FunctionList'
+        400: 
+          description: Malformed account or subscription id, or invalid query
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         403:
           description: Not authorized
           content:
@@ -1078,7 +1125,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         404:
-          description: Account, subscription or boundary not found
+          description: Subscription or boundary not found
           content:
             application/json:
               schema:
@@ -1116,6 +1163,12 @@ paths:
       responses:
         200:
           description: Stream of text/event-stream log data
+        400: 
+          description: Malformed account, subscription or boundary id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         403:
           description: Not authorized
           content:
@@ -1123,7 +1176,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         404:
-          description: Account, subscription or boundary not found
+          description: Subscription or boundary not found
           content:
             application/json:
               schema:
@@ -1171,6 +1224,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Function'
+        400: 
+          description: Malformed account, subscription, boundary or function id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         403:
           description: Not authorized
           content:
@@ -1178,7 +1237,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         404:
-          description: Account, subscription, boundary or function not found
+          description: Subscription, boundary or function not found
           content:
             application/json:
               schema:
@@ -1216,8 +1275,8 @@ paths:
                 $ref: '#/components/schemas/Build'
         204:
           description: No change to function
-        400:
-          description: Invalid function
+        400: 
+          description: Malformed account, subscription, boundary or function id, or invalid function
           content:
             application/json:
               schema:
@@ -1229,7 +1288,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         404:
-          description: Account, subscription, boundary or function not found
+          description: Subscription, boundary or function not found
           content:
             application/json:
               schema:
@@ -1253,6 +1312,12 @@ paths:
       responses:
         204:
           description: Function was deleted
+        400: 
+          description: Malformed account, subscription, boundary or function id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         403:
           description: Not authorized
           content:
@@ -1304,6 +1369,12 @@ paths:
       responses:
         200:
           description: Stream of text/event-stream log data
+        400: 
+          description: Malformed account, subscription, boundary or function id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         403:
           description: Not authorized
           content:
@@ -1311,7 +1382,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         404:
-          description: Subscription, boundary of function not found
+          description: Subscription, boundary or function not found
           content:
             application/json:
               schema:
@@ -1359,6 +1430,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/FunctionLocation'
+        400: 
+          description: Malformed account, subscription, boundary or function id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         403:
           description: Not authorized
           content:
@@ -1366,7 +1443,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         404:
-          description: Account, subscription, boundary of function not found
+          description: Subscription, boundary or function not found
           content:
             application/json:
               schema:
@@ -1426,8 +1503,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Build'
-        400:
-          description: Invalid function
+        400: 
+          description: Malformed account, subscription, boundary, function or build id, or invalid function
           content:
             application/json:
               schema:
@@ -1439,7 +1516,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         404:
-          description: Account, subscription, boundary or function not found
+          description: Subscription, boundary or function not found
           content:
             application/json:
               schema:
@@ -1479,12 +1556,12 @@ components:
         message:
           type: string
           description: A message with details regarding the error
-          example: The user 'usr-12345' does not exist
+          example: The user 'usr-5555555555555555' does not exist
 
     AccountId:
       type: string
       description: Account id
-      example: 'acc-02387f60baea4887a24669ef70705173'
+      example: 'acc-5555555555555555'
 
     Account:
       type: object
@@ -1509,7 +1586,7 @@ components:
       properties:
         next:
           type: string
-          description: Opaque token to continue listing from
+          description: Opaque token to continue getting results from
         items:
           type: array
           items:
@@ -1524,6 +1601,7 @@ components:
         - accountId
         - issuerId
         - subject
+        - authorized
       properties:
         accountId:
           $ref: '#/components/schemas/AccountId'
@@ -1538,7 +1616,7 @@ components:
         resource:
           type: string
           description: Name of the resource on which the action was performed
-          example: /account/acc-abcde/subscription/sub-12345/boundary/myboundary/function/myfunction17
+          example: /account/acc-5555555555555555/subscription/sub-5555555555555555/boundary/boundary-1/function/function-17
         issuerId:
           type: string
           description: Identifier of the issuer that authenticated the user
@@ -1547,11 +1625,14 @@ components:
           type: string
           description: Identifier of the user, unique within the issuer
           example: google-oauth2|skjdhfsadhfalkajsdhf
+        authorized:
+            type: boolean
+            description: If 'true' the action was authorized; if 'false' the action was not authorized and was not allowed to continue
 
     SubscriptionId:
       type: string
       description: Subscription id
-      example: 'sub-387669ef70700237a24517f60baea488'
+      example: 'sub-5555555555555555'
 
     Subscription:
       type: object
@@ -1572,7 +1653,7 @@ components:
       properties:
         next:
           type: string
-          description: Opaque token to continue listing from
+          description: Opaque token to continue getting results from
         items:
           type: array
           description: A list of subscriptions
@@ -1634,7 +1715,7 @@ components:
       properties:
         next:
           type: string
-          description: Opaque token to continue listing from
+          description: Opaque token to continue getting results from
         items:
           type: array
           description: A list of issuers
@@ -1662,14 +1743,17 @@ components:
         action:
           type: string
           description: The action to perform
+          example: function:*
         resource:
           type: string
           description: The resource to perform the action on
+          example: /account/acc-5555555555555555/subscription/sub-5555555555555555/boundary/my-boundary-1/function/my-function-17
 
     ClientId:
       type: string
       description: Client id
-      example: 'clt-cc46f3ab0760a9f411b72096e65cd1cc'
+      example: 'clt-5555555555555555'
+    
     NewClient:
       type: object
       properties:
@@ -1697,6 +1781,7 @@ components:
             id:
               $ref: '#/components/schemas/ClientId'
         - $ref: '#/components/schemas/NewClient'
+    
     ClientList:
       type: object
       required:
@@ -1704,7 +1789,7 @@ components:
       properties:
         next:
           type: string
-          description: Opaque token to continue listing from
+          description: Opaque token to continue getting results from
         items:
           type: array
           description: A list of clients
@@ -1714,7 +1799,8 @@ components:
     UserId:
       type: string
       description: User id
-      example: 'usr-9f411b7209cc46f3ab0760a6e65cd1cc'
+      example: 'usr-5555555555555555'
+
     NewUser:
       type: object
       properties:
@@ -1750,6 +1836,7 @@ components:
             id:
               $ref: '#/components/schemas/UserId'
         - $ref: '#/components/schemas/NewUser'
+    
     UserList:
       type: object
       required:
@@ -1757,7 +1844,7 @@ components:
       properties:
         next:
           type: string
-          description: Opaque token to continue listing from
+          description: Opaque token to continue getting results from
         items:
           type: array
           description: A list of users
@@ -1767,12 +1854,12 @@ components:
     BoundaryId:
       type: string
       description: Boundary id
-      example: 'tenant-xyz'
+      example: my-boundary-xyz
 
     FunctionId:
       type: string
       description: Function id
-      example: 'task-123'
+      example: my-function-abc
 
     FunctionLocation:
       type: object
@@ -1782,7 +1869,7 @@ components:
         location:
           type: string
           description: The URL for executing the function
-          example: 'https://domain.com/task-abc'
+          example: 'https://domain.com/function-abc'
 
     FunctionShort:
       type: object
@@ -1878,7 +1965,8 @@ components:
         - items
       properties:
         next:
-          $ref: '#/components/schemas/FunctionId'
+          type: string
+          description: Opaque token to continue getting results from
         items:
           type: array
           description: A list of functions
@@ -1888,7 +1976,7 @@ components:
     BuildId:
       type: string
       description: Build id
-      example: 'bld-9f411b7209cc46f3ab0760a6e65cd1cc'
+      example: sb9oa2
 
     Build:
       allOf:

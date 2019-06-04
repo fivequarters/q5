@@ -23,6 +23,7 @@ export enum AccountDataExceptionCode {
   idRequired = 'idRequired',
   unauthorized = 'unauthorized',
   unauthorizedToGrantAccess = 'unauthorizedToGrantAccess',
+  unresolvedAgent = 'unresolvedAgent',
   invalidJwt = 'invalidJwt',
   noPublicKey = 'noPublicKey',
   invalidNext = 'invalidNext',
@@ -71,6 +72,11 @@ export class AccountDataException extends Exception {
   public static noIssuer(issuerId: string) {
     const message = `The issuer '${issuerId}' is not associated with the account`;
     return new AccountDataException(AccountDataExceptionCode.noIssuer, message, [issuerId]);
+  }
+
+  public static unresolvedAgent(error: Error) {
+    const message = `Unable to resolve the agent due to the following error: ${error.message}`;
+    return new AccountDataException(AccountDataExceptionCode.unresolvedAgent, message, [error]);
   }
 
   public static noAgent(agentId: string) {

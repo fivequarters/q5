@@ -1,20 +1,16 @@
-import { IAccount, FakeAccount, resolveAccount } from './accountResolver';
+import { IAccount, FakeAccount, resolveAccount, getMalformedAccount, getNonExistingAccount } from './accountResolver';
 import { addClient, initClient, resolveInit, cleanUpClients } from './sdk';
 import { random } from '@5qtrs/random';
 import { decodeJwt, decodeJwtHeader, signJwt } from '@5qtrs/jwt';
 import { createKeyPair } from '@5qtrs/key-pair';
+import { extendExpect } from './extendJest';
+
+const expectMore = extendExpect(expect);
 
 let account: IAccount = FakeAccount;
-let invalidAccount: IAccount = FakeAccount;
 
 beforeAll(async () => {
   account = await resolveAccount();
-  invalidAccount = {
-    accountId: 'acc-9999999999999999',
-    subscriptionId: account.subscriptionId,
-    baseUrl: account.baseUrl,
-    accessToken: account.accessToken,
-  };
 });
 
 afterEach(async () => {
@@ -188,13 +184,8 @@ describe('Client', () => {
 
     test('Getting an init token with a non-existing account should return an error', async () => {
       const original = await addClient(account, {});
-      const client = await initClient(invalidAccount, original.data.id);
-      expect(client.status).toBe(404);
-      expect(client.data.status).toBe(404);
-      expect(client.data.statusCode).toBe(404);
-
-      const message = client.data.message.replace(/'[^']*'/, '<issuer>');
-      expect(message).toBe(`The issuer <issuer> is not associated with the account`);
+      const client = await initClient(await getNonExistingAccount(), original.data.id);
+      expectMore(client).toBeUnauthorizedError();
     }, 10000);
   });
 
@@ -277,11 +268,8 @@ describe('Client', () => {
       const keyPair = await createKeyPair();
       const keyId = random({ lengthInBytes: 4 }) as string;
 
-      const resolved = await resolveInit(invalidAccount, jwt, { publicKey: keyPair.publicKey, keyId });
-      expect(resolved.status).toBe(404);
-      expect(resolved.data.status).toBe(404);
-      expect(resolved.data.statusCode).toBe(404);
-      expect(resolved.data.message).toBe(`The client '${original.data.id}' does not exist`);
+      const resolved = await resolveInit(await getNonExistingAccount(), jwt, { publicKey: keyPair.publicKey, keyId });
+      expectMore(resolved).toBeUnauthorizedError();
     }, 10000);
 
     test('Resolving an init token with non-jwt should return an error', async () => {

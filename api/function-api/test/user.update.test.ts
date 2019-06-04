@@ -1,18 +1,14 @@
-import { IAccount, FakeAccount, resolveAccount } from './accountResolver';
-import { addUser, updateUser, cleanUpUsers } from './sdk';
 import { random } from '@5qtrs/random';
+import { IAccount, FakeAccount, resolveAccount, getMalformedAccount, getNonExistingAccount } from './accountResolver';
+import { addUser, updateUser, cleanUpUsers } from './sdk';
+import { extendExpect } from './extendJest';
+
+const expectMore = extendExpect(expect);
 
 let account: IAccount = FakeAccount;
-let invalidAccount: IAccount = FakeAccount;
 
 beforeAll(async () => {
   account = await resolveAccount();
-  invalidAccount = {
-    accountId: 'acc-9999999999999999',
-    subscriptionId: account.subscriptionId,
-    baseUrl: account.baseUrl,
-    accessToken: account.accessToken,
-  };
 });
 
 afterEach(async () => {
@@ -219,10 +215,8 @@ describe('User', () => {
       await addUser(account, { identities });
       const original = await addUser(account, { identities: [{ issuerId: 'test', subject: `sub-${random()}-other` }] });
       const user = await updateUser(account, original.data.id, { identities });
-      expect(user.status).toBe(400);
-      expect(user.data.status).toBe(400);
-      expect(user.data.statusCode).toBe(400);
-      expect(user.data.message).toBe(
+      expectMore(user).toBeHttpError(
+        400,
         `The identity with issuer 'test' and subject '${subject}' is already associated with a user or client`
       );
     }, 20000);
@@ -297,140 +291,99 @@ describe('User', () => {
     test('Updating a user with an empty string first name is not supported', async () => {
       const original = await addUser(account, { firstName: 'firstName - test user' });
       const user = await updateUser(account, original.data.id, { firstName: '' });
-      expect(user.status).toBe(400);
-      expect(user.data.status).toBe(400);
-      expect(user.data.statusCode).toBe(400);
-      expect(user.data.message).toBe('"firstName" is not allowed to be empty');
+      expectMore(user).toBeHttpError(400, '"firstName" is not allowed to be empty');
     }, 20000);
 
     test('Updating a user with an empty string last name is not supported', async () => {
       const original = await addUser(account, {});
       const user = await updateUser(account, original.data.id, { lastName: '' });
-      expect(user.status).toBe(400);
-      expect(user.data.status).toBe(400);
-      expect(user.data.statusCode).toBe(400);
-      expect(user.data.message).toBe('"lastName" is not allowed to be empty');
+      expectMore(user).toBeHttpError(400, '"lastName" is not allowed to be empty');
     }, 20000);
 
     test('Updating a user with an empty string primary email is not supported', async () => {
       const original = await addUser(account, { primaryEmail: 'email - test user' });
       const user = await updateUser(account, original.data.id, { primaryEmail: '' });
-      expect(user.status).toBe(400);
-      expect(user.data.status).toBe(400);
-      expect(user.data.statusCode).toBe(400);
-      expect(user.data.message).toBe('"primaryEmail" is not allowed to be empty');
+      expectMore(user).toBeHttpError(400, '"primaryEmail" is not allowed to be empty');
     }, 20000);
 
     test('Updating a user with an identity with an empty issuerId is not supported', async () => {
       const original = await addUser(account, {});
-      const user = await updateUser(account, original.data.id, {
-        identities: [{ issuerId: '', subject: `sub-${random()}` }],
-      });
-      expect(user.status).toBe(400);
-      expect(user.data.status).toBe(400);
-      expect(user.data.statusCode).toBe(400);
-      expect(user.data.message).toBe('"issuerId" is not allowed to be empty');
+      const identities = [{ issuerId: '', subject: `sub-${random()}` }];
+      const user = await updateUser(account, original.data.id, { identities });
+      expectMore(user).toBeHttpError(400, '"issuerId" is not allowed to be empty');
     }, 20000);
 
     test('Updating a user with an identity with a missing issuerId is not supported', async () => {
       const original = await addUser(account, { identities: [{ issuerId: 'foo', subject: `sub-${random()}` }] });
       const user = await updateUser(account, original.data.id, { identities: [{ subject: `sub-${random()}` }] });
-      expect(user.status).toBe(400);
-      expect(user.data.status).toBe(400);
-      expect(user.data.statusCode).toBe(400);
-      expect(user.data.message).toBe('"issuerId" is required');
+      expectMore(user).toBeHttpError(400, '"issuerId" is required');
     }, 20000);
 
     test('Updating a user with an identity with an empty subject is not supported', async () => {
       const original = await addUser(account, { identities: [{ issuerId: 'foo', subject: `sub-${random()}` }] });
       const user = await updateUser(account, original.data.id, { identities: [{ issuerId: 'foo', subject: '' }] });
-      expect(user.status).toBe(400);
-      expect(user.data.status).toBe(400);
-      expect(user.data.statusCode).toBe(400);
-      expect(user.data.message).toBe('"subject" is not allowed to be empty');
+      expectMore(user).toBeHttpError(400, '"subject" is not allowed to be empty');
     }, 20000);
 
     test('Updating a user with an identity with a missing subject is not supported', async () => {
       const original = await addUser(account, {});
       const user = await updateUser(account, original.data.id, { identities: [{ issuerId: 'foo' }] });
-      expect(user.status).toBe(400);
-      expect(user.data.status).toBe(400);
-      expect(user.data.statusCode).toBe(400);
-      expect(user.data.message).toBe('"subject" is required');
+      expectMore(user).toBeHttpError(400, '"subject" is required');
     }, 20000);
 
     test('Updating a user with access with an empty action is not supported', async () => {
       const original = await addUser(account, {});
       const user = await updateUser(account, original.data.id, { access: { allow: [{ action: '', resource: '/' }] } });
-      expect(user.status).toBe(400);
-      expect(user.data.status).toBe(400);
-      expect(user.data.statusCode).toBe(400);
-      expect(user.data.message).toBe('"action" is not allowed to be empty');
+      expectMore(user).toBeHttpError(400, '"action" is not allowed to be empty');
     }, 20000);
 
     test('Updating a user with access with a missing action is not supported', async () => {
       const original = await addUser(account, { access: { allow: [{ action: '*', resource: '/' }] } });
       const user = await updateUser(account, original.data.id, { access: { allow: [{ resource: '/' }] } });
-      expect(user.status).toBe(400);
-      expect(user.data.status).toBe(400);
-      expect(user.data.statusCode).toBe(400);
-      expect(user.data.message).toBe('"action" is required');
+      expectMore(user).toBeHttpError(400, '"action" is required');
     }, 20000);
 
     test('Updating a user with access with an empty resource is not supported', async () => {
       const original = await addUser(account, { access: { allow: [{ action: '*', resource: '/' }] } });
       const user = await updateUser(account, original.data.id, { access: { allow: [{ action: '*', resource: '' }] } });
-      expect(user.status).toBe(400);
-      expect(user.data.status).toBe(400);
-      expect(user.data.statusCode).toBe(400);
-      expect(user.data.message).toBe('"resource" is not allowed to be empty');
+      expectMore(user).toBeHttpError(400, '"resource" is not allowed to be empty');
     }, 20000);
 
     test('Updating a user with access with a missing resource is not supported', async () => {
       const original = await addUser(account, {});
       const user = await updateUser(account, original.data.id, { access: { allow: [{ action: '*' }] } });
-      expect(user.status).toBe(400);
-      expect(user.data.status).toBe(400);
-      expect(user.data.statusCode).toBe(400);
-      expect(user.data.message).toBe('"resource" is required');
+      expectMore(user).toBeHttpError(400, '"resource" is required');
     }, 20000);
 
     test('Updating a user with access with no allow is not supported', async () => {
       const original = await addUser(account, { access: { allow: [{ action: '*', resource: '/' }] } });
       const user = await updateUser(account, original.data.id, { access: {} });
-      expect(user.status).toBe(400);
-      expect(user.data.status).toBe(400);
-      expect(user.data.statusCode).toBe(400);
-      expect(user.data.message).toBe('"allow" is required');
+      expectMore(user).toBeHttpError(400, '"allow" is required');
     }, 20000);
 
     test('Updating a user with access with an empty allow array is not supported', async () => {
       const original = await addUser(account, {});
       const user = await updateUser(account, original.data.id, { access: { allow: [] } });
-      expect(user.status).toBe(400);
-      expect(user.data.status).toBe(400);
-      expect(user.data.statusCode).toBe(400);
-      expect(user.data.message).toBe('"allow" must contain at least 1 items');
+      expectMore(user).toBeHttpError(400, '"allow" must contain at least 1 items');
     }, 20000);
 
     test('Updating a user with identities with an empty array is not supported', async () => {
       const original = await addUser(account, { identities: [{ issuerId: 'foo', subject: `sub-${random()}` }] });
       const user = await updateUser(account, original.data.id, { identities: [] });
-      expect(user.status).toBe(400);
-      expect(user.data.status).toBe(400);
-      expect(user.data.statusCode).toBe(400);
-      expect(user.data.message).toBe('"identities" must contain at least 1 items');
+      expectMore(user).toBeHttpError(400, '"identities" must contain at least 1 items');
     }, 20000);
 
-    test('Updating a user with a non-existing account should return an error', async () => {
+    test('Updating a user with a malformed account id should return an error', async () => {
+      const malformed = await getMalformedAccount();
       const original = await addUser(account, {});
-      const user = await updateUser(invalidAccount, original.data.id, {});
-      expect(user.status).toBe(404);
-      expect(user.data.status).toBe(404);
-      expect(user.data.statusCode).toBe(404);
+      const user = await updateUser(malformed, original.data.id, {});
+      expectMore(user).toBeMalformedAccountError(malformed.accountId);
+    }, 10000);
 
-      const message = user.data.message.replace(/'[^']*'/, '<issuer>');
-      expect(message).toBe(`The issuer <issuer> is not associated with the account`);
+    test('Updating a user with a non-existing account non-existing account should return an error', async () => {
+      const original = await addUser(account, {});
+      const user = await updateUser(await getNonExistingAccount(), original.data.id, {});
+      expectMore(user).toBeUnauthorizedError();
     }, 20000);
   });
 });

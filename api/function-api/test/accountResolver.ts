@@ -23,6 +23,26 @@ export function cloneWithAccessToken(account: IAccount, accessToken: string) {
   };
 }
 
+export async function getMalformedAccount(): Promise<IAccount> {
+  const account = await resolveAccount();
+  return {
+    accountId: 'acc-1234',
+    subscriptionId: account.subscriptionId,
+    baseUrl: account.baseUrl,
+    accessToken: account.accessToken,
+  };
+}
+
+export async function getNonExistingAccount(): Promise<IAccount> {
+  const account = await resolveAccount();
+  return {
+    accountId: 'acc-9999999999999999',
+    subscriptionId: account.subscriptionId,
+    baseUrl: account.baseUrl,
+    accessToken: account.accessToken,
+  };
+}
+
 export async function resolveAccount(): Promise<IAccount> {
   if (process.env.API_SERVER && process.env.API_AUTHORIZATION_KEY) {
     return {
