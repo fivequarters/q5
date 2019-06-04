@@ -154,7 +154,7 @@ describe('Audit', () => {
       );
     }, 50000);
 
-    test('Listing audit entries filtered by action should be supported', async () => {
+    test('Listing audit entries filtered by a wildcard action should be supported', async () => {
       const testUser = await createTestUser(account, {
         access: { allow: [{ action: 'user:*', resource: `/account/${account.accountId}` }] },
       });
@@ -162,7 +162,7 @@ describe('Audit', () => {
       await Promise.all([addUser(testAccount, {}), addClient(testAccount, {})]);
       const now = Date.now();
 
-      const audit = await listAudit(account, { issuerId: testUser.identities[0].issuerId, action: 'client' });
+      const audit = await listAudit(account, { issuerId: testUser.identities[0].issuerId, action: 'client:*' });
       expect(audit.status).toBe(200);
       expect(audit.data).toBeDefined();
       expect(audit.data.items).toBeDefined();
@@ -179,6 +179,34 @@ describe('Audit', () => {
         expect(item.action).toBe('client:add');
         expect(item.authorized).toBe(false);
         expect(item.resource).toBe(`/account/${testAccount.accountId}/client/`);
+      }
+    }, 50000);
+
+    test('Listing audit entries filtered by a full action should be supported', async () => {
+      const testUser = await createTestUser(account, {
+        access: { allow: [{ action: 'user:*', resource: `/account/${account.accountId}` }] },
+      });
+      const testAccount = cloneWithAccessToken(account, testUser.accessToken);
+      await Promise.all([addUser(testAccount, {}), addClient(testAccount, {})]);
+      const now = Date.now();
+
+      const audit = await listAudit(account, { issuerId: testUser.identities[0].issuerId, action: 'user:add' });
+      expect(audit.status).toBe(200);
+      expect(audit.data).toBeDefined();
+      expect(audit.data.items).toBeDefined();
+      expect(audit.data.items.length).toBe(1);
+      for (const item of audit.data.items) {
+        expect(item.issuerId).toBe(testUser.identities[0].issuerId);
+        expect(item.subject).toBe(testUser.identities[0].subject);
+        expect(item.accountId).toBe(testAccount.accountId);
+
+        const timestamp = new Date(item.timestamp).getTime();
+        expect(timestamp).toBeGreaterThan(now - 5000);
+        expect(timestamp).toBeLessThan(now + 5000);
+
+        expect(item.action).toBe('user:add');
+        expect(item.authorized).toBe(true);
+        expect(item.resource).toBe(`/account/${testAccount.accountId}/user/`);
       }
     }, 50000);
 
@@ -493,6 +521,11 @@ describe('Audit', () => {
       expect(audit.data.status).toBe(400);
       expect(audit.data.statusCode).toBe(400);
       expect(audit.data.message.indexOf("must be later in time than the 'from' filter")).toBeGreaterThan(0);
+    }, 50000);
+
+    test('Listing audit entries filtered by an invalid action should return an error', async () => {
+      const audit = await listAudit(account, { action: 'client' });
+      expectMore(audit).toBeHttpError(400, `The 'action' filter 'client' is invalid`);
     }, 50000);
 
     test('Listing audit entries with a malformed account should return an error', async () => {

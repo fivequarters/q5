@@ -73,6 +73,9 @@ export class Client {
     accountId: string,
     options?: IListClientsOptions
   ): Promise<IListClientsResult> {
+    if (options && options.subject && !options.issuerId) {
+      throw AccountDataException.invalidFilterIdentity(options.subject);
+    }
     const accountPromise = this.dataContext.accountData.get(accountId);
     const clientPromise = this.dataContext.clientData.list(accountId, options);
     return cancelOnError(accountPromise, clientPromise);

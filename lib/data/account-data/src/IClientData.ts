@@ -17,10 +17,9 @@ export interface IListClientsOptions {
   next?: string;
   limit?: number;
   include?: ClientInclude;
-  exact?: boolean;
   displayNameContains?: string;
-  issuerContains?: string;
-  subjectContains?: string;
+  issuerId?: string;
+  subject?: string;
 }
 
 export interface IListClientsResult {

@@ -105,8 +105,8 @@ export interface IListAuditEntriesOptions {
   limit?: number;
   from?: Date;
   to?: Date;
-  resourceStartsWith?: string;
-  actionContains?: string;
+  resource?: string;
+  action?: string;
   issuerId?: string;
   subject?: string;
 }
@@ -156,11 +156,11 @@ export class AuditEntryTable extends AwsDynamoTable {
         keyConditions.push('begins_with(#identity, :identity)');
         expressionNames['#identity'] = 'identity';
         expressionValues[':identity'] = identity;
-      } else if (options.resourceStartsWith) {
+      } else if (options.resource) {
         resourceFilter = false;
         keyConditions.push('begins_with(#resource, :resource)');
         expressionNames['#resource'] = 'resource';
-        expressionValues[':resource'] = { S: options.resourceStartsWith };
+        expressionValues[':resource'] = { S: options.resource };
       } else if (options.from || options.to) {
         index = timestampIndex;
         timeStampFilter = false;
@@ -187,16 +187,16 @@ export class AuditEntryTable extends AwsDynamoTable {
         }
       }
 
-      if (options.actionContains) {
+      if (options.action) {
         filters.push('begins_with(#action, :action)');
         expressionNames['#action'] = 'action';
-        expressionValues[':action'] = { S: options.actionContains };
+        expressionValues[':action'] = { S: options.action };
       }
 
-      if (options.resourceStartsWith && resourceFilter) {
+      if (options.resource && resourceFilter) {
         filters.push('begins_with(#resource, :resource)');
         expressionNames['#resource'] = 'resource';
-        expressionValues[':resource'] = { S: options.resourceStartsWith };
+        expressionValues[':resource'] = { S: options.resource };
       }
     }
 

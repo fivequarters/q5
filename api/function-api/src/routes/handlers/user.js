@@ -65,19 +65,17 @@ function userList() {
       const next = req.query.next;
       const nameContains = req.query.name;
       const primaryEmailContains = req.query.email;
-      const issuerContains = req.query.issuerId;
-      const subjectContains = req.query.subject;
+      const issuerId = req.query.issuerId;
+      const subject = req.query.subject;
       const include = req.query.include;
-      const exact = req.query.exact === 'true' || req.query.exact == 1 ? true : false;
       const options = {
         limit,
         next,
         include,
-        exact,
         nameContains,
         primaryEmailContains,
-        issuerContains,
-        subjectContains,
+        issuerId,
+        subject,
       };
 
       accountContext.user

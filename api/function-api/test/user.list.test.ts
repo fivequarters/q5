@@ -54,7 +54,7 @@ describe('User', () => {
       }
     }, 50000);
 
-    test('Listing all users does return identities and access by default if include=all', async () => {
+    test('Listing all users does return identities and access if include=all', async () => {
       const access = { allow: [{ action: 'user:*', resource: '/account/abc/' }] };
       const firstName = `first - ${testRunId}`;
       await Promise.all([
@@ -181,103 +181,12 @@ describe('User', () => {
       }
     }, 50000);
 
-    test('Listing all users filtered by issuerId should return only filtered users', async () => {
-      await Promise.all([
-        addUser(account, { identities: [{ issuerId: `${testRunId} - 6a`, subject: `sub-${random()}` }] }),
-        addUser(account, { identities: [{ issuerId: `${testRunId} - 6b`, subject: `sub-${random()}` }] }),
-        addUser(account, { identities: [{ issuerId: `${testRunId} - 6c`, subject: `sub-${random()}` }] }),
-        addUser(account, { identities: [{ issuerId: `${testRunId} - 6d`, subject: `sub-${random()}` }] }),
-        addUser(account, { identities: [{ issuerId: `${testRunId} - 6e`, subject: `sub-${random()}` }] }),
-      ]);
-      const result = await listUsers(account, { issuerId: `${testRunId} - 6`, include: true });
-      expect(result.status).toBe(200);
-      expect(result.data.items.length).toBe(5);
-      const lookup: any = {};
-
-      for (const item of result.data.items) {
-        expect(lookup[item.id]).toBeUndefined();
-        lookup[item.id] = item;
-        expect(item.identities[0].issuerId.indexOf(`${testRunId} - 6`)).toBe(0);
-      }
-    }, 50000);
-
-    test('Listing all users filtered by subject should return only filtered users', async () => {
-      await Promise.all([
-        addUser(account, { identities: [{ subject: `${testRunId} - 7a`, issuerId: `foo` }] }),
-        addUser(account, { identities: [{ subject: `${testRunId} - 7b`, issuerId: `foo` }] }),
-        addUser(account, { identities: [{ subject: `${testRunId} - 7c`, issuerId: `foo` }] }),
-        addUser(account, { identities: [{ subject: `${testRunId} - 7d`, issuerId: `foo` }] }),
-        addUser(account, { identities: [{ subject: `${testRunId} - 7e`, issuerId: `foo` }] }),
-      ]);
-      const result = await listUsers(account, { subject: `${testRunId} - 7`, include: true });
-      expect(result.status).toBe(200);
-      expect(result.data.items.length).toBe(5);
-      const lookup: any = {};
-
-      for (const item of result.data.items) {
-        expect(lookup[item.id]).toBeUndefined();
-        lookup[item.id] = item;
-        expect(item.identities[0].subject.indexOf(`${testRunId} - 7`)).toBe(0);
-      }
-    }, 50000);
-
-    test('Listing all users filtered by first name should return only exact matches if exact=true', async () => {
-      await Promise.all([
-        addUser(account, { firstName: `${testRunId} - 8` }),
-        addUser(account, { firstName: `${testRunId} - 8a` }),
-      ]);
-      const result = await listUsers(account, { name: `${testRunId} - 8`, exact: true });
-      expect(result.status).toBe(200);
-      expect(result.data.items.length).toBe(1);
-      const lookup: any = {};
-
-      for (const item of result.data.items) {
-        expect(lookup[item.id]).toBeUndefined();
-        lookup[item.id] = item;
-        expect(item.firstName).toBe(`${testRunId} - 8`);
-      }
-    }, 50000);
-
-    test('Listing all users filtered by last name should return only exact matches if exact=true', async () => {
-      await Promise.all([
-        addUser(account, { lastName: `${testRunId} - 9` }),
-        addUser(account, { lastName: `${testRunId} - 9a` }),
-      ]);
-      const result = await listUsers(account, { name: `${testRunId} - 9`, exact: true });
-      expect(result.status).toBe(200);
-      expect(result.data.items.length).toBe(1);
-      const lookup: any = {};
-
-      for (const item of result.data.items) {
-        expect(lookup[item.id]).toBeUndefined();
-        lookup[item.id] = item;
-        expect(item.lastName).toBe(`${testRunId} - 9`);
-      }
-    }, 50000);
-
-    test('Listing all users filtered by email should return only exact matches if exact=true', async () => {
-      await Promise.all([
-        addUser(account, { primaryEmail: `${testRunId} - 10` }),
-        addUser(account, { primaryEmail: `${testRunId} - 10a` }),
-      ]);
-      const result = await listUsers(account, { email: `${testRunId} - 10`, exact: true });
-      expect(result.status).toBe(200);
-      expect(result.data.items.length).toBe(1);
-      const lookup: any = {};
-
-      for (const item of result.data.items) {
-        expect(lookup[item.id]).toBeUndefined();
-        lookup[item.id] = item;
-        expect(item.primaryEmail).toBe(`${testRunId} - 10`);
-      }
-    }, 50000);
-
-    test('Listing all users filtered by issuerId should return only exact matches if exact=true', async () => {
+    test('Listing all users filtered by issuerId should return only exact matches', async () => {
       await Promise.all([
         addUser(account, { identities: [{ issuerId: `${testRunId} - 11`, subject: `sub-${random()}` }] }),
         addUser(account, { identities: [{ issuerId: `${testRunId} - 11a`, subject: `sub-${random()}` }] }),
       ]);
-      const result = await listUsers(account, { issuerId: `${testRunId} - 11`, include: true, exact: true });
+      const result = await listUsers(account, { issuerId: `${testRunId} - 11`, include: true });
       expect(result.status).toBe(200);
       expect(result.data.items.length).toBe(1);
       const lookup: any = {};
@@ -289,24 +198,7 @@ describe('User', () => {
       }
     }, 50000);
 
-    test('Listing all users filtered by subject should return only exact matches if exact=true', async () => {
-      await Promise.all([
-        addUser(account, { identities: [{ subject: `${testRunId} - 12`, issuerId: `foo` }] }),
-        addUser(account, { identities: [{ subject: `${testRunId} - 12a`, issuerId: `foo` }] }),
-      ]);
-      const result = await listUsers(account, { subject: `${testRunId} - 12`, include: true, exact: true });
-      expect(result.status).toBe(200);
-      expect(result.data.items.length).toBe(1);
-      const lookup: any = {};
-
-      for (const item of result.data.items) {
-        expect(lookup[item.id]).toBeUndefined();
-        lookup[item.id] = item;
-        expect(item.identities[0].subject).toBe(`${testRunId} - 12`);
-      }
-    }, 50000);
-
-    test('Listing all users filtered by issuerId and subject should return only exact matches if exact=true', async () => {
+    test('Listing all users filtered by issuerId and subject should return only exact matches', async () => {
       await Promise.all([
         addUser(account, { identities: [{ subject: `${testRunId} - 12`, issuerId: `foo` }] }),
         addUser(account, { identities: [{ subject: `${testRunId} - 12a`, issuerId: `foo` }] }),
@@ -317,7 +209,6 @@ describe('User', () => {
         subject: `${testRunId} - 12`,
         issuerId: 'foo',
         include: true,
-        exact: true,
       });
       expect(result.status).toBe(200);
       expect(result.data.items.length).toBe(1);
@@ -401,6 +292,18 @@ describe('User', () => {
         lookup[item.id] = item;
         expect(item.lastName.indexOf(`${testRunId} - 15`)).toBe(0);
       }
+    }, 50000);
+
+    test('Listing all users filtered by subject without issuerId should return an error', async () => {
+      await Promise.all([
+        addUser(account, { identities: [{ subject: `${testRunId} - 7`, issuerId: `foo` }] }),
+        addUser(account, { identities: [{ subject: `${testRunId} - 7`, issuerId: `foo2` }] }),
+      ]);
+      const result = await listUsers(account, { subject: `${testRunId} - 7`, include: true });
+      expectMore(result).toBeHttpError(
+        400,
+        `The 'subject' filter '${testRunId} - 7' can not be specified without the 'issuerId' filter`
+      );
     }, 50000);
 
     test('Listing users with a malformed account should return an error', async () => {

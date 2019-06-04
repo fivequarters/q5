@@ -7,8 +7,8 @@ function auditGet() {
       const accountId = req.params.accountId;
       const limit = req.query.count;
       const next = req.query.next;
-      const actionContains = req.query.action;
-      const resourceStartsWith = req.query.resource;
+      const action = req.query.action;
+      const resource = req.query.resource;
       const issuerId = req.query.issuerId;
       const subject = req.query.subject;
       const from = req.query.from;
@@ -16,8 +16,8 @@ function auditGet() {
       const options = {
         limit,
         next,
-        actionContains,
-        resourceStartsWith,
+        action,
+        resource,
         issuerId,
         subject,
         from,

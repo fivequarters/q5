@@ -30,6 +30,7 @@ export enum AccountDataExceptionCode {
   invalidFilterDate = 'invalidFilterDate',
   invalidFilterDateOrder = 'invalidFilterDateOrder',
   invalidFilterIdentity = 'invalidFilterIdentity',
+  invalidFilterAction = 'invalidFilterAction',
   issuerTooManyKeys = 'issuerTooManyKeys',
   issuerEmptyPublicKeys = 'issuerEmptyPublicKeys',
   issuerMissingKeyId = 'issuerMissingKeyId',
@@ -164,6 +165,11 @@ export class AccountDataException extends Exception {
   public static invalidFilterIdentity(subject: string) {
     const message = `The 'subject' filter '${subject}' can not be specified without the 'issuerId' filter`;
     return new AccountDataException(AccountDataExceptionCode.invalidFilterIdentity, message, [subject]);
+  }
+
+  public static invalidFilterAction(action: string) {
+    const message = `The 'action' filter '${action}' is invalid`;
+    return new AccountDataException(AccountDataExceptionCode.invalidFilterIdentity, message, [action]);
   }
 
   public static noPublicKey(keyId: string) {

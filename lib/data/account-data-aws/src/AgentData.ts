@@ -226,10 +226,7 @@ export class AgentData extends DataSource implements IAgentData {
   private async deleteCliIdentityIssuer(accountId: string, agentId: string, identity: IIdentity): Promise<void> {
     const issuerId = identity.issuerId;
     if (isCliIssuer(issuerId, agentId)) {
-      const remainingIdentities = await this.identityTable.list(accountId, {
-        issuerContains: issuerId,
-        exact: true,
-      });
+      const remainingIdentities = await this.identityTable.list(accountId, { issuerId: issuerId });
       if (remainingIdentities.items.length === 0) {
         await this.issuerTable.delete(accountId, issuerId);
       }

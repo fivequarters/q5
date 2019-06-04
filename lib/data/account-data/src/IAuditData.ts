@@ -20,8 +20,8 @@ export interface IListAuditEntriesOptions {
   limit?: number;
   from?: Date;
   to?: Date;
-  resourceStartsWith?: string;
-  actionContains?: string;
+  resource?: string;
+  action?: string;
   issuerId?: string;
   subject?: string;
 }

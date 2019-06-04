@@ -11,6 +11,8 @@ const second = 1000;
 const minute = 60 * second;
 const hour = 60 * minute;
 const day = 24 * hour;
+const actionDelimiter = ':';
+const actionWildcard = '*';
 const defaultFromFilter = '-15m';
 const intervalLookup: { [index: string]: number } = { s: second, m: minute, h: hour, d: day };
 const relativeTimeRegex = /^\-(\d+)([mshd])$/;
@@ -52,6 +54,21 @@ function parseFilterTime(type: string, value: string): Date {
   throw AccountDataException.invalidFilterDate(type, value);
 }
 
+function normalizeAction(action: string) {
+  const actionSegments = action.split(actionDelimiter);
+  if (actionSegments.length < 2 || actionSegments.length > 3) {
+    throw AccountDataException.invalidFilterAction(action);
+  }
+  while (actionSegments[actionSegments.length - 1] === actionWildcard) {
+    if (actionSegments.length === 1) {
+      throw AccountDataException.invalidFilterAction(action);
+    }
+    actionSegments.pop();
+  }
+
+  return actionSegments.join(actionDelimiter);
+}
+
 function normalizeOptions(options?: IListAuditEntriesOptions) {
   if (!options) {
     return undefined;
@@ -59,6 +76,10 @@ function normalizeOptions(options?: IListAuditEntriesOptions) {
 
   if (options.subject && !options.issuerId) {
     throw AccountDataException.invalidFilterIdentity(options.subject);
+  }
+
+  if (options.action) {
+    options.action = normalizeAction(options.action);
   }
 
   const to = options.to ? parseFilterTime('to', options.to) : undefined;
@@ -75,8 +96,8 @@ function normalizeOptions(options?: IListAuditEntriesOptions) {
     limit: options.limit,
     issuerId: options.issuerId,
     subject: options.subject,
-    actionContains: options.actionContains,
-    resourceStartsWith: options.resourceStartsWith,
+    action: options.action,
+    resource: options.resource,
   };
 
   return normalizeOptions;
@@ -91,8 +112,8 @@ export interface IListAuditEntriesOptions {
   limit?: number;
   from?: string;
   to?: string;
-  resourceStartsWith?: string;
-  actionContains?: string;
+  resource?: string;
+  action?: string;
   issuerId?: string;
   subject?: string;
 }

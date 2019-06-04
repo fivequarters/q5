@@ -47,7 +47,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Account'
-        400: 
+        400:
           description: Malformed account id
           content:
             application/json:
@@ -101,7 +101,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SubscriptionList'
-        400: 
+        400:
           description: Malformed account id or invalid query
           content:
             application/json:
@@ -150,7 +150,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-        400: 
+        400:
           description: Malformed account or subscription id
           content:
             application/json:
@@ -176,35 +176,69 @@ paths:
       - in: query
         name: resource
         required: false
-        description: Optional prefix of the resource to match against audit entries (case-sensitive)
+        description: |
+          Optional identifier to match against the 'resource' field of audit entries. 
+          Matching is case-sensitive. The resource in the audit entry must begin with the identifier to be considered a match.
+
+          Given an audit entry with a resource of '/account/acc-5555555555555555/subscription/sub-5555555555555555/', the
+          following queries would result in a match:
+            
+            - resource=/account/acc-
+            - resource=/account/acc-5555555555555555/subscription/
+            - resource=/account/acc-5555555555555555/subscription/sub-5555555555555555/
+
+          Given the same audit entry, the following queries would not result in a match:
+
+            - resource=acc-
+            - resource=account/acc-5555555555555555
+            - resource=subscription/sub-5555555555555555/
         schema:
           type: string
       - in: query
         name: action
         required: false
-        description: Optional action to match against audit entries (case-sensitive)
+        description: |
+          Optional identifier to match against the 'action' field of audit entries. Matching is case-sensitive. 
+          Both fully-qualified actions and wildcard actions are supported. 
+          Examples of fully-qualified actions include: 'user:get', 'function:put'. 
+          Examples of wildcard actions include: 'user:*', 'function:*'.
+
+          Given an audit entry with an action of 'function:put', the
+          following queries would result in a match:
+            
+            - action=function:*
+            - action=function:put
+
+          Given the same audit entry, the following query would not result in a match:
+
+            - action=function:get
         schema:
           type: string
       - in: query
         name: issuerId
         required: false
-        description: Optional issuer identifier to match against audit entries (case-sensitive)
+        description: |
+          Optional identifier to match against the 'issuerId' field of audit entries. 
+          Matching is case-sensitive. The full issuerId must be provided as partial matches are not supported.
         schema:
           $ref: '#/components/schemas/IssuerId'
       - in: query
         name: subject
         required: false
-        description: Optional subject identifier to match against audit entries (case-sensitive)
+        description: |
+          Optional identifier to match against the 'subject' filed of audit entries. 
+          Only valid if the 'issuerId' query filter is also provided.
+          Matching is case-sensitive. The full subject must be provided as partial matches are not supported.
         schema:
           type: string
       - in: query
         name: from
         required: false
         description: |
-        Optional time from which to return audit entries. Can be any format accepted by the JavaScript Date constructor
-        or a relative date of the format '-{integer}{s|m|h|d}', where 's' is seconds, 'm' is minutes, 'h' is hours and 'd' is days.
-        
-        All of the following are valid:
+          Optional time from which to return audit entries. Can be any format accepted by the JavaScript Date constructor
+          or a relative date of the format '-{integer}{s | m | h | d}', where 's' is seconds, 'm' is minutes, 'h' is hours and 'd' is days.
+
+          All of the following are valid queries:
           - from=1559605282105 (absolute time in milliseconds since 1 January 1970 UTC)
           - from=2019-06-03T23:42:16.976Z
           - from=Mon, 03 Jun 2019 23:42:30 GMT
@@ -218,10 +252,10 @@ paths:
         name: to
         required: false
         description: |
-        Optional time up to which to return audit entries. Can be any format accepted by the JavaScript Date constructor 
-        or a relative date of the format '-{integer}{s|m|h|d}', where 's' is seconds, 'm' is minutes, 'h' is hours and 'd' is days.
-        
-        All of the following are valid:
+          Optional time up to which to return audit entries. Can be any format accepted by the JavaScript Date constructor 
+          or a relative date of the format '-{integer}{s | m | h | d}', where 's' is seconds, 'm' is minutes, 'h' is hours and 'd' is days.
+
+          All of the following are valid queries:
           - from=1559605282105 (absolute time in milliseconds since 1 January 1970 UTC)
           - from=2019-06-03T23:42:16.976Z
           - from=Mon, 03 Jun 2019 23:42:30 GMT
@@ -232,19 +266,19 @@ paths:
         schema:
           type: string
       - in: query
-          name: next
-          required: false
-          description: Optional opaque token to start returning results from
-          schema:
-            type: string
+        name: next
+        required: false
+        description: Optional opaque token to start returning results from
+        schema:
+          type: string
       - in: query
-          name: count
-          required: false
-          description: Optional number of results to return
-          schema:
-            type: number
-            minimum: 1
-            maximum: 100
+        name: count
+        required: false
+        description: Optional number of results to return
+        schema:
+          type: number
+          minimum: 1
+          maximum: 100
     get:
       tags:
         - Accounts
@@ -255,7 +289,7 @@ paths:
         Each entry of the audit trail contains the timestamp of the call, resource, action, and the identity of 
         the caller represented as the (issuer, subject) pair. Use query string parameters to filter the entries. 
         All query filters are combined with a logical AND operator.
-        
+
         By default, only the most recent 15 minutes of audit logs are returned. You can change this with the 'from' query parameter.
       responses:
         200:
@@ -300,7 +334,9 @@ paths:
         - in: query
           name: name
           required: false
-          description: Optional name identifier to match against the displayName of the issuer (case-sensitive)
+          description: |
+            Optional identifier to match against the 'displayName' field of the issuer. Matching is case-sensitive. Partial
+            matches are supported.
           schema:
             type: string
         - in: query
@@ -367,7 +403,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Issuer'
-        400: 
+        400:
           description: Malformed account or issuer id
           content:
             application/json:
@@ -473,7 +509,7 @@ paths:
       responses:
         204:
           description: Issuer was deleted
-        400: 
+        400:
           description: Malformed account or issuer id
           content:
             application/json:
@@ -515,33 +551,36 @@ paths:
         - in: query
           name: include
           required: false
-          description: Optional switch to include all properties of the clients
+          description: |
+            Optional switch to include all properties of the clients in the response. If this switch is not provided only
+            the 'id' and 'displayName' fields of each client are returned in the response.
           schema:
             type: string
             enum:
               - all
         - in: query
-          name: exact
-          required: false
-          description: Optional switch to require all match identifiers to match exactly, instead of matching if value contains the identifier
-          schema:
-            type: boolean
-        - in: query
           name: name
           required: false
-          description: Optional name identifier to match against the displayName of the clients (case-sensitive)
+          description: |
+            Optional identifier to match against the 'displayName' field of the clients. Matching is case-sensitive. Partial
+            matches are supported.
           schema:
             type: string
         - in: query
           name: issuerId
           required: false
-          description: Optional issuerId identifier to match against the identities of the clients (case-sensitive)
+          description: |
+            Optional identifier to match against the 'issuerId' field of the identities of the clients. 
+            Matching is case-sensitive. The full issuerId must be provided as partial matches are not supported.
           schema:
             $ref: '#/components/schemas/IssuerId'
         - in: query
           name: subject
           required: false
-          description: Optional subject identifier to match against the identities of the clients (case-sensitive)
+          description: |
+            Optional identifier to match against the 'subject' field of the identities of the clients.
+            Only valid if the 'issuerId' query filter is also provided. Matching is case-sensitive. 
+            The full subject must be provided as partial matches are not supported.
           schema:
             type: string
         - in: query
@@ -644,7 +683,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Client'
-        400: 
+        400:
           description: Malformed account or client id
           content:
             application/json:
@@ -715,7 +754,7 @@ paths:
       responses:
         204:
           description: Client was deleted
-        400: 
+        400:
           description: Malformed account or client id
           content:
             application/json:
@@ -757,39 +796,44 @@ paths:
         - in: query
           name: include
           required: false
-          description: Optional switch to include all properties of the users
+          description: |
+            Optional switch to include all properties of the users in the response. If this switch is not provided only
+            the 'id' and 'firstName', 'lastName' and 'primaryEmail' fields of each user are returned in the response.
           schema:
             type: string
             enum:
               - all
         - in: query
-          name: exact
-          required: false
-          description: Optional switch to require all match identifiers to match exactly, instead of matching if value contains the identifier
-          schema:
-            type: boolean
-        - in: query
           name: name
           required: false
-          description: Optional name identifier to match against the firstName or LastName of the users (case-sensitive)
+          description: |
+            Optional identifier to match against the 'firstName' or 'LastName' fields of the users.
+            Matching is case-sensitive. Partial matches are supported.
           schema:
             type: string
         - in: query
           name: email
           required: false
-          description: Optional name identifier to match against the primaryEmail of the users (case-sensitive)
+          description: |
+            Optional identifier to match against the 'primaryEmail' field of the users. 
+            Matching is case-sensitive. Partial matches are supported.
           schema:
             type: string
         - in: query
           name: issuerId
           required: false
-          description: Optional issuerId identifier to match against the identities of the users (case-sensitive)
+          description: |
+            Optional identifier to match against the 'issuerId' field of the identities of the users. 
+            Matching is case-sensitive. The full issuerId must be provided as partial matches are not supported.
           schema:
-            type: string
+            $ref: '#/components/schemas/IssuerId'
         - in: query
           name: subject
           required: false
-          description: Optional subject identifier to match against the identities of the users (case-sensitive)
+          description: |
+            Optional identifier to match against the 'subject' field of the identities of the users.
+            Only valid if the 'issuerId' query filter is also provided. Matching is case-sensitive. 
+            The full subject must be provided as partial matches are not supported.
           schema:
             type: string
         - in: query
@@ -1024,7 +1068,11 @@ paths:
         - in: query
           name: cron
           required: false
-          description: If 'true' only functions with cron enabled will be returned. If 'false' only functions without cron enabled will be returned. If not specified, all functions will be returned.
+          description: |
+            Optional switch that determines whether to include or exclude functions that have cron enabled.
+            If 'true' only functions with cron enabled will be returned. 
+            If 'false' only functions without cron enabled will be returned. 
+            If not specified, all functions will be returned.
           schema:
             type: boolean
       responses:
@@ -1034,7 +1082,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/FunctionList'
-        400: 
+        400:
           description: Malformed account or subscription id, or invalid query
           content:
             application/json:
@@ -1102,7 +1150,11 @@ paths:
         - in: query
           name: cron
           required: false
-          description: If 'true' only functions with cron enabled will be returned. If 'false' only functions without cron enabled will be returned. If not specified, all functions will be returned.
+          description: |
+            Optional switch that determines whether to include or exclude functions that have cron enabled.
+            If 'true' only functions with cron enabled will be returned. 
+            If 'false' only functions without cron enabled will be returned. 
+            If not specified, all functions will be returned.
           schema:
             type: boolean
       responses:
@@ -1112,7 +1164,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/FunctionList'
-        400: 
+        400:
           description: Malformed account or subscription id, or invalid query
           content:
             application/json:
@@ -1156,14 +1208,16 @@ paths:
     get:
       tags:
         - Boundaries
-      summary: Get real-time logs of all functions executed within the given boundary with 'x-fx-logs=1' as a query parameter or http header
+      summary: |
+        Get real-time logs of all functions executed within the given boundary with 'x-fx-logs=1' as a query 
+        parameter or http header
       description: |
         Returns a text/event-stream response with streaming real-time logs generated by all functions executing in a boundary
       operationId: getBoundaryLogs
       responses:
         200:
           description: Stream of text/event-stream log data
-        400: 
+        400:
           description: Malformed account, subscription or boundary id
           content:
             application/json:
@@ -1224,7 +1278,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Function'
-        400: 
+        400:
           description: Malformed account, subscription, boundary or function id
           content:
             application/json:
@@ -1249,7 +1303,11 @@ paths:
         - Functions
       summary: Initiate a new build and deployment of a function
       description: |
-        Initiates a build and deployment of the function within the isolation boundary. This may complete synchronously with a status code of 200, or asynchronously with a status code of 201. If it completes asynchronously, it returns immediately with a response that includes a 'buildId' representing the function build process. This 'buildId' can be used to poll for completion by calling 'GET /build/{buildId}'.
+        Initiates a build and deployment of the function within the isolation boundary. 
+        This may complete synchronously with a status code of 200, or asynchronously with a status code of 201. 
+        If it completes asynchronously, it returns immediately with a response that includes a 'buildId' 
+        representing the function build process. This 'buildId' can be used to poll for completion by calling 
+        'GET /build/{buildId}'.
 
         The URL for executing the function will be provided as the 'location' property of the response.
       operationId: putFunction
@@ -1275,7 +1333,7 @@ paths:
                 $ref: '#/components/schemas/Build'
         204:
           description: No change to function
-        400: 
+        400:
           description: Malformed account, subscription, boundary or function id, or invalid function
           content:
             application/json:
@@ -1312,7 +1370,7 @@ paths:
       responses:
         204:
           description: Function was deleted
-        400: 
+        400:
           description: Malformed account, subscription, boundary or function id
           content:
             application/json:
@@ -1369,7 +1427,7 @@ paths:
       responses:
         200:
           description: Stream of text/event-stream log data
-        400: 
+        400:
           description: Malformed account, subscription, boundary or function id
           content:
             application/json:
@@ -1430,7 +1488,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/FunctionLocation'
-        400: 
+        400:
           description: Malformed account, subscription, boundary or function id
           content:
             application/json:
@@ -1488,7 +1546,10 @@ paths:
         - Functions
       summary: Get the status of a build of a function
       description: |
-        Returns the status of the build of a function. This is used for polling the result of the asynchronous build process of a function. The 'status' parameter progressess from 'pending' to 'building' to either 'success' or 'failure', which are the final states of the build process.
+        Returns the status of the build of a function. This is used for polling the result of 
+        the asynchronous build process of a function. The 'status' parameter progressess from 
+        'pending' to 'building' to either 'success' or 'failure', which are the final states 
+        of the build process.
       operationId: getFunctionBuild
       responses:
         200:
@@ -1503,7 +1564,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Build'
-        400: 
+        400:
           description: Malformed account, subscription, boundary, function or build id, or invalid function
           content:
             application/json:
@@ -1626,8 +1687,8 @@ components:
           description: Identifier of the user, unique within the issuer
           example: google-oauth2|skjdhfsadhfalkajsdhf
         authorized:
-            type: boolean
-            description: If 'true' the action was authorized; if 'false' the action was not authorized and was not allowed to continue
+          type: boolean
+          description: If 'true' the action was authorized; if 'false' the action was not authorized and was not allowed to continue
 
     SubscriptionId:
       type: string
@@ -1753,7 +1814,7 @@ components:
       type: string
       description: Client id
       example: 'clt-5555555555555555'
-    
+
     NewClient:
       type: object
       properties:
@@ -1781,7 +1842,7 @@ components:
             id:
               $ref: '#/components/schemas/ClientId'
         - $ref: '#/components/schemas/NewClient'
-    
+
     ClientList:
       type: object
       required:
@@ -1836,7 +1897,7 @@ components:
             id:
               $ref: '#/components/schemas/UserId'
         - $ref: '#/components/schemas/NewUser'
-    
+
     UserList:
       type: object
       required:
