@@ -99,6 +99,13 @@ describe('Client', () => {
       );
     }, 20000);
 
+    test('Adding a client with an id returns an error', async () => {
+      const subject = `sub-${random()}`;
+      const identities = [{ id: 'clt-5555555555555555', issuerId: 'test', subject }];
+      const client = await addClient(account, { identities });
+      expectMore(client).toBeHttpError(400, '"id" is not allowed');
+    }, 20000);
+
     test('Adding a client with an exisitng user identity returns an error', async () => {
       const subject = `sub-${random()}`;
       const identities = [{ issuerId: 'test', subject }];

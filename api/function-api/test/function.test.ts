@@ -132,6 +132,31 @@ describe('function', () => {
     });
   });
 
+  test('DELETE on a non-existing function returns 404', async () => {
+    const response = await deleteFunction(account, boundaryId, 'no-such-function');
+    expect(response.status).toEqual(404);
+    expect(response.data).toMatchObject({
+      status: 404,
+      statusCode: 404,
+      message: 'Not Found',
+    });
+  });
+
+  test('DELETE on a deleted function returns 404', async () => {
+    let response = await putFunction(account, boundaryId, function1Id, helloWorld);
+    expect(response.status).toEqual(200);
+    response = await deleteFunction(account, boundaryId, function1Id);
+    expect(response.status).toEqual(204);
+    expect(response.data).toBeUndefined();
+    response = await deleteFunction(account, boundaryId, function1Id);
+    expect(response.status).toEqual(404);
+    expect(response.data).toMatchObject({
+      status: 404,
+      statusCode: 404,
+      message: 'Not Found',
+    });
+  });
+
   test('GET retrieves information of simple function', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
     expect(response.status).toEqual(200);

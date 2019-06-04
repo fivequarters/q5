@@ -135,7 +135,7 @@ router.patch(
   authorize({ operation: AccountActions.updateIssuer }),
   express.json(),
   validate_schema({
-    body: require('./schemas/issuer'),
+    body: require('./schemas/update_issuer'),
   }),
   issuer.issuerPatch()
 );
@@ -240,7 +240,7 @@ router.patch(
   express.json(),
   validate_schema({
     params: require('./schemas/api_params'),
-    body: require('./schemas/user'),
+    body: require('./schemas/update_user'),
   }),
   user.userPatch()
 );
@@ -328,7 +328,7 @@ router.patch(
   express.json(),
   validate_schema({
     params: require('./schemas/api_params'),
-    body: require('./schemas/client'),
+    body: require('./schemas/update_client'),
   }),
   client.clientPatch()
 );

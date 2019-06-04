@@ -1,4 +1,5 @@
 const { getAccountContext, errorHandler } = require('../account');
+const create_error = require('http-errors');
 
 function issuerPost() {
   return (req, res) => {
@@ -18,13 +19,21 @@ function issuerPost() {
 }
 
 function issuerPatch() {
-  return (req, res) => {
+  return (req, res, next) => {
     getAccountContext().then(accountContext => {
       const resolvedAgent = req.resolvedAgent;
       const accountId = req.params.accountId;
       const issuerId = req.params.issuerId;
       const updateIssuer = req.body;
-      updateIssuer.id = issuerId;
+      if (updateIssuer.id && updateIssuer.id !== issuerId) {
+        const message = [
+          `The issuerId in the body '${updateIssuer.id}'`,
+          `does not match the issuerId in the URL '${issuerId}'`,
+        ].join(' ');
+        return next(new create_error(400, message));
+      } else {
+        updateIssuer.id = issuerId;
+      }
 
       accountContext.issuer
         .update(resolvedAgent, accountId, updateIssuer)

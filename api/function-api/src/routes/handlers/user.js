@@ -1,4 +1,5 @@
 const { getAccountContext, getBaseUrl, errorHandler } = require('../account');
+const create_error = require('http-errors');
 
 function userPost() {
   return (req, res) => {
@@ -16,13 +17,21 @@ function userPost() {
 }
 
 function userPatch() {
-  return (req, res) => {
+  return (req, res, next) => {
     getAccountContext().then(accountContext => {
       const resolvedAgent = req.resolvedAgent;
       const accountId = req.params.accountId;
       const userId = req.params.userId;
       const updateUser = req.body;
-      updateUser.id = userId;
+      if (updateUser.id && updateUser.id !== userId) {
+        const message = [
+          `The userId in the body '${updateUser.id}'`,
+          `does not match the userId in the URL '${userId}'`,
+        ].join(' ');
+        return next(new create_error(400, message));
+      } else {
+        updateUser.id = userId;
+      }
 
       accountContext.user
         .update(resolvedAgent, accountId, updateUser)

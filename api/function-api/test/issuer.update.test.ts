@@ -118,6 +118,27 @@ describe('Issuer', () => {
       expectMore(issuer).toBeHttpError(400, '"displayName" is not allowed to be empty');
     }, 10000);
 
+    test('Updating an issuer with the id in the body should be supported', async () => {
+      const issuerId = `test-${random()}`;
+      await addIssuer(account, issuerId, { jsonKeysUrl: 'foo' });
+      const issuer = await updateIssuer(account, issuerId, { id: issuerId, jsonKeysUrl: 'updated' });
+      expect(issuer.status).toBe(200);
+      expect(issuer.data.id).toBeDefined();
+      expect(issuer.data.jsonKeysUrl).toBe('updated');
+      expect(issuer.data.id).toBe(issuerId);
+    }, 10000);
+
+    test.only('Updating an issuer with an id in the body that does not match the url returns an error', async () => {
+      const issuerId = `test-${random()}`;
+      await addIssuer(account, issuerId, { jsonKeysUrl: 'foo' });
+      const id = 'other-issuer-id';
+      const issuer = await updateIssuer(account, issuerId, { id, jsonKeysUrl: 'updated' });
+      expectMore(issuer).toBeHttpError(
+        400,
+        `The issuerId in the body '${id}' does not match the issuerId in the URL '${issuerId}'`
+      );
+    }, 10000);
+
     test('Updating an issuer with four publicKeys is not supported', async () => {
       const issuerId = `test-${random()}`;
       await addIssuer(account, issuerId, { jsonKeysUrl: 'foo' });

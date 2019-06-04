@@ -172,6 +172,27 @@ describe('Client', () => {
       expect(client.data.id.indexOf('clt-')).toBe(0);
     }, 20000);
 
+    test('Updating a client with the id in the body should be supported', async () => {
+      const original = await addClient(account, { displayName: 'displayName - test client' });
+      const client = await updateClient(account, original.data.id, { id: original.data.id, displayName: 'updated' });
+      expect(client.status).toBe(200);
+      expect(client.data.id).toBeDefined();
+      expect(client.data.displayName).toBe('updated');
+      expect(client.data.identities).toBeUndefined();
+      expect(client.data.access).toBeUndefined();
+      expect(client.data.id.indexOf('clt-')).toBe(0);
+    }, 20000);
+
+    test('Updating a client with an id in the body that does not match the url returns an error', async () => {
+      const original = await addClient(account, { displayName: 'displayName - test client' });
+      const id = 'clt-5555555555555555';
+      const client = await updateClient(account, original.data.id, { id, displayName: 'updated' });
+      expectMore(client).toBeHttpError(
+        400,
+        `The clientId in the body '${id}' does not match the clientId in the URL '${original.data.id}'`
+      );
+    }, 20000);
+
     test('Updating a client with an empty string display name is not supported', async () => {
       const original = await addClient(account, { displayName: 'displayName - test client' });
       const client = await updateClient(account, original.data.id, { displayName: '' });
