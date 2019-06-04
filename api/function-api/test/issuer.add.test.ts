@@ -139,6 +139,15 @@ describe('Issuer', () => {
       expectMore(issuer).toBeHttpError(400, '"publicKey" is not allowed to be empty');
     }, 10000);
 
+    test('Adding an issuer with an id returns an error', async () => {
+      const issuerId = `test-${random()}`;
+      const issuer = await addIssuer(account, issuerId, {
+        id: issuerId,
+        publicKeys: [{ publicKey: 'foo', keyId: 'bar' }],
+      });
+      expectMore(issuer).toBeHttpError(400, '"id" is not allowed');
+    }, 20000);
+
     test('Adding an issuer that already exists is not supported', async () => {
       const issuerId = `test-${random()}`;
       const issuer1 = await addIssuer(account, issuerId, { publicKeys: [{ publicKey: 'foo', keyId: 'bar' }] });

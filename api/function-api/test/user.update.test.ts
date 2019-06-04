@@ -288,6 +288,27 @@ describe('User', () => {
       expect(user.data.id.indexOf('usr-')).toBe(0);
     }, 20000);
 
+    test('Updating a user with the id in the body should be supported', async () => {
+      const original = await addUser(account, { firstName: 'firstName - test user' });
+      const user = await updateUser(account, original.data.id, { id: original.data.id, firstName: 'updated' });
+      expect(user.status).toBe(200);
+      expect(user.data.id).toBeDefined();
+      expect(user.data.firstName).toBe('updated');
+      expect(user.data.identities).toBeUndefined();
+      expect(user.data.access).toBeUndefined();
+      expect(user.data.id.indexOf('usr-')).toBe(0);
+    }, 20000);
+
+    test('Updating a user with an id in the body that does not match the url returns an error', async () => {
+      const original = await addUser(account, { firstName: 'firstName - test user' });
+      const id = 'usr-5555555555555555';
+      const user = await updateUser(account, original.data.id, { id, firstName: 'updated' });
+      expectMore(user).toBeHttpError(
+        400,
+        `The userId in the body '${id}' does not match the userId in the URL '${original.data.id}'`
+      );
+    }, 20000);
+
     test('Updating a user with an empty string first name is not supported', async () => {
       const original = await addUser(account, { firstName: 'firstName - test user' });
       const user = await updateUser(account, original.data.id, { firstName: '' });

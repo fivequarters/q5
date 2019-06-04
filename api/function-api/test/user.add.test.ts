@@ -106,6 +106,13 @@ describe('User', () => {
       expect(user.data.id.indexOf('usr-')).toBe(0);
     }, 20000);
 
+    test('Adding a user with an id returns an error', async () => {
+      const subject = `sub-${random()}`;
+      const identities = [{ id: 'usr-5555555555555555', issuerId: 'test', subject }];
+      const client = await addClient(account, { identities });
+      expectMore(client).toBeHttpError(400, '"id" is not allowed');
+    }, 20000);
+
     test('Adding a user with an empty string first name is not supported', async () => {
       const user = await addUser(account, { firstName: '' });
       expectMore(user).toBeHttpError(400, '"firstName" is not allowed to be empty');
