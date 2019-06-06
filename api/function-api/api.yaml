@@ -1,5 +1,12 @@
 openapi: 3.0.0
 
+servers:
+  - url: https://api.{region}.fusebit.io
+    description: Production
+    variables:
+      region:
+        description: The region where the API is deployed, for example `'us-east-1'`
+
 info:
   description: 'Fusebit HTTP API for the management and execution of Fusebit accounts, users, functions and more'
   version: '1.0.0'
@@ -139,7 +146,7 @@ paths:
         Returns the details of the given subscription of the given account.
       responses:
         200:
-          description: A Subscription
+          description: A subscription
           content:
             application/json:
               schema:
@@ -177,57 +184,56 @@ paths:
         name: resource
         required: false
         description: |
-          Optional identifier to match against the 'resource' field of audit entries. 
-          Matching is case-sensitive. The resource in the audit entry must begin with the identifier to be considered a match.
+          Optional identifier to match against the `resource` field of audit entries. Matching is case-sensitive. The resource in the audit entry must begin with the identifier to be considered a match.
 
-          Given an audit entry with a resource of '/account/acc-5555555555555555/subscription/sub-5555555555555555/', the
+          Given an audit entry with a resource of `'/account/acc-5555555555555555/subscription/sub-5555555555555555/'`, the
           following queries would result in a match:
             
-            - resource=/account/acc-
-            - resource=/account/acc-5555555555555555/subscription/
-            - resource=/account/acc-5555555555555555/subscription/sub-5555555555555555/
+            - `resource=/account/acc-`
+            - `resource=/account/acc-5555555555555555/subscription/`
+            - `resource=/account/acc-5555555555555555/subscription/sub-5555555555555555/`
 
           Given the same audit entry, the following queries would not result in a match:
 
-            - resource=acc-
-            - resource=account/acc-5555555555555555
-            - resource=subscription/sub-5555555555555555/
+            - `resource=acc-`
+            - `resource=account/acc-5555555555555555`
+            - `resource=subscription/sub-5555555555555555/`
         schema:
           type: string
       - in: query
         name: action
         required: false
         description: |
-          Optional identifier to match against the 'action' field of audit entries. Matching is case-sensitive. 
+          Optional identifier to match against the `action` field of audit entries. Matching is case-sensitive. 
           Both fully-qualified actions and wildcard actions are supported. 
-          Examples of fully-qualified actions include: 'user:get', 'function:put'. 
-          Examples of wildcard actions include: 'user:*', 'function:*'.
+          Examples of fully-qualified actions include: `'user:get'`, `'function:put'`. 
+          Examples of wildcard actions include: `'user:*'`, `'function:*'`.
 
-          Given an audit entry with an action of 'function:put', the
+          Given an audit entry with an action of `'function:put'`, the
           following queries would result in a match:
             
-            - action=function:*
-            - action=function:put
+            - `action=function:*`
+            - `action=function:put`
 
           Given the same audit entry, the following query would not result in a match:
 
-            - action=function:get
+            - `action=function:get`
         schema:
           type: string
       - in: query
         name: issuerId
         required: false
         description: |
-          Optional identifier to match against the 'issuerId' field of audit entries. 
-          Matching is case-sensitive. The full issuerId must be provided as partial matches are not supported.
+          Optional identifier to match against the `issuerId` field of audit entries. 
+          Matching is case-sensitive. The full issuer id must be provided as partial matches are not supported.
         schema:
           $ref: '#/components/schemas/IssuerId'
       - in: query
         name: subject
         required: false
         description: |
-          Optional identifier to match against the 'subject' filed of audit entries. 
-          Only valid if the 'issuerId' query filter is also provided.
+          Optional identifier to match against the `subject` field of audit entries. 
+          Only valid if the `issuerId` query filter is also provided.
           Matching is case-sensitive. The full subject must be provided as partial matches are not supported.
         schema:
           type: string
@@ -236,16 +242,16 @@ paths:
         required: false
         description: |
           Optional time from which to return audit entries. Can be any format accepted by the JavaScript Date constructor
-          or a relative date of the format '-{integer}{s | m | h | d}', where 's' is seconds, 'm' is minutes, 'h' is hours and 'd' is days.
+          or a relative date of the format `'-{integer}{s | m | h | d}'`, where `'s'` is seconds, `'m'` is minutes, `'h'` is hours and `'d'` is days.
 
           All of the following are valid queries:
-          - from=1559605282105 (absolute time in milliseconds since 1 January 1970 UTC)
-          - from=2019-06-03T23:42:16.976Z
-          - from=Mon, 03 Jun 2019 23:42:30 GMT
-          - from=-30s (30 seconds prior to now)
-          - from=-5m (5 minutes prior to now)
-          - from=-2h (2 hours prior to now)
-          - from=-1d (1 day prior to now)
+          - `from=1559605282105` (absolute time in milliseconds since 1 January 1970 UTC)
+          - `from=2019-06-03T23:42:16.976Z`
+          - `from=Mon, 03 Jun 2019 23:42:30 GMT`
+          - `from=-30s` (30 seconds prior to now)
+          - `from=-5m` (5 minutes prior to now)
+          - `from=-2h` (2 hours prior to now)
+          - `from=-1d` (1 day prior to now)
         schema:
           type: string
       - in: query
@@ -253,16 +259,16 @@ paths:
         required: false
         description: |
           Optional time up to which to return audit entries. Can be any format accepted by the JavaScript Date constructor 
-          or a relative date of the format '-{integer}{s | m | h | d}', where 's' is seconds, 'm' is minutes, 'h' is hours and 'd' is days.
+          or a relative date of the format `'-{integer}{s | m | h | d}'`, where `'s'` is seconds, `'m'` is minutes, `'h'` is hours and `'d'` is days.
 
           All of the following are valid queries:
-          - from=1559605282105 (absolute time in milliseconds since 1 January 1970 UTC)
-          - from=2019-06-03T23:42:16.976Z
-          - from=Mon, 03 Jun 2019 23:42:30 GMT
-          - from=-30s (30 seconds prior to now)
-          - from=-5m (5 minutes prior to now)
-          - from=-2h (2 hours prior to now)
-          - from=-1d (1 day prior to now)
+          - `from=1559605282105` (absolute time in milliseconds since 1 January 1970 UTC)
+          - `from=2019-06-03T23:42:16.976Z`
+          - `from=Mon, 03 Jun 2019 23:42:30 GMT`
+          - `from=-30s` (30 seconds prior to now)
+          - `from=-5m` (5 minutes prior to now)
+          - `from=-2h` (2 hours prior to now)
+          - `from=-1d` (1 day prior to now)
         schema:
           type: string
       - in: query
@@ -285,12 +291,12 @@ paths:
       summary: Get audit trail
       operationId: getAccountAudit
       description: |
-        Returns the audit trail of calls to the HTTP APIs related to resources that belong to the accountId. 
+        Returns the audit trail of calls to the HTTP APIs related to resources that belong to the account id. 
         Each entry of the audit trail contains the timestamp of the call, resource, action, and the identity of 
         the caller represented as the (issuer, subject) pair. Use query string parameters to filter the entries. 
         All query filters are combined with a logical AND operator.
 
-        By default, only the most recent 15 minutes of audit logs are returned. You can change this with the 'from' query parameter.
+        By default, only the most recent 15 minutes of audit logs are returned. You can change this with the `from` query parameter.
       responses:
         200:
           description: Entries of the audit trail
@@ -335,7 +341,7 @@ paths:
           name: name
           required: false
           description: |
-            Optional identifier to match against the 'displayName' field of the issuer. Matching is case-sensitive. Partial
+            Optional identifier to match against the `displayName` field of the issuer. Matching is case-sensitive. Partial
             matches are supported.
           schema:
             type: string
@@ -553,7 +559,7 @@ paths:
           required: false
           description: |
             Optional switch to include all properties of the clients in the response. If this switch is not provided only
-            the 'id' and 'displayName' fields of each client are returned in the response.
+            the `id` and `displayName` fields of each client are returned in the response.
           schema:
             type: string
             enum:
@@ -562,7 +568,7 @@ paths:
           name: name
           required: false
           description: |
-            Optional identifier to match against the 'displayName' field of the clients. Matching is case-sensitive. Partial
+            Optional identifier to match against the `displayName` field of the clients. Matching is case-sensitive. Partial
             matches are supported.
           schema:
             type: string
@@ -570,16 +576,16 @@ paths:
           name: issuerId
           required: false
           description: |
-            Optional identifier to match against the 'issuerId' field of the identities of the clients. 
-            Matching is case-sensitive. The full issuerId must be provided as partial matches are not supported.
+            Optional identifier to match against the `issuerId` field of the identities of the clients. 
+            Matching is case-sensitive. The full issuer id must be provided as partial matches are not supported.
           schema:
             $ref: '#/components/schemas/IssuerId'
         - in: query
           name: subject
           required: false
           description: |
-            Optional identifier to match against the 'subject' field of the identities of the clients.
-            Only valid if the 'issuerId' query filter is also provided. Matching is case-sensitive. 
+            Optional identifier to match against the `subject` field of the identities of the clients.
+            Only valid if the `issuerId` query filter is also provided. Matching is case-sensitive. 
             The full subject must be provided as partial matches are not supported.
           schema:
             type: string
@@ -798,7 +804,7 @@ paths:
           required: false
           description: |
             Optional switch to include all properties of the users in the response. If this switch is not provided only
-            the 'id' and 'firstName', 'lastName' and 'primaryEmail' fields of each user are returned in the response.
+            the `id` and `firstName`, `lastName` and `primaryEmail` fields of each user are returned in the response.
           schema:
             type: string
             enum:
@@ -807,7 +813,7 @@ paths:
           name: name
           required: false
           description: |
-            Optional identifier to match against the 'firstName' or 'LastName' fields of the users.
+            Optional identifier to match against the `firstName` or `lastName` fields of the users.
             Matching is case-sensitive. Partial matches are supported.
           schema:
             type: string
@@ -815,7 +821,7 @@ paths:
           name: email
           required: false
           description: |
-            Optional identifier to match against the 'primaryEmail' field of the users. 
+            Optional identifier to match against the `primaryEmail` field of the users. 
             Matching is case-sensitive. Partial matches are supported.
           schema:
             type: string
@@ -823,16 +829,16 @@ paths:
           name: issuerId
           required: false
           description: |
-            Optional identifier to match against the 'issuerId' field of the identities of the users. 
-            Matching is case-sensitive. The full issuerId must be provided as partial matches are not supported.
+            Optional identifier to match against the `issuerId` field of the identities of the users. 
+            Matching is case-sensitive. The full issuer id must be provided as partial matches are not supported.
           schema:
             $ref: '#/components/schemas/IssuerId'
         - in: query
           name: subject
           required: false
           description: |
-            Optional identifier to match against the 'subject' field of the identities of the users.
-            Only valid if the 'issuerId' query filter is also provided. Matching is case-sensitive. 
+            Optional identifier to match against the `subject` field of the identities of the users.
+            Only valid if the `issuerId` query filter is also provided. Matching is case-sensitive. 
             The full subject must be provided as partial matches are not supported.
           schema:
             type: string
@@ -1070,8 +1076,8 @@ paths:
           required: false
           description: |
             Optional switch that determines whether to include or exclude functions that have cron enabled.
-            If 'true' only functions with cron enabled will be returned. 
-            If 'false' only functions without cron enabled will be returned. 
+            If `'true'` only functions with cron enabled will be returned. 
+            If `'false'` only functions without cron enabled will be returned. 
             If not specified, all functions will be returned.
           schema:
             type: boolean
@@ -1152,8 +1158,8 @@ paths:
           required: false
           description: |
             Optional switch that determines whether to include or exclude functions that have cron enabled.
-            If 'true' only functions with cron enabled will be returned. 
-            If 'false' only functions without cron enabled will be returned. 
+            If `'true'` only functions with cron enabled will be returned. 
+            If `'false'` only functions without cron enabled will be returned. 
             If not specified, all functions will be returned.
           schema:
             type: boolean
@@ -1209,10 +1215,10 @@ paths:
       tags:
         - Boundaries
       summary: |
-        Get real-time logs of all functions executed within the given boundary with 'x-fx-logs=1' as a query 
-        parameter or http header
+        Get real-time logs of all functions executed within the given boundary
       description: |
-        Returns a text/event-stream response with streaming real-time logs generated by all functions executing in a boundary
+        Returns a text/event-stream response with streaming real-time logs generated by all functions executing in a boundary. Requests need to have `'x-fx-logs=1'` as a query 
+        parameter or HTTP header.
       operationId: getBoundaryLogs
       responses:
         200:
@@ -1305,11 +1311,11 @@ paths:
       description: |
         Initiates a build and deployment of the function within the isolation boundary. 
         This may complete synchronously with a status code of 200, or asynchronously with a status code of 201. 
-        If it completes asynchronously, it returns immediately with a response that includes a 'buildId' 
-        representing the function build process. This 'buildId' can be used to poll for completion by calling 
-        'GET /build/{buildId}'.
+        If it completes asynchronously, it returns immediately with a response that includes a `buildId` 
+        representing the function build process. This `buildId` can be used to poll for completion by calling 
+        `'GET /build/{buildId}'`.
 
-        The URL for executing the function will be provided as the 'location' property of the response.
+        The URL for executing the function will be provided as the `location` property of the response.
       operationId: putFunction
       requestBody:
         description: The function to build and deploy
@@ -1422,7 +1428,8 @@ paths:
         - Functions
       summary: Get real-time logs of a function
       description: |
-        Returns a text/event-stream response with streaming real-time logs generated by the function
+        Returns a text/event-stream response with streaming real-time logs generated by the function. Requests need to have 'x-fx-logs=1' as a query 
+        parameter or HTTP header.
       operationId: getFunctionLog
       responses:
         200:
@@ -1547,8 +1554,8 @@ paths:
       summary: Get the status of a build of a function
       description: |
         Returns the status of the build of a function. This is used for polling the result of 
-        the asynchronous build process of a function. The 'status' parameter progressess from 
-        'pending' to 'building' to either 'success' or 'failure', which are the final states 
+        the asynchronous build process of a function. The `status` parameter progresses from 
+        `'pending'` to `'building'` to either `'success'` or `'failure'`, which are the final states 
         of the build process.
       operationId: getFunctionBuild
       responses:
@@ -1597,6 +1604,7 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+      description: For a description of the access token format, see [this doc](../../integrator-guide/authz-model).
 
   schemas:
     Error:
@@ -1672,7 +1680,7 @@ components:
           example: 2019-03-21T03:48:36.408Z
         action:
           type: string
-          description: Name of the action peformed
+          description: Name of the action performed
           example: function:put
         resource:
           type: string
@@ -1688,7 +1696,7 @@ components:
           example: google-oauth2|skjdhfsadhfalkajsdhf
         authorized:
           type: boolean
-          description: If 'true' the action was authorized; if 'false' the action was not authorized and was not allowed to continue
+          description: If `'true'` the action was authorized; if `'false'` the action was not authorized and was not allowed to continue
 
     SubscriptionId:
       type: string
@@ -1751,13 +1759,13 @@ components:
         publicKeys:
           type: array
           description: |
-            The public keys of the key pairs used to sign access tokens from the issuer. Either the 'publicKeys' or the jsonKeysUrl' must be provided.
+            The public keys of the key pairs used to sign access tokens from the issuer. Either the `publicKeys` or the `jsonKeysUrl` must be provided.
           items:
             $ref: '#/components/schemas/PublicKey'
         jsonKeysUrl:
           type: string
           description: |
-            The uri key of json key file that contains the public key of the key pair used to sign access tokens from the issuer. Either the 'publicKey' or the jsonKeysUrl' must be provided.
+            The uri key of json key file that contains the public key of the key pair used to sign access tokens from the issuer. Either the `publicKey` or the `jsonKeysUrl` must be provided.
 
     Issuer:
       allOf:
@@ -1793,7 +1801,7 @@ components:
           $ref: '#/components/schemas/IssuerId'
         subject:
           type: string
-          description: The 'sub' claim value in access tokens
+          description: The `sub` claim value in access tokens
 
     AccessStatement:
       type: object

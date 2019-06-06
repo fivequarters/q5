@@ -7,7 +7,7 @@ import { AuthGoogle } from './AuthGoogle';
 import { getAdmin, getNextInquiry, inquiries, salesAgents } from './data';
 
 const accountId = 'acc-b503fb00e15248c6';
-const subscriptionId = 'sub-b503fb00e15248c6-1234';
+const subscriptionId = 'sub-b503fb00e15248c6';
 
 // ------------------
 // Internal Functions
