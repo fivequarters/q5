@@ -71,7 +71,6 @@ function clientList() {
         limit,
         next,
         include,
-        exact,
         displayNameContains,
         issuerId,
         subject,
