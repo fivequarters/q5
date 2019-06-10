@@ -121,6 +121,16 @@ export class ResolvedAgent implements IAgent {
       return new ResolvedAgent(dataContext, accountId, rootAgent, rootAgent.identities[0]);
     }
     const decodedJwtPayload = decodeJwt(jwt);
+    if (!decodedJwtPayload) {
+      throw AccountDataException.invalidJwt(new Error('Unable to decode JWT'));
+    }
+    if (!decodedJwtPayload.iss) {
+      throw AccountDataException.invalidJwt(new Error("JWT does not have 'iss' claim"));
+    }
+    if (!decodedJwtPayload.sub) {
+      throw AccountDataException.invalidJwt(new Error("JWT does not have 'sub' claim"));
+    }
+
     const issuerId = decodedJwtPayload.iss;
     const subject = decodedJwtPayload.sub;
     const identity = { issuerId, subject };
