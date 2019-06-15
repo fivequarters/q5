@@ -57,6 +57,18 @@ function toBeUnauthorizedError(received: any) {
   return toBeHttpError(received, 403, 'Unauthorized');
 }
 
+function toBeUnauthorizedToGrantError(received: any, userId: string, action: string, resource: string) {
+  return toBeHttpError(
+    received,
+    400,
+    `The user '${userId}' is not authorized to grant access to perform the action '${action}' on resource '${resource}'`
+  );
+}
+
+function toBeNotFoundError(received: any) {
+  return toBeHttpError(received, 404, 'Not Found');
+}
+
 // -------------------
 // Exported Interfaces
 // -------------------
@@ -65,6 +77,8 @@ export interface ExtendedMatchers extends jest.Matchers<IHttpResponse> {
   toBeHttpError: (status: number, message: string) => void;
   toBeMalformedAccountError: (malformedAccountId: string) => void;
   toBeUnauthorizedError: () => void;
+  toBeNotFoundError: () => void;
+  toBeUnauthorizedToGrantError: (userId: string, action: string, resource: string) => void;
 }
 
 // ------------------
@@ -72,7 +86,13 @@ export interface ExtendedMatchers extends jest.Matchers<IHttpResponse> {
 // ------------------
 
 export function extendExpect(expect: any): (value: any) => ExtendedMatchers {
-  expect.extend({ toBeHttpError, toBeMalformedAccountError, toBeUnauthorizedError });
+  expect.extend({
+    toBeHttpError,
+    toBeMalformedAccountError,
+    toBeUnauthorizedError,
+    toBeNotFoundError,
+    toBeUnauthorizedToGrantError,
+  });
 
   return expect as (value: any) => ExtendedMatchers;
 }

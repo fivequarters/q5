@@ -133,6 +133,73 @@ export async function getBuild(account: IAccount, build: { boundaryId: string; f
   });
 }
 
+export async function getLogs(
+  account: IAccount,
+  boundaryId: string,
+  functionId?: string,
+  ignoreLogs: boolean = false
+): Promise<any> {
+  const http = account.baseUrl.startsWith('https') ? require('https') : require('http');
+  const rootPath = `${account.baseUrl}/v1/account/${account.accountId}/subscription/${account.subscriptionId}`;
+  const boundaryPath = `/boundary/${boundaryId}`;
+  const functionPath = functionId ? `/function/${functionId}` : '';
+  const url = `${rootPath}${boundaryPath}${functionPath}/log`;
+  const headers = { Authorization: `Bearer ${account.accessToken}` };
+
+  return new Promise((resolve, reject) => {
+    let bufferedResponse: any = {};
+    let resolved = false;
+    let timer: any = null;
+    let logRequest: any = null;
+
+    const onDone = () => {
+      if (!resolved) {
+        resolved = true;
+
+        if (timer) {
+          clearTimeout(timer);
+        }
+
+        if (logRequest) {
+          try {
+            logRequest.abort();
+          } catch (error) {
+            // do nothing
+          }
+        }
+
+        if (bufferedResponse.status !== 200) {
+          try {
+            bufferedResponse.data = JSON.parse(bufferedResponse.data);
+          } catch (error) {
+            // do nothing
+          }
+        }
+        resolve(bufferedResponse);
+      }
+    };
+
+    const onResponse = (response: any) => {
+      bufferedResponse.status = response.statusCode;
+      bufferedResponse.headers = response.headers;
+      bufferedResponse.data = '';
+
+      if (ignoreLogs) {
+        onDone();
+      }
+
+      response.on('data', (data: string) => (bufferedResponse.data += data.toString()));
+      response.on('end', onDone);
+    };
+
+    logRequest = http.get(url, { headers, agent: false }, onResponse);
+
+    if (!ignoreLogs) {
+      timer = setTimeout(onDone, 5000);
+    }
+  });
+}
+
 export async function waitForBuild(
   account: IAccount,
   build: { boundaryId: string; functionId: string; buildId: string },
@@ -663,6 +730,7 @@ export async function cleanUpHostedIssuers(account: IAccount) {
     const toRemove = testHostedIssuers.splice(0, 5);
     await Promise.all(toRemove.map(functionId => deleteFunction(account, hostedIssuersBoundary, functionId)));
   }
+  await cleanUpIssuers(account);
 }
 
 export async function createJwksKeys(keyPairs: IKeyPair[]) {
