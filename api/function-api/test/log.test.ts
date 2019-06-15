@@ -7,6 +7,7 @@ import {
   deleteAllFunctions,
   getFunctionLocation,
   sleep,
+  getLogs,
 } from './sdk';
 import { request } from '@5qtrs/request';
 
@@ -60,30 +61,10 @@ describe('log', () => {
       expect(response.data).toMatchObject({
         location: expect.stringMatching(/^http:|https:/),
       });
-      let log = '';
-      let functionUrl = response.data.location;
-      let driver = account.baseUrl.startsWith('https') ? require('https') : require('http');
-      let logReq = driver.get(
-        boundary
-          ? `${account.baseUrl}/v1/account/${account.accountId}/subscription/${
-              account.subscriptionId
-            }/boundary/${boundaryId}/log`
-          : `${account.baseUrl}/v1/account/${account.accountId}/subscription/${
-              account.subscriptionId
-            }/boundary/${boundaryId}/function/${function1Id}/log`,
-        {
-          headers: {
-            Authorization: `Bearer ${account.accessToken}`,
-          },
-          agent: false,
-        },
-        (res: any) => {
-          expect(res.statusCode).toEqual(200);
-          expect(res.headers['content-type']).toMatch(/text\/event-stream/);
-          res.setEncoding('utf8');
-          res.on('data', (d: string) => (log += d));
-        }
-      );
+
+      const functionUrl = response.data.location;
+      const logsPromise = getLogs(account, boundaryId, boundary ? undefined : function1Id);
+
       if (query) {
         for (var i = 1; i < 5; i++) {
           response = await request(`${functionUrl}?x-fx-logs=1&n=${i}`);
@@ -100,13 +81,14 @@ describe('log', () => {
           expect(response.status).toEqual(200);
         }
       }
-      await sleep(4000);
-      logReq.abort();
-      // console.log(log);
-      let i1 = log.indexOf('Hello 1');
-      let i2 = log.indexOf('Hello 2');
-      let i3 = log.indexOf('Hello 3');
-      let i4 = log.indexOf('Hello 4');
+
+      const logResponse = await logsPromise;
+      expect(logResponse.status).toEqual(200);
+      expect(logResponse.headers['content-type']).toMatch(/text\/event-stream/);
+      let i1 = logResponse.data.indexOf('Hello 1');
+      let i2 = logResponse.data.indexOf('Hello 2');
+      let i3 = logResponse.data.indexOf('Hello 3');
+      let i4 = logResponse.data.indexOf('Hello 4');
       expect(i1).toBeGreaterThan(0);
       expect(i2).toBeGreaterThan(i1);
       expect(i3).toBeGreaterThan(i2);
