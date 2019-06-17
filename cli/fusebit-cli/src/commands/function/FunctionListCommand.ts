@@ -1,8 +1,5 @@
-import { Command, IExecuteInput, ArgType, Message } from '@5qtrs/cli';
-import { request } from '@5qtrs/request';
-import { ProfileService, ExecuteService, FunctionService, VersionService } from '../../services';
-import { Text } from '@5qtrs/text';
-import { Table } from '@5qtrs/table';
+import { Command, IExecuteInput, ArgType } from '@5qtrs/cli';
+import { FunctionService } from '../../services';
 
 export class FunctionListCommand extends Command {
   private constructor() {
@@ -15,10 +12,29 @@ export class FunctionListCommand extends Command {
         {
           name: 'cron',
           description: [
-            'If set to true, only scheduled functions are returned. If set to false, only non-scheduled functions are returned. ',
+            'If set to true, only scheduled functions are returned. If set to false,',
+            'only non-scheduled functions are returned. ',
             'If unspecified, both scheduled and unscheduled functions are returned',
           ].join(' '),
           type: ArgType.boolean,
+        },
+        {
+          name: 'count',
+          aliases: ['c'],
+          description: 'The number of functions to list at a given time',
+          type: ArgType.integer,
+          default: '100',
+        },
+        {
+          name: 'next',
+          aliases: ['n'],
+          description: 'The opaque token from a previous list command used to continue listing',
+        },
+        {
+          name: 'format',
+          aliases: ['f'],
+          description: "The format to display the output: 'table', 'json'",
+          default: 'table',
         },
       ],
     });
@@ -29,75 +45,40 @@ export class FunctionListCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    await input.io.writeLine();
+    const format = input.options.format as string;
+    const cron = input.options.cron as boolean;
+    const count = input.options.count as string;
+    const next = input.options.next as string;
 
-    const profileService = await ProfileService.create(input);
-    const executeService = await ExecuteService.create(input);
+    const options: any = {
+      cron,
+      count,
+      next,
+    };
+
     const functionService = await FunctionService.create(input);
-    const versionService = await VersionService.create(input);
 
-    let profile = await profileService.getExecutionProfile(['subscription']);
+    if (format === 'json') {
+      input.io.writeRawOnly(true);
+      const result = await functionService.listFunctions(options);
+      const json = JSON.stringify(result, null, 2);
+      input.io.writeLineRaw(json);
+    } else {
+      await input.io.writeLine();
 
-    const result = await executeService.execute(
-      {
-        header: 'List Functions',
-        message: Text.create(
-          'Listing ',
-          Text.bold(`${input.options.cron === undefined ? '' : input.options.cron === true ? 'CRON ' : 'non-CRON '}`),
-          `functions of account '`,
-          Text.bold(profile.account || ''),
-          "', subscription '",
-          Text.bold(profile.subscription || ''),
-          profile.boundary ? "', boundary '" + Text.bold(profile.boundary) + "'" : "'"
-        ),
-        errorHeader: 'List Functions Error',
-        errorMessage: 'Unable to list functions',
-      },
-      async () => {
-        let result: string[] = [];
-        let next: string | undefined;
-
-        const version = await versionService.getVersion();
-        while (true) {
-          let query: any = {};
-          if (next) {
-            query.next = next;
-          }
-          if (input.options.cron !== undefined) {
-            query.cron = input.options.cron;
-          }
-          let response = await request({
-            url: profile.boundary
-              ? `${profile.baseUrl}/v1/account/${profile.account}/subscription/${profile.subscription}/boundary/${
-                  profile.boundary
-                }/function`
-              : `${profile.baseUrl}/v1/account/${profile.account}/subscription/${profile.subscription}/function`,
-            headers: {
-              Authorization: `Bearer ${profile.accessToken}`,
-              'User-Agent': `fusebit-cli/${version}`,
-            },
-            query,
-            validStatus: status => status === 200,
-          });
-          let functions = response.data.items
-            .map((x: { functionId: string; boundaryId: string }) => `${x.boundaryId}/${x.functionId}`)
-            .sort();
-          result = result.concat(functions);
-          if (response.data.next) {
-            next = response.data.next;
-          } else {
-            return result;
-          }
+      let getMore = true;
+      let result;
+      let firstDisplay = true;
+      while (getMore) {
+        result = await functionService.listFunctions(options);
+        await functionService.displayFunctions(result.items, firstDisplay);
+        firstDisplay = false;
+        getMore = result.next ? await functionService.confirmListMore() : false;
+        if (getMore) {
+          options.next = result.next;
         }
       }
-    );
-
-    if (result === undefined) {
-      executeService.verbose();
-      return 1;
     }
-
-    await functionService.displayFunctions(result);
 
     return 0;
   }

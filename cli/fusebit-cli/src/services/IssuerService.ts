@@ -33,6 +33,17 @@ export interface IFusebitIssuer {
   publicKeys?: IFusebitPublicKey[];
 }
 
+export interface IFusebitIssuerListOptions {
+  nameContains?: string;
+  next?: string;
+  count?: number;
+}
+
+export interface IFusebitIssuerListResult {
+  items: IFusebitIssuer[];
+  next: string;
+}
+
 // ----------------
 // Exported Classes
 // ----------------
@@ -54,24 +65,41 @@ export class IssuerService {
     return new IssuerService(profileService, executeService, input);
   }
 
-  public async listIssuers(): Promise<IFusebitIssuer[]> {
+  public async listIssuers(options: IFusebitIssuerListOptions): Promise<IFusebitIssuerListResult> {
     const profile = await this.profileService.getExecutionProfile(['account']);
+
+    const query = [];
+    if (options.nameContains) {
+      query.push(`name=${encodeURIComponent(options.nameContains)}`);
+    }
+    if (options.count) {
+      query.push(`count=${options.count}`);
+    }
+    if (options.next) {
+      query.push(`next=${options.next}`);
+    }
+    const queryString = `?${query.join('&')}`;
 
     const issuers = await this.executeService.executeRequest(
       {
-        header: 'Get Issuers',
-        message: Text.create("Getting the issuers of account '", Text.bold(profile.account || ''), "'..."),
-        errorHeader: 'Get Issuer Error',
-        errorMessage: Text.create("Unable to get the issuers of account '", Text.bold(profile.account || ''), "'"),
+        header: 'List Issuers',
+        message: Text.create("Listing the issuers of account '", Text.bold(profile.account || ''), "'..."),
+        errorHeader: 'List Issuer Error',
+        errorMessage: Text.create("Unable to list the issuers of account '", Text.bold(profile.account || ''), "'"),
       },
       {
         method: 'GET',
-        url: `${profile.baseUrl}/v1/account/${profile.account}/issuer`,
+        url: `${profile.baseUrl}/v1/account/${profile.account}/issuer${queryString}`,
         headers: { Authorization: `bearer ${profile.accessToken}` },
       }
     );
 
-    return issuers.items;
+    return issuers;
+  }
+
+  public async confirmListMore(): Promise<boolean> {
+    const result = await this.input.io.prompt({ prompt: 'Get More Issuers?', yesNo: true });
+    return result.length > 0;
   }
 
   public async getIssuer(id: string): Promise<IFusebitIssuer> {
@@ -324,9 +352,9 @@ export class IssuerService {
     }
   }
 
-  public async displayIssuers(issuers: IFusebitIssuer[]) {
-    if (this.input.options.format === 'json') {
-      await this.input.io.writeLine(JSON.stringify(issuers, null, 2));
+  public async displayIssuers(issuers: IFusebitIssuer[], firstDisplay: boolean) {
+    if (!issuers.length) {
+      await this.executeService.info('No Issuers', `No ${firstDisplay ? '' : 'more '}issuers to list`);
       return;
     }
 

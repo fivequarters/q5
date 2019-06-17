@@ -106,6 +106,13 @@ export interface IFusebitUserListOptions {
   primaryEmailContains?: string;
   issuerContains?: string;
   subjectContains?: string;
+  next?: string;
+  count?: number;
+}
+
+export interface IFusebitUserListResult {
+  items: IFusebitUser[];
+  next: string;
 }
 
 // ----------------
@@ -129,7 +136,7 @@ export class UserService {
     return new UserService(profileService, executeService, input);
   }
 
-  public async listUsers(options: IFusebitUserListOptions): Promise<IFusebitUser[]> {
+  public async listUsers(options: IFusebitUserListOptions): Promise<IFusebitUserListResult> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     const query = [];
@@ -145,14 +152,20 @@ export class UserService {
     if (options.subjectContains) {
       query.push(`subject=${encodeURIComponent(options.subjectContains)}`);
     }
-    const queryString = query.length ? `?${query.join('&')}` : '';
+    if (options.count) {
+      query.push(`count=${options.count}`);
+    }
+    if (options.next) {
+      query.push(`next=${options.next}`);
+    }
+    const queryString = `?${query.join('&')}`;
 
     const result = await this.executeService.executeRequest(
       {
-        header: 'Get Users',
-        message: Text.create("Getting the users of account '", Text.bold(profile.account || ''), "'..."),
-        errorHeader: 'Get Users Error',
-        errorMessage: Text.create("Unable to get the users of account '", Text.bold(profile.account || ''), "'"),
+        header: 'List Users',
+        message: Text.create("Listing the users of account '", Text.bold(profile.account || ''), "'..."),
+        errorHeader: 'List Users Error',
+        errorMessage: Text.create("Unable to list the users of account '", Text.bold(profile.account || ''), "'"),
       },
       {
         method: 'GET',
@@ -161,7 +174,12 @@ export class UserService {
       }
     );
 
-    return result.items;
+    return result;
+  }
+
+  public async confirmListMore(): Promise<boolean> {
+    const result = await this.input.io.prompt({ prompt: 'Get More Users?', yesNo: true });
+    return result.length > 0;
   }
 
   public async getUser(id: string): Promise<IFusebitUser> {
@@ -605,14 +623,9 @@ export class UserService {
     }
   }
 
-  public async displayUsers(users: IFusebitUser[]) {
-    if (this.input.options.format === 'json') {
-      await this.input.io.writeLine(JSON.stringify(users, null, 2));
-      return;
-    }
-
+  public async displayUsers(users: IFusebitUser[], firstDisplay: boolean) {
     if (!users.length) {
-      await this.executeService.info('No Users', 'There are currently no users');
+      await this.executeService.info('No Users', `No ${firstDisplay ? '' : 'more '}users to list`);
       return;
     }
 
@@ -638,7 +651,7 @@ export class UserService {
 
   public async displayInitToken(initToken: string) {
     if (this.input.options.format === 'json') {
-      await this.input.io.writeLine(JSON.stringify(initToken, null, 2));
+      await this.input.io.writeLineRaw(JSON.stringify(initToken, null, 2));
       return;
     }
     await this.executeService.result(
@@ -651,8 +664,7 @@ export class UserService {
         'Have the user execute the following command:'
       )
     );
-    console.log(`fuse init ${initToken}`);
-    console.log();
+    this.input.io.writeLineRaw(`fuse init ${initToken}`);
   }
 
   private async writeUser(user: IFusebitUser) {
