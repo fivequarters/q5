@@ -1,5 +1,5 @@
 import { DataSource } from '@5qtrs/data';
-import { IOpsImageData } from '@5qtrs/ops-data';
+import { IOpsImageData, IOpsImage } from '@5qtrs/ops-data';
 import { AwsEcr } from '@5qtrs/aws-ecr';
 import { OpsDataTables } from './OpsDataTables';
 import { OpsDataAwsProvider } from './OpsDataAwsProvider';
@@ -35,5 +35,9 @@ export class OpsImageData extends DataSource implements IOpsImageData {
 
   public async publish(tag: string): Promise<void> {
     return this.awsEcr.pushImage(this.config.monoRepoName, tag);
+  }
+
+  public async list(): Promise<IOpsImage[]> {
+    return this.awsEcr.describeImages(this.config.monoRepoName);
   }
 }
