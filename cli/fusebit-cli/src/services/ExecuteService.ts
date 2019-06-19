@@ -2,6 +2,7 @@ import { Message, MessageKind, IExecuteInput } from '@5qtrs/cli';
 import { Text, IText } from '@5qtrs/text';
 import { IHttpRequest, request as sendRequest } from '@5qtrs/request';
 import { Table } from '@5qtrs/table';
+import { VersionService } from './VersionService';
 
 // -------------------
 // Exported Interfaces
@@ -28,15 +29,18 @@ export interface ILogEntry {
 
 export class ExecuteService {
   private input: IExecuteInput;
+  private versionService: VersionService;
   private logs: ILogEntry[];
 
-  private constructor(input: IExecuteInput) {
+  private constructor(input: IExecuteInput, versionService: VersionService) {
     this.input = input;
+    this.versionService = versionService;
     this.logs = [];
   }
 
   public static async create(input: IExecuteInput) {
-    return new ExecuteService(input);
+    const versionService = await VersionService.create(input);
+    return new ExecuteService(input, versionService);
   }
 
   public async execute<T>(messages: IExcuteMessages, func?: () => Promise<T | undefined>) {
@@ -71,10 +75,11 @@ export class ExecuteService {
 
   public async executeRequest<T>(messages: IExcuteMessages, request: IHttpRequest) {
     const headers = (request.headers = request.headers || {});
+    const version = await this.versionService.getVersion();
     if (!headers['Content-Type'] && !headers['content-type']) {
       headers['Content-Type'] = 'application/json';
     }
-    headers['User-Agent'] = `fusebit-cli/${require('../../package.json').version}`;
+    headers['User-Agent'] = `fusebit-cli/${version}`;
 
     const func = async () => {
       const response = await sendRequest(request);

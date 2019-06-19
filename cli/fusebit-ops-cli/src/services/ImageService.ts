@@ -3,6 +3,38 @@ import { Text } from '@5qtrs/text';
 import { OpsService } from './OpsService';
 import { ExecuteService } from './ExecuteService';
 
+// ------------------
+// Internal Functions
+// ------------------
+
+function getDateString(date: Date) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const dateOnly = new Date(date.valueOf());
+  dateOnly.setHours(0, 0, 0, 0);
+
+  const dateOnlyMs = dateOnly.valueOf();
+  const [dateString, timeString] = date.toLocaleString().split(',');
+  return dateOnlyMs === today.valueOf() ? timeString.trim() : dateString.trim();
+}
+
+function getSizeString(size: number) {
+  const inMB = size / (1000 * 1000);
+  return inMB.toFixed(2);
+}
+
+// -------------------
+// Exported Interfaces
+// -------------------
+
+export interface IOpsImage {
+  repository: string;
+  tag: string;
+  size: number;
+  updatedAt: Date;
+}
+
 // ----------------
 // Exported Classes
 // ----------------
@@ -24,7 +56,7 @@ export class ImageService {
     return new ImageService(input, opsService, executeService);
   }
 
-  public async publish(tag: string): Promise<void> {
+  public async publishImage(tag: string): Promise<void> {
     const opsDataContext = await this.opsService.getOpsDataContext();
     const imageData = opsDataContext.imageData;
 
@@ -41,5 +73,52 @@ export class ImageService {
       'Image Published',
       `The fusebit-mono image with tag '${Text.bold(tag)}' was successfully published`
     );
+  }
+
+  public async listImages(): Promise<IOpsImage[]> {
+    const opsDataContext = await this.opsService.getOpsDataContext();
+    const imageData = opsDataContext.imageData;
+
+    const images = await this.executeService.execute(
+      {
+        header: 'List Images',
+        message: `Listing the available Fusebit Platform images`,
+        errorHeader: 'List Error',
+      },
+      () => imageData.list()
+    );
+
+    return images || [];
+  }
+
+  public async displayImages(images: IOpsImage[]) {
+    if (this.input.options.format === 'json') {
+      this.input.io.writeLine(JSON.stringify(images, null, 2));
+      return;
+    }
+
+    if (images.length == 0) {
+      await this.executeService.warning('No Images', 'There are no available images on the Fusebit platform');
+      return;
+    }
+
+    images.sort((imageA, imageB) => imageA.updatedAt.getTime() - imageB.updatedAt.getTime());
+
+    await this.executeService.message(Text.blue('Image'), Text.blue('Details'));
+    for (const image of images) {
+      this.writeImage(image);
+    }
+  }
+
+  private async writeImage(image: IOpsImage) {
+    const details = [
+      Text.dim('Last Updated: '),
+      getDateString(image.updatedAt),
+      Text.eol(),
+      Text.dim('Size (MB): '),
+      getSizeString(image.size),
+    ];
+
+    await this.executeService.message(Text.bold(image.tag), Text.create(details));
   }
 }

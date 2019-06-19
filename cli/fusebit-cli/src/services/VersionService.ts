@@ -1,14 +1,6 @@
-import { IExecuteInput } from '@5qtrs/cli';
-import { ExecuteService } from './ExecuteService';
+import { IExecuteInput, MessageKind, Message } from '@5qtrs/cli';
 import { join } from 'path';
-import { Text } from '@5qtrs/text';
 import { readFile } from '@5qtrs/file';
-
-// ------------------
-// Internal Constants
-// ------------------
-
-const notSet = Text.dim(Text.italic('<not set>'));
 
 // -------------------
 // Exported Interfaces
@@ -38,15 +30,14 @@ export interface IFusebitIssuer {
 // ----------------
 
 export class VersionService {
-  private executeService: ExecuteService;
+  private input: IExecuteInput;
 
-  private constructor(executeService: ExecuteService) {
-    this.executeService = executeService;
+  private constructor(input: IExecuteInput) {
+    this.input = input;
   }
 
   public static async create(input: IExecuteInput) {
-    const executeService = await ExecuteService.create(input);
-    return new VersionService(executeService);
+    return new VersionService(input);
   }
 
   public async getVersion() {
@@ -58,7 +49,12 @@ export class VersionService {
       const json = JSON.parse(content);
       version = json.version;
     } catch (error) {
-      this.executeService.error('Version Error', 'Unable to read the version of the current Fusebit CLI installation');
+      if (!this.input.options.quiet) {
+        const header = 'Version Error';
+        const message = 'Unable to read the version of the current Fusebit CLI installation';
+        const formattedMessage = await Message.create({ header, message, kind: MessageKind.error });
+        await formattedMessage.write(this.input.io);
+      }
       throw error;
     }
     return version;

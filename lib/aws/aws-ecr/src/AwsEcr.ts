@@ -26,11 +26,18 @@ function mapToRepo(item: any) {
 // Exported Interfaces
 // -------------------
 
-interface IAwsRepository {
+export interface IAwsRepository {
   arn: string;
   id: string;
   name: string;
   url: string;
+}
+
+export interface IAwsImage {
+  repository: string;
+  tag: string;
+  size: number;
+  updatedAt: Date;
 }
 
 // ----------------
@@ -68,6 +75,39 @@ export class AwsEcr extends AwsBase<typeof ECR> {
       const message = `Docker login and push failed with output: ${result.stderr.toString()}`;
       throw new Error(message);
     }
+  }
+
+  public async describeImages(name: string): Promise<IAwsImage[]> {
+    const ecr = await this.getAws();
+    const params = {
+      repositoryName: name,
+      filter: {
+        tagStatus: 'ANY',
+      },
+      maxResults: 1000,
+    };
+
+    return new Promise((resolve, reject) => {
+      ecr.describeImages(params, (error, data) => {
+        if (error) {
+          return reject(error);
+        }
+
+        const images: IAwsImage[] = [];
+        if (data.imageDetails) {
+          for (const image of data.imageDetails) {
+            images.push({
+              repository: name,
+              size: image.imageSizeInBytes || 0,
+              tag: image.imageTags && image.imageTags.length ? image.imageTags[0] : '<unknown>',
+              updatedAt: image.imagePushedAt || new Date(),
+            });
+          }
+        }
+
+        resolve(images);
+      });
+    });
   }
 
   public async repositoryExists(name: string): Promise<boolean> {

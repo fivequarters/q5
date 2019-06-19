@@ -8,7 +8,7 @@ export {
   IListOpsNetworkOptions,
   IListOpsNetworkResult,
 } from './IOpsNetworkData';
-export { IOpsImageData } from './IOpsImageData';
+export { IOpsImageData, IOpsImage } from './IOpsImageData';
 export {
   IOpsDeployment,
   IOpsDeploymentData,

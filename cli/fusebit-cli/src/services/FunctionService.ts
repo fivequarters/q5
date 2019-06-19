@@ -2,17 +2,26 @@ import { Message, IExecuteInput, Confirm, MessageKind } from '@5qtrs/cli';
 import { ExecuteService } from './ExecuteService';
 import { ProfileService } from './ProfileService';
 import { Text } from '@5qtrs/text';
-import { readFile } from '@5qtrs/file';
-
-// ------------------
-// Internal Constants
-// ------------------
-
-const notSet = Text.dim(Text.italic('<not set>'));
 
 // -------------------
 // Exported Interfaces
 // -------------------
+
+export interface IFusebitFunctionShort {
+  functionId: string;
+  boundaryId: string;
+}
+
+export interface IFusebitFunctionListOptions {
+  cron?: boolean;
+  next?: string;
+  count?: number;
+}
+
+export interface IFusebitFunctionListResult {
+  items: IFusebitFunctionShort[];
+  next?: string;
+}
 
 // ----------------
 // Exported Classes
@@ -35,22 +44,68 @@ export class FunctionService {
     return new FunctionService(profileService, executeService, input);
   }
 
-  public async displayFunctions(functions: string[]) {
-    if (this.input.options.format === 'json') {
-      await this.input.io.writeLine(JSON.stringify(functions, null, 2));
-      return;
+  public async listFunctions(options: IFusebitFunctionListOptions): Promise<IFusebitFunctionListResult> {
+    let profile = await this.profileService.getExecutionProfile(['subscription']);
+    let cronMessage = '';
+
+    const query = [];
+    if (options.cron !== undefined) {
+      cronMessage = options.cron ? 'CRON ' : 'non-CRON ';
+      query.push(`cron=${options.cron}`);
+    }
+    if (options.count) {
+      query.push(`count=${options.count}`);
+    }
+    if (options.next) {
+      query.push(`next=${options.next}`);
     }
 
+    const queryString = `?${query.join('&')}`;
+    const boundaryUrl = profile.boundary ? `/boundary/${profile.boundary}/function` : '/function';
+
+    const result = await this.executeService.executeRequest(
+      {
+        header: 'List Functions',
+        message: Text.create(
+          'Listing ',
+          Text.bold(cronMessage),
+          `functions of account '`,
+          Text.bold(profile.account || ''),
+          "', subscription '",
+          Text.bold(profile.subscription || ''),
+          profile.boundary ? "', boundary '" + Text.bold(profile.boundary) + "'" : "'"
+        ),
+        errorHeader: 'List Functions Error',
+        errorMessage: Text.create("Unable to list the functions of account '", Text.bold(profile.account || ''), "'"),
+      },
+      {
+        method: 'GET',
+        url: `${profile.baseUrl}/v1/account/${profile.account}/subscription/${
+          profile.subscription
+        }${boundaryUrl}${queryString}`,
+        headers: { Authorization: `bearer ${profile.accessToken}` },
+      }
+    );
+
+    return result;
+  }
+
+  public async confirmListMore(): Promise<boolean> {
+    const result = await this.input.io.prompt({ prompt: 'Get More Functions?', yesNo: true });
+    return result.length > 0;
+  }
+
+  public async displayFunctions(functions: IFusebitFunctionShort[], firstDisplay: boolean) {
     if (!functions.length) {
-      await this.executeService.info('No Functions', 'There are currently no functions that match the search criteria');
+      await this.executeService.info('No Functions', `No ${firstDisplay ? '' : 'more '}functions to list`);
       return;
     }
 
     const boundaries: { [index: string]: string[] } = {};
-    for (const functionPath of functions) {
-      const [boundary, func] = functionPath.split('/');
-      boundaries[boundary] = boundaries[boundary] || [];
-      boundaries[boundary].push(func);
+    for (const functionShort of functions) {
+      const { boundaryId, functionId } = functionShort;
+      boundaries[boundaryId] = boundaries[boundaryId] || [];
+      boundaries[boundaryId].push(functionId);
     }
 
     const message = await Message.create({
@@ -66,6 +121,6 @@ export class FunctionService {
 
   private async writeBoundary(boundaryName: string, functions: string[]) {
     const functionList = Text.join(functions, Text.dim(', '));
-    this.executeService.message(Text.bold(boundaryName), functionList);
+    await this.executeService.message(Text.bold(boundaryName), functionList);
   }
 }

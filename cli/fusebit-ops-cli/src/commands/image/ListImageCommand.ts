@@ -6,25 +6,19 @@ import { ImageService } from '../../services';
 // ------------------
 
 const command = {
-  name: 'Publish Image',
-  cmd: 'publish',
-  summary: 'Publish the Fusebit platform image',
-  description: 'Publishes the new image to the Fusebit platform',
-  arguments: [
-    {
-      name: 'tag',
-      description: 'The tag to publish the image with',
-    },
-  ],
+  name: 'List Image',
+  cmd: 'ls',
+  summary: 'List images',
+  description: 'Lists available images of the Fusebit platform',
 };
 
 // ----------------
 // Exported Classes
 // ----------------
 
-export class PublishImageCommand extends Command {
+export class ListImageCommand extends Command {
   public static async create() {
-    return new PublishImageCommand();
+    return new ListImageCommand();
   }
 
   private constructor() {
@@ -33,10 +27,11 @@ export class PublishImageCommand extends Command {
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
     await input.io.writeLine();
-    const tag = input.arguments[0] as string;
 
     const imageService = await ImageService.create(input);
-    await imageService.publishImage(tag);
+    const images = await imageService.listImages();
+
+    await imageService.displayImages(images);
 
     return 0;
   }

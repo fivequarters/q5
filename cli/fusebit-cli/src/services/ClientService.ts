@@ -103,6 +103,13 @@ export interface IFusebitClientListOptions {
   displayNameContains?: string;
   issuerContains?: string;
   subjectContains?: string;
+  next?: string;
+  count?: number;
+}
+
+export interface IFusebitClientListResult {
+  items: IFusebitClient[];
+  next: string;
 }
 
 // ----------------
@@ -126,7 +133,7 @@ export class ClientService {
     return new ClientService(profileService, executeService, input);
   }
 
-  public async listClients(options: IFusebitClientListOptions): Promise<IFusebitClient[]> {
+  public async listClients(options: IFusebitClientListOptions): Promise<IFusebitClientListResult> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     const query = [];
@@ -139,14 +146,20 @@ export class ClientService {
     if (options.subjectContains) {
       query.push(`subject=${encodeURIComponent(options.subjectContains)}`);
     }
+    if (options.count) {
+      query.push(`count=${options.count}`);
+    }
+    if (options.next) {
+      query.push(`next=${options.next}`);
+    }
     const queryString = query.length ? `?${query.join('&')}` : '';
 
     const result = await this.executeService.executeRequest(
       {
-        header: 'Get Clients',
-        message: Text.create("Getting the clients of account '", Text.bold(profile.account || ''), "'..."),
-        errorHeader: 'Get Clients Error',
-        errorMessage: Text.create("Unable to get the clients of account '", Text.bold(profile.account || ''), "'"),
+        header: 'List Clients',
+        message: Text.create("Listing the clients of account '", Text.bold(profile.account || ''), "'..."),
+        errorHeader: 'List Clients Error',
+        errorMessage: Text.create("Unable to list the clients of account '", Text.bold(profile.account || ''), "'"),
       },
       {
         method: 'GET',
@@ -155,7 +168,12 @@ export class ClientService {
       }
     );
 
-    return result.items;
+    return result;
+  }
+
+  public async confirmListMore(): Promise<boolean> {
+    const result = await this.input.io.prompt({ prompt: 'Get More Clients?', yesNo: true });
+    return result.length > 0;
   }
 
   public async getClient(id: string): Promise<IFusebitClient> {
@@ -600,14 +618,9 @@ export class ClientService {
     }
   }
 
-  public async displayClients(clients: IFusebitClient[]) {
-    if (this.input.options.format === 'json') {
-      await this.input.io.writeLine(JSON.stringify(clients, null, 2));
-      return;
-    }
-
+  public async displayClients(clients: IFusebitClient[], firstDisplay: boolean) {
     if (!clients.length) {
-      await this.executeService.info('No Clients', 'There are currently no clients');
+      await this.executeService.info('No Clients', `No ${firstDisplay ? '' : 'more '}clients to list`);
       return;
     }
 
@@ -633,21 +646,20 @@ export class ClientService {
 
   public async displayInitToken(initToken: string) {
     if (this.input.options.format === 'json') {
-      await this.input.io.writeLine(JSON.stringify(initToken, null, 2));
+      await this.input.io.writeLineRaw(JSON.stringify(initToken, null, 2));
       return;
     }
     await this.executeService.result(
       'Init Token',
       Text.create(
-        'Provide the following init token to the client. ',
+        'Use the following init token to initialize the client. ',
         'It is a single use token that will expire in 8 hours.',
         Text.eol(),
         Text.eol(),
-        'Have the client execute the following command:'
+        'Execute the following command:'
       )
     );
-    console.log(`fuse init ${initToken}`);
-    console.log();
+    this.input.io.writeLineRaw(`fuse init ${initToken}`);
   }
 
   private async writeClient(client: IFusebitClient) {

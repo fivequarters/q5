@@ -44,6 +44,9 @@ export interface IPromptOptions {
 export interface ICommandIO {
   outputWidth: number;
   enableStyle: boolean;
+  writeRawOnly: (enabled: boolean) => void;
+  writeRaw: (text: IText) => Promise<void>;
+  writeLineRaw: (text: IText) => Promise<void>;
   write: (text?: IText) => Promise<void>;
   writeLine: (text?: IText) => Promise<void>;
   prompt: (options: IPromptOptions) => Promise<string>;
@@ -89,6 +92,7 @@ export class CommandIO implements ICommandIO {
   private input: Readable;
   private outputWidthProp: number;
   private enableStyleProp: boolean;
+  private writeEnabled: boolean;
 
   private constructor(output: Writable, input: Readable, outputWidth: number, enableStyle: boolean) {
     this.output = output;
@@ -96,26 +100,48 @@ export class CommandIO implements ICommandIO {
     this.outputWidthProp = outputWidth;
     this.enableStyleProp = enableStyle;
     this.spinner = false;
+    this.writeEnabled = true;
+  }
+
+  public writeRawOnly(enable: boolean) {
+    this.writeEnabled = !enable;
   }
 
   public async write(text?: IText) {
-    this.spinner = false;
-    if (this.spinnerTimeout) {
-      clearTimeout(this.spinnerTimeout);
-    }
-    if (text) {
-      if (text.length > this.outputWidth) {
-        const asText = text instanceof Text ? text : Text.create(text);
-        const wrapped = asText.wrap(this.outputWidth);
-        text = Text.join(wrapped, EOL);
+    if (this.writeEnabled) {
+      this.spinner = false;
+      if (this.spinnerTimeout) {
+        clearTimeout(this.spinnerTimeout);
       }
+      if (text) {
+        if (text.length > this.outputWidth) {
+          const asText = text instanceof Text ? text : Text.create(text);
+          const wrapped = asText.wrap(this.outputWidth);
+          text = Text.join(wrapped, EOL);
+        }
+        this.output.write(text.toString(this.enableStyle));
+      }
+    }
+  }
+
+  public async writeRaw(text?: IText) {
+    if (text) {
       this.output.write(text.toString(this.enableStyle));
     }
   }
 
+  public async writeLineRaw(text?: IText) {
+    if (text) {
+      this.writeRaw(text);
+      this.output.write(EOL);
+    }
+  }
+
   public async writeLine(text?: IText) {
-    this.write(text);
-    this.output.write(EOL);
+    if (this.writeEnabled) {
+      this.write(text);
+      this.output.write(EOL);
+    }
   }
 
   public async prompt(options: IPromptOptions): Promise<string> {
@@ -196,34 +222,36 @@ export class CommandIO implements ICommandIO {
   }
 
   public spin(enabled: boolean) {
-    const output = this.output as TTY.WriteStream;
-    if (output && output.isTTY) {
-      this.spinner = enabled;
-      if (this.spinner) {
-        let count = 1;
-        let firstSpin = true;
-        const animation = () => {
-          if (this.spinner) {
-            if (firstSpin) {
-              firstSpin = false;
-            } else {
-              this.moveCursor(0, -2);
+    if (this.writeEnabled) {
+      const output = this.output as TTY.WriteStream;
+      if (output && output.isTTY) {
+        this.spinner = enabled;
+        if (this.spinner) {
+          let count = 1;
+          let firstSpin = true;
+          const animation = () => {
+            if (this.spinner) {
+              if (firstSpin) {
+                firstSpin = false;
+              } else {
+                this.moveCursor(0, -2);
+              }
+              this.clearLine(0);
+              for (let i = 0; i < count; i++) {
+                this.output.write(Text.dim('•').toString());
+              }
+              this.output.write(EOL);
+              this.output.write(EOL);
+              count++;
+              if (count >= 10) {
+                count = 1;
+              }
+              this.spinnerTimeout = setTimeout(animation, 500);
             }
-            this.clearLine(0);
-            for (let i = 0; i < count; i++) {
-              this.output.write(Text.dim('•').toString());
-            }
-            this.output.write(EOL);
-            this.output.write(EOL);
-            count++;
-            if (count >= 10) {
-              count = 1;
-            }
-            this.spinnerTimeout = setTimeout(animation, 500);
-          }
-        };
+          };
 
-        this.spinnerTimeout = setTimeout(animation, 1000 * 2);
+          this.spinnerTimeout = setTimeout(animation, 1000 * 2);
+        }
       }
     }
   }
