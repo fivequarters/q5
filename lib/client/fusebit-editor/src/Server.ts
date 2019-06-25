@@ -56,7 +56,7 @@ export type AccountResolver = (account: IAccount | undefined) => Promise<IAccoun
  */
 export interface IBuildStatus {
   /**
-   * Status of the build, which is either 'success' or 'failure'.
+   * Status of the build, which is either 'success', 'failed', 'pending', 'building' or 'unchanged'.
    */
   status: string;
   /**
@@ -358,7 +358,13 @@ export class Server {
         let build = res.body as IBuildStatus;
         if (res.status === 204) {
           // No changes
-          editorContext.buildFinished(build || {});
+          build = {
+            status: 'unchanged',
+            subscriptionId: (this.account as IAccount).subscriptionId,
+            boundaryId: editorContext.boundaryId,
+            functionId: editorContext.functionId,
+          };
+          editorContext.buildFinished(build);
           return build;
         } else if (res.status === 200) {
           // Completed synchronously
