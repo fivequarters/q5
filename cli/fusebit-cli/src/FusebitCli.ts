@@ -1,4 +1,5 @@
-import { Command, ICommand, ArgType } from '@5qtrs/cli';
+import { Command, ICommand, IExecuteInput, ArgType } from '@5qtrs/cli';
+import { Text } from '@5qtrs/text';
 import {
   ClientCommand,
   FunctionCommand,
@@ -59,5 +60,33 @@ export class FusebitCli extends Command {
   public static async create() {
     cli.subCommands = await getSubCommands();
     return new FusebitCli(cli);
+  }
+
+  protected async onSubCommandError(command: Command, input: IExecuteInput, error: Error) {
+    const verbose = input.options.verbose as boolean;
+    if (verbose) {
+      try {
+        input.io.writeRaw(
+          Text.create(
+            Text.red('[ Unhandled Error ] ').bold(),
+            Text.eol(),
+            Text.eol(),
+            Text.bold('Message'),
+            Text.eol(),
+            error.message,
+            Text.eol(),
+            Text.eol(),
+            Text.bold('Stack Trace'),
+            Text.eol(),
+            error.stack || '<No Stack Trace>',
+            Text.eol(),
+            Text.eol()
+          )
+        );
+      } catch (__) {
+        console.log(error);
+      }
+    }
+    return 1;
   }
 }

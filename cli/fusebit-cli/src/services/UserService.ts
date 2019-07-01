@@ -406,7 +406,9 @@ export class UserService {
     let decoded;
     try {
       decoded = await decodeJwt(token);
-    } catch (error) {
+    } catch (__) {}
+
+    if (!decoded) {
       this.executeService.error('Init Error', 'The init token is not a valid Json Web Token (JWT)');
       throw new Error('Init Error');
     }
@@ -444,8 +446,8 @@ export class UserService {
       boundaryId: decoded.boundaryId,
       functionId: decoded.functionId,
       baseUrl: decoded.baseUrl,
-      issuerId: decoded.iss,
-      subject: decoded.sub,
+      issuerId: decoded.issuerId,
+      subject: decoded.subject,
     };
   }
 
