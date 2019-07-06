@@ -183,7 +183,15 @@ export default class Workspace {
     packageJson.bundledDependencies = bundledDependencies;
     packageJson.devDependencies = undefined;
     packageJson.scripts = undefined;
-    packageJson.name = packageJson.name.replace(`@${org}/`, '');
+    packageJson.name = packageJson.packageAs || packageJson.name.replace(`@${org}/`, '');
+    if (packageJson.packageAssets) {
+      for (const packageAsset of packageJson.packageAssets) {
+        const assetFromPath = join(location, packageAsset);
+        const assetToPath = join(packagePath, packageAsset);
+        await copyDirectory(assetFromPath, assetToPath);
+      }
+      packageJson.packageAssets = undefined;
+    }
 
     const newPackageJsonPath = join(packagePath, 'package.json');
     await writeFile(newPackageJsonPath, JSON.stringify(packageJson, null, 2));
