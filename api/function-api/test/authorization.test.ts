@@ -7,10 +7,6 @@ import {
   getLogs,
   deleteFunction,
   listFunctions,
-  cleanUpUsers,
-  cleanUpClients,
-  createTestJwksIssuer,
-  cleanUpHostedIssuers,
   addUser,
   listUsers,
   updateUser,
@@ -29,6 +25,15 @@ import {
   updateIssuer,
   removeIssuer,
   listAudit,
+  getStorage,
+  setStorage,
+  listStorage,
+  removeStorage,
+  cleanUpUsers,
+  cleanUpClients,
+  cleanUpStorage,
+  createTestJwksIssuer,
+  cleanUpHostedIssuers,
 } from './sdk';
 import { extendExpect } from './extendJest';
 
@@ -59,7 +64,8 @@ afterAll(async () => {
   await cleanUpHostedIssuers(account);
   await cleanUpUsers(account);
   await cleanUpClients(account);
-}, 10000);
+  await cleanUpStorage(account);
+}, 20000);
 
 describe('Authorization', () => {
   test('A user without access should not be authorized to do anything', async () => {
@@ -96,6 +102,10 @@ describe('Authorization', () => {
       removeClient(userAccount, 'clt-1234567890123456'),
       initClient(userAccount, 'clt-1234567890123456'),
       listAudit(userAccount),
+      getStorage(userAccount, 'some-id'),
+      setStorage(userAccount, 'some-id', { data: 'hello' }),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
     ]);
 
     for (const result of results) {
@@ -137,6 +147,10 @@ describe('Authorization', () => {
       removeClient(clientAccount, 'clt-1234567890123456'),
       initClient(clientAccount, 'clt-1234567890123456'),
       listAudit(clientAccount),
+      getStorage(clientAccount, 'some-id'),
+      setStorage(clientAccount, 'some-id', { data: 'hello' }),
+      removeStorage(clientAccount, 'some-id'),
+      listStorage(clientAccount),
     ]);
 
     for (const result of results) {
@@ -194,6 +208,10 @@ describe('Authorization', () => {
       removeClient(userAccount, 'clt-1234567890123456'),
       initClient(userAccount, 'clt-1234567890123456'),
       listAudit(userAccount),
+      getStorage(userAccount, 'some-id'),
+      setStorage(userAccount, 'some-id', { data: 'hello' }),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
     ]);
 
     for (const result of results) {
@@ -256,6 +274,10 @@ describe('Authorization', () => {
       removeClient(userAccount, 'clt-1234567890123456'),
       initClient(userAccount, 'clt-1234567890123456'),
       listAudit(userAccount),
+      getStorage(userAccount, 'some-id'),
+      setStorage(userAccount, 'some-id', { data: 'hello' }),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
     ]);
 
     for (const result of results) {
@@ -316,6 +338,10 @@ describe('Authorization', () => {
       removeClient(userAccount, 'clt-1234567890123456'),
       initClient(userAccount, 'clt-1234567890123456'),
       listAudit(userAccount),
+      getStorage(userAccount, 'some-id'),
+      setStorage(userAccount, 'some-id', { data: 'hello' }),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
     ]);
 
     for (const result of results) {
@@ -371,6 +397,10 @@ describe('Authorization', () => {
       removeClient(userAccount, 'clt-1234567890123456'),
       initClient(userAccount, 'clt-1234567890123456'),
       listAudit(userAccount),
+      getStorage(userAccount, 'some-id'),
+      setStorage(userAccount, 'some-id', { data: 'hello' }),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
     ]);
 
     for (const result of results) {
@@ -426,6 +456,10 @@ describe('Authorization', () => {
       removeClient(userAccount, 'clt-1234567890123456'),
       initClient(userAccount, 'clt-1234567890123456'),
       listAudit(userAccount),
+      getStorage(userAccount, 'some-id'),
+      setStorage(userAccount, 'some-id', { data: 'hello' }),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
     ]);
 
     for (const result of results) {
@@ -487,6 +521,10 @@ describe('Authorization', () => {
       removeClient(userAccount, 'clt-1234567890123456'),
       initClient(userAccount, 'clt-1234567890123456'),
       listAudit(userAccount),
+      getStorage(userAccount, 'some-id'),
+      setStorage(userAccount, 'some-id', { data: 'hello' }),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
     ]);
 
     for (const result of results) {
@@ -540,6 +578,10 @@ describe('Authorization', () => {
       removeClient(userAccount, 'clt-1234567890123456'),
       initClient(userAccount, 'clt-1234567890123456'),
       listAudit(userAccount),
+      getStorage(userAccount, 'some-id'),
+      setStorage(userAccount, 'some-id', { data: 'hello' }),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
     ]);
 
     for (const result of results) {
@@ -594,6 +636,10 @@ describe('Authorization', () => {
       removeClient(userAccount, 'clt-1234567890123456'),
       initClient(userAccount, 'clt-1234567890123456'),
       listAudit(userAccount),
+      getStorage(userAccount, 'some-id'),
+      setStorage(userAccount, 'some-id', { data: 'hello' }),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
     ]);
 
     for (const result of results) {
@@ -642,6 +688,10 @@ describe('Authorization', () => {
       removeClient(userAccount, 'clt-1234567890123456'),
       initClient(userAccount, 'clt-1234567890123456'),
       listAudit(userAccount),
+      getStorage(userAccount, 'some-id'),
+      setStorage(userAccount, 'some-id', { data: 'hello' }),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
     ]);
 
     for (const result of results) {
@@ -696,6 +746,10 @@ describe('Authorization', () => {
       removeClient(userAccount, 'clt-1234567890123456'),
       initClient(userAccount, 'clt-1234567890123456'),
       listAudit(userAccount),
+      getStorage(userAccount, 'some-id'),
+      setStorage(userAccount, 'some-id', { data: 'hello' }),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
     ]);
 
     for (const result of results) {
@@ -751,6 +805,10 @@ describe('Authorization', () => {
       removeClient(userAccount, 'clt-1234567890123456'),
       initClient(userAccount, 'clt-1234567890123456'),
       listAudit(userAccount),
+      getStorage(userAccount, 'some-id'),
+      setStorage(userAccount, 'some-id', { data: 'hello' }),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
     ]);
 
     for (const result of results) {
@@ -801,6 +859,10 @@ describe('Authorization', () => {
       removeClient(userAccount, 'clt-1234567890123456'),
       initClient(userAccount, 'clt-1234567890123456'),
       listAudit(userAccount),
+      getStorage(userAccount, 'some-id'),
+      setStorage(userAccount, 'some-id', { data: 'hello' }),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
     ]);
 
     for (const result of results) {
@@ -866,6 +928,10 @@ describe('Authorization', () => {
       removeClient(userAccount, 'clt-1234567890123456'),
       initClient(userAccount, 'clt-1234567890123456'),
       listAudit(userAccount),
+      getStorage(userAccount, 'some-id'),
+      setStorage(userAccount, 'some-id', { data: 'hello' }),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
     ]);
 
     for (const result of results) {
@@ -933,6 +999,10 @@ describe('Authorization', () => {
       removeClient(userAccount, 'clt-1234567890123456'),
       initClient(userAccount, 'clt-1234567890123456'),
       listAudit(userAccount),
+      getStorage(userAccount, 'some-id'),
+      setStorage(userAccount, 'some-id', { data: 'hello' }),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
     ]);
 
     for (const result of results) {
@@ -988,6 +1058,10 @@ describe('Authorization', () => {
       removeClient(userAccount, 'clt-1234567890123456'),
       initClient(userAccount, 'clt-1234567890123456'),
       listAudit(userAccount),
+      getStorage(userAccount, 'some-id'),
+      setStorage(userAccount, 'some-id', { data: 'hello' }),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
     ]);
 
     for (const result of results) {
@@ -1037,6 +1111,10 @@ describe('Authorization', () => {
       removeClient(userAccount, 'clt-1234567890123456'),
       initClient(userAccount, 'clt-1234567890123456'),
       listAudit(userAccount),
+      getStorage(userAccount, 'some-id'),
+      setStorage(userAccount, 'some-id', { data: 'hello' }),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
     ]);
 
     for (const result of results) {
@@ -1085,6 +1163,10 @@ describe('Authorization', () => {
       removeClient(userAccount, 'clt-1234567890123456'),
       initClient(userAccount, 'clt-1234567890123456'),
       listAudit(userAccount),
+      getStorage(userAccount, 'some-id'),
+      setStorage(userAccount, 'some-id', { data: 'hello' }),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
     ]);
 
     for (const result of results) {
@@ -1133,6 +1215,10 @@ describe('Authorization', () => {
       removeClient(userAccount, 'clt-1234567890123456'),
       initClient(userAccount, 'clt-1234567890123456'),
       listAudit(userAccount),
+      getStorage(userAccount, 'some-id'),
+      setStorage(userAccount, 'some-id', { data: 'hello' }),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
     ]);
 
     for (const result of results) {
@@ -1185,6 +1271,10 @@ describe('Authorization', () => {
       removeClient(userAccount, 'clt-1234567890123456'),
       initClient(userAccount, 'clt-1234567890123456'),
       listAudit(userAccount),
+      getStorage(userAccount, 'some-id'),
+      setStorage(userAccount, 'some-id', { data: 'hello' }),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
     ]);
 
     for (const result of results) {
@@ -1233,6 +1323,10 @@ describe('Authorization', () => {
       removeClient(userAccount, 'clt-1234567890123456'),
       initClient(userAccount, 'clt-1234567890123456'),
       listAudit(userAccount),
+      getStorage(userAccount, 'some-id'),
+      setStorage(userAccount, 'some-id', { data: 'hello' }),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
     ]);
 
     for (const result of results) {
@@ -1280,6 +1374,10 @@ describe('Authorization', () => {
       removeClient(userAccount, 'clt-1234567890123456'),
       initClient(userAccount, 'clt-1234567890123456'),
       listAudit(userAccount),
+      getStorage(userAccount, 'some-id'),
+      setStorage(userAccount, 'some-id', { data: 'hello' }),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
     ]);
 
     for (const result of results) {
@@ -1329,6 +1427,10 @@ describe('Authorization', () => {
       removeClient(userAccount, 'clt-1234567890123456'),
       initClient(userAccount, 'clt-1234567890123456'),
       listAudit(userAccount),
+      getStorage(userAccount, 'some-id'),
+      setStorage(userAccount, 'some-id', { data: 'hello' }),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
     ]);
 
     for (const result of results) {
@@ -1376,6 +1478,10 @@ describe('Authorization', () => {
       removeClient(userAccount, 'clt-1234567890123456'),
       initClient(userAccount, 'clt-1234567890123456'),
       listAudit(userAccount),
+      getStorage(userAccount, 'some-id'),
+      setStorage(userAccount, 'some-id', { data: 'hello' }),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
     ]);
 
     for (const result of results) {
@@ -1433,6 +1539,10 @@ describe('Authorization', () => {
       removeClient(userAccount, 'clt-1234567890123456'),
       initClient(userAccount, 'clt-1234567890123456'),
       listAudit(userAccount),
+      getStorage(userAccount, 'some-id'),
+      setStorage(userAccount, 'some-id', { data: 'hello' }),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
     ]);
 
     for (const result of results) {
@@ -1488,6 +1598,10 @@ describe('Authorization', () => {
       removeClient(userAccount, 'clt-1234567890123456'),
       initClient(userAccount, 'clt-1234567890123456'),
       listAudit(userAccount),
+      getStorage(userAccount, 'some-id'),
+      setStorage(userAccount, 'some-id', { data: 'hello' }),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
     ]);
 
     for (const result of results) {
@@ -1535,6 +1649,10 @@ describe('Authorization', () => {
       removeClient(userAccount, 'clt-1234567890123456'),
       initClient(userAccount, 'clt-1234567890123456'),
       listAudit(userAccount),
+      getStorage(userAccount, 'some-id'),
+      setStorage(userAccount, 'some-id', { data: 'hello' }),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
     ]);
 
     for (const result of results) {
@@ -1644,6 +1762,10 @@ describe('Authorization', () => {
       removeClient(userAccount, userId),
       initClient(userAccount, userId),
       listAudit(userAccount),
+      getStorage(userAccount, 'some-id'),
+      setStorage(userAccount, 'some-id', { data: 'hello' }),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
     ]);
 
     for (const result of results) {
@@ -1699,6 +1821,10 @@ describe('Authorization', () => {
       removeClient(userAccount, userId),
       initClient(userAccount, userId),
       listAudit(userAccount),
+      getStorage(userAccount, 'some-id'),
+      setStorage(userAccount, 'some-id', { data: 'hello' }),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
     ]);
 
     for (const result of results) {
@@ -1751,6 +1877,10 @@ describe('Authorization', () => {
       removeClient(userAccount, userId),
       initClient(userAccount, userId),
       listAudit(userAccount),
+      getStorage(userAccount, 'some-id'),
+      setStorage(userAccount, 'some-id', { data: 'hello' }),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
     ]);
 
     for (const result of results) {
@@ -1802,6 +1932,10 @@ describe('Authorization', () => {
       removeClient(userAccount, userId),
       initClient(userAccount, userId),
       listAudit(userAccount),
+      getStorage(userAccount, 'some-id'),
+      setStorage(userAccount, 'some-id', { data: 'hello' }),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
     ]);
 
     for (const result of results) {
@@ -1916,6 +2050,10 @@ describe('Authorization', () => {
       removeClient(userAccount, userId),
       initClient(userAccount, userId),
       listAudit(userAccount),
+      getStorage(userAccount, 'some-id'),
+      setStorage(userAccount, 'some-id', { data: 'hello' }),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
     ]);
 
     for (const result of results) {
@@ -1967,6 +2105,10 @@ describe('Authorization', () => {
       removeClient(userAccount, userId),
       initClient(userAccount, userId),
       listAudit(userAccount),
+      getStorage(userAccount, 'some-id'),
+      setStorage(userAccount, 'some-id', { data: 'hello' }),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
     ]);
 
     for (const result of results) {
@@ -2021,6 +2163,10 @@ describe('Authorization', () => {
       removeClient(userAccount, userId),
       initClient(userAccount, userId),
       listAudit(userAccount),
+      getStorage(userAccount, 'some-id'),
+      setStorage(userAccount, 'some-id', { data: 'hello' }),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
     ]);
 
     for (const result of results) {
@@ -2071,6 +2217,10 @@ describe('Authorization', () => {
       removeClient(userAccount, userId),
       initClient(userAccount, userId),
       listAudit(userAccount),
+      getStorage(userAccount, 'some-id'),
+      setStorage(userAccount, 'some-id', { data: 'hello' }),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
     ]);
 
     for (const result of results) {
@@ -2128,6 +2278,10 @@ describe('Authorization', () => {
       removeClient(userAccount, userId),
       initClient(userAccount, userId),
       listAudit(userAccount),
+      getStorage(userAccount, 'some-id'),
+      setStorage(userAccount, 'some-id', { data: 'hello' }),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
     ]);
 
     for (const result of results) {
@@ -2185,6 +2339,10 @@ describe('Authorization', () => {
       removeClient(userAccount, userId),
       initClient(userAccount, userId),
       listAudit(userAccount),
+      getStorage(userAccount, 'some-id'),
+      setStorage(userAccount, 'some-id', { data: 'hello' }),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
     ]);
 
     for (const result of results) {
@@ -2232,6 +2390,10 @@ describe('Authorization', () => {
       removeClient(userAccount, clientId),
       initClient(userAccount, clientId),
       listAudit(userAccount),
+      getStorage(userAccount, 'some-id'),
+      setStorage(userAccount, 'some-id', { data: 'hello' }),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
     ]);
 
     for (const result of results) {
@@ -2341,6 +2503,10 @@ describe('Authorization', () => {
       removeClient(userAccount, clientId),
       initClient(userAccount, clientId),
       listAudit(userAccount),
+      getStorage(userAccount, 'some-id'),
+      setStorage(userAccount, 'some-id', { data: 'hello' }),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
     ]);
 
     for (const result of results) {
@@ -2396,6 +2562,10 @@ describe('Authorization', () => {
       removeClient(userAccount, clientId),
       initClient(userAccount, clientId),
       listAudit(userAccount),
+      getStorage(userAccount, 'some-id'),
+      setStorage(userAccount, 'some-id', { data: 'hello' }),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
     ]);
 
     for (const result of results) {
@@ -2448,6 +2618,10 @@ describe('Authorization', () => {
       removeClient(userAccount, clientId),
       initClient(userAccount, clientId),
       listAudit(userAccount),
+      getStorage(userAccount, 'some-id'),
+      setStorage(userAccount, 'some-id', { data: 'hello' }),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
     ]);
 
     for (const result of results) {
@@ -2499,6 +2673,10 @@ describe('Authorization', () => {
       removeClient(userAccount, clientId),
       initClient(userAccount, clientId),
       listAudit(userAccount),
+      getStorage(userAccount, 'some-id'),
+      setStorage(userAccount, 'some-id', { data: 'hello' }),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
     ]);
 
     for (const result of results) {
@@ -2613,6 +2791,10 @@ describe('Authorization', () => {
       removeClient(userAccount, 'another-client'),
       initClient(userAccount, clientId),
       listAudit(userAccount),
+      getStorage(userAccount, 'some-id'),
+      setStorage(userAccount, 'some-id', { data: 'hello' }),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
     ]);
 
     for (const result of results) {
@@ -2664,6 +2846,10 @@ describe('Authorization', () => {
       updateClient(userAccount, clientId, {}),
       initClient(userAccount, clientId),
       listAudit(userAccount),
+      getStorage(userAccount, 'some-id'),
+      setStorage(userAccount, 'some-id', { data: 'hello' }),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
     ]);
 
     for (const result of results) {
@@ -2718,6 +2904,10 @@ describe('Authorization', () => {
       removeClient(userAccount, clientId),
       initClient(userAccount, 'another-user'),
       listAudit(userAccount),
+      getStorage(userAccount, 'some-id'),
+      setStorage(userAccount, 'some-id', { data: 'hello' }),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
     ]);
 
     for (const result of results) {
@@ -2769,6 +2959,10 @@ describe('Authorization', () => {
       updateClient(userAccount, clientId, {}),
       removeClient(userAccount, clientId),
       listAudit(userAccount),
+      getStorage(userAccount, 'some-id'),
+      setStorage(userAccount, 'some-id', { data: 'hello' }),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
     ]);
 
     for (const result of results) {
@@ -2830,6 +3024,10 @@ describe('Authorization', () => {
       removeUser(userAccount, 'clt-1234567890123456'),
       initUser(userAccount, 'clt-1234567890123456'),
       listAudit(userAccount),
+      getStorage(userAccount, 'some-id'),
+      setStorage(userAccount, 'some-id', { data: 'hello' }),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
     ]);
 
     for (const result of results) {
@@ -2887,6 +3085,694 @@ describe('Authorization', () => {
       removeUser(userAccount, clientId),
       initUser(userAccount, clientId),
       listAudit(userAccount),
+      getStorage(userAccount, 'some-id'),
+      setStorage(userAccount, 'some-id', { data: 'hello' }),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
+    ]);
+
+    for (const result of results) {
+      expectMore(result).toBeUnauthorizedError();
+    }
+  }, 20000);
+
+  test('A user with full access to all storage should not have any additional access', async () => {
+    const subject = `sub-${random({ lengthInBytes: 8 })}`;
+    const action = 'storage:*';
+    const resource = `/account/${account.accountId}/subscription/${account.subscriptionId}/storage`;
+    await addUser(account, {
+      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      access: { allow: [{ action, resource }] },
+    });
+    const jwt = await testIssuer.getAccessToken(subject);
+    const userAccount = cloneWithAccessToken(account, jwt);
+
+    const storageId = `test-${random()}`;
+    const allowedSet = await setStorage(userAccount, storageId, { data: { msg: 'hello world' } });
+    expect(allowedSet.status).toBe(200);
+
+    const allowedSetWithPath = await setStorage(userAccount, storageId, { data: 'hello world' }, undefined, 'a/b/c');
+    expect(allowedSetWithPath.status).toBe(200);
+
+    const allowedGet = await getStorage(userAccount, storageId);
+    expect(allowedGet.status).toBe(200);
+
+    const allowedList = await listStorage(userAccount);
+    expect(allowedList.status).toBe(200);
+
+    const allowedRemove = await removeStorage(userAccount, storageId);
+    expect(allowedRemove.status).toBe(204);
+
+    const results = await Promise.all([
+      putFunction(userAccount, 'boundary', 'function', {}),
+      getFunction(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary'),
+      getLogs(userAccount, 'boundary', 'function'),
+      getFunctionLocation(userAccount, 'boundary', 'function'),
+      deleteFunction(userAccount, 'boundary', 'function'),
+      listFunctions(userAccount),
+      addIssuer(userAccount, 'test-issuer', {}),
+      listIssuers(userAccount),
+      getIssuer(userAccount, testIssuer.issuerId),
+      updateIssuer(userAccount, 'test-issuer', {}),
+      removeIssuer(userAccount, 'test-issuer'),
+      addUser(userAccount, {}),
+      getUser(userAccount, 'usr-1234567890123456'),
+      listUsers(userAccount, {}),
+      updateUser(userAccount, 'usr-1234567890123456', {}),
+      removeUser(userAccount, 'usr-1234567890123456'),
+      initUser(userAccount, 'usr-1234567890123456'),
+      addClient(userAccount, {}),
+      getClient(userAccount, 'clt-1234567890123456'),
+      listClients(userAccount, {}),
+      updateClient(userAccount, 'clt-1234567890123456', {}),
+      removeClient(userAccount, 'clt-1234567890123456'),
+      initClient(userAccount, 'clt-1234567890123456'),
+      listAudit(userAccount)
+    ]);
+
+    for (const result of results) {
+      expectMore(result).toBeUnauthorizedError();
+    }
+  }, 20000);
+
+  test('A user with get access to all storage should not have any additional access', async () => {
+    const subject = `sub-${random({ lengthInBytes: 8 })}`;
+    const action = 'storage:get';
+    const resource = `/account/${account.accountId}/subscription/${account.subscriptionId}/storage`;
+    await addUser(account, {
+      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      access: { allow: [{ action, resource }] },
+    });
+    const jwt = await testIssuer.getAccessToken(subject);
+    const userAccount = cloneWithAccessToken(account, jwt);
+
+    const storageId = `test-${random()}`;
+    const allowedSet = await setStorage(account, storageId, { data: { msg: 'hello world' } });
+    expect(allowedSet.status).toBe(200);
+
+    const allowedGet = await getStorage(userAccount, storageId);
+    expect(allowedGet.status).toBe(200);
+
+    const allowedList = await listStorage(userAccount);
+    expect(allowedList.status).toBe(200);
+
+    const results = await Promise.all([
+      putFunction(userAccount, 'boundary', 'function', {}),
+      getFunction(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary'),
+      getLogs(userAccount, 'boundary', 'function'),
+      getFunctionLocation(userAccount, 'boundary', 'function'),
+      deleteFunction(userAccount, 'boundary', 'function'),
+      listFunctions(userAccount),
+      addIssuer(userAccount, 'test-issuer', {}),
+      listIssuers(userAccount),
+      getIssuer(userAccount, testIssuer.issuerId),
+      updateIssuer(userAccount, 'test-issuer', {}),
+      removeIssuer(userAccount, 'test-issuer'),
+      addUser(userAccount, {}),
+      getUser(userAccount, 'usr-1234567890123456'),
+      listUsers(userAccount, {}),
+      updateUser(userAccount, 'usr-1234567890123456', {}),
+      removeUser(userAccount, 'usr-1234567890123456'),
+      initUser(userAccount, 'usr-1234567890123456'),
+      addClient(userAccount, {}),
+      getClient(userAccount, 'clt-1234567890123456'),
+      listClients(userAccount, {}),
+      updateClient(userAccount, 'clt-1234567890123456', {}),
+      removeClient(userAccount, 'clt-1234567890123456'),
+      initClient(userAccount, 'clt-1234567890123456'),
+      listAudit(userAccount),
+      setStorage(userAccount, 'some-id', { data: 'hello' }),
+      removeStorage(userAccount, 'some-id'),
+    ]);
+
+    for (const result of results) {
+      expectMore(result).toBeUnauthorizedError();
+    }
+  }, 20000);
+
+  test('A user with put access to all storage should not have any additional access', async () => {
+    const subject = `sub-${random({ lengthInBytes: 8 })}`;
+    const action = 'storage:put';
+    const resource = `/account/${account.accountId}/subscription/${account.subscriptionId}/storage`;
+    await addUser(account, {
+      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      access: { allow: [{ action, resource }] },
+    });
+    const jwt = await testIssuer.getAccessToken(subject);
+    const userAccount = cloneWithAccessToken(account, jwt);
+
+    const storageId = `test-${random()}`;
+    const allowedSet = await setStorage(userAccount, storageId, { data: { msg: 'hello world' } });
+    expect(allowedSet.status).toBe(200);
+
+    const allowedSetWithPath = await setStorage(userAccount, storageId, { data: { msg: 'hello world' } }, undefined, 'a/b/c');
+    expect(allowedSetWithPath.status).toBe(200);
+
+    const results = await Promise.all([
+      putFunction(userAccount, 'boundary', 'function', {}),
+      getFunction(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary'),
+      getLogs(userAccount, 'boundary', 'function'),
+      getFunctionLocation(userAccount, 'boundary', 'function'),
+      deleteFunction(userAccount, 'boundary', 'function'),
+      listFunctions(userAccount),
+      addIssuer(userAccount, 'test-issuer', {}),
+      listIssuers(userAccount),
+      getIssuer(userAccount, testIssuer.issuerId),
+      updateIssuer(userAccount, 'test-issuer', {}),
+      removeIssuer(userAccount, 'test-issuer'),
+      addUser(userAccount, {}),
+      getUser(userAccount, 'usr-1234567890123456'),
+      listUsers(userAccount, {}),
+      updateUser(userAccount, 'usr-1234567890123456', {}),
+      removeUser(userAccount, 'usr-1234567890123456'),
+      initUser(userAccount, 'usr-1234567890123456'),
+      addClient(userAccount, {}),
+      getClient(userAccount, 'clt-1234567890123456'),
+      listClients(userAccount, {}),
+      updateClient(userAccount, 'clt-1234567890123456', {}),
+      removeClient(userAccount, 'clt-1234567890123456'),
+      initClient(userAccount, 'clt-1234567890123456'),
+      listAudit(userAccount),
+      getStorage(userAccount, 'some-id'),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
+    ]);
+
+    for (const result of results) {
+      expectMore(result).toBeUnauthorizedError();
+    }
+  }, 20000);
+
+  test('A user with delete access to all storage should not have any additional access', async () => {
+    const subject = `sub-${random({ lengthInBytes: 8 })}`;
+    const action = 'storage:delete';
+    const resource = `/account/${account.accountId}/subscription/${account.subscriptionId}/storage`;
+    await addUser(account, {
+      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      access: { allow: [{ action, resource }] },
+    });
+    const jwt = await testIssuer.getAccessToken(subject);
+    const userAccount = cloneWithAccessToken(account, jwt);
+
+    const storageId = `test-${random()}`;
+    const allowedSet = await setStorage(account, storageId, { data: { msg: 'hello world' } });
+    expect(allowedSet.status).toBe(200);
+
+    const allowedRemove = await removeStorage(userAccount, storageId);
+    expect(allowedRemove.status).toBe(204);
+
+    const results = await Promise.all([
+      putFunction(userAccount, 'boundary', 'function', {}),
+      getFunction(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary'),
+      getLogs(userAccount, 'boundary', 'function'),
+      getFunctionLocation(userAccount, 'boundary', 'function'),
+      deleteFunction(userAccount, 'boundary', 'function'),
+      listFunctions(userAccount),
+      addIssuer(userAccount, 'test-issuer', {}),
+      listIssuers(userAccount),
+      getIssuer(userAccount, testIssuer.issuerId),
+      updateIssuer(userAccount, 'test-issuer', {}),
+      removeIssuer(userAccount, 'test-issuer'),
+      addUser(userAccount, {}),
+      getUser(userAccount, 'usr-1234567890123456'),
+      listUsers(userAccount, {}),
+      updateUser(userAccount, 'usr-1234567890123456', {}),
+      removeUser(userAccount, 'usr-1234567890123456'),
+      initUser(userAccount, 'usr-1234567890123456'),
+      addClient(userAccount, {}),
+      getClient(userAccount, 'clt-1234567890123456'),
+      listClients(userAccount, {}),
+      updateClient(userAccount, 'clt-1234567890123456', {}),
+      removeClient(userAccount, 'clt-1234567890123456'),
+      initClient(userAccount, 'clt-1234567890123456'),
+      listAudit(userAccount),
+      setStorage(userAccount, 'some-id', { data: 'hello world'}),
+      getStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
+    ]);
+
+    for (const result of results) {
+      expectMore(result).toBeUnauthorizedError();
+    }
+  }, 20000);
+
+  test('A user with full access to some storage id should not have any additional access', async () => {
+    const subject = `sub-${random({ lengthInBytes: 8 })}`;
+    const action = 'storage:*';
+    const storageId = `test-${random()}`;
+    const resource = `/account/${account.accountId}/subscription/${account.subscriptionId}/storage/${storageId}`;
+    await addUser(account, {
+      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      access: { allow: [{ action, resource }] },
+    });
+    const jwt = await testIssuer.getAccessToken(subject);
+    const userAccount = cloneWithAccessToken(account, jwt);
+
+    const allowedSet = await setStorage(userAccount, storageId, { data: { msg: 'hello world' } });
+    expect(allowedSet.status).toBe(200);
+
+    const allowedSetWithPath = await setStorage(userAccount, storageId, { data: 'hello world' }, undefined, 'a/b/c');
+    expect(allowedSetWithPath.status).toBe(200);
+
+    const allowedGet = await getStorage(userAccount, storageId);
+    expect(allowedGet.status).toBe(200);
+
+    const allowedRemove = await removeStorage(userAccount, storageId);
+    expect(allowedRemove.status).toBe(204);
+
+    const results = await Promise.all([
+      putFunction(userAccount, 'boundary', 'function', {}),
+      getFunction(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary'),
+      getLogs(userAccount, 'boundary', 'function'),
+      getFunctionLocation(userAccount, 'boundary', 'function'),
+      deleteFunction(userAccount, 'boundary', 'function'),
+      listFunctions(userAccount),
+      addIssuer(userAccount, 'test-issuer', {}),
+      listIssuers(userAccount),
+      getIssuer(userAccount, testIssuer.issuerId),
+      updateIssuer(userAccount, 'test-issuer', {}),
+      removeIssuer(userAccount, 'test-issuer'),
+      addUser(userAccount, {}),
+      getUser(userAccount, 'usr-1234567890123456'),
+      listUsers(userAccount, {}),
+      updateUser(userAccount, 'usr-1234567890123456', {}),
+      removeUser(userAccount, 'usr-1234567890123456'),
+      initUser(userAccount, 'usr-1234567890123456'),
+      addClient(userAccount, {}),
+      getClient(userAccount, 'clt-1234567890123456'),
+      listClients(userAccount, {}),
+      updateClient(userAccount, 'clt-1234567890123456', {}),
+      removeClient(userAccount, 'clt-1234567890123456'),
+      initClient(userAccount, 'clt-1234567890123456'),
+      listAudit(userAccount),
+      setStorage(userAccount, 'some-id', { data: 'hello world'}),
+      getStorage(userAccount, 'some-id'),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
+    ]);
+
+    for (const result of results) {
+      expectMore(result).toBeUnauthorizedError();
+    }
+  }, 20000);
+
+  test('A user with get access to some storage id should not have any additional access', async () => {
+    const subject = `sub-${random({ lengthInBytes: 8 })}`;
+    const action = 'storage:get';
+    const storageId = `test-${random()}`;
+    const resource = `/account/${account.accountId}/subscription/${account.subscriptionId}/storage/${storageId}`;
+    await addUser(account, {
+      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      access: { allow: [{ action, resource }] },
+    });
+    const jwt = await testIssuer.getAccessToken(subject);
+    const userAccount = cloneWithAccessToken(account, jwt);
+
+    const allowedSet = await setStorage(account, storageId, { data: { msg: 'hello world' } });
+    expect(allowedSet.status).toBe(200);
+
+    const allowedGet = await getStorage(userAccount, storageId);
+    expect(allowedGet.status).toBe(200);
+
+
+    const results = await Promise.all([
+      putFunction(userAccount, 'boundary', 'function', {}),
+      getFunction(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary'),
+      getLogs(userAccount, 'boundary', 'function'),
+      getFunctionLocation(userAccount, 'boundary', 'function'),
+      deleteFunction(userAccount, 'boundary', 'function'),
+      listFunctions(userAccount),
+      addIssuer(userAccount, 'test-issuer', {}),
+      listIssuers(userAccount),
+      getIssuer(userAccount, testIssuer.issuerId),
+      updateIssuer(userAccount, 'test-issuer', {}),
+      removeIssuer(userAccount, 'test-issuer'),
+      addUser(userAccount, {}),
+      getUser(userAccount, 'usr-1234567890123456'),
+      listUsers(userAccount, {}),
+      updateUser(userAccount, 'usr-1234567890123456', {}),
+      removeUser(userAccount, 'usr-1234567890123456'),
+      initUser(userAccount, 'usr-1234567890123456'),
+      addClient(userAccount, {}),
+      getClient(userAccount, 'clt-1234567890123456'),
+      listClients(userAccount, {}),
+      updateClient(userAccount, 'clt-1234567890123456', {}),
+      removeClient(userAccount, 'clt-1234567890123456'),
+      initClient(userAccount, 'clt-1234567890123456'),
+      listAudit(userAccount),
+      getStorage(userAccount, 'some-id'),
+      setStorage(userAccount, 'some-id', { data: 'hello' }),
+      removeStorage(userAccount, 'some-id'),
+    ]);
+
+    for (const result of results) {
+      expectMore(result).toBeUnauthorizedError();
+    }
+  }, 20000);
+
+  test('A user with put access to some storage id should not have any additional access', async () => {
+    const subject = `sub-${random({ lengthInBytes: 8 })}`;
+    const action = 'storage:put';
+    const storageId = `test-${random()}`;
+    const resource = `/account/${account.accountId}/subscription/${account.subscriptionId}/storage/${storageId}`;
+    await addUser(account, {
+      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      access: { allow: [{ action, resource }] },
+    });
+    const jwt = await testIssuer.getAccessToken(subject);
+    const userAccount = cloneWithAccessToken(account, jwt);
+
+    const allowedSet = await setStorage(userAccount, storageId, { data: { msg: 'hello world' } });
+    expect(allowedSet.status).toBe(200);
+
+    const allowedSetWithPath = await setStorage(userAccount, storageId, { data: { msg: 'hello world' } }, undefined, 'a/b/c');
+    expect(allowedSetWithPath.status).toBe(200);
+
+    const results = await Promise.all([
+      putFunction(userAccount, 'boundary', 'function', {}),
+      getFunction(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary'),
+      getLogs(userAccount, 'boundary', 'function'),
+      getFunctionLocation(userAccount, 'boundary', 'function'),
+      deleteFunction(userAccount, 'boundary', 'function'),
+      listFunctions(userAccount),
+      addIssuer(userAccount, 'test-issuer', {}),
+      listIssuers(userAccount),
+      getIssuer(userAccount, testIssuer.issuerId),
+      updateIssuer(userAccount, 'test-issuer', {}),
+      removeIssuer(userAccount, 'test-issuer'),
+      addUser(userAccount, {}),
+      getUser(userAccount, 'usr-1234567890123456'),
+      listUsers(userAccount, {}),
+      updateUser(userAccount, 'usr-1234567890123456', {}),
+      removeUser(userAccount, 'usr-1234567890123456'),
+      initUser(userAccount, 'usr-1234567890123456'),
+      addClient(userAccount, {}),
+      getClient(userAccount, 'clt-1234567890123456'),
+      listClients(userAccount, {}),
+      updateClient(userAccount, 'clt-1234567890123456', {}),
+      removeClient(userAccount, 'clt-1234567890123456'),
+      initClient(userAccount, 'clt-1234567890123456'),
+      listAudit(userAccount),
+      setStorage(userAccount, 'some-id', { data: 'hello world'}),
+      getStorage(userAccount, 'some-id'),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
+    ]);
+
+    for (const result of results) {
+      expectMore(result).toBeUnauthorizedError();
+    }
+  }, 20000);
+
+  test('A user with delete access to some storage id should not have any additional access', async () => {
+    const subject = `sub-${random({ lengthInBytes: 8 })}`;
+    const action = 'storage:delete';
+    const storageId = `test-${random()}`;
+    const resource = `/account/${account.accountId}/subscription/${account.subscriptionId}/storage/${storageId}`;
+    await addUser(account, {
+      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      access: { allow: [{ action, resource }] },
+    });
+    const jwt = await testIssuer.getAccessToken(subject);
+    const userAccount = cloneWithAccessToken(account, jwt);
+
+    const allowedSet = await setStorage(account, storageId, { data: { msg: 'hello world' } });
+    expect(allowedSet.status).toBe(200);
+
+    const allowedRemove = await removeStorage(userAccount, storageId);
+    expect(allowedRemove.status).toBe(204);
+
+    const results = await Promise.all([
+      putFunction(userAccount, 'boundary', 'function', {}),
+      getFunction(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary'),
+      getLogs(userAccount, 'boundary', 'function'),
+      getFunctionLocation(userAccount, 'boundary', 'function'),
+      deleteFunction(userAccount, 'boundary', 'function'),
+      listFunctions(userAccount),
+      addIssuer(userAccount, 'test-issuer', {}),
+      listIssuers(userAccount),
+      getIssuer(userAccount, testIssuer.issuerId),
+      updateIssuer(userAccount, 'test-issuer', {}),
+      removeIssuer(userAccount, 'test-issuer'),
+      addUser(userAccount, {}),
+      getUser(userAccount, 'usr-1234567890123456'),
+      listUsers(userAccount, {}),
+      updateUser(userAccount, 'usr-1234567890123456', {}),
+      removeUser(userAccount, 'usr-1234567890123456'),
+      initUser(userAccount, 'usr-1234567890123456'),
+      addClient(userAccount, {}),
+      getClient(userAccount, 'clt-1234567890123456'),
+      listClients(userAccount, {}),
+      updateClient(userAccount, 'clt-1234567890123456', {}),
+      removeClient(userAccount, 'clt-1234567890123456'),
+      initClient(userAccount, 'clt-1234567890123456'),
+      listAudit(userAccount),
+      setStorage(userAccount, 'some-id', { data: 'hello world'}),
+      getStorage(userAccount, 'some-id'),
+      removeStorage(userAccount, 'some-id'),
+      listStorage(userAccount),
+    ]);
+
+    for (const result of results) {
+      expectMore(result).toBeUnauthorizedError();
+    }
+  }, 20000);
+
+  test('A user with full access to some storage path should not have any additional access', async () => {
+    const subject = `sub-${random({ lengthInBytes: 8 })}`;
+    const action = 'storage:*';
+    const storageId = `test-${random()}`;
+    const resource = `/account/${account.accountId}/subscription/${account.subscriptionId}/storage/${storageId}/a/b/c`;
+    await addUser(account, {
+      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      access: { allow: [{ action, resource }] },
+    });
+    const jwt = await testIssuer.getAccessToken(subject);
+    const userAccount = cloneWithAccessToken(account, jwt);
+
+    const allowedSetWithPath = await setStorage(userAccount, storageId, { data: { msg: 'hello world' } }, undefined, 'a/b/c');
+    expect(allowedSetWithPath.status).toBe(200);
+
+    const allowedSetWithPath2 = await setStorage(userAccount, storageId, { data: { msg: 'hello world' } }, undefined, 'a/b/c/d');
+    expect(allowedSetWithPath2.status).toBe(200);
+
+    const allowedGet = await getStorage(userAccount, storageId, 'a/b/c');
+    expect(allowedGet.status).toBe(200);
+
+    const allowedRemove = await removeStorage(userAccount, storageId, undefined, 'a/b/c');
+    expect(allowedRemove.status).toBe(204);
+
+    const results = await Promise.all([
+      putFunction(userAccount, 'boundary', 'function', {}),
+      getFunction(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary'),
+      getLogs(userAccount, 'boundary', 'function'),
+      getFunctionLocation(userAccount, 'boundary', 'function'),
+      deleteFunction(userAccount, 'boundary', 'function'),
+      listFunctions(userAccount),
+      addIssuer(userAccount, 'test-issuer', {}),
+      listIssuers(userAccount),
+      getIssuer(userAccount, testIssuer.issuerId),
+      updateIssuer(userAccount, 'test-issuer', {}),
+      removeIssuer(userAccount, 'test-issuer'),
+      addUser(userAccount, {}),
+      getUser(userAccount, 'usr-1234567890123456'),
+      listUsers(userAccount, {}),
+      updateUser(userAccount, 'usr-1234567890123456', {}),
+      removeUser(userAccount, 'usr-1234567890123456'),
+      initUser(userAccount, 'usr-1234567890123456'),
+      addClient(userAccount, {}),
+      getClient(userAccount, 'clt-1234567890123456'),
+      listClients(userAccount, {}),
+      updateClient(userAccount, 'clt-1234567890123456', {}),
+      removeClient(userAccount, 'clt-1234567890123456'),
+      initClient(userAccount, 'clt-1234567890123456'),
+      listAudit(userAccount),
+      setStorage(userAccount, storageId, { data: 'hello world'}),
+      setStorage(userAccount, storageId, { data: 'hello world'}, undefined, 'a/b'),
+      getStorage(userAccount, storageId),
+      getStorage(userAccount, storageId, 'a/b'),
+      removeStorage(userAccount, storageId),
+      removeStorage(userAccount, storageId, 'a/b'),
+      listStorage(userAccount),
+    ]);
+
+    for (const result of results) {
+      expectMore(result).toBeUnauthorizedError();
+    }
+  }, 20000);
+
+  test('A user with get access to some storage path should not have any additional access', async () => {
+    const subject = `sub-${random({ lengthInBytes: 8 })}`;
+    const action = 'storage:get';
+    const storageId = `test-${random()}`;
+    const resource = `/account/${account.accountId}/subscription/${account.subscriptionId}/storage/${storageId}/a/b/c`;
+    await addUser(account, {
+      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      access: { allow: [{ action, resource }] },
+    });
+    const jwt = await testIssuer.getAccessToken(subject);
+    const userAccount = cloneWithAccessToken(account, jwt);
+
+    const allowedSet = await setStorage(account, storageId, { data: { msg: 'hello world', d: 'same' } }, undefined, 'a/b/c');
+    expect(allowedSet.status).toBe(200);
+
+    const allowedGet = await getStorage(userAccount, storageId, 'a/b/c');
+    expect(allowedGet.status).toBe(200);
+
+    const allowedGet2 = await getStorage(userAccount, storageId, 'a/b/c/d');
+    expect(allowedGet2.status).toBe(200);
+
+    const results = await Promise.all([
+      putFunction(userAccount, 'boundary', 'function', {}),
+      getFunction(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary'),
+      getLogs(userAccount, 'boundary', 'function'),
+      getFunctionLocation(userAccount, 'boundary', 'function'),
+      deleteFunction(userAccount, 'boundary', 'function'),
+      listFunctions(userAccount),
+      addIssuer(userAccount, 'test-issuer', {}),
+      listIssuers(userAccount),
+      getIssuer(userAccount, testIssuer.issuerId),
+      updateIssuer(userAccount, 'test-issuer', {}),
+      removeIssuer(userAccount, 'test-issuer'),
+      addUser(userAccount, {}),
+      getUser(userAccount, 'usr-1234567890123456'),
+      listUsers(userAccount, {}),
+      updateUser(userAccount, 'usr-1234567890123456', {}),
+      removeUser(userAccount, 'usr-1234567890123456'),
+      initUser(userAccount, 'usr-1234567890123456'),
+      addClient(userAccount, {}),
+      getClient(userAccount, 'clt-1234567890123456'),
+      listClients(userAccount, {}),
+      updateClient(userAccount, 'clt-1234567890123456', {}),
+      removeClient(userAccount, 'clt-1234567890123456'),
+      initClient(userAccount, 'clt-1234567890123456'),
+      listAudit(userAccount),
+      getStorage(userAccount, storageId),
+      getStorage(userAccount, storageId, 'a/b'),
+      setStorage(userAccount,storageId, { data: 'hello' }),
+      removeStorage(userAccount, storageId),
+    ]);
+
+    for (const result of results) {
+      expectMore(result).toBeUnauthorizedError();
+    }
+  }, 20000);
+
+  test('A user with put access to some storage path should not have any additional access', async () => {
+    const subject = `sub-${random({ lengthInBytes: 8 })}`;
+    const action = 'storage:put';
+    const storageId = `test-${random()}`;
+    const resource = `/account/${account.accountId}/subscription/${account.subscriptionId}/storage/${storageId}/a/b/c`;
+    await addUser(account, {
+      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      access: { allow: [{ action, resource }] },
+    });
+    const jwt = await testIssuer.getAccessToken(subject);
+    const userAccount = cloneWithAccessToken(account, jwt);
+
+    const allowedSetWithPath = await setStorage(userAccount, storageId, { data: { msg: 'hello world' } }, undefined, 'a/b/c');
+    expect(allowedSetWithPath.status).toBe(200);
+
+    const allowedSetWithPath2 = await setStorage(userAccount, storageId, { data: { msg: 'hello world' } }, undefined, 'a/b/c/d');
+    expect(allowedSetWithPath2.status).toBe(200);
+
+    const results = await Promise.all([
+      putFunction(userAccount, 'boundary', 'function', {}),
+      getFunction(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary'),
+      getLogs(userAccount, 'boundary', 'function'),
+      getFunctionLocation(userAccount, 'boundary', 'function'),
+      deleteFunction(userAccount, 'boundary', 'function'),
+      listFunctions(userAccount),
+      addIssuer(userAccount, 'test-issuer', {}),
+      listIssuers(userAccount),
+      getIssuer(userAccount, testIssuer.issuerId),
+      updateIssuer(userAccount, 'test-issuer', {}),
+      removeIssuer(userAccount, 'test-issuer'),
+      addUser(userAccount, {}),
+      getUser(userAccount, 'usr-1234567890123456'),
+      listUsers(userAccount, {}),
+      updateUser(userAccount, 'usr-1234567890123456', {}),
+      removeUser(userAccount, 'usr-1234567890123456'),
+      initUser(userAccount, 'usr-1234567890123456'),
+      addClient(userAccount, {}),
+      getClient(userAccount, 'clt-1234567890123456'),
+      listClients(userAccount, {}),
+      updateClient(userAccount, 'clt-1234567890123456', {}),
+      removeClient(userAccount, 'clt-1234567890123456'),
+      initClient(userAccount, 'clt-1234567890123456'),
+      listAudit(userAccount),
+      setStorage(userAccount, storageId, { data: 'hello world'}),
+      setStorage(userAccount, storageId, { data: 'hello world'}, undefined, 'a/b'),
+      getStorage(userAccount, storageId),
+      removeStorage(userAccount, storageId),
+      listStorage(userAccount),
+    ]);
+
+    for (const result of results) {
+      expectMore(result).toBeUnauthorizedError();
+    }
+  }, 20000);
+
+  test('A user with delete access to some storage path should not have any additional access', async () => {
+    const subject = `sub-${random({ lengthInBytes: 8 })}`;
+    const action = 'storage:delete';
+    const storageId = `test-${random()}`;
+    const resource = `/account/${account.accountId}/subscription/${account.subscriptionId}/storage/${storageId}/a/b/c`;
+    await addUser(account, {
+      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      access: { allow: [{ action, resource }] },
+    });
+    const jwt = await testIssuer.getAccessToken(subject);
+    const userAccount = cloneWithAccessToken(account, jwt);
+
+    const allowedSet = await setStorage(account, storageId, { data: { msg: 'hello world' } }, undefined, 'a/b/c');
+    expect(allowedSet.status).toBe(200);
+
+    const allowedRemove = await removeStorage(userAccount, storageId, undefined, 'a/b/c');
+    expect(allowedRemove.status).toBe(204);
+
+    const results = await Promise.all([
+      putFunction(userAccount, 'boundary', 'function', {}),
+      getFunction(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary'),
+      getLogs(userAccount, 'boundary', 'function'),
+      getFunctionLocation(userAccount, 'boundary', 'function'),
+      deleteFunction(userAccount, 'boundary', 'function'),
+      listFunctions(userAccount),
+      addIssuer(userAccount, 'test-issuer', {}),
+      listIssuers(userAccount),
+      getIssuer(userAccount, testIssuer.issuerId),
+      updateIssuer(userAccount, 'test-issuer', {}),
+      removeIssuer(userAccount, 'test-issuer'),
+      addUser(userAccount, {}),
+      getUser(userAccount, 'usr-1234567890123456'),
+      listUsers(userAccount, {}),
+      updateUser(userAccount, 'usr-1234567890123456', {}),
+      removeUser(userAccount, 'usr-1234567890123456'),
+      initUser(userAccount, 'usr-1234567890123456'),
+      addClient(userAccount, {}),
+      getClient(userAccount, 'clt-1234567890123456'),
+      listClients(userAccount, {}),
+      updateClient(userAccount, 'clt-1234567890123456', {}),
+      removeClient(userAccount, 'clt-1234567890123456'),
+      initClient(userAccount, 'clt-1234567890123456'),
+      listAudit(userAccount),
+      setStorage(userAccount, storageId, { data: 'hello world'}),
+      getStorage(userAccount, storageId),
+      removeStorage(userAccount, storageId),
+      removeStorage(userAccount, storageId, undefined, 'a/b'),
+      listStorage(userAccount),
     ]);
 
     for (const result of results) {

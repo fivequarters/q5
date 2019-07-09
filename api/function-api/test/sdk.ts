@@ -13,6 +13,7 @@ const testUsers: string[] = [];
 const testClients: string[] = [];
 const testIssuers: string[] = [];
 const testHostedIssuers: string[] = [];
+const testStorage: string[] = [];
 
 const hostedIssuersBoundary = 'test-issuers';
 
@@ -61,6 +62,11 @@ export interface IInitOptions {
 export interface IInitResolve {
   publicKey?: string;
   keyId?: string;
+}
+
+export interface IListStorageOptions {
+  count?: number;
+  next?: string;
 }
 
 export interface ITestUser {
@@ -651,6 +657,85 @@ export async function listAudit(account: IAccount, options?: IListAuditOptions) 
     },
     url: `${account.baseUrl}/v1/account/${account.accountId}/audit${queryString}`,
   });
+}
+
+export async function listStorage(account: IAccount, options?: IListStorageOptions) {
+  const queryStringParams = [];
+  if (options) {
+    if (options.count !== undefined) {
+      queryStringParams.push(`count=${options.count}`);
+    }
+    if (options.next !== undefined) {
+      queryStringParams.push(`next=${encodeURIComponent(options.next)}`);
+    }
+  }
+  const queryString = queryStringParams.length ? `?${queryStringParams.join('&')}` : '';
+
+  return request({
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${account.accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    url: `${account.baseUrl}/v1/account/${account.accountId}/subscription/${
+      account.subscriptionId
+    }/storage${queryString}`,
+  });
+}
+
+export async function getStorage(account: IAccount, storageId: string, storagePath?: string) {
+  const storage = storagePath ? `${storageId}/${storagePath}` : storageId;
+  return request({
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${account.accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    url: `${account.baseUrl}/v1/account/${account.accountId}/subscription/${account.subscriptionId}/storage/${storage}`,
+  });
+}
+
+export async function setStorage(account: IAccount, storageId: string, data: any, etag?: string, storagePath?: string) {
+  const storage = storagePath ? `${storageId}/${storagePath}` : storageId;
+  const headers: any = {
+    Authorization: `Bearer ${account.accessToken}`,
+    'Content-Type': 'application/json',
+  };
+  if (etag) {
+    headers['If-Match'] = etag;
+  }
+
+  testStorage.push(storageId);
+
+  return request({
+    method: 'PUT',
+    headers,
+    url: `${account.baseUrl}/v1/account/${account.accountId}/subscription/${account.subscriptionId}/storage/${storage}`,
+    data: JSON.stringify(data),
+  });
+}
+
+export async function removeStorage(account: IAccount, storageId: string, etag?: string, storagePath?: string) {
+  const storage = storagePath ? `${storageId}/${storagePath}` : storageId;
+  const headers: any = {
+    Authorization: `Bearer ${account.accessToken}`,
+    'Content-Type': 'application/json',
+  };
+  if (etag) {
+    headers['If-Match'] = etag;
+  }
+  return request({
+    method: 'DELETE',
+    headers,
+    url: `${account.baseUrl}/v1/account/${account.accountId}/subscription/${account.subscriptionId}/storage/${storage}`,
+  });
+}
+
+export async function cleanUpStorage(account: IAccount) {
+  while (testStorage.length) {
+    const toRemove = testStorage.splice(0, 5);
+    await Promise.all(toRemove.map(storageId => removeStorage(account, storageId)));
+  }
 }
 
 export async function createTestUser(account: IAccount, data: any): Promise<ITestUser> {

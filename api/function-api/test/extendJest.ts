@@ -69,6 +69,34 @@ function toBeNotFoundError(received: any) {
   return toBeHttpError(received, 404, 'Not Found');
 }
 
+function toBeStorageConflict(
+  received: any,
+  storageId: string,
+  etag: string,
+  isUpdate: boolean = true,
+  storagePath: string = ''
+) {
+  if (storagePath) {
+    storagePath = storagePath[0] === '/' ? storagePath : `/${storagePath}`;
+  }
+  const storagePathMessage = storagePath ? `with a storage path of '${storagePath}' ` : '';
+  return toBeHttpError(
+    received,
+    409,
+    `The storage for '${storageId}' ${storagePathMessage}could not be ${
+      isUpdate ? 'updated' : 'deleted'
+    } because the provided etag value of '${etag}' dose not match the current etag value`
+  );
+}
+
+function toBeStorageNotFound(received: any, storageId: string, storagePath?: string) {
+  if (storagePath) {
+    storagePath = storagePath[0] === '/' ? storagePath : `/${storagePath}`;
+  }
+  const storagePathMessage = storagePath ? `with a storage path of '${storagePath}' ` : '';
+  return toBeHttpError(received, 404, `The storage for '${storageId}' ${storagePathMessage}does not exist`);
+}
+
 // -------------------
 // Exported Interfaces
 // -------------------
@@ -79,6 +107,8 @@ export interface ExtendedMatchers extends jest.Matchers<IHttpResponse> {
   toBeUnauthorizedError: () => void;
   toBeNotFoundError: () => void;
   toBeUnauthorizedToGrantError: (userId: string, action: string, resource: string) => void;
+  toBeStorageConflict: (storageId: string, etag: string, isUpdate?: boolean, storagePath?: string) => void;
+  toBeStorageNotFound: (storageId: string, storagePath?: string) => void;
 }
 
 // ------------------
@@ -92,6 +122,8 @@ export function extendExpect(expect: any): (value: any) => ExtendedMatchers {
     toBeUnauthorizedError,
     toBeNotFoundError,
     toBeUnauthorizedToGrantError,
+    toBeStorageConflict,
+    toBeStorageNotFound,
   });
 
   return expect as (value: any) => ExtendedMatchers;
