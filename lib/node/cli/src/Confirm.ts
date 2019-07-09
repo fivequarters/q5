@@ -62,18 +62,18 @@ export class Confirm {
       const table = await Table.create({
         width: io.outputWidth || defaultConsoleWidth,
         count: 2,
-        gutter: 5,
+        gutter: Text.dim('  │  '),
         columns,
       });
-      table.setCellConstraint(0, { align: CellAlignment.right });
       for (const detail of this.details) {
-        const name = detail.name instanceof Text ? detail.name : Text.create(detail.name);
-        const value = detail.value instanceof Text ? detail.value : Text.bold(detail.value);
-        table.addRow([name, value]);
+        const name = detail.name instanceof Text ? detail.name : Text.dim(detail.name + ': ');
+        const value = detail.value instanceof Text ? detail.value : Text.create(detail.value);
+        await table.addRow(['', Text.create(name, value)]);
       }
       await io.writeLine(table.toText());
-      await io.writeLine();
     }
+
+    await io.writeLine();
 
     const promptOptions = { prompt: 'Confirm:', yesNo: true };
     const result = await io.prompt(promptOptions);
