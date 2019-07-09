@@ -17,6 +17,9 @@
     { "path": "../../lib/server/account" },
     { "path": "../../lib/data/account-data-aws" },
     { "path": "../../lib/server/bq-metering" },
-    { "path": "../../lib/aws/aws-config" }
+    { "path": "../../lib/aws/aws-config" },
+    { "path": "../../lib/data/storage-data" },
+    { "path": "../../lib/data/storage-data-aws" },
+    { "path": "../../lib/server/storage" }
   ]
 }

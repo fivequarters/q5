@@ -7,8 +7,9 @@ var validate_schema = require('./middleware/validate_schema');
 var authorize = require('./middleware/authorize');
 var cors = require('cors');
 const create_error = require('http-errors');
-const { AccountActions } = require('@5qtrs/account');
 const health = require('./handlers/health');
+
+const { AccountActions } = require('@5qtrs/account');
 const account = require('./handlers/account');
 const subscription = require('./handlers/subscription');
 const issuer = require('./handlers/issuer');
@@ -16,6 +17,9 @@ const user = require('./handlers/user');
 const client = require('./handlers/client');
 const init = require('./handlers/init');
 const audit = require('./handlers/audit');
+
+const { StorageActions } = require('@5qtrs/storage');
+const storage = require('./handlers/storage');
 
 var corsManagementOptions = {
   origins: '*',
@@ -513,6 +517,57 @@ router.get(
   }),
   determine_provider(),
   (req, res, next) => provider_handlers[req.provider].get_function_build(req, res, next)
+);
+
+// Storage
+
+router.options('/account/:accountId/subscription/:subscriptionId/storage', cors(corsManagementOptions));
+router.get(
+  '/account/:accountId/subscription/:subscriptionId/storage',
+  cors(corsManagementOptions),
+  validate_schema({ params: require('./schemas/api_account') }),
+  authorize({ operation: StorageActions.getStorage }),
+  validate_schema({
+    query: require('./schemas/api_query'),
+    params: require('./schemas/api_params'),
+  }),
+  storage.storageList()
+);
+
+router.options('/account/:accountId/subscription/:subscriptionId/storage/:storageId*', cors(corsManagementOptions));
+router.get(
+  '/account/:accountId/subscription/:subscriptionId/storage/:storageId*',
+  cors(corsManagementOptions),
+  validate_schema({ params: require('./schemas/api_account') }),
+  authorize({ operation: StorageActions.getStorage }),
+  validate_schema({
+    params: require('./schemas/api_params'),
+  }),
+  storage.storageGet()
+);
+
+router.put(
+  '/account/:accountId/subscription/:subscriptionId/storage/:storageId*',
+  cors(corsManagementOptions),
+  validate_schema({ params: require('./schemas/api_account') }),
+  authorize({ operation: StorageActions.putStorage }),
+  express.json(),
+  validate_schema({
+    params: require('./schemas/api_params'),
+    body: require('./schemas/storage'),
+  }),
+  storage.storagePut()
+);
+
+router.delete(
+  '/account/:accountId/subscription/:subscriptionId/storage/:storageId*',
+  cors(corsManagementOptions),
+  validate_schema({ params: require('./schemas/api_account') }),
+  authorize({ operation: StorageActions.deleteStorage }),
+  validate_schema({
+    params: require('./schemas/api_params'),
+  }),
+  storage.storageDelete()
 );
 
 // Not part of public contract
