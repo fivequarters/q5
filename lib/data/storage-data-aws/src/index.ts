@@ -1,0 +1,1 @@
+export { StorageDataAwsContextFactory } from './StorageDataAwsContextFactory';
