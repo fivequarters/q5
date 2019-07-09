@@ -24,9 +24,10 @@ const command = {
       defaultText: 'default profile',
     },
     {
-      name: 'format',
-      description: "The format to display the output: 'table', 'json'",
-      default: 'table',
+      name: 'output',
+      aliases: ['o'],
+      description: "The format to display the output: 'pretty', 'json', 'raw'",
+      default: 'pretty',
     },
   ],
 };
@@ -45,8 +46,6 @@ export class TokenCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    await input.io.writeLine();
-
     const profileName = input.options.profile as string | undefined;
 
     const profileService = await ProfileService.create(input);

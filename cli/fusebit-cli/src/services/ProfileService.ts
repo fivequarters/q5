@@ -315,10 +315,18 @@ export class ProfileService {
 
     const profile = await this.profile.getExecutionProfile(profileName, true);
 
-    if (this.input.options.format === 'json') {
-      await console.log(JSON.stringify(profile, null, 2));
+    const output = this.input.options.output;
+    if (output === 'json') {
+      await this.input.io.writeLineRaw(JSON.stringify(profile, null, 2));
       return;
     }
+
+    if (output === 'raw') {
+      await this.input.io.writeLineRaw(profile.accessToken);
+      return;
+    }
+
+    await this.input.io.writeLine();
 
     const details = [
       Text.dim('Deployment: '),
@@ -333,8 +341,8 @@ export class ProfileService {
 
     await this.executeService.info(profileName as string, Text.create(details));
 
-    console.log(profile.accessToken);
-    console.log();
+    this.input.io.writeLineRaw(profile.accessToken);
+    this.input.io.writeLine();
   }
 
   private getProfileUpdateConfirmDetails(profile: IFusebitProfile, settings: IFusebitProfileSettings) {
