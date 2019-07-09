@@ -8,6 +8,7 @@ import {
   OpsDataExceptionCode,
 } from '@5qtrs/ops-data';
 import { AccountDataAwsContextFactory } from '@5qtrs/account-data-aws';
+import { StorageDataAwsContextFactory } from '@5qtrs/storage-data-aws';
 import { OpsDataTables } from './OpsDataTables';
 import { OpsDataAwsProvider } from './OpsDataAwsProvider';
 import { OpsDataAwsConfig } from './OpsDataAwsConfig';
@@ -84,6 +85,10 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
     const accountDataFactory = await AccountDataAwsContextFactory.create(awsConfig);
     const accountData = await accountDataFactory.create(this.config);
     await accountData.setup();
+
+    const storageDataFactory = await StorageDataAwsContextFactory.create(awsConfig);
+    const storageData = await storageDataFactory.create(this.config);
+    await storageData.setup();
 
     await createLogsTable(this.config, awsConfig);
     await createFunctionStorage(this.config, awsConfig);

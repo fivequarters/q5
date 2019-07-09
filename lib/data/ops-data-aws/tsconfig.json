@@ -16,6 +16,7 @@
     { "path": "../../aws/aws-cert" },
     { "path": "../../aws/aws-alb" },
     { "path": "../../aws/aws-route53" },
-    { "path": "../../aws/aws-region" }
+    { "path": "../../aws/aws-region" },
+    { "path": "../storage-data-aws" }
   ]
 }
