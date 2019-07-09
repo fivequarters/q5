@@ -154,94 +154,104 @@ export class ProfileService {
   }
 
   public async confirmCopyProfile(name: string, copyTo: string, profile: IFusebitProfile): Promise<void> {
-    const confirmPrompt = await Confirm.create({
-      header: 'Overwrite?',
-      message: Text.create(
-        "The '",
-        Text.bold(copyTo),
-        "' profile already exists. Overwrite the existing profile shown below?"
-      ),
-      details: this.getProfileConfirmDetails(profile),
-    });
-    const confirmed = await confirmPrompt.prompt(this.input.io);
-    if (!confirmed) {
-      await this.executeService.warning(
-        'Copy Canceled',
-        Text.create("Copying the '", Text.bold(name), "' profile was canceled")
-      );
-      throw new Error('Copy Canceled');
+    if (!this.input.options.quiet) {
+      const confirmPrompt = await Confirm.create({
+        header: 'Overwrite?',
+        message: Text.create(
+          "The '",
+          Text.bold(copyTo),
+          "' profile already exists. Overwrite the existing profile shown below?"
+        ),
+        details: this.getProfileConfirmDetails(profile),
+      });
+      const confirmed = await confirmPrompt.prompt(this.input.io);
+      if (!confirmed) {
+        await this.executeService.warning(
+          'Copy Canceled',
+          Text.create("Copying the '", Text.bold(name), "' profile was canceled")
+        );
+        throw new Error('Copy Canceled');
+      }
     }
   }
 
   public async confirmInitProfile(name: string, profile: IFusebitProfile): Promise<void> {
-    const confirmPrompt = await Confirm.create({
-      header: 'Overwrite?',
-      message: Text.create(
-        "The '",
-        Text.bold(name),
-        "' profile already exists. Initialize and overwrite the existing profile shown below?"
-      ),
-      details: this.getProfileConfirmDetails(profile),
-    });
-    const confirmed = await confirmPrompt.prompt(this.input.io);
-    if (!confirmed) {
-      await this.executeService.warning(
-        'Init Canceled',
-        Text.create("Initializing the '", Text.bold(name), "' profile was canceled")
-      );
-      throw new Error('Init Canceled');
+    if (!this.input.options.quiet) {
+      const confirmPrompt = await Confirm.create({
+        header: 'Overwrite?',
+        message: Text.create(
+          "The '",
+          Text.bold(name),
+          "' profile already exists. Initialize and overwrite the existing profile shown below?"
+        ),
+        details: this.getProfileConfirmDetails(profile),
+      });
+      const confirmed = await confirmPrompt.prompt(this.input.io);
+      if (!confirmed) {
+        await this.executeService.warning(
+          'Init Canceled',
+          Text.create("Initializing the '", Text.bold(name), "' profile was canceled")
+        );
+        throw new Error('Init Canceled');
+      }
     }
   }
 
   public async confirmUpdateProfile(profile: IFusebitProfile, settings: IFusebitProfileSettings): Promise<void> {
-    const confirmPrompt = await Confirm.create({
-      header: 'Update?',
-      message: Text.create("Update the '", Text.bold(profile.name), "' profile as shown below?"),
-      details: this.getProfileUpdateConfirmDetails(profile, settings),
-    });
-    const confirmed = await confirmPrompt.prompt(this.input.io);
-    if (!confirmed) {
-      await this.executeService.warning(
-        'Update Canceled',
-        Text.create("Updating the '", Text.bold(profile.name), "' profile was canceled")
-      );
-      throw new Error('Update Canceled');
+    if (!this.input.options.quiet) {
+      const confirmPrompt = await Confirm.create({
+        header: 'Update?',
+        message: Text.create("Update the '", Text.bold(profile.name), "' profile as shown below?"),
+        details: this.getProfileUpdateConfirmDetails(profile, settings),
+      });
+      const confirmed = await confirmPrompt.prompt(this.input.io);
+      if (!confirmed) {
+        await this.executeService.warning(
+          'Update Canceled',
+          Text.create("Updating the '", Text.bold(profile.name), "' profile was canceled")
+        );
+        throw new Error('Update Canceled');
+      }
     }
   }
 
   public async confirmRenameProfile(source: string, target: string, profile: IFusebitProfile): Promise<void> {
-    const confirmPrompt = await Confirm.create({
-      header: 'Overwrite?',
-      message: Text.create(
-        "The '",
-        Text.bold(target),
-        "' profile already exists. Overwrite the existing profile shown below?"
-      ),
-      details: this.getProfileConfirmDetails(profile),
-    });
-    const confirmed = await confirmPrompt.prompt(this.input.io);
-    if (!confirmed) {
-      await this.executeService.warning(
-        'Rename Canceled',
-        Text.create("Renaming the '", Text.bold(source), "' profile was canceled")
-      );
-      throw new Error('Rename Canceled');
+    if (!this.input.options.quiet) {
+      const confirmPrompt = await Confirm.create({
+        header: 'Overwrite?',
+        message: Text.create(
+          "The '",
+          Text.bold(target),
+          "' profile already exists. Overwrite the existing profile shown below?"
+        ),
+        details: this.getProfileConfirmDetails(profile),
+      });
+      const confirmed = await confirmPrompt.prompt(this.input.io);
+      if (!confirmed) {
+        await this.executeService.warning(
+          'Rename Canceled',
+          Text.create("Renaming the '", Text.bold(source), "' profile was canceled")
+        );
+        throw new Error('Rename Canceled');
+      }
     }
   }
 
   public async confirmRemoveProfile(name: string, profile: IFusebitProfile): Promise<void> {
-    const confirmPrompt = await Confirm.create({
-      header: 'Remove?',
-      message: Text.create("Remove the '", Text.bold(name), "' profile shown below?"),
-      details: this.getProfileConfirmDetails(profile),
-    });
-    const confirmed = await confirmPrompt.prompt(this.input.io);
-    if (!confirmed) {
-      await this.executeService.warning(
-        'Remove Canceled',
-        Text.create("Removing the '", Text.bold(name), "' profile was canceled.")
-      );
-      throw new Error('Remove Canceled');
+    if (!this.input.options.quiet) {
+      const confirmPrompt = await Confirm.create({
+        header: 'Remove?',
+        message: Text.create("Remove the '", Text.bold(name), "' profile shown below?"),
+        details: this.getProfileConfirmDetails(profile),
+      });
+      const confirmed = await confirmPrompt.prompt(this.input.io);
+      if (!confirmed) {
+        await this.executeService.warning(
+          'Remove Canceled',
+          Text.create("Removing the '", Text.bold(name), "' profile was canceled.")
+        );
+        throw new Error('Remove Canceled');
+      }
     }
   }
 
@@ -284,7 +294,7 @@ export class ProfileService {
   }
 
   public async displayProfiles(profiles: IFusebitProfile[]) {
-    if (this.input.options.format === 'json') {
+    if (this.input.options.output === 'json') {
       await this.input.io.writeLine(JSON.stringify(profiles, null, 2));
       return;
     }
@@ -325,8 +335,6 @@ export class ProfileService {
       await this.input.io.writeLineRaw(profile.accessToken);
       return;
     }
-
-    await this.input.io.writeLine();
 
     const details = [
       Text.dim('Deployment: '),

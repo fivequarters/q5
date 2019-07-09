@@ -1,8 +1,15 @@
 import { Message, MessageKind, IExecuteInput } from '@5qtrs/cli';
-import { Text, IText } from '@5qtrs/text';
+import { IText } from '@5qtrs/text';
 import { IHttpRequest, request as sendRequest } from '@5qtrs/request';
-import { Table } from '@5qtrs/table';
 import { VersionService } from './VersionService';
+
+// ------------------
+// Internal Constants
+// ------------------
+
+const prettyOutput = 'pretty';
+const rawOutput = 'raw';
+const jsonOutput = 'json';
 
 // -------------------
 // Exported Interfaces
@@ -30,12 +37,10 @@ export interface ILogEntry {
 export class ExecuteService {
   private input: IExecuteInput;
   private versionService: VersionService;
-  private logs: ILogEntry[];
 
   private constructor(input: IExecuteInput, versionService: VersionService) {
     this.input = input;
     this.versionService = versionService;
-    this.logs = [];
   }
 
   public static async create(input: IExecuteInput) {
@@ -46,13 +51,9 @@ export class ExecuteService {
   public async execute<T>(messages: IExcuteMessages, func?: () => Promise<T | undefined>) {
     try {
       if (messages.header || messages.message) {
-        if (!this.input.options.quiet) {
-          const message = await Message.create({
-            header: messages.header,
-            message: messages.message || '',
-            kind: MessageKind.info,
-          });
-          await message.write(this.input.io);
+        const output = this.input.options.output;
+        if (!output || output === prettyOutput) {
+          this.info(messages.header || '', messages.message || '');
           this.input.io.spin(true);
         }
       }
@@ -62,13 +63,9 @@ export class ExecuteService {
       }
       return undefined;
     } catch (error) {
-      const message = await Message.create({
-        header: messages.errorHeader,
-        message: error.code !== undefined ? messages.errorMessage || '' : error.message,
-        kind: MessageKind.error,
-      });
-      await message.write(this.input.io);
-      this.logs.push({ header: messages.errorHeader, message: messages.errorMessage, error, date: new Date() });
+      const header = messages.errorHeader || '';
+      const message = error.code !== undefined ? messages.errorMessage || '' : error.message;
+      this.error(header, message);
       throw error;
     }
   }
@@ -106,7 +103,8 @@ export class ExecuteService {
   }
 
   public async message(header: IText, message: IText, kind: MessageKind = MessageKind.result) {
-    if (!this.input.options.quiet) {
+    const output = this.input.options.output;
+    if (!output || output === prettyOutput) {
       const formattedMessage = await Message.create({ header, message, kind });
       await formattedMessage.write(this.input.io);
     }
@@ -121,40 +119,28 @@ export class ExecuteService {
   }
 
   public async error(header: IText, message: IText) {
-    return this.message(header, message, MessageKind.error);
+    if (this.input.options.output === prettyOutput) {
+      return this.message(header, message, MessageKind.error);
+    } else if (this.input.options.output === rawOutput) {
+      return this.input.io.writeLineRaw(`ERROR: ${header} - ${message}`);
+    } else if (this.input.options.output === jsonOutput) {
+      const json = {
+        error: {
+          status: header,
+          message,
+        },
+      };
+      this.input.io.writeLineRaw(JSON.stringify(json, null, 2));
+    }
   }
 
   public async info(header: IText, message: IText) {
     return this.message(header, message, MessageKind.info);
   }
 
-  public async verbose() {
-    if (this.input.options.verbose && this.logs.length) {
-      const table = await Table.create({
-        width: this.input.io.outputWidth,
-        count: 2,
-        gutter: Text.dim('  │  '),
-        columns: [{ flexShrink: 0, flexGrow: 0 }, { flexGrow: 1 }],
-      });
-
-      table.addRow([Text.yellow('Error Logs'), 'The following errors were captured during command execution']);
-
-      for (const log of this.logs) {
-        if (log.message || log.error) {
-          table.addRow(['', '']);
-          const [date, time] = log.date.toLocaleString().split(',');
-          const details = Text.create(
-            date.trim(),
-            Text.dim(' • '),
-            time.trim(),
-            log.message ? Text.create(Text.eol(), Text.dim(log.message.toString(false))) : '',
-            log.error && log.error.message ? Text.create(Text.eol(), log.error.message) : ''
-          );
-          table.addRow([Text.yellow(log.header || 'Entry'), details]);
-        }
-      }
-
-      this.input.io.writeLine(table.toText());
+  public async newLine() {
+    if (this.input.options.output === prettyOutput) {
+      return this.input.io.writeLine();
     }
   }
 }

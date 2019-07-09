@@ -1,6 +1,6 @@
 import { Command, IExecuteInput } from '@5qtrs/cli';
 import { Text } from '@5qtrs/text';
-import { ProfileService } from '../services';
+import { ProfileService, ExecuteService } from '../services';
 
 // ------------------
 // Internal Constants
@@ -49,7 +49,9 @@ export class TokenCommand extends Command {
     const profileName = input.options.profile as string | undefined;
 
     const profileService = await ProfileService.create(input);
+    const executeService = await ExecuteService.create(input);
 
+    await executeService.newLine();
     await profileService.displayTokenContext(profileName);
 
     return 0;

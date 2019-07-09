@@ -643,8 +643,8 @@ export class UserService {
   }
 
   public async displayUser(user: IFusebitUser) {
-    if (this.input.options.format === 'json') {
-      await this.input.io.writeLine(JSON.stringify(user, null, 2));
+    if (this.input.options.output === 'json') {
+      await this.input.io.writeLineRaw(JSON.stringify(user, null, 2));
       return;
     }
 
@@ -652,7 +652,7 @@ export class UserService {
   }
 
   public async displayInitToken(initToken: string) {
-    if (this.input.options.format === 'json') {
+    if (this.input.options.output === 'json') {
       await this.input.io.writeLineRaw(JSON.stringify(initToken, null, 2));
       return;
     }

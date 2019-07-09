@@ -1,5 +1,6 @@
-import { Command, IExecuteInput } from '@5qtrs/cli';
-import { ProfileService, UserService, ClientService } from '../services';
+import { Command, IExecuteInput, ArgType } from '@5qtrs/cli';
+import { ProfileService, UserService, ClientService, ExecuteService } from '../services';
+import { exec } from 'child_process';
 
 // ------------------
 // Internal Constants
@@ -22,6 +23,19 @@ const command = {
       aliases: ['p'],
       description: 'The name of the profile to create with the initalization of the CLI',
     },
+    {
+      name: 'quiet',
+      aliases: ['q'],
+      description: 'If set to true, does not prompt for confirmation',
+      type: ArgType.boolean,
+      default: 'false',
+    },
+    {
+      name: 'output',
+      aliases: ['o'],
+      description: "The format to display the output: 'pretty', 'json'",
+      default: 'pretty',
+    },
   ],
 };
 
@@ -39,14 +53,15 @@ export class InitCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    await input.io.writeLine();
-
     const token = input.arguments[0] as string;
     let profileName = input.options.profile as string;
 
     const profileService = await ProfileService.create(input);
+    const executeService = await ExecuteService.create(input);
     const userService = await UserService.create(input);
     const clientService = await ClientService.create(input);
+
+    await executeService.newLine();
 
     const decodedToken = await userService.decodeInitToken(token);
     const { accountId, subscriptionId, boundaryId, functionId, agentId, baseUrl, issuerId, subject } = decodedToken;

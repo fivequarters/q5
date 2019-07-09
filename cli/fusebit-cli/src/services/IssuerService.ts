@@ -370,7 +370,7 @@ export class IssuerService {
   }
 
   public async displayIssuer(issuer: IFusebitIssuer) {
-    if (this.input.options.format === 'json') {
+    if (this.input.options.output === 'json') {
       await this.input.io.writeLine(JSON.stringify(issuer, null, 2));
       return;
     }

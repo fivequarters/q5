@@ -636,7 +636,7 @@ export class ClientService {
   }
 
   public async displayClient(client: IFusebitClient) {
-    if (this.input.options.format === 'json') {
+    if (this.input.options.output === 'json') {
       await this.input.io.writeLine(JSON.stringify(client, null, 2));
       return;
     }
@@ -645,7 +645,7 @@ export class ClientService {
   }
 
   public async displayInitToken(initToken: string) {
-    if (this.input.options.format === 'json') {
+    if (this.input.options.output === 'json') {
       await this.input.io.writeLineRaw(JSON.stringify(initToken, null, 2));
       return;
     }
