@@ -1,5 +1,4 @@
 import { Command, IExecuteInput } from '@5qtrs/cli';
-import { Text } from '@5qtrs/text';
 import { ProfileService, ExecuteService } from '../../services';
 
 // ------------------
@@ -10,7 +9,7 @@ const command = {
   name: 'Set Default Profile',
   cmd: 'set',
   summary: 'Set the default profile',
-  description: Text.create('Sets the given stored profile to be the default profile.'),
+  description: 'Sets the given stored profile to be the default profile.',
   arguments: [
     {
       name: 'name',
