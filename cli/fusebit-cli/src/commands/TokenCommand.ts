@@ -20,7 +20,7 @@ const command = {
     {
       name: 'profile',
       aliases: ['p'],
-      description: 'The name of the profile to use when executing the command.',
+      description: 'The name of the profile to use when executing the command',
       defaultText: 'default profile',
     },
     {
