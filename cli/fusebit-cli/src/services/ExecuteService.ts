@@ -126,8 +126,8 @@ export class ExecuteService {
     } else if (this.input.options.output === jsonOutput) {
       const json = {
         error: {
-          status: header,
-          message,
+          status: header.toString(false),
+          message: message.toString(false),
         },
       };
       this.input.io.writeLineRaw(JSON.stringify(json, null, 2));

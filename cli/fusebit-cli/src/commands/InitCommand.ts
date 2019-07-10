@@ -1,6 +1,5 @@
 import { Command, IExecuteInput, ArgType } from '@5qtrs/cli';
 import { ProfileService, UserService, ClientService, ExecuteService } from '../services';
-import { exec } from 'child_process';
 
 // ------------------
 // Internal Constants
