@@ -1,6 +1,6 @@
 import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
 import { Text } from '@5qtrs/text';
-import { UserService } from '../../services';
+import { UserService, ExecuteService } from '../../services';
 
 export class UserUpdateCommand extends Command {
   private constructor() {
@@ -27,24 +27,31 @@ export class UserUpdateCommand extends Command {
       options: [
         {
           name: 'first',
-          description: 'The updated first name of the user.',
+          aliases: ['f'],
+          description: 'The updated first name of the user',
         },
         {
           name: 'last',
-          description: 'The updated last name of the user.',
+          aliases: ['l'],
+          description: 'The updated last name of the user',
         },
         {
           name: 'email',
-          description: 'The updated email for the user.',
+          aliases: ['e'],
+          description: 'The updated email for the user',
         },
         {
-          name: 'confirm',
-          description: [
-            'If set to true, the details regarding updating the user will be displayed along with a',
-            'prompt for confirmation.',
-          ].join(' '),
+          name: 'quiet',
+          aliases: ['q'],
+          description: 'If set to true, does not prompt for confirmation',
           type: ArgType.boolean,
-          default: 'true',
+          default: 'false',
+        },
+        {
+          name: 'output',
+          aliases: ['o'],
+          description: "The format to display the output: 'pretty', 'json'",
+          default: 'pretty',
         },
       ],
     });
@@ -55,15 +62,15 @@ export class UserUpdateCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    await input.io.writeLine();
-
     const [id] = input.arguments as string[];
-    const confirm = input.options.confirm as boolean;
     const firstName = input.options.first as string;
     const lastName = input.options.last as string;
     const primaryEmail = input.options.email as string;
 
     const userService = await UserService.create(input);
+    const executeService = await ExecuteService.create(input);
+
+    await executeService.newLine();
 
     const user = await userService.getUser(id);
 
@@ -73,9 +80,7 @@ export class UserUpdateCommand extends Command {
       primaryEmail: primaryEmail === '' ? undefined : primaryEmail || user.primaryEmail,
     };
 
-    if (confirm) {
-      await userService.confirmUpdateUser(user, update);
-    }
+    await userService.confirmUpdateUser(user, update);
 
     const updatedUser = await userService.updateUser(user.id, update);
 
