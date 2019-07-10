@@ -1,5 +1,5 @@
 import { Command, IExecuteInput, ArgType } from '@5qtrs/cli';
-import { ProfileService } from '../../services';
+import { ProfileService, ExecuteService } from '../../services';
 import { Text } from '@5qtrs/text';
 
 // ------------------
@@ -16,13 +16,13 @@ const command = {
     Text.eol(),
     'To clear a command option, provide the option with no value'
   ),
-  options: [
+  arguments: [
     {
-      name: 'profile',
-      aliases: ['p'],
+      name: 'name',
       description: 'The name of the profile to update',
-      defaultText: 'default profile',
     },
+  ],
+  options: [
     {
       name: 'subscription',
       aliases: ['s'],
@@ -39,11 +39,17 @@ const command = {
       description: 'Set the function command option of the profile to the given function',
     },
     {
-      name: 'confirm',
-      aliases: ['c'],
-      description: 'If set to true, prompts for confirmation before updating the profile',
+      name: 'quiet',
+      aliases: ['q'],
+      description: 'If set to true, does not prompt for confirmation',
       type: ArgType.boolean,
-      default: 'true',
+      default: 'false',
+    },
+    {
+      name: 'output',
+      aliases: ['o'],
+      description: "The format to display the output: 'pretty', 'json'",
+      default: 'pretty',
     },
   ],
 };
@@ -62,14 +68,15 @@ export class ProfileUpdateCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    await input.io.writeLine();
-    const name = input.options.profile as string;
+    const name = input.arguments[0] as string;
     const subscription = input.options.subscription as string;
     const boundary = input.options.boundary as string;
     const func = input.options.function as string;
-    const confirm = input.options.confirm as boolean;
 
     const profileService = await ProfileService.create(input);
+    const executeService = await ExecuteService.create(input);
+
+    await executeService.newLine();
 
     const profile = await profileService.getProfileOrDefaultOrThrow(name);
 
@@ -80,9 +87,7 @@ export class ProfileUpdateCommand extends Command {
       function: func === '' ? undefined : func || profile.function,
     };
 
-    if (confirm) {
-      await profileService.confirmUpdateProfile(profile, settings);
-    }
+    await profileService.confirmUpdateProfile(profile, settings);
 
     const updatedProfile = await profileService.updateProfile(profile.name, settings);
 
