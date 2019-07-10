@@ -1,5 +1,6 @@
 import { Command, IExecuteInput, ArgType } from '@5qtrs/cli';
-import { UserService } from '../../services';
+import { Text } from '@5qtrs/text';
+import { UserService, ExecuteService } from '../../services';
 
 // ------------------
 // Internal Constants
@@ -10,22 +11,38 @@ const command = {
   cmd: 'ls',
   summary: 'List users',
   description: 'Lists users of the given account',
-  options: [
+  arguments: [
     {
       name: 'name',
-      description: 'Only list users with a first or last name that includes the given value (case-sensistive)',
+      description: Text.create(
+        'Only list users with a first or last name that includes the given text ',
+        Text.dim('(case-sensitive)')
+      ),
+      required: false,
     },
+  ],
+  options: [
     {
       name: 'email',
-      description: 'Only list users with a email that includes the given value (case-sensistive)',
+      aliases: ['e'],
+      description: Text.create(
+        'Only list users with a email that includes the given text ',
+        Text.dim('(case-sensitive)')
+      ),
     },
     {
-      name: 'iss',
-      description: 'Only list users with an issuer that includes the given value (case-sensistive)',
+      name: 'issuer',
+      aliases: ['i'],
+      description: 'Only list users with an identity that includes the given issuer',
     },
     {
-      name: 'sub',
-      description: 'Only list users with a subject that includes the given value (case-sensistive)',
+      name: 'subject',
+      aliases: ['s'],
+      description: Text.create(
+        "Only list users with an identity that includes the given subject; can only be used with the '",
+        Text.bold('--issuer'),
+        "' option"
+      ),
     },
     {
       name: 'count',
@@ -35,15 +52,19 @@ const command = {
       default: '10',
     },
     {
-      name: 'next',
-      aliases: ['n'],
-      description: 'The opaque token from a previous list command used to continue listing',
+      name: 'output',
+      aliases: ['o'],
+      description: "The format to display the output: 'pretty', 'json'",
+      default: 'pretty',
     },
     {
-      name: 'format',
-      aliases: ['f'],
-      description: "The format to display the output: 'table', 'json'",
-      default: 'table',
+      name: 'next',
+      aliases: ['n'],
+      description: Text.create([
+        "The opaque next token from a previous list command used to continue listing; obtained when using the '",
+        Text.bold('--format json'),
+        "' option",
+      ]),
     },
   ],
 };
@@ -62,15 +83,18 @@ export class UserListCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    const nameContains = input.options.name as string;
+    const nameContains = input.arguments[0] as string;
     const primaryEmailContains = input.options.email as string;
-    const issuerContains = input.options.iss as string;
-    const subjectContains = input.options.sub as string;
-    const format = input.options.format as string;
+    const issuerContains = input.options.issuer as string;
+    const subjectContains = input.options.subject as string;
+    const output = input.options.output as string;
     const count = input.options.count as string;
     const next = input.options.next as string;
 
     const userService = await UserService.create(input);
+    const executeService = await ExecuteService.create(input);
+
+    await executeService.newLine();
 
     const options: any = {
       nameContains,
@@ -81,14 +105,12 @@ export class UserListCommand extends Command {
       next,
     };
 
-    if (format === 'json') {
+    if (output === 'json') {
       input.io.writeRawOnly(true);
       const result = await userService.listUsers(options);
       const json = JSON.stringify(result, null, 2);
       input.io.writeLineRaw(json);
     } else {
-      await input.io.writeLine();
-
       let getMore = true;
       let result;
       let firstDisplay = true;
