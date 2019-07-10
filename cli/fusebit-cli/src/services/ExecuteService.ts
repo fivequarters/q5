@@ -139,7 +139,8 @@ export class ExecuteService {
   }
 
   public async newLine() {
-    if (this.input.options.output === prettyOutput) {
+    const output = this.input.options.output;
+    if (!output || output === prettyOutput) {
       return this.input.io.writeLine();
     }
   }

@@ -308,7 +308,7 @@ export class ProfileService {
   }
 
   public async displayProfile(profile: IFusebitProfile) {
-    if (this.input.options.format === 'json') {
+    if (this.input.options.output === 'json') {
       await this.input.io.writeLine(JSON.stringify(profile, null, 2));
       return;
     }
