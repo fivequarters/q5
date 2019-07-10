@@ -1,5 +1,5 @@
 import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
-import { UserService } from '../../services';
+import { UserService, ExecuteService } from '../../services';
 import { Text } from '@5qtrs/text';
 
 // ------------------
@@ -23,24 +23,31 @@ const command = {
   options: [
     {
       name: 'first',
-      description: 'The first name of the user.',
+      aliases: ['f'],
+      description: 'The first name of the user',
     },
     {
       name: 'last',
-      description: 'The last name of the user.',
+      aliases: ['l'],
+      description: 'The last name of the user',
     },
     {
       name: 'email',
-      description: 'The primary email for the user.',
+      aliases: ['e'],
+      description: 'The primary email for the user',
     },
     {
-      name: 'confirm',
-      description: [
-        'If set to true, the details regarding adding the user will be displayed along with a',
-        'prompt for confirmation.',
-      ].join(' '),
+      name: 'quiet',
+      aliases: ['q'],
+      description: 'If set to true, does not prompt for confirmation',
       type: ArgType.boolean,
-      default: 'true',
+      default: 'false',
+    },
+    {
+      name: 'output',
+      aliases: ['o'],
+      description: "The format to display the output: 'pretty', 'json'",
+      default: 'pretty',
     },
   ],
 };
@@ -59,20 +66,18 @@ export class UserAddCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    await input.io.writeLine();
-
-    const confirm = input.options.confirm as boolean;
     const firstName = input.options.first as string;
     const lastName = input.options.last as string;
     const primaryEmail = input.options.email as string;
 
     const userService = await UserService.create(input);
+    const executeService = await ExecuteService.create(input);
+
+    await executeService.newLine();
 
     const newUser = { firstName, lastName, primaryEmail };
 
-    if (confirm) {
-      await userService.confirmAddUser(newUser);
-    }
+    await userService.confirmAddUser(newUser);
 
     const user = await userService.addUser(newUser);
 
