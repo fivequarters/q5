@@ -17,37 +17,39 @@ const command = {
     'profile command options are not applied when executing this',
     'command.',
   ].join(' '),
-  options: [
+  arguments: [
     {
-      name: 'contains',
-      aliases: ['c'],
+      name: 'name',
       description: 'Only list profiles with the given text in the profile name',
+      required: false,
     },
+  ],
+  options: [
     {
       name: 'account',
       aliases: ['a'],
-      description: 'Only list profiles with the given account',
+      description: 'Only list profiles with the given text in the account id',
     },
     {
       name: 'subscription',
       aliases: ['s'],
-      description: 'Only list profiles with the given subscription',
-      allowMany: true,
+      description: 'Only list profiles with the given text in the subscription id',
     },
     {
       name: 'boundary',
       aliases: ['b'],
-      description: 'Only list profiles with the given boundary',
+      description: 'Only list profiles with the given text in the boundary id',
     },
     {
       name: 'function',
       aliases: ['f'],
-      description: 'Only list profiles with the given boundary',
+      description: 'Only list profiles with the given text in the function id',
     },
     {
-      name: 'format',
-      description: "The format to display the output: 'table', 'json'",
-      default: 'table',
+      name: 'output',
+      aliases: ['o'],
+      description: "The format to display the output: 'pretty', 'json'",
+      default: 'pretty',
     },
   ],
 };
@@ -66,8 +68,7 @@ export class ProfileListCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    await input.io.writeLine();
-    const contains = input.options.contains as string;
+    const name = input.arguments[0] as string;
     const account = input.options.account as string;
     const subscription = input.options.subscription as string;
     const boundary = input.options.boundary as string;
@@ -76,35 +77,37 @@ export class ProfileListCommand extends Command {
     const profileService = await ProfileService.create(input);
     const executeService = await ExecuteService.create(input);
 
+    await executeService.newLine();
+
     const profiles = await profileService.listProfiles();
 
     const filtered = profiles.filter(profile => {
-      if (contains !== undefined) {
-        if (profile.name && profile.name.indexOf(contains) === -1) {
+      if (name !== undefined) {
+        if (profile.name && profile.name.indexOf(name) === -1) {
           return false;
         }
       }
 
       if (account !== undefined) {
-        if (profile.account !== account) {
+        if (!profile.account || profile.account.indexOf(account) === -1) {
           return false;
         }
       }
 
       if (subscription !== undefined) {
-        if (profile.subscription !== subscription) {
+        if (!profile.subscription || profile.subscription.indexOf(subscription) === -1) {
           return false;
         }
       }
 
       if (boundary !== undefined) {
-        if (profile.boundary !== boundary) {
+        if (!profile.boundary || profile.boundary.indexOf(boundary) === -1) {
           return false;
         }
       }
 
       if (func !== undefined) {
-        if (profile.function !== func) {
+        if (!profile.function || profile.function.indexOf(func) === -1) {
           return false;
         }
       }
