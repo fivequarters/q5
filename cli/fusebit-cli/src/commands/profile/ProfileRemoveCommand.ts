@@ -1,5 +1,5 @@
 import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
-import { ProfileService } from '../../services';
+import { ProfileService, ExecuteService } from '../../services';
 
 // ------------------
 // Internal Constants
@@ -18,11 +18,17 @@ const command = {
   ],
   options: [
     {
-      name: 'confirm',
-      aliases: ['c'],
-      description: 'If set to true, prompts for confirmation before removing the profile',
+      name: 'quiet',
+      aliases: ['q'],
+      description: 'If set to true, does not prompt for confirmation',
       type: ArgType.boolean,
-      default: 'true',
+      default: 'false',
+    },
+    {
+      name: 'output',
+      aliases: ['o'],
+      description: "The format to display the output: 'pretty', 'json'",
+      default: 'pretty',
     },
   ],
 };
@@ -41,18 +47,16 @@ export class ProfileRemoveCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    await input.io.writeLine();
     const [name] = input.arguments as string[];
-    const confirm = input.options.confirm as boolean;
 
     const profileService = await ProfileService.create(input);
+    const executeService = await ExecuteService.create(input);
+
+    await executeService.newLine();
 
     const profile = await profileService.getProfileOrThrow(name);
 
-    if (confirm) {
-      await profileService.confirmRemoveProfile(name, profile);
-    }
-
+    await profileService.confirmRemoveProfile(name, profile);
     await profileService.removeProfile(name);
 
     return 0;
