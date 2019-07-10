@@ -1,5 +1,5 @@
 import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
-import { UserService, ProfileService } from '../../services';
+import { UserService, ProfileService, ExecuteService } from '../../services';
 
 // ------------------
 // Internal Constants
@@ -33,13 +33,17 @@ const command = {
       description: 'The function to set by default when the user initializes',
     },
     {
-      name: 'confirm',
-      description: [
-        'If set to true, the details regarding adding the user will be displayed along with a',
-        'prompt for confirmation',
-      ].join(' '),
+      name: 'quiet',
+      aliases: ['q'],
+      description: 'If set to true, does not prompt for confirmation',
       type: ArgType.boolean,
-      default: 'true',
+      default: 'false',
+    },
+    {
+      name: 'output',
+      aliases: ['o'],
+      description: "The format to display the output: 'pretty', 'json', 'raw'",
+      default: 'pretty',
     },
   ],
 };
@@ -58,13 +62,13 @@ export class UserInitCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    await input.io.writeLine();
-
     const [id] = input.arguments as string[];
-    const confirm = input.options.confirm as boolean;
 
     const userService = await UserService.create(input);
     const profileService = await ProfileService.create(input);
+    const executeService = await ExecuteService.create(input);
+
+    await executeService.newLine();
 
     const user = await userService.getUser(id);
 
@@ -76,9 +80,7 @@ export class UserInitCommand extends Command {
       functionId: executionProfile.function || undefined,
     };
 
-    if (confirm) {
-      await userService.confirmInitUser(user, initEntry);
-    }
+    await userService.confirmInitUser(user, initEntry);
 
     const initToken = await userService.initUser(id, initEntry);
 
