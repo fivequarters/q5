@@ -93,7 +93,7 @@ export class Help {
   }
 
   protected async formatHeader(text: IText) {
-    return Text.blue(text);
+    return Text.cyan(text);
   }
 
   protected async addUsage(table: Table) {

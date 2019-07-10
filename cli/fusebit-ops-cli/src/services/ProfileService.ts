@@ -322,7 +322,7 @@ export class ProfileService {
       return;
     }
 
-    this.executeService.message(Text.blue('Profiles'), Text.blue('Details'));
+    this.executeService.message(Text.cyan('Profiles'), Text.cyan('Details'));
     const defaultProfileName = await this.profile.getDefaultProfileName();
 
     for (const profile of profiles) {

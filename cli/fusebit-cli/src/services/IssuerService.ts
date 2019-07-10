@@ -359,8 +359,8 @@ export class IssuerService {
     }
 
     const message = await Message.create({
-      header: Text.blue('Issuers'),
-      message: Text.blue('Details'),
+      header: Text.cyan('Issuers'),
+      message: Text.cyan('Details'),
     });
     await message.write(this.input.io);
 

@@ -45,7 +45,7 @@ export class Confirm {
 
   public async prompt(io: ICommandIO) {
     if (this.header && !this.message) {
-      const header = this.header instanceof Text ? this.header : Text.blue(this.header);
+      const header = this.header instanceof Text ? this.header : Text.cyan(this.header);
       await io.writeLine(header);
       await io.writeLine();
     } else if (this.header && this.message) {

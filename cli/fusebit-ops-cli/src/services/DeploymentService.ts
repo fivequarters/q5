@@ -203,7 +203,7 @@ export class DeploymentService {
       return;
     }
 
-    await this.executeService.message(Text.blue('Deployment'), Text.blue('Details'));
+    await this.executeService.message(Text.cyan('Deployment'), Text.cyan('Details'));
     for (const deployment of deployments) {
       this.writeDeployments(deployment);
     }
@@ -215,7 +215,7 @@ export class DeploymentService {
       return;
     }
 
-    await this.executeService.message(Text.blue('Deployment'), Text.blue('Details'));
+    await this.executeService.message(Text.cyan('Deployment'), Text.cyan('Details'));
     this.writeDeployments(deployment);
   }
 

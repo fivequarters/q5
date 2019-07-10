@@ -109,8 +109,8 @@ export class FunctionService {
     }
 
     const message = await Message.create({
-      header: Text.blue('Boundaries'),
-      message: Text.blue('Functions'),
+      header: Text.cyan('Boundaries'),
+      message: Text.cyan('Functions'),
     });
     await message.write(this.input.io);
 

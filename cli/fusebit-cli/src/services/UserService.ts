@@ -632,8 +632,8 @@ export class UserService {
     }
 
     const message = await Message.create({
-      header: Text.blue('Users'),
-      message: Text.blue('Details'),
+      header: Text.cyan('Users'),
+      message: Text.cyan('Details'),
     });
     await message.write(this.input.io);
 

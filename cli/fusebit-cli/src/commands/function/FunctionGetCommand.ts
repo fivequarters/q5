@@ -254,7 +254,7 @@ export class FunctionGetCommand extends Command {
             }
           }
           await (await Message.create({ message: Text.bold('Location:') })).write(input.io);
-          await (await Message.create({ message: Text.blue(response.data.location) })).write(input.io);
+          await (await Message.create({ message: Text.cyan(response.data.location) })).write(input.io);
         }
       }
     );

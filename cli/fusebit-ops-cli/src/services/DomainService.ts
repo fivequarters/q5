@@ -144,7 +144,7 @@ export class DomainService {
       return;
     }
 
-    await this.executeService.message(Text.blue('Domain Name'), Text.blue('Details'));
+    await this.executeService.message(Text.cyan('Domain Name'), Text.cyan('Details'));
     for (const domain of domains) {
       this.writeDomains(domain);
     }
@@ -156,7 +156,7 @@ export class DomainService {
       return;
     }
 
-    await this.executeService.message(Text.blue('Domain Name'), Text.blue('Details'));
+    await this.executeService.message(Text.cyan('Domain Name'), Text.cyan('Details'));
     this.writeDomains(domain);
   }
 

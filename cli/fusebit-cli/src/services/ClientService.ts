@@ -625,8 +625,8 @@ export class ClientService {
     }
 
     const message = await Message.create({
-      header: Text.blue('Clients'),
-      message: Text.blue('Details'),
+      header: Text.cyan('Clients'),
+      message: Text.cyan('Details'),
     });
     await message.write(this.input.io);
 
