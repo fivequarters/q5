@@ -1,6 +1,16 @@
-import { clone } from '@5qtrs/clone';
 import { IText, Text } from '@5qtrs/text';
 import { ArgType } from './ArgType';
+
+// ------------------
+// Internal Functions
+// ------------------
+
+function ensureText(text?: IText): Text {
+  if (text === undefined) {
+    return Text.empty();
+  }
+  return text instanceof Text ? text : Text.create(text || '');
+}
 
 // -------------------
 // Exported Interfaces
@@ -10,7 +20,7 @@ export interface IArgument {
   name: string;
   type?: ArgType;
   default?: string;
-  description?: IText;
+  description?: Text;
   required?: boolean;
 }
 
@@ -19,32 +29,37 @@ export interface IArgument {
 // ----------------
 
 export class Argument implements IArgument {
-  private argument: IArgument;
+  private nameProp: string;
+  private typeProp: ArgType;
+  private defaultProp?: string;
+  private descriptionProp: Text;
+  private requiredProp: boolean;
 
   public constructor(argument: IArgument) {
-    this.argument = clone(argument);
+    this.nameProp = argument.name;
+    this.typeProp = argument.type || ArgType.string;
+    this.defaultProp = argument.default;
+    this.descriptionProp = ensureText(argument.description);
+    this.requiredProp = argument.required !== undefined ? argument.required : argument.default === undefined;
   }
 
   public get name() {
-    return this.argument.name;
+    return this.nameProp;
   }
 
   public get type() {
-    return this.argument.type || ArgType.string;
+    return this.typeProp;
   }
 
   public get default() {
-    return this.argument.default;
+    return this.defaultProp;
   }
 
   public get description() {
-    return this.argument.description || Text.empty();
+    return this.descriptionProp;
   }
 
   public get required() {
-    if (this.argument.required !== undefined) {
-      return this.argument.required;
-    }
-    return this.default === undefined;
+    return this.requiredProp;
   }
 }
