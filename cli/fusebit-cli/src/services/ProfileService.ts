@@ -101,7 +101,7 @@ export class ProfileService {
     return this.execute(() => this.profile.generateKeyPair(name));
   }
 
-  public async addProfile(name: string, newProfile: IFusebitNewProfile, keyPair: IFusebitKeyPair): Promise<void> {
+  public async initProfile(name: string, newProfile: IFusebitNewProfile, keyPair: IFusebitKeyPair): Promise<void> {
     await this.execute(async () => {
       if (await this.profile.profileExists(name)) {
         await this.profile.removeProfile(name);
@@ -124,6 +124,17 @@ export class ProfileService {
     );
 
     return profile;
+  }
+
+  public async addProfile(name: string, copyFrom: string, profile: IFusebitProfileSettings): Promise<IFusebitProfile> {
+    await this.execute(() => this.profile.copyProfile(copyFrom, name, true));
+    const addedProfile = await this.execute(() => this.profile.updateProfile(name, profile));
+    await this.executeService.result(
+      'Profile Added',
+      Text.create("The '", Text.bold(name), "' profile was successfully added")
+    );
+
+    return addedProfile;
   }
 
   public async updateProfile(name: string, profile: IFusebitProfileSettings): Promise<IFusebitProfile> {
@@ -171,6 +182,28 @@ export class ProfileService {
           Text.create("Copying the '", Text.bold(name), "' profile was canceled")
         );
         throw new Error('Copy Canceled');
+      }
+    }
+  }
+
+  public async confirmAddProfile(name: string, profile: IFusebitProfile): Promise<void> {
+    if (!this.input.options.quiet) {
+      const confirmPrompt = await Confirm.create({
+        header: 'Overwrite?',
+        message: Text.create(
+          "The '",
+          Text.bold(name),
+          "' profile already exists. Overwrite the existing profile shown below?"
+        ),
+        details: this.getProfileConfirmDetails(profile),
+      });
+      const confirmed = await confirmPrompt.prompt(this.input.io);
+      if (!confirmed) {
+        await this.executeService.warning(
+          'Add Canceled',
+          Text.create("Adding the '", Text.bold(name), "' profile was canceled")
+        );
+        throw new Error('Add Canceled');
       }
     }
   }

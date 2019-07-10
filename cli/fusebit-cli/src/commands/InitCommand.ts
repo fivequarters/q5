@@ -95,7 +95,7 @@ export class InitCommand extends Command {
       subject: subject,
     };
 
-    await profileService.addProfile(profileName, newProfile, keyPair);
+    await profileService.initProfile(profileName, newProfile, keyPair);
 
     const defaultProfileName = await profileService.getDefaultProfileName();
     if (!defaultProfileName) {

@@ -3,6 +3,7 @@ import { Command, ICommand } from '@5qtrs/cli';
 import { ProfileListCommand } from './ProfileListCommand';
 import { ProfileSetCommand } from './ProfileSetCommand';
 import { ProfileGetCommand } from './ProfileGetCommand';
+import { ProfileAddCommand } from './ProfileAddCommand';
 import { ProfileCopyCommand } from './ProfileCopyCommand';
 import { ProfileRenameCommand } from './ProfileRenameCommand';
 import { ProfileRemoveCommand } from './ProfileRemoveCommand';
@@ -35,6 +36,7 @@ async function getSubCommands() {
   subCommands.push(await ProfileListCommand.create());
   subCommands.push(await ProfileGetCommand.create());
   subCommands.push(await ProfileSetCommand.create());
+  subCommands.push(await ProfileAddCommand.create());
   subCommands.push(await ProfileCopyCommand.create());
   subCommands.push(await ProfileRenameCommand.create());
   subCommands.push(await ProfileUpdateCommand.create());
