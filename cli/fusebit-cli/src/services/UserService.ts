@@ -485,143 +485,159 @@ export class UserService {
   }
 
   public async confirmAddUser(newUser: INewFusebitUser): Promise<void> {
-    const profile = await this.profileService.getExecutionProfile(['account']);
+    if (!this.input.options.quiet) {
+      const profile = await this.profileService.getExecutionProfile(['account']);
 
-    const confirmPrompt = await Confirm.create({
-      header: 'Add User?',
-      message: Text.create('Add the new user shown below?'),
-      details: this.getUserConfirmDetails(profile.account as string, newUser),
-    });
-    const confirmed = await confirmPrompt.prompt(this.input.io);
-    if (!confirmed) {
-      await this.executeService.warning('Add User Canceled', Text.create('Adding the new user was canceled.'));
-      throw new Error('Add User Canceled');
+      const confirmPrompt = await Confirm.create({
+        header: 'Add User?',
+        message: Text.create('Add the new user shown below?'),
+        details: this.getUserConfirmDetails(profile.account as string, newUser),
+      });
+      const confirmed = await confirmPrompt.prompt(this.input.io);
+      if (!confirmed) {
+        await this.executeService.warning('Add User Canceled', Text.create('Adding the new user was canceled.'));
+        throw new Error('Add User Canceled');
+      }
     }
   }
 
   public async confirmRemoveUser(id: string, user: IFusebitUser): Promise<void> {
-    const profile = await this.profileService.getExecutionProfile(['account']);
+    if (!this.input.options.quiet) {
+      const profile = await this.profileService.getExecutionProfile(['account']);
 
-    const confirmPrompt = await Confirm.create({
-      header: 'Remove User?',
-      message: Text.create("Remove user '", Text.bold(id), "' shown below?"),
-      details: this.getUserConfirmDetails(profile.account as string, user),
-    });
-    const confirmed = await confirmPrompt.prompt(this.input.io);
-    if (!confirmed) {
-      await this.executeService.warning(
-        'Remove User Canceled',
-        Text.create("Removing user '", Text.bold(id), "' was canceled.")
-      );
-      throw new Error('Remove User Canceled');
+      const confirmPrompt = await Confirm.create({
+        header: 'Remove User?',
+        message: Text.create("Remove user '", Text.bold(id), "' shown below?"),
+        details: this.getUserConfirmDetails(profile.account as string, user),
+      });
+      const confirmed = await confirmPrompt.prompt(this.input.io);
+      if (!confirmed) {
+        await this.executeService.warning(
+          'Remove User Canceled',
+          Text.create("Removing user '", Text.bold(id), "' was canceled.")
+        );
+        throw new Error('Remove User Canceled');
+      }
     }
   }
 
   public async confirmInitUser(user: IFusebitUser, entry: IFusebitNewInitEntry): Promise<void> {
-    const profile = await this.profileService.getExecutionProfile(['account']);
+    if (!this.input.options.quiet) {
+      const profile = await this.profileService.getExecutionProfile(['account']);
 
-    const confirmPrompt = await Confirm.create({
-      header: 'Generate Init Token?',
-      message: Text.create("Generate an init token for user '", Text.bold(user.id), "'?"),
-      details: this.getUserConfirmDetails(profile.account as string, user, entry),
-    });
-    const confirmed = await confirmPrompt.prompt(this.input.io);
-    if (!confirmed) {
-      await this.executeService.warning(
-        'Init Token Canceled',
-        Text.create("Generating an init token for user '", Text.bold(user.id), "' was canceled.")
-      );
-      throw new Error('Init Token Canceled');
+      const confirmPrompt = await Confirm.create({
+        header: 'Generate Init Token?',
+        message: Text.create("Generate an init token for user '", Text.bold(user.id), "'?"),
+        details: this.getUserConfirmDetails(profile.account as string, user, entry),
+      });
+      const confirmed = await confirmPrompt.prompt(this.input.io);
+      if (!confirmed) {
+        await this.executeService.warning(
+          'Init Token Canceled',
+          Text.create("Generating an init token for user '", Text.bold(user.id), "' was canceled.")
+        );
+        throw new Error('Init Token Canceled');
+      }
     }
   }
 
   public async confirmUpdateUser(user: IFusebitUser, update: INewFusebitUser): Promise<void> {
-    const profile = await this.profileService.getExecutionProfile(['account']);
+    if (!this.input.options.quiet) {
+      const profile = await this.profileService.getExecutionProfile(['account']);
 
-    const confirmPrompt = await Confirm.create({
-      header: 'Update User?',
-      message: Text.create("Update user '", Text.bold(user.id), "' as shown below?"),
-      details: this.getUpdateUserConfirmDetails(profile.account as string, user, update),
-    });
-    const confirmed = await confirmPrompt.prompt(this.input.io);
-    if (!confirmed) {
-      await this.executeService.warning(
-        'Update User Canceled',
-        Text.create("Updating user '", Text.bold(user.id), "' was canceled.")
-      );
-      throw new Error('Update User Canceled');
+      const confirmPrompt = await Confirm.create({
+        header: 'Update User?',
+        message: Text.create("Update user '", Text.bold(user.id), "' as shown below?"),
+        details: this.getUpdateUserConfirmDetails(profile.account as string, user, update),
+      });
+      const confirmed = await confirmPrompt.prompt(this.input.io);
+      if (!confirmed) {
+        await this.executeService.warning(
+          'Update User Canceled',
+          Text.create("Updating user '", Text.bold(user.id), "' was canceled.")
+        );
+        throw new Error('Update User Canceled');
+      }
     }
   }
 
   public async confirmAddUserAccess(user: IFusebitUser, access: IAddUserAccess): Promise<void> {
-    const profile = await this.profileService.getExecutionProfile(['account']);
+    if (!this.input.options.quiet) {
+      const profile = await this.profileService.getExecutionProfile(['account']);
 
-    const confirmPrompt = await Confirm.create({
-      header: 'Add User Access?',
-      message: Text.create("Add the access shown below to user '", Text.bold(user.id), "'?"),
-      details: this.getUserAccessConfirmDetails(profile.account as string, user, access),
-    });
-    const confirmed = await confirmPrompt.prompt(this.input.io);
-    if (!confirmed) {
-      await this.executeService.warning(
-        'Add Access Canceled',
-        Text.create("Adding access to user '", Text.bold(user.id), "' was canceled.")
-      );
-      throw new Error('Add Access Canceled');
+      const confirmPrompt = await Confirm.create({
+        header: 'Add User Access?',
+        message: Text.create("Add the access shown below to user '", Text.bold(user.id), "'?"),
+        details: this.getUserAccessConfirmDetails(profile.account as string, user, access),
+      });
+      const confirmed = await confirmPrompt.prompt(this.input.io);
+      if (!confirmed) {
+        await this.executeService.warning(
+          'Add Access Canceled',
+          Text.create("Adding access to user '", Text.bold(user.id), "' was canceled.")
+        );
+        throw new Error('Add Access Canceled');
+      }
     }
   }
 
   public async confirmRemoveUserAccess(user: IFusebitUser, access: IAddUserAccess): Promise<void> {
-    const profile = await this.profileService.getExecutionProfile(['account']);
+    if (!this.input.options.quiet) {
+      const profile = await this.profileService.getExecutionProfile(['account']);
 
-    const confirmPrompt = await Confirm.create({
-      header: 'Remove User Access?',
-      message: Text.create("Remove the access shown below from user '", Text.bold(user.id), "'?"),
-      details: this.getUserAccessConfirmDetails(profile.account as string, user, access),
-    });
-    const confirmed = await confirmPrompt.prompt(this.input.io);
-    if (!confirmed) {
-      await this.executeService.warning(
-        'Remove Access Canceled',
-        Text.create("Removing access from user '", Text.bold(user.id), "' was canceled.")
-      );
-      throw new Error('Remove Access Canceled');
+      const confirmPrompt = await Confirm.create({
+        header: 'Remove User Access?',
+        message: Text.create("Remove the access shown below from user '", Text.bold(user.id), "'?"),
+        details: this.getUserAccessConfirmDetails(profile.account as string, user, access),
+      });
+      const confirmed = await confirmPrompt.prompt(this.input.io);
+      if (!confirmed) {
+        await this.executeService.warning(
+          'Remove Access Canceled',
+          Text.create("Removing access from user '", Text.bold(user.id), "' was canceled.")
+        );
+        throw new Error('Remove Access Canceled');
+      }
     }
   }
 
   public async confirmAddUserIdentity(user: IFusebitUser, identity: IFusebitIdentitiy): Promise<void> {
-    const profile = await this.profileService.getExecutionProfile(['account']);
+    if (!this.input.options.quiet) {
+      const profile = await this.profileService.getExecutionProfile(['account']);
 
-    const confirmPrompt = await Confirm.create({
-      header: 'Add Identity?',
-      message: Text.create("Add the identity shown below to user '", Text.bold(user.id), "'?"),
-      details: this.getUserIdentityConfirmDetails(profile.account as string, user, identity),
-    });
-    const confirmed = await confirmPrompt.prompt(this.input.io);
-    if (!confirmed) {
-      await this.executeService.warning(
-        'Add Identity Canceled',
-        Text.create("Adding the identity to user '", Text.bold(user.id), "' was canceled.")
-      );
-      throw new Error('Add Identity Canceled');
+      const confirmPrompt = await Confirm.create({
+        header: 'Add Identity?',
+        message: Text.create("Add the identity shown below to user '", Text.bold(user.id), "'?"),
+        details: this.getUserIdentityConfirmDetails(profile.account as string, user, identity),
+      });
+      const confirmed = await confirmPrompt.prompt(this.input.io);
+      if (!confirmed) {
+        await this.executeService.warning(
+          'Add Identity Canceled',
+          Text.create("Adding the identity to user '", Text.bold(user.id), "' was canceled.")
+        );
+        throw new Error('Add Identity Canceled');
+      }
     }
   }
 
   public async confirmRemoveUserIdentity(user: IFusebitUser, identity: IFusebitIdentitiy): Promise<void> {
-    const profile = await this.profileService.getExecutionProfile(['account']);
+    if (!this.input.options.quiet) {
+      const profile = await this.profileService.getExecutionProfile(['account']);
 
-    const confirmPrompt = await Confirm.create({
-      header: 'Remove Identity?',
-      message: Text.create("Remove the identity shown below from user '", Text.bold(user.id), "'?"),
-      details: this.getUserIdentityConfirmDetails(profile.account as string, user, identity),
-    });
-    const confirmed = await confirmPrompt.prompt(this.input.io);
-    if (!confirmed) {
-      await this.executeService.warning(
-        'Remove Identity Canceled',
-        Text.create("Removing the identity from user '", Text.bold(user.id), "' was canceled.")
-      );
-      throw new Error('Remove Identity Canceled');
+      const confirmPrompt = await Confirm.create({
+        header: 'Remove Identity?',
+        message: Text.create("Remove the identity shown below from user '", Text.bold(user.id), "'?"),
+        details: this.getUserIdentityConfirmDetails(profile.account as string, user, identity),
+      });
+      const confirmed = await confirmPrompt.prompt(this.input.io);
+      if (!confirmed) {
+        await this.executeService.warning(
+          'Remove Identity Canceled',
+          Text.create("Removing the identity from user '", Text.bold(user.id), "' was canceled.")
+        );
+        throw new Error('Remove Identity Canceled');
+      }
     }
   }
 
