@@ -20,7 +20,7 @@ export interface IArgument {
   name: string;
   type?: ArgType;
   default?: string;
-  description?: Text;
+  description?: IText;
   required?: boolean;
 }
 
