@@ -36,6 +36,18 @@ function getDateString(date: Date) {
   return dateOnlyMs === today.valueOf() ? timeString.trim() : dateString.trim();
 }
 
+// -------------------
+// Exported Interfaces
+// -------------------
+
+export interface IFusebitProfileDefaults {
+  [index: string]: string | undefined;
+  account?: string;
+  subscription?: string;
+  boundary?: string;
+  function?: string;
+}
+
 // ----------------
 // Exported Classes
 // ----------------
@@ -290,7 +302,7 @@ export class ProfileService {
 
   public async getExecutionProfile(
     expected?: string[],
-    defaults?: IFusebitProfileSettings
+    defaults?: IFusebitProfileDefaults
   ): Promise<IFusebitExecutionProfile> {
     try {
       await profileConvert();
@@ -304,18 +316,17 @@ export class ProfileService {
     for (const option of profileOptions) {
       if (this.input.options[option]) {
         profile[option] = this.input.options[option] as string;
-      } else if (defaults && (defaults[option] || defaults[`${option}Id`])) {
-        profile[option] = defaults[option] || defaults[`${option}Id`];
+      } else if (defaults && defaults[option]) {
+        profile[option] = defaults[option];
       }
     }
 
     for (const expect of expected || []) {
       if (profile[expect] === undefined) {
-        this.executeService.error(
+        await this.executeService.error(
           'Option Required',
           Text.create("The '", Text.bold(expect), "' option must be specified as it is not specified in the profile.")
         );
-        throw new Error('Option Required');
       }
     }
 
@@ -444,19 +455,19 @@ export class ProfileService {
   private async writeFusebitProfileErrorMessage(exception: FusebitProfileException) {
     switch (exception.code) {
       case FusebitProfileExceptionCode.profileDoesNotExist:
-        this.executeService.error(
+        await this.executeService.error(
           'No Profile',
           Text.create("The profile '", Text.bold(exception.params[0]), "' does not exist")
         );
         return;
       case FusebitProfileExceptionCode.profileAlreadyExists:
-        this.executeService.error(
+        await this.executeService.error(
           'Profile Exists',
           Text.create("The profile '", Text.bold(exception.params[0]), "' already exists")
         );
         return;
       case FusebitProfileExceptionCode.baseUrlMissingProtocol:
-        this.executeService.error(
+        await this.executeService.error(
           'Base Url',
           Text.create(
             "The base url '",
@@ -466,16 +477,16 @@ export class ProfileService {
         );
         return;
       case FusebitProfileExceptionCode.noDefaultProfile:
-        this.executeService.error('No Profile', 'There is no default profile set');
+        await this.executeService.error('No Profile', 'There is no default profile set');
         return;
       default:
-        this.executeService.error('Profile Error', exception.message);
+        await this.executeService.error('Profile Error', exception.message);
         return;
     }
   }
 
   private async writeErrorMessage(error: Error) {
-    this.executeService.error('Profile Error', error.message);
+    await this.executeService.error('Profile Error', error.message);
   }
 
   private async writeProfile(profile: IFusebitProfile, isDefault: boolean) {

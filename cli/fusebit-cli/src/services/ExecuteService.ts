@@ -3,14 +3,6 @@ import { IText } from '@5qtrs/text';
 import { IHttpRequest, request as sendRequest } from '@5qtrs/request';
 import { VersionService } from './VersionService';
 
-// ------------------
-// Internal Constants
-// ------------------
-
-const prettyOutput = 'pretty';
-const rawOutput = 'raw';
-const jsonOutput = 'json';
-
 // -------------------
 // Exported Interfaces
 // -------------------
@@ -51,8 +43,7 @@ export class ExecuteService {
   public async execute<T>(messages: IExcuteMessages, func?: () => Promise<T | undefined>) {
     try {
       if (messages.header || messages.message) {
-        const output = this.input.options.output;
-        if (!output || output === prettyOutput) {
+        if (this.isPrettyOutput()) {
           this.info(messages.header || '', messages.message || '');
           this.input.io.spin(true);
         }
@@ -66,7 +57,6 @@ export class ExecuteService {
       const header = messages.errorHeader || '';
       const message = error.code !== undefined ? messages.errorMessage || '' : error.message;
       this.error(header, message);
-      throw error;
     }
   }
 
@@ -103,8 +93,7 @@ export class ExecuteService {
   }
 
   public async message(header: IText, message: IText, kind: MessageKind = MessageKind.result) {
-    const output = this.input.options.output;
-    if (!output || output === prettyOutput) {
+    if (this.isPrettyOutput()) {
       const formattedMessage = await Message.create({ header, message, kind });
       await formattedMessage.write(this.input.io);
     }
@@ -119,19 +108,20 @@ export class ExecuteService {
   }
 
   public async error(header: IText, message: IText) {
-    if (this.input.options.output === prettyOutput) {
-      return this.message(header, message, MessageKind.error);
-    } else if (this.input.options.output === rawOutput) {
-      return this.input.io.writeLineRaw(`ERROR: ${header} - ${message}`);
-    } else if (this.input.options.output === jsonOutput) {
+    if (this.isPrettyOutput()) {
+      await this.message(header, message, MessageKind.error);
+    } else if (this.isRawOutput()) {
+      await this.input.io.writeLineRaw(`ERROR: ${header} - ${message}`);
+    } else if (this.isJsonOutput()) {
       const json = {
         error: {
           status: header.toString(false),
           message: message.toString(false),
         },
       };
-      this.input.io.writeLineRaw(JSON.stringify(json, null, 2));
+      await this.input.io.writeLineRaw(JSON.stringify(json, null, 2));
     }
+    throw new Error(`${header} - ${message}`);
   }
 
   public async info(header: IText, message: IText) {
@@ -139,9 +129,23 @@ export class ExecuteService {
   }
 
   public async newLine() {
-    const output = this.input.options.output;
-    if (!output || output === prettyOutput) {
+    if (this.isPrettyOutput()) {
       return this.input.io.writeLine();
     }
+  }
+
+  private isPrettyOutput() {
+    const output = this.input.options.output;
+    return !output || output === 'pretty';
+  }
+
+  private isRawOutput() {
+    const output = this.input.options.output;
+    return output === 'raw';
+  }
+
+  private isJsonOutput() {
+    const output = this.input.options.output;
+    return output === 'json';
   }
 }
