@@ -653,8 +653,9 @@ export class UserService {
     });
     await message.write(this.input.io);
 
+    let userCount = 1;
     for (const user of users) {
-      await this.writeUser(user);
+      await this.writeUser(user, userCount++);
     }
   }
 
@@ -690,7 +691,7 @@ export class UserService {
     this.input.io.writeLineRaw(`fuse init ${initToken}`);
   }
 
-  private async writeUser(user: IFusebitUser) {
+  private async writeUser(user: IFusebitUser, userCount: number = 1) {
     const details = [Text.dim('Id: '), user.id || ''];
 
     if (user.primaryEmail) {
@@ -725,7 +726,6 @@ export class UserService {
       }
     }
 
-    let userCount = 1;
     const userName =
       user.firstName || user.lastName ? [user.firstName, user.lastName].join(' ') : `User ${userCount++}`;
 
