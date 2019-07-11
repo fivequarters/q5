@@ -1,6 +1,7 @@
 import { join } from 'path';
 import { createServer } from 'http';
 import open from 'open';
+import { readFile } from '@5qtrs/file';
 import { IFusebitExecutionProfile } from '@5qtrs/fusebit-profile-sdk';
 import { Message, IExecuteInput } from '@5qtrs/cli';
 import { ExecuteService } from './ExecuteService';
@@ -49,11 +50,12 @@ export class FunctionService {
   }
 
   public async getFusebitJson(path?: string): Promise<any> {
-    let fusebit: any = undefined;
     try {
-      fusebit = require(join(path || process.cwd(), 'fusebit.json'));
-    } catch (_) {}
-    return fusebit;
+      const buffer = await readFile(join(path || process.cwd(), 'fusebit.json'));
+      return JSON.parse(buffer.toString());
+    } catch (error) {
+      // do nothing
+    }
   }
 
   public async getFunctionExecutionProfile(expected: string[], functionId?: string, fusebitJsonPath?: string) {
@@ -228,6 +230,7 @@ export class FunctionService {
     const functionList = Text.join(functions, Text.dim(', '));
     await this.executeService.message(Text.bold(boundaryName), functionList);
   }
+
   private getEditorHtml(profile: IFusebitExecutionProfile, theme: string): string {
     return `<!doctype html>
   <html lang="en">

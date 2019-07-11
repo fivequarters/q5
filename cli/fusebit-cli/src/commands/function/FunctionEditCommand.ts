@@ -1,32 +1,34 @@
 import { Command, IExecuteInput } from '@5qtrs/cli';
 import { ExecuteService, FunctionService } from '../../services';
 
+const command = {
+  name: 'Edit Function',
+  cmd: 'edit',
+  summary: 'Edit a function in the Fusebit editor',
+  description: [
+    'Opens the Fusebit Editor in your default browser to edit a function.',
+    'If the function does not exist, it is created.',
+  ].join(' '),
+  arguments: [
+    {
+      name: 'function',
+      description: 'The id of the function to edit',
+      required: false,
+    },
+  ],
+  options: [
+    {
+      name: 'theme',
+      aliases: ['t'],
+      description: "The theme of the editor: 'light' or 'dark'",
+      default: 'light',
+    },
+  ],
+};
+
 export class FunctionEditCommand extends Command {
   private constructor() {
-    super({
-      name: 'Edit Function',
-      cmd: 'edit',
-      summary: 'Edit a function in the Fusebit editor',
-      description: [
-        'Opens the Fusebit Editor in your default browser to edit a function.',
-        'If the function does not exist, it is created.',
-      ].join(' '),
-      arguments: [
-        {
-          name: 'function',
-          description: 'The id of the function to edit',
-          required: false,
-        },
-      ],
-      options: [
-        {
-          name: 'theme',
-          aliases: ['t'],
-          description: "The theme of the editor: 'light' or 'dark'",
-          default: 'light',
-        },
-      ],
-    });
+    super(command);
   }
 
   public static async create() {
