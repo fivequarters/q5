@@ -457,13 +457,15 @@ export class ProfileService {
       case FusebitProfileExceptionCode.profileDoesNotExist:
         await this.executeService.error(
           'No Profile',
-          Text.create("The profile '", Text.bold(exception.params[0]), "' does not exist")
+          Text.create("The profile '", Text.bold(exception.params[0]), "' does not exist"),
+          exception
         );
         return;
       case FusebitProfileExceptionCode.profileAlreadyExists:
         await this.executeService.error(
           'Profile Exists',
-          Text.create("The profile '", Text.bold(exception.params[0]), "' already exists")
+          Text.create("The profile '", Text.bold(exception.params[0]), "' already exists"),
+          exception
         );
         return;
       case FusebitProfileExceptionCode.baseUrlMissingProtocol:
@@ -473,20 +475,21 @@ export class ProfileService {
             "The base url '",
             Text.bold(exception.params[0]),
             "' does not include the protocol, 'http' or 'https'"
-          )
+          ),
+          exception
         );
         return;
       case FusebitProfileExceptionCode.noDefaultProfile:
-        await this.executeService.error('No Profile', 'There is no default profile set');
+        await this.executeService.error('No Profile', 'There is no default profile set', exception);
         return;
       default:
-        await this.executeService.error('Profile Error', exception.message);
+        await this.executeService.error('Profile Error', exception.message, exception);
         return;
     }
   }
 
   private async writeErrorMessage(error: Error) {
-    await this.executeService.error('Profile Error', error.message);
+    await this.executeService.error('Profile Error', error.message, error);
   }
 
   private async writeProfile(profile: IFusebitProfile, isDefault: boolean) {

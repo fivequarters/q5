@@ -107,7 +107,7 @@ export class ExecuteService {
     return this.message(header, message, MessageKind.warning);
   }
 
-  public async error(header: IText, message: IText) {
+  public async error(header: IText, message: IText, error?: Error) {
     if (this.isPrettyOutput()) {
       await this.message(header, message, MessageKind.error);
     } else if (this.isRawOutput()) {
@@ -121,7 +121,7 @@ export class ExecuteService {
       };
       await this.input.io.writeLineRaw(JSON.stringify(json, null, 2));
     }
-    throw new Error(`${header} - ${message}`);
+    throw error || new Error(`${header} - ${message}`);
   }
 
   public async info(header: IText, message: IText) {
