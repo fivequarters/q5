@@ -61,9 +61,9 @@ const command = {
       name: 'next',
       aliases: ['n'],
       description: Text.create([
-        "The opaque next token from a previous list command used to continue listing; obtained when using the '",
-        Text.bold('--format json'),
-        "' option",
+        "The opaque next token obtained from a previous list command when using the '",
+        Text.bold('--output json'),
+        "' option ",
       ]),
     },
   ],
