@@ -1,44 +1,52 @@
-import { EOL } from 'os';
+import { join } from 'path';
 import { Command, ArgType, IExecuteInput, Message } from '@5qtrs/cli';
-import { ProfileService, ExecuteService } from '../../services';
-import * as Path from 'path';
-import * as Fs from 'fs';
+import { ExecuteService, FunctionService } from '../../services';
 import { Text } from '@5qtrs/text';
+
+const command = {
+  name: 'Initialize Function',
+  cmd: 'init',
+  summary: 'Scaffold a new function in the given directory',
+  description: Text.create(
+    'Scaffolds a new function in the given directory. ',
+    'If the directory is not specified, working directory is used.',
+    Text.eol(),
+    Text.eol(),
+    "The function can be later deployed using '",
+    Text.bold('function deploy'),
+    "' command."
+  ),
+  arguments: [
+    {
+      name: 'target',
+      description: [
+        'A path to the directory where the function files will be placed.',
+        `If not specified, the current working directory is used.`,
+      ].join(' '),
+      required: false,
+    },
+  ],
+  options: [
+    {
+      name: 'quiet',
+      aliases: ['q'],
+      description: 'If set to true, does not prompt for confirmation',
+      type: ArgType.boolean,
+      default: 'false',
+    },
+    {
+      name: 'output',
+      aliases: ['o'],
+      description: "The format to display the output: 'pretty', 'json'",
+      default: 'pretty',
+    },
+  ],
+  ignoreOptions: ['profile', 'boundary', 'subscription'],
+};
 
 export class FunctionInitCommand extends Command {
   private constructor() {
-    super({
-      name: 'Initialize Function',
-      cmd: 'init',
-      summary: 'Scaffold a new function in the specified directory.',
-      description: [
-        'Creates scaffolding of a new function in the specified directory on disk.',
-        'If the directory is not specified, working directory is used. The directory must be empty',
-        'unless the --force option is specified.',
-        `${EOL}${EOL}The function can be later deployed using \`fuse function deploy\`.`,
-      ].join(' '),
-      arguments: [
-        {
-          name: 'dest',
-          description: [
-            'A path to the directory where the function files will be placed.',
-            `If not specified, the current working directory is used.`,
-          ].join(' '),
-          required: false,
-          default: '',
-        },
-      ],
-      options: [
-        {
-          name: 'force',
-          description: 'Enables initialization of a function in a non-empty directory.',
-          type: ArgType.boolean,
-          default: 'false',
-        },
-      ],
-      ignoreOptions: ['profile', 'boundary', 'subscription'],
-      modes: [],
-    });
+    super(command);
   }
 
   public static async create() {
@@ -46,56 +54,16 @@ export class FunctionInitCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    await input.io.writeLine();
-
+    const target = input.arguments[0] as string;
     const executeService = await ExecuteService.create(input);
+    const functionService = await FunctionService.create(input);
 
-    let destDirectory = Path.join(process.cwd(), input.arguments[0] as string);
+    await executeService.newLine();
 
-    await executeService.execute(
-      {
-        header: 'Initialize Function',
-        message: Text.create('Initialize a new function in ', Text.bold(destDirectory), ' directory'),
-        errorHeader: 'Initialize Function Error',
-        errorMessage: 'Unable to initialize the function',
-      },
-      async () => {
-        // Ensure directory
+    const targetPath = target ? join(process.cwd(), target) : process.cwd();
 
-        if (Fs.existsSync(destDirectory)) {
-          if (!input.options.force && Fs.readdirSync(destDirectory).length > 0) {
-            throw new Error(
-              `The destination directory ${destDirectory} is not empty. To force the function files to be saved there anyway, use the --force option.`
-            );
-          }
-        } else {
-          Fs.mkdirSync(destDirectory, { recursive: true });
-        }
-
-        let files: string[] = [];
-        let dirs = Fs.readdirSync(Path.join(__dirname, '../../../template'));
-        for (var i = 0; i < dirs.length; i++) {
-          let f = dirs[i];
-          files.push(f);
-          Fs.writeFileSync(
-            Path.join(destDirectory, f),
-            Fs.readFileSync(Path.join(__dirname, '../../../template', f), 'utf8'),
-            'utf8'
-          );
-        }
-        Fs.writeFileSync(Path.join(destDirectory, '.gitignore'), `.env`, 'utf8');
-        files.push('.gitignore');
-
-        await (await Message.create({
-          header: 'Generated Files',
-          message: files.join('\n'),
-        })).write(input.io);
-
-        await input.io.writeLine('Done. You can deploy the function with `fuse function deploy`.');
-
-        return 0;
-      }
-    );
+    await functionService.confirmInitFunction(targetPath);
+    await functionService.initFunction(targetPath);
 
     return 0;
   }

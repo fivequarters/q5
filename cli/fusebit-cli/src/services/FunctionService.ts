@@ -1,12 +1,36 @@
 import { join } from 'path';
 import { createServer } from 'http';
 import open from 'open';
-import { readFile } from '@5qtrs/file';
+import { readFile, readDirectory, exists, copyDirectory } from '@5qtrs/file';
 import { IFusebitExecutionProfile } from '@5qtrs/fusebit-profile-sdk';
-import { Message, IExecuteInput } from '@5qtrs/cli';
+import { Message, IExecuteInput, Confirm } from '@5qtrs/cli';
 import { ExecuteService } from './ExecuteService';
 import { ProfileService, IFusebitProfileDefaults } from './ProfileService';
 import { Text } from '@5qtrs/text';
+
+// ------------------
+// Internal Functions
+// ------------------
+
+function getTemplateDirectoryPath(): string {
+  return join(__dirname, '../../template');
+}
+
+async function getTemplateFiles(): Promise<string[]> {
+  return readDirectory(getTemplateDirectoryPath(), { joinPaths: false, filesOnly: true });
+}
+
+async function getTemplateOverWriteFiles(targetPath: string): Promise<string[]> {
+  const templateFiles = await getTemplateFiles();
+  const overwriteFiles = [];
+  for (const templateFile of templateFiles) {
+    const path = join(targetPath, templateFile);
+    if (await exists(path)) {
+      overwriteFiles.push(templateFile);
+    }
+  }
+  return overwriteFiles;
+}
 
 // -------------------
 // Exported Interfaces
@@ -197,6 +221,59 @@ export class FunctionService {
     return result;
   }
 
+  public async initFunction(targetPath: string): Promise<void> {
+    const files = await getTemplateFiles();
+    try {
+      await copyDirectory(getTemplateDirectoryPath(), targetPath);
+    } catch (error) {
+      this.executeService.error('Init Function Error', 'Failed to initialize the function', error);
+      return;
+    }
+
+    const output = this.input.options.output as string;
+    if (output === 'json') {
+      await this.input.io.writeLineRaw(JSON.stringify({ path: targetPath, files }));
+      return;
+    }
+
+    await this.executeService.result(
+      'Function Initialized',
+      Text.create(
+        "A new function was initialized in the '",
+        Text.bold(targetPath),
+        "' directory. The following files were generated:",
+        Text.eol(),
+        Text.eol(),
+        Text.create(files.map(file => Text.create(Text.dim('• '), file, Text.eol()))),
+        Text.eol(),
+        "You can deploy the function with the '",
+        Text.bold('function deploy'),
+        "' command."
+      )
+    );
+  }
+
+  public async confirmInitFunction(targetPath: string): Promise<void> {
+    if (!this.input.options.quiet) {
+      const files = await getTemplateOverWriteFiles(targetPath);
+      if (files.length) {
+        const confirmPrompt = await Confirm.create({
+          header: 'Overwrite?',
+          message: Text.create("The '", Text.bold(targetPath), "' directory is not empty. Overwrite the files below?"),
+          details: this.getFileConfirmDetails(files),
+        });
+        const confirmed = await confirmPrompt.prompt(this.input.io);
+        if (!confirmed) {
+          await this.executeService.warning(
+            'Init Canceled',
+            Text.create("Initialzing the function at '", Text.bold(targetPath), "' was canceled")
+          );
+          throw new Error('Init Canceled');
+        }
+      }
+    }
+  }
+
   public async confirmListMore(): Promise<boolean> {
     const result = await this.input.io.prompt({ prompt: 'Get More Functions?', yesNo: true });
     return result.length > 0;
@@ -229,6 +306,10 @@ export class FunctionService {
   private async writeBoundary(boundaryName: string, functions: string[]) {
     const functionList = Text.join(functions, Text.dim(', '));
     await this.executeService.message(Text.bold(boundaryName), functionList);
+  }
+
+  private getFileConfirmDetails(files: string[]) {
+    return files.map(file => ({ name: Text.dim('• '), value: file }));
   }
 
   private getEditorHtml(profile: IFusebitExecutionProfile, theme: string): string {

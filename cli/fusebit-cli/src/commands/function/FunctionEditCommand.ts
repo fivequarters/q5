@@ -23,6 +23,12 @@ const command = {
       description: "The theme of the editor: 'light' or 'dark'",
       default: 'light',
     },
+    {
+      name: 'output',
+      aliases: ['o'],
+      description: "The format to display the output: 'pretty', 'json'",
+      default: 'pretty',
+    },
   ],
 };
 
