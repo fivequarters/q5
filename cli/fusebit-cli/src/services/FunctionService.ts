@@ -352,7 +352,7 @@ export class FunctionService {
   }
 
   private async writeBoundary(boundaryName: string, functions: string[]) {
-    const functionList = Text.join(functions, Text.dim(', '));
+    const functionList = Text.join(functions, Text.eol());
     await this.executeService.message(Text.bold(boundaryName), functionList);
   }
 
