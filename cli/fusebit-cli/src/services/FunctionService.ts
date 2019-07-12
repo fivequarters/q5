@@ -7,6 +7,7 @@ import { Message, IExecuteInput, Confirm } from '@5qtrs/cli';
 import { ExecuteService } from './ExecuteService';
 import { ProfileService, IFusebitProfileDefaults } from './ProfileService';
 import { Text } from '@5qtrs/text';
+import { thisExpression } from '@babel/types';
 
 // ------------------
 // Internal Functions
@@ -82,7 +83,7 @@ export class FunctionService {
     }
   }
 
-  public async getFunctionExecutionProfile(expected: string[], functionId?: string, fusebitJsonPath?: string) {
+  public async getFunctionExecutionProfile(functionRequired: boolean, functionId?: string, fusebitJsonPath?: string) {
     const defaults: IFusebitProfileDefaults = { function: functionId };
     if (fusebitJsonPath) {
       const fusebit = await this.getFusebitJson(fusebitJsonPath);
@@ -92,15 +93,15 @@ export class FunctionService {
         defaults.subscription = fusebit.subscriptionId;
       }
     }
+    const expected = ['account', 'subscription', 'boundary'];
+    if (functionRequired) {
+      expected.push('function');
+    }
     return this.profileService.getExecutionProfile(expected, defaults);
   }
 
-  public async startEditServer(functionId: string, theme: string) {
-    const profile = await this.getFunctionExecutionProfile(
-      ['account', 'subscription', 'boundary', 'function'],
-      functionId,
-      process.cwd()
-    );
+  public async startEditServer(functionId?: string, theme: string = 'light') {
+    const profile = await this.getFunctionExecutionProfile(true, functionId, process.cwd());
 
     if (theme !== 'light' && theme !== 'dark') {
       this.executeService.error('Edit Function Error', Text.create(''));
@@ -154,11 +155,9 @@ export class FunctionService {
       'Edit Function',
       Text.create(
         "Editing function '",
-        Text.bold(`${profile.boundary}/${profile.function}`),
-        "' of account '",
-        Text.bold(profile.account || ''),
-        "' and subscription '",
-        Text.bold(profile.subscription || ''),
+        Text.bold(`${profile.function}`),
+        "' in boundary '",
+        Text.bold(`${profile.boundary}`),
         "'.",
         Text.eol(),
         Text.eol(),
@@ -200,14 +199,17 @@ export class FunctionService {
         message: Text.create(
           'Listing ',
           Text.bold(cronMessage),
-          `functions of account '`,
-          Text.bold(profile.account || ''),
-          "', subscription '",
-          Text.bold(profile.subscription || ''),
-          profile.boundary ? "', boundary '" + Text.bold(profile.boundary) + "'" : "'"
+          'functions',
+          profile.boundary ? " in boundary '" + Text.bold(profile.boundary) + "'" : '',
+          '...'
         ),
         errorHeader: 'List Functions Error',
-        errorMessage: Text.create("Unable to list the functions of account '", Text.bold(profile.account || ''), "'"),
+        errorMessage: Text.create(
+          'Unable to list ',
+          Text.bold(cronMessage),
+          'functions',
+          profile.boundary ? " in boundary '" + Text.bold(profile.boundary) + "'" : ''
+        ),
       },
       {
         method: 'GET',
@@ -219,6 +221,41 @@ export class FunctionService {
     );
 
     return result;
+  }
+
+  public async getFunctionUrl(functionId?: string): Promise<string> {
+    const profile = await this.getFunctionExecutionProfile(true, functionId, process.cwd());
+
+    const data = await this.executeService.executeRequest(
+      {
+        header: 'Get Function Url',
+        message: Text.create(
+          "Getting the function execution URL for function '",
+          Text.bold(`${profile.function}`),
+          "' in boundary '",
+          Text.bold(`${profile.boundary}`),
+          "'..."
+        ),
+        errorHeader: 'Get Function Url Error',
+        errorMessage: Text.create(
+          "Unable to get the function execution URL for function '",
+          Text.bold(`${profile.function}`),
+          "' in boundary '",
+          Text.bold(`${profile.boundary}`),
+          "'"
+        ),
+      },
+      {
+        method: 'GET',
+        url: [
+          `${profile.baseUrl}/v1/account/${profile.account}/subscription/`,
+          `${profile.subscription}/boundary/${profile.boundary}/function/${profile.function}/location`,
+        ].join(''),
+        headers: { Authorization: `bearer ${profile.accessToken}` },
+      }
+    );
+
+    return data.location as string;
   }
 
   public async initFunction(targetPath: string): Promise<void> {
@@ -277,6 +314,17 @@ export class FunctionService {
   public async confirmListMore(): Promise<boolean> {
     const result = await this.input.io.prompt({ prompt: 'Get More Functions?', yesNo: true });
     return result.length > 0;
+  }
+
+  public async displayFunctionUrl(url: string) {
+    const output = this.input.options.output;
+    if (!output || output === 'raw') {
+      this.input.io.writeLineRaw(url);
+    } else if (output === 'json') {
+      this.input.io.writeLineRaw(JSON.stringify({ location: url }, null, 2));
+    } else {
+      this.executeService.result('Function Url', url);
+    }
   }
 
   public async displayFunctions(functions: IFusebitFunctionShort[], firstDisplay: boolean) {

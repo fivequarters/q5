@@ -324,8 +324,8 @@ export class ProfileService {
     for (const expect of expected || []) {
       if (profile[expect] === undefined) {
         await this.executeService.error(
-          'Option Required',
-          Text.create("The '", Text.bold(expect), "' option must be specified as it is not specified in the profile.")
+          'Input Required',
+          Text.create("The '", Text.bold(expect), "' input must be specified as it is not specified in the profile.")
         );
       }
     }
