@@ -1,5 +1,5 @@
 {
-  "version": "0.10.17",
+  "version": "0.11.0",
   "private": true,
   "org": "5qtrs",
   "scripts": {
@@ -138,6 +138,11 @@
     "lib/aws/aws-config",
     "sdk/fusebit-ops-profile-sdk",
     "lib/aws/aws-autoscale",
-    "lib/aws/aws-ami"
+    "lib/aws/aws-ami",
+    "lib/data/storage-data",
+    "lib/data/storage-data-aws",
+    "lib/server/storage",
+    "lib/node/gzip",
+    "lib/shared/json-stable"
   ]
 }
