@@ -301,7 +301,7 @@ export class Text {
     return new Text([this], colors.gray);
   }
 
-  public wrap(width: number, indent: string = '', hypen: string = '-') {
+  public wrap(width: number, indent: string = '', hypen: string = '') {
     const lines = this.lines();
     const wrapped: Text[] = [];
     indent = indent.length < width ? indent : '';
