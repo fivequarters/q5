@@ -1,6 +1,10 @@
 import { Command, IExecuteInput } from '@5qtrs/cli';
 import { ExecuteService, FunctionService } from '../../services';
 
+// ------------------
+// Internal Constants
+// ------------------
+
 const command = {
   name: 'Edit Function',
   cmd: 'edit',
@@ -31,6 +35,10 @@ const command = {
     },
   ],
 };
+
+// ----------------
+// Exported Classes
+// ----------------
 
 export class FunctionEditCommand extends Command {
   private constructor() {

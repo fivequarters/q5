@@ -1,7 +1,11 @@
 import { join } from 'path';
-import { Command, ArgType, IExecuteInput, Message } from '@5qtrs/cli';
+import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
 import { ExecuteService, FunctionService } from '../../services';
 import { Text } from '@5qtrs/text';
+
+// ------------------
+// Internal Constants
+// ------------------
 
 const command = {
   name: 'Initialize Function',
@@ -43,6 +47,10 @@ const command = {
   ],
   ignoreOptions: ['profile', 'boundary', 'subscription'],
 };
+
+// ----------------
+// Exported Classes
+// ----------------
 
 export class FunctionInitCommand extends Command {
   private constructor() {
