@@ -137,6 +137,7 @@ export function Addon({
   const [configModalVisible, setConfigModalVisible] = useState(false);
   const [secretDisplayValue, setSecretDisplayValue] = useState(secretValue);
   const [editorFunction, setEditorFunction] = useState('');
+  const [dirtyState, setDirtyState] = useState(false);
 
   function onClickAddonManagement() {
     if (state === AddonState.Installed) {
@@ -161,7 +162,13 @@ export function Addon({
   }
 
   function configModalClick() {
-    setConfigModalVisible(false);
+    if (dirtyState) {
+      if (window.confirm('You have unsaved changes, continue?')) {
+        setConfigModalVisible(false);
+      }
+    } else {
+      setConfigModalVisible(false);
+    }
   }
 
   function onCodeButtonClick() {
@@ -170,6 +177,10 @@ export function Addon({
 
   function onEditorBack() {
     setEditorFunction('');
+  }
+
+  function onDirtyStateChanged(state: boolean) {
+    setDirtyState(state);
   }
 
   function handleChange(event: React.FormEvent<HTMLInputElement>) {
@@ -229,6 +240,7 @@ export function Addon({
           <Editor
             style={{ display: editorFunction === '' ? 'none' : 'block' }}
             onEditorBack={onEditorBack}
+            onDirtyStateChanged={onDirtyStateChanged}
             eventAction={editorFunction}
             template={template}
           />

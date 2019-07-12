@@ -1,6 +1,6 @@
 import * as Assert from 'assert';
 import * as Monaco from 'monaco-editor/esm/vs/editor/editor.api.js';
-import { Events, FileDeletedEvent } from './Events';
+import { Events, FileDeletedEvent, FileSelectedEvent } from './Events';
 import { IEditorPanelOptions } from './Options';
 import { EditorContext } from './EditorContext';
 import { updateFusebitContextTypings, addStaticTypings, updateNodejsTypings, updateDependencyTypings } from './Typings';
@@ -54,12 +54,16 @@ export function createEditorPanel(element: HTMLElement, editorContext: EditorCon
 
   const editor = Monaco.editor.create(element, monacoOptions);
   let suppressNextChangeEvent: boolean;
+  let editedFileName: string | undefined;
   let activeCategory: Events = Events.FileSelected;
+  let viewStates: { [property: string]: Monaco.editor.ICodeEditorViewState } = {};
 
   // When a file is selected in the editor context, update editor content and language
-  editorContext.on(Events.FileSelected, () => {
+  editorContext.on(Events.FileSelected, (e: FileSelectedEvent) => {
+    captureViewState();
     suppressNextChangeEvent = true;
     activeCategory = Events.FileSelected;
+    editedFileName = e.fileName;
     editor.setValue(editorContext.getSelectedFileContent() || '');
     const model = editor.getModel();
     const language = editorContext.getSelectedFileLanguage();
@@ -71,11 +75,13 @@ export function createEditorPanel(element: HTMLElement, editorContext: EditorCon
     } else {
       Assert.fail('Model or language cannot be determined for the selected file.');
     }
+    restoreViewState(activeCategory, editedFileName);
     element.style.display = null;
   });
 
   // When the edited file is deleted, hide the editor
   editorContext.on(Events.FileDeleted, (e: FileDeletedEvent) => {
+    delete viewStates[`${Events.FileSelected}:${e.fileName}`];
     if (editorContext.selectedFileName === e.fileName) {
       element.style.display = 'none';
     }
@@ -83,6 +89,7 @@ export function createEditorPanel(element: HTMLElement, editorContext: EditorCon
 
   // When runner is selected in the editor context, update editor content and language
   editorContext.on(Events.RunnerSelected, () => {
+    captureViewState();
     suppressNextChangeEvent = true;
     activeCategory = Events.RunnerSelected;
     editor.setValue(editorContext.getRunnerContent());
@@ -92,11 +99,13 @@ export function createEditorPanel(element: HTMLElement, editorContext: EditorCon
     } else {
       Assert.fail('Model cannot be determined the runner script.');
     }
+    restoreViewState(activeCategory);
     element.style.display = null;
   });
 
   // When compute settings are selected, serialize them and display as INI for editing
   editorContext.on(Events.SettingsComputeSelected, _ => {
+    captureViewState();
     suppressNextChangeEvent = true;
     activeCategory = Events.SettingsComputeSelected;
     editor.setValue(editorContext.getComputeSettings());
@@ -106,11 +115,13 @@ export function createEditorPanel(element: HTMLElement, editorContext: EditorCon
     } else {
       Assert.fail('Model cannot be determined for compute node.');
     }
+    restoreViewState(activeCategory);
     element.style.display = null;
   });
 
   // When application settings are selected, serialize them and display as INI for editing
   editorContext.on(Events.SettingsApplicationSelected, () => {
+    captureViewState();
     suppressNextChangeEvent = true;
     activeCategory = Events.SettingsApplicationSelected;
     editor.setValue(editorContext.getApplicationSettings());
@@ -120,11 +131,13 @@ export function createEditorPanel(element: HTMLElement, editorContext: EditorCon
     } else {
       Assert.fail('Model cannot be determined for app settings node.');
     }
+    restoreViewState(activeCategory);
     element.style.display = null;
   });
 
   // When cron settings are selected, serialize them and display as INI for editing
   editorContext.on(Events.SettingsCronSelected, () => {
+    captureViewState();
     suppressNextChangeEvent = true;
     activeCategory = Events.SettingsCronSelected;
     editor.setValue(editorContext.getCronSettings());
@@ -134,6 +147,7 @@ export function createEditorPanel(element: HTMLElement, editorContext: EditorCon
     } else {
       Assert.fail('Model cannot be determined for CRON settings node.');
     }
+    restoreViewState(activeCategory);
     element.style.display = null;
   });
 
@@ -169,4 +183,20 @@ export function createEditorPanel(element: HTMLElement, editorContext: EditorCon
   updateDependencyTypings(editorContext.getDependencies(packageJson));
 
   return editorContext;
+
+  function captureViewState() {
+    if (activeCategory === Events.FileSelected && !editedFileName) return;
+    let key = activeCategory === Events.FileSelected ? `${activeCategory}:${editedFileName}` : activeCategory;
+    viewStates[key] = editor.saveViewState() as Monaco.editor.ICodeEditorViewState;
+  }
+
+  function restoreViewState(event: string, fileName?: string) {
+    let key = event === Events.FileSelected ? `${event}:${fileName}` : event;
+    if (viewStates[key]) {
+      editor.restoreViewState(viewStates[key]);
+    } else {
+      editor.revealLine(1, Monaco.editor.ScrollType.Immediate);
+      editor.setPosition({ lineNumber: 1, column: 1 });
+    }
+  }
 }
