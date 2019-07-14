@@ -143,6 +143,7 @@
     "lib/data/storage-data-aws",
     "lib/server/storage",
     "lib/node/gzip",
-    "lib/shared/json-stable"
+    "lib/shared/json-stable",
+    "lib/shared/key-value"
   ]
 }
