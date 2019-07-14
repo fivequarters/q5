@@ -10,6 +10,7 @@
     { "path": "../../lib/shared/clone" },
     { "path": "../../lib/shared/request" },
     { "path": "../../lib/shared/base64" },
-    { "path": "../../lib/node/jwt" }
+    { "path": "../../lib/node/jwt" },
+    { "path": "../../lib/shared/key-value" }
   ]
 }
