@@ -868,6 +868,7 @@ export class FunctionService {
       const details = [
         Text.dim('Account: '),
         functionData.accountId,
+        Text.eol(),
         Text.dim('Subscription: '),
         functionData.subscriptionId,
         Text.eol(),
