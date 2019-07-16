@@ -401,7 +401,7 @@ export class ClientService {
     try {
       decoded = await decodeJwt(token);
     } catch (error) {
-      this.executeService.error('Init Error', 'The init token is not a valid Json Web Token (JWT)');
+      await this.executeService.error('Init Error', 'The init token is not a valid Json Web Token (JWT)');
       throw new Error('Init Error');
     }
 
@@ -427,7 +427,7 @@ export class ClientService {
         'The init token is missing required properties: ',
         Text.join(missingValues.map(value => Text.bold(value)), ', ')
       );
-      this.executeService.error('Init Error', message);
+      await this.executeService.error('Init Error', message);
       throw new Error('Init Error');
     }
 
@@ -478,147 +478,163 @@ export class ClientService {
   }
 
   public async confirmAddClient(newClient: INewFusebitClient): Promise<void> {
-    const profile = await this.profileService.getExecutionProfile(['account']);
+    if (!this.input.options.quiet) {
+      const profile = await this.profileService.getExecutionProfile(['account']);
 
-    const confirmPrompt = await Confirm.create({
-      header: 'Add Client?',
-      message: Text.create('Add the new client shown below?'),
-      details: this.getClientConfirmDetails(profile.account as string, newClient),
-    });
-    const confirmed = await confirmPrompt.prompt(this.input.io);
-    if (!confirmed) {
-      await this.executeService.warning('Add Client Canceled', Text.create('Adding the new client was canceled.'));
-      throw new Error('Add Client Canceled');
+      const confirmPrompt = await Confirm.create({
+        header: 'Add Client?',
+        message: Text.create('Add the new client shown below?'),
+        details: this.getClientConfirmDetails(profile.account as string, newClient),
+      });
+      const confirmed = await confirmPrompt.prompt(this.input.io);
+      if (!confirmed) {
+        await this.executeService.warning('Add Client Canceled', Text.create('Adding the new client was canceled.'));
+        throw new Error('Add Client Canceled');
+      }
     }
   }
 
   public async confirmRemoveClient(id: string, client: IFusebitClient): Promise<void> {
-    const profile = await this.profileService.getExecutionProfile(['account']);
+    if (!this.input.options.quiet) {
+      const profile = await this.profileService.getExecutionProfile(['account']);
 
-    const confirmPrompt = await Confirm.create({
-      header: 'Remove Client?',
-      message: Text.create("Remove client '", Text.bold(id), "' shown below?"),
-      details: this.getClientConfirmDetails(profile.account as string, client),
-    });
-    const confirmed = await confirmPrompt.prompt(this.input.io);
-    if (!confirmed) {
-      await this.executeService.warning(
-        'Remove Client Canceled',
-        Text.create("Removing client '", Text.bold(id), "' was canceled.")
-      );
-      throw new Error('Remove Client Canceled');
+      const confirmPrompt = await Confirm.create({
+        header: 'Remove Client?',
+        message: Text.create("Remove client '", Text.bold(id), "' shown below?"),
+        details: this.getClientConfirmDetails(profile.account as string, client),
+      });
+      const confirmed = await confirmPrompt.prompt(this.input.io);
+      if (!confirmed) {
+        await this.executeService.warning(
+          'Remove Client Canceled',
+          Text.create("Removing client '", Text.bold(id), "' was canceled.")
+        );
+        throw new Error('Remove Client Canceled');
+      }
     }
   }
 
   public async confirmInitClient(client: IFusebitClient, entry: IFusebitNewInitEntry): Promise<void> {
-    const profile = await this.profileService.getExecutionProfile(['account']);
+    if (!this.input.options.quiet) {
+      const profile = await this.profileService.getExecutionProfile(['account']);
 
-    const confirmPrompt = await Confirm.create({
-      header: 'Generate Init Token?',
-      message: Text.create("Generate an init token for client '", Text.bold(client.id), "'?"),
-      details: this.getClientConfirmDetails(profile.account as string, client, entry),
-    });
-    const confirmed = await confirmPrompt.prompt(this.input.io);
-    if (!confirmed) {
-      await this.executeService.warning(
-        'Init Token Canceled',
-        Text.create("Generating an init token for client '", Text.bold(client.id), "' was canceled.")
-      );
-      throw new Error('Init Token Canceled');
+      const confirmPrompt = await Confirm.create({
+        header: 'Generate Init Token?',
+        message: Text.create("Generate an init token for client '", Text.bold(client.id), "'?"),
+        details: this.getClientConfirmDetails(profile.account as string, client, entry),
+      });
+      const confirmed = await confirmPrompt.prompt(this.input.io);
+      if (!confirmed) {
+        await this.executeService.warning(
+          'Init Token Canceled',
+          Text.create("Generating an init token for client '", Text.bold(client.id), "' was canceled.")
+        );
+        throw new Error('Init Token Canceled');
+      }
     }
   }
 
   public async confirmUpdateClient(client: IFusebitClient, update: INewFusebitClient): Promise<void> {
-    const profile = await this.profileService.getExecutionProfile(['account']);
+    if (!this.input.options.quiet) {
+      const profile = await this.profileService.getExecutionProfile(['account']);
 
-    const confirmPrompt = await Confirm.create({
-      header: 'Update Client?',
-      message: Text.create("Update client '", Text.bold(client.id), "' as shown below?"),
-      details: this.getUpdateClientConfirmDetails(profile.account as string, client, update),
-    });
-    const confirmed = await confirmPrompt.prompt(this.input.io);
-    if (!confirmed) {
-      await this.executeService.warning(
-        'Update Client Canceled',
-        Text.create("Updating client '", Text.bold(client.id), "' was canceled.")
-      );
-      throw new Error('Update Client Canceled');
+      const confirmPrompt = await Confirm.create({
+        header: 'Update Client?',
+        message: Text.create("Update client '", Text.bold(client.id), "' as shown below?"),
+        details: this.getUpdateClientConfirmDetails(profile.account as string, client, update),
+      });
+      const confirmed = await confirmPrompt.prompt(this.input.io);
+      if (!confirmed) {
+        await this.executeService.warning(
+          'Update Client Canceled',
+          Text.create("Updating client '", Text.bold(client.id), "' was canceled.")
+        );
+        throw new Error('Update Client Canceled');
+      }
     }
   }
 
   public async confirmAddClientAccess(client: IFusebitClient, access: IAddClientAccess): Promise<void> {
-    const profile = await this.profileService.getExecutionProfile(['account']);
+    if (!this.input.options.quiet) {
+      const profile = await this.profileService.getExecutionProfile(['account']);
 
-    const confirmPrompt = await Confirm.create({
-      header: 'Add Client Access?',
-      message: Text.create("Add the access shown below to client '", Text.bold(client.id), "'?"),
-      details: this.getClientAccessConfirmDetails(profile.account as string, client, access),
-    });
-    const confirmed = await confirmPrompt.prompt(this.input.io);
-    if (!confirmed) {
-      await this.executeService.warning(
-        'Add Access Canceled',
-        Text.create("Adding access to client '", Text.bold(client.id), "' was canceled.")
-      );
-      throw new Error('Add Access Canceled');
+      const confirmPrompt = await Confirm.create({
+        header: 'Add Client Access?',
+        message: Text.create("Add the access shown below to client '", Text.bold(client.id), "'?"),
+        details: this.getClientAccessConfirmDetails(profile.account as string, client, access),
+      });
+      const confirmed = await confirmPrompt.prompt(this.input.io);
+      if (!confirmed) {
+        await this.executeService.warning(
+          'Add Access Canceled',
+          Text.create("Adding access to client '", Text.bold(client.id), "' was canceled.")
+        );
+        throw new Error('Add Access Canceled');
+      }
     }
   }
 
   public async confirmRemoveClientAccess(client: IFusebitClient, access: IAddClientAccess): Promise<void> {
-    const profile = await this.profileService.getExecutionProfile(['account']);
+    if (!this.input.options.quiet) {
+      const profile = await this.profileService.getExecutionProfile(['account']);
 
-    const confirmPrompt = await Confirm.create({
-      header: 'Remove Client Access?',
-      message: Text.create("Remove the access shown below from client '", Text.bold(client.id), "'?"),
-      details: this.getClientAccessConfirmDetails(profile.account as string, client, access),
-    });
-    const confirmed = await confirmPrompt.prompt(this.input.io);
-    if (!confirmed) {
-      await this.executeService.warning(
-        'Remove Access Canceled',
-        Text.create("Removing access from client '", Text.bold(client.id), "' was canceled.")
-      );
-      throw new Error('Remove Access Canceled');
+      const confirmPrompt = await Confirm.create({
+        header: 'Remove Client Access?',
+        message: Text.create("Remove the access shown below from client '", Text.bold(client.id), "'?"),
+        details: this.getClientAccessConfirmDetails(profile.account as string, client, access),
+      });
+      const confirmed = await confirmPrompt.prompt(this.input.io);
+      if (!confirmed) {
+        await this.executeService.warning(
+          'Remove Access Canceled',
+          Text.create("Removing access from client '", Text.bold(client.id), "' was canceled.")
+        );
+        throw new Error('Remove Access Canceled');
+      }
     }
   }
 
   public async confirmAddClientIdentity(client: IFusebitClient, identity: IFusebitIdentitiy): Promise<void> {
-    const profile = await this.profileService.getExecutionProfile(['account']);
+    if (!this.input.options.quiet) {
+      const profile = await this.profileService.getExecutionProfile(['account']);
 
-    const confirmPrompt = await Confirm.create({
-      header: 'Add Identity?',
-      message: Text.create("Add the identity shown below to client '", Text.bold(client.id), "'?"),
-      details: this.getClientIdentityConfirmDetails(profile.account as string, client, identity),
-    });
-    const confirmed = await confirmPrompt.prompt(this.input.io);
-    if (!confirmed) {
-      await this.executeService.warning(
-        'Add Identity Canceled',
-        Text.create("Adding the identity to client '", Text.bold(client.id), "' was canceled.")
-      );
-      throw new Error('Add Identity Canceled');
+      const confirmPrompt = await Confirm.create({
+        header: 'Add Identity?',
+        message: Text.create("Add the identity shown below to client '", Text.bold(client.id), "'?"),
+        details: this.getClientIdentityConfirmDetails(profile.account as string, client, identity),
+      });
+      const confirmed = await confirmPrompt.prompt(this.input.io);
+      if (!confirmed) {
+        await this.executeService.warning(
+          'Add Identity Canceled',
+          Text.create("Adding the identity to client '", Text.bold(client.id), "' was canceled.")
+        );
+        throw new Error('Add Identity Canceled');
+      }
     }
   }
 
   public async confirmRemoveClientIdentity(client: IFusebitClient, identity: IFusebitIdentitiy): Promise<void> {
-    const profile = await this.profileService.getExecutionProfile(['account']);
+    if (!this.input.options.quiet) {
+      const profile = await this.profileService.getExecutionProfile(['account']);
 
-    const confirmPrompt = await Confirm.create({
-      header: 'Remove Identity?',
-      message: Text.create("Remove the identity shown below from client '", Text.bold(client.id), "'?"),
-      details: this.getClientIdentityConfirmDetails(profile.account as string, client, identity),
-    });
-    const confirmed = await confirmPrompt.prompt(this.input.io);
-    if (!confirmed) {
-      await this.executeService.warning(
-        'Remove Identity Canceled',
-        Text.create("Removing the identity from client '", Text.bold(client.id), "' was canceled.")
-      );
-      throw new Error('Remove Identity Canceled');
+      const confirmPrompt = await Confirm.create({
+        header: 'Remove Identity?',
+        message: Text.create("Remove the identity shown below from client '", Text.bold(client.id), "'?"),
+        details: this.getClientIdentityConfirmDetails(profile.account as string, client, identity),
+      });
+      const confirmed = await confirmPrompt.prompt(this.input.io);
+      if (!confirmed) {
+        await this.executeService.warning(
+          'Remove Identity Canceled',
+          Text.create("Removing the identity from client '", Text.bold(client.id), "' was canceled.")
+        );
+        throw new Error('Remove Identity Canceled');
+      }
     }
   }
 
-  public async displayClients(clients: IFusebitClient[], firstDisplay: boolean) {
+  public async displayClients(clients: IFusebitClient[], firstDisplay: boolean, clientCount: number = 1) {
     if (!clients.length) {
       await this.executeService.info('No Clients', `No ${firstDisplay ? '' : 'more '}clients to list`);
       return;
@@ -631,7 +647,7 @@ export class ClientService {
     await message.write(this.input.io);
 
     for (const client of clients) {
-      await this.writeClient(client);
+      await this.writeClient(client, clientCount++);
     }
   }
 
@@ -662,37 +678,29 @@ export class ClientService {
     this.input.io.writeLineRaw(`fuse init ${initToken}`);
   }
 
-  private async writeClient(client: IFusebitClient) {
+  private async writeClient(client: IFusebitClient, clientCount: number = 1) {
     const details = [Text.dim('Id: '), client.id || ''];
 
     if (client.identities && client.identities.length) {
       details.push(...[Text.eol(), Text.eol()]);
-      details.push(Text.italic('Identities: '));
+      details.push(Text.dim('Identities'));
       for (const identity of client.identities) {
         details.push(
-          ...[
-            Text.eol(),
-            Text.dim('• issuer: '),
-            identity.issuerId,
-            Text.eol(),
-            Text.dim('  subject: '),
-            identity.subject,
-          ]
+          ...[Text.eol(), Text.dim('• iss: '), identity.issuerId, Text.eol(), Text.dim('  sub: '), identity.subject]
         );
       }
     }
 
     if (client.access && client.access.allow && client.access.allow.length) {
       details.push(...[Text.eol(), Text.eol()]);
-      details.push(Text.italic('Allow: '));
+      details.push(Text.dim('Allow'));
       for (const access of client.access.allow) {
         const resource = formatResourcePath(access.resource);
         details.push(...[Text.eol(), Text.dim('• action:   '), access.action, Text.eol(), resource]);
       }
     }
 
-    let clientCount = 1;
-    const clientName = client.displayName ? client.displayName : `Client ${clientCount++}`;
+    const clientName = client.displayName ? client.displayName : `Client ${clientCount}`;
 
     const message = await Message.create({
       header: Text.bold(clientName),
