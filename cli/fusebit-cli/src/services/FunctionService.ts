@@ -431,6 +431,8 @@ export class FunctionService {
       }
     );
 
+    result.accountId = profile.account;
+
     return result;
   }
 
@@ -481,6 +483,50 @@ export class FunctionService {
     );
 
     return result;
+  }
+
+  public async removeFunction(functionId: string): Promise<void> {
+    const profile = await this.getFunctionExecutionProfile(true, functionId, process.cwd());
+
+    await this.executeService.executeRequest(
+      {
+        header: 'Remove Function',
+        message: Text.create(
+          "Removing function '",
+          Text.bold(`${profile.function}`),
+          "' in boundary '",
+          Text.bold(`${profile.boundary}`),
+          "'..."
+        ),
+        errorHeader: 'Remove Function Error',
+        errorMessage: Text.create(
+          "Unable to remove function '",
+          Text.bold(`${profile.function}`),
+          "' in boundary '",
+          Text.bold(`${profile.boundary}`),
+          "'"
+        ),
+      },
+      {
+        method: 'DELETE',
+        url: [
+          `${profile.baseUrl}/v1/account/${profile.account}/subscription/`,
+          `${profile.subscription}/boundary/${profile.boundary}/function/${profile.function}`,
+        ].join(''),
+        headers: { Authorization: `bearer ${profile.accessToken}` },
+      }
+    );
+
+    await this.executeService.result(
+      'Function Removed',
+      Text.create(
+        "Function '",
+        Text.bold(`${profile.function}`),
+        "' in boundary '",
+        Text.bold(`${profile.boundary}`),
+        "' was successfully removed"
+      )
+    );
   }
 
   public async getFunctionUrl(functionId?: string, quiet: boolean = false): Promise<string> {
@@ -712,6 +758,24 @@ export class FunctionService {
     }
   }
 
+  public async confirmRemove(functionSpec: any): Promise<void> {
+    if (!this.input.options.quiet) {
+      const confirmPrompt = await Confirm.create({
+        header: 'Remove?',
+        message: Text.create("Permanently remove the '", Text.bold(functionSpec.id), "' function as shown below?"),
+        details: await this.getConfirmRemoveDetails(functionSpec),
+      });
+      const confirmed = await confirmPrompt.prompt(this.input.io);
+      if (!confirmed) {
+        await this.executeService.warning(
+          'Remove Canceled',
+          Text.create("Removing the '", Text.bold(functionSpec.id), "' function was canceled")
+        );
+        throw new Error('Remove Canceled');
+      }
+    }
+  }
+
   public async displayFunctionUrl(url: string) {
     const output = this.input.options.output;
     if (!output || output === 'raw') {
@@ -791,6 +855,7 @@ export class FunctionService {
 
     const functionData = {
       id: functionSpec.id,
+      accountId: functionSpec.accountId,
       subscriptionId: functionSpec.subscriptionId,
       boundaryId: functionSpec.boundaryId,
       files: functionSpec.nodejs && functionSpec.nodejs.files ? Object.keys(functionSpec.nodejs.files) : [],
@@ -801,6 +866,8 @@ export class FunctionService {
       this.input.io.writeLineRaw(JSON.stringify(functionData, null, 2));
     } else {
       const details = [
+        Text.dim('Account: '),
+        functionData.accountId,
         Text.dim('Subscription: '),
         functionData.subscriptionId,
         Text.eol(),
@@ -866,6 +933,26 @@ export class FunctionService {
     ];
 
     return details;
+  }
+
+  private async getConfirmRemoveDetails(functionSpec: any) {
+    const appSettings = Object.keys(functionSpec.configuration || {}).join(' ');
+
+    let schedule = notSet;
+    if (functionSpec.schedule && functionSpec.schedule.cron) {
+      const timezone = functionSpec.schedule.timezone ? ` ${functionSpec.schedule.timezone}` : '';
+      schedule = Text.create(functionSpec.schedule.cron, timezone);
+    }
+
+    return [
+      { name: 'Account', value: functionSpec.accountId },
+      { name: 'Subscription', value: functionSpec.subscriptionId },
+      { name: 'Boundary', value: functionSpec.boundaryId },
+      { name: 'Function', value: functionSpec.id },
+      { name: 'Files', value: Object.keys(functionSpec.nodejs.files).join(' ') },
+      { name: 'Application Settings', value: appSettings ? appSettings : notSet },
+      { name: 'Schedule', value: schedule },
+    ];
   }
 
   private getFileConfirmDetails(files: string[]) {
