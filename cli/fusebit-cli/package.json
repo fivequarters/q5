@@ -33,7 +33,8 @@
     "@5qtrs/base64": "^0.0.1",
     "@5qtrs/jwt": "^0.0.1",
     "@5qtrs/fusebit-profile-sdk": "^0.0.1",
-    "@5qtrs/key-value": "^0.0.1"
+    "@5qtrs/key-value": "^0.0.1",
+    "@5qtrs/event-stream": "^0.0.1"
   },
   "devDependencies": {
     "@types/opn": "^5.5.0"

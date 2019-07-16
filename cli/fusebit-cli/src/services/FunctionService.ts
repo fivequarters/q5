@@ -2,12 +2,13 @@ import { join } from 'path';
 import { createServer } from 'http';
 import open from 'open';
 import { parse, serialize } from '@5qtrs/key-value';
+import { EventStream, IEventMessage } from '@5qtrs/event-stream';
 import { readFile, readDirectory, exists, copyDirectory, writeFile } from '@5qtrs/file';
 import { IFusebitExecutionProfile } from '@5qtrs/fusebit-profile-sdk';
 import { Message, IExecuteInput, Confirm } from '@5qtrs/cli';
+import { Text, IText } from '@5qtrs/text';
 import { ExecuteService } from './ExecuteService';
 import { ProfileService, IFusebitProfileDefaults } from './ProfileService';
-import { Text, IText } from '@5qtrs/text';
 import { VersionService } from './VersionService';
 
 // ------------------
@@ -434,6 +435,89 @@ export class FunctionService {
     result.accountId = profile.account;
 
     return result;
+  }
+
+  public async getFunctionLogs(path?: string, functionId?: string): Promise<void> {
+    const profile = await this.getFunctionExecutionProfile(false, functionId, path);
+
+    const isJson = this.input.options.output === 'json';
+    const version = await this.versionService.getVersion();
+
+    const baseUrl = `${profile.baseUrl}/v1/account/${profile.account}/subscription/${profile.subscription}`;
+    const url = profile.function
+      ? `${baseUrl}/boundary/${profile.boundary}/function/${profile.function}/log?token=${profile.accessToken}`
+      : `${baseUrl}/boundary/${profile.boundary}/log?token=${profile.accessToken}`;
+    const functionMessage = profile.function ? ["of function '", Text.bold(profile.function || ''), "' "] : [''];
+
+    await this.executeService.execute(
+      {
+        header: 'Get Function Logs',
+        message: Text.create(
+          'Connecting to logs ',
+          ...functionMessage,
+          "in boundary '",
+          Text.bold(profile.boundary || ''),
+          "'..."
+        ),
+        errorHeader: 'Get Function Logs Error',
+        errorMessage: Text.create(
+          'Unable to connect to logs ',
+          ...functionMessage,
+          "in boundary '",
+          Text.bold(profile.boundary || ''),
+          "'"
+        ),
+      },
+      async () => {
+        return new Promise(async (resolve, reject) => {
+          let ready = false;
+          const options = {
+            headers: { 'User-Agent': `fusebit-cli/${version}` },
+            onEnd: resolve,
+            onError: reject,
+            onMessage: (message: IEventMessage) => {
+              if (message.name === 'log' && ready) {
+                if (isJson) {
+                  this.input.io.writeLineRaw(message.data);
+                } else {
+                  const parsed: any = JSON.parse(message.data);
+                  this.input.io.write(Text.dim(`[${new Date(parsed.time).toLocaleTimeString()}] `));
+                  this.input.io.writeLineRaw(parsed.msg);
+                }
+              }
+            },
+          };
+
+          await EventStream.create(url, options);
+
+          await this.executeService.info(
+            'Connected',
+            Text.create(
+              'Successfully connected to real-time streaming logs...',
+              Text.eol(),
+              Text.eol(),
+              Text.italic(
+                "Note: To enable real-time logging for a request, add the '",
+                Text.bold('x-fx-logs=1'),
+                "' query parameter to the request"
+              )
+            )
+          );
+          ready = true;
+        });
+      }
+    );
+
+    await this.executeService.warning(
+      'Logs Disconnected',
+      Text.create(
+        'The connection to logs ',
+        ...functionMessage,
+        "in boundary '",
+        Text.bold(profile.boundary || ''),
+        "' was terminated"
+      )
+    );
   }
 
   public async listFunctions(options: IFusebitFunctionListOptions): Promise<IFusebitFunctionListResult> {
