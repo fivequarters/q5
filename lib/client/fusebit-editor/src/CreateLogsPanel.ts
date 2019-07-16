@@ -50,15 +50,22 @@ export function createLogsPanel(element: HTMLElement, editorContext: EditorConte
   });
 
   editorContext.on(Events.Events.BuildFinished, (e: Events.BuildFinishedEvent) => {
-    if (e.status.buildId) {
-      append(
-        `BUILD ${e.status.buildId}: progress ${Math.floor((e.status.progress || 0) * 100)}% (${e.status.status}) ${e
-          .status.location || JSON.stringify(e.status.error, null, 2)}`
-      );
-    } else if (e.status.error) {
-      append(`BUILD: error: ${JSON.stringify(e.status.error, null, 2)}`);
-    } else {
-      append(`BUILD: success (no changes)`);
+    switch (e.status.status) {
+      case 'success':
+        append(`BUILD SUCCESS: ${e.status.location}`);
+        break;
+      case 'building':
+        append(`BUILD ${e.status.buildId}: progress ${Math.floor((e.status.progress || 0) * 100)}%`);
+        break;
+      case 'failed':
+        append(`BUILD ERROR: ${JSON.stringify(e.status.error, null, 2)}`);
+        break;
+      case 'unchanged':
+        append(`BUILD SUCCESS: no changes`);
+        break;
+      default:
+        append(`BUILD STATUS: ${e.status.status || JSON.stringify(e.status.error, null, 2)}`);
+        break;
     }
   });
 
@@ -66,13 +73,13 @@ export function createLogsPanel(element: HTMLElement, editorContext: EditorConte
     let status = e.error.status || e.error.statusCode;
     let message = e.error.message;
     if (status) {
-      let lines = [`BUILD: error HTTP ${status}`];
+      let lines = [`BUILD ERROR: HTTP ${status}`];
       if (message) {
         lines.push(message);
       }
       append(lines.join('\n'));
     } else if (message) {
-      append(`BUILD: error ${e.error.message}`);
+      append(`BUILD ERROR: ${e.error.message}`);
     }
   });
 

@@ -48,6 +48,7 @@ const EditorContainer = styled.div`
 export type EditorProps = {
   eventAction: string;
   onEditorBack: () => void;
+  onDirtyStateChanged?: (newState: boolean) => void;
   template?: any;
 } & React.BaseHTMLAttributes<HTMLDivElement>;
 
@@ -55,7 +56,7 @@ export type EditorProps = {
 // Exported Components
 // -------------------
 
-export function Editor({ eventAction, onEditorBack, template, ...rest }: EditorProps) {
+export function Editor({ eventAction, onEditorBack, onDirtyStateChanged, template, ...rest }: EditorProps) {
   const editorElement = useRef(null);
   const api = useContext(ApiContext);
 
@@ -88,6 +89,11 @@ export function Editor({ eventAction, onEditorBack, template, ...rest }: EditorP
       ).then(editorContext => {
         // editorContext.selectFile('onNewInquiry.js');
         editorContext.on('closed', onEditorBack);
+        editorContext.on('dirty-state:changed', (e: any) => {
+          if (onDirtyStateChanged) {
+            onDirtyStateChanged(e.newState);
+          }
+        });
       });
     }
   }
