@@ -98,7 +98,8 @@
       "@5qtrs/storage": ["lib/server/storage/src"],
       "@5qtrs/gzip": ["lib/node/gzip/src"],
       "@5qtrs/json-stable": ["lib/shared/json-stable/src"],
-      "@5qtrs/key-value": ["lib/shared/key-value/src"]
+      "@5qtrs/key-value": ["lib/shared/key-value/src"],
+      "@5qtrs/event-stream": ["lib/shared/event-stream/src"]
     }
   }
 }
