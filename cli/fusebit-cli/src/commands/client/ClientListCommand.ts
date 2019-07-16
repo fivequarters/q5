@@ -1,5 +1,6 @@
 import { Command, IExecuteInput, ArgType } from '@5qtrs/cli';
-import { ClientService } from '../../services';
+import { ClientService, ExecuteService } from '../../services';
+import { Text } from '@5qtrs/text';
 
 // ------------------
 // Internal Constants
@@ -10,18 +11,30 @@ const command = {
   cmd: 'ls',
   summary: 'List clients',
   description: 'Lists clients of the given account',
-  options: [
+  arguments: [
     {
       name: 'name',
-      description: 'Only list clients with a display name that includes the given value (case-sensistive)',
+      description: Text.create(
+        'Only list clients with a display name that includes the given text ',
+        Text.dim('(case-sensitive)')
+      ),
+      required: false,
+    },
+  ],
+  options: [
+    {
+      name: 'issuer',
+      aliases: ['i'],
+      description: 'Only list clients with an identity that includes the given issuer',
     },
     {
-      name: 'iss',
-      description: 'Only list clients with an issuer that includes the given value (case-sensistive)',
-    },
-    {
-      name: 'sub',
-      description: 'Only list clients with a subject that includes the given value (case-sensistive)',
+      name: 'subject',
+      aliases: ['s'],
+      description: Text.create(
+        "Only list clients with an identity that includes the given subject; can only be used with the '",
+        Text.bold('--issuer'),
+        "' option"
+      ),
     },
     {
       name: 'count',
@@ -31,15 +44,19 @@ const command = {
       default: '10',
     },
     {
-      name: 'next',
-      aliases: ['n'],
-      description: 'The opaque token from a previous list command used to continue listing',
+      name: 'output',
+      aliases: ['o'],
+      description: "The format to display the output: 'pretty', 'json'",
+      default: 'pretty',
     },
     {
-      name: 'format',
-      aliases: ['f'],
-      description: "The format to display the output: 'table', 'json'",
-      default: 'table',
+      name: 'next',
+      aliases: ['n'],
+      description: Text.create([
+        "The opaque next token obtained from a previous list command when using the '",
+        Text.bold('--output json'),
+        "' option ",
+      ]),
     },
   ],
 };
@@ -58,14 +75,17 @@ export class ClientListCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    const displayNameContains = input.options.name as string;
-    const issuerContains = input.options.iss as string;
-    const subjectContains = input.options.sub as string;
-    const format = input.options.format as string;
+    const displayNameContains = input.arguments[0] as string;
+    const issuerContains = input.options.issuer as string;
+    const subjectContains = input.options.subject as string;
+    const output = input.options.output as string;
     const count = input.options.count as string;
     const next = input.options.next as string;
 
     const clientService = await ClientService.create(input);
+    const executeService = await ExecuteService.create(input);
+
+    await executeService.newLine();
 
     const options: any = {
       displayNameContains,
@@ -75,24 +95,24 @@ export class ClientListCommand extends Command {
       next,
     };
 
-    if (format === 'json') {
+    if (output === 'json') {
       input.io.writeRawOnly(true);
       const result = await clientService.listClients(options);
       const json = JSON.stringify(result, null, 2);
       input.io.writeLineRaw(json);
     } else {
-      await input.io.writeLine();
-
+      let clientCount = 1;
       let getMore = true;
       let result;
       let firstDisplay = true;
       while (getMore) {
         result = await clientService.listClients(options);
-        await clientService.displayClients(result.items, firstDisplay);
+        await clientService.displayClients(result.items, firstDisplay, clientCount);
         firstDisplay = false;
         getMore = result.next ? await clientService.confirmListMore() : false;
         if (getMore) {
           options.next = result.next;
+          clientCount += result.items.length;
         }
       }
     }
