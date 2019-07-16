@@ -14,7 +14,7 @@ const command = {
   description: Text.create(
     "Retrieves details of a deployed function. When the '",
     Text.bold('--dir'),
-    "' option is given, the function code is downloaded and save to disk in the given directory"
+    "' option is given, the function code is downloaded and save to disk in the given directory."
   ),
   arguments: [
     {
