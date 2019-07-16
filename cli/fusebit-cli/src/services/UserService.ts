@@ -641,7 +641,7 @@ export class UserService {
     }
   }
 
-  public async displayUsers(users: IFusebitUser[], firstDisplay: boolean) {
+  public async displayUsers(users: IFusebitUser[], firstDisplay: boolean, userCount: number = 1) {
     if (!users.length) {
       await this.executeService.info('No Users', `No ${firstDisplay ? '' : 'more '}users to list`);
       return;
@@ -653,7 +653,6 @@ export class UserService {
     });
     await message.write(this.input.io);
 
-    let userCount = 1;
     for (const user of users) {
       await this.writeUser(user, userCount++);
     }
@@ -719,8 +718,7 @@ export class UserService {
       }
     }
 
-    const userName =
-      user.firstName || user.lastName ? [user.firstName, user.lastName].join(' ') : `User ${userCount++}`;
+    const userName = user.firstName || user.lastName ? [user.firstName, user.lastName].join(' ') : `User ${userCount}`;
 
     const message = await Message.create({
       header: Text.bold(userName),

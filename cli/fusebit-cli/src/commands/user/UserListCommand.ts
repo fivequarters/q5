@@ -111,16 +111,18 @@ export class UserListCommand extends Command {
       const json = JSON.stringify(result, null, 2);
       input.io.writeLineRaw(json);
     } else {
+      let userCount = 1;
       let getMore = true;
       let result;
       let firstDisplay = true;
       while (getMore) {
         result = await userService.listUsers(options);
-        await userService.displayUsers(result.items, firstDisplay);
+        await userService.displayUsers(result.items, firstDisplay, userCount);
         firstDisplay = false;
         getMore = result.next ? await userService.confirmListMore() : false;
         if (getMore) {
           options.next = result.next;
+          userCount += result.items.length;
         }
       }
     }
