@@ -5,4 +5,3 @@ export { UserService } from './UserService';
 export { ClientService } from './ClientService';
 export { FunctionService } from './FunctionService';
 export { VersionService } from './VersionService';
-export { tryGetFusebit, getProfileSettingsFromFusebit } from './Utilities';

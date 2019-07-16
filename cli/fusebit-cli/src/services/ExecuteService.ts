@@ -44,7 +44,7 @@ export class ExecuteService {
     try {
       if (messages.header || messages.message) {
         if (this.isPrettyOutput()) {
-          this.info(messages.header || '', messages.message || '');
+          await this.info(messages.header || '', messages.message || '');
           this.input.io.spin(true);
         }
       }
@@ -56,11 +56,11 @@ export class ExecuteService {
     } catch (error) {
       const header = messages.errorHeader || '';
       const message = error.code !== undefined ? messages.errorMessage || '' : error.message;
-      this.error(header, message);
+      await this.error(header, message);
     }
   }
 
-  public async executeRequest<T>(messages: IExcuteMessages, request: IHttpRequest) {
+  public async executeRequest<T>(messages: IExcuteMessages, request: IHttpRequest, retryOn201: boolean = false) {
     const headers = (request.headers = request.headers || {});
     const version = await this.versionService.getVersion();
     if (!headers['Content-Type'] && !headers['content-type']) {
@@ -68,8 +68,12 @@ export class ExecuteService {
     }
     headers['User-Agent'] = `fusebit-cli/${version}`;
 
-    const func = async () => {
+    const func = async (): Promise<any> => {
       const response = await sendRequest(request);
+      if (response.status === 201 && retryOn201) {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        return await func();
+      }
       if (response.status === 404) {
         const message = 'The given entity does not exist.';
         throw new Error(message);

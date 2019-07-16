@@ -702,24 +702,17 @@ export class UserService {
 
     if (user.identities && user.identities.length) {
       details.push(...[Text.eol(), Text.eol()]);
-      details.push(Text.italic('Identities: '));
+      details.push(Text.dim('Identities'));
       for (const identity of user.identities) {
         details.push(
-          ...[
-            Text.eol(),
-            Text.dim('• issuer: '),
-            identity.issuerId,
-            Text.eol(),
-            Text.dim('  subject: '),
-            identity.subject,
-          ]
+          ...[Text.eol(), Text.dim('• iss: '), identity.issuerId, Text.eol(), Text.dim('  sub: '), identity.subject]
         );
       }
     }
 
     if (user.access && user.access.allow && user.access.allow.length) {
       details.push(...[Text.eol(), Text.eol()]);
-      details.push(Text.italic('Allow: '));
+      details.push(Text.dim('Allow'));
       for (const access of user.access.allow) {
         const resource = formatResourcePath(access.resource);
         details.push(...[Text.eol(), Text.dim('• action:   '), access.action, Text.eol(), resource]);
