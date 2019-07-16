@@ -1,9 +1,9 @@
 {
-  "name": "@5qtrs/base64",
+  "name": "@5qtrs/event-stream",
   "version": "0.0.1",
   "description": "",
   "main": "libc/index.js",
-  "browser": "libm/browser.js",
+  "browser": "libm/index.js",
   "module": "libm/index.js",
   "sideEffects": false,
   "license": "UNLICENSED",
@@ -16,5 +16,8 @@
     "clean": "rm -r -f libc; rm -r -f libm; rm -r -f coverage"
   },
   "keywords": [],
-  "dependencies": {}
+  "dependencies": {},
+  "devServer": {
+    "port": 9518
+  }
 }
