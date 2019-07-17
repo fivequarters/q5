@@ -661,10 +661,15 @@ export class ClientService {
   }
 
   public async displayInitToken(initToken: string) {
-    if (this.input.options.output === 'json') {
-      await this.input.io.writeLineRaw(JSON.stringify(initToken, null, 2));
+    const output = this.input.options.output;
+    if (output === 'json') {
+      await this.input.io.writeLineRaw(JSON.stringify({ token: initToken }, null, 2));
+      return;
+    } else if (output === 'raw') {
+      await this.input.io.writeLineRaw(initToken);
       return;
     }
+
     await this.executeService.result(
       'Init Token',
       Text.create(
@@ -676,6 +681,7 @@ export class ClientService {
       )
     );
     this.input.io.writeLineRaw(`fuse init ${initToken}`);
+    this.input.io.writeLine();
   }
 
   private async writeClient(client: IFusebitClient, clientCount: number = 1) {
@@ -718,7 +724,7 @@ export class ClientService {
     if (entry) {
       details.push(
         ...[
-          { name: Text.dim('•'), value: Text.dim('•') },
+          { name: Text.empty(), value: '' },
           { name: 'Subscription', value: entry.subscriptionId || notSet },
           { name: 'Boundary', value: entry.boundaryId || notSet },
           { name: 'Function', value: entry.functionId || notSet },

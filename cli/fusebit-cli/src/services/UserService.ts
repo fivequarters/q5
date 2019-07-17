@@ -688,6 +688,7 @@ export class UserService {
       )
     );
     this.input.io.writeLineRaw(`fuse init ${initToken}`);
+    this.input.io.writeLine();
   }
 
   private async writeUser(user: IFusebitUser, userCount: number = 1) {
