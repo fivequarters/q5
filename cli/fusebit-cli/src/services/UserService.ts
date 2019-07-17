@@ -817,7 +817,7 @@ export class UserService {
       { name: 'First Name', value: user.firstName || notSet },
       { name: 'Last Name', value: user.lastName || notSet },
       { name: 'Email', value: user.primaryEmail || notSet },
-      { name: Text.dim('•'), value: Text.dim('•') },
+      { name: Text.empty(), value: '' },
       { name: 'Issuer', value: identity.issuerId },
       { name: 'Subject', value: identity.subject },
     ];

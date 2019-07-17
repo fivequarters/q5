@@ -1,5 +1,4 @@
 import { Command, ICommand } from '@5qtrs/cli';
-import { Text } from '@5qtrs/text';
 import { UserIdentityAddCommand } from './UserIdentityAddCommand';
 import { UserIdentityRemoveCommand } from './UserIdentityRemoveCommand';
 
@@ -11,16 +10,7 @@ const command: ICommand = {
   name: 'User Identity',
   cmd: 'identity',
   summary: 'Manage user identities',
-  description: Text.create(
-    'Add or remove identities associated with a user.',
-    Text.eol(),
-    Text.eol(),
-    "A user identity is a set of '",
-    Text.bold('iss'),
-    "' (issuer) and '",
-    Text.bold('sub'),
-    "' (subject) claims in an access token that identify the user."
-  ),
+  description: 'Add or remove identities associated with a user.',
 };
 
 // ------------------

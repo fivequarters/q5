@@ -20,26 +20,30 @@ const command = {
   arguments: [
     {
       name: 'user',
-      description: 'The id of the user from which to remove the associate with the identity.',
+      description: 'The id of the user from which to remove the associated identity',
     },
     {
-      name: 'issuerId',
-      description: 'The issuer claim of access tokens that currently identify the user.',
+      name: 'issuer',
+      description: 'The issuer claim from access tokens that currently identify the user',
     },
     {
       name: 'subject',
-      description: 'The subject claim of access tokens that currently identify the user.',
+      description: 'The subject claim from access tokens that currently identify the user',
     },
   ],
   options: [
     {
-      name: 'confirm',
-      description: [
-        'If set to true, the details regarding adding the identity to the user will be displayed along with a',
-        'prompt for confirmation.',
-      ].join(' '),
+      name: 'quiet',
+      aliases: ['q'],
+      description: 'If set to true, does not prompt for confirmation',
       type: ArgType.boolean,
-      default: 'true',
+      default: 'false',
+    },
+    {
+      name: 'output',
+      aliases: ['o'],
+      description: "The format to display the output: 'pretty', 'json'",
+      default: 'pretty',
     },
   ],
 };
@@ -58,13 +62,12 @@ export class UserIdentityRemoveCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    await input.io.writeLine();
-
     const [id, issuerId, subject] = input.arguments as string[];
-    const confirm = input.options.confirm as boolean;
 
     const userService = await UserService.create(input);
     const executeService = await ExecuteService.create(input);
+
+    await executeService.newLine();
 
     const user = await userService.getUser(id);
     user.identities = user.identities || [];
@@ -79,7 +82,7 @@ export class UserIdentityRemoveCommand extends Command {
     }
 
     if (identityIndex === -1) {
-      await executeService.warning(
+      await executeService.error(
         'No Identity',
         Text.create(
           "The user '",
@@ -91,14 +94,11 @@ export class UserIdentityRemoveCommand extends Command {
           "'"
         )
       );
-      return 1;
     }
 
     const identity = { issuerId, subject };
 
-    if (confirm) {
-      await userService.confirmRemoveUserIdentity(user, identity);
-    }
+    await userService.confirmRemoveUserIdentity(user, identity);
 
     user.identities.splice(identityIndex, 1);
 

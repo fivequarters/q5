@@ -1,5 +1,5 @@
 import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
-import { UserService } from '../../../services';
+import { UserService, ExecuteService } from '../../../services';
 import { Text } from '@5qtrs/text';
 
 // ------------------
@@ -20,26 +20,30 @@ const command = {
   arguments: [
     {
       name: 'user',
-      description: 'The id of the user to associate with the identity.',
+      description: 'The id of the user to associate with the identity',
     },
     {
-      name: 'issuerId',
-      description: 'The issuer claim of access tokens that will identify the user.',
+      name: 'issuer',
+      description: 'The issuer claim from access tokens that will identify the user',
     },
     {
       name: 'subject',
-      description: 'The subject claim of access tokens that will identify the user.',
+      description: 'The subject claim from access tokens that will identify the user',
     },
   ],
   options: [
     {
-      name: 'confirm',
-      description: [
-        'If set to true, the details regarding adding the identity to the user will be displayed along with a',
-        'prompt for confirmation.',
-      ].join(' '),
+      name: 'quiet',
+      aliases: ['q'],
+      description: 'If set to true, does not prompt for confirmation',
       type: ArgType.boolean,
-      default: 'true',
+      default: 'false',
+    },
+    {
+      name: 'output',
+      aliases: ['o'],
+      description: "The format to display the output: 'pretty', 'json'",
+      default: 'pretty',
     },
   ],
 };
@@ -58,19 +62,18 @@ export class UserIdentityAddCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    await input.io.writeLine();
     const [id, issuerId, subject] = input.arguments as string[];
-    const confirm = input.options.confirm as boolean;
 
     const userService = await UserService.create(input);
+    const executeService = await ExecuteService.create(input);
+
+    await executeService.newLine();
 
     const user = await userService.getUser(id);
 
     const newIdentity = { issuerId, subject };
 
-    if (confirm) {
-      await userService.confirmAddUserIdentity(user, newIdentity);
-    }
+    await userService.confirmAddUserIdentity(user, newIdentity);
 
     const update = { identities: [newIdentity] };
     if (user.identities) {
