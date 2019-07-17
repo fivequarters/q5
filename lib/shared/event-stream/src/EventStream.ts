@@ -31,12 +31,9 @@ function parseLinesIntoStreamMessage(lines: string[]): IEventMessage[] {
           nextMessage.data = line.replace(/^data:\s+/, '');
         }
       } else if (line.trim() === '') {
-        if (rawLines[rawLines.length - 1] === '') {
-          messages.push(nextMessage);
-          rawLines = [];
-        } else {
-          rawLines.push('');
-        }
+        messages.push(nextMessage);
+        nextMessage = undefined;
+        rawLines = [];
       } else {
         rawLines.push(line);
         nextMessage.data = nextMessage.data + line;
