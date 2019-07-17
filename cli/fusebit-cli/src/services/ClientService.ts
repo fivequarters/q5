@@ -780,7 +780,7 @@ export class ClientService {
     const details = [
       { name: 'Account', value: account },
       { name: 'Display Name', value: client.displayName || notSet },
-      { name: Text.dim('•'), value: Text.dim('•') },
+      { name: Text.empty(), value: '' },
       { name: 'Issuer', value: identity.issuerId },
       { name: 'Subject', value: identity.subject },
     ];
