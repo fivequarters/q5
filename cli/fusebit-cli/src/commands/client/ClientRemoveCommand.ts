@@ -1,5 +1,5 @@
 import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
-import { ClientService } from '../../services';
+import { ClientService, ExecuteService } from '../../services';
 
 // ------------------
 // Internal Constants
@@ -13,18 +13,22 @@ const command = {
   arguments: [
     {
       name: 'client',
-      description: 'The id of the client to remove all acccess and identity associations from',
+      description: 'The id of the client to remove',
     },
   ],
   options: [
     {
-      name: 'confirm',
-      description: [
-        'If set to true, the details regarding removing the client will be displayed along with a',
-        'prompt for confirmation.',
-      ].join(' '),
+      name: 'quiet',
+      aliases: ['q'],
+      description: 'If set to true, does not prompt for confirmation',
       type: ArgType.boolean,
-      default: 'true',
+      default: 'false',
+    },
+    {
+      name: 'output',
+      aliases: ['o'],
+      description: "The format to display the output: 'pretty', 'json'",
+      default: 'pretty',
     },
   ],
 };
@@ -43,18 +47,16 @@ export class ClientRemoveCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    await input.io.writeLine();
-
     const [id] = input.arguments as string[];
-    const confirm = input.options.confirm as boolean;
 
     const clientService = await ClientService.create(input);
+    const executeService = await ExecuteService.create(input);
+
+    await executeService.newLine();
 
     const client = await clientService.getClient(id);
 
-    if (confirm) {
-      await clientService.confirmRemoveClient(id, client);
-    }
+    await clientService.confirmRemoveClient(id, client);
 
     await clientService.removeClient(id);
 
