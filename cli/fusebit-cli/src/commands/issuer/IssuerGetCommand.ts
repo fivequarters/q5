@@ -1,5 +1,5 @@
 import { Command, IExecuteInput } from '@5qtrs/cli';
-import { IssuerService } from '../../services';
+import { IssuerService, ExecuteService } from '../../services';
 
 // ------------------
 // Internal Constants
@@ -18,9 +18,10 @@ const command = {
   ],
   options: [
     {
-      name: 'format',
-      description: "The format to display the output: 'table', 'json'",
-      default: 'table',
+      name: 'output',
+      aliases: ['o'],
+      description: "The format to display the output: 'pretty', 'json'",
+      default: 'pretty',
     },
   ],
 };
@@ -39,11 +40,12 @@ export class IssuerGetCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    await input.io.writeLine();
-
-    const [id] = input.arguments as string[];
+    const id = input.arguments[0] as string;
 
     const issuerService = await IssuerService.create(input);
+    const executeService = await ExecuteService.create(input);
+
+    await executeService.newLine();
 
     const issuer = await issuerService.getIssuer(id);
 
