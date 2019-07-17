@@ -96,7 +96,6 @@ export class ClientListCommand extends Command {
     };
 
     if (output === 'json') {
-      input.io.writeRawOnly(true);
       const result = await clientService.listClients(options);
       const json = JSON.stringify(result, null, 2);
       input.io.writeLineRaw(json);
