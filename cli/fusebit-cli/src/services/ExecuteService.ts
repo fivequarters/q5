@@ -75,15 +75,15 @@ export class ExecuteService {
         return await func();
       }
       if (response.status === 404) {
-        const message = 'The given entity does not exist.';
+        const message = 'The given entity does not exist';
         throw new Error(message);
       }
       if (response.status === 403) {
-        const message = 'Access was not authorized. Contact an account admin to request access.';
+        const message = 'Access was not authorized; contact an account admin to request access';
         throw new Error(message);
       }
       if (response.status >= 500) {
-        const message = 'An unknown error occured on the server.';
+        const message = 'An unknown error occured on the server';
         throw new Error(message);
       }
       if (response.status >= 400) {
