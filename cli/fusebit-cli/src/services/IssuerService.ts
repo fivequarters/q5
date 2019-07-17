@@ -211,10 +211,10 @@ export class IssuerService {
     return updatedIssuer;
   }
 
-  public async addPublicKey(id: string, issuer: INewFusebitIssuer): Promise<void> {
+  public async addPublicKey(id: string, issuer: INewFusebitIssuer): Promise<IFusebitIssuer> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
-    await this.executeService.executeRequest(
+    const updatedIssuer = await this.executeService.executeRequest(
       {
         header: 'Add Public Key',
         message: Text.create("Adding the public key to the '", Text.bold(id), "' issuer..."),
@@ -222,7 +222,7 @@ export class IssuerService {
         errorMessage: Text.create("Unable to add the public key to the '", Text.bold(id), "' issuer"),
       },
       {
-        method: 'PUT',
+        method: 'PATCH',
         url: `${profile.baseUrl}/v1/account/${profile.account}/issuer/${encodeURIComponent(id)}`,
         data: issuer,
         headers: { Authorization: `bearer ${profile.accessToken}` },
@@ -233,12 +233,14 @@ export class IssuerService {
       'Public Key Added',
       Text.create("The public key was successfully added to the '", Text.bold(id), "' issuer")
     );
+
+    return updatedIssuer;
   }
 
-  public async removePublicKey(id: string, issuer: INewFusebitIssuer): Promise<void> {
+  public async removePublicKey(id: string, issuer: INewFusebitIssuer): Promise<IFusebitIssuer> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
-    await this.executeService.executeRequest(
+    const updatedIssuer = await this.executeService.executeRequest(
       {
         header: 'Remove Public Key',
         message: Text.create("Removing the public key from the '", Text.bold(id), "' issuer..."),
@@ -246,7 +248,7 @@ export class IssuerService {
         errorMessage: Text.create("Unable to remove the public key from the '", Text.bold(id), "' issuer"),
       },
       {
-        method: 'PUT',
+        method: 'PATCH',
         url: `${profile.baseUrl}/v1/account/${profile.account}/issuer/${encodeURIComponent(id)}`,
         data: issuer,
         headers: { Authorization: `bearer ${profile.accessToken}` },
@@ -257,6 +259,8 @@ export class IssuerService {
       'Public Key Removed',
       Text.create("The public key was successfully removed from the '", Text.bold(id), "' issuer")
     );
+
+    return updatedIssuer;
   }
 
   public async confirmAddIssuer(id: string, newIssuer: INewFusebitIssuer): Promise<void> {
@@ -403,7 +407,7 @@ export class IssuerService {
     } else if (issuer.publicKeys) {
       details.push(Text.eol());
       details.push(Text.dim('Public Key Ids: '));
-      details.push(Text.join(issuer.publicKeys.map(key => key.keyId), Text.dim(' • ')));
+      details.push(Text.join(issuer.publicKeys.map(key => key.keyId), Text.dim(', ')));
     }
 
     const message = await Message.create({
