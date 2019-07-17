@@ -10,28 +10,31 @@ const command = {
   name: 'Add Issuer',
   cmd: 'add',
   summary: 'Add an issuer',
-  description: 'Adds an issuer to the list of trusted issuers associated with the account.',
+  description: 'Adds an issuer to the set of trusted issuers associated with an account.',
   arguments: [
     {
       name: 'issuer',
-      description: 'The issuer to add',
+      description: 'The issuer id to add',
     },
   ],
   options: [
     {
-      name: 'displayName',
+      name: 'name',
+      aliases: ['n'],
       description: 'The display name of the issuer',
     },
     {
       name: 'jsonKeysUrl',
+      aliases: ['j'],
       description: [
         'The URL of the hosted json keys file. The file may be either in the',
         'JSON Web Key Specification format (RFC 7517) or may be a JSON object with key ids as the',
-        'object property names and the corresponding public key data as the property value.',
+        'object property names and the corresponding public key data as the property value',
       ].join(' '),
     },
     {
       name: 'publicKey',
+      aliases: ['p'],
       description: Text.create(
         "The local path of a public key file. If this option is specified, the '",
         Text.bold('keyId'),
@@ -40,6 +43,7 @@ const command = {
     },
     {
       name: 'keyId',
+      aliases: ['k'],
       description: Text.create(
         "The key id for the public key. If this option is specified, the '",
         Text.bold('publicKey'),
@@ -47,19 +51,17 @@ const command = {
       ),
     },
     {
-      name: 'confirm',
-      aliases: ['c'],
-      description: [
-        'If set to true, the details regarding adding the issuer will be displayed along with a',
-        'prompt for confirmation.',
-      ].join(' '),
+      name: 'quiet',
+      aliases: ['q'],
+      description: 'If set to true, does not prompt for confirmation',
       type: ArgType.boolean,
-      default: 'true',
+      default: 'false',
     },
     {
-      name: 'format',
-      description: "The format to display the output: 'table', 'json'",
-      default: 'table',
+      name: 'output',
+      aliases: ['o'],
+      description: "The format to display the output: 'pretty', 'json'",
+      default: 'pretty',
     },
   ],
 };
@@ -78,11 +80,8 @@ export class IssuerAddCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    await input.io.writeLine();
-
     const [id] = input.arguments as string[];
-    const confirm = input.options.confirm as boolean;
-    const displayName = input.options.displayName as string;
+    const displayName = input.options.name as string;
     const jsonKeysUrl = input.options.jsonKeysUrl as string;
     const publicKey = input.options.publicKey as string;
     const keyId = input.options.keyId as string;
@@ -90,11 +89,13 @@ export class IssuerAddCommand extends Command {
     const issuerService = await IssuerService.create(input);
     const executeService = await ExecuteService.create(input);
 
+    await executeService.newLine();
+
     if (jsonKeysUrl) {
       if (publicKey || keyId) {
         const option = publicKey ? 'publicKey' : 'keyId';
         await executeService.error(
-          'Invaild Options',
+          'Invalid Option',
           Text.create(
             "The '",
             Text.bold(option),
@@ -103,11 +104,10 @@ export class IssuerAddCommand extends Command {
             "' option is specified."
           )
         );
-        return 1;
       }
     } else if (!keyId || !publicKey) {
       await executeService.error(
-        'Invaild Options',
+        'Invalid Option',
         Text.create(
           "Either the '",
           Text.bold('keyId'),
@@ -116,7 +116,6 @@ export class IssuerAddCommand extends Command {
           "' option must be specified."
         )
       );
-      return 1;
     }
 
     const newIssuer = {
@@ -126,9 +125,7 @@ export class IssuerAddCommand extends Command {
       publicKeyId: keyId,
     };
 
-    if (confirm) {
-      await issuerService.confirmAddIssuer(id, newIssuer);
-    }
+    await issuerService.confirmAddIssuer(id, newIssuer);
 
     const issuer = await issuerService.addIssuer(id, newIssuer);
 
