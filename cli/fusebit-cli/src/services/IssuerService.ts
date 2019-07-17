@@ -402,7 +402,7 @@ export class IssuerService {
       details.push(Text.dim('[no key signature mechanism set]'));
     } else if (issuer.jsonKeysUrl) {
       details.push(Text.eol());
-      details.push(Text.dim('Json Key Uri: '));
+      details.push(Text.dim('Json Keys URL: '));
       details.push(issuer.jsonKeysUrl || '');
     } else if (issuer.publicKeys) {
       details.push(Text.eol());
@@ -425,7 +425,7 @@ export class IssuerService {
     ];
 
     if (issuer.jsonKeysUrl) {
-      details.push({ name: 'Json Key Uri', value: issuer.jsonKeysUrl });
+      details.push({ name: 'Json Keys URL', value: issuer.jsonKeysUrl });
     } else if (issuer.publicKeyId) {
       details.push({ name: 'Key Id', value: issuer.publicKeyId });
     }
@@ -438,17 +438,17 @@ export class IssuerService {
     const publicKeys = issuer.publicKeys ? `${issuer.publicKeys.length} keys` : notSet;
 
     const newDisplayName = update.displayName || notSet;
-    const newJsonKeyUri = update.jsonKeysUrl || notSet;
-    const newPublicKeys = newJsonKeyUri === notSet ? publicKeys : notSet;
+    const newJsonKeysUrl = update.jsonKeysUrl || notSet;
+    const newPublicKeys = newJsonKeysUrl === notSet ? publicKeys : notSet;
 
     const displayNameValue =
       displayName === newDisplayName
         ? Text.create(displayName, Text.dim(' (no change)'))
         : Text.create(displayName, Text.dim(' → '), newDisplayName);
     const jsonKeysUrlValue =
-      jsonKeysUrl === newJsonKeyUri
+      jsonKeysUrl === newJsonKeysUrl
         ? Text.create(jsonKeysUrl, Text.dim(' (no change)'))
-        : Text.create(jsonKeysUrl, Text.dim(' → '), newJsonKeyUri);
+        : Text.create(jsonKeysUrl, Text.dim(' → '), newJsonKeysUrl);
     const publicKeysValue =
       publicKeys === newPublicKeys
         ? Text.create(publicKeys, Text.dim(' (no change)'))
