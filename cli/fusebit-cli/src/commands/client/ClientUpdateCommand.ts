@@ -33,10 +33,6 @@ const command = {
       description: 'The display name of the client',
     },
     {
-      name: 'displayName',
-      description: 'The updated display name of the client',
-    },
-    {
       name: 'quiet',
       aliases: ['q'],
       description: 'If set to true, does not prompt for confirmation',
