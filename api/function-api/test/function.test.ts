@@ -15,6 +15,8 @@ const boundaryId = `test-boundary-${Math.floor(Math.random() * 99999999).toStrin
 const function1Id = 'test-function-1';
 const function2Id = 'test-function-2';
 const function3Id = 'test-function-3';
+const function4Id = 'test-function-4';
+const function5Id = 'test-function-5';
 
 const helloWorld = {
   nodejs: {
@@ -277,6 +279,10 @@ describe('function', () => {
     expect(response.status).toEqual(200);
     response = await putFunction(account, boundaryId, function3Id, helloWorld);
     expect(response.status).toEqual(200);
+    response = await putFunction(account, boundaryId, function4Id, helloWorld);
+    expect(response.status).toEqual(200);
+    response = await putFunction(account, boundaryId, function5Id, helloWorld);
+    expect(response.status).toEqual(200);
     response = await listFunctions(account, boundaryId, undefined, 2);
     expect(response.status).toEqual(200);
     expect(response.data).toEqual({ items: expect.any(Array), next: expect.any(String) });
@@ -284,12 +290,19 @@ describe('function', () => {
     expect(response.data.items).toEqual(
       expect.arrayContaining([{ boundaryId, functionId: function1Id }, { boundaryId, functionId: function2Id }])
     );
-    response = await listFunctions(account, boundaryId, undefined, undefined, response.data.next);
+    response = await listFunctions(account, boundaryId, undefined, 2, response.data.next);
+    expect(response.status).toEqual(200);
+    expect(response.data).toEqual({ items: expect.any(Array), next: expect.any(String) });
+    expect(response.data.items).toHaveLength(2);
+    expect(response.data.items).toEqual(
+      expect.arrayContaining([{ boundaryId, functionId: function3Id }, { boundaryId, functionId: function4Id }])
+    );
+    response = await listFunctions(account, boundaryId, undefined, 2, response.data.next);
     expect(response.status).toEqual(200);
     expect(response.data).toEqual({ items: expect.any(Array) });
     expect(response.data.items).toHaveLength(1);
-    expect(response.data.items).toEqual(expect.arrayContaining([{ boundaryId, functionId: function3Id }]));
-  }, 15000);
+    expect(response.data.items).toEqual(expect.arrayContaining([{ boundaryId, functionId: function5Id }]));
+  }, 20000);
 
   test('LIST on boundary retrieves the list of non-cron functions', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);

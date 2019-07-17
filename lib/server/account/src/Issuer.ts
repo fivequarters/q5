@@ -27,6 +27,7 @@ function validatePublicKeys(issuer: IIssuer) {
     if (issuer.jsonKeysUrl) {
       throw AccountDataException.issuerJsonKeyUriAndPublicKeys(issuer.id);
     }
+    const publicKeysLookup: { [index: string]: boolean } = {};
     for (const publicKey of issuer.publicKeys) {
       if (publicKey.keyId === undefined) {
         throw AccountDataException.issuerMissingKeyId(issuer.id);
@@ -34,6 +35,11 @@ function validatePublicKeys(issuer: IIssuer) {
       if (publicKey.publicKey === undefined) {
         throw AccountDataException.issuerMissingPublicKey(issuer.id);
       }
+
+      if (publicKeysLookup[publicKey.keyId]) {
+        throw AccountDataException.issuerDuplicateKeyId(issuer.id, publicKey.keyId);
+      }
+      publicKeysLookup[publicKey.keyId] = true;
     }
   }
 }
