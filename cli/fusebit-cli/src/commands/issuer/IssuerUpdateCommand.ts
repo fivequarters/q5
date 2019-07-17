@@ -14,7 +14,7 @@ const command = {
     'Updates a trusted issuer associated with the account.',
     Text.eol(),
     Text.eol(),
-    'This command can only be used to update the issuer display name and json keys URI. ',
+    'This command can only be used to update the issuer display name and json keys URL. ',
     "To add or remove public keys associated with the issuer, use the '",
     Text.bold('issuer key'),
     "' commands."
