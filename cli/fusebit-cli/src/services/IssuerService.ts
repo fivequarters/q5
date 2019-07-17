@@ -185,10 +185,10 @@ export class IssuerService {
     );
   }
 
-  public async updateIssuer(id: string, issuer: INewFusebitIssuer): Promise<void> {
+  public async updateIssuer(id: string, issuer: INewFusebitIssuer): Promise<IFusebitIssuer> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
-    await this.executeService.executeRequest(
+    const updatedIssuer = await this.executeService.executeRequest(
       {
         header: 'Update Issuer',
         message: Text.create("Updating the '", Text.bold(id), "' issuer..."),
@@ -207,6 +207,8 @@ export class IssuerService {
       'Issuer Updated',
       Text.create("The '", Text.bold(id), "' issuer was successfully updated")
     );
+
+    return updatedIssuer;
   }
 
   public async addPublicKey(id: string, issuer: INewFusebitIssuer): Promise<void> {

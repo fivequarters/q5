@@ -1,6 +1,6 @@
 import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
 import { Text } from '@5qtrs/text';
-import { IssuerService } from '../../services';
+import { IssuerService, ExecuteService } from '../../services';
 
 // ------------------
 // Internal Constants
@@ -27,30 +27,31 @@ const command = {
   ],
   options: [
     {
-      name: 'displayName',
+      name: 'name',
+      aliases: ['n'],
       description: 'The display name of the issuer',
     },
     {
       name: 'jsonKeysUrl',
+      aliases: ['j'],
       description: [
         'The URL of the hosted json keys file. The file may be either in the',
         'JSON Web Key Specification format (RFC 7517) or may be a JSON object with key ids as the',
-        'object property names and the corresponding public key data as the property value.',
+        'object property names and the corresponding public key data as the property value',
       ].join(' '),
     },
     {
-      name: 'confirm',
-      description: [
-        'If set to true, the details regarding updating the issuer will be displayed along with a',
-        'prompt for confirmation.',
-      ].join(' '),
+      name: 'quiet',
+      aliases: ['q'],
+      description: 'If set to true, does not prompt for confirmation',
       type: ArgType.boolean,
-      default: 'true',
+      default: 'false',
     },
     {
-      name: 'format',
-      description: "The format to display the output: 'table', 'json'",
-      default: 'table',
+      name: 'output',
+      aliases: ['o'],
+      description: "The format to display the output: 'pretty', 'json'",
+      default: 'pretty',
     },
   ],
 };
@@ -69,14 +70,14 @@ export class IssuerUpdateCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    await input.io.writeLine();
-
-    const [id] = input.arguments as string[];
-    const displayName = input.options.displayName as string;
+    const id = input.arguments[0] as string;
+    const displayName = input.options.name as string;
     const jsonKeysUrl = input.options.jsonKeysUrl as string;
-    const confirm = input.options.confirm as boolean;
 
     const issuerService = await IssuerService.create(input);
+    const executeService = await ExecuteService.create(input);
+
+    await executeService.newLine();
 
     const issuer = await issuerService.getIssuer(id);
 
@@ -86,11 +87,11 @@ export class IssuerUpdateCommand extends Command {
       publicKeys: jsonKeysUrl === '' ? issuer.publicKeys : undefined,
     };
 
-    if (confirm) {
-      await issuerService.confirmUpdateIssuer(issuer, update);
-    }
+    await issuerService.confirmUpdateIssuer(issuer, update);
 
-    await issuerService.updateIssuer(id, update);
+    const updatedIssuer = await issuerService.updateIssuer(id, update);
+
+    await issuerService.displayIssuer(updatedIssuer);
 
     return 0;
   }
