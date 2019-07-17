@@ -101,8 +101,7 @@ export class FunctionDeployCommand extends Command {
 
     const location = await functionService.deployFunction(sourcePath, functionId, functionSpec);
 
-    await functionService.setFusebitJson(sourcePath, functionId, functionSpec);
-
+    await functionService.setFusebitJson(sourcePath, functionSpec);
     await functionService.displayFunctionUrl(location);
 
     return 0;

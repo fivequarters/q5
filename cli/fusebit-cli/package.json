@@ -1,6 +1,6 @@
 {
   "name": "@5qtrs/fusebit-cli",
-  "version": "0.0.7",
+  "version": "0.9.1",
   "description": "",
   "main": "libc/index.js",
   "bin": {
@@ -10,7 +10,9 @@
   "author": "https://fusebit.io",
   "packageAs": "@fusebit/cli",
   "packageAssets": [
-    "template"
+    "template",
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
     "build": "tsc -b",

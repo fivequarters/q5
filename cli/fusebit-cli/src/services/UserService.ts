@@ -1,7 +1,7 @@
 import { Message, IExecuteInput, Confirm, IConfirmDetail } from '@5qtrs/cli';
 import { ExecuteService } from './ExecuteService';
 import { ProfileService } from './ProfileService';
-import { Text } from '@5qtrs/text';
+import { Text, IText } from '@5qtrs/text';
 import { decodeJwt } from '@5qtrs/jwt';
 
 // ------------------
@@ -9,35 +9,34 @@ import { decodeJwt } from '@5qtrs/jwt';
 // ------------------
 
 const notSet = Text.dim(Text.italic('<not set>'));
-const resourcePathSegments = ['/subscription/', '/boundary/', '/function/'];
 
 // ------------------
 // Internal Functions
 // ------------------
 
-function trimTrailingSlash(segment: string) {
-  return segment[segment.length - 1] === '/' ? segment.substring(0, segment.length - 1) : segment;
-}
+function getResourcePathPairs(resource: string) {
+  const segments = resource.split('/').filter(segment => segment.length);
 
-function formatResourcePath(resource: string) {
-  const segments: string[] = [];
+  const pairs = [];
 
-  for (const segment of resourcePathSegments) {
-    const index = resource.indexOf(segment);
-    const nextSegment = index === -1 ? resource : resource.substring(0, index);
-    segments.push(trimTrailingSlash(nextSegment));
-    if (index !== -1) {
-      resource = resource.substring(index);
-    } else {
-      break;
-    }
+  while (segments.length) {
+    const firstSegment = segments.shift();
+    const secondSegment = segments.shift();
+    pairs.push(secondSegment ? `/${firstSegment}/${secondSegment}` : `/${firstSegment}`);
   }
 
-  const resourceText = [Text.dim('  resource: '), segments.shift() as string];
-  for (const segment of segments) {
+  return pairs;
+}
+
+function formatResourcePath(heading: IText, resource: string) {
+  const pairs = getResourcePathPairs(resource);
+
+  const resourceText = [heading, pairs.shift() as string];
+  const indent = ' '.repeat(heading.length);
+  for (const pair of pairs) {
     resourceText.push(Text.eol());
-    resourceText.push('            ');
-    resourceText.push(segment);
+    resourceText.push(indent);
+    resourceText.push(pair);
   }
   return Text.create(resourceText);
 }
@@ -703,7 +702,12 @@ export class UserService {
     if (user.identities && user.identities.length) {
       details.push(...[Text.eol(), Text.eol()]);
       details.push(Text.dim('Identities'));
+      let first = true;
       for (const identity of user.identities) {
+        if (!first) {
+          details.push(Text.eol());
+        }
+        first = false;
         details.push(
           ...[Text.eol(), Text.dim('• iss: '), identity.issuerId, Text.eol(), Text.dim('  sub: '), identity.subject]
         );
@@ -713,8 +717,13 @@ export class UserService {
     if (user.access && user.access.allow && user.access.allow.length) {
       details.push(...[Text.eol(), Text.eol()]);
       details.push(Text.dim('Allow'));
+      let first = true;
       for (const access of user.access.allow) {
-        const resource = formatResourcePath(access.resource);
+        if (!first) {
+          details.push(Text.eol());
+        }
+        first = false;
+        const resource = formatResourcePath(Text.dim('  resource: '), access.resource);
         details.push(...[Text.eol(), Text.dim('• action:   '), access.action, Text.eol(), resource]);
       }
     }
@@ -787,12 +796,16 @@ export class UserService {
       { name: 'First Name', value: user.firstName || notSet },
       { name: 'Last Name', value: user.lastName || notSet },
       { name: 'Email', value: user.primaryEmail || notSet },
-      { name: Text.dim('•'), value: Text.dim('•') },
+      { name: Text.empty(), value: '' },
       { name: 'Action', value: access.action },
     ];
 
     if (access.resource) {
-      details.push({ name: 'Resource', value: access.resource });
+      const pairs = getResourcePathPairs(access.resource);
+      details.push({ name: 'Resource', value: pairs.shift() || '' });
+      while (pairs.length) {
+        details.push({ name: Text.create('          '), value: pairs.shift() || '' });
+      }
     }
 
     if (access.account) {

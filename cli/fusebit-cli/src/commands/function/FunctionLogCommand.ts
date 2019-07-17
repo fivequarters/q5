@@ -47,6 +47,10 @@ export class FunctionLogCommand extends Command {
 
     await executeService.newLine();
 
+    if (functionId) {
+      await functionService.getFunction(process.cwd(), functionId);
+    }
+
     await functionService.getFunctionLogs(process.cwd(), functionId);
 
     return 0;

@@ -1,4 +1,3 @@
-import { EOL } from 'os';
 import { Command, ICommand } from '@5qtrs/cli';
 import { ClientAccessAddCommand } from './ClientAccessAddCommand';
 import { ClientAccessRemoveCommand } from './ClientAccessRemoveCommand';

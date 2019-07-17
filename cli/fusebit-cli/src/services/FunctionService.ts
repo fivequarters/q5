@@ -68,26 +68,6 @@ async function getSaveOverWriteFiles(path: string, functionSpec: any): Promise<s
   return overwriteFiles;
 }
 
-function setFunctionSpecSchedule(functionSpec: any, cron?: string, timezone?: string) {}
-
-function ensureFusebitMetadata(functionSpec: any, create?: boolean): any {
-  if (!functionSpec.metadata) {
-    if (create) {
-      functionSpec.metadata = {};
-    } else {
-      return {};
-    }
-  }
-  if (!functionSpec.metadata.fusebit) {
-    if (create) {
-      functionSpec.metadata.fusebit = {};
-    } else {
-      return {};
-    }
-  }
-  return functionSpec.metadata.fusebit;
-}
-
 // -------------------
 // Exported Interfaces
 // -------------------
@@ -138,20 +118,11 @@ export class FunctionService {
   }
 
   public async getFunctionExecutionProfile(functionRequired: boolean, functionId?: string, fusebitJsonPath?: string) {
-    const defaults: IFusebitProfileDefaults = { function: functionId };
-    if (fusebitJsonPath) {
-      const fusebit = await this.getFusebitJson(fusebitJsonPath);
-      if (fusebit) {
-        defaults.function = defaults.function || fusebit.id;
-        defaults.boundary = fusebit.boundaryId;
-        defaults.subscription = fusebit.subscriptionId;
-      }
-    }
     const expected = ['account', 'subscription', 'boundary'];
     if (functionRequired) {
       expected.push('function');
     }
-    return this.profileService.getExecutionProfile(expected, defaults);
+    return this.profileService.getExecutionProfile(expected, { function: functionId });
   }
 
   public async getFunctionSpec(path: string, cron?: string, timezone?: string): Promise<any> {
@@ -245,15 +216,11 @@ export class FunctionService {
     }
   }
 
-  public async setFusebitJson(path: string, functionId: string, functionSpec: any): Promise<void> {
-    const profile = await this.getFunctionExecutionProfile(true, functionId, path);
+  public async setFusebitJson(path: string, functionSpec: any): Promise<void> {
     const version = await this.versionService.getVersion();
 
     const fusebitJson = (await this.getFusebitJson(path)) || {};
 
-    fusebitJson.subscriptionId = profile.subscription;
-    fusebitJson.boundaryId = profile.boundary;
-    fusebitJson.id = profile.function;
     fusebitJson.fuseVersion = version;
 
     // metadata
@@ -306,7 +273,7 @@ export class FunctionService {
         const filesToWrite = functionSpec.nodejs.files || {};
         for (const file of Object.keys(filesToWrite)) {
           const content = filesToWrite[file];
-          await writeFile(join(path, file), content);
+          await writeFile(join(path, file), typeof content === 'string' ? content : JSON.stringify(content, null, 2));
           files.push(file);
         }
       }
@@ -480,9 +447,18 @@ export class FunctionService {
                 if (isJson) {
                   this.input.io.writeLineRaw(message.data);
                 } else {
-                  const parsed: any = JSON.parse(message.data);
+                  let parsed: any;
+                  try {
+                    parsed = JSON.parse(message.data);
+                  } catch (error) {
+                    this.executeService.error(
+                      'Function Log Error',
+                      'There was an error parsing the function logs',
+                      error
+                    );
+                  }
                   this.input.io.write(Text.dim(`[${new Date(parsed.time).toLocaleTimeString()}] `));
-                  this.input.io.writeLineRaw(parsed.msg);
+                  this.input.io.writeLineRaw(parsed.level > 30 ? Text.red(parsed.msg).toString() : parsed.msg);
                 }
               }
             },
@@ -508,6 +484,7 @@ export class FunctionService {
       }
     );
 
+    await this.executeService.newLine();
     await this.executeService.warning(
       'Logs Disconnected',
       Text.create(
@@ -828,7 +805,7 @@ export class FunctionService {
         const confirmPrompt = await Confirm.create({
           header: 'Deploy?',
           message: Text.create("Deploy the function in the '", Text.bold(path), "' directory as given below?"),
-          details: await this.getConfirmDeployDetails(profile, functionSpec, functionId, cron),
+          details: await this.getConfirmDeployDetails(profile, functionSpec, cron),
         });
         const confirmed = await confirmPrompt.prompt(this.input.io);
         if (!confirmed) {
@@ -944,6 +921,7 @@ export class FunctionService {
       boundaryId: functionSpec.boundaryId,
       files: functionSpec.nodejs && functionSpec.nodejs.files ? Object.keys(functionSpec.nodejs.files) : [],
       applicationSettings,
+      location: functionSpec.location,
     };
 
     if (this.input.options.output === 'json') {
@@ -983,21 +961,17 @@ export class FunctionService {
         }
       }
 
-      this.executeService.result(Text.bold(functionData.id), Text.create(details));
+      details.push(Text.eol());
+      details.push(Text.eol());
+      details.push(Text.dim('The execution URL of the function is given below:'));
+
+      await this.executeService.result(Text.bold(functionData.id), Text.create(details));
+      await this.input.io.writeLineRaw(functionSpec.location);
+      await this.input.io.writeLine();
     }
   }
 
-  private async getConfirmDeployDetails(
-    profile: IFusebitExecutionProfile,
-    functionSpec: any,
-    functionId?: string,
-    cron?: string
-  ) {
-    const fusebitJson = (await this.getFusebitJson()) || {};
-
-    const subscriptionSource = fusebitJson.subscriptionId ? fromFusebitJson : fromProfile;
-    const boundarySource = fusebitJson.boundaryId ? fromFusebitJson : fromProfile;
-    const functionSource = functionId ? undefined : fusebitJson.id ? fromFusebitJson : fromProfile;
+  private async getConfirmDeployDetails(profile: IFusebitExecutionProfile, functionSpec: any, cron?: string) {
     const appSettings = Object.keys(functionSpec.configuration || {}).join(' ');
 
     const scheduleSource = cron ? Text.empty() : fromFusebitJson;
@@ -1008,10 +982,10 @@ export class FunctionService {
     }
 
     const details = [
-      { name: 'Account', value: profile.account },
-      { name: 'Subscription', value: Text.create(profile.subscription || '', subscriptionSource) },
-      { name: 'Boundary', value: Text.create(profile.boundary || '', boundarySource) },
-      { name: 'Function', value: Text.create(profile.function || '', functionSource || '') },
+      { name: 'Account', value: profile.account || '' },
+      { name: 'Subscription', value: profile.subscription || '' },
+      { name: 'Boundary', value: profile.boundary || '' },
+      { name: 'Function', value: profile.function || '' },
       { name: 'Files', value: Object.keys(functionSpec.nodejs.files).join(' ') },
       { name: 'Application Settings', value: appSettings ? Text.create(appSettings, fromEnvFile) : notSet },
       { name: 'Schedule', value: schedule },

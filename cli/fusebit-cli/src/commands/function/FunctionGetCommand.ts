@@ -2,6 +2,7 @@ import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
 import { ExecuteService, FunctionService } from '../../services';
 import { join } from 'path';
 import { Text } from '@5qtrs/text';
+import { filterSeries } from 'async';
 
 // ------------------
 // Internal Constants
@@ -83,6 +84,8 @@ export class FunctionGetCommand extends Command {
     if (download) {
       await functionService.confirmSaveFunction(targetPath, functionSpec, functionId);
       const files = await functionService.setFunctionFiles(targetPath, functionSpec);
+      await functionService.setFusebitJson(targetPath, functionSpec);
+      files.push('fusebit.json');
       await functionService.displayFunctionSave(targetPath, files, functionId);
     } else {
       await functionService.displayFunction(functionSpec, showSettings);
