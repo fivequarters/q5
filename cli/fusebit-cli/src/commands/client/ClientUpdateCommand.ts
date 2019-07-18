@@ -1,6 +1,6 @@
 import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
 import { Text } from '@5qtrs/text';
-import { ClientService, ExecuteService } from '../../services';
+import { AgentService, ExecuteService } from '../../services';
 
 // ------------------
 // Internal Constants
@@ -65,22 +65,22 @@ export class ClientUpdateCommand extends Command {
     const [id] = input.arguments as string[];
     const displayName = input.options.name as string;
 
-    const clientService = await ClientService.create(input);
+    const clientService = await AgentService.create(input);
     const executeService = await ExecuteService.create(input);
 
     await executeService.newLine();
 
-    const client = await clientService.getClient(id);
+    const client = await clientService.getAgent(id);
 
     const update = {
       displayName: displayName === '' ? undefined : displayName || client.displayName,
     };
 
-    await clientService.confirmUpdateClient(client, update);
+    await clientService.confirmUpdateAgent(client, update);
 
-    const updatedClient = await clientService.updateClient(client.id, update);
+    const updatedClient = await clientService.updateAgent(client.id, update);
 
-    await clientService.displayClient(updatedClient);
+    await clientService.displayAgent(updatedClient);
 
     return 0;
   }

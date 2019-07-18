@@ -1,5 +1,5 @@
 import { Command, IExecuteInput, ArgType } from '@5qtrs/cli';
-import { ProfileService, UserService, ClientService, ExecuteService } from '../services';
+import { ProfileService, ExecuteService, AgentService } from '../services';
 
 // ------------------
 // Internal Constants
@@ -57,12 +57,11 @@ export class InitCommand extends Command {
 
     const profileService = await ProfileService.create(input);
     const executeService = await ExecuteService.create(input);
-    const userService = await UserService.create(input);
-    const clientService = await ClientService.create(input);
+    let agentService = await AgentService.create(input);
 
     await executeService.newLine();
 
-    const decodedToken = await userService.decodeInitToken(token);
+    const decodedToken = await agentService.decodeInitToken(token);
     const { accountId, subscriptionId, boundaryId, functionId, agentId, baseUrl, issuerId, subject } = decodedToken;
 
     if (!profileName) {
@@ -81,7 +80,10 @@ export class InitCommand extends Command {
       keyId: keyPair.kid,
     };
 
-    const agentService = agentId.indexOf('usr') === 0 ? userService : clientService;
+    if (agentId.indexOf('usr') !== 0) {
+      agentService = await AgentService.create(input, false);
+    }
+
     const agent = await agentService.resolveInit(baseUrl, accountId, agentId, token, initResolve);
 
     const newProfile = {

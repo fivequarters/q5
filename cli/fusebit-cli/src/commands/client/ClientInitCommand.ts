@@ -1,5 +1,5 @@
 import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
-import { ClientService, ProfileService, ExecuteService } from '../../services';
+import { AgentService, ProfileService, ExecuteService } from '../../services';
 
 // ------------------
 // Internal Constants
@@ -64,13 +64,13 @@ export class ClientInitCommand extends Command {
   protected async onExecute(input: IExecuteInput): Promise<number> {
     const [id] = input.arguments as string[];
 
-    const clientService = await ClientService.create(input);
+    const clientService = await AgentService.create(input);
     const profileService = await ProfileService.create(input);
     const executeService = await ExecuteService.create(input);
 
     await executeService.newLine();
 
-    const client = await clientService.getClient(id);
+    const client = await clientService.getAgent(id);
 
     const executionProfile = await profileService.getExecutionProfile();
 
@@ -80,9 +80,9 @@ export class ClientInitCommand extends Command {
       functionId: executionProfile.function || undefined,
     };
 
-    await clientService.confirmInitClient(client, initEntry);
+    await clientService.confirmInitAgent(client, initEntry);
 
-    const initToken = await clientService.initClient(id, initEntry);
+    const initToken = await clientService.initAgent(id, initEntry);
 
     await clientService.displayInitToken(initToken);
 

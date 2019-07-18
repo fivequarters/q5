@@ -1,6 +1,6 @@
 import { Command, IExecuteInput, ArgType } from '@5qtrs/cli';
 import { Text } from '@5qtrs/text';
-import { UserService, ExecuteService } from '../../services';
+import { AgentService, ExecuteService } from '../../services';
 
 // ------------------
 // Internal Constants
@@ -91,7 +91,7 @@ export class UserListCommand extends Command {
     const count = input.options.count as string;
     const next = input.options.next as string;
 
-    const userService = await UserService.create(input);
+    const userService = await AgentService.create(input, true);
     const executeService = await ExecuteService.create(input);
 
     await executeService.newLine();
@@ -106,22 +106,20 @@ export class UserListCommand extends Command {
     };
 
     if (output === 'json') {
-      const result = await userService.listUsers(options);
+      const result = await userService.listAgents(options);
       const json = JSON.stringify(result, null, 2);
       input.io.writeLineRaw(json);
     } else {
-      let userCount = 1;
       let getMore = true;
       let result;
       let firstDisplay = true;
       while (getMore) {
-        result = await userService.listUsers(options);
-        await userService.displayUsers(result.items, firstDisplay, userCount);
+        result = await userService.listAgents(options);
+        await userService.displayAgents(result.items, firstDisplay);
         firstDisplay = false;
         getMore = result.next ? await userService.confirmListMore() : false;
         if (getMore) {
           options.next = result.next;
-          userCount += result.items.length;
         }
       }
     }

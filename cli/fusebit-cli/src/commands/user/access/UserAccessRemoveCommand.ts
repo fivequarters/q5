@@ -1,5 +1,5 @@
 import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
-import { ExecuteService, UserService } from '../../../services';
+import { ExecuteService, AgentService } from '../../../services';
 import { Text } from '@5qtrs/text';
 
 // ------------------
@@ -59,14 +59,14 @@ export class UserAccessRemoveCommand extends Command {
   protected async onExecute(input: IExecuteInput): Promise<number> {
     const [id, action, rawResource] = input.arguments as string[];
 
-    const userService = await UserService.create(input);
+    const userService = await AgentService.create(input, true);
     const executeService = await ExecuteService.create(input);
 
     await executeService.newLine();
 
     let resource = !rawResource || rawResource[rawResource.length - 1] === '/' ? rawResource : `${rawResource}/`;
 
-    const user = await userService.getUser(id);
+    const user = await userService.getAgent(id);
     user.access = user.access || {};
     user.access.allow = user.access.allow || [];
 
@@ -115,14 +115,14 @@ export class UserAccessRemoveCommand extends Command {
 
     const access = { action, resource };
 
-    await userService.confirmRemoveUserAccess(user, access);
+    await userService.confirmRemoveAgentAccess(user, access);
 
     user.access.allow.splice(accessIndex, 1);
 
     const update = { access: { allow: user.access.allow } };
-    const updatedUser = await userService.removeUserAccess(user.id, update);
+    const updatedUser = await userService.removeAgentAccess(user.id, update);
 
-    await userService.displayUser(updatedUser);
+    await userService.displayAgent(updatedUser);
 
     return 0;
   }

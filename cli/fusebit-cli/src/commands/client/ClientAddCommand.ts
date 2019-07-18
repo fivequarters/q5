@@ -1,5 +1,5 @@
 import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
-import { ClientService, ExecuteService } from '../../services';
+import { AgentService, ExecuteService } from '../../services';
 import { Text } from '@5qtrs/text';
 
 // ------------------
@@ -58,18 +58,18 @@ export class ClientAddCommand extends Command {
   protected async onExecute(input: IExecuteInput): Promise<number> {
     const displayName = input.options.name as string;
 
-    const clientService = await ClientService.create(input);
+    const clientService = await AgentService.create(input);
     const executeService = await ExecuteService.create(input);
 
     await executeService.newLine();
 
     const newClient = { displayName };
 
-    await clientService.confirmAddClient(newClient);
+    await clientService.confirmAddAgent(newClient);
 
-    const client = await clientService.addClient(newClient);
+    const client = await clientService.addAgent(newClient);
 
-    await clientService.displayClient(client);
+    await clientService.displayAgent(client);
 
     return 0;
   }
