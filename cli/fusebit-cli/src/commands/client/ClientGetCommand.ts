@@ -42,7 +42,7 @@ export class ClientGetCommand extends Command {
   protected async onExecute(input: IExecuteInput): Promise<number> {
     const [id] = input.arguments as string[];
 
-    const clientService = await AgentService.create(input);
+    const clientService = await AgentService.create(input, false);
     const executeService = await ExecuteService.create(input);
 
     await executeService.newLine();

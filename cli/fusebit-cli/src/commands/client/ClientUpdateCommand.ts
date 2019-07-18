@@ -65,7 +65,7 @@ export class ClientUpdateCommand extends Command {
     const [id] = input.arguments as string[];
     const displayName = input.options.name as string;
 
-    const clientService = await AgentService.create(input);
+    const clientService = await AgentService.create(input, false);
     const executeService = await ExecuteService.create(input);
 
     await executeService.newLine();

@@ -64,7 +64,7 @@ export class ClientIdentityAddCommand extends Command {
   protected async onExecute(input: IExecuteInput): Promise<number> {
     const [id, issuerId, subject] = input.arguments as string[];
 
-    const clientService = await AgentService.create(input);
+    const clientService = await AgentService.create(input, false);
     const executeService = await ExecuteService.create(input);
 
     await executeService.newLine();
