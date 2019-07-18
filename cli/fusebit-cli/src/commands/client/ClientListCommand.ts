@@ -75,9 +75,9 @@ export class ClientListCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    const displayNameContains = input.arguments[0] as string;
-    const issuerContains = input.options.issuer as string;
-    const subjectContains = input.options.subject as string;
+    const nameContains = input.arguments[0] as string;
+    const issuer = input.options.issuer as string;
+    const subject = input.options.subject as string;
     const output = input.options.output as string;
     const count = input.options.count as string;
     const next = input.options.next as string;
@@ -88,9 +88,9 @@ export class ClientListCommand extends Command {
     await executeService.newLine();
 
     const options: any = {
-      displayNameContains,
-      issuerContains,
-      subjectContains,
+      nameContains,
+      issuer,
+      subject,
       count,
       next,
     };

@@ -100,8 +100,8 @@ export interface IFusebitInitResolve {
 export interface IFusebitAgentListOptions {
   nameContains?: string;
   primaryEmailContains?: string;
-  issuerContains?: string;
-  subjectContains?: string;
+  issuer?: string;
+  subject?: string;
   next?: string;
   count?: number;
 }
@@ -153,11 +153,11 @@ export class AgentService {
     if (options.primaryEmailContains) {
       query.push(`email=${encodeURIComponent(options.primaryEmailContains)}`);
     }
-    if (options.issuerContains) {
-      query.push(`issuerId=${encodeURIComponent(options.issuerContains)}`);
+    if (options.issuer) {
+      query.push(`issuerId=${encodeURIComponent(options.issuer)}`);
     }
-    if (options.subjectContains) {
-      query.push(`subject=${encodeURIComponent(options.subjectContains)}`);
+    if (options.subject) {
+      query.push(`subject=${encodeURIComponent(options.subject)}`);
     }
     if (options.count) {
       query.push(`count=${options.count}`);
