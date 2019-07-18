@@ -1,5 +1,5 @@
 import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
-import { ExecuteService, ClientService } from '../../../services';
+import { ExecuteService, AgentService } from '../../../services';
 import { Text } from '@5qtrs/text';
 
 // ------------------
@@ -58,14 +58,14 @@ export class ClientAccessRemoveCommand extends Command {
   protected async onExecute(input: IExecuteInput): Promise<number> {
     const [id, action, rawResource] = input.arguments as string[];
 
-    const clientService = await ClientService.create(input);
+    const clientService = await AgentService.create(input, false);
     const executeService = await ExecuteService.create(input);
 
     await executeService.newLine();
 
     let resource = !rawResource || rawResource[rawResource.length - 1] === '/' ? rawResource : `${rawResource}/`;
 
-    const client = await clientService.getClient(id);
+    const client = await clientService.getAgent(id);
     client.access = client.access || {};
     client.access.allow = client.access.allow || [];
 
@@ -115,14 +115,14 @@ export class ClientAccessRemoveCommand extends Command {
 
     const access = { action, resource };
 
-    await clientService.confirmRemoveClientAccess(client, access);
+    await clientService.confirmRemoveAgentAccess(client, access);
 
     client.access.allow.splice(accessIndex, 1);
 
     const update = { access: { allow: client.access.allow } };
-    const updatedClient = await clientService.removeClientAccess(client.id, update);
+    const updatedClient = await clientService.removeAgentAccess(client.id, update);
 
-    await clientService.displayClient(updatedClient);
+    await clientService.displayAgent(updatedClient);
 
     return 0;
   }

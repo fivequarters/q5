@@ -1,5 +1,5 @@
 import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
-import { UserService, ExecuteService } from '../../../services';
+import { AgentService, ExecuteService } from '../../../services';
 import { Text } from '@5qtrs/text';
 
 // ------------------
@@ -64,25 +64,25 @@ export class UserIdentityAddCommand extends Command {
   protected async onExecute(input: IExecuteInput): Promise<number> {
     const [id, issuerId, subject] = input.arguments as string[];
 
-    const userService = await UserService.create(input);
+    const userService = await AgentService.create(input, true);
     const executeService = await ExecuteService.create(input);
 
     await executeService.newLine();
 
-    const user = await userService.getUser(id);
+    const user = await userService.getAgent(id);
 
     const newIdentity = { issuerId, subject };
 
-    await userService.confirmAddUserIdentity(user, newIdentity);
+    await userService.confirmAddAgentIdentity(user, newIdentity);
 
     const update = { identities: [newIdentity] };
     if (user.identities) {
       update.identities.push(...user.identities);
     }
 
-    const updatedUser = await userService.addUserIdentity(user.id, update);
+    const updatedUser = await userService.addAgentIdentity(user.id, update);
 
-    await userService.displayUser(updatedUser);
+    await userService.displayAgent(updatedUser);
 
     return 0;
   }

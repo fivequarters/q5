@@ -1,5 +1,5 @@
 import { Command, IExecuteInput, ArgType } from '@5qtrs/cli';
-import { ClientService, ExecuteService } from '../../services';
+import { AgentService, ExecuteService } from '../../services';
 import { Text } from '@5qtrs/text';
 
 // ------------------
@@ -75,43 +75,41 @@ export class ClientListCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    const displayNameContains = input.arguments[0] as string;
-    const issuerContains = input.options.issuer as string;
-    const subjectContains = input.options.subject as string;
+    const nameContains = input.arguments[0] as string;
+    const issuer = input.options.issuer as string;
+    const subject = input.options.subject as string;
     const output = input.options.output as string;
     const count = input.options.count as string;
     const next = input.options.next as string;
 
-    const clientService = await ClientService.create(input);
+    const clientService = await AgentService.create(input, false);
     const executeService = await ExecuteService.create(input);
 
     await executeService.newLine();
 
     const options: any = {
-      displayNameContains,
-      issuerContains,
-      subjectContains,
+      nameContains,
+      issuer,
+      subject,
       count,
       next,
     };
 
     if (output === 'json') {
-      const result = await clientService.listClients(options);
+      const result = await clientService.listAgents(options);
       const json = JSON.stringify(result, null, 2);
       input.io.writeLineRaw(json);
     } else {
-      let clientCount = 1;
       let getMore = true;
       let result;
       let firstDisplay = true;
       while (getMore) {
-        result = await clientService.listClients(options);
-        await clientService.displayClients(result.items, firstDisplay, clientCount);
+        result = await clientService.listAgents(options);
+        await clientService.displayAgents(result.items, firstDisplay);
         firstDisplay = false;
         getMore = result.next ? await clientService.confirmListMore() : false;
         if (getMore) {
           options.next = result.next;
-          clientCount += result.items.length;
         }
       }
     }

@@ -1,5 +1,5 @@
 import { Command, IExecuteInput } from '@5qtrs/cli';
-import { UserService, ExecuteService } from '../../services';
+import { AgentService, ExecuteService } from '../../services';
 
 // ------------------
 // Internal Constants
@@ -42,14 +42,14 @@ export class UserGetCommand extends Command {
   protected async onExecute(input: IExecuteInput): Promise<number> {
     const [id] = input.arguments as string[];
 
-    const userService = await UserService.create(input);
+    const userService = await AgentService.create(input, true);
     const executeService = await ExecuteService.create(input);
 
     await executeService.newLine();
 
-    const user = await userService.getUser(id);
+    const user = await userService.getAgent(id);
 
-    await userService.displayUser(user);
+    await userService.displayAgent(user);
 
     return 0;
   }

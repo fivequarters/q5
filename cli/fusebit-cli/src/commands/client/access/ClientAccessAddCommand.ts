@@ -1,5 +1,5 @@
-import { Command, ArgType, IExecuteInput, MessageKind } from '@5qtrs/cli';
-import { ExecuteService, ClientService, ProfileService } from '../../../services';
+import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
+import { ExecuteService, AgentService, ProfileService } from '../../../services';
 import { Text } from '@5qtrs/text';
 
 // ------------------
@@ -66,7 +66,7 @@ export class ClientAccessAddCommand extends Command {
   protected async onExecute(input: IExecuteInput): Promise<number> {
     const [id, action] = input.arguments as string[];
 
-    const clientService = await ClientService.create(input);
+    const clientService = await AgentService.create(input, false);
     const executeService = await ExecuteService.create(input);
     const profileService = await ProfileService.create(input);
 
@@ -81,7 +81,7 @@ export class ClientAccessAddCommand extends Command {
 
     const profile = await profileService.getExecutionProfile(['account']);
 
-    const client = await clientService.getClient(id);
+    const client = await clientService.getAgent(id);
 
     const newAccess = {
       action,
@@ -106,16 +106,16 @@ export class ClientAccessAddCommand extends Command {
 
     const resource = resourcePath.join('');
 
-    await clientService.confirmAddClientAccess(client, { action, resource });
+    await clientService.confirmAddAgentAccess(client, { action, resource });
 
     const update = { access: { allow: [{ action, resource }] } };
     if (client.access && client.access.allow) {
       update.access.allow.push(...client.access.allow);
     }
 
-    const updatedClient = await clientService.addClientAccess(client.id, update);
+    const updatedClient = await clientService.addAgentAccess(client.id, update);
 
-    await clientService.displayClient(updatedClient);
+    await clientService.displayAgent(updatedClient);
 
     return 0;
   }

@@ -1,5 +1,5 @@
 import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
-import { ExecuteService, ClientService } from '../../../services';
+import { ExecuteService, AgentService } from '../../../services';
 import { Text } from '@5qtrs/text';
 
 // ------------------
@@ -64,12 +64,12 @@ export class ClientIdentityRemoveCommand extends Command {
   protected async onExecute(input: IExecuteInput): Promise<number> {
     const [id, issuerId, subject] = input.arguments as string[];
 
-    const clientService = await ClientService.create(input);
+    const clientService = await AgentService.create(input, false);
     const executeService = await ExecuteService.create(input);
 
     await executeService.newLine();
 
-    const client = await clientService.getClient(id);
+    const client = await clientService.getAgent(id);
     client.identities = client.identities || [];
 
     let identityIndex = -1;
@@ -98,14 +98,14 @@ export class ClientIdentityRemoveCommand extends Command {
 
     const identity = { issuerId, subject };
 
-    await clientService.confirmRemoveClientIdentity(client, identity);
+    await clientService.confirmRemoveAgentIdentity(client, identity);
 
     client.identities.splice(identityIndex, 1);
 
     const update = { identities: client.identities };
-    const updatedClient = await clientService.removeClientIdentity(client.id, update);
+    const updatedClient = await clientService.removeAgentIdentity(client.id, update);
 
-    await clientService.displayClient(updatedClient);
+    await clientService.displayAgent(updatedClient);
 
     return 0;
   }

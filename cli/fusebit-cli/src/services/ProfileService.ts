@@ -1,5 +1,5 @@
 import { IExecuteInput, Confirm } from '@5qtrs/cli';
-import { Text } from '@5qtrs/text';
+import { Text, IText } from '@5qtrs/text';
 import {
   FusebitProfile,
   IFusebitExecutionProfile,
@@ -10,7 +10,6 @@ import {
   FusebitProfileException,
   FusebitProfileExceptionCode,
 } from '@5qtrs/fusebit-profile-sdk';
-import { profileConvert } from './profileConvert';
 import { ExecuteService } from './ExecuteService';
 
 // ------------------
@@ -304,12 +303,6 @@ export class ProfileService {
     expected?: string[],
     defaults?: IFusebitProfileDefaults
   ): Promise<IFusebitExecutionProfile> {
-    try {
-      await profileConvert();
-    } catch (__) {
-      // do_nothing
-    }
-
     const profileName = this.input.options.profile as string;
     const profile = await this.execute(() => this.profile.getExecutionProfile(profileName));
 
@@ -351,7 +344,7 @@ export class ProfileService {
     }
   }
 
-  public async displayProfile(profile: IFusebitProfile) {
+  public async displayProfile(profile: IFusebitProfile, agentDetails?: IText) {
     if (this.input.options.output === 'json') {
       await this.input.io.writeLine(JSON.stringify(profile, null, 2));
       return;
@@ -359,7 +352,7 @@ export class ProfileService {
 
     const defaultProfileName = await this.profile.getDefaultProfileName();
 
-    await this.writeProfile(profile, profile.name === defaultProfileName);
+    await this.writeProfile(profile, profile.name === defaultProfileName, agentDetails);
   }
 
   public async displayTokenContext(profileName?: string) {
@@ -395,6 +388,26 @@ export class ProfileService {
 
     this.input.io.writeLineRaw(profile.accessToken);
     this.input.io.writeLine();
+  }
+
+  public async getAgent(profileName: string): Promise<any> {
+    const profile = await this.execute(() => this.profile.getExecutionProfile(profileName));
+
+    const agent = await this.executeService.executeRequest(
+      {
+        header: 'Get Profile Details',
+        message: Text.create("Getting the details of the '", Text.bold(profileName), "' profile..."),
+        errorHeader: 'Get Profile Details Error',
+        errorMessage: Text.create("Unable to get the details of the '", Text.bold(profileName), "' profile"),
+      },
+      {
+        method: 'GET',
+        url: `${profile.baseUrl}/v1/account/${profile.account}/me`,
+        headers: { Authorization: `bearer ${profile.accessToken}` },
+      }
+    );
+
+    return agent;
   }
 
   private getProfileUpdateConfirmDetails(profile: IFusebitProfile, settings: IFusebitProfileSettings) {
@@ -492,7 +505,7 @@ export class ProfileService {
     await this.executeService.error('Profile Error', error.message, error);
   }
 
-  private async writeProfile(profile: IFusebitProfile, isDefault: boolean) {
+  private async writeProfile(profile: IFusebitProfile, isDefault: boolean, agentDetails?: IText) {
     const details = [
       Text.dim('Deployment: '),
       profile.baseUrl,
@@ -528,6 +541,12 @@ export class ProfileService {
         getDateString(new Date(profile.updated)),
       ]
     );
+
+    if (agentDetails) {
+      details.push(Text.eol());
+      details.push(Text.eol());
+      details.push(agentDetails);
+    }
 
     const name = isDefault
       ? Text.create(Text.bold(profile.name), Text.eol(), Text.dim(Text.italic('<default>')))
