@@ -368,7 +368,7 @@ export class IssuerService {
     }
   }
 
-  public async displayIssuers(issuers: IFusebitIssuer[], firstDisplay: boolean, issuerCount: number = 1) {
+  public async displayIssuers(issuers: IFusebitIssuer[], firstDisplay: boolean) {
     if (!issuers.length) {
       await this.executeService.info('No Issuers', `No ${firstDisplay ? '' : 'more '}issuers to list`);
       return;
@@ -381,7 +381,7 @@ export class IssuerService {
     await message.write(this.input.io);
 
     for (const issuer of issuers) {
-      await this.writeIssuer(issuer, issuerCount++);
+      await this.writeIssuer(issuer);
     }
   }
 
@@ -394,7 +394,7 @@ export class IssuerService {
     await this.writeIssuer(issuer);
   }
 
-  private async writeIssuer(issuer: IFusebitIssuer, issuerCount: number = 1) {
+  private async writeIssuer(issuer: IFusebitIssuer) {
     const details = [Text.dim('Issuer: '), issuer.id || ''];
 
     if (!issuer.jsonKeysUrl && !issuer.publicKeys) {
@@ -411,7 +411,7 @@ export class IssuerService {
     }
 
     const message = await Message.create({
-      header: Text.bold(issuer.displayName || `Issuer ${issuerCount}`),
+      header: issuer.displayName ? Text.bold(issuer.displayName) : Text.dim('<No Name>'),
       message: Text.create(details),
     });
     await message.write(this.input.io);

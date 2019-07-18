@@ -82,18 +82,16 @@ export class IssuerListCommand extends Command {
       const json = JSON.stringify(result, null, 2);
       await input.io.writeLineRaw(json);
     } else {
-      let issuerCount = 1;
       let getMore = true;
       let result;
       let firstDisplay = true;
       while (getMore) {
         result = await issuerService.listIssuers(options);
-        await issuerService.displayIssuers(result.items, firstDisplay, issuerCount);
+        await issuerService.displayIssuers(result.items, firstDisplay);
         firstDisplay = false;
         getMore = result.next ? await issuerService.confirmListMore() : false;
         if (getMore) {
           options.next = result.next;
-          issuerCount += result.items.length;
         }
       }
     }
