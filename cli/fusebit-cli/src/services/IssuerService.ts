@@ -185,10 +185,10 @@ export class IssuerService {
     );
   }
 
-  public async updateIssuer(id: string, issuer: INewFusebitIssuer): Promise<void> {
+  public async updateIssuer(id: string, issuer: INewFusebitIssuer): Promise<IFusebitIssuer> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
-    await this.executeService.executeRequest(
+    const updatedIssuer = await this.executeService.executeRequest(
       {
         header: 'Update Issuer',
         message: Text.create("Updating the '", Text.bold(id), "' issuer..."),
@@ -207,12 +207,14 @@ export class IssuerService {
       'Issuer Updated',
       Text.create("The '", Text.bold(id), "' issuer was successfully updated")
     );
+
+    return updatedIssuer;
   }
 
-  public async addPublicKey(id: string, issuer: INewFusebitIssuer): Promise<void> {
+  public async addPublicKey(id: string, issuer: INewFusebitIssuer): Promise<IFusebitIssuer> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
-    await this.executeService.executeRequest(
+    const updatedIssuer = await this.executeService.executeRequest(
       {
         header: 'Add Public Key',
         message: Text.create("Adding the public key to the '", Text.bold(id), "' issuer..."),
@@ -220,7 +222,7 @@ export class IssuerService {
         errorMessage: Text.create("Unable to add the public key to the '", Text.bold(id), "' issuer"),
       },
       {
-        method: 'PUT',
+        method: 'PATCH',
         url: `${profile.baseUrl}/v1/account/${profile.account}/issuer/${encodeURIComponent(id)}`,
         data: issuer,
         headers: { Authorization: `bearer ${profile.accessToken}` },
@@ -231,12 +233,14 @@ export class IssuerService {
       'Public Key Added',
       Text.create("The public key was successfully added to the '", Text.bold(id), "' issuer")
     );
+
+    return updatedIssuer;
   }
 
-  public async removePublicKey(id: string, issuer: INewFusebitIssuer): Promise<void> {
+  public async removePublicKey(id: string, issuer: INewFusebitIssuer): Promise<IFusebitIssuer> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
-    await this.executeService.executeRequest(
+    const updatedIssuer = await this.executeService.executeRequest(
       {
         header: 'Remove Public Key',
         message: Text.create("Removing the public key from the '", Text.bold(id), "' issuer..."),
@@ -244,7 +248,7 @@ export class IssuerService {
         errorMessage: Text.create("Unable to remove the public key from the '", Text.bold(id), "' issuer"),
       },
       {
-        method: 'PUT',
+        method: 'PATCH',
         url: `${profile.baseUrl}/v1/account/${profile.account}/issuer/${encodeURIComponent(id)}`,
         data: issuer,
         headers: { Authorization: `bearer ${profile.accessToken}` },
@@ -255,100 +259,112 @@ export class IssuerService {
       'Public Key Removed',
       Text.create("The public key was successfully removed from the '", Text.bold(id), "' issuer")
     );
+
+    return updatedIssuer;
   }
 
   public async confirmAddIssuer(id: string, newIssuer: INewFusebitIssuer): Promise<void> {
-    const profile = await this.profileService.getExecutionProfile(['account']);
+    if (!this.input.options.quiet) {
+      const profile = await this.profileService.getExecutionProfile(['account']);
 
-    const confirmPrompt = await Confirm.create({
-      header: 'Add Issuer?',
-      message: Text.create("Add the '", Text.bold(id), "' issuer shown below?"),
-      details: this.getIssuerConfirmDetails(id, profile.account as string, newIssuer),
-    });
-    const confirmed = await confirmPrompt.prompt(this.input.io);
-    if (!confirmed) {
-      await this.executeService.message(
-        'Add Issuer Canceled',
-        Text.create("Adding the '", Text.bold(id), "' issuer was canceled."),
-        MessageKind.warning
-      );
-      throw new Error('Add Issuer Canceled');
+      const confirmPrompt = await Confirm.create({
+        header: 'Add Issuer?',
+        message: Text.create("Add the '", Text.bold(id), "' issuer shown below?"),
+        details: this.getIssuerConfirmDetails(id, profile.account as string, newIssuer),
+      });
+      const confirmed = await confirmPrompt.prompt(this.input.io);
+      if (!confirmed) {
+        await this.executeService.message(
+          'Add Issuer Canceled',
+          Text.create("Adding the '", Text.bold(id), "' issuer was canceled."),
+          MessageKind.warning
+        );
+        throw new Error('Add Issuer Canceled');
+      }
     }
   }
 
   public async confirmUpdateIssuer(issuer: IFusebitIssuer, newIssuer: INewFusebitIssuer): Promise<void> {
-    const profile = await this.profileService.getExecutionProfile(['account']);
+    if (!this.input.options.quiet) {
+      const profile = await this.profileService.getExecutionProfile(['account']);
 
-    const confirmPrompt = await Confirm.create({
-      header: 'Update Issuer?',
-      message: Text.create("Update the '", Text.bold(issuer.id), "' issuer shown below?"),
-      details: this.getUpdateIssuerConfirmDetails(profile.account as string, issuer, newIssuer),
-    });
-    const confirmed = await confirmPrompt.prompt(this.input.io);
-    if (!confirmed) {
-      await this.executeService.message(
-        'Update Issuer Canceled',
-        Text.create("Updating the '", Text.bold(issuer.id), "' issuer was canceled."),
-        MessageKind.warning
-      );
-      throw new Error('Update Issuer Canceled');
+      const confirmPrompt = await Confirm.create({
+        header: 'Update Issuer?',
+        message: Text.create("Update the '", Text.bold(issuer.id), "' issuer shown below?"),
+        details: this.getUpdateIssuerConfirmDetails(profile.account as string, issuer, newIssuer),
+      });
+      const confirmed = await confirmPrompt.prompt(this.input.io);
+      if (!confirmed) {
+        await this.executeService.message(
+          'Update Issuer Canceled',
+          Text.create("Updating the '", Text.bold(issuer.id), "' issuer was canceled."),
+          MessageKind.warning
+        );
+        throw new Error('Update Issuer Canceled');
+      }
     }
   }
 
   public async confirmRemoveIssuer(id: string, issuer: IFusebitIssuer): Promise<void> {
-    const profile = await this.profileService.getExecutionProfile(['account']);
+    if (!this.input.options.quiet) {
+      const profile = await this.profileService.getExecutionProfile(['account']);
 
-    const confirmPrompt = await Confirm.create({
-      header: 'Remove Issuer?',
-      message: Text.create("Remove the '", Text.bold(id), "' issuer shown below?"),
-      details: this.getIssuerConfirmDetails(id, profile.account as string, issuer),
-    });
-    const confirmed = await confirmPrompt.prompt(this.input.io);
-    if (!confirmed) {
-      await this.executeService.message(
-        'Remove Issuer Canceled',
-        Text.create("Removing the '", Text.bold(id), "' issuer was canceled."),
-        MessageKind.warning
-      );
-      throw new Error('Remove Issuer Canceled');
+      const confirmPrompt = await Confirm.create({
+        header: 'Remove Issuer?',
+        message: Text.create("Remove the '", Text.bold(id), "' issuer shown below?"),
+        details: this.getIssuerConfirmDetails(id, profile.account as string, issuer),
+      });
+      const confirmed = await confirmPrompt.prompt(this.input.io);
+      if (!confirmed) {
+        await this.executeService.message(
+          'Remove Issuer Canceled',
+          Text.create("Removing the '", Text.bold(id), "' issuer was canceled."),
+          MessageKind.warning
+        );
+        throw new Error('Remove Issuer Canceled');
+      }
     }
   }
 
   public async confirmAddPublicKey(issuer: IFusebitIssuer, keyId: string): Promise<void> {
-    const profile = await this.profileService.getExecutionProfile(['account']);
+    if (!this.input.options.quiet) {
+      const profile = await this.profileService.getExecutionProfile(['account']);
 
-    const confirmPrompt = await Confirm.create({
-      header: 'Add Public Key?',
-      message: Text.create("Add the public key to the '", Text.bold(issuer.id), "' issuer shown below?"),
-      details: this.getPublicKeyConfirmDetails(issuer.id, profile.account as string, keyId),
-    });
-    const confirmed = await confirmPrompt.prompt(this.input.io);
-    if (!confirmed) {
-      await this.executeService.message(
-        'Add Public Key Canceled',
-        Text.create("Adding the public key to the '", Text.bold(issuer.id), "' issuer was canceled."),
-        MessageKind.warning
-      );
-      throw new Error('Add Public Key Canceled');
+      const confirmPrompt = await Confirm.create({
+        header: 'Add Public Key?',
+        message: Text.create("Add the public key to the '", Text.bold(issuer.id), "' issuer shown below?"),
+        details: this.getPublicKeyConfirmDetails(issuer.id, profile.account as string, keyId),
+      });
+      const confirmed = await confirmPrompt.prompt(this.input.io);
+      if (!confirmed) {
+        await this.executeService.message(
+          'Add Public Key Canceled',
+          Text.create("Adding the public key to the '", Text.bold(issuer.id), "' issuer was canceled."),
+          MessageKind.warning
+        );
+        throw new Error('Add Public Key Canceled');
+      }
     }
   }
 
   public async confirmRemovePublicKey(issuer: IFusebitIssuer, keyId: string): Promise<void> {
-    const profile = await this.profileService.getExecutionProfile(['account']);
+    if (!this.input.options.quiet) {
+      const profile = await this.profileService.getExecutionProfile(['account']);
 
-    const confirmPrompt = await Confirm.create({
-      header: 'Remove Public Key?',
-      message: Text.create("Remove the public key from the '", Text.bold(issuer.id), "' issuer shown below?"),
-      details: this.getPublicKeyConfirmDetails(issuer.id, profile.account as string, keyId),
-    });
-    const confirmed = await confirmPrompt.prompt(this.input.io);
-    if (!confirmed) {
-      await this.executeService.message(
-        'Remove Public Key Canceled',
-        Text.create("Removing the public key from the '", Text.bold(issuer.id), "' issuer was canceled."),
-        MessageKind.warning
-      );
-      throw new Error('Remove Public Key Canceled');
+      const confirmPrompt = await Confirm.create({
+        header: 'Remove Public Key?',
+        message: Text.create("Remove the public key from the '", Text.bold(issuer.id), "' issuer shown below?"),
+        details: this.getPublicKeyConfirmDetails(issuer.id, profile.account as string, keyId),
+      });
+      const confirmed = await confirmPrompt.prompt(this.input.io);
+      if (!confirmed) {
+        await this.executeService.message(
+          'Remove Public Key Canceled',
+          Text.create("Removing the public key from the '", Text.bold(issuer.id), "' issuer was canceled."),
+          MessageKind.warning
+        );
+        throw new Error('Remove Public Key Canceled');
+      }
     }
   }
 
@@ -359,8 +375,8 @@ export class IssuerService {
     }
 
     const message = await Message.create({
-      header: Text.blue('Issuers'),
-      message: Text.blue('Details'),
+      header: Text.cyan('Issuers'),
+      message: Text.cyan('Details'),
     });
     await message.write(this.input.io);
 
@@ -370,7 +386,7 @@ export class IssuerService {
   }
 
   public async displayIssuer(issuer: IFusebitIssuer) {
-    if (this.input.options.format === 'json') {
+    if (this.input.options.output === 'json') {
       await this.input.io.writeLine(JSON.stringify(issuer, null, 2));
       return;
     }
@@ -386,17 +402,16 @@ export class IssuerService {
       details.push(Text.dim('[no key signature mechanism set]'));
     } else if (issuer.jsonKeysUrl) {
       details.push(Text.eol());
-      details.push(Text.dim('Json Key Uri: '));
+      details.push(Text.dim('Json Keys URL: '));
       details.push(issuer.jsonKeysUrl || '');
     } else if (issuer.publicKeys) {
       details.push(Text.eol());
       details.push(Text.dim('Public Key Ids: '));
-      details.push(Text.join(issuer.publicKeys.map(key => key.keyId), Text.dim(' • ')));
+      details.push(Text.join(issuer.publicKeys.map(key => key.keyId), Text.dim(', ')));
     }
 
-    let issuerCount = 1;
     const message = await Message.create({
-      header: Text.bold(issuer.displayName || `Issuer ${issuerCount++}`),
+      header: issuer.displayName ? Text.bold(issuer.displayName) : Text.dim('<No Name>'),
       message: Text.create(details),
     });
     await message.write(this.input.io);
@@ -410,7 +425,7 @@ export class IssuerService {
     ];
 
     if (issuer.jsonKeysUrl) {
-      details.push({ name: 'Json Key Uri', value: issuer.jsonKeysUrl });
+      details.push({ name: 'Json Keys URL', value: issuer.jsonKeysUrl });
     } else if (issuer.publicKeyId) {
       details.push({ name: 'Key Id', value: issuer.publicKeyId });
     }
@@ -423,17 +438,17 @@ export class IssuerService {
     const publicKeys = issuer.publicKeys ? `${issuer.publicKeys.length} keys` : notSet;
 
     const newDisplayName = update.displayName || notSet;
-    const newJsonKeyUri = update.jsonKeysUrl || notSet;
-    const newPublicKeys = newJsonKeyUri === notSet ? publicKeys : notSet;
+    const newJsonKeysUrl = update.jsonKeysUrl || notSet;
+    const newPublicKeys = newJsonKeysUrl === notSet ? publicKeys : notSet;
 
     const displayNameValue =
       displayName === newDisplayName
         ? Text.create(displayName, Text.dim(' (no change)'))
         : Text.create(displayName, Text.dim(' → '), newDisplayName);
     const jsonKeysUrlValue =
-      jsonKeysUrl === newJsonKeyUri
+      jsonKeysUrl === newJsonKeysUrl
         ? Text.create(jsonKeysUrl, Text.dim(' (no change)'))
-        : Text.create(jsonKeysUrl, Text.dim(' → '), newJsonKeyUri);
+        : Text.create(jsonKeysUrl, Text.dim(' → '), newJsonKeysUrl);
     const publicKeysValue =
       publicKeys === newPublicKeys
         ? Text.create(publicKeys, Text.dim(' (no change)'))

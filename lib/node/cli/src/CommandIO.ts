@@ -158,7 +158,7 @@ export class CommandIO implements ICommandIO {
       this.setRawMode(true);
       this.input.setEncoding('utf8');
 
-      const prompt = options.prompt instanceof Text ? options.prompt : Text.blue(options.prompt);
+      const prompt = options.prompt instanceof Text ? options.prompt : Text.cyan(options.prompt);
       await this.write(prompt.toString(this.enableStyle) + ' ');
       if (options.placeholder) {
         const placeholder = options.placeholder instanceof Text ? options.placeholder : Text.dim(options.placeholder);

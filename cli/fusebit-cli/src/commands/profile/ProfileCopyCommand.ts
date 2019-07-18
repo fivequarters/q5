@@ -1,5 +1,5 @@
 import { Command, IExecuteInput, ArgType } from '@5qtrs/cli';
-import { ProfileService } from '../../services';
+import { ProfileService, ExecuteService } from '../../services';
 
 // ------------------
 // Internal Constants
@@ -11,7 +11,7 @@ const command = {
   summary: 'Copy a profile',
   description: [
     'Creates a new stored profile by copying the credentials and',
-    'and configured command options of an existing stored profile.',
+    'configured command options of an existing stored profile.',
   ].join(' '),
   arguments: [
     {
@@ -25,16 +25,17 @@ const command = {
   ],
   options: [
     {
-      name: 'confirm',
-      aliases: ['c'],
-      description: 'If set to true, prompts for confirmation before overwriting an existing profile',
+      name: 'quiet',
+      aliases: ['q'],
+      description: 'If set to true, does not prompt for confirmation',
       type: ArgType.boolean,
-      default: 'true',
+      default: 'false',
     },
     {
-      name: 'format',
-      description: "The format to display the output: 'table', 'json'",
-      default: 'table',
+      name: 'output',
+      aliases: ['o'],
+      description: "The format to display the output: 'pretty', 'json'",
+      default: 'pretty',
     },
   ],
 };
@@ -53,15 +54,17 @@ export class ProfileCopyCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    await input.io.writeLine();
     const [source, target] = input.arguments as string[];
-    const confirm = input.options.confirm as boolean;
+    const quiet = input.options.quiet as boolean;
 
     const profileService = await ProfileService.create(input);
+    const executeService = await ExecuteService.create(input);
+
+    await executeService.newLine();
 
     await profileService.getProfileOrThrow(source);
 
-    if (confirm) {
+    if (!quiet) {
       const targetProfile = await profileService.getProfile(target);
       if (targetProfile) {
         await profileService.confirmCopyProfile(source, target, targetProfile);

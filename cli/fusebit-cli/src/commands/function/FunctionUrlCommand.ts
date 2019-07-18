@@ -1,24 +1,39 @@
-import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
-import { request } from '@5qtrs/request';
-import { ProfileService, VersionService, tryGetFusebit, getProfileSettingsFromFusebit } from '../../services';
+import { Command, IExecuteInput } from '@5qtrs/cli';
+import { FunctionService, ExecuteService } from '../../services';
+
+// ------------------
+// Internal Constants
+// ------------------
+
+const command = {
+  name: 'Get Function Location',
+  cmd: 'url',
+  summary: 'Get the execution URL of a deployed function',
+  description: 'Retrieves the execution URL of a deployed function.',
+  arguments: [
+    {
+      name: 'function',
+      description: 'The id of the function',
+      required: false,
+    },
+  ],
+  options: [
+    {
+      name: 'output',
+      aliases: ['o'],
+      description: "The format to display the output: 'pretty', 'json', 'raw'",
+      default: 'raw',
+    },
+  ],
+};
+
+// ----------------
+// Exported Classes
+// ----------------
 
 export class FunctionUrlCommand extends Command {
   private constructor() {
-    super({
-      name: 'Get Function Location',
-      cmd: 'url',
-      summary: 'Get the execution URL of a deployed function.',
-      description: [
-        `Returns the execution URL of a deployed function. Since this is the only output of the command, it is useful for scripting.`,
-      ].join(' '),
-      options: [
-        {
-          name: 'function',
-          aliases: ['f'],
-          description: 'The id of the function.',
-        },
-      ],
-    });
+    super(command);
   }
 
   public static async create() {
@@ -26,27 +41,15 @@ export class FunctionUrlCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    let profileService = await ProfileService.create(input);
-    const versionService = await VersionService.create(input);
-    let profile = await profileService.getExecutionProfile(
-      ['subscription', 'boundary', 'function'],
-      getProfileSettingsFromFusebit(tryGetFusebit())
-    );
+    const functionId = input.arguments[0] as string;
 
-    const version = await versionService.getVersion();
-    let response = await request({
-      url: `${profile.baseUrl}/v1/account/${profile.account}/subscription/${profile.subscription}/boundary/${
-        profile.boundary
-      }/function/${profile.function}/location`,
-      headers: {
-        Authorization: `Bearer ${profile.accessToken}`,
-        'User-Agent': `fusebit-cli/${version}`,
-      },
-      validStatus: status => status === 200,
-    });
+    const functionService = await FunctionService.create(input);
+    const executeService = await ExecuteService.create(input);
 
-    // This is intentionally bare output - for scripting
-    console.log(response.data.location);
+    await executeService.newLine();
+
+    const location = await functionService.getFunctionUrl(functionId);
+    await functionService.displayFunctionUrl(location);
 
     return 0;
   }

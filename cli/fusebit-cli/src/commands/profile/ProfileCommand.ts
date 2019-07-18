@@ -1,7 +1,9 @@
-import { EOL } from 'os';
 import { Command, ICommand } from '@5qtrs/cli';
+import { Text } from '@5qtrs/text';
 import { ProfileListCommand } from './ProfileListCommand';
-import { ProfileDefaultCommand } from './ProfileDefaultCommand';
+import { ProfileSetCommand } from './ProfileSetCommand';
+import { ProfileGetCommand } from './ProfileGetCommand';
+import { ProfileAddCommand } from './ProfileAddCommand';
 import { ProfileCopyCommand } from './ProfileCopyCommand';
 import { ProfileRenameCommand } from './ProfileRenameCommand';
 import { ProfileRemoveCommand } from './ProfileRemoveCommand';
@@ -15,14 +17,19 @@ const command: ICommand = {
   name: 'Profiles',
   cmd: 'profile',
   summary: 'Manage profiles',
-  description: [
+  description: Text.create([
     'Manage stored profiles.',
-    `${EOL}${EOL}A profile encapsulates stored credentials and common`,
-    'command options so that they do not need to be individually',
-    `specified each time a command is executed.${EOL}${EOL}If no profile`,
-    'is specified when a command is executed, the default profile credentials',
-    'and command options are used.',
-  ].join(' '),
+    Text.eol(),
+    Text.eol(),
+    'A profile encapsulates stored credentials and common ',
+    'command options so that they do not need to be individually ',
+    'specified each time a command is executed.',
+    Text.eol(),
+    Text.eol(),
+    'If no profile is specified when a command is executed, ',
+    'the default profile credentials and command options are used.',
+    '',
+  ]),
 };
 
 // ------------------
@@ -32,7 +39,9 @@ const command: ICommand = {
 async function getSubCommands() {
   const subCommands = [];
   subCommands.push(await ProfileListCommand.create());
-  subCommands.push(await ProfileDefaultCommand.create());
+  subCommands.push(await ProfileGetCommand.create());
+  subCommands.push(await ProfileSetCommand.create());
+  subCommands.push(await ProfileAddCommand.create());
   subCommands.push(await ProfileCopyCommand.create());
   subCommands.push(await ProfileRenameCommand.create());
   subCommands.push(await ProfileUpdateCommand.create());

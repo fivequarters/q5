@@ -14,19 +14,13 @@ const command: ICommand = {
   name: 'Issuer',
   cmd: 'issuer',
   summary: 'Manage issuers',
-  description: 'Retrieves and manages trusted issuers associated with the account.',
+  description: 'Retrieves and manages trusted issuers associated with an account.',
   options: [
     {
       name: 'profile',
       aliases: ['p'],
-      description: 'The name of the profile to use when executing the command.',
+      description: 'The name of the profile to use when executing the command',
       defaultText: 'default profile',
-    },
-    {
-      name: 'account',
-      aliases: ['a'],
-      description: 'The account id to use when executing the command.',
-      defaultText: 'profile value',
     },
   ],
 };

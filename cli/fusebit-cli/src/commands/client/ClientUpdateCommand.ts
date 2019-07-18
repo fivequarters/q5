@@ -1,45 +1,60 @@
 import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
 import { Text } from '@5qtrs/text';
-import { ClientService } from '../../services';
+import { AgentService, ExecuteService } from '../../services';
+
+// ------------------
+// Internal Constants
+// ------------------
+
+const command = {
+  name: 'Update Client',
+  cmd: 'update',
+  summary: 'Update a client',
+  description: Text.create(
+    'Updates the display name of a client.',
+    Text.eol(),
+    Text.eol(),
+    "To add or remove identities associated with the client, use the '",
+    Text.bold('client identity'),
+    "' commands and to add or remove access from the client, use the '",
+    Text.bold('client access'),
+    "' commands."
+  ),
+  arguments: [
+    {
+      name: 'client',
+      description: 'The id of the client to update',
+    },
+  ],
+  options: [
+    {
+      name: 'name',
+      aliases: ['n'],
+      description: 'The display name of the client',
+    },
+    {
+      name: 'quiet',
+      aliases: ['q'],
+      description: 'If set to true, does not prompt for confirmation',
+      type: ArgType.boolean,
+      default: 'false',
+    },
+    {
+      name: 'output',
+      aliases: ['o'],
+      description: "The format to display the output: 'pretty', 'json'",
+      default: 'pretty',
+    },
+  ],
+};
+
+// ----------------
+// Exported Classes
+// ----------------
 
 export class ClientUpdateCommand extends Command {
   private constructor() {
-    super({
-      name: 'Update Client',
-      cmd: 'update',
-      summary: 'Update a client',
-      description: Text.create(
-        'Updates the display name of a client.',
-        Text.eol(),
-        Text.eol(),
-        "To add or remove identities associated with the client, use the '",
-        Text.bold('client identity'),
-        "' commands and to add or remove access from the client, use the '",
-        Text.bold('client access'),
-        "' commands."
-      ),
-      arguments: [
-        {
-          name: 'client',
-          description: 'The id of the client to update.',
-        },
-      ],
-      options: [
-        {
-          name: 'displayName',
-          description: 'The updated display name of the client.',
-        },
-        {
-          name: 'confirm',
-          description: [
-            'If set to true, the details regarding updating the client will be displayed along with a',
-            'prompt for confirmation.',
-          ].join(' '),
-          type: ArgType.boolean,
-          default: 'true',
-        },
-      ],
-    });
+    super(command);
   }
 
   public static async create() {
@@ -47,27 +62,25 @@ export class ClientUpdateCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    await input.io.writeLine();
-
     const [id] = input.arguments as string[];
-    const confirm = input.options.confirm as boolean;
-    const displayName = input.options.displayName as string;
+    const displayName = input.options.name as string;
 
-    const clientService = await ClientService.create(input);
+    const clientService = await AgentService.create(input, false);
+    const executeService = await ExecuteService.create(input);
 
-    const client = await clientService.getClient(id);
+    await executeService.newLine();
+
+    const client = await clientService.getAgent(id);
 
     const update = {
       displayName: displayName === '' ? undefined : displayName || client.displayName,
     };
 
-    if (confirm) {
-      await clientService.confirmUpdateClient(client, update);
-    }
+    await clientService.confirmUpdateAgent(client, update);
 
-    const updatedClient = await clientService.updateClient(client.id, update);
+    const updatedClient = await clientService.updateAgent(client.id, update);
 
-    await clientService.displayClient(updatedClient);
+    await clientService.displayAgent(updatedClient);
 
     return 0;
   }

@@ -14,22 +14,26 @@ const command = {
   arguments: [
     {
       name: 'issuer',
-      description: 'The id of the issuer to remove the public key from.',
+      description: 'The id of the issuer to remove the public key from',
     },
     {
       name: 'keyId',
-      description: 'The key id of the public key to remove.',
+      description: 'The key id of the public key to remove',
     },
   ],
   options: [
     {
-      name: 'confirm',
-      description: [
-        'If set to true, the details regarding removing the public key from the issuer',
-        'will be displayed along with a prompt for confirmation.',
-      ].join(' '),
+      name: 'quiet',
+      aliases: ['q'],
+      description: 'If set to true, does not prompt for confirmation',
       type: ArgType.boolean,
-      default: 'true',
+      default: 'false',
+    },
+    {
+      name: 'output',
+      aliases: ['o'],
+      description: "The format to display the output: 'pretty', 'json'",
+      default: 'pretty',
     },
   ],
 };
@@ -48,13 +52,12 @@ export class IssuerKeyRemoveCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    await input.io.writeLine();
-
     const [id, keyId] = input.arguments as string[];
-    const confirm = input.options.confirm as boolean;
 
     const issuerService = await IssuerService.create(input);
     const executeService = await ExecuteService.create(input);
+
+    await executeService.newLine();
 
     const issuer = await issuerService.getIssuer(id);
     issuer.publicKeys = issuer.publicKeys || [];
@@ -68,20 +71,19 @@ export class IssuerKeyRemoveCommand extends Command {
     }
 
     if (keyIndex === -1) {
-      await executeService.warning(
+      await executeService.error(
         'No Public Key',
         Text.create("The '", Text.bold(id), "' issuer does not have a public key with id '", Text.bold(keyId), "'")
       );
-      return 1;
     }
 
-    if (confirm) {
-      await issuerService.confirmRemovePublicKey(issuer, keyId);
-    }
+    await issuerService.confirmRemovePublicKey(issuer, keyId);
 
     issuer.publicKeys.splice(keyIndex, 1);
 
-    await issuerService.removePublicKey(id, issuer);
+    const updatedIssuer = await issuerService.removePublicKey(id, issuer);
+
+    await issuerService.displayIssuer(updatedIssuer);
 
     return 0;
   }

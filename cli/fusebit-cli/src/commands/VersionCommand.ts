@@ -10,6 +10,14 @@ const command = {
   cmd: 'version',
   summary: 'Returns the version of the Fusebit CLI',
   description: 'Returns the current version of the Fusebit CLI.',
+  options: [
+    {
+      name: 'output',
+      aliases: ['o'],
+      description: "The format to display the output: 'pretty', 'json', 'raw'",
+      default: 'pretty',
+    },
+  ],
 };
 
 // ----------------
@@ -26,13 +34,21 @@ export class VersionCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    await input.io.writeLine();
-
     const excuteService = await ExecuteService.create(input);
     const versionService = await VersionService.create(input);
 
+    await excuteService.newLine();
+
     const version = await versionService.getVersion();
-    await excuteService.info('Version', version);
+
+    const output = input.options.output;
+    if (output === 'json') {
+      await input.io.writeLineRaw(JSON.stringify({ version }, null, 2));
+    } else if (output === 'raw') {
+      await input.io.writeLineRaw(version.toString());
+    } else {
+      await excuteService.info('Version', version);
+    }
 
     return 0;
   }

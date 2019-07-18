@@ -22,12 +22,12 @@ const colors: { [index: string]: StyleCodes } = {
   inverse: [7, 27],
   hidden: [8, 28],
   black: [30, 39],
-  red: [91, 39],
-  green: [92, 39],
-  yellow: [93, 39],
-  blue: [94, 39],
-  magenta: [95, 39],
-  cyan: [96, 39],
+  red: [31, 39],
+  green: [32, 39],
+  yellow: [33, 39],
+  blue: [34, 39],
+  magenta: [35, 39],
+  cyan: [36, 39],
   white: [37, 39],
   gray: [90, 39],
 };
@@ -301,7 +301,7 @@ export class Text {
     return new Text([this], colors.gray);
   }
 
-  public wrap(width: number, indent: string = '', hypen: string = '-') {
+  public wrap(width: number, indent: string = '', hypen: string = '') {
     const lines = this.lines();
     const wrapped: Text[] = [];
     indent = indent.length < width ? indent : '';

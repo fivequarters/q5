@@ -242,7 +242,7 @@ export class StackService {
       return;
     }
 
-    await this.executeService.message(Text.blue('Stack'), Text.blue('Details'));
+    await this.executeService.message(Text.cyan('Stack'), Text.cyan('Details'));
     for (const stack of stacks) {
       this.writeStacks(stack);
     }
@@ -254,7 +254,7 @@ export class StackService {
       return;
     }
 
-    await this.executeService.message(Text.blue('Stack'), Text.blue('Details'));
+    await this.executeService.message(Text.cyan('Stack'), Text.cyan('Details'));
     this.writeStacks(stack);
   }
 

@@ -274,9 +274,7 @@ export class Command implements ICommand {
     const potentialCommands: Command[] = [];
     for (const command of this.allSubCommands) {
       if (startsWith(parsedArgs.termsAndArguments, command.terms)) {
-        // if (!mode || command.modes.indexOf(mode) !== -1) {
         potentialCommands.push(command);
-        // }
       }
     }
 
@@ -513,8 +511,13 @@ export class Command implements ICommand {
       }
       if (value === undefined) {
         if (argument.required) {
-          await this.onMissingArgument(parsedArgs, command, argumentName, io);
-          return undefined;
+          if (executeArguments.length === 0) {
+            await command.onHelp(io);
+            return 0;
+          } else {
+            await this.onMissingArgument(parsedArgs, command, argumentName, io);
+            return undefined;
+          }
         }
         value = argument.type === ArgType.boolean ? 'true' : argument.default;
       }

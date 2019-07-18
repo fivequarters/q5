@@ -1,5 +1,6 @@
 import { Command, IExecuteInput, ArgType } from '@5qtrs/cli';
-import { IssuerService } from '../../services';
+import { IssuerService, ExecuteService } from '../../services';
+import { Text } from '@5qtrs/text';
 
 // ------------------
 // Internal Constants
@@ -10,28 +11,38 @@ const command = {
   cmd: 'ls',
   summary: 'List issuers',
   description: 'Retrieves a list of trusted issuers associated with the account.',
-  options: [
+  arguments: [
     {
       name: 'name',
-      description: 'Only list issuer with a display name that includes the given value (case-sensistive)',
+      description: Text.create(
+        'Only list issuers with a display name that includes the given text ',
+        Text.dim('(case-sensitive)')
+      ),
+      required: false,
     },
+  ],
+  options: [
     {
       name: 'count',
       aliases: ['c'],
-      description: 'The number of users to issuers at a given time',
+      description: 'The number of issuers to list at a given time',
       type: ArgType.integer,
       default: '10',
     },
     {
-      name: 'next',
-      aliases: ['n'],
-      description: 'The opaque token from a previous list command used to continue listing',
+      name: 'output',
+      aliases: ['o'],
+      description: "The format to display the output: 'pretty', 'json'",
+      default: 'pretty',
     },
     {
-      name: 'format',
-      aliases: ['f'],
-      description: "The format to display the output: 'table', 'json'",
-      default: 'table',
+      name: 'next',
+      aliases: ['n'],
+      description: Text.create([
+        "The opaque next token obtained from a previous list command when using the '",
+        Text.bold('--output json'),
+        "' option ",
+      ]),
     },
   ],
 };
@@ -50,12 +61,15 @@ export class IssuerListCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    const nameContains = input.options.name as string;
-    const format = input.options.format as string;
+    const nameContains = input.arguments[0] as string;
+    const output = input.options.output as string;
     const count = input.options.count as string;
     const next = input.options.next as string;
 
     const issuerService = await IssuerService.create(input);
+    const executeService = await ExecuteService.create(input);
+
+    await executeService.newLine();
 
     const options: any = {
       nameContains,
@@ -63,14 +77,11 @@ export class IssuerListCommand extends Command {
       next,
     };
 
-    if (format === 'json') {
-      input.io.writeRawOnly(true);
+    if (output === 'json') {
       const result = await issuerService.listIssuers(options);
       const json = JSON.stringify(result, null, 2);
-      input.io.writeLineRaw(json);
+      await input.io.writeLineRaw(json);
     } else {
-      await input.io.writeLine();
-
       let getMore = true;
       let result;
       let firstDisplay = true;

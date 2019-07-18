@@ -1,5 +1,5 @@
-import { Command, IExecuteInput } from '@5qtrs/cli';
-import { ProfileService, UserService, ClientService } from '../services';
+import { Command, IExecuteInput, ArgType } from '@5qtrs/cli';
+import { ProfileService, ExecuteService, AgentService } from '../services';
 
 // ------------------
 // Internal Constants
@@ -22,6 +22,19 @@ const command = {
       aliases: ['p'],
       description: 'The name of the profile to create with the initalization of the CLI',
     },
+    {
+      name: 'quiet',
+      aliases: ['q'],
+      description: 'If set to true, does not prompt for confirmation',
+      type: ArgType.boolean,
+      default: 'false',
+    },
+    {
+      name: 'output',
+      aliases: ['o'],
+      description: "The format to display the output: 'pretty', 'json'",
+      default: 'pretty',
+    },
   ],
 };
 
@@ -39,16 +52,16 @@ export class InitCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    await input.io.writeLine();
-
     const token = input.arguments[0] as string;
     let profileName = input.options.profile as string;
 
     const profileService = await ProfileService.create(input);
-    const userService = await UserService.create(input);
-    const clientService = await ClientService.create(input);
+    const executeService = await ExecuteService.create(input);
+    let agentService = await AgentService.create(input);
 
-    const decodedToken = await userService.decodeInitToken(token);
+    await executeService.newLine();
+
+    const decodedToken = await agentService.decodeInitToken(token);
     const { accountId, subscriptionId, boundaryId, functionId, agentId, baseUrl, issuerId, subject } = decodedToken;
 
     if (!profileName) {
@@ -67,7 +80,10 @@ export class InitCommand extends Command {
       keyId: keyPair.kid,
     };
 
-    const agentService = agentId.indexOf('usr') === 0 ? userService : clientService;
+    if (agentId.indexOf('usr') !== 0) {
+      agentService = await AgentService.create(input, false);
+    }
+
     const agent = await agentService.resolveInit(baseUrl, accountId, agentId, token, initResolve);
 
     const newProfile = {
@@ -81,7 +97,7 @@ export class InitCommand extends Command {
       subject: subject,
     };
 
-    await profileService.addProfile(profileName, newProfile, keyPair);
+    await profileService.initProfile(profileName, newProfile, keyPair);
 
     const defaultProfileName = await profileService.getDefaultProfileName();
     if (!defaultProfileName) {

@@ -130,7 +130,7 @@ export class AccountService {
       return;
     }
 
-    await this.executeService.message(Text.blue('Account Name'), Text.blue('Details'));
+    await this.executeService.message(Text.cyan('Account Name'), Text.cyan('Details'));
     for (const account of accounts) {
       this.writeAccount(account);
     }

@@ -79,9 +79,9 @@ export class Message {
       case MessageKind.error:
         return Text.red(this.header);
       case MessageKind.info:
-        return Text.blue(this.header);
+        return Text.cyan(this.header);
       case MessageKind.result:
-        return Text.green(this.header);
+        return Text.cyan(this.header);
       default:
         return Text.yellow(this.header);
     }

@@ -26,23 +26,16 @@ const command: ICommand = {
     {
       name: 'profile',
       aliases: ['p'],
-      description: 'The name of the profile to use when executing the command.',
+      description: 'The name of the profile to use when executing the command',
       defaultText: 'default profile',
-    },
-    {
-      name: 'subscription',
-      aliases: ['s'],
-      description: 'The subscription id to use when executing the command.',
-      defaultText: 'profile value',
     },
     {
       name: 'boundary',
       aliases: ['b'],
-      description: 'The boundary id to to use when executing the command.',
+      description: 'The boundary id to to use when executing the command',
       defaultText: 'profile value',
     },
   ],
-  modes: ['account', 'subscription', 'boundary', 'function'],
 };
 
 // ------------------

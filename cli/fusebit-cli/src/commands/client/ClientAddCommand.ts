@@ -1,5 +1,5 @@
 import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
-import { ClientService } from '../../services';
+import { AgentService, ExecuteService } from '../../services';
 import { Text } from '@5qtrs/text';
 
 // ------------------
@@ -22,17 +22,22 @@ const command = {
   ),
   options: [
     {
-      name: 'displayName',
+      name: 'name',
+      aliases: ['n'],
       description: 'The display name of the client',
     },
     {
-      name: 'confirm',
-      description: [
-        'If set to true, the details regarding adding the client will be displayed along with a',
-        'prompt for confirmation.',
-      ].join(' '),
+      name: 'quiet',
+      aliases: ['q'],
+      description: 'If set to true, does not prompt for confirmation',
       type: ArgType.boolean,
-      default: 'true',
+      default: 'false',
+    },
+    {
+      name: 'output',
+      aliases: ['o'],
+      description: "The format to display the output: 'pretty', 'json'",
+      default: 'pretty',
     },
   ],
 };
@@ -51,22 +56,20 @@ export class ClientAddCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    await input.io.writeLine();
+    const displayName = input.options.name as string;
 
-    const confirm = input.options.confirm as boolean;
-    const displayName = input.options.displayName as string;
+    const clientService = await AgentService.create(input, false);
+    const executeService = await ExecuteService.create(input);
 
-    const clientService = await ClientService.create(input);
+    await executeService.newLine();
 
     const newClient = { displayName };
 
-    if (confirm) {
-      await clientService.confirmAddClient(newClient);
-    }
+    await clientService.confirmAddAgent(newClient);
 
-    const client = await clientService.addClient(newClient);
+    const client = await clientService.addAgent(newClient);
 
-    await clientService.displayClient(client);
+    await clientService.displayAgent(client);
 
     return 0;
   }
