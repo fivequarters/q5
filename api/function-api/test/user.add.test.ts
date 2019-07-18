@@ -204,16 +204,18 @@ describe('User', () => {
       expectMore(user).toBeHttpError(400, '"allow" is required');
     }, 20000);
 
-    test('Adding a user with access with an empty allow array is not supported', async () => {
+    test('Adding a user with access with an empty allow array is supported', async () => {
       const access = { allow: [] };
       const user = await addUser(account, { access });
-      expectMore(user).toBeHttpError(400, '"allow" must contain at least 1 items');
+      expect(user.status).toBe(200);
+      expect(user.data).toEqual({ id: user.data.id });
     }, 20000);
 
-    test('Adding a user with identities with an empty array is not supported', async () => {
+    test('Adding a user with identities with an empty array is supported', async () => {
       const identities: any = [];
       const user = await addUser(account, { identities });
-      expectMore(user).toBeHttpError(400, '"identities" must contain at least 1 items');
+      expect(user.status).toBe(200);
+      expect(user.data).toEqual({ id: user.data.id });
     }, 20000);
 
     test('Adding a user with a malformed account should return an error', async () => {

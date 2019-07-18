@@ -37,6 +37,7 @@ export enum AccountDataExceptionCode {
   issuerMissingPublicKey = 'issuerMissingPublicKey',
   issuerJsonKeyUriAndPublicKeys = 'issuerJsonKeyUriAndPublicKeys',
   issuerMissingJsonKeyUriAndPublicKeys = 'issuerMissingJsonKeyUriAndPublicKeys',
+  issuerDuplicateKeyId = 'issuerDuplicateKeyId',
   configNotProvided = 'configNotProvided',
 }
 
@@ -210,6 +211,11 @@ export class AccountDataException extends Exception {
   public static issuerMissingJsonKeyUriAndPublicKeys(issuerId: string) {
     const message = `The issuer '${issuerId}' must have at least one public key or a json keys URL`;
     return new AccountDataException(AccountDataExceptionCode.issuerMissingJsonKeyUriAndPublicKeys, message, [issuerId]);
+  }
+
+  public static issuerDuplicateKeyId(issuerId: string, publicKeyId: string) {
+    const message = `The issuer '${issuerId}' has more than one public key with the public key id '${publicKeyId}'`;
+    return new AccountDataException(AccountDataExceptionCode.issuerDuplicateKeyId, message, [issuerId, publicKeyId]);
   }
 
   public static configNotProvided(configName: string) {
