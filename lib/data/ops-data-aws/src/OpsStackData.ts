@@ -86,11 +86,14 @@ export class OpsStackData extends DataSource implements IOpsStackData {
     const awsAutoScale = await AwsAutoScale.create(awsConfig);
     const account = await this.accountData.get(network.accountName);
 
+    const subnetIds = network.privateSubnets.map(subnet => subnet.id);
+    const securityGroupIds = [network.securityGroupId];
+
     const userData = [
       '#!/bin/bash',
       this.dockerImageForUserData(tag),
       this.installSshKeysForUserData(),
-      this.envFileForUserData(deploymentName, network.region, account.id),
+      this.envFileForUserData(deploymentName, network.region, account.id, subnetIds, securityGroupIds),
       this.cloudWatchAgentForUserData(deploymentName),
       this.fusebitServiceForUserData(tag),
     ].join('\n');
@@ -247,7 +250,13 @@ EOF
 systemctl start docker.fusebit`;
   }
 
-  private envFileForUserData(deploymentName: string, region: string, account: string) {
+  private envFileForUserData(
+    deploymentName: string,
+    region: string,
+    account: string,
+    subnetIds: string[],
+    securityGroupIds: string[]
+  ) {
     return `
 cat > ${this.getEnvFilePath()} << EOF
 PORT=${this.config.monoApiPort}
@@ -257,7 +266,9 @@ AWS_S3_BUCKET=fusebit-${deploymentName}-${region}
 API_SERVER=https://${deploymentName}.${region}.fusebit.io
 LAMBDA_BUILDER_ROLE=arn:aws:iam::${account}:role/flexd-builder
 LAMBDA_MODULE_BUILDER_ROLE=arn:aws:iam::${account}:role/flexd-builder
-LAMBDA_USER_FUNCTION_ROLE=arn:aws:iam::${account}:role/no-permissions
+LAMBDA_USER_FUNCTION_ROLE=arn:aws:iam::${account}:role/lambda_vpc_connect
+LAMBDA_VPC_SUBNETS=${subnetIds.join(',')}
+LAMBDA_VPC_SECURITY_GROUPS=${securityGroupIds.join(',')}
 CRON_QUEUE_URL=https://sqs.${region}.amazonaws.com/${account}/${deploymentName}-cron
 ${require('fs').readFileSync(require('path').join(__dirname, '../../../../.aws.env'), 'utf8')}
 EOF`;
