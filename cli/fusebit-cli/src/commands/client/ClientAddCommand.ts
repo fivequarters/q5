@@ -20,12 +20,13 @@ const command = {
     Text.bold('client access'),
     "' commands."
   ),
-  options: [
+  arguments: [
     {
       name: 'name',
-      aliases: ['n'],
       description: 'The display name of the client',
     },
+  ],
+  options: [
     {
       name: 'quiet',
       aliases: ['q'],
@@ -56,7 +57,7 @@ export class ClientAddCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    const displayName = input.options.name as string;
+    const displayName = input.arguments[0] as string;
 
     const clientService = await AgentService.create(input, false);
     const executeService = await ExecuteService.create(input);
