@@ -29,6 +29,7 @@ const privateRouteTableType = 'pri-rt';
 export interface IAwsNetworkDetail {
   vpcId: string;
   securityGroupId: string;
+  lambdaSecurityGroupId: string;
   internetGatewayId: string;
   natGatewayId: string;
   publicRouteTableId: string;
@@ -62,6 +63,7 @@ export class AwsNetwork extends AwsBase<typeof EC2> {
   public async ensureNetwork(name: string): Promise<IAwsNetworkDetail> {
     const vpcId = await this.ensureVpc(name);
     const securityGroupId = await this.ensureSecurityGroup(name, vpcId);
+    const lambdaSecurityGroupId = await this.ensureLambdaSecurityGroup(name, vpcId);
 
     const internetGatewayId = await this.ensureInternetGateway(name, vpcId);
     const publicRouteTableId = await this.ensureRouteTable(name, vpcId, true, internetGatewayId);
@@ -74,6 +76,7 @@ export class AwsNetwork extends AwsBase<typeof EC2> {
     return {
       vpcId,
       securityGroupId,
+      lambdaSecurityGroupId,
       internetGatewayId,
       natGatewayId,
       publicRouteTableId,
@@ -190,6 +193,18 @@ export class AwsNetwork extends AwsBase<typeof EC2> {
     }
     await this.authorizeSecurityGroupIngress(securityGroupId);
     await this.tagResource(securityGroupId, name, securityGroupType);
+    return securityGroupId;
+  }
+
+  private async ensureLambdaSecurityGroup(name: string, vpcId: string): Promise<string> {
+    let securityGroupId = await this.getSecurityGroup(name, vpcId, true);
+    if (!securityGroupId) {
+      securityGroupId = await this.createSecurityGroup(name, vpcId, true);
+    }
+    await this.authorizeSecurityGroupIngress(securityGroupId);
+    await this.revokeSecurityGroupLambdaEgress(securityGroupId);
+    await this.authorizeSecurityGroupLambdaEgress(securityGroupId);
+    await this.tagResource(securityGroupId, name, securityGroupType, true);
     return securityGroupId;
   }
 
@@ -505,7 +520,7 @@ export class AwsNetwork extends AwsBase<typeof EC2> {
     });
   }
 
-  private async getSecurityGroup(name: string, vpcId: string): Promise<string> {
+  private async getSecurityGroup(name: string, vpcId: string, forLambda: boolean = false): Promise<string> {
     const ec2 = await this.getAws();
 
     const params = {
@@ -516,7 +531,7 @@ export class AwsNetwork extends AwsBase<typeof EC2> {
         },
         {
           Name: 'tag:Name',
-          Values: [`${name}-${securityGroupType}`],
+          Values: [`${name}-${securityGroupType}${forLambda ? '-lambda' : ''}`],
         },
       ],
     };
@@ -536,12 +551,12 @@ export class AwsNetwork extends AwsBase<typeof EC2> {
     });
   }
 
-  private async createSecurityGroup(name: string, vpcId: string): Promise<string> {
+  private async createSecurityGroup(name: string, vpcId: string, forLambda: boolean = false): Promise<string> {
     const ec2 = await this.getAws();
     const fullName = this.getFullName(name);
     const params = {
-      Description: `Security Group for ${fullName} Deployment`,
-      GroupName: `SG-${fullName}`,
+      Description: `Security Group for ${fullName} Deployment${forLambda ? ' for Lambda VPC access' : ''}`,
+      GroupName: `SG-${fullName}${forLambda ? '-lambda' : ''}`,
       VpcId: vpcId,
     };
 
@@ -587,6 +602,65 @@ export class AwsNetwork extends AwsBase<typeof EC2> {
     return new Promise((resolve, reject) => {
       ec2.authorizeSecurityGroupIngress(params, (error: any) => {
         if (error && error.code !== 'InvalidPermission.Duplicate') {
+          return reject(error);
+        }
+
+        resolve();
+      });
+    });
+  }
+
+  private async authorizeSecurityGroupLambdaEgress(securityGroupId: string): Promise<void> {
+    const ec2 = await this.getAws();
+    const params = {
+      GroupId: securityGroupId,
+      IpPermissions: [
+        {
+          FromPort: -1,
+          ToPort: -1,
+          IpProtocol: '-1',
+          IpRanges: [
+            { CidrIp: '0.0.0.0/5' },
+            { CidrIp: '8.0.0.0/7' },
+            { CidrIp: '11.0.0.0/8' },
+            { CidrIp: '12.0.0.0/6' },
+            { CidrIp: '16.0.0.0/4' },
+            { CidrIp: '32.0.0.0/3' },
+            { CidrIp: '64.0.0.0/2' },
+            { CidrIp: '128.0.0.0/1' },
+          ],
+        },
+      ],
+    };
+
+    return new Promise((resolve, reject) => {
+      ec2.authorizeSecurityGroupEgress(params, (error: any) => {
+        if (error && error.code !== 'InvalidPermission.Duplicate') {
+          return reject(error);
+        }
+
+        resolve();
+      });
+    });
+  }
+
+  private async revokeSecurityGroupLambdaEgress(securityGroupId: string): Promise<void> {
+    const ec2 = await this.getAws();
+    const params = {
+      GroupId: securityGroupId,
+      IpPermissions: [
+        {
+          FromPort: -1,
+          ToPort: -1,
+          IpProtocol: '-1',
+          IpRanges: [{ CidrIp: '0.0.0.0/0' }],
+        },
+      ],
+    };
+
+    return new Promise((resolve, reject) => {
+      ec2.revokeSecurityGroupEgress(params, (error: any) => {
+        if (error && error.code !== 'InvalidPermission.NotFound') {
           return reject(error);
         }
 
@@ -643,7 +717,7 @@ export class AwsNetwork extends AwsBase<typeof EC2> {
     });
   }
 
-  private async tagResource(id: string, name: string, type: string): Promise<void> {
+  private async tagResource(id: string, name: string, type: string, forLambda: boolean = false): Promise<void> {
     const ec2 = await this.getAws();
     const params = {
       Resources: [id],
@@ -654,7 +728,7 @@ export class AwsNetwork extends AwsBase<typeof EC2> {
         },
         {
           Key: 'Name',
-          Value: this.getResourceName(name, type),
+          Value: `${this.getResourceName(name, type)}${forLambda ? '-lambda' : ''}`,
         },
       ],
     };

@@ -87,7 +87,7 @@ export class OpsStackData extends DataSource implements IOpsStackData {
     const account = await this.accountData.get(network.accountName);
 
     const subnetIds = network.privateSubnets.map(subnet => subnet.id);
-    const securityGroupIds = [network.securityGroupId];
+    const securityGroupIds = [network.lambdaSecurityGroupId];
 
     const userData = [
       '#!/bin/bash',
