@@ -20,22 +20,22 @@ const command = {
     Text.bold('user access'),
     "' commands."
   ),
-  options: [
+  arguments: [
     {
       name: 'first',
-      aliases: ['f'],
       description: 'The first name of the user',
     },
     {
       name: 'last',
-      aliases: ['l'],
       description: 'The last name of the user',
     },
     {
       name: 'email',
-      aliases: ['e'],
       description: 'The primary email for the user',
+      required: false,
     },
+  ],
+  options: [
     {
       name: 'quiet',
       aliases: ['q'],
@@ -66,9 +66,7 @@ export class UserAddCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    const firstName = input.options.first as string;
-    const lastName = input.options.last as string;
-    const primaryEmail = input.options.email as string;
+    const [firstName, lastName, primaryEmail] = input.arguments as string[];
 
     const userService = await AgentService.create(input, true);
     const executeService = await ExecuteService.create(input);
