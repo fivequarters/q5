@@ -29,6 +29,7 @@ module.exports = Joi.object().keys({
       .integer()
       .min(1)
       .max(900),
+    staticIp: Joi.boolean(),
   }),
   schedule: Joi.object().keys({
     cron: Joi.string().required(),

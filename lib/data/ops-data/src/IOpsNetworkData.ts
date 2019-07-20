@@ -13,6 +13,7 @@ export interface IOpsNewNetwork {
 export interface IOpsNetwork extends IOpsNewNetwork {
   vpcId: string;
   securityGroupId: string;
+  lambdaSecurityGroupId: string;
   internetGatewayId: string;
   natGatewayId: string;
   publicRouteTableId: string;
