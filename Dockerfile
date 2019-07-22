@@ -12,6 +12,7 @@ ADD sdk ./sdk
 
 RUN apt-get update && apt-get install -y zip
 RUN yarn setup \
+  && yarn build json-stable \
   && yarn build function-lambda \
   && yarn build function-api
 
