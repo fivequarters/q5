@@ -1,4 +1,5 @@
 import { random } from '@5qtrs/random';
+import { request } from '@5qtrs/request';
 import { IAccount, FakeAccount, resolveAccount } from './accountResolver';
 import {
   deleteFunction,
@@ -92,15 +93,15 @@ const helloWorldWithNode8String = {
 
 beforeAll(async () => {
   account = await resolveAccount();
-});
+}, 10000);
 
 afterAll(async () => {
   await deleteAllFunctions(account, boundaryId);
-});
+}, 20000);
 
 beforeEach(async () => {
   await deleteAllFunctions(account, boundaryId);
-});
+}, 20000);
 
 describe('function', () => {
   test('PUT completes synchronously', async () => {
@@ -602,4 +603,41 @@ describe('function', () => {
         'The value of `schedule.timezone` body parameter must be a valid timezone identifier. Check https://en.wikipedia.org/wiki/List_of_tz_database_time_zones for reference.',
     });
   }, 10000);
+
+  test('PUT updates function without an temporary 404', async () => {
+    const response = await putFunction(account, boundaryId, function1Id, helloWorld);
+    expect(response.status).toEqual(200);
+
+    let failures = 0;
+    let stop = false;
+    const func = async (delay: number): Promise<boolean> => {
+      if (delay) {
+        await new Promise(resolve => setTimeout(resolve, 10 * delay));
+      }
+      if (!stop) {
+        try {
+          const getResponse = await request(response.data.location);
+          if (getResponse.status !== 200) {
+            failures++;
+          }
+        } catch (error) {
+          failures++;
+        }
+
+        return func(0);
+      }
+      return true;
+    };
+
+    const promises = [];
+    for (let i = 1; i < 100; i++) {
+      promises.push(func(i));
+    }
+
+    const updateResponse = await putFunction(account, boundaryId, function1Id, helloWorldUpdated);
+    expect(updateResponse.status).toEqual(200);
+    stop = true;
+    await Promise.all(promises);
+    expect(failures).toBe(0);
+  }, 20000);
 });
