@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "",
   "main": "libc/index.js",
-  "browser": "libm/index.js",
+  "browser": "libm/browser.js",
   "module": "libm/index.js",
   "sideEffects": false,
   "license": "UNLICENSED",

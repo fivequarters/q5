@@ -4,8 +4,8 @@ import axios from 'axios';
 // Internal Functions
 // ------------------
 
-function getAxiosRequest(httpRequest: IHttpRequest) {
-  const axiosRequest = {
+function getAxiosRequest(httpRequest: IHttpRequest, httpAgent: any, httpsAgent: any) {
+  const axiosRequest: any = {
     method: httpRequest.method || 'GET',
     url: httpRequest.url,
     headers: httpRequest.headers || {},
@@ -14,6 +14,15 @@ function getAxiosRequest(httpRequest: IHttpRequest) {
     transformResponse: undefined,
     validateStatus: () => true,
   };
+
+  if (httpRequest.keepAlive !== false) {
+    if (httpAgent) {
+      axiosRequest.httpAgent = httpAgent;
+    }
+    if (httpsAgent) {
+      axiosRequest.httpsAgent = httpsAgent;
+    }
+  }
 
   const contentType = axiosRequest.headers['content-type'] || axiosRequest.headers['Content-Type'] || '';
 
@@ -63,6 +72,7 @@ export interface IHttpRequest {
   query?: { [index: string]: string | number | boolean | null | undefined };
   data?: any;
   parseJson?: boolean;
+  keepAlive?: boolean;
   validStatus?: (status: number) => boolean;
 }
 
@@ -76,9 +86,27 @@ export interface IHttpResponse {
 // Exported Functions
 // ------------------
 
-export async function request(urlOrRequest: string | IHttpRequest): Promise<IHttpResponse> {
+export async function request(
+  urlOrRequest: string | IHttpRequest,
+  httpAgent: any,
+  httpsAgent: any
+): Promise<IHttpResponse> {
   const httpRequest = typeof urlOrRequest === 'string' ? { url: urlOrRequest } : urlOrRequest;
-  const axiosRequest = getAxiosRequest(httpRequest);
-  const axiosResponse = await axios.request(axiosRequest);
+  const axiosRequest = getAxiosRequest(httpRequest, httpAgent, httpsAgent);
+
+  let axiosResponse = undefined;
+  let retry = 0;
+  while (!axiosResponse) {
+    try {
+      axiosResponse = await axios.request(axiosRequest);
+    } catch (error) {
+      if (error.code !== 'ENOTFOUND' || retry >= 4) {
+        throw error;
+      }
+      retry++;
+      await new Promise(resolve => setTimeout(resolve, Math.pow(10, retry)));
+    }
+  }
+
   return getHttpResponse(axiosResponse, httpRequest.parseJson, httpRequest.validStatus);
 }
