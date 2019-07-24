@@ -10,5 +10,9 @@
     "composite": false
   },
   "include": ["src"],
-  "references": [{ "path": "../bq-metering" }, { "path": "../../shared/json-stable" }]
+  "references": [
+    { "path": "../bq-metering" },
+    { "path": "../../shared/json-stable" },
+    { "path": "../../shared/key-value" }
+  ]
 }

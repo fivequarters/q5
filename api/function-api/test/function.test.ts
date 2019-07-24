@@ -51,6 +51,32 @@ const helloWorldWithConfigurationAndMetadata = {
   },
 };
 
+const helloWorldWithApplicationSettings = {
+  nodejs: {
+    files: {
+      'index.js': 'module.exports = (ctx, cb) => cb(null, { body: "hello" });',
+    },
+  },
+  metadata: {
+    fusebit: {
+      applicationSettings: 'FOO=123\n BAR  = abc',
+    },
+  },
+};
+
+const helloWorldWithComputeSettings = {
+  nodejs: {
+    files: {
+      'index.js': 'module.exports = (ctx, cb) => cb(null, { body: "hello" });',
+    },
+  },
+  metadata: {
+    fusebit: {
+      computeSettings: 'timeout=120',
+    },
+  },
+};
+
 const helloWorldWithCron = {
   nodejs: {
     files: {
@@ -128,6 +154,116 @@ describe('function', () => {
     expect(response.data).toBeUndefined();
   }, 10000);
 
+  test('PUT with applicationSettings sets configuration', async () => {
+    let response = await putFunction(account, boundaryId, function1Id, helloWorldWithApplicationSettings);
+    expect(response.status).toEqual(200);
+    expect(response.data.status).toEqual('success');
+    response = await getFunction(account, boundaryId, function1Id);
+    expect(response.status).toEqual(200);
+    expect(response.data.configuration).toEqual({ FOO: '123', BAR: 'abc' });
+    expect(response.data.metadata).toEqual({
+      fusebit: {
+        applicationSettings: 'FOO=123\n BAR  = abc',
+        computeSettings: 'memorySize=128\ntimeout=30\nstaticIp=false',
+      },
+    });
+  }, 10000);
+
+  test('PUT with computeSettings sets lambda', async () => {
+    let response = await putFunction(account, boundaryId, function1Id, helloWorldWithComputeSettings);
+    expect(response.status).toEqual(200);
+    expect(response.data.status).toEqual('success');
+    response = await getFunction(account, boundaryId, function1Id);
+    expect(response.status).toEqual(200);
+    expect(response.data.configuration).toEqual({});
+    expect(response.data.lambda).toEqual({ timeout: 120, memorySize: 128, staticIp: false });
+    expect(response.data.metadata).toEqual({
+      fusebit: {
+        applicationSettings: '',
+        computeSettings: 'timeout=120\nmemorySize=128\nstaticIp=false',
+      },
+    });
+  }, 10000);
+
+  test('PUT with non-conflicting metadata and structured data changes is supported', async () => {
+    let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfigurationAndMetadata);
+    expect(response.status).toEqual(200);
+    expect(response.data.status).toEqual('success');
+    response = await getFunction(account, boundaryId, function1Id);
+    const data = response.data;
+    data.lambda.timeout = 60;
+    data.metadata.fusebit.computeSettings = data.metadata.fusebit.computeSettings.replace('timeout=30', 'timeout=60');
+    data.configuration.FOO = '789';
+    data.metadata.fusebit.applicationSettings = data.metadata.fusebit.applicationSettings.replace('123', '789');
+    response = await putFunction(account, boundaryId, function1Id, data);
+    expect(response.status).toEqual(200);
+    response = await getFunction(account, boundaryId, function1Id);
+    expect(response.status).toEqual(200);
+    expect(response.data.configuration).toEqual({ BAR: 'abc', FOO: '789' });
+    expect(response.data.lambda).toEqual({ timeout: 60, memorySize: 128, staticIp: false });
+    expect(response.data.metadata).toEqual({
+      foo: 'bar',
+      baz: '123',
+      fusebit: {
+        computeSettings: 'memorySize=128\ntimeout=60\nstaticIp=false',
+        applicationSettings: 'BAR=abc\nFOO=789',
+      },
+    });
+  }, 20000);
+
+  test('PUT with conflicting configuration and application settings returns an error', async () => {
+    let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfigurationAndMetadata);
+    expect(response.status).toEqual(200);
+    expect(response.data.status).toEqual('success');
+    response = await getFunction(account, boundaryId, function1Id);
+
+    const data = response.data;
+    data.configuration.FOO = '789';
+    data.metadata.fusebit.applicationSettings = data.metadata.fusebit.applicationSettings.replace('123', '456');
+    response = await putFunction(account, boundaryId, function1Id, data);
+    expect(response.status).toEqual(400);
+    expect(response.data.status).toEqual(400);
+    expect(response.data.statusCode).toEqual(400);
+    expect(response.data.message).toEqual(
+      [
+        "Updates to 'configuration' and 'metadata.fusebit.applicationSettings' conflict;",
+        'update one or the other but not both',
+      ].join(' ')
+    );
+  }, 20000);
+
+  test('PUT with conflicting lambda and compute settings returns an error', async () => {
+    let response = await putFunction(account, boundaryId, function1Id, helloWorld);
+    expect(response.status).toEqual(200);
+    expect(response.data.status).toEqual('success');
+    response = await getFunction(account, boundaryId, function1Id);
+
+    const data = response.data;
+    data.lambda.timeout = 80;
+    data.metadata.fusebit.computeSettings = data.metadata.fusebit.computeSettings.replace('timeout=30', 'timeout=60');
+    response = await putFunction(account, boundaryId, function1Id, data);
+    expect(response.status).toEqual(400);
+    expect(response.data.status).toEqual(400);
+    expect(response.data.statusCode).toEqual(400);
+    expect(response.data.message).toEqual(
+      [
+        "Updates to 'lambda' and 'metadata.fusebit.computeSettings' conflict;",
+        'update one or the other but not both',
+      ].join(' ')
+    );
+  }, 20000);
+
+  test('PUT and GET roundtrip with no changes to function', async () => {
+    let response = await putFunction(account, boundaryId, function1Id, helloWorld);
+    expect(response.status).toEqual(200);
+    expect(response.data.status).toEqual('success');
+    response = await getFunction(account, boundaryId, function1Id);
+    expect(response.status).toEqual(200);
+    response = await putFunction(account, boundaryId, function1Id, response.data);
+    expect(response.status).toEqual(204);
+    expect(response.data).toBeUndefined();
+  }, 10000);
+
   test('DELETE removes function', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
     expect(response.status).toEqual(200);
@@ -182,7 +318,9 @@ describe('function', () => {
     });
     expect(response.data.nodejs).toEqual(helloWorld.nodejs);
     expect(response.data.configuration).toEqual({});
-    expect(response.data.metadata).toEqual({});
+    expect(response.data.metadata).toEqual({
+      fusebit: { applicationSettings: '', computeSettings: 'memorySize=128\ntimeout=30\nstaticIp=false' },
+    });
     expect(response.data.schedule).toEqual(undefined);
   }, 10000);
 
@@ -200,7 +338,9 @@ describe('function', () => {
     });
     expect(response.data.nodejs).toEqual(helloWorldWithNode8JavaScript.nodejs);
     expect(response.data.configuration).toEqual({});
-    expect(response.data.metadata).toEqual({});
+    expect(response.data.metadata).toEqual({
+      fusebit: { applicationSettings: '', computeSettings: 'memorySize=128\ntimeout=30\nstaticIp=false' },
+    });
     expect(response.data.schedule).toEqual(undefined);
   }, 10000);
 
@@ -218,7 +358,9 @@ describe('function', () => {
     });
     expect(response.data.nodejs).toEqual(helloWorldWithNode8String.nodejs);
     expect(response.data.configuration).toEqual({});
-    expect(response.data.metadata).toEqual({});
+    expect(response.data.metadata).toEqual({
+      fusebit: { applicationSettings: '', computeSettings: 'memorySize=128\ntimeout=30\nstaticIp=false' },
+    });
     expect(response.data.schedule).toEqual(undefined);
   }, 10000);
 
@@ -243,7 +385,14 @@ describe('function', () => {
     });
     expect(response.data.nodejs).toEqual(helloWorldWithConfigurationAndMetadata.nodejs);
     expect(response.data.configuration).toEqual(helloWorldWithConfigurationAndMetadata.configuration);
-    expect(response.data.metadata).toEqual(helloWorldWithConfigurationAndMetadata.metadata);
+    expect(response.data.metadata).toEqual({
+      baz: '123',
+      foo: 'bar',
+      fusebit: {
+        applicationSettings: 'BAR=abc\nFOO=123',
+        computeSettings: 'memorySize=128\ntimeout=30\nstaticIp=false',
+      },
+    });
     expect(response.data.schedule).toEqual(undefined);
   }, 10000);
 
@@ -260,7 +409,9 @@ describe('function', () => {
     });
     expect(response.data.nodejs).toEqual(helloWorldWithCron.nodejs);
     expect(response.data.configuration).toEqual({});
-    expect(response.data.metadata).toEqual({});
+    expect(response.data.metadata).toEqual({
+      fusebit: { applicationSettings: '', computeSettings: 'memorySize=128\ntimeout=30\nstaticIp=false' },
+    });
     expect(response.data.schedule).toEqual(helloWorldWithCron.schedule);
   }, 10000);
 
@@ -604,7 +755,7 @@ describe('function', () => {
     });
   }, 10000);
 
-  test('PUT updates function without an temporary 404', async () => {
+  test('PUT updates function without a temporary 404', async () => {
     const response = await putFunction(account, boundaryId, function1Id, helloWorld);
     expect(response.status).toEqual(200);
 
