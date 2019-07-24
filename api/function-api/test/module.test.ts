@@ -28,11 +28,11 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await deleteAllFunctions(account, boundaryId);
-});
+}, 20000);
 
 beforeEach(async () => {
   await deleteAllFunctions(account, boundaryId);
-});
+}, 20000);
 
 describe('module', () => {
   test('PUT completes for function with superagent dependency', async () => {
@@ -67,7 +67,7 @@ describe('module', () => {
     response = await putFunction(account, boundaryId, function1Id, helloWorldWithSuperagentDependency);
     expect(response.status).toEqual(200);
     expect(response.data.status).toEqual('success');
-  }, 15000);
+  }, 20000);
 
   test('PUT completes for function with complex dependencies', async () => {
     let response = await putFunction(account, boundaryId, function1Id, {

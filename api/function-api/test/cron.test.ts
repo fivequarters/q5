@@ -14,16 +14,15 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await deleteAllFunctions(account, boundaryId);
-});
+}, 20000);
 
 beforeEach(async () => {
   await deleteAllFunctions(account, boundaryId);
-});
+}, 20000);
 
 describe('cron', () => {
-
   test('cron executes on schedule', async () => {
-    // Create a "storage" function. Total hack. 
+    // Create a "storage" function. Total hack.
 
     let runs = Buffer.from(JSON.stringify([]), 'utf8').toString('base64');
     let response = await putFunction(account, boundaryId, function2Id, {
@@ -33,11 +32,11 @@ describe('cron', () => {
         },
       },
       configuration: {
-        runs
-      }
+        runs,
+      },
     });
     expect(response.status).toEqual(200);
-   
+
     // Create cron that re-creates the storage function every second with a timestamp of its execution
 
     response = await putFunction(account, boundaryId, function1Id, {
@@ -64,7 +63,7 @@ describe('cron', () => {
           'config.json': {
             account,
             boundaryId,
-            functionId: function2Id
+            functionId: function2Id,
           },
           'package.json': {
             dependencies: {
