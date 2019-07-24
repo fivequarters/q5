@@ -128,7 +128,7 @@ describe('Issuer', () => {
       expect(issuer.data.id).toBe(issuerId);
     }, 10000);
 
-    test.only('Updating an issuer with an id in the body that does not match the url returns an error', async () => {
+    test('Updating an issuer with an id in the body that does not match the url returns an error', async () => {
       const issuerId = `test-${random()}`;
       await addIssuer(account, issuerId, { jsonKeysUrl: 'foo' });
       const id = 'other-issuer-id';

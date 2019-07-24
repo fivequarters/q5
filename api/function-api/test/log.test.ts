@@ -1,14 +1,5 @@
 import { IAccount, FakeAccount, resolveAccount } from './accountResolver';
-import {
-  deleteFunction,
-  putFunction,
-  getFunction,
-  listFunctions,
-  deleteAllFunctions,
-  getFunctionLocation,
-  sleep,
-  getLogs,
-} from './sdk';
+import { putFunction, deleteAllFunctions, getLogs } from './sdk';
 import { request } from '@5qtrs/request';
 
 let account: IAccount = FakeAccount;
@@ -16,31 +7,22 @@ let account: IAccount = FakeAccount;
 let boundaryId = `test-boundary-${Math.floor(Math.random() * 99999999).toString(32)}`;
 const function1Id = 'test-function-1';
 
-const helloWorld = {
-  nodejs: {
-    files: {
-      'index.js': 'module.exports = (ctx, cb) => cb(null, { body: "hello" });',
-    },
-  },
-};
-
 beforeAll(async () => {
   account = await resolveAccount();
 });
 
 afterAll(async () => {
   await deleteAllFunctions(account, boundaryId);
-});
+}, 20000);
 
 beforeEach(async () => {
   boundaryId = `test-boundary-${Math.floor(Math.random() * 99999999).toString(32)}`;
   // await deleteAllFunctions(account, boundaryId);
-});
+}, 20000);
 
 afterEach(async () => {
-  // boundaryId = `test-boundary-${Math.floor(Math.random() * 99999999).toString(32)}`;
   await deleteAllFunctions(account, boundaryId);
-});
+}, 20000);
 
 describe('log', () => {
   function create_positive_log_test(node: string, query: boolean, boundary: boolean) {
@@ -64,6 +46,8 @@ describe('log', () => {
 
       const functionUrl = response.data.location;
       const logsPromise = getLogs(account, boundaryId, boundary ? undefined : function1Id);
+
+      await new Promise(resolve => setTimeout(resolve, 250));
 
       if (query) {
         for (var i = 1; i < 5; i++) {

@@ -58,14 +58,14 @@ let account: IAccount = FakeAccount;
 beforeAll(async () => {
   account = await resolveAccount();
   testIssuer = await createTestJwksIssuer(account);
-}, 10000);
+}, 50000);
 
 afterAll(async () => {
   await cleanUpHostedIssuers(account);
   await cleanUpUsers(account);
   await cleanUpClients(account);
   await cleanUpStorage(account);
-}, 20000);
+}, 100000);
 
 describe('Authorization', () => {
   test('A user without access should not be authorized to do anything', async () => {
@@ -79,8 +79,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
       getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary'),
-      getLogs(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary', undefined, true),
+      getLogs(userAccount, 'boundary', 'function', true),
       getFunctionLocation(userAccount, 'boundary', 'function'),
       deleteFunction(userAccount, 'boundary', 'function'),
       listFunctions(userAccount),
@@ -124,8 +124,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(clientAccount, 'boundary', 'function', {}),
       getFunction(clientAccount, 'boundary', 'function'),
-      getLogs(clientAccount, 'boundary'),
-      getLogs(clientAccount, 'boundary', 'function'),
+      getLogs(clientAccount, 'boundary', undefined, true),
+      getLogs(clientAccount, 'boundary', 'function', true),
       getFunctionLocation(clientAccount, 'boundary', 'function'),
       deleteFunction(clientAccount, 'boundary', 'function'),
       listFunctions(clientAccount),
@@ -184,8 +184,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, boundaryId, functionId, {}),
       getFunction(userAccount, boundaryId, 'another-function'),
-      getLogs(userAccount, boundaryId),
-      getLogs(userAccount, boundaryId, functionId),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, functionId, true),
       getFunctionLocation(userAccount, boundaryId, 'another-function'),
       deleteFunction(userAccount, boundaryId, functionId),
       listFunctions(userAccount),
@@ -250,8 +250,8 @@ describe('Authorization', () => {
 
     const results = await Promise.all([
       putFunction(userAccount, boundaryId, functionId, {}),
-      getLogs(userAccount, boundaryId),
-      getLogs(userAccount, boundaryId, functionId),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, functionId, true),
       deleteFunction(userAccount, boundaryId, functionId),
       listFunctions(userAccount),
       listFunctions(userAccount, 'another-boundary'),
@@ -317,8 +317,8 @@ describe('Authorization', () => {
 
     const results = await Promise.all([
       putFunction(userAccount, boundaryId, functionId, {}),
-      getLogs(userAccount, boundaryId),
-      getLogs(userAccount, boundaryId, functionId),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, functionId, true),
       deleteFunction(userAccount, boundaryId, functionId),
       addIssuer(userAccount, 'test-issuer', {}),
       listIssuers(userAccount),
@@ -373,8 +373,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, boundaryId, 'another-function', {}),
       getFunction(userAccount, boundaryId, functionId),
-      getLogs(userAccount, boundaryId),
-      getLogs(userAccount, boundaryId, functionId),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, functionId, true),
       getFunctionLocation(userAccount, boundaryId, functionId),
       deleteFunction(userAccount, boundaryId, functionId),
       listFunctions(userAccount),
@@ -432,8 +432,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, 'another-boundary', functionId, {}),
       getFunction(userAccount, boundaryId, functionId),
-      getLogs(userAccount, boundaryId),
-      getLogs(userAccount, boundaryId, functionId),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, functionId, true),
       getFunctionLocation(userAccount, boundaryId, functionId),
       deleteFunction(userAccount, boundaryId, functionId),
       listFunctions(userAccount),
@@ -499,8 +499,8 @@ describe('Authorization', () => {
 
     const results = await Promise.all([
       getFunction(userAccount, boundaryId, functionId),
-      getLogs(userAccount, boundaryId),
-      getLogs(userAccount, boundaryId, functionId),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, functionId, true),
       getFunctionLocation(userAccount, boundaryId, functionId),
       deleteFunction(userAccount, boundaryId, functionId),
       listFunctions(userAccount),
@@ -555,8 +555,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, boundaryId, functionId, {}),
       getFunction(userAccount, boundaryId, functionId),
-      getLogs(userAccount, boundaryId),
-      getLogs(userAccount, boundaryId, functionId),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, functionId, true),
       getFunctionLocation(userAccount, boundaryId, functionId),
       listFunctions(userAccount),
       listFunctions(userAccount, boundaryId),
@@ -612,8 +612,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, boundaryId, functionId, {}),
       getFunction(userAccount, boundaryId, functionId),
-      getLogs(userAccount, boundaryId),
-      getLogs(userAccount, boundaryId, functionId),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, functionId, true),
       getFunctionLocation(userAccount, boundaryId, functionId),
       deleteFunction(userAccount, 'another-boundary', functionId),
       listFunctions(userAccount),
@@ -667,8 +667,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, boundaryId, functionId, {}),
       getFunction(userAccount, boundaryId, functionId),
-      getLogs(userAccount, boundaryId),
-      getLogs(userAccount, boundaryId, functionId),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, functionId, true),
       getFunctionLocation(userAccount, boundaryId, functionId),
       listFunctions(userAccount),
       listFunctions(userAccount, boundaryId),
@@ -722,8 +722,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, boundaryId, functionId, {}),
       getFunction(userAccount, boundaryId, functionId),
-      getLogs(userAccount, boundaryId),
-      getLogs(userAccount, boundaryId, 'another-function'),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, 'another-function', true),
       deleteFunction(userAccount, boundaryId, functionId),
       getFunctionLocation(userAccount, boundaryId, functionId),
       listFunctions(userAccount),
@@ -905,7 +905,7 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, boundaryId, 'another-function', {}),
       getFunction(userAccount, boundaryId, 'another-function'),
-      getLogs(userAccount, boundaryId, 'another-function'),
+      getLogs(userAccount, boundaryId, 'another-function', true),
       deleteFunction(userAccount, boundaryId, 'another-function'),
       getFunctionLocation(userAccount, boundaryId, 'another-function'),
       listFunctions(userAccount),
@@ -975,8 +975,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, 'another-boundary', functionId, {}),
       getFunction(userAccount, 'another-boundary', functionId),
-      getLogs(userAccount, 'another-boundary'),
-      getLogs(userAccount, 'another-boundary', functionId),
+      getLogs(userAccount, 'another-boundary', undefined, true),
+      getLogs(userAccount, 'another-boundary', functionId, true),
       deleteFunction(userAccount, 'another-boundary', functionId),
       getFunctionLocation(userAccount, 'another-boundary', functionId),
       listFunctions(userAccount, 'another-boundary'),
@@ -1088,8 +1088,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
       getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary'),
-      getLogs(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary', undefined, true),
+      getLogs(userAccount, 'boundary', 'function', true),
       getFunctionLocation(userAccount, 'boundary', 'function'),
       deleteFunction(userAccount, 'boundary', 'function'),
       listFunctions(userAccount),
@@ -1141,8 +1141,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
       getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary'),
-      getLogs(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary', undefined, true),
+      getLogs(userAccount, 'boundary', 'function', true),
       getFunctionLocation(userAccount, 'boundary', 'function'),
       deleteFunction(userAccount, 'boundary', 'function'),
       listFunctions(userAccount),
@@ -1192,8 +1192,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
       getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary'),
-      getLogs(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary', undefined, true),
+      getLogs(userAccount, 'boundary', 'function', true),
       getFunctionLocation(userAccount, 'boundary', 'function'),
       deleteFunction(userAccount, 'boundary', 'function'),
       listFunctions(userAccount),
@@ -1250,8 +1250,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
       getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary'),
-      getLogs(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary', undefined, true),
+      getLogs(userAccount, 'boundary', 'function', true),
       getFunctionLocation(userAccount, 'boundary', 'function'),
       deleteFunction(userAccount, 'boundary', 'function'),
       listFunctions(userAccount),
@@ -1300,8 +1300,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
       getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary'),
-      getLogs(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary', undefined, true),
+      getLogs(userAccount, 'boundary', 'function', true),
       getFunctionLocation(userAccount, 'boundary', 'function'),
       deleteFunction(userAccount, 'boundary', 'function'),
       listFunctions(userAccount),
@@ -1352,8 +1352,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
       getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary'),
-      getLogs(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary', undefined, true),
+      getLogs(userAccount, 'boundary', 'function', true),
       getFunctionLocation(userAccount, 'boundary', 'function'),
       deleteFunction(userAccount, 'boundary', 'function'),
       listFunctions(userAccount),
@@ -1403,8 +1403,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
       getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary'),
-      getLogs(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary', undefined, true),
+      getLogs(userAccount, 'boundary', 'function', true),
       getFunctionLocation(userAccount, 'boundary', 'function'),
       deleteFunction(userAccount, 'boundary', 'function'),
       listFunctions(userAccount),
@@ -1456,8 +1456,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
       getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary'),
-      getLogs(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary', undefined, true),
+      getLogs(userAccount, 'boundary', 'function', true),
       getFunctionLocation(userAccount, 'boundary', 'function'),
       deleteFunction(userAccount, 'boundary', 'function'),
       listFunctions(userAccount),
@@ -1516,8 +1516,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
       getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary'),
-      getLogs(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary', undefined, true),
+      getLogs(userAccount, 'boundary', 'function', true),
       getFunctionLocation(userAccount, 'boundary', 'function'),
       deleteFunction(userAccount, 'boundary', 'function'),
       listFunctions(userAccount),
@@ -1580,8 +1580,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
       getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary'),
-      getLogs(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary', undefined, true),
+      getLogs(userAccount, 'boundary', 'function', true),
       getFunctionLocation(userAccount, 'boundary', 'function'),
       deleteFunction(userAccount, 'boundary', 'function'),
       listFunctions(userAccount),
@@ -1627,8 +1627,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
       getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary'),
-      getLogs(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary', undefined, true),
+      getLogs(userAccount, 'boundary', 'function', true),
       getFunctionLocation(userAccount, 'boundary', 'function'),
       deleteFunction(userAccount, 'boundary', 'function'),
       listFunctions(userAccount),
@@ -1740,8 +1740,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
       getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary'),
-      getLogs(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary', undefined, true),
+      getLogs(userAccount, 'boundary', 'function', true),
       getFunctionLocation(userAccount, 'boundary', 'function'),
       deleteFunction(userAccount, 'boundary', 'function'),
       listFunctions(userAccount),
@@ -1801,8 +1801,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
       getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary'),
-      getLogs(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary', undefined, true),
+      getLogs(userAccount, 'boundary', 'function', true),
       getFunctionLocation(userAccount, 'boundary', 'function'),
       deleteFunction(userAccount, 'boundary', 'function'),
       listFunctions(userAccount),
@@ -1854,8 +1854,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
       getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary'),
-      getLogs(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary', undefined, true),
+      getLogs(userAccount, 'boundary', 'function', true),
       getFunctionLocation(userAccount, 'boundary', 'function'),
       deleteFunction(userAccount, 'boundary', 'function'),
       listFunctions(userAccount),
@@ -1910,8 +1910,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
       getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary'),
-      getLogs(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary', undefined, true),
+      getLogs(userAccount, 'boundary', 'function', true),
       getFunctionLocation(userAccount, 'boundary', 'function'),
       deleteFunction(userAccount, 'boundary', 'function'),
       listFunctions(userAccount),
@@ -2026,8 +2026,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
       getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary'),
-      getLogs(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary', undefined, true),
+      getLogs(userAccount, 'boundary', 'function', true),
       getFunctionLocation(userAccount, 'boundary', 'function'),
       deleteFunction(userAccount, 'boundary', 'function'),
       listFunctions(userAccount),
@@ -2083,8 +2083,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
       getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary'),
-      getLogs(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary', undefined, true),
+      getLogs(userAccount, 'boundary', 'function', true),
       getFunctionLocation(userAccount, 'boundary', 'function'),
       deleteFunction(userAccount, 'boundary', 'function'),
       listFunctions(userAccount),
@@ -2138,8 +2138,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
       getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary'),
-      getLogs(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary', undefined, true),
+      getLogs(userAccount, 'boundary', 'function', true),
       getFunctionLocation(userAccount, 'boundary', 'function'),
       deleteFunction(userAccount, 'boundary', 'function'),
       listFunctions(userAccount),
@@ -2196,8 +2196,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
       getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary'),
-      getLogs(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary', undefined, true),
+      getLogs(userAccount, 'boundary', 'function', true),
       getFunctionLocation(userAccount, 'boundary', 'function'),
       deleteFunction(userAccount, 'boundary', 'function'),
       listFunctions(userAccount),
@@ -2259,8 +2259,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
       getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary'),
-      getLogs(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary', undefined, true),
+      getLogs(userAccount, 'boundary', 'function', true),
       getFunctionLocation(userAccount, 'boundary', 'function'),
       deleteFunction(userAccount, 'boundary', 'function'),
       listFunctions(userAccount),
@@ -2322,8 +2322,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
       getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary'),
-      getLogs(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary', undefined, true),
+      getLogs(userAccount, 'boundary', 'function', true),
       getFunctionLocation(userAccount, 'boundary', 'function'),
       deleteFunction(userAccount, 'boundary', 'function'),
       listFunctions(userAccount),
@@ -2368,8 +2368,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
       getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary'),
-      getLogs(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary', undefined, true),
+      getLogs(userAccount, 'boundary', 'function', true),
       getFunctionLocation(userAccount, 'boundary', 'function'),
       deleteFunction(userAccount, 'boundary', 'function'),
       listFunctions(userAccount),
@@ -2481,8 +2481,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
       getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary'),
-      getLogs(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary', undefined, true),
+      getLogs(userAccount, 'boundary', 'function', true),
       getFunctionLocation(userAccount, 'boundary', 'function'),
       deleteFunction(userAccount, 'boundary', 'function'),
       listFunctions(userAccount),
@@ -2542,8 +2542,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
       getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary'),
-      getLogs(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary', undefined, true),
+      getLogs(userAccount, 'boundary', 'function', true),
       getFunctionLocation(userAccount, 'boundary', 'function'),
       deleteFunction(userAccount, 'boundary', 'function'),
       listFunctions(userAccount),
@@ -2595,8 +2595,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
       getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary'),
-      getLogs(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary', undefined, true),
+      getLogs(userAccount, 'boundary', 'function', true),
       getFunctionLocation(userAccount, 'boundary', 'function'),
       deleteFunction(userAccount, 'boundary', 'function'),
       listFunctions(userAccount),
@@ -2651,8 +2651,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
       getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary'),
-      getLogs(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary', undefined, true),
+      getLogs(userAccount, 'boundary', 'function', true),
       getFunctionLocation(userAccount, 'boundary', 'function'),
       deleteFunction(userAccount, 'boundary', 'function'),
       listFunctions(userAccount),
@@ -2767,8 +2767,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
       getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary'),
-      getLogs(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary', undefined, true),
+      getLogs(userAccount, 'boundary', 'function', true),
       getFunctionLocation(userAccount, 'boundary', 'function'),
       deleteFunction(userAccount, 'boundary', 'function'),
       listFunctions(userAccount),
@@ -2824,8 +2824,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
       getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary'),
-      getLogs(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary', undefined, true),
+      getLogs(userAccount, 'boundary', 'function', true),
       getFunctionLocation(userAccount, 'boundary', 'function'),
       deleteFunction(userAccount, 'boundary', 'function'),
       listFunctions(userAccount),
@@ -2879,8 +2879,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
       getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary'),
-      getLogs(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary', undefined, true),
+      getLogs(userAccount, 'boundary', 'function', true),
       getFunctionLocation(userAccount, 'boundary', 'function'),
       deleteFunction(userAccount, 'boundary', 'function'),
       listFunctions(userAccount),
@@ -2937,8 +2937,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
       getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary'),
-      getLogs(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary', undefined, true),
+      getLogs(userAccount, 'boundary', 'function', true),
       getFunctionLocation(userAccount, 'boundary', 'function'),
       deleteFunction(userAccount, 'boundary', 'function'),
       listFunctions(userAccount),
@@ -3001,8 +3001,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
       getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary'),
-      getLogs(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary', undefined, true),
+      getLogs(userAccount, 'boundary', 'function', true),
       getFunctionLocation(userAccount, 'boundary', 'function'),
       deleteFunction(userAccount, 'boundary', 'function'),
       listFunctions(userAccount),
@@ -3068,8 +3068,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
       getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary'),
-      getLogs(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary', undefined, true),
+      getLogs(userAccount, 'boundary', 'function', true),
       getFunctionLocation(userAccount, 'boundary', 'function'),
       deleteFunction(userAccount, 'boundary', 'function'),
       listFunctions(userAccount),
@@ -3126,8 +3126,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
       getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary'),
-      getLogs(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary', undefined, true),
+      getLogs(userAccount, 'boundary', 'function', true),
       getFunctionLocation(userAccount, 'boundary', 'function'),
       deleteFunction(userAccount, 'boundary', 'function'),
       listFunctions(userAccount),
@@ -3180,8 +3180,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
       getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary'),
-      getLogs(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary', undefined, true),
+      getLogs(userAccount, 'boundary', 'function', true),
       getFunctionLocation(userAccount, 'boundary', 'function'),
       deleteFunction(userAccount, 'boundary', 'function'),
       listFunctions(userAccount),
@@ -3233,8 +3233,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
       getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary'),
-      getLogs(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary', undefined, true),
+      getLogs(userAccount, 'boundary', 'function', true),
       getFunctionLocation(userAccount, 'boundary', 'function'),
       deleteFunction(userAccount, 'boundary', 'function'),
       listFunctions(userAccount),
@@ -3287,8 +3287,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
       getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary'),
-      getLogs(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary', undefined, true),
+      getLogs(userAccount, 'boundary', 'function', true),
       getFunctionLocation(userAccount, 'boundary', 'function'),
       deleteFunction(userAccount, 'boundary', 'function'),
       listFunctions(userAccount),
@@ -3347,8 +3347,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
       getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary'),
-      getLogs(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary', undefined, true),
+      getLogs(userAccount, 'boundary', 'function', true),
       getFunctionLocation(userAccount, 'boundary', 'function'),
       deleteFunction(userAccount, 'boundary', 'function'),
       listFunctions(userAccount),
@@ -3403,8 +3403,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
       getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary'),
-      getLogs(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary', undefined, true),
+      getLogs(userAccount, 'boundary', 'function', true),
       getFunctionLocation(userAccount, 'boundary', 'function'),
       deleteFunction(userAccount, 'boundary', 'function'),
       listFunctions(userAccount),
@@ -3457,8 +3457,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
       getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary'),
-      getLogs(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary', undefined, true),
+      getLogs(userAccount, 'boundary', 'function', true),
       getFunctionLocation(userAccount, 'boundary', 'function'),
       deleteFunction(userAccount, 'boundary', 'function'),
       listFunctions(userAccount),
@@ -3512,8 +3512,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
       getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary'),
-      getLogs(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary', undefined, true),
+      getLogs(userAccount, 'boundary', 'function', true),
       getFunctionLocation(userAccount, 'boundary', 'function'),
       deleteFunction(userAccount, 'boundary', 'function'),
       listFunctions(userAccount),
@@ -3573,8 +3573,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
       getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary'),
-      getLogs(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary', undefined, true),
+      getLogs(userAccount, 'boundary', 'function', true),
       getFunctionLocation(userAccount, 'boundary', 'function'),
       deleteFunction(userAccount, 'boundary', 'function'),
       listFunctions(userAccount),
@@ -3634,8 +3634,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
       getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary'),
-      getLogs(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary', undefined, true),
+      getLogs(userAccount, 'boundary', 'function', true),
       getFunctionLocation(userAccount, 'boundary', 'function'),
       deleteFunction(userAccount, 'boundary', 'function'),
       listFunctions(userAccount),
@@ -3689,8 +3689,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
       getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary'),
-      getLogs(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary', undefined, true),
+      getLogs(userAccount, 'boundary', 'function', true),
       getFunctionLocation(userAccount, 'boundary', 'function'),
       deleteFunction(userAccount, 'boundary', 'function'),
       listFunctions(userAccount),
@@ -3745,8 +3745,8 @@ describe('Authorization', () => {
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
       getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary'),
-      getLogs(userAccount, 'boundary', 'function'),
+      getLogs(userAccount, 'boundary', undefined, true),
+      getLogs(userAccount, 'boundary', 'function', true),
       getFunctionLocation(userAccount, 'boundary', 'function'),
       deleteFunction(userAccount, 'boundary', 'function'),
       listFunctions(userAccount),
