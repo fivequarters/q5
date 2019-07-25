@@ -8,7 +8,7 @@ import { IFusebitExecutionProfile } from '@5qtrs/fusebit-profile-sdk';
 import { Message, IExecuteInput, Confirm } from '@5qtrs/cli';
 import { Text, IText } from '@5qtrs/text';
 import { ExecuteService } from './ExecuteService';
-import { ProfileService, IFusebitProfileDefaults } from './ProfileService';
+import { ProfileService } from './ProfileService';
 import { VersionService } from './VersionService';
 
 // ------------------
@@ -17,7 +17,6 @@ import { VersionService } from './VersionService';
 
 const envFileName = '.env';
 const cronOffRegex = /^off$/i;
-const fromProfile = Text.dim(' (from profile)');
 const fromFusebitJson = Text.dim(' (from fusebit.json)');
 const fromEnvFile = Text.dim(` (from ${envFileName})`);
 const notSet = Text.dim(Text.italic('<not set>'));
@@ -136,16 +135,11 @@ export class FunctionService {
     functionSpec.metadata.fusebit = functionSpec.metadata.fusebit || {};
 
     // lambda & computeSettings
-    if (fusebitJson.lambda) {
-      functionSpec.lambda = fusebitJson.lambda;
-      functionSpec.metadata.fusebit.computeSettings = serialize(functionSpec.lambda);
-    } else if (
-      fusebitJson &&
-      fusebitJson.metadata &&
-      fusebitJson.metadata.fusebit &&
-      fusebitJson.metadata.fusebit.computeSettings
-    ) {
-      functionSpec.metadata.fusebit.computeSettings = fusebitJson.metadata.fusebit.computeSettings;
+    if (fusebitJson.lambda || fusebitJson.compute) {
+      functionSpec.compute = fusebitJson.compute || fusebitJson.lambda;
+      if (functionSpec.metadata && functionSpec.metadata.fusebit) {
+        delete functionSpec.metadata.fusebit.computeSettings;
+      }
     }
 
     // schedule and cronSettings
@@ -236,15 +230,17 @@ export class FunctionService {
       fusebitJson.location = functionSpec.location;
     }
 
+    // compute settings
+    if (functionSpec.compute) {
+      fusebitJson.compute = functionSpec.compute;
+      if (fusebitJson.metadata && fusebitJson.metadata.fusebit) {
+        delete fusebitJson.metadata.fusebit.computeSettings;
+      }
+    }
+
     // no application settings
     delete fusebitJson.metadata.applicationSettings;
     delete fusebitJson.metadata.fusebit.applicationSettings;
-
-    // no lambda but compute setting
-    if (functionSpec.lambda) {
-      fusebitJson.metadata.fusebit.computeSettings = serialize(functionSpec.lambda);
-      delete fusebitJson.lambda;
-    }
 
     // schedule & cronSettings
     if (!functionSpec.schedule) {
