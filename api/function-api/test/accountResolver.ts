@@ -56,7 +56,7 @@ export async function resolveAccount(): Promise<IAccount> {
     let executionProfile = await profile.getExecutionProfile(process.env.FUSE_PROFILE, true);
     return {
       accountId: executionProfile.account as string,
-      subscriptionId: 'sub-0000000000000000',
+      subscriptionId: executionProfile.subscription as string,
       baseUrl: executionProfile.baseUrl,
       accessToken: executionProfile.accessToken,
     };
