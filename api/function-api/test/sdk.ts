@@ -289,9 +289,7 @@ export async function deleteAllFunctions(account: IAccount, boundaryId?: string)
   let response = await listFunctions(account, boundaryId);
   if (response.status !== 200) {
     throw new Error(
-      `The FUSE_PROFILE does not come with enough permissions to run tests (HTTP ${
-        response.status
-      }). Unable to list functions in account ${account.accountId}, subscription ${
+      `Unable to list functions in account ${account.accountId}, subscription ${
         account.subscriptionId
       }, boundary ${boundaryId || '*'} on deployment ${account.baseUrl}.`
     );
