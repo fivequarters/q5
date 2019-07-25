@@ -88,7 +88,7 @@ export function update(previousSeralized: string, current: StructuredKeyValues) 
     return { values: parse(serialized), serialized };
   }
 
-  if (current.serialized) {
+  if (current.serialized !== undefined) {
     if (current.serialized !== previousSeralized) {
       const currentValues = parse(current.serialized);
       if (isEqual(currentValues, current.values)) {
