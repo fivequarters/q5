@@ -212,6 +212,90 @@ describe('update', () => {
     expect(updated.values).toEqual(current.values);
   });
 
+  it('should properly update when a boolean value changes', () => {
+    const previous = 'memorySize=128\ntimeout=30\nstaticIp=false';
+    const current = {
+      values: {
+        memorySize: 128,
+        timeout: 30,
+        staticIp: true,
+      },
+      serialized: 'memorySize=128\ntimeout=30\nstaticIp=false',
+    };
+
+    const updated = update(previous, current);
+    expect(updated.serialized).toBe('memorySize=128\ntimeout=30\nstaticIp=true');
+    expect(updated.values).toEqual(current.values);
+  });
+
+  it('should properly clear all values if serialized is an empty string', () => {
+    const previous = 'memorySize=128\ntimeout=30\nstaticIp=false';
+    const current = {
+      values: {
+        memorySize: 128,
+        timeout: 30,
+        staticIp: false,
+      },
+      serialized: '',
+    };
+
+    const updated = update(previous, current);
+    expect(updated.serialized).toBe('');
+    expect(updated.values).toEqual({});
+  });
+
+  it('should properly clear serialized is values is an empty object', () => {
+    const previous = 'memorySize=128\ntimeout=30\nstaticIp=false';
+    const current = {
+      values: {},
+      serialized: 'memorySize=128\ntimeout=30\nstaticIp=false',
+    };
+
+    const updated = update(previous, current);
+    expect(updated.serialized).toBe('');
+    expect(updated.values).toEqual({});
+  });
+
+  it('should ignore serialized is if it undefined', () => {
+    const previous = 'memorySize=128\ntimeout=30\nstaticIp=false';
+    const current = {
+      values: {
+        memorySize: 128,
+        timeout: 30,
+        staticIp: false,
+      },
+      serialized: undefined,
+    };
+
+    const updated = update(previous, current);
+    expect(updated.serialized).toBe('memorySize=128\ntimeout=30\nstaticIp=false');
+    expect(updated.values).toEqual(current.values);
+  });
+
+  it('should ignore values if undefined', () => {
+    const previous = 'memorySize=128\ntimeout=30\nstaticIp=false';
+    const current = {
+      values: undefined,
+      serialized: 'memorySize=128\ntimeout=30\nstaticIp=true',
+    };
+
+    const updated = update(previous, current);
+    expect(updated.serialized).toBe('memorySize=128\ntimeout=30\nstaticIp=true');
+    expect(updated.values).toEqual({ memorySize: '128', timeout: '30', staticIp: 'true' });
+  });
+
+  it('should return empty values if all inputs are undefined', () => {
+    const previous = '';
+    const current = {
+      values: undefined,
+      serialized: undefined,
+    };
+
+    const updated = update(previous, current);
+    expect(updated.serialized).toBe('');
+    expect(updated.values).toEqual({});
+  });
+
   it('should throw an exception if both the values and serialized have changed', () => {
     const previous = 'key1=value1\n#comment\nkey2=value2';
     const current = {
