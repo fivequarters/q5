@@ -32,7 +32,18 @@ module.exports = Joi.object().keys({
     timeout: Joi.number()
       .integer()
       .min(1)
-      .max(900),
+      .max(120),
+    staticIp: Joi.boolean(),
+  }),
+  compute: Joi.object().keys({
+    memorySize: Joi.number()
+      .integer()
+      .min(64)
+      .max(3008),
+    timeout: Joi.number()
+      .integer()
+      .min(1)
+      .max(120),
     staticIp: Joi.boolean(),
   }),
   schedule: Joi.object().keys({

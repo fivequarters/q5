@@ -2221,17 +2221,7 @@ components:
     NewFunction:
       type: object
       properties:
-        environment:
-          type: string
-          description: Programming environment
-          enum:
-            - nodejs
-        provider:
-          type: string
-          description: Compute provider
-          enum:
-            - lambda
-        lambda:
+        compute:
           type: object
           properties:
             memorySize:
@@ -2240,6 +2230,9 @@ components:
             timeout:
               type: number
               default: 30
+            staticIp:
+              type: boolean
+              default: false
         configuration:
           type: object
         nodejs:
