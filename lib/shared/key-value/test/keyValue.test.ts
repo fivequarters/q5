@@ -296,6 +296,18 @@ describe('update', () => {
     expect(updated.values).toEqual({});
   });
 
+  it('should return empty values if all inputs are undefined regardless of previous value', () => {
+    const previous = 'key1=value1';
+    const current = {
+      values: undefined,
+      serialized: undefined,
+    };
+
+    const updated = update(previous, current);
+    expect(updated.serialized).toBe('');
+    expect(updated.values).toEqual({});
+  });
+
   it('should throw an exception if both the values and serialized have changed', () => {
     const previous = 'key1=value1\n#comment\nkey2=value2';
     const current = {

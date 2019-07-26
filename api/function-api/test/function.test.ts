@@ -281,6 +281,66 @@ describe('function', () => {
     expect(response.status).toEqual(204);
   }, 20000);
 
+  test('PUT with empty compute resets compute', async () => {
+    let response = await putFunction(account, boundaryId, function1Id, helloWorldWithStaticIp);
+    expect(response.status).toEqual(200);
+    expect(response.data.status).toEqual('success');
+
+    response = await getFunction(account, boundaryId, function1Id);
+
+    expect(response.status).toEqual(200);
+    expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: true });
+
+    response.data.compute = {};
+    response = await putFunction(account, boundaryId, function1Id, response.data);
+    expect(response.status).toEqual(200);
+    expect(response.data.status).toEqual('success');
+
+    response = await getFunction(account, boundaryId, function1Id);
+
+    expect(response.status).toEqual(200);
+    expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: false });
+  }, 20000);
+
+  test('PUT with undefined compute is ignored', async () => {
+    let response = await putFunction(account, boundaryId, function1Id, helloWorldWithStaticIp);
+    expect(response.status).toEqual(200);
+    expect(response.data.status).toEqual('success');
+
+    response = await getFunction(account, boundaryId, function1Id);
+
+    expect(response.status).toEqual(200);
+    expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: true });
+    expect(response.data.metadata.fusebit.computeSettings).toEqual('staticIp=true\nmemorySize=128\ntimeout=30');
+
+    response.data.compute = undefined;
+    response = await putFunction(account, boundaryId, function1Id, response.data);
+    expect(response.status).toEqual(204);
+  }, 20000);
+
+  test('PUT with undefined compute and undefined computeSettings resets compute', async () => {
+    let response = await putFunction(account, boundaryId, function1Id, helloWorldWithStaticIp);
+    expect(response.status).toEqual(200);
+    expect(response.data.status).toEqual('success');
+
+    response = await getFunction(account, boundaryId, function1Id);
+
+    expect(response.status).toEqual(200);
+    expect(response.data.metadata.fusebit.computeSettings).toEqual('staticIp=true\nmemorySize=128\ntimeout=30');
+    expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: true });
+
+    response.data.metadata.fusebit.computeSettings = undefined;
+    response.data.compute = undefined;
+    response = await putFunction(account, boundaryId, function1Id, response.data);
+    expect(response.status).toEqual(200);
+    expect(response.data.status).toEqual('success');
+
+    response = await getFunction(account, boundaryId, function1Id);
+
+    expect(response.status).toEqual(200);
+    expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: false });
+  }, 20000);
+
   test('PUT with new compute values updates compute and computeSettings', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
     expect(response.status).toEqual(200);
