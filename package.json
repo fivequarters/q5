@@ -1,5 +1,5 @@
 {
-  "version": "0.11.0",
+  "version": "0.11.6",
   "private": true,
   "org": "5qtrs",
   "scripts": {
@@ -143,6 +143,8 @@
     "lib/data/storage-data-aws",
     "lib/server/storage",
     "lib/node/gzip",
-    "lib/shared/json-stable"
+    "lib/shared/json-stable",
+    "lib/shared/key-value",
+    "lib/shared/event-stream"
   ]
 }

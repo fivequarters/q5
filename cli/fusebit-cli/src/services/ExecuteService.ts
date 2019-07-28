@@ -1,7 +1,6 @@
 import { Message, MessageKind, IExecuteInput } from '@5qtrs/cli';
-import { Text, IText } from '@5qtrs/text';
+import { IText } from '@5qtrs/text';
 import { IHttpRequest, request as sendRequest } from '@5qtrs/request';
-import { Table } from '@5qtrs/table';
 import { VersionService } from './VersionService';
 
 // -------------------
@@ -30,12 +29,10 @@ export interface ILogEntry {
 export class ExecuteService {
   private input: IExecuteInput;
   private versionService: VersionService;
-  private logs: ILogEntry[];
 
   private constructor(input: IExecuteInput, versionService: VersionService) {
     this.input = input;
     this.versionService = versionService;
-    this.logs = [];
   }
 
   public static async create(input: IExecuteInput) {
@@ -46,13 +43,8 @@ export class ExecuteService {
   public async execute<T>(messages: IExcuteMessages, func?: () => Promise<T | undefined>) {
     try {
       if (messages.header || messages.message) {
-        if (!this.input.options.quiet) {
-          const message = await Message.create({
-            header: messages.header,
-            message: messages.message || '',
-            kind: MessageKind.info,
-          });
-          await message.write(this.input.io);
+        if (this.isPrettyOutput()) {
+          await this.info(messages.header || '', messages.message || '');
           this.input.io.spin(true);
         }
       }
@@ -62,18 +54,13 @@ export class ExecuteService {
       }
       return undefined;
     } catch (error) {
-      const message = await Message.create({
-        header: messages.errorHeader,
-        message: error.code !== undefined ? messages.errorMessage || '' : error.message,
-        kind: MessageKind.error,
-      });
-      await message.write(this.input.io);
-      this.logs.push({ header: messages.errorHeader, message: messages.errorMessage, error, date: new Date() });
-      throw error;
+      const header = messages.errorHeader || '';
+      const message = error.code !== undefined ? messages.errorMessage || '' : error.message;
+      await this.error(header, message);
     }
   }
 
-  public async executeRequest<T>(messages: IExcuteMessages, request: IHttpRequest) {
+  public async executeRequest<T>(messages: IExcuteMessages, request: IHttpRequest, retryOn201: boolean = false) {
     const headers = (request.headers = request.headers || {});
     const version = await this.versionService.getVersion();
     if (!headers['Content-Type'] && !headers['content-type']) {
@@ -81,18 +68,22 @@ export class ExecuteService {
     }
     headers['User-Agent'] = `fusebit-cli/${version}`;
 
-    const func = async () => {
+    const func = async (): Promise<any> => {
       const response = await sendRequest(request);
+      if (response.status === 201 && retryOn201) {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        return await func();
+      }
       if (response.status === 404) {
-        const message = 'The given entity does not exist.';
+        const message = 'The given entity does not exist';
         throw new Error(message);
       }
       if (response.status === 403) {
-        const message = 'Access was not authorized. Contact an account admin to request access.';
+        const message = 'Access was not authorized; contact an account admin to request access';
         throw new Error(message);
       }
       if (response.status >= 500) {
-        const message = 'An unknown error occured on the server.';
+        const message = 'An unknown error occured on the server';
         throw new Error(message);
       }
       if (response.status >= 400) {
@@ -106,7 +97,7 @@ export class ExecuteService {
   }
 
   public async message(header: IText, message: IText, kind: MessageKind = MessageKind.result) {
-    if (!this.input.options.quiet) {
+    if (this.isPrettyOutput()) {
       const formattedMessage = await Message.create({ header, message, kind });
       await formattedMessage.write(this.input.io);
     }
@@ -120,41 +111,45 @@ export class ExecuteService {
     return this.message(header, message, MessageKind.warning);
   }
 
-  public async error(header: IText, message: IText) {
-    return this.message(header, message, MessageKind.error);
+  public async error(header: IText, message: IText, error?: Error) {
+    if (this.isPrettyOutput()) {
+      await this.message(header, message, MessageKind.error);
+    } else if (this.isRawOutput()) {
+      await this.input.io.writeLineRaw(`ERROR: ${header} - ${message}`);
+    } else if (this.isJsonOutput()) {
+      const json = {
+        error: {
+          status: header.toString(false),
+          message: message.toString(false),
+        },
+      };
+      await this.input.io.writeLineRaw(JSON.stringify(json, null, 2));
+    }
+    throw error || new Error(`${header} - ${message}`);
   }
 
   public async info(header: IText, message: IText) {
     return this.message(header, message, MessageKind.info);
   }
 
-  public async verbose() {
-    if (this.input.options.verbose && this.logs.length) {
-      const table = await Table.create({
-        width: this.input.io.outputWidth,
-        count: 2,
-        gutter: Text.dim('  │  '),
-        columns: [{ flexShrink: 0, flexGrow: 0 }, { flexGrow: 1 }],
-      });
-
-      table.addRow([Text.yellow('Error Logs'), 'The following errors were captured during command execution']);
-
-      for (const log of this.logs) {
-        if (log.message || log.error) {
-          table.addRow(['', '']);
-          const [date, time] = log.date.toLocaleString().split(',');
-          const details = Text.create(
-            date.trim(),
-            Text.dim(' • '),
-            time.trim(),
-            log.message ? Text.create(Text.eol(), Text.dim(log.message.toString(false))) : '',
-            log.error && log.error.message ? Text.create(Text.eol(), log.error.message) : ''
-          );
-          table.addRow([Text.yellow(log.header || 'Entry'), details]);
-        }
-      }
-
-      this.input.io.writeLine(table.toText());
+  public async newLine() {
+    if (this.isPrettyOutput()) {
+      return this.input.io.writeLine();
     }
+  }
+
+  private isPrettyOutput() {
+    const output = this.input.options.output;
+    return !output || output === 'pretty';
+  }
+
+  private isRawOutput() {
+    const output = this.input.options.output;
+    return output === 'raw';
+  }
+
+  private isJsonOutput() {
+    const output = this.input.options.output;
+    return output === 'json';
   }
 }

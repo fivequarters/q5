@@ -1,5 +1,5 @@
 import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
-import { UserService, ProfileService } from '../../services';
+import { AgentService, ProfileService, ExecuteService } from '../../services';
 
 // ------------------
 // Internal Constants
@@ -33,13 +33,17 @@ const command = {
       description: 'The function to set by default when the user initializes',
     },
     {
-      name: 'confirm',
-      description: [
-        'If set to true, the details regarding adding the user will be displayed along with a',
-        'prompt for confirmation',
-      ].join(' '),
+      name: 'quiet',
+      aliases: ['q'],
+      description: 'If set to true, does not prompt for confirmation',
       type: ArgType.boolean,
-      default: 'true',
+      default: 'false',
+    },
+    {
+      name: 'output',
+      aliases: ['o'],
+      description: "The format to display the output: 'pretty', 'json', 'raw'",
+      default: 'pretty',
     },
   ],
 };
@@ -58,15 +62,15 @@ export class UserInitCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    await input.io.writeLine();
-
     const [id] = input.arguments as string[];
-    const confirm = input.options.confirm as boolean;
 
-    const userService = await UserService.create(input);
+    const userService = await AgentService.create(input, true);
     const profileService = await ProfileService.create(input);
+    const executeService = await ExecuteService.create(input);
 
-    const user = await userService.getUser(id);
+    await executeService.newLine();
+
+    const user = await userService.getAgent(id);
 
     const executionProfile = await profileService.getExecutionProfile();
 
@@ -76,11 +80,9 @@ export class UserInitCommand extends Command {
       functionId: executionProfile.function || undefined,
     };
 
-    if (confirm) {
-      await userService.confirmInitUser(user, initEntry);
-    }
+    await userService.confirmInitAgent(user, initEntry);
 
-    const initToken = await userService.initUser(id, initEntry);
+    const initToken = await userService.initAgent(id, initEntry);
 
     await userService.displayInitToken(initToken);
 

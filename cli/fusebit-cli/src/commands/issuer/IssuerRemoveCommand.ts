@@ -1,5 +1,5 @@
 import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
-import { IssuerService } from '../../services';
+import { IssuerService, ExecuteService } from '../../services';
 
 // ------------------
 // Internal Constants
@@ -9,7 +9,7 @@ const command = {
   name: 'Remove Issuer',
   cmd: 'rm',
   summary: 'Remove an issuer',
-  description: 'Removes the issuer from the list of trusted issuers associated with the account.',
+  description: 'Removes an issuer from the list of trusted issuers associated with the account.',
   arguments: [
     {
       name: 'issuer',
@@ -18,13 +18,17 @@ const command = {
   ],
   options: [
     {
-      name: 'confirm',
-      description: [
-        'If set to true, the details regarding removing the issuer will be displayed along with a',
-        'prompt for confirmation.',
-      ].join(' '),
+      name: 'quiet',
+      aliases: ['q'],
+      description: 'If set to true, does not prompt for confirmation',
       type: ArgType.boolean,
-      default: 'true',
+      default: 'false',
+    },
+    {
+      name: 'output',
+      aliases: ['o'],
+      description: "The format to display the output: 'pretty', 'json'",
+      default: 'pretty',
     },
   ],
 };
@@ -43,18 +47,16 @@ export class IssuerRemoveCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    await input.io.writeLine();
-
-    const [id] = input.arguments as string[];
-    const confirm = input.options.confirm as boolean;
+    const id = input.arguments[0] as string;
 
     const issuerService = await IssuerService.create(input);
+    const executeService = await ExecuteService.create(input);
+
+    await executeService.newLine();
 
     const issuer = await issuerService.getIssuer(id);
 
-    if (confirm) {
-      await issuerService.confirmRemoveIssuer(id, issuer);
-    }
+    await issuerService.confirmRemoveIssuer(id, issuer);
 
     await issuerService.removeIssuer(id);
 

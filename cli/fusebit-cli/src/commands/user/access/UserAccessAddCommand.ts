@@ -1,5 +1,5 @@
-import { Command, ArgType, IExecuteInput, MessageKind } from '@5qtrs/cli';
-import { ExecuteService, UserService, ProfileService } from '../../../services';
+import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
+import { ExecuteService, AgentService, ProfileService } from '../../../services';
 import { Text } from '@5qtrs/text';
 
 // ------------------
@@ -23,15 +23,9 @@ const command = {
   ],
   options: [
     {
-      name: 'subscription',
-      aliases: ['s'],
-      description: ['The subscription to which access should be given to the user'].join(' '),
-      defaultText: 'profile value',
-    },
-    {
       name: 'boundary',
       aliases: ['b'],
-      description: ['The boundary to which access should be given to the user'].join(' '),
+      description: 'The boundary to which access should be given to the user',
       defaultText: 'profile value',
     },
     {
@@ -41,13 +35,17 @@ const command = {
       defaultText: 'profile value',
     },
     {
-      name: 'confirm',
-      description: [
-        'If set to true, the details regarding adding the access to the user will be displayed along with a',
-        'prompt for confirmation.',
-      ].join(' '),
+      name: 'quiet',
+      aliases: ['q'],
+      description: 'If set to true, does not prompt for confirmation',
       type: ArgType.boolean,
-      default: 'true',
+      default: 'false',
+    },
+    {
+      name: 'output',
+      aliases: ['o'],
+      description: "The format to display the output: 'pretty', 'json'",
+      default: 'pretty',
     },
   ],
 };
@@ -66,25 +64,24 @@ export class UserAccessAddCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    await input.io.writeLine();
     const [id, action] = input.arguments as string[];
-    const confirm = input.options.confirm as boolean;
 
-    const userService = await UserService.create(input);
-    const executeService = await ExecuteService.create(input);
+    const userService = await AgentService.create(input, true);
     const profileService = await ProfileService.create(input);
+    const executeService = await ExecuteService.create(input);
+
+    await executeService.newLine();
 
     const allowedActions = ['user:*', 'client:*', 'issuer:*', 'function:*'];
     if (allowedActions.indexOf(action) === -1) {
       const text = ["The '", Text.bold('action'), "' options must be one of the following values:"];
       text.push(...allowedActions.map(act => Text.create(" '", Text.bold(act), "'")));
       await executeService.error('Invalid Options', Text.create(text));
-      return 1;
     }
 
     const profile = await profileService.getExecutionProfile(['account']);
 
-    const user = await userService.getUser(id);
+    const user = await userService.getAgent(id);
 
     const newAccess = {
       action,
@@ -93,10 +90,6 @@ export class UserAccessAddCommand extends Command {
       boundary: action === 'function:*' ? profile.boundary : undefined,
       function: action === 'function:*' ? profile.function : undefined,
     };
-
-    if (confirm) {
-      await userService.confirmAddUserAccess(user, newAccess);
-    }
 
     const resourcePath = [`/account/${newAccess.account}/`];
     if (action === 'function:*') {
@@ -111,14 +104,18 @@ export class UserAccessAddCommand extends Command {
       }
     }
 
-    const update = { access: { allow: [{ action, resource: resourcePath.join('') }] } };
+    const resource = resourcePath.join('');
+
+    await userService.confirmAddAgentAccess(user, { action, resource });
+
+    const update = { access: { allow: [{ action, resource }] } };
     if (user.access && user.access.allow) {
       update.access.allow.push(...user.access.allow);
     }
 
-    const updatedUser = await userService.addUserAccess(user.id, update);
+    const updatedUser = await userService.addAgentAccess(user.id, update);
 
-    await userService.displayUser(updatedUser);
+    await userService.displayAgent(updatedUser);
 
     return 0;
   }

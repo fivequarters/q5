@@ -1,5 +1,5 @@
 import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
-import { UserService } from '../../services';
+import { AgentService, ExecuteService } from '../../services';
 
 // ------------------
 // Internal Constants
@@ -13,18 +13,22 @@ const command = {
   arguments: [
     {
       name: 'user',
-      description: 'The id of the user to remove all acccess and identity associations from',
+      description: 'The id of the user to remove',
     },
   ],
   options: [
     {
-      name: 'confirm',
-      description: [
-        'If set to true, the details regarding removing the user will be displayed along with a',
-        'prompt for confirmation.',
-      ].join(' '),
+      name: 'quiet',
+      aliases: ['q'],
+      description: 'If set to true, does not prompt for confirmation',
       type: ArgType.boolean,
-      default: 'true',
+      default: 'false',
+    },
+    {
+      name: 'output',
+      aliases: ['o'],
+      description: "The format to display the output: 'pretty', 'json'",
+      default: 'pretty',
     },
   ],
 };
@@ -43,20 +47,18 @@ export class UserRemoveCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    await input.io.writeLine();
+    const id = input.arguments[0] as string;
 
-    const [id] = input.arguments as string[];
-    const confirm = input.options.confirm as boolean;
+    const userService = await AgentService.create(input, true);
+    const executeService = await ExecuteService.create(input);
 
-    const userService = await UserService.create(input);
+    await executeService.newLine();
 
-    const user = await userService.getUser(id);
+    const user = await userService.getAgent(id);
 
-    if (confirm) {
-      await userService.confirmRemoveUser(id, user);
-    }
+    await userService.confirmRemoveAgent(id, user);
 
-    await userService.removeUser(id);
+    await userService.removeAgent(id);
 
     return 0;
   }

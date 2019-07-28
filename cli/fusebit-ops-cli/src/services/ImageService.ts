@@ -104,7 +104,7 @@ export class ImageService {
 
     images.sort((imageA, imageB) => imageA.updatedAt.getTime() - imageB.updatedAt.getTime());
 
-    await this.executeService.message(Text.blue('Image'), Text.blue('Details'));
+    await this.executeService.message(Text.cyan('Image'), Text.cyan('Details'));
     for (const image of images) {
       this.writeImage(image);
     }

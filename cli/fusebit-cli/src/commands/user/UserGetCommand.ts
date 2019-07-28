@@ -1,5 +1,5 @@
 import { Command, IExecuteInput } from '@5qtrs/cli';
-import { UserService } from '../../services';
+import { AgentService, ExecuteService } from '../../services';
 
 // ------------------
 // Internal Constants
@@ -13,7 +13,15 @@ const command = {
   arguments: [
     {
       name: 'user',
-      description: 'The id of the user whose details should be retrieved.',
+      description: 'The id of the user whose details should be retrieved',
+    },
+  ],
+  options: [
+    {
+      name: 'output',
+      aliases: ['o'],
+      description: "The format to display the output: 'pretty', 'json'",
+      default: 'pretty',
     },
   ],
 };
@@ -32,15 +40,16 @@ export class UserGetCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    await input.io.writeLine();
-
     const [id] = input.arguments as string[];
 
-    const userService = await UserService.create(input);
+    const userService = await AgentService.create(input, true);
+    const executeService = await ExecuteService.create(input);
 
-    const user = await userService.getUser(id);
+    await executeService.newLine();
 
-    await userService.displayUser(user);
+    const user = await userService.getAgent(id);
+
+    await userService.displayAgent(user);
 
     return 0;
   }

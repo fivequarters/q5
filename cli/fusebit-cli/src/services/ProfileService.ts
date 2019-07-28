@@ -1,5 +1,5 @@
 import { IExecuteInput, Confirm } from '@5qtrs/cli';
-import { Text } from '@5qtrs/text';
+import { Text, IText } from '@5qtrs/text';
 import {
   FusebitProfile,
   IFusebitExecutionProfile,
@@ -10,7 +10,6 @@ import {
   FusebitProfileException,
   FusebitProfileExceptionCode,
 } from '@5qtrs/fusebit-profile-sdk';
-import { profileConvert } from './profileConvert';
 import { ExecuteService } from './ExecuteService';
 
 // ------------------
@@ -34,6 +33,18 @@ function getDateString(date: Date) {
   const dateOnlyMs = dateOnly.valueOf();
   const [dateString, timeString] = date.toLocaleString().split(',');
   return dateOnlyMs === today.valueOf() ? timeString.trim() : dateString.trim();
+}
+
+// -------------------
+// Exported Interfaces
+// -------------------
+
+export interface IFusebitProfileDefaults {
+  [index: string]: string | undefined;
+  account?: string;
+  subscription?: string;
+  boundary?: string;
+  function?: string;
 }
 
 // ----------------
@@ -101,7 +112,7 @@ export class ProfileService {
     return this.execute(() => this.profile.generateKeyPair(name));
   }
 
-  public async addProfile(name: string, newProfile: IFusebitNewProfile, keyPair: IFusebitKeyPair): Promise<void> {
+  public async initProfile(name: string, newProfile: IFusebitNewProfile, keyPair: IFusebitKeyPair): Promise<void> {
     await this.execute(async () => {
       if (await this.profile.profileExists(name)) {
         await this.profile.removeProfile(name);
@@ -124,6 +135,17 @@ export class ProfileService {
     );
 
     return profile;
+  }
+
+  public async addProfile(name: string, copyFrom: string, profile: IFusebitProfileSettings): Promise<IFusebitProfile> {
+    await this.execute(() => this.profile.copyProfile(copyFrom, name, true));
+    const addedProfile = await this.execute(() => this.profile.updateProfile(name, profile));
+    await this.executeService.result(
+      'Profile Added',
+      Text.create("The '", Text.bold(name), "' profile was successfully added")
+    );
+
+    return addedProfile;
   }
 
   public async updateProfile(name: string, profile: IFusebitProfileSettings): Promise<IFusebitProfile> {
@@ -154,125 +176,150 @@ export class ProfileService {
   }
 
   public async confirmCopyProfile(name: string, copyTo: string, profile: IFusebitProfile): Promise<void> {
-    const confirmPrompt = await Confirm.create({
-      header: 'Overwrite?',
-      message: Text.create(
-        "The '",
-        Text.bold(copyTo),
-        "' profile already exists. Overwrite the existing profile shown below?"
-      ),
-      details: this.getProfileConfirmDetails(profile),
-    });
-    const confirmed = await confirmPrompt.prompt(this.input.io);
-    if (!confirmed) {
-      await this.executeService.warning(
-        'Copy Canceled',
-        Text.create("Copying the '", Text.bold(name), "' profile was canceled")
-      );
-      throw new Error('Copy Canceled');
+    if (!this.input.options.quiet) {
+      const confirmPrompt = await Confirm.create({
+        header: 'Overwrite?',
+        message: Text.create(
+          "The '",
+          Text.bold(copyTo),
+          "' profile already exists. Overwrite the existing profile shown below?"
+        ),
+        details: this.getProfileConfirmDetails(profile),
+      });
+      const confirmed = await confirmPrompt.prompt(this.input.io);
+      if (!confirmed) {
+        await this.executeService.warning(
+          'Copy Canceled',
+          Text.create("Copying the '", Text.bold(name), "' profile was canceled")
+        );
+        throw new Error('Copy Canceled');
+      }
+    }
+  }
+
+  public async confirmAddProfile(name: string, profile: IFusebitProfile): Promise<void> {
+    if (!this.input.options.quiet) {
+      const confirmPrompt = await Confirm.create({
+        header: 'Overwrite?',
+        message: Text.create(
+          "The '",
+          Text.bold(name),
+          "' profile already exists. Overwrite the existing profile shown below?"
+        ),
+        details: this.getProfileConfirmDetails(profile),
+      });
+      const confirmed = await confirmPrompt.prompt(this.input.io);
+      if (!confirmed) {
+        await this.executeService.warning(
+          'Add Canceled',
+          Text.create("Adding the '", Text.bold(name), "' profile was canceled")
+        );
+        throw new Error('Add Canceled');
+      }
     }
   }
 
   public async confirmInitProfile(name: string, profile: IFusebitProfile): Promise<void> {
-    const confirmPrompt = await Confirm.create({
-      header: 'Overwrite?',
-      message: Text.create(
-        "The '",
-        Text.bold(name),
-        "' profile already exists. Initialize and overwrite the existing profile shown below?"
-      ),
-      details: this.getProfileConfirmDetails(profile),
-    });
-    const confirmed = await confirmPrompt.prompt(this.input.io);
-    if (!confirmed) {
-      await this.executeService.warning(
-        'Init Canceled',
-        Text.create("Initializing the '", Text.bold(name), "' profile was canceled")
-      );
-      throw new Error('Init Canceled');
+    if (!this.input.options.quiet) {
+      const confirmPrompt = await Confirm.create({
+        header: 'Overwrite?',
+        message: Text.create(
+          "The '",
+          Text.bold(name),
+          "' profile already exists. Initialize and overwrite the existing profile shown below?"
+        ),
+        details: this.getProfileConfirmDetails(profile),
+      });
+      const confirmed = await confirmPrompt.prompt(this.input.io);
+      if (!confirmed) {
+        await this.executeService.warning(
+          'Init Canceled',
+          Text.create("Initializing the '", Text.bold(name), "' profile was canceled")
+        );
+        throw new Error('Init Canceled');
+      }
     }
   }
 
   public async confirmUpdateProfile(profile: IFusebitProfile, settings: IFusebitProfileSettings): Promise<void> {
-    const confirmPrompt = await Confirm.create({
-      header: 'Update?',
-      message: Text.create("Update the '", Text.bold(profile.name), "' profile as shown below?"),
-      details: this.getProfileUpdateConfirmDetails(profile, settings),
-    });
-    const confirmed = await confirmPrompt.prompt(this.input.io);
-    if (!confirmed) {
-      await this.executeService.warning(
-        'Update Canceled',
-        Text.create("Updating the '", Text.bold(profile.name), "' profile was canceled")
-      );
-      throw new Error('Update Canceled');
+    if (!this.input.options.quiet) {
+      const confirmPrompt = await Confirm.create({
+        header: 'Update?',
+        message: Text.create("Update the '", Text.bold(profile.name), "' profile as shown below?"),
+        details: this.getProfileUpdateConfirmDetails(profile, settings),
+      });
+      const confirmed = await confirmPrompt.prompt(this.input.io);
+      if (!confirmed) {
+        await this.executeService.warning(
+          'Update Canceled',
+          Text.create("Updating the '", Text.bold(profile.name), "' profile was canceled")
+        );
+        throw new Error('Update Canceled');
+      }
     }
   }
 
   public async confirmRenameProfile(source: string, target: string, profile: IFusebitProfile): Promise<void> {
-    const confirmPrompt = await Confirm.create({
-      header: 'Overwrite?',
-      message: Text.create(
-        "The '",
-        Text.bold(target),
-        "' profile already exists. Overwrite the existing profile shown below?"
-      ),
-      details: this.getProfileConfirmDetails(profile),
-    });
-    const confirmed = await confirmPrompt.prompt(this.input.io);
-    if (!confirmed) {
-      await this.executeService.warning(
-        'Rename Canceled',
-        Text.create("Renaming the '", Text.bold(source), "' profile was canceled")
-      );
-      throw new Error('Rename Canceled');
+    if (!this.input.options.quiet) {
+      const confirmPrompt = await Confirm.create({
+        header: 'Overwrite?',
+        message: Text.create(
+          "The '",
+          Text.bold(target),
+          "' profile already exists. Overwrite the existing profile shown below?"
+        ),
+        details: this.getProfileConfirmDetails(profile),
+      });
+      const confirmed = await confirmPrompt.prompt(this.input.io);
+      if (!confirmed) {
+        await this.executeService.warning(
+          'Rename Canceled',
+          Text.create("Renaming the '", Text.bold(source), "' profile was canceled")
+        );
+        throw new Error('Rename Canceled');
+      }
     }
   }
 
   public async confirmRemoveProfile(name: string, profile: IFusebitProfile): Promise<void> {
-    const confirmPrompt = await Confirm.create({
-      header: 'Remove?',
-      message: Text.create("Remove the '", Text.bold(name), "' profile shown below?"),
-      details: this.getProfileConfirmDetails(profile),
-    });
-    const confirmed = await confirmPrompt.prompt(this.input.io);
-    if (!confirmed) {
-      await this.executeService.warning(
-        'Remove Canceled',
-        Text.create("Removing the '", Text.bold(name), "' profile was canceled.")
-      );
-      throw new Error('Remove Canceled');
+    if (!this.input.options.quiet) {
+      const confirmPrompt = await Confirm.create({
+        header: 'Remove?',
+        message: Text.create("Remove the '", Text.bold(name), "' profile shown below?"),
+        details: this.getProfileConfirmDetails(profile),
+      });
+      const confirmed = await confirmPrompt.prompt(this.input.io);
+      if (!confirmed) {
+        await this.executeService.warning(
+          'Remove Canceled',
+          Text.create("Removing the '", Text.bold(name), "' profile was canceled.")
+        );
+        throw new Error('Remove Canceled');
+      }
     }
   }
 
   public async getExecutionProfile(
     expected?: string[],
-    defaults?: IFusebitProfileSettings
+    defaults?: IFusebitProfileDefaults
   ): Promise<IFusebitExecutionProfile> {
-    try {
-      await profileConvert();
-    } catch (__) {
-      // do_nothing
-    }
-
     const profileName = this.input.options.profile as string;
     const profile = await this.execute(() => this.profile.getExecutionProfile(profileName));
 
     for (const option of profileOptions) {
       if (this.input.options[option]) {
         profile[option] = this.input.options[option] as string;
-      } else if (defaults && (defaults[option] || defaults[`${option}Id`])) {
-        profile[option] = defaults[option] || defaults[`${option}Id`];
+      } else if (defaults && defaults[option]) {
+        profile[option] = defaults[option];
       }
     }
 
     for (const expect of expected || []) {
       if (profile[expect] === undefined) {
-        this.executeService.error(
-          'Option Required',
-          Text.create("The '", Text.bold(expect), "' option must be specified as it is not specified in the profile.")
+        await this.executeService.error(
+          'Input Required',
+          Text.create("The '", Text.bold(expect), "' input must be specified as it is not specified in the profile.")
         );
-        throw new Error('Option Required');
       }
     }
 
@@ -284,12 +331,12 @@ export class ProfileService {
   }
 
   public async displayProfiles(profiles: IFusebitProfile[]) {
-    if (this.input.options.format === 'json') {
+    if (this.input.options.output === 'json') {
       await this.input.io.writeLine(JSON.stringify(profiles, null, 2));
       return;
     }
 
-    this.executeService.message(Text.blue('Profiles'), Text.blue('Details'));
+    this.executeService.message(Text.cyan('Profiles'), Text.cyan('Details'));
     const defaultProfileName = await this.profile.getDefaultProfileName();
 
     for (const profile of profiles) {
@@ -297,15 +344,15 @@ export class ProfileService {
     }
   }
 
-  public async displayProfile(profile: IFusebitProfile) {
-    if (this.input.options.format === 'json') {
+  public async displayProfile(profile: IFusebitProfile, agentDetails?: IText) {
+    if (this.input.options.output === 'json') {
       await this.input.io.writeLine(JSON.stringify(profile, null, 2));
       return;
     }
 
     const defaultProfileName = await this.profile.getDefaultProfileName();
 
-    await this.writeProfile(profile, profile.name === defaultProfileName);
+    await this.writeProfile(profile, profile.name === defaultProfileName, agentDetails);
   }
 
   public async displayTokenContext(profileName?: string) {
@@ -315,8 +362,14 @@ export class ProfileService {
 
     const profile = await this.profile.getExecutionProfile(profileName, true);
 
-    if (this.input.options.format === 'json') {
-      await console.log(JSON.stringify(profile, null, 2));
+    const output = this.input.options.output;
+    if (output === 'json') {
+      await this.input.io.writeLineRaw(JSON.stringify(profile, null, 2));
+      return;
+    }
+
+    if (output === 'raw') {
+      await this.input.io.writeLineRaw(profile.accessToken);
       return;
     }
 
@@ -333,8 +386,28 @@ export class ProfileService {
 
     await this.executeService.info(profileName as string, Text.create(details));
 
-    console.log(profile.accessToken);
-    console.log();
+    this.input.io.writeLineRaw(profile.accessToken);
+    this.input.io.writeLine();
+  }
+
+  public async getAgent(profileName: string): Promise<any> {
+    const profile = await this.execute(() => this.profile.getExecutionProfile(profileName));
+
+    const agent = await this.executeService.executeRequest(
+      {
+        header: 'Get Profile Details',
+        message: Text.create("Getting the details of the '", Text.bold(profileName), "' profile..."),
+        errorHeader: 'Get Profile Details Error',
+        errorMessage: Text.create("Unable to get the details of the '", Text.bold(profileName), "' profile"),
+      },
+      {
+        method: 'GET',
+        url: `${profile.baseUrl}/v1/account/${profile.account}/me`,
+        headers: { Authorization: `bearer ${profile.accessToken}` },
+      }
+    );
+
+    return agent;
   }
 
   private getProfileUpdateConfirmDetails(profile: IFusebitProfile, settings: IFusebitProfileSettings) {
@@ -395,41 +468,44 @@ export class ProfileService {
   private async writeFusebitProfileErrorMessage(exception: FusebitProfileException) {
     switch (exception.code) {
       case FusebitProfileExceptionCode.profileDoesNotExist:
-        this.executeService.error(
+        await this.executeService.error(
           'No Profile',
-          Text.create("The profile '", Text.bold(exception.params[0]), "' does not exist")
+          Text.create("The profile '", Text.bold(exception.params[0]), "' does not exist"),
+          exception
         );
         return;
       case FusebitProfileExceptionCode.profileAlreadyExists:
-        this.executeService.error(
+        await this.executeService.error(
           'Profile Exists',
-          Text.create("The profile '", Text.bold(exception.params[0]), "' already exists")
+          Text.create("The profile '", Text.bold(exception.params[0]), "' already exists"),
+          exception
         );
         return;
       case FusebitProfileExceptionCode.baseUrlMissingProtocol:
-        this.executeService.error(
+        await this.executeService.error(
           'Base Url',
           Text.create(
             "The base url '",
             Text.bold(exception.params[0]),
             "' does not include the protocol, 'http' or 'https'"
-          )
+          ),
+          exception
         );
         return;
       case FusebitProfileExceptionCode.noDefaultProfile:
-        this.executeService.error('No Profile', 'There is no default profile set');
+        await this.executeService.error('No Profile', 'There is no default profile set', exception);
         return;
       default:
-        this.executeService.error('Profile Error', exception.message);
+        await this.executeService.error('Profile Error', exception.message, exception);
         return;
     }
   }
 
   private async writeErrorMessage(error: Error) {
-    this.executeService.error('Profile Error', error.message);
+    await this.executeService.error('Profile Error', error.message, error);
   }
 
-  private async writeProfile(profile: IFusebitProfile, isDefault: boolean) {
+  private async writeProfile(profile: IFusebitProfile, isDefault: boolean, agentDetails?: IText) {
     const details = [
       Text.dim('Deployment: '),
       profile.baseUrl,
@@ -465,6 +541,12 @@ export class ProfileService {
         getDateString(new Date(profile.updated)),
       ]
     );
+
+    if (agentDetails) {
+      details.push(Text.eol());
+      details.push(Text.eol());
+      details.push(agentDetails);
+    }
 
     const name = isDefault
       ? Text.create(Text.bold(profile.name), Text.eol(), Text.dim(Text.italic('<default>')))

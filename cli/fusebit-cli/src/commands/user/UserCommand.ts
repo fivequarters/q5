@@ -21,14 +21,8 @@ const command: ICommand = {
     {
       name: 'profile',
       aliases: ['p'],
-      description: 'The name of the profile to use when executing the command.',
+      description: 'The name of the profile to use when executing the command',
       defaultText: 'default profile',
-    },
-    {
-      name: 'account',
-      aliases: ['a'],
-      description: 'The account id to use when executing the command.',
-      defaultText: 'profile value',
     },
   ],
 };

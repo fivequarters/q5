@@ -382,16 +382,18 @@ describe('User', () => {
       expectMore(user).toBeHttpError(400, '"allow" is required');
     }, 20000);
 
-    test('Updating a user with access with an empty allow array is not supported', async () => {
+    test('Updating a user with access with an empty allow array is supported', async () => {
       const original = await addUser(account, {});
       const user = await updateUser(account, original.data.id, { access: { allow: [] } });
-      expectMore(user).toBeHttpError(400, '"allow" must contain at least 1 items');
+      expect(user.status).toBe(200);
+      expect(user.data).toEqual({ id: original.data.id });
     }, 20000);
 
-    test('Updating a user with identities with an empty array is not supported', async () => {
+    test('Updating a user with identities with an empty array is supported', async () => {
       const original = await addUser(account, { identities: [{ issuerId: 'foo', subject: `sub-${random()}` }] });
       const user = await updateUser(account, original.data.id, { identities: [] });
-      expectMore(user).toBeHttpError(400, '"identities" must contain at least 1 items');
+      expect(user.status).toBe(200);
+      expect(user.data).toEqual({ id: original.data.id });
     }, 20000);
 
     test('Updating a user with a malformed account id should return an error', async () => {

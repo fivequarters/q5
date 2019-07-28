@@ -1,6 +1,6 @@
 import { Command, IExecuteInput } from '@5qtrs/cli';
 import { Text } from '@5qtrs/text';
-import { ProfileService } from '../services';
+import { ProfileService, ExecuteService } from '../services';
 
 // ------------------
 // Internal Constants
@@ -20,13 +20,14 @@ const command = {
     {
       name: 'profile',
       aliases: ['p'],
-      description: 'The name of the profile to use when executing the command.',
+      description: 'The name of the profile to use when executing the command',
       defaultText: 'default profile',
     },
     {
-      name: 'format',
-      description: "The format to display the output: 'table', 'json'",
-      default: 'table',
+      name: 'output',
+      aliases: ['o'],
+      description: "The format to display the output: 'pretty', 'json', 'raw'",
+      default: 'pretty',
     },
   ],
 };
@@ -45,12 +46,12 @@ export class TokenCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    await input.io.writeLine();
-
     const profileName = input.options.profile as string | undefined;
 
     const profileService = await ProfileService.create(input);
+    const executeService = await ExecuteService.create(input);
 
+    await executeService.newLine();
     await profileService.displayTokenContext(profileName);
 
     return 0;

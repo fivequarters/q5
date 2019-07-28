@@ -9,6 +9,7 @@ app.set('port', normalizedPort);
 
 const server = http.createServer(app);
 server.listen(normalizedPort);
+server.keepAliveTimeout = 130 * 1000;
 server.on('error', onError);
 server.on('listening', onListening);
 

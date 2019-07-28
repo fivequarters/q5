@@ -10,5 +10,5 @@
     "composite": false
   },
   "include": ["src"],
-  "references": [{ "path": "../bq-metering" }]
+  "references": [{ "path": "../bq-metering" }, { "path": "../../shared/json-stable" }]
 }

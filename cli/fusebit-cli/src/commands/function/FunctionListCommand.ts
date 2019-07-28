@@ -1,43 +1,57 @@
 import { Command, IExecuteInput, ArgType } from '@5qtrs/cli';
 import { FunctionService } from '../../services';
+import { Text } from '@5qtrs/text';
+
+// ------------------
+// Internal Constants
+// ------------------
+
+const command = {
+  name: 'List Functions',
+  cmd: 'ls',
+  summary: 'List deployed functions',
+  description: 'Lists functions deployed within a given subscription or boundary.',
+  options: [
+    {
+      name: 'cron',
+      description: [
+        'If set to true, only list scheduled functions. If set to false,',
+        'only list non-scheduled functions. If not set, list all functions',
+      ].join(' '),
+      type: ArgType.boolean,
+    },
+    {
+      name: 'count',
+      aliases: ['c'],
+      description: 'The number of functions to list at a given time',
+      type: ArgType.integer,
+      default: '100',
+    },
+    {
+      name: 'output',
+      aliases: ['o'],
+      description: "The format to display the output: 'pretty', 'json'",
+      default: 'pretty',
+    },
+    {
+      name: 'next',
+      aliases: ['n'],
+      description: Text.create([
+        "The opaque next token obtained from a previous list command when using the '",
+        Text.bold('--output json'),
+        "' option ",
+      ]),
+    },
+  ],
+};
+
+// ----------------
+// Exported Classes
+// ----------------
 
 export class FunctionListCommand extends Command {
   private constructor() {
-    super({
-      name: 'List Functions',
-      cmd: 'ls',
-      summary: 'List deployed functions',
-      description: [`Lists functions deployed within a given subscription or boundary.`].join(' '),
-      options: [
-        {
-          name: 'cron',
-          description: [
-            'If set to true, only scheduled functions are returned. If set to false,',
-            'only non-scheduled functions are returned. ',
-            'If unspecified, both scheduled and unscheduled functions are returned',
-          ].join(' '),
-          type: ArgType.boolean,
-        },
-        {
-          name: 'count',
-          aliases: ['c'],
-          description: 'The number of functions to list at a given time',
-          type: ArgType.integer,
-          default: '100',
-        },
-        {
-          name: 'next',
-          aliases: ['n'],
-          description: 'The opaque token from a previous list command used to continue listing',
-        },
-        {
-          name: 'format',
-          aliases: ['f'],
-          description: "The format to display the output: 'table', 'json'",
-          default: 'table',
-        },
-      ],
-    });
+    super(command);
   }
 
   public static async create() {
@@ -45,7 +59,7 @@ export class FunctionListCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    const format = input.options.format as string;
+    const output = input.options.output as string;
     const cron = input.options.cron as boolean;
     const count = input.options.count as string;
     const next = input.options.next as string;
@@ -58,8 +72,7 @@ export class FunctionListCommand extends Command {
 
     const functionService = await FunctionService.create(input);
 
-    if (format === 'json') {
-      input.io.writeRawOnly(true);
+    if (output === 'json') {
       const result = await functionService.listFunctions(options);
       const json = JSON.stringify(result, null, 2);
       input.io.writeLineRaw(json);

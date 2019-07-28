@@ -1,6 +1,16 @@
-import { clone } from '@5qtrs/clone';
 import { IText, Text } from '@5qtrs/text';
 import { ArgType } from './ArgType';
+
+// ------------------
+// Internal Functions
+// ------------------
+
+function ensureText(text?: IText): Text {
+  if (text === undefined) {
+    return Text.empty();
+  }
+  return text instanceof Text ? text : Text.create(text || '');
+}
 
 // -------------------
 // Exported Interfaces
@@ -21,37 +31,49 @@ export interface IOption {
 // ----------------
 
 export class Option implements IOption {
-  private option: IOption;
+  private nameProp: string;
+  private aliasesProp: string[];
+  private typeProp: ArgType;
+  private defaultProp?: string;
+  private defaultTextProp: Text;
+  private descriptionProp: Text;
+  private allowManyProp: boolean;
 
   public constructor(option: IOption) {
-    this.option = clone(option);
+    this.nameProp = option.name;
+    this.aliasesProp = option.aliases ? option.aliases.slice() : [];
+    this.typeProp = option.type || ArgType.string;
+    this.defaultProp = option.default;
+    this.defaultTextProp = ensureText(option.defaultText);
+    this.descriptionProp = ensureText(option.description);
+    this.allowManyProp = option.allowMany || false;
   }
 
   public get name() {
-    return this.option.name;
+    return this.nameProp;
   }
 
   public get aliases() {
-    return this.option.aliases ? this.option.aliases.slice() : [];
+    return this.aliasesProp;
   }
 
   public get type() {
-    return this.option.type || ArgType.string;
+    return this.typeProp;
   }
 
   public get default() {
-    return this.option.default;
+    return this.defaultProp;
   }
 
   public get defaultText() {
-    return this.option.defaultText || Text.empty();
+    return this.defaultTextProp;
   }
 
   public get description() {
-    return this.option.description || Text.empty();
+    return this.descriptionProp;
   }
 
   public get allowMany() {
-    return this.option.allowMany || false;
+    return this.allowManyProp;
   }
 }

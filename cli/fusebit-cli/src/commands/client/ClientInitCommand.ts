@@ -1,5 +1,5 @@
 import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
-import { ClientService, ProfileService } from '../../services';
+import { AgentService, ProfileService, ExecuteService } from '../../services';
 
 // ------------------
 // Internal Constants
@@ -33,13 +33,17 @@ const command = {
       description: 'The function to set by default when the client initializes',
     },
     {
-      name: 'confirm',
-      description: [
-        'If set to true, the details regarding adding the client will be displayed along with a',
-        'prompt for confirmation',
-      ].join(' '),
+      name: 'quiet',
+      aliases: ['q'],
+      description: 'If set to true, does not prompt for confirmation',
       type: ArgType.boolean,
-      default: 'true',
+      default: 'false',
+    },
+    {
+      name: 'output',
+      aliases: ['o'],
+      description: "The format to display the output: 'pretty', 'json', 'raw'",
+      default: 'pretty',
     },
   ],
 };
@@ -58,15 +62,15 @@ export class ClientInitCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    await input.io.writeLine();
-
     const [id] = input.arguments as string[];
-    const confirm = input.options.confirm as boolean;
 
-    const clientService = await ClientService.create(input);
+    const clientService = await AgentService.create(input, false);
     const profileService = await ProfileService.create(input);
+    const executeService = await ExecuteService.create(input);
 
-    const client = await clientService.getClient(id);
+    await executeService.newLine();
+
+    const client = await clientService.getAgent(id);
 
     const executionProfile = await profileService.getExecutionProfile();
 
@@ -76,11 +80,9 @@ export class ClientInitCommand extends Command {
       functionId: executionProfile.function || undefined,
     };
 
-    if (confirm) {
-      await clientService.confirmInitClient(client, initEntry);
-    }
+    await clientService.confirmInitAgent(client, initEntry);
 
-    const initToken = await clientService.initClient(id, initEntry);
+    const initToken = await clientService.initAgent(id, initEntry);
 
     await clientService.displayInitToken(initToken);
 

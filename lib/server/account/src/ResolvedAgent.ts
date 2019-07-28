@@ -191,7 +191,7 @@ export class ResolvedAgent implements IAgent {
     return { allow };
   }
 
-  private async addAuditEntry(action: string, resource: string, authorized: boolean): Promise<void> {
+  public async addAuditEntry(action: string, resource: string, authorized: boolean): Promise<void> {
     const auditEntry = {
       accountId: this.accountId,
       issuerId: this.identity.issuerId,

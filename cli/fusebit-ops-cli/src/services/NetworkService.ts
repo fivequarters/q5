@@ -198,7 +198,7 @@ export class NetworkService {
       return;
     }
 
-    await this.executeService.message(Text.blue('Network Name'), Text.blue('Details'));
+    await this.executeService.message(Text.cyan('Network Name'), Text.cyan('Details'));
     for (const network of networks) {
       this.writeNetworks(network);
     }
@@ -210,7 +210,7 @@ export class NetworkService {
       return;
     }
 
-    await this.executeService.message(Text.blue('Network Name'), Text.blue('Details'));
+    await this.executeService.message(Text.cyan('Network Name'), Text.cyan('Details'));
     this.writeNetworks(network);
   }
 

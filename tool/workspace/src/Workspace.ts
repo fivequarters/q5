@@ -7,6 +7,7 @@ import {
   readFile,
   writeFile,
   copyFile,
+  isDirectory,
 } from '@5qtrs/file';
 import { IndentTextStream } from '@5qtrs/stream';
 import { join, relative } from 'path';
@@ -188,17 +189,17 @@ export default class Workspace {
       for (const packageAsset of packageJson.packageAssets) {
         const assetFromPath = join(location, packageAsset);
         const assetToPath = join(packagePath, packageAsset);
-        await copyDirectory(assetFromPath, assetToPath);
+        if (await isDirectory(assetFromPath)) {
+          await copyDirectory(assetFromPath, assetToPath);
+        } else {
+          await copyFile(assetFromPath, assetToPath);
+        }
       }
       packageJson.packageAssets = undefined;
     }
 
     const newPackageJsonPath = join(packagePath, 'package.json');
     await writeFile(newPackageJsonPath, JSON.stringify(packageJson, null, 2));
-
-    const licenseFile = join(location, 'LICENSE');
-    const copylicenseFile = join(packagePath, 'LICENSE');
-    await copyFile(licenseFile, copylicenseFile, { errorIfNotExist: false });
   }
 
   public async RemoveDependency(fullName: string): Promise<void> {

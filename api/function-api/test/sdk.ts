@@ -190,8 +190,9 @@ export async function getLogs(
       bufferedResponse.headers = response.headers;
       bufferedResponse.data = '';
 
-      if (ignoreLogs) {
+      if (ignoreLogs && bufferedResponse.status === 200) {
         onDone();
+        return;
       }
 
       response.on('data', (data: string) => (bufferedResponse.data += data.toString()));
@@ -201,7 +202,7 @@ export async function getLogs(
     logRequest = http.get(url, { headers, agent: false }, onResponse);
 
     if (!ignoreLogs) {
-      timer = setTimeout(onDone, 5000);
+      timer = setTimeout(onDone, 10000);
     }
   });
 }
@@ -288,7 +289,7 @@ export async function deleteAllFunctions(account: IAccount, boundaryId?: string)
   let response = await listFunctions(account, boundaryId);
   if (response.status !== 200) {
     throw new Error(
-      `The FLEXD_PROFILE does not come with enough permissions to run tests (HTTP ${
+      `The FUSE_PROFILE does not come with enough permissions to run tests (HTTP ${
         response.status
       }). Unable to list functions in account ${account.accountId}, subscription ${
         account.subscriptionId

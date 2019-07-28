@@ -1,34 +1,46 @@
-import { EOL } from 'os';
 import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
-import { request } from '@5qtrs/request';
-import { ProfileService, VersionService, tryGetFusebit, getProfileSettingsFromFusebit } from '../../services';
+import { FunctionService, ExecuteService } from '../../services';
+
+// ------------------
+// Internal Constants
+// ------------------
+
+const command = {
+  name: 'Remove Function',
+  cmd: 'rm',
+  summary: 'Remove a deployed function',
+  description: 'Permanently removes a deployed function.',
+  arguments: [
+    {
+      name: 'function',
+      description: 'The function id of the function to remove',
+      required: false,
+    },
+  ],
+  options: [
+    {
+      name: 'quiet',
+      aliases: ['q'],
+      description: 'If set to true, does not prompt for confirmation',
+      type: ArgType.boolean,
+      default: 'false',
+    },
+    {
+      name: 'output',
+      aliases: ['o'],
+      description: "The format to display the output: 'pretty', 'json'",
+      default: 'pretty',
+    },
+  ],
+};
+
+// ----------------
+// Exported Classes
+// ----------------
 
 export class FunctionRemoveCommand extends Command {
   private constructor() {
-    super({
-      name: 'Remove Function',
-      cmd: 'rm',
-      summary: 'Remove a deployed function',
-      description: [
-        'Permanently removes a deployed function.',
-        `${EOL}${EOL}This is a destructive action and can not be undone.`,
-      ].join(' '),
-      options: [
-        {
-          name: 'function',
-          aliases: ['f'],
-          description: 'The function id of the function to remove.',
-        },
-        {
-          name: 'confirm',
-          aliases: ['c'],
-          description: ['If set to true, the function will be deleted without asking for confirmation.'].join(' '),
-          type: ArgType.boolean,
-          default: 'false',
-        },
-      ],
-      modes: [],
-    });
+    super(command);
   }
 
   public static async create() {
@@ -36,41 +48,18 @@ export class FunctionRemoveCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    await input.io.writeLine();
+    const functionId = input.arguments[0] as string;
 
-    let profileService = await ProfileService.create(input);
-    const versionService = await VersionService.create(input);
+    const executeService = await ExecuteService.create(input);
+    const functionService = await FunctionService.create(input);
 
-    let profile = await profileService.getExecutionProfile(
-      ['subscription', 'boundary', 'function'],
-      getProfileSettingsFromFusebit(tryGetFusebit())
-    );
+    await executeService.newLine();
 
-    if (
-      !input.options.confirm &&
-      !(await input.io.prompt({
-        prompt: `Remove function ${profile.boundary}/${profile.function}? This cannot be undone.`,
-        yesNo: true,
-      }))
-    ) {
-      input.io.writeLine('No changes made.');
-      return 0;
-    }
+    const functionSpec = await functionService.getFunction(process.cwd(), functionId);
 
-    const version = await versionService.getVersion();
-    await request({
-      method: 'DELETE',
-      url: `${profile.baseUrl}/v1/account/${profile.account}/subscription/${profile.subscription}/boundary/${
-        profile.boundary
-      }/function/${profile.function}`,
-      headers: {
-        Authorization: `Bearer ${profile.accessToken}`,
-        'User-Agent': `fusebit-cli/${version}`,
-      },
-      validStatus: status => status === 204,
-    });
+    await functionService.confirmRemove(functionSpec);
 
-    input.io.writeLine('Function removed.');
+    await functionService.removeFunction(functionId);
 
     return 0;
   }

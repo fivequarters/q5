@@ -1,5 +1,5 @@
 import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
-import { IssuerService } from '../../../services';
+import { IssuerService, ExecuteService } from '../../../services';
 
 // ------------------
 // Internal Constants
@@ -26,13 +26,17 @@ const command = {
   ],
   options: [
     {
-      name: 'confirm',
-      description: [
-        'If set to true, the details regarding adding the public key to the issuer',
-        'will be displayed along with a prompt for confirmation',
-      ].join(' '),
+      name: 'quiet',
+      aliases: ['q'],
+      description: 'If set to true, does not prompt for confirmation',
       type: ArgType.boolean,
-      default: 'true',
+      default: 'false',
+    },
+    {
+      name: 'output',
+      aliases: ['o'],
+      description: "The format to display the output: 'pretty', 'json'",
+      default: 'pretty',
     },
   ],
 };
@@ -51,24 +55,24 @@ export class IssuerKeyAddCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    await input.io.writeLine();
-
     const [id, publicKey, keyId] = input.arguments as string[];
-    const confirm = input.options.confirm as boolean;
 
     const issuerService = await IssuerService.create(input);
+    const executeService = await ExecuteService.create(input);
+
+    await executeService.newLine();
 
     const issuer = await issuerService.getIssuer(id);
 
-    if (confirm) {
-      await issuerService.confirmAddPublicKey(issuer, keyId);
-    }
+    await issuerService.confirmAddPublicKey(issuer, keyId);
 
     issuer.publicKeys = issuer.publicKeys || [];
     issuer.publicKeys.push({ publicKey, keyId });
     issuer.jsonKeysUrl = undefined;
 
-    await issuerService.addPublicKey(id, issuer);
+    const updatedIssuer = await issuerService.addPublicKey(id, issuer);
+
+    await issuerService.displayIssuer(updatedIssuer);
 
     return 0;
   }

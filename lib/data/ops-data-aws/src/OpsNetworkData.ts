@@ -83,6 +83,7 @@ export class OpsNetworkData extends DataSource implements IOpsNetworkData {
       region: network.region,
       vpcId: networkDetails.vpcId,
       securityGroupId: networkDetails.securityGroupId,
+      lambdaSecurityGroupId: networkDetails.lambdaSecurityGroupId,
       internetGatewayId: networkDetails.internetGatewayId,
       natGatewayId: networkDetails.natGatewayId,
       publicRouteTableId: networkDetails.publicRouteTableId,

@@ -15,7 +15,7 @@ const subscription = require('./handlers/subscription');
 const issuer = require('./handlers/issuer');
 const user = require('./handlers/user');
 const client = require('./handlers/client');
-const init = require('./handlers/init');
+const agent = require('./handlers/agent');
 const audit = require('./handlers/audit');
 
 const { StorageActions } = require('@5qtrs/storage');
@@ -196,6 +196,31 @@ router.get(
   subscription.subscriptionGet()
 );
 
+// Agent
+
+router.options('/account/:accountId/me', cors(corsManagementOptions));
+router.get(
+  '/account/:accountId/me',
+  cors(corsManagementOptions),
+  validate_schema({ params: require('./schemas/api_account') }),
+  authorize({}),
+  agent.getMe()
+);
+
+router.options('/account/:accountId/init', cors(corsManagementOptions));
+router.post(
+  '/account/:accountId/init',
+  cors(corsManagementOptions),
+  validate_schema({ params: require('./schemas/api_account') }),
+  authorize({ resolve: true }),
+  express.json(),
+  validate_schema({
+    params: require('./schemas/api_params'),
+    body: require('./schemas/initResolve'),
+  }),
+  agent.initResolve()
+);
+
 // Users
 
 router.options('/account/:accountId/user', cors(corsManagementOptions));
@@ -271,19 +296,6 @@ router.post(
     body: require('./schemas/init'),
   }),
   user.userInit()
-);
-
-router.post(
-  '/account/:accountId/init',
-  cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
-  authorize({ resolve: true }),
-  express.json(),
-  validate_schema({
-    params: require('./schemas/api_params'),
-    body: require('./schemas/initResolve'),
-  }),
-  init.initResolve()
 );
 
 // Clients

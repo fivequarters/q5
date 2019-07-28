@@ -1,5 +1,5 @@
 import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
-import { ExecuteService, ClientService } from '../../../services';
+import { ExecuteService, AgentService } from '../../../services';
 import { Text } from '@5qtrs/text';
 
 // ------------------
@@ -18,22 +18,26 @@ const command = {
     },
     {
       name: 'action',
-      description: 'The action to remove from the client',
+      description: 'The action of the access to remove from the client',
     },
     {
       name: 'resource',
-      description: 'The resource to remove from the client',
+      description: 'The resource of the access to remove from the client',
     },
   ],
   options: [
     {
-      name: 'confirm',
-      description: [
-        'If set to true, the details regarding removing access from the client will be displayed along with a',
-        'prompt for confirmation.',
-      ].join(' '),
+      name: 'quiet',
+      aliases: ['q'],
+      description: 'If set to true, does not prompt for confirmation',
       type: ArgType.boolean,
-      default: 'true',
+      default: 'false',
+    },
+    {
+      name: 'output',
+      aliases: ['o'],
+      description: "The format to display the output: 'pretty', 'json'",
+      default: 'pretty',
     },
   ],
 };
@@ -52,24 +56,44 @@ export class ClientAccessRemoveCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    await input.io.writeLine();
+    const [id, action, rawResource] = input.arguments as string[];
 
-    const [id, action, resource] = input.arguments as string[];
-    const confirm = input.options.confirm as boolean;
-
-    const clientService = await ClientService.create(input);
+    const clientService = await AgentService.create(input, false);
     const executeService = await ExecuteService.create(input);
 
-    const client = await clientService.getClient(id);
+    await executeService.newLine();
+
+    let resource = !rawResource || rawResource[rawResource.length - 1] === '/' ? rawResource : `${rawResource}/`;
+
+    const client = await clientService.getAgent(id);
     client.access = client.access || {};
     client.access.allow = client.access.allow || [];
 
     let accessIndex = -1;
     for (let i = 0; i < client.access.allow.length; i++) {
       const access = client.access.allow[i];
-      if (access.action === action && access.resource === resource) {
-        accessIndex = i;
-        i = client.access.allow.length;
+      if (access.action === action) {
+        if (resource && access.resource.indexOf(resource) !== -1) {
+          accessIndex = i;
+          resource = access.resource;
+          i = client.access.allow.length;
+        } else {
+          if (accessIndex === -1) {
+            accessIndex = i;
+            resource = access.resource;
+          } else {
+            await executeService.error(
+              'Multiple Resources',
+              Text.create(
+                "The client '",
+                Text.bold(client.id),
+                "' has more than one access with action '",
+                Text.bold(action),
+                "' so the resource must be specified"
+              )
+            );
+          }
+        }
       }
     }
 
@@ -91,16 +115,14 @@ export class ClientAccessRemoveCommand extends Command {
 
     const access = { action, resource };
 
-    if (confirm) {
-      await clientService.confirmRemoveClientAccess(client, access);
-    }
+    await clientService.confirmRemoveAgentAccess(client, access);
 
     client.access.allow.splice(accessIndex, 1);
 
     const update = { access: { allow: client.access.allow } };
-    const updatedClient = await clientService.removeClientAccess(client.id, update);
+    const updatedClient = await clientService.removeAgentAccess(client.id, update);
 
-    await clientService.displayClient(updatedClient);
+    await clientService.displayAgent(updatedClient);
 
     return 0;
   }

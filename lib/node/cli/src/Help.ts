@@ -72,8 +72,10 @@ export class Help {
     const table = await this.getHelpTable(outputWidth);
     await this.addUsage(table);
     await this.addDescription(table);
-    await this.addArguments(table);
-    await this.addOptions(table);
+    if (this.command.subCommands.length === 0) {
+      await this.addArguments(table);
+      await this.addOptions(table);
+    }
     await this.addCommands(table);
 
     const notesTable = await this.getNotesTable(outputWidth);
@@ -93,7 +95,7 @@ export class Help {
   }
 
   protected async formatHeader(text: IText) {
-    return Text.blue(text);
+    return Text.cyan(text);
   }
 
   protected async addUsage(table: Table) {
