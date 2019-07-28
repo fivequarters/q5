@@ -36,9 +36,12 @@ export function createActionPanel(
   if (opts.enableClose) {
     lines.push(`<button id="${closeId}" class="fusebit-action-btn"><i class="fa fa-window-close"></i></button>`);
   }
-  lines.push(
-    `<button id="${saveId}" class="fusebit-action-btn"><i class="fa fa-save"></i></button><button id="${runId}" class="fusebit-action-btn"><i class="fa fa-play"></i></button>`
-  );
+  if (opts.enableSave) {
+    lines.push(`<button id="${saveId}" class="fusebit-action-btn"><i class="fa fa-save"></i></button>`);
+  }
+  if (opts.enableRun) {
+    lines.push(`<button id="${runId}" class="fusebit-action-btn"><i class="fa fa-play"></i></button>`);
+  }
   if (opts.enableCodeOnlyToggle) {
     lines.push(
       `<button id="${hideNavLogsId}" class="fusebit-action-btn">`,
@@ -125,12 +128,14 @@ export function createActionPanel(
   editorContext.on(Events.ReadOnlyStateChanged, updateState);
 
   function updateState() {
-    saveElement && editorContext.dirtyState
-      ? saveElement.removeAttribute('disabled')
-      : saveElement.setAttribute('disabled', 'disabled');
-    runElement && editorContext.readOnly
-      ? runElement.setAttribute('disabled', 'disabled')
-      : runElement.removeAttribute('disabled');
+    if (saveElement) {
+      editorContext.dirtyState
+        ? saveElement.removeAttribute('disabled')
+        : saveElement.setAttribute('disabled', 'disabled');
+    }
+    if (runElement) {
+      editorContext.readOnly ? runElement.setAttribute('disabled', 'disabled') : runElement.removeAttribute('disabled');
+    }
   }
 
   updateState();
