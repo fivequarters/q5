@@ -9,6 +9,7 @@
  *    actionPanel: {
  *      enableCodeOnlyToggle: true,
  *      enableFullScreen: true,
+ *      enableRun: true,
  *    },
  *    editorPanel: {},
  *    logsPanel: {
@@ -103,6 +104,14 @@ export interface IActionPanelOptions {
    * @ignore
    */
   enableClose?: boolean;
+  /**
+   * Enables or disables the "Run" button that allows the user to call the function by executing the runner script in the browser.
+   */
+  enableRun?: boolean;
+  /**
+   * Enables or disables the "Save" button that allows the user to save the function.s
+   */
+  enableSave?: boolean;
   [property: string]: any;
 }
 
@@ -113,6 +122,8 @@ export class ActionPanelOptions implements IActionPanelOptions {
   public theme = EditorTheme.Light;
   public enableCodeOnlyToggle: boolean = true;
   public enableFullScreen: boolean = true;
+  public enableRun: boolean = true;
+  public enableSave: boolean = true;
   /**
    * @ignore
    */

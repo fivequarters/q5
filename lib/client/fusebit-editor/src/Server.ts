@@ -241,9 +241,9 @@ export class Server {
           // @ts-ignore
           editorOptions[k] = {
             ...defaultEditorOptions[k],
-            theme: editorOptions.theme,
             // @ts-ignore
-            ...(createIfNotExist && createIfNotExist[k]),
+            ...editorOptions[k],
+            theme: editorOptions.theme,
           };
         }
       });
