@@ -32,13 +32,13 @@ export enum Events {
    */
   SettingsComputeSelected = 'settings:compute:selected',
   /**
-   * Application settings were selected. Event data has [[SettingsApplicationSelectedEvent]] type.
+   * Configuration settings were selected. Event data has [[SettingsConfigurationSelectedEvent]] type.
    */
-  SettingsApplicationSelected = 'settings:application:selected',
+  SettingsConfigurationSelected = 'settings:configuration:selected',
   /**
-   * Schedule settings were selected. Event data has [[SettingsCronSelectedEvent]] type.
+   * Schedule settings were selected. Event data has [[SettingsScheduleSelectedEvent]] type.
    */
-  SettingsCronSelected = 'settings:cron:selected',
+  SettingsScheduleSelected = 'settings:schedule:selected',
   /**
    * Function build has started. Event data has [[BuildStartedEvent]] type.
    */
@@ -290,10 +290,10 @@ export class SettingsComputeSelectedEvent implements IEditorEvent {
 }
 
 /**
- * The application settings were selected.
+ * The configuration settings were selected.
  */
-export class SettingsApplicationSelectedEvent implements IEditorEvent {
-  public name: string = Events.SettingsApplicationSelected;
+export class SettingsConfigurationSelectedEvent implements IEditorEvent {
+  public name: string = Events.SettingsConfigurationSelected;
   constructor() {
     // do nothing
   }
@@ -302,8 +302,8 @@ export class SettingsApplicationSelectedEvent implements IEditorEvent {
 /**
  * The Scheduler settings were selected.
  */
-export class SettingsCronSelectedEvent implements IEditorEvent {
-  public name: string = Events.SettingsCronSelected;
+export class SettingsScheduleSelectedEvent implements IEditorEvent {
+  public name: string = Events.SettingsScheduleSelected;
   constructor() {
     // do nothing
   }

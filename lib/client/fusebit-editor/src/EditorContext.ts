@@ -1,7 +1,7 @@
 import { EventEmitter } from '@5qtrs/event';
 import { ServerResponse } from 'http';
 import * as Events from './Events';
-import { IFunctionSpecification, ISchedule } from './FunctionSpecification';
+import { IFunctionSpecification } from './FunctionSpecification';
 import { IBuildStatus } from './Server';
 
 const RunnerPlaceholder = `// Return a function that evaluates to a Superagent request promise
@@ -21,7 +21,7 @@ ctx => Superagent.get(ctx.url)
 //     .send({ hello: 'world' });
 `;
 
-const SettingsApplicationPlaceholder = `# Application settings are available within function code
+const SettingsConfigurationPlaceholder = `# Configuration settings are available within function code
 
 # KEY1=VALUE1
 # KEY2=VALUE2`;
@@ -66,7 +66,7 @@ module.exports = (ctx, cb) => {
 
 /**
  * The _EditorContext_ class class represents client side state of a single function, including its files,
- * application settings, schedule of execution (in case of a CRON job), and metadata.
+ * configuration settings, schedule of execution (in case of a CRON job), and metadata.
  * It exposes methods to manipulate this in-memory state, and emits events other components can subscribe to when
  * that state changes.
  *
@@ -137,15 +137,6 @@ export class EditorContext extends EventEmitter {
         },
       };
     }
-    if (!this.functionSpecification.lambda) {
-      this.functionSpecification.lambda = {
-        memorySize: 128,
-        timeout: 30,
-      };
-    }
-    if (!this.functionSpecification.configuration) {
-      this.functionSpecification.configuration = {};
-    }
     if (!this._ensureFusebitMetadata().runner) {
       this._ensureFusebitMetadata(true).runner = RunnerPlaceholder;
     }
@@ -210,12 +201,12 @@ export class EditorContext extends EventEmitter {
   }
 
   /**
-   * Navigates to the Application Settings view.
+   * Navigates to the Configuration Settings view.
    */
-  public selectSettingsApplication() {
+  public selectSettingsConfiguration() {
     this._ensureWritable();
     this.selectedFileName = undefined;
-    const event = new Events.SettingsApplicationSelectedEvent();
+    const event = new Events.SettingsConfigurationSelectedEvent();
     this.emit(event);
   }
 
@@ -233,10 +224,10 @@ export class EditorContext extends EventEmitter {
   /**
    * Navigates to the Schedule view.
    */
-  public selectSettingsCron() {
+  public selectSettingsSchedule() {
     this._ensureWritable();
     this.selectedFileName = undefined;
-    const event = new Events.SettingsCronSelectedEvent();
+    const event = new Events.SettingsScheduleSelectedEvent();
     this.emit(event);
   }
 
@@ -351,9 +342,8 @@ export class EditorContext extends EventEmitter {
    */
   public setSettingsCompute(settings: string) {
     this._ensureWritable();
-    const isDirty = !this.dirtyState && this._ensureFusebitMetadata().computeSettings !== settings;
-    this.functionSpecification.lambda = parseKeyValue(settings);
-    this._ensureFusebitMetadata(true).computeSettings = settings;
+    const isDirty = !this.dirtyState && this.functionSpecification.computeSerialized !== settings;
+    this.functionSpecification.computeSerialized = settings;
     if (isDirty) {
       this.setDirtyState(true);
     }
@@ -363,11 +353,10 @@ export class EditorContext extends EventEmitter {
    * Not relevant to MVP
    * @ignore
    */
-  public setSettingsApplication(settings: string) {
+  public setSettingsConfiguration(settings: string) {
     this._ensureWritable();
-    const isDirty = !this.dirtyState && this._ensureFusebitMetadata().applicationSettings !== settings;
-    this.functionSpecification.configuration = parseKeyValue(settings);
-    this._ensureFusebitMetadata(true).applicationSettings = settings;
+    const isDirty = !this.dirtyState && this.functionSpecification.configurationSerialized !== settings;
+    this.functionSpecification.configurationSerialized = settings;
     if (isDirty) {
       this.setDirtyState(true);
     }
@@ -377,14 +366,10 @@ export class EditorContext extends EventEmitter {
    * Not relevant to MVP
    * @ignore
    */
-  public setSettingsCron(settings: string) {
+  public setSettingsSchedule(settings: string) {
     this._ensureWritable();
-    const isDirty = !this.dirtyState && this._ensureFusebitMetadata().cronSettings !== settings;
-    this.functionSpecification.schedule = <ISchedule>parseKeyValue(settings);
-    if (Object.keys(this.functionSpecification.schedule).length === 0) {
-      delete this.functionSpecification.schedule;
-    }
-    this._ensureFusebitMetadata(true).cronSettings = settings;
+    const isDirty = !this.dirtyState && this.functionSpecification.scheduleSerialized !== settings;
+    this.functionSpecification.scheduleSerialized = settings;
     if (isDirty) {
       this.setDirtyState(true);
     }
@@ -561,27 +546,31 @@ export class EditorContext extends EventEmitter {
    * @ignore
    */
   public getComputeSettings(): string {
-    return this.getSettings('computeSettings', SettingsComputePlaceholder, this.functionSpecification.lambda);
+    return this.functionSpecification.computeSerialized || '';
   }
 
   /**
    * Not relevant to MVP
    * @ignore
    */
-  public getApplicationSettings(): string {
-    return this.getSettings(
-      'applicationSettings',
-      SettingsApplicationPlaceholder,
-      this.functionSpecification.configuration
-    );
+  public getConfigurationSettings(): string {
+    return this.functionSpecification.configurationSerialized || '';
   }
 
   /**
    * Not relevant to MVP
    * @ignore
    */
-  public getCronSettings(): string {
-    return this.getSettings('cronSettings', SettingsCronPlaceholder, this.functionSpecification.schedule || {});
+  public getConfiguration(): { [index: string]: string | number } {
+    return parseKeyValue(this.functionSpecification.configurationSerialized || '');
+  }
+
+  /**
+   * Not relevant to MVP
+   * @ignore
+   */
+  public getScheduleSettings(): string {
+    return this.functionSpecification.scheduleSerialized || '';
   }
 
   /**
@@ -618,61 +607,24 @@ export class EditorContext extends EventEmitter {
     let packageJson: any = pj || this.getPackageJson();
     return (pj && pj.dependencies) || {};
   }
-
-  /**
-   * Not relevant to MVP
-   * @ignore
-   */
-  getSettings(
-    metadataProperty: string,
-    defaultSettings: string,
-    effectiveSettings?: { [property: string]: string | number | undefined }
-  ): string {
-    if (effectiveSettings) {
-      // Effective settings always win - if metadata settings are out of sync, adjust them and set dirty state
-      let metadataSettings = this._ensureFusebitMetadata()[metadataProperty];
-      let serializedEffectiveSettings = serializeKeyValue(effectiveSettings, defaultSettings);
-      if (
-        !metadataSettings ||
-        serializedEffectiveSettings !== serializeKeyValue(parseKeyValue(<string>metadataSettings), defaultSettings)
-      ) {
-        metadataSettings = this._ensureFusebitMetadata(true)[metadataProperty] = serializedEffectiveSettings;
-        this.setDirtyState(true);
-      }
-      return metadataSettings;
-    } else {
-      return defaultSettings;
-    }
-  }
-}
-
-function serializeKeyValue(data: { [property: string]: string | number | undefined }, placeholder: string) {
-  const lines: string[] = [];
-  Object.keys(data)
-    .sort()
-    .forEach(key => {
-      if (data[key]) {
-        lines.push(`${key}=${data[key]}`);
-      }
-    });
-  if (lines.length === 0) {
-    return placeholder;
-  }
-  return lines.join('\n');
 }
 
 function parseKeyValue(data: string) {
-  const param = /^\s*([^=]+?)\s*=\s*(.*?)\s*$/;
-  const value: { [property: string]: string | number } = {};
-  const lines = data.split(/[\r\n]+/);
-  lines.forEach(line => {
-    if (/^\s*\#/.test(line)) {
-      return;
-    }
-    const match = line.match(param);
-    if (match) {
-      value[match[1]] = match[2];
-    }
-  });
-  return value;
+  try {
+    const param = /^\s*([^=]+?)\s*=\s*(.*?)\s*$/;
+    const value: { [property: string]: string | number } = {};
+    const lines = data.split(/[\r\n]+/);
+    lines.forEach(line => {
+      if (/^\s*\#/.test(line)) {
+        return;
+      }
+      const match = line.match(param);
+      if (match) {
+        value[match[1]] = match[2];
+      }
+    });
+    return value;
+  } catch (__) {
+    return {};
+  }
 }

@@ -1,5 +1,4 @@
 import * as Monaco from 'monaco-editor/esm/vs/editor/editor.api.js';
-import { IApplicationSettings } from './FunctionSpecification';
 import * as Superagent from 'superagent';
 
 Monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
@@ -39,13 +38,13 @@ type FusebitCallback = (error?: Error, result?: FusebitCallbackResult) => void;
   Monaco.languages.typescript.javascriptDefaults.addExtraLib(StaticTypings, 'FusebitStaticTypes.d.ts');
 }
 
-let lastApplicationSettings: string | undefined;
+let lastConfigurationSettings: string | undefined;
 let lastFusebitContextTypings: Monaco.IDisposable | undefined;
-export function updateFusebitContextTypings(settings: IApplicationSettings) {
-  let newApplicationSettings = Object.keys(settings || {})
+export function updateFusebitContextTypings(configuration: { [index: string]: string | number }) {
+  let newConfigurationSettings = Object.keys(configuration)
     .sort()
     .join(':');
-  if (newApplicationSettings !== lastApplicationSettings) {
+  if (newConfigurationSettings !== lastConfigurationSettings) {
     const FusebitContextType = `declare class FusebitContext {
       /**
        * Body of the request.
@@ -76,14 +75,14 @@ export function updateFusebitContextTypings(settings: IApplicationSettings) {
        */
       functionId: string;
       /**
-       * Application settings of the function.
+       * Configuration settings of the function.
        */
-      configuration: { ${Object.keys(settings || {})
+      configuration: { ${Object.keys(configuration)
         .map(k => `${k}: string;`)
         .join(' ')} };
     }`;
 
-    lastApplicationSettings = newApplicationSettings;
+    lastConfigurationSettings = newConfigurationSettings;
     if (lastFusebitContextTypings) {
       lastFusebitContextTypings.dispose();
       lastFusebitContextTypings = undefined;
