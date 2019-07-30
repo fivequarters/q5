@@ -107,6 +107,7 @@ export async function deleteFunction(account: IAccount, boundaryId: string, func
     method: 'DELETE',
     headers: {
       Authorization: `Bearer ${account.accessToken}`,
+      'user-agent': account.userAgent,
     },
     url: `${account.baseUrl}/v1/account/${account.accountId}/subscription/${
       account.subscriptionId
@@ -119,6 +120,7 @@ export async function putFunction(account: IAccount, boundaryId: string, functio
     method: 'PUT',
     headers: {
       Authorization: `Bearer ${account.accessToken}`,
+      'user-agent': account.userAgent,
     },
     url: `${account.baseUrl}/v1/account/${account.accountId}/subscription/${
       account.subscriptionId
@@ -132,6 +134,7 @@ export async function getBuild(account: IAccount, build: { boundaryId: string; f
     method: 'GET',
     headers: {
       Authorization: `Bearer ${account.accessToken}`,
+      'user-agent': account.userAgent,
     },
     url: `${account.baseUrl}/v1/account/${account.accountId}/subscription/${account.subscriptionId}/boundary/${
       build.boundaryId
@@ -150,7 +153,7 @@ export async function getLogs(
   const boundaryPath = `/boundary/${boundaryId}`;
   const functionPath = functionId ? `/function/${functionId}` : '';
   const url = `${rootPath}${boundaryPath}${functionPath}/log`;
-  const headers = { Authorization: `Bearer ${account.accessToken}` };
+  const headers = { Authorization: `Bearer ${account.accessToken}`, 'user-agent': account.userAgent };
 
   return new Promise((resolve, reject) => {
     let bufferedResponse: any = {};
@@ -227,15 +230,21 @@ export async function waitForBuild(
   }
 }
 
-export async function getFunction(account: IAccount, boundaryId: string, functionId: string) {
+export async function getFunction(
+  account: IAccount,
+  boundaryId: string,
+  functionId: string,
+  includeSerialized: boolean = false
+) {
   return await request({
     method: 'GET',
     headers: {
       Authorization: `Bearer ${account.accessToken}`,
+      'user-agent': account.userAgent,
     },
     url: `${account.baseUrl}/v1/account/${account.accountId}/subscription/${
       account.subscriptionId
-    }/boundary/${boundaryId}/function/${functionId}`,
+    }/boundary/${boundaryId}/function/${functionId}${includeSerialized ? '?include=all' : ''}`,
   });
 }
 
@@ -244,6 +253,7 @@ export async function getFunctionLocation(account: IAccount, boundaryId: string,
     method: 'GET',
     headers: {
       Authorization: `Bearer ${account.accessToken}`,
+      'user-agent': account.userAgent,
     },
     url: `${account.baseUrl}/v1/account/${account.accountId}/subscription/${
       account.subscriptionId
@@ -280,6 +290,7 @@ export async function listFunctions(
     method: 'GET',
     headers: {
       Authorization: `Bearer ${account.accessToken}`,
+      'user-agent': account.userAgent,
     },
     url,
   });
@@ -307,6 +318,7 @@ export async function addIssuer(account: IAccount, issuerId: string, data: any) 
     headers: {
       Authorization: `Bearer ${account.accessToken}`,
       'Content-Type': 'application/json',
+      'user-agent': account.userAgent,
     },
     url: `${account.baseUrl}/v1/account/${account.accountId}/issuer/${encodeURIComponent(issuerId)}`,
     data: JSON.stringify(data),
@@ -335,6 +347,7 @@ export async function listIssuers(account: IAccount, count?: number, next?: stri
     headers: {
       Authorization: `Bearer ${account.accessToken}`,
       'Content-Type': 'application/json',
+      'user-agent': account.userAgent,
     },
     url: `${account.baseUrl}/v1/account/${account.accountId}/issuer${queryString}`,
   });
@@ -347,6 +360,7 @@ export async function getIssuer(account: IAccount, issuerId: string) {
     headers: {
       Authorization: `Bearer ${account.accessToken}`,
       'Content-Type': 'application/json',
+      'user-agent': account.userAgent,
     },
     url: `${account.baseUrl}/v1/account/${account.accountId}/issuer/${encodeURIComponent(issuerId)}`,
   });
@@ -358,6 +372,7 @@ export async function updateIssuer(account: IAccount, issuerId: string, data: an
     headers: {
       Authorization: `Bearer ${account.accessToken}`,
       'Content-Type': 'application/json',
+      'user-agent': account.userAgent,
     },
     url: `${account.baseUrl}/v1/account/${account.accountId}/issuer/${encodeURIComponent(issuerId)}`,
     data: JSON.stringify(data),
@@ -371,6 +386,7 @@ export async function removeIssuer(account: IAccount, issuerId: string) {
     headers: {
       Authorization: `Bearer ${account.accessToken}`,
       'Content-Type': 'application/json',
+      'user-agent': account.userAgent,
     },
     url: `${account.baseUrl}/v1/account/${account.accountId}/issuer/${encodeURIComponent(issuerId)}`,
   });
@@ -389,6 +405,7 @@ export async function addUser(account: IAccount, data: any) {
     headers: {
       Authorization: `Bearer ${account.accessToken}`,
       'Content-Type': 'application/json',
+      'user-agent': account.userAgent,
     },
     url: `${account.baseUrl}/v1/account/${account.accountId}/user`,
     data: JSON.stringify(data),
@@ -405,6 +422,7 @@ export async function getUser(account: IAccount, userId: string) {
     headers: {
       Authorization: `Bearer ${account.accessToken}`,
       'Content-Type': 'application/json',
+      'user-agent': account.userAgent,
     },
     url: `${account.baseUrl}/v1/account/${account.accountId}/user/${userId}`,
   });
@@ -445,6 +463,7 @@ export async function listUsers(account: IAccount, options?: IListUserOptions) {
     headers: {
       Authorization: `Bearer ${account.accessToken}`,
       'Content-Type': 'application/json',
+      'user-agent': account.userAgent,
     },
     url: `${account.baseUrl}/v1/account/${account.accountId}/user${queryString}`,
   });
@@ -457,6 +476,7 @@ export async function updateUser(account: IAccount, userId: string, data: any) {
     headers: {
       Authorization: `Bearer ${account.accessToken}`,
       'Content-Type': 'application/json',
+      'user-agent': account.userAgent,
     },
     url: `${account.baseUrl}/v1/account/${account.accountId}/user/${userId}`,
     data: JSON.stringify(data),
@@ -470,6 +490,7 @@ export async function removeUser(account: IAccount, userId: string) {
     headers: {
       Authorization: `Bearer ${account.accessToken}`,
       'Content-Type': 'application/json',
+      'user-agent': account.userAgent,
     },
     url: `${account.baseUrl}/v1/account/${account.accountId}/user/${userId}`,
   });
@@ -481,6 +502,7 @@ export async function initUser(account: IAccount, userId: string, init?: IInitOp
     headers: {
       Authorization: `Bearer ${account.accessToken}`,
       'Content-Type': 'application/json',
+      'user-agent': account.userAgent,
     },
     url: `${account.baseUrl}/v1/account/${account.accountId}/user/${userId}/init`,
     data: JSON.stringify(init || {}),
@@ -500,6 +522,7 @@ export async function addClient(account: IAccount, data: any) {
     headers: {
       Authorization: `Bearer ${account.accessToken}`,
       'Content-Type': 'application/json',
+      'user-agent': account.userAgent,
     },
     url: `${account.baseUrl}/v1/account/${account.accountId}/client`,
     data: JSON.stringify(data),
@@ -516,6 +539,7 @@ export async function getClient(account: IAccount, clientId: string) {
     headers: {
       Authorization: `Bearer ${account.accessToken}`,
       'Content-Type': 'application/json',
+      'user-agent': account.userAgent,
     },
     url: `${account.baseUrl}/v1/account/${account.accountId}/client/${clientId}`,
   });
@@ -553,6 +577,7 @@ export async function listClients(account: IAccount, options?: IListClientOption
     headers: {
       Authorization: `Bearer ${account.accessToken}`,
       'Content-Type': 'application/json',
+      'user-agent': account.userAgent,
     },
     url: `${account.baseUrl}/v1/account/${account.accountId}/client${queryString}`,
   });
@@ -565,6 +590,7 @@ export async function updateClient(account: IAccount, clientId: string, data: an
     headers: {
       Authorization: `Bearer ${account.accessToken}`,
       'Content-Type': 'application/json',
+      'user-agent': account.userAgent,
     },
     url: `${account.baseUrl}/v1/account/${account.accountId}/client/${clientId}`,
     data: JSON.stringify(data),
@@ -578,6 +604,7 @@ export async function removeClient(account: IAccount, clientId: string) {
     headers: {
       Authorization: `Bearer ${account.accessToken}`,
       'Content-Type': 'application/json',
+      'user-agent': account.userAgent,
     },
     url: `${account.baseUrl}/v1/account/${account.accountId}/client/${clientId}`,
   });
@@ -589,6 +616,7 @@ export async function initClient(account: IAccount, clientId: string, init?: IIn
     headers: {
       Authorization: `Bearer ${account.accessToken}`,
       'Content-Type': 'application/json',
+      'user-agent': account.userAgent,
     },
     url: `${account.baseUrl}/v1/account/${account.accountId}/client/${clientId}/init`,
     data: JSON.stringify(init || {}),
@@ -603,8 +631,9 @@ export async function cleanUpClients(account: IAccount) {
 }
 
 export async function resolveInit(account: IAccount, jwt: string | undefined, initResolve: IInitResolve) {
-  const headers: { [index: string]: string } = {
+  const headers: { [index: string]: string | undefined } = {
     'Content-Type': 'application/json',
+    'user-agent': account.userAgent,
   };
   if (jwt !== undefined) {
     headers['Authorization'] = `Bearer ${jwt}`;
@@ -653,6 +682,7 @@ export async function listAudit(account: IAccount, options?: IListAuditOptions) 
     headers: {
       Authorization: `Bearer ${account.accessToken}`,
       'Content-Type': 'application/json',
+      'user-agent': account.userAgent,
     },
     url: `${account.baseUrl}/v1/account/${account.accountId}/audit${queryString}`,
   });
@@ -675,6 +705,7 @@ export async function listStorage(account: IAccount, options?: IListStorageOptio
     headers: {
       Authorization: `Bearer ${account.accessToken}`,
       'Content-Type': 'application/json',
+      'user-agent': account.userAgent,
     },
     url: `${account.baseUrl}/v1/account/${account.accountId}/subscription/${
       account.subscriptionId
@@ -689,6 +720,7 @@ export async function getStorage(account: IAccount, storageId: string, storagePa
     headers: {
       Authorization: `Bearer ${account.accessToken}`,
       'Content-Type': 'application/json',
+      'user-agent': account.userAgent,
     },
     url: `${account.baseUrl}/v1/account/${account.accountId}/subscription/${account.subscriptionId}/storage/${storage}`,
   });
@@ -699,6 +731,7 @@ export async function setStorage(account: IAccount, storageId: string, data: any
   const headers: any = {
     Authorization: `Bearer ${account.accessToken}`,
     'Content-Type': 'application/json',
+    'user-agent': account.userAgent,
   };
   if (etag) {
     headers['If-Match'] = etag;
@@ -719,6 +752,7 @@ export async function removeStorage(account: IAccount, storageId: string, etag?:
   const headers: any = {
     Authorization: `Bearer ${account.accessToken}`,
     'Content-Type': 'application/json',
+    'user-agent': account.userAgent,
   };
   if (etag) {
     headers['If-Match'] = etag;

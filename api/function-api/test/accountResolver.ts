@@ -5,6 +5,7 @@ export interface IAccount {
   subscriptionId: string;
   baseUrl: string;
   accessToken: string;
+  userAgent: string;
 }
 
 export const FakeAccount: IAccount = {
@@ -12,6 +13,7 @@ export const FakeAccount: IAccount = {
   subscriptionId: 'NA',
   baseUrl: 'NA',
   accessToken: 'NA',
+  userAgent: 'NA',
 };
 
 export function cloneWithAccessToken(account: IAccount, accessToken: string) {
@@ -20,6 +22,17 @@ export function cloneWithAccessToken(account: IAccount, accessToken: string) {
     subscriptionId: account.subscriptionId,
     baseUrl: account.baseUrl,
     accessToken,
+    userAgent: account.userAgent,
+  };
+}
+
+export function cloneWithUserAgent(account: IAccount, userAgent: string) {
+  return {
+    accountId: account.accountId,
+    subscriptionId: account.subscriptionId,
+    baseUrl: account.baseUrl,
+    accessToken: account.accessToken,
+    userAgent,
   };
 }
 
@@ -30,6 +43,7 @@ export async function getMalformedAccount(): Promise<IAccount> {
     subscriptionId: account.subscriptionId,
     baseUrl: account.baseUrl,
     accessToken: account.accessToken,
+    userAgent: 'fusebit-test',
   };
 }
 
@@ -40,6 +54,7 @@ export async function getNonExistingAccount(): Promise<IAccount> {
     subscriptionId: account.subscriptionId,
     baseUrl: account.baseUrl,
     accessToken: account.accessToken,
+    userAgent: 'fusebit-test',
   };
 }
 
@@ -50,6 +65,7 @@ export async function resolveAccount(): Promise<IAccount> {
       subscriptionId: 'sub-0000000000000000',
       baseUrl: process.env.API_SERVER,
       accessToken: process.env.API_AUTHORIZATION_KEY,
+      userAgent: 'fusebit-test',
     };
   } else if (process.env.FUSE_PROFILE) {
     let profile = await FusebitProfile.create();
@@ -59,6 +75,7 @@ export async function resolveAccount(): Promise<IAccount> {
       subscriptionId: executionProfile.subscription as string,
       baseUrl: executionProfile.baseUrl,
       accessToken: executionProfile.accessToken,
+      userAgent: 'fusebit-test',
     };
   } else {
     let error =

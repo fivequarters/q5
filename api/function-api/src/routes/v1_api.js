@@ -1,11 +1,12 @@
-var express = require('express');
-var router = express.Router();
-var determine_provider = require('./middleware/determine_provider');
-var parse_body_conditional = require('./middleware/parse_body_conditional');
-var provider_handlers = require('./handlers/provider_handlers');
-var validate_schema = require('./middleware/validate_schema');
-var authorize = require('./middleware/authorize');
-var cors = require('cors');
+const express = require('express');
+const router = express.Router();
+const determine_provider = require('./middleware/determine_provider');
+const parse_body_conditional = require('./middleware/parse_body_conditional');
+const provider_handlers = require('./handlers/provider_handlers');
+const validate_schema = require('./middleware/validate_schema');
+const authorize = require('./middleware/authorize');
+const user_agent = require('./middleware/user_agent');
+const cors = require('cors');
 const create_error = require('http-errors');
 const health = require('./handlers/health');
 
@@ -426,6 +427,7 @@ router.get(
     query: require('./schemas/api_query'),
     params: require('./schemas/api_params'),
   }),
+  user_agent(),
   determine_provider(),
   (req, res, next) => provider_handlers[req.provider].list_functions(req, res, next)
 );
@@ -444,6 +446,7 @@ router.get(
   validate_schema({
     params: require('./schemas/api_params'),
   }),
+  user_agent(),
   determine_provider(),
   (req, res, next) => provider_handlers[req.provider].get_function(req, res, next)
 );
@@ -459,6 +462,7 @@ router.put(
     body: require('./schemas/function_specification'),
     params: require('./schemas/api_params'),
   }),
+  user_agent(),
   determine_provider(),
   (req, res, next) => provider_handlers[req.provider].put_function(req, res, next)
 );
@@ -472,6 +476,7 @@ router.delete(
   validate_schema({
     params: require('./schemas/api_params'),
   }),
+  user_agent(),
   determine_provider(),
   (req, res, next) => provider_handlers[req.provider].delete_function(req, res, next)
 );
@@ -491,6 +496,7 @@ router.get(
   validate_schema({
     params: require('./schemas/api_params'),
   }),
+  user_agent(),
   determine_provider(),
   (req, res, next) => provider_handlers[req.provider].get_logs(req, res, next)
 );
@@ -506,6 +512,7 @@ router.get(
   authorize({
     operation: 'function:get',
   }),
+  user_agent(),
   validate_schema({
     params: require('./schemas/api_params'),
   }),
@@ -527,6 +534,7 @@ router.get(
   validate_schema({
     params: require('./schemas/api_params'),
   }),
+  user_agent(),
   determine_provider(),
   (req, res, next) => provider_handlers[req.provider].get_function_build(req, res, next)
 );

@@ -68,7 +68,7 @@ function getHttpResponse(axiosResponse: any, parseJson: boolean = true, validSta
 export interface IHttpRequest {
   method?: string;
   url: string;
-  headers?: { [index: string]: string };
+  headers?: { [index: string]: string | undefined };
   query?: { [index: string]: string | number | boolean | null | undefined };
   data?: any;
   parseJson?: boolean;

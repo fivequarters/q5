@@ -93,15 +93,8 @@ export function update(previousSeralized: string, current: StructuredKeyValues) 
       : { values: parse(current.serialized), serialized: current.serialized };
   }
 
-  if (current.serialized !== undefined && current.serialized !== previousSeralized) {
-    const currentValues = parse(current.serialized);
-    if (isEqual(currentValues, current.values)) {
-      return current;
-    }
-    if (!isEqual(parse(previousSeralized), current.values)) {
-      throw KeyValueException.serializedAndValuesUpdated(Object.keys(current.values));
-    }
-    return { values: currentValues, serialized: current.serialized };
+  if (current.serialized !== undefined) {
+    previousSeralized = current.serialized;
   }
 
   const previousParsed = parseWithMap(previousSeralized);
