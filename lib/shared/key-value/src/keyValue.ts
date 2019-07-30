@@ -73,9 +73,13 @@ export function serialize(keyValues: KeyValues) {
   return data;
 }
 
-export function parse(data: string) {
-  const parsed = parseWithMap(data);
-  return parsed.keyValues;
+export function parse(data: string | undefined) {
+  let keyValues = {};
+  if (data !== undefined) {
+    const parsed = parseWithMap(data);
+    keyValues = parsed.keyValues;
+  }
+  return keyValues;
 }
 
 export function isEqual(keyValues1: KeyValues, keyValues2: KeyValues) {
@@ -83,22 +87,14 @@ export function isEqual(keyValues1: KeyValues, keyValues2: KeyValues) {
 }
 
 export function update(previousSeralized: string, current: StructuredKeyValues) {
-  if (!current.values) {
-    const serialized = current.serialized !== undefined ? current.serialized : previousSeralized;
-    return { values: parse(serialized), serialized };
+  if (current.values === undefined) {
+    return current.serialized === undefined
+      ? { values: {}, serialized: '' }
+      : { values: parse(current.serialized), serialized: current.serialized };
   }
 
   if (current.serialized !== undefined) {
-    if (current.serialized !== previousSeralized) {
-      const currentValues = parse(current.serialized);
-      if (isEqual(currentValues, current.values)) {
-        return current;
-      }
-      if (!isEqual(parse(previousSeralized), current.values)) {
-        throw KeyValueException.serializedAndValuesUpdated(Object.keys(current.values));
-      }
-      return { values: currentValues, serialized: current.serialized };
-    }
+    previousSeralized = current.serialized;
   }
 
   const previousParsed = parseWithMap(previousSeralized);

@@ -1,6 +1,6 @@
 {
   "name": "@5qtrs/fusebit-cli",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "",
   "main": "libc/index.js",
   "bin": {
@@ -35,7 +35,6 @@
     "@5qtrs/base64": "^0.0.1",
     "@5qtrs/jwt": "^0.0.1",
     "@5qtrs/fusebit-profile-sdk": "^0.0.1",
-    "@5qtrs/key-value": "^0.0.1",
     "@5qtrs/event-stream": "^0.0.1"
   },
   "devDependencies": {

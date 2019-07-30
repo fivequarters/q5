@@ -12,6 +12,9 @@ module.exports = Joi.object().keys({
     .valid(['lambda'])
     .default('lambda'),
   configuration: Joi.object().pattern(/\w+/, Joi.string()),
+  configurationSerialized: Joi.string()
+    .allow('')
+    .optional(),
   nodejs: Joi.object().keys({
     files: Joi.object()
       .keys({
@@ -46,9 +49,15 @@ module.exports = Joi.object().keys({
       .max(120),
     staticIp: Joi.boolean(),
   }),
+  computeSerialized: Joi.string()
+    .allow('')
+    .optional(),
   schedule: Joi.object().keys({
-    cron: Joi.string().required(),
+    cron: Joi.string(),
     timezone: Joi.string(),
   }),
+  scheduleSerialized: Joi.string()
+    .allow('')
+    .optional(),
   metadata: Joi.object(),
 });

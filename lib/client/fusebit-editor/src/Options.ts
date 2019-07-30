@@ -18,8 +18,8 @@
  *    navigationPanel: {
  *      hideCode: false,
  *      hideFiles: [],
- *      hideApplicationSettings: false,
- *      hideCronSettings: false,
+ *      hideConfigurationSettings: false,
+ *      hideScheduleSettings: false,
  *      hideRunnerTool: false,
  *    },
  *    statusPanel: {},
@@ -202,13 +202,13 @@ export interface INavigationPanelOptions {
    */
   hideComputeSettings?: boolean;
   /**
-   * Hides the Application Settings node.
+   * Hides the Configuration Settings node.
    */
-  hideApplicationSettings?: boolean;
+  hideConfigurationSettings?: boolean;
   /**
    * Hides the Scheduler settings node.
    */
-  hideCronSettings?: boolean;
+  hideScheduleSettings?: boolean;
   /**
    * Hides the Runner node.
    */
@@ -228,8 +228,8 @@ export class NavigationPanelOptions implements INavigationPanelOptions {
    * @ignore
    */
   public hideComputeSettings = true; // hide Compute settings by default
-  public hideApplicationSettings = false;
-  public hideCronSettings = false;
+  public hideConfigurationSettings = false;
+  public hideScheduleSettings = false;
   public hideRunnerTool = false;
   constructor() {
     // do nothing

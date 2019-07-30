@@ -41,6 +41,26 @@ describe('update', () => {
     expect(updated.values).toEqual({ key1: 'value1', key2: 'value2-updated' });
   });
 
+  it('should properly update when the serialized property is updated and values and previous is undefined', () => {
+    const previous = '';
+    const current = {
+      serialized: 'key1=value1\n#comment\nkey2=value2-updated\n#another comment',
+    };
+    const updated = update(previous, current);
+    expect(updated.serialized).toBe(current.serialized);
+    expect(updated.values).toEqual({ key1: 'value1', key2: 'value2-updated' });
+  });
+
+  it('should properly update when the serialized property is unchanged and values is undefined', () => {
+    const previous = 'key1=value1\n#comment\nkey2=value2-updated\n#another comment';
+    const current = {
+      serialized: 'key1=value1\n#comment\nkey2=value2-updated\n#another comment',
+    };
+    const updated = update(previous, current);
+    expect(updated.serialized).toBe(current.serialized);
+    expect(updated.values).toEqual({ key1: 'value1', key2: 'value2-updated' });
+  });
+
   it('should properly update when the value property is updated and serialized is undefined', () => {
     const previous = 'key1=value1\n#comment\nkey2=value2';
     const current = {
@@ -49,17 +69,6 @@ describe('update', () => {
     const updated = update(previous, current);
     expect(updated.serialized).toBe('key1=value1\n#comment\nkey2=value2-updated');
     expect(updated.values).toEqual(current.values);
-  });
-
-  it('should properly update when the serialized property is updated and values is unchanged', () => {
-    const previous = 'key1=value1\n#comment\nkey2=value2';
-    const current = {
-      values: { key1: 'value1', key2: 'value2' },
-      serialized: 'key1=value1\n#comment\nkey2=value2-updated\n#another comment',
-    };
-    const updated = update(previous, current);
-    expect(updated.serialized).toBe(current.serialized);
-    expect(updated.values).toEqual({ key1: 'value1', key2: 'value2-updated' });
   });
 
   it('should properly update when the value property is updated and serialized is unchanged', () => {
@@ -73,17 +82,6 @@ describe('update', () => {
     expect(updated.values).toEqual(current.values);
   });
 
-  it('should properly update when the serialized property removes a key', () => {
-    const previous = 'key1=value1\n#comment\nkey2=value2';
-    const current = {
-      values: { key1: 'value1', key2: 'value2' },
-      serialized: 'key1=value1\n#comment has changed',
-    };
-    const updated = update(previous, current);
-    expect(updated.serialized).toBe(current.serialized);
-    expect(updated.values).toEqual({ key1: 'value1' });
-  });
-
   it('should properly update when the values property removes a key', () => {
     const previous = 'key1=value1\n#comment\nkey2=value2';
     const current = {
@@ -95,17 +93,6 @@ describe('update', () => {
     expect(updated.values).toEqual({ key1: 'value1' });
   });
 
-  it('should properly update when the serialized property adds a key', () => {
-    const previous = 'key1=value1\n#comment\nkey2=value2';
-    const current = {
-      values: { key1: 'value1', key2: 'value2' },
-      serialized: 'key1=value1\n#comment has changed\nkey2=value2\n\n\n# comment again\nkey3 = value3',
-    };
-    const updated = update(previous, current);
-    expect(updated.serialized).toBe(current.serialized);
-    expect(updated.values).toEqual({ key1: 'value1', key2: 'value2', key3: 'value3' });
-  });
-
   it('should properly update when the values property adds a key', () => {
     const previous = 'key1=value1\n#comment\nkey2=value2';
     const current = {
@@ -115,17 +102,6 @@ describe('update', () => {
     const updated = update(previous, current);
     expect(updated.serialized).toBe('key1=value1\n#comment\nkey2=value2\nkey3=value3');
     expect(updated.values).toEqual({ key1: 'value1', key2: 'value2', key3: 'value3' });
-  });
-
-  it('should properly update when the serialized property replaces a key', () => {
-    const previous = 'key1=value1\n#comment\nkey2=value2';
-    const current = {
-      values: { key1: 'value1', key2: 'value2' },
-      serialized: 'key1=value1\n#comment has changed\nkey3=value3\n\n\n# comment again\n',
-    };
-    const updated = update(previous, current);
-    expect(updated.serialized).toBe(current.serialized);
-    expect(updated.values).toEqual({ key1: 'value1', key3: 'value3' });
   });
 
   it('should properly update when the values property replaces a key', () => {
@@ -159,6 +135,17 @@ describe('update', () => {
     const updated = update(previous, current);
     expect(updated.serialized).toBe('key1=value1\n#comment\nkey2=');
     expect(updated.values).toEqual({ key1: 'value1', key2: '' });
+  });
+
+  it('should properly treat serialized property as previous', () => {
+    const previous = 'key1=value1\n#comment\nkey2=value2';
+    const current = {
+      values: { key1: 'value1', key2: 'value2' },
+      serialized: 'key1=value1\n#comment has changed\nkey2=value2\n\n\n# comment again\nkey3 = value3',
+    };
+    const updated = update(previous, current);
+    expect(updated.serialized).toBe('key1=value1\n#comment has changed\nkey2=value2\n\n\n# comment again');
+    expect(updated.values).toEqual({ key1: 'value1', key2: 'value2' });
   });
 
   it('should properly handle empty strings and undefined values', () => {
@@ -228,7 +215,7 @@ describe('update', () => {
     expect(updated.values).toEqual(current.values);
   });
 
-  it('should properly clear all values if serialized is an empty string', () => {
+  it('should properly recreate serialized if an empty string', () => {
     const previous = 'memorySize=128\ntimeout=30\nstaticIp=false';
     const current = {
       values: {
@@ -240,11 +227,23 @@ describe('update', () => {
     };
 
     const updated = update(previous, current);
-    expect(updated.serialized).toBe('');
+    expect(updated.serialized).toBe(previous);
+    expect(updated.values).toEqual(current.values);
+  });
+
+  it('should properly handle serialized without any values', () => {
+    const previous = '';
+    const current = {
+      values: undefined,
+      serialized: '# this is just a comment',
+    };
+
+    const updated = update(previous, current);
+    expect(updated.serialized).toBe(current.serialized);
     expect(updated.values).toEqual({});
   });
 
-  it('should properly clear serialized is values is an empty object', () => {
+  it('should properly clear serialized if values is an empty object', () => {
     const previous = 'memorySize=128\ntimeout=30\nstaticIp=false';
     const current = {
       values: {},
@@ -256,7 +255,7 @@ describe('update', () => {
     expect(updated.values).toEqual({});
   });
 
-  it('should ignore serialized is if it undefined', () => {
+  it('should ignore serialized if it undefined', () => {
     const previous = 'memorySize=128\ntimeout=30\nstaticIp=false';
     const current = {
       values: {
@@ -296,20 +295,27 @@ describe('update', () => {
     expect(updated.values).toEqual({});
   });
 
-  it('should throw an exception if both the values and serialized have changed', () => {
+  it('should return empty values if all inputs are undefined regardless of previous value', () => {
+    const previous = 'key1=value1';
+    const current = {
+      values: undefined,
+      serialized: undefined,
+    };
+
+    const updated = update(previous, current);
+    expect(updated.serialized).toBe('');
+    expect(updated.values).toEqual({});
+  });
+
+  it('should treat serialized as previous if both the values and serialized have changed', () => {
     const previous = 'key1=value1\n#comment\nkey2=value2';
     const current = {
       values: { key1: 'value1', key2: 'value2-updated-a' },
-      serialized: 'key1=value1\n#comment\nkey2=value2-updated-b',
+      serialized: 'key1=value1\n#comment\nkey2=value2-updated-b\n # new comment',
     };
 
-    let error;
-    try {
-      update(previous, current);
-    } catch (err) {
-      error = err;
-    }
-    expect(error).toBeDefined();
-    expect(error.code).toBe(KeyValueExceptionCode.serializedAndValuesUpdated);
+    const updated = update(previous, current);
+    expect(updated.serialized).toBe('key1=value1\n#comment\nkey2=value2-updated-a\n # new comment');
+    expect(updated.values).toEqual({ key1: 'value1', key2: 'value2-updated-a' });
   });
 });

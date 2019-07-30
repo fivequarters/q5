@@ -56,8 +56,8 @@ export function createNavigationPanel(
   }
   if (
     !effectiveOptions.hideComputeSettings ||
-    !effectiveOptions.hideApplicationSettings ||
-    !effectiveOptions.hideCronSettings ||
+    !effectiveOptions.hideConfigurationSettings ||
+    !effectiveOptions.hideScheduleSettings ||
     !effectiveOptions.hideRunnerTool
   ) {
     html.push(`<div class="fusebit-nav-category">Settings</div>`);
@@ -69,17 +69,17 @@ export function createNavigationPanel(
         `</div>`
       );
     }
-    if (!effectiveOptions.hideApplicationSettings) {
+    if (!effectiveOptions.hideConfigurationSettings) {
       html.push(
-        `<div class="fusebit-nav-item" data-type="applicationSettings">`,
+        `<div class="fusebit-nav-item" data-type="configurationSettings">`,
         `<span class="fusebit-nav-icon"><i class="fa fa-cogs"></i></span>`,
-        `<span class="fusebit-compute-file">Application</span>`,
+        `<span class="fusebit-compute-file">Configuration</span>`,
         `</div>`
       );
     }
-    if (!effectiveOptions.hideCronSettings) {
+    if (!effectiveOptions.hideScheduleSettings) {
       html.push(
-        `<div class="fusebit-nav-item" data-type="cronSettings">`,
+        `<div class="fusebit-nav-item" data-type="scheduleSettings">`,
         `<span class="fusebit-nav-icon"><i class="fa fa-clock"></i></span>`,
         `<span class="fusebit-compute-file">Schedule</span>`,
         `</div>`
@@ -294,14 +294,14 @@ export function createNavigationPanel(
       case 'computeSettings':
         editorContext.selectSettingsCompute();
         break;
-      case 'applicationSettings':
-        editorContext.selectSettingsApplication();
+      case 'configurationSettings':
+        editorContext.selectSettingsConfiguration();
         break;
       case 'runnerSettings':
         editorContext.selectToolsRunner();
         break;
-      case 'cronSettings':
-        editorContext.selectSettingsCron();
+      case 'scheduleSettings':
+        editorContext.selectSettingsSchedule();
         break;
     }
   }

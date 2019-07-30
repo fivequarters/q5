@@ -119,33 +119,33 @@ export function createEditorPanel(element: HTMLElement, editorContext: EditorCon
     element.style.display = null;
   });
 
-  // When application settings are selected, serialize them and display as INI for editing
-  editorContext.on(Events.SettingsApplicationSelected, () => {
+  // When configuration settings are selected, serialize them and display as INI for editing
+  editorContext.on(Events.SettingsConfigurationSelected, () => {
     captureViewState();
     suppressNextChangeEvent = true;
-    activeCategory = Events.SettingsApplicationSelected;
-    editor.setValue(editorContext.getApplicationSettings());
+    activeCategory = Events.SettingsConfigurationSelected;
+    editor.setValue(editorContext.getConfigurationSettings());
     const model = editor.getModel();
     if (model) {
       Monaco.editor.setModelLanguage(model, 'ini');
     } else {
-      Assert.fail('Model cannot be determined for app settings node.');
+      Assert.fail('Model cannot be determined for Configuration settings node.');
     }
     restoreViewState(activeCategory);
     element.style.display = null;
   });
 
-  // When cron settings are selected, serialize them and display as INI for editing
-  editorContext.on(Events.SettingsCronSelected, () => {
+  // When schedule settings are selected, serialize them and display as INI for editing
+  editorContext.on(Events.SettingsScheduleSelected, () => {
     captureViewState();
     suppressNextChangeEvent = true;
-    activeCategory = Events.SettingsCronSelected;
-    editor.setValue(editorContext.getCronSettings());
+    activeCategory = Events.SettingsScheduleSelected;
+    editor.setValue(editorContext.getScheduleSettings());
     const model = editor.getModel();
     if (model) {
       Monaco.editor.setModelLanguage(model, 'ini');
     } else {
-      Assert.fail('Model cannot be determined for CRON settings node.');
+      Assert.fail('Model cannot be determined for Schedule settings node.');
     }
     restoreViewState(activeCategory);
     element.style.display = null;
@@ -163,12 +163,12 @@ export function createEditorPanel(element: HTMLElement, editorContext: EditorCon
         case Events.SettingsComputeSelected:
           editorContext.setSettingsCompute(editor.getValue());
           break;
-        case Events.SettingsApplicationSelected:
-          editorContext.setSettingsApplication(editor.getValue());
-          updateFusebitContextTypings(editorContext.functionSpecification.configuration || {});
+        case Events.SettingsConfigurationSelected:
+          editorContext.setSettingsConfiguration(editor.getValue());
+          updateFusebitContextTypings(editorContext.getConfiguration());
           break;
-        case Events.SettingsCronSelected:
-          editorContext.setSettingsCron(editor.getValue());
+        case Events.SettingsScheduleSelected:
+          editorContext.setSettingsSchedule(editor.getValue());
           break;
       }
     } else {
@@ -177,7 +177,7 @@ export function createEditorPanel(element: HTMLElement, editorContext: EditorCon
   });
 
   addStaticTypings();
-  updateFusebitContextTypings(editorContext.functionSpecification.configuration || {});
+  updateFusebitContextTypings(editorContext.getConfiguration());
   let packageJson: any = editorContext.getPackageJson();
   updateNodejsTypings(editorContext.getNodeVersion(packageJson));
   updateDependencyTypings(editorContext.getDependencies(packageJson));

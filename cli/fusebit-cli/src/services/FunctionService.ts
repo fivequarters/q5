@@ -1,7 +1,6 @@
 import { join } from 'path';
 import { createServer } from 'http';
 import open from 'open';
-import { parse, serialize } from '@5qtrs/key-value';
 import { EventStream, IEventMessage } from '@5qtrs/event-stream';
 import { readFile, readDirectory, exists, copyDirectory, writeFile } from '@5qtrs/file';
 import { IFusebitExecutionProfile } from '@5qtrs/fusebit-profile-sdk';
@@ -18,7 +17,6 @@ import { VersionService } from './VersionService';
 const envFileName = '.env';
 const cronOffRegex = /^off$/i;
 const fromFusebitJson = Text.dim(' (from fusebit.json)');
-const fromEnvFile = Text.dim(` (from ${envFileName})`);
 const notSet = Text.dim(Text.italic('<not set>'));
 const hiddenValue = '****';
 
@@ -125,35 +123,22 @@ export class FunctionService {
   }
 
   public async getFunctionSpec(path: string, cron?: string, timezone?: string): Promise<any> {
-    const functionSpec: any = { nodejs: { files: {} }, lambda: { memorySize: 128, timeout: 30 } };
+    const functionSpec: any = { nodejs: { files: {} } };
     const fusebitJson = (await this.getFusebitJson(path)) || {};
 
-    if (fusebitJson.metadata) {
-      functionSpec.metadata = fusebitJson.metadata;
-    }
-    functionSpec.metadata = functionSpec.metadata || {};
-    functionSpec.metadata.fusebit = functionSpec.metadata.fusebit || {};
+    functionSpec.metadata = fusebitJson.metadata;
 
-    // lambda & computeSettings
-    if (fusebitJson.lambda || fusebitJson.compute) {
-      functionSpec.compute = fusebitJson.compute || fusebitJson.lambda;
-      if (functionSpec.metadata && functionSpec.metadata.fusebit) {
-        delete functionSpec.metadata.fusebit.computeSettings;
-      }
-    }
+    functionSpec.compute = fusebitJson.compute || fusebitJson.lambda;
+    functionSpec.computeSerialized = fusebitJson.computeSerialized;
 
-    // schedule and cronSettings
+    // schedule and scheduleSerialized
     const cronDisabled = cronOffRegex.test(cron || '');
     if (cronDisabled) {
-      delete functionSpec.metadata.cronSettings;
-      delete functionSpec.metadata.fusebit.cronSettings;
+      functionSpec.schedule = {};
     } else {
       if (cron) {
         functionSpec.schedule = { cron };
-        if (timezone) {
-          functionSpec.schedule.timezone = timezone;
-          functionSpec.metadata.fusebit.cronSettings = serialize(functionSpec.schedule);
-        }
+        functionSpec.schedule.timezone = timezone;
       } else if (timezone) {
         await this.executeService.error(
           'Invalid Option',
@@ -163,12 +148,13 @@ export class FunctionService {
             "' options can only be set for functions with with cron enabled."
           )
         );
-      } else if (fusebitJson.schedule && fusebitJson.schedule.cron) {
+      } else {
         functionSpec.schedule = fusebitJson.schedule;
       }
     }
+    functionSpec.scheduleSerialized = fusebitJson.scheduleSerialized;
 
-    // nodejs files & configuration & applicationSettings
+    // nodejs files & configuration & configurationSerialized
     const files = await readDirectory(path, { filesOnly: true, joinPaths: false, recursive: false });
     for (const file of files) {
       if (file !== '.gitignore' && file !== 'fusebit.json') {
@@ -176,10 +162,7 @@ export class FunctionService {
         const contentString = content ? content.toString() : undefined;
         if (contentString) {
           if (file === envFileName) {
-            functionSpec.configuration = parse(contentString);
-            functionSpec.metadata = functionSpec.metadata || {};
-            functionSpec.metadata.fusebit = functionSpec.metadata.fusebit || {};
-            functionSpec.metadata.fusebit.applicationSettings = contentString;
+            functionSpec.configurationSerialized = contentString;
           } else {
             functionSpec.nodejs.files[file] = contentString;
           }
@@ -196,6 +179,20 @@ export class FunctionService {
           "' file. Make sure it exists in the source directory."
         )
       );
+    }
+
+    if (functionSpec.metadata && functionSpec.metadata.fusebit) {
+      if (!functionSpec.computeSerialized) {
+        functionSpec.computeSerialized = functionSpec.metadata.fusebit.computeSettings;
+      }
+      delete functionSpec.metadata.fusebit.computeSettings;
+
+      if (!functionSpec.scheduleSerialized) {
+        functionSpec.scheduleSerialized = functionSpec.metadata.fusebit.cronSettings;
+      }
+
+      delete functionSpec.metadata.fusebit.cronSettings;
+      delete functionSpec.metadata.fusebit.applicationSettings;
     }
 
     return functionSpec;
@@ -216,40 +213,12 @@ export class FunctionService {
     const fusebitJson = (await this.getFusebitJson(path)) || {};
 
     fusebitJson.fuseVersion = version;
-
-    // metadata
-    if (functionSpec.metadata) {
-      fusebitJson.metadata = functionSpec.metadata;
-    }
-
-    fusebitJson.metadata = functionSpec.metadata || {};
-    fusebitJson.metadata.fusebit = fusebitJson.metadata.fusebit || {};
-
-    // location
-    if (functionSpec.location) {
-      fusebitJson.location = functionSpec.location;
-    }
-
-    // compute settings
-    if (functionSpec.compute) {
-      fusebitJson.compute = functionSpec.compute;
-      if (fusebitJson.metadata && fusebitJson.metadata.fusebit) {
-        delete fusebitJson.metadata.fusebit.computeSettings;
-      }
-    }
-
-    // no application settings
-    delete fusebitJson.metadata.applicationSettings;
-    delete fusebitJson.metadata.fusebit.applicationSettings;
-
-    // schedule & cronSettings
-    if (!functionSpec.schedule) {
-      delete fusebitJson.schedule;
-      delete fusebitJson.metadata.cronSettings;
-      delete fusebitJson.metadata.fusebit.cronSettings;
-    } else {
-      fusebitJson.schedule = functionSpec.schedule;
-    }
+    fusebitJson.metadata = functionSpec.metadata;
+    fusebitJson.location = functionSpec.location;
+    fusebitJson.compute = functionSpec.compute;
+    fusebitJson.computeSerialized = functionSpec.computeSerialized;
+    fusebitJson.schedule = functionSpec.schedule;
+    fusebitJson.scheduleSerialized = functionSpec.scheduleSerialized;
 
     try {
       await writeFile(join(path, 'fusebit.json'), JSON.stringify(fusebitJson, null, 2));
@@ -274,15 +243,9 @@ export class FunctionService {
         }
       }
 
-      if (functionSpec.metadata && functionSpec.metadata.fusebit && functionSpec.metadata.fusebit.applicationSettings) {
-        await writeFile(join(path, envFileName), functionSpec.metadata.fusebit.applicationSettings);
+      if (functionSpec.configurationSerialized) {
+        await writeFile(join(path, envFileName), functionSpec.configurationSerialized);
         files.push(envFileName);
-      } else if (functionSpec.configuration) {
-        const content = serialize(functionSpec.configuration);
-        if (content) {
-          await writeFile(join(path, envFileName), content);
-          files.push(envFileName);
-        }
       }
     }
 
@@ -389,7 +352,7 @@ export class FunctionService {
         method: 'GET',
         url: [
           `${profile.baseUrl}/v1/account/${profile.account}/subscription/`,
-          `${profile.subscription}/boundary/${profile.boundary}/function/${profile.function}`,
+          `${profile.subscription}/boundary/${profile.boundary}/function/${profile.function}?include=all`,
         ].join(''),
         headers: { Authorization: `bearer ${profile.accessToken}` },
       }
@@ -899,14 +862,9 @@ export class FunctionService {
   }
 
   public async displayFunction(functionSpec: any, showSettings: boolean = false) {
-    let applicationSettings = functionSpec.configuration ? functionSpec.configuration : undefined;
-    if (functionSpec.metadata && functionSpec.metadata.fusebit && functionSpec.metadata.fusebit.applicationSettings) {
-      applicationSettings = parse(functionSpec.metadata.fusebit.applicationSettings);
-    }
-
-    if (applicationSettings && !showSettings) {
-      for (const key of Object.keys(applicationSettings)) {
-        applicationSettings[key] = hiddenValue;
+    if (functionSpec.configuration && !showSettings) {
+      for (const key of Object.keys(functionSpec.configuration)) {
+        functionSpec.configuration[key] = hiddenValue;
       }
     }
 
@@ -916,7 +874,7 @@ export class FunctionService {
       subscriptionId: functionSpec.subscriptionId,
       boundaryId: functionSpec.boundaryId,
       files: functionSpec.nodejs && functionSpec.nodejs.files ? Object.keys(functionSpec.nodejs.files) : [],
-      applicationSettings,
+      configuration: functionSpec.configuration,
       location: functionSpec.location,
     };
 
@@ -941,14 +899,14 @@ export class FunctionService {
         Text.create(functionData.files.map(file => Text.create(Text.eol(), Text.dim('• '), file))),
       ];
 
-      if (applicationSettings) {
-        const keys = Object.keys(functionData.applicationSettings);
+      if (functionData.configuration) {
+        const keys = Object.keys(functionData.configuration);
         if (keys && keys.length) {
           details.push(Text.eol());
           details.push(Text.eol());
-          details.push(Text.dim('Application Settings'));
+          details.push(Text.dim('Configuration'));
           for (const key of keys) {
-            const value = functionData.applicationSettings[key];
+            const value = functionData.configuration[key];
             details.push(Text.eol());
             details.push(Text.dim('• '));
             details.push(`${key} = `);
@@ -968,8 +926,6 @@ export class FunctionService {
   }
 
   private async getConfirmDeployDetails(profile: IFusebitExecutionProfile, functionSpec: any, cron?: string) {
-    const appSettings = Object.keys(functionSpec.configuration || {}).join(' ');
-
     const scheduleSource = cron ? Text.empty() : fromFusebitJson;
     let schedule = notSet;
     if (functionSpec.schedule && functionSpec.schedule.cron) {
@@ -983,7 +939,7 @@ export class FunctionService {
       { name: 'Boundary', value: profile.boundary || '' },
       { name: 'Function', value: profile.function || '' },
       { name: 'Files', value: Object.keys(functionSpec.nodejs.files).join(' ') },
-      { name: 'Application Settings', value: appSettings ? Text.create(appSettings, fromEnvFile) : notSet },
+      { name: 'Configuration', value: functionSpec.configurationSerialized ? `<set via ${envFileName}>` : notSet },
       { name: 'Schedule', value: schedule },
     ];
 

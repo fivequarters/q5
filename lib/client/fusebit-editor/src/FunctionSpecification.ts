@@ -1,14 +1,4 @@
 /**
- * Set of key value pairs that define application settings of the function.
- * Application settings are stored encrypted at rest and only
- * made available to the function at the time of execution. Good storage place for API keys, connections strings, and other
- * sensitive information.
- */
-export interface IApplicationSettings {
-  [property: string]: string | number;
-}
-
-/**
  * List of files making up the Node.js function. Each key represents the file name, and the value content of the file.
  * The value may be a string or a JavaScript object which will be JSON-serialized to arrive at the file content.
  *
@@ -27,23 +17,6 @@ export interface INodejsSettings {
    * Files making up the Node.js function.
    */
   files: INodejsFileSettings;
-}
-
-/**
- * Not part of MVP
- * @ignore
- */
-export interface ILambdaSettings {
-  [property: string]: string | number;
-}
-
-/**
- * Cron job schedule
- */
-export interface ISchedule {
-  cron: string;
-  timezone?: string;
-  [property: string]: string | number | undefined;
 }
 
 /**
@@ -67,16 +40,14 @@ export interface ISchedule {
  */
 export interface IFunctionSpecification {
   /**
-   * Application settings of the function. Application settings are key value pairs stored encrypted at rest and only
-   * made available to the function at the time of execution. Good storage place for API keys, connections strings, and other
-   * sensitive information.
+   * A serialized version of the configuration that can include comments (lines starting with '#') and key values in the form of {key}={value}
    */
-  configuration?: IApplicationSettings;
+  configurationSerialized?: string;
   /**
    * Not part of MVP
    * @ignore
    */
-  lambda?: ILambdaSettings;
+  computeSerialized?: string;
   /**
    * Node.js source code of the function.
    */
@@ -88,7 +59,7 @@ export interface IFunctionSpecification {
    */
   metadata?: { [property: string]: any };
   /**
-   * If the function is a CRON job, this property defines the execution schedule. If absent, the function is not a CRON job.
+   * A serialized version of the schedule that can include comments (lines starting with '#') and key values in the form of {key}={value}
    */
-  schedule?: ISchedule;
+  scheduleSerialized?: string;
 }

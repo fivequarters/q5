@@ -203,7 +203,7 @@ export class Server {
         this.account = this._normalizeAccount(newAccount);
         const url = `${this.account.baseUrl}v1/account/${this.account.accountId}/subscription/${
           this.account.subscriptionId
-        }/boundary/${boundaryId}/function/${id}`;
+        }/boundary/${boundaryId}/function/${id}?include=all`;
         return Superagent.get(url)
           .set('Authorization', `Bearer ${this.account.accessToken}`)
           .set('x-user-agent', userAgent)
@@ -336,17 +336,12 @@ export class Server {
         let params: any = {
           environment: 'nodejs',
           provider: 'lambda',
-          configuration: editorContext.functionSpecification.configuration,
-          lambda: editorContext.functionSpecification.lambda,
+          configurationSerialized: editorContext.functionSpecification.configurationSerialized,
+          computeSerialized: editorContext.functionSpecification.computeSerialized,
+          scheduleSerialized: editorContext.functionSpecification.scheduleSerialized,
           nodejs: editorContext.functionSpecification.nodejs,
           metadata: editorContext.functionSpecification.metadata,
         };
-        if (
-          editorContext.functionSpecification.schedule &&
-          Object.keys(editorContext.functionSpecification.schedule).length > 0
-        ) {
-          params.schedule = editorContext.functionSpecification.schedule;
-        }
         return Superagent.put(url)
           .set('Authorization', `Bearer ${this.account.accessToken}`)
           .set('x-user-agent', userAgent)
@@ -411,7 +406,7 @@ export class Server {
 
         const runnerPromise = runnerFactory({
           url,
-          configuration: editorContext.functionSpecification.configuration,
+          configuration: editorContext.getConfiguration(),
         });
 
         return runnerPromise;
