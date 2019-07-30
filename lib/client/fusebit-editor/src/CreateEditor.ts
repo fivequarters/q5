@@ -81,18 +81,19 @@ export function createEditor(
     if (opts.navigationPanel !== false) {
       lines.push(`<div class="fusebit-nav-container" id="${navId}"></div>`);
     }
-    if (opts.navigationPanel !== false && opts.editorPanel !== false) {
+    if (opts.navigationPanel !== false && (opts.editorPanel !== false || opts.logsPanel !== false)) {
       lines.push(`<div class="fusebit-nav-splitter" id="${navSplitterId}"></div>`);
     }
-    if (opts.editorPanel !== false) {
+    if (opts.editorPanel !== false || opts.logsPanel !== false) {
       lines.push(`<div class="fusebit-nav-editor-container" id="${navEditorContainerId}">`);
-
-      lines.push(`<div class="fusebit-editor-container" id="${editorId}"></div>`);
+      if (opts.editorPanel !== false) {
+        lines.push(`<div class="fusebit-editor-container" id="${editorId}"></div>`);
+      }
+      if (opts.editorPanel !== false && opts.logsPanel !== false) {
+        lines.push(`<div class="fusebit-logs-splitter" id="${logsSplitterId}"></div>`);
+      }
       if (opts.logsPanel !== false) {
-        lines.push(
-          `<div class="fusebit-logs-splitter" id="${logsSplitterId}"></div>`,
-          `<div class="fusebit-logs-container" id="${logsId}"></div>`
-        );
+        lines.push(`<div class="fusebit-logs-container" id="${logsId}"></div>`);
       }
       lines.push('</div>');
     }
@@ -112,7 +113,7 @@ export function createEditor(
     const logsSplitterElement = document.getElementById(logsSplitterId) as HTMLElement;
     const navSplitterElement = document.getElementById(navSplitterId) as HTMLElement;
 
-    if (opts.navigationPanel !== false) {
+    if (navSplitterElement) {
       // Keep editorMinWidth in sync with min-width of .fusebit-editor-container class
       const editorMinWidth = 100;
       resizable(navElement, navSplitterElement, {
@@ -126,7 +127,7 @@ export function createEditor(
         },
       });
     }
-    if (opts.logsPanel !== false) {
+    if (logsSplitterElement) {
       // Keep navEditorMinHeight in sync with min-height of .fusebit-nav-editor-container class
       const navEditorMinHeight = 100;
       resizable(logsElement, logsSplitterElement, {
@@ -194,20 +195,28 @@ export function createEditor(
     editorContext.on(Events.Events.LogsStateChanged, (e: Events.LogsStateChangedEvent) => {
       if (e.newState) {
         logsElement.style.display = null;
-        logsSplitterElement.style.display = null;
+        if (logsSplitterElement) {
+          logsSplitterElement.style.display = null;
+        }
       } else {
         logsElement.style.display = 'none';
-        logsSplitterElement.style.display = 'none';
+        if (logsSplitterElement) {
+          logsSplitterElement.style.display = 'none';
+        }
       }
     });
 
     editorContext.on(Events.Events.NavStateChanged, (e: Events.NavStateChangedEvent) => {
       if (e.newState) {
         navElement.style.display = null;
-        navSplitterElement.style.display = null;
+        if (navSplitterElement) {
+          navSplitterElement.style.display = null;
+        }
       } else {
         navElement.style.display = 'none';
-        navSplitterElement.style.display = 'none';
+        if (navSplitterElement) {
+          navSplitterElement.style.display = 'none';
+        }
       }
     });
 

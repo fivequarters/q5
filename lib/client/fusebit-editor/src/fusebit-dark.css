@@ -183,10 +183,40 @@
   background: #37373d;
 }
 
+.fusebit-theme-dark .fusebit-logs-inner-container {
+  height: 100%;
+  width: 100%;
+  position: relative;
+}
+
 .fusebit-theme-dark .fusebit-logs {
   overflow: scroll;
   height: 100%;
   width: 100%;
+}
+
+.fusebit-theme-dark .fusebit-logs-delete-container {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding-right: 10px;
+}
+
+.fusebit-theme-dark .fusebit-logs-delete-btn {
+  background-color: transparent;
+  border: 0;
+  color: #adadad;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: Verdana, sans-serif;
+}
+
+.fusebit-theme-dark .fusebit-logs-delete-btn:hover {
+  color: #e5e5e5;
+}
+
+.fusebit-theme-dark .fusebit-logs-delete-btn:focus {
+  outline: 0;
 }
 
 .fusebit-theme-dark .fusebit-logs pre {

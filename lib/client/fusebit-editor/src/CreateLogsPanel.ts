@@ -11,8 +11,16 @@ import { EditorContext } from './EditorContext';
  */
 export function createLogsPanel(element: HTMLElement, editorContext: EditorContext, options?: ILogsPanelOptions) {
   const id = `fusebit-logs-${Math.floor(99999999 * Math.random()).toString(26)}`;
-  element.innerHTML = `<div class="fusebit-logs" id="${id}"><pre class="fusebit-logs-content" id="${id}-content"></pre></div>`;
+  element.innerHTML = [
+    `<div class="fusebit-logs-inner-container">`,
+    `<div class="fusebit-logs-delete-container"><button class="fusebit-logs-delete-btn" id="${id}-delete"><i class="fa fa-trash"></i></button></div>`,
+    `<div class="fusebit-logs" id="${id}">`,
+    `<pre class="fusebit-logs-content" id="${id}-content"></pre>`,
+    `</div>`,
+    `</div>`,
+  ].join('');
   const contentElement = document.getElementById(`${id}-content`) as HTMLElement;
+  const deleteElement = document.getElementById(`${id}-delete`) as HTMLElement;
   const containerElement = document.getElementById(id) as HTMLElement;
 
   const defaultOptions = new LogsPanelOptions();
@@ -20,6 +28,12 @@ export function createLogsPanel(element: HTMLElement, editorContext: EditorConte
     ...defaultOptions,
     ...options,
   };
+
+  deleteElement &&
+    deleteElement.addEventListener('click', e => {
+      e.preventDefault();
+      contentElement.textContent = '';
+    });
 
   editorContext.on(Events.Events.LogsAttached, e => {
     // append('Server logs attached');
