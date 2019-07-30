@@ -1270,6 +1270,16 @@ paths:
         required: true
         schema:
           $ref: '#/components/schemas/FunctionId'
+      - in: query
+          name: include
+          required: false
+          description: |
+            Optional switch to include all serialized properties of the function. If this switch is not provided only
+            the non-serialized 'compute', 'schedule' and 'configuration' properties are returned in the response.
+          schema:
+            type: string
+            enum:
+              - all
     get:
       tags:
         - Functions
@@ -2233,8 +2243,12 @@ components:
             staticIp:
               type: boolean
               default: false
+        computeSerialized:
+          type: string
         configuration:
           type: object
+        configurationSerialized:
+           type: string
         nodejs:
           type: object
           properties:
@@ -2265,6 +2279,8 @@ components:
             timezone:
               type: string
               example: US/Pacific
+        scheduleSerialized:
+          type: string
         metadata:
           type: object
 
