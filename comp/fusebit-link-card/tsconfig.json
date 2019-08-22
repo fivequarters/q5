@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": { "rootDir": "src", "outDir": "libm" },
+  "include": ["src"],
+  "references": [
+    { "path": "../fusebit-link" },
+    { "path": "../box" },
+    { "path": "../fusebit-text" },
+    { "path": "../../lib/client/fusebit-color" },
+    { "path": "../fusebit-button" },
+    { "path": "../media-query" },
+    { "path": "../image" }
+  ]
+}
