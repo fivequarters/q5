@@ -2,5 +2,5 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": { "rootDir": "src", "outDir": "libm" },
   "include": ["src"],
-  "references": [{ "path": "../scroll-stick" }, { "path": "../body" }]
+  "references": [{ "path": "../scroll-stick" }, { "path": "../body" }, { "path": "../box" }]
 }
