@@ -12,15 +12,18 @@ const Global = createGlobalStyle<{}>`
     height: 100%;
   }
   * {
-    box-sizing: border-box;
+    box-sizing: border-box;      
   }
   body {
     margin: 0px;
   }
 `;
 
-const Container = styled.div`
-  height: 100%;
+const Container = styled.div<BodyProps>`
+  height: ${props => (props.height ? `${props.height}px` : '100%')};
+  ${props => (props.color ? `color: ${props.color};` : '')}
+  ${props => (props.background ? `background-color: ${props.background};` : '')}
+  ${props => (props.padding ? `padding: ${props.padding}px;` : '')}
 `;
 
 // -------------------
@@ -31,6 +34,10 @@ export type BodyProps = {
   theme?: any;
   fonts?: Array<string>;
   onReady?: () => void;
+  height?: number;
+  padding?: number;
+  color?: string;
+  background?: string;
   children?: any;
 } & React.BaseHTMLAttributes<HTMLDivElement>;
 

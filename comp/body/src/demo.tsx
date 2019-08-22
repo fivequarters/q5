@@ -13,7 +13,6 @@ const theme = {
   },
   colors: {
     header: '#76D7C4',
-    content: '#F9E79F',
   },
 };
 
@@ -27,19 +26,17 @@ const Header = styled.div`
 
 const Content = styled.div`
   width: 100%;
-  height: 5000px;
   padding: 20px;
   font-size: 28px;
   font-family: 'Quicksand', sans-serif;
-  background-color: ${props => props.theme.colors.content};
 `;
 
 const App = () => (
-  <Body theme={theme}>
+  <Body theme={theme} background="#F9E79F">
     <Header>
       <h1>There should be no body margin</h1>
     </Header>
-    <Content>And theme colors should have been applied... and fonts from the theme should load!</Content>>
+    <Content>And theme colors should have been applied... and fonts from the theme should load!</Content>
   </Body>
 );
 
