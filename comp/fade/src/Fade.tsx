@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useLayoutEffect, useState } from 'react';
+import { Box, BoxProps } from '@5qtrs/box'
 
 // ------------------
 // Internal Constants
@@ -27,61 +28,50 @@ function updateOpacity(opacity: number, increment: boolean, rate: number) {
 // --------------
 
 export type FadeProps = {
-  children?: any;
   fadeOut?: boolean;
   fadeIn?: boolean;
   fadeRate?: number;
-  visible?: boolean;
-  onFadeOut?: () => void;
-  onFadeIn?: () => void;
-} & React.BaseHTMLAttributes<HTMLDivElement>;
+  show?: boolean;
+  onFadeChange?: (fadeIn: boolean) => void;
+} & BoxProps;
 
 // -------------------
 // Exported Components
 // -------------------
 
-export function Fade({ visible, fadeOut, fadeIn, fadeRate, onFadeIn, onFadeOut, style, children, ...rest }: FadeProps) {
+export function Fade({ show, fadeOut, fadeIn, fadeRate, onFadeChange, style, children, ...rest }: FadeProps) {
   const [visibleLast, setVisibleLast] = useState(false);
   const [opacity, setOpacity] = useState(minOpacity);
 
   fadeRate = fadeRate || 3;
-  if (visible !== visibleLast) {
-    if (visible && !fadeIn) {
+  if (show !== visibleLast) {
+    if (show && !fadeIn) {
       setOpacity(maxOpacity);
     }
-    if (!visible && !fadeOut) {
+    if (!show && !fadeOut) {
       setOpacity(minOpacity);
     }
-    setVisibleLast(visible || false);
+    setVisibleLast(show || false);
   }
 
-  useEffect(() => {
-    let timer: NodeJS.Timer;
+  useLayoutEffect(() => {
     if (opacity >= minOpacity && opacity <= maxOpacity) {
-      timer = setTimeout(() => {
-        const newOpacity = updateOpacity(opacity, visible || false, fadeRate as number);
+      window.requestAnimationFrame(() => {
+        const newOpacity = updateOpacity(opacity, show || false, fadeRate as number);
         if (opacity !== newOpacity) {
-          if (newOpacity === maxOpacity && onFadeIn) {
-            onFadeIn();
-          } else if (newOpacity === minOpacity && onFadeOut) {
-            onFadeOut();
+          if (newOpacity === maxOpacity && onFadeChange) {
+            onFadeChange(true);
+          } else if (newOpacity === minOpacity && onFadeChange) {
+            onFadeChange(false);
           }
           setOpacity(newOpacity);
         }
-      }, 10);
+      });
     }
-    return () => {
-      if (timer) {
-        clearTimeout(timer);
-      }
-    };
-  }, [opacity, visible]);
+  }, [opacity, show]);
 
   style = style || {};
   style.opacity = opacity / 100;
-  return (
-    <div {...rest} style={style}>
-      {children}
-    </div>
-  );
+
+  return <Box {...rest} style={style}>{children}</Box>
 }
