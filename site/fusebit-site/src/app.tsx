@@ -1,0 +1,83 @@
+import React, { useState } from 'react';
+import ReactDOM from 'react-dom';
+import ReactGA from 'react-ga';
+import ScrollMemory from 'react-router-scroll-memory';
+import { Body } from '@5qtrs/body';
+import { FusebitModal, FusebitModalPage } from '@5qtrs/fusebit-modal';
+import { BrowserRouter, Switch, Route } from '@5qtrs/fusebit-link';
+import { FusebitAppLoad } from '@5qtrs/fusebit-load';
+import { FusebitNavBar } from '@5qtrs/fusebit-nav-bar';
+import { FusebitFooter } from '@5qtrs/fusebit-footer';
+import { fusebitFonts } from '@5qtrs/fusebit-text';
+import '@5qtrs/fusebit-favicon';
+
+import { Home, About, Docs, Support, Legal, Blog, Privacy, Terms } from './page';
+
+const App = () => {
+  const [ready, setReady] = useState(true);
+  const [modalPage, setModalPage] = useState(FusebitModalPage.ContactUs);
+  const [modalShow, setModalShow] = useState(false);
+  const [modalGaLabel, setModalGaLabel] = useState('');
+  const [email, setEmail] = useState('');
+
+  function onReady() {
+    setReady(true);
+  }
+
+  function onModalClose() {
+    setEmail('');
+    setModalGaLabel('');
+    setModalShow(false);
+  }
+
+  function onLetsTalkClicked() {
+    setModalPage(FusebitModalPage.ContactUs);
+    setModalGaLabel('Nav Bar');
+    setModalShow(true);
+  }
+
+  function onEmailSubmit(email: string) {
+    setEmail(email);
+    setModalPage(FusebitModalPage.ContactUsAboutYou);
+    setModalGaLabel('Solution');
+    setModalShow(true);
+  }
+
+  function renderHome() {
+    return <Home onEmailSubmit={onEmailSubmit} />;
+  }
+
+  return (
+    <Body fonts={[fusebitFonts]} onReady={onReady}>
+      <FusebitAppLoad show={!ready} />
+      <FusebitModal
+        modalPage={modalPage}
+        email={email}
+        show={modalShow}
+        onClose={onModalClose}
+        gaLabel={modalGaLabel}
+      />
+      <BrowserRouter basename="/">
+        <ScrollMemory />
+        <FusebitNavBar onLetsTalkClicked={onLetsTalkClicked} />
+        <Switch>
+          <Route path="/" exact render={renderHome} />
+          {/* <Route path="/docs/" component={Docs} /> */}
+          <Route path="/about/" component={About} />
+          <Route path="/blog/" exact component={Blog} />
+          <Route path="/blog/:year?/:month?/:day?/:postId?" component={Blog} />
+          <Route path="/legal/" component={Legal} />
+          <Route path="/support/" component={Support} />
+          <Route path="/privacy/" component={Privacy} />
+          <Route path="/terms/" component={Terms} />
+        </Switch>
+        <FusebitFooter />
+      </BrowserRouter>
+    </Body>
+  );
+};
+
+document.title = 'Fusebit';
+ReactGA.initialize('UA-136792777-1');
+ReactGA.pageview(window.location.pathname + window.location.search);
+ReactDOM.render(<App />, document.getElementById('app'));

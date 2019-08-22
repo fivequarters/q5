@@ -1,0 +1,35 @@
+{
+  "default": {
+    "title": "Fusebit - Integrations your customers want",
+    "description": "Accelerate customer acquisition and improve retention in your platform with powerful customizations and integrations",
+    "image": "https://cdn.fusebit.io/twitter/twitter-orange.png"
+  },
+  "/about": {
+    "title": "Fusebit - About Us",
+    "description": "Meet the team behind Fusebit"
+  },
+  "/blog": {
+    "title": "The Fusebit Blog",
+    "description": "The latest news, technical articles and industry insights from the Fusebit team"
+  },
+  "/blog/2019/06/08/twilio-segment-github-serverless-extensibility": {
+    "title": "Is your SaaS Left Behind?",
+    "description": "Twilio, Segment, Github, and Auth0 are setting a new trend.",
+    "image": "https://cdn.fusebit.io/twitter/twitter-red.png"
+  },
+  "/blog/2019/06/27/schedule-requests-to-rate-limited-servers": {
+    "title": "Scheduling Requests with a Rate-Limited Server",
+    "description": "Have to make a lot of requests to a 3rd Party API? You'll need a solution for hadling server rate-limiting.",
+    "image": "https://cdn.fusebit.io/twitter/twitter-dark.png"
+  },
+  "/blog/2019/07/04/buy-then-build-and-integrate": {
+    "title": "Buy, Build and Integrate",
+    "description": "Are you ready for the new way companies use your SaaS?",
+    "image": "https://cdn.fusebit.io/twitter/twitter-orange.png"
+  },
+  "/blog/2019/08/19/integration-landscape": {
+    "title": "Did You Make the Right Call On Your Integration Story?",
+    "description": "Learn about the key factors to consider in deciding which integration platform to use.",
+    "image": "https://cdn.fusebit.io/twitter/twitter-cyan.png"
+  }
+}
