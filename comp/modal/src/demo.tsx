@@ -1,36 +1,32 @@
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
-import { Modal } from './Modal';
+import { Modal } from './index';
+import { Box } from '@5qtrs/box';
 
 const App = () => {
-  const [visible, setVisible] = useState(false);
-
-  const outerStyle = { height: 5000, backgroundColor: '#F9E79F' };
-  const modalStyle = { backgroundColor: '#76D7C4' };
-  const innerStyle = { backgroundColor: 'white', width: 200, height: 200, padding: 30 };
+  const [show, setShow] = useState(false);
 
   function modalClick() {
-    setVisible(false);
+    setShow(false);
   }
 
   function buttonClick() {
-    setVisible(true);
+    setShow(true);
+  }
+
+  function ignoreClick(event: any) {
+    event.stopPropagation();
   }
 
   return (
-    <div style={outerStyle}>
-      <Modal visible={visible} style={modalStyle} onClick={modalClick}>
-        <div
-          style={innerStyle}
-          onClick={event => {
-            event.stopPropagation();
-          }}
-        >
+    <Box height={1000} margin={-20} padding={20} background="#F9E79F">
+      <Modal show={show} background="#76D7C4" onClick={modalClick}>
+        <Box background="white" width={200} height={200} padding={30} onClick={ignoreClick} >
           Click outside to close
-        </div>
+        </Box>
       </Modal>
       <button onClick={buttonClick}>Click here to open the modal</button>
-    </div>
+    </Box>
   );
 };
 
