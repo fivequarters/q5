@@ -1,7 +1,8 @@
-import { clone } from '@5qtrs/clone';
 import { asPassive } from '@5qtrs/passive';
 import React, { useLayoutEffect, useState } from 'react';
 import styled from 'styled-components';
+
+let nextStickyCount = 0;
 
 // -------------------
 // Internal Interfaces
@@ -33,9 +34,10 @@ function getScrollOffset(elementOrWindow: HTMLElement | Window) {
 // Internal Components
 // -------------------
 
-const Container = styled.div`
+const Container = styled.div<ScrollStickProps>`
+  width: 100%;
   &.sticky {
-    position: fixed;
+    position: ${props => (props.useWindowScroll ? 'fixed' : 'sticky')};
     top: 0;
   }
 `;
@@ -45,85 +47,82 @@ const Container = styled.div`
 // --------------
 
 export type ScrollStickProps = {
-  className?: string;
+  sticky?: boolean;
   useWindowScroll?: boolean;
   onStickyChange?: (isSticky: boolean) => void;
   children?: any;
-} & React.BaseHTMLAttributes<HTMLDivElement>;
+};
 
 // -------------------
 // Exported Components
 // -------------------
 
-export function ScrollStick({
-  children,
-  onStickyChange,
-  useWindowScroll,
-  className,
-  style,
-  ...rest
-}: ScrollStickProps) {
-  useWindowScroll = useWindowScroll === false ? false : true;
-  const [sticky, setStickyState] = useState<IStickyState>({
+export function ScrollStick({ sticky, children, onStickyChange, useWindowScroll }: ScrollStickProps) {
+  const [stickyState, setStickyState] = useState<IStickyState>({
     offset: -1,
     height: -1,
     width: -1,
     enabled: false,
     parent: window,
   });
+  const [stickyCount, setStickyCount] = useState(0);
+  if (stickyCount === 0) {
+    nextStickyCount++;
+    setStickyCount(nextStickyCount);
+  }
 
-  function onNavBarElement(element: HTMLDivElement): void {
-    if (element && sticky.offset === -1) {
-      setStickyState({
-        enabled: sticky.enabled,
-        offset: element.offsetTop,
-        height: element.offsetHeight,
-        width: element.offsetWidth,
-        parent: useWindowScroll ? window : element.parentElement || window,
-      });
-      checkIfSticky();
+  function onElement(element: HTMLDivElement): void {
+    if (element && stickyState.offset === -1) {
+      if (element.parentElement) {
+        setStickyState({
+          enabled: stickyState.enabled,
+          offset: element.parentElement ? element.offsetTop - element.parentElement.offsetTop : element.offsetTop,
+          height: element.offsetHeight,
+          width: element.offsetWidth,
+          parent: useWindowScroll ? window : element.parentElement || window,
+        });
+        checkIfSticky();
+      }
     }
   }
 
   const checkIfSticky = () => {
-    if (sticky.offset !== -1) {
-      const scroll = getScrollOffset(sticky.parent);
-      if (sticky.enabled !== scroll > sticky.offset) {
-        sticky.enabled = !sticky.enabled;
+    if (stickyState.offset !== -1) {
+      let scroll = getScrollOffset(stickyState.parent);
+      if (stickyState.enabled !== scroll > stickyState.offset) {
+        stickyState.enabled = !stickyState.enabled;
         setStickyState({
-          enabled: sticky.enabled,
-          offset: sticky.offset,
-          height: sticky.height,
-          width: sticky.width,
-          parent: sticky.parent,
+          enabled: stickyState.enabled,
+          offset: stickyState.offset,
+          height: stickyState.height,
+          width: stickyState.width,
+          parent: stickyState.parent,
         });
         if (onStickyChange) {
-          onStickyChange(sticky.enabled);
+          onStickyChange(stickyState.enabled);
         }
       }
     }
   };
 
   useLayoutEffect(() => {
-    if (sticky.parent) {
-      sticky.parent.addEventListener('scroll', checkIfSticky, asPassive());
-      return () => sticky.parent.removeEventListener('scroll', checkIfSticky, asPassive());
+    if (stickyState.parent) {
+      stickyState.parent.addEventListener('scroll', checkIfSticky, asPassive());
+      return () => stickyState.parent.removeEventListener('scroll', checkIfSticky, asPassive());
     }
-  }, [sticky]);
-
-  const adjustedClassName = `${className || ''}${sticky.enabled ? ' sticky' : ''}`;
-
-  const styleWithWidth = style !== undefined ? clone(style) : {};
-  if (sticky.width !== -1) {
-    styleWithWidth.width = styleWithWidth.width || sticky.width;
-  }
+  }, [stickyState]);
 
   return (
     <>
-      <Container {...rest} style={styleWithWidth} className={adjustedClassName} ref={onNavBarElement}>
+      <Container
+        style={{ zIndex: nextStickyCount - stickyCount + 1 }}
+        useWindowScroll={useWindowScroll}
+        className={sticky || stickyState.enabled ? 'sticky' : ''}
+        ref={onElement}
+      >
         {children}
       </Container>
-      <div style={{ height: sticky.enabled ? sticky.height : 0 }} />
+      <div style={{ height: sticky || stickyState.enabled ? stickyState.height : 0 }} />
     </>
   );
 }
