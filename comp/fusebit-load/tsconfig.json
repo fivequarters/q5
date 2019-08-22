@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": { "rootDir": "src", "outDir": "libm" },
+  "include": ["src"],
+  "references": [
+    { "path": "../modal" },
+    { "path": "../fade" },
+    { "path": "../fusebit-spin" },
+    { "path": "../../lib/client/fusebit-color" }
+  ]
+}
