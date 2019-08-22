@@ -1,23 +1,24 @@
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
-import { Fade } from './Fade';
+import { Box } from '@5qtrs/box'
+import { Fade } from './index';
 
 const App = () => {
-  const [visible, setVisible] = useState(true);
+  const [show, setShow] = useState(true);
 
-  function onFadeIn() {
-    setVisible(false);
+  function onFadeChange() {
+    setShow(false);
   }
 
   return (
-    <>
-      <Fade fadeIn={true} visible={true} fadeRate={0.5} onFadeIn={onFadeIn}>
+    <Box vertical gap={10}>
+      <Fade fadeIn={true} show={true} fadeRate={2} onFadeChange={onFadeChange}>
         <h1>I fade in</h1>
       </Fade>
-      <Fade fadeOut={true} visible={visible} fadeRate={0.5}>
+      <Fade fadeOut={true} show={show} fadeRate={0.5}>
         <h1>Then I fade out</h1>
       </Fade>
-    </>
+    </Box>
   );
 };
 

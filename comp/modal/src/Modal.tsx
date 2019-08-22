@@ -1,19 +1,24 @@
 import React, { useLayoutEffect } from 'react';
 import styled from 'styled-components';
+import { Box, BoxProps } from '@5qtrs/box';
+
+// ------------------
+// Internal Functions
+// ------------------
+
+function preventDefault(event: any) {
+  event.preventDefault();
+  event.stopPropagation();
+}
 
 // -------------------
 // Internal Components
 // -------------------
 
-const Container = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: absolute;
+const StyledBox = styled(Box)`
+  position: fixed;
   top: 0px;
   left: 0px;
-  width: 100%;
-  height: 100%;
   z-index: 999;
 `;
 
@@ -22,30 +27,34 @@ const Container = styled.div`
 // --------------
 
 export type ModalProps = {
-  visible?: boolean;
-  children?: any;
-} & React.BaseHTMLAttributes<HTMLDivElement>;
+  show?: boolean;
+} & BoxProps;
 
 // -------------------
 // Exported Components
 // -------------------
 
-export function Modal({ children, visible, style, ...rest }: ModalProps) {
+export function Modal({ height, width, center, middle, children, show, style, ...rest }: ModalProps) {
   useLayoutEffect(() => {
-    if (visible) {
+    if (show) {
       document.body.style.overflow = 'hidden';
+      document.body.addEventListener('touchmove', preventDefault, { passive: false });
       return () => {
         document.body.style.overflow = 'visible';
+        document.body.removeEventListener('touchmove', preventDefault, false);
       };
     }
-  }, [visible]);
+  }, [show]);
 
-  style = style || {};
-  style.display = visible ? '' : 'none';
-
-  return (
-    <Container {...rest} style={style}>
+  return show ? (
+    <StyledBox
+      height={height || '100%'}
+      width={width || '100%'}
+      center={center === false ? false : true}
+      middle={middle === false ? false : true}
+      {...rest}
+    >
       {children}
-    </Container>
-  );
+    </StyledBox>
+  ) : null;
 }

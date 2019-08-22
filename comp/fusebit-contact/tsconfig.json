@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": { "rootDir": "src", "outDir": "libm" },
+  "include": ["src"],
+  "references": [
+    { "path": "../fusebit-input" },
+    { "path": "../box" },
+    { "path": "../../lib/client/fusebit-color" },
+    { "path": "../media-query" }
+  ]
+}

@@ -1,13 +1,6 @@
 import { IWebpackCommonOptions, webpackCommon } from './webpackCommon';
 
 // ------------------
-// Internal Constants
-// ------------------
-
-const reactCdn = 'https://unpkg.com/react@16/umd/react.development.js';
-const reactDomCdn = 'https://unpkg.com/react-dom@16/umd/react-dom.development.js';
-
-// ------------------
 // Internal Functions
 // ------------------
 
@@ -15,8 +8,11 @@ function getDevServer(packageJson: any, options?: IWebpackDevOptions) {
   const devServer = {
     port: 6000,
     noInfo: true,
-    historyApiFallback: true,
+    historyApiFallback: {
+      rewrites: [{ from: /app\.js$/, to: '/app.js' }],
+    },
     allowedHosts: ['localhost.com', 'localhost'],
+    contentBase: '/assets/img',
   };
 
   if (packageJson.devServer && packageJson.devServer.port) {
@@ -28,18 +24,6 @@ function getDevServer(packageJson: any, options?: IWebpackDevOptions) {
   }
 
   return devServer;
-}
-
-function addReactFromCdn(options?: IWebpackDevOptions) {
-  const devOptions = options || {};
-  const externals = (devOptions.externals = devOptions.externals || {});
-  const html = (devOptions.html = devOptions.html || { scripts: [] });
-  const scripts = (html.scripts = html.scripts || []);
-
-  scripts.push(reactCdn, reactDomCdn);
-  externals.react = 'React';
-  externals['react-dom'] = 'ReactDOM';
-  return devOptions;
 }
 
 // -------------------
@@ -57,9 +41,8 @@ export interface IWebpackDevOptions extends IWebpackCommonOptions {
 // ------------------
 
 export function webpackDev(packageJson: any, options?: IWebpackDevOptions) {
-  const devOptions = addReactFromCdn(options);
-  const config = webpackCommon(packageJson, devOptions, false);
-  const devServer = getDevServer(packageJson, devOptions);
+  const config = webpackCommon(packageJson, options, false);
+  const devServer = getDevServer(packageJson, options);
 
   config.mode = 'development';
   config.devtool = 'inline-source-map';

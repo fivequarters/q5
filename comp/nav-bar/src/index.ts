@@ -1,1 +1,1 @@
-export { NavBar, NavBarSpacer, NavBarProps } from './NavBar';
+export { NavBar, NavBarProps } from './NavBar';

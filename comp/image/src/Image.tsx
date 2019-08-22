@@ -1,7 +1,19 @@
 import React from 'react';
+import { Box, BoxProps } from '@5qtrs/box';
 
-export type ImageProps = React.ImgHTMLAttributes<HTMLImageElement>;
+export type ImageProps = {
+  src: string;
+} & BoxProps;
 
-export function Image({ ...props }: ImageProps) {
-  return <img {...props} />;
+export function Image({ src, width, height, borderRadius, ...rest }: ImageProps) {
+  return (
+    <Box width={width || '100%'} height={height} {...rest}>
+      <img
+        width={width || '100%'}
+        height={height}
+        src={src[0] === '/' || src.indexOf('http') === 0 ? src : `/${src}`}
+        style={{ borderRadius, objectFit: 'cover' }}
+      />
+    </Box>
+  );
 }

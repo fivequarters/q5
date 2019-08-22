@@ -1,0 +1,18 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": { "rootDir": "src", "outDir": "libm" },
+  "include": ["src"],
+  "references": [
+    { "path": "../nav-bar" },
+    { "path": "../body" },
+    { "path": "../../lib/client/fusebit-color" },
+    { "path": "../fusebit-button" },
+    { "path": "../media-query" },
+    { "path": "../fusebit-nav-link" },
+    { "path": "../box" },
+    { "path": "../fusebit-social" },
+    { "path": "../fusebit-link" },
+    { "path": "../fusebit-icon" },
+    { "path": "../drawer" }
+  ]
+}

@@ -1,17 +1,15 @@
-import { ScrollStick } from '@5qtrs/scroll-stick';
 import React, { useState } from 'react';
 import styled from 'styled-components';
+import { ScrollStick } from '@5qtrs/scroll-stick';
+import { Box, BoxProps } from '@5qtrs/box';
 
 // -------------------
 // Internal Components
 // -------------------
 
-const Container = styled.div`
-  display: flex;
-  width: 100%;
-  padding: 20px;
+const BoxStyled = styled(Box)<NavBarProps>`
   &.sticky {
-    border-bottom: 1px solid #d5d8dc;
+    border-bottom: ${props => (props.noBorder ? '0;' : props.borderOnScroll || '1px solid #d5d8dc')};
   }
 `;
 
@@ -21,41 +19,30 @@ const Container = styled.div`
 
 export type NavBarProps = {
   onStickyChange?: (isSticky: boolean) => void;
+  borderOnScroll?: string;
+  noBorder?: boolean;
   sticky?: boolean;
-  useWindowScroll?: boolean;
-  children?: any;
-} & React.BaseHTMLAttributes<HTMLDivElement>;
+} & BoxProps;
 
 // -------------------
 // Exported Components
 // -------------------
 
-export const NavBarSpacer = styled.div`
-  flex: 1;
-`;
-
-export function NavBar({ children, sticky, useWindowScroll, onStickyChange, className, ...rest }: NavBarProps) {
+export function NavBar({ onStickyChange, sticky, className, height, children, ...rest }: NavBarProps) {
   const [isSticky, setSticky] = useState(false);
 
-  function onChange(isNowSticky: boolean) {
+  function onStickyChangeWrapped(isNowSticky: boolean) {
     setSticky(isNowSticky);
     if (onStickyChange) {
       onStickyChange(isNowSticky);
     }
   }
 
-  const adjustedClassName = `${className ? className + ' ' : ''}${isSticky ? 'sticky' : ''}`;
-  const container = (
-    <Container {...rest} className={adjustedClassName}>
-      {children}
-    </Container>
-  );
-
-  return !sticky ? (
-    container
-  ) : (
-    <ScrollStick useWindowScroll={useWindowScroll} style={{ width: '100%' }} onStickyChange={onChange}>
-      {container}
+  return (
+    <ScrollStick sticky={sticky} useWindowScroll onStickyChange={onStickyChangeWrapped}>
+      <BoxStyled {...rest} className={[sticky || isSticky ? 'sticky' : '', className].join(' ')}>
+        {children}
+      </BoxStyled>
     </ScrollStick>
   );
 }
