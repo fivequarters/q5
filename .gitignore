@@ -53,3 +53,5 @@ typings/
 .aws.env
 .aws.*.env
 .aws.*.env.bak
+
+.DS_Store
