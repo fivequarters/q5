@@ -13,8 +13,8 @@ import Auth0Extensions from '../../../../assets/img/blog-interview-auth0-extensi
 
 const meta = {
   postId: 'interview-with-eugenio-pace-auth0-ceo',
-  title: 'Interview with Eugenio Pace, Auth0 CEO',
-  subtitle: 'What was the role of integrations in the building of a unicorn company?',
+  title: 'The role of integrations in building a unicorn',
+  subtitle: 'Interview with Eugenio Pace, Auth0 CEO',
   year: 2019,
   month: 8,
   day: 22,
@@ -34,8 +34,8 @@ function Post() {
       <Section id="intro">
         We spoke with Eugenio Pace, the co-founder and CEO of <Link href="https://auth0.com">Auth0</Link>, to get the
         scoop on his company's approach to integrations. Eugenio started Auth0 with Matias Woloski in 2013 to make
-        identity management simple for developers. The phenomenal growth of the company led to Auth0 reaching the
-        unicorn status in 2019. We asked Eugenio what role integrations have played during this journey.
+        identity management simple for developers. The phenomenal growth of the company led to Auth0 reaching unicorn
+        status in 2019. We asked Eugenio what role integrations have played during this journey.
       </Section>
       <Section id="about-auth0" header="What does Auth0 do?" tocText="About Auth0">
         Auth0 is a tech company that provides an authentication and authorization service for application builders:
@@ -58,7 +58,7 @@ function Post() {
         </Quote>
         We've decided to offer outstanding capabilities to make integrating Auth0 platform with external systems easy.
         Our scripting extensibility features allow any developer to quickly close the gap between our service and any
-        other API they need to exchange data with. We call it the <i>last mile connections</i>.
+        other API they need to exchange data with. We call it the <em>last mile connections</em>.
       </Section>
       <Section id="use-cases" header="What purpose do integrations serve in your product?" tocText="Use cases">
         Most of the time, our customers integrate with legacy systems or exchange data with specialized APIs. Some
