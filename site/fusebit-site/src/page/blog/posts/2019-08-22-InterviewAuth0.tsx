@@ -3,7 +3,7 @@ import { Image } from '@5qtrs/image';
 import { FusebitAuthor } from '@5qtrs/fusebit-blog';
 import { FusebitSection as Section, FusebitBreak as Break, FusebitQuote as Quote } from '@5qtrs/fusebit-page';
 import { FusebitLink as Link } from '@5qtrs/fusebit-link';
-import MainImage from '../../../../assets/img/blog-interview-auth0-main.jpg';
+import MainImage from '../../../../assets/img/blog-interview-with-auth0-main.png';
 import Auth0Rules from '../../../../assets/img/blog-interview-auth0-rules.png';
 import Auth0Extensions from '../../../../assets/img/blog-interview-auth0-extensions.png';
 
