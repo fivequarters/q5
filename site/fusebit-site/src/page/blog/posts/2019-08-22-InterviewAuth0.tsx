@@ -13,7 +13,7 @@ import Auth0Extensions from '../../../../assets/img/blog-interview-auth0-extensi
 
 const meta = {
   postId: 'interview-with-eugenio-pace-auth0-ceo',
-  title: 'The role of integrations in building a unicorn',
+  title: 'The Role of Integrations in Building a Unicorn',
   subtitle: 'Interview with Eugenio Pace, Auth0 CEO',
   year: 2019,
   month: 8,
