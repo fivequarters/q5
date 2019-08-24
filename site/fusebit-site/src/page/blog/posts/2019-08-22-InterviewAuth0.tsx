@@ -99,7 +99,7 @@ function Post() {
         Over time, as we learn more about what our customer and field teams are building, we add common patterns and
         solutions to the core product.
       </Section>
-      <Section id="challanges" header="What challenges remain in your integration story today?" tocText="Challanges">
+      <Section id="challenges" header="What challenges remain in your integration story today?" tocText="Challenges">
         One ongoing challenge is deciding what gets "in the box" and what remains as an "exercise for the reader."
         Another is perception. When a customer asks for a specific integration that is not in the gallery, and we
         deliver it using our code extensibility features, it is sometimes perceived as "not supported."
