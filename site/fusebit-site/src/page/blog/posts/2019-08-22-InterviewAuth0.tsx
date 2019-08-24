@@ -72,7 +72,7 @@ function Post() {
         It is multifaceted.
         <Break />
         Some very common, recurrent integration patterns are baked into the product and just need to be activated and
-        configured. A good example of these is exporting logs to services like Splunk, SumoLogic, or Loggly. Another one
+        configured. A good example of this is exporting logs to services like Splunk, SumoLogic, or Loggly. Another one
         is integration with source control services like Github, Bitbucket, or Visual Studio. We offer a gallery of
         pre-packaged integrations that our customers can activate and configure — no code required in this case.
         <Image src={Auth0Extensions} />
@@ -109,9 +109,8 @@ function Post() {
         header="Any words of wisdom for a SaaS vendor implementing their integration story today?"
         tocText="Advice"
       >
-        As we did at <Link href="https://auth0.com">Auth0</Link>, I believe successful SaaS companies need to embrace
-        integrations, through some mechanism, because no app exists in isolation.
-        <Quote>Successful SaaS companies need to embrace integrations because no app exists in isolation.</Quote>
+        As we did at <Link href="https://auth0.com">Auth0</Link>, I believe that...
+        <Quote>...successful SaaS companies need to embrace integrations because no app exists in isolation.</Quote>
         <Break />A code-based integration, while more complex to implement, is the most powerful because of the
         flexibility only code can offer. In the early days of a company, it is usually better to cast a wide net and
         remain open to anything customers might want to do, even if it is completely outside of what you originally
