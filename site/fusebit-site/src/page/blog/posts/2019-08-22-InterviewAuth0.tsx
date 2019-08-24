@@ -102,7 +102,7 @@ function Post() {
       <Section id="challanges" header="What challenges remain in your integration story today?" tocText="Challanges">
         One ongoing challenge is deciding what gets "in the box" and what remains as an "exercise for the reader."
         Another is perception. When a customer asks for a specific integration that is not in the gallery, and we
-        deliver it using our code extensibility features, it is still perceived as "not supported."
+        deliver it using our code extensibility features, it is sometimes perceived as "not supported."
       </Section>
       <Section
         id="advice"
