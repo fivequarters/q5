@@ -71,7 +71,7 @@ export function NavBar() {
         <Logo />
         <Box expand />
         <UserProfile>
-          <Image src={api.imageUrl} style={{ width: 50, height: 50 }} />
+          <Image src={api.imageUrl} width={50} height={50} />
           <UserNameAndRole>
             <UserName>{api.name}</UserName>
             <UserRole>Admin</UserRole>
