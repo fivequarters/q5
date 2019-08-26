@@ -17,7 +17,7 @@ const meta = {
   subtitle: 'Interview with Eugenio Pace, Auth0 CEO',
   year: 2019,
   month: 8,
-  day: 22,
+  day: 26,
   summary: [
     "We interviewed Eugenio Pace, Auth0 CEO, about his company's",
     'approach to integrations. Get a glimpse into what makes a recent unicorn tick,',
