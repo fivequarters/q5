@@ -1,6 +1,7 @@
 import { GoChevronDown } from '@5qtrs/icon';
 import { Image } from '@5qtrs/image';
-import { NavBar as NavBarBase, NavBarSpacer } from '@5qtrs/nav-bar';
+import { Box } from '@5qtrs/box';
+import { NavBar as NavBarBase } from '@5qtrs/nav-bar';
 import React, { useContext } from 'react';
 import styled from 'styled-components';
 import { ApiContext } from './ApiContext';
@@ -68,7 +69,7 @@ export function NavBar() {
     <div>
       <NavBarStyled sticky={true}>
         <Logo />
-        <NavBarSpacer />
+        <Box expand />
         <UserProfile>
           <Image src={api.imageUrl} style={{ width: 50, height: 50 }} />
           <UserNameAndRole>
