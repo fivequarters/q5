@@ -96,7 +96,7 @@ export function Addons({ ...rest }: AddonsProps) {
 
   return (
     <Container {...rest}>
-      <Fade visible={true} fadeIn={true} fadeOut={true} fadeRate={3}>
+      <Fade show={true} fadeIn={true} fadeOut={true} fadeRate={3}>
         <Inner>
           <SubHeading style={{ display: installedItems.length ? 'block' : 'none' }}>Installed</SubHeading>
           <AddonList style={{ display: installedItems.length ? 'flex' : 'none' }}>{installedItems}</AddonList>

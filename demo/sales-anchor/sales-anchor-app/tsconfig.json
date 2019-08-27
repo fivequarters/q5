@@ -11,6 +11,7 @@
     { "path": "../../../comp/modal" },
     { "path": "../../../comp/fade" },
     { "path": "../../../lib/shared/request" },
-    { "path": "../../../comp/icon" }
+    { "path": "../../../comp/icon" },
+    { "path": "../../../comp/box" }
   ]
 }

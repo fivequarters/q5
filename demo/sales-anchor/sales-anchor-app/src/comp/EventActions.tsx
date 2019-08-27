@@ -87,7 +87,7 @@ export function EventActions({ ...rest }: EventActionsProps) {
       {/* <Fade visible={eventAction === 'on-new-inquiry'} fadeIn={true} fadeOut={true} fadeRate={3}>
         <Editor style={displayEditor} onEditorBack={onEditorBack} eventAction={eventAction} />
       </Fade> */}
-      <Fade visible={true} fadeIn={true} fadeOut={true} fadeRate={3}>
+      <Fade show={true} fadeIn={true} fadeOut={true} fadeRate={3}>
         <Inner>
           <SubHeading>Leads</SubHeading>
           <EventActionRow onClick={onClickNewInquiry}>

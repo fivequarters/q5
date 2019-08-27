@@ -5,10 +5,12 @@ const options = {
   externals: { '@5qtrs/fusebit-editor': 'fusebit' },
   globalObject: 'this',
   html: {
-    scripts: [
-      // 'js/fusebit-editor.js',
-      'https://cdn.fusebit.io/fusebit/js/fusebit-editor/latest/fusebit-editor.min.js',
-    ],
+    default: {
+      scripts: [
+        // 'js/fusebit-editor.js',
+        'https://cdn.fusebit.io/fusebit/js/fusebit-editor/latest/fusebit-editor.min.js',
+      ],
+    },
   },
 };
 

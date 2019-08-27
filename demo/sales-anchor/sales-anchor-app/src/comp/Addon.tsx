@@ -195,7 +195,7 @@ export function Addon({
 
   return (
     <Container {...rest}>
-      <StyledModal visible={installModalVisible} onClick={installModalClick}>
+      <StyledModal show={installModalVisible} onClick={installModalClick}>
         <ModalInnerStyle
           onClick={event => {
             event.stopPropagation();
@@ -219,7 +219,7 @@ export function Addon({
           </Button>
         </ModalInnerStyle>
       </StyledModal>
-      <StyledModal visible={configModalVisible} onClick={configModalClick}>
+      <StyledModal show={configModalVisible} onClick={configModalClick}>
         <ModalInnerStyle
           onClick={event => {
             event.stopPropagation();
