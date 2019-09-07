@@ -36,15 +36,7 @@ export function FadeSequence({ children, duration, fadeRate, repeat, ...rest }: 
   const currentChild = children[current];
 
   return (
-    <Fade
-      {...rest}
-      visible={visible}
-      fadeIn={true}
-      fadeOut={true}
-      fadeRate={fadeRate}
-      onFadeOut={onNext}
-      onFadeIn={onNext}
-    >
+    <Fade {...rest} show={visible} fadeIn={true} fadeOut={true} fadeRate={fadeRate} onFadeChange={onNext}>
       {currentChild}
     </Fade>
   );
