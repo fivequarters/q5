@@ -1,6 +1,6 @@
 import { CorpLogo } from '@5qtrs/corp-logo';
 import { FaTwitter } from '@5qtrs/icon';
-import { NavBar as NavBarBase, NavBarSpacer } from '@5qtrs/nav-bar';
+import { NavBar as NavBarBase } from '@5qtrs/nav-bar';
 import React, { useContext } from 'react';
 import styled, { ThemeContext } from 'styled-components';
 import { content } from '../content';
@@ -36,6 +36,10 @@ const Link = styled.a`
 
 const Twitter = styled(FaTwitter)`
   ${props => applyTheme(props, 'navbar', 'twitter')}
+`;
+
+const NavBarSpacer = styled.div`
+  flex: 1;
 `;
 
 export function NavBar() {
