@@ -35,11 +35,9 @@ function Post() {
         his company's approach to integrations. We asked Tyler what role integrations have played during their journey.
       </Section>
       <Section id="about-zaius" header="What does Zaius do?" tocText="About Zaius">
-        Zaius is a B2C CRM that helps brands treat each customer as an individual. The platform collects and connects
-        all customer, product, and web data to create a personal profile of each customer. The software then runs
-        machine learning analytics over that new data set to predict future behavior and segment each customer based on
-        business goals. Finally, Zaius creates segments to activate hyper-personalized cross-channel marketing
-        campaigns.
+        Zaius is a <Link href="https://www.zaius.com/crm-platform">B2C CRM</Link> that collects and connects all
+        customer, product, and web data to create a personal profile of each customer enabling hyper-personalized
+        cross-channel marketing campaigns.
         <Break />
         Zaius stitches together customer data using a proprietary user resolution process and generates a comprehensive
         profile view of each customer's attributes and behavior. The platform then automatically generates actionable
@@ -76,12 +74,13 @@ function Post() {
         website, opening a mobile app, as well as company data like Products or subscriptions.
         <Image src={ZaiusUsage} />
         This data provides the basis for powerful, targeted segments based on both behavior and attributes of customers.
-        For example, you can create a segment sending a push message to all men, 25-34 years old, that abandoned cart on
-        web, as well as generating actionable insights backed by one-of-a-kind data science.
+        For example, you can create a segment sending a push message to all men, 25-34 years old, that abandoned their
+        shopping cart during their session on web, as well as generating actionable insights backed by one-of-a-kind
+        data science.
         <Break />
         We believe it should be as simple to get data out of Zaius as it is to get data into Zaius, and providing a
-        consistent channel interface enables our development partners and client brands to connect data that Zaius. To
-        this end, a future goal is to enable channels as integrations, enabling the addition of channels like SMS,
+        consistent channel interface enables our development partners and client brands to do that quickly and easily.
+        To this end, a future goal is to enable channels as integrations, enabling the addition of channels like SMS,
         Facebook Messenger, Direct Mail and Ad Networks with a nearly identical integration interface to that of data
         apps.
         <Quote>
@@ -91,7 +90,7 @@ function Post() {
         </Quote>
         <Break />
         Closing the loop of data in and data out integrations produces millions of data points that allow frequent and
-        consistent improvement of our machine learning model and it allows Zaius users to be better at their job due to
+        consistent improvement of our machine learning model. That allows Zaius users to be better at their job due to
         the fact that the data and channels are not siloed to a single team within their company or to a single set of
         services that they utilize outside of Zaius.
       </Section>
@@ -123,8 +122,7 @@ function Post() {
         tocText="Challenges"
       >
         <Quote>
-          A big priority for us is ensuring that every integration does not provide a completely unique experience that
-          requires training.
+          A big priority for us is ensuring that all integration experiences are consistent and do not require training.
         </Quote>
         It's much simpler to let all integrations simply "dump" data into Zaius as-is, but this limits the ability to
         leverage data for data science and prevents a consistent user experience across apps of the same category. For
@@ -133,13 +131,13 @@ function Post() {
         featureset that adds marketing campaigns automatically to accounts when an app is installed. This ensures that
         when an app is installed, all the common use-case campaigns are available without the marketer having to
         understand the data mapping from another system. Additionally, if a developer wants to leverage these campaigns,
-        Zaius requires no additional effort--they'll be available automatically when their app is installed. These
-        recipes ensure that the setup and use of apps are simple for both developers and the end-user.
+        Zaius requires no additional effort &mdash; they'll be available automatically when their app is installed.
+        These recipes ensure that the setup and use of apps are simple for both developers and the end-user.
         <Break />
-        Another challenge is driving demand for developers to invest in integrations built upon Zaius. However, we
-        strongly believe that investing in a developer-first mentality and providing a strong developer-centric
-        featureset will provide confidence in enterprise businesses to invest in the Zaius platform, which will also
-        drive partner demand to simplify the integration experience for mutual clients.
+        Another challenge is driving demand for developers to invest in integrations built on top of the Zaius platform.
+        However, we strongly believe that investing in a developer-first mentality and providing a strong
+        developer-centric featureset will provide confidence in enterprise businesses to invest in the Zaius platform,
+        which will also drive partner demand to simplify the integration experience for mutual clients.
       </Section>
       <Section
         id="evolution"
