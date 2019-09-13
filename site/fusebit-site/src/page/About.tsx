@@ -9,7 +9,6 @@ import { AccoladeOneIcon, AccoladeTwoIcon, AccoladeThreeIcon } from '@5qtrs/fuse
 import { FusebitPage, FusebitSection, FusebitBreak } from '@5qtrs/fusebit-page';
 import Tomek from '../../assets/img/tomek-full-3.png';
 import Yavor from '../../assets/img/yavor-full-3.png';
-import Randall from '../../assets/img/randall-full-3.png';
 
 // -------------------
 // Exported Components
@@ -110,38 +109,6 @@ export function About() {
                 <FusebitSocialButton
                   type={FusebitSocialType.twitter}
                   href="https://twitter.com/YavorGeorgiev"
-                  marginLeft={10}
-                  small
-                  invertColor
-                />
-              </Box>
-            </Box>
-          </Box>
-          <Box width={30} height={0} />
-          <Box vertical center expand minWidth={260} marginBottom={60}>
-            <Box overlay height={310} width={0}>
-              <Box offsetX={-45} offsetY={93}>
-                <svg width={216} height={300} viewBox="0 0 100 100">
-                  <circle cx={50} cy={50} r={30} fill={FusebitColor.cyan} />
-                </svg>
-              </Box>
-              <Image offsetX={-110} src={Randall} width={190} />
-            </Box>
-            <Box vertical center marginTop={10}>
-              <FusebitText center type={FusebitTextType.body} weight={FusebitTextWeight.bold}>
-                Randall Tombaugh
-              </FusebitText>
-              <FusebitText center>Co-founder {'&'} Head of Engineering</FusebitText>
-              <Box marginTop={10}>
-                <FusebitSocialButton
-                  type={FusebitSocialType.linkedIn}
-                  href="https://www.linkedin.com/in/randall-tombaugh"
-                  small
-                  invertColor
-                />
-                <FusebitSocialButton
-                  type={FusebitSocialType.twitter}
-                  href="https://twitter.com/TombaughRandall"
                   marginLeft={10}
                   small
                   invertColor

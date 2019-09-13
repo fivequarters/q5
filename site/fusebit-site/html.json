@@ -36,5 +36,10 @@
     "title": "The role of integrations in building a unicorn",
     "description": "Interview with Eugenio Pace, Auth0 CEO",
     "image": "https://cdn.fusebit.io/twitter/twitter-blog-interview-with-auth0-1.png"
+  },
+  "/blog/2019/09/06/interview-with-tyler-mills-zaius": {
+    "title": "The next generation of hyper-personalized marketing",
+    "description": "Interview with Tyler Mills, Product Manager at Zaius",
+    "image": "https://cdn.fusebit.io/twitter/twitter-blog-interview-with-zaius.png"
   }
 }

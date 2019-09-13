@@ -59,13 +59,15 @@ function NotificationItem({ email }: NotidficationItemProps) {
     }, 10 * 1000);
   }, []);
 
-  function onFadeOut() {
-    setDisplay(false);
+  function onFadeChange(fadeIn: boolean) {
+    if (!fadeIn) {
+      setDisplay(false);
+    }
   }
 
   return (
     <div key={email} style={{ display: display ? '' : 'none' }}>
-      <Fade fadeIn={true} fadeOut={true} visible={visible} onFadeOut={onFadeOut}>
+      <Fade fadeIn={true} fadeOut={true} show={visible} onFadeChange={onFadeChange}>
         <NotifcationBox>
           <InfoIcon>
             <GoInfo />
