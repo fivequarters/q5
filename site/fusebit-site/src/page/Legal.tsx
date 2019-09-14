@@ -9,13 +9,18 @@ import { FusebitPage as Page, FusebitSection as Section, FusebitBreak as Break }
 
 export function Legal() {
   return (
-    <Page height="100%" header="Legal" updatedOn="August 9, 2019">
+    <Page height="100%" header="Legal" updatedOn="September 9, 2019">
       <Section height="100%">
         Legal information about the Fusebit service is available here:
         <ul>
           <li>
             <Link href="https://cdn.fusebit.io/assets/legal/SubscriptionAgreement-v1.0.1.pdf">
               Subscription Agreement
+            </Link>
+          </li>
+          <li>
+            <Link href="https://cdn.fusebit.io/assets/legal/FusebitPlatformLicenseAgreement-v1.0.0.pdf">
+              License Agreement
             </Link>
           </li>
           <li>

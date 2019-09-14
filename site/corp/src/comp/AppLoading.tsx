@@ -51,11 +51,15 @@ export function AppLoading({ visible, logoDisplayDelay }: AppLoadingProps) {
     func();
   }
 
-  function fullfadeOut() {
-    setImmediate(() => setFullFadeOut(true));
+  function fullfadeChange(fadeIn: boolean) {
+    if (!fadeIn) {
+      setImmediate(() => setFullFadeOut(true));
+    }
   }
-  function logoFadeOut() {
-    setLogoFadedOut(true);
+  function logoFadeChange(fadeIn: boolean) {
+    if (!fadeIn) {
+      setLogoFadedOut(true);
+    }
   }
 
   useEffect(() => {
@@ -86,9 +90,9 @@ export function AppLoading({ visible, logoDisplayDelay }: AppLoadingProps) {
   const strokeWidth = theme.strokeWidth || 3;
 
   return fullFadeOut ? null : (
-    <FullScreenFade visible={!logoFadedOut} fadeOut={true} onFadeOut={fullfadeOut}>
-      <Modal visible={true}>
-        <Fade visible={logoVisible} fadeIn={true} fadeOut={true} onFadeOut={logoFadeOut}>
+    <FullScreenFade show={!logoFadedOut} fadeOut={true} onFadeChange={fullfadeChange}>
+      <Modal show={true}>
+        <Fade show={logoVisible} fadeIn={true} fadeOut={true} onFadeChange={logoFadeChange}>
           <CorpLogoDynamic visible={!logoFadedOut} color={color} size={size} rate={rate} strokeWidth={strokeWidth} />
         </Fade>
       </Modal>
