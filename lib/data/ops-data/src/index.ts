@@ -17,3 +17,9 @@ export {
 } from './IOpsDeploymentData';
 export { IOpsStackData, IOpsNewStack, IOpsStack, IListOpsStackOptions, IListOpsStackResult } from './IOpsStackData';
 export { OpsDataException, OpsDataExceptionCode } from './OpsDataException';
+export {
+  IFusebitSubscription,
+  IFusebitAccount,
+  IFusebitSubscriptionDetails,
+  IInitAdmin,
+} from './IFusebitSubscriptionData';

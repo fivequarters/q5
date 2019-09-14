@@ -13,5 +13,6 @@ export interface IOpsImage {
 
 export interface IOpsImageData extends IDataSource {
   publish(tag: string): Promise<void>;
+  pull(tag: string): Promise<void>;
   list(): Promise<IOpsImage[]>;
 }

@@ -56,6 +56,25 @@ export class ImageService {
     return new ImageService(input, opsService, executeService);
   }
 
+  public async pullImage(tag: string): Promise<void> {
+    const opsDataContext = await this.opsService.getOpsDataContext();
+    const imageData = opsDataContext.imageData;
+
+    await this.executeService.execute(
+      {
+        header: 'Pull Image',
+        message: `Pulling the fusebit-mono image with tag '${Text.bold(tag)}'`,
+        errorHeader: 'Pull Error',
+      },
+      () => imageData.pull(tag)
+    );
+
+    await this.executeService.result(
+      'Image Pulled',
+      `The fusebit-mono image with tag '${Text.bold(tag)}' was successfully pulled`
+    );
+  }
+
   public async publishImage(tag: string): Promise<void> {
     const opsDataContext = await this.opsService.getOpsDataContext();
     const imageData = opsDataContext.imageData;

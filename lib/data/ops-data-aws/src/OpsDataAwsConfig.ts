@@ -1,5 +1,6 @@
 import { IConfig } from '@5qtrs/config';
 import { OpsDataException } from '@5qtrs/ops-data';
+import { IOpsDeployment } from '@5qtrs/ops-data';
 
 // ------------------
 // Internal Constants
@@ -15,7 +16,7 @@ const defaultMonoRepoName = 'fusebit-mono';
 const defaultMonoInstanceType = 't3.medium';
 const defaultMonoApiPort = 80;
 const defaultUbuntuServerVersion = '18.04';
-const defaultMonoInstanceProfile = 'arn:aws:iam::321612923577:instance-profile/Flexd-EC2-Instance';
+const defaultMonoInstanceProfileName = 'fusebit-EC2-instance';
 const defaultMonoHealthCheckGracePeriod = 300;
 const defaultCronFilter = 'ctx => true;';
 const defaultCronMaxExecutionsPerWindow = 120;
@@ -23,6 +24,11 @@ const defaultMonoAlbDeploymentName = 'deployment';
 const defaultMonoAlbDefaultTargetName = 'main';
 const defaultMonoAlbTargetNamePrefix = 'stack';
 const defaultMonoAlbHealthCheckPath = '/v1/health';
+const defaultDwhExportRoleName = 'fusebit-dwh-export';
+const defaultCronExecutorRoleName = 'fusebit-cron-executor';
+const defaultCronSchedulerRoleName = 'fusebit-cron-scheduler';
+const defaultBuilderRoleName = 'fusebit-builder';
+const defaultFunctionRoleName = 'fusebit-function';
 
 // ----------------
 // Exported Classes
@@ -106,8 +112,35 @@ export class OpsDataAwsConfig implements IConfig {
     return (this.config.value('ubuntuServerVersion') as string) || defaultUbuntuServerVersion;
   }
 
+  public get dwhExportRoleName(): string {
+    return (this.config.value('dwhExportRoleName') as string) || defaultDwhExportRoleName;
+  }
+
+  public get cronExecutorRoleName(): string {
+    return (this.config.value('cronExecutorRoleName') as string) || defaultCronExecutorRoleName;
+  }
+
+  public get cronSchedulerRoleName(): string {
+    return (this.config.value('cronSchedulerRoleName') as string) || defaultCronSchedulerRoleName;
+  }
+
+  public get builderRoleName(): string {
+    return (this.config.value('builderRoleName') as string) || defaultBuilderRoleName;
+  }
+
+  public get functionRoleName(): string {
+    return (this.config.value('functionRoleName') as string) || defaultFunctionRoleName;
+  }
+
+  public get monoInstanceProfileName(): string {
+    return (this.config.value('monoInstanceProfileName') as string) || defaultMonoInstanceProfileName;
+  }
+
   public get monoInstanceProfile(): string {
-    return (this.config.value('monoInstanceProfile') as string) || defaultMonoInstanceProfile;
+    return (
+      (this.config.value('monoInstanceProfile') as string) ||
+      `arn:aws:iam::${this.mainAccountId}:instance-profile/${defaultMonoInstanceProfileName}`
+    );
   }
 
   public get monoHealthCheckGracePeriod(): number {
@@ -189,8 +222,10 @@ export class OpsDataAwsConfig implements IConfig {
     return (this.config.value('cronMaxExecutionsPerWindow') as number) || defaultCronMaxExecutionsPerWindow;
   }
 
-  public getS3Bucket(options: { region: string; prefix?: string }): string {
-    return `fusebit-${options.prefix || 'global'}-${options.region}`;
+  public getS3Bucket(deployment: IOpsDeployment): string {
+    return deployment.featureUseDnsS3Bucket
+      ? `${deployment.deploymentName}.${deployment.region}.${deployment.domainName}`
+      : `fusebit-${deployment.deploymentName}-${deployment.region}`;
   }
 
   public value(settingName: string) {

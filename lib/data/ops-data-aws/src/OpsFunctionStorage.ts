@@ -1,9 +1,15 @@
 import * as AWS from 'aws-sdk';
 import { OpsDataAwsConfig } from './OpsDataAwsConfig';
 import { IAwsConfig, AwsCreds } from '@5qtrs/aws-config';
+import { IOpsDeployment } from '@5qtrs/ops-data';
+
 const Async = require('async');
 
-export async function createFunctionStorage(config: OpsDataAwsConfig, awsConfig: IAwsConfig) {
+export async function createFunctionStorage(
+  config: OpsDataAwsConfig,
+  awsConfig: IAwsConfig,
+  deployment: IOpsDeployment
+) {
   const credentials = await (awsConfig.creds as AwsCreds).getCredentials();
 
   const s3 = new AWS.S3({
@@ -31,7 +37,7 @@ export async function createFunctionStorage(config: OpsDataAwsConfig, awsConfig:
 
   function ensureS3Bucket(cb: any) {
     let params = {
-      Bucket: config.getS3Bucket(awsConfig),
+      Bucket: config.getS3Bucket(deployment),
       CreateBucketConfiguration:
         awsConfig.region === 'us-east-1'
           ? undefined
@@ -52,7 +58,7 @@ export async function createFunctionStorage(config: OpsDataAwsConfig, awsConfig:
 
   function configureBucketEncryption(cb: any) {
     let params = {
-      Bucket: config.getS3Bucket(awsConfig),
+      Bucket: config.getS3Bucket(deployment),
       ServerSideEncryptionConfiguration: {
         Rules: [
           {
@@ -68,7 +74,7 @@ export async function createFunctionStorage(config: OpsDataAwsConfig, awsConfig:
 
   function configurePublicAccess(cb: any) {
     let params = {
-      Bucket: config.getS3Bucket(awsConfig),
+      Bucket: config.getS3Bucket(deployment),
       PublicAccessBlockConfiguration: {
         BlockPublicAcls: true,
         BlockPublicPolicy: true,
@@ -81,7 +87,7 @@ export async function createFunctionStorage(config: OpsDataAwsConfig, awsConfig:
 
   function configureLifecycle(cb: any) {
     let params = {
-      Bucket: config.getS3Bucket(awsConfig),
+      Bucket: config.getS3Bucket(deployment),
       LifecycleConfiguration: {
         Rules: [
           {

@@ -1,6 +1,7 @@
 import { AwsBase, IAwsConfig } from '@5qtrs/aws-base';
 import { toBase64 } from '@5qtrs/base64';
 import { AutoScaling } from 'aws-sdk';
+import { ConfigurationServicePlaceholders } from 'aws-sdk/lib/config_service_placeholders';
 
 // ----------------------
 // Internal Configuration
@@ -45,6 +46,12 @@ export class AwsAutoScale extends AwsBase<typeof AutoScaling> {
   }
 
   public async createAutoScale(autoScale: IAwsAutoScaleSettings): Promise<void> {
+    try {
+      await this.deleteAutoScalingGroup(autoScale.name);
+    } catch (_) {}
+    try {
+      await this.deleteLaunchConfiguration(autoScale.name);
+    } catch (_) {}
     await this.createLaunchConfiguration(autoScale);
     await this.createAutoScalingGroup(autoScale);
   }

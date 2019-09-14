@@ -7,3 +7,6 @@ export { DomainCommand } from './domain/DomainCommand';
 export { ImageCommand } from './image/ImageCommand';
 export { DeploymentCommand } from './deployment/DeploymentCommand';
 export { StackCommand } from './stack/StackCommand';
+export { SubscriptionCommand } from './subscription/SubscriptionCommand';
+export { AdminCommand } from './admin/AdminCommand';
+export { VersionCommand } from './VersionCommand';

@@ -1,26 +1,32 @@
 import * as AWS from 'aws-sdk';
 import { OpsDataAwsConfig } from './OpsDataAwsConfig';
 import { IAwsConfig, AwsCreds } from '@5qtrs/aws-config';
+import { IOpsDeployment } from '@5qtrs/ops-data';
+import { debug } from './OpsDebug';
 const Async = require('async');
 const Fs = require('fs');
 const Path = require('path');
 
-export async function createDwhExport(config: OpsDataAwsConfig, awsConfig: IAwsConfig) {
+export async function createDwhExport(config: OpsDataAwsConfig, awsConfig: IAwsConfig, deployment: IOpsDeployment) {
+  debug('IN DWH SETUP');
+
   const dataWarehouseKeyBase64 = config.dataWarehouseKeyBase64;
+
+  let DwhPrefix = awsConfig.prefix || 'global';
 
   const Config = {
     // Lambda function that is triggered by scheduled Cloud Watch Events to exports data to DWH
     exporter: {
-      name: `${awsConfig.prefix || 'global'}-dwh-export`,
+      name: `${DwhPrefix}-dwh-export`,
       timeout: 60,
       memory: 512,
       runtime: 'nodejs8.10',
-      role: 'arn:aws:iam::321612923577:role/fusebit-dwh-export', // pre-created
+      role: `arn:aws:iam::${awsConfig.account}:role/${config.dwhExportRoleName}`,
     },
 
     // Scheduled Cloud Watch Events that trigger the scheduler Lambda
     trigger: {
-      name: `${awsConfig.prefix || 'global'}-dwh-export-trigger`,
+      name: `${DwhPrefix}-dwh-export-trigger`,
       schedule: 'cron(0 8 * * ? *)', // Every 8am GMT (1am PST)
       // re: ? in the cron expression, see quirks https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html
     },
@@ -58,14 +64,14 @@ export async function createDwhExport(config: OpsDataAwsConfig, awsConfig: IAwsC
       ],
       (e: any) => {
         if (e) return reject(e);
-        // console.log('DWH DEPLOYED SUCCESSFULLY');
+        debug('DWH DEPLOYED SUCCESSFULLY');
         resolve();
       }
     );
   });
 
   function addExporterAsTriggerTarget(cb: any) {
-    // console.log('Adding exporter Lambda as target of scheduled Cloud Watch Event...');
+    debug('Adding exporter Lambda as target of scheduled Cloud Watch Event...');
     return cloudwatchevents.putTargets(
       {
         Rule: Config.trigger.name,
@@ -79,14 +85,14 @@ export async function createDwhExport(config: OpsDataAwsConfig, awsConfig: IAwsC
               'Error adding exporter Lambda as target of scheduled Cloud Watch Event: ' + JSON.stringify(d, null, 2)
             )
           );
-        // console.log('Added.');
+        debug('Added.');
         cb();
       }
     );
   }
 
   function allowTriggerToExecuteExporter(cb: any) {
-    // console.log('Adding permissions for Cloud Watch Event to call executor Lambda...');
+    debug('Adding permissions for Cloud Watch Event to call executor Lambda...');
     return lambda.addPermission(
       {
         FunctionName: Config.exporter.name,
@@ -98,19 +104,19 @@ export async function createDwhExport(config: OpsDataAwsConfig, awsConfig: IAwsC
       e => {
         if (e) {
           if (e.code === 'ResourceConflictException') {
-            // console.log('Permissions already exist.');
+            debug('Permissions already exist.');
             return cb();
           }
           return cb(e);
         }
-        // console.log('Added permissions.');
+        debug('Added permissions.');
         cb();
       }
     );
   }
 
   function createDwhExportTrigger(cb: any) {
-    // console.log('Creating exporter Cloud Watch Event...');
+    debug('Creating exporter Cloud Watch Event...');
     return cloudwatchevents.putRule(
       {
         Name: Config.trigger.name,
@@ -120,14 +126,14 @@ export async function createDwhExport(config: OpsDataAwsConfig, awsConfig: IAwsC
       (e, d) => {
         if (e) return cb(e);
         ctx.ruleArn = d.RuleArn;
-        // console.log('Created scheduled Cloud Watch Event:', ctx.ruleArn);
+        debug('Created scheduled Cloud Watch Event:', ctx.ruleArn);
         cb();
       }
     );
   }
 
   function createDwhExporter(cb: any) {
-    // console.log('Creating DWH exporter Lambda function...');
+    debug('Creating DWH exporter Lambda function...');
     let params = {
       FunctionName: Config.exporter.name,
       Description: 'DWH exporter',
@@ -141,7 +147,7 @@ export async function createDwhExport(config: OpsDataAwsConfig, awsConfig: IAwsC
       },
       Environment: {
         Variables: {
-          AWS_S3_BUCKET: config.getS3Bucket(awsConfig),
+          AWS_S3_BUCKET: config.getS3Bucket(deployment),
           DEPLOYMENT_ID: awsConfig.prefix || 'global',
           FUSEBIT_GC_BQ_KEY_BASE64: dataWarehouseKeyBase64,
         },
@@ -150,7 +156,7 @@ export async function createDwhExport(config: OpsDataAwsConfig, awsConfig: IAwsC
     return lambda.createFunction(params, (e, d) => {
       if (e) {
         if (e.code === 'ResourceConflictException') {
-          // console.log('Function already exists, updating...');
+          debug('Function already exists, updating...');
           let updateCodeParams = {
             FunctionName: params.FunctionName,
             ZipFile: params.Code.ZipFile,
@@ -168,7 +174,7 @@ export async function createDwhExport(config: OpsDataAwsConfig, awsConfig: IAwsC
               if (e) return cb(e);
               ctx.exporterArn = results[0].FunctionArn;
               ctx.exporterExisted = true;
-              // console.log('Exporter updated:', ctx.exporterArn);
+              debug('Exporter updated:', ctx.exporterArn);
               return cb();
             }
           );
@@ -176,7 +182,7 @@ export async function createDwhExport(config: OpsDataAwsConfig, awsConfig: IAwsC
         return cb(e);
       }
       ctx.exporterArn = d.FunctionArn;
-      // console.log('Exporter created:', ctx.exporterArn);
+      debug('Exporter created:', ctx.exporterArn);
       cb();
     });
   }
