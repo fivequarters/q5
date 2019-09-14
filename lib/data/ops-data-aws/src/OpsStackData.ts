@@ -93,7 +93,15 @@ export class OpsStackData extends DataSource implements IOpsStackData {
       '#!/bin/bash',
       this.dockerImageForUserData(tag),
       this.installSshKeysForUserData(),
-      this.envFileForUserData(deploymentName, network.region, account.id, subnetIds, securityGroupIds),
+      this.envFileForUserData(
+        deploymentName,
+        network.region,
+        account.id,
+        subnetIds,
+        securityGroupIds,
+        deployment.domainName,
+        this.config.getS3Bucket(deployment)
+      ),
       this.cloudWatchAgentForUserData(deploymentName),
       this.fusebitServiceForUserData(tag),
     ].join('\n');
@@ -255,18 +263,20 @@ systemctl start docker.fusebit`;
     region: string,
     account: string,
     subnetIds: string[],
-    securityGroupIds: string[]
+    securityGroupIds: string[],
+    domainName: string,
+    s3Bucket: string
   ) {
     return `
 cat > ${this.getEnvFilePath()} << EOF
 PORT=${this.config.monoApiPort}
 DEPLOYMENT_KEY=${deploymentName}
 AWS_REGION=${region}
-AWS_S3_BUCKET=fusebit-${deploymentName}-${region}
-API_SERVER=https://${deploymentName}.${region}.fusebit.io
-LAMBDA_BUILDER_ROLE=arn:aws:iam::${account}:role/flexd-builder
-LAMBDA_MODULE_BUILDER_ROLE=arn:aws:iam::${account}:role/flexd-builder
-LAMBDA_USER_FUNCTION_ROLE=arn:aws:iam::${account}:role/lambda_vpc_connect
+AWS_S3_BUCKET=${s3Bucket}
+API_SERVER=https://${deploymentName}.${region}.${domainName}
+LAMBDA_BUILDER_ROLE=arn:aws:iam::${account}:role/${this.config.builderRoleName}
+LAMBDA_MODULE_BUILDER_ROLE=arn:aws:iam::${account}:role/${this.config.builderRoleName}
+LAMBDA_USER_FUNCTION_ROLE=arn:aws:iam::${account}:role/${this.config.functionRoleName}
 LAMBDA_VPC_SUBNETS=${subnetIds.join(',')}
 LAMBDA_VPC_SECURITY_GROUPS=${securityGroupIds.join(',')}
 CRON_QUEUE_URL=https://sqs.${region}.amazonaws.com/${account}/${deploymentName}-cron

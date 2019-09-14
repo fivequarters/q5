@@ -1,13 +1,17 @@
 import * as AWS from 'aws-sdk';
 import { OpsDataAwsConfig } from './OpsDataAwsConfig';
 import { IAwsConfig, AwsCreds } from '@5qtrs/aws-config';
+import { IOpsDeployment } from '@5qtrs/ops-data';
+import { debug } from './OpsDebug';
 const Async = require('async');
 const Fs = require('fs');
 const Path = require('path');
 
-export async function createCron(config: OpsDataAwsConfig, awsConfig: IAwsConfig) {
+export async function createCron(config: OpsDataAwsConfig, awsConfig: IAwsConfig, deployment: IOpsDeployment) {
   const Config = createCronConfig(config, awsConfig);
   const DeploymentPackage = Fs.readFileSync(Path.join(__dirname, '../lambda/cron/dist/cron.zip'));
+
+  debug('IN CRON SETUP');
 
   let ctx: any = {};
 
@@ -47,14 +51,14 @@ export async function createCron(config: OpsDataAwsConfig, awsConfig: IAwsConfig
       ],
       (e: any) => {
         if (e) return reject(e);
-        // console.log('CRON DEPLOYED SUCCESSFULLY');
+        debug('CRON DEPLOYED SUCCESSFULLY');
         resolve();
       }
     );
   });
 
   function addSchedulerAsTriggerTarget(cb: any) {
-    // console.log('Adding scheduler Lambda as target of scheduled Cloud Watch Event...');
+    debug('Adding scheduler Lambda as target of scheduled Cloud Watch Event...');
     return cloudwatchevents.putTargets(
       {
         Rule: Config.trigger.name,
@@ -68,14 +72,14 @@ export async function createCron(config: OpsDataAwsConfig, awsConfig: IAwsConfig
               'Error adding scheduler Lambda as target of scheduled Cloud Watch Event: ' + JSON.stringify(d, null, 2)
             )
           );
-        // console.log('Added.');
+        debug('Added.');
         cb();
       }
     );
   }
 
   function allowTriggerToExecuteScheduler(cb: any) {
-    // console.log('Adding permissions for Cloud Watch Event to call scheduler Lambda...');
+    debug('Adding permissions for Cloud Watch Event to call scheduler Lambda...');
     return lambda.addPermission(
       {
         FunctionName: Config.scheduler.name,
@@ -87,19 +91,19 @@ export async function createCron(config: OpsDataAwsConfig, awsConfig: IAwsConfig
       e => {
         if (e) {
           if (e.code === 'ResourceConflictException') {
-            // console.log('Permissions already exist.');
+            debug('Permissions already exist.');
             return cb();
           }
           return cb(e);
         }
-        // console.log('Added permissions.');
+        debug('Added permissions.');
         cb();
       }
     );
   }
 
   function createScheduledTrigger(cb: any) {
-    // console.log('Creating scheduled Cloud Watch Event...');
+    debug('Creating scheduled Cloud Watch Event...');
     return cloudwatchevents.putRule(
       {
         Name: Config.trigger.name,
@@ -109,14 +113,14 @@ export async function createCron(config: OpsDataAwsConfig, awsConfig: IAwsConfig
       (e, d) => {
         if (e) return cb(e);
         ctx.ruleArn = d.RuleArn;
-        // console.log('Created scheduled Cloud Watch Event:', ctx.ruleArn);
+        debug('Created scheduled Cloud Watch Event:', ctx.ruleArn);
         cb();
       }
     );
   }
 
   function connectQueueToExecutor(cb: any) {
-    // console.log('Connecting executor to SQS...');
+    debug('Connecting executor to SQS...');
     return lambda.createEventSourceMapping(
       {
         EventSourceArn: ctx.queueArn,
@@ -127,19 +131,19 @@ export async function createCron(config: OpsDataAwsConfig, awsConfig: IAwsConfig
       (e, d) => {
         if (e) {
           if (e.code === 'ResourceConflictException') {
-            // console.log('Executor already connected to SQS.');
+            debug('Executor already connected to SQS.');
             return cb();
           }
           return cb(e);
         }
-        // console.log('Executor connected to SQS:', d.UUID);
+        debug('Executor connected to SQS:', d.UUID);
         cb();
       }
     );
   }
 
   function createExecutor(cb: any) {
-    // console.log('Creating cron executor Lambda function...');
+    debug('Creating cron executor Lambda function...');
     let params = {
       FunctionName: Config.executor.name,
       Description: 'CRON executor',
@@ -153,7 +157,7 @@ export async function createCron(config: OpsDataAwsConfig, awsConfig: IAwsConfig
       },
       Environment: {
         Variables: {
-          AWS_S3_BUCKET: config.getS3Bucket(awsConfig),
+          AWS_S3_BUCKET: config.getS3Bucket(deployment),
           CRON_CONCURRENT_EXECUTION_LIMIT: Config.executor.concurrentExecutionLimit.toString(),
           // LOGS_WS_URL: process.env.LOGS_WS_URL,
           // LOGS_WS_TOKEN_SIGNATURE_KEY: process.env.LOGS_WS_TOKEN_SIGNATURE_KEY,
@@ -164,7 +168,7 @@ export async function createCron(config: OpsDataAwsConfig, awsConfig: IAwsConfig
     return lambda.createFunction(params, (e, d) => {
       if (e) {
         if (e.code === 'ResourceConflictException') {
-          // console.log('Function already exists, updating...');
+          debug('Function already exists, updating...');
           let updateCodeParams = {
             FunctionName: params.FunctionName,
             ZipFile: params.Code.ZipFile,
@@ -182,7 +186,7 @@ export async function createCron(config: OpsDataAwsConfig, awsConfig: IAwsConfig
               if (e) return cb(e);
               ctx.executorArn = results[0].FunctionArn;
               ctx.executorExisted = true;
-              // console.log('Executor updated:', ctx.executorArn);
+              debug('Executor updated:', ctx.executorArn);
               return cb();
             }
           );
@@ -190,13 +194,13 @@ export async function createCron(config: OpsDataAwsConfig, awsConfig: IAwsConfig
         return cb(e);
       }
       ctx.executorArn = d.FunctionArn;
-      // console.log('Executor created:', ctx.executorArn);
+      debug('Executor created:', ctx.executorArn);
       return cb();
     });
   }
 
   function createScheduler(cb: any) {
-    // console.log('Creating cron scheduler Lambda function...');
+    debug('Creating cron scheduler Lambda function...');
     let params = {
       FunctionName: Config.scheduler.name,
       Description: 'CRON scheduler',
@@ -212,7 +216,7 @@ export async function createCron(config: OpsDataAwsConfig, awsConfig: IAwsConfig
         Variables: {
           CRON_FILTER: Config.scheduler.filter,
           CRON_MAX_EXECUTIONS_PER_WINDOW: Config.scheduler.maxExecutionsPerWindow.toString(),
-          AWS_S3_BUCKET: config.getS3Bucket(awsConfig),
+          AWS_S3_BUCKET: config.getS3Bucket(deployment),
           CRON_QUEUE_URL: ctx.queueUrl,
         },
       },
@@ -220,7 +224,7 @@ export async function createCron(config: OpsDataAwsConfig, awsConfig: IAwsConfig
     return lambda.createFunction(params, (e, d) => {
       if (e) {
         if (e.code === 'ResourceConflictException') {
-          // console.log('Function already exists, updating...');
+          debug('Function already exists, updating...');
           let updateCodeParams = {
             FunctionName: params.FunctionName,
             ZipFile: params.Code.ZipFile,
@@ -238,7 +242,7 @@ export async function createCron(config: OpsDataAwsConfig, awsConfig: IAwsConfig
               if (e) return cb(e);
               ctx.schedulerArn = results[0].FunctionArn;
               ctx.schedulerExisted = true;
-              // console.log('Scheduler updated:', ctx.schedulerArn);
+              debug('Scheduler updated:', ctx.schedulerArn);
               return cb();
             }
           );
@@ -246,13 +250,13 @@ export async function createCron(config: OpsDataAwsConfig, awsConfig: IAwsConfig
         return cb(e);
       }
       ctx.schedulerArn = d.FunctionArn;
-      // console.log('Scheduler created:', ctx.schedulerArn);
+      debug('Scheduler created:', ctx.schedulerArn);
       cb();
     });
   }
 
   function setupDeadLetterQueue(cb: any) {
-    // console.log('Creating SQS dead letter queue...');
+    debug('Creating SQS dead letter queue...');
     return sqs.createQueue(
       {
         QueueName: Config.queue.deadLetterName,
@@ -261,14 +265,14 @@ export async function createCron(config: OpsDataAwsConfig, awsConfig: IAwsConfig
       (e, d) => {
         if (e) return cb(e);
         ctx.deadLetterQueueUrl = d.QueueUrl;
-        // console.log('Dead letter queue created:', d.QueueUrl);
+        debug('Dead letter queue created:', d.QueueUrl);
         cb();
       }
     );
   }
 
   function getDeadLetterQueueArn(cb: any) {
-    // console.log('Getting dead letter queue ARN...');
+    debug('Getting dead letter queue ARN...');
     sqs.getQueueAttributes(
       {
         QueueUrl: ctx.deadLetterQueueUrl,
@@ -277,14 +281,14 @@ export async function createCron(config: OpsDataAwsConfig, awsConfig: IAwsConfig
       (e, d) => {
         if (e) return cb(e);
         ctx.deadLetterQueueArn = d.Attributes && d.Attributes.QueueArn;
-        // console.log('Dead letter queue ARN:', ctx.deadLetterQueueArn);
+        debug('Dead letter queue ARN:', ctx.deadLetterQueueArn);
         cb();
       }
     );
   }
 
   function getQueueArn(cb: any) {
-    // console.log('Getting queue ARN...');
+    debug('Getting queue ARN...');
     sqs.getQueueAttributes(
       {
         QueueUrl: ctx.queueUrl,
@@ -293,30 +297,37 @@ export async function createCron(config: OpsDataAwsConfig, awsConfig: IAwsConfig
       (e, d) => {
         if (e) return cb(e);
         ctx.queueArn = d.Attributes && d.Attributes.QueueArn;
-        // console.log('Queue ARN:', ctx.queueArn);
+        debug('Queue ARN:', ctx.queueArn);
         cb();
       }
     );
   }
 
   function setupQueue(cb: any) {
-    // console.log('Creating SQS queue...');
+    debug('Creating SQS queue...');
     sqs.createQueue(
       {
         QueueName: Config.queue.name,
-        Attributes: {
-          VisibilityTimeout: (6 * Config.executor.timeout).toString(),
-          RedrivePolicy: JSON.stringify({
-            maxReceiveCount: Config.queue.maxReceiveCount.toString(),
-            deadLetterTargetArn: ctx.deadLetterQueueArn,
-          }),
-        },
       },
       (e, d) => {
         if (e) return cb(e);
         ctx.queueUrl = d.QueueUrl;
-        // console.log('Queue created:', d.QueueUrl);
-        cb();
+        sqs.setQueueAttributes(
+          {
+            Attributes: {
+              VisibilityTimeout: (6 * Config.executor.timeout).toString(),
+              RedrivePolicy: JSON.stringify({
+                maxReceiveCount: Config.queue.maxReceiveCount.toString(),
+                deadLetterTargetArn: ctx.deadLetterQueueArn,
+              }),
+            },
+            QueueUrl: ctx.queueUrl,
+          },
+          (e, d) => {
+            debug('Queue created and configured:', ctx.queueUrl);
+            cb();
+          }
+        );
       }
     );
   }
@@ -343,7 +354,7 @@ function createCronConfig(config: OpsDataAwsConfig, awsConfig: IAwsConfig) {
       timeout: 60,
       memory: 128,
       runtime: 'nodejs8.10',
-      role: 'arn:aws:iam::321612923577:role/cron-executor', // pre-created
+      role: `arn:aws:iam::${awsConfig.account}:role/${config.cronExecutorRoleName}`,
       batchSize: 10,
       concurrentExecutionLimit: '10',
     },
@@ -354,7 +365,8 @@ function createCronConfig(config: OpsDataAwsConfig, awsConfig: IAwsConfig) {
       timeout: 60,
       memory: 128,
       runtime: 'nodejs8.10',
-      role: 'arn:aws:iam::321612923577:role/cron-scheduler', // pre-created
+      roleName: `${CronPrefix}cron-scheduler`,
+      role: `arn:aws:iam::${awsConfig.account}:role/${config.cronSchedulerRoleName}`,
       filter: config.cronFilter,
       maxExecutionsPerWindow: config.cronMaxExecutionsPerWindow,
     },
@@ -404,28 +416,28 @@ export async function deleteCron(config: OpsDataAwsConfig, awsConfig: IAwsConfig
         if (e) {
           return reject(e);
         }
-        //console.log('CRON DESTROYED SUCCESSFULLY');
+        //debug('CRON DESTROYED SUCCESSFULLY');
         resolve();
       }
     );
   });
 
   function deleteScheduledTriggerTargets(cb: any) {
-    //console.log(`Deleting rule targets for Cloud Watch Event '${Config.trigger.name}'...`);
+    //debug(`Deleting rule targets for Cloud Watch Event '${Config.trigger.name}'...`);
     return cloudwatchevents.listTargetsByRule({ Rule: Config.trigger.name }, (e: any, d: any) => {
       if (e) {
-        //console.log('Error deleting rule targets:', e.message);
+        //debug('Error deleting rule targets:', e.message);
         cb();
       } else {
         let ids = d.Targets.map((t: any) => t.Id);
         if (ids.length > 0) {
           return cloudwatchevents.removeTargets({ Ids: ids, Rule: Config.trigger.name }, (e, d) => {
-            // if (e) console.log('Error deleting rule targets', e.message);
-            // else console.log('Deleted rule targets');
+            // if (e) debug('Error deleting rule targets', e.message);
+            // else debug('Deleted rule targets');
             cb();
           });
         } else {
-          console.log('No targets to delete');
+          debug('No targets to delete');
           cb();
         }
       }
@@ -433,24 +445,24 @@ export async function deleteCron(config: OpsDataAwsConfig, awsConfig: IAwsConfig
   }
 
   function deleteScheduledTrigger(cb: any) {
-    // console.log(`Deleting Cloud Watch Event '${Config.trigger.name}'...`);
+    debug(`Deleting Cloud Watch Event '${Config.trigger.name}'...`);
     return cloudwatchevents.deleteRule(
       {
         Name: Config.trigger.name,
       },
       e => {
-        // if (e) console.log('Error deleting scheduled Cloud Watch Event:', e.message);
-        // else console.log('Deleted scheduled Cloud Watch Event.');
+        // if (e) debug('Error deleting scheduled Cloud Watch Event:', e.message);
+        // else debug('Deleted scheduled Cloud Watch Event.');
         cb();
       }
     );
   }
 
   function deleteEventSourceMappings(name: string, cb: any) {
-    //console.log(`Deleting event source mappings for Lambda function '${name}'...`);
+    //debug(`Deleting event source mappings for Lambda function '${name}'...`);
     return lambda.listEventSourceMappings({ FunctionName: name }, (e: any, d: any) => {
       if (e) {
-        //console.log('Error deleting event source mappings for Lambda:', e.message);
+        //debug('Error deleting event source mappings for Lambda:', e.message);
         cb();
       } else {
         if (d.EventSourceMappings.length > 0) {
@@ -458,14 +470,14 @@ export async function deleteCron(config: OpsDataAwsConfig, awsConfig: IAwsConfig
             d.EventSourceMappings,
             (mapping: any, cb: any) =>
               lambda.deleteEventSourceMapping({ UUID: mapping.UUID }, e => {
-                // if (e) console.log('Error deleting UUID mapping:', mapping.UUID, e.message);
-                // else console.log('Deleted event mapping:', mapping.UUID);
+                // if (e) debug('Error deleting UUID mapping:', mapping.UUID, e.message);
+                // else debug('Deleted event mapping:', mapping.UUID);
                 cb();
               }),
             cb
           );
         } else {
-          //console.log('No event mappings to delete.');
+          //debug('No event mappings to delete.');
           cb();
         }
       }
@@ -473,24 +485,24 @@ export async function deleteCron(config: OpsDataAwsConfig, awsConfig: IAwsConfig
   }
 
   function deleteLambda(name: string, cb: any) {
-    //console.log(`Deleting Lambda function '${name}'...`);
+    //debug(`Deleting Lambda function '${name}'...`);
     return lambda.deleteFunction(
       {
         FunctionName: name,
       },
       (e, d) => {
-        // if (e) console.log('Error deleting Lambda:', e.message);
-        // else console.log('Function deleted');
+        // if (e) debug('Error deleting Lambda:', e.message);
+        // else debug('Function deleted');
         cb();
       }
     );
   }
 
   function deleteQueue(queueName: string, cb: any) {
-    //console.log(`Deleting SQS queue '${queueName}'...`);
+    //debug(`Deleting SQS queue '${queueName}'...`);
     return sqs.getQueueUrl({ QueueName: queueName }, (e: any, d: any) => {
       if (e) {
-        //console.log('Error deleting queue:', e.message);
+        //debug('Error deleting queue:', e.message);
         return cb();
       } else {
         return sqs.deleteQueue(
@@ -498,8 +510,8 @@ export async function deleteCron(config: OpsDataAwsConfig, awsConfig: IAwsConfig
             QueueUrl: d.QueueUrl,
           },
           (e, d) => {
-            // if (e) console.log('Error deleting queue:', e.message);
-            // else console.log('Queue deleted');
+            // if (e) debug('Error deleting queue:', e.message);
+            // else debug('Queue deleted');
             cb();
           }
         );

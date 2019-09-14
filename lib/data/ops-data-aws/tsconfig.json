@@ -17,6 +17,8 @@
     { "path": "../../aws/aws-alb" },
     { "path": "../../aws/aws-route53" },
     { "path": "../../aws/aws-region" },
-    { "path": "../storage-data-aws" }
+    { "path": "../storage-data-aws" },
+    { "path": "../../shared/random" },
+    { "path": "../../node/jwt" }
   ]
 }

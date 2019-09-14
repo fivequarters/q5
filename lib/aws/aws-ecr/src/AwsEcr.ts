@@ -52,6 +52,27 @@ export class AwsEcr extends AwsBase<typeof ECR> {
     super(config);
   }
 
+  public async pullImage(repository: string, tag: string) {
+    const accountId = '321612923577';
+    const region = 'us-west-2';
+    const auth = await this.getAuth(accountId);
+    const decoded = fromBase64(auth.token);
+    const token = decoded.substring(4);
+    const command = [
+      `docker login -u AWS -p ${token} ${auth.loginUrl} &&`,
+      `docker pull ${accountId}.dkr.ecr.${region}.amazonaws.com/${repository}:${tag} &&`,
+      `docker tag ${accountId}.dkr.ecr.${region}.amazonaws.com/${repository}:${tag} ${repository}:${tag}`,
+    ].join(' ');
+
+    const result = await spawn(command, { shell: true });
+    if (result.code !== 0) {
+      const message = `Docker login and pull failed with output: ${result.stderr.toString()}`;
+      throw new Error(message);
+    }
+
+    await this.pushImage(repository, tag);
+  }
+
   public async pushImage(repository: string, tag: string) {
     const repo = await this.getRepository(repository);
     if (!repo) {
@@ -165,11 +186,11 @@ export class AwsEcr extends AwsBase<typeof ECR> {
     return new ECR(config);
   }
 
-  private async getAuth(): Promise<any> {
+  private async getAuth(registryId?: string): Promise<any> {
     const ecr = await this.getAws();
 
     return new Promise((resolve, reject) => {
-      ecr.getAuthorizationToken({}, (error: any, data: any) => {
+      ecr.getAuthorizationToken(registryId ? { registryIds: [registryId] } : {}, (error: any, data: any) => {
         if (error) {
           return reject(error);
         }

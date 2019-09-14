@@ -197,16 +197,18 @@ export class AwsCert extends AwsBase<typeof ACM> {
           validations: [],
         };
 
-        for (const option of data.Certificate.DomainValidationOptions) {
-          if (option.ResourceRecord) {
-            certificate.validations.push({
-              domain: option.DomainName,
-              status: option.ValidationStatus,
-              record: {
-                name: option.ResourceRecord.Name,
-                value: option.ResourceRecord.Value,
-              },
-            });
+        if (data.Certificate.DomainValidationOptions) {
+          for (const option of data.Certificate.DomainValidationOptions) {
+            if (option.ResourceRecord) {
+              certificate.validations.push({
+                domain: option.DomainName,
+                status: option.ValidationStatus,
+                record: {
+                  name: option.ResourceRecord.Name,
+                  value: option.ResourceRecord.Value,
+                },
+              });
+            }
           }
         }
 

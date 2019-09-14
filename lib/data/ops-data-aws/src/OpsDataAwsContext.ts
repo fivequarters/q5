@@ -17,6 +17,7 @@ import { OpsImageData } from './OpsImageData';
 import { OpsDeploymentData } from './OpsDeploymentData';
 import { OpsStackData } from './OpsStackData';
 import { OpsDataAwsConfig } from './OpsDataAwsConfig';
+import { OpsIam } from './OpsIam';
 
 // ----------------
 // Exported Classes
@@ -31,7 +32,8 @@ export class OpsDataAwsContext extends DataSource implements IOpsDataContext {
     const image = await OpsImageData.create(config, provider, tables);
     const deployment = await OpsDeploymentData.create(config, provider, tables);
     const stack = await OpsStackData.create(config, provider, tables);
-    return new OpsDataAwsContext(tables, account, domain, network, image, deployment, stack);
+    const iam = await OpsIam.create(config, provider);
+    return new OpsDataAwsContext(tables, account, domain, network, image, deployment, stack, iam);
   }
 
   private constructor(
@@ -41,9 +43,10 @@ export class OpsDataAwsContext extends DataSource implements IOpsDataContext {
     network: OpsNetworkData,
     image: OpsImageData,
     deployment: OpsDeploymentData,
-    stack: OpsStackData
+    stack: OpsStackData,
+    iam: OpsIam
   ) {
-    super([tables]);
+    super([tables, iam, image]);
     this.account = account;
     this.domain = domain;
     this.network = network;

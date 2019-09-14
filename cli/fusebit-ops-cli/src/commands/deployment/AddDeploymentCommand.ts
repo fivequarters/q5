@@ -85,6 +85,7 @@ export class AddDeploymentCommand extends Command {
       size,
       dataWarehouseEnabled,
       region: network.region,
+      featureUseDnsS3Bucket: true,
     };
 
     await deploymentService.checkDeploymentExists(deployment);

@@ -17,7 +17,7 @@ const command = {
     },
     {
       name: 'tag',
-      description: 'The tag of the deployment to deploy',
+      description: 'The tag of the image to deploy',
     },
   ],
   options: [

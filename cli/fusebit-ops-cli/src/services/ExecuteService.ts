@@ -57,6 +57,17 @@ export class ExecuteService {
     }
   }
 
+  private isPrettyOutput() {
+    const output = this.input.options.output;
+    return !output || output === 'pretty';
+  }
+
+  public async newLine() {
+    if (this.isPrettyOutput()) {
+      return this.input.io.writeLine();
+    }
+  }
+
   public async message(header: IText, message: IText, kind: MessageKind = MessageKind.result) {
     if (!this.input.options.quiet) {
       const formattedMessage = await Message.create({ header, message, kind });

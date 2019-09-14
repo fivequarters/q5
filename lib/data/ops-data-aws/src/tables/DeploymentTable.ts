@@ -32,6 +32,7 @@ function toItem(deployment: IOpsDeployment) {
   item.domainName = { S: deployment.domainName };
   item.size = { N: deployment.size.toString() };
   item.dataWarehouseEnabled = { BOOL: deployment.dataWarehouseEnabled };
+  item.featureUseDnsS3Bucket = { BOOL: deployment.featureUseDnsS3Bucket };
   return item;
 }
 
@@ -43,6 +44,7 @@ function fromItem(item: any): IOpsDeployment {
     domainName: item.domainName.S,
     size: parseInt(item.size.N, 10),
     dataWarehouseEnabled: item.dataWarehouseEnabled.BOOL,
+    featureUseDnsS3Bucket: item.featureUseDnsS3Bucket && item.featureUseDnsS3Bucket.BOOL,
   };
 }
 
@@ -72,6 +74,7 @@ export interface IOpsDeployment {
   domainName: string;
   size: number;
   dataWarehouseEnabled: boolean;
+  featureUseDnsS3Bucket: boolean;
 }
 
 export interface IListOpsDeploymentOptions {

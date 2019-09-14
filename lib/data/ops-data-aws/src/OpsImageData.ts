@@ -37,6 +37,10 @@ export class OpsImageData extends DataSource implements IOpsImageData {
     return this.awsEcr.pushImage(this.config.monoRepoName, tag);
   }
 
+  public async pull(tag: string): Promise<void> {
+    return this.awsEcr.pullImage(this.config.monoRepoName, tag);
+  }
+
   public async list(): Promise<IOpsImage[]> {
     return this.awsEcr.describeImages(this.config.monoRepoName);
   }

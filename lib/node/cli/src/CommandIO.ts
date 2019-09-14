@@ -225,7 +225,7 @@ export class CommandIO implements ICommandIO {
     if (this.writeEnabled) {
       const output = this.output as TTY.WriteStream;
       if (output && output.isTTY) {
-        this.spinner = enabled;
+        this.spinner = enabled && process.env.FUSEBIT_DEBUG !== '1';
         if (this.spinner) {
           let count = 1;
           let firstSpin = true;
