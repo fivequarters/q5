@@ -19,7 +19,7 @@ export default function spawn(
     cwd?: string;
     args?: string[];
     env?: {};
-    stdin?: Readable;
+    stdin?: string;
     stdout?: Writable;
     stderr?: Writable;
     shell?: boolean;
@@ -45,6 +45,10 @@ export default function spawn(
     }
 
     const child = childProcess.spawn(command, options.args || [], spawnOptions);
+    if (options.stdin) {
+      child.stdin.write(options.stdin);
+      child.stdin.end();
+    }
     process.on('beforeExit', () => {
       child.kill();
     });

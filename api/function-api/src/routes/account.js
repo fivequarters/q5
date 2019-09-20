@@ -33,7 +33,8 @@ async function getAccountContext() {
 
 async function getResolvedAgent(accountId, token) {
   const accountContext = await getAccountContext();
-  const isRootAgent = token === process.env.API_AUTHORIZATION_KEY;
+  // Disallow the configuration of a trusted symmetric key
+  const isRootAgent = false; // token === process.env.API_AUTHORIZATION_KEY;
   return accountContext.getResolvedAgent(accountId, token, isRootAgent);
 }
 

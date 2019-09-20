@@ -59,12 +59,12 @@ export class AwsEcr extends AwsBase<typeof ECR> {
     const decoded = fromBase64(auth.token);
     const token = decoded.substring(4);
     const command = [
-      `docker login -u AWS -p ${token} ${auth.loginUrl} &&`,
+      `docker login -u AWS --password-stdin ${auth.loginUrl} &&`,
       `docker pull ${accountId}.dkr.ecr.${region}.amazonaws.com/${repository}:${tag} &&`,
       `docker tag ${accountId}.dkr.ecr.${region}.amazonaws.com/${repository}:${tag} ${repository}:${tag}`,
     ].join(' ');
 
-    const result = await spawn(command, { shell: true });
+    const result = await spawn(command, { shell: true, stdin: token });
     if (result.code !== 0) {
       const message = `Docker login and pull failed with output: ${result.stderr.toString()}`;
       throw new Error(message);
@@ -86,12 +86,12 @@ export class AwsEcr extends AwsBase<typeof ECR> {
     const decoded = fromBase64(auth.token);
     const token = decoded.substring(4);
     const command = [
-      `docker login -u AWS -p ${token} ${auth.loginUrl} &&`,
+      `docker login -u AWS --password-stdin ${auth.loginUrl} &&`,
       `docker tag ${repository}:${tag} ${accountId}.dkr.ecr.${region}.amazonaws.com/${repository}:${tag} &&`,
       `docker push ${accountId}.dkr.ecr.${region}.amazonaws.com/${repository}:${tag}`,
     ].join(' ');
 
-    const result = await spawn(command, { shell: true });
+    const result = await spawn(command, { shell: true, stdin: token });
     if (result.code !== 0) {
       const message = `Docker login and push failed with output: ${result.stderr.toString()}`;
       throw new Error(message);

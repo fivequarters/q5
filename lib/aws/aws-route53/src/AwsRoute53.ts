@@ -16,6 +16,7 @@ function getMatchingDetail(
   details: IHostedZoneRecordDetail[]
 ): IHostedZoneRecordDetail | undefined {
   const name = normalizeDomain(record.name);
+  const aliasName = record.alias ? normalizeDomain(record.alias.name) : undefined;
   const values = record.values ? ensureArray(record.values) : undefined;
 
   for (const detail of details) {
@@ -24,7 +25,7 @@ function getMatchingDetail(
         record.alias &&
         detail.alias &&
         detail.alias.hostedZone === record.alias.hostedZone &&
-        detail.alias.name === record.alias.name
+        detail.alias.name === aliasName
       ) {
         return detail;
       } else if (values && detail.values && same(values, detail.values)) {

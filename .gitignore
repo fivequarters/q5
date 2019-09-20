@@ -55,3 +55,4 @@ typings/
 .aws.*.env.bak
 
 .DS_Store
+.tgz

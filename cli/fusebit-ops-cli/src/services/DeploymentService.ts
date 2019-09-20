@@ -419,6 +419,9 @@ export class DeploymentService {
       Text.eol(),
       Text.dim('Data Warehouse: '),
       deployment.dataWarehouseEnabled ? 'Enabled' : 'Disabled',
+      Text.eol(),
+      Text.dim('Base URL: '),
+      `https://${deployment.deploymentName}.${deployment.region}.${deployment.domainName}`,
     ];
 
     await this.executeService.message(Text.bold(deployment.deploymentName), Text.create(details));

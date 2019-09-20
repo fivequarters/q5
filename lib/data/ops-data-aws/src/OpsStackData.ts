@@ -16,6 +16,7 @@ import { OpsNetworkData } from './OpsNetworkData';
 import { OpsDataAwsProvider } from './OpsDataAwsProvider';
 import { OpsDataAwsConfig } from './OpsDataAwsConfig';
 import { OpsAccountData } from './OpsAccountData';
+import { random } from '@5qtrs/random';
 
 // ------------------
 // Internal Functions
@@ -100,7 +101,8 @@ export class OpsStackData extends DataSource implements IOpsStackData {
         subnetIds,
         securityGroupIds,
         deployment.domainName,
-        this.config.getS3Bucket(deployment)
+        this.config.getS3Bucket(deployment),
+        newStack.env
       ),
       this.cloudWatchAgentForUserData(deploymentName),
       this.fusebitServiceForUserData(tag),
@@ -207,9 +209,9 @@ export class OpsStackData extends DataSource implements IOpsStackData {
 
   private async getNextStackId(deploymentName: string): Promise<number> {
     const stacks = await this.tables.stackTable.listAll(deploymentName);
-    let nextStackId = 0;
+    let nextStackId = Math.floor(Math.random() * 1000);
     while (stackIdIsUsed(nextStackId, stacks)) {
-      nextStackId++;
+      nextStackId = Math.floor(Math.random() * 1000);
     }
     return nextStackId;
   }
@@ -265,7 +267,8 @@ systemctl start docker.fusebit`;
     subnetIds: string[],
     securityGroupIds: string[],
     domainName: string,
-    s3Bucket: string
+    s3Bucket: string,
+    env?: string
   ) {
     return `
 cat > ${this.getEnvFilePath()} << EOF
@@ -280,7 +283,8 @@ LAMBDA_USER_FUNCTION_ROLE=arn:aws:iam::${account}:role/${this.config.functionRol
 LAMBDA_VPC_SUBNETS=${subnetIds.join(',')}
 LAMBDA_VPC_SECURITY_GROUPS=${securityGroupIds.join(',')}
 CRON_QUEUE_URL=https://sqs.${region}.amazonaws.com/${account}/${deploymentName}-cron
-${require('fs').readFileSync(require('path').join(__dirname, '../../../../.aws.env'), 'utf8')}
+LOGS_TOKEN_SIGNATURE_KEY=${random({ lengthInBytes: 32 })}
+${env || ''}
 EOF`;
   }
 

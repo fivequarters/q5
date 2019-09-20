@@ -1,8 +1,9 @@
 import { IExecuteInput, Confirm } from '@5qtrs/cli';
 import { Text } from '@5qtrs/text';
-import { IOpsStack, IOpsNewStack, IListOpsStackOptions, IListOpsStackResult } from '@5qtrs/ops-data';
+import { IOpsStack, IOpsNewStack, IListOpsStackOptions, IListOpsStackResult, IOpsDeployment } from '@5qtrs/ops-data';
 import { OpsService } from './OpsService';
 import { ExecuteService } from './ExecuteService';
+import { request } from '@5qtrs/request';
 
 // ----------------
 // Exported Classes
@@ -32,6 +33,7 @@ export class StackService {
         { name: 'Deployment', value: stack.deploymentName },
         { name: 'Tag', value: stack.tag },
         { name: 'Size', value: stack.size ? stack.size.toString() : '<default>' },
+        { name: 'Environment', value: stack.env || '<Not set>' },
       ],
     });
     const confirmed = await confirmPrompt.prompt(this.input.io);
@@ -93,6 +95,40 @@ export class StackService {
       await this.executeService.warning('Remove Canceled', Text.create('Removing the stack was canceled'));
       throw new Error('Remove Canceled');
     }
+  }
+
+  public async waitForStack(stack: IOpsStack, deployment: IOpsDeployment): Promise<void> {
+    let url = `https://stack-${stack.id}.${deployment.deploymentName}.${deployment.region}.${
+      deployment.domainName
+    }/v1/health`;
+
+    await this.executeService.execute(
+      {
+        header: 'Waiting for the New Stack',
+        message: `Waiting up to 5 minutes for the new stack '${stack.id}' on deployment '${Text.bold(
+          deployment.deploymentName
+        )}' to report healthy at ${url}`,
+        errorHeader: 'Error',
+      },
+      async () => {
+        await new Promise(resolve => setTimeout(resolve, 30 * 1000));
+        for (let i = 0; i < 27; i++) {
+          let response = await request({ method: 'GET', url, validStatus: () => true });
+          if (response.status === 200) return;
+          await new Promise(resolve => setTimeout(resolve, 10 * 1000));
+        }
+        throw new Error(
+          `Stack '${stack.id}' on deployment '${Text.bold(
+            deployment.deploymentName
+          )}' did not report healthy within 5 minutes. You can manually check the health status of the stack at ${url}`
+        );
+      }
+    );
+
+    await this.executeService.result(
+      'Stack is Healthy',
+      `The new stack '${stack.id}' on deployment '${Text.bold(deployment.deploymentName)}' is healthy`
+    );
   }
 
   public async deploy(newStack: IOpsNewStack): Promise<IOpsStack> {
@@ -231,7 +267,7 @@ export class StackService {
     return confirmPrompt.prompt(this.input.io);
   }
 
-  public async displayStacks(stacks: IOpsStack[]) {
+  public async displayStacks(stacks: IOpsStack[], deployments: IOpsDeployment[]) {
     if (this.input.options.format === 'json') {
       this.input.io.writeLine(JSON.stringify(stacks, null, 2));
       return;
@@ -244,7 +280,14 @@ export class StackService {
 
     await this.executeService.message(Text.cyan('Stack'), Text.cyan('Details'));
     for (const stack of stacks) {
-      this.writeStacks(stack);
+      let deployment: IOpsDeployment | undefined = undefined;
+      for (const d of deployments) {
+        if (d.deploymentName === stack.deploymentName && d.region === stack.region) {
+          deployment = d;
+          break;
+        }
+      }
+      this.writeStacks(stack, deployment);
     }
   }
 
@@ -258,7 +301,7 @@ export class StackService {
     this.writeStacks(stack);
   }
 
-  private async writeStacks(stack: IOpsStack) {
+  private async writeStacks(stack: IOpsStack, deployment?: IOpsDeployment) {
     const details = [
       Text.dim('Tag: '),
       stack.tag,
@@ -269,6 +312,13 @@ export class StackService {
       Text.dim('Status: '),
       stack.active ? 'ACTIVE' : 'NOT ACTIVE',
     ];
+    if (deployment) {
+      details.push(
+        Text.eol(),
+        Text.dim('Base URL: '),
+        `https://stack-${stack.id}.${stack.deploymentName}.${stack.region}.${deployment.domainName}`
+      );
+    }
     const stackName = [Text.bold(stack.deploymentName), ':', Text.bold(stack.id.toString())];
 
     await this.executeService.message(Text.create(stackName), Text.create(details));
