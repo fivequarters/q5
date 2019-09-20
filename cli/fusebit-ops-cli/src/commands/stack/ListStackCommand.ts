@@ -1,5 +1,5 @@
 import { Command, IExecuteInput } from '@5qtrs/cli';
-import { StackService } from '../../services';
+import { StackService, DeploymentService } from '../../services';
 
 // ------------------
 // Internal Constants
@@ -44,10 +44,12 @@ export class ListStackCommand extends Command {
     const format = input.options.format as string;
 
     const stackService = await StackService.create(input);
+    const deploymentService = await DeploymentService.create(input);
+    const deployments = await deploymentService.listAllDeployments();
 
     if (format === 'json') {
       const stacks = await stackService.listAllStacks(deploymentName);
-      await stackService.displayStacks(stacks);
+      await stackService.displayStacks(stacks, deployments);
     } else {
       let getMore = true;
       let result;
@@ -55,7 +57,7 @@ export class ListStackCommand extends Command {
       while (getMore) {
         result = await stackService.listStacks(options);
         options.next = result.next || undefined;
-        await stackService.displayStacks(result.items);
+        await stackService.displayStacks(result.items, deployments);
         getMore = result.next ? await stackService.confirmListMore() : false;
       }
     }

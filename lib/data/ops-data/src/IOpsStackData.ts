@@ -9,6 +9,7 @@ export interface IOpsNewStack {
   region: string;
   tag: string;
   size?: number;
+  env?: string;
 }
 
 export interface IOpsStack extends IOpsNewStack {

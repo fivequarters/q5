@@ -1,13 +1,16 @@
 {
   "name": "@5qtrs/fusebit-ops-cli",
-  "version": "0.0.1",
-  "description": "",
+  "version": "1.12.0",
+  "description": "The Fusebit Platform Operations CLI",
   "main": "libc/index.js",
   "license": "UNLICENSED",
-  "author": "FiveQuarters.io",
+  "author": "https://fusebit.io",
   "bin": {
     "fuse-ops": "libc/index.js"
   },
+  "private": true,
+  "packageAs": "fusebit-ops-cli",
+  "packageAssets": [],
   "scripts": {
     "build": "tsc -b",
     "test": "jest --colors",

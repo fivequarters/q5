@@ -33,6 +33,10 @@ const command = {
       defaultText: 'deployment size',
     },
     {
+      name: 'env',
+      description: 'Path to an .env file with additional environment variables for the stack',
+    },
+    {
       name: 'confirm',
       aliases: ['c'],
       description: 'If set to true, prompts for confirmation before deploying the stack',
@@ -62,6 +66,7 @@ export class AddStackCommand extends Command {
     const region = input.options.region as string;
     const size = input.options.size as number;
     const confirm = input.options.confirm as boolean;
+    const env = input.options.env as string;
 
     const stackService = await StackService.create(input);
     const deploymentService = await DeploymentService.create(input);
@@ -72,13 +77,17 @@ export class AddStackCommand extends Command {
       tag,
       size: size || deployment.size,
       region: deployment.region,
+      env,
     };
 
     if (confirm) {
       await stackService.confirmDeployStack(newStack);
     }
 
+    newStack.env = env ? require('fs').readFileSync(require('path').join(process.cwd(), env), 'utf8') : undefined;
+
     const stack = await stackService.deploy(newStack);
+    await stackService.waitForStack(stack, deployment);
     await stackService.displayStack(stack);
 
     return 0;
