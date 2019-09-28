@@ -20,16 +20,16 @@ All public releases of the Fusebit platform components are documented here, incl
 <td>
 <ul>
 <li>
-Fusebit CLI <code>v1.1+</code> - <a href="{{ site.baseurl }}{% link fusebit-cli.md %}">release notes</a>
+Fusebit CLI <code>v1.0+</code> - <a href="{{ site.baseurl }}{% link fusebit-cli.md %}">release notes</a>
 </li>
 <li>
-Fusebit Editor <code>v1.1+</code> - <a href="{{ site.baseurl }}{% link fusebit-editor.md %}">release notes</a>
+Fusebit Editor <code>v1.0+</code> - <a href="{{ site.baseurl }}{% link fusebit-editor.md %}">release notes</a>
 </li>
 <li>
 Fusebit HTTP API <code>v1.0+</code> - <a href="{{ site.baseurl }}{% link fusebit-http-api.md %}">release notes</a>
 </li>
 <li>
-Fusebit Ops CLI <code>v0.11+</code> - <a href="{{ site.baseurl }}{% link fusebit-ops-cli.md %}">release notes</a></li>
+Fusebit Ops CLI <code>v1.12+</code> - <a href="{{ site.baseurl }}{% link fusebit-ops-cli.md %}">release notes</a></li>
 </ul>
 </td>
 <td style="width:30%">
@@ -43,7 +43,7 @@ Fusebit Ops CLI <code>v0.11+</code> - <a href="{{ site.baseurl }}{% link fusebit
 </tr>
 </table>
 
-### Fusebit Platform v1.0
+<!-- ### Fusebit Platform v1.0
 
 <table>
 <tr>
@@ -74,4 +74,4 @@ Fusebit Ops CLI <code>v0.11.*</code>, latest patch <code>v0.11.10</code> (<a hre
 </dl>
 </td>
 </tr>
-</table>
+</table> -->

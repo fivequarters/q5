@@ -8,6 +8,8 @@ title: Fusebit CLI
 {: .no_toc }
 <!-- prettier-ignore-end -->
 
+The Fusebit CLI enables customers to manage functions created on the platform and to administer users and their permissions.
+
 All public releases of the Fusebit CLI are documented here, including notable changes made in every release. CLI releases follow the [Semantic Versioning 2.0 specification](https://semver.org/). For more information on the Fusebit versioning strategy, see [here](http://fusebit.io/docs/integrator-guide/versioning).
 
 <!-- prettier-ignore -->

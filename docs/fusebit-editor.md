@@ -8,6 +8,8 @@ title: Fusebit Editor
 {: .no_toc }
 <!-- prettier-ignore-end -->
 
+The Fusebit editor provides a browser-based IDE for editing Fusebit functions.
+
 All public releases of the Fusebit editor are documented here, including notable changes made in every release. Editor releases follow the [Semantic Versioning 2.0 specification](https://semver.org/). For more information on the Fusebit versioning strategy, see [here](http://fusebit.io/docs/integrator-guide/versioning).
 
 <!-- prettier-ignore -->
