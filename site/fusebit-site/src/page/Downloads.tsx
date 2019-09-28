@@ -18,17 +18,24 @@ export function Downloads() {
 
         <ul>
           <li>
-            Fusebit CLI -{' '}
-            <Link href="https://www.npmjs.com/package/@fusebit/cli">https://www.npmjs.com/package/@fusebit/cli</Link>
+            Fusebit CLI: <code>npm install -g @fusebit/cli</code>
           </li>
           <li>
-            Fusebit Operations CLI -{' '}
-            <Link href="https://cdn.fusebit.io/fusebit/platform/fusebit-ops-cli-1.12.0.tgz">
-              https://cdn.fusebit.io/fusebit/platform/fusebit-ops-cli-1.12.0.tgz
+            Fusebit Operations CLI:{' '}
+            <Link href="https://cdn.fusebit.io/fusebit/cli/fusebit-ops-cli-v1.12.tgz">
+              https://cdn.fusebit.io/fusebit/cli/fusebit-ops-cli-v1.12.tgz
             </Link>
+            <ul>
+              <li>
+                Fusebit Operations Guide:{' '}
+                <Link href="https://cdn.fusebit.io/fusebit/docs/fusebit-ops-guide-v1.pdf">
+                  https://cdn.fusebit.io/fusebit/docs/fusebit-ops-guide-v1.pdf
+                </Link>
+              </li>
+            </ul>
           </li>
           <li>
-            Fusebit Editor -{' '}
+            Fusebit Editor:{' '}
             <Link href="https://cdn.fusebit.io/fusebit/js/fusebit-editor/latest/fusebit-editor.min.js">
               https://cdn.fusebit.io/fusebit/js/fusebit-editor/latest/fusebit-editor.min.js
             </Link>
@@ -45,13 +52,11 @@ export function Downloads() {
           </li>
         </ul>
       </Section>
-      <Section header="Fusebit Platform v1.0 (LTS release)">
+      {/* <Section header="Fusebit Platform v1.0 (LTS release)">
         <Link href="https://fivequarters.github.io/q5/#fusebit-platform-v10">Release notes</Link>
         <ul>
           <li>
-            Fusebit CLI v1.0.* -{' '}
-            <Link href="https://www.npmjs.com/package/@fusebit/cli/v/1.0.2">
-              https://www.npmjs.com/package/@fusebit/cli/v/1.0.2
+            Fusebit CLI v1.0.* - <code>npm install -g @fusebit/cli@1.0.2</code>
             </Link>
           </li>
           <li>
@@ -77,7 +82,7 @@ export function Downloads() {
             </ul>
           </li>
         </ul>
-      </Section>
+      </Section> */}
     </Page>
   );
 }
