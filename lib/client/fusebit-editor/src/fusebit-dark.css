@@ -156,7 +156,7 @@
 }
 
 .fusebit-theme-dark .fusebit-nav-item {
-  flex: 0 0 0;
+  /* flex: 0 0 0; */
   padding-left: 15px;
   padding-right: 5px;
   white-space: nowrap;
@@ -309,7 +309,7 @@
   background-color: transparent;
   border: 0;
   color: #adadad;
-  font-size: 13px;
+  /* font-size: 13px; */
   cursor: pointer;
   font-family: Verdana, sans-serif;
 }
