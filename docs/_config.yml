@@ -1,0 +1,17 @@
+remote_theme: "pmarsceill/just-the-docs@v0.2.7"
+repository: "fivequarters/q5"
+title: "Release Notes"
+description: "Release notes for Fusebit platform components"
+permalink: pretty
+exclude: ["README.md"]
+heading_anchors: true
+footer_content: "&copy; 2019 Fusebit - All Rights Reserved"
+logo: "/assets/img/FusebitLogo.png"
+
+# "Just the Docs" theme
+search_enabled: true
+aux_links:
+  "Fusebit home":
+    - "https://fusebit.io"
+  "Fusebit Slack":
+    - "https://fusebitio.slack.com"
