@@ -16,6 +16,12 @@ All public releases of the Fusebit editor are documented here, including notable
 1. TOC
 {:toc}
 
+## Version 1.0.2
+
+_Released 9/28/19_
+
+- **Bug fix**. Fixed the layout of the navigation panel on Safari.
+
 ## Version 1.0.1
 
 _Released 7/29/19_
