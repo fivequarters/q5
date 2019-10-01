@@ -47,7 +47,9 @@ export function Downloads() {
             Fusebit HTTP API
             <ul>
               <li>Cloud deployment - https://api.{'{region}'}.fusebit.io/v1</li>
-              <li>Private deployment image - use Fusebit Operations CLI to download</li>
+              <li>
+                Private deployment image - <code>fuse-ops image pull 1.12.0</code>
+              </li>
             </ul>
           </li>
         </ul>
@@ -78,7 +80,7 @@ export function Downloads() {
             Fusebit HTTP API
             <ul>
               <li>Cloud deployment - https://api.{'{region}'}.fusebit.io/v1</li>
-              <li>Private deployment image - use Fusebit Operations CLI to download</li>
+              <li>Private deployment image - <code>fuse-ops image pull 1.12.0</code></li>
             </ul>
           </li>
         </ul>
