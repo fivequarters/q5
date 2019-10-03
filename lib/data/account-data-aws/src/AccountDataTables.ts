@@ -6,6 +6,7 @@ import { AuditEntryTable } from './tables/AuditEntryTable';
 import { ClientTable } from './tables/ClientTable';
 import { IdentityTable } from './tables/IdentityTable';
 import { InitTable } from './tables/InitTable';
+import { KeyValueTable } from './tables/KeyValueTable';
 import { IssuerTable } from './tables/IssuerTable';
 import { SubscriptionTable } from './tables/SubscriptionTable';
 import { UserTable } from './tables/UserTable';
@@ -26,7 +27,19 @@ export class AccountDataTables extends DataSource {
     const client = await ClientTable.create(config, dynamo);
     const identity = await IdentityTable.create(config, dynamo);
     const init = await InitTable.create(config, dynamo);
-    return new AccountDataTables(accessEntry, account, auditEntry, subscription, issuer, user, client, identity, init);
+    const keyValue = await KeyValueTable.create(config, dynamo);
+    return new AccountDataTables(
+      accessEntry,
+      account,
+      auditEntry,
+      subscription,
+      issuer,
+      user,
+      client,
+      identity,
+      init,
+      keyValue
+    );
   }
 
   private constructor(
@@ -38,9 +51,10 @@ export class AccountDataTables extends DataSource {
     user: UserTable,
     client: ClientTable,
     identity: IdentityTable,
-    init: InitTable
+    init: InitTable,
+    keyValue: KeyValueTable
   ) {
-    super([accessEntry, account, auditEntry, subscription, issuer, user, client, identity, init]);
+    super([accessEntry, account, auditEntry, subscription, issuer, user, client, identity, init, keyValue]);
     this.accessEntry = accessEntry;
     this.account = account;
     this.auditEntry = auditEntry;
@@ -50,6 +64,7 @@ export class AccountDataTables extends DataSource {
     this.client = client;
     this.identity = identity;
     this.init = init;
+    this.keyValue = keyValue;
   }
 
   private accessEntry: AccessEntryTable;
@@ -61,6 +76,7 @@ export class AccountDataTables extends DataSource {
   private client: ClientTable;
   private identity: IdentityTable;
   private init: InitTable;
+  private keyValue: KeyValueTable;
 
   public get accessEntryTable(): AccessEntryTable {
     return this.accessEntry;
@@ -96,5 +112,9 @@ export class AccountDataTables extends DataSource {
 
   public get initTable(): InitTable {
     return this.init;
+  }
+
+  public get keyValueTable(): KeyValueTable {
+    return this.keyValue;
   }
 }

@@ -16,6 +16,12 @@ All public releases of the Fusebit editor are documented here, including notable
 1. TOC
 {:toc}
 
+## Version 1.1.0
+
+_Released 10/3/19_
+
+- **Improved support for real time logging.** As of API release 1.13.0, requests do not require the `x-fx-logs` request header in order to be captured by real-time logging. This change removes a note printed out in the logs panel of the editor that required requests to specify `x-fx-logs` request header. It also changes the default runner script for new functions to not specify the header.
+
 ## Version 1.0.2
 
 _Released 9/28/19_

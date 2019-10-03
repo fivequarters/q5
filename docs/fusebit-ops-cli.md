@@ -16,6 +16,14 @@ All public releases of the Fusebit Operations CLI are documented here, including
 1. TOC
 {:toc}
 
+## Version 1.13.0
+
+_Released 10/3/19_
+
+- **Improved support for real time logging.** The `fuse-ops deployment add` command now provisions an additional DynamoDB table `{deployment}.key-value` used by real-time logging features introduced in API version 1.13.0.
+
+**NOTE** Before deploying stacks of version 1.13.0 or above, you need to run `fuse-ops deployment add` on all your deployments. This will create the missing DynamoDB tables and enable stacks with version 1.13.0 to work correctly.
+
 ## Version 1.12.0
 
 _Released 9/18/19_

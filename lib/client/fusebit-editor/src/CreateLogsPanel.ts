@@ -104,23 +104,8 @@ export function createLogsPanel(element: HTMLElement, editorContext: EditorConte
   editorContext.on(Events.Events.RunnerFinished, (e: Events.RunnerFinishedEvent) => {
     let response: any = e.response || (e.error && (e.error as any).response);
 
-    // Show response immediately if real time logs were disabled, otherwise delay showing response
-    // to allow for logs to be pulled.
-
-    let logsEnabled = false;
-    if (response && response.req && response.req.url) {
-      let tokens = response.req.url.split('?');
-      tokens.shift();
-      let requestQuery = tokens.join('?');
-      logsEnabled = requestQuery.indexOf('x-fx-logs') > -1 || response.req.header['x-fx-logs'] !== undefined;
-      if (logsEnabled) {
-        setTimeout(showResponse, 1500);
-      } else {
-        showResponse();
-      }
-    } else {
-      showResponse();
-    }
+    // Delay showinging response to allow for logs to be pulled.
+    setTimeout(showResponse, 1500);
 
     function showResponse() {
       if (e.error) {
@@ -186,11 +171,6 @@ export function createLogsPanel(element: HTMLElement, editorContext: EditorConte
             append(`RUN: ${logsStr}`);
           }
         }
-      }
-      if (!logsEnabled) {
-        append(
-          'NOTE: logging was disabled for the last request. To enable, add x-fx-logs=1 query parameter to the test request.'
-        );
       }
     }
   });

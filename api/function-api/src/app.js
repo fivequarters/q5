@@ -5,6 +5,10 @@ var express = require('express');
 var logger = require('morgan');
 
 var app = express();
+// Sanitize logged URLs
+logger.token('url', (req, res) =>
+  req.query && req.query.token ? req.url.replace(/token=[^\&]+/, 'token={removed}') : req.url
+);
 app.use(logger('dev'));
 app.use('/v1/', require('./routes/v1_api'));
 if (process.env.API_EXPOSE_DOCS) {

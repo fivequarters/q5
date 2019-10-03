@@ -16,6 +16,12 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 1. TOC
 {:toc}
 
+## Version 1.0.3
+
+_Released 10/3/19_
+
+- **Improved support for real time logging.** As of API release 1.13.0, requests do not require the `x-fx-logs` request header in order to be captured by real-time logging. This change removes a note printed out by the `fuse function logs` command that required requests to specify `x-fx-logs` request header.
+
 ## Version 1.0.2
 
 _Released 7/18/19_
