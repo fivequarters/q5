@@ -22,8 +22,8 @@ export function Downloads() {
           </li>
           <li>
             Fusebit Operations CLI:{' '}
-            <Link href="https://cdn.fusebit.io/fusebit/cli/fusebit-ops-cli-v1.12.tgz">
-              https://cdn.fusebit.io/fusebit/cli/fusebit-ops-cli-v1.12.tgz
+            <Link href=" https://cdn.fusebit.io/fusebit/cli/fusebit-ops-cli-v1.13.tgz">
+              https://cdn.fusebit.io/fusebit/cli/fusebit-ops-cli-v1.13.tgz
             </Link>
             <ul>
               <li>
@@ -48,7 +48,7 @@ export function Downloads() {
             <ul>
               <li>Cloud deployment - https://api.{'{region}'}.fusebit.io/v1</li>
               <li>
-                Private deployment image - <code>fuse-ops image pull 1.12.0</code>
+                Private deployment image - <code>fuse-ops image pull 1.13.0</code>
               </li>
             </ul>
           </li>
@@ -80,7 +80,7 @@ export function Downloads() {
             Fusebit HTTP API
             <ul>
               <li>Cloud deployment - https://api.{'{region}'}.fusebit.io/v1</li>
-              <li>Private deployment image - <code>fuse-ops image pull 1.12.0</code></li>
+              <li>Private deployment image - <code>fuse-ops image pull 1.13.0</code></li>
             </ul>
           </li>
         </ul>
