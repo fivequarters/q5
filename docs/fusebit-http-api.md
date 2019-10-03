@@ -16,10 +16,16 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 1. TOC
 {:toc}
 
-## Version 1.0.0
+## Version 1.13.0
+
+_Released 10/3/19_
+
+- **Improved support for real time logging.** Function execution requests no longer require the `x-fx-logs` request header in order to be captured by real-time logging. Real-time logging for requests is enabled if there is at least one pending request for real-time logs of the specific function or boundary of that function.
+
+## Version 1.12.0
 
 _Released 7/9/19_
 
-- First ever official release of the HTTP API 🚀
+- First ever officially documented release of the HTTP API 🚀
 - Only function execution requests with `x-fx-logs=1` query parameter or `x-fx-logs` HTTP request header will have the output of their `console.log` and `console.error` made available via the real-time logs endpoint
 - Data written directly to `process.stdout` or `process.stderr` is no longer captured by real-time logs.

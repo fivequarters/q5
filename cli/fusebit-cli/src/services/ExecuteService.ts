@@ -55,7 +55,10 @@ export class ExecuteService {
       return undefined;
     } catch (error) {
       const header = messages.errorHeader || '';
-      const message = error.code !== undefined ? messages.errorMessage || '' : error.message;
+      const message =
+        error.code !== undefined
+          ? `${messages.errorMessage ? messages.errorMessage + ': ' : ''}${error.message}`
+          : error.message;
       await this.error(header, message);
     }
   }

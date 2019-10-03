@@ -6,17 +6,14 @@ import { IBuildStatus } from './Server';
 
 const RunnerPlaceholder = `// Return a function that evaluates to a Superagent request promise
 
-ctx => Superagent.get(ctx.url)
-    .query({ 'x-fx-logs': 1 });
+ctx => Superagent.get(ctx.url);
 
 // Simple POST request
 // ctx => Superagent.post(ctx.url)
-//     .query({ 'x-fx-logs': 1 });
 //     .send({ hello: 'world' });
 
 // POST request with Authorization header using function's application settings
 // ctx => Superagent.post(ctx.url)
-//     .query({ 'x-fx-logs': 1 });
 //     .set('Authorization', \`Bearer \${ctx.configuration.MY_API_KEY}\`)
 //     .send({ hello: 'world' });
 `;

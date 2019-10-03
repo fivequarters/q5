@@ -427,16 +427,7 @@ export class FunctionService {
 
           await this.executeService.info(
             'Connected',
-            Text.create(
-              'Successfully connected to real-time streaming logs...',
-              Text.eol(),
-              Text.eol(),
-              Text.italic(
-                "Note: To enable real-time logging for a request, add the '",
-                Text.bold('x-fx-logs=1'),
-                "' query parameter to the request"
-              )
-            )
+            Text.create('Successfully connected to real-time streaming logs...')
           );
           ready = true;
         });

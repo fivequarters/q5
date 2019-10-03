@@ -49,6 +49,7 @@ export interface IAwsCredsOptions {
   account: string;
   accessKeyId?: string;
   secretAccessKey?: string;
+  sessionToken?: string;
   useMfa?: boolean;
   mfaSerialNumber?: string;
   userName?: string;
@@ -100,6 +101,9 @@ export class AwsCreds {
       if (baseCreds.accessKeyId && baseCreds.secretAccessKey) {
         creds.accessKeyId = baseCreds.accessKeyId;
         creds.secretAccessKey = baseCreds.secretAccessKey;
+        if (baseCreds.sessionToken) {
+          creds.sessionToken = baseCreds.sessionToken;
+        }
       }
     } else {
       const cachedCreds = await this.getCachedCredentials();

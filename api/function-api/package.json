@@ -11,7 +11,7 @@
     "coverage": "jest --colors --coverage --detectOpenHandles",
     "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x} test/{,**/}*.ts{,x}",
     "clean": "rm -r -f libc",
-    "start": "LOGS_HOST=${LOGS_HOST:=`node ./getNgrokLogsWsUrl.js`} node libc/index.js",
+    "start": "node createEnv.js && node libc/index.js",
     "ngrok": "ngrok http 3001"
   },
   "keywords": [],
@@ -23,6 +23,9 @@
     "@5qtrs/function-lambda": "^0.0.1",
     "@5qtrs/jwt": "^0.0.1",
     "@5qtrs/request": "^0.0.1",
+    "@5qtrs/storage": "^0.0.1",
+    "@5qtrs/storage-data": "^0.0.1",
+    "@5qtrs/storage-data-aws": "^0.0.1",
     "cors": "^2.8.5",
     "debug": "^4.1.1",
     "dotenv": "^6.2.0",
@@ -31,16 +34,14 @@
     "joi": "^14.3.1",
     "morgan": "^1.9.1",
     "swagger-ui-express": "^4.0.2",
-    "yamljs": "^0.3.0",
-    "@5qtrs/storage-data": "^0.0.1",
-    "@5qtrs/storage-data-aws": "^0.0.1",
-    "@5qtrs/storage": "^0.0.1"
+    "yamljs": "^0.3.0"
   },
   "devDependencies": {
     "@5qtrs/fusebit-profile-sdk": "^0.0.1",
     "@5qtrs/request": "^0.0.1",
     "@types/debug": "^4.1.2",
     "@types/pem-jwk": "^1.5.0",
+    "aws-sdk": "^2.539.0",
     "pem-jwk": "^2.0.0",
     "superagent": "^4.1.0"
   },
