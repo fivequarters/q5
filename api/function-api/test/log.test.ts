@@ -25,7 +25,7 @@ afterEach(async () => {
 }, 20000);
 
 describe('log', () => {
-  function create_positive_log_test(node: string, query: boolean, boundary: boolean) {
+  function create_positive_log_test(node: string, boundary: boolean) {
     return async function() {
       let response = await putFunction(account, boundaryId, function1Id, {
         nodejs: {
@@ -47,23 +47,12 @@ describe('log', () => {
       const functionUrl = response.data.location;
       const logsPromise = getLogs(account, boundaryId, boundary ? undefined : function1Id);
 
-      await new Promise(resolve => setTimeout(resolve, 250));
+      // Real time logs can take up to 5s to become effective
+      await new Promise(resolve => setTimeout(resolve, 6000));
 
-      if (query) {
-        for (var i = 1; i < 5; i++) {
-          response = await request(`${functionUrl}?x-fx-logs=1&n=${i}`);
-          expect(response.status).toEqual(200);
-        }
-      } else {
-        for (var i = 1; i < 5; i++) {
-          response = await request({
-            url: `${functionUrl}?n=${i}`,
-            headers: {
-              'x-fx-logs': '1',
-            },
-          });
-          expect(response.status).toEqual(200);
-        }
+      for (var i = 1; i < 5; i++) {
+        response = await request(`${functionUrl}?n=${i}`);
+        expect(response.status).toEqual(200);
       }
 
       const logResponse = await logsPromise;
@@ -80,39 +69,11 @@ describe('log', () => {
     };
   }
 
-  test(
-    'function logs work with x-fx-logs=1 query parameter on node 8',
-    create_positive_log_test('8', true, false),
-    20000
-  );
+  test('function logs work on node 8', create_positive_log_test('8', false), 20000);
 
-  test(
-    'function logs work with x-fx-logs=1 query parameter on node 10',
-    create_positive_log_test('10', true, false),
-    20000
-  );
+  test('function logs work on node 10', create_positive_log_test('10', false), 20000);
 
-  test(
-    'function logs work with x-fx-logs request header on node 8',
-    create_positive_log_test('8', false, false),
-    20000
-  );
+  test('boundary logs work on node 8', create_positive_log_test('8', true), 20000);
 
-  test(
-    'function logs work with x-fx-logs request header on node 10',
-    create_positive_log_test('10', false, false),
-    20000
-  );
-
-  test(
-    'boundary logs work with x-fx-logs=1 query parameter on node 8',
-    create_positive_log_test('8', true, true),
-    20000
-  );
-
-  test(
-    'boundary logs work with x-fx-logs=1 query parameter on node 10',
-    create_positive_log_test('10', true, true),
-    20000
-  );
+  test('boundary logs work on node 10', create_positive_log_test('10', true), 20000);
 });

@@ -40,8 +40,8 @@ describe('Client', () => {
       expect(decoded.accountId).toBe(account.accountId);
       expect(decoded.agentId).toBe(original.data.id);
       expect(decoded.baseUrl).toBe(account.baseUrl);
-      expect(decoded.iss).toBe(account.baseUrl);
-      expect(decoded.aud).toBe(account.baseUrl);
+      expect(decoded.iss).toBe(account.audience);
+      expect(decoded.aud).toBe(account.audience);
       expect(decoded.issuerId).toBeDefined();
       expect(decoded.subject).toBeDefined();
 
