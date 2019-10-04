@@ -31,7 +31,7 @@ describe('Authentication', () => {
     const options = {
       algorithm: 'RS256',
       expiresIn: 600,
-      audience: account.baseUrl,
+      audience: account.audience,
       issuer: testIssuer.issuerId,
       subject,
       keyid: testIssuer.keys[0].keyId,

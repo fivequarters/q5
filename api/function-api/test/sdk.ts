@@ -792,7 +792,7 @@ export async function createTestUser(account: IAccount, data: any): Promise<ITes
   }
 
   const accessToken = await generateAccessToken(
-    account.baseUrl,
+    account.audience,
     keyPairs[0],
     resolved.data.identities[0].issuerId,
     resolved.data.identities[0].subject
@@ -819,7 +819,7 @@ export async function createTestJwksIssuer(account: IAccount) {
   await addIssuer(account, issuerId, { jsonKeysUrl });
 
   const getAccessToken = async (subject: string) => {
-    return generateAccessToken(account.baseUrl, keyPairs[0], issuerId, subject);
+    return generateAccessToken(account.audience, keyPairs[0], issuerId, subject);
   };
 
   return { issuerId, keys: keyPairs, getAccessToken };
@@ -881,11 +881,11 @@ export async function createKeyPairs(count: number) {
   return keyPairs;
 }
 
-export async function generateAccessToken(baseUrl: string, keyPair: IKeyPair, issuerId: string, subject: string) {
+export async function generateAccessToken(audience: string, keyPair: IKeyPair, issuerId: string, subject: string) {
   const options = {
     algorithm: 'RS256',
     expiresIn: 600,
-    audience: baseUrl,
+    audience,
     issuer: issuerId,
     subject: subject,
     keyid: keyPair.keyId,
