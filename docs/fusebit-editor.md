@@ -16,6 +16,12 @@ All public releases of the Fusebit editor are documented here, including notable
 1. TOC
 {:toc}
 
+## Version 1.1.1
+
+_Released 10/4/19_
+
+- **Improved styling.** Improved the styling of the editor's logs panel.
+
 ## Version 1.1.0
 
 _Released 10/3/19_

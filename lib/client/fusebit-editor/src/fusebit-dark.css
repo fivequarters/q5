@@ -29,7 +29,7 @@
 
 .fusebit-theme-dark .fusebit-logs-splitter {
   flex: 0 0 auto;
-  height: 2px;
+  height: 4px;
   background: #414141;
   cursor: row-resize;
 }
@@ -45,8 +45,8 @@
 
 .fusebit-theme-dark .fusebit-nav-splitter {
   flex: 0 0 auto;
-  width: 2px;
-  min-width: 2px;
+  width: 4px;
+  min-width: 4px;
   background: #252526;
   min-height: 100px;
   cursor: col-resize;

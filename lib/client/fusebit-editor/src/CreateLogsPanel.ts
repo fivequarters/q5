@@ -35,8 +35,12 @@ export function createLogsPanel(element: HTMLElement, editorContext: EditorConte
       contentElement.textContent = '';
     });
 
+  let logsAttachedOnce: boolean = false;
   editorContext.on(Events.Events.LogsAttached, e => {
-    // append('Server logs attached');
+    if (!logsAttachedOnce) {
+      logsAttachedOnce = true;
+      append('Attached to real-time logs...');
+    }
   });
 
   editorContext.on(Events.Events.LogsDetached, (e: Events.LogsDetachedEvent) => {
