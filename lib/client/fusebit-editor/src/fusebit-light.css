@@ -29,8 +29,8 @@
 
 .fusebit-theme-light .fusebit-logs-splitter {
   flex: 0 0 auto;
-  height: 2px;
-  background: #f8f9f9;
+  height: 4px;
+  background: white;
   cursor: row-resize;
 }
 
@@ -45,9 +45,9 @@
 
 .fusebit-theme-light .fusebit-nav-splitter {
   flex: 0 0 auto;
-  width: 2px;
-  min-width: 2px;
-  background: #f8f9f9;
+  width: 4px;
+  min-width: 4px;
+  background: white;
   min-height: 100px;
   cursor: col-resize;
 }
@@ -65,7 +65,7 @@
   flex: 0 0 auto;
   min-height: 100px;
   height: 100px;
-  background-color: white;
+  background-color: #f7f9f9;
   overflow: hidden;
   padding-left: 10px;
   padding-top: 10px;
