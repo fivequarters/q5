@@ -457,7 +457,7 @@ router.put(
   authorize({
     operation: 'function:put',
   }),
-  express.json(),
+  express.json({ limit: process.env.FUNCTION_SIZE_LIMIT || '100kb' }),
   validate_schema({
     body: require('./schemas/function_specification'),
     params: require('./schemas/api_params'),

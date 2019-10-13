@@ -29,13 +29,13 @@ Fusebit Editor <code>v1.1+</code> - <a href="{{ site.baseurl }}{% link fusebit-e
 Fusebit HTTP API <code>v1.13+</code> - <a href="{{ site.baseurl }}{% link fusebit-http-api.md %}">release notes</a>
 </li>
 <li>
-Fusebit Ops CLI <code>v1.13+</code> - <a href="{{ site.baseurl }}{% link fusebit-ops-cli.md %}">release notes</a></li>
+Fusebit Ops CLI <code>v1.14+</code> - <a href="{{ site.baseurl }}{% link fusebit-ops-cli.md %}">release notes</a></li>
 </ul>
 </td>
 <td style="width:30%">
 <dl>
   <dt>Last updated</dt>
-  <dd>10/3/19</dd>
+  <dd>10/14/19</dd>
   <dt>LTS release</dt>
   <dd>No</dd>
 </dl>

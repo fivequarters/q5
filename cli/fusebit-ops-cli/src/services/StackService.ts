@@ -32,8 +32,9 @@ export class StackService {
       details: [
         { name: 'Deployment', value: stack.deploymentName },
         { name: 'Tag', value: stack.tag },
-        { name: 'Size', value: stack.size ? stack.size.toString() : '<default>' },
+        { name: 'Size', value: stack.size ? stack.size.toString() : '<Default>' },
         { name: 'Environment', value: stack.env || '<Not set>' },
+        { name: 'AMI', value: stack.ami || '<Official Ubuntu AMI>' },
       ],
     });
     const confirmed = await confirmPrompt.prompt(this.input.io);

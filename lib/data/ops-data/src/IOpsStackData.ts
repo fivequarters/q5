@@ -10,6 +10,7 @@ export interface IOpsNewStack {
   tag: string;
   size?: number;
   env?: string;
+  ami?: string;
 }
 
 export interface IOpsStack extends IOpsNewStack {
