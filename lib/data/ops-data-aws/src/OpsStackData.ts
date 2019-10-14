@@ -82,7 +82,7 @@ export class OpsStackData extends DataSource implements IOpsStackData {
     const id = await this.getNextStackId(newStack.deploymentName);
 
     const awsAmi = await AwsAmi.create(awsConfig);
-    const ami = await awsAmi.getUbuntuServerAmi(this.config.ubuntuServerVersion);
+    const amiId = newStack.ami || (await awsAmi.getUbuntuServerAmi(this.config.ubuntuServerVersion)).id;
 
     const awsAutoScale = await AwsAutoScale.create(awsConfig);
     const account = await this.accountData.get(network.accountName);
@@ -111,7 +111,7 @@ export class OpsStackData extends DataSource implements IOpsStackData {
     const autoScaleName = this.getAutoScaleName(id);
     await awsAutoScale.createAutoScale({
       name: autoScaleName,
-      amiId: ami.id,
+      amiId,
       instanceType: this.config.monoInstanceType,
       securityGroups: [network.securityGroupId],
       userData,

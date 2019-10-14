@@ -12,9 +12,16 @@ The Fusebit operations CLI enables customers to create a private deployment of t
 
 All public releases of the Fusebit Operations CLI are documented here, including notable changes made in every release. CLI releases follow the [Semantic Versioning 2.0 specification](https://semver.org/). For more information on the Fusebit versioning strategy, see [here](http://fusebit.io/docs/integrator-guide/versioning).
 
-<!-- prettier-ignore -->
+<!-- prettier-ignore
 1. TOC
 {:toc}
+-->
+
+## Version 1.14.0
+
+_Released 10/14/19_
+
+- **Support for custom AMIs.** The `fuse-ops stack add` command now allows the specification of a custom AMI ID to use instead of the official Ubuntu AMI.
 
 ## Version 1.13.0
 

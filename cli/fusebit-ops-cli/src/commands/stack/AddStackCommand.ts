@@ -37,6 +37,10 @@ const command = {
       description: 'Path to an .env file with additional environment variables for the stack',
     },
     {
+      name: 'ami',
+      description: 'AMI ID to use instead of the official Ubuntu AMI',
+    },
+    {
       name: 'confirm',
       aliases: ['c'],
       description: 'If set to true, prompts for confirmation before deploying the stack',
@@ -67,6 +71,7 @@ export class AddStackCommand extends Command {
     const size = input.options.size as number;
     const confirm = input.options.confirm as boolean;
     const env = input.options.env as string;
+    const ami = input.options.ami as string;
 
     const stackService = await StackService.create(input);
     const deploymentService = await DeploymentService.create(input);
@@ -78,6 +83,7 @@ export class AddStackCommand extends Command {
       size: size || deployment.size,
       region: deployment.region,
       env,
+      ami,
     };
 
     if (confirm) {
