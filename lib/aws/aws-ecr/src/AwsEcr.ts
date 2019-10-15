@@ -2,6 +2,7 @@ import { AwsBase, IAwsConfig } from '@5qtrs/aws-base';
 import { fromBase64 } from '@5qtrs/base64';
 import { spawn } from '@5qtrs/child-process';
 import { ECR } from 'aws-sdk';
+import { Readable } from 'stream';
 
 // ------------------
 // Internal Constants
@@ -64,7 +65,10 @@ export class AwsEcr extends AwsBase<typeof ECR> {
       `docker tag ${accountId}.dkr.ecr.${region}.amazonaws.com/${repository}:${tag} ${repository}:${tag}`,
     ].join(' ');
 
-    const result = await spawn(command, { shell: true, stdin: token });
+    let options = { shell: true, stdin: new Readable() };
+    options.stdin.push(token);
+    options.stdin.push(null);
+    const result = await spawn(command, options);
     if (result.code !== 0) {
       const message = `Docker login and pull failed with output: ${result.stderr.toString()}`;
       throw new Error(message);
@@ -91,7 +95,10 @@ export class AwsEcr extends AwsBase<typeof ECR> {
       `docker push ${accountId}.dkr.ecr.${region}.amazonaws.com/${repository}:${tag}`,
     ].join(' ');
 
-    const result = await spawn(command, { shell: true, stdin: token });
+    let options = { shell: true, stdin: new Readable() };
+    options.stdin.push(token);
+    options.stdin.push(null);
+    const result = await spawn(command, options);
     if (result.code !== 0) {
       const message = `Docker login and push failed with output: ${result.stderr.toString()}`;
       throw new Error(message);
