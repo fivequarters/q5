@@ -22,8 +22,8 @@ export function Downloads() {
           </li>
           <li>
             Fusebit Operations CLI:{' '}
-            <Link href=" https://cdn.fusebit.io/fusebit/cli/fusebit-ops-cli-v1.13.tgz">
-              https://cdn.fusebit.io/fusebit/cli/fusebit-ops-cli-v1.13.tgz
+            <Link href=" https://cdn.fusebit.io/fusebit/cli/fusebit-ops-cli-v1.14.tgz">
+              https://cdn.fusebit.io/fusebit/cli/fusebit-ops-cli-v1.14.tgz
             </Link>
             <ul>
               <li>
