@@ -64,7 +64,7 @@ const personaCardMap = [
   { personaIndex: 2, pain: 4 },
 ];
 
-const personaTitles = ['Account Manager', 'Program Manager', 'Engineering Lead'];
+const personaTitles = ['Account Manager', 'Product Manager', 'Engineering Lead'];
 
 // ------------------
 // Internal Functions
