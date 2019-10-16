@@ -7,7 +7,7 @@ import { FusebitSection } from '@5qtrs/fusebit-page';
 import { FusebitLinkCard, FusebitLinkCardType } from '@5qtrs/fusebit-link-card';
 import { FusebitPostCard, FusebitPostCardType, FusebitPostCardProps } from '@5qtrs/fusebit-blog';
 import { posts } from '../blog/posts';
-import AtlasImage from '../../../assets/img/industry-insight-atlas.png';
+import FactoryFourImage from '../../../assets/img/industry-insight-ff.png';
 
 // ------------------
 // Internal Constants
@@ -33,13 +33,13 @@ function BlissfullyCard() {
   );
 }
 
-function AtlasCard() {
+function FactoryFourCard() {
   return (
     <FusebitLinkCard
-      href="https://www.bvp.com/atlas/state-of-the-cloud-2019/"
-      title="State of the Cloud 2019"
-      imageSrc={AtlasImage}
-      subtitle="BVP.com - Investors share cloud technology trends in 2019"
+      href="https://factoryfour.com/blog/2019/09/13/Service-Model/"
+      title="Rethinking Customer Service at FactoryFour"
+      imageSrc={FactoryFourImage}
+      subtitle="Technologies like Fusebit enable our customer to slash implementation time and lower support cost"
       type={FusebitLinkCardType.small}
     />
   );
@@ -84,7 +84,7 @@ function MobileVersion() {
       <HorizontalRule />
       <BlissfullyCard />
       <HorizontalRule />
-      <AtlasCard />
+      <FactoryFourCard />
     </Box>
   );
 }
@@ -116,7 +116,7 @@ function NonMobileVersion() {
             <HorizontalRule />
           </Box>
           <Box expand maxWidth={500} marginRight={10}>
-            <AtlasCard />
+            <FactoryFourCard />
           </Box>
         </Box>
       </Box>
