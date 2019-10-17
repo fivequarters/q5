@@ -37,6 +37,9 @@ export function Legal() {
           <li>
             <Link href="https://cdn.fusebit.io/assets/legal/SupportProgram-v1.0.1.pdf">Support Program</Link>
           </li>
+          <li>
+            <Link href="https://cdn.fusebit.io/assets/legal/FindersAgreement-v1.0.0.pdf">Finder's Agreement</Link>
+          </li>
         </ul>
       </Section>
     </Page>

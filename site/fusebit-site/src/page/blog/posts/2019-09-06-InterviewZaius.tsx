@@ -13,7 +13,7 @@ import ZaiusArchitecture from '../../../../assets/img/blog-interview-zaius-archi
 
 const meta = {
   postId: 'interview-with-tyler-mills-zaius',
-  title: 'The next generation of hyper-personalized marketing',
+  title: 'The Evolution of Hyper-Personalized Marketing',
   subtitle: 'Interview with Tyler Mills, Product Manager at Zaius',
   year: 2019,
   month: 9,

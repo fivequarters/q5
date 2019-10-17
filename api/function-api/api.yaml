@@ -1270,15 +1270,15 @@ paths:
         schema:
           $ref: '#/components/schemas/FunctionId'
       - in: query
-          name: include
-          required: false
-          description: |
-            Optional switch to include all serialized properties of the function. If this switch is not provided only
-            the non-serialized 'compute', 'schedule' and 'configuration' properties are returned in the response.
-          schema:
-            type: string
-            enum:
-              - all
+        name: include
+        required: false
+        description: |
+          Optional switch to include all serialized properties of the function. If this switch is not provided only
+          the non-serialized 'compute', 'schedule' and 'configuration' properties are returned in the response.
+        schema:
+          type: string
+          enum:
+            - all
     get:
       tags:
         - Functions
@@ -2246,7 +2246,7 @@ components:
         configuration:
           type: object
         configurationSerialized:
-           type: string
+          type: string
         nodejs:
           type: object
           properties:
