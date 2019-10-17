@@ -13,8 +13,15 @@ The Fusebit editor provides a browser-based IDE for editing Fusebit functions.
 All public releases of the Fusebit editor are documented here, including notable changes made in every release. Editor releases follow the [Semantic Versioning 2.0 specification](https://semver.org/). For more information on the Fusebit versioning strategy, see [here](http://fusebit.io/docs/integrator-guide/versioning).
 
 <!-- prettier-ignore -->
-1. TOC
-{:toc}
+<!-- 1. TOC
+{:toc} -->
+
+## Version 1.2.0
+
+_Released 10/17/19_
+
+- **Support for disposing the Fusebit Editor.** The new `EditorContext.dispose()` method disposes Fusebit Editor artifacts and allows the editor to be removed and later added again to the DOM.
+- **Bug fix.** The `createEditor()` function can now be called again after the previous editor was disposed.
 
 ## Version 1.1.1
 
