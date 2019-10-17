@@ -105,6 +105,12 @@ export class EditorContext extends EventEmitter {
   public functionSpecification: IFunctionSpecification = {};
 
   /**
+   * Not relevant for MVP
+   * @ignore
+   */
+  public _monaco: any;
+
+  /**
    * Creates a _EditorContext_ given the optional function specification. If you do not provide a function specification,
    * the default is a boilerplate "hello, world" function.
    * @param functionSpecification
@@ -509,6 +515,17 @@ export class EditorContext extends EventEmitter {
   public close() {
     const event = new Events.ClosedEvent();
     this.emit(event);
+  }
+
+  /**
+   * Disposes the editor resources when the editor is no longer needed.
+   */
+  public dispose() {
+    if (this._monaco) {
+      this._monaco.getModel().dispose();
+      this._monaco.dispose();
+      this._monaco = undefined;
+    }
   }
 
   /**

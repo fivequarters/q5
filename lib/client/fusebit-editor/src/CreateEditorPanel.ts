@@ -52,7 +52,7 @@ export function createEditorPanel(element: HTMLElement, editorContext: EditorCon
     },
   };
 
-  const editor = Monaco.editor.create(element, monacoOptions);
+  const editor = (editorContext._monaco = Monaco.editor.create(element, monacoOptions));
   let suppressNextChangeEvent: boolean;
   let editedFileName: string | undefined;
   let activeCategory: Events = Events.FileSelected;

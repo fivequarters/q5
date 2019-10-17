@@ -13,8 +13,14 @@ The Fusebit CLI enables customers to manage functions created on the platform an
 All public releases of the Fusebit CLI are documented here, including notable changes made in every release. CLI releases follow the [Semantic Versioning 2.0 specification](https://semver.org/). For more information on the Fusebit versioning strategy, see [here](http://fusebit.io/docs/integrator-guide/versioning).
 
 <!-- prettier-ignore -->
-1. TOC
-{:toc}
+<!-- 1. TOC
+{:toc} -->
+
+## Version 1.1.0
+
+_Released 10/17/19_
+
+- **Support for granting additional permissions.** The `fuse user access add` command now allows granting the `subscription:get` and `account:get` actions, which enable the user to list subscriptions and get account details.
 
 ## Version 1.0.3
 

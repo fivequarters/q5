@@ -16,7 +16,9 @@ Monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
   typeRoots: ['node_modules/@types'],
 });
 
+let lastStaticTypings: Monaco.IDisposable | undefined;
 export function addStaticTypings() {
+  if (lastStaticTypings) return;
   const StaticTypings = `
 declare class FusebitCallbackResult {
   /**
@@ -35,7 +37,10 @@ declare class FusebitCallbackResult {
 
 type FusebitCallback = (error?: Error, result?: FusebitCallbackResult) => void;
 `;
-  Monaco.languages.typescript.javascriptDefaults.addExtraLib(StaticTypings, 'FusebitStaticTypes.d.ts');
+  lastStaticTypings = Monaco.languages.typescript.javascriptDefaults.addExtraLib(
+    StaticTypings,
+    'FusebitStaticTypes.d.ts'
+  );
 }
 
 let lastConfigurationSettings: string | undefined;
