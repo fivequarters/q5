@@ -17,6 +17,14 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.15.0
+
+_Released 10/21/19_
+
+- **Transition from Node.js 8 to 10.** The internal infrastructure supporting CRON and monitoring components is migrated from Node.js 8 to 10 in light of Node.js 8 end of life 12/2019.
+
+**NOTE** You need to run `fuse-ops deployment add` on all your deployments to upgrade your CRON and monitornig components from Node.js 8 to 10.
+
 ## Version 1.14.0
 
 _Released 10/14/19_

@@ -13,8 +13,14 @@ The Fusebit HTTP API enables customers to manage functions created on the platfo
 All public releases of the Fusebit HTTP API are documented here, including notable changes made in every release. HTTP API releases follow the [Semantic Versioning 2.0 specification](https://semver.org/). For more information on the Fusebit versioning strategy, see [here](http://fusebit.io/docs/integrator-guide/versioning).
 
 <!-- prettier-ignore -->
-1. TOC
-{:toc}
+<!-- 1. TOC
+{:toc} -->
+
+## Version 1.13.1
+
+_Released 10/21/19_
+
+- **Improved performance of accessing the audit trail.** Optimized usage of indexes to improve performance of accessing filtered audit trail.
 
 ## Version 1.13.0
 
