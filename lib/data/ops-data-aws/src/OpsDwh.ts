@@ -20,7 +20,7 @@ export async function createDwhExport(config: OpsDataAwsConfig, awsConfig: IAwsC
       name: `${DwhPrefix}-dwh-export`,
       timeout: 60,
       memory: 512,
-      runtime: 'nodejs8.10',
+      runtime: 'nodejs10.x',
       role: `arn:aws:iam::${awsConfig.account}:role/${config.dwhExportRoleName}`,
     },
 

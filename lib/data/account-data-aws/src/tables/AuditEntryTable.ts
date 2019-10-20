@@ -148,7 +148,10 @@ export class AuditEntryTable extends AwsDynamoTable {
     const expressionValues: any = { ':accountId': { S: accountId } };
 
     if (options) {
-      if (options.issuerId) {
+      if (options.from || options.to) {
+        index = timestampIndex;
+        timeStampFilter = false;
+      } else if (options.issuerId) {
         const { issuerId, subject } = options;
         index = identityIndex;
         identityFilter = false;
@@ -161,9 +164,6 @@ export class AuditEntryTable extends AwsDynamoTable {
         keyConditions.push('begins_with(#resource, :resource)');
         expressionNames['#resource'] = 'resource';
         expressionValues[':resource'] = { S: options.resource };
-      } else if (options.from || options.to) {
-        index = timestampIndex;
-        timeStampFilter = false;
       }
 
       const expression = timeStampFilter ? filters : keyConditions;
