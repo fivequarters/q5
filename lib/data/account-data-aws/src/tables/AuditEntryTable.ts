@@ -198,6 +198,13 @@ export class AuditEntryTable extends AwsDynamoTable {
         expressionNames['#resource'] = 'resource';
         expressionValues[':resource'] = { S: options.resource };
       }
+
+      if (options.issuerId && identityFilter) {
+        const identity = { S: toIdentity({ issuerId: options.issuerId, subject: options.subject || '' }) };
+        filters.push('begins_with(#identity, :identity)');
+        expressionNames['#identity'] = 'identity';
+        expressionValues[':identity'] = identity;
+      }
     }
 
     const queryOptions = {
