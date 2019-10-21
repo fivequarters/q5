@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 import { IAccount } from './accountResolver';
 import { request } from '@5qtrs/request';
 import { random } from '@5qtrs/random';
@@ -92,6 +94,18 @@ export interface ITestIssuer {
   jsonKeysUrl: string;
   keys: IKeyPair[];
   getAccessToken: (index: number, subject: string) => Promise<string>;
+}
+
+// ------------------
+// Internal Functions
+// ------------------
+
+function ngrok_url(url: string) {
+  // If running tests against local functions-api, replace the issuer JWKS endpoint to use Ngrok URL
+  if (url.indexOf('://localhost') > 0 && process.env.LOGS_HOST && process.env.API_SERVER) {
+    return url.replace(process.env.API_SERVER, `https://${process.env.LOGS_HOST}`);
+  }
+  return url;
 }
 
 // ------------------
@@ -676,7 +690,6 @@ export async function listAudit(account: IAccount, options?: IListAuditOptions) 
     }
   }
   const queryString = queryStringParams.length ? `?${queryStringParams.join('&')}` : '';
-
   return request({
     method: 'GET',
     headers: {
@@ -840,6 +853,9 @@ export async function hostIssuer(account: IAccount, issuerId: string, keys: any)
   }
 
   testHostedIssuers.push(issuerId);
+
+  result.data.location = ngrok_url(result.data.location);
+
   return result.data.location;
 }
 

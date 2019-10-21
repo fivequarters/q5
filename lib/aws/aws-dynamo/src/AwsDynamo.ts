@@ -104,9 +104,7 @@ function applyLimit(table: IAwsDynamoTable, params: any) {
   const config = table.getConfig ? table.getConfig() : undefined;
   const configuredDefaultLimit = (config ? config.defaultLimit : undefined) || defaultLimit;
   const configuredMaxLimit = (config ? config.maxLimit : undefined) || maxLimit;
-  if (params.FilterExpression && params.Limit) {
-    params.Limit = configuredMaxLimit;
-  } else if (!params.Limit || params.Limit < 0) {
+  if (!params.Limit || params.Limit < 0) {
     params.Limit = configuredDefaultLimit;
   } else if (params.Limit > configuredMaxLimit) {
     params.Limit = configuredMaxLimit;
@@ -122,15 +120,8 @@ function nextToExclusiveStartKey(next: string): any {
   }
 }
 
-function lastEvaluatedKeyToNext(table: IAwsDynamoTable, lastEvaluatedKey: any) {
-  const key: any = {};
-  const hashKey = table.keys[0];
-  const sortKey = table.keys[1];
-  key[hashKey] = lastEvaluatedKey[hashKey];
-  if (sortKey) {
-    key[sortKey] = lastEvaluatedKey[sortKey];
-  }
-  const json = JSON.stringify(key);
+function lastEvaluatedKeyToNext(lastEvaluatedKey: any) {
+  const json = JSON.stringify(lastEvaluatedKey);
   return toBase64(json);
 }
 
@@ -641,6 +632,7 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
       reject = rejectOnce(reject);
       let items: any[] = [];
       let lastEvaluatedKey: any = undefined;
+      let remainingLimit = params.Limit;
 
       const func = () => {
         // @ts-ignore
@@ -651,16 +643,12 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
 
           items.push(...data.Items);
           lastEvaluatedKey = data.LastEvaluatedKey;
+          remainingLimit -= data.Items.length;
 
-          const limit = options && options.limit ? options.limit : params.Limit;
-
-          if (items.length < limit && lastEvaluatedKey) {
+          if (remainingLimit > 0 && lastEvaluatedKey) {
+            params.Limit = remainingLimit;
             params.ExclusiveStartKey = lastEvaluatedKey;
             return func();
-          }
-          if (items.length >= limit) {
-            items = items.splice(0, limit);
-            lastEvaluatedKey = items[items.length - 1];
           }
 
           if (table.ttlAttribute) {
@@ -675,7 +663,7 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
             }
           }
 
-          const next = lastEvaluatedKey ? lastEvaluatedKeyToNext(table, lastEvaluatedKey) : undefined;
+          const next = lastEvaluatedKey ? lastEvaluatedKeyToNext(lastEvaluatedKey) : undefined;
           resolve({ items, next });
         });
       };
