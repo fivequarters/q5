@@ -16,6 +16,12 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.3.0
+
+_Released 10/23/19_
+
+- **Permission command improvements.** The `fuse user access add` command now allows specification of the Fusebit subscription, making it useful for account-level administrative actions.
+
 ## Version 1.2.0
 
 _Released 10/21/19_
