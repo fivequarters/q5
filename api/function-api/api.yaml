@@ -1325,6 +1325,8 @@ paths:
         `'GET /build/{buildId}'`.
 
         The URL for executing the function will be provided as the `location` property of the response.
+
+        The maximum payload size is 100KB.
       operationId: putFunction
       requestBody:
         description: The function to build and deploy
@@ -1667,7 +1669,6 @@ paths:
   #               $ref: '#/components/schemas/Error'
   #     security:
   #       - AccessToken: []
-
   # /v1/account/{accountId}/subscription/{subscriptionId}/storage/{storageId}/{storagePath}:
   #   parameters:
   #     - in: path
@@ -1691,7 +1692,7 @@ paths:
   #     - name: storagePath
   #       in: path
   #       description: |
-  #         One or more JSON object property names separated by a '/' to reference only a portion of 
+  #         One or more JSON object property names separated by a '/' to reference only a portion of
   #         the stored data object
   #       required: false
   #       schema:
@@ -2325,12 +2326,10 @@ components:
             transitions:
               type: 'object'
         - $ref: '#/components/schemas/FunctionLocation'
-
     # StorageId:
     #   type: string
     #   description: Storage id
     #   example: my-storage-id
-
     # StorageShort:
     #   type: object
     #   required:
@@ -2338,7 +2337,6 @@ components:
     #   properties:
     #     storageId:
     #       $ref: '#/components/schemas/StorageId'
-
     # StorageList:
     #   type: object
     #   required:
@@ -2352,7 +2350,6 @@ components:
     #       description: A list of storage Ids
     #       items:
     #         $ref: '#/components/schemas/StorageShort'
-
     # StorageData:
     #   type: object
     #   properties:
