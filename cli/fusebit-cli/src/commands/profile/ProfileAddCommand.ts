@@ -15,7 +15,7 @@ const command = {
     'and applying the given command options.',
     Text.eol(),
     Text.eol(),
-    "To create a new profile any existing profile, use the '",
+    "To create a new profile from an existing profile, use the '",
     Text.bold('profile cp'),
     "' command and the '",
     Text.bold('profile update'),

@@ -16,6 +16,12 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.4.0
+
+_Released 11/4/19_
+
+- **Support for OAuth device flow.** Added support for user authentication using OAuth 2.0 device flow.
+
 ## Version 1.3.0
 
 _Released 10/23/19_

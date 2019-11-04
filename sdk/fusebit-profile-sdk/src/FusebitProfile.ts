@@ -19,7 +19,9 @@ const jwtAlgorithm = 'RS256';
 // ------------------
 
 function getKeyHash(profile: IFusebitProfile): string {
-  return `${toBase64(profile.issuer as string)}:${toBase64(profile.subject as string)}:${toBase64(profile.baseUrl)}`;
+  return `${toBase64(profile.issuer as string)}:${toBase64((profile.clientId || profile.subject) as string)}:${toBase64(
+    profile.baseUrl
+  )}`;
 }
 
 function nomarlizeBaseUrl(baseUrl: string): string {
@@ -66,19 +68,33 @@ export interface IFusebitProfileSettings {
   function?: string;
 }
 
+export interface IFusebitProfile extends IFusebitProfileSettings {
+  name: string;
+  baseUrl: string;
+  issuer: string;
+  created: string;
+  updated: string;
+  clientId?: string;
+  tokenUrl?: string;
+  keyPair?: string;
+  kid?: string;
+}
+
+export interface IPKIFusebitProfile extends IFusebitProfile {
+  keyPair: string;
+  kid: string;
+}
+
+export interface IOAuthFusebitProfile extends IFusebitProfile {
+  tokenUrl: string;
+  clientId: string;
+}
+
 export interface IFusebitNewProfile extends IFusebitProfileSettings {
   agent: string;
   baseUrl: string;
   issuer: string;
   subject: string;
-}
-
-export interface IFusebitProfile extends IFusebitNewProfile {
-  name: string;
-  created: string;
-  updated: string;
-  keyPair: string;
-  kid: string;
 }
 
 export interface IFusebitKeyPair {
@@ -164,6 +180,16 @@ export class FusebitProfile {
     return this.getProfile(name);
   }
 
+  public getTypedProfile(
+    profile: IFusebitProfile
+  ): { pkiProfile?: IPKIFusebitProfile; oauthProfile?: IOAuthFusebitProfile } {
+    if (profile.clientId) {
+      return { oauthProfile: profile as IOAuthFusebitProfile };
+    } else {
+      return { pkiProfile: profile as IPKIFusebitProfile };
+    }
+  }
+
   public async getProfileOrDefaultOrThrow(name?: string): Promise<IFusebitProfile> {
     if (!name) {
       name = await this.dotConfig.getDefaultProfileName();
@@ -181,7 +207,11 @@ export class FusebitProfile {
     return { publicKey, privateKey, kid, name };
   }
 
-  public async addProfile(name: string, toAdd: IFusebitNewProfile, keyPair: IFusebitKeyPair): Promise<IFusebitProfile> {
+  public async addPKIProfile(
+    name: string,
+    toAdd: IFusebitNewProfile,
+    keyPair: IFusebitKeyPair
+  ): Promise<IPKIFusebitProfile> {
     await this.dotConfig.setPrivateKey(name, keyPair.kid, keyPair.privateKey);
     await this.dotConfig.setPublicKey(name, keyPair.kid, keyPair.publicKey);
 
@@ -200,6 +230,33 @@ export class FusebitProfile {
       subject: toAdd.subject,
       keyPair: keyPair.name,
       kid: keyPair.kid,
+    };
+
+    const profile = await this.dotConfig.setProfile(name, fullProfileToAdd);
+    profile.name = name;
+
+    const defaultProfileName = await this.getDefaultProfileName();
+    if (!defaultProfileName) {
+      await this.setDefaultProfileName(name);
+    }
+
+    return profile;
+  }
+
+  public async createProfile(name: string, toAdd: IFusebitProfileSettings): Promise<IOAuthFusebitProfile> {
+    const created = new Date().toLocaleString();
+
+    const fullProfileToAdd = {
+      created,
+      updated: created,
+      account: toAdd.account || undefined,
+      subscription: toAdd.subscription || undefined,
+      boundary: toAdd.boundary || undefined,
+      function: toAdd.function || undefined,
+      baseUrl: nomarlizeBaseUrl(<string>toAdd.baseUrl),
+      issuer: toAdd.issuer,
+      clientId: toAdd.clientId,
+      tokenUrl: toAdd.tokenUrl,
     };
 
     const profile = await this.dotConfig.setProfile(name, fullProfileToAdd);
@@ -266,30 +323,40 @@ export class FusebitProfile {
     const profile = await this.getProfileOrThrow(name);
     await this.dotConfig.removeProfile(name);
 
-    const kid = profile.kid;
-    if (!(await this.isKeyUsedByAnyProfiles(name, kid))) {
-      await Promise.all([this.dotConfig.removeKeyPair(name, kid), this.dotConfig.removeCachedCreds(name, kid)]);
+    if (profile.kid) {
+      const kid = profile.kid;
+      if (!(await this.isKeyUsedByAnyProfiles(name, kid))) {
+        await Promise.all([this.dotConfig.removeKeyPair(name, kid), this.dotConfig.removeCachedCreds(name, kid)]);
+      }
     }
   }
 
   public async getPublicKey(name: string): Promise<string> {
     const profile = await this.getProfileOrThrow(name);
-    return this.dotConfig.getPublicKey(profile.keyPair, profile.kid);
+    if (profile.keyPair && profile.kid) {
+      return this.dotConfig.getPublicKey(profile.keyPair, profile.kid);
+    } else {
+      throw FusebitProfileException.notPKIProfile(name);
+    }
   }
 
-  public async getAccessToken(name?: string, ignoreCache: boolean = false): Promise<string> {
-    const profile = await this.getProfileOrDefaultOrThrow(name);
-    if (!ignoreCache) {
-      return this.generateAccessToken(profile);
+  public async getPKIAccessToken(name?: string, ignoreCache: boolean = false): Promise<string> {
+    let profile = await this.getProfileOrDefaultOrThrow(name);
+    if (!profile.kid || !profile.keyPair) {
+      throw FusebitProfileException.notPKIProfile(name || '<default>');
+    }
+    let pkiProfile = profile as IPKIFusebitProfile;
+    if (ignoreCache) {
+      return this.generateAccessToken(pkiProfile);
     }
 
     const accessToken = await this.getCachedAccessToken(profile);
-    return accessToken !== undefined ? accessToken : this.generateAccessToken(profile);
+    return accessToken !== undefined ? accessToken : this.generateAccessToken(pkiProfile);
   }
 
-  public async getExecutionProfile(name?: string, ignoreCache: boolean = false): Promise<IFusebitExecutionProfile> {
+  public async getPKIExecutionProfile(name?: string, ignoreCache: boolean = false): Promise<IFusebitExecutionProfile> {
     const profile = await this.getProfileOrDefaultOrThrow(name);
-    const accessToken = await this.getAccessToken(name, ignoreCache);
+    const accessToken = await this.getPKIAccessToken(name, ignoreCache);
     return {
       accessToken,
       baseUrl: profile.baseUrl,
@@ -305,9 +372,9 @@ export class FusebitProfile {
     return profiles.length > 0;
   }
 
-  private async getProfilesUsingKey(name: string, kid: string): Promise<IFusebitProfile[]> {
+  private async getProfilesUsingKey(name: string, kid: string): Promise<IPKIFusebitProfile[]> {
     const profiles = await this.listProfiles();
-    return profiles.filter(profile => profile.keyPair === name && profile.kid === kid);
+    return <IPKIFusebitProfile[]>profiles.filter(profile => profile.keyPair === name && profile.kid === kid);
   }
 
   private async generateKid(name: string) {
@@ -318,7 +385,7 @@ export class FusebitProfile {
     return kid;
   }
 
-  private async generateAccessToken(profile: IFusebitProfile): Promise<string> {
+  private async generateAccessToken(profile: IPKIFusebitProfile): Promise<string> {
     const privateKey = await this.dotConfig.getPrivateKey(profile.keyPair, profile.kid);
 
     const expires = new Date(Date.now() + 1000 * expireInSeconds);
@@ -335,13 +402,36 @@ export class FusebitProfile {
     };
 
     const accessToken = await signJwt({}, privateKey, options);
-    const cachedCredsEntry = { accessToken, has: getKeyHash(profile), expires: expires.toLocaleString() };
-    await this.dotConfig.setCachedCreds(profile.keyPair, profile.kid, cachedCredsEntry);
+    await this.setCachedAccessToken(profile, accessToken, expires);
 
     return accessToken;
   }
 
-  private async getCachedAccessToken(profile: IFusebitProfile): Promise<string | undefined> {
+  public async setCachedAccessToken(
+    profile: IFusebitProfile,
+    accessToken: string,
+    expires: Date,
+    refreshToken?: string
+  ) {
+    const cachedCredsEntry: any = { accessToken, hash: getKeyHash(profile), expires: expires.toLocaleString() };
+    if (refreshToken) {
+      cachedCredsEntry.refreshToken = refreshToken;
+    }
+    await this.dotConfig.setCachedCreds(profile.name, profile.kid, cachedCredsEntry);
+  }
+
+  public async getCachedRefreshToken(profile: IFusebitProfile): Promise<string | undefined> {
+    const cachedCredsEntry = await this.dotConfig.getCachedCreds(profile.name, profile.kid);
+    if (cachedCredsEntry) {
+      if (cachedCredsEntry.hash === getKeyHash(profile)) {
+        return cachedCredsEntry.refreshToken || undefined;
+      }
+    }
+
+    return undefined;
+  }
+
+  public async getCachedAccessToken(profile: IFusebitProfile): Promise<string | undefined> {
     const cachedCredsEntry = await this.dotConfig.getCachedCreds(profile.name, profile.kid);
     if (cachedCredsEntry) {
       if (cachedCredsEntry.hash === getKeyHash(profile)) {
