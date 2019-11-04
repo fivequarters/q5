@@ -124,14 +124,14 @@ export class FusebitDotConfig extends DotConfig {
     return creds !== undefined;
   }
 
-  public async getCachedCreds(name: string, kid: string): Promise<any> {
+  public async getCachedCreds(name: string, kid?: string): Promise<any> {
     const path = await this.getCachedCredsPath(name, kid);
     return this.readJson(path);
   }
 
-  public async setCachedCreds(name: string, kid: string, creds: any) {
+  public async setCachedCreds(name: string, kid: string | undefined, creds: any) {
     const path = await this.getCachedCredsPath(name, kid);
-    this.writeJson(path, creds);
+    await this.writeJson(path, creds);
   }
 
   public async removeCachedCreds(name: string, kid: string): Promise<void> {
@@ -219,8 +219,8 @@ export class FusebitDotConfig extends DotConfig {
     }
   }
 
-  private async getCachedCredsPath(name: string, kid: string): Promise<string> {
-    return join(credsCachePath, name, kid, credsFileName);
+  private async getCachedCredsPath(name: string, kid?: string): Promise<string> {
+    return kid ? join(credsCachePath, name, kid, credsFileName) : join(credsCachePath, name, credsFileName);
   }
 
   private async removeCachedCredsDirectory(path: string, name: string): Promise<void> {

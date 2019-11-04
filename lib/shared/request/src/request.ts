@@ -49,7 +49,7 @@ function getHttpResponse(axiosResponse: any, parseJson: boolean = true, validSta
 
   if (parseJson && typeof httpResponse.data === 'string') {
     const contentType = httpResponse.headers['content-type'];
-    if (contentType.toLowerCase().indexOf('json') >= 0) {
+    if (contentType && contentType.toLowerCase().indexOf('json') >= 0) {
       try {
         httpResponse.data = JSON.parse(httpResponse.data);
       } catch (error) {

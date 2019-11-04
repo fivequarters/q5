@@ -3,6 +3,8 @@ export {
   IFusebitKeyPair,
   IFusebitExecutionProfile,
   IFusebitNewProfile,
+  IOAuthFusebitProfile,
+  IPKIFusebitProfile,
   IFusebitProfile,
   IFusebitProfileSettings,
 } from './FusebitProfile';
