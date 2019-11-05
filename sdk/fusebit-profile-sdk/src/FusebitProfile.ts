@@ -354,6 +354,20 @@ export class FusebitProfile {
     return accessToken !== undefined ? accessToken : this.generateAccessToken(pkiProfile);
   }
 
+  public async getPKICredentials(profile: IPKIFusebitProfile): Promise<any> {
+    const result = {
+      type: 'pki',
+      algorithm: jwtAlgorithm,
+      audience: profile.baseUrl,
+      issuer: profile.issuer,
+      subject: profile.subject,
+      kid: profile.kid,
+      privateKey: await this.dotConfig.getPrivateKey(profile.keyPair, profile.kid),
+    };
+
+    return result;
+  }
+
   public async getPKIExecutionProfile(name?: string, ignoreCache: boolean = false): Promise<IFusebitExecutionProfile> {
     const profile = await this.getProfileOrDefaultOrThrow(name);
     const accessToken = await this.getPKIAccessToken(name, ignoreCache);
