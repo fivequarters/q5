@@ -32,7 +32,7 @@ export async function createDwhExport(config: OpsDataAwsConfig, awsConfig: IAwsC
     },
   };
 
-  const DeploymentPackage = Fs.readFileSync(Path.join(__dirname, '../lambda/dwh/dist/dwh_export.zip'));
+  const DeploymentPackage = Fs.readFileSync(Path.join(__dirname, 'dwh_export.zip'));
 
   let ctx: any = {};
 
