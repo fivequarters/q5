@@ -49,10 +49,10 @@ describe('User', () => {
 
       const now = Math.floor(Date.now() / 1000);
       const eightHoursFromNow = now + 60 * 60 * 8;
-      expect(decoded.iat).toBeGreaterThan(now - 5);
-      expect(decoded.iat).toBeLessThan(now + 5);
-      expect(decoded.exp).toBeGreaterThan(eightHoursFromNow - 5);
-      expect(decoded.exp).toBeLessThan(eightHoursFromNow + 5);
+      expect(decoded.iat).toBeGreaterThan(now - 10);
+      expect(decoded.iat).toBeLessThan(now + 10);
+      expect(decoded.exp).toBeGreaterThan(eightHoursFromNow - 10);
+      expect(decoded.exp).toBeLessThan(eightHoursFromNow + 10);
     }, 20000);
 
     test('Getting an init token with a subscriptionId set should be supported', async () => {
@@ -84,10 +84,10 @@ describe('User', () => {
 
       const now = Math.floor(Date.now() / 1000);
       const eightHoursFromNow = now + 60 * 60 * 8;
-      expect(decoded.iat).toBeGreaterThan(now - 5);
-      expect(decoded.iat).toBeLessThan(now + 5);
-      expect(decoded.exp).toBeGreaterThan(eightHoursFromNow - 5);
-      expect(decoded.exp).toBeLessThan(eightHoursFromNow + 5);
+      expect(decoded.iat).toBeGreaterThan(now - 10);
+      expect(decoded.iat).toBeLessThan(now + 10);
+      expect(decoded.exp).toBeGreaterThan(eightHoursFromNow - 10);
+      expect(decoded.exp).toBeLessThan(eightHoursFromNow + 10);
     }, 20000);
 
     test('Getting an init token with a boundaryId set should be supported', async () => {
@@ -123,10 +123,10 @@ describe('User', () => {
 
       const now = Math.floor(Date.now() / 1000);
       const eightHoursFromNow = now + 60 * 60 * 8;
-      expect(decoded.iat).toBeGreaterThan(now - 5);
-      expect(decoded.iat).toBeLessThan(now + 5);
-      expect(decoded.exp).toBeGreaterThan(eightHoursFromNow - 5);
-      expect(decoded.exp).toBeLessThan(eightHoursFromNow + 5);
+      expect(decoded.iat).toBeGreaterThan(now - 10);
+      expect(decoded.iat).toBeLessThan(now + 10);
+      expect(decoded.exp).toBeGreaterThan(eightHoursFromNow - 10);
+      expect(decoded.exp).toBeLessThan(eightHoursFromNow + 10);
     }, 20000);
 
     test('Getting an init token with a functionId set should be supported', async () => {
@@ -164,10 +164,10 @@ describe('User', () => {
 
       const now = Math.floor(Date.now() / 1000);
       const eightHoursFromNow = now + 60 * 60 * 8;
-      expect(decoded.iat).toBeGreaterThan(now - 5);
-      expect(decoded.iat).toBeLessThan(now + 5);
-      expect(decoded.exp).toBeGreaterThan(eightHoursFromNow - 5);
-      expect(decoded.exp).toBeLessThan(eightHoursFromNow + 5);
+      expect(decoded.iat).toBeGreaterThan(now - 10);
+      expect(decoded.iat).toBeLessThan(now + 10);
+      expect(decoded.exp).toBeGreaterThan(eightHoursFromNow - 10);
+      expect(decoded.exp).toBeLessThan(eightHoursFromNow + 10);
     }, 20000);
 
     test('Getting an init token with an invalid user id should return an error', async () => {

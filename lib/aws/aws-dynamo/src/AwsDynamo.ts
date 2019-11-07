@@ -357,16 +357,26 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
   }
 
   public async ensureTable(table: IAwsDynamoTable): Promise<void> {
-    const exists = await this.tableExists(table.name);
-    if (exists) {
-      return;
-    }
-
-    const arn = await this.createTable(table);
-    await this.waitForTable(table.name);
-    await this.tagResource(arn);
-    if (table.ttlAttribute !== undefined) {
-      await this.updateTtl(table.name, table.ttlAttribute);
+    const description = await this.tableExists(table.name);
+    if (description) {
+      if (
+        !description.SSEDescription ||
+        description.SSEDescription.Status === 'DISABLED' ||
+        description.SSEDescription.Status === 'DISABLING'
+      ) {
+        // Table exists, encryption disabled or being disabled, we are done
+        return;
+      }
+      // Table exists, encryption not disabled, disable it
+      await this.disableTableEncryption(table);
+    } else {
+      // Table does not exist, create
+      const arn = await this.createTable(table);
+      await this.waitForTable(table.name);
+      await this.tagResource(arn);
+      if (table.ttlAttribute !== undefined) {
+        await this.updateTtl(table.name, table.ttlAttribute);
+      }
     }
   }
 
@@ -583,21 +593,21 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
     });
   }
 
-  public async tableExists(tableName: string): Promise<boolean> {
+  public async tableExists(tableName: string): Promise<DynamoDB.TableDescription | undefined> {
     const dynamo = await this.getAws();
     const fullTableName = this.getFullName(tableName);
     const params = {
       TableName: fullTableName,
     };
     return new Promise((resolve, reject) => {
-      dynamo.describeTable(params, (error: any, data: any) => {
+      dynamo.describeTable(params, (error: any, data?: DynamoDB.DescribeTableOutput) => {
         if (error) {
           if (error.code === resourceNotFoundException) {
-            return resolve(false);
+            return resolve(undefined);
           }
           return reject(errorToException(fullTableName, 'tableExists', error));
         }
-        resolve(true);
+        resolve(data && data.Table);
       });
     });
   }
@@ -850,6 +860,27 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
     });
   }
 
+  private async disableTableEncryption(table: IAwsDynamoTable): Promise<void> {
+    const dynamo = await this.getAws();
+    const fullTableName = this.getFullName(table.name);
+    const params: any = {
+      TableName: fullTableName,
+      SSESpecification: {
+        Enabled: false,
+      },
+    };
+
+    return new Promise((resolve, reject) => {
+      dynamo.updateTable(params, (error: any, data: any) => {
+        if (error) {
+          return reject(errorToException(fullTableName, 'updateTable', error));
+        }
+
+        resolve();
+      });
+    });
+  }
+
   private async createTable(table: IAwsDynamoTable): Promise<string> {
     const dynamo = await this.getAws();
     const fullTableName = this.getFullName(table.name);
@@ -859,7 +890,7 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
       KeySchema: toKeySchema(table.keys),
       BillingMode: 'PAY_PER_REQUEST',
       SSESpecification: {
-        Enabled: true,
+        Enabled: false,
       },
     };
 
