@@ -29,7 +29,13 @@ export class AwsDynamoTable implements IDataSource {
   }
 
   public async isSetup() {
-    return this.dynamo.tableExists(this.table.name);
+    const description = await this.dynamo.tableExists(this.table.name);
+    return !!(
+      description &&
+      (!description.SSEDescription ||
+        description.SSEDescription.Status === 'DISABLED' ||
+        description.SSEDescription.Status === 'DISABLING')
+    );
   }
 
   public async setup() {

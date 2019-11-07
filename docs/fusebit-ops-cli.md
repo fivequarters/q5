@@ -17,6 +17,14 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.17.0
+
+_Released 11/7/19_
+
+- **Reduce AWS encryption costs** Optimize DynamoDB encryption settings to reduce encryption costs.
+
+**NOTE** You need to run `fuse-ops setup` on your account and `fuse-ops deployment add` on all your deployments to upgrade DynamoDB settings configuration.
+
 ## Version 1.16.0
 
 _Released 11/5/19_
