@@ -59,10 +59,10 @@ npm i -g yarn
 
 5. Install the **ngrok** tool from [here](https://ngrok.com/download) and put the executable someplace on the PATH.
 
-6. Install `typedoc` tool by running
+6. Install `typedoc` tool and plugins by running
 
 ```
-npm i -g typedoc
+npm i -g typedoc typedoc-plugin-sourcefile-url fs-extra
 ```
 
 7. At the root of this repo, run the **setup** cmd:
@@ -81,10 +81,11 @@ yarn build
 
 Docker is a temporary hack to quickly create a monolithic deployment of flexd-functions and pubsub and run it EC2 behind an application proxy.
 
-Key notes: 
-* The image exposes two ports: 3001 for product APIs, and 5002 for the websocket endpoint that accepts real time logs from clients running in user Lambda functions. 
-* Both endpoints are unsecured, so SSL needs to be terminated at the application proxy. 
-* A new project `/mono` has been created that is the entry point of the image. It acts as a simple process manager: it starts flexd-functions and pubsub, watches for their termination, and if either exits, it folds down all other processes and exits itself. It also propagates SIGINT and SIGTERM from outside to children. 
+Key notes:
+
+- The image exposes two ports: 3001 for product APIs, and 5002 for the websocket endpoint that accepts real time logs from clients running in user Lambda functions.
+- Both endpoints are unsecured, so SSL needs to be terminated at the application proxy.
+- A new project `/mono` has been created that is the entry point of the image. It acts as a simple process manager: it starts flexd-functions and pubsub, watches for their termination, and if either exits, it folds down all other processes and exits itself. It also propagates SIGINT and SIGTERM from outside to children.
 
 Install Docker for Mac from [here](https://docs.docker.com/v17.12/docker-for-mac/install/).
 
@@ -94,7 +95,7 @@ Building the docker image:
 docker build -t flexd .
 ```
 
-Running the image: 
+Running the image:
 
 ```
 docker run -it --rm -name flexd-functions --env-file .env -p 3001:3001 -p 5002:5002 flexd
@@ -124,6 +125,6 @@ Here is a quick list of commands for working with the workspaces in the reposito
 | Rename a Workspace                    | `yarn rename <workspace-name> <new-name>`                    |
 | Move a Workspace                      | `yarn move <workspace-name> <new-path>`                      |
 | Delete a Workspace                    | `yarn delete <workspace-name> <new-path>`                    |
-| Generate API documentati              | `yarn doc <workspace-name>`                                  |
+| Generate API documentation            | `yarn doc <workspace-name>`                                  |
 
 **\*** These commands will execute for all workspaces that have a path/name that match the filter

@@ -6,7 +6,7 @@ permalink: pretty
 exclude: ["README.md"]
 heading_anchors: true
 footer_content: "&copy; 2019 Fusebit - All Rights Reserved"
-logo: "/assets/img/FusebitLogo.png"
+logo: "/assets/img/ReleaseNotesTitle.png"
 
 # "Just the Docs" theme
 search_enabled: true
