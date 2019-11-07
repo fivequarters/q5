@@ -17,6 +17,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.16.0
+
+_Released 11/5/19_
+
+- **Fix regression in CRON deployment** Fixed a bug that prevented `fuse-ops deployment add` from deploying the CRON infrastructure.
+
 ## Version 1.15.0
 
 _Released 10/21/19_

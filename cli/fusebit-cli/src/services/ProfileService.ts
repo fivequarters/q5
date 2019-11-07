@@ -334,6 +334,27 @@ export class ProfileService {
     }
   }
 
+  private async getExportProfileDemux(profileName?: string): Promise<any> {
+    const profile = await this.profile.getProfileOrDefaultOrThrow(profileName);
+    const profiles = this.profile.getTypedProfile(profile);
+    if (profiles.pkiProfile) {
+      return await this.profile.getPKICredentials(profiles.pkiProfile as IPKIFusebitProfile);
+    } else {
+      let p = profiles.oauthProfile as IOAuthFusebitProfile;
+      let result: any = {
+        type: 'oauth',
+        clientId: p.clientId,
+        tokenUrl: p.tokenUrl,
+        audience: p.baseUrl,
+        refreshToken: await this.profile.getCachedRefreshToken(profile),
+      };
+      if (!result.refreshToken) {
+        throw new Error('The OAuth profile cannot be exported because it lacks a refresh token.');
+      }
+      return result;
+    }
+  }
+
   private async getExecutionProfileDemux(
     profileName?: string,
     ignoreCache?: boolean
@@ -365,7 +386,12 @@ export class ProfileService {
         }
       }
       if (!accessToken) {
-        accessToken = await this.getOAuthAccessToken(profile);
+        if (!this.isInteractive()) {
+          throw new Error(
+            'Unable to obtain OAuth access token because the command was launched in a non-interactive mode.'
+          );
+        }
+        if (this.executeService) accessToken = await this.getOAuthAccessToken(profile);
       }
     }
 
@@ -377,6 +403,10 @@ export class ProfileService {
       boundary: profile.boundary || undefined,
       function: profile.function || undefined,
     };
+  }
+
+  private isInteractive(): boolean {
+    return this.input.options.output === 'pretty';
   }
 
   private async refreshOAuthAccessToken(profile: IOAuthFusebitProfile, refreshToken: string): Promise<string> {
@@ -571,38 +601,51 @@ export class ProfileService {
     await this.writeProfile(profile, profile.name === defaultProfileName, agentDetails);
   }
 
-  public async displayTokenContext(profileName?: string) {
+  public async displayTokenContext(profileName?: string): Promise<void> {
     if (!profileName) {
       profileName = await this.profile.getDefaultProfileName();
     }
 
-    const profile = await this.getExecutionProfileDemux(profileName, true);
-
     const output = this.input.options.output;
-    if (output === 'json') {
-      await this.input.io.writeLineRaw(JSON.stringify(profile, null, 2));
-      return;
+
+    // Get execution profile to ensure OAuth flow was executed at least once
+    const executionProfile = await this.execute(() => this.getExecutionProfileDemux(profileName, true));
+
+    if (output === 'export' || output === 'export64') {
+      const profile = await this.execute(() => this.getExportProfileDemux(profileName));
+      if (output === 'export') {
+        await this.input.io.writeLineRaw(JSON.stringify(profile, null, 2));
+        return;
+      }
+      await this.input.io.writeLineRaw(Buffer.from(JSON.stringify(profile), 'utf8').toString('base64'));
+    } else {
+      const profile = executionProfile;
+
+      if (output === 'json') {
+        await this.input.io.writeLineRaw(JSON.stringify(profile, null, 2));
+        return;
+      }
+
+      if (output === 'raw') {
+        await this.input.io.writeLineRaw(profile.accessToken);
+        return;
+      }
+
+      const details = [
+        Text.dim('Deployment: '),
+        profile.baseUrl,
+        Text.eol(),
+        Text.dim('Account: '),
+        profile.account || notSet,
+        Text.eol(),
+        Text.dim('Access Token: '),
+      ];
+
+      await this.executeService.info(profileName as string, Text.create(details));
+
+      this.input.io.writeLineRaw(profile.accessToken);
+      this.input.io.writeLine();
     }
-
-    if (output === 'raw') {
-      await this.input.io.writeLineRaw(profile.accessToken);
-      return;
-    }
-
-    const details = [
-      Text.dim('Deployment: '),
-      profile.baseUrl,
-      Text.eol(),
-      Text.dim('Account: '),
-      profile.account || notSet,
-      Text.eol(),
-      Text.dim('Access Token: '),
-    ];
-
-    await this.executeService.info(profileName as string, Text.create(details));
-
-    this.input.io.writeLineRaw(profile.accessToken);
-    this.input.io.writeLine();
   }
 
   public async getAgent(profileName: string): Promise<any> {

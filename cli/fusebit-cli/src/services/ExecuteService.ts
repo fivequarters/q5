@@ -158,11 +158,11 @@ export class ExecuteService {
 
   private isRawOutput() {
     const output = this.input.options.output;
-    return output === 'raw';
+    return output === 'raw' || output === 'export64';
   }
 
   private isJsonOutput() {
     const output = this.input.options.output;
-    return output === 'json';
+    return output === 'json' || output === 'export';
   }
 }

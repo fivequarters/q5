@@ -8,7 +8,7 @@ import { FusebitPage as Page, FusebitSection as Section, FusebitBreak as Break }
 
 export function Downloads() {
   return (
-    <Page height="100%" header="Downloads" updatedOn="September 27, 2019">
+    <Page height="100%" header="Downloads" updatedOn="November 5, 2019">
       <Section>
         This page contains download links for the components of the Fusebit platform. A description of our versioning
         and support policy is available <Link href="/docs/integrator-guide/versioning/">here</Link>.
@@ -22,8 +22,8 @@ export function Downloads() {
           </li>
           <li>
             Fusebit Operations CLI:{' '}
-            <Link href=" https://cdn.fusebit.io/fusebit/cli/fusebit-ops-cli-v1.14.tgz">
-              https://cdn.fusebit.io/fusebit/cli/fusebit-ops-cli-v1.14.tgz
+            <Link href=" https://cdn.fusebit.io/fusebit/cli/fusebit-ops-cli-v1.16.tgz">
+              https://cdn.fusebit.io/fusebit/cli/fusebit-ops-cli-v1.16.tgz
             </Link>
             <ul>
               <li>
@@ -48,7 +48,7 @@ export function Downloads() {
             <ul>
               <li>Cloud deployment - https://api.{'{region}'}.fusebit.io/v1</li>
               <li>
-                Private deployment image - <code>fuse-ops image pull 1.13.0</code>
+                Private deployment image - <code>fuse-ops image pull 1.13.2</code>
               </li>
             </ul>
           </li>
