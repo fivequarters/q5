@@ -24,7 +24,8 @@ const command = {
     {
       name: 'output',
       aliases: ['o'],
-      description: "The format to display the output: 'pretty', 'json', 'raw', 'export', 'export64'",
+      //description: "The format to display the output: 'pretty', 'json', 'raw', 'export', 'export64'",
+      description: "The format to display the output: 'pretty', 'json', 'raw'",
       default: 'pretty',
     },
   ],
