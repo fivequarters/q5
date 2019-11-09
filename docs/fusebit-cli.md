@@ -16,6 +16,13 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.5.0
+
+_Released 11/11/19_
+
+- **Support for granting additional permissions.** The `fuse client access add` command now allows granting the `audit:get` actions, which enable the user to access the audit trail of an account.
+- **Bug fix.** Fixed an issue in access token caching logic that sometimes prevented timely renewal of expired access tokens.
+
 ## Version 1.4.0
 
 _Released 11/4/19_
