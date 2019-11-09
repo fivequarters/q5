@@ -72,7 +72,15 @@ export class ClientAccessAddCommand extends Command {
 
     await executeService.newLine();
 
-    const allowedActions = ['user:*', 'client:*', 'issuer:*', 'function:*'];
+    const allowedActions = [
+      'user:*',
+      'client:*',
+      'issuer:*',
+      'function:*',
+      'subscription:get',
+      'account:get',
+      'audit:get',
+    ];
     if (allowedActions.indexOf(action) === -1) {
       const text = ["The '", Text.bold('action'), "' options must be one of the following values:"];
       text.push(...allowedActions.map(act => Text.create(" '", Text.bold(act), "'")));

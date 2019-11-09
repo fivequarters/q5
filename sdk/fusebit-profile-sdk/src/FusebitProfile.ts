@@ -450,7 +450,7 @@ export class FusebitProfile {
     if (cachedCredsEntry) {
       if (cachedCredsEntry.hash === getKeyHash(profile)) {
         const expires = new Date(cachedCredsEntry.expires).valueOf();
-        const cutOff = Date.now() - minExpireInterval;
+        const cutOff = Date.now() + minExpireInterval;
         if (expires > cutOff) {
           return cachedCredsEntry.accessToken;
         }
