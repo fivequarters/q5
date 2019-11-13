@@ -17,6 +17,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.18.0
+
+_Released 11/12/19_
+
+- **Support for custom AWS credentials provider** Enable the specification of a custom AWS credentials provider in `fuse-ops init`.
+
 ## Version 1.17.0
 
 _Released 11/7/19_

@@ -1,5 +1,6 @@
 import { fromBase64, toBase64 } from '@5qtrs/base64';
 import { clone } from '@5qtrs/clone';
+import childProcess from 'child_process';
 import { avoidRace } from '@5qtrs/promise';
 import { STS } from 'aws-sdk';
 import { InMemoryCredsCache } from './InMemoryCredsCache';
@@ -54,6 +55,7 @@ export interface IAwsCredsOptions {
   mfaSerialNumber?: string;
   userName?: string;
   mfaCodeResolver?: IMfaCodeResolver;
+  credentialsProvider?: string;
 }
 
 // ----------------
@@ -97,7 +99,7 @@ export class AwsCreds {
     const baseCreds = this.options;
     const parentCreds = this.parentCreds;
     let creds: IAwsCredentials = {};
-    if (!parentCreds) {
+    if (!parentCreds && !baseCreds.credentialsProvider) {
       if (baseCreds.accessKeyId && baseCreds.secretAccessKey) {
         creds.accessKeyId = baseCreds.accessKeyId;
         creds.secretAccessKey = baseCreds.secretAccessKey;
@@ -151,7 +153,46 @@ export class AwsCreds {
     return creds;
   }
 
+  private async assumeRoleFromCredentialsProvider(credentialsProvider: string): Promise<IAwsCredentials> {
+    let parsed: any = {};
+
+    try {
+      const output: string = childProcess.execSync(credentialsProvider, {
+        encoding: 'utf8',
+        windowsHide: true,
+      });
+      try {
+        parsed = JSON.parse(output);
+        if (typeof parsed !== 'object') throw new Error('Not an object');
+      } catch (e1) {
+        throw new Error('Unable to parse the output of the credentials provider command as a JSON object');
+      }
+      ['AccessKeyId', 'SecretAccessKey', 'SessionToken', 'Expiration'].forEach(p => {
+        if (typeof parsed[p] !== 'string') {
+          throw new Error(`Credentials provider command returned an object without the required '${p}' property`);
+        }
+      });
+    } catch (e) {
+      const message = [
+        `Failed to obtain credentials using the credentials provider command '${credentialsProvider}'`,
+        `due to the following error: ${e.message}`,
+      ].join(' ');
+      throw new Error(message);
+    }
+
+    return {
+      accessKeyId: parsed.AccessKeyId as string,
+      secretAccessKey: parsed.SecretAccessKey as string,
+      sessionToken: parsed.SessionToken as string,
+      expires: +(parsed.Expiration as string),
+    };
+  }
+
   private async assumeRole(): Promise<IAwsCredentials> {
+    if (this.options.credentialsProvider) {
+      return await this.assumeRoleFromCredentialsProvider(this.options.credentialsProvider as string);
+    }
+
     const stsOptions: any = {};
 
     if (this.parentCreds) {
