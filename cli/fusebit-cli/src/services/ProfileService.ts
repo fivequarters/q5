@@ -334,25 +334,16 @@ export class ProfileService {
     }
   }
 
-  private async getExportProfileDemux(profileName?: string): Promise<any> {
-    const profile = await this.profile.getProfileOrDefaultOrThrow(profileName);
-    const profiles = this.profile.getTypedProfile(profile);
-    if (profiles.pkiProfile) {
-      return await this.profile.getPKICredentials(profiles.pkiProfile as IPKIFusebitProfile);
-    } else {
-      let p = profiles.oauthProfile as IOAuthFusebitProfile;
-      let result: any = {
-        type: 'oauth',
-        clientId: p.clientId,
-        tokenUrl: p.tokenUrl,
-        audience: p.baseUrl,
-        refreshToken: await this.profile.getCachedRefreshToken(profile),
-      };
-      if (!result.refreshToken) {
-        throw new Error('The OAuth profile cannot be exported because it lacks a refresh token.');
+  public async getExportProfileDemux(profileName?: string): Promise<any> {
+    return await this.execute(async () => {
+      const profile = await this.profile.getProfileOrDefaultOrThrow(profileName);
+      const profiles = this.profile.getTypedProfile(profile);
+      if (profiles.pkiProfile) {
+        return await this.profile.getPKICredentials(profiles.pkiProfile as IPKIFusebitProfile);
+      } else {
+        return undefined;
       }
-      return result;
-    }
+    });
   }
 
   private async getExecutionProfileDemux(
@@ -609,43 +600,32 @@ export class ProfileService {
     const output = this.input.options.output;
 
     // Get execution profile to ensure OAuth flow was executed at least once
-    const executionProfile = await this.execute(() => this.getExecutionProfileDemux(profileName, true));
+    const profile = await this.execute(() => this.getExecutionProfileDemux(profileName, true));
 
-    if (output === 'export' || output === 'export64') {
-      const profile = await this.execute(() => this.getExportProfileDemux(profileName));
-      if (output === 'export') {
-        await this.input.io.writeLineRaw(JSON.stringify(profile, null, 2));
-        return;
-      }
-      await this.input.io.writeLineRaw(Buffer.from(JSON.stringify(profile), 'utf8').toString('base64'));
-    } else {
-      const profile = executionProfile;
-
-      if (output === 'json') {
-        await this.input.io.writeLineRaw(JSON.stringify(profile, null, 2));
-        return;
-      }
-
-      if (output === 'raw') {
-        await this.input.io.writeLineRaw(profile.accessToken);
-        return;
-      }
-
-      const details = [
-        Text.dim('Deployment: '),
-        profile.baseUrl,
-        Text.eol(),
-        Text.dim('Account: '),
-        profile.account || notSet,
-        Text.eol(),
-        Text.dim('Access Token: '),
-      ];
-
-      await this.executeService.info(profileName as string, Text.create(details));
-
-      this.input.io.writeLineRaw(profile.accessToken);
-      this.input.io.writeLine();
+    if (output === 'json') {
+      await this.input.io.writeLineRaw(JSON.stringify(profile, null, 2));
+      return;
     }
+
+    if (output === 'raw') {
+      await this.input.io.writeLineRaw(profile.accessToken);
+      return;
+    }
+
+    const details = [
+      Text.dim('Deployment: '),
+      profile.baseUrl,
+      Text.eol(),
+      Text.dim('Account: '),
+      profile.account || notSet,
+      Text.eol(),
+      Text.dim('Access Token: '),
+    ];
+
+    await this.executeService.info(profileName as string, Text.create(details));
+
+    this.input.io.writeLineRaw(profile.accessToken);
+    this.input.io.writeLine();
   }
 
   public async getAgent(profileName: string): Promise<any> {
@@ -764,7 +744,11 @@ export class ProfileService {
   }
 
   private async writeProfile(profile: IFusebitProfile, isDefault: boolean, agentDetails?: IText) {
+    const isOAuth = profile.clientId && profile.tokenUrl;
     const details = [
+      Text.dim('Type: '),
+      isOAuth ? 'OAuth' : 'PKI',
+      Text.eol(),
       Text.dim('Deployment: '),
       profile.baseUrl,
       Text.eol(),
@@ -789,21 +773,27 @@ export class ProfileService {
       details.push(profile.function);
       details.push(Text.eol());
     }
+    details.push(Text.dim(isOAuth ? 'OAuth Device URL: ' : 'Issuer: '));
+    details.push(profile.issuer);
+    details.push(Text.eol());
 
-    if (profile.clientId && profile.tokenUrl) {
-      details.push(
-        ...[
-          Text.dim('OAuth Device URL: '),
-          profile.issuer,
-          Text.eol(),
-          Text.dim('OAuth Token URL: '),
-          profile.tokenUrl,
-          Text.eol(),
-          Text.dim('OAuth Client ID: '),
-          profile.clientId,
-          Text.eol(),
-        ]
-      );
+    if (agentDetails) {
+      if (profile.clientId && profile.tokenUrl) {
+        // OAuth
+        details.push(
+          ...[
+            Text.dim('OAuth Token URL: '),
+            profile.tokenUrl,
+            Text.eol(),
+            Text.dim('OAuth Client ID: '),
+            profile.clientId,
+            Text.eol(),
+          ]
+        );
+      } else {
+        // PKI
+        details.push(...[Text.dim('Subject: '), profile.subject as string, Text.eol()]);
+      }
     }
 
     details.push(

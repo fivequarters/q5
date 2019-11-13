@@ -1,4 +1,4 @@
-import { Command, IExecuteInput } from '@5qtrs/cli';
+import { Command, IExecuteInput, ArgType } from '@5qtrs/cli';
 import { ProfileService, ExecuteService, AgentService } from '../../services';
 
 // ------------------
@@ -23,9 +23,17 @@ const command = {
   ],
   options: [
     {
+      name: 'includeCredentials',
+      aliases: ['c'],
+      description:
+        'If set to true, and --output is set to json or json64, includes private credential information in the output',
+      type: ArgType.boolean,
+      default: 'false',
+    },
+    {
       name: 'output',
       aliases: ['o'],
-      description: "The format to display the output: 'pretty', 'json'",
+      description: "The format to display the output: 'pretty', 'json', 'json64'",
       default: 'pretty',
     },
   ],
@@ -53,9 +61,48 @@ export class ProfileGetCommand extends Command {
     await executeService.newLine();
 
     const profile = await profileService.getProfileOrDefaultOrThrow(profileName);
-    const agent = await profileService.getAgent(profile.name);
-    const agentDetails = await agentService.getAgentDetails(agent, true);
-    await profileService.displayProfile(profile, agentDetails);
+    if (input.options.output === 'json' || input.options.output === 'json64') {
+      let pki = input.options.includeCredentials ? await profileService.getExportProfileDemux(profileName) : undefined;
+      let result: any = {
+        id: profile.name,
+        displayName: profile.name,
+        baseUrl: profile.baseUrl,
+      };
+      ['account', 'subcription', 'boundary', 'function'].forEach(p => {
+        if (profile[p]) {
+          result[p] = profile[p];
+        }
+      });
+      if (profile.clientId && profile.tokenUrl) {
+        // OAuth
+        result.type = 'oauth';
+        result.oauth = {
+          deviceAuthorizationUrl: profile.issuer,
+          deviceClientId: profile.clientId,
+          tokenUrl: profile.tokenUrl,
+        };
+      } else {
+        // PKI
+        result.type = 'pki';
+        result.pki = {
+          issuer: profile.issuer,
+          subject: profile.subject,
+          kid: profile.kid,
+        };
+        if (pki) {
+          (result.pki.algorithm = pki.algorithm), (result.pki.privateKey = pki.privateKey);
+        }
+      }
+      if (input.options.output === 'json') {
+        await input.io.writeLineRaw(JSON.stringify(result, null, 2));
+      } else {
+        await input.io.writeLineRaw(Buffer.from(JSON.stringify(result), 'utf8').toString('base64'));
+      }
+    } else {
+      const agent = await profileService.getAgent(profile.name);
+      const agentDetails = await agentService.getAgentDetails(agent, true);
+      await profileService.displayProfile(profile, agentDetails);
+    }
 
     return 0;
   }
