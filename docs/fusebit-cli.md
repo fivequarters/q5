@@ -16,6 +16,15 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.6.0
+
+_Released 11/13/19_
+
+- **Support for exporting credentials**. The `fuse profile get` command now allows exporting a profile including private credential information to facilitate programmatic access to Fusebit APIs. Use with `-o json --includeCredentials` or `-o json64 --includeCredentials`.
+- **Remove profile add command**. The `fuse profile add` command was removed - its functionality was redundant with `fuse profile cp` and `fuse profile update`.
+- **Improve output**. The output of the `fuse profile ls` and `fuse profile get` was improved to provide better experience for differentiating between PKI and OAuth profiles.
+- **Improved OAuth initialization support**. The `fuse init` command supports selection of the source OAuth profile when used with a settings file from a Github repository or a URL. It also performs the initial OAuth device flow to authenticate the user for better detection of authorization issues.
+
 ## Version 1.5.0
 
 _Released 11/11/19_

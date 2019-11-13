@@ -72,13 +72,17 @@ export class InitCommand extends Command {
     await executeService.newLine();
 
     if (token.match(/^https:\/\//i)) {
-      await profileService.execute(async () => initFromUrl(token));
+      await profileService.execute(async () => initFromUrl(token, token));
     } else {
-      const [organization, repository, file, rest] = token.split('/');
+      const [path, sourceProfile] = token.split('#');
+      const [organization, repository, file, rest] = path.split('/');
       if (organization && repository && !rest) {
         await profileService.execute(async () =>
           initFromUrl(
-            `https://raw.githubusercontent.com/${organization}/${repository}/master/${file || 'fusebit'}.json`
+            `https://raw.githubusercontent.com/${organization}/${repository}/master/${file || 'profiles.json'}${
+              sourceProfile ? '#' + sourceProfile : ''
+            }`,
+            token
           )
         );
       } else {
@@ -88,17 +92,18 @@ export class InitCommand extends Command {
 
     return 0;
 
-    async function initFromUrl(url: string): Promise<void> {
+    async function initFromUrl(url: string, srcUrl: string): Promise<void> {
+      const [serverUrl, sourceProfile] = url.split('#');
       const settingsResponse = await executeService.executeSimpleRequest(
         {
           header: 'Settings',
-          message: Text.create('Obtaining Fusebit settings from ', Text.bold(url), '...'),
+          message: Text.create('Obtaining Fusebit profiles from ', Text.bold(serverUrl), '...'),
           errorHeader: 'Settings Error',
           errorMessage: Text.create('Unable to obtain Fusebit settings'),
         },
         {
           method: 'GET',
-          url,
+          url: serverUrl,
         }
       );
       if (settingsResponse.status !== 200) {
@@ -116,9 +121,9 @@ export class InitCommand extends Command {
         throw new Error(`Invalid Fusebit settings: data does not specify any profile information.`);
       }
       let profile: any;
-      if (profileName) {
+      if (sourceProfile) {
         for (const p of settings.profiles) {
-          if (profileName === p.id) {
+          if (sourceProfile === p.id) {
             profile = p;
             break;
           }
@@ -127,13 +132,15 @@ export class InitCommand extends Command {
       if (!profile) {
         if (settings.profiles.length > 1) {
           throw new Error(
-            `Fusebit settings contain more than one profile. Select a profile to use with the --profile option. Available profiles are: ${settings.profiles
+            `Fusebit settings contain more than one profile. Select a profile to use by specifying it as a hash value, i.e. '${token}#{profile-name}'. Available profiles are: ${settings.profiles
               .map((p: any) => p.id)
               .join(', ')}.`
           );
         }
         profile = settings.profiles[0];
-        profileName = profile.id;
+      }
+      if (!profileName) {
+        profileName = await profileService.getProfileNameFromBaseUrl(profile.baseUrl);
       }
       if (!quiet) {
         const targetProfile = await profileService.getProfile(profileName);
@@ -175,7 +182,9 @@ export class InitCommand extends Command {
         await profileService.setDefaultProfileName(profileName);
       }
 
-      await profileService.displayProfile(addedProfile);
+      const agent = await profileService.getAgent(profileName);
+      const agentDetails = await agentService.getAgentDetails(agent, true);
+      await profileService.displayProfile(addedProfile, agentDetails);
     }
 
     async function initFromToken(): Promise<void> {
