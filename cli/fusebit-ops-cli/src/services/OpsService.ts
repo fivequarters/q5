@@ -74,14 +74,19 @@ export class OpsService {
   public async getUserCreds(): Promise<AwsCreds> {
     if (!this.userCreds) {
       const profile = await this.profileService.getProfileOrDefaultOrThrow(this.input.options.profile as string);
-      const userCredOptions = {
-        account: profile.awsUserAccount || profile.awsMainAccount,
-        accessKeyId: profile.awsAccessKeyId,
-        secretAccessKey: profile.awsSecretAccessKey,
-        userName: profile.awsUserName,
-        useMfa: profile.awsUserAccount !== undefined,
-        mfaCodeResolver: getMfaCodeResolver(this.input.io),
-      };
+      const userCredOptions = profile.credentialsProvider
+        ? {
+            account: profile.awsUserAccount || profile.awsMainAccount,
+            credentialsProvider: profile.credentialsProvider,
+          }
+        : {
+            account: profile.awsUserAccount || profile.awsMainAccount,
+            accessKeyId: profile.awsAccessKeyId,
+            secretAccessKey: profile.awsSecretAccessKey,
+            userName: profile.awsUserName,
+            useMfa: profile.awsUserAccount !== undefined,
+            mfaCodeResolver: getMfaCodeResolver(this.input.io),
+          };
       const credsCache = this.getCredsCache(profile.name);
       this.userCreds = await AwsCreds.create(userCredOptions, credsCache);
     }
@@ -95,11 +100,20 @@ export class OpsService {
       const awsCreds = await this.getUserCreds();
       const func = async () => {
         const factory = await OpsDataAwsContextFactory.create(awsCreds);
-        const config = new Config({
-          userAccountEnabled: profile.awsUserAccount !== undefined,
-          mainAccountId: profile.awsMainAccount,
-          mainAccountRole: profile.awsMainRole || undefined,
-        });
+        const config = new Config(
+          profile.credentialsProvider
+            ? {
+                // userAccountEnabled: false,
+                mainAccountId: profile.awsMainAccount,
+                // mainAccountRole: undefined,
+                credentialsProvider: profile.credentialsProvider,
+              }
+            : {
+                userAccountEnabled: profile.awsUserAccount !== undefined,
+                mainAccountId: profile.awsMainAccount,
+                mainAccountRole: profile.awsMainRole || undefined,
+              }
+        );
         return factory.create(config);
       };
       this.opsDataContext = (await this.executeService.execute({ errorHeader: 'Ops Error' }, func)) as IOpsDataContext;

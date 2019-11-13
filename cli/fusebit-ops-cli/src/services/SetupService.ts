@@ -81,13 +81,18 @@ export class SetupService {
     const profile = await this.profileService.getProfileOrDefaultOrThrow();
     const confirmPrompt = await Confirm.create({
       header: 'Setup the Fusebit platform?',
-      details: [
-        { name: 'Main Account', value: profile.awsMainAccount },
-        { name: 'User Account', value: profile.awsUserAccount || notSet },
-        { name: 'Main Role', value: profile.awsMainRole || notSet },
-        { name: 'User Name', value: profile.awsUserName },
-        { name: 'Access Key', value: profile.awsAccessKeyId },
-      ],
+      details: profile.credentialsProvider
+        ? [
+            { name: 'Main Account', value: profile.awsMainAccount },
+            { name: 'Credentials Provider', value: profile.credentialsProvider },
+          ]
+        : [
+            { name: 'Main Account', value: profile.awsMainAccount },
+            { name: 'User Account', value: profile.awsUserAccount || notSet },
+            { name: 'Main Role', value: profile.awsMainRole || notSet },
+            { name: 'User Name', value: profile.awsUserName || notSet },
+            { name: 'Access Key', value: profile.awsAccessKeyId || notSet },
+          ],
     });
     const confirmed = await confirmPrompt.prompt(this.input.io);
     if (!confirmed) {

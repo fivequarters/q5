@@ -36,6 +36,10 @@ const command = {
       description: 'The AWS user access key id',
     },
     {
+      name: 'credentialsProvider',
+      description: 'The AWS credentials provider command',
+    },
+    {
       name: 'profile',
       aliases: ['p'],
       description: 'The name of the profile to create with the initalization of the CLI',
@@ -66,6 +70,7 @@ export class InitCommand extends Command {
     const awsUserName = input.options.awsUserName as string;
     const awsSecretAccessKey = input.options.awsSecretAccessKey as string;
     const awsAccessKeyId = input.options.awsAccessKeyId as string;
+    const credentialsProvider = input.options.credentialsProvider as string;
 
     const profileService = await ProfileService.create(input);
 
@@ -89,6 +94,7 @@ export class InitCommand extends Command {
       awsUserName,
       awsSecretAccessKey,
       awsAccessKeyId,
+      credentialsProvider,
     };
 
     const settings = await profileService.promptForMissingSettings(initialSettings);
