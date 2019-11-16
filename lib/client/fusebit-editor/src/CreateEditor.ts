@@ -52,6 +52,11 @@ export function createEditor(
 
   return server.loadEditorContext(boundaryId, functionId, options).then(editorContext => {
     createEditorImpl(editorContext);
+    let selectedFile = editorContext.selectedFileName;
+    editorContext.selectedFileName = undefined;
+    if (selectedFile) {
+      editorContext.selectFile(selectedFile);
+    }
     return editorContext;
   });
 

@@ -16,6 +16,14 @@ All public releases of the Fusebit editor are documented here, including notable
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.3.0
+
+_Released 11/15/19_
+
+- **Support for specifying the file to select.** The file to be initially selected can now be configured through `INavigationPanelOptions.selectFile`.
+- **Runner improvement.** Improved error message when the runner is used before the function was saved.
+- **Bug fix.** The intially selected file is now highlighted in the navigation bar.
+
 ## Version 1.2.0
 
 _Released 10/17/19_
