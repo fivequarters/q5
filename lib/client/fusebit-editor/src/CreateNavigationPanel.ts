@@ -150,6 +150,13 @@ export function createNavigationPanel(
     }
   });
 
+  editorContext.on(Events.Events.FileSelected, (e: Events.FileSelectedEvent) => {
+    let element = findFileNameNavigationItemElement(e.fileName);
+    if (element) {
+      selectNavigationItem(element);
+    }
+  });
+
   let newFileElement = document.getElementById(newFileId) as HTMLElement;
   function addButtonClicked(e: Event) {
     e.preventDefault();

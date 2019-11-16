@@ -16,6 +16,12 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.7.0
+
+_Released 11/15/19_
+
+- **Support for templates**. The `fuse function edit` command now allows creating or overriding functions from a template stored on Github, using `--template {org}/{repo}[/{directory}]` option. For sample templates, check [fusebit/samples](https://github.com/fusebit/samples) repository.
+
 ## Version 1.6.0
 
 _Released 11/13/19_

@@ -197,6 +197,10 @@ export interface INavigationPanelOptions {
    */
   hideFiles?: string[];
   /**
+   * A file name of the file to select when the editor starts.
+   */
+  selectFile?: string;
+  /**
    * Not in MVP
    * @ignore
    */

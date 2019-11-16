@@ -9,6 +9,7 @@ import { Text, IText } from '@5qtrs/text';
 import { ExecuteService } from './ExecuteService';
 import { ProfileService } from './ProfileService';
 import { VersionService } from './VersionService';
+import { request } from '@5qtrs/request';
 
 // ------------------
 // Internal Constants
@@ -120,6 +121,87 @@ export class FunctionService {
       expected.push('function');
     }
     return this.profileService.getExecutionProfile(expected, { function: functionId });
+  }
+
+  public async execute<T>(func: () => Promise<T>) {
+    try {
+      const result = await func();
+      return result;
+    } catch (error) {
+      await this.executeService.error('Profile Error', error.message, error);
+      throw error;
+    }
+  }
+
+  public async getFunctionSpecFromGithubTemplate(githubPath: string): Promise<any> {
+    return await this.executeService.execute(
+      {
+        header: 'Get Template',
+        message: Text.create("Getting function template '", Text.bold(`${githubPath}`), "' from Github..."),
+        errorHeader: 'Get Template Error',
+        errorMessage: Text.create("Unable to get function template '", Text.bold(`${githubPath}`)),
+      },
+      async () => {
+        const [org, repo, directory] = githubPath.split('/');
+        if (!org || !repo) {
+          throw new Error('The Github path of the function template must be in the format {org}/{repo}[/{directory}]');
+        }
+        const contentResponse = await request({
+          method: 'GET',
+          url: `https://api.github.com/repos/${org}/${repo}/contents${directory ? '/' + directory : ''}`,
+          headers: { Accept: 'application/vnd.github.v3+json' },
+        });
+        if (contentResponse.status !== 200) {
+          throw new Error(
+            `Unable to obtain function template from Github. HTTP status code: ${contentResponse.status}.`
+          );
+        }
+        let templateFiles: any = {};
+        for (const entry of contentResponse.data) {
+          if (entry.type === 'file' && entry.name !== '.gitignore') {
+            const fileResponse = await request(entry.download_url);
+            if (fileResponse.status !== 200) {
+              throw new Error(
+                `Unable to obtain function template from Github. HTTP status code: ${fileResponse.status}.`
+              );
+            }
+            templateFiles[entry.name] = fileResponse.data;
+          }
+        }
+        if (!templateFiles['index.js']) {
+          const fileNames = Object.keys(templateFiles).sort();
+          throw new Error(
+            `The template does not specify the required 'index.js' file. Files found in the template: ${
+              fileNames.length > 0 ? fileNames.join(', ') : 'none'
+            }.`
+          );
+        }
+        let fusebitJson: any = templateFiles['fusebit.json'] || {};
+        delete templateFiles['fusebit.json'];
+        let envFile = templateFiles[envFileName];
+        delete templateFiles[envFileName];
+        if (typeof fusebitJson !== 'object') {
+          throw new Error(`The 'fusebit.json' file in the template is not a JSON object.`);
+        }
+        fusebitJson.nodejs = { files: {} };
+        for (const fileName in templateFiles) {
+          fusebitJson.nodejs.files[fileName] = templateFiles[fileName];
+        }
+        return Object.assign(
+          {},
+          { nodejs: fusebitJson.nodejs },
+          fusebitJson.metadata && { metadata: fusebitJson.metadata },
+          fusebitJson.compute && { compute: fusebitJson.compute },
+          fusebitJson.computeSerialized && { computeSerialized: fusebitJson.computeSerialized },
+          fusebitJson.schedule && { schedule: fusebitJson.schedule },
+          fusebitJson.scheduleSerialized && { scheduleSerialized: fusebitJson.scheduleSerialized },
+          fusebitJson.configuration && !envFile && { configuration: fusebitJson.configuration },
+          fusebitJson.configurationSerialized &&
+            !envFile && { configurationSerialized: fusebitJson.configurationSerialized },
+          envFile && { configurationSerialized: envFile }
+        );
+      }
+    );
   }
 
   public async getFunctionSpec(path: string, cron?: string, timezone?: string): Promise<any> {
@@ -252,15 +334,15 @@ export class FunctionService {
     return files;
   }
 
-  public async startEditServer(functionId?: string, theme: string = 'light') {
+  public async startEditServer(functionId?: string, theme: string = 'light', functionSpec?: any) {
     const profile = await this.getFunctionExecutionProfile(true, functionId, process.cwd());
 
     if (theme !== 'light' && theme !== 'dark') {
-      this.executeService.error('Edit Function Error', Text.create(''));
+      this.executeService.error('Edit Function Error', Text.create('Unsupported value of the theme parameter'));
       throw new Error('Edit Function Error');
     }
 
-    const editorHtml = this.getEditorHtml(profile, theme);
+    const editorHtml = this.getEditorHtml(profile, theme, functionSpec);
     const startServer = (port: number) => {
       return new Promise((resolve, reject) => {
         createServer((req, res) => {
@@ -324,6 +406,55 @@ export class FunctionService {
     );
 
     await new Promise(() => {});
+  }
+
+  public async tryGetFunction(functionId: string): Promise<any> {
+    const profile = await this.getFunctionExecutionProfile(true, functionId);
+
+    const result = await this.executeService.execute(
+      {
+        header: 'Check Function',
+        message: Text.create(
+          "Checking if function '",
+          Text.bold(`${profile.function}`),
+          "' in boundary '",
+          Text.bold(`${profile.boundary}`),
+          "' exists..."
+        ),
+        errorHeader: 'Check Function Error',
+        errorMessage: Text.create(
+          "Unable to check if function '",
+          Text.bold(`${profile.function}`),
+          "' in boundary '",
+          Text.bold(`${profile.boundary}`),
+          "' exists"
+        ),
+      },
+      async () => {
+        const response: any = request({
+          method: 'GET',
+          url: [
+            `${profile.baseUrl}/v1/account/${profile.account}/subscription/`,
+            `${profile.subscription}/boundary/${profile.boundary}/function/${profile.function}?include=all`,
+          ].join(''),
+          headers: { Authorization: `bearer ${profile.accessToken}` },
+        });
+        if (response.status === 403) {
+          const message = 'Access was not authorized; contact an account admin to request access';
+          throw new Error(message);
+        }
+        if (response.status >= 500) {
+          const message = 'An unknown error occured on the server';
+          throw new Error(message);
+        }
+        if (response.status >= 400) {
+          throw new Error(response.data.message);
+        }
+        return response;
+      }
+    );
+
+    return result;
   }
 
   public async getFunction(path?: string, functionId?: string): Promise<void> {
@@ -609,7 +740,7 @@ export class FunctionService {
     );
   }
 
-  public async deployFunction(path: string, functionId: string, functionSpec: any): Promise<string> {
+  public async deployFunction(path: string | undefined, functionId: string, functionSpec: any): Promise<string> {
     const profile = await this.getFunctionExecutionProfile(true, functionId, path);
 
     let result = await this.executeService.executeRequest(
@@ -697,6 +828,25 @@ export class FunctionService {
     }
 
     return result.location as string;
+  }
+
+  public async confirmOverrideWithTemplate(): Promise<void> {
+    if (!this.input.options.quiet) {
+      const confirmPrompt = await Confirm.create({
+        header: 'Overwrite?',
+        message: Text.create(
+          'The function already exists. Do you want to overwrite it with a new function created from the template?'
+        ),
+      });
+      const confirmed = await confirmPrompt.prompt(this.input.io);
+      if (!confirmed) {
+        await this.executeService.warning(
+          'Canceled',
+          Text.create('Overriding an existing function with a template was canceled')
+        );
+        throw new Error('Canceled');
+      }
+    }
   }
 
   public async confirmInitFunction(path: string): Promise<void> {
@@ -966,7 +1116,14 @@ export class FunctionService {
     await this.executeService.message(Text.bold(boundaryName), functionList);
   }
 
-  private getEditorHtml(profile: IFusebitExecutionProfile, theme: string): string {
+  private getEditorHtml(profile: IFusebitExecutionProfile, theme: string, functionSpec?: any): string {
+    const template = functionSpec || {};
+    const editorSettings = (functionSpec &&
+      functionSpec.metadata &&
+      functionSpec.metadata.fusebit &&
+      functionSpec.metadata.fusebit.editor) || {
+      theme,
+    };
     return `<!doctype html>
   <html lang="en">
   <head>
@@ -976,7 +1133,7 @@ export class FunctionService {
       <link rel="icon" type="image/png" sizes="16x16" href="https://fusebit.io/favicon-16x16.png" />
       <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
   
-      <title>Fusebit ${profile.function}</title>
+      <title>${profile.function}</title>
   
       <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0' name='viewport' />
       <meta name="viewport" content="width=device-width" />
@@ -1001,10 +1158,8 @@ export class FunctionService {
         baseUrl: '${profile.baseUrl}',
         accessToken: '${profile.accessToken}',
     }, {
-        template: {},
-        editor: {
-          theme: '${theme}',
-        },
+        template: ${JSON.stringify(template, null, 2)},
+        editor: ${JSON.stringify(editorSettings, null, 2)},
     }).then(editorContext => {
         editorContext.setFullScreen(true);
     });

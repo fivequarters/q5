@@ -23,9 +23,14 @@ const command = {
   options: [
     {
       name: 'theme',
-      aliases: ['t'],
+      aliases: ['m'],
       description: "The theme of the editor: 'light' or 'dark'",
       default: 'light',
+    },
+    {
+      name: 'template',
+      aliases: ['t'],
+      description: 'Location of the function template on Github in the {org}/{repo}[/{directory}] format',
     },
     {
       name: 'output',
@@ -52,13 +57,29 @@ export class FunctionEditCommand extends Command {
   protected async onExecute(input: IExecuteInput): Promise<number> {
     const functionId = input.arguments[0] as string;
     const theme = input.options.theme as string;
+    const template = input.options.template as string;
 
     const executeService = await ExecuteService.create(input);
     const functionService = await FunctionService.create(input);
 
     await executeService.newLine();
 
-    await functionService.startEditServer(functionId, theme);
+    const functionResponse = await functionService.tryGetFunction(functionId);
+
+    if (template) {
+      const functionSpec = await functionService.getFunctionSpecFromGithubTemplate(template);
+      if (functionResponse.status === 200) {
+        await functionService.confirmOverrideWithTemplate();
+        await functionService.deployFunction(undefined, functionId, functionSpec);
+      }
+      await functionService.startEditServer(functionId, theme, functionSpec);
+    } else {
+      await functionService.startEditServer(
+        functionId,
+        theme,
+        functionResponse.status === 200 && functionResponse.data
+      );
+    }
 
     return 0;
   }
