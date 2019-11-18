@@ -13,11 +13,12 @@ const defaultDefaultProfileName = 'default';
 
 export interface IFusebitOpsProfileSettings {
   awsMainAccount: string;
-  awsUserName: string;
-  awsSecretAccessKey: string;
+  awsUserName?: string;
+  awsSecretAccessKey?: string;
   awsAccessKeyId: string;
   awsUserAccount?: string;
   awsMainRole?: string;
+  credentialsProvider?: string;
 }
 
 export interface IFusebitOpsProfile extends IFusebitOpsProfileSettings {
@@ -113,17 +114,27 @@ export class FusebitOpsProfile {
   }
 
   public async addProfile(name: string, settings: IFusebitOpsProfileSettings): Promise<IFusebitOpsProfile> {
+    if (
+      !settings.credentialsProvider &&
+      (!settings.awsUserName || !settings.awsAccessKeyId || !settings.awsSecretAccessKey)
+    ) {
+      throw new Error(
+        "A profile must sepecify either the 'credentialsProvider' or 'awsUserName', 'awsAccessKeyId', and 'awsSecretAccessKey'."
+      );
+    }
+
     const created = new Date().toLocaleString();
 
     const fullProfileToAdd = {
       created,
       updated: created,
       awsMainAccount: settings.awsMainAccount,
-      awsUserName: settings.awsUserName,
-      awsSecretAccessKey: settings.awsSecretAccessKey,
-      awsAccessKeyId: settings.awsAccessKeyId,
+      awsUserName: settings.awsUserName || undefined,
+      awsSecretAccessKey: settings.awsSecretAccessKey || undefined,
+      awsAccessKeyId: settings.awsAccessKeyId || undefined,
       awsUserAccount: settings.awsUserAccount || undefined,
       awsMainRole: settings.awsMainRole || undefined,
+      credentialsProvider: settings.credentialsProvider || undefined,
     };
 
     const profile = await this.dotConfig.setProfile(name, fullProfileToAdd);
@@ -145,6 +156,9 @@ export class FusebitOpsProfile {
     profile.awsSecretAccessKey = settings.awsSecretAccessKey;
     profile.awsAccessKeyId = settings.awsAccessKeyId;
 
+    if (settings.credentialsProvider !== undefined) {
+      profile.credentialsProvider = settings.credentialsProvider || undefined;
+    }
     if (settings.awsUserAccount !== undefined) {
       profile.awsUserAccount = settings.awsUserAccount || undefined;
     }

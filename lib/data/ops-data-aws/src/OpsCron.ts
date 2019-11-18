@@ -9,7 +9,7 @@ const Path = require('path');
 
 export async function createCron(config: OpsDataAwsConfig, awsConfig: IAwsConfig, deployment: IOpsDeployment) {
   const Config = createCronConfig(config, awsConfig);
-  const DeploymentPackage = Fs.readFileSync(Path.join(__dirname, '../lambda/cron/dist/cron.zip'));
+  const DeploymentPackage = Fs.readFileSync(Path.join(__dirname, 'cron.zip'));
 
   debug('IN CRON SETUP');
 

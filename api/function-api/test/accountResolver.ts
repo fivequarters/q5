@@ -67,7 +67,7 @@ export async function getNonExistingAccount(): Promise<IAccount> {
 export async function resolveAccount(): Promise<IAccount> {
   if (process.env.FUSE_PROFILE) {
     let profile = await FusebitProfile.create();
-    let executionProfile = await profile.getExecutionProfile(process.env.FUSE_PROFILE, true);
+    let executionProfile = await profile.getPKIExecutionProfile(process.env.FUSE_PROFILE, true);
     return {
       accountId: executionProfile.account as string,
       subscriptionId: executionProfile.subscription as string,

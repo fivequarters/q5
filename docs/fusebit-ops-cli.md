@@ -17,6 +17,26 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.18.0
+
+_Released 11/12/19_
+
+- **Support for custom AWS credentials provider** Enable the specification of a custom AWS credentials provider in `fuse-ops init`.
+
+## Version 1.17.0
+
+_Released 11/7/19_
+
+- **Reduce AWS encryption costs** Optimize DynamoDB encryption settings to reduce encryption costs.
+
+**NOTE** You need to run `fuse-ops setup` on your account and `fuse-ops deployment add` on all your deployments to upgrade DynamoDB settings configuration.
+
+## Version 1.16.0
+
+_Released 11/5/19_
+
+- **Fix regression in CRON deployment** Fixed a bug that prevented `fuse-ops deployment add` from deploying the CRON infrastructure.
+
 ## Version 1.15.0
 
 _Released 10/21/19_

@@ -90,8 +90,8 @@ describe('Audit', () => {
         expect(item.accountId).toBe(testAccount.accountId);
 
         const timestamp = new Date(item.timestamp).getTime();
-        expect(timestamp).toBeGreaterThan(now - 5000);
-        expect(timestamp).toBeLessThan(now + 5000);
+        expect(timestamp).toBeGreaterThan(now - 10000);
+        expect(timestamp).toBeLessThan(now + 10000);
 
         if (item.action === 'user:add') {
           expect(item.authorized).toBe(true);
@@ -131,8 +131,8 @@ describe('Audit', () => {
         expect(item.subject).toBe(subject1);
         expect(item.accountId).toBe(testAccount1.accountId);
         const timestamp = new Date(item.timestamp).getTime();
-        expect(timestamp).toBeGreaterThan(now - 5000);
-        expect(timestamp).toBeLessThan(now + 5000);
+        expect(timestamp).toBeGreaterThan(now - 10000);
+        expect(timestamp).toBeLessThan(now + 10000);
         expect(item.authorized).toBe(true);
         expect(item.resource).toBe(`/account/${testAccount1.accountId}/user/`);
       }
@@ -173,8 +173,8 @@ describe('Audit', () => {
         expect(item.accountId).toBe(testAccount.accountId);
 
         const timestamp = new Date(item.timestamp).getTime();
-        expect(timestamp).toBeGreaterThan(now - 5000);
-        expect(timestamp).toBeLessThan(now + 5000);
+        expect(timestamp).toBeGreaterThan(now - 10000);
+        expect(timestamp).toBeLessThan(now + 10000);
 
         expect(item.action).toBe('client:add');
         expect(item.authorized).toBe(false);
@@ -201,8 +201,8 @@ describe('Audit', () => {
         expect(item.accountId).toBe(testAccount.accountId);
 
         const timestamp = new Date(item.timestamp).getTime();
-        expect(timestamp).toBeGreaterThan(now - 5000);
-        expect(timestamp).toBeLessThan(now + 5000);
+        expect(timestamp).toBeGreaterThan(now - 10000);
+        expect(timestamp).toBeLessThan(now + 10000);
 
         expect(item.action).toBe('user:add');
         expect(item.authorized).toBe(true);
@@ -234,8 +234,8 @@ describe('Audit', () => {
         expect(item.accountId).toBe(testAccount.accountId);
 
         const timestamp = new Date(item.timestamp).getTime();
-        expect(timestamp).toBeGreaterThan(now - 5000);
-        expect(timestamp).toBeLessThan(now + 5000);
+        expect(timestamp).toBeGreaterThan(now - 10000);
+        expect(timestamp).toBeLessThan(now + 10000);
 
         expect(item.action).toBe('user:add');
         expect(item.authorized).toBe(true);
@@ -267,8 +267,8 @@ describe('Audit', () => {
         expect(item.accountId).toBe(testAccount.accountId);
 
         const timestamp = new Date(item.timestamp).getTime();
-        expect(timestamp).toBeGreaterThan(now - 5000);
-        expect(timestamp).toBeLessThan(now + 5000);
+        expect(timestamp).toBeGreaterThan(now - 10000);
+        expect(timestamp).toBeLessThan(now + 10000);
 
         expect(item.action).toBe('user:add');
         expect(item.authorized).toBe(true);
@@ -301,8 +301,8 @@ describe('Audit', () => {
         expect(item.accountId).toBe(testAccount.accountId);
 
         const timestamp = new Date(item.timestamp).getTime();
-        expect(timestamp).toBeGreaterThan(now - 5000);
-        expect(timestamp).toBeLessThan(now + 5000);
+        expect(timestamp).toBeGreaterThan(now - 10000);
+        expect(timestamp).toBeLessThan(now + 10000);
 
         expect(item.action).toBe('user:add');
         expect(item.authorized).toBe(true);
@@ -338,8 +338,8 @@ describe('Audit', () => {
         expect(item.accountId).toBe(testAccount.accountId);
 
         const timestamp = new Date(item.timestamp).getTime();
-        expect(timestamp).toBeGreaterThan(now - 5000);
-        expect(timestamp).toBeLessThan(now + 5000);
+        expect(timestamp).toBeGreaterThan(now - 10000);
+        expect(timestamp).toBeLessThan(now + 10000);
 
         expect(item.action).toBe('user:add');
         expect(item.authorized).toBe(true);
@@ -379,8 +379,8 @@ describe('Audit', () => {
         expect(item.accountId).toBe(testAccount.accountId);
 
         const timestamp = new Date(item.timestamp).getTime();
-        expect(timestamp).toBeGreaterThan(now - 5000);
-        expect(timestamp).toBeLessThan(now + 5000);
+        expect(timestamp).toBeGreaterThan(now - 10000);
+        expect(timestamp).toBeLessThan(now + 10000);
 
         expect(item.action).toBe('user:add');
         expect(item.authorized).toBe(true);
@@ -420,8 +420,8 @@ describe('Audit', () => {
         expect(item.accountId).toBe(testAccount.accountId);
 
         const timestamp = new Date(item.timestamp).getTime();
-        expect(timestamp).toBeGreaterThan(now - 5000);
-        expect(timestamp).toBeLessThan(now + 5000);
+        expect(timestamp).toBeGreaterThan(now - 10000);
+        expect(timestamp).toBeLessThan(now + 10000);
 
         expect(item.action).toBe('user:add');
         expect(item.authorized).toBe(true);
@@ -461,8 +461,8 @@ describe('Audit', () => {
         expect(item.accountId).toBe(testAccount.accountId);
 
         const timestamp = new Date(item.timestamp).getTime();
-        expect(timestamp).toBeGreaterThan(now - 5000);
-        expect(timestamp).toBeLessThan(now + 5000);
+        expect(timestamp).toBeGreaterThan(now - 10000);
+        expect(timestamp).toBeLessThan(now + 10000);
 
         expect(item.action).toBe('user:add');
         expect(item.authorized).toBe(true);

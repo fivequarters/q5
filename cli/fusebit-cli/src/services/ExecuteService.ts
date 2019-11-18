@@ -99,6 +99,16 @@ export class ExecuteService {
     return this.execute(messages, func);
   }
 
+  public async executeSimpleRequest<T>(messages: IExcuteMessages, request: IHttpRequest) {
+    const headers = (request.headers = request.headers || {});
+    const version = await this.versionService.getVersion();
+    if (!headers['Content-Type'] && !headers['content-type']) {
+      headers['Content-Type'] = 'application/json';
+    }
+    headers['User-Agent'] = `fusebit-cli/${version}`;
+    return this.execute(messages, async (): Promise<any> => sendRequest(request));
+  }
+
   public async message(header: IText, message: IText, kind: MessageKind = MessageKind.result) {
     if (this.isPrettyOutput()) {
       const formattedMessage = await Message.create({ header, message, kind });
@@ -148,11 +158,11 @@ export class ExecuteService {
 
   private isRawOutput() {
     const output = this.input.options.output;
-    return output === 'raw';
+    return output === 'raw' || output === 'export64';
   }
 
   private isJsonOutput() {
     const output = this.input.options.output;
-    return output === 'json';
+    return output === 'json' || output === 'export';
   }
 }

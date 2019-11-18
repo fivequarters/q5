@@ -144,14 +144,26 @@ export class EditorContext extends EventEmitter {
       this._ensureFusebitMetadata(true).runner = RunnerPlaceholder;
     }
     if (this.functionSpecification.nodejs.files) {
-      if (this.functionSpecification.nodejs.files['index.js']) {
-        this.selectFile('index.js');
+      const metadata = this._ensureFusebitMetadata();
+      let fileToSelect = 'index.js';
+      let hideFiles: any[] = [];
+      if (metadata.editor && typeof metadata.editor.navigationPanel === 'object') {
+        hideFiles = metadata.editor.navigationPanel.hideFiles || hideFiles;
+        fileToSelect = metadata.editor.navigationPanel.selectFile || fileToSelect;
+      }
+      if (this.functionSpecification.nodejs.files[fileToSelect] && hideFiles.indexOf(fileToSelect) < 0) {
+        this.selectFile(fileToSelect);
       } else {
-        const fileName = Object.keys(this.functionSpecification.nodejs.files)[0];
-        if (fileName) {
-          this.selectFile(fileName);
-        } else {
-          throw new Error('At least one file must be provided in functionSpecification.nodejs.files.');
+        let foundFileSelect = false;
+        for (var name in this.functionSpecification.nodejs.files) {
+          if (hideFiles.indexOf(name) < 0) {
+            this.selectFile(name);
+            foundFileSelect = true;
+            break;
+          }
+        }
+        if (!foundFileSelect) {
+          throw new Error('At least one non-hidden file must be provided in functionSpecification.nodejs.files.');
         }
       }
     } else {

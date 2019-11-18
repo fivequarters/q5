@@ -1,2 +1,2 @@
-export { applyTheme } from './applytheme';
+export { applyTheme } from './applyTheme';
 export { getTheme } from './getTheme';

@@ -23,6 +23,12 @@ const command = {
   ],
   options: [
     {
+      name: 'subscription',
+      aliases: ['s'],
+      description: 'The subscription to which access should be given to the user',
+      defaultText: 'profile value',
+    },
+    {
       name: 'boundary',
       aliases: ['b'],
       description: 'The boundary to which access should be given to the user',

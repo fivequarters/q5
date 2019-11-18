@@ -67,6 +67,6 @@ export class DotConfig {
   protected async writeJson(path: string, contents: any): Promise<void> {
     const fullPath = join(this.path, path);
     const newJson = JSON.stringify(contents, null, 2);
-    return writeFile(fullPath, newJson);
+    return await writeFile(fullPath, newJson);
   }
 }

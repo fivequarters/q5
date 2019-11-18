@@ -134,9 +134,13 @@ export function createLogsPanel(element: HTMLElement, editorContext: EditorConte
           lines.push(response.body.message);
         }
       } else if (responseSource === 'proxy' && response.body) {
-        lines.push(`RUN: infrastructure error HTTP ${response.statusCode}`);
-        if (response.body.message) {
-          lines.push(response.body.message);
+        if (response.statusCode === 404) {
+          lines.push('RUN: function not found. Did you save the function before running it?');
+        } else {
+          lines.push(`RUN: infrastructure error HTTP ${response.statusCode}`);
+          if (response.body.message) {
+            lines.push(response.body.message);
+          }
         }
       } else {
         lines.push(`RUN: function finished`, `HTTP ${response.statusCode}`);

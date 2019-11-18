@@ -4,6 +4,8 @@ import {
   FusebitProfile,
   IFusebitExecutionProfile,
   IFusebitNewProfile,
+  IOAuthFusebitProfile,
+  IPKIFusebitProfile,
   IFusebitKeyPair,
   IFusebitProfile,
   IFusebitProfileSettings,
@@ -11,6 +13,8 @@ import {
   FusebitProfileExceptionCode,
 } from '@5qtrs/fusebit-profile-sdk';
 import { ExecuteService } from './ExecuteService';
+import { request } from '@5qtrs/request';
+const QR = require('qrcode-terminal');
 
 // ------------------
 // Internal Constants
@@ -117,7 +121,16 @@ export class ProfileService {
       if (await this.profile.profileExists(name)) {
         await this.profile.removeProfile(name);
       }
-      await this.profile.addProfile(name, newProfile, keyPair);
+      await this.profile.addPKIProfile(name, newProfile, keyPair);
+    });
+  }
+
+  public async createProfile(name: string, newProfile: IFusebitProfileSettings): Promise<IOAuthFusebitProfile> {
+    return await this.execute(async () => {
+      if (await this.profile.profileExists(name)) {
+        await this.profile.removeProfile(name);
+      }
+      return await this.profile.createProfile(name, newProfile);
     });
   }
 
@@ -219,6 +232,28 @@ export class ProfileService {
     }
   }
 
+  public async confirmCreateProfile(name: string, profile: IFusebitProfile): Promise<void> {
+    if (!this.input.options.quiet) {
+      const confirmPrompt = await Confirm.create({
+        header: 'Overwrite?',
+        message: Text.create(
+          "The '",
+          Text.bold(name),
+          "' profile already exists. Overwrite the existing profile shown below?"
+        ),
+        details: this.getProfileConfirmDetails(profile),
+      });
+      const confirmed = await confirmPrompt.prompt(this.input.io);
+      if (!confirmed) {
+        await this.executeService.warning(
+          'Create Canceled',
+          Text.create("Creating the '", Text.bold(name), "' profile was canceled")
+        );
+        throw new Error('Create Canceled');
+      }
+    }
+  }
+
   public async confirmInitProfile(name: string, profile: IFusebitProfile): Promise<void> {
     if (!this.input.options.quiet) {
       const confirmPrompt = await Confirm.create({
@@ -299,12 +334,214 @@ export class ProfileService {
     }
   }
 
+  public async getExportProfileDemux(profileName?: string): Promise<any> {
+    return await this.execute(async () => {
+      const profile = await this.profile.getProfileOrDefaultOrThrow(profileName);
+      const profiles = this.profile.getTypedProfile(profile);
+      if (profiles.pkiProfile) {
+        return await this.profile.getPKICredentials(profiles.pkiProfile as IPKIFusebitProfile);
+      } else {
+        return undefined;
+      }
+    });
+  }
+
+  private async getExecutionProfileDemux(
+    profileName?: string,
+    ignoreCache?: boolean
+  ): Promise<IFusebitExecutionProfile> {
+    const profile = await this.profile.getProfileOrDefaultOrThrow(profileName);
+    const profiles = this.profile.getTypedProfile(profile);
+    if (profiles.pkiProfile) {
+      return this.profile.getPKIExecutionProfile(profileName, ignoreCache);
+    } else {
+      return this.getOAuthExecutionProfile(profiles.oauthProfile as IOAuthFusebitProfile, ignoreCache);
+    }
+  }
+
+  private async getOAuthExecutionProfile(
+    profile: IOAuthFusebitProfile,
+    ignoreCache?: boolean
+  ): Promise<IFusebitExecutionProfile> {
+    let accessToken = ignoreCache ? undefined : await this.profile.getCachedAccessToken(profile);
+    if (!accessToken) {
+      let refreshToken = await this.profile.getCachedRefreshToken(profile);
+      if (refreshToken) {
+        try {
+          accessToken = await this.refreshOAuthAccessToken(profile, refreshToken);
+        } catch (e) {
+          await this.executeService.warning(
+            'Authentication',
+            'Unable to refresh the access token using refresh token. Falling back to full re-authorization.'
+          );
+        }
+      }
+      if (!accessToken) {
+        if (!this.isInteractive()) {
+          throw new Error(
+            'Unable to obtain OAuth access token because the command was launched in a non-interactive mode.'
+          );
+        }
+        if (this.executeService) accessToken = await this.getOAuthAccessToken(profile);
+      }
+    }
+
+    return {
+      accessToken: accessToken as string,
+      baseUrl: profile.baseUrl,
+      account: profile.account,
+      subscription: profile.subscription || undefined,
+      boundary: profile.boundary || undefined,
+      function: profile.function || undefined,
+    };
+  }
+
+  private isInteractive(): boolean {
+    return this.input.options.output === 'pretty';
+  }
+
+  private async refreshOAuthAccessToken(profile: IOAuthFusebitProfile, refreshToken: string): Promise<string> {
+    const refreshResponse = await request({
+      method: 'POST',
+      url: profile.tokenUrl,
+      data: {
+        client_id: profile.clientId,
+        grant_type: 'refresh_token',
+        refresh_token: refreshToken,
+      },
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (refreshResponse.status === 200 && refreshResponse.data.access_token && refreshResponse.data.expires_in) {
+      // Cache the token for later use
+
+      await this.profile.setCachedAccessToken(
+        profile,
+        refreshResponse.data.access_token,
+        new Date(Date.now() + refreshResponse.data.expires_in * 1000),
+        refreshToken
+      );
+
+      return refreshResponse.data.access_token;
+    }
+
+    throw new Error(`Unable to refresh the access token. HTTP status code: ${refreshResponse.status}.`);
+  }
+
+  private async getOAuthAccessToken(profile: IOAuthFusebitProfile): Promise<string> {
+    // Initiate device flow
+
+    const oauthInitResponse = await this.executeService.executeSimpleRequest(
+      {
+        header: 'Login',
+        message: Text.create("Initiating authentication for '", Text.bold(profile.name), "' profile..."),
+        errorHeader: 'Login Error',
+        errorMessage: Text.create("Unable to initiate authentication for '", Text.bold(profile.name), "' profile"),
+      },
+      {
+        method: 'POST',
+        url: profile.issuer,
+        data: {
+          client_id: profile.clientId,
+          audience: profile.baseUrl,
+          scope: 'offline_access',
+        },
+      }
+    );
+
+    if (oauthInitResponse.status !== 200) {
+      throw new Error(
+        `Unable to initiate OAuth device flow using ${profile.issuer} authorization endpoint and ${
+          profile.clientId
+        } client ID. HTTP status code: ${oauthInitResponse.status}.`
+      );
+    }
+
+    let qrcode: string = '';
+    QR.generate(
+      oauthInitResponse.data.verification_uri_complete || oauthInitResponse.data.verification_uri,
+      { small: true },
+      (code: string) => (qrcode = code)
+    );
+
+    const details = [
+      'Complete the login in your browser. Scan the QR code or navigate to the verification URL and confirm the user code provided below.',
+      Text.eol(),
+      Text.eol(),
+      Text.dim('Verification URL: '),
+      oauthInitResponse.data.verification_uri,
+      Text.eol(),
+      Text.dim('User code: '),
+      Text.bold(oauthInitResponse.data.user_code),
+      Text.eol(),
+      Text.eol(),
+      qrcode,
+    ];
+
+    await this.executeService.info('Complete login...', Text.create(details));
+
+    // Wait for user to complete the device flow login
+
+    const endTime = (oauthInitResponse.data.expires_in || 900) * 1000 + Date.now();
+    const interval = (oauthInitResponse.data.interval || 5) * 1000;
+
+    this.input.io.spin(true);
+    let payload: any;
+    try {
+      while (Date.now() < endTime) {
+        await new Promise(resolve => setTimeout(resolve, interval));
+        const oauthPollResponse = await request({
+          method: 'POST',
+          url: profile.tokenUrl,
+          data: {
+            client_id: profile.clientId,
+            device_code: oauthInitResponse.data.device_code,
+            grant_type: 'urn:ietf:params:oauth:grant-type:device_code',
+          },
+          headers: { 'Content-Type': 'application/json' },
+        });
+        if (oauthPollResponse.status === 200) {
+          payload = oauthPollResponse.data;
+          if (!payload.access_token || !payload.expires_in) {
+            throw new Error('Invalid response from the authorization server.');
+          }
+          break;
+        } else if (oauthPollResponse.status >= 400 && oauthPollResponse.status < 500) {
+          if (oauthPollResponse.data) {
+            if (oauthPollResponse.data.error === 'authorization_pending') {
+              continue;
+            }
+            throw new Error(
+              `Authentication unsuccessful: ${oauthPollResponse.data.error}. HTTP status code: ${
+                oauthPollResponse.status
+              }.`
+            );
+          }
+        }
+        throw new Error(`Authentication unsuccessful. HTTP status code: ${oauthPollResponse.status}.`);
+      }
+    } finally {
+      this.input.io.spin(false);
+    }
+
+    // Cache the token for later use
+
+    await this.profile.setCachedAccessToken(
+      profile,
+      payload.access_token,
+      new Date(Date.now() + payload.expires_in * 1000),
+      payload.refresh_token
+    );
+
+    return payload.access_token;
+  }
+
   public async getExecutionProfile(
     expected?: string[],
     defaults?: IFusebitProfileDefaults
   ): Promise<IFusebitExecutionProfile> {
     const profileName = this.input.options.profile as string;
-    const profile = await this.execute(() => this.profile.getExecutionProfile(profileName));
+    const profile = await this.execute(() => this.getExecutionProfileDemux(profileName));
 
     for (const option of profileOptions) {
       if (this.input.options[option]) {
@@ -355,14 +592,16 @@ export class ProfileService {
     await this.writeProfile(profile, profile.name === defaultProfileName, agentDetails);
   }
 
-  public async displayTokenContext(profileName?: string) {
+  public async displayTokenContext(profileName?: string): Promise<void> {
     if (!profileName) {
       profileName = await this.profile.getDefaultProfileName();
     }
 
-    const profile = await this.profile.getExecutionProfile(profileName, true);
-
     const output = this.input.options.output;
+
+    // Get execution profile to ensure OAuth flow was executed at least once
+    const profile = await this.execute(() => this.getExecutionProfileDemux(profileName, true));
+
     if (output === 'json') {
       await this.input.io.writeLineRaw(JSON.stringify(profile, null, 2));
       return;
@@ -381,7 +620,6 @@ export class ProfileService {
       profile.account || notSet,
       Text.eol(),
       Text.dim('Access Token: '),
-      'Token below will be valid for the next 2 hours...',
     ];
 
     await this.executeService.info(profileName as string, Text.create(details));
@@ -391,7 +629,7 @@ export class ProfileService {
   }
 
   public async getAgent(profileName: string): Promise<any> {
-    const profile = await this.execute(() => this.profile.getExecutionProfile(profileName));
+    const profile = await this.execute(() => this.getExecutionProfileDemux(profileName));
 
     const agent = await this.executeService.executeRequest(
       {
@@ -451,7 +689,7 @@ export class ProfileService {
     ];
   }
 
-  private async execute<T>(func: () => Promise<T>) {
+  public async execute<T>(func: () => Promise<T>) {
     try {
       const result = await func();
       return result;
@@ -506,7 +744,11 @@ export class ProfileService {
   }
 
   private async writeProfile(profile: IFusebitProfile, isDefault: boolean, agentDetails?: IText) {
+    const isOAuth = profile.clientId && profile.tokenUrl;
     const details = [
+      Text.dim('Type: '),
+      isOAuth ? 'OAuth' : 'PKI',
+      Text.eol(),
       Text.dim('Deployment: '),
       profile.baseUrl,
       Text.eol(),
@@ -531,6 +773,28 @@ export class ProfileService {
       details.push(profile.function);
       details.push(Text.eol());
     }
+    details.push(Text.dim(isOAuth ? 'OAuth Device URL: ' : 'Issuer: '));
+    details.push(profile.issuer);
+    details.push(Text.eol());
+
+    if (agentDetails) {
+      if (profile.clientId && profile.tokenUrl) {
+        // OAuth
+        details.push(
+          ...[
+            Text.dim('OAuth Token URL: '),
+            profile.tokenUrl,
+            Text.eol(),
+            Text.dim('OAuth Client ID: '),
+            profile.clientId,
+            Text.eol(),
+          ]
+        );
+      } else {
+        // PKI
+        details.push(...[Text.dim('Subject: '), profile.subject as string, Text.eol()]);
+      }
+    }
 
     details.push(
       ...[
@@ -549,8 +813,8 @@ export class ProfileService {
     }
 
     const name = isDefault
-      ? Text.create(Text.bold(profile.name), Text.eol(), Text.dim(Text.italic('<default>')))
-      : Text.bold(profile.name);
+      ? Text.create(Text.bold(profile.name || 'NA'), Text.eol(), Text.dim(Text.italic('<default>')))
+      : Text.bold(profile.name || 'NA');
 
     await this.executeService.message(name, Text.create(details));
   }

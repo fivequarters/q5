@@ -4,7 +4,7 @@ import { Box } from '@5qtrs/box';
 import barleyField from '../assets/img/barley-field.jpg';
 import flowerField from '../assets/img/flower-field.png';
 import nightSky from '../assets/img/night-sky.gif';
-import { Image } from './image';
+import { Image } from './Image';
 
 const App = () => (
   <Box gap={20}>

@@ -12,6 +12,7 @@ export enum FusebitProfileExceptionCode {
   writeFileError = 'writeFileError',
   removeDirectoryError = 'removeDirectoryError',
   baseUrlMissingProtocol = 'baseUrlMissingProtocol',
+  notPKIProfile = 'notPKIProfile',
 }
 
 // ----------------
@@ -19,7 +20,6 @@ export enum FusebitProfileExceptionCode {
 // ----------------
 
 export class FusebitProfileException extends Exception {
-
   public static profileAlreadyExists(name: string) {
     const message = `The '${name}' profile already exists`;
     return new FusebitProfileException(FusebitProfileExceptionCode.profileAlreadyExists, message, [name]);
@@ -54,6 +54,12 @@ export class FusebitProfileException extends Exception {
     const message = `The base url '${baseUrl}' does not include the protocol, 'http' or 'https'`;
     return new FusebitProfileException(FusebitProfileExceptionCode.baseUrlMissingProtocol, message, [baseUrl]);
   }
+
+  public static notPKIProfile(name: string) {
+    const message = `The '${name}' profile is not a PKI profile and does not include specify a key.`;
+    return new FusebitProfileException(FusebitProfileExceptionCode.notPKIProfile, message, [name]);
+  }
+
   private constructor(code: string, message?: string, params?: any[], inner?: Error | Exception) {
     super(code, message, params, inner);
   }

@@ -56,6 +56,10 @@ export class OpsDataAwsConfig implements IConfig {
     return value as string;
   }
 
+  public get credentialsProvider(): string {
+    return this.config.value('credentialsProvider') as string;
+  }
+
   public get mainAccountName(): string {
     return (this.config.value('mainAccountName') as string) || defaultMainAccountName;
   }

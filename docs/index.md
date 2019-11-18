@@ -20,22 +20,22 @@ All public releases of the Fusebit platform components are documented here, incl
 <td>
 <ul>
 <li>
-Fusebit CLI <code>v1.1+</code> - <a href="{{ site.baseurl }}{% link fusebit-cli.md %}">release notes</a>
+Fusebit CLI <code>v1.7+</code> - <a href="{{ site.baseurl }}{% link fusebit-cli.md %}">release notes</a>
 </li>
 <li>
-Fusebit Editor <code>v1.2+</code> - <a href="{{ site.baseurl }}{% link fusebit-editor.md %}">release notes</a>
+Fusebit Editor <code>v1.3+</code> - <a href="{{ site.baseurl }}{% link fusebit-editor.md %}">release notes</a>
 </li>
 <li>
 Fusebit HTTP API <code>v1.13+</code> - <a href="{{ site.baseurl }}{% link fusebit-http-api.md %}">release notes</a>
 </li>
 <li>
-Fusebit Ops CLI <code>v1.14+</code> - <a href="{{ site.baseurl }}{% link fusebit-ops-cli.md %}">release notes</a></li>
+Fusebit Ops CLI <code>v1.18+</code> - <a href="{{ site.baseurl }}{% link fusebit-ops-cli.md %}">release notes</a></li>
 </ul>
 </td>
 <td style="width:30%">
 <dl>
   <dt>Last updated</dt>
-  <dd>10/17/19</dd>
+  <dd>11/15/19</dd>
   <dt>LTS release</dt>
   <dd>No</dd>
 </dl>

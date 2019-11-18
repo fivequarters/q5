@@ -16,6 +16,40 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.7.0
+
+_Released 11/15/19_
+
+- **Support for templates**. The `fuse function edit` command now allows creating or overriding functions from a template stored on Github, using `--template {org}/{repo}[/{directory}]` option. For sample templates, check [fusebit/samples](https://github.com/fusebit/samples) repository.
+
+## Version 1.6.0
+
+_Released 11/13/19_
+
+- **Support for exporting credentials**. The `fuse profile get` command now allows exporting a profile including private credential information to facilitate programmatic access to Fusebit APIs. Use with `-o json --includeCredentials` or `-o json64 --includeCredentials`.
+- **Remove profile add command**. The `fuse profile add` command was removed - its functionality was redundant with `fuse profile cp` and `fuse profile update`.
+- **Improve output**. The output of the `fuse profile ls` and `fuse profile get` was improved to provide better experience for differentiating between PKI and OAuth profiles.
+- **Improved OAuth initialization support**. The `fuse init` command supports selection of the source OAuth profile when used with a settings file from a Github repository or a URL. It also performs the initial OAuth device flow to authenticate the user for better detection of authorization issues.
+
+## Version 1.5.0
+
+_Released 11/11/19_
+
+- **Support for granting additional permissions.** The `fuse client access add` command now allows granting the `audit:get` actions, which enable the user to access the audit trail of an account.
+- **Bug fix.** Fixed an issue in access token caching logic that sometimes prevented timely renewal of expired access tokens.
+
+## Version 1.4.0
+
+_Released 11/4/19_
+
+- **Support for OAuth device flow.** Added support for user authentication using OAuth 2.0 device flow.
+
+## Version 1.3.0
+
+_Released 10/23/19_
+
+- **Permission command improvements.** The `fuse user access add` command now allows specification of the Fusebit subscription, making it useful for account-level administrative actions.
+
 ## Version 1.2.0
 
 _Released 10/21/19_
