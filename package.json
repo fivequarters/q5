@@ -28,6 +28,8 @@
     "doc": "yarn-tool yarn doc",
     "cli-link": "yarn-tool yarn cli-link",
     "cli-unlink": "yarn-tool yarn cli-unlink",
+    "publish:dev": "yarn-tool yarn publish:dev",
+    "publish:prod": "yarn-tool yarn publish:prod",
     "image": "VERSION=$(cat package.json | grep version | head -1 | awk -F: '{ print $2 }' | sed 's/[\",]//g' | tr -d '[[:space:]]') && docker build . -t fusebit-mono:$VERSION"
   },
   "devDependencies": {
