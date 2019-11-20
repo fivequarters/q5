@@ -160,6 +160,10 @@ export class OpsDataAwsConfig implements IConfig {
     return dataWarehouseKey;
   }
 
+  public get iamPermissionsBoundary(): string | undefined {
+    return (this.config.value('iamPermissionsBoundary') as string) || undefined;
+  }
+
   public get accountDefaultLimit(): number {
     return (
       (this.config.value('accountDefaultLimit') as number) ||

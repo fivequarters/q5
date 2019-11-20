@@ -1,12 +1,15 @@
 {
   "name": "@5qtrs/fusebit-ops-cli",
-  "version": "1.18.0",
+  "version": "1.19.0",
   "description": "The Fusebit Platform Operations CLI",
   "main": "libc/index.js",
   "license": "UNLICENSED",
   "author": "https://fusebit.io",
   "bin": {
     "fuse-ops": "libc/index.js"
+  },
+  "engines": {
+    "node": ">= 10"
   },
   "private": true,
   "packageAs": "fusebit-ops-cli",

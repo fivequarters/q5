@@ -7,22 +7,30 @@ export async function createInstanceProfile(
   awsConfig: IAwsConfig,
   instanceProfileName: string,
   policyArns?: string[],
-  inlinePolicy?: object
+  inlinePolicy?: object,
+  permissionsBoundary?: string
 ) {
   debug('IN CREATE INSTANCE PROFILE');
 
-  await createRole(awsConfig, instanceProfileName, policyArns, inlinePolicy, {
-    Version: '2012-10-17',
-    Statement: [
-      {
-        Effect: 'Allow',
-        Principal: {
-          Service: 'ec2.amazonaws.com',
+  await createRole(
+    awsConfig,
+    instanceProfileName,
+    policyArns,
+    inlinePolicy,
+    {
+      Version: '2012-10-17',
+      Statement: [
+        {
+          Effect: 'Allow',
+          Principal: {
+            Service: 'ec2.amazonaws.com',
+          },
+          Action: 'sts:AssumeRole',
         },
-        Action: 'sts:AssumeRole',
-      },
-    ],
-  });
+      ],
+    },
+    permissionsBoundary
+  );
 
   let ctx: any = { instanceProfileName };
 
@@ -99,7 +107,8 @@ export async function createRole(
   roleName: string,
   policyArns?: string[],
   inlinePolicy?: object,
-  assumeRolePolicy?: object
+  assumeRolePolicy?: object,
+  permissionsBoundary?: string
 ) {
   debug('IN CREATE ROLE');
 
@@ -150,6 +159,7 @@ export async function createRole(
       {
         RoleName: ctx.roleName,
         AssumeRolePolicyDocument: JSON.stringify(ctx.assumeRolePolicy),
+        PermissionsBoundary: permissionsBoundary || undefined,
       },
       (e, d) => {
         if (e && e.code !== 'EntityAlreadyExists') return cb(e);

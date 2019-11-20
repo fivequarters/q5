@@ -18,6 +18,10 @@ const command = {
       defaultText: 'default profile',
     },
     {
+      name: 'iamPermissionsBoundary',
+      description: 'The ARN of the IAM permissions boundary to set on created IAM roles',
+    },
+    {
       name: 'confirm',
       aliases: ['c'],
       description: 'If set to true, prompts for confirmation before setting up the Fusebit platform',

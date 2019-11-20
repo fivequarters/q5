@@ -4,6 +4,7 @@ import { OpsService } from './OpsService';
 import { ProfileService } from './ProfileService';
 import { ExecuteService } from './ExecuteService';
 import { AccountService } from './AccountService';
+import { IConfigSettings } from '@5qtrs/config';
 
 // ------------------
 // Internal Constants
@@ -21,6 +22,7 @@ export class SetupService {
   private executeService: ExecuteService;
   private profileService: ProfileService;
   private accountService: AccountService;
+  private settings: IConfigSettings;
 
   private constructor(
     input: IExecuteInput,
@@ -30,6 +32,9 @@ export class SetupService {
     accountService: AccountService
   ) {
     this.input = input;
+    this.settings = {
+      iamPermissionsBoundary: (this.input.options.iamPermissionsBoundary as string) || undefined,
+    };
     this.opsService = opsService;
     this.executeService = executeService;
     this.profileService = profileService;
@@ -45,7 +50,7 @@ export class SetupService {
   }
 
   public async isSetup(): Promise<boolean> {
-    const opsDataContext = await this.opsService.getOpsDataContext();
+    const opsDataContext = await this.opsService.getOpsDataContext(this.settings);
 
     const result = await this.executeService.execute(
       {
@@ -60,7 +65,7 @@ export class SetupService {
   }
 
   public async setup(): Promise<void> {
-    const opsDataContext = await this.opsService.getOpsDataContext();
+    const opsDataContext = await this.opsService.getOpsDataContext(this.settings);
     await this.executeService.execute(
       {
         header: 'Setup',
@@ -85,6 +90,7 @@ export class SetupService {
         ? [
             { name: 'Main Account', value: profile.awsMainAccount },
             { name: 'Credentials Provider', value: profile.credentialsProvider },
+            { name: 'IAM Permissions Boundary', value: (this.settings.iamPermissionsBoundary as string) || notSet },
           ]
         : [
             { name: 'Main Account', value: profile.awsMainAccount },
@@ -92,6 +98,7 @@ export class SetupService {
             { name: 'Main Role', value: profile.awsMainRole || notSet },
             { name: 'User Name', value: profile.awsUserName || notSet },
             { name: 'Access Key', value: profile.awsAccessKeyId || notSet },
+            { name: 'IAM Permissions Boundary', value: (this.settings.iamPermissionsBoundary as string) || notSet },
           ],
     });
     const confirmed = await confirmPrompt.prompt(this.input.io);
