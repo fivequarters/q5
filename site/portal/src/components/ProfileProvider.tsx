@@ -12,7 +12,13 @@ import parseUrl from "url-parse";
 import { FusebitError } from "./ErrorBoundary";
 
 const FusebitAuthStateKey = "fusebitAuthState";
-const ProfileContext = React.createContext(null);
+
+type ProfileProps = {
+  profile: IFusebitProfile;
+  logout: () => Promise<void>;
+};
+
+const ProfileContext = React.createContext<Partial<ProfileProps>>({});
 
 function ProfileProvider(props: any) {
   const params: any = useParams();
@@ -121,7 +127,7 @@ function ProfileProvider(props: any) {
 
   if (profile) {
     let logoutProfile = profile;
-    const logout = async () => {
+    const logout = () => {
       delete logoutProfile.auth;
       delete logoutProfile.me;
       settings = getLocalSettings();
@@ -140,11 +146,12 @@ function ProfileProvider(props: any) {
 
     return <ProfileContext.Provider value={{ logout, profile }} {...props} />;
   } else {
-    return <ProfileContext.Provider value={{}} {...props} />;
+    throw new Error("User is not logged");
+    // return <ProfileContext.Provider value={{}} {...props} />;
   }
 }
 
-const useProfile = () => React.useContext(ProfileContext);
+const useProfile = () => React.useContext(ProfileContext) as ProfileProps;
 
 function login(profile: IFusebitProfile, bookmark: string) {
   let url = parseUrl(profile.oauth.webAuthorizationUrl, true);
