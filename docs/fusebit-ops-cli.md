@@ -17,6 +17,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.19.0
+
+_Released 11/19/19_
+
+- **Support for IAM permissions boundary** Enable the specification of a custom ARN of an IAM permissions boundary to be used when creating roles in `fuse-ops setup`.
+
 ## Version 1.18.0
 
 _Released 11/12/19_

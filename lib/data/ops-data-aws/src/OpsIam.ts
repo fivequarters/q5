@@ -29,43 +29,76 @@ export class OpsIam implements IDataSource {
 
     // Ensure IAM roles for DWH export are created
 
-    await createRole(awsConfig, this.config.dwhExportRoleName, [
-      'arn:aws:iam::aws:policy/AmazonDynamoDBReadOnlyAccess',
-      'arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess',
-      'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole',
-    ]);
+    await createRole(
+      awsConfig,
+      this.config.dwhExportRoleName,
+      [
+        'arn:aws:iam::aws:policy/AmazonDynamoDBReadOnlyAccess',
+        'arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess',
+        'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole',
+      ],
+      undefined,
+      undefined,
+      this.config.iamPermissionsBoundary
+    );
 
     // Ensure IAM roles for CRON are created
 
-    await createRole(awsConfig, this.config.cronExecutorRoleName, [
-      'arn:aws:iam::aws:policy/AWSLambdaFullAccess',
-      'arn:aws:iam::aws:policy/CloudWatchFullAccess',
-      'arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess',
-      'arn:aws:iam::aws:policy/service-role/AWSLambdaSQSQueueExecutionRole',
-    ]);
+    await createRole(
+      awsConfig,
+      this.config.cronExecutorRoleName,
+      [
+        'arn:aws:iam::aws:policy/AWSLambdaFullAccess',
+        'arn:aws:iam::aws:policy/CloudWatchFullAccess',
+        'arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess',
+        'arn:aws:iam::aws:policy/service-role/AWSLambdaSQSQueueExecutionRole',
+      ],
+      undefined,
+      undefined,
+      this.config.iamPermissionsBoundary
+    );
 
-    await createRole(awsConfig, this.config.cronSchedulerRoleName, [
-      'arn:aws:iam::aws:policy/AmazonSQSFullAccess',
-      'arn:aws:iam::aws:policy/AmazonS3FullAccess',
-      'arn:aws:iam::aws:policy/CloudWatchLogsFullAccess',
-    ]);
+    await createRole(
+      awsConfig,
+      this.config.cronSchedulerRoleName,
+      [
+        'arn:aws:iam::aws:policy/AmazonSQSFullAccess',
+        'arn:aws:iam::aws:policy/AmazonS3FullAccess',
+        'arn:aws:iam::aws:policy/CloudWatchLogsFullAccess',
+      ],
+      undefined,
+      undefined,
+      this.config.iamPermissionsBoundary
+    );
 
     // Ensure IAM roles for builder and user functions are created
 
-    await createRole(awsConfig, this.config.builderRoleName, [
-      'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole',
-    ]);
+    await createRole(
+      awsConfig,
+      this.config.builderRoleName,
+      ['arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'],
+      undefined,
+      undefined,
+      this.config.iamPermissionsBoundary
+    );
 
-    await createRole(awsConfig, this.config.functionRoleName, undefined, {
-      Version: '2012-10-17',
-      Statement: [
-        {
-          Effect: 'Allow',
-          Action: ['ec2:CreateNetworkInterface', 'ec2:DeleteNetworkInterface', 'ec2:DescribeNetworkInterfaces'],
-          Resource: '*',
-        },
-      ],
-    });
+    await createRole(
+      awsConfig,
+      this.config.functionRoleName,
+      undefined,
+      {
+        Version: '2012-10-17',
+        Statement: [
+          {
+            Effect: 'Allow',
+            Action: ['ec2:CreateNetworkInterface', 'ec2:DeleteNetworkInterface', 'ec2:DescribeNetworkInterfaces'],
+            Resource: '*',
+          },
+        ],
+      },
+      undefined,
+      this.config.iamPermissionsBoundary
+    );
 
     // Ensure the instance profile and role for the VMs are created
 
@@ -95,7 +128,8 @@ export class OpsIam implements IDataSource {
             Resource: '*',
           },
         ],
-      }
+      },
+      this.config.iamPermissionsBoundary
     );
   }
 }

@@ -1,7 +1,7 @@
 import { IExecuteInput, ICommandIO, Message, MessageKind } from '@5qtrs/cli';
 import { Text } from '@5qtrs/text';
 import { AwsCreds } from '@5qtrs/aws-cred';
-import { Config } from '@5qtrs/config';
+import { Config, IConfigSettings } from '@5qtrs/config';
 import { IOpsDataContext } from '@5qtrs/ops-data';
 import { OpsDataAwsContextFactory } from '@5qtrs/ops-data-aws';
 import { ProfileService } from './ProfileService';
@@ -94,7 +94,7 @@ export class OpsService {
     return this.userCreds;
   }
 
-  public async getOpsDataContext(): Promise<IOpsDataContext> {
+  public async getOpsDataContext(settings?: IConfigSettings): Promise<IOpsDataContext> {
     if (!this.opsDataContext) {
       const profile = await this.profileService.getProfileOrDefaultOrThrow();
       const awsCreds = await this.getUserCreds();
@@ -107,11 +107,13 @@ export class OpsService {
                 mainAccountId: profile.awsMainAccount,
                 // mainAccountRole: undefined,
                 credentialsProvider: profile.credentialsProvider,
+                ...settings,
               }
             : {
                 userAccountEnabled: profile.awsUserAccount !== undefined,
                 mainAccountId: profile.awsMainAccount,
                 mainAccountRole: profile.awsMainRole || undefined,
+                ...settings,
               }
         );
         return factory.create(config);
