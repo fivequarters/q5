@@ -8,17 +8,16 @@ export interface IOpsNewNetwork {
   networkName: string;
   accountName: string;
   region: string;
+  existingVpcId?: string;
+  existingPublicSubnetIds?: string[];
+  existingPrivateSubnetIds?: string[];
 }
 
 export interface IOpsNetwork extends IOpsNewNetwork {
   vpcId: string;
   securityGroupId: string;
   lambdaSecurityGroupId: string;
-  internetGatewayId: string;
-  natGatewayId: string;
-  publicRouteTableId: string;
   publicSubnets: IOpsSubnetDetail[];
-  privateRouteTableId: string;
   privateSubnets: IOpsSubnetDetail[];
 }
 

@@ -26,6 +26,18 @@ const command = {
   ],
   options: [
     {
+      name: 'vpc',
+      description: 'ID of an existing VPC to use',
+    },
+    {
+      name: 'privateSubnets',
+      description: 'Comma-delimited list of existing private subnet IDs to use',
+    },
+    {
+      name: 'publicSubnets',
+      description: 'Comma-delimited list of existing public subnet IDs to use',
+    },
+    {
       name: 'confirm',
       aliases: ['c'],
       description: 'If set to true, prompts for confirmation before adding the network to the Fusebit platform',
@@ -53,10 +65,20 @@ export class AddNetworkCommand extends Command {
 
     const [networkName, accountName, region] = input.arguments as string[];
     const confirm = input.options.confirm as boolean;
+    const existingVpcId = (input.options.vpc as string) || undefined;
+    const existingPrivateSubnetIds = parseList((input.options.privateSubnets as string) || undefined);
+    const existingPublicSubnetIds = parseList((input.options.publicSubnets as string) || undefined);
 
     const networkService = await NetworkService.create(input);
 
-    const network = { networkName, accountName, region };
+    const network = {
+      networkName,
+      accountName,
+      region,
+      existingVpcId,
+      existingPrivateSubnetIds,
+      existingPublicSubnetIds,
+    };
     await networkService.checkNetworkExists(network);
 
     if (confirm) {
@@ -66,5 +88,13 @@ export class AddNetworkCommand extends Command {
     const addedNetwork = await networkService.addNetwork(network);
     await networkService.displayNetwork(addedNetwork);
     return 0;
+
+    function parseList(list?: string): string[] | undefined {
+      if (list) {
+        const result = list.split(',').map(l => l.trim());
+        return result.length > 0 ? result : undefined;
+      }
+      return undefined;
+    }
   }
 }

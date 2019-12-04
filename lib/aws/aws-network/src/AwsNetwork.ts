@@ -30,11 +30,7 @@ export interface IAwsNetworkDetail {
   vpcId: string;
   securityGroupId: string;
   lambdaSecurityGroupId: string;
-  internetGatewayId: string;
-  natGatewayId: string;
-  publicRouteTableId: string;
   publicSubnets: IAwsSubnetDetail[];
-  privateRouteTableId: string;
   privateSubnets: IAwsSubnetDetail[];
 }
 
@@ -59,28 +55,46 @@ export class AwsNetwork extends AwsBase<typeof EC2> {
     const vpcId = await this.getVpcId(name);
     return vpcId !== undefined;
   }
-
-  public async ensureNetwork(name: string): Promise<IAwsNetworkDetail> {
-    const vpcId = await this.ensureVpc(name);
+  public async ensureNetwork(
+    name: string,
+    existingVpcId?: string,
+    existingPublicSubnetIds?: string[],
+    existingPrivateSubnetIds?: string[]
+  ): Promise<IAwsNetworkDetail> {
+    const vpcId = await this.ensureVpc(name, existingVpcId);
     const securityGroupId = await this.ensureSecurityGroup(name, vpcId);
     const lambdaSecurityGroupId = await this.ensureLambdaSecurityGroup(name, vpcId);
 
-    const internetGatewayId = await this.ensureInternetGateway(name, vpcId);
-    const publicRouteTableId = await this.ensureRouteTable(name, vpcId, true, internetGatewayId);
-    const publicSubnets = await this.ensureSubnets(name, vpcId, true, publicRouteTableId);
+    let publicSubnets: IAwsSubnetDetail[] = [];
+    if (existingPublicSubnetIds) {
+      for (let id of existingPublicSubnetIds) {
+        publicSubnets.push(await this.getExistingSubnet(id));
+        await this.tagPublic(id, true);
+        await this.tagResource(id, name, publicSubnetType);
+      }
+    } else {
+      const internetGatewayId = await this.ensureInternetGateway(name, vpcId);
+      const publicRouteTableId = await this.ensureRouteTable(name, vpcId, true, internetGatewayId);
+      publicSubnets = await this.ensureSubnets(name, vpcId, true, publicRouteTableId);
+    }
 
-    const natGatewayId = await this.ensureNatGateway(name, vpcId, publicSubnets[0].id);
-    const privateRouteTableId = await this.ensureRouteTable(name, vpcId, false, natGatewayId);
-    const privateSubnets = await this.ensureSubnets(name, vpcId, false, privateRouteTableId);
+    let privateSubnets: IAwsSubnetDetail[] = [];
+    if (existingPrivateSubnetIds) {
+      for (let id of existingPrivateSubnetIds) {
+        privateSubnets.push(await this.getExistingSubnet(id));
+        await this.tagPublic(id, false);
+        await this.tagResource(id, name, privateSubnetType);
+      }
+    } else {
+      const natGatewayId = await this.ensureNatGateway(name, vpcId, publicSubnets[0].id);
+      const privateRouteTableId = await this.ensureRouteTable(name, vpcId, false, natGatewayId);
+      privateSubnets = await this.ensureSubnets(name, vpcId, false, privateRouteTableId);
+    }
 
     return {
       vpcId,
       securityGroupId,
       lambdaSecurityGroupId,
-      internetGatewayId,
-      natGatewayId,
-      publicRouteTableId,
-      privateRouteTableId,
       publicSubnets,
       privateSubnets,
     };
@@ -138,6 +152,30 @@ export class AwsNetwork extends AwsBase<typeof EC2> {
     });
   }
 
+  public async getExistingSubnet(id: string): Promise<IAwsSubnetDetail> {
+    const ec2 = await this.getAws();
+    const params = {
+      SubnetIds: [id],
+    };
+
+    return new Promise((resolve, reject) => {
+      ec2.describeSubnets(params, (error: any, data: any) => {
+        if (error) {
+          return reject(error);
+        }
+
+        const subnet = data && data.Subnets && data.Subnets.length ? data.Subnets[0] : undefined;
+        if (!subnet) {
+          return reject(new Error(`Subnet '${id}' does not exist.`));
+        }
+        resolve({
+          id: subnet.SubnetId,
+          availabilityZone: subnet.AvailabilityZone,
+        });
+      });
+    });
+  }
+
   public async getSubnet(name: string, vpcId: string, cidr: string): Promise<IAwsSubnetDetail | undefined> {
     const ec2 = await this.getAws();
     const params = {
@@ -176,9 +214,12 @@ export class AwsNetwork extends AwsBase<typeof EC2> {
     return new EC2(config);
   }
 
-  private async ensureVpc(name: string): Promise<string> {
-    let vpcId = await this.getVpcId(name);
+  private async ensureVpc(name: string, existingVpcId?: string): Promise<string> {
+    let vpcId = existingVpcId || (await this.getVpcId(name));
     if (!vpcId) {
+      if (existingVpcId) {
+        throw new Error(`VPC '${existingVpcId}' does not exist.`);
+      }
       vpcId = await this.createVpc();
     }
     await this.waitForVpc(vpcId);

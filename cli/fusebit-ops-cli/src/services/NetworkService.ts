@@ -3,7 +3,6 @@ import { Text } from '@5qtrs/text';
 import { IOpsNetwork, IOpsNewNetwork, IListOpsNetworkOptions, IListOpsNetworkResult } from '@5qtrs/ops-data';
 import { OpsService } from './OpsService';
 import { ExecuteService } from './ExecuteService';
-import { SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION } from 'constants';
 
 // ----------------
 // Exported Classes
@@ -117,6 +116,15 @@ export class NetworkService {
         { name: 'Network', value: network.networkName },
         { name: 'Account', value: network.accountName },
         { name: 'Region', value: network.region },
+        { name: 'VPC', value: network.existingVpcId || '<create new>' },
+        {
+          name: 'Private Subnets',
+          value: network.existingPrivateSubnetIds ? network.existingPrivateSubnetIds.join(', ') : '<create new>',
+        },
+        {
+          name: 'Public Subnets',
+          value: network.existingPublicSubnetIds ? network.existingPublicSubnetIds.join(', ') : '<create new>',
+        },
       ],
     });
     const confirmed = await confirmPrompt.prompt(this.input.io);
