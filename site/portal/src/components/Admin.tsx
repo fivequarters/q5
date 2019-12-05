@@ -1,20 +1,39 @@
 import React from "react";
-import { getLocalSettings } from "../lib/Settings";
+import {
+  getLocalSettings,
+  setLocalSettings,
+  IFusebitSettings
+} from "../lib/Settings";
+import { makeStyles } from "@material-ui/core/styles";
 import { useProfile } from "./ProfileProvider";
-import Button from "@material-ui/core/Button";
+import ProfileSelector from "./ProfileSelector";
+
+const useStyles = makeStyles(theme => ({
+  root: {
+    display: "flex"
+  }
+}));
 
 function Admin({ ...rest }) {
   const { profile, logout } = useProfile();
+  const classes = useStyles();
+  const [drawerOpen, setDrawerOpen] = React.useState(false);
+  const settings = getLocalSettings() as IFusebitSettings;
+
+  const handleSelectProfile = (id: string) => {
+    settings.currentProfile = id;
+    setLocalSettings(settings);
+    window.location.href = "/";
+  };
+
   return (
-    <div>
-      <p>You are now logged in.</p>
-      <Button onClick={() => logout()} color="primary" variant="contained">
-        Logout
-      </Button>
-      <p>Current profile is:</p>
-      <pre>{JSON.stringify(profile, null, 2)}</pre>
-      <p>Settings are:</p>
-      <pre>{JSON.stringify(getLocalSettings(), null, 2)}</pre>
+    <div className={classes.root}>
+      <ProfileSelector
+        settings={settings}
+        open={drawerOpen}
+        onSetDrawerOpen={(open: boolean) => setDrawerOpen(open)}
+        onSelectProfile={handleSelectProfile}
+      />
     </div>
   );
 }

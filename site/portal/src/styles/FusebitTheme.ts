@@ -1,17 +1,15 @@
 import { createMuiTheme } from "@material-ui/core/styles";
-
-const ColorFusebitRed = "#FB310A";
-const ColorFusebitOrange = "#FFA700";
+import { FusebitColor } from "@5qtrs/fusebit-color";
 
 const FusebitTheme = {
   ...createMuiTheme({
     // Overrides of default MUI theme:
     palette: {
       primary: {
-        main: ColorFusebitRed
+        main: FusebitColor.red
       },
       secondary: {
-        main: ColorFusebitOrange
+        main: FusebitColor.orange
       }
     },
     overrides: {
@@ -24,9 +22,15 @@ const FusebitTheme = {
   }),
   // Additional, Fusebit-specific theme properties  :
   fusebit: {
-    colors: {
-      red: ColorFusebitRed,
-      orange: ColorFusebitOrange
+    colors: FusebitColor,
+    profileSelector: {
+      width: 240,
+      iconColors: [
+        FusebitColor.red,
+        FusebitColor.orange,
+        FusebitColor.cyan,
+        FusebitColor.gray
+      ]
     }
   }
 };

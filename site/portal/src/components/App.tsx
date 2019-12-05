@@ -3,6 +3,7 @@ import { Router, Route, Switch } from "react-router-dom";
 import { createBrowserHistory } from "history";
 import Init from "./Init";
 import Admin from "./Admin";
+import Me from "./Me";
 import ErrorBoundary from "./ErrorBoundary";
 import Style from "./Style";
 import { ProfileProvider } from "./ProfileProvider";
@@ -22,7 +23,10 @@ function App() {
             <Route path="/init" component={Init} />
             <Route path="/style" component={Style} />
             <ProfileProvider>
-              <Route path="/" component={Admin} />
+              <Switch>
+                <Route path="/me" component={Me} />
+                <Route path="/" component={Admin} />
+              </Switch>
             </ProfileProvider>
           </Switch>
         </Router>
