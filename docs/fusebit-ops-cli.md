@@ -17,6 +17,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.20.0
+
+_Released 12/4/19_
+
+- **Support pre-existing VPC and subnets** Enable the specification of a pre-existing VPC and subnets in `fuse-ops network add`.
+
 ## Version 1.19.0
 
 _Released 11/19/19_

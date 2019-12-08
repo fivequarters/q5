@@ -76,7 +76,12 @@ export class OpsNetworkData extends DataSource implements IOpsNetworkData {
 
   private async attachNetworkDetails(network: IOpsNewNetwork): Promise<IOpsNetwork> {
     const awsNetwork = await this.provider.getAwsNetworkFromAccount(network.accountName, network.region);
-    const networkDetails = await awsNetwork.ensureNetwork(network.networkName);
+    const networkDetails = await awsNetwork.ensureNetwork(
+      network.networkName,
+      network.existingVpcId,
+      network.existingPublicSubnetIds,
+      network.existingPrivateSubnetIds
+    );
     return {
       networkName: network.networkName,
       accountName: network.accountName,
@@ -84,11 +89,7 @@ export class OpsNetworkData extends DataSource implements IOpsNetworkData {
       vpcId: networkDetails.vpcId,
       securityGroupId: networkDetails.securityGroupId,
       lambdaSecurityGroupId: networkDetails.lambdaSecurityGroupId,
-      internetGatewayId: networkDetails.internetGatewayId,
-      natGatewayId: networkDetails.natGatewayId,
-      publicRouteTableId: networkDetails.publicRouteTableId,
       publicSubnets: networkDetails.publicSubnets,
-      privateRouteTableId: networkDetails.privateRouteTableId,
       privateSubnets: networkDetails.privateSubnets,
     };
   }
