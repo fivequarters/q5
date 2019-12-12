@@ -2,7 +2,7 @@ import React from "react";
 import { Router, Route, Switch } from "react-router-dom";
 import { createBrowserHistory } from "history";
 import Init from "./Init";
-import Admin from "./Admin";
+import ProfileExplorer from "./ProfileExplorer";
 import Me from "./Me";
 import ErrorBoundary from "./ErrorBoundary";
 import Style from "./Style";
@@ -25,7 +25,7 @@ function App() {
             <ProfileProvider>
               <Switch>
                 <Route path="/me" component={Me} />
-                <Route path="/" component={Admin} />
+                <Route path="/" component={ProfileExplorer} />
               </Switch>
             </ProfileProvider>
           </Switch>

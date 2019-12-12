@@ -5,7 +5,6 @@ import IconButton from "@material-ui/core/IconButton";
 import Typography from "@material-ui/core/Typography";
 import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
-import Avatar from "@material-ui/core/Avatar";
 import ListItemText from "@material-ui/core/ListItemText";
 import MoreHorizIcon from "@material-ui/icons/MoreHoriz";
 import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
@@ -32,10 +31,7 @@ const useStyles = makeStyles((theme: any) => ({
       duration: theme.transitions.duration.leavingScreen
     }),
     overflowX: "hidden",
-    width: theme.spacing(7) + 1,
-    [theme.breakpoints.up("sm")]: {
-      width: theme.spacing(9) + 1
-    }
+    width: 66
   },
   expanded: {
     display: "flex",

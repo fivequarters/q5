@@ -111,8 +111,7 @@ function ProfileProvider(props: any) {
   if (auth && auth.error) {
     throw new FusebitError("Authorization error", {
       details: `You are not authorized to access the Fusebit Portal. Error '${auth.error ||
-        "N/A"}'. Error details: '${auth.error_description}'.`,
-      showProfileSelector: true
+        "N/A"}'. Error details: '${auth.error_description}'.`
     });
   }
 

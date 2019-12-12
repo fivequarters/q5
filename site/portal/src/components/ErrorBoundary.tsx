@@ -1,15 +1,19 @@
 import React from "react";
+import { getLocalSettings, IFusebitSettings } from "../lib/Settings";
+import ProfileSelectorWithDetails from "./ProfileSelectorWithDetails";
+import Grid from "@material-ui/core/Grid";
 import { withStyles } from "@material-ui/core/styles";
-import ProfileSelector from "./ProfileSelector";
-import {
-  getLocalSettings,
-  setLocalSettings,
-  IFusebitSettings
-} from "../lib/Settings";
+import PortalError from "./PortalError";
 
 const styles = (theme: any) => ({
-  root: {
-    display: "flex"
+  gridContainer: {
+    marginTop: 12,
+    paddingLeft: theme.spacing(2),
+    paddingRight: theme.spacing(2)
+  },
+  gridLine: {
+    marginTop: theme.spacing(1),
+    marginBottom: theme.spacing(1)
   }
 });
 
@@ -21,7 +25,6 @@ interface IFusebitErrorAction {
 interface IFusebitErrorOptions {
   details: string;
   actions?: IFusebitErrorAction[];
-  showProfileSelector?: boolean;
 }
 
 class FusebitError extends Error {
@@ -56,52 +59,18 @@ class ErrorBoundary extends React.Component<any, any> {
   }
 
   renderError(error: any) {
-    console.log("IN RENDER ERROR", error);
-    const { classes } = this.props;
     const settings = getLocalSettings() as IFusebitSettings;
-
-    const handleSelectProfile = (id: string) => {
-      settings.currentProfile = id;
-      setLocalSettings(settings);
-      window.location.href = "/";
-    };
+    const { classes } = this.props;
 
     return (
-      <div className={classes.root}>
-        <ProfileSelector
-          settings={settings}
-          open={this.state.drawerOpen}
-          onSetDrawerOpen={(open: boolean) =>
-            this.setState({ drawerOpen: open })
-          }
-          onSelectProfile={handleSelectProfile}
-        />
-        <div>{this.renderErrorDetails(error)}</div>
-      </div>
+      <ProfileSelectorWithDetails settings={settings}>
+        <Grid container className={classes.gridContainer}>
+          <Grid item xs={12} className={classes.gridLine}>
+            <PortalError error={error} />
+          </Grid>
+        </Grid>
+      </ProfileSelectorWithDetails>
     );
-  }
-
-  renderErrorDetails(error: any) {
-    if (this.state.error.fusebit) {
-      const fusebitError = this.state.error as FusebitError;
-      return (
-        <div>
-          <h1>{fusebitError.message}</h1>
-          <p>{fusebitError.fusebit.details}</p>
-          {fusebitError.fusebit.actions &&
-            fusebitError.fusebit.actions.map(action => (
-              <a href={action.url}>{action.text}</a>
-            ))}
-        </div>
-      );
-    } else {
-      return (
-        <div>
-          <h1>Something went wrong</h1>
-          <p>{this.state.error.message}</p>
-        </div>
-      );
-    }
   }
 }
 
