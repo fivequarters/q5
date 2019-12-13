@@ -20,6 +20,7 @@ import IconButton from "@material-ui/core/IconButton";
 import Tooltip from "@material-ui/core/Tooltip";
 import DeleteIcon from "@material-ui/icons/Delete";
 import FilterListIcon from "@material-ui/icons/FilterList";
+import ConfirmationDialog from "./ConfirmationDialog";
 
 function desc<T>(a: T, b: T, orderBy: keyof T) {
   if (b[orderBy] < a[orderBy]) {
@@ -96,6 +97,7 @@ function EnhancedTableHead<T>(props: EnhancedTableProps<T>) {
         {enableSelection && (
           <TableCell padding="checkbox">
             <Checkbox
+              color="primary"
               indeterminate={numSelected > 0 && numSelected < rowCount}
               checked={numSelected === rowCount}
               onChange={onSelectAllClick}
@@ -135,16 +137,10 @@ const useToolbarStyles = makeStyles((theme: Theme) =>
       paddingLeft: theme.spacing(2),
       paddingRight: theme.spacing(1)
     },
-    highlight:
-      theme.palette.type === "light"
-        ? {
-            color: theme.palette.secondary.main,
-            backgroundColor: lighten(theme.palette.secondary.light, 0.85)
-          }
-        : {
-            color: theme.palette.text.primary,
-            backgroundColor: theme.palette.secondary.dark
-          },
+    highlight: {
+      color: theme.palette.primary.main,
+      backgroundColor: lighten(theme.palette.primary.light, 0.85)
+    },
     title: {
       flex: "1 1 100%"
     }
@@ -154,11 +150,12 @@ const useToolbarStyles = makeStyles((theme: Theme) =>
 interface EnhancedTableToolbarProps {
   numSelected: number;
   title: string;
+  onDelete: () => void;
 }
 
 const EnhancedTableToolbar = (props: EnhancedTableToolbarProps) => {
   const classes = useToolbarStyles();
-  const { numSelected, title } = props;
+  const { numSelected, title, onDelete } = props;
 
   return (
     <Toolbar
@@ -181,7 +178,11 @@ const EnhancedTableToolbar = (props: EnhancedTableToolbarProps) => {
       )}
       {numSelected > 0 ? (
         <Tooltip title="Delete">
-          <IconButton aria-label="delete">
+          <IconButton
+            onClick={() => onDelete()}
+            aria-label="delete"
+            color="primary"
+          >
             <DeleteIcon />
           </IconButton>
         </Tooltip>
@@ -227,6 +228,9 @@ interface ExplorerTableProps<T> {
   identityKey: keyof T;
   title: string;
   enableSelection?: boolean;
+  onDelete?: (selected: string[]) => void;
+  deleteTitle?: string | ((selected: string[]) => string);
+  deleteContent?: string | ((selected: string[]) => JSX.Element);
 }
 
 export default function ExplorerTable<T>(props: ExplorerTableProps<T>) {
@@ -236,7 +240,10 @@ export default function ExplorerTable<T>(props: ExplorerTableProps<T>) {
     headCells,
     rows,
     identityKey,
-    enableSelection
+    enableSelection,
+    onDelete,
+    deleteTitle,
+    deleteContent
   } = props;
   const classes = useStyles();
   const [order, setOrder] = React.useState<Order>("asc");
@@ -245,6 +252,7 @@ export default function ExplorerTable<T>(props: ExplorerTableProps<T>) {
   const [page, setPage] = React.useState(0);
   // const [dense, setDense] = React.useState(false);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = React.useState(false);
 
   const handleRequestSort = (
     event: React.MouseEvent<unknown>,
@@ -262,6 +270,13 @@ export default function ExplorerTable<T>(props: ExplorerTableProps<T>) {
       return;
     }
     setSelected([]);
+  };
+
+  const handleDeleteDialogOpen = () => setConfirmDeleteOpen(true);
+
+  const handleDeleteDialogClose = (confirmed: boolean) => {
+    setConfirmDeleteOpen(false);
+    confirmed && onDelete && onDelete(selected);
   };
 
   const handleClick = (event: React.MouseEvent<unknown>, name: string) => {
@@ -306,8 +321,30 @@ export default function ExplorerTable<T>(props: ExplorerTableProps<T>) {
 
   return (
     <div className={classes.root}>
+      <ConfirmationDialog
+        open={confirmDeleteOpen}
+        title={
+          deleteTitle
+            ? typeof deleteTitle === "string"
+              ? deleteTitle
+              : deleteTitle(selected)
+            : `Confirm delete?`
+        }
+        content={
+          deleteContent
+            ? typeof deleteContent === "string"
+              ? deleteContent
+              : deleteContent(selected)
+            : `Delete ${selected.length} records?`
+        }
+        onDone={handleDeleteDialogClose}
+      />
       {/* <Paper className={classes.paper}> */}
-      <EnhancedTableToolbar numSelected={selected.length} title={title} />
+      <EnhancedTableToolbar
+        numSelected={selected.length}
+        title={title}
+        onDelete={handleDeleteDialogOpen}
+      />
       {/* <TableContainer> */}
       <Table
         className={classes.table}
@@ -357,6 +394,7 @@ export default function ExplorerTable<T>(props: ExplorerTableProps<T>) {
                   {enableSelection && (
                     <TableCell padding="checkbox">
                       <Checkbox
+                        color="primary"
                         checked={isItemSelected}
                         inputProps={{ "aria-labelledby": labelId }}
                       />

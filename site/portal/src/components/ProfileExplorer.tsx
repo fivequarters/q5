@@ -9,6 +9,8 @@ import Grid from "@material-ui/core/Grid";
 import { FusebitError } from "./ErrorBoundary";
 import AccountOverview from "./AccountOverview";
 import AccountSubscriptions from "./AccountSubscriptions";
+import AccountUsers from "./AccountUsers";
+import AccountClients from "./AccountClients";
 import Paper from "@material-ui/core/Paper";
 import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
@@ -149,38 +151,20 @@ function ProfileExplorer({ ...rest }) {
         )}
       />
       <Route
-        path={[
-          "/account/:accountId/subscription/:subscriptionId/boundary",
-          "/account/:accountId/subscription/:subscriptionId/monitoring"
-        ]}
+        path="/accounts/:accountId/users"
         exact={true}
-        render={() => (
-          <ExplorerView>
-            <div>[TODO: SubscriptionExplorer]</div>
+        render={({ ...rest }) => (
+          <ExplorerView tabs={ExplorerTabs.account} {...rest}>
+            <AccountUsers data={data} onNewData={handleOnNewData} {...rest} />
           </ExplorerView>
         )}
       />
       <Route
-        path={[
-          "/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function",
-          "/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/monitoring"
-        ]}
+        path="/accounts/:accountId/clients"
         exact={true}
-        render={() => (
-          <ExplorerView>
-            <div>[TODO: BoundaryExplorer]</div>
-          </ExplorerView>
-        )}
-      />
-      <Route
-        path={[
-          "/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/code",
-          "/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/monitoring"
-        ]}
-        exact={true}
-        render={() => (
-          <ExplorerView>
-            <div>[TODO: FunctionExplorer]</div>
+        render={({ ...rest }) => (
+          <ExplorerView tabs={ExplorerTabs.account} {...rest}>
+            <AccountClients data={data} onNewData={handleOnNewData} {...rest} />
           </ExplorerView>
         )}
       />

@@ -35,7 +35,7 @@ function AccountSubscriptions({ data, onNewData }: any) {
   const headCells: HeadCell<ViewRow>[] = [
     {
       id: "name",
-      disablePadding: true,
+      // disablePadding: true,
       align: "left",
       label: "Subscription Name",
       render: row => (

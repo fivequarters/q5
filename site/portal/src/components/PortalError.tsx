@@ -21,7 +21,14 @@ function PortalError({ error }: any) {
       {fusebitError && fusebitError.fusebit.actions && (
         <CardActions>
           {fusebitError.fusebit.actions.map((action, index) => (
-            <Button key={index} href={action.url} size="small">
+            <Button
+              key={index}
+              href={action.url}
+              onClick={
+                action.func ? () => action.func && action.func() : undefined
+              }
+              size="small"
+            >
               {action.text}
             </Button>
           ))}

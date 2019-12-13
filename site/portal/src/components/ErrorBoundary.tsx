@@ -19,7 +19,8 @@ const styles = (theme: any) => ({
 
 interface IFusebitErrorAction {
   text: string;
-  url: string;
+  url?: string;
+  func?: () => void;
 }
 
 interface IFusebitErrorOptions {
