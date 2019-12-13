@@ -126,8 +126,8 @@ function AccountClients({ data, onNewData }: any) {
       <div>
         <DialogContentText>
           {selected.length > 1
-            ? `You are about to delete ${selected.length} clients.`
-            : `You are about to delete the selected client.`}
+            ? `You are about to delete ${selected.length} clients. They will no longer be able to access Fusebit.`
+            : `You are about to delete the selected client. It will no longer be able to access Fusebit.`}
         </DialogContentText>
       </div>
     );
@@ -143,7 +143,9 @@ function AccountClients({ data, onNewData }: any) {
       enableSelection={true}
       onDelete={handleDelete}
       deleteTitle={selected =>
-        selected.length > 1 ? "Delete clients" : "Delete client"
+        selected.length > 1
+          ? `Delete ${selected.length} clients?`
+          : "Delete the client?"
       }
       deleteContent={generateDeleteContent}
     />

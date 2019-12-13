@@ -338,6 +338,7 @@ export default function ExplorerTable<T>(props: ExplorerTableProps<T>) {
             : `Delete ${selected.length} records?`
         }
         onDone={handleDeleteDialogClose}
+        confirmText="Delete"
       />
       {/* <Paper className={classes.paper}> */}
       <EnhancedTableToolbar

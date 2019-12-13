@@ -9,6 +9,7 @@ import UserAvatar from "./UserAvatar";
 import Link from "@material-ui/core/Link";
 import { Link as RouterLink } from "react-router-dom";
 import DialogContentText from "@material-ui/core/DialogContentText";
+import Typography from "@material-ui/core/Typography";
 
 interface ViewRow {
   name: string;
@@ -140,15 +141,17 @@ function AccountUsers({ data, onNewData }: any) {
         {selected.indexOf((profile.me && profile.me.id) || "") > -1 &&
           selected.length > 1 && (
             <DialogContentText>
-              WARNING: one of the users you are about to delete is you. If you
-              continue, you may loose access to the portal.
+              <Typography color="primary">WARNING</Typography> One of the users
+              you are about to delete is you. If you continue, you may loose
+              access to the portal.
             </DialogContentText>
           )}
         {selected.indexOf((profile.me && profile.me.id) || "") > -1 &&
           selected.length === 1 && (
             <DialogContentText>
-              WARNING: the user you are about to delete is you. If you continue,
-              you may loose access to the portal.
+              <Typography color="primary">WARNING</Typography> The user you are
+              about to delete is you. If you continue, you may loose access to
+              the portal.
             </DialogContentText>
           )}
       </div>
@@ -165,7 +168,7 @@ function AccountUsers({ data, onNewData }: any) {
       enableSelection={true}
       onDelete={handleDelete}
       deleteTitle={selected =>
-        selected.length > 1 ? "Delete users" : "Delete user"
+        selected.length > 1 ? "Delete users?" : "Delete user?"
       }
       deleteContent={generateDeleteContent}
     />
