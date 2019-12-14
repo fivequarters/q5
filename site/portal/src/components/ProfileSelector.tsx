@@ -6,7 +6,7 @@ import Typography from "@material-ui/core/Typography";
 import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemText from "@material-ui/core/ListItemText";
-import MoreHorizIcon from "@material-ui/icons/MoreHoriz";
+import MenuIcon from "@material-ui/icons/Menu";
 import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
 import { FusebitMark } from "@5qtrs/fusebit-mark";
 import SelectableAvatar from "./SelectableAvatar";
@@ -107,6 +107,7 @@ function ProfileSelector({
                     index % theme.fusebit.profileSelector.iconColors.length
                   ]
                 }
+                // background={theme.fusebit.colors.red}
               />
             </SelectableAvatar>
             {open && (
@@ -162,7 +163,7 @@ function ProfileSelector({
       </List>
       <div className={open ? classes.expanded : classes.collapsed}>
         <IconButton onClick={handleDrawerToggle} className={classes.typography}>
-          {open ? <ChevronLeftIcon /> : <MoreHorizIcon />}
+          {open ? <ChevronLeftIcon /> : <MenuIcon />}
         </IconButton>
       </div>
     </Drawer>

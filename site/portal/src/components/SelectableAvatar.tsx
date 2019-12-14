@@ -10,6 +10,7 @@ const useStyles = makeStyles((theme: any) => ({
     height: props.size
   }),
   circle: (props: any) => ({
+    backgroundColor: "transparent",
     position: "absolute",
     top: 4,
     left: 4,
@@ -18,8 +19,8 @@ const useStyles = makeStyles((theme: any) => ({
     borderRadius: "50%"
   }),
   innerCircle: {
+    backgroundColor: "transparent",
     borderRadius: "50%",
-    background: "#fff",
     overflow: "hidden"
   },
   arc: {
