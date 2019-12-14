@@ -96,19 +96,23 @@ function ProfileSelector({
           >
             <SelectableAvatar
               className={classes.avatar}
-              size={50}
               selected={profile.id === settings.currentProfile}
             >
-              <FusebitMark
-                size={36}
-                margin={2}
-                color={
-                  theme.fusebit.profileSelector.iconColors[
-                    index % theme.fusebit.profileSelector.iconColors.length
-                  ]
-                }
-                // background={theme.fusebit.colors.red}
-              />
+              {!profile.icon && (
+                <FusebitMark
+                  size={38}
+                  margin={0}
+                  color={
+                    theme.fusebit.profileSelector.iconColors[
+                      index % theme.fusebit.profileSelector.iconColors.length
+                    ]
+                  }
+                  // background="white"
+                />
+              )}
+              {profile.icon && (
+                <img src={profile.icon} width="38" height="38" />
+              )}
             </SelectableAvatar>
             {open && (
               <ListItemText

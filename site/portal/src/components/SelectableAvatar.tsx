@@ -4,18 +4,29 @@ import Avatar from "@material-ui/core/Avatar";
 import clsx from "clsx";
 
 const useStyles = makeStyles((theme: any) => ({
+  container: (props: any) => ({
+    position: "relative",
+    // backgroundColor: theme.fusebit.colors.dark,
+    width: 46,
+    height: 46,
+    marginLeft: 12,
+    marginRight: 12
+  }),
   avatar: (props: any) => ({
+    position: "relative",
     backgroundColor: theme.fusebit.colors.dark,
-    width: props.size,
-    height: props.size
+    top: 4,
+    left: 4,
+    width: 38,
+    height: 38
   }),
   circle: (props: any) => ({
-    backgroundColor: "transparent",
+    // backgroundColor: "blue",
     position: "absolute",
     top: 4,
     left: 4,
-    width: props.size - 8,
-    height: props.size - 8,
+    width: 38,
+    height: 38,
     borderRadius: "50%"
   }),
   innerCircle: {
@@ -57,7 +68,23 @@ function SelectableAvatar({
   children,
   ...rest
 }: any) {
-  const classes = useStyles({ size: size || 50, selected });
+  const classes = useStyles({ selected });
+
+  return (
+    <div className={classes.container}>
+      <Avatar
+        className={clsx(classes.avatar, className)}
+        {...rest}
+        style={{ margin: 0 }}
+      >
+        {children}
+      </Avatar>
+      <div className={classes.circle}>
+        <div className={classes.innerCircle}></div>
+        {selected && <div className={classes.arc}> </div>}
+      </div>
+    </div>
+  );
 
   return (
     <Avatar className={clsx(classes.avatar, className)} {...rest}>
