@@ -21,17 +21,13 @@ const structure = [
   {
     paramName: "subscriptionId",
     formatLink: (params: any) =>
-      `/account/${params.accountId}/subscription/${
-        params.subscriptionId
-      }/boundary`,
+      `/account/${params.accountId}/subscription/${params.subscriptionId}/boundary`,
     text: (params: any, profile: any) => params.subscriptionId
   },
   {
     paramName: "boundaryId",
     formatLink: (params: any) =>
-      `/account/${params.accountId}/subscription/${
-        params.subscriptionId
-      }/boundary/${params.boundaryId}/function`,
+      `/account/${params.accountId}/subscription/${params.subscriptionId}/boundary/${params.boundaryId}/function`,
     text: (params: any, profile: any) => params.boundaryId
   },
   {
@@ -53,7 +49,9 @@ function ProfileBreadcrumb({ children, settings }: any) {
     if (!structure[index + 1] || !params[structure[index + 1].paramName]) {
       // Last segment - no link
       return (
-        <Typography key={index}>{segment.text(params, profile)}</Typography>
+        <Typography variant="h5" key={index}>
+          {segment.text(params, profile)}
+        </Typography>
       );
     } else {
       // Prior to last segment - with link
@@ -63,7 +61,7 @@ function ProfileBreadcrumb({ children, settings }: any) {
           component={RouterLink}
           to={segment.formatLink(params)}
         >
-          <Typography>{segment.text(params, profile)}</Typography>
+          <Typography variant="h5">{segment.text(params, profile)}</Typography>
         </Link>
       );
     }

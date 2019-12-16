@@ -16,14 +16,12 @@ import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
 
 const useStyles = makeStyles(theme => ({
-  gridContainer: {
-    marginTop: 12,
-    paddingLeft: theme.spacing(2),
-    paddingRight: theme.spacing(2)
+  paper: {
+    paddingTop: 14,
+    paddingLeft: theme.spacing(2)
   },
-  gridLine: {
-    marginTop: theme.spacing(1),
-    marginBottom: theme.spacing(1)
+  details: {
+    marginTop: theme.spacing(2)
   }
 }));
 
@@ -66,27 +64,24 @@ function ProfileExplorer({ ...rest }) {
     const selectedTab = path.split("/").pop();
     return (
       <ProfileSelectorWithDetails settings={settings}>
-        <Grid container className={classes.gridContainer}>
-          <Grid item xs={12} className={classes.gridLine}>
-            <ProfileBreadcrumb />
-          </Grid>
-          <Grid item xs={12} className={classes.gridLine}>
-            <Paper square={true}>
-              <Paper elevation={4} square={true}>
-                <Tabs
-                  value={selectedTab}
-                  indicatorColor="primary"
-                  textColor="primary"
-                  onChange={(event, newTab) => history.push(newTab)}
-                >
-                  {tabs.map((tab: any) => (
-                    <Tab key={tab.name} label={tab.name} value={tab.name} />
-                  ))}
-                </Tabs>
-              </Paper>
-              <br />
-              {children}
+        <Grid container>
+          <Grid item xs={12}>
+            <Paper elevation={1} square={true} className={classes.paper}>
+              <ProfileBreadcrumb />
+              <Tabs
+                value={selectedTab}
+                indicatorColor="primary"
+                textColor="primary"
+                onChange={(event, newTab) => history.push(newTab)}
+              >
+                {tabs.map((tab: any) => (
+                  <Tab key={tab.name} label={tab.name} value={tab.name} />
+                ))}
+              </Tabs>
             </Paper>
+          </Grid>
+          <Grid item xs={12} className={classes.details}>
+            {children}
           </Grid>
         </Grid>
       </ProfileSelectorWithDetails>

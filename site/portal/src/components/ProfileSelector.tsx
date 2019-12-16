@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { makeStyles, useTheme } from "@material-ui/core/styles";
 import Drawer from "@material-ui/core/Drawer";
 import IconButton from "@material-ui/core/IconButton";
@@ -7,39 +7,12 @@ import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemText from "@material-ui/core/ListItemText";
 import MenuIcon from "@material-ui/icons/Menu";
-import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
 import { FusebitMark } from "@5qtrs/fusebit-mark";
 import SelectableAvatar from "./SelectableAvatar";
-import clsx from "clsx";
 
 const useStyles = makeStyles((theme: any) => ({
   drawer: {
-    width: theme.fusebit.profileSelector.width,
-    flexShrink: 0,
     whiteSpace: "nowrap"
-  },
-  drawerOpen: {
-    width: theme.fusebit.profileSelector.width,
-    transition: theme.transitions.create("width", {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.enteringScreen
-    })
-  },
-  drawerClose: {
-    transition: theme.transitions.create("width", {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen
-    }),
-    overflowX: "hidden",
-    width: 66
-  },
-  expanded: {
-    display: "flex",
-    justifyContent: "flex-end"
-  },
-  collapsed: {
-    display: "flex",
-    justifyContent: "center"
   },
   details: {
     marginRight: 16,
@@ -58,33 +31,19 @@ const useStyles = makeStyles((theme: any) => ({
   }
 }));
 
-function ProfileSelector({
-  open,
-  onSetDrawerOpen,
-  onSelectProfile,
-  settings
-}: any) {
+function ProfileSelector({ onSelectProfile, settings }: any) {
   const classes = useStyles();
+  const [open, setOpen] = useState(false);
   const theme = useTheme() as any;
 
-  const handleDrawerToggle = () => {
-    onSetDrawerOpen && onSetDrawerOpen(!open);
-  };
+  const handleDrawerToggle = () => setOpen(!open);
 
   const handleSelectProfile = (id: string) => {
     onSelectProfile && id !== settings.currentProfile && onSelectProfile(id);
   };
 
-  return (
-    <Drawer
-      variant="permanent"
-      open={open}
-      className={clsx(classes.drawer, {
-        [classes.drawerOpen]: open,
-        [classes.drawerClose]: !open
-      })}
-      classes={{ paper: classes.paper }}
-    >
+  function renderProfileList(details: boolean) {
+    return (
       <List disablePadding={true}>
         {settings.profiles.map((profile: any, index: number) => (
           <ListItem
@@ -111,10 +70,15 @@ function ProfileSelector({
                 />
               )}
               {profile.icon && (
-                <img src={profile.icon} width="38" height="38" />
+                <img
+                  src={profile.icon}
+                  width="38"
+                  height="38"
+                  alt="Profile icon"
+                />
               )}
             </SelectableAvatar>
-            {open && (
+            {details && (
               <ListItemText
                 disableTypography
                 className={classes.details}
@@ -165,12 +129,33 @@ function ProfileSelector({
           </ListItem>
         ))}
       </List>
-      <div className={open ? classes.expanded : classes.collapsed}>
+    );
+  }
+
+  return (
+    <React.Fragment>
+      <Drawer
+        variant="permanent"
+        onClose={handleDrawerToggle}
+        open={true}
+        className={classes.drawer}
+        classes={{ paper: classes.paper }}
+      >
+        {renderProfileList(false)}
         <IconButton onClick={handleDrawerToggle} className={classes.typography}>
-          {open ? <ChevronLeftIcon /> : <MenuIcon />}
+          <MenuIcon />
         </IconButton>
-      </div>
-    </Drawer>
+      </Drawer>
+      <Drawer
+        variant="temporary"
+        onClose={handleDrawerToggle}
+        open={open}
+        className={classes.drawer}
+        classes={{ paper: classes.paper }}
+      >
+        {renderProfileList(true)}
+      </Drawer>
+    </React.Fragment>
   );
 }
 

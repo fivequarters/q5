@@ -85,15 +85,6 @@ function SelectableAvatar({
       </div>
     </div>
   );
-
-  return (
-    <Avatar className={clsx(classes.avatar, className)} {...rest}>
-      <div className={classes.circle}>
-        <div className={classes.innerCircle}>{children}</div>
-        {selected && <div className={classes.arc}> </div>}
-      </div>
-    </Avatar>
-  );
 }
 
 export default SelectableAvatar;
