@@ -4,6 +4,9 @@ import { FusebitColor } from "@5qtrs/fusebit-color";
 const FusebitTheme = {
   ...createMuiTheme({
     // Overrides of default MUI theme:
+    typography: {
+      fontFamily: '"Nunito Sans", sans-serif'
+    },
     palette: {
       primary: {
         main: FusebitColor.red
@@ -13,9 +16,17 @@ const FusebitTheme = {
       }
     },
     overrides: {
+      MuiTab: {
+        wrapper: {
+          fontFamily: '"Poppins", sans-serif'
+        }
+      },
       MuiButton: {
         root: {
           borderRadius: "100px"
+        },
+        label: {
+          fontFamily: '"Poppins", sans-serif'
         }
       }
     }
