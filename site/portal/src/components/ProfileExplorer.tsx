@@ -7,10 +7,16 @@ import ProfileSelectorWithDetails from "./ProfileSelectorWithDetails";
 import ProfileBreadcrumb from "./ProfileBreadcrumb";
 import Grid from "@material-ui/core/Grid";
 import { FusebitError } from "./ErrorBoundary";
+
 import AccountOverview from "./AccountOverview";
 import AccountSubscriptions from "./AccountSubscriptions";
 import AccountUsers from "./AccountUsers";
 import AccountClients from "./AccountClients";
+import SubscriptionOverview from "./SubscriptionOverview";
+import SubscriptionBoundaries from "./SubscriptionBoundaries";
+import BoundaryOverview from "./BoundaryOverview";
+import BoundaryFunctions from "./BoundaryFunctions";
+
 import Paper from "@material-ui/core/Paper";
 import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
@@ -44,6 +50,40 @@ const ExplorerTabs = {
     },
     {
       name: "issuers"
+    },
+    {
+      name: "settings"
+    }
+  ],
+  subscription: [
+    {
+      name: "overview"
+    },
+    {
+      name: "boundaries"
+    },
+    {
+      name: "activity"
+    },
+    {
+      name: "access"
+    },
+    {
+      name: "settings"
+    }
+  ],
+  boundary: [
+    {
+      name: "overview"
+    },
+    {
+      name: "functions"
+    },
+    {
+      name: "activity"
+    },
+    {
+      name: "access"
     },
     {
       name: "settings"
@@ -160,6 +200,58 @@ function ProfileExplorer({ ...rest }) {
         render={({ ...rest }) => (
           <ExplorerView tabs={ExplorerTabs.account} {...rest}>
             <AccountClients data={data} onNewData={handleOnNewData} {...rest} />
+          </ExplorerView>
+        )}
+      />
+      <Route
+        path="/accounts/:accountId/subscriptions/:subscriptionId/overview"
+        exact={true}
+        render={({ ...rest }) => (
+          <ExplorerView tabs={ExplorerTabs.subscription} {...rest}>
+            <SubscriptionOverview
+              data={data}
+              onNewData={handleOnNewData}
+              {...rest}
+            />
+          </ExplorerView>
+        )}
+      />
+      <Route
+        path="/accounts/:accountId/subscriptions/:subscriptionId/boundaries"
+        exact={true}
+        render={({ ...rest }) => (
+          <ExplorerView tabs={ExplorerTabs.subscription} {...rest}>
+            <SubscriptionBoundaries
+              data={data}
+              onNewData={handleOnNewData}
+              {...rest}
+            />
+          </ExplorerView>
+        )}
+      />
+      <Route
+        path="/accounts/:accountId/subscriptions/:subscriptionId/boundaries/:boundaryId/overview"
+        exact={true}
+        render={({ ...rest }) => (
+          <ExplorerView tabs={ExplorerTabs.boundary} {...rest}>
+            <BoundaryOverview
+              data={data}
+              onNewData={handleOnNewData}
+              {...rest}
+            />
+          </ExplorerView>
+        )}
+      />
+      <Route
+        path="/accounts/:accountId/subscriptions/:subscriptionId/boundaries/:boundaryId/functions"
+        exact={true}
+        render={({ ...rest }) => (
+          <ExplorerView tabs={ExplorerTabs.boundary} {...rest}>
+            <BoundaryFunctions
+              data={data}
+              onNewData={handleOnNewData}
+              {...rest}
+            />
           </ExplorerView>
         )}
       />

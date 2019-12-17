@@ -15,19 +15,19 @@ import Typography from "@material-ui/core/Typography";
 const structure = [
   {
     paramName: "accountId",
-    formatLink: (params: any) => `/account/${params.accountId}/subscription`,
+    formatLink: (params: any) => `/accounts/${params.accountId}/overview`,
     text: (params: any, profile: any) => profile.displayName
   },
   {
     paramName: "subscriptionId",
     formatLink: (params: any) =>
-      `/account/${params.accountId}/subscription/${params.subscriptionId}/boundary`,
+      `/accounts/${params.accountId}/subscriptions/${params.subscriptionId}/overview`,
     text: (params: any, profile: any) => params.subscriptionId
   },
   {
     paramName: "boundaryId",
     formatLink: (params: any) =>
-      `/account/${params.accountId}/subscription/${params.subscriptionId}/boundary/${params.boundaryId}/function`,
+      `/accounts/${params.accountId}/subscriptions/${params.subscriptionId}/boundaries/${params.boundaryId}/overview`,
     text: (params: any, profile: any) => params.boundaryId
   },
   {
