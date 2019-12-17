@@ -40,7 +40,7 @@ export class OpsNetworkData extends DataSource implements IOpsNetworkData {
       if (existing.region !== network.region) {
         throw OpsDataException.networkDifferentRegion(network.networkName, existing.region);
       }
-      await this.attachNetworkDetails(network);
+      await this.attachNetworkDetails(network, false);
       return true;
     } catch (error) {
       if (error.code === OpsDataExceptionCode.noNetwork) {
@@ -52,17 +52,17 @@ export class OpsNetworkData extends DataSource implements IOpsNetworkData {
 
   public async add(network: IOpsNewNetwork): Promise<IOpsNetwork> {
     await this.tables.networkTable.add(network);
-    return this.attachNetworkDetails(network);
+    return this.attachNetworkDetails(network, true);
   }
 
   public async get(networkName: string, region: string): Promise<IOpsNetwork> {
     const network = await this.tables.networkTable.get(networkName, region);
-    return this.attachNetworkDetails(network);
+    return this.attachNetworkDetails(network, false);
   }
 
   public async list(options?: IListOpsNetworkOptions): Promise<IListOpsNetworkResult> {
     const result = await this.tables.networkTable.list(options);
-    const items = await Promise.all(result.items.map(network => this.attachNetworkDetails(network)));
+    const items = await Promise.all(result.items.map(network => this.attachNetworkDetails(network, false)));
     return {
       next: result.next,
       items,
@@ -71,12 +71,18 @@ export class OpsNetworkData extends DataSource implements IOpsNetworkData {
 
   public async listAll(networkName?: string): Promise<IOpsNetwork[]> {
     const networks = await this.tables.networkTable.listAll(networkName);
-    return Promise.all(networks.map(network => this.attachNetworkDetails(network)));
+    return Promise.all(networks.map(network => this.attachNetworkDetails(network, false)));
   }
 
-  private async attachNetworkDetails(network: IOpsNewNetwork): Promise<IOpsNetwork> {
+  private async attachNetworkDetails(network: IOpsNewNetwork, createIfNotExists: boolean): Promise<IOpsNetwork> {
     const awsNetwork = await this.provider.getAwsNetworkFromAccount(network.accountName, network.region);
-    const networkDetails = await awsNetwork.ensureNetwork(network.networkName);
+    const networkDetails = await awsNetwork.ensureNetwork(
+      network.networkName,
+      createIfNotExists,
+      network.existingVpcId,
+      network.existingPublicSubnetIds,
+      network.existingPrivateSubnetIds
+    );
     return {
       networkName: network.networkName,
       accountName: network.accountName,
@@ -84,11 +90,7 @@ export class OpsNetworkData extends DataSource implements IOpsNetworkData {
       vpcId: networkDetails.vpcId,
       securityGroupId: networkDetails.securityGroupId,
       lambdaSecurityGroupId: networkDetails.lambdaSecurityGroupId,
-      internetGatewayId: networkDetails.internetGatewayId,
-      natGatewayId: networkDetails.natGatewayId,
-      publicRouteTableId: networkDetails.publicRouteTableId,
       publicSubnets: networkDetails.publicSubnets,
-      privateRouteTableId: networkDetails.privateRouteTableId,
       privateSubnets: networkDetails.privateSubnets,
     };
   }
