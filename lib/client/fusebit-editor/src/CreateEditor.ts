@@ -199,9 +199,9 @@ export function createEditor(
 
     editorContext.on(Events.Events.LogsStateChanged, (e: Events.LogsStateChangedEvent) => {
       if (e.newState) {
-        logsElement.style.display = null;
+        delete logsElement.style.display;
         if (logsSplitterElement) {
-          logsSplitterElement.style.display = null;
+          delete logsSplitterElement.style.display;
         }
       } else {
         logsElement.style.display = 'none';
@@ -213,9 +213,9 @@ export function createEditor(
 
     editorContext.on(Events.Events.NavStateChanged, (e: Events.NavStateChangedEvent) => {
       if (e.newState) {
-        navElement.style.display = null;
+        delete navElement.style.display;
         if (navSplitterElement) {
-          navSplitterElement.style.display = null;
+          delete navSplitterElement.style.display;
         }
       } else {
         navElement.style.display = 'none';
