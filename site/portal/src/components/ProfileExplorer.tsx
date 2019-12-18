@@ -17,6 +17,7 @@ import SubscriptionBoundaries from "./SubscriptionBoundaries";
 import BoundaryOverview from "./BoundaryOverview";
 import BoundaryFunctions from "./BoundaryFunctions";
 import FunctionOverview from "./FunctionOverview";
+import FunctionCode from "./FunctionCode";
 
 import Paper from "@material-ui/core/Paper";
 import Tabs from "@material-ui/core/Tabs";
@@ -27,8 +28,11 @@ const useStyles = makeStyles(theme => ({
     paddingTop: 14,
     paddingLeft: theme.spacing(2)
   },
-  details: {
+  regularMargin: {
     marginTop: theme.spacing(2)
+  },
+  slimMargin: {
+    marginTop: 2
   }
 }));
 
@@ -116,7 +120,7 @@ function ProfileExplorer({ ...rest }) {
   const settings = getLocalSettings() as IFusebitSettings;
   const [data, setData] = React.useState({});
 
-  function ExplorerView({ children, tabs, match }: any) {
+  function ExplorerView({ children, tabs, match, detailsFullView }: any) {
     const { path } = match;
     // Last segment of the URL indicates the selected tab
     const selectedTab = path.split("/").pop();
@@ -138,7 +142,13 @@ function ProfileExplorer({ ...rest }) {
               </Tabs>
             </Paper>
           </Grid>
-          <Grid item xs={12} className={classes.details}>
+          <Grid
+            item
+            xs={12}
+            className={
+              detailsFullView ? classes.slimMargin : classes.regularMargin
+            }
+          >
             {children}
           </Grid>
         </Grid>
@@ -283,6 +293,19 @@ function ProfileExplorer({ ...rest }) {
               onNewData={handleOnNewData}
               {...rest}
             />
+          </ExplorerView>
+        )}
+      />
+      <Route
+        path="/accounts/:accountId/subscriptions/:subscriptionId/boundaries/:boundaryId/functions/:functionId/code"
+        exact={true}
+        render={({ ...rest }) => (
+          <ExplorerView
+            tabs={ExplorerTabs.oneFunction}
+            detailsFullView={true}
+            {...rest}
+          >
+            <FunctionCode data={data} onNewData={handleOnNewData} {...rest} />
           </ExplorerView>
         )}
       />
