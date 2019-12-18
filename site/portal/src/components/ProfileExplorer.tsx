@@ -99,9 +99,6 @@ const ExplorerTabs = {
       name: "overview"
     },
     {
-      name: "code"
-    },
-    {
       name: "activity"
     },
     {
@@ -300,13 +297,7 @@ function ProfileExplorer({ ...rest }) {
         path="/accounts/:accountId/subscriptions/:subscriptionId/boundaries/:boundaryId/functions/:functionId/code"
         exact={true}
         render={({ ...rest }) => (
-          <ExplorerView
-            tabs={ExplorerTabs.oneFunction}
-            detailsFullView={true}
-            {...rest}
-          >
-            <FunctionCode data={data} onNewData={handleOnNewData} {...rest} />
-          </ExplorerView>
+          <FunctionCode data={data} onNewData={handleOnNewData} {...rest} />
         )}
       />
       <Redirect from="/" exact={true} to={getDefaultUrl()} />
