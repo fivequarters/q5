@@ -16,6 +16,7 @@ import SubscriptionOverview from "./SubscriptionOverview";
 import SubscriptionBoundaries from "./SubscriptionBoundaries";
 import BoundaryOverview from "./BoundaryOverview";
 import BoundaryFunctions from "./BoundaryFunctions";
+import FunctionOverview from "./FunctionOverview";
 
 import Paper from "@material-ui/core/Paper";
 import Tabs from "@material-ui/core/Tabs";
@@ -78,6 +79,23 @@ const ExplorerTabs = {
     },
     {
       name: "functions"
+    },
+    {
+      name: "activity"
+    },
+    {
+      name: "access"
+    },
+    {
+      name: "settings"
+    }
+  ],
+  oneFunction: [
+    {
+      name: "overview"
+    },
+    {
+      name: "code"
     },
     {
       name: "activity"
@@ -248,6 +266,19 @@ function ProfileExplorer({ ...rest }) {
         render={({ ...rest }) => (
           <ExplorerView tabs={ExplorerTabs.boundary} {...rest}>
             <BoundaryFunctions
+              data={data}
+              onNewData={handleOnNewData}
+              {...rest}
+            />
+          </ExplorerView>
+        )}
+      />
+      <Route
+        path="/accounts/:accountId/subscriptions/:subscriptionId/boundaries/:boundaryId/functions/:functionId/overview"
+        exact={true}
+        render={({ ...rest }) => (
+          <ExplorerView tabs={ExplorerTabs.oneFunction} {...rest}>
+            <FunctionOverview
               data={data}
               onNewData={handleOnNewData}
               {...rest}

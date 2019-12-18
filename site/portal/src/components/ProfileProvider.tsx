@@ -1,5 +1,4 @@
 import React, { useEffect } from "react";
-import { useParams } from "react-router-dom";
 import {
   getLocalSettings,
   setLocalSettings,
@@ -21,23 +20,44 @@ type ProfileProps = {
 const ProfileContext = React.createContext<Partial<ProfileProps>>({});
 
 function ProfileProvider(props: any) {
-  const params: any = useParams();
   let settings = getLocalSettings();
+  let [empty, seg1, seg2] = window.location.pathname.split("/");
+  const accountId = (empty === "" && seg1 === "accounts" && seg2) || undefined;
 
-  // Determine selected profile
+  // Determine selected profile based on accountId from URL path or selected profile from local settings
 
   let selectedProfile: IFusebitProfile | undefined;
   if (settings) {
     const currentProfile = settings.currentProfile;
-    selectedProfile = settings.profiles.reduce(
-      (selected: IFusebitProfile | undefined, current: IFusebitProfile) =>
-        selected ||
-        (current.account === params.accountId || current.id === currentProfile
-          ? current
-          : undefined),
-      undefined
-    );
-    if (!selectedProfile) {
+    if (accountId) {
+      selectedProfile = settings.profiles.reduce(
+        (selected: IFusebitProfile | undefined, current: IFusebitProfile) => {
+          if (current.account === accountId && current.id === currentProfile) {
+            // Profile that matches both accountId and locally selected profile id wins
+            return current;
+          } else if (!selected && current.account === accountId) {
+            // Othweise, profile that matches just accountId wins
+            return current;
+          } else {
+            return selected;
+          }
+        },
+        undefined
+      );
+    } else {
+      selectedProfile = settings.profiles.reduce(
+        (selected: IFusebitProfile | undefined, current: IFusebitProfile) => {
+          if (current.id === currentProfile) {
+            return current;
+          } else {
+            return selected;
+          }
+        },
+        undefined
+      );
+    }
+    if (!selectedProfile && !accountId) {
+      // If we don't care about accountId and are still undecided about profile, pick the first one
       selectedProfile = settings.profiles[0];
     }
     if (selectedProfile && selectedProfile.id !== settings.currentProfile) {
