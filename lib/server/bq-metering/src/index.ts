@@ -101,9 +101,9 @@ function flushApiMetering() {
   if (apiCallBuffer.length === 0) return;
   let tmp = apiCallBuffer;
   apiCallBuffer = [];
+  //@ts-ignore
   bq.dataset('dwh')
     .table('api_call')
-    //@ts-ignore
     .insert(tmp, { raw: true })
     .then(async () => {
       console.log(`SUCCESS inserting ${tmp.length} records to dwh.api_call table in Big Query`);
@@ -138,9 +138,9 @@ function generateExecutionCounters() {
       });
     }
     executionBuffer = undefined;
+    //@ts-ignore
     bq.dataset('dwh')
       .table('execution')
-      //@ts-ignore
       .insert(bqInsertPayload, { raw: true })
       .then(async () => {
         console.log(`SUCCESS inserting ${bqInsertPayload.length} records to dwh.execution table in Big Query`);

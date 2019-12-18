@@ -139,7 +139,7 @@ function ModalCard({
       setResolvedEmail(event.email || '');
       setResolvedPage(FusebitModalPage.ContactUsAboutYou);
       setHeight(getHeightFromPage(FusebitModalPage.ContactUsAboutYou, isMobile));
-    } else if (onClose) {
+    } else {
       setResolvedEvent(event);
       setClosing(true);
     }
