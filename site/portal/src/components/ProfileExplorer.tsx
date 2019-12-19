@@ -12,6 +12,7 @@ import AccountOverview from "./AccountOverview";
 import AccountSubscriptions from "./AccountSubscriptions";
 import AccountUsers from "./AccountUsers";
 import AccountClients from "./AccountClients";
+import AccountIssuers from "./AccountIssuers";
 import SubscriptionOverview from "./SubscriptionOverview";
 import SubscriptionBoundaries from "./SubscriptionBoundaries";
 import BoundaryOverview from "./BoundaryOverview";
@@ -155,9 +156,9 @@ function ProfileExplorer({ ...rest }) {
 
   function getDefaultUrl() {
     return `/accounts/${profile.account}/overview`;
-    // return profile.subscription
-    //   ? `/accounts/${profile.account}/subscriptions/${profile.subscription}/overview`
-    //   : `/accounts/${profile.account}/overview`;
+    return profile.subscription
+      ? `/accounts/${profile.account}/subscriptions/${profile.subscription}/overview`
+      : `/accounts/${profile.account}/overview`;
   }
 
   function NotFound() {
@@ -225,6 +226,15 @@ function ProfileExplorer({ ...rest }) {
         render={({ ...rest }) => (
           <ExplorerView tabs={ExplorerTabs.account} {...rest}>
             <AccountClients data={data} onNewData={handleOnNewData} {...rest} />
+          </ExplorerView>
+        )}
+      />
+      <Route
+        path="/accounts/:accountId/issuers"
+        exact={true}
+        render={({ ...rest }) => (
+          <ExplorerView tabs={ExplorerTabs.account} {...rest}>
+            <AccountIssuers data={data} onNewData={handleOnNewData} {...rest} />
           </ExplorerView>
         )}
       />
