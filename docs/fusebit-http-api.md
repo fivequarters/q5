@@ -16,6 +16,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.13.3
+
+_Released 12/20/19_
+
+- **Bug fix.** Modify CORS policy for management APIs to allow PATCH requests.
+
 ## Version 1.13.2
 
 _Released 10/21/19_

@@ -19,6 +19,7 @@ import BoundaryOverview from "./BoundaryOverview";
 import BoundaryFunctions from "./BoundaryFunctions";
 import FunctionOverview from "./FunctionOverview";
 import FunctionCode from "./FunctionCode";
+import IssuerOverview from "./IssuerOverview";
 
 import Paper from "@material-ui/core/Paper";
 import Tabs from "@material-ui/core/Tabs";
@@ -107,6 +108,14 @@ const ExplorerTabs = {
     },
     {
       name: "settings"
+    }
+  ],
+  issuer: [
+    {
+      name: "overview"
+    },
+    {
+      name: "activity"
     }
   ]
 };
@@ -235,6 +244,15 @@ function ProfileExplorer({ ...rest }) {
         render={({ ...rest }) => (
           <ExplorerView tabs={ExplorerTabs.account} {...rest}>
             <AccountIssuers data={data} onNewData={handleOnNewData} {...rest} />
+          </ExplorerView>
+        )}
+      />
+      <Route
+        path="/accounts/:accountId/issuers/:issuerId/overview"
+        exact={true}
+        render={({ ...rest }) => (
+          <ExplorerView tabs={ExplorerTabs.issuer} {...rest}>
+            <IssuerOverview data={data} onNewData={handleOnNewData} {...rest} />
           </ExplorerView>
         )}
       />
