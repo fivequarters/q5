@@ -20,6 +20,7 @@ import BoundaryFunctions from "./BoundaryFunctions";
 import FunctionOverview from "./FunctionOverview";
 import FunctionCode from "./FunctionCode";
 import IssuerOverview from "./IssuerOverview";
+import UserOverview from "./UserOverview";
 
 import Paper from "@material-ui/core/Paper";
 import Tabs from "@material-ui/core/Tabs";
@@ -117,6 +118,20 @@ const ExplorerTabs = {
     {
       name: "activity"
     }
+  ],
+  user: [
+    {
+      name: "overview"
+    },
+    {
+      name: "access"
+    },
+    {
+      name: "identities"
+    },
+    {
+      name: "activity"
+    }
   ]
 };
 
@@ -164,7 +179,7 @@ function ProfileExplorer({ ...rest }) {
   }
 
   function getDefaultUrl() {
-    return `/accounts/${profile.account}/overview`;
+    // return `/accounts/${profile.account}/overview`;
     return profile.subscription
       ? `/accounts/${profile.account}/subscriptions/${profile.subscription}/overview`
       : `/accounts/${profile.account}/overview`;
@@ -226,6 +241,15 @@ function ProfileExplorer({ ...rest }) {
         render={({ ...rest }) => (
           <ExplorerView tabs={ExplorerTabs.account} {...rest}>
             <AccountUsers data={data} onNewData={handleOnNewData} {...rest} />
+          </ExplorerView>
+        )}
+      />
+      <Route
+        path="/accounts/:accountId/users/:userId/overview"
+        exact={true}
+        render={({ ...rest }) => (
+          <ExplorerView tabs={ExplorerTabs.user} {...rest}>
+            <UserOverview data={data} onNewData={handleOnNewData} {...rest} />
           </ExplorerView>
         )}
       />

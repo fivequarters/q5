@@ -44,6 +44,13 @@ const tree = {
         `/accounts/${params.accountId}/issuers/${params.issuerId}/overview`,
       text: (params: any, profile: any) => params.issuerId,
       children: []
+    },
+    {
+      paramName: "userId",
+      formatLink: (params: any) =>
+        `/accounts/${params.accountId}/users/${params.userId}/overview`,
+      text: (params: any, profile: any) => params.userId,
+      children: []
     }
   ]
 };

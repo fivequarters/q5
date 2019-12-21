@@ -13,7 +13,6 @@ import FingerprintIcon from "@material-ui/icons/Fingerprint";
 import LabelIcon from "@material-ui/icons/Label";
 import VpnKeyIcon from "@material-ui/icons/VpnKey";
 import React from "react";
-import { Prompt } from "react-router-dom";
 import { getIssuer, updateIssuer } from "../lib/Fusebit";
 import AddPublicKeyDialog from "./AddPublicKeyDialog";
 import ConfirmNavigation from "./ConfirmNavigation";
@@ -22,29 +21,13 @@ import InfoCard from "./InfoCard";
 import PortalError from "./PortalError";
 import { useProfile } from "./ProfileProvider";
 import SaveFab from "./SaveFab";
+import InputWithIcon from "./InputWithIcon";
 
 const useStyles = makeStyles((theme: any) => ({
   gridContainer: {
     paddingLeft: theme.spacing(3),
     paddingRight: theme.spacing(3),
     marginBottom: theme.spacing(2)
-  },
-  inputWithIcon: {
-    marginTop: theme.spacing(2),
-    marginBottom: theme.spacing(2),
-    display: "inline-flex",
-    // alignItems: "center",
-    width: "100%"
-  },
-  inputWithIconIcon: {
-    paddingTop: theme.spacing(2),
-    minWidth: 24
-    // paddingLeft: theme.spacing(1),
-    // width: "100%"
-  },
-  inputWithIconContent: {
-    paddingLeft: theme.spacing(1),
-    width: "100%"
   },
   keyContainer: {
     paddingLeft: theme.spacing(1) + 24,
@@ -94,16 +77,6 @@ const useStyles = makeStyles((theme: any) => ({
     overflow: "hidden"
   }
 }));
-
-function InputWithIcon({ children, icon }: any) {
-  const classes = useStyles();
-  return (
-    <div className={classes.inputWithIcon}>
-      <div className={classes.inputWithIconIcon}>{icon}</div>
-      <div className={classes.inputWithIconContent}>{children}</div>
-    </div>
-  );
-}
 
 function IssuerOverview({ data, match }: any) {
   const classes = useStyles();
@@ -412,10 +385,6 @@ function IssuerOverview({ data, match }: any) {
           or retrieved automatically from a JWKS endpoint.
         </InfoCard>
       </Grid>
-      <Prompt
-        when={isDirty()}
-        message="Navigate away? You will loose unsaved changes."
-      />
       {isDirty() && <ConfirmNavigation />}
       {isDirty() && <SaveFab onClick={handleSave} disabled={isError()} />}
     </Grid>
