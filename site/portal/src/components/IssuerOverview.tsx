@@ -22,6 +22,7 @@ import PortalError from "./PortalError";
 import { useProfile } from "./ProfileProvider";
 import SaveFab from "./SaveFab";
 import InputWithIcon from "./InputWithIcon";
+import EntityCard from "./EntityCard";
 
 const useStyles = makeStyles((theme: any) => ({
   gridContainer: {
@@ -36,42 +37,9 @@ const useStyles = makeStyles((theme: any) => ({
     flexDirection: "column",
     minWidth: 480
   },
-  keyItem: {
-    minWidth: 400,
-    width: "100%",
-    marginTop: theme.spacing(2),
-    marginBottom: theme.spacing(2),
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "stretch",
-    minHeight: 114,
-    height: 114
-  },
   keyAction: {
     marginTop: theme.spacing(2),
     marginBottom: theme.spacing(2)
-  },
-  keyItemIcon: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    width: 114,
-    minWidth: 114,
-    backgroundColor: lighten(theme.palette.secondary.light, 0.75),
-    fontSize: 70
-  },
-  keyItemContent: {
-    width: "100%",
-    paddingLeft: theme.spacing(4),
-    display: "flex",
-    alignItems: "center"
-  },
-  keyItemAction: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    width: 114,
-    minWidth: 114
   },
   form: {
     overflow: "hidden"
@@ -277,23 +245,17 @@ function IssuerOverview({ data, match }: any) {
           )}
         </div>
         {issuer.modified.publicKeys.map((pki: any) => (
-          <Paper key={pki.keyId} className={classes.keyItem} square={true}>
-            <div className={classes.keyItemIcon}>
-              <VpnKeyIcon fontSize="inherit" color="secondary" />
+          <EntityCard
+            key={pki.keyId}
+            onRemove={() => handleRemovePublicKey(pki)}
+            icon={<VpnKeyIcon fontSize="inherit" color="secondary" />}
+          >
+            <div>
+              <Typography variant="h6">{pki.keyId}</Typography>
+              <Typography variant="body2">First used: N/A</Typography>
+              <Typography variant="body2">Last used: N/A</Typography>
             </div>
-            <div className={classes.keyItemContent}>
-              <div>
-                <Typography variant="h6">{pki.keyId}</Typography>
-                <Typography variant="body2">First used: N/A</Typography>
-                <Typography variant="body2">Last used: N/A</Typography>
-              </div>
-            </div>
-            <div className={classes.keyItemAction}>
-              <Button variant="text" onClick={() => handleRemovePublicKey(pki)}>
-                Remove
-              </Button>
-            </div>
-          </Paper>
+          </EntityCard>
         ))}
         <div className={classes.keyAction}>
           <Button
