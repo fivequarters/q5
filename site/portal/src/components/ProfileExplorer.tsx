@@ -7,6 +7,7 @@ import ProfileSelectorWithDetails from "./ProfileSelectorWithDetails";
 import ProfileBreadcrumb from "./ProfileBreadcrumb";
 import Grid from "@material-ui/core/Grid";
 import { FusebitError } from "./ErrorBoundary";
+import { getUser, normalizeUser, updateUser } from "../lib/Fusebit";
 
 import AccountOverview from "./AccountOverview";
 import AccountSubscriptions from "./AccountSubscriptions";
@@ -21,6 +22,7 @@ import FunctionOverview from "./FunctionOverview";
 import FunctionCode from "./FunctionCode";
 import IssuerOverview from "./IssuerOverview";
 import UserOverview from "./UserOverview";
+import AgentIdentities from "./AgentIdentities";
 
 import Paper from "@material-ui/core/Paper";
 import Tabs from "@material-ui/core/Tabs";
@@ -250,6 +252,23 @@ function ProfileExplorer({ ...rest }) {
         render={({ ...rest }) => (
           <ExplorerView tabs={ExplorerTabs.user} {...rest}>
             <UserOverview data={data} onNewData={handleOnNewData} {...rest} />
+          </ExplorerView>
+        )}
+      />
+      <Route
+        path="/accounts/:accountId/users/:userId/identities"
+        exact={true}
+        render={({ ...rest }) => (
+          <ExplorerView tabs={ExplorerTabs.user} {...rest}>
+            <AgentIdentities
+              data={data}
+              onNewData={handleOnNewData}
+              getAgent={getUser}
+              updateAgent={updateUser}
+              normalizeAgent={normalizeUser}
+              isUser={true}
+              {...rest}
+            />
           </ExplorerView>
         )}
       />
