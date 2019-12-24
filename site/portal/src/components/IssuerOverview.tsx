@@ -50,7 +50,8 @@ function IssuerOverview({ data, match }: any) {
   const classes = useStyles();
   const { profile } = useProfile();
   const { params } = match;
-  const { issuerId } = params;
+  let { issuerId } = params;
+  issuerId = (issuerId && decodeURIComponent(issuerId)) || undefined;
   const [issuer, setIssuer] = React.useState<any>(undefined);
   const [addPublicKeyDialogOpen, setAddPublicKeyDialogOpen] = React.useState(
     false

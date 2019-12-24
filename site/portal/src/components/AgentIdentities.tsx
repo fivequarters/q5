@@ -5,6 +5,7 @@ import { makeStyles } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import AccountBalanceIcon from "@material-ui/icons/AccountBalance";
 import React from "react";
+import { Link as RouterLink } from "react-router-dom";
 import ConfirmNavigation from "./ConfirmNavigation";
 import EntityCard from "./EntityCard";
 import { FusebitError } from "./ErrorBoundary";
@@ -12,6 +13,7 @@ import PortalError from "./PortalError";
 import { useProfile } from "./ProfileProvider";
 import SaveFab from "./SaveFab";
 import AddIdentityDialog from "./AddIdentityDialog";
+import Link from "@material-ui/core/Link";
 
 const useStyles = makeStyles((theme: any) => ({
   gridContainer: {
@@ -182,7 +184,15 @@ function AgentIdentities({
               <div>
                 <Typography variant="h6">{identity.subject}</Typography>
                 <Typography variant="body2">
-                  Issuer: {identity.issuerId}
+                  Issuer:{" "}
+                  <Link
+                    component={RouterLink}
+                    to={`../../issuers/${encodeURIComponent(
+                      identity.issuerId
+                    )}/overview`}
+                  >
+                    {identity.issuerId}
+                  </Link>
                 </Typography>
                 {/* <Typography variant="body2">Last used: N/A</Typography> */}
               </div>
