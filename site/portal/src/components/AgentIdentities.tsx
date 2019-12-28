@@ -207,7 +207,13 @@ function AgentIdentities({
               Add identity
             </Button>
           </div>
-          {dialogOpen && <AddIdentityDialog onClose={handleAddIdentity} />}
+          {dialogOpen && (
+            <AddIdentityDialog
+              onClose={handleAddIdentity}
+              agentId={agentId}
+              isUser={isUser}
+            />
+          )}
         </div>
       </Grid>
       {isDirty() && <ConfirmNavigation />}

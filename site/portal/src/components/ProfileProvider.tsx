@@ -107,7 +107,15 @@ function ProfileProvider(props: any) {
         try {
           me = { accountId: profile.account, ...(await getMe(profile)) };
         } catch (error) {
-          me = { accountId: profile.account, error };
+          me = {
+            accountId: profile.account,
+            error: new FusebitError("Error accessing the Fusebit service", {
+              details: [
+                `Unable to access the Fusebit service to obtain information about your permissions:`,
+                error.message
+              ].join(" ")
+            })
+          };
         }
         if (!cancelled) {
           setProfile({ ...profile, me });
@@ -146,6 +154,9 @@ function ProfileProvider(props: any) {
   }
 
   if (profile) {
+    if (profile.me && profile.me.error) {
+      throw profile.me.error;
+    }
     let logoutProfile = profile;
     const logout = () => {
       delete logoutProfile.auth;
@@ -167,7 +178,6 @@ function ProfileProvider(props: any) {
     return <ProfileContext.Provider value={{ logout, profile }} {...props} />;
   } else {
     throw new Error("User is not logged");
-    // return <ProfileContext.Provider value={{}} {...props} />;
   }
 }
 

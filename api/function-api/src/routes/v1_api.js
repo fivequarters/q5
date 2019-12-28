@@ -286,6 +286,7 @@ router.delete(
   user.userDelete()
 );
 
+router.options('/account/:accountId/user/:userId/init', cors(corsManagementOptions));
 router.post(
   '/account/:accountId/user/:userId/init',
   cors(corsManagementOptions),
@@ -360,6 +361,7 @@ router.delete(
   client.clientDelete()
 );
 
+router.options('/account/:accountId/client/:clientId/init', cors(corsManagementOptions));
 router.post(
   '/account/:accountId/client/:clientId/init',
   cors(corsManagementOptions),
