@@ -82,7 +82,17 @@ function AddCliIdentityFlow({ options, agentId, isUser, flow }: any) {
         cancelled = true;
       };
     }
-  }, [generate, initToken, profile]);
+  }, [
+    generate,
+    initToken,
+    profile,
+    agentId,
+    flow,
+    isUser,
+    options.boundaryId,
+    options.functionId,
+    options.subscriptionId
+  ]);
 
   if (initToken) {
     if (initToken.error) {

@@ -174,7 +174,7 @@ function ProfileProvider(props: any) {
         cancelled = true;
       };
     }
-  }, [profile]);
+  }, [profile, isJoinStepTwo]);
 
   if (!settings) {
     throw new FusebitError("Fusebit Portal is not initialized", {

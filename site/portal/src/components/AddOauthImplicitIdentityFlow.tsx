@@ -57,7 +57,7 @@ function AddOAuthImplicitIdentityFlow({ agentId }: any) {
         cancelled = true;
       };
     }
-  }, [generate, initToken, profile]);
+  }, [generate, initToken, profile, agentId]);
 
   if (initToken) {
     if (initToken.error) {

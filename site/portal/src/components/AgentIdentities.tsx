@@ -86,7 +86,7 @@ function AgentIdentities({
         cancelled = true;
       };
     }
-  }, [agent, profile, agentId]);
+  }, [agent, profile, agentId, getAgent]);
 
   if (!agent) {
     return (

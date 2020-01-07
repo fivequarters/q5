@@ -94,7 +94,7 @@ function AddIdentityDialog({ onClose, agentId, isUser }: any) {
   ) => {
     cliConfiguration.boundaryId = event.target.value;
     const trimmed = cliConfiguration.boundaryId.trim();
-    if (trimmed.length > 0 && !trimmed.match(/^[a-z0-9\-]{1,63}$/)) {
+    if (trimmed.length > 0 && !trimmed.match(/^[a-z0-9-]{1,63}$/)) {
       cliConfiguration.boundaryIdError =
         "Default boundary ID must must have between 1 and 63 lowercase letters, digits, and dashes.";
     } else {
@@ -108,7 +108,7 @@ function AddIdentityDialog({ onClose, agentId, isUser }: any) {
   ) => {
     cliConfiguration.functionId = event.target.value;
     const trimmed = cliConfiguration.functionId.trim();
-    if (trimmed.length > 0 && !trimmed.match(/^[a-z0-9\-]{1,64}$/)) {
+    if (trimmed.length > 0 && !trimmed.match(/^[a-z0-9-]{1,64}$/)) {
       cliConfiguration.functionIdError =
         "Default function ID must must have between 1 and 64 lowercase letters, digits, and dashes.";
     } else {
