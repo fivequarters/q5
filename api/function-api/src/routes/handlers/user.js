@@ -105,13 +105,21 @@ function userDelete() {
 }
 
 function userInit() {
-  return (req, res) => {
+  return (req, res, next) => {
     getAccountContext().then(accountContext => {
       const resolvedAgent = req.resolvedAgent;
       const initEntry = req.body;
-      initEntry.baseUrl = getBaseUrl(req);
-      initEntry.accountId = req.params.accountId;
       initEntry.agentId = req.params.userId;
+      if (initEntry.protocol === 'pki' || initEntry.protocol === 'oauth') {
+        // current format
+        initEntry.profile = initEntry.profile || {};
+        initEntry.profile.baseUrl = getBaseUrl(req);
+        initEntry.profile.account = req.params.accountId;
+      } else {
+        // legacy PKI format
+        initEntry.baseUrl = getBaseUrl(req);
+        initEntry.accountId = req.params.accountId;
+      }
 
       accountContext.user
         .init(resolvedAgent, initEntry)

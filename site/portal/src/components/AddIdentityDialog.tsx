@@ -12,12 +12,13 @@ import Stepper from "@material-ui/core/Stepper";
 import { makeStyles } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import React from "react";
-import AddPkiIdentityFlow from "./AddPkiIdentityFlow";
+import AddCliIdentityFlow from "./AddCliIdentityFlow";
+import AddOauthImplicitIdentityFlow from "./AddOauthImplicitIdentityFlow";
 import { useProfile } from "./ProfileProvider";
 
 const useStyles = makeStyles((theme: any) => ({
   dialogPaper: {
-    minHeight: 468
+    minHeight: 480
   }
 }));
 
@@ -33,6 +34,11 @@ function AddIdentityDialog({ onClose, agentId, isUser }: any) {
     boundaryId: "",
     functonId: ""
   };
+  const oauthDeviceFlowEnabled = !!(
+    profile.oauth.deviceAuthorizationUrl &&
+    profile.oauth.deviceClientId &&
+    profile.oauth.tokenUrl
+  );
   const [cliConfiguration, setCliConfiguration] = React.useState<any>({
     ...initialCliConfiguration
   });
@@ -187,14 +193,18 @@ function AddIdentityDialog({ onClose, agentId, isUser }: any) {
           variant="filled"
           autoFocus
         >
-          <MenuItem value="oauth-implicit">
-            Enable access to the portal using the OAuth implicit flow
-          </MenuItem>
+          {isUser && (
+            <MenuItem value="oauth-implicit">
+              Enable access to the portal using the OAuth implicit flow
+            </MenuItem>
+          )}
+          {isUser && oauthDeviceFlowEnabled && (
+            <MenuItem value="oauth-device">
+              Enable access to the CLI using the OAuth device flow
+            </MenuItem>
+          )}
           <MenuItem value="pki">
             Enable access to the CLI using a public/private key pair
-          </MenuItem>
-          <MenuItem value="oauth-device">
-            Enable access to the CLI using the OAuth device flow
           </MenuItem>
           <MenuItem value="manual">
             Manually specify issuer ID and subject (advanced)
@@ -315,16 +325,23 @@ function AddIdentityDialog({ onClose, agentId, isUser }: any) {
       {activeStep === 1 && cliProfileDefaults()}
       {activeStep === 2 && flow === "manual" && manualFlow()}
       {activeStep === 2 && flow === "pki" && (
-        <AddPkiIdentityFlow
+        <AddCliIdentityFlow
           options={normalizeCliConfiguration()}
           agentId={agentId}
           isUser={isUser}
+          flow="pki"
         />
       )}
-      {activeStep === 2 && flow !== "manual" && flow !== "pki" && (
-        <DialogContent>
-          <DialogContentText>[TODO: Not implemented yet]</DialogContentText>
-        </DialogContent>
+      {activeStep === 2 && flow === "oauth-implicit" && (
+        <AddOauthImplicitIdentityFlow agentId={agentId} />
+      )}
+      {activeStep === 2 && flow === "oauth-device" && (
+        <AddCliIdentityFlow
+          options={normalizeCliConfiguration()}
+          agentId={agentId}
+          isUser={isUser}
+          flow="oauth-device"
+        />
       )}
       <DialogActions>
         <Button onClick={() => onClose && onClose()}>Cancel</Button>

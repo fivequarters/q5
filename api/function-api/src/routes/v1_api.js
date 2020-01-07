@@ -213,12 +213,12 @@ router.post(
   '/account/:accountId/init',
   cors(corsManagementOptions),
   validate_schema({ params: require('./schemas/api_account') }),
-  authorize({ resolve: true }),
   express.json(),
   validate_schema({
     params: require('./schemas/api_params'),
     body: require('./schemas/initResolve'),
   }),
+  authorize({ resolve: true }),
   agent.initResolve()
 );
 

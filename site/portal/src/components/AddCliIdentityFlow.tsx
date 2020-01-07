@@ -2,7 +2,7 @@ import Button from "@material-ui/core/Button";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import { makeStyles } from "@material-ui/core/styles";
-import { getPKIInitToken } from "../lib/Fusebit";
+import { getInitToken } from "../lib/Fusebit";
 import React from "react";
 import { useProfile } from "./ProfileProvider";
 import LinearProgress from "@material-ui/core/LinearProgress";
@@ -26,20 +26,42 @@ const useStyles = makeStyles((theme: any) => ({
   }
 }));
 
-function AddPkiIdentityFlow({ options, agentId, isUser }: any) {
+function AddCliIdentityFlow({ options, agentId, isUser, flow }: any) {
   const classes = useStyles();
   const { profile } = useProfile();
   const [generate, setGenerate] = React.useState(false);
   const [initToken, setInitToken] = React.useState();
+
+  if (flow !== "pki" && flow !== "oauth-device") {
+    throw new Error(`Unsupported flow: ${flow}`);
+  }
+
+  if (flow === "auth0-device" && !isUser) {
+    throw new Error(
+      "Flow 'oauth-device' is not supported for clients, only users"
+    );
+  }
 
   React.useEffect(() => {
     let cancelled: boolean = false;
     if (generate && !initToken) {
       (async () => {
         let data: any;
+        const augmentedProfile = {
+          ...profile,
+          subscription:
+            options.subscriptionId || profile.subscription || undefined,
+          boundary: options.boundaryId || profile.boundary || undefined,
+          function: options.functionId || profile.function || undefined
+        };
         try {
           data = {
-            token: await getPKIInitToken(profile, agentId, isUser, options)
+            token: await getInitToken(
+              augmentedProfile,
+              agentId,
+              flow === "pki" ? "pki" : "oauth",
+              isUser
+            )
           };
         } catch (e) {
           data = {
@@ -133,4 +155,4 @@ function AddPkiIdentityFlow({ options, agentId, isUser }: any) {
   );
 }
 
-export default AddPkiIdentityFlow;
+export default AddCliIdentityFlow;

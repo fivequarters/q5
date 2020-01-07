@@ -4,7 +4,7 @@ import { IAccount } from './accountResolver';
 import { request } from '@5qtrs/request';
 import { random } from '@5qtrs/random';
 import { signJwt } from '@5qtrs/jwt';
-import { createKeyPair } from '@5qtrs/key-pair';
+import { createKeyPair, IKeyPairResult } from '@5qtrs/key-pair';
 import { pem2jwk } from 'pem-jwk';
 
 // ------------------
@@ -56,12 +56,30 @@ export interface IListAuditOptions {
 }
 
 export interface IInitOptions {
+  protocol?: string;
   subscriptionId?: string;
   boundaryId?: string;
   functionId?: string;
+  profile?: {
+    id?: string;
+    displayName?: string;
+    subscription?: string;
+    boundary?: string;
+    function?: string;
+    oauth?: {
+      webAuthorizationUrl?: string;
+      webClientId?: string;
+      webLogoutUrl?: string;
+      deviceAuthorizationUrl?: string;
+      deviceClientId?: string;
+      tokenUrl?: string;
+    };
+  };
 }
 
 export interface IInitResolve {
+  protocol?: string;
+  accessToken?: string;
   publicKey?: string;
   keyId?: string;
 }
@@ -123,9 +141,7 @@ export async function deleteFunction(account: IAccount, boundaryId: string, func
       Authorization: `Bearer ${account.accessToken}`,
       'user-agent': account.userAgent,
     },
-    url: `${account.baseUrl}/v1/account/${account.accountId}/subscription/${
-      account.subscriptionId
-    }/boundary/${boundaryId}/function/${functionId}`,
+    url: `${account.baseUrl}/v1/account/${account.accountId}/subscription/${account.subscriptionId}/boundary/${boundaryId}/function/${functionId}`,
   });
 }
 
@@ -136,9 +152,7 @@ export async function putFunction(account: IAccount, boundaryId: string, functio
       Authorization: `Bearer ${account.accessToken}`,
       'user-agent': account.userAgent,
     },
-    url: `${account.baseUrl}/v1/account/${account.accountId}/subscription/${
-      account.subscriptionId
-    }/boundary/${boundaryId}/function/${functionId}`,
+    url: `${account.baseUrl}/v1/account/${account.accountId}/subscription/${account.subscriptionId}/boundary/${boundaryId}/function/${functionId}`,
     data: spec,
   });
 }
@@ -150,9 +164,7 @@ export async function getBuild(account: IAccount, build: { boundaryId: string; f
       Authorization: `Bearer ${account.accessToken}`,
       'user-agent': account.userAgent,
     },
-    url: `${account.baseUrl}/v1/account/${account.accountId}/subscription/${account.subscriptionId}/boundary/${
-      build.boundaryId
-    }/function/${build.functionId}/build/${build.buildId}`,
+    url: `${account.baseUrl}/v1/account/${account.accountId}/subscription/${account.subscriptionId}/boundary/${build.boundaryId}/function/${build.functionId}/build/${build.buildId}`,
   });
 }
 
@@ -269,9 +281,7 @@ export async function getFunctionLocation(account: IAccount, boundaryId: string,
       Authorization: `Bearer ${account.accessToken}`,
       'user-agent': account.userAgent,
     },
-    url: `${account.baseUrl}/v1/account/${account.accountId}/subscription/${
-      account.subscriptionId
-    }/boundary/${boundaryId}/function/${functionId}/location`,
+    url: `${account.baseUrl}/v1/account/${account.accountId}/subscription/${account.subscriptionId}/boundary/${boundaryId}/function/${functionId}/location`,
   });
 }
 
@@ -283,9 +293,7 @@ export async function listFunctions(
   next?: string
 ) {
   let url = boundaryId
-    ? `${account.baseUrl}/v1/account/${account.accountId}/subscription/${
-        account.subscriptionId
-      }/boundary/${boundaryId}/function`
+    ? `${account.baseUrl}/v1/account/${account.accountId}/subscription/${account.subscriptionId}/boundary/${boundaryId}/function`
     : `${account.baseUrl}/v1/account/${account.accountId}/subscription/${account.subscriptionId}/function`;
   let query = [];
   if (cron !== undefined) {
@@ -511,6 +519,7 @@ export async function removeUser(account: IAccount, userId: string) {
 }
 
 export async function initUser(account: IAccount, userId: string, init?: IInitOptions) {
+  init = init || {};
   return request({
     method: 'POST',
     headers: {
@@ -519,7 +528,7 @@ export async function initUser(account: IAccount, userId: string, init?: IInitOp
       'user-agent': account.userAgent,
     },
     url: `${account.baseUrl}/v1/account/${account.accountId}/user/${userId}/init`,
-    data: JSON.stringify(init || {}),
+    data: JSON.stringify(init),
   });
 }
 
@@ -720,9 +729,7 @@ export async function listStorage(account: IAccount, options?: IListStorageOptio
       'Content-Type': 'application/json',
       'user-agent': account.userAgent,
     },
-    url: `${account.baseUrl}/v1/account/${account.accountId}/subscription/${
-      account.subscriptionId
-    }/storage${queryString}`,
+    url: `${account.baseUrl}/v1/account/${account.accountId}/subscription/${account.subscriptionId}/storage${queryString}`,
   });
 }
 
@@ -905,6 +912,28 @@ export async function generateAccessToken(audience: string, keyPair: IKeyPair, i
     issuer: issuerId,
     subject: subject,
     keyid: keyPair.keyId,
+    header: {
+      jwtId: random(),
+    },
+  };
+
+  return signJwt({}, keyPair.privateKey, options);
+}
+
+export async function createPKIAccessToken(
+  keyPair: IKeyPairResult,
+  keyId: string,
+  issuerId: string,
+  subject: string,
+  audience: string
+) {
+  const options = {
+    algorithm: 'RS256',
+    expiresIn: 600,
+    audience,
+    issuer: issuerId,
+    subject: subject,
+    keyid: keyId,
     header: {
       jwtId: random(),
     },

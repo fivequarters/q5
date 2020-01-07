@@ -4,9 +4,8 @@ import Grid from "@material-ui/core/Grid";
 import InputLabel from "@material-ui/core/InputLabel";
 import LinearProgress from "@material-ui/core/LinearProgress";
 import MenuItem from "@material-ui/core/MenuItem";
-import Paper from "@material-ui/core/Paper";
 import Select from "@material-ui/core/Select";
-import { lighten, makeStyles } from "@material-ui/core/styles";
+import { makeStyles } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
 import FingerprintIcon from "@material-ui/icons/Fingerprint";
@@ -16,13 +15,13 @@ import React from "react";
 import { getIssuer, updateIssuer } from "../lib/Fusebit";
 import AddPublicKeyDialog from "./AddPublicKeyDialog";
 import ConfirmNavigation from "./ConfirmNavigation";
+import EntityCard from "./EntityCard";
 import { FusebitError } from "./ErrorBoundary";
 import InfoCard from "./InfoCard";
+import InputWithIcon from "./InputWithIcon";
 import PortalError from "./PortalError";
 import { useProfile } from "./ProfileProvider";
 import SaveFab from "./SaveFab";
-import InputWithIcon from "./InputWithIcon";
-import EntityCard from "./EntityCard";
 
 const useStyles = makeStyles((theme: any) => ({
   gridContainer: {
@@ -151,7 +150,9 @@ function IssuerOverview({ data, match }: any) {
   };
 
   const handleRemovePublicKey = (pki: any) => {
-    const i = issuer.modified.publicKeys.indexOf(pki);
+    const i = issuer.modified.publicKeys
+      ? issuer.modified.publicKeys.indexOf(pki)
+      : -1;
     if (i > -1) {
       issuer.modified.publicKeys.splice(i, 1);
       setIssuer({ ...issuer });
@@ -161,6 +162,7 @@ function IssuerOverview({ data, match }: any) {
   const handleAddPublicKey = (key: any) => {
     setAddPublicKeyDialogOpen(false);
     if (key) {
+      issuer.modified.publicKeys = issuer.modified.publicKeys || [];
       issuer.modified.publicKeys.push(key);
       setIssuer({ ...issuer });
     }
@@ -234,7 +236,8 @@ function IssuerOverview({ data, match }: any) {
     return (
       <div className={classes.keyContainer}>
         <div>
-          {issuer.modified.publicKeys.length === 0 ? (
+          {!issuer.modified.publicKeys ||
+          issuer.modified.publicKeys.length === 0 ? (
             <Typography>
               No public keys are stored. You can provide up to three stored
               public keys.
@@ -245,24 +248,28 @@ function IssuerOverview({ data, match }: any) {
             </Typography>
           )}
         </div>
-        {issuer.modified.publicKeys.map((pki: any) => (
-          <EntityCard
-            key={pki.keyId}
-            onRemove={() => handleRemovePublicKey(pki)}
-            icon={<VpnKeyIcon fontSize="inherit" color="secondary" />}
-          >
-            <div>
-              <Typography variant="h6">{pki.keyId}</Typography>
-              <Typography variant="body2">First used: N/A</Typography>
-              <Typography variant="body2">Last used: N/A</Typography>
-            </div>
-          </EntityCard>
-        ))}
+        {issuer.modified.publicKeys &&
+          issuer.modified.publicKeys.map((pki: any) => (
+            <EntityCard
+              key={pki.keyId}
+              onRemove={() => handleRemovePublicKey(pki)}
+              icon={<VpnKeyIcon fontSize="inherit" color="secondary" />}
+            >
+              <div>
+                <Typography variant="h6">{pki.keyId}</Typography>
+                <Typography variant="body2">First used: N/A</Typography>
+                <Typography variant="body2">Last used: N/A</Typography>
+              </div>
+            </EntityCard>
+          ))}
         <div className={classes.keyAction}>
           <Button
             variant="outlined"
             color="secondary"
-            disabled={issuer.modified.publicKeys.length >= 3}
+            disabled={
+              issuer.modified.publicKeys &&
+              issuer.modified.publicKeys.length >= 3
+            }
             onClick={() => setAddPublicKeyDialogOpen(true)}
           >
             Add public key

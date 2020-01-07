@@ -1,6 +1,6 @@
 const { Config } = require('@5qtrs/config');
 const { AwsCreds } = require('@5qtrs/aws-config');
-const { AccountContext } = require('@5qtrs/account');
+const { AccountContext, ResolvedAgent } = require('@5qtrs/account');
 const { AccountDataAwsContextFactory } = require('@5qtrs/account-data-aws');
 
 let accountContext;
@@ -39,6 +39,15 @@ async function getResolvedAgent(accountId, token) {
   return accountContext.getResolvedAgent(accountId, token, isRootAgent);
 }
 
+async function validateAccessToken(accountId, token) {
+  const accountContext = await getAccountContext();
+  return accountContext.validateAccessToken(accountId, token);
+}
+
+async function validateAccessTokenSignature(token, publicKey) {
+  return ResolvedAgent.validateAccessTokenSignature(token, publicKey);
+}
+
 function getBaseUrl(req) {
   const host = req.headers.host;
   const proto = req.headers['x-forwarded-proto'] ? req.headers['x-forwarded-proto'].split(',')[0] : 'http';
@@ -73,4 +82,6 @@ module.exports = {
   getResolvedAgent,
   errorHandler,
   getBaseUrl,
+  validateAccessToken,
+  validateAccessTokenSignature,
 };

@@ -6,8 +6,33 @@ function initResolve() {
   return (req, res) => {
     getAccountContext().then(accountContext => {
       const accountId = req.params.accountId;
-      const initResolve = req.body;
-      initResolve.jwt = req.token;
+      let initResolve;
+      switch (req.body.protocol) {
+        case 'oauth':
+          initResolve = {
+            protocol: 'oauth',
+            initToken: req.token,
+            accessToken: req.body.accessToken,
+            decodedAccessToken: req.body.decodedAccessToken,
+          };
+          break;
+        case 'pki':
+          initResolve = {
+            protocol: 'pki',
+            initToken: req.token,
+            accessToken: req.body.accessToken,
+            decodedAccessToken: req.body.decodedAccessToken,
+            publicKey: req.body.publicKey,
+          };
+          break;
+        default:
+          // legacy PKI format
+          initResolve = {
+            initToken: req.token,
+            publicKey: req.body.publicKey,
+            keyId: req.body.keyId,
+          };
+      }
 
       accountContext.init
         .resolve(accountId, initResolve)

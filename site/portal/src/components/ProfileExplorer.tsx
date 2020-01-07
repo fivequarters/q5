@@ -371,6 +371,7 @@ function ProfileExplorer({ ...rest }) {
           <FunctionCode data={data} onNewData={handleOnNewData} {...rest} />
         )}
       />
+      <Redirect from="/joining" exact={true} to={getDefaultUrl()} />
       <Redirect from="/" exact={true} to={getDefaultUrl()} />
       <Route component={(NotFound as unknown) as React.FunctionComponent} />
     </Switch>
