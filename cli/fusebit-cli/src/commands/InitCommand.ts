@@ -1,6 +1,15 @@
 import { Command, IExecuteInput, ArgType } from '@5qtrs/cli';
 import { Text } from '@5qtrs/text';
 import { ProfileService, ExecuteService, AgentService } from '../services';
+import {
+  isIFusebitOauthInitToken,
+  isIFusebitPKIInitToken,
+  IFusebitLegacyPKIInitToken,
+  IFusebitPKIInitToken,
+  IFusebitOauthInitToken,
+  IFusebitInitResolve,
+} from '../services/AgentService';
+import { IOAuthFusebitProfile, IFusebitProfile, IFusebitKeyPair } from '@5qtrs/fusebit-profile-sdk';
 
 // ------------------
 // Internal Constants
@@ -72,22 +81,37 @@ export class InitCommand extends Command {
     await executeService.newLine();
 
     if (token.match(/^https:\/\//i)) {
+      // The init token is a URL to the OAuth Device flow profile settings object
       await profileService.execute(async () => initFromUrl(token, token));
+      return 0;
+    }
+
+    const [path, sourceProfile] = token.split('#');
+    const [organization, repository, file, rest] = path.split('/');
+    if (organization && repository && !rest) {
+      // The init token is a shorhand representation of a file in a public github repo that contains
+      // OAuth Device Flow profile settings object
+      await profileService.execute(async () =>
+        initFromUrl(
+          `https://raw.githubusercontent.com/${organization}/${repository}/master/${file || 'profiles.json'}${
+            sourceProfile ? '#' + sourceProfile : ''
+          }`,
+          token
+        )
+      );
+      return 0;
+    }
+
+    const decodedToken = await agentService.decodeInitToken(token);
+    if (isIFusebitOauthInitToken(decodedToken)) {
+      // The init token contains OAuth decice flow profile
+      await initFromOauthToken(decodedToken);
+    } else if (isIFusebitPKIInitToken(decodedToken)) {
+      // The init token contains PKI flow profile
+      await initFromPKIToken(decodedToken);
     } else {
-      const [path, sourceProfile] = token.split('#');
-      const [organization, repository, file, rest] = path.split('/');
-      if (organization && repository && !rest) {
-        await profileService.execute(async () =>
-          initFromUrl(
-            `https://raw.githubusercontent.com/${organization}/${repository}/master/${file || 'profiles.json'}${
-              sourceProfile ? '#' + sourceProfile : ''
-            }`,
-            token
-          )
-        );
-      } else {
-        await initFromToken();
-      }
+      // The init token contains Legacy PKI issuer and subject
+      await initFromLegacyPKIToken(decodedToken);
     }
 
     return 0;
@@ -142,6 +166,89 @@ export class InitCommand extends Command {
       if (!profileName) {
         profileName = await profileService.getProfileNameFromBaseUrl(profile.baseUrl);
       }
+
+      const addedProfile = await addOauthProfile(profile);
+
+      const agent = await profileService.getAgent(profileName);
+      const agentDetails = await agentService.getAgentDetails(agent, true);
+      await profileService.displayProfile(addedProfile, agentDetails);
+    }
+
+    async function initFromOauthToken(decodedToken: IFusebitOauthInitToken): Promise<void> {
+      profileName = await profileService.execute(async () => {
+        if (profileName) {
+          decodedToken.profile.id = profileName;
+        }
+        if (decodedToken.profile.id) return decodedToken.profile.id;
+        throw new Error(
+          'The init token does not specify a profile name. You must specify it explicitly using the --profile option.'
+        );
+      });
+      const addedProfile = await addOauthProfile(decodedToken.profile);
+      const executionProfile = await profileService.getNamedExecutionProfile(profileName);
+
+      const initResolve = {
+        protocol: 'oauth',
+        accessToken: executionProfile.accessToken,
+      };
+
+      try {
+        const agent = await agentService.resolveInit(
+          executionProfile.baseUrl,
+          executionProfile.account,
+          decodedToken.agentId,
+          token,
+          initResolve as IFusebitInitResolve
+        );
+
+        const agentDetails = await agentService.getAgentDetails(agent, true);
+        await profileService.displayProfile(addedProfile, agentDetails);
+      } catch (e) {
+        await profileService.removeProfile(profileName);
+        throw e;
+      }
+    }
+
+    async function initFromPKIToken(decodedToken: IFusebitPKIInitToken): Promise<void> {
+      profileName = await profileService.execute(async () => {
+        if (profileName) {
+          decodedToken.profile.id = profileName;
+        }
+        if (decodedToken.profile.id) return decodedToken.profile.id;
+        throw new Error(
+          'The init token does not specify a profile name. You must specify it explicitly using the --profile option.'
+        );
+      });
+
+      const keyPair = await profileService.generateKeyPair(profileName);
+
+      const addedProfile = await addPKIProfile(decodedToken.profile, keyPair);
+      const executionProfile = await profileService.getNamedExecutionProfile(profileName);
+
+      const initResolve = {
+        protocol: 'pki',
+        accessToken: executionProfile.accessToken,
+        publicKey: keyPair.publicKey,
+      };
+
+      try {
+        const agent = await agentService.resolveInit(
+          executionProfile.baseUrl,
+          executionProfile.account,
+          decodedToken.agentId,
+          token,
+          initResolve as IFusebitInitResolve
+        );
+
+        const agentDetails = await agentService.getAgentDetails(agent, true);
+        await profileService.displayProfile(addedProfile, agentDetails);
+      } catch (e) {
+        await profileService.removeProfile(profileName);
+        throw e;
+      }
+    }
+
+    async function addOauthProfile(profile: any): Promise<IOAuthFusebitProfile> {
       if (!quiet) {
         const targetProfile = await profileService.getProfile(profileName);
         if (targetProfile) {
@@ -156,6 +263,8 @@ export class InitCommand extends Command {
         tokenUrl: profile.oauth && profile.oauth.tokenUrl,
         clientId: profile.oauth && profile.oauth.deviceClientId,
         subscription: subscription === '' ? undefined : subscription || profile.subscription,
+        boundary: profile.boundary || undefined,
+        function: profile.function || undefined,
       };
       const nameMapping: any = {
         baseUrl: 'baseUrl',
@@ -165,15 +274,15 @@ export class InitCommand extends Command {
         clientId: 'oauth.deviceClientId',
       };
 
-      for (const p of Object.keys(newCliProfile)) {
-        if (p !== 'subscription' && typeof newCliProfile[p] !== 'string') {
-          throw new Error(
-            `Invalid Fusebit settings: the '${
-              nameMapping[p]
-            }' parameter of the '${profileName}' profile must be a string.`
-          );
+      await profileService.execute(async () => {
+        for (const p of Object.keys(newCliProfile)) {
+          if (['subscription', 'boundary', 'function'].indexOf(p) < 0 && typeof newCliProfile[p] !== 'string') {
+            throw new Error(
+              `Invalid Fusebit settings: the '${nameMapping[p]}' parameter of the '${profileName}' profile must be a string.`
+            );
+          }
         }
-      }
+      });
 
       const addedProfile = await profileService.createProfile(profileName, newCliProfile);
 
@@ -182,13 +291,55 @@ export class InitCommand extends Command {
         await profileService.setDefaultProfileName(profileName);
       }
 
-      const agent = await profileService.getAgent(profileName);
-      const agentDetails = await agentService.getAgentDetails(agent, true);
-      await profileService.displayProfile(addedProfile, agentDetails);
+      return addedProfile;
     }
 
-    async function initFromToken(): Promise<void> {
-      const decodedToken = await agentService.decodeInitToken(token);
+    async function addPKIProfile(profile: any, keyPair: IFusebitKeyPair): Promise<IFusebitProfile> {
+      if (!quiet) {
+        const targetProfile = await profileService.getProfile(profileName);
+        if (targetProfile) {
+          await profileService.confirmCreateProfile(profileName, targetProfile);
+        }
+      }
+
+      const newCliProfile: any = {
+        name: profileName,
+        baseUrl: profile.baseUrl,
+        account: profile.account,
+        issuer: profile.issuerId,
+        subject: profile.subject,
+        subscription: subscription === '' ? undefined : subscription || profile.subscription,
+        boundary: profile.boundary || undefined,
+        function: profile.function || undefined,
+      };
+      const nameMapping: any = {
+        baseUrl: 'baseUrl',
+        account: 'account',
+        issuer: 'issuerId',
+        subject: 'subject',
+      };
+
+      await profileService.execute(async () => {
+        for (const p of Object.keys(newCliProfile)) {
+          if (['subscription', 'boundary', 'function'].indexOf(p) < 0 && typeof newCliProfile[p] !== 'string') {
+            throw new Error(
+              `Invalid Fusebit settings: the '${nameMapping[p]}' parameter of the '${profileName}' profile must be a string.`
+            );
+          }
+        }
+      });
+
+      await profileService.initProfile(profileName, newCliProfile, keyPair);
+
+      const defaultProfileName = await profileService.getDefaultProfileName();
+      if (!defaultProfileName) {
+        await profileService.setDefaultProfileName(profileName);
+      }
+
+      return await profileService.getProfileOrThrow(profileName);
+    }
+
+    async function initFromLegacyPKIToken(decodedToken: IFusebitLegacyPKIInitToken): Promise<void> {
       const { accountId, subscriptionId, boundaryId, functionId, agentId, baseUrl, issuerId, subject } = decodedToken;
 
       if (!profileName) {

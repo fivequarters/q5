@@ -7,6 +7,7 @@ import ProfileSelectorWithDetails from "./ProfileSelectorWithDetails";
 import ProfileBreadcrumb from "./ProfileBreadcrumb";
 import Grid from "@material-ui/core/Grid";
 import { FusebitError } from "./ErrorBoundary";
+import { getUser, normalizeUser, updateUser } from "../lib/Fusebit";
 
 import AccountOverview from "./AccountOverview";
 import AccountSubscriptions from "./AccountSubscriptions";
@@ -20,6 +21,8 @@ import BoundaryFunctions from "./BoundaryFunctions";
 import FunctionOverview from "./FunctionOverview";
 import FunctionCode from "./FunctionCode";
 import IssuerOverview from "./IssuerOverview";
+import UserOverview from "./UserOverview";
+import AgentIdentities from "./AgentIdentities";
 
 import Paper from "@material-ui/core/Paper";
 import Tabs from "@material-ui/core/Tabs";
@@ -117,6 +120,20 @@ const ExplorerTabs = {
     {
       name: "activity"
     }
+  ],
+  user: [
+    {
+      name: "overview"
+    },
+    {
+      name: "access"
+    },
+    {
+      name: "identities"
+    },
+    {
+      name: "activity"
+    }
   ]
 };
 
@@ -164,7 +181,7 @@ function ProfileExplorer({ ...rest }) {
   }
 
   function getDefaultUrl() {
-    return `/accounts/${profile.account}/overview`;
+    // return `/accounts/${profile.account}/overview`;
     return profile.subscription
       ? `/accounts/${profile.account}/subscriptions/${profile.subscription}/overview`
       : `/accounts/${profile.account}/overview`;
@@ -226,6 +243,32 @@ function ProfileExplorer({ ...rest }) {
         render={({ ...rest }) => (
           <ExplorerView tabs={ExplorerTabs.account} {...rest}>
             <AccountUsers data={data} onNewData={handleOnNewData} {...rest} />
+          </ExplorerView>
+        )}
+      />
+      <Route
+        path="/accounts/:accountId/users/:userId/overview"
+        exact={true}
+        render={({ ...rest }) => (
+          <ExplorerView tabs={ExplorerTabs.user} {...rest}>
+            <UserOverview data={data} onNewData={handleOnNewData} {...rest} />
+          </ExplorerView>
+        )}
+      />
+      <Route
+        path="/accounts/:accountId/users/:userId/identities"
+        exact={true}
+        render={({ ...rest }) => (
+          <ExplorerView tabs={ExplorerTabs.user} {...rest}>
+            <AgentIdentities
+              data={data}
+              onNewData={handleOnNewData}
+              getAgent={getUser}
+              updateAgent={updateUser}
+              normalizeAgent={normalizeUser}
+              isUser={true}
+              {...rest}
+            />
           </ExplorerView>
         )}
       />
@@ -328,6 +371,7 @@ function ProfileExplorer({ ...rest }) {
           <FunctionCode data={data} onNewData={handleOnNewData} {...rest} />
         )}
       />
+      <Redirect from="/joining" exact={true} to={getDefaultUrl()} />
       <Redirect from="/" exact={true} to={getDefaultUrl()} />
       <Route component={(NotFound as unknown) as React.FunctionComponent} />
     </Switch>

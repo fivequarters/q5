@@ -319,6 +319,53 @@ paths:
       security:
         - AccessToken: []
 
+  /v1/account/{accountId}/init:
+    parameters:
+      - in: path
+        name: accountId
+        required: true
+        description: Account id
+        schema:
+          $ref: '#/components/schemas/AccountId'
+    post:
+      tags:
+        - Accounts
+      summary: Resolve an initialization token
+      operationId: resolveInit
+      description: |
+        Add an identity to an existing user or client using a previously obtained single-use initialization token.
+        This API requires the intialization token to be presented as an access token.
+      requestBody:
+        description: The parameters for the initialization token resolution
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InitResolveRequest'
+      responses:
+        200:
+          description: Identity successfully added to the user or client
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/User'
+                  - $ref: '#/components/schemas/Client'
+        400:
+          description: Malformed request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        403:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - AccessToken: []
+
   /v1/account/{accountId}/issuer:
     parameters:
       - in: path
@@ -781,6 +828,64 @@ paths:
       security:
         - AccessToken: []
 
+  /v1/account/{accountId}/client/{clientId}/init:
+    parameters:
+      - in: path
+        name: accountId
+        required: true
+        description: Account id
+        schema:
+          $ref: '#/components/schemas/AccountId'
+      - in: path
+        name: clientId
+        required: true
+        description: Client id
+        schema:
+          $ref: '#/components/schemas/ClientId'
+    post:
+      tags:
+        - Clients
+      summary: Create an initialization token for an existing client
+      operationId: initClient
+      description: |
+        Create an initialization token for an existing client. The initialization token is a single-use
+        bearer credential that allows the caller to add a new identity for the client. If unused, the 
+        intialization token expires after eight hours.
+      requestBody:
+        description: The parameters for the initialization token
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InitRequest'
+      responses:
+        200:
+          description: The initialization token was generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InitResponse'
+        400:
+          description: Malformed initialization token parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        403:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        404:
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - AccessToken: []
+
   /v1/account/{accountId}/user:
     parameters:
       - in: path
@@ -1014,6 +1119,64 @@ paths:
           description: User was deleted
         400:
           description: Malformed account or user id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        403:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        404:
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - AccessToken: []
+
+  /v1/account/{accountId}/user/{userId}/init:
+    parameters:
+      - in: path
+        name: accountId
+        required: true
+        description: Account id
+        schema:
+          $ref: '#/components/schemas/AccountId'
+      - in: path
+        name: userId
+        required: true
+        description: User id
+        schema:
+          $ref: '#/components/schemas/UserId'
+    post:
+      tags:
+        - Users
+      summary: Create an initialization token for an existing user
+      operationId: initUser
+      description: |
+        Create an initialization token for an existing user. The initialization token is a single-use
+        bearer credential that allows the caller to add a new identity for the users. If unused, the 
+        intialization token expires after eight hours.
+      requestBody:
+        description: The parameters for the initialization token
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InitRequest'
+      responses:
+        200:
+          description: The initialization token was generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InitResponse'
+        400:
+          description: Malformed initialization token parameters
           content:
             application/json:
               schema:
@@ -2044,6 +2207,93 @@ components:
           description: A list of issuers
           items:
             $ref: '#/components/schemas/Issuer'
+
+    InitProtocol:
+      type: string
+      enum: [pki, oauth]
+      description: >
+        The initialization token protocol that determines the type of the source of trust for validating access tokens 
+        the user or client will present when making HTTP API calls:
+          * `pki` - when adding an indentity to the user or client, the caller must present a public key that can be used to validate signatures of access tokens
+          * `oauth` - when adding an indentity to the user or client, the caller must indicate a trusted issuer of access tokens that is already pre-configured in the system
+
+    InitRequest:
+      type: object
+      required:
+        - protocol
+        - profile
+      properties:
+        protocol:
+          $ref: '#/components/schemas/InitProtocol'
+        profile:
+          type: object
+          description: |
+            Additional information to be included in the intialization token for consumption by the intended recipient of the 
+            token. For example, this information can be used to include default parameters of the CLI profile or OAuth parameters
+            that indicate the identity provider to use.
+          properties:
+            subscription:
+              description: The default subscription id the caller should use
+              schema:
+                $ref: '#/components/schemas/SubscriptionId'
+            boundary:
+              description: The default boundary id the caller should use
+              schema:
+                $ref: '#/components/schemas/BoundaryId'
+            function:
+              description: The default function id the caller should use
+              schema:
+                $ref: '#/components/schemas/FunctionId'
+            oauth:
+              type: object
+              description: Parameters the caller should use when obtaining an access token from an OAuth identity provider
+              properties:
+                webAuthorizationUrl:
+                  type: string
+                  description: The authorization URL to initiate OAuth implicit flow
+                webClientId:
+                  type: string
+                  description: The OAuth client id to use when initializing OAuth implicit flow
+                webLogoutUrl:
+                  type: string
+                  description: The URL to navigate to to log a browser client out from the OAuth identity provider
+                deviceAuthorizationUrl:
+                  type: string
+                  description: The authorization URL to initiate OAuth device flow
+                deviceClientId:
+                  type: string
+                  description: The OAuth client id to use when initializing OAuth device flow
+                tokenUrl:
+                  type: string
+                  description: The OAuth URL to use to exchange refresh tokens for access tokens
+
+    InitResponse:
+      type: string
+      description: |
+        A single-use initialization token in JWT format. If unused, the token expires in eight hours. The `profile`
+        paramater of the JWT payload contains the information specified in the `profile` parameter of the request
+        as well as additional information for consumption by the intended recipient of the token.
+
+    InitResolveRequest:
+      type: object
+      required:
+        - protocol
+        - accessToken
+      properties:
+        protocol:
+          $ref: '#/components/schemas/InitProtocol'
+        accessToken:
+          type: string
+          description: |
+            A valid access token in JWT format. 
+            If `protocol` is `pki`, the access token must be signed with a private key
+            associated with the `publicKey` in this request, and the value of the `iss` and `sub` claims must match the values of 
+            the `profile.issuerId` and `profile.subject` fields of the initialization token, respectively. If `protocol` is `oauth`, 
+            the token must have been obtained from an OAuth identity provider that is already trusted by the system.
+        publicKey:
+          type: string
+          description: |
+            The public key that can be used to validate the signature of the `accessToken` in PEM format. Required if `protocol` is `pki`.
 
     Identity:
       type: object

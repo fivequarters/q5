@@ -134,9 +134,9 @@ export class FusebitDotConfig extends DotConfig {
     await this.writeJson(path, creds);
   }
 
-  public async removeCachedCreds(name: string, kid: string): Promise<void> {
-    const path = await join(credsCachePath, name, kid);
-    this.removeCachedCredsDirectory(path, name);
+  public async removeCachedCreds(name: string, kid?: string): Promise<void> {
+    const path = kid ? await join(credsCachePath, name, kid) : await join(credsCachePath, name);
+    await this.removeCachedCredsDirectory(path, name);
   }
 
   private async readSettings(): Promise<any> {

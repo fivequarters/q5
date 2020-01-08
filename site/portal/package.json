@@ -17,7 +17,8 @@
     "superagent": "^5.1.1",
     "url-parse": "^1.4.7",
     "@5qtrs/fusebit-mark": "^0.0.1",
-    "@5qtrs/fusebit-color": "^0.0.1"
+    "@5qtrs/fusebit-color": "^0.0.1",
+    "@5qtrs/jwt": "^0.0.1"
   },
   "scripts": {
     "start": "SKIP_PREFLIGHT_CHECK=true react-scripts start",

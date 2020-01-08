@@ -42,7 +42,14 @@ const tree = {
       paramName: "issuerId",
       formatLink: (params: any) =>
         `/accounts/${params.accountId}/issuers/${params.issuerId}/overview`,
-      text: (params: any, profile: any) => params.issuerId,
+      text: (params: any, profile: any) => decodeURIComponent(params.issuerId),
+      children: []
+    },
+    {
+      paramName: "userId",
+      formatLink: (params: any) =>
+        `/accounts/${params.accountId}/users/${params.userId}/overview`,
+      text: (params: any, profile: any) => params.userId,
       children: []
     }
   ]

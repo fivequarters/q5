@@ -101,7 +101,7 @@ function toBeStorageNotFound(received: any, storageId: string, storagePath?: str
 // Exported Interfaces
 // -------------------
 
-export interface ExtendedMatchers extends jest.Matchers<IHttpResponse> {
+export interface ExtendedMatchers extends jest.Matchers<IHttpResponse, IHttpResponse> {
   toBeHttpError: (status: number, message: string) => void;
   toBeMalformedAccountError: (malformedAccountId: string) => void;
   toBeUnauthorizedError: () => void;

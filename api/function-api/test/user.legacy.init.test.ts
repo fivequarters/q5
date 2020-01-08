@@ -1,5 +1,5 @@
 import { IAccount, FakeAccount, resolveAccount, getMalformedAccount, getNonExistingAccount } from './accountResolver';
-import { addClient, initClient, resolveInit, cleanUpClients } from './sdk';
+import { addUser, initUser, resolveInit, cleanUpUsers } from './sdk';
 import { random } from '@5qtrs/random';
 import { decodeJwt, decodeJwtHeader, signJwt } from '@5qtrs/jwt';
 import { createKeyPair } from '@5qtrs/key-pair';
@@ -14,23 +14,25 @@ beforeAll(async () => {
 });
 
 afterEach(async () => {
-  await cleanUpClients(account);
+  await cleanUpUsers(account);
 }, 20000);
 
-describe('Client', () => {
+describe('Legacy User', () => {
   describe('Init', () => {
     test('Getting an init token should be supported', async () => {
       const identities = [{ issuerId: 'test', subject: `sub-${random()}` }];
-      const access = { allow: [{ action: 'client:*', resource: '/account/abc/' }] };
-      const original = await addClient(account, {
-        displayName: 'display',
+      const access = { allow: [{ action: 'user:*', resource: '/account/abc/' }] };
+      const original = await addUser(account, {
+        firstName: 'first',
+        lastName: 'last',
+        primaryEmail: 'email',
         identities,
         access,
       });
-      const client = await initClient(account, original.data.id);
-      expect(client.status).toBe(200);
+      const user = await initUser(account, original.data.id);
+      expect(user.status).toBe(200);
 
-      const jwt = client.data;
+      const jwt = user.data;
 
       const header = decodeJwtHeader(jwt);
       expect(header.alg).toBe('HS256');
@@ -55,16 +57,18 @@ describe('Client', () => {
 
     test('Getting an init token with a subscriptionId set should be supported', async () => {
       const identities = [{ issuerId: 'test', subject: `sub-${random()}` }];
-      const access = { allow: [{ action: 'client:*', resource: '/account/abc/' }] };
-      const original = await addClient(account, {
-        displayName: 'display',
+      const access = { allow: [{ action: 'user:*', resource: '/account/abc/' }] };
+      const original = await addUser(account, {
+        firstName: 'first',
+        lastName: 'last',
+        primaryEmail: 'email',
         identities,
         access,
       });
-      const client = await initClient(account, original.data.id, { subscriptionId: account.subscriptionId });
-      expect(client.status).toBe(200);
+      const user = await initUser(account, original.data.id, { subscriptionId: account.subscriptionId });
+      expect(user.status).toBe(200);
 
-      const jwt = client.data;
+      const jwt = user.data;
 
       const header = decodeJwtHeader(jwt);
       expect(header.alg).toBe('HS256');
@@ -88,19 +92,21 @@ describe('Client', () => {
 
     test('Getting an init token with a boundaryId set should be supported', async () => {
       const identities = [{ issuerId: 'test', subject: `sub-${random()}` }];
-      const access = { allow: [{ action: 'client:*', resource: '/account/abc/' }] };
-      const original = await addClient(account, {
-        displayName: 'display',
+      const access = { allow: [{ action: 'user:*', resource: '/account/abc/' }] };
+      const original = await addUser(account, {
+        firstName: 'first',
+        lastName: 'last',
+        primaryEmail: 'email',
         identities,
         access,
       });
-      const client = await initClient(account, original.data.id, {
+      const user = await initUser(account, original.data.id, {
         subscriptionId: account.subscriptionId,
         boundaryId: 'boundary-abc',
       });
-      expect(client.status).toBe(200);
+      expect(user.status).toBe(200);
 
-      const jwt = client.data;
+      const jwt = user.data;
 
       const header = decodeJwtHeader(jwt);
       expect(header.alg).toBe('HS256');
@@ -125,20 +131,22 @@ describe('Client', () => {
 
     test('Getting an init token with a functionId set should be supported', async () => {
       const identities = [{ issuerId: 'test', subject: `sub-${random()}` }];
-      const access = { allow: [{ action: 'client:*', resource: '/account/abc/' }] };
-      const original = await addClient(account, {
-        displayName: 'display',
+      const access = { allow: [{ action: 'user:*', resource: '/account/abc/' }] };
+      const original = await addUser(account, {
+        firstName: 'first',
+        lastName: 'last',
+        primaryEmail: 'email',
         identities,
         access,
       });
-      const client = await initClient(account, original.data.id, {
+      const user = await initUser(account, original.data.id, {
         subscriptionId: account.subscriptionId,
         boundaryId: 'boundary-abc',
         functionId: 'function-abc',
       });
-      expect(client.status).toBe(200);
+      expect(user.status).toBe(200);
 
-      const jwt = client.data;
+      const jwt = user.data;
 
       const header = decodeJwtHeader(jwt);
       expect(header.alg).toBe('HS256');
@@ -162,49 +170,55 @@ describe('Client', () => {
       expect(decoded.exp).toBeLessThan(eightHoursFromNow + 10);
     }, 20000);
 
-    test('Getting an init token with an invalid client id should return an error', async () => {
-      const clientId = `clt-${random()}`;
-      const client = await initClient(account, clientId);
-      expect(client.status).toBe(400);
-      expect(client.data.status).toBe(400);
-      expect(client.data.statusCode).toBe(400);
-      expect(client.data.message).toBe(
-        `"clientId" with value "${clientId}" fails to match the required pattern: /^clt-[a-g0-9]{16}$/`
+    test('Getting an init token with an invalid user id should return an error', async () => {
+      const userId = `usr-${random()}`;
+      const user = await initUser(account, userId);
+      expectMore(user).toBeHttpError(
+        400,
+        `"userId" with value "${userId}" fails to match the required pattern: /^usr-[a-g0-9]{16}$/`
       );
     }, 20000);
 
-    test('Getting a non-existing client should return an error', async () => {
-      const clientId = `clt-${random({ lengthInBytes: 8 })}`;
-      const client = await initClient(account, clientId);
-      expect(client.status).toBe(404);
-      expect(client.data.status).toBe(404);
-      expect(client.data.statusCode).toBe(404);
-      expect(client.data.message).toBe(`The client '${clientId}' does not exist`);
+    test('Getting a non-existing user should return an error', async () => {
+      const userId = `usr-${random({ lengthInBytes: 8 })}`;
+      const user = await initUser(account, userId);
+      expectMore(user).toBeHttpError(404, `The user '${userId}' does not exist`);
     }, 20000);
 
+    test('Getting an init token with a malformed account account should return an error', async () => {
+      const malformed = await getMalformedAccount();
+      const original = await addUser(account, {});
+      const user = await initUser(malformed, original.data.id);
+      expectMore(user).toBeMalformedAccountError(malformed.accountId);
+    }, 10000);
+
     test('Getting an init token with a non-existing account should return an error', async () => {
-      const original = await addClient(account, {});
-      const client = await initClient(await getNonExistingAccount(), original.data.id);
-      expectMore(client).toBeUnauthorizedError();
+      const original = await addUser(account, {});
+      const user = await initUser(await getNonExistingAccount(), original.data.id);
+      expectMore(user).toBeUnauthorizedError();
     }, 10000);
   });
 
   describe('Resolve', () => {
     test('Resolving an init token should be supported', async () => {
-      const access = { allow: [{ action: 'client:*', resource: '/account/abc/' }] };
-      const original = await addClient(account, {
-        displayName: 'display',
+      const access = { allow: [{ action: 'user:*', resource: '/account/abc/' }] };
+      const original = await addUser(account, {
+        firstName: 'first',
+        lastName: 'last',
+        primaryEmail: 'email',
         access,
       });
-      const client = await initClient(account, original.data.id);
-      const jwt = client.data;
+      const user = await initUser(account, original.data.id);
+      const jwt = user.data;
       const keyPair = await createKeyPair();
       const keyId = random({ lengthInBytes: 4 }) as string;
 
       const resolved = await resolveInit(account, jwt, { publicKey: keyPair.publicKey, keyId });
       expect(resolved.status).toBe(200);
       expect(resolved.data.id).toBe(original.data.id);
-      expect(resolved.data.displayName).toBe('display');
+      expect(resolved.data.firstName).toBe('first');
+      expect(resolved.data.lastName).toBe('last');
+      expect(resolved.data.primaryEmail).toBe('email');
       expect(resolved.data.identities).toBeDefined();
       expect(resolved.data.identities.length).toBe(1);
       expect(resolved.data.identities[0].issuerId).toBeDefined();
@@ -213,37 +227,35 @@ describe('Client', () => {
     }, 20000);
 
     test('Resolving an init token with no publicKey returns an error', async () => {
-      const access = { allow: [{ action: 'client:*', resource: '/account/abc/' }] };
-      const original = await addClient(account, {
-        displayName: 'display',
+      const access = { allow: [{ action: 'user:*', resource: '/account/abc/' }] };
+      const original = await addUser(account, {
+        firstName: 'first',
+        lastName: 'last',
+        primaryEmail: 'email',
         access,
       });
-      const client = await initClient(account, original.data.id);
-      const jwt = client.data;
+      const user = await initUser(account, original.data.id);
+      const jwt = user.data;
       const keyId = random({ lengthInBytes: 4 }) as string;
 
       const resolved = await resolveInit(account, jwt, { keyId });
-      expect(resolved.status).toBe(400);
-      expect(resolved.data.status).toBe(400);
-      expect(resolved.data.statusCode).toBe(400);
-      expect(resolved.data.message).toBe('"publicKey" is required');
+      expectMore(resolved).toBeHttpError(400, '"protocol" is required');
     }, 20000);
 
     test('Resolving an init token with no keyId returns an error', async () => {
-      const access = { allow: [{ action: 'client:*', resource: '/account/abc/' }] };
-      const original = await addClient(account, {
-        displayName: 'display',
+      const access = { allow: [{ action: 'user:*', resource: '/account/abc/' }] };
+      const original = await addUser(account, {
+        firstName: 'first',
+        lastName: 'last',
+        primaryEmail: 'email',
         access,
       });
-      const client = await initClient(account, original.data.id);
-      const jwt = client.data;
+      const user = await initUser(account, original.data.id);
+      const jwt = user.data;
       const keyPair = await createKeyPair();
 
       const resolved = await resolveInit(account, jwt, { publicKey: keyPair.publicKey });
-      expect(resolved.status).toBe(400);
-      expect(resolved.data.status).toBe(400);
-      expect(resolved.data.statusCode).toBe(400);
-      expect(resolved.data.message).toBe('"keyId" is required');
+      expectMore(resolved).toBeHttpError(400, '"protocol" is required');
     }, 20000);
 
     test('Resolving an init token with no jwt returns an error', async () => {
@@ -251,20 +263,19 @@ describe('Client', () => {
       const keyId = random({ lengthInBytes: 4 }) as string;
 
       const resolved = await resolveInit(account, undefined, { publicKey: keyPair.publicKey, keyId });
-      expect(resolved.status).toBe(403);
-      expect(resolved.data.status).toBe(403);
-      expect(resolved.data.statusCode).toBe(403);
-      expect(resolved.data.message).toBe('Unauthorized');
+      expectMore(resolved).toBeUnauthorizedError();
     }, 20000);
 
     test('Resolving an init token with a non-existing account should return an error', async () => {
-      const access = { allow: [{ action: 'client:*', resource: '/account/abc/' }] };
-      const original = await addClient(account, {
-        displayName: 'display',
+      const access = { allow: [{ action: 'user:*', resource: '/account/abc/' }] };
+      const original = await addUser(account, {
+        firstName: 'first',
+        lastName: 'last',
+        primaryEmail: 'email',
         access,
       });
-      const client = await initClient(account, original.data.id);
-      const jwt = client.data;
+      const user = await initUser(account, original.data.id);
+      const jwt = user.data;
       const keyPair = await createKeyPair();
       const keyId = random({ lengthInBytes: 4 }) as string;
 
@@ -278,16 +289,15 @@ describe('Client', () => {
       const keyId = random({ lengthInBytes: 4 }) as string;
 
       const resolved = await resolveInit(account, jwt, { publicKey: keyPair.publicKey, keyId });
-      expect(resolved.status).toBe(403);
-      expect(resolved.data.status).toBe(403);
-      expect(resolved.data.statusCode).toBe(403);
-      expect(resolved.data.message).toBe('Unauthorized');
+      expectMore(resolved).toBeUnauthorizedError();
     }, 10000);
 
     test('Resolving an init token with a jwt missing an accountId should return an error', async () => {
-      const access = { allow: [{ action: 'client:*', resource: '/account/abc/' }] };
-      const original = await addClient(account, {
-        displayName: 'display',
+      const access = { allow: [{ action: 'user:*', resource: '/account/abc/' }] };
+      const original = await addUser(account, {
+        firstName: 'first',
+        lastName: 'last',
+        primaryEmail: 'email',
         access,
       });
       const jwt = await signJwt({ agentId: original.data.id }, 'a secret');
@@ -295,10 +305,7 @@ describe('Client', () => {
       const keyId = random({ lengthInBytes: 4 }) as string;
 
       const resolved = await resolveInit(account, jwt, { publicKey: keyPair.publicKey, keyId });
-      expect(resolved.status).toBe(403);
-      expect(resolved.data.status).toBe(403);
-      expect(resolved.data.statusCode).toBe(403);
-      expect(resolved.data.message).toBe('Unauthorized');
+      expectMore(resolved).toBeUnauthorizedError();
     }, 10000);
 
     test('Resolving an init token with a jwt missing an agentId should return an error', async () => {
@@ -307,29 +314,25 @@ describe('Client', () => {
       const keyId = random({ lengthInBytes: 4 }) as string;
 
       const resolved = await resolveInit(account, jwt, { publicKey: keyPair.publicKey, keyId });
-      expect(resolved.status).toBe(403);
-      expect(resolved.data.status).toBe(403);
-      expect(resolved.data.statusCode).toBe(403);
-      expect(resolved.data.message).toBe('Unauthorized');
+      expectMore(resolved).toBeUnauthorizedError();
     }, 10000);
 
     test('Resolving an init token with a cloned and signed jwt returns an error', async () => {
-      const access = { allow: [{ action: 'client:*', resource: '/account/abc/' }] };
-      const original = await addClient(account, {
-        displayName: 'display',
+      const access = { allow: [{ action: 'user:*', resource: '/account/abc/' }] };
+      const original = await addUser(account, {
+        firstName: 'first',
+        lastName: 'last',
+        primaryEmail: 'email',
         access,
       });
-      const client = await initClient(account, original.data.id);
-      const decoded = decodeJwt(client.data, true);
+      const user = await initUser(account, original.data.id);
+      const decoded = decodeJwt(user.data, true);
       const jwt = await signJwt(decoded, 'a secret');
       const keyPair = await createKeyPair();
       const keyId = random({ lengthInBytes: 4 }) as string;
 
       const resolved = await resolveInit(account, jwt, { publicKey: keyPair.publicKey, keyId });
-      expect(resolved.status).toBe(403);
-      expect(resolved.data.status).toBe(403);
-      expect(resolved.data.statusCode).toBe(403);
-      expect(resolved.data.message).toBe('Unauthorized');
+      expectMore(resolved).toBeUnauthorizedError();
     }, 10000);
   });
 });

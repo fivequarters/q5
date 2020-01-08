@@ -5,10 +5,11 @@ import {
   IFusebitProfile,
   indexOfProfile
 } from "../lib/Settings";
-import { getMe } from "../lib/Fusebit";
+import { getMe, initUser } from "../lib/Fusebit";
 import { getBookmark, setBookmark } from "../lib/Bookmark";
 import parseUrl from "url-parse";
 import { FusebitError } from "./ErrorBoundary";
+import { decodeJwt } from "@5qtrs/jwt";
 
 const FusebitAuthStateKey = "fusebitAuthState";
 
@@ -23,6 +24,40 @@ function ProfileProvider(props: any) {
   let settings = getLocalSettings();
   let [empty, seg1, seg2] = window.location.pathname.split("/");
   const accountId = (empty === "" && seg1 === "accounts" && seg2) || undefined;
+  const isJoinStepOne = seg1 === "join" && !seg2;
+  const isJoinStepTwo = seg1 === "joining" && !seg2;
+
+  // If a new user is joining, ensure the profile from the init token is stored in the settings
+
+  if (isJoinStepOne) {
+    const initToken = decodeJwt(window.location.hash.substring(1));
+    if (!initToken || !initToken.profile) {
+      throw new FusebitError("Invalid invitation link", {
+        details: `The invitation link you are using is invalid. Ask your administrator to generate a new invitation link.`
+      });
+    }
+    if (!settings || !Array.isArray(settings.profiles)) {
+      settings = {
+        profiles: [initToken.profile],
+        currentProfile: initToken.profile.id
+      };
+    } else {
+      let matchingProfile: number = -1;
+      for (let i = 0; i < settings.profiles.length; i++) {
+        if (settings.profiles[i].id === initToken.profile.id) {
+          matchingProfile = i;
+          break;
+        }
+      }
+      if (matchingProfile === -1) {
+        settings.profiles.push(initToken.profile);
+      } else {
+        settings.profiles[matchingProfile] = initToken.profile;
+      }
+      settings.currentProfile = initToken.profile.id;
+    }
+    setLocalSettings(settings);
+  }
 
   // Determine selected profile based on accountId from URL path or selected profile from local settings
 
@@ -104,10 +139,32 @@ function ProfileProvider(props: any) {
       let cancelled = false;
       (async () => {
         let me;
-        try {
-          me = { accountId: profile.account, ...(await getMe(profile)) };
-        } catch (error) {
-          me = { accountId: profile.account, error };
+        if (isJoinStepTwo) {
+          try {
+            await initUser(profile, window.location.hash.substring(1));
+          } catch (error) {
+            me = {
+              accountId: profile.account,
+              error: new FusebitError("Error joining the portal", {
+                details: [`Unable to join the portal:`, error.message].join(" ")
+              })
+            };
+          }
+        }
+        if (!me) {
+          try {
+            me = { accountId: profile.account, ...(await getMe(profile)) };
+          } catch (error) {
+            me = {
+              accountId: profile.account,
+              error: new FusebitError("Error accessing the Fusebit service", {
+                details: [
+                  `Unable to access the Fusebit service to obtain information about your permissions:`,
+                  error.message
+                ].join(" ")
+              })
+            };
+          }
         }
         if (!cancelled) {
           setProfile({ ...profile, me });
@@ -117,7 +174,7 @@ function ProfileProvider(props: any) {
         cancelled = true;
       };
     }
-  }, [profile]);
+  }, [profile, isJoinStepTwo]);
 
   if (!settings) {
     throw new FusebitError("Fusebit Portal is not initialized", {
@@ -137,7 +194,12 @@ function ProfileProvider(props: any) {
 
   if (profile && !profile.auth) {
     // no access token or access token expires in less than 30 mins, re-authenticate
-    login(profile, window.location.pathname);
+    login(
+      profile,
+      isJoinStepOne
+        ? `/joining${window.location.hash}`
+        : window.location.pathname
+    );
     return <></>;
   }
 
@@ -146,6 +208,9 @@ function ProfileProvider(props: any) {
   }
 
   if (profile) {
+    if (profile.me && profile.me.error) {
+      throw profile.me.error;
+    }
     let logoutProfile = profile;
     const logout = () => {
       delete logoutProfile.auth;
@@ -167,7 +232,6 @@ function ProfileProvider(props: any) {
     return <ProfileContext.Provider value={{ logout, profile }} {...props} />;
   } else {
     throw new Error("User is not logged");
-    // return <ProfileContext.Provider value={{}} {...props} />;
   }
 }
 

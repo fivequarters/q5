@@ -16,6 +16,19 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.14.0
+
+_Released 1/8/20_
+
+- **Enable OAuth initialization tokens** Add support for creating initialization tokens that allow the user identity to be
+  established using an existing OAuth issuer with trust pre-configured in the system.
+
+## Version 1.13.4
+
+_Released 12/27/19_
+
+- **Bug fix.** Modify CORS policy for management APIs to allow generation of init tokens for users and clients.
+
 ## Version 1.13.3
 
 _Released 12/20/19_

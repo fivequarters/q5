@@ -16,6 +16,13 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.8.0
+
+_Released 1/7/20_
+
+- **Support for OAuth init tokens**. The `fuse init` command now accepts init tokens containing the OAuth Device Flow settings that enable the user to authenticate using Oauth.
+- **Profile removal bug fix**. The `fuse profile rm` command is now correctly removing cached access tokens for OAuth profiles.
+
 ## Version 1.7.0
 
 _Released 11/15/19_
