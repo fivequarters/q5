@@ -16,6 +16,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.14.1
+
+_Released 1/13/20_
+
+- **Bug fix** Fix a bug in processing of CRON settings when creating or updating a CRON job.
+
 ## Version 1.14.0
 
 _Released 1/8/20_
