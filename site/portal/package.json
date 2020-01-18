@@ -4,8 +4,12 @@
   "description": "Fusebit Portal",
   "private": true,
   "dependencies": {
+    "@5qtrs/fusebit-color": "^0.0.1",
+    "@5qtrs/fusebit-mark": "^0.0.1",
+    "@5qtrs/jwt": "^0.0.1",
     "@material-ui/core": "^4.6.1",
     "@material-ui/icons": "^4.5.1",
+    "@material-ui/lab": "^4.0.0-alpha.39",
     "@types/react-router-dom": "^5.1.2",
     "@types/url-parse": "^1.4.3",
     "gh-pages": "^2.1.1",
@@ -15,10 +19,7 @@
     "react-router-dom": "^5.1.2",
     "react-scripts": "3.2.0",
     "superagent": "^5.1.1",
-    "url-parse": "^1.4.7",
-    "@5qtrs/fusebit-mark": "^0.0.1",
-    "@5qtrs/fusebit-color": "^0.0.1",
-    "@5qtrs/jwt": "^0.0.1"
+    "url-parse": "^1.4.7"
   },
   "scripts": {
     "start": "SKIP_PREFLIGHT_CHECK=true react-scripts start",

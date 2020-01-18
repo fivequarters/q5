@@ -150,12 +150,13 @@ const useToolbarStyles = makeStyles((theme: Theme) =>
 interface EnhancedTableToolbarProps {
   numSelected: number;
   title: string;
+  actions?: JSX.Element;
   onDelete: () => void;
 }
 
 const EnhancedTableToolbar = (props: EnhancedTableToolbarProps) => {
   const classes = useToolbarStyles();
-  const { numSelected, title, onDelete } = props;
+  const { numSelected, title, onDelete, actions } = props;
 
   return (
     <Toolbar
@@ -174,6 +175,7 @@ const EnhancedTableToolbar = (props: EnhancedTableToolbarProps) => {
       ) : (
         <Typography className={classes.title} variant="h6" id="tableTitle">
           {title}
+          {actions}
         </Typography>
       )}
       {numSelected > 0 ? (
@@ -227,15 +229,19 @@ interface ExplorerTableProps<T> {
   defaultSortKey: keyof T;
   identityKey: keyof T;
   title: string;
+  actions?: JSX.Element;
   enableSelection?: boolean;
   onDelete?: (selected: string[]) => void;
   deleteTitle?: string | ((selected: string[]) => string);
   deleteContent?: string | ((selected: string[]) => JSX.Element);
+  disablePagination?: boolean;
+  noDataBody?: JSX.Element;
 }
 
 export default function ExplorerTable<T>(props: ExplorerTableProps<T>) {
   const {
     title,
+    actions,
     defaultSortKey,
     headCells,
     rows,
@@ -243,9 +249,11 @@ export default function ExplorerTable<T>(props: ExplorerTableProps<T>) {
     enableSelection,
     onDelete,
     deleteTitle,
-    deleteContent
+    deleteContent,
+    noDataBody
   } = props;
   const classes = useStyles();
+  const toolbarClasses = useToolbarStyles();
   const [order, setOrder] = React.useState<Order>("asc");
   const [orderBy, setOrderBy] = React.useState<keyof T>(defaultSortKey);
   const [selected, setSelected] = React.useState<string[]>([]);
@@ -276,7 +284,10 @@ export default function ExplorerTable<T>(props: ExplorerTableProps<T>) {
 
   const handleDeleteDialogClose = (confirmed: boolean) => {
     setConfirmDeleteOpen(false);
-    confirmed && onDelete && onDelete(selected);
+    if (confirmed) {
+      setSelected([]);
+      onDelete && onDelete(selected);
+    }
   };
 
   const handleClick = (event: React.MouseEvent<unknown>, name: string) => {
@@ -316,8 +327,17 @@ export default function ExplorerTable<T>(props: ExplorerTableProps<T>) {
 
   const isSelected = (name: string) => selected.indexOf(name) !== -1;
 
-  const emptyRows =
-    rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
+  const emptyRows = props.disablePagination
+    ? 0
+    : rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
+
+  let dataRows = stableSort<T>(rows, getSorting<T>(order, orderBy));
+  if (!props.disablePagination) {
+    dataRows = dataRows.slice(
+      page * rowsPerPage,
+      page * rowsPerPage + rowsPerPage
+    );
+  }
 
   return (
     <div className={classes.root}>
@@ -344,116 +364,119 @@ export default function ExplorerTable<T>(props: ExplorerTableProps<T>) {
       <EnhancedTableToolbar
         numSelected={selected.length}
         title={title}
+        actions={actions}
         onDelete={handleDeleteDialogOpen}
       />
       {/* <TableContainer> */}
-      <Table
-        className={classes.table}
-        aria-labelledby="tableTitle"
-        // size={dense ? "small" : "medium"}
-        size="medium"
-        aria-label="explorer table"
-      >
-        <EnhancedTableHead<T>
-          classes={classes}
-          numSelected={selected.length}
-          order={order}
-          orderBy={orderBy}
-          onSelectAllClick={handleSelectAllClick}
-          onRequestSort={handleRequestSort}
-          rowCount={rows.length}
-          headCells={headCells}
-          enableSelection={enableSelection}
-        />
-        <TableBody>
-          {stableSort<T>(rows, getSorting<T>(order, orderBy))
-            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-            .map((row, index) => {
-              const isItemSelected = isSelected(
-                (row[identityKey] as unknown) as string
-              );
-              const labelId = `explorer-table-checkbox-${index}`;
+      {rows.length === 0 && (
+        <div className={toolbarClasses.root}>{noDataBody}</div>
+      )}
+      {(rows.length > 0 || !noDataBody) && (
+        <React.Fragment>
+          <Table
+            className={classes.table}
+            aria-labelledby="tableTitle"
+            // size={dense ? "small" : "medium"}
+            size="medium"
+            aria-label="explorer table"
+          >
+            <EnhancedTableHead<T>
+              classes={classes}
+              numSelected={selected.length}
+              order={order}
+              orderBy={orderBy}
+              onSelectAllClick={handleSelectAllClick}
+              onRequestSort={handleRequestSort}
+              rowCount={rows.length}
+              headCells={headCells}
+              enableSelection={enableSelection}
+            />
+            <TableBody>
+              {dataRows.map((row, index) => {
+                const isItemSelected = isSelected(
+                  (row[identityKey] as unknown) as string
+                );
+                const labelId = `explorer-table-checkbox-${index}`;
 
-              return (
-                <TableRow
-                  hover={enableSelection}
-                  onClick={
-                    enableSelection
-                      ? event =>
-                          handleClick(
-                            event,
-                            (row[identityKey] as unknown) as string
-                          )
-                      : undefined
-                  }
-                  role="checkbox"
-                  aria-checked={isItemSelected}
-                  tabIndex={-1}
-                  key={(row[identityKey] as unknown) as string}
-                  selected={isItemSelected}
-                >
-                  {enableSelection && (
-                    <TableCell padding="checkbox">
-                      <Checkbox
-                        color="primary"
-                        checked={isItemSelected}
-                        inputProps={{ "aria-labelledby": labelId }}
-                      />
-                    </TableCell>
-                  )}
-                  {headCells[0] && (
-                    <TableCell
-                      component="th"
-                      id={labelId}
-                      scope="row"
-                      padding={enableSelection ? "none" : "default"}
-                      align={headCells[0].align || "right"}
-                    >
-                      {headCells[0].render
-                        ? headCells[0].render(row)
-                        : row[headCells[0].id]}
-                    </TableCell>
-                  )}
-                  {headCells.map((cell, index) =>
-                    index === 0 ? (
-                      undefined
-                    ) : (
-                      <TableCell
-                        key={cell.id as string}
-                        align={cell.align || "right"}
-                      >
-                        {cell.render ? cell.render(row) : row[cell.id]}
+                return (
+                  <TableRow
+                    hover={enableSelection}
+                    onClick={
+                      enableSelection
+                        ? event =>
+                            handleClick(
+                              event,
+                              (row[identityKey] as unknown) as string
+                            )
+                        : undefined
+                    }
+                    role="checkbox"
+                    aria-checked={isItemSelected}
+                    tabIndex={-1}
+                    key={(row[identityKey] as unknown) as string}
+                    selected={isItemSelected}
+                  >
+                    {enableSelection && (
+                      <TableCell padding="checkbox">
+                        <Checkbox
+                          color="primary"
+                          checked={isItemSelected}
+                          inputProps={{ "aria-labelledby": labelId }}
+                        />
                       </TableCell>
-                    )
-                  )}
+                    )}
+                    {headCells[0] && (
+                      <TableCell
+                        component="th"
+                        id={labelId}
+                        scope="row"
+                        padding={enableSelection ? "none" : "default"}
+                        align={headCells[0].align || "right"}
+                      >
+                        {headCells[0].render
+                          ? headCells[0].render(row)
+                          : row[headCells[0].id]}
+                      </TableCell>
+                    )}
+                    {headCells.map((cell, index) =>
+                      index === 0 ? (
+                        undefined
+                      ) : (
+                        <TableCell
+                          key={cell.id as string}
+                          align={cell.align || "right"}
+                        >
+                          {cell.render ? cell.render(row) : row[cell.id]}
+                        </TableCell>
+                      )
+                    )}
+                  </TableRow>
+                );
+              })}
+              {emptyRows > 0 && (
+                // <TableRow style={{ height: (dense ? 33 : 53) * emptyRows }}>
+                <TableRow style={{ height: 53 * emptyRows }}>
+                  <TableCell
+                    colSpan={headCells.length + (enableSelection ? 1 : 0)}
+                  />
                 </TableRow>
-              );
-            })}
-          {emptyRows > 0 && (
-            // <TableRow style={{ height: (dense ? 33 : 53) * emptyRows }}>
-            <TableRow style={{ height: 53 * emptyRows }}>
-              <TableCell
-                colSpan={headCells.length + (enableSelection ? 1 : 0)}
-              />
-            </TableRow>
+              )}
+            </TableBody>
+          </Table>
+          {/* </TableContainer> */}
+          {!props.disablePagination && (
+            <TablePagination
+              rowsPerPageOptions={[5, 10, 25, 50, 100]}
+              component="div"
+              count={rows.length}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              onChangePage={handleChangePage}
+              onChangeRowsPerPage={handleChangeRowsPerPage}
+            />
           )}
-        </TableBody>
-      </Table>
-      {/* </TableContainer> */}
-      <TablePagination
-        rowsPerPageOptions={[5, 10, 25, 50, 100]}
-        component="div"
-        count={rows.length}
-        rowsPerPage={rowsPerPage}
-        page={page}
-        onChangePage={handleChangePage}
-        onChangeRowsPerPage={handleChangeRowsPerPage}
-      />
-      {/* </Paper> */}
-      {/* <FormControlLabel
-        control={<Switch checked={dense} onChange={handleChangeDense} />}
-        label="Dense padding"
-      /> */}
+        </React.Fragment>
+      )}
     </div>
   );
 }

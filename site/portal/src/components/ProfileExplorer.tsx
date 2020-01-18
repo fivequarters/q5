@@ -23,6 +23,7 @@ import FunctionCode from "./FunctionCode";
 import IssuerOverview from "./IssuerOverview";
 import UserOverview from "./UserOverview";
 import AgentIdentities from "./AgentIdentities";
+import AgentAccess from "./AgentAccess";
 
 import Paper from "@material-ui/core/Paper";
 import Tabs from "@material-ui/core/Tabs";
@@ -261,6 +262,23 @@ function ProfileExplorer({ ...rest }) {
         render={({ ...rest }) => (
           <ExplorerView tabs={ExplorerTabs.user} {...rest}>
             <AgentIdentities
+              data={data}
+              onNewData={handleOnNewData}
+              getAgent={getUser}
+              updateAgent={updateUser}
+              normalizeAgent={normalizeUser}
+              isUser={true}
+              {...rest}
+            />
+          </ExplorerView>
+        )}
+      />
+      <Route
+        path="/accounts/:accountId/users/:userId/access"
+        exact={true}
+        render={({ ...rest }) => (
+          <ExplorerView tabs={ExplorerTabs.user} {...rest}>
+            <AgentAccess
               data={data}
               onNewData={handleOnNewData}
               getAgent={getUser}

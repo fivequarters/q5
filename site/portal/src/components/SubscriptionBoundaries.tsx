@@ -1,12 +1,11 @@
-import React from "react";
-import { useProfile } from "./ProfileProvider";
 import LinearProgress from "@material-ui/core/LinearProgress";
-import ExplorerTable, { HeadCell } from "./ExplorerTable";
-import { getFunctions } from "../lib/Fusebit";
-import { FusebitError } from "./ErrorBoundary";
-import PortalError from "./PortalError";
 import Link from "@material-ui/core/Link";
+import React from "react";
 import { Link as RouterLink } from "react-router-dom";
+import loadBoundaries from "../effects/LoadBoundaries";
+import ExplorerTable, { HeadCell } from "./ExplorerTable";
+import PortalError from "./PortalError";
+import { useProfile } from "./ProfileProvider";
 
 interface ViewRow {
   id: string;
@@ -65,39 +64,10 @@ function SubscriptionBoundaries({ data, onNewData, match }: any) {
     }
   ];
 
-  React.useEffect(() => {
-    let cancelled: boolean = false;
-    if (!data || !data.boundaries || !data.boundaries[subscriptionId]) {
-      (async () => {
-        let boundaries: any = data.boundaries || {};
-        try {
-          let boundaryFunction: any = await getFunctions(
-            profile,
-            subscriptionId
-          );
-          // console.log("LOADED FUNCTION DATA", boundaryFunction);
-          boundaries[subscriptionId] = {
-            viewData: Object.keys(boundaryFunction).map(boundaryId =>
-              createViewRow(boundaryFunction[boundaryId])
-            )
-          };
-        } catch (e) {
-          boundaries[subscriptionId] = {
-            error: new FusebitError("Error loading boundary information", {
-              details:
-                (e.status || e.statusCode) === 403
-                  ? "The Fusebit account or subscription does not exist or you are not authorized to access it's list of functions."
-                  : e.message || "Unknown error."
-            })
-          };
-        }
-        !cancelled && onNewData && onNewData({ ...data, boundaries });
-      })();
-      return () => {
-        cancelled = true;
-      };
-    }
-  }, [data, onNewData, profile, subscriptionId]);
+  React.useEffect(
+    loadBoundaries(profile, subscriptionId, undefined, data, onNewData),
+    [data, onNewData, profile, subscriptionId]
+  );
 
   if (!data || !data.boundaries || !data.boundaries[subscriptionId]) {
     return <LinearProgress />;
@@ -105,6 +75,18 @@ function SubscriptionBoundaries({ data, onNewData, match }: any) {
 
   if (data.boundaries[subscriptionId].error) {
     return <PortalError error={data.boundaries[subscriptionId].error} />;
+  }
+
+  if (
+    data.boundaries[subscriptionId].data &&
+    !data.boundaries[subscriptionId].viewData
+  ) {
+    data.boundaries[subscriptionId].viewData = Object.keys(
+      data.boundaries[subscriptionId].data
+    ).map(boundaryId =>
+      createViewRow(data.boundaries[subscriptionId].data[boundaryId])
+    );
+    onNewData && onNewData({ ...data });
   }
 
   return (

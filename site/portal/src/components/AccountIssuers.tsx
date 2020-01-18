@@ -161,18 +161,22 @@ function AccountIssuers({ data, onNewData }: any) {
             : `You are about to delete the selected issuer.`}
         </DialogContentText>
         {deletingCurrentUsersIssuer && selected.length > 1 && (
-          <DialogContentText>
-            <Typography color="primary">WARNING</Typography> One of the issuers
-            you are about to delete enables you to log in. If you continue, you
-            may loose access to the portal.
-          </DialogContentText>
+          <React.Fragment>
+            <Typography color="primary">WARNING</Typography>
+            <DialogContentText>
+              One of the issuers you are about to delete enables you to log in.
+              If you continue, you may loose access to the portal.
+            </DialogContentText>
+          </React.Fragment>
         )}
         {deletingCurrentUsersIssuer && selected.length === 1 && (
-          <DialogContentText>
-            <Typography color="primary">WARNING</Typography> The issuer you are
-            about to delete enables you to log in. If you continue, you may
-            loose access to the portal.
-          </DialogContentText>
+          <React.Fragment>
+            <Typography color="primary">WARNING</Typography>
+            <DialogContentText>
+              The issuer you are about to delete enables you to log in. If you
+              continue, you may loose access to the portal.
+            </DialogContentText>
+          </React.Fragment>
         )}
       </div>
     );

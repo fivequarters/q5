@@ -140,19 +140,23 @@ function AccountUsers({ data, onNewData }: any) {
         </DialogContentText>
         {selected.indexOf((profile.me && profile.me.id) || "") > -1 &&
           selected.length > 1 && (
-            <DialogContentText>
-              <Typography color="primary">WARNING</Typography> One of the users
-              you are about to delete is you. If you continue, you may loose
-              access to the portal.
-            </DialogContentText>
+            <React.Fragment>
+              <Typography color="primary">WARNING</Typography>
+              <DialogContentText>
+                One of the users you are about to delete is you. If you
+                continue, you may loose access to the portal.
+              </DialogContentText>
+            </React.Fragment>
           )}
         {selected.indexOf((profile.me && profile.me.id) || "") > -1 &&
           selected.length === 1 && (
-            <DialogContentText>
-              <Typography color="primary">WARNING</Typography> The user you are
-              about to delete is you. If you continue, you may loose access to
-              the portal.
-            </DialogContentText>
+            <React.Fragment>
+              <Typography color="primary">WARNING</Typography>
+              <DialogContentText>
+                The user you are about to delete is you. If you continue, you
+                may loose access to the portal.
+              </DialogContentText>
+            </React.Fragment>
           )}
       </div>
     );
