@@ -62,7 +62,7 @@ function BoundarySelector({
       onClose={() => setOpen(false)}
       disabled={disabled || false}
       inputValue={boundaryId || ""}
-      onInputChange={(e, v) => onChange && onChange(v)}
+      onInputChange={(e, v) => e && onChange && onChange(v)}
       options={boundaries}
       loading={!!(loading && subscriptionId)}
       renderInput={params => (

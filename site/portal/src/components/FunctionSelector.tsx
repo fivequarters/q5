@@ -65,7 +65,7 @@ function FunctionSelector({
       onClose={() => setOpen(false)}
       disabled={disabled || false}
       inputValue={functionId || ""}
-      onInputChange={(e, v) => onChange && onChange(v)}
+      onInputChange={(e, v) => e && onChange && onChange(v)}
       options={functions}
       loading={!!(loading && subscriptionId && boundaryId)}
       renderInput={params => (

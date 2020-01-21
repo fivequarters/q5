@@ -55,7 +55,14 @@ function SubscriptionSelector({
       <InputLabel htmlFor="subscriptionIdChoice">Subscription</InputLabel>
       <Select
         id="subscriptionIdChoice"
-        value={subscriptionId || ""}
+        value={
+          (data &&
+            data.subscriptions &&
+            data.subscriptions.data &&
+            data.subscriptions.data.length > 0 &&
+            subscriptionId) ||
+          ""
+        }
         onChange={handleChange}
         IconComponent={loading ? SubscriptionsLoading : undefined}
         // {...rest}

@@ -24,6 +24,7 @@ import IssuerOverview from "./IssuerOverview";
 import UserOverview from "./UserOverview";
 import AgentIdentities from "./AgentIdentities";
 import AgentAccess from "./AgentAccess";
+import UserActionFab from "./UserActionFab";
 
 import Paper from "@material-ui/core/Paper";
 import Tabs from "@material-ui/core/Tabs";
@@ -32,7 +33,13 @@ import Tab from "@material-ui/core/Tab";
 const useStyles = makeStyles(theme => ({
   paper: {
     paddingTop: 14,
-    paddingLeft: theme.spacing(2)
+    paddingLeft: theme.spacing(2),
+    position: "relative"
+  },
+  fab: {
+    position: "absolute",
+    right: theme.spacing(16),
+    bottom: -theme.spacing(3.5)
   },
   regularMargin: {
     marginTop: theme.spacing(2)
@@ -145,7 +152,7 @@ function ProfileExplorer({ ...rest }) {
   const settings = getLocalSettings() as IFusebitSettings;
   const [data, setData] = React.useState({});
 
-  function ExplorerView({ children, tabs, match, detailsFullView }: any) {
+  function ExplorerView({ children, tabs, match, detailsFullView, fab }: any) {
     const { path } = match;
     // Last segment of the URL indicates the selected tab
     const selectedTab = path.split("/").pop();
@@ -165,6 +172,7 @@ function ProfileExplorer({ ...rest }) {
                   <Tab key={tab.name} label={tab.name} value={tab.name} />
                 ))}
               </Tabs>
+              {fab && <div className={classes.fab}>{fab}</div>}
             </Paper>
           </Grid>
           <Grid
@@ -251,7 +259,17 @@ function ProfileExplorer({ ...rest }) {
         path="/accounts/:accountId/users/:userId/overview"
         exact={true}
         render={({ ...rest }) => (
-          <ExplorerView tabs={ExplorerTabs.user} {...rest}>
+          <ExplorerView
+            tabs={ExplorerTabs.user}
+            fab={
+              <UserActionFab
+                data={data}
+                onNewData={handleOnNewData}
+                {...rest}
+              />
+            }
+            {...rest}
+          >
             <UserOverview data={data} onNewData={handleOnNewData} {...rest} />
           </ExplorerView>
         )}
@@ -260,7 +278,17 @@ function ProfileExplorer({ ...rest }) {
         path="/accounts/:accountId/users/:userId/identities"
         exact={true}
         render={({ ...rest }) => (
-          <ExplorerView tabs={ExplorerTabs.user} {...rest}>
+          <ExplorerView
+            tabs={ExplorerTabs.user}
+            fab={
+              <UserActionFab
+                data={data}
+                onNewData={handleOnNewData}
+                {...rest}
+              />
+            }
+            {...rest}
+          >
             <AgentIdentities
               data={data}
               onNewData={handleOnNewData}
@@ -277,7 +305,17 @@ function ProfileExplorer({ ...rest }) {
         path="/accounts/:accountId/users/:userId/access"
         exact={true}
         render={({ ...rest }) => (
-          <ExplorerView tabs={ExplorerTabs.user} {...rest}>
+          <ExplorerView
+            tabs={ExplorerTabs.user}
+            fab={
+              <UserActionFab
+                data={data}
+                onNewData={handleOnNewData}
+                {...rest}
+              />
+            }
+            {...rest}
+          >
             <AgentAccess
               data={data}
               onNewData={handleOnNewData}
