@@ -2,11 +2,10 @@ import React from "react";
 import { useProfile } from "./ProfileProvider";
 import LinearProgress from "@material-ui/core/LinearProgress";
 import ExplorerTable, { HeadCell } from "./ExplorerTable";
-import { getSubscriptions } from "../lib/Fusebit";
-import { FusebitError } from "./ErrorBoundary";
 import PortalError from "./PortalError";
 import Link from "@material-ui/core/Link";
 import { Link as RouterLink } from "react-router-dom";
+import loadSubscriptions from "../effects/LoadSubscriptions";
 
 interface ViewRow {
   name: string;
@@ -71,32 +70,11 @@ function AccountSubscriptions({ data, onNewData }: any) {
     }
   ];
 
-  React.useEffect(() => {
-    let cancelled: boolean = false;
-    if (!data || !data.subscriptions) {
-      (async () => {
-        let subscriptions: any;
-        try {
-          let dataRows = await getSubscriptions(profile);
-          // console.log("LOADED SUBSCRIPTION DATA", dataRows);
-          subscriptions = { viewData: dataRows.map(createViewRow) };
-        } catch (e) {
-          subscriptions = {
-            error: new FusebitError("Error loading subscription information", {
-              details:
-                (e.status || e.statusCode) === 403
-                  ? "The Fusebit account does not exist or you are not authorized to access it's list of subscriptions."
-                  : e.message || "Unknown error."
-            })
-          };
-        }
-        !cancelled && onNewData && onNewData({ ...data, subscriptions });
-      })();
-      return () => {
-        cancelled = true;
-      };
-    }
-  }, [data, onNewData, profile]);
+  React.useEffect(loadSubscriptions(profile, data, onNewData), [
+    data,
+    onNewData,
+    profile
+  ]);
 
   if (!data || !data.subscriptions) {
     return <LinearProgress />;
@@ -104,6 +82,11 @@ function AccountSubscriptions({ data, onNewData }: any) {
 
   if (data.subscriptions.error) {
     return <PortalError error={data.subscriptions.error} />;
+  }
+
+  if (!data.subscriptions.viewData) {
+    data.subscriptions.viewData = data.subscriptions.data.map(createViewRow);
+    onNewData && onNewData({ ...data });
   }
 
   return (

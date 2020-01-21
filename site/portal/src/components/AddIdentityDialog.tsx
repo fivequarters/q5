@@ -18,7 +18,7 @@ import { useProfile } from "./ProfileProvider";
 
 const useStyles = makeStyles((theme: any) => ({
   dialogPaper: {
-    minHeight: 480
+    minHeight: window.location.hash.indexOf("flexible") > -1 ? 0 : 480
   }
 }));
 
