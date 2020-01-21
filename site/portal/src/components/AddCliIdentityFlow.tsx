@@ -1,17 +1,18 @@
-import Button from "@material-ui/core/Button";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogContentText from "@material-ui/core/DialogContentText";
-import { makeStyles } from "@material-ui/core/styles";
-import { getInitToken } from "../lib/Fusebit";
-import React from "react";
-import { useProfile } from "./ProfileProvider";
+import IconButton from "@material-ui/core/IconButton";
+import InputAdornment from "@material-ui/core/InputAdornment";
 import LinearProgress from "@material-ui/core/LinearProgress";
+import Link from "@material-ui/core/Link";
+import { makeStyles } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
+import FileCopyIcon from "@material-ui/icons/FileCopy";
+import OpenInNewIcon from "@material-ui/icons/OpenInNew";
+import React from "react";
+import { getInitToken } from "../lib/Fusebit";
 import { FusebitError } from "./ErrorBoundary";
 import PortalError from "./PortalError";
-import InputAdornment from "@material-ui/core/InputAdornment";
-import IconButton from "@material-ui/core/IconButton";
-import FileCopyIcon from "@material-ui/icons/FileCopy";
+import { useProfile } from "./ProfileProvider";
 
 const useStyles = makeStyles((theme: any) => ({
   generateButtonContainer: {
@@ -29,7 +30,6 @@ const useStyles = makeStyles((theme: any) => ({
 function AddCliIdentityFlow({ options, agentId, isUser, flow }: any) {
   const classes = useStyles();
   const { profile } = useProfile();
-  const [generate, setGenerate] = React.useState(false);
   const [initToken, setInitToken] = React.useState();
 
   if (flow !== "pki" && flow !== "oauth-device") {
@@ -44,13 +44,15 @@ function AddCliIdentityFlow({ options, agentId, isUser, flow }: any) {
 
   React.useEffect(() => {
     let cancelled: boolean = false;
-    if (generate && !initToken) {
+    if (!initToken) {
       (async () => {
         let data: any;
         const augmentedProfile = {
           ...profile,
           subscription:
-            options.subscriptionId || profile.subscription || undefined,
+            options.subscriptionId && options.subscriptionId !== "*"
+              ? options.subscriptionId
+              : profile.subscription || undefined,
           boundary: options.boundaryId || profile.boundary || undefined,
           function: options.functionId || profile.function || undefined
         };
@@ -83,7 +85,6 @@ function AddCliIdentityFlow({ options, agentId, isUser, flow }: any) {
       };
     }
   }, [
-    generate,
     initToken,
     profile,
     agentId,
@@ -94,21 +95,34 @@ function AddCliIdentityFlow({ options, agentId, isUser, flow }: any) {
     options.subscriptionId
   ]);
 
-  if (initToken) {
-    if (initToken.error) {
-      return (
-        <DialogContent>
-          <PortalError error={initToken.error} />
-        </DialogContent>
-      );
-    }
+  if (!initToken) {
+    return (
+      <DialogContent>
+        <LinearProgress />
+      </DialogContent>
+    );
+  } else if (initToken.error) {
+    return (
+      <DialogContent>
+        <PortalError error={initToken.error} />
+      </DialogContent>
+    );
+  } else {
     const cliInitCommand = `fuse init ${initToken.token}`;
     return (
       <DialogContent>
         <DialogContentText>
-          Ask the user to execute the command below to establish their identity
-          and gain access to the system through the CLI. The command contains a
-          one-time initialization token that will expire in eight hours.
+          Have the {isUser ? "user" : "client"}{" "}
+          <Link
+            target="_blank"
+            color="secondary"
+            href="https://fusebit.io/docs/integrator-guide/getting-started/"
+          >
+            install the Fusebit CLI <OpenInNewIcon fontSize="inherit" />
+          </Link>{" "}
+          and share the following initialization command with them through a
+          secure channel. The one-time initialization token in the command is
+          valid for eight hours.
         </DialogContentText>
         <TextField
           margin="dense"
@@ -121,9 +135,9 @@ function AddCliIdentityFlow({ options, agentId, isUser, flow }: any) {
               <InputAdornment position="end">
                 <IconButton
                   onClick={() => navigator.clipboard.writeText(cliInitCommand)}
-                  color="primary"
+                  color="inherit"
                 >
-                  <FileCopyIcon />
+                  <FileCopyIcon fontSize="inherit" />
                 </IconButton>
               </InputAdornment>
             )
@@ -132,37 +146,6 @@ function AddCliIdentityFlow({ options, agentId, isUser, flow }: any) {
       </DialogContent>
     );
   }
-
-  if (generate) {
-    return (
-      <DialogContent>
-        <LinearProgress />
-      </DialogContent>
-    );
-  }
-
-  return (
-    <DialogContent>
-      <div className={classes.generateButtonContainer}>
-        <Button
-          onClick={() => setGenerate(true)}
-          color="primary"
-          variant="contained"
-          className={classes.generateButton}
-        >
-          Generate CLI initialization command
-        </Button>
-      </div>
-      <DialogContentText>
-        The Fusebit CLI initialization command enables the{" "}
-        {isUser ? "user" : "client"} to bootstrap access to the system using a
-        public/private key pair identity. The command contains a one-time
-        initialization token that remains valid for eight hours. Generating a
-        new initialization command will invalidate previous initialization
-        commands for the {isUser ? "user" : "client"}.
-      </DialogContentText>
-    </DialogContent>
-  );
 }
 
 export default AddCliIdentityFlow;
