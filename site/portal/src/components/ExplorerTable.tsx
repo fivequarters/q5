@@ -368,7 +368,7 @@ export default function ExplorerTable<T>(props: ExplorerTableProps<T>) {
         onDelete={handleDeleteDialogOpen}
       />
       {/* <TableContainer> */}
-      {rows.length === 0 && (
+      {rows.length === 0 && noDataBody && (
         <div className={toolbarClasses.root}>{noDataBody}</div>
       )}
       {(rows.length > 0 || !noDataBody) && (
