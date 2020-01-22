@@ -16,6 +16,7 @@ const useStyles = makeStyles((theme: any) => ({
     color: "white"
   },
   paper: {
+    marginTop: theme.spacing(1),
     minWidth: 422
   },
   header: {
