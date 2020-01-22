@@ -28,7 +28,6 @@ const useStyles = makeStyles((theme: any) => ({
 }));
 
 function AddCliIdentityFlow({ options, agentId, isUser, flow }: any) {
-  const classes = useStyles();
   const { profile } = useProfile();
   const [initToken, setInitToken] = React.useState();
 
