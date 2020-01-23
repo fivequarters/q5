@@ -16,6 +16,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.14.2
+
+_Released 1/22/20_
+
+- **Bug fix** Mitigation for a race condition in keep-alive timing between AWS ALB and Fusebit server that resulted in sporadic HTTP 502 responses.
+
 ## Version 1.14.1
 
 _Released 1/13/20_

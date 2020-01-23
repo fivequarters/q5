@@ -1,15 +1,29 @@
-import debug from 'debug';
+process.env.DEBUG = process.env.DEBUG || 'fusebit';
+
+import Debug from 'debug';
 import http from 'http';
 import app from './app';
 
-debug('flexd-functions:server');
+const debug = Debug('fusebit');
+debug('Starting');
+
+process.on('uncaughtException', (e: Error) => {
+  debug('UNCAUGHT ERROR:', e.stack || e);
+  setTimeout(() => process.exit(1), 100);
+});
 
 const normalizedPort = normalizePort(process.env.PORT || 3001);
 app.set('port', normalizedPort);
 
 const server = http.createServer(app);
-server.listen(normalizedPort);
+// Work-around for the Node 10.15.3 issue
+// See https://shuheikagawa.com/blog/2019/04/25/keep-alive-timeout/
+// See https://github.com/nodejs/node/issues/27363
+// ALB timeout is 120s
 server.keepAliveTimeout = 130 * 1000;
+server.headersTimeout = 150 * 1000;
+
+server.listen(normalizedPort);
 server.on('error', onError);
 server.on('listening', onListening);
 
@@ -39,11 +53,11 @@ function onError(error: any) {
   // handle specific listen errors with friendly messages
   switch (error.code) {
     case 'EACCES':
-      console.error(bind + ' requires elevated privileges');
+      debug(bind + ' requires elevated privileges');
       process.exit(1);
       break;
     case 'EADDRINUSE':
-      console.error(bind + ' is already in use');
+      debug(bind + ' is already in use');
       process.exit(1);
       break;
     default:
