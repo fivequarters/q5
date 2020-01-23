@@ -9,6 +9,7 @@ export enum AccountDataExceptionCode {
   noAccount = 'noAccount',
   noSubscription = 'noSubscription',
   noInitEntry = 'noInitEntry',
+  invalidInitEntry = 'invalidInitEntry',
   noClient = 'noClient',
   noUser = 'noUser',
   noIssuer = 'noIssuer',
@@ -64,6 +65,11 @@ export class AccountDataException extends Exception {
     const agentType = Id.getIdType(agentId) || '<unknown id type>';
     const message = `There is no outstanding initialization entry for ${agentType} '${agentId}'`;
     return new AccountDataException(AccountDataExceptionCode.noInitEntry, message, [agentId]);
+  }
+
+  public static invalidInitEntry() {
+    const message = `Invalid initialization entry`;
+    return new AccountDataException(AccountDataExceptionCode.invalidInitEntry, message);
   }
 
   public static noIdentity(issuer: string, subject: string) {

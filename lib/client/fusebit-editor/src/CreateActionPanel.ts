@@ -80,7 +80,7 @@ export function createActionPanel(
     hideNavLogsElement.addEventListener('click', e => {
       e.preventDefault();
       hideNavLogsElement.style.display = 'none';
-      showNavLogsElement.style.display = null;
+      delete showNavLogsElement.style.display;
       editorContext.updateLogsState(false);
       editorContext.updateNavState(false);
     });
@@ -88,7 +88,7 @@ export function createActionPanel(
   showNavLogsElement &&
     showNavLogsElement.addEventListener('click', e => {
       e.preventDefault();
-      hideNavLogsElement.style.display = null;
+      delete hideNavLogsElement.style.display;
       showNavLogsElement.style.display = 'none';
       editorContext.updateLogsState(true);
       editorContext.updateNavState(true);
@@ -98,14 +98,14 @@ export function createActionPanel(
     expandElement.addEventListener('click', e => {
       e.preventDefault();
       expandElement.style.display = 'none';
-      compressElement.style.display = null;
+      delete compressElement.style.display;
       editorContext.setFullScreen(true);
     });
 
   compressElement &&
     compressElement.addEventListener('click', e => {
       e.preventDefault();
-      expandElement.style.display = null;
+      delete expandElement.style.display;
       compressElement.style.display = 'none';
       editorContext.setFullScreen(false);
     });

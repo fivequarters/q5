@@ -64,6 +64,10 @@ export class AccountContext {
     return ResolvedAgent.create(this.accountConfig, this.dataContext, accountId, jwt, isRootAgent);
   }
 
+  public async validateAccessToken(accountId: string, jwt: string) {
+    return ResolvedAgent.validateAccessToken(this.accountConfig, this.dataContext, accountId, jwt);
+  }
+
   public get account() {
     return this.accountProp;
   }

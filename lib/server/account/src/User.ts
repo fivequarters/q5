@@ -10,7 +10,7 @@ import {
 import { AccountConfig } from './AccountConfig';
 import { ResolvedAgent } from './ResolvedAgent';
 import { IdFactory } from './IdFactory';
-import { Init, IInitEntry } from './Init';
+import { Init, ILegacyPKIInitEntry, IPKIInitEntry, IOauthInitEntry, isIPKIInitEntry, isIOauthInitEntry } from './Init';
 
 // ------------------
 // Internal Functions
@@ -56,8 +56,16 @@ export class User {
     return this.addUser(accountId, user);
   }
 
-  public async init(resolvedAgent: ResolvedAgent, initEntry: IInitEntry): Promise<string> {
-    await this.get(resolvedAgent, initEntry.accountId, initEntry.agentId);
+  public async init(
+    resolvedAgent: ResolvedAgent,
+    initEntry: ILegacyPKIInitEntry | IPKIInitEntry | IOauthInitEntry
+  ): Promise<string> {
+    if (isIPKIInitEntry(initEntry) || isIOauthInitEntry(initEntry)) {
+      await this.get(resolvedAgent, initEntry.profile.account, initEntry.agentId);
+    } else {
+      // legacy PKI format
+      await this.get(resolvedAgent, initEntry.accountId, initEntry.agentId);
+    }
     const initHelper = await Init.create(this.config, this.dataContext);
     return initHelper.init(initEntry);
   }

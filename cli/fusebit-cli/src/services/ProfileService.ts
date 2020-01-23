@@ -451,9 +451,7 @@ export class ProfileService {
 
     if (oauthInitResponse.status !== 200) {
       throw new Error(
-        `Unable to initiate OAuth device flow using ${profile.issuer} authorization endpoint and ${
-          profile.clientId
-        } client ID. HTTP status code: ${oauthInitResponse.status}.`
+        `Unable to initiate OAuth device flow using ${profile.issuer} authorization endpoint and ${profile.clientId} client ID. HTTP status code: ${oauthInitResponse.status}.`
       );
     }
 
@@ -512,9 +510,7 @@ export class ProfileService {
               continue;
             }
             throw new Error(
-              `Authentication unsuccessful: ${oauthPollResponse.data.error}. HTTP status code: ${
-                oauthPollResponse.status
-              }.`
+              `Authentication unsuccessful: ${oauthPollResponse.data.error}. HTTP status code: ${oauthPollResponse.status}.`
             );
           }
         }
@@ -628,6 +624,11 @@ export class ProfileService {
     this.input.io.writeLine();
   }
 
+  public async getNamedExecutionProfile(profileName: string): Promise<IFusebitExecutionProfile> {
+    const profile = await this.execute(() => this.getExecutionProfileDemux(profileName));
+    return profile;
+  }
+
   public async getAgent(profileName: string): Promise<any> {
     const profile = await this.execute(() => this.getExecutionProfileDemux(profileName));
 
@@ -676,16 +677,6 @@ export class ProfileService {
       { name: 'Subscription', value: subscriptionValue },
       { name: 'Boundary', value: boundaryValue },
       { name: 'Function', value: functionValue },
-    ];
-  }
-
-  private getProfileConfirmDetails(profile: IFusebitProfile) {
-    return [
-      { name: 'Deployment', value: profile.baseUrl },
-      { name: 'Account', value: profile.account || notSet },
-      { name: 'Subscription', value: profile.subscription || notSet },
-      { name: 'Boundary', value: profile.boundary || notSet },
-      { name: 'Function', value: profile.function || notSet },
     ];
   }
 
@@ -741,6 +732,25 @@ export class ProfileService {
 
   private async writeErrorMessage(error: Error) {
     await this.executeService.error('Profile Error', error.message, error);
+  }
+
+  private getProfileConfirmDetails(profile: IFusebitProfile) {
+    const isOAuth = profile.clientId && profile.tokenUrl;
+    let details = [
+      { name: 'Type', value: isOAuth ? 'OAuth' : 'PKI' },
+      { name: 'Deployment', value: profile.baseUrl },
+      { name: 'Account', value: profile.account || notSet },
+      { name: 'Subscription', value: profile.subscription || notSet },
+      { name: 'Boundary', value: profile.boundary || notSet },
+      { name: 'Function', value: profile.function || notSet },
+      { name: isOAuth ? 'OAuth Device URL' : 'Issuer', value: profile.issuer },
+    ];
+    if (isOAuth) {
+      details.push({ name: 'OAuth Token URL', value: profile.tokenUrl || notSet });
+      details.push({ name: 'OAuth Client ID', value: profile.clientId || notSet });
+    }
+
+    return details;
   }
 
   private async writeProfile(profile: IFusebitProfile, isDefault: boolean, agentDetails?: IText) {

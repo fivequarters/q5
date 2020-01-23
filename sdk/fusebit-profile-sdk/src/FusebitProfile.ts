@@ -328,6 +328,8 @@ export class FusebitProfile {
       if (!(await this.isKeyUsedByAnyProfiles(name, kid))) {
         await Promise.all([this.dotConfig.removeKeyPair(name, kid), this.dotConfig.removeCachedCreds(name, kid)]);
       }
+    } else {
+      await this.dotConfig.removeCachedCreds(name);
     }
   }
 

@@ -120,17 +120,7 @@ export class ResolvedAgent implements IAgent {
       accountId = accountId || 'root';
       return new ResolvedAgent(dataContext, accountId, rootAgent, rootAgent.identities[0]);
     }
-    const decodedJwtPayload = decodeJwt(jwt);
-    if (!decodedJwtPayload) {
-      throw AccountDataException.invalidJwt(new Error('Unable to decode JWT'));
-    }
-    if (!decodedJwtPayload.iss) {
-      throw AccountDataException.invalidJwt(new Error("JWT does not have 'iss' claim"));
-    }
-    if (!decodedJwtPayload.sub) {
-      throw AccountDataException.invalidJwt(new Error("JWT does not have 'sub' claim"));
-    }
-
+    const decodedJwtPayload = ResolvedAgent.prevalidateAccessToken(jwt);
     const issuerId = decodedJwtPayload.iss;
     const subject = decodedJwtPayload.sub;
     const identity = { issuerId, subject };
@@ -149,6 +139,46 @@ export class ResolvedAgent implements IAgent {
         throw error;
       }
     }
+  }
+
+  private static prevalidateAccessToken(jwt: string) {
+    const decodedJwtPayload = decodeJwt(jwt);
+    if (!decodedJwtPayload) {
+      throw AccountDataException.invalidJwt(new Error('Unable to decode JWT'));
+    }
+    if (!decodedJwtPayload.iss) {
+      throw AccountDataException.invalidJwt(new Error("JWT does not have 'iss' claim"));
+    }
+    if (!decodedJwtPayload.sub) {
+      throw AccountDataException.invalidJwt(new Error("JWT does not have 'sub' claim"));
+    }
+    return decodedJwtPayload;
+  }
+
+  public static async validateAccessTokenSignature(jwt: string, publicKey: string) {
+    const decodedJwtPayload = ResolvedAgent.prevalidateAccessToken(jwt);
+
+    try {
+      await verifyJwt(jwt, publicKey, { algorithms });
+    } catch (error) {
+      throw AccountDataException.invalidJwt(error);
+    }
+
+    return decodedJwtPayload;
+  }
+
+  public static async validateAccessToken(
+    accountConfig: AccountConfig,
+    dataContext: IAccountDataContext,
+    accountId: string,
+    jwt: string
+  ) {
+    const decodedJwtPayload = ResolvedAgent.prevalidateAccessToken(jwt);
+    const issuerId = decodedJwtPayload.iss;
+    const audience = accountConfig.jwtAudience;
+
+    await validateJwt(dataContext, accountId, audience, jwt, issuerId);
+    return decodedJwtPayload;
   }
 
   public isAuthorized(action: string, resource: string) {

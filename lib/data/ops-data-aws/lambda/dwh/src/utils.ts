@@ -25,10 +25,10 @@ export async function bqInsert(ctx: IExportContext, table: string, payload: any[
     return;
   }
   return (
+    //@ts-ignore
     ctx.bq
       .dataset('dwh')
       .table(table)
-      //@ts-ignore
       .insert(payload, { raw: true })
       .then(async () => {
         console.log(`SUCCESS inserting ${payload.length} records to dwh.${table} table in Big Query`);

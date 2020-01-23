@@ -1,8 +1,8 @@
-import { Message, IExecuteInput, Confirm, IConfirmDetail } from '@5qtrs/cli';
+import { Confirm, IConfirmDetail, IExecuteInput, Message } from '@5qtrs/cli';
+import { decodeJwt } from '@5qtrs/jwt';
+import { IText, Text } from '@5qtrs/text';
 import { ExecuteService } from './ExecuteService';
 import { ProfileService } from './ProfileService';
-import { Text, IText } from '@5qtrs/text';
-import { decodeJwt } from '@5qtrs/jwt';
 
 // ------------------
 // Internal Constants
@@ -78,23 +78,79 @@ export interface IFusebitAgent extends IFusebitUpdateAgent {
   id: string;
 }
 
-export interface IFusebitNewInitEntry {
+export interface IFusebitLegacyPKIInitRequest {
   subscriptionId?: string;
   boundaryId?: string;
   functionId?: string;
 }
 
-export interface IFusebitInit extends IFusebitNewInitEntry {
+export interface IFusebitLegacyPKIInitToken {
   accountId: string;
   agentId: string;
   baseUrl: string;
   issuerId: string;
   subject: string;
+  subscriptionId?: string;
+  boundaryId?: string;
+  functionId?: string;
+}
+
+export function isIFusebitLegacyPKIInitToken(o: any): o is IFusebitLegacyPKIInitToken {
+  return o && typeof o === 'object' && o.protocol === undefined;
+}
+
+export interface IFusebitPKIInitToken {
+  protocol: 'pki';
+  agentId: string;
+  profile: {
+    id?: string;
+    displayName?: string;
+    account: string;
+    baseUrl: string;
+    subscription?: string;
+    boundary?: string;
+    function?: string;
+    issuerId: string;
+    subject: string;
+  };
+}
+
+export function isIFusebitPKIInitToken(o: any): o is IFusebitPKIInitToken {
+  return o && typeof o === 'object' && o.protocol === 'pki';
+}
+
+export interface IFusebitOauthInitToken {
+  protocol: 'oauth';
+  agentId: string;
+  profile: {
+    id?: string;
+    displayName?: string;
+    account: string;
+    baseUrl: string;
+    subscription?: string;
+    boundary?: string;
+    function?: string;
+    oauth: {
+      deviceAuthorizationUrl: string;
+      deviceClientId: string;
+      tokenUrl: string;
+    };
+  };
+}
+
+export function isIFusebitOauthInitToken(o: any): o is IFusebitOauthInitToken {
+  return o && typeof o === 'object' && o.protocol === 'oauth';
+}
+
+export interface IFusebitLegacyInitResolve {
+  publicKey: string;
+  keyId: string;
 }
 
 export interface IFusebitInitResolve {
-  publicKey: string;
-  keyId: string;
+  protocol: 'pki' | 'oauth';
+  accessToken: string;
+  publicKey?: string;
 }
 
 export interface IFusebitAgentListOptions {
@@ -396,7 +452,7 @@ export class AgentService {
     return updatedAgent;
   }
 
-  public async initAgent(id: string, initEntry: IFusebitNewInitEntry): Promise<string> {
+  public async initAgent(id: string, initEntry: IFusebitLegacyPKIInitRequest): Promise<string> {
     const profile = await this.profileService.getExecutionProfile(['account']);
 
     const initToken = await this.executeService.executeRequest(
@@ -417,7 +473,9 @@ export class AgentService {
     return initToken;
   }
 
-  public async decodeInitToken(token: string): Promise<IFusebitInit> {
+  public async decodeInitToken(
+    token: string
+  ): Promise<IFusebitLegacyPKIInitToken | IFusebitOauthInitToken | IFusebitPKIInitToken> {
     let decoded;
     try {
       decoded = await decodeJwt(token);
@@ -428,42 +486,117 @@ export class AgentService {
       throw new Error('Init Error');
     }
 
-    const missingValues = [];
-    if (!decoded.accountId) {
-      missingValues.push('accountId');
-    }
+    const missingValues: string[] = [];
+    const ensurePrerequisities = () => {
+      if (missingValues.length) {
+        const message = Text.create(
+          'The init token is missing required properties: ',
+          Text.join(
+            missingValues.map(value => Text.bold(value)),
+            ', '
+          )
+        );
+        this.executeService.error('Init Error', message);
+        throw new Error('Init Error');
+      }
+    };
+
     if (!decoded.agentId) {
       missingValues.push('agentId');
     }
-    if (!decoded.baseUrl) {
-      missingValues.push('baseUrl');
+    if (isIFusebitOauthInitToken(decoded)) {
+      // OAuth device flow
+      if (!decoded.profile.baseUrl) {
+        missingValues.push('profile.baseUrl');
+      }
+      if (!decoded.profile.account) {
+        missingValues.push('profile.account');
+      }
+      if (!decoded.profile.oauth || typeof decoded.profile.oauth !== 'object') {
+        missingValues.push('profile.oauth');
+      }
+      if (!decoded.profile.oauth.deviceAuthorizationUrl) {
+        missingValues.push('profile.oauth.deviceAuthorizationUrl');
+      }
+      if (!decoded.profile.oauth.deviceClientId) {
+        missingValues.push('profile.oauth.deviceClientId');
+      }
+      if (!decoded.profile.oauth.tokenUrl) {
+        missingValues.push('profile.oauth.tokenUrl');
+      }
+      ensurePrerequisities();
+      return {
+        protocol: 'oauth',
+        agentId: decoded.agentId,
+        profile: {
+          id: decoded.profile.id,
+          baseUrl: decoded.profile.baseUrl,
+          account: decoded.profile.account,
+          subscription: decoded.profile.subscription || undefined,
+          boundary: decoded.profile.boundary || undefined,
+          function: decoded.profile.function || undefined,
+          oauth: {
+            deviceAuthorizationUrl: decoded.profile.oauth.deviceAuthorizationUrl,
+            deviceClientId: decoded.profile.oauth.deviceClientId,
+            tokenUrl: decoded.profile.oauth.tokenUrl,
+          },
+        },
+      };
+    } else if (isIFusebitPKIInitToken(decoded)) {
+      // PKI flow
+      if (!decoded.profile.baseUrl) {
+        missingValues.push('profile.baseUrl');
+      }
+      if (!decoded.profile.account) {
+        missingValues.push('profile.account');
+      }
+      if (!decoded.profile.issuerId) {
+        missingValues.push('profile.issuerId');
+      }
+      if (!decoded.profile.subject) {
+        missingValues.push('profile.subject');
+      }
+      ensurePrerequisities();
+      return {
+        protocol: 'pki',
+        agentId: decoded.agentId,
+        profile: {
+          id: decoded.profile.id,
+          baseUrl: decoded.profile.baseUrl,
+          account: decoded.profile.account,
+          subscription: decoded.profile.subscription || undefined,
+          boundary: decoded.profile.boundary || undefined,
+          function: decoded.profile.function || undefined,
+          issuerId: decoded.profile.issuerId,
+          subject: decoded.profile.subject,
+        },
+      };
+    } else {
+      // Legacy PKI flow
+      if (!decoded.accountId) {
+        missingValues.push('accountId');
+      }
+      if (!decoded.baseUrl) {
+        missingValues.push('baseUrl');
+      }
+      if (!decoded.issuerId) {
+        missingValues.push('issuerId');
+      }
+      if (!decoded.subject) {
+        missingValues.push('subject');
+      }
+      ensurePrerequisities();
+      return {
+        accountId: decoded.accountId,
+        agentId: decoded.agentId,
+        subscriptionId: decoded.subscriptionId,
+        boundaryId: decoded.boundaryId,
+        functionId: decoded.functionId,
+        baseUrl: decoded.baseUrl,
+        issuerId: decoded.issuerId,
+        subject: decoded.subject,
+      };
     }
-    if (!decoded.issuerId) {
-      missingValues.push('issuerId');
-    }
-    if (!decoded.subject) {
-      missingValues.push('subject');
-    }
-
-    if (missingValues.length) {
-      const message = Text.create(
-        'The init token is missing required properties: ',
-        Text.join(missingValues.map(value => Text.bold(value)), ', ')
-      );
-      this.executeService.error('Init Error', message);
-      throw new Error('Init Error');
-    }
-
-    return {
-      accountId: decoded.accountId,
-      agentId: decoded.agentId,
-      subscriptionId: decoded.subscriptionId,
-      boundaryId: decoded.boundaryId,
-      functionId: decoded.functionId,
-      baseUrl: decoded.baseUrl,
-      issuerId: decoded.issuerId,
-      subject: decoded.subject,
-    };
   }
 
   public async resolveInit(
@@ -471,7 +604,7 @@ export class AgentService {
     accountId: string,
     agentId: string,
     accessToken: string,
-    initResolve: IFusebitInitResolve
+    initResolve: IFusebitLegacyInitResolve | IFusebitInitResolve
   ): Promise<IFusebitAgent> {
     const agent = await this.executeService.executeRequest(
       {
@@ -543,7 +676,7 @@ export class AgentService {
     }
   }
 
-  public async confirmInitAgent(agent: IFusebitAgent, entry: IFusebitNewInitEntry): Promise<void> {
+  public async confirmInitAgent(agent: IFusebitAgent, entry: IFusebitLegacyPKIInitRequest): Promise<void> {
     if (!this.input.options.quiet) {
       const profile = await this.profileService.getExecutionProfile(['account']);
 
@@ -795,7 +928,7 @@ export class AgentService {
     await message.write(this.input.io);
   }
 
-  private getAgentConfirmDetails(account: string, agent: INewFusebitAgent, entry?: IFusebitNewInitEntry) {
+  private getAgentConfirmDetails(account: string, agent: INewFusebitAgent, entry?: IFusebitLegacyPKIInitRequest) {
     const details: IConfirmDetail[] = [{ name: 'Account', value: account }];
 
     if (this.isUser) {

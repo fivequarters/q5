@@ -24,7 +24,7 @@ const storage = require('./handlers/storage');
 
 var corsManagementOptions = {
   origins: '*',
-  methods: 'GET,POST,PUT,DELETE',
+  methods: 'GET,POST,PUT,DELETE,PATCH',
   exposedHeaders: 'x-fx-logs,x-fx-response-source,content-length',
   credentials: true,
 };
@@ -213,12 +213,12 @@ router.post(
   '/account/:accountId/init',
   cors(corsManagementOptions),
   validate_schema({ params: require('./schemas/api_account') }),
-  authorize({ resolve: true }),
   express.json(),
   validate_schema({
     params: require('./schemas/api_params'),
     body: require('./schemas/initResolve'),
   }),
+  authorize({ resolve: true }),
   agent.initResolve()
 );
 
@@ -286,6 +286,7 @@ router.delete(
   user.userDelete()
 );
 
+router.options('/account/:accountId/user/:userId/init', cors(corsManagementOptions));
 router.post(
   '/account/:accountId/user/:userId/init',
   cors(corsManagementOptions),
@@ -360,6 +361,7 @@ router.delete(
   client.clientDelete()
 );
 
+router.options('/account/:accountId/client/:clientId/init', cors(corsManagementOptions));
 router.post(
   '/account/:accountId/client/:clientId/init',
   cors(corsManagementOptions),
