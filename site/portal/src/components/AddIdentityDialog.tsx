@@ -6,7 +6,7 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import TextField from "@material-ui/core/TextField";
 import React from "react";
 
-function AddIdentityDialog({ onClose, agentId, isUser }: any) {
+function AddIdentityDialog({ onClose }: any) {
   const [addIdentity, setAddIdentity] = React.useState<any>({
     issuerId: "",
     subject: ""
@@ -96,7 +96,12 @@ function AddIdentityDialog({ onClose, agentId, isUser }: any) {
       </DialogContent>
       <DialogActions>
         <Button onClick={() => onClose && onClose()}>Cancel</Button>
-        <Button onClick={handleSubmit} color="primary" disabled={hasError()}>
+        <Button
+          onClick={handleSubmit}
+          color="primary"
+          disabled={hasError()}
+          variant="contained"
+        >
           Add
         </Button>
       </DialogActions>

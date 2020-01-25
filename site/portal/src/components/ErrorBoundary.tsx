@@ -26,6 +26,7 @@ interface IFusebitErrorAction {
 interface IFusebitErrorOptions {
   details: string;
   actions?: IFusebitErrorAction[];
+  source?: string;
 }
 
 class FusebitError extends Error {

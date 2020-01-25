@@ -2,78 +2,7 @@ import MenuItem from "@material-ui/core/MenuItem";
 import Select from "@material-ui/core/Select";
 import React from "react";
 import { useProfile } from "./ProfileProvider";
-
-const actions = [
-  { action: "function:*", description: "Full control of functions" },
-  {
-    action: "function:get",
-    description: "List and get function definitions and build status"
-  },
-  { action: "function:put", description: "Create and update functions" },
-  { action: "function:delete", description: "Delete functions" },
-  {
-    action: "function:get-log",
-    description: "Get real-time logs of functions"
-  }, // boundary or function scope
-  { action: "account:get", description: "Get account details" },
-  {
-    action: "subscription:get",
-    description: "List subscriptions and get subscription details"
-  },
-  { action: "audit:get", description: "Get audit logs" }, // account scope only
-  { action: "user:*", description: "Full control of users" },
-  {
-    action: "user:add",
-    description: "Create users, set initial permissions and identities"
-  },
-  {
-    action: "user:init",
-    description: "Generate initialization tokens for users"
-  },
-  {
-    action: "user:get",
-    description:
-      "List users and get user details, including permissions and identities"
-  },
-  {
-    action: "user:update",
-    description: "Update user details, including permissions and identities"
-  },
-  { action: "user:delete", description: "Delete users" },
-  { action: "client:*", description: "Full control of clients" },
-  {
-    action: "client:add",
-    description: "Create clients, set initial permissions and identities"
-  },
-  {
-    action: "client:init",
-    description: "Generate initialization tokens for clients"
-  },
-  {
-    action: "client:get",
-    description:
-      "List clients and get client details, including permissions and identities"
-  },
-  {
-    action: "client:update",
-    description: "Update client details, including permissions and identities"
-  },
-  { action: "client:delete", description: "Delete clients" },
-  // { action: "account:*", description: "Full control of the account" }, // do we need?
-  // { action: "global:add:account", description: "Create account" }, // no CLI or portal support
-  // { action: "global:delete:account", description: "Delete account" }, // no CLI or portal support
-  // { action: "account:update", description: "Update account details" }, // no API
-  // { action: "subscription:*", description: "Full control of subscriptions" }, // do we need?
-  // { action: "global:add:subscription", description: "Create subscription" }, // no CLI or portal support
-  // { action: "global:delete:subscription", description: "Delete subscription" }, // no CLI or portal support
-  // { action: "subscription:update", description: "Update subscription details" }, // no API
-  { action: "issuer:*", description: "Full control of issuers" },
-  { action: "issuer:add", description: "Create issuers" },
-  { action: "issuer:get", description: "List issuers and get issuer details" },
-  { action: "issuer:update", description: "Update issuers" },
-  { action: "issuer:delete", description: "Delete issuers" }
-  // omitted - storage permissions
-];
+import { actions } from "../lib/Actions";
 
 function PermissionActionSelector({ action, onChange, ...rest }: any) {
   const { profile } = useProfile();
