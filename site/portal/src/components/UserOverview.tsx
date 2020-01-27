@@ -6,13 +6,13 @@ import EmailIcon from "@material-ui/icons/Email";
 import FingerprintIcon from "@material-ui/icons/Fingerprint";
 import PersonIcon from "@material-ui/icons/Person";
 import React from "react";
-import { getUser, normalizeUser, updateUser } from "../lib/Fusebit";
+import { User } from "../lib/FusebitTypes";
+import { modifyAgent, saveAgent, useAgent } from "./AgentProvider";
 import ConfirmNavigation from "./ConfirmNavigation";
-import { FusebitError } from "./ErrorBoundary";
-import PortalError from "./PortalError";
-import { useProfile } from "./ProfileProvider";
-import SaveFab from "./SaveFab";
 import InputWithIcon from "./InputWithIcon";
+import PortalError from "./PortalError";
+import SaveFab from "./SaveFab";
+import { FusebitError } from "./ErrorBoundary";
 
 const useStyles = makeStyles((theme: any) => ({
   gridContainer: {
@@ -27,47 +27,9 @@ const useStyles = makeStyles((theme: any) => ({
 
 function UserOverview({ data, match }: any) {
   const classes = useStyles();
-  const { profile } = useProfile();
-  const { params } = match;
-  const { userId } = params;
-  const [user, setUser] = React.useState<any>(undefined);
+  const [user, setUser] = useAgent();
 
-  const createUserState = (data: any) =>
-    data.error
-      ? data
-      : {
-          existing: data,
-          modified: {
-            ...JSON.parse(JSON.stringify(data))
-          }
-        };
-
-  React.useEffect(() => {
-    let cancelled: boolean = false;
-    if (user === undefined) {
-      (async () => {
-        let data: any;
-        try {
-          data = await getUser(profile, userId as string);
-        } catch (e) {
-          data = {
-            error: new FusebitError("Error loading user information", {
-              details:
-                (e.status || e.statusCode) === 403
-                  ? "You are not authorized to access the user information."
-                  : e.message || "Unknown error."
-            })
-          };
-        }
-        !cancelled && setUser(createUserState(data));
-      })();
-      return () => {
-        cancelled = true;
-      };
-    }
-  }, [user, profile, userId]);
-
-  if (!user) {
+  if (user.status === "loading") {
     return (
       <Grid container className={classes.gridContainer} spacing={2}>
         <Grid item xs={12}>
@@ -77,128 +39,120 @@ function UserOverview({ data, match }: any) {
     );
   }
 
-  if (user.error) {
-    return (
+  if (user.status === "error") {
+    const fusebit = (user.error as FusebitError).fusebit;
+    return fusebit && fusebit.source === "UserOverview" ? (
       <Grid container className={classes.gridContainer} spacing={2}>
         <Grid item xs={12}>
           <PortalError error={user.error} />
         </Grid>
       </Grid>
-    );
+    ) : null;
   }
 
   const handleFirstNameChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    user.modified.firstName = event.target.value;
-    setUser({ ...user });
+    if (user.status === "ready") {
+      (user.modified as User).firstName = event.target.value;
+      modifyAgent(user, setUser, { ...user.modified });
+    }
   };
 
   const handleLastNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    user.modified.lastName = event.target.value;
-    setUser({ ...user });
+    if (user.status === "ready") {
+      (user.modified as User).lastName = event.target.value;
+      modifyAgent(user, setUser, { ...user.modified });
+    }
   };
 
   const handleEmailChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    user.modified.primaryEmail = event.target.value;
-    setUser({ ...user });
+    if (user.status === "ready") {
+      (user.modified as User).primaryEmail = event.target.value;
+      modifyAgent(user, setUser, { ...user.modified });
+    }
   };
 
-  const updateErrorStates = (user: any) => {
-    return user;
-  };
-
-  const isDirty = () => {
-    const existing = normalizeUser(user.existing);
-    const modified = normalizeUser(user.modified);
-    const isDirty = JSON.stringify(existing) !== JSON.stringify(modified);
-    return isDirty;
-  };
-
-  const isError = () => {
-    return false;
-  };
-
-  const handleSave = async () => {
-    let data: any;
-    try {
-      data = await updateUser(profile, normalizeUser(user.modified));
-    } catch (e) {
-      data = {
-        error: new FusebitError("Error saving user changes", {
+  const handleSave = () =>
+    saveAgent(
+      user,
+      setUser,
+      e =>
+        new FusebitError(`Error updating user ${user.agentId}`, {
           details:
             (e.status || e.statusCode) === 403
-              ? "You are not authorized to make user changes."
+              ? `You are not authorized to access the user information.`
               : e.message || "Unknown error.",
-          actions: [
-            {
-              text: "Back to user",
-              func: () => setUser(undefined)
-            }
-          ]
+          source: "UserOverview"
         })
-      };
-    }
-    setUser(updateErrorStates(createUserState(data)));
-  };
+    );
 
-  return (
-    <Grid container spacing={2} className={classes.gridContainer}>
-      <Grid item xs={8} className={classes.form}>
-        <form noValidate autoComplete="off">
-          <InputWithIcon icon={<FingerprintIcon />}>
-            <TextField
-              id="userId"
-              label="User ID"
-              variant="outlined"
-              disabled
-              value={user.existing.id}
-              fullWidth
-            />
-          </InputWithIcon>
-          <InputWithIcon icon={<PersonIcon />}>
-            <Grid container spacing={2}>
-              <Grid item xs={6}>
-                <TextField
-                  id="firstName"
-                  label="First Name"
-                  variant="outlined"
-                  value={user.modified.firstName || ""}
-                  onChange={handleFirstNameChange}
-                  fullWidth
-                  autoFocus
-                />
+  if (user.status === "ready" || user.status === "updating") {
+    return (
+      <Grid container spacing={2} className={classes.gridContainer}>
+        <Grid item xs={8} className={classes.form}>
+          <form noValidate autoComplete="off">
+            <InputWithIcon icon={<FingerprintIcon />}>
+              <TextField
+                id="userId"
+                label="User ID"
+                variant="outlined"
+                disabled
+                value={user.existing.id}
+                fullWidth
+              />
+            </InputWithIcon>
+            <InputWithIcon icon={<PersonIcon />}>
+              <Grid container spacing={2}>
+                <Grid item xs={6}>
+                  <TextField
+                    id="firstName"
+                    label="First Name"
+                    variant="outlined"
+                    value={(user.modified as User).firstName || ""}
+                    onChange={handleFirstNameChange}
+                    disabled={user.status !== "ready"}
+                    fullWidth
+                    autoFocus
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    id="lastName"
+                    label="Last Name"
+                    variant="outlined"
+                    value={(user.modified as User).lastName || ""}
+                    disabled={user.status !== "ready"}
+                    onChange={handleLastNameChange}
+                    fullWidth
+                    // autoFocus
+                  />
+                </Grid>
               </Grid>
-              <Grid item xs={6}>
-                <TextField
-                  id="lastName"
-                  label="Last Name"
-                  variant="outlined"
-                  value={user.modified.lastName || ""}
-                  onChange={handleLastNameChange}
-                  fullWidth
-                  // autoFocus
-                />
-              </Grid>
-            </Grid>
-          </InputWithIcon>
-          <InputWithIcon icon={<EmailIcon />}>
-            <TextField
-              id="primaryEmail"
-              label="Email"
-              variant="outlined"
-              type="email"
-              value={user.modified.primaryEmail || ""}
-              onChange={handleEmailChange}
-              fullWidth
-            />
-          </InputWithIcon>
-        </form>
+            </InputWithIcon>
+            <InputWithIcon icon={<EmailIcon />}>
+              <TextField
+                id="primaryEmail"
+                label="Email"
+                variant="outlined"
+                type="email"
+                value={(user.modified as User).primaryEmail || ""}
+                disabled={user.status !== "ready"}
+                onChange={handleEmailChange}
+                fullWidth
+              />
+            </InputWithIcon>
+          </form>
+        </Grid>
+        {user.dirty && <ConfirmNavigation />}
+        {user.dirty && user.status === "ready" && (
+          <SaveFab onClick={handleSave} />
+        )}
       </Grid>
-      {isDirty() && <ConfirmNavigation />}
-      {isDirty() && <SaveFab onClick={handleSave} disabled={isError()} />}
-    </Grid>
-  );
+    );
+  }
+
+  return null;
 }
 
 export default UserOverview;

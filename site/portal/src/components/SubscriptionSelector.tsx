@@ -13,6 +13,7 @@ function SubscriptionSelector({
   data,
   onNewData,
   enableAnySubscription,
+  disabled,
   ...rest
 }: any) {
   const { profile } = useProfile();
@@ -64,6 +65,7 @@ function SubscriptionSelector({
           ""
         }
         onChange={handleChange}
+        disabled={!!disabled}
         IconComponent={loading ? SubscriptionsLoading : undefined}
         // {...rest}
       >

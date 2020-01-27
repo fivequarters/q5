@@ -3,13 +3,20 @@ import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogTitle from "@material-ui/core/DialogTitle";
+import LinearProgress from "@material-ui/core/LinearProgress";
 import TextField from "@material-ui/core/TextField";
 import React from "react";
+import { modifyAgent, saveAgent, useAgent } from "./AgentProvider";
+import PortalError from "./PortalError";
 
-function EditPermissionsAsJsonDialog({ onClose, agent }: any) {
+function EditPermissionsAsJsonDialog({ onClose }: any) {
+  const [agent, setAgent] = useAgent();
   const [data, setData] = React.useState<any>({
     permissionsSerialized: JSON.stringify(
-      (agent.access && agent.access.allow) || [],
+      (agent.status === "ready" &&
+        agent.modified.access &&
+        agent.modified.access.allow) ||
+        [],
       null,
       2
     ),
@@ -60,48 +67,76 @@ function EditPermissionsAsJsonDialog({ onClose, agent }: any) {
 
   const hasError = () => !!data.permissionsError;
 
-  const handleSubmit = () => {
-    onClose &&
-      onClose(
-        JSON.parse(data.permissionsSerialized).map((p: any) => ({
-          action: p.action,
-          resource: p.resource
-        }))
-      );
+  const handleSubmit = async () => {
+    if (agent.status === "ready") {
+      const allow = JSON.parse(data.permissionsSerialized).map((p: any) => ({
+        action: p.action,
+        resource: p.resource
+      }));
+
+      agent.modified.access = { allow };
+      modifyAgent(agent, setAgent, { ...agent.modified });
+      saveAgent(agent, setAgent, undefined, e => !e && onClose && onClose());
+    }
   };
 
   return (
     <Dialog
       open={true}
-      onClose={() => onClose && onClose(false)}
+      onClose={() => agent.status === "ready" && onClose && onClose(false)}
       aria-labelledby="form-dialog-title"
       maxWidth="md"
       fullWidth
       // classes={{ paper: classes.dialogPaper }}
     >
-      <DialogTitle id="form-dialog-title">Edit permissions</DialogTitle>
-      <DialogContent>
-        <TextField
-          autoFocus
-          margin="dense"
-          id="permissions"
-          label="Permissions"
-          variant="filled"
-          helperText={
-            data.permissionsError ||
-            "A JSON array of objects, each with 'action' and 'resource' string properties."
-          }
-          fullWidth
-          multiline
-          rows={14}
-          error={hasError()}
-          value={data.permissionsSerialized}
-          onChange={handlePermissionsChange}
-        />
-      </DialogContent>
+      <DialogTitle id="form-dialog-title">
+        Edit {agent.isUser ? "user" : "client"} permissions
+      </DialogTitle>
+      {(agent.status === "ready" || agent.status === "updating") && (
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            id="permissions"
+            label="Permissions"
+            variant="filled"
+            helperText={
+              data.permissionsError ||
+              "A JSON array of objects, each with 'action' and 'resource' string properties."
+            }
+            fullWidth
+            multiline
+            rows={14}
+            error={hasError()}
+            value={data.permissionsSerialized}
+            onChange={handlePermissionsChange}
+            disabled={agent.status !== "ready"}
+          />
+        </DialogContent>
+      )}
+      {agent.status === "error" && (
+        <DialogContent>
+          <PortalError error={agent.error} />
+        </DialogContent>
+      )}
+      {agent.status === "loading" && (
+        <DialogContent>
+          <LinearProgress />
+        </DialogContent>
+      )}
       <DialogActions>
-        <Button onClick={() => onClose && onClose()}>Cancel</Button>
-        <Button onClick={handleSubmit} color="primary" disabled={hasError()}>
+        <Button
+          onClick={() => onClose && onClose()}
+          disabled={agent.status === "updating"}
+        >
+          Cancel
+        </Button>
+        <Button
+          onClick={handleSubmit}
+          color="primary"
+          variant="contained"
+          disabled={agent.status !== "ready" || hasError()}
+        >
           Save
         </Button>
       </DialogActions>

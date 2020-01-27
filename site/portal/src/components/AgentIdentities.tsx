@@ -10,10 +10,10 @@ import ConfirmNavigation from "./ConfirmNavigation";
 import EntityCard from "./EntityCard";
 import { FusebitError } from "./ErrorBoundary";
 import PortalError from "./PortalError";
-import { useProfile } from "./ProfileProvider";
 import SaveFab from "./SaveFab";
 import AddIdentityDialog from "./AddIdentityDialog";
 import Link from "@material-ui/core/Link";
+import { modifyAgent, saveAgent, useAgent, reloadAgent } from "./AgentProvider";
 
 const useStyles = makeStyles((theme: any) => ({
   gridContainer: {
@@ -37,58 +37,12 @@ const useStyles = makeStyles((theme: any) => ({
   }
 }));
 
-function AgentIdentities({
-  data,
-  match,
-  getAgent,
-  updateAgent,
-  normalizeAgent,
-  isUser
-}: any) {
+function AgentIdentities() {
   const classes = useStyles();
-  const { profile } = useProfile();
-  const { params } = match;
-  const { clientId, userId } = params;
-  const agentId = (isUser ? userId : clientId) as string;
-  const [agent, setAgent] = React.useState<any>(undefined);
+  const [agent, setAgent] = useAgent();
   const [dialogOpen, setDialogOpen] = React.useState(false);
 
-  const createAgentState = (data: any) =>
-    data.error
-      ? data
-      : {
-          existing: data,
-          modified: {
-            ...JSON.parse(JSON.stringify(data))
-          }
-        };
-
-  React.useEffect(() => {
-    let cancelled: boolean = false;
-    if (agent === undefined) {
-      (async () => {
-        let data: any;
-        try {
-          data = await getAgent(profile, agentId);
-        } catch (e) {
-          data = {
-            error: new FusebitError("Error loading identity information", {
-              details:
-                (e.status || e.statusCode) === 403
-                  ? "You are not authorized to access the identity information."
-                  : e.message || "Unknown error."
-            })
-          };
-        }
-        !cancelled && setAgent(createAgentState(data));
-      })();
-      return () => {
-        cancelled = true;
-      };
-    }
-  }, [agent, profile, agentId, getAgent]);
-
-  if (!agent) {
+  if (agent.status === "loading") {
     return (
       <Grid container className={classes.gridContainer} spacing={2}>
         <Grid item xs={12}>
@@ -98,38 +52,23 @@ function AgentIdentities({
     );
   }
 
-  if (agent.error) {
-    return (
+  if (agent.status === "error") {
+    const fusebit = (agent.error as FusebitError).fusebit;
+    return fusebit && fusebit.source === "AgentIdentities" ? (
       <Grid container className={classes.gridContainer} spacing={2}>
         <Grid item xs={12}>
           <PortalError error={agent.error} />
         </Grid>
       </Grid>
-    );
+    ) : null;
   }
 
-  const updateErrorStates = (agent: any) => {
-    return agent;
-  };
-
-  const isDirty = () => {
-    const existing = normalizeAgent(agent.existing);
-    const modified = normalizeAgent(agent.modified);
-    const isDirty = JSON.stringify(existing) !== JSON.stringify(modified);
-    return isDirty;
-  };
-
-  const isError = () => {
-    return false;
-  };
-
   const handleSave = async () => {
-    let data: any;
-    try {
-      data = await updateAgent(profile, normalizeAgent(agent.modified));
-    } catch (e) {
-      data = {
-        error: new FusebitError("Error saving identity changes", {
+    saveAgent(
+      agent,
+      setAgent,
+      e =>
+        new FusebitError("Error saving identity changes", {
           details:
             (e.status || e.statusCode) === 403
               ? "You are not authorized to make identity changes."
@@ -137,13 +76,12 @@ function AgentIdentities({
           actions: [
             {
               text: "Back to identities",
-              func: () => setAgent(undefined)
+              func: () => reloadAgent(agent, setAgent)
             }
-          ]
+          ],
+          source: "AgentIdentities"
         })
-      };
-    }
-    setAgent(updateErrorStates(createAgentState(data)));
+    );
   };
 
   const handleRemoveIdentity = (identity: any) => {
@@ -151,7 +89,7 @@ function AgentIdentities({
       const i = agent.modified.identities.indexOf(identity);
       if (i > -1) {
         agent.modified.identities.splice(i, 1);
-        setAgent({ ...agent });
+        modifyAgent(agent, setAgent, { ...agent.modified });
       }
     }
   };
@@ -161,7 +99,7 @@ function AgentIdentities({
     if (identity) {
       agent.modified.identities = agent.modified.identities || [];
       agent.modified.identities.push(identity);
-      setAgent({ ...agent });
+      modifyAgent(agent, setAgent, { ...agent.modified });
     }
   };
 
@@ -173,9 +111,10 @@ function AgentIdentities({
             agent.modified.identities.length === 0) && (
             <div>
               <Typography>
-                The {isUser ? "user" : "client"} has no identities. You must add
-                at least one identity before the {isUser ? "user" : "client"}{" "}
-                can authenticate and access the system.
+                The {agent.isUser ? "user" : "client"} has no identities. You
+                must add at least one identity before the{" "}
+                {agent.isUser ? "user" : "client"} can authenticate and access
+                the system.
               </Typography>
             </div>
           )}
@@ -215,17 +154,13 @@ function AgentIdentities({
               Add identity
             </Button>
           </div>
-          {dialogOpen && (
-            <AddIdentityDialog
-              onClose={handleAddIdentity}
-              agentId={agentId}
-              isUser={isUser}
-            />
-          )}
+          {dialogOpen && <AddIdentityDialog onClose={handleAddIdentity} />}
         </div>
       </Grid>
-      {isDirty() && <ConfirmNavigation />}
-      {isDirty() && <SaveFab onClick={handleSave} disabled={isError()} />}
+      {agent.dirty && <ConfirmNavigation />}
+      {agent.dirty && (
+        <SaveFab onClick={handleSave} disabled={agent.status !== "ready"} />
+      )}
     </Grid>
   );
 }
