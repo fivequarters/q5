@@ -130,7 +130,7 @@ function FunctionResourceSelector({
         fullWidth
         variant="filled"
         autoFocus
-        className={classes.inputField}
+        // className={classes.inputField}
         disabled={!!disabled}
       />
       <BoundarySelector

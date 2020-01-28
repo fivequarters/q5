@@ -5,25 +5,17 @@ import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import LinearProgress from "@material-ui/core/LinearProgress";
-import MenuItem from "@material-ui/core/MenuItem";
-import Select from "@material-ui/core/Select";
 import Step from "@material-ui/core/Step";
 import StepLabel from "@material-ui/core/StepLabel";
 import Stepper from "@material-ui/core/Stepper";
 import { makeStyles } from "@material-ui/core/styles";
-import Table from "@material-ui/core/Table";
-import TableBody from "@material-ui/core/TableBody";
-import TableCell from "@material-ui/core/TableCell";
-// import TableContainer from "@material-ui/core/TableContainer";
-import TableHead from "@material-ui/core/TableHead";
-import TableRow from "@material-ui/core/TableRow";
 import GridOnIcon from "@material-ui/icons/GridOn";
 import React from "react";
-import { actionsHash, roles, rolesHash } from "../lib/Actions";
-import { IFusebitProfile } from "../lib/Settings";
-import { modifyAgent, saveAgent, useAgent, formatAgent } from "./AgentProvider";
-import FunctionResourceCrumb from "./FunctionResourceCrumb";
+import { createPermissionsFromRole, roles, rolesHash } from "../lib/Actions";
+import { formatAgent, modifyAgent, saveAgent, useAgent } from "./AgentProvider";
 import FunctionResourceSelector from "./FunctionResourceSelector";
+import PermissionsReviewTable from "./PermissionReviewTable";
+import PermissionRoleSelector from "./PermissionRoleSelector";
 import PortalError from "./PortalError";
 import { useProfile } from "./ProfileProvider";
 
@@ -41,29 +33,6 @@ const useStyles = makeStyles((theme: any) => ({
     marginTop: theme.spacing(2)
   }
 }));
-
-const makeResource = (
-  profile: IFusebitProfile,
-  action: string,
-  options: any
-) => {
-  let resource = [`/account/${profile.account}/`];
-  if (action.indexOf("function:") === 0) {
-    if (
-      options.subscriptionId.trim() &&
-      options.subscriptionId.trim() !== "*"
-    ) {
-      resource.push(`subscription/${options.subscriptionId.trim()}/`);
-      if (options.boundaryId.trim()) {
-        resource.push(`boundary/${options.boundaryId.trim()}/`);
-        if (options.functionId.trim()) {
-          resource.push(`function/${options.functionId.trim()}/`);
-        }
-      }
-    }
-  }
-  return resource.join("");
-};
 
 const createPermissionId = (permission: any) =>
   `${permission.action}#${permission.resource}`;
@@ -92,15 +61,13 @@ function AddPermissionSetDialog({ onClose, data, onNewData }: any) {
           allowHash[createPermissionId(e)] = true;
         }
       );
-      rolesHash[role.role].actions.forEach((a: string) => {
-        const permission = {
-          action: a,
-          resource: makeResource(profile, a, resource.parts)
-        };
-        if (!allowHash[createPermissionId(permission)]) {
-          allow.push(permission);
+      createPermissionsFromRole(profile, role, resource.parts).forEach(
+        permission => {
+          if (!allowHash[createPermissionId(permission)]) {
+            allow.push(permission);
+          }
         }
-      });
+      );
       agent.modified.access = { allow };
       modifyAgent(agent, setAgent, { ...agent.modified });
       saveAgent(agent, setAgent, undefined, e => !e && onClose && onClose());
@@ -126,16 +93,6 @@ function AddPermissionSetDialog({ onClose, data, onNewData }: any) {
     setActiveStep(nextStep);
   };
 
-  const handleRoleChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    let roleName = event.target.value as string;
-    for (var i = 0; i < roles.length; i++) {
-      if (roles[i].role === roleName) {
-        setRole(roles[i]);
-        break;
-      }
-    }
-  };
-
   function roleSelector() {
     return (
       <DialogContent>
@@ -146,21 +103,12 @@ function AddPermissionSetDialog({ onClose, data, onNewData }: any) {
           next screen you will be able to select the resource scope for this
           permission set.
         </DialogContentText>
-        <Select
-          id="roleChoice"
-          value={role.role}
-          fullWidth
-          variant="filled"
-          onChange={handleRoleChange}
+        <PermissionRoleSelector
+          role={role}
+          onRoleChange={(role: any) => setRole(role)}
           className={classes.inputField}
           autoFocus
-        >
-          {roles.map((a: any) => (
-            <MenuItem key={a.role} value={a.role}>
-              <strong>{a.title}</strong> - {a.description}
-            </MenuItem>
-          ))}
-        </Select>
+        />
       </DialogContent>
     );
   }
@@ -214,21 +162,6 @@ function AddPermissionSetDialog({ onClose, data, onNewData }: any) {
         </DialogContent>
       );
     } else if (agent.status === "ready" || agent.status === "updating") {
-      const permissions = rolesHash[role.role].actions.map((a: string) => ({
-        action: (
-          <React.Fragment>
-            <strong>{actionsHash[a].action}</strong> -{" "}
-            {actionsHash[a].description}
-          </React.Fragment>
-        ),
-        resource:
-          a.indexOf("function:") === 0 ? (
-            <FunctionResourceCrumb data={data} options={resource.parts} />
-          ) : (
-            <FunctionResourceCrumb data={data} options={{}} />
-          )
-      }));
-
       return (
         <DialogContent>
           <DialogContentText>
@@ -236,24 +169,11 @@ function AddPermissionSetDialog({ onClose, data, onNewData }: any) {
             {agent.isUser ? "user" : "client"}{" "}
             <strong>{formatAgent(agent)}</strong>:
           </DialogContentText>
-          {/* <DialogContentText> */}
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Action</TableCell>
-                <TableCell>Resource</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {permissions.map((row: any, i: number) => (
-                <TableRow key={i}>
-                  <TableCell>{row.action}</TableCell>
-                  <TableCell>{row.resource}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          {/* </DialogContentText> */}
+          <PermissionsReviewTable
+            data={data}
+            actions={rolesHash[role.role].actions}
+            resource={resource}
+          />
         </DialogContent>
       );
     }

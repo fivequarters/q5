@@ -24,6 +24,7 @@ import UserOverview from "./UserOverview";
 import AgentIdentities from "./AgentIdentities";
 import AgentAccess from "./AgentAccess";
 import UserActionFab from "./UserActionFab";
+import NewUser from "./NewUser";
 
 import Paper from "@material-ui/core/Paper";
 import Tabs from "@material-ui/core/Tabs";
@@ -146,14 +147,21 @@ const ExplorerTabs = {
   ]
 };
 
-function ProfileExplorer({ ...rest }) {
+function ProfileExplorer({ ...rest }: any) {
   const history = useHistory();
   const { profile } = useProfile();
   const classes = useStyles();
   const settings = getLocalSettings() as IFusebitSettings;
   const [data, setData] = React.useState({});
 
-  function ExplorerView({ children, tabs, match, detailsFullView, fab }: any) {
+  function ExplorerView({
+    breadcrumbSettings,
+    children,
+    tabs,
+    match,
+    detailsFullView,
+    fab
+  }: any) {
     const { path } = match;
     // Last segment of the URL indicates the selected tab
     const selectedTab = path.split("/").pop();
@@ -162,14 +170,14 @@ function ProfileExplorer({ ...rest }) {
         <Grid container>
           <Grid item xs={12}>
             <Paper elevation={1} square={true} className={classes.paper}>
-              <ProfileBreadcrumb />
+              <ProfileBreadcrumb settings={breadcrumbSettings} />
               <Tabs
-                value={selectedTab}
+                value={tabs ? selectedTab : undefined}
                 indicatorColor="primary"
                 textColor="primary"
                 onChange={(event, newTab) => history.push(newTab)}
               >
-                {tabs.map((tab: any) => (
+                {(tabs || []).map((tab: any) => (
                   <Tab key={tab.name} label={tab.name} value={tab.name} />
                 ))}
               </Tabs>
@@ -253,6 +261,16 @@ function ProfileExplorer({ ...rest }) {
         render={({ ...rest }) => (
           <ExplorerView tabs={ExplorerTabs.account} {...rest}>
             <AccountUsers data={data} onNewData={handleOnNewData} {...rest} />
+          </ExplorerView>
+        )}
+      />
+
+      <Route
+        path="/accounts/:accountId/users/new"
+        exact={true}
+        render={({ ...rest }) => (
+          <ExplorerView breadcrumbSettings={{ newUser: true }} {...rest}>
+            <NewUser data={data} onNewData={handleOnNewData} />
           </ExplorerView>
         )}
       />

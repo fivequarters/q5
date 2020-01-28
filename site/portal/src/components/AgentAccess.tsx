@@ -1,10 +1,9 @@
-import Button from "@material-ui/core/Button";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import LinearProgress from "@material-ui/core/LinearProgress";
-import { makeStyles } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import React from "react";
 import { Permission } from "../lib/FusebitTypes";
+import ActionButton from "./ActionButton";
 import AddPermissionDialog from "./AddPermissionDialog";
 import { modifyAgent, reloadAgent, saveAgent, useAgent } from "./AgentProvider";
 import EditPermissionsAsJsonDialog from "./EditPermissionsAsJsonDialog";
@@ -16,12 +15,6 @@ interface ViewRow {
   resource: string;
   id: string;
 }
-
-const useStyles = makeStyles((theme: any) => ({
-  actionButton: {
-    marginLeft: theme.spacing(5)
-  }
-}));
 
 const createPermissionId = (permission: any) =>
   `${permission.action}#${permission.resource}`;
@@ -36,7 +29,6 @@ const createAccessView = (access: any) =>
   ((access && access.allow) || []).map(createViewRow);
 
 function AgentAccess() {
-  const classes = useStyles();
   const [agent, setAgent] = useAgent();
   const { profile } = useProfile();
   const [data, setData] = React.useState<any>(undefined);
@@ -145,24 +137,18 @@ function AgentAccess() {
             }
             actions={
               <React.Fragment>
-                <Button
-                  variant="outlined"
-                  color="primary"
-                  className={classes.actionButton}
+                <ActionButton
                   disabled={agent.status !== "ready"}
                   onClick={() => setAddPermissionDialogOpen(true)}
                 >
                   Add&nbsp;permission
-                </Button>
-                <Button
-                  variant="outlined"
-                  color="primary"
-                  className={classes.actionButton}
+                </ActionButton>
+                <ActionButton
                   disabled={agent.status !== "ready"}
                   onClick={() => setEditPermissionsDialogOpen(true)}
                 >
                   Edit&nbsp;as&nbsp;JSON
-                </Button>
+                </ActionButton>
               </React.Fragment>
             }
             enableSelection={true}
