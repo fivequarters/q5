@@ -4,38 +4,26 @@ import IconButton from "@material-ui/core/IconButton";
 import InputAdornment from "@material-ui/core/InputAdornment";
 import LinearProgress from "@material-ui/core/LinearProgress";
 import Link from "@material-ui/core/Link";
-import { makeStyles } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import FileCopyIcon from "@material-ui/icons/FileCopy";
 import OpenInNewIcon from "@material-ui/icons/OpenInNew";
 import React from "react";
 import { getInitToken } from "../lib/Fusebit";
+import { useAgent } from "./AgentProvider";
 import { FusebitError } from "./ErrorBoundary";
 import PortalError from "./PortalError";
 import { useProfile } from "./ProfileProvider";
 
-const useStyles = makeStyles((theme: any) => ({
-  generateButtonContainer: {
-    width: "100%",
-    display: "flex"
-  },
-  generateButton: {
-    marginLeft: "auto",
-    marginRight: "auto",
-    marginTop: theme.spacing(2),
-    marginBottom: theme.spacing(4)
-  }
-}));
-
-function AddCliIdentityFlow({ options, agentId, isUser, flow }: any) {
+function AddCliIdentityFlow({ options, flow }: any) {
   const { profile } = useProfile();
+  const [agent] = useAgent();
   const [initToken, setInitToken] = React.useState();
 
   if (flow !== "pki" && flow !== "oauth-device") {
     throw new Error(`Unsupported flow: ${flow}`);
   }
 
-  if (flow === "auth0-device" && !isUser) {
+  if (flow === "auth0-device" && !agent.isUser) {
     throw new Error(
       "Flow 'oauth-device' is not supported for clients, only users"
     );
@@ -59,9 +47,9 @@ function AddCliIdentityFlow({ options, agentId, isUser, flow }: any) {
           data = {
             token: await getInitToken(
               augmentedProfile,
-              agentId,
+              agent.agentId,
               flow === "pki" ? "pki" : "oauth",
-              isUser
+              agent.isUser
             )
           };
         } catch (e) {
@@ -86,9 +74,9 @@ function AddCliIdentityFlow({ options, agentId, isUser, flow }: any) {
   }, [
     initToken,
     profile,
-    agentId,
+    agent.agentId,
     flow,
-    isUser,
+    agent.isUser,
     options.boundaryId,
     options.functionId,
     options.subscriptionId
@@ -111,7 +99,7 @@ function AddCliIdentityFlow({ options, agentId, isUser, flow }: any) {
     return (
       <DialogContent>
         <DialogContentText>
-          Have the {isUser ? "user" : "client"}{" "}
+          Have the {agent.isUser ? "user" : "client"}{" "}
           <Link
             target="_blank"
             color="secondary"

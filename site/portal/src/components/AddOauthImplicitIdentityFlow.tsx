@@ -3,7 +3,6 @@ import DialogContentText from "@material-ui/core/DialogContentText";
 import IconButton from "@material-ui/core/IconButton";
 import InputAdornment from "@material-ui/core/InputAdornment";
 import LinearProgress from "@material-ui/core/LinearProgress";
-import { makeStyles } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import FileCopyIcon from "@material-ui/icons/FileCopy";
 import React from "react";
@@ -11,23 +10,11 @@ import { getInitToken } from "../lib/Fusebit";
 import { FusebitError } from "./ErrorBoundary";
 import PortalError from "./PortalError";
 import { useProfile } from "./ProfileProvider";
+import { useAgent } from "./AgentProvider";
 
-const useStyles = makeStyles((theme: any) => ({
-  generateButtonContainer: {
-    width: "100%",
-    display: "flex"
-  },
-  generateButton: {
-    marginLeft: "auto",
-    marginRight: "auto",
-    marginTop: theme.spacing(2),
-    marginBottom: theme.spacing(4)
-  }
-}));
-
-function AddOAuthImplicitIdentityFlow({ options, agentId }: any) {
-  const classes = useStyles();
+function AddOAuthImplicitIdentityFlow({ options }: any) {
   const { profile } = useProfile();
+  const [agent] = useAgent();
   const [initToken, setInitToken] = React.useState();
 
   React.useEffect(() => {
@@ -46,7 +33,12 @@ function AddOAuthImplicitIdentityFlow({ options, agentId }: any) {
         };
         try {
           data = {
-            token: await getInitToken(augmentedProfile, agentId, "oauth", true)
+            token: await getInitToken(
+              augmentedProfile,
+              agent.agentId,
+              "oauth",
+              true
+            )
           };
         } catch (e) {
           data = {
@@ -64,7 +56,7 @@ function AddOAuthImplicitIdentityFlow({ options, agentId }: any) {
         cancelled = true;
       };
     }
-  }, [initToken, profile, agentId]);
+  }, [initToken, profile, agent.agentId, options]);
 
   if (!initToken) {
     return (

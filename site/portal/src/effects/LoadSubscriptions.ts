@@ -14,6 +14,13 @@ export default function loadSubscriptions(
         let subscriptions: any;
         try {
           subscriptions = { data: await getSubscriptions(profile) };
+          subscriptions.dataHash = (subscriptions.data as any[]).reduce<any>(
+            (current, value) => {
+              current[value.id] = value;
+              return current;
+            },
+            {}
+          );
         } catch (e) {
           subscriptions = {
             error: new FusebitError("Error loading subscription information", {

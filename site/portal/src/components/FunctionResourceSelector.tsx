@@ -15,6 +15,7 @@ function FunctionResourceSelector({
   data,
   onNewData,
   resource,
+  disabled,
   onResourceChange
 }: any) {
   const classes = useStyles();
@@ -130,6 +131,7 @@ function FunctionResourceSelector({
         variant="filled"
         autoFocus
         className={classes.inputField}
+        disabled={!!disabled}
       />
       <BoundarySelector
         data={data}
@@ -138,7 +140,7 @@ function FunctionResourceSelector({
           subscriptionSelected ? resource.parts.subscriptionId : undefined
         }
         boundaryId={resource.parts.boundaryId}
-        disabled={!subscriptionSelected}
+        disabled={!!disabled || !subscriptionSelected}
         fullWidth
         variant="filled"
         onChange={handleBoundaryIdChange}
@@ -159,6 +161,7 @@ function FunctionResourceSelector({
         }
         functionId={resource.parts.functionId}
         disabled={
+          !!disabled ||
           !!!(
             subscriptionSelected &&
             resource.parts.boundaryId &&

@@ -4,7 +4,7 @@ import WarningIcon from "@material-ui/icons/Warning";
 import React from "react";
 
 const useStyles = makeStyles((theme: any) => ({
-  card: {
+  card: (props: any) => ({
     minWidth: 200,
     width: "100%",
     marginTop: theme.spacing(2),
@@ -14,8 +14,11 @@ const useStyles = makeStyles((theme: any) => ({
     alignItems: "stretch",
     // minHeight: 114,
     // height: 114,
-    backgroundColor: theme.palette.secondary.main
-  },
+    backgroundColor:
+      props.color === "primary"
+        ? theme.palette.primary.main
+        : theme.palette.secondary.main
+  }),
   cardIcon: {
     display: "flex",
     alignItems: "center",
@@ -37,14 +40,9 @@ const useStyles = makeStyles((theme: any) => ({
 }));
 
 function WarningCard({ icon, children, color, ...rest }: any) {
-  const classes = useStyles();
+  const classes = useStyles({ color });
   return (
-    <Paper
-      className={classes.card}
-      elevation={0}
-      color={color || "secondary"}
-      {...rest}
-    >
+    <Paper className={classes.card} elevation={0} {...rest}>
       <div className={classes.cardIcon}>{icon || <WarningIcon />}</div>
       <div className={classes.cardContent}>{children}</div>
     </Paper>

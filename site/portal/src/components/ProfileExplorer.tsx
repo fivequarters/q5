@@ -7,7 +7,6 @@ import ProfileSelectorWithDetails from "./ProfileSelectorWithDetails";
 import ProfileBreadcrumb from "./ProfileBreadcrumb";
 import Grid from "@material-ui/core/Grid";
 import { FusebitError } from "./ErrorBoundary";
-import { getUser, normalizeUser, updateUser } from "../lib/Fusebit";
 
 import AccountOverview from "./AccountOverview";
 import AccountSubscriptions from "./AccountSubscriptions";
@@ -29,6 +28,8 @@ import UserActionFab from "./UserActionFab";
 import Paper from "@material-ui/core/Paper";
 import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
+
+import { AgentProvider } from "./AgentProvider";
 
 const useStyles = makeStyles(theme => ({
   paper: {
@@ -255,79 +256,60 @@ function ProfileExplorer({ ...rest }) {
           </ExplorerView>
         )}
       />
+
       <Route
-        path="/accounts/:accountId/users/:userId/overview"
-        exact={true}
-        render={({ ...rest }) => (
-          <ExplorerView
-            tabs={ExplorerTabs.user}
-            fab={
-              <UserActionFab
-                data={data}
-                onNewData={handleOnNewData}
-                {...rest}
+        path="/accounts/:accountId/users/:userId"
+        render={({ match }) => (
+          <AgentProvider agentId={match.params.userId} isUser>
+            <Switch>
+              <Route
+                path={`${match.path}/overview`}
+                exact={true}
+                render={({ ...rest }) => (
+                  <ExplorerView
+                    tabs={ExplorerTabs.user}
+                    fab={<UserActionFab />}
+                    {...rest}
+                  >
+                    <UserOverview
+                      data={data}
+                      onNewData={handleOnNewData}
+                      {...rest}
+                    />
+                  </ExplorerView>
+                )}
               />
-            }
-            {...rest}
-          >
-            <UserOverview data={data} onNewData={handleOnNewData} {...rest} />
-          </ExplorerView>
+              <Route
+                path={`${match.path}/identities`}
+                exact={true}
+                render={({ ...rest }) => (
+                  <ExplorerView
+                    tabs={ExplorerTabs.user}
+                    fab={<UserActionFab />}
+                    {...rest}
+                  >
+                    <AgentIdentities />
+                  </ExplorerView>
+                )}
+              />
+              <Route
+                path={`${match.path}/access`}
+                exact={true}
+                render={({ ...rest }) => (
+                  <ExplorerView
+                    tabs={ExplorerTabs.user}
+                    fab={<UserActionFab />}
+                    {...rest}
+                  >
+                    <AgentAccess />
+                  </ExplorerView>
+                )}
+              />
+            </Switch>
+          </AgentProvider>
         )}
       />
-      <Route
-        path="/accounts/:accountId/users/:userId/identities"
-        exact={true}
-        render={({ ...rest }) => (
-          <ExplorerView
-            tabs={ExplorerTabs.user}
-            fab={
-              <UserActionFab
-                data={data}
-                onNewData={handleOnNewData}
-                {...rest}
-              />
-            }
-            {...rest}
-          >
-            <AgentIdentities
-              data={data}
-              onNewData={handleOnNewData}
-              getAgent={getUser}
-              updateAgent={updateUser}
-              normalizeAgent={normalizeUser}
-              isUser={true}
-              {...rest}
-            />
-          </ExplorerView>
-        )}
-      />
-      <Route
-        path="/accounts/:accountId/users/:userId/access"
-        exact={true}
-        render={({ ...rest }) => (
-          <ExplorerView
-            tabs={ExplorerTabs.user}
-            fab={
-              <UserActionFab
-                data={data}
-                onNewData={handleOnNewData}
-                {...rest}
-              />
-            }
-            {...rest}
-          >
-            <AgentAccess
-              data={data}
-              onNewData={handleOnNewData}
-              getAgent={getUser}
-              updateAgent={updateUser}
-              normalizeAgent={normalizeUser}
-              isUser={true}
-              {...rest}
-            />
-          </ExplorerView>
-        )}
-      />
+
       <Route
         path="/accounts/:accountId/clients"
         exact={true}

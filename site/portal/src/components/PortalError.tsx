@@ -1,20 +1,24 @@
-import React from "react";
-import Card from "@material-ui/core/Card";
-import CardContent from "@material-ui/core/CardContent";
-import CardActions from "@material-ui/core/CardActions";
-import Typography from "@material-ui/core/Typography";
 import Button from "@material-ui/core/Button";
+import CardActions from "@material-ui/core/CardActions";
+import CardContent from "@material-ui/core/CardContent";
+import Typography from "@material-ui/core/Typography";
+import ErrorIcon from "@material-ui/icons/Error";
+import React from "react";
 import { FusebitError } from "./ErrorBoundary";
+import WarningCard from "./WarningCard";
 
 function PortalError({ error }: any) {
   const fusebitError = error.fusebit ? (error as FusebitError) : undefined;
+
   return (
-    <Card square={true} raised={false} elevation={0}>
+    <WarningCard color="primary" icon={<ErrorIcon />}>
       <CardContent>
-        <Typography variant="h6" color="primary" gutterBottom>
-          {fusebitError ? fusebitError.message : "Something went wrong"}
+        <Typography gutterBottom>
+          <strong>
+            {fusebitError ? fusebitError.message : "Something went wrong"}
+          </strong>
         </Typography>
-        <Typography variant="body1">
+        <Typography>
           {fusebitError ? fusebitError.fusebit.details : error.message}
         </Typography>
       </CardContent>
@@ -34,7 +38,7 @@ function PortalError({ error }: any) {
           ))}
         </CardActions>
       )}
-    </Card>
+    </WarningCard>
   );
 }
 
