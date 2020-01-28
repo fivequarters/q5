@@ -191,6 +191,26 @@ function NewUserImpl() {
                 You are about to create a new user.
               </DialogContentText>
             )}
+            {role.role === noRole.role && (
+              <WarningCard>
+                You did not grant {!agentName && "the "}user{" "}
+                {agentName && <strong>{agentName} </strong>}permissions to any
+                resources. This may result in errors for the user when accessing
+                the Portal or CLI. You can proceed with this setup, but consider
+                using the <strong>Access</strong> tab to grant permissions for
+                the user when you are done.
+              </WarningCard>
+            )}
+            {flow === "none" && (
+              <WarningCard>
+                You did not invite {!agentName && "the "}user{" "}
+                {agentName && <strong>{agentName} </strong>}to any of the
+                Fusebit Platform tools. They will not be able to access the
+                system. You can continue with this setup, but consider using the{" "}
+                <strong>Invite User to the Platform</strong> quick action after
+                you are done.
+              </WarningCard>
+            )}
             {role.role !== noRole.role && (
               <React.Fragment>
                 <DialogContentText>
@@ -204,16 +224,6 @@ function NewUserImpl() {
                 />
                 <DialogContentText>&nbsp;</DialogContentText>
               </React.Fragment>
-            )}
-            {role.role === noRole.role && (
-              <WarningCard>
-                You did not grant {!agentName && "the "}user{" "}
-                {agentName && <strong>{agentName} </strong>}access to any
-                resources. This may result in errors for the user when accessing
-                the Portal or CLI. You can proceed with this setup, but consider
-                using the <strong>Access</strong> tab to grant permissions for
-                the user when you are done.
-              </WarningCard>
             )}
             <DialogContentText>
               Select <strong>Next</strong> to create the user.
@@ -382,7 +392,11 @@ function NewUserImpl() {
     );
   };
 
-  if (agent.status === "ready" || agent.status === "updating") {
+  if (
+    agent.status === "ready" ||
+    agent.status === "updating" ||
+    agent.status === "error"
+  ) {
     return (
       <React.Fragment>
         <Grid container spacing={2} className={classes.gridContainer}>
@@ -410,17 +424,24 @@ function NewUserImpl() {
             </Stepper>
           </Grid>
         </Grid>
-        {activeStep === 0 && (
+        {activeStep === 0 && agent.status !== "error" && (
           <Grid container spacing={2} className={classes.gridContainer}>
             <Grid item xs={8} className={classes.form}>
               <UserDetails />
             </Grid>
           </Grid>
         )}
-        {activeStep === 1 && permissionSelector()}
-        {activeStep === 2 && inviteSelector()}
-        {activeStep === 3 && confirmation()}
-        {activeStep === 4 && done()}
+        {activeStep === 1 && agent.status !== "error" && permissionSelector()}
+        {activeStep === 2 && agent.status !== "error" && inviteSelector()}
+        {activeStep === 3 && agent.status !== "error" && confirmation()}
+        {activeStep === 4 && agent.status !== "error" && done()}
+        {agent.status === "error" && (
+          <Grid container spacing={2} className={classes.gridContainer}>
+            <Grid item xs={8} className={classes.form}>
+              <PortalError error={agent.error} />
+            </Grid>
+          </Grid>
+        )}
         <Grid container spacing={2} className={classes.gridContainer}>
           <Grid item xs={8} className={classes.form}>
             <DialogActions className={classes.inputField}>
@@ -452,7 +473,9 @@ function NewUserImpl() {
                   disabled={
                     hasError() ||
                     agent.status === "updating" ||
-                    (!initGenerated && flow !== "none")
+                    (!initGenerated &&
+                      flow !== "none" &&
+                      agent.status === "ready")
                   }
                   href="../users"
                 >
@@ -462,18 +485,10 @@ function NewUserImpl() {
             </DialogActions>
           </Grid>
         </Grid>
-        {(agent.dirty || activeStep > 0) && activeStep !== 4 && (
-          <ConfirmNavigation />
-        )}
+        {(agent.status === "ready" || agent.status === "updating") &&
+          (agent.dirty || activeStep > 0) &&
+          activeStep !== 4 && <ConfirmNavigation />}
       </React.Fragment>
-    );
-  } else if (agent.status === "error") {
-    return (
-      <Grid container spacing={2} className={classes.gridContainer}>
-        <Grid item xs={12} className={classes.form}>
-          <PortalError error={agent.error} />
-        </Grid>
-      </Grid>
     );
   }
   return null;
