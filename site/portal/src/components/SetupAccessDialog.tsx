@@ -5,18 +5,18 @@ import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import LinearProgress from "@material-ui/core/LinearProgress";
-import MenuItem from "@material-ui/core/MenuItem";
-import Select from "@material-ui/core/Select";
 import Step from "@material-ui/core/Step";
 import StepLabel from "@material-ui/core/StepLabel";
 import Stepper from "@material-ui/core/Stepper";
 import { makeStyles } from "@material-ui/core/styles";
 import React from "react";
+import { flowsHash } from "../lib/Flows";
 import { Permission } from "../lib/FusebitTypes";
 import AddCliIdentityFlow from "./AddCliIdentityFlow";
 import AddOauthImplicitIdentityFlow from "./AddOauthImplicitIdentityFlow";
 import { formatAgent, useAgent } from "./AgentProvider";
 import FunctionResourceSelector from "./FunctionResourceSelector";
+import FusebitToolSelector from "./FusebitToolSelector";
 import PortalError from "./PortalError";
 import { useProfile } from "./ProfileProvider";
 import WarningCard from "./WarningCard";
@@ -31,11 +31,6 @@ function SetupAccessDialog({ onClose, agentId, isUser, data, onNewData }: any) {
   const classes = useStyles();
   const { profile } = useProfile();
   const [agent] = useAgent();
-  const oauthDeviceFlowEnabled = !!(
-    profile.oauth.deviceAuthorizationUrl &&
-    profile.oauth.deviceClientId &&
-    profile.oauth.tokenUrl
-  );
   const [resource, setResource] = React.useState<any>({
     parts: {
       subscriptionId: "*",
@@ -99,37 +94,20 @@ function SetupAccessDialog({ onClose, agentId, isUser, data, onNewData }: any) {
 
   const handleSubmit = () => onClose && onClose();
 
-  const handleFlowChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    setFlow(event.target.value as string);
+  const handleFlowChange = (newFlow: string) => {
+    setFlow(newFlow);
   };
 
   const handleNextStep = () => setActiveStep(activeStep + 1);
 
   const handlePreviousStep = () => setActiveStep(activeStep - 1);
 
-  const formatAccess = (flow: string) => {
-    switch (flow) {
-      case "oauth-implicit":
-        return "Fusebit Portal";
-      case "oauth-device":
-        return "Fusebit CLI using OAuth";
-      default:
-        return "Fusebit CLI using a public/private key pair";
-    }
-  };
+  const formatAccess = (flow: string) =>
+    (flowsHash[flow] && flowsHash[flow].description) || "N/A";
 
   const formatAccount = () => profile.displayName || profile.account;
 
-  const formatUsage = () => {
-    switch (flow) {
-      case "oauth-implicit":
-        return "Portal";
-      case "oauth-device":
-        return "CLI";
-      default:
-        return "CLI";
-    }
-  };
+  const formatUsage = () => (flowsHash[flow] && flowsHash[flow].usage) || "N/A";
 
   function flowSelector() {
     return (
@@ -138,24 +116,11 @@ function SetupAccessDialog({ onClose, agentId, isUser, data, onNewData }: any) {
           Select the Fusebit Platform tool you would like{" "}
           <strong>{formatAgent(agent)}</strong> to access:
         </DialogContentText>
-        <Select
-          id="flowChoice"
-          value={flow}
-          onChange={handleFlowChange}
-          fullWidth
-          variant="filled"
+        <FusebitToolSelector
+          flow={flow}
+          onFlowChange={handleFlowChange}
           autoFocus
-        >
-          <MenuItem value="oauth-implicit">
-            {formatAccess("oauth-implicit")}
-          </MenuItem>
-          <MenuItem value="pki">{formatAccess("pki")}</MenuItem>
-          {oauthDeviceFlowEnabled && (
-            <MenuItem value="oauth-device">
-              {formatAccess("oauth-device")}
-            </MenuItem>
-          )}
-        </Select>
+        />
       </DialogContent>
     );
   }

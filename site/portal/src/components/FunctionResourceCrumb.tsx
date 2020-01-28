@@ -1,11 +1,10 @@
-import React from "react";
 import { makeStyles } from "@material-ui/core/styles";
-import Typography from "@material-ui/core/Typography";
-import GridOnIcon from "@material-ui/icons/GridOn";
 import FilterNoneIcon from "@material-ui/icons/FilterNone";
 import FlipIcon from "@material-ui/icons/Flip";
-import OndemandVideoIcon from "@material-ui/icons/OndemandVideo";
+import GridOnIcon from "@material-ui/icons/GridOn";
 import NavigateNextIcon from "@material-ui/icons/NavigateNext";
+import OndemandVideoIcon from "@material-ui/icons/OndemandVideo";
+import React from "react";
 import { useProfile } from "./ProfileProvider";
 
 const useStyles = makeStyles(theme => ({
@@ -40,7 +39,7 @@ function FunctionResourceCrumb({ options, data, ...rest }: any) {
   const formatAccount = () => profile.displayName || profile.account;
 
   return (
-    <Typography className={classes.root} {...rest}>
+    <span className={classes.root} {...rest}>
       <GridOnIcon fontSize="inherit" className={classes.firstIcon} />{" "}
       {formatAccount()}
       {options && options.subscriptionId && options.subscriptionId !== "*" && (
@@ -73,7 +72,7 @@ function FunctionResourceCrumb({ options, data, ...rest }: any) {
           )}
         </React.Fragment>
       )}
-    </Typography>
+    </span>
   );
 }
 

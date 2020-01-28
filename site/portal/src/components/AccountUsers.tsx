@@ -10,6 +10,7 @@ import Link from "@material-ui/core/Link";
 import { Link as RouterLink } from "react-router-dom";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import Typography from "@material-ui/core/Typography";
+import ActionButton from "./ActionButton";
 
 interface ViewRow {
   name: string;
@@ -175,6 +176,7 @@ function AccountUsers({ data, onNewData }: any) {
         selected.length > 1 ? "Delete users?" : "Delete user?"
       }
       deleteContent={generateDeleteContent}
+      actions={<ActionButton href="users/new">New&nbsp;user</ActionButton>}
     />
   );
 }
