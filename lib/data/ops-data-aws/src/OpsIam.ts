@@ -33,9 +33,9 @@ export class OpsIam implements IDataSource {
       awsConfig,
       this.config.dwhExportRoleName,
       [
-        'arn:aws:iam::aws:policy/AmazonDynamoDBReadOnlyAccess',
-        'arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess',
-        'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole',
+        `${this.config.arnPrefix}:iam::aws:policy/AmazonDynamoDBReadOnlyAccess`,
+        `${this.config.arnPrefix}:iam::aws:policy/AmazonS3ReadOnlyAccess`,
+        `${this.config.arnPrefix}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole`,
       ],
       undefined,
       undefined,
@@ -48,10 +48,10 @@ export class OpsIam implements IDataSource {
       awsConfig,
       this.config.cronExecutorRoleName,
       [
-        'arn:aws:iam::aws:policy/AWSLambdaFullAccess',
-        'arn:aws:iam::aws:policy/CloudWatchFullAccess',
-        'arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess',
-        'arn:aws:iam::aws:policy/service-role/AWSLambdaSQSQueueExecutionRole',
+        `${this.config.arnPrefix}:iam::aws:policy/AWSLambdaFullAccess`,
+        `${this.config.arnPrefix}:iam::aws:policy/CloudWatchFullAccess`,
+        `${this.config.arnPrefix}:iam::aws:policy/AmazonS3ReadOnlyAccess`,
+        `${this.config.arnPrefix}:iam::aws:policy/service-role/AWSLambdaSQSQueueExecutionRole`,
       ],
       undefined,
       undefined,
@@ -62,9 +62,9 @@ export class OpsIam implements IDataSource {
       awsConfig,
       this.config.cronSchedulerRoleName,
       [
-        'arn:aws:iam::aws:policy/AmazonSQSFullAccess',
-        'arn:aws:iam::aws:policy/AmazonS3FullAccess',
-        'arn:aws:iam::aws:policy/CloudWatchLogsFullAccess',
+        `${this.config.arnPrefix}:iam::aws:policy/AmazonSQSFullAccess`,
+        `${this.config.arnPrefix}:iam::aws:policy/AmazonS3FullAccess`,
+        `${this.config.arnPrefix}:iam::aws:policy/CloudWatchLogsFullAccess`,
       ],
       undefined,
       undefined,
@@ -76,7 +76,7 @@ export class OpsIam implements IDataSource {
     await createRole(
       awsConfig,
       this.config.builderRoleName,
-      ['arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'],
+      [`${this.config.arnPrefix}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole`],
       undefined,
       undefined,
       this.config.iamPermissionsBoundary
@@ -106,11 +106,11 @@ export class OpsIam implements IDataSource {
       awsConfig,
       this.config.monoInstanceProfileName,
       [
-        'arn:aws:iam::aws:policy/AmazonSQSFullAccess',
-        'arn:aws:iam::aws:policy/AWSLambdaFullAccess',
-        'arn:aws:iam::aws:policy/AmazonS3FullAccess',
-        'arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy',
-        'arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess',
+        `${this.config.arnPrefix}:iam::aws:policy/AmazonSQSFullAccess`,
+        `${this.config.arnPrefix}:iam::aws:policy/AWSLambdaFullAccess`,
+        `${this.config.arnPrefix}:iam::aws:policy/AmazonS3FullAccess`,
+        `${this.config.arnPrefix}:iam::aws:policy/CloudWatchAgentServerPolicy`,
+        `${this.config.arnPrefix}:iam::aws:policy/AmazonDynamoDBFullAccess`,
       ],
       {
         Version: '2012-10-17',
@@ -118,9 +118,7 @@ export class OpsIam implements IDataSource {
           {
             Effect: 'Allow',
             Action: ['ecr:BatchGetImage', 'ecr:GetDownloadUrlForLayer'],
-            Resource: `arn:aws:ecr:${this.config.mainRegion}:${this.config.mainAccountId}:repository/${
-              this.config.monoRepoName
-            }`,
+            Resource: `${this.config.arnPrefix}:ecr:${this.config.mainRegion}:${this.config.mainAccountId}:repository/${this.config.monoRepoName}`,
           },
           {
             Effect: 'Allow',

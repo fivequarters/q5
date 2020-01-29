@@ -36,11 +36,16 @@ function stackIdIsUsed(id: number, stacks: IOpsStack[]) {
 // ----------------
 
 export class OpsStackData extends DataSource implements IOpsStackData {
-  public static async create(config: OpsDataAwsConfig, provider: OpsDataAwsProvider, tables: OpsDataTables) {
+  public static async create(
+    config: OpsDataAwsConfig,
+    provider: OpsDataAwsProvider,
+    tables: OpsDataTables,
+    globalOpsStackData?: OpsStackData
+  ) {
     const networkData = await OpsNetworkData.create(config, provider, tables);
     const accountData = await OpsAccountData.create(config, provider, tables);
     const deploymentData = await OpsDeploymentData.create(config, provider, tables);
-    const opsAlb = await OpsAlb.create(config, provider, tables);
+    const opsAlb = await OpsAlb.create(config, provider, tables, globalOpsStackData && globalOpsStackData.provider);
     return new OpsStackData(config, provider, tables, networkData, accountData, deploymentData, opsAlb);
   }
 
@@ -277,9 +282,9 @@ DEPLOYMENT_KEY=${deploymentName}
 AWS_REGION=${region}
 AWS_S3_BUCKET=${s3Bucket}
 API_SERVER=https://${deploymentName}.${region}.${domainName}
-LAMBDA_BUILDER_ROLE=arn:aws:iam::${account}:role/${this.config.builderRoleName}
-LAMBDA_MODULE_BUILDER_ROLE=arn:aws:iam::${account}:role/${this.config.builderRoleName}
-LAMBDA_USER_FUNCTION_ROLE=arn:aws:iam::${account}:role/${this.config.functionRoleName}
+LAMBDA_BUILDER_ROLE=${this.config.arnPrefix}:iam::${account}:role/${this.config.builderRoleName}
+LAMBDA_MODULE_BUILDER_ROLE=${this.config.arnPrefix}:iam::${account}:role/${this.config.builderRoleName}
+LAMBDA_USER_FUNCTION_ROLE=${this.config.arnPrefix}:iam::${account}:role/${this.config.functionRoleName}
 LAMBDA_VPC_SUBNETS=${subnetIds.join(',')}
 LAMBDA_VPC_SECURITY_GROUPS=${securityGroupIds.join(',')}
 CRON_QUEUE_URL=https://sqs.${region}.amazonaws.com/${account}/${deploymentName}-cron

@@ -10,6 +10,7 @@ const defaultDefaultLimit = 25;
 const defaultMaxLimit = 100;
 const defaultUserAccountEnabled = false;
 const defaultRegion = 'us-west-2';
+const defaultGovCloudRegion = 'us-gov-west-1';
 const defaultMainAccountName = 'main';
 const defaultMainPrefix = 'ops';
 const defaultMonoRepoName = 'fusebit-mono';
@@ -29,6 +30,7 @@ const defaultCronExecutorRoleName = 'fusebit-cron-executor';
 const defaultCronSchedulerRoleName = 'fusebit-cron-scheduler';
 const defaultBuilderRoleName = 'fusebit-builder';
 const defaultFunctionRoleName = 'fusebit-function';
+const defaultGovCloud = false;
 
 // ----------------
 // Exported Classes
@@ -73,7 +75,15 @@ export class OpsDataAwsConfig implements IConfig {
   }
 
   public get mainRegion(): string {
-    return (this.config.value('mainRegion') as string) || defaultRegion;
+    return (this.config.value('mainRegion') as string) || (this.govCloud ? defaultGovCloudRegion : defaultRegion);
+  }
+
+  public get govCloud(): boolean {
+    return (this.config.value('govCloud') as boolean) || defaultGovCloud;
+  }
+
+  public get arnPrefix(): string {
+    return this.govCloud ? 'arn:aws-us-gov' : 'arn:aws';
   }
 
   public get mainPrefix(): string {
@@ -143,7 +153,7 @@ export class OpsDataAwsConfig implements IConfig {
   public get monoInstanceProfile(): string {
     return (
       (this.config.value('monoInstanceProfile') as string) ||
-      `arn:aws:iam::${this.mainAccountId}:instance-profile/${defaultMonoInstanceProfileName}`
+      `${this.arnPrefix}:iam::${this.mainAccountId}:instance-profile/${defaultMonoInstanceProfileName}`
     );
   }
 

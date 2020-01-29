@@ -37,6 +37,7 @@ export class OpsDataAwsProvider {
         account: this.config.mainAccountId,
         region: this.config.mainRegion,
         prefix: this.config.mainPrefix,
+        govCloud: this.config.govCloud,
       };
     }
     return this.mainAwsConfig;
@@ -58,6 +59,7 @@ export class OpsDataAwsProvider {
       account: account.id,
       region: network.region,
       prefix: deploymentName,
+      govCloud: this.config.govCloud,
     };
   }
 
@@ -73,6 +75,7 @@ export class OpsDataAwsProvider {
       creds,
       account: account.id,
       region: this.config.mainRegion,
+      govCloud: this.config.govCloud,
     };
   }
 
@@ -90,9 +93,22 @@ export class OpsDataAwsProvider {
       creds,
       account: account.id,
       region,
+      govCloud: this.config.govCloud,
     };
 
     return AwsNetwork.create(config);
+  }
+
+  public async getAwsRoute53FromMainAccount(): Promise<AwsRoute53> {
+    const creds = this.getAwsCredsForAccount(this.config.mainAccountId, this.config.mainAccountRole);
+    const config = {
+      creds,
+      account: this.config.mainAccountId,
+      region: this.config.mainRegion,
+      govCloud: this.config.govCloud,
+    };
+
+    return AwsRoute53.create(config);
   }
 
   public async getAwsRoute53FromAccount(accountName: string): Promise<AwsRoute53> {
@@ -104,6 +120,7 @@ export class OpsDataAwsProvider {
       creds,
       account: account.id,
       region: this.config.mainRegion,
+      govCloud: this.config.govCloud,
     };
 
     return AwsRoute53.create(config);

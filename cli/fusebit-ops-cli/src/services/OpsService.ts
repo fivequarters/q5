@@ -3,9 +3,10 @@ import { Text } from '@5qtrs/text';
 import { AwsCreds } from '@5qtrs/aws-cred';
 import { Config, IConfigSettings } from '@5qtrs/config';
 import { IOpsDataContext } from '@5qtrs/ops-data';
-import { OpsDataAwsContextFactory } from '@5qtrs/ops-data-aws';
+import { OpsDataAwsContextFactory, OpsDataAwsContext } from '@5qtrs/ops-data-aws';
 import { ProfileService } from './ProfileService';
 import { ExecuteService } from './ExecuteService';
+import { IFusebitOpsProfile } from '@5qtrs/fusebit-ops-profile-sdk';
 
 // ------------------
 // Internal Functions
@@ -56,7 +57,6 @@ export class OpsService {
   private input: IExecuteInput;
   private profileService: ProfileService;
   private executeService: ExecuteService;
-  private userCreds?: AwsCreds;
   private opsDataContext?: IOpsDataContext;
 
   private constructor(input: IExecuteInput, profileService: ProfileService, executeService: ExecuteService) {
@@ -71,56 +71,68 @@ export class OpsService {
     return new OpsService(input, profileService, executeService);
   }
 
-  public async getUserCreds(): Promise<AwsCreds> {
-    if (!this.userCreds) {
-      const profile = await this.profileService.getProfileOrDefaultOrThrow(this.input.options.profile as string);
-      const userCredOptions = profile.credentialsProvider
-        ? {
-            account: profile.awsUserAccount || profile.awsMainAccount,
-            credentialsProvider: profile.credentialsProvider,
-          }
-        : {
-            account: profile.awsUserAccount || profile.awsMainAccount,
-            accessKeyId: profile.awsAccessKeyId,
-            secretAccessKey: profile.awsSecretAccessKey,
-            userName: profile.awsUserName,
-            useMfa: profile.awsUserAccount !== undefined,
-            mfaCodeResolver: getMfaCodeResolver(this.input.io),
-          };
-      const credsCache = this.getCredsCache(profile.name);
-      this.userCreds = await AwsCreds.create(userCredOptions, credsCache);
-    }
-
-    return this.userCreds;
+  public async getUserCredsForProfile(profile: IFusebitOpsProfile): Promise<AwsCreds> {
+    const userCredOptions = profile.credentialsProvider
+      ? {
+          account: profile.awsUserAccount || profile.awsMainAccount,
+          credentialsProvider: profile.credentialsProvider,
+          govCloud: profile.govCloud,
+        }
+      : {
+          account: profile.awsUserAccount || profile.awsMainAccount,
+          accessKeyId: profile.awsAccessKeyId,
+          secretAccessKey: profile.awsSecretAccessKey,
+          userName: profile.awsUserName,
+          useMfa: profile.awsUserAccount !== undefined,
+          mfaCodeResolver: getMfaCodeResolver(this.input.io),
+          govCloud: profile.govCloud,
+        };
+    const credsCache = this.getCredsCache(profile.name);
+    return await AwsCreds.create(userCredOptions, credsCache);
   }
 
   public async getOpsDataContext(settings?: IConfigSettings): Promise<IOpsDataContext> {
     if (!this.opsDataContext) {
       const profile = await this.profileService.getProfileOrDefaultOrThrow();
-      const awsCreds = await this.getUserCreds();
-      const func = async () => {
-        const factory = await OpsDataAwsContextFactory.create(awsCreds);
-        const config = new Config(
-          profile.credentialsProvider
-            ? {
-                // userAccountEnabled: false,
-                mainAccountId: profile.awsMainAccount,
-                // mainAccountRole: undefined,
-                credentialsProvider: profile.credentialsProvider,
-                ...settings,
-              }
-            : {
-                userAccountEnabled: profile.awsUserAccount !== undefined,
-                mainAccountId: profile.awsMainAccount,
-                mainAccountRole: profile.awsMainRole || undefined,
-                ...settings,
-              }
-        );
-        return factory.create(config);
-      };
-      this.opsDataContext = (await this.executeService.execute({ errorHeader: 'Ops Error' }, func)) as IOpsDataContext;
+      let globalOpsDataAwsContext: OpsDataAwsContext | undefined = undefined;
+      if (profile.govCloud) {
+        const globalProfile = await this.profileService.getProfileOrThrow(profile.globalProfile as string);
+        globalOpsDataAwsContext = await this.getOpsDataContextForProfile(globalProfile, settings);
+      }
+      this.opsDataContext = await this.getOpsDataContextForProfile(profile, settings, globalOpsDataAwsContext);
     }
-    return this.opsDataContext;
+    return this.opsDataContext as IOpsDataContext;
+  }
+
+  private async getOpsDataContextForProfile(
+    profile: IFusebitOpsProfile,
+    settings?: IConfigSettings,
+    globalOpsDataAwsContext?: OpsDataAwsContext
+  ): Promise<OpsDataAwsContext> {
+    const awsCreds = await this.getUserCredsForProfile(profile);
+    const func = async () => {
+      const factory = await OpsDataAwsContextFactory.create(awsCreds, globalOpsDataAwsContext);
+      const config = new Config(
+        profile.credentialsProvider
+          ? {
+              // userAccountEnabled: false,
+              mainAccountId: profile.awsMainAccount,
+              // mainAccountRole: undefined,
+              credentialsProvider: profile.credentialsProvider,
+              govCloud: profile.govCloud || false,
+              ...settings,
+            }
+          : {
+              userAccountEnabled: profile.awsUserAccount !== undefined,
+              mainAccountId: profile.awsMainAccount,
+              mainAccountRole: profile.awsMainRole || undefined,
+              govCloud: profile.govCloud || false,
+              ...settings,
+            }
+      );
+      return factory.create(config);
+    };
+    return (await this.executeService.execute({ errorHeader: 'Ops Error' }, func)) as OpsDataAwsContext;
   }
 
   private getCredsCache(profileName: string) {

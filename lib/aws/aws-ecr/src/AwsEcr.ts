@@ -54,8 +54,8 @@ export class AwsEcr extends AwsBase<typeof ECR> {
   }
 
   public async pullImage(repository: string, tag: string) {
-    const accountId = '321612923577';
-    const region = 'us-west-2';
+    const accountId = this.config.govCloud ? '848193282749' : '321612923577';
+    const region = this.config.govCloud ? 'us-gov-west-1' : 'us-west-2';
     const auth = await this.getAuth(accountId);
     const decoded = fromBase64(auth.token);
     const token = decoded.substring(4);
