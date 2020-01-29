@@ -19,6 +19,8 @@ export interface IFusebitOpsProfileSettings {
   awsUserAccount?: string;
   awsMainRole?: string;
   credentialsProvider?: string;
+  govCloud?: boolean;
+  globalProfile?: string;
 }
 
 export interface IFusebitOpsProfile extends IFusebitOpsProfileSettings {
@@ -122,6 +124,9 @@ export class FusebitOpsProfile {
         "A profile must sepecify either the 'credentialsProvider' or 'awsUserName', 'awsAccessKeyId', and 'awsSecretAccessKey'."
       );
     }
+    if (settings.govCloud && !settings.globalProfile) {
+      throw new Error("A profile that has 'govCloud' set must also specify 'globalProfile'.");
+    }
 
     const created = new Date().toLocaleString();
 
@@ -135,6 +140,8 @@ export class FusebitOpsProfile {
       awsUserAccount: settings.awsUserAccount || undefined,
       awsMainRole: settings.awsMainRole || undefined,
       credentialsProvider: settings.credentialsProvider || undefined,
+      govCloud: settings.govCloud || false,
+      globalProfile: settings.globalProfile || undefined,
     };
 
     const profile = await this.dotConfig.setProfile(name, fullProfileToAdd);

@@ -56,6 +56,7 @@ export interface IAwsCredsOptions {
   userName?: string;
   mfaCodeResolver?: IMfaCodeResolver;
   credentialsProvider?: string;
+  govCloud?: boolean;
 }
 
 // ----------------
@@ -209,15 +210,21 @@ export class AwsCreds {
       stsOptions.secretAccessKey = this.options.secretAccessKey;
     }
 
+    if (this.options.govCloud) {
+      stsOptions.region = 'us-gov-west-1';
+    }
+
     const sts = createSTS(stsOptions);
 
+    const arnPrefix = this.options.govCloud ? 'arn:aws-us-gov' : 'arn:aws';
+
     const params: any = {
-      RoleArn: `arn:aws:iam::${this.roleAccount}:role/${this.roleName}`,
+      RoleArn: `${arnPrefix}:iam::${this.roleAccount}:role/${this.roleName}`,
       RoleSessionName: `assumed-role-${this.rolePath}-${this.roleAccount}`,
     };
     if (this.options.useMfa && this.options.mfaCodeResolver) {
       const serialNumber =
-        this.options.mfaSerialNumber || `arn:aws:iam::${this.options.account}:mfa/${this.options.userName}`;
+        this.options.mfaSerialNumber || `${arnPrefix}:iam::${this.options.account}:mfa/${this.options.userName}`;
       const resolved = await this.options.mfaCodeResolver(this.roleAccount || '<unknown>');
       params.SerialNumber = serialNumber;
       params.TokenCode = resolved.code;

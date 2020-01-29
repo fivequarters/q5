@@ -24,14 +24,33 @@ import { OpsIam } from './OpsIam';
 // ----------------
 
 export class OpsDataAwsContext extends DataSource implements IOpsDataContext {
-  public static async create(config: OpsDataAwsConfig, provider: OpsDataAwsProvider) {
+  public static async create(
+    config: OpsDataAwsConfig,
+    provider: OpsDataAwsProvider,
+    globalOpsDataAwsContext?: OpsDataAwsContext
+  ) {
     const tables = await OpsDataTables.create(config, provider);
     const account = await OpsAccountData.create(config, provider, tables);
-    const domain = await OpsDomainData.create(config, provider, tables);
+    const domain = await OpsDomainData.create(
+      config,
+      provider,
+      tables,
+      globalOpsDataAwsContext && globalOpsDataAwsContext.domain
+    );
     const network = await OpsNetworkData.create(config, provider, tables);
     const image = await OpsImageData.create(config, provider, tables);
-    const deployment = await OpsDeploymentData.create(config, provider, tables);
-    const stack = await OpsStackData.create(config, provider, tables);
+    const deployment = await OpsDeploymentData.create(
+      config,
+      provider,
+      tables,
+      globalOpsDataAwsContext && globalOpsDataAwsContext.deployment
+    );
+    const stack = await OpsStackData.create(
+      config,
+      provider,
+      tables,
+      globalOpsDataAwsContext && globalOpsDataAwsContext.stack
+    );
     const iam = await OpsIam.create(config, provider);
     return new OpsDataAwsContext(tables, account, domain, network, image, deployment, stack, iam);
   }

@@ -6,7 +6,8 @@ import { EC2 } from 'aws-sdk';
 // Internal Constants
 // ------------------
 
-const officialUbuntuOwnerId = '099720109477';
+const officialGlobalUbuntuOwnerId = '099720109477';
+const officialGovCloudUbuntuOwnerId = '513442679011';
 const ubuntuSeverNamePrefix = 'ubuntu/images/hvm-ssd/ubuntu-';
 const ubuntuServerArch = 'amd64-server';
 
@@ -62,7 +63,7 @@ export class AwsAmi extends AwsBase<typeof EC2> {
 
   public async getUbuntuServerAmi(version: string): Promise<IAwsAmi> {
     const filters = {
-      'owner-id': officialUbuntuOwnerId,
+      'owner-id': this.config.govCloud ? officialGovCloudUbuntuOwnerId : officialGlobalUbuntuOwnerId,
       state: 'available',
     };
 

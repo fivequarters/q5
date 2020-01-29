@@ -1,4 +1,4 @@
-import { Command, IExecuteInput } from '@5qtrs/cli';
+import { Command, IExecuteInput, ArgType } from '@5qtrs/cli';
 import { ProfileService } from '../services';
 
 // ------------------
@@ -40,6 +40,15 @@ const command = {
       description: 'The AWS credentials provider command',
     },
     {
+      name: 'govCloud',
+      description: 'Manage AWS GovCloud deployment',
+      type: ArgType.boolean,
+    },
+    {
+      name: 'globalProfile',
+      description: 'The fuse-ops profile name of a global AWS account associated with GovCloud account',
+    },
+    {
       name: 'profile',
       aliases: ['p'],
       description: 'The name of the profile to create with the initalization of the CLI',
@@ -71,6 +80,8 @@ export class InitCommand extends Command {
     const awsSecretAccessKey = input.options.awsSecretAccessKey as string;
     const awsAccessKeyId = input.options.awsAccessKeyId as string;
     const credentialsProvider = input.options.credentialsProvider as string;
+    const govCloud = input.options.govCloud as boolean;
+    const globalProfile = input.options.globalProfile as string;
 
     const profileService = await ProfileService.create(input);
 
@@ -95,6 +106,8 @@ export class InitCommand extends Command {
       awsSecretAccessKey,
       awsAccessKeyId,
       credentialsProvider,
+      govCloud,
+      globalProfile,
     };
 
     const settings = await profileService.promptForMissingSettings(initialSettings);

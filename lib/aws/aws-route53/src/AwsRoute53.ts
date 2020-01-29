@@ -146,7 +146,9 @@ export class AwsRoute53 extends AwsBase<typeof Route53> {
   }
 
   protected onGetAws(config: IAwsConfig) {
-    return new Route53(config);
+    // AWS GovCloud Route53 endpoint is custom, see https://github.com/aws/aws-cli/issues/4241
+    const endpoint = this.config.govCloud ? 'https://route53.us-gov.amazonaws.com' : undefined;
+    return new Route53({ ...config, endpoint });
   }
 
   private async changeHostedZoneRecord(id: string, action: string, record: IHostedZoneRecord): Promise<void> {
@@ -263,7 +265,7 @@ export class AwsRoute53 extends AwsBase<typeof Route53> {
       const func = () => {
         route53.listHostedZones(params, (error: any, data: any) => {
           if (error) {
-            reject(error);
+            return reject(error);
           }
 
           if (data.HostedZones) {

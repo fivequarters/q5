@@ -35,20 +35,39 @@ function getParentDomain(domain: string) {
 // ----------------
 
 export class OpsAlb extends DataSource {
-  public static async create(config: OpsDataAwsConfig, provider: OpsDataAwsProvider, tables: OpsDataTables) {
+  public static async create(
+    config: OpsDataAwsConfig,
+    provider: OpsDataAwsProvider,
+    tables: OpsDataTables,
+    globalProvider?: OpsDataAwsProvider
+  ) {
     const networkData = await OpsNetworkData.create(config, provider, tables);
-    return new OpsAlb(config, provider, networkData);
+    return new OpsAlb(config, provider, networkData, globalProvider);
   }
 
   private config: OpsDataAwsConfig;
   private provider: OpsDataAwsProvider;
   private networkData: OpsNetworkData;
+  private globalProvider?: OpsDataAwsProvider;
 
-  private constructor(config: OpsDataAwsConfig, provider: OpsDataAwsProvider, networkData: OpsNetworkData) {
+  private constructor(
+    config: OpsDataAwsConfig,
+    provider: OpsDataAwsProvider,
+    networkData: OpsNetworkData,
+    globalProvider?: OpsDataAwsProvider
+  ) {
     super();
     this.config = config;
     this.provider = provider;
     this.networkData = networkData;
+    this.globalProvider = globalProvider;
+  }
+
+  private async getRoute53(domain: string) {
+    // In GovCloud deployments, we use Route53 from the global AWS account, not the GovCloud account
+    return this.globalProvider
+      ? await this.globalProvider.getAwsRoute53FromMainAccount()
+      : await this.provider.getAwsRoute53FromDomain(domain);
   }
 
   public async addAlb(deployment: IOpsDeployment): Promise<void> {
@@ -72,13 +91,13 @@ export class OpsAlb extends DataSource {
 
     const alb = await awsAlb.ensureAlb(options);
 
-    const route53 = await this.provider.getAwsRoute53FromDomain(deployment.domainName);
+    const route53 = await this.getRoute53(deployment.domainName);
     await route53.ensureRecord(deployment.domainName, { name: hostName, alias: alb.dns, type: 'A' });
   }
 
   public async addTargetGroup(deployment: IOpsDeployment, id: number): Promise<string> {
     const awsAlb = await this.provider.getAwsAlb(deployment.deploymentName, deployment.region);
-    const route53 = await this.provider.getAwsRoute53FromDomain(deployment.domainName);
+    const route53 = await this.getRoute53(deployment.domainName);
     const network = await this.networkData.get(deployment.networkName, deployment.region);
 
     const targetGroupName = this.getTargetGroupName(id);
@@ -105,7 +124,7 @@ export class OpsAlb extends DataSource {
 
   public async removeTargetGroup(deployment: IOpsDeployment, id: number): Promise<void> {
     const awsAlb = await this.provider.getAwsAlb(deployment.deploymentName, deployment.region);
-    const route53 = await this.provider.getAwsRoute53FromDomain(deployment.domainName);
+    const route53 = await this.getRoute53(deployment.domainName);
     const network = await this.networkData.get(deployment.networkName, deployment.region);
 
     const targetGroupName = this.getTargetGroupName(id);
@@ -164,8 +183,7 @@ export class OpsAlb extends DataSource {
     if (validation.status === 'PENDING_VALIDATION') {
       const validationDomain = validation.domain;
       const parentDomain = getParentDomain(validationDomain);
-      console.log(parentDomain);
-      const route53 = await this.provider.getAwsRoute53FromDomain(parentDomain);
+      const route53 = await this.getRoute53(parentDomain);
 
       return route53.ensureRecord(parentDomain, {
         name: validation.record.name,
@@ -178,7 +196,7 @@ export class OpsAlb extends DataSource {
   private async deleteRecordForValidation(validation: IAwsCertValidateDetail): Promise<void> {
     const validationDomain = validation.domain;
     const parentDomain = getParentDomain(validationDomain);
-    const route53 = await this.provider.getAwsRoute53FromDomain(parentDomain);
+    const route53 = await this.getRoute53(parentDomain);
 
     return route53.deleteRecord(parentDomain, {
       name: validation.record.name,

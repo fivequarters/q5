@@ -18,6 +18,7 @@ export class AwsBase<TAws extends new (...args: any[]) => any> {
   private delimiter: string;
   private creds?: AwsCreds;
   private aws?: TAws;
+  private govCloud: boolean;
 
   protected constructor(awsConfig: IAwsConfig, delimiter?: string) {
     this.account = awsConfig.account;
@@ -25,6 +26,7 @@ export class AwsBase<TAws extends new (...args: any[]) => any> {
     this.prefix = awsConfig.prefix || '';
     this.delimiter = delimiter || defaultDelimiter;
     this.creds = awsConfig.creds;
+    this.govCloud = awsConfig.govCloud;
   }
 
   protected onGetAws(options: any): InstanceType<TAws> {
@@ -80,6 +82,7 @@ export class AwsBase<TAws extends new (...args: any[]) => any> {
       account: this.account,
       region: this.region,
       prefix: this.prefix,
+      govCloud: this.govCloud,
     };
   }
 
