@@ -12,7 +12,7 @@ import PortalError from "./PortalError";
 import { useProfile } from "./ProfileProvider";
 import { useAgent } from "./AgentProvider";
 
-function AddOAuthImplicitIdentityFlow({ options }: any) {
+function AddOAuthImplicitIdentityFlow({ options, onDone }: any) {
   const { profile } = useProfile();
   const [agent] = useAgent();
   const [initToken, setInitToken] = React.useState();
@@ -50,13 +50,16 @@ function AddOAuthImplicitIdentityFlow({ options }: any) {
             })
           };
         }
-        !cancelled && setInitToken({ ...data });
+        if (!cancelled) {
+          setInitToken({ ...data });
+          onDone && onDone({ ...data });
+        }
       })();
       return () => {
         cancelled = true;
       };
     }
-  }, [initToken, profile, agent.agentId, options]);
+  }, [initToken, profile, agent.agentId, options, onDone]);
 
   if (!initToken) {
     return (

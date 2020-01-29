@@ -1,18 +1,13 @@
 import Grid from "@material-ui/core/Grid";
 import LinearProgress from "@material-ui/core/LinearProgress";
 import { makeStyles } from "@material-ui/core/styles";
-import TextField from "@material-ui/core/TextField";
-import EmailIcon from "@material-ui/icons/Email";
-import FingerprintIcon from "@material-ui/icons/Fingerprint";
-import PersonIcon from "@material-ui/icons/Person";
 import React from "react";
-import { User } from "../lib/FusebitTypes";
-import { modifyAgent, saveAgent, useAgent } from "./AgentProvider";
+import { saveAgent, useAgent } from "./AgentProvider";
 import ConfirmNavigation from "./ConfirmNavigation";
-import InputWithIcon from "./InputWithIcon";
+import { FusebitError } from "./ErrorBoundary";
 import PortalError from "./PortalError";
 import SaveFab from "./SaveFab";
-import { FusebitError } from "./ErrorBoundary";
+import UserDetails from "./UserDetails";
 
 const useStyles = makeStyles((theme: any) => ({
   gridContainer: {
@@ -50,29 +45,6 @@ function UserOverview({ data, match }: any) {
     ) : null;
   }
 
-  const handleFirstNameChange = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    if (user.status === "ready") {
-      (user.modified as User).firstName = event.target.value;
-      modifyAgent(user, setUser, { ...user.modified });
-    }
-  };
-
-  const handleLastNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (user.status === "ready") {
-      (user.modified as User).lastName = event.target.value;
-      modifyAgent(user, setUser, { ...user.modified });
-    }
-  };
-
-  const handleEmailChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (user.status === "ready") {
-      (user.modified as User).primaryEmail = event.target.value;
-      modifyAgent(user, setUser, { ...user.modified });
-    }
-  };
-
   const handleSave = () =>
     saveAgent(
       user,
@@ -91,58 +63,7 @@ function UserOverview({ data, match }: any) {
     return (
       <Grid container spacing={2} className={classes.gridContainer}>
         <Grid item xs={8} className={classes.form}>
-          <form noValidate autoComplete="off">
-            <InputWithIcon icon={<FingerprintIcon />}>
-              <TextField
-                id="userId"
-                label="User ID"
-                variant="outlined"
-                disabled
-                value={user.existing.id}
-                fullWidth
-              />
-            </InputWithIcon>
-            <InputWithIcon icon={<PersonIcon />}>
-              <Grid container spacing={2}>
-                <Grid item xs={6}>
-                  <TextField
-                    id="firstName"
-                    label="First Name"
-                    variant="outlined"
-                    value={(user.modified as User).firstName || ""}
-                    onChange={handleFirstNameChange}
-                    disabled={user.status !== "ready"}
-                    fullWidth
-                    autoFocus
-                  />
-                </Grid>
-                <Grid item xs={6}>
-                  <TextField
-                    id="lastName"
-                    label="Last Name"
-                    variant="outlined"
-                    value={(user.modified as User).lastName || ""}
-                    disabled={user.status !== "ready"}
-                    onChange={handleLastNameChange}
-                    fullWidth
-                    // autoFocus
-                  />
-                </Grid>
-              </Grid>
-            </InputWithIcon>
-            <InputWithIcon icon={<EmailIcon />}>
-              <TextField
-                id="primaryEmail"
-                label="Email"
-                variant="outlined"
-                type="email"
-                value={(user.modified as User).primaryEmail || ""}
-                disabled={user.status !== "ready"}
-                onChange={handleEmailChange}
-                fullWidth
-              />
-            </InputWithIcon>
-          </form>
+          <UserDetails />
         </Grid>
         {user.dirty && <ConfirmNavigation />}
         {user.dirty && user.status === "ready" && (

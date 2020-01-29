@@ -51,12 +51,18 @@ const tree = {
         `/accounts/${params.accountId}/users/${params.userId}/overview`,
       text: (params: any, profile: any) => params.userId,
       children: []
+    },
+    {
+      paramName: "newUser",
+      formatLink: (params: any) => `/accounts/${params.accountId}/users/new`,
+      text: (params: any, profile: any) => "New User",
+      children: []
     }
   ]
 };
 
 function ProfileBreadcrumb({ children, settings }: any) {
-  const params = useParams() as any;
+  const params = { ...(useParams() as any), ...settings };
   const { profile } = useProfile();
   // const classes = useStyles();
 

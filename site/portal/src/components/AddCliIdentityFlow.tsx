@@ -14,7 +14,7 @@ import { FusebitError } from "./ErrorBoundary";
 import PortalError from "./PortalError";
 import { useProfile } from "./ProfileProvider";
 
-function AddCliIdentityFlow({ options, flow }: any) {
+function AddCliIdentityFlow({ options, flow, onDone }: any) {
   const { profile } = useProfile();
   const [agent] = useAgent();
   const [initToken, setInitToken] = React.useState();
@@ -65,7 +65,10 @@ function AddCliIdentityFlow({ options, flow }: any) {
             )
           };
         }
-        !cancelled && setInitToken({ ...data });
+        if (!cancelled) {
+          setInitToken({ ...data });
+          onDone && onDone({ ...data });
+        }
       })();
       return () => {
         cancelled = true;
@@ -79,7 +82,8 @@ function AddCliIdentityFlow({ options, flow }: any) {
     agent.isUser,
     options.boundaryId,
     options.functionId,
-    options.subscriptionId
+    options.subscriptionId,
+    onDone
   ]);
 
   if (!initToken) {

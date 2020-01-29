@@ -14,7 +14,7 @@ function ConfirmNavigation({ title, text }: any) {
   });
 
   const handleConfirmation = (confirmed: boolean) => {
-    console.log("CONFIRMATION", confirmed, confirmation);
+    // console.log("CONFIRMATION", confirmed, confirmation);
     if (confirmed) {
       history.push(confirmation.location);
     } else {
@@ -23,7 +23,7 @@ function ConfirmNavigation({ title, text }: any) {
   };
 
   const handleRouterPrompt = (location: any) => {
-    console.log("HANDLE ROUTER PROMPT", location);
+    // console.log("HANDLE ROUTER PROMPT", location);
     setConfirmation({ location, open: true });
     return false;
   };

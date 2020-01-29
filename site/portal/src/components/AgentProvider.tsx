@@ -2,6 +2,8 @@ import React from "react";
 import {
   getClient,
   getUser,
+  newClient,
+  newUser,
   normalizeAgent,
   updateClient,
   updateUser
@@ -59,13 +61,26 @@ const AgentSetStateContext = React.createContext<AgentSetState | undefined>(
   undefined
 );
 
+const NewAgentId = "new";
+
 function AgentProvider({ children, agentId, isUser }: AgentProviderProps) {
   const { profile } = useProfile();
-  const [data, setData] = React.useState<AgentState>({
-    status: "loading",
-    isUser,
-    agentId
-  });
+  const [data, setData] = React.useState<AgentState>(
+    agentId === NewAgentId
+      ? {
+          status: "ready",
+          isUser,
+          agentId,
+          dirty: false,
+          existing: { id: agentId },
+          modified: { id: agentId }
+        }
+      : {
+          status: "loading",
+          isUser,
+          agentId
+        }
+  );
 
   React.useEffect(() => {
     let cancelled: boolean = false;
@@ -74,19 +89,25 @@ function AgentProvider({ children, agentId, isUser }: AgentProviderProps) {
         let afterUpdate =
           (data.status === "updating" && data.afterUpdate) || undefined;
         try {
-          let agent =
-            data.status === "loading"
-              ? isUser
-                ? await getUser(profile, agentId)
-                : await getClient(profile, agentId)
-              : isUser // data.status === "updating"
+          let agent: Client | User;
+          if (data.status === "loading") {
+            agent = isUser
+              ? await getUser(profile, agentId)
+              : await getClient(profile, agentId);
+          } else if (data.agentId === NewAgentId) {
+            agent = isUser
+              ? await newUser(profile, normalizeAgent(data.modified))
+              : await newClient(profile, normalizeAgent(data.modified));
+          } else {
+            agent = isUser
               ? await updateUser(profile, normalizeAgent(data.modified))
               : await updateClient(profile, normalizeAgent(data.modified));
+          }
           if (!cancelled) {
             setData({
               status: "ready",
               isUser,
-              agentId,
+              agentId: agent.id,
               dirty: false,
               existing: agent,
               modified: JSON.parse(JSON.stringify(agent))
@@ -99,9 +120,9 @@ function AgentProvider({ children, agentId, isUser }: AgentProviderProps) {
             const error = data.formatError
               ? data.formatError(e)
               : new FusebitError(
-                  `Error ${data.status} ${
-                    isUser ? "user" : "client"
-                  } ${agentId}`,
+                  `Error ${data.status} ${isUser ? "user" : "client"} ${
+                    data.agentId
+                  }`,
                   {
                     details:
                       (e.status || e.statusCode) === 403
@@ -114,7 +135,7 @@ function AgentProvider({ children, agentId, isUser }: AgentProviderProps) {
             setData({
               status: "error",
               isUser,
-              agentId,
+              agentId: data.agentId,
               error
             });
             afterUpdate && afterUpdate(error);
@@ -137,6 +158,8 @@ function AgentProvider({ children, agentId, isUser }: AgentProviderProps) {
     </AgentStateContext.Provider>
   );
 }
+
+AgentProvider.NewAgentId = NewAgentId;
 
 function useAgentState() {
   const context = React.useContext(AgentStateContext);
@@ -210,10 +233,11 @@ function formatAgent(agent: AgentState) {
       name.push((agent.modified as User).lastName);
     if ((agent.modified as Client).displayName)
       name.push((agent.modified as Client).displayName);
-    return name.length > 0 ? name.join(" ") : agent.agentId;
-  } else {
-    return agent.agentId;
+    if (name.length > 0) {
+      return name.join(" ");
+    }
   }
+  return agent.agentId === NewAgentId ? undefined : agent.agentId;
 }
 
 export {
