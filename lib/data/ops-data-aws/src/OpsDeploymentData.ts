@@ -30,19 +30,31 @@ import { signJwt } from '@5qtrs/jwt';
 // ----------------
 
 export class OpsDeploymentData extends DataSource implements IOpsDeploymentData {
-  public static async create(config: OpsDataAwsConfig, provider: OpsDataAwsProvider, tables: OpsDataTables) {
-    return new OpsDeploymentData(config, provider, tables);
+  public static async create(
+    config: OpsDataAwsConfig,
+    provider: OpsDataAwsProvider,
+    tables: OpsDataTables,
+    globalOpsDeploymentData?: OpsDeploymentData
+  ) {
+    return new OpsDeploymentData(config, provider, tables, globalOpsDeploymentData);
   }
 
   private config: OpsDataAwsConfig;
   private tables: OpsDataTables;
   private provider: OpsDataAwsProvider;
+  private globalOpsDeploymentData?: OpsDeploymentData;
 
-  private constructor(config: OpsDataAwsConfig, provider: OpsDataAwsProvider, tables: OpsDataTables) {
+  private constructor(
+    config: OpsDataAwsConfig,
+    provider: OpsDataAwsProvider,
+    tables: OpsDataTables,
+    globalOpsDeploymentData?: OpsDeploymentData
+  ) {
     super([]);
     this.config = config;
     this.tables = tables;
     this.provider = provider;
+    this.globalOpsDeploymentData = globalOpsDeploymentData;
   }
 
   public async exists(deployment: IOpsDeployment): Promise<boolean> {
@@ -255,7 +267,12 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
       await createDwhExport(this.config, awsConfig, deployment);
     }
 
-    const awsAlb = await OpsAlb.create(this.config, this.provider, this.tables);
+    const awsAlb = await OpsAlb.create(
+      this.config,
+      this.provider,
+      this.tables,
+      this.globalOpsDeploymentData && this.globalOpsDeploymentData.provider
+    );
     await awsAlb.addAlb(deployment);
   }
 }

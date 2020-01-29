@@ -151,7 +151,7 @@ export class ProfileService {
       if (userInfoNeeded) {
         const credentialsPrompt = await Confirm.create({
           header: 'AWS Credentials',
-          message: 'Do you have a custom AWS credentials provider executable you want to use?',
+          message: 'Do you have a custom AWS credentials provider executable you want to use (not common)?',
           details: [
             {
               name: 'Yes',
@@ -167,6 +167,21 @@ export class ProfileService {
         });
         credentialsProviderInfoNeeded = await credentialsPrompt.prompt(this.input.io);
       }
+      const govPrompt = await Confirm.create({
+        header: 'AWS GovCloud',
+        message: 'Are you deploying to AWS GovCloud?',
+        details: [
+          {
+            name: 'Yes',
+            value: 'You are deploying to AWS GovCloud',
+          },
+          {
+            name: 'No',
+            value: 'You are deploying to AWS public cloud',
+          },
+        ],
+      });
+      settings.govCloud = await govPrompt.prompt(this.input.io);
     }
 
     if (accountInfoNeeded) {
@@ -228,6 +243,20 @@ export class ProfileService {
           mask: true,
         });
       }
+    }
+
+    if (settings.govCloud && !settings.globalProfile) {
+      await io.writeLine(
+        Text.bold(
+          'To deploy to AWS GovCloud, we must also get access to the associated global AWS account. Please provide the fuse-ops CLI profile name that describes how to access this global AWS account. If the profile does not exist yet, you can create it next.'
+        )
+      );
+      await io.writeLine();
+      settings.globalProfile = await io.prompt({
+        prompt: 'AWS Global Account Profile Name:',
+        placeholder: '(Required)',
+        required: true,
+      });
     }
 
     return settings as IFusebitOpsProfileSettings;
@@ -395,6 +424,8 @@ export class ProfileService {
       { name: 'Main Role', value: profile.awsMainRole || notSet },
       { name: 'User Name', value: profile.awsUserName || notSet },
       { name: 'Access Key', value: profile.awsAccessKeyId || notSet },
+      { name: 'GovCloud', value: profile.govCloud ? 'yes' : 'no' },
+      { name: 'AWS Global Account Profile Name', value: profile.govCloud ? profile.globalProfile || notSet : 'N/A' },
     ];
   }
 
@@ -471,6 +502,12 @@ export class ProfileService {
     }
     details.push(
       ...[
+        Text.dim('AWS GovCloud: '),
+        profile.govCloud ? 'yes' : 'no',
+        Text.eol(),
+        Text.dim('AWS Global Account Profile Name: '),
+        profile.govCloud ? profile.globalProfile || notSet : 'N/A',
+        Text.eol(),
         Text.dim('Created: '),
         getDateString(new Date(profile.created)),
         Text.eol(),

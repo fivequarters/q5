@@ -9,4 +9,5 @@ export interface IAwsConfig {
   account: string;
   region: string;
   prefix?: string;
+  govCloud: boolean;
 }

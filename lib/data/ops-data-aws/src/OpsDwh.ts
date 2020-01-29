@@ -21,7 +21,7 @@ export async function createDwhExport(config: OpsDataAwsConfig, awsConfig: IAwsC
       timeout: 60,
       memory: 512,
       runtime: 'nodejs10.x',
-      role: `arn:aws:iam::${awsConfig.account}:role/${config.dwhExportRoleName}`,
+      role: `${config.arnPrefix}:iam::${awsConfig.account}:role/${config.dwhExportRoleName}`,
     },
 
     // Scheduled Cloud Watch Events that trigger the scheduler Lambda

@@ -17,6 +17,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.21.0
+
+_Released 1/23/20_
+
+- **GovCloud Support** Support for deployments on AWS GovCloud.
+
 ## Version 1.20.1
 
 _Released 12/11/19_

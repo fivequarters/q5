@@ -23,18 +23,30 @@ const invalidDomainNameCode = 'InvalidDomainName';
 // ----------------
 
 export class OpsDomainData extends DataSource implements IOpsDomainData {
-  public static async create(config: OpsDataAwsConfig, provider: OpsDataAwsProvider, tables: OpsDataTables) {
-    return new OpsDomainData(config, provider, tables);
+  public static async create(
+    config: OpsDataAwsConfig,
+    provider: OpsDataAwsProvider,
+    tables: OpsDataTables,
+    globalOpsDomainData?: OpsDomainData
+  ) {
+    return new OpsDomainData(config, provider, tables, globalOpsDomainData);
   }
   private config: OpsDataAwsConfig;
   private tables: OpsDataTables;
   private provider: OpsDataAwsProvider;
+  private globalOpsDomainData?: OpsDomainData;
 
-  private constructor(config: OpsDataAwsConfig, provider: OpsDataAwsProvider, tables: OpsDataTables) {
+  private constructor(
+    config: OpsDataAwsConfig,
+    provider: OpsDataAwsProvider,
+    tables: OpsDataTables,
+    globalOpsDomainData?: OpsDomainData
+  ) {
     super([]);
     this.config = config;
     this.provider = provider;
     this.tables = tables;
+    this.globalOpsDomainData = globalOpsDomainData;
   }
 
   public async exists(domain: IOpsDomain): Promise<boolean> {
@@ -78,9 +90,15 @@ export class OpsDomainData extends DataSource implements IOpsDomainData {
     return Promise.all(domains.map((domain: IOpsDomain) => this.attachNameServers(domain)));
   }
 
-  private async ensureHostedZone(domain: IOpsDomain): Promise<void> {
-    const route53 = await this.provider.getAwsRoute53FromAccount(domain.accountName);
+  private async getRoute53(accountName: string) {
+    // AWS GovCloud deployments are using Route53 from the associated global AWS account, not the GovCloud account
+    return this.globalOpsDomainData
+      ? await this.globalOpsDomainData.provider.getAwsRoute53FromMainAccount()
+      : await this.provider.getAwsRoute53FromAccount(accountName);
+  }
 
+  private async ensureHostedZone(domain: IOpsDomain): Promise<void> {
+    const route53 = await this.getRoute53(domain.accountName);
     try {
       await route53.ensureHostedZone(domain.domainName);
     } catch (error) {
@@ -93,7 +111,7 @@ export class OpsDomainData extends DataSource implements IOpsDomainData {
   }
 
   private async attachNameServers(domain: IOpsDomain): Promise<IOpsDomain> {
-    const route53 = await this.provider.getAwsRoute53FromAccount(domain.accountName);
+    const route53 = await this.getRoute53(domain.accountName);
     const records = await route53.getRecords(domain.domainName, nameServerRecord);
 
     domain.nameServers = [];

@@ -10,18 +10,20 @@ import { OpsDataAwsConfig } from './OpsDataAwsConfig';
 // ----------------
 
 export class OpsDataAwsContextFactory implements IOpsDataContextFactory {
-  public static async create(creds: AwsCreds) {
-    return new OpsDataAwsContextFactory(creds);
+  public static async create(creds: AwsCreds, globalOpsDataAwsContext?: OpsDataAwsContext) {
+    return new OpsDataAwsContextFactory(creds, globalOpsDataAwsContext);
   }
   private creds: AwsCreds;
+  private globalOpsDataAwsContext?: OpsDataAwsContext;
 
-  private constructor(creds: AwsCreds) {
+  private constructor(creds: AwsCreds, globalOpsDataAwsContext?: OpsDataAwsContext) {
     this.creds = creds;
+    this.globalOpsDataAwsContext = globalOpsDataAwsContext;
   }
 
-  public async create(config: IConfig): Promise<IOpsDataContext> {
+  public async create(config: IConfig): Promise<OpsDataAwsContext> {
     const awsConfig = await OpsDataAwsConfig.create(config);
     const awsProvider = await OpsDataAwsProvider.create(this.creds, awsConfig);
-    return OpsDataAwsContext.create(awsConfig, awsProvider);
+    return OpsDataAwsContext.create(awsConfig, awsProvider, this.globalOpsDataAwsContext);
   }
 }
