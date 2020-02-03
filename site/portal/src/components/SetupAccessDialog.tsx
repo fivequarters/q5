@@ -27,7 +27,7 @@ const useStyles = makeStyles((theme: any) => ({
   }
 }));
 
-function SetupAccessDialog({ onClose, agentId, isUser, data, onNewData }: any) {
+function SetupAccessDialog({ onClose, data, onNewData }: any) {
   const classes = useStyles();
   const { profile } = useProfile();
   const [agent] = useAgent();
@@ -141,21 +141,22 @@ function SetupAccessDialog({ onClose, agentId, isUser, data, onNewData }: any) {
         {noPermissions && (
           <React.Fragment>
             <WarningCard>
-              {isUser ? "User" : "Client"} <strong>{formatAgent(agent)}</strong>{" "}
-              does not have access to any resources in the{" "}
-              <strong>{formatAccount()}</strong> account. This may result in
-              errors when using the {formatUsage()}. You can proceed with this
-              setup, but consider using the <strong>Access</strong> tab to grant
-              permissions to the {isUser ? "user" : "client"} when you are done.
+              {agent.isUser ? "User" : "Client"}{" "}
+              <strong>{formatAgent(agent)}</strong> does not have access to any
+              resources in the <strong>{formatAccount()}</strong> account. This
+              may result in errors when using the {formatUsage()}. You can
+              proceed with this setup, but consider using the{" "}
+              <strong>Access</strong> tab to grant permissions to the{" "}
+              {agent.isUser ? "user" : "client"} when you are done.
             </WarningCard>
             {formatUsage() === "CLI" && (
               <DialogContentText>
                 During initialization, you can <strong>optionally</strong>{" "}
                 specify default parameters for the CLI commands, which
-                eliminates the need for the {isUser ? "user" : "client"} to
-                specify them with every command. These can be set or reset later
-                using the CLI itself. To proceed without defaults, leave them
-                blank.
+                eliminates the need for the {agent.isUser ? "user" : "client"}{" "}
+                to specify them with every command. These can be set or reset
+                later using the CLI itself. To proceed without defaults, leave
+                them blank.
               </DialogContentText>
             )}
             {formatUsage() === "Portal" && (
@@ -174,9 +175,9 @@ function SetupAccessDialog({ onClose, agentId, isUser, data, onNewData }: any) {
               <DialogContentText>
                 During initialization, you can <strong>optionally</strong>{" "}
                 specify default parameters for the CLI commands, which
-                eliminates the need for the {isUser ? "user" : "client"} to
-                specify them with every command. Below is a recommended set of
-                defaults based on the resources{" "}
+                eliminates the need for the {agent.isUser ? "user" : "client"}{" "}
+                to specify them with every command. Below is a recommended set
+                of defaults based on the resources{" "}
                 <strong>{formatAgent(agent)}</strong> has access to. These can
                 be set or reset later using the CLI itself. To proceed without
                 defaults, leave them blank.
@@ -204,7 +205,7 @@ function SetupAccessDialog({ onClose, agentId, isUser, data, onNewData }: any) {
           <br></br>
           Proceeding to the next step{" "}
           <strong>invalidates any previous invitations</strong> you may have
-          generated for this {isUser ? "user" : "client"}.
+          generated for this {agent.isUser ? "user" : "client"}.
         </DialogContentText>
       </DialogContent>
     );
@@ -220,7 +221,7 @@ function SetupAccessDialog({ onClose, agentId, isUser, data, onNewData }: any) {
       classes={{ paper: classes.dialogPaper }}
     >
       <DialogTitle id="form-dialog-title">
-        Invite {isUser ? "user" : "client"} to Fusebit
+        Invite {agent.isUser ? "user" : "client"} to Fusebit
       </DialogTitle>
       <Stepper activeStep={activeStep}>
         <Step>
@@ -280,7 +281,6 @@ function SetupAccessDialog({ onClose, agentId, isUser, data, onNewData }: any) {
           </Button>
         )}
       </DialogActions>
-      s
     </Dialog>
   );
 }

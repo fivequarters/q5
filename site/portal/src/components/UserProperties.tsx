@@ -1,5 +1,6 @@
 import Grid from "@material-ui/core/Grid";
 import LinearProgress from "@material-ui/core/LinearProgress";
+import Typography from "@material-ui/core/Typography";
 import { makeStyles } from "@material-ui/core/styles";
 import React from "react";
 import { saveAgent, useAgent } from "./AgentProvider";
@@ -8,6 +9,9 @@ import { FusebitError } from "./ErrorBoundary";
 import PortalError from "./PortalError";
 import SaveFab from "./SaveFab";
 import UserDetails from "./UserDetails";
+import AgentIdentities from "./AgentIdentities";
+import AccountBalanceIcon from "@material-ui/icons/AccountBalance";
+import InputWithIcon from "./InputWithIcon";
 
 const useStyles = makeStyles((theme: any) => ({
   gridContainer: {
@@ -17,10 +21,13 @@ const useStyles = makeStyles((theme: any) => ({
   },
   form: {
     overflow: "hidden"
+  },
+  identities: {
+    paddingTop: 14
   }
 }));
 
-function UserOverview({ data, match }: any) {
+function UserProperties({ data, match }: any) {
   const classes = useStyles();
   const [user, setUser] = useAgent();
 
@@ -36,7 +43,7 @@ function UserOverview({ data, match }: any) {
 
   if (user.status === "error") {
     const fusebit = (user.error as FusebitError).fusebit;
-    return fusebit && fusebit.source === "UserOverview" ? (
+    return fusebit && fusebit.source === "UserProperties" ? (
       <Grid container className={classes.gridContainer} spacing={2}>
         <Grid item xs={12}>
           <PortalError error={user.error} />
@@ -55,7 +62,7 @@ function UserOverview({ data, match }: any) {
             (e.status || e.statusCode) === 403
               ? `You are not authorized to access the user information.`
               : e.message || "Unknown error.",
-          source: "UserOverview"
+          source: "UserProperties"
         })
     );
 
@@ -64,6 +71,12 @@ function UserOverview({ data, match }: any) {
       <Grid container spacing={2} className={classes.gridContainer}>
         <Grid item xs={8} className={classes.form}>
           <UserDetails />
+          <InputWithIcon icon={<AccountBalanceIcon />}>
+            <Typography variant="h6" className={classes.identities}>
+              Identities
+            </Typography>
+          </InputWithIcon>
+          <AgentIdentities />
         </Grid>
         {user.dirty && <ConfirmNavigation />}
         {user.dirty && user.status === "ready" && (
@@ -76,4 +89,4 @@ function UserOverview({ data, match }: any) {
   return null;
 }
 
-export default UserOverview;
+export default UserProperties;

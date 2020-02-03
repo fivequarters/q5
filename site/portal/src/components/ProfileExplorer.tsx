@@ -20,7 +20,7 @@ import BoundaryFunctions from "./BoundaryFunctions";
 import FunctionOverview from "./FunctionOverview";
 import FunctionCode from "./FunctionCode";
 import IssuerOverview from "./IssuerOverview";
-import UserOverview from "./UserOverview";
+import UserProperties from "./UserProperties";
 import AgentIdentities from "./AgentIdentities";
 import AgentAccess from "./AgentAccess";
 import UserActionFab from "./UserActionFab";
@@ -136,10 +136,10 @@ const ExplorerTabs = {
       name: "overview"
     },
     {
-      name: "access"
+      name: "properties"
     },
     {
-      name: "identities"
+      name: "access"
     },
     {
       name: "activity"
@@ -281,7 +281,7 @@ function ProfileExplorer({ ...rest }: any) {
           <AgentProvider agentId={match.params.userId} isUser>
             <Switch>
               <Route
-                path={`${match.path}/overview`}
+                path={`${match.path}/properties`}
                 exact={true}
                 render={({ ...rest }) => (
                   <ExplorerView
@@ -289,7 +289,7 @@ function ProfileExplorer({ ...rest }: any) {
                     fab={<UserActionFab />}
                     {...rest}
                   >
-                    <UserOverview
+                    <UserProperties
                       data={data}
                       onNewData={handleOnNewData}
                       {...rest}
@@ -298,7 +298,7 @@ function ProfileExplorer({ ...rest }: any) {
                 )}
               />
               <Route
-                path={`${match.path}/identities`}
+                path={`${match.path}/overview`}
                 exact={true}
                 render={({ ...rest }) => (
                   <ExplorerView
@@ -306,7 +306,7 @@ function ProfileExplorer({ ...rest }: any) {
                     fab={<UserActionFab />}
                     {...rest}
                   >
-                    <AgentIdentities />
+                    [TODO: User Overview]
                   </ExplorerView>
                 )}
               />

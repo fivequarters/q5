@@ -1,4 +1,3 @@
-import Button from "@material-ui/core/Button";
 import Paper from "@material-ui/core/Paper";
 import { lighten, makeStyles } from "@material-ui/core/styles";
 import React from "react";
@@ -34,22 +33,19 @@ const useStyles = makeStyles((theme: any) => ({
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
+    flexDirection: "column",
     width: 114,
     minWidth: 114
   }
 }));
 
-function EntityCard({ icon, children, onRemove, ...rest }: any) {
+function EntityCard({ icon, actions, children, ...rest }: any) {
   const classes = useStyles();
   return (
     <Paper className={classes.card} square={true} {...rest}>
       <div className={classes.cardIcon}>{icon}</div>
       <div className={classes.cardContent}>{children}</div>
-      <div className={classes.cardAction}>
-        <Button variant="text" onClick={() => onRemove && onRemove()}>
-          Remove
-        </Button>
-      </div>
+      <div className={classes.cardAction}>{actions}</div>
     </Paper>
   );
 }
