@@ -252,7 +252,14 @@ function IssuerOverview({ data, match }: any) {
           issuer.modified.publicKeys.map((pki: any) => (
             <EntityCard
               key={pki.keyId}
-              onRemove={() => handleRemovePublicKey(pki)}
+              actions={
+                <Button
+                  variant="text"
+                  onClick={() => handleRemovePublicKey(pki)}
+                >
+                  Remove
+                </Button>
+              }
               icon={<VpnKeyIcon fontSize="inherit" color="secondary" />}
             >
               <div>
