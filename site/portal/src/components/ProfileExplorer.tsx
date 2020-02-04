@@ -338,6 +338,69 @@ function ProfileExplorer({ ...rest }: any) {
                 )}
               />
               <Route
+                path={`${match.path}/overview`}
+                exact={true}
+                render={({ ...rest }) => (
+                  <ExplorerView
+                    tabs={ExplorerTabs.client}
+                    fab={<ClientActionFab />}
+                    {...rest}
+                  >
+                    [TODO: Client Overview]
+                  </ExplorerView>
+                )}
+              />
+              <Route
+                path={`${match.path}/access`}
+                exact={true}
+                render={({ ...rest }) => (
+                  <ExplorerView
+                    tabs={ExplorerTabs.client}
+                    fab={<ClientActionFab />}
+                    {...rest}
+                  >
+                    <AgentAccess />
+                  </ExplorerView>
+                )}
+              />
+            </Switch>
+          </AgentProvider>
+        )}
+      />
+
+      <Route
+        path="/accounts/:accountId/clients/new"
+        exact={true}
+        render={({ ...rest }) => (
+          <ExplorerView breadcrumbSettings={{ newClient: true }} {...rest}>
+            <NewAgent data={data} onNewData={handleOnNewData} isUser={false} />
+          </ExplorerView>
+        )}
+      />
+
+      <Route
+        path="/accounts/:accountId/clients/:clientId"
+        render={({ match }) => (
+          <AgentProvider agentId={match.params.clientId} isUser={false}>
+            <Switch>
+              <Route
+                path={`${match.path}/properties`}
+                exact={true}
+                render={({ ...rest }) => (
+                  <ExplorerView
+                    tabs={ExplorerTabs.client}
+                    fab={<ClientActionFab />}
+                    {...rest}
+                  >
+                    <AgentProperties
+                      data={data}
+                      onNewData={handleOnNewData}
+                      {...rest}
+                    />
+                  </ExplorerView>
+                )}
+              />
+              <Route
                 path={`${match.path}/access`}
                 exact={true}
                 render={({ ...rest }) => (
