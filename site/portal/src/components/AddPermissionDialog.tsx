@@ -90,14 +90,16 @@ function AddPermissionDialog({ onClose, data, onNewData }: any) {
     setActiveStep(nextStep);
   };
 
+  const formatAgent = () => (agent.isUser ? "user" : "client");
+
   function actionSelector() {
     return (
       <DialogContent>
         <DialogContentText>
-          Select the action you would like to allow the user to perform. You can
-          only select from the set of actions you are allowed to perform
-          yourself. In the next step you will be able to select the resource
-          scope for this action.
+          Select the action you would like to allow the {formatAgent()} to
+          perform. You can only select from the set of actions you are allowed
+          to perform yourself. In the next step you will be able to select the
+          resource scope for this action.
         </DialogContentText>
         <PermissionActionSelector
           action={action.action}

@@ -8,6 +8,7 @@ import PortalError from "./PortalError";
 import Link from "@material-ui/core/Link";
 import { Link as RouterLink } from "react-router-dom";
 import DialogContentText from "@material-ui/core/DialogContentText";
+import ActionButton from "./ActionButton";
 
 interface ViewRow {
   name: string;
@@ -148,6 +149,7 @@ function AccountClients({ data, onNewData }: any) {
           : "Delete the client?"
       }
       deleteContent={generateDeleteContent}
+      actions={<ActionButton href="clients/new">New&nbsp;client</ActionButton>}
     />
   );
 }
