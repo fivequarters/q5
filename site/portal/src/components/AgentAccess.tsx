@@ -47,7 +47,7 @@ function AgentAccess() {
       align: "left",
       label: "Action"
       // render: row => (
-      //   <Link component={RouterLink} to={`users/${row.id}/overview`}>
+      //   <Link component={RouterLink} to={`users/${row.id}/properties`}>
       //     <UserAvatar letter={row.name[0]} />
       //     {row.name}
       //   </Link>

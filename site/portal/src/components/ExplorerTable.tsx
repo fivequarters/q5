@@ -1,5 +1,6 @@
-import React from "react";
-import clsx from "clsx";
+import Checkbox from "@material-ui/core/Checkbox";
+import Grid from "@material-ui/core/Grid";
+import IconButton from "@material-ui/core/IconButton";
 import {
   createStyles,
   lighten,
@@ -14,12 +15,12 @@ import TablePagination from "@material-ui/core/TablePagination";
 import TableRow from "@material-ui/core/TableRow";
 import TableSortLabel from "@material-ui/core/TableSortLabel";
 import Toolbar from "@material-ui/core/Toolbar";
-import Typography from "@material-ui/core/Typography";
-import Checkbox from "@material-ui/core/Checkbox";
-import IconButton from "@material-ui/core/IconButton";
 import Tooltip from "@material-ui/core/Tooltip";
+import Typography from "@material-ui/core/Typography";
 import DeleteIcon from "@material-ui/icons/Delete";
 import FilterListIcon from "@material-ui/icons/FilterList";
+import clsx from "clsx";
+import React from "react";
 import ConfirmationDialog from "./ConfirmationDialog";
 
 function desc<T>(a: T, b: T, orderBy: keyof T) {
@@ -236,6 +237,7 @@ interface ExplorerTableProps<T> {
   deleteContent?: string | ((selected: string[]) => JSX.Element);
   disablePagination?: boolean;
   noDataBody?: JSX.Element;
+  size?: string;
 }
 
 export default function ExplorerTable<T>(props: ExplorerTableProps<T>) {
@@ -250,7 +252,8 @@ export default function ExplorerTable<T>(props: ExplorerTableProps<T>) {
     onDelete,
     deleteTitle,
     deleteContent,
-    noDataBody
+    noDataBody,
+    size
   } = props;
   const classes = useStyles();
   const toolbarClasses = useToolbarStyles();
@@ -341,142 +344,146 @@ export default function ExplorerTable<T>(props: ExplorerTableProps<T>) {
 
   return (
     <div className={classes.root}>
-      <ConfirmationDialog
-        open={confirmDeleteOpen}
-        title={
-          deleteTitle
-            ? typeof deleteTitle === "string"
-              ? deleteTitle
-              : deleteTitle(selected)
-            : `Confirm delete?`
-        }
-        content={
-          deleteContent
-            ? typeof deleteContent === "string"
-              ? deleteContent
-              : deleteContent(selected)
-            : `Delete ${selected.length} records?`
-        }
-        onDone={handleDeleteDialogClose}
-        confirmText="Delete"
-      />
-      {/* <Paper className={classes.paper}> */}
-      <EnhancedTableToolbar
-        numSelected={selected.length}
-        title={title}
-        actions={actions}
-        onDelete={handleDeleteDialogOpen}
-      />
-      {/* <TableContainer> */}
-      {rows.length === 0 && noDataBody && (
-        <div className={toolbarClasses.root}>{noDataBody}</div>
-      )}
-      {(rows.length > 0 || !noDataBody) && (
-        <React.Fragment>
-          <Table
-            className={classes.table}
-            aria-labelledby="tableTitle"
-            // size={dense ? "small" : "medium"}
-            size="medium"
-            aria-label="explorer table"
-          >
-            <EnhancedTableHead<T>
-              classes={classes}
-              numSelected={selected.length}
-              order={order}
-              orderBy={orderBy}
-              onSelectAllClick={handleSelectAllClick}
-              onRequestSort={handleRequestSort}
-              rowCount={rows.length}
-              headCells={headCells}
-              enableSelection={enableSelection}
-            />
-            <TableBody>
-              {dataRows.map((row, index) => {
-                const isItemSelected = isSelected(
-                  (row[identityKey] as unknown) as string
-                );
-                const labelId = `explorer-table-checkbox-${index}`;
-
-                return (
-                  <TableRow
-                    hover={enableSelection}
-                    onClick={
-                      enableSelection
-                        ? event =>
-                            handleClick(
-                              event,
-                              (row[identityKey] as unknown) as string
-                            )
-                        : undefined
-                    }
-                    role="checkbox"
-                    aria-checked={isItemSelected}
-                    tabIndex={-1}
-                    key={(row[identityKey] as unknown) as string}
-                    selected={isItemSelected}
-                  >
-                    {enableSelection && (
-                      <TableCell padding="checkbox">
-                        <Checkbox
-                          color="primary"
-                          checked={isItemSelected}
-                          inputProps={{ "aria-labelledby": labelId }}
-                        />
-                      </TableCell>
-                    )}
-                    {headCells[0] && (
-                      <TableCell
-                        component="th"
-                        id={labelId}
-                        scope="row"
-                        padding={enableSelection ? "none" : "default"}
-                        align={headCells[0].align || "right"}
-                      >
-                        {headCells[0].render
-                          ? headCells[0].render(row)
-                          : row[headCells[0].id]}
-                      </TableCell>
-                    )}
-                    {headCells.map((cell, index) =>
-                      index === 0 ? (
-                        undefined
-                      ) : (
-                        <TableCell
-                          key={cell.id as string}
-                          align={cell.align || "right"}
-                        >
-                          {cell.render ? cell.render(row) : row[cell.id]}
-                        </TableCell>
-                      )
-                    )}
-                  </TableRow>
-                );
-              })}
-              {emptyRows > 0 && (
-                // <TableRow style={{ height: (dense ? 33 : 53) * emptyRows }}>
-                <TableRow style={{ height: 53 * emptyRows }}>
-                  <TableCell
-                    colSpan={headCells.length + (enableSelection ? 1 : 0)}
-                  />
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-          {/* </TableContainer> */}
-          {!props.disablePagination && (
-            <TablePagination
-              rowsPerPageOptions={[5, 10, 25, 50, 100]}
-              component="div"
-              count={rows.length}
-              rowsPerPage={rowsPerPage}
-              page={page}
-              onChangePage={handleChangePage}
-              onChangeRowsPerPage={handleChangeRowsPerPage}
-            />
+      <Grid container spacing={2}>
+        <Grid item xs={size === "narrow" ? 8 : 12}>
+          <ConfirmationDialog
+            open={confirmDeleteOpen}
+            title={
+              deleteTitle
+                ? typeof deleteTitle === "string"
+                  ? deleteTitle
+                  : deleteTitle(selected)
+                : `Confirm delete?`
+            }
+            content={
+              deleteContent
+                ? typeof deleteContent === "string"
+                  ? deleteContent
+                  : deleteContent(selected)
+                : `Delete ${selected.length} records?`
+            }
+            onDone={handleDeleteDialogClose}
+            confirmText="Delete"
+          />
+          {/* <Paper className={classes.paper}> */}
+          <EnhancedTableToolbar
+            numSelected={selected.length}
+            title={title}
+            actions={actions}
+            onDelete={handleDeleteDialogOpen}
+          />
+          {/* <TableContainer> */}
+          {rows.length === 0 && noDataBody && (
+            <div className={toolbarClasses.root}>{noDataBody}</div>
           )}
-        </React.Fragment>
-      )}
+          {(rows.length > 0 || !noDataBody) && (
+            <React.Fragment>
+              <Table
+                className={classes.table}
+                aria-labelledby="tableTitle"
+                // size={dense ? "small" : "medium"}
+                size="medium"
+                aria-label="explorer table"
+              >
+                <EnhancedTableHead<T>
+                  classes={classes}
+                  numSelected={selected.length}
+                  order={order}
+                  orderBy={orderBy}
+                  onSelectAllClick={handleSelectAllClick}
+                  onRequestSort={handleRequestSort}
+                  rowCount={rows.length}
+                  headCells={headCells}
+                  enableSelection={enableSelection}
+                />
+                <TableBody>
+                  {dataRows.map((row, index) => {
+                    const isItemSelected = isSelected(
+                      (row[identityKey] as unknown) as string
+                    );
+                    const labelId = `explorer-table-checkbox-${index}`;
+
+                    return (
+                      <TableRow
+                        hover={enableSelection}
+                        onClick={
+                          enableSelection
+                            ? event =>
+                                handleClick(
+                                  event,
+                                  (row[identityKey] as unknown) as string
+                                )
+                            : undefined
+                        }
+                        role="checkbox"
+                        aria-checked={isItemSelected}
+                        tabIndex={-1}
+                        key={(row[identityKey] as unknown) as string}
+                        selected={isItemSelected}
+                      >
+                        {enableSelection && (
+                          <TableCell padding="checkbox">
+                            <Checkbox
+                              color="primary"
+                              checked={isItemSelected}
+                              inputProps={{ "aria-labelledby": labelId }}
+                            />
+                          </TableCell>
+                        )}
+                        {headCells[0] && (
+                          <TableCell
+                            component="th"
+                            id={labelId}
+                            scope="row"
+                            padding={enableSelection ? "none" : "default"}
+                            align={headCells[0].align || "right"}
+                          >
+                            {headCells[0].render
+                              ? headCells[0].render(row)
+                              : row[headCells[0].id]}
+                          </TableCell>
+                        )}
+                        {headCells.map((cell, index) =>
+                          index === 0 ? (
+                            undefined
+                          ) : (
+                            <TableCell
+                              key={cell.id as string}
+                              align={cell.align || "right"}
+                            >
+                              {cell.render ? cell.render(row) : row[cell.id]}
+                            </TableCell>
+                          )
+                        )}
+                      </TableRow>
+                    );
+                  })}
+                  {emptyRows > 0 && (
+                    // <TableRow style={{ height: (dense ? 33 : 53) * emptyRows }}>
+                    <TableRow style={{ height: 53 * emptyRows }}>
+                      <TableCell
+                        colSpan={headCells.length + (enableSelection ? 1 : 0)}
+                      />
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+              {/* </TableContainer> */}
+              {!props.disablePagination && (
+                <TablePagination
+                  rowsPerPageOptions={[5, 10, 25, 50, 100]}
+                  component="div"
+                  count={rows.length}
+                  rowsPerPage={rowsPerPage}
+                  page={page}
+                  onChangePage={handleChangePage}
+                  onChangeRowsPerPage={handleChangeRowsPerPage}
+                />
+              )}
+            </React.Fragment>
+          )}
+        </Grid>
+      </Grid>
     </div>
   );
 }

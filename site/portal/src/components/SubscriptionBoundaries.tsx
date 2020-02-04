@@ -10,10 +10,10 @@ import { useProfile } from "./ProfileProvider";
 interface ViewRow {
   id: string;
   functions: number;
-  firstExecuted: string;
-  lastExecuted: string;
-  errorsLast24h: string;
-  executionsLast24h: string;
+  // firstExecuted: string;
+  // lastExecuted: string;
+  // errorsLast24h: string;
+  // executionsLast24h: string;
 }
 
 function SubscriptionBoundaries({ data, onNewData, match }: any) {
@@ -23,11 +23,11 @@ function SubscriptionBoundaries({ data, onNewData, match }: any) {
 
   const createViewRow = (dataRow: any): ViewRow => ({
     id: dataRow.boundaryId as string,
-    functions: dataRow.functions.length,
-    firstExecuted: "N/A",
-    lastExecuted: "N/A",
-    errorsLast24h: "N/A",
-    executionsLast24h: "N/A"
+    functions: dataRow.functions.length
+    // firstExecuted: "N/A",
+    // lastExecuted: "N/A",
+    // errorsLast24h: "N/A",
+    // executionsLast24h: "N/A"
   });
 
   const headCells: HeadCell<ViewRow>[] = [
@@ -37,7 +37,7 @@ function SubscriptionBoundaries({ data, onNewData, match }: any) {
       align: "left",
       label: "Boundary Name",
       render: row => (
-        <Link component={RouterLink} to={`boundaries/${row.id}/overview`}>
+        <Link component={RouterLink} to={`boundaries/${row.id}/functions`}>
           {row.id}
         </Link>
       )
@@ -45,23 +45,23 @@ function SubscriptionBoundaries({ data, onNewData, match }: any) {
     {
       id: "functions",
       label: "Functions"
-    },
-    {
-      id: "firstExecuted",
-      label: "First Executed"
-    },
-    {
-      id: "lastExecuted",
-      label: "Last Executed"
-    },
-    {
-      id: "errorsLast24h",
-      label: "Errors (last 24h)"
-    },
-    {
-      id: "executionsLast24h",
-      label: "Executions (last 24h)"
     }
+    // {
+    //   id: "firstExecuted",
+    //   label: "First Executed"
+    // },
+    // {
+    //   id: "lastExecuted",
+    //   label: "Last Executed"
+    // },
+    // {
+    //   id: "errorsLast24h",
+    //   label: "Errors (last 24h)"
+    // },
+    // {
+    //   id: "executionsLast24h",
+    //   label: "Executions (last 24h)"
+    // }
   ];
 
   React.useEffect(
@@ -96,6 +96,7 @@ function SubscriptionBoundaries({ data, onNewData, match }: any) {
       defaultSortKey="id"
       identityKey="id"
       title="Boundaries"
+      size="narrow"
     />
   );
 }

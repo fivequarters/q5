@@ -88,7 +88,7 @@ function AgentIdentities() {
                     component={RouterLink}
                     to={`../../issuers/${encodeURIComponent(
                       identity.issuerId
-                    )}/overview`}
+                    )}/properties`}
                     disabled={agent.status !== "ready"}
                   >
                     View issuer

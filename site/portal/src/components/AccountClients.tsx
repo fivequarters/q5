@@ -37,7 +37,7 @@ function AccountClients({ data, onNewData }: any) {
       align: "left",
       label: "Name",
       render: row => (
-        <Link component={RouterLink} to={`clients/${row.id}/overview`}>
+        <Link component={RouterLink} to={`clients/${row.id}/properties`}>
           {row.name}
         </Link>
       )
