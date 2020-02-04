@@ -25,7 +25,9 @@ function AccountUsers({ data, onNewData }: any) {
   // const { params } = match;
 
   const createViewRow = (dataRow: any): ViewRow => ({
-    name: [dataRow.firstName, dataRow.lastName].join(" ").trim() || "N/A",
+    name: `${[dataRow.firstName, dataRow.lastName].join(" ").trim() || "N/A"}${
+      profile.me && profile.me.id === dataRow.id ? " (you)" : ""
+    }`,
     email: dataRow.primaryEmail || "N/A",
     id: dataRow.id as string,
     identities: (dataRow.identities && dataRow.identities.length) || 0,

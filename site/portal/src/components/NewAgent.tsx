@@ -32,6 +32,7 @@ import PortalError from "./PortalError";
 import { useProfile } from "./ProfileProvider";
 import UserDetails from "./UserDetails";
 import WarningCard from "./WarningCard";
+import ClientDetails from "./ClientDetails";
 
 const useStyles = makeStyles((theme: any) => ({
   gridContainer: {
@@ -58,7 +59,7 @@ const createInitialResurce = () => ({
   }
 });
 
-function NewUserImpl() {
+function NewAgentImpl() {
   const classes = useStyles();
   const { profile } = useProfile();
   const [activeStep, setActiveStep] = React.useState(0);
@@ -71,6 +72,8 @@ function NewUserImpl() {
   );
   const [flow, setFlow] = React.useState("none");
   const [initGenerated, setInitGenerated] = React.useState(false);
+
+  const agentNoun = agent.isUser ? "user" : "client";
 
   const handleRoleChange = (role: any) => {
     setRole(role);
@@ -107,10 +110,10 @@ function NewUserImpl() {
         agent,
         setAgent,
         e =>
-          new FusebitError(`Error creating user`, {
+          new FusebitError(`Error creating ${agentNoun}`, {
             details:
               (e.status || e.statusCode) === 403
-                ? `You are not authorized to create users.`
+                ? `You are not authorized to create ${agentNoun}s.`
                 : e.message || "Unknown error.",
             source: "CreateNewUser"
           })
@@ -176,7 +179,7 @@ function NewUserImpl() {
           <Grid item xs={8} className={classes.form}>
             {agentName && (
               <DialogContentText>
-                You are about to create user <strong>{agentName}</strong>
+                You are about to create {agentNoun} <strong>{agentName}</strong>
                 {email && (
                   <span>
                     {" "}
@@ -188,34 +191,42 @@ function NewUserImpl() {
             )}
             {!agentName && (
               <DialogContentText>
-                You are about to create a new user.
+                You are about to create a new {agentNoun}.
               </DialogContentText>
             )}
             {role.role === noRole.role && (
               <WarningCard>
-                You did not grant {!agentName && "the "}user{" "}
-                {agentName && <strong>{agentName} </strong>}permissions to any
-                resources. This may result in errors for the user when accessing
-                the Portal or CLI. You can proceed with this setup, but consider
-                using the <strong>Access</strong> tab to grant permissions for
-                the user when you are done.
+                You did not grant {!agentName && "the "}
+                {agentNoun} {agentName && <strong>{agentName} </strong>}
+                permissions to any resources. This may result in errors for the{" "}
+                {agentNoun} when accessing{" "}
+                {agent.isUser ? "the Portal or CLI" : "the system"}. You can
+                proceed with this setup, but consider using the{" "}
+                <strong>Access</strong> tab to grant permissions for the{" "}
+                {agentNoun}
+                when you are done.
               </WarningCard>
             )}
             {flow === "none" && (
               <WarningCard>
-                You did not invite {!agentName && "the "}user{" "}
-                {agentName && <strong>{agentName} </strong>}to any of the
-                Fusebit Platform tools. They will not be able to access the
-                system. You can continue with this setup, but consider using the{" "}
-                <strong>Invite User to the Platform</strong> quick action after
-                you are done.
+                You did not invite {!agentName && "the "}
+                {agentNoun} {agentName && <strong>{agentName} </strong>}to any
+                of the Fusebit Platform tools. They will not be able to access
+                the system. You can continue with this setup, but consider using
+                the{" "}
+                <strong>
+                  {agent.isUser
+                    ? "Invite User to the Platform"
+                    : "Connect CLI client to Fusebit"}
+                </strong>{" "}
+                quick action after you are done.
               </WarningCard>
             )}
             {role.role !== noRole.role && (
               <React.Fragment>
                 <DialogContentText>
-                  The following permissions will be granted for the user as part
-                  of the <strong>{role.title}</strong> permission set:
+                  The following permissions will be granted for the {agentNoun}{" "}
+                  as part of the <strong>{role.title}</strong> permission set:
                 </DialogContentText>
                 <PermissionReviewTable
                   data={data}
@@ -226,7 +237,7 @@ function NewUserImpl() {
               </React.Fragment>
             )}
             <DialogContentText>
-              Select <strong>Next</strong> to create the user.
+              Select <strong>Next</strong> to create the {agentNoun}.
             </DialogContentText>
           </Grid>
         </Grid>
@@ -250,7 +261,8 @@ function NewUserImpl() {
                 </span>
               ) : (
                 <span>
-                  Select the Fusebit Platform tool you would like the new user
+                  Select the Fusebit Platform tool you would like the new{" "}
+                  {agentNoun}
                   to access:
                 </span>
               )}{" "}
@@ -259,6 +271,7 @@ function NewUserImpl() {
               flow={flow}
               onFlowChange={(flow: string) => setFlow(flow)}
               allowNoTool
+              isUser={agent.isUser}
               autoFocus
               disabled={agent.status !== "ready"}
             />
@@ -267,9 +280,9 @@ function NewUserImpl() {
                 <br></br>
                 You can <strong>optionally</strong> specify defaults for the
                 tool, which will determine the default view and parameters for
-                the user. Here is a recommended set of defaults based on the
-                resources {agentName || "the user"} has access to. To proceed
-                without defaults, keep these blank.
+                the {agentNoun}. Here is a recommended set of defaults based on
+                the resources {agentName || `the ${agentNoun}`} has access to.
+                To proceed without defaults, keep these blank.
               </DialogContentText>
             )}
             {/* </DialogContent> */}
@@ -290,8 +303,8 @@ function NewUserImpl() {
             )}
             <DialogContentText>
               <br></br>
-              You will be able to invite the user to additional tools after you
-              are done.
+              You will be able to invite the {agentNoun} to additional tools
+              after you are done.
             </DialogContentText>
           </Grid>
           <Grid item xs={4}>
@@ -299,7 +312,7 @@ function NewUserImpl() {
               <InfoCard>
                 <DialogContentText>
                   The Fusebit Portal uses these values to provide a default view
-                  when the user logs in.
+                  when the {agentNoun} logs in.
                 </DialogContentText>
               </InfoCard>
             )}
@@ -327,11 +340,11 @@ function NewUserImpl() {
             <DialogContentText>
               {agentName ? (
                 <span>
-                  Select the permission set for user{" "}
+                  Select the permission set for {agentNoun}{" "}
                   <strong>{agentName}</strong>.
                 </span>
               ) : (
-                <span>Select the permission set for the new user.</span>
+                <span>Select the permission set for the new {agentNoun}.</span>
               )}{" "}
               You can only assign a permission set if you have all the necessary
               permissions yourself.
@@ -378,7 +391,8 @@ function NewUserImpl() {
               <InfoCard>
                 <DialogContentText>
                   Leaving the subscription, boundary, and function blank will
-                  grant the user developer permissions for the whole account.
+                  grant the {agentNoun} developer permissions for the whole
+                  account.
                 </DialogContentText>
                 <DialogContentText>
                   Specifying subscription, boundary, or function constraints
@@ -427,7 +441,8 @@ function NewUserImpl() {
         {activeStep === 0 && agent.status !== "error" && (
           <Grid container spacing={2} className={classes.gridContainer}>
             <Grid item xs={8} className={classes.form}>
-              <UserDetails />
+              {agent.isUser && <UserDetails />}
+              {!agent.isUser && <ClientDetails />}
             </Grid>
           </Grid>
         )}
@@ -477,7 +492,7 @@ function NewUserImpl() {
                       flow !== "none" &&
                       agent.status === "ready")
                   }
-                  href="../users"
+                  href={agent.isUser ? "../users" : "../clients"}
                 >
                   Done
                 </Button>
@@ -494,12 +509,12 @@ function NewUserImpl() {
   return null;
 }
 
-function NewUser({ data, onNewData }: any) {
+function NewAgent({ isUser }: any) {
   return (
-    <AgentProvider agentId={AgentProvider.NewAgentId} isUser>
-      <NewUserImpl />
+    <AgentProvider agentId={AgentProvider.NewAgentId} isUser={isUser}>
+      <NewAgentImpl />
     </AgentProvider>
   );
 }
 
-export default NewUser;
+export default NewAgent;

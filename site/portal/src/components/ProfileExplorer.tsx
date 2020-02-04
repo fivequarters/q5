@@ -1,36 +1,33 @@
-import React from "react";
-import { Switch, Route, Redirect, useHistory } from "react-router-dom";
-import { getLocalSettings, IFusebitSettings } from "../lib/Settings";
-import { makeStyles } from "@material-ui/core/styles";
-import { useProfile } from "./ProfileProvider";
-import ProfileSelectorWithDetails from "./ProfileSelectorWithDetails";
-import ProfileBreadcrumb from "./ProfileBreadcrumb";
 import Grid from "@material-ui/core/Grid";
-import { FusebitError } from "./ErrorBoundary";
-
+import Paper from "@material-ui/core/Paper";
+import { makeStyles } from "@material-ui/core/styles";
+import Tab from "@material-ui/core/Tab";
+import Tabs from "@material-ui/core/Tabs";
+import React from "react";
+import { Redirect, Route, Switch, useHistory } from "react-router-dom";
+import { getLocalSettings, IFusebitSettings } from "../lib/Settings";
+import AccountClients from "./AccountClients";
+import AccountIssuers from "./AccountIssuers";
 import AccountOverview from "./AccountOverview";
 import AccountSubscriptions from "./AccountSubscriptions";
 import AccountUsers from "./AccountUsers";
-import AccountClients from "./AccountClients";
-import AccountIssuers from "./AccountIssuers";
-import SubscriptionOverview from "./SubscriptionOverview";
-import SubscriptionBoundaries from "./SubscriptionBoundaries";
-import BoundaryOverview from "./BoundaryOverview";
-import BoundaryFunctions from "./BoundaryFunctions";
-import FunctionOverview from "./FunctionOverview";
-import FunctionCode from "./FunctionCode";
-import IssuerOverview from "./IssuerOverview";
-import UserProperties from "./UserProperties";
-import AgentIdentities from "./AgentIdentities";
 import AgentAccess from "./AgentAccess";
-import UserActionFab from "./UserActionFab";
-import NewUser from "./NewUser";
-
-import Paper from "@material-ui/core/Paper";
-import Tabs from "@material-ui/core/Tabs";
-import Tab from "@material-ui/core/Tab";
-
+import AgentProperties from "./AgentProperties";
 import { AgentProvider } from "./AgentProvider";
+import BoundaryFunctions from "./BoundaryFunctions";
+import BoundaryOverview from "./BoundaryOverview";
+import { FusebitError } from "./ErrorBoundary";
+import FunctionCode from "./FunctionCode";
+import FunctionOverview from "./FunctionOverview";
+import IssuerOverview from "./IssuerOverview";
+import NewAgent from "./NewAgent";
+import ProfileBreadcrumb from "./ProfileBreadcrumb";
+import { useProfile } from "./ProfileProvider";
+import ProfileSelectorWithDetails from "./ProfileSelectorWithDetails";
+import SubscriptionBoundaries from "./SubscriptionBoundaries";
+import SubscriptionOverview from "./SubscriptionOverview";
+import UserActionFab from "./UserActionFab";
+import ClientActionFab from "./ClientActionFab";
 
 const useStyles = makeStyles(theme => ({
   paper: {
@@ -132,6 +129,20 @@ const ExplorerTabs = {
     }
   ],
   user: [
+    {
+      name: "overview"
+    },
+    {
+      name: "properties"
+    },
+    {
+      name: "access"
+    },
+    {
+      name: "activity"
+    }
+  ],
+  client: [
     {
       name: "overview"
     },
@@ -270,7 +281,7 @@ function ProfileExplorer({ ...rest }: any) {
         exact={true}
         render={({ ...rest }) => (
           <ExplorerView breadcrumbSettings={{ newUser: true }} {...rest}>
-            <NewUser data={data} onNewData={handleOnNewData} />
+            <NewAgent data={data} onNewData={handleOnNewData} isUser />
           </ExplorerView>
         )}
       />
@@ -289,7 +300,7 @@ function ProfileExplorer({ ...rest }: any) {
                     fab={<UserActionFab />}
                     {...rest}
                   >
-                    <UserProperties
+                    <AgentProperties
                       data={data}
                       onNewData={handleOnNewData}
                       {...rest}
@@ -337,6 +348,70 @@ function ProfileExplorer({ ...rest }: any) {
           </ExplorerView>
         )}
       />
+
+      <Route
+        path="/accounts/:accountId/clients/new"
+        exact={true}
+        render={({ ...rest }) => (
+          <ExplorerView breadcrumbSettings={{ newClient: true }} {...rest}>
+            <NewAgent data={data} onNewData={handleOnNewData} isUser={false} />
+          </ExplorerView>
+        )}
+      />
+
+      <Route
+        path="/accounts/:accountId/clients/:clientId"
+        render={({ match }) => (
+          <AgentProvider agentId={match.params.clientId} isUser={false}>
+            <Switch>
+              <Route
+                path={`${match.path}/properties`}
+                exact={true}
+                render={({ ...rest }) => (
+                  <ExplorerView
+                    tabs={ExplorerTabs.client}
+                    fab={<ClientActionFab />}
+                    {...rest}
+                  >
+                    <AgentProperties
+                      data={data}
+                      onNewData={handleOnNewData}
+                      {...rest}
+                    />
+                  </ExplorerView>
+                )}
+              />
+              <Route
+                path={`${match.path}/overview`}
+                exact={true}
+                render={({ ...rest }) => (
+                  <ExplorerView
+                    tabs={ExplorerTabs.client}
+                    fab={<ClientActionFab />}
+                    {...rest}
+                  >
+                    [TODO: Client Overview]
+                  </ExplorerView>
+                )}
+              />
+              <Route
+                path={`${match.path}/access`}
+                exact={true}
+                render={({ ...rest }) => (
+                  <ExplorerView
+                    tabs={ExplorerTabs.client}
+                    fab={<ClientActionFab />}
+                    {...rest}
+                  >
+                    <AgentAccess />
+                  </ExplorerView>
+                )}
+              />
+            </Switch>
+          </AgentProvider>
+        )}
+      />
+
       <Route
         path="/accounts/:accountId/issuers"
         exact={true}

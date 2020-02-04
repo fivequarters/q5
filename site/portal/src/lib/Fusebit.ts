@@ -323,7 +323,7 @@ export async function newClient(
 ): Promise<Client> {
   try {
     let auth = await ensureAccessToken(profile);
-    let result: any = await Superagent.patch(
+    let result: any = await Superagent.post(
       `${profile.baseUrl}/v1/account/${profile.account}/client`
     )
       .set("Authorization", `Bearer ${auth.access_token}`)

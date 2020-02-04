@@ -39,7 +39,9 @@ function SetupAccessDialog({ onClose, data, onNewData }: any) {
     }
   });
   const [activeStep, setActiveStep] = React.useState(0);
-  const [flow, setFlow] = React.useState("oauth-implicit");
+  const [flow, setFlow] = React.useState(
+    agent.isUser ? "oauth-implicit" : "pki"
+  );
 
   React.useEffect(() => {
     if (agent.status === "ready") {
@@ -224,9 +226,11 @@ function SetupAccessDialog({ onClose, data, onNewData }: any) {
         Invite {agent.isUser ? "user" : "client"} to Fusebit
       </DialogTitle>
       <Stepper activeStep={activeStep}>
-        <Step>
-          <StepLabel>Select platform tool</StepLabel>
-        </Step>
+        {agent.isUser && (
+          <Step>
+            <StepLabel>Select platform tool</StepLabel>
+          </Step>
+        )}
         <Step>
           <StepLabel>Check access</StepLabel>
         </Step>
@@ -244,23 +248,33 @@ function SetupAccessDialog({ onClose, data, onNewData }: any) {
           <PortalError error={agent.error} />
         </DialogContent>
       )}
-      {activeStep === 0 && agent.status === "ready" && flowSelector()}
-      {activeStep === 1 && resourceDefaults()}
-      {activeStep === 2 && flow === "pki" && (
+      {activeStep === 0 &&
+        agent.isUser &&
+        agent.status === "ready" &&
+        flowSelector()}
+      {activeStep === 1 && agent.isUser && resourceDefaults()}
+      {activeStep === 2 && agent.isUser && flow === "pki" && (
         <AddCliIdentityFlow options={resource.parts} flow="pki" />
       )}
-      {activeStep === 2 && flow === "oauth-implicit" && (
+      {activeStep === 2 && agent.isUser && flow === "oauth-implicit" && (
         <AddOauthImplicitIdentityFlow options={resource.parts} />
       )}
-      {activeStep === 2 && flow === "oauth-device" && (
+      {activeStep === 2 && agent.isUser && flow === "oauth-device" && (
         <AddCliIdentityFlow options={resource.parts} flow="oauth-device" />
+      )}
+      {activeStep === 0 &&
+        !agent.isUser &&
+        agent.status === "ready" &&
+        resourceDefaults()}
+      {activeStep === 1 && !agent.isUser && (
+        <AddCliIdentityFlow options={resource.parts} flow="pki" />
       )}
       <DialogActions>
         <Button onClick={() => onClose && onClose()}>Cancel</Button>
         <Button onClick={handlePreviousStep} disabled={activeStep === 0}>
           Back
         </Button>
-        {activeStep < 2 && (
+        {activeStep < (agent.isUser ? 2 : 1) && (
           <Button
             onClick={handleNextStep}
             color="primary"
@@ -270,7 +284,7 @@ function SetupAccessDialog({ onClose, data, onNewData }: any) {
             Next
           </Button>
         )}
-        {activeStep === 2 && (
+        {activeStep === (agent.isUser ? 2 : 1) && (
           <Button
             onClick={handleSubmit}
             color="primary"

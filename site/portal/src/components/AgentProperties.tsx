@@ -9,6 +9,7 @@ import { FusebitError } from "./ErrorBoundary";
 import PortalError from "./PortalError";
 import SaveFab from "./SaveFab";
 import UserDetails from "./UserDetails";
+import ClientDetails from "./ClientDetails";
 import AgentIdentities from "./AgentIdentities";
 import AccountBalanceIcon from "@material-ui/icons/AccountBalance";
 import InputWithIcon from "./InputWithIcon";
@@ -27,11 +28,11 @@ const useStyles = makeStyles((theme: any) => ({
   }
 }));
 
-function UserProperties({ data, match }: any) {
+function AgentProperties({ data, match }: any) {
   const classes = useStyles();
-  const [user, setUser] = useAgent();
+  const [agent, setAgent] = useAgent();
 
-  if (user.status === "loading") {
+  if (agent.status === "loading") {
     return (
       <Grid container className={classes.gridContainer} spacing={2}>
         <Grid item xs={12}>
@@ -41,36 +42,39 @@ function UserProperties({ data, match }: any) {
     );
   }
 
-  if (user.status === "error") {
-    const fusebit = (user.error as FusebitError).fusebit;
-    return fusebit && fusebit.source === "UserProperties" ? (
+  if (agent.status === "error") {
+    const fusebit = (agent.error as FusebitError).fusebit;
+    return fusebit && fusebit.source === "AgentProperties" ? (
       <Grid container className={classes.gridContainer} spacing={2}>
         <Grid item xs={12}>
-          <PortalError error={user.error} />
+          <PortalError error={agent.error} />
         </Grid>
       </Grid>
     ) : null;
   }
 
+  const formatAgent = () => (agent.isUser ? "user" : "client");
+
   const handleSave = () =>
     saveAgent(
-      user,
-      setUser,
+      agent,
+      setAgent,
       e =>
-        new FusebitError(`Error updating user ${user.agentId}`, {
+        new FusebitError(`Error updating ${formatAgent()} ${agent.agentId}`, {
           details:
             (e.status || e.statusCode) === 403
-              ? `You are not authorized to access the user information.`
+              ? `You are not authorized to access ${formatAgent()} information.`
               : e.message || "Unknown error.",
-          source: "UserProperties"
+          source: "AgentProperties"
         })
     );
 
-  if (user.status === "ready" || user.status === "updating") {
+  if (agent.status === "ready" || agent.status === "updating") {
     return (
       <Grid container spacing={2} className={classes.gridContainer}>
         <Grid item xs={8} className={classes.form}>
-          <UserDetails />
+          {agent.isUser && <UserDetails />}
+          {!agent.isUser && <ClientDetails />}
           <InputWithIcon icon={<AccountBalanceIcon />}>
             <Typography variant="h6" className={classes.identities}>
               Identities
@@ -78,8 +82,8 @@ function UserProperties({ data, match }: any) {
           </InputWithIcon>
           <AgentIdentities />
         </Grid>
-        {user.dirty && <ConfirmNavigation />}
-        {user.dirty && user.status === "ready" && (
+        {agent.dirty && <ConfirmNavigation />}
+        {agent.dirty && agent.status === "ready" && (
           <SaveFab onClick={handleSave} />
         )}
       </Grid>
@@ -89,4 +93,4 @@ function UserProperties({ data, match }: any) {
   return null;
 }
 
-export default UserProperties;
+export default AgentProperties;
