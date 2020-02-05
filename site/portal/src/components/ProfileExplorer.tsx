@@ -9,6 +9,7 @@ import { getLocalSettings, IFusebitSettings } from "../lib/Settings";
 import AccountClients from "./AccountClients";
 import AccountIssuers from "./AccountIssuers";
 import AccountSubscriptions from "./AccountSubscriptions";
+import AccountSettings from "./AccountSettings";
 import AccountUsers from "./AccountUsers";
 import AgentAccess from "./AgentAccess";
 import AgentProperties from "./AgentProperties";
@@ -241,6 +242,19 @@ function ProfileExplorer({ ...rest }: any) {
         render={({ ...rest }) => (
           <ExplorerView tabs={ExplorerTabs.account} {...rest}>
             <AccountUsers data={data} onNewData={handleOnNewData} {...rest} />
+          </ExplorerView>
+        )}
+      />
+      <Route
+        path="/accounts/:accountId/settings"
+        exact={true}
+        render={({ ...rest }) => (
+          <ExplorerView tabs={ExplorerTabs.account} {...rest}>
+            <AccountSettings
+              data={data}
+              onNewData={handleOnNewData}
+              {...rest}
+            />
           </ExplorerView>
         )}
       />

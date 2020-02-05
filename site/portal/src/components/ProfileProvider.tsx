@@ -16,6 +16,7 @@ const FusebitAuthStateKey = "fusebitAuthState";
 type ProfileProps = {
   profile: IFusebitProfile;
   logout: () => Promise<void>;
+  saveProfile: (profile: IFusebitProfile) => void;
 };
 
 const ProfileContext = React.createContext<Partial<ProfileProps>>({});
@@ -211,17 +212,22 @@ function ProfileProvider(props: any) {
     if (profile.me && profile.me.error) {
       throw profile.me.error;
     }
+
+    const saveProfileImpl = (profile: IFusebitProfile) => {
+      settings = getLocalSettings();
+      if (settings) {
+        settings.profiles[indexOfProfile(settings, profile.id)] = {
+          ...profile
+        };
+        setLocalSettings(settings);
+      }
+    };
+
     let logoutProfile = profile;
     const logout = () => {
       delete logoutProfile.auth;
       delete logoutProfile.me;
-      settings = getLocalSettings();
-      if (settings) {
-        settings.profiles[indexOfProfile(settings, logoutProfile.id)] = {
-          ...logoutProfile
-        };
-        setLocalSettings(settings);
-      }
+      saveProfileImpl(logoutProfile);
       if (logoutProfile.oauth.webLogoutUrl) {
         window.location.href = logoutProfile.oauth.webLogoutUrl;
       } else {
@@ -229,7 +235,17 @@ function ProfileProvider(props: any) {
       }
     };
 
-    return <ProfileContext.Provider value={{ logout, profile }} {...props} />;
+    const saveProfile = (profile: IFusebitProfile) => {
+      saveProfileImpl(profile);
+      setProfile({ ...profile });
+    };
+
+    return (
+      <ProfileContext.Provider
+        value={{ logout, profile, saveProfile }}
+        {...props}
+      />
+    );
   } else {
     throw new Error("User is not logged");
   }
