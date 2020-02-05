@@ -11,6 +11,7 @@ import { Link as RouterLink } from "react-router-dom";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import Typography from "@material-ui/core/Typography";
 import ActionButton from "./ActionButton";
+import { IFusebitProfile } from "../lib/Settings";
 
 interface ViewRow {
   name: string;
@@ -20,21 +21,22 @@ interface ViewRow {
   permissions: number;
 }
 
+const createViewRow = (profile: IFusebitProfile) => (
+  dataRow: any
+): ViewRow => ({
+  name: `${[dataRow.firstName, dataRow.lastName].join(" ").trim() || "N/A"}${
+    profile.me && profile.me.id === dataRow.id ? " (you)" : ""
+  }`,
+  email: dataRow.primaryEmail || "N/A",
+  id: dataRow.id as string,
+  identities: (dataRow.identities && dataRow.identities.length) || 0,
+  permissions:
+    (dataRow.access && dataRow.access.allow && dataRow.access.allow.length) || 0
+});
+
 function AccountUsers({ data, onNewData }: any) {
   const { profile } = useProfile();
   // const { params } = match;
-
-  const createViewRow = (dataRow: any): ViewRow => ({
-    name: `${[dataRow.firstName, dataRow.lastName].join(" ").trim() || "N/A"}${
-      profile.me && profile.me.id === dataRow.id ? " (you)" : ""
-    }`,
-    email: dataRow.primaryEmail || "N/A",
-    id: dataRow.id as string,
-    identities: (dataRow.identities && dataRow.identities.length) || 0,
-    permissions:
-      (dataRow.access && dataRow.access.allow && dataRow.access.allow.length) ||
-      0
-  });
 
   const headCells: HeadCell<ViewRow>[] = [
     {
@@ -77,7 +79,7 @@ function AccountUsers({ data, onNewData }: any) {
         try {
           let dataRows = await getUsers(profile);
           // console.log("LOADED USER DATA", dataRows);
-          users = { viewData: dataRows.map(createViewRow) };
+          users = { viewData: dataRows.map(createViewRow(profile)) };
         } catch (e) {
           users = {
             error: new FusebitError("Error loading user information", {
