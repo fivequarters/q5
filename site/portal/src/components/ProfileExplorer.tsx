@@ -8,14 +8,13 @@ import { Redirect, Route, Switch, useHistory } from "react-router-dom";
 import { getLocalSettings, IFusebitSettings } from "../lib/Settings";
 import AccountClients from "./AccountClients";
 import AccountIssuers from "./AccountIssuers";
-import AccountOverview from "./AccountOverview";
 import AccountSubscriptions from "./AccountSubscriptions";
 import AccountUsers from "./AccountUsers";
 import AgentAccess from "./AgentAccess";
 import AgentProperties from "./AgentProperties";
 import { AgentProvider } from "./AgentProvider";
 import BoundaryFunctions from "./BoundaryFunctions";
-import BoundaryOverview from "./BoundaryOverview";
+import ClientActionFab from "./ClientActionFab";
 import { FusebitError } from "./ErrorBoundary";
 import FunctionCode from "./FunctionCode";
 import FunctionOverview from "./FunctionOverview";
@@ -25,9 +24,7 @@ import ProfileBreadcrumb from "./ProfileBreadcrumb";
 import { useProfile } from "./ProfileProvider";
 import ProfileSelectorWithDetails from "./ProfileSelectorWithDetails";
 import SubscriptionBoundaries from "./SubscriptionBoundaries";
-import SubscriptionOverview from "./SubscriptionOverview";
 import UserActionFab from "./UserActionFab";
-import ClientActionFab from "./ClientActionFab";
 
 const useStyles = makeStyles(theme => ({
   paper: {
@@ -51,9 +48,6 @@ const useStyles = makeStyles(theme => ({
 const ExplorerTabs = {
   account: [
     {
-      name: "overview"
-    },
-    {
       name: "subscriptions"
     },
     {
@@ -74,9 +68,6 @@ const ExplorerTabs = {
   ],
   subscription: [
     {
-      name: "overview"
-    },
-    {
       name: "boundaries"
     },
     {
@@ -90,9 +81,6 @@ const ExplorerTabs = {
     }
   ],
   boundary: [
-    {
-      name: "overview"
-    },
     {
       name: "functions"
     },
@@ -122,16 +110,13 @@ const ExplorerTabs = {
   ],
   issuer: [
     {
-      name: "overview"
+      name: "properties"
     },
     {
       name: "activity"
     }
   ],
   user: [
-    {
-      name: "overview"
-    },
     {
       name: "properties"
     },
@@ -143,9 +128,6 @@ const ExplorerTabs = {
     }
   ],
   client: [
-    {
-      name: "overview"
-    },
     {
       name: "properties"
     },
@@ -210,10 +192,10 @@ function ProfileExplorer({ ...rest }: any) {
   }
 
   function getDefaultUrl() {
-    // return `/accounts/${profile.account}/overview`;
+    // return `/accounts/${profile.account}/subscriptions`;
     return profile.subscription
-      ? `/accounts/${profile.account}/subscriptions/${profile.subscription}/overview`
-      : `/accounts/${profile.account}/overview`;
+      ? `/accounts/${profile.account}/subscriptions/${profile.subscription}/boundaries`
+      : `/accounts/${profile.account}/subscriptions`;
   }
 
   function NotFound() {
@@ -227,8 +209,8 @@ function ProfileExplorer({ ...rest }: any) {
         actions: [
           {
             text: profile.subscription
-              ? "Go back to subscription overview"
-              : "Go back to account overview",
+              ? "Go back to subscription"
+              : "Go back to account",
             url: getDefaultUrl()
           }
         ]
@@ -240,19 +222,6 @@ function ProfileExplorer({ ...rest }: any) {
 
   return (
     <Switch>
-      <Route
-        path="/accounts/:accountId/overview"
-        exact={true}
-        render={({ ...rest }) => (
-          <ExplorerView tabs={ExplorerTabs.account} {...rest}>
-            <AccountOverview
-              data={data}
-              onNewData={handleOnNewData}
-              {...rest}
-            />
-          </ExplorerView>
-        )}
-      />
       <Route
         path="/accounts/:accountId/subscriptions"
         exact={true}
@@ -305,19 +274,6 @@ function ProfileExplorer({ ...rest }: any) {
                       onNewData={handleOnNewData}
                       {...rest}
                     />
-                  </ExplorerView>
-                )}
-              />
-              <Route
-                path={`${match.path}/overview`}
-                exact={true}
-                render={({ ...rest }) => (
-                  <ExplorerView
-                    tabs={ExplorerTabs.user}
-                    fab={<UserActionFab />}
-                    {...rest}
-                  >
-                    [TODO: User Overview]
                   </ExplorerView>
                 )}
               />
@@ -413,6 +369,56 @@ function ProfileExplorer({ ...rest }: any) {
       />
 
       <Route
+        path="/accounts/:accountId/clients/new"
+        exact={true}
+        render={({ ...rest }) => (
+          <ExplorerView breadcrumbSettings={{ newClient: true }} {...rest}>
+            <NewAgent data={data} onNewData={handleOnNewData} isUser={false} />
+          </ExplorerView>
+        )}
+      />
+
+      <Route
+        path="/accounts/:accountId/clients/:clientId"
+        render={({ match }) => (
+          <AgentProvider agentId={match.params.clientId} isUser={false}>
+            <Switch>
+              <Route
+                path={`${match.path}/properties`}
+                exact={true}
+                render={({ ...rest }) => (
+                  <ExplorerView
+                    tabs={ExplorerTabs.client}
+                    fab={<ClientActionFab />}
+                    {...rest}
+                  >
+                    <AgentProperties
+                      data={data}
+                      onNewData={handleOnNewData}
+                      {...rest}
+                    />
+                  </ExplorerView>
+                )}
+              />
+              <Route
+                path={`${match.path}/access`}
+                exact={true}
+                render={({ ...rest }) => (
+                  <ExplorerView
+                    tabs={ExplorerTabs.client}
+                    fab={<ClientActionFab />}
+                    {...rest}
+                  >
+                    <AgentAccess />
+                  </ExplorerView>
+                )}
+              />
+            </Switch>
+          </AgentProvider>
+        )}
+      />
+
+      <Route
         path="/accounts/:accountId/issuers"
         exact={true}
         render={({ ...rest }) => (
@@ -422,24 +428,11 @@ function ProfileExplorer({ ...rest }: any) {
         )}
       />
       <Route
-        path="/accounts/:accountId/issuers/:issuerId/overview"
+        path="/accounts/:accountId/issuers/:issuerId/properties"
         exact={true}
         render={({ ...rest }) => (
           <ExplorerView tabs={ExplorerTabs.issuer} {...rest}>
             <IssuerOverview data={data} onNewData={handleOnNewData} {...rest} />
-          </ExplorerView>
-        )}
-      />
-      <Route
-        path="/accounts/:accountId/subscriptions/:subscriptionId/overview"
-        exact={true}
-        render={({ ...rest }) => (
-          <ExplorerView tabs={ExplorerTabs.subscription} {...rest}>
-            <SubscriptionOverview
-              data={data}
-              onNewData={handleOnNewData}
-              {...rest}
-            />
           </ExplorerView>
         )}
       />
@@ -449,19 +442,6 @@ function ProfileExplorer({ ...rest }: any) {
         render={({ ...rest }) => (
           <ExplorerView tabs={ExplorerTabs.subscription} {...rest}>
             <SubscriptionBoundaries
-              data={data}
-              onNewData={handleOnNewData}
-              {...rest}
-            />
-          </ExplorerView>
-        )}
-      />
-      <Route
-        path="/accounts/:accountId/subscriptions/:subscriptionId/boundaries/:boundaryId/overview"
-        exact={true}
-        render={({ ...rest }) => (
-          <ExplorerView tabs={ExplorerTabs.boundary} {...rest}>
-            <BoundaryOverview
               data={data}
               onNewData={handleOnNewData}
               {...rest}

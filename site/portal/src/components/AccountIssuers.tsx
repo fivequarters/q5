@@ -16,8 +16,8 @@ interface ViewRow {
   name: string;
   id: string;
   keyAcquisition: "Stored Public Key" | "JWKS Endpoint";
-  firstUsed: string;
-  lastUsed: string;
+  // firstUsed: string;
+  // lastUsed: string;
 }
 
 const useStyles = makeStyles(theme => ({
@@ -35,9 +35,9 @@ function AccountIssuers({ data, onNewData }: any) {
   const createViewRow = (dataRow: any): ViewRow => ({
     name: dataRow.displayName || "N/A",
     id: dataRow.id as string,
-    keyAcquisition: dataRow.jsonKeysUrl ? "JWKS Endpoint" : "Stored Public Key",
-    firstUsed: "N/A",
-    lastUsed: "N/A"
+    keyAcquisition: dataRow.jsonKeysUrl ? "JWKS Endpoint" : "Stored Public Key"
+    // firstUsed: "N/A",
+    // lastUsed: "N/A"
   });
 
   const headCells: HeadCell<ViewRow>[] = [
@@ -49,7 +49,7 @@ function AccountIssuers({ data, onNewData }: any) {
       render: row => (
         <Link
           component={RouterLink}
-          to={`issuers/${encodeURIComponent(row.id)}/overview`}
+          to={`issuers/${encodeURIComponent(row.id)}/properties`}
           className={classes.link}
         >
           <IssuerAvatar id={row.id} />
@@ -66,17 +66,17 @@ function AccountIssuers({ data, onNewData }: any) {
       id: "id",
       align: "left",
       label: "Issuer ID"
-    },
-    {
-      id: "firstUsed",
-      label: "First Used",
-      align: "left"
-    },
-    {
-      id: "lastUsed",
-      label: "Last Used",
-      align: "left"
     }
+    // {
+    //   id: "firstUsed",
+    //   label: "First Used",
+    //   align: "left"
+    // },
+    // {
+    //   id: "lastUsed",
+    //   label: "Last Used",
+    //   align: "left"
+    // }
   ];
 
   React.useEffect(() => {

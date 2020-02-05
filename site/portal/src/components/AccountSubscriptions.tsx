@@ -10,11 +10,11 @@ import loadSubscriptions from "../effects/LoadSubscriptions";
 interface ViewRow {
   name: string;
   id: string;
-  functions: string;
-  firstExecuted: string;
-  lastExecuted: string;
-  errorsLast24h: string;
-  executionsLast24h: string;
+  // functions: string;
+  // firstExecuted: string;
+  // lastExecuted: string;
+  // errorsLast24h: string;
+  // executionsLast24h: string;
 }
 
 function AccountSubscriptions({ data, onNewData }: any) {
@@ -23,12 +23,12 @@ function AccountSubscriptions({ data, onNewData }: any) {
 
   const createViewRow = (dataRow: any): ViewRow => ({
     name: dataRow.displayName || "N/A",
-    id: dataRow.id as string,
-    functions: "N/A",
-    firstExecuted: "N/A",
-    lastExecuted: "N/A",
-    errorsLast24h: "N/A",
-    executionsLast24h: "N/A"
+    id: dataRow.id as string
+    // functions: "N/A",
+    // firstExecuted: "N/A",
+    // lastExecuted: "N/A",
+    // errorsLast24h: "N/A",
+    // executionsLast24h: "N/A"
   });
 
   const headCells: HeadCell<ViewRow>[] = [
@@ -38,7 +38,7 @@ function AccountSubscriptions({ data, onNewData }: any) {
       align: "left",
       label: "Subscription Name",
       render: row => (
-        <Link component={RouterLink} to={`subscriptions/${row.id}/overview`}>
+        <Link component={RouterLink} to={`subscriptions/${row.id}/boundaries`}>
           {row.name}
         </Link>
       )
@@ -47,27 +47,27 @@ function AccountSubscriptions({ data, onNewData }: any) {
       id: "id",
       align: "left",
       label: "Subscription ID"
-    },
-    {
-      id: "functions",
-      label: "Functions"
-    },
-    {
-      id: "firstExecuted",
-      label: "First Executed"
-    },
-    {
-      id: "lastExecuted",
-      label: "Last Executed"
-    },
-    {
-      id: "errorsLast24h",
-      label: "Errors (last 24h)"
-    },
-    {
-      id: "executionsLast24h",
-      label: "Executions (last 24h)"
     }
+    // {
+    //   id: "functions",
+    //   label: "Functions"
+    // },
+    // {
+    //   id: "firstExecuted",
+    //   label: "First Executed"
+    // },
+    // {
+    //   id: "lastExecuted",
+    //   label: "Last Executed"
+    // },
+    // {
+    //   id: "errorsLast24h",
+    //   label: "Errors (last 24h)"
+    // },
+    // {
+    //   id: "executionsLast24h",
+    //   label: "Executions (last 24h)"
+    // }
   ];
 
   React.useEffect(loadSubscriptions(profile, data, onNewData), [
@@ -96,6 +96,7 @@ function AccountSubscriptions({ data, onNewData }: any) {
       defaultSortKey="name"
       identityKey="id"
       title="Subscriptions"
+      size="narrow"
     />
   );
 }

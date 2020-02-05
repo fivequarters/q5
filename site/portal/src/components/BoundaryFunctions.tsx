@@ -10,10 +10,10 @@ import { Link as RouterLink } from "react-router-dom";
 
 interface ViewRow {
   id: string;
-  firstExecuted: string;
-  lastExecuted: string;
-  errorsLast24h: string;
-  executionsLast24h: string;
+  // firstExecuted: string;
+  // lastExecuted: string;
+  // errorsLast24h: string;
+  // executionsLast24h: string;
 }
 
 function BoundaryFunctions({ data, onNewData, match }: any) {
@@ -22,11 +22,11 @@ function BoundaryFunctions({ data, onNewData, match }: any) {
   const { subscriptionId, boundaryId } = params;
 
   const createViewRow = (dataRow: any): ViewRow => ({
-    id: dataRow.functionId as string,
-    firstExecuted: "N/A",
-    lastExecuted: "N/A",
-    errorsLast24h: "N/A",
-    executionsLast24h: "N/A"
+    id: dataRow.functionId as string
+    // firstExecuted: "N/A",
+    // lastExecuted: "N/A",
+    // errorsLast24h: "N/A",
+    // executionsLast24h: "N/A"
   });
 
   const headCells: HeadCell<ViewRow>[] = [
@@ -40,23 +40,23 @@ function BoundaryFunctions({ data, onNewData, match }: any) {
           {row.id}
         </Link>
       )
-    },
-    {
-      id: "firstExecuted",
-      label: "First Executed"
-    },
-    {
-      id: "lastExecuted",
-      label: "Last Executed"
-    },
-    {
-      id: "errorsLast24h",
-      label: "Errors (last 24h)"
-    },
-    {
-      id: "executionsLast24h",
-      label: "Executions (last 24h)"
     }
+    // {
+    //   id: "firstExecuted",
+    //   label: "First Executed"
+    // },
+    // {
+    //   id: "lastExecuted",
+    //   label: "Last Executed"
+    // },
+    // {
+    //   id: "errorsLast24h",
+    //   label: "Errors (last 24h)"
+    // },
+    // {
+    //   id: "executionsLast24h",
+    //   label: "Executions (last 24h)"
+    // }
   ];
 
   React.useEffect(() => {
@@ -122,6 +122,7 @@ function BoundaryFunctions({ data, onNewData, match }: any) {
       defaultSortKey="id"
       identityKey="id"
       title="Functions"
+      size="narrow"
     />
   );
 }

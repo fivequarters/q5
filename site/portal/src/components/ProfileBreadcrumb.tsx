@@ -14,19 +14,19 @@ import Typography from "@material-ui/core/Typography";
 
 const tree = {
   paramName: "accountId",
-  formatLink: (params: any) => `/accounts/${params.accountId}/overview`,
+  formatLink: (params: any) => `/accounts/${params.accountId}/subscriptions`,
   text: (params: any, profile: any) => profile.displayName,
   children: [
     {
       paramName: "subscriptionId",
       formatLink: (params: any) =>
-        `/accounts/${params.accountId}/subscriptions/${params.subscriptionId}/overview`,
+        `/accounts/${params.accountId}/subscriptions/${params.subscriptionId}/boundaries`,
       text: (params: any, profile: any) => params.subscriptionId,
       children: [
         {
           paramName: "boundaryId",
           formatLink: (params: any) =>
-            `/accounts/${params.accountId}/subscriptions/${params.subscriptionId}/boundaries/${params.boundaryId}/overview`,
+            `/accounts/${params.accountId}/subscriptions/${params.subscriptionId}/boundaries/${params.boundaryId}/functions`,
           text: (params: any, profile: any) => params.boundaryId,
           children: [
             {
@@ -41,21 +41,21 @@ const tree = {
     {
       paramName: "issuerId",
       formatLink: (params: any) =>
-        `/accounts/${params.accountId}/issuers/${params.issuerId}/overview`,
+        `/accounts/${params.accountId}/issuers/${params.issuerId}/properties`,
       text: (params: any, profile: any) => decodeURIComponent(params.issuerId),
       children: []
     },
     {
       paramName: "userId",
       formatLink: (params: any) =>
-        `/accounts/${params.accountId}/users/${params.userId}/overview`,
+        `/accounts/${params.accountId}/users/${params.userId}/properties`,
       text: (params: any, profile: any) => params.userId,
       children: []
     },
     {
       paramName: "clientId",
       formatLink: (params: any) =>
-        `/accounts/${params.accountId}/clients/${params.clientId}/overview`,
+        `/accounts/${params.accountId}/clients/${params.clientId}/properties`,
       text: (params: any, profile: any) => params.clientId,
       children: []
     },

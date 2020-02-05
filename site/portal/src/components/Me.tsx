@@ -4,7 +4,7 @@ import { useProfile } from "./ProfileProvider";
 import Button from "@material-ui/core/Button";
 
 function Me({ ...rest }) {
-  console.log("RENDER ME");
+  // console.log("RENDER ME");
   const { profile, logout } = useProfile();
   return (
     <div>
