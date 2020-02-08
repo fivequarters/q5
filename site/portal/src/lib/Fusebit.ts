@@ -533,7 +533,7 @@ export async function deleteIssuers(
         Superagent.delete(
           `${profile.baseUrl}/v1/account/${
             profile.account
-          }/user/${encodeURIComponent(id)}`
+          }/issuer/${encodeURIComponent(id)}`
         )
           .set("Authorization", `Bearer ${auth.access_token}`)
           .ok(res => res.status === 204)

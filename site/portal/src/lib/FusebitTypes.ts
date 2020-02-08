@@ -42,4 +42,5 @@ export type Issuer = {
   jsonKeysUrl?: string;
   publicKeyAcquisition?: "pki" | "jwks";
   jsonKeysUrlError?: string;
+  idError?: string;
 };

@@ -3,9 +3,9 @@ import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogTitle from "@material-ui/core/DialogTitle";
-import TextField from "@material-ui/core/TextField";
 import React from "react";
-import { useIssuer, modifyIssuer } from "./IssuerProvider";
+import { modifyIssuer, useIssuer } from "./IssuerProvider";
+import PublicKeyDetails from "./PublicKeyDetails";
 
 function AddPublicKeyDialog({ onClose }: any) {
   const [issuer, setIssuer] = useIssuer();
@@ -13,47 +13,6 @@ function AddPublicKeyDialog({ onClose }: any) {
     keyId: "",
     publicKey: ""
   });
-
-  const handleKeyIdChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (issuer.status === "ready") {
-      addPublicKey.keyId = event.target.value;
-
-      const trimmed = addPublicKey.keyId.trim();
-      const exists = (issuer.modified.publicKeys || []).reduce(
-        (exists: boolean, current: any) => exists || current.keyId === trimmed,
-        false
-      );
-      if (exists) {
-        addPublicKey.keyIdError =
-          "A public key with the same key ID already exists";
-      } else if (trimmed.length === 0) {
-        addPublicKey.keyIdError =
-          "Required. The value of the kid claim in the header of the JWT access token";
-      } else {
-        delete addPublicKey.keyIdError;
-      }
-      setAddPublicKey({ ...addPublicKey });
-    }
-  };
-
-  const handlePublicKeyChange = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    addPublicKey.publicKey = event.target.value;
-    const trimmed = addPublicKey.publicKey.trim();
-    if (trimmed.length === 0) {
-      addPublicKey.publicKeyError = "Required. PEM-formatted public key";
-    } else if (
-      !trimmed.match(/^-----BEGIN.+PUBLIC KEY-----/) ||
-      !trimmed.match(/-----END.+PUBLIC KEY-----$/)
-    ) {
-      addPublicKey.publicKeyError =
-        "Invalid format. The public key must be provided in PEM format";
-    } else {
-      delete addPublicKey.publicKeyError;
-    }
-    setAddPublicKey({ ...addPublicKey });
-  };
 
   const hasError = () =>
     !!(
@@ -90,34 +49,14 @@ function AddPublicKeyDialog({ onClose }: any) {
     >
       <DialogTitle id="form-dialog-title">Add Public Key</DialogTitle>
       <DialogContent>
-        <TextField
-          autoFocus
-          margin="dense"
-          id="keyId"
-          label="Key ID"
-          variant="filled"
-          helperText={
-            addPublicKey.keyIdError ||
-            "The value of the kid claim in the header of the JWT access token"
+        <PublicKeyDetails
+          publicKey={addPublicKey}
+          onPublicKeyChanged={(publicKey: any) => setAddPublicKey(publicKey)}
+          existingPublicKeys={
+            issuer.status === "ready" || issuer.status === "updating"
+              ? issuer.modified.publicKeys
+              : []
           }
-          fullWidth
-          error={!!addPublicKey.keyIdError}
-          value={addPublicKey.keyId}
-          onChange={handleKeyIdChange}
-        />
-        <TextField
-          margin="dense"
-          id="publicKey"
-          label="Public Key"
-          variant="filled"
-          helperText={addPublicKey.publicKeyError || "PEM-formatted public key"}
-          error={!!addPublicKey.publicKeyError}
-          value={addPublicKey.publicKey}
-          onChange={handlePublicKeyChange}
-          placeholder="-----BEGIN PUBLIC KEY-----....-----END PUBLIC KEY-----"
-          fullWidth
-          multiline
-          rows={5}
         />
       </DialogContent>
       <DialogActions>
