@@ -1,5 +1,5 @@
 import { IFusebitProfile, IFusebitAuth, isIFusebitAuth } from "./Settings";
-import { Client, User } from "./FusebitTypes";
+import { Client, User, Issuer } from "./FusebitTypes";
 
 import Superagent from "superagent";
 // import parseUrl from "url-parse";
@@ -338,6 +338,35 @@ export async function newClient(
   }
 }
 
+export function normalizeIssuer(issuer: any): Issuer {
+  let normalized: any = {
+    id: issuer.id
+  };
+  if (issuer.displayName !== undefined) {
+    normalized.displayName = issuer.displayName.trim();
+  }
+  if (issuer.publicKeyAcquisition !== undefined) {
+    normalized.publicKeyAcquisition = issuer.publicKeyAcquisition;
+  }
+  if (
+    (issuer.publicKeyAcquisition === undefined ||
+      issuer.publicKeyAcquisition === "pki") &&
+    issuer.publicKeys
+  ) {
+    normalized.publicKeys = issuer.publicKeys.sort((a: any, b: any) =>
+      a.keyId > b.keyId ? -1 : a.keyId < b.keyId ? 1 : 0
+    );
+  }
+  if (
+    (issuer.publicKeyAcquisition === undefined ||
+      issuer.publicKeyAcquisition === "jwks") &&
+    issuer.jsonKeysUrl
+  ) {
+    normalized.jsonKeysUrl = issuer.jsonKeysUrl.trim();
+  }
+  return normalized as Issuer;
+}
+
 export function normalizeAgent(user: any): Client | User {
   let normalized: any = {
     id: user.id
@@ -400,10 +429,14 @@ export async function getIssuers(profile: IFusebitProfile): Promise<any[]> {
   return issuers;
 }
 
+function computePublicKeyAcquisition(issuer: Issuer) {
+  issuer.publicKeyAcquisition = issuer.jsonKeysUrl ? "jwks" : "pki";
+}
+
 export async function getIssuer(
   profile: IFusebitProfile,
   issuerId: string
-): Promise<any> {
+): Promise<Issuer> {
   try {
     let auth = await ensureAccessToken(profile);
     let result: any = await Superagent.get(
@@ -411,16 +444,18 @@ export async function getIssuer(
         profile.account
       }/issuer/${encodeURIComponent(issuerId)}`
     ).set("Authorization", `Bearer ${auth.access_token}`);
-    return result.body;
+    let newIssuer = result.body as Issuer;
+    computePublicKeyAcquisition(newIssuer);
+    return newIssuer;
   } catch (e) {
-    throwHttpException(e);
+    throw createHttpException(e);
   }
 }
 
 export async function updateIssuer(
   profile: IFusebitProfile,
   issuer: any
-): Promise<any> {
+): Promise<Issuer> {
   try {
     let auth = await ensureAccessToken(profile);
     let result: any = await Superagent.patch(
@@ -434,9 +469,36 @@ export async function updateIssuer(
         publicKeys: issuer.publicKeys,
         jsonKeysUrl: issuer.jsonKeysUrl
       });
-    return result.body;
+    let newIssuer = result.body as Issuer;
+    computePublicKeyAcquisition(newIssuer);
+    return newIssuer;
   } catch (e) {
-    throwHttpException(e);
+    throw createHttpException(e);
+  }
+}
+
+export async function newIssuer(
+  profile: IFusebitProfile,
+  issuer: any
+): Promise<Issuer> {
+  try {
+    let auth = await ensureAccessToken(profile);
+    let result: any = await Superagent.post(
+      `${profile.baseUrl}/v1/account/${
+        profile.account
+      }/issuer/${encodeURIComponent(issuer.id)}`
+    )
+      .set("Authorization", `Bearer ${auth.access_token}`)
+      .send({
+        displayName: issuer.displayName,
+        publicKeys: issuer.publicKeys,
+        jsonKeysUrl: issuer.jsonKeysUrl
+      });
+    let newIssuer = result.body as Issuer;
+    computePublicKeyAcquisition(newIssuer);
+    return newIssuer;
+  } catch (e) {
+    throw createHttpException(e);
   }
 }
 

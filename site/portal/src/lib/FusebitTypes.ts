@@ -29,3 +29,17 @@ export type Client = {
 };
 
 export type Agent = User | Client;
+
+export type PublicKey = {
+  keyId: string;
+  publicKey: string;
+};
+
+export type Issuer = {
+  id: string;
+  displayName?: string;
+  publicKeys?: PublicKey[];
+  jsonKeysUrl?: string;
+  publicKeyAcquisition?: "pki" | "jwks";
+  jsonKeysUrlError?: string;
+};
