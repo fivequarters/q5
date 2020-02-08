@@ -14,12 +14,13 @@ import AccountUsers from "./AccountUsers";
 import AgentAccess from "./AgentAccess";
 import AgentProperties from "./AgentProperties";
 import { AgentProvider } from "./AgentProvider";
+import { IssuerProvider } from "./IssuerProvider";
 import BoundaryFunctions from "./BoundaryFunctions";
 import ClientActionFab from "./ClientActionFab";
 import { FusebitError } from "./ErrorBoundary";
 import FunctionCode from "./FunctionCode";
 import FunctionOverview from "./FunctionOverview";
-import IssuerOverview from "./IssuerOverview";
+import IssuerProperties from "./IssuerProperties";
 import NewAgent from "./NewAgent";
 import ProfileBreadcrumb from "./ProfileBreadcrumb";
 import { useProfile } from "./ProfileProvider";
@@ -383,56 +384,6 @@ function ProfileExplorer({ ...rest }: any) {
       />
 
       <Route
-        path="/accounts/:accountId/clients/new"
-        exact={true}
-        render={({ ...rest }) => (
-          <ExplorerView breadcrumbSettings={{ newClient: true }} {...rest}>
-            <NewAgent data={data} onNewData={handleOnNewData} isUser={false} />
-          </ExplorerView>
-        )}
-      />
-
-      <Route
-        path="/accounts/:accountId/clients/:clientId"
-        render={({ match }) => (
-          <AgentProvider agentId={match.params.clientId} isUser={false}>
-            <Switch>
-              <Route
-                path={`${match.path}/properties`}
-                exact={true}
-                render={({ ...rest }) => (
-                  <ExplorerView
-                    tabs={ExplorerTabs.client}
-                    fab={<ClientActionFab />}
-                    {...rest}
-                  >
-                    <AgentProperties
-                      data={data}
-                      onNewData={handleOnNewData}
-                      {...rest}
-                    />
-                  </ExplorerView>
-                )}
-              />
-              <Route
-                path={`${match.path}/access`}
-                exact={true}
-                render={({ ...rest }) => (
-                  <ExplorerView
-                    tabs={ExplorerTabs.client}
-                    fab={<ClientActionFab />}
-                    {...rest}
-                  >
-                    <AgentAccess />
-                  </ExplorerView>
-                )}
-              />
-            </Switch>
-          </AgentProvider>
-        )}
-      />
-
-      <Route
         path="/accounts/:accountId/issuers"
         exact={true}
         render={({ ...rest }) => (
@@ -441,15 +392,26 @@ function ProfileExplorer({ ...rest }: any) {
           </ExplorerView>
         )}
       />
+
       <Route
-        path="/accounts/:accountId/issuers/:issuerId/properties"
-        exact={true}
-        render={({ ...rest }) => (
-          <ExplorerView tabs={ExplorerTabs.issuer} {...rest}>
-            <IssuerOverview data={data} onNewData={handleOnNewData} {...rest} />
-          </ExplorerView>
+        path="/accounts/:accountId/issuers/:issuerId"
+        render={({ match }) => (
+          <IssuerProvider issuerId={match.params.issuerId}>
+            <Switch>
+              <Route
+                path={`${match.path}/properties`}
+                exact={true}
+                render={({ ...rest }) => (
+                  <ExplorerView tabs={ExplorerTabs.issuer} {...rest}>
+                    <IssuerProperties />
+                  </ExplorerView>
+                )}
+              />
+            </Switch>
+          </IssuerProvider>
         )}
       />
+
       <Route
         path="/accounts/:accountId/subscriptions/:subscriptionId/boundaries"
         exact={true}

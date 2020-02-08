@@ -5,30 +5,35 @@ import DialogContent from "@material-ui/core/DialogContent";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import TextField from "@material-ui/core/TextField";
 import React from "react";
+import { useIssuer, modifyIssuer } from "./IssuerProvider";
 
-function AddPublicKeyDialog({ onClose, issuer }: any) {
+function AddPublicKeyDialog({ onClose }: any) {
+  const [issuer, setIssuer] = useIssuer();
   const [addPublicKey, setAddPublicKey] = React.useState<any>({
     keyId: "",
     publicKey: ""
   });
 
   const handleKeyIdChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    addPublicKey.keyId = event.target.value;
-    const trimmed = addPublicKey.keyId.trim();
-    const exists = issuer.publicKeys.reduce(
-      (exists: boolean, current: any) => exists || current.keyId === trimmed,
-      false
-    );
-    if (exists) {
-      addPublicKey.keyIdError =
-        "A public key with the same key ID already exists";
-    } else if (trimmed.length === 0) {
-      addPublicKey.keyIdError =
-        "Required. The value of the kid claim in the header of the JWT access token";
-    } else {
-      delete addPublicKey.keyIdError;
+    if (issuer.status === "ready") {
+      addPublicKey.keyId = event.target.value;
+
+      const trimmed = addPublicKey.keyId.trim();
+      const exists = (issuer.modified.publicKeys || []).reduce(
+        (exists: boolean, current: any) => exists || current.keyId === trimmed,
+        false
+      );
+      if (exists) {
+        addPublicKey.keyIdError =
+          "A public key with the same key ID already exists";
+      } else if (trimmed.length === 0) {
+        addPublicKey.keyIdError =
+          "Required. The value of the kid claim in the header of the JWT access token";
+      } else {
+        delete addPublicKey.keyIdError;
+      }
+      setAddPublicKey({ ...addPublicKey });
     }
-    setAddPublicKey({ ...addPublicKey });
   };
 
   const handlePublicKeyChange = (
@@ -61,11 +66,18 @@ function AddPublicKeyDialog({ onClose, issuer }: any) {
     );
 
   const handleSubmit = () => {
-    onClose &&
-      onClose({
+    if (issuer.status === "ready") {
+      let newPublicKeys = [...(issuer.modified.publicKeys || [])];
+      newPublicKeys.push({
         keyId: addPublicKey.keyId.trim(),
         publicKey: addPublicKey.publicKey.trim()
       });
+      modifyIssuer(issuer, setIssuer, {
+        ...issuer.modified,
+        publicKeys: newPublicKeys
+      });
+      onClose && onClose();
+    }
   };
 
   return (
