@@ -11,6 +11,8 @@ import Link from "@material-ui/core/Link";
 import { Link as RouterLink } from "react-router-dom";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import Typography from "@material-ui/core/Typography";
+import NewIssuer from "./NewIssuer";
+import ActionButton from "./ActionButton";
 
 interface ViewRow {
   name: string;
@@ -30,6 +32,7 @@ const useStyles = makeStyles(theme => ({
 function AccountIssuers({ data, onNewData }: any) {
   const { profile } = useProfile();
   const classes = useStyles();
+  const [newIssuerOpen, setNewIssuerOpen] = React.useState(false);
   // const { params } = match;
 
   const createViewRow = (dataRow: any): ViewRow => ({
@@ -182,20 +185,41 @@ function AccountIssuers({ data, onNewData }: any) {
     );
   };
 
+  const handleAddIssuer = (added: boolean) => {
+    setNewIssuerOpen(false);
+    if (added) {
+      delete data.issuers;
+      onNewData && onNewData({ ...data });
+    }
+  };
+
   return (
-    <ExplorerTable<ViewRow>
-      rows={data.issuers.viewData}
-      headCells={headCells}
-      defaultSortKey="name"
-      identityKey="id"
-      title="Issuers"
-      enableSelection={true}
-      onDelete={handleDelete}
-      deleteTitle={selected =>
-        selected.length > 1 ? "Delete issuers?" : "Delete issuer?"
-      }
-      deleteContent={generateDeleteContent}
-    />
+    <React.Fragment>
+      <ExplorerTable<ViewRow>
+        rows={data.issuers.viewData}
+        headCells={headCells}
+        defaultSortKey="name"
+        identityKey="id"
+        title="Issuers"
+        enableSelection={true}
+        onDelete={handleDelete}
+        deleteTitle={selected =>
+          selected.length > 1 ? "Delete issuers?" : "Delete issuer?"
+        }
+        deleteContent={generateDeleteContent}
+        actions={
+          <ActionButton onClick={() => setNewIssuerOpen(true)}>
+            New&nbsp;issuer
+          </ActionButton>
+        }
+      />
+      {newIssuerOpen && (
+        <NewIssuer
+          issuers={data && data.issuers && data.issuers.viewData}
+          onClose={handleAddIssuer}
+        />
+      )}
+    </React.Fragment>
   );
 }
 
