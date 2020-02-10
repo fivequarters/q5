@@ -209,7 +209,7 @@ function AccountIssuers({ data, onNewData }: any) {
         deleteContent={generateDeleteContent}
         actions={
           <ActionButton onClick={() => setNewIssuerOpen(true)}>
-            New&nbsp;issuer
+            Add&nbsp;issuer
           </ActionButton>
         }
       />
