@@ -1,9 +1,11 @@
 import Grid from "@material-ui/core/Grid";
 import LinearProgress from "@material-ui/core/LinearProgress";
+import Button from "@material-ui/core/Button";
+import DialogContentText from "@material-ui/core/DialogContentText";
 import Typography from "@material-ui/core/Typography";
 import { makeStyles } from "@material-ui/core/styles";
 import React from "react";
-import { saveAgent, useAgent } from "./AgentProvider";
+import { saveAgent, useAgent, modifyAgent } from "./AgentProvider";
 import ConfirmNavigation from "./ConfirmNavigation";
 import { FusebitError } from "./ErrorBoundary";
 import PortalError from "./PortalError";
@@ -13,6 +15,9 @@ import ClientDetails from "./ClientDetails";
 import AgentIdentities from "./AgentIdentities";
 import AccountBalanceIcon from "@material-ui/icons/AccountBalance";
 import InputWithIcon from "./InputWithIcon";
+import InfoCard from "./InfoCard";
+import AddIdentityDialog from "./AddIdentityDialog";
+import SetupAccessDialog from "./SetupAccessDialog";
 
 const useStyles = makeStyles((theme: any) => ({
   gridContainer: {
@@ -25,12 +30,26 @@ const useStyles = makeStyles((theme: any) => ({
   },
   identities: {
     paddingTop: 14
+  },
+  identityAction: {
+    marginTop: theme.spacing(2),
+    marginBottom: theme.spacing(2),
+    display: "flex",
+    justifyContent: "space-between",
+    paddingLeft: theme.spacing(1) + 24
   }
 }));
 
-function AgentProperties({ data, match }: any) {
+function AgentProperties() {
   const classes = useStyles();
   const [agent, setAgent] = useAgent();
+  const [addIdentityDialogOpen, setAddIdentityDialogOpen] = React.useState(
+    false
+  );
+  const [setupAccessDialogOpen, setSetupAccessDialogOpen] = React.useState(
+    false
+  );
+  const [data, setData] = React.useState<any>({});
 
   if (agent.status === "loading") {
     return (
@@ -55,6 +74,15 @@ function AgentProperties({ data, match }: any) {
 
   const formatAgent = () => (agent.isUser ? "user" : "client");
 
+  const handleAddIdentity = (identity: any) => {
+    setAddIdentityDialogOpen(false);
+    if (identity && agent.status === "ready") {
+      agent.modified.identities = agent.modified.identities || [];
+      agent.modified.identities.push(identity);
+      modifyAgent(agent, setAgent, { ...agent.modified });
+    }
+  };
+
   const handleSave = () =>
     saveAgent(
       agent,
@@ -71,22 +99,74 @@ function AgentProperties({ data, match }: any) {
 
   if (agent.status === "ready" || agent.status === "updating") {
     return (
-      <Grid container spacing={2} className={classes.gridContainer}>
-        <Grid item xs={8} className={classes.form}>
-          {agent.isUser && <UserDetails />}
-          {!agent.isUser && <ClientDetails />}
-          <InputWithIcon icon={<AccountBalanceIcon />}>
-            <Typography variant="h6" className={classes.identities}>
-              Identities
-            </Typography>
-          </InputWithIcon>
-          <AgentIdentities />
+      <React.Fragment>
+        <Grid container spacing={2} className={classes.gridContainer}>
+          <Grid item xs={8} className={classes.form}>
+            {agent.isUser && <UserDetails />}
+            {!agent.isUser && <ClientDetails />}
+            <InputWithIcon icon={<AccountBalanceIcon />}>
+              <Typography variant="h6" className={classes.identities}>
+                Identities
+              </Typography>
+            </InputWithIcon>
+            <AgentIdentities />
+          </Grid>
+        </Grid>
+        <Grid container spacing={2} className={classes.gridContainer}>
+          <Grid item xs={8} className={classes.form}>
+            <div className={classes.identityAction}>
+              <Button
+                variant="outlined"
+                color="secondary"
+                onClick={() => setAddIdentityDialogOpen(true)}
+                disabled={agent.status !== "ready"}
+              >
+                Add identity
+              </Button>
+              <Button
+                variant="outlined"
+                color="secondary"
+                onClick={() => setSetupAccessDialogOpen(true)}
+                disabled={agent.status !== "ready"}
+              >
+                {agent.isUser
+                  ? "Invite user to Fusebit"
+                  : "Connect client to Fusebit"}
+              </Button>
+            </div>
+            {addIdentityDialogOpen && (
+              <AddIdentityDialog onClose={handleAddIdentity} />
+            )}
+            {setupAccessDialogOpen && (
+              <SetupAccessDialog
+                data={data}
+                onNewData={setData}
+                onClose={() => setSetupAccessDialogOpen(false)}
+              />
+            )}
+          </Grid>
+          <Grid item xs={4} className={classes.form}>
+            <InfoCard>
+              {agent.isUser && (
+                <DialogContentText>
+                  Add identity manually, or generate an invitation for the user
+                  to access the system and automatically create an identity.
+                </DialogContentText>
+              )}
+              {!agent.isUser && (
+                <DialogContentText>
+                  Add identity manually, or generate a command to initialize a
+                  CLI client and automatically create an identity.
+                </DialogContentText>
+              )}
+            </InfoCard>
+          </Grid>
         </Grid>
         {agent.dirty && <ConfirmNavigation />}
         {agent.dirty && agent.status === "ready" && (
           <SaveFab onClick={handleSave} />
         )}
-      </Grid>
+      </React.Fragment>
     );
   }
 

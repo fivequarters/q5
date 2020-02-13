@@ -7,11 +7,11 @@ import React from "react";
 import { FusebitError } from "./ErrorBoundary";
 import WarningCard from "./WarningCard";
 
-function PortalError({ error }: any) {
+function PortalError({ error, padding }: any) {
   const fusebitError = error.fusebit ? (error as FusebitError) : undefined;
 
   return (
-    <WarningCard color="primary" icon={<ErrorIcon />}>
+    <WarningCard color="primary" icon={<ErrorIcon />} padding={!!padding}>
       <CardContent>
         <Typography gutterBottom>
           <strong>

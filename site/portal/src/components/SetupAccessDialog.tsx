@@ -120,6 +120,7 @@ function SetupAccessDialog({ onClose, data, onNewData }: any) {
         </DialogContentText>
         <FusebitToolSelector
           flow={flow}
+          isUser={agent.isUser}
           onFlowChange={handleFlowChange}
           autoFocus
         />

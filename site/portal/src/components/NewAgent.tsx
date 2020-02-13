@@ -138,7 +138,8 @@ function NewAgentImpl() {
           <Grid item xs={8} className={classes.form}>
             <DialogContent>
               <DialogContentText>
-                User {agentName && <strong>{agentName}</strong>} created.
+                {agent.isUser ? "User" : "Client"}{" "}
+                {agentName && <strong>{agentName}</strong>} created.
               </DialogContentText>
             </DialogContent>
             {(flow === "pki" || flow === "oauth-device") && (

@@ -4,7 +4,6 @@ import Typography from "@material-ui/core/Typography";
 import AccountBalanceIcon from "@material-ui/icons/AccountBalance";
 import React from "react";
 import { Link as RouterLink } from "react-router-dom";
-import AddIdentityDialog from "./AddIdentityDialog";
 import { modifyAgent, useAgent } from "./AgentProvider";
 import EntityCard from "./EntityCard";
 
@@ -21,10 +20,6 @@ const useStyles = makeStyles((theme: any) => ({
     flexDirection: "column",
     minWidth: 480
   },
-  identityAction: {
-    marginTop: theme.spacing(2),
-    marginBottom: theme.spacing(2)
-  },
   form: {
     overflow: "hidden"
   }
@@ -33,7 +28,6 @@ const useStyles = makeStyles((theme: any) => ({
 function AgentIdentities() {
   const classes = useStyles();
   const [agent, setAgent] = useAgent();
-  const [dialogOpen, setDialogOpen] = React.useState(false);
 
   const handleRemoveIdentity = (identity: any) => {
     if (agent.status === "ready" && agent.modified.identities) {
@@ -42,15 +36,6 @@ function AgentIdentities() {
         agent.modified.identities.splice(i, 1);
         modifyAgent(agent, setAgent, { ...agent.modified });
       }
-    }
-  };
-
-  const handleAddIdentity = (identity: any) => {
-    setDialogOpen(false);
-    if (identity && agent.status === "ready") {
-      agent.modified.identities = agent.modified.identities || [];
-      agent.modified.identities.push(identity);
-      modifyAgent(agent, setAgent, { ...agent.modified });
     }
   };
 
@@ -105,17 +90,6 @@ function AgentIdentities() {
               </div>
             </EntityCard>
           ))}
-        <div className={classes.identityAction}>
-          <Button
-            variant="outlined"
-            color="secondary"
-            onClick={() => setDialogOpen(true)}
-            disabled={agent.status !== "ready"}
-          >
-            Add identity
-          </Button>
-        </div>
-        {dialogOpen && <AddIdentityDialog onClose={handleAddIdentity} />}
       </div>
     );
   } else {

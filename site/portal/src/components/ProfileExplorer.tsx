@@ -26,7 +26,7 @@ import ProfileBreadcrumb from "./ProfileBreadcrumb";
 import { useProfile } from "./ProfileProvider";
 import ProfileSelectorWithDetails from "./ProfileSelectorWithDetails";
 import SubscriptionBoundaries from "./SubscriptionBoundaries";
-import UserActionFab from "./UserActionFab";
+import AgentDeleteFab from "./AgentDeleteFab";
 
 const useStyles = makeStyles(theme => ({
   paper: {
@@ -281,14 +281,10 @@ function ProfileExplorer({ ...rest }: any) {
                 render={({ ...rest }) => (
                   <ExplorerView
                     tabs={ExplorerTabs.user}
-                    fab={<UserActionFab />}
+                    fab={<AgentDeleteFab data={data} onNewData={setData} />}
                     {...rest}
                   >
-                    <AgentProperties
-                      data={data}
-                      onNewData={handleOnNewData}
-                      {...rest}
-                    />
+                    <AgentProperties />
                   </ExplorerView>
                 )}
               />
@@ -298,7 +294,7 @@ function ProfileExplorer({ ...rest }: any) {
                 render={({ ...rest }) => (
                   <ExplorerView
                     tabs={ExplorerTabs.user}
-                    fab={<UserActionFab />}
+                    fab={<AgentDeleteFab data={data} onNewData={setData} />}
                     {...rest}
                   >
                     <AgentAccess />
@@ -341,14 +337,10 @@ function ProfileExplorer({ ...rest }: any) {
                 render={({ ...rest }) => (
                   <ExplorerView
                     tabs={ExplorerTabs.client}
-                    fab={<ClientActionFab />}
+                    fab={<AgentDeleteFab data={data} onNewData={setData} />}
                     {...rest}
                   >
-                    <AgentProperties
-                      data={data}
-                      onNewData={handleOnNewData}
-                      {...rest}
-                    />
+                    <AgentProperties />
                   </ExplorerView>
                 )}
               />
@@ -358,7 +350,7 @@ function ProfileExplorer({ ...rest }: any) {
                 render={({ ...rest }) => (
                   <ExplorerView
                     tabs={ExplorerTabs.client}
-                    fab={<ClientActionFab />}
+                    fab={<AgentDeleteFab data={data} onNewData={setData} />}
                     {...rest}
                   >
                     [TODO: Client Overview]

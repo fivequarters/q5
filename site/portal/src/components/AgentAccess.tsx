@@ -9,6 +9,7 @@ import { modifyAgent, reloadAgent, saveAgent, useAgent } from "./AgentProvider";
 import EditPermissionsAsJsonDialog from "./EditPermissionsAsJsonDialog";
 import ExplorerTable, { HeadCell } from "./ExplorerTable";
 import { useProfile } from "./ProfileProvider";
+import AddPermissionSetDialog from "./AddPermissionSetDialog";
 
 interface ViewRow {
   action: string;
@@ -39,6 +40,7 @@ function AgentAccess() {
   const [addPermissionDialogOpen, setAddPermissionDialogOpen] = React.useState(
     false
   );
+  const [addPermissionSetOpen, setAddPermissionSetOpen] = React.useState(false);
 
   const headCells: HeadCell<ViewRow>[] = [
     {
@@ -71,6 +73,13 @@ function AgentAccess() {
 
   const handleAddPermission = () => {
     setAddPermissionDialogOpen(false);
+    if (agent.status === "error") {
+      reloadAgent(agent, setAgent);
+    }
+  };
+
+  const handleAddPermissionSetClose = () => {
+    setAddPermissionSetOpen(false);
     if (agent.status === "error") {
       reloadAgent(agent, setAgent);
     }
@@ -145,6 +154,12 @@ function AgentAccess() {
                 </ActionButton>
                 <ActionButton
                   disabled={agent.status !== "ready"}
+                  onClick={() => setAddPermissionSetOpen(true)}
+                >
+                  Add&nbsp;permission&nbsp;set
+                </ActionButton>
+                <ActionButton
+                  disabled={agent.status !== "ready"}
                   onClick={() => setEditPermissionsDialogOpen(true)}
                 >
                   Edit&nbsp;as&nbsp;JSON
@@ -168,6 +183,13 @@ function AgentAccess() {
             onClose={handleAddPermission}
             data={data}
             onNewData={handleNewData}
+          />
+        )}
+        {addPermissionSetOpen && (
+          <AddPermissionSetDialog
+            data={data}
+            onNewData={handleNewData}
+            onClose={handleAddPermissionSetClose}
           />
         )}
       </React.Fragment>

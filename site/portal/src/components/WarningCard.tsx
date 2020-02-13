@@ -4,6 +4,10 @@ import WarningIcon from "@material-ui/icons/Warning";
 import React from "react";
 
 const useStyles = makeStyles((theme: any) => ({
+  root: (props: any) => ({
+    paddingRight: props.padding ? theme.spacing(2) : 0,
+    paddingLeft: props.padding ? theme.spacing(2) : 0
+  }),
   card: (props: any) => ({
     minWidth: 200,
     width: "100%",
@@ -39,13 +43,15 @@ const useStyles = makeStyles((theme: any) => ({
   }
 }));
 
-function WarningCard({ icon, children, color, ...rest }: any) {
-  const classes = useStyles({ color });
+function WarningCard({ icon, padding, children, color, ...rest }: any) {
+  const classes = useStyles({ color, padding });
   return (
-    <Paper className={classes.card} elevation={0} {...rest}>
-      <div className={classes.cardIcon}>{icon || <WarningIcon />}</div>
-      <div className={classes.cardContent}>{children}</div>
-    </Paper>
+    <div className={classes.root}>
+      <Paper className={classes.card} elevation={0} {...rest}>
+        <div className={classes.cardIcon}>{icon || <WarningIcon />}</div>
+        <div className={classes.cardContent}>{children}</div>
+      </Paper>
+    </div>
   );
 }
 

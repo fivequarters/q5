@@ -103,7 +103,7 @@ function AccountUsers({ data, onNewData }: any) {
   }
 
   if (data.users.error) {
-    return <PortalError error={data.users.error} />;
+    return <PortalError error={data.users.error} padding={true} />;
   }
 
   const handleDelete = async (selected: string[]) => {
