@@ -74,7 +74,12 @@ function SubscriptionBoundaries({ data, onNewData, match }: any) {
   }
 
   if (data.boundaries[subscriptionId].error) {
-    return <PortalError error={data.boundaries[subscriptionId].error} />;
+    return (
+      <PortalError
+        error={data.boundaries[subscriptionId].error}
+        padding={true}
+      />
+    );
   }
 
   if (

@@ -111,7 +111,10 @@ function BoundaryFunctions({ data, onNewData, match }: any) {
 
   if (data.functions[subscriptionId][boundaryId].error) {
     return (
-      <PortalError error={data.functions[subscriptionId][boundaryId].error} />
+      <PortalError
+        error={data.functions[subscriptionId][boundaryId].error}
+        padding={true}
+      />
     );
   }
 

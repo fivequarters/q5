@@ -81,7 +81,7 @@ function AccountSubscriptions({ data, onNewData }: any) {
   }
 
   if (data.subscriptions.error) {
-    return <PortalError error={data.subscriptions.error} />;
+    return <PortalError error={data.subscriptions.error} padding={true} />;
   }
 
   if (!data.subscriptions.viewData) {

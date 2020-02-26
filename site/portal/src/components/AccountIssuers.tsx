@@ -114,7 +114,7 @@ function AccountIssuers({ data, onNewData }: any) {
   }
 
   if (data.issuers.error) {
-    return <PortalError error={data.issuers.error} />;
+    return <PortalError error={data.issuers.error} padding={true} />;
   }
 
   const handleDelete = async (selected: string[]) => {

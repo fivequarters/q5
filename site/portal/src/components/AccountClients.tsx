@@ -89,7 +89,7 @@ function AccountClients({ data, onNewData }: any) {
   }
 
   if (data.clients.error) {
-    return <PortalError error={data.clients.error} />;
+    return <PortalError error={data.clients.error} padding={true} />;
   }
 
   const handleDelete = async (selected: string[]) => {
