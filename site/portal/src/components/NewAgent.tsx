@@ -63,7 +63,6 @@ function NewAgentImpl() {
   const classes = useStyles();
   const { profile } = useProfile();
   const [activeStep, setActiveStep] = React.useState(0);
-  const [data, onNewData] = React.useState<any>();
   const [agent, setAgent] = useAgent();
   const [role, setRole] = React.useState<any>(noRole);
   const [resource, setResource] = React.useState<any>(createInitialResurce());
@@ -230,7 +229,6 @@ function NewAgentImpl() {
                   as part of the <strong>{role.title}</strong> permission set:
                 </DialogContentText>
                 <PermissionReviewTable
-                  data={data}
                   actions={rolesHash[role.role].actions}
                   resource={resource}
                 />
@@ -293,8 +291,6 @@ function NewAgentImpl() {
           <Grid item xs={8} className={classes.form}>
             {flow !== "none" && (
               <FunctionResourceSelector
-                data={data}
-                onNewData={onNewData}
                 resource={defaultResource}
                 onResourceChange={(resource: any) =>
                   setDefaultResource(resource)
@@ -378,8 +374,6 @@ function NewAgentImpl() {
             )}
             {role.role === "developer" && (
               <FunctionResourceSelector
-                data={data}
-                onNewData={onNewData}
                 resource={resource}
                 onResourceChange={handleResourceChange}
                 disabled={agent.status !== "ready"}

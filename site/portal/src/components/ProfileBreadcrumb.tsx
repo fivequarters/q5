@@ -5,6 +5,7 @@ import { useProfile } from "./ProfileProvider";
 import Breadcrumbs from "@material-ui/core/Breadcrumbs";
 import Link from "@material-ui/core/Link";
 import Typography from "@material-ui/core/Typography";
+import { useSubscriptions } from "./SubscriptionsProvider";
 
 // const useStyles = makeStyles((theme: any) => ({
 //   root: {
@@ -19,9 +20,13 @@ const tree = {
   children: [
     {
       paramName: "subscriptionId",
-      formatLink: (params: any) =>
+      formatLink: (params: any, profile: any) =>
         `/accounts/${params.accountId}/subscriptions/${params.subscriptionId}/boundaries`,
-      text: (params: any, profile: any) => params.subscriptionId,
+      text: (params: any, profile: any, subscriptions: any) =>
+        (subscriptions.status === "ready" &&
+          subscriptions.existing.hash[params.subscriptionId] &&
+          subscriptions.existing.hash[params.subscriptionId].displayName) ||
+        params.subscriptionId,
       children: [
         {
           paramName: "boundaryId",
@@ -77,6 +82,7 @@ const tree = {
 function ProfileBreadcrumb({ children, settings }: any) {
   const params = { ...(useParams() as any), ...settings };
   const { profile } = useProfile();
+  const [subscriptions] = useSubscriptions();
   // const classes = useStyles();
 
   function renderBreadcrumbNode(node: any): any {
@@ -97,9 +103,11 @@ function ProfileBreadcrumb({ children, settings }: any) {
         <Link
           key={params[node.paramName]}
           component={RouterLink}
-          to={node.formatLink(params)}
+          to={node.formatLink(params, profile, subscriptions)}
         >
-          <Typography variant="h5">{node.text(params, profile)}</Typography>
+          <Typography variant="h5">
+            {node.text(params, profile, subscriptions)}
+          </Typography>
         </Link>,
         renderBreadcrumbNode(nextNode)
       ];
@@ -107,7 +115,7 @@ function ProfileBreadcrumb({ children, settings }: any) {
       // This is the last segment - render without link
       return (
         <Typography variant="h5" key={params[node.paramName]}>
-          {node.text(params, profile)}
+          {node.text(params, profile, subscriptions)}
         </Typography>
       );
     }

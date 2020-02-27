@@ -37,7 +37,7 @@ const useStyles = makeStyles((theme: any) => ({
 const createPermissionId = (permission: any) =>
   `${permission.action}#${permission.resource}`;
 
-function AddPermissionSetDialog({ onClose, data, onNewData }: any) {
+function AddPermissionSetDialog({ onClose }: any) {
   const classes = useStyles();
   const [agent, setAgent] = useAgent();
   const { profile } = useProfile();
@@ -144,8 +144,6 @@ function AddPermissionSetDialog({ onClose, data, onNewData }: any) {
             permission set to:
           </DialogContentText>
           <FunctionResourceSelector
-            data={data}
-            onNewData={onNewData}
             resource={resource}
             onResourceChange={(resource: any) => setResource(resource)}
           />
@@ -170,7 +168,6 @@ function AddPermissionSetDialog({ onClose, data, onNewData }: any) {
             <strong>{formatAgent(agent)}</strong>:
           </DialogContentText>
           <PermissionsReviewTable
-            data={data}
             actions={rolesHash[role.role].actions}
             resource={resource}
           />

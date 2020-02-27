@@ -2,15 +2,12 @@ import TextField from "@material-ui/core/TextField";
 import Autocomplete from "@material-ui/lab/Autocomplete";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import React from "react";
-import { useProfile } from "./ProfileProvider";
-import loadBoundaries from "../effects/LoadBoundaries";
+import { useBoundaries } from "./BoundariesProvider";
 
 function BoundarySelector({
   subscriptionId,
   boundaryId,
   onChange,
-  data,
-  onNewData,
   fullWidth,
   variant,
   disabled,
@@ -18,38 +15,15 @@ function BoundarySelector({
   helperText,
   ...rest
 }: any) {
-  const { profile } = useProfile();
+  const [boundaries] = useBoundaries();
   const [open, setOpen] = React.useState(false);
-  const loading =
-    open && !!!(data && data.boundaries && data.boundaries[subscriptionId]);
 
-  React.useEffect(
-    loadBoundaries(
-      profile,
-      open ? subscriptionId : undefined,
-      undefined,
-      data,
-      onNewData
-    ),
-    [data, onNewData, profile, subscriptionId, open]
-  );
-
-  if (
-    data &&
-    data.boundaries &&
-    data.boundaries[subscriptionId] &&
-    data.boundaries[subscriptionId].error
-  ) {
-    throw data.boundaries[subscriptionId].error;
+  if (boundaries.status === "error") {
+    throw boundaries.error;
   }
 
-  const boundaries =
-    (data &&
-      data.boundaries &&
-      data.boundaries[subscriptionId] &&
-      data.boundaries[subscriptionId].data &&
-      Object.keys(data.boundaries[subscriptionId].data)) ||
-    [];
+  const boundaryIds =
+    (boundaries.status === "ready" && Object.keys(boundaries.existing)) || [];
 
   return (
     <Autocomplete
@@ -63,8 +37,8 @@ function BoundarySelector({
       disabled={disabled || false}
       inputValue={boundaryId || ""}
       onInputChange={(e, v) => e && onChange && onChange(v)}
-      options={boundaries}
-      loading={!!(loading && subscriptionId)}
+      options={boundaryIds}
+      loading={!!(open && boundaries.status === "loading" && subscriptionId)}
       renderInput={params => (
         <TextField
           {...params}
@@ -76,7 +50,7 @@ function BoundarySelector({
           InputProps={{
             ...params.InputProps,
             endAdornment:
-              loading && subscriptionId ? (
+              open && boundaries.status === "loading" && subscriptionId ? (
                 <CircularProgress
                   color="primary"
                   size={20}

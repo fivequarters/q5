@@ -1,5 +1,5 @@
 import { IFusebitProfile } from "./Settings";
-import { Permission } from "./FusebitTypes";
+import { Permission, Resource } from "./FusebitTypes";
 
 const actions = [
   {
@@ -156,11 +156,26 @@ function createPermissionsFromRole(
   return allow;
 }
 
+function tryTokenizeResource(
+  action: string,
+  resource: string
+): Resource | undefined {
+  const match = resource.match(
+    /^\/(?:account\/([^/]+)\/(?:subscription\/([^/]+)\/(?:boundary\/([^/]+)\/(?:function\/([^/]+)\/)?)?)?)?$/
+  );
+  if (match) {
+    const [, accountId, subscriptionId, boundaryId, functionId] = match;
+    return { ...{ accountId, subscriptionId, boundaryId, functionId } };
+  }
+  return undefined;
+}
+
 export {
   actions,
   actionsHash,
   roles,
   rolesHash,
   noRole,
-  createPermissionsFromRole
+  createPermissionsFromRole,
+  tryTokenizeResource
 };

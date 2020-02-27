@@ -6,6 +6,7 @@ import NavigateNextIcon from "@material-ui/icons/NavigateNext";
 import OndemandVideoIcon from "@material-ui/icons/OndemandVideo";
 import React from "react";
 import { useProfile } from "./ProfileProvider";
+import { useSubscriptions } from "./SubscriptionsProvider";
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -24,16 +25,15 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-function FunctionResourceCrumb({ options, data, ...rest }: any) {
+function FunctionResourceCrumb({ options, ...rest }: any) {
   const classes = useStyles();
   const { profile } = useProfile();
+  const [subscriptions] = useSubscriptions();
 
   const formatSubscription = () =>
-    (data &&
-      data.subscriptions &&
-      data.subscriptions.dataHash &&
-      data.subscriptions.dataHash[options.subscriptionId] &&
-      data.subscriptions.dataHash[options.subscriptionId].displayName) ||
+    (subscriptions.status === "ready" &&
+      subscriptions.existing.hash[options.subscriptionId] &&
+      subscriptions.existing.hash[options.subscriptionId].displayName) ||
     options.subscriptionId;
 
   const formatAccount = () => profile.displayName || profile.account;
