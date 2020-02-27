@@ -1,12 +1,10 @@
 import React from "react";
-import { useProfile } from "./ProfileProvider";
 import LinearProgress from "@material-ui/core/LinearProgress";
 import ExplorerTable, { HeadCell } from "./ExplorerTable";
-import { getFunctions } from "../lib/Fusebit";
-import { FusebitError } from "./ErrorBoundary";
 import PortalError from "./PortalError";
 import Link from "@material-ui/core/Link";
 import { Link as RouterLink } from "react-router-dom";
+import { useBoundaries } from "./BoundariesProvider";
 
 interface ViewRow {
   id: string;
@@ -16,10 +14,8 @@ interface ViewRow {
   // executionsLast24h: string;
 }
 
-function BoundaryFunctions({ data, onNewData, match }: any) {
-  const { profile } = useProfile();
-  const { params } = match;
-  const { subscriptionId, boundaryId } = params;
+function BoundaryFunctions({ boundaryId }: any) {
+  const [boundaries] = useBoundaries();
 
   const createViewRow = (dataRow: any): ViewRow => ({
     id: dataRow.functionId as string
@@ -59,68 +55,23 @@ function BoundaryFunctions({ data, onNewData, match }: any) {
     // }
   ];
 
-  React.useEffect(() => {
-    let cancelled: boolean = false;
-    if (
-      !data ||
-      !data.functions ||
-      !data.functions[subscriptionId] ||
-      !data.functions[subscriptionId][boundaryId]
-    ) {
-      (async () => {
-        let functions: any = data.functions || {};
-        functions[subscriptionId] = functions[subscriptionId] || {};
-        functions[subscriptionId][boundaryId] =
-          functions[subscriptionId][boundaryId] || {};
-        try {
-          let boundaryFunction: any = await getFunctions(
-            profile,
-            subscriptionId,
-            boundaryId
-          );
-          // console.log("LOADED FUNCTION DATA", boundaryFunction);
-          functions[subscriptionId][boundaryId] = {
-            viewData: boundaryFunction[boundaryId].functions.map(createViewRow)
-          };
-        } catch (e) {
-          functions[subscriptionId][boundaryId] = {
-            error: new FusebitError("Error loading function information", {
-              details:
-                (e.status || e.statusCode) === 403
-                  ? "The Fusebit account, subscription, or boundary does not exist or you are not authorized to access it's list of functions."
-                  : e.message || "Unknown error."
-            })
-          };
-        }
-        !cancelled && onNewData && onNewData({ ...data, functions });
-      })();
-      return () => {
-        cancelled = true;
-      };
-    }
-  }, [data, onNewData, profile, subscriptionId, boundaryId]);
-
-  if (
-    !data ||
-    !data.functions ||
-    !data.functions[subscriptionId] ||
-    !data.functions[subscriptionId][boundaryId]
-  ) {
+  if (boundaries.status === "loading") {
     return <LinearProgress />;
   }
 
-  if (data.functions[subscriptionId][boundaryId].error) {
-    return (
-      <PortalError
-        error={data.functions[subscriptionId][boundaryId].error}
-        padding={true}
-      />
-    );
+  if (boundaries.status === "error") {
+    return <PortalError error={boundaries.error} padding={true} />;
   }
+
+  const viewData = (
+    (boundaries.existing[boundaryId] &&
+      boundaries.existing[boundaryId].functions) ||
+    []
+  ).map(createViewRow);
 
   return (
     <ExplorerTable<ViewRow>
-      rows={data.functions[subscriptionId][boundaryId].viewData}
+      rows={viewData}
       headCells={headCells}
       defaultSortKey="id"
       identityKey="id"

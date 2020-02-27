@@ -7,7 +7,7 @@ import React from "react";
 import { actionsHash } from "../lib/Actions";
 import FunctionResourceCrumb from "./FunctionResourceCrumb";
 
-function PermissionReviewTable({ actions, resource, data }: any) {
+function PermissionReviewTable({ actions, resource }: any) {
   const permissions = actions.map((a: string) => ({
     action: (
       <React.Fragment>
@@ -16,9 +16,9 @@ function PermissionReviewTable({ actions, resource, data }: any) {
     ),
     resource:
       a.indexOf("function:") === 0 ? (
-        <FunctionResourceCrumb data={data} options={resource.parts} />
+        <FunctionResourceCrumb options={resource.parts} />
       ) : (
-        <FunctionResourceCrumb data={data} options={{}} />
+        <FunctionResourceCrumb options={{}} />
       )
   }));
 

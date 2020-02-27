@@ -49,7 +49,6 @@ function AgentProperties() {
   const [setupAccessDialogOpen, setSetupAccessDialogOpen] = React.useState(
     false
   );
-  const [data, setData] = React.useState<any>({});
 
   if (agent.status === "loading") {
     return (
@@ -139,8 +138,6 @@ function AgentProperties() {
             )}
             {setupAccessDialogOpen && (
               <SetupAccessDialog
-                data={data}
-                onNewData={setData}
                 onClose={() => setSetupAccessDialogOpen(false)}
               />
             )}

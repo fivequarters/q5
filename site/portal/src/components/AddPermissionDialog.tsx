@@ -31,7 +31,7 @@ const useStyles = makeStyles((theme: any) => ({
   }
 }));
 
-function AddPermissionDialog({ onClose, data, onNewData }: any) {
+function AddPermissionDialog({ onClose }: any) {
   const classes = useStyles();
   const { profile } = useProfile();
   const [action, setAction] = React.useState<any>({});
@@ -152,8 +152,6 @@ function AddPermissionDialog({ onClose, data, onNewData }: any) {
               action to this resource:
             </DialogContentText>
             <FunctionResourceSelector
-              data={data}
-              onNewData={onNewData}
               resource={resource}
               onResourceChange={(resource: any) => setResource(resource)}
               disabled={agent.status !== "ready"}

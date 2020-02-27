@@ -10,6 +10,8 @@ import EditPermissionsAsJsonDialog from "./EditPermissionsAsJsonDialog";
 import ExplorerTable, { HeadCell } from "./ExplorerTable";
 import { useProfile } from "./ProfileProvider";
 import AddPermissionSetDialog from "./AddPermissionSetDialog";
+import { tryTokenizeResource } from "../lib/Actions";
+import FunctionResourceCrumb from "./FunctionResourceCrumb";
 
 interface ViewRow {
   action: string;
@@ -32,7 +34,6 @@ const createAccessView = (access: any) =>
 function AgentAccess() {
   const [agent, setAgent] = useAgent();
   const { profile } = useProfile();
-  const [data, setData] = React.useState<any>(undefined);
   const [
     editPermissionsDialogOpen,
     setEditPermissionsDialogOpen
@@ -48,17 +49,19 @@ function AgentAccess() {
       disablePadding: true,
       align: "left",
       label: "Action"
-      // render: row => (
-      //   <Link component={RouterLink} to={`users/${row.id}/properties`}>
-      //     <UserAvatar letter={row.name[0]} />
-      //     {row.name}
-      //   </Link>
-      // )
     },
     {
       id: "resource",
       align: "left",
-      label: "Resource"
+      label: "Resource",
+      render: row => {
+        const resource = tryTokenizeResource(row.action, row.resource);
+        return resource ? (
+          <FunctionResourceCrumb options={resource} />
+        ) : (
+          <span>{row.resource}</span>
+        );
+      }
     }
   ];
 
@@ -68,8 +71,6 @@ function AgentAccess() {
       reloadAgent(agent, setAgent);
     }
   };
-
-  const handleNewData = (data: any) => setData(data);
 
   const handleAddPermission = () => {
     setAddPermissionDialogOpen(false);
@@ -179,18 +180,10 @@ function AgentAccess() {
           <EditPermissionsAsJsonDialog onClose={handleSaveJsonPermissions} />
         )}
         {addPermissionDialogOpen && (
-          <AddPermissionDialog
-            onClose={handleAddPermission}
-            data={data}
-            onNewData={handleNewData}
-          />
+          <AddPermissionDialog onClose={handleAddPermission} />
         )}
         {addPermissionSetOpen && (
-          <AddPermissionSetDialog
-            data={data}
-            onNewData={handleNewData}
-            onClose={handleAddPermissionSetClose}
-          />
+          <AddPermissionSetDialog onClose={handleAddPermissionSetClose} />
         )}
       </React.Fragment>
     );

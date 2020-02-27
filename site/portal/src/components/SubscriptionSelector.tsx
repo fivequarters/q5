@@ -4,39 +4,27 @@ import FormControl from "@material-ui/core/FormControl";
 import InputLabel from "@material-ui/core/InputLabel";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import React from "react";
-import { useProfile } from "./ProfileProvider";
-import loadSubscriptions from "../effects/LoadSubscriptions";
+import { useSubscriptions } from "./SubscriptionsProvider";
 
 function SubscriptionSelector({
   subscriptionId,
   onChange,
-  data,
-  onNewData,
   enableAnySubscription,
   disabled,
   ...rest
 }: any) {
-  const { profile } = useProfile();
-  const loading = !!!(data && data.subscriptions);
+  const [subscriptions] = useSubscriptions();
 
-  React.useEffect(loadSubscriptions(profile, data, onNewData), [
-    data,
-    onNewData,
-    profile
-  ]);
-
-  if (
-    !subscriptionId &&
-    (enableAnySubscription ||
-      (data &&
-        data.subscriptions &&
-        data.subscriptions.data &&
-        data.subscriptions.data.length > 0))
-  ) {
-    subscriptionId = enableAnySubscription
-      ? "*"
-      : data.subscriptions.data[0].id;
-    onChange && onChange(subscriptionId);
+  if (!subscriptionId) {
+    if (enableAnySubscription) {
+      subscriptionId = "*";
+    } else if (
+      subscriptions.status === "ready" &&
+      subscriptions.existing.list.length > 0
+    ) {
+      subscriptionId = subscriptions.existing.list[0].id;
+    }
+    subscriptionId && onChange && onChange(subscriptionId);
   }
 
   const handleChange = (event: React.ChangeEvent<{ value: unknown }>) => {
@@ -47,26 +35,21 @@ function SubscriptionSelector({
     return <CircularProgress size={20} style={{ marginRight: 20 }} />;
   }
 
-  if (data && data.subscriptions && data.subscriptions.error) {
-    throw data.subscriptions.error;
+  if (subscriptions.status === "error") {
+    throw subscriptions.error;
   }
 
   return (
-    <FormControl disabled={loading} {...rest}>
+    <FormControl disabled={subscriptions.status === "loading"} {...rest}>
       <InputLabel htmlFor="subscriptionIdChoice">Subscription</InputLabel>
       <Select
         id="subscriptionIdChoice"
-        value={
-          (data &&
-            data.subscriptions &&
-            data.subscriptions.data &&
-            data.subscriptions.data.length > 0 &&
-            subscriptionId) ||
-          ""
-        }
+        value={subscriptionId || ""}
         onChange={handleChange}
         disabled={!!disabled}
-        IconComponent={loading ? SubscriptionsLoading : undefined}
+        IconComponent={
+          subscriptions.status === "loading" ? SubscriptionsLoading : undefined
+        }
         // {...rest}
       >
         {enableAnySubscription && (
@@ -74,13 +57,14 @@ function SubscriptionSelector({
             All subscriptions
           </MenuItem>
         )}
-        {((data && data.subscriptions && data.subscriptions.data) || []).map(
-          (s: any) => (
-            <MenuItem key={s.id} value={s.id}>
-              {s.displayName || "N/A"} ({s.id})
-            </MenuItem>
-          )
-        )}
+        {(
+          (subscriptions.status === "ready" && subscriptions.existing.list) ||
+          []
+        ).map(s => (
+          <MenuItem key={s.id} value={s.id}>
+            {s.displayName || "N/A"} ({s.id})
+          </MenuItem>
+        ))}
       </Select>
     </FormControl>
   );

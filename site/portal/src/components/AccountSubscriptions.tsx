@@ -1,11 +1,10 @@
 import React from "react";
-import { useProfile } from "./ProfileProvider";
 import LinearProgress from "@material-ui/core/LinearProgress";
 import ExplorerTable, { HeadCell } from "./ExplorerTable";
 import PortalError from "./PortalError";
 import Link from "@material-ui/core/Link";
 import { Link as RouterLink } from "react-router-dom";
-import loadSubscriptions from "../effects/LoadSubscriptions";
+import { useSubscriptions } from "./SubscriptionsProvider";
 
 interface ViewRow {
   name: string;
@@ -17,8 +16,8 @@ interface ViewRow {
   // executionsLast24h: string;
 }
 
-function AccountSubscriptions({ data, onNewData }: any) {
-  const { profile } = useProfile();
+function AccountSubscriptions() {
+  const [subscriptions] = useSubscriptions();
   // const { params } = match;
 
   const createViewRow = (dataRow: any): ViewRow => ({
@@ -70,28 +69,19 @@ function AccountSubscriptions({ data, onNewData }: any) {
     // }
   ];
 
-  React.useEffect(loadSubscriptions(profile, data, onNewData), [
-    data,
-    onNewData,
-    profile
-  ]);
-
-  if (!data || !data.subscriptions) {
+  if (subscriptions.status === "loading") {
     return <LinearProgress />;
   }
 
-  if (data.subscriptions.error) {
-    return <PortalError error={data.subscriptions.error} padding={true} />;
+  if (subscriptions.status === "error") {
+    return <PortalError error={subscriptions.error} padding={true} />;
   }
 
-  if (!data.subscriptions.viewData) {
-    data.subscriptions.viewData = data.subscriptions.data.map(createViewRow);
-    onNewData && onNewData({ ...data });
-  }
+  const viewData = subscriptions.existing.list.map(createViewRow);
 
   return (
     <ExplorerTable<ViewRow>
-      rows={data.subscriptions.viewData}
+      rows={viewData}
       headCells={headCells}
       defaultSortKey="name"
       identityKey="id"

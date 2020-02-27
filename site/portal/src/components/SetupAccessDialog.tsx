@@ -27,7 +27,7 @@ const useStyles = makeStyles((theme: any) => ({
   }
 }));
 
-function SetupAccessDialog({ onClose, data, onNewData }: any) {
+function SetupAccessDialog({ onClose }: any) {
   const classes = useStyles();
   const { profile } = useProfile();
   const [agent] = useAgent();
@@ -199,8 +199,6 @@ function SetupAccessDialog({ onClose, data, onNewData }: any) {
           </React.Fragment>
         )}
         <FunctionResourceSelector
-          data={data}
-          onNewData={onNewData}
           resource={resource}
           onResourceChange={(resource: any) => setResource(resource)}
         />

@@ -20,7 +20,7 @@ const useStyles = makeStyles((theme: any) => ({
   }
 }));
 
-function AccountSettings({ data, onNewData }: any) {
+function AccountSettings() {
   const classes = useStyles();
   const { profile, saveProfile } = useProfile();
   const [defaultResource, setDefaultResource] = React.useState<any>(
@@ -77,8 +77,6 @@ function AccountSettings({ data, onNewData }: any) {
         <Grid item xs={8}>
           <DialogContentText>Portal default view</DialogContentText>
           <FunctionResourceSelector
-            data={data}
-            onNewData={onNewData}
             resource={defaultResource}
             onResourceChange={(resource: any) => setDefaultResource(resource)}
           />

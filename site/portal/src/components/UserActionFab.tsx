@@ -34,18 +34,10 @@ function UserActionFab() {
         ]}
       />
       {setupAccessOpen && (
-        <SetupAccessDialog
-          data={data}
-          onNewData={(newData: any) => setData(newData)}
-          onClose={() => setSetupAccessOpen(false)}
-        />
+        <SetupAccessDialog onClose={() => setSetupAccessOpen(false)} />
       )}
       {addPermissionSetOpen && (
-        <AddPermissionSetDialog
-          data={data}
-          onNewData={(newData: any) => setData(newData)}
-          onClose={handleAddPermissionSetClose}
-        />
+        <AddPermissionSetDialog onClose={handleAddPermissionSetClose} />
       )}
     </React.Fragment>
   );

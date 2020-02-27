@@ -45,7 +45,7 @@ const Transition = React.forwardRef<unknown, TransitionProps>(
   }
 );
 
-function FunctionCode({ data, match }: any) {
+function FunctionCode({ match }: any) {
   const history = useHistory();
   const classes = useStyles();
   const { profile } = useProfile();

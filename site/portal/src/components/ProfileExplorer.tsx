@@ -27,6 +27,10 @@ import { useProfile } from "./ProfileProvider";
 import ProfileSelectorWithDetails from "./ProfileSelectorWithDetails";
 import SubscriptionBoundaries from "./SubscriptionBoundaries";
 import AgentDeleteFab from "./AgentDeleteFab";
+import { SubscriptionsProvider } from "./SubscriptionsProvider";
+import { BoundariesProvider } from "./BoundariesProvider";
+import { AgentsProvider } from "./AgentsProvider";
+import { IssuersProvider } from "./IssuersProvider";
 
 const useStyles = makeStyles(theme => ({
   paper: {
@@ -147,7 +151,6 @@ function ProfileExplorer({ ...rest }: any) {
   const { profile } = useProfile();
   const classes = useStyles();
   const settings = getLocalSettings() as IFusebitSettings;
-  const [data, setData] = React.useState({});
 
   function ExplorerView({
     breadcrumbSettings,
@@ -220,240 +223,257 @@ function ProfileExplorer({ ...rest }: any) {
     );
   }
 
-  const handleOnNewData = (data: any) => setData(data);
-
   return (
-    <Switch>
-      <Route
-        path="/accounts/:accountId/subscriptions"
-        exact={true}
-        render={({ ...rest }) => (
-          <ExplorerView tabs={ExplorerTabs.account} {...rest}>
-            <AccountSubscriptions
-              data={data}
-              onNewData={handleOnNewData}
-              {...rest}
-            />
-          </ExplorerView>
-        )}
-      />
-      <Route
-        path="/accounts/:accountId/users"
-        exact={true}
-        render={({ ...rest }) => (
-          <ExplorerView tabs={ExplorerTabs.account} {...rest}>
-            <AccountUsers data={data} onNewData={handleOnNewData} {...rest} />
-          </ExplorerView>
-        )}
-      />
-      <Route
-        path="/accounts/:accountId/settings"
-        exact={true}
-        render={({ ...rest }) => (
-          <ExplorerView tabs={ExplorerTabs.account} {...rest}>
-            <AccountSettings
-              data={data}
-              onNewData={handleOnNewData}
-              {...rest}
-            />
-          </ExplorerView>
-        )}
-      />
+    <SubscriptionsProvider>
+      <Switch>
+        <Route
+          path="/accounts/:accountId/subscriptions"
+          exact={true}
+          render={({ ...rest }) => (
+            <ExplorerView tabs={ExplorerTabs.account} {...rest}>
+              <AccountSubscriptions />
+            </ExplorerView>
+          )}
+        />
 
-      <Route
-        path="/accounts/:accountId/users/new"
-        exact={true}
-        render={({ ...rest }) => (
-          <ExplorerView breadcrumbSettings={{ newUser: true }} {...rest}>
-            <NewAgent data={data} onNewData={handleOnNewData} isUser />
-          </ExplorerView>
-        )}
-      />
+        <Route
+          path="/accounts/:accountId/users"
+          exact={true}
+          render={({ ...rest }) => (
+            <ExplorerView tabs={ExplorerTabs.account} {...rest}>
+              <AgentsProvider isUser={true}>
+                <AccountUsers />
+              </AgentsProvider>
+            </ExplorerView>
+          )}
+        />
 
-      <Route
-        path="/accounts/:accountId/users/:userId"
-        render={({ match }) => (
-          <AgentProvider agentId={match.params.userId} isUser>
-            <Switch>
-              <Route
-                path={`${match.path}/properties`}
-                exact={true}
-                render={({ ...rest }) => (
-                  <ExplorerView
-                    tabs={ExplorerTabs.user}
-                    fab={<AgentDeleteFab data={data} onNewData={setData} />}
-                    {...rest}
-                  >
-                    <AgentProperties />
-                  </ExplorerView>
-                )}
-              />
-              <Route
-                path={`${match.path}/access`}
-                exact={true}
-                render={({ ...rest }) => (
-                  <ExplorerView
-                    tabs={ExplorerTabs.user}
-                    fab={<AgentDeleteFab data={data} onNewData={setData} />}
-                    {...rest}
-                  >
-                    <AgentAccess />
-                  </ExplorerView>
-                )}
-              />
-            </Switch>
-          </AgentProvider>
-        )}
-      />
+        <Route
+          path="/accounts/:accountId/settings"
+          exact={true}
+          render={({ ...rest }) => (
+            <ExplorerView tabs={ExplorerTabs.account} {...rest}>
+              <AccountSettings />
+            </ExplorerView>
+          )}
+        />
 
-      <Route
-        path="/accounts/:accountId/clients"
-        exact={true}
-        render={({ ...rest }) => (
-          <ExplorerView tabs={ExplorerTabs.account} {...rest}>
-            <AccountClients data={data} onNewData={handleOnNewData} {...rest} />
-          </ExplorerView>
-        )}
-      />
+        <Route
+          path="/accounts/:accountId/users/new"
+          exact={true}
+          render={({ ...rest }) => (
+            <ExplorerView breadcrumbSettings={{ newUser: true }} {...rest}>
+              <NewAgent isUser />
+            </ExplorerView>
+          )}
+        />
 
-      <Route
-        path="/accounts/:accountId/clients/new"
-        exact={true}
-        render={({ ...rest }) => (
-          <ExplorerView breadcrumbSettings={{ newClient: true }} {...rest}>
-            <NewAgent data={data} onNewData={handleOnNewData} isUser={false} />
-          </ExplorerView>
-        )}
-      />
+        <Route
+          path="/accounts/:accountId/users/:userId"
+          render={({ match }) => (
+            <AgentsProvider isUser>
+              <AgentProvider agentId={match.params.userId} isUser>
+                <Switch>
+                  <Route
+                    path={`${match.path}/properties`}
+                    exact={true}
+                    render={({ ...rest }) => (
+                      <ExplorerView
+                        tabs={ExplorerTabs.user}
+                        fab={<AgentDeleteFab />}
+                        {...rest}
+                      >
+                        <AgentProperties />
+                      </ExplorerView>
+                    )}
+                  />
+                  <Route
+                    path={`${match.path}/access`}
+                    exact={true}
+                    render={({ ...rest }) => (
+                      <ExplorerView
+                        tabs={ExplorerTabs.user}
+                        fab={<AgentDeleteFab />}
+                        {...rest}
+                      >
+                        <AgentAccess />
+                      </ExplorerView>
+                    )}
+                  />
+                  <Route
+                    component={(NotFound as unknown) as React.FunctionComponent}
+                  />
+                </Switch>
+              </AgentProvider>
+            </AgentsProvider>
+          )}
+        />
 
-      <Route
-        path="/accounts/:accountId/clients/:clientId"
-        render={({ match }) => (
-          <AgentProvider agentId={match.params.clientId} isUser={false}>
-            <Switch>
-              <Route
-                path={`${match.path}/properties`}
-                exact={true}
-                render={({ ...rest }) => (
-                  <ExplorerView
-                    tabs={ExplorerTabs.client}
-                    fab={<AgentDeleteFab data={data} onNewData={setData} />}
-                    {...rest}
-                  >
-                    <AgentProperties />
-                  </ExplorerView>
-                )}
-              />
-              <Route
-                path={`${match.path}/overview`}
-                exact={true}
-                render={({ ...rest }) => (
-                  <ExplorerView
-                    tabs={ExplorerTabs.client}
-                    fab={<AgentDeleteFab data={data} onNewData={setData} />}
-                    {...rest}
-                  >
-                    [TODO: Client Overview]
-                  </ExplorerView>
-                )}
-              />
-              <Route
-                path={`${match.path}/access`}
-                exact={true}
-                render={({ ...rest }) => (
-                  <ExplorerView
-                    tabs={ExplorerTabs.client}
-                    fab={<ClientActionFab />}
-                    {...rest}
-                  >
-                    <AgentAccess />
-                  </ExplorerView>
-                )}
-              />
-            </Switch>
-          </AgentProvider>
-        )}
-      />
+        <Route
+          path="/accounts/:accountId/clients"
+          exact={true}
+          render={({ ...rest }) => (
+            <ExplorerView tabs={ExplorerTabs.account} {...rest}>
+              <AgentsProvider isUser={false}>
+                <AccountClients />
+              </AgentsProvider>
+            </ExplorerView>
+          )}
+        />
 
-      <Route
-        path="/accounts/:accountId/issuers"
-        exact={true}
-        render={({ ...rest }) => (
-          <ExplorerView tabs={ExplorerTabs.account} {...rest}>
-            <AccountIssuers data={data} onNewData={handleOnNewData} {...rest} />
-          </ExplorerView>
-        )}
-      />
+        <Route
+          path="/accounts/:accountId/clients/new"
+          exact={true}
+          render={({ ...rest }) => (
+            <ExplorerView breadcrumbSettings={{ newClient: true }} {...rest}>
+              <NewAgent isUser={false} />
+            </ExplorerView>
+          )}
+        />
 
-      <Route
-        path="/accounts/:accountId/issuers/:issuerId"
-        render={({ match }) => (
-          <IssuerProvider issuerId={match.params.issuerId}>
-            <Switch>
-              <Route
-                path={`${match.path}/properties`}
-                exact={true}
-                render={({ ...rest }) => (
-                  <ExplorerView tabs={ExplorerTabs.issuer} {...rest}>
-                    <IssuerProperties />
-                  </ExplorerView>
-                )}
-              />
-            </Switch>
-          </IssuerProvider>
-        )}
-      />
+        <Route
+          path="/accounts/:accountId/clients/:clientId"
+          render={({ match }) => (
+            <AgentsProvider isUser>
+              <AgentProvider agentId={match.params.clientId} isUser={false}>
+                <Switch>
+                  <Route
+                    path={`${match.path}/properties`}
+                    exact={true}
+                    render={({ ...rest }) => (
+                      <ExplorerView
+                        tabs={ExplorerTabs.client}
+                        fab={<AgentDeleteFab />}
+                        {...rest}
+                      >
+                        <AgentProperties />
+                      </ExplorerView>
+                    )}
+                  />
+                  <Route
+                    path={`${match.path}/overview`}
+                    exact={true}
+                    render={({ ...rest }) => (
+                      <ExplorerView
+                        tabs={ExplorerTabs.client}
+                        fab={<AgentDeleteFab />}
+                        {...rest}
+                      >
+                        [TODO: Client Overview]
+                      </ExplorerView>
+                    )}
+                  />
+                  <Route
+                    path={`${match.path}/access`}
+                    exact={true}
+                    render={({ ...rest }) => (
+                      <ExplorerView
+                        tabs={ExplorerTabs.client}
+                        fab={<ClientActionFab />}
+                        {...rest}
+                      >
+                        <AgentAccess />
+                      </ExplorerView>
+                    )}
+                  />
+                  <Route
+                    component={(NotFound as unknown) as React.FunctionComponent}
+                  />
+                </Switch>
+              </AgentProvider>
+            </AgentsProvider>
+          )}
+        />
 
-      <Route
-        path="/accounts/:accountId/subscriptions/:subscriptionId/boundaries"
-        exact={true}
-        render={({ ...rest }) => (
-          <ExplorerView tabs={ExplorerTabs.subscription} {...rest}>
-            <SubscriptionBoundaries
-              data={data}
-              onNewData={handleOnNewData}
-              {...rest}
-            />
-          </ExplorerView>
-        )}
-      />
-      <Route
-        path="/accounts/:accountId/subscriptions/:subscriptionId/boundaries/:boundaryId/functions"
-        exact={true}
-        render={({ ...rest }) => (
-          <ExplorerView tabs={ExplorerTabs.boundary} {...rest}>
-            <BoundaryFunctions
-              data={data}
-              onNewData={handleOnNewData}
-              {...rest}
-            />
-          </ExplorerView>
-        )}
-      />
-      <Route
-        path="/accounts/:accountId/subscriptions/:subscriptionId/boundaries/:boundaryId/functions/:functionId/overview"
-        exact={true}
-        render={({ ...rest }) => (
-          <ExplorerView tabs={ExplorerTabs.oneFunction} {...rest}>
-            <FunctionOverview
-              data={data}
-              onNewData={handleOnNewData}
-              {...rest}
-            />
-          </ExplorerView>
-        )}
-      />
-      <Route
-        path="/accounts/:accountId/subscriptions/:subscriptionId/boundaries/:boundaryId/functions/:functionId/code"
-        exact={true}
-        render={({ ...rest }) => (
-          <FunctionCode data={data} onNewData={handleOnNewData} {...rest} />
-        )}
-      />
-      <Redirect from="/joining" exact={true} to={getDefaultUrl()} />
-      <Redirect from="/" exact={true} to={getDefaultUrl()} />
-      <Route component={(NotFound as unknown) as React.FunctionComponent} />
-    </Switch>
+        <Route
+          path="/accounts/:accountId/issuers"
+          exact={true}
+          render={({ ...rest }) => (
+            <ExplorerView tabs={ExplorerTabs.account} {...rest}>
+              <IssuersProvider>
+                <AccountIssuers />
+              </IssuersProvider>
+            </ExplorerView>
+          )}
+        />
+
+        <Route
+          path="/accounts/:accountId/issuers/:issuerId"
+          render={({ match }) => (
+            <IssuerProvider issuerId={match.params.issuerId}>
+              <Switch>
+                <Route
+                  path={`${match.path}/properties`}
+                  exact={true}
+                  render={({ ...rest }) => (
+                    <ExplorerView tabs={ExplorerTabs.issuer} {...rest}>
+                      <IssuerProperties />
+                    </ExplorerView>
+                  )}
+                />
+                <Route
+                  component={(NotFound as unknown) as React.FunctionComponent}
+                />
+              </Switch>
+            </IssuerProvider>
+          )}
+        />
+
+        <Route
+          path="/accounts/:accountId/subscriptions/:subscriptionId/boundaries/:boundaryId/functions/:functionId/overview"
+          exact={true}
+          render={({ ...rest }) => (
+            <ExplorerView tabs={ExplorerTabs.oneFunction} {...rest}>
+              <FunctionOverview />
+            </ExplorerView>
+          )}
+        />
+
+        <Route
+          path="/accounts/:accountId/subscriptions/:subscriptionId/boundaries/:boundaryId/functions/:functionId/code"
+          exact={true}
+          render={({ ...rest }) => <FunctionCode {...rest} />}
+        />
+
+        <Route
+          path="/accounts/:accountId/subscriptions/:subscriptionId"
+          render={({ match }) => (
+            <BoundariesProvider subscriptionId={match.params.subscriptionId}>
+              <Switch>
+                <Route
+                  path={`${match.path}/boundaries`}
+                  exact={true}
+                  render={({ match }) => (
+                    <ExplorerView
+                      tabs={ExplorerTabs.subscription}
+                      match={match}
+                    >
+                      <SubscriptionBoundaries />
+                    </ExplorerView>
+                  )}
+                />
+                <Route
+                  path={`${match.path}/boundaries/:boundaryId/functions`}
+                  exact={true}
+                  render={({ match }) => (
+                    <ExplorerView tabs={ExplorerTabs.boundary} match={match}>
+                      <BoundaryFunctions boundaryId={match.params.boundaryId} />
+                    </ExplorerView>
+                  )}
+                />
+                <Route
+                  component={(NotFound as unknown) as React.FunctionComponent}
+                />
+              </Switch>
+            </BoundariesProvider>
+          )}
+        />
+
+        <Redirect from="/joining" exact={true} to={getDefaultUrl()} />
+        <Redirect from="/" exact={true} to={getDefaultUrl()} />
+        <Route component={(NotFound as unknown) as React.FunctionComponent} />
+      </Switch>
+    </SubscriptionsProvider>
   );
 }
 
