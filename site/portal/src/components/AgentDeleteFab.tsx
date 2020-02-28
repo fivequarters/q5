@@ -30,7 +30,7 @@ function AgentDeleteFab() {
       } catch (e) {
         setAgents({
           status: "error",
-          isUser: agents.isUser,
+          agentType: agents.agentType,
           error: new FusebitError(`Error deleting ${noun}`, {
             details:
               (e.status || e.statusCode) === 403

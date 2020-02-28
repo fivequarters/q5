@@ -88,7 +88,7 @@ function AccountUsers() {
     } catch (e) {
       setAgents({
         status: "error",
-        isUser: true,
+        agentType: agents.agentType,
         error: new FusebitError("Error deleting users", {
           details:
             (e.status || e.statusCode) === 403

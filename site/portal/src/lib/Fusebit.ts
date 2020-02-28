@@ -20,6 +20,12 @@ async function ensureAccessToken(
   }
 }
 
+export function formatAgent(agent: any) {
+  return `${[agent.firstName, agent.lastName, agent.displayName]
+    .join(" ")
+    .trim() || "N/A"} (${agent.id})`;
+}
+
 export function lastSegment(path: string) {
   let tokens = path.split("/");
   return tokens[tokens.length - 1];

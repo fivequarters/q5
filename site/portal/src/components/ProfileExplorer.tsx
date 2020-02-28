@@ -31,6 +31,7 @@ import { SubscriptionsProvider } from "./SubscriptionsProvider";
 import { BoundariesProvider } from "./BoundariesProvider";
 import { AgentsProvider } from "./AgentsProvider";
 import { IssuersProvider } from "./IssuersProvider";
+import ResourceAccess from "./ResourceAccess";
 
 const useStyles = makeStyles(theme => ({
   paper: {
@@ -241,7 +242,7 @@ function ProfileExplorer({ ...rest }: any) {
           exact={true}
           render={({ ...rest }) => (
             <ExplorerView tabs={ExplorerTabs.account} {...rest}>
-              <AgentsProvider isUser={true}>
+              <AgentsProvider agentType="user">
                 <AccountUsers />
               </AgentsProvider>
             </ExplorerView>
@@ -271,7 +272,7 @@ function ProfileExplorer({ ...rest }: any) {
         <Route
           path="/accounts/:accountId/users/:userId"
           render={({ match }) => (
-            <AgentsProvider isUser>
+            <AgentsProvider agentType="user">
               <AgentProvider agentId={match.params.userId} isUser>
                 <Switch>
                   <Route
@@ -314,7 +315,7 @@ function ProfileExplorer({ ...rest }: any) {
           exact={true}
           render={({ ...rest }) => (
             <ExplorerView tabs={ExplorerTabs.account} {...rest}>
-              <AgentsProvider isUser={false}>
+              <AgentsProvider agentType="client">
                 <AccountClients />
               </AgentsProvider>
             </ExplorerView>
@@ -334,7 +335,7 @@ function ProfileExplorer({ ...rest }: any) {
         <Route
           path="/accounts/:accountId/clients/:clientId"
           render={({ match }) => (
-            <AgentsProvider isUser>
+            <AgentsProvider agentType="client">
               <AgentProvider agentId={match.params.clientId} isUser={false}>
                 <Switch>
                   <Route
@@ -433,6 +434,28 @@ function ProfileExplorer({ ...rest }: any) {
           path="/accounts/:accountId/subscriptions/:subscriptionId/boundaries/:boundaryId/functions/:functionId/code"
           exact={true}
           render={({ ...rest }) => <FunctionCode {...rest} />}
+        />
+
+        <Route
+          path="/accounts/:accountId/subscriptions/:subscriptionId/access"
+          exact={true}
+          render={({ match, ...rest }) => (
+            <ExplorerView
+              tabs={ExplorerTabs.subscription}
+              match={match}
+              {...rest}
+            >
+              <AgentsProvider agentType="both">
+                <ResourceAccess
+                  actionPrefixFilter={["function", "subscription", "audit"]}
+                  resourceFilter={{
+                    accountId: match.params.accountId,
+                    subscriptionId: match.params.subscriptionId
+                  }}
+                />
+              </AgentsProvider>
+            </ExplorerView>
+          )}
         />
 
         <Route
