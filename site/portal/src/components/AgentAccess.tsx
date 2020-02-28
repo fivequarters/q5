@@ -55,7 +55,7 @@ function AgentAccess() {
       align: "left",
       label: "Resource",
       render: row => {
-        const resource = tryTokenizeResource(row.action, row.resource);
+        const resource = tryTokenizeResource(row.resource);
         return resource ? (
           <FunctionResourceCrumb options={resource} />
         ) : (

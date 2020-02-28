@@ -7,22 +7,27 @@ import { useProfile } from "./ProfileProvider";
 type AgentsState =
   | {
       status: "loading";
-      isUser: boolean | undefined;
+      agentType: "client" | "user" | "both";
       formatError?: (e: any) => Error;
     }
   | {
       status: "ready";
-      isUser: true;
+      agentType: "user";
       existing: User[];
     }
   | {
       status: "ready";
-      isUser: false | undefined;
+      agentType: "client";
       existing: Client[];
     }
   | {
+      status: "ready";
+      agentType: "both";
+      existing: (User | Client)[];
+    }
+  | {
       status: "error";
-      isUser: boolean | undefined;
+      agentType: "client" | "user" | "both";
       error: Error;
     };
 
@@ -30,7 +35,7 @@ type AgentsSetState = (state: AgentsState) => void;
 
 type AgentsProviderProps = {
   children: React.ReactNode;
-  isUser?: boolean;
+  agentType: "client" | "user" | "both";
 };
 
 const AgentsStateContext = React.createContext<AgentsState | undefined>(
@@ -41,11 +46,11 @@ const AgentsSetStateContext = React.createContext<AgentsSetState | undefined>(
   undefined
 );
 
-function AgentsProvider({ isUser, children }: AgentsProviderProps) {
+function AgentsProvider({ agentType, children }: AgentsProviderProps) {
   const { profile } = useProfile();
   const [data, setData] = React.useState<AgentsState>({
     status: "loading",
-    isUser
+    agentType
   });
 
   React.useEffect(() => {
@@ -53,13 +58,20 @@ function AgentsProvider({ isUser, children }: AgentsProviderProps) {
     if (data.status === "loading") {
       (async () => {
         try {
-          let agents = data.isUser
-            ? await getUsers(profile)
-            : await getClients(profile);
+          let agents: any[] = [];
+          if (data.agentType === "user" || data.agentType === "both") {
+            agents.push.apply(agents, await getUsers(profile));
+          }
+          if (
+            !cancelled &&
+            (data.agentType === "client" || data.agentType === "both")
+          ) {
+            agents.push.apply(agents, await getClients(profile));
+          }
           if (!cancelled) {
             setData({
               status: "ready",
-              isUser: data.isUser,
+              agentType: data.agentType,
               existing: agents
             });
           }
@@ -68,19 +80,19 @@ function AgentsProvider({ isUser, children }: AgentsProviderProps) {
             const error = data.formatError
               ? data.formatError(e)
               : new FusebitError(
-                  `Error loading ${data.isUser ? "users" : "clients"}`,
+                  `Error loading ${
+                    data.agentType === "both" ? "agents" : data.agentType + "s"
+                  }`,
                   {
                     details:
                       (e.status || e.statusCode) === 403
-                        ? `You are not authorized to access the ${
-                            data.isUser ? "user" : "client"
-                          } information.`
+                        ? `You are not authorized to access the agent information.`
                         : e.message || "Unknown error."
                   }
                 );
             setData({
               status: "error",
-              isUser: data.isUser,
+              agentType: data.agentType,
               error
             });
           }
@@ -124,7 +136,7 @@ function useAgents(): [AgentsState, AgentsSetState] {
 function reloadAgents(state: AgentsState, setState: AgentsSetState) {
   setState({
     status: "loading",
-    isUser: state.isUser
+    agentType: state.agentType
   });
 }
 

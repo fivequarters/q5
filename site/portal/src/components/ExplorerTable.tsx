@@ -53,10 +53,12 @@ function getSorting<T>(order: Order, orderBy: keyof T): (a: T, b: T) => number {
 
 export interface HeadCell<T> {
   disablePadding?: boolean;
+  disableSorting?: boolean;
   id: keyof T;
   label: string;
   align?: "left" | "right" | "inherit" | "center" | "justify";
-  render?: (row: T) => any;
+  render?: (row: T, tableRow: number) => any;
+  getRowSpan?: (row: T, tableRow: number) => number;
 }
 
 interface EnhancedTableProps<T> {
@@ -113,18 +115,23 @@ function EnhancedTableHead<T>(props: EnhancedTableProps<T>) {
             padding={headCell.disablePadding ? "none" : "default"}
             sortDirection={orderBy === headCell.id ? order : false}
           >
-            <TableSortLabel
-              active={orderBy === headCell.id}
-              direction={order}
-              onClick={createSortHandler(headCell.id)}
-            >
-              {headCell.label}
-              {orderBy === headCell.id ? (
-                <span className={classes.visuallyHidden}>
-                  {order === "desc" ? "sorted descending" : "sorted ascending"}
-                </span>
-              ) : null}
-            </TableSortLabel>
+            {!headCell.disableSorting && (
+              <TableSortLabel
+                active={orderBy === headCell.id}
+                direction={order}
+                onClick={createSortHandler(headCell.id)}
+              >
+                {headCell.label}
+                {orderBy === headCell.id ? (
+                  <span className={classes.visuallyHidden}>
+                    {order === "desc"
+                      ? "sorted descending"
+                      : "sorted ascending"}
+                  </span>
+                ) : null}
+              </TableSortLabel>
+            )}
+            {headCell.disableSorting && headCell.label}
           </TableCell>
         ))}
       </TableRow>
@@ -143,7 +150,9 @@ const useToolbarStyles = makeStyles((theme: Theme) =>
       backgroundColor: lighten(theme.palette.primary.light, 0.85)
     },
     title: {
-      flex: "1 1 100%"
+      flex: "1 1 100%",
+      display: "flex",
+      alignItems: "center"
     }
   })
 );
@@ -220,6 +229,12 @@ const useStyles = makeStyles((theme: Theme) =>
       position: "absolute",
       top: 20,
       width: 1
+    },
+    multilineRow: {
+      verticalAlign: "top"
+    },
+    noBorder: {
+      borderBottom: "none"
     }
   })
 );
@@ -227,6 +242,7 @@ const useStyles = makeStyles((theme: Theme) =>
 interface ExplorerTableProps<T> {
   rows: T[];
   headCells: HeadCell<T>[];
+  getTableRows?: (row: T) => number;
   defaultSortKey: keyof T;
   identityKey: keyof T;
   title: string;
@@ -253,7 +269,8 @@ export default function ExplorerTable<T>(props: ExplorerTableProps<T>) {
     deleteTitle,
     deleteContent,
     noDataBody,
-    size
+    size,
+    getTableRows
   } = props;
   const classes = useStyles();
   const toolbarClasses = useToolbarStyles();
@@ -402,60 +419,98 @@ export default function ExplorerTable<T>(props: ExplorerTableProps<T>) {
                       (row[identityKey] as unknown) as string
                     );
                     const labelId = `explorer-table-checkbox-${index}`;
+                    const tableRows = (getTableRows && getTableRows(row)) || 1;
 
                     return (
-                      <TableRow
-                        hover={enableSelection}
-                        onClick={
-                          enableSelection
-                            ? event =>
-                                handleClick(
-                                  event,
-                                  (row[identityKey] as unknown) as string
-                                )
-                            : undefined
-                        }
-                        role="checkbox"
-                        aria-checked={isItemSelected}
-                        tabIndex={-1}
-                        key={(row[identityKey] as unknown) as string}
-                        selected={isItemSelected}
+                      <React.Fragment
+                        key={`${(row[identityKey] as unknown) as string}`}
                       >
-                        {enableSelection && (
-                          <TableCell padding="checkbox">
-                            <Checkbox
-                              color="primary"
-                              checked={isItemSelected}
-                              inputProps={{ "aria-labelledby": labelId }}
-                            />
-                          </TableCell>
-                        )}
-                        {headCells[0] && (
-                          <TableCell
-                            component="th"
-                            id={labelId}
-                            scope="row"
-                            padding={enableSelection ? "none" : "default"}
-                            align={headCells[0].align || "right"}
-                          >
-                            {headCells[0].render
-                              ? headCells[0].render(row)
-                              : row[headCells[0].id]}
-                          </TableCell>
-                        )}
-                        {headCells.map((cell, index) =>
-                          index === 0 ? (
-                            undefined
-                          ) : (
-                            <TableCell
-                              key={cell.id as string}
-                              align={cell.align || "right"}
+                        {Array.from(Array(tableRows).keys()).map(
+                          (_, tableRow) => (
+                            <TableRow
+                              hover={enableSelection}
+                              onClick={
+                                enableSelection
+                                  ? event =>
+                                      handleClick(
+                                        event,
+                                        (row[identityKey] as unknown) as string
+                                      )
+                                  : undefined
+                              }
+                              role="checkbox"
+                              aria-checked={isItemSelected}
+                              tabIndex={-1}
+                              key={`${(row[
+                                identityKey
+                              ] as unknown) as string}-${tableRow}`}
+                              selected={isItemSelected}
+                              className={
+                                tableRows > 1 ? classes.multilineRow : undefined
+                              }
                             >
-                              {cell.render ? cell.render(row) : row[cell.id]}
-                            </TableCell>
+                              {enableSelection && tableRow === 0 && (
+                                <TableCell padding="checkbox">
+                                  <Checkbox
+                                    color="primary"
+                                    checked={isItemSelected}
+                                    inputProps={{ "aria-labelledby": labelId }}
+                                  />
+                                </TableCell>
+                              )}
+                              {headCells[0] && tableRow === 0 && (
+                                <TableCell
+                                  component="th"
+                                  id={labelId}
+                                  scope="row"
+                                  padding={enableSelection ? "none" : "default"}
+                                  align={headCells[0].align || "right"}
+                                  rowSpan={
+                                    (headCells[0].getRowSpan &&
+                                      headCells[0].getRowSpan(row, tableRow)) ||
+                                    undefined
+                                  }
+                                >
+                                  {headCells[0].render
+                                    ? headCells[0].render(row, tableRow)
+                                    : row[headCells[0].id]}
+                                </TableCell>
+                              )}
+                              {headCells.map((cell, index) => {
+                                if (index === 0) {
+                                  return undefined;
+                                }
+                                const cellContent = cell.render
+                                  ? cell.render(row, tableRow)
+                                  : row[cell.id];
+                                if (cellContent === undefined) {
+                                  return undefined;
+                                }
+                                let rowSpan =
+                                  (cell.getRowSpan &&
+                                    cell.getRowSpan(row, tableRow)) ||
+                                  undefined;
+                                let hasBottomBorder =
+                                  tableRows === tableRow + (rowSpan || 1);
+                                return (
+                                  <TableCell
+                                    key={("aaa" + cell.id) as string}
+                                    align={cell.align || "right"}
+                                    rowSpan={rowSpan}
+                                    className={
+                                      hasBottomBorder
+                                        ? undefined
+                                        : classes.noBorder
+                                    }
+                                  >
+                                    {cellContent}
+                                  </TableCell>
+                                );
+                              })}
+                            </TableRow>
                           )
                         )}
-                      </TableRow>
+                      </React.Fragment>
                     );
                   })}
                   {emptyRows > 0 && (
