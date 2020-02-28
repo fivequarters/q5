@@ -16,8 +16,9 @@ const useStyles = makeStyles(theme => ({
 function AgentSelector({
   onSelected,
   onInputChange,
-  // fullWidth,
+  fullWidth,
   variant,
+  margin,
   disabled,
   error,
   helperText,
@@ -67,9 +68,9 @@ function AgentSelector({
           {...params}
           label={label || "Select existing user or client"}
           variant={variant || "outlined"}
-          className={classes.picker}
-          margin="dense"
-          // fullWidth={fullWidth || false}
+          className={fullWidth ? undefined : classes.picker}
+          margin={margin}
+          fullWidth={fullWidth || false}
           error={error || false}
           helperText={helperText || undefined}
           InputProps={{

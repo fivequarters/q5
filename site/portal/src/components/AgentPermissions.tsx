@@ -31,7 +31,7 @@ const createViewRow = (dataRow: any): ViewRow => ({
 const createAccessView = (access: any) =>
   ((access && access.allow) || []).map(createViewRow);
 
-function AgentAccess() {
+function AgentPermissions() {
   const [agent, setAgent] = useAgent();
   const { profile } = useProfile();
   const [
@@ -191,4 +191,4 @@ function AgentAccess() {
   return null;
 }
 
-export default AgentAccess;
+export default AgentPermissions;

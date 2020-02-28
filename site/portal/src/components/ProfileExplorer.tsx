@@ -11,7 +11,7 @@ import AccountIssuers from "./AccountIssuers";
 import AccountSubscriptions from "./AccountSubscriptions";
 import AccountSettings from "./AccountSettings";
 import AccountUsers from "./AccountUsers";
-import AgentAccess from "./AgentAccess";
+import AgentPermissions from "./AgentPermissions";
 import AgentProperties from "./AgentProperties";
 import { AgentProvider } from "./AgentProvider";
 import { IssuerProvider } from "./IssuerProvider";
@@ -70,6 +70,9 @@ const ExplorerTabs = {
       name: "issuers"
     },
     {
+      name: "access"
+    },
+    {
       name: "settings"
     }
   ],
@@ -121,6 +124,9 @@ const ExplorerTabs = {
     },
     {
       name: "activity"
+    },
+    {
+      name: "access"
     }
   ],
   user: [
@@ -128,10 +134,13 @@ const ExplorerTabs = {
       name: "properties"
     },
     {
-      name: "access"
+      name: "activity"
     },
     {
-      name: "activity"
+      name: "permissions"
+    },
+    {
+      name: "access"
     }
   ],
   client: [
@@ -139,10 +148,13 @@ const ExplorerTabs = {
       name: "properties"
     },
     {
-      name: "access"
+      name: "activity"
     },
     {
-      name: "activity"
+      name: "permissions"
+    },
+    {
+      name: "access"
     }
   ]
 };
@@ -260,6 +272,23 @@ function ProfileExplorer({ ...rest }: any) {
         />
 
         <Route
+          path="/accounts/:accountId/access"
+          exact={true}
+          render={({ match, ...rest }) => (
+            <ExplorerView tabs={ExplorerTabs.account} match={match} {...rest}>
+              <AgentsProvider agentType="both">
+                <ResourceAccess
+                  actionPrefixFilter={["client", "user", "issuer"]}
+                  resourceFilter={{
+                    accountId: match.params.accountId
+                  }}
+                />
+              </AgentsProvider>
+            </ExplorerView>
+          )}
+        />
+
+        <Route
           path="/accounts/:accountId/users/new"
           exact={true}
           render={({ ...rest }) => (
@@ -289,7 +318,7 @@ function ProfileExplorer({ ...rest }: any) {
                     )}
                   />
                   <Route
-                    path={`${match.path}/access`}
+                    path={`${match.path}/permissions`}
                     exact={true}
                     render={({ ...rest }) => (
                       <ExplorerView
@@ -297,7 +326,28 @@ function ProfileExplorer({ ...rest }: any) {
                         fab={<AgentDeleteFab />}
                         {...rest}
                       >
-                        <AgentAccess />
+                        <AgentPermissions />
+                      </ExplorerView>
+                    )}
+                  />
+                  <Route
+                    path={`${match.path}/access`}
+                    exact={true}
+                    render={({ match, ...rest }) => (
+                      <ExplorerView
+                        tabs={ExplorerTabs.user}
+                        match={match}
+                        {...rest}
+                      >
+                        <AgentsProvider agentType="both">
+                          <ResourceAccess
+                            actionPrefixFilter={["user"]}
+                            resourceFilter={{
+                              accountId: match.params.accountId,
+                              userId: match.params.userId
+                            }}
+                          />
+                        </AgentsProvider>
                       </ExplorerView>
                     )}
                   />
@@ -365,7 +415,7 @@ function ProfileExplorer({ ...rest }: any) {
                     )}
                   />
                   <Route
-                    path={`${match.path}/access`}
+                    path={`${match.path}/permissions`}
                     exact={true}
                     render={({ ...rest }) => (
                       <ExplorerView
@@ -373,7 +423,28 @@ function ProfileExplorer({ ...rest }: any) {
                         fab={<ClientActionFab />}
                         {...rest}
                       >
-                        <AgentAccess />
+                        <AgentPermissions />
+                      </ExplorerView>
+                    )}
+                  />
+                  <Route
+                    path={`${match.path}/access`}
+                    exact={true}
+                    render={({ match, ...rest }) => (
+                      <ExplorerView
+                        tabs={ExplorerTabs.client}
+                        match={match}
+                        {...rest}
+                      >
+                        <AgentsProvider agentType="both">
+                          <ResourceAccess
+                            actionPrefixFilter={["client"]}
+                            resourceFilter={{
+                              accountId: match.params.accountId,
+                              clientId: match.params.clientId
+                            }}
+                          />
+                        </AgentsProvider>
                       </ExplorerView>
                     )}
                   />
@@ -413,6 +484,27 @@ function ProfileExplorer({ ...rest }: any) {
                   )}
                 />
                 <Route
+                  path={`${match.path}/access`}
+                  exact={true}
+                  render={({ match, ...rest }) => (
+                    <ExplorerView
+                      tabs={ExplorerTabs.issuer}
+                      match={match}
+                      {...rest}
+                    >
+                      <AgentsProvider agentType="both">
+                        <ResourceAccess
+                          actionPrefixFilter={["issuer"]}
+                          resourceFilter={{
+                            accountId: match.params.accountId,
+                            issuerId: match.params.issuerId
+                          }}
+                        />
+                      </AgentsProvider>
+                    </ExplorerView>
+                  )}
+                />
+                <Route
                   component={(NotFound as unknown) as React.FunctionComponent}
                 />
               </Switch>
@@ -434,6 +526,30 @@ function ProfileExplorer({ ...rest }: any) {
           path="/accounts/:accountId/subscriptions/:subscriptionId/boundaries/:boundaryId/functions/:functionId/code"
           exact={true}
           render={({ ...rest }) => <FunctionCode {...rest} />}
+        />
+
+        <Route
+          path="/accounts/:accountId/subscriptions/:subscriptionId/boundaries/:boundaryId/functions/:functionId/access"
+          exact={true}
+          render={({ match, ...rest }) => (
+            <ExplorerView
+              tabs={ExplorerTabs.oneFunction}
+              match={match}
+              {...rest}
+            >
+              <AgentsProvider agentType="both">
+                <ResourceAccess
+                  actionPrefixFilter={["function", "audit"]}
+                  resourceFilter={{
+                    accountId: match.params.accountId,
+                    subscriptionId: match.params.subscriptionId,
+                    boundaryId: match.params.boundaryId,
+                    functionId: match.params.functionId
+                  }}
+                />
+              </AgentsProvider>
+            </ExplorerView>
+          )}
         />
 
         <Route
@@ -481,6 +597,28 @@ function ProfileExplorer({ ...rest }: any) {
                   render={({ match }) => (
                     <ExplorerView tabs={ExplorerTabs.boundary} match={match}>
                       <BoundaryFunctions boundaryId={match.params.boundaryId} />
+                    </ExplorerView>
+                  )}
+                />
+                <Route
+                  path={`${match.path}/boundaries/:boundaryId/access`}
+                  exact={true}
+                  render={({ match, ...rest }) => (
+                    <ExplorerView
+                      tabs={ExplorerTabs.boundary}
+                      match={match}
+                      {...rest}
+                    >
+                      <AgentsProvider agentType="both">
+                        <ResourceAccess
+                          actionPrefixFilter={["function", "audit"]}
+                          resourceFilter={{
+                            accountId: match.params.accountId,
+                            subscriptionId: match.params.subscriptionId,
+                            boundaryId: match.params.boundaryId
+                          }}
+                        />
+                      </AgentsProvider>
                     </ExplorerView>
                   )}
                 />
