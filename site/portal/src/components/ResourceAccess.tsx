@@ -13,9 +13,11 @@ import { useAgents } from "./AgentsProvider";
 import { tryTokenizeResource } from "../lib/Actions";
 import FunctionResourceCrumb from "./FunctionResourceCrumb";
 import { makeStyles } from "@material-ui/core/styles";
-import AgentSelector from "./AgentSelector";
-import { useHistory } from "react-router-dom";
-import { formatAgent } from "../lib/Fusebit";
+// import AgentSelector from "./AgentSelector";
+// import { useHistory } from "react-router-dom";
+// import { formatAgent } from "../lib/Fusebit";
+import ActionButton from "./ActionButton";
+import GrantPermissionsDialog from "./GrantPermissionsDialog";
 
 const useStyles = makeStyles((theme: any) => ({
   agentName: {
@@ -93,9 +95,13 @@ function ResourceAccess({
 }: ResourceAccessProps) {
   const { profile } = useProfile();
   const [agents] = useAgents();
-  const [agentFilter, setAgentFilter] = React.useState(null);
+  // const [agentFilter, setAgentFilter] = React.useState(null);
+  const [
+    grantPermissionsDialogOpen,
+    setGrantPermissionsDialogOpen
+  ] = React.useState(false);
   const classes = useStyles();
-  const history = useHistory();
+  // const history = useHistory();
 
   const headCells: HeadCell<ViewRow>[] = [
     {
@@ -110,7 +116,7 @@ function ResourceAccess({
               component={RouterLink}
               to={`/accounts/${profile.account}/${
                 row.id.indexOf("clt-") === 0 ? "clients" : "users"
-              }/${row.id}/access`}
+              }/${row.id}/permissions`}
             >
               <UserAvatar letter={row.name[0]} />
               {row.name}
@@ -171,15 +177,18 @@ function ResourceAccess({
   const createViewRowImpl = createViewRow(profile);
   const viewData = (agents.existing as (User | Client)[]).reduce(
     (previous: ViewRow[], current: User | Client) => {
-      if (agentFilter) {
-        const agentName = formatAgent(current);
-        if (agentName.indexOf((agentFilter as unknown) as string) === -1) {
-          return previous;
-        }
-      }
+      // if (agentFilter) {
+      //   const agentName = formatAgent(current);
+      //   if (agentName.indexOf((agentFilter as unknown) as string) === -1) {
+      //     return previous;
+      //   }
+      // }
       const matchingPermissions: Permission[] = [];
       ((current.access && current.access.allow) || []).forEach(permission => {
-        if (actionPrefixFilter.indexOf(permission.action.split(":")[0]) > -1) {
+        if (
+          permission.action === "*" ||
+          actionPrefixFilter.indexOf(permission.action.split(":")[0]) > -1
+        ) {
           const resource = tryTokenizeResource(permission.resource) as any;
           for (var resourceComponent in resourceFilter) {
             if (
@@ -206,35 +215,47 @@ function ResourceAccess({
     []
   );
 
-  const handleAgentSelected = (agent: User | Client) => {
-    history.push(
-      `/accounts/${profile.account}/${
-        agent.id.indexOf("clt-") === 0 ? "clients" : "users"
-      }/${agent.id}/access`
-    );
-  };
+  // const handleAgentSelected = (agent: User | Client) => {
+  //   history.push(
+  //     `/accounts/${profile.account}/${
+  //       agent.id.indexOf("clt-") === 0 ? "clients" : "users"
+  //     }/${agent.id}/permissions`
+  //   );
+  // };
 
-  const handleAgentFilterChange = (filter: any) => setAgentFilter(filter);
+  // const handleAgentFilterChange = (filter: any) => setAgentFilter(filter);
 
   return (
-    <ExplorerTable<ViewRow>
-      rows={viewData}
-      headCells={headCells}
-      getTableRows={row => row.permissions.length}
-      defaultSortKey="name"
-      identityKey="id"
-      title="Permissions"
-      enableSelection={false}
-      // actions={<ActionButton href="users/new">New&nbsp;user</ActionButton>}
-      actions={
-        <AgentSelector
-          label="Go to any user or client"
-          className={classes.agentPicker}
-          onSelected={handleAgentSelected}
-          onInputChange={handleAgentFilterChange}
+    <React.Fragment>
+      <ExplorerTable<ViewRow>
+        rows={viewData}
+        headCells={headCells}
+        getTableRows={row => row.permissions.length}
+        defaultSortKey="name"
+        identityKey="id"
+        title="Permissions"
+        enableSelection={false}
+        actions={
+          <ActionButton onClick={() => setGrantPermissionsDialogOpen(true)}>
+            Grant&nbsp;permissions
+          </ActionButton>
+        }
+        // actions={
+        //   <AgentSelector
+        //     label="Go to any user or client"
+        //     className={classes.agentPicker}
+        //     onSelected={handleAgentSelected}
+        //     onInputChange={handleAgentFilterChange}
+        //   />
+        // }
+      />
+      {grantPermissionsDialogOpen && (
+        <GrantPermissionsDialog
+          open={true}
+          onClose={() => setGrantPermissionsDialogOpen(false)}
         />
-      }
-    />
+      )}
+    </React.Fragment>
   );
 }
 
