@@ -20,27 +20,6 @@ beforeEach(async () => {
 }, 200000);
 
 describe('execution', () => {
-  test('hello, world succeeds on node 8', async () => {
-    let response = await putFunction(account, boundaryId, function1Id, {
-      nodejs: {
-        files: {
-          'index.js': 'module.exports = (ctx, cb) => cb(null, { body: "hello" });',
-          'package.json': {
-            engines: {
-              node: '8',
-            },
-          },
-        },
-      },
-    });
-    expect(response.status).toEqual(200);
-    expect(response.data.status).toEqual('success');
-    response = await request(response.data.location);
-    expect(response.status).toEqual(200);
-    expect(response.data).toEqual('hello');
-    expect(response.headers['x-fx-response-source']).toEqual('function');
-  }, 10000);
-
   test('hello, world succeeds on node 10', async () => {
     let response = await putFunction(account, boundaryId, function1Id, {
       nodejs: {
@@ -61,34 +40,6 @@ describe('execution', () => {
     expect(response.data).toEqual('hello');
     expect(response.headers['x-fx-response-source']).toEqual('function');
   }, 10000);
-
-  test('function with module succeeds on node 8', async () => {
-    let response = await putFunction(account, boundaryId, function1Id, {
-      nodejs: {
-        files: {
-          'index.js': 'module.exports = (ctx, cb) => cb(null, { body: typeof require("superagent") });',
-          'package.json': {
-            dependencies: {
-              superagent: '*',
-            },
-            engines: {
-              node: '8',
-            },
-          },
-        },
-      },
-    });
-    expect([200, 201]).toContain(response.status);
-    if (response.status === 201) {
-      response = await waitForBuild(account, response.data, 15, 1000);
-      expect(response.status).toEqual(200);
-    }
-    expect(response.data.status).toEqual('success');
-    response = await request(response.data.location);
-    expect(response.status).toEqual(200);
-    expect(response.data).toEqual('function');
-    expect(response.headers['x-fx-response-source']).toEqual('function');
-  }, 15000);
 
   test('function with module succeeds on node 10', async () => {
     let response = await putFunction(account, boundaryId, function1Id, {
@@ -362,7 +313,7 @@ describe('execution', () => {
           };`,
           'package.json': {
             engines: {
-              node: '8',
+              node: '10',
             },
           },
         },
@@ -376,11 +327,69 @@ describe('execution', () => {
     expect(response.data).toMatchObject({
       status: 500,
       statusCode: 500,
-      message: expect.stringMatching(/Process exited before completing request/),
+      message: expect.stringMatching(/Async error/),
       properties: {
-        errorMessage: expect.stringMatching(/Process exited before completing request/),
+        errorMessage: expect.stringMatching(/Async error/),
       },
     });
+  }, 10000);
+
+  test('function with payload below limit succeeds', async () => {
+    let response = await putFunction(account, boundaryId, function1Id, {
+      nodejs: {
+        files: {
+          'index.js': `module.exports = (ctx, cb) => {
+            cb(null, { body: { size: JSON.stringify(ctx.body).length } });
+          };`,
+          'package.json': {
+            engines: {
+              node: '10',
+            },
+          },
+        },
+      },
+    });
+    expect(response.status).toEqual(200);
+    expect(response.data.status).toEqual('success');
+    response = await request({
+      method: 'POST',
+      url: response.data.location,
+      headers: { 'content-type': 'application/json' },
+      data: { data: '.'.repeat(490 * 1024) },
+      parseJson: true,
+    });
+    expect(response.status).toEqual(200);
+    expect(response.headers['x-fx-response-source']).toEqual('function');
+    expect(response.data).toMatchObject({
+      size: 490 * 1024 + 11,
+    });
+  }, 10000);
+
+  test('function with payload above limit fails', async () => {
+    let response = await putFunction(account, boundaryId, function1Id, {
+      nodejs: {
+        files: {
+          'index.js': `module.exports = (ctx, cb) => {
+            cb(null, { body: { size: JSON.stringify(ctx.body).length } });
+          };`,
+          'package.json': {
+            engines: {
+              node: '10',
+            },
+          },
+        },
+      },
+    });
+    expect(response.status).toEqual(200);
+    expect(response.data.status).toEqual('success');
+    response = await request({
+      method: 'POST',
+      url: response.data.location,
+      headers: { 'content-type': 'application/json' },
+      data: { data: '.'.repeat(520 * 1024) },
+      parseJson: true,
+    });
+    expect(response.status).toEqual(413);
   }, 10000);
 
   test('function with wrong signature fails', async () => {

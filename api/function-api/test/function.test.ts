@@ -558,14 +558,20 @@ describe('function', () => {
     expect(response.data).toEqual({ items: expect.any(Array), next: expect.any(String) });
     expect(response.data.items).toHaveLength(2);
     expect(response.data.items).toEqual(
-      expect.arrayContaining([{ boundaryId, functionId: function1Id }, { boundaryId, functionId: function2Id }])
+      expect.arrayContaining([
+        { boundaryId, functionId: function1Id },
+        { boundaryId, functionId: function2Id },
+      ])
     );
     response = await listFunctions(account, boundaryId, undefined, 2, response.data.next);
     expect(response.status).toEqual(200);
     expect(response.data).toEqual({ items: expect.any(Array), next: expect.any(String) });
     expect(response.data.items).toHaveLength(2);
     expect(response.data.items).toEqual(
-      expect.arrayContaining([{ boundaryId, functionId: function3Id }, { boundaryId, functionId: function4Id }])
+      expect.arrayContaining([
+        { boundaryId, functionId: function3Id },
+        { boundaryId, functionId: function4Id },
+      ])
     );
     response = await listFunctions(account, boundaryId, undefined, 2, response.data.next);
     expect(response.status).toEqual(200);
@@ -823,7 +829,7 @@ describe('function', () => {
       status: 400,
       statusCode: 400,
       message: [
-        "The value of 'schedule.cron' body parameter must be a valid CRON expression.",
+        "The value of 'cron' parameter must be a valid CRON expression.",
         'Check https://crontab.guru/ for reference',
       ].join(' '),
     });
@@ -846,7 +852,7 @@ describe('function', () => {
       status: 400,
       statusCode: 400,
       message: [
-        "The value of 'schedule.timezone' body parameter must be a valid timezone identifier.",
+        "The value of 'timezone' parameter must be a valid timezone identifier.",
         'Check https://en.wikipedia.org/wiki/List_of_tz_database_time_zones for reference',
       ].join(' '),
     });
