@@ -2,10 +2,9 @@ import LinearProgress from "@material-ui/core/LinearProgress";
 import Link from "@material-ui/core/Link";
 import React from "react";
 import { Link as RouterLink } from "react-router-dom";
-import loadBoundaries from "../effects/LoadBoundaries";
 import ExplorerTable, { HeadCell } from "./ExplorerTable";
 import PortalError from "./PortalError";
-import { useProfile } from "./ProfileProvider";
+import { useBoundaries } from "./BoundariesProvider";
 
 interface ViewRow {
   id: string;
@@ -16,10 +15,8 @@ interface ViewRow {
   // executionsLast24h: string;
 }
 
-function SubscriptionBoundaries({ data, onNewData, match }: any) {
-  const { profile } = useProfile();
-  const { params } = match;
-  const { subscriptionId } = params;
+function SubscriptionBoundaries() {
+  const [boundaries] = useBoundaries();
 
   const createViewRow = (dataRow: any): ViewRow => ({
     id: dataRow.boundaryId as string,
@@ -64,39 +61,21 @@ function SubscriptionBoundaries({ data, onNewData, match }: any) {
     // }
   ];
 
-  React.useEffect(
-    loadBoundaries(profile, subscriptionId, undefined, data, onNewData),
-    [data, onNewData, profile, subscriptionId]
-  );
-
-  if (!data || !data.boundaries || !data.boundaries[subscriptionId]) {
+  if (boundaries.status === "loading") {
     return <LinearProgress />;
   }
 
-  if (data.boundaries[subscriptionId].error) {
-    return (
-      <PortalError
-        error={data.boundaries[subscriptionId].error}
-        padding={true}
-      />
-    );
+  if (boundaries.status === "error") {
+    return <PortalError error={boundaries.error} padding={true} />;
   }
 
-  if (
-    data.boundaries[subscriptionId].data &&
-    !data.boundaries[subscriptionId].viewData
-  ) {
-    data.boundaries[subscriptionId].viewData = Object.keys(
-      data.boundaries[subscriptionId].data
-    ).map(boundaryId =>
-      createViewRow(data.boundaries[subscriptionId].data[boundaryId])
-    );
-    onNewData && onNewData({ ...data });
-  }
+  const viewData = Object.keys(boundaries.existing).map(boundaryId =>
+    createViewRow(boundaries.existing[boundaryId])
+  );
 
   return (
     <ExplorerTable<ViewRow>
-      rows={data.boundaries[subscriptionId].viewData}
+      rows={viewData}
       headCells={headCells}
       defaultSortKey="id"
       identityKey="id"

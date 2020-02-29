@@ -1,5 +1,5 @@
 import { IFusebitProfile } from "./Settings";
-import { Permission } from "./FusebitTypes";
+import { Permission, Resource } from "./FusebitTypes";
 
 const actions = [
   {
@@ -156,11 +156,43 @@ function createPermissionsFromRole(
   return allow;
 }
 
+function tryTokenizeResource(resource: string): Resource | undefined {
+  let match = resource.match(
+    /^\/(?:account\/([^/]+)\/(?:subscription\/([^/]+)\/(?:boundary\/([^/]+)\/(?:function\/([^/]+)\/)?)?)?)?$/
+  );
+  if (match) {
+    const [, accountId, subscriptionId, boundaryId, functionId] = match;
+    return { ...{ accountId, subscriptionId, boundaryId, functionId } };
+  }
+  match = resource.match(/^\/(?:account\/([^/]+)\/(?:issuer\/([^/]+)\/)?)?$/);
+  if (match) {
+    const [, accountId, issuerId] = match;
+    return {
+      ...{
+        accountId,
+        issuerId: (issuerId && decodeURIComponent(issuerId)) || undefined
+      }
+    };
+  }
+  match = resource.match(/^\/(?:account\/([^/]+)\/(?:user\/([^/]+)\/)?)?$/);
+  if (match) {
+    const [, accountId, userId] = match;
+    return { ...{ accountId, userId } };
+  }
+  match = resource.match(/^\/(?:account\/([^/]+)\/(?:client\/([^/]+)\/)?)?$/);
+  if (match) {
+    const [, accountId, clientId] = match;
+    return { ...{ accountId, clientId } };
+  }
+  return undefined;
+}
+
 export {
   actions,
   actionsHash,
   roles,
   rolesHash,
   noRole,
-  createPermissionsFromRole
+  createPermissionsFromRole,
+  tryTokenizeResource
 };

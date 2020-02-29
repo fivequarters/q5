@@ -1,5 +1,11 @@
 import { IFusebitProfile, IFusebitAuth, isIFusebitAuth } from "./Settings";
-import { Client, User, Issuer } from "./FusebitTypes";
+import {
+  Client,
+  User,
+  Issuer,
+  Subscription,
+  BoundaryHash
+} from "./FusebitTypes";
 
 import Superagent from "superagent";
 // import parseUrl from "url-parse";
@@ -12,6 +18,12 @@ async function ensureAccessToken(
   } else {
     throw new Error("User not logged in");
   }
+}
+
+export function formatAgent(agent: any) {
+  return `${[agent.firstName, agent.lastName, agent.displayName]
+    .join(" ")
+    .trim() || "N/A"} (${agent.id})`;
 }
 
 export function lastSegment(path: string) {
@@ -129,7 +141,7 @@ export async function tryGetClientByIdentity(profile, issuerId, subject) {
 
 export async function getSubscriptions(
   profile: IFusebitProfile
-): Promise<any[]> {
+): Promise<Subscription[]> {
   let subscriptions: any[] = [];
   try {
     let auth = await ensureAccessToken(profile);
@@ -143,12 +155,12 @@ export async function getSubscriptions(
       next = result.body.next ? `?next=${result.body.next}` : undefined;
     } while (next);
   } catch (e) {
-    throwHttpException(e);
+    throw createHttpException(e);
   }
-  return subscriptions;
+  return subscriptions as Subscription[];
 }
 
-export async function getUsers(profile: IFusebitProfile): Promise<any[]> {
+export async function getUsers(profile: IFusebitProfile): Promise<User[]> {
   let users: any[] = [];
   try {
     let auth = await ensureAccessToken(profile);
@@ -163,9 +175,9 @@ export async function getUsers(profile: IFusebitProfile): Promise<any[]> {
       next = result.body.next ? `&next=${result.body.next}` : undefined;
     } while (next);
   } catch (e) {
-    throwHttpException(e);
+    throw createHttpException(e);
   }
-  return users;
+  return users as User[];
 }
 
 export async function getClient(
@@ -411,7 +423,7 @@ export function normalizeAgent(user: any): Client | User {
   return normalized as Client | User;
 }
 
-export async function getIssuers(profile: IFusebitProfile): Promise<any[]> {
+export async function getIssuers(profile: IFusebitProfile): Promise<Issuer[]> {
   let issuers: any[] = [];
   try {
     let auth = await ensureAccessToken(profile);
@@ -424,9 +436,9 @@ export async function getIssuers(profile: IFusebitProfile): Promise<any[]> {
       next = result.body.next ? `?next=${result.body.next}` : undefined;
     } while (next);
   } catch (e) {
-    throwHttpException(e);
+    throw createHttpException(e);
   }
-  return issuers;
+  return issuers as Issuer[];
 }
 
 function computePublicKeyAcquisition(issuer: Issuer) {
@@ -544,7 +556,7 @@ export async function deleteIssuers(
   }
 }
 
-export async function getClients(profile: IFusebitProfile): Promise<any[]> {
+export async function getClients(profile: IFusebitProfile): Promise<Client[]> {
   let clients: any[] = [];
   try {
     let auth = await ensureAccessToken(profile);
@@ -559,9 +571,9 @@ export async function getClients(profile: IFusebitProfile): Promise<any[]> {
       next = result.body.next ? `&next=${result.body.next}` : undefined;
     } while (next);
   } catch (e) {
-    throwHttpException(e);
+    throw createHttpException(e);
   }
-  return clients;
+  return clients as Client[];
 }
 
 export async function deleteClients(
@@ -607,11 +619,11 @@ export async function getFunctions(
   profile: IFusebitProfile,
   subscriptionId: string,
   boundaryId?: string
-) {
+): Promise<BoundaryHash> {
   let paths = computeFunctionScopes(profile, subscriptionId, boundaryId);
   try {
     let auth = await ensureAccessToken(profile);
-    let boundaries: any = {};
+    let boundaries: BoundaryHash = {};
     for (var i = 0; i < paths.length; i++) {
       let next;
       do {
@@ -638,7 +650,7 @@ export async function getFunctions(
     // }
     return boundaries;
   } catch (e) {
-    throwHttpException(e);
+    throw createHttpException(e);
   }
 }
 

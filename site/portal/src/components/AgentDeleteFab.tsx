@@ -9,33 +9,28 @@ import { useAgent } from "./AgentProvider";
 import ConfirmationDialog from "./ConfirmationDialog";
 import { FusebitError } from "./ErrorBoundary";
 import { useProfile } from "./ProfileProvider";
+import { useAgents, reloadAgents, removeAgents } from "./AgentsProvider";
 
-function AgentDeleteFab({ data, onNewData }: any) {
+function AgentDeleteFab() {
   const history = useHistory();
   const [confirmationOpen, setConfirmationOpen] = React.useState(false);
   const [agent] = useAgent();
-  const property = agent.isUser ? "users" : "clients";
+  const [agents, setAgents] = useAgents();
   const noun = agent.isUser ? "user" : "client";
   const { profile } = useProfile();
 
   const handleDeleteDialogClose = async (confirmed: boolean) => {
     setConfirmationOpen(false);
     if (confirmed) {
-      let newAgents: any = undefined;
       try {
         agent.isUser
           ? await deleteUsers(profile, [agent.agentId])
           : await deleteClients(profile, [agent.agentId]);
-        if (data[property] && data[property].viewData) {
-          newAgents = { viewData: [] };
-          data[property].viewData.forEach((row: any) => {
-            if (row.id !== agent.agentId) {
-              newAgents.viewData.push(row);
-            }
-          });
-        }
+        removeAgents(agents, setAgents, [agent.agentId]);
       } catch (e) {
-        newAgents = {
+        setAgents({
+          status: "error",
+          agentType: agents.agentType,
           error: new FusebitError(`Error deleting ${noun}`, {
             details:
               (e.status || e.statusCode) === 403
@@ -44,25 +39,14 @@ function AgentDeleteFab({ data, onNewData }: any) {
             actions: [
               {
                 text: `Back to ${noun}s`,
-                func: () =>
-                  onNewData &&
-                  onNewData(
-                    agent.isUser
-                      ? { ...data, users: undefined }
-                      : { ...data, clients: undefined }
-                  )
+                func: () => reloadAgents(agents, setAgents)
               }
             ]
           })
-        };
+        });
+        return;
       }
-      if (agent.isUser) {
-        onNewData && onNewData({ ...data, users: newAgents });
-        history.push("../../users");
-      } else {
-        onNewData && onNewData({ ...data, clients: newAgents });
-        history.push("../../clients");
-      }
+      history.push(`../../${agent.isUser ? "users" : "clients"}`);
     }
   };
 

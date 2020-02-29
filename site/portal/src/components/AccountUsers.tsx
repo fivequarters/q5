@@ -2,7 +2,8 @@ import React from "react";
 import { useProfile } from "./ProfileProvider";
 import LinearProgress from "@material-ui/core/LinearProgress";
 import ExplorerTable, { HeadCell } from "./ExplorerTable";
-import { getUsers, deleteUsers } from "../lib/Fusebit";
+import { deleteUsers } from "../lib/Fusebit";
+import { User } from "../lib/FusebitTypes";
 import { FusebitError } from "./ErrorBoundary";
 import PortalError from "./PortalError";
 import UserAvatar from "./UserAvatar";
@@ -12,6 +13,7 @@ import DialogContentText from "@material-ui/core/DialogContentText";
 import Typography from "@material-ui/core/Typography";
 import ActionButton from "./ActionButton";
 import { IFusebitProfile } from "../lib/Settings";
+import { useAgents, removeAgents, reloadAgents } from "./AgentsProvider";
 
 interface ViewRow {
   name: string;
@@ -34,8 +36,9 @@ const createViewRow = (profile: IFusebitProfile) => (
     (dataRow.access && dataRow.access.allow && dataRow.access.allow.length) || 0
 });
 
-function AccountUsers({ data, onNewData }: any) {
+function AccountUsers() {
   const { profile } = useProfile();
+  const [agents, setAgents] = useAgents();
   // const { params } = match;
 
   const headCells: HeadCell<ViewRow>[] = [
@@ -71,53 +74,21 @@ function AccountUsers({ data, onNewData }: any) {
     }
   ];
 
-  React.useEffect(() => {
-    let cancelled: boolean = false;
-    if (!data || !data.users) {
-      (async () => {
-        let users: any;
-        try {
-          let dataRows = await getUsers(profile);
-          // console.log("LOADED USER DATA", dataRows);
-          users = { viewData: dataRows.map(createViewRow(profile)) };
-        } catch (e) {
-          users = {
-            error: new FusebitError("Error loading user information", {
-              details:
-                (e.status || e.statusCode) === 403
-                  ? "The Fusebit account does not exist or you are not authorized to access it's list of users."
-                  : e.message || "Unknown error."
-            })
-          };
-        }
-        !cancelled && onNewData && onNewData({ ...data, users });
-      })();
-      return () => {
-        cancelled = true;
-      };
-    }
-  }, [data, onNewData, profile]);
-
-  if (!data || !data.users) {
+  if (agents.status === "loading") {
     return <LinearProgress />;
   }
 
-  if (data.users.error) {
-    return <PortalError error={data.users.error} padding={true} />;
+  if (agents.status === "error") {
+    return <PortalError error={agents.error} padding={true} />;
   }
 
   const handleDelete = async (selected: string[]) => {
-    let viewData: ViewRow[] = [];
-    data.users.viewData.forEach((row: ViewRow) => {
-      if (selected.indexOf(row.id) === -1) {
-        viewData.push(row);
-      }
-    });
-    let newUsers: any = { viewData };
     try {
       await deleteUsers(profile, selected);
     } catch (e) {
-      newUsers = {
+      setAgents({
+        status: "error",
+        agentType: agents.agentType,
         error: new FusebitError("Error deleting users", {
           details:
             (e.status || e.statusCode) === 403
@@ -126,13 +97,14 @@ function AccountUsers({ data, onNewData }: any) {
           actions: [
             {
               text: "Back to users",
-              func: () => onNewData && onNewData({ ...data, users: undefined })
+              func: () => reloadAgents(agents, setAgents)
             }
           ]
         })
-      };
+      });
+      return;
     }
-    onNewData && onNewData({ ...data, users: newUsers });
+    removeAgents(agents, setAgents, selected);
   };
 
   const generateDeleteContent = (selected: string[]) => {
@@ -167,9 +139,11 @@ function AccountUsers({ data, onNewData }: any) {
     );
   };
 
+  const viewData = (agents.existing as User[]).map(createViewRow(profile));
+
   return (
     <ExplorerTable<ViewRow>
-      rows={data.users.viewData}
+      rows={viewData}
       headCells={headCells}
       defaultSortKey="name"
       identityKey="id"

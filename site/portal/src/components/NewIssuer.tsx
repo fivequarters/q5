@@ -25,6 +25,7 @@ import PublicKeyAcquisitionSelector from "./PublicKeyAcquisitionSelector";
 import PublicKeyDetails from "./PublicKeyDetails";
 import InputWithIcon from "./InputWithIcon";
 import FingerprintIcon from "@material-ui/icons/Fingerprint";
+import { useIssuers } from "./IssuersProvider";
 
 const useStyles = makeStyles((theme: any) => ({
   gridContainer: {
@@ -47,14 +48,19 @@ const useStyles = makeStyles((theme: any) => ({
   }
 }));
 
-function NewIssuerImpl({ issuers, onClose }: any) {
+function NewIssuerImpl({ onClose }: any) {
   const classes = useStyles();
   const [activeStep, setActiveStep] = React.useState(0);
+  const [issuers] = useIssuers();
   const [issuer, setIssuer] = useIssuer();
   const [addPublicKey, setAddPublicKey] = React.useState<any>({
     keyId: "",
     publicKey: ""
   });
+
+  if (issuers.status !== "ready") {
+    throw new Error("The NewIssuer dialog requires that issuers are loaded");
+  }
 
   const hasStep1Error = () =>
     (issuer.status === "ready" || issuer.status === "updating") &&
@@ -108,7 +114,7 @@ function NewIssuerImpl({ issuers, onClose }: any) {
         issuer.modified.idError =
           "Required. Issuer ID must match the value of the iss claim in the JWT access token";
       } else if (
-        (issuers || []).reduce(
+        issuers.existing.reduce(
           (current: any, value: any) => current || value.id === trimmed,
           false
         )

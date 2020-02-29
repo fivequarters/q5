@@ -18,7 +18,7 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-function FunctionOverview({ data, match }: any) {
+function FunctionOverview() {
   const history = useHistory();
   const classes = useStyles();
   // const { profile } = useProfile();

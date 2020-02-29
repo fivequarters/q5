@@ -2,16 +2,13 @@ import TextField from "@material-ui/core/TextField";
 import Autocomplete from "@material-ui/lab/Autocomplete";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import React from "react";
-import { useProfile } from "./ProfileProvider";
-import loadBoundaries from "../effects/LoadBoundaries";
+import { useBoundaries } from "./BoundariesProvider";
 
 function FunctionSelector({
   subscriptionId,
   boundaryId,
   functionId,
   onChange,
-  data,
-  onNewData,
   fullWidth,
   variant,
   disabled,
@@ -20,39 +17,16 @@ function FunctionSelector({
   ...rest
 }: any) {
   const [open, setOpen] = React.useState(false);
-  const { profile } = useProfile();
-  const loading =
-    open && !!!(data && data.boundaries && data.boundaries[subscriptionId]);
+  const [boundaries] = useBoundaries();
 
-  React.useEffect(
-    loadBoundaries(
-      profile,
-      boundaryId ? subscriptionId : undefined,
-      undefined,
-      data,
-      onNewData
-    ),
-    [data, onNewData, profile, subscriptionId, boundaryId]
-  );
-
-  if (
-    data &&
-    data.boundaries &&
-    data.boundaries[subscriptionId] &&
-    data.boundaries[subscriptionId].error
-  ) {
-    throw data.boundaries[subscriptionId].error;
+  if (boundaries.status === "error") {
+    throw boundaries.error;
   }
 
   const functions =
-    (data &&
-      data.boundaries &&
-      data.boundaries[subscriptionId] &&
-      data.boundaries[subscriptionId].data &&
-      data.boundaries[subscriptionId].data[boundaryId] &&
-      data.boundaries[subscriptionId].data[boundaryId].functions.map(
-        (f: any) => f.functionId
-      )) ||
+    (boundaries.status === "ready" &&
+      boundaries.existing[boundaryId] &&
+      boundaries.existing[boundaryId].functions.map(f => f.functionId)) ||
     [];
 
   return (
@@ -67,7 +41,14 @@ function FunctionSelector({
       inputValue={functionId || ""}
       onInputChange={(e, v) => e && onChange && onChange(v)}
       options={functions}
-      loading={!!(loading && subscriptionId && boundaryId)}
+      loading={
+        !!(
+          open &&
+          boundaries.status === "loading" &&
+          subscriptionId &&
+          boundaryId
+        )
+      }
       renderInput={params => (
         <TextField
           {...params}
@@ -79,7 +60,10 @@ function FunctionSelector({
           InputProps={{
             ...params.InputProps,
             endAdornment:
-              loading && subscriptionId && boundaryId ? (
+              open &&
+              boundaries.status === "loading" &&
+              subscriptionId &&
+              boundaryId ? (
                 <CircularProgress
                   color="primary"
                   size={20}

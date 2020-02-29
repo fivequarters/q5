@@ -7,7 +7,6 @@ import { useAgent, reloadAgent } from "./AgentProvider";
 function ClientActionFab() {
   const [setupAccessOpen, setSetupAccessOpen] = React.useState(false);
   const [addPermissionSetOpen, setAddPermissionSetOpen] = React.useState(false);
-  const [data, setData] = React.useState<any>({});
   const [agent, setAgent] = useAgent();
 
   const handleAddPermissionSetClose = () => {
@@ -38,18 +37,10 @@ function ClientActionFab() {
         ]}
       />
       {setupAccessOpen && (
-        <SetupAccessDialog
-          data={data}
-          onNewData={(newData: any) => setData(newData)}
-          onClose={() => setSetupAccessOpen(false)}
-        />
+        <SetupAccessDialog onClose={() => setSetupAccessOpen(false)} />
       )}
       {addPermissionSetOpen && (
-        <AddPermissionSetDialog
-          data={data}
-          onNewData={(newData: any) => setData(newData)}
-          onClose={handleAddPermissionSetClose}
-        />
+        <AddPermissionSetDialog onClose={handleAddPermissionSetClose} />
       )}
     </React.Fragment>
   );

@@ -3,7 +3,7 @@ import { useProfile } from "./ProfileProvider";
 import { makeStyles } from "@material-ui/core/styles";
 import LinearProgress from "@material-ui/core/LinearProgress";
 import ExplorerTable, { HeadCell } from "./ExplorerTable";
-import { getIssuers, deleteIssuers } from "../lib/Fusebit";
+import { deleteIssuers } from "../lib/Fusebit";
 import { FusebitError } from "./ErrorBoundary";
 import PortalError from "./PortalError";
 import IssuerAvatar from "./IssuerAvatar";
@@ -13,6 +13,7 @@ import DialogContentText from "@material-ui/core/DialogContentText";
 import Typography from "@material-ui/core/Typography";
 import NewIssuer from "./NewIssuer";
 import ActionButton from "./ActionButton";
+import { useIssuers, removeIssuers, reloadIssuers } from "./IssuersProvider";
 
 interface ViewRow {
   name: string;
@@ -29,8 +30,9 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-function AccountIssuers({ data, onNewData }: any) {
+function AccountIssuers() {
   const { profile } = useProfile();
+  const [issuers, setIssuers] = useIssuers();
   const classes = useStyles();
   const [newIssuerOpen, setNewIssuerOpen] = React.useState(false);
   // const { params } = match;
@@ -82,53 +84,20 @@ function AccountIssuers({ data, onNewData }: any) {
     // }
   ];
 
-  React.useEffect(() => {
-    let cancelled: boolean = false;
-    if (!data || !data.issuers) {
-      (async () => {
-        let issuers: any;
-        try {
-          let dataRows = await getIssuers(profile);
-          // console.log("LOADED USER DATA", dataRows);
-          issuers = { viewData: dataRows.map(createViewRow) };
-        } catch (e) {
-          issuers = {
-            error: new FusebitError("Error loading issuer information", {
-              details:
-                (e.status || e.statusCode) === 403
-                  ? "The Fusebit account does not exist or you are not authorized to access it's list of issuers."
-                  : e.message || "Unknown error."
-            })
-          };
-        }
-        !cancelled && onNewData && onNewData({ ...data, issuers });
-      })();
-      return () => {
-        cancelled = true;
-      };
-    }
-  }, [data, onNewData, profile]);
-
-  if (!data || !data.issuers) {
+  if (issuers.status === "loading") {
     return <LinearProgress />;
   }
 
-  if (data.issuers.error) {
-    return <PortalError error={data.issuers.error} padding={true} />;
+  if (issuers.status === "error") {
+    return <PortalError error={issuers.error} padding={true} />;
   }
 
   const handleDelete = async (selected: string[]) => {
-    let viewData: ViewRow[] = [];
-    data.issuers.viewData.forEach((row: ViewRow) => {
-      if (selected.indexOf(row.id) === -1) {
-        viewData.push(row);
-      }
-    });
-    let newIssuers: any = { viewData };
     try {
       await deleteIssuers(profile, selected);
     } catch (e) {
-      newIssuers = {
+      setIssuers({
+        status: "error",
         error: new FusebitError("Error deleting issuers", {
           details:
             (e.status || e.statusCode) === 403
@@ -137,14 +106,14 @@ function AccountIssuers({ data, onNewData }: any) {
           actions: [
             {
               text: "Back to issuers",
-              func: () =>
-                onNewData && onNewData({ ...data, issuers: undefined })
+              func: () => reloadIssuers(issuers, setIssuers)
             }
           ]
         })
-      };
+      });
+      return;
     }
-    onNewData && onNewData({ ...data, issuers: newIssuers });
+    removeIssuers(issuers, setIssuers, selected);
   };
 
   const generateDeleteContent = (selected: string[]) => {
@@ -188,15 +157,16 @@ function AccountIssuers({ data, onNewData }: any) {
   const handleAddIssuer = (added: boolean) => {
     setNewIssuerOpen(false);
     if (added) {
-      delete data.issuers;
-      onNewData && onNewData({ ...data });
+      reloadIssuers(issuers, setIssuers);
     }
   };
+
+  const viewData = issuers.existing.map(createViewRow);
 
   return (
     <React.Fragment>
       <ExplorerTable<ViewRow>
-        rows={data.issuers.viewData}
+        rows={viewData}
         headCells={headCells}
         defaultSortKey="name"
         identityKey="id"
@@ -213,12 +183,7 @@ function AccountIssuers({ data, onNewData }: any) {
           </ActionButton>
         }
       />
-      {newIssuerOpen && (
-        <NewIssuer
-          issuers={data && data.issuers && data.issuers.viewData}
-          onClose={handleAddIssuer}
-        />
-      )}
+      {newIssuerOpen && <NewIssuer onClose={handleAddIssuer} />}
     </React.Fragment>
   );
 }

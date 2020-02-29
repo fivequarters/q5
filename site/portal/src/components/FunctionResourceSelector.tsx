@@ -4,6 +4,7 @@ import BoundarySelector from "./BoundarySelector";
 import FunctionSelector from "./FunctionSelector";
 import { useProfile } from "./ProfileProvider";
 import SubscriptionSelector from "./SubscriptionSelector";
+import { BoundariesProvider } from "./BoundariesProvider";
 
 const useStyles = makeStyles((theme: any) => ({
   inputField: {
@@ -12,8 +13,6 @@ const useStyles = makeStyles((theme: any) => ({
 }));
 
 function FunctionResourceSelector({
-  data,
-  onNewData,
   resource,
   disabled,
   onResourceChange
@@ -122,8 +121,6 @@ function FunctionResourceSelector({
   return (
     <React.Fragment>
       <SubscriptionSelector
-        data={data}
-        onNewData={onNewData}
         enableAnySubscription={true}
         subscriptionId={resource.parts.subscriptionId}
         onChange={handleSubscriptionIdChange}
@@ -133,48 +130,52 @@ function FunctionResourceSelector({
         // className={classes.inputField}
         disabled={!!disabled}
       />
-      <BoundarySelector
-        data={data}
-        onNewData={onNewData}
+      <BoundariesProvider
         subscriptionId={
           subscriptionSelected ? resource.parts.subscriptionId : undefined
         }
-        boundaryId={resource.parts.boundaryId}
-        disabled={!!disabled || !subscriptionSelected}
-        fullWidth
-        variant="filled"
-        onChange={handleBoundaryIdChange}
-        error={!!resource.parts.boundaryIdError}
-        helperText={resource.parts.boundaryIdError}
-        className={classes.inputField}
-      />
-      <FunctionSelector
-        data={data}
-        onNewData={onNewData}
-        subscriptionId={
-          subscriptionSelected && !resource.parts.boundaryIdError
-            ? resource.parts.subscriptionId
-            : undefined
-        }
-        boundaryId={
-          resource.parts.boundaryIdError ? undefined : resource.parts.boundaryId
-        }
-        functionId={resource.parts.functionId}
-        disabled={
-          !!disabled ||
-          !!!(
-            subscriptionSelected &&
-            resource.parts.boundaryId &&
-            !resource.parts.boundaryIdError
-          )
-        }
-        fullWidth
-        variant="filled"
-        onChange={handleFunctionIdChange}
-        error={!!resource.parts.functionIdError}
-        helperText={resource.parts.functionIdError}
-        className={classes.inputField}
-      />
+      >
+        <BoundarySelector
+          subscriptionId={
+            subscriptionSelected ? resource.parts.subscriptionId : undefined
+          }
+          boundaryId={resource.parts.boundaryId}
+          disabled={!!disabled || !subscriptionSelected}
+          fullWidth
+          variant="filled"
+          onChange={handleBoundaryIdChange}
+          error={!!resource.parts.boundaryIdError}
+          helperText={resource.parts.boundaryIdError}
+          className={classes.inputField}
+        />
+        <FunctionSelector
+          subscriptionId={
+            subscriptionSelected && !resource.parts.boundaryIdError
+              ? resource.parts.subscriptionId
+              : undefined
+          }
+          boundaryId={
+            resource.parts.boundaryIdError
+              ? undefined
+              : resource.parts.boundaryId
+          }
+          functionId={resource.parts.functionId}
+          disabled={
+            !!disabled ||
+            !!!(
+              subscriptionSelected &&
+              resource.parts.boundaryId &&
+              !resource.parts.boundaryIdError
+            )
+          }
+          fullWidth
+          variant="filled"
+          onChange={handleFunctionIdChange}
+          error={!!resource.parts.functionIdError}
+          helperText={resource.parts.functionIdError}
+          className={classes.inputField}
+        />
+      </BoundariesProvider>
     </React.Fragment>
   );
 }
