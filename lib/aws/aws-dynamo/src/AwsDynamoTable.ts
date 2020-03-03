@@ -30,12 +30,31 @@ export class AwsDynamoTable implements IDataSource {
 
   public async isSetup() {
     const description = await this.dynamo.tableExists(this.table.name);
-    return !!(
+    let result = !!(
       description &&
       (!description.SSEDescription ||
         description.SSEDescription.Status === 'DISABLED' ||
         description.SSEDescription.Status === 'DISABLING')
     );
+    if (result && this.table.globalIndexes) {
+      const globalIndexes = ((description && description.GlobalSecondaryIndexes) || []).reduce(
+        (previous: any, current: any) => {
+          previous[current.IndexName] = current.IndexStatus;
+          return previous;
+        },
+        {}
+      );
+      for (let i = 0; i < this.table.globalIndexes.length; i++) {
+        if (
+          !globalIndexes[this.table.globalIndexes[i].name] ||
+          globalIndexes[this.table.globalIndexes[i].name] === 'DELETING'
+        ) {
+          result = false;
+          break;
+        }
+      }
+    }
+    return result;
   }
 
   public async setup() {
