@@ -106,7 +106,7 @@ export class UserData extends DataSource implements IUserData {
   }
 
   public async delete(accountId: string, userId: string): Promise<void> {
-    const userPromise = this.userTable.archive(accountId, userId);
+    const userPromise = this.userTable.delete(accountId, userId);
     const agentPromise = this.agentData.delete(accountId, userId);
     await userPromise;
     await agentPromise;

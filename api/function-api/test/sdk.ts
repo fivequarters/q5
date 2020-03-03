@@ -118,7 +118,7 @@ export interface ITestIssuer {
 // Internal Functions
 // ------------------
 
-function ngrok_url(url: string) {
+export function ngrok_url(url: string) {
   // If running tests against local functions-api, replace the issuer JWKS endpoint to use Ngrok URL
   if (url.indexOf('://localhost') > 0 && process.env.LOGS_HOST && process.env.API_SERVER) {
     return url.replace(process.env.API_SERVER, `https://${process.env.LOGS_HOST}`);
@@ -231,7 +231,7 @@ export async function getLogs(
     logRequest = http.get(url, { headers, agent: false }, onResponse);
 
     if (!ignoreLogs) {
-      timer = setTimeout(onDone, 10000);
+      timer = setTimeout(onDone, 15000);
     }
   });
 }

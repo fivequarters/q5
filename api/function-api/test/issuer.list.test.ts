@@ -86,7 +86,7 @@ describe('Issuer', () => {
         expect(item.displayName.indexOf(`test: ${testRunId} - 3`)).toBe(0);
         expect(item.id.indexOf(`${issuerId}-3`)).toBe(0);
       }
-    }, 10000);
+    }, 30000);
 
     test('Listing all issuers with a count of 1 and next should work', async () => {
       const issuerId = `test-${random()}`;
@@ -108,12 +108,7 @@ describe('Issuer', () => {
       const result3 = await listIssuers(account, 1, result2.data.next, `${testRunId} - 4`);
       expect(result3.status).toBe(200);
       expect(result3.data.items.length).toBe(1);
-      expect(result3.data.next).toBeDefined();
-
-      const result4 = await listIssuers(account, 1, result3.data.next, `${testRunId} - 4`);
-      expect(result4.status).toBe(200);
-      expect(result4.data.items.length).toBe(0);
-      expect(result4.data.next).toBeUndefined();
+      expect(result3.data.next).toBeUndefined();
 
       const items = [...result1.data.items, ...result2.data.items, ...result3.data.items];
 
@@ -126,7 +121,7 @@ describe('Issuer', () => {
         expect(item.displayName.indexOf(`test: ${testRunId} - 4`)).toBe(0);
         expect(item.id.indexOf(`${issuerId}-4`)).toBe(0);
       }
-    }, 20000);
+    }, 50000);
 
     test('Listing all issuers with a count of 0 should use default count', async () => {
       const issuerId = `test-${random()}`;

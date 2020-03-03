@@ -33,7 +33,7 @@ describe('log', () => {
             'index.js': `module.exports = (ctx, cb) => { console.log('Hello ' + ctx.query.n); cb(); }`,
             'package.json': {
               engines: {
-                node: '8',
+                node,
               },
             },
           },
@@ -48,7 +48,7 @@ describe('log', () => {
       const logsPromise = getLogs(account, boundaryId, boundary ? undefined : function1Id);
 
       // Real time logs can take up to 5s to become effective
-      await new Promise(resolve => setTimeout(resolve, 6000));
+      await new Promise(resolve => setTimeout(resolve, 10000));
 
       for (var i = 1; i < 5; i++) {
         response = await request(`${functionUrl}?n=${i}`);
@@ -69,11 +69,7 @@ describe('log', () => {
     };
   }
 
-  test('function logs work on node 8', create_positive_log_test('8', false), 20000);
-
   test('function logs work on node 10', create_positive_log_test('10', false), 20000);
-
-  test('boundary logs work on node 8', create_positive_log_test('8', true), 20000);
 
   test('boundary logs work on node 10', create_positive_log_test('10', true), 20000);
 });

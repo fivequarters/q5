@@ -106,7 +106,7 @@ export class ClientData extends DataSource implements IClientData {
   }
 
   public async delete(accountId: string, clientId: string): Promise<void> {
-    const clientPromise = this.clientTable.archive(accountId, clientId);
+    const clientPromise = this.clientTable.delete(accountId, clientId);
     const agentPromise = this.agentData.delete(accountId, clientId);
     await clientPromise;
     await agentPromise;

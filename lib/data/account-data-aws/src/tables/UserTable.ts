@@ -10,7 +10,6 @@ const table: IAwsDynamoTable = {
   name: 'user',
   attributes: { accountId: 'S', userId: 'S' },
   keys: ['accountId', 'userId'],
-  archive: true,
   toKey,
   toItem,
   fromItem,
