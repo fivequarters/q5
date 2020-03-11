@@ -30,7 +30,12 @@ async function getWorkspaceData(rootPath: string): Promise<any> {
 
   try {
     const cmdParsed = JSON.parse(cmdOutput);
-    return JSON.parse(cmdParsed.data);
+    if ('data' in cmdParsed) {
+      // Yarn 1.21 uses a string-encoded JSON under 'data'
+      return JSON.parse(cmdParsed.data);
+    }
+    // Yarn 1.22 doesn't.
+    return cmdParsed;
   } catch (error) {
     throw new Error(`Error parsing yarn workspaces output: '${error}'`);
   }
