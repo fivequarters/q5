@@ -359,6 +359,7 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
   public async ensureTable(table: IAwsDynamoTable): Promise<void> {
     const description = await this.tableExists(table.name);
     if (description) {
+      await this.ensureTableGlobalIndexes(description, table);
       if (
         !description.SSEDescription ||
         description.SSEDescription.Status === 'DISABLED' ||
@@ -377,6 +378,44 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
       if (table.ttlAttribute !== undefined) {
         await this.updateTtl(table.name, table.ttlAttribute);
       }
+    }
+  }
+
+  private async ensureTableGlobalIndexes(
+    description: DynamoDB.TableDescription,
+    table: IAwsDynamoTable
+  ): Promise<void> {
+    if (table.globalIndexes) {
+      const existingGlobalIndexes = (description.GlobalSecondaryIndexes || []).reduce((previous: any, current: any) => {
+        previous[current.IndexName] = current.IndexStatus;
+        return previous;
+      }, {});
+      const missingGlobalIndexes: IAwsDynamoIndex[] = [];
+      for (let i = 0; i < table.globalIndexes.length; i++) {
+        if (
+          !existingGlobalIndexes[table.globalIndexes[i].name] ||
+          existingGlobalIndexes[table.globalIndexes[i].name] === 'DELETING'
+        ) {
+          missingGlobalIndexes.push(table.globalIndexes[i]);
+        }
+      }
+      const dynamo = await this.getAws();
+      const fullTableName = this.getFullName(table.name);
+      const params: any = {
+        TableName: fullTableName,
+        AttributeDefinitions: toAttributeDefinitions(table.attributes),
+        GlobalSecondaryIndexUpdates: missingGlobalIndexes.map(i => ({ Create: toIndexDefinition(i) })),
+      };
+      await new Promise((resolve, reject) => {
+        dynamo.updateTable(params, (error: any, data: any) => {
+          if (error) {
+            return reject(errorToException(fullTableName, 'updateTable', error));
+          }
+
+          resolve(data.TableDescription.TableArn);
+        });
+      });
+      await this.waitForTable(table.name);
     }
   }
 
@@ -635,6 +674,13 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
 
     applyOptions(options, params);
     applyLimit(table, params);
+    const effectiveLimit = params.Limit;
+    if (options && options.filters) {
+      // If querying a table using a filter and a limit, make sure to query for a large number
+      // of rows at a time to minimize the number of requests that need to be made to Dynamo
+      // and maximize the amount of filtering done per DynamoDB request
+      params.Limit = maxLimit;
+    }
 
     const action = isScan ? 'scan' : 'query';
 
@@ -642,7 +688,7 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
       reject = rejectOnce(reject);
       let items: any[] = [];
       let lastEvaluatedKey: any = undefined;
-      let remainingLimit = params.Limit;
+      let remainingLimit = effectiveLimit;
 
       const func = () => {
         // @ts-ignore
@@ -652,11 +698,18 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
           }
 
           items.push(...data.Items);
-          lastEvaluatedKey = data.LastEvaluatedKey;
+          if (items.length > effectiveLimit) {
+            items.splice(effectiveLimit);
+            lastEvaluatedKey = {};
+            table.keys.forEach(k => {
+              lastEvaluatedKey[k] = items[items.length - 1][k];
+            });
+          } else {
+            lastEvaluatedKey = data.LastEvaluatedKey;
+          }
           remainingLimit -= data.Items.length;
 
           if (remainingLimit > 0 && lastEvaluatedKey) {
-            params.Limit = remainingLimit;
             params.ExclusiveStartKey = lastEvaluatedKey;
             return func();
           }

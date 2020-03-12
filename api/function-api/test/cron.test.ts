@@ -39,6 +39,15 @@ describe('cron', () => {
 
     // Create cron that re-creates the storage function every second with a timestamp of its execution
 
+    // When running against localhost API, use ngrok URL for base URL
+    let testAccount = {
+      ...account,
+      baseUrl:
+        account.baseUrl.indexOf('://localhost') > -1 && process.env.LOGS_HOST
+          ? `http://${process.env.LOGS_HOST}`
+          : account.baseUrl,
+    };
+
     response = await putFunction(account, boundaryId, function1Id, {
       nodejs: {
         files: {
@@ -61,7 +70,7 @@ describe('cron', () => {
                 });
             };`,
           'config.json': {
-            account,
+            account: testAccount,
             boundaryId,
             functionId: function2Id,
           },
@@ -97,7 +106,6 @@ describe('cron', () => {
     response = await getFunction(account, boundaryId, function2Id);
     expect(response.status).toEqual(200);
     let actualRuns = JSON.parse(Buffer.from(response.data.configuration.runs, 'base64').toString('utf8'));
-
     expect(actualRuns.length).toBeGreaterThanOrEqual(4);
     actualRuns.sort((a: number, b: number) => a - b);
     let avgTimespan = (actualRuns[actualRuns.length - 1] - actualRuns[0]) / actualRuns.length;
@@ -109,7 +117,7 @@ describe('cron', () => {
       maxTimespan = Math.max(maxTimespan, timespan);
     }
     // console.log('RESPONSES', actualRuns.length, avgTimespan, minTimespan, maxTimespan);
-    expect(maxTimespan).toBeLessThan(3000);
+    expect(maxTimespan).toBeLessThan(4000);
     expect(avgTimespan).toBeGreaterThan(1000);
     expect(avgTimespan).toBeLessThan(2500);
   }, 30000);

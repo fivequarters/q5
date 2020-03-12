@@ -16,6 +16,18 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.14.4
+
+_Released 3/3/20_
+
+- **Performace improvements** Improve performance of CRUD operations on clients, users, and issuers.
+
+## Version 1.14.3
+
+_Released 2/28/20_
+
+- **Limit increase** Increase default limit for the size of the body of the function execution request from 100KB to 500KB.
+
 ## Version 1.14.2
 
 _Released 1/22/20_
