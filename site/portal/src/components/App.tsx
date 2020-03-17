@@ -17,8 +17,8 @@ function App() {
   return (
     <ThemeProvider theme={FusebitTheme}>
       <CssBaseline />
-      <ErrorBoundary>
-        <Router history={history}>
+      <Router history={history}>
+        <ErrorBoundary>
           <Switch>
             <Route path="/init" component={Init} />
             <Route path="/style" component={Style} />
@@ -29,8 +29,8 @@ function App() {
               </Switch>
             </ProfileProvider>
           </Switch>
-        </Router>
-      </ErrorBoundary>
+        </ErrorBoundary>
+      </Router>
     </ThemeProvider>
   );
 }

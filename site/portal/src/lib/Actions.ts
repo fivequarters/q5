@@ -88,6 +88,13 @@ const noRole = {
   actions: []
 };
 
+const sameRole = {
+  role: "same",
+  title: "Same",
+  description: "The same permissions I have",
+  actions: []
+};
+
 const roles = [
   {
     role: "developer",
@@ -145,6 +152,9 @@ function createPermissionsFromRole(
   role: any,
   resource: any
 ): Permission[] {
+  if (role.role === sameRole.role) {
+    return (profile.me && (profile.me.access.allow as Permission[])) || [];
+  }
   let allow: Permission[] = [];
   rolesHash[role.role].actions.forEach((a: string) => {
     const permission = {
@@ -193,6 +203,7 @@ export {
   roles,
   rolesHash,
   noRole,
+  sameRole,
   createPermissionsFromRole,
   tryTokenizeResource
 };
