@@ -3,7 +3,7 @@ import { Image } from '@5qtrs/image';
 import { FusebitAuthor } from '@5qtrs/fusebit-blog';
 import { FusebitSection as Section, FusebitBreak as Break, FusebitQuote as Quote } from '@5qtrs/fusebit-page';
 import { FusebitLink as Link } from '@5qtrs/fusebit-link';
-import MainImage from '../../../../assets/img/blog-interview-with-zaius-main.png';
+import MainImage from '../../../../assets/img/blog-interview-with-zaius-main-1.png';
 import ZaiusUsage from '../../../../assets/img/blog-interview-zaius-usage.png';
 import ZaiusArchitecture from '../../../../assets/img/blog-interview-zaius-architecture.png';
 
