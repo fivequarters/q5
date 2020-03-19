@@ -11,7 +11,12 @@ import Stepper from "@material-ui/core/Stepper";
 import { makeStyles } from "@material-ui/core/styles";
 import GridOnIcon from "@material-ui/icons/GridOn";
 import React from "react";
-import { createPermissionsFromRole, roles, rolesHash } from "../lib/Actions";
+import {
+  createPermissionsFromRole,
+  roles,
+  rolesHash,
+  sameRole
+} from "../lib/Actions";
 import { formatAgent, modifyAgent, saveAgent, useAgent } from "./AgentProvider";
 import FunctionResourceSelector from "./FunctionResourceSelector";
 import PermissionsReviewTable from "./PermissionReviewTable";
@@ -107,6 +112,7 @@ function AddPermissionSetDialog({ onClose }: any) {
           role={role}
           onRoleChange={(role: any) => setRole(role)}
           className={classes.inputField}
+          allowSameRole
           autoFocus
         />
       </DialogContent>
@@ -167,10 +173,17 @@ function AddPermissionSetDialog({ onClose }: any) {
             {agent.isUser ? "user" : "client"}{" "}
             <strong>{formatAgent(agent)}</strong>:
           </DialogContentText>
-          <PermissionsReviewTable
-            actions={rolesHash[role.role].actions}
-            resource={resource}
-          />
+          {role.role !== sameRole.role && (
+            <PermissionsReviewTable
+              actions={rolesHash[role.role].actions}
+              resource={resource}
+            />
+          )}
+          {role.role === sameRole.role && (
+            <PermissionsReviewTable
+              allow={(profile.me && profile.me.access.allow) || []}
+            />
+          )}
         </DialogContent>
       );
     }

@@ -1,18 +1,25 @@
 import MenuItem from "@material-ui/core/MenuItem";
 import Select from "@material-ui/core/Select";
 import React from "react";
-import { noRole, roles, rolesHash } from "../lib/Actions";
+import { noRole, sameRole, roles, rolesHash } from "../lib/Actions";
 
 function PermissionRoleSelector({
   role,
   onRoleChange,
   allowNoRole,
+  allowSameRole,
   ...rest
 }: any) {
   const handleRoleChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     let roleName = event.target.value as string;
     onRoleChange &&
-      onRoleChange(roleName === noRole.role ? noRole : rolesHash[roleName]);
+      onRoleChange(
+        roleName === noRole.role
+          ? noRole
+          : roleName === sameRole.role
+          ? sameRole
+          : rolesHash[roleName]
+      );
   };
 
   return (
@@ -34,6 +41,11 @@ function PermissionRoleSelector({
           <strong>{a.title}</strong> - {a.description}
         </MenuItem>
       ))}
+      {allowSameRole && (
+        <MenuItem key={sameRole.role} value={sameRole.role}>
+          <strong>{sameRole.title}</strong> - {sameRole.description}
+        </MenuItem>
+      )}
     </Select>
   );
 }

@@ -4,6 +4,7 @@ import ProfileSelectorWithDetails from "./ProfileSelectorWithDetails";
 import Grid from "@material-ui/core/Grid";
 import { withStyles } from "@material-ui/core/styles";
 import PortalError from "./PortalError";
+import { withRouter } from "react-router-dom";
 
 const styles = (theme: any) => ({
   gridContainer: {
@@ -40,7 +41,16 @@ class FusebitError extends Error {
 class ErrorBoundary extends React.Component<any, any> {
   constructor(props: any) {
     super(props);
+    const { history } = this.props;
     this.state = { error: undefined, drawerOpen: false };
+    history.listen(() => {
+      if (this.state.error) {
+        this.setState({
+          error: undefined,
+          drawerOpen: false
+        });
+      }
+    });
   }
 
   static getDerivedStateFromError(error: any) {
@@ -77,4 +87,4 @@ class ErrorBoundary extends React.Component<any, any> {
 }
 
 export { FusebitError };
-export default withStyles(styles)(ErrorBoundary);
+export default withStyles(styles)(withRouter(ErrorBoundary));
