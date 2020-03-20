@@ -154,7 +154,11 @@ function AccountUsers() {
         selected.length > 1 ? "Delete users?" : "Delete user?"
       }
       deleteContent={generateDeleteContent}
-      actions={<ActionButton href="users/new">New&nbsp;user</ActionButton>}
+      actions={
+        <ActionButton to="users/new" component={RouterLink}>
+          New&nbsp;user
+        </ActionButton>
+      }
     />
   );
 }

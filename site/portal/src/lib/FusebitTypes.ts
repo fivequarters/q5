@@ -79,3 +79,40 @@ export type BoundaryListItem = {
 export type BoundaryHash = {
   [key: string]: BoundaryListItem;
 };
+
+export type FunctionSpecification = {
+  subscriptionId?: string;
+  boundaryId?: string;
+  id?: string;
+  location?: string;
+  environment?: "nodejs";
+  provider?: "lambda";
+  configuration?: { [key: string]: string };
+  configurationSerialized?: string;
+  nodejs: {
+    files: {
+      "index.js": string;
+      [key: string]: string | object;
+    };
+  };
+  compute?: {
+    memorySize?: number;
+    timeout?: number;
+    staticIp?: boolean;
+  };
+  computeSerialized?: string;
+  schedule?: {
+    cron: string;
+    timezone?: string;
+  };
+  scheduleSerialized?: string;
+  metadata?: {
+    [key: string]: any;
+  };
+};
+
+export type ExistingFunctionSpecification = FunctionSpecification & {
+  subscriptionId: string;
+  boundaryId: string;
+  id: string;
+};

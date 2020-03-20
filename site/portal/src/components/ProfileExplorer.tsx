@@ -32,6 +32,9 @@ import { BoundariesProvider } from "./BoundariesProvider";
 import { AgentsProvider } from "./AgentsProvider";
 import { IssuersProvider } from "./IssuersProvider";
 import ResourceAccess from "./ResourceAccess";
+import NewFunction from "./NewFunction";
+import NewFunctionFab from "./NewFunctionFab";
+import NewFunctionCreate from "./NewFunctionCreate";
 
 const useStyles = makeStyles(theme => ({
   paper: {
@@ -513,16 +516,6 @@ function ProfileExplorer({ ...rest }: any) {
         />
 
         <Route
-          path="/accounts/:accountId/subscriptions/:subscriptionId/boundaries/:boundaryId/functions/:functionId/overview"
-          exact={true}
-          render={({ ...rest }) => (
-            <ExplorerView tabs={ExplorerTabs.oneFunction} {...rest}>
-              <FunctionOverview />
-            </ExplorerView>
-          )}
-        />
-
-        <Route
           path="/accounts/:accountId/subscriptions/:subscriptionId/boundaries/:boundaryId/functions/:functionId/code"
           exact={true}
           render={({ ...rest }) => <FunctionCode {...rest} />}
@@ -559,6 +552,7 @@ function ProfileExplorer({ ...rest }: any) {
             <ExplorerView
               tabs={ExplorerTabs.subscription}
               match={match}
+              fab={<NewFunctionFab />}
               {...rest}
             >
               <AgentsProvider agentType="both">
@@ -580,14 +574,85 @@ function ProfileExplorer({ ...rest }: any) {
             <BoundariesProvider subscriptionId={match.params.subscriptionId}>
               <Switch>
                 <Route
+                  path={`${match.path}/boundaries/:boundaryId/functions/:functionId/overview`}
+                  exact={true}
+                  render={({ match, ...rest }) => (
+                    <ExplorerView
+                      tabs={ExplorerTabs.oneFunction}
+                      match={match}
+                      {...rest}
+                    >
+                      <FunctionOverview
+                        subscriptionId={match.params.subscriptionId}
+                        boundaryId={match.params.boundaryId}
+                        functionId={match.params.functionId}
+                      />
+                    </ExplorerView>
+                  )}
+                />
+
+                <Route
                   path={`${match.path}/boundaries`}
                   exact={true}
                   render={({ match }) => (
                     <ExplorerView
                       tabs={ExplorerTabs.subscription}
                       match={match}
+                      fab={<NewFunctionFab />}
                     >
                       <SubscriptionBoundaries />
+                    </ExplorerView>
+                  )}
+                />
+                <Route
+                  path={`${match.path}/new-function/:templateId`}
+                  exact={true}
+                  render={({ match }) => (
+                    <NewFunctionCreate
+                      subscriptionId={match.params.subscriptionId}
+                      templateId={match.params.templateId}
+                    />
+                  )}
+                />
+                <Route
+                  path={`${match.path}/new-function`}
+                  exact={true}
+                  render={({ match, ...rest }) => (
+                    <ExplorerView
+                      breadcrumbSettings={{ newSubscriptionFunction: true }}
+                      match={match}
+                      {...rest}
+                    >
+                      <NewFunction
+                        subscriptionId={match.params.subscriptionId}
+                      />
+                    </ExplorerView>
+                  )}
+                />
+                <Route
+                  path={`${match.path}/boundaries/:boundaryId/new-function/:templateId`}
+                  exact={true}
+                  render={({ match }) => (
+                    <NewFunctionCreate
+                      subscriptionId={match.params.subscriptionId}
+                      boundaryId={match.params.boundaryId}
+                      templateId={match.params.templateId}
+                    />
+                  )}
+                />
+                <Route
+                  path={`${match.path}/boundaries/:boundaryId/new-function`}
+                  exact={true}
+                  render={({ match, ...rest }) => (
+                    <ExplorerView
+                      breadcrumbSettings={{ newBoundaryFunction: true }}
+                      match={match}
+                      {...rest}
+                    >
+                      <NewFunction
+                        subscriptionId={match.params.subscriptionId}
+                        boundaryId={match.params.boundaryId}
+                      />
                     </ExplorerView>
                   )}
                 />
@@ -595,8 +660,15 @@ function ProfileExplorer({ ...rest }: any) {
                   path={`${match.path}/boundaries/:boundaryId/functions`}
                   exact={true}
                   render={({ match }) => (
-                    <ExplorerView tabs={ExplorerTabs.boundary} match={match}>
-                      <BoundaryFunctions boundaryId={match.params.boundaryId} />
+                    <ExplorerView
+                      tabs={ExplorerTabs.boundary}
+                      match={match}
+                      fab={<NewFunctionFab />}
+                    >
+                      <BoundaryFunctions
+                        subscriptionId={match.params.subscriptionId}
+                        boundaryId={match.params.boundaryId}
+                      />
                     </ExplorerView>
                   )}
                 />
@@ -607,6 +679,7 @@ function ProfileExplorer({ ...rest }: any) {
                     <ExplorerView
                       tabs={ExplorerTabs.boundary}
                       match={match}
+                      fab={<NewFunctionFab />}
                       {...rest}
                     >
                       <AgentsProvider agentType="both">

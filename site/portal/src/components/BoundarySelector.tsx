@@ -12,6 +12,7 @@ function BoundarySelector({
   variant,
   disabled,
   error,
+  label,
   helperText,
   ...rest
 }: any) {
@@ -42,7 +43,7 @@ function BoundarySelector({
       renderInput={params => (
         <TextField
           {...params}
-          label={boundaryId ? "Boundary" : "All boundaries"}
+          label={label || boundaryId ? "Boundary" : "All boundaries"}
           variant={variant || "filled"}
           fullWidth={fullWidth || false}
           error={error || false}

@@ -122,7 +122,16 @@ function AddPermissionSetDialog({ onClose }: any) {
   const isAccountLevelPermissionSet = () => role.role === "admin";
 
   function resourceSelector() {
-    if (isAccountLevelPermissionSet()) {
+    if (role.role === sameRole.role) {
+      return (
+        <DialogContent>
+          <DialogContentText>
+            The {agent.isUser ? "user" : "client"} will be granted the same set
+            of permissions you have. You can review them in the next step.
+          </DialogContentText>
+        </DialogContent>
+      );
+    } else if (isAccountLevelPermissionSet()) {
       return (
         <DialogContent>
           <DialogContentText>
