@@ -26,7 +26,7 @@ Fusebit CLI <code>v1.8+</code> - <a href="{{ site.baseurl }}{% link fusebit-cli.
 Fusebit Editor <code>v1.3+</code> - <a href="{{ site.baseurl }}{% link fusebit-editor.md %}">release notes</a>
 </li>
 <li>
-Fusebit HTTP API <code>v1.14+</code> - <a href="{{ site.baseurl }}{% link fusebit-http-api.md %}">release notes</a>
+Fusebit HTTP API <code>v1.15+</code> - <a href="{{ site.baseurl }}{% link fusebit-http-api.md %}">release notes</a>
 </li>
 <li>
 Fusebit Ops CLI <code>v1.21+</code> - <a href="{{ site.baseurl }}{% link fusebit-ops-cli.md %}">release notes</a></li>
@@ -35,7 +35,7 @@ Fusebit Ops CLI <code>v1.21+</code> - <a href="{{ site.baseurl }}{% link fusebit
 <td style="width:30%">
 <dl>
   <dt>Last updated</dt>
-  <dd>3/3/20</dd>
+  <dd>3/20/2020</dd>
   <dt>LTS release</dt>
   <dd>No</dd>
 </dl>
