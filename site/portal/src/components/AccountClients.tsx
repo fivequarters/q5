@@ -122,7 +122,11 @@ function AccountClients() {
           : "Delete the client?"
       }
       deleteContent={generateDeleteContent}
-      actions={<ActionButton href="clients/new">New&nbsp;client</ActionButton>}
+      actions={
+        <ActionButton to="clients/new" component={RouterLink}>
+          New&nbsp;client
+        </ActionButton>
+      }
     />
   );
 }

@@ -10,6 +10,7 @@ import { ProfileProvider } from "./ProfileProvider";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import { ThemeProvider } from "@material-ui/core/styles";
 import FusebitTheme from "../styles/FusebitTheme";
+import { CatalogProvider } from "./CatalogProvider";
 
 const history = createBrowserHistory();
 
@@ -23,10 +24,12 @@ function App() {
             <Route path="/init" component={Init} />
             <Route path="/style" component={Style} />
             <ProfileProvider>
-              <Switch>
-                <Route path="/me" component={Me} />
-                <Route path="/" component={ProfileExplorer} />
-              </Switch>
+              <CatalogProvider>
+                <Switch>
+                  <Route path="/me" component={Me} />
+                  <Route path="/" component={ProfileExplorer} />
+                </Switch>
+              </CatalogProvider>
             </ProfileProvider>
           </Switch>
         </ErrorBoundary>
