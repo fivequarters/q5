@@ -42,6 +42,7 @@ function CloneFunctionDialog({
             functionId
           );
           delete functionSpecification.id;
+          delete functionSpecification.boundaryId;
           await createFunction(
             profile,
             subscriptionId,

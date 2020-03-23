@@ -14,6 +14,16 @@
       "icon": "poll",
       "description": "Send satisfaction poll to Slack when Jira issue is closed",
       "tags": ["slack", "jira", "poll"],
+      "managerUrl": "https://stage.us-west-2.fusebit.io/v1/run/sub-ed9d9341ea356841/template-manager/jira-slack-poll",
+      "documentationUrl": "https://github.com/fusebit/samples"
+    },
+    {
+      "id": "google-calendar-list",
+      "name": "Google Calendar",
+      "icon": "calendar_today",
+      "description": "List events on the Google calendar",
+      "tags": ["google", "calendar", "events"],
+      "managerUrl": "https://stage.us-west-2.fusebit.io/v1/run/sub-ed9d9341ea356841/template-manager/google-calendar-list",
       "documentationUrl": "https://github.com/fusebit/samples"
     },
     {
