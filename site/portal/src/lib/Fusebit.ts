@@ -4,13 +4,15 @@ import {
   User,
   Issuer,
   Subscription,
-  BoundaryHash
+  BoundaryHash,
+  FunctionSpecification,
+  ExistingFunctionSpecification
 } from "./FusebitTypes";
 
 import Superagent from "superagent";
 // import parseUrl from "url-parse";
 
-async function ensureAccessToken(
+export async function ensureAccessToken(
   profile: IFusebitProfile
 ): Promise<IFusebitAuth> {
   if (isIFusebitAuth(profile.auth)) {
@@ -609,9 +611,123 @@ export async function tryGetFunction(
     )
       .set("Authorization", `Bearer ${auth.access_token}`)
       .ok(res => res.status === 200 || res.status === 404);
-    return response.status === 200 ? response.body : null;
+    return response.status === 200
+      ? (response.body as ExistingFunctionSpecification)
+      : null;
   } catch (e) {
-    throwHttpException(e);
+    throw createHttpException(e);
+  }
+}
+
+export async function createFunction(
+  profile: IFusebitProfile,
+  subscriptionId: string,
+  boundaryId: string,
+  functionId: string,
+  functionSpecification: FunctionSpecification
+) {
+  try {
+    let auth = await ensureAccessToken(profile);
+    let response: any = await Superagent.put(
+      `${profile.baseUrl}/v1/account/${profile.account}/subscription/${subscriptionId}/boundary/${boundaryId}/function/${functionId}`
+    )
+      .set("Authorization", `Bearer ${auth.access_token}`)
+      .send(functionSpecification);
+    let attempts = 15;
+    while (response.status === 201 && attempts > 0) {
+      response = await Superagent.get(
+        `${profile.baseUrl}/v1/account/${profile.account}/subscription/${subscriptionId}/boundary/${boundaryId}/function/${functionId}/build/${response.body.buildId}`
+      ).set("Authorization", `Bearer ${auth.access_token}`);
+      if (response.status === 200) {
+        if (response.body.status === "success") {
+          return;
+        } else {
+          throw new Error(
+            `Failure creating function: ${(response.body.error &&
+              response.body.error.message) ||
+              "Unknown error"}`
+          );
+        }
+      }
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      attempts--;
+    }
+    if (attempts === 0) {
+      throw new Error(`Timeout creating function`);
+    }
+    if (
+      response.status === 204 ||
+      (response.body && response.body.status === "success")
+    ) {
+      return;
+    } else {
+      throw response.body;
+    }
+  } catch (e) {
+    throw createHttpException(e);
+  }
+}
+
+export async function getFunction(
+  profile: IFusebitProfile,
+  subscriptionId: string,
+  boundaryId: string,
+  functionId: string
+) {
+  try {
+    let auth = await ensureAccessToken(profile);
+    let response: any = await Superagent.get(
+      `${profile.baseUrl}/v1/account/${profile.account}/subscription/${subscriptionId}/boundary/${boundaryId}/function/${functionId}`
+    ).set("Authorization", `Bearer ${auth.access_token}`);
+    return response.body as ExistingFunctionSpecification;
+  } catch (e) {
+    throw createHttpException(e);
+  }
+}
+
+export function appendUrlSegment(url: string, segment: string) {
+  return `${url}${url[url.length - 1] === "/" ? "" : "/"}${segment}`;
+}
+
+export async function deleteFunctions(
+  profile: IFusebitProfile,
+  subscriptionId: string,
+  boundaryId: string,
+  functionIds: string[]
+): Promise<void> {
+  try {
+    let auth = await ensureAccessToken(profile);
+    await Promise.all(
+      functionIds.map((id: string) =>
+        (async () => {
+          const func = await getFunction(
+            profile,
+            subscriptionId,
+            boundaryId,
+            id
+          );
+          return func.metadata &&
+            func.metadata.template &&
+            func.metadata.template.managerUrl
+            ? Superagent.post(
+                appendUrlSegment(func.metadata.template.managerUrl, "uninstall")
+              )
+                .set("Authorization", `Bearer ${auth.access_token}`)
+                .send({
+                  baseUrl: profile.baseUrl,
+                  accountId: profile.account,
+                  subscriptionId,
+                  boundaryId,
+                  functionId: id
+                })
+            : Superagent.delete(
+                `${profile.baseUrl}/v1/account/${profile.account}/subscription/${subscriptionId}/boundary/${boundaryId}/function/${id}`
+              ).set("Authorization", `Bearer ${auth.access_token}`);
+        })()
+      )
+    );
+  } catch (e) {
+    throw createHttpException(e);
   }
 }
 

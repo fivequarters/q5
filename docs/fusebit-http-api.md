@@ -16,6 +16,16 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.15.0
+
+_Released 3/20/20_
+
+- **Feature** Improve support for `async` functions with a new async-specific signature: `async (ctx)`,
+  discarding the callback parameter.
+
+- **Bug fix** Resolve conflicting usage models for non-async functions by requiring a call to the `cb`
+  parameter, discarding any value returned from the function directly.
+
 ## Version 1.14.4
 
 _Released 3/3/20_

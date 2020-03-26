@@ -24,7 +24,7 @@ describe('execution', () => {
     let response = await putFunction(account, boundaryId, function1Id, {
       nodejs: {
         files: {
-          'index.js': 'module.exports = (ctx, cb) => cb(null, { body: "hello" });',
+          'index.js': 'module.exports = async (ctx) => { return { body: "hello" }; };',
           'package.json': {
             engines: {
               node: '10',
@@ -45,7 +45,7 @@ describe('execution', () => {
     let response = await putFunction(account, boundaryId, function1Id, {
       nodejs: {
         files: {
-          'index.js': 'module.exports = (ctx, cb) => cb(null, { body: typeof require("superagent") });',
+          'index.js': 'module.exports = async (ctx) => { return {body: typeof require("superagent") }; };',
           'package.json': {
             dependencies: {
               superagent: '*',
@@ -73,7 +73,7 @@ describe('execution', () => {
     const reflectContext = {
       nodejs: {
         files: {
-          'index.js': 'module.exports = (ctx, cb) => cb(null, { body: ctx });',
+          'index.js': 'module.exports = async (ctx) => { return { body: ctx }; };',
         },
       },
       configuration: {
@@ -110,7 +110,7 @@ describe('execution', () => {
     let response = await putFunction(account, boundaryId, function1Id, {
       nodejs: {
         files: {
-          'index.js': `module.exports = (ctx, cb) => cb(null, { body: "teapot", status: 418 });`,
+          'index.js': `module.exports = async (ctx) => { return { body: "teapot", status: 418 }; };`,
         },
       },
     });
@@ -126,7 +126,7 @@ describe('execution', () => {
     let response = await putFunction(account, boundaryId, function1Id, {
       nodejs: {
         files: {
-          'index.js': `module.exports = (ctx, cb) => cb(null, { body: "teapot", headers: { foo: 'abc', bar: 'def' } });`,
+          'index.js': `module.exports = async (ctx) => { return { body: "teapot", headers: { foo: 'abc', bar: 'def' } }; };`,
         },
       },
     });
@@ -144,7 +144,7 @@ describe('execution', () => {
     let response = await putFunction(account, boundaryId, function1Id, {
       nodejs: {
         files: {
-          'index.js': `module.exports = (ctx, cb) => cb();`,
+          'index.js': `module.exports = async (ctx) => { return {}; };`,
         },
       },
     });
@@ -160,7 +160,7 @@ describe('execution', () => {
     let response = await putFunction(account, boundaryId, function1Id, {
       nodejs: {
         files: {
-          'index.js': `module.exports = (ctx, cb) => cb(null, {});`,
+          'index.js': `module.exports = async (ctx) => { return {}; };`,
         },
       },
     });
@@ -176,7 +176,7 @@ describe('execution', () => {
     let response = await putFunction(account, boundaryId, function1Id, {
       nodejs: {
         files: {
-          'index.js': 'var s = require("superagent"); module.exports = (ctx, cb) => cb(null, { body: typeof s });',
+          'index.js': 'var s = require("superagent"); module.exports = async (ctx) => { return { body: typeof s }; };',
           'package.json': {
             engines: {
               node: '10',
@@ -232,7 +232,7 @@ describe('execution', () => {
     let response = await putFunction(account, boundaryId, function1Id, {
       nodejs: {
         files: {
-          'index.js': 'throw new Error("Some error"); module.exports = (ctx, cb) => cb(null, { body: "hello" });',
+          'index.js': 'throw new Error("Some error"); module.exports = async (ctx) => { return { body: "hello" }; };',
         },
       },
     });
@@ -257,7 +257,7 @@ describe('execution', () => {
     let response = await putFunction(account, boundaryId, function1Id, {
       nodejs: {
         files: {
-          'index.js': 'module.exports = (ctx, cb) => { throw new Error("Sync error"); cb(null, { body: "hello" }); }',
+          'index.js': 'module.exports = async (ctx) => { throw new Error("Sync error"); return { body: "hello" }; };',
         },
       },
     });
@@ -282,7 +282,7 @@ describe('execution', () => {
     let response = await putFunction(account, boundaryId, function1Id, {
       nodejs: {
         files: {
-          'index.js': 'module.exports = (ctx, cb) => cb(new Error("Response error"));',
+          'index.js': 'module.exports = async (ctx) => { throw new Error("Response error"); };',
         },
       },
     });
@@ -307,9 +307,15 @@ describe('execution', () => {
     let response = await putFunction(account, boundaryId, function1Id, {
       nodejs: {
         files: {
-          'index.js': `module.exports = (ctx, cb) => {
-            setTimeout(() => { throw new Error("Async error"); }, 500);
-            setTimeout(() => cb(null, { body: "hello" }), 1000);
+          'index.js': `module.exports = async (ctx) => {
+            return Promise.all([
+                new Promise((resolve, reject) => {
+                  setTimeout(() => { throw new Error("Async error"); }, 500);
+                }),
+                new Promise((resolve, reject) => {
+                  setTimeout(() => { resolve({ body: "hello" }); }, 1000);
+                })
+            ]);
           };`,
           'package.json': {
             engines: {
@@ -338,8 +344,8 @@ describe('execution', () => {
     let response = await putFunction(account, boundaryId, function1Id, {
       nodejs: {
         files: {
-          'index.js': `module.exports = (ctx, cb) => {
-            cb(null, { body: { size: JSON.stringify(ctx.body).length } });
+          'index.js': `module.exports = async (ctx) => {
+            return { body: { size: JSON.stringify(ctx.body).length } };
           };`,
           'package.json': {
             engines: {
@@ -369,8 +375,8 @@ describe('execution', () => {
     let response = await putFunction(account, boundaryId, function1Id, {
       nodejs: {
         files: {
-          'index.js': `module.exports = (ctx, cb) => {
-            cb(null, { body: { size: JSON.stringify(ctx.body).length } });
+          'index.js': `module.exports = async (ctx) => {
+            return { body: { size: JSON.stringify(ctx.body).length } };
           };`,
           'package.json': {
             engines: {
@@ -396,7 +402,7 @@ describe('execution', () => {
     let response = await putFunction(account, boundaryId, function1Id, {
       nodejs: {
         files: {
-          'index.js': `module.exports = cb => cb(null, { body: "hello" });`,
+          'index.js': `module.exports = async (ctx, cb) => { return { body: "hello" }; };`,
         },
       },
     });
@@ -408,36 +414,12 @@ describe('execution', () => {
     expect(response.data).toMatchObject({
       status: 500,
       statusCode: 500,
-      message: 'The function must take two parameters: (ctx, cb).',
+      message: 'The function must take one parameter: async (ctx).',
       properties: {
-        errorMessage: 'The function must take two parameters: (ctx, cb).',
+        errorMessage: 'The function must take one parameter: async (ctx).',
         errorType: expect.any(String),
         // stackTrace: expect.any(Array),
       },
     });
-  }, 10000);
-
-  test('return values ignored in favor of calls to cb()', async () => {
-    let response = await putFunction(account, boundaryId, function1Id, {
-      nodejs: {
-        files: {
-          'index.js': `module.exports = (ctx, cb) => {
-            setTimeout(() => cb(null, { body: "hello" }), 1000);
-            return { body: "failure"};
-          };`,
-          'package.json': {
-            engines: {
-              node: '10',
-            },
-          },
-        },
-      },
-    });
-    expect(response.status).toEqual(200);
-    expect(response.data.status).toEqual('success');
-    response = await request(response.data.location);
-    expect(response.status).toEqual(200);
-    expect(response.data).toEqual('hello');
-    expect(response.headers['x-fx-response-source']).toEqual('function');
   }, 10000);
 });

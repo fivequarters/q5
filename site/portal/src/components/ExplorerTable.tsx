@@ -22,6 +22,7 @@ import FilterListIcon from "@material-ui/icons/FilterList";
 import clsx from "clsx";
 import React from "react";
 import ConfirmationDialog from "./ConfirmationDialog";
+import { LinearProgress } from "@material-ui/core";
 
 function desc<T>(a: T, b: T, orderBy: keyof T) {
   if (b[orderBy] < a[orderBy]) {
@@ -279,8 +280,25 @@ export default function ExplorerTable<T>(props: ExplorerTableProps<T>) {
   const [selected, setSelected] = React.useState<string[]>([]);
   const [page, setPage] = React.useState(0);
   // const [dense, setDense] = React.useState(false);
-  const [rowsPerPage, setRowsPerPage] = React.useState(5);
-  const [confirmDeleteOpen, setConfirmDeleteOpen] = React.useState(false);
+  const [rowsPerPage, setRowsPerPage] = React.useState(10);
+  const [confirmDelete, setConfirmDelete] = React.useState<any>({
+    status: "closed"
+  });
+
+  React.useEffect(() => {
+    let cancelled: boolean = false;
+    if (confirmDelete.status === "initiating") {
+      (async () => {
+        setConfirmDelete({ status: "deleting" });
+        setSelected([]);
+        onDelete && (await onDelete(selected));
+        !cancelled && setConfirmDelete({ status: "closed" });
+      })();
+      return () => {
+        cancelled = true;
+      };
+    }
+  }, [selected, confirmDelete, onDelete]);
 
   const handleRequestSort = (
     event: React.MouseEvent<unknown>,
@@ -300,13 +318,13 @@ export default function ExplorerTable<T>(props: ExplorerTableProps<T>) {
     setSelected([]);
   };
 
-  const handleDeleteDialogOpen = () => setConfirmDeleteOpen(true);
+  const handleDeleteDialogOpen = () => setConfirmDelete({ status: "open" });
 
-  const handleDeleteDialogClose = (confirmed: boolean) => {
-    setConfirmDeleteOpen(false);
+  const handleDelete = (confirmed: boolean) => {
     if (confirmed) {
-      setSelected([]);
-      onDelete && onDelete(selected);
+      setConfirmDelete({ status: "initiating" });
+    } else {
+      setConfirmDelete({ status: "closed" });
     }
   };
 
@@ -364,22 +382,32 @@ export default function ExplorerTable<T>(props: ExplorerTableProps<T>) {
       <Grid container spacing={2}>
         <Grid item xs={size === "narrow" ? 8 : 12}>
           <ConfirmationDialog
-            open={confirmDeleteOpen}
+            open={confirmDelete.status !== "closed"}
             title={
-              deleteTitle
-                ? typeof deleteTitle === "string"
-                  ? deleteTitle
-                  : deleteTitle(selected)
-                : `Confirm delete?`
+              confirmDelete.status === "open"
+                ? deleteTitle
+                  ? typeof deleteTitle === "string"
+                    ? deleteTitle
+                    : deleteTitle(selected)
+                  : `Confirm delete?`
+                : "Deleting..."
             }
             content={
-              deleteContent
-                ? typeof deleteContent === "string"
-                  ? deleteContent
-                  : deleteContent(selected)
-                : `Delete ${selected.length} records?`
+              confirmDelete.status === "open" ? (
+                deleteContent ? (
+                  typeof deleteContent === "string" ? (
+                    deleteContent
+                  ) : (
+                    deleteContent(selected)
+                  )
+                ) : (
+                  `Delete ${selected.length} records?`
+                )
+              ) : (
+                <LinearProgress />
+              )
             }
-            onDone={handleDeleteDialogClose}
+            onDone={handleDelete}
             confirmText="Delete"
           />
           {/* <Paper className={classes.paper}> */}

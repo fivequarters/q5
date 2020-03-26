@@ -9,7 +9,12 @@ import StepLabel from "@material-ui/core/StepLabel";
 import Stepper from "@material-ui/core/Stepper";
 import { makeStyles } from "@material-ui/core/styles";
 import React from "react";
-import { createPermissionsFromRole, noRole, rolesHash } from "../lib/Actions";
+import {
+  createPermissionsFromRole,
+  noRole,
+  rolesHash,
+  sameRole
+} from "../lib/Actions";
 import { Permission, User } from "../lib/FusebitTypes";
 import AddCliIdentityFlow from "./AddCliIdentityFlow";
 import AddOauthImplicitIdentityFlow from "./AddOauthImplicitIdentityFlow";
@@ -76,7 +81,7 @@ function NewAgentImpl() {
 
   const handleRoleChange = (role: any) => {
     setRole(role);
-    if (role.role !== "developer") {
+    if (role.role !== "developer" && role.role !== "same") {
       setResource(createInitialResurce());
       setDefaultResource(createInitialResurce());
     }
@@ -228,11 +233,18 @@ function NewAgentImpl() {
                   The following permissions will be granted for the {agentNoun}{" "}
                   as part of the <strong>{role.title}</strong> permission set:
                 </DialogContentText>
-                <PermissionReviewTable
-                  actions={rolesHash[role.role].actions}
-                  resource={resource}
-                />
-                <DialogContentText>&nbsp;</DialogContentText>
+                {role.role !== sameRole.role && (
+                  <PermissionReviewTable
+                    actions={rolesHash[role.role].actions}
+                    resource={resource}
+                  />
+                )}
+                {role.role === sameRole.role && (
+                  <PermissionReviewTable
+                    allow={(profile.me && profile.me.access.allow) || []}
+                  />
+                )}
+                <br></br>
               </React.Fragment>
             )}
             <DialogContentText>
@@ -351,9 +363,10 @@ function NewAgentImpl() {
               onRoleChange={handleRoleChange}
               autoFocus
               allowNoRole
+              allowSameRole
               disabled={agent.status !== "ready"}
             />
-            {role.role !== noRole.role && (
+            {role.role !== noRole.role && role.role !== sameRole.role && (
               <DialogContentText>
                 <br></br>
                 Apply the permission set to:

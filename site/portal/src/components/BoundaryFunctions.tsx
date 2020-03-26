@@ -1,10 +1,15 @@
 import React from "react";
 import LinearProgress from "@material-ui/core/LinearProgress";
+import DialogContentText from "@material-ui/core/DialogContentText";
 import ExplorerTable, { HeadCell } from "./ExplorerTable";
 import PortalError from "./PortalError";
 import Link from "@material-ui/core/Link";
 import { Link as RouterLink } from "react-router-dom";
-import { useBoundaries } from "./BoundariesProvider";
+import { useBoundaries, reloadBoundaries } from "./BoundariesProvider";
+import ActionButton from "./ActionButton";
+import { deleteFunctions } from "../lib/Fusebit";
+import { useProfile } from "./ProfileProvider";
+import { FusebitError } from "./ErrorBoundary";
 
 interface ViewRow {
   id: string;
@@ -14,8 +19,9 @@ interface ViewRow {
   // executionsLast24h: string;
 }
 
-function BoundaryFunctions({ boundaryId }: any) {
-  const [boundaries] = useBoundaries();
+function BoundaryFunctions({ boundaryId, subscriptionId }: any) {
+  const { profile } = useProfile();
+  const [boundaries, setBoundaries] = useBoundaries();
 
   const createViewRow = (dataRow: any): ViewRow => ({
     id: dataRow.functionId as string
@@ -69,6 +75,42 @@ function BoundaryFunctions({ boundaryId }: any) {
     []
   ).map(createViewRow);
 
+  const handleDelete = async (selected: string[]) => {
+    try {
+      await deleteFunctions(profile, subscriptionId, boundaryId, selected);
+    } catch (e) {
+      setBoundaries({
+        status: "error",
+        error: new FusebitError("Error deleting functions", {
+          details:
+            (e.status || e.statusCode) === 403
+              ? "You are not authorized to delete one or more of the selected functions."
+              : e.message || "Unknown error.",
+          actions: [
+            {
+              text: "Back to functions",
+              func: () => reloadBoundaries(boundaries, setBoundaries)
+            }
+          ]
+        })
+      });
+      return;
+    }
+    reloadBoundaries(boundaries, setBoundaries);
+  };
+
+  const generateDeleteContent = (selected: string[]) => {
+    return (
+      <div>
+        <DialogContentText>
+          {selected.length > 1
+            ? `You are about to delete ${selected.length} functions.`
+            : `You are about to delete the selected function.`}
+        </DialogContentText>
+      </div>
+    );
+  };
+
   return (
     <ExplorerTable<ViewRow>
       rows={viewData}
@@ -77,6 +119,19 @@ function BoundaryFunctions({ boundaryId }: any) {
       identityKey="id"
       title="Functions"
       size="narrow"
+      enableSelection={true}
+      onDelete={handleDelete}
+      deleteTitle={selected =>
+        selected.length > 1
+          ? `Delete ${selected.length} functions?`
+          : "Delete the function?"
+      }
+      deleteContent={generateDeleteContent}
+      actions={
+        <ActionButton to="new-function" component={RouterLink}>
+          New&nbsp;function
+        </ActionButton>
+      }
     />
   );
 }

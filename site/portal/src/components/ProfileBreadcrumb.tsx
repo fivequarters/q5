@@ -38,8 +38,18 @@ const tree = {
               paramName: "functionId",
               text: (params: any, profile: any) => params.functionId,
               children: []
+            },
+            {
+              paramName: "newBoundaryFunction",
+              text: (params: any, profile: any) => "New Function",
+              children: []
             }
           ]
+        },
+        {
+          paramName: "newSubscriptionFunction",
+          text: (params: any, profile: any) => "New Function",
+          children: []
         }
       ]
     },
