@@ -48,12 +48,15 @@ describe('log', () => {
       const logsPromise = getLogs(account, boundaryId, boundary ? undefined : function1Id);
 
       // Real time logs can take up to 5s to become effective
-      await new Promise(resolve => setTimeout(resolve, 10000));
+      await new Promise(resolve => setTimeout(resolve, 6000));
 
       for (var i = 1; i < 5; i++) {
         response = await request(`${functionUrl}?n=${i}`);
         expect(response.status).toEqual(200);
       }
+
+      // Wait for logs to drain
+      await new Promise(resolve => setTimeout(resolve, 4000));
 
       const logResponse = await logsPromise;
       expect(logResponse.status).toEqual(200);
@@ -69,7 +72,58 @@ describe('log', () => {
     };
   }
 
-  test('function logs work on node 10', create_positive_log_test('10', false), 20000);
+  test('function logs work on node 10', create_positive_log_test('10', false), 30000);
 
-  test('boundary logs work on node 10', create_positive_log_test('10', true), 20000);
+  test('boundary logs work on node 10', create_positive_log_test('10', true), 30000);
+
+  function create_exception_log_test(ret: boolean, sync: boolean) {
+    return async () => {
+      let response = await putFunction(account, boundaryId, function1Id, {
+        nodejs: {
+          files: {
+            'index.js': ret
+              ? `module.exports = (ctx, cb) => { console.log('ALL IS WELL'); cb(new Error('Foo')); }`
+              : sync
+              ? `module.exports = (ctx, cb) => { console.log('ALL IS WELL'); throw new Error('Foo'); }`
+              : `module.exports = (ctx, cb) => { console.log('ALL IS WELL'); setTimeout(() => { throw new Error('Foo'); }, 1000); }`,
+            'package.json': {
+              engines: {
+                node: '10',
+              },
+            },
+          },
+        },
+      });
+      expect(response.status).toEqual(200);
+      expect(response.data).toMatchObject({
+        location: expect.stringMatching(/^http:|https:/),
+      });
+
+      const functionUrl = response.data.location;
+      const logsPromise = getLogs(account, boundaryId, function1Id);
+
+      // Real time logs can take up to 5s to become effective
+      await new Promise(resolve => setTimeout(resolve, 6000));
+
+      response = await request(functionUrl);
+      expect(response.status).toEqual(500);
+
+      // Wait for logs to drain
+      await new Promise(resolve => setTimeout(resolve, 4000));
+
+      const logResponse = await logsPromise;
+      expect(logResponse.status).toEqual(200);
+      expect(logResponse.headers['content-type']).toMatch(/text\/event-stream/);
+      let i1 = logResponse.data.indexOf('ALL IS WELL');
+      let i2 = logResponse.data.indexOf('Foo');
+      expect(i1).toBeGreaterThan(0);
+      expect(i2).toBeGreaterThan(i1);
+    };
+  }
+
+  test('sync exception is propagated to logs', create_exception_log_test(false, true), 30000);
+
+  test('async exception is propagated to logs', create_exception_log_test(false, false), 30000);
+
+  test('returned exception is propagated to logs', create_exception_log_test(true, false), 30000);
 });

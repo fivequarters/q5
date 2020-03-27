@@ -549,6 +549,14 @@ export class FunctionService {
                   }
                   this.input.io.write(Text.dim(`[${new Date(parsed.time).toLocaleTimeString()}] `));
                   this.input.io.writeLineRaw(parsed.level > 30 ? Text.red(parsed.msg).toString() : parsed.msg);
+                  if (parsed.properties) {
+                    let trace = parsed.properties.trace || parsed.properties.stackTrace;
+                    if (trace && Array.isArray(trace)) {
+                      trace.forEach(line => {
+                        this.input.io.writeLineRaw(parsed.level > 30 ? Text.red(line).toString() : line);
+                      });
+                    }
+                  }
                 }
               }
             },
@@ -617,9 +625,7 @@ export class FunctionService {
       },
       {
         method: 'GET',
-        url: `${profile.baseUrl}/v1/account/${profile.account}/subscription/${
-          profile.subscription
-        }${boundaryUrl}${queryString}`,
+        url: `${profile.baseUrl}/v1/account/${profile.account}/subscription/${profile.subscription}${boundaryUrl}${queryString}`,
         headers: { Authorization: `bearer ${profile.accessToken}` },
       }
     );
@@ -764,9 +770,7 @@ export class FunctionService {
       },
       {
         method: 'PUT',
-        url: `${profile.baseUrl}/v1/account/${profile.account}/subscription/${profile.subscription}/boundary/${
-          profile.boundary
-        }/function/${profile.function}`,
+        url: `${profile.baseUrl}/v1/account/${profile.account}/subscription/${profile.subscription}/boundary/${profile.boundary}/function/${profile.function}`,
         headers: {
           Authorization: `Bearer ${profile.accessToken}`,
         },
