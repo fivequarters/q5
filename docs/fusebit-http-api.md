@@ -16,6 +16,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.15.1
+
+_Released 3/26/20_
+
+- **Real-time logging improvements** The real-time logging endpoint now returns information about errors returned from Fusebit functions as well as unhanded exceptions thrown by Fusebit function code.
+
 ## Version 1.15.0
 
 _Released 3/20/20_

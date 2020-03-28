@@ -16,6 +16,12 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.8.1
+
+_Released 3/26/20_
+
+- **Support exceptions in real-time logs**. The `fuse function log` command now displays information about errors returned from Fusebit functions as well as unhanded exceptions thrown by Fusebit function code.
+
 ## Version 1.8.0
 
 _Released 1/7/20_
