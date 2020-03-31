@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 const stackTrace = require('stack-trace');
-import { dispatch_event as dispatchEvent } from '@5qtrs/function-lambda' };
+import { dispatch_event as dispatchEvent } from '@5qtrs/function-lambda';
 
 const whitelistedReqFields = [
   'headers', 'httpVersionMajor', 'httpVersionMinor', 'method', 'url',
@@ -8,12 +8,13 @@ const whitelistedReqFields = [
 ];
 
 exports.enterHandler = (req, res, next) => {
-  req.startTime = Date.now();
-  res.requestId = uuidv4();
+  req.requestId = uuidv4();
   res.metrics = {};
 
   var end = res.end;
   res.end = (chunk, encoding) => {
+    res.endTime = Date.now();
+
     // Propagate the response.
     res.end = end;
     res.end(chunk, encoding);
@@ -25,15 +26,15 @@ exports.enterHandler = (req, res, next) => {
       res.error.stack = dissectTrace(res.error);
     }
 
-    const event = {
-      requestId: res.requestId,
+    dispatchEvent({
+      requestId: req.requestId,
       startTime: req._startTime,
+      endTime: res.endTime,
       request: reqProps,
       metrics: res.metrics,
       statusCode: res.statusCode,
       error: res.error,
-    };
-    dispatchEvent(event);
+    });
   }
   next();
 };

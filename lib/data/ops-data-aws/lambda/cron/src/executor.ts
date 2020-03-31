@@ -122,15 +122,11 @@ function logCronResult(details: any) {
     query: {}
   };
 
-  let statusCode;
-  let endTime = Date.now();
-
-  console.log('details:', details);
-
   const event = {
     mode: 'cron',
     requestId: uuidv4(),
     startTime: details.startTime,
+    endTime: Date.now(),
     request: request,
     metrics: { cron: { deviation: 0 } },// XXX Find the real-time deviation between scheduled and actual execution
     error: {},
@@ -151,7 +147,7 @@ function logCronResult(details: any) {
     delete event.error;
   }
 
-  dispatchApiEvent(event);
+  Lambda.dispatch_Event(event);
 }
 
 

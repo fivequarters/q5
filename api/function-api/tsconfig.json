@@ -20,6 +20,7 @@
     { "path": "../../lib/aws/aws-config" },
     { "path": "../../lib/data/storage-data" },
     { "path": "../../lib/data/storage-data-aws" },
-    { "path": "../../lib/server/storage" }
+    { "path": "../../lib/server/storage" },
+    { "path": "../../lib/server/function-lambda" }
   ]
 }
