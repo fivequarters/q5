@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const analytics = require('./middleware/analytics');
 const determine_provider = require('./middleware/determine_provider');
 const parse_body_conditional = require('./middleware/parse_body_conditional');
 const provider_handlers = require('./handlers/provider_handlers');
@@ -593,26 +594,6 @@ router.delete(
 );
 
 // Not part of public contract
-
-const registerBefore = (req, res, next) => {
-  var end = res.end;
-  res.end = (chunk, encoding) => {
-    // Propagate the response.
-    res.end = end;
-    res.end(chunk, encoding);
-    // Perform an async dispatch to the log server here.
-    console.log('response', res.statusCode, res.error.errorMessage);
-  }
-  next();
-};
-
-const registerAfter = (err, req, res, next) => {
-  // This captures internal exceptions that are caught by express.
-  console.log('error received:', err.name);
-  res.error = err;
-  next(err);
-};
-
 let run_route = /^\/run\/([^\/]+)\/([^\/]+)\/([^\/]+).*$/;
 function promote_to_name_params(req, res, next) {
   req.params.subscriptionId = req.params[0];
@@ -629,7 +610,7 @@ router.options(run_route, cors(corsExecutionOptions));
 ['post', 'put', 'patch'].forEach(verb => {
   router[verb](
     run_route,
-    registerBefore,
+    analytics.enterHandler,
     cors(corsExecutionOptions),
     promote_to_name_params,
     validate_schema({
@@ -640,14 +621,14 @@ router.options(run_route, cors(corsExecutionOptions));
       condition: req => req.provider === 'lambda',
     }),
     (req, res, next) => provider_handlers[req.provider].execute_function(req, res, next),
-    registerAfter
+    analytics.finished
   );
 });
 
 ['delete', 'get', 'head'].forEach(verb => {
   router[verb](
     run_route,
-    registerBefore,
+    analytics.enterHandler,
     cors(corsExecutionOptions),
     promote_to_name_params,
     validate_schema({
@@ -655,7 +636,7 @@ router.options(run_route, cors(corsExecutionOptions));
     }),
     determine_provider(),
     (req, res, next) => provider_handlers[req.provider].execute_function(req, res, next),
-    registerAfter
+    analytics.finished
   );
 });
 

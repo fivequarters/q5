@@ -7,6 +7,7 @@ import list_functions from './list_functions';
 import put_function from './put_function.js';
 import get_logs from './get_logs.js';
 import post_logs from './post_logs.js';
+import dispatch_event  from './analytics.js';
 
 export {
   put_function,
@@ -18,4 +19,5 @@ export {
   get_location,
   get_logs,
   post_logs,
+  dispatch_event,
 };

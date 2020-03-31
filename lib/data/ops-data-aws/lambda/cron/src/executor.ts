@@ -2,6 +2,9 @@ import * as AWS from 'aws-sdk';
 import * as Async from 'async';
 import * as Crypto from 'crypto';
 import * as Jwt from 'jsonwebtoken';
+import { v4 as uuidv4 } from 'uuid';
+
+const Lambda = require('./function-lambda');
 
 const s3 = new AWS.S3({
   apiVersion: '2006-03-01',
@@ -55,7 +58,7 @@ export function executor(event: any, context: any, cb: any) {
         body,
         headers: {},
         query: {},
-        method: 'CRON',
+        method: 'cron',
       };
 
       if (process.env.LOGS_WS_URL) {
@@ -71,22 +74,89 @@ export function executor(event: any, context: any, cb: any) {
         };
       }
 
-      return lambda.invokeAsync(
-        {
-          FunctionName: get_user_function_name(body),
-          InvokeArgs: JSON.stringify(options),
-        },
-        e => {
-          if (e) {
-            result.failure.push(msg);
-          } else {
-            result.success.push(msg);
-          }
-          return cb();
+      let startTime = Date.now();
+
+      let req = {
+        method: 'cron',
+        url: get_user_function_url(options.body),
+        body: options,
+        headers: {},
+        query: {},
+
+        params: body,
+      };
+
+      let res = new class {
+        headers: any = {};
+        statusCode: number = 0;
+        set(hdr: string, val: string) { this.headers[hdr] = val; }
+        status(code: number) { this.statusCode = code; }
+        json(result: any) { Object.assign(this, result); }
+        end(body: any, bodyEncoding: string) { handler(null); }
+      };
+
+      let handler = (e: any) => {
+        logCronResult({ options: options, error: e, response: res, startTime: startTime });
+        if (e) {
+          result.failure.push(msg);
+        } else {
+          result.success.push(msg);
         }
-      );
+        return cb();
+      };
+
+      let r = Lambda.execute_function(req, res, handler);
+      console.log('result', r);
+      return r;
     }
   }
+}
+
+function logCronResult(details: any) {
+  const request = {
+    method: 'CRON',
+    url: get_user_function_url(details.options.body),
+    path: details.FunctionName,
+    params: details.options.body,
+    protocol: 'cron',
+    query: {}
+  };
+
+  let statusCode;
+  let endTime = Date.now();
+
+  console.log('details:', details);
+
+  const event = {
+    mode: 'cron',
+    requestId: uuidv4(),
+    startTime: details.startTime,
+    request: request,
+    metrics: { cron: { deviation: 0 } },// XXX Find the real-time deviation between scheduled and actual execution
+    error: {},
+    statusCode: 0,
+  };
+
+  if (details.error) {
+    if (details.error.code === 'ResourceNotFoundException') {
+      event.statusCode = 404;
+    } else if (details.error.code === 'TooManyRequestsException') {
+      event.statusCode = 503;
+    } else {
+      event.statusCode = 500;
+    }
+    event.error = { errorType: 'Error', errorMessage: details.error.code };
+  } else {
+    event.statusCode = 200;
+    delete event.error;
+  }
+
+  dispatchApiEvent(event);
+}
+
+
+function get_user_function_url(options: any) {
+  return `/run/${options.subscriptionId}/${options.boundaryId}/${options.functionId}`;
 }
 
 function get_user_function_description(options: any) {

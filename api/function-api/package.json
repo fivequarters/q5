@@ -32,8 +32,11 @@
     "express": "^4.16.4",
     "http-errors": "^1.7.1",
     "joi": "^14.3.1",
+    "logstash-client": "^1.1.1",
     "morgan": "^1.9.1",
+    "stack-trace": "0.0.10",
     "swagger-ui-express": "^4.0.2",
+    "uuid": "^7.0.2",
     "yamljs": "^0.3.0"
   },
   "devDependencies": {
