@@ -22,9 +22,6 @@ exports.enterHandler = (req, res, next) => {
     // Prepare the event object with a select set of properties.
     const reqProps = {};
     whitelistedReqFields.forEach((p) => reqProps[p] = req[p]);
-    if (res.error != null) {
-      res.error.stack = dissectTrace(res.error);
-    }
 
     dispatchEvent({
       requestId: req.requestId,
