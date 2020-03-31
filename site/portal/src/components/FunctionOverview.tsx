@@ -1,19 +1,20 @@
+import { FusebitColor } from "@5qtrs/fusebit-color";
+import { FusebitMark } from "@5qtrs/fusebit-mark";
+import Button from "@material-ui/core/Button";
 import Grid from "@material-ui/core/Grid";
-import LinearProgress from "@material-ui/core/LinearProgress";
-import { makeStyles } from "@material-ui/core/styles";
-import React from "react";
-import { useHistory } from "react-router-dom";
-import CloneFunctionDialog from "./CloneFunctionDialog";
-import EditMetadataDialog from "./EditMetadataDialog";
-import { FunctionProvider, useFunction } from "./FunctionProvider";
-import PortalError from "./PortalError";
-import TemplateCard from "./TemplateCard";
+import Icon from "@material-ui/core/Icon";
 import IconButton from "@material-ui/core/IconButton";
 import InputAdornment from "@material-ui/core/InputAdornment";
+import LinearProgress from "@material-ui/core/LinearProgress";
+import { makeStyles } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import FileCopyIcon from "@material-ui/icons/FileCopy";
 import LinkIcon from "@material-ui/icons/Link";
+import OpenInNewIcon from "@material-ui/icons/OpenInNew";
+import React from "react";
+import { useFunction } from "./FunctionProvider";
 import InputWithIcon from "./InputWithIcon";
+import PortalError from "./PortalError";
 
 const useStyles = makeStyles(theme => ({
   gridContainer: {
@@ -26,28 +27,14 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-function FunctionOverview({ subscriptionId, boundaryId, functionId }: any) {
-  return (
-    <FunctionProvider
-      subscriptionId={subscriptionId}
-      boundaryId={boundaryId}
-      functionId={functionId}
-    >
-      <FunctionOverviewImpl />
-    </FunctionProvider>
-  );
-}
-
-function FunctionOverviewImpl() {
-  const [cloneOpen, setCloneOpen] = React.useState(false);
-  const [editMetadataOpen, setEditMetadataOpen] = React.useState(false);
-  const history = useHistory();
+function FunctionOverview() {
   const classes = useStyles();
   const [func] = useFunction();
 
-  const handleEditCode = () => {
-    history.replace("code");
-  };
+  const template =
+    func.status === "ready" &&
+    func.existing.metadata &&
+    func.existing.metadata.template;
 
   return (
     <Grid container className={classes.gridContainer}>
@@ -88,32 +75,48 @@ function FunctionOverviewImpl() {
               }}
             />
           </InputWithIcon>
-          <div className={classes.tile}>
-            <TemplateCard
-              template={
-                (func.existing.metadata && func.existing.metadata.template) || {
-                  name: func.functionId,
-                  description: "Custom function"
-                }
+          {template && (
+            <InputWithIcon
+              icon={
+                template.icon ? (
+                  <Icon>{template.icon}</Icon>
+                ) : (
+                  <FusebitMark
+                    size={24}
+                    margin={0}
+                    color={FusebitColor.black}
+                  />
+                )
               }
-              installed
-              onEditCode={handleEditCode}
-              onEditMetadata={() => setEditMetadataOpen(true)}
-              onClone={() => setCloneOpen(true)}
-            />
-          </div>
+            >
+              <TextField
+                label="Function template"
+                // margin="dense"
+                variant="outlined"
+                value={template.name}
+                fullWidth
+                disabled={true}
+                InputProps={
+                  template.documentationUrl && {
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <Button
+                          variant="text"
+                          color="primary"
+                          href={template.documentationUrl}
+                          target="_blank"
+                        >
+                          Learn&nbsp;more&nbsp;
+                          <OpenInNewIcon />
+                        </Button>
+                      </InputAdornment>
+                    )
+                  }
+                }
+              />
+            </InputWithIcon>
+          )}
         </Grid>
-      )}
-      {cloneOpen && (
-        <CloneFunctionDialog
-          onClose={() => setCloneOpen(false)}
-          subscriptionId={func.subscriptionId}
-          boundaryId={func.boundaryId}
-          functionId={func.functionId}
-        />
-      )}
-      {editMetadataOpen && (
-        <EditMetadataDialog onClose={() => setEditMetadataOpen(false)} />
       )}
     </Grid>
   );

@@ -35,6 +35,8 @@ import ResourceAccess from "./ResourceAccess";
 import NewFunction from "./NewFunction";
 import NewFunctionFab from "./NewFunctionFab";
 import NewFunctionCreate from "./NewFunctionCreate";
+import FunctionActionFab from "./FunctionActionFab";
+import { FunctionProvider } from "./FunctionProvider";
 
 const useStyles = makeStyles(theme => ({
   paper: {
@@ -522,30 +524,6 @@ function ProfileExplorer({ ...rest }: any) {
         />
 
         <Route
-          path="/accounts/:accountId/subscriptions/:subscriptionId/boundaries/:boundaryId/functions/:functionId/access"
-          exact={true}
-          render={({ match, ...rest }) => (
-            <ExplorerView
-              tabs={ExplorerTabs.oneFunction}
-              match={match}
-              {...rest}
-            >
-              <AgentsProvider agentType="both">
-                <ResourceAccess
-                  actionPrefixFilter={["function", "audit"]}
-                  resourceFilter={{
-                    accountId: match.params.accountId,
-                    subscriptionId: match.params.subscriptionId,
-                    boundaryId: match.params.boundaryId,
-                    functionId: match.params.functionId
-                  }}
-                />
-              </AgentsProvider>
-            </ExplorerView>
-          )}
-        />
-
-        <Route
           path="/accounts/:accountId/subscriptions/:subscriptionId/access"
           exact={true}
           render={({ match, ...rest }) => (
@@ -574,23 +552,56 @@ function ProfileExplorer({ ...rest }: any) {
             <BoundariesProvider subscriptionId={match.params.subscriptionId}>
               <Switch>
                 <Route
-                  path={`${match.path}/boundaries/:boundaryId/functions/:functionId/overview`}
-                  exact={true}
-                  render={({ match, ...rest }) => (
-                    <ExplorerView
-                      tabs={ExplorerTabs.oneFunction}
-                      match={match}
-                      {...rest}
+                  path={`${match.path}/boundaries/:boundaryId/functions/:functionId`}
+                  render={({ match }) => (
+                    <FunctionProvider
+                      subscriptionId={match.params.subscriptionId}
+                      boundaryId={match.params.boundaryId}
+                      functionId={match.params.functionId}
                     >
-                      <FunctionOverview
-                        subscriptionId={match.params.subscriptionId}
-                        boundaryId={match.params.boundaryId}
-                        functionId={match.params.functionId}
-                      />
-                    </ExplorerView>
+                      <Switch>
+                        <Route
+                          path={`${match.path}/overview`}
+                          exact={true}
+                          render={({ match, ...rest }) => (
+                            <ExplorerView
+                              tabs={ExplorerTabs.oneFunction}
+                              match={match}
+                              fab={<FunctionActionFab />}
+                              {...rest}
+                            >
+                              <FunctionOverview />
+                            </ExplorerView>
+                          )}
+                        />
+                        <Route
+                          path={`${match.path}/access`}
+                          exact={true}
+                          render={({ match, ...rest }) => (
+                            <ExplorerView
+                              tabs={ExplorerTabs.oneFunction}
+                              match={match}
+                              fab={<FunctionActionFab />}
+                              {...rest}
+                            >
+                              <AgentsProvider agentType="both">
+                                <ResourceAccess
+                                  actionPrefixFilter={["function", "audit"]}
+                                  resourceFilter={{
+                                    accountId: match.params.accountId,
+                                    subscriptionId: match.params.subscriptionId,
+                                    boundaryId: match.params.boundaryId,
+                                    functionId: match.params.functionId
+                                  }}
+                                />
+                              </AgentsProvider>
+                            </ExplorerView>
+                          )}
+                        />
+                      </Switch>
+                    </FunctionProvider>
                   )}
                 />
-
                 <Route
                   path={`${match.path}/boundaries`}
                   exact={true}

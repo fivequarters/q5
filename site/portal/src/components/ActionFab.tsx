@@ -17,7 +17,7 @@ const useStyles = makeStyles((theme: any) => ({
   },
   paper: {
     marginTop: theme.spacing(1),
-    minWidth: 422
+    minWidth: 220
   },
   header: {
     padding: theme.spacing(2),
@@ -25,7 +25,7 @@ const useStyles = makeStyles((theme: any) => ({
   }
 }));
 
-function ActionFab({ title, subtitle, actions }: any) {
+function ActionFab({ title, subtitle, actions, color, icon }: any) {
   const classes = useStyles();
   const [open, setOpen] = React.useState(false);
   const anchorRef = React.useRef<HTMLButtonElement>(null);
@@ -70,13 +70,13 @@ function ActionFab({ title, subtitle, actions }: any) {
   return (
     <div>
       <Fab
-        color="secondary"
+        color={color || "secondary"}
         ref={anchorRef}
         aria-controls={open ? "menu-list-grow" : undefined}
         aria-haspopup="true"
         onClick={handleToggle}
       >
-        <BuildIcon className={classes.icon} />
+        {icon || <BuildIcon className={classes.icon} />}
       </Fab>
       <Popper
         open={open}
