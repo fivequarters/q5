@@ -1,0 +1,62 @@
+{
+  "templates": [
+    {
+      "id": "empty",
+      "name": "Empty Function",
+      "description": "Node.js with NPM",
+      "tags": ["nodejs", "npm", "fusebit", "empty"],
+      "managerUrl": "https://stage.us-west-2.fusebit.io/v1/run/sub-ed9d9341ea356841/template-manager/empty",
+      "documentationUrl": "https://github.com/fusebit/samples"
+    },
+    {
+      "id": "jira-slack-poll",
+      "name": "Jira-Slack Poll",
+      "icon": "poll",
+      "description": "Send satisfaction poll to Slack when Jira issue is closed",
+      "tags": ["slack", "jira", "poll"],
+      "managerUrl": "https://stage.us-west-2.fusebit.io/v1/run/sub-ed9d9341ea356841/template-manager/jira-slack-poll",
+      "documentationUrl": "https://github.com/fusebit/samples"
+    },
+    {
+      "id": "google-calendar-list",
+      "name": "Google Calendar",
+      "icon": "calendar_today",
+      "description": "List events on the Google calendar",
+      "tags": ["google", "calendar", "events"],
+      "managerUrl": "https://stage.us-west-2.fusebit.io/v1/run/sub-ed9d9341ea356841/template-manager/google-calendar-list",
+      "documentationUrl": "https://github.com/fusebit/samples"
+    },
+    {
+      "id": "hubspot-s3-import",
+      "name": "Hubspot-S3 Import",
+      "icon": "account_box",
+      "description": "Import contacts from Hubspot to S3",
+      "tags": ["hubspot", "s3"],
+      "documentationUrl": "https://github.com/fusebit/samples"
+    },
+    {
+      "id": "zendesk-salesforce-sync",
+      "name": "Zendesk-Salesforce Sync",
+      "icon": "supervisor_account",
+      "description": "Synchronize leads between Zendesk and Salesforce",
+      "tags": ["salesforce", "zendesk"],
+      "documentationUrl": "https://github.com/fusebit/samples"
+    },
+    {
+      "id": "slack-report",
+      "name": "Slack Report",
+      "icon": "chat",
+      "description": "Send daily report to Slack",
+      "tags": ["slack", "report"],
+      "documentationUrl": "https://github.com/fusebit/samples"
+    },
+    {
+      "id": "email-report",
+      "name": "Email Report",
+      "icon": "email",
+      "description": "Send daily report by e-mail",
+      "tags": ["email", "report"],
+      "documentationUrl": "https://github.com/fusebit/samples"
+    }
+  ]
+}

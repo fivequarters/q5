@@ -1,41 +1,123 @@
-import React from "react";
-import { makeStyles } from "@material-ui/core/styles";
-import { useHistory } from "react-router-dom";
-// import { makeStyles } from "@material-ui/core/styles";
-// import { useProfile } from "./ProfileProvider";
-import Grid from "@material-ui/core/Grid";
+import { FusebitColor } from "@5qtrs/fusebit-color";
+import { FusebitMark } from "@5qtrs/fusebit-mark";
 import Button from "@material-ui/core/Button";
-// import Paper from "@material-ui/core/Paper";
-// import Tabs from "@material-ui/core/Tabs";
-// import Tab from "@material-ui/core/Tab";
-// import { FusebitError } from "./ErrorBoundary";
+import Grid from "@material-ui/core/Grid";
+import Icon from "@material-ui/core/Icon";
+import IconButton from "@material-ui/core/IconButton";
+import InputAdornment from "@material-ui/core/InputAdornment";
+import LinearProgress from "@material-ui/core/LinearProgress";
+import { makeStyles } from "@material-ui/core/styles";
+import TextField from "@material-ui/core/TextField";
+import FileCopyIcon from "@material-ui/icons/FileCopy";
+import LinkIcon from "@material-ui/icons/Link";
+import OpenInNewIcon from "@material-ui/icons/OpenInNew";
+import React from "react";
+import { useFunction } from "./FunctionProvider";
+import InputWithIcon from "./InputWithIcon";
+import PortalError from "./PortalError";
 
 const useStyles = makeStyles(theme => ({
   gridContainer: {
     marginLeft: theme.spacing(2),
     marginRight: theme.spacing(2),
     marginBottom: theme.spacing(2)
+  },
+  tile: {
+    marginLeft: theme.spacing(3)
   }
 }));
 
 function FunctionOverview() {
-  const history = useHistory();
   const classes = useStyles();
-  // const { profile } = useProfile();
-  // const classes = useStyles();
-  // const { params } = match;
+  const [func] = useFunction();
 
-  const handleEditCode = () => {
-    history.replace("code");
-  };
+  const template =
+    func.status === "ready" &&
+    func.existing.metadata &&
+    func.existing.metadata.template;
 
   return (
     <Grid container className={classes.gridContainer}>
-      <Grid item xs={12}>
-        <Button color="primary" variant="contained" onClick={handleEditCode}>
-          Edit Code
-        </Button>
-      </Grid>
+      {func.status === "error" && (
+        <Grid item xs={12}>
+          <PortalError error={func.error} />
+        </Grid>
+      )}
+      {(func.status === "updating" || func.status === "loading") && (
+        <Grid item xs={12}>
+          <LinearProgress />
+        </Grid>
+      )}
+      {func.status === "ready" && (
+        <Grid item xs={8}>
+          <InputWithIcon icon={<LinkIcon />}>
+            <TextField
+              label="Function base URL"
+              // margin="dense"
+              variant="outlined"
+              value={func.existing.location}
+              fullWidth
+              disabled={true}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() =>
+                        func.existing.location &&
+                        navigator.clipboard.writeText(func.existing.location)
+                      }
+                      color="inherit"
+                    >
+                      <FileCopyIcon fontSize="inherit" />
+                    </IconButton>
+                  </InputAdornment>
+                )
+              }}
+            />
+          </InputWithIcon>
+          {template && (
+            <InputWithIcon
+              icon={
+                template.icon ? (
+                  <Icon>{template.icon}</Icon>
+                ) : (
+                  <FusebitMark
+                    size={24}
+                    margin={0}
+                    color={FusebitColor.black}
+                  />
+                )
+              }
+            >
+              <TextField
+                label="Function template"
+                // margin="dense"
+                variant="outlined"
+                value={template.name}
+                fullWidth
+                disabled={true}
+                InputProps={
+                  template.documentationUrl && {
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <Button
+                          variant="text"
+                          color="primary"
+                          href={template.documentationUrl}
+                          target="_blank"
+                        >
+                          Learn&nbsp;more&nbsp;
+                          <OpenInNewIcon />
+                        </Button>
+                      </InputAdornment>
+                    )
+                  }
+                }
+              />
+            </InputWithIcon>
+          )}
+        </Grid>
+      )}
     </Grid>
   );
 }

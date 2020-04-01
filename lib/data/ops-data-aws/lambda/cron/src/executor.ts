@@ -73,7 +73,7 @@ export function executor(event: any, context: any, cb: any) {
       }
 
       let startTime = Date.now();
-      let deviation = startTime - Date.parse(Cron.parseExpression(request.params.cron, {
+      let deviation = startTime - Date.parse(Cron.parseExpression(body.cron, {
         currentDate: new Date(startTime),
         iterator: true
       }).prev().toString());
