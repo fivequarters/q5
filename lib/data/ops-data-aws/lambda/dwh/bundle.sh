@@ -14,7 +14,7 @@ cp package.json libc/
 npm install --no-package-lock --prod --prefix ./libc 
 rm -f libc/package.json
 cd libc
-zip -r ../../../libc/dwh_export.zip node_modules *.js
+zip -qdgds 1m -r ../../../libc/dwh_export.zip node_modules *.js
 cd ..
 rm -rf libc/node_modules
 ls -al ../../libc/dwh_export.zip

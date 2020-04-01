@@ -1,5 +1,7 @@
-import execute_function from './execute_function.js';
-import dispatch_event from './analytics.js';
+// @ts-ignore
+import { execute_function } from './execute_function.js';
+// @ts-ignore
+import { dispatch_event } from './analytics.js';
 
 export {
   execute_function,

@@ -1,5 +1,6 @@
 import * as AWS from 'aws-sdk';
 import * as Async from 'async';
+import * as Cron from 'cron-parser';
 import * as Crypto from 'crypto';
 import * as Jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
@@ -9,9 +10,6 @@ const Lambda = require('./function-lambda');
 const s3 = new AWS.S3({
   apiVersion: '2006-03-01',
   signatureVersion: 'v4',
-});
-const lambda = new AWS.Lambda({
-  apiVersion: '2015-03-31',
 });
 
 const concurrentExecutionLimit = +(<string>process.env.CRON_CONCURRENT_EXECUTION_LIMIT) || 5;
@@ -75,6 +73,10 @@ export function executor(event: any, context: any, cb: any) {
       }
 
       let startTime = Date.now();
+      let deviation = startTime - Date.parse(Cron.parseExpression(request.params.cron, {
+        currentDate: new Date(startTime),
+        iterator: true
+      }).prev().toString());
 
       let req = {
         method: 'cron',
@@ -82,21 +84,13 @@ export function executor(event: any, context: any, cb: any) {
         body: options,
         headers: {},
         query: {},
-
         params: body,
       };
 
-      let res = new class {
-        headers: any = {};
-        statusCode: number = 0;
-        set(hdr: string, val: string) { this.headers[hdr] = val; }
-        status(code: number) { this.statusCode = code; }
-        json(result: any) { Object.assign(this, result); }
-        end(body: any, bodyEncoding: string) { handler(null); }
-      };
+      let res: any;
 
       let handler = (e: any) => {
-        logCronResult({ options: options, error: e, response: res, startTime: startTime });
+        logCronResult({ options: options, error: e, response: res, startTime: startTime, deviation: deviation });
         if (e) {
           result.failure.push(msg);
         } else {
@@ -105,9 +99,16 @@ export function executor(event: any, context: any, cb: any) {
         return cb();
       };
 
-      let r = Lambda.execute_function(req, res, handler);
-      console.log('result', r);
-      return r;
+      res = new class {
+        headers: any = {};
+        statusCode: number = 0;
+        set(hdr: string, val: string) { this.headers[hdr] = val; }
+        status(code: number) { this.statusCode = code; }
+        json(result: any) { Object.assign(this, result); handler(null); }
+        end(body: any, bodyEncoding: string) { handler(null); }
+      };
+
+      return Lambda.execute_function(req, res, handler);
     }
   }
 }
@@ -128,7 +129,7 @@ function logCronResult(details: any) {
     startTime: details.startTime,
     endTime: Date.now(),
     request: request,
-    metrics: { cron: { deviation: 0 } },// XXX Find the real-time deviation between scheduled and actual execution
+    metrics: { cron: { deviation: details.deviation } },
     error: {},
     statusCode: 0,
   };
@@ -147,7 +148,7 @@ function logCronResult(details: any) {
     delete event.error;
   }
 
-  Lambda.dispatch_Event(event);
+  Lambda.dispatch_event(event);
 }
 
 

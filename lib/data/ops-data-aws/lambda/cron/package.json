@@ -8,8 +8,8 @@
   "scripts": {},
   "keywords": [],
   "dependencies": {
+    "@google-cloud/bigquery": "^4.7.0",
     "async": "^2.6.2",
-    "aws-sdk": "^2.397.0",
     "cron-parser": "^2.7.3",
     "http-errors": "^1.7.1",
     "jsonwebtoken": "^8.5.0",
@@ -18,9 +18,8 @@
     "uuid": "^7.0.2"
   },
   "devDependencies": {
-    "@types/jsonwebtoken": "^8.3.0",
     "@types/async": "^2.4.1",
-    "aws-sdk": "^2.411.0",
+    "@types/jsonwebtoken": "^8.3.0",
     "dotenv": "^6.2.0"
   }
 }
