@@ -1,6 +1,6 @@
-import { v4 as uuidv4 } from 'uuid';
 const stackTrace = require('stack-trace');
-import { dispatch_event as dispatchEvent } from '@5qtrs/function-lambda';
+const { v4: uuidv4 } = require('uuid');
+const { dispatch_event } = require('@5qtrs/function-lambda');
 
 const whitelistedReqFields = [
   'headers', 'httpVersionMajor', 'httpVersionMinor', 'method', 'url',
@@ -12,24 +12,24 @@ exports.enterHandler = (req, res, next) => {
   res.metrics = {};
 
   var end = res.end;
-  res.end = (chunk, encoding) => {
+  res.end = (chunk, encoding, callback) => {
     res.endTime = Date.now();
 
     // Propagate the response.
     res.end = end;
-    res.end(chunk, encoding);
+    res.end(chunk, encoding, callback);
 
     // Prepare the event object with a select set of properties.
     const reqProps = {};
     whitelistedReqFields.forEach((p) => reqProps[p] = req[p]);
 
-    dispatchEvent({
+    dispatch_event({
       requestId: req.requestId,
       startTime: req._startTime,
       endTime: res.endTime,
       request: reqProps,
       metrics: res.metrics,
-      statusCode: res.statusCode,
+      response: { statusCode: res.statusCode, headers: res.headers},
       error: res.error,
     });
   }

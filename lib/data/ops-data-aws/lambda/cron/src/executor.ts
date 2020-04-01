@@ -3,9 +3,8 @@ import * as Async from 'async';
 import * as Cron from 'cron-parser';
 import * as Crypto from 'crypto';
 import * as Jwt from 'jsonwebtoken';
+import * as Lambda from './function-lambda';
 import { v4 as uuidv4 } from 'uuid';
-
-const Lambda = require('./function-lambda');
 
 const s3 = new AWS.S3({
   apiVersion: '2006-03-01',
@@ -56,7 +55,7 @@ export function executor(event: any, context: any, cb: any) {
         body,
         headers: {},
         query: {},
-        method: 'cron',
+        method: 'CRON',
       };
 
       if (process.env.LOGS_WS_URL) {
@@ -74,11 +73,12 @@ export function executor(event: any, context: any, cb: any) {
 
       let startTime = Date.now();
       let deviation = startTime - Date.parse(Cron.parseExpression(body.cron, {
-        currentDate: startTime
+        currentDate: startTime,
+        tz: body.timezone,
       }).prev().toString());
 
       let req = {
-        method: 'cron',
+        method: 'CRON',
         url: get_user_function_url(options.body),
         body: options,
         headers: {},
@@ -128,22 +128,22 @@ function logCronResult(details: any) {
     startTime: details.startTime,
     endTime: Date.now(),
     request: request,
-    metrics: { cron: { deviation: details.deviation } },
+    response: { statusCode: 0 },
+    metrics: { ...res.metrics, cron: { deviation: details.deviation } },
     error: {},
-    statusCode: 0,
   };
 
   if (details.error) {
     if (details.error.code === 'ResourceNotFoundException') {
-      event.statusCode = 404;
+      event.response.statusCode = 404;
     } else if (details.error.code === 'TooManyRequestsException') {
-      event.statusCode = 503;
+      event.response.statusCode = 503;
     } else {
-      event.statusCode = 500;
+      event.response.statusCode = 500;
     }
     event.error = { errorType: 'Error', errorMessage: details.error.code };
   } else {
-    event.statusCode = 200;
+    event.response.statusCode = 200;
     delete event.error;
   }
 
