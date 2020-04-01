@@ -38,7 +38,6 @@ exports.enterHandler = (req, res, next) => {
 
 exports.finished = (err, req, res, next) => {
   // This captures internal exceptions that are caught by express.
-  console.log('error received:', err.name);
   res.error = err;
   next(err);
 };

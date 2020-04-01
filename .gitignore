@@ -53,9 +53,6 @@ typings/
 .aws.env
 .aws.*.env
 .aws.*.env.bak
-.yarn
-.yarnrc
-.yarnrc.yml
 
 .DS_Store
 .tgz
