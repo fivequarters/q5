@@ -74,8 +74,7 @@ export function executor(event: any, context: any, cb: any) {
 
       let startTime = Date.now();
       let deviation = startTime - Date.parse(Cron.parseExpression(body.cron, {
-        currentDate: new Date(startTime),
-        iterator: true
+        currentDate: startTime
       }).prev().toString());
 
       let req = {
@@ -150,7 +149,6 @@ function logCronResult(details: any) {
 
   Lambda.dispatch_event(event);
 }
-
 
 function get_user_function_url(options: any) {
   return `/run/${options.subscriptionId}/${options.boundaryId}/${options.functionId}`;
