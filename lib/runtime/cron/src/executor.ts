@@ -3,7 +3,7 @@ import * as Async from 'async';
 import * as Cron from 'cron-parser';
 import * as Crypto from 'crypto';
 import * as Jwt from 'jsonwebtoken';
-import * as Lambda from './function-lambda';
+import * as Runtime from '@5qtrs/runtime-common';
 import { v4 as uuidv4 } from 'uuid';
 
 const s3 = new AWS.S3({
@@ -58,108 +58,56 @@ export function executor(event: any, context: any, cb: any) {
         method: 'CRON',
       };
 
-      if (process.env.LOGS_WS_URL) {
-        options.logs = {
-          token: Jwt.sign(
-            { subscriptionId: body.subscriptionId, boundaryId: body.boundaryId, functionId: body.functionId },
-            <string>process.env.LOGS_WS_TOKEN_SIGNATURE_KEY,
-            {
-              expiresIn: +(<string>process.env.LOGS_WS_TOKEN_EXPIRY) || 30,
-            }
-          ),
-          url: process.env.LOGS_WS_URL,
-        };
-      }
+      Runtime.create_logging_token(options);
 
+      // Calculate the deviation from the actual expected time to now.
       let startTime = Date.now();
       let deviation = startTime - Date.parse(Cron.parseExpression(body.cron, {
         currentDate: startTime,
         tz: body.timezone,
       }).prev().toString());
 
-      let req = {
+      // Generate a pseudo-request object to drive the invocation.
+      let request = {
         method: 'CRON',
-        url: get_user_function_url(options.body),
+        url: Runtime.Common.get_user_function_url(options.body),
+        path: Runtime.Common.get_user_function_name(options),
         body: options,
+        protocol: 'cron',
         headers: {},
         query: {},
         params: body,
+        requestId: uuidv4(),
+        startTime,
       };
 
-      let res: any;
+      // Execute, and record the results.
+      return Runtime.invoke_function(request, (error: any, response: any, meta: any) => {
+        meta.metrics.cron = { deviation };
+        dispatch_cron_event({ request, error, response, meta });
 
-      let handler = (e: any) => {
-        logCronResult({ options: options, error: e, response: res, startTime: startTime, deviation: deviation });
-        if (e) {
+        if (error) {
           result.failure.push(msg);
         } else {
           result.success.push(msg);
         }
+
         return cb();
-      };
-
-      res = new class {
-        headers: any = {};
-        statusCode: number = 0;
-        set(hdr: string, val: string) { this.headers[hdr] = val; }
-        status(code: number) { this.statusCode = code; }
-        json(result: any) { Object.assign(this, result); handler(null); }
-        end(body: any, bodyEncoding: string) { handler(null); }
-      };
-
-      return Lambda.execute_function(req, res, handler);
+      });
     }
   }
 }
 
-function logCronResult(details: any) {
-  const request = {
-    method: 'CRON',
-    url: get_user_function_url(details.options.body),
-    path: details.FunctionName,
-    params: details.options.body,
-    protocol: 'cron',
-    query: {}
-  };
-
+function dispatch_cron_event(details: any) {
   const event = {
-    mode: 'cron',
-    requestId: uuidv4(),
+    requestId: details.request.requestId,
     startTime: details.startTime,
-    endTime: Date.now(),
-    request: request,
-    response: { statusCode: 0 },
-    metrics: { ...res.metrics, cron: { deviation: details.deviation } },
-    error: {},
+    endTime: Date.now(), 
+    request: details.request,
+    metrics: details.meta.metrics,
+    response: { statusCode: details.response.statusCode, headers: details.response.headers},
+    error: details.meta.error || details.error,   // The meta error always has more information.
   };
 
-  if (details.error) {
-    if (details.error.code === 'ResourceNotFoundException') {
-      event.response.statusCode = 404;
-    } else if (details.error.code === 'TooManyRequestsException') {
-      event.response.statusCode = 503;
-    } else {
-      event.response.statusCode = 500;
-    }
-    event.error = { errorType: 'Error', errorMessage: details.error.code };
-  } else {
-    event.response.statusCode = 200;
-    delete event.error;
-  }
-
-  Lambda.dispatch_event(event);
-}
-
-function get_user_function_url(options: any) {
-  return `/run/${options.subscriptionId}/${options.boundaryId}/${options.functionId}`;
-}
-
-function get_user_function_description(options: any) {
-  return `function:${options.subscriptionId}:${options.boundaryId}:${options.functionId}`;
-}
-
-function get_user_function_name(options: any): string {
-  return Crypto.createHash('sha1')
-    .update(get_user_function_description(options))
-    .digest('hex');
+  Runtime.dispatch_event(event);
 }

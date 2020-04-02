@@ -60,7 +60,7 @@
   },
   "workspaces": {
     "nohoist": [
-      "lib/runtime/cron"
+      "**/cron", "**/cron/**"
     ],
     "packages": [
       "tool/tool-config",

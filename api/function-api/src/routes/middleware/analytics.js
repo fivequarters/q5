@@ -1,6 +1,6 @@
 const stackTrace = require('stack-trace');
 const { v4: uuidv4 } = require('uuid');
-const { dispatch_event } = require('@5qtrs/function-lambda');
+const Runtime = require('@5qtrs/runtime-common');
 
 const whitelistedReqFields = [
   'headers', 'httpVersionMajor', 'httpVersionMinor', 'method', 'url',
@@ -23,7 +23,7 @@ exports.enterHandler = (req, res, next) => {
     const reqProps = {};
     whitelistedReqFields.forEach((p) => reqProps[p] = req[p]);
 
-    dispatch_event({
+    Runtime.dispatch_event({
       requestId: req.requestId,
       startTime: req._startTime,
       endTime: res.endTime,
