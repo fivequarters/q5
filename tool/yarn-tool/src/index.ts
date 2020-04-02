@@ -36,33 +36,37 @@ function getCommand(commandName: string) {
   return null;
 }
 
-function writeError(message: string) {
+function writeError(message: string): number {
   output.write(`\n\u001b[31mError:\u001b[39m ${message}\n\n`);
   process.exit(1);
+  return 1;
 }
 
-async function main() {
+async function main(): Promise<number> {
   const args = process.argv.slice(2);
   const commandName = args.shift() || '';
+  let rc: number = 0;
 
   if (!commandName) {
-    writeError('A command is required');
-  } else {
-    const command = getCommand(commandName);
-    if (!command) {
-      writeError(`No such command: ${commandName}`);
-    } else {
-      const project = await Project.FromDiscoveredRootPath();
+    return writeError('A command is required');
+  }
 
-      try {
-        await command.Handler(args, project, output);
-      } catch (error) {
-        writeError(error.message);
-      }
-    }
+  const command = getCommand(commandName);
+  if (!command) {
+    return writeError(`No such command: ${commandName}`);
+  }
+
+  const project = await Project.FromDiscoveredRootPath();
+
+  try {
+    await command.Handler(args, project, output);
+  } catch (error) {
+    return writeError(error.message);
   }
 
   output.write('\n\n');
+
+  return rc;
 }
 
-main();
+(async () => process.exit(await main()))();

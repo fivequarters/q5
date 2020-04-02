@@ -16,7 +16,9 @@
     "clean": "rm -r -f libc; rm -r -f libm; rm -r -f coverage"
   },
   "keywords": [],
-  "dependencies": {},
+  "dependencies": {
+    "@5qtrs/runtime-common": "^0.0.1"
+  },
   "devServer": {
     "port": 9509
   }

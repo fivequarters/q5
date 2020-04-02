@@ -29,6 +29,10 @@ export default class YarnCommand implements ICommand {
       stderr: output,
       isScript: true,
     };
-    return project.Execute('yarn', options);
+    let rc = await project.Execute('yarn', options);
+
+    if (rc > 0) {
+      throw new Error(`Command failed: ${rc}`);
+    }
   }
 }
