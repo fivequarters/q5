@@ -7,7 +7,6 @@ import { list_functions } from './list_functions';
 import { put_function } from './put_function';
 import { get_logs } from './get_logs';
 import { post_logs } from './post_logs';
-import { dispatch_event } from './analytics';
 
 export {
   put_function,
@@ -19,5 +18,4 @@ export {
   get_location,
   get_logs,
   post_logs,
-  dispatch_event,
 };

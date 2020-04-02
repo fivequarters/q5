@@ -1,4 +1,3 @@
-const stackTrace = require('stack-trace');
 const { v4: uuidv4 } = require('uuid');
 const Runtime = require('@5qtrs/runtime-common');
 
@@ -37,6 +36,7 @@ exports.enterHandler = (req, res, next) => {
 };
 
 exports.finished = (err, req, res, next) => {
+  console.log('Catching an internal error.');
   // This captures internal exceptions that are caught by express.
   res.error = err;
   next(err);

@@ -1,6 +1,11 @@
 {
   "extends": "../../../tsconfig.json",
-  "compilerOptions": { "rootDir": "src", "outDir": "libc" },
+  "compilerOptions": {
+    "rootDir": "src",
+    "module": "CommonJS",
+    "outDir": "libc",
+    "allowJs": true
+  },
   "include": ["src"],
   "references": [{ "path": "../../server/bq-metering" }]
 }
