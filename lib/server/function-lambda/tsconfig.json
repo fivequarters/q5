@@ -13,6 +13,7 @@
   "references": [
     { "path": "../bq-metering" },
     { "path": "../../shared/json-stable" },
-    { "path": "../../shared/key-value" }
+    { "path": "../../shared/key-value" },
+    { "path": "../../runtime/common" }
   ]
 }
