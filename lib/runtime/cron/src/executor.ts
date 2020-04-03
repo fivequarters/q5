@@ -51,15 +51,6 @@ export function executor(event: any, context: any, cb: any) {
         return cb();
       }
 
-      let options: any = {
-        body,
-        headers: {},
-        query: {},
-        method: 'CRON',
-      };
-
-      Runtime.create_logging_token(options);
-
       // Calculate the deviation from the actual expected time to now.
       let startTime = Date.now();
       let deviation = startTime - Date.parse(Cron.parseExpression(body.cron, {
@@ -70,16 +61,21 @@ export function executor(event: any, context: any, cb: any) {
       // Generate a pseudo-request object to drive the invocation.
       let request = {
         method: 'CRON',
-        url: Runtime.Common.get_user_function_url(options.body),
-        path: Runtime.Common.get_user_function_name(options),
-        body: options,
+        url: '',
+        path: Runtime.Common.get_user_function_name(body),
+        body: body,
         protocol: 'cron',
-        headers: {},
+        headers: { 'x-forwarded-proto': 'cron', host: 'fusebit'},
         query: {},
         params: body,
         requestId: uuidv4(),
         startTime,
       };
+
+      request.url = Runtime.Common.get_function_location(request, request.params.subscriptionId,
+        request.params.boundaryId, request.params.functionId);
+
+      Runtime.create_logging_token(request);
 
       // Execute, and record the results.
       return Runtime.invoke_function(request, (error: any, response: any, meta: any) => {
@@ -101,11 +97,11 @@ export function executor(event: any, context: any, cb: any) {
 function dispatch_cron_event(details: any) {
   const event = {
     requestId: details.request.requestId,
-    startTime: details.startTime,
-    endTime: Date.now(), 
+    startTime: details.request.startTime,
+    endTime: Date.now(),
     request: details.request,
     metrics: details.meta.metrics,
-    response: { statusCode: details.response.statusCode, headers: details.response.headers},
+    response: { statusCode: details.response.statusCode, headers: details.response.headers },
     error: details.meta.error || details.error,   // The meta error always has more information.
   };
 
