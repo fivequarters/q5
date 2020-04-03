@@ -7,11 +7,12 @@
   "license": "UNLICENSED",
   "author": "FiveQuarters.io",
   "scripts": {
-    "build": "tsc -b",
+    "build": "tsc -b && yarn build:pack",
+    "build:pack": "rm -f libc/cron.zip && zip -j libc/cron.zip libc/*.js && zip -qdgds 1m -r libc/cron.zip node_modules",
     "test": "jest --colors",
     "coverage": "jest --colors --coverage",
     "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x} test/{,**/}*.ts{,x}",
-    "clean": "rm -r -f libc; rm -r -f libm; rm -r -f coverage"
+    "clean": "rm -r -f libc; rm -r -f coverage"
   },
   "keywords": [],
   "dependencies": {
