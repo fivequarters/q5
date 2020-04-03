@@ -41,7 +41,7 @@ function addAwsCredentials() {
     );
   } else {
     addCreds(creds);
-    return addLogsUrl();
+    return addElasticsearchCredentials();
   }
 }
 
@@ -51,6 +51,19 @@ AWS_ACCESS_KEY_ID=${creds.Credentials.AccessKeyId}
 AWS_SECRET_ACCESS_KEY=${creds.Credentials.SecretAccessKey}
 AWS_SESSION_TOKEN=${creds.Credentials.SessionToken}
 `;
+}
+
+function addElasticsearchCredentials() {
+  let creds;
+  try {
+    creds = JSON.parse(Fs.readFileSync(__dirname + '/.env.elasticsearch', 'utf8'));
+    env = `${env}
+ES_HOST=${creds.hostname}
+ES_USER=${creds.username}
+ES_PASSWORD=${creds.password}
+`;
+  } catch (_) {}
+  return addLogsUrl();
 }
 
 function addLogsUrl() {

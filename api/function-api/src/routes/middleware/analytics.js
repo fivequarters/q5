@@ -2,8 +2,19 @@ const { v4: uuidv4 } = require('uuid');
 const Runtime = require('@5qtrs/runtime-common');
 
 const whitelistedReqFields = [
-  'headers', 'httpVersionMajor', 'httpVersionMinor', 'method', 'url',
-  'hostname', 'ip', 'ips', 'params', 'path', 'protocol', 'query', 'xhr',
+  'headers',
+  'httpVersionMajor',
+  'httpVersionMinor',
+  'method',
+  'url',
+  'hostname',
+  'ip',
+  'ips',
+  'params',
+  'path',
+  'protocol',
+  'query',
+  'xhr',
 ];
 
 exports.enterHandler = (req, res, next) => {
@@ -20,7 +31,7 @@ exports.enterHandler = (req, res, next) => {
 
     // Prepare the event object with a select set of properties.
     const reqProps = {};
-    whitelistedReqFields.forEach((p) => reqProps[p] = req[p]);
+    whitelistedReqFields.forEach(p => (reqProps[p] = req[p]));
 
     Runtime.dispatch_event({
       requestId: req.requestId,
@@ -28,10 +39,10 @@ exports.enterHandler = (req, res, next) => {
       endTime: res.endTime,
       request: reqProps,
       metrics: res.metrics,
-      response: { statusCode: res.statusCode, headers: res.headers},
+      response: { statusCode: res.statusCode, headers: res.headers },
       error: res.error,
     });
-  }
+  };
   next();
 };
 

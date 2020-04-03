@@ -19,6 +19,7 @@ const user = require('./handlers/user');
 const client = require('./handlers/client');
 const agent = require('./handlers/agent');
 const audit = require('./handlers/audit');
+const statistics = require('./handlers/statistics');
 
 const { StorageActions } = require('@5qtrs/storage');
 const storage = require('./handlers/storage');
@@ -593,7 +594,20 @@ router.delete(
   storage.storageDelete()
 );
 
+// Statistics reports
+
+router.options('/statistics', cors(corsManagementOptions));
+router.get(
+  '/statistics',
+  cors(corsManagementOptions),
+  //validate_schema({ params: require('./schemas/api_account') }),
+  //authorize({ operation: "statistics:get" }),       // Need a much more complicated authorize option.
+  //validate_schema({ params: require('./schemas/api_params') }),
+  statistics.statisticsGet()
+);
+
 // Not part of public contract
+
 let run_route = /^\/run\/([^\/]+)\/([^\/]+)\/([^\/]+).*$/;
 function promote_to_name_params(req, res, next) {
   req.params.subscriptionId = req.params[0];

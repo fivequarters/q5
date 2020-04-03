@@ -25,43 +25,54 @@ export default class RootPackageJson extends JsonFile {
     super(path);
   }
 
+  public async GetWorkspaces(): Promise<string[]> {
+    await super.Load();
+    try {
+      return this.contents.workspaces.packages;
+    } catch (e) {
+      return this.contents.workspaces;
+    }
+  }
+
+  public async SetWorkspaces(paths: string[]): Promise<void> {
+    try {
+      this.contents.workspaces.packages = paths;
+    } catch (e) {
+      this.contents.workspaces = paths;
+    }
+    await super.Save();
+  }
+
   public async GetOrg(): Promise<string> {
     await super.Load();
     return this.contents.org || '';
   }
 
   public async HasWorkspacesProperty(): Promise<boolean> {
-    await super.Load();
-    const workspaces = this.contents.workspaces;
+    const workspaces = await this.GetWorkspaces();
     return workspaces !== null && workspaces !== undefined;
   }
 
   public async GetWorkspacePaths(): Promise<string[]> {
-    await super.Load();
-    const contents = this.contents;
-    return [...(contents.workspaces || [])];
+    return [...(await this.GetWorkspaces() || [])];
   }
 
   public async AddWorkspacePath(path: string): Promise<void> {
-    await super.Load();
-    this.contents.workspaces = addWorkspacePath(this.contents.workspaces, path);
-    await super.Save();
+    let workspaces = await this.GetWorkspaces();
+    workspaces = addWorkspacePath(workspaces, path);
+    await this.SetWorkspaces(workspaces);
   }
 
   public async RemoveWorkspacePath(path: string): Promise<void> {
-    await super.Load();
-    if (this.contents.workspaces) {
-      this.contents.workspaces = updateWorkspacePath(this.contents.workspaces, path);
-      await super.Save();
-    }
+    let workspaces = await this.GetWorkspaces();
+    workspaces = updateWorkspacePath(workspaces, path);
+    await this.SetWorkspaces(workspaces);
   }
 
   public async UpdateWorkspacePath(currentPath: string, newPath: string): Promise<void> {
-    await super.Load();
-    if (this.contents.workspaces) {
-      this.contents.workspaces = updateWorkspacePath(this.contents.workspaces, currentPath, newPath);
-      await super.Save();
-    }
+    let workspaces = await this.GetWorkspaces();
+    workspaces = updateWorkspacePath(this.contents.workspaces, currentPath, newPath);
+    await this.SetWorkspaces(workspaces);
   }
 
   public async GetDevDependencies(): Promise<any> {

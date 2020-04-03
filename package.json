@@ -60,7 +60,7 @@
   },
   "workspaces": {
     "nohoist": [
-      "**/cron", "**/cron/**"
+      "**/lambda-*", "**/lambda-*/**"
     ],
     "packages": [
       "tool/tool-config",
@@ -180,7 +180,8 @@
       "lib/shared/event-stream",
       "lib/client/fusebit-color",
       "site/portal",
-      "lib/runtime/cron",
+      "lib/runtime/lambda-cron",
+      "lib/runtime/lambda-analytics",
       "lib/runtime/common"
     ]
   }

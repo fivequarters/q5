@@ -128,8 +128,9 @@
       "@5qtrs/fusebit-blog": ["comp/fusebit-blog/src"],
       "@5qtrs/fusebit-site": ["site/fusebit-site/src"],
       "@5qtrs/fusebit-link-card": ["comp/fusebit-link-card/src"],
-      "@5qtrs/cron": ["lib/runtime/cron/src"],
-      "@5qtrs/runtime-common": ["lib/runtime/common/src"]
+      "@5qtrs/runtime-common": ["lib/runtime/common/src"],
+      "@5qtrs/lambda-cron": ["lib/runtime/lamda-cron/src"],
+      "@5qtrs/lambda-analytics": ["lib/runtime/lamda-analytics/src"]
     }
   }
 }
