@@ -26,6 +26,7 @@ import ProfileBreadcrumb from "./ProfileBreadcrumb";
 import { useProfile } from "./ProfileProvider";
 import ProfileSelectorWithDetails from "./ProfileSelectorWithDetails";
 import SubscriptionBoundaries from "./SubscriptionBoundaries";
+import SubscriptionActivity from "./SubscriptionActivity";
 import AgentDeleteFab from "./AgentDeleteFab";
 import { SubscriptionsProvider } from "./SubscriptionsProvider";
 import { BoundariesProvider } from "./BoundariesProvider";
@@ -612,6 +613,19 @@ function ProfileExplorer({ ...rest }: any) {
                       fab={<NewFunctionFab />}
                     >
                       <SubscriptionBoundaries />
+                    </ExplorerView>
+                  )}
+                />
+                <Route
+                  path={`${match.path}/activity`}
+                  exact={true}
+                  render={({ match }) => (
+                    <ExplorerView
+                      tabs={ExplorerTabs.subscription}
+                      match={match}
+                      fab={<NewFunctionFab />}
+                    >
+                      <SubscriptionActivity />
                     </ExplorerView>
                   )}
                 />

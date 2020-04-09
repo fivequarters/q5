@@ -11,6 +11,7 @@
     "@material-ui/icons": "^4.5.1",
     "@material-ui/lab": "^4.0.0-alpha.39",
     "@types/react-router-dom": "^5.1.2",
+    "@types/recharts": "^1.8.9",
     "@types/url-parse": "^1.4.3",
     "gh-pages": "^2.1.1",
     "history": "^4.10.1",
@@ -18,6 +19,7 @@
     "react-dom": "^16.11.0",
     "react-router-dom": "^5.1.2",
     "react-scripts": "3.2.0",
+    "recharts": "^1.8.5",
     "superagent": "^5.1.1",
     "url-parse": "^1.4.7"
   },
