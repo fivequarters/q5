@@ -576,6 +576,19 @@ function ProfileExplorer({ ...rest }: any) {
                           )}
                         />
                         <Route
+                          path={`${match.path}/activity`}
+                          exact={true}
+                          render={({ match }) => (
+                            <ExplorerView
+                              tabs={ExplorerTabs.subscription}
+                              match={match}
+                              fab={<NewFunctionFab />}
+                            >
+                              <SubscriptionActivity account={match.params.accountId} subscription={match.params.subscriptionId} boundary={match.params.boundaryId} func={match.params.functionId} />
+                            </ExplorerView>
+                          )}
+                        />
+                        <Route
                           path={`${match.path}/access`}
                           exact={true}
                           render={({ match, ...rest }) => (
@@ -694,6 +707,19 @@ function ProfileExplorer({ ...rest }: any) {
                         subscriptionId={match.params.subscriptionId}
                         boundaryId={match.params.boundaryId}
                       />
+                    </ExplorerView>
+                  )}
+                />
+                <Route
+                  path={`${match.path}/boundaries/:boundaryId/activity`}
+                  exact={true}
+                  render={({ match }) => (
+                    <ExplorerView
+                      tabs={ExplorerTabs.subscription}
+                      match={match}
+                      fab={<NewFunctionFab />}
+                    >
+                      <SubscriptionActivity account={match.params.accountId} subscription={match.params.subscriptionId} boundary={match.params.boundaryId}/>
                     </ExplorerView>
                   )}
                 />

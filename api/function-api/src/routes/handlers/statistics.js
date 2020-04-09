@@ -49,13 +49,13 @@ const queries = {
 
   // Return the statusCodes for a specific histogram.
   statusCodeHistogram: [
-    code => {
+    (code, interval = '15s') => {
       return {
         aggs: {
           result: {
             date_histogram: {
               field: '@timestamp',
-              fixed_interval: '15s',
+              fixed_interval: interval,
               time_zone: 'America/Los_Angeles',
               min_doc_count: 1,
             },
@@ -167,40 +167,50 @@ const makeQuery = async (request, key, query_params = null) => {
   });
 };
 
+// Generate a histogram of all active HTTP response codes over the time period.
+const codeActivityHistogram = async (req, res, next) => {
+  let range = {};
+
+  const allCodes = await makeQuery(req, 'allStatusCodes');
+
+  if (allCodes.statusCode != 200) {
+    throw new Error('allStatusCodes failed: ' + allCodes.data);
+  }
+
+  let histogram = {};
+
+  for (const code of allCodes.data) {
+    let response = await makeQuery(req, 'statusCodeHistogram', code);
+    if (response.statusCode != 200) {
+      throw new Error('statusCodeHistogram failed: ' + response.data);
+    }
+
+    for (const evt of response.data) {
+      try {
+        histogram[evt.key_as_string][code] = evt.doc_count;
+      } catch (e) {
+        histogram[evt.key_as_string] = { key: evt.key_as_string, [code]: evt.doc_count };
+      }
+    }
+  }
+
+  let sequenced = Object.keys(histogram)
+    .sort()
+    .map(i => histogram[i]);
+  res.statusCode = 200;
+  res.setHeader('Content-Type', 'application/json');
+  res.write(JSON.stringify({ codes: allCodes.data, data: sequenced }));
+  res.end();
+};
+
+// List of supported queries.
+const statisticsQueries = {
+  codeactivityhg: codeActivityHistogram,
+};
+
 function statisticsGet() {
   return async (req, res, next) => {
-    let range = {};
-
-    const allCodes = await makeQuery(req, 'allStatusCodes');
-
-    if (allCodes.statusCode != 200) {
-      throw new Error('allStatusCodes failed: ' + allCodes.data);
-    }
-
-    let histogram = {};
-
-    for (const code of allCodes.data) {
-      let response = await makeQuery(req, 'statusCodeHistogram', code);
-      if (response.statusCode != 200) {
-        throw new Error('statusCodeHistogram failed: ' + response.data);
-      }
-
-      for (const evt of response.data) {
-        try {
-          histogram[evt.key_as_string][code] = evt.doc_count;
-        } catch (e) {
-          histogram[evt.key_as_string] = { key: evt.key_as_string, [code]: evt.doc_count };
-        }
-      }
-    }
-
-    let sequenced = Object.keys(histogram)
-      .sort()
-      .map(i => histogram[i]);
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'application/json');
-    res.write(JSON.stringify({ codes: allCodes.data, data: sequenced }));
-    res.end();
+    return statisticsQueries[req.params.statisticsKey.toLowerCase()](req, res, next);
   };
 }
 

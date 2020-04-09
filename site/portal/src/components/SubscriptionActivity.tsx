@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { LineChart, Line, CartesianGrid, XAxis, YAxis, Legend } from 'recharts';
+import LinearProgress from "@material-ui/core/LinearProgress";
 import Superagent from "superagent";
 import { useProfile } from "./ProfileProvider";
 import { IFusebitProfile } from "../lib/Settings";
@@ -8,7 +9,8 @@ import { ensureAccessToken, createHttpException } from "../lib/Fusebit";
 interface IProps {
   account?: string;
   subscription?: string;
-  boundary?: number;
+  boundary?: string;
+  func?: string;
 };
 
 const getData = async (props: IProps, profile: IFusebitProfile, setData: any): Promise<void> => {
@@ -18,12 +20,20 @@ const getData = async (props: IProps, profile: IFusebitProfile, setData: any): P
       props.account ? `account/${props.account}` : '',
       props.subscription ? `subscription/${props.subscription}` : '',
       props.boundary ? `boundary/${props.boundary}` : '',
+      props.func? `function/${props.func}` : '',
     ].filter(x => x);
 
+    // Default to 1 weeks worth of data for now.
+    let timeStart = new Date();
+    timeStart.setDate(timeStart.getDate() - 7);
+
     let result: any = await Superagent.get(
-      `${profile.baseUrl}/v1/` + warts.join('/') + `/statistics/query`
+      `${profile.baseUrl}/v1/` + warts.join('/') + `/statistics/codeactivityhg/${timeStart.toISOString()}`
     ).set("Authorization", `Bearer ${auth.access_token}`);
 
+    if (result.body.data.length == 0) {
+      result.body.data = [{key: timeStart}, {key: new Date().toISOString()}];
+    }
     setData(result.body);
 
   } catch (e) {
@@ -41,7 +51,14 @@ const SubscriptionActivity: React.FC<IProps> = (props) => {
   const { profile } = useProfile();
   const [ data, setData ] = useState({codes: [], data: []});
 
-  console.log('YYY SubscriptionActivity', props);
+  // Run once on page load.
+  useEffect(() => {
+    getData(props, profile, setData);
+  }, [profile, props]);
+
+  if (data.data.length == 0) {
+    return <LinearProgress />;
+  }
 
   return (
     <div>
