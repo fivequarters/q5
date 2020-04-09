@@ -8,12 +8,7 @@ export interface IFusebitAuth {
 }
 
 function isIFusebitAuth(o: any): o is IFusebitAuth {
-  return (
-    o &&
-    typeof o === "object" &&
-    typeof o.access_token === "string" &&
-    typeof o.expires_at === "number"
-  );
+  return o && typeof o === "object" && typeof o.access_token === "string" && typeof o.expires_at === "number";
 }
 
 export interface IFusebitAuthError {
@@ -23,12 +18,7 @@ export interface IFusebitAuthError {
 }
 
 function isIFusebitAuthError(o: any): o is IFusebitAuth {
-  return (
-    o &&
-    typeof o === "object" &&
-    typeof o.error === "string" &&
-    typeof o.error_description === "string"
-  );
+  return o && typeof o === "object" && typeof o.error === "string" && typeof o.error_description === "string";
 }
 
 export interface IFusebitProfile {
@@ -100,8 +90,7 @@ function isIFusebitProfile(o: any): o is IFusebitProfile {
     typeof o.oauth === "object" &&
     typeof o.oauth.webAuthorizationUrl === "string" &&
     typeof o.oauth.webClientId === "string" &&
-    (o.oauth.webLogoutUrl === undefined ||
-      typeof o.oauth.webLogoutUrl === "string")
+    (o.oauth.webLogoutUrl === undefined || typeof o.oauth.webLogoutUrl === "string")
   );
 }
 
@@ -117,11 +106,7 @@ function isIFusebitSettings(o: any): o is IFusebitSettings {
     typeof o.currentProfile === "string" &&
     Array.isArray(o.profiles) &&
     o.profiles.length ===
-      o.profiles.reduce(
-        (count: number, profile: any) =>
-          (count += isIFusebitProfile(profile) ? 1 : 0),
-        0
-      )
+      o.profiles.reduce((count: number, profile: any) => (count += isIFusebitProfile(profile) ? 1 : 0), 0)
   );
 }
 
@@ -133,8 +118,9 @@ function getExternalSettingsUrl(): string {
     const [path, sourceProfile] = token.split("#");
     const [organization, repository, file, rest] = path.split("/");
     if (organization && repository && !rest) {
-      return `https://raw.githubusercontent.com/${organization}/${repository}/master/${file ||
-        "profiles.json"}${sourceProfile ? "#" + sourceProfile : ""}`;
+      return `https://raw.githubusercontent.com/${organization}/${repository}/master/${
+        file || "profiles.json"
+      }${sourceProfile ? "#" + sourceProfile : ""}`;
     }
     throw new FusebitError("Unable to initialize Fusebit Portal", {
       details: [
@@ -210,9 +196,7 @@ async function getExternalSettings(url: string): Promise<IFusebitSettings> {
       throw new FusebitError("Unable to initialize Fusebit Portal", {
         details: [
           `The Fusebit Settings from ${serverUrl} do not specify the requested profile ${sourceProfile}. `,
-          `Available profiles are: ${settings.profiles
-            .map(p => p.id)
-            .join(", ")}. `,
+          `Available profiles are: ${settings.profiles.map(p => p.id).join(", ")}. `,
           `Please ask your Fusebit administrator for instructions.`
         ].join("")
       });

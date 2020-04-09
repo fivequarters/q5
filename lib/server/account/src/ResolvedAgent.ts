@@ -87,6 +87,7 @@ function doesActionAuthorize(grantedAction: string, requestedAction: string) {
 }
 
 function doesAccessEntryAuthorize(accessEntry: IAccessEntry, action: string, resource: string) {
+  console.log('XXX doesAccessEntryAuthorize', accessEntry, action, resource);
   const actionAuth = doesActionAuthorize(accessEntry.action, action);
   const resourceAuth = doesResouceAuthorize(Resource.normalize(accessEntry.resource), resource);
   return actionAuth && resourceAuth;

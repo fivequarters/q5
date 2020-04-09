@@ -625,7 +625,7 @@ function ProfileExplorer({ ...rest }: any) {
                       match={match}
                       fab={<NewFunctionFab />}
                     >
-                      <SubscriptionActivity />
+                      <SubscriptionActivity account={match.params.accountId} subscription={match.params.subscriptionId} />
                     </ExplorerView>
                   )}
                 />

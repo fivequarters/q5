@@ -594,15 +594,60 @@ router.delete(
   storage.storageDelete()
 );
 
-// Statistics reports
+// Statistics reports, general purpose, for specific statisticsKey reports.
 
-router.options('/statistics', cors(corsManagementOptions));
+router.options('/account/:accountId/statistics/:statisticsKey/:timeStart?/:timeEnd?', cors(corsManagementOptions));
 router.get(
-  '/statistics',
+  '/account/:accountId/statistics/:statisticsKey/:timeStart?/:timeEnd?',
   cors(corsManagementOptions),
-  //validate_schema({ params: require('./schemas/api_account') }),
-  //authorize({ operation: "statistics:get" }),       // Need a much more complicated authorize option.
-  //validate_schema({ params: require('./schemas/api_params') }),
+  validate_schema({ params: require('./schemas/api_account') }),
+  authorize({ operation: statistics.StatisticsAction.Account }),
+  validate_schema({ params: require('./schemas/api_params') }),
+  statistics.statisticsGet()
+);
+
+router.options(
+  '/account/:accountId/subscription/:subscriptionId/statistics/:statisticsKey/:timeStart?/:timeEnd?',
+  cors(corsManagementOptions)
+);
+router.get(
+  '/account/:accountId/subscription/:subscriptionId/statistics/:statisticsKey/:timeStart?/:timeEnd?',
+  cors(corsManagementOptions),
+  validate_schema({ params: require('./schemas/api_account') }),
+  authorize({ operation: statistics.StatisticsAction.Account }),
+  authorize({ operation: statistics.StatisticsAction.Subscription }),
+  validate_schema({ params: require('./schemas/api_params') }),
+  statistics.statisticsGet()
+);
+
+router.options(
+  '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/statistics/:statisticsKey/:timeStart?/:timeEnd?',
+  cors(corsManagementOptions)
+);
+router.get(
+  '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/statistics/:statisticsKey/:timeStart?/:timeEnd?',
+  cors(corsManagementOptions),
+  validate_schema({ params: require('./schemas/api_account') }),
+  authorize({ operation: statistics.StatisticsAction.Account }),
+  authorize({ operation: statistics.StatisticsAction.Subscription }),
+  authorize({ operation: statistics.StatisticsAction.Boundary }),
+  validate_schema({ params: require('./schemas/api_params') }),
+  statistics.statisticsGet()
+);
+
+router.options(
+  '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/statistics/:statisticsKey/:timeStart?/:timeEnd?',
+  cors(corsManagementOptions)
+);
+router.get(
+  '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/statistics/:statisticsKey/:timeStart?/:timeEnd?',
+  cors(corsManagementOptions),
+  validate_schema({ params: require('./schemas/api_account') }),
+  authorize({ operation: statistics.StatisticsAction.Account }),
+  authorize({ operation: statistics.StatisticsAction.Subscription }),
+  authorize({ operation: statistics.StatisticsAction.Boundary }),
+  authorize({ operation: statistics.StatisticsAction.Func }),
+  validate_schema({ params: require('./schemas/api_params') }),
   statistics.statisticsGet()
 );
 

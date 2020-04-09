@@ -5,11 +5,23 @@ import { useProfile } from "./ProfileProvider";
 import { IFusebitProfile } from "../lib/Settings";
 import { ensureAccessToken, createHttpException } from "../lib/Fusebit";
 
-const getData = async (profile: IFusebitProfile, setData: any): Promise<void> => {
+interface IProps {
+  account?: string;
+  subscription?: string;
+  boundary?: number;
+};
+
+const getData = async (props: IProps, profile: IFusebitProfile, setData: any): Promise<void> => {
   try {
     let auth = await ensureAccessToken(profile);
+    let warts = [
+      props.account ? `account/${props.account}` : '',
+      props.subscription ? `subscription/${props.subscription}` : '',
+      props.boundary ? `boundary/${props.boundary}` : '',
+    ].filter(x => x);
+
     let result: any = await Superagent.get(
-      `${profile.baseUrl}/v1/statistics`
+      `${profile.baseUrl}/v1/` + warts.join('/') + `/statistics/query`
     ).set("Authorization", `Bearer ${auth.access_token}`);
 
     setData(result.body);
@@ -25,13 +37,15 @@ const codeColorMap = {
   501: "#0b032d",
 };
 
-function SubscriptionActivity() {
+const SubscriptionActivity: React.FC<IProps> = (props) => {
   const { profile } = useProfile();
   const [ data, setData ] = useState({codes: [], data: []});
 
+  console.log('YYY SubscriptionActivity', props);
+
   return (
     <div>
-      <button onClick={() => getData(profile, setData)}>Refresh</button>
+      <button onClick={() => getData(props, profile, setData)}>Refresh</button>
       <LineChart width={900} height={500} data={data.data}>
         <CartesianGrid stroke="#ccc" />
         <Legend verticalAlign="top" height={36}/>

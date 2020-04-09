@@ -1,6 +1,13 @@
 const { getAccountContext, errorHandler } = require('../account');
 const https = require('https');
 
+const StatisticsAction = {
+  Account: 'account:statistics',
+  Subscription: 'subscription:statistics',
+  Boundary: 'boundary:statistics',
+  Func: 'function:statistics',
+};
+
 const es = process.env.ES_HOST;
 const username = process.env.ES_USER;
 const password = process.env.ES_PASSWORD;
@@ -73,6 +80,39 @@ const queries = {
   ],
 };
 
+const addRequiredFilters = (request, body) => {
+  // Build the necessary stack; maybe javascript has an easier way of doing this?
+  if (!body.query) {
+    body.query = {};
+  }
+
+  if (!body.query.bool) {
+    body.query.bool = {};
+  }
+
+  if (!body.query.bool.filter) {
+    body.query.bool.filter = [];
+  }
+
+  // Add timestamp range
+  if (request.params.timeStart) {
+    request.params.endTime = request.params.timeEnd || new Date().toISOString();
+
+    body.query.bool.filter.push({
+      range: { '@timestamp': { gte: request.params.timeStart, lte: request.params.timeEnd } },
+    });
+  }
+
+  // Add the filters for accounts, etc.
+  for (const param of ['subscriptionId', 'boundaryId', 'functionId']) {
+    if (request.params[param]) {
+      body.query.bool.filter.push({
+        match_phrase: { ['request.params.' + param]: { query: request.params[param] } },
+      });
+    }
+  }
+};
+
 const makeQuery = async (request, key, query_params = null) => {
   let accountContext = await getAccountContext();
 
@@ -88,6 +128,7 @@ const makeQuery = async (request, key, query_params = null) => {
     size: 0,
   };
 
+  // Build a body object
   if (queries[key][0] instanceof Function) {
     body = {
       ...body,
@@ -100,6 +141,11 @@ const makeQuery = async (request, key, query_params = null) => {
     };
   }
 
+  addRequiredFilters(request, body);
+
+  console.log(JSON.stringify(body, null, 2));
+
+  // Make the request to elasticsearch
   let response = await new Promise((resolve, reject) => {
     let req = https.request(params, response => resolve(response));
     req.write(JSON.stringify(body));
@@ -111,8 +157,6 @@ const makeQuery = async (request, key, query_params = null) => {
     response.on('data', d => (body += d));
     response.on('end', () => {
       if (response.statusCode == 200) {
-        console.log('Query Result:', JSON.parse(Buffer.from(body).toString('utf8')));
-
         return resolve({
           statusCode: response.statusCode,
           data: queries[key][1](JSON.parse(Buffer.from(body).toString('utf8'))),
@@ -125,16 +169,17 @@ const makeQuery = async (request, key, query_params = null) => {
 
 function statisticsGet() {
   return async (req, res, next) => {
+    let range = {};
+
     const allCodes = await makeQuery(req, 'allStatusCodes');
 
     if (allCodes.statusCode != 200) {
-      throw new Error('allStatusCodes failed: ' + response.data);
+      throw new Error('allStatusCodes failed: ' + allCodes.data);
     }
 
     let histogram = {};
 
     for (const code of allCodes.data) {
-      console.log('Attempting to load', code);
       let response = await makeQuery(req, 'statusCodeHistogram', code);
       if (response.statusCode != 200) {
         throw new Error('statusCodeHistogram failed: ' + response.data);
@@ -161,4 +206,5 @@ function statisticsGet() {
 
 module.exports = {
   statisticsGet,
+  StatisticsAction,
 };
