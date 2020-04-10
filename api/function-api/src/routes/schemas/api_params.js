@@ -14,6 +14,7 @@ module.exports = Joi.object().keys({
   // Lazy definiton of ISO time string.
   timeStart: Joi.string().regex(/^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}Z$/),
   timeEnd: Joi.string().regex(/^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}Z$/),
+  width: Joi.string().regex(/^[0-9a-z]{1,4}$/),
   buildId: Joi.string(),
   '0': Joi.string().allow(''), // Used for storage for the storagePath
 });

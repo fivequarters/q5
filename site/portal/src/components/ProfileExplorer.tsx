@@ -584,7 +584,8 @@ function ProfileExplorer({ ...rest }: any) {
                               match={match}
                               fab={<NewFunctionFab />}
                             >
-                              <SubscriptionActivity account={match.params.accountId} subscription={match.params.subscriptionId} boundary={match.params.boundaryId} func={match.params.functionId} />
+                              <SubscriptionActivity code="codeactivityhg" label="HTTP Error Code Responses" params={match.params} />
+                              <SubscriptionActivity code="codelatencyhg" label="HTTP Request Latency" params={match.params} />
                             </ExplorerView>
                           )}
                         />
@@ -638,7 +639,8 @@ function ProfileExplorer({ ...rest }: any) {
                       match={match}
                       fab={<NewFunctionFab />}
                     >
-                      <SubscriptionActivity account={match.params.accountId} subscription={match.params.subscriptionId} />
+                      <SubscriptionActivity code="codeactivityhg" label="HTTP Error Code Responses" params={match.params} />
+                      <SubscriptionActivity code="codelatencyhg" label="HTTP Request Latency" params={match.params} />
                     </ExplorerView>
                   )}
                 />
@@ -719,7 +721,8 @@ function ProfileExplorer({ ...rest }: any) {
                       match={match}
                       fab={<NewFunctionFab />}
                     >
-                      <SubscriptionActivity account={match.params.accountId} subscription={match.params.subscriptionId} boundary={match.params.boundaryId}/>
+                      <SubscriptionActivity code="codeactivityhg" label="HTTP Error Code Responses" params={match.params} />
+                      <SubscriptionActivity code="codelatencyhg" label="HTTP Request Latency" params={match.params} />
                     </ExplorerView>
                   )}
                 />

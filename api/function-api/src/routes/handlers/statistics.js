@@ -48,14 +48,14 @@ const queries = {
   ],
 
   // Return the statusCodes for a specific histogram.
-  statusCodeHistogram: [
-    (code, interval = '15s') => {
+  codeHistogram: [
+    ({ code, interval } = { code: 200, interval: '15s' }) => {
       return {
         aggs: {
           result: {
             date_histogram: {
               field: '@timestamp',
-              fixed_interval: interval,
+              calendar_interval: interval,
               time_zone: 'America/Los_Angeles',
               min_doc_count: 1,
             },
@@ -77,6 +77,48 @@ const queries = {
       };
     },
     d => d.aggregations.result.buckets,
+  ],
+
+  // Return the statusCodes average latency for a specific histogram.
+  codeLatencyHistogram: [
+    ({ code, interval } = { code: 200, interval: '15s' }) => {
+      return {
+        aggs: {
+          result: {
+            date_histogram: {
+              field: '@timestamp',
+              calendar_interval: interval,
+              time_zone: 'America/Los_Angeles',
+              min_doc_count: 1,
+            },
+            aggs: {
+              latency: {
+                sum: {
+                  field: 'metrics.common.duration',
+                },
+              },
+            },
+          },
+        },
+        query: {
+          bool: {
+            filter: [
+              {
+                match_phrase: {
+                  'response.statusCode': {
+                    query: `${code}`,
+                  },
+                },
+              },
+            ],
+          },
+        },
+      };
+    },
+    d =>
+      d.aggregations.result.buckets.map(e => {
+        return { ...e, avg_latency: e.latency.value / e.doc_count };
+      }),
   ],
 };
 
@@ -180,9 +222,9 @@ const codeActivityHistogram = async (req, res, next) => {
   let histogram = {};
 
   for (const code of allCodes.data) {
-    let response = await makeQuery(req, 'statusCodeHistogram', code);
+    let response = await makeQuery(req, 'codeHistogram', { code, interval: req.params.width });
     if (response.statusCode != 200) {
-      throw new Error('statusCodeHistogram failed: ' + response.data);
+      throw new Error('codeHistogram failed: ' + response.data);
     }
 
     for (const evt of response.data) {
@@ -203,9 +245,46 @@ const codeActivityHistogram = async (req, res, next) => {
   res.end();
 };
 
+// Generate a histogram of the latency all active HTTP response codes over the time period.
+const codeLatencyHistogram = async (req, res, next) => {
+  let range = {};
+
+  const allCodes = await makeQuery(req, 'allStatusCodes');
+
+  if (allCodes.statusCode != 200) {
+    throw new Error('allStatusCodes failed: ' + allCodes.data);
+  }
+
+  let histogram = {};
+
+  for (const code of allCodes.data) {
+    let response = await makeQuery(req, 'codeLatencyHistogram', { code, interval: req.params.width });
+    if (response.statusCode != 200) {
+      throw new Error('statusCodeHistogram failed: ' + response.data);
+    }
+
+    for (const evt of response.data) {
+      try {
+        histogram[evt.key_as_string][code] = evt.avg_latency;
+      } catch (e) {
+        histogram[evt.key_as_string] = { key: evt.key_as_string, [code]: evt.doc_count };
+      }
+    }
+  }
+
+  let sequenced = Object.keys(histogram)
+    .sort()
+    .map(i => histogram[i]);
+  res.statusCode = 200;
+  res.setHeader('Content-Type', 'application/json');
+  res.write(JSON.stringify({ codes: allCodes.data, data: sequenced }));
+  res.end();
+};
+
 // List of supported queries.
 const statisticsQueries = {
   codeactivityhg: codeActivityHistogram,
+  codelatencyhg: codeLatencyHistogram,
 };
 
 function statisticsGet() {

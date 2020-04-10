@@ -596,9 +596,12 @@ router.delete(
 
 // Statistics reports, general purpose, for specific statisticsKey reports.
 
-router.options('/account/:accountId/statistics/:statisticsKey/:timeStart?/:timeEnd?', cors(corsManagementOptions));
+router.options(
+  '/account/:accountId/statistics/:statisticsKey/:timeStart?/:timeEnd?/:width?',
+  cors(corsManagementOptions)
+);
 router.get(
-  '/account/:accountId/statistics/:statisticsKey/:timeStart?/:timeEnd?',
+  '/account/:accountId/statistics/:statisticsKey/:timeStart?/:timeEnd?/:width?',
   cors(corsManagementOptions),
   validate_schema({ params: require('./schemas/api_account') }),
   authorize({ operation: statistics.StatisticsAction.Account }),
@@ -607,11 +610,11 @@ router.get(
 );
 
 router.options(
-  '/account/:accountId/subscription/:subscriptionId/statistics/:statisticsKey/:timeStart?/:timeEnd?',
+  '/account/:accountId/subscription/:subscriptionId/statistics/:statisticsKey/:timeStart?/:timeEnd?/:width?',
   cors(corsManagementOptions)
 );
 router.get(
-  '/account/:accountId/subscription/:subscriptionId/statistics/:statisticsKey/:timeStart?/:timeEnd?',
+  '/account/:accountId/subscription/:subscriptionId/statistics/:statisticsKey/:timeStart?/:timeEnd?/:width?',
   cors(corsManagementOptions),
   validate_schema({ params: require('./schemas/api_account') }),
   authorize({ operation: statistics.StatisticsAction.Account }),
@@ -621,11 +624,11 @@ router.get(
 );
 
 router.options(
-  '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/statistics/:statisticsKey/:timeStart?/:timeEnd?',
+  '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/statistics/:statisticsKey/:timeStart?/:timeEnd?/:width?',
   cors(corsManagementOptions)
 );
 router.get(
-  '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/statistics/:statisticsKey/:timeStart?/:timeEnd?',
+  '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/statistics/:statisticsKey/:timeStart?/:timeEnd?/:width?',
   cors(corsManagementOptions),
   validate_schema({ params: require('./schemas/api_account') }),
   authorize({ operation: statistics.StatisticsAction.Account }),
@@ -636,11 +639,11 @@ router.get(
 );
 
 router.options(
-  '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/statistics/:statisticsKey/:timeStart?/:timeEnd?',
+  '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/statistics/:statisticsKey/:timeStart?/:timeEnd?/:width?',
   cors(corsManagementOptions)
 );
 router.get(
-  '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/statistics/:statisticsKey/:timeStart?/:timeEnd?',
+  '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/statistics/:statisticsKey/:timeStart?/:timeEnd?/:width?',
   cors(corsManagementOptions),
   validate_schema({ params: require('./schemas/api_account') }),
   authorize({ operation: statistics.StatisticsAction.Account }),
