@@ -26,7 +26,7 @@ import ProfileBreadcrumb from "./ProfileBreadcrumb";
 import { useProfile } from "./ProfileProvider";
 import ProfileSelectorWithDetails from "./ProfileSelectorWithDetails";
 import SubscriptionBoundaries from "./SubscriptionBoundaries";
-import SubscriptionActivity from "./SubscriptionActivity";
+import { MonitoringPanel }from "./Monitoring";
 import AgentDeleteFab from "./AgentDeleteFab";
 import { SubscriptionsProvider } from "./SubscriptionsProvider";
 import { BoundariesProvider } from "./BoundariesProvider";
@@ -584,8 +584,7 @@ function ProfileExplorer({ ...rest }: any) {
                               match={match}
                               fab={<NewFunctionFab />}
                             >
-                              <SubscriptionActivity code="codeactivityhg" label="HTTP Error Code Responses" params={match.params} />
-                              <SubscriptionActivity code="codelatencyhg" label="HTTP Request Latency" params={match.params} />
+                              <MonitoringPanel params={match.params} />
                             </ExplorerView>
                           )}
                         />
@@ -639,8 +638,7 @@ function ProfileExplorer({ ...rest }: any) {
                       match={match}
                       fab={<NewFunctionFab />}
                     >
-                      <SubscriptionActivity code="codeactivityhg" label="HTTP Error Code Responses" params={match.params} />
-                      <SubscriptionActivity code="codelatencyhg" label="HTTP Request Latency" params={match.params} />
+                      <MonitoringPanel params={match.params} />
                     </ExplorerView>
                   )}
                 />
@@ -721,8 +719,7 @@ function ProfileExplorer({ ...rest }: any) {
                       match={match}
                       fab={<NewFunctionFab />}
                     >
-                      <SubscriptionActivity code="codeactivityhg" label="HTTP Error Code Responses" params={match.params} />
-                      <SubscriptionActivity code="codelatencyhg" label="HTTP Request Latency" params={match.params} />
+                      <MonitoringPanel params={match.params} />
                     </ExplorerView>
                   )}
                 />

@@ -49,7 +49,7 @@ const queries = {
 
   // Return the statusCodes for a specific histogram.
   codeHistogram: [
-    ({ code, interval } = { code: 200, interval: '15s' }) => {
+    ({ code, interval, minDocCount } = { code: 200, interval: '15s', minDocCount: 0 }) => {
       return {
         aggs: {
           result: {
@@ -57,7 +57,7 @@ const queries = {
               field: '@timestamp',
               calendar_interval: interval,
               time_zone: 'America/Los_Angeles',
-              min_doc_count: 1,
+              min_doc_count: minDocCount,
             },
           },
         },
@@ -81,7 +81,7 @@ const queries = {
 
   // Return the statusCodes average latency for a specific histogram.
   codeLatencyHistogram: [
-    ({ code, interval } = { code: 200, interval: '15s' }) => {
+    ({ code, interval, minDocCount } = { code: 200, interval: '15s', minDocCount: 0 }) => {
       return {
         aggs: {
           result: {
@@ -89,7 +89,7 @@ const queries = {
               field: '@timestamp',
               calendar_interval: interval,
               time_zone: 'America/Los_Angeles',
-              min_doc_count: 1,
+              min_doc_count: minDocCount,
             },
             aggs: {
               latency: {
@@ -222,7 +222,7 @@ const codeActivityHistogram = async (req, res, next) => {
   let histogram = {};
 
   for (const code of allCodes.data) {
-    let response = await makeQuery(req, 'codeHistogram', { code, interval: req.params.width });
+    let response = await makeQuery(req, 'codeHistogram', { code, interval: req.params.width, minDocCount: 0 });
     if (response.statusCode != 200) {
       throw new Error('codeHistogram failed: ' + response.data);
     }
@@ -231,7 +231,7 @@ const codeActivityHistogram = async (req, res, next) => {
       try {
         histogram[evt.key_as_string][code] = evt.doc_count;
       } catch (e) {
-        histogram[evt.key_as_string] = { key: evt.key_as_string, [code]: evt.doc_count };
+        histogram[evt.key_as_string] = { key: Date.parse(evt.key_as_string), [code]: evt.doc_count };
       }
     }
   }
@@ -258,7 +258,7 @@ const codeLatencyHistogram = async (req, res, next) => {
   let histogram = {};
 
   for (const code of allCodes.data) {
-    let response = await makeQuery(req, 'codeLatencyHistogram', { code, interval: req.params.width });
+    let response = await makeQuery(req, 'codeLatencyHistogram', { code, interval: req.params.width, minDocCount: 0 });
     if (response.statusCode != 200) {
       throw new Error('statusCodeHistogram failed: ' + response.data);
     }
@@ -267,7 +267,7 @@ const codeLatencyHistogram = async (req, res, next) => {
       try {
         histogram[evt.key_as_string][code] = evt.avg_latency;
       } catch (e) {
-        histogram[evt.key_as_string] = { key: evt.key_as_string, [code]: evt.doc_count };
+        histogram[evt.key_as_string] = { key: Date.parse(evt.key_as_string), [code]: evt.doc_count };
       }
     }
   }

@@ -1,26 +1,10 @@
 import React, { useState, useEffect } from "react";
-import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
-import ToggleButton from '@material-ui/lab/ToggleButton';
-import { LineChart, Line, CartesianGrid, XAxis, YAxis, Legend } from 'recharts';
+import { ResponsiveContainer, LineChart, Line, CartesianGrid, Tooltip, XAxis, YAxis, Legend } from 'recharts';
 import LinearProgress from "@material-ui/core/LinearProgress";
 import Superagent from "superagent";
 import { useProfile } from "./ProfileProvider";
 import { IFusebitProfile } from "../lib/Settings";
 import { ensureAccessToken, createHttpException } from "../lib/Fusebit";
-import ms from "ms";
-
-interface IParams {
-  accountId?: string;
-  subscriptionId?: string;
-  boundaryId?: string;
-  functionId?: string;
-};
-
-interface IProps {
-  code: string;
-  label: string;
-  params: IParams;
-};
 
 enum BucketWidths {
   Minute = "1m",
@@ -36,6 +20,21 @@ interface IDateInterval {
   width: BucketWidths;
   timeStart: Date;
   timeEnd: Date;
+};
+
+interface IParams {
+  accountId?: string;
+  subscriptionId?: string;
+  boundaryId?: string;
+  functionId?: string;
+};
+
+interface IProps {
+  code: string;
+  label: string;
+  params: IParams;
+  interval: IDateInterval;
+  setEventRange: (newInterval: IDateInterval) => void;
 };
 
 // Quick convienent map so everything isn't the same color.
@@ -73,41 +72,59 @@ const getData = async (props: IProps, profile: IFusebitProfile, range: IDateInte
 }
 
 const SubscriptionActivity: React.FC<IProps> = (props) => {
-  console.log(props);
   const { profile } = useProfile();
   const [ data, setData ] = useState({codes: [], data: []});
-  const [ interval, setInterval ] = useState<IDateInterval>({timeStart: new Date(Date.now() - ms('7d')), timeEnd: new Date(), width: BucketWidths.Day});
 
   // Run once on page load.
   useEffect(() => {
-    getData(props, profile, interval, setData);
-  }, [profile, props, interval]);
+    getData(props, profile, props.interval, setData);
+  }, [profile, props]);
 
   if (data.data.length === 0) {
     return <LinearProgress />;
   }
 
+  console.log(data);
+
+  const dateTickFormatter = (msTime: number): string => {
+    return new Date(msTime).toISOString();
+  }
+
+	const CustomTooltip = ({ active, payload, label}:any) => {
+		if (active) {
+			return (
+				<div className="custom-tooltip">
+					<p className="label">{`${dateTickFormatter(label)}`}</p>
+					{
+				    payload.map((line:any) => {
+              return (<p key={line.name} className="desc">{line.name}: {line.value}</p>);
+            })
+          }
+				</div>
+			);
+		}
+
+		return null;
+	};
+
+  // Quick hack, let's turn the key into an integer.
   return (
-    <div>
-      <ToggleButtonGroup size="small" exclusive={true} onChange={(e, v) => setInterval({...interval, width: v})} value={interval.width}>
-        {
-          Object.keys(BucketWidths).map((width) => {
-            let tWidth: keyof typeof BucketWidths = width as keyof typeof BucketWidths;
-            return (<ToggleButton key={width} value={BucketWidths[tWidth]}>{width}</ToggleButton>);
-          })
-        }
-      </ToggleButtonGroup>
-      <LineChart width={900} height={500} data={data.data}>
-        <CartesianGrid stroke="#ccc" />
-        <Legend verticalAlign="top" height={36}/>
-        <XAxis dataKey="key" label={{value:props.label, position: "insideBottom"}} />
-        <YAxis />
-        {
-          data.codes.map((id) => {
-            return (<Line key={id} dataKey={id} dot={false} stroke={codeColorMap[id]} />);
-          })
-        }
-      </LineChart>
+    <div style={{ width: '100%', height: 300 }}>
+      <ResponsiveContainer>
+      
+        <LineChart width={900} height={500} data={data.data} onClick={ (e, v) => props.setEventRange(e.activeLabel) }>
+          <CartesianGrid stroke="#ccc" />
+          <Tooltip content={CustomTooltip} />
+          <Legend verticalAlign="top" height={36}/>
+          <XAxis type="number" domain={[props.interval.timeStart.getTime(), props.interval.timeEnd.getTime()]} dataKey="key" label={{value:props.label, position: "insideBottom"}} tickFormatter={dateTickFormatter}/>
+          <YAxis />
+          {
+            data.codes.map((id) => {
+              return (<Line type="monotone" key={id} dataKey={id} dot={false} activeDot={{r:4}} stroke={codeColorMap[id]} />);
+            })
+          }
+        </LineChart>
+      </ResponsiveContainer>
     </div>
   );
 }
