@@ -35,6 +35,7 @@ interface IProps {
   params: IParams;
   interval: IDateInterval;
   setEventRange: (newInterval: IDateInterval) => void;
+  setActiveCodeList: (newCodeList: number[]) => void;
 };
 
 // Quick convienent map so everything isn't the same color.
@@ -84,8 +85,6 @@ const SubscriptionActivity: React.FC<IProps> = (props) => {
     return <LinearProgress />;
   }
 
-  console.log(data);
-
   const dateTickFormatter = (msTime: number): string => {
     return new Date(msTime).toISOString();
   }
@@ -106,6 +105,8 @@ const SubscriptionActivity: React.FC<IProps> = (props) => {
 
 		return null;
 	};
+
+  props.setActiveCodeList(data.codes);
 
   // Quick hack, let's turn the key into an integer.
   return (
