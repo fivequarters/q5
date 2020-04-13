@@ -313,7 +313,6 @@ export class DeploymentService {
   ): Promise<void> {
     const opsDataContext = await this.opsService.getOpsDataContext();
     const deploymentData = opsDataContext.deploymentData;
-    let dirty: boolean = false;
 
     // Update the parameters
     if (size && size > 0) {
