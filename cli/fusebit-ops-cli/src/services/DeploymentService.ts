@@ -307,6 +307,39 @@ export class DeploymentService {
     return confirmPrompt.prompt(this.input.io);
   }
 
+  public async updateDeployment(
+    deployment: IOpsDeployment,
+    { size, elasticSearch }: { size?: number; elasticSearch?: string }
+  ): Promise<void> {
+    const opsDataContext = await this.opsService.getOpsDataContext();
+    const deploymentData = opsDataContext.deploymentData;
+    let dirty: boolean = false;
+
+    // Update the parameters
+    if (size && size > 0) {
+      deployment.size = size;
+    }
+
+    if (elasticSearch != undefined) {
+      deployment.elasticSearch = elasticSearch;
+    }
+
+    // Dispatch
+    await this.executeService.execute(
+      {
+        header: 'Update Deployment',
+        message: `Updating '${Text.bold(deployment.deploymentName)}' deployment with new parameters.`,
+        errorHeader: 'Subscription Error',
+      },
+      () => deploymentData.update(deployment)
+    );
+
+    this.executeService.result(
+      'Deployment Updated',
+      `The '${Text.bold(deployment.deploymentName)}' deployment was successfully updated`
+    );
+  }
+
   public async displaySubscriptions(deployment: IOpsDeployment, accounts: IFusebitAccount[]) {
     if (this.input.options.format === 'json') {
       this.input.io.writeLine(JSON.stringify(accounts, null, 2));
@@ -416,6 +449,9 @@ export class DeploymentService {
       Text.eol(),
       Text.dim('Default Size: '),
       deployment.size.toString(),
+      Text.eol(),
+      Text.dim('Elastic Search: '),
+      deployment.elasticSearch ? deployment.elasticSearch.toString() : '',
       Text.eol(),
       Text.dim('Data Warehouse: '),
       deployment.dataWarehouseEnabled ? 'Enabled' : 'Disabled',

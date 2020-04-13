@@ -49,6 +49,10 @@ const command = {
       type: ArgType.boolean,
       default: 'true',
     },
+    {
+      name: 'elasticSearch',
+      description: 'Specify a pre-existing Elastic Search cluster to use for monitoring and analytics',
+    },
   ],
 };
 
@@ -70,6 +74,7 @@ export class AddDeploymentCommand extends Command {
     const [deploymentName, networkName, domainName] = input.arguments as string[];
     const region = input.options.region as string;
     const size = input.options.size as number;
+    const elasticSearch = input.options.elasticSearch as string;
     const confirm = input.options.confirm as boolean;
     const dataWarehouseEnabled = input.options.dataWarehouse as boolean;
 
@@ -83,6 +88,7 @@ export class AddDeploymentCommand extends Command {
       networkName,
       domainName,
       size,
+      elasticSearch,
       dataWarehouseEnabled,
       region: network.region,
       featureUseDnsS3Bucket: true,

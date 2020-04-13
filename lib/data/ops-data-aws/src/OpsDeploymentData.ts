@@ -181,6 +181,11 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
     return accounts;
   }
 
+  public async update(deployment: IOpsDeployment): Promise<void> {
+    debug('UPDATING DEPLOYMENT', deployment);
+    await this.tables.deploymentTable.update(deployment);
+  }
+
   public async initAdmin(deployment: IOpsDeployment, init: IInitAdmin): Promise<IInitAdmin> {
     debug('CREATING ADMIN', init);
     const awsConfig = await this.provider.getAwsConfigForDeployment(init.deploymentName, init.region);

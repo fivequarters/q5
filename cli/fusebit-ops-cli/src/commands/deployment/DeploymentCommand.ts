@@ -1,6 +1,7 @@
 import { Command, ICommand } from '@5qtrs/cli';
 import { AddDeploymentCommand } from './AddDeploymentCommand';
 import { ListDeploymentCommand } from './ListDeploymentCommand';
+import { UpdateDeploymentCommand } from './UpdateDeploymentCommand';
 
 // ------------------
 // Internal Constants
@@ -22,6 +23,7 @@ export class DeploymentCommand extends Command {
     const subCommands = [];
     subCommands.push(await AddDeploymentCommand.create());
     subCommands.push(await ListDeploymentCommand.create());
+    subCommands.push(await UpdateDeploymentCommand.create());
     command.subCommands = subCommands;
     return new DeploymentCommand(command);
   }

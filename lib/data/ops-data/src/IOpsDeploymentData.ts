@@ -11,6 +11,7 @@ export interface IOpsDeployment {
   networkName: string;
   domainName: string;
   size: number;
+  elasticSearch: string;
   dataWarehouseEnabled: boolean;
   featureUseDnsS3Bucket: boolean;
 }
@@ -34,5 +35,6 @@ export interface IOpsDeploymentData extends IDataSource {
   list(options?: IListOpsDeploymentOptions): Promise<IListOpsDeploymentResult>;
   listAll(deploymentName?: string): Promise<IOpsDeployment[]>;
   listAllSubscriptions(deployment: IOpsDeployment): Promise<IFusebitAccount[]>;
+  update(deployment: IOpsDeployment): Promise<void>;
   initAdmin(deployment: IOpsDeployment, init: IInitAdmin): Promise<IInitAdmin>;
 }
