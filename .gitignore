@@ -57,3 +57,5 @@ typings/
 .DS_Store
 .tgz
 .env.production
+
+*.swp
