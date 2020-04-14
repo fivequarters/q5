@@ -701,7 +701,17 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
           if (items.length > effectiveLimit) {
             items.splice(effectiveLimit);
             lastEvaluatedKey = {};
-            table.keys.forEach(k => {
+            let keys = [...table.keys];
+            if (params.IndexName) {
+              // If a local secondary index is used, the LastEvaluatedKey consists of the union
+              // of the primary keys and the local secondary index keys
+              keys = [
+                ...keys,
+                ...((table.localIndexes && table.localIndexes.find(i => i.name === params.IndexName)) || { keys: [] })
+                  .keys,
+              ];
+            }
+            keys.forEach(k => {
               lastEvaluatedKey[k] = items[items.length - 1][k];
             });
           } else {
