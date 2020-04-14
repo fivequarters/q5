@@ -4,6 +4,7 @@ import { IOpsStack, IOpsNewStack, IListOpsStackOptions, IListOpsStackResult, IOp
 import { OpsService } from './OpsService';
 import { ExecuteService } from './ExecuteService';
 import { request } from '@5qtrs/request';
+import url from 'url';
 
 // ----------------
 // Exported Classes
@@ -33,6 +34,7 @@ export class StackService {
         { name: 'Deployment', value: stack.deploymentName },
         { name: 'Tag', value: stack.tag },
         { name: 'Size', value: stack.size ? stack.size.toString() : '<Default>' },
+        { name: 'Elastic Search', value: stack.elasticSearch || '<Not set>' },
         { name: 'Environment', value: stack.env || '<Not set>' },
         { name: 'AMI', value: stack.ami || '<Official Ubuntu AMI>' },
       ],
@@ -99,9 +101,7 @@ export class StackService {
   }
 
   public async waitForStack(stack: IOpsStack, deployment: IOpsDeployment): Promise<void> {
-    let url = `https://stack-${stack.id}.${deployment.deploymentName}.${deployment.region}.${
-      deployment.domainName
-    }/v1/health`;
+    let url = `https://stack-${stack.id}.${deployment.deploymentName}.${deployment.region}.${deployment.domainName}/v1/health`;
 
     await this.executeService.execute(
       {
@@ -137,6 +137,17 @@ export class StackService {
     const stackData = opsDataContext.stackData;
 
     const { deploymentName, tag } = newStack;
+
+    // If the elasticSearch parameter is present and not-empty.
+    if (newStack.elasticSearch && newStack.elasticSearch.length > 0) {
+      // Validate that the Elastic Search parameter fits the expected format
+      let es_creds = url.parse(newStack.elasticSearch);
+      if (!es_creds.host || !es_creds.auth || !es_creds.auth.match(/([^:]+):(.*)/)) {
+        const msg = 'Invalid elasticSearch format.\nExpected: https://user:password@hostname.com';
+        this.executeService.error('Invalid Elastic Search Format', msg);
+        throw new Error(msg);
+      }
+    }
 
     const stack = await this.executeService.execute(
       {
@@ -309,6 +320,9 @@ export class StackService {
       Text.eol(),
       Text.dim('Size: '),
       stack.size.toString(),
+      Text.eol(),
+      Text.dim('Elastic Search: '),
+      stack.elasticSearch || '',
       Text.eol(),
       Text.dim('Status: '),
       stack.active ? 'ACTIVE' : 'NOT ACTIVE',

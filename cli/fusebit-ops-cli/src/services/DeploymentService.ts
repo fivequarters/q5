@@ -10,6 +10,7 @@ import {
   IInitAdmin,
 } from '@5qtrs/ops-data';
 import { ExecuteService } from './ExecuteService';
+import url from 'url';
 
 // ----------------
 // Exported Classes
@@ -124,6 +125,17 @@ export class DeploymentService {
   public async addDeployment(deployment: IOpsDeployment): Promise<IOpsDeployment> {
     const opsDataContext = await this.opsService.getOpsDataContext();
     const deploymentData = opsDataContext.deploymentData;
+
+    // If the elasticSearch parameter is present and not-empty.
+    if (deployment.elasticSearch && deployment.elasticSearch.length > 0) {
+      // Validate that the Elastic Search parameter fits the expected format
+      let es_creds = url.parse(deployment.elasticSearch);
+      if (!es_creds.host || !es_creds.auth || !es_creds.auth.match(/([^:]+):(.*)/)) {
+        const msg = 'Invalid elasticSearch format.\nExpected: https://user:password@hostname.com';
+        this.executeService.error('Invalid Elastic Search Format', msg);
+        throw new Error(msg);
+      }
+    }
 
     await this.executeService.execute(
       {
@@ -321,6 +333,17 @@ export class DeploymentService {
 
     if (elasticSearch != undefined) {
       deployment.elasticSearch = elasticSearch;
+    }
+
+    // If the elasticSearch parameter is present and not-empty.
+    if (deployment.elasticSearch && deployment.elasticSearch.length > 0) {
+      // Validate that the Elastic Search parameter fits the expected format
+      let es_creds = url.parse(deployment.elasticSearch);
+      if (!es_creds.host || !es_creds.auth || !es_creds.auth.match(/([^:]+):(.*)/)) {
+        const msg = 'Invalid elasticSearch format.\nExpected: https://user:password@hostname.com';
+        this.executeService.error('Invalid Elastic Search Format', msg);
+        throw new Error(msg);
+      }
     }
 
     // Dispatch

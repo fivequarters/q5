@@ -37,6 +37,10 @@ const command = {
       default: '2',
     },
     {
+      name: 'elasticSearch',
+      description: 'The Elastic Search endpoint for monitoring and analytics\nFormat: https://user:password@hostname',
+    },
+    {
       name: 'dataWarehouse',
       description: 'If set to true, the deployment will export data to the data warehouse',
       type: ArgType.boolean,
@@ -48,10 +52,6 @@ const command = {
       description: 'If set to true, prompts for confirmation before adding the deployment to the Fusebit platform',
       type: ArgType.boolean,
       default: 'true',
-    },
-    {
-      name: 'elasticSearch',
-      description: 'Specify a pre-existing Elastic Search cluster to use for monitoring and analytics',
     },
   ],
 };

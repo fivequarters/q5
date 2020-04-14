@@ -18,6 +18,8 @@ import { OpsDataAwsConfig } from './OpsDataAwsConfig';
 import { OpsAccountData } from './OpsAccountData';
 import { random } from '@5qtrs/random';
 
+import url from 'url';
+
 // ------------------
 // Internal Functions
 // ------------------
@@ -84,6 +86,7 @@ export class OpsStackData extends DataSource implements IOpsStackData {
     const awsConfig = await this.provider.getAwsConfigForDeployment(deploymentName, deployment.region);
 
     const size = newStack.size || deployment.size;
+    const elasticSearch = newStack.elasticSearch || deployment.elasticSearch;
     const id = await this.getNextStackId(newStack.deploymentName);
 
     const awsAmi = await AwsAmi.create(awsConfig);
@@ -107,6 +110,7 @@ export class OpsStackData extends DataSource implements IOpsStackData {
         securityGroupIds,
         deployment.domainName,
         this.config.getS3Bucket(deployment),
+        elasticSearch,
         newStack.env
       ),
       this.cloudWatchAgentForUserData(deploymentName),
@@ -273,9 +277,10 @@ systemctl start docker.fusebit`;
     securityGroupIds: string[],
     domainName: string,
     s3Bucket: string,
+    elasticSearch: string,
     env?: string
   ) {
-    return `
+    let r = `
 cat > ${this.getEnvFilePath()} << EOF
 PORT=${this.config.monoApiPort}
 DEPLOYMENT_KEY=${deploymentName}
@@ -289,8 +294,25 @@ LAMBDA_VPC_SUBNETS=${subnetIds.join(',')}
 LAMBDA_VPC_SECURITY_GROUPS=${securityGroupIds.join(',')}
 CRON_QUEUE_URL=https://sqs.${region}.amazonaws.com/${account}/${deploymentName}-cron
 LOGS_TOKEN_SIGNATURE_KEY=${random({ lengthInBytes: 32 })}
+`;
+
+    let es_creds = url.parse(elasticSearch);
+    if (es_creds.host && es_creds.auth) {
+      let auth = es_creds.auth.match(/([^:]+):(.*)/);
+      if (auth && auth[1] && auth[2]) {
+        r += `
+ES_HOST=${es_creds.host}
+ES_USER=${auth[1]}
+ES_PASSWORD=${auth[2]}
+  `;
+      }
+    }
+    return (
+      r +
+      ` 
 ${env || ''}
-EOF`;
+EOF`
+    );
   }
 
   private dockerImageForUserData(tag: string) {

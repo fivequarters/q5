@@ -19,20 +19,18 @@ const command = {
   options: [
     {
       name: 'region',
-      alaises: ['r'],
-      description: 'The region of the deployment to update',
+      description: 'The region of the deployment; required if the network is not globally unique',
+      defaultText: 'network region',
     },
     {
       name: 'size',
-      aliases: ['s'],
-      description: "Update the default 'size' of a stack, changing the number of hosts created",
+      description: 'The default number of instances to include in stacks of the deployment',
       type: ArgType.integer,
       default: '2',
     },
     {
       name: 'elasticSearch',
-      aliases: ['es'],
-      description: 'Update the default Elastic Search endpoint for monitoring and analytics',
+      description: 'The Elastic Search endpoint for monitoring and analytics\nFormat: https://user:password@hostname',
     },
   ],
 };
