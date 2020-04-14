@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { ResponsiveContainer, LineChart, Line, CartesianGrid, Tooltip, XAxis, YAxis, Legend } from "recharts";
 import LinearProgress from "@material-ui/core/LinearProgress";
 import Superagent from "superagent";
-import { useProfile } from "./ProfileProvider";
 import { IFusebitProfile } from "../lib/Settings";
 import { ensureAccessToken, createHttpException } from "../lib/Fusebit";
 
@@ -67,11 +66,10 @@ const getData = async (
 };
 
 const SubscriptionActivity: React.FC<IProps> = props => {
-  const { profile } = useProfile();
   const [data, setData] = useState({ codes: [], data: [] });
 
   // Run once on page load, but first unpack props:
-  const { code, label, urlWart, interval, setEventRange, setActiveCodeList } = props;
+  const { profile, code, label, urlWart, interval, setEventRange, setActiveCodeList } = props;
 
   useEffect(() => {
     getData(profile, code, urlWart, interval, setData, setActiveCodeList);

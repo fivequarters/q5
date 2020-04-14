@@ -4,6 +4,7 @@ import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
 import Box from "@material-ui/core/Box";
 import SubscriptionActivity from "./SubscriptionActivity";
+import HTTPActivityLog from "./HTTPActivityLog";
 import ToggleButtonGroup from "@material-ui/lab/ToggleButtonGroup";
 import ToggleButton from "@material-ui/lab/ToggleButton";
 import ms from "ms";
@@ -126,10 +127,10 @@ const MonitoringPanel: React.FC<IProps> = props => {
         return (
           <TabPanel key={n + 1} graphIndex={graphIndex} index={n + 1}>
             <SubscriptionActivity
+              profile={profile}
               code={graph.code}
               label={graph.label}
               urlWart={urlWart}
-              profile={profile}
               interval={interval}
               setEventRange={setEventRange}
               setActiveCodeList={setActiveCodeList}
@@ -153,7 +154,7 @@ const MonitoringPanel: React.FC<IProps> = props => {
           );
         })}
       </ToggleButtonGroup>
-      {/*<HTTPEventLogList params={props.params} interval={interval} activeCode={activeCode} /> */}
+      <HTTPActivityLog profile={profile} urlWart={urlWart} interval={interval} activeCode={activeCode} />
     </div>
   );
 };

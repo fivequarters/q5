@@ -1,4 +1,4 @@
-const { getAccountContext, errorHandler } = require('../account');
+const { getAccountContext } = require('../account');
 const https = require('https');
 
 const StatisticsAction = {
@@ -120,6 +120,40 @@ const queries = {
         return { ...e, avg_latency: e.latency.value / e.doc_count };
       }),
   ],
+
+  // Retrieve itemized list of events
+  itemizedBulk: [
+    ({ fromIdx, pageSize, statusCode, minDocCount }) => {
+      return {
+        from: fromIdx,
+        size: pageSize,
+        sort: [
+          {
+            '@timestamp': { order: 'desc', unmapped_type: 'boolean' },
+          },
+        ],
+        docvalue_fields: [
+          { field: '@timestamp', format: 'date_time' },
+          { field: 'timestamp', format: 'date_time' },
+        ],
+        query: {
+          bool: {
+            filter: [
+              {
+                bool: {
+                  should: [{ match: { 'response.statusCode': statusCode } }],
+                  minimum_should_match: minDocCount,
+                },
+              },
+            ],
+          },
+        },
+      };
+    },
+    d => {
+      return { data: d.hits.hits, total: d.hits.total.value };
+    },
+  ],
 };
 
 const addRequiredFilters = (request, body) => {
@@ -213,6 +247,8 @@ const makeQuery = async (request, key, query_params = null) => {
 const codeActivityHistogram = async (req, res, next) => {
   let range = {};
 
+  const { width = req.params.param1 } = req.params;
+
   const allCodes = await makeQuery(req, 'allStatusCodes');
 
   if (allCodes.statusCode != 200) {
@@ -222,7 +258,7 @@ const codeActivityHistogram = async (req, res, next) => {
   let histogram = {};
 
   for (const code of allCodes.data) {
-    let response = await makeQuery(req, 'codeHistogram', { code, interval: req.params.width, minDocCount: 0 });
+    let response = await makeQuery(req, 'codeHistogram', { code, interval: width, minDocCount: 0 });
     if (response.statusCode != 200) {
       throw new Error('codeHistogram failed: ' + response.data);
     }
@@ -249,6 +285,8 @@ const codeActivityHistogram = async (req, res, next) => {
 const codeLatencyHistogram = async (req, res, next) => {
   let range = {};
 
+  const { width = req.params.param1 } = req.params;
+
   const allCodes = await makeQuery(req, 'allStatusCodes');
 
   if (allCodes.statusCode != 200) {
@@ -258,7 +296,7 @@ const codeLatencyHistogram = async (req, res, next) => {
   let histogram = {};
 
   for (const code of allCodes.data) {
-    let response = await makeQuery(req, 'codeLatencyHistogram', { code, interval: req.params.width, minDocCount: 0 });
+    let response = await makeQuery(req, 'codeLatencyHistogram', { code, interval: width, minDocCount: 0 });
     if (response.statusCode != 200) {
       throw new Error('statusCodeHistogram failed: ' + response.data);
     }
@@ -281,15 +319,45 @@ const codeLatencyHistogram = async (req, res, next) => {
   res.end();
 };
 
+// Generate a histogram of the latency all active HTTP response codes over the time period.
+const itemizedBulk = async (req, res, next) => {
+  let range = {};
+
+  let bulk = {};
+
+  const { statusCode = req.params.param1, fromIdx = req.params.param2, pageSize = 10, minDocCount = 1 } = req.params;
+
+  let response = await makeQuery(req, 'itemizedBulk', { statusCode, fromIdx, pageSize, minDocCount });
+  if (response.statusCode != 200) {
+    throw new Error('statusCodeHistogram failed: ' + response.data);
+  }
+
+  bulk = response.data;
+
+  res.statusCode = 200;
+  res.setHeader('Content-Type', 'application/json');
+  res.write(JSON.stringify({ ...bulk, fromIdx: fromIdx, pageSize: pageSize }));
+  res.end();
+};
+
 // List of supported queries.
 const statisticsQueries = {
   codeactivityhg: codeActivityHistogram,
   codelatencyhg: codeLatencyHistogram,
+  itemizedbulk: itemizedBulk,
 };
 
 function statisticsGet() {
   return async (req, res, next) => {
-    return statisticsQueries[req.params.statisticsKey.toLowerCase()](req, res, next);
+    const handler = statisticsQueries[req.params.statisticsKey.toLowerCase()];
+    if (handler) {
+      return handler(req, res, next);
+    }
+
+    res.statusCode = 404;
+    res.setHeader('Content-Type', 'application/json');
+    res.write(JSON.stringify({ errorCode: 404, errorMessage: `Unsupported query: ${req.params.statisticsKey}` }));
+    res.end();
   };
 }
 
