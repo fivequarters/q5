@@ -10,9 +10,9 @@ import { useProfile } from "./ProfileProvider";
 
 const useStyles = makeStyles((theme: any) => ({
   gridContainer: {
-    paddingLeft: theme.spacing(3),
+    paddingLeft: theme.spacing(4),
     paddingRight: theme.spacing(3),
-    marginTop: theme.spacing(1)
+    marginTop: theme.spacing(3)
     // marginBottom: theme.spacing(2)
   },
   inputField: {
@@ -84,10 +84,8 @@ function AccountSettings() {
         <Grid item xs={4}>
           <DialogContentText>&nbsp;</DialogContentText>
           <InfoCard>
-            <DialogContentText>
-              These settings determine the resource you will first see when you
-              switch to this account.
-            </DialogContentText>
+            These settings determine the resource you will first see when you
+            switch to this account.
           </InfoCard>
         </Grid>
       </Grid>

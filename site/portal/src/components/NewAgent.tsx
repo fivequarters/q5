@@ -319,20 +319,17 @@ function NewAgentImpl() {
           <Grid item xs={4}>
             {activeStep === 2 && flow === "oauth-implicit" && (
               <InfoCard>
-                <DialogContentText>
-                  The Fusebit Portal uses these values to provide a default view
-                  when the {agentNoun} logs in.
-                </DialogContentText>
+                The Fusebit Portal uses these values to provide a default view
+                when the {agentNoun} logs in.
               </InfoCard>
             )}
-            {activeStep === 2 && (flow === "oauth-device" || flow === "pki") && (
-              <InfoCard>
-                <DialogContentText>
+            {activeStep === 2 &&
+              (flow === "oauth-device" || flow === "pki") && (
+                <InfoCard>
                   The Fusebit CLI uses these values as default parameters for
                   commands, to make it faster to manage the specified resource.
-                </DialogContentText>
-              </InfoCard>
-            )}
+                </InfoCard>
+              )}
           </Grid>
         </Grid>
       </React.Fragment>
@@ -397,15 +394,15 @@ function NewAgentImpl() {
           <Grid item xs={4}>
             {activeStep === 1 && role.role === "developer" && (
               <InfoCard>
-                <DialogContentText>
+                <p style={{ marginTop: 0 }}>
                   Leaving the subscription, boundary, and function blank will
                   grant the {agentNoun} developer permissions for the whole
                   account.
-                </DialogContentText>
-                <DialogContentText>
+                </p>
+                <p style={{ marginBottom: 0 }}>
                   Specifying subscription, boundary, or function constraints
                   limits the effective scope of the permission set.
-                </DialogContentText>
+                </p>
               </InfoCard>
             )}
           </Grid>

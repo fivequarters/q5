@@ -18,9 +18,11 @@ function InfoCard({ children, learnMoreUrl }: any) {
 
   return (
     <Card square={true} raised={false} elevation={0} className={classes.card}>
-      <CardContent>{children}</CardContent>
+      <CardContent style={{ paddingTop: 0, paddingBottom: 0 }}>
+        {children}
+      </CardContent>
       {learnMoreUrl && (
-        <CardActions>
+        <CardActions style={{ paddingBottom: 0 }}>
           <Button
             color="primary"
             target="_blank"

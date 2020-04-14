@@ -105,9 +105,20 @@ function isIFusebitProfile(o: any): o is IFusebitProfile {
   );
 }
 
+export interface IFusebitUISettings {
+  tableRowsPerPage: number;
+  utcTime: boolean;
+}
+
+export const defaultFusebitUISettings: IFusebitUISettings = {
+  tableRowsPerPage: 10,
+  utcTime: false,
+};
+
 export interface IFusebitSettings {
   profiles: IFusebitProfile[];
   currentProfile: string;
+  ui: IFusebitUISettings;
 }
 
 function isIFusebitSettings(o: any): o is IFusebitSettings {
@@ -121,7 +132,10 @@ function isIFusebitSettings(o: any): o is IFusebitSettings {
         (count: number, profile: any) =>
           (count += isIFusebitProfile(profile) ? 1 : 0),
         0
-      )
+      ) &&
+    typeof o.ui === "object" &&
+    typeof o.ui.tableRowsPerPage === "number" &&
+    typeof o.ui.utcTime === "boolean"
   );
 }
 
@@ -142,8 +156,8 @@ function getExternalSettingsUrl(): string {
         "Please ask your Fusebit administrator for instructions. ",
         "You can provide either a valid HTTPS URL or a ",
         "{organization}/{repository}[/{file}][#{profile-name}] string that identifies an ",
-        "existing file in a public Github repository."
-      ].join("")
+        "existing file in a public Github repository.",
+      ].join(""),
     });
   }
 }
@@ -157,16 +171,16 @@ async function getExternalSettings(url: string): Promise<IFusebitSettings> {
     throw new FusebitError("Unable to initialize Fusebit Portal", {
       details: [
         `Unable to obtain Fusebit settings from ${serverUrl}. `,
-        `Please ask your Fusebit administrator for instructions.`
-      ].join("")
+        `Please ask your Fusebit administrator for instructions.`,
+      ].join(""),
     });
   }
   if (settingsResponse.status !== 200) {
     throw new FusebitError("Unable to initialize Fusebit Portal", {
       details: [
         `Error obtaining Fusebit settings from ${serverUrl}. HTTP status code is ${settingsResponse.status}. `,
-        `Please ask your Fusebit administrator for instructions.`
-      ].join("")
+        `Please ask your Fusebit administrator for instructions.`,
+      ].join(""),
     });
   }
   let settings: any = settingsResponse.body || settingsResponse.text;
@@ -178,25 +192,26 @@ async function getExternalSettings(url: string): Promise<IFusebitSettings> {
         details: [
           `Error obtaining Fusebit settings from ${serverUrl}. `,
           `Response data is not a JSON object. `,
-          `Please ask your Fusebit administrator for instructions.`
-        ].join("")
+          `Please ask your Fusebit administrator for instructions.`,
+        ].join(""),
       });
     }
   }
+  settings.ui = { ...defaultFusebitUISettings, ...settings.ui };
   if (!isIFusebitSettings(settings)) {
     throw new FusebitError("Unable to initialize Fusebit Portal", {
       details: [
         `The data obtained from ${serverUrl} is not in the format required by Fusebit Settings. `,
-        `Please ask your Fusebit administrator for instructions.`
-      ].join("")
+        `Please ask your Fusebit administrator for instructions.`,
+      ].join(""),
     });
   }
   if (settings.profiles.length === 0) {
     throw new FusebitError("Unable to initialize Fusebit Portal", {
       details: [
         `The Fusebit Settings from ${serverUrl} do not specify any profiles. `,
-        `Please ask your Fusebit administrator for instructions.`
-      ].join("")
+        `Please ask your Fusebit administrator for instructions.`,
+      ].join(""),
     });
   }
   if (sourceProfile && settings.currentProfile !== sourceProfile) {
@@ -211,10 +226,10 @@ async function getExternalSettings(url: string): Promise<IFusebitSettings> {
         details: [
           `The Fusebit Settings from ${serverUrl} do not specify the requested profile ${sourceProfile}. `,
           `Available profiles are: ${settings.profiles
-            .map(p => p.id)
+            .map((p) => p.id)
             .join(", ")}. `,
-          `Please ask your Fusebit administrator for instructions.`
-        ].join("")
+          `Please ask your Fusebit administrator for instructions.`,
+        ].join(""),
       });
     }
   }
@@ -230,6 +245,7 @@ function getLocalSettings(): IFusebitSettings | undefined {
   if (settingsSerialized) {
     try {
       let settings = JSON.parse(settingsSerialized);
+      settings.ui = { ...defaultFusebitUISettings, ...settings.ui };
       if (!isIFusebitSettings(settings)) {
         throw new Error("Not fusebit settings");
       }
@@ -242,6 +258,21 @@ function getLocalSettings(): IFusebitSettings | undefined {
     }
   }
   return undefined;
+}
+
+function getUISettings(): IFusebitUISettings {
+  const settings = getLocalSettings();
+  return (settings && settings.ui) || { ...defaultFusebitUISettings };
+}
+
+function setUISettings(ui: IFusebitUISettings) {
+  const settings = getLocalSettings();
+  if (settings) {
+    settings.ui = ui;
+    setLocalSettings(settings);
+  } else {
+    setLocalSettings({ ui, profiles: [], currentProfile: "" });
+  }
 }
 
 function indexOfProfile(settings: IFusebitSettings, id: string): number {
@@ -262,5 +293,7 @@ export {
   // IFusebitProfile,
   indexOfProfile,
   isIFusebitAuth,
-  isIFusebitAuthError
+  isIFusebitAuthError,
+  getUISettings,
+  setUISettings,
 };

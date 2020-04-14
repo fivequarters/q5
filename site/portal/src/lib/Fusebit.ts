@@ -6,8 +6,12 @@ import {
   Subscription,
   BoundaryHash,
   FunctionSpecification,
-  ExistingFunctionSpecification
+  ExistingFunctionSpecification,
+  Audit,
+  AuditFilter,
+  AuditTrail,
 } from "./FusebitTypes";
+import { createHash } from "crypto";
 
 import Superagent from "superagent";
 // import parseUrl from "url-parse";
@@ -40,7 +44,7 @@ function throwHttpException(error: any) {
 function createHttpException(error: any) {
   return (
     (error.response && error.response.body) || {
-      message: error.message || "Unknown error"
+      message: error.message || "Unknown error",
     }
   );
 }
@@ -61,16 +65,16 @@ export async function getMe(profile: IFusebitProfile) {
         get: false,
         update: false,
         delete: false,
-        init: false
+        init: false,
       },
       client: {
         add: false,
         get: false,
         update: false,
         delete: false,
-        init: false
+        init: false,
       },
-      issuer: { add: false, get: false, update: false, delete: false }
+      issuer: { add: false, get: false, update: false, delete: false },
     };
     for (let i = 0; i < allow.length; i++) {
       let acl = allow[i];
@@ -84,7 +88,7 @@ export async function getMe(profile: IFusebitProfile) {
         }
         if (acl.action === `${resourceType}:*` || acl.action === "*") {
           Object.keys(account.can[resourceType]).forEach(
-            operation => (account.can[resourceType][operation] = true)
+            (operation) => (account.can[resourceType][operation] = true)
           );
         }
       }
@@ -224,7 +228,7 @@ export async function initUser(
       .set("Authorization", `Bearer ${initToken}`)
       .send({
         protocol: "oauth",
-        accessToken: auth.access_token
+        accessToken: auth.access_token,
       });
     return result.body;
   } catch (e) {
@@ -244,7 +248,7 @@ export async function getInitToken(
     subscription: profile.subscription,
     boundary: profile.boundary,
     function: profile.function,
-    oauth: protocol === "oauth" ? profile.oauth : undefined
+    oauth: protocol === "oauth" ? profile.oauth : undefined,
   };
   try {
     let auth = await ensureAccessToken(profile);
@@ -256,7 +260,7 @@ export async function getInitToken(
       .set("Authorization", `Bearer ${auth.access_token}`)
       .send({
         protocol,
-        profile: profileData
+        profile: profileData,
       });
     return result.body;
   } catch (e) {
@@ -279,7 +283,7 @@ export async function updateUser(
         lastName: user.lastName,
         primaryEmail: user.primaryEmail,
         identities: user.identities,
-        access: user.access
+        access: user.access,
       });
     return result.body as User;
   } catch (e) {
@@ -302,7 +306,7 @@ export async function newUser(
         lastName: user.lastName,
         primaryEmail: user.primaryEmail,
         identities: user.identities,
-        access: user.access
+        access: user.access,
       });
     return result.body as User;
   } catch (e) {
@@ -323,7 +327,7 @@ export async function updateClient(
       .send({
         displayName: client.displayName,
         identities: client.identities,
-        access: client.access
+        access: client.access,
       });
     return result.body as Client;
   } catch (e) {
@@ -344,7 +348,7 @@ export async function newClient(
       .send({
         displayName: client.displayName,
         identities: client.identities,
-        access: client.access
+        access: client.access,
       });
     return result.body as Client;
   } catch (e) {
@@ -354,7 +358,7 @@ export async function newClient(
 
 export function normalizeIssuer(issuer: any): Issuer {
   let normalized: any = {
-    id: issuer.id
+    id: issuer.id,
   };
   if (issuer.displayName !== undefined) {
     normalized.displayName = issuer.displayName.trim();
@@ -383,9 +387,9 @@ export function normalizeIssuer(issuer: any): Issuer {
 
 export function normalizeAgent(user: any): Client | User {
   let normalized: any = {
-    id: user.id
+    id: user.id,
   };
-  ["firstName", "lastName", "primaryEmail", "displayName"].forEach(p => {
+  ["firstName", "lastName", "primaryEmail", "displayName"].forEach((p) => {
     if (user[p] && user[p].trim().length > 0) {
       normalized[p] = user[p].trim();
     }
@@ -417,7 +421,7 @@ export function normalizeAgent(user: any): Client | User {
           : a.action < b.action
           ? 1
           : 0
-      )
+      ),
     };
   } else {
     normalized.access = { allow: [] };
@@ -481,7 +485,7 @@ export async function updateIssuer(
       .send({
         displayName: issuer.displayName,
         publicKeys: issuer.publicKeys,
-        jsonKeysUrl: issuer.jsonKeysUrl
+        jsonKeysUrl: issuer.jsonKeysUrl,
       });
     let newIssuer = result.body as Issuer;
     computePublicKeyAcquisition(newIssuer);
@@ -506,7 +510,7 @@ export async function newIssuer(
       .send({
         displayName: issuer.displayName,
         publicKeys: issuer.publicKeys,
-        jsonKeysUrl: issuer.jsonKeysUrl
+        jsonKeysUrl: issuer.jsonKeysUrl,
       });
     let newIssuer = result.body as Issuer;
     computePublicKeyAcquisition(newIssuer);
@@ -528,7 +532,7 @@ export async function deleteUsers(
           `${profile.baseUrl}/v1/account/${profile.account}/user/${id}`
         )
           .set("Authorization", `Bearer ${auth.access_token}`)
-          .ok(res => res.status === 204)
+          .ok((res) => res.status === 204)
       )
     );
   } catch (e) {
@@ -550,12 +554,59 @@ export async function deleteIssuers(
           }/issuer/${encodeURIComponent(id)}`
         )
           .set("Authorization", `Bearer ${auth.access_token}`)
-          .ok(res => res.status === 204)
+          .ok((res) => res.status === 204)
       )
     );
   } catch (e) {
     throwHttpException(e);
   }
+}
+
+export async function getAudit(
+  profile: IFusebitProfile,
+  filter: AuditFilter
+): Promise<AuditTrail> {
+  let count = filter.count || 1000;
+  let data: any[] = [];
+  let next;
+  try {
+    let auth = await ensureAccessToken(profile);
+    do {
+      let query: string[] = [];
+      query.push(`count=${Math.min(100, count - data.length)}`);
+      if (next) query.push(next);
+      if (filter.resource)
+        query.push(`resource=${encodeURIComponent(filter.resource)}`);
+      if (filter.action && filter.action !== "*")
+        query.push(`action=${encodeURIComponent(filter.action)}`);
+      if (filter.issuerId) {
+        query.push(`issuerId=${encodeURIComponent(filter.issuerId)}`);
+        if (filter.subject) {
+          query.push(`subject=${encodeURIComponent(filter.subject)}`);
+        }
+      }
+      if (filter.from) query.push(`from=${encodeURIComponent(filter.from)}`);
+      if (filter.to) query.push(`to=${encodeURIComponent(filter.to)}`);
+
+      let result: any = await Superagent.get(
+        `${profile.baseUrl}/v1/account/${profile.account}/audit?${query.join(
+          "&"
+        )}`
+      ).set("Authorization", `Bearer ${auth.access_token}`);
+      data = data.concat(result.body.items).slice(0, count);
+      next = result.body.next ? `next=${result.body.next}` : undefined;
+    } while (next && data.length < count);
+  } catch (e) {
+    throw createHttpException(e);
+  }
+  data.forEach((d) => {
+    d.id = createHash("md5")
+      .update(
+        `${d.resource}::${d.action}::${d.timestamp}::${d.issuerId}::${d.subject}`
+      )
+      .digest("hex");
+  });
+  return { data: data as Audit[], hasMore: next !== undefined };
 }
 
 export async function getClients(profile: IFusebitProfile): Promise<Client[]> {
@@ -590,7 +641,7 @@ export async function deleteClients(
           `${profile.baseUrl}/v1/account/${profile.account}/client/${id}`
         )
           .set("Authorization", `Bearer ${auth.access_token}`)
-          .ok(res => res.status === 204)
+          .ok((res) => res.status === 204)
       )
     );
   } catch (e) {
@@ -610,7 +661,7 @@ export async function tryGetFunction(
       `${profile.baseUrl}/v1/account/${profile.account}/subscription/${subscriptionId}/boundary/${boundaryId}/function/${functionId}`
     )
       .set("Authorization", `Bearer ${auth.access_token}`)
-      .ok(res => res.status === 200 || res.status === 404);
+      .ok((res) => res.status === 200 || res.status === 404);
     return response.status === 200
       ? (response.body as ExistingFunctionSpecification)
       : null;
@@ -649,7 +700,7 @@ export async function createFunction(
           );
         }
       }
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
       attempts--;
     }
     if (attempts === 0) {
@@ -718,7 +769,7 @@ export async function deleteFunctions(
                   accountId: profile.account,
                   subscriptionId,
                   boundaryId,
-                  functionId: id
+                  functionId: id,
                 })
             : Superagent.delete(
                 `${profile.baseUrl}/v1/account/${profile.account}/subscription/${subscriptionId}/boundary/${boundaryId}/function/${id}`
@@ -755,7 +806,7 @@ export async function getFunctions(
         next = response.body.next ? `?next=${response.body.next}` : undefined;
       } while (next);
     }
-    Object.keys(boundaries).forEach(boundaryId => {
+    Object.keys(boundaries).forEach((boundaryId) => {
       let boundary = boundaries[boundaryId];
       boundary.functions.sort((a: any, b: any) =>
         a.functionId < b.functionId ? -1 : a.functionId > b.functionId ? 1 : 0
@@ -848,7 +899,7 @@ export function computeFunctionScopes(
         return [
           boundaryId
             ? `/account/${profile.account}/subscription/${subscriptionId}/boundary/${boundaryId}/function`
-            : `/account/${profile.account}/subscription/${subscriptionId}/function`
+            : `/account/${profile.account}/subscription/${subscriptionId}/function`,
         ];
       } else if (!boundaryId) {
         result.push(
@@ -856,7 +907,7 @@ export function computeFunctionScopes(
         );
       } else if (boundaryId === bid) {
         return [
-          `/account/${profile.account}/subscription/${subscriptionId}/boundary/${boundaryId}/function`
+          `/account/${profile.account}/subscription/${subscriptionId}/boundary/${boundaryId}/function`,
         ];
       }
     }

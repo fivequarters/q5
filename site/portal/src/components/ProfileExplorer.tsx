@@ -8,160 +8,149 @@ import { Redirect, Route, Switch, useHistory } from "react-router-dom";
 import { getLocalSettings, IFusebitSettings } from "../lib/Settings";
 import AccountClients from "./AccountClients";
 import AccountIssuers from "./AccountIssuers";
-import AccountSubscriptions from "./AccountSubscriptions";
 import AccountSettings from "./AccountSettings";
+import AccountSubscriptions from "./AccountSubscriptions";
 import AccountUsers from "./AccountUsers";
+import AgentDeleteFab from "./AgentDeleteFab";
 import AgentPermissions from "./AgentPermissions";
 import AgentProperties from "./AgentProperties";
 import { AgentProvider } from "./AgentProvider";
-import { IssuerProvider } from "./IssuerProvider";
+import { AgentsProvider } from "./AgentsProvider";
+import { BoundariesProvider } from "./BoundariesProvider";
 import BoundaryFunctions from "./BoundaryFunctions";
-import ClientActionFab from "./ClientActionFab";
 import { FusebitError } from "./ErrorBoundary";
+import FunctionActionFab from "./FunctionActionFab";
 import FunctionCode from "./FunctionCode";
 import FunctionOverview from "./FunctionOverview";
+import { FunctionProvider } from "./FunctionProvider";
 import IssuerProperties from "./IssuerProperties";
+import { IssuerProvider } from "./IssuerProvider";
+import { IssuersProvider } from "./IssuersProvider";
 import NewAgent from "./NewAgent";
+import NewFunction from "./NewFunction";
+import NewFunctionCreate from "./NewFunctionCreate";
+import NewFunctionFab from "./NewFunctionFab";
 import ProfileBreadcrumb from "./ProfileBreadcrumb";
 import { useProfile } from "./ProfileProvider";
 import ProfileSelectorWithDetails from "./ProfileSelectorWithDetails";
-import SubscriptionBoundaries from "./SubscriptionBoundaries";
-import AgentDeleteFab from "./AgentDeleteFab";
-import { SubscriptionsProvider } from "./SubscriptionsProvider";
-import { BoundariesProvider } from "./BoundariesProvider";
-import { AgentsProvider } from "./AgentsProvider";
-import { IssuersProvider } from "./IssuersProvider";
 import ResourceAccess from "./ResourceAccess";
-import NewFunction from "./NewFunction";
-import NewFunctionFab from "./NewFunctionFab";
-import NewFunctionCreate from "./NewFunctionCreate";
-import FunctionActionFab from "./FunctionActionFab";
-import { FunctionProvider } from "./FunctionProvider";
+import SubscriptionBoundaries from "./SubscriptionBoundaries";
+import { SubscriptionsProvider } from "./SubscriptionsProvider";
+import Activity from "./Activity";
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   paper: {
     paddingTop: 14,
     paddingLeft: theme.spacing(2),
-    position: "relative"
+    position: "relative",
   },
   fab: {
     position: "absolute",
     right: theme.spacing(16),
-    bottom: -theme.spacing(3.5)
+    bottom: -theme.spacing(3.5),
+    zIndex: 9999,
   },
-  regularMargin: {
-    marginTop: theme.spacing(2)
-  },
-  slimMargin: {
-    marginTop: 2
-  }
 }));
 
 const ExplorerTabs = {
   account: [
     {
-      name: "subscriptions"
+      name: "subscriptions",
     },
     {
-      name: "activity"
+      name: "activity",
     },
     {
-      name: "users"
+      name: "users",
     },
     {
-      name: "clients"
+      name: "clients",
     },
     {
-      name: "issuers"
+      name: "issuers",
     },
     {
-      name: "access"
+      name: "access",
     },
     {
-      name: "settings"
-    }
+      name: "settings",
+    },
   ],
   subscription: [
     {
-      name: "boundaries"
+      name: "boundaries",
     },
     {
-      name: "activity"
+      name: "activity",
     },
     {
-      name: "access"
+      name: "access",
     },
-    {
-      name: "settings"
-    }
   ],
   boundary: [
     {
-      name: "functions"
+      name: "functions",
     },
     {
-      name: "activity"
+      name: "activity",
     },
     {
-      name: "access"
+      name: "access",
     },
-    {
-      name: "settings"
-    }
   ],
   oneFunction: [
     {
-      name: "overview"
+      name: "overview",
     },
     {
-      name: "activity"
+      name: "activity",
     },
     {
-      name: "access"
+      name: "access",
     },
     {
-      name: "settings"
-    }
+      name: "settings",
+    },
   ],
   issuer: [
     {
-      name: "properties"
+      name: "properties",
     },
     {
-      name: "activity"
+      name: "activity",
     },
     {
-      name: "access"
-    }
+      name: "access",
+    },
   ],
   user: [
     {
-      name: "properties"
+      name: "properties",
     },
     {
-      name: "activity"
+      name: "activity",
     },
     {
-      name: "permissions"
+      name: "permissions",
     },
     {
-      name: "access"
-    }
+      name: "access",
+    },
   ],
   client: [
     {
-      name: "properties"
+      name: "properties",
     },
     {
-      name: "activity"
+      name: "activity",
     },
     {
-      name: "permissions"
+      name: "permissions",
     },
     {
-      name: "access"
-    }
-  ]
+      name: "access",
+    },
+  ],
 };
 
 function ProfileExplorer({ ...rest }: any) {
@@ -175,8 +164,7 @@ function ProfileExplorer({ ...rest }: any) {
     children,
     tabs,
     match,
-    detailsFullView,
-    fab
+    fab,
   }: any) {
     const { path } = match;
     // Last segment of the URL indicates the selected tab
@@ -200,13 +188,7 @@ function ProfileExplorer({ ...rest }: any) {
               {fab && <div className={classes.fab}>{fab}</div>}
             </Paper>
           </Grid>
-          <Grid
-            item
-            xs={12}
-            className={
-              detailsFullView ? classes.slimMargin : classes.regularMargin
-            }
-          >
+          <Grid item xs={12}>
             {children}
           </Grid>
         </Grid>
@@ -227,16 +209,16 @@ function ProfileExplorer({ ...rest }: any) {
       {
         details: [
           `If you navigated to a URL that was given to you, please check it is valid. `,
-          `Otherwise, use the link below to go back to a safe place. `
+          `Otherwise, use the link below to go back to a safe place. `,
         ].join(""),
         actions: [
           {
             text: profile.subscription
               ? "Go back to subscription"
               : "Go back to account",
-            url: getDefaultUrl()
-          }
-        ]
+            url: getDefaultUrl(),
+          },
+        ],
       }
     );
   }
@@ -285,7 +267,7 @@ function ProfileExplorer({ ...rest }: any) {
                 <ResourceAccess
                   actionPrefixFilter={["client", "user", "issuer"]}
                   resourceFilter={{
-                    accountId: match.params.accountId
+                    accountId: match.params.accountId,
                   }}
                 />
               </AgentsProvider>
@@ -328,7 +310,7 @@ function ProfileExplorer({ ...rest }: any) {
                     render={({ ...rest }) => (
                       <ExplorerView
                         tabs={ExplorerTabs.user}
-                        fab={<AgentDeleteFab />}
+                        // fab={<AgentDeleteFab />}
                         {...rest}
                       >
                         <AgentPermissions />
@@ -349,7 +331,7 @@ function ProfileExplorer({ ...rest }: any) {
                             actionPrefixFilter={["user"]}
                             resourceFilter={{
                               accountId: match.params.accountId,
-                              userId: match.params.userId
+                              userId: match.params.userId,
                             }}
                           />
                         </AgentsProvider>
@@ -425,7 +407,7 @@ function ProfileExplorer({ ...rest }: any) {
                     render={({ ...rest }) => (
                       <ExplorerView
                         tabs={ExplorerTabs.client}
-                        fab={<ClientActionFab />}
+                        // fab={<AgentDeleteFab />}
                         {...rest}
                       >
                         <AgentPermissions />
@@ -446,7 +428,7 @@ function ProfileExplorer({ ...rest }: any) {
                             actionPrefixFilter={["client"]}
                             resourceFilter={{
                               accountId: match.params.accountId,
-                              clientId: match.params.clientId
+                              clientId: match.params.clientId,
                             }}
                           />
                         </AgentsProvider>
@@ -502,7 +484,7 @@ function ProfileExplorer({ ...rest }: any) {
                           actionPrefixFilter={["issuer"]}
                           resourceFilter={{
                             accountId: match.params.accountId,
-                            issuerId: match.params.issuerId
+                            issuerId: match.params.issuerId,
                           }}
                         />
                       </AgentsProvider>
@@ -538,7 +520,7 @@ function ProfileExplorer({ ...rest }: any) {
                   actionPrefixFilter={["function", "subscription", "audit"]}
                   resourceFilter={{
                     accountId: match.params.accountId,
-                    subscriptionId: match.params.subscriptionId
+                    subscriptionId: match.params.subscriptionId,
                   }}
                 />
               </AgentsProvider>
@@ -591,7 +573,7 @@ function ProfileExplorer({ ...rest }: any) {
                                     accountId: match.params.accountId,
                                     subscriptionId: match.params.subscriptionId,
                                     boundaryId: match.params.boundaryId,
-                                    functionId: match.params.functionId
+                                    functionId: match.params.functionId,
                                   }}
                                 />
                               </AgentsProvider>
@@ -684,6 +666,20 @@ function ProfileExplorer({ ...rest }: any) {
                   )}
                 />
                 <Route
+                  path={`${match.path}/boundaries/:boundaryId/activity`}
+                  exact={true}
+                  render={({ match }) => (
+                    <ExplorerView tabs={ExplorerTabs.boundary} match={match}>
+                      <Activity
+                        filter={{
+                          resource: `/account/${profile.account}/subscription/${match.params.subscriptionId}/boundary/${match.params.boundaryId}/`,
+                        }}
+                        actionFilter={["function"]}
+                      />
+                    </ExplorerView>
+                  )}
+                />
+                <Route
                   path={`${match.path}/boundaries/:boundaryId/access`}
                   exact={true}
                   render={({ match, ...rest }) => (
@@ -699,7 +695,7 @@ function ProfileExplorer({ ...rest }: any) {
                           resourceFilter={{
                             accountId: match.params.accountId,
                             subscriptionId: match.params.subscriptionId,
-                            boundaryId: match.params.boundaryId
+                            boundaryId: match.params.boundaryId,
                           }}
                         />
                       </AgentsProvider>
