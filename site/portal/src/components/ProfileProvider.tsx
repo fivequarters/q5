@@ -3,7 +3,8 @@ import {
   getLocalSettings,
   setLocalSettings,
   IFusebitProfile,
-  indexOfProfile
+  indexOfProfile,
+  defaultFusebitUISettings
 } from "../lib/Settings";
 import { getMe, initUser } from "../lib/Fusebit";
 import { getBookmark, setBookmark } from "../lib/Bookmark";
@@ -40,7 +41,8 @@ function ProfileProvider(props: any) {
     if (!settings || !Array.isArray(settings.profiles)) {
       settings = {
         profiles: [initToken.profile],
-        currentProfile: initToken.profile.id
+        currentProfile: initToken.profile.id,
+        ui: defaultFusebitUISettings
       };
     } else {
       let matchingProfile: number = -1;

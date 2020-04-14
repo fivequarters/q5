@@ -16,15 +16,16 @@ import { useFunction } from "./FunctionProvider";
 import InputWithIcon from "./InputWithIcon";
 import PortalError from "./PortalError";
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   gridContainer: {
     marginLeft: theme.spacing(2),
     marginRight: theme.spacing(2),
-    marginBottom: theme.spacing(2)
+    marginBottom: theme.spacing(2),
+    marginTop: theme.spacing(2),
   },
   tile: {
-    marginLeft: theme.spacing(3)
-  }
+    marginLeft: theme.spacing(3),
+  },
 }));
 
 function FunctionOverview() {
@@ -71,7 +72,7 @@ function FunctionOverview() {
                       <FileCopyIcon fontSize="inherit" />
                     </IconButton>
                   </InputAdornment>
-                )
+                ),
               }}
             />
           </InputWithIcon>
@@ -110,7 +111,7 @@ function FunctionOverview() {
                           <OpenInNewIcon />
                         </Button>
                       </InputAdornment>
-                    )
+                    ),
                   }
                 }
               />

@@ -13,16 +13,16 @@ import DialogContentText from "@material-ui/core/DialogContentText";
 
 const useStyles = makeStyles((theme: any) => ({
   icon: {
-    color: "white"
+    color: "white",
   },
   paper: {
     marginTop: theme.spacing(1),
-    minWidth: 220
+    minWidth: 220,
   },
   header: {
     padding: theme.spacing(2),
-    paddingBottom: 0
-  }
+    paddingBottom: 0,
+  },
 }));
 
 function ActionFab({ title, subtitle, actions, color, icon }: any) {
@@ -31,7 +31,7 @@ function ActionFab({ title, subtitle, actions, color, icon }: any) {
   const anchorRef = React.useRef<HTMLButtonElement>(null);
 
   const handleToggle = () => {
-    setOpen(prevOpen => !prevOpen);
+    setOpen((prevOpen) => !prevOpen);
   };
 
   const handleClose = (event: React.MouseEvent<EventTarget>) => {
@@ -69,6 +69,10 @@ function ActionFab({ title, subtitle, actions, color, icon }: any) {
 
   return (
     <div>
+      {/* <IconButton aria-label="filter list">
+        <FilterListIcon />
+      </IconButton> */}
+
       <Fab
         color={color || "secondary"}
         ref={anchorRef}
@@ -91,7 +95,7 @@ function ActionFab({ title, subtitle, actions, color, icon }: any) {
             {...TransitionProps}
             style={{
               transformOrigin:
-                placement === "bottom" ? "center top" : "center bottom"
+                placement === "bottom" ? "center top" : "center bottom",
             }}
           >
             <Paper className={classes.paper}>
