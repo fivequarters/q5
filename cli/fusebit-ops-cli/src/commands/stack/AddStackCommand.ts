@@ -33,10 +33,6 @@ const command = {
       defaultText: 'deployment size',
     },
     {
-      name: 'elasticSearch',
-      description: 'The Elastic Search endpoint for monitoring and analytics\nFormat: https://user:password@hostname',
-    },
-    {
       name: 'env',
       description: 'Path to an .env file with additional environment variables for the stack',
     },
@@ -73,7 +69,6 @@ export class AddStackCommand extends Command {
     const [deploymentName, tag] = input.arguments as string[];
     const region = input.options.region as string;
     const size = input.options.size as number;
-    const elasticSearch = input.options.elasticSearch as string;
     const confirm = input.options.confirm as boolean;
     const env = input.options.env as string;
     const ami = input.options.ami as string;
@@ -86,7 +81,7 @@ export class AddStackCommand extends Command {
       deploymentName,
       tag,
       size: size || deployment.size,
-      elasticSearch: elasticSearch || deployment.elasticSearch,
+      elasticSearch: deployment.elasticSearch,
       region: deployment.region,
       env,
       ami,

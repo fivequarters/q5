@@ -10,9 +10,9 @@ export interface IOpsDeployment {
   region: string;
   networkName: string;
   domainName: string;
-  size: number;
-  elasticSearch: string;
-  dataWarehouseEnabled: boolean;
+  size?: number;
+  elasticSearch?: string;
+  dataWarehouseEnabled?: boolean;
   featureUseDnsS3Bucket: boolean;
 }
 
@@ -28,13 +28,12 @@ export interface IListOpsDeploymentResult {
 }
 
 export interface IOpsDeploymentData extends IDataSource {
-  exists(deployment: IOpsDeployment): Promise<boolean>;
+  existsAndUpdate(deployment: IOpsDeployment): Promise<boolean>;
   add(deployment: IOpsDeployment): Promise<void>;
   addSubscription(subscription: IFusebitSubscription): Promise<void>;
   get(deploymentName: string, region: string): Promise<IOpsDeployment>;
   list(options?: IListOpsDeploymentOptions): Promise<IListOpsDeploymentResult>;
   listAll(deploymentName?: string): Promise<IOpsDeployment[]>;
   listAllSubscriptions(deployment: IOpsDeployment): Promise<IFusebitAccount[]>;
-  update(deployment: IOpsDeployment): Promise<void>;
   initAdmin(deployment: IOpsDeployment, init: IInitAdmin): Promise<IInitAdmin>;
 }

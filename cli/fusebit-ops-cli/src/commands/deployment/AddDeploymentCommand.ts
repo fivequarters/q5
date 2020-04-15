@@ -34,17 +34,18 @@ const command = {
       name: 'size',
       description: 'The default number of instances to include in stacks of the deployment',
       type: ArgType.integer,
-      default: '2',
+      // No default, to preserve the existing value when updating a deployment.
     },
     {
       name: 'elasticSearch',
       description: 'The Elastic Search endpoint for monitoring and analytics\nFormat: https://user:password@hostname',
+      // No default, to preserve the existing value when updating a deployment.
     },
     {
       name: 'dataWarehouse',
       description: 'If set to true, the deployment will export data to the data warehouse',
       type: ArgType.boolean,
-      default: 'true',
+      // No default, to preserve the existing value when updating a deployment.
     },
     {
       name: 'confirm',
@@ -76,7 +77,7 @@ export class AddDeploymentCommand extends Command {
     const size = input.options.size as number;
     const elasticSearch = input.options.elasticSearch as string;
     const confirm = input.options.confirm as boolean;
-    const dataWarehouseEnabled = input.options.dataWarehouse as boolean;
+    const dataWarehouseEnabled = input.options.dataWarehouse as boolean | undefined;
 
     const deploymentService = await DeploymentService.create(input);
     const networkService = await NetworkService.create(input);

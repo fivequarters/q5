@@ -125,7 +125,7 @@ export class OpsStackData extends DataSource implements IOpsStackData {
       securityGroups: [network.securityGroupId],
       userData,
       instanceProfile: this.config.monoInstanceProfile,
-      size,
+      size: size as number,
       healthCheckGracePeriod: this.config.monoHealthCheckGracePeriod,
       subnets: network.privateSubnets.map(subnet => subnet.id),
     });
@@ -133,7 +133,7 @@ export class OpsStackData extends DataSource implements IOpsStackData {
     const targetGroupArn = await this.opsAlb.addTargetGroup(deployment, id);
     await awsAutoScale.attachToTargetGroup(autoScaleName, targetGroupArn);
 
-    const stack = { id, deploymentName, tag, size, region: deployment.region, active: false };
+    const stack = { id, deploymentName, tag, size: size as number, region: deployment.region, active: false };
     await this.tables.stackTable.add(stack);
 
     return stack;
@@ -277,7 +277,7 @@ systemctl start docker.fusebit`;
     securityGroupIds: string[],
     domainName: string,
     s3Bucket: string,
-    elasticSearch: string,
+    elasticSearch?: string,
     env?: string
   ) {
     let r = `
@@ -296,17 +296,20 @@ CRON_QUEUE_URL=https://sqs.${region}.amazonaws.com/${account}/${deploymentName}-
 LOGS_TOKEN_SIGNATURE_KEY=${random({ lengthInBytes: 32 })}
 `;
 
-    let es_creds = url.parse(elasticSearch);
-    if (es_creds.host && es_creds.auth) {
-      let auth = es_creds.auth.match(/([^:]+):(.*)/);
-      if (auth && auth[1] && auth[2]) {
-        r += `
-ES_HOST=${es_creds.host}
-ES_USER=${auth[1]}
-ES_PASSWORD=${auth[2]}
-  `;
+    if (elasticSearch != undefined) {
+      let es_creds = url.parse(elasticSearch);
+      if (es_creds.host && es_creds.auth) {
+        let auth = es_creds.auth.match(/([^:]+):(.*)/);
+        if (auth && auth[1] && auth[2]) {
+          r += `
+  ES_HOST=${es_creds.host}
+  ES_USER=${auth[1]}
+  ES_PASSWORD=${auth[2]}
+    `;
+        }
       }
     }
+
     return (
       r +
       ` 

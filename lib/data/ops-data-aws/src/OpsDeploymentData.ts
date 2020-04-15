@@ -18,12 +18,14 @@ import { OpsDataAwsProvider } from './OpsDataAwsProvider';
 import { OpsDataAwsConfig } from './OpsDataAwsConfig';
 import { OpsAlb } from './OpsAlb';
 import { createFunctionStorage } from './OpsFunctionStorage';
+import { createAnalyticsPipeline } from './OpsAnalytics';
 import { createCron } from './OpsCron';
 import { createDwhExport } from './OpsDwh';
 import { createLogsTable } from './OpsLogs';
 import { debug } from './OpsDebug';
 import { random } from '@5qtrs/random';
 import { signJwt } from '@5qtrs/jwt';
+import url from 'url';
 
 // ----------------
 // Exported Classes
@@ -57,20 +59,50 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
     this.globalOpsDeploymentData = globalOpsDeploymentData;
   }
 
-  public async exists(deployment: IOpsDeployment): Promise<boolean> {
+  public async existsAndUpdate(deployment: IOpsDeployment): Promise<boolean> {
     try {
       const existing = await this.tables.deploymentTable.get(deployment.deploymentName, deployment.region);
       if (existing.domainName !== deployment.domainName) {
         throw OpsDataException.deploymentDifferentDomain(deployment.deploymentName, existing.domainName);
       }
+
       if (existing.networkName !== deployment.networkName) {
         throw OpsDataException.deploymentDifferentNetwork(deployment.deploymentName, existing.networkName);
       }
+
+      // Protect certain variables from accidentally being cleared or reset
       deployment.featureUseDnsS3Bucket = existing.featureUseDnsS3Bucket;
+
+      if (deployment.size == null || deployment.size < 1) {
+        deployment.size = existing.size;
+      }
+
+      if (deployment.dataWarehouseEnabled == null) {
+        deployment.dataWarehouseEnabled = existing.dataWarehouseEnabled;
+      }
+
+      if (deployment.elasticSearch == null) {
+        deployment.elasticSearch = existing.elasticSearch;
+      }
+
+      // Update an existing deployment to any new parameters
       await this.ensureDeploymentSetup(deployment);
       return true;
     } catch (error) {
       if (error.code === OpsDataExceptionCode.noDeployment) {
+        // Specify any missing parameters on the deployment object
+        if (deployment.size == null) {
+          deployment.size = 2;
+        }
+
+        if (deployment.dataWarehouseEnabled == null) {
+          deployment.dataWarehouseEnabled = true;
+        }
+
+        if (deployment.elasticSearch == null) {
+          deployment.elasticSearch = '';
+        }
+
         return false;
       }
       throw error;
@@ -78,6 +110,7 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
   }
 
   public async add(deployment: IOpsDeployment): Promise<void> {
+    // Create the entry in the table.
     await this.tables.deploymentTable.add(deployment);
     try {
       await this.ensureDeploymentSetup(deployment);
@@ -181,11 +214,6 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
     return accounts;
   }
 
-  public async update(deployment: IOpsDeployment): Promise<void> {
-    debug('UPDATING DEPLOYMENT', deployment);
-    await this.tables.deploymentTable.update(deployment);
-  }
-
   public async initAdmin(deployment: IOpsDeployment, init: IInitAdmin): Promise<IInitAdmin> {
     debug('CREATING ADMIN', init);
     const awsConfig = await this.provider.getAwsConfigForDeployment(init.deploymentName, init.region);
@@ -254,6 +282,18 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
 
   private async ensureDeploymentSetup(deployment: IOpsDeployment): Promise<void> {
     debug('ENSURE DEPLOYMENT SETUP', deployment);
+
+    // Validate the correctness of the parameters
+    //
+    // Check if the elasticSearch parameter is present and not-empty.
+    if (deployment.elasticSearch && deployment.elasticSearch.length > 0) {
+      // Validate that the Elastic Search parameter fits the expected format
+      let es_creds = url.parse(deployment.elasticSearch);
+      if (!es_creds.host || !es_creds.auth || !es_creds.auth.match(/([^:]+):(.*)/)) {
+        throw OpsDataException.invalidElasticSearchUrl(deployment.elasticSearch);
+      }
+    }
+
     const awsConfig = await this.provider.getAwsConfigForDeployment(deployment.deploymentName, deployment.region);
 
     await createFunctionStorage(this.config, awsConfig, deployment);
@@ -267,6 +307,9 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
     await storageData.setup();
 
     await createLogsTable(this.config, awsConfig);
+
+    await createAnalyticsPipeline(this.config, awsConfig, deployment);
+
     await createCron(this.config, awsConfig, deployment);
     if (deployment.dataWarehouseEnabled) {
       await createDwhExport(this.config, awsConfig, deployment);
