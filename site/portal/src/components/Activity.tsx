@@ -15,6 +15,7 @@ import FormControlLabel from "@material-ui/core/FormControlLabel";
 import { makeStyles } from "@material-ui/core/styles";
 import { getUISettings, setUISettings } from "../lib/Settings";
 import WarningCard from "./WarningCard";
+import ResourceCrumb from "./ResourceCrumb";
 
 const useStyles = makeStyles((theme: any) => ({
   showTimeAs: {
@@ -51,12 +52,7 @@ function ActivityImpl({ actionFilter, filter }: ActivityProps) {
       id: "resource",
       align: "left",
       label: "Resource",
-      // render: row => (
-      //   <Link component={RouterLink} to={`users/${row.id}/properties`}>
-      //     <UserAvatar letter={row.name[0]} />
-      //     {row.name}
-      //   </Link>
-      // )
+      render: (row) => <ResourceCrumb resource={row.resource} />,
     },
     {
       id: "action",
@@ -133,6 +129,14 @@ function ActivityImpl({ actionFilter, filter }: ActivityProps) {
   // return <pre>{JSON.stringify(audit.data, null, 2)}</pre>;
   return (
     <React.Fragment>
+      {audit.data.data.length === 0 && (
+        <div className={classes.warning}>
+          <WarningCard>
+            No matching audit entries found. Please use the filter to relax the
+            search criteria.
+          </WarningCard>
+        </div>
+      )}
       {audit.data.hasMore && (
         <div className={classes.warning}>
           <WarningCard>
