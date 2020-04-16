@@ -35,7 +35,7 @@ import { useProfile } from "./ProfileProvider";
 import ProfileSelectorWithDetails from "./ProfileSelectorWithDetails";
 import ResourceAccess from "./ResourceAccess";
 import SubscriptionBoundaries from "./SubscriptionBoundaries";
-import { MonitoringPanel } from "./Monitoring";
+import { MonitorPanel } from "./Monitor";
 import { SubscriptionsProvider } from "./SubscriptionsProvider";
 import Activity from "./Activity";
 
@@ -553,7 +553,7 @@ function ProfileExplorer({ ...rest }: any) {
                               match={match}
                               fab={<NewFunctionFab />}
                             >
-                              <MonitoringPanel params={match.params} />
+                              <MonitorPanel params={match.params} />
                             </ExplorerView>
                           )}
                         />
@@ -575,7 +575,7 @@ function ProfileExplorer({ ...rest }: any) {
                   exact={true}
                   render={({ match }) => (
                     <ExplorerView tabs={ExplorerTabs.subscription} match={match} fab={<NewFunctionFab />}>
-                      <MonitoringPanel params={match.params} />
+                      <MonitorPanel params={match.params} />
                     </ExplorerView>
                   )}
                 />
@@ -679,7 +679,7 @@ function ProfileExplorer({ ...rest }: any) {
                   exact={true}
                   render={({ match }) => (
                     <ExplorerView tabs={ExplorerTabs.subscription} match={match} fab={<NewFunctionFab />}>
-                      <MonitoringPanel params={match.params} />
+                      <MonitorPanel params={match.params} />
                     </ExplorerView>
                   )}
                 />

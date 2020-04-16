@@ -65,7 +65,7 @@ const TabPanel = (props: TabPanelProps) => {
   );
 };
 
-const MonitoringPanel: React.FC<IProps> = props => {
+const MonitorPanel: React.FC<IProps> = props => {
   const { profile } = useProfile();
   const [graphIndex, setGraphIndex] = useState(0);
   const [interval, setInterval] = useState<IDateInterval>({
@@ -158,4 +158,4 @@ const MonitoringPanel: React.FC<IProps> = props => {
     </div>
   );
 };
-export { MonitoringPanel };
+export { MonitorPanel };
