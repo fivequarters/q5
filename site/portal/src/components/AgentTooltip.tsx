@@ -1,6 +1,5 @@
 import LinearProgress from "@material-ui/core/LinearProgress";
 import Link from "@material-ui/core/Link";
-import { makeStyles } from "@material-ui/core/styles";
 import Tooltip from "@material-ui/core/Tooltip";
 import Typography from "@material-ui/core/Typography";
 import React from "react";
@@ -8,8 +7,6 @@ import { Link as RouterLink } from "react-router-dom";
 import { getAgent } from "../lib/Fusebit";
 import { AgentState, formatAgent } from "./AgentProvider";
 import { useProfile } from "./ProfileProvider";
-
-const useStyles = makeStyles((theme) => ({}));
 
 export type IssuerSubjectAgent = {
   [key: string]: {
@@ -32,9 +29,9 @@ function AgentTooltip({
   onSetAgent,
   children,
 }: AgentTooltipProps) {
-  const classes = useStyles();
   const { profile } = useProfile();
   const [loading, setLoading] = React.useState(false);
+  const [open, setOpen] = React.useState(false);
 
   React.useEffect(() => {
     let cancelled: boolean = false;
@@ -74,16 +71,20 @@ function AgentTooltip({
         cancelled = true;
       };
     }
-  }, [loading, profile, issuerId, subject]);
+  }, [loading, profile, issuerId, subject, onSetAgent]);
 
   if (!agents[issuerId] || !agents[issuerId][subject]) {
     return (
       <Tooltip
-        open={loading}
-        onOpen={() => setLoading(true)}
+        open={open || loading}
+        onOpen={() => {
+          setLoading(true);
+          setOpen(true);
+        }}
+        onClose={() => setOpen(false)}
         title={
           <React.Fragment>
-            <Typography variant="body2">Resolving...</Typography>
+            <Typography variant="body2">Resolving identity...</Typography>
             <LinearProgress />
           </React.Fragment>
         }
@@ -100,6 +101,9 @@ function AgentTooltip({
   if (agent.status === "error") {
     return (
       <Tooltip
+        open={open}
+        onOpen={() => setOpen(true)}
+        onClose={() => setOpen(false)}
         title={<Typography variant="body2">{agent.error.message}</Typography>}
         placement="top"
         interactive
@@ -112,14 +116,18 @@ function AgentTooltip({
   if (agent.status === "ready") {
     return (
       <Tooltip
+        open={open}
+        onOpen={() => setOpen(true)}
+        onClose={() => setOpen(false)}
         title={
           <Link
+            color="inherit"
             component={RouterLink}
-            to={`/account/${profile.account}/${
-              agent.isUser ? "user" : "client"
+            to={`/accounts/${profile.account}/${
+              agent.isUser ? "users" : "clients"
             }/${agent.agentId}/properties`}
           >
-            <Typography variant="body2">
+            <Typography variant="body2" color="inherit">
               {agent.isUser ? "User" : "Client"}: {formatAgent(agent)}
             </Typography>
           </Link>

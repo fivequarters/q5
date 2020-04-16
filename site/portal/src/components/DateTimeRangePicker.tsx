@@ -18,12 +18,12 @@ export const rangePresets = [
 const pad = (i: number) => (i < 10 ? "0" + i : i.toString());
 
 /**
- * from - ISO date or one of: -15m, -30m, -1h, -24h, -7d, -30d, or undefined
- * to - If specified, ISO date
- * onChange - Called whenever selected time range changes.
+ * @from ISO date or one of: -15m, -30m, -1h, -24h, -7d, -30d, or undefined
+ * @to If specified, ISO date
+ * @onChange Called whenever selected time range changes.
  *            "from" can be one of -15m, -30m, -1h, -24h, -7d, -30d, or an ISO date in case a custom range was selected
  *            "to" is an ISO date in case a custom range was selected, undefined otherwise.
- * utc - whether custom date selection is done in UTC time (true) or local time (false). Default true.
+ * @utc whether custom date selection is done in UTC time (true) or local time (false). Default true.
  */
 type DateTimeRangePickerProps = {
   from?: string;
@@ -73,13 +73,19 @@ function DateTimeRangePicker({
   };
 
   const handleFromChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    customFrom = getUTCDate(event.target.value as string);
-    onChange && onChange(customFrom, to);
+    const v = event.target.value as string;
+    if (v) {
+      customFrom = getUTCDate(v);
+      onChange && onChange(customFrom, to);
+    }
   };
 
   const handleToChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    to = getUTCDate(event.target.value as string);
-    onChange && onChange((from === "custom" ? customFrom : from) || "", to);
+    const v = event.target.value as string;
+    if (v) {
+      to = getUTCDate(v);
+      onChange && onChange((from === "custom" ? customFrom : from) || "", to);
+    }
   };
 
   const formatPickerDate = (utcDate: string) => {
