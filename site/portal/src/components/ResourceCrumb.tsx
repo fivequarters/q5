@@ -1,5 +1,6 @@
 import { makeStyles } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
+import Tooltip from "@material-ui/core/Tooltip";
 import FilterNoneIcon from "@material-ui/icons/FilterNone";
 import FlipIcon from "@material-ui/icons/Flip";
 import GridOnIcon from "@material-ui/icons/GridOn";
@@ -25,6 +26,8 @@ const useStyles = makeStyles((theme) => ({
   },
   noWrap: {
     whiteSpace: "nowrap",
+    display: "flex",
+    alignItems: "center",
   },
   firstIcon: {
     marginRight: theme.spacing(1),
@@ -35,12 +38,13 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-function ResourceCrumb({ resource, ...rest }: any) {
+function ResourceCrumb({ resource, resourceMask, ...rest }: any) {
   const classes = useStyles();
   const { profile } = useProfile();
   const [subscriptions] = useSubscriptions();
   const [agent] = useAgentMaybe();
   const options = tryTokenizeResource(resource);
+  const mask = tryTokenizeResource(resourceMask || "") || {};
 
   if (!options) {
     return <Typography variant="inherit">{resource}</Typography>;
@@ -58,32 +62,40 @@ function ResourceCrumb({ resource, ...rest }: any) {
 
   const formatFunction = () => (
     <React.Fragment>
-      <span className={classes.noWrap}>
-        <NavigateNextIcon fontSize="inherit" className={classes.middleIcon} />
-        <FilterNoneIcon fontSize="inherit" className={classes.firstIcon} />
-        <Typography variant="inherit" className={classes.noWrap}>
-          {formatSubscription()}
-        </Typography>
-      </span>
+      {!mask.boundaryId && (
+        <span className={classes.noWrap}>
+          {/* <NavigateNextIcon fontSize="inherit" className={classes.middleIcon} /> */}
+          <FilterNoneIcon fontSize="inherit" className={classes.firstIcon} />
+          <Typography variant="inherit" className={classes.noWrap}>
+            {formatSubscription()}
+          </Typography>
+        </span>
+      )}
       {options.boundaryId && (
         <React.Fragment>
-          <span className={classes.noWrap}>
-            <NavigateNextIcon
-              fontSize="inherit"
-              className={classes.middleIcon}
-            />
-            <FlipIcon fontSize="inherit" className={classes.firstIcon} />
-            <Typography variant="inherit" className={classes.noWrap}>
-              {options.boundaryId}
-            </Typography>
-          </span>
-          {options.functionId && (
-            <React.Fragment>
-              <span className={classes.noWrap}>
+          {!mask.functionId && (
+            <span className={classes.noWrap}>
+              {!mask.boundaryId && (
                 <NavigateNextIcon
                   fontSize="inherit"
                   className={classes.middleIcon}
                 />
+              )}
+              <FlipIcon fontSize="inherit" className={classes.firstIcon} />
+              <Typography variant="inherit" className={classes.noWrap}>
+                {options.boundaryId}
+              </Typography>
+            </span>
+          )}
+          {options.functionId && (
+            <React.Fragment>
+              <span className={classes.noWrap}>
+                {!mask.functionId && (
+                  <NavigateNextIcon
+                    fontSize="inherit"
+                    className={classes.middleIcon}
+                  />
+                )}
                 <OndemandVideoIcon
                   fontSize="inherit"
                   className={classes.firstIcon}
@@ -102,7 +114,7 @@ function ResourceCrumb({ resource, ...rest }: any) {
   const formatAgent = () => (
     <React.Fragment>
       <span className={classes.noWrap}>
-        <NavigateNextIcon fontSize="inherit" className={classes.middleIcon} />
+        {/* <NavigateNextIcon fontSize="inherit" className={classes.middleIcon} /> */}
         {options.userId ? (
           <PersonIcon fontSize="inherit" className={classes.firstIcon} />
         ) : (
@@ -118,7 +130,7 @@ function ResourceCrumb({ resource, ...rest }: any) {
   const formatIssuer = () => (
     <React.Fragment>
       <span className={classes.noWrap}>
-        <NavigateNextIcon fontSize="inherit" className={classes.middleIcon} />
+        {/* <NavigateNextIcon fontSize="inherit" className={classes.middleIcon} /> */}
         <AccountBalanceIcon fontSize="inherit" className={classes.firstIcon} />
         <Typography variant="inherit" className={classes.noWrap}>
           {options.issuerId}
@@ -128,19 +140,27 @@ function ResourceCrumb({ resource, ...rest }: any) {
   );
 
   return (
-    <span className={classes.root} {...rest}>
-      <span className={classes.noWrap}>
-        <GridOnIcon fontSize="inherit" className={classes.firstIcon} />
-        <Typography variant="inherit" className={classes.noWrap}>
-          {formatAccount()}
-        </Typography>
+    <Tooltip
+      title={<Typography variant="body2">{resource}</Typography>}
+      placement="top"
+      interactive
+    >
+      <span className={classes.root} {...rest}>
+        {options.accountComponent && (
+          <span className={classes.noWrap}>
+            <GridOnIcon fontSize="inherit" className={classes.firstIcon} />
+            <Typography variant="inherit" className={classes.noWrap}>
+              {formatAccount()}
+            </Typography>
+          </span>
+        )}
+        {options.subscriptionId &&
+          options.subscriptionId !== "*" &&
+          formatFunction()}
+        {(options.userId || options.clientId) && formatAgent()}
+        {options.issuerId && formatIssuer()}
       </span>
-      {options.subscriptionId &&
-        options.subscriptionId !== "*" &&
-        formatFunction()}
-      {(options.userId || options.clientId) && formatAgent()}
-      {options.issuerId && formatIssuer()}
-    </span>
+    </Tooltip>
   );
 }
 

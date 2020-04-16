@@ -254,6 +254,8 @@ interface ExplorerTableProps<T> {
   deleteContent?: string | ((selected: string[]) => JSX.Element);
   disablePagination?: boolean;
   noDataBody?: JSX.Element;
+  firstRowMessage?: JSX.Element;
+  filterChips?: JSX.Element;
   size?: string;
 }
 
@@ -274,6 +276,8 @@ export default function ExplorerTable<T>(props: ExplorerTableProps<T>) {
     size,
     getTableRows,
     filterContent,
+    firstRowMessage,
+    filterChips,
   } = props;
   const classes = useStyles();
   const toolbarClasses = useToolbarStyles();
@@ -427,6 +431,9 @@ export default function ExplorerTable<T>(props: ExplorerTableProps<T>) {
           {rows.length === 0 && noDataBody && (
             <div className={toolbarClasses.root}>{noDataBody}</div>
           )}
+          {filterChips && (
+            <div className={toolbarClasses.root}>{filterChips}</div>
+          )}
           {(rows.length > 0 || !noDataBody) && (
             <React.Fragment>
               <Table
@@ -448,6 +455,15 @@ export default function ExplorerTable<T>(props: ExplorerTableProps<T>) {
                   enableSelection={enableSelection}
                 />
                 <TableBody>
+                  {firstRowMessage && (
+                    <TableRow>
+                      <TableCell
+                        colSpan={headCells.length + (enableSelection ? 1 : 0)}
+                      >
+                        {firstRowMessage}
+                      </TableCell>
+                    </TableRow>
+                  )}
                   {dataRows.map((row, index) => {
                     const isItemSelected = isSelected(
                       (row[identityKey] as unknown) as string

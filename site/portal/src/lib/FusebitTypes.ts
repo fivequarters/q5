@@ -50,6 +50,9 @@ export type Resource = {
   subscriptionId?: string;
   boundaryId?: string;
   functionId?: string;
+  functionComponent?: string;
+  accountComponent?: string;
+  subscriptionComponent?: string;
   userId?: string;
   clientId?: string;
   issuerId?: string;
