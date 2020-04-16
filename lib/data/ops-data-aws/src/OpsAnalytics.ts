@@ -74,6 +74,7 @@ function createAnalyticsConfig(
     },
     cloudWatchLogs: { logGroupName: `${prefix}analytics-logs` },
     subscriptionFilter: { destinationArn: '', filterName: '', filterPattern: '', logGroupName: '' },
+    deleteSubscriptionFilter: { filterName: '', logGroupName: '' },
     grantLambda: {
       FunctionName: '',
       StatementId: 'lambda-analytics-invoke',
@@ -88,6 +89,11 @@ function createAnalyticsConfig(
     destinationArn: `${awsDataConfig.arnPrefix}:lambda:${awsConfig.region}:${awsConfig.account}:function:${cfg.lambda.FunctionName}`,
     filterName: `${cfg.cloudWatchLogs.logGroupName}_${cfg.lambda.FunctionName}`,
     filterPattern: '',
+    logGroupName: cfg.cloudWatchLogs.logGroupName,
+  };
+
+  cfg.deleteSubscriptionFilter = {
+    filterName: `${cfg.cloudWatchLogs.logGroupName}_${cfg.lambda.FunctionName}`,
     logGroupName: cfg.cloudWatchLogs.logGroupName,
   };
 
@@ -162,6 +168,14 @@ function createCloudWatchSubscription(cwl: any, config: any, cb: AsyncCb) {
   });
 }
 
+function deleteCloudWatchSubscription(cwl: any, config: any, cb: AsyncCb) {
+  debug('deleteCloudWatchSubscription', config);
+  cwl.deleteSubscriptionFilter(config, (e: any, d: any) => {
+    if (e) debug('error ignored:', e);
+    cb();
+  });
+}
+
 export async function createAnalyticsPipeline(
   awsDataConfig: OpsDataAwsConfig,
   awsConfig: IAwsConfig,
@@ -185,7 +199,10 @@ export async function createAnalyticsPipeline(
         (cb: AsyncCb) => createCloudWatchLogGroup(cloudwatchlogs, config.cloudWatchLogs, cb),
         (cb: AsyncCb) => createOrUpdateLambda(lambda, config.lambda, cb),
         (cb: AsyncCb) => grantCloudWatchLogGroupLambdaInvocation(lambda, config.grantLambda, cb),
-        (cb: AsyncCb) => createCloudWatchSubscription(cloudwatchlogs, config.subscriptionFilter, cb),
+
+        deployment.elasticSearch.length > 0
+          ? (cb: AsyncCb) => createCloudWatchSubscription(cloudwatchlogs, config.subscriptionFilter, cb)
+          : (cb: AsyncCb) => deleteCloudWatchSubscription(cloudwatchlogs, config.deleteSubscriptionFilter, cb),
       ],
       (e: any): void => {
         if (e) return reject(e);
