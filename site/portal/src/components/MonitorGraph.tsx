@@ -65,7 +65,7 @@ const getData = async (
   }
 };
 
-const SubscriptionActivity: React.FC<IProps> = props => {
+const MonitorGraph: React.FC<IProps> = props => {
   const [data, setData] = useState({ codes: [], data: [] });
 
   // Run once on page load, but first unpack props:
@@ -137,4 +137,4 @@ const SubscriptionActivity: React.FC<IProps> = props => {
   );
 };
 
-export default SubscriptionActivity;
+export default MonitorGraph;

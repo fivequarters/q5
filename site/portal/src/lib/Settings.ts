@@ -94,9 +94,20 @@ function isIFusebitProfile(o: any): o is IFusebitProfile {
   );
 }
 
+export interface IFusebitUISettings {
+  tableRowsPerPage: number;
+  utcTime: boolean;
+}
+
+export const defaultFusebitUISettings: IFusebitUISettings = {
+  tableRowsPerPage: 10,
+  utcTime: false
+};
+
 export interface IFusebitSettings {
   profiles: IFusebitProfile[];
   currentProfile: string;
+  ui: IFusebitUISettings;
 }
 
 function isIFusebitSettings(o: any): o is IFusebitSettings {
@@ -106,7 +117,10 @@ function isIFusebitSettings(o: any): o is IFusebitSettings {
     typeof o.currentProfile === "string" &&
     Array.isArray(o.profiles) &&
     o.profiles.length ===
-      o.profiles.reduce((count: number, profile: any) => (count += isIFusebitProfile(profile) ? 1 : 0), 0)
+      o.profiles.reduce((count: number, profile: any) => (count += isIFusebitProfile(profile) ? 1 : 0), 0) &&
+    typeof o.ui === "object" &&
+    typeof o.ui.tableRowsPerPage === "number" &&
+    typeof o.ui.utcTime === "boolean"
   );
 }
 
@@ -118,9 +132,8 @@ function getExternalSettingsUrl(): string {
     const [path, sourceProfile] = token.split("#");
     const [organization, repository, file, rest] = path.split("/");
     if (organization && repository && !rest) {
-      return `https://raw.githubusercontent.com/${organization}/${repository}/master/${
-        file || "profiles.json"
-      }${sourceProfile ? "#" + sourceProfile : ""}`;
+      return `https://raw.githubusercontent.com/${organization}/${repository}/master/${file ||
+        "profiles.json"}${sourceProfile ? "#" + sourceProfile : ""}`;
     }
     throw new FusebitError("Unable to initialize Fusebit Portal", {
       details: [
@@ -169,6 +182,7 @@ async function getExternalSettings(url: string): Promise<IFusebitSettings> {
       });
     }
   }
+  settings.ui = { ...defaultFusebitUISettings, ...settings.ui };
   if (!isIFusebitSettings(settings)) {
     throw new FusebitError("Unable to initialize Fusebit Portal", {
       details: [
@@ -214,6 +228,7 @@ function getLocalSettings(): IFusebitSettings | undefined {
   if (settingsSerialized) {
     try {
       let settings = JSON.parse(settingsSerialized);
+      settings.ui = { ...defaultFusebitUISettings, ...settings.ui };
       if (!isIFusebitSettings(settings)) {
         throw new Error("Not fusebit settings");
       }
@@ -226,6 +241,21 @@ function getLocalSettings(): IFusebitSettings | undefined {
     }
   }
   return undefined;
+}
+
+function getUISettings(): IFusebitUISettings {
+  const settings = getLocalSettings();
+  return (settings && settings.ui) || { ...defaultFusebitUISettings };
+}
+
+function setUISettings(ui: IFusebitUISettings) {
+  const settings = getLocalSettings();
+  if (settings) {
+    settings.ui = ui;
+    setLocalSettings(settings);
+  } else {
+    setLocalSettings({ ui, profiles: [], currentProfile: "" });
+  }
 }
 
 function indexOfProfile(settings: IFusebitSettings, id: string): number {
@@ -246,5 +276,7 @@ export {
   // IFusebitProfile,
   indexOfProfile,
   isIFusebitAuth,
-  isIFusebitAuthError
+  isIFusebitAuthError,
+  getUISettings,
+  setUISettings
 };

@@ -3,7 +3,7 @@ import AppBar from "@material-ui/core/AppBar";
 import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
 import Box from "@material-ui/core/Box";
-import SubscriptionActivity from "./SubscriptionActivity";
+import MonitorGraph from "./MonitorGraph";
 import HTTPActivityLog from "./HTTPActivityLog";
 import ToggleButtonGroup from "@material-ui/lab/ToggleButtonGroup";
 import ToggleButton from "@material-ui/lab/ToggleButton";
@@ -126,7 +126,7 @@ const MonitoringPanel: React.FC<IProps> = props => {
       {availableGraphs.map((graph, n) => {
         return (
           <TabPanel key={n + 1} graphIndex={graphIndex} index={n + 1}>
-            <SubscriptionActivity
+            <MonitorGraph
               profile={profile}
               code={graph.code}
               label={graph.label}

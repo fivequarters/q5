@@ -1,17 +1,11 @@
 import React from "react";
 import { useParams, Link as RouterLink } from "react-router-dom";
 import { useProfile } from "./ProfileProvider";
-// import { makeStyles } from "@material-ui/core/styles";
 import Breadcrumbs from "@material-ui/core/Breadcrumbs";
 import Link from "@material-ui/core/Link";
 import Typography from "@material-ui/core/Typography";
 import { useSubscriptions } from "./SubscriptionsProvider";
-
-// const useStyles = makeStyles((theme: any) => ({
-//   root: {
-//     display: "flex"
-//   }
-// }));
+import { useAgentMaybe, formatAgent, AgentState } from "./AgentProvider";
 
 const tree = {
   paramName: "accountId",
@@ -22,10 +16,11 @@ const tree = {
       paramName: "subscriptionId",
       formatLink: (params: any, profile: any) =>
         `/accounts/${params.accountId}/subscriptions/${params.subscriptionId}/boundaries`,
-      text: (params: any, profile: any, subscriptions: any) =>
-        (subscriptions.status === "ready" &&
-          subscriptions.existing.hash[params.subscriptionId] &&
-          subscriptions.existing.hash[params.subscriptionId].displayName) ||
+      text: (params: any, profile: any, options: any) =>
+        (options.subscriptions.status === "ready" &&
+          options.subscriptions.existing.hash[params.subscriptionId] &&
+          options.subscriptions.existing.hash[params.subscriptionId]
+            .displayName) ||
         params.subscriptionId,
       children: [
         {
@@ -64,14 +59,20 @@ const tree = {
       paramName: "userId",
       formatLink: (params: any) =>
         `/accounts/${params.accountId}/users/${params.userId}/properties`,
-      text: (params: any, profile: any) => params.userId,
+      text: (params: any, profile: any, options: any) =>
+        options.agent
+          ? formatAgent(options.agent as AgentState)
+          : params.userId,
       children: []
     },
     {
       paramName: "clientId",
       formatLink: (params: any) =>
         `/accounts/${params.accountId}/clients/${params.clientId}/properties`,
-      text: (params: any, profile: any) => params.clientId,
+      text: (params: any, profile: any, options: any) =>
+        options.agent
+          ? formatAgent(options.agent as AgentState)
+          : params.clientId,
       children: []
     },
     {
@@ -93,6 +94,7 @@ function ProfileBreadcrumb({ children, settings }: any) {
   const params = { ...(useParams() as any), ...settings };
   const { profile } = useProfile();
   const [subscriptions] = useSubscriptions();
+  const [agent] = useAgentMaybe();
   // const classes = useStyles();
 
   function renderBreadcrumbNode(node: any): any {
@@ -113,10 +115,10 @@ function ProfileBreadcrumb({ children, settings }: any) {
         <Link
           key={params[node.paramName]}
           component={RouterLink}
-          to={node.formatLink(params, profile, subscriptions)}
+          to={node.formatLink(params, profile, { subscriptions, agent })}
         >
           <Typography variant="h5">
-            {node.text(params, profile, subscriptions)}
+            {node.text(params, profile, { subscriptions, agent })}
           </Typography>
         </Link>,
         renderBreadcrumbNode(nextNode)
@@ -125,7 +127,7 @@ function ProfileBreadcrumb({ children, settings }: any) {
       // This is the last segment - render without link
       return (
         <Typography variant="h5" key={params[node.paramName]}>
-          {node.text(params, profile, subscriptions)}
+          {node.text(params, profile, { subscriptions, agent })}
         </Typography>
       );
     }

@@ -1,3 +1,4 @@
+import { LinearProgress } from "@material-ui/core";
 import Checkbox from "@material-ui/core/Checkbox";
 import Grid from "@material-ui/core/Grid";
 import IconButton from "@material-ui/core/IconButton";
@@ -5,7 +6,7 @@ import {
   createStyles,
   lighten,
   makeStyles,
-  Theme
+  Theme,
 } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
@@ -15,14 +16,13 @@ import TablePagination from "@material-ui/core/TablePagination";
 import TableRow from "@material-ui/core/TableRow";
 import TableSortLabel from "@material-ui/core/TableSortLabel";
 import Toolbar from "@material-ui/core/Toolbar";
-import Tooltip from "@material-ui/core/Tooltip";
 import Typography from "@material-ui/core/Typography";
 import DeleteIcon from "@material-ui/icons/Delete";
-import FilterListIcon from "@material-ui/icons/FilterList";
 import clsx from "clsx";
 import React from "react";
+import { getUISettings, setUISettings } from "../lib/Settings";
 import ConfirmationDialog from "./ConfirmationDialog";
-import { LinearProgress } from "@material-ui/core";
+import FilterFab from "./FilterFab";
 
 function desc<T>(a: T, b: T, orderBy: keyof T) {
   if (b[orderBy] < a[orderBy]) {
@@ -41,7 +41,7 @@ function stableSort<T>(array: T[], cmp: (a: T, b: T) => number) {
     if (order !== 0) return order;
     return a[1] - b[1];
   });
-  return stabilizedThis.map(el => el[0]);
+  return stabilizedThis.map((el) => el[0]);
 }
 
 type Order = "asc" | "desc";
@@ -56,7 +56,7 @@ export interface HeadCell<T> {
   disablePadding?: boolean;
   disableSorting?: boolean;
   id: keyof T;
-  label: string;
+  label: string | JSX.Element;
   align?: "left" | "right" | "inherit" | "center" | "justify";
   render?: (row: T, tableRow: number) => any;
   getRowSpan?: (row: T, tableRow: number) => number;
@@ -87,7 +87,7 @@ function EnhancedTableHead<T>(props: EnhancedTableProps<T>) {
     rowCount,
     onRequestSort,
     headCells,
-    enableSelection
+    enableSelection,
   } = props;
   const createSortHandler = (property: keyof T) => (
     event: React.MouseEvent<unknown>
@@ -109,7 +109,7 @@ function EnhancedTableHead<T>(props: EnhancedTableProps<T>) {
             />
           </TableCell>
         )}
-        {headCells.map(headCell => (
+        {headCells.map((headCell) => (
           <TableCell
             key={headCell.id as string}
             align={headCell.align || "right"}
@@ -144,17 +144,17 @@ const useToolbarStyles = makeStyles((theme: Theme) =>
   createStyles({
     root: {
       paddingLeft: theme.spacing(2),
-      paddingRight: theme.spacing(1)
+      paddingRight: theme.spacing(1),
     },
     highlight: {
       color: theme.palette.primary.main,
-      backgroundColor: lighten(theme.palette.primary.light, 0.85)
+      backgroundColor: lighten(theme.palette.primary.light, 0.85),
     },
     title: {
       flex: "1 1 100%",
       display: "flex",
-      alignItems: "center"
-    }
+      alignItems: "center",
+    },
   })
 );
 
@@ -162,17 +162,18 @@ interface EnhancedTableToolbarProps {
   numSelected: number;
   title: string;
   actions?: JSX.Element;
+  filterContent?: JSX.Element;
   onDelete: () => void;
 }
 
 const EnhancedTableToolbar = (props: EnhancedTableToolbarProps) => {
   const classes = useToolbarStyles();
-  const { numSelected, title, onDelete, actions } = props;
+  const { numSelected, title, onDelete, actions, filterContent } = props;
 
   return (
     <Toolbar
       className={clsx(classes.root, {
-        [classes.highlight]: numSelected > 0
+        [classes.highlight]: numSelected > 0,
       })}
     >
       {numSelected > 0 ? (
@@ -190,21 +191,17 @@ const EnhancedTableToolbar = (props: EnhancedTableToolbarProps) => {
         </Typography>
       )}
       {numSelected > 0 ? (
-        <Tooltip title="Delete">
-          <IconButton
-            onClick={() => onDelete()}
-            aria-label="delete"
-            color="primary"
-          >
-            <DeleteIcon />
-          </IconButton>
-        </Tooltip>
+        <IconButton
+          onClick={() => onDelete()}
+          aria-label="delete"
+          color="primary"
+        >
+          <DeleteIcon />
+        </IconButton>
+      ) : filterContent ? (
+        <FilterFab>{filterContent}</FilterFab>
       ) : (
-        <Tooltip title="Filter list">
-          <IconButton aria-label="filter list">
-            <FilterListIcon />
-          </IconButton>
-        </Tooltip>
+        undefined
       )}
     </Toolbar>
   );
@@ -215,10 +212,11 @@ const useStyles = makeStyles((theme: Theme) =>
     root: {
       marginLeft: theme.spacing(2),
       marginRight: theme.spacing(2),
-      marginBottom: theme.spacing(2)
+      marginBottom: theme.spacing(2),
+      marginTop: theme.spacing(2),
     },
     table: {
-      minWidth: 750
+      minWidth: 750,
     },
     visuallyHidden: {
       border: 0,
@@ -229,14 +227,14 @@ const useStyles = makeStyles((theme: Theme) =>
       padding: 0,
       position: "absolute",
       top: 20,
-      width: 1
+      width: 1,
     },
     multilineRow: {
-      verticalAlign: "top"
+      verticalAlign: "top",
     },
     noBorder: {
-      borderBottom: "none"
-    }
+      borderBottom: "none",
+    },
   })
 );
 
@@ -245,9 +243,11 @@ interface ExplorerTableProps<T> {
   headCells: HeadCell<T>[];
   getTableRows?: (row: T) => number;
   defaultSortKey: keyof T;
+  defaultSortOrder?: "asc" | "desc";
   identityKey: keyof T;
   title: string;
   actions?: JSX.Element;
+  filterContent?: JSX.Element;
   enableSelection?: boolean;
   onDelete?: (selected: string[]) => void;
   deleteTitle?: string | ((selected: string[]) => string);
@@ -262,6 +262,7 @@ export default function ExplorerTable<T>(props: ExplorerTableProps<T>) {
     title,
     actions,
     defaultSortKey,
+    defaultSortOrder,
     headCells,
     rows,
     identityKey,
@@ -271,32 +272,31 @@ export default function ExplorerTable<T>(props: ExplorerTableProps<T>) {
     deleteContent,
     noDataBody,
     size,
-    getTableRows
+    getTableRows,
+    filterContent,
   } = props;
   const classes = useStyles();
   const toolbarClasses = useToolbarStyles();
-  const [order, setOrder] = React.useState<Order>("asc");
+  const [order, setOrder] = React.useState<Order>(defaultSortOrder || "asc");
   const [orderBy, setOrderBy] = React.useState<keyof T>(defaultSortKey);
   const [selected, setSelected] = React.useState<string[]>([]);
   const [page, setPage] = React.useState(0);
   // const [dense, setDense] = React.useState(false);
-  const [rowsPerPage, setRowsPerPage] = React.useState(10);
+  const [rowsPerPage, setRowsPerPage] = React.useState(
+    getUISettings().tableRowsPerPage
+  );
   const [confirmDelete, setConfirmDelete] = React.useState<any>({
-    status: "closed"
+    status: "closed",
   });
 
   React.useEffect(() => {
-    let cancelled: boolean = false;
     if (confirmDelete.status === "initiating") {
+      setConfirmDelete({ status: "deleting" });
+      setSelected([]);
       (async () => {
-        setConfirmDelete({ status: "deleting" });
-        setSelected([]);
         onDelete && (await onDelete(selected));
-        !cancelled && setConfirmDelete({ status: "closed" });
+        setConfirmDelete({ status: "closed" });
       })();
-      return () => {
-        cancelled = true;
-      };
     }
   }, [selected, confirmDelete, onDelete]);
 
@@ -311,7 +311,9 @@ export default function ExplorerTable<T>(props: ExplorerTableProps<T>) {
 
   const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
-      const newSelecteds = rows.map(n => (n[identityKey] as unknown) as string);
+      const newSelecteds = rows.map(
+        (n) => (n[identityKey] as unknown) as string
+      );
       setSelected(newSelecteds);
       return;
     }
@@ -355,7 +357,9 @@ export default function ExplorerTable<T>(props: ExplorerTableProps<T>) {
   const handleChangeRowsPerPage = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
+    const rowsPerPage = parseInt(event.target.value, 10);
+    setUISettings({ ...getUISettings(), tableRowsPerPage: rowsPerPage });
+    setRowsPerPage(rowsPerPage);
     setPage(0);
   };
 
@@ -365,9 +369,10 @@ export default function ExplorerTable<T>(props: ExplorerTableProps<T>) {
 
   const isSelected = (name: string) => selected.indexOf(name) !== -1;
 
-  const emptyRows = props.disablePagination
-    ? 0
-    : rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
+  // const emptyRows = props.disablePagination
+  //   ? 0
+  //   : rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
+  const emptyRows = 0;
 
   let dataRows = stableSort<T>(rows, getSorting<T>(order, orderBy));
   if (!props.disablePagination) {
@@ -415,6 +420,7 @@ export default function ExplorerTable<T>(props: ExplorerTableProps<T>) {
             numSelected={selected.length}
             title={title}
             actions={actions}
+            filterContent={filterContent}
             onDelete={handleDeleteDialogOpen}
           />
           {/* <TableContainer> */}
@@ -459,7 +465,7 @@ export default function ExplorerTable<T>(props: ExplorerTableProps<T>) {
                               hover={enableSelection}
                               onClick={
                                 enableSelection
-                                  ? event =>
+                                  ? (event) =>
                                       handleClick(
                                         event,
                                         (row[identityKey] as unknown) as string
@@ -520,6 +526,13 @@ export default function ExplorerTable<T>(props: ExplorerTableProps<T>) {
                                   undefined;
                                 let hasBottomBorder =
                                   tableRows === tableRow + (rowSpan || 1);
+                                const style: any = {};
+                                if (tableRow > 0) {
+                                  style.paddingTop = 0;
+                                }
+                                if (tableRow < tableRows - 1) {
+                                  style.paddingBottom = 0;
+                                }
                                 return (
                                   <TableCell
                                     key={("aaa" + cell.id) as string}
@@ -530,6 +543,7 @@ export default function ExplorerTable<T>(props: ExplorerTableProps<T>) {
                                         ? undefined
                                         : classes.noBorder
                                     }
+                                    style={style}
                                   >
                                     {cellContent}
                                   </TableCell>

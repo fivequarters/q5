@@ -106,7 +106,7 @@ function ResourceAccess({
   const headCells: HeadCell<ViewRow>[] = [
     {
       id: "name",
-      disablePadding: true,
+      // disablePadding: true,
       align: "left",
       label: "Name",
       render: (row, tableRow) =>
@@ -233,7 +233,7 @@ function ResourceAccess({
         getTableRows={row => row.permissions.length}
         defaultSortKey="name"
         identityKey="id"
-        title="Permissions"
+        title="Access"
         enableSelection={false}
         actions={
           <ActionButton onClick={() => setGrantPermissionsDialogOpen(true)}>

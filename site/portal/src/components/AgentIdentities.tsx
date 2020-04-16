@@ -6,6 +6,7 @@ import React from "react";
 import { Link as RouterLink } from "react-router-dom";
 import { modifyAgent, useAgent } from "./AgentProvider";
 import EntityCard from "./EntityCard";
+import { IssuerProvider, useIssuer } from "./IssuerProvider";
 
 const useStyles = makeStyles((theme: any) => ({
   gridContainer: {
@@ -24,6 +25,20 @@ const useStyles = makeStyles((theme: any) => ({
     overflow: "hidden"
   }
 }));
+
+function IssuerName() {
+  const [issuer] = useIssuer();
+  return (
+    <Typography variant="body2">
+      <strong>Issuer Name:</strong>{" "}
+      {issuer.status === "ready"
+        ? issuer.existing.displayName || "N/A"
+        : issuer.status === "error"
+        ? "error loading"
+        : "loading..."}
+    </Typography>
+  );
+}
 
 function AgentIdentities() {
   const classes = useStyles();
@@ -80,13 +95,16 @@ function AgentIdentities() {
                   </Button>
                 </React.Fragment>
               }
-              icon={<AccountBalanceIcon fontSize="inherit" color="secondary" />}
+              icon={<AccountBalanceIcon fontSize="inherit" color="primary" />}
             >
               <div>
                 <Typography variant="h6">{identity.subject}</Typography>
                 <Typography variant="body2">
-                  Issuer: {identity.issuerId}
+                  <strong>Issuer ID:</strong> {identity.issuerId}
                 </Typography>
+                <IssuerProvider issuerId={identity.issuerId}>
+                  <IssuerName />
+                </IssuerProvider>
               </div>
             </EntityCard>
           ))}
