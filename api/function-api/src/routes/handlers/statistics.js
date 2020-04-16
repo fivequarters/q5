@@ -151,7 +151,17 @@ const queries = {
       };
     },
     d => {
-      return { data: d.hits.hits, total: d.hits.total.value };
+      return {
+        data: d.hits.hits.map(n => {
+          const result = { ...n._source };
+          /* Scrape out any leading meta-data results. */
+          Object.keys(result)
+            .filter(k => k.startsWith('@'))
+            .forEach(m => delete result[m]);
+          return result;
+        }),
+        total: d.hits.total.value,
+      };
     },
   ],
 };

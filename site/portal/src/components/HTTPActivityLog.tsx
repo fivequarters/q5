@@ -23,7 +23,7 @@ interface IDateInterval {
 interface IProps {
   profile: IFusebitProfile;
   urlWart: string;
-  interval: IDateInterval;
+  interval: IDateInterval | null;
   activeCode: number | null;
 }
 
@@ -46,6 +46,9 @@ const getData = async (
     if (result.body.data.length === 0) {
       result.body.data = [{ key: interval.timeStart }, { key: interval.timeEnd }];
     }
+
+    console.log(result.body);
+
     setData(result.body);
   } catch (e) {
     throw createHttpException(e);
@@ -56,14 +59,18 @@ const HTTPActivityLog: React.FC<IProps> = ({ profile, urlWart, interval, activeC
   const [data, setData] = useState({ codes: [], data: [] });
 
   useEffect(() => {
-    if (activeCode) {
+    if (activeCode && interval) {
       console.log("Loading activities", activeCode, interval);
       getData(profile, urlWart, interval, activeCode, setData);
     }
   }, [profile, urlWart, interval, activeCode, setData]);
 
-  if (data.data.length === 0) {
-    return <LinearProgress />;
+  if (activeCode && interval) {
+    if (data.data.length === 0) {
+      return <LinearProgress />;
+    }
+  } else {
+    return <div />;
   }
 
   return <LinearProgress />;

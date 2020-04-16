@@ -154,7 +154,7 @@ const MonitorPanel: React.FC<IProps> = props => {
           );
         })}
       </ToggleButtonGroup>
-      <HTTPActivityLog profile={profile} urlWart={urlWart} interval={interval} activeCode={activeCode} />
+      <HTTPActivityLog profile={profile} urlWart={urlWart} interval={eventRange} activeCode={activeCode} />
     </div>
   );
 };

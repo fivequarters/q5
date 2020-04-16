@@ -4,6 +4,7 @@ import LinearProgress from "@material-ui/core/LinearProgress";
 import Superagent from "superagent";
 import { IFusebitProfile } from "../lib/Settings";
 import { ensureAccessToken, createHttpException } from "../lib/Fusebit";
+import ms from "ms";
 
 enum BucketWidths {
   Minute = "1m",
@@ -58,6 +59,7 @@ const getData = async (
     if (result.body.data.length === 0) {
       result.body.data = [{ key: interval.timeStart }, { key: interval.timeEnd }];
     }
+
     setData(result.body);
     setActiveCodeList(result.body.codes);
   } catch (e) {
@@ -80,7 +82,10 @@ const MonitorGraph: React.FC<IProps> = props => {
     return <LinearProgress />;
   }
 
-  const dateTickFormatter = (msTime: number): string => {
+  const dateTickFormatter = (msTime: any): string => {
+    if (typeof msTime != "number") {
+      return "";
+    }
     return new Date(msTime).toISOString();
   };
 
@@ -89,13 +94,14 @@ const MonitorGraph: React.FC<IProps> = props => {
       return (
         <div className="custom-tooltip">
           <p className="label">{`${dateTickFormatter(label)}`}</p>
-          {payload.map((line: any) => {
-            return (
-              <p key={line.name} className="desc">
-                {line.name}: {line.value}
-              </p>
-            );
-          })}
+          {payload &&
+            payload.map((line: any) => {
+              return (
+                <p key={line.name} className="desc">
+                  {line.name}: {line.value}
+                </p>
+              );
+            })}
         </div>
       );
     }
@@ -103,11 +109,25 @@ const MonitorGraph: React.FC<IProps> = props => {
     return null;
   };
 
+  // Convienence wrapper around setEventRange to give it a properly formated interval object
+  const setHTTPEventRange = (msTime: number): void => {
+    setEventRange({
+      width: interval.width,
+      timeStart: new Date(msTime),
+      timeEnd: new Date(msTime + ms(interval.width))
+    });
+  };
+
   // Quick hack, let's turn the key into an integer.
   return (
     <div style={{ width: "100%", height: 300 }}>
       <ResponsiveContainer>
-        <LineChart width={900} height={500} data={data.data} onClick={(e, v) => setEventRange(e.activeLabel)}>
+        <LineChart
+          width={900}
+          height={500}
+          data={data.data}
+          onClick={(e, v) => setHTTPEventRange(e.activeLabel)}
+        >
           <CartesianGrid stroke="#ccc" />
           <Tooltip content={CustomTooltip} />
           <Legend verticalAlign="top" height={36} />
