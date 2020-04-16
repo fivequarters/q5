@@ -9,6 +9,7 @@
 !lib/aws
 !lib/node
 !lib/server
+!lib/runtime/common
 !sdk
 !tool
 **/node_modules
