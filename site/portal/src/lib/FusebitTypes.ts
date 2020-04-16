@@ -116,3 +116,29 @@ export type ExistingFunctionSpecification = FunctionSpecification & {
   boundaryId: string;
   id: string;
 };
+
+export type Audit = {
+  id: string;
+  accountId: string;
+  timestamp: Date;
+  action: string;
+  resource: string;
+  issuerId: string;
+  subject: string;
+  authorized: boolean;
+};
+
+export type AuditTrail = {
+  data: Audit[];
+  hasMore: boolean;
+};
+
+export type AuditFilter = {
+  count?: number;
+  resource?: string;
+  action?: string;
+  from?: string;
+  to?: string;
+  issuerId?: string;
+  subject?: string;
+};

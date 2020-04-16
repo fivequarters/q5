@@ -16,6 +16,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.15.2
+
+_Released 4/14/20_
+
+- **Bug fix** Fix a bug in APIs that support paging through results which resulted in an occasional HTTP 500 error response. The bug was triggered by a complex set of circumstances involving the specification of the limit when accessing multiple pages of data.
+
 ## Version 1.15.1
 
 _Released 3/26/20_

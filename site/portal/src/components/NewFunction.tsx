@@ -16,6 +16,12 @@ import { useProfile } from "./ProfileProvider";
 import TemplateCard from "./TemplateCard";
 
 const useStyles = makeStyles((theme: any) => ({
+  gridContainer2: {
+    paddingLeft: theme.spacing(3),
+    paddingRight: theme.spacing(3),
+    marginBottom: theme.spacing(2),
+    marginTop: theme.spacing(1)
+  },
   gridContainer: {
     paddingLeft: theme.spacing(3),
     paddingRight: theme.spacing(3),
@@ -130,7 +136,7 @@ function NewFunction({ subscriptionId, boundaryId }: any) {
 
   return (
     <React.Fragment>
-      <Grid container spacing={2} className={classes.gridContainer}>
+      <Grid container spacing={2} className={classes.gridContainer2}>
         <Grid item xs={8} className={classes.form}>
           <FunctionNameSelector
             subscriptionId={subscriptionId}

@@ -12,7 +12,7 @@ import { Client, User } from "../lib/FusebitTypes";
 import { FusebitError } from "./ErrorBoundary";
 import { useProfile } from "./ProfileProvider";
 
-type AgentState =
+export type AgentState =
   | {
       status: "loading";
       isUser: boolean;
@@ -181,6 +181,10 @@ function useAgent(): [AgentState, AgentSetState] {
   return [useAgentState(), useAgentSetState()];
 }
 
+function useAgentMaybe(): [AgentState | undefined] {
+  return [React.useContext(AgentStateContext)];
+}
+
 function reloadAgent(state: AgentState, setState: AgentSetState) {
   setState({
     status: "loading",
@@ -246,5 +250,6 @@ export {
   modifyAgent,
   saveAgent,
   reloadAgent,
-  formatAgent
+  formatAgent,
+  useAgentMaybe
 };

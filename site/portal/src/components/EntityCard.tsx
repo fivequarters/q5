@@ -20,7 +20,7 @@ const useStyles = makeStyles((theme: any) => ({
     justifyContent: "center",
     width: 114,
     minWidth: 114,
-    backgroundColor: lighten(theme.palette.secondary.light, 0.75),
+    backgroundColor: lighten(theme.palette.primary.light, 0.75),
     fontSize: 70
   },
   cardContent: {

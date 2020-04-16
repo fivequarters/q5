@@ -1,25 +1,29 @@
+import Button from "@material-ui/core/Button";
 import Grid from "@material-ui/core/Grid";
 import LinearProgress from "@material-ui/core/LinearProgress";
-import Button from "@material-ui/core/Button";
-import DialogContentText from "@material-ui/core/DialogContentText";
-import Typography from "@material-ui/core/Typography";
 import { makeStyles } from "@material-ui/core/styles";
+import Typography from "@material-ui/core/Typography";
+import AccountBalanceIcon from "@material-ui/icons/AccountBalance";
 import React from "react";
-import { saveAgent, useAgent, modifyAgent } from "./AgentProvider";
+import AddIdentityDialog from "./AddIdentityDialog";
+import AgentIdentities from "./AgentIdentities";
+import { modifyAgent, saveAgent, useAgent } from "./AgentProvider";
+import ClientDetails from "./ClientDetails";
 import ConfirmNavigation from "./ConfirmNavigation";
 import { FusebitError } from "./ErrorBoundary";
-import PortalError from "./PortalError";
-import SaveFab from "./SaveFab";
-import UserDetails from "./UserDetails";
-import ClientDetails from "./ClientDetails";
-import AgentIdentities from "./AgentIdentities";
-import AccountBalanceIcon from "@material-ui/icons/AccountBalance";
-import InputWithIcon from "./InputWithIcon";
 import InfoCard from "./InfoCard";
-import AddIdentityDialog from "./AddIdentityDialog";
+import InputWithIcon from "./InputWithIcon";
+import PortalError from "./PortalError";
 import SetupAccessDialog from "./SetupAccessDialog";
+import UserDetails from "./UserDetails";
 
 const useStyles = makeStyles((theme: any) => ({
+  gridContainer2: {
+    paddingLeft: theme.spacing(3),
+    paddingRight: theme.spacing(3),
+    marginBottom: theme.spacing(2),
+    marginTop: theme.spacing(1)
+  },
   gridContainer: {
     paddingLeft: theme.spacing(3),
     paddingRight: theme.spacing(3),
@@ -32,11 +36,13 @@ const useStyles = makeStyles((theme: any) => ({
     paddingTop: 14
   },
   identityAction: {
-    marginTop: theme.spacing(2),
     marginBottom: theme.spacing(2),
     display: "flex",
     justifyContent: "space-between",
     paddingLeft: theme.spacing(1) + 24
+  },
+  actions: {
+    marginLeft: theme.spacing(4)
   }
 }));
 
@@ -63,7 +69,7 @@ function AgentProperties() {
   if (agent.status === "error") {
     const fusebit = (agent.error as FusebitError).fusebit;
     return fusebit && fusebit.source === "AgentProperties" ? (
-      <Grid container className={classes.gridContainer} spacing={2}>
+      <Grid container className={classes.gridContainer2} spacing={2}>
         <Grid item xs={12}>
           <PortalError error={agent.error} />
         </Grid>
@@ -96,10 +102,13 @@ function AgentProperties() {
         })
     );
 
+  const handleReset = () =>
+    modifyAgent(agent, setAgent, JSON.parse(JSON.stringify(agent.existing)));
+
   if (agent.status === "ready" || agent.status === "updating") {
     return (
       <React.Fragment>
-        <Grid container spacing={2} className={classes.gridContainer}>
+        <Grid container spacing={2} className={classes.gridContainer2}>
           <Grid item xs={8} className={classes.form}>
             {agent.isUser && <UserDetails />}
             {!agent.isUser && <ClientDetails />}
@@ -116,7 +125,7 @@ function AgentProperties() {
             <div className={classes.identityAction}>
               <Button
                 variant="outlined"
-                color="secondary"
+                color="primary"
                 onClick={() => setAddIdentityDialogOpen(true)}
                 disabled={agent.status !== "ready"}
               >
@@ -124,7 +133,7 @@ function AgentProperties() {
               </Button>
               <Button
                 variant="outlined"
-                color="secondary"
+                color="primary"
                 onClick={() => setSetupAccessDialogOpen(true)}
                 disabled={agent.status !== "ready"}
               >
@@ -144,25 +153,35 @@ function AgentProperties() {
           </Grid>
           <Grid item xs={4} className={classes.form}>
             <InfoCard>
-              {agent.isUser && (
-                <DialogContentText>
-                  Add identity manually, or generate an invitation for the user
-                  to access the system and automatically create an identity.
-                </DialogContentText>
-              )}
-              {!agent.isUser && (
-                <DialogContentText>
-                  Add identity manually, or generate a command to initialize a
-                  CLI client and automatically create an identity.
-                </DialogContentText>
-              )}
+              {agent.isUser &&
+                "Add identity manually, or generate an invitation for the user to access the system and automatically create an identity."}
+              {!agent.isUser &&
+                "Add identity manually, or generate a command to initialize a CLI client and automatically create an identity."}
             </InfoCard>
           </Grid>
         </Grid>
+        <Grid container spacing={2} className={classes.gridContainer}>
+          <Grid item xs={8} className={classes.form}>
+            <Button
+              color="primary"
+              variant="contained"
+              disabled={!agent.dirty || agent.status !== "ready"}
+              onClick={handleSave}
+              className={classes.actions}
+            >
+              Save
+            </Button>
+            <Button
+              variant="text"
+              color="primary"
+              onClick={handleReset}
+              disabled={!agent.dirty}
+            >
+              Reset
+            </Button>
+          </Grid>
+        </Grid>
         {agent.dirty && <ConfirmNavigation />}
-        {agent.dirty && agent.status === "ready" && (
-          <SaveFab onClick={handleSave} />
-        )}
       </React.Fragment>
     );
   }

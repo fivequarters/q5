@@ -21,6 +21,12 @@ import PortalError from "./PortalError";
 import PublicKeyAcquisitionSelector from "./PublicKeyAcquisitionSelector";
 
 const useStyles = makeStyles((theme: any) => ({
+  gridContainer2: {
+    paddingLeft: theme.spacing(3),
+    paddingRight: theme.spacing(3),
+    marginBottom: theme.spacing(2),
+    marginTop: theme.spacing(2)
+  },
   gridContainer: {
     paddingLeft: theme.spacing(3),
     paddingRight: theme.spacing(3),
@@ -143,7 +149,7 @@ function IssuerProperties() {
                     Remove
                   </Button>
                 }
-                icon={<VpnKeyIcon fontSize="inherit" color="secondary" />}
+                icon={<VpnKeyIcon fontSize="inherit" color="primary" />}
               >
                 <div>
                   <Typography variant="h6">{pki.keyId}</Typography>
@@ -153,7 +159,7 @@ function IssuerProperties() {
           <div className={classes.keyAction}>
             <Button
               variant="outlined"
-              color="secondary"
+              color="primary"
               disabled={
                 (issuer.modified.publicKeys &&
                   issuer.modified.publicKeys.length >= 3) ||
@@ -177,7 +183,7 @@ function IssuerProperties() {
 
   return (
     <React.Fragment>
-      <Grid container spacing={2} className={classes.gridContainer}>
+      <Grid container spacing={2} className={classes.gridContainer2}>
         <Grid item xs={8} className={classes.form}>
           <form noValidate autoComplete="off">
             <InputWithIcon icon={<FingerprintIcon />}>
