@@ -26,7 +26,7 @@ import ProfileBreadcrumb from "./ProfileBreadcrumb";
 import { useProfile } from "./ProfileProvider";
 import ProfileSelectorWithDetails from "./ProfileSelectorWithDetails";
 import SubscriptionBoundaries from "./SubscriptionBoundaries";
-import { MonitoringPanel }from "./Monitoring";
+import { MonitoringPanel } from "./Monitoring";
 import AgentDeleteFab from "./AgentDeleteFab";
 import { SubscriptionsProvider } from "./SubscriptionsProvider";
 import { BoundariesProvider } from "./BoundariesProvider";
@@ -171,14 +171,7 @@ function ProfileExplorer({ ...rest }: any) {
   const classes = useStyles();
   const settings = getLocalSettings() as IFusebitSettings;
 
-  function ExplorerView({
-    breadcrumbSettings,
-    children,
-    tabs,
-    match,
-    detailsFullView,
-    fab
-  }: any) {
+  function ExplorerView({ breadcrumbSettings, children, tabs, match, detailsFullView, fab }: any) {
     const { path } = match;
     // Last segment of the URL indicates the selected tab
     const selectedTab = path.split("/").pop();
@@ -201,13 +194,7 @@ function ProfileExplorer({ ...rest }: any) {
               {fab && <div className={classes.fab}>{fab}</div>}
             </Paper>
           </Grid>
-          <Grid
-            item
-            xs={12}
-            className={
-              detailsFullView ? classes.slimMargin : classes.regularMargin
-            }
-          >
+          <Grid item xs={12} className={detailsFullView ? classes.slimMargin : classes.regularMargin}>
             {children}
           </Grid>
         </Grid>
@@ -223,23 +210,18 @@ function ProfileExplorer({ ...rest }: any) {
   }
 
   function NotFound() {
-    throw new FusebitError(
-      "Oops! Can't find the resource you are trying to access.",
-      {
-        details: [
-          `If you navigated to a URL that was given to you, please check it is valid. `,
-          `Otherwise, use the link below to go back to a safe place. `
-        ].join(""),
-        actions: [
-          {
-            text: profile.subscription
-              ? "Go back to subscription"
-              : "Go back to account",
-            url: getDefaultUrl()
-          }
-        ]
-      }
-    );
+    throw new FusebitError("Oops! Can't find the resource you are trying to access.", {
+      details: [
+        `If you navigated to a URL that was given to you, please check it is valid. `,
+        `Otherwise, use the link below to go back to a safe place. `
+      ].join(""),
+      actions: [
+        {
+          text: profile.subscription ? "Go back to subscription" : "Go back to account",
+          url: getDefaultUrl()
+        }
+      ]
+    });
   }
 
   return (
@@ -314,11 +296,7 @@ function ProfileExplorer({ ...rest }: any) {
                     path={`${match.path}/properties`}
                     exact={true}
                     render={({ ...rest }) => (
-                      <ExplorerView
-                        tabs={ExplorerTabs.user}
-                        fab={<AgentDeleteFab />}
-                        {...rest}
-                      >
+                      <ExplorerView tabs={ExplorerTabs.user} fab={<AgentDeleteFab />} {...rest}>
                         <AgentProperties />
                       </ExplorerView>
                     )}
@@ -327,11 +305,7 @@ function ProfileExplorer({ ...rest }: any) {
                     path={`${match.path}/permissions`}
                     exact={true}
                     render={({ ...rest }) => (
-                      <ExplorerView
-                        tabs={ExplorerTabs.user}
-                        fab={<AgentDeleteFab />}
-                        {...rest}
-                      >
+                      <ExplorerView tabs={ExplorerTabs.user} fab={<AgentDeleteFab />} {...rest}>
                         <AgentPermissions />
                       </ExplorerView>
                     )}
@@ -340,11 +314,7 @@ function ProfileExplorer({ ...rest }: any) {
                     path={`${match.path}/access`}
                     exact={true}
                     render={({ match, ...rest }) => (
-                      <ExplorerView
-                        tabs={ExplorerTabs.user}
-                        match={match}
-                        {...rest}
-                      >
+                      <ExplorerView tabs={ExplorerTabs.user} match={match} {...rest}>
                         <AgentsProvider agentType="both">
                           <ResourceAccess
                             actionPrefixFilter={["user"]}
@@ -357,9 +327,7 @@ function ProfileExplorer({ ...rest }: any) {
                       </ExplorerView>
                     )}
                   />
-                  <Route
-                    component={(NotFound as unknown) as React.FunctionComponent}
-                  />
+                  <Route component={(NotFound as unknown) as React.FunctionComponent} />
                 </Switch>
               </AgentProvider>
             </AgentsProvider>
@@ -398,11 +366,7 @@ function ProfileExplorer({ ...rest }: any) {
                     path={`${match.path}/properties`}
                     exact={true}
                     render={({ ...rest }) => (
-                      <ExplorerView
-                        tabs={ExplorerTabs.client}
-                        fab={<AgentDeleteFab />}
-                        {...rest}
-                      >
+                      <ExplorerView tabs={ExplorerTabs.client} fab={<AgentDeleteFab />} {...rest}>
                         <AgentProperties />
                       </ExplorerView>
                     )}
@@ -411,11 +375,7 @@ function ProfileExplorer({ ...rest }: any) {
                     path={`${match.path}/overview`}
                     exact={true}
                     render={({ ...rest }) => (
-                      <ExplorerView
-                        tabs={ExplorerTabs.client}
-                        fab={<AgentDeleteFab />}
-                        {...rest}
-                      >
+                      <ExplorerView tabs={ExplorerTabs.client} fab={<AgentDeleteFab />} {...rest}>
                         [TODO: Client Overview]
                       </ExplorerView>
                     )}
@@ -424,11 +384,7 @@ function ProfileExplorer({ ...rest }: any) {
                     path={`${match.path}/permissions`}
                     exact={true}
                     render={({ ...rest }) => (
-                      <ExplorerView
-                        tabs={ExplorerTabs.client}
-                        fab={<ClientActionFab />}
-                        {...rest}
-                      >
+                      <ExplorerView tabs={ExplorerTabs.client} fab={<ClientActionFab />} {...rest}>
                         <AgentPermissions />
                       </ExplorerView>
                     )}
@@ -437,11 +393,7 @@ function ProfileExplorer({ ...rest }: any) {
                     path={`${match.path}/access`}
                     exact={true}
                     render={({ match, ...rest }) => (
-                      <ExplorerView
-                        tabs={ExplorerTabs.client}
-                        match={match}
-                        {...rest}
-                      >
+                      <ExplorerView tabs={ExplorerTabs.client} match={match} {...rest}>
                         <AgentsProvider agentType="both">
                           <ResourceAccess
                             actionPrefixFilter={["client"]}
@@ -454,9 +406,7 @@ function ProfileExplorer({ ...rest }: any) {
                       </ExplorerView>
                     )}
                   />
-                  <Route
-                    component={(NotFound as unknown) as React.FunctionComponent}
-                  />
+                  <Route component={(NotFound as unknown) as React.FunctionComponent} />
                 </Switch>
               </AgentProvider>
             </AgentsProvider>
@@ -493,11 +443,7 @@ function ProfileExplorer({ ...rest }: any) {
                   path={`${match.path}/access`}
                   exact={true}
                   render={({ match, ...rest }) => (
-                    <ExplorerView
-                      tabs={ExplorerTabs.issuer}
-                      match={match}
-                      {...rest}
-                    >
+                    <ExplorerView tabs={ExplorerTabs.issuer} match={match} {...rest}>
                       <AgentsProvider agentType="both">
                         <ResourceAccess
                           actionPrefixFilter={["issuer"]}
@@ -510,9 +456,7 @@ function ProfileExplorer({ ...rest }: any) {
                     </ExplorerView>
                   )}
                 />
-                <Route
-                  component={(NotFound as unknown) as React.FunctionComponent}
-                />
+                <Route component={(NotFound as unknown) as React.FunctionComponent} />
               </Switch>
             </IssuerProvider>
           )}
@@ -528,12 +472,7 @@ function ProfileExplorer({ ...rest }: any) {
           path="/accounts/:accountId/subscriptions/:subscriptionId/access"
           exact={true}
           render={({ match, ...rest }) => (
-            <ExplorerView
-              tabs={ExplorerTabs.subscription}
-              match={match}
-              fab={<NewFunctionFab />}
-              {...rest}
-            >
+            <ExplorerView tabs={ExplorerTabs.subscription} match={match} fab={<NewFunctionFab />} {...rest}>
               <AgentsProvider agentType="both">
                 <ResourceAccess
                   actionPrefixFilter={["function", "subscription", "audit"]}
@@ -620,11 +559,7 @@ function ProfileExplorer({ ...rest }: any) {
                   path={`${match.path}/boundaries`}
                   exact={true}
                   render={({ match }) => (
-                    <ExplorerView
-                      tabs={ExplorerTabs.subscription}
-                      match={match}
-                      fab={<NewFunctionFab />}
-                    >
+                    <ExplorerView tabs={ExplorerTabs.subscription} match={match} fab={<NewFunctionFab />}>
                       <SubscriptionBoundaries />
                     </ExplorerView>
                   )}
@@ -633,11 +568,7 @@ function ProfileExplorer({ ...rest }: any) {
                   path={`${match.path}/activity`}
                   exact={true}
                   render={({ match }) => (
-                    <ExplorerView
-                      tabs={ExplorerTabs.subscription}
-                      match={match}
-                      fab={<NewFunctionFab />}
-                    >
+                    <ExplorerView tabs={ExplorerTabs.subscription} match={match} fab={<NewFunctionFab />}>
                       <MonitoringPanel params={match.params} />
                     </ExplorerView>
                   )}
@@ -661,9 +592,7 @@ function ProfileExplorer({ ...rest }: any) {
                       match={match}
                       {...rest}
                     >
-                      <NewFunction
-                        subscriptionId={match.params.subscriptionId}
-                      />
+                      <NewFunction subscriptionId={match.params.subscriptionId} />
                     </ExplorerView>
                   )}
                 />
@@ -682,11 +611,7 @@ function ProfileExplorer({ ...rest }: any) {
                   path={`${match.path}/boundaries/:boundaryId/new-function`}
                   exact={true}
                   render={({ match, ...rest }) => (
-                    <ExplorerView
-                      breadcrumbSettings={{ newBoundaryFunction: true }}
-                      match={match}
-                      {...rest}
-                    >
+                    <ExplorerView breadcrumbSettings={{ newBoundaryFunction: true }} match={match} {...rest}>
                       <NewFunction
                         subscriptionId={match.params.subscriptionId}
                         boundaryId={match.params.boundaryId}
@@ -698,11 +623,7 @@ function ProfileExplorer({ ...rest }: any) {
                   path={`${match.path}/boundaries/:boundaryId/functions`}
                   exact={true}
                   render={({ match }) => (
-                    <ExplorerView
-                      tabs={ExplorerTabs.boundary}
-                      match={match}
-                      fab={<NewFunctionFab />}
-                    >
+                    <ExplorerView tabs={ExplorerTabs.boundary} match={match} fab={<NewFunctionFab />}>
                       <BoundaryFunctions
                         subscriptionId={match.params.subscriptionId}
                         boundaryId={match.params.boundaryId}
@@ -714,11 +635,7 @@ function ProfileExplorer({ ...rest }: any) {
                   path={`${match.path}/boundaries/:boundaryId/activity`}
                   exact={true}
                   render={({ match }) => (
-                    <ExplorerView
-                      tabs={ExplorerTabs.subscription}
-                      match={match}
-                      fab={<NewFunctionFab />}
-                    >
+                    <ExplorerView tabs={ExplorerTabs.subscription} match={match} fab={<NewFunctionFab />}>
                       <MonitoringPanel params={match.params} />
                     </ExplorerView>
                   )}
@@ -746,9 +663,7 @@ function ProfileExplorer({ ...rest }: any) {
                     </ExplorerView>
                   )}
                 />
-                <Route
-                  component={(NotFound as unknown) as React.FunctionComponent}
-                />
+                <Route component={(NotFound as unknown) as React.FunctionComponent} />
               </Switch>
             </BoundariesProvider>
           )}
