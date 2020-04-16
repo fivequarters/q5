@@ -2,6 +2,7 @@ import { DataSource } from '@5qtrs/data';
 import {
   IOpsDeploymentData,
   IOpsDeployment,
+  IOpsDeploymentParameters,
   IListOpsDeploymentOptions,
   IListOpsDeploymentResult,
   OpsDataException,
@@ -59,7 +60,7 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
     this.globalOpsDeploymentData = globalOpsDeploymentData;
   }
 
-  public async existsAndUpdate(deployment: IOpsDeployment): Promise<boolean> {
+  public async existsAndUpdate(deployment: IOpsDeploymentParameters): Promise<boolean> {
     try {
       const existing = await this.tables.deploymentTable.get(deployment.deploymentName, deployment.region);
       if (existing.domainName !== deployment.domainName) {
@@ -86,7 +87,11 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
       }
 
       // Update an existing deployment to any new parameters
-      await this.ensureDeploymentSetup(deployment);
+      await this.ensureDeploymentSetup(deployment as IOpsDeployment);
+
+      // Update the table with the latest values
+      await this.tables.deploymentTable.update(deployment as IOpsDeployment);
+
       return true;
     } catch (error) {
       if (error.code === OpsDataExceptionCode.noDeployment) {

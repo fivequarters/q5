@@ -74,8 +74,8 @@ export class AddDeploymentCommand extends Command {
     await input.io.writeLine();
     const [deploymentName, networkName, domainName] = input.arguments as string[];
     const region = input.options.region as string;
-    const size = input.options.size as number;
-    const elasticSearch = input.options.elasticSearch as string;
+    const size = input.options.size as number | undefined;
+    const elasticSearch = input.options.elasticSearch as string | undefined;
     const confirm = input.options.confirm as boolean;
     const dataWarehouseEnabled = input.options.dataWarehouse as boolean | undefined;
 
@@ -84,7 +84,7 @@ export class AddDeploymentCommand extends Command {
 
     const network = await networkService.getSingleNetwork(networkName, region);
 
-    const deployment = {
+    const deploymentParameters = {
       deploymentName,
       networkName,
       domainName,
@@ -95,7 +95,7 @@ export class AddDeploymentCommand extends Command {
       featureUseDnsS3Bucket: true,
     };
 
-    await deploymentService.checkDeploymentExists(deployment);
+    const deployment = await deploymentService.checkDeploymentExists(deploymentParameters);
 
     if (confirm) {
       await deploymentService.confirmAddDeployment(deployment);

@@ -7,6 +7,8 @@ const Async = require('async');
 const Fs = require('fs');
 const Path = require('path');
 
+import url from 'url';
+
 type AsyncCb = (e?: Error | null) => void;
 
 async function getAWS(awsConfig: IAwsConfig) {
@@ -31,34 +33,69 @@ async function getAWS(awsConfig: IAwsConfig) {
   return { lambda, cloudwatchlogs, awsOptions: options, awsCredentials: credentials };
 }
 
-function createAnalyticsConfig(awsDataConfig: OpsDataAwsConfig, awsConfig: IAwsConfig, zipFile: Buffer) {
+function createAnalyticsConfig(
+  awsDataConfig: OpsDataAwsConfig,
+  awsConfig: IAwsConfig,
+  deployment: IOpsDeployment,
+  zipFile: Buffer
+) {
   const prefix = `${awsConfig.prefix || 'global'}-`;
+
+  // Parse the Elastic Search credentials
+  let esCreds = { ES_HOST: '', ES_USER: '', ES_PASSWORD: '' };
+
+  let esUrl = url.parse(deployment.elasticSearch);
+  if (esUrl.host && esUrl.auth) {
+    let auth = esUrl.auth.match(/([^:]+):(.*)/);
+    if (auth && auth[1] && auth[2]) {
+      esCreds = {
+        ES_HOST: esUrl.host,
+        ES_USER: auth[1],
+        ES_PASSWORD: auth[2],
+      };
+    }
+  }
 
   const cfg = {
     lambda: {
       FunctionName: `${prefix}lambda-analytics`,
       Description: 'Analytics Pipeline Forwarder',
       Handler: 'index.executor',
-      Role: `${awsDataConfig.arnPrefix}:iam::${awsConfig.account}:role/${awsDataConfig.cronExecutorRoleName}`,
+      Role: `${awsDataConfig.arnPrefix}:iam::${awsConfig.account}:role/${awsDataConfig.analyticsRoleName}`,
       Timeout: 60,
       MemorySize: 128,
       Runtime: 'nodejs10.x',
       Code: { ZipFile: zipFile },
       Environment: {
-        ES_HOST: 'XXXESHOST',
-        ES_USER: 'XXXESUSER',
-        ES_PASSWORD: 'XXXESPASSWORD',
+        Variables: {
+          ...esCreds,
+        },
       },
     },
     cloudWatchLogs: { logGroupName: `${prefix}analytics-logs` },
     subscriptionFilter: { destinationArn: '', filterName: '', filterPattern: '', logGroupName: '' },
+    grantLambda: {
+      FunctionName: '',
+      StatementId: 'lambda-analytics-invoke',
+      Action: 'lambda:InvokeFunction',
+      Principal: '',
+      SourceArn: '',
+      SourceAccount: `${awsConfig.account}`,
+    },
   };
 
   cfg.subscriptionFilter = {
-    destinationArn: `${awsDataConfig.arnPrefix}:iam::${awsConfig.account}:lambda/${cfg.lambda.FunctionName}`,
+    destinationArn: `${awsDataConfig.arnPrefix}:lambda:${awsConfig.region}:${awsConfig.account}:function:${cfg.lambda.FunctionName}`,
     filterName: `${cfg.cloudWatchLogs.logGroupName}_${cfg.lambda.FunctionName}`,
     filterPattern: '',
     logGroupName: cfg.cloudWatchLogs.logGroupName,
+  };
+
+  cfg.grantLambda = {
+    ...cfg.grantLambda,
+    FunctionName: cfg.subscriptionFilter.destinationArn,
+    Principal: 'logs.amazonaws.com',
+    SourceArn: `arn:aws:logs:${awsConfig.region}:${awsConfig.account}:log-group:${cfg.cloudWatchLogs.logGroupName}:*`,
   };
 
   return cfg;
@@ -74,13 +111,23 @@ function createCloudWatchLogGroup(cwl: any, config: any, cb: AsyncCb) {
   });
 }
 
+function grantCloudWatchLogGroupLambdaInvocation(lambda: any, config: any, cb: AsyncCb) {
+  debug('grantCloudWatchLogGroupLambdaInvocation', config);
+  return lambda.addPermission(config, (e: any, d: any) => {
+    if (e && e.code != 'ResourceConflictException') {
+      return cb(e);
+    }
+    return cb();
+  });
+}
+
 function createOrUpdateLambda(lambda: any, config: any, cb: AsyncCb) {
-  debug('Creating lambda-analytics function...');
+  debug('createOrUpdateLambda', config);
 
   return lambda.createFunction(config, (e: any, d: any) => {
     if (e) {
       if (e.code === 'ResourceConflictException') {
-        debug('Function already exists, updating...');
+        debug(`Function exists, updating...`);
         let updateCodeParams = {
           FunctionName: config.FunctionName,
           ZipFile: config.Code.ZipFile,
@@ -92,20 +139,25 @@ function createOrUpdateLambda(lambda: any, config: any, cb: AsyncCb) {
             (cb: AsyncCb) => lambda.updateFunctionConfiguration(config, cb),
           ],
           (e: any, results: any[]) => {
+            if (e) return cb(e);
+            debug(`'${results[0].FunctionArn}' updated`);
             return cb(e);
           }
         );
       }
     }
+    debug('Finished with lambda create', e);
     return cb(e);
   });
 }
 
 function createCloudWatchSubscription(cwl: any, config: any, cb: AsyncCb) {
+  debug('createCloudWatchSubscription', config);
   cwl.putSubscriptionFilter(config, (e: any, d: any) => {
     if (e && e.code != 'ResourceConflictException') {
       return cb(e);
     }
+    debug('leaving createCloudWatchSubscription');
     return cb();
   });
 }
@@ -115,10 +167,12 @@ export async function createAnalyticsPipeline(
   awsConfig: IAwsConfig,
   deployment: IOpsDeployment
 ) {
-  console.log('XXX createAnalyticsPipeline', __dirname);
+  console.log('createAnalyticsPipeline', __dirname, deployment);
+  console.log('awsConfig', awsConfig);
+  console.log('awsDataConfig', awsDataConfig);
 
   const deploymentPackage = Fs.readFileSync(Path.join(__dirname, 'lambda-analytics.zip'));
-  const config = createAnalyticsConfig(awsDataConfig, awsConfig, deploymentPackage);
+  const config = createAnalyticsConfig(awsDataConfig, awsConfig, deployment, deploymentPackage);
 
   debug('IN ANALYTICS SETUP');
 
@@ -130,6 +184,7 @@ export async function createAnalyticsPipeline(
         // prettier-ignore
         (cb: AsyncCb) => createCloudWatchLogGroup(cloudwatchlogs, config.cloudWatchLogs, cb),
         (cb: AsyncCb) => createOrUpdateLambda(lambda, config.lambda, cb),
+        (cb: AsyncCb) => grantCloudWatchLogGroupLambdaInvocation(lambda, config.grantLambda, cb),
         (cb: AsyncCb) => createCloudWatchSubscription(cloudwatchlogs, config.subscriptionFilter, cb),
       ],
       (e: any): void => {

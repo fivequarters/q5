@@ -11,6 +11,7 @@ export {
 export { IOpsImageData, IOpsImage } from './IOpsImageData';
 export {
   IOpsDeployment,
+  IOpsDeploymentParameters,
   IOpsDeploymentData,
   IListOpsDeploymentOptions,
   IListOpsDeploymentResult,

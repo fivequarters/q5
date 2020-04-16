@@ -30,16 +30,15 @@ function toItem(deployment: IOpsDeployment) {
   const item: any = toKey(deployment);
   item.networkName = { S: deployment.networkName };
   item.domainName = { S: deployment.domainName };
-  item.size = { N: deployment.size != undefined && deployment.size.toString() };
+  item.size = { N: deployment.size.toString() };
 
   // Support clearing the Elastic Search parameter using an empty string.
-  if (deployment.elasticSearch != undefined) {
-    if (deployment.elasticSearch.length == 0) {
-      delete item.elasticSearch;
-    } else {
-      item.elasticSearch = { S: deployment.elasticSearch };
-    }
+  if (deployment.elasticSearch.length == 0) {
+    delete item.elasticSearch;
+  } else {
+    item.elasticSearch = { S: deployment.elasticSearch };
   }
+
   item.dataWarehouseEnabled = { BOOL: deployment.dataWarehouseEnabled };
   item.featureUseDnsS3Bucket = { BOOL: deployment.featureUseDnsS3Bucket };
   return item;
@@ -52,7 +51,7 @@ function fromItem(item: any): IOpsDeployment {
     networkName: item.networkName.S,
     domainName: item.domainName.S,
     size: parseInt(item.size.N, 10),
-    elasticSearch: item.elasticSearch && item.elasticSearch.S,
+    elasticSearch: item.elasticSearch == undefined ? '' : item.elasticSearch.S,
     dataWarehouseEnabled: item.dataWarehouseEnabled.BOOL,
     featureUseDnsS3Bucket: item.featureUseDnsS3Bucket && item.featureUseDnsS3Bucket.BOOL,
   };
@@ -82,9 +81,9 @@ export interface IOpsDeployment {
   region: string;
   networkName: string;
   domainName: string;
-  size?: number;
-  elasticSearch?: string;
-  dataWarehouseEnabled?: boolean;
+  size: number;
+  elasticSearch: string;
+  dataWarehouseEnabled: boolean;
   featureUseDnsS3Bucket: boolean;
 }
 

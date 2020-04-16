@@ -3,6 +3,7 @@ import { Text } from '@5qtrs/text';
 import { OpsService } from './OpsService';
 import {
   IOpsDeployment,
+  IOpsDeploymentParameters,
   IListOpsDeploymentOptions,
   IListOpsDeploymentResult,
   IFusebitSubscription,
@@ -33,7 +34,7 @@ export class DeploymentService {
     return new DeploymentService(input, opsService, executeService);
   }
 
-  public async checkDeploymentExists(deployment: IOpsDeployment): Promise<void> {
+  public async checkDeploymentExists(deployment: IOpsDeploymentParameters): Promise<IOpsDeployment> {
     const opsDataContext = await this.opsService.getOpsDataContext();
     const deploymentData = opsDataContext.deploymentData;
 
@@ -49,10 +50,12 @@ export class DeploymentService {
     if (exists) {
       this.executeService.warning(
         'Deployment Exists',
-        `There is already a '${Text.bold(deployment.deploymentName)}' deployment`
+        `'${Text.bold(deployment.deploymentName)}' has been updated with the supplied parameters.`
       );
       throw Error('Deployment already Exists');
     }
+
+    return deployment as IOpsDeployment;
   }
 
   public async confirmAddDeployment(deployment: IOpsDeployment) {
@@ -63,7 +66,8 @@ export class DeploymentService {
         { name: 'Region', value: deployment.region },
         { name: 'Domain', value: deployment.domainName },
         { name: 'Network', value: deployment.networkName },
-        { name: 'Size', value: deployment.size != undefined ? deployment.size.toString() : '' },
+        { name: 'Size', value: deployment.size.toString() },
+        { name: 'Elastic Search', value: deployment.elasticSearch },
         { name: 'DWH', value: deployment.dataWarehouseEnabled ? 'Enabled' : 'Disabled' },
       ],
     });
@@ -140,7 +144,7 @@ export class DeploymentService {
       `The '${Text.bold(deployment.deploymentName)}' deployment was successfully added to Fusebit platform`
     );
 
-    return deployment as IOpsDeployment;
+    return deployment;
   }
 
   public async addSubscription(subscription: IFusebitSubscription): Promise<IFusebitSubscription> {

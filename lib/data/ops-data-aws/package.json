@@ -6,7 +6,7 @@
   "license": "UNLICENSED",
   "author": "FiveQuarters.io",
   "scripts": {
-    "build": "tsc -b && yarn build:dwh",
+    "build": "tsc -b && ln -sf ../../../runtime/lambda-analytics/libc/lambda-analytics.zip libc && ln -sf ../../../runtime/lambda-cron/libc/lambda-cron.zip libc && yarn build:dwh",
     "build:dwh": "tsc -b ./lambda/dwh/tsconfig.json && ./lambda/dwh/bundle.sh",
     "test": "jest --colors",
     "coverage": "jest --colors --coverage",

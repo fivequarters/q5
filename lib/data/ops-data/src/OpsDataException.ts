@@ -183,7 +183,7 @@ export class OpsDataException extends Exception {
   }
 
   public static invalidElasticSearchUrl(elasticSearchUrl: string) {
-    const message = `The supplied Elastic Search URL ${elasticSearchUrl} did not conform to the required format: https://user:password@hostname.com`;
+    const message = `The supplied Elastic Search URL '${elasticSearchUrl}' did not conform to the required format: https://user:password@hostname.com`;
     return new OpsDataException(OpsDataExceptionCode.invalidElasticSearchUrl, message, [elasticSearchUrl]);
   }
 }

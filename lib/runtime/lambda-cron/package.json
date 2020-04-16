@@ -8,7 +8,7 @@
   "author": "FiveQuarters.io",
   "scripts": {
     "build": "tsc -b && yarn build:pack",
-    "build:pack": "rm -f libc/cron.zip && zip -j libc/cron.zip libc/*.js && zip -qdgds 1m -r libc/cron.zip node_modules",
+    "build:pack": "rm -f libc/lambda-cron.zip && zip -j libc/lambda-cron.zip libc/*.js && zip -qdgds 1m -r libc/lambda-cron.zip node_modules",
     "test": "jest --colors",
     "coverage": "jest --colors --coverage",
     "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x} test/{,**/}*.ts{,x}",
