@@ -29,7 +29,6 @@ export class OpsDataAwsContext extends DataSource implements IOpsDataContext {
     provider: OpsDataAwsProvider,
     globalOpsDataAwsContext?: OpsDataAwsContext
   ) {
-    console.log('OpsDataAwsContext::create');
     const tables = await OpsDataTables.create(config, provider);
     const account = await OpsAccountData.create(config, provider, tables);
     const domain = await OpsDomainData.create(
@@ -52,7 +51,6 @@ export class OpsDataAwsContext extends DataSource implements IOpsDataContext {
       tables,
       globalOpsDataAwsContext && globalOpsDataAwsContext.stack
     );
-    console.log('\tcalling OpsIam.create');
     const iam = await OpsIam.create(config, provider);
     return new OpsDataAwsContext(tables, account, domain, network, image, deployment, stack, iam);
   }
