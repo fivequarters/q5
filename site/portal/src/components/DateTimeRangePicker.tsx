@@ -3,9 +3,9 @@ import MenuItem from "@material-ui/core/MenuItem";
 import TextField from "@material-ui/core/TextField";
 import React from "react";
 
-export const defaultFilterFrom = "-1h";
+const defaultFilterFrom = "-1h";
 
-const rangePresets = [
+export const rangePresets = [
   { value: "-15m", description: "Last 15 minutes" },
   { value: "-30m", description: "Last 30 minutes" },
   { value: "-1h", description: "Last 1 hour" },
@@ -18,10 +18,10 @@ const rangePresets = [
 const pad = (i: number) => (i < 10 ? "0" + i : i.toString());
 
 /**
- * from - ISO date or one of: -15m, -30m, -1h, -24h, -7d, -30d
+ * from - ISO date or one of: -15m, -30m, -1h, -24h, -7d, -30d, or undefined
  * to - If specified, ISO date
  * onChange - Called whenever selected time range changes.
- *            "from" can be one of -15m, -30m, -1h, -24h, -7d, -30d, or an ISO date in case a custom range was selected.
+ *            "from" can be one of -15m, -30m, -1h, -24h, -7d, -30d, or an ISO date in case a custom range was selected
  *            "to" is an ISO date in case a custom range was selected, undefined otherwise.
  * utc - whether custom date selection is done in UTC time (true) or local time (false). Default true.
  */
@@ -43,7 +43,7 @@ function DateTimeRangePicker({
   to = to || new Date().toISOString();
 
   let customFrom: string;
-  if (from[0] !== "-") {
+  if (from[0] !== "-" && from !== "*") {
     customFrom = from;
     from = "custom";
   } else {

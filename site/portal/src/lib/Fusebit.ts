@@ -186,6 +186,22 @@ export async function getUsers(profile: IFusebitProfile): Promise<User[]> {
   return users as User[];
 }
 
+export async function getAgent(
+  profile: IFusebitProfile,
+  issuerId: string,
+  subject: string
+): Promise<[Client | User, boolean]> {
+  try {
+    let auth = await ensureAccessToken(profile);
+    let result: any = await Superagent.get(
+      `${profile.baseUrl}/v1/account/${profile.account}/client/${issuerId}`
+    ).set("Authorization", `Bearer ${auth.access_token}`);
+    return [result.body as Client, false];
+  } catch (e) {
+    throw createHttpException(e);
+  }
+}
+
 export async function getClient(
   profile: IFusebitProfile,
   clientId: string

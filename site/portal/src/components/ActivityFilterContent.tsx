@@ -1,14 +1,14 @@
 import Button from "@material-ui/core/Button";
 import Grid from "@material-ui/core/Grid";
+import MenuItem from "@material-ui/core/MenuItem";
+import Typography from "@material-ui/core/Typography";
+import Radio from "@material-ui/core/Radio";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
 import { makeStyles } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
-import Select from "@material-ui/core/Select";
-import MenuItem from "@material-ui/core/MenuItem";
-import FormControl from "@material-ui/core/FormControl";
-import FormHelperText from "@material-ui/core/FormHelperText";
 import React from "react";
-import { AuditFilter } from "../lib/FusebitTypes";
 import { actions } from "../lib/Actions";
+import { AuditFilter } from "../lib/FusebitTypes";
 import DateTimeRangePicker from "./DateTimeRangePicker";
 
 export const defaultFilterFrom = "-1h";
@@ -34,14 +34,16 @@ const useStyles = makeStyles((theme: any) => ({
 }));
 
 type ActivityFilterContentProps = {
+  filterMask?: AuditFilter;
   filter: AuditFilter;
   actionFilter?: string[];
   utc?: boolean;
   onReset: () => void;
-  onApply: (filter: AuditFilter) => void;
+  onApply: (filter: AuditFilter, utc: boolean) => void;
 };
 
 function ActivityFilterContent({
+  filterMask,
   filter,
   actionFilter,
   utc,
@@ -49,12 +51,19 @@ function ActivityFilterContent({
   onApply,
 }: ActivityFilterContentProps) {
   const [data, setData] = React.useState<any>({
-    resource: filter.resource || "",
+    resource:
+      (filterMask &&
+        filterMask.resource &&
+        filter.resource &&
+        filter.resource.indexOf(filterMask.resource) > -1 &&
+        filter.resource.substring(filterMask.resource.length)) ||
+      "",
     action: filter.action || "*",
     issuerId: filter.issuerId || "",
     subject: filter.subject || "",
     from: filter.from || defaultFilterFrom,
     to: filter.to || "",
+    utc,
   });
   const classes = useStyles();
 
@@ -78,6 +87,10 @@ function ActivityFilterContent({
     setData({ ...data, from, to: to || undefined });
   };
 
+  const handleUtcChange = () => {
+    setData({ ...data, utc: !data.utc });
+  };
+
   let allowedActions = [{ action: "*", description: "Any action" }];
   if (actionFilter) {
     actions.forEach((a) => {
@@ -94,17 +107,21 @@ function ActivityFilterContent({
 
   const handleApply = () => {
     let filter: AuditFilter = {};
-    if (data.resource) filter.resource = data.resource;
+    if (data.resource || (filterMask && filterMask.resource))
+      filter.resource =
+        filterMask && filterMask.resource
+          ? filterMask.resource + (data.resource || "").trim()
+          : (data.resource || "").trim();
     if (data.action && data.action !== "*") filter.action = data.action;
     if (data.issuerId) {
-      filter.issuerId = data.issuerId;
-      if (data.subject) filter.subject = data.subject;
+      filter.issuerId = data.issuerId.trim();
+      if (data.subject) filter.subject = data.subject.trim();
     }
     if (data.from) {
       filter.from = data.from;
       if (data.to) filter.to = data.to;
     }
-    onApply(filter);
+    onApply(filter, data.utc);
   };
 
   return (
@@ -114,7 +131,11 @@ function ActivityFilterContent({
           id="resourceFilter"
           margin="dense"
           label="Resource (prefix match)"
-          // helperText="Prefix match the resource"
+          helperText={
+            filterMask && filterMask.resource
+              ? `Value will be prefixed with '${filterMask.resource}'`
+              : undefined
+          }
           variant="outlined"
           value={data.resource}
           onChange={handleResourceChange}
@@ -174,9 +195,44 @@ function ActivityFilterContent({
         <DateTimeRangePicker
           from={data.from}
           to={data.to}
-          utc={utc}
+          utc={data.utc}
           onChange={handleRangeChange}
         />
+      </Grid>
+      <Grid item xs={12}>
+        <Typography component="div" variant="body2">
+          <Grid component="label" container alignItems="center" spacing={2}>
+            <Grid item>Show time as:</Grid>
+            <Grid item>
+              <FormControlLabel
+                value="utc"
+                control={
+                  <Radio
+                    color="secondary"
+                    checked={data.utc}
+                    size="small"
+                    onChange={handleUtcChange}
+                  />
+                }
+                label={<Typography variant="body2">UTC</Typography>}
+              />
+            </Grid>
+            <Grid item>
+              <FormControlLabel
+                value="local"
+                control={
+                  <Radio
+                    color="secondary"
+                    checked={!data.utc}
+                    size="small"
+                    onChange={handleUtcChange}
+                  />
+                }
+                label={<Typography variant="body2">Local</Typography>}
+              />
+            </Grid>
+          </Grid>
+        </Typography>
       </Grid>
       <Grid item xs={12} className={classes.filterActions}>
         <Button variant="text" onClick={onReset}>
