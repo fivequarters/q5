@@ -7,8 +7,6 @@ const Async = require('async');
 const Fs = require('fs');
 const Path = require('path');
 
-import url from 'url';
-
 type AsyncCb = (e?: Error | null) => void;
 
 async function getAWS(awsConfig: IAwsConfig) {
@@ -44,23 +42,20 @@ function createAnalyticsConfig(
   // Parse the Elastic Search credentials
   let esCreds = { ES_HOST: '', ES_USER: '', ES_PASSWORD: '' };
 
-  let esUrl = url.parse(deployment.elasticSearch);
-  if (esUrl.host && esUrl.auth) {
-    let auth = esUrl.auth.match(/([^:]+):(.*)/);
-    if (auth && auth[1] && auth[2]) {
-      esCreds = {
-        ES_HOST: esUrl.host,
-        ES_USER: auth[1],
-        ES_PASSWORD: auth[2],
-      };
-    }
+  let esUrl = deployment.elasticSearch.match(/https:\/\/([^:]+):(.*)@([^@]+$)/);
+  if (esUrl && esUrl[1] && esUrl[2]) {
+    esCreds = {
+      ES_HOST: esUrl[3],
+      ES_USER: esUrl[1],
+      ES_PASSWORD: esUrl[2],
+    };
   }
 
   const cfg = {
     lambda: {
       FunctionName: `${prefix}lambda-analytics`,
       Description: 'Analytics Pipeline Forwarder',
-      Handler: 'index.executor',
+      Handler: 'index.handler',
       Role: `${awsDataConfig.arnPrefix}:iam::${awsConfig.account}:role/${awsDataConfig.analyticsRoleName}`,
       Timeout: 60,
       MemorySize: 128,

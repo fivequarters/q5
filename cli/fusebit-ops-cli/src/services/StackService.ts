@@ -4,7 +4,6 @@ import { IOpsStack, IOpsNewStack, IListOpsStackOptions, IListOpsStackResult, IOp
 import { OpsService } from './OpsService';
 import { ExecuteService } from './ExecuteService';
 import { request } from '@5qtrs/request';
-import url from 'url';
 
 // ----------------
 // Exported Classes
@@ -137,17 +136,6 @@ export class StackService {
     const stackData = opsDataContext.stackData;
 
     const { deploymentName, tag } = newStack;
-
-    // If the elasticSearch parameter is present and not-empty.
-    if (newStack.elasticSearch && newStack.elasticSearch.length > 0) {
-      // Validate that the Elastic Search parameter fits the expected format
-      let es_creds = url.parse(newStack.elasticSearch);
-      if (!es_creds.host || !es_creds.auth || !es_creds.auth.match(/([^:]+):(.*)/)) {
-        const msg = 'Invalid elasticSearch format.\nExpected: https://user:password@hostname.com';
-        this.executeService.error('Invalid Elastic Search Format', msg);
-        throw new Error(msg);
-      }
-    }
 
     const stack = await this.executeService.execute(
       {

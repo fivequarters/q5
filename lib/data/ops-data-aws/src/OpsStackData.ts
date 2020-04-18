@@ -18,8 +18,6 @@ import { OpsDataAwsConfig } from './OpsDataAwsConfig';
 import { OpsAccountData } from './OpsAccountData';
 import { random } from '@5qtrs/random';
 
-import url from 'url';
-
 // ------------------
 // Internal Functions
 // ------------------
@@ -297,14 +295,13 @@ LOGS_TOKEN_SIGNATURE_KEY=${random({ lengthInBytes: 32 })}
 `;
 
     if (elasticSearch != undefined) {
-      let es_creds = url.parse(elasticSearch);
-      if (es_creds.host && es_creds.auth) {
-        let auth = es_creds.auth.match(/([^:]+):(.*)/);
-        if (auth && auth[1] && auth[2]) {
+      let es_creds = elasticSearch.match(/https:\/\/([^:]+):(.*)@([^@]+$)/);
+      if (es_creds) {
+        if (es_creds[1] && es_creds[2] && es_creds[3]) {
           r += `
-  ES_HOST=${es_creds.host}
-  ES_USER=${auth[1]}
-  ES_PASSWORD=${auth[2]}
+  ES_HOST=${es_creds[3]}
+  ES_USER=${es_creds[1]}
+  ES_PASSWORD=${es_creds[2]}
     `;
         }
       }
