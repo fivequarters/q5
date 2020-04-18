@@ -1,19 +1,19 @@
-import React, { useState, useEffect } from "react";
-import { ResponsiveContainer, LineChart, Line, CartesianGrid, Tooltip, XAxis, YAxis, Legend } from "recharts";
-import LinearProgress from "@material-ui/core/LinearProgress";
-import Superagent from "superagent";
-import { IFusebitProfile } from "../lib/Settings";
-import { ensureAccessToken, createHttpException } from "../lib/Fusebit";
-import ms from "ms";
+import React, { useState, useEffect } from 'react';
+import { ResponsiveContainer, LineChart, Line, CartesianGrid, Tooltip, XAxis, YAxis, Legend } from 'recharts';
+import LinearProgress from '@material-ui/core/LinearProgress';
+import Superagent from 'superagent';
+import { IFusebitProfile } from '../lib/Settings';
+import { ensureAccessToken, createHttpException } from '../lib/Fusebit';
+import ms from 'ms';
 
 enum BucketWidths {
-  Minute = "1m",
-  Hour = "1h",
-  Day = "1d",
-  Week = "1w",
-  Month = "1M",
-  Quarter = "1q",
-  Year = "1y"
+  Minute = '1m',
+  Hour = '1h',
+  Day = '1d',
+  Week = '1w',
+  Month = '1M',
+  Quarter = '1q',
+  Year = '1y',
 }
 
 interface IDateInterval {
@@ -34,14 +34,14 @@ interface IProps {
 
 // Quick convienent map so everything isn't the same color.
 const codeColorMap = {
-  200: "#ffb997",
-  404: "#843b62",
-  501: "#0b032d"
+  200: '#ffb997',
+  404: '#843b62',
+  501: '#0b032d',
 };
 
 const getData = async (
   profile: IFusebitProfile,
-  code: string,
+  queryType: string,
   urlWart: string,
   interval: IDateInterval,
   setData: any,
@@ -50,10 +50,13 @@ const getData = async (
   try {
     const auth = await ensureAccessToken(profile);
 
-    let result: any = await Superagent.get(
-      `${urlWart}/statistics/${code}/` +
-        `${interval.timeStart.toISOString()}/${interval.timeEnd.toISOString()}/${interval.width}`
-    ).set("Authorization", `Bearer ${auth.access_token}`);
+    let result: any = await Superagent.get(`${urlWart}/statistics/${queryType}`)
+      .query({
+        timeStart: interval.timeStart.toISOString(),
+        timeEnd: interval.timeEnd.toISOString(),
+        width: interval.width,
+      })
+      .set('Authorization', `Bearer ${auth.access_token}`);
 
     // Make sure there's always a 0-value begin and end entry to track 'loading' state easily.
     if (result.body.data.length === 0) {
@@ -83,8 +86,8 @@ const MonitorGraph: React.FC<IProps> = props => {
   }
 
   const dateTickFormatter = (msTime: any): string => {
-    if (typeof msTime != "number") {
-      return "";
+    if (typeof msTime != 'number') {
+      return '';
     }
     return new Date(msTime).toISOString();
   };
@@ -114,20 +117,15 @@ const MonitorGraph: React.FC<IProps> = props => {
     setEventRange({
       width: interval.width,
       timeStart: new Date(msTime),
-      timeEnd: new Date(msTime + ms(interval.width))
+      timeEnd: new Date(msTime + ms(interval.width)),
     });
   };
 
   // Quick hack, let's turn the key into an integer.
   return (
-    <div style={{ width: "100%", height: 300 }}>
+    <div style={{ width: '100%', height: 300 }}>
       <ResponsiveContainer>
-        <LineChart
-          width={900}
-          height={500}
-          data={data.data}
-          onClick={(e, v) => setHTTPEventRange(e.activeLabel)}
-        >
+        <LineChart width={900} height={500} data={data.data} onClick={(e, v) => setHTTPEventRange(e.activeLabel)}>
           <CartesianGrid stroke="#ccc" />
           <Tooltip content={CustomTooltip} />
           <Legend verticalAlign="top" height={36} />
@@ -135,20 +133,13 @@ const MonitorGraph: React.FC<IProps> = props => {
             type="number"
             domain={[interval.timeStart.getTime(), interval.timeEnd.getTime()]}
             dataKey="key"
-            label={{ value: label, position: "insideBottom" }}
+            label={{ value: label, position: 'insideBottom' }}
             tickFormatter={dateTickFormatter}
           />
           <YAxis />
           {data.codes.map(id => {
             return (
-              <Line
-                type="monotone"
-                key={id}
-                dataKey={id}
-                dot={false}
-                activeDot={{ r: 4 }}
-                stroke={codeColorMap[id]}
-              />
+              <Line type="monotone" key={id} dataKey={id} dot={false} activeDot={{ r: 4 }} stroke={codeColorMap[id]} />
             );
           })}
         </LineChart>

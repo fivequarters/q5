@@ -596,7 +596,7 @@ router.delete(
 
 // Statistics reports, general purpose, for specific statisticsKey reports.
 
-const statisticsUrl = 'statistics/:statisticsKey/:timeStart?/:timeEnd?/:param1?/:param2?/:param3?';
+const statisticsUrl = 'statistics/:statisticsKey';
 router.options('/account/:accountId/' + statisticsUrl, cors(corsManagementOptions));
 router.get(
   '/account/:accountId/' + statisticsUrl,

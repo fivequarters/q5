@@ -181,11 +181,11 @@ const addRequiredFilters = (request, body) => {
   }
 
   // Add timestamp range
-  if (request.params.timeStart) {
-    request.params.endTime = request.params.timeEnd || new Date().toISOString();
+  if (request.query.timeStart) {
+    request.query.endTime = request.query.timeEnd || new Date().toISOString();
 
     body.query.bool.filter.push({
-      range: { '@timestamp': { gte: request.params.timeStart, lte: request.params.timeEnd } },
+      range: { '@timestamp': { gte: request.query.timeStart, lte: request.query.timeEnd } },
     });
   }
 
@@ -257,7 +257,7 @@ const makeQuery = async (request, key, query_params = null) => {
 const codeActivityHistogram = async (req, res, next) => {
   let range = {};
 
-  const { width = req.params.param1 } = req.params;
+  const width = req.query.width || '1d';
 
   const allCodes = await makeQuery(req, 'allStatusCodes');
 
@@ -295,7 +295,7 @@ const codeActivityHistogram = async (req, res, next) => {
 const codeLatencyHistogram = async (req, res, next) => {
   let range = {};
 
-  const { width = req.params.param1 } = req.params;
+  const width = req.query.width || '1d';
 
   const allCodes = await makeQuery(req, 'allStatusCodes');
 
@@ -335,7 +335,12 @@ const itemizedBulk = async (req, res, next) => {
 
   let bulk = {};
 
-  const { statusCode = req.params.param1, fromIdx = req.params.param2, pageSize = 10, minDocCount = 1 } = req.params;
+  const statusCode = parseInt(req.query.statusCode) || 200;
+  const fromIdx = parseInt(req.query.offset) || 0;
+  const pageSize = parseInt(req.query.pageSize) || 5;
+  const sortBy = parseInt(req.query.pageSize) || 5;
+
+  const minDocCount = 1;
 
   let response = await makeQuery(req, 'itemizedBulk', { statusCode, fromIdx, pageSize, minDocCount });
   if (response.statusCode != 200) {
@@ -359,6 +364,8 @@ const statisticsQueries = {
 
 function statisticsGet() {
   return async (req, res, next) => {
+    throw new Error('whups');
+
     const handler = statisticsQueries[req.params.statisticsKey.toLowerCase()];
     if (handler) {
       return handler(req, res, next);
