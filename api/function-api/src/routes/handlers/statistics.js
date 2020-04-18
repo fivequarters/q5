@@ -262,7 +262,7 @@ const codeActivityHistogram = async (req, res, next) => {
   const allCodes = await makeQuery(req, 'allStatusCodes');
 
   if (allCodes.statusCode != 200) {
-    throw new Error('allStatusCodes failed: ' + allCodes.data);
+    return next(new Error(`All Status Codes Query failed (${response.statusCode}: ` + response.data));
   }
 
   let histogram = {};
@@ -270,7 +270,7 @@ const codeActivityHistogram = async (req, res, next) => {
   for (const code of allCodes.data) {
     let response = await makeQuery(req, 'codeHistogram', { code, interval: width, minDocCount: 0 });
     if (response.statusCode != 200) {
-      throw new Error('codeHistogram failed: ' + response.data);
+      return next(new Error(`Activity Query failed (${response.statusCode}: ` + response.data));
     }
 
     for (const evt of response.data) {
@@ -300,7 +300,7 @@ const codeLatencyHistogram = async (req, res, next) => {
   const allCodes = await makeQuery(req, 'allStatusCodes');
 
   if (allCodes.statusCode != 200) {
-    throw new Error('allStatusCodes failed: ' + allCodes.data);
+    return next(new Error(`All Status Codes Query failed (${response.statusCode}: ` + response.data));
   }
 
   let histogram = {};
@@ -308,7 +308,7 @@ const codeLatencyHistogram = async (req, res, next) => {
   for (const code of allCodes.data) {
     let response = await makeQuery(req, 'codeLatencyHistogram', { code, interval: width, minDocCount: 0 });
     if (response.statusCode != 200) {
-      throw new Error('statusCodeHistogram failed: ' + response.data);
+      return next(new Error(`Latency Query failed (${response.statusCode}: ` + response.data));
     }
 
     for (const evt of response.data) {
@@ -344,7 +344,7 @@ const itemizedBulk = async (req, res, next) => {
 
   let response = await makeQuery(req, 'itemizedBulk', { statusCode, fromIdx, pageSize, minDocCount });
   if (response.statusCode != 200) {
-    throw new Error('statusCodeHistogram failed: ' + response.data);
+    next(new Error(`Bulk Query failed (${response.statusCode}: ` + response.data));
   }
 
   bulk = response.data;
@@ -364,8 +364,6 @@ const statisticsQueries = {
 
 function statisticsGet() {
   return async (req, res, next) => {
-    throw new Error('whups');
-
     const handler = statisticsQueries[req.params.statisticsKey.toLowerCase()];
     if (handler) {
       return handler(req, res, next);

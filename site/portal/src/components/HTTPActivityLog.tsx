@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
-import LinearProgress from '@material-ui/core/LinearProgress';
+import React, { useEffect, useRef } from 'react';
 import { IFusebitProfile } from '../lib/Settings';
 import Superagent from 'superagent';
 import { ensureAccessToken, createHttpException } from '../lib/Fusebit';

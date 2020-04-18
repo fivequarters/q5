@@ -1,24 +1,25 @@
-import React, { useState } from "react";
-import AppBar from "@material-ui/core/AppBar";
-import Tabs from "@material-ui/core/Tabs";
-import Tab from "@material-ui/core/Tab";
-import Box from "@material-ui/core/Box";
-import MonitorGraph from "./MonitorGraph";
-import HTTPActivityLog from "./HTTPActivityLog";
-import ToggleButtonGroup from "@material-ui/lab/ToggleButtonGroup";
-import ToggleButton from "@material-ui/lab/ToggleButton";
-import ms from "ms";
-import { useProfile } from "./ProfileProvider";
+import React, { useState } from 'react';
+import AppBar from '@material-ui/core/AppBar';
+import Tabs from '@material-ui/core/Tabs';
+import Tab from '@material-ui/core/Tab';
+import Box from '@material-ui/core/Box';
+import MonitorGraph from './MonitorGraph';
+import HTTPActivityLog from './HTTPActivityLog';
+import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
+import ToggleButton from '@material-ui/lab/ToggleButton';
+import ms from 'ms';
+import { useProfile } from './ProfileProvider';
+import DateTimeRangePicker from './DateTimeRangePicker';
 
 // Duplicated; not sure how to declare externally.
 enum BucketWidths {
-  Minute = "1m",
-  Hour = "1h",
-  Day = "1d",
-  Week = "1w",
-  Month = "1M",
-  Quarter = "1q",
-  Year = "1y"
+  Minute = '1m',
+  Hour = '1h',
+  Day = '1d',
+  Week = '1w',
+  Month = '1M',
+  Quarter = '1q',
+  Year = '1y',
 }
 
 interface IDateInterval {
@@ -46,13 +47,13 @@ interface TabPanelProps {
 
 const availableGraphs = [
   {
-    label: "HTTP Responses",
-    code: "codeactivityhg"
+    label: 'HTTP Responses',
+    code: 'codeactivityhg',
   },
   {
-    label: "HTTP Latency",
-    code: "codelatencyhg"
-  }
+    label: 'HTTP Latency',
+    code: 'codelatencyhg',
+  },
 ];
 
 const TabPanel = (props: TabPanelProps) => {
@@ -69,9 +70,9 @@ const MonitorPanel: React.FC<IProps> = props => {
   const { profile } = useProfile();
   const [graphIndex, setGraphIndex] = useState(0);
   const [interval, setInterval] = useState<IDateInterval>({
-    timeStart: new Date(Date.now() - ms("7d")),
+    timeStart: new Date(Date.now() - ms('7d')),
     timeEnd: new Date(),
-    width: BucketWidths.Day
+    width: BucketWidths.Day,
   });
   const [eventRange, setEventRange] = useState<IDateInterval | null>(null);
   const [activeCodeList, setActiveCodeList] = useState<any>([200, 300, 400]);
@@ -81,17 +82,30 @@ const MonitorPanel: React.FC<IProps> = props => {
   const params = props.params;
 
   let warts = [
-    params.accountId ? `account/${params.accountId}` : "",
-    params.subscriptionId ? `subscription/${params.subscriptionId}` : "",
-    params.boundaryId ? `boundary/${params.boundaryId}` : "",
-    params.functionId ? `function/${params.functionId}` : ""
+    params.accountId ? `account/${params.accountId}` : '',
+    params.subscriptionId ? `subscription/${params.subscriptionId}` : '',
+    params.boundaryId ? `boundary/${params.boundaryId}` : '',
+    params.functionId ? `function/${params.functionId}` : '',
   ].filter(x => x);
 
-  const urlWart = `${profile.baseUrl}/v1/` + warts.join("/");
+  const urlWart = `${profile.baseUrl}/v1/` + warts.join('/');
 
   // Return the div.
   return (
     <div>
+      {/* Select the active time. */}
+      <DateTimeRangePicker
+        from={interval.timeStart.toISOString()}
+        to={interval.timeEnd.toISOString()}
+        utc={true}
+        onChange={(from: string, to?: string) => {
+          // The DateTimePicker can feed out some bad dates, depending on the state of it's widgets.
+          if (!isNaN(Date.parse(from)) && to && !isNaN(Date.parse(to))) {
+            setInterval({ timeStart: new Date(from), timeEnd: to ? new Date(to) : new Date(), width: interval.width });
+          }
+        }}
+      />
+
       {/* Create the button group, one button for each of the different bucket sizes. */}
       <ToggleButtonGroup
         size="small"
@@ -140,12 +154,7 @@ const MonitorPanel: React.FC<IProps> = props => {
       })}
 
       {/* Display the events that occurred in the selected time period. */}
-      <ToggleButtonGroup
-        size="small"
-        exclusive={true}
-        onChange={(e, v) => setActiveCode(v)}
-        value={activeCode}
-      >
+      <ToggleButtonGroup size="small" exclusive={true} onChange={(e, v) => setActiveCode(v)} value={activeCode}>
         {activeCodeList.map((code: number) => {
           return (
             <ToggleButton key={code} value={code}>
