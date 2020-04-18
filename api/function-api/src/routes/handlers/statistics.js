@@ -12,6 +12,8 @@ const es = process.env.ES_HOST;
 const username = process.env.ES_USER;
 const password = process.env.ES_PASSWORD;
 
+console.log(`Elastic Search configuration: ${username}:${password.length > 0 ? '*' : 'X'}@${es}`);
+
 const headers = {
   Host: es,
   'Content-Type': 'application/json',
@@ -344,7 +346,7 @@ const itemizedBulk = async (req, res, next) => {
 
   let response = await makeQuery(req, 'itemizedBulk', { statusCode, fromIdx, pageSize, minDocCount });
   if (response.statusCode != 200) {
-    next(new Error(`Bulk Query failed (${response.statusCode}: ` + response.data));
+    return next(new Error(`Bulk Query failed (${response.statusCode}: ` + response.data));
   }
 
   bulk = response.data;

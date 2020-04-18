@@ -299,9 +299,9 @@ LOGS_TOKEN_SIGNATURE_KEY=${random({ lengthInBytes: 32 })}
       if (es_creds) {
         if (es_creds[1] && es_creds[2] && es_creds[3]) {
           r += `
-  ES_HOST=${es_creds[3]}
-  ES_USER=${es_creds[1]}
-  ES_PASSWORD=${es_creds[2]}
+ES_HOST=${es_creds[3]}
+ES_USER=${es_creds[1]}
+ES_PASSWORD=${es_creds[2]}
     `;
         }
       }
