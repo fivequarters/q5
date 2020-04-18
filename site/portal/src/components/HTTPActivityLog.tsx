@@ -73,47 +73,6 @@ const getData = async (
   }
 };
 
-//{
-//    "timestamp": "2020-04-16T23:04:07.351Z",
-//    "requestId": "99d77a18-4ca4-4cb3-a976-abd17d871006",
-//    "request": {
-//        "headers": {
-//            "host": "localhost:3001",
-//            "user-agent": "curl/7.58.0",
-//            "accept": "*/*"
-//        },
-//        "httpVersionMajor": 1,
-//        "httpVersionMinor": 1,
-//        "method": "GET",
-//        "url": "/run/sub-8dc425cdd9874723/dev-john/bar",
-//        "hostname": "localhost",
-//        "ip": "::ffff:127.0.0.1",
-//        "ips": [],
-//        "params": {
-//            "subscriptionId": "sub-8dc425cdd9874723",
-//            "boundaryId": "dev-john",
-//            "functionId": "bar"
-//        },
-//        "path": "/run/sub-8dc425cdd9874723/dev-john/bar",
-//        "protocol": "http",
-//        "query": {},
-//        "xhr": false
-//    },
-//    "response": {
-//        "statusCode": 200
-//    },
-//    "error": null,
-//    "metrics": {
-//        "lambda": {
-//            "duration": "1.03",
-//            "memory": "73"
-//        },
-//        "common": {
-//            "duration": 127
-//        }
-//    }
-//}
-
 interface ViewRow {
   timestamp: string;
   requestId: string;
