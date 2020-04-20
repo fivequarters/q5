@@ -27,11 +27,17 @@ exports.enterHandler = (req, res, next) => {
 
     // Propagate the response.
     res.end = end;
-    res.end(chunk, encoding, callback);
+    try {
+      res.end(chunk, encoding, callback);
+    } catch (e) {
+      res.error = e;
+    }
 
     // Prepare the event object with a select set of properties.
     const reqProps = {};
     whitelistedReqFields.forEach(p => (reqProps[p] = req[p]));
+
+    console.log(JSON.stringify(reqProps.params, null, 2));
 
     Runtime.dispatch_event({
       requestId: req.requestId,
@@ -47,7 +53,6 @@ exports.enterHandler = (req, res, next) => {
 };
 
 exports.finished = (err, req, res, next) => {
-  console.log('Catching an internal error.');
   // This captures internal exceptions that are caught by express.
   res.error = err;
   next(err);

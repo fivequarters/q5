@@ -44,7 +44,7 @@ const getData = async (
   setData: any
 ): Promise<void> => {
   if (interval == null || activeCode == null) {
-    return setData({ data: [], total: 0 });
+    return setData({ items: [], total: 0 });
   }
 
   try {
@@ -55,16 +55,14 @@ const getData = async (
         timeStart: interval.timeStart.toISOString(),
         timeEnd: interval.timeEnd.toISOString(),
         statusCode: activeCode,
-        offset: options.offset,
-        pageSize: options.pageSize,
-        orderBy: options.orderBy,
-        orderDir: options.orderDir,
+        next: options.offset,
+        count: options.pageSize,
       })
       .set('Authorization', `Bearer ${auth.access_token}`);
 
     // Make sure there's always a 0-value begin and end entry to track 'loading' state easily.
-    if (result.body.data.length === 0) {
-      result.body.data = [{ key: interval.timeStart }, { key: interval.timeEnd }];
+    if (result.body.items.length === 0) {
+      result.body.items = [{ key: interval.timeStart }, { key: interval.timeEnd }];
     }
 
     setData(result.body);
@@ -142,7 +140,7 @@ const HTTPActivityLog: React.FC<IProps> = ({ profile, urlWart, interval, activeC
               orderDir: query.orderDirection !== '' ? query.orderDirection : 'desc',
             },
             (data: any) => {
-              resolve({ data: data.data.map(toEventViewRow), page: query.page, totalCount: data.total });
+              resolve({ data: data.items.map(toEventViewRow), page: query.page, totalCount: data.total });
             }
           );
         });

@@ -1,4 +1,5 @@
 const { getAccountContext } = require('../account');
+const createError = require('http-errors');
 const https = require('https');
 
 const StatisticsAction = {
@@ -249,7 +250,7 @@ const makeQuery = async (request, key, query_params = null) => {
       if (response.statusCode == 200) {
         return resolve({
           statusCode: response.statusCode,
-          data: queries[key][1](JSON.parse(Buffer.from(body).toString('utf8'))),
+          items: queries[key][1](JSON.parse(Buffer.from(body).toString('utf8'))),
         });
       }
       return resolve({ statusCode: response.statusCode, data: body });
@@ -271,13 +272,13 @@ const codeActivityHistogram = async (req, res, next) => {
 
   let histogram = {};
 
-  for (const code of allCodes.data) {
+  for (const code of allCodes.items) {
     let response = await makeQuery(req, 'codeHistogram', { code, interval: width, minDocCount: 0 });
     if (response.statusCode != 200) {
       return next(new Error(`Activity Query failed (${response.statusCode}: ` + response.data));
     }
 
-    for (const evt of response.data) {
+    for (const evt of response.items) {
       try {
         histogram[evt.key_as_string][code] = evt.doc_count;
       } catch (e) {
@@ -291,7 +292,7 @@ const codeActivityHistogram = async (req, res, next) => {
     .map(i => histogram[i]);
   res.statusCode = 200;
   res.setHeader('Content-Type', 'application/json');
-  res.write(JSON.stringify({ codes: allCodes.data, data: sequenced }));
+  res.write(JSON.stringify({ codes: allCodes.data, items: sequenced }));
   res.end();
 };
 
@@ -309,13 +310,13 @@ const codeLatencyHistogram = async (req, res, next) => {
 
   let histogram = {};
 
-  for (const code of allCodes.data) {
+  for (const code of allCodes.items) {
     let response = await makeQuery(req, 'codeLatencyHistogram', { code, interval: width, minDocCount: 0 });
     if (response.statusCode != 200) {
       return next(new Error(`Latency Query failed (${response.statusCode}: ` + response.data));
     }
 
-    for (const evt of response.data) {
+    for (const evt of response.items) {
       try {
         histogram[evt.key_as_string][code] = evt.avg_latency;
       } catch (e) {
@@ -329,7 +330,7 @@ const codeLatencyHistogram = async (req, res, next) => {
     .map(i => histogram[i]);
   res.statusCode = 200;
   res.setHeader('Content-Type', 'application/json');
-  res.write(JSON.stringify({ codes: allCodes.data, data: sequenced }));
+  res.write(JSON.stringify({ codes: allCodes.data, items: sequenced }));
   res.end();
 };
 
@@ -340,9 +341,8 @@ const itemizedBulk = async (req, res, next) => {
   let bulk = {};
 
   const statusCode = parseInt(req.query.statusCode) || 200;
-  const fromIdx = parseInt(req.query.offset) || 0;
-  const pageSize = parseInt(req.query.pageSize) || 5;
-  const sortBy = parseInt(req.query.pageSize) || 5;
+  const fromIdx = parseInt(req.query.next) || 0;
+  const pageSize = parseInt(req.query.count) || 5;
 
   const minDocCount = 1;
 
@@ -351,11 +351,11 @@ const itemizedBulk = async (req, res, next) => {
     return next(new Error(`Bulk Query failed (${response.statusCode}: ` + response.data));
   }
 
-  bulk = response.data;
+  bulk = response.items;
 
   res.statusCode = 200;
   res.setHeader('Content-Type', 'application/json');
-  res.write(JSON.stringify({ ...bulk, fromIdx: fromIdx, pageSize: pageSize }));
+  res.write(JSON.stringify({ items: { ...bulk }, next: fromIdx + response.total }));
   res.end();
 };
 
@@ -370,13 +370,19 @@ function statisticsGet() {
   return async (req, res, next) => {
     const handler = statisticsQueries[req.params.statisticsKey.toLowerCase()];
     if (handler) {
-      return handler(req, res, next);
+      try {
+        return await handler(req, res, next);
+      } catch (e) {
+        return next(createError(500, e.message));
+      }
     }
 
-    res.statusCode = 404;
-    res.setHeader('Content-Type', 'application/json');
-    res.write(JSON.stringify({ errorCode: 404, errorMessage: `Unsupported query: ${req.params.statisticsKey}` }));
-    res.end();
+    return next(
+      createError(
+        404,
+        JSON.stringify({ errorCode: 404, errorMessage: `Unsupported query: ${req.params.statisticsKey}` })
+      )
+    );
   };
 }
 

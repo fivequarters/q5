@@ -59,8 +59,8 @@ const getData = async (
       .set('Authorization', `Bearer ${auth.access_token}`);
 
     // Make sure there's always a 0-value begin and end entry to track 'loading' state easily.
-    if (result.body.data.length === 0) {
-      result.body.data = [{ key: interval.timeStart }, { key: interval.timeEnd }];
+    if (result.body.items.length === 0) {
+      result.body.items = [{ key: interval.timeStart }, { key: interval.timeEnd }];
     }
 
     setData(result.body);
@@ -71,7 +71,8 @@ const getData = async (
 };
 
 const MonitorGraph: React.FC<IProps> = props => {
-  const [data, setData] = useState({ codes: [], data: [] });
+  // Payload received from the server
+  const [data, setData] = useState({ codes: [], items: [] });
 
   // Run once on page load, but first unpack props:
   const { profile, code, label, urlWart, interval, setEventRange, setActiveCodeList } = props;
@@ -81,7 +82,7 @@ const MonitorGraph: React.FC<IProps> = props => {
   }, [profile, code, urlWart, interval, setData, setActiveCodeList]);
   // ^^^ Note to self: don't put props in the deps, it's not a stable referant.
 
-  if (data.data.length === 0) {
+  if (data.items.length === 0) {
     return <LinearProgress />;
   }
 
@@ -125,7 +126,7 @@ const MonitorGraph: React.FC<IProps> = props => {
   return (
     <div style={{ width: '100%', height: 300 }}>
       <ResponsiveContainer>
-        <LineChart width={900} height={500} data={data.data} onClick={(e, v) => setHTTPEventRange(e.activeLabel)}>
+        <LineChart width={900} height={500} data={data.items} onClick={(e, v) => setHTTPEventRange(e.activeLabel)}>
           <CartesianGrid stroke="#ccc" />
           <Tooltip content={CustomTooltip} />
           <Legend verticalAlign="top" height={36} />
