@@ -235,8 +235,6 @@ const makeQuery = async (request, key, query_params = null) => {
 
   addRequiredFilters(request, body);
 
-  console.log(JSON.stringify(body, null, 2));
-
   // Make the request to elasticsearch
   let response = await new Promise((resolve, reject) => {
     let req = https.request(params, response => resolve(response));
