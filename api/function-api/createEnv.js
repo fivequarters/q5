@@ -36,7 +36,7 @@ function addAwsCredentials() {
         if (e) throw new Error('Unable to obtain AWS session token: ' + e.message);
         Fs.writeFileSync(__dirname + '/.env.aws', JSON.stringify(d, null, 2), { encoding: 'utf8' });
         addCreds(d);
-        return addLogsUrl();
+        return addElasticsearchCredentials();
       }
     );
   } else {

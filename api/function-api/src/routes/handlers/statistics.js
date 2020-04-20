@@ -12,7 +12,11 @@ const es = process.env.ES_HOST;
 const username = process.env.ES_USER;
 const password = process.env.ES_PASSWORD;
 
-console.log(`Elastic Search configuration: ${username}:${password.length > 0 ? '*' : 'X'}@${es}`);
+if (!es || !username || !password) {
+  console.log('Elastic Search disabled');
+} else {
+  console.log(`Elastic Search configuration: ${username}:${password.length > 0 ? '*' : 'X'}@${es}`);
+}
 
 const headers = {
   Host: es,
