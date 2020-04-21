@@ -50,7 +50,11 @@ const queries = {
         },
       },
     },
-    d => d.aggregations.result.buckets.map(x => x.key),
+    d => {
+      let r = { data: d.aggregations.result.buckets.map(x => x.key) };
+      r.total = r.data.length;
+      return r;
+    },
   ],
 
   // Return the statusCodes for a specific histogram.
@@ -82,7 +86,9 @@ const queries = {
         },
       };
     },
-    d => d.aggregations.result.buckets,
+    d => {
+      return { data: d.aggregations.result.buckets, total: d.aggregations.result.buckets.length };
+    },
   ],
 
   // Return the statusCodes average latency for a specific histogram.
@@ -121,10 +127,14 @@ const queries = {
         },
       };
     },
-    d =>
-      d.aggregations.result.buckets.map(e => {
-        return { ...e, avg_latency: e.latency.value / e.doc_count };
-      }),
+    d => {
+      return {
+        data: d.aggregations.result.buckets.map(e => {
+          return { ...e, avg_latency: e.latency.value / e.doc_count };
+        }),
+        total: d.aggregations.result.buckets.length,
+      };
+    },
   ],
 
   // Retrieve itemized list of events
@@ -196,10 +206,10 @@ const addRequiredFilters = (request, body) => {
   }
 
   // Add the filters for accounts, etc.
-  for (const param of ['subscriptionId', 'boundaryId', 'functionId']) {
+  for (const param of ['accountId', 'subscriptionId', 'boundaryId', 'functionId', 'deploymentKey']) {
     if (request.params[param]) {
       body.query.bool.filter.push({
-        match_phrase: { ['request.params.' + param]: { query: request.params[param] } },
+        match_phrase: { ['fusebit.' + param]: { query: request.params[param] } },
       });
     }
   }
@@ -274,7 +284,7 @@ const codeActivityHistogram = async (req, res, next) => {
     .map(i => histogram[i]);
   res.statusCode = 200;
   res.setHeader('Content-Type', 'application/json');
-  res.write(JSON.stringify({ codes: allCodes.data, items: sequenced }));
+  res.write(JSON.stringify({ codes: allCodes.items, items: sequenced }));
   res.end();
 };
 
@@ -312,7 +322,7 @@ const codeLatencyHistogram = async (req, res, next) => {
     .map(i => histogram[i]);
   res.statusCode = 200;
   res.setHeader('Content-Type', 'application/json');
-  res.write(JSON.stringify({ codes: allCodes.data, items: sequenced }));
+  res.write(JSON.stringify({ codes: allCodes.items, items: sequenced }));
   res.end();
 };
 
