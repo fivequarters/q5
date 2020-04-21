@@ -53,10 +53,16 @@ export function executor(event: any, context: any, cb: any) {
 
       // Calculate the deviation from the actual expected time to now.
       let startTime = Date.now();
-      let deviation = startTime - Date.parse(Cron.parseExpression(body.cron, {
-        currentDate: startTime,
-        tz: body.timezone,
-      }).prev().toString());
+      let deviation =
+        startTime -
+        Date.parse(
+          Cron.parseExpression(body.cron, {
+            currentDate: startTime,
+            tz: body.timezone,
+          })
+            .prev()
+            .toString()
+        );
 
       // Generate a pseudo-request object to drive the invocation.
       let request = {
@@ -65,15 +71,19 @@ export function executor(event: any, context: any, cb: any) {
         path: Runtime.Common.get_user_function_name(body),
         body: body,
         protocol: 'cron',
-        headers: { 'x-forwarded-proto': 'cron', host: 'fusebit'},
+        headers: { 'x-forwarded-proto': 'cron', host: 'fusebit' },
         query: {},
         params: body,
         requestId: uuidv4(),
         startTime,
       };
 
-      request.url = Runtime.Common.get_function_location(request, request.params.subscriptionId,
-        request.params.boundaryId, request.params.functionId);
+      request.url = Runtime.Common.get_function_location(
+        request,
+        request.params.subscriptionId,
+        request.params.boundaryId,
+        request.params.functionId
+      );
 
       Runtime.create_logging_token(request);
 
@@ -95,6 +105,14 @@ export function executor(event: any, context: any, cb: any) {
 }
 
 function dispatch_cron_event(details: any) {
+  let fusebit = {
+    subscriptionId: details.request.params.subscriptionId,
+    boundaryId: details.request.params.boundaryId,
+    functionId: details.request.params.functionId,
+    deploymentKey: process.env.DEPLOYMENT_KEY,
+    mode: 'cron',
+  };
+
   const event = {
     requestId: details.request.requestId,
     startTime: details.request.startTime,
@@ -102,7 +120,8 @@ function dispatch_cron_event(details: any) {
     request: details.request,
     metrics: details.meta.metrics,
     response: { statusCode: details.response.statusCode, headers: details.response.headers },
-    error: details.meta.error || details.error,   // The meta error always has more information.
+    fusebit: fusebit,
+    error: details.meta.error || details.error, // The meta error always has more information.
   };
 
   Runtime.dispatch_event(event);

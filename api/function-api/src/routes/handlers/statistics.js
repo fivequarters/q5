@@ -1,6 +1,6 @@
 const { getAccountContext } = require('../account');
 const createError = require('http-errors');
-const https = require('https');
+const superagent = require('superagent');
 
 const StatisticsAction = {
   Account: 'account:statistics',
@@ -9,20 +9,19 @@ const StatisticsAction = {
   Func: 'function:statistics',
 };
 
-const es = process.env.ES_HOST;
-const username = process.env.ES_USER;
-const password = process.env.ES_PASSWORD;
-
-if (!es || !username || !password) {
-  console.log('Elastic Search disabled');
+if (process.env.ES_HOST && process.env.ES_USER && process.env.ES_PASSWORD) {
+  console.log(
+    `Elastic Search configuration: ${process.env.ES_USER}:${process.env.ES_PASSWORD.length > 0 ? '*' : 'X'}@${
+      process.env.ES_HOST
+    }`
+  );
 } else {
-  console.log(`Elastic Search configuration: ${username}:${password.length > 0 ? '*' : 'X'}@${es}`);
+  console.log('Elastic Search disabled');
 }
 
 const headers = {
-  Host: es,
+  Host: process.env.ES_HOST,
   'Content-Type': 'application/json',
-  Authorization: 'Basic ' + Buffer.from(username + ':' + password).toString('base64'),
 };
 
 const queries = {
@@ -207,15 +206,6 @@ const addRequiredFilters = (request, body) => {
 };
 
 const makeQuery = async (request, key, query_params = null) => {
-  let accountContext = await getAccountContext();
-
-  const params = {
-    headers,
-    path: '/fusebit-*/_search',
-    method: 'POST',
-    hostname: es,
-  };
-
   let body = {
     version: true,
     size: 0,
@@ -237,25 +227,17 @@ const makeQuery = async (request, key, query_params = null) => {
   addRequiredFilters(request, body);
 
   // Make the request to elasticsearch
-  let response = await new Promise((resolve, reject) => {
-    let req = https.request(params, response => resolve(response));
-    req.write(JSON.stringify(body));
-    req.end();
-  });
+  let response = await superagent
+    .post(`https://${process.env.ES_HOST}/fusebit-*/_search`)
+    .auth(process.env.ES_USER, process.env.ES_PASSWORD)
+    .set(headers)
+    .send(body);
 
-  return new Promise((resolve, reject) => {
-    let body = '';
-    response.on('data', d => (body += d));
-    response.on('end', () => {
-      if (response.statusCode == 200) {
-        return resolve({
-          statusCode: response.statusCode,
-          items: queries[key][1](JSON.parse(Buffer.from(body).toString('utf8'))),
-        });
-      }
-      return resolve({ statusCode: response.statusCode, data: body });
-    });
-  });
+  if (response.statusCode == 200) {
+    let payload = queries[key][1](response.body);
+    return { statusCode: response.statusCode, items: payload.data, total: payload.total };
+  }
+  return { statusCode: response.statusCode, data: response.body };
 };
 
 // Generate a histogram of all active HTTP response codes over the time period.
@@ -355,7 +337,7 @@ const itemizedBulk = async (req, res, next) => {
 
   res.statusCode = 200;
   res.setHeader('Content-Type', 'application/json');
-  res.write(JSON.stringify({ items: { ...bulk }, next: fromIdx + response.total }));
+  res.write(JSON.stringify({ items: bulk, next: fromIdx + bulk.length, total: response.total }));
   res.end();
 };
 
@@ -368,12 +350,14 @@ const statisticsQueries = {
 
 function statisticsGet() {
   return async (req, res, next) => {
-    const handler = statisticsQueries[req.params.statisticsKey.toLowerCase()];
-    if (handler) {
-      try {
-        return await handler(req, res, next);
-      } catch (e) {
-        return next(createError(500, e.message));
+    if (process.env.ES_HOST && process.env.ES_USER && process.env.ES_PASSWORD) {
+      const handler = statisticsQueries[req.params.statisticsKey.toLowerCase()];
+      if (handler) {
+        try {
+          return await handler(req, res, next);
+        } catch (e) {
+          return next(createError(500, e.message));
+        }
       }
     }
 

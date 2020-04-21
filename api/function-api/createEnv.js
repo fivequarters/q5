@@ -57,11 +57,13 @@ function addElasticsearchCredentials() {
   let creds;
   try {
     creds = JSON.parse(Fs.readFileSync(__dirname + '/.env.elasticsearch', 'utf8'));
-    env = `${env}
+    if (creds.hostname && creds.username && creds.password) {
+      env = `${env}
 ES_HOST=${creds.hostname}
 ES_USER=${creds.username}
 ES_PASSWORD=${creds.password}
 `;
+    }
   } catch (_) {}
   return addLogsUrl();
 }

@@ -37,7 +37,17 @@ exports.enterHandler = (req, res, next) => {
     const reqProps = {};
     whitelistedReqFields.forEach(p => (reqProps[p] = req[p]));
 
-    console.log(JSON.stringify(reqProps.params, null, 2));
+    let fusebit = {
+      subscriptionId: reqProps.params.subscriptionId,
+      boundaryId: reqProps.params.boundaryId,
+      functionId: reqProps.params.functionId,
+      deploymentKey: process.env.DEPLOYMENT_KEY,
+      mode: 'request',
+    };
+
+    delete reqProps.params.subscriptionId;
+    delete reqProps.params.boundaryId;
+    delete reqProps.params.functionId;
 
     Runtime.dispatch_event({
       requestId: req.requestId,
@@ -46,6 +56,7 @@ exports.enterHandler = (req, res, next) => {
       request: reqProps,
       metrics: res.metrics,
       response: { statusCode: res.statusCode, headers: res.headers },
+      fusebit: fusebit,
       error: res.error,
     });
   };
