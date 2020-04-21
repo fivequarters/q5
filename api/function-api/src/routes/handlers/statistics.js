@@ -205,6 +205,12 @@ const addRequiredFilters = (request, body) => {
     });
   }
 
+  // Quick touch to make sure the deployment key is present as a filter if it hasn't been explicitly specified
+  // in the query.
+  if (!request.params['deploymentKey']) {
+    request.params['deploymentKey'] = process.env.DEPLOYMENT_KEY;
+  }
+
   // Add the filters for accounts, etc.
   for (const param of ['accountId', 'subscriptionId', 'boundaryId', 'functionId', 'deploymentKey']) {
     if (request.params[param]) {
