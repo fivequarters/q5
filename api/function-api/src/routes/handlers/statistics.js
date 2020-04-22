@@ -197,13 +197,13 @@ const addRequiredFilters = (request, body) => {
   }
 
   // Add timestamp range
-  if (request.query.timeStart) {
-    request.query.endTime = request.query.timeEnd || new Date().toISOString();
-
-    body.query.bool.filter.push({
-      range: { '@timestamp': { gte: request.query.timeStart, lte: request.query.timeEnd } },
-    });
+  if (!request.query.timeStart || !request.query.timeEnd) {
+    throw createError(403, 'Missing timeStart or timeEnd parameters.');
   }
+
+  body.query.bool.filter.push({
+    range: { '@timestamp': { gte: request.query.timeStart, lte: request.query.timeEnd } },
+  });
 
   // Quick touch to make sure the deployment key is present as a filter if it hasn't been explicitly specified
   // in the query.
@@ -240,7 +240,12 @@ const makeQuery = async (request, key, query_params = null) => {
     };
   }
 
-  addRequiredFilters(request, body);
+  try {
+    addRequiredFilters(request, body);
+  } catch (e) {
+    // Missing required elements.
+    return { statusCode: 403, data: e.message };
+  }
 
   // Make the request to elasticsearch
   let response = await superagent
@@ -265,7 +270,7 @@ const codeActivityHistogram = async (req, res, next) => {
   const allCodes = await makeQuery(req, 'allStatusCodes');
 
   if (allCodes.statusCode != 200) {
-    return next(new Error(`All Status Codes Query failed (${response.statusCode}: ` + response.data));
+    return next(httpError(response.statusCode, response.data));
   }
 
   let histogram = {};
@@ -273,7 +278,7 @@ const codeActivityHistogram = async (req, res, next) => {
   for (const code of allCodes.items) {
     let response = await makeQuery(req, 'codeHistogram', { code, interval: width, minDocCount: 0 });
     if (response.statusCode != 200) {
-      return next(new Error(`Activity Query failed (${response.statusCode}: ` + response.data));
+      return next(httpError(response.statusCode, response.data));
     }
 
     for (const evt of response.items) {
@@ -303,7 +308,7 @@ const codeLatencyHistogram = async (req, res, next) => {
   const allCodes = await makeQuery(req, 'allStatusCodes');
 
   if (allCodes.statusCode != 200) {
-    return next(new Error(`All Status Codes Query failed (${response.statusCode}: ` + response.data));
+    return next(httpError(response.statusCode, response.data));
   }
 
   let histogram = {};
@@ -311,7 +316,7 @@ const codeLatencyHistogram = async (req, res, next) => {
   for (const code of allCodes.items) {
     let response = await makeQuery(req, 'codeLatencyHistogram', { code, interval: width, minDocCount: 0 });
     if (response.statusCode != 200) {
-      return next(new Error(`Latency Query failed (${response.statusCode}: ` + response.data));
+      return next(httpError(response.statusCode, response.data));
     }
 
     for (const evt of response.items) {
@@ -346,7 +351,7 @@ const itemizedBulk = async (req, res, next) => {
 
   let response = await makeQuery(req, 'itemizedBulk', { statusCode, fromIdx, pageSize, minDocCount });
   if (response.statusCode != 200) {
-    return next(new Error(`Bulk Query failed (${response.statusCode}: ` + response.data));
+    return next(createError(response.statusCode, response.data));
   }
 
   bulk = response.items;
