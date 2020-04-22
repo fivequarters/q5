@@ -394,4 +394,5 @@ function statisticsGet() {
 module.exports = {
   statisticsGet,
   StatisticsAction,
+  statisticsQueries,
 };
