@@ -1,6 +1,8 @@
 const { v4: uuidv4 } = require('uuid');
 const Runtime = require('@5qtrs/runtime-common');
 
+const { jsonifyError } = require('../../utility.js');
+
 const whitelistedReqFields = [
   'headers',
   'httpVersionMajor',
@@ -57,7 +59,7 @@ exports.enterHandler = (req, res, next) => {
       metrics: res.metrics,
       response: { statusCode: res.statusCode, headers: res.headers },
       fusebit: fusebit,
-      error: res.error,
+      error: jsonifyError(res.statusCode, res.error),
     });
   };
   next();
