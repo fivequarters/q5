@@ -6,6 +6,8 @@ import { IFusebitProfile } from '../lib/Settings';
 import { ensureAccessToken, createHttpException } from '../lib/Fusebit';
 import ms from 'ms';
 
+const Locale = 'en-US';
+
 enum BucketWidths {
   Minute = '1m',
   Hour = '1h',
@@ -15,6 +17,16 @@ enum BucketWidths {
   Quarter = '1q',
   Year = '1y',
 }
+
+const BucketWidthsDateFormat = {
+  [BucketWidths.Minute]: new Intl.DateTimeFormat(Locale, { hour: 'numeric', minute: 'numeric', second: 'numeric' }),
+  [BucketWidths.Hour]: new Intl.DateTimeFormat(Locale, { month: 'short', day: 'numeric', hour: 'numeric' }),
+  [BucketWidths.Day]: new Intl.DateTimeFormat(Locale, { month: 'short', day: 'numeric' }),
+  [BucketWidths.Week]: new Intl.DateTimeFormat(Locale, { month: 'short', day: 'numeric' }),
+  [BucketWidths.Month]: new Intl.DateTimeFormat(Locale, { year: '2-digit', month: 'short', day: 'numeric' }),
+  [BucketWidths.Quarter]: new Intl.DateTimeFormat(Locale, { year: '2-digit', month: 'short' }),
+  [BucketWidths.Year]: new Intl.DateTimeFormat(Locale, { year: '2-digit', month: 'short' }),
+};
 
 interface IDateInterval {
   width: BucketWidths;
@@ -88,15 +100,11 @@ const MonitorGraph: React.FC<IProps> = props => {
   }, [profile, code, urlWart, interval, setData, setActiveCodeList]);
   // ^^^ Note to self: don't put props in the deps, it's not a stable referant.
 
-  if (data.items.length === 0) {
-    return <LinearProgress />;
-  }
-
   const dateTickFormatter = (msTime: any): string => {
     if (typeof msTime != 'number') {
       return '';
     }
-    return new Date(msTime).toISOString();
+    return BucketWidthsDateFormat[interval.width].format(new Date(msTime));
   };
 
   const CustomTooltip = ({ active, payload, label }: any) => {
@@ -128,29 +136,48 @@ const MonitorGraph: React.FC<IProps> = props => {
     });
   };
 
+  const InProgressBar = () => {
+    if (data.items.length === 0) {
+      return <LinearProgress />;
+    }
+
+    // Switch to a fixed value non-animating progress bar
+    return <LinearProgress value={0} variant="determinate" style={{ visibility: 'hidden' }} />;
+  };
+
   // Quick hack, let's turn the key into an integer.
   return (
-    <div style={{ width: '100%', height: 300 }}>
-      <ResponsiveContainer>
-        <LineChart width={900} height={500} data={data.items} onClick={(e, v) => setHTTPEventRange(e.activeLabel)}>
-          <CartesianGrid stroke="#ccc" />
-          <Tooltip content={CustomTooltip} />
-          <Legend verticalAlign="top" height={36} />
-          <XAxis
-            type="number"
-            domain={[interval.from.getTime(), interval.to.getTime()]}
-            dataKey="key"
-            label={{ value: label, position: 'insideBottom' }}
-            tickFormatter={dateTickFormatter}
-          />
-          <YAxis />
-          {data.codes.map(id => {
-            return (
-              <Line type="monotone" key={id} dataKey={id} dot={false} activeDot={{ r: 4 }} stroke={codeColorMap[id]} />
-            );
-          })}
-        </LineChart>
-      </ResponsiveContainer>
+    <div>
+      <InProgressBar />
+      <div style={{ width: '100%', height: 300 }}>
+        <ResponsiveContainer>
+          <LineChart width={900} height={500} data={data.items} onClick={(e, v) => setHTTPEventRange(e.activeLabel)}>
+            <CartesianGrid stroke="#ccc" />
+            <Tooltip content={CustomTooltip} />
+            <Legend verticalAlign="top" height={36} />
+            <XAxis
+              type="number"
+              domain={[interval.from.getTime(), interval.to.getTime()]}
+              dataKey="key"
+              label={{ value: label, position: 'insideBottom' }}
+              tickFormatter={dateTickFormatter}
+            />
+            <YAxis />
+            {data.codes.map(id => {
+              return (
+                <Line
+                  type="monotone"
+                  key={id}
+                  dataKey={id}
+                  dot={false}
+                  activeDot={{ r: 4 }}
+                  stroke={codeColorMap[id]}
+                />
+              );
+            })}
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 };

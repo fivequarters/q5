@@ -93,6 +93,15 @@ const MonitorPanel: React.FC<IProps> = props => {
   // Return the div.
   return (
     <div>
+      {/* Show the tab bar for each of the different visualizations */}
+      <AppBar position="static">
+        <Tabs value={graphIndex} onChange={(e, v) => setGraphIndex(v)}>
+          {availableGraphs.map(graph => {
+            return <Tab key={graph.label} label={graph.label} />;
+          })}
+        </Tabs>
+      </AppBar>
+
       {/* Select the active time. */}
       <DateTimeRangePicker
         from={interval.from.toISOString()}
@@ -123,23 +132,10 @@ const MonitorPanel: React.FC<IProps> = props => {
         })}
       </ToggleButtonGroup>
 
-      {/* Show the tab bar for each of the different visualizations */}
-      <AppBar position="static">
-        <Tabs value={graphIndex} onChange={(e, v) => setGraphIndex(v)}>
-          <Tab label="Summary" />
-          {availableGraphs.map(graph => {
-            return <Tab key={graph.label} label={graph.label} />;
-          })}
-        </Tabs>
-      </AppBar>
-      <TabPanel graphIndex={graphIndex} index={0}>
-        Item One
-      </TabPanel>
-
       {/* Show the various graphs available. */}
       {availableGraphs.map((graph, n) => {
         return (
-          <TabPanel key={n + 1} graphIndex={graphIndex} index={n + 1}>
+          <TabPanel key={n} graphIndex={graphIndex} index={n}>
             <MonitorGraph
               profile={profile}
               code={graph.code}

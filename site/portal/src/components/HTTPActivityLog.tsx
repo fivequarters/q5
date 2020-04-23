@@ -60,11 +60,6 @@ const getData = async (
       })
       .set('Authorization', `Bearer ${auth.access_token}`);
 
-    // Make sure there's always a 0-value begin and end entry to track 'loading' state easily.
-    if (result.body.items.length === 0) {
-      result.body.items = [{ key: interval.from }, { key: interval.to }];
-    }
-
     setData(result.body);
   } catch (e) {
     throw createHttpException(e);
