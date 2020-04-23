@@ -15,6 +15,10 @@ import ResourceCrumb from "./ResourceCrumb";
 import TableInfoRow from "./TableInfoRow";
 import Chip from "@material-ui/core/Chip";
 import { useHistory } from "react-router-dom";
+import AgentTooltip, { IssuerSubjectAgent } from "./AgentTooltip";
+import { AgentState } from "./AgentProvider";
+import CancelIcon from "@material-ui/icons/Cancel";
+import CheckCircleIcon from "@material-ui/icons/CheckCircle";
 
 const useStyles = makeStyles((theme: any) => ({
   noWrap: {
@@ -32,6 +36,9 @@ const useStyles = makeStyles((theme: any) => ({
     marginRight: theme.spacing(1),
     marginBottom: theme.spacing(1),
   },
+  access: {
+    display: "flex",
+  },
 }));
 
 const pad = (i: number) => (i < 10 ? "0" + i : i.toString());
@@ -46,6 +53,7 @@ function ActivityImpl({ actionFilter, filterMask }: ActivityImplProps) {
   const [utc, setUtc] = React.useState<boolean>(getUISettings().utcTime);
   const classes = useStyles();
   const history = useHistory();
+  const [agents, setAgents] = React.useState<IssuerSubjectAgent>({});
 
   const formatUtcDate = (d: Date) =>
     `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(
@@ -59,7 +67,30 @@ function ActivityImpl({ actionFilter, filterMask }: ActivityImplProps) {
       d.getHours()
     )}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 
+  const handleSetAgent = (
+    issuerId: string,
+    subject: string,
+    agent: AgentState
+  ) => {
+    if (!agents[issuerId]) {
+      agents[issuerId] = {};
+    }
+    agents[issuerId][subject] = agent;
+    setAgents({ ...agents });
+  };
+
   const headCells: HeadCell<Audit>[] = [
+    {
+      id: "authorized",
+      align: "left",
+      label: "Access",
+      render: (row) =>
+        row.authorized ? (
+          <CheckCircleIcon className={classes.access} />
+        ) : (
+          <CancelIcon color="primary" className={classes.access} />
+        ),
+    },
     {
       id: "resource",
       align: "left",
@@ -107,6 +138,16 @@ function ActivityImpl({ actionFilter, filterMask }: ActivityImplProps) {
       id: "subject",
       align: "left",
       label: "Subject",
+      render: (row) => (
+        <AgentTooltip
+          issuerId={row.issuerId}
+          subject={row.subject}
+          agents={agents}
+          onSetAgent={handleSetAgent}
+        >
+          <Typography variant="inherit">{row.subject}</Typography>
+        </AgentTooltip>
+      ),
     },
   ];
 

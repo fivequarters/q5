@@ -12,7 +12,7 @@ function FunctionNameSelector({
   subscriptionId,
   boundaryEnabled,
   name,
-  onNameChange
+  onNameChange,
 }: any) {
   const [boundaries] = useBoundaries();
 
@@ -43,7 +43,7 @@ function FunctionNameSelector({
       name.functionNameConflict = false;
     } else if (
       boundary &&
-      boundary.functions.find(f => f.functionId === trimmed)
+      boundary.functions.find((f) => f.functionId === trimmed)
     ) {
       name.functionIdError = `Function '${trimmed}' already exists in boundary '${name.boundaryId}', choose a different name.`;
       name.functionNameConflict = true;
@@ -68,7 +68,7 @@ function FunctionNameSelector({
       name.boundaryNameConflict = false;
     } else if (
       boundary &&
-      boundary.functions.find(f => f.functionId === name.functionId)
+      boundary.functions.find((f) => f.functionId === name.functionId)
     ) {
       name.boundaryIdError = `Boundary '${trimmed}' already contains function '${name.functionId}', choose a different name.`;
       name.boundaryNameConflict = true;

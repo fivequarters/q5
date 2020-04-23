@@ -197,7 +197,6 @@ function ProfileExplorer({ ...rest }: any) {
   }
 
   function getDefaultUrl() {
-    // return `/accounts/${profile.account}/subscriptions`;
     return profile.subscription
       ? `/accounts/${profile.account}/subscriptions/${profile.subscription}/boundaries`
       : `/accounts/${profile.account}/subscriptions`;
@@ -245,7 +244,6 @@ function ProfileExplorer({ ...rest }: any) {
                 filter={{
                   resource: `/account/${profile.account}/`,
                 }}
-                //actionFilter={["function"]}
               />
             </ExplorerView>
           )}
@@ -337,11 +335,7 @@ function ProfileExplorer({ ...rest }: any) {
                     path={`${match.path}/permissions`}
                     exact={true}
                     render={({ ...rest }) => (
-                      <ExplorerView
-                        tabs={ExplorerTabs.user}
-                        // fab={<AgentDeleteFab />}
-                        {...rest}
-                      >
+                      <ExplorerView tabs={ExplorerTabs.user} {...rest}>
                         <AgentPermissions />
                       </ExplorerView>
                     )}
@@ -448,11 +442,7 @@ function ProfileExplorer({ ...rest }: any) {
                     path={`${match.path}/permissions`}
                     exact={true}
                     render={({ ...rest }) => (
-                      <ExplorerView
-                        tabs={ExplorerTabs.client}
-                        // fab={<AgentDeleteFab />}
-                        {...rest}
-                      >
+                      <ExplorerView tabs={ExplorerTabs.client} {...rest}>
                         <AgentPermissions />
                       </ExplorerView>
                     )}
@@ -502,7 +492,9 @@ function ProfileExplorer({ ...rest }: any) {
         <Route
           path="/accounts/:accountId/issuers/:issuerId"
           render={({ match }) => (
-            <IssuerProvider issuerId={match.params.issuerId}>
+            <IssuerProvider
+              issuerId={decodeURIComponent(match.params.issuerId)}
+            >
               <Switch>
                 <Route
                   path={`${match.path}/properties`}

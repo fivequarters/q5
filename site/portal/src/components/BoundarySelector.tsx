@@ -40,7 +40,7 @@ function BoundarySelector({
       onInputChange={(e, v) => e && onChange && onChange(v)}
       options={boundaryIds}
       loading={!!(open && boundaries.status === "loading" && subscriptionId)}
-      renderInput={params => (
+      renderInput={(params) => (
         <TextField
           {...params}
           label={label || boundaryId ? "Boundary" : "All boundaries"}
@@ -59,7 +59,7 @@ function BoundarySelector({
                 />
               ) : (
                 params.InputProps.endAdornment
-              )
+              ),
           }}
         />
       )}

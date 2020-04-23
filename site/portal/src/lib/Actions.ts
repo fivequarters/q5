@@ -190,6 +190,19 @@ function tryTokenizeResource(resource: string): Resource | undefined {
     };
   }
   match = resource.match(
+    /^\/account\/([^/]+)\/subscription\/([^/]+)\/boundary\/([^/]+)\/function\/$/
+  );
+  if (match) {
+    const [, accountId, subscriptionId, boundaryId] = match;
+    return {
+      ...{
+        accountId,
+        subscriptionId,
+        boundaryId,
+      },
+    };
+  }
+  match = resource.match(
     /^\/account\/([^/]+)\/subscription\/([^/]+)\/([^/]+)\/$/
   );
   if (match) {

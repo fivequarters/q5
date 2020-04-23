@@ -27,7 +27,7 @@ type NewFunctionCreateProps = {
 function NewFunctionCreate({
   subscriptionId,
   boundaryId,
-  templateId
+  templateId,
 }: NewFunctionCreateProps) {
   const { profile } = useProfile();
   const [catalog] = useCatalog();
@@ -42,18 +42,22 @@ function NewFunctionCreate({
       ? { status: "installing" }
       : {
           status: "error",
-          error: new Error(data.message || "Unspecified error")
+          error: new Error(data.message || "Unspecified error"),
         }
   );
   const [boundaries, setBoundaries] = useBoundaries();
 
   React.useEffect(() => {
     let cancelled: boolean = false;
-    if (state.status === "installing" && catalog.status === "ready") {
+    if (
+      state.status === "installing" &&
+      catalog.status === "ready" &&
+      boundaries.status === "ready"
+    ) {
       (async () => {
         try {
           const template = catalog.existing.templates.find(
-            t => t.id === templateId
+            (t) => t.id === templateId
           );
           if (!template) {
             throw new Error(`Unsupported function template '${templateId}'.`);
@@ -63,7 +67,7 @@ function NewFunctionCreate({
             accountId,
             subscriptionId,
             boundaryId,
-            functionId
+            functionId,
           } = data;
           delete data.baseUrl;
           delete data.accountId;
@@ -85,7 +89,7 @@ function NewFunctionCreate({
               boundaryId,
               functionId,
               configuration: data,
-              metadata: { template }
+              metadata: { template },
             });
           if (!cancelled) {
             setState({ status: "success" });

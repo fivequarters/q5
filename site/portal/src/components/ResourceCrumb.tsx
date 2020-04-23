@@ -20,9 +20,6 @@ const useStyles = makeStyles((theme) => ({
     display: "flex",
     flexWrap: "wrap",
     alignItems: "center",
-    // overflow: "hidden",
-    // textOverflow: "ellipsis",
-    // whiteSpace: "nowrap",
   },
   noWrap: {
     whiteSpace: "nowrap",
@@ -64,7 +61,6 @@ function ResourceCrumb({ resource, resourceMask, ...rest }: any) {
     <React.Fragment>
       {!mask.boundaryId && (
         <span className={classes.noWrap}>
-          {/* <NavigateNextIcon fontSize="inherit" className={classes.middleIcon} /> */}
           <FilterNoneIcon fontSize="inherit" className={classes.firstIcon} />
           <Typography variant="inherit" className={classes.noWrap}>
             {formatSubscription()}
@@ -114,7 +110,6 @@ function ResourceCrumb({ resource, resourceMask, ...rest }: any) {
   const formatAgent = () => (
     <React.Fragment>
       <span className={classes.noWrap}>
-        {/* <NavigateNextIcon fontSize="inherit" className={classes.middleIcon} /> */}
         {options.userId ? (
           <PersonIcon fontSize="inherit" className={classes.firstIcon} />
         ) : (
@@ -130,7 +125,6 @@ function ResourceCrumb({ resource, resourceMask, ...rest }: any) {
   const formatIssuer = () => (
     <React.Fragment>
       <span className={classes.noWrap}>
-        {/* <NavigateNextIcon fontSize="inherit" className={classes.middleIcon} /> */}
         <AccountBalanceIcon fontSize="inherit" className={classes.firstIcon} />
         <Typography variant="inherit" className={classes.noWrap}>
           {options.issuerId}

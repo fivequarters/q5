@@ -17,15 +17,15 @@ function CloneFunctionDialog({
   subscriptionId,
   boundaryId,
   functionId,
-  onClose
+  onClose,
 }: any) {
   const [name, setName] = React.useState<any>({
     functionId: "",
     boundaryId: "",
-    disabled: true
+    disabled: true,
   });
   const [state, setState] = React.useState<any>({
-    status: "initial"
+    status: "initial",
   });
   const { profile } = useProfile();
   const [boundaries, setBoundaries] = useBoundaries();
@@ -68,7 +68,7 @@ function CloneFunctionDialog({
     setBoundaries,
     boundaryId,
     subscriptionId,
-    functionId
+    functionId,
   ]);
 
   const handleClone = () => {
