@@ -24,8 +24,8 @@ enum BucketWidths {
 
 interface IDateInterval {
   width: BucketWidths;
-  timeStart: Date;
-  timeEnd: Date;
+  from: Date;
+  to: Date;
 }
 
 interface IParams {
@@ -70,8 +70,8 @@ const MonitorPanel: React.FC<IProps> = props => {
   const { profile } = useProfile();
   const [graphIndex, setGraphIndex] = useState(0);
   const [interval, setInterval] = useState<IDateInterval>({
-    timeStart: new Date(Date.now() - ms('7d')),
-    timeEnd: new Date(),
+    from: new Date(Date.now() - ms('7d')),
+    to: new Date(),
     width: BucketWidths.Day,
   });
   const [eventRange, setEventRange] = useState<IDateInterval | null>(null);
@@ -95,13 +95,13 @@ const MonitorPanel: React.FC<IProps> = props => {
     <div>
       {/* Select the active time. */}
       <DateTimeRangePicker
-        from={interval.timeStart.toISOString()}
-        to={interval.timeEnd.toISOString()}
+        from={interval.from.toISOString()}
+        to={interval.to.toISOString()}
         utc={true}
         onChange={(from: string, to?: string) => {
           // The DateTimePicker can feed out some bad dates, depending on the state of it's widgets.
           if (!isNaN(Date.parse(from)) && to && !isNaN(Date.parse(to))) {
-            setInterval({ timeStart: new Date(from), timeEnd: to ? new Date(to) : new Date(), width: interval.width });
+            setInterval({ from: new Date(from), to: to ? new Date(to) : new Date(), width: interval.width });
           }
         }}
       />

@@ -18,8 +18,8 @@ enum BucketWidths {
 
 interface IDateInterval {
   width: BucketWidths;
-  timeStart: Date;
-  timeEnd: Date;
+  from: Date;
+  to: Date;
 }
 
 interface IProps {
@@ -52,18 +52,24 @@ const getData = async (
 
     let result: any = await Superagent.get(`${urlWart}/statistics/${queryType}`)
       .query({
-        timeStart: interval.timeStart.toISOString(),
-        timeEnd: interval.timeEnd.toISOString(),
+        from: interval.from.toISOString(),
+        to: interval.to.toISOString(),
         width: interval.width,
       })
       .set('Authorization', `Bearer ${auth.access_token}`);
 
     // Make sure there's always a 0-value begin and end entry to track 'loading' state easily.
     if (result.body.items.length === 0) {
-      result.body.items = [{ key: interval.timeStart }, { key: interval.timeEnd }];
+      result.body.items = [{ key: interval.from }, { key: interval.to }];
     }
 
-    setData(result.body);
+    // Convert the ISO8601 strings into ms time, which the graphing libraries deal with better.
+    setData({
+      codes: result.body.codes,
+      items: result.body.items.map((e: any) => {
+        return { ...e, key: Date.parse(e.key) };
+      }),
+    });
     setActiveCodeList(result.body.codes);
   } catch (e) {
     throw createHttpException(e);
@@ -117,8 +123,8 @@ const MonitorGraph: React.FC<IProps> = props => {
   const setHTTPEventRange = (msTime: number): void => {
     setEventRange({
       width: interval.width,
-      timeStart: new Date(msTime),
-      timeEnd: new Date(msTime + ms(interval.width)),
+      from: new Date(msTime),
+      to: new Date(msTime + ms(interval.width)),
     });
   };
 
@@ -132,7 +138,7 @@ const MonitorGraph: React.FC<IProps> = props => {
           <Legend verticalAlign="top" height={36} />
           <XAxis
             type="number"
-            domain={[interval.timeStart.getTime(), interval.timeEnd.getTime()]}
+            domain={[interval.from.getTime(), interval.to.getTime()]}
             dataKey="key"
             label={{ value: label, position: 'insideBottom' }}
             tickFormatter={dateTickFormatter}

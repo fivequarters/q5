@@ -17,8 +17,8 @@ enum BucketWidths {
 
 interface IDateInterval {
   width: BucketWidths;
-  timeStart: Date;
-  timeEnd: Date;
+  from: Date;
+  to: Date;
 }
 
 interface IProps {
@@ -52,8 +52,8 @@ const getData = async (
 
     let result: any = await Superagent.get(`${urlWart}/statistics/itemizedbulk`)
       .query({
-        timeStart: interval.timeStart.toISOString(),
-        timeEnd: interval.timeEnd.toISOString(),
+        from: interval.from.toISOString(),
+        to: interval.to.toISOString(),
         statusCode: activeCode,
         next: options.offset,
         count: options.pageSize,
@@ -62,7 +62,7 @@ const getData = async (
 
     // Make sure there's always a 0-value begin and end entry to track 'loading' state easily.
     if (result.body.items.length === 0) {
-      result.body.items = [{ key: interval.timeStart }, { key: interval.timeEnd }];
+      result.body.items = [{ key: interval.from }, { key: interval.to }];
     }
 
     setData(result.body);

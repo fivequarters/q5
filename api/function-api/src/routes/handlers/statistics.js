@@ -1,12 +1,9 @@
 const { getAccountContext } = require('../account');
-const createError = require('http-errors');
+const httpError = require('http-errors');
 const superagent = require('superagent');
 
 const StatisticsAction = {
-  Account: 'account:statistics',
-  Subscription: 'subscription:statistics',
-  Boundary: 'boundary:statistics',
-  Func: 'function:statistics',
+  Get: 'statistics:get',
 };
 
 if (process.env.ES_HOST && process.env.ES_USER && process.env.ES_PASSWORD) {
@@ -197,12 +194,12 @@ const addRequiredFilters = (request, body) => {
   }
 
   // Add timestamp range
-  if (!request.query.timeStart || !request.query.timeEnd) {
-    throw createError(403, 'Missing timeStart or timeEnd parameters.');
+  if (!request.query.from || !request.query.to) {
+    throw httpError(403, 'Missing from or to parameters.');
   }
 
   body.query.bool.filter.push({
-    range: { '@timestamp': { gte: request.query.timeStart, lte: request.query.timeEnd } },
+    range: { '@timestamp': { gte: request.query.from, lte: request.query.to } },
   });
 
   // Quick touch to make sure the deployment key is present as a filter if it hasn't been explicitly specified
@@ -285,7 +282,10 @@ const codeActivityHistogram = async (req, res, next) => {
       try {
         histogram[evt.key_as_string][code] = evt.doc_count;
       } catch (e) {
-        histogram[evt.key_as_string] = { key: Date.parse(evt.key_as_string), [code]: evt.doc_count };
+        histogram[evt.key_as_string] = {
+          key: new Date(Date.parse(evt.key_as_string)).toISOString(),
+          [code]: evt.doc_count,
+        };
       }
     }
   }
@@ -323,7 +323,10 @@ const codeLatencyHistogram = async (req, res, next) => {
       try {
         histogram[evt.key_as_string][code] = evt.avg_latency;
       } catch (e) {
-        histogram[evt.key_as_string] = { key: Date.parse(evt.key_as_string), [code]: evt.doc_count };
+        histogram[evt.key_as_string] = {
+          key: new Date(Date.parse(evt.key_as_string)).toISOString(),
+          [code]: evt.doc_count,
+        };
       }
     }
   }
@@ -351,7 +354,7 @@ const itemizedBulk = async (req, res, next) => {
 
   let response = await makeQuery(req, 'itemizedBulk', { statusCode, fromIdx, pageSize, minDocCount });
   if (response.statusCode != 200) {
-    return next(createError(response.statusCode, response.data));
+    return next(httpError(response.statusCode, response.data));
   }
 
   bulk = response.items;
@@ -377,16 +380,13 @@ function statisticsGet() {
         try {
           return await handler(req, res, next);
         } catch (e) {
-          return next(createError(500, e.message));
+          return next(httpError(500, e.message));
         }
       }
     }
 
     return next(
-      createError(
-        404,
-        JSON.stringify({ errorCode: 404, errorMessage: `Unsupported query: ${req.params.statisticsKey}` })
-      )
+      httpError(404, JSON.stringify({ errorCode: 404, errorMessage: `Unsupported query: ${req.params.statisticsKey}` }))
     );
   };
 }

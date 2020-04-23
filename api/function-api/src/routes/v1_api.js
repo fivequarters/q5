@@ -602,7 +602,7 @@ router.get(
   '/account/:accountId/' + statisticsUrl,
   cors(corsManagementOptions),
   validate_schema({ params: require('./schemas/api_account') }),
-  authorize({ operation: statistics.StatisticsAction.Account }),
+  authorize({ operation: statistics.StatisticsAction.Get }),
   validate_schema({ params: require('./schemas/api_params') }),
   statistics.statisticsGet()
 );
@@ -612,8 +612,7 @@ router.get(
   '/account/:accountId/subscription/:subscriptionId/' + statisticsUrl,
   cors(corsManagementOptions),
   validate_schema({ params: require('./schemas/api_account') }),
-  authorize({ operation: statistics.StatisticsAction.Account }),
-  authorize({ operation: statistics.StatisticsAction.Subscription }),
+  authorize({ operation: statistics.StatisticsAction.Get }),
   validate_schema({ params: require('./schemas/api_params') }),
   statistics.statisticsGet()
 );
@@ -626,9 +625,7 @@ router.get(
   '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/' + statisticsUrl,
   cors(corsManagementOptions),
   validate_schema({ params: require('./schemas/api_account') }),
-  authorize({ operation: statistics.StatisticsAction.Account }),
-  authorize({ operation: statistics.StatisticsAction.Subscription }),
-  authorize({ operation: statistics.StatisticsAction.Boundary }),
+  authorize({ operation: statistics.StatisticsAction.Get }),
   validate_schema({ params: require('./schemas/api_params') }),
   statistics.statisticsGet()
 );
@@ -641,10 +638,7 @@ router.get(
   '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/' + statisticsUrl,
   cors(corsManagementOptions),
   validate_schema({ params: require('./schemas/api_account') }),
-  authorize({ operation: statistics.StatisticsAction.Account }),
-  authorize({ operation: statistics.StatisticsAction.Subscription }),
-  authorize({ operation: statistics.StatisticsAction.Boundary }),
-  authorize({ operation: statistics.StatisticsAction.Func }),
+  authorize({ operation: statistics.StatisticsAction.Get }),
   validate_schema({ params: require('./schemas/api_params') }),
   statistics.statisticsGet()
 );
