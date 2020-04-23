@@ -386,7 +386,7 @@ function statisticsGet() {
     }
 
     return next(
-      httpError(404, JSON.stringify({ errorCode: 404, errorMessage: `Unsupported query: ${req.params.statisticsKey}` }))
+      httpError(405, JSON.stringify({ errorCode: 405, errorMessage: `Unsupported query: ${req.params.statisticsKey}` }))
     );
   };
 }

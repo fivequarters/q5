@@ -1809,15 +1809,15 @@ paths:
       - name: width
         in: query
         description: |
-          Aggregate statistical analysis on a bucket of this size.
+          Aggregate statistical analysis on a bucket of this width.
 
-          Examples of buckets:
+          Examples of widths:
             
             - `1d` - Aggregate on buckets one day in width
             - `15m` - Aggregate on buckets 15 minutes in width
             - `1w` - Aggregate on buckets on a weekly basis
           
-          These buckets are passed to the Elastic Search backend.
+          The width is passed to the Elastic Search backend, and follows the [calendar interval specification](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-bucket-datehistogram-aggregation.html#calendar_intervals).
         required: false
         schema:
           type: string
@@ -1825,9 +1825,9 @@ paths:
     get:
       tags:
         - Statistics
-      summary: Bucketized total count results
+      summary: Aggregated total count results
       description: |
-        Returns the bucketized __total count__ results for all active HTTP status codes during the specified time period.
+        Returns the aggregated __total count__ results for all active HTTP status codes during the specified time period.
       operationId: getStatisticsCodeActivityHG
       responses:
         200:
@@ -1837,7 +1837,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Statistics/Histogram'
         400:
-          description: Malformed account, subscription, boundary, function or build id, or invalid function
+          description: Malformed account, subscription, boundary, function or statistics query name.
           content:
             application/json:
               schema:
@@ -1848,7 +1848,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-        404:
+        405:
           description: Query was not found
           content:
             application/json:
@@ -1892,15 +1892,15 @@ paths:
       - name: width
         in: query
         description: |
-          Aggregate statistical analysis on a bucket of this size.
+          Aggregate statistical analysis on a bucket of this width.
 
-          Examples of buckets:
+          Examples of widths:
             
             - `1d` - Aggregate on buckets one day in width
             - `15m` - Aggregate on buckets 15 minutes in width
             - `1w` - Aggregate on buckets on a weekly basis
           
-          These buckets are passed to the Elastic Search backend.
+          The width is passed to the Elastic Search backend, and follows the [calendar interval specification](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-bucket-datehistogram-aggregation.html#calendar_intervals).
         required: false
         schema:
           type: string
@@ -1908,9 +1908,9 @@ paths:
     get:
       tags:
         - Statistics
-      summary: Bucketized average latency results
+      summary: Aggregated average latency results
       description: |
-        Returns the bucketized __average latency__ results for all active HTTP status codes.
+        Returns the aggregated __average latency__ results for all active HTTP status codes.
       operationId: getStatisticsLatencyHG
       responses:
         200:
@@ -2844,7 +2844,7 @@ components:
           "200,404,503,etc":
             type: number
             description: |
-              The tally for each HTTP Status Code active during this bucket, present multiple times, once for each code.
+              The tally for each HTTP Status Code active during this aggregate, present multiple times, once for each code.
               
               For example:
                 `{ "key": "2020-04-22T22:13:51.066Z", "200": 1, "501", 2 }`
@@ -2855,7 +2855,7 @@ components:
         properties:
           items:
             type: array
-            description: A list of histogram buckets
+            description: A list of histogram aggregated intervals
             items:
               $ref: '#/components/schemas/Statistics/HistogramEntry'
           codes:
