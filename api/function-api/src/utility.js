@@ -1,4 +1,8 @@
 function jsonifyError(status, error) {
+  if (error == undefined) {
+    return undefined;
+  }
+
   let result = {
     status,
     statusCode: status,
