@@ -194,9 +194,25 @@ export async function getAgent(
   try {
     let auth = await ensureAccessToken(profile);
     let result: any = await Superagent.get(
-      `${profile.baseUrl}/v1/account/${profile.account}/client/${issuerId}`
+      `${profile.baseUrl}/v1/account/${
+        profile.account
+      }/user?issuerId=${encodeURIComponent(
+        issuerId
+      )}&subject=${encodeURIComponent(subject)}`
+    )
+      .set("Authorization", `Bearer ${auth.access_token}`)
+      .ok((res) => res.status === 200 || res.status === 404);
+    if (result.status === 200) {
+      return [result.body.items[0] as User, true];
+    }
+    result = await Superagent.get(
+      `${profile.baseUrl}/v1/account/${
+        profile.account
+      }/client?issuerId=${encodeURIComponent(
+        issuerId
+      )}&subject=${encodeURIComponent(subject)}`
     ).set("Authorization", `Bearer ${auth.access_token}`);
-    return [result.body as Client, false];
+    return [result.body.items[0] as Client, false];
   } catch (e) {
     throw createHttpException(e);
   }

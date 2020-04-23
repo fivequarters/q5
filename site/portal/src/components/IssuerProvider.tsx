@@ -3,7 +3,7 @@ import {
   getIssuer,
   normalizeIssuer,
   updateIssuer,
-  newIssuer
+  newIssuer,
 } from "../lib/Fusebit";
 import { Issuer } from "../lib/FusebitTypes";
 import { FusebitError } from "./ErrorBoundary";
@@ -68,11 +68,11 @@ function IssuerProvider({ children, issuerId }: IssuerProviderProps) {
           issuerId,
           dirty: false,
           existing: { id: issuerId, publicKeyAcquisition: "jwks" },
-          modified: { id: issuerId, publicKeyAcquisition: "jwks" }
+          modified: { id: issuerId, publicKeyAcquisition: "jwks" },
         }
       : {
           status: "loading",
-          issuerId
+          issuerId,
         }
   );
 
@@ -100,7 +100,7 @@ function IssuerProvider({ children, issuerId }: IssuerProviderProps) {
               issuerId: issuer.id,
               dirty: false,
               existing: issuer,
-              modified: JSON.parse(JSON.stringify(issuer))
+              modified: JSON.parse(JSON.stringify(issuer)),
             });
           } else {
             afterUpdate = undefined;
@@ -115,13 +115,13 @@ function IssuerProvider({ children, issuerId }: IssuerProviderProps) {
                     details:
                       (e.status || e.statusCode) === 403
                         ? `You are not authorized to access the issuer information.`
-                        : e.message || "Unknown error."
+                        : e.message || "Unknown error.",
                   }
                 );
             setData({
               status: "error",
               issuerId: data.issuerId,
-              error
+              error,
             });
             afterUpdate && afterUpdate(error);
             return;
@@ -169,7 +169,7 @@ function useIssuer(): [IssuerState, IssuerSetState] {
 function reloadIssuer(state: IssuerState, setState: IssuerSetState) {
   setState({
     status: "loading",
-    issuerId: state.issuerId
+    issuerId: state.issuerId,
   });
 }
 
@@ -190,7 +190,7 @@ function modifyIssuer(
     dirty:
       JSON.stringify(normalizeIssuer(state.existing)) !==
       JSON.stringify(normalizeIssuer(newIssuer)),
-    modified: newIssuer
+    modified: newIssuer,
   });
 }
 
@@ -227,5 +227,5 @@ export {
   modifyIssuer,
   saveIssuer,
   reloadIssuer,
-  formatIssuer
+  formatIssuer,
 };
