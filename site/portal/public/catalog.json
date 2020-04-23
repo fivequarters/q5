@@ -45,6 +45,15 @@
       "documentationUrl": "https://github.com/fusebit/samples"
     },
     {
+      "id": "mysql-onelogin",
+      "name": "MySQL to OneLogin Import",
+      "icon": "how_to_reg",
+      "description": "Import users from MySQL to OneLogin",
+      "tags": ["mysql", "sql", "onelogin", "user"],
+      "managerUrl": "https://stage.us-west-2.fusebit.io/v1/run/sub-ed9d9341ea356841/template-manager/mysql-onelogin",
+      "documentationUrl": "https://github.com/fusebit/samples"
+    },
+    {
       "id": "hubspot-s3-import",
       "name": "Hubspot-S3 Import",
       "icon": "account_box",

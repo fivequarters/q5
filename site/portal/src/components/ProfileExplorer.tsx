@@ -492,7 +492,9 @@ function ProfileExplorer({ ...rest }: any) {
         <Route
           path="/accounts/:accountId/issuers/:issuerId"
           render={({ match }) => (
-            <IssuerProvider issuerId={match.params.issuerId}>
+            <IssuerProvider
+              issuerId={decodeURIComponent(match.params.issuerId)}
+            >
               <Switch>
                 <Route
                   path={`${match.path}/properties`}
