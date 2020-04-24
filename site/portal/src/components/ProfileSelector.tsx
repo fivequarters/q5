@@ -12,23 +12,23 @@ import SelectableAvatar from "./SelectableAvatar";
 
 const useStyles = makeStyles((theme: any) => ({
   drawer: {
-    whiteSpace: "nowrap"
+    whiteSpace: "nowrap",
   },
   details: {
     marginRight: 16,
-    marginTop: 8
+    marginTop: 8,
   },
   avatar: {
     marginTop: 0,
     marginLeft: 8,
-    marginRight: 8
+    marginRight: 8,
   },
   paper: {
-    background: theme.fusebit.colors.dark
+    background: theme.fusebit.colors.dark,
   },
   typography: {
-    color: theme.palette.getContrastText(theme.fusebit.colors.dark)
-  }
+    color: theme.palette.getContrastText(theme.fusebit.colors.dark),
+  },
 }));
 
 function ProfileSelector({ onSelectProfile, settings }: any) {
