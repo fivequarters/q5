@@ -11,22 +11,7 @@ import ms from 'ms';
 import { useProfile } from './ProfileProvider';
 import DateTimeRangePicker from './DateTimeRangePicker';
 
-// Duplicated; not sure how to declare externally.
-enum BucketWidths {
-  Minute = '1m',
-  Hour = '1h',
-  Day = '1d',
-  Week = '1w',
-  Month = '1M',
-  Quarter = '1q',
-  Year = '1y',
-}
-
-interface IDateInterval {
-  width: BucketWidths;
-  from: Date;
-  to: Date;
-}
+import { BucketWidths, IDateInterval } from './MonitorTypes';
 
 interface IParams {
   accountId?: string;

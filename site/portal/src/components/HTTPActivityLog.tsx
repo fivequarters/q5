@@ -4,22 +4,7 @@ import Superagent from 'superagent';
 import { ensureAccessToken, createHttpException } from '../lib/Fusebit';
 import MaterialTable from 'material-table';
 import ReactJson from 'react-json-view';
-
-enum BucketWidths {
-  Minute = '1m',
-  Hour = '1h',
-  Day = '1d',
-  Week = '1w',
-  Month = '1M',
-  Quarter = '1q',
-  Year = '1y',
-}
-
-interface IDateInterval {
-  width: BucketWidths;
-  from: Date;
-  to: Date;
-}
+import { IDateInterval } from './MonitorTypes';
 
 interface IProps {
   profile: IFusebitProfile;

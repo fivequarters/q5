@@ -4,35 +4,9 @@ import LinearProgress from '@material-ui/core/LinearProgress';
 import Superagent from 'superagent';
 import { IFusebitProfile } from '../lib/Settings';
 import { ensureAccessToken, createHttpException } from '../lib/Fusebit';
+import { BucketWidthsDateFormat, IDateInterval } from './MonitorTypes';
+
 import ms from 'ms';
-
-const Locale = 'en-US';
-
-enum BucketWidths {
-  Minute = '1m',
-  Hour = '1h',
-  Day = '1d',
-  Week = '1w',
-  Month = '1M',
-  Quarter = '1q',
-  Year = '1y',
-}
-
-const BucketWidthsDateFormat = {
-  [BucketWidths.Minute]: new Intl.DateTimeFormat(Locale, { hour: 'numeric', minute: 'numeric', second: 'numeric' }),
-  [BucketWidths.Hour]: new Intl.DateTimeFormat(Locale, { month: 'short', day: 'numeric', hour: 'numeric' }),
-  [BucketWidths.Day]: new Intl.DateTimeFormat(Locale, { month: 'short', day: 'numeric' }),
-  [BucketWidths.Week]: new Intl.DateTimeFormat(Locale, { month: 'short', day: 'numeric' }),
-  [BucketWidths.Month]: new Intl.DateTimeFormat(Locale, { year: '2-digit', month: 'short', day: 'numeric' }),
-  [BucketWidths.Quarter]: new Intl.DateTimeFormat(Locale, { year: '2-digit', month: 'short' }),
-  [BucketWidths.Year]: new Intl.DateTimeFormat(Locale, { year: '2-digit', month: 'short' }),
-};
-
-interface IDateInterval {
-  width: BucketWidths;
-  from: Date;
-  to: Date;
-}
 
 interface IProps {
   code: string;
