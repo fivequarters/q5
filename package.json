@@ -91,6 +91,7 @@
     "comp/fade-sequence",
     "comp/icon",
     "comp/fusebit-mark",
+    "comp/fusebit-mark-inverted",
     "comp/fusebit-logo",
     "comp/fusebit-button",
     "comp/media-query",
