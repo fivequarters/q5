@@ -4,7 +4,7 @@ import {
   setLocalSettings,
   IFusebitProfile,
   indexOfProfile,
-  defaultFusebitUISettings
+  defaultFusebitUISettings,
 } from "../lib/Settings";
 import { getMe, initUser } from "../lib/Fusebit";
 import { getBookmark, setBookmark } from "../lib/Bookmark";
@@ -35,14 +35,14 @@ function ProfileProvider(props: any) {
     const initToken = decodeJwt(window.location.hash.substring(1));
     if (!initToken || !initToken.profile) {
       throw new FusebitError("Invalid invitation link", {
-        details: `The invitation link you are using is invalid. Ask your administrator to generate a new invitation link.`
+        details: `The invitation link you are using is invalid. Ask your administrator to generate a new invitation link.`,
       });
     }
     if (!settings || !Array.isArray(settings.profiles)) {
       settings = {
         profiles: [initToken.profile],
         currentProfile: initToken.profile.id,
-        ui: defaultFusebitUISettings
+        ui: defaultFusebitUISettings,
       };
     } else {
       let matchingProfile: number = -1;
@@ -124,7 +124,7 @@ function ProfileProvider(props: any) {
       delete profile.me;
       settings.profiles[indexOfProfile(settings, profile.id)] = {
         ...profile,
-        auth
+        auth,
       };
       setLocalSettings(settings);
       profile = settings.profiles[indexOfProfile(settings, profile.id)];
@@ -149,8 +149,10 @@ function ProfileProvider(props: any) {
             me = {
               accountId: profile.account,
               error: new FusebitError("Error joining the portal", {
-                details: [`Unable to join the portal:`, error.message].join(" ")
-              })
+                details: [`Unable to join the portal:`, error.message].join(
+                  " "
+                ),
+              }),
             };
           }
         }
@@ -163,9 +165,9 @@ function ProfileProvider(props: any) {
               error: new FusebitError("Error accessing the Fusebit service", {
                 details: [
                   `Unable to access the Fusebit service to obtain information about your permissions:`,
-                  error.message
-                ].join(" ")
-              })
+                  error.message,
+                ].join(" "),
+              }),
             };
           }
         }
@@ -183,15 +185,15 @@ function ProfileProvider(props: any) {
     throw new FusebitError("Fusebit Portal is not initialized", {
       details: [
         `Fusebit Portal must be initialized before being used. `,
-        `Please contact your Fusebit administractor for instructions.`
-      ].join("")
+        `Please contact your Fusebit administrator for instructions.`,
+      ].join(""),
     });
   }
 
   if (auth && auth.error) {
     throw new FusebitError("Authorization error", {
       details: `You are not authorized to access the Fusebit Portal. Error '${auth.error ||
-        "N/A"}'. Error details: '${auth.error_description}'.`
+        "N/A"}'. Error details: '${auth.error_description}'.`,
     });
   }
 
@@ -219,7 +221,7 @@ function ProfileProvider(props: any) {
       settings = getLocalSettings();
       if (settings) {
         settings.profiles[indexOfProfile(settings, profile.id)] = {
-          ...profile
+          ...profile,
         };
         setLocalSettings(settings);
       }
@@ -265,7 +267,7 @@ function login(profile: IFusebitProfile, bookmark: string) {
     client_id: profile.oauth.webClientId,
     redirect_uri: `${window.location.protocol}//${window.location.host}`,
     audience: profile.baseUrl,
-    state
+    state,
   };
   window.localStorage.setItem(FusebitAuthStateKey, state);
   setBookmark(bookmark);
@@ -291,7 +293,7 @@ function processAuthenticationCallback(): any {
       hash = {
         error: "State parameter mismatch",
         error_description:
-          "Integrity of the login transaction cannot be validated. Try again."
+          "Integrity of the login transaction cannot be validated. Try again.",
       };
     }
   }
@@ -301,7 +303,7 @@ function processAuthenticationCallback(): any {
 function parse(queryString: string) {
   let tokens = queryString.split("&");
   let result: any = {};
-  tokens.forEach(t => {
+  tokens.forEach((t) => {
     let [k, v] = t.split("=");
     result[k] = decodeURIComponent(v);
   });
