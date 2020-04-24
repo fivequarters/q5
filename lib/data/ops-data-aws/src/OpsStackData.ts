@@ -84,7 +84,7 @@ export class OpsStackData extends DataSource implements IOpsStackData {
     const awsConfig = await this.provider.getAwsConfigForDeployment(deploymentName, deployment.region);
 
     const size = newStack.size || deployment.size;
-    const elasticSearch = newStack.elasticSearch || deployment.elasticSearch;
+    const elasticSearch = deployment.elasticSearch;
     const id = await this.getNextStackId(newStack.deploymentName);
 
     const awsAmi = await AwsAmi.create(awsConfig);

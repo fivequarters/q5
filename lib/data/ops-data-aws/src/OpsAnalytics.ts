@@ -96,7 +96,7 @@ function createAnalyticsConfig(
     ...cfg.grantLambda,
     FunctionName: cfg.subscriptionFilter.destinationArn,
     Principal: 'logs.amazonaws.com',
-    SourceArn: `arn:aws:logs:${awsConfig.region}:${awsConfig.account}:log-group:${cfg.cloudWatchLogs.logGroupName}:*`,
+    SourceArn: `${awsDataConfig.arnPrefix}:logs:${awsConfig.region}:${awsConfig.account}:log-group:${cfg.cloudWatchLogs.logGroupName}:*`,
   };
 
   return cfg;
@@ -176,10 +176,6 @@ export async function createAnalyticsPipeline(
   awsConfig: IAwsConfig,
   deployment: IOpsDeployment
 ) {
-  console.log('createAnalyticsPipeline', __dirname, deployment);
-  console.log('awsConfig', awsConfig);
-  console.log('awsDataConfig', awsDataConfig);
-
   const deploymentPackage = Fs.readFileSync(Path.join(__dirname, 'lambda-analytics.zip'));
   const config = createAnalyticsConfig(awsDataConfig, awsConfig, deployment, deploymentPackage);
 

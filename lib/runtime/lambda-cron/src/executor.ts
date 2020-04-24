@@ -111,6 +111,7 @@ function dispatch_cron_event(details: any) {
     functionId: details.request.params.functionId,
     deploymentKey: process.env.DEPLOYMENT_KEY,
     mode: 'cron',
+    modality: 'execution',
   };
 
   const event = {

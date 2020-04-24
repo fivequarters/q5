@@ -17,50 +17,64 @@ const whitelistedReqFields = [
   'xhr',
 ];
 
-exports.enterHandler = (req, res, next) => {
-  req.requestId = uuidv4();
-  res.metrics = {};
+exports.Modes = {
+  Execution: 'execution',
+  Administration: 'administration',
+  Operations: 'operations',
+};
 
-  var end = res.end;
-  res.end = (chunk, encoding, callback) => {
-    res.endTime = Date.now();
+exports.enterHandler = modality => {
+  return (req, res, next) => {
+    req.requestId = uuidv4();
+    res.metrics = {};
 
-    // Propagate the response.
-    res.end = end;
-    try {
-      res.end(chunk, encoding, callback);
-    } catch (e) {
-      res.error = e;
-    }
+    var end = res.end;
+    res.end = (chunk, encoding, callback) => {
+      res.endTime = Date.now();
 
-    // Prepare the event object with a select set of properties.
-    const reqProps = {};
-    whitelistedReqFields.forEach(p => (reqProps[p] = req[p]));
+      // Propagate the response.
+      res.end = end;
+      try {
+        res.end(chunk, encoding, callback);
+      } catch (e) {
+        res.error = e;
+      }
 
-    let fusebit = {
-      subscriptionId: reqProps.params.subscriptionId,
-      boundaryId: reqProps.params.boundaryId,
-      functionId: reqProps.params.functionId,
-      deploymentKey: process.env.DEPLOYMENT_KEY,
-      mode: 'request',
+      // Prepare the event object with a select set of properties.
+      const reqProps = {};
+      whitelistedReqFields.forEach(p => (reqProps[p] = req[p]));
+
+      let fusebit = {
+        subscriptionId: reqProps.params.subscriptionId,
+        boundaryId: reqProps.params.boundaryId,
+        functionId: reqProps.params.functionId,
+        deploymentKey: process.env.DEPLOYMENT_KEY,
+        mode: 'request',
+        modality,
+      };
+
+      // Create a copy of params to avoid accidental side effects.
+      reqProps.params = {
+        ...reqProps.params,
+      };
+
+      delete reqProps.params.subscriptionId;
+      delete reqProps.params.boundaryId;
+      delete reqProps.params.functionId;
+
+      Runtime.dispatch_event({
+        requestId: req.requestId,
+        startTime: req._startTime,
+        endTime: res.endTime,
+        request: reqProps,
+        metrics: res.metrics,
+        response: { statusCode: res.statusCode, headers: res.getHeaders() },
+        fusebit: fusebit,
+        error: res.error,
+      });
     };
-
-    delete reqProps.params.subscriptionId;
-    delete reqProps.params.boundaryId;
-    delete reqProps.params.functionId;
-
-    Runtime.dispatch_event({
-      requestId: req.requestId,
-      startTime: req._startTime,
-      endTime: res.endTime,
-      request: reqProps,
-      metrics: res.metrics,
-      response: { statusCode: res.statusCode, headers: res.getHeaders() },
-      fusebit: fusebit,
-      error: res.error,
-    });
+    next();
   };
-  next();
 };
 
 exports.finished = (err, req, res, next) => {

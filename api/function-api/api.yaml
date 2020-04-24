@@ -1831,7 +1831,7 @@ paths:
       operationId: getStatisticsCodeActivityHG
       responses:
         200:
-          description: Statistical query was accepted and results acquired
+          description: Response body contains the requested data
           content:
             application/json:
               schema:
@@ -1914,13 +1914,13 @@ paths:
       operationId: getStatisticsLatencyHG
       responses:
         200:
-          description: Statistical query was accepted
+          description: Response body contains the requested data
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Statistics/Histogram'
         400:
-          description: Malformed account, subscription, boundary, function or build id, or invalid function
+          description: Malformed account, subscription, boundary, function or statistics query name.
           content:
             application/json:
               schema:
@@ -2000,13 +2000,13 @@ paths:
       operationId: getStatisticsBulk
       responses:
         200:
-          description: Statistical query was accepted
+          description: Response body contains the requested data
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Statistics/Bulk'
         400:
-          description: Malformed account, subscription, boundary, function or build id, or invalid function
+          description: Malformed account, subscription, boundary, function or statistics query name.
           content:
             application/json:
               schema:
@@ -2844,10 +2844,10 @@ components:
           "200,404,503,etc":
             type: number
             description: |
-              The tally for each HTTP Status Code active during this aggregate, present multiple times, once for each code.
+              The tally for each HTTP status code active during this aggregate.
               
               For example:
-                `{ "key": "2020-04-22T22:13:51.066Z", "200": 1, "501", 2 }`
+                `{ "key": "2020-04-22T22:13:51.066Z", "200": 512, "403": 15, "501": 2 }`
 
       Histogram:
         type: object

@@ -208,8 +208,14 @@ const addRequiredFilters = (request, body) => {
     request.params['deploymentKey'] = process.env.DEPLOYMENT_KEY;
   }
 
+  // Another quick touch to, by default, filter on executions.  See the different modalities in
+  // function_api/analytics.js.
+  if (!request.params['modality']) {
+    request.params['modality'] = 'execution';
+  }
+
   // Add the filters for accounts, etc.
-  for (const param of ['accountId', 'subscriptionId', 'boundaryId', 'functionId', 'deploymentKey']) {
+  for (const param of ['accountId', 'subscriptionId', 'boundaryId', 'functionId', 'deploymentKey', 'modality']) {
     if (request.params[param]) {
       body.query.bool.filter.push({
         match_phrase: { ['fusebit.' + param]: { query: request.params[param] } },

@@ -9,7 +9,6 @@ export interface IOpsNewStack {
   region: string;
   tag: string;
   size?: number;
-  elasticSearch?: string;
   env?: string;
   ami?: string;
 }
