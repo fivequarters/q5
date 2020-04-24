@@ -1776,8 +1776,8 @@ paths:
 
   /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/statistics/codeactivityhg:
     parameters:
-      - in: path
-        name: accountId
+      - name: accountId
+        in: path
         required: true
         description: Account id
         schema:
