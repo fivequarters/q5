@@ -7,7 +7,7 @@ import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemText from "@material-ui/core/ListItemText";
 import MenuIcon from "@material-ui/icons/Menu";
-import { FusebitMark } from "@5qtrs/fusebit-mark";
+import { FusebitMarkInverted } from "@5qtrs/fusebit-mark-inverted";
 import SelectableAvatar from "./SelectableAvatar";
 
 const useStyles = makeStyles((theme: any) => ({
@@ -58,7 +58,7 @@ function ProfileSelector({ onSelectProfile, settings }: any) {
               selected={profile.id === settings.currentProfile}
             >
               {!profile.icon && (
-                <FusebitMark
+                <FusebitMarkInverted
                   size={38}
                   margin={0}
                   color={
@@ -66,7 +66,6 @@ function ProfileSelector({ onSelectProfile, settings }: any) {
                       index % theme.fusebit.profileSelector.iconColors.length
                     ]
                   }
-                  // background="white"
                 />
               )}
               {profile.icon && (
