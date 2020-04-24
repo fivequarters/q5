@@ -26,14 +26,14 @@ export class StackService {
     return new StackService(input, opsService, executeService);
   }
 
-  public async confirmDeployStack(stack: IOpsNewStack) {
+  public async confirmDeployStack(deployment: IOpsDeployment, stack: IOpsNewStack) {
     const confirmPrompt = await Confirm.create({
       header: 'Deploy the stack to the Fusebit platform?',
       details: [
         { name: 'Deployment', value: stack.deploymentName },
         { name: 'Tag', value: stack.tag },
         { name: 'Size', value: stack.size ? stack.size.toString() : '<Default>' },
-        { name: 'Elastic Search', value: stack.elasticSearch || '<Not set>' },
+        { name: 'Elastic Search', value: deployment.elasticSearch },
         { name: 'Environment', value: stack.env || '<Not set>' },
         { name: 'AMI', value: stack.ami || '<Official Ubuntu AMI>' },
       ],
@@ -310,7 +310,7 @@ export class StackService {
       stack.size.toString(),
       Text.eol(),
       Text.dim('Elastic Search: '),
-      stack.elasticSearch || '',
+      deployment ? deployment.elasticSearch : '',
       Text.eol(),
       Text.dim('Status: '),
       stack.active ? 'ACTIVE' : 'NOT ACTIVE',

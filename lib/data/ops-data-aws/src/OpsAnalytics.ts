@@ -42,7 +42,7 @@ function createAnalyticsConfig(
   // Parse the Elastic Search credentials
   let esCreds = { ES_HOST: '', ES_USER: '', ES_PASSWORD: '' };
 
-  let esUrl = deployment.elasticSearch.match(/https:\/\/([^:]+):(.*)@([^@]+$)/);
+  let esUrl = deployment.elasticSearch.match(/https:\/\/([^:]+):(.*)@([^@]+$)/i);
   if (esUrl && esUrl[1] && esUrl[2]) {
     esCreds = {
       ES_HOST: esUrl[3],

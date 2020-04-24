@@ -1,5 +1,6 @@
 import { Command, IExecuteInput, ArgType } from '@5qtrs/cli';
 import { StackService, DeploymentService } from '../../services';
+import { IOpsNewStack } from '@5qtrs/ops-data';
 
 // ------------------
 // Internal Constants
@@ -77,18 +78,17 @@ export class AddStackCommand extends Command {
     const deploymentService = await DeploymentService.create(input);
 
     const deployment = await deploymentService.getSingleDeployment(deploymentName, region);
-    const newStack = {
+    const newStack: IOpsNewStack = {
       deploymentName,
       tag,
       size: size || deployment.size,
-      elasticSearch: deployment.elasticSearch,
       region: deployment.region,
       env,
       ami,
     };
 
     if (confirm) {
-      await stackService.confirmDeployStack(newStack);
+      await stackService.confirmDeployStack(deployment, newStack);
     }
 
     newStack.env = env ? require('fs').readFileSync(require('path').join(process.cwd(), env), 'utf8') : undefined;

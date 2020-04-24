@@ -26,6 +26,7 @@ import { createLogsTable } from './OpsLogs';
 import { debug } from './OpsDebug';
 import { random } from '@5qtrs/random';
 import { signJwt } from '@5qtrs/jwt';
+import { parseElasticSearchUrl } from './OpsElasticSearch';
 
 // ----------------
 // Exported Classes
@@ -292,8 +293,8 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
     // Check if the elasticSearch parameter is present and not-empty.
     if (deployment.elasticSearch && deployment.elasticSearch.length > 0) {
       // Validate that the Elastic Search parameter fits the expected format
-      let es_creds = deployment.elasticSearch.match(/https:\/\/([^:]+):(.*)@([^@]+$)/);
-      if (!es_creds || !es_creds[1] || !es_creds[2] || !es_creds[3]) {
+      let esCreds = parseElasticSearchUrl(deployment.elasticSearch);
+      if (!esCreds) {
         throw OpsDataException.invalidElasticSearchUrl(deployment.elasticSearch);
       }
     }

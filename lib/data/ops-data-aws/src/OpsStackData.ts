@@ -17,6 +17,7 @@ import { OpsDataAwsProvider } from './OpsDataAwsProvider';
 import { OpsDataAwsConfig } from './OpsDataAwsConfig';
 import { OpsAccountData } from './OpsAccountData';
 import { random } from '@5qtrs/random';
+import { parseElasticSearchUrl } from './OpsElasticSearch';
 
 // ------------------
 // Internal Functions
@@ -275,7 +276,7 @@ systemctl start docker.fusebit`;
     securityGroupIds: string[],
     domainName: string,
     s3Bucket: string,
-    elasticSearch?: string,
+    elasticSearch: string,
     env?: string
   ) {
     let r = `
@@ -294,17 +295,13 @@ CRON_QUEUE_URL=https://sqs.${region}.amazonaws.com/${account}/${deploymentName}-
 LOGS_TOKEN_SIGNATURE_KEY=${random({ lengthInBytes: 32 })}
 `;
 
-    if (elasticSearch != undefined) {
-      let es_creds = elasticSearch.match(/https:\/\/([^:]+):(.*)@([^@]+$)/);
-      if (es_creds) {
-        if (es_creds[1] && es_creds[2] && es_creds[3]) {
-          r += `
-ES_HOST=${es_creds[3]}
-ES_USER=${es_creds[1]}
-ES_PASSWORD=${es_creds[2]}
-    `;
-        }
-      }
+    let esCreds = parseElasticSearchUrl(elasticSearch);
+    if (esCreds) {
+      r += `
+ES_HOST=${esCreds.hostname}
+ES_USER=${esCreds.username}
+ES_PASSWORD=${esCreds.password}
+`;
     }
 
     return (
