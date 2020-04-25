@@ -862,6 +862,21 @@ export interface IStatisticsParams {
 //  });
 //}
 
+export async function statisticsEnabled(account: IAccount): Promise<boolean> {
+  let response = await getStatistics(account, 'itemizedbulk', { accountId: account.accountId }, () => true, {
+    from: new Date(),
+    to: new Date(),
+    statusCode: 200,
+  });
+
+  if (response.status == 200) {
+    return true;
+  }
+  expect(response.status).toEqual(405);
+  console.warn('ElasticSearch Not Supported');
+  return false;
+}
+
 export async function getStatistics(
   account: IAccount,
   statisticsKey: string,

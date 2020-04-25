@@ -1,5 +1,5 @@
 import { IAccount, FakeAccount, resolveAccount } from './accountResolver';
-import { deleteFunction, putFunction, deleteAllFunctions, getStatistics, sleep } from './sdk';
+import { getStatistics, statisticsEnabled } from './sdk';
 import { request } from '@5qtrs/request';
 import { setupEnvironment, httpExpect } from './common';
 
@@ -21,7 +21,7 @@ const createAndHitFunction = async (
 
   // Get the bulk data from the endpoint.
   response = await getStatistics(
-    getAccount(),
+    account,
     'itemizedbulk',
     {
       accountId: account.accountId,
@@ -42,7 +42,8 @@ const validateEntry = (account: IAccount, entry: any, boundaryId: string, functi
   expect(entry.fusebit.subscriptionId).toEqual(account.subscriptionId);
   expect(entry.fusebit.boundaryId).toEqual(boundaryId);
   expect(entry.fusebit.functionId).toEqual(function1Id);
-  // expect(entry.fusebit.deploymentKey).toEqual(account.deploymentKey);
+  expect(entry.fusebit).toHaveProperty('deploymentKey');
+  expect(entry.fusebit.deploymentKey.length).toBeGreaterThan(0);
   expect(entry.fusebit.mode).toEqual('request');
   expect(entry.fusebit.modality).toEqual('execution');
 };
@@ -51,6 +52,7 @@ describe('statistics', () => {
   test('itemized bulk contains a function event at various scopes', async () => {
     const account = getAccount();
     let boundaryId = rotateBoundary();
+    if (!(await statisticsEnabled(account))) return;
 
     // Create and hit target function
     let response = await createAndHitFunction(
@@ -71,7 +73,7 @@ describe('statistics', () => {
 
     // Validate: increasing breadth of query by reducing IDs still includes target function UUID event
     response = await getStatistics(
-      getAccount(),
+      account,
       'itemizedbulk',
       {
         accountId: account.accountId,
@@ -85,7 +87,7 @@ describe('statistics', () => {
     expect(response.data.items.some((e: any) => e.requestId === entry.requestId)).toBe(true);
 
     response = await getStatistics(
-      getAccount(),
+      account,
       'itemizedbulk',
       {
         accountId: account.accountId,
@@ -102,6 +104,7 @@ describe('statistics', () => {
   test('failing exception logged as 500', async () => {
     const account = getAccount();
     let boundaryId = rotateBoundary();
+    if (!(await statisticsEnabled(account))) return;
 
     // Create and hit target function
     let response = await createAndHitFunction(
@@ -128,6 +131,7 @@ describe('statistics', () => {
   test('code activity histogram contains a function event at various scopes', async () => {
     const account = getAccount();
     let boundaryId = rotateBoundary();
+    if (!(await statisticsEnabled(account))) return;
 
     // Create and hit target function
     let response = await createAndHitFunction(
@@ -144,7 +148,7 @@ describe('statistics', () => {
 
     // Validate: increasing breadth of query by reducing IDs still includes target function UUID event
     response = await getStatistics(
-      getAccount(),
+      account,
       'codeactivityhg',
       {
         accountId: account.accountId,
@@ -160,7 +164,7 @@ describe('statistics', () => {
     expect(response.data.items[0]).toHaveProperty('key');
 
     response = await getStatistics(
-      getAccount(),
+      account,
       'codeactivityhg',
       {
         accountId: account.accountId,
@@ -174,7 +178,7 @@ describe('statistics', () => {
     expect(response.data.items.length).toBeGreaterThanOrEqual(1);
 
     response = await getStatistics(
-      getAccount(),
+      account,
       'itemizedbulk',
       {
         accountId: account.accountId,
@@ -188,5 +192,5 @@ describe('statistics', () => {
     expect(response.data.items.length).toBeGreaterThanOrEqual(1);
   }, 30000);
 
-  test.skip('cron function invocation event', async () => {}, 30000);
+  test.todo('cron function invocation event');
 });
