@@ -3,7 +3,6 @@ require('dotenv').config();
 var create_error = require('http-errors');
 var express = require('express');
 var logger = require('morgan');
-var { jsonifyError } = require('./utility.js');
 
 var app = express();
 // Sanitize logged URLs
@@ -30,5 +29,21 @@ app.use(function (err, req, res, next) {
     ? res.json(jsonifyError(status, create_error(status, 'Internal error')))
     : res.json(jsonifyError(status, err));
 });
+
+function jsonifyError(status, error) {
+  if (error == undefined) {
+    return undefined;
+  }
+
+  let result = {
+    status,
+    statusCode: status,
+    message: error.message,
+  };
+  if (error.properties) {
+    result.properties = error.properties;
+  }
+  return result;
+}
 
 module.exports = app;
