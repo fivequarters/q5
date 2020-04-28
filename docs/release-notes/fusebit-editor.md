@@ -1,4 +1,5 @@
 ---
+parent: Release Notes
 nav_order: 3
 title: Fusebit Editor
 ---
@@ -66,18 +67,18 @@ fusebit
       accountId: "acc-b503fb00e15248c6",
       subscriptionId: "sub-b503fb00e15248c6",
       baseUrl: "<%- process.env.API_SERVER %>",
-      accessToken: "<%- process.env.API_AUTHORIZATION_KEY %>"
+      accessToken: "<%- process.env.API_AUTHORIZATION_KEY %>",
     },
     {
       template: {},
       editor: {
         actionPanel: {
-          enableRun: false // <----------------------------------
-        }
-      }
+          enableRun: false, // <----------------------------------
+        },
+      },
     }
   )
-  .then(editorContext => {
+  .then((editorContext) => {
     //...
   });
 ```
@@ -94,7 +95,7 @@ fusebit
       accountId: "acc-b503fb00e15248c6",
       subscriptionId: "sub-b503fb00e15248c6",
       baseUrl: "<%- process.env.API_SERVER %>",
-      accessToken: "<%- process.env.API_AUTHORIZATION_KEY %>"
+      accessToken: "<%- process.env.API_AUTHORIZATION_KEY %>",
     },
     {
       template: {},
@@ -102,11 +103,11 @@ fusebit
         actionPanel: false,
         editorPanel: false,
         navigationPanel: false,
-        statusPanel: false
-      }
+        statusPanel: false,
+      },
     }
   )
-  .then(editorContext => {
+  .then((editorContext) => {
     //...
   });
 ```
