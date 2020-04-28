@@ -12,7 +12,7 @@ This page contains download links for the components of the Fusebit platform. A 
 
 ## Fusebit Platform Current
 
-[Release notes]({{ site.baseurl }}{% link index.md %})
+[Release notes]({{ site.baseurl }}{% link release-notes/release-notes.md %})
 
 - Fusebit CLI: `npm install -g @fusebit/cli`
 - Fusebit Operations CLI: <https://cdn.fusebit.io/fusebit/cli/fusebit-ops-cli-v1.21.tgz>
