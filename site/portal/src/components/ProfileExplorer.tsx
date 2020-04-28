@@ -321,7 +321,7 @@ function ProfileExplorer({ ...rest }: any) {
                           filter={{
                             resource: `/account/${profile.account}/user/${match.params.userId}/`,
                           }}
-                          actionFilter={["user"]}
+                          actionFilter={['user']}
                         />
                       </ExplorerView>
                     )}
@@ -405,7 +405,7 @@ function ProfileExplorer({ ...rest }: any) {
                           filter={{
                             resource: `/account/${profile.account}/client/${match.params.clientId}/`,
                           }}
-                          actionFilter={["client"]}
+                          actionFilter={['client']}
                         />
                       </ExplorerView>
                     )}
@@ -467,9 +467,7 @@ function ProfileExplorer({ ...rest }: any) {
         <Route
           path="/accounts/:accountId/issuers/:issuerId"
           render={({ match }) => (
-            <IssuerProvider
-              issuerId={decodeURIComponent(match.params.issuerId)}
-            >
+            <IssuerProvider issuerId={decodeURIComponent(match.params.issuerId)}>
               <Switch>
                 <Route
                   path={`${match.path}/properties`}
@@ -489,7 +487,7 @@ function ProfileExplorer({ ...rest }: any) {
                         filter={{
                           resource: `/account/${profile.account}/issuer/${match.params.issuerId}/`,
                         }}
-                        actionFilter={["issuer"]}
+                        actionFilter={['issuer']}
                       />
                     </ExplorerView>
                   )}
@@ -550,15 +548,12 @@ function ProfileExplorer({ ...rest }: any) {
                   path={`${match.path}/activity`}
                   exact={true}
                   render={({ match }) => (
-                    <ExplorerView
-                      tabs={ExplorerTabs.subscription}
-                      match={match}
-                    >
+                    <ExplorerView tabs={ExplorerTabs.subscription} match={match}>
                       <Activity
                         filter={{
                           resource: `/account/${profile.account}/subscription/${match.params.subscriptionId}/`,
                         }}
-                        actionFilter={["function"]}
+                        actionFilter={['function']}
                       />
                     </ExplorerView>
                   )}
@@ -576,15 +571,12 @@ function ProfileExplorer({ ...rest }: any) {
                           path={`${match.path}/activity`}
                           exact={true}
                           render={({ match }) => (
-                            <ExplorerView
-                              tabs={ExplorerTabs.oneFunction}
-                              match={match}
-                            >
+                            <ExplorerView tabs={ExplorerTabs.oneFunction} match={match}>
                               <Activity
                                 filter={{
                                   resource: `/account/${profile.account}/subscription/${match.params.subscriptionId}/boundary/${match.params.boundaryId}/function/${match.params.functionId}/`,
                                 }}
-                                actionFilter={["function"]}
+                                actionFilter={['function']}
                               />
                             </ExplorerView>
                           )}

@@ -11,7 +11,7 @@ import ms from 'ms';
 import { useProfile } from './ProfileProvider';
 import DateTimeRangePicker from './DateTimeRangePicker';
 
-import { BucketWidths, IDateInterval } from './MonitorTypes';
+import { BucketWidths, IDateInterval } from '../lib/FusebitMonitor';
 
 interface IParams {
   accountId?: string;

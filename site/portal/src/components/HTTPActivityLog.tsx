@@ -1,10 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import { IFusebitProfile } from '../lib/Settings';
-import Superagent from 'superagent';
-import { ensureAccessToken, createHttpException } from '../lib/Fusebit';
 import MaterialTable from 'material-table';
 import ReactJson from 'react-json-view';
-import { IDateInterval } from './MonitorTypes';
+import { IDateInterval, getBulkMonitorData } from '../lib/FusebitMonitor';
 
 interface IProps {
   profile: IFusebitProfile;
@@ -12,44 +10,6 @@ interface IProps {
   interval: IDateInterval | null;
   activeCode: number | null;
 }
-
-interface GetDataOptions {
-  offset: number;
-  pageSize: number;
-  orderBy: string;
-  orderDir: string;
-}
-
-const getData = async (
-  profile: IFusebitProfile,
-  urlWart: string,
-  interval: IDateInterval | null,
-  activeCode: number | null,
-  options: GetDataOptions,
-  setData: any
-): Promise<void> => {
-  if (interval == null || activeCode == null) {
-    return setData({ items: [], total: 0 });
-  }
-
-  try {
-    const auth = await ensureAccessToken(profile);
-
-    let result: any = await Superagent.get(`${urlWart}/statistics/itemizedbulk`)
-      .query({
-        from: interval.from.toISOString(),
-        to: interval.to.toISOString(),
-        statusCode: activeCode,
-        next: options.offset,
-        count: options.pageSize,
-      })
-      .set('Authorization', `Bearer ${auth.access_token}`);
-
-    setData(result.body);
-  } catch (e) {
-    throw createHttpException(e);
-  }
-};
 
 interface ViewRow {
   timestamp: string;
@@ -108,7 +68,7 @@ const HTTPActivityLog: React.FC<IProps> = ({ profile, urlWart, interval, activeC
       columns={eventColumns}
       data={(query: any): Promise<any> => {
         return new Promise((resolve, reject) => {
-          getData(
+          getBulkMonitorData(
             profile,
             urlWart,
             interval,

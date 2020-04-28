@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { ResponsiveContainer, LineChart, Line, CartesianGrid, Tooltip, XAxis, YAxis, Legend } from 'recharts';
 import LinearProgress from '@material-ui/core/LinearProgress';
-import Superagent from 'superagent';
 import { IFusebitProfile } from '../lib/Settings';
-import { ensureAccessToken, createHttpException } from '../lib/Fusebit';
-import { BucketWidthsDateFormat, IDateInterval } from './MonitorTypes';
+import { BucketWidthsDateFormat, IDateInterval, getStatisticalMonitorData } from '../lib/FusebitMonitor';
 
 import ms from 'ms';
 
@@ -25,43 +23,6 @@ const codeColorMap = {
   501: '#0b032d',
 };
 
-const getData = async (
-  profile: IFusebitProfile,
-  queryType: string,
-  urlWart: string,
-  interval: IDateInterval,
-  setData: any,
-  setActiveCodeList: any
-): Promise<void> => {
-  try {
-    const auth = await ensureAccessToken(profile);
-
-    let result: any = await Superagent.get(`${urlWart}/statistics/${queryType}`)
-      .query({
-        from: interval.from.toISOString(),
-        to: interval.to.toISOString(),
-        width: interval.width,
-      })
-      .set('Authorization', `Bearer ${auth.access_token}`);
-
-    // Make sure there's always a 0-value begin and end entry to track 'loading' state easily.
-    if (result.body.items.length === 0) {
-      result.body.items = [{ key: interval.from }, { key: interval.to }];
-    }
-
-    // Convert the ISO8601 strings into ms time, which the graphing libraries deal with better.
-    setData({
-      codes: result.body.codes,
-      items: result.body.items.map((e: any) => {
-        return { ...e, key: Date.parse(e.key) };
-      }),
-    });
-    setActiveCodeList(result.body.codes);
-  } catch (e) {
-    throw createHttpException(e);
-  }
-};
-
 const MonitorGraph: React.FC<IProps> = props => {
   // Payload received from the server
   const [data, setData] = useState({ codes: [], items: [] });
@@ -70,7 +31,7 @@ const MonitorGraph: React.FC<IProps> = props => {
   const { profile, code, label, urlWart, interval, setEventRange, setActiveCodeList } = props;
 
   useEffect(() => {
-    getData(profile, code, urlWart, interval, setData, setActiveCodeList);
+    getStatisticalMonitorData(profile, code, urlWart, interval, setData, setActiveCodeList);
   }, [profile, code, urlWart, interval, setData, setActiveCodeList]);
   // ^^^ Note to self: don't put props in the deps, it's not a stable referant.
 
