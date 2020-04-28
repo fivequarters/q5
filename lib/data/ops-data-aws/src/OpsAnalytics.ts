@@ -63,6 +63,7 @@ function createAnalyticsConfig(
       Code: { ZipFile: zipFile },
       Environment: {
         Variables: {
+          DEPLOYMENT_KEY: awsConfig.prefix,
           ...esCreds,
         },
       },

@@ -42,7 +42,7 @@ const NotImplemented = (_, __, next) => next(create_error(501, 'Not implemented'
 
 // Health
 
-router.get('/health', analytics.enterHandler(analytics.Modes.Operations), health.getHealth(), analytics.finished);
+router.get('/health', health.getHealth());
 
 // Real-time logs from execution
 
