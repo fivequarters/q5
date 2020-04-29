@@ -6,6 +6,8 @@ import { BucketWidthsDateFormat, IDateInterval, getStatisticalMonitorData } from
 
 import ms from 'ms';
 
+import { httpCodeColorMap } from '@5qtrs/fusebit-color';
+
 interface IProps {
   code: string;
   label: string;
@@ -15,13 +17,6 @@ interface IProps {
   setEventRange: (newInterval: IDateInterval) => void;
   setActiveCodeList: (newCodeList: number[]) => void;
 }
-
-// Quick convienent map so everything isn't the same color.
-const codeColorMap = {
-  200: '#ffb997',
-  404: '#843b62',
-  501: '#0b032d',
-};
 
 const MonitorGraph: React.FC<IProps> = props => {
   // Payload received from the server
@@ -106,7 +101,7 @@ const MonitorGraph: React.FC<IProps> = props => {
                   dataKey={id}
                   dot={false}
                   activeDot={{ r: 4 }}
-                  stroke={codeColorMap[id]}
+                  stroke={httpCodeColorMap(id)}
                 />
               );
             })}

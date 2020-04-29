@@ -1,1 +1,1 @@
-export { FusebitColor, darken, lighten, opacity } from './FusebitColor';
+export { FusebitColor, darken, lighten, opacity, httpCodeColorMap } from './FusebitColor';
