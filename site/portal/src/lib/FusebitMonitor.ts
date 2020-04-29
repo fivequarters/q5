@@ -27,14 +27,28 @@ interface IGetDataOptionsType {
 
 const Locale = 'en-US';
 
+const TZLocal = Intl.DateTimeFormat().resolvedOptions().timeZone;
+const TZUTC = 'utc';
+
 const BucketWidthsDateFormat = {
-  [BucketWidths.Minute]: new Intl.DateTimeFormat(Locale, { hour: 'numeric', minute: 'numeric', second: 'numeric' }),
-  [BucketWidths.Hour]: new Intl.DateTimeFormat(Locale, { month: 'short', day: 'numeric', hour: 'numeric' }),
-  [BucketWidths.Day]: new Intl.DateTimeFormat(Locale, { month: 'short', day: 'numeric' }),
-  [BucketWidths.Week]: new Intl.DateTimeFormat(Locale, { month: 'short', day: 'numeric' }),
-  [BucketWidths.Month]: new Intl.DateTimeFormat(Locale, { year: '2-digit', month: 'short', day: 'numeric' }),
-  [BucketWidths.Quarter]: new Intl.DateTimeFormat(Locale, { year: '2-digit', month: 'short' }),
-  [BucketWidths.Year]: new Intl.DateTimeFormat(Locale, { year: '2-digit', month: 'short' }),
+  [BucketWidths.Minute]: { hour: 'numeric', minute: 'numeric', second: 'numeric' },
+  [BucketWidths.Hour]: { month: 'short', day: 'numeric', hour: 'numeric' },
+  [BucketWidths.Day]: { month: 'short', day: 'numeric' },
+  [BucketWidths.Week]: { month: 'short', day: 'numeric' },
+  [BucketWidths.Month]: { year: '2-digit', month: 'short', day: 'numeric' },
+  [BucketWidths.Quarter]: { year: '2-digit', month: 'short' },
+  [BucketWidths.Year]: { year: '2-digit', month: 'short' },
+};
+
+const formatByBucketWidth = (
+  date: Date,
+  bucket: BucketWidths,
+  utc: boolean = true,
+  locale: string = Locale
+): string => {
+  return new Intl.DateTimeFormat(locale, { ...BucketWidthsDateFormat[bucket], timeZone: utc ? TZUTC : TZLocal }).format(
+    date
+  );
 };
 
 const getBulkMonitorData = async (
@@ -108,4 +122,4 @@ const getStatisticalMonitorData = async (
 export type IDateInterval = IDateIntervalType;
 export type IGetDataOptions = IGetDataOptionsType;
 
-export { BucketWidths, BucketWidthsDateFormat, getBulkMonitorData, getStatisticalMonitorData };
+export { BucketWidths, formatByBucketWidth, getBulkMonitorData, getStatisticalMonitorData };

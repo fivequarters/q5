@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { ResponsiveContainer, LineChart, Line, CartesianGrid, Tooltip, XAxis, YAxis, Legend } from 'recharts';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import { IFusebitProfile } from '../lib/Settings';
-import { BucketWidthsDateFormat, IDateInterval, getStatisticalMonitorData } from '../lib/FusebitMonitor';
+import { formatByBucketWidth, IDateInterval, getStatisticalMonitorData } from '../lib/FusebitMonitor';
+import { getUISettings } from '../lib/Settings';
 
 import ms from 'ms';
 
@@ -34,7 +35,7 @@ const MonitorGraph: React.FC<IProps> = props => {
     if (typeof msTime != 'number') {
       return '';
     }
-    return BucketWidthsDateFormat[interval.width].format(new Date(msTime));
+    return formatByBucketWidth(new Date(msTime), interval.width, getUISettings().utcTime);
   };
 
   const CustomTooltip = ({ active, payload, label }: any) => {

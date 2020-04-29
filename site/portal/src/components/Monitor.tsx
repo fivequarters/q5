@@ -10,6 +10,7 @@ import ToggleButton from '@material-ui/lab/ToggleButton';
 import ms from 'ms';
 import { useProfile } from './ProfileProvider';
 import DateTimeRangePicker from './DateTimeRangePicker';
+import { getUISettings } from '../lib/Settings';
 
 import { BucketWidths, IDateInterval } from '../lib/FusebitMonitor';
 
@@ -91,7 +92,7 @@ const MonitorPanel: React.FC<IProps> = props => {
       <DateTimeRangePicker
         from={interval.from.toISOString()}
         to={interval.to.toISOString()}
-        utc={true}
+        utc={getUISettings().utcTime}
         onChange={(from: string, to?: string) => {
           // The DateTimePicker can feed out some bad dates, depending on the state of it's widgets.
           if (!isNaN(Date.parse(from)) && to && !isNaN(Date.parse(to))) {
