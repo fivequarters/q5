@@ -18,7 +18,7 @@ const useStyles = makeStyles((theme: any) => ({
     flexDirection: "column",
     justifyContent: "space-between",
     alignItems: "stretch",
-    margin: theme.spacing(1)
+    margin: theme.spacing(1),
   },
   cardHeader: {
     width: "100%",
@@ -27,21 +27,21 @@ const useStyles = makeStyles((theme: any) => ({
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: 84
+    fontSize: 84,
   },
   cardDescription: {
     width: "100%",
     padding: theme.spacing(2),
     minHeight: 112,
     maxHeight: 112,
-    overflow: "hidden"
+    overflow: "hidden",
   },
   cardActions: {
     paddingLeft: theme.spacing(1),
     paddingRight: theme.spacing(1),
     paddingTop: theme.spacing(1),
-    paddingBottom: theme.spacing(1)
-  }
+    paddingBottom: theme.spacing(1),
+  },
 }));
 
 type TemplateCardProps = {
@@ -61,7 +61,7 @@ function TemplateCard({
   onCreate,
   onEditCode,
   onEditMetadata,
-  onClone
+  onClone,
 }: TemplateCardProps) {
   const classes = useStyles();
   return (

@@ -18,6 +18,7 @@
   "include": ["src"],
   "references": [
     { "path": "../../comp/fusebit-mark" },
+    { "path": "../../comp/fusebit-mark-inverted" },
     { "path": "../../lib/node/jwt" },
     { "path": "../../lib/client/fusebit-color" }
   ]

@@ -100,6 +100,7 @@
       "@5qtrs/key-value": ["lib/shared/key-value/src"],
       "@5qtrs/event-stream": ["lib/shared/event-stream/src"],
       "@5qtrs/fusebit-mark": ["comp/fusebit-mark/src"],
+      "@5qtrs/fusebit-mark-inverted": ["comp/fusebit-mark-inverted/src"],
       "@5qtrs/fusebit-color": ["lib/client/fusebit-color/src"],
       "@5qtrs/fusebit-logo": ["comp/fusebit-logo/src"],
       "@5qtrs/fusebit-button": ["comp/fusebit-button/src"],
