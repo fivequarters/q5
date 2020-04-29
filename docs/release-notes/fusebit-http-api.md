@@ -1,4 +1,5 @@
 ---
+parent: Release Notes
 nav_order: 4
 title: Fusebit HTTP API
 ---

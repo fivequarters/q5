@@ -1,12 +1,12 @@
 remote_theme: "pmarsceill/just-the-docs@v0.2.7"
 repository: "fivequarters/q5"
-title: "Release Notes"
-description: "Release notes for Fusebit platform components"
+title: "Fusebit Docs"
+description: "The one-stop shop for all of our conceptual and API docs"
 permalink: pretty
-exclude: ["README.md"]
 heading_anchors: true
-footer_content: "&copy; 2019 Fusebit - All Rights Reserved"
-logo: "/assets/img/ReleaseNotesTitle.png"
+exclude: ["README.md"]
+footer_content: "&copy; 2019-2020 Fusebit - All Rights Reserved"
+logo: "/assets/img/FusebitLogo.png"
 
 # "Just the Docs" theme
 search_enabled: true
