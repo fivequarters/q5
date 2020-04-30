@@ -59,7 +59,10 @@
     "yarn": "^1.12.3"
   },
   "workspaces": {
-    "nohoist": ["**/lambda-*", "**/lambda-*/**"],
+    "nohoist": [
+      "**/lambda-*",
+      "**/lambda-*/**"
+    ],
     "packages": [
       "tool/tool-config",
       "tool/workspace",
@@ -181,7 +184,9 @@
       "site/portal",
       "lib/runtime/lambda-cron",
       "lib/runtime/lambda-analytics",
-      "lib/runtime/common"
+      "lib/runtime/common",
+      "lib/runtime/lambda-dwh",
+      "lib/runtime/ops-lambda-set"
     ]
   }
 }

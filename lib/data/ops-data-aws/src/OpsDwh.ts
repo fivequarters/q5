@@ -3,9 +3,9 @@ import { OpsDataAwsConfig } from './OpsDataAwsConfig';
 import { IAwsConfig, AwsCreds } from '@5qtrs/aws-config';
 import { IOpsDeployment } from '@5qtrs/ops-data';
 import { debug } from './OpsDebug';
+import { LambdaDwhZip } from '@5qtrs/ops-lambda-set';
+
 const Async = require('async');
-const Fs = require('fs');
-const Path = require('path');
 
 export async function createDwhExport(config: OpsDataAwsConfig, awsConfig: IAwsConfig, deployment: IOpsDeployment) {
   debug('IN DWH SETUP');
@@ -32,7 +32,7 @@ export async function createDwhExport(config: OpsDataAwsConfig, awsConfig: IAwsC
     },
   };
 
-  const DeploymentPackage = Fs.readFileSync(Path.join(__dirname, 'dwh_export.zip'));
+  const DeploymentPackage = LambdaDwhZip();
 
   let ctx: any = {};
 

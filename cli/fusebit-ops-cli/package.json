@@ -15,7 +15,8 @@
   "packageAs": "fusebit-ops-cli",
   "packageAssets": [],
   "scripts": {
-    "build": "(cd ../..; bash -c \"yarn build lambda-analytics\") && (cd ../..; bash -c \"yarn build lambda-cron\") && tsc -b",
+    "build": "yarn build:lambdas && tsc -b",
+    "build:lambdas": "cd ../.. && yarn build ops-lambda-set",
     "test": "jest --colors",
     "coverage": "jest --colors --coverage",
     "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x} test/{,**/}*.ts{,x}",

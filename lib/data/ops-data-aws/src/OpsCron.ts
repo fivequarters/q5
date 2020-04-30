@@ -3,13 +3,12 @@ import { OpsDataAwsConfig } from './OpsDataAwsConfig';
 import { IAwsConfig, AwsCreds } from '@5qtrs/aws-config';
 import { IOpsDeployment } from '@5qtrs/ops-data';
 import { debug } from './OpsDebug';
+import { LambdaCronZip } from '@5qtrs/ops-lambda-set';
 const Async = require('async');
-const Fs = require('fs');
-const Path = require('path');
 
 export async function createCron(config: OpsDataAwsConfig, awsConfig: IAwsConfig, deployment: IOpsDeployment) {
   const Config = createCronConfig(config, awsConfig);
-  const DeploymentPackage = Fs.readFileSync(Path.join(__dirname, 'lambda-cron.zip'));
+  const DeploymentPackage = LambdaCronZip();
 
   debug('IN CRON SETUP');
 

@@ -3,9 +3,8 @@ import { OpsDataAwsConfig } from './OpsDataAwsConfig';
 import { IAwsConfig, AwsCreds } from '@5qtrs/aws-config';
 import { IOpsDeployment } from '@5qtrs/ops-data';
 import { debug } from './OpsDebug';
+import { LambdaAnalyticsZip } from '@5qtrs/ops-lambda-set';
 const Async = require('async');
-const Fs = require('fs');
-const Path = require('path');
 
 type AsyncCb = (e?: Error | null) => void;
 
@@ -69,6 +68,7 @@ function createAnalyticsConfig(
       },
     },
     cloudWatchLogs: { logGroupName: `${prefix}analytics-logs` },
+    cloudWatchLogsRetention: { logGroupName: '', retentionInDays: 7 },
     subscriptionFilter: { destinationArn: '', filterName: '', filterPattern: '', logGroupName: '' },
     deleteSubscriptionFilter: { filterName: '', logGroupName: '' },
     grantLambda: {
@@ -80,6 +80,8 @@ function createAnalyticsConfig(
       SourceAccount: `${awsConfig.account}`,
     },
   };
+
+  cfg.cloudWatchLogsRetention.logGroupName = cfg.cloudWatchLogs.logGroupName;
 
   cfg.subscriptionFilter = {
     destinationArn: `${awsDataConfig.arnPrefix}:lambda:${awsConfig.region}:${awsConfig.account}:function:${cfg.lambda.FunctionName}`,
@@ -105,11 +107,21 @@ function createAnalyticsConfig(
 
 function createCloudWatchLogGroup(cwl: any, config: any, cb: AsyncCb) {
   debug('Creating cloudwatch log group...');
-  cwl.createLogGroup({ logGroupName: config.logGroupName }, (e: any, d: any) => {
+  cwl.createLogGroup(config, (e: any, d: any) => {
     if (e != null && e.code != 'ResourceAlreadyExistsException') {
-      cb(e);
+      return cb(e);
     }
-    cb();
+    return cb();
+  });
+}
+
+function setCloudWatchLogGroupRetention(cwl: any, config: any, cb: AsyncCb) {
+  debug(`Setting cloudwatch log group retention policy to ${config.retentionInDays} days...`);
+  cwl.putRetentionPolicy(config, (e: any, d: any) => {
+    if (e != null) {
+      return cb(e);
+    }
+    return cb();
   });
 }
 
@@ -177,7 +189,8 @@ export async function createAnalyticsPipeline(
   awsConfig: IAwsConfig,
   deployment: IOpsDeployment
 ) {
-  const deploymentPackage = Fs.readFileSync(Path.join(__dirname, 'lambda-analytics.zip'));
+  const deploymentPackage = LambdaAnalyticsZip();
+
   const config = createAnalyticsConfig(awsDataConfig, awsConfig, deployment, deploymentPackage);
 
   debug('IN ANALYTICS SETUP');
@@ -189,6 +202,7 @@ export async function createAnalyticsPipeline(
       [
         // prettier-ignore
         (cb: AsyncCb) => createCloudWatchLogGroup(cloudwatchlogs, config.cloudWatchLogs, cb),
+        (cb: AsyncCb) => setCloudWatchLogGroupRetention(cloudwatchlogs, config.cloudWatchLogsRetention, cb),
         (cb: AsyncCb) => createOrUpdateLambda(lambda, config.lambda, cb),
         (cb: AsyncCb) => grantCloudWatchLogGroupLambdaInvocation(lambda, config.grantLambda, cb),
 
