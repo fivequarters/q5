@@ -13,8 +13,5 @@
     "clean": "rm -r -f libc; rm -r -f coverage"
   },
   "keywords": [],
-  "dependencies": {},
-  "devServer": {
-    "port": 9512
-  }
+  "dependencies": {}
 }

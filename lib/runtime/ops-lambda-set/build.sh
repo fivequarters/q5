@@ -14,7 +14,10 @@ done
 cd ${CURDIR}
 tsc -b
 
+# Clean up any old files
+rm -f libc/*.zip
+
 # Make sure the symlinks are present in libc for packaging.
 for lambda in ${LAMBDAS};do
-  ln -sf ../../lambda-${lambda}/libc/lambda-${lambda}.zip libc/
+  cp ../lambda-${lambda}/libc/lambda-${lambda}.zip libc/
 done
