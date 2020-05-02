@@ -253,15 +253,15 @@ describe('function', () => {
   }, 20000);
 
   test('PUT with empty compute resets compute', async () => {
-    let response = await putFunction(account, boundaryId, function1Id, helloWorldWithStaticIp);
+    let response = await putFunction(account, boundaryId, function1Id, helloWorldWithComputeSerialized);
     expect(response.status).toBe(200);
     expect(response.data.status).toBe('success');
 
     response = await getFunction(account, boundaryId, function1Id, true);
 
     expect(response.status).toBe(200);
-    expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: true });
-    expect(response.data.computeSerialized).toBe('staticIp=true\nmemorySize=128\ntimeout=30');
+    expect(response.data.compute).toEqual({ timeout: 120, memorySize: 128, staticIp: false });
+    expect(response.data.computeSerialized).toBe('timeout= 120\nmemorySize=128\nstaticIp=false');
 
     response.data.compute = {};
     response = await putFunction(account, boundaryId, function1Id, response.data);
@@ -367,15 +367,15 @@ describe('function', () => {
   }, 20000);
 
   test('PUT with undefined compute and undefined computeSerialized resets compute', async () => {
-    let response = await putFunction(account, boundaryId, function1Id, helloWorldWithStaticIp);
+    let response = await putFunction(account, boundaryId, function1Id, helloWorldWithComputeSerialized);
     expect(response.status).toBe(200);
     expect(response.data.status).toBe('success');
 
     response = await getFunction(account, boundaryId, function1Id, true);
 
     expect(response.status).toBe(200);
-    expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: true });
-    expect(response.data.computeSerialized).toBe('staticIp=true\nmemorySize=128\ntimeout=30');
+    expect(response.data.compute).toEqual({ timeout: 120, memorySize: 128, staticIp: false });
+    expect(response.data.computeSerialized).toBe('timeout= 120\nmemorySize=128\nstaticIp=false');
 
     response.data.computeSerialized = undefined;
     response.data.compute = undefined;
