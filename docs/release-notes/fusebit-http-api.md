@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.15.3
+
+_Released 5/2/20_
+
+- **Bug fix** Fix a bug in HTTP PUT function API which prevented the effective compute settings of an existing function to be updated if the only change in the function specification was the compute settings.
+
 ## Version 1.15.2
 
 _Released 4/14/20_
