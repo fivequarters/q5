@@ -3,13 +3,12 @@ import { OpsDataAwsConfig } from './OpsDataAwsConfig';
 import { IAwsConfig, AwsCreds } from '@5qtrs/aws-config';
 import { IOpsDeployment } from '@5qtrs/ops-data';
 import { debug } from './OpsDebug';
+import { LambdaCronZip } from '@5qtrs/ops-lambda-set';
 const Async = require('async');
-const Fs = require('fs');
-const Path = require('path');
 
 export async function createCron(config: OpsDataAwsConfig, awsConfig: IAwsConfig, deployment: IOpsDeployment) {
   const Config = createCronConfig(config, awsConfig);
-  const DeploymentPackage = Fs.readFileSync(Path.join(__dirname, 'cron.zip'));
+  const DeploymentPackage = LambdaCronZip();
 
   debug('IN CRON SETUP');
 
@@ -159,6 +158,7 @@ export async function createCron(config: OpsDataAwsConfig, awsConfig: IAwsConfig
         Variables: {
           AWS_S3_BUCKET: config.getS3Bucket(deployment),
           CRON_CONCURRENT_EXECUTION_LIMIT: Config.executor.concurrentExecutionLimit.toString(),
+          DEPLOYMENT_KEY: awsConfig.prefix || 'global',
           // LOGS_WS_URL: process.env.LOGS_WS_URL,
           // LOGS_WS_TOKEN_SIGNATURE_KEY: process.env.LOGS_WS_TOKEN_SIGNATURE_KEY,
           // LOGS_WS_TOKEN_EXPIRY: process.env.LOGS_WS_TOKEN_EXPIRY,

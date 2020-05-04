@@ -30,6 +30,8 @@ tags:
     description: Boundary management operations
   - name: Functions
     description: Function management operations
+#  - name: Statistics
+#    description: Statistical queries on function behavior
 
 paths:
   /v1/account/{accountId}:
@@ -188,7 +190,7 @@ paths:
 
           Given an audit entry with a resource of `'/account/acc-5555555555555555/subscription/sub-5555555555555555/'`, the
           following queries would result in a match:
-            
+
             - `resource=/account/acc-`
             - `resource=/account/acc-5555555555555555/subscription/`
             - `resource=/account/acc-5555555555555555/subscription/sub-5555555555555555/`
@@ -204,14 +206,14 @@ paths:
         name: action
         required: false
         description: |
-          Optional identifier to match against the `action` field of audit entries. Matching is case-sensitive. 
-          Both fully-qualified actions and wildcard actions are supported. 
-          Examples of fully-qualified actions include: `'user:get'`, `'function:put'`. 
+          Optional identifier to match against the `action` field of audit entries. Matching is case-sensitive.
+          Both fully-qualified actions and wildcard actions are supported.
+          Examples of fully-qualified actions include: `'user:get'`, `'function:put'`.
           Examples of wildcard actions include: `'user:*'`, `'function:*'`.
 
           Given an audit entry with an action of `'function:put'`, the
           following queries would result in a match:
-            
+
             - `action=function:*`
             - `action=function:put`
 
@@ -224,7 +226,7 @@ paths:
         name: issuerId
         required: false
         description: |
-          Optional identifier to match against the `issuerId` field of audit entries. 
+          Optional identifier to match against the `issuerId` field of audit entries.
           Matching is case-sensitive. The full issuer id must be provided as partial matches are not supported.
         schema:
           $ref: '#/components/schemas/IssuerId'
@@ -232,7 +234,7 @@ paths:
         name: subject
         required: false
         description: |
-          Optional identifier to match against the `subject` field of audit entries. 
+          Optional identifier to match against the `subject` field of audit entries.
           Only valid if the `issuerId` query filter is also provided.
           Matching is case-sensitive. The full subject must be provided as partial matches are not supported.
         schema:
@@ -258,7 +260,7 @@ paths:
         name: to
         required: false
         description: |
-          Optional time up to which to return audit entries. Can be any format accepted by the JavaScript Date constructor 
+          Optional time up to which to return audit entries. Can be any format accepted by the JavaScript Date constructor
           or a relative date of the format `'-{integer}{s | m | h | d}'`, where `'s'` is seconds, `'m'` is minutes, `'h'` is hours and `'d'` is days.
 
           All of the following are valid queries:
@@ -291,9 +293,9 @@ paths:
       summary: Get audit trail
       operationId: getAccountAudit
       description: |
-        Returns the audit trail of calls to the HTTP APIs related to resources that belong to the account id. 
-        Each entry of the audit trail contains the timestamp of the call, resource, action, and the identity of 
-        the caller represented as the (issuer, subject) pair. Use query string parameters to filter the entries. 
+        Returns the audit trail of calls to the HTTP APIs related to resources that belong to the account id.
+        Each entry of the audit trail contains the timestamp of the call, resource, action, and the identity of
+        the caller represented as the (issuer, subject) pair. Use query string parameters to filter the entries.
         All query filters are combined with a logical AND operator.
 
         By default, only the most recent 15 minutes of audit logs are returned. You can change this with the `from` query parameter.
@@ -597,7 +599,7 @@ paths:
       summary: Get clients of an account
       operationId: getAccountClientList
       description: |
-        Returns a list of clients associated with the given account. 
+        Returns a list of clients associated with the given account.
 
         Use query string parameters to filter the list of clients. All query filters are combined with a logical AND operator.
       parameters:
@@ -623,7 +625,7 @@ paths:
           name: issuerId
           required: false
           description: |
-            Optional identifier to match against the `issuerId` field of the identities of the clients. 
+            Optional identifier to match against the `issuerId` field of the identities of the clients.
             Matching is case-sensitive. The full issuer id must be provided as partial matches are not supported.
           schema:
             $ref: '#/components/schemas/IssuerId'
@@ -632,7 +634,7 @@ paths:
           required: false
           description: |
             Optional identifier to match against the `subject` field of the identities of the clients.
-            Only valid if the `issuerId` query filter is also provided. Matching is case-sensitive. 
+            Only valid if the `issuerId` query filter is also provided. Matching is case-sensitive.
             The full subject must be provided as partial matches are not supported.
           schema:
             type: string
@@ -849,7 +851,7 @@ paths:
       operationId: initClient
       description: |
         Create an initialization token for an existing client. The initialization token is a single-use
-        bearer credential that allows the caller to add a new identity for the client. If unused, the 
+        bearer credential that allows the caller to add a new identity for the client. If unused, the
         intialization token expires after eight hours.
       requestBody:
         description: The parameters for the initialization token
@@ -926,7 +928,7 @@ paths:
           name: email
           required: false
           description: |
-            Optional identifier to match against the `primaryEmail` field of the users. 
+            Optional identifier to match against the `primaryEmail` field of the users.
             Matching is case-sensitive. Partial matches are supported.
           schema:
             type: string
@@ -934,7 +936,7 @@ paths:
           name: issuerId
           required: false
           description: |
-            Optional identifier to match against the `issuerId` field of the identities of the users. 
+            Optional identifier to match against the `issuerId` field of the identities of the users.
             Matching is case-sensitive. The full issuer id must be provided as partial matches are not supported.
           schema:
             $ref: '#/components/schemas/IssuerId'
@@ -943,7 +945,7 @@ paths:
           required: false
           description: |
             Optional identifier to match against the `subject` field of the identities of the users.
-            Only valid if the `issuerId` query filter is also provided. Matching is case-sensitive. 
+            Only valid if the `issuerId` query filter is also provided. Matching is case-sensitive.
             The full subject must be provided as partial matches are not supported.
           schema:
             type: string
@@ -1159,7 +1161,7 @@ paths:
       operationId: initUser
       description: |
         Create an initialization token for an existing user. The initialization token is a single-use
-        bearer credential that allows the caller to add a new identity for the users. If unused, the 
+        bearer credential that allows the caller to add a new identity for the users. If unused, the
         intialization token expires after eight hours.
       requestBody:
         description: The parameters for the initialization token
@@ -1239,8 +1241,8 @@ paths:
           required: false
           description: |
             Optional switch that determines whether to include or exclude functions that have cron enabled.
-            If `'true'` only functions with cron enabled will be returned. 
-            If `'false'` only functions without cron enabled will be returned. 
+            If `'true'` only functions with cron enabled will be returned.
+            If `'false'` only functions without cron enabled will be returned.
             If not specified, all functions will be returned.
           schema:
             type: boolean
@@ -1321,8 +1323,8 @@ paths:
           required: false
           description: |
             Optional switch that determines whether to include or exclude functions that have cron enabled.
-            If `'true'` only functions with cron enabled will be returned. 
-            If `'false'` only functions without cron enabled will be returned. 
+            If `'true'` only functions with cron enabled will be returned.
+            If `'false'` only functions without cron enabled will be returned.
             If not specified, all functions will be returned.
           schema:
             type: boolean
@@ -1481,10 +1483,10 @@ paths:
         - Functions
       summary: Initiate a new build and deployment of a function
       description: |
-        Initiates a build and deployment of the function within the isolation boundary. 
-        This may complete synchronously with a status code of 200, or asynchronously with a status code of 201. 
-        If it completes asynchronously, it returns immediately with a response that includes a `buildId` 
-        representing the function build process. This `buildId` can be used to poll for completion by calling 
+        Initiates a build and deployment of the function within the isolation boundary.
+        This may complete synchronously with a status code of 200, or asynchronously with a status code of 201.
+        If it completes asynchronously, it returns immediately with a response that includes a `buildId`
+        representing the function build process. This `buildId` can be used to poll for completion by calling
         `'GET /build/{buildId}'`.
 
         The URL for executing the function will be provided as the `location` property of the response.
@@ -1726,9 +1728,9 @@ paths:
         - Functions
       summary: Get the status of a build of a function
       description: |
-        Returns the status of the build of a function. This is used for polling the result of 
-        the asynchronous build process of a function. The `status` parameter progresses from 
-        `'pending'` to `'building'` to either `'success'` or `'failure'`, which are the final states 
+        Returns the status of the build of a function. This is used for polling the result of
+        the asynchronous build process of a function. The `status` parameter progresses from
+        `'pending'` to `'building'` to either `'success'` or `'failure'`, which are the final states
         of the build process.
       operationId: getFunctionBuild
       responses:
@@ -1771,6 +1773,261 @@ paths:
       security:
         - AccessToken: []
 
+
+#  /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/statistics/codeactivityhg:
+#    parameters:
+#      - name: accountId
+#        in: path
+#        required: true
+#        description: Account id
+#        schema:
+#          $ref: '#/components/schemas/AccountId'
+#      - name: subscriptionId
+#        in: path
+#        description: The subscription id
+#        required: false
+#        schema:
+#          $ref: '#/components/schemas/SubscriptionId'
+#      - name: boundaryId
+#        in: path
+#        description: The boundary id, unique within the subscription.
+#        required: false
+#        schema:
+#          $ref: '#/components/schemas/BoundaryId'
+#      - name: from
+#        in: query
+#        description: Report on statistics starting with this ISO 8601 date string.
+#        required: true
+#        schema:
+#          type: string
+#      - name: to
+#        in: query
+#        description: Report on statistics ending with this ISO 8601 date string.
+#        required: true
+#        schema:
+#          type: string
+#      - name: width
+#        in: query
+#        description: |
+#          Aggregate statistical analysis on a bucket of this width.
+#
+#          Examples of widths:
+#
+#            - `1d` - Aggregate on buckets one day in width
+#            - `15m` - Aggregate on buckets 15 minutes in width
+#            - `1w` - Aggregate on buckets on a weekly basis
+#
+#          The width is passed to the Elastic Search backend, and follows the [calendar interval specification](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-bucket-datehistogram-aggregation.html#calendar_intervals).
+#        required: false
+#        schema:
+#          type: string
+#          default: 1d
+#    get:
+#      tags:
+#        - Statistics
+#      summary: Aggregated total count results
+#      description: |
+#        Returns the aggregated __total count__ results for all active HTTP status codes during the specified time period.
+#      operationId: getStatisticsCodeActivityHG
+#      responses:
+#        200:
+#          description: Response body contains the requested data
+#          content:
+#            application/json:
+#              schema:
+#                $ref: '#/components/schemas/Statistics/Histogram'
+#        400:
+#          description: Malformed account, subscription, boundary, function or statistics query name.
+#          content:
+#            application/json:
+#              schema:
+#                $ref: '#/components/schemas/Error'
+#        403:
+#          description: Not authorized
+#          content:
+#            application/json:
+#              schema:
+#                $ref: '#/components/schemas/Error'
+#        405:
+#          description: Query was not found
+#          content:
+#            application/json:
+#              schema:
+#                $ref: '#/components/schemas/Error'
+#      security:
+#        - AccessToken: []
+#
+#  /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/statistics/codelatencyhg:
+#    parameters:
+#      - name: accountId
+#        in: path
+#        required: true
+#        description: Account id
+#        schema:
+#          $ref: '#/components/schemas/AccountId'
+#      - name: subscriptionId
+#        in: path
+#        description: The subscription id
+#        required: false
+#        schema:
+#          $ref: '#/components/schemas/SubscriptionId'
+#      - name: boundaryId
+#        in: path
+#        description: The boundary id, unique within the subscription.
+#        required: false
+#        schema:
+#          $ref: '#/components/schemas/BoundaryId'
+#      - name: from
+#        in: query
+#        description: Report on statistics starting with this ISO 8601 date string.
+#        required: true
+#        schema:
+#          type: string
+#      - name: to
+#        in: query
+#        description: Report on statistics ending with this ISO 8601 date string.
+#        required: true
+#        schema:
+#          type: string
+#      - name: width
+#        in: query
+#        description: |
+#          Aggregate statistical analysis on a bucket of this width.
+#
+#          Examples of widths:
+#
+#            - `1d` - Aggregate on buckets one day in width
+#            - `15m` - Aggregate on buckets 15 minutes in width
+#            - `1w` - Aggregate on buckets on a weekly basis
+#
+#          The width is passed to the Elastic Search backend, and follows the [calendar interval specification](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-bucket-datehistogram-aggregation.html#calendar_intervals).
+#        required: false
+#        schema:
+#          type: string
+#          default: "1d"
+#    get:
+#      tags:
+#        - Statistics
+#      summary: Aggregated average latency results
+#      description: |
+#        Returns the aggregated __average latency__ results for all active HTTP status codes.
+#      operationId: getStatisticsLatencyHG
+#      responses:
+#        200:
+#          description: Response body contains the requested data
+#          content:
+#            application/json:
+#              schema:
+#                $ref: '#/components/schemas/Statistics/Histogram'
+#        400:
+#          description: Malformed account, subscription, boundary, function or statistics query name.
+#          content:
+#            application/json:
+#              schema:
+#                $ref: '#/components/schemas/Error'
+#        403:
+#          description: Not authorized
+#          content:
+#            application/json:
+#              schema:
+#                $ref: '#/components/schemas/Error'
+#        404:
+#          description: Query was not found
+#          content:
+#            application/json:
+#              schema:
+#                $ref: '#/components/schemas/Error'
+#      security:
+#        - AccessToken: []
+#
+#  /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/statistics/itemizedbulk:
+#    parameters:
+#      - name: accountId
+#        in: path
+#        required: true
+#        description: Account id
+#        schema:
+#          $ref: '#/components/schemas/AccountId'
+#      - name: subscriptionId
+#        in: path
+#        description: The subscription id
+#        required: false
+#        schema:
+#          $ref: '#/components/schemas/SubscriptionId'
+#      - name: boundaryId
+#        in: path
+#        description: The boundary id, unique within the subscription.
+#        required: false
+#        schema:
+#          $ref: '#/components/schemas/BoundaryId'
+#      - name: from
+#        in: query
+#        description: Report on statistics starting with this ISO 8601 date string.
+#        required: true
+#        schema:
+#          type: string
+#      - name: to
+#        in: query
+#        description: Report on statistics ending with this ISO 8601 date string.
+#        required: true
+#        schema:
+#          type: string
+#      - name: statusCode
+#        in: query
+#        description: Filter the reported statistics on this HTTP status code.
+#        schema:
+#          type: number
+#          default: 200
+#      - name: next
+#        in: query
+#        description: Optional opaque token to start returning results from.
+#        require: false
+#        schema:
+#          type: number
+#      - name: count
+#        in: query
+#        description: Include this many entries in the response.
+#        require: false
+#        schema:
+#          type: number
+#          default: 10
+#    get:
+#      tags:
+#        - Statistics
+#      summary: All function events
+#      description: |
+#        Returns the __full event details__ for the specified HTTP status code (or `200` if unspecified).
+#      operationId: getStatisticsBulk
+#      responses:
+#        200:
+#          description: Response body contains the requested data
+#          content:
+#            application/json:
+#              schema:
+#                $ref: '#/components/schemas/Statistics/Bulk'
+#        400:
+#          description: Malformed account, subscription, boundary, function or statistics query name.
+#          content:
+#            application/json:
+#              schema:
+#                $ref: '#/components/schemas/Error'
+#        403:
+#          description: Not authorized
+#          content:
+#            application/json:
+#              schema:
+#                $ref: '#/components/schemas/Error'
+#        404:
+#          description: Query was not found
+#          content:
+#            application/json:
+#              schema:
+#                $ref: '#/components/schemas/Error'
+#      security:
+#        - AccessToken: []
+#
+#
+#
   # /v1/account/{accountId}/subscription/{subscriptionId}/storage:
   #   parameters:
   #     - in: path
@@ -2212,7 +2469,7 @@ components:
       type: string
       enum: [pki, oauth]
       description: >
-        The initialization token protocol that determines the type of the source of trust for validating access tokens 
+        The initialization token protocol that determines the type of the source of trust for validating access tokens
         the user or client will present when making HTTP API calls:
           * `pki` - when adding an indentity to the user or client, the caller must present a public key that can be used to validate signatures of access tokens
           * `oauth` - when adding an indentity to the user or client, the caller must indicate a trusted issuer of access tokens that is already pre-configured in the system
@@ -2228,7 +2485,7 @@ components:
         profile:
           type: object
           description: |
-            Additional information to be included in the intialization token for consumption by the intended recipient of the 
+            Additional information to be included in the intialization token for consumption by the intended recipient of the
             token. For example, this information can be used to include default parameters of the CLI profile or OAuth parameters
             that indicate the identity provider to use.
           properties:
@@ -2285,10 +2542,10 @@ components:
         accessToken:
           type: string
           description: |
-            A valid access token in JWT format. 
+            A valid access token in JWT format.
             If `protocol` is `pki`, the access token must be signed with a private key
-            associated with the `publicKey` in this request, and the value of the `iss` and `sub` claims must match the values of 
-            the `profile.issuerId` and `profile.subject` fields of the initialization token, respectively. If `protocol` is `oauth`, 
+            associated with the `publicKey` in this request, and the value of the `iss` and `sub` claims must match the values of
+            the `profile.issuerId` and `profile.subject` fields of the initialization token, respectively. If `protocol` is `oauth`,
             the token must have been obtained from an OAuth identity provider that is already trusted by the system.
         publicKey:
           type: string
@@ -2576,6 +2833,54 @@ components:
             transitions:
               type: 'object'
         - $ref: '#/components/schemas/FunctionLocation'
+
+#    Statistics:
+#      HistogramEntry:
+#        type: object
+#        properties:
+#          key:
+#            type: string
+#            description: The date in ISO 8601 string format.
+#          "200,404,503,etc":
+#            type: number
+#            description: |
+#              The tally for each HTTP status code active during this aggregate.
+#
+#              For example:
+#                `{ "key": "2020-04-22T22:13:51.066Z", "200": 512, "403": 15, "501": 2 }`
+#
+#      Histogram:
+#        type: object
+#        description: A collection of histogram artifacts ranging across the specified time range.
+#        properties:
+#          items:
+#            type: array
+#            description: A list of histogram aggregated intervals
+#            items:
+#              $ref: '#/components/schemas/Statistics/HistogramEntry'
+#          codes:
+#            type: array
+#            items:
+#              type: number
+#            description: The HTTP status codes active during this interval.
+#      BulkEntry:
+#        description: An object containing all of the collected metrics and behaviors for an event
+#        type: object
+#      Bulk:
+#        type: object
+#        description: A collection of bulk events ranging across the specified time range
+#        properties:
+#          items:
+#            type: array
+#            items:
+#              $ref: '#/components/schemas/Statistics/BulkEntry'
+#          next:
+#            type: number
+#            description: Optional opaque token to start returning results from.
+#          total:
+#            type: number
+#            description: The number of total entries in this time range for this query.
+#
     # StorageId:
     #   type: string
     #   description: Storage id

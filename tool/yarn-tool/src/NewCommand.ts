@@ -33,6 +33,7 @@ const pathToTemplateMap: { [index: string]: TemplateType } = {
   'lib/shared': TemplateType.sharedLib,
   'lib/server': TemplateType.serverLib,
   'lib/client': TemplateType.clientLib,
+  'lib/runtime': TemplateType.serverLib,
   api: TemplateType.api,
   comp: TemplateType.webComp,
   demo: TemplateType.demo,
@@ -123,7 +124,8 @@ export default class NewCommand implements ICommand {
     try {
       workspace = await project.NewWorkspace(name, path, templateType);
     } catch (error) {
-      throw new Error(`Failed to create new workspace '${name}' at location '${path}'.`);
+      console.log(error);
+      throw new Error(`Failed to create new workspace '${name}' at location '${path}' (${templateType})`);
     }
 
     if (workspace) {

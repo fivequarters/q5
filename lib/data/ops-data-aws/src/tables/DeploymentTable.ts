@@ -31,6 +31,14 @@ function toItem(deployment: IOpsDeployment) {
   item.networkName = { S: deployment.networkName };
   item.domainName = { S: deployment.domainName };
   item.size = { N: deployment.size.toString() };
+
+  // Support clearing the Elastic Search parameter using an empty string.
+  if (deployment.elasticSearch.length == 0) {
+    delete item.elasticSearch;
+  } else {
+    item.elasticSearch = { S: deployment.elasticSearch };
+  }
+
   item.dataWarehouseEnabled = { BOOL: deployment.dataWarehouseEnabled };
   item.featureUseDnsS3Bucket = { BOOL: deployment.featureUseDnsS3Bucket };
   return item;
@@ -43,6 +51,7 @@ function fromItem(item: any): IOpsDeployment {
     networkName: item.networkName.S,
     domainName: item.domainName.S,
     size: parseInt(item.size.N, 10),
+    elasticSearch: item.elasticSearch == undefined ? '' : item.elasticSearch.S,
     dataWarehouseEnabled: item.dataWarehouseEnabled.BOOL,
     featureUseDnsS3Bucket: item.featureUseDnsS3Bucket && item.featureUseDnsS3Bucket.BOOL,
   };
@@ -73,6 +82,7 @@ export interface IOpsDeployment {
   networkName: string;
   domainName: string;
   size: number;
+  elasticSearch: string;
   dataWarehouseEnabled: boolean;
   featureUseDnsS3Bucket: boolean;
 }
@@ -142,5 +152,10 @@ export class DeploymentTable extends AwsDynamoTable {
   public async delete(deploymentName: string, region: string): Promise<void> {
     const options = { onConditionCheckFailed: onDeploymentDoesNotExist };
     await this.deleteItem({ deploymentName, region }, options);
+  }
+
+  public async update(deployment: IOpsDeployment): Promise<void> {
+    const options = { onConditionCheckFailed: onDeploymentDoesNotExist };
+    await this.putItem(deployment, options);
   }
 }

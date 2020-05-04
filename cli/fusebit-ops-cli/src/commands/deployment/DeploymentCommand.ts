@@ -10,7 +10,7 @@ const command: ICommand = {
   name: 'Deployment',
   cmd: 'deployment',
   summary: 'Manage deployments',
-  description: 'Add, update and list deployments',
+  description: 'Add and list deployments',
 };
 
 // ----------------

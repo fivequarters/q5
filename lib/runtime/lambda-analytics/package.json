@@ -1,0 +1,21 @@
+{
+  "name": "@5qtrs/lambda-analytics",
+  "version": "0.0.1",
+  "description": "",
+  "main": "libc/index.js",
+  "sideEffects": false,
+  "license": "UNLICENSED",
+  "author": "FiveQuarters.io",
+  "scripts": {
+    "build": "tsc -b && yarn build:pack",
+    "build:pack": "rm -f libc/lambda-analytics.zip && zip -j libc/lambda-analytics.zip libc/*.js && zip -qdgds 1m -r libc/lambda-analytics.zip node_modules",
+    "test": "jest --colors",
+    "coverage": "jest --colors --coverage",
+    "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x} test/{,**/}*.ts{,x}",
+    "clean": "rm -r -f libc; rm -r -f coverage"
+  },
+  "keywords": [],
+  "dependencies": {
+    "uuid": "^7.0.2"
+  }
+}

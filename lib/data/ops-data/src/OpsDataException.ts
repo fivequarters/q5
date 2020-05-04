@@ -28,6 +28,7 @@ export enum OpsDataExceptionCode {
   configNotProvided = 'configNotProvided',
   demoteLastStackNotAllowed = 'demoteLastStackNotAllowed',
   removeActiveStackNotAllowed = 'removeActiveStackNotAllowed',
+  invalidElasticSearchUrl = 'invalidElasticSearchUrl',
 }
 
 // ----------------
@@ -179,5 +180,10 @@ export class OpsDataException extends Exception {
       "and can not be removed without the 'force' option",
     ].join(' ');
     return new OpsDataException(OpsDataExceptionCode.removeActiveStackNotAllowed, message, [id, deploymentName]);
+  }
+
+  public static invalidElasticSearchUrl(elasticSearchUrl: string) {
+    const message = `The supplied Elastic Search URL '${elasticSearchUrl}' did not conform to the required format: https://user:password@hostname.com`;
+    return new OpsDataException(OpsDataExceptionCode.invalidElasticSearchUrl, message, [elasticSearchUrl]);
   }
 }

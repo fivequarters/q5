@@ -6,9 +6,7 @@
   "license": "UNLICENSED",
   "author": "FiveQuarters.io",
   "scripts": {
-    "build": "tsc -b && yarn build:cron && yarn build:dwh",
-    "build:cron": "tsc -b ./lambda/cron/tsconfig.json && ./lambda/cron/bundle.sh",
-    "build:dwh": "tsc -b ./lambda/dwh/tsconfig.json && ./lambda/dwh/bundle.sh",
+    "build": "tsc -b",
     "test": "jest --colors",
     "coverage": "jest --colors --coverage",
     "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x} test/{,**/}*.ts{,x}",
@@ -34,7 +32,8 @@
     "@5qtrs/aws-region": "^0.0.1",
     "@5qtrs/storage-data-aws": "^0.0.1",
     "@5qtrs/random": "^0.0.1",
-    "@5qtrs/jwt": "^0.0.1"
+    "@5qtrs/jwt": "^0.0.1",
+    "@5qtrs/ops-lambda-set": "^0.0.1"
   },
   "devDependencies": {
     "@types/async": "^2.4.1"

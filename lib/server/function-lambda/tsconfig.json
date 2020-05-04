@@ -5,14 +5,15 @@
     "module": "CommonJS",
     "outDir": "libc",
     "allowJs": true,
-    "declaration": false,
-    "declarationMap": false,
-    "composite": false
+    "declaration": true,
+    "declarationMap": true,
+    "composite": true
   },
   "include": ["src"],
   "references": [
     { "path": "../bq-metering" },
     { "path": "../../shared/json-stable" },
-    { "path": "../../shared/key-value" }
+    { "path": "../../shared/key-value" },
+    { "path": "../../runtime/common" }
   ]
 }

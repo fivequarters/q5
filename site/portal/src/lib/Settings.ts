@@ -8,12 +8,7 @@ export interface IFusebitAuth {
 }
 
 function isIFusebitAuth(o: any): o is IFusebitAuth {
-  return (
-    o &&
-    typeof o === "object" &&
-    typeof o.access_token === "string" &&
-    typeof o.expires_at === "number"
-  );
+  return o && typeof o === "object" && typeof o.access_token === "string" && typeof o.expires_at === "number";
 }
 
 export interface IFusebitAuthError {
@@ -23,12 +18,7 @@ export interface IFusebitAuthError {
 }
 
 function isIFusebitAuthError(o: any): o is IFusebitAuth {
-  return (
-    o &&
-    typeof o === "object" &&
-    typeof o.error === "string" &&
-    typeof o.error_description === "string"
-  );
+  return o && typeof o === "object" && typeof o.error === "string" && typeof o.error_description === "string";
 }
 
 export interface IFusebitProfile {
@@ -100,8 +90,7 @@ function isIFusebitProfile(o: any): o is IFusebitProfile {
     typeof o.oauth === "object" &&
     typeof o.oauth.webAuthorizationUrl === "string" &&
     typeof o.oauth.webClientId === "string" &&
-    (o.oauth.webLogoutUrl === undefined ||
-      typeof o.oauth.webLogoutUrl === "string")
+    (o.oauth.webLogoutUrl === undefined || typeof o.oauth.webLogoutUrl === "string")
   );
 }
 
@@ -112,7 +101,7 @@ export interface IFusebitUISettings {
 
 export const defaultFusebitUISettings: IFusebitUISettings = {
   tableRowsPerPage: 10,
-  utcTime: false,
+  utcTime: false
 };
 
 export interface IFusebitSettings {
@@ -128,11 +117,7 @@ function isIFusebitSettings(o: any): o is IFusebitSettings {
     typeof o.currentProfile === "string" &&
     Array.isArray(o.profiles) &&
     o.profiles.length ===
-      o.profiles.reduce(
-        (count: number, profile: any) =>
-          (count += isIFusebitProfile(profile) ? 1 : 0),
-        0
-      ) &&
+      o.profiles.reduce((count: number, profile: any) => (count += isIFusebitProfile(profile) ? 1 : 0), 0) &&
     typeof o.ui === "object" &&
     typeof o.ui.tableRowsPerPage === "number" &&
     typeof o.ui.utcTime === "boolean"
@@ -156,8 +141,8 @@ function getExternalSettingsUrl(): string {
         "Please ask your Fusebit administrator for instructions. ",
         "You can provide either a valid HTTPS URL or a ",
         "{organization}/{repository}[/{file}][#{profile-name}] string that identifies an ",
-        "existing file in a public Github repository.",
-      ].join(""),
+        "existing file in a public Github repository."
+      ].join("")
     });
   }
 }
@@ -171,16 +156,16 @@ async function getExternalSettings(url: string): Promise<IFusebitSettings> {
     throw new FusebitError("Unable to initialize Fusebit Portal", {
       details: [
         `Unable to obtain Fusebit settings from ${serverUrl}. `,
-        `Please ask your Fusebit administrator for instructions.`,
-      ].join(""),
+        `Please ask your Fusebit administrator for instructions.`
+      ].join("")
     });
   }
   if (settingsResponse.status !== 200) {
     throw new FusebitError("Unable to initialize Fusebit Portal", {
       details: [
         `Error obtaining Fusebit settings from ${serverUrl}. HTTP status code is ${settingsResponse.status}. `,
-        `Please ask your Fusebit administrator for instructions.`,
-      ].join(""),
+        `Please ask your Fusebit administrator for instructions.`
+      ].join("")
     });
   }
   let settings: any = settingsResponse.body || settingsResponse.text;
@@ -192,8 +177,8 @@ async function getExternalSettings(url: string): Promise<IFusebitSettings> {
         details: [
           `Error obtaining Fusebit settings from ${serverUrl}. `,
           `Response data is not a JSON object. `,
-          `Please ask your Fusebit administrator for instructions.`,
-        ].join(""),
+          `Please ask your Fusebit administrator for instructions.`
+        ].join("")
       });
     }
   }
@@ -202,16 +187,16 @@ async function getExternalSettings(url: string): Promise<IFusebitSettings> {
     throw new FusebitError("Unable to initialize Fusebit Portal", {
       details: [
         `The data obtained from ${serverUrl} is not in the format required by Fusebit Settings. `,
-        `Please ask your Fusebit administrator for instructions.`,
-      ].join(""),
+        `Please ask your Fusebit administrator for instructions.`
+      ].join("")
     });
   }
   if (settings.profiles.length === 0) {
     throw new FusebitError("Unable to initialize Fusebit Portal", {
       details: [
         `The Fusebit Settings from ${serverUrl} do not specify any profiles. `,
-        `Please ask your Fusebit administrator for instructions.`,
-      ].join(""),
+        `Please ask your Fusebit administrator for instructions.`
+      ].join("")
     });
   }
   if (sourceProfile && settings.currentProfile !== sourceProfile) {
@@ -225,11 +210,9 @@ async function getExternalSettings(url: string): Promise<IFusebitSettings> {
       throw new FusebitError("Unable to initialize Fusebit Portal", {
         details: [
           `The Fusebit Settings from ${serverUrl} do not specify the requested profile ${sourceProfile}. `,
-          `Available profiles are: ${settings.profiles
-            .map((p) => p.id)
-            .join(", ")}. `,
-          `Please ask your Fusebit administrator for instructions.`,
-        ].join(""),
+          `Available profiles are: ${settings.profiles.map(p => p.id).join(", ")}. `,
+          `Please ask your Fusebit administrator for instructions.`
+        ].join("")
       });
     }
   }
@@ -295,5 +278,5 @@ export {
   isIFusebitAuth,
   isIFusebitAuthError,
   getUISettings,
-  setUISettings,
+  setUISettings
 };

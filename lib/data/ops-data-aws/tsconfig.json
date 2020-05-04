@@ -19,6 +19,7 @@
     { "path": "../../aws/aws-region" },
     { "path": "../storage-data-aws" },
     { "path": "../../shared/random" },
-    { "path": "../../node/jwt" }
+    { "path": "../../node/jwt" },
+    { "path": "../../runtime/ops-lambda-set" }
   ]
 }

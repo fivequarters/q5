@@ -89,3 +89,29 @@ export function opacity(color: FusebitColor, value: number): FusebitColor {
 
   return `hsla(${values[0]}, ${values[1]}%, ${values[2]}%, ${value})` as FusebitColor;
 }
+
+const httpCodeColorSet: { [code: number]: string } = {
+  [200]: FusebitColor.cyan,
+  [300]: darken(FusebitColor.cyan),
+  [301]: FusebitColor.lightBlue,
+  [304]: darken(FusebitColor.lightBlue),
+  [307]: darken(FusebitColor.lightBlue, 20),
+  [400]: darken(FusebitColor.orange),
+  [401]: darken(FusebitColor.orange, 20),
+  [403]: darken(FusebitColor.orange, 40),
+  [404]: FusebitColor.orange,
+  [410]: FusebitColor.gray,
+  [500]: FusebitColor.red,
+  [501]: darken(FusebitColor.red),
+  [503]: darken(FusebitColor.red, 20),
+  [550]: darken(FusebitColor.red, 30),
+};
+
+export function httpCodeColorMap(code: number) {
+  let color = httpCodeColorSet[code];
+
+  if (color == undefined) {
+    color = FusebitColor.dark;
+  }
+  return color;
+}
