@@ -17,6 +17,18 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.16.0
+
+_Released 5/4/20_
+
+- **Support for monitoring and metrics via ElasticSearch** This release adds support for an optional back-end
+Elastic Search service, enabling advanced monitoring and analytics of function execution results and
+performance.
+  - This release includes an updated `v1.22` version of the `fuseops-cli`.  Please update by downloading the
+    new archive and installing via `npm`.
+  - This release requires additional foundational artifacts.  Please execute `fuse-ops setup` and `fuse-ops
+    deployment add` for hosted releases to create the underlying artifacts correctly.
+
 ## Version 1.15.3
 
 _Released 5/2/20_
