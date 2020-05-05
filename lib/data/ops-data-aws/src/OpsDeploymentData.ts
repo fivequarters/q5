@@ -71,8 +71,8 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
         throw OpsDataException.deploymentDifferentNetwork(deployment.deploymentName, existing.networkName);
       }
 
-      // Protect certain variables from accidentally being cleared or reset
-      deployment.featureUseDnsS3Bucket = existing.featureUseDnsS3Bucket;
+      // Protect certain variables from accidentally being cleared or reset - treat unspecified as 'false'.
+      deployment.featureUseDnsS3Bucket = !!existing.featureUseDnsS3Bucket;
 
       if (deployment.size == null || deployment.size < 1) {
         deployment.size = existing.size;

@@ -160,7 +160,7 @@ function createOrUpdateLambda(lambda: any, config: any, cb: AsyncCb) {
         );
       }
     }
-    debug('Finished with lambda create', e);
+    debug('Finished with lambda create, error: ', e);
     return cb(e);
   });
 }
@@ -179,8 +179,11 @@ function createCloudWatchSubscription(cwl: any, config: any, cb: AsyncCb) {
 function deleteCloudWatchSubscription(cwl: any, config: any, cb: AsyncCb) {
   debug('deleteCloudWatchSubscription', config);
   cwl.deleteSubscriptionFilter(config, (e: any, d: any) => {
-    if (e) debug('error ignored:', e);
-    cb();
+    if (e && e.code != 'ResourceNotFoundException') {
+      debug('Unable to delete object:', e);
+      return cb(e);
+    }
+    return cb();
   });
 }
 
