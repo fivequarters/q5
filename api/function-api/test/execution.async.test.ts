@@ -178,7 +178,7 @@ describe('execution', () => {
     let response = await putFunction(account, boundaryId, function1Id, {
       nodejs: {
         files: {
-          'index.js': `module.exports = async (ctx) => { return {}; };`,
+          'index.js': `module.exports = async (ctx) => { };`,
         },
       },
     });
