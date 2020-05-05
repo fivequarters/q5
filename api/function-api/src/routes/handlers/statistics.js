@@ -2,10 +2,6 @@ const { getAccountContext } = require('../account');
 const httpError = require('http-errors');
 const superagent = require('superagent');
 
-const StatisticsAction = {
-  Get: 'statistics:get',
-};
-
 if (process.env.ES_HOST && process.env.ES_USER && process.env.ES_PASSWORD) {
   console.log(
     `Elastic Search configuration: ${process.env.ES_USER}:${process.env.ES_PASSWORD.length > 0 ? '*' : 'X'}@${
@@ -399,6 +395,5 @@ function statisticsGet() {
 
 module.exports = {
   statisticsGet,
-  StatisticsAction,
   statisticsQueries,
 };
