@@ -27,6 +27,7 @@ function FilterFab({ children }: any) {
     if (
       (anchorRef.current &&
         anchorRef.current.contains(event.target as HTMLElement)) ||
+      (event.target as HTMLElement).nodeName === "BODY" ||
       ((event.target as HTMLElement).classList &&
         (event.target as HTMLElement).classList.contains(
           "fusebit-prevent-clickaway"
