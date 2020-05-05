@@ -685,7 +685,7 @@ router.get(
   analytics.enterHandler(analytics.Modes.Operations),
   cors(corsManagementOptions),
   validate_schema({ params: require('./schemas/api_account') }),
-  authorize({ operation: statistics.StatisticsAction.Get }),
+  authorize({ operation: 'function:get' }),
   validate_schema({ params: require('./schemas/api_params') }),
   statistics.statisticsGet(),
   analytics.finished
@@ -697,7 +697,7 @@ router.get(
   analytics.enterHandler(analytics.Modes.Operations),
   cors(corsManagementOptions),
   validate_schema({ params: require('./schemas/api_account') }),
-  authorize({ operation: statistics.StatisticsAction.Get }),
+  authorize({ operation: 'function:get' }),
   validate_schema({ params: require('./schemas/api_params') }),
   statistics.statisticsGet(),
   analytics.finished
@@ -712,7 +712,7 @@ router.get(
   analytics.enterHandler(analytics.Modes.Operations),
   cors(corsManagementOptions),
   validate_schema({ params: require('./schemas/api_account') }),
-  authorize({ operation: statistics.StatisticsAction.Get }),
+  authorize({ operation: 'function:get' }),
   validate_schema({ params: require('./schemas/api_params') }),
   statistics.statisticsGet(),
   analytics.finished
@@ -727,7 +727,7 @@ router.get(
   analytics.enterHandler(analytics.Modes.Operations),
   cors(corsManagementOptions),
   validate_schema({ params: require('./schemas/api_account') }),
-  authorize({ operation: statistics.StatisticsAction.Get }),
+  authorize({ operation: 'function:get' }),
   validate_schema({ params: require('./schemas/api_params') }),
   statistics.statisticsGet(),
   analytics.finished
