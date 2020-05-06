@@ -360,7 +360,7 @@ export class FusebitProfile {
     const result = {
       type: 'pki',
       algorithm: jwtAlgorithm,
-      audience: profile.baseUrl,
+      audience: process.env.FUSEBIT_AUDIENCE || profile.baseUrl, // Provide an override for local test targets.
       issuer: profile.issuer,
       subject: profile.subject,
       kid: profile.kid,
@@ -408,7 +408,7 @@ export class FusebitProfile {
     const options = {
       algorithm: jwtAlgorithm,
       expiresIn: expireInSeconds,
-      audience: profile.baseUrl,
+      audience: process.env.FUSEBIT_AUDIENCE || profile.baseUrl, // Provide an override for local test targets.
       issuer: profile.issuer,
       subject: profile.subject,
       keyid: profile.kid,
