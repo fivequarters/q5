@@ -294,7 +294,7 @@ const codeHistogram = async (req, res, next, queryName, evtToValue) => {
     // Convert the results to the desired format
     for (const evt of response.items) {
       try {
-        histogram[evt.key_as_string][codeKey] = evtToValue(evt);
+        histogram[evt.key_as_string][code] = evtToValue(evt);
       } catch (e) {
         histogram[evt.key_as_string] = {
           key: new Date(Date.parse(evt.key_as_string)).toISOString(),
