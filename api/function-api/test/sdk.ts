@@ -324,9 +324,9 @@ export async function deleteAllFunctions(account: IAccount, boundaryId?: string)
   let response = await listFunctions(account, boundaryId);
   if (response.status !== 200) {
     throw new Error(
-      `Unable to list functions in account ${account.accountId}, subscription ${account.subscriptionId}, boundary ${
-        boundaryId || '*'
-      } on deployment ${account.baseUrl}.`
+      `Unable to list functions in account ${account.accountId}, subscription ${
+        account.subscriptionId
+      }, boundary ${boundaryId || '*'} on deployment ${account.baseUrl}.`
     );
   }
   return Promise.all(
@@ -895,15 +895,14 @@ export async function getStatistics(
   url = url + `/statistics/${statisticsKey}`;
 
   if (!params) {
-    console.log('\t15m-1m @ 200');
     params = {
-      to: new Date(Date.now() + ms('1m')),
+      to: new Date(Date.now() + ms('5m')),
       from: new Date(Date.now() - ms('15m')),
       statusCode: 200,
     };
   } else {
     if (params.to == undefined) {
-      params.to = new Date();
+      params.to = new Date(Date.now() + ms('5m'));
     }
 
     if (params.from == undefined) {
@@ -917,6 +916,9 @@ export async function getStatistics(
 
   // Poll for the test criteria to be satisfied, or a maximum interval.
   do {
+    if (retries != 0) {
+      await new Promise((resolve, reject) => setTimeout(() => resolve(), 1000));
+    }
     response = await request({
       method: 'GET',
       headers: {
