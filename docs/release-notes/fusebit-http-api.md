@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.16.1
+
+_Released 5/6/20_
+
+- **Statistics: Include support for grouping HTTP histograms by aggregate 2xx, 3xx, etc.**
+
 ## Version 1.16.0
 
 _Released 5/4/20_

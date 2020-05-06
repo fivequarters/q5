@@ -1822,6 +1822,13 @@ paths:
 #        schema:
 #          type: string
 #          default: 1d
+#      - name: codeGrouped
+#        in: query
+#        description: Group HTTP response codes by 2xx, 3xx, 4xx, and 5xx instead of granular by each code
+#        required: false
+#        schema:
+#          type: boolean
+#          default: false
 #    get:
 #      tags:
 #        - Statistics
@@ -1905,6 +1912,13 @@ paths:
 #        schema:
 #          type: string
 #          default: "1d"
+#      - name: codeGrouped
+#        in: query
+#        description: Group HTTP response codes by 2xx, 3xx, 4xx, and 5xx instead of granular by each code
+#        required: false
+#        schema:
+#          type: boolean
+#          default: false
 #    get:
 #      tags:
 #        - Statistics
