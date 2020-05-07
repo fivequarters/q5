@@ -20,19 +20,15 @@ const headers = {
 // If a number is supplied, query for just that number.  Otherwise, assume that the caller is
 // passing in some range query {gte:200, lt:300} for example.
 const codeToESQuery = code => {
-  return typeof code == 'number'
-    ? {
-        match_phrase: {
-          'response.statusCode': {
-            query: `${code}`,
-          },
-        },
-      }
-    : {
-        range: {
-          'response.statusCode': code,
-        },
-      };
+  const queryType = typeof code == 'number' ? 'match' : 'range';
+  return { [queryType]: { 'response.statusCode': code } };
+};
+
+const httpRangeFilterCodes = {
+  '2xx': { gte: 200, lt: 300 },
+  '3xx': { gte: 300, lt: 400 },
+  '4xx': { gte: 400, lt: 500 },
+  '5xx': { gte: 500, lt: 600 },
 };
 
 const commonHistogramAggs = (interval, minDocCount, additionalResults) => {
@@ -42,7 +38,6 @@ const commonHistogramAggs = (interval, minDocCount, additionalResults) => {
         date_histogram: {
           field: '@timestamp',
           calendar_interval: interval,
-          time_zone: 'America/Los_Angeles',
           min_doc_count: minDocCount,
         },
         ...additionalResults,
@@ -108,7 +103,7 @@ const queries = {
         ...commonHistogramAggs(interval, minDocCount, {
           aggs: {
             latency: {
-              sum: {
+              avg: {
                 field: 'metrics.common.duration',
               },
             },
@@ -151,7 +146,7 @@ const queries = {
             filter: [
               {
                 bool: {
-                  should: [{ match: { 'response.statusCode': statusCode } }],
+                  should: [codeToESQuery(statusCode)],
                   minimum_should_match: minDocCount,
                 },
               },
@@ -282,12 +277,7 @@ const codeHistogram = async (req, res, next, queryName, evtToValue) => {
     codeQuery.items.forEach(x => (filterCodes[x] = x));
   } else {
     // Group the codes based on range.
-    filterCodes = {
-      '2xx': { gte: 200, lt: 300 },
-      '3xx': { gte: 300, lt: 400 },
-      '4xx': { gte: 400, lt: 500 },
-      '5xx': { gte: 500, lt: 600 },
-    };
+    filterCodes = httpRangeFilterCodes;
   }
 
   let histogram = {};
@@ -304,7 +294,7 @@ const codeHistogram = async (req, res, next, queryName, evtToValue) => {
     // Convert the results to the desired format
     for (const evt of response.items) {
       try {
-        histogram[evt.key_as_string][code] = evtToValue(evt);
+        histogram[evt.key_as_string][codeKey] = evtToValue(evt);
       } catch (e) {
         histogram[evt.key_as_string] = {
           key: new Date(Date.parse(evt.key_as_string)).toISOString(),
@@ -333,12 +323,16 @@ const codeLatencyHistogram = async (req, res, next) => {
   codeHistogram(req, res, next, 'codeLatencyHistogram', evt => evt.avg_latency);
 };
 
+const codeActivityLatencyHistogram = async (req, res, next) => {
+  codeHistogram(req, res, next, 'codeLatencyHistogram', evt => [evt.avg_latency, evt.doc_count]);
+};
+
 const itemizedBulk = async (req, res, next) => {
   let range = {};
 
   let bulk = {};
 
-  const statusCode = parseInt(req.query.statusCode) || 200;
+  const statusCode = Number(req.query.statusCode) || httpRangeFilterCodes[req.query.statusCode] || 200;
   const fromIdx = parseInt(req.query.next) || 0;
   const pageSize = parseInt(req.query.count) || 5;
 
@@ -361,6 +355,7 @@ const itemizedBulk = async (req, res, next) => {
 const statisticsQueries = {
   codeactivityhg: codeActivityHistogram,
   codelatencyhg: codeLatencyHistogram,
+  codeactivitylatencyhg: codeActivityLatencyHistogram,
   itemizedbulk: itemizedBulk,
 };
 

@@ -1811,11 +1811,16 @@ paths:
 #        description: |
 #          Aggregate statistical analysis on a bucket of this width.
 #
-#          Examples of widths:
+#          Valid widths:
 #
+#            - `1s` - Aggregate on buckets 1 second in width
+#            - `1m` - Aggregate on buckets 1 minute in width
+#            - `1h` - Aggregate on buckets 1 hour in width
 #            - `1d` - Aggregate on buckets one day in width
-#            - `15m` - Aggregate on buckets 15 minutes in width
 #            - `1w` - Aggregate on buckets on a weekly basis
+#            - `1M` - Aggregate on buckets on a monthly basis
+#            - `1q` - Aggregate on buckets on a quarterly basis
+#            - `1y` - Aggregate on buckets on a yearly basis
 #
 #          The width is passed to the Elastic Search backend, and follows the [calendar interval specification](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-bucket-datehistogram-aggregation.html#calendar_intervals).
 #        required: false
@@ -1988,9 +1993,9 @@ paths:
 #          type: string
 #      - name: statusCode
 #        in: query
-#        description: Filter the reported statistics on this HTTP status code.
+#        description: Filter the reported statistics on this HTTP status code, or status code group such as 2xx, 3xx, etc.
 #        schema:
-#          type: number
+#          type: string
 #          default: 200
 #      - name: next
 #        in: query

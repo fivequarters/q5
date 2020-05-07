@@ -12,6 +12,8 @@ import { httpCodeColorMap } from '@5qtrs/fusebit-color';
 interface IProps {
   code: string;
   label: string;
+  multi: boolean;
+  codeGrouped: boolean;
   urlWart: string;
   profile: IFusebitProfile;
   interval: IDateInterval;
@@ -24,17 +26,18 @@ const MonitorGraph: React.FC<IProps> = props => {
   const [data, setData] = useState({ codes: [], items: [] });
 
   // Run once on page load, but first unpack props:
-  const { profile, code, label, urlWart, interval, setEventRange, setActiveCodeList } = props;
+  const { profile, code, label, multi, codeGrouped, urlWart, interval, setEventRange, setActiveCodeList } = props;
 
   useEffect(() => {
-    getStatisticalMonitorData(profile, code, urlWart, interval, setData, setActiveCodeList);
-  }, [profile, code, urlWart, interval, setData, setActiveCodeList]);
+    getStatisticalMonitorData(profile, code, urlWart, codeGrouped, interval, setData, setActiveCodeList);
+  }, [profile, code, urlWart, codeGrouped, interval, setData, setActiveCodeList]);
   // ^^^ Note to self: don't put props in the deps, it's not a stable referant.
 
   const dateTickFormatter = (msTime: any): string => {
     if (typeof msTime != 'number') {
       return '';
     }
+
     return formatByBucketWidth(new Date(msTime), interval.width, getUISettings().utcTime);
   };
 
@@ -76,16 +79,61 @@ const MonitorGraph: React.FC<IProps> = props => {
     return <LinearProgress value={0} variant="determinate" style={{ visibility: 'hidden' }} />;
   };
 
+  const lines = data.codes.map(id => {
+    if (multi) {
+      return [
+        <Line
+          yAxisId="right"
+          type="linear"
+          key={id + ' latency'}
+          dataKey={id + '[0]'}
+          name={id + ' latency'}
+          dot={false}
+          activeDot={{ r: 4 }}
+          stroke={httpCodeColorMap(id)}
+          strokeDasharray="3 3"
+        />,
+        <Line
+          yAxisId="left"
+          type="linear"
+          key={id}
+          dataKey={id + '[1]'}
+          name={id + ' results'}
+          dot={false}
+          activeDot={{ r: 4 }}
+          stroke={httpCodeColorMap(id)}
+        />,
+      ];
+    } else {
+      return (
+        <Line
+          yAxisId="left"
+          type="linear"
+          key={id}
+          dataKey={id}
+          dot={false}
+          activeDot={{ r: 4 }}
+          stroke={httpCodeColorMap(id)}
+        />
+      );
+    }
+  });
+
   // Quick hack, let's turn the key into an integer.
   return (
     <div>
       <InProgressBar />
       <div style={{ width: '100%', height: 300 }}>
         <ResponsiveContainer>
-          <LineChart width={900} height={500} data={data.items} onClick={(e, v) => setHTTPEventRange(e.activeLabel)}>
+          <LineChart
+            width={900}
+            height={500}
+            data={data.items}
+            onClick={(e, v) => e && setHTTPEventRange(e.activeLabel)}
+          >
             <CartesianGrid stroke="#ccc" />
             <Tooltip content={CustomTooltip} />
-            <Legend verticalAlign="top" height={36} />
+            <Legend height={36} />
             <XAxis
               type="number"
               domain={[interval.from.getTime(), interval.to.getTime()]}
@@ -93,19 +141,9 @@ const MonitorGraph: React.FC<IProps> = props => {
               label={{ value: label, position: 'insideBottom' }}
               tickFormatter={dateTickFormatter}
             />
-            <YAxis />
-            {data.codes.map(id => {
-              return (
-                <Line
-                  type="monotone"
-                  key={id}
-                  dataKey={id}
-                  dot={false}
-                  activeDot={{ r: 4 }}
-                  stroke={httpCodeColorMap(id)}
-                />
-              );
-            })}
+            <YAxis yAxisId="left" name="Activity" />
+            <YAxis yAxisId="right" unit="ms" orientation="right" name="Latency (ms)" />
+            {lines}
           </LineChart>
         </ResponsiveContainer>
       </div>
