@@ -45,7 +45,7 @@ const MonitorPanel: React.FC<IProps> = props => {
     to: new Date('2020-05-06T21:58:30.254Z'),
     width: BucketWidths.Day,
   });
-  const [eventRange, setEventRange] = useState<IDateInterval | null>(null);
+  const [eventRange, setEventRange] = useState<IDateInterval | null>(interval);
   const [activeCodeList, setActiveCodeList] = useState<any>([200, 300, 400]);
   const [activeCode, setActiveCode] = useState<number | null>(200);
   const [graphModes, setGraphModes] = useState<Array<string>>(['activity', 'latency']);
