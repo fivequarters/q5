@@ -10,7 +10,7 @@ interface IProps {
   profile: IFusebitProfile;
   urlWart: string;
   interval: IDateInterval | null;
-  activeCode: number | null;
+  activeCode: string | number | null;
 }
 
 interface ViewRow {

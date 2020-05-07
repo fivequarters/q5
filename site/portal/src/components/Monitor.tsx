@@ -43,11 +43,11 @@ const MonitorPanel: React.FC<IProps> = props => {
   const [interval, setInterval] = useState<IDateInterval>({
     from: new Date('2020-05-06T21:53:30.254Z'),
     to: new Date('2020-05-06T21:58:30.254Z'),
-    width: BucketWidths.Day,
+    width: BucketWidths.Minute,
   });
   const [eventRange, setEventRange] = useState<IDateInterval | null>(interval);
-  const [activeCodeList, setActiveCodeList] = useState<any>([200, 300, 400]);
-  const [activeCode, setActiveCode] = useState<number | null>(200);
+  const [activeCodeList, setActiveCodeList] = useState<any>(['2xx', '3xx', '4xx', '5xx']);
+  const [activeCode, setActiveCode] = useState<string | number | null>('2xx');
   const [graphModes, setGraphModes] = useState<Array<string>>(['activity', 'latency']);
 
   // Create a common URL wart to pass to the sub-components
@@ -108,11 +108,11 @@ const MonitorPanel: React.FC<IProps> = props => {
         }}
         value={graphModes}
       >
-        <ToggleButton key="latency" value="latency">
-          Latency
-        </ToggleButton>
         <ToggleButton key="activity" value="activity">
-          Activity
+          Show HTTP Activity
+        </ToggleButton>
+        <ToggleButton key="latency" value="latency">
+          Show HTTP Latency
         </ToggleButton>
       </ToggleButtonGroup>
 

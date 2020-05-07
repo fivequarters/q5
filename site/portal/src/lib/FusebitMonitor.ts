@@ -57,7 +57,7 @@ const getBulkMonitorData = async (
   profile: IFusebitProfile,
   urlWart: string,
   interval: IDateInterval | null,
-  activeCode: number | null,
+  activeCode: string | number | null,
   options: IGetDataOptions,
   setData: any
 ): Promise<void> => {
