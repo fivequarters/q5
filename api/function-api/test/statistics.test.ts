@@ -29,7 +29,7 @@ const createAndHitFunction = async (
       boundaryId,
     },
     response => response.data.total != 0,
-    { statusCode: expectedCode }
+    { code: expectedCode }
   );
   httpExpect(response, { status: 200, data: { total: 1, next: 1 } });
 
@@ -81,7 +81,7 @@ describe('statistics', () => {
         // Search w/o the boundaryId,
       },
       response => response.data.total != 0,
-      { statusCode: 200 }
+      { code: 200 }
     );
     httpExpect(response, { status: 200 });
     expect(response.data.items.some((e: any) => e.requestId === entry.requestId)).toBe(true);
@@ -95,7 +95,7 @@ describe('statistics', () => {
         // Search w/o the boundaryId
       },
       response => response.data.total != 0,
-      { statusCode: 200 }
+      { code: 200 }
     );
     httpExpect(response, { status: 200 });
     expect(response.data.items.some((e: any) => e.requestId === entry.requestId)).toBe(true);
@@ -156,7 +156,7 @@ describe('statistics', () => {
         boundaryId: boundaryId,
       },
       response => response.data.items.length != 0,
-      { statusCode: 200 }
+      { code: 200 }
     );
     httpExpect(response, { status: 200 });
     expect(response.data.items.length).toEqual(1);
@@ -172,7 +172,7 @@ describe('statistics', () => {
         // Search w/o the boundaryId,
       },
       response => response.data.items.length != 0,
-      { statusCode: 200 }
+      { code: 200 }
     );
     httpExpect(response, { status: 200 });
     expect(response.data.items.length).toBeGreaterThanOrEqual(1);
@@ -186,11 +186,61 @@ describe('statistics', () => {
         // Search w/o the boundaryId
       },
       response => response.data.total != 0,
-      { statusCode: 200 }
+      { code: 200 }
     );
     httpExpect(response, { status: 200 });
     expect(response.data.items.length).toBeGreaterThanOrEqual(1);
   }, 30000);
 
+  test('field unique histogram contains a function event at various scopes', async () => {
+    const account = getAccount();
+    let boundaryId = rotateBoundary();
+    if (!(await statisticsEnabled(account))) return;
+
+    // Create and hit target function
+    let response = await createAndHitFunction(
+      account,
+      boundaryId,
+      'module.exports = async (ctx) => { return { body: "hello" }; };',
+      200,
+      'function'
+    );
+    // Validate: one response back from the statistics endpoint for this boundary
+    expect(response.data.items.length).toEqual(1);
+    let entry = response.data.items[0];
+    validateEntry(account, entry, boundaryId, function1Id);
+
+    // Validate: value of 1 is present for a 200 success
+    response = await getStatistics(
+      account,
+      'fielduniquehg',
+      {
+        accountId: account.accountId,
+        subscriptionId: account.subscriptionId,
+        boundaryId: boundaryId,
+      },
+      response => response.data.items.length != 0,
+      { field: 'accountid', code: 200 }
+    );
+    httpExpect(response, { status: 200 });
+    expect(response.data.items.length).toEqual(1);
+    expect(response.data.items[0]).toHaveProperty('200', 1);
+    expect(response.data.items[0]).toHaveProperty('key');
+
+    // Validate: no hits found for a code of 300
+    response = await getStatistics(
+      account,
+      'fielduniquehg',
+      {
+        accountId: account.accountId,
+        subscriptionId: account.subscriptionId,
+        boundaryId: boundaryId,
+      },
+      response => response.data.items.length == 0,
+      { field: 'accountid', code: 300 }
+    );
+    httpExpect(response, { status: 200 });
+    expect(response.data.items.length).toEqual(0);
+  }, 30000);
   test.todo('cron function invocation event');
 });

@@ -72,7 +72,7 @@ const getBulkMonitorData = async (
       .query({
         from: interval.from.toISOString(),
         to: interval.to.toISOString(),
-        statusCode: activeCode,
+        code: activeCode,
         next: options.offset,
         count: options.pageSize,
       })

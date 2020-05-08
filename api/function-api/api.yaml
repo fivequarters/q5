@@ -2090,7 +2090,7 @@ paths:
 #        required: true
 #        schema:
 #          type: string
-#      - name: statusCode
+#      - name: code
 #        in: query
 #        description: Filter the reported statistics on this HTTP status code, or status code group such as 2xx, 3xx, etc.
 #        schema:

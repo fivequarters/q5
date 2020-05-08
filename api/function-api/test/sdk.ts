@@ -845,6 +845,7 @@ export interface IStatisticsParams {
   statusCode?: number;
   next?: number;
   count?: number;
+  field?: number;
 }
 
 //export async function clearStatistics(username: string, password: string, hostname: string) {
@@ -898,7 +899,7 @@ export async function getStatistics(
     params = {
       to: new Date(Date.now() + ms('5m')),
       from: new Date(Date.now() - ms('15m')),
-      statusCode: 200,
+      code: 200,
     };
   } else {
     if (params.to == undefined) {
