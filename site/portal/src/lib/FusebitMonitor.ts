@@ -3,6 +3,7 @@ import { ensureAccessToken, createHttpException } from './Fusebit';
 import Superagent from 'superagent';
 
 enum BucketWidths {
+  Second = '1s',
   Minute = '1m',
   Hour = '1h',
   Day = '1d',
@@ -31,6 +32,7 @@ const TZLocal = Intl.DateTimeFormat().resolvedOptions().timeZone;
 const TZUTC = 'utc';
 
 const BucketWidthsDateFormat = {
+  [BucketWidths.Second]: { minute: 'numeric', second: 'numeric' },
   [BucketWidths.Minute]: { hour: 'numeric', minute: 'numeric', second: 'numeric' },
   [BucketWidths.Hour]: { month: 'short', day: 'numeric', hour: 'numeric' },
   [BucketWidths.Day]: { month: 'short', day: 'numeric' },
@@ -55,7 +57,7 @@ const getBulkMonitorData = async (
   profile: IFusebitProfile,
   urlWart: string,
   interval: IDateInterval | null,
-  activeCode: number | null,
+  activeCode: string | number | null,
   options: IGetDataOptions,
   setData: any
 ): Promise<void> => {
@@ -86,6 +88,7 @@ const getStatisticalMonitorData = async (
   profile: IFusebitProfile,
   queryType: string,
   urlWart: string,
+  codeGrouped: boolean,
   interval: IDateInterval,
   setData: any,
   setActiveCodeList: any
@@ -98,6 +101,7 @@ const getStatisticalMonitorData = async (
         from: interval.from.toISOString(),
         to: interval.to.toISOString(),
         width: interval.width,
+        codeGrouped: codeGrouped ? null : undefined,
       })
       .set('Authorization', `Bearer ${auth.access_token}`);
 

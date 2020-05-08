@@ -2,13 +2,15 @@ import React, { useEffect, useRef } from 'react';
 import { IFusebitProfile } from '../lib/Settings';
 import MaterialTable from 'material-table';
 import ReactJson from 'react-json-view';
-import { IDateInterval, getBulkMonitorData } from '../lib/FusebitMonitor';
+import { IDateInterval, getBulkMonitorData, formatByBucketWidth, BucketWidths } from '../lib/FusebitMonitor';
+
+import ResourceCrumb from './ResourceCrumb';
 
 interface IProps {
   profile: IFusebitProfile;
   urlWart: string;
   interval: IDateInterval | null;
-  activeCode: number | null;
+  activeCode: string | number | null;
 }
 
 interface ViewRow {
@@ -30,16 +32,11 @@ const toCol = (field: string, title: string, params: any = {}): any => ({
   ...params,
 });
 
-const eventColumns: any[] = [
-  toCol('timestamp', 'Time'),
-  toCol('responseCode', 'Code'),
-  toCol('method', 'Method'),
-  toCol('url', 'URL'),
-  toCol('hostname', 'Source'),
-  toCol('subscriptionId', 'Subscription'),
-  toCol('boundaryId', 'Boundary'),
-  toCol('functionId', 'Function'),
-];
+const resourceRender = (row: any) => (
+  <ResourceCrumb
+    resource={`/account/${row.dataRow.fusebit.accountId}/subscription/${row.dataRow.fusebit.subscriptionId}/boundary/${row.dataRow.fusebit.boundaryId}/function/${row.dataRow.fusebit.functionId}/`}
+  />
+);
 
 const toEventViewRow = (dataRow: any): ViewRow => ({
   timestamp: dataRow.timestamp,
@@ -48,9 +45,9 @@ const toEventViewRow = (dataRow: any): ViewRow => ({
   method: dataRow.request.method,
   url: dataRow.request.url,
   hostname: dataRow.request.hostname,
-  subscriptionId: dataRow.request.params.subscriptionId,
-  boundaryId: dataRow.request.params.boundaryId,
-  functionId: dataRow.request.params.functionId,
+  subscriptionId: dataRow.fusebit.subscriptionId,
+  boundaryId: dataRow.fusebit.boundaryId,
+  functionId: dataRow.fusebit.functionId,
   dataRow: dataRow,
 });
 
@@ -60,6 +57,29 @@ const HTTPActivityLog: React.FC<IProps> = ({ profile, urlWart, interval, activeC
   useEffect(() => {
     tableRef.current && tableRef.current.onQueryChange();
   }, [profile, urlWart, interval, activeCode]);
+
+  const eventColumns: any[] = [
+    toCol('timestamp', 'Time', {
+      width: 120,
+      render: (r: any) => {
+        let d = new Date(r.timestamp);
+        let s: string;
+        if (interval) {
+          s = formatByBucketWidth(d, interval.width, false);
+          if (interval.width === BucketWidths.Second) {
+            s = s + '.' + `${d.getMilliseconds()}`.padStart(3, '0');
+          }
+        } else {
+          s = formatByBucketWidth(d, BucketWidths.Minute, false);
+        }
+        return <div>{s}</div>;
+      },
+    }),
+    toCol('responseCode', 'Code', { width: 50 }),
+    toCol('hostname', 'Source'),
+    toCol('method', 'Method', { width: 50 }),
+    toCol('resource', 'Resource', { render: resourceRender }),
+  ];
 
   return (
     <MaterialTable

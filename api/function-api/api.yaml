@@ -1811,17 +1811,29 @@ paths:
 #        description: |
 #          Aggregate statistical analysis on a bucket of this width.
 #
-#          Examples of widths:
+#          Valid widths:
 #
+#            - `1s` - Aggregate on buckets 1 second in width
+#            - `1m` - Aggregate on buckets 1 minute in width
+#            - `1h` - Aggregate on buckets 1 hour in width
 #            - `1d` - Aggregate on buckets one day in width
-#            - `15m` - Aggregate on buckets 15 minutes in width
 #            - `1w` - Aggregate on buckets on a weekly basis
+#            - `1M` - Aggregate on buckets on a monthly basis
+#            - `1q` - Aggregate on buckets on a quarterly basis
+#            - `1y` - Aggregate on buckets on a yearly basis
 #
 #          The width is passed to the Elastic Search backend, and follows the [calendar interval specification](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-bucket-datehistogram-aggregation.html#calendar_intervals).
 #        required: false
 #        schema:
 #          type: string
-#          default: 1d
+#          default: "1d"
+#      - name: codeGrouped
+#        in: query
+#        description: Group HTTP response codes by 2xx, 3xx, 4xx, and 5xx instead of granular by each code
+#        required: false
+#        schema:
+#          type: boolean
+#          default: false
 #    get:
 #      tags:
 #        - Statistics
@@ -1894,17 +1906,29 @@ paths:
 #        description: |
 #          Aggregate statistical analysis on a bucket of this width.
 #
-#          Examples of widths:
+#          Valid widths:
 #
+#            - `1s` - Aggregate on buckets 1 second in width
+#            - `1m` - Aggregate on buckets 1 minute in width
+#            - `1h` - Aggregate on buckets 1 hour in width
 #            - `1d` - Aggregate on buckets one day in width
-#            - `15m` - Aggregate on buckets 15 minutes in width
 #            - `1w` - Aggregate on buckets on a weekly basis
+#            - `1M` - Aggregate on buckets on a monthly basis
+#            - `1q` - Aggregate on buckets on a quarterly basis
+#            - `1y` - Aggregate on buckets on a yearly basis
 #
 #          The width is passed to the Elastic Search backend, and follows the [calendar interval specification](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-bucket-datehistogram-aggregation.html#calendar_intervals).
 #        required: false
 #        schema:
 #          type: string
 #          default: "1d"
+#      - name: codeGrouped
+#        in: query
+#        description: Group HTTP response codes by 2xx, 3xx, 4xx, and 5xx instead of granular by each code
+#        required: false
+#        schema:
+#          type: boolean
+#          default: false
 #    get:
 #      tags:
 #        - Statistics
@@ -1940,7 +1964,101 @@ paths:
 #      security:
 #        - AccessToken: []
 #
-#  /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/statistics/itemizedbulk:
+#  /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/statistics/codeactivitylatencyhg:
+#    parameters:
+#      - name: accountId
+#        in: path
+#        required: true
+#        description: Account id
+#        schema:
+#          $ref: '#/components/schemas/AccountId'
+#      - name: subscriptionId
+#        in: path
+#        description: The subscription id
+#        required: false
+#        schema:
+#          $ref: '#/components/schemas/SubscriptionId'
+#      - name: boundaryId
+#        in: path
+#        description: The boundary id, unique within the subscription.
+#        required: false
+#        schema:
+#          $ref: '#/components/schemas/BoundaryId'
+#      - name: from
+#        in: query
+#        description: Report on statistics starting with this ISO 8601 date string.
+#        required: true
+#        schema:
+#          type: string
+#      - name: to
+#        in: query
+#        description: Report on statistics ending with this ISO 8601 date string.
+#        required: true
+#        schema:
+#          type: string
+#      - name: width
+#        in: query
+#        description: |
+#          Aggregate statistical analysis on a bucket of this width.
+#
+#          Valid widths:
+#
+#            - `1s` - Aggregate on buckets 1 second in width
+#            - `1m` - Aggregate on buckets 1 minute in width
+#            - `1h` - Aggregate on buckets 1 hour in width
+#            - `1d` - Aggregate on buckets one day in width
+#            - `1w` - Aggregate on buckets on a weekly basis
+#            - `1M` - Aggregate on buckets on a monthly basis
+#            - `1q` - Aggregate on buckets on a quarterly basis
+#            - `1y` - Aggregate on buckets on a yearly basis
+#
+#          The width is passed to the Elastic Search backend, and follows the [calendar interval specification](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-bucket-datehistogram-aggregation.html#calendar_intervals).
+#        required: false
+#        schema:
+#          type: string
+#          default: "1d"
+#      - name: codeGrouped
+#        in: query
+#        description: Group HTTP response codes by 2xx, 3xx, 4xx, and 5xx instead of granular by each code
+#        required: false
+#        schema:
+#          type: boolean
+#          default: false
+#    get:
+#      tags:
+#        - Statistics
+#      summary: Aggregated average latency and total count results
+#      description: |
+#        Returns the aggregated __average latency__ and __total count__ results for all active HTTP status codes.
+#      operationId: getStatisticsActivityLatencyHG
+#      responses:
+#        200:
+#          description: Response body contains the requested data
+#          content:
+#            application/json:
+#              schema:
+#                $ref: '#/components/schemas/Statistics/HistogramPair'
+#        400:
+#          description: Malformed account, subscription, boundary, function or statistics query name.
+#          content:
+#            application/json:
+#              schema:
+#                $ref: '#/components/schemas/Error'
+#        403:
+#          description: Not authorized
+#          content:
+#            application/json:
+#              schema:
+#                $ref: '#/components/schemas/Error'
+#        404:
+#          description: Query was not found
+#          content:
+#            application/json:
+#              schema:
+#                $ref: '#/components/schemas/Error'
+#      security:
+#        - AccessToken: []
+##  /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/statistics/itemizedbulk:
 #    parameters:
 #      - name: accountId
 #        in: path
@@ -1974,9 +2092,9 @@ paths:
 #          type: string
 #      - name: statusCode
 #        in: query
-#        description: Filter the reported statistics on this HTTP status code.
+#        description: Filter the reported statistics on this HTTP status code, or status code group such as 2xx, 3xx, etc.
 #        schema:
-#          type: number
+#          type: string
 #          default: 200
 #      - name: next
 #        in: query
@@ -2841,8 +2959,8 @@ components:
 #          key:
 #            type: string
 #            description: The date in ISO 8601 string format.
-#          "200,404,503,etc":
-#            type: number
+#          "200,404,503,2xx,3xx,etc":
+#            type: string 
 #            description: |
 #              The tally for each HTTP status code active during this aggregate.
 #
@@ -2863,9 +2981,42 @@ components:
 #            items:
 #              type: number
 #            description: The HTTP status codes active during this interval.
+
+#      HistogramPairEntry:
+#        type: object
+#        properties:
+#          key:
+#            type: string
+#            description: The date in ISO 8601 string format.
+#          "200,404,503,2xx,3xx,etc":
+#            type: string 
+#            description: |
+#              A _pair_ of the average latency and the tally for each HTTP status code active during this aggregate.
+#
+#              For example:
+#                `{ "key": "2020-04-22T22:13:51.066Z", "200": [125.3, 512], "403": [25.12, 15], "501": [12.5, 2] }`
+#
+#      HistogramPair:
+#        type: object
+#        description: A collection of histogram artifacts ranging across the specified time range.
+#        properties:
+#          items:
+#            type: array
+#            description: A list of histogram aggregated intervals
+#            items:
+#              $ref: '#/components/schemas/Statistics/HistogramPairEntry'
+#          codes:
+#            type: array
+#            items:
+#              type: string
+#            description: |
+#             The HTTP status codes active during this interval.  For example, `[200, 301, 404]` or
+#             `["2xx", "3xx", "4xx"]` if codeGrouped is specified.
+#
 #      BulkEntry:
 #        description: An object containing all of the collected metrics and behaviors for an event
 #        type: object
+#
 #      Bulk:
 #        type: object
 #        description: A collection of bulk events ranging across the specified time range

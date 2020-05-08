@@ -1,13 +1,8 @@
 import React, { useState } from 'react';
-import AppBar from '@material-ui/core/AppBar';
-import Tabs from '@material-ui/core/Tabs';
-import Tab from '@material-ui/core/Tab';
-import Box from '@material-ui/core/Box';
 import MonitorGraph from './MonitorGraph';
 import HTTPActivityLog from './HTTPActivityLog';
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
 import ToggleButton from '@material-ui/lab/ToggleButton';
-import ms from 'ms';
 import { useProfile } from './ProfileProvider';
 import DateTimeRangePicker from './DateTimeRangePicker';
 import { getUISettings } from '../lib/Settings';
@@ -28,41 +23,32 @@ interface IProps {
 interface TabPanelProps {
   children?: React.ReactNode;
   index: any;
-  graphIndex: any;
 }
 
-const availableGraphs = [
-  {
-    label: 'HTTP Responses',
-    code: 'codeactivityhg',
-  },
-  {
-    label: 'HTTP Latency',
-    code: 'codelatencyhg',
-  },
-];
+interface ActiveGraph {
+  query: string;
+  label: string;
+  multi?: boolean;
+}
 
-const TabPanel = (props: TabPanelProps) => {
-  const { children, graphIndex, index, ...other } = props;
-
-  return (
-    <div role="tabpanel" hidden={graphIndex !== index} id={`simple-tabpanel-${index}`} {...other}>
-      {graphIndex === index && <Box p={3}>{children}</Box>}
-    </div>
-  );
+const availableGraphs: { [key: string]: ActiveGraph } = {
+  activity: { query: 'codeactivityhg', label: 'HTTP Activity' },
+  latency: { query: 'codelatencyhg', label: 'HTTP Latency' },
+  activitylatency: { query: 'codeactivitylatencyhg', label: 'HTTP Activity And Latency', multi: true },
 };
 
 const MonitorPanel: React.FC<IProps> = props => {
   const { profile } = useProfile();
-  const [graphIndex, setGraphIndex] = useState(0);
+
   const [interval, setInterval] = useState<IDateInterval>({
-    from: new Date(Date.now() - ms('7d')),
-    to: new Date(),
-    width: BucketWidths.Day,
+    from: new Date('2020-05-06T21:53:30.254Z'),
+    to: new Date('2020-05-06T21:58:30.254Z'),
+    width: BucketWidths.Minute,
   });
-  const [eventRange, setEventRange] = useState<IDateInterval | null>(null);
-  const [activeCodeList, setActiveCodeList] = useState<any>([200, 300, 400]);
-  const [activeCode, setActiveCode] = useState<number | null>(200);
+  const [eventRange, setEventRange] = useState<IDateInterval | null>(interval);
+  const [activeCodeList, setActiveCodeList] = useState<any>(['2xx', '3xx', '4xx', '5xx']);
+  const [activeCode, setActiveCode] = useState<string | number | null>('2xx');
+  const [graphModes, setGraphModes] = useState<Array<string>>(['activity', 'latency']);
 
   // Create a common URL wart to pass to the sub-components
   const params = props.params;
@@ -75,19 +61,11 @@ const MonitorPanel: React.FC<IProps> = props => {
   ].filter(x => x);
 
   const urlWart = `${profile.baseUrl}/v1/` + warts.join('/');
+  const activeGraph = availableGraphs[graphModes.sort().join('')];
 
   // Return the div.
   return (
     <div>
-      {/* Show the tab bar for each of the different visualizations */}
-      <AppBar position="static">
-        <Tabs value={graphIndex} onChange={(e, v) => setGraphIndex(v)}>
-          {availableGraphs.map(graph => {
-            return <Tab key={graph.label} label={graph.label} />;
-          })}
-        </Tabs>
-      </AppBar>
-
       {/* Select the active time. */}
       <DateTimeRangePicker
         from={interval.from.toISOString()}
@@ -118,26 +96,42 @@ const MonitorPanel: React.FC<IProps> = props => {
         })}
       </ToggleButtonGroup>
 
+      {/* Create the button group, one button for latency and one for activity*/}
+      <ToggleButtonGroup
+        size="small"
+        exclusive={false}
+        onChange={(e, v) => {
+          if (v.length) {
+            console.log('setting value to v', v);
+            setGraphModes(v);
+          }
+        }}
+        value={graphModes}
+      >
+        <ToggleButton key="activity" value="activity">
+          Show HTTP Activity
+        </ToggleButton>
+        <ToggleButton key="latency" value="latency">
+          Show HTTP Latency
+        </ToggleButton>
+      </ToggleButtonGroup>
+
       {/* Show the various graphs available. */}
-      {availableGraphs.map((graph, n) => {
-        return (
-          <TabPanel key={n} graphIndex={graphIndex} index={n}>
-            <MonitorGraph
-              profile={profile}
-              code={graph.code}
-              label={graph.label}
-              urlWart={urlWart}
-              interval={interval}
-              setEventRange={setEventRange}
-              setActiveCodeList={setActiveCodeList}
-            />
-          </TabPanel>
-        );
-      })}
+      <MonitorGraph
+        profile={profile}
+        code={activeGraph.query}
+        multi={!!activeGraph.multi}
+        codeGrouped={true}
+        label={activeGraph.label}
+        urlWart={urlWart}
+        interval={interval}
+        setEventRange={setEventRange}
+        setActiveCodeList={setActiveCodeList}
+      />
 
       {/* Display the events that occurred in the selected time period. */}
       <ToggleButtonGroup size="small" exclusive={true} onChange={(e, v) => setActiveCode(v)} value={activeCode}>
-        {activeCodeList.map((code: number) => {
+        {activeCodeList.map((code: string) => {
           return (
             <ToggleButton key={code} value={code}>
               {code}
@@ -145,6 +139,8 @@ const MonitorPanel: React.FC<IProps> = props => {
           );
         })}
       </ToggleButtonGroup>
+
+      {/* Show the events themselves */}
       <HTTPActivityLog profile={profile} urlWart={urlWart} interval={eventRange} activeCode={activeCode} />
     </div>
   );
