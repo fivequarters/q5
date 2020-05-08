@@ -90,6 +90,7 @@ const getStatisticalMonitorData = async (
   urlWart: string,
   codeGrouped: boolean,
   interval: IDateInterval,
+  queryParams: object | undefined,
   setData: any,
   setActiveCodeList: any
 ): Promise<void> => {
@@ -102,6 +103,7 @@ const getStatisticalMonitorData = async (
         to: interval.to.toISOString(),
         width: interval.width,
         codeGrouped: codeGrouped ? null : undefined,
+        ...queryParams,
       })
       .set('Authorization', `Bearer ${auth.access_token}`);
 

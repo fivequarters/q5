@@ -1,5 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { ResponsiveContainer, LineChart, Line, CartesianGrid, Tooltip, XAxis, YAxis, Legend } from 'recharts';
+import {
+  ResponsiveContainer,
+  LineChart as RechartLineChart,
+  Line as RechartLine,
+  BarChart as RechartBarChart,
+  Bar as RechartBar,
+  CartesianGrid,
+  Tooltip,
+  XAxis,
+  YAxis,
+  Legend,
+} from 'recharts';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import { IFusebitProfile } from '../lib/Settings';
 import { formatByBucketWidth, IDateInterval, getStatisticalMonitorData } from '../lib/FusebitMonitor';
@@ -17,6 +28,8 @@ interface IProps {
   urlWart: string;
   profile: IFusebitProfile;
   interval: IDateInterval;
+  chartType?: string;
+  queryParams?: object;
   setEventRange: (newInterval: IDateInterval) => void;
   setActiveCodeList: (newCodeList: number[]) => void;
 }
@@ -26,10 +39,21 @@ const MonitorGraph: React.FC<IProps> = props => {
   const [data, setData] = useState({ codes: [], items: [] });
 
   // Run once on page load, but first unpack props:
-  const { profile, code, label, multi, codeGrouped, urlWart, interval, setEventRange, setActiveCodeList } = props;
+  const {
+    profile,
+    code,
+    label,
+    multi,
+    codeGrouped,
+    urlWart,
+    interval,
+    queryParams,
+    setEventRange,
+    setActiveCodeList,
+  } = props;
 
   useEffect(() => {
-    getStatisticalMonitorData(profile, code, urlWart, codeGrouped, interval, setData, setActiveCodeList);
+    getStatisticalMonitorData(profile, code, urlWart, codeGrouped, interval, queryParams, setData, setActiveCodeList);
   }, [profile, code, urlWart, codeGrouped, interval, setData, setActiveCodeList]);
   // ^^^ Note to self: don't put props in the deps, it's not a stable referant.
 
@@ -40,6 +64,25 @@ const MonitorGraph: React.FC<IProps> = props => {
 
     return formatByBucketWidth(new Date(msTime), interval.width, getUISettings().utcTime);
   };
+
+  // Choose the chart to display.
+  let compParams: object;
+  let chartParams: object;
+
+  let ReChart: any;
+  let ChartElement: any;
+
+  if (props.chartType === 'bar') {
+    chartParams = {};
+    compParams = {};
+    ReChart = RechartBarChart;
+    ChartElement = RechartBar;
+  } else {
+    chartParams = {};
+    compParams = { type: 'linear', dot: false, activeDot: { r: 4 } };
+    ReChart = RechartLineChart;
+    ChartElement = RechartLine;
+  }
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active) {
@@ -79,57 +122,59 @@ const MonitorGraph: React.FC<IProps> = props => {
     return <LinearProgress value={0} variant="determinate" style={{ visibility: 'hidden' }} />;
   };
 
-  const lines = data.codes.map(id => {
-    if (multi) {
+  let elements: any;
+  if (multi) {
+    elements = data.codes.map(id => {
       return [
-        <Line
+        <ChartElement
           yAxisId="right"
-          type="linear"
+          {...compParams}
           key={id + ' latency'}
           dataKey={id + '[0]'}
           name={id + ' latency'}
-          dot={false}
-          activeDot={{ r: 4 }}
           stroke={httpCodeColorMap(id)}
           strokeDasharray="3 3"
+          fill={httpCodeColorMap(id)}
         />,
-        <Line
+        <ChartElement
           yAxisId="left"
-          type="linear"
+          {...compParams}
           key={id}
           dataKey={id + '[1]'}
           name={id + ' results'}
-          dot={false}
-          activeDot={{ r: 4 }}
           stroke={httpCodeColorMap(id)}
+          fill={httpCodeColorMap(id)}
         />,
       ];
-    } else {
+    });
+  } else {
+    elements = data.codes.map(id => {
       return (
-        <Line
+        <ChartElement
           yAxisId="left"
-          type="linear"
+          stroke={httpCodeColorMap(id)}
+          {...compParams}
           key={id}
           dataKey={id}
-          dot={false}
-          activeDot={{ r: 4 }}
-          stroke={httpCodeColorMap(id)}
+          fill={httpCodeColorMap(id)}
         />
       );
-    }
-  });
+    });
+  }
 
   // Quick hack, let's turn the key into an integer.
   return (
     <div>
       <InProgressBar />
       <div style={{ width: '100%', height: 300 }}>
+        {label}
         <ResponsiveContainer>
-          <LineChart
+          <ReChart
             width={900}
             height={500}
             data={data.items}
-            onClick={(e, v) => e && setHTTPEventRange(e.activeLabel)}
+            onClick={(e: any, v: any) => e && setHTTPEventRange(e.activeLabel)}
+            {...chartParams}
           >
             <CartesianGrid stroke="#ccc" />
             <Tooltip content={CustomTooltip} />
@@ -138,13 +183,12 @@ const MonitorGraph: React.FC<IProps> = props => {
               type="number"
               domain={[interval.from.getTime(), interval.to.getTime()]}
               dataKey="key"
-              label={{ value: label, position: 'insideBottom' }}
               tickFormatter={dateTickFormatter}
             />
             <YAxis yAxisId="left" name="Activity" />
             <YAxis yAxisId="right" unit="ms" orientation="right" name="Latency (ms)" />
-            {lines}
-          </LineChart>
+            {elements}
+          </ReChart>
         </ResponsiveContainer>
       </div>
     </div>

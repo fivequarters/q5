@@ -17,7 +17,7 @@ const createAndHitFunction = async (
 
   // Hit the endpoint once.
   response = await request(response.data.location);
-  httpExpect(response, { status: expectedCode, headers: { 'x-fx-response-source': expectedSource } });
+  httpExpect(response, { statusCode: expectedCode, headers: { 'x-fx-response-source': expectedSource } });
 
   // Get the bulk data from the endpoint.
   response = await getStatistics(
@@ -31,7 +31,7 @@ const createAndHitFunction = async (
     response => response.data.total != 0,
     { code: expectedCode }
   );
-  httpExpect(response, { status: 200, data: { total: 1, next: 1 } });
+  httpExpect(response, { statusCode: 200, data: { total: 1, next: 1 } });
 
   return response;
 };
@@ -83,7 +83,7 @@ describe('statistics', () => {
       response => response.data.total != 0,
       { code: 200 }
     );
-    httpExpect(response, { status: 200 });
+    httpExpect(response, { statusCode: 200 });
     expect(response.data.items.some((e: any) => e.requestId === entry.requestId)).toBe(true);
 
     response = await getStatistics(
@@ -97,7 +97,7 @@ describe('statistics', () => {
       response => response.data.total != 0,
       { code: 200 }
     );
-    httpExpect(response, { status: 200 });
+    httpExpect(response, { statusCode: 200 });
     expect(response.data.items.some((e: any) => e.requestId === entry.requestId)).toBe(true);
   }, 30000);
 
@@ -158,7 +158,7 @@ describe('statistics', () => {
       response => response.data.items.length != 0,
       { code: 200 }
     );
-    httpExpect(response, { status: 200 });
+    httpExpect(response, { statusCode: 200 });
     expect(response.data.items.length).toEqual(1);
     expect(response.data.items[0]).toHaveProperty('200', 1);
     expect(response.data.items[0]).toHaveProperty('key');
@@ -174,7 +174,7 @@ describe('statistics', () => {
       response => response.data.items.length != 0,
       { code: 200 }
     );
-    httpExpect(response, { status: 200 });
+    httpExpect(response, { statusCode: 200 });
     expect(response.data.items.length).toBeGreaterThanOrEqual(1);
 
     response = await getStatistics(
@@ -188,7 +188,7 @@ describe('statistics', () => {
       response => response.data.total != 0,
       { code: 200 }
     );
-    httpExpect(response, { status: 200 });
+    httpExpect(response, { statusCode: 200 });
     expect(response.data.items.length).toBeGreaterThanOrEqual(1);
   }, 30000);
 
@@ -222,7 +222,7 @@ describe('statistics', () => {
       response => response.data.items.length != 0,
       { field: 'accountid', code: 200 }
     );
-    httpExpect(response, { status: 200 });
+    httpExpect(response, { statusCode: 200 });
     expect(response.data.items.length).toEqual(1);
     expect(response.data.items[0]).toHaveProperty('200', 1);
     expect(response.data.items[0]).toHaveProperty('key');
@@ -239,8 +239,127 @@ describe('statistics', () => {
       response => response.data.items.length == 0,
       { field: 'accountid', code: 300 }
     );
-    httpExpect(response, { status: 200 });
+    httpExpect(response, { statusCode: 200 });
     expect(response.data.items.length).toEqual(0);
+
+    // Validate: Missing a 'field' returns a 405 error.
+    response = await getStatistics(
+      account,
+      'fielduniquehg',
+      {
+        accountId: account.accountId,
+        subscriptionId: account.subscriptionId,
+        boundaryId: boundaryId,
+      },
+      response => true,
+      { codeGrouped: true }
+    );
+    httpExpect(response, { statusCode: 405 });
+
+    // Validate: Supplying an incorrect field returns a 405
+    response = await getStatistics(
+      account,
+      'fielduniquehg',
+      {
+        accountId: account.accountId,
+        subscriptionId: account.subscriptionId,
+        boundaryId: boundaryId,
+      },
+      response => true,
+      { field: 'foobar', codeGrouped: null }
+    );
+    httpExpect(response, { statusCode: 405 });
+  }, 30000);
+
+  test('validate codeGrouped works', async () => {
+    const account = getAccount();
+    let boundaryId = rotateBoundary();
+    if (!(await statisticsEnabled(account))) return;
+
+    // Create and hit target function
+    let response = await createAndHitFunction(
+      account,
+      boundaryId,
+      'module.exports = async (ctx) => { return { body: "hello" }; };',
+      200,
+      'function'
+    );
+
+    // Validate: one response back from the statistics endpoint for this boundary
+    expect(response.data.items.length).toEqual(1);
+
+    let entry = response.data.items[0];
+
+    // Validate: response.fusebit object contains expected results for filtering purposes
+    validateEntry(account, entry, boundaryId, function1Id);
+
+    // Validate: itemized bulk against 2xx returns the event
+    response = await getStatistics(
+      account,
+      'itemizedbulk',
+      {
+        accountId: account.accountId,
+        subscriptionId: account.subscriptionId,
+        boundaryId: boundaryId,
+      },
+      response => response.data.total != 0,
+      { code: '2xx' }
+    );
+    httpExpect(response, { statusCode: 200 });
+    expect(response.data.items.some((e: any) => e.requestId === entry.requestId)).toBe(true);
+
+    // Validate: itemized bulk against 3xx does not return the event
+    response = await getStatistics(
+      account,
+      'itemizedbulk',
+      {
+        accountId: account.accountId,
+        subscriptionId: account.subscriptionId,
+        boundaryId: boundaryId,
+      },
+      response => response.data.total == 0,
+      { code: '3xx' }
+    );
+    httpExpect(response, { statusCode: 200 });
+    expect(response.data.items.length).toEqual(0);
+
+    // Validate: grouped histogram queries return the event in the valid cateogry.
+    response = await getStatistics(
+      account,
+      'fielduniquehg',
+      {
+        accountId: account.accountId,
+        subscriptionId: account.subscriptionId,
+        boundaryId: boundaryId,
+      },
+      response => response.data.total != 0,
+      { field: 'boundaryid', codeGrouped: true }
+    );
+    httpExpect(response, { statusCode: 200 });
+    expect(response.data.items.length).toEqual(1);
+    expect(response.data.items[0]).toHaveProperty('2xx', 1);
+    expect(response.data.items[0]).not.toHaveProperty('3xx');
+    expect(response.data.items[0]).not.toHaveProperty('4xx');
+    expect(response.data.items[0]).not.toHaveProperty('5xx');
+    expect(response.data.items[0]).toHaveProperty('key');
+
+    // Validate: 'false' works to disable codeGroup
+    response = await getStatistics(
+      account,
+      'fielduniquehg',
+      {
+        accountId: account.accountId,
+        subscriptionId: account.subscriptionId,
+        boundaryId: boundaryId,
+      },
+      response => response.data.total != 0,
+      { field: 'boundaryid', codeGrouped: false }
+    );
+
+    httpExpect(response, { statusCode: 200 });
+    expect(response.data.items.length).toEqual(1);
+    expect(response.data.items[0]).toHaveProperty('200', 1);
+    expect(response.data.items[0]).toHaveProperty('key');
   }, 30000);
   test.todo('cron function invocation event');
 });

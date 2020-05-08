@@ -324,9 +324,9 @@ export async function deleteAllFunctions(account: IAccount, boundaryId?: string)
   let response = await listFunctions(account, boundaryId);
   if (response.status !== 200) {
     throw new Error(
-      `Unable to list functions in account ${account.accountId}, subscription ${
-        account.subscriptionId
-      }, boundary ${boundaryId || '*'} on deployment ${account.baseUrl}.`
+      `Unable to list functions in account ${account.accountId}, subscription ${account.subscriptionId}, boundary ${
+        boundaryId || '*'
+      } on deployment ${account.baseUrl}.`
     );
   }
   return Promise.all(
@@ -836,16 +836,6 @@ export interface IStatisticsScope {
   accountId: string;
   subscriptionId?: string;
   boundaryId?: string;
-}
-
-export interface IStatisticsParams {
-  from?: string;
-  to?: string;
-  width?: string;
-  statusCode?: number;
-  next?: number;
-  count?: number;
-  field?: number;
 }
 
 //export async function clearStatistics(username: string, password: string, hostname: string) {
