@@ -244,7 +244,7 @@ const makeQuery = async (request, key, query_params = null) => {
     return { statusCode: 403, data: e.message };
   }
 
-  console.log('Query: ', JSON.stringify(body));
+  // console.log('Query: ', JSON.stringify(body));
   // Make the request to elasticsearch
   let response = await superagent
     .post(`https://${process.env.ES_HOST}/fusebit-*/_search`)
@@ -270,7 +270,7 @@ const codeHistogram = async (req, res, next, queryName, evtToValue) => {
   let filterCodes;
 
   if (isNaN(Number(req.query.code))) {
-    if (typeof req.query.codeGrouped === 'undefined') {
+    if (typeof req.query.codeGrouped != 'string' || req.query.codeGrouped == 'false') {
       const codeQuery = await makeQuery(req, 'allStatusCodes');
 
       if (codeQuery.statusCode != 200) {
@@ -337,32 +337,34 @@ const codeActivityLatencyHistogram = async (req, res, next) => {
 };
 
 const fieldUniqueHistogram = async (req, res, next) => {
-  const allowedFields = [
-    'deploymentkey',
-    'accountid',
-    'subscriptionid',
-    'boundaryid',
-    'functionid',
-    'modality',
-    'mode', // request or cron.
-  ];
+  // Mapping of the HTTP query's lowercase keyword to the specific ES query keyword
+  const allowedFields = {
+    deploymentkey: 'deploymentKey',
+    accountid: 'accountId',
+    subscriptionid: 'subscriptionId',
+    boundaryid: 'boundaryId',
+    functionid: 'functionId',
+    modality: 'modality',
+    mode: 'mode', // request or cron.
+  };
 
-  if (!allowedFields.includes(req.query.field.toLowerCase())) {
+  // The ES fieldname is case sensitive, but the HTTP key should be abstracted.
+  if (!req.query.field || !Object.keys(allowedFields).includes(req.query.field.toLowerCase())) {
     return next(
       httpError(
         405,
         JSON.stringify({
           errorCode: 405,
-          errorMessage: `Unsupported field ${req.query.field} not in [${allowedFields.join(', ')}]`,
+          errorMessage: `Unsupported field ${req.query.field} not in [${Object.keys(allowedFields).join(', ')}]`,
         })
       )
     );
   }
 
   // Touch up the field a little bit to make it work with Elastic Search
-  req.query.field = 'fusebit.' + req.query.field.toLowerCase() + '.keyword';
+  req.query.field = 'fusebit.' + allowedFields[req.query.field.toLowerCase()] + '.keyword';
 
-  codeHistogram(req, res, next, 'fieldUniqueHistogram', evt => evt.doc_count);
+  codeHistogram(req, res, next, 'fieldUniqueHistogram', evt => evt.results.value);
 };
 
 const itemizedBulk = async (req, res, next) => {

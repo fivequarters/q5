@@ -129,6 +129,21 @@ const MonitorPanel: React.FC<IProps> = props => {
         setActiveCodeList={setActiveCodeList}
       />
 
+      {/* Show the boundary utilization graph as an example. */}
+      <MonitorGraph
+        profile={profile}
+        code={'fielduniquehg'}
+        multi={false}
+        codeGrouped={true}
+        label={'Unique Boundary Activity'}
+        urlWart={urlWart}
+        interval={interval}
+        chartType="bar"
+        queryParams={{ field: 'boundaryid' }}
+        setEventRange={setEventRange}
+        setActiveCodeList={setActiveCodeList}
+      />
+
       {/* Display the events that occurred in the selected time period. */}
       <ToggleButtonGroup size="small" exclusive={true} onChange={(e, v) => setActiveCode(v)} value={activeCode}>
         {activeCodeList.map((code: string) => {
