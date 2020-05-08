@@ -168,7 +168,7 @@ function createOrUpdateLambda(lambda: any, config: any, cb: AsyncCb) {
 function createCloudWatchSubscription(cwl: any, config: any, cb: AsyncCb) {
   debug('createCloudWatchSubscription', config);
   cwl.putSubscriptionFilter(config, (e: any, d: any) => {
-    if (e && e.code != 'ResourceConflictException') {
+    if (e && e.code != 'ResourceConflictException' && e.code != 'LimitExceededException') {
       return cb(e);
     }
     debug('leaving createCloudWatchSubscription');
