@@ -54,6 +54,15 @@ describe('statistics', () => {
     let boundaryId = rotateBoundary();
     if (!(await statisticsEnabled(account))) return;
 
+    // Add a response to make sure only the requested data is returned
+    let responseAlt = await createAndHitFunction(
+      account,
+      boundaryId,
+      'module.exports = async (ctx) => { return { status: 304, body: "hello" }; };',
+      304,
+      'function'
+    );
+
     // Create and hit target function
     let response = await createAndHitFunction(
       account,
@@ -133,6 +142,15 @@ describe('statistics', () => {
     let boundaryId = rotateBoundary();
     if (!(await statisticsEnabled(account))) return;
 
+    // Add a response to make sure only the requested data is returned
+    let responseAlt = await createAndHitFunction(
+      account,
+      boundaryId,
+      'module.exports = async (ctx) => { return { status: 304, body: "hello" }; };',
+      304,
+      'function'
+    );
+
     // Create and hit target function
     let response = await createAndHitFunction(
       account,
@@ -162,6 +180,7 @@ describe('statistics', () => {
     expect(response.data.items.length).toEqual(1);
     expect(response.data.items[0]).toHaveProperty('200', 1);
     expect(response.data.items[0]).toHaveProperty('key');
+    expect(response.data.items[0]).not.toHaveProperty('304');
 
     response = await getStatistics(
       account,
@@ -197,6 +216,15 @@ describe('statistics', () => {
     let boundaryId = rotateBoundary();
     if (!(await statisticsEnabled(account))) return;
 
+    // Add a response to make sure only the requested data is returned
+    let responseAlt = await createAndHitFunction(
+      account,
+      boundaryId,
+      'module.exports = async (ctx) => { return { status: 304, body: "hello" }; };',
+      304,
+      'function'
+    );
+
     // Create and hit target function
     let response = await createAndHitFunction(
       account,
@@ -205,6 +233,7 @@ describe('statistics', () => {
       200,
       'function'
     );
+
     // Validate: one response back from the statistics endpoint for this boundary
     expect(response.data.items.length).toEqual(1);
     let entry = response.data.items[0];
@@ -226,6 +255,7 @@ describe('statistics', () => {
     expect(response.data.items.length).toEqual(1);
     expect(response.data.items[0]).toHaveProperty('200', 1);
     expect(response.data.items[0]).toHaveProperty('key');
+    expect(response.data.items[0]).not.toHaveProperty('304');
 
     // Validate: no hits found for a code of 300
     response = await getStatistics(
@@ -276,6 +306,15 @@ describe('statistics', () => {
     let boundaryId = rotateBoundary();
     if (!(await statisticsEnabled(account))) return;
 
+    // Add a response to make sure only the requested data is returned
+    let responseAlt = await createAndHitFunction(
+      account,
+      boundaryId,
+      'module.exports = async (ctx) => { return { status: 304, body: "hello" }; };',
+      304,
+      'function'
+    );
+
     // Create and hit target function
     let response = await createAndHitFunction(
       account,
@@ -306,6 +345,7 @@ describe('statistics', () => {
       { code: '2xx' }
     );
     httpExpect(response, { statusCode: 200 });
+    expect(response.data.items.length).toEqual(1);
     expect(response.data.items.some((e: any) => e.requestId === entry.requestId)).toBe(true);
 
     // Validate: itemized bulk against 3xx does not return the event
@@ -317,11 +357,11 @@ describe('statistics', () => {
         subscriptionId: account.subscriptionId,
         boundaryId: boundaryId,
       },
-      response => response.data.total == 0,
+      response => response.data.total == 1,
       { code: '3xx' }
     );
     httpExpect(response, { statusCode: 200 });
-    expect(response.data.items.length).toEqual(0);
+    expect(response.data.items.length).toEqual(1);
 
     // Validate: grouped histogram queries return the event in the valid cateogry.
     response = await getStatistics(
@@ -338,7 +378,7 @@ describe('statistics', () => {
     httpExpect(response, { statusCode: 200 });
     expect(response.data.items.length).toEqual(1);
     expect(response.data.items[0]).toHaveProperty('2xx', 1);
-    expect(response.data.items[0]).not.toHaveProperty('3xx');
+    expect(response.data.items[0]).toHaveProperty('3xx', 1);
     expect(response.data.items[0]).not.toHaveProperty('4xx');
     expect(response.data.items[0]).not.toHaveProperty('5xx');
     expect(response.data.items[0]).toHaveProperty('key');
@@ -359,6 +399,7 @@ describe('statistics', () => {
     httpExpect(response, { statusCode: 200 });
     expect(response.data.items.length).toEqual(1);
     expect(response.data.items[0]).toHaveProperty('200', 1);
+    expect(response.data.items[0]).toHaveProperty('304', 1);
     expect(response.data.items[0]).toHaveProperty('key');
   }, 30000);
   test.todo('cron function invocation event');

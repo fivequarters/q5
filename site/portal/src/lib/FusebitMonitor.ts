@@ -86,7 +86,7 @@ const getBulkMonitorData = async (
 
 const getStatisticalMonitorData = async (
   profile: IFusebitProfile,
-  queryType: string,
+  query: string,
   urlWart: string,
   codeGrouped: boolean,
   interval: IDateInterval,
@@ -97,7 +97,7 @@ const getStatisticalMonitorData = async (
   try {
     const auth = await ensureAccessToken(profile);
 
-    let result: any = await Superagent.get(`${urlWart}/statistics/${queryType}`)
+    let result: any = await Superagent.get(`${urlWart}/statistics/${query}`)
       .query({
         from: interval.from.toISOString(),
         to: interval.to.toISOString(),

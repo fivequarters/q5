@@ -269,8 +269,15 @@ const codeHistogram = async (req, res, next, queryName, evtToValue) => {
   // Key is the label, value is the ES filter code.
   let filterCodes;
 
-  if (isNaN(Number(req.query.code))) {
-    if (typeof req.query.codeGrouped != 'string' || req.query.codeGrouped == 'false') {
+  if (typeof req.query.code == 'undefined') {
+    // No specific code selected.
+    if (
+      typeof req.query.codeGrouped != 'undefined' &&
+      (req.query.codeGrouped === '' || req.query.codeGrouped === 'true')
+    ) {
+      // Group the codes based on range.
+      filterCodes = httpRangeFilterCodes;
+    } else {
       const codeQuery = await makeQuery(req, 'allStatusCodes');
 
       if (codeQuery.statusCode != 200) {
@@ -280,13 +287,16 @@ const codeHistogram = async (req, res, next, queryName, evtToValue) => {
       // Create a set of filters for each code.
       filterCodes = {};
       codeQuery.items.forEach(x => (filterCodes[x] = x));
-    } else {
-      // Group the codes based on range.
-      filterCodes = httpRangeFilterCodes;
     }
   } else {
-    let c = Number(req.query.code);
-    filterCodes = { [c]: c };
+    // Specific code supplied; determine if it's a number or a key
+    if (Object.keys(httpRangeFilterCodes).includes(req.query.code.toLowerCase())) {
+      let c = req.query.code.toLowerCase();
+      filterCodes = { [c]: httpRangeFilterCodes[c] };
+    } else {
+      let c = Number(req.query.code);
+      filterCodes = { [c]: c };
+    }
   }
 
   let histogram = {};

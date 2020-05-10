@@ -21,7 +21,7 @@ import ms from 'ms';
 import { httpCodeColorMap } from '@5qtrs/fusebit-color';
 
 interface IProps {
-  code: string;
+  query: string;
   label: string;
   multi: boolean;
   codeGrouped: boolean;
@@ -29,7 +29,7 @@ interface IProps {
   profile: IFusebitProfile;
   interval: IDateInterval;
   chartType?: string;
-  queryParams?: object;
+  queryParams?: any;
   setEventRange: (newInterval: IDateInterval) => void;
   setActiveCodeList: (newCodeList: number[]) => void;
 }
@@ -41,7 +41,7 @@ const MonitorGraph: React.FC<IProps> = props => {
   // Run once on page load, but first unpack props:
   const {
     profile,
-    code,
+    query,
     label,
     multi,
     codeGrouped,
@@ -52,10 +52,30 @@ const MonitorGraph: React.FC<IProps> = props => {
     setActiveCodeList,
   } = props;
 
+  let field: string | undefined;
+  let code: number | string | undefined;
+
+  if (queryParams) {
+    field = queryParams.field;
+    code = queryParams.code;
+  } else {
+    field = undefined;
+  }
+
   useEffect(() => {
-    getStatisticalMonitorData(profile, code, urlWart, codeGrouped, interval, queryParams, setData, setActiveCodeList);
-  }, [profile, code, urlWart, codeGrouped, interval, setData, setActiveCodeList]);
-  // ^^^ Note to self: don't put props in the deps, it's not a stable referant.
+    getStatisticalMonitorData(
+      profile,
+      query,
+      urlWart,
+      codeGrouped,
+      interval,
+      { field, code },
+      setData,
+      setActiveCodeList
+    );
+  }, [profile, query, urlWart, codeGrouped, interval, setData, field, code, setActiveCodeList]);
+  // ^^^ Note to self: don't put objects in the deps, it's not a stable referant - hence 'field' instead of
+  // 'queryParams.
 
   const dateTickFormatter = (msTime: any): string => {
     if (typeof msTime != 'number') {
