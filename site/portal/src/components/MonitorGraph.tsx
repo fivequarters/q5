@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import ms from 'ms';
+
 import {
   ResponsiveContainer,
   LineChart as RechartLineChart,
@@ -12,13 +14,13 @@ import {
   Legend,
 } from 'recharts';
 import LinearProgress from '@material-ui/core/LinearProgress';
+import Typography from '@material-ui/core/Typography';
+
+import { httpCodeColorMap } from '@5qtrs/fusebit-color';
+
 import { IFusebitProfile } from '../lib/Settings';
 import { formatByBucketWidth, IDateInterval, getStatisticalMonitorData } from '../lib/FusebitMonitor';
 import { getUISettings } from '../lib/Settings';
-
-import ms from 'ms';
-
-import { httpCodeColorMap } from '@5qtrs/fusebit-color';
 
 interface IProps {
   query: string;
@@ -186,12 +188,14 @@ const MonitorGraph: React.FC<IProps> = props => {
   return (
     <div>
       <InProgressBar />
-      <div style={{ width: '100%', height: 300 }}>
+      <Typography variant="h6" id="tableTitle" style={{ paddingLeft: 20 }}>
         {label}
+      </Typography>
+      <div style={{ width: '100%', height: 500 }}>
         <ResponsiveContainer>
           <ReChart
             width={900}
-            height={500}
+            height={200}
             data={data.items}
             onClick={(e: any, v: any) => e && setHTTPEventRange(e.activeLabel)}
             {...chartParams}

@@ -14,7 +14,6 @@ import { BucketWidths, IDateInterval } from '../lib/FusebitMonitor';
 /*
  * Current Status:
  *   * Implement the time filter component into a taskbar for Activity only.
- *   * Pass a 'set' function down to the lower levels that lets them save cfg to the url.
  *   * Improve the onClick for the graph to better select specific lines and codes.
  */
 interface IParams {
