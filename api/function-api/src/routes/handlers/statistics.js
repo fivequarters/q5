@@ -39,6 +39,17 @@ const httpRangeFilterCodes = {
   '5xx': { gte: 500, lt: 600 },
 };
 
+// Mapping of the HTTP query's lowercase keyword to the specific ES query keyword
+const allowedUniqueQueryFields = {
+  deploymentkey: 'deploymentKey',
+  accountid: 'accountId',
+  subscriptionid: 'subscriptionId',
+  boundaryid: 'boundaryId',
+  functionid: 'functionId',
+  modality: 'modality',
+  mode: 'mode', // request or cron.
+};
+
 const commonHistogramAggs = (interval, minDocCount, additionalResults) => {
   return {
     aggs: {
@@ -271,10 +282,7 @@ const codeHistogram = async (req, res, next, queryName, evtToValue) => {
 
   if (typeof req.query.code == 'undefined') {
     // No specific code selected.
-    if (
-      typeof req.query.codeGrouped != 'undefined' &&
-      (req.query.codeGrouped === '' || req.query.codeGrouped === 'true')
-    ) {
+    if (req.query.codeGrouped) {
       // Group the codes based on range.
       filterCodes = httpRangeFilterCodes;
     } else {
@@ -290,8 +298,8 @@ const codeHistogram = async (req, res, next, queryName, evtToValue) => {
     }
   } else {
     // Specific code supplied; determine if it's a number or a key
-    if (Object.keys(httpRangeFilterCodes).includes(req.query.code.toLowerCase())) {
-      let c = req.query.code.toLowerCase();
+    if (httpRangeFilterCodes[req.query.code]) {
+      let c = req.query.code;
       filterCodes = { [c]: httpRangeFilterCodes[c] };
     } else {
       let c = Number(req.query.code);
@@ -347,32 +355,13 @@ const codeActivityLatencyHistogram = async (req, res, next) => {
 };
 
 const fieldUniqueHistogram = async (req, res, next) => {
-  // Mapping of the HTTP query's lowercase keyword to the specific ES query keyword
-  const allowedFields = {
-    deploymentkey: 'deploymentKey',
-    accountid: 'accountId',
-    subscriptionid: 'subscriptionId',
-    boundaryid: 'boundaryId',
-    functionid: 'functionId',
-    modality: 'modality',
-    mode: 'mode', // request or cron.
-  };
-
   // The ES fieldname is case sensitive, but the HTTP key should be abstracted.
-  if (!req.query.field || !Object.keys(allowedFields).includes(req.query.field.toLowerCase())) {
-    return next(
-      httpError(
-        405,
-        JSON.stringify({
-          errorCode: 405,
-          errorMessage: `Unsupported field ${req.query.field} not in [${Object.keys(allowedFields).join(', ')}]`,
-        })
-      )
-    );
+  if (!req.query.field) {
+    return next(httpError(400, `"field" must be one of [${Object.keys(allowedUniqueQueryFields).join(', ')}]`));
   }
 
   // Touch up the field a little bit to make it work with Elastic Search
-  req.query.field = 'fusebit.' + allowedFields[req.query.field.toLowerCase()] + '.keyword';
+  req.query.field = 'fusebit.' + allowedUniqueQueryFields[req.query.field] + '.keyword';
 
   codeHistogram(req, res, next, 'fieldUniqueHistogram', evt => evt.results.value);
 };
@@ -382,7 +371,7 @@ const itemizedBulk = async (req, res, next) => {
 
   let bulk = {};
 
-  const code = Number(req.query.code) || httpRangeFilterCodes[req.query.code] || 200;
+  const code = httpRangeFilterCodes[req.query.code] || Number(req.query.code);
   const fromIdx = parseInt(req.query.next) || 0;
   const pageSize = parseInt(req.query.count) || 5;
 
@@ -412,25 +401,25 @@ const statisticsQueries = {
 
 function statisticsGet() {
   return async (req, res, next) => {
-    if (process.env.ES_HOST && process.env.ES_USER && process.env.ES_PASSWORD) {
-      const handler = statisticsQueries[req.params.statisticsKey.toLowerCase()];
-      if (handler) {
-        try {
-          return await handler(req, res, next);
-        } catch (e) {
-          console.log('Exception caught:', e);
-          return next(httpError(500, e.message));
-        }
-      }
+    if (!process.env.ES_HOST || !process.env.ES_USER || !process.env.ES_PASSWORD) {
+      return next(httpError(405, `Unsupported query: ${req.params.statisticsKey}`));
     }
 
-    return next(
-      httpError(405, JSON.stringify({ errorCode: 405, errorMessage: `Unsupported query: ${req.params.statisticsKey}` }))
-    );
+    const handler = statisticsQueries[req.params.statisticsKey];
+
+    try {
+      return await handler(req, res, next);
+    } catch (e) {
+      // Log the internal exception to simplify debugging.
+      console.log('Exception caught:', e);
+      return next(httpError(500, e.message));
+    }
   };
 }
 
 module.exports = {
   statisticsGet,
   statisticsQueries,
+  httpRangeFilterCodes,
+  allowedUniqueQueryFields,
 };
