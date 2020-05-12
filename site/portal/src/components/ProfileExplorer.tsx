@@ -38,6 +38,7 @@ import SubscriptionBoundaries from './SubscriptionBoundaries';
 import { MonitorPanel } from './Monitor';
 import { SubscriptionsProvider } from './SubscriptionsProvider';
 import Activity from './Activity';
+import { Analytics } from './Analytics';
 
 const useStyles = makeStyles(theme => ({
   paper: {
@@ -77,6 +78,9 @@ const ExplorerTabs = {
       name: 'settings',
     },
     {
+      name: 'analytics',
+    },
+    {
       name: 'monitor',
     },
   ],
@@ -89,6 +93,9 @@ const ExplorerTabs = {
     },
     {
       name: 'access',
+    },
+    {
+      name: 'analytics',
     },
     {
       name: 'monitor',
@@ -105,6 +112,9 @@ const ExplorerTabs = {
       name: 'access',
     },
     {
+      name: 'analytics',
+    },
+    {
       name: 'monitor',
     },
   ],
@@ -119,6 +129,9 @@ const ExplorerTabs = {
       name: 'access',
     },
     {
+      name: 'analytics',
+    },
+    {
       name: 'settings',
     },
   ],
@@ -128,6 +141,9 @@ const ExplorerTabs = {
     },
     {
       name: 'activity',
+    },
+    {
+      name: 'analytics',
     },
     {
       name: 'access',
@@ -144,6 +160,9 @@ const ExplorerTabs = {
       name: 'permissions',
     },
     {
+      name: 'analytics',
+    },
+    {
       name: 'access',
     },
   ],
@@ -156,6 +175,9 @@ const ExplorerTabs = {
     },
     {
       name: 'permissions',
+    },
+    {
+      name: 'analytics',
     },
     {
       name: 'access',
@@ -242,6 +264,25 @@ function ProfileExplorer({ ...rest }: any) {
               <Activity
                 filter={{
                   resource: `/account/${profile.account}/`,
+                }}
+              />
+            </ExplorerView>
+          )}
+        />
+
+        <Route
+          path="/accounts/:accountId/analytics"
+          exact={true}
+          render={({ match }) => (
+            <ExplorerView tabs={ExplorerTabs.account} match={match}>
+              <Analytics
+                activity={{
+                  params: match.params,
+                }}
+                audit={{
+                  filter: {
+                    resource: `/account/${profile.account}/`,
+                  },
                 }}
               />
             </ExplorerView>
