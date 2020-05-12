@@ -272,7 +272,7 @@ describe('statistics', () => {
     httpExpect(response, { statusCode: 200 });
     expect(response.data.items.length).toEqual(0);
 
-    // Validate: Missing a 'field' returns a 405 error.
+    // Validate: Missing a 'field' returns a 400 error.
     response = await getStatistics(
       account,
       'fielduniquehg',
@@ -284,9 +284,9 @@ describe('statistics', () => {
       response => true,
       { codeGrouped: true }
     );
-    httpExpect(response, { statusCode: 405 });
+    httpExpect(response, { statusCode: 400 });
 
-    // Validate: Supplying an incorrect field returns a 405
+    // Validate: Supplying an incorrect field returns a 400
     response = await getStatistics(
       account,
       'fielduniquehg',
@@ -298,7 +298,7 @@ describe('statistics', () => {
       response => true,
       { field: 'foobar', codeGrouped: null }
     );
-    httpExpect(response, { statusCode: 405 });
+    httpExpect(response, { statusCode: 400 });
   }, 30000);
 
   test('validate codeGrouped works', async () => {

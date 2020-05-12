@@ -324,9 +324,9 @@ export async function deleteAllFunctions(account: IAccount, boundaryId?: string)
   let response = await listFunctions(account, boundaryId);
   if (response.status !== 200) {
     throw new Error(
-      `Unable to list functions in account ${account.accountId}, subscription ${account.subscriptionId}, boundary ${
-        boundaryId || '*'
-      } on deployment ${account.baseUrl}.`
+      `Unable to list functions in account ${account.accountId}, subscription ${
+        account.subscriptionId
+      }, boundary ${boundaryId || '*'} on deployment ${account.baseUrl}.`
     );
   }
   return Promise.all(
@@ -857,7 +857,7 @@ export async function statisticsEnabled(account: IAccount): Promise<boolean> {
   let response = await getStatistics(account, 'itemizedbulk', { accountId: account.accountId }, () => true, {
     from: new Date(),
     to: new Date(),
-    statusCode: 200,
+    code: 200,
   });
 
   if (response.status == 200) {
