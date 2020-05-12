@@ -12,10 +12,20 @@ interface IParams {
   functionId?: string;
 }
 
+interface IGraphProps {
+  query: string;
+  multi: boolean;
+  codeGrouped: boolean;
+  label: string;
+  chartType: string;
+  queryParams: any;
+}
+
 interface IActivityProps {
   params: IParams;
   interval: IDateInterval;
   activeCodes: Array<string | number | null>;
+  graph: IGraphProps;
 }
 
 const AnalyticsActivity: React.FC<IActivityProps> = props => {
@@ -42,14 +52,16 @@ const AnalyticsActivity: React.FC<IActivityProps> = props => {
     <div>
       <MonitorGraph
         profile={profile}
-        query="codeactivitylatencyhg"
-        multi={true}
-        codeGrouped={true}
-        label="HTTP Activity And Latency"
+        query={props.graph.query}
+        multi={props.graph.multi}
+        codeGrouped={props.graph.codeGrouped}
+        label={props.graph.label}
         urlWart={urlWart}
         interval={props.interval}
         setEventRange={setEventDetailInterval}
         setActiveCodeList={setEventDetailCodes}
+        chartType={props.graph.chartType}
+        queryParams={props.graph.queryParams}
       />
 
       {/* Show the events themselves */}

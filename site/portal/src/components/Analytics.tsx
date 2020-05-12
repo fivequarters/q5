@@ -11,6 +11,12 @@ import { AnalyticsAudit, IAnalyticsAuditProps } from './AnalyticsAudit';
 
 import { BucketWidths, IDateInterval } from '../lib/FusebitMonitor';
 
+/*
+ * Current Status:
+ *   * Implement the time filter component into a taskbar for Activity only.
+ *   * Pass a 'set' function down to the lower levels that lets them save cfg to the url.
+ *   * Improve the onClick for the graph to better select specific lines and codes.
+ */
 interface IParams {
   accountId?: string;
   subscriptionId?: string;
@@ -18,12 +24,8 @@ interface IParams {
   functionId?: string;
 }
 
-interface IActivityProps {
-  params: IParams;
-}
-
 interface IAnalyticsProps {
-  activity: IActivityProps;
+  params: IParams;
   audit: IAnalyticsAuditProps;
 }
 
@@ -55,7 +57,37 @@ let defaultActiveCodes: string[] = ['2xx', '3xx', '4xx', '5xx'];
 
 // Declare the various types of panels available here
 function AnalyticsActivityPanel(env: AnalyticsEnvironment) {
-  let props = { params: env.props.activity.params, interval: env.interval, activeCodes: env.activeCodes };
+  let props = {
+    params: env.props.params,
+    interval: env.interval,
+    activeCodes: env.activeCodes,
+    graph: {
+      query: 'codeactivitylatencyhg',
+      multi: true,
+      codeGrouped: true,
+      label: 'HTTP Activity and Latency',
+      chartType: 'line',
+      queryParams: {},
+    },
+  };
+  return <AnalyticsActivity {...props} />;
+}
+
+// Declare the various types of panels available here
+function AnalyticsUsagePanel(env: AnalyticsEnvironment) {
+  let props = {
+    params: env.props.params,
+    interval: env.interval,
+    activeCodes: env.activeCodes,
+    graph: {
+      query: 'fielduniquehg',
+      multi: false,
+      codeGrouped: false,
+      label: 'Unique Boundary Activity',
+      chartType: 'bar',
+      queryParams: { field: 'boundaryid', code: env.activeCodes },
+    },
+  };
   return <AnalyticsActivity {...props} />;
 }
 
@@ -69,6 +101,7 @@ function AnalyticsAuditPanel(env: AnalyticsEnvironment) {
 const analyticsTable: { [key: string]: AnalyticsEntry } = {
   activity: { c: AnalyticsActivityPanel, t: 'Activity', o: { useWidth: true, filterCodes: true } },
   audit: { c: AnalyticsAuditPanel, t: 'Audit' },
+  usage: { c: AnalyticsUsagePanel, t: 'Usage' },
 };
 
 // Convert some strings into the appropriate objects.
