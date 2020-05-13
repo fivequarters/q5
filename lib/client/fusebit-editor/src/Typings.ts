@@ -80,6 +80,10 @@ export function updateFusebitContextTypings(configuration: { [index: string]: st
        */
       functionId: string;
       /**
+       * The base URL associated with the function.
+       */
+      baseUrl: string;
+      /**
        * Configuration settings of the function.
        */
       configuration: { ${Object.keys(configuration)
