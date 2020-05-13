@@ -72,7 +72,7 @@ const getBulkMonitorData = async (
       .query({
         from: interval.from.toISOString(),
         to: interval.to.toISOString(),
-        statusCode: activeCode,
+        code: activeCode,
         next: options.offset,
         count: options.pageSize,
       })
@@ -86,22 +86,24 @@ const getBulkMonitorData = async (
 
 const getStatisticalMonitorData = async (
   profile: IFusebitProfile,
-  queryType: string,
+  query: string,
   urlWart: string,
   codeGrouped: boolean,
   interval: IDateInterval,
+  queryParams: object | undefined,
   setData: any,
   setActiveCodeList: any
 ): Promise<void> => {
   try {
     const auth = await ensureAccessToken(profile);
 
-    let result: any = await Superagent.get(`${urlWart}/statistics/${queryType}`)
+    let result: any = await Superagent.get(`${urlWart}/statistics/${query}`)
       .query({
         from: interval.from.toISOString(),
         to: interval.to.toISOString(),
         width: interval.width,
         codeGrouped: codeGrouped ? null : undefined,
+        ...queryParams,
       })
       .set('Authorization', `Bearer ${auth.access_token}`);
 

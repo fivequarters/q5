@@ -838,15 +838,6 @@ export interface IStatisticsScope {
   boundaryId?: string;
 }
 
-export interface IStatisticsParams {
-  from?: string;
-  to?: string;
-  width?: string;
-  statusCode?: number;
-  next?: number;
-  count?: number;
-}
-
 //export async function clearStatistics(username: string, password: string, hostname: string) {
 //  return request({
 //    method: 'DELETE',
@@ -866,7 +857,7 @@ export async function statisticsEnabled(account: IAccount): Promise<boolean> {
   let response = await getStatistics(account, 'itemizedbulk', { accountId: account.accountId }, () => true, {
     from: new Date(),
     to: new Date(),
-    statusCode: 200,
+    code: 200,
   });
 
   if (response.status == 200) {
@@ -898,7 +889,7 @@ export async function getStatistics(
     params = {
       to: new Date(Date.now() + ms('5m')),
       from: new Date(Date.now() - ms('15m')),
-      statusCode: 200,
+      code: 200,
     };
   } else {
     if (params.to == undefined) {

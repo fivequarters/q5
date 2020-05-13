@@ -119,12 +119,27 @@ const MonitorPanel: React.FC<IProps> = props => {
       {/* Show the various graphs available. */}
       <MonitorGraph
         profile={profile}
-        code={activeGraph.query}
+        query={activeGraph.query}
         multi={!!activeGraph.multi}
         codeGrouped={true}
         label={activeGraph.label}
         urlWart={urlWart}
         interval={interval}
+        setEventRange={setEventRange}
+        setActiveCodeList={setActiveCodeList}
+      />
+
+      {/* Show the boundary utilization graph as an example. */}
+      <MonitorGraph
+        profile={profile}
+        query={'fielduniquehg'}
+        multi={false}
+        codeGrouped={true}
+        label={'Unique Boundary Activity'}
+        urlWart={urlWart}
+        interval={interval}
+        chartType="bar"
+        queryParams={{ field: 'boundaryid', code: '4xx' }}
         setEventRange={setEventRange}
         setActiveCodeList={setActiveCodeList}
       />

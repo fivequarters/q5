@@ -20,8 +20,16 @@ const headers = {
 // If a number is supplied, query for just that number.  Otherwise, assume that the caller is
 // passing in some range query {gte:200, lt:300} for example.
 const codeToESQuery = code => {
+  if (typeof code == 'undefined') return {};
+
   const queryType = typeof code == 'number' ? 'match' : 'range';
-  return { [queryType]: { 'response.statusCode': code } };
+  return {
+    query: {
+      bool: {
+        filter: [{ [queryType]: { 'response.statusCode': code } }],
+      },
+    },
+  };
 };
 
 const httpRangeFilterCodes = {
@@ -29,6 +37,17 @@ const httpRangeFilterCodes = {
   '3xx': { gte: 300, lt: 400 },
   '4xx': { gte: 400, lt: 500 },
   '5xx': { gte: 500, lt: 600 },
+};
+
+// Mapping of the HTTP query's lowercase keyword to the specific ES query keyword
+const allowedUniqueQueryFields = {
+  deploymentkey: 'deploymentKey',
+  accountid: 'accountId',
+  subscriptionid: 'subscriptionId',
+  boundaryid: 'boundaryId',
+  functionid: 'functionId',
+  modality: 'modality',
+  mode: 'mode', // request or cron.
 };
 
 const commonHistogramAggs = (interval, minDocCount, additionalResults) => {
@@ -73,22 +92,16 @@ const queries = {
       },
     },
     d => {
-      let r = { data: d.aggregations.result.buckets.map(x => x.key) };
-      r.total = r.data.length;
-      return r;
+      return { data: d.aggregations.result.buckets.map(x => x.key), total: d.aggregations.result.buckets.length };
     },
   ],
 
   // Return the statusCodes for a specific histogram.
   codeHistogram: [
-    ({ code, interval, minDocCount } = { code: 200, interval: '15s', minDocCount: 0 }) => {
+    ({ code, interval, minDocCount }) => {
       return {
         ...commonHistogramAggs(interval, minDocCount),
-        query: {
-          bool: {
-            filter: [codeToESQuery(code)],
-          },
-        },
+        ...codeToESQuery(code),
       };
     },
     d => {
@@ -98,7 +111,7 @@ const queries = {
 
   // Return the statusCodes average latency for a specific histogram.
   codeLatencyHistogram: [
-    ({ code, interval, minDocCount } = { code: 200, interval: '15s', minDocCount: 0 }) => {
+    ({ code, interval, minDocCount }) => {
       return {
         ...commonHistogramAggs(interval, minDocCount, {
           aggs: {
@@ -109,26 +122,38 @@ const queries = {
             },
           },
         }),
-        query: {
-          bool: {
-            filter: [codeToESQuery(code)],
-          },
-        },
+        ...codeToESQuery(code),
       };
     },
     d => {
+      return { data: d.aggregations.result.buckets, total: d.aggregations.result.buckets.length };
+    },
+  ],
+
+  // Return the statusCodes average latency for a specific histogram.
+  fieldUniqueHistogram: [
+    ({ field, code, interval, minDocCount }) => {
       return {
-        data: d.aggregations.result.buckets.map(e => {
-          return { ...e, avg_latency: e.latency.value / e.doc_count };
+        ...commonHistogramAggs(interval, minDocCount, {
+          aggs: {
+            results: {
+              cardinality: {
+                field: field,
+              },
+            },
+          },
         }),
-        total: d.aggregations.result.buckets.length,
+        ...codeToESQuery(code),
       };
+    },
+    d => {
+      return { data: d.aggregations.result.buckets, total: d.aggregations.result.buckets.length };
     },
   ],
 
   // Retrieve itemized list of events
   itemizedBulk: [
-    ({ fromIdx, pageSize, statusCode, minDocCount }) => {
+    ({ fromIdx, pageSize, code, minDocCount }) => {
       return {
         from: fromIdx,
         size: pageSize,
@@ -141,18 +166,7 @@ const queries = {
           { field: '@timestamp', format: 'date_time' },
           { field: 'timestamp', format: 'date_time' },
         ],
-        query: {
-          bool: {
-            filter: [
-              {
-                bool: {
-                  should: [codeToESQuery(statusCode)],
-                  minimum_should_match: minDocCount,
-                },
-              },
-            ],
-          },
-        },
+        ...codeToESQuery(code),
       };
     },
     d => {
@@ -172,7 +186,6 @@ const queries = {
 };
 
 const addRequiredFilters = (request, body) => {
-  // Build the necessary stack; maybe javascript has an easier way of doing this?
   if (!body.query) {
     body.query = {};
   }
@@ -187,7 +200,7 @@ const addRequiredFilters = (request, body) => {
 
   // Add timestamp range
   if (!request.query.from || !request.query.to) {
-    throw httpError(403, 'Missing from or to parameters.');
+    throw httpError(400, '"from" or "to" missing.');
   }
 
   body.query.bool.filter.push({
@@ -239,15 +252,17 @@ const makeQuery = async (request, key, query_params = null) => {
     addRequiredFilters(request, body);
   } catch (e) {
     // Missing required elements.
-    return { statusCode: 403, data: e.message };
+    return { statusCode: 403, message: e.message, data: e.message };
   }
 
+  // console.log('Query: ', JSON.stringify(body));
   // Make the request to elasticsearch
   let response = await superagent
     .post(`https://${process.env.ES_HOST}/fusebit-*/_search`)
     .auth(process.env.ES_USER, process.env.ES_PASSWORD)
     .set(headers)
-    .send(body);
+    .send(body)
+    .ok(() => true);
 
   if (response.statusCode == 200) {
     let payload = queries[key][1](response.body);
@@ -261,23 +276,36 @@ const codeHistogram = async (req, res, next, queryName, evtToValue) => {
   let range = {};
 
   const width = req.query.width || '1d';
+  const field = req.query.field;
 
   // Key is the label, value is the ES filter code.
   let filterCodes;
 
-  if (typeof req.query.codeGrouped === 'undefined') {
-    const codeQuery = await makeQuery(req, 'allStatusCodes');
+  if (typeof req.query.code == 'undefined') {
+    // No specific code selected.
+    if (req.query.codeGrouped) {
+      // Group the codes based on range.
+      filterCodes = httpRangeFilterCodes;
+    } else {
+      const codeQuery = await makeQuery(req, 'allStatusCodes');
+      if (codeQuery.statusCode != 200) {
+        console.log(`ElasticSearch failure ${response.statusCode}: ${JSON.stringify(response.data)}`);
+        return next(httpError(response.statusCode, response.message, response.data));
+      }
 
-    if (codeQuery.statusCode != 200) {
-      return next(httpError(response.statusCode, response.data));
+      // Create a set of filters for each code.
+      filterCodes = {};
+      codeQuery.items.forEach(x => (filterCodes[x] = x));
     }
-
-    // Create a set of filters for each code.
-    filterCodes = {};
-    codeQuery.items.forEach(x => (filterCodes[x] = x));
   } else {
-    // Group the codes based on range.
-    filterCodes = httpRangeFilterCodes;
+    // Specific code supplied; determine if it's a number or a key
+    if (httpRangeFilterCodes[req.query.code]) {
+      let c = req.query.code;
+      filterCodes = { [c]: httpRangeFilterCodes[c] };
+    } else {
+      let c = Number(req.query.code);
+      filterCodes = { [c]: c };
+    }
   }
 
   let histogram = {};
@@ -286,9 +314,10 @@ const codeHistogram = async (req, res, next, queryName, evtToValue) => {
   for (const codeKey in filterCodes) {
     let code = filterCodes[codeKey];
 
-    let response = await makeQuery(req, queryName, { code, interval: width, minDocCount: 0 });
+    let response = await makeQuery(req, queryName, { code, interval: width, minDocCount: 0, field });
     if (response.statusCode != 200) {
-      return next(httpError(response.statusCode, response.data));
+      console.log(`ElasticSearch failure ${response.statusCode}: ${JSON.stringify(response.data)}`);
+      return next(httpError(response.statusCode, response.message, response.data));
     }
 
     // Convert the results to the desired format
@@ -320,11 +349,23 @@ const codeActivityHistogram = async (req, res, next) => {
 };
 
 const codeLatencyHistogram = async (req, res, next) => {
-  codeHistogram(req, res, next, 'codeLatencyHistogram', evt => evt.avg_latency);
+  codeHistogram(req, res, next, 'codeLatencyHistogram', evt => evt.latency.value);
 };
 
 const codeActivityLatencyHistogram = async (req, res, next) => {
-  codeHistogram(req, res, next, 'codeLatencyHistogram', evt => [evt.avg_latency, evt.doc_count]);
+  codeHistogram(req, res, next, 'codeLatencyHistogram', evt => [evt.latency.value, evt.doc_count]);
+};
+
+const fieldUniqueHistogram = async (req, res, next) => {
+  // The ES fieldname is case sensitive, but the HTTP key should be abstracted.
+  if (!req.query.field) {
+    return next(httpError(400, `"field" must be one of [${Object.keys(allowedUniqueQueryFields).join(', ')}]`));
+  }
+
+  // Touch up the field a little bit to make it work with Elastic Search
+  req.query.field = 'fusebit.' + allowedUniqueQueryFields[req.query.field] + '.keyword';
+
+  codeHistogram(req, res, next, 'fieldUniqueHistogram', evt => evt.results.value);
 };
 
 const itemizedBulk = async (req, res, next) => {
@@ -332,15 +373,16 @@ const itemizedBulk = async (req, res, next) => {
 
   let bulk = {};
 
-  const statusCode = Number(req.query.statusCode) || httpRangeFilterCodes[req.query.statusCode] || 200;
+  const code = httpRangeFilterCodes[req.query.code] || Number(req.query.code);
   const fromIdx = parseInt(req.query.next) || 0;
   const pageSize = parseInt(req.query.count) || 5;
 
   const minDocCount = 1;
 
-  let response = await makeQuery(req, 'itemizedBulk', { statusCode, fromIdx, pageSize, minDocCount });
+  let response = await makeQuery(req, 'itemizedBulk', { code, fromIdx, pageSize, minDocCount });
   if (response.statusCode != 200) {
-    return next(httpError(response.statusCode, response.data));
+    console.log(`ElasticSearch failure ${response.statusCode}: ${JSON.stringify(response.data)}`);
+    return next(httpError(response.statusCode, 'failed to perform query'));
   }
 
   bulk = response.items;
@@ -357,28 +399,30 @@ const statisticsQueries = {
   codelatencyhg: codeLatencyHistogram,
   codeactivitylatencyhg: codeActivityLatencyHistogram,
   itemizedbulk: itemizedBulk,
+  fielduniquehg: fieldUniqueHistogram,
 };
 
 function statisticsGet() {
   return async (req, res, next) => {
-    if (process.env.ES_HOST && process.env.ES_USER && process.env.ES_PASSWORD) {
-      const handler = statisticsQueries[req.params.statisticsKey.toLowerCase()];
-      if (handler) {
-        try {
-          return await handler(req, res, next);
-        } catch (e) {
-          return next(httpError(500, e.message));
-        }
-      }
+    if (!process.env.ES_HOST || !process.env.ES_USER || !process.env.ES_PASSWORD) {
+      return next(httpError(405, `Unsupported query: ${req.params.statisticsKey}`));
     }
 
-    return next(
-      httpError(405, JSON.stringify({ errorCode: 405, errorMessage: `Unsupported query: ${req.params.statisticsKey}` }))
-    );
+    const handler = statisticsQueries[req.params.statisticsKey];
+
+    try {
+      return await handler(req, res, next);
+    } catch (e) {
+      // Log the internal exception to simplify debugging.
+      console.log('Exception caught:', e);
+      return next(httpError(500, e.message));
+    }
   };
 }
 
 module.exports = {
   statisticsGet,
   statisticsQueries,
+  httpRangeFilterCodes,
+  allowedUniqueQueryFields,
 };
