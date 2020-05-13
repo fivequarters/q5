@@ -129,7 +129,6 @@ export class FunctionService {
       return result;
     } catch (error) {
       await this.executeService.error('Profile Error', error.message, error);
-      throw error;
     }
   }
 
@@ -253,10 +252,10 @@ export class FunctionService {
     }
 
     if (!functionSpec.nodejs.files['index.js']) {
-      this.executeService.error(
+      await this.executeService.error(
         'Invalid Function',
         Text.create(
-          "The function must include an'",
+          "The function must include an '",
           Text.bold('index.js'),
           "' file. Make sure it exists in the source directory."
         )
@@ -305,7 +304,7 @@ export class FunctionService {
     try {
       await writeFile(join(path, 'fusebit.json'), JSON.stringify(fusebitJson, null, 2));
     } catch (error) {
-      this.executeService.error(
+      await this.executeService.error(
         'Write Error',
         Text.create("Unable to save the fusebit.json file in the '", Text.bold(path), "' directory")
       );
@@ -338,8 +337,7 @@ export class FunctionService {
     const profile = await this.getFunctionExecutionProfile(true, functionId, process.cwd());
 
     if (theme !== 'light' && theme !== 'dark') {
-      this.executeService.error('Edit Function Error', Text.create('Unsupported value of the theme parameter'));
-      throw new Error('Edit Function Error');
+      await this.executeService.error('Edit Function Error', Text.create('Unsupported value of the theme parameter'));
     }
 
     const editorHtml = this.getEditorHtml(profile, theme, functionSpec);
@@ -378,11 +376,10 @@ export class FunctionService {
     const port = await startServerWithRetry();
 
     if (!port) {
-      this.executeService.error(
+      await this.executeService.error(
         'Edit Function Error',
         'Unable to find a free port in the 80xx range to host a local service. Please try again.'
       );
-      return;
     }
 
     await this.executeService.result(
@@ -719,8 +716,7 @@ export class FunctionService {
     try {
       await copyDirectory(getTemplateDirectoryPath(), path);
     } catch (error) {
-      this.executeService.error('Init Function Error', 'Failed to initialize the function', error);
-      return;
+      await this.executeService.error('Init Function Error', 'Failed to initialize the function', error);
     }
 
     const output = this.input.options.output as string;
@@ -828,7 +824,7 @@ export class FunctionService {
               Text.bold(`${profile.boundary}`),
               "'"
             );
-      this.executeService.error('Deploy Function Error', message);
+      await this.executeService.error('Deploy Function Error', message);
     }
 
     return result.location as string;
