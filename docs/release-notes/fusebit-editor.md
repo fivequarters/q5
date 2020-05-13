@@ -19,7 +19,7 @@ All public releases of the Fusebit editor are documented here, including notable
 
 ## Version 1.3.1
 
-_Released 11/13/19_
+_Released 5/12/20_
 
 - **Bug fix.** Cmd/Ctrl-S correctly saves the function regardless of which editor element is in focus.
 - **Bug fix.** While the function is saving, the editor remains fully functional except for running or saving the function again.
