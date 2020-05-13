@@ -26,7 +26,8 @@ const SettingsConfigurationPlaceholder = `# Configuration settings are available
 const SettingsComputePlaceholder = `# Compute settings control resources available to the executing function
 
 # memorySize=128
-# timeout=30`;
+# timeout=30
+# staticIp=false`;
 
 const SettingsCronPlaceholder = `# Set the 'cron' value to execute this function on a schedule
 
@@ -140,6 +141,15 @@ export class EditorContext extends EventEmitter {
         },
       };
     }
+    if (!this.functionSpecification.computeSerialized) {
+      this.functionSpecification.computeSerialized = SettingsComputePlaceholder;
+    }
+    if (!this.functionSpecification.configurationSerialized) {
+      this.functionSpecification.configurationSerialized = SettingsConfigurationPlaceholder;
+    }
+    if (!this.functionSpecification.scheduleSerialized) {
+      this.functionSpecification.scheduleSerialized = SettingsCronPlaceholder;
+    }
     if (!this._ensureFusebitMetadata().runner) {
       this._ensureFusebitMetadata(true).runner = RunnerPlaceholder;
     }
@@ -219,7 +229,6 @@ export class EditorContext extends EventEmitter {
    * Navigates to the Configuration Settings view.
    */
   public selectSettingsConfiguration() {
-    this._ensureWritable();
     this.selectedFileName = undefined;
     const event = new Events.SettingsConfigurationSelectedEvent();
     this.emit(event);
@@ -230,7 +239,6 @@ export class EditorContext extends EventEmitter {
    * @ignore
    */
   public selectSettingsCompute() {
-    this._ensureWritable();
     this.selectedFileName = undefined;
     const event = new Events.SettingsComputeSelectedEvent();
     this.emit(event);
@@ -240,7 +248,6 @@ export class EditorContext extends EventEmitter {
    * Navigates to the Schedule view.
    */
   public selectSettingsSchedule() {
-    this._ensureWritable();
     this.selectedFileName = undefined;
     const event = new Events.SettingsScheduleSelectedEvent();
     this.emit(event);
@@ -250,7 +257,6 @@ export class EditorContext extends EventEmitter {
    * Navigates to the Runner view.
    */
   public selectToolsRunner() {
-    this._ensureWritable();
     this.selectedFileName = undefined;
     const event = new Events.RunnerSelectedEvent();
     this.emit(event);
@@ -261,7 +267,6 @@ export class EditorContext extends EventEmitter {
    * @ignore
    */
   public addFile(fileName: string) {
-    this._ensureWritable();
     if (!this.functionSpecification.nodejs) {
       this.functionSpecification.nodejs = { files: {} };
     }
@@ -285,7 +290,6 @@ export class EditorContext extends EventEmitter {
    * @ignore
    */
   public deleteFile(fileName: string) {
-    this._ensureWritable();
     if (!this.functionSpecification.nodejs || !this.functionSpecification.nodejs.files[fileName]) {
       throw new Error(`File ${fileName} does not exist.`);
     }
@@ -303,7 +307,6 @@ export class EditorContext extends EventEmitter {
    * @param fileName The name of the file to edit.
    */
   public selectFile(fileName: string) {
-    this._ensureWritable();
     if (fileName === this.selectedFileName) {
       return;
     }
@@ -320,7 +323,6 @@ export class EditorContext extends EventEmitter {
    * @ignore
    */
   public setSelectedFileContent(content: string) {
-    this._ensureWritable();
     if (!this.selectedFileName || !this.functionSpecification.nodejs) {
       throw new Error('Cannot set selected file content because no file is selected.');
     }
@@ -333,7 +335,6 @@ export class EditorContext extends EventEmitter {
    * @ignore
    */
   public setRunnerContent(content: string) {
-    this._ensureWritable();
     this._ensureFusebitMetadata(true).runner = content;
     this.setDirtyState(true);
   }
@@ -343,7 +344,6 @@ export class EditorContext extends EventEmitter {
    * @ignore
    */
   public setDirtyState(state: boolean) {
-    this._ensureWritable();
     if (this.dirtyState !== state) {
       this.dirtyState = state;
       const event = new Events.DirtyStateChangedEvent(state);
@@ -356,7 +356,6 @@ export class EditorContext extends EventEmitter {
    * @ignore
    */
   public setSettingsCompute(settings: string) {
-    this._ensureWritable();
     const isDirty = !this.dirtyState && this.functionSpecification.computeSerialized !== settings;
     this.functionSpecification.computeSerialized = settings;
     if (isDirty) {
@@ -369,7 +368,6 @@ export class EditorContext extends EventEmitter {
    * @ignore
    */
   public setSettingsConfiguration(settings: string) {
-    this._ensureWritable();
     const isDirty = !this.dirtyState && this.functionSpecification.configurationSerialized !== settings;
     this.functionSpecification.configurationSerialized = settings;
     if (isDirty) {
@@ -382,7 +380,6 @@ export class EditorContext extends EventEmitter {
    * @ignore
    */
   public setSettingsSchedule(settings: string) {
-    this._ensureWritable();
     const isDirty = !this.dirtyState && this.functionSpecification.scheduleSerialized !== settings;
     this.functionSpecification.scheduleSerialized = settings;
     if (isDirty) {
