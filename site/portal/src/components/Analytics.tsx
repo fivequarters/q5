@@ -6,7 +6,7 @@ import Toolbar from '@material-ui/core/Toolbar';
 
 import { useHashHistory } from './HashHistory';
 
-import { AnalyticsActivity, IAnalyticsActivityProps } from './AnalyticsActivity';
+import { AnalyticsActivity } from './AnalyticsActivity';
 import { AnalyticsAudit, IAnalyticsAuditProps } from './AnalyticsAudit';
 
 import { BucketWidths, IDateInterval } from '../lib/FusebitMonitor';

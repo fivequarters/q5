@@ -11,7 +11,6 @@ import PortalError from './PortalError';
 import ResourceCrumb from './ResourceCrumb';
 import TableInfoRow from './TableInfoRow';
 import Chip from '@material-ui/core/Chip';
-import { useHistory } from 'react-router-dom';
 import AgentTooltip, { IssuerSubjectAgent } from './AgentTooltip';
 import { AgentState } from './AgentProvider';
 import CancelIcon from '@material-ui/icons/Cancel';
@@ -50,7 +49,7 @@ function AnalyticsAuditImpl({ actionFilter, filterMask }: AnalyticsAuditImplProp
   const [audit] = useAudit();
   const [utc, setUtc] = React.useState<boolean>(getUISettings().utcTime);
   const classes = useStyles();
-  const [history, setHistory] = useHashHistory('audit', {});
+  const [, setHistory] = useHashHistory('audit', {});
   const [agents, setAgents] = React.useState<IssuerSubjectAgent>({});
 
   const formatUtcDate = (d: Date) =>
@@ -313,8 +312,7 @@ type AuditProps = {
 };
 
 function AnalyticsAudit({ filter, actionFilter }: AuditProps) {
-  const [history, setHistory] = useHashHistory('audit', {});
-  let hash: { [key: string]: string } = {};
+  const [history] = useHashHistory('audit', {});
   let filterOverride = filter;
   const { resource, action, from, to, issuerId, subject } = history;
   if (resource) {
