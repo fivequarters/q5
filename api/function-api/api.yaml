@@ -1849,7 +1849,7 @@ paths:
 #              schema:
 #                $ref: '#/components/schemas/Statistics/Histogram'
 #        400:
-#          description: Malformed account, subscription, boundary, function or statistics query name.
+#          description: Malformed query parameters
 #          content:
 #            application/json:
 #              schema:
@@ -1944,7 +1944,7 @@ paths:
 #              schema:
 #                $ref: '#/components/schemas/Statistics/Histogram'
 #        400:
-#          description: Malformed account, subscription, boundary, function or statistics query name.
+#          description: Malformed query parameters
 #          content:
 #            application/json:
 #              schema:
@@ -2039,7 +2039,7 @@ paths:
 #              schema:
 #                $ref: '#/components/schemas/Statistics/HistogramPair'
 #        400:
-#          description: Malformed account, subscription, boundary, function or statistics query name.
+#          description: Malformed query parameters
 #          content:
 #            application/json:
 #              schema:
@@ -2138,7 +2138,7 @@ paths:
 #              schema:
 #                $ref: '#/components/schemas/Statistics/Histogram'
 #        400:
-#          description: Malformed account, subscription, boundary, function or statistics query name.
+#          description: Malformed query parameters
 #          content:
 #            application/json:
 #              schema:
@@ -2224,7 +2224,7 @@ paths:
 #              schema:
 #                $ref: '#/components/schemas/Statistics/Bulk'
 #        400:
-#          description: Malformed account, subscription, boundary, function or statistics query name.
+#          description: Malformed query parameters
 #          content:
 #            application/json:
 #              schema:

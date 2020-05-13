@@ -200,7 +200,7 @@ const addRequiredFilters = (request, body) => {
 
   // Add timestamp range
   if (!request.query.from || !request.query.to) {
-    throw httpError(403, 'Missing from or to parameters.');
+    throw httpError(400, '"from" or "to" missing.');
   }
 
   body.query.bool.filter.push({
@@ -252,7 +252,7 @@ const makeQuery = async (request, key, query_params = null) => {
     addRequiredFilters(request, body);
   } catch (e) {
     // Missing required elements.
-    return { statusCode: 403, data: e.message };
+    return { statusCode: 403, message: e.message, data: e.message };
   }
 
   // console.log('Query: ', JSON.stringify(body));
@@ -261,7 +261,8 @@ const makeQuery = async (request, key, query_params = null) => {
     .post(`https://${process.env.ES_HOST}/fusebit-*/_search`)
     .auth(process.env.ES_USER, process.env.ES_PASSWORD)
     .set(headers)
-    .send(body);
+    .send(body)
+    .ok(() => true);
 
   if (response.statusCode == 200) {
     let payload = queries[key][1](response.body);
@@ -287,9 +288,9 @@ const codeHistogram = async (req, res, next, queryName, evtToValue) => {
       filterCodes = httpRangeFilterCodes;
     } else {
       const codeQuery = await makeQuery(req, 'allStatusCodes');
-
       if (codeQuery.statusCode != 200) {
-        return next(httpError(response.statusCode, response.data));
+        console.log(`ElasticSearch failure ${response.statusCode}: ${JSON.stringify(response.data)}`);
+        return next(httpError(response.statusCode, response.message, response.data));
       }
 
       // Create a set of filters for each code.
@@ -315,7 +316,8 @@ const codeHistogram = async (req, res, next, queryName, evtToValue) => {
 
     let response = await makeQuery(req, queryName, { code, interval: width, minDocCount: 0, field });
     if (response.statusCode != 200) {
-      return next(httpError(response.statusCode, response.data));
+      console.log(`ElasticSearch failure ${response.statusCode}: ${JSON.stringify(response.data)}`);
+      return next(httpError(response.statusCode, response.message, response.data));
     }
 
     // Convert the results to the desired format
@@ -379,7 +381,8 @@ const itemizedBulk = async (req, res, next) => {
 
   let response = await makeQuery(req, 'itemizedBulk', { code, fromIdx, pageSize, minDocCount });
   if (response.statusCode != 200) {
-    return next(httpError(response.statusCode, response.data));
+    console.log(`ElasticSearch failure ${response.statusCode}: ${JSON.stringify(response.data)}`);
+    return next(httpError(response.statusCode, 'failed to perform query'));
   }
 
   bulk = response.items;
