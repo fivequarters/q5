@@ -740,6 +740,8 @@ function promote_to_name_params(req, res, next) {
   req.params.subscriptionId = req.params[0];
   req.params.boundaryId = req.params[1];
   req.params.functionId = req.params[2];
+  // Reverse back the run_route base url component.
+  req.params.baseUrl = `/run/${req.params[0]}/${req.params[1]}/${req.params[2]}/`;
   delete req.params[0];
   delete req.params[1];
   delete req.params[2];
