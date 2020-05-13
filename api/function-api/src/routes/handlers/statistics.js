@@ -20,7 +20,7 @@ const headers = {
 // If a number is supplied, query for just that number.  Otherwise, assume that the caller is
 // passing in some range query {gte:200, lt:300} for example.
 const codeToESQuery = code => {
-  if (typeof code == 'undefined') return {};
+  if (typeof code == 'undefined' || code == null || Number.isNaN(code)) return {};
 
   const queryType = typeof code == 'number' ? 'match' : 'range';
   return {
@@ -229,7 +229,7 @@ const addRequiredFilters = (request, body) => {
   }
 };
 
-const makeQuery = async (request, key, query_params = null) => {
+const makeQuery = async (request, key, queryParams = null) => {
   let body = {
     version: true,
     size: 0,
@@ -239,7 +239,7 @@ const makeQuery = async (request, key, query_params = null) => {
   if (queries[key][0] instanceof Function) {
     body = {
       ...body,
-      ...queries[key][0](query_params),
+      ...queries[key][0](queryParams),
     };
   } else {
     body = {
@@ -373,7 +373,7 @@ const itemizedBulk = async (req, res, next) => {
 
   let bulk = {};
 
-  const code = httpRangeFilterCodes[req.query.code] || Number(req.query.code);
+  const code = httpRangeFilterCodes[req.query.code] || Number(req.query.code) || undefined;
   const fromIdx = parseInt(req.query.next) || 0;
   const pageSize = parseInt(req.query.count) || 5;
 

@@ -22,6 +22,8 @@ import { IFusebitProfile } from '../lib/Settings';
 import { formatByBucketWidth, IDateInterval, getStatisticalMonitorData } from '../lib/FusebitMonitor';
 import { getUISettings } from '../lib/Settings';
 
+type ActiveCodeList = Array<number | string>;
+
 interface IProps {
   query: string;
   label: string;
@@ -33,7 +35,7 @@ interface IProps {
   chartType?: string;
   queryParams?: any;
   setEventRange: (newInterval: IDateInterval) => void;
-  setActiveCodeList: (newCodeList: number[]) => void;
+  setActiveCodeList: (newCodeList: ActiveCodeList) => void;
 }
 
 const MonitorGraph: React.FC<IProps> = props => {
@@ -115,7 +117,7 @@ const MonitorGraph: React.FC<IProps> = props => {
             payload.map((line: any) => {
               return (
                 <p key={line.name} className="desc">
-                  {line.name}: {line.value}
+                  {line.name}: {+line.value.toFixed(2)} {line.unit}
                 </p>
               );
             })}
@@ -146,6 +148,11 @@ const MonitorGraph: React.FC<IProps> = props => {
 
   let elements: any;
   if (multi) {
+    const onDotClick = (e: any, p: any) => {
+      setActiveCodeList(e.dataKey.substring(0, 3)); // Get the leading three digits, sans array offset.
+      setHTTPEventRange(e.payload.key);
+    };
+
     elements = data.codes.map(id => {
       return [
         <ChartElement
@@ -154,9 +161,11 @@ const MonitorGraph: React.FC<IProps> = props => {
           key={id + ' latency'}
           dataKey={id + '[0]'}
           name={id + ' latency'}
-          stroke={httpCodeColorMap(id)}
           strokeDasharray="3 3"
+          stroke={httpCodeColorMap(id)}
           fill={httpCodeColorMap(id)}
+          activeDot={{ onClick: onDotClick }}
+          unit="ms"
         />,
         <ChartElement
           yAxisId="left"
@@ -166,10 +175,17 @@ const MonitorGraph: React.FC<IProps> = props => {
           name={id + ' results'}
           stroke={httpCodeColorMap(id)}
           fill={httpCodeColorMap(id)}
+          activeDot={{ onClick: onDotClick }}
+          unit="hits"
         />,
       ];
     });
   } else {
+    const onDotClick = (e: any, p: any) => {
+      setActiveCodeList(e.dataKey); // Should be just the basic HTTP code value.
+      setHTTPEventRange(e.payload.key);
+    };
+
     elements = data.codes.map(id => {
       return (
         <ChartElement
@@ -179,6 +195,7 @@ const MonitorGraph: React.FC<IProps> = props => {
           key={id}
           dataKey={id}
           fill={httpCodeColorMap(id)}
+          activeDot={{ onClick: onDotClick }}
         />
       );
     });
@@ -193,13 +210,7 @@ const MonitorGraph: React.FC<IProps> = props => {
       </Typography>
       <div style={{ width: '100%', height: 500 }}>
         <ResponsiveContainer>
-          <ReChart
-            width={900}
-            height={200}
-            data={data.items}
-            onClick={(e: any, v: any) => e && setHTTPEventRange(e.activeLabel)}
-            {...chartParams}
-          >
+          <ReChart width={900} height={200} data={data.items} {...chartParams}>
             <CartesianGrid stroke="#ccc" />
             <Tooltip content={CustomTooltip} />
             <Legend height={36} />

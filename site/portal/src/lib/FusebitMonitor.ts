@@ -65,6 +65,8 @@ const getBulkMonitorData = async (
     return setData({ items: [], total: 0 });
   }
 
+  const codeParams = Array.isArray(activeCode) ? { codeGrouped: true } : { code: activeCode };
+
   try {
     const auth = await ensureAccessToken(profile);
 
@@ -72,9 +74,9 @@ const getBulkMonitorData = async (
       .query({
         from: interval.from.toISOString(),
         to: interval.to.toISOString(),
-        code: activeCode,
         next: options.offset,
         count: options.pageSize,
+        ...codeParams,
       })
       .set('Authorization', `Bearer ${auth.access_token}`);
 
