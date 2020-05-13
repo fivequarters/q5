@@ -76,7 +76,7 @@ export function createEditorPanel(element: HTMLElement, editorContext: EditorCon
       Assert.fail('Model or language cannot be determined for the selected file.');
     }
     restoreViewState(activeCategory, editedFileName);
-    delete element.style.display;
+    element.style.display = 'unset';
   });
 
   // When the edited file is deleted, hide the editor
@@ -100,7 +100,7 @@ export function createEditorPanel(element: HTMLElement, editorContext: EditorCon
       Assert.fail('Model cannot be determined the runner script.');
     }
     restoreViewState(activeCategory);
-    delete element.style.display;
+    element.style.display = 'unset';
   });
 
   // When compute settings are selected, serialize them and display as INI for editing
@@ -116,7 +116,7 @@ export function createEditorPanel(element: HTMLElement, editorContext: EditorCon
       Assert.fail('Model cannot be determined for compute node.');
     }
     restoreViewState(activeCategory);
-    delete element.style.display;
+    element.style.display = 'unset';
   });
 
   // When configuration settings are selected, serialize them and display as INI for editing
@@ -132,7 +132,7 @@ export function createEditorPanel(element: HTMLElement, editorContext: EditorCon
       Assert.fail('Model cannot be determined for Configuration settings node.');
     }
     restoreViewState(activeCategory);
-    delete element.style.display;
+    element.style.display = 'unset';
   });
 
   // When schedule settings are selected, serialize them and display as INI for editing
@@ -148,7 +148,7 @@ export function createEditorPanel(element: HTMLElement, editorContext: EditorCon
       Assert.fail('Model cannot be determined for Schedule settings node.');
     }
     restoreViewState(activeCategory);
-    delete element.style.display;
+    element.style.display = 'unset';
   });
 
   editor.onDidChangeModelContent(() => {

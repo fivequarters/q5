@@ -17,6 +17,14 @@ All public releases of the Fusebit editor are documented here, including notable
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.3.1
+
+_Released 5/12/20_
+
+- **Bug fix.** Cmd/Ctrl-S correctly saves the function regardless of which editor element is in focus.
+- **Bug fix.** While the function is saving, the editor remains fully functional except for running or saving the function again.
+- **Bug fix.** Newly created functions will have a default configuration, compute, and scheduler settings populated with inline documentation.
+
 ## Version 1.3.0
 
 _Released 11/15/19_
