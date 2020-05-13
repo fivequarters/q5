@@ -25,6 +25,7 @@
   align-items: stretch;
   min-height: 100px;
   overflow: hidden;
+  outline: none;
 }
 
 .fusebit-theme-light .fusebit-logs-splitter {
@@ -41,6 +42,7 @@
   min-height: 100px;
   background-color: #f7f9f9;
   position: relative;
+  outline: none;
 }
 
 .fusebit-theme-light .fusebit-nav-splitter {
@@ -50,6 +52,7 @@
   background: white;
   min-height: 100px;
   cursor: col-resize;
+  outline: none;
 }
 
 .fusebit-theme-light .fusebit-editor-container {
@@ -69,6 +72,7 @@
   overflow: hidden;
   padding-left: 10px;
   padding-top: 10px;
+  outline: false;
 }
 
 .fusebit-theme-light .fusebit-status-container {
@@ -76,6 +80,7 @@
   font-family: Helvetica, Arial, sans-serif;
   color: #34495e;
   background-color: #e5e8e8;
+  outline: none;
 }
 
 .fusebit-theme-light .fusebit-nav {
@@ -254,6 +259,7 @@
   color: #34495e;
   width: 100px;
   background-color: #ebedef;
+  outline: none;
 }
 
 .fusebit-theme-light .fusebit-action-btn {
