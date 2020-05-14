@@ -7,8 +7,9 @@ import { FusebitColor } from '@5qtrs/fusebit-color';
 import { FusebitSocialButton, FusebitSocialType } from '@5qtrs/fusebit-social';
 import { AccoladeOneIcon, AccoladeTwoIcon, AccoladeThreeIcon } from '@5qtrs/fusebit-icon';
 import { FusebitPage, FusebitSection, FusebitBreak } from '@5qtrs/fusebit-page';
-import Tomek from '../../assets/img/tomek-full-3.png';
-import Yavor from '../../assets/img/yavor-full-3.png';
+import Tomek from '../../assets/img/tomek-full-4.png';
+import Yavor from '../../assets/img/yavor-full-4.png';
+import Benn from '../../assets/img/benn-full.png';
 
 // -------------------
 // Exported Components
@@ -54,8 +55,8 @@ export function About() {
         </Box>
         <Box width="100%" marginTop={40}>
           <Box center expand vertical minWidth={260} marginBottom={60}>
-            <Box overlay height={310} width={0}>
-              <Box offsetX={-165} offsetY={97}>
+            <Box overlay height={220} width={0}>
+              <Box offsetX={-165} offsetY={-5}>
                 <svg width={216} height={300} viewBox="0 0 100 100">
                   <circle cx={50} cy={50} r={30} fill={FusebitColor.red} />
                 </svg>
@@ -86,7 +87,7 @@ export function About() {
           </Box>
           <Box width={30} height={0} />
           <Box vertical center expand minWidth={260} marginBottom={60}>
-            <Box overlay height={310} width={0}>
+            <Box overlay height={220} width={0}>
               <Box offsetX={-60} offsetY={0}>
                 <svg width={216} height={300} viewBox="0 0 100 100">
                   <circle cx={50} cy={50} r={30} fill={FusebitColor.orange} />
@@ -98,7 +99,7 @@ export function About() {
               <FusebitText center type={FusebitTextType.body} weight={FusebitTextWeight.bold}>
                 Yavor Georgiev
               </FusebitText>
-              <FusebitText center>Co-founder {'&'} Head of Product</FusebitText>
+              <FusebitText center>Co-founder {'&'} CPO</FusebitText>
               <Box marginTop={10}>
                 <FusebitSocialButton
                   type={FusebitSocialType.linkedIn}
@@ -110,6 +111,31 @@ export function About() {
                   type={FusebitSocialType.twitter}
                   href="https://twitter.com/YavorGeorgiev"
                   marginLeft={10}
+                  small
+                  invertColor
+                />
+              </Box>
+            </Box>
+          </Box>
+          <Box width={30} height={0} />
+          <Box vertical center expand minWidth={260} marginBottom={60}>
+            <Box overlay height={220} width={0}>
+              <Box offsetX={-45} offsetY={0}>
+                <svg width={216} height={300} viewBox="0 0 100 100">
+                  <circle cx={50} cy={50} r={30} fill={FusebitColor.cyan} />
+                </svg>
+              </Box>
+              <Image offsetX={-110} src={Benn} width={220} />
+            </Box>
+            <Box vertical center marginTop={10}>
+              <FusebitText center type={FusebitTextType.body} weight={FusebitTextWeight.bold}>
+                Benn Bollay
+              </FusebitText>
+              <FusebitText center>Co-founder {'&'} CTO</FusebitText>
+              <Box marginTop={10}>
+                <FusebitSocialButton
+                  type={FusebitSocialType.linkedIn}
+                  href="https://www.linkedin.com/in/bennbollay"
                   small
                   invertColor
                 />

@@ -13,7 +13,7 @@ const command = {
   arguments: [
     {
       name: 'name',
-      description: 'The name of the network',
+      description: 'The name of the network; valid characters are [a-zA-Z0-9]',
     },
     {
       name: 'account',
