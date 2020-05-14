@@ -31,7 +31,7 @@
 .fusebit-theme-light .fusebit-logs-splitter {
   flex: 0 0 auto;
   height: 4px;
-  background: white;
+  background: lightgrey;
   cursor: row-resize;
 }
 
@@ -49,7 +49,7 @@
   flex: 0 0 auto;
   width: 4px;
   min-width: 4px;
-  background: white;
+  background: lightgrey;
   min-height: 100px;
   cursor: col-resize;
   outline: none;
@@ -88,7 +88,7 @@
   flex-flow: column;
   align-items: stretch;
   min-height: 100px;
-  overflow: scroll;
+  overflow: auto;
   height: 100%;
   width: 100%;
   margin-top: 4px;
@@ -194,7 +194,7 @@
 }
 
 .fusebit-theme-light .fusebit-logs {
-  overflow: scroll;
+  overflow: auto;
   height: 100%;
   width: 100%;
 }

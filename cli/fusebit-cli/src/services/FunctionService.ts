@@ -1124,6 +1124,10 @@ export class FunctionService {
       functionSpec.metadata.fusebit.editor) || {
       theme,
     };
+
+    const fusebitEditorUrl =
+      process.env.FUSEBIT_EDITOR_URL || 'https://cdn.fusebit.io/fusebit/js/fusebit-editor/latest/fusebit-editor.min.js';
+
     return `<!doctype html>
   <html lang="en">
   <head>
@@ -1140,8 +1144,8 @@ export class FunctionService {
   
       <style>
           html,body {
-              width: 100%;
-              height: 100%;
+              width: 95%;
+              height: 95%;
           }
       </style>
   
@@ -1150,7 +1154,7 @@ export class FunctionService {
       <div id="editor" style="width:800px;height:500px;margin-top:30px;margin-left:auto;margin-right:auto">
   </body>
   
-  <script src="https://cdn.fusebit.io/fusebit/js/fusebit-editor/latest/fusebit-editor.min.js"></script>
+  <script src="${fusebitEditorUrl}"></script>
   <script type="text/javascript">
     fusebit.createEditor(document.getElementById('editor'), '${profile.boundary}', '${profile.function}', {
         accountId: '${profile.account}',
