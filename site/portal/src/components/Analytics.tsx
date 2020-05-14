@@ -11,11 +11,6 @@ import { AnalyticsAudit, IAnalyticsAuditProps } from './AnalyticsAudit';
 
 import { BucketWidths, IDateInterval } from '../lib/FusebitMonitor';
 
-/*
- * Current Status:
- *   * Implement the time filter component into a taskbar for Activity only.
- *   * Improve the onClick for the graph to better select specific lines and codes.
- */
 interface IParams {
   accountId?: string;
   subscriptionId?: string;
