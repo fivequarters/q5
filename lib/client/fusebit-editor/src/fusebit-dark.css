@@ -92,7 +92,7 @@
   flex-flow: column;
   align-items: stretch;
   min-height: 100px;
-  overflow: scroll;
+  overflow: auto;
   height: 100%;
   width: 100%;
   margin-top: 4px;
@@ -199,7 +199,7 @@
 }
 
 .fusebit-theme-dark .fusebit-logs {
-  overflow: scroll;
+  overflow: auto;
   height: 100%;
   width: 100%;
 }

@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version X.X.X
+
+_Released X/XX/XX_
+
+- **Input Validation.** Disallow network names that include non-alphanumeric characters.
+
 ## Version 1.21.0
 
 _Released 1/23/20_

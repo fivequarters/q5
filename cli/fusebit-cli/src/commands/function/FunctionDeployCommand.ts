@@ -15,10 +15,10 @@ const command = {
     'Builds and deploys a function using files in the given directory.',
     Text.eol(),
     Text.eol(),
-    'At a minimum, there must be an index.js file.',
-    'Application settings can be specified in a .env file. NPM module dependencies can be specified ',
-    'in a package.json file. All files must be located directly in the given directory; subdirectories',
-    'are not considered.'
+    'At a minimum, there must be an index.js file within the directory. Additionally, further application ',
+    'settings can be specified in a .env file. Any NPM module dependencies can be specified in a regular ',
+    'package.json file. These files must be located directly in the given directory; subdirectories are ',
+    'not considered.'
   ),
   arguments: [
     {
