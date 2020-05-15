@@ -17,10 +17,11 @@ All public releases of the Fusebit editor are documented here, including notable
 <!-- 1. TOC
 {:toc} -->
 
-## Version X.X.X
+## Version 1.4.0
 
-_Released X/XX/XX_
+_Released 5/14/20_
 
+- **Enhancement.** Enable creating individual editor panels.
 - **Enhancement.** Change the default light theme to have more visible panel breaks.
 - **Enhancement.** Eliminate unnecessary scrollbars in the style sheet.
 
