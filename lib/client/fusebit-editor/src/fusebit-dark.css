@@ -18,6 +18,10 @@
   background: transparent;
 }
 
+.fusebit-theme-dark .fusebit-main-no-status {
+  height: 100%;
+}
+
 .fusebit-theme-dark .fusebit-nav-editor-container {
   flex: 1 1 auto;
   display: flex;

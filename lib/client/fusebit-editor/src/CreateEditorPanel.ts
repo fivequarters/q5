@@ -6,11 +6,11 @@ import { EditorContext } from './EditorContext';
 import { updateFusebitContextTypings, addStaticTypings, updateNodejsTypings, updateDependencyTypings } from './Typings';
 
 /**
- * Not part of MVP
- * @ignore
- * @param element
- * @param editorContext
- * @param options
+ * Creates an editor panel within the specified HTML element and associacted with the existing [[EditorContext]].
+ *
+ * @param element The HTML element (typically a div) within which to create the editor panel.
+ * @param editorContext A pre-existing editor context to associate the editor panel with.
+ * @param options Editor panel creation options.
  */
 export function createEditorPanel(element: HTMLElement, editorContext: EditorContext, options?: IEditorPanelOptions) {
   let theme = (options && options.theme) || 'light';
