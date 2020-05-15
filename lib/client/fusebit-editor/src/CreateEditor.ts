@@ -78,7 +78,9 @@ export function createEditor(
 
     const lines: string[] = [
       `<div id="${idPrefix}" class="fusebit-theme-${opts.theme ||
-        'light'} fusebit-shell"><div id="${idPrefix}-main" class="fusebit-main">`,
+        'light'} fusebit-shell"><div id="${idPrefix}-main" class="fusebit-main${
+        opts.statusPanel === false ? ' fusebit-main-no-status' : ''
+      }">`,
     ];
     if (opts.actionPanel !== false) {
       lines.push(`<div id="${actionId}" class="fusebit-action-container" tabindex="-1"></div>`);
@@ -174,7 +176,6 @@ export function createEditor(
       createActionPanel(
         document.getElementById(actionId) as HTMLElement,
         editorContext,
-        server,
         opts.actionPanel as Options.IActionPanelOptions
       );
     }
@@ -184,7 +185,6 @@ export function createEditor(
         editorContext,
         opts.logsPanel as Options.ILogsPanelOptions
       );
-      server.attachServerLogs(editorContext);
     }
 
     mainElement.addEventListener('keydown', function(e: KeyboardEvent) {
