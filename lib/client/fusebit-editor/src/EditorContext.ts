@@ -2,7 +2,7 @@ import { EventEmitter } from '@5qtrs/event';
 import { ServerResponse } from 'http';
 import * as Events from './Events';
 import { IFunctionSpecification } from './FunctionSpecification';
-import { IBuildStatus } from './Server';
+import { IBuildStatus, Server } from './Server';
 
 const RunnerPlaceholder = `// Return a function that evaluates to a Superagent request promise
 
@@ -112,13 +112,20 @@ export class EditorContext extends EventEmitter {
   public _monaco: any;
 
   /**
+   * Not relevant for MVP
+   * @ignore
+   */
+  public _server: Server;
+
+  /**
    * Creates a _EditorContext_ given the optional function specification. If you do not provide a function specification,
    * the default is a boilerplate "hello, world" function.
    * @param functionSpecification
    * @ignore Not relevant for MVP
    */
-  constructor(boundaryId?: string, id?: string, functionSpecification?: IFunctionSpecification) {
+  constructor(server: Server, boundaryId?: string, id?: string, functionSpecification?: IFunctionSpecification) {
     super();
+    this._server = server;
     if (boundaryId) {
       this.boundaryId = boundaryId;
     }
@@ -179,6 +186,30 @@ export class EditorContext extends EventEmitter {
     } else {
       throw new Error('The functionSpecification.nodejs.files must be provided.');
     }
+  }
+
+  /**
+   * Not relevant for MVP
+   * @ignore
+   */
+  public attachServerLogs() {
+    this._server.attachServerLogs(this);
+  }
+
+  /**
+   * Initiaties a new build of the function. This is an asynchronous operation that communicates
+   * its progress through events emitted from this _EditorContext_ instance.
+   */
+  public saveFunction() {
+    this._server.saveFunction(this).catch(_ => {});
+  }
+
+  /**
+   * Initiaties a the invocation of the function. This is an asynchronous operation that communicates
+   * its progress through events emitted from this _EditorContext_ instance.
+   */
+  public runFunction() {
+    this._server.runFunction(this).catch(_ => {});
   }
 
   /**
