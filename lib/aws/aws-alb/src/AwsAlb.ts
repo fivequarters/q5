@@ -99,8 +99,9 @@ export class AwsAlb extends AwsBase<typeof ELBv2> {
   }
 
   public async ensureAlb(newAlb: IAwsNewAlb): Promise<IAwsAlb> {
-    let alb = await this.getAlbOrUndefined(newAlb.name);
-    return alb ? alb : this.createAlb(newAlb);
+    let alb = (await this.getAlbOrUndefined(newAlb.name)) || (await this.createAlb(newAlb));
+    await this.configureLoadBalancer(alb);
+    return alb;
   }
 
   public async getAlb(name: string): Promise<IAwsAlb> {
@@ -457,6 +458,27 @@ export class AwsAlb extends AwsBase<typeof ELBv2> {
         }
 
         resolve(data.Listeners[0].ListenerArn);
+      });
+    });
+  }
+
+  private async configureLoadBalancer(alb: IAwsAlb): Promise<IAwsAlb> {
+    const elb = await this.getAws();
+    const params = {
+      LoadBalancerArn: alb.arn,
+      Attributes: [
+        {
+          Key: 'idle_timeout.timeout_seconds',
+          Value: '120',
+        },
+      ],
+    };
+    return new Promise((resolve, reject) => {
+      elb.modifyLoadBalancerAttributes(params, (error, data) => {
+        if (error) {
+          return reject(error);
+        }
+        resolve(alb);
       });
     });
   }
