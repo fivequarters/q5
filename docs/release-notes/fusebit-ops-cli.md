@@ -24,6 +24,7 @@ _Released 5/19/20_
 
 - **Idle Timeout Increase.** Increased the default idle timeout of the application load balancer to 120 seconds. For this setting to take effect, please re-run `fuse-ops deployment add` on your deployment.
 - **Input Validation.** Disallow network names that include non-alphanumeric characters.
+- **Cron Bugfix.** Resolve an issue with the cron scheduler and improve test coverage for that component.
 
 ## Version 1.21.0
 
