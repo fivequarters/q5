@@ -102,10 +102,14 @@ describe('cron', () => {
 
       // sleep 15 minutes to make sure the scheduler is working, let the cron run
       let lastRunCount = 0;
-      for (let n = 0; n < 15; n++) {
+      const runDelay = 15;
+      for (let n = 0; n < runDelay; n++) {
         await sleep(60 * 1000);
         let runCount = (await getRuns()).length;
-        expect(runCount).toBeGreaterThan(lastRunCount);
+        if (n > 3) {
+          expect(runCount).toBeGreaterThan(0); // Make sure the basic behavior is working.
+        }
+        expect(runCount).toBeGreaterThanOrEqual(lastRunCount);
         lastRunCount = runCount;
       }
 
@@ -115,20 +119,26 @@ describe('cron', () => {
 
       // Retrieve the storage function to inspect the cron job that ran
       let actualRuns = await getRuns();
-      expect(actualRuns.length).toBeGreaterThanOrEqual(14);
-      actualRuns.sort((a: number, b: number) => a - b);
-      let avgTimespan = (actualRuns[actualRuns.length - 1] - actualRuns[0]) / actualRuns.length;
-      let minTimespan = 999999;
-      let maxTimespan = 0;
-      for (var i = 1; i < actualRuns.length; i++) {
-        let timespan = actualRuns[i] - actualRuns[i - 1];
-        minTimespan = Math.min(minTimespan, timespan);
-        maxTimespan = Math.max(maxTimespan, timespan);
-      }
-      //console.log('RESPONSES', actualRuns.length, avgTimespan, minTimespan, maxTimespan);
-      expect(avgTimespan).toBeGreaterThan(60000);
-      expect(maxTimespan).toBeLessThan(64000);
-      expect(minTimespan).toBeGreaterThan(55000);
+      expect(actualRuns.length).toBeGreaterThanOrEqual(runDelay - 1);
+
+      // Convert to spans
+      let spans = actualRuns
+        .map((v: number, i: number) => {
+          return i > 0 && v - actualRuns[i - 1];
+        })
+        .slice(1);
+
+      // Calculate average
+      let avgTimespan = spans.reduce((t: number, v: number) => t + v, 0) / spans.length;
+
+      // Calcualte min/max
+      spans.sort((a: number, b: number) => a - b);
+      let [minTimespan, maxTimespan] = [spans[0], spans[spans.length - 1]];
+
+      console.log('RESPONSES', spans.length, avgTimespan, minTimespan, maxTimespan);
+      expect(avgTimespan).toBeGreaterThan(58000);
+      expect(maxTimespan).toBeLessThan(70000);
+      expect(minTimespan).toBeGreaterThan(50000);
     },
     16 * 60 * 1000
   );
