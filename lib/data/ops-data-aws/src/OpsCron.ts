@@ -220,6 +220,7 @@ export async function createCron(config: OpsDataAwsConfig, awsConfig: IAwsConfig
           AWS_S3_BUCKET: config.getS3Bucket(deployment),
           CRON_QUEUE_URL: ctx.queueUrl,
           DEPLOYMENT_KEY: awsConfig.prefix || 'global',
+          LOGS_DISABLE: 'true',
         },
       },
     };
