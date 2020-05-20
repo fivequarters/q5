@@ -101,16 +101,17 @@ describe('cron', () => {
       };
 
       // sleep 15 minutes to make sure the scheduler is working, let the cron run
-      let lastRunCount = 0;
+      let lastRuns: number[] = [];
       const runDelay = 15;
       for (let n = 0; n < runDelay; n++) {
         await sleep(60 * 1000);
         let runCount = (await getRuns()).length;
+        lastRuns.push(runCount);
         if (n > 3) {
           expect(runCount).toBeGreaterThan(0); // Make sure the basic behavior is working.
+          expect(lastRuns.every(v => v === lastRuns[0])).toBeFalsy(); // Make sure it's not stalled.
+          lastRuns.shift();
         }
-        expect(runCount).toBeGreaterThanOrEqual(lastRunCount);
-        lastRunCount = runCount;
       }
 
       // delete cron job
