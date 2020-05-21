@@ -223,7 +223,7 @@ export class DeploymentService {
       if (!region) {
         await this.executeService.error(
           'Many Deployments',
-          Text.create(`There is more than one '${Text.bold(deploymentName)}' deployment. You must sepcify the region.'`)
+          Text.create(`There is more than one '${Text.bold(deploymentName)}' deployment. You must specify the region.'`)
         );
         throw new Error('Unspecified deployment');
       }
