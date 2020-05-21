@@ -81,7 +81,7 @@ export class NetworkService {
       if (!region) {
         await this.executeService.error(
           'Many Networks',
-          Text.create(`There is more than one '${Text.bold(networkName)}' network. You must sepcify the region.'`)
+          Text.create(`There is more than one '${Text.bold(networkName)}' network. You must specify the region.'`)
         );
         throw new Error('Unspecified network');
       }
