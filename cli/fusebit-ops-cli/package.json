@@ -15,7 +15,7 @@
   "packageAs": "fusebit-ops-cli",
   "packageAssets": [],
   "scripts": {
-    "build": "yarn build:lambdas && tsc -b",
+    "build": "tsc -b",
     "build:lambdas": "cd ../.. && yarn build ops-lambda-set",
     "test": "jest --colors",
     "coverage": "jest --colors --coverage",

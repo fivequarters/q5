@@ -4,10 +4,20 @@ import { IAwsConfig, AwsCreds } from '@5qtrs/aws-config';
 import { IOpsDeployment } from '@5qtrs/ops-data';
 import { debug } from './OpsDebug';
 import { LambdaCronZip } from '@5qtrs/ops-lambda-set';
+import { OpsDataTables } from './OpsDataTables';
+import { OpsNetworkData } from './OpsNetworkData';
+import { OpsDataAwsProvider } from './OpsDataAwsProvider';
+
 const Async = require('async');
 
-export async function createCron(config: OpsDataAwsConfig, awsConfig: IAwsConfig, deployment: IOpsDeployment) {
-  const Config = createCronConfig(config, awsConfig);
+export async function createCron(
+  config: OpsDataAwsConfig,
+  awsConfig: IAwsConfig,
+  provider: OpsDataAwsProvider,
+  tables: OpsDataTables,
+  deployment: IOpsDeployment
+) {
+  const Config = await createCronConfig(config, awsConfig, provider, tables, deployment);
   const DeploymentPackage = LambdaCronZip();
 
   debug('IN CRON SETUP');
@@ -164,6 +174,10 @@ export async function createCron(config: OpsDataAwsConfig, awsConfig: IAwsConfig
           // LOGS_WS_TOKEN_SIGNATURE_KEY: process.env.LOGS_WS_TOKEN_SIGNATURE_KEY,
           // LOGS_WS_TOKEN_EXPIRY: process.env.LOGS_WS_TOKEN_EXPIRY,
         },
+      },
+      VpcConfig: {
+        SecurityGroupIds: Config.executor.securityGroupId,
+        SubnetIds: Config.executor.subnets,
       },
     };
     return lambda.createFunction(params, (e, d) => {
@@ -337,10 +351,21 @@ export async function createCron(config: OpsDataAwsConfig, awsConfig: IAwsConfig
   }
 }
 
-function createCronConfig(config: OpsDataAwsConfig, awsConfig: IAwsConfig) {
+async function createCronConfig(
+  config: OpsDataAwsConfig,
+  awsConfig: IAwsConfig,
+  provider: OpsDataAwsProvider,
+  tables: OpsDataTables,
+  deployment: IOpsDeployment
+) {
   // CRON_PREFIX is a deployment time setting that can be used to create isolated deployments of the CRON pipeline,
   // e.g. for testing purposes, especially along with CRON_FILTER
   const CronPrefix = `${awsConfig.prefix || 'global'}-`;
+
+  const networkData = await OpsNetworkData.create(config, provider, tables);
+  const network = await networkData.get(deployment.networkName, deployment.region);
+
+  debugger;
 
   return {
     prefix: CronPrefix,
@@ -361,6 +386,8 @@ function createCronConfig(config: OpsDataAwsConfig, awsConfig: IAwsConfig) {
       role: `${config.arnPrefix}:iam::${awsConfig.account}:role/${config.cronExecutorRoleName}`,
       batchSize: 10,
       concurrentExecutionLimit: '10',
+      securityGroupId: [network.securityGroupId],
+      subnets: network.privateSubnets.map(sn => sn.id),
     },
 
     // Lambda function that is triggered by scheduled Cloud Watch Events and populates SQS
@@ -384,8 +411,14 @@ function createCronConfig(config: OpsDataAwsConfig, awsConfig: IAwsConfig) {
   };
 }
 
-export async function deleteCron(config: OpsDataAwsConfig, awsConfig: IAwsConfig): Promise<void> {
-  const Config = createCronConfig(config, awsConfig);
+export async function deleteCron(
+  config: OpsDataAwsConfig,
+  awsConfig: IAwsConfig,
+  provider: OpsDataAwsProvider,
+  tables: OpsDataTables,
+  deployment: IOpsDeployment
+): Promise<void> {
+  const Config = await createCronConfig(config, awsConfig, provider, tables, deployment);
   AWS.config.apiVersions = {
     sqs: '2012-11-05',
     lambda: '2015-03-31',

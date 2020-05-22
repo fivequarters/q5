@@ -4,6 +4,9 @@ import { IAwsConfig, AwsCreds } from '@5qtrs/aws-config';
 import { IOpsDeployment } from '@5qtrs/ops-data';
 import { debug } from './OpsDebug';
 import { LambdaAnalyticsZip } from '@5qtrs/ops-lambda-set';
+import { OpsDataTables } from './OpsDataTables';
+import { OpsNetworkData } from './OpsNetworkData';
+import { OpsDataAwsProvider } from './OpsDataAwsProvider';
 const Async = require('async');
 
 type AsyncCb = (e?: Error | null) => void;
@@ -30,13 +33,18 @@ async function getAWS(awsConfig: IAwsConfig) {
   return { lambda, cloudwatchlogs, awsOptions: options, awsCredentials: credentials };
 }
 
-function createAnalyticsConfig(
+async function createAnalyticsConfig(
   awsDataConfig: OpsDataAwsConfig,
   awsConfig: IAwsConfig,
+  provider: OpsDataAwsProvider,
+  tables: OpsDataTables,
   deployment: IOpsDeployment,
   zipFile: Buffer
 ) {
   const prefix = `${awsConfig.prefix || 'global'}-`;
+
+  const networkData = await OpsNetworkData.create(awsDataConfig, provider, tables);
+  const network = await networkData.get(deployment.networkName, deployment.region);
 
   // Parse the Elastic Search credentials
   let esCreds = { ES_HOST: '', ES_USER: '', ES_PASSWORD: '' };
@@ -65,6 +73,10 @@ function createAnalyticsConfig(
           DEPLOYMENT_KEY: awsConfig.prefix,
           ...esCreds,
         },
+      },
+      VpcConfig: {
+        SecurityGroupIds: [network.securityGroupId],
+        SubnetIds: network.privateSubnets.map(sn => sn.id),
       },
     },
     cloudWatchLogs: { logGroupName: `${prefix}analytics-logs` },
@@ -190,11 +202,13 @@ function deleteCloudWatchSubscription(cwl: any, config: any, cb: AsyncCb) {
 export async function createAnalyticsPipeline(
   awsDataConfig: OpsDataAwsConfig,
   awsConfig: IAwsConfig,
+  provider: OpsDataAwsProvider,
+  tables: OpsDataTables,
   deployment: IOpsDeployment
 ) {
   const deploymentPackage = LambdaAnalyticsZip();
 
-  const config = createAnalyticsConfig(awsDataConfig, awsConfig, deployment, deploymentPackage);
+  const config = await createAnalyticsConfig(awsDataConfig, awsConfig, provider, tables, deployment, deploymentPackage);
 
   debug('IN ANALYTICS SETUP');
 
