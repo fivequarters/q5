@@ -57,7 +57,7 @@ const App = () => {
             </Box>
 
             <Box>
-              <FusebitLink color={FusebitColor.light} noVisit>
+              <FusebitLink color={FusebitColor.lightBlue} noVisit>
                 Empty Link - Not Visited
               </FusebitLink>
             </Box>
@@ -107,7 +107,7 @@ const App = () => {
             </Box>
 
             <Box>
-              <FusebitLink color={FusebitColor.light}>Empty Link - Visited</FusebitLink>
+              <FusebitLink color={FusebitColor.lightBlue}>Empty Link - Visited</FusebitLink>
             </Box>
           </Box>
         </FusebitText>

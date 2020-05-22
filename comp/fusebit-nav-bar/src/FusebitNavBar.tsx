@@ -125,7 +125,7 @@ export function FusebitNavBar({ minWidth, maxWidth, onLetsTalkClicked, ...rest }
               <FusebitSocialButton marginLeft={20} type={FusebitSocialType.twitter} invertColor />
             </Box>
 
-            <Box stretch height={1} background={opacity(FusebitColor.light, 0.3)} />
+            <Box stretch height={1} background={opacity(FusebitColor.lightBlue, 0.3)} />
             <FusebitNavLink linkType={FusebitNavLinkType.copyRight} onClick={onMobileNavChange} />
             <Box stretch>
               <FusebitNavLink linkType={FusebitNavLinkType.privacy} onClick={onMobileNavChange} />
