@@ -29,7 +29,7 @@ const App = () => {
             </Box>
 
             <Box>
-              <FusebitLink color={FusebitColor.dark} noVisit>
+              <FusebitLink color={FusebitColor.black} noVisit>
                 Empty Link - Not Visited
               </FusebitLink>
             </Box>
@@ -37,7 +37,7 @@ const App = () => {
         </FusebitText>
 
         <FusebitText>
-          <Box gap={20} background={FusebitColor.dark}>
+          <Box gap={20} background={FusebitColor.black}>
             <Box>
               <FusebitLink to="/page2" noVisit>
                 Routed Link - Not Visited
@@ -83,13 +83,13 @@ const App = () => {
             </Box>
 
             <Box>
-              <FusebitLink color={FusebitColor.dark}>Empty Link - Visited</FusebitLink>
+              <FusebitLink color={FusebitColor.black}>Empty Link - Visited</FusebitLink>
             </Box>
           </Box>
         </FusebitText>
 
         <FusebitText>
-          <Box gap={20} background={FusebitColor.dark}>
+          <Box gap={20} background={FusebitColor.black}>
             <Box>
               <FusebitLink to="/page2">Routed Link - Visited</FusebitLink>
             </Box>

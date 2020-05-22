@@ -36,7 +36,7 @@ function ignore(event: any) {
 // -------------------
 
 const TextArea = styled.textarea`
-  color: ${() => FusebitColor.dark};
+  color: ${() => FusebitColor.black};
   border: none;
   font-family: ${() => `'${FusebitTextFont.secondary}'`}, sans-serif;
   font-size: ${() => `'${FusebitTextFont.secondary}'`}, sans-serif;

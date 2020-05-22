@@ -162,7 +162,7 @@ function fusebitLogoVertical(markColor: FusebitColor, nameColor: FusebitColor, s
 
 function getNameColorFromMarkColor(markColor: FusebitColor) {
   if (markColor === FusebitColor.red || markColor === FusebitColor.cyan || markColor === FusebitColor.orange) {
-    return FusebitColor.dark;
+    return FusebitColor.black;
   }
   return markColor;
 }

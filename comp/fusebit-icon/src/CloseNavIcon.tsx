@@ -25,7 +25,7 @@ export function CloseNavIcon({ size, color, expand, ...rest }: CloseNavIconProps
           y1="20"
           x2="80"
           y2="80"
-          stroke={color || FusebitColor.dark}
+          stroke={color || FusebitColor.black}
           strokeWidth={9}
           strokeLinecap="round"
         />
@@ -34,7 +34,7 @@ export function CloseNavIcon({ size, color, expand, ...rest }: CloseNavIconProps
           y1="20"
           x2="20"
           y2="80"
-          stroke={color || FusebitColor.dark}
+          stroke={color || FusebitColor.black}
           strokeWidth={9}
           strokeLinecap="round"
         />

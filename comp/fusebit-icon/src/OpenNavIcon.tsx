@@ -25,7 +25,7 @@ export function OpenNavIcon({ size, color, expand, ...rest }: OpenNavIconProps) 
           y1="20"
           x2="90"
           y2="20"
-          stroke={color || FusebitColor.dark}
+          stroke={color || FusebitColor.black}
           strokeWidth={9}
           strokeLinecap="round"
         />
@@ -34,7 +34,7 @@ export function OpenNavIcon({ size, color, expand, ...rest }: OpenNavIconProps) 
           y1="50"
           x2="90"
           y2="50"
-          stroke={color || FusebitColor.dark}
+          stroke={color || FusebitColor.black}
           strokeWidth={9}
           strokeLinecap="round"
         />
@@ -43,7 +43,7 @@ export function OpenNavIcon({ size, color, expand, ...rest }: OpenNavIconProps) 
           y1="80"
           x2="90"
           y2="80"
-          stroke={color || FusebitColor.dark}
+          stroke={color || FusebitColor.black}
           strokeWidth={9}
           strokeLinecap="round"
         />
