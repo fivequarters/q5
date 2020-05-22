@@ -6,10 +6,8 @@ const redHsl = [10, 97, 51];
 const cyanHsl = [178, 82, 46];
 const orangeHsl = [39, 100, 50];
 const lightBlueHsl = [212, 100, 97];
-const darkHsl = [240, 88, 9];
-const lightHsl = [206, 58, 95];
 const grayHsl = [240, 21, 70];
-const blackHsl = [0, 0, 10];
+const blackHsl = [240, 88, 9];
 const whiteHsl = [0, 100, 100];
 
 // ------------------
@@ -26,12 +24,8 @@ function getHslValuesForColor(color: FusebitColor): number[] {
       return orangeHsl.slice(0);
     case FusebitColor.lightBlue:
       return lightBlueHsl.slice(0);
-    case FusebitColor.dark:
-      return darkHsl.slice(0);
     case FusebitColor.gray:
       return grayHsl.slice(0);
-    case FusebitColor.light:
-      return lightHsl.slice(0);
     case FusebitColor.black:
       return blackHsl.slice(0);
     case FusebitColor.white:
@@ -50,10 +44,8 @@ export enum FusebitColor {
   cyan = '#15D6CF',
   orange = '#FFA700',
   lightBlue = '#F0F7FF',
-  dark = '#03032D',
-  light = '#ECF4FA',
   gray = '#A1A1C2',
-  black = '#191919',
+  black = '#03032D',
   white = '#FFFFFF',
 }
 
@@ -116,7 +108,7 @@ export function httpCodeColorMap(code: number | string) {
   let color = httpCodeColorSet[code];
 
   if (color == undefined) {
-    color = FusebitColor.dark;
+    color = FusebitColor.black;
   }
   return color;
 }

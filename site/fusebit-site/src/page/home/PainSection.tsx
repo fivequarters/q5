@@ -151,7 +151,7 @@ function PainCard({ isMobile, personaIndex, contentIndex, activeIndex, setActive
           <FusebitText
             type={FusebitTextType.bodySmall}
             weight={FusebitTextWeight.bold}
-            color={inActive ? FusebitColor.gray : FusebitColor.dark}
+            color={inActive ? FusebitColor.gray : FusebitColor.black}
           >
             {pains[contentIndex].heading}
           </FusebitText>
@@ -207,7 +207,7 @@ function PersonaFace({ personaIndex, activeIndex, setActiveIndex }: PersonaFaceP
           center
           weight={FusebitTextWeight.bold}
           type={FusebitTextType.bodySmall}
-          color={active ? FusebitColor.red : FusebitColor.dark}
+          color={active ? FusebitColor.red : FusebitColor.black}
         >
           {personaTitles[personaIndex]}
         </FusebitText>
