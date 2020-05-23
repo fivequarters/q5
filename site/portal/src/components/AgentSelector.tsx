@@ -1,16 +1,16 @@
-import TextField from "@material-ui/core/TextField";
-import Autocomplete from "@material-ui/lab/Autocomplete";
-import SearchIcon from "@material-ui/icons/Search";
-import React from "react";
-import { useAgents } from "./AgentsProvider";
-import { makeStyles } from "@material-ui/core/styles";
-import { formatAgent } from "../lib/Fusebit";
+import TextField from '@material-ui/core/TextField';
+import Autocomplete from '@material-ui/lab/Autocomplete';
+import SearchIcon from '@material-ui/icons/Search';
+import React from 'react';
+import { useAgents } from './AgentsProvider';
+import { makeStyles } from '@material-ui/core/styles';
+import { formatAgent } from '../lib/Fusebit';
 
 const useStyles = makeStyles(theme => ({
   picker: {
     width: theme.spacing(40),
-    minWidth: theme.spacing(40)
-  }
+    minWidth: theme.spacing(40),
+  },
 }));
 
 function AgentSelector({
@@ -28,15 +28,14 @@ function AgentSelector({
   const [agents] = useAgents();
   const classes = useStyles();
   const [open, setOpen] = React.useState(false);
-  const [agentId, setAgentId] = React.useState("");
+  const [agentId, setAgentId] = React.useState('');
 
-  if (agents.status === "error") {
+  if (agents.status === 'error') {
     throw agents.error;
   }
 
-  const options = (agents.status === "ready" && agents.existing) || [];
-  const groupBy = (option: any) =>
-    option.id.indexOf("clt-") === 0 ? "Clients" : "Users";
+  const options = (agents.status === 'ready' && agents.existing) || [];
+  const groupBy = (option: any) => (option.id.indexOf('clt-') === 0 ? 'Clients' : 'Users');
 
   const handleInputChange = (e: any, v: any) => {
     if (e) {
@@ -55,19 +54,19 @@ function AgentSelector({
       open={open}
       onOpen={() => setOpen(true)}
       onClose={() => setOpen(false)}
-      disabled={disabled || agents.status !== "ready" || false}
-      inputValue={agentId || ""}
-      onChange={(e, v) => onSelected && onSelected(v)}
+      disabled={disabled || agents.status !== 'ready' || false}
+      inputValue={agentId || ''}
+      onChange={(e: object, v: any) => onSelected && onSelected(v)}
       onInputChange={handleInputChange}
       options={options}
       getOptionLabel={formatAgent}
       groupBy={groupBy}
-      loading={!!(open && agents.status === "loading")}
+      loading={!!(open && agents.status === 'loading')}
       renderInput={params => (
         <TextField
           {...params}
-          label={label || "Select existing user or client"}
-          variant={variant || "outlined"}
+          label={label || 'Select existing user or client'}
+          variant={variant || 'outlined'}
           className={fullWidth ? undefined : classes.picker}
           margin={margin}
           fullWidth={fullWidth || false}
@@ -75,9 +74,7 @@ function AgentSelector({
           helperText={helperText || undefined}
           InputProps={{
             ...params.InputProps,
-            endAdornment: (
-              <SearchIcon color="disabled" style={{ marginRight: -56 }} />
-            )
+            endAdornment: <SearchIcon color="disabled" style={{ marginRight: -56 }} />,
           }}
         />
       )}
