@@ -46,4 +46,5 @@ export interface IOpsDeploymentData extends IDataSource {
   listAll(deploymentName?: string): Promise<IOpsDeployment[]>;
   listAllSubscriptions(deployment: IOpsDeployment): Promise<IFusebitAccount[]>;
   initAdmin(deployment: IOpsDeployment, init: IInitAdmin): Promise<IInitAdmin>;
+  getElasticSearchTemplate(deployment: IOpsDeployment): Promise<string>;
 }

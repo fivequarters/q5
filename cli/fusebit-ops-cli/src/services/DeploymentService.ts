@@ -57,6 +57,13 @@ export class DeploymentService {
     return deployment as IOpsDeployment;
   }
 
+  public async getElasticSearchTemplate(deployment: IOpsDeploymentParameters) {
+    const opsDataContext = await this.opsService.getOpsDataContext();
+    const deploymentData = opsDataContext.deploymentData;
+
+    console.log(JSON.stringify(deploymentData.getElasticSearchTemplate(deployment as IOpsDeployment), null, 2));
+  }
+
   public async confirmAddDeployment(deployment: IOpsDeployment) {
     const confirmPrompt = await Confirm.create({
       header: 'Add the deployment to the Fusebit platform?',

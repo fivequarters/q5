@@ -26,7 +26,14 @@ import { createLogsTable } from './OpsLogs';
 import { debug } from './OpsDebug';
 import { random } from '@5qtrs/random';
 import { signJwt } from '@5qtrs/jwt';
-import { parseElasticSearchUrl } from './OpsElasticSearch';
+import {
+  parseElasticSearchUrl,
+  loadElasticSearchConfigFile,
+  getDefaultElasticSearchConfig,
+  waitForCluster,
+  appendIamRoleToES,
+  createElasticSearch,
+} from './OpsElasticSearch';
 
 // ----------------
 // Exported Classes
@@ -112,6 +119,11 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
       }
       throw error;
     }
+  }
+
+  public async getElasticSearchTemplate(deployment: IOpsDeployment): Promise<string> {
+    const awsConfig = await this.provider.getAwsConfigForDeployment(deployment.deploymentName, deployment.region);
+    return await getDefaultElasticSearchConfig(this.config, awsConfig, this.provider, this.tables, deployment);
   }
 
   public async add(deployment: IOpsDeployment): Promise<void> {
@@ -292,6 +304,8 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
     //
     // Check if the elasticSearch parameter is present and not-empty.
     if (deployment.elasticSearch && deployment.elasticSearch.length > 0) {
+      // Create the ES stack and/or update the deployment.elasticSearch value, variously.
+      await this.createElasticSearch(deployment);
       // Validate that the Elastic Search parameter fits the expected format
       let esCreds = parseElasticSearchUrl(deployment.elasticSearch);
       if (!esCreds) {
@@ -327,5 +341,45 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
       this.globalOpsDeploymentData && this.globalOpsDeploymentData.provider
     );
     await awsAlb.addAlb(deployment);
+  }
+
+  public async createElasticSearch(deployment: IOpsDeploymentParameters): Promise<void> {
+    // Is the parameter invalid, length=0, or set to valid tokens
+    if (
+      !deployment.elasticSearch ||
+      deployment.elasticSearch.length == 0 ||
+      parseElasticSearchUrl(deployment.elasticSearch)
+    ) {
+      // Don't mess with an empty parameter or a valid url.
+      return;
+    }
+
+    // Check if there's an existing deployment, which must be cleared before a new one is created.
+    const existing = await this.tables.deploymentTable.get(deployment.deploymentName, deployment.region);
+
+    if (existing.elasticSearch && existing.elasticSearch.length > 0) {
+      // Existing valid credentials present, use those.
+      deployment.elasticSearch = existing.elasticSearch;
+    } else {
+      // Load the supplied configuration
+      let esCfg = loadElasticSearchConfigFile(deployment as IOpsDeployment);
+
+      await createElasticSearch(deployment as IOpsDeployment, esCfg);
+    }
+
+    // Valid url in deployment.elasticSearch.  Perform configuration steps.
+    let esCreds = parseElasticSearchUrl(deployment.elasticSearch);
+    if (!esCreds) {
+      console.log(`Failed to successfully create ES Cluster: ${deployment.elasticSearch}`);
+      throw OpsDataException.invalidElasticSearchUrl(deployment.elasticSearch);
+    }
+
+    // Make sure the cluster is up; if not, wait 15 minutes...
+    debug('Waiting for cluster...');
+    waitForCluster(esCreds, 15);
+
+    // Create user permissions
+    debug(`Applying IAM role: ${this.config.analyticsRoleName}`);
+    appendIamRoleToES(esCreds, this.config.analyticsRoleName);
   }
 }
