@@ -1,3 +1,4 @@
+import fs from 'fs';
 import { IExecuteInput, Confirm } from '@5qtrs/cli';
 import { Text } from '@5qtrs/text';
 import { OpsService } from './OpsService';
@@ -57,11 +58,27 @@ export class DeploymentService {
     return deployment as IOpsDeployment;
   }
 
-  public async getElasticSearchTemplate(deployment: IOpsDeploymentParameters) {
+  public async getElasticSearchTemplate(deployment: IOpsDeploymentParameters, outFile: string) {
     const opsDataContext = await this.opsService.getOpsDataContext();
     const deploymentData = opsDataContext.deploymentData;
 
-    console.log(JSON.stringify(deploymentData.getElasticSearchTemplate(deployment as IOpsDeployment), null, 2));
+    if (fs.existsSync(outFile)) {
+      this.executeService.error(
+        'Target File Exists',
+        `Cannot generate configuration in '${Text.bold(outFile)}': file exists.`
+      );
+      throw Error('Target File Exists');
+    }
+
+    fs.writeFileSync(
+      outFile,
+      JSON.stringify(await deploymentData.getElasticSearchTemplate(deployment as IOpsDeployment), null, 2)
+    );
+
+    this.executeService.result(
+      'File Created',
+      `Customize '${Text.bold(outFile)}' before passing it as a parameter to --elasticSearch`
+    );
   }
 
   public async confirmAddDeployment(deployment: IOpsDeployment) {

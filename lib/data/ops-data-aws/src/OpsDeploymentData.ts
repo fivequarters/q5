@@ -123,6 +123,7 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
 
   public async getElasticSearchTemplate(deployment: IOpsDeployment): Promise<string> {
     const awsConfig = await this.provider.getAwsConfigForDeployment(deployment.deploymentName, deployment.region);
+    console.log('OpsDepData awsConfig', awsConfig);
     return await getDefaultElasticSearchConfig(this.config, awsConfig, this.provider, this.tables, deployment);
   }
 

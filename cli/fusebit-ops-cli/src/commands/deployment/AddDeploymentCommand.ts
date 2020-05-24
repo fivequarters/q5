@@ -50,8 +50,9 @@ const command = {
     },
     {
       name: 'generateElasticSearchConfig',
-      description: 'Output an ElasticSearch configuration skeleton to stdout',
-      type: ArgType.boolean,
+      description:
+        'Output an ElasticSearch configuration skeleton to the specified filename. This generates an initial template to pass to --elasticSearch to create an ElasticSearch deployment.',
+      type: ArgType.string,
     },
     {
       name: 'dataWarehouse',
@@ -88,7 +89,7 @@ export class AddDeploymentCommand extends Command {
     const region = input.options.region as string;
     const size = input.options.size as number | undefined;
     const elasticSearch = input.options.elasticSearch as string | undefined;
-    const generateElasticSearchConfig = input.options.generateElasticSearchCOnfig as boolean;
+    const generateElasticSearchConfig = input.options.generateElasticSearchConfig as string | undefined;
     const confirm = input.options.confirm as boolean;
     const dataWarehouseEnabled = input.options.dataWarehouse as boolean | undefined;
 
@@ -109,9 +110,11 @@ export class AddDeploymentCommand extends Command {
     };
 
     if (generateElasticSearchConfig) {
-      await deploymentService.getElasticSearchTemplate(deploymentParameters);
+      await deploymentService.getElasticSearchTemplate(deploymentParameters, generateElasticSearchConfig);
       return 0;
     }
+
+    return 0;
 
     const deployment = await deploymentService.checkDeploymentExists(deploymentParameters);
 

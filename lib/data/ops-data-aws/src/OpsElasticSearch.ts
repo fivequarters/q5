@@ -69,18 +69,24 @@ const getDefaultElasticSearchConfig = async (
   return {
     DomainName: deployment.deploymentName + '-' + deployment.region + '-' + 'fusebit',
 
+    ElasticsearchVersion: '7.4',
+
     CognitoOptions: { Enabled: false },
 
     DomainEndpointOptions: { EnforceHTTPS: true },
 
     EBSOptions: { EBSEnabled: true, VolumeType: 'gp2', VolumeSize: 10 },
 
-    ElasicsearchClusterConfig: {
+    ElasticsearchClusterConfig: {
       InstanceType: 'r5.large.elasticsearch',
       InstanceCount: 1,
       DedicatedMasterEnabled: false,
       ZoneAwarenessEnabled: false,
       WarmEnabled: false,
+    },
+
+    NodeToNodeEncryptionOptions: {
+      Enabled: true,
     },
 
     EncryptionAtRestOptions: {
@@ -106,7 +112,7 @@ const getDefaultElasticSearchConfig = async (
 
     VPCOptions: {
       SecurityGroupIds: [network.securityGroupId],
-      SubnetIds: [network.privateSubnets.map(sn => sn.id)],
+      SubnetIds: network.privateSubnets.map(sn => sn.id),
     },
   };
 };
@@ -149,6 +155,40 @@ const waitForCluster = async (esCreds: ElasticSearchCreds, maxWait: number) => {
 
 const createElasticSearch = async (deployment: IOpsDeployment, esCfg: any) => {
   let es = new AWS.ES();
+  // XXX XXX XXX continue working here - also, make sure the t.json doesn't have any non-translated changes in
+  // it that are important.
+  // Create the service role first: CreateServiceLinkedRole
+  var params = {
+    AWSServiceName: 'es.amazonaws.com' /* required */,
+    Description: 'STRING_VALUE',
+  };
+  iam.createServiceLinkedRole(params, function(err, data) {
+    if (err) console.log(err, err.stack);
+    // an error occurred
+    else console.log(data); // successful response
+  });
+
+  // Create the log groups resource policy
+  var params = {
+    policyDocument: {
+      Version: '2012-10-17',
+      Statement: [
+        {
+          Effect: 'Allow',
+          Principal: { Service: 'es.amazonaws.com' },
+          Action: ['logs:PutLogEvents', 'logs:CreateLogStream'],
+          Resource: `arn:aws:logs:${deployment.region}:${awsConfig.account}:log-group:/aws/aes/domains/${esCfg.DomainName}/application-logs:*`,
+        },
+      ],
+    },
+    policyName: `AES-${esCfg.DomainName}-Application-logs`,
+  };
+  cloudwatchlogs.putResourcePolicy(params, function(err, data) {
+    if (err) console.log(err, err.stack);
+    // an error occurred
+    else console.log(data); // successful response
+  });
+
   await new Promise((resolve, reject) =>
     es.createElasticsearchDomain(esCfg, (err, data) => {
       if (err != null) {
