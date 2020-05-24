@@ -14,6 +14,7 @@ import {
 import { IListAccountsOptions, IListSubscriptionsOptions } from '@5qtrs/account-data';
 import { AccountDataAwsContextFactory } from '@5qtrs/account-data-aws';
 import { StorageDataAwsContextFactory } from '@5qtrs/storage-data-aws';
+import { IAwsConfig } from '@5qtrs/aws-config';
 import { OpsDataTables } from './OpsDataTables';
 import { OpsDataAwsProvider } from './OpsDataAwsProvider';
 import { OpsDataAwsConfig } from './OpsDataAwsConfig';
@@ -301,20 +302,21 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
   private async ensureDeploymentSetup(deployment: IOpsDeployment): Promise<void> {
     debug('ENSURE DEPLOYMENT SETUP', deployment);
 
+    const awsConfig = await this.provider.getAwsConfigForDeployment(deployment.deploymentName, deployment.region);
+
     // Validate the correctness of the parameters
     //
     // Check if the elasticSearch parameter is present and not-empty.
     if (deployment.elasticSearch && deployment.elasticSearch.length > 0) {
       // Create the ES stack and/or update the deployment.elasticSearch value, variously.
-      await this.createElasticSearch(deployment);
+      await this.createElasticSearch(awsConfig, deployment);
+
       // Validate that the Elastic Search parameter fits the expected format
       let esCreds = parseElasticSearchUrl(deployment.elasticSearch);
       if (!esCreds) {
         throw OpsDataException.invalidElasticSearchUrl(deployment.elasticSearch);
       }
     }
-
-    const awsConfig = await this.provider.getAwsConfigForDeployment(deployment.deploymentName, deployment.region);
 
     await createFunctionStorage(this.config, awsConfig, deployment);
 
@@ -344,7 +346,9 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
     await awsAlb.addAlb(deployment);
   }
 
-  public async createElasticSearch(deployment: IOpsDeploymentParameters): Promise<void> {
+  public async createElasticSearch(awsConfig: IAwsConfig, deployment: IOpsDeploymentParameters): Promise<void> {
+    console.log('createElasticSearch: ', deployment.elasticSearch);
+
     // Is the parameter invalid, length=0, or set to valid tokens
     if (
       !deployment.elasticSearch ||
@@ -365,7 +369,7 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
       // Load the supplied configuration
       let esCfg = loadElasticSearchConfigFile(deployment as IOpsDeployment);
 
-      await createElasticSearch(deployment as IOpsDeployment, esCfg);
+      await createElasticSearch(awsConfig, deployment as IOpsDeployment, esCfg);
     }
 
     // Valid url in deployment.elasticSearch.  Perform configuration steps.

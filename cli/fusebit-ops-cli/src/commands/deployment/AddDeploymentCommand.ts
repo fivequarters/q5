@@ -114,8 +114,6 @@ export class AddDeploymentCommand extends Command {
       return 0;
     }
 
-    return 0;
-
     const deployment = await deploymentService.checkDeploymentExists(deploymentParameters);
 
     if (confirm) {
