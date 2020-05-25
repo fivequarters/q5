@@ -6,6 +6,15 @@ const FusebitTheme = {
     // Overrides of default MUI theme:
     typography: {
       fontFamily: '"Nunito Sans", sans-serif',
+      subtitle1: {
+        fontFamily: '"Poppins", sans-serif',
+      },
+      subtitle2: {
+        fontFamily: '"Poppins", sans-serif',
+      },
+      button: {
+        fontFamily: '"Poppins", sans-serif',
+      },
     },
     palette: {
       primary: {
