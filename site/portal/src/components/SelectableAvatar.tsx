@@ -7,26 +7,25 @@ const useStyles = makeStyles((theme: any) => ({
   container: (props: any) => ({
     position: 'relative',
     // backgroundColor: theme.fusebit.colors.black,
-    width: 46,
-    height: 46,
-    marginLeft: 12,
-    marginRight: 12,
+    width: 38,
+    height: 38,
   }),
   avatar: (props: any) => ({
     position: 'relative',
     backgroundColor: theme.fusebit.colors.black,
-    top: 4,
-    left: 4,
-    width: 38,
-    height: 38,
+    top: 2,
+    left: 2,
+    width: 32,
+    height: 32,
+    margin: 0,
   }),
   circle: (props: any) => ({
     // backgroundColor: "blue",
     position: 'absolute',
-    top: 4,
-    left: 4,
-    width: 38,
-    height: 38,
+    top: 2,
+    left: 2,
+    width: 32,
+    height: 32,
     borderRadius: '50%',
   }),
   innerCircle: {
@@ -51,7 +50,7 @@ const useStyles = makeStyles((theme: any) => ({
     '&::before': {
       boxSizing: 'border-box',
       display: 'block',
-      border: `solid 4px ${theme.fusebit.colors.red}`,
+      border: `solid 3px ${theme.fusebit.colors.red}`,
       width: '200%',
       height: '200%',
       borderRadius: '50%',
@@ -66,7 +65,7 @@ function SelectableAvatar({ className, size, selected, children, ...rest }: any)
 
   return (
     <div className={classes.container}>
-      <Avatar className={clsx(classes.avatar, className)} {...rest} style={{ margin: 0 }}>
+      <Avatar className={clsx(classes.avatar, className)} {...rest}>
         {children}
       </Avatar>
       <div className={classes.circle}>

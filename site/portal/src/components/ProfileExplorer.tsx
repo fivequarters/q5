@@ -41,9 +41,13 @@ import Activity from './Activity';
 
 const useStyles = makeStyles(theme => ({
   paper: {
-    paddingTop: 14,
-    paddingLeft: theme.spacing(2),
     position: 'relative',
+  },
+  breadcrumb: {
+    paddingLeft: theme.spacing(4),
+    paddingRight: theme.spacing(4),
+    paddingTop: theme.spacing(4),
+    paddingBottom: theme.spacing(2),
   },
   fab: {
     position: 'absolute',
@@ -178,7 +182,7 @@ function ProfileExplorer({ ...rest }: any) {
         <Grid container>
           <Grid item xs={12}>
             <Paper elevation={1} square={true} className={classes.paper}>
-              <ProfileBreadcrumb settings={breadcrumbSettings} />
+              <ProfileBreadcrumb settings={breadcrumbSettings} className={classes.breadcrumb} />
               <Tabs
                 value={tabs ? selectedTab : undefined}
                 indicatorColor="primary"
