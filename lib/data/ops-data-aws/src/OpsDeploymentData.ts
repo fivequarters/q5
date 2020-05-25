@@ -32,7 +32,6 @@ import {
   loadElasticSearchConfigFile,
   getDefaultElasticSearchConfig,
   waitForCluster,
-  appendIamRoleToES,
   createElasticSearch,
 } from './OpsElasticSearch';
 
@@ -382,9 +381,5 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
     // Make sure the cluster is up; if not, wait 15 minutes...
     debug('Waiting for cluster...');
     waitForCluster(esCreds, 15);
-
-    // Create user permissions
-    debug(`Applying IAM role: ${this.config.analyticsRoleName}`);
-    appendIamRoleToES(esCreds, this.config.analyticsRoleName);
   }
 }

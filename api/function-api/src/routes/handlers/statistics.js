@@ -2,15 +2,46 @@ const { getAccountContext } = require('../account');
 const httpError = require('http-errors');
 const superagent = require('superagent');
 
-if (process.env.ES_HOST && process.env.ES_USER && process.env.ES_PASSWORD) {
-  console.log(
-    `Elastic Search configuration: ${process.env.ES_USER}:${process.env.ES_PASSWORD.length > 0 ? '*' : 'X'}@${
-      process.env.ES_HOST
-    }`
-  );
-} else {
-  console.log('Elastic Search disabled');
-}
+const appendIamRoleToES = async (esCreds, iamArn) => {
+  let patch = [{ op: 'add', path: '/all_access', value: { backend_roles: [iamArn] } }];
+
+  try {
+    let result = await superagent
+      .patch(`https://${esCreds.hostname}/_opendistro/_security/api/rolesmapping`)
+      .send(patch)
+      .auth(esCreds.username, esCreds.password);
+  } catch (e) {
+    console.log('ES: Failed to update IAM role: ', e);
+  }
+};
+
+// Some cross checks, final-stage initializations, and logging events that occur on startup.
+const onStartup = async () => {
+  if (process.env.ES_HOST && process.env.ES_USER && process.env.ES_PASSWORD && process.env.ES_ANALYTICS_ROLE) {
+    console.log(
+      `ES: Elastic Search configuration: ${process.env.ES_USER}:${process.env.ES_PASSWORD.length > 0 ? '*' : 'X'}@${
+        process.env.ES_HOST
+      }`
+    );
+
+    // Because the fuse-ops command doesn't have permission to talk to the ES in the VPC, make sure the
+    // permissions are correct.
+    // XXX get the IAM role either from the ops-data (if it's included here) or by recreating it and adding a
+    // comment in both locations.
+    console.log('ES: Pushing IAM role');
+    await appendIamRoleToES(
+      {
+        hostname: process.env.ES_HOST,
+        username: process.env.ES_USER,
+        password: process.env.ES_PASSWORD,
+      },
+      process.env.ES_ANALYTICS_ROLE
+    );
+    console.log('ES: Successfully populated analytics role');
+  } else {
+    console.log('ES: Elastic Search disabled');
+  }
+};
 
 const headers = {
   Host: process.env.ES_HOST,
@@ -419,6 +450,8 @@ function statisticsGet() {
     }
   };
 }
+
+onStartup();
 
 module.exports = {
   statisticsGet,

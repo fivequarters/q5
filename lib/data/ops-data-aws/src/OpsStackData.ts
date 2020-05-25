@@ -301,6 +301,7 @@ LOGS_TOKEN_SIGNATURE_KEY=${random({ lengthInBytes: 32 })}
 ES_HOST=${esCreds.hostname}
 ES_USER=${esCreds.username}
 ES_PASSWORD=${esCreds.password}
+ES_ANALYTICS_ROLE=${this.config.arnPrefix}:iam::${account}:role/${this.config.analyticsRoleName}
 `;
     }
 
