@@ -23,7 +23,7 @@ function generatePassword(): string {
 
   for (let i = 0; i < pwLen; i++) {
     // It ain't the best, but it makes up for it in length.
-    password += dict[Math.round(Math.random() * dict.length)];
+    password += dict[Math.round(Math.random() * (dict.length - 1))];
   }
 
   return password;
@@ -73,8 +73,9 @@ const getDefaultElasticSearchConfig = async (
   const username = 'user';
   const password = generatePassword();
 
+  let esName = deployment.deploymentName + '-' + deployment.region + '-' + 'fusebit';
   return {
-    DomainName: deployment.deploymentName + '-' + deployment.region + '-' + 'fusebit',
+    DomainName: esName,
 
     ElasticsearchVersion: '7.4',
 
@@ -96,6 +97,30 @@ const getDefaultElasticSearchConfig = async (
       Enabled: true,
     },
 
+    AccessPolicies: JSON.stringify({
+      Version: '2012-10-17',
+      Statement: [
+        // Allow the analytics lambda to post bulk data
+        {
+          Effect: 'Allow',
+          Principal: {
+            AWS: [`arn:aws:iam::${awsConfig.account}:role/fusebit-analytics`],
+          },
+          Action: ['es:ESHttpPost'],
+          Resource: `arn:aws:es:us-west-2:${awsConfig.account}:domain/${esName}/_bulk`,
+        },
+        // Allow the EC2 function-api full privs
+        {
+          Effect: 'Allow',
+          Principal: {
+            AWS: [`arn:aws:iam::${awsConfig.account}:role/fusebit-EC2-instance`],
+          },
+          Action: ['es:*'],
+          Resource: `arn:aws:es:us-west-2:${awsConfig.account}:domain/${esName}/*`,
+        },
+      ],
+    }),
+
     EncryptionAtRestOptions: {
       Enabled: true,
       KmsKeyId: `arn:aws:kms:${deployment.region}:${awsConfig.account}:alias/aws/es`,
@@ -112,10 +137,9 @@ const getDefaultElasticSearchConfig = async (
 
     AdvancedSecurityOptions: {
       Enabled: true,
-      InternalUserDatabaseEnabled: true,
+      InternalUserDatabaseEnabled: false,
       MasterUserOptions: {
-        MasterUserName: username,
-        MasterUserPassword: password,
+        MasterUserARN: `arn:aws:iam::${awsConfig.account}:role/fusebit-EC2-instance`,
       },
     },
 

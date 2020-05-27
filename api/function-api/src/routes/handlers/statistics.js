@@ -1,51 +1,62 @@
 const { getAccountContext } = require('../account');
 const httpError = require('http-errors');
 const superagent = require('superagent');
+const signRequest = require('superagent-aws-signed-request');
 
-const appendIamRoleToES = async (esCreds, iamArn) => {
-  let patch = [{ op: 'add', path: '/all_access', value: { backend_roles: [iamArn] } }];
-
-  try {
-    let result = await superagent
-      .patch(`https://${esCreds.hostname}/_opendistro/_security/api/rolesmapping`)
-      .send(patch)
-      .auth(esCreds.username, esCreds.password);
-  } catch (e) {
-    console.log('ES: Failed to update IAM role: ', e);
-  }
-};
+let postES = undefined;
 
 // Some cross checks, final-stage initializations, and logging events that occur on startup.
 const onStartup = async () => {
-  if (process.env.ES_HOST && process.env.ES_USER && process.env.ES_PASSWORD && process.env.ES_ANALYTICS_ROLE) {
+  if (process.env.ES_HOST) {
     console.log(
       `ES: Elastic Search configuration: ${process.env.ES_USER}:${process.env.ES_PASSWORD.length > 0 ? '*' : 'X'}@${
         process.env.ES_HOST
       }`
     );
 
-    // Because the fuse-ops command doesn't have permission to talk to the ES in the VPC, make sure the
-    // permissions are correct.
-    // XXX get the IAM role either from the ops-data (if it's included here) or by recreating it and adding a
-    // comment in both locations.
-    console.log('ES: Pushing IAM role');
-    await appendIamRoleToES(
-      {
-        hostname: process.env.ES_HOST,
-        username: process.env.ES_USER,
-        password: process.env.ES_PASSWORD,
-      },
-      process.env.ES_ANALYTICS_ROLE
-    );
-    console.log('ES: Successfully populated analytics role');
+    if (process.env.ES_USER && process.env.ES_PASSWORD) {
+      postES = async body => {
+        const headers = {
+          Host: process.env.ES_HOST,
+          'Content-Type': 'application/json',
+        };
+
+        // console.log('Query: ', JSON.stringify(body));
+        // Make the request to elasticsearch
+        return superagent
+          .post(`https://${process.env.ES_HOST}/fusebit-*/_search`)
+          .auth(process.env.ES_USER, process.env.ES_PASSWORD)
+          .set(headers)
+          .send(body)
+          .ok(() => true);
+      };
+    } else {
+      if (process.env.ES_USER || process.env.ES_PASSWORD) {
+        console.log('ES: Missing ES parameters; disabled.');
+      } else {
+        postES = async body => {
+          let config = (await getAccountContext()).account.config;
+
+          console.log(config);
+
+          return superagent
+            .post(`https://${process.env.ES_HOST}/fusebit-*/_search`)
+            .send(body)
+            .use(
+              signRequest('es', {
+                key: config.creds.accessKeyId,
+                secret: config.creds.secretAccessKey,
+                region: config.region,
+                sessionToken: config.creds.sessionToken,
+              })
+            )
+            .ok(() => true);
+        };
+      }
+    }
   } else {
     console.log('ES: Elastic Search disabled');
   }
-};
-
-const headers = {
-  Host: process.env.ES_HOST,
-  'Content-Type': 'application/json',
 };
 
 // If a number is supplied, query for just that number.  Otherwise, assume that the caller is
@@ -288,12 +299,7 @@ const makeQuery = async (request, key, query_params = null) => {
 
   // console.log('Query: ', JSON.stringify(body));
   // Make the request to elasticsearch
-  let response = await superagent
-    .post(`https://${process.env.ES_HOST}/fusebit-*/_search`)
-    .auth(process.env.ES_USER, process.env.ES_PASSWORD)
-    .set(headers)
-    .send(body)
-    .ok(() => true);
+  let response = await postES(body);
 
   if (response.statusCode == 200) {
     let payload = queries[key][1](response.body);
@@ -435,7 +441,7 @@ const statisticsQueries = {
 
 function statisticsGet() {
   return async (req, res, next) => {
-    if (!process.env.ES_HOST || !process.env.ES_USER || !process.env.ES_PASSWORD) {
+    if (!postES) {
       return next(httpError(405, `Unsupported query: ${req.params.statisticsKey}`));
     }
 
