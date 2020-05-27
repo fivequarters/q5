@@ -37,17 +37,9 @@ const FusebitTheme = {
       },
     },
     overrides: {
-      MuiTab: {
-        wrapper: {
-          fontFamily: '"Poppins", sans-serif',
-        },
-      },
       MuiButton: {
         root: {
           borderRadius: '100px',
-        },
-        label: {
-          fontFamily: '"Poppins", sans-serif',
         },
       },
     },
