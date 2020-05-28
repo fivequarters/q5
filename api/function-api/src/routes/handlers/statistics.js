@@ -5,6 +5,23 @@ const signRequest = require('superagent-aws-signed-request');
 
 let postES = undefined;
 
+// Okay really, pull this out into a module with a refresh timer  through getSessionToken , and watching the
+// expiration.
+const acquireAwsCredentials = () => {
+  //  TOKEN=`curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"` && curl -H "X-aws-ec2-metadata-token: $TOKEN" –v http://169.254.169.254/latest/meta-data/iam/security-credentials/fusebit-EC2-instance | jq --raw-output '"[default]\naws_access_key_id=" + .AccessKeyId + "\n" + "aws_secret_access_key=" + .SecretAccessKey + "\naws_session_token=" + .Token' > ~/.aws/credentials
+};
+
+const appendIamRoleToES = async iamArn => {
+  let patch = [{ op: 'add', path: '/all_access', value: { backend_roles: [iamArn] } }];
+
+  try {
+    let result = await postES('/_opendistro/_security/api/rolesmapping', patch, 'patch');
+    console.log(`ES: Successfully updated ${process.env.ES_HOST} with ${iamArn}`, result);
+  } catch (e) {
+    console.log('ES: Failed to update IAM role: ', e);
+  }
+};
+
 // Some cross checks, final-stage initializations, and logging events that occur on startup.
 const onStartup = async () => {
   if (process.env.ES_HOST) {
@@ -15,7 +32,8 @@ const onStartup = async () => {
     );
 
     if (process.env.ES_USER && process.env.ES_PASSWORD) {
-      postES = async body => {
+      console.log('ES: Using username/password authentication');
+      postES = async (url, body, mode = 'post') => {
         const headers = {
           Host: process.env.ES_HOST,
           'Content-Type': 'application/json',
@@ -23,10 +41,11 @@ const onStartup = async () => {
 
         // console.log('Query: ', JSON.stringify(body));
         // Make the request to elasticsearch
-        return superagent
-          .post(`https://${process.env.ES_HOST}/fusebit-*/_search`)
+        return superagent[mode](`https://${process.env.ES_HOST}${url}`)
           .auth(process.env.ES_USER, process.env.ES_PASSWORD)
           .set(headers)
+          .connect(process.env.ES_REDIRECT ? { '*': { host: 'localhost', port: process.env.ES_REDIRECT } } : undefined)
+          .trustLocalhost()
           .send(body)
           .ok(() => true);
       };
@@ -34,26 +53,36 @@ const onStartup = async () => {
       if (process.env.ES_USER || process.env.ES_PASSWORD) {
         console.log('ES: Missing ES parameters; disabled.');
       } else {
-        postES = async body => {
-          let config = (await getAccountContext()).account.config;
+        console.log('ES: Using IAM authentication');
 
-          console.log(config);
-
-          return superagent
-            .post(`https://${process.env.ES_HOST}/fusebit-*/_search`)
+        postES = async (url, body, mode = 'post') => {
+          let account = await getAccountContext();
+          console.log('ES: Credentials: ', {
+            account: process.env.AWS_ACCOUNT,
+            accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+            secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+            sessionToken: process.env.AWS_SESSION_TOKEN,
+            useMfa: false,
+          });
+          return superagent[mode](`https://${process.env.ES_HOST}${url}`)
             .send(body)
             .use(
               signRequest('es', {
-                key: config.creds.accessKeyId,
-                secret: config.creds.secretAccessKey,
-                region: config.region,
-                sessionToken: config.creds.sessionToken,
+                key: process.env.AWS_ACCESS_KEY_ID,
+                secret: process.env.AWS_SECRET_ACCESS_KEY,
+                sessionToken: process.env.AWS_SESSION_TOKEN,
+                region: process.env.AWS_REGION,
               })
             )
+            .connect(
+              process.env.ES_REDIRECT ? { '*': { host: 'localhost', port: process.env.ES_REDIRECT } } : undefined
+            )
+            .trustLocalhost()
             .ok(() => true);
         };
       }
     }
+    await appendIamRoleToES(process.env.ES_ANALYTICS_ROLE);
   } else {
     console.log('ES: Elastic Search disabled');
   }
@@ -299,7 +328,7 @@ const makeQuery = async (request, key, query_params = null) => {
 
   // console.log('Query: ', JSON.stringify(body));
   // Make the request to elasticsearch
-  let response = await postES(body);
+  let response = await postES('/fusebot-*/_search', body);
 
   if (response.statusCode == 200) {
     let payload = queries[key][1](response.body);

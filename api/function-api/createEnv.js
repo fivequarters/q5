@@ -26,7 +26,7 @@ function addAwsCredentials() {
     let sts = new AWS.STS();
     return sts.assumeRole(
       {
-        DurationSeconds: +(process.env.SESSION_DURATION_H || 1) * 3600,
+        DurationSeconds: +(process.env.SESSION_DURATION_H || 12) * 3600,
         RoleArn: process.env.API_ROLE,
         SerialNumber: process.env.SERIAL_NUMBER,
         TokenCode: process.env.MFA,
@@ -62,6 +62,7 @@ function addElasticsearchCredentials() {
 ES_HOST=${creds.hostname}
 ES_USER=${creds.username || ''}
 ES_PASSWORD=${creds.password || ''}
+ES_REDIRECT=${creds.redirect || ''}
 `;
     }
   } catch (_) {}

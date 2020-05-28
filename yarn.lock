@@ -12627,7 +12627,7 @@ superagent@^5.0.3, superagent@^5.1.1:
     readable-stream "^3.4.0"
     semver "^6.3.0"
 
-superagent@^5.2.2:
+superagent@^5.2.2, "superagent@git@github.com:bennbollay/superagent.git#connect-with-port-override":
   version "5.2.2"
   resolved "https://registry.yarnpkg.com/superagent/-/superagent-5.2.2.tgz#6ff726c5642795b2c27009e92687c8e69a6bb07d"
   integrity sha512-pMWBUnIllK4ZTw7p/UaobiQPwAO5w/1NRRTDpV0FTVNmECztsxKspj3ZWEordVEaqpZtmOQJJna4yTLyC/q7PQ==

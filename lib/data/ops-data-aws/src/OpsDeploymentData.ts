@@ -31,7 +31,6 @@ import {
   parseElasticSearchUrl,
   loadElasticSearchConfigFile,
   getDefaultElasticSearchConfig,
-  waitForCluster,
   createElasticSearch,
 } from './OpsElasticSearch';
 
@@ -303,20 +302,16 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
 
     const awsConfig = await this.provider.getAwsConfigForDeployment(deployment.deploymentName, deployment.region);
 
+    console.log('XXX');
     // Validate the correctness of the parameters
     //
     // Check if the elasticSearch parameter is present and not-empty.
     if (deployment.elasticSearch && deployment.elasticSearch.length > 0) {
       // Create the ES stack and/or update the deployment.elasticSearch value, variously.
       await this.createElasticSearch(awsConfig, deployment);
-
-      // Validate that the Elastic Search parameter fits the expected format
-      let esCreds = parseElasticSearchUrl(deployment.elasticSearch);
-      if (!esCreds) {
-        throw OpsDataException.invalidElasticSearchUrl(deployment.elasticSearch);
-      }
     }
 
+    console.log('XXX2');
     await createFunctionStorage(this.config, awsConfig, deployment);
 
     const accountDataFactory = await AccountDataAwsContextFactory.create(awsConfig);
@@ -352,7 +347,7 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
     if (
       !deployment.elasticSearch ||
       deployment.elasticSearch.length == 0 ||
-      parseElasticSearchUrl(deployment.elasticSearch)
+      deployment.elasticSearch.startsWith('https://')
     ) {
       // Don't mess with an empty parameter or a valid url.
       return;
@@ -364,22 +359,13 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
     if (existing.elasticSearch && existing.elasticSearch.length > 0) {
       // Existing valid credentials present, use those.
       deployment.elasticSearch = existing.elasticSearch;
+    } else if (deployment.elasticSearch.startsWith('https://')) {
+      return;
     } else {
-      // Load the supplied configuration
+      // Maybe it's a filename; load it and see if you can create a cluster.
       let esCfg = loadElasticSearchConfigFile(deployment as IOpsDeployment);
 
       await createElasticSearch(awsConfig, deployment as IOpsDeployment, esCfg);
     }
-
-    // Valid url in deployment.elasticSearch.  Perform configuration steps.
-    let esCreds = parseElasticSearchUrl(deployment.elasticSearch);
-    if (!esCreds) {
-      console.log(`Failed to successfully create ES Cluster: ${deployment.elasticSearch}`);
-      throw OpsDataException.invalidElasticSearchUrl(deployment.elasticSearch);
-    }
-
-    // Make sure the cluster is up; if not, wait 15 minutes...
-    debug('Waiting for cluster...');
-    waitForCluster(esCreds, 15);
   }
 }

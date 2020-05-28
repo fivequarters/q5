@@ -16,25 +16,19 @@ AWS.config.apiVersions = {
 };
 
 type ElasticSearchCreds = { username: string; password: string; hostname: string };
-function generatePassword(): string {
-  const dict = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789#^~,.-_';
-  const pwLen = 15 + Math.random() * 15; // At least 15 characters long.
-  let password = '';
 
-  for (let i = 0; i < pwLen; i++) {
-    // It ain't the best, but it makes up for it in length.
-    password += dict[Math.round(Math.random() * (dict.length - 1))];
-  }
-
-  return password;
-}
-
-const parseElasticSearchUrl = (url: string): ElasticSearchCreds | undefined => {
+const parseElasticSearchUrl = (url: string): ElasticSearchCreds => {
   let esCreds = url.match(/https:\/\/([^:]+):(.*)@([^@]+$)/i);
   if (esCreds && esCreds[1] && esCreds[2] && esCreds[3]) {
     return { username: esCreds[1], password: esCreds[2], hostname: esCreds[3] };
   }
-  return undefined;
+  // Strip off the https
+  if (url.startsWith('https://')) {
+    return { username: '', password: '', hostname: url.substring('https://'.length) };
+  }
+
+  // Pass it blindly.
+  return { username: '', password: '', hostname: url };
 };
 
 const loadElasticSearchConfigFile = (deployment: IOpsDeployment): any => {
@@ -68,10 +62,6 @@ const getDefaultElasticSearchConfig = async (
 ): Promise<any> => {
   const networkData = await OpsNetworkData.create(awsDataConfig, provider, tables);
   const network = await networkData.get(deployment.networkName, deployment.region);
-
-  // Update the VPC and password information
-  const username = 'user';
-  const password = generatePassword();
 
   let esName = deployment.deploymentName + '-' + deployment.region + '-' + 'fusebit';
   return {
@@ -145,7 +135,7 @@ const getDefaultElasticSearchConfig = async (
 
     VPCOptions: {
       SecurityGroupIds: [network.securityGroupId],
-      SubnetIds: [network.privateSubnets.map(sn => sn.id)[0]], // Restricted to one subnet for some reason.
+      SubnetIds: [network.privateSubnets.map(sn => sn.id).sort()[0]], // One subnet only on n=1 deployments
     },
   };
 };
@@ -155,6 +145,8 @@ const waitForCluster = async (esCreds: ElasticSearchCreds, maxWait: number) => {
   let attempts = maxWait;
   const delay = 1000;
 
+  // XXX this doesn't use the right auth/signing mechanism, though that may not be necessary - try an unsigned
+  // request and see if it works.
   do {
     attempts -= 1;
     try {
@@ -174,10 +166,12 @@ const waitForCluster = async (esCreds: ElasticSearchCreds, maxWait: number) => {
 };
 
 const waitForElasticSearchReady = async (es: any, esCfg: any): Promise<string> => {
-  let endpoint = `https://${esCfg.AdvancedSecurityOptions.MasterUserOptions.MasterUserName}:${esCfg.AdvancedSecurityOptions.MasterUserOptions.MasterUserPassword}@`;
+  let prefix = esCfg.AdvancedSecurityOptions.MasterUserOptions.MasterUserName
+    ? `https://${esCfg.AdvancedSecurityOptions.MasterUserOptions.MasterUserName}:${esCfg.AdvancedSecurityOptions.MasterUserOptions.MasterUserPassword}@`
+    : 'https://';
   let ready = false;
   let delay = 5; // Every 5 seconds
-  let attempts = (15 * 60) / delay; // for ~15 minutes
+  let attempts = (20 * 60) / delay; // for ~20 minutes
   let result: string;
 
   while (attempts > 0) {
@@ -187,13 +181,15 @@ const waitForElasticSearchReady = async (es: any, esCfg: any): Promise<string> =
     attempts -= 1;
     result = await new Promise((resolve, reject) => {
       es.describeElasticsearchDomain({ DomainName: esCfg.DomainName }, async (err: any, data: any) => {
-        debug('es.describeElasticsearchDomain', err, JSON.stringify(data));
+        // debug('es.describeElasticsearchDomain', err, JSON.stringify(data));
+        process.stdout.write('.');
         if (err) {
           return resolve(undefined);
         }
         if (data.DomainStatus.Endpoints) {
-          resolve(`${endpoint}${data.DomainStatus.Endpoints.vpc}`);
+          resolve(`${prefix}${data.DomainStatus.Endpoints.vpc}`);
           ready = true;
+          debug('es.describeElasticsearchDomain', err, JSON.stringify(data));
         }
         resolve(undefined);
       });
@@ -203,14 +199,13 @@ const waitForElasticSearchReady = async (es: any, esCfg: any): Promise<string> =
       return result;
     }
   }
+
   throw OpsDataException.failedElasticSearchCreate(
     `Timed out waiting for a valid endpoint from ${esCfg.DomainName} - replace the filename with a properly specified endpoint when it's available.`
   );
 };
 
 const createElasticSearch = async (awsConfig: IAwsConfig, deployment: IOpsDeployment, esCfg: any) => {
-  console.log('XXX createElasticSearch');
-
   const credentials = await (awsConfig.creds as AwsCreds).getCredentials();
   const options = {
     signatureVersion: 'v4',
@@ -236,6 +231,7 @@ const createElasticSearch = async (awsConfig: IAwsConfig, deployment: IOpsDeploy
     });
   });
 
+  // Create the log group for the service
   await new Promise((resolve, reject) => {
     let params = {
       logGroupName: createLogGroupName(deployment),
@@ -249,7 +245,7 @@ const createElasticSearch = async (awsConfig: IAwsConfig, deployment: IOpsDeploy
     });
   });
 
-  // Create the log groups resource policy
+  // Create the log groups resource policy to allow ES to access it
   await new Promise((resolve, reject) => {
     let params = {
       policyDocument: JSON.stringify({
@@ -273,6 +269,7 @@ const createElasticSearch = async (awsConfig: IAwsConfig, deployment: IOpsDeploy
     });
   });
 
+  // Create the ES domain
   await new Promise((resolve, reject) =>
     es.createElasticsearchDomain(esCfg, async (err: any, data: any) => {
       debug('es.createElasticsearchDomain', err, JSON.stringify(data));

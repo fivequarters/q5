@@ -46,7 +46,7 @@
     "@types/pem-jwk": "^1.5.0",
     "aws-sdk": "^2.539.0",
     "pem-jwk": "^2.0.0",
-    "superagent": "^4.1.0"
+    "superagent": "git@github.com:bennbollay/superagent.git#connect-with-port-override"
   },
   "devServer": {
     "port": 3001

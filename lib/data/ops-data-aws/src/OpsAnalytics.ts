@@ -7,6 +7,8 @@ import { LambdaAnalyticsZip } from '@5qtrs/ops-lambda-set';
 import { OpsDataTables } from './OpsDataTables';
 import { OpsNetworkData } from './OpsNetworkData';
 import { OpsDataAwsProvider } from './OpsDataAwsProvider';
+import { parseElasticSearchUrl } from './OpsElasticSearch';
+
 const Async = require('async');
 
 type AsyncCb = (e?: Error | null) => void;
@@ -47,16 +49,8 @@ async function createAnalyticsConfig(
   const network = await networkData.get(deployment.networkName, deployment.region);
 
   // Parse the Elastic Search credentials
-  let esCreds = { ES_HOST: '', ES_USER: '', ES_PASSWORD: '' };
-
-  let esUrl = deployment.elasticSearch.match(/https:\/\/([^:]+):(.*)@([^@]+$)/i);
-  if (esUrl && esUrl[1] && esUrl[2]) {
-    esCreds = {
-      ES_HOST: esUrl[3],
-      ES_USER: esUrl[1],
-      ES_PASSWORD: esUrl[2],
-    };
-  }
+  let esCreds = parseElasticSearchUrl(deployment.elasticSearch);
+  let esVar = { ES_HOST: esCreds.hostname, ES_USER: esCreds.username, ES_PASSWORD: esCreds.password };
 
   const cfg = {
     lambda: {
@@ -71,7 +65,7 @@ async function createAnalyticsConfig(
       Environment: {
         Variables: {
           DEPLOYMENT_KEY: awsConfig.prefix,
-          ...esCreds,
+          ...esVar,
         },
       },
       VpcConfig: {

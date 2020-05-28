@@ -221,6 +221,7 @@ export class AwsCreds {
     const params: any = {
       RoleArn: `${arnPrefix}:iam::${this.roleAccount}:role/${this.roleName}`,
       RoleSessionName: `assumed-role-${this.rolePath}-${this.roleAccount}`,
+      DurationSeconds: process.env.AWS_MFA_DURATION || undefined,
     };
     if (this.options.useMfa && this.options.mfaCodeResolver) {
       const serialNumber =
