@@ -286,6 +286,7 @@ DEPLOYMENT_KEY=${deploymentName}
 AWS_REGION=${region}
 AWS_S3_BUCKET=${s3Bucket}
 API_SERVER=https://${deploymentName}.${region}.${domainName}
+SERVICE_ROLE=${this.config.arnPrefix}:iam::${account}:role/${this.config.monoInstanceProfileName}
 LAMBDA_BUILDER_ROLE=${this.config.arnPrefix}:iam::${account}:role/${this.config.builderRoleName}
 LAMBDA_MODULE_BUILDER_ROLE=${this.config.arnPrefix}:iam::${account}:role/${this.config.builderRoleName}
 LAMBDA_USER_FUNCTION_ROLE=${this.config.arnPrefix}:iam::${account}:role/${this.config.functionRoleName}

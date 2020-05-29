@@ -2,21 +2,18 @@ const { getAccountContext } = require('../account');
 const httpError = require('http-errors');
 const superagent = require('superagent');
 const signRequest = require('superagent-aws-signed-request');
+const { getAWSCredentials } = require('../credentials');
 
 let postES = undefined;
 
-// Okay really, pull this out into a module with a refresh timer  through getSessionToken , and watching the
-// expiration.
-const acquireAwsCredentials = () => {
-  //  TOKEN=`curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"` && curl -H "X-aws-ec2-metadata-token: $TOKEN" –v http://169.254.169.254/latest/meta-data/iam/security-credentials/fusebit-EC2-instance | jq --raw-output '"[default]\naws_access_key_id=" + .AccessKeyId + "\n" + "aws_secret_access_key=" + .SecretAccessKey + "\naws_session_token=" + .Token' > ~/.aws/credentials
-};
-
 const appendIamRoleToES = async iamArn => {
-  let patch = [{ op: 'add', path: '/all_access', value: { backend_roles: [iamArn] } }];
+  let patch = [{ op: 'add', path: '/all_access', value: { backend_roles: iamArn } }];
 
   try {
+    let current = await postES('/_opendistro/_security/api/rolesmapping', '', 'get');
+    console.log(`ES: Old result:`, current.text);
     let result = await postES('/_opendistro/_security/api/rolesmapping', patch, 'patch');
-    console.log(`ES: Successfully updated ${process.env.ES_HOST} with ${iamArn}`, result);
+    console.log(`ES: Successfully updated ${process.env.ES_HOST} with ${iamArn}`, result.statusCode);
   } catch (e) {
     console.log('ES: Failed to update IAM role: ', e);
   }
@@ -56,22 +53,16 @@ const onStartup = async () => {
         console.log('ES: Using IAM authentication');
 
         postES = async (url, body, mode = 'post') => {
-          let account = await getAccountContext();
-          console.log('ES: Credentials: ', {
-            account: process.env.AWS_ACCOUNT,
-            accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-            secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-            sessionToken: process.env.AWS_SESSION_TOKEN,
-            useMfa: false,
-          });
+          let credentials = await getAWSCredentials();
+
           return superagent[mode](`https://${process.env.ES_HOST}${url}`)
             .send(body)
             .use(
               signRequest('es', {
-                key: process.env.AWS_ACCESS_KEY_ID,
-                secret: process.env.AWS_SECRET_ACCESS_KEY,
-                sessionToken: process.env.AWS_SESSION_TOKEN,
-                region: process.env.AWS_REGION,
+                key: credentials.accessKeyId,
+                secret: credentials.secretAccessKey,
+                sessionToken: credentials.sessionToken,
+                region: credentials.region,
               })
             )
             .connect(
@@ -82,7 +73,7 @@ const onStartup = async () => {
         };
       }
     }
-    await appendIamRoleToES(process.env.ES_ANALYTICS_ROLE);
+    await appendIamRoleToES([process.env.SERVICE_ROLE, process.env.ES_ANALYTICS_ROLE]);
   } else {
     console.log('ES: Elastic Search disabled');
   }

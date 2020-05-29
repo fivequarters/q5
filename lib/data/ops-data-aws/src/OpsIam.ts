@@ -111,7 +111,7 @@ export class OpsIam implements IDataSource {
       awsConfig,
       this.config.functionRoleName,
       undefined,
-      undefined, // Tentative removal of an unnecessary permission for the function.
+      undefined,
       undefined,
       this.config.iamPermissionsBoundary
     );
