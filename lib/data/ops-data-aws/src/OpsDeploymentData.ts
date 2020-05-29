@@ -122,7 +122,6 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
 
   public async getElasticSearchTemplate(deployment: IOpsDeployment): Promise<string> {
     const awsConfig = await this.provider.getAwsConfigForDeployment(deployment.deploymentName, deployment.region);
-    console.log('OpsDepData awsConfig', awsConfig);
     return await getDefaultElasticSearchConfig(this.config, awsConfig, this.provider, this.tables, deployment);
   }
 
@@ -302,7 +301,6 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
 
     const awsConfig = await this.provider.getAwsConfigForDeployment(deployment.deploymentName, deployment.region);
 
-    console.log('XXX');
     // Validate the correctness of the parameters
     //
     // Check if the elasticSearch parameter is present and not-empty.
@@ -311,7 +309,6 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
       await this.createElasticSearch(awsConfig, deployment);
     }
 
-    console.log('XXX2');
     await createFunctionStorage(this.config, awsConfig, deployment);
 
     const accountDataFactory = await AccountDataAwsContextFactory.create(awsConfig);
@@ -341,8 +338,6 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
   }
 
   public async createElasticSearch(awsConfig: IAwsConfig, deployment: IOpsDeploymentParameters): Promise<void> {
-    console.log('createElasticSearch: ', deployment.elasticSearch);
-
     // Is the parameter invalid, length=0, or set to valid tokens
     if (
       !deployment.elasticSearch ||
@@ -365,7 +360,9 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
       // Maybe it's a filename; load it and see if you can create a cluster.
       let esCfg = loadElasticSearchConfigFile(deployment as IOpsDeployment);
 
-      await createElasticSearch(awsConfig, deployment as IOpsDeployment, esCfg);
+      // Return a valid endpoint once the ES service is available.
+      let endpoint = await createElasticSearch(awsConfig, deployment as IOpsDeployment, esCfg);
+      deployment.elasticSearch = endpoint;
     }
   }
 }

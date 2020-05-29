@@ -10,8 +10,6 @@ const appendIamRoleToES = async iamArn => {
   let patch = [{ op: 'add', path: '/all_access', value: { backend_roles: iamArn } }];
 
   try {
-    let current = await postES('/_opendistro/_security/api/rolesmapping', '', 'get');
-    console.log(`ES: Old result:`, current.text);
     let result = await postES('/_opendistro/_security/api/rolesmapping', patch, 'patch');
     console.log(`ES: Successfully updated ${process.env.ES_HOST} with ${iamArn}`, result.statusCode);
   } catch (e) {
@@ -21,62 +19,53 @@ const appendIamRoleToES = async iamArn => {
 
 // Some cross checks, final-stage initializations, and logging events that occur on startup.
 const onStartup = async () => {
-  if (process.env.ES_HOST) {
-    console.log(
-      `ES: Elastic Search configuration: ${process.env.ES_USER}:${process.env.ES_PASSWORD.length > 0 ? '*' : 'X'}@${
-        process.env.ES_HOST
-      }`
-    );
-
-    if (process.env.ES_USER && process.env.ES_PASSWORD) {
-      console.log('ES: Using username/password authentication');
-      postES = async (url, body, mode = 'post') => {
-        const headers = {
-          Host: process.env.ES_HOST,
-          'Content-Type': 'application/json',
-        };
-
-        // console.log('Query: ', JSON.stringify(body));
-        // Make the request to elasticsearch
-        return superagent[mode](`https://${process.env.ES_HOST}${url}`)
-          .auth(process.env.ES_USER, process.env.ES_PASSWORD)
-          .set(headers)
-          .connect(process.env.ES_REDIRECT ? { '*': { host: 'localhost', port: process.env.ES_REDIRECT } } : undefined)
-          .trustLocalhost()
-          .send(body)
-          .ok(() => true);
-      };
-    } else {
-      if (process.env.ES_USER || process.env.ES_PASSWORD) {
-        console.log('ES: Missing ES parameters; disabled.');
-      } else {
-        console.log('ES: Using IAM authentication');
-
-        postES = async (url, body, mode = 'post') => {
-          let credentials = await getAWSCredentials();
-
-          return superagent[mode](`https://${process.env.ES_HOST}${url}`)
-            .send(body)
-            .use(
-              signRequest('es', {
-                key: credentials.accessKeyId,
-                secret: credentials.secretAccessKey,
-                sessionToken: credentials.sessionToken,
-                region: credentials.region,
-              })
-            )
-            .connect(
-              process.env.ES_REDIRECT ? { '*': { host: 'localhost', port: process.env.ES_REDIRECT } } : undefined
-            )
-            .trustLocalhost()
-            .ok(() => true);
-        };
-      }
-    }
-    await appendIamRoleToES([process.env.SERVICE_ROLE, process.env.ES_ANALYTICS_ROLE]);
-  } else {
+  if (!process.env.ES_HOST || !!process.env.ES_USER != !!process.env.ES_PASSWORD) {
     console.log('ES: Elastic Search disabled');
   }
+
+  console.log(
+    `ES: Elastic Search configuration: ${process.env.ES_USER}:${process.env.ES_PASSWORD.length > 0 ? '*' : 'X'}@${
+      process.env.ES_HOST
+    }`
+  );
+
+  // Allow for a redirect if running locally - only works with a patched superagent to allow for a port
+  // override.
+  let connectMap = process.env.ES_REDIRECT ? { '*': { host: 'localhost', port: process.env.ES_REDIRECT } } : undefined;
+
+  // Adjusted to properly authenticate to the ES server.
+  let authRequest;
+
+  postES = async (url, body, mode = 'post') => {
+    // Make the request to elasticsearch
+    return (await authRequest(superagent[mode](`https://${process.env.ES_HOST}${url}`)))
+      .connect(connectMap)
+      .trustLocalhost()
+      .send(body)
+      .ok(() => true);
+  };
+
+  if (process.env.ES_USER && process.env.ES_PASSWORD) {
+    console.log('ES: Using username/password authentication');
+    authRequest = async req => req.auth(process.env.ES_USER, process.env.ES_PASSWORD);
+    return;
+  }
+
+  console.log('ES: Using IAM authentication');
+  authRequest = async req => {
+    let credentials = await getAWSCredentials();
+    return req.use(
+      signRequest('es', {
+        key: credentials.accessKeyId,
+        secret: credentials.secretAccessKey,
+        sessionToken: credentials.sessionToken,
+        region: credentials.region,
+      })
+    );
+  };
+
+  // Ammend the analytics role to the ElasticSearch cluster to allow the lambda to post events.
+  await appendIamRoleToES([process.env.SERVICE_ROLE, process.env.ES_ANALYTICS_ROLE]);
 };
 
 // If a number is supplied, query for just that number.  Otherwise, assume that the caller is

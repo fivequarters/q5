@@ -1,6 +1,6 @@
 {
   "name": "@5qtrs/fusebit-ops-cli",
-  "version": "1.23.5",
+  "version": "1.22.2",
   "description": "The Fusebit Platform Operations CLI",
   "main": "libc/index.js",
   "license": "UNLICENSED",
@@ -15,7 +15,7 @@
   "packageAs": "fusebit-ops-cli",
   "packageAssets": [],
   "scripts": {
-    "build": "tsc -b",
+    "build": "yarn build:lambdas && tsc -b",
     "build:lambdas": "cd ../.. && yarn build ops-lambda-set",
     "test": "jest --colors",
     "coverage": "jest --colors --coverage",
@@ -26,15 +26,14 @@
   },
   "keywords": [],
   "dependencies": {
-    "@5qtrs/aws-cred": "^0.0.1",
     "@5qtrs/cli": "^0.0.1",
-    "@5qtrs/config": "^0.0.1",
+    "@5qtrs/text": "^0.0.1",
+    "@5qtrs/table": "^0.0.1",
+    "@5qtrs/aws-cred": "^0.0.1",
     "@5qtrs/dot-config": "^0.0.1",
     "@5qtrs/fusebit-ops-profile-sdk": "^0.0.1",
-    "@5qtrs/ops-data": "^0.0.1",
     "@5qtrs/ops-data-aws": "^0.0.1",
-    "@5qtrs/table": "^0.0.1",
-    "@5qtrs/text": "^0.0.1",
-    "superagent": "^5.2.2"
+    "@5qtrs/ops-data": "^0.0.1",
+    "@5qtrs/config": "^0.0.1"
   }
 }

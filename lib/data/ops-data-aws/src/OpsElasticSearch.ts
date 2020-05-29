@@ -22,19 +22,20 @@ const parseElasticSearchUrl = (url: string): ElasticSearchCreds => {
   if (esCreds && esCreds[1] && esCreds[2] && esCreds[3]) {
     return { username: esCreds[1], password: esCreds[2], hostname: esCreds[3] };
   }
+
   // Strip off the https
   if (url.startsWith('https://')) {
     return { username: '', password: '', hostname: url.substring('https://'.length) };
   }
 
-  // Pass it blindly.
+  // It's something mysterious, return it blindly.
   return { username: '', password: '', hostname: url };
 };
 
 const loadElasticSearchConfigFile = (deployment: IOpsDeployment): any => {
   const fn = deployment.elasticSearch;
 
-  console.log('loadElasticSearchConfigFIle', fn);
+  debug('loadElasticSearchConfigFile', fn);
 
   // If the path doesn't exist, throw.
   if (!fs.existsSync(fn)) {
@@ -94,31 +95,33 @@ const getDefaultElasticSearchConfig = async (
         {
           Effect: 'Allow',
           Principal: {
-            AWS: [`arn:aws:iam::${awsConfig.account}:role/fusebit-analytics`],
+            AWS: [`${awsDataConfig.arnPrefix}:iam::${awsConfig.account}:role/${awsConfig.analyticsRoleName}`],
           },
           Action: ['es:ESHttpPost'],
-          Resource: `arn:aws:es:us-west-2:${awsConfig.account}:domain/${esName}/_bulk`,
+          Resource: `${awsDataConfig.arnPrefix}:aws:es:${awsConfig.region}:${awsConfig.account}:domain/${esName}/_bulk`,
         },
         // Allow the EC2 function-api full privs
         {
           Effect: 'Allow',
           Principal: {
-            AWS: [`arn:aws:iam::${awsConfig.account}:role/fusebit-EC2-instance`],
+            AWS: [
+              `${awsDataConfig.arnPrefix}:aws:iam::${awsConfig.account}:role/${awsDataConfig.monoInstanceProfileName}`,
+            ],
           },
           Action: ['es:*'],
-          Resource: `arn:aws:es:us-west-2:${awsConfig.account}:domain/${esName}/*`,
+          Resource: `${awsDataConfig.arnPrefix}:aws:es:${awsConfig.region}:${awsConfig.account}:domain/${esName}/*`,
         },
       ],
     }),
 
     EncryptionAtRestOptions: {
       Enabled: true,
-      KmsKeyId: `arn:aws:kms:${deployment.region}:${awsConfig.account}:alias/aws/es`,
+      KmsKeyId: `${awsDataConfig.arnPrefix}:aws:kms:${deployment.region}:${awsConfig.account}:alias/aws/es`,
     },
 
     LogPublishingOptions: {
       ES_APPLICATION_LOGS: {
-        CloudWatchLogsLogGroupArn: `arn:aws:logs:${deployment.region}:${
+        CloudWatchLogsLogGroupArn: `${awsDataConfig.arnPrefix}:aws:logs:${deployment.region}:${
           awsConfig.account
         }:log-group:${createLogGroupName(deployment)}`,
         Enabled: true,
@@ -129,7 +132,7 @@ const getDefaultElasticSearchConfig = async (
       Enabled: true,
       InternalUserDatabaseEnabled: false,
       MasterUserOptions: {
-        MasterUserARN: `arn:aws:iam::${awsConfig.account}:role/fusebit-EC2-instance`,
+        MasterUserARN: `${awsDataConfig.arnPrefix}:aws:iam::${awsConfig.account}:role/${awsDataConfig.monoInstanceProfileName}`,
       },
     },
 
@@ -138,31 +141,6 @@ const getDefaultElasticSearchConfig = async (
       SubnetIds: [network.privateSubnets.map(sn => sn.id).sort()[0]], // One subnet only on n=1 deployments
     },
   };
-};
-
-const waitForCluster = async (esCreds: ElasticSearchCreds, maxWait: number) => {
-  let pass = false;
-  let attempts = maxWait;
-  const delay = 1000;
-
-  // XXX this doesn't use the right auth/signing mechanism, though that may not be necessary - try an unsigned
-  // request and see if it works.
-  do {
-    attempts -= 1;
-    try {
-      let result = await superagent
-        .get(`https://${esCreds.hostname}/_cluster/health`)
-        .timeout(delay)
-        .auth(esCreds.username, esCreds.password);
-
-      // Responded with a 200; good enough.
-      pass = true;
-    } catch (e) {
-      continue;
-    }
-  } while (!pass && attempts > 0);
-
-  return attempts != 0;
 };
 
 const waitForElasticSearchReady = async (es: any, esCfg: any): Promise<string> => {
@@ -181,15 +159,14 @@ const waitForElasticSearchReady = async (es: any, esCfg: any): Promise<string> =
     attempts -= 1;
     result = await new Promise((resolve, reject) => {
       es.describeElasticsearchDomain({ DomainName: esCfg.DomainName }, async (err: any, data: any) => {
-        // debug('es.describeElasticsearchDomain', err, JSON.stringify(data));
+        // XXX How can I do a spinner here?
         process.stdout.write('.');
         if (err) {
           return resolve(undefined);
         }
         if (data.DomainStatus.Endpoints) {
-          resolve(`${prefix}${data.DomainStatus.Endpoints.vpc}`);
           ready = true;
-          debug('es.describeElasticsearchDomain', err, JSON.stringify(data));
+          return resolve(`${prefix}${data.DomainStatus.Endpoints.vpc}`);
         }
         resolve(undefined);
       });
@@ -205,7 +182,7 @@ const waitForElasticSearchReady = async (es: any, esCfg: any): Promise<string> =
   );
 };
 
-const createElasticSearch = async (awsConfig: IAwsConfig, deployment: IOpsDeployment, esCfg: any) => {
+const createElasticSearch = async (awsConfig: IAwsConfig, deployment: IOpsDeployment, esCfg: any): Promise<string> => {
   const credentials = await (awsConfig.creds as AwsCreds).getCredentials();
   const options = {
     signatureVersion: 'v4',
@@ -219,6 +196,7 @@ const createElasticSearch = async (awsConfig: IAwsConfig, deployment: IOpsDeploy
   let cloudwatchlogs = new AWS.CloudWatchLogs(options);
   let es = new AWS.ES(options);
 
+  debug('ES: deploying');
   // Make sure the service role exists first: CreateServiceLinkedRole
   await new Promise((resolve, reject) => {
     let params = { AWSServiceName: 'es.amazonaws.com', Description: '' };
@@ -270,7 +248,7 @@ const createElasticSearch = async (awsConfig: IAwsConfig, deployment: IOpsDeploy
   });
 
   // Create the ES domain
-  await new Promise((resolve, reject) =>
+  return await new Promise((resolve, reject) =>
     es.createElasticsearchDomain(esCfg, async (err: any, data: any) => {
       debug('es.createElasticsearchDomain', err, JSON.stringify(data));
       if (err != null) {
@@ -279,15 +257,11 @@ const createElasticSearch = async (awsConfig: IAwsConfig, deployment: IOpsDeploy
           return reject(OpsDataException.failedElasticSearchCreate(err));
         }
       }
-      if (!data || !data.DomainStatus) {
-        return reject(OpsDataException.failedElasticSearchCreate(err));
-      }
       debug('Successful ES cluster create');
       debug(JSON.stringify(data));
 
       debug('Waiting for cluster endpoint');
-      deployment.elasticSearch = await waitForElasticSearchReady(es, esCfg);
-      resolve();
+      resolve(await waitForElasticSearchReady(es, esCfg));
     })
   );
 };

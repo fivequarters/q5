@@ -365,8 +365,6 @@ async function createCronConfig(
   const networkData = await OpsNetworkData.create(config, provider, tables);
   const network = await networkData.get(deployment.networkName, deployment.region);
 
-  debugger;
-
   return {
     prefix: CronPrefix,
 
@@ -386,8 +384,9 @@ async function createCronConfig(
       role: `${config.arnPrefix}:iam::${awsConfig.account}:role/${config.cronExecutorRoleName}`,
       batchSize: 10,
       concurrentExecutionLimit: '10',
+      // XXX XXX Why did I add this?
       securityGroupId: [network.securityGroupId],
-      subnets: network.privateSubnets.map(sn => sn.id),
+      subnets: network.privateSubnets.map(sn => sn.id).sort(),
     },
 
     // Lambda function that is triggered by scheduled Cloud Watch Events and populates SQS
