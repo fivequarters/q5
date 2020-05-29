@@ -1,47 +1,44 @@
-import LinearProgress from "@material-ui/core/LinearProgress";
-import { makeStyles } from "@material-ui/core/styles";
-import Typography from "@material-ui/core/Typography";
-import React from "react";
-import { Audit, AuditFilter } from "../lib/FusebitTypes";
-import { getUISettings, setUISettings } from "../lib/Settings";
-import ActivityFilterContent, {
-  defaultFilterAction,
-  defaultFilterFrom,
-} from "./ActivityFilterContent";
-import { AuditProvider, useAudit } from "./AuditProvider";
-import ExplorerTable, { HeadCell } from "./ExplorerTable";
-import PortalError from "./PortalError";
-import ResourceCrumb from "./ResourceCrumb";
-import TableInfoRow from "./TableInfoRow";
-import Chip from "@material-ui/core/Chip";
-import { useHistory } from "react-router-dom";
-import AgentTooltip, { IssuerSubjectAgent } from "./AgentTooltip";
-import { AgentState } from "./AgentProvider";
-import CancelIcon from "@material-ui/icons/Cancel";
-import CheckCircleIcon from "@material-ui/icons/CheckCircle";
+import ProgressView from './ProgressView';
+import { makeStyles } from '@material-ui/core/styles';
+import Typography from '@material-ui/core/Typography';
+import React from 'react';
+import { Audit, AuditFilter } from '../lib/FusebitTypes';
+import { getUISettings, setUISettings } from '../lib/Settings';
+import ActivityFilterContent, { defaultFilterAction, defaultFilterFrom } from './ActivityFilterContent';
+import { AuditProvider, useAudit } from './AuditProvider';
+import ExplorerTable, { HeadCell } from './ExplorerTable';
+import PortalError from './PortalError';
+import ResourceCrumb from './ResourceCrumb';
+import TableInfoRow from './TableInfoRow';
+import Chip from '@material-ui/core/Chip';
+import { useHistory } from 'react-router-dom';
+import AgentTooltip, { IssuerSubjectAgent } from './AgentTooltip';
+import { AgentState } from './AgentProvider';
+import CancelIcon from '@material-ui/icons/Cancel';
+import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 
 const useStyles = makeStyles((theme: any) => ({
   noWrap: {
-    whiteSpace: "nowrap",
+    whiteSpace: 'nowrap',
   },
   warning: {
     marginLeft: theme.spacing(2),
     marginRight: theme.spacing(2),
   },
   chips: {
-    display: "flex",
-    flexWrap: "wrap",
+    display: 'flex',
+    flexWrap: 'wrap',
   },
   chip: {
     marginRight: theme.spacing(1),
     marginBottom: theme.spacing(1),
   },
   access: {
-    display: "flex",
+    display: 'flex',
   },
 }));
 
-const pad = (i: number) => (i < 10 ? "0" + i : i.toString());
+const pad = (i: number) => (i < 10 ? '0' + i : i.toString());
 
 type ActivityImplProps = {
   filterMask: AuditFilter;
@@ -56,22 +53,16 @@ function ActivityImpl({ actionFilter, filterMask }: ActivityImplProps) {
   const [agents, setAgents] = React.useState<IssuerSubjectAgent>({});
 
   const formatUtcDate = (d: Date) =>
-    `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(
-      d.getUTCDate()
-    )} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(
-      d.getUTCSeconds()
-    )}`;
+    `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())} ${pad(d.getUTCHours())}:${pad(
+      d.getUTCMinutes()
+    )}:${pad(d.getUTCSeconds())}`;
 
   const formatLocalDate = (d: Date) =>
-    `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(
-      d.getHours()
-    )}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(
+      d.getSeconds()
+    )}`;
 
-  const handleSetAgent = (
-    issuerId: string,
-    subject: string,
-    agent: AgentState
-  ) => {
+  const handleSetAgent = (issuerId: string, subject: string, agent: AgentState) => {
     if (!agents[issuerId]) {
       agents[issuerId] = {};
     }
@@ -81,10 +72,10 @@ function ActivityImpl({ actionFilter, filterMask }: ActivityImplProps) {
 
   const headCells: HeadCell<Audit>[] = [
     {
-      id: "authorized",
-      align: "left",
-      label: "Access",
-      render: (row) =>
+      id: 'authorized',
+      align: 'left',
+      label: 'Access',
+      render: row =>
         row.authorized ? (
           <CheckCircleIcon className={classes.access} />
         ) : (
@@ -92,31 +83,26 @@ function ActivityImpl({ actionFilter, filterMask }: ActivityImplProps) {
         ),
     },
     {
-      id: "resource",
-      align: "left",
-      label: "Resource",
-      render: (row) => (
-        <ResourceCrumb
-          resource={row.resource}
-          resourceMask={filterMask.resource}
-        />
-      ),
+      id: 'resource',
+      align: 'left',
+      label: 'Resource',
+      render: row => <ResourceCrumb resource={row.resource} resourceMask={filterMask.resource} />,
     },
     {
-      id: "action",
-      align: "left",
-      label: "Action",
-      render: (row) => (
+      id: 'action',
+      align: 'left',
+      label: 'Action',
+      render: row => (
         <Typography variant="inherit" className={classes.noWrap}>
           {row.action}
         </Typography>
       ),
     },
     {
-      id: "timestamp",
-      align: "left",
-      label: utc ? "Time (UTC)" : "Time (Local)",
-      render: (row) => {
+      id: 'timestamp',
+      align: 'left',
+      label: utc ? 'Time (UTC)' : 'Time (Local)',
+      render: row => {
         const d = new Date(row.timestamp);
         return utc ? (
           <Typography variant="inherit" className={classes.noWrap}>
@@ -130,32 +116,27 @@ function ActivityImpl({ actionFilter, filterMask }: ActivityImplProps) {
       },
     },
     {
-      id: "issuerId",
-      align: "left",
-      label: "Issuer ID",
+      id: 'issuerId',
+      align: 'left',
+      label: 'Issuer ID',
     },
     {
-      id: "subject",
-      align: "left",
-      label: "Subject",
-      render: (row) => (
-        <AgentTooltip
-          issuerId={row.issuerId}
-          subject={row.subject}
-          agents={agents}
-          onSetAgent={handleSetAgent}
-        >
+      id: 'subject',
+      align: 'left',
+      label: 'Subject',
+      render: row => (
+        <AgentTooltip issuerId={row.issuerId} subject={row.subject} agents={agents} onSetAgent={handleSetAgent}>
           <Typography variant="inherit">{row.subject}</Typography>
         </AgentTooltip>
       ),
     },
   ];
 
-  if (audit.status === "loading" || audit.status === "updating") {
-    return <LinearProgress />;
+  if (audit.status === 'loading' || audit.status === 'updating') {
+    return <ProgressView />;
   }
 
-  if (audit.status === "error") {
+  if (audit.status === 'error') {
     return <PortalError error={audit.error} padding={true} />;
   }
 
@@ -169,12 +150,12 @@ function ActivityImpl({ actionFilter, filterMask }: ActivityImplProps) {
         }
         return a;
       }, [])
-      .join("&")}`;
+      .join('&')}`;
     history.replace(hash);
   };
 
   const handleFilterReset = () => {
-    history.push("#");
+    history.push('#');
   };
 
   const handleFilterApply = (newFilter: AuditFilter, newUtc: boolean) => {
@@ -202,12 +183,11 @@ function ActivityImpl({ actionFilter, filterMask }: ActivityImplProps) {
   };
 
   function firstRowMessage() {
-    if (audit.status === "ready") {
+    if (audit.status === 'ready') {
       if (audit.data.data.length === 0) {
         return (
           <Typography variant="inherit">
-            No matching audit entries found. Please use the filter to relax the
-            search criteria.
+            No matching audit entries found. Please use the filter to relax the search criteria.
           </Typography>
         );
       }
@@ -215,8 +195,8 @@ function ActivityImpl({ actionFilter, filterMask }: ActivityImplProps) {
       if (audit.data.hasMore) {
         return (
           <TableInfoRow>
-            Showing only the first {audit.data.data.length} matching audit
-            entries. Please use the filter to narrow down the criteria.
+            Showing only the first {audit.data.data.length} matching audit entries. Please use the filter to narrow down
+            the criteria.
           </TableInfoRow>
         );
       }
@@ -229,57 +209,40 @@ function ActivityImpl({ actionFilter, filterMask }: ActivityImplProps) {
     let chips: JSX.Element[] = [];
 
     const fromDescription: { [key: string]: string } = {
-      "-15m": "15 minutes ago",
-      "-30m": "30 minutes ago",
-      "-1h": "1 hour ago",
-      "-24h": "24 hours ago",
-      "-7d": "7 days ago",
-      "-30d": "30 days ago",
+      '-15m': '15 minutes ago',
+      '-30m': '30 minutes ago',
+      '-1h': '1 hour ago',
+      '-24h': '24 hours ago',
+      '-7d': '7 days ago',
+      '-30d': '30 days ago',
     };
 
     if (audit.filter.from) {
       let description: string | undefined = fromDescription[audit.filter.from];
       if (!description) {
         let d = new Date(audit.filter.from);
-        description =
-          (d &&
-            (utc
-              ? formatUtcDate(d) + " (UTC)"
-              : formatLocalDate(d) + " (Local)")) ||
-          audit.filter.from;
+        description = (d && (utc ? formatUtcDate(d) + ' (UTC)' : formatLocalDate(d) + ' (Local)')) || audit.filter.from;
       }
-      chips.push(
-        <Chip
-          className={classes.chip}
-          key="from"
-          label={`From: ${description}`}
-        />
-      );
+      chips.push(<Chip className={classes.chip} key="from" label={`From: ${description}`} />);
       if (audit.filter.to) {
         let d = new Date(audit.filter.to);
         chips.push(
           <Chip
             className={classes.chip}
             key="to"
-            label={`To: ${utc ? formatUtcDate(d) : formatLocalDate(d)} ${
-              utc ? "(UTC)" : "(Local)"
-            }`}
+            label={`To: ${utc ? formatUtcDate(d) : formatLocalDate(d)} ${utc ? '(UTC)' : '(Local)'}`}
           />
         );
       }
     }
 
-    if (
-      audit.filter.resource &&
-      audit.filter.resource !== filterMask.resource
-    ) {
+    if (audit.filter.resource && audit.filter.resource !== filterMask.resource) {
       chips.push(
         <Chip
           className={classes.chip}
           key="resource"
           label={`Resource prefix: ${
-            filterMask.resource &&
-            audit.filter.resource.indexOf(filterMask.resource) === 0
+            filterMask.resource && audit.filter.resource.indexOf(filterMask.resource) === 0
               ? audit.filter.resource.substring(filterMask.resource.length)
               : audit.filter.resource
           }`}
@@ -288,7 +251,7 @@ function ActivityImpl({ actionFilter, filterMask }: ActivityImplProps) {
       );
     }
 
-    if (audit.filter.action && audit.filter.action !== "*") {
+    if (audit.filter.action && audit.filter.action !== '*') {
       chips.push(
         <Chip
           className={classes.chip}
@@ -365,9 +328,9 @@ function Activity({ filter, actionFilter }: ActivityProps) {
   if (history.location.hash.length > 0) {
     history.location.hash
       .substring(1)
-      .split("&")
-      .forEach((e) => {
-        const [k, v] = e.split("=");
+      .split('&')
+      .forEach(e => {
+        const [k, v] = e.split('=');
         if (k !== undefined && k.length > 0 && v !== undefined) {
           hash[k] = decodeURIComponent(v);
         }

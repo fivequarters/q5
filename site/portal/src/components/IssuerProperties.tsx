@@ -1,74 +1,66 @@
-import Button from "@material-ui/core/Button";
-import Grid from "@material-ui/core/Grid";
-import LinearProgress from "@material-ui/core/LinearProgress";
-import { makeStyles } from "@material-ui/core/styles";
-import TextField from "@material-ui/core/TextField";
-import Typography from "@material-ui/core/Typography";
-import FingerprintIcon from "@material-ui/icons/Fingerprint";
-import VpnKeyIcon from "@material-ui/icons/VpnKey";
-import React from "react";
-import { PublicKey } from "../lib/FusebitTypes";
-import AddPublicKeyDialog from "./AddPublicKeyDialog";
-import ConfirmNavigation from "./ConfirmNavigation";
-import EntityCard from "./EntityCard";
-import { FusebitError } from "./ErrorBoundary";
-import InfoCard from "./InfoCard";
-import InputWithIcon from "./InputWithIcon";
-import IssuerNameInput from "./IssuerNameInput";
-import { modifyIssuer, saveIssuer, useIssuer } from "./IssuerProvider";
-import JwksUrlInput from "./JwksUrlInput";
-import PortalError from "./PortalError";
-import PublicKeyAcquisitionSelector from "./PublicKeyAcquisitionSelector";
+import Button from '@material-ui/core/Button';
+import Grid from '@material-ui/core/Grid';
+import ProgressView from './ProgressView';
+import { makeStyles } from '@material-ui/core/styles';
+import TextField from '@material-ui/core/TextField';
+import Typography from '@material-ui/core/Typography';
+import FingerprintIcon from '@material-ui/icons/Fingerprint';
+import VpnKeyIcon from '@material-ui/icons/VpnKey';
+import React from 'react';
+import { PublicKey } from '../lib/FusebitTypes';
+import AddPublicKeyDialog from './AddPublicKeyDialog';
+import ConfirmNavigation from './ConfirmNavigation';
+import EntityCard from './EntityCard';
+import { FusebitError } from './ErrorBoundary';
+import InfoCard from './InfoCard';
+import InputWithIcon from './InputWithIcon';
+import IssuerNameInput from './IssuerNameInput';
+import { modifyIssuer, saveIssuer, useIssuer } from './IssuerProvider';
+import JwksUrlInput from './JwksUrlInput';
+import PortalError from './PortalError';
+import PublicKeyAcquisitionSelector from './PublicKeyAcquisitionSelector';
 
 const useStyles = makeStyles((theme: any) => ({
   gridContainer2: {
     paddingLeft: theme.spacing(3),
     paddingRight: theme.spacing(3),
     marginBottom: theme.spacing(2),
-    marginTop: theme.spacing(2)
+    marginTop: theme.spacing(2),
   },
   gridContainer: {
     paddingLeft: theme.spacing(3),
     paddingRight: theme.spacing(3),
-    marginBottom: theme.spacing(2)
+    marginBottom: theme.spacing(2),
   },
   keyContainer: {
     paddingLeft: theme.spacing(1) + 24,
-    width: "100%",
-    display: "flex",
-    flexDirection: "column",
-    minWidth: 480
+    width: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    minWidth: 480,
   },
   keyAction: {
     marginTop: theme.spacing(2),
-    marginBottom: theme.spacing(2)
+    marginBottom: theme.spacing(2),
   },
   form: {
-    overflow: "hidden"
+    overflow: 'hidden',
   },
   actions: {
-    marginLeft: theme.spacing(4)
-  }
+    marginLeft: theme.spacing(4),
+  },
 }));
 
 function IssuerProperties() {
   const classes = useStyles();
   const [issuer, setIssuer] = useIssuer();
-  const [addPublicKeyDialogOpen, setAddPublicKeyDialogOpen] = React.useState(
-    false
-  );
+  const [addPublicKeyDialogOpen, setAddPublicKeyDialogOpen] = React.useState(false);
 
-  if (issuer.status === "loading") {
-    return (
-      <Grid container className={classes.gridContainer} spacing={2}>
-        <Grid item xs={12}>
-          <LinearProgress />
-        </Grid>
-      </Grid>
-    );
+  if (issuer.status === 'loading') {
+    return <ProgressView />;
   }
 
-  if (issuer.status === "error") {
+  if (issuer.status === 'error') {
     return (
       <Grid container className={classes.gridContainer} spacing={2}>
         <Grid item xs={12}>
@@ -87,15 +79,12 @@ function IssuerProperties() {
     });
     modifyIssuer(issuer, setIssuer, {
       ...issuer.modified,
-      publicKeys: newPublicKeys
+      publicKeys: newPublicKeys,
     });
   };
 
   const isError = () => {
-    return !!(
-      issuer.modified.publicKeyAcquisition === "jwks" &&
-      issuer.modified.jsonKeysUrlError
-    );
+    return !!(issuer.modified.publicKeyAcquisition === 'jwks' && issuer.modified.jsonKeysUrlError);
   };
 
   const handleSave = () =>
@@ -107,33 +96,22 @@ function IssuerProperties() {
           details:
             (e.status || e.statusCode) === 403
               ? `You are not authorized to access issuer information.`
-              : e.message || "Unknown error.",
-          source: "IssuerProperties"
+              : e.message || 'Unknown error.',
+          source: 'IssuerProperties',
         })
     );
 
-  const handleReset = () =>
-    modifyIssuer(
-      issuer,
-      setIssuer,
-      JSON.parse(JSON.stringify(issuer.existing))
-    );
+  const handleReset = () => modifyIssuer(issuer, setIssuer, JSON.parse(JSON.stringify(issuer.existing)));
 
   function PublicKeys() {
-    if (issuer.status === "ready" || issuer.status === "updating") {
+    if (issuer.status === 'ready' || issuer.status === 'updating') {
       return (
         <div className={classes.keyContainer}>
           <div>
-            {!issuer.modified.publicKeys ||
-            issuer.modified.publicKeys.length === 0 ? (
-              <Typography>
-                No public keys are stored. You can provide up to three stored
-                public keys.
-              </Typography>
+            {!issuer.modified.publicKeys || issuer.modified.publicKeys.length === 0 ? (
+              <Typography>No public keys are stored. You can provide up to three stored public keys.</Typography>
             ) : (
-              <Typography>
-                You can provide up to three stored public keys.
-              </Typography>
+              <Typography>You can provide up to three stored public keys.</Typography>
             )}
           </div>
           {issuer.modified.publicKeys &&
@@ -144,7 +122,7 @@ function IssuerProperties() {
                   <Button
                     variant="text"
                     onClick={() => handleRemovePublicKey(pki)}
-                    disabled={issuer.status === "updating"}
+                    disabled={issuer.status === 'updating'}
                   >
                     Remove
                   </Button>
@@ -161,20 +139,14 @@ function IssuerProperties() {
               variant="outlined"
               color="primary"
               disabled={
-                (issuer.modified.publicKeys &&
-                  issuer.modified.publicKeys.length >= 3) ||
-                issuer.status === "updating"
+                (issuer.modified.publicKeys && issuer.modified.publicKeys.length >= 3) || issuer.status === 'updating'
               }
               onClick={() => setAddPublicKeyDialogOpen(true)}
             >
               Add public key
             </Button>
           </div>
-          {addPublicKeyDialogOpen && (
-            <AddPublicKeyDialog
-              onClose={() => setAddPublicKeyDialogOpen(false)}
-            />
-          )}
+          {addPublicKeyDialogOpen && <AddPublicKeyDialog onClose={() => setAddPublicKeyDialogOpen(false)} />}
         </div>
       );
     }
@@ -199,17 +171,14 @@ function IssuerProperties() {
             </InputWithIcon>
             <IssuerNameInput autoFocus />
             <PublicKeyAcquisitionSelector />
-            {issuer.modified.publicKeyAcquisition === "jwks" && (
-              <JwksUrlInput />
-            )}
-            {issuer.modified.publicKeyAcquisition === "pki" && <PublicKeys />}
+            {issuer.modified.publicKeyAcquisition === 'jwks' && <JwksUrlInput />}
+            {issuer.modified.publicKeyAcquisition === 'pki' && <PublicKeys />}
           </form>
         </Grid>
         <Grid item xs={4}>
           <InfoCard learnMoreUrl="https://fusebit.io/docs/integrator-guide/authz-model/#registering-an-issuer">
-            Fusebit validates the signature of the access tokens created by this
-            issuer using a public key. The public key can be stored in the
-            system or retrieved automatically from a JWKS endpoint.
+            Fusebit validates the signature of the access tokens created by this issuer using a public key. The public
+            key can be stored in the system or retrieved automatically from a JWKS endpoint.
           </InfoCard>
         </Grid>
         {issuer.dirty && <ConfirmNavigation />}
@@ -226,12 +195,7 @@ function IssuerProperties() {
           >
             Save
           </Button>
-          <Button
-            variant="text"
-            color="primary"
-            onClick={handleReset}
-            disabled={!issuer.dirty}
-          >
+          <Button variant="text" color="primary" onClick={handleReset} disabled={!issuer.dirty}>
             Reset
           </Button>
         </Grid>
