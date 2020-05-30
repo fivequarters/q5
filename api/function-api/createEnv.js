@@ -63,6 +63,8 @@ ES_HOST=${creds.hostname}
 ES_USER=${creds.username || ''}
 ES_PASSWORD=${creds.password || ''}
 ES_REDIRECT=${creds.redirect || ''}
+ES_ANALYTICS_ROLE="arn:aws:iam::756427635076:role/Fusebit-Admin"
+SERVICE_ROLE="arn:aws:iam::756427635076:role/fusebit-EC2-instance"
 `;
     }
   } catch (_) {}

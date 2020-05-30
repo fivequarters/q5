@@ -95,7 +95,7 @@ const getDefaultElasticSearchConfig = async (
         {
           Effect: 'Allow',
           Principal: {
-            AWS: [`${awsDataConfig.arnPrefix}:iam::${awsConfig.account}:role/${awsConfig.analyticsRoleName}`],
+            AWS: [`${awsDataConfig.arnPrefix}:iam::${awsConfig.account}:role/${awsDataConfig.analyticsRoleName}`],
           },
           Action: ['es:ESHttpPost'],
           Resource: `${awsDataConfig.arnPrefix}:aws:es:${awsConfig.region}:${awsConfig.account}:domain/${esName}/_bulk`,
@@ -266,10 +266,4 @@ const createElasticSearch = async (awsConfig: IAwsConfig, deployment: IOpsDeploy
   );
 };
 
-export {
-  parseElasticSearchUrl,
-  loadElasticSearchConfigFile,
-  getDefaultElasticSearchConfig,
-  waitForCluster,
-  createElasticSearch,
-};
+export { parseElasticSearchUrl, loadElasticSearchConfigFile, getDefaultElasticSearchConfig, createElasticSearch };

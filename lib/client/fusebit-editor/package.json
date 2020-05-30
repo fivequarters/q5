@@ -23,7 +23,7 @@
   "keywords": [],
   "dependencies": {
     "monaco-editor": "^0.15.6",
-    "superagent": "^4.1.0",
+    "superagent": "^5.2.2",
     "@5qtrs/event": "^0.0.1"
   },
   "devDependencies": {
@@ -33,7 +33,7 @@
     "@fortawesome/free-solid-svg-icons": "^5.6.0",
     "@types/jquery": "^3.3.22",
     "@types/node": "^10.12.9",
-    "@types/superagent": "^3.8.6",
+    "@types/superagent": "^4.1.7",
     "css-loader": "^1.0.1",
     "jsdom": "11.11.0",
     "jsdom-global": "3.0.2",

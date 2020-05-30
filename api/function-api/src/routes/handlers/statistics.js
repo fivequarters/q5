@@ -1,6 +1,6 @@
 const { getAccountContext } = require('../account');
 const httpError = require('http-errors');
-const superagent = require('superagent');
+const superagent = require('superagent-connect-port');
 const signRequest = require('superagent-aws-signed-request');
 const { getAWSCredentials } = require('../credentials');
 
@@ -11,7 +11,11 @@ const appendIamRoleToES = async iamArn => {
 
   try {
     let result = await postES('/_opendistro/_security/api/rolesmapping', patch, 'patch');
-    console.log(`ES: Successfully updated ${process.env.ES_HOST} with ${iamArn}`, result.statusCode);
+    if (result.statusCode == 200) {
+      console.log(`ES: Successfully updated ${process.env.ES_HOST} with ${JSON.stringify(iamArn)}`);
+    } else {
+      console.log(`ES: Failed updating ${process.env.ES_HOST} with ${JSON.stringify(iamArn)}: ${result.statusCode}`);
+    }
   } catch (e) {
     console.log('ES: Failed to update IAM role: ', e);
   }
@@ -31,35 +35,46 @@ const onStartup = async () => {
 
   // Allow for a redirect if running locally - only works with a patched superagent to allow for a port
   // override.
-  let connectMap = process.env.ES_REDIRECT ? { '*': { host: 'localhost', port: process.env.ES_REDIRECT } } : undefined;
+  let connectOverride = process.env.ES_REDIRECT
+    ? r => r.connect({ '*': { host: 'localhost', port: process.env.ES_REDIRECT } }).trustLocalhost()
+    : r => r;
 
-  // Adjusted to properly authenticate to the ES server.
+  // Utility functions for authenticating to the ElasticSearch service.
   let authRequest;
+  let getCredentials;
 
+  // Perform a query against the ElasticSearch service
   postES = async (url, body, mode = 'post') => {
+    let cred = await getCredentials();
+    let fullUrl = `https://${process.env.ES_HOST}${url}`;
+
     // Make the request to elasticsearch
-    return (await authRequest(superagent[mode](`https://${process.env.ES_HOST}${url}`)))
-      .connect(connectMap)
-      .trustLocalhost()
+    return connectOverride(authRequest(cred, superagent[mode](fullUrl)))
       .send(body)
       .ok(() => true);
   };
 
   if (process.env.ES_USER && process.env.ES_PASSWORD) {
     console.log('ES: Using username/password authentication');
-    authRequest = async req => req.auth(process.env.ES_USER, process.env.ES_PASSWORD);
+    getCredentials = async () => {
+      return { username: process.env.ES_USER, password: process.env.ES_PASSWORD };
+    };
+    authRequest = (cred, req) => req.auth(cred.username, cred.password);
     return;
   }
 
   console.log('ES: Using IAM authentication');
-  authRequest = async req => {
-    let credentials = await getAWSCredentials();
+  getCredentials = async () => {
+    return await getAWSCredentials();
+  };
+
+  authRequest = (cred, req) => {
     return req.use(
       signRequest('es', {
-        key: credentials.accessKeyId,
-        secret: credentials.secretAccessKey,
-        sessionToken: credentials.sessionToken,
-        region: credentials.region,
+        key: cred.accessKeyId,
+        secret: cred.secretAccessKey,
+        sessionToken: cred.sessionToken,
+        region: cred.region,
       })
     );
   };
@@ -306,7 +321,7 @@ const makeQuery = async (request, key, query_params = null) => {
     return { statusCode: 403, message: e.message, data: e.message };
   }
 
-  // console.log('Query: ', JSON.stringify(body));
+  console.log('XXX Query: ', JSON.stringify(body));
   // Make the request to elasticsearch
   let response = await postES('/fusebot-*/_search', body);
 
