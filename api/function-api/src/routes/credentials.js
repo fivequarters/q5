@@ -26,9 +26,7 @@ const refreshCredentials = async () => {
       retryDelayOptions: { base: 200 }, // see AWS.Config for information
     });
 
-    console.log('CRED: Starting credential refresh at ', new Date());
     credentials.refresh(err => {
-      console.log('CRED: Refresh completed at ', new Date());
       if (err) {
         console.log('CRED: Failure to acquire AWS credentials:', err);
         return process.exit(1);
@@ -57,8 +55,6 @@ const getAWSCredentials = async (wait = true) => {
       return undefined;
     }
   }
-
-  console.log('CRED: returning credentials');
 
   return { ...credentialCache };
 };
