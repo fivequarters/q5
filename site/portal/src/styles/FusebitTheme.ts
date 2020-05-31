@@ -42,6 +42,13 @@ const FusebitTheme = {
           borderRadius: '100px',
         },
       },
+      MuiDialogActions: {
+        root: {
+          paddingLeft: 24,
+          paddingRight: 24,
+          paddingBottom: 16,
+        },
+      },
     },
   }),
   // Additional, Fusebit-specific theme properties  :
