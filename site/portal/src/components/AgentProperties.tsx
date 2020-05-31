@@ -144,7 +144,7 @@ function AgentProperties() {
         <Grid container spacing={2} className={classes.gridContainer}>
           <Grid item xs={8} className={classes.form}>
             <Button
-              color="primary"
+              color="secondary"
               variant="contained"
               disabled={!agent.dirty || agent.status !== 'ready'}
               onClick={handleSave}
