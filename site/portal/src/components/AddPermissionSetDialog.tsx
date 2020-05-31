@@ -222,7 +222,7 @@ function AddPermissionSetDialog({ onClose }: any) {
         {activeStep < 2 && (
           <Button
             onClick={handleNextStep}
-            color="primary"
+            color="secondary"
             variant="contained"
             disabled={resource.hasError || agent.status !== 'ready'}
           >
@@ -232,7 +232,7 @@ function AddPermissionSetDialog({ onClose }: any) {
         {activeStep === 2 && (
           <Button
             onClick={handleSubmit}
-            color="primary"
+            color="secondary"
             disabled={resource.hasError || agent.status !== 'ready'}
             variant="contained"
           >

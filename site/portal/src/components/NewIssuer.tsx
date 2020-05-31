@@ -201,7 +201,7 @@ function NewIssuerImpl({ onClose }: any) {
           {activeStep < 1 && (
             <Button
               onClick={handleNextStep}
-              color="primary"
+              color="secondary"
               variant="contained"
               disabled={issuer.status !== 'ready' || hasStep1Error()}
             >
@@ -210,7 +210,7 @@ function NewIssuerImpl({ onClose }: any) {
           )}
           {activeStep === 1 && (
             <Button
-              color="primary"
+              color="secondary"
               variant="contained"
               disabled={hasError() || issuer.status !== 'ready'}
               onClick={handleSave}

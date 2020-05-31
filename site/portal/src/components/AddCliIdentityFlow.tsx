@@ -94,7 +94,7 @@ function AddCliIdentityFlow({ options, flow, onDone, variant }: any) {
       <DialogContent>
         <DialogContentText>
           Have the {agent.isUser ? 'user' : 'client'}{' '}
-          <Link target="_blank" color="secondary" href="https://fusebit.io/docs/integrator-guide/getting-started/">
+          <Link target="_blank" href="https://fusebit.io/docs/integrator-guide/getting-started/">
             install the Fusebit CLI <OpenInNewIcon fontSize="inherit" />
           </Link>{' '}
           and share the following initialization command with them through a secure channel. The one-time initialization

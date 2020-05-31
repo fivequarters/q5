@@ -187,7 +187,7 @@ function IssuerProperties() {
       <Grid container spacing={2} className={classes.gridContainer}>
         <Grid item xs={8} className={classes.form}>
           <Button
-            color="primary"
+            color="secondary"
             variant="contained"
             disabled={!issuer.dirty || isError()}
             onClick={handleSave}

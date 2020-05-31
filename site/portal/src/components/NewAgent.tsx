@@ -421,7 +421,7 @@ function NewAgentImpl() {
               {activeStep < 4 && (
                 <Button
                   onClick={handleNextStep}
-                  color="primary"
+                  color="secondary"
                   variant="contained"
                   disabled={hasError() || agent.status !== 'ready'}
                 >
@@ -430,7 +430,7 @@ function NewAgentImpl() {
               )}
               {activeStep === 4 && (
                 <Button
-                  color="primary"
+                  color="secondary"
                   variant="contained"
                   disabled={
                     hasError() ||

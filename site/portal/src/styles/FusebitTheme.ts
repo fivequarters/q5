@@ -1,4 +1,4 @@
-import { createMuiTheme } from '@material-ui/core/styles';
+import { createMuiTheme, darken } from '@material-ui/core/styles';
 import { FusebitColor } from '@5qtrs/fusebit-color';
 
 const FusebitTheme = {
@@ -18,10 +18,14 @@ const FusebitTheme = {
     },
     palette: {
       primary: {
-        main: FusebitColor.red,
+        main: FusebitColor.black,
       },
       secondary: {
-        main: FusebitColor.orange,
+        main: FusebitColor.red,
+      },
+      text: {
+        primary: FusebitColor.black,
+        secondary: darken(FusebitColor.gray, 0.4),
       },
       error: {
         main: FusebitColor.systemError,
@@ -42,12 +46,35 @@ const FusebitTheme = {
           borderRadius: '100px',
         },
       },
+      MuiAvatar: {
+        colorDefault: {
+          backgroundColor: FusebitColor.black,
+        },
+      },
       MuiDialogActions: {
         root: {
           paddingLeft: 24,
           paddingRight: 24,
           paddingBottom: 16,
         },
+      },
+      MuiStepIcon: {
+        root: {
+          '&$active': {
+            color: FusebitColor.red,
+          },
+          '&$completed': {
+            color: FusebitColor.red,
+          },
+        },
+      },
+    },
+    props: {
+      MuiCircularProgress: {
+        color: 'secondary',
+      },
+      MuiLinearProgress: {
+        color: 'secondary',
       },
     },
   }),
