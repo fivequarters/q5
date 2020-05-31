@@ -74,7 +74,7 @@ function AgentSelector({
           helperText={helperText || undefined}
           InputProps={{
             ...params.InputProps,
-            endAdornment: <SearchIcon color="disabled" style={{ marginRight: -56 }} />,
+            endAdornment: <SearchIcon color="disabled" style={{ marginRight: -56, marginTop: -20 }} />,
           }}
         />
       )}
