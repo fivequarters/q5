@@ -1,4 +1,3 @@
-const superagent = require('superagent');
 const fs = require('fs');
 import * as AWS from 'aws-sdk';
 import { IOpsDeployment, OpsDataException } from '@5qtrs/ops-data';
