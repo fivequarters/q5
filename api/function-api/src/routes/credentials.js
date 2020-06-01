@@ -23,32 +23,35 @@ const refreshCredentials = async () => {
     return await refreshInProgress;
   }
 
-  const credentials = new AWS.EC2MetadataCredentials({
-    httpOptions: { timeout: 5000 }, // 5 second timeout
-    maxRetries: 10, // retry 10 times
-    retryDelayOptions: { base: 200 }, // see AWS.Config for information
+  refreshInProgress = new Promise(async (resolve, reject) => {
+    const credentials = new AWS.EC2MetadataCredentials({
+      httpOptions: { timeout: 5000 }, // 5 second timeout
+      maxRetries: 10, // retry 10 times
+      retryDelayOptions: { base: 200 }, // see AWS.Config for information
+    });
+
+    try {
+      console.log(`CRED: Refreshing (previous expiration ${new Date(credentialCache.expiration).toISOString()})`);
+      await credentials.refreshPromise();
+    } catch (e) {
+      console.log('CRED: Failure to acquire AWS credentials:', e);
+      return process.exit(1);
+    }
+
+    let creds = credentials.metadata;
+    credentialCache = {
+      account: process.env.AWS_ACCOUNT,
+      accessKeyId: creds.AccessKeyId,
+      secretAccessKey: creds.SecretAccessKey,
+      sessionToken: creds.Token,
+      expiration: Date.now() + 60 * 5 * 1000, // XXX Date.parse(creds.Expiration),
+    };
+
+    console.log(`CRED: Refreshed (new expiration ${new Date(credentialCache.expiration).toISOString()})`);
+    refreshInProgress = undefined;
+
+    resolve();
   });
-
-  try {
-    console.log(`CRED: Refreshing (previous expiration ${new Date(credentialCache.expiration).toISOString()})`);
-    refreshInProgress = credentials.refreshPromise();
-    await refreshInProgress;
-  } catch (e) {
-    console.log('CRED: Failure to acquire AWS credentials:', e);
-    return process.exit(1);
-  }
-
-  let creds = credentials.metadata;
-  credentialCache = {
-    account: process.env.AWS_ACCOUNT,
-    accessKeyId: creds.AccessKeyId,
-    secretAccessKey: creds.SecretAccessKey,
-    sessionToken: creds.Token,
-    expiration: Date.now() + 60 * 5 * 1000, // XXX Date.parse(creds.Expiration),
-  };
-
-  refreshInProgress = undefined;
-  console.log(`CRED: Refreshed (new expiration ${new Date(credentialCache.expiration).toISOString()})`);
 };
 
 // Return the current credentials with at least credentialRefreshWindowSecs seconds of validity
