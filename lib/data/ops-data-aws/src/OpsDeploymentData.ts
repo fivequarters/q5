@@ -323,7 +323,7 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
 
     await createAnalyticsPipeline(this.config, awsConfig, this.provider, this.tables, deployment);
 
-    await createCron(this.config, awsConfig, this.provider, this.tables, deployment);
+    await createCron(this.config, awsConfig, deployment);
     if (deployment.dataWarehouseEnabled) {
       await createDwhExport(this.config, awsConfig, deployment);
     }
@@ -354,15 +354,13 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
     if (existing.elasticSearch && existing.elasticSearch.length > 0) {
       // Existing valid credentials present, use those.
       deployment.elasticSearch = existing.elasticSearch;
-    } else if (deployment.elasticSearch.startsWith('https://')) {
       return;
-    } else {
-      // Maybe it's a filename; load it and see if you can create a cluster.
-      let esCfg = loadElasticSearchConfigFile(deployment as IOpsDeployment);
-
-      // Return a valid endpoint once the ES service is available.
-      let endpoint = await createElasticSearch(awsConfig, deployment as IOpsDeployment, esCfg);
-      deployment.elasticSearch = endpoint;
     }
+    // Maybe it's a filename; load it and see if you can create a cluster.
+    let esCfg = loadElasticSearchConfigFile(deployment as IOpsDeployment);
+
+    // Return a valid endpoint once the ES service is available.
+    let endpoint = await createElasticSearch(awsConfig, deployment as IOpsDeployment, esCfg);
+    deployment.elasticSearch = endpoint;
   }
 }
