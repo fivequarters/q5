@@ -12,7 +12,7 @@ let credentialCache = {
   sessionToken: process.env.AWS_SESSION_TOKEN || '',
 
   // If the credentials are provided via the environment (i.e. for testing), don't refresh.
-  expiration: process.env.AWS_SESSION_TOKEN ? Date.now() + defaultCredentialDuration : 0,
+  expiration: process.env.AWS_SESSION_TOKEN ? Date.now() + defaultCredentialDuration * 1000 : 0,
 };
 
 // Query the metadata server on an EC2 instance to acquire new credentials

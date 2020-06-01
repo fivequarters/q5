@@ -16,6 +16,8 @@ const appendIamRoleToES = async iamArn => {
     } else {
       console.log(`ES: Failed updating ${process.env.ES_HOST} with ${JSON.stringify(iamArn)}: ${result.statusCode}`);
     }
+    result = await postES('/_opendistro/_security/api/account', {}, 'get');
+    console.log(`ES: WHOAMI ${result.statusCode}: ${result.text}`);
   } catch (e) {
     console.log('ES: Failed to update IAM role: ', e);
   }
@@ -35,6 +37,7 @@ const onStartup = async () => {
 
   // Allow for a redirect if running locally - only works with a patched superagent to allow for a port
   // override.
+  console.log(`ES: Local Redirect: ${process.env.ES_REDIRECT ? 'enabled' : 'disabled'}`);
   let connectOverride = process.env.ES_REDIRECT
     ? r => r.connect({ '*': { host: 'localhost', port: process.env.ES_REDIRECT } }).trustLocalhost()
     : r => r;
@@ -80,7 +83,8 @@ const onStartup = async () => {
   };
 
   // Ammend the analytics role to the ElasticSearch cluster to allow the lambda to post events.
-  await appendIamRoleToES([process.env.SERVICE_ROLE, process.env.ES_ANALYTICS_ROLE]);
+  // Support multiple roles in the ES_ANALYTICS_ROLE for ease of local credential testing.
+  await appendIamRoleToES([process.env.SERVICE_ROLE, ...process.env.ES_ANALYTICS_ROLE.split(',')]);
 };
 
 // If a number is supplied, query for just that number.  Otherwise, assume that the caller is
@@ -321,9 +325,8 @@ const makeQuery = async (request, key, query_params = null) => {
     return { statusCode: 403, message: e.message, data: e.message };
   }
 
-  console.log('XXX Query: ', JSON.stringify(body));
   // Make the request to elasticsearch
-  let response = await postES('/fusebot-*/_search', body);
+  let response = await postES(`/fusebit-${process.env.DEPLOYMENT_KEY}-*/_search`, body);
 
   if (response.statusCode == 200) {
     let payload = queries[key][1](response.body);
