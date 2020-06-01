@@ -98,30 +98,28 @@ const getDefaultElasticSearchConfig = async (
             AWS: [`${awsDataConfig.arnPrefix}:iam::${awsConfig.account}:role/${awsDataConfig.analyticsRoleName}`],
           },
           Action: ['es:ESHttpPost'],
-          Resource: `${awsDataConfig.arnPrefix}:aws:es:${awsConfig.region}:${awsConfig.account}:domain/${esName}/_bulk`,
+          Resource: `${awsDataConfig.arnPrefix}:es:${awsConfig.region}:${awsConfig.account}:domain/${esName}/_bulk`,
         },
         // Allow the EC2 function-api full privs
         {
           Effect: 'Allow',
           Principal: {
-            AWS: [
-              `${awsDataConfig.arnPrefix}:aws:iam::${awsConfig.account}:role/${awsDataConfig.monoInstanceProfileName}`,
-            ],
+            AWS: [`${awsDataConfig.arnPrefix}:iam::${awsConfig.account}:role/${awsDataConfig.monoInstanceProfileName}`],
           },
           Action: ['es:*'],
-          Resource: `${awsDataConfig.arnPrefix}:aws:es:${awsConfig.region}:${awsConfig.account}:domain/${esName}/*`,
+          Resource: `${awsDataConfig.arnPrefix}:es:${awsConfig.region}:${awsConfig.account}:domain/${esName}/*`,
         },
       ],
     }),
 
     EncryptionAtRestOptions: {
       Enabled: true,
-      KmsKeyId: `${awsDataConfig.arnPrefix}:aws:kms:${deployment.region}:${awsConfig.account}:alias/aws/es`,
+      KmsKeyId: `${awsDataConfig.arnPrefix}:kms:${deployment.region}:${awsConfig.account}:alias/aws/es`,
     },
 
     LogPublishingOptions: {
       ES_APPLICATION_LOGS: {
-        CloudWatchLogsLogGroupArn: `${awsDataConfig.arnPrefix}:aws:logs:${deployment.region}:${
+        CloudWatchLogsLogGroupArn: `${awsDataConfig.arnPrefix}:logs:${deployment.region}:${
           awsConfig.account
         }:log-group:${createLogGroupName(deployment)}`,
         Enabled: true,
@@ -132,7 +130,7 @@ const getDefaultElasticSearchConfig = async (
       Enabled: true,
       InternalUserDatabaseEnabled: false,
       MasterUserOptions: {
-        MasterUserARN: `${awsDataConfig.arnPrefix}:aws:iam::${awsConfig.account}:role/${awsDataConfig.monoInstanceProfileName}`,
+        MasterUserARN: `${awsDataConfig.arnPrefix}:iam::${awsConfig.account}:role/${awsDataConfig.monoInstanceProfileName}`,
       },
     },
 
