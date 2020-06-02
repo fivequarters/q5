@@ -120,7 +120,7 @@ const getStatisticalMonitorData = async (
       items: result.body.items.map((e: any) => {
         result.body.codes.forEach((k: string) => {
           // Convert 'null' to 0 in all of the data sets present.
-          if (e[k]) {
+          if (e[k] && typeof e[k] === 'object') {
             e[k] = e[k].map((x: any) => (x == null ? 0 : x));
           }
         });
