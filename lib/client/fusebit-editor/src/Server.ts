@@ -170,9 +170,7 @@ export class Server {
     return this.accountResolver(this.account)
       .then(newAccount => {
         this.account = this._normalizeAccount(newAccount);
-        const url = `${this.account.baseUrl}v1/account/${this.account.accountId}/subscription/${
-          this.account.subscriptionId
-        }/boundary/${boundaryId}/function/${id}/location`;
+        const url = `${this.account.baseUrl}v1/account/${this.account.accountId}/subscription/${this.account.subscriptionId}/boundary/${boundaryId}/function/${id}/location`;
         return Superagent.get(url)
           .set('Authorization', `Bearer ${this.account.accessToken}`)
           .set('x-user-agent', userAgent)
@@ -198,12 +196,11 @@ export class Server {
     id: string,
     createIfNotExist?: ICreateEditorOptions
   ): Promise<EditorContext> {
+    const self = this;
     return this.accountResolver(this.account)
       .then(newAccount => {
         this.account = this._normalizeAccount(newAccount);
-        const url = `${this.account.baseUrl}v1/account/${this.account.accountId}/subscription/${
-          this.account.subscriptionId
-        }/boundary/${boundaryId}/function/${id}?include=all`;
+        const url = `${this.account.baseUrl}v1/account/${this.account.accountId}/subscription/${this.account.subscriptionId}/boundary/${boundaryId}/function/${id}?include=all`;
         return Superagent.get(url)
           .set('Authorization', `Bearer ${this.account.accessToken}`)
           .set('x-user-agent', userAgent)
@@ -247,7 +244,7 @@ export class Server {
           };
         }
       });
-      let editorContext = new EditorContext(boundaryId, id, functionSpecification);
+      let editorContext = new EditorContext(self, boundaryId, id, functionSpecification);
       if ((createIfNotExist && createIfNotExist.editor) || !editorContext._ensureFusebitMetadata().editor) {
         editorContext._ensureFusebitMetadata(true).editor = editorOptions;
       }
@@ -329,9 +326,7 @@ export class Server {
     return this.accountResolver(this.account)
       .then(newAccount => {
         this.account = this._normalizeAccount(newAccount);
-        const url = `${this.account.baseUrl}v1/account/${this.account.accountId}/subscription/${
-          this.account.subscriptionId
-        }/boundary/${editorContext.boundaryId}/function/${editorContext.functionId}`;
+        const url = `${this.account.baseUrl}v1/account/${this.account.accountId}/subscription/${this.account.subscriptionId}/boundary/${editorContext.boundaryId}/function/${editorContext.functionId}`;
         startTime = Date.now();
         let params: any = {
           environment: 'nodejs',
@@ -433,11 +428,7 @@ export class Server {
       clearTimeout(this.logsTimeout);
       return this.accountResolver(this.account).then(newAccount => {
         this.account = this._normalizeAccount(newAccount);
-        const url = `${this.account.baseUrl}v1/account/${this.account.accountId}/subscription/${
-          this.account.subscriptionId
-        }/boundary/${editorContext.boundaryId}/function/${editorContext.functionId}/log?token=${
-          this.account.accessToken
-        }`;
+        const url = `${this.account.baseUrl}v1/account/${this.account.accountId}/subscription/${this.account.subscriptionId}/boundary/${editorContext.boundaryId}/function/${editorContext.functionId}/log?token=${this.account.accessToken}`;
 
         this.sse = new EventSource(url);
         if (this.logsBackoff === 0) {

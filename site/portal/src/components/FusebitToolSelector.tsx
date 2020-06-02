@@ -1,16 +1,10 @@
-import MenuItem from "@material-ui/core/MenuItem";
-import Select from "@material-ui/core/Select";
-import React from "react";
-import { useProfile } from "./ProfileProvider";
-import { flowsHash, flows } from "../lib/Flows";
+import MenuItem from '@material-ui/core/MenuItem';
+import Select from '@material-ui/core/Select';
+import React from 'react';
+import { useProfile } from './ProfileProvider';
+import { flowsHash, flows } from '../lib/Flows';
 
-function FusebitToolSelector({
-  flow,
-  onFlowChange,
-  allowNoTool,
-  isUser,
-  ...rest
-}: any) {
+function FusebitToolSelector({ flow, onFlowChange, allowNoTool, isUser, ...rest }: any) {
   const { profile } = useProfile();
   const oauthDeviceFlowEnabled = !!(
     profile.oauth.deviceAuthorizationUrl &&
@@ -22,26 +16,17 @@ function FusebitToolSelector({
     onFlowChange && onFlowChange(event.target.value as string);
   };
 
-  const formatAccess = (flow: string) =>
-    (flowsHash[flow] && flowsHash[flow].description) || "N/A";
+  const formatAccess = (flow: string) => (flowsHash[flow] && flowsHash[flow].description) || 'N/A';
 
   return (
-    <Select
-      id="flowChoice"
-      value={flow}
-      onChange={handleFlowChange}
-      fullWidth
-      variant="filled"
-      {...rest}
-    >
+    <Select id="flowChoice" value={flow} onChange={handleFlowChange} fullWidth {...rest}>
       {allowNoTool && (
         <MenuItem key="none" value="none">
-          {formatAccess("none")}
+          {formatAccess('none')}
         </MenuItem>
       )}
       {flows.map(f =>
-        (f.id === "oauth-device" && !oauthDeviceFlowEnabled) ||
-        (!isUser && f.id !== "pki") ? null : (
+        (f.id === 'oauth-device' && !oauthDeviceFlowEnabled) || (!isUser && f.id !== 'pki') ? null : (
           <MenuItem key={f.id} value={f.id}>
             {formatAccess(f.id)}
           </MenuItem>

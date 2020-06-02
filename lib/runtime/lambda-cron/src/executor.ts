@@ -85,8 +85,6 @@ export function executor(event: any, context: any, cb: any) {
         request.params.functionId
       );
 
-      Runtime.create_logging_token(request);
-
       // Execute, and record the results.
       return Runtime.invoke_function(request, (error: any, response: any, meta: any) => {
         meta.metrics.cron = { deviation };
@@ -120,7 +118,11 @@ function dispatch_cron_event(details: any) {
     endTime: Date.now(),
     request: details.request,
     metrics: details.meta.metrics,
-    response: { statusCode: details.response.statusCode, headers: details.response.headers },
+    response: details.response
+      ? { statusCode: details.response.statusCode, headers: details.response.headers }
+      : details.error
+      ? { statusCode: details.error.statusCode, headers: [] }
+      : { statusCode: 200, headers: [] },
     fusebit: fusebit,
     error: details.meta.error || details.error, // The meta error always has more information.
   };

@@ -1,10 +1,10 @@
-import React from "react";
-import LinearProgress from "@material-ui/core/LinearProgress";
-import ExplorerTable, { HeadCell } from "./ExplorerTable";
-import PortalError from "./PortalError";
-import Link from "@material-ui/core/Link";
-import { Link as RouterLink } from "react-router-dom";
-import { useSubscriptions } from "./SubscriptionsProvider";
+import React from 'react';
+import ProgressView from './ProgressView';
+import ExplorerTable, { HeadCell } from './ExplorerTable';
+import PortalError from './PortalError';
+import Link from '@material-ui/core/Link';
+import { Link as RouterLink } from 'react-router-dom';
+import { useSubscriptions } from './SubscriptionsProvider';
 
 interface ViewRow {
   name: string;
@@ -21,8 +21,8 @@ function AccountSubscriptions() {
   // const { params } = match;
 
   const createViewRow = (dataRow: any): ViewRow => ({
-    name: dataRow.displayName || "N/A",
-    id: dataRow.id as string
+    name: dataRow.displayName || 'N/A',
+    id: dataRow.id as string,
     // functions: "N/A",
     // firstExecuted: "N/A",
     // lastExecuted: "N/A",
@@ -32,21 +32,21 @@ function AccountSubscriptions() {
 
   const headCells: HeadCell<ViewRow>[] = [
     {
-      id: "name",
+      id: 'name',
       // disablePadding: true,
-      align: "left",
-      label: "Subscription Name",
+      align: 'left',
+      label: 'Subscription Name',
       render: row => (
         <Link component={RouterLink} to={`subscriptions/${row.id}/boundaries`}>
           {row.name}
         </Link>
-      )
+      ),
     },
     {
-      id: "id",
-      align: "left",
-      label: "Subscription ID"
-    }
+      id: 'id',
+      align: 'left',
+      label: 'Subscription ID',
+    },
     // {
     //   id: "functions",
     //   label: "Functions"
@@ -69,11 +69,11 @@ function AccountSubscriptions() {
     // }
   ];
 
-  if (subscriptions.status === "loading") {
-    return <LinearProgress />;
+  if (subscriptions.status === 'loading') {
+    return <ProgressView />;
   }
 
-  if (subscriptions.status === "error") {
+  if (subscriptions.status === 'error') {
     return <PortalError error={subscriptions.error} padding={true} />;
   }
 

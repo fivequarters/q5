@@ -9,7 +9,7 @@ const App = () => (
     <FusebitMark margin={20} />
     <FusebitMark size={75} margin={20} color={FusebitColor.cyan} />
     <FusebitMark size={100} margin={20} color={FusebitColor.orange} />
-    <FusebitMark size={150} margin={20} color={FusebitColor.dark} />
+    <FusebitMark size={150} margin={20} color={FusebitColor.black} />
     <FusebitMark expand />
   </Box>
 );

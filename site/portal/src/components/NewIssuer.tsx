@@ -1,51 +1,45 @@
-import Button from "@material-ui/core/Button";
-import Dialog from "@material-ui/core/Dialog";
-import DialogActions from "@material-ui/core/DialogActions";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogContentText from "@material-ui/core/DialogContentText";
-import DialogTitle from "@material-ui/core/DialogTitle";
-import Step from "@material-ui/core/Step";
-import StepLabel from "@material-ui/core/StepLabel";
-import Stepper from "@material-ui/core/Stepper";
-import TextField from "@material-ui/core/TextField";
-import { makeStyles } from "@material-ui/core/styles";
-import React from "react";
-import { FusebitError } from "./ErrorBoundary";
-import IssuerNameInput from "./IssuerNameInput";
-import {
-  IssuerProvider,
-  NewIssuerId,
-  saveIssuer,
-  useIssuer,
-  modifyIssuer
-} from "./IssuerProvider";
-import JwksUrlInput from "./JwksUrlInput";
-import PortalError from "./PortalError";
-import PublicKeyAcquisitionSelector from "./PublicKeyAcquisitionSelector";
-import PublicKeyDetails from "./PublicKeyDetails";
-import InputWithIcon from "./InputWithIcon";
-import FingerprintIcon from "@material-ui/icons/Fingerprint";
-import { useIssuers } from "./IssuersProvider";
+import Button from '@material-ui/core/Button';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import Step from '@material-ui/core/Step';
+import StepLabel from '@material-ui/core/StepLabel';
+import Stepper from '@material-ui/core/Stepper';
+import TextField from '@material-ui/core/TextField';
+import { makeStyles } from '@material-ui/core/styles';
+import React from 'react';
+import { FusebitError } from './ErrorBoundary';
+import IssuerNameInput from './IssuerNameInput';
+import { IssuerProvider, NewIssuerId, saveIssuer, useIssuer, modifyIssuer } from './IssuerProvider';
+import JwksUrlInput from './JwksUrlInput';
+import PortalError from './PortalError';
+import PublicKeyAcquisitionSelector from './PublicKeyAcquisitionSelector';
+import PublicKeyDetails from './PublicKeyDetails';
+import InputWithIcon from './InputWithIcon';
+import FingerprintIcon from '@material-ui/icons/Fingerprint';
+import { useIssuers } from './IssuersProvider';
 
 const useStyles = makeStyles((theme: any) => ({
   gridContainer: {
     paddingLeft: theme.spacing(3),
-    paddingRight: theme.spacing(3)
+    paddingRight: theme.spacing(3),
     // marginBottom: theme.spacing(2)
   },
   form: {
-    overflow: "hidden"
+    overflow: 'hidden',
   },
   stepper: {
-    backgroundColor: "inherit"
+    backgroundColor: 'inherit',
   },
   inputField: {
-    marginTop: theme.spacing(2)
+    marginTop: theme.spacing(2),
   },
   description: {
     marginTop: theme.spacing(2),
-    marginLeft: theme.spacing(4)
-  }
+    marginLeft: theme.spacing(4),
+  },
 }));
 
 function NewIssuerImpl({ onClose }: any) {
@@ -54,21 +48,21 @@ function NewIssuerImpl({ onClose }: any) {
   const [issuers] = useIssuers();
   const [issuer, setIssuer] = useIssuer();
   const [addPublicKey, setAddPublicKey] = React.useState<any>({
-    keyId: "",
-    publicKey: ""
+    keyId: '',
+    publicKey: '',
   });
 
-  if (issuers.status !== "ready") {
-    throw new Error("The NewIssuer dialog requires that issuers are loaded");
+  if (issuers.status !== 'ready') {
+    throw new Error('The NewIssuer dialog requires that issuers are loaded');
   }
 
   const hasStep1Error = () =>
-    (issuer.status === "ready" || issuer.status === "updating") &&
+    (issuer.status === 'ready' || issuer.status === 'updating') &&
     (!!issuer.modified.idError || issuer.modified.id === NewIssuerId);
 
   const hasError = () =>
-    (issuer.status === "ready" || issuer.status === "updating") &&
-    ((issuer.modified.publicKeyAcquisition === "pki" &&
+    (issuer.status === 'ready' || issuer.status === 'updating') &&
+    ((issuer.modified.publicKeyAcquisition === 'pki' &&
       !!(
         addPublicKey.keyIdError ||
         addPublicKey.publicKeyError ||
@@ -77,8 +71,7 @@ function NewIssuerImpl({ onClose }: any) {
         !addPublicKey.publicKey ||
         !addPublicKey.publicKey.trim()
       )) ||
-      (issuer.modified.publicKeyAcquisition === "jwks" &&
-        !!issuer.modified.jsonKeysUrlError) ||
+      (issuer.modified.publicKeyAcquisition === 'jwks' && !!issuer.modified.jsonKeysUrlError) ||
       hasStep1Error());
 
   const handleNextStep = () => {
@@ -86,10 +79,8 @@ function NewIssuerImpl({ onClose }: any) {
   };
 
   const handleSave = () => {
-    if (issuer.status === "ready") {
-      issuer.modified.publicKeys = [
-        { keyId: addPublicKey.keyId, publicKey: addPublicKey.publicKey }
-      ];
+    if (issuer.status === 'ready') {
+      issuer.modified.publicKeys = [{ keyId: addPublicKey.keyId, publicKey: addPublicKey.publicKey }];
       modifyIssuer(issuer, setIssuer, { ...issuer.modified });
       saveIssuer(
         issuer,
@@ -99,8 +90,8 @@ function NewIssuerImpl({ onClose }: any) {
             details:
               (e.status || e.statusCode) === 403
                 ? `You are not authorized to create issuers.`
-                : e.message || "Unknown error.",
-            source: "CreateNewIssuer"
+                : e.message || 'Unknown error.',
+            source: 'CreateNewIssuer',
           }),
         e => !e && onClose && onClose(true)
       );
@@ -108,33 +99,22 @@ function NewIssuerImpl({ onClose }: any) {
   };
 
   const handleIdChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (issuer.status === "ready") {
+    if (issuer.status === 'ready') {
       const trimmed = event.target.value.trim();
-      if (trimmed === "") {
+      if (trimmed === '') {
+        issuer.modified.idError = 'Required. Issuer ID must match the value of the iss claim in the JWT access token';
+      } else if (issuers.existing.reduce((current: any, value: any) => current || value.id === trimmed, false)) {
         issuer.modified.idError =
-          "Required. Issuer ID must match the value of the iss claim in the JWT access token";
-      } else if (
-        issuers.existing.reduce(
-          (current: any, value: any) => current || value.id === trimmed,
-          false
-        )
-      ) {
-        issuer.modified.idError =
-          "An issuer with this Issuer ID already exists. Issuer IDs must be unique in the system.";
+          'An issuer with this Issuer ID already exists. Issuer IDs must be unique in the system.';
       } else {
         delete issuer.modified.idError;
       }
-      issuer.modified.id =
-        event.target.value === "" ? NewIssuerId : event.target.value;
+      issuer.modified.id = event.target.value === '' ? NewIssuerId : event.target.value;
       modifyIssuer(issuer, setIssuer, { ...issuer.modified });
     }
   };
 
-  if (
-    issuer.status === "ready" ||
-    issuer.status === "updating" ||
-    issuer.status === "error"
-  ) {
+  if (issuer.status === 'ready' || issuer.status === 'updating' || issuer.status === 'error') {
     return (
       <Dialog
         open={true}
@@ -144,11 +124,7 @@ function NewIssuerImpl({ onClose }: any) {
         fullWidth
       >
         <DialogTitle id="form-dialog-title">Add issuer</DialogTitle>
-        <Stepper
-          activeStep={activeStep}
-          color="inherit"
-          className={classes.stepper}
-        >
+        <Stepper activeStep={activeStep} color="inherit" className={classes.stepper}>
           <Step>
             <StepLabel>Set properties</StepLabel>
           </Step>
@@ -156,98 +132,87 @@ function NewIssuerImpl({ onClose }: any) {
             <StepLabel>Configure public key</StepLabel>
           </Step>
         </Stepper>
-        {activeStep === 0 && issuer.status !== "error" && (
+        {activeStep === 0 && issuer.status !== 'error' && (
           <DialogContent>
             <InputWithIcon icon={<FingerprintIcon />}>
               <TextField
                 id="issuerId"
                 label="Issuer ID"
-                variant="outlined"
+                variant="filled"
                 onChange={handleIdChange}
-                disabled={issuer.status === "updating"}
+                disabled={issuer.status === 'updating'}
                 autoFocus
-                value={
-                  issuer.modified.id === NewIssuerId ? "" : issuer.modified.id
-                }
+                value={issuer.modified.id === NewIssuerId ? '' : issuer.modified.id}
                 helperText={
-                  issuer.modified.idError ||
-                  "Issuer ID must match the value of the iss claim in the JWT access token"
+                  issuer.modified.idError || 'Issuer ID must match the value of the iss claim in the JWT access token'
                 }
                 error={hasStep1Error()}
                 fullWidth
               />
             </InputWithIcon>
-            <IssuerNameInput helperText="Display Name" />
+            <IssuerNameInput helperText="Display Name" variant="filled" />
             <DialogContentText className={classes.description}>
-              Fusebit validates the signature of the access tokens from this
-              issuer using public keys. The public keys can be uploaded to the
-              system or retrieved automatically from a JWKS endpoint.
+              Fusebit validates the signature of the access tokens from this issuer using public keys. The public keys
+              can be uploaded to the system or retrieved automatically from a JWKS endpoint.
             </DialogContentText>
-            <PublicKeyAcquisitionSelector />
+            <PublicKeyAcquisitionSelector variant="filled" />
           </DialogContent>
         )}
-        {activeStep === 1 && issuer.status !== "error" && (
+        {activeStep === 1 && issuer.status !== 'error' && (
           <DialogContent>
-            {issuer.modified.publicKeyAcquisition === "pki" && (
+            {issuer.modified.publicKeyAcquisition === 'pki' && (
               <React.Fragment>
                 <DialogContentText>
-                  Specify the public key information. You can add more keys
-                  after the issuer is created.
+                  Specify the public key information. You can add more keys after the issuer is created.
                 </DialogContentText>
 
                 <PublicKeyDetails
                   publicKey={addPublicKey}
-                  onPublicKeyChanged={(publicKey: any) =>
-                    setAddPublicKey(publicKey)
-                  }
+                  onPublicKeyChanged={(publicKey: any) => setAddPublicKey(publicKey)}
                   existingPublicKeys={[]}
+                  variant="filled"
                 />
               </React.Fragment>
             )}
-            {issuer.modified.publicKeyAcquisition === "jwks" && (
+            {issuer.modified.publicKeyAcquisition === 'jwks' && (
               <React.Fragment>
-                <DialogContentText className={classes.description}>
-                  Specify the JWKS endpoint URL
-                </DialogContentText>
-                <JwksUrlInput />
+                <DialogContentText className={classes.description}>Specify the JWKS endpoint URL</DialogContentText>
+                <JwksUrlInput variant="filled" />
               </React.Fragment>
             )}
           </DialogContent>
         )}
-        {issuer.status === "error" && (
+        {issuer.status === 'error' && (
           <DialogContent>
             <PortalError error={issuer.error} />
           </DialogContent>
         )}
         <DialogActions className={classes.inputField}>
-          <Button
-            onClick={() => onClose && onClose(false)}
-            disabled={issuer.status === "updating"}
-          >
+          <Button onClick={() => onClose && onClose(false)} disabled={issuer.status === 'updating'}>
             Cancel
           </Button>
 
           <Button
             onClick={() => setActiveStep(activeStep - 1)}
-            disabled={activeStep === 0 || issuer.status !== "ready"}
+            disabled={activeStep === 0 || issuer.status !== 'ready'}
           >
             Back
           </Button>
           {activeStep < 1 && (
             <Button
               onClick={handleNextStep}
-              color="primary"
+              color="secondary"
               variant="contained"
-              disabled={issuer.status !== "ready" || hasStep1Error()}
+              disabled={issuer.status !== 'ready' || hasStep1Error()}
             >
               Next
             </Button>
           )}
           {activeStep === 1 && (
             <Button
-              color="primary"
+              color="secondary"
               variant="contained"
-              disabled={hasError() || issuer.status !== "ready"}
+              disabled={hasError() || issuer.status !== 'ready'}
               onClick={handleSave}
             >
               Save

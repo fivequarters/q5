@@ -18,11 +18,13 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
-## Version X.X.X
+## Version 1.22.1
 
-_Released X/XX/XX_
+_Released 5/19/20_
 
+- **Idle Timeout Increase.** Increased the default idle timeout of the application load balancer to 120 seconds. For this setting to take effect, please re-run `fuse-ops deployment add` on your deployment.
 - **Input Validation.** Disallow network names that include non-alphanumeric characters.
+- **Cron Bugfix.** Resolve an issue with the cron scheduler.
 
 ## Version 1.21.0
 

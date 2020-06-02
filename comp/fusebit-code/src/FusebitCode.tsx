@@ -149,7 +149,7 @@ export function FusebitCode({
   return (
     <Box
       vertical
-      background={background || FusebitColor.light}
+      background={background || FusebitColor.lightBlue}
       padding={padding || 20}
       borderRadius={borderRadius || 10}
       marginTop={marginTop || noMargin ? undefined : 20}

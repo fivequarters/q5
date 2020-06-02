@@ -1,12 +1,12 @@
-import Paper from "@material-ui/core/Paper";
-import { lighten, makeStyles } from "@material-ui/core/styles";
-import React from "react";
-import { CatalogTemplate } from "../lib/CatalogTypes";
-import Icon from "@material-ui/core/Icon";
-import Button from "@material-ui/core/Button";
-import { Typography } from "@material-ui/core";
-import { FusebitMark } from "@5qtrs/fusebit-mark";
-import OpenInNewIcon from "@material-ui/icons/OpenInNew";
+import Paper from '@material-ui/core/Paper';
+import { lighten, makeStyles } from '@material-ui/core/styles';
+import React from 'react';
+import { CatalogTemplate } from '../lib/CatalogTypes';
+import Icon from '@material-ui/core/Icon';
+import Button from '@material-ui/core/Button';
+import { Typography } from '@material-ui/core';
+import { FusebitMark } from '@5qtrs/fusebit-mark';
+import OpenInNewIcon from '@material-ui/icons/OpenInNew';
 
 const useStyles = makeStyles((theme: any) => ({
   card: {
@@ -14,27 +14,27 @@ const useStyles = makeStyles((theme: any) => ({
     maxWidth: 302,
     minHeight: 302,
     maxHeight: 302,
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "space-between",
-    alignItems: "stretch",
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    alignItems: 'stretch',
     margin: theme.spacing(1),
   },
   cardHeader: {
-    width: "100%",
+    width: '100%',
     minHeight: 140,
     backgroundColor: lighten(theme.palette.primary.light, 0.75),
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
     fontSize: 84,
   },
   cardDescription: {
-    width: "100%",
+    width: '100%',
     padding: theme.spacing(2),
     minHeight: 112,
     maxHeight: 112,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
   cardActions: {
     paddingLeft: theme.spacing(1),
@@ -115,7 +115,7 @@ function TemplateCard({
         {!installed && (
           <Button
             variant="text"
-            color="primary"
+            color="secondary"
             size="small"
             onClick={onCreate && (() => onCreate(template))}
             disabled={!template.managerUrl || disabled}

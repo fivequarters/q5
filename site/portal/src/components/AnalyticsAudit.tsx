@@ -1,4 +1,4 @@
-import LinearProgress from '@material-ui/core/LinearProgress';
+import ProgressView from './ProgressView';
 import { makeStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 import React from 'react';
@@ -133,7 +133,7 @@ function AnalyticsAuditImpl({ actionFilter, filterMask }: AnalyticsAuditImplProp
   ];
 
   if (audit.status === 'loading' || audit.status === 'updating') {
-    return <LinearProgress />;
+    return <ProgressView />;
   }
 
   if (audit.status === 'error') {

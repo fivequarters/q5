@@ -3,11 +3,11 @@ import { ILogsPanelOptions, LogsPanelOptions } from './Options';
 import { EditorContext } from './EditorContext';
 
 /**
- * Not part of MVP
- * @ignore
- * @param element
- * @param editorContext
- * @param options
+ * Creates a logs panel within the specified HTML element and associacted with the existing [[EditorContext]].
+ *
+ * @param element The HTML element (typically a div) within which to create the logs panel.
+ * @param editorContext A pre-existing editor context to associate the logs panel with.
+ * @param options Logs panel creation options.
  */
 export function createLogsPanel(element: HTMLElement, editorContext: EditorContext, options?: ILogsPanelOptions) {
   const id = `fusebit-logs-${Math.floor(99999999 * Math.random()).toString(26)}`;
@@ -192,4 +192,6 @@ export function createLogsPanel(element: HTMLElement, editorContext: EditorConte
     contentElement.textContent = newContent;
     setTimeout(() => (containerElement.scrollTop = containerElement.scrollHeight), 100);
   }
+
+  editorContext.attachServerLogs();
 }

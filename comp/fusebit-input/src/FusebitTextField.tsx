@@ -42,7 +42,7 @@ function ignore(event: any) {
 // -------------------
 
 const Input = styled.input`
-  color: ${() => FusebitColor.dark};
+  color: ${() => FusebitColor.black};
   border: none;
   font-family: ${() => `'${FusebitTextFont.secondary}'`}, sans-serif;
   font-size: ${() => `'${FusebitTextFont.secondary}'`}, sans-serif;

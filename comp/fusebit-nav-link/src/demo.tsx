@@ -10,7 +10,7 @@ const App = () => (
     <Box vertical>
       <Box gap={20}>
         <FusebitLogoLink />
-        <FusebitLogoLink markColor={FusebitColor.dark} />
+        <FusebitLogoLink markColor={FusebitColor.black} />
         <FusebitLogoLink size={100} />
       </Box>
 
@@ -26,13 +26,13 @@ const App = () => (
         <FusebitNavLink noIcon linkType={FusebitNavLinkType.docs} />
       </Box>
 
-      <Box gap={20} background={FusebitColor.dark}>
+      <Box gap={20} background={FusebitColor.black}>
         <FusebitNavLink color={FusebitColor.white} linkType={FusebitNavLinkType.about} />
         <FusebitNavLink color={FusebitColor.white} linkType={FusebitNavLinkType.blog} />
         <FusebitNavLink color={FusebitColor.white} linkType={FusebitNavLinkType.docs} />
       </Box>
 
-      <Box gap={20} background={FusebitColor.dark}>
+      <Box gap={20} background={FusebitColor.black}>
         <FusebitNavLink noIcon color={FusebitColor.white} linkType={FusebitNavLinkType.about} />
         <FusebitNavLink noIcon color={FusebitColor.white} linkType={FusebitNavLinkType.blog} />
         <FusebitNavLink noIcon color={FusebitColor.white} linkType={FusebitNavLinkType.docs} />
@@ -44,7 +44,7 @@ const App = () => (
         <FusebitNavLink noHover linkType={FusebitNavLinkType.docs} />
       </Box>
 
-      <Box gap={20} background={FusebitColor.dark}>
+      <Box gap={20} background={FusebitColor.black}>
         <FusebitNavLink linkType={FusebitNavLinkType.terms} />
         <FusebitNavLink linkType={FusebitNavLinkType.privacy} />
         <FusebitNavLink linkType={FusebitNavLinkType.copyRight} />

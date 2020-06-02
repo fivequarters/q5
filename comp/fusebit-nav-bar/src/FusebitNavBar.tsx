@@ -96,7 +96,7 @@ export function FusebitNavBar({ minWidth, maxWidth, onLetsTalkClicked, ...rest }
             )}
           </FusebitButton>
         </Box>
-        <Drawer width="100%" background={FusebitColor.dark} height={420} open={drawerOpen} vertical rate={20}>
+        <Drawer width="100%" background={FusebitColor.black} height={420} open={drawerOpen} vertical rate={20}>
           <Box vertical width="100%" marginTop={20} gap={20}>
             <FusebitNavLink
               marginBottom={20}
@@ -125,7 +125,7 @@ export function FusebitNavBar({ minWidth, maxWidth, onLetsTalkClicked, ...rest }
               <FusebitSocialButton marginLeft={20} type={FusebitSocialType.twitter} invertColor />
             </Box>
 
-            <Box stretch height={1} background={opacity(FusebitColor.light, 0.3)} />
+            <Box stretch height={1} background={opacity(FusebitColor.lightBlue, 0.3)} />
             <FusebitNavLink linkType={FusebitNavLinkType.copyRight} onClick={onMobileNavChange} />
             <Box stretch>
               <FusebitNavLink linkType={FusebitNavLinkType.privacy} onClick={onMobileNavChange} />
@@ -158,7 +158,7 @@ export function FusebitNavBar({ minWidth, maxWidth, onLetsTalkClicked, ...rest }
       center
       sticky
       width="100%"
-      background={mobileNavOpen ? FusebitColor.dark : sticky ? FusebitColor.white : undefined}
+      background={mobileNavOpen ? FusebitColor.black : sticky ? FusebitColor.white : undefined}
       onStickyChange={onStickyChange}
       noBorder={!sticky || mobileNavOpen}
       style={{

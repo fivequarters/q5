@@ -11,7 +11,7 @@ import { FusebitSocialButton, FusebitSocialType } from '@5qtrs/fusebit-social';
 
 function MobileVersion({ ...rest }: FusebitFooterProps) {
   return (
-    <Box center width="100%" background={FusebitColor.dark} {...rest}>
+    <Box center width="100%" background={FusebitColor.black} {...rest}>
       <Box vertical width="100%" padding={10}>
         <Box middle expand width="100%" gap={10}>
           <FusebitLogoLink markColor={FusebitColor.white} />
@@ -33,7 +33,7 @@ function MobileVersion({ ...rest }: FusebitFooterProps) {
 
 function NonMobileVersion({ maxWidth, ...rest }: FusebitFooterProps) {
   return (
-    <Box center width="100%" background={FusebitColor.dark} {...rest}>
+    <Box center width="100%" background={FusebitColor.black} {...rest}>
       <Box padding={20} width="100%" maxWidth={maxWidth || 1200}>
         <Box middle width="100%">
           <FusebitLogoLink markColor={FusebitColor.white} />

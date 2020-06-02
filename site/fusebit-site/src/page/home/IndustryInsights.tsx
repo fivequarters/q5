@@ -18,7 +18,7 @@ import FactoryFourImage from '../../../assets/img/industry-insight-ff.png';
 // -------------------
 
 function HorizontalRule() {
-  return <Box background={FusebitColor.light} width="100%" height={1} marginTop={20} marginBottom={20} />;
+  return <Box background={FusebitColor.lightBlue} width="100%" height={1} marginTop={20} marginBottom={20} />;
 }
 
 function BlissfullyCard() {

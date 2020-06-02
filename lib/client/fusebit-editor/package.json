@@ -1,6 +1,6 @@
 {
   "name": "@5qtrs/fusebit-editor",
-  "version": "1.3.1",
+  "version": "1.4.0",
   "description": "",
   "main": "libm/index.js",
   "browser": "libm/index.js",
@@ -9,7 +9,7 @@
     "*.css"
   ],
   "license": "UNLICENSED",
-  "author": "FiveQuarters.io",
+  "author": "fusebit.io",
   "scripts": {
     "build": "tsc -b && cp ./src/*.css libm/",
     "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x}",
@@ -18,7 +18,7 @@
     "bundle:dev": "webpack --env dev",
     "bundle:prod": "webpack --env build",
     "bundle": "webpack --env dev && webpack --env build",
-    "doc": "typedoc --plugin typedoc-plugin-sourcefile-url --sourcefile-url-map ./docs/map-urls-to-hash.json"
+    "doc": "typedoc --disableSources"
   },
   "keywords": [],
   "dependencies": {
