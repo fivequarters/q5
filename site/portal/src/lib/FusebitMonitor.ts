@@ -118,6 +118,13 @@ const getStatisticalMonitorData = async (
     setData({
       codes: result.body.codes,
       items: result.body.items.map((e: any) => {
+        result.body.codes.forEach((k: string) => {
+          // Convert 'null' to 0 in all of the data sets present.
+          if (e[k]) {
+            e[k] = e[k].map((x: any) => (x == null ? 0 : x));
+          }
+        });
+
         return { ...e, key: Date.parse(e.key) };
       }),
     });
