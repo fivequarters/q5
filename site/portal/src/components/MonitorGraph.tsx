@@ -201,7 +201,6 @@ const MonitorGraph: React.FC<IProps> = props => {
     });
   }
 
-  // Quick hack, let's turn the key into an integer.
   return (
     <div>
       <InProgressBar />
@@ -212,7 +211,7 @@ const MonitorGraph: React.FC<IProps> = props => {
         <ResponsiveContainer>
           <ReChart width={900} height={200} data={data.items} {...chartParams}>
             <CartesianGrid stroke="#ccc" />
-            <Tooltip content={CustomTooltip} />
+            {multi && <Tooltip content={CustomTooltip} />}
             <Legend height={36} />
             <XAxis
               type="number"

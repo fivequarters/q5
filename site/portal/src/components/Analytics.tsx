@@ -42,8 +42,8 @@ interface AnalyticsEntry {
 
 /* XXX temporary values until the date/time selector is configured */
 let defaultInterval: IDateInterval = {
-  from: new Date('2020-05-06T21:53:30.254Z'),
-  to: new Date('2020-05-06T21:58:30.254Z'),
+  from: new Date(Date.now() - 60 * 60 * 1000),
+  to: new Date(),
   width: BucketWidths.Minute,
 };
 
