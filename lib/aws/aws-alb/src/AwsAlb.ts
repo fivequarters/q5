@@ -138,7 +138,8 @@ export class AwsAlb extends AwsBase<typeof ELBv2> {
 
     const targetGroupArn = alb.targets[targetGroupName];
     if (!targetGroupArn) {
-      throw AwsAlbException.noTargetGroup(albName, targetGroupName);
+      // Missing target group - our work here is done.
+      return;
     }
 
     const rules = await this.getRules(alb.listenerArn);

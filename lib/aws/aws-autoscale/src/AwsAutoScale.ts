@@ -60,7 +60,9 @@ export class AwsAutoScale extends AwsBase<typeof AutoScaling> {
 
   public async deleteAutoScale(autoScaleName: string): Promise<void> {
     await this.deleteAutoScalingGroup(autoScaleName);
-    await this.deleteLaunchTemplate(autoScaleName);
+    try {
+      await this.deleteLaunchTemplate(autoScaleName);
+    } catch (_) {}
   }
 
   public async attachToTargetGroup(autoScaleName: string, targetGroupArn: string) {
@@ -86,6 +88,11 @@ export class AwsAutoScale extends AwsBase<typeof AutoScaling> {
       AutoScalingGroupName: this.getAutoScaleGroupName(autoScaleName),
       TargetGroupARNs: [targetGroupArn],
     };
+
+    if (!targetGroupArn) {
+      // Old stack that doesn't have membership in the new ALB
+      return;
+    }
 
     return new Promise((resolve, reject) => {
       autoScale.detachLoadBalancerTargetGroups(params, (error: any) => {
@@ -168,7 +175,7 @@ export class AwsAutoScale extends AwsBase<typeof AutoScaling> {
 
     return new Promise((resolve, reject) => {
       autoScale.deleteAutoScalingGroup(params, (error: any) => {
-        if (error) {
+        if (error && error.code != 'ValidationError') {
           return reject(error);
         }
         resolve();
