@@ -18,6 +18,7 @@ import { OpsDataAwsConfig } from './OpsDataAwsConfig';
 import { OpsAccountData } from './OpsAccountData';
 import { random } from '@5qtrs/random';
 import { parseElasticSearchUrl } from './OpsElasticSearch';
+import { debug } from './OpsDebug';
 
 // ------------------
 // Internal Functions
@@ -88,6 +89,7 @@ export class OpsStackData extends DataSource implements IOpsStackData {
     const elasticSearch = deployment.elasticSearch;
     const id = await this.getNextStackId(newStack.deploymentName);
 
+    debug('Creating AMI');
     const awsAmi = await AwsAmi.create(awsConfig);
     const amiId = newStack.ami || (await awsAmi.getUbuntuServerAmi(this.config.ubuntuServerVersion)).id;
 
@@ -116,6 +118,7 @@ export class OpsStackData extends DataSource implements IOpsStackData {
       this.fusebitServiceForUserData(tag),
     ].join('\n');
 
+    debug('Creating AutoScale Group');
     const autoScaleName = this.getAutoScaleName(id);
     await awsAutoScale.createAutoScale({
       name: autoScaleName,
@@ -129,6 +132,7 @@ export class OpsStackData extends DataSource implements IOpsStackData {
       subnets: network.privateSubnets.map(subnet => subnet.id),
     });
 
+    debug('Attaching to target group');
     const targetGroupArn = await this.opsAlb.addTargetGroup(deployment, id);
     await awsAutoScale.attachToTargetGroup(autoScaleName, targetGroupArn);
 
@@ -286,6 +290,7 @@ DEPLOYMENT_KEY=${deploymentName}
 AWS_REGION=${region}
 AWS_S3_BUCKET=${s3Bucket}
 API_SERVER=https://${deploymentName}.${region}.${domainName}
+SERVICE_ROLE=${this.config.arnPrefix}:iam::${account}:role/${this.config.monoInstanceProfileName}
 LAMBDA_BUILDER_ROLE=${this.config.arnPrefix}:iam::${account}:role/${this.config.builderRoleName}
 LAMBDA_MODULE_BUILDER_ROLE=${this.config.arnPrefix}:iam::${account}:role/${this.config.builderRoleName}
 LAMBDA_USER_FUNCTION_ROLE=${this.config.arnPrefix}:iam::${account}:role/${this.config.functionRoleName}
@@ -299,8 +304,9 @@ LOGS_TOKEN_SIGNATURE_KEY=${random({ lengthInBytes: 32 })}
     if (esCreds) {
       r += `
 ES_HOST=${esCreds.hostname}
-ES_USER=${esCreds.username}
-ES_PASSWORD=${esCreds.password}
+ES_USER=${esCreds.username || ''}
+ES_PASSWORD=${esCreds.password || ''}
+ES_ANALYTICS_ROLE=${this.config.arnPrefix}:iam::${account}:role/${this.config.analyticsRoleName}
 `;
     }
 

@@ -1,20 +1,133 @@
-const { getAccountContext } = require('../account');
+const aws4 = require('aws4');
+const https = require('https');
 const httpError = require('http-errors');
-const superagent = require('superagent');
 
-if (process.env.ES_HOST && process.env.ES_USER && process.env.ES_PASSWORD) {
+const { getAccountContext } = require('../account');
+const { getAWSCredentials } = require('../credentials');
+
+let postES = undefined;
+
+const appendIamRoleToES = async iamArn => {
+  let patch = [{ op: 'add', path: '/all_access', value: { backend_roles: iamArn } }];
+
+  try {
+    let result;
+
+    // Get the current authenticated user as a validation that request signing is correct
+    result = await postES('/_opendistro/_security/api/account', '', 'GET');
+    const whoami = result.body.user_name;
+    console.log(`ES: WHOAMI ${result.statusCode}: ${whoami}`);
+
+    // Update the rolesmapping to add the Analytics Lambda role
+    result = await postES('/_opendistro/_security/api/rolesmapping', patch, 'PATCH');
+    if (result.statusCode == 200) {
+      console.log(`ES: Successfully updated ${process.env.ES_HOST} with ${JSON.stringify(iamArn)}`);
+    } else {
+      console.log(
+        `ES: Failed updating ${process.env.ES_HOST} with ${JSON.stringify(iamArn)}: ${
+          result.statusCode
+        }/${JSON.stringify(result.body)}`
+      );
+      console.log(`ES: Is ${whoami} a member of the security_manager Backend Roles?`);
+    }
+  } catch (e) {
+    console.log('ES: Failed to update IAM role: ', e);
+  }
+};
+
+// Some cross checks, final-stage initializations, and logging events that occur on startup.
+const onStartup = async () => {
+  if (!process.env.ES_HOST || !!process.env.ES_USER != !!process.env.ES_PASSWORD) {
+    console.log('ES: Elastic Search disabled');
+  }
+
   console.log(
-    `Elastic Search configuration: ${process.env.ES_USER}:${process.env.ES_PASSWORD.length > 0 ? '*' : 'X'}@${
+    `ES: Elastic Search configuration: ${process.env.ES_USER}:${process.env.ES_PASSWORD.length > 0 ? '*' : 'X'}@${
       process.env.ES_HOST
     }`
   );
-} else {
-  console.log('Elastic Search disabled');
-}
 
-const headers = {
-  Host: process.env.ES_HOST,
-  'Content-Type': 'application/json',
+  // Utility functions for authenticating to the ElasticSearch service on the right target
+  let authRequest;
+  let getRegion;
+
+  let requestOpts = {};
+
+  // Allow for local connect mapping
+  if (process.env.ES_REDIRECT) {
+    requestOpts.host = 'localhost';
+    requestOpts.port = process.env.ES_REDIRECT;
+  }
+
+  postES = async (path, body, method = 'POST') => {
+    let cred = await getAWSCredentials();
+
+    let content;
+    let opts = {
+      host: process.env.ES_HOST,
+      port: 443,
+      method,
+      path,
+      service: 'es',
+      region: getRegion(),
+      timeout: 2000,
+      headers: {
+        Host: process.env.ES_HOST,
+        'Content-Type': 'application/json',
+      },
+      ...requestOpts,
+    };
+
+    if (body) {
+      content = JSON.stringify(body);
+      opts.headers['Content-Length'] = Buffer.byteLength(content);
+      opts.body = content;
+    }
+
+    authRequest(opts, cred);
+
+    let result;
+    let data = '';
+    let statusCode = 501;
+
+    await new Promise((resolve, reject) => {
+      let req = https.request(opts, res => {
+        result = res;
+        res.on('data', d => {
+          data = data + d;
+        });
+        res.on('end', () => {
+          resolve();
+        });
+      });
+      req.on('error', e => {
+        data = JSON.stringify({ error: e.message });
+        resolve();
+      });
+      req.end(content);
+    });
+
+    return { statusCode: (result && result.statusCode) || statusCode, body: JSON.parse(data) };
+  };
+
+  if (process.env.ES_USER && process.env.ES_PASSWORD) {
+    console.log('ES: Using username/password authentication');
+    getRegion = () => '';
+    authRequest = (opts, cred) => (opts.auth = `${process.env.ES_USER}:${process.env.ES_PASSWORD}`);
+  } else {
+    console.log('ES: Using IAM authentication');
+    getRegion = () => {
+      return process.env.ES_HOST.match(/^([^\.]+)\.?([^\.]*)\.?([^\.]*)\.amazonaws\.com$/)[2];
+    };
+
+    authRequest = (opts, cred) => {
+      aws4.sign(opts, cred);
+    };
+
+    // Ammend the analytics role to the ElasticSearch cluster to allow the lambda to post events.
+    // Support multiple roles in the ES_ANALYTICS_ROLE for ease of local credential testing.
+    await appendIamRoleToES([process.env.SERVICE_ROLE, ...process.env.ES_ANALYTICS_ROLE.split(',')]);
+  }
 };
 
 // If a number is supplied, query for just that number.  Otherwise, assume that the caller is
@@ -255,14 +368,8 @@ const makeQuery = async (request, key, query_params = null) => {
     return { statusCode: 403, message: e.message, data: e.message };
   }
 
-  // console.log('Query: ', JSON.stringify(body));
   // Make the request to elasticsearch
-  let response = await superagent
-    .post(`https://${process.env.ES_HOST}/fusebit-*/_search`)
-    .auth(process.env.ES_USER, process.env.ES_PASSWORD)
-    .set(headers)
-    .send(body)
-    .ok(() => true);
+  let response = await postES(`/fusebit-${process.env.DEPLOYMENT_KEY}-*/_search`, body);
 
   if (response.statusCode == 200) {
     let payload = queries[key][1](response.body);
@@ -404,7 +511,7 @@ const statisticsQueries = {
 
 function statisticsGet() {
   return async (req, res, next) => {
-    if (!process.env.ES_HOST || !process.env.ES_USER || !process.env.ES_PASSWORD) {
+    if (!postES) {
       return next(httpError(405, `Unsupported query: ${req.params.statisticsKey}`));
     }
 
@@ -419,6 +526,8 @@ function statisticsGet() {
     }
   };
 }
+
+onStartup();
 
 module.exports = {
   statisticsGet,

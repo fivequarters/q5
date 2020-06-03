@@ -29,6 +29,7 @@ export enum OpsDataExceptionCode {
   demoteLastStackNotAllowed = 'demoteLastStackNotAllowed',
   removeActiveStackNotAllowed = 'removeActiveStackNotAllowed',
   invalidElasticSearchUrl = 'invalidElasticSearchUrl',
+  failedElasticSearchCreate = 'failedElasticSearchCreate',
 }
 
 // ----------------
@@ -185,5 +186,10 @@ export class OpsDataException extends Exception {
   public static invalidElasticSearchUrl(elasticSearchUrl: string) {
     const message = `The supplied Elastic Search URL '${elasticSearchUrl}' did not conform to the required format: https://user:password@hostname.com`;
     return new OpsDataException(OpsDataExceptionCode.invalidElasticSearchUrl, message, [elasticSearchUrl]);
+  }
+
+  public static failedElasticSearchCreate(err: any) {
+    const message = `Failed to create the ElasticSearch Cluster: ${err}`;
+    return new OpsDataException(OpsDataExceptionCode.failedElasticSearchCreate, message, [err]);
   }
 }

@@ -1,6 +1,6 @@
 import { AwsBase, IAwsConfig } from '@5qtrs/aws-base';
 import { toBase64 } from '@5qtrs/base64';
-import { AutoScaling } from 'aws-sdk';
+import { AutoScaling, EC2 } from 'aws-sdk';
 import { ConfigurationServicePlaceholders } from 'aws-sdk/lib/config_service_placeholders';
 
 // ----------------------
@@ -34,6 +34,7 @@ export interface IAwsAutoScaleSettings {
 // ----------------
 
 export class AwsAutoScale extends AwsBase<typeof AutoScaling> {
+  ec2: AWS.EC2 | undefined;
   public static async create(config: IAwsConfig) {
     return new AwsAutoScale(config);
   }
@@ -42,6 +43,7 @@ export class AwsAutoScale extends AwsBase<typeof AutoScaling> {
   }
 
   protected onGetAws(config: IAwsConfig) {
+    this.ec2 = new EC2(config);
     return new AutoScaling(config);
   }
 
@@ -50,15 +52,15 @@ export class AwsAutoScale extends AwsBase<typeof AutoScaling> {
       await this.deleteAutoScalingGroup(autoScale.name);
     } catch (_) {}
     try {
-      await this.deleteLaunchConfiguration(autoScale.name);
+      await this.deleteLaunchTemplate(autoScale.name);
     } catch (_) {}
-    await this.createLaunchConfiguration(autoScale);
+    await this.createLaunchTemplate(autoScale);
     await this.createAutoScalingGroup(autoScale);
   }
 
   public async deleteAutoScale(autoScaleName: string): Promise<void> {
     await this.deleteAutoScalingGroup(autoScaleName);
-    await this.deleteLaunchConfiguration(autoScaleName);
+    await this.deleteLaunchTemplate(autoScaleName);
   }
 
   public async attachToTargetGroup(autoScaleName: string, targetGroupArn: string) {
@@ -99,7 +101,9 @@ export class AwsAutoScale extends AwsBase<typeof AutoScaling> {
     const autoScale = await this.getAws();
     const params = {
       AutoScalingGroupName: this.getAutoScaleGroupName(settings.name),
-      LaunchConfigurationName: this.getLaunchConfigName(settings.name),
+      LaunchTemplate: {
+        LaunchTemplateName: this.getLaunchTemplateName(settings.name),
+      },
       MinSize: settings.minSize || settings.size,
       MaxSize: settings.maxSize || settings.size,
       DesiredCapacity: settings.size,
@@ -119,37 +123,40 @@ export class AwsAutoScale extends AwsBase<typeof AutoScaling> {
     });
   }
 
-  private async createLaunchConfiguration(settings: IAwsAutoScaleSettings): Promise<void> {
+  private async createLaunchTemplate(settings: IAwsAutoScaleSettings): Promise<void> {
     const autoScale = await this.getAws();
     const params = {
-      LaunchConfigurationName: this.getLaunchConfigName(settings.name),
-      ImageId: settings.amiId,
-      SecurityGroups: settings.securityGroups,
-      UserData: toBase64(settings.userData),
-      InstanceType: settings.instanceType,
-      IamInstanceProfile: settings.instanceProfile,
-      EbsOptimized: true,
-      //KeyName: 'flexd-mono-ec2',
-      BlockDeviceMappings: [
-        {
-          DeviceName: '/dev/sda1',
-          Ebs: {
-            VolumeSize: settings.volumeSize || defaultVolumeSize,
-            VolumeType: 'gp2',
+      LaunchTemplateName: this.getLaunchTemplateName(settings.name),
+      LaunchTemplateData: {
+        ImageId: settings.amiId,
+        InstanceType: settings.instanceType,
+        BlockDeviceMappings: [
+          {
+            DeviceName: '/dev/sda1',
+            Ebs: {
+              VolumeSize: settings.volumeSize || defaultVolumeSize,
+              VolumeType: 'gp2',
+            },
           },
+        ],
+        MetadataOptions: {
+          HttpPutResponseHopLimit: 2,
         },
-      ],
+        SecurityGroupIds: settings.securityGroups,
+        UserData: toBase64(settings.userData),
+        IamInstanceProfile: { Arn: settings.instanceProfile, Name: settings.instanceName },
+        EbsOptimized: true,
+      },
     };
 
-    return new Promise((resolve, reject) => {
-      autoScale.createLaunchConfiguration(params, (error: any) => {
-        if (error) {
-          return reject(error);
-        }
-
-        resolve();
-      });
-    });
+    try {
+      if (this.ec2 == null) {
+        throw new Error('EC2 is not initialized');
+      }
+      await this.ec2.createLaunchTemplate(params).promise();
+    } catch (e) {
+      console.log(e);
+    }
   }
 
   private async deleteAutoScalingGroup(autoScaleName: string) {
@@ -169,14 +176,16 @@ export class AwsAutoScale extends AwsBase<typeof AutoScaling> {
     });
   }
 
-  private async deleteLaunchConfiguration(autoScaleName: string) {
-    const autoScale = await this.getAws();
+  private async deleteLaunchTemplate(autoScaleName: string) {
     const params = {
-      LaunchConfigurationName: this.getLaunchConfigName(autoScaleName),
+      LaunchTemplateName: this.getLaunchTemplateName(autoScaleName),
     };
 
     return new Promise((resolve, reject) => {
-      autoScale.deleteLaunchConfiguration(params, (error: any) => {
+      if (!this.ec2) {
+        throw new Error('EC2 not set');
+      }
+      this.ec2.deleteLaunchTemplate(params, (error: any) => {
         if (error) {
           return reject(error);
         }
@@ -185,10 +194,9 @@ export class AwsAutoScale extends AwsBase<typeof AutoScaling> {
     });
   }
 
-  private getLaunchConfigName(name: string) {
-    return `${this.getFullName(name)}-lc`;
+  private getLaunchTemplateName(name: string) {
+    return `${this.getFullName(name)}-lt`;
   }
-
   private getAutoScaleGroupName(name: string) {
     return `${this.getFullName(name)}-asg`;
   }

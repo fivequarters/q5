@@ -4,6 +4,11 @@ import { IAwsConfig, AwsCreds } from '@5qtrs/aws-config';
 import { IOpsDeployment } from '@5qtrs/ops-data';
 import { debug } from './OpsDebug';
 import { LambdaAnalyticsZip } from '@5qtrs/ops-lambda-set';
+import { OpsDataTables } from './OpsDataTables';
+import { OpsNetworkData } from './OpsNetworkData';
+import { OpsDataAwsProvider } from './OpsDataAwsProvider';
+import { parseElasticSearchUrl } from './OpsElasticSearch';
+
 const Async = require('async');
 
 type AsyncCb = (e?: Error | null) => void;
@@ -30,25 +35,22 @@ async function getAWS(awsConfig: IAwsConfig) {
   return { lambda, cloudwatchlogs, awsOptions: options, awsCredentials: credentials };
 }
 
-function createAnalyticsConfig(
+async function createAnalyticsConfig(
   awsDataConfig: OpsDataAwsConfig,
   awsConfig: IAwsConfig,
+  provider: OpsDataAwsProvider,
+  tables: OpsDataTables,
   deployment: IOpsDeployment,
   zipFile: Buffer
 ) {
   const prefix = `${awsConfig.prefix || 'global'}-`;
 
-  // Parse the Elastic Search credentials
-  let esCreds = { ES_HOST: '', ES_USER: '', ES_PASSWORD: '' };
+  const networkData = await OpsNetworkData.create(awsDataConfig, provider, tables);
+  const network = await networkData.get(deployment.networkName, deployment.region);
 
-  let esUrl = deployment.elasticSearch.match(/https:\/\/([^:]+):(.*)@([^@]+$)/i);
-  if (esUrl && esUrl[1] && esUrl[2]) {
-    esCreds = {
-      ES_HOST: esUrl[3],
-      ES_USER: esUrl[1],
-      ES_PASSWORD: esUrl[2],
-    };
-  }
+  // Parse the Elastic Search credentials
+  let esCreds = parseElasticSearchUrl(deployment.elasticSearch);
+  let esVar = { ES_HOST: esCreds.hostname, ES_USER: esCreds.username, ES_PASSWORD: esCreds.password };
 
   const cfg = {
     lambda: {
@@ -63,8 +65,12 @@ function createAnalyticsConfig(
       Environment: {
         Variables: {
           DEPLOYMENT_KEY: awsConfig.prefix,
-          ...esCreds,
+          ...esVar,
         },
+      },
+      VpcConfig: {
+        SecurityGroupIds: [network.securityGroupId],
+        SubnetIds: network.privateSubnets.map(sn => sn.id),
       },
     },
     cloudWatchLogs: { logGroupName: `${prefix}analytics-logs` },
@@ -190,11 +196,13 @@ function deleteCloudWatchSubscription(cwl: any, config: any, cb: AsyncCb) {
 export async function createAnalyticsPipeline(
   awsDataConfig: OpsDataAwsConfig,
   awsConfig: IAwsConfig,
+  provider: OpsDataAwsProvider,
+  tables: OpsDataTables,
   deployment: IOpsDeployment
 ) {
   const deploymentPackage = LambdaAnalyticsZip();
 
-  const config = createAnalyticsConfig(awsDataConfig, awsConfig, deployment, deploymentPackage);
+  const config = await createAnalyticsConfig(awsDataConfig, awsConfig, provider, tables, deployment, deploymentPackage);
 
   debug('IN ANALYTICS SETUP');
 
