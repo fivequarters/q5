@@ -46,8 +46,9 @@ const useStyles = makeStyles(theme => ({
   breadcrumb: {
     paddingLeft: theme.spacing(4),
     paddingRight: theme.spacing(4),
-    paddingTop: theme.spacing(4),
+    paddingTop: theme.spacing(2),
     paddingBottom: theme.spacing(2),
+    height: 82,
   },
   fab: {
     position: 'absolute',
