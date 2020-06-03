@@ -156,8 +156,6 @@ const waitForElasticSearchReady = async (es: any, esCfg: any): Promise<string> =
     attempts -= 1;
     result = await new Promise((resolve, reject) => {
       es.describeElasticsearchDomain({ DomainName: esCfg.DomainName }, async (err: any, data: any) => {
-        // XXX How can I do a spinner here?
-        process.stdout.write('.');
         if (err) {
           return resolve(undefined);
         }
