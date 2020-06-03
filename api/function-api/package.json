@@ -11,8 +11,9 @@
     "coverage": "jest --colors --coverage --detectOpenHandles",
     "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x} test/{,**/}*.ts{,x}",
     "clean": "rm -r -f libc",
-    "start": "node createEnv.js && node libc/index.js",
-    "ngrok": "ngrok http 3001"
+    "start": "node createEnv.js && node --trace-warnings libc/index.js",
+    "ngrok": "ngrok http 3001",
+    "doc": "redoc-cli bundle api.yaml -o index.html --title \"Fusebit HTTP API\" --options.theme.colors.primary.main=#fb310a --options.expandResponses=200,201,204"
   },
   "keywords": [],
   "dependencies": {
@@ -22,7 +23,6 @@
     "@5qtrs/bq-metering": "^0.0.1",
     "@5qtrs/function-lambda": "^0.0.1",
     "@5qtrs/jwt": "^0.0.1",
-    "@5qtrs/request": "^0.0.1",
     "@5qtrs/storage": "^0.0.1",
     "@5qtrs/storage-data": "^0.0.1",
     "@5qtrs/storage-data-aws": "^0.0.1",
@@ -32,8 +32,10 @@
     "express": "^4.16.4",
     "http-errors": "^1.7.1",
     "joi": "^14.3.1",
+    "logstash-client": "^1.1.1",
     "morgan": "^1.9.1",
     "swagger-ui-express": "^4.0.2",
+    "uuid": "^7.0.3",
     "yamljs": "^0.3.0"
   },
   "devDependencies": {

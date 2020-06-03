@@ -1,51 +1,56 @@
-import Grid from "@material-ui/core/Grid";
-import Paper from "@material-ui/core/Paper";
-import { makeStyles } from "@material-ui/core/styles";
-import Tab from "@material-ui/core/Tab";
-import Tabs from "@material-ui/core/Tabs";
-import React from "react";
-import { Redirect, Route, Switch, useHistory } from "react-router-dom";
-import { getLocalSettings, IFusebitSettings } from "../lib/Settings";
-import AccountClients from "./AccountClients";
-import AccountIssuers from "./AccountIssuers";
-import AccountSettings from "./AccountSettings";
-import AccountSubscriptions from "./AccountSubscriptions";
-import AccountUsers from "./AccountUsers";
-import AgentDeleteFab from "./AgentDeleteFab";
-import AgentPermissions from "./AgentPermissions";
-import AgentProperties from "./AgentProperties";
-import { AgentProvider } from "./AgentProvider";
-import { AgentsProvider } from "./AgentsProvider";
-import { BoundariesProvider } from "./BoundariesProvider";
-import BoundaryFunctions from "./BoundaryFunctions";
-import { FusebitError } from "./ErrorBoundary";
-import FunctionActionFab from "./FunctionActionFab";
-import FunctionCode from "./FunctionCode";
-import FunctionOverview from "./FunctionOverview";
-import { FunctionProvider } from "./FunctionProvider";
-import IssuerProperties from "./IssuerProperties";
-import { IssuerProvider } from "./IssuerProvider";
-import { IssuersProvider } from "./IssuersProvider";
-import NewAgent from "./NewAgent";
-import NewFunction from "./NewFunction";
-import NewFunctionCreate from "./NewFunctionCreate";
-import NewFunctionFab from "./NewFunctionFab";
-import ProfileBreadcrumb from "./ProfileBreadcrumb";
-import { useProfile } from "./ProfileProvider";
-import ProfileSelectorWithDetails from "./ProfileSelectorWithDetails";
-import ResourceAccess from "./ResourceAccess";
-import SubscriptionBoundaries from "./SubscriptionBoundaries";
-import { SubscriptionsProvider } from "./SubscriptionsProvider";
-import Activity from "./Activity";
+import Grid from '@material-ui/core/Grid';
+import Paper from '@material-ui/core/Paper';
+import { makeStyles } from '@material-ui/core/styles';
+import Tab from '@material-ui/core/Tab';
+import Tabs from '@material-ui/core/Tabs';
+import React from 'react';
+import { Redirect, Route, Switch, useHistory } from 'react-router-dom';
+import { getLocalSettings, IFusebitSettings } from '../lib/Settings';
+import AccountClients from './AccountClients';
+import AccountIssuers from './AccountIssuers';
+import AccountSettings from './AccountSettings';
+import AccountSubscriptions from './AccountSubscriptions';
+import AccountUsers from './AccountUsers';
+import AgentDeleteFab from './AgentDeleteFab';
+import AgentPermissions from './AgentPermissions';
+import AgentProperties from './AgentProperties';
+import { AgentProvider } from './AgentProvider';
+import { AgentsProvider } from './AgentsProvider';
+import { BoundariesProvider } from './BoundariesProvider';
+import BoundaryFunctions from './BoundaryFunctions';
+import { FusebitError } from './ErrorBoundary';
+import FunctionActionFab from './FunctionActionFab';
+import FunctionCode from './FunctionCode';
+import FunctionOverview from './FunctionOverview';
+import { FunctionProvider } from './FunctionProvider';
+import IssuerProperties from './IssuerProperties';
+import { IssuerProvider } from './IssuerProvider';
+import { IssuersProvider } from './IssuersProvider';
+import NewAgent from './NewAgent';
+import NewFunction from './NewFunction';
+import NewFunctionCreate from './NewFunctionCreate';
+import NewFunctionFab from './NewFunctionFab';
+import ProfileBreadcrumb from './ProfileBreadcrumb';
+import { useProfile } from './ProfileProvider';
+import ProfileSelectorWithDetails from './ProfileSelectorWithDetails';
+import ResourceAccess from './ResourceAccess';
+import SubscriptionBoundaries from './SubscriptionBoundaries';
+import { MonitorPanel } from './Monitor';
+import { SubscriptionsProvider } from './SubscriptionsProvider';
+import Activity from './Activity';
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(theme => ({
   paper: {
-    paddingTop: 14,
-    paddingLeft: theme.spacing(2),
-    position: "relative",
+    position: 'relative',
+  },
+  breadcrumb: {
+    paddingLeft: theme.spacing(4),
+    paddingRight: theme.spacing(4),
+    paddingTop: theme.spacing(4),
+    paddingBottom: theme.spacing(2),
   },
   fab: {
-    position: "absolute",
+    position: 'absolute',
     right: theme.spacing(16),
     bottom: -theme.spacing(3.5),
     zIndex: 9999,
@@ -55,100 +60,109 @@ const useStyles = makeStyles((theme) => ({
 const ExplorerTabs = {
   account: [
     {
-      name: "subscriptions",
+      name: 'subscriptions',
     },
     {
-      name: "activity",
+      name: 'activity',
     },
     {
-      name: "users",
+      name: 'users',
     },
     {
-      name: "clients",
+      name: 'clients',
     },
     {
-      name: "issuers",
+      name: 'issuers',
     },
     {
-      name: "access",
+      name: 'access',
     },
     {
-      name: "settings",
+      name: 'settings',
+    },
+    {
+      name: 'monitor',
     },
   ],
   subscription: [
     {
-      name: "boundaries",
+      name: 'boundaries',
     },
     {
-      name: "activity",
+      name: 'activity',
     },
     {
-      name: "access",
+      name: 'access',
+    },
+    {
+      name: 'monitor',
     },
   ],
   boundary: [
     {
-      name: "functions",
+      name: 'functions',
     },
     {
-      name: "activity",
+      name: 'activity',
     },
     {
-      name: "access",
+      name: 'access',
+    },
+    {
+      name: 'monitor',
     },
   ],
   oneFunction: [
     {
-      name: "overview",
+      name: 'overview',
     },
     {
-      name: "activity",
+      name: 'activity',
     },
     {
-      name: "access",
+      name: 'access',
     },
     {
-      name: "settings",
+      name: 'settings',
     },
   ],
   issuer: [
     {
-      name: "properties",
+      name: 'properties',
     },
     {
-      name: "activity",
+      name: 'activity',
     },
     {
-      name: "access",
+      name: 'access',
     },
   ],
   user: [
     {
-      name: "properties",
+      name: 'properties',
     },
     {
-      name: "activity",
+      name: 'activity',
     },
     {
-      name: "permissions",
+      name: 'permissions',
     },
     {
-      name: "access",
+      name: 'access',
     },
   ],
   client: [
     {
-      name: "properties",
+      name: 'properties',
     },
     {
-      name: "activity",
+      name: 'activity',
     },
     {
-      name: "permissions",
+      name: 'permissions',
     },
     {
-      name: "access",
+      name: 'access',
     },
   ],
 };
@@ -159,22 +173,16 @@ function ProfileExplorer({ ...rest }: any) {
   const classes = useStyles();
   const settings = getLocalSettings() as IFusebitSettings;
 
-  function ExplorerView({
-    breadcrumbSettings,
-    children,
-    tabs,
-    match,
-    fab,
-  }: any) {
+  function ExplorerView({ breadcrumbSettings, children, tabs, match, fab }: any) {
     const { path } = match;
     // Last segment of the URL indicates the selected tab
-    const selectedTab = path.split("/").pop();
+    const selectedTab = path.split('/').pop();
     return (
       <ProfileSelectorWithDetails settings={settings}>
         <Grid container>
           <Grid item xs={12}>
             <Paper elevation={1} square={true} className={classes.paper}>
-              <ProfileBreadcrumb settings={breadcrumbSettings} />
+              <ProfileBreadcrumb settings={breadcrumbSettings} className={classes.breadcrumb} />
               <Tabs
                 value={tabs ? selectedTab : undefined}
                 indicatorColor="primary"
@@ -203,23 +211,18 @@ function ProfileExplorer({ ...rest }: any) {
   }
 
   function NotFound() {
-    throw new FusebitError(
-      "Oops! Can't find the resource you are trying to access.",
-      {
-        details: [
-          `If you navigated to a URL that was given to you, please check it is valid. `,
-          `Otherwise, use the link below to go back to a safe place. `,
-        ].join(""),
-        actions: [
-          {
-            text: profile.subscription
-              ? "Go back to subscription"
-              : "Go back to account",
-            url: getDefaultUrl(),
-          },
-        ],
-      }
-    );
+    throw new FusebitError("Oops! Can't find the resource you are trying to access.", {
+      details: [
+        `If you navigated to a URL that was given to you, please check it is valid. `,
+        `Otherwise, use the link below to go back to a safe place. `,
+      ].join(''),
+      actions: [
+        {
+          text: profile.subscription ? 'Go back to subscription' : 'Go back to account',
+          url: getDefaultUrl(),
+        },
+      ],
+    });
   }
 
   return (
@@ -278,7 +281,7 @@ function ProfileExplorer({ ...rest }: any) {
             <ExplorerView tabs={ExplorerTabs.account} match={match} {...rest}>
               <AgentsProvider agentType="both">
                 <ResourceAccess
-                  actionPrefixFilter={["client", "user", "issuer"]}
+                  actionPrefixFilter={['client', 'user', 'issuer']}
                   resourceFilter={{
                     accountId: match.params.accountId,
                   }}
@@ -308,11 +311,7 @@ function ProfileExplorer({ ...rest }: any) {
                     path={`${match.path}/properties`}
                     exact={true}
                     render={({ ...rest }) => (
-                      <ExplorerView
-                        tabs={ExplorerTabs.user}
-                        fab={<AgentDeleteFab />}
-                        {...rest}
-                      >
+                      <ExplorerView tabs={ExplorerTabs.user} fab={<AgentDeleteFab />} {...rest}>
                         <AgentProperties />
                       </ExplorerView>
                     )}
@@ -326,7 +325,7 @@ function ProfileExplorer({ ...rest }: any) {
                           filter={{
                             resource: `/account/${profile.account}/user/${match.params.userId}/`,
                           }}
-                          actionFilter={["user"]}
+                          actionFilter={['user']}
                         />
                       </ExplorerView>
                     )}
@@ -344,14 +343,10 @@ function ProfileExplorer({ ...rest }: any) {
                     path={`${match.path}/access`}
                     exact={true}
                     render={({ match, ...rest }) => (
-                      <ExplorerView
-                        tabs={ExplorerTabs.user}
-                        match={match}
-                        {...rest}
-                      >
+                      <ExplorerView tabs={ExplorerTabs.user} match={match} {...rest}>
                         <AgentsProvider agentType="both">
                           <ResourceAccess
-                            actionPrefixFilter={["user"]}
+                            actionPrefixFilter={['user']}
                             resourceFilter={{
                               accountId: match.params.accountId,
                               userId: match.params.userId,
@@ -361,9 +356,7 @@ function ProfileExplorer({ ...rest }: any) {
                       </ExplorerView>
                     )}
                   />
-                  <Route
-                    component={(NotFound as unknown) as React.FunctionComponent}
-                  />
+                  <Route component={(NotFound as unknown) as React.FunctionComponent} />
                 </Switch>
               </AgentProvider>
             </AgentsProvider>
@@ -402,11 +395,7 @@ function ProfileExplorer({ ...rest }: any) {
                     path={`${match.path}/properties`}
                     exact={true}
                     render={({ ...rest }) => (
-                      <ExplorerView
-                        tabs={ExplorerTabs.client}
-                        fab={<AgentDeleteFab />}
-                        {...rest}
-                      >
+                      <ExplorerView tabs={ExplorerTabs.client} fab={<AgentDeleteFab />} {...rest}>
                         <AgentProperties />
                       </ExplorerView>
                     )}
@@ -420,7 +409,7 @@ function ProfileExplorer({ ...rest }: any) {
                           filter={{
                             resource: `/account/${profile.account}/client/${match.params.clientId}/`,
                           }}
-                          actionFilter={["client"]}
+                          actionFilter={['client']}
                         />
                       </ExplorerView>
                     )}
@@ -429,11 +418,7 @@ function ProfileExplorer({ ...rest }: any) {
                     path={`${match.path}/overview`}
                     exact={true}
                     render={({ ...rest }) => (
-                      <ExplorerView
-                        tabs={ExplorerTabs.client}
-                        fab={<AgentDeleteFab />}
-                        {...rest}
-                      >
+                      <ExplorerView tabs={ExplorerTabs.client} fab={<AgentDeleteFab />} {...rest}>
                         [TODO: Client Overview]
                       </ExplorerView>
                     )}
@@ -451,14 +436,10 @@ function ProfileExplorer({ ...rest }: any) {
                     path={`${match.path}/access`}
                     exact={true}
                     render={({ match, ...rest }) => (
-                      <ExplorerView
-                        tabs={ExplorerTabs.client}
-                        match={match}
-                        {...rest}
-                      >
+                      <ExplorerView tabs={ExplorerTabs.client} match={match} {...rest}>
                         <AgentsProvider agentType="both">
                           <ResourceAccess
-                            actionPrefixFilter={["client"]}
+                            actionPrefixFilter={['client']}
                             resourceFilter={{
                               accountId: match.params.accountId,
                               clientId: match.params.clientId,
@@ -468,9 +449,7 @@ function ProfileExplorer({ ...rest }: any) {
                       </ExplorerView>
                     )}
                   />
-                  <Route
-                    component={(NotFound as unknown) as React.FunctionComponent}
-                  />
+                  <Route component={(NotFound as unknown) as React.FunctionComponent} />
                 </Switch>
               </AgentProvider>
             </AgentsProvider>
@@ -492,9 +471,7 @@ function ProfileExplorer({ ...rest }: any) {
         <Route
           path="/accounts/:accountId/issuers/:issuerId"
           render={({ match }) => (
-            <IssuerProvider
-              issuerId={decodeURIComponent(match.params.issuerId)}
-            >
+            <IssuerProvider issuerId={decodeURIComponent(match.params.issuerId)}>
               <Switch>
                 <Route
                   path={`${match.path}/properties`}
@@ -514,7 +491,7 @@ function ProfileExplorer({ ...rest }: any) {
                         filter={{
                           resource: `/account/${profile.account}/issuer/${match.params.issuerId}/`,
                         }}
-                        actionFilter={["issuer"]}
+                        actionFilter={['issuer']}
                       />
                     </ExplorerView>
                   )}
@@ -523,14 +500,10 @@ function ProfileExplorer({ ...rest }: any) {
                   path={`${match.path}/access`}
                   exact={true}
                   render={({ match, ...rest }) => (
-                    <ExplorerView
-                      tabs={ExplorerTabs.issuer}
-                      match={match}
-                      {...rest}
-                    >
+                    <ExplorerView tabs={ExplorerTabs.issuer} match={match} {...rest}>
                       <AgentsProvider agentType="both">
                         <ResourceAccess
-                          actionPrefixFilter={["issuer"]}
+                          actionPrefixFilter={['issuer']}
                           resourceFilter={{
                             accountId: match.params.accountId,
                             issuerId: match.params.issuerId,
@@ -540,9 +513,7 @@ function ProfileExplorer({ ...rest }: any) {
                     </ExplorerView>
                   )}
                 />
-                <Route
-                  component={(NotFound as unknown) as React.FunctionComponent}
-                />
+                <Route component={(NotFound as unknown) as React.FunctionComponent} />
               </Switch>
             </IssuerProvider>
           )}
@@ -558,15 +529,10 @@ function ProfileExplorer({ ...rest }: any) {
           path="/accounts/:accountId/subscriptions/:subscriptionId/access"
           exact={true}
           render={({ match, ...rest }) => (
-            <ExplorerView
-              tabs={ExplorerTabs.subscription}
-              match={match}
-              fab={<NewFunctionFab />}
-              {...rest}
-            >
+            <ExplorerView tabs={ExplorerTabs.subscription} match={match} fab={<NewFunctionFab />} {...rest}>
               <AgentsProvider agentType="both">
                 <ResourceAccess
-                  actionPrefixFilter={["function", "subscription", "audit"]}
+                  actionPrefixFilter={['function', 'subscription', 'audit']}
                   resourceFilter={{
                     accountId: match.params.accountId,
                     subscriptionId: match.params.subscriptionId,
@@ -586,15 +552,12 @@ function ProfileExplorer({ ...rest }: any) {
                   path={`${match.path}/activity`}
                   exact={true}
                   render={({ match }) => (
-                    <ExplorerView
-                      tabs={ExplorerTabs.subscription}
-                      match={match}
-                    >
+                    <ExplorerView tabs={ExplorerTabs.subscription} match={match}>
                       <Activity
                         filter={{
                           resource: `/account/${profile.account}/subscription/${match.params.subscriptionId}/`,
                         }}
-                        actionFilter={["function"]}
+                        actionFilter={['function']}
                       />
                     </ExplorerView>
                   )}
@@ -612,15 +575,12 @@ function ProfileExplorer({ ...rest }: any) {
                           path={`${match.path}/activity`}
                           exact={true}
                           render={({ match }) => (
-                            <ExplorerView
-                              tabs={ExplorerTabs.oneFunction}
-                              match={match}
-                            >
+                            <ExplorerView tabs={ExplorerTabs.oneFunction} match={match}>
                               <Activity
                                 filter={{
                                   resource: `/account/${profile.account}/subscription/${match.params.subscriptionId}/boundary/${match.params.boundaryId}/function/${match.params.functionId}/`,
                                 }}
-                                actionFilter={["function"]}
+                                actionFilter={['function']}
                               />
                             </ExplorerView>
                           )}
@@ -651,7 +611,7 @@ function ProfileExplorer({ ...rest }: any) {
                             >
                               <AgentsProvider agentType="both">
                                 <ResourceAccess
-                                  actionPrefixFilter={["function", "audit"]}
+                                  actionPrefixFilter={['function', 'audit']}
                                   resourceFilter={{
                                     accountId: match.params.accountId,
                                     subscriptionId: match.params.subscriptionId,
@@ -663,6 +623,15 @@ function ProfileExplorer({ ...rest }: any) {
                             </ExplorerView>
                           )}
                         />
+                        <Route
+                          path={`${match.path}/monitor`}
+                          exact={true}
+                          render={({ match }) => (
+                            <ExplorerView tabs={ExplorerTabs.subscription} match={match} fab={<NewFunctionFab />}>
+                              <MonitorPanel params={match.params} />
+                            </ExplorerView>
+                          )}
+                        />
                       </Switch>
                     </FunctionProvider>
                   )}
@@ -671,12 +640,17 @@ function ProfileExplorer({ ...rest }: any) {
                   path={`${match.path}/boundaries`}
                   exact={true}
                   render={({ match }) => (
-                    <ExplorerView
-                      tabs={ExplorerTabs.subscription}
-                      match={match}
-                      fab={<NewFunctionFab />}
-                    >
+                    <ExplorerView tabs={ExplorerTabs.subscription} match={match} fab={<NewFunctionFab />}>
                       <SubscriptionBoundaries />
+                    </ExplorerView>
+                  )}
+                />
+                <Route
+                  path={`${match.path}/monitor`}
+                  exact={true}
+                  render={({ match }) => (
+                    <ExplorerView tabs={ExplorerTabs.subscription} match={match} fab={<NewFunctionFab />}>
+                      <MonitorPanel params={match.params} />
                     </ExplorerView>
                   )}
                 />
@@ -694,14 +668,8 @@ function ProfileExplorer({ ...rest }: any) {
                   path={`${match.path}/new-function`}
                   exact={true}
                   render={({ match, ...rest }) => (
-                    <ExplorerView
-                      breadcrumbSettings={{ newSubscriptionFunction: true }}
-                      match={match}
-                      {...rest}
-                    >
-                      <NewFunction
-                        subscriptionId={match.params.subscriptionId}
-                      />
+                    <ExplorerView breadcrumbSettings={{ newSubscriptionFunction: true }} match={match} {...rest}>
+                      <NewFunction subscriptionId={match.params.subscriptionId} />
                     </ExplorerView>
                   )}
                 />
@@ -720,15 +688,8 @@ function ProfileExplorer({ ...rest }: any) {
                   path={`${match.path}/boundaries/:boundaryId/new-function`}
                   exact={true}
                   render={({ match, ...rest }) => (
-                    <ExplorerView
-                      breadcrumbSettings={{ newBoundaryFunction: true }}
-                      match={match}
-                      {...rest}
-                    >
-                      <NewFunction
-                        subscriptionId={match.params.subscriptionId}
-                        boundaryId={match.params.boundaryId}
-                      />
+                    <ExplorerView breadcrumbSettings={{ newBoundaryFunction: true }} match={match} {...rest}>
+                      <NewFunction subscriptionId={match.params.subscriptionId} boundaryId={match.params.boundaryId} />
                     </ExplorerView>
                   )}
                 />
@@ -736,11 +697,7 @@ function ProfileExplorer({ ...rest }: any) {
                   path={`${match.path}/boundaries/:boundaryId/functions`}
                   exact={true}
                   render={({ match }) => (
-                    <ExplorerView
-                      tabs={ExplorerTabs.boundary}
-                      match={match}
-                      fab={<NewFunctionFab />}
-                    >
+                    <ExplorerView tabs={ExplorerTabs.boundary} match={match} fab={<NewFunctionFab />}>
                       <BoundaryFunctions
                         subscriptionId={match.params.subscriptionId}
                         boundaryId={match.params.boundaryId}
@@ -757,7 +714,7 @@ function ProfileExplorer({ ...rest }: any) {
                         filter={{
                           resource: `/account/${profile.account}/subscription/${match.params.subscriptionId}/boundary/${match.params.boundaryId}/`,
                         }}
-                        actionFilter={["function"]}
+                        actionFilter={['function']}
                       />
                     </ExplorerView>
                   )}
@@ -766,15 +723,10 @@ function ProfileExplorer({ ...rest }: any) {
                   path={`${match.path}/boundaries/:boundaryId/access`}
                   exact={true}
                   render={({ match, ...rest }) => (
-                    <ExplorerView
-                      tabs={ExplorerTabs.boundary}
-                      match={match}
-                      fab={<NewFunctionFab />}
-                      {...rest}
-                    >
+                    <ExplorerView tabs={ExplorerTabs.boundary} match={match} fab={<NewFunctionFab />} {...rest}>
                       <AgentsProvider agentType="both">
                         <ResourceAccess
-                          actionPrefixFilter={["function", "audit"]}
+                          actionPrefixFilter={['function', 'audit']}
                           resourceFilter={{
                             accountId: match.params.accountId,
                             subscriptionId: match.params.subscriptionId,
@@ -786,8 +738,15 @@ function ProfileExplorer({ ...rest }: any) {
                   )}
                 />
                 <Route
-                  component={(NotFound as unknown) as React.FunctionComponent}
+                  path={`${match.path}/boundaries/:boundaryId/monitor`}
+                  exact={true}
+                  render={({ match }) => (
+                    <ExplorerView tabs={ExplorerTabs.subscription} match={match} fab={<NewFunctionFab />}>
+                      <MonitorPanel params={match.params} />
+                    </ExplorerView>
+                  )}
                 />
+                <Route component={(NotFound as unknown) as React.FunctionComponent} />
               </Switch>
             </BoundariesProvider>
           )}

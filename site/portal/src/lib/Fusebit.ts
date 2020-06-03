@@ -41,7 +41,7 @@ function throwHttpException(error: any) {
   throw createHttpException(error);
 }
 
-function createHttpException(error: any) {
+export function createHttpException(error: any) {
   return (
     (error.response && error.response.body) || {
       message: error.message || "Unknown error",

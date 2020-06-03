@@ -14,10 +14,10 @@ app.use('/v1/', require('./routes/v1_api'));
 if (process.env.API_EXPOSE_DOCS) {
   app.use('/', require('./routes/api_docs'));
 }
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   next(create_error(404));
 });
-app.use(function(err, req, res, next) {
+app.use(function (err, req, res, next) {
   // console.log('ERROR', typeof err, err, err.status, err.statusCode, err.message);
   let status = err.statusCode || err.status || 500;
   if (status == 500) {
@@ -31,6 +31,10 @@ app.use(function(err, req, res, next) {
 });
 
 function jsonifyError(status, error) {
+  if (error == undefined) {
+    return undefined;
+  }
+
   let result = {
     status,
     statusCode: status,

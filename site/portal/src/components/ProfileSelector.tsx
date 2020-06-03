@@ -1,33 +1,49 @@
-import React, { useState } from "react";
-import { makeStyles, useTheme } from "@material-ui/core/styles";
-import Drawer from "@material-ui/core/Drawer";
-import IconButton from "@material-ui/core/IconButton";
-import Typography from "@material-ui/core/Typography";
-import List from "@material-ui/core/List";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemText from "@material-ui/core/ListItemText";
-import MenuIcon from "@material-ui/icons/Menu";
-import { FusebitMarkInverted } from "@5qtrs/fusebit-mark-inverted";
-import SelectableAvatar from "./SelectableAvatar";
+import React, { useState } from 'react';
+import { makeStyles, useTheme, ThemeProvider, createMuiTheme, fade } from '@material-ui/core/styles';
+import Drawer from '@material-ui/core/Drawer';
+import IconButton from '@material-ui/core/IconButton';
+import Typography from '@material-ui/core/Typography';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemText from '@material-ui/core/ListItemText';
+import MenuIcon from '@material-ui/icons/Menu';
+import { FusebitMarkInverted } from '@5qtrs/fusebit-mark-inverted';
+import SelectableAvatar from './SelectableAvatar';
 
 const useStyles = makeStyles((theme: any) => ({
   drawer: {
-    whiteSpace: "nowrap",
+    whiteSpace: 'nowrap',
   },
-  details: {
-    marginRight: 16,
-    marginTop: 8,
+  detailsPrimary: {
+    marginLeft: theme.spacing(2),
+    maxWidth: 275,
+    overflow: 'hidden',
+  },
+  detailsSecondary: {
+    marginLeft: theme.spacing(),
+    maxWidth: 320,
+    overflow: 'hidden',
+    marginBottom: theme.spacing(),
+  },
+  listItem: {
+    borderRadius: 10,
+    paddingLeft: theme.spacing(),
+    paddingRight: theme.spacing(),
+    flexWrap: 'wrap',
+    maxWidth: 345,
   },
   avatar: {
     marginTop: 0,
-    marginLeft: 8,
-    marginRight: 8,
   },
   paper: {
-    background: theme.fusebit.colors.dark,
+    paddingTop: theme.spacing(3),
+    paddingLeft: theme.spacing(),
+    paddingRight: theme.spacing(),
+    alignItems: 'center',
   },
-  typography: {
-    color: theme.palette.getContrastText(theme.fusebit.colors.dark),
+  icon: {
+    width: 38,
+    height: 38,
   },
 }));
 
@@ -42,6 +58,29 @@ function ProfileSelector({ onSelectProfile, settings }: any) {
     onSelectProfile && id !== settings.currentProfile && onSelectProfile(id);
   };
 
+  function darkTheme(theme: any) {
+    // Create mini dark theme. Just setting `type` doesn't work per https://github.com/mui-org/material-ui/issues/15914#issuecomment-530697788
+    return createMuiTheme({
+      ...theme,
+      palette: {
+        ...theme.palette,
+        text: {
+          primary: theme.palette.common.white,
+          secondary: fade(theme.palette.common.white, 0.7),
+        },
+        action: {
+          active: theme.palette.common.white,
+          hover: fade(theme.palette.common.white, 0.08),
+          selected: fade(theme.palette.common.white, 0.16),
+        },
+        background: {
+          ...theme.background,
+          paper: theme.fusebit.colors.black,
+        },
+      },
+    });
+  }
+
   function renderProfileList(details: boolean) {
     return (
       <List disablePadding={true}>
@@ -52,78 +91,50 @@ function ProfileSelector({ onSelectProfile, settings }: any) {
             key={profile.id}
             disableGutters={true}
             onClick={() => handleSelectProfile(profile.id as string)}
+            className={classes.listItem}
           >
-            <SelectableAvatar
-              className={classes.avatar}
-              selected={profile.id === settings.currentProfile}
-            >
+            <SelectableAvatar className={classes.avatar} selected={profile.id === settings.currentProfile}>
               {!profile.icon && (
                 <FusebitMarkInverted
-                  size={38}
+                  size={32}
                   margin={0}
                   color={
-                    theme.fusebit.profileSelector.iconColors[
-                      index % theme.fusebit.profileSelector.iconColors.length
-                    ]
+                    theme.fusebit.profileSelector.iconColors[index % theme.fusebit.profileSelector.iconColors.length]
                   }
                 />
               )}
-              {profile.icon && (
-                <img
-                  src={profile.icon}
-                  width="38"
-                  height="38"
-                  alt="Profile icon"
-                />
-              )}
+              {profile.icon && <img src={profile.icon} width="32" height="32" alt="Profile icon" />}
             </SelectableAvatar>
             {details && (
-              <ListItemText
-                disableTypography
-                className={classes.details}
-                primary={
-                  <Typography
-                    component="div"
-                    variant="subtitle1"
-                    className={classes.typography}
-                  >
-                    {profile.displayName}
-                  </Typography>
-                }
-                primaryTypographyProps={{ className: classes.typography }}
-                secondary={
-                  <React.Fragment>
-                    <Typography
-                      component="div"
-                      variant="caption"
-                      className={classes.typography}
-                    >
-                      <br></br>Deployment
+              <>
+                <ListItemText
+                  className={classes.detailsPrimary}
+                  primary={
+                    <Typography component="div" variant="h6">
+                      {profile.displayName}
                     </Typography>
-                    <Typography
-                      component="div"
-                      variant="subtitle2"
-                      className={classes.typography}
-                    >
-                      {profile.baseUrl.replace(/^https:\/\//i, "")}
-                    </Typography>
-                    <Typography
-                      component="div"
-                      variant="caption"
-                      className={classes.typography}
-                    >
-                      <br></br>Account ID
-                    </Typography>
-                    <Typography
-                      component="div"
-                      variant="subtitle2"
-                      className={classes.typography}
-                    >
-                      {profile.account}
-                    </Typography>
-                  </React.Fragment>
-                }
-              />
+                  }
+                />
+                <ListItemText
+                  className={classes.detailsSecondary}
+                  secondary={
+                    <React.Fragment>
+                      <Typography component="div" variant="body1">
+                        Deployment:
+                      </Typography>
+                      <Typography component="div" variant="body1">
+                        {profile.baseUrl.replace(/^https:\/\//i, '')}
+                      </Typography>
+                      <Typography component="div" variant="body1">
+                        Account ID:
+                      </Typography>
+                      <Typography component="div" variant="body1">
+                        {profile.account}
+                      </Typography>
+                    </React.Fragment>
+                  }
+                />
+              </>
             )}
           </ListItem>
         ))}
@@ -133,27 +144,29 @@ function ProfileSelector({ onSelectProfile, settings }: any) {
 
   return (
     <React.Fragment>
-      <Drawer
-        variant="permanent"
-        onClose={handleDrawerToggle}
-        open={true}
-        className={classes.drawer}
-        classes={{ paper: classes.paper }}
-      >
-        {renderProfileList(false)}
-        <IconButton onClick={handleDrawerToggle} className={classes.typography}>
-          <MenuIcon />
-        </IconButton>
-      </Drawer>
-      <Drawer
-        variant="temporary"
-        onClose={handleDrawerToggle}
-        open={open}
-        className={classes.drawer}
-        classes={{ paper: classes.paper }}
-      >
-        {renderProfileList(true)}
-      </Drawer>
+      <ThemeProvider theme={darkTheme}>
+        <Drawer
+          variant="permanent"
+          onClose={handleDrawerToggle}
+          open={true}
+          className={classes.drawer}
+          classes={{ paper: classes.paper }}
+        >
+          {renderProfileList(false)}
+          <IconButton onClick={handleDrawerToggle} className={`${classes.icon}`} size="small">
+            <MenuIcon />
+          </IconButton>
+        </Drawer>
+        <Drawer
+          variant="temporary"
+          onClose={handleDrawerToggle}
+          open={open}
+          className={classes.drawer}
+          classes={{ paper: classes.paper }}
+        >
+          {renderProfileList(true)}
+        </Drawer>
+      </ThemeProvider>
     </React.Fragment>
   );
 }

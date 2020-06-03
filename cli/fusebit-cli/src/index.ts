@@ -5,6 +5,13 @@ import { CommandIO } from '@5qtrs/cli';
 import { FusebitCli } from './FusebitCli';
 
 async function execute() {
+  //@ts-ignore
+  const major = +process.versions.node.match(/^(\d+)\./)[1];
+  if (major < 10) {
+    console.error(`The fuse-ops CLI requires Node.js 10.x or later. You are running ${process.version}.`);
+    process.exit(1);
+  }
+
   const args = process.argv.slice(2);
   const io = await CommandIO.create();
   const cli = await FusebitCli.create();

@@ -70,7 +70,7 @@ function getPostSummaries(somePosts: BlogPost[], isMobile?: boolean) {
   for (const post of somePosts) {
     if (isMobile || key > 0) {
       summaries.push(
-        <Box key={key++} stretch height={1} marginTop={20} marginBottom={20} background={FusebitColor.light} />
+        <Box key={key++} stretch height={1} marginTop={20} marginBottom={20} background={FusebitColor.lightBlue} />
       );
     }
     summaries.push(<FusebitPostCard key={key++} {...post.meta} />);

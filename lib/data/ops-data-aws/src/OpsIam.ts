@@ -58,6 +58,29 @@ export class OpsIam implements IDataSource {
       this.config.iamPermissionsBoundary
     );
 
+    // Ensure IAM roles for Analytics are created
+
+    await createRole(
+      awsConfig,
+      this.config.analyticsRoleName,
+      [
+        `${this.config.arnPrefix}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole`,
+        `${this.config.arnPrefix}:iam::aws:policy/AmazonESFullAccess`,
+      ],
+      {
+        Version: '2012-10-17',
+        Statement: [
+          {
+            Effect: 'Allow',
+            Action: ['dynamodb:Scan'],
+            Resource: `${this.config.arnPrefix}:dynamodb:${awsConfig.region}:${awsConfig.account}:table/*.subscription`,
+          },
+        ],
+      },
+      undefined,
+      this.config.iamPermissionsBoundary
+    );
+
     await createRole(
       awsConfig,
       this.config.cronSchedulerRoleName,

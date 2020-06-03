@@ -26,13 +26,14 @@ export class StackService {
     return new StackService(input, opsService, executeService);
   }
 
-  public async confirmDeployStack(stack: IOpsNewStack) {
+  public async confirmDeployStack(deployment: IOpsDeployment, stack: IOpsNewStack) {
     const confirmPrompt = await Confirm.create({
       header: 'Deploy the stack to the Fusebit platform?',
       details: [
         { name: 'Deployment', value: stack.deploymentName },
         { name: 'Tag', value: stack.tag },
         { name: 'Size', value: stack.size ? stack.size.toString() : '<Default>' },
+        { name: 'Elastic Search', value: deployment.elasticSearch },
         { name: 'Environment', value: stack.env || '<Not set>' },
         { name: 'AMI', value: stack.ami || '<Official Ubuntu AMI>' },
       ],
@@ -99,9 +100,7 @@ export class StackService {
   }
 
   public async waitForStack(stack: IOpsStack, deployment: IOpsDeployment): Promise<void> {
-    let url = `https://stack-${stack.id}.${deployment.deploymentName}.${deployment.region}.${
-      deployment.domainName
-    }/v1/health`;
+    let url = `https://stack-${stack.id}.${deployment.deploymentName}.${deployment.region}.${deployment.domainName}/v1/health`;
 
     await this.executeService.execute(
       {
@@ -309,6 +308,9 @@ export class StackService {
       Text.eol(),
       Text.dim('Size: '),
       stack.size.toString(),
+      Text.eol(),
+      Text.dim('Elastic Search: '),
+      deployment ? deployment.elasticSearch : '',
       Text.eol(),
       Text.dim('Status: '),
       stack.active ? 'ACTIVE' : 'NOT ACTIVE',

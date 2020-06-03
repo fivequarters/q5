@@ -4,11 +4,12 @@ import { EditorContext } from './EditorContext';
 import { modalConfirmCancelQuestion } from './Modal';
 
 /**
- * Not part of MVP
- * @ignore
- * @param element
- * @param editorContext
- * @param options
+ * Creates a navigation panel within the specified HTML element and associacted with the existing [[EditorContext]].
+ *
+ * @param element The HTML element (typically a div) within which to create the navigation panel.
+ * @param editorContext A pre-existing editor context to associate the navigation panel with.
+ * @param options Navigation panel creation options.
+ * @param mainEditorElement An HTML element to deactive when a model dialog is shown.
  */
 export function createNavigationPanel(
   element: HTMLElement,
@@ -160,7 +161,7 @@ export function createNavigationPanel(
   let newFileElement = document.getElementById(newFileId) as HTMLElement;
   function addButtonClicked(e: Event) {
     e.preventDefault();
-    delete newFileElement.style.display;
+    newFileElement.style.display = 'unset';
     newFileNameElement.value = '';
     newFileNameElement.focus();
     detectClickOutsideElement(

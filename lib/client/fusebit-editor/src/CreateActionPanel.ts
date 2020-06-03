@@ -1,22 +1,15 @@
 import { Events } from './Events';
 import { ActionPanelOptions, IActionPanelOptions } from './Options';
-import { Server } from './Server';
 import { EditorContext } from './EditorContext';
 
 /**
- * Not part of MVP
- * @ignore
- * @param element
- * @param editorContext
- * @param server
- * @param options
+ * Creates an action panel within the specified HTML element and associacted with the existing [[EditorContext]].
+ *
+ * @param element The HTML element (typically a div) within which to create the action panel.
+ * @param editorContext A pre-existing editor context to associate the action panel with.
+ * @param options Action panel creation options.
  */
-export function createActionPanel(
-  element: HTMLElement,
-  editorContext: EditorContext,
-  server: Server,
-  options?: IActionPanelOptions
-) {
+export function createActionPanel(element: HTMLElement, editorContext: EditorContext, options?: IActionPanelOptions) {
   const defaultOptions = new ActionPanelOptions();
   const opts = {
     ...defaultOptions,
@@ -80,7 +73,7 @@ export function createActionPanel(
     hideNavLogsElement.addEventListener('click', e => {
       e.preventDefault();
       hideNavLogsElement.style.display = 'none';
-      delete showNavLogsElement.style.display;
+      showNavLogsElement.style.display = 'unset';
       editorContext.updateLogsState(false);
       editorContext.updateNavState(false);
     });
@@ -88,7 +81,7 @@ export function createActionPanel(
   showNavLogsElement &&
     showNavLogsElement.addEventListener('click', e => {
       e.preventDefault();
-      delete hideNavLogsElement.style.display;
+      hideNavLogsElement.style.display = 'unset';
       showNavLogsElement.style.display = 'none';
       editorContext.updateLogsState(true);
       editorContext.updateNavState(true);
@@ -98,14 +91,14 @@ export function createActionPanel(
     expandElement.addEventListener('click', e => {
       e.preventDefault();
       expandElement.style.display = 'none';
-      delete compressElement.style.display;
+      compressElement.style.display = 'unset';
       editorContext.setFullScreen(true);
     });
 
   compressElement &&
     compressElement.addEventListener('click', e => {
       e.preventDefault();
-      delete expandElement.style.display;
+      expandElement.style.display = 'unset';
       compressElement.style.display = 'none';
       editorContext.setFullScreen(false);
     });
@@ -113,15 +106,13 @@ export function createActionPanel(
   saveElement &&
     saveElement.addEventListener('click', e => {
       e.preventDefault();
-      server.saveFunction(editorContext).catch(_ => {});
+      editorContext.saveFunction();
     });
 
   runElement &&
     runElement.addEventListener('click', e => {
       e.preventDefault();
-      server.runFunction(editorContext).catch(_ => {
-        // do nothing
-      });
+      editorContext.runFunction();
     });
 
   editorContext.on(Events.DirtyStateChanged, updateState);

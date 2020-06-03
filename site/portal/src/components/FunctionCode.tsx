@@ -1,49 +1,50 @@
-import React from "react";
-import { useHistory } from "react-router-dom";
-import FusebitEditor from "./FusebitEditor";
-import { makeStyles } from "@material-ui/core/styles";
-import { useProfile } from "./ProfileProvider";
-import { tryGetFunction } from "../lib/Fusebit";
-import Grid from "@material-ui/core/Grid";
-import Button from "@material-ui/core/Button";
-import Dialog from "@material-ui/core/Dialog";
-import AppBar from "@material-ui/core/AppBar";
-import Toolbar from "@material-ui/core/Toolbar";
-import IconButton from "@material-ui/core/IconButton";
-import Typography from "@material-ui/core/Typography";
-import LinearProgress from "@material-ui/core/LinearProgress";
-import CloseIcon from "@material-ui/icons/Close";
-import Slide from "@material-ui/core/Slide";
-import { TransitionProps } from "@material-ui/core/transitions";
-import { FusebitError } from "./ErrorBoundary";
-import PortalError from "./PortalError";
+import React from 'react';
+import { useHistory } from 'react-router-dom';
+import FusebitEditor from './FusebitEditor';
+import { makeStyles } from '@material-ui/core/styles';
+import { useProfile } from './ProfileProvider';
+import { tryGetFunction } from '../lib/Fusebit';
+import Grid from '@material-ui/core/Grid';
+import Button from '@material-ui/core/Button';
+import Dialog from '@material-ui/core/Dialog';
+import AppBar from '@material-ui/core/AppBar';
+import Toolbar from '@material-ui/core/Toolbar';
+import IconButton from '@material-ui/core/IconButton';
+import Typography from '@material-ui/core/Typography';
+import LinearProgress from '@material-ui/core/LinearProgress';
+import CloseIcon from '@material-ui/icons/Close';
+import Slide from '@material-ui/core/Slide';
+import { TransitionProps } from '@material-ui/core/transitions';
+import { FusebitError } from './ErrorBoundary';
+import PortalError from './PortalError';
 
 const useStyles = makeStyles(theme => ({
   gridItem: {
-    position: "relative",
-    height: "calc(100vh - 63px)"
+    position: 'relative',
+    height: 'calc(100vh - 63px)',
   },
   container: {
-    position: "absolute",
+    position: 'absolute',
     left: 0,
     right: 0,
     bottom: 0,
-    top: 0
+    top: 0,
   },
   appBar: {
-    position: "relative"
+    position: 'relative',
   },
   title: {
     marginLeft: theme.spacing(2),
-    flex: 1
-  }
+    flex: 1,
+  },
 }));
 
-const Transition = React.forwardRef<unknown, TransitionProps>(
-  function Transition(props, ref) {
-    return <Slide direction="up" ref={ref} {...props} />;
-  }
-);
+const Transition = React.forwardRef(function Transition(
+  props: TransitionProps & { children?: React.ReactElement<any, any> },
+  ref: React.Ref<unknown>
+) {
+  return <Slide direction="up" ref={ref} {...props} />;
+});
 
 function FunctionCode({ match }: any) {
   const history = useHistory();
@@ -67,12 +68,12 @@ function FunctionCode({ match }: any) {
           );
         } catch (e) {
           existingFunction = {
-            error: new FusebitError("Error checking if function exists", {
+            error: new FusebitError('Error checking if function exists', {
               details:
                 (e.status || e.statusCode) === 403
-                  ? "You are not authorized to access the function."
-                  : e.message || "Unknown error."
-            })
+                  ? 'You are not authorized to access the function.'
+                  : e.message || 'Unknown error.',
+            }),
           };
         }
         !cancelled && setFunctionSpec(existingFunction);
@@ -84,7 +85,7 @@ function FunctionCode({ match }: any) {
   }, [functionSpec, profile, subscriptionId, boundaryId, functionId]);
 
   const handleClose = () => {
-    history.replace("overview");
+    history.replace('overview');
   };
 
   const template = functionSpec || {};
@@ -93,7 +94,7 @@ function FunctionCode({ match }: any) {
     functionSpec.metadata.fusebit &&
     functionSpec.metadata.fusebit.editor) || {
     ensureFunctionExists: true,
-    theme: "light"
+    theme: 'light',
   };
 
   function CodeDialog({ children }: any) {
@@ -102,18 +103,11 @@ function FunctionCode({ match }: any) {
         fullScreen
         open={true}
         onClose={handleClose}
-        TransitionComponent={
-          functionSpec === undefined ? Transition : undefined
-        }
+        TransitionComponent={functionSpec === undefined ? Transition : undefined}
       >
         <AppBar className={classes.appBar} color="inherit">
           <Toolbar>
-            <IconButton
-              edge="start"
-              color="inherit"
-              onClick={handleClose}
-              aria-label="close"
-            >
+            <IconButton edge="start" color="inherit" onClick={handleClose} aria-label="close">
               <CloseIcon />
             </IconButton>
             <Typography variant="h6" className={classes.title}>
@@ -153,7 +147,7 @@ function FunctionCode({ match }: any) {
               accountId: accountId,
               subscriptionId: subscriptionId,
               baseUrl: profile.baseUrl,
-              accessToken: profile.auth && profile.auth.access_token
+              accessToken: profile.auth && profile.auth.access_token,
             }}
             options={{ template, editor }}
             onLoaded={(editorContext: any) => {}}

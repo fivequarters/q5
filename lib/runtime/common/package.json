@@ -1,0 +1,21 @@
+{
+  "name": "@5qtrs/runtime-common",
+  "version": "0.0.1",
+  "description": "",
+  "main": "libc/index.js",
+  "sideEffects": false,
+  "license": "UNLICENSED",
+  "author": "FiveQuarters.io",
+  "scripts": {
+    "build": "tsc -b",
+    "test": "jest --colors",
+    "coverage": "jest --colors --coverage",
+    "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x} test/{,**/}*.ts{,x}",
+    "clean": "rm -r -f libc; rm -r -f libm; rm -r -f coverage"
+  },
+  "keywords": [],
+  "dependencies": {
+    "@5qtrs/bq-metering": "^0.0.1",
+    "stack-trace": "^0.0.10"
+  }
+}

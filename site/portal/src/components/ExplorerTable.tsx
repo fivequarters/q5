@@ -1,28 +1,23 @@
-import { LinearProgress } from "@material-ui/core";
-import Checkbox from "@material-ui/core/Checkbox";
-import Grid from "@material-ui/core/Grid";
-import IconButton from "@material-ui/core/IconButton";
-import {
-  createStyles,
-  lighten,
-  makeStyles,
-  Theme,
-} from "@material-ui/core/styles";
-import Table from "@material-ui/core/Table";
-import TableBody from "@material-ui/core/TableBody";
-import TableCell from "@material-ui/core/TableCell";
-import TableHead from "@material-ui/core/TableHead";
-import TablePagination from "@material-ui/core/TablePagination";
-import TableRow from "@material-ui/core/TableRow";
-import TableSortLabel from "@material-ui/core/TableSortLabel";
-import Toolbar from "@material-ui/core/Toolbar";
-import Typography from "@material-ui/core/Typography";
-import DeleteIcon from "@material-ui/icons/Delete";
-import clsx from "clsx";
-import React from "react";
-import { getUISettings, setUISettings } from "../lib/Settings";
-import ConfirmationDialog from "./ConfirmationDialog";
-import FilterFab from "./FilterFab";
+import { LinearProgress } from '@material-ui/core';
+import Checkbox from '@material-ui/core/Checkbox';
+import Grid from '@material-ui/core/Grid';
+import IconButton from '@material-ui/core/IconButton';
+import { createStyles, lighten, makeStyles, Theme } from '@material-ui/core/styles';
+import Table from '@material-ui/core/Table';
+import TableBody from '@material-ui/core/TableBody';
+import TableCell from '@material-ui/core/TableCell';
+import TableHead from '@material-ui/core/TableHead';
+import TablePagination from '@material-ui/core/TablePagination';
+import TableRow from '@material-ui/core/TableRow';
+import TableSortLabel from '@material-ui/core/TableSortLabel';
+import Toolbar from '@material-ui/core/Toolbar';
+import Typography from '@material-ui/core/Typography';
+import DeleteIcon from '@material-ui/icons/Delete';
+import clsx from 'clsx';
+import React from 'react';
+import { getUISettings, setUISettings } from '../lib/Settings';
+import ConfirmationDialog from './ConfirmationDialog';
+import FilterFab from './FilterFab';
 
 function desc<T>(a: T, b: T, orderBy: keyof T) {
   if (b[orderBy] < a[orderBy]) {
@@ -41,15 +36,13 @@ function stableSort<T>(array: T[], cmp: (a: T, b: T) => number) {
     if (order !== 0) return order;
     return a[1] - b[1];
   });
-  return stabilizedThis.map((el) => el[0]);
+  return stabilizedThis.map(el => el[0]);
 }
 
-type Order = "asc" | "desc";
+type Order = 'asc' | 'desc';
 
 function getSorting<T>(order: Order, orderBy: keyof T): (a: T, b: T) => number {
-  return order === "desc"
-    ? (a, b) => desc(a, b, orderBy)
-    : (a, b) => -desc(a, b, orderBy);
+  return order === 'desc' ? (a, b) => desc(a, b, orderBy) : (a, b) => -desc(a, b, orderBy);
 }
 
 export interface HeadCell<T> {
@@ -57,7 +50,7 @@ export interface HeadCell<T> {
   disableSorting?: boolean;
   id: keyof T;
   label: string | JSX.Element;
-  align?: "left" | "right" | "inherit" | "center" | "justify";
+  align?: 'left' | 'right' | 'inherit' | 'center' | 'justify';
   render?: (row: T, tableRow: number) => any;
   getRowSpan?: (row: T, tableRow: number) => number;
 }
@@ -66,10 +59,7 @@ interface EnhancedTableProps<T> {
   classes: ReturnType<typeof useStyles>;
   numSelected: number;
   onRequestSort: (event: React.MouseEvent<unknown>, property: keyof T) => void;
-  onSelectAllClick: (
-    event: React.ChangeEvent<HTMLInputElement>,
-    checked: boolean
-  ) => void;
+  onSelectAllClick: (event: React.ChangeEvent<HTMLInputElement>, checked: boolean) => void;
   order: Order;
   orderBy: keyof T;
   rowCount: number;
@@ -89,9 +79,7 @@ function EnhancedTableHead<T>(props: EnhancedTableProps<T>) {
     headCells,
     enableSelection,
   } = props;
-  const createSortHandler = (property: keyof T) => (
-    event: React.MouseEvent<unknown>
-  ) => {
+  const createSortHandler = (property: keyof T) => (event: React.MouseEvent<unknown>) => {
     onRequestSort(event, property);
   };
 
@@ -105,15 +93,15 @@ function EnhancedTableHead<T>(props: EnhancedTableProps<T>) {
               indeterminate={numSelected > 0 && numSelected < rowCount}
               checked={numSelected === rowCount}
               onChange={onSelectAllClick}
-              inputProps={{ "aria-label": "select all desserts" }}
+              inputProps={{ 'aria-label': 'select all desserts' }}
             />
           </TableCell>
         )}
-        {headCells.map((headCell) => (
+        {headCells.map(headCell => (
           <TableCell
             key={headCell.id as string}
-            align={headCell.align || "right"}
-            padding={headCell.disablePadding ? "none" : "default"}
+            align={headCell.align || 'right'}
+            padding={headCell.disablePadding ? 'none' : 'default'}
             sortDirection={orderBy === headCell.id ? order : false}
           >
             {!headCell.disableSorting && (
@@ -125,9 +113,7 @@ function EnhancedTableHead<T>(props: EnhancedTableProps<T>) {
                 {headCell.label}
                 {orderBy === headCell.id ? (
                   <span className={classes.visuallyHidden}>
-                    {order === "desc"
-                      ? "sorted descending"
-                      : "sorted ascending"}
+                    {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
                   </span>
                 ) : null}
               </TableSortLabel>
@@ -148,12 +134,12 @@ const useToolbarStyles = makeStyles((theme: Theme) =>
     },
     highlight: {
       color: theme.palette.primary.main,
-      backgroundColor: lighten(theme.palette.primary.light, 0.85),
+      backgroundColor: lighten(theme.palette.secondary.light, 0.85),
     },
     title: {
-      flex: "1 1 100%",
-      display: "flex",
-      alignItems: "center",
+      flex: '1 1 100%',
+      display: 'flex',
+      alignItems: 'center',
     },
   })
 );
@@ -177,11 +163,7 @@ const EnhancedTableToolbar = (props: EnhancedTableToolbarProps) => {
       })}
     >
       {numSelected > 0 ? (
-        <Typography
-          className={classes.title}
-          color="inherit"
-          variant="subtitle1"
-        >
+        <Typography className={classes.title} color="inherit" variant="subtitle1">
           {numSelected} selected
         </Typography>
       ) : (
@@ -191,11 +173,7 @@ const EnhancedTableToolbar = (props: EnhancedTableToolbarProps) => {
         </Typography>
       )}
       {numSelected > 0 ? (
-        <IconButton
-          onClick={() => onDelete()}
-          aria-label="delete"
-          color="primary"
-        >
+        <IconButton onClick={() => onDelete()} aria-label="delete" color="primary">
           <DeleteIcon />
         </IconButton>
       ) : filterContent ? (
@@ -220,20 +198,20 @@ const useStyles = makeStyles((theme: Theme) =>
     },
     visuallyHidden: {
       border: 0,
-      clip: "rect(0 0 0 0)",
+      clip: 'rect(0 0 0 0)',
       height: 1,
       margin: -1,
-      overflow: "hidden",
+      overflow: 'hidden',
       padding: 0,
-      position: "absolute",
+      position: 'absolute',
       top: 20,
       width: 1,
     },
     multilineRow: {
-      verticalAlign: "top",
+      verticalAlign: 'top',
     },
     noBorder: {
-      borderBottom: "none",
+      borderBottom: 'none',
     },
   })
 );
@@ -243,7 +221,7 @@ interface ExplorerTableProps<T> {
   headCells: HeadCell<T>[];
   getTableRows?: (row: T) => number;
   defaultSortKey: keyof T;
-  defaultSortOrder?: "asc" | "desc";
+  defaultSortOrder?: 'asc' | 'desc';
   identityKey: keyof T;
   title: string;
   actions?: JSX.Element;
@@ -281,56 +259,49 @@ export default function ExplorerTable<T>(props: ExplorerTableProps<T>) {
   } = props;
   const classes = useStyles();
   const toolbarClasses = useToolbarStyles();
-  const [order, setOrder] = React.useState<Order>(defaultSortOrder || "asc");
+  const [order, setOrder] = React.useState<Order>(defaultSortOrder || 'asc');
   const [orderBy, setOrderBy] = React.useState<keyof T>(defaultSortKey);
   const [selected, setSelected] = React.useState<string[]>([]);
   const [page, setPage] = React.useState(0);
   // const [dense, setDense] = React.useState(false);
-  const [rowsPerPage, setRowsPerPage] = React.useState(
-    getUISettings().tableRowsPerPage
-  );
+  const [rowsPerPage, setRowsPerPage] = React.useState(getUISettings().tableRowsPerPage);
   const [confirmDelete, setConfirmDelete] = React.useState<any>({
-    status: "closed",
+    status: 'closed',
   });
 
   React.useEffect(() => {
-    if (confirmDelete.status === "initiating") {
-      setConfirmDelete({ status: "deleting" });
+    if (confirmDelete.status === 'initiating') {
+      setConfirmDelete({ status: 'deleting' });
       setSelected([]);
       (async () => {
         onDelete && (await onDelete(selected));
-        setConfirmDelete({ status: "closed" });
+        setConfirmDelete({ status: 'closed' });
       })();
     }
   }, [selected, confirmDelete, onDelete]);
 
-  const handleRequestSort = (
-    event: React.MouseEvent<unknown>,
-    property: keyof T
-  ) => {
-    const isDesc = orderBy === property && order === "desc";
-    setOrder(isDesc ? "asc" : "desc");
+  const handleRequestSort = (event: React.MouseEvent<unknown>, property: keyof T) => {
+    const isDesc = orderBy === property && order === 'desc';
+    setOrder(isDesc ? 'asc' : 'desc');
     setOrderBy(property);
   };
 
   const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
-      const newSelecteds = rows.map(
-        (n) => (n[identityKey] as unknown) as string
-      );
+      const newSelecteds = rows.map(n => (n[identityKey] as unknown) as string);
       setSelected(newSelecteds);
       return;
     }
     setSelected([]);
   };
 
-  const handleDeleteDialogOpen = () => setConfirmDelete({ status: "open" });
+  const handleDeleteDialogOpen = () => setConfirmDelete({ status: 'open' });
 
   const handleDelete = (confirmed: boolean) => {
     if (confirmed) {
-      setConfirmDelete({ status: "initiating" });
+      setConfirmDelete({ status: 'initiating' });
     } else {
-      setConfirmDelete({ status: "closed" });
+      setConfirmDelete({ status: 'closed' });
     }
   };
 
@@ -345,10 +316,7 @@ export default function ExplorerTable<T>(props: ExplorerTableProps<T>) {
     } else if (selectedIndex === selected.length - 1) {
       newSelected = newSelected.concat(selected.slice(0, -1));
     } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(
-        selected.slice(0, selectedIndex),
-        selected.slice(selectedIndex + 1)
-      );
+      newSelected = newSelected.concat(selected.slice(0, selectedIndex), selected.slice(selectedIndex + 1));
     }
 
     setSelected(newSelected);
@@ -358,9 +326,7 @@ export default function ExplorerTable<T>(props: ExplorerTableProps<T>) {
     setPage(newPage);
   };
 
-  const handleChangeRowsPerPage = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
     const rowsPerPage = parseInt(event.target.value, 10);
     setUISettings({ ...getUISettings(), tableRowsPerPage: rowsPerPage });
     setRowsPerPage(rowsPerPage);
@@ -380,31 +346,28 @@ export default function ExplorerTable<T>(props: ExplorerTableProps<T>) {
 
   let dataRows = stableSort<T>(rows, getSorting<T>(order, orderBy));
   if (!props.disablePagination) {
-    dataRows = dataRows.slice(
-      page * rowsPerPage,
-      page * rowsPerPage + rowsPerPage
-    );
+    dataRows = dataRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
   }
 
   return (
     <div className={classes.root}>
       <Grid container spacing={2}>
-        <Grid item xs={size === "narrow" ? 8 : 12}>
+        <Grid item xs={size === 'narrow' ? 8 : 12}>
           <ConfirmationDialog
-            open={confirmDelete.status !== "closed"}
+            open={confirmDelete.status !== 'closed'}
             title={
-              confirmDelete.status === "open"
+              confirmDelete.status === 'open'
                 ? deleteTitle
-                  ? typeof deleteTitle === "string"
+                  ? typeof deleteTitle === 'string'
                     ? deleteTitle
                     : deleteTitle(selected)
                   : `Confirm delete?`
-                : "Deleting..."
+                : 'Deleting...'
             }
             content={
-              confirmDelete.status === "open" ? (
+              confirmDelete.status === 'open' ? (
                 deleteContent ? (
-                  typeof deleteContent === "string" ? (
+                  typeof deleteContent === 'string' ? (
                     deleteContent
                   ) : (
                     deleteContent(selected)
@@ -428,12 +391,8 @@ export default function ExplorerTable<T>(props: ExplorerTableProps<T>) {
             onDelete={handleDeleteDialogOpen}
           />
           {/* <TableContainer> */}
-          {rows.length === 0 && noDataBody && (
-            <div className={toolbarClasses.root}>{noDataBody}</div>
-          )}
-          {filterChips && (
-            <div className={toolbarClasses.root}>{filterChips}</div>
-          )}
+          {rows.length === 0 && noDataBody && <div className={toolbarClasses.root}>{noDataBody}</div>}
+          {filterChips && <div className={toolbarClasses.root}>{filterChips}</div>}
           {(rows.length > 0 || !noDataBody) && (
             <React.Fragment>
               <Table
@@ -457,126 +416,92 @@ export default function ExplorerTable<T>(props: ExplorerTableProps<T>) {
                 <TableBody>
                   {firstRowMessage && (
                     <TableRow>
-                      <TableCell
-                        colSpan={headCells.length + (enableSelection ? 1 : 0)}
-                      >
-                        {firstRowMessage}
-                      </TableCell>
+                      <TableCell colSpan={headCells.length + (enableSelection ? 1 : 0)}>{firstRowMessage}</TableCell>
                     </TableRow>
                   )}
                   {dataRows.map((row, index) => {
-                    const isItemSelected = isSelected(
-                      (row[identityKey] as unknown) as string
-                    );
+                    const isItemSelected = isSelected((row[identityKey] as unknown) as string);
                     const labelId = `explorer-table-checkbox-${index}`;
                     const tableRows = (getTableRows && getTableRows(row)) || 1;
 
                     return (
-                      <React.Fragment
-                        key={`${(row[identityKey] as unknown) as string}`}
-                      >
-                        {Array.from(Array(tableRows).keys()).map(
-                          (_, tableRow) => (
-                            <TableRow
-                              hover={enableSelection}
-                              onClick={
-                                enableSelection
-                                  ? (event) =>
-                                      handleClick(
-                                        event,
-                                        (row[identityKey] as unknown) as string
-                                      )
-                                  : undefined
+                      <React.Fragment key={`${(row[identityKey] as unknown) as string}`}>
+                        {Array.from(Array(tableRows).keys()).map((_, tableRow) => (
+                          <TableRow
+                            hover={enableSelection}
+                            onClick={
+                              enableSelection
+                                ? event => handleClick(event, (row[identityKey] as unknown) as string)
+                                : undefined
+                            }
+                            role="checkbox"
+                            aria-checked={isItemSelected}
+                            tabIndex={-1}
+                            key={`${(row[identityKey] as unknown) as string}-${tableRow}`}
+                            selected={isItemSelected}
+                            className={tableRows > 1 ? classes.multilineRow : undefined}
+                          >
+                            {enableSelection && tableRow === 0 && (
+                              <TableCell padding="checkbox">
+                                <Checkbox
+                                  color="primary"
+                                  checked={isItemSelected}
+                                  inputProps={{ 'aria-labelledby': labelId }}
+                                />
+                              </TableCell>
+                            )}
+                            {headCells[0] && tableRow === 0 && (
+                              <TableCell
+                                component="th"
+                                id={labelId}
+                                scope="row"
+                                padding={enableSelection ? 'none' : 'default'}
+                                align={headCells[0].align || 'right'}
+                                rowSpan={
+                                  (headCells[0].getRowSpan && headCells[0].getRowSpan(row, tableRow)) || undefined
+                                }
+                              >
+                                {headCells[0].render ? headCells[0].render(row, tableRow) : row[headCells[0].id]}
+                              </TableCell>
+                            )}
+                            {headCells.map((cell, index) => {
+                              if (index === 0) {
+                                return undefined;
                               }
-                              role="checkbox"
-                              aria-checked={isItemSelected}
-                              tabIndex={-1}
-                              key={`${(row[
-                                identityKey
-                              ] as unknown) as string}-${tableRow}`}
-                              selected={isItemSelected}
-                              className={
-                                tableRows > 1 ? classes.multilineRow : undefined
+                              const cellContent = cell.render ? cell.render(row, tableRow) : row[cell.id];
+                              if (cellContent === undefined) {
+                                return undefined;
                               }
-                            >
-                              {enableSelection && tableRow === 0 && (
-                                <TableCell padding="checkbox">
-                                  <Checkbox
-                                    color="primary"
-                                    checked={isItemSelected}
-                                    inputProps={{ "aria-labelledby": labelId }}
-                                  />
-                                </TableCell>
-                              )}
-                              {headCells[0] && tableRow === 0 && (
+                              let rowSpan = (cell.getRowSpan && cell.getRowSpan(row, tableRow)) || undefined;
+                              let hasBottomBorder = tableRows === tableRow + (rowSpan || 1);
+                              const style: any = {};
+                              if (tableRow > 0) {
+                                style.paddingTop = 0;
+                              }
+                              if (tableRow < tableRows - 1) {
+                                style.paddingBottom = 0;
+                              }
+                              return (
                                 <TableCell
-                                  component="th"
-                                  id={labelId}
-                                  scope="row"
-                                  padding={enableSelection ? "none" : "default"}
-                                  align={headCells[0].align || "right"}
-                                  rowSpan={
-                                    (headCells[0].getRowSpan &&
-                                      headCells[0].getRowSpan(row, tableRow)) ||
-                                    undefined
-                                  }
+                                  key={('aaa' + cell.id) as string}
+                                  align={cell.align || 'right'}
+                                  rowSpan={rowSpan}
+                                  className={hasBottomBorder ? undefined : classes.noBorder}
+                                  style={style}
                                 >
-                                  {headCells[0].render
-                                    ? headCells[0].render(row, tableRow)
-                                    : row[headCells[0].id]}
+                                  {cellContent}
                                 </TableCell>
-                              )}
-                              {headCells.map((cell, index) => {
-                                if (index === 0) {
-                                  return undefined;
-                                }
-                                const cellContent = cell.render
-                                  ? cell.render(row, tableRow)
-                                  : row[cell.id];
-                                if (cellContent === undefined) {
-                                  return undefined;
-                                }
-                                let rowSpan =
-                                  (cell.getRowSpan &&
-                                    cell.getRowSpan(row, tableRow)) ||
-                                  undefined;
-                                let hasBottomBorder =
-                                  tableRows === tableRow + (rowSpan || 1);
-                                const style: any = {};
-                                if (tableRow > 0) {
-                                  style.paddingTop = 0;
-                                }
-                                if (tableRow < tableRows - 1) {
-                                  style.paddingBottom = 0;
-                                }
-                                return (
-                                  <TableCell
-                                    key={("aaa" + cell.id) as string}
-                                    align={cell.align || "right"}
-                                    rowSpan={rowSpan}
-                                    className={
-                                      hasBottomBorder
-                                        ? undefined
-                                        : classes.noBorder
-                                    }
-                                    style={style}
-                                  >
-                                    {cellContent}
-                                  </TableCell>
-                                );
-                              })}
-                            </TableRow>
-                          )
-                        )}
+                              );
+                            })}
+                          </TableRow>
+                        ))}
                       </React.Fragment>
                     );
                   })}
                   {emptyRows > 0 && (
                     // <TableRow style={{ height: (dense ? 33 : 53) * emptyRows }}>
                     <TableRow style={{ height: 53 * emptyRows }}>
-                      <TableCell
-                        colSpan={headCells.length + (enableSelection ? 1 : 0)}
-                      />
+                      <TableCell colSpan={headCells.length + (enableSelection ? 1 : 0)} />
                     </TableRow>
                   )}
                 </TableBody>

@@ -220,7 +220,7 @@ export function FusebitModal({ show, background, ...rest }: FusebitModalProps) {
   }
 
   return (
-    <Modal show={show} background={background || opacity(FusebitColor.dark, 0.5)} onClick={onClick}>
+    <Modal show={show} background={background || opacity(FusebitColor.black, 0.5)} onClick={onClick}>
       <MediaQuery mediaType={MediaType.mobile}>
         <ModalCard show={show && !closing} {...rest} isMobile />
       </MediaQuery>

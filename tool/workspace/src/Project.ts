@@ -212,7 +212,7 @@ export default class Project {
       stdout?: Writable;
       stderr?: Writable;
     } = {}
-  ) {
+  ): Promise<number> {
     const workspaces = await this.GetWorkspaces();
     const stderrToStdout = options.stdout && options.stderr === options.stdout;
     const stdout = options.stdout ? new MergeStream(options.stdout) : undefined;
@@ -257,6 +257,7 @@ export default class Project {
       exitCodes.push(...batchExitCodes);
     }
 
+    let finalCode: number = 0;
     if (options.stdout) {
       let isFirst = true;
       for (let i = 0; i < exitCodes.length; i++) {
@@ -272,12 +273,16 @@ export default class Project {
             `command executed with exit code: ${exitCode}\n`,
           ].join(' ');
           options.stdout.write(message);
+
+          finalCode = exitCode;
         }
       }
       if (!isFirst) {
         options.stdout.write('\n');
       }
     }
+
+    return finalCode;
   }
 
   private async RemoveWorkspace(name: string) {

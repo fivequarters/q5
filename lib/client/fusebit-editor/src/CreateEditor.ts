@@ -78,19 +78,21 @@ export function createEditor(
 
     const lines: string[] = [
       `<div id="${idPrefix}" class="fusebit-theme-${opts.theme ||
-        'light'} fusebit-shell"><div id="${idPrefix}-main" class="fusebit-main">`,
+        'light'} fusebit-shell"><div id="${idPrefix}-main" class="fusebit-main${
+        opts.statusPanel === false ? ' fusebit-main-no-status' : ''
+      }">`,
     ];
     if (opts.actionPanel !== false) {
-      lines.push(`<div id="${actionId}" class="fusebit-action-container"></div>`);
+      lines.push(`<div id="${actionId}" class="fusebit-action-container" tabindex="-1"></div>`);
     }
     if (opts.navigationPanel !== false) {
-      lines.push(`<div class="fusebit-nav-container" id="${navId}"></div>`);
+      lines.push(`<div class="fusebit-nav-container" id="${navId}" tabindex="-1"></div>`);
     }
     if (opts.navigationPanel !== false && (opts.editorPanel !== false || opts.logsPanel !== false)) {
-      lines.push(`<div class="fusebit-nav-splitter" id="${navSplitterId}"></div>`);
+      lines.push(`<div class="fusebit-nav-splitter" id="${navSplitterId}" tabindex="-1"></div>`);
     }
     if (opts.editorPanel !== false || opts.logsPanel !== false) {
-      lines.push(`<div class="fusebit-nav-editor-container" id="${navEditorContainerId}">`);
+      lines.push(`<div class="fusebit-nav-editor-container" id="${navEditorContainerId}" tabindex="-1">`);
       if (opts.editorPanel !== false) {
         lines.push(`<div class="fusebit-editor-container" id="${editorId}"></div>`);
       }
@@ -104,7 +106,7 @@ export function createEditor(
     }
     lines.push('</div>');
     if (opts.statusPanel !== false) {
-      lines.push(`<div class="fusebit-status-container" id="${statusId}"></div>`);
+      lines.push(`<div class="fusebit-status-container" id="${statusId}" tabindex="-1"></div>`);
     }
     lines.push('</div>');
 
@@ -174,7 +176,6 @@ export function createEditor(
       createActionPanel(
         document.getElementById(actionId) as HTMLElement,
         editorContext,
-        server,
         opts.actionPanel as Options.IActionPanelOptions
       );
     }
@@ -184,7 +185,6 @@ export function createEditor(
         editorContext,
         opts.logsPanel as Options.ILogsPanelOptions
       );
-      server.attachServerLogs(editorContext);
     }
 
     mainElement.addEventListener('keydown', function(e: KeyboardEvent) {
@@ -199,9 +199,9 @@ export function createEditor(
 
     editorContext.on(Events.Events.LogsStateChanged, (e: Events.LogsStateChangedEvent) => {
       if (e.newState) {
-        delete logsElement.style.display;
+        logsElement.style.display = 'unset';
         if (logsSplitterElement) {
-          delete logsSplitterElement.style.display;
+          logsSplitterElement.style.display = 'unset';
         }
       } else {
         logsElement.style.display = 'none';
@@ -213,9 +213,9 @@ export function createEditor(
 
     editorContext.on(Events.Events.NavStateChanged, (e: Events.NavStateChangedEvent) => {
       if (e.newState) {
-        delete navElement.style.display;
+        navElement.style.display = 'unset';
         if (navSplitterElement) {
-          delete navSplitterElement.style.display;
+          navSplitterElement.style.display = 'unset';
         }
       } else {
         navElement.style.display = 'none';

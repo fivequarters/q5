@@ -18,6 +18,10 @@
   background: transparent;
 }
 
+.fusebit-theme-dark .fusebit-main-no-status {
+  height: 100%;
+}
+
 .fusebit-theme-dark .fusebit-nav-editor-container {
   flex: 1 1 auto;
   display: flex;
@@ -25,6 +29,7 @@
   align-items: stretch;
   min-height: 100px;
   overflow: hidden;
+  outline: none;
 }
 
 .fusebit-theme-dark .fusebit-logs-splitter {
@@ -41,6 +46,7 @@
   min-height: 100px;
   background-color: #252526;
   position: relative;
+  outline: none;
 }
 
 .fusebit-theme-dark .fusebit-nav-splitter {
@@ -50,6 +56,7 @@
   background: #252526;
   min-height: 100px;
   cursor: col-resize;
+  outline: none;
 }
 
 .fusebit-theme-dark .fusebit-editor-container {
@@ -69,6 +76,7 @@
   overflow: hidden;
   padding-left: 10px;
   padding-top: 10px;
+  outline: false;
 }
 
 .fusebit-theme-dark .fusebit-status-container {
@@ -76,6 +84,7 @@
   font-family: Helvetica, Arial, sans-serif;
   color: #c1c1c1;
   background-color: #383838;
+  outline: none;
 }
 
 .fusebit-theme-dark .fusebit-nav {
@@ -83,7 +92,7 @@
   flex-flow: column;
   align-items: stretch;
   min-height: 100px;
-  overflow: scroll;
+  overflow: auto;
   height: 100%;
   width: 100%;
   margin-top: 4px;
@@ -190,7 +199,7 @@
 }
 
 .fusebit-theme-dark .fusebit-logs {
-  overflow: scroll;
+  overflow: auto;
   height: 100%;
   width: 100%;
 }
@@ -255,6 +264,7 @@
   color: #adadad;
   width: 100px;
   background-color: #333333;
+  outline: none;
 }
 
 .fusebit-theme-dark .fusebit-action-btn {

@@ -1,17 +1,17 @@
-import Button from "@material-ui/core/Button";
-import Dialog from "@material-ui/core/Dialog";
-import DialogActions from "@material-ui/core/DialogActions";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogTitle from "@material-ui/core/DialogTitle";
-import React from "react";
-import { modifyIssuer, useIssuer } from "./IssuerProvider";
-import PublicKeyDetails from "./PublicKeyDetails";
+import Button from '@material-ui/core/Button';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import React from 'react';
+import { modifyIssuer, useIssuer } from './IssuerProvider';
+import PublicKeyDetails from './PublicKeyDetails';
 
 function AddPublicKeyDialog({ onClose }: any) {
   const [issuer, setIssuer] = useIssuer();
   const [addPublicKey, setAddPublicKey] = React.useState<any>({
-    keyId: "",
-    publicKey: ""
+    keyId: '',
+    publicKey: '',
   });
 
   const hasError = () =>
@@ -25,15 +25,15 @@ function AddPublicKeyDialog({ onClose }: any) {
     );
 
   const handleSubmit = () => {
-    if (issuer.status === "ready") {
+    if (issuer.status === 'ready') {
       let newPublicKeys = [...(issuer.modified.publicKeys || [])];
       newPublicKeys.push({
         keyId: addPublicKey.keyId.trim(),
-        publicKey: addPublicKey.publicKey.trim()
+        publicKey: addPublicKey.publicKey.trim(),
       });
       modifyIssuer(issuer, setIssuer, {
         ...issuer.modified,
-        publicKeys: newPublicKeys
+        publicKeys: newPublicKeys,
       });
       onClose && onClose();
     }
@@ -53,9 +53,7 @@ function AddPublicKeyDialog({ onClose }: any) {
           publicKey={addPublicKey}
           onPublicKeyChanged={(publicKey: any) => setAddPublicKey(publicKey)}
           existingPublicKeys={
-            issuer.status === "ready" || issuer.status === "updating"
-              ? issuer.modified.publicKeys
-              : []
+            issuer.status === 'ready' || issuer.status === 'updating' ? issuer.modified.publicKeys : []
           }
         />
       </DialogContent>
@@ -66,7 +64,7 @@ function AddPublicKeyDialog({ onClose }: any) {
         >
           Cancel
         </Button>
-        <Button onClick={handleSubmit} color="primary" disabled={hasError()}>
+        <Button onClick={handleSubmit} color="secondary" variant="contained" disabled={hasError()}>
           Add
         </Button>
       </DialogActions>

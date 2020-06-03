@@ -1,46 +1,40 @@
-import { DialogContentText } from "@material-ui/core";
-import Button from "@material-ui/core/Button";
-import Dialog from "@material-ui/core/Dialog";
-import DialogActions from "@material-ui/core/DialogActions";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogTitle from "@material-ui/core/DialogTitle";
-import LinearProgress from "@material-ui/core/LinearProgress";
-import Step from "@material-ui/core/Step";
-import StepLabel from "@material-ui/core/StepLabel";
-import Stepper from "@material-ui/core/Stepper";
-import { makeStyles } from "@material-ui/core/styles";
-import GridOnIcon from "@material-ui/icons/GridOn";
-import React from "react";
-import {
-  createPermissionsFromRole,
-  roles,
-  rolesHash,
-  sameRole
-} from "../lib/Actions";
-import { formatAgent, modifyAgent, saveAgent, useAgent } from "./AgentProvider";
-import FunctionResourceSelector from "./FunctionResourceSelector";
-import PermissionsReviewTable from "./PermissionReviewTable";
-import PermissionRoleSelector from "./PermissionRoleSelector";
-import PortalError from "./PortalError";
-import { useProfile } from "./ProfileProvider";
+import { DialogContentText } from '@material-ui/core';
+import Button from '@material-ui/core/Button';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import LinearProgress from '@material-ui/core/LinearProgress';
+import Step from '@material-ui/core/Step';
+import StepLabel from '@material-ui/core/StepLabel';
+import Stepper from '@material-ui/core/Stepper';
+import { makeStyles } from '@material-ui/core/styles';
+import GridOnIcon from '@material-ui/icons/GridOn';
+import React from 'react';
+import { createPermissionsFromRole, roles, rolesHash, sameRole } from '../lib/Actions';
+import { formatAgent, modifyAgent, saveAgent, useAgent } from './AgentProvider';
+import FunctionResourceSelector from './FunctionResourceSelector';
+import PermissionsReviewTable from './PermissionReviewTable';
+import PermissionRoleSelector from './PermissionRoleSelector';
+import PortalError from './PortalError';
+import { useProfile } from './ProfileProvider';
 
 const useStyles = makeStyles((theme: any) => ({
   dialogPaper: {
     // minHeight: window.location.hash.indexOf("flexible") > -1 ? 0 : 480
   },
   breadcrumbEntry: {
-    display: "flex"
+    display: 'flex',
   },
   breadcrumbIcon: {
-    marginRight: theme.spacing(1)
+    marginRight: theme.spacing(1),
   },
   inputField: {
-    marginTop: theme.spacing(2)
-  }
+    marginTop: theme.spacing(2),
+  },
 }));
 
-const createPermissionId = (permission: any) =>
-  `${permission.action}#${permission.resource}`;
+const createPermissionId = (permission: any) => `${permission.action}#${permission.resource}`;
 
 function AddPermissionSetDialog({ onClose }: any) {
   const classes = useStyles();
@@ -49,30 +43,26 @@ function AddPermissionSetDialog({ onClose }: any) {
   const [role, setRole] = React.useState<any>(roles[0]);
   const [resource, setResource] = React.useState<any>({
     parts: {
-      subscriptionId: "*",
-      boundaryId: "",
-      functionId: ""
-    }
+      subscriptionId: '*',
+      boundaryId: '',
+      functionId: '',
+    },
   });
   const [activeStep, setActiveStep] = React.useState(0);
 
   const handleSubmit = () => {
-    if (agent.status === "ready") {
+    if (agent.status === 'ready') {
       let allowHash: any = {};
       let allow: any[] = [];
-      ((agent.modified.access && agent.modified.access.allow) || []).forEach(
-        (e: any) => {
-          allow.push(e);
-          allowHash[createPermissionId(e)] = true;
+      ((agent.modified.access && agent.modified.access.allow) || []).forEach((e: any) => {
+        allow.push(e);
+        allowHash[createPermissionId(e)] = true;
+      });
+      createPermissionsFromRole(profile, role, resource.parts).forEach(permission => {
+        if (!allowHash[createPermissionId(permission)]) {
+          allow.push(permission);
         }
-      );
-      createPermissionsFromRole(profile, role, resource.parts).forEach(
-        permission => {
-          if (!allowHash[createPermissionId(permission)]) {
-            allow.push(permission);
-          }
-        }
-      );
+      });
       agent.modified.access = { allow };
       modifyAgent(agent, setAgent, { ...agent.modified });
       saveAgent(agent, setAgent, undefined, e => !e && onClose && onClose());
@@ -89,10 +79,10 @@ function AddPermissionSetDialog({ onClose }: any) {
     if (nextStep === 0) {
       setResource({
         parts: {
-          subscriptionId: "*",
-          boundaryId: "",
-          functionId: ""
-        }
+          subscriptionId: '*',
+          boundaryId: '',
+          functionId: '',
+        },
       });
     }
     setActiveStep(nextStep);
@@ -102,11 +92,9 @@ function AddPermissionSetDialog({ onClose }: any) {
     return (
       <DialogContent>
         <DialogContentText>
-          Select the permission set for {agent.isUser ? "user" : "client"}{" "}
-          <strong>{formatAgent(agent)}</strong>. You can only assign a
-          permission set if you have all necessary permissions yourself. On the
-          next screen you will be able to select the resource scope for this
-          permission set.
+          Select the permission set for {agent.isUser ? 'user' : 'client'} <strong>{formatAgent(agent)}</strong>. You
+          can only assign a permission set if you have all necessary permissions yourself. On the next screen you will
+          be able to select the resource scope for this permission set.
         </DialogContentText>
         <PermissionRoleSelector
           role={role}
@@ -114,20 +102,21 @@ function AddPermissionSetDialog({ onClose }: any) {
           className={classes.inputField}
           allowSameRole
           autoFocus
+          variant="filled"
         />
       </DialogContent>
     );
   }
 
-  const isAccountLevelPermissionSet = () => role.role === "admin";
+  const isAccountLevelPermissionSet = () => role.role === 'admin';
 
   function resourceSelector() {
     if (role.role === sameRole.role) {
       return (
         <DialogContent>
           <DialogContentText>
-            The {agent.isUser ? "user" : "client"} will be granted the same set
-            of permissions you have. You can review them in the next step.
+            The {agent.isUser ? 'user' : 'client'} will be granted the same set of permissions you have. You can review
+            them in the next step.
           </DialogContentText>
         </DialogContent>
       );
@@ -135,10 +124,10 @@ function AddPermissionSetDialog({ onClose }: any) {
       return (
         <DialogContent>
           <DialogContentText>
-            Apply the{" "}
+            Apply the{' '}
             <strong>
               {role.title} - {role.description}
-            </strong>{" "}
+            </strong>{' '}
             permission set at the account level:
           </DialogContentText>
           <DialogContentText className={classes.breadcrumbEntry}>
@@ -152,46 +141,37 @@ function AddPermissionSetDialog({ onClose }: any) {
       return (
         <DialogContent>
           <DialogContentText>
-            Apply the{" "}
+            Apply the{' '}
             <strong>
               {role.title} - {role.description}
-            </strong>{" "}
+            </strong>{' '}
             permission set to:
           </DialogContentText>
-          <FunctionResourceSelector
-            resource={resource}
-            onResourceChange={(resource: any) => setResource(resource)}
-          />
+          <FunctionResourceSelector resource={resource} onResourceChange={(resource: any) => setResource(resource)} />
         </DialogContent>
       );
     }
   }
 
   function permissionReview() {
-    if (agent.status === "error") {
+    if (agent.status === 'error') {
       return (
         <DialogContent>
           <PortalError error={agent.error} />
         </DialogContent>
       );
-    } else if (agent.status === "ready" || agent.status === "updating") {
+    } else if (agent.status === 'ready' || agent.status === 'updating') {
       return (
         <DialogContent>
           <DialogContentText>
-            The following permissions will be granted to{" "}
-            {agent.isUser ? "user" : "client"}{" "}
+            The following permissions will be granted to {agent.isUser ? 'user' : 'client'}{' '}
             <strong>{formatAgent(agent)}</strong>:
           </DialogContentText>
           {role.role !== sameRole.role && (
-            <PermissionsReviewTable
-              actions={rolesHash[role.role].actions}
-              resource={resource}
-            />
+            <PermissionsReviewTable actions={rolesHash[role.role].actions} resource={resource} />
           )}
           {role.role === sameRole.role && (
-            <PermissionsReviewTable
-              allow={(profile.me && profile.me.access.allow) || []}
-            />
+            <PermissionsReviewTable allow={(profile.me && profile.me.access.allow) || []} />
           )}
         </DialogContent>
       );
@@ -219,38 +199,32 @@ function AddPermissionSetDialog({ onClose }: any) {
           <StepLabel>Confirm</StepLabel>
         </Step>
       </Stepper>
-      {activeStep === 0 && agent.status === "loading" && (
+      {activeStep === 0 && agent.status === 'loading' && (
         <DialogContent>
           <LinearProgress />
         </DialogContent>
       )}
-      {agent.status === "error" && (
+      {agent.status === 'error' && (
         <DialogContent>
           <PortalError error={agent.error} />
         </DialogContent>
       )}
-      {activeStep === 0 && agent.status === "ready" && roleSelector()}
-      {activeStep === 1 && agent.status === "ready" && resourceSelector()}
-      {activeStep === 2 && agent.status !== "error" && permissionReview()}
+      {activeStep === 0 && agent.status === 'ready' && roleSelector()}
+      {activeStep === 1 && agent.status === 'ready' && resourceSelector()}
+      {activeStep === 2 && agent.status !== 'error' && permissionReview()}
       <DialogActions>
-        <Button
-          onClick={() => onClose && onClose()}
-          disabled={agent.status === "updating"}
-        >
+        <Button onClick={() => onClose && onClose()} disabled={agent.status === 'updating'}>
           Cancel
         </Button>
-        <Button
-          onClick={handlePreviousStep}
-          disabled={activeStep === 0 || agent.status !== "ready"}
-        >
+        <Button onClick={handlePreviousStep} disabled={activeStep === 0 || agent.status !== 'ready'}>
           Back
         </Button>
         {activeStep < 2 && (
           <Button
             onClick={handleNextStep}
-            color="primary"
+            color="secondary"
             variant="contained"
-            disabled={resource.hasError || agent.status !== "ready"}
+            disabled={resource.hasError || agent.status !== 'ready'}
           >
             Next
           </Button>
@@ -258,8 +232,8 @@ function AddPermissionSetDialog({ onClose }: any) {
         {activeStep === 2 && (
           <Button
             onClick={handleSubmit}
-            color="primary"
-            disabled={resource.hasError || agent.status !== "ready"}
+            color="secondary"
+            disabled={resource.hasError || agent.status !== 'ready'}
             variant="contained"
           >
             Save

@@ -3,6 +3,7 @@ import { Text } from '@5qtrs/text';
 import { OpsService } from './OpsService';
 import {
   IOpsDeployment,
+  IOpsDeploymentParameters,
   IListOpsDeploymentOptions,
   IListOpsDeploymentResult,
   IFusebitSubscription,
@@ -32,7 +33,7 @@ export class DeploymentService {
     return new DeploymentService(input, opsService, executeService);
   }
 
-  public async checkDeploymentExists(deployment: IOpsDeployment): Promise<void> {
+  public async checkDeploymentExists(deployment: IOpsDeploymentParameters): Promise<IOpsDeployment> {
     const opsDataContext = await this.opsService.getOpsDataContext();
     const deploymentData = opsDataContext.deploymentData;
 
@@ -42,16 +43,18 @@ export class DeploymentService {
         message: `Determining if the '${Text.bold(deployment.deploymentName)}' deployment already exists...`,
         errorHeader: 'Deployment Error',
       },
-      () => deploymentData.exists(deployment)
+      () => deploymentData.existsAndUpdate(deployment)
     );
 
     if (exists) {
       this.executeService.warning(
         'Deployment Exists',
-        `There is already a '${Text.bold(deployment.deploymentName)}' deployment`
+        `'${Text.bold(deployment.deploymentName)}' has been updated with the supplied parameters.`
       );
       throw Error('Deployment already Exists');
     }
+
+    return deployment as IOpsDeployment;
   }
 
   public async confirmAddDeployment(deployment: IOpsDeployment) {
@@ -63,6 +66,7 @@ export class DeploymentService {
         { name: 'Domain', value: deployment.domainName },
         { name: 'Network', value: deployment.networkName },
         { name: 'Size', value: deployment.size.toString() },
+        { name: 'Elastic Search', value: deployment.elasticSearch },
         { name: 'DWH', value: deployment.dataWarehouseEnabled ? 'Enabled' : 'Disabled' },
       ],
     });
@@ -127,8 +131,8 @@ export class DeploymentService {
 
     await this.executeService.execute(
       {
-        header: 'Add Deployment',
-        message: `Adding the '${Text.bold(deployment.deploymentName)}' deployment to the Fusebit platform...`,
+        header: 'Publish Deployment',
+        message: `Publishing the '${Text.bold(deployment.deploymentName)}' deployment to the Fusebit platform...`,
         errorHeader: 'Deployment Error',
       },
       () => deploymentData.add(deployment)
@@ -139,7 +143,7 @@ export class DeploymentService {
       `The '${Text.bold(deployment.deploymentName)}' deployment was successfully added to Fusebit platform`
     );
 
-    return deployment as IOpsDeployment;
+    return deployment;
   }
 
   public async addSubscription(subscription: IFusebitSubscription): Promise<IFusebitSubscription> {
@@ -219,7 +223,7 @@ export class DeploymentService {
       if (!region) {
         await this.executeService.error(
           'Many Deployments',
-          Text.create(`There is more than one '${Text.bold(deploymentName)}' deployment. You must sepcify the region.'`)
+          Text.create(`There is more than one '${Text.bold(deploymentName)}' deployment. You must specify the region.'`)
         );
         throw new Error('Unspecified deployment');
       }
@@ -415,7 +419,10 @@ export class DeploymentService {
       deployment.networkName,
       Text.eol(),
       Text.dim('Default Size: '),
-      deployment.size.toString(),
+      deployment.size != undefined ? deployment.size.toString() : '',
+      Text.eol(),
+      Text.dim('Elastic Search: '),
+      deployment.elasticSearch ? deployment.elasticSearch.toString() : '',
       Text.eol(),
       Text.dim('Data Warehouse: '),
       deployment.dataWarehouseEnabled ? 'Enabled' : 'Disabled',

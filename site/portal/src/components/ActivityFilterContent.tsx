@@ -1,18 +1,18 @@
-import Button from "@material-ui/core/Button";
-import Grid from "@material-ui/core/Grid";
-import MenuItem from "@material-ui/core/MenuItem";
-import Typography from "@material-ui/core/Typography";
-import Radio from "@material-ui/core/Radio";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
-import { makeStyles } from "@material-ui/core/styles";
-import TextField from "@material-ui/core/TextField";
-import React from "react";
-import { actions } from "../lib/Actions";
-import { AuditFilter } from "../lib/FusebitTypes";
-import DateTimeRangePicker from "./DateTimeRangePicker";
+import Button from '@material-ui/core/Button';
+import Grid from '@material-ui/core/Grid';
+import MenuItem from '@material-ui/core/MenuItem';
+import Typography from '@material-ui/core/Typography';
+import Radio from '@material-ui/core/Radio';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import { makeStyles } from '@material-ui/core/styles';
+import TextField from '@material-ui/core/TextField';
+import React from 'react';
+import { actions } from '../lib/Actions';
+import { AuditFilter } from '../lib/FusebitTypes';
+import DateTimeRangePicker from './DateTimeRangePicker';
 
-export const defaultFilterFrom = "-1h";
-export const defaultFilterAction = "*";
+export const defaultFilterFrom = '-1h';
+export const defaultFilterAction = '*';
 
 const useStyles = makeStyles((theme: any) => ({
   filterRoot: {
@@ -22,8 +22,8 @@ const useStyles = makeStyles((theme: any) => ({
     maxWidth: 650,
   },
   filterActions: {
-    display: "inline-flex",
-    justifyContent: "flex-end",
+    display: 'inline-flex',
+    justifyContent: 'flex-end',
   },
   filterInputs: {
     padding: theme.spacing(1),
@@ -57,12 +57,12 @@ function ActivityFilterContent({
         filter.resource &&
         filter.resource.indexOf(filterMask.resource) > -1 &&
         filter.resource.substring(filterMask.resource.length)) ||
-      "",
-    action: filter.action || "*",
-    issuerId: filter.issuerId || "",
-    subject: filter.subject || "",
+      '',
+    action: filter.action || '*',
+    issuerId: filter.issuerId || '',
+    subject: filter.subject || '',
     from: filter.from || defaultFilterFrom,
-    to: filter.to || "",
+    to: filter.to || '',
     utc,
   });
   const classes = useStyles();
@@ -91,9 +91,9 @@ function ActivityFilterContent({
     setData({ ...data, utc: !data.utc });
   };
 
-  let allowedActions = [{ action: "*", description: "Any action" }];
+  let allowedActions = [{ action: '*', description: 'Any action' }];
   if (actionFilter) {
-    actions.forEach((a) => {
+    actions.forEach(a => {
       for (var i = 0; i < actionFilter.length; i++) {
         if (a.action.indexOf(actionFilter[i]) === 0) {
           allowedActions.push(a);
@@ -110,9 +110,9 @@ function ActivityFilterContent({
     if (data.resource || (filterMask && filterMask.resource))
       filter.resource =
         filterMask && filterMask.resource
-          ? filterMask.resource + (data.resource || "").trim()
-          : (data.resource || "").trim();
-    if (data.action && data.action !== "*") filter.action = data.action;
+          ? filterMask.resource + (data.resource || '').trim()
+          : (data.resource || '').trim();
+    if (data.action && data.action !== '*') filter.action = data.action;
     if (data.issuerId) {
       filter.issuerId = data.issuerId.trim();
       if (data.subject) filter.subject = data.subject.trim();
@@ -132,9 +132,7 @@ function ActivityFilterContent({
           margin="dense"
           label="Resource (prefix match)"
           helperText={
-            filterMask && filterMask.resource
-              ? `Value will be prefixed with '${filterMask.resource}'`
-              : undefined
+            filterMask && filterMask.resource ? `Value will be prefixed with '${filterMask.resource}'` : undefined
           }
           variant="outlined"
           value={data.resource}
@@ -155,11 +153,7 @@ function ActivityFilterContent({
           onChange={handleActionChange}
         >
           {allowedActions.map((a: any) => (
-            <MenuItem
-              key={a.action}
-              value={a.action}
-              className="fusebit-prevent-clickaway"
-            >
+            <MenuItem key={a.action} value={a.action} className="fusebit-prevent-clickaway">
               <strong className="fusebit-prevent-clickaway">{a.action}</strong>
               &nbsp;-&nbsp;{a.description}
             </MenuItem>
@@ -186,18 +180,13 @@ function ActivityFilterContent({
           // helperText="Exact match the subject. Requires Issuer ID"
           variant="outlined"
           value={data.subject}
-          disabled={data.issuerId.trim() === ""}
+          disabled={data.issuerId.trim() === ''}
           onChange={handleSubjectChange}
           fullWidth
         />
       </Grid>
       <Grid item xs={12}>
-        <DateTimeRangePicker
-          from={data.from}
-          to={data.to}
-          utc={data.utc}
-          onChange={handleRangeChange}
-        />
+        <DateTimeRangePicker from={data.from} to={data.to} utc={data.utc} onChange={handleRangeChange} />
       </Grid>
       <Grid item xs={12}>
         <Typography component="div" variant="body2">
@@ -206,28 +195,14 @@ function ActivityFilterContent({
             <Grid item>
               <FormControlLabel
                 value="utc"
-                control={
-                  <Radio
-                    color="secondary"
-                    checked={data.utc}
-                    size="small"
-                    onChange={handleUtcChange}
-                  />
-                }
+                control={<Radio color="secondary" checked={data.utc} size="small" onChange={handleUtcChange} />}
                 label={<Typography variant="body2">UTC</Typography>}
               />
             </Grid>
             <Grid item>
               <FormControlLabel
                 value="local"
-                control={
-                  <Radio
-                    color="secondary"
-                    checked={!data.utc}
-                    size="small"
-                    onChange={handleUtcChange}
-                  />
-                }
+                control={<Radio color="secondary" checked={!data.utc} size="small" onChange={handleUtcChange} />}
                 label={<Typography variant="body2">Local</Typography>}
               />
             </Grid>
@@ -235,10 +210,10 @@ function ActivityFilterContent({
         </Typography>
       </Grid>
       <Grid item xs={12} className={classes.filterActions}>
-        <Button variant="text" onClick={onReset}>
+        <Button variant="text" onClick={onReset} color="primary">
           Reset
         </Button>
-        <Button variant="text" color="primary" onClick={handleApply}>
+        <Button variant="text" color="secondary" onClick={handleApply}>
           Apply
         </Button>
       </Grid>

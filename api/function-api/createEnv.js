@@ -36,12 +36,12 @@ function addAwsCredentials() {
         if (e) throw new Error('Unable to obtain AWS session token: ' + e.message);
         Fs.writeFileSync(__dirname + '/.env.aws', JSON.stringify(d, null, 2), { encoding: 'utf8' });
         addCreds(d);
-        return addLogsUrl();
+        return addElasticsearchCredentials();
       }
     );
   } else {
     addCreds(creds);
-    return addLogsUrl();
+    return addElasticsearchCredentials();
   }
 }
 
@@ -51,6 +51,21 @@ AWS_ACCESS_KEY_ID=${creds.Credentials.AccessKeyId}
 AWS_SECRET_ACCESS_KEY=${creds.Credentials.SecretAccessKey}
 AWS_SESSION_TOKEN=${creds.Credentials.SessionToken}
 `;
+}
+
+function addElasticsearchCredentials() {
+  let creds;
+  try {
+    creds = JSON.parse(Fs.readFileSync(__dirname + '/.env.elasticsearch', 'utf8'));
+    if (creds.hostname && creds.username && creds.password) {
+      env = `${env}
+ES_HOST=${creds.hostname}
+ES_USER=${creds.username}
+ES_PASSWORD=${creds.password}
+`;
+    }
+  } catch (_) {}
+  return addLogsUrl();
 }
 
 function addLogsUrl() {

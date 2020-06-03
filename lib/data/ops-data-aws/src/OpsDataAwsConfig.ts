@@ -28,6 +28,7 @@ const defaultMonoAlbHealthCheckPath = '/v1/health';
 const defaultDwhExportRoleName = 'fusebit-dwh-export';
 const defaultCronExecutorRoleName = 'fusebit-cron-executor';
 const defaultCronSchedulerRoleName = 'fusebit-cron-scheduler';
+const defaultAnalyticsRoleName = 'fusebit-analytics';
 const defaultBuilderRoleName = 'fusebit-builder';
 const defaultFunctionRoleName = 'fusebit-function';
 const defaultGovCloud = false;
@@ -136,6 +137,10 @@ export class OpsDataAwsConfig implements IConfig {
 
   public get cronSchedulerRoleName(): string {
     return (this.config.value('cronSchedulerRoleName') as string) || defaultCronSchedulerRoleName;
+  }
+
+  public get analyticsRoleName(): string {
+    return (this.config.value('analyticsRoleName') as string) || defaultAnalyticsRoleName;
   }
 
   public get builderRoleName(): string {

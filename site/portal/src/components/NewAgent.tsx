@@ -1,67 +1,56 @@
-import { LinearProgress } from "@material-ui/core";
-import Button from "@material-ui/core/Button";
-import DialogActions from "@material-ui/core/DialogActions";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogContentText from "@material-ui/core/DialogContentText";
-import Grid from "@material-ui/core/Grid";
-import Step from "@material-ui/core/Step";
-import StepLabel from "@material-ui/core/StepLabel";
-import Stepper from "@material-ui/core/Stepper";
-import { makeStyles } from "@material-ui/core/styles";
-import React from "react";
-import {
-  createPermissionsFromRole,
-  noRole,
-  rolesHash,
-  sameRole
-} from "../lib/Actions";
-import { Permission, User } from "../lib/FusebitTypes";
-import AddCliIdentityFlow from "./AddCliIdentityFlow";
-import AddOauthImplicitIdentityFlow from "./AddOauthImplicitIdentityFlow";
-import {
-  AgentProvider,
-  formatAgent,
-  modifyAgent,
-  saveAgent,
-  useAgent
-} from "./AgentProvider";
-import ConfirmNavigation from "./ConfirmNavigation";
-import { FusebitError } from "./ErrorBoundary";
-import FunctionResourceCrumb from "./FunctionResourceCrumb";
-import FunctionResourceSelector from "./FunctionResourceSelector";
-import FusebitToolSelector from "./FusebitToolSelector";
-import InfoCard from "./InfoCard";
-import PermissionReviewTable from "./PermissionReviewTable";
-import PermissionRoleSelector from "./PermissionRoleSelector";
-import PortalError from "./PortalError";
-import { useProfile } from "./ProfileProvider";
-import UserDetails from "./UserDetails";
-import WarningCard from "./WarningCard";
-import ClientDetails from "./ClientDetails";
+import { LinearProgress } from '@material-ui/core';
+import Button from '@material-ui/core/Button';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import Grid from '@material-ui/core/Grid';
+import Step from '@material-ui/core/Step';
+import StepLabel from '@material-ui/core/StepLabel';
+import Stepper from '@material-ui/core/Stepper';
+import { makeStyles } from '@material-ui/core/styles';
+import React from 'react';
+import { createPermissionsFromRole, noRole, rolesHash, sameRole } from '../lib/Actions';
+import { Permission, User } from '../lib/FusebitTypes';
+import AddCliIdentityFlow from './AddCliIdentityFlow';
+import AddOauthImplicitIdentityFlow from './AddOauthImplicitIdentityFlow';
+import { AgentProvider, formatAgent, modifyAgent, saveAgent, useAgent } from './AgentProvider';
+import ConfirmNavigation from './ConfirmNavigation';
+import { FusebitError } from './ErrorBoundary';
+import FunctionResourceCrumb from './FunctionResourceCrumb';
+import FunctionResourceSelector from './FunctionResourceSelector';
+import FusebitToolSelector from './FusebitToolSelector';
+import InfoCard from './InfoCard';
+import PermissionReviewTable from './PermissionReviewTable';
+import PermissionRoleSelector from './PermissionRoleSelector';
+import PortalError from './PortalError';
+import { useProfile } from './ProfileProvider';
+import UserDetails from './UserDetails';
+import WarningCard from './WarningCard';
+import ClientDetails from './ClientDetails';
 
 const useStyles = makeStyles((theme: any) => ({
   gridContainer: {
     paddingLeft: theme.spacing(3),
-    paddingRight: theme.spacing(3)
+    paddingRight: theme.spacing(3),
     // marginBottom: theme.spacing(2)
   },
   form: {
-    overflow: "hidden"
+    overflow: 'hidden',
   },
   stepper: {
-    backgroundColor: "inherit"
+    backgroundColor: 'inherit',
   },
   inputField: {
-    marginTop: theme.spacing(2)
-  }
+    marginTop: theme.spacing(2),
+  },
 }));
 
 const createInitialResurce = () => ({
   parts: {
-    subscriptionId: "*",
-    boundaryId: "",
-    functionId: ""
-  }
+    subscriptionId: '*',
+    boundaryId: '',
+    functionId: '',
+  },
 });
 
 function NewAgentImpl() {
@@ -71,27 +60,22 @@ function NewAgentImpl() {
   const [agent, setAgent] = useAgent();
   const [role, setRole] = React.useState<any>(noRole);
   const [resource, setResource] = React.useState<any>(createInitialResurce());
-  const [defaultResource, setDefaultResource] = React.useState<any>(
-    createInitialResurce()
-  );
-  const [flow, setFlow] = React.useState("none");
+  const [defaultResource, setDefaultResource] = React.useState<any>(createInitialResurce());
+  const [flow, setFlow] = React.useState('none');
   const [initGenerated, setInitGenerated] = React.useState(false);
 
-  const agentNoun = agent.isUser ? "user" : "client";
+  const agentNoun = agent.isUser ? 'user' : 'client';
 
   const handleRoleChange = (role: any) => {
     setRole(role);
-    if (role.role !== "developer" && role.role !== "same") {
+    if (role.role !== 'developer' && role.role !== 'same') {
       setResource(createInitialResurce());
       setDefaultResource(createInitialResurce());
     }
   };
 
   const hasError = () =>
-    !!(
-      (resource.hasError && role.role !== noRole.role) ||
-      (defaultResource.hasError && flow !== "none")
-    );
+    !!((resource.hasError && role.role !== noRole.role) || (defaultResource.hasError && flow !== 'none'));
 
   const handleResourceChange = (resource: any) => {
     setResource(resource);
@@ -99,14 +83,12 @@ function NewAgentImpl() {
   };
 
   const handleNextStep = () => {
-    if (activeStep === 3 && agent.status === "ready") {
+    if (activeStep === 3 && agent.status === 'ready') {
       let allow: Permission[] = [];
       if (role.role !== noRole.role) {
-        createPermissionsFromRole(profile, role, resource.parts).forEach(
-          permission => {
-            allow.push(permission);
-          }
-        );
+        createPermissionsFromRole(profile, role, resource.parts).forEach(permission => {
+          allow.push(permission);
+        });
       }
       agent.modified.access = { allow };
       modifyAgent(agent, setAgent, { ...agent.modified });
@@ -118,8 +100,8 @@ function NewAgentImpl() {
             details:
               (e.status || e.statusCode) === 403
                 ? `You are not authorized to create ${agentNoun}s.`
-                : e.message || "Unknown error.",
-            source: "CreateNewUser"
+                : e.message || 'Unknown error.',
+            source: 'CreateNewUser',
           })
       );
     }
@@ -128,7 +110,7 @@ function NewAgentImpl() {
 
   const done = () => {
     let agentName = formatAgent(agent);
-    if (agent.status === "updating") {
+    if (agent.status === 'updating') {
       return (
         <Grid container spacing={2} className={classes.gridContainer}>
           <Grid item xs={8} className={classes.form}>
@@ -136,33 +118,34 @@ function NewAgentImpl() {
           </Grid>
         </Grid>
       );
-    } else if (agent.status === "ready") {
+    } else if (agent.status === 'ready') {
       return (
         <Grid container spacing={2} className={classes.gridContainer}>
           <Grid item xs={8} className={classes.form}>
             <DialogContent>
               <DialogContentText>
-                {agent.isUser ? "User" : "Client"}{" "}
-                {agentName && <strong>{agentName}</strong>} created.
+                {agent.isUser ? 'User' : 'Client'} {agentName && <strong>{agentName}</strong>} created.
               </DialogContentText>
             </DialogContent>
-            {(flow === "pki" || flow === "oauth-device") && (
+            {(flow === 'pki' || flow === 'oauth-device') && (
               <AddCliIdentityFlow
                 options={defaultResource.parts}
                 flow={flow}
                 onDone={() => setInitGenerated(true)}
+                variant="outlined"
               />
             )}
-            {flow === "oauth-implicit" && (
+            {flow === 'oauth-implicit' && (
               <AddOauthImplicitIdentityFlow
                 options={defaultResource.parts}
                 onDone={() => setInitGenerated(true)}
+                variant="outlined"
               />
             )}
           </Grid>
         </Grid>
       );
-    } else if (agent.status === "error") {
+    } else if (agent.status === 'error') {
       return (
         <Grid container spacing={2} className={classes.gridContainer}>
           <Grid item xs={8} className={classes.form}>
@@ -177,7 +160,7 @@ function NewAgentImpl() {
 
   const confirmation = () => {
     let agentName = formatAgent(agent);
-    if (agent.status === "ready") {
+    if (agent.status === 'ready') {
       let email = (agent.modified as User).primaryEmail;
       return (
         <Grid container spacing={2} className={classes.gridContainer}>
@@ -187,62 +170,44 @@ function NewAgentImpl() {
                 You are about to create {agentNoun} <strong>{agentName}</strong>
                 {email && (
                   <span>
-                    {" "}
+                    {' '}
                     with email <strong>{email}</strong>
                   </span>
                 )}
                 .
               </DialogContentText>
             )}
-            {!agentName && (
-              <DialogContentText>
-                You are about to create a new {agentNoun}.
-              </DialogContentText>
-            )}
+            {!agentName && <DialogContentText>You are about to create a new {agentNoun}.</DialogContentText>}
             {role.role === noRole.role && (
               <WarningCard>
-                You did not grant {!agentName && "the "}
+                You did not grant {!agentName && 'the '}
                 {agentNoun} {agentName && <strong>{agentName} </strong>}
-                permissions to any resources. This may result in errors for the{" "}
-                {agentNoun} when accessing{" "}
-                {agent.isUser ? "the Portal or CLI" : "the system"}. You can
-                proceed with this setup, but consider using the{" "}
-                <strong>Access</strong> tab to grant permissions for the{" "}
-                {agentNoun}
+                permissions to any resources. This may result in errors for the {agentNoun} when accessing{' '}
+                {agent.isUser ? 'the Portal or CLI' : 'the system'}. You can proceed with this setup, but consider using
+                the <strong>Access</strong> tab to grant permissions for the {agentNoun}
                 when you are done.
               </WarningCard>
             )}
-            {flow === "none" && (
+            {flow === 'none' && (
               <WarningCard>
-                You did not invite {!agentName && "the "}
-                {agentNoun} {agentName && <strong>{agentName} </strong>}to any
-                of the Fusebit Platform tools. They will not be able to access
-                the system. You can continue with this setup, but consider using
-                the{" "}
-                <strong>
-                  {agent.isUser
-                    ? "Invite User to the Platform"
-                    : "Connect CLI client to Fusebit"}
-                </strong>{" "}
-                quick action after you are done.
+                You did not invite {!agentName && 'the '}
+                {agentNoun} {agentName && <strong>{agentName} </strong>}to any of the Fusebit Platform tools. They will
+                not be able to access the system. You can continue with this setup, but consider using the{' '}
+                <strong>{agent.isUser ? 'Invite User to the Platform' : 'Connect CLI client to Fusebit'}</strong> quick
+                action after you are done.
               </WarningCard>
             )}
             {role.role !== noRole.role && (
               <React.Fragment>
                 <DialogContentText>
-                  The following permissions will be granted for the {agentNoun}{" "}
-                  as part of the <strong>{role.title}</strong> permission set:
+                  The following permissions will be granted for the {agentNoun} as part of the{' '}
+                  <strong>{role.title}</strong> permission set:
                 </DialogContentText>
                 {role.role !== sameRole.role && (
-                  <PermissionReviewTable
-                    actions={rolesHash[role.role].actions}
-                    resource={resource}
-                  />
+                  <PermissionReviewTable actions={rolesHash[role.role].actions} resource={resource} />
                 )}
                 {role.role === sameRole.role && (
-                  <PermissionReviewTable
-                    allow={(profile.me && profile.me.access.allow) || []}
-                  />
+                  <PermissionReviewTable allow={(profile.me && profile.me.access.allow) || []} />
                 )}
                 <br></br>
               </React.Fragment>
@@ -267,16 +232,14 @@ function NewAgentImpl() {
             <DialogContentText>
               {agentName ? (
                 <span>
-                  Select the Fusebit Platform tool you would like{" "}
-                  <strong>{agentName}</strong> to access:
+                  Select the Fusebit Platform tool you would like <strong>{agentName}</strong> to access:
                 </span>
               ) : (
                 <span>
-                  Select the Fusebit Platform tool you would like the new{" "}
-                  {agentNoun}
+                  Select the Fusebit Platform tool you would like the new {agentNoun}
                   to access:
                 </span>
-              )}{" "}
+              )}{' '}
             </DialogContentText>
             <FusebitToolSelector
               flow={flow}
@@ -284,16 +247,15 @@ function NewAgentImpl() {
               allowNoTool
               isUser={agent.isUser}
               autoFocus
-              disabled={agent.status !== "ready"}
+              disabled={agent.status !== 'ready'}
+              variant="outlined"
             />
-            {flow !== "none" && (
+            {flow !== 'none' && (
               <DialogContentText>
                 <br></br>
-                You can <strong>optionally</strong> specify defaults for the
-                tool, which will determine the default view and parameters for
-                the {agentNoun}. Here is a recommended set of defaults based on
-                the resources {agentName || `the ${agentNoun}`} has access to.
-                To proceed without defaults, keep these blank.
+                You can <strong>optionally</strong> specify defaults for the tool, which will determine the default view
+                and parameters for the {agentNoun}. Here is a recommended set of defaults based on the resources{' '}
+                {agentName || `the ${agentNoun}`} has access to. To proceed without defaults, keep these blank.
               </DialogContentText>
             )}
             {/* </DialogContent> */}
@@ -301,35 +263,31 @@ function NewAgentImpl() {
         </Grid>
         <Grid container spacing={2} className={classes.gridContainer}>
           <Grid item xs={8} className={classes.form}>
-            {flow !== "none" && (
+            {flow !== 'none' && (
               <FunctionResourceSelector
                 resource={defaultResource}
-                onResourceChange={(resource: any) =>
-                  setDefaultResource(resource)
-                }
-                disabled={agent.status !== "ready"}
+                onResourceChange={(resource: any) => setDefaultResource(resource)}
+                disabled={agent.status !== 'ready'}
+                variant="outlined"
               />
             )}
             <DialogContentText>
               <br></br>
-              You will be able to invite the {agentNoun} to additional tools
-              after you are done.
+              You will be able to invite the {agentNoun} to additional tools after you are done.
             </DialogContentText>
           </Grid>
           <Grid item xs={4}>
-            {activeStep === 2 && flow === "oauth-implicit" && (
+            {activeStep === 2 && flow === 'oauth-implicit' && (
               <InfoCard>
-                The Fusebit Portal uses these values to provide a default view
-                when the {agentNoun} logs in.
+                The Fusebit Portal uses these values to provide a default view when the {agentNoun} logs in.
               </InfoCard>
             )}
-            {activeStep === 2 &&
-              (flow === "oauth-device" || flow === "pki") && (
-                <InfoCard>
-                  The Fusebit CLI uses these values as default parameters for
-                  commands, to make it faster to manage the specified resource.
-                </InfoCard>
-              )}
+            {activeStep === 2 && (flow === 'oauth-device' || flow === 'pki') && (
+              <InfoCard>
+                The Fusebit CLI uses these values as default parameters for commands, to make it faster to manage the
+                specified resource.
+              </InfoCard>
+            )}
           </Grid>
         </Grid>
       </React.Fragment>
@@ -346,14 +304,12 @@ function NewAgentImpl() {
             <DialogContentText>
               {agentName ? (
                 <span>
-                  Select the permission set for {agentNoun}{" "}
-                  <strong>{agentName}</strong>.
+                  Select the permission set for {agentNoun} <strong>{agentName}</strong>.
                 </span>
               ) : (
                 <span>Select the permission set for the new {agentNoun}.</span>
-              )}{" "}
-              You can only assign a permission set if you have all the necessary
-              permissions yourself.
+              )}{' '}
+              You can only assign a permission set if you have all the necessary permissions yourself.
             </DialogContentText>
             <PermissionRoleSelector
               role={role}
@@ -361,7 +317,8 @@ function NewAgentImpl() {
               autoFocus
               allowNoRole
               allowSameRole
-              disabled={agent.status !== "ready"}
+              disabled={agent.status !== 'ready'}
+              variant="outlined"
             />
             {role.role !== noRole.role && role.role !== sameRole.role && (
               <DialogContentText>
@@ -375,33 +332,31 @@ function NewAgentImpl() {
         <Grid container spacing={2} className={classes.gridContainer}>
           <Grid item xs={8} className={classes.form}>
             {/* <DialogContent> */}
-            {role.role === "admin" && (
+            {role.role === 'admin' && (
               <DialogContentText>
-                <FunctionResourceCrumb
-                  options={{ accountId: profile.account }}
-                />
+                <FunctionResourceCrumb options={{ accountId: profile.account }} />
               </DialogContentText>
             )}
-            {role.role === "developer" && (
+            {role.role === 'developer' && (
               <FunctionResourceSelector
                 resource={resource}
                 onResourceChange={handleResourceChange}
-                disabled={agent.status !== "ready"}
+                disabled={agent.status !== 'ready'}
+                variant="outlined"
               />
             )}
             {/* </DialogContent> */}
           </Grid>
           <Grid item xs={4}>
-            {activeStep === 1 && role.role === "developer" && (
+            {activeStep === 1 && role.role === 'developer' && (
               <InfoCard>
                 <p style={{ marginTop: 0 }}>
-                  Leaving the subscription, boundary, and function blank will
-                  grant the {agentNoun} developer permissions for the whole
-                  account.
+                  Leaving the subscription, boundary, and function blank will grant the {agentNoun} developer
+                  permissions for the whole account.
                 </p>
                 <p style={{ marginBottom: 0 }}>
-                  Specifying subscription, boundary, or function constraints
-                  limits the effective scope of the permission set.
+                  Specifying subscription, boundary, or function constraints limits the effective scope of the
+                  permission set.
                 </p>
               </InfoCard>
             )}
@@ -411,20 +366,12 @@ function NewAgentImpl() {
     );
   };
 
-  if (
-    agent.status === "ready" ||
-    agent.status === "updating" ||
-    agent.status === "error"
-  ) {
+  if (agent.status === 'ready' || agent.status === 'updating' || agent.status === 'error') {
     return (
       <React.Fragment>
         <Grid container spacing={2} className={classes.gridContainer}>
           <Grid item xs={8} className={classes.form}>
-            <Stepper
-              activeStep={activeStep}
-              color="inherit"
-              className={classes.stepper}
-            >
+            <Stepper activeStep={activeStep} color="inherit" className={classes.stepper}>
               <Step>
                 <StepLabel>Set properties</StepLabel>
               </Step>
@@ -443,7 +390,7 @@ function NewAgentImpl() {
             </Stepper>
           </Grid>
         </Grid>
-        {activeStep === 0 && agent.status !== "error" && (
+        {activeStep === 0 && agent.status !== 'error' && (
           <Grid container spacing={2} className={classes.gridContainer}>
             <Grid item xs={8} className={classes.form}>
               {agent.isUser && <UserDetails />}
@@ -451,11 +398,11 @@ function NewAgentImpl() {
             </Grid>
           </Grid>
         )}
-        {activeStep === 1 && agent.status !== "error" && permissionSelector()}
-        {activeStep === 2 && agent.status !== "error" && inviteSelector()}
-        {activeStep === 3 && agent.status !== "error" && confirmation()}
-        {activeStep === 4 && agent.status !== "error" && done()}
-        {agent.status === "error" && (
+        {activeStep === 1 && agent.status !== 'error' && permissionSelector()}
+        {activeStep === 2 && agent.status !== 'error' && inviteSelector()}
+        {activeStep === 3 && agent.status !== 'error' && confirmation()}
+        {activeStep === 4 && agent.status !== 'error' && done()}
+        {agent.status === 'error' && (
           <Grid container spacing={2} className={classes.gridContainer}>
             <Grid item xs={8} className={classes.form}>
               <PortalError error={agent.error} />
@@ -467,37 +414,30 @@ function NewAgentImpl() {
             <DialogActions className={classes.inputField}>
               <Button
                 onClick={() => setActiveStep(activeStep - 1)}
-                disabled={
-                  hasError() ||
-                  activeStep === 0 ||
-                  activeStep === 4 ||
-                  agent.status !== "ready"
-                }
+                disabled={hasError() || activeStep === 0 || activeStep === 4 || agent.status !== 'ready'}
               >
                 Back
               </Button>
               {activeStep < 4 && (
                 <Button
                   onClick={handleNextStep}
-                  color="primary"
+                  color="secondary"
                   variant="contained"
-                  disabled={hasError() || agent.status !== "ready"}
+                  disabled={hasError() || agent.status !== 'ready'}
                 >
                   Next
                 </Button>
               )}
               {activeStep === 4 && (
                 <Button
-                  color="primary"
+                  color="secondary"
                   variant="contained"
                   disabled={
                     hasError() ||
-                    agent.status === "updating" ||
-                    (!initGenerated &&
-                      flow !== "none" &&
-                      agent.status === "ready")
+                    agent.status === 'updating' ||
+                    (!initGenerated && flow !== 'none' && agent.status === 'ready')
                   }
-                  href={agent.isUser ? "../users" : "../clients"}
+                  href={agent.isUser ? '../users' : '../clients'}
                 >
                   Done
                 </Button>
@@ -505,7 +445,7 @@ function NewAgentImpl() {
             </DialogActions>
           </Grid>
         </Grid>
-        {(agent.status === "ready" || agent.status === "updating") &&
+        {(agent.status === 'ready' || agent.status === 'updating') &&
           (agent.dirty || activeStep > 0) &&
           activeStep !== 4 && <ConfirmNavigation />}
       </React.Fragment>

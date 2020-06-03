@@ -9,6 +9,8 @@
 !lib/aws
 !lib/node
 !lib/server
+!lib/runtime/common
+!lib/runtime/ops-lambda-set
 !sdk
 !tool
 **/node_modules

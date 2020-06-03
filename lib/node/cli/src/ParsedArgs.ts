@@ -33,7 +33,7 @@ function parseOption(rawArg: string, rawArgNext: string, parsedOptions: { [index
   if (index !== -1) {
     name = rawArg.substring(0, index);
     value = rawArg.substring(index + 1);
-  } else if (rawArgNext && !rawArgNext.startsWith(shortOptionChar)) {
+  } else if ((rawArgNext || rawArgNext == '') && !rawArgNext.startsWith(shortOptionChar)) {
     name = rawArg;
     value = rawArgNext;
     nextArgUsed = true;

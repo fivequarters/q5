@@ -21,7 +21,7 @@ const subHeading = 'Integrations tailored to your SaaS and done in no time';
 function MobileVersion() {
   return (
     <Box vertical>
-      <Box width="100%" center marginTop={20} padding={10} background={FusebitColor.dark} borderRadius={10} noWrap>
+      <Box width="100%" center marginTop={20} padding={10} background={FusebitColor.black} borderRadius={10} noWrap>
         <FusebitLogo markColor={FusebitColor.white} size={80} />
       </Box>
       <Box marginTop={30}>
@@ -46,7 +46,7 @@ function NonMobileVersion() {
         <Box center width="100%">
           <Box maxWidth={1200} gap={30} width="100%">
             <Box expand vertical minWidth={420}>
-              <Box padding={20} background={FusebitColor.dark} width="20vw" minWidth={200} borderRadius={10} noWrap>
+              <Box padding={20} background={FusebitColor.black} width="20vw" minWidth={200} borderRadius={10} noWrap>
                 <FusebitLogo markColor={FusebitColor.white} expand />
               </Box>
               <Box marginTop={30} />

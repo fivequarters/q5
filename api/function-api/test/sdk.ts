@@ -1,11 +1,13 @@
 require('dotenv').config();
 
 import { IAccount } from './accountResolver';
-import { request } from '@5qtrs/request';
+import { request, IHttpResponse } from '@5qtrs/request';
 import { random } from '@5qtrs/random';
 import { signJwt } from '@5qtrs/jwt';
 import { createKeyPair, IKeyPairResult } from '@5qtrs/key-pair';
 import { pem2jwk } from 'pem-jwk';
+
+import ms from 'ms';
 
 // ------------------
 // Internal Constants
@@ -828,6 +830,103 @@ export async function createTestUser(account: IAccount, data: any): Promise<ITes
     access: user.data.access,
     identities: resolved.data.identities,
   };
+}
+
+export interface IStatisticsScope {
+  accountId: string;
+  subscriptionId?: string;
+  boundaryId?: string;
+}
+
+//export async function clearStatistics(username: string, password: string, hostname: string) {
+//  return request({
+//    method: 'DELETE',
+//    headers: {
+//      'Content-Type': 'application/json',
+//    },
+//    auth: {
+//      username: username,
+//      password: password,
+//    },
+//    query: params,
+//    url: `https://${hostname}/fusebit-*`,
+//  });
+//}
+
+export async function statisticsEnabled(account: IAccount): Promise<boolean> {
+  let response = await getStatistics(account, 'itemizedbulk', { accountId: account.accountId }, () => true, {
+    from: new Date(),
+    to: new Date(),
+    code: 200,
+  });
+
+  if (response.status == 200) {
+    return true;
+  }
+  expect(response.status).toEqual(405);
+  console.warn('ElasticSearch Not Supported');
+  return false;
+}
+
+export async function getStatistics(
+  account: IAccount,
+  statisticsKey: string,
+  scope: IStatisticsScope,
+  retryTest: (response: IHttpResponse) => boolean,
+  params?: any
+): Promise<IHttpResponse> {
+  let url = `${account.baseUrl}/v1/account/${account.accountId}`;
+
+  if (scope.subscriptionId) {
+    url = url + `/subscription/${scope.subscriptionId}`;
+    if (scope.boundaryId) {
+      url = url + `/boundary/${scope.boundaryId}`;
+    }
+  }
+  url = url + `/statistics/${statisticsKey}`;
+
+  if (!params) {
+    params = {
+      to: new Date(Date.now() + ms('5m')),
+      from: new Date(Date.now() - ms('15m')),
+      code: 200,
+    };
+  } else {
+    if (params.to == undefined) {
+      params.to = new Date(Date.now() + ms('5m'));
+    }
+
+    if (params.from == undefined) {
+      params.from = new Date(Date.now() - ms('15m'));
+    }
+  }
+
+  let response: any;
+  const maxRetryCount = 10;
+  let retries = 0;
+
+  // Poll for the test criteria to be satisfied, or a maximum interval.
+  do {
+    if (retries != 0) {
+      await new Promise((resolve, reject) => setTimeout(() => resolve(), 1000));
+    }
+    response = await request({
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${account.accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      query: params,
+      url: url,
+    });
+    retries++;
+  } while (!retryTest(response) && retries < maxRetryCount);
+
+  if (retries == maxRetryCount) {
+    throw new Error('Exceeded the number of allowed retries');
+  }
+
+  return response;
 }
 
 export async function createTestJwksIssuer(account: IAccount) {

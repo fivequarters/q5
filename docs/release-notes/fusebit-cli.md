@@ -17,6 +17,15 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version X.X.X
+
+_Released XX/XX/XX_
+
+- **Typo Fix**. Eliminate several typographic errors in the help text.
+- **Require Node Version**. Require NodeJS v10+.
+- **Bug Fix**. Handle errors in `fuse function deploy` when in an empty directory better.
+- **Remove Editor Scrollbars**. Eliminate unnecessary scrollbars in the editor.
+
 ## Version 1.8.1
 
 _Released 3/26/20_

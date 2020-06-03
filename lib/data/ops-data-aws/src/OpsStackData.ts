@@ -17,6 +17,7 @@ import { OpsDataAwsProvider } from './OpsDataAwsProvider';
 import { OpsDataAwsConfig } from './OpsDataAwsConfig';
 import { OpsAccountData } from './OpsAccountData';
 import { random } from '@5qtrs/random';
+import { parseElasticSearchUrl } from './OpsElasticSearch';
 
 // ------------------
 // Internal Functions
@@ -84,6 +85,7 @@ export class OpsStackData extends DataSource implements IOpsStackData {
     const awsConfig = await this.provider.getAwsConfigForDeployment(deploymentName, deployment.region);
 
     const size = newStack.size || deployment.size;
+    const elasticSearch = deployment.elasticSearch;
     const id = await this.getNextStackId(newStack.deploymentName);
 
     const awsAmi = await AwsAmi.create(awsConfig);
@@ -107,6 +109,7 @@ export class OpsStackData extends DataSource implements IOpsStackData {
         securityGroupIds,
         deployment.domainName,
         this.config.getS3Bucket(deployment),
+        elasticSearch,
         newStack.env
       ),
       this.cloudWatchAgentForUserData(deploymentName),
@@ -121,7 +124,7 @@ export class OpsStackData extends DataSource implements IOpsStackData {
       securityGroups: [network.securityGroupId],
       userData,
       instanceProfile: this.config.monoInstanceProfile,
-      size,
+      size: size as number,
       healthCheckGracePeriod: this.config.monoHealthCheckGracePeriod,
       subnets: network.privateSubnets.map(subnet => subnet.id),
     });
@@ -129,7 +132,7 @@ export class OpsStackData extends DataSource implements IOpsStackData {
     const targetGroupArn = await this.opsAlb.addTargetGroup(deployment, id);
     await awsAutoScale.attachToTargetGroup(autoScaleName, targetGroupArn);
 
-    const stack = { id, deploymentName, tag, size, region: deployment.region, active: false };
+    const stack = { id, deploymentName, tag, size: size as number, region: deployment.region, active: false };
     await this.tables.stackTable.add(stack);
 
     return stack;
@@ -273,9 +276,10 @@ systemctl start docker.fusebit`;
     securityGroupIds: string[],
     domainName: string,
     s3Bucket: string,
+    elasticSearch: string,
     env?: string
   ) {
-    return `
+    let r = `
 cat > ${this.getEnvFilePath()} << EOF
 PORT=${this.config.monoApiPort}
 DEPLOYMENT_KEY=${deploymentName}
@@ -289,8 +293,23 @@ LAMBDA_VPC_SUBNETS=${subnetIds.join(',')}
 LAMBDA_VPC_SECURITY_GROUPS=${securityGroupIds.join(',')}
 CRON_QUEUE_URL=https://sqs.${region}.amazonaws.com/${account}/${deploymentName}-cron
 LOGS_TOKEN_SIGNATURE_KEY=${random({ lengthInBytes: 32 })}
+`;
+
+    let esCreds = parseElasticSearchUrl(elasticSearch);
+    if (esCreds) {
+      r += `
+ES_HOST=${esCreds.hostname}
+ES_USER=${esCreds.username}
+ES_PASSWORD=${esCreds.password}
+`;
+    }
+
+    return (
+      r +
+      ` 
 ${env || ''}
-EOF`;
+EOF`
+    );
   }
 
   private dockerImageForUserData(tag: string) {

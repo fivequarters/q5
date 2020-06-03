@@ -4,11 +4,11 @@ import { IStatusPanelOptions } from './Options';
 import { EditorContext } from './EditorContext';
 
 /**
- * Not part of MVP
- * @ignore
- * @param element
- * @param editorContext
- * @param options
+ * Creates an status panel within the specified HTML element and associacted with the existing [[EditorContext]].
+ *
+ * @param element The HTML element (typically a div) within which to create the status panel.
+ * @param editorContext A pre-existing editor context to associate the status panel with.
+ * @param options Status panel creation options.
  */
 export function createStatusPanel(element: HTMLElement, editorContext: EditorContext, options?: IStatusPanelOptions) {
   const id = `fusebit-status-${Math.floor(99999999 * Math.random()).toString(26)}`;

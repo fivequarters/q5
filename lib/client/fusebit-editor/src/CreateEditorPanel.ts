@@ -6,11 +6,11 @@ import { EditorContext } from './EditorContext';
 import { updateFusebitContextTypings, addStaticTypings, updateNodejsTypings, updateDependencyTypings } from './Typings';
 
 /**
- * Not part of MVP
- * @ignore
- * @param element
- * @param editorContext
- * @param options
+ * Creates an editor panel within the specified HTML element and associacted with the existing [[EditorContext]].
+ *
+ * @param element The HTML element (typically a div) within which to create the editor panel.
+ * @param editorContext A pre-existing editor context to associate the editor panel with.
+ * @param options Editor panel creation options.
  */
 export function createEditorPanel(element: HTMLElement, editorContext: EditorContext, options?: IEditorPanelOptions) {
   let theme = (options && options.theme) || 'light';
@@ -76,7 +76,7 @@ export function createEditorPanel(element: HTMLElement, editorContext: EditorCon
       Assert.fail('Model or language cannot be determined for the selected file.');
     }
     restoreViewState(activeCategory, editedFileName);
-    delete element.style.display;
+    element.style.display = 'unset';
   });
 
   // When the edited file is deleted, hide the editor
@@ -100,7 +100,7 @@ export function createEditorPanel(element: HTMLElement, editorContext: EditorCon
       Assert.fail('Model cannot be determined the runner script.');
     }
     restoreViewState(activeCategory);
-    delete element.style.display;
+    element.style.display = 'unset';
   });
 
   // When compute settings are selected, serialize them and display as INI for editing
@@ -116,7 +116,7 @@ export function createEditorPanel(element: HTMLElement, editorContext: EditorCon
       Assert.fail('Model cannot be determined for compute node.');
     }
     restoreViewState(activeCategory);
-    delete element.style.display;
+    element.style.display = 'unset';
   });
 
   // When configuration settings are selected, serialize them and display as INI for editing
@@ -132,7 +132,7 @@ export function createEditorPanel(element: HTMLElement, editorContext: EditorCon
       Assert.fail('Model cannot be determined for Configuration settings node.');
     }
     restoreViewState(activeCategory);
-    delete element.style.display;
+    element.style.display = 'unset';
   });
 
   // When schedule settings are selected, serialize them and display as INI for editing
@@ -148,7 +148,7 @@ export function createEditorPanel(element: HTMLElement, editorContext: EditorCon
       Assert.fail('Model cannot be determined for Schedule settings node.');
     }
     restoreViewState(activeCategory);
-    delete element.style.display;
+    element.style.display = 'unset';
   });
 
   editor.onDidChangeModelContent(() => {

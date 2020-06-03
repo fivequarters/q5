@@ -98,6 +98,7 @@ export function meterApiCall(event: IApiCallEntry) {
 }
 
 function flushApiMetering() {
+  if (!bq) return;
   if (apiCallBuffer.length === 0) return;
   let tmp = apiCallBuffer;
   apiCallBuffer = [];

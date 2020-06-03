@@ -29,6 +29,14 @@ export class NetworkService {
     const opsDataContext = await this.opsService.getOpsDataContext();
     const networkData = opsDataContext.networkData;
 
+    if (network.networkName.match(/^[0-9a-zA-Z]+$/) == null) {
+      await this.executeService.error(
+        'Invalid Name',
+        `The name '${network.networkName}' uses characters outside of alphanumerics.`
+      );
+      throw Error('Invalid network name');
+    }
+
     const exists = await this.executeService.execute(
       {
         header: 'Network Check',
@@ -73,7 +81,7 @@ export class NetworkService {
       if (!region) {
         await this.executeService.error(
           'Many Networks',
-          Text.create(`There is more than one '${Text.bold(networkName)}' network. You must sepcify the region.'`)
+          Text.create(`There is more than one '${Text.bold(networkName)}' network. You must specify the region.'`)
         );
         throw new Error('Unspecified network');
       }

@@ -13,6 +13,6 @@ mkdir -p lambda/builder/node_modules
 rm -rf lambda/builder/node_modules/*
 cd lambda/builder
 npm install --no-package-lock --prod --prefix ./
-zip -r ../../libc/builder.zip node_modules *.js
+zip -qdgds 1m -r ../../libc/builder.zip node_modules *.js
 cd $DIR
 ls -al libc/builder.zip

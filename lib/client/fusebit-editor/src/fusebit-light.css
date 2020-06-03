@@ -18,6 +18,10 @@
   background: transparent;
 }
 
+.fusebit-theme-light .fusebit-main-no-status {
+  height: 100%;
+}
+
 .fusebit-theme-light .fusebit-nav-editor-container {
   flex: 1 1 auto;
   display: flex;
@@ -25,12 +29,13 @@
   align-items: stretch;
   min-height: 100px;
   overflow: hidden;
+  outline: none;
 }
 
 .fusebit-theme-light .fusebit-logs-splitter {
   flex: 0 0 auto;
   height: 4px;
-  background: white;
+  background: lightgrey;
   cursor: row-resize;
 }
 
@@ -41,15 +46,17 @@
   min-height: 100px;
   background-color: #f7f9f9;
   position: relative;
+  outline: none;
 }
 
 .fusebit-theme-light .fusebit-nav-splitter {
   flex: 0 0 auto;
   width: 4px;
   min-width: 4px;
-  background: white;
+  background: lightgrey;
   min-height: 100px;
   cursor: col-resize;
+  outline: none;
 }
 
 .fusebit-theme-light .fusebit-editor-container {
@@ -69,6 +76,7 @@
   overflow: hidden;
   padding-left: 10px;
   padding-top: 10px;
+  outline: false;
 }
 
 .fusebit-theme-light .fusebit-status-container {
@@ -76,6 +84,7 @@
   font-family: Helvetica, Arial, sans-serif;
   color: #34495e;
   background-color: #e5e8e8;
+  outline: none;
 }
 
 .fusebit-theme-light .fusebit-nav {
@@ -83,7 +92,7 @@
   flex-flow: column;
   align-items: stretch;
   min-height: 100px;
-  overflow: scroll;
+  overflow: auto;
   height: 100%;
   width: 100%;
   margin-top: 4px;
@@ -189,7 +198,7 @@
 }
 
 .fusebit-theme-light .fusebit-logs {
-  overflow: scroll;
+  overflow: auto;
   height: 100%;
   width: 100%;
 }
@@ -254,6 +263,7 @@
   color: #34495e;
   width: 100px;
   background-color: #ebedef;
+  outline: none;
 }
 
 .fusebit-theme-light .fusebit-action-btn {

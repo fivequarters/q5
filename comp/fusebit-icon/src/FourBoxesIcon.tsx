@@ -28,7 +28,7 @@ export function FourBoxesIcon({ size, color, expand, ...rest }: FourBoxesIconPro
       >
         <path
           d="M2.16669 22.5V15H9.66669V22.5H2.16669ZM15 9.66663V2.16663H22.5V9.66663H15ZM15 22.5V15H22.5V22.5H15ZM2.16669 2.16663H9.66669V9.66663H2.16669V2.16663Z"
-          stroke={color || FusebitColor.dark}
+          stroke={color || FusebitColor.black}
           strokeLinejoin="round"
           strokeWidth="2.5"
         />

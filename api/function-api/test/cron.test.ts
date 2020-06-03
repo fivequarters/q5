@@ -21,37 +21,39 @@ beforeEach(async () => {
 }, 20000);
 
 describe('cron', () => {
-  test('cron executes on schedule', async () => {
-    // Create a "storage" function. Total hack.
+  test(
+    'cron executes on schedule',
+    async () => {
+      // Create a "storage" function. Total hack.
 
-    let runs = Buffer.from(JSON.stringify([]), 'utf8').toString('base64');
-    let response = await putFunction(account, boundaryId, function2Id, {
-      nodejs: {
-        files: {
-          'index.js': '.',
+      let runs = Buffer.from(JSON.stringify([]), 'utf8').toString('base64');
+      let response = await putFunction(account, boundaryId, function2Id, {
+        nodejs: {
+          files: {
+            'index.js': '.',
+          },
         },
-      },
-      configuration: {
-        runs,
-      },
-    });
-    expect(response.status).toEqual(200);
+        configuration: {
+          runs,
+        },
+      });
+      expect(response.status).toEqual(200);
 
-    // Create cron that re-creates the storage function every second with a timestamp of its execution
+      // Create cron that re-creates the storage function every second with a timestamp of its execution
 
-    // When running against localhost API, use ngrok URL for base URL
-    let testAccount = {
-      ...account,
-      baseUrl:
-        account.baseUrl.indexOf('://localhost') > -1 && process.env.LOGS_HOST
-          ? `http://${process.env.LOGS_HOST}`
-          : account.baseUrl,
-    };
+      // When running against localhost API, use ngrok URL for base URL
+      let testAccount = {
+        ...account,
+        baseUrl:
+          account.baseUrl.indexOf('://localhost') > -1 && process.env.LOGS_HOST
+            ? `http://${process.env.LOGS_HOST}`
+            : account.baseUrl,
+      };
 
-    response = await putFunction(account, boundaryId, function1Id, {
-      nodejs: {
-        files: {
-          'index.js': `const Superagent = require('superagent');
+      response = await putFunction(account, boundaryId, function1Id, {
+        nodejs: {
+          files: {
+            'index.js': `const Superagent = require('superagent');
             const Config = require('./config.json');
             const FunctionUrl = Config.account.baseUrl + '/v1/account/' + Config.account.accountId + '/subscription/' 
                + Config.account.subscriptionId + '/boundary/' + Config.boundaryId + '/function/' + Config.functionId;
@@ -69,56 +71,76 @@ describe('cron', () => {
                     .end((e,r) => cb(e));
                 });
             };`,
-          'config.json': {
-            account: testAccount,
-            boundaryId,
-            functionId: function2Id,
-          },
-          'package.json': {
-            dependencies: {
-              superagent: '*',
+            'config.json': {
+              account: testAccount,
+              boundaryId,
+              functionId: function2Id,
+            },
+            'package.json': {
+              dependencies: {
+                superagent: '*',
+              },
             },
           },
         },
-      },
-      schedule: {
-        cron: '*/2 * * * * *', // run every 2 seconds
-      },
-    });
-    expect([200, 201]).toContain(response.status);
-    if (response.status === 201) {
-      response = await waitForBuild(account, response.data, 15, 1000);
-      expect(response.status).toEqual(200);
-    }
-    expect(response.data.status).toEqual('success');
+        schedule: {
+          cron: '* * * * *', // run every minute
+        },
+      });
+      expect([200, 201]).toContain(response.status);
+      if (response.status === 201) {
+        response = await waitForBuild(account, response.data, 15, 1000);
+        expect(response.status).toEqual(200);
+      }
+      expect(response.data.status).toEqual('success');
 
-    // sleep 10 seconds, let the cron run
+      const getRuns = async () => {
+        let response = await getFunction(account, boundaryId, function2Id);
+        expect(response.status).toEqual(200);
+        return JSON.parse(Buffer.from(response.data.configuration.runs, 'base64').toString('utf8'));
+      };
 
-    await sleep(10000);
+      // sleep 15 minutes to make sure the scheduler is working, let the cron run
+      let lastRuns: number[] = [];
+      const runDelay = 15;
+      for (let n = 0; n < runDelay; n++) {
+        await sleep(60 * 1000);
+        let runCount = (await getRuns()).length;
+        lastRuns.push(runCount);
+        if (n > 3) {
+          expect(runCount).toBeGreaterThan(0); // Make sure the basic behavior is working.
+          expect(lastRuns.every(v => v === lastRuns[0])).toBeFalsy(); // Make sure it's not stalled.
+          lastRuns.shift();
+        }
+      }
 
-    // delete cron job
+      // delete cron job
+      response = await deleteFunction(account, boundaryId, function1Id);
+      expect(response.status).toEqual(204);
 
-    response = await deleteFunction(account, boundaryId, function1Id);
-    expect(response.status).toEqual(204);
+      // Retrieve the storage function to inspect the cron job that ran
+      let actualRuns = await getRuns();
+      expect(actualRuns.length).toBeGreaterThanOrEqual(runDelay - 1);
 
-    // Retrieve the storage function to inspect the cron job that ran
+      // Convert to spans
+      let spans = actualRuns
+        .map((v: number, i: number) => {
+          return i > 0 && v - actualRuns[i - 1];
+        })
+        .slice(1);
 
-    response = await getFunction(account, boundaryId, function2Id);
-    expect(response.status).toEqual(200);
-    let actualRuns = JSON.parse(Buffer.from(response.data.configuration.runs, 'base64').toString('utf8'));
-    expect(actualRuns.length).toBeGreaterThanOrEqual(4);
-    actualRuns.sort((a: number, b: number) => a - b);
-    let avgTimespan = (actualRuns[actualRuns.length - 1] - actualRuns[0]) / actualRuns.length;
-    let minTimespan = 999999;
-    let maxTimespan = 0;
-    for (var i = 1; i < actualRuns.length; i++) {
-      let timespan = actualRuns[i] - actualRuns[i - 1];
-      minTimespan = Math.min(minTimespan, timespan);
-      maxTimespan = Math.max(maxTimespan, timespan);
-    }
-    // console.log('RESPONSES', actualRuns.length, avgTimespan, minTimespan, maxTimespan);
-    expect(maxTimespan).toBeLessThan(4000);
-    expect(avgTimespan).toBeGreaterThan(1000);
-    expect(avgTimespan).toBeLessThan(2500);
-  }, 30000);
+      // Calculate average
+      let avgTimespan = spans.reduce((t: number, v: number) => t + v, 0) / spans.length;
+
+      // Calcualte min/max
+      spans.sort((a: number, b: number) => a - b);
+      let [minTimespan, maxTimespan] = [spans[0], spans[spans.length - 1]];
+
+      console.log('RESPONSES', spans.length, avgTimespan, minTimespan, maxTimespan);
+      expect(avgTimespan).toBeGreaterThan(58000);
+      expect(maxTimespan).toBeLessThan(70000);
+      expect(minTimespan).toBeGreaterThan(50000);
+    },
+    16 * 60 * 1000
+  );
 });

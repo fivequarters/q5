@@ -11,18 +11,18 @@ const App = () => (
 
       <FusebitButton outline={true}>Hello</FusebitButton>
 
-      <FusebitButton color={FusebitColor.dark}>Hello</FusebitButton>
+      <FusebitButton color={FusebitColor.black}>Hello</FusebitButton>
       <FusebitButton color={FusebitColor.cyan}>Hello</FusebitButton>
     </Box>
 
     <Box gap={20}>
       <FusebitButton small={true}>Small</FusebitButton>
 
-      <FusebitButton small={true} outline={true} color={FusebitColor.dark}>
+      <FusebitButton small={true} outline={true} color={FusebitColor.black}>
         Small
       </FusebitButton>
 
-      <FusebitButton small={true} color={FusebitColor.dark}>
+      <FusebitButton small={true} color={FusebitColor.black}>
         Small
       </FusebitButton>
 
@@ -32,7 +32,7 @@ const App = () => (
     </Box>
 
     <Box width={300} gap={20}>
-      <FusebitButton expand small={true} color={FusebitColor.dark}>
+      <FusebitButton expand small={true} color={FusebitColor.black}>
         Sized by Parent
       </FusebitButton>
     </Box>

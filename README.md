@@ -68,7 +68,7 @@ npm i -g yarn
 7. Install `typedoc` tool and plugins by running
 
 ```
-npm i -g typedoc typedoc-plugin-sourcefile-url fs-extra
+npm i -g typedoc
 ```
 
 8. At the root of this repo, run the **setup** cmd:

@@ -88,19 +88,19 @@ export function FusebitNavLink({
 
   switch (linkType) {
     case FusebitNavLinkType.about:
-      color = color || FusebitColor.dark;
+      color = color || FusebitColor.black;
       hover = hover || FusebitColor.red;
       icon = <AboutUsIcon color={color} />;
       to = '/about';
       break;
     case FusebitNavLinkType.docs:
-      color = color || FusebitColor.dark;
+      color = color || FusebitColor.black;
       hover = hover || FusebitColor.red;
       icon = <DocsIcon color={color} />;
       href = '/docs';
       break;
     case FusebitNavLinkType.blog:
-      color = color || FusebitColor.dark;
+      color = color || FusebitColor.black;
       hover = hover || FusebitColor.red;
       icon = <BlogIcon color={color} />;
       to = '/blog';
