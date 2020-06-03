@@ -202,7 +202,13 @@ const createElasticSearch = async (awsConfig: IAwsConfig, deployment: IOpsDeploy
       if (err && err.code != 'InvalidInput') {
         return reject(OpsDataException.failedElasticSearchCreate(err));
       }
-      resolve(data);
+      // This can take a few seconds to propagate - if err is null (created for the first time) procrastinate
+      // 15 seconds before resolving.
+      if (err == null) {
+        setTimeout(() => resolve(data), 15000);
+      } else {
+        resolve(data);
+      }
     });
   });
 
@@ -251,6 +257,13 @@ const createElasticSearch = async (awsConfig: IAwsConfig, deployment: IOpsDeploy
       if (err != null) {
         debug('Received err:', err.code);
         if (err.code != 'ResourceAlreadyExistsException') {
+          if (err.code == 'ValidationException') {
+            return reject(
+              OpsDataException.failedElasticSearchCreate(
+                `ServiceRole ValidationExceptions are often solved by trying again (Original Error: "${err.message}")`
+              )
+            );
+          }
           return reject(OpsDataException.failedElasticSearchCreate(err));
         }
       }

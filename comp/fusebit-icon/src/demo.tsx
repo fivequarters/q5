@@ -55,7 +55,7 @@ const App = () => (
         <AccoladeThreeIcon margin={15} />
       </Box>
       Layout (icon should size based on parent)
-      <Box width={100} height={100} margin={10} background={FusebitColor.dark}>
+      <Box width={100} height={100} margin={10} background={FusebitColor.black}>
         <AboutUsIcon expand margin={15} color={FusebitColor.white} />
       </Box>
     </Box>

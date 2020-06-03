@@ -1,13 +1,13 @@
-import React from "react";
-import Button from "@material-ui/core/Button";
-import Dialog from "@material-ui/core/Dialog";
-import DialogActions from "@material-ui/core/DialogActions";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogContentText from "@material-ui/core/DialogContentText";
-import DialogTitle from "@material-ui/core/DialogTitle";
-import AgentSelector from "./AgentSelector";
-import { useHistory } from "react-router-dom";
-import { useProfile } from "./ProfileProvider";
+import React from 'react';
+import Button from '@material-ui/core/Button';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import AgentSelector from './AgentSelector';
+import { useHistory } from 'react-router-dom';
+import { useProfile } from './ProfileProvider';
 
 function GrantPermissionsDialog({ open, onClose, ...rest }: any) {
   const history = useHistory();
@@ -17,9 +17,7 @@ function GrantPermissionsDialog({ open, onClose, ...rest }: any) {
   const handleGo = () => {
     if (agent && agent.id) {
       history.push(
-        `/accounts/${profile.account}/${
-          agent.id.indexOf("clt-") === 0 ? "clients" : "users"
-        }/${agent.id}/permissions`
+        `/accounts/${profile.account}/${agent.id.indexOf('clt-') === 0 ? 'clients' : 'users'}/${agent.id}/permissions`
       );
     }
   };
@@ -43,22 +41,14 @@ function GrantPermissionsDialog({ open, onClose, ...rest }: any) {
           fullWidth
           onSelected={(a: any) => setAgent(a)}
           onInputChange={() => agent && setAgent(null)}
+          variant="filled"
         />
       </DialogContent>
       <DialogActions>
-        <Button
-          onClick={() => onClose && onClose()}
-          color="primary"
-          variant="text"
-        >
+        <Button onClick={() => onClose && onClose()} color="primary" variant="text">
           Cancel
         </Button>
-        <Button
-          onClick={handleGo}
-          color="primary"
-          variant="contained"
-          disabled={!!!agent}
-        >
+        <Button onClick={handleGo} color="secondary" variant="contained" disabled={!!!agent}>
           Go
         </Button>
       </DialogActions>

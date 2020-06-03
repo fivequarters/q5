@@ -1,15 +1,15 @@
-import React from "react";
-import LinearProgress from "@material-ui/core/LinearProgress";
-import DialogContentText from "@material-ui/core/DialogContentText";
-import ExplorerTable, { HeadCell } from "./ExplorerTable";
-import PortalError from "./PortalError";
-import Link from "@material-ui/core/Link";
-import { Link as RouterLink } from "react-router-dom";
-import { useBoundaries, reloadBoundaries } from "./BoundariesProvider";
-import ActionButton from "./ActionButton";
-import { deleteFunctions } from "../lib/Fusebit";
-import { useProfile } from "./ProfileProvider";
-import { FusebitError } from "./ErrorBoundary";
+import React from 'react';
+import ProgressView from './ProgressView';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import ExplorerTable, { HeadCell } from './ExplorerTable';
+import PortalError from './PortalError';
+import Link from '@material-ui/core/Link';
+import { Link as RouterLink } from 'react-router-dom';
+import { useBoundaries, reloadBoundaries } from './BoundariesProvider';
+import ActionButton from './ActionButton';
+import { deleteFunctions } from '../lib/Fusebit';
+import { useProfile } from './ProfileProvider';
+import { FusebitError } from './ErrorBoundary';
 
 interface ViewRow {
   id: string;
@@ -24,7 +24,7 @@ function BoundaryFunctions({ boundaryId, subscriptionId }: any) {
   const [boundaries, setBoundaries] = useBoundaries();
 
   const createViewRow = (dataRow: any): ViewRow => ({
-    id: dataRow.functionId as string
+    id: dataRow.functionId as string,
     // firstExecuted: "N/A",
     // lastExecuted: "N/A",
     // errorsLast24h: "N/A",
@@ -33,16 +33,16 @@ function BoundaryFunctions({ boundaryId, subscriptionId }: any) {
 
   const headCells: HeadCell<ViewRow>[] = [
     {
-      id: "id",
+      id: 'id',
       // disablePadding: true,
-      align: "left",
-      label: "Function Name",
+      align: 'left',
+      label: 'Function Name',
       render: row => (
         <Link component={RouterLink} to={`functions/${row.id}/overview`}>
           {row.id}
         </Link>
-      )
-    }
+      ),
+    },
     // {
     //   id: "firstExecuted",
     //   label: "First Executed"
@@ -61,38 +61,36 @@ function BoundaryFunctions({ boundaryId, subscriptionId }: any) {
     // }
   ];
 
-  if (boundaries.status === "loading") {
-    return <LinearProgress />;
+  if (boundaries.status === 'loading') {
+    return <ProgressView />;
   }
 
-  if (boundaries.status === "error") {
+  if (boundaries.status === 'error') {
     return <PortalError error={boundaries.error} padding={true} />;
   }
 
-  const viewData = (
-    (boundaries.existing[boundaryId] &&
-      boundaries.existing[boundaryId].functions) ||
-    []
-  ).map(createViewRow);
+  const viewData = ((boundaries.existing[boundaryId] && boundaries.existing[boundaryId].functions) || []).map(
+    createViewRow
+  );
 
   const handleDelete = async (selected: string[]) => {
     try {
       await deleteFunctions(profile, subscriptionId, boundaryId, selected);
     } catch (e) {
       setBoundaries({
-        status: "error",
-        error: new FusebitError("Error deleting functions", {
+        status: 'error',
+        error: new FusebitError('Error deleting functions', {
           details:
             (e.status || e.statusCode) === 403
-              ? "You are not authorized to delete one or more of the selected functions."
-              : e.message || "Unknown error.",
+              ? 'You are not authorized to delete one or more of the selected functions.'
+              : e.message || 'Unknown error.',
           actions: [
             {
-              text: "Back to functions",
-              func: () => reloadBoundaries(boundaries, setBoundaries)
-            }
-          ]
-        })
+              text: 'Back to functions',
+              func: () => reloadBoundaries(boundaries, setBoundaries),
+            },
+          ],
+        }),
       });
       return;
     }
@@ -121,11 +119,7 @@ function BoundaryFunctions({ boundaryId, subscriptionId }: any) {
       size="narrow"
       enableSelection={true}
       onDelete={handleDelete}
-      deleteTitle={selected =>
-        selected.length > 1
-          ? `Delete ${selected.length} functions?`
-          : "Delete the function?"
-      }
+      deleteTitle={selected => (selected.length > 1 ? `Delete ${selected.length} functions?` : 'Delete the function?')}
       deleteContent={generateDeleteContent}
       actions={
         <ActionButton to="new-function" component={RouterLink}>

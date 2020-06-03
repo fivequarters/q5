@@ -7,13 +7,13 @@ import { FusebitColor } from '@5qtrs/fusebit-color';
 const App = () => (
   <Box>
     <FusebitLogo margin={15} />
-    <Box margin={15} padding={25} background={FusebitColor.dark} style={{ borderRadius: 10 }}>
-      <FusebitLogo size={50} markColor={FusebitColor.light} />
+    <Box margin={15} padding={25} background={FusebitColor.black} style={{ borderRadius: 10 }}>
+      <FusebitLogo size={50} markColor={FusebitColor.lightBlue} />
     </Box>
-    <Box margin={15} padding={25} background={FusebitColor.light} style={{ borderRadius: 10 }}>
-      <FusebitLogo size={50} markColor={FusebitColor.dark} />
+    <Box margin={15} padding={25} background={FusebitColor.lightBlue} style={{ borderRadius: 10 }}>
+      <FusebitLogo size={50} markColor={FusebitColor.black} />
     </Box>
-    <Box margin={15} padding={25} background={FusebitColor.light} style={{ width: '20%', borderRadius: 10 }}>
+    <Box margin={15} padding={25} background={FusebitColor.lightBlue} style={{ width: '20%', borderRadius: 10 }}>
       <FusebitLogo expand markColor={FusebitColor.red} nameColor={FusebitColor.red} markAbove />
     </Box>
     <FusebitLogo size={200} margin={15} />

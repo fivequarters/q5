@@ -18,7 +18,7 @@
     "bundle:dev": "webpack --env dev",
     "bundle:prod": "webpack --env build",
     "bundle": "webpack --env dev && webpack --env build",
-    "doc": "typedoc --plugin typedoc-plugin-sourcefile-url --sourcefile-url-map ./docs/map-urls-to-hash.json"
+    "doc": "typedoc --disableSources"
   },
   "keywords": [],
   "dependencies": {

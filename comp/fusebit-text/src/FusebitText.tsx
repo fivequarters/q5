@@ -142,7 +142,7 @@ export function FusebitText({
   children,
   ...rest
 }: FusebitTextProps) {
-  color = color || FusebitColor.dark;
+  color = color || FusebitColor.black;
   type = type || FusebitTextType.body;
 
   switch (type) {

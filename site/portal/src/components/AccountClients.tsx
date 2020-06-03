@@ -1,16 +1,16 @@
-import React from "react";
-import { useProfile } from "./ProfileProvider";
-import LinearProgress from "@material-ui/core/LinearProgress";
-import ExplorerTable, { HeadCell } from "./ExplorerTable";
-import { deleteClients } from "../lib/Fusebit";
-import { Client } from "../lib/FusebitTypes";
-import { FusebitError } from "./ErrorBoundary";
-import PortalError from "./PortalError";
-import Link from "@material-ui/core/Link";
-import { Link as RouterLink } from "react-router-dom";
-import DialogContentText from "@material-ui/core/DialogContentText";
-import ActionButton from "./ActionButton";
-import { useAgents, removeAgents, reloadAgents } from "./AgentsProvider";
+import React from 'react';
+import { useProfile } from './ProfileProvider';
+import ProgressView from './ProgressView';
+import ExplorerTable, { HeadCell } from './ExplorerTable';
+import { deleteClients } from '../lib/Fusebit';
+import { Client } from '../lib/FusebitTypes';
+import { FusebitError } from './ErrorBoundary';
+import PortalError from './PortalError';
+import Link from '@material-ui/core/Link';
+import { Link as RouterLink } from 'react-router-dom';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import ActionButton from './ActionButton';
+import { useAgents, removeAgents, reloadAgents } from './AgentsProvider';
 
 interface ViewRow {
   name: string;
@@ -25,46 +25,44 @@ function AccountClients() {
   // const { params } = match;
 
   const createViewRow = (dataRow: any): ViewRow => ({
-    name: dataRow.displayName || "N/A",
+    name: dataRow.displayName || 'N/A',
     id: dataRow.id as string,
     identities: (dataRow.identities && dataRow.identities.length) || 0,
-    permissions:
-      (dataRow.access && dataRow.access.allow && dataRow.access.allow.length) ||
-      0
+    permissions: (dataRow.access && dataRow.access.allow && dataRow.access.allow.length) || 0,
   });
 
   const headCells: HeadCell<ViewRow>[] = [
     {
-      id: "name",
+      id: 'name',
       disablePadding: true,
-      align: "left",
-      label: "Name",
+      align: 'left',
+      label: 'Name',
       render: row => (
         <Link component={RouterLink} to={`clients/${row.id}/properties`}>
           {row.name}
         </Link>
-      )
+      ),
     },
     {
-      id: "id",
-      align: "left",
-      label: "Client ID"
+      id: 'id',
+      align: 'left',
+      label: 'Client ID',
     },
     {
-      id: "identities",
-      label: "Identities"
+      id: 'identities',
+      label: 'Identities',
     },
     {
-      id: "permissions",
-      label: "Permissions"
-    }
+      id: 'permissions',
+      label: 'Permissions',
+    },
   ];
 
-  if (agents.status === "loading") {
-    return <LinearProgress />;
+  if (agents.status === 'loading') {
+    return <ProgressView />;
   }
 
-  if (agents.status === "error") {
+  if (agents.status === 'error') {
     return <PortalError error={agents.error} padding={true} />;
   }
 
@@ -73,20 +71,20 @@ function AccountClients() {
       await deleteClients(profile, selected);
     } catch (e) {
       setAgents({
-        status: "error",
+        status: 'error',
         agentType: agents.agentType,
-        error: new FusebitError("Error deleting clients", {
+        error: new FusebitError('Error deleting clients', {
           details:
             (e.status || e.statusCode) === 403
-              ? "You are not authorized to delete clients in this account."
-              : e.message || "Unknown error.",
+              ? 'You are not authorized to delete clients in this account.'
+              : e.message || 'Unknown error.',
           actions: [
             {
-              text: "Back to clients",
-              func: () => reloadAgents(agents, setAgents)
-            }
-          ]
-        })
+              text: 'Back to clients',
+              func: () => reloadAgents(agents, setAgents),
+            },
+          ],
+        }),
       });
       return;
     }
@@ -116,11 +114,7 @@ function AccountClients() {
       title="Clients"
       enableSelection={true}
       onDelete={handleDelete}
-      deleteTitle={selected =>
-        selected.length > 1
-          ? `Delete ${selected.length} clients?`
-          : "Delete the client?"
-      }
+      deleteTitle={selected => (selected.length > 1 ? `Delete ${selected.length} clients?` : 'Delete the client?')}
       deleteContent={generateDeleteContent}
       actions={
         <ActionButton to="clients/new" component={RouterLink}>

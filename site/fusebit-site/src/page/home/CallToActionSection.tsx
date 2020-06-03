@@ -56,7 +56,7 @@ export type CallToActionSectionProps = {
 
 export function CallToActionSection({ ...rest }: CallToActionSectionProps) {
   return (
-    <FusebitSection maxWidth={1200} paddingBottom={20} center background={FusebitColor.dark}>
+    <FusebitSection maxWidth={1200} paddingBottom={20} center background={FusebitColor.black}>
       <MediaQuery mediaType={MediaType.mobile}>
         <MobileVersion {...rest} />
       </MediaQuery>
