@@ -17,7 +17,13 @@ All public releases of the Fusebit Operations CLI are documented here, including
 1. TOC
 {:toc}
 -->
+<!--
+## Version 1.23.0
 
+_Released X/XX/XX_
+
+- **ElasticSearch Support.** Deploy an Elastic Search cluster through `fuse-op` in AWS and acquire analytics via API.
+-->
 ## Version 1.22.1
 
 _Released 5/19/20_

@@ -17,12 +17,15 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+<!--
 ## Version X.X.X
 
 _Released X/XX/XX_
 
 - **Enhancement.** Expose the base URL of the fusebit function as `ctx.baseUrl`.
+- **Enhancement.** Support ElasticSearch as a backend for fusebit analytics.
 
+-->
 ## Version 1.16.1
 
 _Released 5/6/20_
