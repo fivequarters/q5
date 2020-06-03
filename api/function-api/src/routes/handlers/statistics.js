@@ -1,7 +1,8 @@
-const { getAccountContext } = require('../account');
+const aws4 = require('aws4');
+const https = require('https');
 const httpError = require('http-errors');
-const superagent = require('superagent-connect-port');
-const signRequest = require('superagent-aws-signed-request');
+
+const { getAccountContext } = require('../account');
 const { getAWSCredentials } = require('../credentials');
 
 let postES = undefined;
@@ -10,14 +11,25 @@ const appendIamRoleToES = async iamArn => {
   let patch = [{ op: 'add', path: '/all_access', value: { backend_roles: iamArn } }];
 
   try {
-    let result = await postES('/_opendistro/_security/api/rolesmapping', patch, 'patch');
+    let result;
+
+    // Get the current authenticated user as a validation that request signing is correct
+    result = await postES('/_opendistro/_security/api/account', '', 'GET');
+    const whoami = result.body.user_name;
+    console.log(`ES: WHOAMI ${result.statusCode}: ${whoami}`);
+
+    // Update the rolesmapping to add the Analytics Lambda role
+    result = await postES('/_opendistro/_security/api/rolesmapping', patch, 'PATCH');
     if (result.statusCode == 200) {
       console.log(`ES: Successfully updated ${process.env.ES_HOST} with ${JSON.stringify(iamArn)}`);
     } else {
-      console.log(`ES: Failed updating ${process.env.ES_HOST} with ${JSON.stringify(iamArn)}: ${result.statusCode}`);
+      console.log(
+        `ES: Failed updating ${process.env.ES_HOST} with ${JSON.stringify(iamArn)}: ${
+          result.statusCode
+        }/${JSON.stringify(result.body)}`
+      );
+      console.log(`ES: Is ${whoami} a member of the security_manager Backend Roles?`);
     }
-    result = await postES('/_opendistro/_security/api/account', {}, 'get');
-    console.log(`ES: WHOAMI ${result.statusCode}: ${result.text}`);
   } catch (e) {
     console.log('ES: Failed to update IAM role: ', e);
   }
@@ -35,56 +47,87 @@ const onStartup = async () => {
     }`
   );
 
-  // Allow for a redirect if running locally - only works with a patched superagent to allow for a port
-  // override.
-  console.log(`ES: Local Redirect: ${process.env.ES_REDIRECT ? 'enabled' : 'disabled'}`);
-  let connectOverride = process.env.ES_REDIRECT
-    ? r => r.connect({ '*': { host: 'localhost', port: process.env.ES_REDIRECT } }).trustLocalhost()
-    : r => r;
-
-  // Utility functions for authenticating to the ElasticSearch service.
+  // Utility functions for authenticating to the ElasticSearch service on the right target
   let authRequest;
-  let getCredentials;
+  let getRegion;
 
-  // Perform a query against the ElasticSearch service
-  postES = async (url, body, mode = 'post') => {
-    let cred = await getCredentials();
-    let fullUrl = `https://${process.env.ES_HOST}${url}`;
+  let requestOpts = {};
 
-    // Make the request to elasticsearch
-    return connectOverride(authRequest(cred, superagent[mode](fullUrl)))
-      .send(body)
-      .ok(() => true);
+  // Allow for local connect mapping
+  if (process.env.ES_REDIRECT) {
+    requestOpts.host = 'localhost';
+    requestOpts.port = process.env.ES_REDIRECT;
+  }
+
+  postES = async (path, body, method = 'POST') => {
+    let cred = await getAWSCredentials();
+
+    let content;
+    let opts = {
+      host: process.env.ES_HOST,
+      port: 443,
+      method,
+      path,
+      service: 'es',
+      region: getRegion(),
+      timeout: 2000,
+      headers: {
+        Host: process.env.ES_HOST,
+        'Content-Type': 'application/json',
+      },
+      ...requestOpts,
+    };
+
+    if (body) {
+      content = JSON.stringify(body);
+      opts.headers['Content-Length'] = Buffer.byteLength(content);
+      opts.body = content;
+    }
+
+    authRequest(opts, cred);
+
+    let result;
+    let data = '';
+    let statusCode = 501;
+
+    await new Promise((resolve, reject) => {
+      let req = https.request(opts, res => {
+        result = res;
+        res.on('data', d => {
+          data = data + d;
+        });
+        res.on('end', () => {
+          resolve();
+        });
+      });
+      req.on('error', e => {
+        data = JSON.stringify({ error: e.message });
+        resolve();
+      });
+      req.end(content);
+    });
+
+    return { statusCode: (result && result.statusCode) || statusCode, body: JSON.parse(data) };
   };
 
   if (process.env.ES_USER && process.env.ES_PASSWORD) {
     console.log('ES: Using username/password authentication');
-    getCredentials = async () => {
-      return { username: process.env.ES_USER, password: process.env.ES_PASSWORD };
+    getRegion = () => '';
+    authRequest = (opts, cred) => (opts.auth = `${process.env.ES_USER}:${process.env.ES_PASSWORD}`);
+  } else {
+    console.log('ES: Using IAM authentication');
+    getRegion = () => {
+      return process.env.ES_HOST.match(/^([^\.]+)\.?([^\.]*)\.?([^\.]*)\.amazonaws\.com$/)[2];
     };
-    authRequest = (cred, req) => req.auth(cred.username, cred.password);
-    return;
+
+    authRequest = (opts, cred) => {
+      aws4.sign(opts, cred);
+    };
+
+    // Ammend the analytics role to the ElasticSearch cluster to allow the lambda to post events.
+    // Support multiple roles in the ES_ANALYTICS_ROLE for ease of local credential testing.
+    await appendIamRoleToES([process.env.SERVICE_ROLE, ...process.env.ES_ANALYTICS_ROLE.split(',')]);
   }
-
-  console.log('ES: Using IAM authentication');
-  getCredentials = async () => {
-    return await getAWSCredentials();
-  };
-
-  authRequest = (cred, req) => {
-    return req.use(
-      signRequest('es', {
-        key: cred.accessKeyId,
-        secret: cred.secretAccessKey,
-        sessionToken: cred.sessionToken,
-        region: cred.region,
-      })
-    );
-  };
-
-  // Ammend the analytics role to the ElasticSearch cluster to allow the lambda to post events.
-  // Support multiple roles in the ES_ANALYTICS_ROLE for ease of local credential testing.
-  await appendIamRoleToES([process.env.SERVICE_ROLE, ...process.env.ES_ANALYTICS_ROLE.split(',')]);
 };
 
 // If a number is supplied, query for just that number.  Otherwise, assume that the caller is
