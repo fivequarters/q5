@@ -6,6 +6,18 @@ import Link from '@material-ui/core/Link';
 import Typography from '@material-ui/core/Typography';
 import { useSubscriptions } from './SubscriptionsProvider';
 import { useAgentMaybe, formatAgent, AgentState } from './AgentProvider';
+import { Grid, makeStyles } from '@material-ui/core';
+import clsx from 'clsx';
+
+const useStyles = makeStyles(theme => ({
+  grid: {
+    justifyContent: 'flex-end',
+    flexDirection: 'column',
+  },
+  item: {
+    lineHeight: 1.1,
+  },
+}));
 
 const tree = {
   paramName: 'accountId',
@@ -82,47 +94,68 @@ const tree = {
   ],
 };
 
-function ProfileBreadcrumb({ children, settings, ...rest }: any) {
+function ProfileBreadcrumb({ children, settings, className, ...rest }: any) {
   const params = { ...(useParams() as any), ...settings };
   const { profile } = useProfile();
   const [subscriptions] = useSubscriptions();
   const [agent] = useAgentMaybe();
-  // const classes = useStyles();
+  const classes = useStyles();
 
-  function renderBreadcrumbNode(node: any): any {
-    if (!node || !params[node.paramName]) {
-      return undefined;
-    }
+  function renderHierarchy(node: any): any {
+    var result: any = [];
+    var nextNode;
 
     // Is there a subsequent node in the breadcrumb?
-    const nextNode = node.children.reduce(
-      (selected: any, current: any) => selected || (params[current.paramName] && current),
-      undefined
-    );
-
-    if (nextNode) {
+    while (
+      (nextNode = node.children.reduce(
+        (selected: any, current: any) => selected || (params[current.paramName] && current),
+        undefined
+      ))
+    ) {
       // This is not the last segment - render with link
-      return [
+      result.push(
         <Link
           key={params[node.paramName]}
           component={RouterLink}
           to={node.formatLink(params, profile, { subscriptions, agent })}
         >
-          <Typography variant="h5">{node.text(params, profile, { subscriptions, agent })}</Typography>
-        </Link>,
-        renderBreadcrumbNode(nextNode),
-      ];
-    } else {
-      // This is the last segment - render without link
-      return (
-        <Typography variant="h5" key={params[node.paramName]}>
-          {node.text(params, profile, { subscriptions, agent })}
-        </Typography>
+          <Typography variant="body2" className={classes.item}>
+            {node.text(params, profile, { subscriptions, agent })}
+          </Typography>
+        </Link>
       );
+
+      node = nextNode;
     }
+
+    // This is the last segment - render without link
+    result.push(
+      <Typography variant="h5" key={params[node.paramName]}>
+        {node.text(params, profile, { subscriptions, agent })}
+      </Typography>
+    );
+
+    return result;
   }
 
-  return <Breadcrumbs {...rest}>{renderBreadcrumbNode(tree)}</Breadcrumbs>;
+  var hierarchy = renderHierarchy(tree);
+
+  if (hierarchy.length === 1) {
+    // We are at the top level, just return heading with no breadcrumb
+    return (
+      <Grid container className={clsx(classes.grid, className)} {...rest}>
+        {hierarchy}
+      </Grid>
+    );
+  } else {
+    // We are nested, return breadcrumb and heading underneath
+    return (
+      <Grid container className={clsx(classes.grid, className)} {...rest}>
+        <Breadcrumbs classes={{ separator: classes.item }}>{hierarchy.slice(0, hierarchy.length - 1)}</Breadcrumbs>
+        {hierarchy[hierarchy.length - 1]}
+      </Grid>
+    );
+  }
 }
 
 export default ProfileBreadcrumb;
