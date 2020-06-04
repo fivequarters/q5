@@ -187,8 +187,8 @@ export class AwsAutoScale extends AwsBase<typeof AutoScaling> {
       }
       this.ec2.deleteLaunchTemplate(params, (error: any) => {
         if (error) {
-          // try deleting a launch config instead, for old pre 1.17 stacks.
-          // TODO: Delete when no further pre 1.17 stacks are in deployment.
+          // try deleting a launch config instead, for old pre 1.23 stacks.
+          // TODO: Delete when no further pre 1.23 stacks are in deployment.
           try {
             this.deleteLaunchConfig(autoScaleName);
           } catch (_) {
@@ -201,7 +201,7 @@ export class AwsAutoScale extends AwsBase<typeof AutoScaling> {
     });
   }
 
-  // TODO: Delete when no further pre 1.17 stacks are in deployment.
+  // TODO: Delete when no further pre 1.23 stacks are in deployment.
   private async deleteLaunchConfig(autoScaleName: string) {
     const autoScale = await this.getAws();
     const params = {
@@ -221,7 +221,7 @@ export class AwsAutoScale extends AwsBase<typeof AutoScaling> {
   private getLaunchTemplateName(name: string) {
     return `${this.getFullName(name)}-lt`;
   }
-  // TODO: Delete when no further pre 1.17 stacks are in deployment.
+  // TODO: Delete when no further pre 1.23 stacks are in deployment.
   private getLaunchConfigName(name: string) {
     return `${this.getFullName(name)}-lc`;
   }
