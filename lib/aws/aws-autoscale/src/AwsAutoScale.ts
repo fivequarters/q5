@@ -185,13 +185,13 @@ export class AwsAutoScale extends AwsBase<typeof AutoScaling> {
       if (!this.ec2) {
         throw new Error('EC2 not set');
       }
-      this.ec2.deleteLaunchTemplate(params, (error: any) => {
+      this.ec2.deleteLaunchTemplate(params, async (error: any) => {
         if (error) {
           // try deleting a launch config instead, for old pre 1.23 stacks.
           // TODO: Delete when no further pre 1.23 stacks are in deployment.
           try {
-            this.deleteLaunchConfig(autoScaleName);
-          } catch (_) {
+            await this.deleteLaunchConfig(autoScaleName);
+          } catch (e) {
             // That didn't work either; report original error.
             return reject(error);
           }
