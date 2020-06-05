@@ -372,7 +372,12 @@ const makeQuery = async (request, key, queryParams = null) => {
   let response = await postES(`/fusebit-${process.env.DEPLOYMENT_KEY}-*/_search`, body);
 
   if (response.statusCode == 200) {
-    let payload = queries[key][1](response.body);
+    let payload;
+    try {
+      payload = queries[key][1](response.body);
+    } catch (e) {
+      return { statusCode: 500, data: e.message };
+    }
     return { statusCode: response.statusCode, items: payload.data, total: payload.total };
   }
   return { statusCode: response.statusCode, data: response.body };

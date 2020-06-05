@@ -17,6 +17,14 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+<!--
+## Version 1.17.1
+
+_ Released X/X/20_
+
+- **Bug fix.** Increase default AWS credential validity to 12 hours
+-->
+
 ## Version 1.17.0
 
 _Released 6/3/20_

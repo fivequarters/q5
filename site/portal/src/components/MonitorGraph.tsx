@@ -181,21 +181,22 @@ const MonitorGraph: React.FC<IProps> = props => {
       ];
     });
   } else {
-    const onDotClick = (e: any, p: any) => {
+    const onBarClick = (e: any, p: any) => {
       setActiveCodeList(e.dataKey); // Should be just the basic HTTP code value.
       setHTTPEventRange(e.payload.key);
     };
-
     elements = data.codes.map(id => {
       return (
         <ChartElement
           yAxisId="left"
-          stroke={httpCodeColorMap(id)}
           {...compParams}
           key={id}
           dataKey={id}
+          name={id}
+          stroke={httpCodeColorMap(id)}
           fill={httpCodeColorMap(id)}
-          activeDot={{ onClick: onDotClick }}
+          onClick={onBarClick}
+          units="uniques"
         />
       );
     });
@@ -211,7 +212,7 @@ const MonitorGraph: React.FC<IProps> = props => {
         <ResponsiveContainer>
           <ReChart width={900} height={200} data={data.items} {...chartParams}>
             <CartesianGrid stroke="#ccc" />
-            {multi && <Tooltip content={CustomTooltip} />}
+            <Tooltip content={CustomTooltip} />
             <Legend height={36} />
             <XAxis
               type="number"
@@ -220,7 +221,7 @@ const MonitorGraph: React.FC<IProps> = props => {
               tickFormatter={dateTickFormatter}
             />
             <YAxis yAxisId="left" name="Activity" />
-            <YAxis yAxisId="right" unit="ms" orientation="right" name="Latency (ms)" />
+            {multi && <YAxis yAxisId="right" unit="ms" orientation="right" name="Latency (ms)" />}
             {elements}
           </ReChart>
         </ResponsiveContainer>
