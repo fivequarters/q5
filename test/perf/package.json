@@ -15,6 +15,6 @@
   },
   "keywords": [],
   "dependencies": {
-    "superagent": "^5.0.3"
+    "superagent": "^5.2.2"
   }
 }

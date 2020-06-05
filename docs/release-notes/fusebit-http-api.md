@@ -17,14 +17,15 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
-<!--
-## Version X.X.X
+## Version 1.17.0
 
-_Released X/XX/XX_
+_Released 6/3/20_
+
+Prior to deploying this version, please re-run `fuse-ops setup` and `fuse-ops deployment add` on your deployment with `fuse-ops` version `1.23.0` or greater.
 
 - **Enhancement.** Expose the base URL of the fusebit function as `ctx.baseUrl`.
+- **Enhancement.** Support ElasticSearch as a backend for Fusebit analytics.
 - **Bug fix.** Fix race condition leading to a resource leak in the handling of requests for real-time logs.
--->
 
 ## Version 1.16.1
 

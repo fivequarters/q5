@@ -4,6 +4,6 @@
   },
   "dependencies": {
       "loadtest": "*",
-      "superagent": "*"
+      "superagent": "^5.2.2"
   }
 }

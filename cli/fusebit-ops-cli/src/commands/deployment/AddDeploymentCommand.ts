@@ -38,8 +38,21 @@ const command = {
     },
     {
       name: 'elasticSearch',
-      description: 'The Elastic Search endpoint for monitoring and analytics\nFormat: https://user:password@hostname',
+      description:
+        'The Elastic Search endpoint for monitoring and analytics\n\n' +
+        'There are several different modes to this parameter:\n' +
+        '  1. Format: https://user:password@hostname - use this existing ES, and configure it to support Fusebit.\n' +
+        '  2. Format: ./path_to_es.json - Supply this path to automatically create an ES cluster based on the supplied configuration file.\n' +
+        "  3. Format: '' - Clear the existing configuration value.\n" +
+        '\n' +
+        'NOTE: The second mode has no action if the deployment is already configured with a value that matches the first mode.  Force the creation of a new cluster by first clearing the value using the third mode.',
       // No default, to preserve the existing value when updating a deployment.
+    },
+    {
+      name: 'generateElasticSearchConfig',
+      description:
+        'Output an ElasticSearch configuration skeleton to the specified filename. This generates an initial template to pass to --elasticSearch to create an ElasticSearch deployment.',
+      type: ArgType.string,
     },
     {
       name: 'dataWarehouse',
@@ -76,6 +89,7 @@ export class AddDeploymentCommand extends Command {
     const region = input.options.region as string;
     const size = input.options.size as number | undefined;
     const elasticSearch = input.options.elasticSearch as string | undefined;
+    const generateElasticSearchConfig = input.options.generateElasticSearchConfig as string | undefined;
     const confirm = input.options.confirm as boolean;
     const dataWarehouseEnabled = input.options.dataWarehouse as boolean | undefined;
 
@@ -94,6 +108,11 @@ export class AddDeploymentCommand extends Command {
       region: network.region,
       featureUseDnsS3Bucket: true,
     };
+
+    if (generateElasticSearchConfig) {
+      await deploymentService.getElasticSearchTemplate(deploymentParameters, generateElasticSearchConfig);
+      return 0;
+    }
 
     const deployment = await deploymentService.checkDeploymentExists(deploymentParameters);
 

@@ -14,6 +14,7 @@ import {
 import { IListAccountsOptions, IListSubscriptionsOptions } from '@5qtrs/account-data';
 import { AccountDataAwsContextFactory } from '@5qtrs/account-data-aws';
 import { StorageDataAwsContextFactory } from '@5qtrs/storage-data-aws';
+import { IAwsConfig } from '@5qtrs/aws-config';
 import { OpsDataTables } from './OpsDataTables';
 import { OpsDataAwsProvider } from './OpsDataAwsProvider';
 import { OpsDataAwsConfig } from './OpsDataAwsConfig';
@@ -26,7 +27,12 @@ import { createLogsTable } from './OpsLogs';
 import { debug } from './OpsDebug';
 import { random } from '@5qtrs/random';
 import { signJwt } from '@5qtrs/jwt';
-import { parseElasticSearchUrl } from './OpsElasticSearch';
+import {
+  parseElasticSearchUrl,
+  loadElasticSearchConfigFile,
+  getDefaultElasticSearchConfig,
+  createElasticSearch,
+} from './OpsElasticSearch';
 
 // ----------------
 // Exported Classes
@@ -112,6 +118,11 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
       }
       throw error;
     }
+  }
+
+  public async getElasticSearchTemplate(deployment: IOpsDeployment): Promise<string> {
+    const awsConfig = await this.provider.getAwsConfigForDeployment(deployment.deploymentName, deployment.region);
+    return await getDefaultElasticSearchConfig(this.config, awsConfig, this.provider, this.tables, deployment);
   }
 
   public async add(deployment: IOpsDeployment): Promise<void> {
@@ -288,18 +299,15 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
   private async ensureDeploymentSetup(deployment: IOpsDeployment): Promise<void> {
     debug('ENSURE DEPLOYMENT SETUP', deployment);
 
+    const awsConfig = await this.provider.getAwsConfigForDeployment(deployment.deploymentName, deployment.region);
+
     // Validate the correctness of the parameters
     //
     // Check if the elasticSearch parameter is present and not-empty.
     if (deployment.elasticSearch && deployment.elasticSearch.length > 0) {
-      // Validate that the Elastic Search parameter fits the expected format
-      let esCreds = parseElasticSearchUrl(deployment.elasticSearch);
-      if (!esCreds) {
-        throw OpsDataException.invalidElasticSearchUrl(deployment.elasticSearch);
-      }
+      // Create the ES stack and/or update the deployment.elasticSearch value, variously.
+      await this.createElasticSearch(awsConfig, deployment);
     }
-
-    const awsConfig = await this.provider.getAwsConfigForDeployment(deployment.deploymentName, deployment.region);
 
     await createFunctionStorage(this.config, awsConfig, deployment);
 
@@ -313,7 +321,7 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
 
     await createLogsTable(this.config, awsConfig);
 
-    await createAnalyticsPipeline(this.config, awsConfig, deployment);
+    await createAnalyticsPipeline(this.config, awsConfig, this.provider, this.tables, deployment);
 
     await createCron(this.config, awsConfig, deployment);
     if (deployment.dataWarehouseEnabled) {
@@ -327,5 +335,32 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
       this.globalOpsDeploymentData && this.globalOpsDeploymentData.provider
     );
     await awsAlb.addAlb(deployment);
+  }
+
+  public async createElasticSearch(awsConfig: IAwsConfig, deployment: IOpsDeploymentParameters): Promise<void> {
+    // Is the parameter invalid, length=0, or set to valid tokens
+    if (
+      !deployment.elasticSearch ||
+      deployment.elasticSearch.length == 0 ||
+      deployment.elasticSearch.startsWith('https://')
+    ) {
+      // Don't mess with an empty parameter or a valid url.
+      return;
+    }
+
+    // Check if there's an existing deployment, which must be cleared before a new one is created.
+    const existing = await this.tables.deploymentTable.get(deployment.deploymentName, deployment.region);
+
+    if (existing.elasticSearch && existing.elasticSearch.length > 0) {
+      // Existing valid credentials present, use those.
+      deployment.elasticSearch = existing.elasticSearch;
+      return;
+    }
+    // Maybe it's a filename; load it and see if you can create a cluster.
+    let esCfg = loadElasticSearchConfigFile(deployment as IOpsDeployment);
+
+    // Return a valid endpoint once the ES service is available.
+    let endpoint = await createElasticSearch(awsConfig, deployment as IOpsDeployment, esCfg);
+    deployment.elasticSearch = endpoint;
   }
 }
