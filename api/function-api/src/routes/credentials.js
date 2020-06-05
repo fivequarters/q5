@@ -1,7 +1,7 @@
 const AWS = require('aws-sdk');
 
-const credentialRefreshWindowSecs = 60; // 10 * 60; // 10 minutes left
-const defaultCredentialDurationSecs = 5 * 60; // 12 * 60 * 60; // 12 hours
+const credentialRefreshWindowSecs = 10 * 60; // 10 minutes left
+const defaultCredentialDurationSecs = 12 * 60 * 60; // 12 hours
 
 // Popualate the cache with the environment-supplied variables, if any.
 let credentialCache = {
@@ -14,6 +14,8 @@ let credentialCache = {
   // If the credentials are provided via the environment (i.e. for testing), don't refresh.
   expiration: process.env.AWS_SESSION_TOKEN ? Date.now() + defaultCredentialDurationSecs * 1000 : 0,
 };
+
+console.log(`CRED: Initialized (new expiration ${new Date(credentialCache.expiration).toISOString()})`);
 
 let refreshInProgress = undefined;
 

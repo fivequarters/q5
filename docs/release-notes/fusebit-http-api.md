@@ -17,6 +17,15 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.17.1
+
+_Released 6/5/20_
+
+This release requires `fusebit-ops-cli` version `1.23.2` or greater.
+
+- **Bug fix.** Increase default AWS credential validity to 12 hours
+- **Enhancement.** Add originating stack details to statistical metadata per request.
+
 ## Version 1.17.0
 
 _Released 6/3/20_

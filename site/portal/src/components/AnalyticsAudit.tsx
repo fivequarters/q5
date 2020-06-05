@@ -11,11 +11,11 @@ import PortalError from './PortalError';
 import ResourceCrumb from './ResourceCrumb';
 import TableInfoRow from './TableInfoRow';
 import Chip from '@material-ui/core/Chip';
-import { useHistory } from 'react-router-dom';
 import AgentTooltip, { IssuerSubjectAgent } from './AgentTooltip';
 import { AgentState } from './AgentProvider';
 import CancelIcon from '@material-ui/icons/Cancel';
 import CheckCircleIcon from '@material-ui/icons/CheckCircle';
+import { useHashHistory } from './HashHistory';
 
 const useStyles = makeStyles((theme: any) => ({
   noWrap: {
@@ -40,16 +40,16 @@ const useStyles = makeStyles((theme: any) => ({
 
 const pad = (i: number) => (i < 10 ? '0' + i : i.toString());
 
-type ActivityImplProps = {
+type AnalyticsAuditImplProps = {
   filterMask: AuditFilter;
   actionFilter?: string[];
 };
 
-function ActivityImpl({ actionFilter, filterMask }: ActivityImplProps) {
+function AnalyticsAuditImpl({ actionFilter, filterMask }: AnalyticsAuditImplProps) {
   const [audit] = useAudit();
   const [utc, setUtc] = React.useState<boolean>(getUISettings().utcTime);
   const classes = useStyles();
-  const history = useHistory();
+  const [, setHistory] = useHashHistory('audit', {});
   const [agents, setAgents] = React.useState<IssuerSubjectAgent>({});
 
   const formatUtcDate = (d: Date) =>
@@ -141,21 +141,11 @@ function ActivityImpl({ actionFilter, filterMask }: ActivityImplProps) {
   }
 
   const updateFilter = (newFilter: AuditFilter) => {
-    let query: any = { ...newFilter };
-    delete query.count;
-    const hash = `#${Object.keys(query)
-      .reduce<string[]>((a: string[], k: string) => {
-        if (query[k] !== undefined) {
-          a.push(`${k}=${encodeURIComponent(query[k])}`);
-        }
-        return a;
-      }, [])
-      .join('&')}`;
-    history.replace(hash);
+    setHistory(newFilter);
   };
 
   const handleFilterReset = () => {
-    history.push('#');
+    setHistory({});
   };
 
   const handleFilterApply = (newFilter: AuditFilter, newUtc: boolean) => {
@@ -299,7 +289,7 @@ function ActivityImpl({ actionFilter, filterMask }: ActivityImplProps) {
         defaultSortKey="timestamp"
         defaultSortOrder="desc"
         identityKey="id"
-        title="Activity"
+        title="Audit Activity"
         enableSelection={false}
         filterContent={
           <ActivityFilterContent
@@ -316,30 +306,19 @@ function ActivityImpl({ actionFilter, filterMask }: ActivityImplProps) {
   );
 }
 
-type ActivityProps = {
+type AuditProps = {
   filter: AuditFilter;
   actionFilter?: string[];
 };
 
-function Activity({ filter, actionFilter }: ActivityProps) {
-  const history = useHistory();
-  let hash: { [key: string]: string } = {};
+function AnalyticsAudit({ filter, actionFilter }: AuditProps) {
+  const [history] = useHashHistory('audit', {});
   let filterOverride = filter;
-  if (history.location.hash.length > 0) {
-    history.location.hash
-      .substring(1)
-      .split('&')
-      .forEach(e => {
-        const [k, v] = e.split('=');
-        if (k !== undefined && k.length > 0 && v !== undefined) {
-          hash[k] = decodeURIComponent(v);
-        }
-      });
-    const { resource, action, from, to, issuerId, subject } = hash;
-    if (resource) {
-      filterOverride = { resource, action, from, to, issuerId, subject };
-    }
+  const { resource, action, from, to, issuerId, subject } = history;
+  if (resource) {
+    filterOverride = { resource, action, from, to, issuerId, subject };
   }
+
   if (!filterOverride.from && !filterOverride.to) {
     filterOverride.from = defaultFilterFrom;
   }
@@ -354,9 +333,10 @@ function Activity({ filter, actionFilter }: ActivityProps) {
   }
   return (
     <AuditProvider filter={filterOverride}>
-      <ActivityImpl filterMask={filter} actionFilter={actionFilter} />
+      <AnalyticsAuditImpl filterMask={filter} actionFilter={actionFilter} />
     </AuditProvider>
   );
 }
 
-export default Activity;
+export type IAnalyticsAuditProps = AuditProps;
+export { AnalyticsAudit };

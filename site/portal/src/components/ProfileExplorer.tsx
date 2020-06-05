@@ -37,7 +37,7 @@ import ResourceAccess from './ResourceAccess';
 import SubscriptionBoundaries from './SubscriptionBoundaries';
 import { MonitorPanel } from './Monitor';
 import { SubscriptionsProvider } from './SubscriptionsProvider';
-import Activity from './Activity';
+import { Analytics } from './Analytics';
 
 const useStyles = makeStyles(theme => ({
   paper: {
@@ -63,9 +63,6 @@ const ExplorerTabs = {
       name: 'subscriptions',
     },
     {
-      name: 'activity',
-    },
-    {
       name: 'users',
     },
     {
@@ -81,7 +78,7 @@ const ExplorerTabs = {
       name: 'settings',
     },
     {
-      name: 'monitor',
+      name: 'analytics',
     },
   ],
   subscription: [
@@ -89,13 +86,10 @@ const ExplorerTabs = {
       name: 'boundaries',
     },
     {
-      name: 'activity',
-    },
-    {
       name: 'access',
     },
     {
-      name: 'monitor',
+      name: 'analytics',
     },
   ],
   boundary: [
@@ -103,13 +97,10 @@ const ExplorerTabs = {
       name: 'functions',
     },
     {
-      name: 'activity',
-    },
-    {
       name: 'access',
     },
     {
-      name: 'monitor',
+      name: 'analytics',
     },
   ],
   oneFunction: [
@@ -117,10 +108,10 @@ const ExplorerTabs = {
       name: 'overview',
     },
     {
-      name: 'activity',
+      name: 'access',
     },
     {
-      name: 'access',
+      name: 'analytics',
     },
     {
       name: 'settings',
@@ -131,7 +122,7 @@ const ExplorerTabs = {
       name: 'properties',
     },
     {
-      name: 'activity',
+      name: 'analytics',
     },
     {
       name: 'access',
@@ -142,10 +133,10 @@ const ExplorerTabs = {
       name: 'properties',
     },
     {
-      name: 'activity',
+      name: 'permissions',
     },
     {
-      name: 'permissions',
+      name: 'analytics',
     },
     {
       name: 'access',
@@ -156,10 +147,10 @@ const ExplorerTabs = {
       name: 'properties',
     },
     {
-      name: 'activity',
+      name: 'permissions',
     },
     {
-      name: 'permissions',
+      name: 'analytics',
     },
     {
       name: 'access',
@@ -239,13 +230,16 @@ function ProfileExplorer({ ...rest }: any) {
         />
 
         <Route
-          path="/accounts/:accountId/activity"
+          path="/accounts/:accountId/analytics"
           exact={true}
           render={({ match }) => (
             <ExplorerView tabs={ExplorerTabs.account} match={match}>
-              <Activity
-                filter={{
-                  resource: `/account/${profile.account}/`,
+              <Analytics
+                params={match.params}
+                audit={{
+                  filter: {
+                    resource: `/account/${profile.account}/`,
+                  },
                 }}
               />
             </ExplorerView>
@@ -317,15 +311,18 @@ function ProfileExplorer({ ...rest }: any) {
                     )}
                   />
                   <Route
-                    path={`${match.path}/activity`}
+                    path={`${match.path}/analytics`}
                     exact={true}
                     render={({ match }) => (
                       <ExplorerView tabs={ExplorerTabs.user} match={match}>
-                        <Activity
-                          filter={{
-                            resource: `/account/${profile.account}/user/${match.params.userId}/`,
+                        <Analytics
+                          params={match.params}
+                          audit={{
+                            filter: {
+                              resource: `/account/${profile.account}/user/${match.params.userId}/`,
+                            },
+                            actionFilter: ['user'],
                           }}
-                          actionFilter={['user']}
                         />
                       </ExplorerView>
                     )}
@@ -401,15 +398,18 @@ function ProfileExplorer({ ...rest }: any) {
                     )}
                   />
                   <Route
-                    path={`${match.path}/activity`}
+                    path={`${match.path}/analytics`}
                     exact={true}
                     render={({ match }) => (
                       <ExplorerView tabs={ExplorerTabs.client} match={match}>
-                        <Activity
-                          filter={{
-                            resource: `/account/${profile.account}/client/${match.params.clientId}/`,
+                        <Analytics
+                          params={match.params}
+                          audit={{
+                            filter: {
+                              resource: `/account/${profile.account}/client/${match.params.clientId}/`,
+                            },
+                            actionFilter: ['client'],
                           }}
-                          actionFilter={['client']}
                         />
                       </ExplorerView>
                     )}
@@ -483,15 +483,18 @@ function ProfileExplorer({ ...rest }: any) {
                   )}
                 />
                 <Route
-                  path={`${match.path}/activity`}
+                  path={`${match.path}/analytics`}
                   exact={true}
                   render={({ match }) => (
                     <ExplorerView tabs={ExplorerTabs.issuer} match={match}>
-                      <Activity
-                        filter={{
-                          resource: `/account/${profile.account}/issuer/${match.params.issuerId}/`,
+                      <Analytics
+                        params={match.params}
+                        audit={{
+                          filter: {
+                            resource: `/account/${profile.account}/issuer/${match.params.issuerId}/`,
+                          },
+                          actionFilter: ['issuer'],
                         }}
-                        actionFilter={['issuer']}
                       />
                     </ExplorerView>
                   )}
@@ -549,15 +552,18 @@ function ProfileExplorer({ ...rest }: any) {
             <BoundariesProvider subscriptionId={match.params.subscriptionId}>
               <Switch>
                 <Route
-                  path={`${match.path}/activity`}
+                  path={`${match.path}/analytics`}
                   exact={true}
                   render={({ match }) => (
                     <ExplorerView tabs={ExplorerTabs.subscription} match={match}>
-                      <Activity
-                        filter={{
-                          resource: `/account/${profile.account}/subscription/${match.params.subscriptionId}/`,
+                      <Analytics
+                        params={match.params}
+                        audit={{
+                          filter: {
+                            resource: `/account/${profile.account}/subscription/${match.params.subscriptionId}/`,
+                          },
+                          actionFilter: ['function'],
                         }}
-                        actionFilter={['function']}
                       />
                     </ExplorerView>
                   )}
@@ -572,15 +578,18 @@ function ProfileExplorer({ ...rest }: any) {
                     >
                       <Switch>
                         <Route
-                          path={`${match.path}/activity`}
+                          path={`${match.path}/analytics`}
                           exact={true}
                           render={({ match }) => (
                             <ExplorerView tabs={ExplorerTabs.oneFunction} match={match}>
-                              <Activity
-                                filter={{
-                                  resource: `/account/${profile.account}/subscription/${match.params.subscriptionId}/boundary/${match.params.boundaryId}/function/${match.params.functionId}/`,
+                              <Analytics
+                                params={match.params}
+                                audit={{
+                                  filter: {
+                                    resource: `/account/${profile.account}/subscription/${match.params.subscriptionId}/boundary/${match.params.boundaryId}/function/${match.params.functionId}/`,
+                                  },
+                                  actionFilter: ['function'],
                                 }}
-                                actionFilter={['function']}
                               />
                             </ExplorerView>
                           )}
@@ -706,15 +715,18 @@ function ProfileExplorer({ ...rest }: any) {
                   )}
                 />
                 <Route
-                  path={`${match.path}/boundaries/:boundaryId/activity`}
+                  path={`${match.path}/boundaries/:boundaryId/analytics`}
                   exact={true}
                   render={({ match }) => (
                     <ExplorerView tabs={ExplorerTabs.boundary} match={match}>
-                      <Activity
-                        filter={{
-                          resource: `/account/${profile.account}/subscription/${match.params.subscriptionId}/boundary/${match.params.boundaryId}/`,
+                      <Analytics
+                        params={match.params}
+                        audit={{
+                          filter: {
+                            resource: `/account/${profile.account}/subscription/${match.params.subscriptionId}/boundary/${match.params.boundaryId}/`,
+                          },
+                          actionFilter: ['function'],
                         }}
-                        actionFilter={['function']}
                       />
                     </ExplorerView>
                   )}

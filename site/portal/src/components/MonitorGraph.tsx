@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import ms from 'ms';
+
 import {
   ResponsiveContainer,
   LineChart as RechartLineChart,
@@ -12,13 +14,15 @@ import {
   Legend,
 } from 'recharts';
 import LinearProgress from '@material-ui/core/LinearProgress';
+import Typography from '@material-ui/core/Typography';
+
+import { httpCodeColorMap } from '@5qtrs/fusebit-color';
+
 import { IFusebitProfile } from '../lib/Settings';
 import { formatByBucketWidth, IDateInterval, getStatisticalMonitorData } from '../lib/FusebitMonitor';
 import { getUISettings } from '../lib/Settings';
 
-import ms from 'ms';
-
-import { httpCodeColorMap } from '@5qtrs/fusebit-color';
+type ActiveCodeList = Array<number | string>;
 
 interface IProps {
   query: string;
@@ -31,7 +35,7 @@ interface IProps {
   chartType?: string;
   queryParams?: any;
   setEventRange: (newInterval: IDateInterval) => void;
-  setActiveCodeList: (newCodeList: number[]) => void;
+  setActiveCodeList: (newCodeList: ActiveCodeList) => void;
 }
 
 const MonitorGraph: React.FC<IProps> = props => {
@@ -113,7 +117,7 @@ const MonitorGraph: React.FC<IProps> = props => {
             payload.map((line: any) => {
               return (
                 <p key={line.name} className="desc">
-                  {line.name}: {line.value}
+                  {line.name}: {+line.value.toFixed(2)} {line.unit}
                 </p>
               );
             })}
@@ -144,6 +148,11 @@ const MonitorGraph: React.FC<IProps> = props => {
 
   let elements: any;
   if (multi) {
+    const onDotClick = (e: any, p: any) => {
+      setActiveCodeList(e.dataKey.substring(0, 3)); // Get the leading three digits, sans array offset.
+      setHTTPEventRange(e.payload.key);
+    };
+
     elements = data.codes.map(id => {
       return [
         <ChartElement
@@ -152,9 +161,11 @@ const MonitorGraph: React.FC<IProps> = props => {
           key={id + ' latency'}
           dataKey={id + '[0]'}
           name={id + ' latency'}
-          stroke={httpCodeColorMap(id)}
           strokeDasharray="3 3"
+          stroke={httpCodeColorMap(id)}
           fill={httpCodeColorMap(id)}
+          activeDot={{ onClick: onDotClick }}
+          unit="ms"
         />,
         <ChartElement
           yAxisId="left"
@@ -164,38 +175,42 @@ const MonitorGraph: React.FC<IProps> = props => {
           name={id + ' results'}
           stroke={httpCodeColorMap(id)}
           fill={httpCodeColorMap(id)}
+          activeDot={{ onClick: onDotClick }}
+          unit="hits"
         />,
       ];
     });
   } else {
+    const onBarClick = (e: any, p: any) => {
+      setActiveCodeList(e.dataKey); // Should be just the basic HTTP code value.
+      setHTTPEventRange(e.payload.key);
+    };
     elements = data.codes.map(id => {
       return (
         <ChartElement
           yAxisId="left"
-          stroke={httpCodeColorMap(id)}
           {...compParams}
           key={id}
           dataKey={id}
+          name={id}
+          stroke={httpCodeColorMap(id)}
           fill={httpCodeColorMap(id)}
+          onClick={onBarClick}
+          units="uniques"
         />
       );
     });
   }
 
-  // Quick hack, let's turn the key into an integer.
   return (
     <div>
       <InProgressBar />
-      <div style={{ width: '100%', height: 300 }}>
+      <Typography variant="h6" id="tableTitle" style={{ paddingLeft: 20 }}>
         {label}
+      </Typography>
+      <div style={{ width: '100%', height: 500 }}>
         <ResponsiveContainer>
-          <ReChart
-            width={900}
-            height={500}
-            data={data.items}
-            onClick={(e: any, v: any) => e && setHTTPEventRange(e.activeLabel)}
-            {...chartParams}
-          >
+          <ReChart width={900} height={200} data={data.items} {...chartParams}>
             <CartesianGrid stroke="#ccc" />
             <Tooltip content={CustomTooltip} />
             <Legend height={36} />
@@ -206,7 +221,7 @@ const MonitorGraph: React.FC<IProps> = props => {
               tickFormatter={dateTickFormatter}
             />
             <YAxis yAxisId="left" name="Activity" />
-            <YAxis yAxisId="right" unit="ms" orientation="right" name="Latency (ms)" />
+            {multi && <YAxis yAxisId="right" unit="ms" orientation="right" name="Latency (ms)" />}
             {elements}
           </ReChart>
         </ResponsiveContainer>
