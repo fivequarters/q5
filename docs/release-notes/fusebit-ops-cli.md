@@ -17,6 +17,11 @@ All public releases of the Fusebit Operations CLI are documented here, including
 1. TOC
 {:toc}
 -->
+## Version 1.23.2
+
+_Released 6/5/20_
+
+- **Enhancement.** Support recording additional metadata about stack version in analytics.
 
 ## Version 1.23.1
 
