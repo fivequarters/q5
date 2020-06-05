@@ -46,6 +46,14 @@ const validateEntry = (account: IAccount, entry: any, boundaryId: string, functi
   expect(entry.fusebit.deploymentKey.length).toBeGreaterThan(0);
   expect(entry.fusebit.mode).toEqual('request');
   expect(entry.fusebit.modality).toEqual('execution');
+
+  // If you're missing these, add this to your .env.template:
+  //   API_STACK_VERSION=dev
+  //   API_STACK_ID=0
+  //   API_STACK_AMI=0
+  expect(entry.fusebit.stackVersion).toEqual('dev');
+  expect(entry.fusebit.stackId).toEqual('0');
+  expect(entry.fusebit.stackAMI).toEqual('0');
 };
 
 describe('statistics', () => {

@@ -111,6 +111,9 @@ export class OpsStackData extends DataSource implements IOpsStackData {
         securityGroupIds,
         deployment.domainName,
         this.config.getS3Bucket(deployment),
+        tag,
+        id,
+        amiId,
         elasticSearch,
         newStack.env
       ),
@@ -280,6 +283,9 @@ systemctl start docker.fusebit`;
     securityGroupIds: string[],
     domainName: string,
     s3Bucket: string,
+    tag: string,
+    id: number,
+    amiId: string,
     elasticSearch: string,
     env?: string
   ) {
@@ -298,6 +304,9 @@ LAMBDA_VPC_SUBNETS=${subnetIds.join(',')}
 LAMBDA_VPC_SECURITY_GROUPS=${securityGroupIds.join(',')}
 CRON_QUEUE_URL=https://sqs.${region}.amazonaws.com/${account}/${deploymentName}-cron
 LOGS_TOKEN_SIGNATURE_KEY=${random({ lengthInBytes: 32 })}
+API_STACK_VERSION=${tag}
+API_STACK_ID=${id}
+API_STACK_AMI=${amiId}
 `;
 
     let esCreds = parseElasticSearchUrl(elasticSearch);
