@@ -1,4 +1,5 @@
 const { join } = require('path');
+const { getAWSCredentials } = require('../credentials');
 
 let version = '<unknown>';
 try {
@@ -6,7 +7,14 @@ try {
 } catch (_) {}
 
 function getHealth() {
-  return (req, res) => res.json({ version });
+  return async (req, res, next) => {
+    let creds = await getAWSCredentials(false);
+    if (!creds) {
+      return res.status(500).json({ status: 500, statusCode: 500, message: 'credentials pending' });
+    }
+
+    res.json({ version });
+  };
 }
 
 module.exports = {

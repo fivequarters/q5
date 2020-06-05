@@ -66,6 +66,7 @@ export class OpsIam implements IDataSource {
       [
         `${this.config.arnPrefix}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole`,
         `${this.config.arnPrefix}:iam::aws:policy/AmazonESFullAccess`,
+        `${this.config.arnPrefix}:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole`,
       ],
       {
         Version: '2012-10-17',
@@ -109,16 +110,7 @@ export class OpsIam implements IDataSource {
       awsConfig,
       this.config.functionRoleName,
       undefined,
-      {
-        Version: '2012-10-17',
-        Statement: [
-          {
-            Effect: 'Allow',
-            Action: ['ec2:CreateNetworkInterface', 'ec2:DeleteNetworkInterface', 'ec2:DescribeNetworkInterfaces'],
-            Resource: '*',
-          },
-        ],
-      },
+      undefined,
       undefined,
       this.config.iamPermissionsBoundary
     );

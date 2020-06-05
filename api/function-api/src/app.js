@@ -9,7 +9,7 @@ var app = express();
 logger.token('url', (req, res) =>
   req.query && req.query.token ? req.url.replace(/token=[^\&]+/, 'token={removed}') : req.url
 );
-app.use(logger('dev'));
+app.use(logger(process.stdout.isTTY ? 'dev' : 'combined'));
 app.use('/v1/', require('./routes/v1_api'));
 if (process.env.API_EXPOSE_DOCS) {
   app.use('/', require('./routes/api_docs'));
