@@ -35,6 +35,7 @@ interface AnalyticsOptions {
 }
 
 interface AnalyticsEntry {
+  n: number; // Order of presentation
   c: (props: any) => any;
   t: string;
   o?: AnalyticsOptions;
@@ -93,9 +94,9 @@ function AnalyticsAuditPanel(env: AnalyticsEnvironment) {
 
 // Lookup table to convert into a particular analytics view
 const analyticsTable: { [key: string]: AnalyticsEntry } = {
-  activity: { c: AnalyticsActivityPanel, t: 'Activity', o: { useWidth: true, filterCodes: true } },
-  audit: { c: AnalyticsAuditPanel, t: 'Audit' },
-  usage: { c: AnalyticsUsagePanel, t: 'Usage' },
+  activity: { n: 1, c: AnalyticsActivityPanel, t: 'Activity', o: { useWidth: true, filterCodes: true } },
+  usage: { n: 2, c: AnalyticsUsagePanel, t: 'Usage' },
+  audit: { n: 3, c: AnalyticsAuditPanel, t: 'Audit' },
 };
 
 // Convert some strings into the appropriate objects.
@@ -120,7 +121,7 @@ const Analytics: React.FC<IAnalyticsProps> = props => {
   };
 
   const ShowAnalytics = () => {
-    return analyticsTable[topic].c({ props, ...history });
+    return analyticsTable[topic].c({ props, ...history, interval, ...analyticsTable[topic].o });
   };
 
   return (
@@ -128,13 +129,15 @@ const Analytics: React.FC<IAnalyticsProps> = props => {
       {/* Show the combo box to select the desired analytics display. */}
       <Toolbar>
         <Select value={topic} onChange={onTopicSelect}>
-          {Object.keys(analyticsTable).map(k => {
-            return (
-              <MenuItem key={k} value={k}>
-                {analyticsTable[k].t}
-              </MenuItem>
-            );
-          })}
+          {Object.keys(analyticsTable)
+            .sort((a, b) => analyticsTable[a].n - analyticsTable[b].n)
+            .map(k => {
+              return (
+                <MenuItem key={k} value={k}>
+                  {analyticsTable[k].t}
+                </MenuItem>
+              );
+            })}
         </Select>
       </Toolbar>
 
