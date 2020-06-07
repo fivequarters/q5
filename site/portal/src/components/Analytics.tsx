@@ -10,6 +10,15 @@ import { AnalyticsActivity } from './AnalyticsActivity';
 import { AnalyticsAudit, IAnalyticsAuditProps } from './AnalyticsAudit';
 
 import { BucketWidths, IDateInterval } from '../lib/FusebitMonitor';
+import { Typography, makeStyles, Grid } from '@material-ui/core';
+
+const useStyles = makeStyles((theme: any) => ({
+  gridContainer: {
+    paddingLeft: theme.spacing(4),
+    paddingRight: theme.spacing(3),
+    marginTop: theme.spacing(2),
+  },
+}));
 
 interface IParams {
   accountId?: string;
@@ -20,6 +29,7 @@ interface IParams {
 
 interface IAnalyticsProps {
   params: IParams;
+  enabledPanels?: string[];
   audit: IAnalyticsAuditProps;
 }
 
@@ -60,7 +70,7 @@ function AnalyticsActivityPanel(env: AnalyticsEnvironment) {
       query: 'codeactivitylatencyhg',
       multi: true,
       codeGrouped: true,
-      label: 'HTTP Activity and Latency',
+      label: 'HTTP Response Volume and Latency',
       chartType: 'line',
       queryParams: {},
     },
@@ -78,7 +88,7 @@ function AnalyticsUsagePanel(env: AnalyticsEnvironment) {
       query: 'fielduniquehg',
       multi: false,
       codeGrouped: false,
-      label: 'Unique Boundary Activity',
+      label: 'Active Boundaries',
       chartType: 'bar',
       queryParams: { field: 'boundaryid', code: env.activeCodes },
     },
@@ -94,7 +104,7 @@ function AnalyticsAuditPanel(env: AnalyticsEnvironment) {
 
 // Lookup table to convert into a particular analytics view
 const analyticsTable: { [key: string]: AnalyticsEntry } = {
-  activity: { n: 1, c: AnalyticsActivityPanel, t: 'Activity', o: { useWidth: true, filterCodes: true } },
+  activity: { n: 1, c: AnalyticsActivityPanel, t: 'Monitoring', o: { useWidth: true, filterCodes: true } },
   usage: { n: 2, c: AnalyticsUsagePanel, t: 'Usage' },
   audit: { n: 3, c: AnalyticsAuditPanel, t: 'Audit' },
 };
@@ -108,8 +118,10 @@ const freshenHistory = (history: any) => {
 };
 
 const Analytics: React.FC<IAnalyticsProps> = props => {
+  const classes = useStyles();
+  const enabledPanels = props.enabledPanels || Object.keys(analyticsTable);
   const [history, setHistory] = useHashHistory('analytics', {
-    topic: 'activity',
+    topic: enabledPanels[0],
     interval: defaultInterval,
     activeCodes: defaultActiveCodes,
   });
@@ -125,25 +137,30 @@ const Analytics: React.FC<IAnalyticsProps> = props => {
   };
 
   return (
-    <div>
-      {/* Show the combo box to select the desired analytics display. */}
-      <Toolbar>
-        <Select value={topic} onChange={onTopicSelect}>
-          {Object.keys(analyticsTable)
-            .sort((a, b) => analyticsTable[a].n - analyticsTable[b].n)
-            .map(k => {
-              return (
-                <MenuItem key={k} value={k}>
-                  {analyticsTable[k].t}
-                </MenuItem>
-              );
-            })}
-        </Select>
-      </Toolbar>
-
-      {/* Show the selected item. */}
+    <Grid container>
+      <Grid item xs={12} className={classes.gridContainer}>
+        {/* Show just the title if there is only one section, or show drop-down otherwise */}
+        {enabledPanels.length === 1 ? (
+          <Typography variant="h6">{analyticsTable[enabledPanels[0]].t}</Typography>
+        ) : (
+          <Toolbar disableGutters={true}>
+            <Select value={topic} onChange={onTopicSelect}>
+              {enabledPanels
+                .sort((a, b) => analyticsTable[a].n - analyticsTable[b].n)
+                .map(k => {
+                  return (
+                    <MenuItem key={k} value={k}>
+                      <Typography variant="h6">{analyticsTable[k].t}</Typography>
+                    </MenuItem>
+                  );
+                })}
+            </Select>
+          </Toolbar>
+        )}
+        {/* Show the selected item. */}
+      </Grid>
       <ShowAnalytics />
-    </div>
+    </Grid>
   );
 };
 

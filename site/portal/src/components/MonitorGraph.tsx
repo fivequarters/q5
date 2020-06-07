@@ -205,7 +205,7 @@ const MonitorGraph: React.FC<IProps> = props => {
   return (
     <div>
       <InProgressBar />
-      <Typography variant="h6" id="tableTitle" style={{ paddingLeft: 20 }}>
+      <Typography variant="h6" id="tableTitle">
         {label}
       </Typography>
       <div style={{ width: '100%', height: 500 }}>
