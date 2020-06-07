@@ -289,7 +289,7 @@ function AnalyticsAuditImpl({ actionFilter, filterMask }: AnalyticsAuditImplProp
         defaultSortKey="timestamp"
         defaultSortOrder="desc"
         identityKey="id"
-        title="Audit Activity"
+        title="System Activity"
         enableSelection={false}
         filterContent={
           <ActivityFilterContent

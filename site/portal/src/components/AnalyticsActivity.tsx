@@ -4,6 +4,7 @@ import HTTPActivityLog from './HTTPActivityLog';
 import { useProfile } from './ProfileProvider';
 
 import { IDateInterval } from '../lib/FusebitMonitor';
+import { Grid, makeStyles } from '@material-ui/core';
 
 interface IParams {
   accountId?: string;
@@ -28,7 +29,20 @@ interface IActivityProps {
   graph: IGraphProps;
 }
 
+const useStyles = makeStyles((theme: any) => ({
+  gridContainer: {
+    paddingLeft: theme.spacing(4),
+    paddingRight: theme.spacing(3),
+    marginTop: theme.spacing(2),
+  },
+  gridTable: {
+    paddingLeft: theme.spacing(2),
+    paddingRight: theme.spacing(2),
+  },
+}));
+
 const AnalyticsActivity: React.FC<IActivityProps> = props => {
+  const classes = useStyles();
   const { profile } = useProfile();
 
   // Display event details within this interval and this code list.
@@ -49,29 +63,32 @@ const AnalyticsActivity: React.FC<IActivityProps> = props => {
 
   // Return the div.
   return (
-    <div>
-      <MonitorGraph
-        profile={profile}
-        query={props.graph.query}
-        multi={props.graph.multi}
-        codeGrouped={props.graph.codeGrouped}
-        label={props.graph.label}
-        urlWart={urlWart}
-        interval={props.interval}
-        setEventRange={setEventDetailInterval}
-        setActiveCodeList={setEventDetailCodes}
-        chartType={props.graph.chartType}
-        queryParams={props.graph.queryParams}
-      />
-
-      {/* Show the events themselves */}
-      <HTTPActivityLog
-        profile={profile}
-        urlWart={urlWart}
-        interval={eventDetailInterval}
-        activeCode={eventDetailCodes}
-      />
-    </div>
+    <>
+      <Grid item xs={12} className={classes.gridContainer}>
+        <MonitorGraph
+          profile={profile}
+          query={props.graph.query}
+          multi={props.graph.multi}
+          codeGrouped={props.graph.codeGrouped}
+          label={props.graph.label}
+          urlWart={urlWart}
+          interval={props.interval}
+          setEventRange={setEventDetailInterval}
+          setActiveCodeList={setEventDetailCodes}
+          chartType={props.graph.chartType}
+          queryParams={props.graph.queryParams}
+        />
+      </Grid>
+      <Grid item xs={12} className={classes.gridTable}>
+        {/* Show the events themselves */}
+        <HTTPActivityLog
+          profile={profile}
+          urlWart={urlWart}
+          interval={eventDetailInterval}
+          activeCode={eventDetailCodes}
+        />
+      </Grid>
+    </>
   );
 };
 export type IAnalyticsActivityProps = IActivityProps;

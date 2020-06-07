@@ -64,6 +64,9 @@ const ExplorerTabs = {
       name: 'subscriptions',
     },
     {
+      name: 'analytics',
+    },
+    {
       name: 'users',
     },
     {
@@ -78,19 +81,16 @@ const ExplorerTabs = {
     {
       name: 'settings',
     },
-    {
-      name: 'analytics',
-    },
   ],
   subscription: [
     {
       name: 'boundaries',
     },
     {
-      name: 'access',
+      name: 'analytics',
     },
     {
-      name: 'analytics',
+      name: 'access',
     },
   ],
   boundary: [
@@ -98,10 +98,10 @@ const ExplorerTabs = {
       name: 'functions',
     },
     {
-      name: 'access',
+      name: 'analytics',
     },
     {
-      name: 'analytics',
+      name: 'access',
     },
   ],
   oneFunction: [
@@ -109,13 +109,10 @@ const ExplorerTabs = {
       name: 'overview',
     },
     {
-      name: 'access',
-    },
-    {
       name: 'analytics',
     },
     {
-      name: 'settings',
+      name: 'access',
     },
   ],
   issuer: [
@@ -134,11 +131,12 @@ const ExplorerTabs = {
       name: 'properties',
     },
     {
-      name: 'permissions',
-    },
-    {
       name: 'analytics',
     },
+    {
+      name: 'permissions',
+    },
+
     {
       name: 'access',
     },
@@ -148,11 +146,12 @@ const ExplorerTabs = {
       name: 'properties',
     },
     {
-      name: 'permissions',
-    },
-    {
       name: 'analytics',
     },
+    {
+      name: 'permissions',
+    },
+
     {
       name: 'access',
     },
@@ -318,6 +317,7 @@ function ProfileExplorer({ ...rest }: any) {
                       <ExplorerView tabs={ExplorerTabs.user} match={match}>
                         <Analytics
                           params={match.params}
+                          enabledPanels={['usage']}
                           audit={{
                             filter: {
                               resource: `/account/${profile.account}/user/${match.params.userId}/`,
@@ -405,6 +405,7 @@ function ProfileExplorer({ ...rest }: any) {
                       <ExplorerView tabs={ExplorerTabs.client} match={match}>
                         <Analytics
                           params={match.params}
+                          enabledPanels={['usage']}
                           audit={{
                             filter: {
                               resource: `/account/${profile.account}/client/${match.params.clientId}/`,
@@ -490,6 +491,7 @@ function ProfileExplorer({ ...rest }: any) {
                     <ExplorerView tabs={ExplorerTabs.issuer} match={match}>
                       <Analytics
                         params={match.params}
+                        enabledPanels={['usage']}
                         audit={{
                           filter: {
                             resource: `/account/${profile.account}/issuer/${match.params.issuerId}/`,
