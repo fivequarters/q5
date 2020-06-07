@@ -106,7 +106,7 @@ const ExplorerTabs = {
   ],
   oneFunction: [
     {
-      name: 'overview',
+      name: 'properties',
     },
     {
       name: 'analytics',
@@ -598,7 +598,7 @@ function ProfileExplorer({ ...rest }: any) {
                           )}
                         />
                         <Route
-                          path={`${match.path}/overview`}
+                          path={`${match.path}/properties`}
                           exact={true}
                           render={({ match, ...rest }) => (
                             <ExplorerView
