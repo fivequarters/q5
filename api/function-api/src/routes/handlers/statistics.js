@@ -39,6 +39,7 @@ const appendIamRoleToES = async iamArn => {
 const onStartup = async () => {
   if (!process.env.ES_HOST || !!process.env.ES_USER != !!process.env.ES_PASSWORD) {
     console.log('ES: Elastic Search disabled');
+    return;
   }
 
   console.log(
