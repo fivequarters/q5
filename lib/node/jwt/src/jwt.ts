@@ -114,7 +114,10 @@ function getCachedKey(kid: string, url: string) {
 }
 
 async function resolveSecret(token: string, secretOrUrl: string, ignoreCache: boolean = false) {
-  if (secretOrUrl.indexOf('https://') === 0) {
+  if (
+    secretOrUrl.indexOf('https://') === 0 ||
+    (process.env.API_SERVER && secretOrUrl.indexOf(process.env.API_SERVER) === 0)
+  ) {
     const url = secretOrUrl;
     const decodedToken = decodeJwtHeader(token);
     const kid = decodedToken.kid;
