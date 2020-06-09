@@ -10,6 +10,22 @@ import { pem2jwk } from 'pem-jwk';
 import ms from 'ms';
 
 // ------------------
+// Validate running environment
+// ------------------
+
+// Warning on environment running without ngrok - this causes a variety of failures that are often surprising.
+if (!process.env.LOGS_HOST) {
+  if (!process.env.API_SERVER) {
+    console.log('Missing API_SERVER');
+    process.exit(-1);
+  }
+
+  if (process.env.API_SERVER.indexOf('://localhost') > 0) {
+    console.log('WARNING: LOGS_HOST IS NOT SPECIFIED - localhost tests must have ngrok running.');
+  }
+}
+
+// ------------------
 // Internal Constants
 // ------------------
 
@@ -148,7 +164,7 @@ export async function deleteFunction(account: IAccount, boundaryId: string, func
 }
 
 export async function putFunction(account: IAccount, boundaryId: string, functionId: string, spec: any) {
-  return await request({
+  let response = await request({
     method: 'PUT',
     headers: {
       Authorization: `Bearer ${account.accessToken}`,
@@ -157,6 +173,8 @@ export async function putFunction(account: IAccount, boundaryId: string, functio
     url: `${account.baseUrl}/v1/account/${account.accountId}/subscription/${account.subscriptionId}/boundary/${boundaryId}/function/${functionId}`,
     data: spec,
   });
+
+  return response;
 }
 
 export async function getBuild(account: IAccount, build: { boundaryId: string; functionId: string; buildId: string }) {
@@ -264,7 +282,7 @@ export async function getFunction(
   functionId: string,
   includeSerialized: boolean = false
 ) {
-  return await request({
+  let response = await request({
     method: 'GET',
     headers: {
       Authorization: `Bearer ${account.accessToken}`,
@@ -274,6 +292,8 @@ export async function getFunction(
       account.subscriptionId
     }/boundary/${boundaryId}/function/${functionId}${includeSerialized ? '?include=all' : ''}`,
   });
+
+  return response;
 }
 
 export async function getFunctionLocation(account: IAccount, boundaryId: string, functionId: string) {
@@ -324,9 +344,9 @@ export async function deleteAllFunctions(account: IAccount, boundaryId?: string)
   let response = await listFunctions(account, boundaryId);
   if (response.status !== 200) {
     throw new Error(
-      `Unable to list functions in account ${account.accountId}, subscription ${
-        account.subscriptionId
-      }, boundary ${boundaryId || '*'} on deployment ${account.baseUrl}.`
+      `Unable to list functions in account ${account.accountId}, subscription ${account.subscriptionId}, boundary ${
+        boundaryId || '*'
+      } on deployment ${account.baseUrl}.`
     );
   }
   return Promise.all(
