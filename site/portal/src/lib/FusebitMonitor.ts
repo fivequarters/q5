@@ -65,6 +65,8 @@ const getBulkMonitorData = async (
     return setData({ items: [], total: 0 });
   }
 
+  const codeParams = Array.isArray(activeCode) ? { codeGrouped: true } : { code: activeCode };
+
   try {
     const auth = await ensureAccessToken(profile);
 
@@ -72,9 +74,9 @@ const getBulkMonitorData = async (
       .query({
         from: interval.from.toISOString(),
         to: interval.to.toISOString(),
-        code: activeCode,
         next: options.offset,
         count: options.pageSize,
+        ...codeParams,
       })
       .set('Authorization', `Bearer ${auth.access_token}`);
 
@@ -116,6 +118,13 @@ const getStatisticalMonitorData = async (
     setData({
       codes: result.body.codes,
       items: result.body.items.map((e: any) => {
+        result.body.codes.forEach((k: string) => {
+          // Convert 'null' to 0 in all of the data sets present.
+          if (e[k] && typeof e[k] === 'object') {
+            e[k] = e[k].map((x: any) => (x == null ? 0 : x));
+          }
+        });
+
         return { ...e, key: Date.parse(e.key) };
       }),
     });

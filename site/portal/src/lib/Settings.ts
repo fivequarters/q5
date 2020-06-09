@@ -1,5 +1,6 @@
-import { FusebitError } from "../components/ErrorBoundary";
-import Superagent from "superagent";
+import { FusebitError } from '../components/ErrorBoundary';
+import { Catalog, isCatalog } from './CatalogTypes';
+import Superagent from 'superagent';
 
 export interface IFusebitAuth {
   access_token: string;
@@ -8,7 +9,7 @@ export interface IFusebitAuth {
 }
 
 function isIFusebitAuth(o: any): o is IFusebitAuth {
-  return o && typeof o === "object" && typeof o.access_token === "string" && typeof o.expires_at === "number";
+  return o && typeof o === 'object' && typeof o.access_token === 'string' && typeof o.expires_at === 'number';
 }
 
 export interface IFusebitAuthError {
@@ -18,10 +19,11 @@ export interface IFusebitAuthError {
 }
 
 function isIFusebitAuthError(o: any): o is IFusebitAuth {
-  return o && typeof o === "object" && typeof o.error === "string" && typeof o.error_description === "string";
+  return o && typeof o === 'object' && typeof o.error === 'string' && typeof o.error_description === 'string';
 }
 
-export interface IFusebitProfile {
+// Profile settings stored in configuration and applicable to all users
+export interface IFusebitConfigProfile {
   id: string;
   displayName: string;
   baseUrl: string;
@@ -29,6 +31,7 @@ export interface IFusebitProfile {
   subscription?: string;
   boundary?: string;
   function?: string;
+  catalog?: string | Catalog;
   oauth: {
     webAuthorizationUrl: string;
     webClientId: string;
@@ -37,6 +40,45 @@ export interface IFusebitProfile {
     deviceClientId?: string;
     tokenUrl?: string;
   };
+}
+
+export interface IFusebitTenant {
+  profiles: IFusebitConfigProfile[];
+  defaultProfile?: string;
+}
+
+export function isIFusebitTenant(o: any): o is IFusebitTenant {
+  return (
+    o &&
+    typeof o === 'object' &&
+    Array.isArray(o.profiles) &&
+    !o.profiles.find((p: any) => !isIFusebitConfigProfile(p)) &&
+    (o.defaultProfile === undefined || typeof o.defaultProfile === 'string')
+  );
+}
+
+export interface IFusebitConfig {
+  tenants: {
+    [key: string]: IFusebitTenant;
+  };
+}
+
+export function isIFusebitConfig(o: any): o is IFusebitConfig {
+  return (
+    o &&
+    typeof o === 'object' &&
+    o.tenants &&
+    typeof o.tenants === 'object' &&
+    !Object.keys(o.tenants).find((t: any) => !isIFusebitTenant(o.tenants[t]))
+  );
+}
+
+// Profile settings stored in local storage and applicable to logged in user
+export interface IFusebitUserProfile {
+  id: string;
+  subscription?: string;
+  boundary?: string;
+  function?: string;
   auth?: IFusebitAuth | IFusebitAuthError;
   me?: {
     error?: any;
@@ -77,21 +119,41 @@ export interface IFusebitProfile {
   };
 }
 
-function isIFusebitProfile(o: any): o is IFusebitProfile {
+// Runtime representation of the profile that combines config and per-user profile information
+export interface IFusebitProfile extends IFusebitConfigProfile, IFusebitUserProfile {}
+
+export function isIFusebitConfigProfile(o: any): o is IFusebitConfigProfile {
   return (
     o &&
-    typeof o === "object" &&
-    typeof o.id === "string" &&
-    typeof o.displayName === "string" &&
-    typeof o.baseUrl === "string" &&
-    typeof o.account === "string" &&
-    (o.subscription === undefined || typeof o.subscription === "string") &&
-    (o.boundary === undefined || typeof o.boundary === "string") &&
-    typeof o.oauth === "object" &&
-    typeof o.oauth.webAuthorizationUrl === "string" &&
-    typeof o.oauth.webClientId === "string" &&
-    (o.oauth.webLogoutUrl === undefined || typeof o.oauth.webLogoutUrl === "string")
+    typeof o === 'object' &&
+    typeof o.id === 'string' &&
+    typeof o.displayName === 'string' &&
+    typeof o.baseUrl === 'string' &&
+    typeof o.account === 'string' &&
+    (o.catalog === undefined || typeof o.catalog === 'string' || isCatalog(o)) &&
+    (o.subscription === undefined || typeof o.subscription === 'string') &&
+    (o.boundary === undefined || typeof o.boundary === 'string') &&
+    typeof o.oauth === 'object' &&
+    typeof o.oauth.webAuthorizationUrl === 'string' &&
+    typeof o.oauth.webClientId === 'string' &&
+    (o.oauth.webLogoutUrl === undefined || typeof o.oauth.webLogoutUrl === 'string')
   );
+}
+
+export function isIFusebitUserProfile(o: any): o is IFusebitProfile {
+  return (
+    o &&
+    typeof o === 'object' &&
+    typeof o.id === 'string' &&
+    (o.subscription === undefined || typeof o.subscription === 'string') &&
+    (o.boundary === undefined || typeof o.boundary === 'string') &&
+    (o.auth === undefined || isIFusebitAuth(o.auth)) &&
+    (o.me === undefined || typeof o.me === 'object')
+  );
+}
+
+export function isIFusebitProfile(o: any): o is IFusebitProfile {
+  return isIFusebitConfigProfile(o) && isIFusebitUserProfile(o);
 }
 
 export interface IFusebitUISettings {
@@ -101,141 +163,152 @@ export interface IFusebitUISettings {
 
 export const defaultFusebitUISettings: IFusebitUISettings = {
   tableRowsPerPage: 10,
-  utcTime: false
+  utcTime: false,
 };
 
-export interface IFusebitSettings {
-  profiles: IFusebitProfile[];
+export interface IFusebitLocalSettings {
+  profiles: IFusebitUserProfile[];
   currentProfile: string;
   ui: IFusebitUISettings;
+}
+
+export interface IFusebitSettings extends IFusebitLocalSettings {
+  profiles: IFusebitProfile[];
 }
 
 function isIFusebitSettings(o: any): o is IFusebitSettings {
   return (
     o &&
-    typeof o === "object" &&
-    typeof o.currentProfile === "string" &&
+    typeof o === 'object' &&
+    typeof o.currentProfile === 'string' &&
     Array.isArray(o.profiles) &&
     o.profiles.length ===
       o.profiles.reduce((count: number, profile: any) => (count += isIFusebitProfile(profile) ? 1 : 0), 0) &&
-    typeof o.ui === "object" &&
-    typeof o.ui.tableRowsPerPage === "number" &&
-    typeof o.ui.utcTime === "boolean"
+    typeof o.ui === 'object' &&
+    typeof o.ui.tableRowsPerPage === 'number' &&
+    typeof o.ui.utcTime === 'boolean'
   );
 }
 
-function getExternalSettingsUrl(): string {
-  const token = (window.location.hash || "").substring(1);
-  if (token.match(/^https:\/\//i)) {
-    return token;
-  } else {
-    const [path, sourceProfile] = token.split("#");
-    const [organization, repository, file, rest] = path.split("/");
-    if (organization && repository && !rest) {
-      return `https://raw.githubusercontent.com/${organization}/${repository}/master/${file ||
-        "profiles.json"}${sourceProfile ? "#" + sourceProfile : ""}`;
-    }
-    throw new FusebitError("Unable to initialize Fusebit Portal", {
-      details: [
-        "The hash portion of the URL must specify the location of Fusebit Settings. ",
-        "Please ask your Fusebit administrator for instructions. ",
-        "You can provide either a valid HTTPS URL or a ",
-        "{organization}/{repository}[/{file}][#{profile-name}] string that identifies an ",
-        "existing file in a public Github repository."
-      ].join("")
-    });
-  }
+function isIFusebitLocalSettings(o: any): o is IFusebitLocalSettings {
+  return (
+    o &&
+    typeof o === 'object' &&
+    typeof o.currentProfile === 'string' &&
+    Array.isArray(o.profiles) &&
+    o.profiles.length ===
+      o.profiles.reduce((count: number, profile: any) => (count += isIFusebitUserProfile(profile) ? 1 : 0), 0) &&
+    typeof o.ui === 'object' &&
+    typeof o.ui.tableRowsPerPage === 'number' &&
+    typeof o.ui.utcTime === 'boolean'
+  );
 }
 
-async function getExternalSettings(url: string): Promise<IFusebitSettings> {
-  const [serverUrl, sourceProfile] = url.split("#");
-  let settingsResponse: any;
+async function getFusebitConfig(): Promise<IFusebitTenant> {
+  // Determine tenant
+
+  //@ts-ignore - window.fusebitPortal is injected in index.html
+  const domainSuffixIndex = window.location.hostname.indexOf(`.${window.fusebitPortal.domain}`);
+  //@ts-ignore
+  const tenant =
+    //@ts-ignore
+    (domainSuffixIndex === window.location.hostname.length - window.fusebitPortal.domain.length - 1 &&
+      //@ts-ignore
+      window.location.hostname.substring(0, `.${window.fusebitPortal.domain}`)) ||
+    'default';
+  //@ts-ignore
+  const url = `${window.fusebitPortal.config}?tenant=${encodeURIComponent(tenant)}`;
+
+  // Load config
+
+  let response: any;
   try {
-    settingsResponse = await Superagent.get(serverUrl);
+    response = await Superagent.get(url);
   } catch (e) {
-    throw new FusebitError("Unable to initialize Fusebit Portal", {
+    throw new FusebitError('Unable to get configuration of the Fusebit Portal', {
       details: [
-        `Unable to obtain Fusebit settings from ${serverUrl}. `,
-        `Please ask your Fusebit administrator for instructions.`
-      ].join("")
+        `Unable to obtain Fusebit configuration from ${url}. `,
+        `Please ask your Fusebit administrator for assistance.`,
+      ].join(''),
     });
   }
-  if (settingsResponse.status !== 200) {
-    throw new FusebitError("Unable to initialize Fusebit Portal", {
+  if (response.status !== 200) {
+    throw new FusebitError('Unable to get configuration of the Fusebit Portal', {
       details: [
-        `Error obtaining Fusebit settings from ${serverUrl}. HTTP status code is ${settingsResponse.status}. `,
-        `Please ask your Fusebit administrator for instructions.`
-      ].join("")
+        `Error obtaining Fusebit configuration from ${url}. HTTP status code is ${response.status}. `,
+        `Please ask your Fusebit administrator for assistance.`,
+      ].join(''),
     });
   }
-  let settings: any = settingsResponse.body || settingsResponse.text;
-  if (typeof settings !== "object") {
+  let settings: any = response.body || response.text;
+  if (typeof settings !== 'object') {
     try {
       settings = JSON.parse(settings);
     } catch (e) {
-      throw new FusebitError("Unable to initialize Fusebit Portal", {
+      throw new FusebitError('Unable to get configuration of the Fusebit Portal', {
         details: [
-          `Error obtaining Fusebit settings from ${serverUrl}. `,
+          `Error obtaining Fusebit configuration from ${url}. `,
           `Response data is not a JSON object. `,
-          `Please ask your Fusebit administrator for instructions.`
-        ].join("")
+          `Please ask your Fusebit administrator for assistance.`,
+        ].join(''),
       });
     }
   }
-  settings.ui = { ...defaultFusebitUISettings, ...settings.ui };
-  if (!isIFusebitSettings(settings)) {
-    throw new FusebitError("Unable to initialize Fusebit Portal", {
+  if (!isIFusebitConfig(settings)) {
+    throw new FusebitError('Unable to get configuration of the Fusebit Portal', {
       details: [
-        `The data obtained from ${serverUrl} is not in the format required by Fusebit Settings. `,
-        `Please ask your Fusebit administrator for instructions.`
-      ].join("")
+        `The data obtained from ${url} is not in the format required by Fusebit config. `,
+        `Please ask your Fusebit administrator for assistance.`,
+      ].join(''),
     });
   }
-  if (settings.profiles.length === 0) {
-    throw new FusebitError("Unable to initialize Fusebit Portal", {
+  if (!settings.tenants[tenant]) {
+    throw new FusebitError('Unable to get configuration of the Fusebit Portal', {
       details: [
-        `The Fusebit Settings from ${serverUrl} do not specify any profiles. `,
-        `Please ask your Fusebit administrator for instructions.`
-      ].join("")
+        `The Fusebit configuration from ${url} do not specify configuration for tenant '${tenant}'. `,
+        `Please ask your Fusebit administrator for assistance.`,
+      ].join(''),
     });
   }
-  if (sourceProfile && settings.currentProfile !== sourceProfile) {
-    for (const p of settings.profiles) {
-      if (sourceProfile === p.id) {
-        settings.currentProfile = sourceProfile;
-        break;
-      }
-    }
-    if (settings.currentProfile !== sourceProfile) {
-      throw new FusebitError("Unable to initialize Fusebit Portal", {
-        details: [
-          `The Fusebit Settings from ${serverUrl} do not specify the requested profile ${sourceProfile}. `,
-          `Available profiles are: ${settings.profiles.map(p => p.id).join(", ")}. `,
-          `Please ask your Fusebit administrator for instructions.`
-        ].join("")
-      });
-    }
+  return settings.tenants[tenant];
+}
+
+function setLocalSettings(settings: IFusebitLocalSettings) {
+  let redux: IFusebitLocalSettings = {
+    currentProfile: settings.currentProfile,
+    ui: settings.ui,
+    profiles: settings.profiles.map(p => ({
+      id: p.id,
+      subscription: p.subscription,
+      boundary: p.boundary,
+      function: p.function,
+      auth: p.auth,
+    })),
+  };
+  window.localStorage.setItem('fusebit', JSON.stringify(redux));
+}
+
+function setCurrentProfile(id: string) {
+  const settings = getLocalSettings();
+  if (settings) {
+    settings.currentProfile = id;
+    setLocalSettings(settings);
   }
-  return settings;
 }
 
-function setLocalSettings(settings: IFusebitSettings) {
-  window.localStorage.setItem("fusebit", JSON.stringify(settings));
-}
-
-function getLocalSettings(): IFusebitSettings | undefined {
-  let settingsSerialized = window.localStorage.getItem("fusebit");
+function getLocalSettings(): IFusebitLocalSettings | undefined {
+  let settingsSerialized = window.localStorage.getItem('fusebit');
   if (settingsSerialized) {
     try {
       let settings = JSON.parse(settingsSerialized);
       settings.ui = { ...defaultFusebitUISettings, ...settings.ui };
-      if (!isIFusebitSettings(settings)) {
-        throw new Error("Not fusebit settings");
+      if (!isIFusebitLocalSettings(settings)) {
+        throw new Error('Not fusebit settings');
       }
       return settings;
     } catch (e) {
       console.warn(
-        "Unable to parse Fusebit Settings from local storage or schema mismatch. Ignoring local storage settings."
+        'Unable to parse Fusebit Settings from local storage or schema mismatch. Ignoring local storage settings.'
       );
       return undefined;
     }
@@ -254,11 +327,11 @@ function setUISettings(ui: IFusebitUISettings) {
     settings.ui = ui;
     setLocalSettings(settings);
   } else {
-    setLocalSettings({ ui, profiles: [], currentProfile: "" });
+    setLocalSettings({ ui, profiles: [], currentProfile: '' });
   }
 }
 
-function indexOfProfile(settings: IFusebitSettings, id: string): number {
+function indexOfProfile(settings: IFusebitLocalSettings, id: string): number {
   for (let i = 0; i < settings.profiles.length; i++) {
     if (settings.profiles[i].id === id) return i;
   }
@@ -267,8 +340,7 @@ function indexOfProfile(settings: IFusebitSettings, id: string): number {
 }
 
 export {
-  getExternalSettingsUrl,
-  getExternalSettings,
+  getFusebitConfig,
   isIFusebitSettings,
   setLocalSettings,
   getLocalSettings,
@@ -278,5 +350,6 @@ export {
   isIFusebitAuth,
   isIFusebitAuthError,
   getUISettings,
-  setUISettings
+  setUISettings,
+  setCurrentProfile,
 };

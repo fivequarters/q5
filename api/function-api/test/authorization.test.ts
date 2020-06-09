@@ -65,7 +65,7 @@ afterAll(async () => {
   await cleanUpUsers(account);
   await cleanUpClients(account);
   await cleanUpStorage(account);
-}, 100000);
+}, 200000);
 
 describe('Authorization', () => {
   test('A user without access should not be authorized to do anything', async () => {
@@ -1690,21 +1690,15 @@ describe('Authorization', () => {
     const allowStatements = [
       {
         action: 'function:get',
-        resource: `/account/${account.accountId}/subscription/${
-          account.subscriptionId
-        }/boundary/${boundaryId}/function`,
+        resource: `/account/${account.accountId}/subscription/${account.subscriptionId}/boundary/${boundaryId}/function`,
       },
       {
         action: 'function:get',
-        resource: `/account/${account.accountId}/subscription/${
-          account.subscriptionId
-        }/boundary/${boundaryId}/function/another-function`,
+        resource: `/account/${account.accountId}/subscription/${account.subscriptionId}/boundary/${boundaryId}/function/another-function`,
       },
       {
         action: 'function:put',
-        resource: `/account/${account.accountId}/subscription/${
-          account.subscriptionId
-        }/boundary/${boundaryId}/function/${functionId}`,
+        resource: `/account/${account.accountId}/subscription/${account.subscriptionId}/boundary/${boundaryId}/function/${functionId}`,
       },
     ];
 
@@ -1976,21 +1970,15 @@ describe('Authorization', () => {
     const allowStatements = [
       {
         action: 'function:get',
-        resource: `/account/${account.accountId}/subscription/${
-          account.subscriptionId
-        }/boundary/${boundaryId}/function`,
+        resource: `/account/${account.accountId}/subscription/${account.subscriptionId}/boundary/${boundaryId}/function`,
       },
       {
         action: 'function:get',
-        resource: `/account/${account.accountId}/subscription/${
-          account.subscriptionId
-        }/boundary/${boundaryId}/function/another-function`,
+        resource: `/account/${account.accountId}/subscription/${account.subscriptionId}/boundary/${boundaryId}/function/another-function`,
       },
       {
         action: 'function:put',
-        resource: `/account/${account.accountId}/subscription/${
-          account.subscriptionId
-        }/boundary/${boundaryId}/function/${functionId}`,
+        resource: `/account/${account.accountId}/subscription/${account.subscriptionId}/boundary/${boundaryId}/function/${functionId}`,
       },
     ];
 
@@ -2431,21 +2419,15 @@ describe('Authorization', () => {
     const allowStatements = [
       {
         action: 'function:get',
-        resource: `/account/${account.accountId}/subscription/${
-          account.subscriptionId
-        }/boundary/${boundaryId}/function`,
+        resource: `/account/${account.accountId}/subscription/${account.subscriptionId}/boundary/${boundaryId}/function`,
       },
       {
         action: 'function:get',
-        resource: `/account/${account.accountId}/subscription/${
-          account.subscriptionId
-        }/boundary/${boundaryId}/function/another-function`,
+        resource: `/account/${account.accountId}/subscription/${account.subscriptionId}/boundary/${boundaryId}/function/another-function`,
       },
       {
         action: 'function:put',
-        resource: `/account/${account.accountId}/subscription/${
-          account.subscriptionId
-        }/boundary/${boundaryId}/function/${functionId}`,
+        resource: `/account/${account.accountId}/subscription/${account.subscriptionId}/boundary/${boundaryId}/function/${functionId}`,
       },
     ];
 
@@ -2717,21 +2699,15 @@ describe('Authorization', () => {
     const allowStatements = [
       {
         action: 'function:get',
-        resource: `/account/${account.accountId}/subscription/${
-          account.subscriptionId
-        }/boundary/${boundaryId}/function`,
+        resource: `/account/${account.accountId}/subscription/${account.subscriptionId}/boundary/${boundaryId}/function`,
       },
       {
         action: 'function:get',
-        resource: `/account/${account.accountId}/subscription/${
-          account.subscriptionId
-        }/boundary/${boundaryId}/function/another-function`,
+        resource: `/account/${account.accountId}/subscription/${account.subscriptionId}/boundary/${boundaryId}/function/another-function`,
       },
       {
         action: 'function:put',
-        resource: `/account/${account.accountId}/subscription/${
-          account.subscriptionId
-        }/boundary/${boundaryId}/function/${functionId}`,
+        resource: `/account/${account.accountId}/subscription/${account.subscriptionId}/boundary/${boundaryId}/function/${functionId}`,
       },
     ];
 
@@ -3148,7 +3124,7 @@ describe('Authorization', () => {
       updateClient(userAccount, 'clt-1234567890123456', {}),
       removeClient(userAccount, 'clt-1234567890123456'),
       initClient(userAccount, 'clt-1234567890123456'),
-      listAudit(userAccount)
+      listAudit(userAccount),
     ]);
 
     for (const result of results) {
@@ -3227,7 +3203,13 @@ describe('Authorization', () => {
     const allowedSet = await setStorage(userAccount, storageId, { data: { msg: 'hello world' } });
     expect(allowedSet.status).toBe(200);
 
-    const allowedSetWithPath = await setStorage(userAccount, storageId, { data: { msg: 'hello world' } }, undefined, 'a/b/c');
+    const allowedSetWithPath = await setStorage(
+      userAccount,
+      storageId,
+      { data: { msg: 'hello world' } },
+      undefined,
+      'a/b/c'
+    );
     expect(allowedSetWithPath.status).toBe(200);
 
     const results = await Promise.all([
@@ -3310,7 +3292,7 @@ describe('Authorization', () => {
       removeClient(userAccount, 'clt-1234567890123456'),
       initClient(userAccount, 'clt-1234567890123456'),
       listAudit(userAccount),
-      setStorage(userAccount, 'some-id', { data: 'hello world'}),
+      setStorage(userAccount, 'some-id', { data: 'hello world' }),
       getStorage(userAccount, 'some-id'),
       listStorage(userAccount),
     ]);
@@ -3370,7 +3352,7 @@ describe('Authorization', () => {
       removeClient(userAccount, 'clt-1234567890123456'),
       initClient(userAccount, 'clt-1234567890123456'),
       listAudit(userAccount),
-      setStorage(userAccount, 'some-id', { data: 'hello world'}),
+      setStorage(userAccount, 'some-id', { data: 'hello world' }),
       getStorage(userAccount, 'some-id'),
       removeStorage(userAccount, 'some-id'),
       listStorage(userAccount),
@@ -3398,7 +3380,6 @@ describe('Authorization', () => {
 
     const allowedGet = await getStorage(userAccount, storageId);
     expect(allowedGet.status).toBe(200);
-
 
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
@@ -3451,7 +3432,13 @@ describe('Authorization', () => {
     const allowedSet = await setStorage(userAccount, storageId, { data: { msg: 'hello world' } });
     expect(allowedSet.status).toBe(200);
 
-    const allowedSetWithPath = await setStorage(userAccount, storageId, { data: { msg: 'hello world' } }, undefined, 'a/b/c');
+    const allowedSetWithPath = await setStorage(
+      userAccount,
+      storageId,
+      { data: { msg: 'hello world' } },
+      undefined,
+      'a/b/c'
+    );
     expect(allowedSetWithPath.status).toBe(200);
 
     const results = await Promise.all([
@@ -3480,7 +3467,7 @@ describe('Authorization', () => {
       removeClient(userAccount, 'clt-1234567890123456'),
       initClient(userAccount, 'clt-1234567890123456'),
       listAudit(userAccount),
-      setStorage(userAccount, 'some-id', { data: 'hello world'}),
+      setStorage(userAccount, 'some-id', { data: 'hello world' }),
       getStorage(userAccount, 'some-id'),
       removeStorage(userAccount, 'some-id'),
       listStorage(userAccount),
@@ -3535,7 +3522,7 @@ describe('Authorization', () => {
       removeClient(userAccount, 'clt-1234567890123456'),
       initClient(userAccount, 'clt-1234567890123456'),
       listAudit(userAccount),
-      setStorage(userAccount, 'some-id', { data: 'hello world'}),
+      setStorage(userAccount, 'some-id', { data: 'hello world' }),
       getStorage(userAccount, 'some-id'),
       removeStorage(userAccount, 'some-id'),
       listStorage(userAccount),
@@ -3558,10 +3545,22 @@ describe('Authorization', () => {
     const jwt = await testIssuer.getAccessToken(subject);
     const userAccount = cloneWithAccessToken(account, jwt);
 
-    const allowedSetWithPath = await setStorage(userAccount, storageId, { data: { msg: 'hello world' } }, undefined, 'a/b/c');
+    const allowedSetWithPath = await setStorage(
+      userAccount,
+      storageId,
+      { data: { msg: 'hello world' } },
+      undefined,
+      'a/b/c'
+    );
     expect(allowedSetWithPath.status).toBe(200);
 
-    const allowedSetWithPath2 = await setStorage(userAccount, storageId, { data: { msg: 'hello world' } }, undefined, 'a/b/c/d');
+    const allowedSetWithPath2 = await setStorage(
+      userAccount,
+      storageId,
+      { data: { msg: 'hello world' } },
+      undefined,
+      'a/b/c/d'
+    );
     expect(allowedSetWithPath2.status).toBe(200);
 
     const allowedGet = await getStorage(userAccount, storageId, 'a/b/c');
@@ -3596,8 +3595,8 @@ describe('Authorization', () => {
       removeClient(userAccount, 'clt-1234567890123456'),
       initClient(userAccount, 'clt-1234567890123456'),
       listAudit(userAccount),
-      setStorage(userAccount, storageId, { data: 'hello world'}),
-      setStorage(userAccount, storageId, { data: 'hello world'}, undefined, 'a/b'),
+      setStorage(userAccount, storageId, { data: 'hello world' }),
+      setStorage(userAccount, storageId, { data: 'hello world' }, undefined, 'a/b'),
       getStorage(userAccount, storageId),
       getStorage(userAccount, storageId, 'a/b'),
       removeStorage(userAccount, storageId),
@@ -3622,7 +3621,13 @@ describe('Authorization', () => {
     const jwt = await testIssuer.getAccessToken(subject);
     const userAccount = cloneWithAccessToken(account, jwt);
 
-    const allowedSet = await setStorage(account, storageId, { data: { msg: 'hello world', d: 'same' } }, undefined, 'a/b/c');
+    const allowedSet = await setStorage(
+      account,
+      storageId,
+      { data: { msg: 'hello world', d: 'same' } },
+      undefined,
+      'a/b/c'
+    );
     expect(allowedSet.status).toBe(200);
 
     const allowedGet = await getStorage(userAccount, storageId, 'a/b/c');
@@ -3659,7 +3664,7 @@ describe('Authorization', () => {
       listAudit(userAccount),
       getStorage(userAccount, storageId),
       getStorage(userAccount, storageId, 'a/b'),
-      setStorage(userAccount,storageId, { data: 'hello' }),
+      setStorage(userAccount, storageId, { data: 'hello' }),
       removeStorage(userAccount, storageId),
     ]);
 
@@ -3680,10 +3685,22 @@ describe('Authorization', () => {
     const jwt = await testIssuer.getAccessToken(subject);
     const userAccount = cloneWithAccessToken(account, jwt);
 
-    const allowedSetWithPath = await setStorage(userAccount, storageId, { data: { msg: 'hello world' } }, undefined, 'a/b/c');
+    const allowedSetWithPath = await setStorage(
+      userAccount,
+      storageId,
+      { data: { msg: 'hello world' } },
+      undefined,
+      'a/b/c'
+    );
     expect(allowedSetWithPath.status).toBe(200);
 
-    const allowedSetWithPath2 = await setStorage(userAccount, storageId, { data: { msg: 'hello world' } }, undefined, 'a/b/c/d');
+    const allowedSetWithPath2 = await setStorage(
+      userAccount,
+      storageId,
+      { data: { msg: 'hello world' } },
+      undefined,
+      'a/b/c/d'
+    );
     expect(allowedSetWithPath2.status).toBe(200);
 
     const results = await Promise.all([
@@ -3712,8 +3729,8 @@ describe('Authorization', () => {
       removeClient(userAccount, 'clt-1234567890123456'),
       initClient(userAccount, 'clt-1234567890123456'),
       listAudit(userAccount),
-      setStorage(userAccount, storageId, { data: 'hello world'}),
-      setStorage(userAccount, storageId, { data: 'hello world'}, undefined, 'a/b'),
+      setStorage(userAccount, storageId, { data: 'hello world' }),
+      setStorage(userAccount, storageId, { data: 'hello world' }, undefined, 'a/b'),
       getStorage(userAccount, storageId),
       removeStorage(userAccount, storageId),
       listStorage(userAccount),
@@ -3768,7 +3785,7 @@ describe('Authorization', () => {
       removeClient(userAccount, 'clt-1234567890123456'),
       initClient(userAccount, 'clt-1234567890123456'),
       listAudit(userAccount),
-      setStorage(userAccount, storageId, { data: 'hello world'}),
+      setStorage(userAccount, storageId, { data: 'hello world' }),
       getStorage(userAccount, storageId),
       removeStorage(userAccount, storageId),
       removeStorage(userAccount, storageId, undefined, 'a/b'),

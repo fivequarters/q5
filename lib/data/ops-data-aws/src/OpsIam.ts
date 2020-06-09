@@ -74,7 +74,7 @@ export class OpsIam implements IDataSource {
           {
             Effect: 'Allow',
             Action: ['dynamodb:Scan'],
-            Resource: `${this.config.arnPrefix}:dynamodb:${awsConfig.region}:${awsConfig.account}:table/*.subscription`,
+            Resource: `${this.config.arnPrefix}:dynamodb:*:${awsConfig.account}:table/*.subscription`,
           },
         ],
       },

@@ -5,7 +5,6 @@ import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import React from 'react';
 import { Redirect, Route, Switch, useHistory } from 'react-router-dom';
-import { getLocalSettings, IFusebitSettings } from '../lib/Settings';
 import AccountClients from './AccountClients';
 import AccountIssuers from './AccountIssuers';
 import AccountSettings from './AccountSettings';
@@ -37,7 +36,7 @@ import ResourceAccess from './ResourceAccess';
 import SubscriptionBoundaries from './SubscriptionBoundaries';
 import { MonitorPanel } from './Monitor';
 import { SubscriptionsProvider } from './SubscriptionsProvider';
-import Activity from './Activity';
+import { Analytics } from './Analytics';
 
 const useStyles = makeStyles(theme => ({
   paper: {
@@ -46,8 +45,9 @@ const useStyles = makeStyles(theme => ({
   breadcrumb: {
     paddingLeft: theme.spacing(4),
     paddingRight: theme.spacing(4),
-    paddingTop: theme.spacing(4),
+    paddingTop: theme.spacing(2),
     paddingBottom: theme.spacing(2),
+    height: 82,
   },
   fab: {
     position: 'absolute',
@@ -63,7 +63,7 @@ const ExplorerTabs = {
       name: 'subscriptions',
     },
     {
-      name: 'activity',
+      name: 'analytics',
     },
     {
       name: 'users',
@@ -80,22 +80,16 @@ const ExplorerTabs = {
     {
       name: 'settings',
     },
-    {
-      name: 'monitor',
-    },
   ],
   subscription: [
     {
       name: 'boundaries',
     },
     {
-      name: 'activity',
+      name: 'analytics',
     },
     {
       name: 'access',
-    },
-    {
-      name: 'monitor',
     },
   ],
   boundary: [
@@ -103,27 +97,21 @@ const ExplorerTabs = {
       name: 'functions',
     },
     {
-      name: 'activity',
+      name: 'analytics',
     },
     {
       name: 'access',
-    },
-    {
-      name: 'monitor',
     },
   ],
   oneFunction: [
     {
-      name: 'overview',
+      name: 'properties',
     },
     {
-      name: 'activity',
+      name: 'analytics',
     },
     {
       name: 'access',
-    },
-    {
-      name: 'settings',
     },
   ],
   issuer: [
@@ -131,7 +119,7 @@ const ExplorerTabs = {
       name: 'properties',
     },
     {
-      name: 'activity',
+      name: 'analytics',
     },
     {
       name: 'access',
@@ -142,11 +130,12 @@ const ExplorerTabs = {
       name: 'properties',
     },
     {
-      name: 'activity',
+      name: 'analytics',
     },
     {
       name: 'permissions',
     },
+
     {
       name: 'access',
     },
@@ -156,11 +145,12 @@ const ExplorerTabs = {
       name: 'properties',
     },
     {
-      name: 'activity',
+      name: 'analytics',
     },
     {
       name: 'permissions',
     },
+
     {
       name: 'access',
     },
@@ -169,9 +159,8 @@ const ExplorerTabs = {
 
 function ProfileExplorer({ ...rest }: any) {
   const history = useHistory();
-  const { profile } = useProfile();
+  const { profile, settings } = useProfile();
   const classes = useStyles();
-  const settings = getLocalSettings() as IFusebitSettings;
 
   function ExplorerView({ breadcrumbSettings, children, tabs, match, fab }: any) {
     const { path } = match;
@@ -239,13 +228,16 @@ function ProfileExplorer({ ...rest }: any) {
         />
 
         <Route
-          path="/accounts/:accountId/activity"
+          path="/accounts/:accountId/analytics"
           exact={true}
           render={({ match }) => (
             <ExplorerView tabs={ExplorerTabs.account} match={match}>
-              <Activity
-                filter={{
-                  resource: `/account/${profile.account}/`,
+              <Analytics
+                params={match.params}
+                audit={{
+                  filter: {
+                    resource: `/account/${profile.account}/`,
+                  },
                 }}
               />
             </ExplorerView>
@@ -317,15 +309,19 @@ function ProfileExplorer({ ...rest }: any) {
                     )}
                   />
                   <Route
-                    path={`${match.path}/activity`}
+                    path={`${match.path}/analytics`}
                     exact={true}
                     render={({ match }) => (
                       <ExplorerView tabs={ExplorerTabs.user} match={match}>
-                        <Activity
-                          filter={{
-                            resource: `/account/${profile.account}/user/${match.params.userId}/`,
+                        <Analytics
+                          params={match.params}
+                          enabledPanels={['usage']}
+                          audit={{
+                            filter: {
+                              resource: `/account/${profile.account}/user/${match.params.userId}/`,
+                            },
+                            actionFilter: ['user'],
                           }}
-                          actionFilter={['user']}
                         />
                       </ExplorerView>
                     )}
@@ -401,15 +397,19 @@ function ProfileExplorer({ ...rest }: any) {
                     )}
                   />
                   <Route
-                    path={`${match.path}/activity`}
+                    path={`${match.path}/analytics`}
                     exact={true}
                     render={({ match }) => (
                       <ExplorerView tabs={ExplorerTabs.client} match={match}>
-                        <Activity
-                          filter={{
-                            resource: `/account/${profile.account}/client/${match.params.clientId}/`,
+                        <Analytics
+                          params={match.params}
+                          enabledPanels={['usage']}
+                          audit={{
+                            filter: {
+                              resource: `/account/${profile.account}/client/${match.params.clientId}/`,
+                            },
+                            actionFilter: ['client'],
                           }}
-                          actionFilter={['client']}
                         />
                       </ExplorerView>
                     )}
@@ -483,15 +483,19 @@ function ProfileExplorer({ ...rest }: any) {
                   )}
                 />
                 <Route
-                  path={`${match.path}/activity`}
+                  path={`${match.path}/analytics`}
                   exact={true}
                   render={({ match }) => (
                     <ExplorerView tabs={ExplorerTabs.issuer} match={match}>
-                      <Activity
-                        filter={{
-                          resource: `/account/${profile.account}/issuer/${match.params.issuerId}/`,
+                      <Analytics
+                        params={match.params}
+                        enabledPanels={['usage']}
+                        audit={{
+                          filter: {
+                            resource: `/account/${profile.account}/issuer/${match.params.issuerId}/`,
+                          },
+                          actionFilter: ['issuer'],
                         }}
-                        actionFilter={['issuer']}
                       />
                     </ExplorerView>
                   )}
@@ -549,15 +553,18 @@ function ProfileExplorer({ ...rest }: any) {
             <BoundariesProvider subscriptionId={match.params.subscriptionId}>
               <Switch>
                 <Route
-                  path={`${match.path}/activity`}
+                  path={`${match.path}/analytics`}
                   exact={true}
                   render={({ match }) => (
                     <ExplorerView tabs={ExplorerTabs.subscription} match={match}>
-                      <Activity
-                        filter={{
-                          resource: `/account/${profile.account}/subscription/${match.params.subscriptionId}/`,
+                      <Analytics
+                        params={match.params}
+                        audit={{
+                          filter: {
+                            resource: `/account/${profile.account}/subscription/${match.params.subscriptionId}/`,
+                          },
+                          actionFilter: ['function'],
                         }}
-                        actionFilter={['function']}
                       />
                     </ExplorerView>
                   )}
@@ -572,21 +579,24 @@ function ProfileExplorer({ ...rest }: any) {
                     >
                       <Switch>
                         <Route
-                          path={`${match.path}/activity`}
+                          path={`${match.path}/analytics`}
                           exact={true}
                           render={({ match }) => (
                             <ExplorerView tabs={ExplorerTabs.oneFunction} match={match}>
-                              <Activity
-                                filter={{
-                                  resource: `/account/${profile.account}/subscription/${match.params.subscriptionId}/boundary/${match.params.boundaryId}/function/${match.params.functionId}/`,
+                              <Analytics
+                                params={match.params}
+                                audit={{
+                                  filter: {
+                                    resource: `/account/${profile.account}/subscription/${match.params.subscriptionId}/boundary/${match.params.boundaryId}/function/${match.params.functionId}/`,
+                                  },
+                                  actionFilter: ['function'],
                                 }}
-                                actionFilter={['function']}
                               />
                             </ExplorerView>
                           )}
                         />
                         <Route
-                          path={`${match.path}/overview`}
+                          path={`${match.path}/properties`}
                           exact={true}
                           render={({ match, ...rest }) => (
                             <ExplorerView
@@ -706,15 +716,18 @@ function ProfileExplorer({ ...rest }: any) {
                   )}
                 />
                 <Route
-                  path={`${match.path}/boundaries/:boundaryId/activity`}
+                  path={`${match.path}/boundaries/:boundaryId/analytics`}
                   exact={true}
                   render={({ match }) => (
                     <ExplorerView tabs={ExplorerTabs.boundary} match={match}>
-                      <Activity
-                        filter={{
-                          resource: `/account/${profile.account}/subscription/${match.params.subscriptionId}/boundary/${match.params.boundaryId}/`,
+                      <Analytics
+                        params={match.params}
+                        audit={{
+                          filter: {
+                            resource: `/account/${profile.account}/subscription/${match.params.subscriptionId}/boundary/${match.params.boundaryId}/`,
+                          },
+                          actionFilter: ['function'],
                         }}
-                        actionFilter={['function']}
                       />
                     </ExplorerView>
                   )}

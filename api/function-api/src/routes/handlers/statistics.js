@@ -39,12 +39,13 @@ const appendIamRoleToES = async iamArn => {
 const onStartup = async () => {
   if (!process.env.ES_HOST || !!process.env.ES_USER != !!process.env.ES_PASSWORD) {
     console.log('ES: Elastic Search disabled');
+    return;
   }
 
   console.log(
-    `ES: Elastic Search configuration: ${process.env.ES_USER}:${process.env.ES_PASSWORD.length > 0 ? '*' : 'X'}@${
-      process.env.ES_HOST
-    }`
+    `ES: Elastic Search configuration: ${process.env.ES_USER}:${
+      process.env.ES_PASSWORD && process.env.ES_PASSWORD.length > 0 ? '*' : 'X'
+    }@${process.env.ES_HOST}`
   );
 
   // Utility functions for authenticating to the ElasticSearch service on the right target
@@ -114,7 +115,7 @@ const onStartup = async () => {
     console.log('ES: Using username/password authentication');
     getRegion = () => '';
     authRequest = (opts, cred) => (opts.auth = `${process.env.ES_USER}:${process.env.ES_PASSWORD}`);
-  } else {
+  } else if (process.env.ES_HOST) {
     console.log('ES: Using IAM authentication');
     getRegion = () => {
       return process.env.ES_HOST.match(/^([^\.]+)\.?([^\.]*)\.?([^\.]*)\.amazonaws\.com$/)[2];
@@ -133,7 +134,7 @@ const onStartup = async () => {
 // If a number is supplied, query for just that number.  Otherwise, assume that the caller is
 // passing in some range query {gte:200, lt:300} for example.
 const codeToESQuery = code => {
-  if (typeof code == 'undefined') return {};
+  if (typeof code == 'undefined' || code == null || Number.isNaN(code)) return {};
 
   const queryType = typeof code == 'number' ? 'match' : 'range';
   return {
@@ -342,7 +343,7 @@ const addRequiredFilters = (request, body) => {
   }
 };
 
-const makeQuery = async (request, key, query_params = null) => {
+const makeQuery = async (request, key, queryParams = null) => {
   let body = {
     version: true,
     size: 0,
@@ -352,7 +353,7 @@ const makeQuery = async (request, key, query_params = null) => {
   if (queries[key][0] instanceof Function) {
     body = {
       ...body,
-      ...queries[key][0](query_params),
+      ...queries[key][0](queryParams),
     };
   } else {
     body = {
@@ -372,7 +373,12 @@ const makeQuery = async (request, key, query_params = null) => {
   let response = await postES(`/fusebit-${process.env.DEPLOYMENT_KEY}-*/_search`, body);
 
   if (response.statusCode == 200) {
-    let payload = queries[key][1](response.body);
+    let payload;
+    try {
+      payload = queries[key][1](response.body);
+    } catch (e) {
+      return { statusCode: 500, data: e.message };
+    }
     return { statusCode: response.statusCode, items: payload.data, total: payload.total };
   }
   return { statusCode: response.statusCode, data: response.body };
@@ -480,7 +486,7 @@ const itemizedBulk = async (req, res, next) => {
 
   let bulk = {};
 
-  const code = httpRangeFilterCodes[req.query.code] || Number(req.query.code);
+  const code = httpRangeFilterCodes[req.query.code] || Number(req.query.code) || undefined;
   const fromIdx = parseInt(req.query.next) || 0;
   const pageSize = parseInt(req.query.count) || 5;
 

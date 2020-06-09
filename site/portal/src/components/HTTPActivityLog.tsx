@@ -86,6 +86,7 @@ const HTTPActivityLog: React.FC<IProps> = ({ profile, urlWart, interval, activeC
       tableRef={tableRef}
       title="Events"
       columns={eventColumns}
+      style={{ backgroundColor: 'transparent', boxShadow: 'none' }}
       data={(query: any): Promise<any> => {
         return new Promise((resolve, reject) => {
           getBulkMonitorData(
@@ -113,6 +114,9 @@ const HTTPActivityLog: React.FC<IProps> = ({ profile, urlWart, interval, activeC
         sorting: false, // Not yet implemented on the backend, along with filtering.
         search: false,
         filtering: false,
+        headerStyle: {
+          backgroundColor: 'transparent',
+        },
       }}
     />
   );

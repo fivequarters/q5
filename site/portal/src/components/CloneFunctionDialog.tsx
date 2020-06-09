@@ -120,7 +120,7 @@ function CloneFunctionDialog({ subscriptionId, boundaryId, functionId, onClose }
         )}
         {state.status === 'success' && (
           <Button
-            to={`/accounts/${profile.account}/subscriptions/${subscriptionId}/boundaries/${name.boundaryId}/functions/${name.functionId}/overview`}
+            to={`/accounts/${profile.account}/subscriptions/${subscriptionId}/boundaries/${name.boundaryId}/functions/${name.functionId}/properties`}
             component={RouterLink}
             color="primary"
             variant="contained"

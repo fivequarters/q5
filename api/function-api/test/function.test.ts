@@ -580,6 +580,27 @@ describe('function', () => {
     expect(response.data.items).toEqual(expect.arrayContaining([{ boundaryId, functionId: function5Id }]));
   }, 20000);
 
+  test.skip('Bulk test PUTs', async () => {
+    let fns = [];
+    const createFunc = async (id: number) => {
+      const functionId = `test-function-${random({ lengthInBytes: 8 })}`;
+      fns.push(functionId);
+      let response = await putFunction(account, boundaryId, functionId, helloWorld);
+      if (response.status != 200) {
+        console.log(`${response.status} - ${response.data}`);
+      }
+      response = await deleteFunction(account, boundaryId, functionId);
+    };
+
+    for (let i = 0; i < 5; i++) {
+      let fs = [];
+      for (let k = 0; k < 100; k++) {
+        fs.push(createFunc(k));
+      }
+      await Promise.all(fs);
+    }
+  }, 200000);
+
   test('LIST on boundary retrieves the list of non-cron functions', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
     expect(response.status).toEqual(200);

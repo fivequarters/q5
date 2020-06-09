@@ -6,7 +6,7 @@ import Typography from '@material-ui/core/Typography';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
-import MenuIcon from '@material-ui/icons/Menu';
+import ChevronRight from '@material-ui/icons/ChevronRight';
 import { FusebitMarkInverted } from '@5qtrs/fusebit-mark-inverted';
 import SelectableAvatar from './SelectableAvatar';
 
@@ -154,7 +154,7 @@ function ProfileSelector({ onSelectProfile, settings }: any) {
         >
           {renderProfileList(false)}
           <IconButton onClick={handleDrawerToggle} className={`${classes.icon}`} size="small">
-            <MenuIcon />
+            <ChevronRight />
           </IconButton>
         </Drawer>
         <Drawer

@@ -32,9 +32,9 @@ interface ActiveGraph {
 }
 
 const availableGraphs: { [key: string]: ActiveGraph } = {
-  activity: { query: 'codeactivityhg', label: 'HTTP Activity' },
+  activity: { query: 'codeactivityhg', label: 'HTTP Response Volume' },
   latency: { query: 'codelatencyhg', label: 'HTTP Latency' },
-  activitylatency: { query: 'codeactivitylatencyhg', label: 'HTTP Activity And Latency', multi: true },
+  activitylatency: { query: 'codeactivitylatencyhg', label: 'HTTP Response Volume and Latency', multi: true },
 };
 
 const MonitorPanel: React.FC<IProps> = props => {
@@ -135,7 +135,7 @@ const MonitorPanel: React.FC<IProps> = props => {
         query={'fielduniquehg'}
         multi={false}
         codeGrouped={true}
-        label={'Unique Boundary Activity'}
+        label={'Active Boundaries'}
         urlWart={urlWart}
         interval={interval}
         chartType="bar"

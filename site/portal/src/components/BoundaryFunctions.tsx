@@ -38,7 +38,7 @@ function BoundaryFunctions({ boundaryId, subscriptionId }: any) {
       align: 'left',
       label: 'Function Name',
       render: row => (
-        <Link component={RouterLink} to={`functions/${row.id}/overview`}>
+        <Link component={RouterLink} to={`functions/${row.id}/properties`}>
           {row.id}
         </Link>
       ),
