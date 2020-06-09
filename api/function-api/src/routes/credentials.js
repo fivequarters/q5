@@ -46,7 +46,7 @@ const refreshCredentials = async () => {
       accessKeyId: creds.AccessKeyId,
       secretAccessKey: creds.SecretAccessKey,
       sessionToken: creds.Token,
-      expiration: Date.now() + 60 * 5 * 1000, // XXX Date.parse(creds.Expiration),
+      expiration: Date.parse(creds.Expiration),
     };
 
     console.log(`CRED: Refreshed (new expiration ${new Date(credentialCache.expiration).toISOString()})`);
