@@ -17,6 +17,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 1. TOC
 {:toc}
 -->
+## Version 1.23.3
+
+_Released 6/9.20_
+
+- **Bugfix.** Allow the `fusebit-analytics` IAM role to scan subscription information in multiple regions.
+
 ## Version 1.23.2
 
 _Released 6/5/20_
