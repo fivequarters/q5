@@ -39,12 +39,13 @@ const appendIamRoleToES = async iamArn => {
 const onStartup = async () => {
   if (!process.env.ES_HOST || !!process.env.ES_USER != !!process.env.ES_PASSWORD) {
     console.log('ES: Elastic Search disabled');
+    return;
   }
 
   console.log(
-    `ES: Elastic Search configuration: ${process.env.ES_USER}:${process.env.ES_PASSWORD.length > 0 ? '*' : 'X'}@${
-      process.env.ES_HOST
-    }`
+    `ES: Elastic Search configuration: ${process.env.ES_USER}:${
+      process.env.ES_PASSWORD && process.env.ES_PASSWORD.length > 0 ? '*' : 'X'
+    }@${process.env.ES_HOST}`
   );
 
   // Utility functions for authenticating to the ElasticSearch service on the right target
@@ -114,7 +115,7 @@ const onStartup = async () => {
     console.log('ES: Using username/password authentication');
     getRegion = () => '';
     authRequest = (opts, cred) => (opts.auth = `${process.env.ES_USER}:${process.env.ES_PASSWORD}`);
-  } else {
+  } else if (process.env.ES_HOST) {
     console.log('ES: Using IAM authentication');
     getRegion = () => {
       return process.env.ES_HOST.match(/^([^\.]+)\.?([^\.]*)\.?([^\.]*)\.amazonaws\.com$/)[2];

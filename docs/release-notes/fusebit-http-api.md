@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.17.2
+
+_Released 6/6/20_
+
+- **Bug fix.** Improve behavior when ElasticSearch is not enabled.
+
 ## Version 1.17.1
 
 _Released 6/5/20_

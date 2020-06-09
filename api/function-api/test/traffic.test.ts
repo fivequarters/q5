@@ -83,7 +83,7 @@ beforeEach(async () => {
 }, 20000);
 
 describe('traffic', () => {
-  test(
+  test.skip(
     `Generate a bunch of traffic for ${process.env.TRAFFIC_DURATION} seconds`,
     async () => {
       if (!process.env.TRAFFIC_DURATION) {
