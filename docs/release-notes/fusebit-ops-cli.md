@@ -17,6 +17,11 @@ All public releases of the Fusebit Operations CLI are documented here, including
 1. TOC
 {:toc}
 -->
+
+## Version 1.23.4
+
+- **Bugfix.** Adjust permissions of `fusebit-function` to address staticIP support.
+
 ## Version 1.23.3
 
 _Released 6/9.20_
