@@ -6,7 +6,7 @@ nav_exclude: true
 
 # Downloads
 
-_Last updated June 6, 2020_
+_Last updated June 11, 2020_
 
 This page contains download links for the components of the Fusebit platform. A description of our versioning and support policy is available [here](https://fusebit.io/docs/integrator-guide/versioning/).
 
