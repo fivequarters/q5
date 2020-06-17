@@ -125,7 +125,13 @@ export async function createRole(
     ],
   };
 
-  let ctx: any = { roleName, policyArns, inlinePolicy, assumeRolePolicy };
+  let ctx: any = {
+    roleName,
+    policyArns,
+    inlinePolicy,
+    assumeRolePolicy,
+    inlinePolicyName: `${roleName}-inline-policy`,
+  };
 
   AWS.config.apiVersions = {
     iam: '2010-05-08',
@@ -192,12 +198,18 @@ export async function createRole(
   }
 
   function updateInlinePolicy(cb: any) {
-    if (!ctx.inlinePolicy) return cb();
+    if (!ctx.inlinePolicy) {
+      return iam.deleteRolePolicy({ PolicyName: ctx.inlinePolicyName, RoleName: ctx.roleName }, (e: any) => {
+        debug(`Ignored deleteRolePolicy result: ${e.message}`);
+        return cb();
+      });
+    }
+
     debug(`Updating inline policy of role ${ctx.roleName}...`);
     return iam.putRolePolicy(
       {
         PolicyDocument: JSON.stringify(ctx.inlinePolicy),
-        PolicyName: `${ctx.roleName}-inline-policy`,
+        PolicyName: ctx.inlinePolicyName,
         RoleName: ctx.roleName,
       },
       (e: any) => {
