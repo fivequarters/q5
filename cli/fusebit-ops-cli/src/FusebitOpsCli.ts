@@ -7,6 +7,7 @@ import {
   AccountCommand,
   NetworkCommand,
   DomainCommand,
+  PortalCommand,
   ImageCommand,
   DeploymentCommand,
   StackCommand,
@@ -52,6 +53,7 @@ export class FusebitOpsCli extends Command {
     subCommands.push(await StackCommand.create());
     subCommands.push(await SubscriptionCommand.create());
     subCommands.push(await AdminCommand.create());
+    subCommands.push(await PortalCommand.create());
     subCommands.push(await VersionCommand.create());
     cli.subCommands = subCommands;
     return new FusebitOpsCli(cli);

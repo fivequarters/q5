@@ -63,7 +63,10 @@ export class DomainService {
   public async confirmAddDomain(domain: IOpsDomain) {
     const confirmPrompt = await Confirm.create({
       header: 'Add the domain to the Fusebit platform?',
-      details: [{ name: 'Domain', value: domain.domainName }, { name: 'Account', value: domain.accountName }],
+      details: [
+        { name: 'Domain', value: domain.domainName },
+        { name: 'Account', value: domain.accountName },
+      ],
     });
     const confirmed = await confirmPrompt.prompt(this.input.io);
     if (!confirmed) {

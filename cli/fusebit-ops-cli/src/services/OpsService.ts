@@ -57,7 +57,7 @@ export class OpsService {
   private input: IExecuteInput;
   private profileService: ProfileService;
   private executeService: ExecuteService;
-  private opsDataContext?: IOpsDataContext;
+  private opsDataContext?: OpsDataAwsContext;
 
   private constructor(input: IExecuteInput, profileService: ProfileService, executeService: ExecuteService) {
     this.input = input;
@@ -91,7 +91,7 @@ export class OpsService {
     return await AwsCreds.create(userCredOptions, credsCache);
   }
 
-  public async getOpsDataContext(settings?: IConfigSettings): Promise<IOpsDataContext> {
+  public async getOpsDataContextImpl(settings?: IConfigSettings): Promise<OpsDataAwsContext> {
     if (!this.opsDataContext) {
       const profile = await this.profileService.getProfileOrDefaultOrThrow();
       let globalOpsDataAwsContext: OpsDataAwsContext | undefined = undefined;
@@ -101,7 +101,11 @@ export class OpsService {
       }
       this.opsDataContext = await this.getOpsDataContextForProfile(profile, settings, globalOpsDataAwsContext);
     }
-    return this.opsDataContext as IOpsDataContext;
+    return this.opsDataContext;
+  }
+
+  public async getOpsDataContext(settings?: IConfigSettings): Promise<IOpsDataContext> {
+    return (await this.getOpsDataContextImpl()) as IOpsDataContext;
   }
 
   private async getOpsDataContextForProfile(

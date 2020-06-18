@@ -11,6 +11,7 @@
     { "path": "../../sdk/fusebit-ops-profile-sdk" },
     { "path": "../../lib/data/ops-data-aws" },
     { "path": "../../lib/data/ops-data" },
-    { "path": "../../lib/shared/config" }
+    { "path": "../../lib/shared/config" },
+    { "path": "../../lib/aws/aws-cert" }
   ]
 }

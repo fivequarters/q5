@@ -137,6 +137,10 @@ export class OpsDataAwsProvider {
     return AwsAlb.create(config);
   }
 
+  public async getAwsAlbForConfig(config: IAwsConfig): Promise<AwsAlb> {
+    return AwsAlb.create(config);
+  }
+
   private getAwsCredsForAccount(accountId: string, accountRole: string): AwsCreds {
     if (accountId === this.config.mainAccountId) {
       return this.config.userAccountEnabled

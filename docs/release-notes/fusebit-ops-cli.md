@@ -18,6 +18,10 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.24.0
+
+- **Enhancement.** Support for managing Fusebit Portals with `fuse-ops portal`.
+
 ## Version 1.23.4
 
 - **Bugfix.** Adjust permissions of `fusebit-function` to address staticIP support.

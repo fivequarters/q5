@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Creates one deployment package for the module and function builder Lambdas
+# Creates portal deployment package for uploading to CDN
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 cd $DIR/build
