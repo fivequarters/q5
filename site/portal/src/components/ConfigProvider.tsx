@@ -22,18 +22,18 @@ type ConfigProviderProps = {
 const ConfigStateContext = React.createContext<IFusebitTenant | undefined>(undefined);
 
 function ConfigProvider({ children }: ConfigProviderProps) {
-  const [data, setData] = React.useState<ConfigState>({
+  const [configState, setConfigState] = React.useState<ConfigState>({
     status: 'loading',
   });
 
   React.useEffect(() => {
     let cancelled: boolean = false;
-    if (data.status === 'loading') {
+    if (configState.status === 'loading') {
       (async () => {
         try {
           let config = await getFusebitConfig();
           if (!cancelled) {
-            setData({
+            setConfigState({
               status: 'ready',
               existing: config,
             });
@@ -43,7 +43,7 @@ function ConfigProvider({ children }: ConfigProviderProps) {
             const error = new FusebitError(`Error loading Fusebit Portal configuration`, {
               details: e.message || 'Unknown error.',
             });
-            setData({
+            setConfigState({
               status: 'error',
               error,
             });
@@ -54,15 +54,15 @@ function ConfigProvider({ children }: ConfigProviderProps) {
         cancelled = true;
       };
     }
-  }, [data]);
+  }, [configState]);
 
-  if (data.status === 'error') {
-    throw data.error;
+  if (configState.status === 'error') {
+    throw configState.error;
   }
-  if (data.status === 'loading') {
+  if (configState.status === 'loading') {
     return null;
   }
-  return <ConfigStateContext.Provider value={data.existing}>{children}</ConfigStateContext.Provider>;
+  return <ConfigStateContext.Provider value={configState.existing}>{children}</ConfigStateContext.Provider>;
 }
 
 function useConfigState() {

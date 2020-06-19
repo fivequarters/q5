@@ -22,7 +22,7 @@ const command = {
     {
       name: 'configUrl',
       description:
-        'The URL of the portal configuration service. Can be a relative URL if used in conjunction with --file.',
+        'The URL of the portal configuration service. Can be a relative URL if used in conjunction with --file',
     },
   ],
   options: [
@@ -34,7 +34,7 @@ const command = {
     {
       name: 'confirm',
       aliases: ['c'],
-      description: 'If set to true, prompts for confirmation before deploying or updatig the portal',
+      description: 'Do not prompt for confirmation before deploying or updatig the portal',
       type: ArgType.boolean,
       default: 'true',
     },

@@ -246,7 +246,13 @@ function ProfileProvider(props: any) {
   }
 }
 
-const useProfile = () => React.useContext(ProfileContext) as ProfileProps;
+const useProfile = () => {
+  const result = React.useContext(ProfileContext);
+  if (!result) {
+    throw new Error(`The 'useProfile' must be called within the context of a ProfileProvider.`);
+  }
+  return result as ProfileProps;
+};
 
 const useProfileMaybe = () => React.useContext(ProfileContext);
 
