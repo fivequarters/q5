@@ -254,8 +254,6 @@ const useProfile = () => {
   return result as ProfileProps;
 };
 
-const useProfileMaybe = () => React.useContext(ProfileContext);
-
 function login(profile: IFusebitProfile, bookmark: string) {
   let url = parseUrl(profile.oauth.webAuthorizationUrl, true);
   let state = Math.floor(Math.random() * 999999).toString(32);

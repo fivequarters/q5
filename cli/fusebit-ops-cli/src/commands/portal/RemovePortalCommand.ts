@@ -9,18 +9,18 @@ const command = {
   name: 'Remove Portal',
   cmd: 'rm',
   summary: 'Remove a Fusebit Portal',
-  description: 'Removes an existing Fusebit Portal.',
+  description: 'Removes an existing Fusebit Portal',
   arguments: [
     {
       name: 'domain',
-      description: 'The DNS domain name of the portal',
+      description: 'The DNS domain name of the portal, e.g. portal.contoso.com',
     },
   ],
   options: [
     {
       name: 'confirm',
       aliases: ['c'],
-      description: 'If set to true, prompts for confirmation before deploying or updatig the portal',
+      description: 'Do not prompt for confirmation before removing the portal',
       type: ArgType.boolean,
       default: 'true',
     },

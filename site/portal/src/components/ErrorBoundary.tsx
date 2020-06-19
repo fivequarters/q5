@@ -75,7 +75,11 @@ class ErrorBoundary extends React.Component<any, any> {
     const { classes } = this.props;
 
     function RenderErrorImpl() {
-      const [config]: [any] = useConfigMaybe();
+      let config: any = undefined;
+      try {
+        const [tmp]: [any] = useConfigMaybe();
+        config = tmp;
+      } catch (_) {}
       const settings = getLocalSettings();
 
       if (config) {

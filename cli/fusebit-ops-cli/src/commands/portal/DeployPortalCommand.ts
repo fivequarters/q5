@@ -34,7 +34,7 @@ const command = {
     {
       name: 'confirm',
       aliases: ['c'],
-      description: 'Do not prompt for confirmation before deploying or updatig the portal',
+      description: 'Do not prompt for confirmation before deploying or updating the portal',
       type: ArgType.boolean,
       default: 'true',
     },
