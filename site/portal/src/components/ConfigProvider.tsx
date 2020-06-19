@@ -77,8 +77,4 @@ function useConfig(): [IFusebitTenant] {
   return [useConfigState()];
 }
 
-function useConfigMaybe(): [IFusebitTenant | undefined] {
-  return [React.useContext(ConfigStateContext)];
-}
-
-export { ConfigProvider, useConfig, useConfigMaybe };
+export { ConfigProvider, useConfig };

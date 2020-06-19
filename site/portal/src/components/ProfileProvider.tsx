@@ -303,4 +303,4 @@ function parse(queryString: string) {
   return result;
 }
 
-export { ProfileProvider, useProfile, useProfileMaybe };
+export { ProfileProvider, useProfile };

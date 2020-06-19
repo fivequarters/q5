@@ -4,7 +4,7 @@ import Grid from '@material-ui/core/Grid';
 import { withStyles } from '@material-ui/core/styles';
 import PortalError from './PortalError';
 import { withRouter } from 'react-router-dom';
-import { useConfigMaybe } from './ConfigProvider';
+import { useConfig } from './ConfigProvider';
 import { getLocalSettings } from '../lib/Settings';
 
 const styles = (theme: any) => ({
@@ -77,7 +77,7 @@ class ErrorBoundary extends React.Component<any, any> {
     function RenderErrorImpl() {
       let config: any = undefined;
       try {
-        const [tmp]: [any] = useConfigMaybe();
+        const [tmp]: [any] = useConfig();
         config = tmp;
       } catch (_) {}
       const settings = getLocalSettings();
