@@ -85,7 +85,7 @@ function FunctionCode({ match }: any) {
   }, [functionSpec, profile, subscriptionId, boundaryId, functionId]);
 
   const handleClose = () => {
-    history.replace('overview');
+    history.replace('properties');
   };
 
   const template = functionSpec || {};
