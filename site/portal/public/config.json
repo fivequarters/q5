@@ -113,7 +113,7 @@
         {
           "id": "criipto-poc",
           "displayName": "Criipto POC",
-          "baseUrl": "https://api.us-east-1.fusebit.io",
+          "baseUrl": "https://stage.eu-north-1.fusebit.io",
           "account": "acc-977f88a34c0f452b",
           "subscription": "sub-eb7ae6391f194b3f",
           "catalog": "/catalog.json",
