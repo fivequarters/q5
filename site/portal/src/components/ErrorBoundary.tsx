@@ -1,21 +1,22 @@
-import React from "react";
-import { getLocalSettings, IFusebitSettings } from "../lib/Settings";
-import ProfileSelectorWithDetails from "./ProfileSelectorWithDetails";
-import Grid from "@material-ui/core/Grid";
-import { withStyles } from "@material-ui/core/styles";
-import PortalError from "./PortalError";
-import { withRouter } from "react-router-dom";
+import React from 'react';
+import ProfileSelectorWithDetails from './ProfileSelectorWithDetails';
+import Grid from '@material-ui/core/Grid';
+import { withStyles } from '@material-ui/core/styles';
+import PortalError from './PortalError';
+import { withRouter } from 'react-router-dom';
+import { useConfig } from './ConfigProvider';
+import { getLocalSettings } from '../lib/Settings';
 
 const styles = (theme: any) => ({
   gridContainer: {
     marginTop: 12,
     paddingLeft: theme.spacing(2),
-    paddingRight: theme.spacing(2)
+    paddingRight: theme.spacing(2),
   },
   gridLine: {
     marginTop: theme.spacing(1),
-    marginBottom: theme.spacing(1)
-  }
+    marginBottom: theme.spacing(1),
+  },
 });
 
 interface IFusebitErrorAction {
@@ -47,7 +48,7 @@ class ErrorBoundary extends React.Component<any, any> {
       if (this.state.error) {
         this.setState({
           error: undefined,
-          drawerOpen: false
+          drawerOpen: false,
         });
       }
     });
@@ -71,18 +72,41 @@ class ErrorBoundary extends React.Component<any, any> {
   }
 
   renderError(error: any) {
-    const settings = getLocalSettings() as IFusebitSettings;
     const { classes } = this.props;
 
-    return (
-      <ProfileSelectorWithDetails settings={settings}>
-        <Grid container className={classes.gridContainer}>
-          <Grid item xs={12} className={classes.gridLine}>
-            <PortalError error={error} />
+    function RenderErrorImpl() {
+      let config: any = undefined;
+      try {
+        const [tmp]: [any] = useConfig();
+        config = tmp;
+      } catch (_) {}
+      const settings = getLocalSettings();
+
+      if (config) {
+        if (settings) {
+          config.currentProfile = settings.currentProfile;
+        }
+        return (
+          <ProfileSelectorWithDetails settings={config}>
+            <Grid container className={classes.gridContainer}>
+              <Grid item xs={12} className={classes.gridLine}>
+                <PortalError error={error} />
+              </Grid>
+            </Grid>
+          </ProfileSelectorWithDetails>
+        );
+      } else {
+        return (
+          <Grid container className={classes.gridContainer}>
+            <Grid item xs={12} className={classes.gridLine}>
+              <PortalError error={error} />
+            </Grid>
           </Grid>
-        </Grid>
-      </ProfileSelectorWithDetails>
-    );
+        );
+      }
+    }
+
+    return <RenderErrorImpl />;
   }
 }
 

@@ -18,6 +18,7 @@ import { OpsDeploymentData } from './OpsDeploymentData';
 import { OpsStackData } from './OpsStackData';
 import { OpsDataAwsConfig } from './OpsDataAwsConfig';
 import { OpsIam } from './OpsIam';
+import { IConfig } from '@5qtrs/config';
 
 // ----------------
 // Exported Classes
@@ -52,10 +53,12 @@ export class OpsDataAwsContext extends DataSource implements IOpsDataContext {
       globalOpsDataAwsContext && globalOpsDataAwsContext.stack
     );
     const iam = await OpsIam.create(config, provider);
-    return new OpsDataAwsContext(tables, account, domain, network, image, deployment, stack, iam);
+    return new OpsDataAwsContext(config, provider, tables, account, domain, network, image, deployment, stack, iam);
   }
 
   private constructor(
+    config: OpsDataAwsConfig,
+    provider: OpsDataAwsProvider,
     tables: OpsDataTables,
     account: OpsAccountData,
     domain: OpsDomainData,
@@ -66,6 +69,8 @@ export class OpsDataAwsContext extends DataSource implements IOpsDataContext {
     iam: OpsIam
   ) {
     super([tables, iam, image]);
+    this.configImpl = config;
+    this.providerImpl = provider;
     this.account = account;
     this.domain = domain;
     this.network = network;
@@ -80,6 +85,16 @@ export class OpsDataAwsContext extends DataSource implements IOpsDataContext {
   private image: OpsImageData;
   private deployment: OpsDeploymentData;
   private stack: OpsStackData;
+  private configImpl: OpsDataAwsConfig;
+  private providerImpl: OpsDataAwsProvider;
+
+  public get config(): IConfig {
+    return this.configImpl;
+  }
+
+  public get provider(): OpsDataAwsProvider {
+    return this.providerImpl;
+  }
 
   public get accountData(): IOpsAccountData {
     return this.account;

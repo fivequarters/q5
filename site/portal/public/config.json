@@ -1,0 +1,133 @@
+{
+  "tenants": {
+    "default": {
+      "profiles": [
+        {
+          "id": "stage-us-portal-dev",
+          "displayName": "Stage US (portal-dev)",
+          "icon": "https://cdn.fusebit.io/assets/images/us.png",
+          "baseUrl": "https://stage.us-west-2.fusebit.io",
+          "account": "acc-9d9341ea356841ed",
+          "subscription": "sub-ed9d9341ea356841",
+          "catalog": "/catalog.json",
+          "oauth": {
+            "webAuthorizationUrl": "https://fusebit.auth0.com/authorize",
+            "webClientId": "hSgWIXmbluQMADuWhDnRTpWyKptJe6LB",
+            "webLogoutUrl": "https://fusebit.auth0.com/v2/logout?client_id=hSgWIXmbluQMADuWhDnRTpWyKptJe6LB&returnTo=https://portal.fusebit.io",
+            "deviceAuthorizationUrl": "https://fusebit.auth0.com/oauth/device/code",
+            "deviceClientId": "VFOtrBCVHEm7I9UNv7rFwu1ID1hTEueF",
+            "tokenUrl": "https://fusebit.auth0.com/oauth/token"
+          }
+        },
+        {
+          "id": "stage-eu-portal-dev",
+          "displayName": "Stage EU (portal-dev)",
+          "icon": "https://cdn.fusebit.io/assets/images/eu.png",
+          "baseUrl": "https://stage.eu-north-1.fusebit.io",
+          "account": "acc-28550c6a43ee4e10",
+          "subscription": "sub-77d91b1a326d4a6b",
+          "catalog": "/catalog.json",
+          "oauth": {
+            "webAuthorizationUrl": "https://fusebit.auth0.com/authorize",
+            "webClientId": "hSgWIXmbluQMADuWhDnRTpWyKptJe6LB",
+            "webLogoutUrl": "https://fusebit.auth0.com/v2/logout?client_id=hSgWIXmbluQMADuWhDnRTpWyKptJe6LB&returnTo=https://portal.fusebit.io",
+            "deviceAuthorizationUrl": "https://fusebit.auth0.com/oauth/device/code",
+            "deviceClientId": "VFOtrBCVHEm7I9UNv7rFwu1ID1hTEueF",
+            "tokenUrl": "https://fusebit.auth0.com/oauth/token"
+          }
+        },
+        {
+          "id": "stage-us-local-portal",
+          "displayName": "Stage US (local portal)",
+          "baseUrl": "https://stage.us-west-2.fusebit.io",
+          "account": "acc-9d9341ea356841ed",
+          "subscription": "sub-ed9d9341ea356841",
+          "catalog": "/catalog.json",
+          "oauth": {
+            "webAuthorizationUrl": "https://fusebit.auth0.com/authorize",
+            "webClientId": "hSgWIXmbluQMADuWhDnRTpWyKptJe6LB",
+            "webLogoutUrl": "https://fusebit.auth0.com/v2/logout?client_id=hSgWIXmbluQMADuWhDnRTpWyKptJe6LB&returnTo=http://localhost:3000",
+            "deviceAuthorizationUrl": "https://fusebit.auth0.com/oauth/device/code",
+            "deviceClientId": "VFOtrBCVHEm7I9UNv7rFwu1ID1hTEueF",
+            "tokenUrl": "https://fusebit.auth0.com/oauth/token"
+          }
+        },
+        {
+          "id": "stage-eu-local-portal",
+          "displayName": "Stage EU (local portal)",
+          "baseUrl": "https://stage.eu-north-1.fusebit.io",
+          "account": "acc-28550c6a43ee4e10",
+          "subscription": "sub-77d91b1a326d4a6b",
+          "catalog": "/catalog.json",
+          "oauth": {
+            "webAuthorizationUrl": "https://fusebit.auth0.com/authorize",
+            "webClientId": "hSgWIXmbluQMADuWhDnRTpWyKptJe6LB",
+            "webLogoutUrl": "https://fusebit.auth0.com/v2/logout?client_id=hSgWIXmbluQMADuWhDnRTpWyKptJe6LB&returnTo=http://localhost:3000",
+            "deviceAuthorizationUrl": "https://fusebit.auth0.com/oauth/device/code",
+            "deviceClientId": "VFOtrBCVHEm7I9UNv7rFwu1ID1hTEueF",
+            "tokenUrl": "https://fusebit.auth0.com/oauth/token"
+          }
+        },
+        {
+          "id": "stage-us-local-api-portal",
+          "displayName": "Stage US (local API+portal)",
+          "baseUrl": "http://localhost:3001",
+          "account": "acc-9d9341ea356841ed",
+          "subscription": "sub-ed9d9341ea356841",
+          "catalog": "/catalog.json",
+          "oauth": {
+            "webAuthorizationUrl": "https://fusebit.auth0.com/authorize",
+            "webClientId": "hSgWIXmbluQMADuWhDnRTpWyKptJe6LB",
+            "webLogoutUrl": "https://fusebit.auth0.com/v2/logout?client_id=hSgWIXmbluQMADuWhDnRTpWyKptJe6LB&returnTo=http://localhost:3000",
+            "deviceAuthorizationUrl": "https://fusebit.auth0.com/oauth/device/code",
+            "deviceClientId": "VFOtrBCVHEm7I9UNv7rFwu1ID1hTEueF",
+            "tokenUrl": "https://fusebit.auth0.com/oauth/token"
+          }
+        }
+      ],
+      "defaultProfile": "stage-us-portal-dev"
+    },
+    "hyperproof": {
+      "profiles": [
+        {
+          "id": "hyperproof-poc",
+          "displayName": "Hyperproof POC",
+          "baseUrl": "https://api.us-east-1.fusebit.io",
+          "account": "acc-162db008f84a48c7",
+          "subscription": "sub-6b1bdd0072ee4514",
+          "catalog": "/catalog.json",
+          "oauth": {
+            "webAuthorizationUrl": "https://fusebit.auth0.com/authorize",
+            "webClientId": "hSgWIXmbluQMADuWhDnRTpWyKptJe6LB",
+            "webLogoutUrl": "https://fusebit.auth0.com/v2/logout?client_id=hSgWIXmbluQMADuWhDnRTpWyKptJe6LB&returnTo=https://hyperproof.portal.fusebit.io",
+            "deviceAuthorizationUrl": "https://fusebit.auth0.com/oauth/device/code",
+            "deviceClientId": "VFOtrBCVHEm7I9UNv7rFwu1ID1hTEueF",
+            "tokenUrl": "https://fusebit.auth0.com/oauth/token"
+          }
+        }
+      ],
+      "defaultProfile": "hyperproof-poc"
+    },
+    "criipto": {
+      "profiles": [
+        {
+          "id": "criipto-poc",
+          "displayName": "Criipto POC",
+          "baseUrl": "https://stage.eu-north-1.fusebit.io",
+          "account": "acc-977f88a34c0f452b",
+          "subscription": "sub-eb7ae6391f194b3f",
+          "catalog": "/catalog.json",
+          "oauth": {
+            "webAuthorizationUrl": "https://fusebit.auth0.com/authorize",
+            "webClientId": "hSgWIXmbluQMADuWhDnRTpWyKptJe6LB",
+            "webLogoutUrl": "https://fusebit.auth0.com/v2/logout?client_id=hSgWIXmbluQMADuWhDnRTpWyKptJe6LB&returnTo=https://criipto.portal.fusebit.io",
+            "deviceAuthorizationUrl": "https://fusebit.auth0.com/oauth/device/code",
+            "deviceClientId": "VFOtrBCVHEm7I9UNv7rFwu1ID1hTEueF",
+            "tokenUrl": "https://fusebit.auth0.com/oauth/token"
+          }
+        }
+      ],
+      "defaultProfile": "hyperproof-poc"
+    }
+  }
+}

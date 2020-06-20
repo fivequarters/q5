@@ -1,6 +1,46 @@
 {
   "templates": [
     {
+      "id": "add-on-template",
+      "name": "Fusebit Add-On",
+      "description": "Scaffold a new Fusebit Add-On",
+      "tags": ["add-on", "addon", "template", "fusebit", "scaffold"],
+      "managerUrl": "https://stage.us-west-2.fusebit.io/v1/run/sub-ed9d9341ea356841/template-manager/add-on-template",
+      "documentationUrl": "https://github.com/fusebit/samples"
+    },
+    {
+      "id": "connector-google",
+      "name": "Google Connector",
+      "description": "Authentication to Google APIs for Fusebit Add-Ons",
+      "tags": ["google", "connector", "add-on", "addon", "form"],
+      "managerUrl": "https://stage.us-west-2.fusebit.io/v1/run/sub-ed9d9341ea356841/template-manager/connector-google",
+      "documentationUrl": "https://github.com/fusebit/samples"
+    },
+    {
+      "id": "my-add-on",
+      "name": "My Add-On",
+      "description": "A freshly developed Add-On",
+      "tags": ["add-on", "addon", "form"],
+      "managerUrl": "https://stage.us-west-2.fusebit.io/v1/run/sub-ed9d9341ea356841/template-manager/myaddon",
+      "documentationUrl": "https://github.com/fusebit/samples"
+    },
+    {
+      "id": "starter-with-form",
+      "name": "Starter Add-On with Form",
+      "description": "Starter Fusebit Add-On with simple form-based configuration",
+      "tags": ["nodejs", "npm", "fusebit", "starter", "form"],
+      "managerUrl": "https://stage.us-west-2.fusebit.io/v1/run/sub-ed9d9341ea356841/template-manager/starter-with-form",
+      "documentationUrl": "https://github.com/fusebit/samples"
+    },
+    {
+      "id": "starter",
+      "name": "Starter Add-On",
+      "description": "Starter Fusebit Add-On",
+      "tags": ["nodejs", "npm", "fusebit", "starter"],
+      "managerUrl": "https://stage.us-west-2.fusebit.io/v1/run/sub-ed9d9341ea356841/template-manager/starter",
+      "documentationUrl": "https://github.com/fusebit/samples"
+    },
+    {
       "id": "empty",
       "name": "Empty Function",
       "description": "Node.js with NPM",

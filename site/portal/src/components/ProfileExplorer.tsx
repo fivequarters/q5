@@ -5,7 +5,6 @@ import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import React from 'react';
 import { Redirect, Route, Switch, useHistory } from 'react-router-dom';
-import { getLocalSettings, IFusebitSettings } from '../lib/Settings';
 import AccountClients from './AccountClients';
 import AccountIssuers from './AccountIssuers';
 import AccountSettings from './AccountSettings';
@@ -160,9 +159,8 @@ const ExplorerTabs = {
 
 function ProfileExplorer({ ...rest }: any) {
   const history = useHistory();
-  const { profile } = useProfile();
+  const { profile, settings } = useProfile();
   const classes = useStyles();
-  const settings = getLocalSettings() as IFusebitSettings;
 
   function ExplorerView({ breadcrumbSettings, children, tabs, match, fab }: any) {
     const { path } = match;
