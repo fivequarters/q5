@@ -214,7 +214,7 @@ async function getFusebitConfig(): Promise<IFusebitTenant> {
     //@ts-ignore
     (domainSuffixIndex === window.location.hostname.length - window.fusebitPortal.domain.length - 1 &&
       //@ts-ignore
-      window.location.hostname.substring(0, `.${window.fusebitPortal.domain}`)) ||
+      window.location.hostname.substring(0, domainSuffixIndex)) ||
     'default';
   //@ts-ignore
   const url = `${window.fusebitPortal.config}?tenant=${encodeURIComponent(tenant)}`;
