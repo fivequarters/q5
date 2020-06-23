@@ -8,14 +8,17 @@ return addAwsCredentials();
 
 function addAwsCredentials() {
   let creds;
-  try {
-    creds = JSON.parse(Fs.readFileSync(__dirname + '/.env.aws', 'utf8'));
-    console.log('Cached AWS credentials valid until', new Date(creds.Credentials.Expiration).toString());
-    if (new Date() - new Date(creds.Credentials.Expiration) > 10 * 60000) {
-      // Only used cashed session token if valid for more than 10 mins
-      creds = undefined;
-    }
-  } catch (_) {}
+  if (!process.env.MFA) {
+    // if MFA is present, always refresh the credentials.
+    try {
+      creds = JSON.parse(Fs.readFileSync(__dirname + '/.env.aws', 'utf8'));
+      console.log('Cached AWS credentials valid until', new Date(creds.Credentials.Expiration).toString());
+      if (new Date() - new Date(creds.Credentials.Expiration) > 10 * 60000) {
+        // Only used cashed session token if valid for more than 10 mins
+        creds = undefined;
+      }
+    } catch (_) {}
+  }
 
   if (!creds) {
     if (!process.env.MFA) {
