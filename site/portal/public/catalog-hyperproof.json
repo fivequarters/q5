@@ -1,0 +1,28 @@
+{
+	"templates": [
+		{
+			"id": "empty",
+			"name": "Empty Function",
+			"description": "Node.js with NPM",
+			"tags": ["nodejs", "npm", "fusebit", "empty"],
+			"managerUrl": "https://stage.us-west-2.fusebit.io/v1/run/sub-ed9d9341ea356841/template-manager/empty",
+			"documentationUrl": "https://github.com/fusebit/samples"
+		},
+		{
+			"id": "connector-atlassian",
+			"name": "Atlassian Connector",
+			"description": "Authentication to Atlassian APIs for Fusebit AddOns",
+			"tags": ["atlassian", "connector"],
+			"managerUrl": "https://api.us-east-1.fusebit.io/v1/run/sub-6b1bdd0072ee4514/template-manager/connector-atlassian",
+			"documentationUrl": "https://github.com/fusebit/samples"
+		},
+		{
+			"id": "addon-atlassian-confluence",
+			"name": "Confluence Addon",
+			"description": "Atlassian Confluence Addon Example",
+			"tags": ["atlassian", "confluence", "addon"],
+			"managerUrl": "https://api.us-east-1.fusebit.io/v1/run/sub-6b1bdd0072ee4514/template-manager/addon-atlassian-confluence",
+			"documentationUrl": "https://github.com/fusebit/samples"
+		}
+	]
+}
