@@ -1,19 +1,20 @@
-import React from "react";
-import { FusebitError } from "./ErrorBoundary";
-import Superagent from "superagent";
-import { Catalog, parseCatalog } from "../lib/CatalogTypes";
+import React from 'react';
+import { FusebitError } from './ErrorBoundary';
+import Superagent from 'superagent';
+import { Catalog, parseCatalog } from '../lib/CatalogTypes';
+import { useProfile } from './ProfileProvider';
 
 type CatalogProvider =
   | {
-      status: "loading";
+      status: 'loading';
       formatError?: (e: any) => Error;
     }
   | {
-      status: "ready";
+      status: 'ready';
       existing: Catalog;
     }
   | {
-      status: "error";
+      status: 'error';
       error: Error;
     };
 
@@ -23,30 +24,35 @@ type CatalogProviderProps = {
   children: React.ReactNode;
 };
 
-const CatalogStateContext = React.createContext<CatalogProvider | undefined>(
-  undefined
-);
+const CatalogStateContext = React.createContext<CatalogProvider | undefined>(undefined);
 
-const CatalogSetStateContext = React.createContext<CatalogSetState | undefined>(
-  undefined
-);
+const CatalogSetStateContext = React.createContext<CatalogSetState | undefined>(undefined);
 
 function CatalogProvider({ children }: CatalogProviderProps) {
+  const { profile } = useProfile();
+  const catalogPath = profile.catalog || '/catalog.json';
+
   const [data, setData] = React.useState<CatalogProvider>({
-    status: "loading"
+    status: 'loading',
   });
 
   React.useEffect(() => {
     let cancelled: boolean = false;
-    if (data.status === "loading") {
+    if (data.status === 'loading') {
       (async () => {
         try {
-          const response = await Superagent.get(`/catalog.json`);
-          const catalog = parseCatalog(response.body);
+          let catalog;
+          if (typeof catalogPath === 'object') {
+            catalog = catalogPath;
+          } else {
+            const response = await Superagent.get(catalogPath);
+            catalog = parseCatalog(response.body);
+          }
+
           if (!cancelled) {
             setData({
-              status: "ready",
-              existing: catalog
+              status: 'ready',
+              existing: catalog,
             });
           }
         } catch (e) {
@@ -54,11 +60,11 @@ function CatalogProvider({ children }: CatalogProviderProps) {
             const error = data.formatError
               ? data.formatError(e)
               : new FusebitError(`Error loading function template catalog`, {
-                  details: e.message
+                  details: e.message,
                 });
             setData({
-              status: "error",
-              error
+              status: 'error',
+              error,
             });
           }
         }
@@ -67,13 +73,11 @@ function CatalogProvider({ children }: CatalogProviderProps) {
         cancelled = true;
       };
     }
-  }, [data]);
+  }, [data, catalogPath]);
 
   return (
     <CatalogStateContext.Provider value={data}>
-      <CatalogSetStateContext.Provider value={setData}>
-        {children}
-      </CatalogSetStateContext.Provider>
+      <CatalogSetStateContext.Provider value={setData}>{children}</CatalogSetStateContext.Provider>
     </CatalogStateContext.Provider>
   );
 }
@@ -81,7 +85,7 @@ function CatalogProvider({ children }: CatalogProviderProps) {
 function useCatalogState() {
   const context = React.useContext(CatalogStateContext);
   if (context === undefined) {
-    throw new Error("useCatalogState must be used within a CatalogProvider");
+    throw new Error('useCatalogState must be used within a CatalogProvider');
   }
   return context;
 }
@@ -89,7 +93,7 @@ function useCatalogState() {
 function useCatalogSetState() {
   const context = React.useContext(CatalogSetStateContext);
   if (context === undefined) {
-    throw new Error("useCatalogSetState must be used within a CatalogProvider");
+    throw new Error('useCatalogSetState must be used within a CatalogProvider');
   }
   return context;
 }

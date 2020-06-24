@@ -95,7 +95,7 @@
           "baseUrl": "https://api.us-east-1.fusebit.io",
           "account": "acc-162db008f84a48c7",
           "subscription": "sub-6b1bdd0072ee4514",
-          "catalog": "/catalog.json",
+          "catalog": "/catalog-hyperproof.json",
           "oauth": {
             "webAuthorizationUrl": "https://fusebit.auth0.com/authorize",
             "webClientId": "hSgWIXmbluQMADuWhDnRTpWyKptJe6LB",
@@ -116,7 +116,7 @@
           "baseUrl": "https://stage.eu-north-1.fusebit.io",
           "account": "acc-977f88a34c0f452b",
           "subscription": "sub-eb7ae6391f194b3f",
-          "catalog": "/catalog.json",
+          "catalog": "/catalog-criipto.json",
           "oauth": {
             "webAuthorizationUrl": "https://fusebit.auth0.com/authorize",
             "webClientId": "hSgWIXmbluQMADuWhDnRTpWyKptJe6LB",
