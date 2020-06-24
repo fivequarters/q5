@@ -54,12 +54,12 @@ export function parseCatalog(data: any): Catalog {
   }
   let templateIds: any = {};
   data.templates.forEach((t: any) => {
-    ['id', 'name', 'description'].forEach(p => {
+    ['id', 'name', 'description'].forEach((p) => {
       if (typeof t[p] !== 'string') {
         throw new Error(`The '${p}' property of a template must be a string.`);
       }
     });
-    ['icon', 'managerUrl', 'documentationUrl'].forEach(p => {
+    ['icon', 'managerUrl', 'documentationUrl'].forEach((p) => {
       if (t[p] !== undefined && typeof t[p] !== 'string') {
         throw new Error(`The '${p}' property of a template, if specified, must be a string.`);
       }

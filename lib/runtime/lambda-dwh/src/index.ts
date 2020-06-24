@@ -88,10 +88,10 @@ export async function handler(event: any, context: any, cb: any) {
     exportIdentity(ctx, config),
     exportIssuer(ctx, config),
   ])
-    .then(_ => {
+    .then((_) => {
       console.log('DWH EXPORT SUCCESS.');
     })
-    .catch(e => {
+    .catch((e) => {
       console.log('DWH EXPORT ERROR:', e);
     });
   return cb();

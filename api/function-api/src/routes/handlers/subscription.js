@@ -2,14 +2,14 @@ const { getAccountContext, errorHandler } = require('../account');
 
 function subscriptionPost() {
   return (req, res) => {
-    getAccountContext().then(accountContext => {
+    getAccountContext().then((accountContext) => {
       const resolvedAgent = req.resolvedAgent;
       const accountId = req.params.accountId;
       const newSubscription = req.body;
 
       accountContext.subscription
         .add(resolvedAgent, accountId, newSubscription)
-        .then(result => res.json(result))
+        .then((result) => res.json(result))
         .catch(errorHandler(res));
     });
   };
@@ -17,14 +17,14 @@ function subscriptionPost() {
 
 function subscriptionGet() {
   return (req, res) => {
-    getAccountContext().then(accountContext => {
+    getAccountContext().then((accountContext) => {
       const resolvedAgent = req.resolvedAgent;
       const accountId = req.params.accountId;
       const subscriptionId = req.params.subscriptionId;
 
       accountContext.subscription
         .get(resolvedAgent, accountId, subscriptionId)
-        .then(result => res.json(result))
+        .then((result) => res.json(result))
         .catch(errorHandler(res));
     });
   };
@@ -32,7 +32,7 @@ function subscriptionGet() {
 
 function subscriptionList() {
   return (req, res) => {
-    getAccountContext().then(accountContext => {
+    getAccountContext().then((accountContext) => {
       const resolvedAgent = req.resolvedAgent;
       const accountId = req.params.accountId;
       const limit = req.query.count;
@@ -41,7 +41,7 @@ function subscriptionList() {
 
       accountContext.subscription
         .list(resolvedAgent, accountId, options)
-        .then(result => res.json(result))
+        .then((result) => res.json(result))
         .catch(errorHandler(res));
     });
   };

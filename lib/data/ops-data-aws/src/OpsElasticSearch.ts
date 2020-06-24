@@ -135,7 +135,7 @@ const getDefaultElasticSearchConfig = async (
 
     VPCOptions: {
       SecurityGroupIds: [network.securityGroupId],
-      SubnetIds: [network.privateSubnets.map(sn => sn.id).sort()[0]], // One subnet only on n=1 deployments
+      SubnetIds: [network.privateSubnets.map((sn) => sn.id).sort()[0]], // One subnet only on n=1 deployments
     },
   };
 };
@@ -151,7 +151,7 @@ const waitForElasticSearchReady = async (es: any, esCfg: any): Promise<string> =
 
   while (attempts > 0) {
     // Wait for a delay
-    await new Promise(resolve => setTimeout(resolve, delay * 1000));
+    await new Promise((resolve) => setTimeout(resolve, delay * 1000));
 
     attempts -= 1;
     result = await new Promise((resolve, reject) => {

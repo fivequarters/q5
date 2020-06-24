@@ -83,7 +83,7 @@ export class ClientAccessAddCommand extends Command {
     ];
     if (allowedActions.indexOf(action) === -1) {
       const text = ["The '", Text.bold('action'), "' options must be one of the following values:"];
-      text.push(...allowedActions.map(act => Text.create(" '", Text.bold(act), "'")));
+      text.push(...allowedActions.map((act) => Text.create(" '", Text.bold(act), "'")));
       await executeService.error('Invalid Options', Text.create(text));
     }
 

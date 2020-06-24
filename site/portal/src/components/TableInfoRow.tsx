@@ -1,7 +1,7 @@
-import Paper from "@material-ui/core/Paper";
-import { makeStyles } from "@material-ui/core/styles";
-import WarningIcon from "@material-ui/icons/Warning";
-import React from "react";
+import Paper from '@material-ui/core/Paper';
+import { makeStyles } from '@material-ui/core/styles';
+import WarningIcon from '@material-ui/icons/Warning';
+import React from 'react';
 
 const useStyles = makeStyles((theme: any) => ({
   root: (props: any) => ({
@@ -10,30 +10,30 @@ const useStyles = makeStyles((theme: any) => ({
   }),
   card: (props: any) => ({
     minWidth: 200,
-    width: "100%",
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "stretch",
+    width: '100%',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'stretch',
     // minHeight: 114,
     // height: 114,
     backgroundColor: theme.palette.action.disabledBackground,
   }),
   cardIcon: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
     width: 70,
     minWidth: 70,
     fontSize: 18,
     // color: "white",
   },
   cardContent: {
-    width: "100%",
+    width: '100%',
     padding: theme.spacing(1),
     paddingRight: theme.spacing(3),
     paddingLeft: 0,
-    display: "inline-block",
-    alignItems: "center",
+    display: 'inline-block',
+    alignItems: 'center',
     // color: "white",
   },
 }));

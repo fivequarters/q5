@@ -16,7 +16,7 @@ import { useFunction } from './FunctionProvider';
 import InputWithIcon from './InputWithIcon';
 import PortalError from './PortalError';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   gridContainer: {
     marginLeft: theme.spacing(2),
     marginRight: theme.spacing(2),

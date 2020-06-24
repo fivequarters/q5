@@ -1,54 +1,54 @@
-import Grid from "@material-ui/core/Grid";
-import InputAdornment from "@material-ui/core/InputAdornment";
-import LinearProgress from "@material-ui/core/LinearProgress";
-import { makeStyles } from "@material-ui/core/styles";
-import TextField from "@material-ui/core/TextField";
-import Typography from "@material-ui/core/Typography";
-import DescriptionIcon from "@material-ui/icons/Description";
-import SearchIcon from "@material-ui/icons/Search";
-import React from "react";
-import { CatalogTemplate } from "../lib/CatalogTypes";
-import { useBoundaries } from "./BoundariesProvider";
-import { useCatalog } from "./CatalogProvider";
-import FunctionNameSelector from "./FunctionNameSelector";
-import PortalError from "./PortalError";
-import { useProfile } from "./ProfileProvider";
-import TemplateCard from "./TemplateCard";
+import Grid from '@material-ui/core/Grid';
+import InputAdornment from '@material-ui/core/InputAdornment';
+import LinearProgress from '@material-ui/core/LinearProgress';
+import { makeStyles } from '@material-ui/core/styles';
+import TextField from '@material-ui/core/TextField';
+import Typography from '@material-ui/core/Typography';
+import DescriptionIcon from '@material-ui/icons/Description';
+import SearchIcon from '@material-ui/icons/Search';
+import React from 'react';
+import { CatalogTemplate } from '../lib/CatalogTypes';
+import { useBoundaries } from './BoundariesProvider';
+import { useCatalog } from './CatalogProvider';
+import FunctionNameSelector from './FunctionNameSelector';
+import PortalError from './PortalError';
+import { useProfile } from './ProfileProvider';
+import TemplateCard from './TemplateCard';
 
 const useStyles = makeStyles((theme: any) => ({
   gridContainer2: {
     paddingLeft: theme.spacing(3),
     paddingRight: theme.spacing(3),
     marginBottom: theme.spacing(2),
-    marginTop: theme.spacing(1)
+    marginTop: theme.spacing(1),
   },
   gridContainer: {
     paddingLeft: theme.spacing(3),
     paddingRight: theme.spacing(3),
-    marginBottom: theme.spacing(2)
+    marginBottom: theme.spacing(2),
   },
   form: {
-    overflow: "hidden"
+    overflow: 'hidden',
   },
   templatesTitleContainer: {
-    display: "inline-flex"
+    display: 'inline-flex',
   },
   templatesTitle: {
-    paddingLeft: theme.spacing(1)
+    paddingLeft: theme.spacing(1),
   },
   templatesIcon: {
-    paddingTop: 2
+    paddingTop: 2,
   },
   templatesToolbar: {
-    width: "100%",
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center"
+    width: '100%',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   gallery: {
-    display: "flex",
-    flexWrap: "wrap"
-  }
+    display: 'flex',
+    flexWrap: 'wrap',
+  },
 }));
 
 function NewFunction({ subscriptionId, boundaryId }: any) {
@@ -57,13 +57,13 @@ function NewFunction({ subscriptionId, boundaryId }: any) {
   const [catalog] = useCatalog();
   const [boundaries] = useBoundaries();
   const [name, setName] = React.useState<any>({
-    functionId: "",
-    boundaryId: boundaryId || "",
-    disabled: true
+    functionId: '',
+    boundaryId: boundaryId || '',
+    disabled: true,
   });
-  const [search, setSearch] = React.useState("");
+  const [search, setSearch] = React.useState('');
 
-  if (boundaries.status === "loading" || catalog.status === "loading") {
+  if (boundaries.status === 'loading' || catalog.status === 'loading') {
     return (
       <Grid container className={classes.gridContainer} spacing={2}>
         <Grid item xs={12}>
@@ -73,11 +73,11 @@ function NewFunction({ subscriptionId, boundaryId }: any) {
     );
   }
 
-  if (boundaries.status === "error") {
+  if (boundaries.status === 'error') {
     return <PortalError error={boundaries.error} padding={true} />;
   }
 
-  if (catalog.status === "error") {
+  if (catalog.status === 'error') {
     return (
       <Grid container className={classes.gridContainer} spacing={2}>
         <Grid item xs={12}>
@@ -99,19 +99,13 @@ function NewFunction({ subscriptionId, boundaryId }: any) {
         subscriptionId,
         boundaryId: name.boundaryId,
         functionId: name.functionId,
-        templateName: template.name
+        templateName: template.name,
       })
-    ).toString("base64");
+    ).toString('base64');
 
-    let url = `${template.managerUrl}/configure?data=${encodeURIComponent(
-      data
-    )}&returnTo=${encodeURIComponent(
-      `${window.location.protocol}//${window.location.host}${
-        window.location.pathname
-      }${
-        window.location.pathname[window.location.pathname.length - 1] === "/"
-          ? ""
-          : "/"
+    let url = `${template.managerUrl}/configure?data=${encodeURIComponent(data)}&returnTo=${encodeURIComponent(
+      `${window.location.protocol}//${window.location.host}${window.location.pathname}${
+        window.location.pathname[window.location.pathname.length - 1] === '/' ? '' : '/'
       }${template.id}`
     )}`;
 
@@ -120,18 +114,12 @@ function NewFunction({ subscriptionId, boundaryId }: any) {
 
   const filter = search.trim().toLowerCase();
   const templates = filter
-    ? catalog.existing.templates.reduce(
-        (previous: CatalogTemplate[], current: CatalogTemplate) => {
-          if (
-            current.name.toLowerCase().indexOf(filter) > -1 ||
-            current.description.toLowerCase().indexOf(filter) > -1
-          ) {
-            previous.push(current);
-          }
-          return previous;
-        },
-        []
-      )
+    ? catalog.existing.templates.reduce((previous: CatalogTemplate[], current: CatalogTemplate) => {
+        if (current.name.toLowerCase().indexOf(filter) > -1 || current.description.toLowerCase().indexOf(filter) > -1) {
+          previous.push(current);
+        }
+        return previous;
+      }, [])
     : catalog.existing.templates;
 
   return (
@@ -167,23 +155,16 @@ function NewFunction({ subscriptionId, boundaryId }: any) {
                 <InputAdornment position="end">
                   <SearchIcon />
                 </InputAdornment>
-              )
+              ),
             }}
             variant="outlined"
           />
         </Grid>
         <Grid item xs={12} className={classes.gallery}>
-          {templates.length === 0 && (
-            <Typography>No matching templates found</Typography>
-          )}
+          {templates.length === 0 && <Typography>No matching templates found</Typography>}
           {templates.length > 0 &&
-            templates.map(template => (
-              <TemplateCard
-                key={template.id}
-                template={template}
-                disabled={name.disabled}
-                onCreate={handleCreate}
-              />
+            templates.map((template) => (
+              <TemplateCard key={template.id} template={template} disabled={name.disabled} onCreate={handleCreate} />
             ))}
         </Grid>
       </Grid>

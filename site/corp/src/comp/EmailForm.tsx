@@ -25,7 +25,7 @@ const Container = styled.div`
   align-items: center;
   justify-items: center;
   padding-top: 60px;
-  ${props => applyTheme(props, 'email')}
+  ${(props) => applyTheme(props, 'email')}
 `;
 
 const Gutter = styled.div`
@@ -55,14 +55,14 @@ const Message = styled.div`
   margin: auto;
   margin-bottom: 30px;
   line-height: 2;
-  ${props => applyTheme(props, 'email', 'message')}
+  ${(props) => applyTheme(props, 'email', 'message')}
 `;
 
 const PlusIcon = styled(IoIosAddCircleOutline)`
   &.enabled {
     cursor: pointer;
   }
-  ${props => applyTheme(props, 'email', 'button')}
+  ${(props) => applyTheme(props, 'email', 'button')}
 `;
 
 const Input = styled.input`
@@ -71,7 +71,7 @@ const Input = styled.input`
   margin-right: 10px;
   border: 0px;
   border-bottom: 1px dotted white;
-  ${props => applyTheme(props, 'email', 'input')}
+  ${(props) => applyTheme(props, 'email', 'input')}
 `;
 
 const Form = styled.form`
@@ -83,7 +83,7 @@ const Form = styled.form`
 const EmailSent = styled.div`
   font-size: 20px;
   margin-top: 20px;
-  ${props => applyTheme(props, 'email', 'sent')}
+  ${(props) => applyTheme(props, 'email', 'sent')}
 `;
 
 export function EmailForm() {

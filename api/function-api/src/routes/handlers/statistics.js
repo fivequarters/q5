@@ -7,7 +7,7 @@ const { getAWSCredentials } = require('../credentials');
 
 let postES = undefined;
 
-const appendIamRoleToES = async iamArn => {
+const appendIamRoleToES = async (iamArn) => {
   let patch = [{ op: 'add', path: '/all_access', value: { backend_roles: iamArn } }];
 
   try {
@@ -92,16 +92,16 @@ const onStartup = async () => {
     let statusCode = 501;
 
     await new Promise((resolve, reject) => {
-      let req = https.request(opts, res => {
+      let req = https.request(opts, (res) => {
         result = res;
-        res.on('data', d => {
+        res.on('data', (d) => {
           data = data + d;
         });
         res.on('end', () => {
           resolve();
         });
       });
-      req.on('error', e => {
+      req.on('error', (e) => {
         data = JSON.stringify({ error: e.message });
         resolve();
       });
@@ -133,7 +133,7 @@ const onStartup = async () => {
 
 // If a number is supplied, query for just that number.  Otherwise, assume that the caller is
 // passing in some range query {gte:200, lt:300} for example.
-const codeToESQuery = code => {
+const codeToESQuery = (code) => {
   if (typeof code == 'undefined' || code == null || Number.isNaN(code)) return {};
 
   const queryType = typeof code == 'number' ? 'match' : 'range';
@@ -191,7 +191,7 @@ const queries = {
         },
       },
     },
-    d => d.aggregations.result.buckets,
+    (d) => d.aggregations.result.buckets,
   ],
 
   // Return all of the active status codes
@@ -205,8 +205,8 @@ const queries = {
         },
       },
     },
-    d => {
-      return { data: d.aggregations.result.buckets.map(x => x.key), total: d.aggregations.result.buckets.length };
+    (d) => {
+      return { data: d.aggregations.result.buckets.map((x) => x.key), total: d.aggregations.result.buckets.length };
     },
   ],
 
@@ -218,7 +218,7 @@ const queries = {
         ...codeToESQuery(code),
       };
     },
-    d => {
+    (d) => {
       return { data: d.aggregations.result.buckets, total: d.aggregations.result.buckets.length };
     },
   ],
@@ -239,7 +239,7 @@ const queries = {
         ...codeToESQuery(code),
       };
     },
-    d => {
+    (d) => {
       return { data: d.aggregations.result.buckets, total: d.aggregations.result.buckets.length };
     },
   ],
@@ -260,7 +260,7 @@ const queries = {
         ...codeToESQuery(code),
       };
     },
-    d => {
+    (d) => {
       return { data: d.aggregations.result.buckets, total: d.aggregations.result.buckets.length };
     },
   ],
@@ -283,14 +283,14 @@ const queries = {
         ...codeToESQuery(code),
       };
     },
-    d => {
+    (d) => {
       return {
-        data: d.hits.hits.map(n => {
+        data: d.hits.hits.map((n) => {
           const result = { ...n._source };
           /* Scrape out any leading meta-data results. */
           Object.keys(result)
-            .filter(k => k.startsWith('@'))
-            .forEach(m => delete result[m]);
+            .filter((k) => k.startsWith('@'))
+            .forEach((m) => delete result[m]);
           return result;
         }),
         total: d.hits.total.value,
@@ -408,7 +408,7 @@ const codeHistogram = async (req, res, next, queryName, evtToValue) => {
 
       // Create a set of filters for each code.
       filterCodes = {};
-      codeQuery.items.forEach(x => (filterCodes[x] = x));
+      codeQuery.items.forEach((x) => (filterCodes[x] = x));
     }
   } else {
     // Specific code supplied; determine if it's a number or a key
@@ -448,7 +448,7 @@ const codeHistogram = async (req, res, next, queryName, evtToValue) => {
 
   let sequenced = Object.keys(histogram)
     .sort()
-    .map(i => histogram[i]);
+    .map((i) => histogram[i]);
 
   // Success
   res.statusCode = 200;
@@ -458,15 +458,15 @@ const codeHistogram = async (req, res, next, queryName, evtToValue) => {
 };
 
 const codeActivityHistogram = async (req, res, next) => {
-  codeHistogram(req, res, next, 'codeHistogram', evt => evt.doc_count);
+  codeHistogram(req, res, next, 'codeHistogram', (evt) => evt.doc_count);
 };
 
 const codeLatencyHistogram = async (req, res, next) => {
-  codeHistogram(req, res, next, 'codeLatencyHistogram', evt => evt.latency.value);
+  codeHistogram(req, res, next, 'codeLatencyHistogram', (evt) => evt.latency.value);
 };
 
 const codeActivityLatencyHistogram = async (req, res, next) => {
-  codeHistogram(req, res, next, 'codeLatencyHistogram', evt => [evt.latency.value, evt.doc_count]);
+  codeHistogram(req, res, next, 'codeLatencyHistogram', (evt) => [evt.latency.value, evt.doc_count]);
 };
 
 const fieldUniqueHistogram = async (req, res, next) => {
@@ -478,7 +478,7 @@ const fieldUniqueHistogram = async (req, res, next) => {
   // Touch up the field a little bit to make it work with Elastic Search
   req.query.field = 'fusebit.' + allowedUniqueQueryFields[req.query.field] + '.keyword';
 
-  codeHistogram(req, res, next, 'fieldUniqueHistogram', evt => evt.results.value);
+  codeHistogram(req, res, next, 'fieldUniqueHistogram', (evt) => evt.results.value);
 };
 
 const itemizedBulk = async (req, res, next) => {

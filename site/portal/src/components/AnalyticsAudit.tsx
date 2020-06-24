@@ -75,7 +75,7 @@ function AnalyticsAuditImpl({ actionFilter, filterMask }: AnalyticsAuditImplProp
       id: 'authorized',
       align: 'left',
       label: 'Access',
-      render: row =>
+      render: (row) =>
         row.authorized ? (
           <CheckCircleIcon className={classes.access} />
         ) : (
@@ -86,13 +86,13 @@ function AnalyticsAuditImpl({ actionFilter, filterMask }: AnalyticsAuditImplProp
       id: 'resource',
       align: 'left',
       label: 'Resource',
-      render: row => <ResourceCrumb resource={row.resource} resourceMask={filterMask.resource} />,
+      render: (row) => <ResourceCrumb resource={row.resource} resourceMask={filterMask.resource} />,
     },
     {
       id: 'action',
       align: 'left',
       label: 'Action',
-      render: row => (
+      render: (row) => (
         <Typography variant="inherit" className={classes.noWrap}>
           {row.action}
         </Typography>
@@ -102,7 +102,7 @@ function AnalyticsAuditImpl({ actionFilter, filterMask }: AnalyticsAuditImplProp
       id: 'timestamp',
       align: 'left',
       label: utc ? 'Time (UTC)' : 'Time (Local)',
-      render: row => {
+      render: (row) => {
         const d = new Date(row.timestamp);
         return utc ? (
           <Typography variant="inherit" className={classes.noWrap}>
@@ -124,7 +124,7 @@ function AnalyticsAuditImpl({ actionFilter, filterMask }: AnalyticsAuditImplProp
       id: 'subject',
       align: 'left',
       label: 'Subject',
-      render: row => (
+      render: (row) => (
         <AgentTooltip issuerId={row.issuerId} subject={row.subject} agents={agents} onSetAgent={handleSetAgent}>
           <Typography variant="inherit">{row.subject}</Typography>
         </AgentTooltip>

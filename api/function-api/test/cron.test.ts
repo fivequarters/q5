@@ -109,7 +109,7 @@ describe('cron', () => {
         lastRuns.push(runCount);
         if (n > 3) {
           expect(runCount).toBeGreaterThan(0); // Make sure the basic behavior is working.
-          expect(lastRuns.every(v => v === lastRuns[0])).toBeFalsy(); // Make sure it's not stalled.
+          expect(lastRuns.every((v) => v === lastRuns[0])).toBeFalsy(); // Make sure it's not stalled.
           lastRuns.shift();
         }
       }

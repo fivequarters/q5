@@ -318,7 +318,7 @@ describe('Authentication', () => {
       },
     };
 
-    await new Promise(resolve => setTimeout(resolve, 3 * 1000));
+    await new Promise((resolve) => setTimeout(resolve, 3 * 1000));
 
     const jwt = await signJwt({}, testIssuer.keys[0].privateKey, options);
     const response = await request({

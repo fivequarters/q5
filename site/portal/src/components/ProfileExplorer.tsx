@@ -38,7 +38,7 @@ import { MonitorPanel } from './Monitor';
 import { SubscriptionsProvider } from './SubscriptionsProvider';
 import { Analytics } from './Analytics';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   paper: {
     position: 'relative',
   },

@@ -27,11 +27,11 @@ module.exports = (ctx, cb) => {
         workers.push(Superagent.get(url).query(options));
       }
     }
-    Promise.all(workers).then(r => {
+    Promise.all(workers).then((r) => {
       delete options.worker;
       options.cluster = cluster;
       let result = {
-        individualResults: r.map(x => x.body),
+        individualResults: r.map((x) => x.body),
         options,
         aggregateResults: {
           rps: 0,
@@ -42,7 +42,7 @@ module.exports = (ctx, cb) => {
           minLatencyMs: 999999,
         },
       };
-      result.individualResults.forEach(x => {
+      result.individualResults.forEach((x) => {
         result.aggregateResults.rps += x.rps;
         result.aggregateResults.totalRequests += x.totalRequests;
         result.aggregateResults.totalErrors += x.totalErrors;

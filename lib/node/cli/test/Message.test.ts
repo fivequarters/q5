@@ -9,7 +9,7 @@ import { Message, MessageKind } from '../src';
 function captureText(helpText: string) {
   const withColorCodes = JSON.stringify(helpText);
   const withoutQuotes = withColorCodes.substring(1, withColorCodes.length - 1);
-  const wrapped = withoutQuotes.split('\\n').map(text => `        "${text}",`);
+  const wrapped = withoutQuotes.split('\\n').map((text) => `        "${text}",`);
   const fullText = [];
   fullText.push('      const expected = [');
   fullText.push(...wrapped);

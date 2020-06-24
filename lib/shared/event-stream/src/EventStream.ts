@@ -7,13 +7,7 @@ import https from 'https';
 // ------------------
 
 function isHttps(url: string) {
-  return (
-    url &&
-    url
-      .toLowerCase()
-      .trim()
-      .indexOf('https://') === 0
-  );
+  return url && url.toLowerCase().trim().indexOf('https://') === 0;
 }
 
 function parseLinesIntoStreamMessage(lines: string[]): IEventMessage[] {
@@ -87,7 +81,7 @@ export class EventStream {
         requestOptions.headers = options.headers;
       }
       const scheme = isHttps(url) ? https : http;
-      const request = scheme.request(url, requestOptions, response => {
+      const request = scheme.request(url, requestOptions, (response) => {
         if (response.statusCode !== 200) {
           return reject(new Error(`Failed to connect. HTTP response status code: ${response.statusCode}`));
         } else {

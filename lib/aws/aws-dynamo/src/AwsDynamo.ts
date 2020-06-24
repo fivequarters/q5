@@ -18,7 +18,7 @@ const resourceNotFoundException = 'ResourceNotFoundException';
 // ------------------
 
 function toAttributeDefinitions(attributes: { [index: string]: string }) {
-  return Object.keys(attributes).map(name => ({
+  return Object.keys(attributes).map((name) => ({
     AttributeName: name,
     AttributeType: attributes[name],
   }));
@@ -184,7 +184,7 @@ function setConditionsForAdd(table: IAwsDynamoTable, options?: IAwsDynamoSetOpti
 
 function mapKeys(table: IAwsDynamoTable, keys: any[], options?: IAwsDynamoAllOptions) {
   if (table.toKey) {
-    return keys.map(key => (table.toKey ? table.toKey(key, options ? options.context : undefined) : key));
+    return keys.map((key) => (table.toKey ? table.toKey(key, options ? options.context : undefined) : key));
   }
   return keys.slice();
 }
@@ -194,10 +194,10 @@ function mapItems(table: IAwsDynamoTable, items: any[], options?: IAwsDynamoAllO
     items = items.slice();
   } else {
     if (table.toItem) {
-      items = items.map(item => (table.toItem ? table.toItem(item, options ? options.context : undefined) : item));
+      items = items.map((item) => (table.toItem ? table.toItem(item, options ? options.context : undefined) : item));
     }
     if (table.ttlAttribute) {
-      items = items.map(item => updateTtlOnSet(table, item));
+      items = items.map((item) => updateTtlOnSet(table, item));
     }
   }
   return items;
@@ -404,7 +404,7 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
       const params: any = {
         TableName: fullTableName,
         AttributeDefinitions: toAttributeDefinitions(table.attributes),
-        GlobalSecondaryIndexUpdates: missingGlobalIndexes.map(i => ({ Create: toIndexDefinition(i) })),
+        GlobalSecondaryIndexUpdates: missingGlobalIndexes.map((i) => ({ Create: toIndexDefinition(i) })),
       };
       await new Promise((resolve, reject) => {
         dynamo.updateTable(params, (error: any, data: any) => {
@@ -707,11 +707,11 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
               // of the primary keys and the local secondary index keys
               keys = [
                 ...keys,
-                ...((table.localIndexes && table.localIndexes.find(i => i.name === params.IndexName)) || { keys: [] })
+                ...((table.localIndexes && table.localIndexes.find((i) => i.name === params.IndexName)) || { keys: [] })
                   .keys,
               ];
             }
-            keys.forEach(k => {
+            keys.forEach((k) => {
               lastEvaluatedKey[k] = items[items.length - 1][k];
             });
           } else {
@@ -785,7 +785,7 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
     const fullTableName = this.getFullName(tableName);
 
     const params: any = { RequestItems: {} };
-    params.RequestItems[fullTableName] = items.map(item => ({ PutRequest: { Item: item } }));
+    params.RequestItems[fullTableName] = items.map((item) => ({ PutRequest: { Item: item } }));
 
     return new Promise((resolve, reject) => {
       reject = rejectOnce(reject);
@@ -804,7 +804,7 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
     const fullTableName = this.getFullName(tableName);
 
     const params: any = { RequestItems: {} };
-    params.RequestItems[fullTableName] = keys.map(key => ({ DeleteRequest: { Key: key } }));
+    params.RequestItems[fullTableName] = keys.map((key) => ({ DeleteRequest: { Key: key } }));
 
     return new Promise((resolve, reject) => {
       reject = rejectOnce(reject);

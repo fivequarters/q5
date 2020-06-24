@@ -149,7 +149,7 @@ export function ngrok_url(url: string) {
 // ------------------
 
 export async function sleep(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export async function deleteFunction(account: IAccount, boundaryId: string, functionId: string) {
@@ -439,7 +439,7 @@ export async function removeIssuer(account: IAccount, issuerId: string) {
 export async function cleanUpIssuers(account: IAccount) {
   while (testIssuers.length) {
     const toRemove = testIssuers.splice(0, 5);
-    await Promise.all(toRemove.map(issuerId => removeIssuer(account, issuerId)));
+    await Promise.all(toRemove.map((issuerId) => removeIssuer(account, issuerId)));
   }
 }
 
@@ -557,7 +557,7 @@ export async function initUser(account: IAccount, userId: string, init?: IInitOp
 export async function cleanUpUsers(account: IAccount) {
   while (testUsers.length) {
     const toRemove = testUsers.splice(0, 5);
-    await Promise.all(toRemove.map(userId => removeUser(account, userId)));
+    await Promise.all(toRemove.map((userId) => removeUser(account, userId)));
   }
 }
 
@@ -671,7 +671,7 @@ export async function initClient(account: IAccount, clientId: string, init?: IIn
 export async function cleanUpClients(account: IAccount) {
   while (testClients.length) {
     const toRemove = testClients.splice(0, 5);
-    await Promise.all(toRemove.map(clientId => removeClient(account, clientId)));
+    await Promise.all(toRemove.map((clientId) => removeClient(account, clientId)));
   }
 }
 
@@ -809,7 +809,7 @@ export async function removeStorage(account: IAccount, storageId: string, etag?:
 export async function cleanUpStorage(account: IAccount) {
   while (testStorage.length) {
     const toRemove = testStorage.splice(0, 5);
-    await Promise.all(toRemove.map(storageId => removeStorage(account, storageId)));
+    await Promise.all(toRemove.map((storageId) => removeStorage(account, storageId)));
   }
 }
 
@@ -988,7 +988,7 @@ export async function hostIssuer(account: IAccount, issuerId: string, keys: any)
 export async function cleanUpHostedIssuers(account: IAccount) {
   while (testHostedIssuers.length) {
     const toRemove = testHostedIssuers.splice(0, 5);
-    await Promise.all(toRemove.map(functionId => deleteFunction(account, hostedIssuersBoundary, functionId)));
+    await Promise.all(toRemove.map((functionId) => deleteFunction(account, hostedIssuersBoundary, functionId)));
   }
   await cleanUpIssuers(account);
 }

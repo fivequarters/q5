@@ -40,7 +40,7 @@ export type Issuer = {
   displayName?: string;
   publicKeys?: PublicKey[];
   jsonKeysUrl?: string;
-  publicKeyAcquisition?: "pki" | "jwks";
+  publicKeyAcquisition?: 'pki' | 'jwks';
   jsonKeysUrlError?: string;
   idError?: string;
 };
@@ -88,13 +88,13 @@ export type FunctionSpecification = {
   boundaryId?: string;
   id?: string;
   location?: string;
-  environment?: "nodejs";
-  provider?: "lambda";
+  environment?: 'nodejs';
+  provider?: 'lambda';
   configuration?: { [key: string]: string };
   configurationSerialized?: string;
   nodejs: {
     files: {
-      "index.js": string;
+      'index.js': string;
       [key: string]: string | object;
     };
   };

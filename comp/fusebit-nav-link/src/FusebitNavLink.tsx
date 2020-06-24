@@ -19,7 +19,7 @@ const StyledBox = styled(Box)<StyledBoxProps>`
   position: relative;
 
   &:hover::after {
-    opacity: ${props => (props.noHover ? 0 : 1)};
+    opacity: ${(props) => (props.noHover ? 0 : 1)};
   }
 
   &::after {
@@ -30,7 +30,7 @@ const StyledBox = styled(Box)<StyledBoxProps>`
     width: 100%;
     height: 3px;
     border-radius: 100px;
-    background: ${props => props.hover};
+    background: ${(props) => props.hover};
     opacity: 0;
   }
 `;

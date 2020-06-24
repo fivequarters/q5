@@ -1,8 +1,8 @@
-import React from "react";
-import ActionFab from "./ActionFab";
-import AddPermissionSetDialog from "./AddPermissionSetDialog";
-import SetupAccessDialog from "./SetupAccessDialog";
-import { useAgent, reloadAgent } from "./AgentProvider";
+import React from 'react';
+import ActionFab from './ActionFab';
+import AddPermissionSetDialog from './AddPermissionSetDialog';
+import SetupAccessDialog from './SetupAccessDialog';
+import { useAgent, reloadAgent } from './AgentProvider';
 
 function UserActionFab() {
   const [setupAccessOpen, setSetupAccessOpen] = React.useState(false);
@@ -12,7 +12,7 @@ function UserActionFab() {
 
   const handleAddPermissionSetClose = () => {
     setAddPermissionSetOpen(false);
-    if (agent.status === "error") {
+    if (agent.status === 'error') {
       reloadAgent(agent, setAgent);
     }
   };
@@ -24,21 +24,17 @@ function UserActionFab() {
         subtitle="Easily manage this user with these common actions:"
         actions={[
           {
-            name: "Grant permission set",
-            handler: () => setAddPermissionSetOpen(true)
+            name: 'Grant permission set',
+            handler: () => setAddPermissionSetOpen(true),
           },
           {
-            name: "Invite user to the platform",
-            handler: () => setSetupAccessOpen(true)
-          }
+            name: 'Invite user to the platform',
+            handler: () => setSetupAccessOpen(true),
+          },
         ]}
       />
-      {setupAccessOpen && (
-        <SetupAccessDialog onClose={() => setSetupAccessOpen(false)} />
-      )}
-      {addPermissionSetOpen && (
-        <AddPermissionSetDialog onClose={handleAddPermissionSetClose} />
-      )}
+      {setupAccessOpen && <SetupAccessDialog onClose={() => setSetupAccessOpen(false)} />}
+      {addPermissionSetOpen && <AddPermissionSetDialog onClose={handleAddPermissionSetClose} />}
     </React.Fragment>
   );
 }

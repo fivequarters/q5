@@ -549,7 +549,7 @@ export class FunctionService {
                   if (parsed.properties) {
                     let trace = parsed.properties.trace || parsed.properties.stackTrace;
                     if (trace && Array.isArray(trace)) {
-                      trace.forEach(line => {
+                      trace.forEach((line) => {
                         this.input.io.writeLineRaw(parsed.level > 30 ? Text.red(line).toString() : line);
                       });
                     }
@@ -733,7 +733,7 @@ export class FunctionService {
         "' directory. The following files were generated:",
         Text.eol(),
         Text.eol(),
-        Text.create(files.map(file => Text.create(Text.dim('• '), file, Text.eol()))),
+        Text.create(files.map((file) => Text.create(Text.dim('• '), file, Text.eol()))),
         Text.eol(),
         "You can deploy the function with the '",
         Text.bold('function deploy'),
@@ -1037,7 +1037,7 @@ export class FunctionService {
         Text.eol(),
         Text.eol(),
         Text.dim('Files'),
-        Text.create(functionData.files.map(file => Text.create(Text.eol(), Text.dim('• '), file))),
+        Text.create(functionData.files.map((file) => Text.create(Text.eol(), Text.dim('• '), file))),
       ];
 
       if (functionData.configuration) {
@@ -1108,7 +1108,7 @@ export class FunctionService {
   }
 
   private getFileConfirmDetails(files: string[]) {
-    return files.map(file => ({ name: Text.dim('• '), value: file }));
+    return files.map((file) => ({ name: Text.dim('• '), value: file }));
   }
 
   private async writeBoundary(boundaryName: string, functions: string[]) {

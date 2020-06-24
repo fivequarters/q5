@@ -50,7 +50,7 @@ export function createEditor(
 
   let server = typeof account === 'function' ? new Server(<AccountResolver>account) : Server.create(<IAccount>account);
 
-  return server.loadEditorContext(boundaryId, functionId, options).then(editorContext => {
+  return server.loadEditorContext(boundaryId, functionId, options).then((editorContext) => {
     createEditorImpl(editorContext);
     let selectedFile = editorContext.selectedFileName;
     editorContext.selectedFileName = undefined;
@@ -77,8 +77,9 @@ export function createEditor(
     const statusId = `${idPrefix}-status`;
 
     const lines: string[] = [
-      `<div id="${idPrefix}" class="fusebit-theme-${opts.theme ||
-        'light'} fusebit-shell"><div id="${idPrefix}-main" class="fusebit-main${
+      `<div id="${idPrefix}" class="fusebit-theme-${
+        opts.theme || 'light'
+      } fusebit-shell"><div id="${idPrefix}-main" class="fusebit-main${
         opts.statusPanel === false ? ' fusebit-main-no-status' : ''
       }">`,
     ];
@@ -187,12 +188,12 @@ export function createEditor(
       );
     }
 
-    mainElement.addEventListener('keydown', function(e: KeyboardEvent) {
+    mainElement.addEventListener('keydown', function (e: KeyboardEvent) {
       // Ctrl-S (Windows) or Command-S (Mac)
       if ((window.navigator.platform.match('Mac') ? e.metaKey : e.ctrlKey) && e.keyCode == 83) {
         e.preventDefault();
         if (editorContext.dirtyState) {
-          server.saveFunction(editorContext).catch(_ => {});
+          server.saveFunction(editorContext).catch((_) => {});
         }
       }
     });

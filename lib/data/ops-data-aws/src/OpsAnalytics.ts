@@ -70,7 +70,7 @@ async function createAnalyticsConfig(
       },
       VpcConfig: {
         SecurityGroupIds: [network.securityGroupId],
-        SubnetIds: network.privateSubnets.map(sn => sn.id),
+        SubnetIds: network.privateSubnets.map((sn) => sn.id),
       },
     },
     cloudWatchLogs: { logGroupName: `${prefix}analytics-logs` },

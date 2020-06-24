@@ -36,7 +36,7 @@ function stableSort<T>(array: T[], cmp: (a: T, b: T) => number) {
     if (order !== 0) return order;
     return a[1] - b[1];
   });
-  return stabilizedThis.map(el => el[0]);
+  return stabilizedThis.map((el) => el[0]);
 }
 
 type Order = 'asc' | 'desc';
@@ -97,7 +97,7 @@ function EnhancedTableHead<T>(props: EnhancedTableProps<T>) {
             />
           </TableCell>
         )}
-        {headCells.map(headCell => (
+        {headCells.map((headCell) => (
           <TableCell
             key={headCell.id as string}
             align={headCell.align || 'right'}
@@ -178,9 +178,7 @@ const EnhancedTableToolbar = (props: EnhancedTableToolbarProps) => {
         </IconButton>
       ) : filterContent ? (
         <FilterFab>{filterContent}</FilterFab>
-      ) : (
-        undefined
-      )}
+      ) : undefined}
     </Toolbar>
   );
 };
@@ -288,7 +286,7 @@ export default function ExplorerTable<T>(props: ExplorerTableProps<T>) {
 
   const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
-      const newSelecteds = rows.map(n => (n[identityKey] as unknown) as string);
+      const newSelecteds = rows.map((n) => (n[identityKey] as unknown) as string);
       setSelected(newSelecteds);
       return;
     }
@@ -431,7 +429,7 @@ export default function ExplorerTable<T>(props: ExplorerTableProps<T>) {
                             hover={enableSelection}
                             onClick={
                               enableSelection
-                                ? event => handleClick(event, (row[identityKey] as unknown) as string)
+                                ? (event) => handleClick(event, (row[identityKey] as unknown) as string)
                                 : undefined
                             }
                             role="checkbox"

@@ -54,7 +54,7 @@ export default class RootPackageJson extends JsonFile {
   }
 
   public async GetWorkspacePaths(): Promise<string[]> {
-    return [...(await this.GetWorkspaces() || [])];
+    return [...((await this.GetWorkspaces()) || [])];
   }
 
   public async AddWorkspacePath(path: string): Promise<void> {

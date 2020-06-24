@@ -1,4 +1,4 @@
-const BookmarkKey = "fusebitBookmark";
+const BookmarkKey = 'fusebitBookmark';
 
 function setBookmark(path: string) {
   if (path) {

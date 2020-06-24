@@ -6,7 +6,7 @@ describe('EventEmitter', () => {
       const eventEmitter = new EventEmitter();
       const toEmit = { name: 'abc', message: 'hello' };
       let actual;
-      eventEmitter.on('abc', event => (actual = event));
+      eventEmitter.on('abc', (event) => (actual = event));
       eventEmitter.emit(toEmit);
       expect(actual).toBe(toEmit);
     });
@@ -15,7 +15,7 @@ describe('EventEmitter', () => {
       const eventEmitter = new EventEmitter();
       const toEmit = { name: 'abc', message: 'hello' };
       let count = 0;
-      eventEmitter.on('abc', event => count++);
+      eventEmitter.on('abc', (event) => count++);
 
       eventEmitter.emit(toEmit);
       expect(count).toBe(1);
@@ -30,7 +30,7 @@ describe('EventEmitter', () => {
       const eventEmitter = new EventEmitter();
       const toEmit = { name: 'abc', message: 'hello' };
       let count = 0;
-      eventEmitter.once('abc', event => count++);
+      eventEmitter.once('abc', (event) => count++);
 
       eventEmitter.emit(toEmit);
       expect(count).toBe(1);
@@ -98,7 +98,7 @@ describe('EventEmitter', () => {
       const eventEmitter = new EventEmitter();
       const toEmit = { name: 'xyz', message: 'hello' };
       let count = 0;
-      eventEmitter.once('abc', event => count++);
+      eventEmitter.once('abc', (event) => count++);
 
       eventEmitter.emit(toEmit);
       expect(count).toBe(0);
@@ -108,8 +108,8 @@ describe('EventEmitter', () => {
       const eventEmitter = new EventEmitter();
       const toEmit = { name: 'abc', message: 'hello' };
       let count = 0;
-      eventEmitter.on('abc', event => count++);
-      eventEmitter.on('abc', event => (count += 10));
+      eventEmitter.on('abc', (event) => count++);
+      eventEmitter.on('abc', (event) => (count += 10));
 
       eventEmitter.emit(toEmit);
       expect(count).toBe(11);

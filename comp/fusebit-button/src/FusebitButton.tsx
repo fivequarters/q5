@@ -58,12 +58,12 @@ const Button = styled(Box)<ButtonProps>`
   position: relative;
   overflow: hidden;
   border-radius: 500px;
-  height: ${props => (props.small ? 40 : 48)}px;
+  height: ${(props) => (props.small ? 40 : 48)}px;
   text-align: center;
   vertical-align: middle;
-  border: ${props => (props.outline ? `1px solid ${props.color}` : 'none')};
-  background-color: ${props => (props.outline ? FusebitColor.white : props.color)};
-  padding: 0 ${props => props.padding}px;
+  border: ${(props) => (props.outline ? `1px solid ${props.color}` : 'none')};
+  background-color: ${(props) => (props.outline ? FusebitColor.white : props.color)};
+  padding: 0 ${(props) => props.padding}px;
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 
   &:hover {
@@ -75,7 +75,7 @@ const Button = styled(Box)<ButtonProps>`
   }
 
   &.focus {
-    ${props => (props.tabUsage ? 'box-shadow: 0px 0px 3px 2px rgba(0, 123, 255, 0.7);' : '')}
+    ${(props) => (props.tabUsage ? 'box-shadow: 0px 0px 3px 2px rgba(0, 123, 255, 0.7);' : '')}
   }
 
   &::after {
@@ -85,7 +85,7 @@ const Button = styled(Box)<ButtonProps>`
     left: 50%;
     width: 5px;
     height: 5px;
-    background: ${props =>
+    background: ${(props) =>
       props.clickColor || (props.outline ? opacity(props.color, 0.1) : 'rgba(255, 255, 255, 0.3)')};
     opacity: 0;
     border-radius: 100%;
@@ -182,7 +182,7 @@ export function FusebitButton({
       setFocus(true);
       lastFocus = render;
       if (tabUsage) {
-        render(current => !current);
+        render((current) => !current);
       }
     }
   }
@@ -212,7 +212,7 @@ export function FusebitButton({
     setFocus(true);
     lastFocus = render;
     if (tabUsage) {
-      render(current => !current);
+      render((current) => !current);
     }
   }
 

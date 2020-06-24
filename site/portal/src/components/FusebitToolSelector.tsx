@@ -25,7 +25,7 @@ function FusebitToolSelector({ flow, onFlowChange, allowNoTool, isUser, ...rest 
           {formatAccess('none')}
         </MenuItem>
       )}
-      {flows.map(f =>
+      {flows.map((f) =>
         (f.id === 'oauth-device' && !oauthDeviceFlowEnabled) || (!isUser && f.id !== 'pki') ? null : (
           <MenuItem key={f.id} value={f.id}>
             {formatAccess(f.id)}

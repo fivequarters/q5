@@ -18,7 +18,6 @@ export enum AwsDynamoExceptionCode {
 // ----------------
 
 export class AwsDynamoException extends Exception {
-
   public static invalidNext(next: string) {
     const message = `The next token '${next}' is invalid`;
     return new AwsDynamoException(AwsDynamoExceptionCode.invalidNext, message, [next]);
@@ -48,9 +47,7 @@ export class AwsDynamoException extends Exception {
   }
 
   public static databaseError(table: string, action: string, error: Error) {
-    const message = `Unable to perform action '${action}' on table '${table}' due to the following error: '${
-      error.message
-    }'`;
+    const message = `Unable to perform action '${action}' on table '${table}' due to the following error: '${error.message}'`;
     return new AwsDynamoException(AwsDynamoExceptionCode.databaseError, message, [table, action], error);
   }
   private constructor(code: string, message?: string, params?: any[], inner?: Error | Exception) {

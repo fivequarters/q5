@@ -94,7 +94,7 @@ export default class Workspace {
     const dependencies = await this.GetDependencies();
     const workspaceDependencies: any = {};
     await Promise.all(
-      workspaces.map(async workspace => {
+      workspaces.map(async (workspace) => {
         const workspaceName = await workspace.GetName();
         if (dependencies[workspaceName]) {
           workspaceDependencies[workspaceName] = dependencies[workspaceName];
@@ -113,7 +113,7 @@ export default class Workspace {
     if (fullName !== info.FullName) {
       await this.packageJson.Rename(info.FullName);
       const workspaces = await this.project.GetWorkspaces();
-      await Promise.all(workspaces.map(workspace => workspace.packageJson.UpdateDependency(fullName, info.FullName)));
+      await Promise.all(workspaces.map((workspace) => workspace.packageJson.UpdateDependency(fullName, info.FullName)));
 
       const location = await this.GetLocation();
       const newLocation = join(location, '..', info.Name);
@@ -340,7 +340,7 @@ export default class Workspace {
     const workspaces = await this.project.GetWorkspaces();
     try {
       await Promise.all(
-        workspaces.map(async workspace => {
+        workspaces.map(async (workspace) => {
           const path = await workspace.GetLocation();
           const relativePath = relative(join(rootPath, path), workspacePath);
           const newRelativePath = relative(join(rootPath, path), newWorkspacePath);

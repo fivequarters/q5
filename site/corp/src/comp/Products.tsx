@@ -6,15 +6,15 @@ import { Section } from './Section';
 
 const Logo = styled.a`
   text-decoration: none;
-  ${props => applyTheme(props, 'products', 'logo')};
+  ${(props) => applyTheme(props, 'products', 'logo')};
 `;
 
 const Heading = styled.div`
-  ${props => applyTheme(props, 'products', 'heading')}
+  ${(props) => applyTheme(props, 'products', 'heading')}
 `;
 
 const Description = styled.div`
-  ${props => applyTheme(props, 'products', 'description')}
+  ${(props) => applyTheme(props, 'products', 'description')}
 `;
 
 const Column = styled.div`

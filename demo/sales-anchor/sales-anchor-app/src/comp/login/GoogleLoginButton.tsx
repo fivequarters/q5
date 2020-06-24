@@ -30,7 +30,7 @@ export function GoogleLoginButton({ onLogin }: GoogleLoginButtonProps) {
   return (
     <GoogleLogin
       clientId={api.authGoogle.clientId}
-      render={props => <Button onClick={onClick(props)}>Sign In - Google</Button>}
+      render={(props) => <Button onClick={onClick(props)}>Sign In - Google</Button>}
       onSuccess={responseGoogle}
       onFailure={responseGoogle}
     />

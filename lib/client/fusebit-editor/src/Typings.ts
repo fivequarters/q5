@@ -46,9 +46,7 @@ type FusebitCallback = (error?: Error, result?: FusebitCallbackResult) => void;
 let lastConfigurationSettings: string | undefined;
 let lastFusebitContextTypings: Monaco.IDisposable | undefined;
 export function updateFusebitContextTypings(configuration: { [index: string]: string | number }) {
-  let newConfigurationSettings = Object.keys(configuration)
-    .sort()
-    .join(':');
+  let newConfigurationSettings = Object.keys(configuration).sort().join(':');
   if (newConfigurationSettings !== lastConfigurationSettings) {
     const FusebitContextType = `declare class FusebitContext {
       /**
@@ -87,7 +85,7 @@ export function updateFusebitContextTypings(configuration: { [index: string]: st
        * Configuration settings of the function.
        */
       configuration: { ${Object.keys(configuration)
-        .map(k => `${k}: string;`)
+        .map((k) => `${k}: string;`)
         .join(' ')} };
     }`;
 
@@ -116,13 +114,13 @@ export function updateNodejsTypings(version: string) {
   }
 
   Superagent.get(`https://unpkg.com/@types/node@${version}/index.d.ts`)
-    .then(res => {
+    .then((res) => {
       lastNodejsTypings = Monaco.languages.typescript.javascriptDefaults.addExtraLib(
         res.text,
         'node_modules/@types/node/index.d.ts'
       );
     })
-    .catch(e => {
+    .catch((e) => {
       console.error(`Unable to install typings for Node.js version ${version}:`, e);
     });
 }
@@ -144,14 +142,14 @@ export function updateDependencyTypings(dependencies: { [property: string]: stri
 
   function downloadAndInstallTypes(name: string, version: string) {
     Superagent.get(`https://unpkg.com/@types/${name}@${version}/index.d.ts`)
-      .then(res => {
+      .then((res) => {
         dependencyTypings[name].typings = Monaco.languages.typescript.javascriptDefaults.addExtraLib(
           res.text,
           `file:///node_modules/@types/${name}/index.d.ts`
           // `node_modules/${name}/index.d.ts`
         );
       })
-      .catch(e => {
+      .catch((e) => {
         console.error(`Unable to install typings for module ${name}@${version}:`, e);
       });
   }

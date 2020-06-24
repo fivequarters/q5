@@ -65,7 +65,7 @@ describe('isBoolean', () => {
       new TestClass(),
       () => true,
       // tslint:disable-next-line
-      function() {
+      function () {
         return true;
       },
       new Error('an error'),
@@ -97,7 +97,7 @@ describe('isString', () => {
       new TestClass(),
       () => true,
       // tslint:disable-next-line
-      function() {
+      function () {
         return true;
       },
       new Error('an error'),
@@ -138,7 +138,7 @@ describe('isNumber', () => {
       new TestClass(),
       () => true,
       // tslint:disable-next-line
-      function() {
+      function () {
         return true;
       },
       new Error('an error'),
@@ -171,7 +171,7 @@ describe('isObject', () => {
       '5',
       () => true,
       // tslint:disable-next-line
-      function() {
+      function () {
         return true;
       },
       TestClass.do,
@@ -204,7 +204,7 @@ describe('isArray', () => {
       new TestClass(),
       () => true,
       // tslint:disable-next-line
-      function() {
+      function () {
         return true;
       },
       new Error('an error'),
@@ -222,7 +222,7 @@ describe('isFunction', () => {
     const tests = [
       () => true,
       // tslint:disable-next-line
-      function() {
+      function () {
         return true;
       },
       TestClass.do,
@@ -275,7 +275,7 @@ describe('isDate', () => {
       new TestClass(),
       () => true,
       // tslint:disable-next-line
-      function() {
+      function () {
         return true;
       },
       new Error('an error'),
@@ -308,7 +308,7 @@ describe('isError', () => {
       new TestClass(),
       () => true,
       // tslint:disable-next-line
-      function() {
+      function () {
         return true;
       },
       new Date(),
@@ -341,7 +341,7 @@ describe('isRegExp', () => {
       new TestClass(),
       () => true,
       // tslint:disable-next-line
-      function() {
+      function () {
         return true;
       },
       new Date(),
@@ -457,7 +457,7 @@ describe('asDate', () => {
       new TestClass(),
       () => true,
       // tslint:disable-next-line
-      function() {
+      function () {
         return true;
       },
       new Error('an error'),
@@ -490,7 +490,7 @@ describe('asError', () => {
       new TestClass(),
       () => true,
       // tslint:disable-next-line
-      function() {
+      function () {
         return true;
       },
       new Date(),
@@ -523,7 +523,7 @@ describe('asRegExp', () => {
       new TestClass(),
       () => true,
       // tslint:disable-next-line
-      function() {
+      function () {
         return true;
       },
       new Date(),

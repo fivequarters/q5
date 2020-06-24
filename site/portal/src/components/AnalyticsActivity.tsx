@@ -41,7 +41,7 @@ const useStyles = makeStyles((theme: any) => ({
   },
 }));
 
-const AnalyticsActivity: React.FC<IActivityProps> = props => {
+const AnalyticsActivity: React.FC<IActivityProps> = (props) => {
   const classes = useStyles();
   const { profile } = useProfile();
 
@@ -57,7 +57,7 @@ const AnalyticsActivity: React.FC<IActivityProps> = props => {
     params.subscriptionId ? `subscription/${params.subscriptionId}` : '',
     params.boundaryId ? `boundary/${params.boundaryId}` : '',
     params.functionId ? `function/${params.functionId}` : '',
-  ].filter(x => x);
+  ].filter((x) => x);
 
   const urlWart = `${profile.baseUrl}/v1/` + warts.join('/');
 

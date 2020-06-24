@@ -7,7 +7,7 @@ import { Section } from './Section';
 
 const Paragraph = styled.div`
   margin-bottom: 100px;
-  ${props => applyTheme(props, 'aboutUs', 'paragraph')}
+  ${(props) => applyTheme(props, 'aboutUs', 'paragraph')}
 `;
 
 const StyledBio = styled(Bio)`

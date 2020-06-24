@@ -448,7 +448,7 @@ export class AwsAlb extends AwsBase<typeof ELBv2> {
     };
 
     if (certArns.length) {
-      params.Certificates = certArns.map(arn => ({ CertificateArn: arn }));
+      params.Certificates = certArns.map((arn) => ({ CertificateArn: arn }));
     }
 
     return new Promise((resolve, reject) => {

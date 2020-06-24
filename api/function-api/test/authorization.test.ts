@@ -1703,7 +1703,7 @@ describe('Authorization', () => {
     ];
 
     const results = await Promise.all(
-      allowStatements.map(allow => addUser(userAccount, { access: { allow: [allow] } }))
+      allowStatements.map((allow) => addUser(userAccount, { access: { allow: [allow] } }))
     );
 
     results.forEach((result: any, index: number) => {
@@ -1983,7 +1983,7 @@ describe('Authorization', () => {
     ];
 
     const results = await Promise.all(
-      allowStatements.map(allow => updateUser(userAccount, newUserId, { access: { allow: [allow] } }))
+      allowStatements.map((allow) => updateUser(userAccount, newUserId, { access: { allow: [allow] } }))
     );
 
     results.forEach((result: any, index: number) => {
@@ -2432,7 +2432,7 @@ describe('Authorization', () => {
     ];
 
     const results = await Promise.all(
-      allowStatements.map(allow => addClient(userAccount, { access: { allow: [allow] } }))
+      allowStatements.map((allow) => addClient(userAccount, { access: { allow: [allow] } }))
     );
 
     results.forEach((result: any, index: number) => {
@@ -2712,7 +2712,7 @@ describe('Authorization', () => {
     ];
 
     const results = await Promise.all(
-      allowStatements.map(allow => updateClient(userAccount, newClientId, { access: { allow: [allow] } }))
+      allowStatements.map((allow) => updateClient(userAccount, newClientId, { access: { allow: [allow] } }))
     );
 
     results.forEach((result: any, index: number) => {

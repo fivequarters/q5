@@ -44,7 +44,7 @@ function SubscriptionSelector({ subscriptionId, onChange, enableAnySubscription,
           All subscriptions
         </MenuItem>
       )}
-      {((subscriptions.status === 'ready' && subscriptions.existing.list) || []).map(s => (
+      {((subscriptions.status === 'ready' && subscriptions.existing.list) || []).map((s) => (
         <MenuItem key={s.id} value={s.id}>
           {s.displayName || 'N/A'} ({s.id})
         </MenuItem>

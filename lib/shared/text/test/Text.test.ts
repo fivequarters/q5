@@ -21,52 +21,52 @@ describe('Text', () => {
   describe('wrap()', () => {
     it('should not wrap a string that is less than the width', () => {
       const text = Text.create('hello');
-      const wrapped = text.wrap(10).map(line => line.toString());
+      const wrapped = text.wrap(10).map((line) => line.toString());
       expect(wrapped).toEqual(['hello']);
     });
     it('should not wrap a string that is less than the width when split by lines', () => {
       const text = Text.create('hello\nworld');
-      const wrapped = text.wrap(10).map(line => line.toString());
+      const wrapped = text.wrap(10).map((line) => line.toString());
       expect(wrapped).toEqual(['hello', 'world']);
     });
     it('should wrap a line at the space', () => {
       const text = Text.create('hello world');
-      const wrapped = text.wrap(10).map(line => line.toString());
+      const wrapped = text.wrap(10).map((line) => line.toString());
       expect(wrapped).toEqual(['hello', 'world']);
     });
     it('should wrap a line at the tab', () => {
       const text = Text.create('hello\tworld');
-      const wrapped = text.wrap(10).map(line => line.toString());
+      const wrapped = text.wrap(10).map((line) => line.toString());
       expect(wrapped).toEqual(['hello', 'world']);
     });
     it('should wrap using the indent character provided', () => {
       const text = Text.create('hello world');
-      const wrapped = text.wrap(10, '  ').map(line => line.toString());
+      const wrapped = text.wrap(10, '  ').map((line) => line.toString());
       expect(wrapped).toEqual(['hello', '  world']);
     });
     it('should wrap mulitple times correctly', () => {
       const text = Text.create('the quick brown fox jumped over the fence and ran away');
-      const wrapped = text.wrap(20, '').map(line => line.toString());
+      const wrapped = text.wrap(20, '').map((line) => line.toString());
       expect(wrapped).toEqual(['the quick brown fox', 'jumped over the', 'fence and ran away']);
     });
     it('should hypenate if no whitespace is present', () => {
       const text = Text.create('ABCDEFGHIJKLMNOP');
-      const wrapped = text.wrap(10, '').map(line => line.toString());
+      const wrapped = text.wrap(10, '').map((line) => line.toString());
       expect(wrapped).toEqual(['ABCDEFGHI-', 'JKLMNOP']);
     });
     it('should hypenate if no whitespace is present using the hypenate character', () => {
       const text = Text.create('ABCDEFGHIJKLMNOP');
-      const wrapped = text.wrap(10, '', ' - ').map(line => line.toString());
+      const wrapped = text.wrap(10, '', ' - ').map((line) => line.toString());
       expect(wrapped).toEqual(['ABCDEFG - ', 'HIJKLMNOP']);
     });
     it('should not add any extra empty lines', () => {
       const text = Text.create('hello ');
-      const wrapped = text.wrap(5).map(line => line.toString());
+      const wrapped = text.wrap(5).map((line) => line.toString());
       expect(wrapped).toEqual(['hello']);
     });
     it('should wrap even with small values', () => {
       const text = Text.create('1 2 3 4 5');
-      const wrapped = text.wrap(1).map(line => line.toString());
+      const wrapped = text.wrap(1).map((line) => line.toString());
       expect(wrapped).toEqual(['1', '2', '3', '4', '5']);
     });
   });
@@ -74,42 +74,42 @@ describe('Text', () => {
   describe('truncate()', () => {
     it('should not truncate a string that is less than the width', () => {
       const text = Text.create('hello');
-      const truncated = text.truncate(10).map(line => line.toString());
+      const truncated = text.truncate(10).map((line) => line.toString());
       expect(truncated).toEqual(['hello']);
     });
     it('should not truncate a string that is less than the width when split by lines', () => {
       const text = Text.create('hello\nworld');
-      const truncated = text.truncate(10).map(line => line.toString());
+      const truncated = text.truncate(10).map((line) => line.toString());
       expect(truncated).toEqual(['hello', 'world']);
     });
     it('should truncate a line at the space', () => {
       const text = Text.create('hello world');
-      const truncated = text.truncate(10).map(line => line.toString());
+      const truncated = text.truncate(10).map((line) => line.toString());
       expect(truncated).toEqual(['hello…']);
     });
     it('should truncate a line at the tab', () => {
       const text = Text.create('hello\tworld');
-      const truncated = text.truncate(10).map(line => line.toString());
+      const truncated = text.truncate(10).map((line) => line.toString());
       expect(truncated).toEqual(['hello…']);
     });
     it('should truncate using the elipsis character provided', () => {
       const text = Text.create('hello\tworld');
-      const truncated = text.truncate(10, ' !').map(line => line.toString());
+      const truncated = text.truncate(10, ' !').map((line) => line.toString());
       expect(truncated).toEqual(['hello !']);
     });
     it('should truncate even if no whitespace is present', () => {
       const text = Text.create('ABCDEFGHIJKLMNOP');
-      const truncated = text.truncate(10).map(line => line.toString());
+      const truncated = text.truncate(10).map((line) => line.toString());
       expect(truncated).toEqual(['ABCDEFGHI…']);
     });
     it('should truncate if no whitespace is present using the ellipsis character', () => {
       const text = Text.create('ABCDEFGHIJKLMNOP');
-      const truncated = text.truncate(10, '-').map(line => line.toString());
+      const truncated = text.truncate(10, '-').map((line) => line.toString());
       expect(truncated).toEqual(['ABCDEFGHI-']);
     });
     it('should truncate even with small values', () => {
       const text = Text.create('1 2 3 4 5');
-      const truncated = text.truncate(1).map(line => line.toString());
+      const truncated = text.truncate(1).map((line) => line.toString());
       expect(truncated).toEqual(['1']);
     });
   });
@@ -149,13 +149,13 @@ describe('Text', () => {
   describe('split()', () => {
     it('should correctly split', () => {
       const text = Text.black('hello world');
-      const split = text.split(' ').map(segment => segment.toString());
+      const split = text.split(' ').map((segment) => segment.toString());
       expect(split).toEqual(['\u001b[30mhello\u001b[39m', '\u001b[30mworld\u001b[39m']);
     });
 
     it('should correctly split across many segments', () => {
       const text = Text.black(['hello', ' ', 'brave', ' ', 'world']);
-      const split = text.split(' ').map(segment => segment.toString());
+      const split = text.split(' ').map((segment) => segment.toString());
       expect(split).toEqual(['\u001b[30mhello\u001b[39m', '\u001b[30mbrave\u001b[39m', '\u001b[30mworld\u001b[39m']);
     });
   });

@@ -87,7 +87,7 @@ export async function createCron(config: OpsDataAwsConfig, awsConfig: IAwsConfig
         SourceArn: ctx.ruleArn,
         StatementId: Config.scheduler.name,
       },
-      e => {
+      (e) => {
         if (e) {
           if (e.code === 'ResourceConflictException') {
             debug('Permissions already exist.');
@@ -454,7 +454,7 @@ export async function deleteCron(config: OpsDataAwsConfig, awsConfig: IAwsConfig
       {
         Name: Config.trigger.name,
       },
-      e => {
+      (e) => {
         // if (e) debug('Error deleting scheduled Cloud Watch Event:', e.message);
         // else debug('Deleted scheduled Cloud Watch Event.');
         cb();
@@ -473,7 +473,7 @@ export async function deleteCron(config: OpsDataAwsConfig, awsConfig: IAwsConfig
           return Async.each(
             d.EventSourceMappings,
             (mapping: any, cb: any) =>
-              lambda.deleteEventSourceMapping({ UUID: mapping.UUID }, e => {
+              lambda.deleteEventSourceMapping({ UUID: mapping.UUID }, (e) => {
                 // if (e) debug('Error deleting UUID mapping:', mapping.UUID, e.message);
                 // else debug('Deleted event mapping:', mapping.UUID);
                 cb();

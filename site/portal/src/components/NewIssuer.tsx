@@ -85,7 +85,7 @@ function NewIssuerImpl({ onClose }: any) {
       saveIssuer(
         issuer,
         setIssuer,
-        e =>
+        (e) =>
           new FusebitError(`Error creating issuer`, {
             details:
               (e.status || e.statusCode) === 403
@@ -93,7 +93,7 @@ function NewIssuerImpl({ onClose }: any) {
                 : e.message || 'Unknown error.',
             source: 'CreateNewIssuer',
           }),
-        e => !e && onClose && onClose(true)
+        (e) => !e && onClose && onClose(true)
       );
     }
   };

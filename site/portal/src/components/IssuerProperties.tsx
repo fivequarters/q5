@@ -72,7 +72,7 @@ function IssuerProperties() {
 
   const handleRemovePublicKey = (pki: any) => {
     let newPublicKeys: PublicKey[] = [];
-    (issuer.modified.publicKeys || []).forEach(p => {
+    (issuer.modified.publicKeys || []).forEach((p) => {
       if (p !== pki) {
         newPublicKeys.push(p);
       }
@@ -91,7 +91,7 @@ function IssuerProperties() {
     saveIssuer(
       issuer,
       setIssuer,
-      e =>
+      (e) =>
         new FusebitError(`Error updating issuer ${issuer.issuerId}`, {
           details:
             (e.status || e.statusCode) === 403

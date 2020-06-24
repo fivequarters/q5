@@ -33,7 +33,7 @@ function SubscriptionBoundaries() {
       // disablePadding: true,
       align: 'left',
       label: 'Boundary Name',
-      render: row => (
+      render: (row) => (
         <Link component={RouterLink} to={`boundaries/${row.id}/functions`}>
           {row.id}
         </Link>
@@ -69,7 +69,7 @@ function SubscriptionBoundaries() {
     return <PortalError error={boundaries.error} padding={true} />;
   }
 
-  const viewData = Object.keys(boundaries.existing).map(boundaryId => createViewRow(boundaries.existing[boundaryId]));
+  const viewData = Object.keys(boundaries.existing).map((boundaryId) => createViewRow(boundaries.existing[boundaryId]));
 
   return (
     <ExplorerTable<ViewRow>

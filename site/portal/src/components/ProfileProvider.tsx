@@ -296,7 +296,7 @@ function processAuthenticationCallback(): any {
 function parse(queryString: string) {
   let tokens = queryString.split('&');
   let result: any = {};
-  tokens.forEach(t => {
+  tokens.forEach((t) => {
     let [k, v] = t.split('=');
     result[k] = decodeURIComponent(v);
   });

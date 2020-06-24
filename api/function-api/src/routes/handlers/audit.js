@@ -2,7 +2,7 @@ const { getAccountContext, errorHandler } = require('../account');
 
 function auditGet() {
   return (req, res) => {
-    getAccountContext().then(accountContext => {
+    getAccountContext().then((accountContext) => {
       const resolvedAgent = req.resolvedAgent;
       const accountId = req.params.accountId;
       const limit = req.query.count;
@@ -26,7 +26,7 @@ function auditGet() {
 
       accountContext.audit
         .list(resolvedAgent, accountId, options)
-        .then(result => res.json(result))
+        .then((result) => res.json(result))
         .catch(errorHandler(res));
     });
   };

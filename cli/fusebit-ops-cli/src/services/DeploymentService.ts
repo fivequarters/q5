@@ -388,7 +388,7 @@ export class DeploymentService {
     if (account.subscriptions.length === 0) {
       details.push(Text.dim('<No subscriptions>'));
     } else {
-      account.subscriptions.forEach(s => {
+      account.subscriptions.forEach((s) => {
         details.push(
           Text.dim('Subscription ID: '),
           s.id,

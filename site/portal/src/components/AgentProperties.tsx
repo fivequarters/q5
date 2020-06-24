@@ -82,7 +82,7 @@ function AgentProperties() {
     saveAgent(
       agent,
       setAgent,
-      e =>
+      (e) =>
         new FusebitError(`Error updating ${formatAgent()} ${agent.agentId}`, {
           details:
             (e.status || e.statusCode) === 403

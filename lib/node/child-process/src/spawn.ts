@@ -51,7 +51,7 @@ export default function spawn(
     process.on('beforeExit', () => {
       child.kill();
     });
-    child.on('exit', code => {
+    child.on('exit', (code) => {
       // Add a trivial delay to allow stdio to flush before resolving the promise
       setTimeout(() => {
         resolve({
@@ -62,14 +62,14 @@ export default function spawn(
       }, 100);
     });
     child.on('error', reject);
-    child.stdout.on('data', chunk => {
+    child.stdout.on('data', (chunk) => {
       if (options.stdout) {
         options.stdout.write(chunk);
       } else {
         stdio.stdout = Buffer.concat([stdio.stdout, chunk as Buffer]);
       }
     });
-    child.stderr.on('data', chunk => {
+    child.stderr.on('data', (chunk) => {
       if (options.stderr) {
         options.stderr.write(chunk);
       } else {

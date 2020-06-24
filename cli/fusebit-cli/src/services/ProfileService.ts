@@ -487,7 +487,7 @@ export class ProfileService {
     let payload: any;
     try {
       while (Date.now() < endTime) {
-        await new Promise(resolve => setTimeout(resolve, interval));
+        await new Promise((resolve) => setTimeout(resolve, interval));
         const oauthPollResponse = await request({
           method: 'POST',
           url: profile.tokenUrl,

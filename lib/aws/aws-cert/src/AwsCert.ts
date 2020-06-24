@@ -84,7 +84,7 @@ export class AwsCert extends AwsBase<typeof ACM> {
         throw new Error(message);
       }
 
-      await new Promise(resolve => setTimeout(resolve, getCertDelayInMs));
+      await new Promise((resolve) => setTimeout(resolve, getCertDelayInMs));
     }
 
     const fullName = this.getFullName(options && options.name ? options.name : defaultName);

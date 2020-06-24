@@ -96,7 +96,7 @@ export class OpsStackData extends DataSource implements IOpsStackData {
     const awsAutoScale = await AwsAutoScale.create(awsConfig);
     const account = await this.accountData.get(network.accountName);
 
-    const subnetIds = network.privateSubnets.map(subnet => subnet.id);
+    const subnetIds = network.privateSubnets.map((subnet) => subnet.id);
     const securityGroupIds = [network.lambdaSecurityGroupId];
 
     const userData = [
@@ -132,7 +132,7 @@ export class OpsStackData extends DataSource implements IOpsStackData {
       instanceProfile: this.config.monoInstanceProfile,
       size: size as number,
       healthCheckGracePeriod: this.config.monoHealthCheckGracePeriod,
-      subnets: network.privateSubnets.map(subnet => subnet.id),
+      subnets: network.privateSubnets.map((subnet) => subnet.id),
     });
 
     debug('Attaching to target group');

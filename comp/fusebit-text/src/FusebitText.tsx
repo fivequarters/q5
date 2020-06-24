@@ -43,15 +43,15 @@ type FusebitResolvedTextProps = {
 } & React.BaseHTMLAttributes<HTMLSpanElement>;
 
 const Container = styled.span<FusebitResolvedTextProps>`
-  color: ${props => props.color};
-  display: ${props => (props.inline ? 'inline-block' : 'block')};
-  font-family: ${props => `'${props.font}'`}, sans-serif;
-  font-weight: ${props => props.weight};
-  line-height: ${props => props.lineHeight}px;
-  font-size: ${props => props.fontSize}px;
-  text-align: ${props => (props.center ? 'center' : 'inherit')};
+  color: ${(props) => props.color};
+  display: ${(props) => (props.inline ? 'inline-block' : 'block')};
+  font-family: ${(props) => `'${props.font}'`}, sans-serif;
+  font-weight: ${(props) => props.weight};
+  line-height: ${(props) => props.lineHeight}px;
+  font-size: ${(props) => props.fontSize}px;
+  text-align: ${(props) => (props.center ? 'center' : 'inherit')};
   &:hover {
-    ${props => (props.hover ? `color: ${props.hover};` : '')}
+    ${(props) => (props.hover ? `color: ${props.hover};` : '')}
   }
 `;
 

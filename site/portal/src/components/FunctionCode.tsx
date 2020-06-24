@@ -18,7 +18,7 @@ import { TransitionProps } from '@material-ui/core/transitions';
 import { FusebitError } from './ErrorBoundary';
 import PortalError from './PortalError';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   gridItem: {
     position: 'relative',
     height: 'calc(100vh - 63px)',

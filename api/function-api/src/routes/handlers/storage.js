@@ -3,7 +3,7 @@ const create_error = require('http-errors');
 
 function storageGet() {
   return (req, res) => {
-    getStorageContext().then(storageContext => {
+    getStorageContext().then((storageContext) => {
       const resolvedAgent = req.resolvedAgent;
       const accountId = req.params.accountId;
       const subscriptionId = req.params.subscriptionId;
@@ -12,7 +12,7 @@ function storageGet() {
 
       storageContext.storage
         .get(resolvedAgent, accountId, subscriptionId, storageId, storagePath)
-        .then(result => {
+        .then((result) => {
           if (result && result.etag) {
             res.set('Etag', `W/"${result.etag}"`);
           }
@@ -25,7 +25,7 @@ function storageGet() {
 
 function storageList() {
   return (req, res) => {
-    getStorageContext().then(storageContext => {
+    getStorageContext().then((storageContext) => {
       const resolvedAgent = req.resolvedAgent;
       const accountId = req.params.accountId;
       const subscriptionId = req.params.subscriptionId;
@@ -35,7 +35,7 @@ function storageList() {
 
       storageContext.storage
         .list(resolvedAgent, accountId, subscriptionId, options)
-        .then(result => res.json(result))
+        .then((result) => res.json(result))
         .catch(errorHandler(res));
     });
   };
@@ -43,7 +43,7 @@ function storageList() {
 
 function storagePut() {
   return (req, res, next) => {
-    getStorageContext().then(storageContext => {
+    getStorageContext().then((storageContext) => {
       const resolvedAgent = req.resolvedAgent;
       const accountId = req.params.accountId;
       const subscriptionId = req.params.subscriptionId;
@@ -63,7 +63,7 @@ function storagePut() {
 
       storageContext.storage
         .set(resolvedAgent, accountId, subscriptionId, storageId, storage, storagePath)
-        .then(result => {
+        .then((result) => {
           if (result && result.etag) {
             res.set('Etag', `W/"${result.etag}"`);
           }
@@ -76,7 +76,7 @@ function storagePut() {
 
 function storageDelete() {
   return (req, res) => {
-    getStorageContext().then(storageContext => {
+    getStorageContext().then((storageContext) => {
       const resolvedAgent = req.resolvedAgent;
       const accountId = req.params.accountId;
       const subscriptionId = req.params.subscriptionId;

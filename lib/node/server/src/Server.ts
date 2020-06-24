@@ -46,7 +46,7 @@ export class Server {
   }
 
   public async stop() {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       if (!this.server) {
         return resolve();
       }

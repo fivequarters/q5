@@ -16,7 +16,7 @@ export function getInquiries(api: Api) {
   }
 
   useEffect(() => {
-    document.addEventListener('keyup', async event => {
+    document.addEventListener('keyup', async (event) => {
       if (event.code === 'ShiftRight' && event.metaKey) {
         await api.generateInquiry();
       }

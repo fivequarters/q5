@@ -179,7 +179,7 @@ export function createNavigationPanel(
     return function deleteButtonClickedCore(e: Event) {
       e.preventDefault();
       isDeletingFile = fileName;
-      modalConfirmCancelQuestion(mainEditorElement || element, `<div>Delete<br>${fileName}?</div>`, confirm => {
+      modalConfirmCancelQuestion(mainEditorElement || element, `<div>Delete<br>${fileName}?</div>`, (confirm) => {
         if (confirm) {
           let tmp = isDeletingFile;
           isDeletingFile = undefined;

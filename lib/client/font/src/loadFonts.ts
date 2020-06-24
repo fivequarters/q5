@@ -29,7 +29,7 @@ function getKey(keyPrefix?: string) {
 }
 
 function hasFontWeight(weights: Array<string>, weight: string) {
-  return weights.findIndex(item => item === weight) >= 0;
+  return weights.findIndex((item) => item === weight) >= 0;
 }
 
 function parseFont(font: string): [string, Array<string>] {
@@ -126,7 +126,7 @@ export async function loadFonts(fonts: string | Array<string>, prefix?: string) 
         families,
       },
       timeout: defaultTimeout,
-      fontactive: font => {
+      fontactive: (font) => {
         setFontLoaded(font, fontData[font], prefix);
       },
       active: () => {

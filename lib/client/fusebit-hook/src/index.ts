@@ -33,7 +33,7 @@ export function edit(options: IHookOptions): Promise<IHookResult> {
   if (!options.accountResolver) {
     if (options.accessToken && options.baseUrl && options.subscriptionId && options.accountId) {
       // @ts-ignore
-      options.accountResolver = account =>
+      options.accountResolver = (account) =>
         Promise.resolve({
           accountId: options.accountId,
           subscriptionId: options.subscriptionId,
@@ -103,7 +103,7 @@ export function edit(options: IHookOptions): Promise<IHookResult> {
           if (!options.accountResolver) {
             return reject(new Error('resolveAccount requires options.accountResolver to be set'));
           }
-          options.accountResolver(event.data).then(account => {
+          options.accountResolver(event.data).then((account) => {
             if (!contentWindow) {
               return reject(new Error('resolveAccount requires contentWindow to be set'));
             }

@@ -229,7 +229,7 @@ export class Text {
   private styleCodes: StyleCodes;
 
   private constructor(segments: IText[], styleCodes: StyleCodes) {
-    this.segments = segments.map(segment => (segment === undefined ? '' : segment));
+    this.segments = segments.map((segment) => (segment === undefined ? '' : segment));
     this.styleCodes = styleCodes;
   }
 

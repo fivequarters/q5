@@ -201,7 +201,7 @@ export class EditorContext extends EventEmitter {
    * its progress through events emitted from this _EditorContext_ instance.
    */
   public saveFunction() {
-    this._server.saveFunction(this).catch(_ => {});
+    this._server.saveFunction(this).catch((_) => {});
   }
 
   /**
@@ -209,7 +209,7 @@ export class EditorContext extends EventEmitter {
    * its progress through events emitted from this _EditorContext_ instance.
    */
   public runFunction() {
-    this._server.runFunction(this).catch(_ => {});
+    this._server.runFunction(this).catch((_) => {});
   }
 
   /**
@@ -668,7 +668,7 @@ function parseKeyValue(data: string) {
     const param = /^\s*([^=]+?)\s*=\s*(.*?)\s*$/;
     const value: { [property: string]: string | number } = {};
     const lines = data.split(/[\r\n]+/);
-    lines.forEach(line => {
+    lines.forEach((line) => {
       if (/^\s*\#/.test(line)) {
         return;
       }

@@ -47,7 +47,7 @@ function AgentPermissions() {
       id: 'resource',
       align: 'left',
       label: 'Resource',
-      render: row => {
+      render: (row) => {
         const resource = tryTokenizeResource(row.resource);
         return resource ? <FunctionResourceCrumb options={resource} /> : <span>{row.resource}</span>;
       },
@@ -78,7 +78,7 @@ function AgentPermissions() {
   const handleDelete = async (selected: string[]) => {
     if (selected && selected.length > 0 && agent.status === 'ready') {
       let allow: Permission[] = [];
-      ((agent.modified.access && agent.modified.access.allow) || []).forEach(p => {
+      ((agent.modified.access && agent.modified.access.allow) || []).forEach((p) => {
         if (selected.indexOf(createPermissionId(p)) === -1) {
           allow.push(p);
         }
@@ -140,7 +140,7 @@ function AgentPermissions() {
             }
             enableSelection={true}
             onDelete={handleDelete}
-            deleteTitle={selected => (selected.length > 1 ? 'Delete permissions?' : 'Delete permission?')}
+            deleteTitle={(selected) => (selected.length > 1 ? 'Delete permissions?' : 'Delete permission?')}
             deleteContent={generateDeleteContent}
             disablePagination={true}
           />

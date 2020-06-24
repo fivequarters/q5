@@ -111,11 +111,11 @@ export class StackService {
         errorHeader: 'Error',
       },
       async () => {
-        await new Promise(resolve => setTimeout(resolve, 30 * 1000));
+        await new Promise((resolve) => setTimeout(resolve, 30 * 1000));
         for (let i = 0; i < 27; i++) {
           let response = await request({ method: 'GET', url, validStatus: () => true });
           if (response.status === 200) return;
-          await new Promise(resolve => setTimeout(resolve, 10 * 1000));
+          await new Promise((resolve) => setTimeout(resolve, 10 * 1000));
         }
         throw new Error(
           `Stack '${stack.id}' on deployment '${Text.bold(

@@ -1,19 +1,19 @@
 const flows = [
   {
-    id: "oauth-implicit",
-    description: "Fusebit Portal",
-    usage: "Portal"
+    id: 'oauth-implicit',
+    description: 'Fusebit Portal',
+    usage: 'Portal',
   },
   {
-    id: "oauth-device",
-    description: "Fusebit CLI using OAuth",
-    usage: "CLI"
+    id: 'oauth-device',
+    description: 'Fusebit CLI using OAuth',
+    usage: 'CLI',
   },
   {
-    id: "pki",
-    description: "Fusebit CLI using a public/private key pair",
-    usage: "CLI"
-  }
+    id: 'pki',
+    description: 'Fusebit CLI using a public/private key pair',
+    usage: 'CLI',
+  },
 ];
 
 const flowsHash = flows.reduce<any>((current, value) => {
@@ -22,9 +22,9 @@ const flowsHash = flows.reduce<any>((current, value) => {
 }, {});
 
 const noFlow = {
-  id: "none",
-  description: "No tools",
-  usage: "None"
+  id: 'none',
+  description: 'No tools',
+  usage: 'None',
 };
 
 flowsHash[noFlow.id] = noFlow;

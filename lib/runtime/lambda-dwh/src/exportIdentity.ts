@@ -12,9 +12,7 @@ export async function exportIdentity(ctx: IExportContext, config: IExportConfig)
         subject: x.subject && x.subject.S,
       },
     };
-    item.insertId = `${item.json.deploymentId}/${item.json.accountId}/${item.json.agentId}/${item.json.issuerId}/${
-      item.json.subject
-    }/${item.json.ts}`;
+    item.insertId = `${item.json.deploymentId}/${item.json.accountId}/${item.json.agentId}/${item.json.issuerId}/${item.json.subject}/${item.json.ts}`;
     return item;
   });
 }

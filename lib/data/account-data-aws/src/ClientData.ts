@@ -188,7 +188,7 @@ export class ClientData extends DataSource implements IClientData {
         moreFromClients = false;
       }
       if (clientsResult) {
-        agentIdsFromClients.push(...clientsResult.items.map(client => client.id));
+        agentIdsFromClients.push(...clientsResult.items.map((client) => client.id));
         clientsOptions.next = clientsResult.next;
       }
 
@@ -213,7 +213,7 @@ export class ClientData extends DataSource implements IClientData {
     options?: IListClientsOptions
   ): Promise<IListClientsResult> {
     if (options && options.include === ClientInclude.all) {
-      const agentIds = result.items.map(client => client.id);
+      const agentIds = result.items.map((client) => client.id);
       const agents = await this.agentData.getAllWithAgentId(accountId, agentIds as string[]);
       result.items = toClients(result.items, agents);
     }

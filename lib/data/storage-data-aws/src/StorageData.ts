@@ -17,10 +17,7 @@ import { StorageTable } from './tables/StorageTable';
 // ------------------
 
 function hash(value: string): string {
-  return crypto
-    .createHash('sha1')
-    .update(value)
-    .digest('hex');
+  return crypto.createHash('sha1').update(value).digest('hex');
 }
 
 function getEtag(value: string): string {
@@ -34,7 +31,7 @@ function isObject(value: any) {
 function getStorageFromPath(storage: any, storageId: string, storagePath: string) {
   storage = storage || {};
 
-  const storagePaths = storagePath.split('/').filter(path => path);
+  const storagePaths = storagePath.split('/').filter((path) => path);
   let current = storage;
   while (storagePaths.length) {
     const currentPath = storagePaths.shift() as string;
@@ -52,7 +49,7 @@ function setStorageFromPath(storage: any, data: any, storagePath: string) {
     storage = {};
   }
 
-  const storagePaths = storagePath.split('/').filter(path => path);
+  const storagePaths = storagePath.split('/').filter((path) => path);
   let current = storage;
   while (storagePaths.length > 1) {
     const currentPath = storagePaths.shift() as string;

@@ -1,2 +1,2 @@
-const { jest } = require("./libc");
+const { jest } = require('./libc');
 module.exports = jest;

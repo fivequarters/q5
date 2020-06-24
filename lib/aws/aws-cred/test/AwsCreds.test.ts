@@ -56,7 +56,7 @@ describe('AwsCreds', () => {
         secretAccessKey: 'ABCD',
         accessKeyId: '005',
         useMfa: true,
-        mfaCodeResolver: __ => Promise.resolve({ code: '1234' }),
+        mfaCodeResolver: (__) => Promise.resolve({ code: '1234' }),
       });
       expect(awsCreds).toBeInstanceOf(AwsCreds);
     });

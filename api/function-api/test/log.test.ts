@@ -26,7 +26,7 @@ afterEach(async () => {
 
 describe('log', () => {
   function create_positive_log_test(node: string, boundary: boolean) {
-    return async function() {
+    return async function () {
       let response = await putFunction(account, boundaryId, function1Id, {
         nodejs: {
           files: {
@@ -48,7 +48,7 @@ describe('log', () => {
       const logsPromise = getLogs(account, boundaryId, boundary ? undefined : function1Id);
 
       // Real time logs can take up to 5s to become effective
-      await new Promise(resolve => setTimeout(resolve, 6000));
+      await new Promise((resolve) => setTimeout(resolve, 6000));
 
       for (var i = 1; i < 5; i++) {
         response = await request(`${functionUrl}?n=${i}`);
@@ -56,7 +56,7 @@ describe('log', () => {
       }
 
       // Wait for logs to drain
-      await new Promise(resolve => setTimeout(resolve, 4000));
+      await new Promise((resolve) => setTimeout(resolve, 4000));
 
       const logResponse = await logsPromise;
       expect(logResponse.status).toEqual(200);
@@ -103,13 +103,13 @@ describe('log', () => {
       const logsPromise = getLogs(account, boundaryId, function1Id);
 
       // Real time logs can take up to 5s to become effective
-      await new Promise(resolve => setTimeout(resolve, 6000));
+      await new Promise((resolve) => setTimeout(resolve, 6000));
 
       response = await request(functionUrl);
       expect(response.status).toEqual(500);
 
       // Wait for logs to drain
-      await new Promise(resolve => setTimeout(resolve, 4000));
+      await new Promise((resolve) => setTimeout(resolve, 4000));
 
       const logResponse = await logsPromise;
       expect(logResponse.status).toEqual(200);

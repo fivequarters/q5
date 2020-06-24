@@ -24,7 +24,7 @@ export function executor(event: any, context: any, cb: any) {
     event.Records,
     concurrentExecutionLimit,
     (msg, cb) => maybeExecuteCronJob(msg, cb),
-    e => cb(e, result)
+    (e) => cb(e, result)
   );
 
   function maybeExecuteCronJob(msg: any, cb: any) {

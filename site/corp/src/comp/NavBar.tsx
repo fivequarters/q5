@@ -13,29 +13,29 @@ const Container = styled.div`
 `;
 
 const StyledNavBar = styled(NavBarBase)`
-  ${props => applyTheme(props, 'navbar')}
+  ${(props) => applyTheme(props, 'navbar')}
 `;
 
 const AboveNavBar = styled.div`
   width: 100%;
   padding: 10px;
-  ${props => applyTheme(props, 'navbar', 'announcement')}
+  ${(props) => applyTheme(props, 'navbar', 'announcement')}
 `;
 
 const CorpName = styled.div`
   margin: auto 10px;
   padding-top: 3px;
-  ${props => applyTheme(props, 'navbar', 'corporateName')}
+  ${(props) => applyTheme(props, 'navbar', 'corporateName')}
 `;
 
 const Link = styled.a`
   margin: auto 20px;
   text-decoration: inherit;
-  ${props => applyTheme(props, 'navbar', 'link')}
+  ${(props) => applyTheme(props, 'navbar', 'link')}
 `;
 
 const Twitter = styled(FaTwitter)`
-  ${props => applyTheme(props, 'navbar', 'twitter')}
+  ${(props) => applyTheme(props, 'navbar', 'twitter')}
 `;
 
 const NavBarSpacer = styled.div`

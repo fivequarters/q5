@@ -1,12 +1,12 @@
-import LinearProgress from "@material-ui/core/LinearProgress";
-import Link from "@material-ui/core/Link";
-import Tooltip from "@material-ui/core/Tooltip";
-import Typography from "@material-ui/core/Typography";
-import React from "react";
-import { Link as RouterLink } from "react-router-dom";
-import { getAgent } from "../lib/Fusebit";
-import { AgentState, formatAgent } from "./AgentProvider";
-import { useProfile } from "./ProfileProvider";
+import LinearProgress from '@material-ui/core/LinearProgress';
+import Link from '@material-ui/core/Link';
+import Tooltip from '@material-ui/core/Tooltip';
+import Typography from '@material-ui/core/Typography';
+import React from 'react';
+import { Link as RouterLink } from 'react-router-dom';
+import { getAgent } from '../lib/Fusebit';
+import { AgentState, formatAgent } from './AgentProvider';
+import { useProfile } from './ProfileProvider';
 
 export type IssuerSubjectAgent = {
   [key: string]: {
@@ -22,13 +22,7 @@ type AgentTooltipProps = {
   children: any;
 };
 
-function AgentTooltip({
-  issuerId,
-  subject,
-  agents,
-  onSetAgent,
-  children,
-}: AgentTooltipProps) {
+function AgentTooltip({ issuerId, subject, agents, onSetAgent, children }: AgentTooltipProps) {
   const { profile } = useProfile();
   const [loading, setLoading] = React.useState(false);
   const [open, setOpen] = React.useState(false);
@@ -42,7 +36,7 @@ function AgentTooltip({
           if (!cancelled) {
             setLoading(false);
             onSetAgent(issuerId, subject, {
-              status: "ready",
+              status: 'ready',
               isUser,
               agentId: agent.id,
               existing: agent,
@@ -55,11 +49,11 @@ function AgentTooltip({
             const status = e.status || e.statusCode;
             const message =
               status === 404
-                ? "No existing user or client are associated with this identity."
+                ? 'No existing user or client are associated with this identity.'
                 : `Error finding matching user or client: ${e.message}`;
             setLoading(false);
             onSetAgent(issuerId, subject, {
-              status: "error",
+              status: 'error',
               isUser: true,
               agentId: `${issuerId}::${subject}`,
               error: new Error(message),
@@ -98,7 +92,7 @@ function AgentTooltip({
 
   const agent = agents[issuerId][subject];
 
-  if (agent.status === "error") {
+  if (agent.status === 'error') {
     return (
       <Tooltip
         open={open}
@@ -113,7 +107,7 @@ function AgentTooltip({
     );
   }
 
-  if (agent.status === "ready") {
+  if (agent.status === 'ready') {
     return (
       <Tooltip
         open={open}
@@ -123,12 +117,10 @@ function AgentTooltip({
           <Link
             color="inherit"
             component={RouterLink}
-            to={`/accounts/${profile.account}/${
-              agent.isUser ? "users" : "clients"
-            }/${agent.agentId}/properties`}
+            to={`/accounts/${profile.account}/${agent.isUser ? 'users' : 'clients'}/${agent.agentId}/properties`}
           >
             <Typography variant="body2" color="inherit">
-              {agent.isUser ? "User" : "Client"}: {formatAgent(agent)}
+              {agent.isUser ? 'User' : 'Client'}: {formatAgent(agent)}
             </Typography>
           </Link>
         }

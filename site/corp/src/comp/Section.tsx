@@ -18,7 +18,7 @@ const Gutter = styled.div`
 const Title = styled.div`
   padding-top: 120px;
   margin-bottom: 60px;
-  ${props => applyTheme(props, 'section', 'title')}
+  ${(props) => applyTheme(props, 'section', 'title')}
 `;
 
 export type SectionProps = {

@@ -68,7 +68,7 @@ export function resizable(element: HTMLElement, handle: HTMLElement, options: an
     }
     document.addEventListener('selectstart', noop); // disable selection
     let iframes = document.getElementsByName('iframe');
-    iframes.forEach(x => {
+    iframes.forEach((x) => {
       x.style.pointerEvents = 'none';
     });
   }
@@ -107,7 +107,7 @@ export function resizable(element: HTMLElement, handle: HTMLElement, options: an
     // reset changed values
     element.style.transition = startTransition;
     let iframes = document.getElementsByName('iframe');
-    iframes.forEach(x => {
+    iframes.forEach((x) => {
       x.style.pointerEvents = 'auto';
     });
 

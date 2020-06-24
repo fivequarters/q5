@@ -265,7 +265,10 @@ export class Help {
       width: consoleWidth,
       count: 2,
       gutter: 3,
-      columns: [{ flexShrink: 0, flexGrow: 0 }, { flexShrink: 1, flexGrow: 1 }],
+      columns: [
+        { flexShrink: 0, flexGrow: 0 },
+        { flexShrink: 1, flexGrow: 1 },
+      ],
     });
   }
 
@@ -274,7 +277,10 @@ export class Help {
       width: consoleWidth,
       count: 2,
       gutter: 1,
-      columns: [{ min: 0, max: 0 }, { flexShrink: 0, flexGrow: 0 }],
+      columns: [
+        { min: 0, max: 0 },
+        { flexShrink: 0, flexGrow: 0 },
+      ],
     });
   }
 }

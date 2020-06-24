@@ -1,20 +1,20 @@
-import React from "react";
-import { getSubscriptions } from "../lib/Fusebit";
-import { Subscriptions, Subscription } from "../lib/FusebitTypes";
-import { FusebitError } from "./ErrorBoundary";
-import { useProfile } from "./ProfileProvider";
+import React from 'react';
+import { getSubscriptions } from '../lib/Fusebit';
+import { Subscriptions, Subscription } from '../lib/FusebitTypes';
+import { FusebitError } from './ErrorBoundary';
+import { useProfile } from './ProfileProvider';
 
 type SubscriptionsState =
   | {
-      status: "loading";
+      status: 'loading';
       formatError?: (e: any) => Error;
     }
   | {
-      status: "ready";
+      status: 'ready';
       existing: Subscriptions;
     }
   | {
-      status: "error";
+      status: 'error';
       error: Error;
     };
 
@@ -24,28 +24,24 @@ type SubscriptionsProviderProps = {
   children: React.ReactNode;
 };
 
-const SubscriptionsStateContext = React.createContext<
-  SubscriptionsState | undefined
->(undefined);
+const SubscriptionsStateContext = React.createContext<SubscriptionsState | undefined>(undefined);
 
-const SubscriptionsSetStateContext = React.createContext<
-  SubscriptionsSetState | undefined
->(undefined);
+const SubscriptionsSetStateContext = React.createContext<SubscriptionsSetState | undefined>(undefined);
 
 function SubscriptionsProvider({ children }: SubscriptionsProviderProps) {
   const { profile } = useProfile();
   const [data, setData] = React.useState<SubscriptionsState>({
-    status: "loading"
+    status: 'loading',
   });
 
   React.useEffect(() => {
     let cancelled: boolean = false;
-    if (data.status === "loading") {
+    if (data.status === 'loading') {
       (async () => {
         try {
           let subscriptions: Subscriptions = {
             list: await getSubscriptions(profile),
-            hash: {}
+            hash: {},
           };
           if (!cancelled) {
             subscriptions.hash = subscriptions.list.reduce<{
@@ -55,8 +51,8 @@ function SubscriptionsProvider({ children }: SubscriptionsProviderProps) {
               return current;
             }, {});
             setData({
-              status: "ready",
-              existing: subscriptions
+              status: 'ready',
+              existing: subscriptions,
             });
           }
         } catch (e) {
@@ -67,11 +63,11 @@ function SubscriptionsProvider({ children }: SubscriptionsProviderProps) {
                   details:
                     (e.status || e.statusCode) === 403
                       ? `You are not authorized to access the subscription information.`
-                      : e.message || "Unknown error."
+                      : e.message || 'Unknown error.',
                 });
             setData({
-              status: "error",
-              error
+              status: 'error',
+              error,
             });
           }
         }
@@ -84,9 +80,7 @@ function SubscriptionsProvider({ children }: SubscriptionsProviderProps) {
 
   return (
     <SubscriptionsStateContext.Provider value={data}>
-      <SubscriptionsSetStateContext.Provider value={setData}>
-        {children}
-      </SubscriptionsSetStateContext.Provider>
+      <SubscriptionsSetStateContext.Provider value={setData}>{children}</SubscriptionsSetStateContext.Provider>
     </SubscriptionsStateContext.Provider>
   );
 }
@@ -94,9 +88,7 @@ function SubscriptionsProvider({ children }: SubscriptionsProviderProps) {
 function useSubscriptionsState() {
   const context = React.useContext(SubscriptionsStateContext);
   if (context === undefined) {
-    throw new Error(
-      "useSubscriptionsState must be used within a SubscriptionsProvider"
-    );
+    throw new Error('useSubscriptionsState must be used within a SubscriptionsProvider');
   }
   return context;
 }
@@ -104,9 +96,7 @@ function useSubscriptionsState() {
 function useSubscriptionsSetState() {
   const context = React.useContext(SubscriptionsSetStateContext);
   if (context === undefined) {
-    throw new Error(
-      "useSubscriptionsSetState must be used within a SubscriptionsProvider"
-    );
+    throw new Error('useSubscriptionsSetState must be used within a SubscriptionsProvider');
   }
   return context;
 }
@@ -115,12 +105,9 @@ function useSubscriptions(): [SubscriptionsState, SubscriptionsSetState] {
   return [useSubscriptionsState(), useSubscriptionsSetState()];
 }
 
-function reloadSubscriptions(
-  state: SubscriptionsState,
-  setState: SubscriptionsSetState
-) {
+function reloadSubscriptions(state: SubscriptionsState, setState: SubscriptionsSetState) {
   setState({
-    status: "loading"
+    status: 'loading',
   });
 }
 

@@ -53,7 +53,7 @@ async function getNextFreePort(project: Project, startPort: number) {
 
   let nextFreePort = startPort;
   if (ports.length) {
-    while (ports.find(port => port === nextFreePort)) {
+    while (ports.find((port) => port === nextFreePort)) {
       nextFreePort++;
     }
   }

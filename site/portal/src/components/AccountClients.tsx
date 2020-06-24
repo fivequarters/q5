@@ -37,7 +37,7 @@ function AccountClients() {
       disablePadding: true,
       align: 'left',
       label: 'Name',
-      render: row => (
+      render: (row) => (
         <Link component={RouterLink} to={`clients/${row.id}/properties`}>
           {row.name}
         </Link>
@@ -114,7 +114,7 @@ function AccountClients() {
       title="Clients"
       enableSelection={true}
       onDelete={handleDelete}
-      deleteTitle={selected => (selected.length > 1 ? `Delete ${selected.length} clients?` : 'Delete the client?')}
+      deleteTitle={(selected) => (selected.length > 1 ? `Delete ${selected.length} clients?` : 'Delete the client?')}
       deleteContent={generateDeleteContent}
       actions={
         <ActionButton to="clients/new" component={RouterLink}>

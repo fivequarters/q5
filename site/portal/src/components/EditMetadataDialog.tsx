@@ -45,7 +45,7 @@ function EditMetadataDialog({ onClose }: any) {
     if (func.status === 'ready') {
       func.modified.metadata = JSON.parse(data.metadataSerialized);
       modifyFunction(func, setFunc, { ...func.modified });
-      saveFunction(func, setFunc, undefined, e => !e && onClose && onClose());
+      saveFunction(func, setFunc, undefined, (e) => !e && onClose && onClose());
     }
   };
 

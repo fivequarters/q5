@@ -46,7 +46,7 @@ function fromItem(item: any): IIssuer {
 function toItemPublicKeys(publicKeys?: IIssuerPublicKey[]): any {
   if (publicKeys && publicKeys.length) {
     return {
-      L: publicKeys.map(key => ({
+      L: publicKeys.map((key) => ({
         M: {
           publicKey: { S: key.publicKey },
           keyId: { S: key.keyId },

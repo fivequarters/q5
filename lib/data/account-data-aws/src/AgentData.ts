@@ -132,7 +132,7 @@ export class AgentData extends DataSource implements IAgentData {
   }
 
   public async getAllWithAgentId(accountId: string, agentIds: string[]): Promise<IAgent[]> {
-    return Promise.all(agentIds.map(agentId => this.getWithAgentId(accountId, agentId)));
+    return Promise.all(agentIds.map((agentId) => this.getWithAgentId(accountId, agentId)));
   }
 
   public async getWithAgentId(accountId: string, agentId: string): Promise<IAgent> {
@@ -147,7 +147,7 @@ export class AgentData extends DataSource implements IAgentData {
 
   public async listAgentIds(accountId: string, options?: IListAgentIdsOptions): Promise<IListAgentIdsResult> {
     const identities = await this.identityTable.list(accountId, options);
-    const items = identities.items.map(identity => identity.agentId);
+    const items = identities.items.map((identity) => identity.agentId);
     return { items, next: identities.next };
   }
 

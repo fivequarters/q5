@@ -168,7 +168,7 @@ export class AwsCreds {
       } catch (e1) {
         throw new Error('Unable to parse the output of the credentials provider command as a JSON object');
       }
-      ['AccessKeyId', 'SecretAccessKey', 'SessionToken', 'Expiration'].forEach(p => {
+      ['AccessKeyId', 'SecretAccessKey', 'SessionToken', 'Expiration'].forEach((p) => {
         if (typeof parsed[p] !== 'string') {
           throw new Error(`Credentials provider command returned an object without the required '${p}' property`);
         }

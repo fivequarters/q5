@@ -41,7 +41,7 @@ type ExtendedRouterLinkProps = {
 } & RouterLinkProps;
 
 const StyledAnchor = styled.a<LinkProps>`
-  color: ${props => props.color};
+  color: ${(props) => props.color};
   position: relative;
   text-decoration: none;
   border-radius: 5px;
@@ -49,12 +49,12 @@ const StyledAnchor = styled.a<LinkProps>`
 
   &:hover,
   &:visited:hover {
-    color: ${props => props.hover};
+    color: ${(props) => props.hover};
     cursor: pointer;
   }
 
   &:visited {
-    color: ${props => props.visited};
+    color: ${(props) => props.visited};
   }
 
   &:focus,
@@ -79,7 +79,7 @@ const StyledAnchor = styled.a<LinkProps>`
 `;
 
 const StyledOutboundLink = styled(ReactGA.OutboundLink)<ExtendedRouterLinkProps>`
-  color: ${props => props.color};
+  color: ${(props) => props.color};
   position: relative;
   text-decoration: none;
   border-radius: 5px;
@@ -87,12 +87,12 @@ const StyledOutboundLink = styled(ReactGA.OutboundLink)<ExtendedRouterLinkProps>
 
   &:hover,
   &:visited:hover {
-    color: ${props => props.hover};
+    color: ${(props) => props.hover};
     cursor: pointer;
   }
 
   &:visited {
-    color: ${props => props.visited};
+    color: ${(props) => props.visited};
   }
 
   &:focus,
@@ -117,19 +117,19 @@ const StyledOutboundLink = styled(ReactGA.OutboundLink)<ExtendedRouterLinkProps>
 `;
 
 const StyledLink = styled(Link)<ExtendedRouterLinkProps>`
-  color: ${props => props.color};
+  color: ${(props) => props.color};
   position: relative;
   text-decoration: none;
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 
   &:hover,
   &:visited:hover {
-    color: ${props => props.hover};
+    color: ${(props) => props.hover};
     cursor: pointer;
   }
 
   &:visited {
-    color: ${props => props.visited};
+    color: ${(props) => props.visited};
   }
 
   &:focus,
@@ -220,7 +220,7 @@ export function FusebitLink({
   function onFocusCaptureWrapped(event: any) {
     lastFocus = render;
     if (tabUsage) {
-      render(current => !current);
+      render((current) => !current);
     }
     if (onFocusCapture) {
       onFocusCapture(event);

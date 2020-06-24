@@ -125,9 +125,7 @@ function NonMobileVersion(props: FusebitPostProps) {
             <FusebitPostAuthor marginBottom={20} {...props} />
             {imageSrc ? (
               <Image src={imageSrc} expand marginBottom={20} height={500} width="100%" borderRadius={25} />
-            ) : (
-              undefined
-            )}
+            ) : undefined}
           </Box>
         </Box>
       </FusebitSection>
