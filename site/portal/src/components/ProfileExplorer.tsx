@@ -315,7 +315,7 @@ function ProfileExplorer({ ...rest }: any) {
                       <ExplorerView tabs={ExplorerTabs.user} match={match}>
                         <Analytics
                           params={match.params}
-                          enabledPanels={['usage']}
+                          enabledPanels={['audit']}
                           audit={{
                             filter: {
                               resource: `/account/${profile.account}/user/${match.params.userId}/`,
@@ -403,7 +403,7 @@ function ProfileExplorer({ ...rest }: any) {
                       <ExplorerView tabs={ExplorerTabs.client} match={match}>
                         <Analytics
                           params={match.params}
-                          enabledPanels={['usage']}
+                          enabledPanels={['audit']}
                           audit={{
                             filter: {
                               resource: `/account/${profile.account}/client/${match.params.clientId}/`,
@@ -489,7 +489,7 @@ function ProfileExplorer({ ...rest }: any) {
                     <ExplorerView tabs={ExplorerTabs.issuer} match={match}>
                       <Analytics
                         params={match.params}
-                        enabledPanels={['usage']}
+                        enabledPanels={['audit']}
                         audit={{
                           filter: {
                             resource: `/account/${profile.account}/issuer/${match.params.issuerId}/`,
