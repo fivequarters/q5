@@ -91,7 +91,7 @@ export class AddNetworkCommand extends Command {
 
     function parseList(list?: string): string[] | undefined {
       if (list) {
-        const result = list.split(',').map(l => l.trim());
+        const result = list.split(',').map((l) => l.trim());
         return result.length > 0 ? result : undefined;
       }
       return undefined;

@@ -7,7 +7,10 @@ describe('resize', () => {
       width: 100,
       gutter: 2,
       count: 2,
-      columns: [{ min: 20, max: 60 }, { min: 20, max: 60 }],
+      columns: [
+        { min: 20, max: 60 },
+        { min: 20, max: 60 },
+      ],
     };
     const resized = resize(columnWidths, constraint);
     expect(resized).toEqual([49, 49]);
@@ -19,7 +22,10 @@ describe('resize', () => {
       width: 100,
       gutter: 2,
       count: 2,
-      columns: [{ min: 49, max: 60 }, { min: 20, max: 60 }],
+      columns: [
+        { min: 49, max: 60 },
+        { min: 20, max: 60 },
+      ],
     };
     const resized = resize(columnWidths, constraint);
     expect(resized).toEqual([49, 49]);
@@ -31,7 +37,10 @@ describe('resize', () => {
       width: 100,
       gutter: 2,
       count: 2,
-      columns: [{ min: 20, max: 60 }, { min: 20, max: 49 }],
+      columns: [
+        { min: 20, max: 60 },
+        { min: 20, max: 49 },
+      ],
     };
     const resized = resize(columnWidths, constraint);
     expect(resized).toEqual([49, 49]);
@@ -43,7 +52,10 @@ describe('resize', () => {
       width: 100,
       gutter: 2,
       count: 2,
-      columns: [{ min: 20, max: 60 }, { min: 20, max: 60 }],
+      columns: [
+        { min: 20, max: 60 },
+        { min: 20, max: 60 },
+      ],
     };
     const resized = resize(columnWidths, constraint);
     expect(resized).toEqual([49, 49]);
@@ -55,7 +67,10 @@ describe('resize', () => {
       width: 100,
       gutter: 2,
       count: 2,
-      columns: [{ min: 20, max: 80 }, { min: 20, max: 80 }],
+      columns: [
+        { min: 20, max: 80 },
+        { min: 20, max: 80 },
+      ],
     };
     const resized = resize(columnWidths, constraint);
     expect(resized).toEqual([49, 49]);
@@ -67,7 +82,10 @@ describe('resize', () => {
       width: 100,
       gutter: 2,
       count: 2,
-      columns: [{ min: 20, max: 60, flexGrow: 1 }, { min: 20, max: 60 }],
+      columns: [
+        { min: 20, max: 60, flexGrow: 1 },
+        { min: 20, max: 60 },
+      ],
     };
     const resized = resize(columnWidths, constraint);
     expect(resized).toEqual([59, 39]);
@@ -79,7 +97,10 @@ describe('resize', () => {
       width: 100,
       gutter: 2,
       count: 2,
-      columns: [{ min: 20, max: 80 }, { min: 20, max: 60, flexShrink: 0 }],
+      columns: [
+        { min: 20, max: 80 },
+        { min: 20, max: 60, flexShrink: 0 },
+      ],
     };
     const resized = resize(columnWidths, constraint);
     expect(resized).toEqual([59, 39]);
@@ -91,7 +112,10 @@ describe('resize', () => {
       width: 100,
       gutter: 2,
       count: 2,
-      columns: [{ min: 20, max: 60, flexGrow: 2 }, { min: 20, max: 60, flexGrow: 1 }],
+      columns: [
+        { min: 20, max: 60, flexGrow: 2 },
+        { min: 20, max: 60, flexGrow: 1 },
+      ],
     };
     const resized = resize(columnWidths, constraint);
     expect(resized).toEqual([58, 40]);
@@ -103,7 +127,10 @@ describe('resize', () => {
       width: 100,
       gutter: 2,
       count: 2,
-      columns: [{ min: 20, max: 80, flexShrink: 2 }, { min: 20, max: 80 }],
+      columns: [
+        { min: 20, max: 80, flexShrink: 2 },
+        { min: 20, max: 80 },
+      ],
     };
     const resized = resize(columnWidths, constraint);
     expect(resized).toEqual([39, 59]);
@@ -115,7 +142,10 @@ describe('resize', () => {
       width: 100,
       gutter: 2,
       count: 2,
-      columns: [{ min: 40, max: 50, flexGrow: 10 }, { min: 40, max: 50 }],
+      columns: [
+        { min: 40, max: 50, flexGrow: 10 },
+        { min: 40, max: 50 },
+      ],
     };
     const resized = resize(columnWidths, constraint);
     expect(resized).toEqual([50, 48]);
@@ -127,7 +157,10 @@ describe('resize', () => {
       width: 100,
       gutter: 2,
       count: 2,
-      columns: [{ min: 48, max: 60, flexShrink: 10 }, { min: 40, max: 60 }],
+      columns: [
+        { min: 48, max: 60, flexShrink: 10 },
+        { min: 40, max: 60 },
+      ],
     };
     const resized = resize(columnWidths, constraint);
     expect(resized).toEqual([48, 50]);
@@ -139,7 +172,10 @@ describe('resize', () => {
       width: 100,
       gutter: 2,
       count: 2,
-      columns: [{ min: 40, max: 60 }, { min: 40, max: 45 }],
+      columns: [
+        { min: 40, max: 60 },
+        { min: 40, max: 45 },
+      ],
     };
     const resized = resize(columnWidths, constraint);
     expect(resized).toEqual([53, 45]);
@@ -151,7 +187,10 @@ describe('resize', () => {
       width: 100,
       gutter: 2,
       count: 2,
-      columns: [{ min: 40, max: 60, flexShrink: 0 }, { min: 40, max: 45 }],
+      columns: [
+        { min: 40, max: 60, flexShrink: 0 },
+        { min: 40, max: 45 },
+      ],
     };
     const resized = resize(columnWidths, constraint);
     expect(resized).toEqual([58, 40]);
@@ -184,7 +223,10 @@ describe('validate', () => {
       width: 100,
       gutter: 2,
       count: 2,
-      columns: [{ min: 20, max: 60 }, { min: 20, max: 60 }],
+      columns: [
+        { min: 20, max: 60 },
+        { min: 20, max: 60 },
+      ],
     };
 
     let message = '';
@@ -201,7 +243,10 @@ describe('validate', () => {
       width: 100,
       gutter: 2,
       count: 2,
-      columns: [{ min: 50, max: 60 }, { min: 50, max: 60 }],
+      columns: [
+        { min: 50, max: 60 },
+        { min: 50, max: 60 },
+      ],
     };
 
     let message = '';

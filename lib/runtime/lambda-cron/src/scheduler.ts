@@ -33,7 +33,7 @@ export function scheduler(event: any, context: any, cb: any) {
   return processCronJobs(undefined, cb);
 
   function processCronJobs(continuationToken: string | undefined, cb: any): any {
-    return Async.series([cb => listCronJobs(cb), cb => sendToSqs(cb)], e => {
+    return Async.series([(cb) => listCronJobs(cb), (cb) => sendToSqs(cb)], (e) => {
       if (e) return cb(e);
       if (listedCronJobs.IsTruncated) {
         return processCronJobs(listedCronJobs.NextContinuationToken, cb);
@@ -62,7 +62,7 @@ export function scheduler(event: any, context: any, cb: any) {
 
     function scheduleExecutions(contents: any[]) {
       stats.considered += contents.length;
-      contents.forEach(i => {
+      contents.forEach((i) => {
         // Format of the S3 key is 'function-cron/{subscriptionId}/{boundaryId}/{functionId}/{encoded_schedule}'
         let segments = i.Key.split('/');
         let ctx: { [property: string]: string } = {

@@ -58,7 +58,10 @@ export class Confirm {
     }
 
     if (this.details && this.details.length) {
-      const columns: any = [{ max: 12, min: 12 }, { flexShrink: 1, flexGrow: 1 }];
+      const columns: any = [
+        { max: 12, min: 12 },
+        { flexShrink: 1, flexGrow: 1 },
+      ];
       const table = await Table.create({
         width: io.outputWidth || defaultConsoleWidth,
         count: 2,
@@ -81,7 +84,7 @@ export class Confirm {
   }
 
   public toString() {
-    const details = this.details.map(detail => `${detail.name}=${detail.value}`);
+    const details = this.details.map((detail) => `${detail.name}=${detail.value}`);
     return `${this.header} ${details.join()}`;
   }
 }

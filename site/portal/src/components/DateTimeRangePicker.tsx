@@ -1,21 +1,21 @@
-import Grid from "@material-ui/core/Grid";
-import MenuItem from "@material-ui/core/MenuItem";
-import TextField from "@material-ui/core/TextField";
-import React from "react";
+import Grid from '@material-ui/core/Grid';
+import MenuItem from '@material-ui/core/MenuItem';
+import TextField from '@material-ui/core/TextField';
+import React from 'react';
 
-const defaultFilterFrom = "-1h";
+const defaultFilterFrom = '-1h';
 
 export const rangePresets = [
-  { value: "-15m", description: "Last 15 minutes" },
-  { value: "-30m", description: "Last 30 minutes" },
-  { value: "-1h", description: "Last 1 hour" },
-  { value: "-24h", description: "Last 24 hours" },
-  { value: "-7d", description: "Last 7 days" },
-  { value: "-30d", description: "Last 30 days" },
-  { value: "custom", description: "Custom" },
+  { value: '-15m', description: 'Last 15 minutes' },
+  { value: '-30m', description: 'Last 30 minutes' },
+  { value: '-1h', description: 'Last 1 hour' },
+  { value: '-24h', description: 'Last 24 hours' },
+  { value: '-7d', description: 'Last 7 days' },
+  { value: '-30d', description: 'Last 30 days' },
+  { value: 'custom', description: 'Custom' },
 ];
 
-const pad = (i: number) => (i < 10 ? "0" + i : i.toString());
+const pad = (i: number) => (i < 10 ? '0' + i : i.toString());
 
 /**
  * @from ISO date or one of: -15m, -30m, -1h, -24h, -7d, -30d, or undefined
@@ -32,26 +32,21 @@ type DateTimeRangePickerProps = {
   utc?: boolean;
 };
 
-function DateTimeRangePicker({
-  from,
-  to,
-  onChange,
-  utc,
-}: DateTimeRangePickerProps) {
+function DateTimeRangePicker({ from, to, onChange, utc }: DateTimeRangePickerProps) {
   utc = utc === undefined ? true : utc;
   from = from || defaultFilterFrom;
   to = to || new Date().toISOString();
 
   let customFrom: string;
-  if (from[0] !== "-" && from !== "*") {
+  if (from[0] !== '-' && from !== '*') {
     customFrom = from;
-    from = "custom";
+    from = 'custom';
   } else {
     if (rangePresets.findIndex((v) => v.value === from) === -1) {
       throw new Error(
         "Unsupported 'from' value. Allowed values are: " +
-          rangePresets.map((v) => v.value).join(", ") +
-          ", or an ISO-formatted date string."
+          rangePresets.map((v) => v.value).join(', ') +
+          ', or an ISO-formatted date string.'
       );
     }
     customFrom = new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(); // now - 1h
@@ -59,11 +54,7 @@ function DateTimeRangePicker({
 
   const handlePresetChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     from = event.target.value as string;
-    onChange &&
-      onChange(
-        from === "custom" ? customFrom : from,
-        (from === "custom" && to) || undefined
-      );
+    onChange && onChange(from === 'custom' ? customFrom : from, (from === 'custom' && to) || undefined);
   };
 
   const getUTCDate = (date: string) => {
@@ -84,7 +75,7 @@ function DateTimeRangePicker({
     const v = event.target.value as string;
     if (v) {
       to = getUTCDate(v);
-      onChange && onChange((from === "custom" ? customFrom : from) || "", to);
+      onChange && onChange((from === 'custom' ? customFrom : from) || '', to);
     }
   };
 
@@ -92,14 +83,12 @@ function DateTimeRangePicker({
     // yyyy-MM-ddThh:mm:ss
     const d = new Date(utcDate);
     return utc
-      ? `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(
-          d.getUTCDate()
-        )}T${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(
-          d.getUTCSeconds()
-        )}`
-      : `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(
-          d.getHours()
-        )}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+      ? `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}T${pad(d.getUTCHours())}:${pad(
+          d.getUTCMinutes()
+        )}:${pad(d.getUTCSeconds())}`
+      : `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(
+          d.getMinutes()
+        )}:${pad(d.getSeconds())}`;
   };
 
   return (
@@ -116,23 +105,19 @@ function DateTimeRangePicker({
           onChange={handlePresetChange}
         >
           {rangePresets.map((a: any) => (
-            <MenuItem
-              key={a.value}
-              value={a.value}
-              className="fusebit-prevent-clickaway"
-            >
+            <MenuItem key={a.value} value={a.value} className="fusebit-prevent-clickaway">
               {a.description}
             </MenuItem>
           ))}
         </TextField>
       </Grid>
-      {from === "custom" && (
+      {from === 'custom' && (
         <React.Fragment>
           <Grid item xs={6}>
             <TextField
               id="fromSelector"
               margin="dense"
-              label={utc ? "Start time (UTC)" : "Start time (local)"}
+              label={utc ? 'Start time (UTC)' : 'Start time (local)'}
               variant="outlined"
               type="datetime-local"
               value={formatPickerDate(customFrom)}
@@ -144,7 +129,7 @@ function DateTimeRangePicker({
             <TextField
               id="toSelector"
               margin="dense"
-              label={utc ? "End time (UTC)" : "End time (local)"}
+              label={utc ? 'End time (UTC)' : 'End time (local)'}
               variant="outlined"
               type="datetime-local"
               value={formatPickerDate(to)}

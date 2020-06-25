@@ -38,7 +38,7 @@ interface IProps {
   setActiveCodeList: (newCodeList: ActiveCodeList) => void;
 }
 
-const MonitorGraph: React.FC<IProps> = props => {
+const MonitorGraph: React.FC<IProps> = (props) => {
   // Payload received from the server
   const [data, setData] = useState({ codes: [], items: [] });
 
@@ -153,7 +153,7 @@ const MonitorGraph: React.FC<IProps> = props => {
       setHTTPEventRange(e.payload.key);
     };
 
-    elements = data.codes.map(id => {
+    elements = data.codes.map((id) => {
       return [
         <ChartElement
           yAxisId="right"
@@ -185,7 +185,7 @@ const MonitorGraph: React.FC<IProps> = props => {
       setActiveCodeList(e.dataKey); // Should be just the basic HTTP code value.
       setHTTPEventRange(e.payload.key);
     };
-    elements = data.codes.map(id => {
+    elements = data.codes.map((id) => {
       return (
         <ChartElement
           yAxisId="left"

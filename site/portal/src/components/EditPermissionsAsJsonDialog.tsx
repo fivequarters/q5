@@ -71,7 +71,7 @@ function EditPermissionsAsJsonDialog({ onClose }: any) {
 
       agent.modified.access = { allow };
       modifyAgent(agent, setAgent, { ...agent.modified });
-      saveAgent(agent, setAgent, undefined, e => !e && onClose && onClose());
+      saveAgent(agent, setAgent, undefined, (e) => !e && onClose && onClose());
     }
   };
 

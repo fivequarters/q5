@@ -30,13 +30,13 @@ export function createLogsPanel(element: HTMLElement, editorContext: EditorConte
   };
 
   deleteElement &&
-    deleteElement.addEventListener('click', e => {
+    deleteElement.addEventListener('click', (e) => {
       e.preventDefault();
       contentElement.textContent = '';
     });
 
   let logsAttachedOnce: boolean = false;
-  editorContext.on(Events.Events.LogsAttached, e => {
+  editorContext.on(Events.Events.LogsAttached, (e) => {
     if (!logsAttachedOnce) {
       logsAttachedOnce = true;
       append('Attached to real-time logs...');
@@ -127,7 +127,7 @@ export function createLogsPanel(element: HTMLElement, editorContext: EditorConte
         if (response.body.properties) {
           let trace = response.body.properties.trace || response.body.properties.stackTrace;
           if (trace && Array.isArray(trace)) {
-            trace.forEach(x => lines.push(x));
+            trace.forEach((x) => lines.push(x));
           }
         }
         if (lines.length === 1 && response.body.message) {

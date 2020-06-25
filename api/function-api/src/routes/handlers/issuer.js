@@ -3,7 +3,7 @@ const create_error = require('http-errors');
 
 function issuerPost() {
   return (req, res) => {
-    getAccountContext().then(accountContext => {
+    getAccountContext().then((accountContext) => {
       const resolvedAgent = req.resolvedAgent;
       const accountId = req.params.accountId;
       const issuerId = req.params.issuerId;
@@ -12,7 +12,7 @@ function issuerPost() {
 
       accountContext.issuer
         .add(resolvedAgent, accountId, newIssuer)
-        .then(result => res.json(result))
+        .then((result) => res.json(result))
         .catch(errorHandler(res));
     });
   };
@@ -20,7 +20,7 @@ function issuerPost() {
 
 function issuerPatch() {
   return (req, res, next) => {
-    getAccountContext().then(accountContext => {
+    getAccountContext().then((accountContext) => {
       const resolvedAgent = req.resolvedAgent;
       const accountId = req.params.accountId;
       const issuerId = req.params.issuerId;
@@ -37,7 +37,7 @@ function issuerPatch() {
 
       accountContext.issuer
         .update(resolvedAgent, accountId, updateIssuer)
-        .then(result => res.json(result))
+        .then((result) => res.json(result))
         .catch(errorHandler(res));
     });
   };
@@ -45,14 +45,14 @@ function issuerPatch() {
 
 function issuerGet() {
   return (req, res) => {
-    getAccountContext().then(accountContext => {
+    getAccountContext().then((accountContext) => {
       const resolvedAgent = req.resolvedAgent;
       const accountId = req.params.accountId;
       const issuerId = req.params.issuerId;
 
       accountContext.issuer
         .get(resolvedAgent, accountId, issuerId)
-        .then(result => res.json(result))
+        .then((result) => res.json(result))
         .catch(errorHandler(res));
     });
   };
@@ -60,7 +60,7 @@ function issuerGet() {
 
 function issuerList() {
   return (req, res) => {
-    getAccountContext().then(accountContext => {
+    getAccountContext().then((accountContext) => {
       const resolvedAgent = req.resolvedAgent;
       const accountId = req.params.accountId;
       const limit = req.query.count;
@@ -70,7 +70,7 @@ function issuerList() {
 
       accountContext.issuer
         .list(resolvedAgent, accountId, options)
-        .then(result => res.json(result))
+        .then((result) => res.json(result))
         .catch(errorHandler(res));
     });
   };
@@ -78,7 +78,7 @@ function issuerList() {
 
 function issuerDelete() {
   return (req, res) => {
-    getAccountContext().then(accountContext => {
+    getAccountContext().then((accountContext) => {
       const resolvedAgent = req.resolvedAgent;
       const accountId = req.params.accountId;
       const issuerId = req.params.issuerId;

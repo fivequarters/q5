@@ -24,7 +24,7 @@ export class DataSource implements IDataSource {
       return false;
     }
 
-    const results = await Promise.all(this.dataSources.map(dataSource => dataSource.isSetup()));
+    const results = await Promise.all(this.dataSources.map((dataSource) => dataSource.isSetup()));
     return results.indexOf(false) === -1;
   }
 
@@ -32,7 +32,7 @@ export class DataSource implements IDataSource {
     if (this.dataSources) {
       if (!this.setupPromise) {
         this.setupPromise = Promise.all(
-          this.dataSources.map(async dataSource => {
+          this.dataSources.map(async (dataSource) => {
             const isSetup = await dataSource.isSetup();
             return isSetup ? Promise.resolve() : dataSource.setup();
           })

@@ -101,7 +101,7 @@ export async function createDwhExport(config: OpsDataAwsConfig, awsConfig: IAwsC
         SourceArn: ctx.ruleArn,
         StatementId: Config.exporter.name,
       },
-      e => {
+      (e) => {
         if (e) {
           if (e.code === 'ResourceConflictException') {
             debug('Permissions already exist.');

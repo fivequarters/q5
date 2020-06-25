@@ -104,7 +104,7 @@ export function createEditorPanel(element: HTMLElement, editorContext: EditorCon
   });
 
   // When compute settings are selected, serialize them and display as INI for editing
-  editorContext.on(Events.SettingsComputeSelected, _ => {
+  editorContext.on(Events.SettingsComputeSelected, (_) => {
     captureViewState();
     suppressNextChangeEvent = true;
     activeCategory = Events.SettingsComputeSelected;

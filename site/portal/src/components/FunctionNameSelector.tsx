@@ -1,50 +1,35 @@
-import LinearProgress from "@material-ui/core/LinearProgress";
-import TextField from "@material-ui/core/TextField";
-import FlipIcon from "@material-ui/icons/Flip";
-import LabelIcon from "@material-ui/icons/Label";
-import React from "react";
-import { useBoundaries } from "./BoundariesProvider";
-import BoundarySelector from "./BoundarySelector";
-import InputWithIcon from "./InputWithIcon";
-import PortalError from "./PortalError";
+import LinearProgress from '@material-ui/core/LinearProgress';
+import TextField from '@material-ui/core/TextField';
+import FlipIcon from '@material-ui/icons/Flip';
+import LabelIcon from '@material-ui/icons/Label';
+import React from 'react';
+import { useBoundaries } from './BoundariesProvider';
+import BoundarySelector from './BoundarySelector';
+import InputWithIcon from './InputWithIcon';
+import PortalError from './PortalError';
 
-function FunctionNameSelector({
-  subscriptionId,
-  boundaryEnabled,
-  name,
-  onNameChange,
-}: any) {
+function FunctionNameSelector({ subscriptionId, boundaryEnabled, name, onNameChange }: any) {
   const [boundaries] = useBoundaries();
 
-  if (boundaries.status === "loading") {
+  if (boundaries.status === 'loading') {
     return <LinearProgress />;
   }
 
-  if (boundaries.status === "error") {
+  if (boundaries.status === 'error') {
     return <PortalError error={boundaries.error} padding={true} />;
   }
 
   const isDisabled = (name: any) =>
-    !!!(
-      name.functionId.trim() &&
-      name.boundaryId.trim() &&
-      !name.functionIdError &&
-      !name.boundaryIdError
-    );
+    !!!(name.functionId.trim() && name.boundaryId.trim() && !name.functionIdError && !name.boundaryIdError);
 
-  const handleFunctionIdChange = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleFunctionIdChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const trimmed = event.target.value.trim();
     const boundary = boundaries.existing[name.boundaryId];
     if (!trimmed.match(/^[a-z0-9-]{1,64}$/)) {
       name.functionIdError =
-        "Required. Must be a 1-64 character string consisting of lowercase letters, numbers, and hyphens.";
+        'Required. Must be a 1-64 character string consisting of lowercase letters, numbers, and hyphens.';
       name.functionNameConflict = false;
-    } else if (
-      boundary &&
-      boundary.functions.find((f) => f.functionId === trimmed)
-    ) {
+    } else if (boundary && boundary.functions.find((f) => f.functionId === trimmed)) {
       name.functionIdError = `Function '${trimmed}' already exists in boundary '${name.boundaryId}', choose a different name.`;
       name.functionNameConflict = true;
     } else {
@@ -64,12 +49,9 @@ function FunctionNameSelector({
     const boundary = boundaries.existing[trimmed];
     if (!trimmed.match(/^[a-z0-9-]{1,63}$/)) {
       name.boundaryIdError =
-        "Required. Must be a 1-63 character string consisting of lowercase letters, numbers, and hyphens.";
+        'Required. Must be a 1-63 character string consisting of lowercase letters, numbers, and hyphens.';
       name.boundaryNameConflict = false;
-    } else if (
-      boundary &&
-      boundary.functions.find((f) => f.functionId === name.functionId)
-    ) {
+    } else if (boundary && boundary.functions.find((f) => f.functionId === name.functionId)) {
       name.boundaryIdError = `Boundary '${trimmed}' already contains function '${name.functionId}', choose a different name.`;
       name.boundaryNameConflict = true;
     } else {
@@ -92,7 +74,7 @@ function FunctionNameSelector({
           label="Name"
           variant="outlined"
           value={name.functionId}
-          helperText={name.functionIdError || "Required"}
+          helperText={name.functionIdError || 'Required'}
           error={!!name.functionIdError}
           onChange={handleFunctionIdChange}
           fullWidth
@@ -107,7 +89,7 @@ function FunctionNameSelector({
             fullWidth
             variant="outlined"
             onChange={handleBoundaryIdChange}
-            helperText={name.boundaryIdError || "Required"}
+            helperText={name.boundaryIdError || 'Required'}
             error={!!name.boundaryIdError}
             label="Boundary"
           />

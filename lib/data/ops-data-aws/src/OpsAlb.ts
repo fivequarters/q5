@@ -57,7 +57,7 @@ export class OpsAlb extends DataSource {
       name: this.config.monoAlbDeploymentName,
       certArns: [certDetails.arn],
       vpcId: network.vpcId,
-      subnets: network.publicSubnets.map(subnet => subnet.id),
+      subnets: network.publicSubnets.map((subnet) => subnet.id),
       securityGroups: [network.securityGroupId],
       defaultTarget: {
         name: this.config.monoAlbDefaultTargetName,

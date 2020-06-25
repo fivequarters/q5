@@ -213,7 +213,7 @@ export class ResolvedAgent implements IAgent {
 
   public get access() {
     const accessEntries = this.agent.access && this.agent.access.allow ? this.agent.access.allow : [];
-    const allow = accessEntries.map(accessEntry => {
+    const allow = accessEntries.map((accessEntry) => {
       const { action, resource } = accessEntry;
       return { action, resource };
     });

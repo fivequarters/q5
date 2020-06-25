@@ -37,7 +37,7 @@ function getScrollOffset(elementOrWindow: HTMLElement | Window) {
 const Container = styled.div<ScrollStickProps>`
   width: 100%;
   &.sticky {
-    position: ${props => (props.useWindowScroll ? 'fixed' : 'sticky')};
+    position: ${(props) => (props.useWindowScroll ? 'fixed' : 'sticky')};
     top: 0;
   }
 `;

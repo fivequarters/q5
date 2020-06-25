@@ -27,7 +27,10 @@ describe('replaceInFile()', () => {
   it('should support multiple searches', async () => {
     const path = join(tmpdir(), `testing-find-in-file-4-${Date.now()}`);
     await writeFile(path, 'hello hey\nhello');
-    await replaceInFile(path, [{ search: 'hey', replace: 'yo' }, { search: 'hello', replace: 'bye' }]);
+    await replaceInFile(path, [
+      { search: 'hey', replace: 'yo' },
+      { search: 'hello', replace: 'bye' },
+    ]);
     expect((await readFile(path)).toString()).toBe('bye yo\nbye');
   });
 

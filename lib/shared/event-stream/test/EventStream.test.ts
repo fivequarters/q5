@@ -7,7 +7,7 @@ const port = packageJson.devServer.port;
 let server: http.Server;
 
 beforeAll(async () => {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     server = http
       .createServer((request, response) => {
         response.writeHead(200, { 'content-type': 'text/event-stream', 'cache-control': 'no-cache' });
@@ -33,7 +33,7 @@ afterAll(() => {
 describe('EventStream', () => {
   it('should correctly listen for messages', async () => {
     let messages: IEventMessage[] = [];
-    await new Promise(resolve => {
+    await new Promise((resolve) => {
       const options = {
         onMessage: (message: IEventMessage) => messages.push(message),
         onEnd: resolve,
@@ -45,7 +45,7 @@ describe('EventStream', () => {
 
   it('should correctly handle incomplete messages', async () => {
     let messages: IEventMessage[] = [];
-    await new Promise(resolve => {
+    await new Promise((resolve) => {
       const options = {
         onMessage: (message: IEventMessage) => messages.push(message),
         onEnd: resolve,

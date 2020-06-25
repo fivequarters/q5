@@ -117,7 +117,7 @@ const freshenHistory = (history: any) => {
   return fresh;
 };
 
-const Analytics: React.FC<IAnalyticsProps> = props => {
+const Analytics: React.FC<IAnalyticsProps> = (props) => {
   const classes = useStyles();
   const enabledPanels = props.enabledPanels || Object.keys(analyticsTable);
   const [history, setHistory] = useHashHistory('analytics', {
@@ -147,7 +147,7 @@ const Analytics: React.FC<IAnalyticsProps> = props => {
             <Select value={topic} onChange={onTopicSelect}>
               {enabledPanels
                 .sort((a, b) => analyticsTable[a].n - analyticsTable[b].n)
-                .map(k => {
+                .map((k) => {
                   return (
                     <MenuItem key={k} value={k}>
                       <Typography variant="h6">{analyticsTable[k].t}</Typography>

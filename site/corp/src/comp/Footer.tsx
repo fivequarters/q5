@@ -5,7 +5,7 @@ import { applyTheme } from '../util';
 
 const Container = styled.div`
   padding: 30px;
-  ${props => applyTheme(props, 'footer')}
+  ${(props) => applyTheme(props, 'footer')}
 `;
 
 export function Footer() {

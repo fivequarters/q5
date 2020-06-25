@@ -20,10 +20,10 @@ const Global = createGlobalStyle<{}>`
 `;
 
 const Container = styled.div<BodyProps>`
-  height: ${props => (props.height ? `${props.height}px` : '100%')};
-  ${props => (props.color ? `color: ${props.color};` : '')}
-  ${props => (props.background ? `background-color: ${props.background};` : '')}
-  ${props => (props.padding ? `padding: ${props.padding}px;` : '')}
+  height: ${(props) => (props.height ? `${props.height}px` : '100%')};
+  ${(props) => (props.color ? `color: ${props.color};` : '')}
+  ${(props) => (props.background ? `background-color: ${props.background};` : '')}
+  ${(props) => (props.padding ? `padding: ${props.padding}px;` : '')}
 `;
 
 // -------------------

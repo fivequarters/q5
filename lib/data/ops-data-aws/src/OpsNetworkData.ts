@@ -62,7 +62,7 @@ export class OpsNetworkData extends DataSource implements IOpsNetworkData {
 
   public async list(options?: IListOpsNetworkOptions): Promise<IListOpsNetworkResult> {
     const result = await this.tables.networkTable.list(options);
-    const items = await Promise.all(result.items.map(network => this.attachNetworkDetails(network, false)));
+    const items = await Promise.all(result.items.map((network) => this.attachNetworkDetails(network, false)));
     return {
       next: result.next,
       items,
@@ -71,7 +71,7 @@ export class OpsNetworkData extends DataSource implements IOpsNetworkData {
 
   public async listAll(networkName?: string): Promise<IOpsNetwork[]> {
     const networks = await this.tables.networkTable.listAll(networkName);
-    return Promise.all(networks.map(network => this.attachNetworkDetails(network, false)));
+    return Promise.all(networks.map((network) => this.attachNetworkDetails(network, false)));
   }
 
   private async attachNetworkDetails(network: IOpsNewNetwork, createIfNotExists: boolean): Promise<IOpsNetwork> {

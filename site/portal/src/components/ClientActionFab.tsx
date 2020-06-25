@@ -1,8 +1,8 @@
-import React from "react";
-import ActionFab from "./ActionFab";
-import AddPermissionSetDialog from "./AddPermissionSetDialog";
-import SetupAccessDialog from "./SetupAccessDialog";
-import { useAgent, reloadAgent } from "./AgentProvider";
+import React from 'react';
+import ActionFab from './ActionFab';
+import AddPermissionSetDialog from './AddPermissionSetDialog';
+import SetupAccessDialog from './SetupAccessDialog';
+import { useAgent, reloadAgent } from './AgentProvider';
 
 function ClientActionFab() {
   const [setupAccessOpen, setSetupAccessOpen] = React.useState(false);
@@ -11,7 +11,7 @@ function ClientActionFab() {
 
   const handleAddPermissionSetClose = () => {
     setAddPermissionSetOpen(false);
-    if (agent.status === "error") {
+    if (agent.status === 'error') {
       reloadAgent(agent, setAgent);
     }
   };
@@ -23,25 +23,21 @@ function ClientActionFab() {
         subtitle="Easily manage this client with these common actions:"
         actions={[
           {
-            name: "Grant permission set",
-            handler: () => setAddPermissionSetOpen(true)
+            name: 'Grant permission set',
+            handler: () => setAddPermissionSetOpen(true),
           },
           {
-            name: "Connect CLI client to Fusebit",
-            handler: () => setSetupAccessOpen(true)
-          }
+            name: 'Connect CLI client to Fusebit',
+            handler: () => setSetupAccessOpen(true),
+          },
           // {
           //   name: "Connect API client to Fusebit",
           //   handler: () => setSetupAccessOpen(true)
           // }
         ]}
       />
-      {setupAccessOpen && (
-        <SetupAccessDialog onClose={() => setSetupAccessOpen(false)} />
-      )}
-      {addPermissionSetOpen && (
-        <AddPermissionSetDialog onClose={handleAddPermissionSetClose} />
-      )}
+      {setupAccessOpen && <SetupAccessDialog onClose={() => setSetupAccessOpen(false)} />}
+      {addPermissionSetOpen && <AddPermissionSetDialog onClose={handleAddPermissionSetClose} />}
     </React.Fragment>
   );
 }

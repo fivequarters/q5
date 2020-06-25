@@ -40,7 +40,7 @@ describe('spawn()', () => {
   it('should write to the stdout stream option', async () => {
     const stream = new Writable();
     let stdout = '';
-    stream._write = chunk => (stdout += chunk.toString());
+    stream._write = (chunk) => (stdout += chunk.toString());
 
     const actual = await spawn('node', { args: ['-e', 'console.log("hello")'], stdout: stream });
     expect(stdout).toBe('hello\n');
@@ -52,7 +52,7 @@ describe('spawn()', () => {
   it('should write to stderr stream option', async () => {
     const stream = new Writable();
     let stderr = '';
-    stream._write = chunk => (stderr += chunk.toString());
+    stream._write = (chunk) => (stderr += chunk.toString());
 
     const actual = await spawn('node', { args: ['-e', 'console.error("hello")'], stderr: stream });
     expect(stderr).toBe('hello\n');

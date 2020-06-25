@@ -56,7 +56,7 @@ dom.watch();
 // https://github.com/Microsoft/monaco-editor/blob/master/docs/integrate-amd-cross.md
 //@ts-ignore
 window.MonacoEnvironment = {
-  getWorkerUrl: function(workerId: string, label: string) {
+  getWorkerUrl: function (workerId: string, label: string) {
     return `data:text/javascript;charset=utf-8,${encodeURIComponent(`
       self.MonacoEnvironment = {
         baseUrl: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.15.6/min/'

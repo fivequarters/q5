@@ -22,8 +22,8 @@ export function modalConfirmCancelQuestion(
   let modal = document.getElementById(modalId) as HTMLElement;
   let confirmButton = document.getElementById(confirmId) as HTMLElement;
 
-  modal.addEventListener('click', e => done(e, false));
-  confirmButton.addEventListener('click', e => done(e, true));
+  modal.addEventListener('click', (e) => done(e, false));
+  confirmButton.addEventListener('click', (e) => done(e, true));
 
   function done(e: Event, confirm: boolean) {
     e.preventDefault();

@@ -187,7 +187,7 @@ export class UserData extends DataSource implements IUserData {
         moreFromUsers = false;
       }
       if (usersResult) {
-        agentIdsFromUsers.push(...usersResult.items.map(user => user.id));
+        agentIdsFromUsers.push(...usersResult.items.map((user) => user.id));
         usersOptions.next = usersResult.next;
       }
 
@@ -212,7 +212,7 @@ export class UserData extends DataSource implements IUserData {
     options?: IListUsersOptions
   ): Promise<IListUsersResult> {
     if (options && options.include === UserInclude.all) {
-      const agentIds = result.items.map(user => user.id);
+      const agentIds = result.items.map((user) => user.id);
       const agents = await this.agentData.getAllWithAgentId(accountId, agentIds as string[]);
       result.items = toUsers(result.items, agents);
     }

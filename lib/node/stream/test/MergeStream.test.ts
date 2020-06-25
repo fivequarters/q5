@@ -20,7 +20,7 @@ describe('MergeStream', () => {
     source2.end();
     source1.end();
 
-    await new Promise(resolve => process.nextTick(resolve));
+    await new Promise((resolve) => process.nextTick(resolve));
 
     expect(actual).toBe('hello friend goodbye buddy');
   });
@@ -46,7 +46,7 @@ describe('MergeStream', () => {
     source1.end();
     source3.write('alligator');
 
-    await new Promise(resolve => process.nextTick(resolve));
+    await new Promise((resolve) => process.nextTick(resolve));
 
     expect(actual).toBe('hello friend goodbye buddy later alligator');
   });
@@ -72,7 +72,7 @@ describe('MergeStream', () => {
     source1.end();
     source3.write('alligator');
 
-    await new Promise(resolve => process.nextTick(resolve));
+    await new Promise((resolve) => process.nextTick(resolve));
 
     expect(actual).toBe('hello friend goodbye buddy later alligator');
   });
@@ -98,7 +98,7 @@ describe('MergeStream', () => {
     source1.end();
     source3.write('alligator');
 
-    await new Promise(resolve => process.nextTick(resolve));
+    await new Promise((resolve) => process.nextTick(resolve));
 
     expect(actual).toBe('hello friend goodbye buddy later alligator');
   });
@@ -121,9 +121,9 @@ describe('MergeStream', () => {
     const source3 = mergeStream.createSourceStream();
 
     const actualErrors: Error[] = [];
-    source1.on('error', anError => (actualErrors[0] = anError));
-    source2.on('error', anError => (actualErrors[1] = anError));
-    source3.on('error', anError => (actualErrors[2] = anError));
+    source1.on('error', (anError) => (actualErrors[0] = anError));
+    source2.on('error', (anError) => (actualErrors[1] = anError));
+    source3.on('error', (anError) => (actualErrors[2] = anError));
 
     source2.write('goodbye ');
     source1.write('hello ');
@@ -136,7 +136,7 @@ describe('MergeStream', () => {
     source1.write('friend ');
     source3.write('alligator');
 
-    await new Promise(resolve => process.nextTick(resolve));
+    await new Promise((resolve) => process.nextTick(resolve));
 
     expect(actualErrors).toEqual([error, error, error]);
     expect(actual).toBe('hello ');
@@ -153,7 +153,7 @@ describe('MergeStream', () => {
     const mergeStream = new MergeStream(sinkStream);
     sinkStream.destroy(new Error());
 
-    await new Promise(resolve => process.nextTick(resolve));
+    await new Promise((resolve) => process.nextTick(resolve));
     const source1 = mergeStream.createSourceStream();
     const source2 = mergeStream.createSourceStream();
     source2.write('goodbye ');

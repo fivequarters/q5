@@ -71,9 +71,7 @@ export function FusebitSocialButton({
         )}
         {share ? (
           <Box marginLeft={small ? 10 : 14}>{type === FusebitSocialType.twitter ? 'Tweet' : 'Share'}</Box>
-        ) : (
-          undefined
-        )}
+        ) : undefined}
       </Box>
     </FusebitButton>
   );

@@ -1,18 +1,17 @@
-import MenuItem from "@material-ui/core/MenuItem";
-import Select from "@material-ui/core/Select";
-import React from "react";
-import { useProfile } from "./ProfileProvider";
-import { actions } from "../lib/Actions";
+import MenuItem from '@material-ui/core/MenuItem';
+import Select from '@material-ui/core/Select';
+import React from 'react';
+import { useProfile } from './ProfileProvider';
+import { actions } from '../lib/Actions';
 
 function PermissionActionSelector({ action, onChange, ...rest }: any) {
   const { profile } = useProfile();
   const allow = (profile.me && profile.me.access.allow) || [];
 
   const isActionInScope = (candidate: string, existing: string) => {
-    if (existing === "*" || candidate === existing) return true;
-    let tokens = existing.split(":");
-    if (tokens[1] === "*" && candidate.indexOf(`${tokens[0]}:`) === 0)
-      return true;
+    if (existing === '*' || candidate === existing) return true;
+    let tokens = existing.split(':');
+    if (tokens[1] === '*' && candidate.indexOf(`${tokens[0]}:`) === 0) return true;
     return false;
   };
 
@@ -33,7 +32,7 @@ function PermissionActionSelector({ action, onChange, ...rest }: any) {
 
   const handleActionChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     if (onChange) {
-      let description = "";
+      let description = '';
       let action = event.target.value as string;
       for (var i = 0; i < actions.length; i++) {
         if (actions[i].action === action) {
@@ -46,12 +45,7 @@ function PermissionActionSelector({ action, onChange, ...rest }: any) {
   };
 
   return (
-    <Select
-      id="actionChoice"
-      value={action}
-      onChange={handleActionChange}
-      {...rest}
-    >
+    <Select id="actionChoice" value={action} onChange={handleActionChange} {...rest}>
       {allowedActions.map((a: any) => (
         <MenuItem key={a.action} value={a.action}>
           <strong>{a.action}</strong> - {a.description}

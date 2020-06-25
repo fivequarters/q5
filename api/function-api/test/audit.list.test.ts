@@ -250,7 +250,7 @@ describe('Audit', () => {
       const testAccount = cloneWithAccessToken(account, testUser.accessToken);
 
       await addUser(testAccount, {});
-      await new Promise(resolve => setTimeout(resolve, 10000));
+      await new Promise((resolve) => setTimeout(resolve, 10000));
       await addUser(testAccount, {});
       const now = Date.now();
 
@@ -285,7 +285,7 @@ describe('Audit', () => {
       await addUser(testAccount, {});
       const now = Date.now();
 
-      await new Promise(resolve => setTimeout(resolve, 10000));
+      await new Promise((resolve) => setTimeout(resolve, 10000));
       await addUser(testAccount, {});
 
       const audit = await listAudit(account, { issuerId: testUser.identities[0].issuerId, to: '-5s' });
@@ -317,11 +317,11 @@ describe('Audit', () => {
       const testAccount = cloneWithAccessToken(account, testUser.accessToken);
 
       await addUser(testAccount, {});
-      await new Promise(resolve => setTimeout(resolve, 10000));
+      await new Promise((resolve) => setTimeout(resolve, 10000));
 
       await addUser(testAccount, {});
       const now = Date.now();
-      await new Promise(resolve => setTimeout(resolve, 10000));
+      await new Promise((resolve) => setTimeout(resolve, 10000));
 
       await addUser(testAccount, {});
 
@@ -354,15 +354,15 @@ describe('Audit', () => {
       const testAccount = cloneWithAccessToken(account, testUser.accessToken);
 
       await addUser(testAccount, {});
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      await new Promise((resolve) => setTimeout(resolve, 5000));
       const from = Date.now().toString();
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      await new Promise((resolve) => setTimeout(resolve, 5000));
 
       await addUser(testAccount, {});
       const now = Date.now();
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      await new Promise((resolve) => setTimeout(resolve, 5000));
       const to = Date.now().toString();
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      await new Promise((resolve) => setTimeout(resolve, 5000));
 
       await addUser(testAccount, {});
 
@@ -395,15 +395,15 @@ describe('Audit', () => {
       const testAccount = cloneWithAccessToken(account, testUser.accessToken);
 
       await addUser(testAccount, {});
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      await new Promise((resolve) => setTimeout(resolve, 5000));
       const from = new Date().toISOString();
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      await new Promise((resolve) => setTimeout(resolve, 5000));
 
       await addUser(testAccount, {});
       const now = Date.now();
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      await new Promise((resolve) => setTimeout(resolve, 5000));
       const to = new Date().toISOString();
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      await new Promise((resolve) => setTimeout(resolve, 5000));
 
       await addUser(testAccount, {});
 
@@ -436,15 +436,15 @@ describe('Audit', () => {
       const testAccount = cloneWithAccessToken(account, testUser.accessToken);
 
       await addUser(testAccount, {});
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      await new Promise((resolve) => setTimeout(resolve, 5000));
       const from = new Date().toUTCString();
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      await new Promise((resolve) => setTimeout(resolve, 5000));
 
       await addUser(testAccount, {});
       const now = Date.now();
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      await new Promise((resolve) => setTimeout(resolve, 5000));
       const to = new Date().toUTCString();
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      await new Promise((resolve) => setTimeout(resolve, 5000));
 
       await addUser(testAccount, {});
 

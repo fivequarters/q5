@@ -468,7 +468,7 @@ router.get(
   validate_schema({ params: require('./schemas/api_account') }),
   authorize({
     operation: 'function:get-log',
-    getToken: req => req.query && req.query.token,
+    getToken: (req) => req.query && req.query.token,
   }),
   validate_schema({
     params: require('./schemas/api_params'),
@@ -565,7 +565,7 @@ router.get(
   validate_schema({ params: require('./schemas/api_account') }),
   authorize({
     operation: 'function:get-log',
-    getToken: req => req.query && req.query.token,
+    getToken: (req) => req.query && req.query.token,
   }),
   validate_schema({
     params: require('./schemas/api_params'),
@@ -756,7 +756,7 @@ function promote_to_name_params(req, res, next) {
 
 router.options(run_route, cors(corsExecutionOptions));
 
-['post', 'put', 'patch'].forEach(verb => {
+['post', 'put', 'patch'].forEach((verb) => {
   router[verb](
     run_route,
     analytics.enterHandler(analytics.Modes.Execution),
@@ -767,14 +767,14 @@ router.options(run_route, cors(corsExecutionOptions));
     }),
     determine_provider(),
     parse_body_conditional({
-      condition: req => req.provider === 'lambda',
+      condition: (req) => req.provider === 'lambda',
     }),
     (req, res, next) => provider_handlers[req.provider].execute_function(req, res, next),
     analytics.finished
   );
 });
 
-['delete', 'get', 'head'].forEach(verb => {
+['delete', 'get', 'head'].forEach((verb) => {
   router[verb](
     run_route,
     analytics.enterHandler(analytics.Modes.Execution),

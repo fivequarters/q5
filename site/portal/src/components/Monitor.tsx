@@ -37,7 +37,7 @@ const availableGraphs: { [key: string]: ActiveGraph } = {
   activitylatency: { query: 'codeactivitylatencyhg', label: 'HTTP Response Volume and Latency', multi: true },
 };
 
-const MonitorPanel: React.FC<IProps> = props => {
+const MonitorPanel: React.FC<IProps> = (props) => {
   const { profile } = useProfile();
 
   const [interval, setInterval] = useState<IDateInterval>({
@@ -58,7 +58,7 @@ const MonitorPanel: React.FC<IProps> = props => {
     params.subscriptionId ? `subscription/${params.subscriptionId}` : '',
     params.boundaryId ? `boundary/${params.boundaryId}` : '',
     params.functionId ? `function/${params.functionId}` : '',
-  ].filter(x => x);
+  ].filter((x) => x);
 
   const urlWart = `${profile.baseUrl}/v1/` + warts.join('/');
   const activeGraph = availableGraphs[graphModes.sort().join('')];
@@ -86,7 +86,7 @@ const MonitorPanel: React.FC<IProps> = props => {
         onChange={(e, v) => setInterval({ ...interval, width: v })}
         value={interval.width}
       >
-        {Object.keys(BucketWidths).map(width => {
+        {Object.keys(BucketWidths).map((width) => {
           let tWidth: keyof typeof BucketWidths = width as keyof typeof BucketWidths;
           return (
             <ToggleButton key={width} value={BucketWidths[tWidth]}>

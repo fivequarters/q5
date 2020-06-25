@@ -111,7 +111,7 @@ export class Server {
    * @param account Static credentials to the Fusebit HTTP APIs.
    */
   public static create(account: IAccount): Server {
-    return new Server(currentAccount => Promise.resolve(account));
+    return new Server((currentAccount) => Promise.resolve(account));
   }
   /**
    * Current credentials used by the _Server_ to call Fusebit HTTP APIs.
@@ -168,7 +168,7 @@ export class Server {
    */
   public getFunctionUrl(boundaryId: string, id: string): Promise<string> {
     return this.accountResolver(this.account)
-      .then(newAccount => {
+      .then((newAccount) => {
         this.account = this._normalizeAccount(newAccount);
         const url = `${this.account.baseUrl}v1/account/${this.account.accountId}/subscription/${this.account.subscriptionId}/boundary/${boundaryId}/function/${id}/location`;
         return Superagent.get(url)
@@ -176,7 +176,7 @@ export class Server {
           .set('x-user-agent', userAgent)
           .timeout(this.requestTimeout);
       })
-      .then(res => {
+      .then((res) => {
         return res.body.location;
       });
   }
@@ -198,7 +198,7 @@ export class Server {
   ): Promise<EditorContext> {
     const self = this;
     return this.accountResolver(this.account)
-      .then(newAccount => {
+      .then((newAccount) => {
         this.account = this._normalizeAccount(newAccount);
         const url = `${this.account.baseUrl}v1/account/${this.account.accountId}/subscription/${this.account.subscriptionId}/boundary/${boundaryId}/function/${id}?include=all`;
         return Superagent.get(url)
@@ -206,11 +206,11 @@ export class Server {
           .set('x-user-agent', userAgent)
           .timeout(this.requestTimeout);
       })
-      .then(res => {
+      .then((res) => {
         let editorContext = createEditorContext(res.body);
         return editorContext;
       })
-      .catch(error => {
+      .catch((error) => {
         if (!createIfNotExist) {
           throw new Error(
             `Fusebit editor failed to load function ${boundaryId}/${id} because it does not exist, and IEditorCreationOptions were not specified. Specify IEditorCreationOptions to allow a function to be created if one does not exist.`
@@ -218,7 +218,7 @@ export class Server {
         }
         let editorContext = createEditorContext(createIfNotExist.template);
         if (createIfNotExist.editor && createIfNotExist.editor.ensureFunctionExists) {
-          return this.buildFunction(editorContext).then(_ => editorContext);
+          return this.buildFunction(editorContext).then((_) => editorContext);
         } else {
           editorContext.setDirtyState(true);
           return editorContext;
@@ -232,7 +232,7 @@ export class Server {
         ...(createIfNotExist && createIfNotExist.editor),
         version: require('../package.json').version,
       };
-      Object.keys(defaultEditorOptions).forEach(k => {
+      Object.keys(defaultEditorOptions).forEach((k) => {
         // @ts-ignore
         if (editorOptions[k] !== false && typeof editorOptions[k] !== 'string') {
           // @ts-ignore
@@ -260,14 +260,14 @@ export class Server {
     editorContext.setDirtyState(false);
     editorContext.setReadOnly(true);
     return this.buildFunction(editorContext)
-      .then(build => {
+      .then((build) => {
         editorContext.setReadOnly(false);
         if (build.error) {
           editorContext.setDirtyState(true);
         }
         return build;
       })
-      .catch(e => {
+      .catch((e) => {
         editorContext.setReadOnly(false);
         editorContext.setDirtyState(true);
         throw e;
@@ -289,7 +289,7 @@ export class Server {
       if (elapsed > this.buildTimeout) {
         throw new Error(`Build process did not complete within the ${this.buildTimeout}ms timeout.`);
       }
-      return new Promise(resolve => setTimeout(resolve, this.buildStatusCheckInterval))
+      return new Promise((resolve) => setTimeout(resolve, this.buildStatusCheckInterval))
         .then(() => {
           // @ts-ignore
           const url = `${this.account.baseUrl}v1/account/${self.account.accountId}/subscription/${
@@ -301,11 +301,11 @@ export class Server {
               // @ts-ignore
               .set('Authorization', `Bearer ${self.account.accessToken}`)
               .set('x-user-agent', userAgent)
-              .ok(res => true)
+              .ok((res) => true)
               .timeout(this.requestTimeout)
           );
         })
-        .then(res => {
+        .then((res) => {
           if (res.status === 200) {
             // success
             editorContext.buildFinished(res.body);
@@ -324,7 +324,7 @@ export class Server {
     editorContext.startBuild();
 
     return this.accountResolver(this.account)
-      .then(newAccount => {
+      .then((newAccount) => {
         this.account = this._normalizeAccount(newAccount);
         const url = `${this.account.baseUrl}v1/account/${this.account.accountId}/subscription/${this.account.subscriptionId}/boundary/${editorContext.boundaryId}/function/${editorContext.functionId}`;
         startTime = Date.now();
@@ -341,10 +341,10 @@ export class Server {
           .set('Authorization', `Bearer ${this.account.accessToken}`)
           .set('x-user-agent', userAgent)
           .timeout(this.requestTimeout)
-          .ok(res => true)
+          .ok((res) => true)
           .send(params);
       })
-      .then(res => {
+      .then((res) => {
         let build = res.body as IBuildStatus;
         if (res.status === 204) {
           // No changes
@@ -367,7 +367,7 @@ export class Server {
           throw new BuildError(build);
         }
       })
-      .catch(err => {
+      .catch((err) => {
         if (!(err instanceof BuildError)) {
           editorContext.buildError(err);
         }
@@ -382,7 +382,7 @@ export class Server {
    */
   public runFunction(editorContext: EditorContext): Promise<ServerResponse> {
     return this.accountResolver(this.account)
-      .then(newAccount => {
+      .then((newAccount) => {
         this.account = this._normalizeAccount(newAccount);
         if (editorContext.location) {
           return editorContext.location;
@@ -390,7 +390,7 @@ export class Server {
           return this.getFunctionUrl(editorContext.boundaryId, editorContext.functionId);
         }
       })
-      .then(url => {
+      .then((url) => {
         editorContext.location = url;
         editorContext.startRun(url);
 
@@ -406,11 +406,11 @@ export class Server {
 
         return runnerPromise;
       })
-      .catch(error => {
+      .catch((error) => {
         editorContext.finishRun(error);
         throw error;
       })
-      .then(res => {
+      .then((res) => {
         editorContext.finishRun(undefined, res);
         return res;
       });
@@ -426,7 +426,7 @@ export class Server {
       return Promise.resolve(this);
     } else {
       clearTimeout(this.logsTimeout);
-      return this.accountResolver(this.account).then(newAccount => {
+      return this.accountResolver(this.account).then((newAccount) => {
         this.account = this._normalizeAccount(newAccount);
         const url = `${this.account.baseUrl}v1/account/${this.account.accountId}/subscription/${this.account.subscriptionId}/boundary/${editorContext.boundaryId}/function/${editorContext.functionId}/log?token=${this.account.accessToken}`;
 
@@ -434,7 +434,7 @@ export class Server {
         if (this.logsBackoff === 0) {
           this.logsBackoff = logsInitialBackoff;
         }
-        this.sse.addEventListener('log', e => {
+        this.sse.addEventListener('log', (e) => {
           // @ts-ignore
           if (e && e.data) {
             // @ts-ignore
@@ -442,7 +442,7 @@ export class Server {
           }
         });
         this.sse.onopen = () => editorContext.serverLogsAttached();
-        this.sse.onerror = e => {
+        this.sse.onerror = (e) => {
           const backoff = this.logsBackoff;
           const msg =
             'Server logs detached due to error. Re-attempting connection in ' + Math.floor(backoff / 1000) + 's.';

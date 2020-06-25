@@ -1,6 +1,6 @@
 import Prism from 'prismjs';
 
-(function(Prism) {
+(function (Prism) {
   var javascript = Prism.util.clone(Prism.languages.javascript);
 
   Prism.languages.jsx = Prism.languages.extend('markup', javascript);
@@ -53,7 +53,7 @@ import Prism from 'prismjs';
 
   // The following will handle plain text inside tags
   // @ts-ignore
-  var stringifyToken = function(token) {
+  var stringifyToken = function (token) {
     if (!token) {
       return '';
     }
@@ -67,7 +67,7 @@ import Prism from 'prismjs';
   };
 
   // @ts-ignore
-  var walkTokens = function(tokens) {
+  var walkTokens = function (tokens) {
     var openedTags = [];
     for (var i = 0; i < tokens.length; i++) {
       var token = tokens[i];
@@ -140,7 +140,7 @@ import Prism from 'prismjs';
     }
   };
 
-  Prism.hooks.add('after-tokenize', function(env) {
+  Prism.hooks.add('after-tokenize', function (env) {
     if (env.language !== 'jsx' && env.language !== 'tsx') {
       return;
     }

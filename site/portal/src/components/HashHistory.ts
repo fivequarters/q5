@@ -10,7 +10,7 @@ const hashHistoryToObj = (hash: string): JSONable => {
     hash
       .substring(1) // Strip out the leading '#'.
       .split('&')
-      .forEach(e => {
+      .forEach((e) => {
         const [k, v] = e.split('=');
         if (k !== undefined && k.length > 0 && v !== undefined) {
           try {

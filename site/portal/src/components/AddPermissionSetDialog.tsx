@@ -58,14 +58,14 @@ function AddPermissionSetDialog({ onClose }: any) {
         allow.push(e);
         allowHash[createPermissionId(e)] = true;
       });
-      createPermissionsFromRole(profile, role, resource.parts).forEach(permission => {
+      createPermissionsFromRole(profile, role, resource.parts).forEach((permission) => {
         if (!allowHash[createPermissionId(permission)]) {
           allow.push(permission);
         }
       });
       agent.modified.access = { allow };
       modifyAgent(agent, setAgent, { ...agent.modified });
-      saveAgent(agent, setAgent, undefined, e => !e && onClose && onClose());
+      saveAgent(agent, setAgent, undefined, (e) => !e && onClose && onClose());
     }
   };
 

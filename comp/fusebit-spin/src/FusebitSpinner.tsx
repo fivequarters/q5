@@ -15,7 +15,12 @@ const circles = [
   [false, false, false, true],
   [false, true, false, true],
 ];
-const xConnections = [[0, 0, 1.5, 0], [1, 0, 0, 0], [0, 0, 0, -1], [0, -1.5, 0, 0]];
+const xConnections = [
+  [0, 0, 1.5, 0],
+  [1, 0, 0, 0],
+  [0, 0, 0, -1],
+  [0, -1.5, 0, 0],
+];
 
 // --------------
 // Exported Types

@@ -23,7 +23,7 @@ exports.Modes = {
   Operations: 'operations',
 };
 
-exports.enterHandler = modality => {
+exports.enterHandler = (modality) => {
   return (req, res, next) => {
     req.requestId = uuidv4();
     res.metrics = {};
@@ -42,7 +42,7 @@ exports.enterHandler = modality => {
 
       // Prepare the event object with a select set of properties.
       const reqProps = {};
-      whitelistedReqFields.forEach(p => (reqProps[p] = req[p]));
+      whitelistedReqFields.forEach((p) => (reqProps[p] = req[p]));
 
       let fusebit = {
         subscriptionId: reqProps.params.subscriptionId,

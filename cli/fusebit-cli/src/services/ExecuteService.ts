@@ -74,7 +74,7 @@ export class ExecuteService {
     const func = async (): Promise<any> => {
       const response = await sendRequest(request);
       if (response.status === 201 && retryOn201) {
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise((resolve) => setTimeout(resolve, 2000));
         return await func();
       }
       if (response.status === 404) {

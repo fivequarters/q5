@@ -93,7 +93,7 @@ function ActivityFilterContent({
 
   let allowedActions = [{ action: '*', description: 'Any action' }];
   if (actionFilter) {
-    actions.forEach(a => {
+    actions.forEach((a) => {
       for (var i = 0; i < actionFilter.length; i++) {
         if (a.action.indexOf(actionFilter[i]) === 0) {
           allowedActions.push(a);

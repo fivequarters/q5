@@ -887,7 +887,7 @@ describe('function', () => {
     let stop = false;
     const func = async (delay: number): Promise<boolean> => {
       if (delay) {
-        await new Promise(resolve => setTimeout(resolve, 10 * delay));
+        await new Promise((resolve) => setTimeout(resolve, 10 * delay));
       }
       if (!stop) {
         try {

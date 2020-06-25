@@ -58,10 +58,7 @@ export class PortalService {
     const opsDataContext = await this.opsService.getOpsDataContext();
     const domainData = opsDataContext.domainData;
 
-    const rootDomain = domain
-      .split('.')
-      .slice(1)
-      .join('.');
+    const rootDomain = domain.split('.').slice(1).join('.');
 
     if (!rootDomain) {
       this.executeService.warning(
@@ -80,7 +77,7 @@ export class PortalService {
       () => domainData.listAll()
     );
 
-    const existing = (existingDomains || []).find(d => d.domainName === rootDomain);
+    const existing = (existingDomains || []).find((d) => d.domainName === rootDomain);
 
     if (!existing) {
       this.executeService.warning(
@@ -90,7 +87,7 @@ export class PortalService {
         )}' does not exist. You must first register the '${Text.bold(
           rootDomain
         )}' domain with 'fuse-ops domain add'. Currently registered root domains are: ${
-          existingDomains && existingDomains.length > 0 ? existingDomains.map(d => d.domainName).join(', ') : 'N/A'
+          existingDomains && existingDomains.length > 0 ? existingDomains.map((d) => d.domainName).join(', ') : 'N/A'
         }.`
       );
       throw Error('Root domain does not exist');
@@ -275,7 +272,7 @@ export class PortalService {
       Fs.mkdirSync(buildSrc);
       const files = await this.unzip(zipFileName, buildSrc);
       await this.configure(buildSrc, portal);
-      portal.files.forEach(f => {
+      portal.files.forEach((f) => {
         let fn = Path.basename(f);
         if (files.indexOf(fn) === -1) {
           files.push(fn);
@@ -315,7 +312,7 @@ export class PortalService {
           return reject(e);
         }
         const getTag = (key: string): string => {
-          const result = (d.TagSet.find(t => t.Key === `fusebit-portal-${key}`) || {}).Value;
+          const result = (d.TagSet.find((t) => t.Key === `fusebit-portal-${key}`) || {}).Value;
           if (!result) {
             reject(new Error(`Unable to read Fusebit Portal metadata. Missing '${key}' value.`));
             return '';
@@ -476,7 +473,7 @@ export class PortalService {
     });
 
     return await new Promise((resolve, reject) => {
-      acm.deleteCertificate({ CertificateArn: metadata.certificateArn }, e =>
+      acm.deleteCertificate({ CertificateArn: metadata.certificateArn }, (e) =>
         e && e.code !== 'ResourceNotFoundException' ? reject(e) : resolve()
       );
     });
@@ -523,7 +520,7 @@ export class PortalService {
               if (d.DistributionList && d.DistributionList.Items) {
                 const tags = await listTags(d.DistributionList.Items[i].ARN);
                 if (tags.Items) {
-                  const domainTag = tags.Items.find(t => t.Key === 'fusebit-portal-domain');
+                  const domainTag = tags.Items.find((t) => t.Key === 'fusebit-portal-domain');
                   if (domainTag) {
                     portals.push({
                       Domain: domainTag.Value || '',
@@ -547,7 +544,7 @@ export class PortalService {
 
   private async getDistributionForPortal(domain: string): Promise<FusebitDistribution> {
     const portals = await this.listPortals();
-    const portal = portals.find(p => p.Domain === domain);
+    const portal = portals.find((p) => p.Domain === domain);
     if (!portal) {
       throw new Error(`No CloudFront distribution found for portal '${domain}'`);
     }
@@ -593,14 +590,14 @@ export class PortalService {
               },
               (e, d) => {
                 if (e) return reject(e);
-                cf.waitFor('distributionDeployed', { Id: metadata.cloudFrontId }, e => {
+                cf.waitFor('distributionDeployed', { Id: metadata.cloudFrontId }, (e) => {
                   if (e) return reject(e);
-                  cf.deleteDistribution({ Id: metadata.cloudFrontId, IfMatch: d.ETag }, e => resolve());
+                  cf.deleteDistribution({ Id: metadata.cloudFrontId, IfMatch: d.ETag }, (e) => resolve());
                 });
               }
             );
           } else {
-            cf.deleteDistribution({ Id: metadata.cloudFrontId, IfMatch: etag }, e => {
+            cf.deleteDistribution({ Id: metadata.cloudFrontId, IfMatch: etag }, (e) => {
               if (e) reject(e);
               else resolve();
             });
@@ -719,7 +716,7 @@ export class PortalService {
           }
           return reject(e);
         }
-        cf.waitFor('distributionDeployed', { Id: (d.Distribution as AWS.CloudFront.Distribution).Id }, e =>
+        cf.waitFor('distributionDeployed', { Id: (d.Distribution as AWS.CloudFront.Distribution).Id }, (e) =>
           e
             ? reject(e)
             : resolve({
@@ -810,7 +807,7 @@ export class PortalService {
       }
       await new Promise((resolve, reject) => {
         s3.deleteObjects(
-          { Bucket: s3Bucket, Delete: { Objects: list.map(i => ({ Key: i.Key as string })), Quiet: true } },
+          { Bucket: s3Bucket, Delete: { Objects: list.map((i) => ({ Key: i.Key as string })), Quiet: true } },
           (e, d) =>
             e
               ? reject(e)
@@ -840,15 +837,15 @@ export class PortalService {
   private async download(portalPackageUrl: string, zipFileName: string): Promise<void> {
     return new Promise((resolve, reject) => {
       const file = Fs.createWriteStream(zipFileName);
-      const request = Https.get(portalPackageUrl, response => {
+      const request = Https.get(portalPackageUrl, (response) => {
         if (response.statusCode !== 200) {
           return reject(new Error(`Failed to get '${portalPackageUrl}' (${response.statusCode})`));
         }
         response.pipe(file);
       });
       file.on('finish', () => resolve());
-      request.on('error', err => reject(err));
-      file.on('error', err => reject(err));
+      request.on('error', (err) => reject(err));
+      file.on('error', (err) => reject(err));
       request.end();
     });
   }
@@ -901,9 +898,10 @@ export class PortalService {
       return;
     }
 
-    const getProp = (portal: FusebitDistribution, prop: string) => (portal.Tags.find(t => t.Key === prop) || {}).Value;
+    const getProp = (portal: FusebitDistribution, prop: string) =>
+      (portal.Tags.find((t) => t.Key === prop) || {}).Value;
 
-    const model = portals.map(portal => ({
+    const model = portals.map((portal) => ({
       domain: portal.Domain,
       version: getProp(portal, 'fusebit-portal-version'),
       configUrl: getProp(portal, 'fusebit-portal-config-url'),

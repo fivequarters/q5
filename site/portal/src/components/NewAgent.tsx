@@ -86,7 +86,7 @@ function NewAgentImpl() {
     if (activeStep === 3 && agent.status === 'ready') {
       let allow: Permission[] = [];
       if (role.role !== noRole.role) {
-        createPermissionsFromRole(profile, role, resource.parts).forEach(permission => {
+        createPermissionsFromRole(profile, role, resource.parts).forEach((permission) => {
           allow.push(permission);
         });
       }
@@ -95,7 +95,7 @@ function NewAgentImpl() {
       saveAgent(
         agent,
         setAgent,
-        e =>
+        (e) =>
           new FusebitError(`Error creating ${agentNoun}`, {
             details:
               (e.status || e.statusCode) === 403

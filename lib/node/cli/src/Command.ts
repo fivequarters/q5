@@ -601,7 +601,7 @@ export class Command implements ICommand {
       message: 'The Command is not currently implemented',
     });
     message.write(input.io);
-    return new Promise(resolve => setImmediate(() => resolve(1)));
+    return new Promise((resolve) => setImmediate(() => resolve(1)));
   }
 
   protected async onGetMode(parsedArgs: ParsedArgs, io: ICommandIO): Promise<string | undefined> {

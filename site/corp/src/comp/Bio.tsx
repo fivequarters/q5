@@ -27,12 +27,12 @@ const Content = styled.div`
 `;
 
 const Name = styled.div`
-  ${props => applyTheme(props, 'bio', 'name')}
+  ${(props) => applyTheme(props, 'bio', 'name')}
 `;
 
 const Title = styled.div`
   margin-top: 10px;
-  ${props => applyTheme(props, 'bio', 'title')}
+  ${(props) => applyTheme(props, 'bio', 'title')}
 `;
 
 const Contacts = styled.div`
@@ -44,20 +44,20 @@ const Link = styled.a`
   margin: auto 10px;
   text-decoration: inherit;
   cursor: pointer;
-  ${props => applyTheme(props, 'bio', 'link')}
+  ${(props) => applyTheme(props, 'bio', 'link')}
 `;
 
 const Twitter = styled(FaTwitter)`
-  ${props => applyTheme(props, 'bio', 'twitter')}
+  ${(props) => applyTheme(props, 'bio', 'twitter')}
 `;
 
 const LinkedIn = styled(FaLinkedin)`
-  ${props => applyTheme(props, 'bio', 'linkedIn')}
+  ${(props) => applyTheme(props, 'bio', 'linkedIn')}
 `;
 
 const Description = styled.div`
   margin-top: 30px;
-  ${props => applyTheme(props, 'bio', 'description')}
+  ${(props) => applyTheme(props, 'bio', 'description')}
 `;
 
 export type BioProps = {

@@ -1,12 +1,12 @@
-import Table from "@material-ui/core/Table";
-import TableBody from "@material-ui/core/TableBody";
-import TableCell from "@material-ui/core/TableCell";
-import TableHead from "@material-ui/core/TableHead";
-import TableRow from "@material-ui/core/TableRow";
-import React from "react";
-import { actionsHash, tryTokenizeResource } from "../lib/Actions";
-import FunctionResourceCrumb from "./FunctionResourceCrumb";
-import { Permission } from "../lib/FusebitTypes";
+import Table from '@material-ui/core/Table';
+import TableBody from '@material-ui/core/TableBody';
+import TableCell from '@material-ui/core/TableCell';
+import TableHead from '@material-ui/core/TableHead';
+import TableRow from '@material-ui/core/TableRow';
+import React from 'react';
+import { actionsHash, tryTokenizeResource } from '../lib/Actions';
+import FunctionResourceCrumb from './FunctionResourceCrumb';
+import { Permission } from '../lib/FusebitTypes';
 
 function PermissionReviewTable({ actions, resource, allow }: any) {
   const permissions = allow
@@ -16,32 +16,26 @@ function PermissionReviewTable({ actions, resource, allow }: any) {
         return {
           action: actionDetails ? (
             <React.Fragment>
-              <strong>{actionDetails.action}</strong> -{" "}
-              {actionDetails.description}
+              <strong>{actionDetails.action}</strong> - {actionDetails.description}
             </React.Fragment>
           ) : (
             <strong>{a.action}</strong>
           ),
-          resource: options ? (
-            <FunctionResourceCrumb options={options} />
-          ) : (
-            a.resource
-          )
+          resource: options ? <FunctionResourceCrumb options={options} /> : a.resource,
         };
       })
     : actions.map((a: string) => ({
         action: (
           <React.Fragment>
-            <strong>{actionsHash[a].action}</strong> -{" "}
-            {actionsHash[a].description}
+            <strong>{actionsHash[a].action}</strong> - {actionsHash[a].description}
           </React.Fragment>
         ),
         resource:
-          a.indexOf("function:") === 0 ? (
+          a.indexOf('function:') === 0 ? (
             <FunctionResourceCrumb options={resource.parts} />
           ) : (
             <FunctionResourceCrumb options={{}} />
-          )
+          ),
       }));
 
   return (

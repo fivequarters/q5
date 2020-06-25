@@ -26,7 +26,7 @@ function FunctionSelector({
   const functions =
     (boundaries.status === 'ready' &&
       boundaries.existing[boundaryId] &&
-      boundaries.existing[boundaryId].functions.map(f => f.functionId)) ||
+      boundaries.existing[boundaryId].functions.map((f) => f.functionId)) ||
     [];
 
   return (
@@ -42,7 +42,7 @@ function FunctionSelector({
       onInputChange={(e, v) => e && onChange && onChange(v)}
       options={functions}
       loading={!!(open && boundaries.status === 'loading' && subscriptionId && boundaryId)}
-      renderInput={params => (
+      renderInput={(params) => (
         <TextField
           {...params}
           label={functionId ? 'Function' : 'All functions'}

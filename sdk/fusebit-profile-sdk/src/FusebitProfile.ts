@@ -390,7 +390,7 @@ export class FusebitProfile {
 
   private async getProfilesUsingKey(name: string, kid: string): Promise<IPKIFusebitProfile[]> {
     const profiles = await this.listProfiles();
-    return <IPKIFusebitProfile[]>profiles.filter(profile => profile.keyPair === name && profile.kid === kid);
+    return <IPKIFusebitProfile[]>profiles.filter((profile) => profile.keyPair === name && profile.kid === kid);
   }
 
   private async generateKid(name: string) {

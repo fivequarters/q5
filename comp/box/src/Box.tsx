@@ -214,23 +214,23 @@ export type BoxProps = {
 export const StyledBox = styled.div<ExtendedBoxProps>`
   box-sizing: border-box;
   display: flex;
-  flex-direction: ${props => (props.vertical ? 'column' : 'row')};
-  flex-wrap: ${props => (props.noWrap || props.scroll ? 'nowrap' : 'wrap')};
+  flex-direction: ${(props) => (props.vertical ? 'column' : 'row')};
+  flex-wrap: ${(props) => (props.noWrap || props.scroll ? 'nowrap' : 'wrap')};
   margin: ${getMargin};
   padding: ${getPadding};
-  color: ${props => props.color || 'inherit'};
-  background-color: ${props => props.background || 'inherit'};
-  align-self: ${props => (props.stretch ? 'stretch' : 'unset')};
+  color: ${(props) => props.color || 'inherit'};
+  background-color: ${(props) => props.background || 'inherit'};
+  align-self: ${(props) => (props.stretch ? 'stretch' : 'unset')};
   align-items: ${getAlignItems};
   justify-content: ${getJustifyContent};
   ${getCursor}
   ${getOffsetX}
   ${getOffsetY}
-  ${props => (props.borderRadius ? `border-radius: ${props.borderRadius}px;` : undefined)}
-  ${props => (props.expand ? `flex: ${typeof props.expand === 'boolean' ? 1 : props.expand};` : undefined)}
-  ${props => (props.scroll ? 'overflow: scroll;' : undefined)}
-  ${props => (props.overlay ? 'position: relative;' : undefined)}
-  ${props => (props.childOverlay ? 'position: absolute;' : undefined)}
+  ${(props) => (props.borderRadius ? `border-radius: ${props.borderRadius}px;` : undefined)}
+  ${(props) => (props.expand ? `flex: ${typeof props.expand === 'boolean' ? 1 : props.expand};` : undefined)}
+  ${(props) => (props.scroll ? 'overflow: scroll;' : undefined)}
+  ${(props) => (props.overlay ? 'position: relative;' : undefined)}
+  ${(props) => (props.childOverlay ? 'position: absolute;' : undefined)}
 `;
 
 export function Box({

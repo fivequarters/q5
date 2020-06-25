@@ -15,7 +15,7 @@ const notSet = Text.dim(Text.italic('<not set>'));
 // ------------------
 
 function getResourcePathPairs(resource: string) {
-  const segments = resource.split('/').filter(segment => segment.length);
+  const segments = resource.split('/').filter((segment) => segment.length);
 
   const pairs = [];
 
@@ -492,7 +492,7 @@ export class AgentService {
         const message = Text.create(
           'The init token is missing required properties: ',
           Text.join(
-            missingValues.map(value => Text.bold(value)),
+            missingValues.map((value) => Text.bold(value)),
             ', '
           )
         );

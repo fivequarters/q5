@@ -6,7 +6,7 @@ import { useAgents } from './AgentsProvider';
 import { makeStyles } from '@material-ui/core/styles';
 import { formatAgent } from '../lib/Fusebit';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   picker: {
     width: theme.spacing(40),
     minWidth: theme.spacing(40),
@@ -62,7 +62,7 @@ function AgentSelector({
       getOptionLabel={formatAgent}
       groupBy={groupBy}
       loading={!!(open && agents.status === 'loading')}
-      renderInput={params => (
+      renderInput={(params) => (
         <TextField
           {...params}
           label={label || 'Select existing user or client'}

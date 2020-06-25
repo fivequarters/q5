@@ -99,7 +99,7 @@ export function Notifications({ inquiries }: NotificationsProps) {
   let notifications: any = [];
   if (inquiries) {
     const toShow = inquiries.slice(notificationCount);
-    notifications = toShow.map(item => <NotificationItem key={item.email} email={item.email} />);
+    notifications = toShow.map((item) => <NotificationItem key={item.email} email={item.email} />);
   }
 
   return <Container>{notifications}</Container>;

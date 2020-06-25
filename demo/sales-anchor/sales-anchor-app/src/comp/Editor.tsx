@@ -86,7 +86,7 @@ export function Editor({ eventAction, onEditorBack, onDirtyStateChanged, templat
           // @ts-ignore
         }
         // @ts-ignore
-      ).then(editorContext => {
+      ).then((editorContext) => {
         // editorContext.selectFile('onNewInquiry.js');
         editorContext.on('closed', onEditorBack);
         editorContext.on('dirty-state:changed', (e: any) => {

@@ -227,9 +227,7 @@ export function FusebitTextFieldButton({
                   </FusebitText>
                 </Box>
               </Box>
-            ) : (
-              undefined
-            )}
+            ) : undefined}
           </Box>
           <FusebitButton
             disabled={buttonDisabled}

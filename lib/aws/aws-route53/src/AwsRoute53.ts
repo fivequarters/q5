@@ -91,7 +91,7 @@ export class AwsRoute53 extends AwsBase<typeof Route53> {
     }
 
     const records = await this.getHostedZoneRecords(id);
-    return type === undefined ? records : records.filter(record => record.type === type);
+    return type === undefined ? records : records.filter((record) => record.type === type);
   }
 
   public async ensureRecord(domain: string, record: IHostedZoneRecord): Promise<void> {
@@ -154,7 +154,7 @@ export class AwsRoute53 extends AwsBase<typeof Route53> {
   private async changeHostedZoneRecord(id: string, action: string, record: IHostedZoneRecord): Promise<void> {
     const route53 = await this.getAws();
 
-    const resourceRecords = record.values ? ensureArray(record.values).map(value => ({ Value: value })) : undefined;
+    const resourceRecords = record.values ? ensureArray(record.values).map((value) => ({ Value: value })) : undefined;
 
     const aliasTarget = record.alias
       ? {

@@ -1,5 +1,5 @@
 import React, { useLayoutEffect, useState } from 'react';
-import { Box, BoxProps } from '@5qtrs/box'
+import { Box, BoxProps } from '@5qtrs/box';
 
 // ------------------
 // Internal Constants
@@ -73,5 +73,9 @@ export function Fade({ show, fadeOut, fadeIn, fadeRate, onFadeChange, style, chi
   style = style || {};
   style.opacity = opacity / 100;
 
-  return <Box {...rest} style={style}>{children}</Box>
+  return (
+    <Box {...rest} style={style}>
+      {children}
+    </Box>
+  );
 }

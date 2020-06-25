@@ -9,7 +9,7 @@ import { useAgentMaybe, formatAgent, AgentState } from './AgentProvider';
 import { Grid, makeStyles } from '@material-ui/core';
 import clsx from 'clsx';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   grid: {
     justifyContent: 'flex-end',
     flexDirection: 'column',

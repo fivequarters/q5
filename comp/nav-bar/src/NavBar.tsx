@@ -9,7 +9,7 @@ import { Box, BoxProps } from '@5qtrs/box';
 
 const BoxStyled = styled(Box)<NavBarProps>`
   &.sticky {
-    border-bottom: ${props => (props.noBorder ? '0;' : props.borderOnScroll || '1px solid #d5d8dc')};
+    border-bottom: ${(props) => (props.noBorder ? '0;' : props.borderOnScroll || '1px solid #d5d8dc')};
   }
 `;
 

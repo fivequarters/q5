@@ -1,22 +1,17 @@
-import React from "react";
-import {
-  getIssuer,
-  normalizeIssuer,
-  updateIssuer,
-  newIssuer,
-} from "../lib/Fusebit";
-import { Issuer } from "../lib/FusebitTypes";
-import { FusebitError } from "./ErrorBoundary";
-import { useProfile } from "./ProfileProvider";
+import React from 'react';
+import { getIssuer, normalizeIssuer, updateIssuer, newIssuer } from '../lib/Fusebit';
+import { Issuer } from '../lib/FusebitTypes';
+import { FusebitError } from './ErrorBoundary';
+import { useProfile } from './ProfileProvider';
 
 type IssuerState =
   | {
-      status: "loading";
+      status: 'loading';
       issuerId: string;
       formatError?: (e: any) => Error;
     }
   | {
-      status: "ready" | "updating";
+      status: 'ready' | 'updating';
       issuerId: string;
       dirty: boolean;
       existing: Issuer;
@@ -25,7 +20,7 @@ type IssuerState =
       afterUpdate?: (e?: Error) => void;
     }
   | {
-      status: "error";
+      status: 'error';
       issuerId: string;
       error: Error;
     };
@@ -37,22 +32,17 @@ type IssuerProviderProps = {
   issuerId: string;
 };
 
-const IssuerStateContext = React.createContext<IssuerState | undefined>(
-  undefined
-);
-const IssuerSetStateContext = React.createContext<IssuerSetState | undefined>(
-  undefined
-);
+const IssuerStateContext = React.createContext<IssuerState | undefined>(undefined);
+const IssuerSetStateContext = React.createContext<IssuerSetState | undefined>(undefined);
 
-const NewIssuerId = "new";
+const NewIssuerId = 'new';
 
 const updateErrorStates = (issuer: Issuer) => {
   if (
-    issuer.publicKeyAcquisition === "jwks" &&
+    issuer.publicKeyAcquisition === 'jwks' &&
     (!issuer.jsonKeysUrl || !issuer.jsonKeysUrl.trim().match(/^https:\/\//i))
   ) {
-    issuer.jsonKeysUrlError =
-      "Required. The JWKS endpoint must be a secure https:// URL";
+    issuer.jsonKeysUrlError = 'Required. The JWKS endpoint must be a secure https:// URL';
   } else {
     delete issuer.jsonKeysUrlError;
   }
@@ -64,39 +54,35 @@ function IssuerProvider({ children, issuerId }: IssuerProviderProps) {
   const [data, setData] = React.useState<IssuerState>(
     issuerId === NewIssuerId
       ? {
-          status: "ready",
+          status: 'ready',
           issuerId,
           dirty: false,
-          existing: { id: issuerId, publicKeyAcquisition: "jwks" },
-          modified: { id: issuerId, publicKeyAcquisition: "jwks" },
+          existing: { id: issuerId, publicKeyAcquisition: 'jwks' },
+          modified: { id: issuerId, publicKeyAcquisition: 'jwks' },
         }
       : {
-          status: "loading",
+          status: 'loading',
           issuerId,
         }
   );
 
   React.useEffect(() => {
     let cancelled: boolean = false;
-    if (data.status === "loading" || data.status === "updating") {
+    if (data.status === 'loading' || data.status === 'updating') {
       (async () => {
-        let afterUpdate =
-          (data.status === "updating" && data.afterUpdate) || undefined;
+        let afterUpdate = (data.status === 'updating' && data.afterUpdate) || undefined;
         try {
           let issuer: Issuer;
-          if (data.status === "loading") {
+          if (data.status === 'loading') {
             issuer = await getIssuer(profile, issuerId);
           } else if (data.issuerId === NewIssuerId) {
             issuer = await newIssuer(profile, normalizeIssuer(data.modified));
           } else {
-            issuer = await updateIssuer(
-              profile,
-              normalizeIssuer(data.modified)
-            );
+            issuer = await updateIssuer(profile, normalizeIssuer(data.modified));
           }
           if (!cancelled) {
             setData({
-              status: "ready",
+              status: 'ready',
               issuerId: issuer.id,
               dirty: false,
               existing: issuer,
@@ -109,17 +95,14 @@ function IssuerProvider({ children, issuerId }: IssuerProviderProps) {
           if (!cancelled) {
             const error = data.formatError
               ? data.formatError(e)
-              : new FusebitError(
-                  `Error ${data.status} issuer ${data.issuerId}`,
-                  {
-                    details:
-                      (e.status || e.statusCode) === 403
-                        ? `You are not authorized to access the issuer information.`
-                        : e.message || "Unknown error.",
-                  }
-                );
+              : new FusebitError(`Error ${data.status} issuer ${data.issuerId}`, {
+                  details:
+                    (e.status || e.statusCode) === 403
+                      ? `You are not authorized to access the issuer information.`
+                      : e.message || 'Unknown error.',
+                });
             setData({
-              status: "error",
+              status: 'error',
               issuerId: data.issuerId,
               error,
             });
@@ -137,9 +120,7 @@ function IssuerProvider({ children, issuerId }: IssuerProviderProps) {
 
   return (
     <IssuerStateContext.Provider value={data}>
-      <IssuerSetStateContext.Provider value={setData}>
-        {children}
-      </IssuerSetStateContext.Provider>
+      <IssuerSetStateContext.Provider value={setData}>{children}</IssuerSetStateContext.Provider>
     </IssuerStateContext.Provider>
   );
 }
@@ -149,7 +130,7 @@ IssuerProvider.NewAgentId = NewIssuerId;
 function useIssuerState() {
   const context = React.useContext(IssuerStateContext);
   if (context === undefined) {
-    throw new Error("useIssuerState must be used within a IssuerProvider");
+    throw new Error('useIssuerState must be used within a IssuerProvider');
   }
   return context;
 }
@@ -157,7 +138,7 @@ function useIssuerState() {
 function useIssuerSetState() {
   const context = React.useContext(IssuerSetStateContext);
   if (context === undefined) {
-    throw new Error("useIssuerSetState must be used within a IssuerProvider");
+    throw new Error('useIssuerSetState must be used within a IssuerProvider');
   }
   return context;
 }
@@ -168,17 +149,13 @@ function useIssuer(): [IssuerState, IssuerSetState] {
 
 function reloadIssuer(state: IssuerState, setState: IssuerSetState) {
   setState({
-    status: "loading",
+    status: 'loading',
     issuerId: state.issuerId,
   });
 }
 
-function modifyIssuer(
-  state: IssuerState,
-  setState: IssuerSetState,
-  newIssuer: Issuer
-) {
-  if (state.status !== "ready") {
+function modifyIssuer(state: IssuerState, setState: IssuerSetState, newIssuer: Issuer) {
+  if (state.status !== 'ready') {
     throw new Error(
       `The modifyIssuer can only be called when the issuer status is 'ready'. Current issuer status is '${state.status}'.`
     );
@@ -187,9 +164,7 @@ function modifyIssuer(
   updateErrorStates(newIssuer);
   setState({
     ...state,
-    dirty:
-      JSON.stringify(normalizeIssuer(state.existing)) !==
-      JSON.stringify(normalizeIssuer(newIssuer)),
+    dirty: JSON.stringify(normalizeIssuer(state.existing)) !== JSON.stringify(normalizeIssuer(newIssuer)),
     modified: newIssuer,
   });
 }
@@ -200,32 +175,24 @@ function saveIssuer(
   formatError?: (e: any) => Error,
   afterUpdate?: (e?: Error) => void
 ) {
-  if (state.status !== "ready") {
+  if (state.status !== 'ready') {
     throw new Error(
       `The saveIssuer can only be called when the issuer status is 'ready'. Current issuer status is '${state.status}'.`
     );
   }
 
-  setState({ ...state, formatError, afterUpdate, status: "updating" });
+  setState({ ...state, formatError, afterUpdate, status: 'updating' });
 }
 
 function formatIssuer(issuer: IssuerState) {
-  if (issuer.status === "updating" || issuer.status === "ready") {
+  if (issuer.status === 'updating' || issuer.status === 'ready') {
     let name = [];
     if (issuer.modified.displayName) name.push(issuer.modified.displayName);
     if (name.length > 0) {
-      return name.join(" ");
+      return name.join(' ');
     }
   }
   return issuer.issuerId === NewIssuerId ? undefined : issuer.issuerId;
 }
 
-export {
-  IssuerProvider,
-  NewIssuerId,
-  useIssuer,
-  modifyIssuer,
-  saveIssuer,
-  reloadIssuer,
-  formatIssuer,
-};
+export { IssuerProvider, NewIssuerId, useIssuer, modifyIssuer, saveIssuer, reloadIssuer, formatIssuer };

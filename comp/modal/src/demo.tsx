@@ -21,7 +21,7 @@ const App = () => {
   return (
     <Box height={1000} margin={-20} padding={20} background="#F9E79F">
       <Modal show={show} background="#76D7C4" onClick={modalClick}>
-        <Box background="white" width={200} height={200} padding={30} onClick={ignoreClick} >
+        <Box background="white" width={200} height={200} padding={30} onClick={ignoreClick}>
           Click outside to close
         </Box>
       </Modal>

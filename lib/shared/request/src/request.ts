@@ -104,7 +104,7 @@ export async function request(
         throw error;
       }
       retry++;
-      await new Promise(resolve => setTimeout(resolve, Math.pow(10, retry)));
+      await new Promise((resolve) => setTimeout(resolve, Math.pow(10, retry)));
     }
   }
 

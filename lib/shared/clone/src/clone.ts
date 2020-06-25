@@ -12,13 +12,10 @@ export function clone(value: any): any {
     return value.map(clone);
   }
   if (isObject(value)) {
-    return Object.keys(value).reduce(
-      (sum, key) => {
-        sum[key] = clone(value[key]);
-        return sum;
-      },
-      {} as any
-    );
+    return Object.keys(value).reduce((sum, key) => {
+      sum[key] = clone(value[key]);
+      return sum;
+    }, {} as any);
   }
 
   return value;

@@ -64,13 +64,13 @@ export function createActionPanel(element: HTMLElement, editorContext: EditorCon
   const showNavLogsElement = document.getElementById(showNavLogsId) as HTMLElement;
 
   closeElement &&
-    closeElement.addEventListener('click', e => {
+    closeElement.addEventListener('click', (e) => {
       e.preventDefault();
       editorContext.close();
     });
 
   hideNavLogsElement &&
-    hideNavLogsElement.addEventListener('click', e => {
+    hideNavLogsElement.addEventListener('click', (e) => {
       e.preventDefault();
       hideNavLogsElement.style.display = 'none';
       showNavLogsElement.style.display = 'unset';
@@ -79,7 +79,7 @@ export function createActionPanel(element: HTMLElement, editorContext: EditorCon
     });
 
   showNavLogsElement &&
-    showNavLogsElement.addEventListener('click', e => {
+    showNavLogsElement.addEventListener('click', (e) => {
       e.preventDefault();
       hideNavLogsElement.style.display = 'unset';
       showNavLogsElement.style.display = 'none';
@@ -88,7 +88,7 @@ export function createActionPanel(element: HTMLElement, editorContext: EditorCon
     });
 
   expandElement &&
-    expandElement.addEventListener('click', e => {
+    expandElement.addEventListener('click', (e) => {
       e.preventDefault();
       expandElement.style.display = 'none';
       compressElement.style.display = 'unset';
@@ -96,7 +96,7 @@ export function createActionPanel(element: HTMLElement, editorContext: EditorCon
     });
 
   compressElement &&
-    compressElement.addEventListener('click', e => {
+    compressElement.addEventListener('click', (e) => {
       e.preventDefault();
       expandElement.style.display = 'unset';
       compressElement.style.display = 'none';
@@ -104,13 +104,13 @@ export function createActionPanel(element: HTMLElement, editorContext: EditorCon
     });
 
   saveElement &&
-    saveElement.addEventListener('click', e => {
+    saveElement.addEventListener('click', (e) => {
       e.preventDefault();
       editorContext.saveFunction();
     });
 
   runElement &&
-    runElement.addEventListener('click', e => {
+    runElement.addEventListener('click', (e) => {
       e.preventDefault();
       editorContext.runFunction();
     });

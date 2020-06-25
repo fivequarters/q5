@@ -45,9 +45,7 @@ function SmallVersion({ title, subtitle, imageSrc, summary, gap, href, to, ...re
             <Image src={imageSrc} borderRadius={25} height={100} width={100} />
           </FusebitLink>
         </Box>
-      ) : (
-        undefined
-      )}
+      ) : undefined}
       <Box vertical marginLeft={20}>
         <FusebitLink href={href} to={to}>
           <FusebitText type={FusebitTextType.body} weight={FusebitTextWeight.bold}>
@@ -74,9 +72,7 @@ function MediumVersion({ title, subtitle, imageSrc, to, href, summary, buttonTex
             <Image src={imageSrc} borderRadius={25} maxWidth={360} height={200} />
           </FusebitLink>
         </Box>
-      ) : (
-        undefined
-      )}
+      ) : undefined}
       <Box height={100}>
         <FusebitLink href={href} to={to}>
           <FusebitText type={FusebitTextType.header3}>
@@ -110,9 +106,7 @@ function MobileVersion({ title, subtitle, imageSrc, to, href, summary, buttonTex
               <Image src={imageSrc} borderRadius={25} />
             </FusebitLink>
           </Box>
-        ) : (
-          undefined
-        )}
+        ) : undefined}
         <FusebitText>{summary}</FusebitText>
         <FusebitButton href={href} to={to} marginTop={20} outline>
           {buttonText || defaultButtonText}
@@ -142,9 +136,7 @@ function NonMobileVersion({ title, subtitle, imageSrc, to, href, summary, button
             <Image src={imageSrc} borderRadius={25} />
           </FusebitLink>
         </Box>
-      ) : (
-        undefined
-      )}
+      ) : undefined}
     </Box>
   );
 }

@@ -9,7 +9,7 @@ import { ArgType, Command, IExecuteInput } from '../src';
 function captureText(helpText: string) {
   const withColorCodes = JSON.stringify(helpText);
   const withoutQuotes = withColorCodes.substring(1, withColorCodes.length - 1);
-  const wrapped = withoutQuotes.split('\\n').map(text => `        "${text}",`);
+  const wrapped = withoutQuotes.split('\\n').map((text) => `        "${text}",`);
   const fullText = [];
   fullText.push('      const expected = [');
   fullText.push(...wrapped);
@@ -351,7 +351,7 @@ describe('Command', () => {
   describe('options', () => {
     it('should return the options', () => {
       const command = new Command({ name: 'abc', options: [{ name: 'foo' }, { name: 'baz' }] });
-      const actual = command.options.map(option => option.name);
+      const actual = command.options.map((option) => option.name);
       const expected = ['foo', 'baz'];
       expect(actual).toEqual(expected);
     });
@@ -363,14 +363,14 @@ describe('Command', () => {
       const values = { name: 'abc', options: [{ name: 'foo' }, { name: 'baz' }] };
       const command = new Command(values);
       values.options = [{ name: 'foo' }];
-      const actual = command.options.map(option => option.name);
+      const actual = command.options.map((option) => option.name);
       const expected = ['foo', 'baz'];
       expect(actual).toEqual(expected);
     });
     it('should be inherited from parent commands', () => {
       const command = new Command({ name: 'abc', options: [{ name: 'foo' }, { name: 'baz' }] });
       const parent = new Command({ name: 'parent', subCommands: [command], options: [{ name: 'bar' }] });
-      const actual = command.options.map(option => option.name);
+      const actual = command.options.map((option) => option.name);
       const expected = ['bar', 'foo', 'baz'];
       expect(actual).toEqual(expected);
     });
@@ -379,7 +379,7 @@ describe('Command', () => {
   describe('arguments', () => {
     it('should return the arguments', () => {
       const command = new Command({ name: 'abc', arguments: [{ name: 'foo' }, { name: 'baz' }] });
-      const actual = command.arguments.map(argument => argument.name);
+      const actual = command.arguments.map((argument) => argument.name);
       const expected = ['foo', 'baz'];
       expect(actual).toEqual(expected);
     });
@@ -391,14 +391,14 @@ describe('Command', () => {
       const values = { name: 'abc', arguments: [{ name: 'foo' }, { name: 'baz' }] };
       const command = new Command(values);
       values.arguments = [{ name: 'foo' }];
-      const actual = command.arguments.map(argument => argument.name);
+      const actual = command.arguments.map((argument) => argument.name);
       const expected = ['foo', 'baz'];
       expect(actual).toEqual(expected);
     });
     it('should be inherited from parent commands', () => {
       const command = new Command({ name: 'abc', arguments: [{ name: 'foo' }, { name: 'baz' }] });
       const parent = new Command({ name: 'parent', subCommands: [command], arguments: [{ name: 'bar' }] });
-      const actual = command.arguments.map(argument => argument.name);
+      const actual = command.arguments.map((argument) => argument.name);
       const expected = ['bar', 'foo', 'baz'];
       expect(actual).toEqual(expected);
     });
@@ -440,8 +440,8 @@ describe('Command', () => {
       const parent1 = new Command({ name: 'parent1', subCommands: [command1, command2] });
       const parent2 = new Command({ name: 'parent2', subCommands: [command3, command4] });
       const cli = new Command({ name: 'cli', subCommands: [parent1, parent2] });
-      const actual = cli.subCommands.map(cmd => cmd.name);
-      const expected = [parent1, parent2].map(cmd => cmd.name);
+      const actual = cli.subCommands.map((cmd) => cmd.name);
+      const expected = [parent1, parent2].map((cmd) => cmd.name);
       expect(actual).toEqual(expected);
     });
     it('should return empty string by default', () => {
@@ -454,8 +454,8 @@ describe('Command', () => {
       const values = { name: 'parent1', subCommands: [command1, command2] };
       const parent = new Command(values);
       values.subCommands = [command1];
-      const actual = parent.subCommands.map(cmd => cmd.name);
-      const expected = [command1, command2].map(cmd => cmd.name);
+      const actual = parent.subCommands.map((cmd) => cmd.name);
+      const expected = [command1, command2].map((cmd) => cmd.name);
       expect(actual).toEqual(expected);
     });
   });
@@ -469,8 +469,8 @@ describe('Command', () => {
       const parent1 = new Command({ name: 'parent1', subCommands: [command1, command2] });
       const parent2 = new Command({ name: 'parent2', subCommands: [command3, command4] });
       const cli = new Command({ name: 'cli', subCommands: [parent1, parent2] });
-      const actual = cli.allSubCommands.map(cmd => cmd.name);
-      const expected = [parent1, command1, command2, parent2, command3, command4].map(cmd => cmd.name);
+      const actual = cli.allSubCommands.map((cmd) => cmd.name);
+      const expected = [parent1, command1, command2, parent2, command3, command4].map((cmd) => cmd.name);
       expect(actual).toEqual(expected);
     });
   });

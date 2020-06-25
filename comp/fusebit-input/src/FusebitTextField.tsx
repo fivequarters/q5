@@ -162,9 +162,7 @@ export function FusebitTextField({
             </FusebitText>
           </Box>
         </Box>
-      ) : (
-        undefined
-      )}
+      ) : undefined}
     </>
   );
 }

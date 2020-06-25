@@ -89,7 +89,7 @@ export default class Project {
     const workspaceData = await getWorkspaceData(rootPath);
     const workspaces: Workspace[] = [];
     await Promise.all(
-      Object.keys(workspaceData || {}).map(async name => {
+      Object.keys(workspaceData || {}).map(async (name) => {
         const workspace = await Workspace.FromLocation(project, workspaceData[name].location);
         workspaces.push(workspace);
       })

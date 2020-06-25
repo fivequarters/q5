@@ -91,7 +91,7 @@ export async function createInstanceProfile(
             InstanceProfileName: ctx.instanceProfileName,
             RoleName: ctx.instanceProfileName,
           },
-          e => {
+          (e) => {
             if (e) return cb(e);
             debug(`Added role to instance profile ${ctx.instanceProfileName}`);
             return cb();

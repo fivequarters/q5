@@ -2,8 +2,8 @@ import React, { useState, useLayoutEffect } from 'react';
 import styled from 'styled-components';
 import { Fade, FadeProps } from '@5qtrs/fade';
 import { Modal } from '@5qtrs/modal';
-import { FusebitSpinner } from '@5qtrs/fusebit-spin'
-import { FusebitColor } from '@5qtrs/fusebit-color'
+import { FusebitSpinner } from '@5qtrs/fusebit-spin';
+import { FusebitColor } from '@5qtrs/fusebit-color';
 
 // -------------------
 // Internal Components
@@ -21,7 +21,7 @@ const FullScreenFade = styled(Fade)`
 // --------------
 
 export type FusebitAppLoadProps = {
-  show?: boolean
+  show?: boolean;
 } & FadeProps;
 
 // -------------------
@@ -77,14 +77,14 @@ export function FusebitAppLoad({ color, background, show, ...rest }: FusebitAppL
     };
   }, [show]);
 
-
   return fullFadeOut ? null : (
     <FullScreenFade
       show={!spinnerFadedOut}
       background={background || FusebitColor.white}
       fadeOut
       onFadeChange={onFullFadeOut}
-      {...rest}>
+      {...rest}
+    >
       <Modal show>
         <Fade show={spinnerShow} fadeIn fadeOut onFadeChange={onSpinnerFadeOut}>
           <FusebitSpinner stop={!spinnerShow} color={color} background={background} />

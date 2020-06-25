@@ -90,7 +90,7 @@ export class Valid {
   }
 
   public static isOneOf(validValues: Array<any>) {
-    const func = (value: any) => (validValues.find(item => item === value) ? true : false);
+    const func = (value: any) => (validValues.find((item) => item === value) ? true : false);
     return new Valid(func);
   }
 

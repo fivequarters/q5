@@ -44,7 +44,7 @@ function AccountUsers() {
       disablePadding: true,
       align: 'left',
       label: 'Name',
-      render: row => (
+      render: (row) => (
         <Link component={RouterLink} to={`users/${row.id}/properties`}>
           <UserAvatar letter={row.name[0]} />
           {row.name}
@@ -143,7 +143,7 @@ function AccountUsers() {
       title="Users"
       enableSelection={true}
       onDelete={handleDelete}
-      deleteTitle={selected => (selected.length > 1 ? 'Delete users?' : 'Delete user?')}
+      deleteTitle={(selected) => (selected.length > 1 ? 'Delete users?' : 'Delete user?')}
       deleteContent={generateDeleteContent}
       actions={
         <ActionButton to="users/new" component={RouterLink}>

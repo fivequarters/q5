@@ -173,7 +173,11 @@ describe('Valid', () => {
     });
 
     it('should return false if any validators return false', () => {
-      const tests = [[isTrue, isFive, isNotFive], [isNotFive, isFive, isTrue], [isFalse, isTrue, isFive]];
+      const tests = [
+        [isTrue, isFive, isNotFive],
+        [isNotFive, isFive, isTrue],
+        [isFalse, isTrue, isFive],
+      ];
       for (const test of tests) {
         const valid = Valid.and(...test);
         expect(valid.validate(5)).toBe(false);
@@ -196,7 +200,11 @@ describe('Valid', () => {
 
   describe('or', () => {
     it('should return true if any validators return true', () => {
-      const tests = [[isFalse, isFive, isNotFive], [isNotFive, isFive, isFalse], [isFalse, isTrue, isNotFive]];
+      const tests = [
+        [isFalse, isFive, isNotFive],
+        [isNotFive, isFive, isFalse],
+        [isFalse, isTrue, isNotFive],
+      ];
       for (const test of tests) {
         const valid = Valid.or(...test);
         expect(valid.validate(5)).toBe(true);
@@ -243,7 +251,10 @@ describe('Valid', () => {
 
   describe('hasProperty', () => {
     it('should return true if the value is an object with the property with the valid value', () => {
-      const tests = [['name', Valid.isString(), { name: 'hello' }], ['value', Valid.isInteger(), new TestClass()]];
+      const tests = [
+        ['name', Valid.isString(), { name: 'hello' }],
+        ['value', Valid.isInteger(), new TestClass()],
+      ];
       for (const test of tests) {
         const [name, validator, item] = test;
         expect(Valid.hasProperty(name as string, validator as Valid).validate(item)).toBe(true);
@@ -251,7 +262,10 @@ describe('Valid', () => {
     });
 
     it('should return false if the value is not an object', () => {
-      const tests = [['name', Valid.isString(), 5], ['value', Valid.isInteger(), [{ value: 5 }]]];
+      const tests = [
+        ['name', Valid.isString(), 5],
+        ['value', Valid.isInteger(), [{ value: 5 }]],
+      ];
       for (const test of tests) {
         const [name, validator, item] = test;
         expect(Valid.hasProperty(name as string, validator as Valid).validate(item)).toBe(false);
@@ -259,7 +273,10 @@ describe('Valid', () => {
     });
 
     it('should return false if the property does not exist', () => {
-      const tests = [['name', Valid.isString(), { value: 'hello' }], ['name', Valid.isInteger(), new TestClass()]];
+      const tests = [
+        ['name', Valid.isString(), { value: 'hello' }],
+        ['name', Valid.isInteger(), new TestClass()],
+      ];
       for (const test of tests) {
         const [name, validator, item] = test;
         expect(Valid.hasProperty(name as string, validator as Valid).validate(item)).toBe(false);
@@ -267,7 +284,10 @@ describe('Valid', () => {
     });
 
     it('should return false if the property value is invalid', () => {
-      const tests = [['name', Valid.isString(), { name: 5 }], ['value', Valid.isObject(), new TestClass()]];
+      const tests = [
+        ['name', Valid.isString(), { name: 5 }],
+        ['value', Valid.isObject(), new TestClass()],
+      ];
       for (const test of tests) {
         const [name, validator, item] = test;
         expect(Valid.hasProperty(name as string, validator as Valid).validate(item)).toBe(false);
@@ -282,7 +302,10 @@ describe('Valid', () => {
 
   describe('isArrayOf', () => {
     it('should return true if every value in the array is valid', () => {
-      const tests = [[Valid.isString(), ['', 'hello']], [Valid.isInteger(), [5, -5, 0]]];
+      const tests = [
+        [Valid.isString(), ['', 'hello']],
+        [Valid.isInteger(), [5, -5, 0]],
+      ];
       for (const test of tests) {
         const [validator, item] = test;
         expect(Valid.isArrayOf(validator as Valid).validate(item)).toBe(true);
@@ -290,7 +313,10 @@ describe('Valid', () => {
     });
 
     it('should return false if the value is not an array', () => {
-      const tests = [[Valid.isString(), { value: 5 }], [Valid.isInteger(), 5]];
+      const tests = [
+        [Valid.isString(), { value: 5 }],
+        [Valid.isInteger(), 5],
+      ];
       for (const test of tests) {
         const [validator, item] = test;
         expect(Valid.isArrayOf(validator as Valid).validate(item)).toBe(false);
@@ -298,7 +324,10 @@ describe('Valid', () => {
     });
 
     it('should return false if any value in the array is invalid', () => {
-      const tests = [[Valid.isString(), ['', 'hello', 5]], [Valid.isInteger(), [[], 5, -5, 0]]];
+      const tests = [
+        [Valid.isString(), ['', 'hello', 5]],
+        [Valid.isInteger(), [[], 5, -5, 0]],
+      ];
       for (const test of tests) {
         const [validator, item] = test;
         expect(Valid.isArrayOf(validator as Valid).validate(item)).toBe(false);
@@ -313,7 +342,10 @@ describe('Valid', () => {
 
   describe('isOneOf', () => {
     it('should return true if the value is in the array of valid values', () => {
-      const tests = [[['', 'hello'], 'hello'], [['', 'hello', 5], 5]];
+      const tests = [
+        [['', 'hello'], 'hello'],
+        [['', 'hello', 5], 5],
+      ];
       for (const test of tests) {
         const [items, item] = test;
         expect(Valid.isOneOf(items as Array<string>).validate(item)).toBe(true);
@@ -321,7 +353,10 @@ describe('Valid', () => {
     });
 
     it('should return false if the value is not in the array of valid values', () => {
-      const tests = [[['', 'hello'], 5], [['', 'hello', 5], false]];
+      const tests = [
+        [['', 'hello'], 5],
+        [['', 'hello', 5], false],
+      ];
       for (const test of tests) {
         const [items, item] = test;
         expect(Valid.isOneOf(items as Array<string>).validate(item)).toBe(false);
@@ -331,7 +366,10 @@ describe('Valid', () => {
 
   describe('match', () => {
     it('should return true if regex matches the value', () => {
-      const tests = [[/^\d*$/, '100'], [/^\w*$/, 'hello']];
+      const tests = [
+        [/^\d*$/, '100'],
+        [/^\w*$/, 'hello'],
+      ];
       for (const test of tests) {
         const [regex, item] = test;
         expect(Valid.match(regex as RegExp).validate(item)).toBe(true);
@@ -339,7 +377,10 @@ describe('Valid', () => {
     });
 
     it('should return false if regex does not match the value', () => {
-      const tests = [[/^\d*$/, '100px'], [/^\w*$/, 'hello  !']];
+      const tests = [
+        [/^\d*$/, '100px'],
+        [/^\w*$/, 'hello  !'],
+      ];
       for (const test of tests) {
         const [regex, item] = test;
         expect(Valid.match(regex as RegExp).validate(item)).toBe(false);
@@ -383,7 +424,10 @@ describe('Valid', () => {
     it('should work correctly for an object', () => {
       const objectValid = Valid.and(
         Valid.hasProperty('name', Valid.isOneOf(['peter', 'paul'])),
-        Valid.hasProperty('age', Valid.and(Valid.isNumber(), value => value > 0))
+        Valid.hasProperty(
+          'age',
+          Valid.and(Valid.isNumber(), (value) => value > 0)
+        )
       );
 
       const tests = [

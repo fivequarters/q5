@@ -4,7 +4,7 @@ const { getAccountContext, errorHandler } = require('../account');
 
 function initResolve() {
   return (req, res) => {
-    getAccountContext().then(accountContext => {
+    getAccountContext().then((accountContext) => {
       const accountId = req.params.accountId;
       let initResolve;
       switch (req.body.protocol) {
@@ -36,7 +36,7 @@ function initResolve() {
 
       accountContext.init
         .resolve(accountId, initResolve)
-        .then(result => res.json(result))
+        .then((result) => res.json(result))
         .catch(errorHandler(res));
     });
   };
@@ -44,7 +44,7 @@ function initResolve() {
 
 function getMe() {
   return (req, res, next) => {
-    getAccountContext().then(accountContext => {
+    getAccountContext().then((accountContext) => {
       const accountId = req.params.accountId;
       const resolvedAgent = req.resolvedAgent;
 
@@ -72,7 +72,7 @@ function getMe() {
         .then(() => {
           agent
             .get(resolvedAgent, accountId, resolvedAgent.id)
-            .then(result => res.json(result))
+            .then((result) => res.json(result))
             .catch(errorHandler(res));
         })
         .catch(errorHandler(res));

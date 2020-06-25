@@ -16,7 +16,7 @@ export async function exportFunction(ctx: IExportContext, config: IExportConfig)
   let cronJobList: ICronJob[] = [];
   await collectCronJobs();
   let cronJobs: { [property: string]: ICronJob } = {}; // subscriptionId/boundaryId/functionId -> cron job
-  cronJobList.forEach(x => {
+  cronJobList.forEach((x) => {
     cronJobs[`${x.subscriptionId}/${x.boundaryId}/${x.functionId}`] = x;
   });
   await ctx.bq.query(
@@ -37,7 +37,7 @@ export async function exportFunction(ctx: IExportContext, config: IExportConfig)
       //@ts-ignore
       ctx.s3.listObjectsV2(list_params, async (e: AWSError, docs: ListObjectsV2Output) => {
         if (e) return reject(e);
-        let bqInsertPayload = (docs.Contents as Object[]).map(x => {
+        let bqInsertPayload = (docs.Contents as Object[]).map((x) => {
           //@ts-ignore
           let tokens = x.Key.split('/');
           let item: any = {
@@ -50,9 +50,7 @@ export async function exportFunction(ctx: IExportContext, config: IExportConfig)
               functionId: tokens[3],
             },
           };
-          item.insertId = `${item.json.deploymentId}/${item.json.subscriptionId}/${item.json.boundaryId}/${
-            item.json.functionId
-          }/${item.json.ts}`;
+          item.insertId = `${item.json.deploymentId}/${item.json.subscriptionId}/${item.json.boundaryId}/${item.json.functionId}/${item.json.ts}`;
           let cron = cronJobs[`${item.json.subscriptionId}/${item.json.boundaryId}/${item.json.functionId}`];
           if (cron) {
             item.json.schedule = {
@@ -92,7 +90,7 @@ export async function exportFunction(ctx: IExportContext, config: IExportConfig)
       ctx.s3.listObjectsV2(list_params, async (e: AWSError, docs: ListObjectsV2Output) => {
         if (e) return reject(e);
         cronJobList = cronJobList.concat(
-          (docs.Contents as Object[]).map(x => {
+          (docs.Contents as Object[]).map((x) => {
             //@ts-ignore
             let tokens = x.Key.split('/');
             let scheduleArray = JSON.parse(Buffer.from(tokens[4], 'hex').toString('utf8'));

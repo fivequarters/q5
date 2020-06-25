@@ -19,7 +19,6 @@ export enum FusebitOpsProfileExceptionCode {
 // ----------------
 
 export class FusebitOpsProfileException extends Exception {
-
   public static profileAlreadyExists(name: string) {
     const message = `The '${name}' profile already exists`;
     return new FusebitOpsProfileException(FusebitOpsProfileExceptionCode.profileAlreadyExists, message, [name]);

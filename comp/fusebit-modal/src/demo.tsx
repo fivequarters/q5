@@ -14,7 +14,7 @@ const App = () => {
   }
 
   function getButtonClick(page: FusebitModalPage) {
-    return function() {
+    return function () {
       setPage(page);
       toggleModal();
     };

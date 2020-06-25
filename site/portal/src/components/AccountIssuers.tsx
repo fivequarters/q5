@@ -23,7 +23,7 @@ interface ViewRow {
   // lastUsed: string;
 }
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   link: {
     display: 'inline-flex',
     alignItems: 'center',
@@ -51,7 +51,7 @@ function AccountIssuers() {
       disablePadding: true,
       align: 'left',
       label: 'Name',
-      render: row => (
+      render: (row) => (
         <Link component={RouterLink} to={`issuers/${encodeURIComponent(row.id)}/properties`} className={classes.link}>
           <IssuerAvatar id={row.id} />
           {row.name}
@@ -169,7 +169,7 @@ function AccountIssuers() {
         title="Issuers"
         enableSelection={true}
         onDelete={handleDelete}
-        deleteTitle={selected => (selected.length > 1 ? 'Delete issuers?' : 'Delete issuer?')}
+        deleteTitle={(selected) => (selected.length > 1 ? 'Delete issuers?' : 'Delete issuer?')}
         deleteContent={generateDeleteContent}
         actions={<ActionButton onClick={() => setNewIssuerOpen(true)}>Add&nbsp;issuer</ActionButton>}
       />

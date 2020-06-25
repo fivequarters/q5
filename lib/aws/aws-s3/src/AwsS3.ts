@@ -166,7 +166,7 @@ export class AwsS3 extends AwsBase<typeof S3> {
     const keys = await this.listObjectKeys(name);
     const batchedKeys = batch(10, keys);
     for (const keyBatch of batchedKeys) {
-      await Promise.all(keyBatch.map(key => this.deleteObject(name, key)));
+      await Promise.all(keyBatch.map((key) => this.deleteObject(name, key)));
     }
   }
 

@@ -1,23 +1,23 @@
-import React from "react";
-import { getAudit } from "../lib/Fusebit";
-import { AuditTrail, AuditFilter } from "../lib/FusebitTypes";
-import { FusebitError } from "./ErrorBoundary";
-import { useProfile } from "./ProfileProvider";
+import React from 'react';
+import { getAudit } from '../lib/Fusebit';
+import { AuditTrail, AuditFilter } from '../lib/FusebitTypes';
+import { FusebitError } from './ErrorBoundary';
+import { useProfile } from './ProfileProvider';
 
 export type AuditState =
   | {
-      status: "loading";
+      status: 'loading';
       filter: AuditFilter;
       formatError?: (e: any) => Error;
     }
   | {
-      status: "ready" | "updating";
+      status: 'ready' | 'updating';
       filter: AuditFilter;
       data: AuditTrail;
       formatError?: (e: any) => Error;
     }
   | {
-      status: "error";
+      status: 'error';
       filter: AuditFilter;
       error: Error;
     };
@@ -29,29 +29,25 @@ type AuditProviderProps = {
   filter: AuditFilter;
 };
 
-const AuditStateContext = React.createContext<AuditState | undefined>(
-  undefined
-);
-const AuditSetStateContext = React.createContext<AuditSetState | undefined>(
-  undefined
-);
+const AuditStateContext = React.createContext<AuditState | undefined>(undefined);
+const AuditSetStateContext = React.createContext<AuditSetState | undefined>(undefined);
 
 function AuditProvider({ children, filter }: AuditProviderProps) {
   const { profile } = useProfile();
   const [data, setData] = React.useState<AuditState>({
-    status: "loading",
+    status: 'loading',
     filter,
   });
 
   React.useEffect(() => {
     let cancelled: boolean = false;
-    if (data.status === "loading" || data.status === "updating") {
+    if (data.status === 'loading' || data.status === 'updating') {
       (async () => {
         try {
           const audit = await getAudit(profile, data.filter);
           if (!cancelled) {
             setData({
-              status: "ready",
+              status: 'ready',
               filter: data.filter,
               data: audit,
             });
@@ -64,10 +60,10 @@ function AuditProvider({ children, filter }: AuditProviderProps) {
                   details:
                     (e.status || e.statusCode) === 403
                       ? `You are not authorized to access the audit information.`
-                      : e.message || "Unknown error.",
+                      : e.message || 'Unknown error.',
                 });
             setData({
-              status: "error",
+              status: 'error',
               filter: data.filter,
               error,
             });
@@ -83,9 +79,7 @@ function AuditProvider({ children, filter }: AuditProviderProps) {
 
   return (
     <AuditStateContext.Provider value={data}>
-      <AuditSetStateContext.Provider value={setData}>
-        {children}
-      </AuditSetStateContext.Provider>
+      <AuditSetStateContext.Provider value={setData}>{children}</AuditSetStateContext.Provider>
     </AuditStateContext.Provider>
   );
 }
@@ -93,7 +87,7 @@ function AuditProvider({ children, filter }: AuditProviderProps) {
 function useAuditState() {
   const context = React.useContext(AuditStateContext);
   if (context === undefined) {
-    throw new Error("useAuditState must be used within a AuditProvider");
+    throw new Error('useAuditState must be used within a AuditProvider');
   }
   return context;
 }
@@ -101,7 +95,7 @@ function useAuditState() {
 function useAuditSetState() {
   const context = React.useContext(AuditSetStateContext);
   if (context === undefined) {
-    throw new Error("useAuditSetState must be used within a AuditProvider");
+    throw new Error('useAuditSetState must be used within a AuditProvider');
   }
   return context;
 }
@@ -113,16 +107,12 @@ function useAudit(): [AuditState, AuditSetState] {
 function reloadAudit(state: AuditState, setState: AuditSetState) {
   setState({
     ...state,
-    status: "loading",
+    status: 'loading',
   });
 }
 
-function updateAuditFilter(
-  state: AuditState,
-  setState: AuditSetState,
-  newFilter: AuditFilter
-) {
-  if (state.status !== "ready") {
+function updateAuditFilter(state: AuditState, setState: AuditSetState, newFilter: AuditFilter) {
+  if (state.status !== 'ready') {
     throw new Error(
       `The updateAuditFilter can only be called when the audit status is 'ready'. Current audit status is '${state.status}'.`
     );
@@ -131,7 +121,7 @@ function updateAuditFilter(
   setState({
     ...state,
     filter: newFilter,
-    status: "updating",
+    status: 'updating',
   });
 }
 

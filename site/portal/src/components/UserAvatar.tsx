@@ -3,7 +3,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import Avatar from '@material-ui/core/Avatar';
 import Typography from '@material-ui/core/Typography';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   avatar: {
     display: 'inline-flex',
     width: 32,

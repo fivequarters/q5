@@ -3,9 +3,7 @@ const Joi = require('joi');
 module.exports = Joi.alternatives().try(
   // current schema
   Joi.object().keys({
-    protocol: Joi.string()
-      .valid(['pki', 'oauth'])
-      .required(),
+    protocol: Joi.string().valid(['pki', 'oauth']).required(),
     accessToken: Joi.string().required(),
     publicKey: Joi.any().when('protocol', {
       is: Joi.string().valid('pki'),

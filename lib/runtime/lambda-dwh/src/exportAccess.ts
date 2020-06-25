@@ -15,9 +15,7 @@ export async function exportAccess(ctx: IExportContext, config: IExportConfig) {
         fromRole: x.fromRole && x.fromRole.S,
       },
     };
-    item.insertId = `${item.json.deploymentId}/${item.json.accountId}/${item.json.agentId}/${item.json.ts}/${
-      item.json.resource
-    }/${item.json.action}`;
+    item.insertId = `${item.json.deploymentId}/${item.json.accountId}/${item.json.agentId}/${item.json.ts}/${item.json.resource}/${item.json.action}`;
     return item;
   });
 }

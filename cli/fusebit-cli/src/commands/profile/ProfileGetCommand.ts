@@ -68,7 +68,7 @@ export class ProfileGetCommand extends Command {
         displayName: profile.name,
         baseUrl: profile.baseUrl,
       };
-      ['account', 'subcription', 'boundary', 'function'].forEach(p => {
+      ['account', 'subcription', 'boundary', 'function'].forEach((p) => {
         if (profile[p]) {
           result[p] = profile[p];
         }

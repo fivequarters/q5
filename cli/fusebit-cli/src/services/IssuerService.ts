@@ -407,7 +407,12 @@ export class IssuerService {
     } else if (issuer.publicKeys) {
       details.push(Text.eol());
       details.push(Text.dim('Public Key Ids: '));
-      details.push(Text.join(issuer.publicKeys.map(key => key.keyId), Text.dim(', ')));
+      details.push(
+        Text.join(
+          issuer.publicKeys.map((key) => key.keyId),
+          Text.dim(', ')
+        )
+      );
     }
 
     const message = await Message.create({

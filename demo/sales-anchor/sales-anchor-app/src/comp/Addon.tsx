@@ -197,7 +197,7 @@ export function Addon({
     <Container {...rest}>
       <StyledModal show={installModalVisible} onClick={installModalClick}>
         <ModalInnerStyle
-          onClick={event => {
+          onClick={(event) => {
             event.stopPropagation();
           }}
         >
@@ -221,7 +221,7 @@ export function Addon({
       </StyledModal>
       <StyledModal show={configModalVisible} onClick={configModalClick}>
         <ModalInnerStyle
-          onClick={event => {
+          onClick={(event) => {
             event.stopPropagation();
           }}
         >

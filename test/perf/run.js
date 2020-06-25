@@ -51,6 +51,6 @@ const Superagent = require('superagent');
 
 Superagent.post(PERF_FUNC_URL)
   .send(options)
-  .then(r => {
+  .then((r) => {
     console.log(JSON.stringify(r.body, null, 2));
   });

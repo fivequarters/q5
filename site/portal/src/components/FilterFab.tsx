@@ -1,11 +1,11 @@
-import ClickAwayListener from "@material-ui/core/ClickAwayListener";
-import Grow from "@material-ui/core/Grow";
-import IconButton from "@material-ui/core/IconButton";
-import Paper from "@material-ui/core/Paper";
-import Popper from "@material-ui/core/Popper";
-import { makeStyles } from "@material-ui/core/styles";
-import FilterListIcon from "@material-ui/icons/FilterList";
-import React from "react";
+import ClickAwayListener from '@material-ui/core/ClickAwayListener';
+import Grow from '@material-ui/core/Grow';
+import IconButton from '@material-ui/core/IconButton';
+import Paper from '@material-ui/core/Paper';
+import Popper from '@material-ui/core/Popper';
+import { makeStyles } from '@material-ui/core/styles';
+import FilterListIcon from '@material-ui/icons/FilterList';
+import React from 'react';
 
 const useStyles = makeStyles((theme: any) => ({
   paper: {
@@ -25,13 +25,10 @@ function FilterFab({ children }: any) {
 
   const handleClose = (event: React.MouseEvent<EventTarget>) => {
     if (
-      (anchorRef.current &&
-        anchorRef.current.contains(event.target as HTMLElement)) ||
-      (event.target as HTMLElement).nodeName === "BODY" ||
+      (anchorRef.current && anchorRef.current.contains(event.target as HTMLElement)) ||
+      (event.target as HTMLElement).nodeName === 'BODY' ||
       ((event.target as HTMLElement).classList &&
-        (event.target as HTMLElement).classList.contains(
-          "fusebit-prevent-clickaway"
-        ))
+        (event.target as HTMLElement).classList.contains('fusebit-prevent-clickaway'))
     ) {
       return false;
     }
@@ -54,25 +51,18 @@ function FilterFab({ children }: any) {
     <div>
       <IconButton
         ref={anchorRef}
-        aria-controls={open ? "menu-list-grow" : undefined}
+        aria-controls={open ? 'menu-list-grow' : undefined}
         aria-haspopup="true"
         onClick={handleToggle}
       >
         <FilterListIcon />
       </IconButton>
-      <Popper
-        open={open}
-        anchorEl={anchorRef.current}
-        role={undefined}
-        transition
-        placement="bottom-end"
-      >
+      <Popper open={open} anchorEl={anchorRef.current} role={undefined} transition placement="bottom-end">
         {({ TransitionProps, placement }) => (
           <Grow
             {...TransitionProps}
             style={{
-              transformOrigin:
-                placement === "bottom" ? "center top" : "center bottom",
+              transformOrigin: placement === 'bottom' ? 'center top' : 'center bottom',
             }}
           >
             <Paper className={classes.paper}>

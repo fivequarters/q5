@@ -21,7 +21,7 @@ const Header = styled.div`
   padding: 20px;
   font-family: 'Josefin Sans', sans-serif;
   font-weight: 700;
-  background-color: ${props => props.theme.colors.header};
+  background-color: ${(props) => props.theme.colors.header};
 `;
 
 const Content = styled.div`

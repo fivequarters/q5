@@ -28,7 +28,7 @@ const createAndHitFunction = async (
       subscriptionId: account.subscriptionId,
       boundaryId,
     },
-    response => response.data.total != 0,
+    (response) => response.data.total != 0,
     { code: expectedCode }
   );
   httpExpect(response, { statusCode: 200, data: { total: 1, next: 1 } });
@@ -97,7 +97,7 @@ describe('statistics', () => {
         subscriptionId: account.subscriptionId,
         // Search w/o the boundaryId,
       },
-      response => response.data.total != 0,
+      (response) => response.data.total != 0,
       { code: 200 }
     );
     httpExpect(response, { statusCode: 200 });
@@ -111,7 +111,7 @@ describe('statistics', () => {
         // Search w/o the subscriptionId
         // Search w/o the boundaryId
       },
-      response => response.data.total != 0,
+      (response) => response.data.total != 0,
       { code: 200 }
     );
     httpExpect(response, { statusCode: 200 });
@@ -181,7 +181,7 @@ describe('statistics', () => {
         subscriptionId: account.subscriptionId,
         boundaryId: boundaryId,
       },
-      response => response.data.items.length != 0,
+      (response) => response.data.items.length != 0,
       { code: 200 }
     );
     httpExpect(response, { statusCode: 200 });
@@ -198,7 +198,7 @@ describe('statistics', () => {
         subscriptionId: account.subscriptionId,
         // Search w/o the boundaryId,
       },
-      response => response.data.items.length != 0,
+      (response) => response.data.items.length != 0,
       { code: 200 }
     );
     httpExpect(response, { statusCode: 200 });
@@ -212,7 +212,7 @@ describe('statistics', () => {
         // Search w/o the subscriptionId
         // Search w/o the boundaryId
       },
-      response => response.data.total != 0,
+      (response) => response.data.total != 0,
       { code: 200 }
     );
     httpExpect(response, { statusCode: 200 });
@@ -256,7 +256,7 @@ describe('statistics', () => {
         subscriptionId: account.subscriptionId,
         boundaryId: boundaryId,
       },
-      response => response.data.items.length != 0,
+      (response) => response.data.items.length != 0,
       { field: 'accountid', code: 200 }
     );
     httpExpect(response, { statusCode: 200 });
@@ -274,7 +274,7 @@ describe('statistics', () => {
         subscriptionId: account.subscriptionId,
         boundaryId: boundaryId,
       },
-      response => response.data.items.length == 0,
+      (response) => response.data.items.length == 0,
       { field: 'accountid', code: 300 }
     );
     httpExpect(response, { statusCode: 200 });
@@ -289,7 +289,7 @@ describe('statistics', () => {
         subscriptionId: account.subscriptionId,
         boundaryId: boundaryId,
       },
-      response => true,
+      (response) => true,
       { codeGrouped: true }
     );
     httpExpect(response, { statusCode: 400 });
@@ -303,7 +303,7 @@ describe('statistics', () => {
         subscriptionId: account.subscriptionId,
         boundaryId: boundaryId,
       },
-      response => true,
+      (response) => true,
       { field: 'foobar', codeGrouped: null }
     );
     httpExpect(response, { statusCode: 400 });
@@ -349,7 +349,7 @@ describe('statistics', () => {
         subscriptionId: account.subscriptionId,
         boundaryId: boundaryId,
       },
-      response => response.data.total != 0,
+      (response) => response.data.total != 0,
       { code: '2xx' }
     );
     httpExpect(response, { statusCode: 200 });
@@ -365,7 +365,7 @@ describe('statistics', () => {
         subscriptionId: account.subscriptionId,
         boundaryId: boundaryId,
       },
-      response => response.data.total == 1,
+      (response) => response.data.total == 1,
       { code: '3xx' }
     );
     httpExpect(response, { statusCode: 200 });
@@ -380,7 +380,7 @@ describe('statistics', () => {
         subscriptionId: account.subscriptionId,
         boundaryId: boundaryId,
       },
-      response => response.data.total != 0,
+      (response) => response.data.total != 0,
       { field: 'boundaryid', codeGrouped: true }
     );
     httpExpect(response, { statusCode: 200 });
@@ -400,7 +400,7 @@ describe('statistics', () => {
         subscriptionId: account.subscriptionId,
         boundaryId: boundaryId,
       },
-      response => response.data.total != 0,
+      (response) => response.data.total != 0,
       { field: 'boundaryid', codeGrouped: false }
     );
 

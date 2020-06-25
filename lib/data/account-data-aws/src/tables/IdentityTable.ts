@@ -174,7 +174,7 @@ export class IdentityTable extends AwsDynamoTable {
   }
 
   public async addAllForAgent(accountId: string, agentId: string, identities: IIdentity[]): Promise<IIdentity[]> {
-    await Promise.all(identities.map(identity => this.add(accountId, agentId, identity)));
+    await Promise.all(identities.map((identity) => this.add(accountId, agentId, identity)));
     return identities;
   }
 

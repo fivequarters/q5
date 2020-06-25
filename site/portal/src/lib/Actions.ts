@@ -1,65 +1,63 @@
-import { IFusebitProfile } from "./Settings";
-import { Permission, Resource } from "./FusebitTypes";
+import { IFusebitProfile } from './Settings';
+import { Permission, Resource } from './FusebitTypes';
 
 const actions = [
   {
-    action: "function:*",
-    description: "Full control of functions",
+    action: 'function:*',
+    description: 'Full control of functions',
   },
   {
-    action: "function:get",
-    description: "List and get function definitions and build status",
+    action: 'function:get',
+    description: 'List and get function definitions and build status',
   },
-  { action: "function:put", description: "Create and update functions" },
-  { action: "function:delete", description: "Delete functions" },
+  { action: 'function:put', description: 'Create and update functions' },
+  { action: 'function:delete', description: 'Delete functions' },
   {
-    action: "function:get-log",
-    description: "Get real-time logs of functions",
+    action: 'function:get-log',
+    description: 'Get real-time logs of functions',
   }, // boundary or function scope
-  { action: "account:get", description: "Get account details" },
+  { action: 'account:get', description: 'Get account details' },
   {
-    action: "subscription:get",
-    description: "List subscriptions and get subscription details",
+    action: 'subscription:get',
+    description: 'List subscriptions and get subscription details',
   },
-  { action: "audit:get", description: "Get audit logs" }, // account scope only
-  { action: "user:*", description: "Full control of users" },
+  { action: 'audit:get', description: 'Get audit logs' }, // account scope only
+  { action: 'user:*', description: 'Full control of users' },
   {
-    action: "user:add",
-    description: "Create users, set initial permissions and identities",
-  },
-  {
-    action: "user:init",
-    description: "Generate initialization tokens for users",
+    action: 'user:add',
+    description: 'Create users, set initial permissions and identities',
   },
   {
-    action: "user:get",
-    description:
-      "List users and get user details, including permissions and identities",
+    action: 'user:init',
+    description: 'Generate initialization tokens for users',
   },
   {
-    action: "user:update",
-    description: "Update user details, including permissions and identities",
-  },
-  { action: "user:delete", description: "Delete users" },
-  { action: "client:*", description: "Full control of clients" },
-  {
-    action: "client:add",
-    description: "Create clients, set initial permissions and identities",
+    action: 'user:get',
+    description: 'List users and get user details, including permissions and identities',
   },
   {
-    action: "client:init",
-    description: "Generate initialization tokens for clients",
+    action: 'user:update',
+    description: 'Update user details, including permissions and identities',
+  },
+  { action: 'user:delete', description: 'Delete users' },
+  { action: 'client:*', description: 'Full control of clients' },
+  {
+    action: 'client:add',
+    description: 'Create clients, set initial permissions and identities',
   },
   {
-    action: "client:get",
-    description:
-      "List clients and get client details, including permissions and identities",
+    action: 'client:init',
+    description: 'Generate initialization tokens for clients',
   },
   {
-    action: "client:update",
-    description: "Update client details, including permissions and identities",
+    action: 'client:get',
+    description: 'List clients and get client details, including permissions and identities',
   },
-  { action: "client:delete", description: "Delete clients" },
+  {
+    action: 'client:update',
+    description: 'Update client details, including permissions and identities',
+  },
+  { action: 'client:delete', description: 'Delete clients' },
   // { action: "account:*", description: "Full control of the account" }, // do we need?
   // { action: "global:add:account", description: "Create account" }, // no CLI or portal support
   // { action: "global:delete:account", description: "Delete account" }, // no CLI or portal support
@@ -68,11 +66,11 @@ const actions = [
   // { action: "global:add:subscription", description: "Create subscription" }, // no CLI or portal support
   // { action: "global:delete:subscription", description: "Delete subscription" }, // no CLI or portal support
   // { action: "subscription:update", description: "Update subscription details" }, // no API
-  { action: "issuer:*", description: "Full control of issuers" },
-  { action: "issuer:add", description: "Create issuers" },
-  { action: "issuer:get", description: "List issuers and get issuer details" },
-  { action: "issuer:update", description: "Update issuers" },
-  { action: "issuer:delete", description: "Delete issuers" },
+  { action: 'issuer:*', description: 'Full control of issuers' },
+  { action: 'issuer:add', description: 'Create issuers' },
+  { action: 'issuer:get', description: 'List issuers and get issuer details' },
+  { action: 'issuer:update', description: 'Update issuers' },
+  { action: 'issuer:delete', description: 'Delete issuers' },
   // omitted - storage permissions
 ];
 
@@ -82,40 +80,31 @@ const actionsHash = actions.reduce<any>((current, value) => {
 }, {});
 
 const noRole = {
-  role: "none",
-  title: "No permissions",
-  description: "No permissions in the system",
+  role: 'none',
+  title: 'No permissions',
+  description: 'No permissions in the system',
   actions: [],
 };
 
 const sameRole = {
-  role: "same",
-  title: "Same",
-  description: "The same permissions I have",
+  role: 'same',
+  title: 'Same',
+  description: 'The same permissions I have',
   actions: [],
 };
 
 const roles = [
   {
-    role: "developer",
-    title: "Function developer",
-    description:
-      "Full control of functions, list/get details of subscriptions and the account",
-    actions: ["function:*", "subscription:get", "account:get"],
+    role: 'developer',
+    title: 'Function developer',
+    description: 'Full control of functions, list/get details of subscriptions and the account',
+    actions: ['function:*', 'subscription:get', 'account:get'],
   },
   {
-    role: "admin",
-    title: "Account admin",
-    description: "Full control of the account",
-    actions: [
-      "function:*",
-      "subscription:get",
-      "account:get",
-      "issuer:*",
-      "user:*",
-      "client:*",
-      "audit:get",
-    ],
+    role: 'admin',
+    title: 'Account admin',
+    description: 'Full control of the account',
+    actions: ['function:*', 'subscription:get', 'account:get', 'issuer:*', 'user:*', 'client:*', 'audit:get'],
   },
 ];
 
@@ -124,17 +113,10 @@ const rolesHash = roles.reduce<any>((current, value) => {
   return current;
 }, {});
 
-const makeResource = (
-  profile: IFusebitProfile,
-  action: string,
-  options: any
-) => {
+const makeResource = (profile: IFusebitProfile, action: string, options: any) => {
   let resource = [`/account/${profile.account}/`];
-  if (action.indexOf("function:") === 0) {
-    if (
-      options.subscriptionId.trim() &&
-      options.subscriptionId.trim() !== "*"
-    ) {
+  if (action.indexOf('function:') === 0) {
+    if (options.subscriptionId.trim() && options.subscriptionId.trim() !== '*') {
       resource.push(`subscription/${options.subscriptionId.trim()}/`);
       if (options.boundaryId.trim()) {
         resource.push(`boundary/${options.boundaryId.trim()}/`);
@@ -144,14 +126,10 @@ const makeResource = (
       }
     }
   }
-  return resource.join("");
+  return resource.join('');
 };
 
-function createPermissionsFromRole(
-  profile: IFusebitProfile,
-  role: any,
-  resource: any
-): Permission[] {
+function createPermissionsFromRole(profile: IFusebitProfile, role: any, resource: any): Permission[] {
   if (role.role === sameRole.role) {
     return (profile.me && (profile.me.access.allow as Permission[])) || [];
   }
@@ -171,14 +149,7 @@ function tryTokenizeResource(resource: string): Resource | undefined {
     /^\/(?:account\/([^/]+)\/(?:subscription\/([^/]+)\/(?:boundary\/([^/]+)\/(?:function\/([^/]+)\/(?:([^/]+)\/)?)?)?)?)?$/
   );
   if (match) {
-    const [
-      ,
-      accountId,
-      subscriptionId,
-      boundaryId,
-      functionId,
-      functionComponent,
-    ] = match;
+    const [, accountId, subscriptionId, boundaryId, functionId, functionComponent] = match;
     return {
       ...{
         accountId,
@@ -189,9 +160,7 @@ function tryTokenizeResource(resource: string): Resource | undefined {
       },
     };
   }
-  match = resource.match(
-    /^\/account\/([^/]+)\/subscription\/([^/]+)\/boundary\/([^/]+)\/function\/$/
-  );
+  match = resource.match(/^\/account\/([^/]+)\/subscription\/([^/]+)\/boundary\/([^/]+)\/function\/$/);
   if (match) {
     const [, accountId, subscriptionId, boundaryId] = match;
     return {
@@ -202,9 +171,7 @@ function tryTokenizeResource(resource: string): Resource | undefined {
       },
     };
   }
-  match = resource.match(
-    /^\/account\/([^/]+)\/subscription\/([^/]+)\/([^/]+)\/$/
-  );
+  match = resource.match(/^\/account\/([^/]+)\/subscription\/([^/]+)\/([^/]+)\/$/);
   if (match) {
     const [, accountId, subscriptionId, subscriptionComponent] = match;
     return {
@@ -243,13 +210,4 @@ function tryTokenizeResource(resource: string): Resource | undefined {
   return undefined;
 }
 
-export {
-  actions,
-  actionsHash,
-  roles,
-  rolesHash,
-  noRole,
-  sameRole,
-  createPermissionsFromRole,
-  tryTokenizeResource,
-};
+export { actions, actionsHash, roles, rolesHash, noRole, sameRole, createPermissionsFromRole, tryTokenizeResource };

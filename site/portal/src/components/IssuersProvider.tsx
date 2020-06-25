@@ -1,20 +1,20 @@
-import React from "react";
-import { getIssuers } from "../lib/Fusebit";
-import { Issuer } from "../lib/FusebitTypes";
-import { FusebitError } from "./ErrorBoundary";
-import { useProfile } from "./ProfileProvider";
+import React from 'react';
+import { getIssuers } from '../lib/Fusebit';
+import { Issuer } from '../lib/FusebitTypes';
+import { FusebitError } from './ErrorBoundary';
+import { useProfile } from './ProfileProvider';
 
 type IssuersState =
   | {
-      status: "loading";
+      status: 'loading';
       formatError?: (e: any) => Error;
     }
   | {
-      status: "ready";
+      status: 'ready';
       existing: Issuer[];
     }
   | {
-      status: "error";
+      status: 'error';
       error: Error;
     };
 
@@ -24,30 +24,26 @@ type IssuersProviderProps = {
   children: React.ReactNode;
 };
 
-const IssuersStateContext = React.createContext<IssuersState | undefined>(
-  undefined
-);
+const IssuersStateContext = React.createContext<IssuersState | undefined>(undefined);
 
-const IssuersSetStateContext = React.createContext<IssuersSetState | undefined>(
-  undefined
-);
+const IssuersSetStateContext = React.createContext<IssuersSetState | undefined>(undefined);
 
 function IssuersProvider({ children }: IssuersProviderProps) {
   const { profile } = useProfile();
   const [data, setData] = React.useState<IssuersState>({
-    status: "loading"
+    status: 'loading',
   });
 
   React.useEffect(() => {
     let cancelled: boolean = false;
-    if (data.status === "loading") {
+    if (data.status === 'loading') {
       (async () => {
         try {
           let issuers = await getIssuers(profile);
           if (!cancelled) {
             setData({
-              status: "ready",
-              existing: issuers
+              status: 'ready',
+              existing: issuers,
             });
           }
         } catch (e) {
@@ -58,11 +54,11 @@ function IssuersProvider({ children }: IssuersProviderProps) {
                   details:
                     (e.status || e.statusCode) === 403
                       ? `You are not authorized to access the issuer information`
-                      : e.message || "Unknown error."
+                      : e.message || 'Unknown error.',
                 });
             setData({
-              status: "error",
-              error
+              status: 'error',
+              error,
             });
           }
         }
@@ -75,9 +71,7 @@ function IssuersProvider({ children }: IssuersProviderProps) {
 
   return (
     <IssuersStateContext.Provider value={data}>
-      <IssuersSetStateContext.Provider value={setData}>
-        {children}
-      </IssuersSetStateContext.Provider>
+      <IssuersSetStateContext.Provider value={setData}>{children}</IssuersSetStateContext.Provider>
     </IssuersStateContext.Provider>
   );
 }
@@ -85,7 +79,7 @@ function IssuersProvider({ children }: IssuersProviderProps) {
 function useIssuersState() {
   const context = React.useContext(IssuersStateContext);
   if (context === undefined) {
-    throw new Error("useIssuersState must be used within a IssuersProvider");
+    throw new Error('useIssuersState must be used within a IssuersProvider');
   }
   return context;
 }
@@ -93,7 +87,7 @@ function useIssuersState() {
 function useIssuersSetState() {
   const context = React.useContext(IssuersSetStateContext);
   if (context === undefined) {
-    throw new Error("useIssuersSetState must be used within a IssuersProvider");
+    throw new Error('useIssuersSetState must be used within a IssuersProvider');
   }
   return context;
 }
@@ -104,16 +98,12 @@ function useIssuers(): [IssuersState, IssuersSetState] {
 
 function reloadIssuers(state: IssuersState, setState: IssuersSetState) {
   setState({
-    status: "loading"
+    status: 'loading',
   });
 }
 
-function removeIssuers(
-  state: IssuersState,
-  setState: IssuersSetState,
-  issuerIds: string[]
-) {
-  if (state.status !== "ready") {
+function removeIssuers(state: IssuersState, setState: IssuersSetState, issuerIds: string[]) {
+  if (state.status !== 'ready') {
     throw new Error(
       `The removeIssuers can only be called when the issuers status is 'ready'. Current issuers status is '${state.status}'.`
     );
@@ -128,7 +118,7 @@ function removeIssuers(
 
   setState({
     ...state,
-    existing: newIssuers
+    existing: newIssuers,
   });
 }
 

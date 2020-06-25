@@ -104,10 +104,8 @@ function ResourceAccess({ actionPrefixFilter, resourceFilter }: ResourceAccessPr
               {row.name}
             </Link>
           </div>
-        ) : (
-          undefined
-        ),
-      getRowSpan: row => row.permissions.length || 1,
+        ) : undefined,
+      getRowSpan: (row) => row.permissions.length || 1,
     },
     {
       id: 'type',
@@ -122,9 +120,8 @@ function ResourceAccess({ actionPrefixFilter, resourceFilter }: ResourceAccessPr
       disableSorting: true,
       label: 'Action',
       render: (row, tableRow) =>
-        row.permissions[tableRow - 1] && row.permissions[tableRow - 1].action === row.permissions[tableRow].action ? (
-          undefined
-        ) : (
+        row.permissions[tableRow - 1] &&
+        row.permissions[tableRow - 1].action === row.permissions[tableRow].action ? undefined : (
           <strong>{row.permissions[tableRow].action}</strong>
         ),
       getRowSpan: getActionRowSpan,
@@ -160,7 +157,7 @@ function ResourceAccess({ actionPrefixFilter, resourceFilter }: ResourceAccessPr
     //   }
     // }
     const matchingPermissions: Permission[] = [];
-    ((current.access && current.access.allow) || []).forEach(permission => {
+    ((current.access && current.access.allow) || []).forEach((permission) => {
       if (permission.action === '*' || actionPrefixFilter.indexOf(permission.action.split(':')[0]) > -1) {
         const resource = tryTokenizeResource(permission.resource) as any;
         for (var resourceComponent in resourceFilter) {
@@ -200,7 +197,7 @@ function ResourceAccess({ actionPrefixFilter, resourceFilter }: ResourceAccessPr
       <ExplorerTable<ViewRow>
         rows={viewData}
         headCells={headCells}
-        getTableRows={row => row.permissions.length}
+        getTableRows={(row) => row.permissions.length}
         defaultSortKey="name"
         identityKey="id"
         title="Access"

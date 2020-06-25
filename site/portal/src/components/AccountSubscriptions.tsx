@@ -36,7 +36,7 @@ function AccountSubscriptions() {
       // disablePadding: true,
       align: 'left',
       label: 'Subscription Name',
-      render: row => (
+      render: (row) => (
         <Link component={RouterLink} to={`subscriptions/${row.id}/boundaries`}>
           {row.name}
         </Link>

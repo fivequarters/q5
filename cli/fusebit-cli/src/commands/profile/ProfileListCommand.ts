@@ -81,7 +81,7 @@ export class ProfileListCommand extends Command {
 
     const profiles = await profileService.listProfiles();
 
-    const filtered = profiles.filter(profile => {
+    const filtered = profiles.filter((profile) => {
       if (name !== undefined) {
         if (profile.name && profile.name.indexOf(name) === -1) {
           return false;

@@ -3,14 +3,14 @@ const create_error = require('http-errors');
 
 function userPost() {
   return (req, res) => {
-    getAccountContext().then(accountContext => {
+    getAccountContext().then((accountContext) => {
       const resolvedAgent = req.resolvedAgent;
       const accountId = req.params.accountId;
       const newUser = req.body;
 
       accountContext.user
         .add(resolvedAgent, accountId, newUser)
-        .then(result => res.json(result))
+        .then((result) => res.json(result))
         .catch(errorHandler(res));
     });
   };
@@ -18,7 +18,7 @@ function userPost() {
 
 function userPatch() {
   return (req, res, next) => {
-    getAccountContext().then(accountContext => {
+    getAccountContext().then((accountContext) => {
       const resolvedAgent = req.resolvedAgent;
       const accountId = req.params.accountId;
       const userId = req.params.userId;
@@ -35,7 +35,7 @@ function userPatch() {
 
       accountContext.user
         .update(resolvedAgent, accountId, updateUser)
-        .then(result => res.json(result))
+        .then((result) => res.json(result))
         .catch(errorHandler(res));
     });
   };
@@ -43,14 +43,14 @@ function userPatch() {
 
 function userGet() {
   return (req, res) => {
-    getAccountContext().then(accountContext => {
+    getAccountContext().then((accountContext) => {
       const resolvedAgent = req.resolvedAgent;
       const accountId = req.params.accountId;
       const userId = req.params.userId;
 
       accountContext.user
         .get(resolvedAgent, accountId, userId)
-        .then(result => res.json(result))
+        .then((result) => res.json(result))
         .catch(errorHandler(res));
     });
   };
@@ -58,7 +58,7 @@ function userGet() {
 
 function userList() {
   return (req, res) => {
-    getAccountContext().then(accountContext => {
+    getAccountContext().then((accountContext) => {
       const resolvedAgent = req.resolvedAgent;
       const accountId = req.params.accountId;
       const limit = req.query.count;
@@ -80,7 +80,7 @@ function userList() {
 
       accountContext.user
         .list(resolvedAgent, accountId, options)
-        .then(result => res.json(result))
+        .then((result) => res.json(result))
         .catch(errorHandler(res));
     });
   };
@@ -88,7 +88,7 @@ function userList() {
 
 function userDelete() {
   return (req, res) => {
-    getAccountContext().then(accountContext => {
+    getAccountContext().then((accountContext) => {
       const resolvedAgent = req.resolvedAgent;
       const accountId = req.params.accountId;
       const userId = req.params.userId;
@@ -106,7 +106,7 @@ function userDelete() {
 
 function userInit() {
   return (req, res, next) => {
-    getAccountContext().then(accountContext => {
+    getAccountContext().then((accountContext) => {
       const resolvedAgent = req.resolvedAgent;
       const initEntry = req.body;
       initEntry.agentId = req.params.userId;
@@ -123,7 +123,7 @@ function userInit() {
 
       accountContext.user
         .init(resolvedAgent, initEntry)
-        .then(result => res.json(result))
+        .then((result) => res.json(result))
         .catch(errorHandler(res));
     });
   };

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
-import { Box } from '@5qtrs/box'
+import { Box } from '@5qtrs/box';
 import { Fade } from './index';
 
 const App = () => {

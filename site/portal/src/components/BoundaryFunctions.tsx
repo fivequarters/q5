@@ -37,7 +37,7 @@ function BoundaryFunctions({ boundaryId, subscriptionId }: any) {
       // disablePadding: true,
       align: 'left',
       label: 'Function Name',
-      render: row => (
+      render: (row) => (
         <Link component={RouterLink} to={`functions/${row.id}/properties`}>
           {row.id}
         </Link>
@@ -119,7 +119,9 @@ function BoundaryFunctions({ boundaryId, subscriptionId }: any) {
       size="narrow"
       enableSelection={true}
       onDelete={handleDelete}
-      deleteTitle={selected => (selected.length > 1 ? `Delete ${selected.length} functions?` : 'Delete the function?')}
+      deleteTitle={(selected) =>
+        selected.length > 1 ? `Delete ${selected.length} functions?` : 'Delete the function?'
+      }
       deleteContent={generateDeleteContent}
       actions={
         <ActionButton to="new-function" component={RouterLink}>

@@ -10,7 +10,7 @@ let server: Server;
 beforeAll(async () => {
   server = createServer((req, res) => {
     let data = '';
-    req.on('data', chunk => (data += chunk.toString()));
+    req.on('data', (chunk) => (data += chunk.toString()));
     req.on('end', () => {
       const body = {
         method: req.method,

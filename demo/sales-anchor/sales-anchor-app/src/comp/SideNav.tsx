@@ -72,7 +72,7 @@ export type SideNavProps = {
 // -------------------
 
 export function SideNav({ selection, onSelection }: SideNavProps) {
-  const items = sideNavItems.map(sideNavItem => {
+  const items = sideNavItems.map((sideNavItem) => {
     function onClick() {
       if (sideNavItem.canSelect) {
         return onSelection(sideNavItem.name);
