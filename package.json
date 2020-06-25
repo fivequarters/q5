@@ -30,7 +30,8 @@
     "cli-unlink": "yarn-tool yarn cli-unlink",
     "publish:dev": "yarn-tool yarn publish:dev",
     "publish:prod": "yarn-tool yarn publish:prod",
-    "image": "VERSION=$(cat package.json | grep version | head -1 | awk -F: '{ print $2 }' | sed 's/[\",]//g' | tr -d '[[:space:]]') && docker build . -t fusebit-mono:$VERSION"
+    "image": "VERSION=$(cat package.json | grep version | head -1 | awk -F: '{ print $2 }' | sed 's/[\",]//g' | tr -d '[[:space:]]') && docker build . -t fusebit-mono:$VERSION",
+    "prettier": "git ls-tree -r master --name-only | grep -E \".[tj]?sx?$\" | grep -v assets | xargs -P 1 prettier --write"
   },
   "devDependencies": {
     "@babel/core": "^7.3.3",
@@ -45,7 +46,7 @@
     "html-webpack-template": "^6.2.0",
     "jest": "^24.9.0",
     "nodemon": "^1.18.9",
-    "prettier": "^1.15.1",
+    "prettier": "^2.0.5",
     "style-loader": "^0.23.1",
     "terser-webpack-plugin": "^1.2.2",
     "ts-jest": "^24.2.0",
