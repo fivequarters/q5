@@ -1,6 +1,30 @@
 {
   "templates": [
     {
+      "id": "empty",
+      "name": "Empty Function",
+      "description": "Node.js with NPM",
+      "tags": ["nodejs", "npm", "fusebit", "empty"],
+      "managerUrl": "https://stage.us-west-2.fusebit.io/v1/run/sub-ed9d9341ea356841/template-manager/empty",
+      "documentationUrl": "https://github.com/fusebit/samples"
+    },
+    {
+      "id": "connector-atlassian",
+      "name": "Atlassian Connector",
+      "description": "Authentication to Atlassian APIs for Fusebit AddOns",
+      "tags": ["atlassian", "connector"],
+      "managerUrl": "https://stage.us-west-2.fusebit.io/v1/run/sub-ed9d9341ea356841/template-manager/connector-atlassian",
+      "documentationUrl": "https://github.com/fusebit/samples"
+    },
+    {
+      "id": "addon-atlassian-confluence",
+      "name": "Confluence Addon",
+      "description": "Atlassian Confluence Addon Example",
+      "tags": ["atlassian", "confluence", "addon"],
+      "managerUrl": "https://stage.us-west-2.fusebit.io/v1/run/sub-ed9d9341ea356841/template-manager/addon-atlassian-confluence",
+      "documentationUrl": "https://github.com/fusebit/samples"
+    },
+    {
       "id": "add-on-template",
       "name": "Fusebit Add-On",
       "description": "Scaffold a new Fusebit Add-On",
@@ -38,14 +62,6 @@
       "description": "Starter Fusebit Add-On",
       "tags": ["nodejs", "npm", "fusebit", "starter"],
       "managerUrl": "https://stage.us-west-2.fusebit.io/v1/run/sub-ed9d9341ea356841/template-manager/starter",
-      "documentationUrl": "https://github.com/fusebit/samples"
-    },
-    {
-      "id": "empty",
-      "name": "Empty Function",
-      "description": "Node.js with NPM",
-      "tags": ["nodejs", "npm", "fusebit", "empty"],
-      "managerUrl": "https://stage.us-west-2.fusebit.io/v1/run/sub-ed9d9341ea356841/template-manager/empty",
       "documentationUrl": "https://github.com/fusebit/samples"
     },
     {
