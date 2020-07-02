@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.24.1
+
+_Released 7/1/20_
+
+- **Bugfix..** Record cron executions in the analytics with valid status codes.
+
 ## Version 1.24.0
 
 - **Enhancement.** Support for managing Fusebit Portals with `fuse-ops portal`.
@@ -28,7 +34,7 @@ All public releases of the Fusebit Operations CLI are documented here, including
 
 ## Version 1.23.3
 
-_Released 6/9.20_
+_Released 6/9/20_
 
 - **Bugfix.** Allow the `fusebit-analytics` IAM role to scan subscription information in multiple regions.
 

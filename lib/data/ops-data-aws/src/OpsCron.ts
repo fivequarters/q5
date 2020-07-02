@@ -159,7 +159,6 @@ export async function createCron(config: OpsDataAwsConfig, awsConfig: IAwsConfig
           AWS_S3_BUCKET: config.getS3Bucket(deployment),
           CRON_CONCURRENT_EXECUTION_LIMIT: Config.executor.concurrentExecutionLimit.toString(),
           DEPLOYMENT_KEY: awsConfig.prefix || 'global',
-          LOGS_DISABLE: 'true',
           // LOGS_WS_URL: process.env.LOGS_WS_URL,
           // LOGS_WS_TOKEN_SIGNATURE_KEY: process.env.LOGS_WS_TOKEN_SIGNATURE_KEY,
           // LOGS_WS_TOKEN_EXPIRY: process.env.LOGS_WS_TOKEN_EXPIRY,
