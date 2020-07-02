@@ -118,14 +118,17 @@ function dispatch_cron_event(details: any) {
     endTime: Date.now(),
     request: details.request,
     metrics: details.meta.metrics,
-    response: details.response
-      ? { statusCode: details.response.statusCode, headers: details.response.headers }
-      : details.error
-      ? { statusCode: details.error.statusCode, headers: [] }
-      : { statusCode: 200, headers: [] },
-    fusebit: fusebit,
+    response: { statusCode: 200, headers: [] },
+    fusebit,
     error: details.meta.error || details.error, // The meta error always has more information.
   };
+
+  // Make sure the response.statusCode is populated so that it shows up in analytics reports
+  if (details.response && details.response.statusCode) {
+    event.response = { statusCode: details.response.statusCode, headers: details.response.headers || [] };
+  } else if (details.error) {
+    event.response = { statusCode: details.error.statusCode || 501, headers: [] };
+  }
 
   Runtime.dispatch_event(event);
 }
