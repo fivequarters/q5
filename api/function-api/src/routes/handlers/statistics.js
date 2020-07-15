@@ -40,7 +40,7 @@ const appendIamRoleToES = async (iamArn) => {
 const updateTemplate = async () => {
   try {
     let result;
-    const template = 'fusebit-api';
+    const template = 'fusebit';
 
     result = await postES(`/_template/${template}`, fusebitTemplate, 'PUT');
     if (result.statusCode == 200) {
