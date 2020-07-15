@@ -1,5 +1,5 @@
 const fusebitTemplate = {
-  index_patterns: ['fusebit-api-*'],
+  index_patterns: ['fusebit-*'],
   mappings: {
     properties: {
       '@id': {
