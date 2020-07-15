@@ -5,6 +5,8 @@ const httpError = require('http-errors');
 const { getAccountContext } = require('../account');
 const { getAWSCredentials } = require('../credentials');
 
+const { fusebitTemplate } = require('./elastic_template');
+
 let postES = undefined;
 
 const appendIamRoleToES = async (iamArn) => {
@@ -32,6 +34,22 @@ const appendIamRoleToES = async (iamArn) => {
     }
   } catch (e) {
     console.log('ES: Failed to update IAM role: ', e);
+  }
+};
+
+const updateTemplate = async () => {
+  try {
+    let result;
+    const template = 'fusebit-api';
+
+    result = await postES(`/_template/${template}`, fusebitTemplate, 'PUT');
+    if (result.statusCode == 200) {
+      console.log(`ES: Successfully updated template ${template}`);
+    } else {
+      console.log(`ES: Failed updating template ${template}: ${JSON.stringify(result.body)}`);
+    }
+  } catch (e) {
+    console.log('ES: Failed to update template:', e);
   }
 };
 
@@ -128,6 +146,8 @@ const onStartup = async () => {
     // Ammend the analytics role to the ElasticSearch cluster to allow the lambda to post events.
     // Support multiple roles in the ES_ANALYTICS_ROLE for ease of local credential testing.
     await appendIamRoleToES([process.env.SERVICE_ROLE, ...process.env.ES_ANALYTICS_ROLE.split(',')]);
+
+    await updateTemplate();
   }
 };
 
