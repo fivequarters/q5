@@ -69,8 +69,6 @@ const getDefaultElasticSearchConfig = async (
 
     ElasticsearchVersion: '7.4',
 
-    CognitoOptions: { Enabled: false },
-
     DomainEndpointOptions: { EnforceHTTPS: true },
 
     EBSOptions: { EBSEnabled: true, VolumeType: 'gp2', VolumeSize: 10 },
