@@ -18,11 +18,17 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.24.2
+
+_Released 7/17/20_
+
+- **Bugfix.** Eliminate unused option from ElasticSearch generated configuration for GovCloud support.
+
 ## Version 1.24.1
 
 _Released 7/1/20_
 
-- **Bugfix..** Record cron executions in the analytics with valid status codes.
+- **Bugfix.** Record cron executions in the analytics with valid status codes.
 
 ## Version 1.24.0
 
