@@ -91,7 +91,7 @@
       "profiles": [
         {
           "id": "hyperproof-poc",
-          "displayName": "Hyperproof POC",
+          "displayName": "Hyperproof",
           "baseUrl": "https://api.us-east-1.fusebit.io",
           "account": "acc-162db008f84a48c7",
           "subscription": "sub-6b1bdd0072ee4514",
@@ -112,7 +112,7 @@
       "profiles": [
         {
           "id": "criipto-poc",
-          "displayName": "Criipto POC",
+          "displayName": "Criipto",
           "baseUrl": "https://stage.eu-north-1.fusebit.io",
           "account": "acc-977f88a34c0f452b",
           "subscription": "sub-eb7ae6391f194b3f",
@@ -133,7 +133,7 @@
       "profiles": [
         {
           "id": "onelogin-poc",
-          "displayName": "OneLogin POC",
+          "displayName": "OneLogin",
           "baseUrl": "https://api.us-east-1.fusebit.io",
           "account": "acc-9ad1aeb137774e6e",
           "subscription": "sub-b1574c999655470f",
