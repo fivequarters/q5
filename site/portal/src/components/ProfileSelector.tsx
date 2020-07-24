@@ -16,6 +16,7 @@ const useStyles = makeStyles((theme: any) => ({
   },
   detailsPrimary: {
     marginLeft: theme.spacing(2),
+    minWidth: 150,
     maxWidth: 275,
     overflow: 'hidden',
   },
