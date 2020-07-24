@@ -87,6 +87,7 @@
         {
           "id": "onelogin-poc",
           "displayName": "OneLogin",
+          "icon": "https://cdn.fusebit.io/assets/images/onelogin.png",
           "baseUrl": "https://api.us-east-1.fusebit.io",
           "account": "acc-9ad1aeb137774e6e",
           "subscription": "sub-b1574c999655470f",
@@ -103,6 +104,7 @@
         {
           "id": "criipto-poc",
           "displayName": "Criipto",
+          "icon": "https://cdn.fusebit.io/assets/images/criipto.png",
           "baseUrl": "https://stage.eu-north-1.fusebit.io",
           "account": "acc-977f88a34c0f452b",
           "subscription": "sub-eb7ae6391f194b3f",
@@ -119,6 +121,7 @@
         {
           "id": "hyperproof-poc",
           "displayName": "Hyperproof",
+          "icon": "https://cdn.fusebit.io/assets/images/hyperproof.png",
           "baseUrl": "https://api.us-east-1.fusebit.io",
           "account": "acc-162db008f84a48c7",
           "subscription": "sub-6b1bdd0072ee4514",
@@ -140,6 +143,7 @@
         {
           "id": "hyperproof-poc",
           "displayName": "Hyperproof",
+          "icon": "https://cdn.fusebit.io/assets/images/hyperproof.png",
           "baseUrl": "https://api.us-east-1.fusebit.io",
           "account": "acc-162db008f84a48c7",
           "subscription": "sub-6b1bdd0072ee4514",
@@ -161,6 +165,7 @@
         {
           "id": "criipto-poc",
           "displayName": "Criipto",
+          "icon": "https://cdn.fusebit.io/assets/images/criipto.png",
           "baseUrl": "https://stage.eu-north-1.fusebit.io",
           "account": "acc-977f88a34c0f452b",
           "subscription": "sub-eb7ae6391f194b3f",
@@ -182,6 +187,7 @@
         {
           "id": "onelogin-poc",
           "displayName": "OneLogin",
+          "icon": "https://cdn.fusebit.io/assets/images/onelogin.png",
           "baseUrl": "https://api.us-east-1.fusebit.io",
           "account": "acc-9ad1aeb137774e6e",
           "subscription": "sub-b1574c999655470f",
