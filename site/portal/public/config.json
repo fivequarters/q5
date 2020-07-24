@@ -128,6 +128,27 @@
         }
       ],
       "defaultProfile": "hyperproof-poc"
+    },
+    "onelogin": {
+      "profiles": [
+        {
+          "id": "onelogin-poc",
+          "displayName": "OneLogin POC",
+          "baseUrl": "https://api.us-east-1.fusebit.io",
+          "account": "acc-9ad1aeb137774e6e",
+          "subscription": "sub-b1574c999655470f",
+          "catalog": "/catalog-empty.json",
+          "oauth": {
+            "webAuthorizationUrl": "https://fusebit.auth0.com/authorize",
+            "webClientId": "hSgWIXmbluQMADuWhDnRTpWyKptJe6LB",
+            "webLogoutUrl": "https://fusebit.auth0.com/v2/logout?client_id=hSgWIXmbluQMADuWhDnRTpWyKptJe6LB&returnTo=https://onelogin.portal.fusebit.io",
+            "deviceAuthorizationUrl": "https://fusebit.auth0.com/oauth/device/code",
+            "deviceClientId": "VFOtrBCVHEm7I9UNv7rFwu1ID1hTEueF",
+            "tokenUrl": "https://fusebit.auth0.com/oauth/token"
+          }
+        }
+      ],
+      "defaultProfile": "onelogin-poc"
     }
   }
 }
