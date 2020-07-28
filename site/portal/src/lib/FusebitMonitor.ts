@@ -1,5 +1,5 @@
 import { IFusebitProfile } from './Settings';
-import { ensureAccessToken, createHttpException } from './Fusebit';
+import { ensureAccessToken, createHttpException, userAgent } from './Fusebit';
 import Superagent from 'superagent';
 
 enum BucketWidths {
@@ -78,7 +78,8 @@ const getBulkMonitorData = async (
         count: options.pageSize,
         ...codeParams,
       })
-      .set('Authorization', `Bearer ${auth.access_token}`);
+      .set('Authorization', `Bearer ${auth.access_token}`)
+      .set('x-user-agent', userAgent);
 
     setData(result.body);
   } catch (e) {
@@ -107,7 +108,8 @@ const getStatisticalMonitorData = async (
         codeGrouped: codeGrouped ? null : undefined,
         ...queryParams,
       })
-      .set('Authorization', `Bearer ${auth.access_token}`);
+      .set('Authorization', `Bearer ${auth.access_token}`)
+      .set('x-user-agent', userAgent);
 
     // Make sure there's always a 0-value begin and end entry to track 'loading' state easily.
     if (result.body.items.length === 0) {

@@ -3,6 +3,7 @@ import { FusebitError } from './ErrorBoundary';
 import Superagent from 'superagent';
 import { Catalog, parseCatalog } from '../lib/CatalogTypes';
 import { useProfile } from './ProfileProvider';
+import { userAgent } from '../lib/Fusebit';
 
 type CatalogProvider =
   | {
@@ -45,7 +46,7 @@ function CatalogProvider({ children }: CatalogProviderProps) {
           if (typeof catalogPath === 'object') {
             catalog = catalogPath;
           } else {
-            const response = await Superagent.get(catalogPath);
+            const response = await Superagent.get(catalogPath).set('x-user-agent', userAgent);
             catalog = parseCatalog(response.body);
           }
 
