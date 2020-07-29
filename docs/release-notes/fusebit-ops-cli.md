@@ -1,6 +1,6 @@
 ---
 parent: Release Notes
-nav_order: 5
+nav_order: 6
 title: Fusebit Operations CLI
 ---
 
