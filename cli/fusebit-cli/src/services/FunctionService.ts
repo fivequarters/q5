@@ -236,7 +236,7 @@ export class FunctionService {
     functionSpec.scheduleSerialized = fusebitJson.scheduleSerialized;
 
     // nodejs files & configuration & configurationSerialized
-    const files = await readDirectory(path, { filesOnly: true, joinPaths: false, recursive: false });
+    const files = await readDirectory(path, { filesOnly: true, joinPaths: false, recursive: true });
     for (const file of files) {
       if (file !== '.gitignore' && file !== 'fusebit.json') {
         const content = await readFile(join(path, file));

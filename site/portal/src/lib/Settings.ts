@@ -278,7 +278,7 @@ function setLocalSettings(settings: IFusebitLocalSettings) {
   let redux: IFusebitLocalSettings = {
     currentProfile: settings.currentProfile,
     ui: settings.ui,
-    profiles: settings.profiles.map(p => ({
+    profiles: settings.profiles.map((p) => ({
       id: p.id,
       subscription: p.subscription,
       boundary: p.boundary,

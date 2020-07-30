@@ -85,7 +85,7 @@ export async function getMe(profile: IFusebitProfile) {
           }
         }
         if (acl.action === `${resourceType}:*` || acl.action === '*') {
-          Object.keys(account.can[resourceType]).forEach(operation => (account.can[resourceType][operation] = true));
+          Object.keys(account.can[resourceType]).forEach((operation) => (account.can[resourceType][operation] = true));
         }
       }
     }
@@ -150,7 +150,7 @@ export async function getAgent(
     )
       .set('Authorization', `Bearer ${auth.access_token}`)
       .set('x-user-agent', userAgent)
-      .ok(res => res.status === 200 || res.status === 404);
+      .ok((res) => res.status === 200 || res.status === 404);
     if (result.status === 200) {
       return [result.body.items[0] as User, true];
     }
@@ -337,7 +337,7 @@ export function normalizeAgent(user: any): Client | User {
   let normalized: any = {
     id: user.id,
   };
-  ['firstName', 'lastName', 'primaryEmail', 'displayName'].forEach(p => {
+  ['firstName', 'lastName', 'primaryEmail', 'displayName'].forEach((p) => {
     if (user[p] && user[p].trim().length > 0) {
       normalized[p] = user[p].trim();
     }
@@ -465,7 +465,7 @@ export async function deleteUsers(profile: IFusebitProfile, userIds: string[]): 
         Superagent.delete(`${profile.baseUrl}/v1/account/${profile.account}/user/${id}`)
           .set('Authorization', `Bearer ${auth.access_token}`)
           .set('x-user-agent', userAgent)
-          .ok(res => res.status === 204)
+          .ok((res) => res.status === 204)
       )
     );
   } catch (e) {
@@ -481,7 +481,7 @@ export async function deleteIssuers(profile: IFusebitProfile, issuerIds: string[
         Superagent.delete(`${profile.baseUrl}/v1/account/${profile.account}/issuer/${encodeURIComponent(id)}`)
           .set('Authorization', `Bearer ${auth.access_token}`)
           .set('x-user-agent', userAgent)
-          .ok(res => res.status === 204)
+          .ok((res) => res.status === 204)
       )
     );
   } catch (e) {
@@ -521,7 +521,7 @@ export async function getAudit(profile: IFusebitProfile, filter: AuditFilter): P
   } catch (e) {
     throw createHttpException(e);
   }
-  data.forEach(d => {
+  data.forEach((d) => {
     d.id = createHash('md5')
       .update(`${d.resource}::${d.action}::${d.timestamp}::${d.issuerId}::${d.subject}`)
       .digest('hex');
@@ -557,7 +557,7 @@ export async function deleteClients(profile: IFusebitProfile, clientIds: string[
         Superagent.delete(`${profile.baseUrl}/v1/account/${profile.account}/client/${id}`)
           .set('Authorization', `Bearer ${auth.access_token}`)
           .set('x-user-agent', userAgent)
-          .ok(res => res.status === 204)
+          .ok((res) => res.status === 204)
       )
     );
   } catch (e) {
@@ -578,7 +578,7 @@ export async function tryGetFunction(
     )
       .set('Authorization', `Bearer ${auth.access_token}`)
       .set('x-user-agent', userAgent)
-      .ok(res => res.status === 200 || res.status === 404);
+      .ok((res) => res.status === 200 || res.status === 404);
     return response.status === 200 ? (response.body as ExistingFunctionSpecification) : null;
   } catch (e) {
     throw createHttpException(e);
@@ -616,7 +616,7 @@ export async function createFunction(
           );
         }
       }
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
       attempts--;
     }
     if (attempts === 0) {
@@ -716,7 +716,7 @@ export async function getFunctions(
         next = response.body.next ? `?next=${response.body.next}` : undefined;
       } while (next);
     }
-    Object.keys(boundaries).forEach(boundaryId => {
+    Object.keys(boundaries).forEach((boundaryId) => {
       let boundary = boundaries[boundaryId];
       boundary.functions.sort((a: any, b: any) =>
         a.functionId < b.functionId ? -1 : a.functionId > b.functionId ? 1 : 0
