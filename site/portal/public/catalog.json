@@ -11,7 +11,7 @@
     {
       "id": "sample-slack-addon",
       "name": "Sample Slack AddOn",
-      "description": "A do-nothing Slack AddOn Starter",
+      "description": "A Slack AddOn Starter",
       "tags": ["slack", "addon"],
       "managerUrl": "https://stage.us-west-2.fusebit.io/v1/run/sub-ed9d9341ea356841/template-manager/sample-slack-addon",
       "documentationUrl": "https://github.com/fusebit/samples"
