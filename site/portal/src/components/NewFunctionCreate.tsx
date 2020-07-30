@@ -11,7 +11,7 @@ import PortalError from './PortalError';
 import Superagent from 'superagent';
 import { useProfile } from './ProfileProvider';
 import { useCatalog } from './CatalogProvider';
-import { ensureAccessToken, appendUrlSegment } from '../lib/Fusebit';
+import { ensureAccessToken, appendUrlSegment, userAgent } from '../lib/Fusebit';
 import { useBoundaries, reloadBoundaries } from './BoundariesProvider';
 
 function useQuery() {
@@ -46,7 +46,7 @@ function NewFunctionCreate({ subscriptionId, boundaryId, templateId }: NewFuncti
     if (state.status === 'installing' && catalog.status === 'ready' && boundaries.status === 'ready') {
       (async () => {
         try {
-          const template = catalog.existing.templates.find((t) => t.id === templateId);
+          const template = catalog.existing.templates.find(t => t.id === templateId);
           if (!template) {
             throw new Error(`Unsupported function template '${templateId}'.`);
           }
@@ -59,6 +59,7 @@ function NewFunctionCreate({ subscriptionId, boundaryId, templateId }: NewFuncti
           delete data.templateName;
           await Superagent.post(appendUrlSegment(template.managerUrl, 'install'))
             .set('Authorization', `Bearer ${(await ensureAccessToken(profile)).access_token}`)
+            .set('x-user-agent', userAgent)
             .send({
               baseUrl,
               accountId,

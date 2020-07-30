@@ -14,7 +14,9 @@ import {
 import { createHash } from 'crypto';
 
 import Superagent from 'superagent';
-// import parseUrl from "url-parse";
+
+//@ts-ignore
+export const userAgent: string = `fusebit-portal/${window.fusebitPortal.version} ${navigator.userAgent}`;
 
 export async function ensureAccessToken(profile: IFusebitProfile): Promise<IFusebitAuth> {
   if (isIFusebitAuth(profile.auth)) {
@@ -48,10 +50,9 @@ export function createHttpException(error: any) {
 export async function getMe(profile: IFusebitProfile) {
   try {
     let auth = await ensureAccessToken(profile);
-    let result = await Superagent.get(`${profile.baseUrl}/v1/account/${profile.account}/me`).set(
-      'Authorization',
-      `Bearer ${auth.access_token}`
-    );
+    let result = await Superagent.get(`${profile.baseUrl}/v1/account/${profile.account}/me`)
+      .set('Authorization', `Bearer ${auth.access_token}`)
+      .set('x-user-agent', userAgent);
 
     let account = result.body;
     let allow = (account && account.access && account.access.allow) || [];
@@ -84,7 +85,7 @@ export async function getMe(profile: IFusebitProfile) {
           }
         }
         if (acl.action === `${resourceType}:*` || acl.action === '*') {
-          Object.keys(account.can[resourceType]).forEach((operation) => (account.can[resourceType][operation] = true));
+          Object.keys(account.can[resourceType]).forEach(operation => (account.can[resourceType][operation] = true));
         }
       }
     }
@@ -94,51 +95,6 @@ export async function getMe(profile: IFusebitProfile) {
     throwHttpException(e);
   }
 }
-/*
-export async function getAccount(profile) {
-  try {
-    await ensureAccessToken(profile);
-    let result = await Superagent.get(
-      `${profile.fusebitUrl}/v1/account/${profile.accountId}`
-    ).set("Authorization", `Bearer ${profile.auth.access_token}`);
-    return result.body;
-  } catch (e) {
-    throwHttpException(e);
-  }
-}
-
-export async function tryGetUserByIdentity(profile, issuerId, subject) {
-  try {
-    await ensureAccessToken(profile);
-    let result = await Superagent.get(
-      `${profile.fusebitUrl}/v1/account/${
-        profile.accountId
-      }/user?issuerId=${encodeURIComponent(
-        issuerId
-      )}&subject=${encodeURIComponent(subject)}`
-    ).set("Authorization", `Bearer ${profile.auth.access_token}`);
-    return result.body.items.length === 0 ? undefined : result.body.items[0];
-  } catch (e) {
-    throwHttpException(e);
-  }
-}
-
-export async function tryGetClientByIdentity(profile, issuerId, subject) {
-  try {
-    await ensureAccessToken(profile);
-    let result = await Superagent.get(
-      `${profile.fusebitUrl}/v1/account/${
-        profile.accountId
-      }/client?issuerId=${encodeURIComponent(
-        issuerId
-      )}&subject=${encodeURIComponent(subject)}`
-    ).set("Authorization", `Bearer ${profile.auth.access_token}`);
-    return result.body.items.length === 0 ? undefined : result.body.items[0];
-  } catch (e) {
-    throwHttpException(e);
-  }
-}
-*/
 
 export async function getSubscriptions(profile: IFusebitProfile): Promise<Subscription[]> {
   let subscriptions: any[] = [];
@@ -148,7 +104,9 @@ export async function getSubscriptions(profile: IFusebitProfile): Promise<Subscr
     do {
       let result: any = await Superagent.get(
         `${profile.baseUrl}/v1/account/${profile.account}/subscription${next || ''}`
-      ).set('Authorization', `Bearer ${auth.access_token}`);
+      )
+        .set('Authorization', `Bearer ${auth.access_token}`)
+        .set('x-user-agent', userAgent);
       subscriptions = subscriptions.concat(result.body.items);
       next = result.body.next ? `?next=${result.body.next}` : undefined;
     } while (next);
@@ -166,7 +124,9 @@ export async function getUsers(profile: IFusebitProfile): Promise<User[]> {
     do {
       let result: any = await Superagent.get(
         `${profile.baseUrl}/v1/account/${profile.account}/user?include=all${next || ''}`
-      ).set('Authorization', `Bearer ${auth.access_token}`);
+      )
+        .set('Authorization', `Bearer ${auth.access_token}`)
+        .set('x-user-agent', userAgent);
       users = users.concat(result.body.items);
       next = result.body.next ? `&next=${result.body.next}` : undefined;
     } while (next);
@@ -189,7 +149,8 @@ export async function getAgent(
       )}&subject=${encodeURIComponent(subject)}`
     )
       .set('Authorization', `Bearer ${auth.access_token}`)
-      .ok((res) => res.status === 200 || res.status === 404);
+      .set('x-user-agent', userAgent)
+      .ok(res => res.status === 200 || res.status === 404);
     if (result.status === 200) {
       return [result.body.items[0] as User, true];
     }
@@ -197,7 +158,9 @@ export async function getAgent(
       `${profile.baseUrl}/v1/account/${profile.account}/client?issuerId=${encodeURIComponent(
         issuerId
       )}&subject=${encodeURIComponent(subject)}`
-    ).set('Authorization', `Bearer ${auth.access_token}`);
+    )
+      .set('Authorization', `Bearer ${auth.access_token}`)
+      .set('x-user-agent', userAgent);
     return [result.body.items[0] as Client, false];
   } catch (e) {
     throw createHttpException(e);
@@ -207,10 +170,9 @@ export async function getAgent(
 export async function getClient(profile: IFusebitProfile, clientId: string): Promise<Client> {
   try {
     let auth = await ensureAccessToken(profile);
-    let result: any = await Superagent.get(`${profile.baseUrl}/v1/account/${profile.account}/client/${clientId}`).set(
-      'Authorization',
-      `Bearer ${auth.access_token}`
-    );
+    let result: any = await Superagent.get(`${profile.baseUrl}/v1/account/${profile.account}/client/${clientId}`)
+      .set('Authorization', `Bearer ${auth.access_token}`)
+      .set('x-user-agent', userAgent);
     return result.body as Client;
   } catch (e) {
     throw createHttpException(e);
@@ -220,10 +182,9 @@ export async function getClient(profile: IFusebitProfile, clientId: string): Pro
 export async function getUser(profile: IFusebitProfile, userId: string): Promise<User> {
   try {
     let auth = await ensureAccessToken(profile);
-    let result: any = await Superagent.get(`${profile.baseUrl}/v1/account/${profile.account}/user/${userId}`).set(
-      'Authorization',
-      `Bearer ${auth.access_token}`
-    );
+    let result: any = await Superagent.get(`${profile.baseUrl}/v1/account/${profile.account}/user/${userId}`)
+      .set('Authorization', `Bearer ${auth.access_token}`)
+      .set('x-user-agent', userAgent);
     return result.body as User;
   } catch (e) {
     throw createHttpException(e);
@@ -235,6 +196,7 @@ export async function initUser(profile: IFusebitProfile, initToken: string): Pro
     let auth = await ensureAccessToken(profile);
     let result: any = await Superagent.post(`${profile.baseUrl}/v1/account/${profile.account}/init`)
       .set('Authorization', `Bearer ${initToken}`)
+      .set('x-user-agent', userAgent)
       .send({
         protocol: 'oauth',
         accessToken: auth.access_token,
@@ -267,6 +229,7 @@ export async function getInitToken(
         : `${profile.baseUrl}/v1/account/${profile.account}/client/${agentId}/init`
     )
       .set('Authorization', `Bearer ${auth.access_token}`)
+      .set('x-user-agent', userAgent)
       .send({
         protocol,
         profile: profileData,
@@ -282,6 +245,7 @@ export async function updateUser(profile: IFusebitProfile, user: any): Promise<U
     let auth = await ensureAccessToken(profile);
     let result: any = await Superagent.patch(`${profile.baseUrl}/v1/account/${profile.account}/user/${user.id}`)
       .set('Authorization', `Bearer ${auth.access_token}`)
+      .set('x-user-agent', userAgent)
       .send({
         firstName: user.firstName,
         lastName: user.lastName,
@@ -300,6 +264,7 @@ export async function newUser(profile: IFusebitProfile, user: any): Promise<User
     let auth = await ensureAccessToken(profile);
     let result: any = await Superagent.post(`${profile.baseUrl}/v1/account/${profile.account}/user`)
       .set('Authorization', `Bearer ${auth.access_token}`)
+      .set('x-user-agent', userAgent)
       .send({
         firstName: user.firstName,
         lastName: user.lastName,
@@ -318,6 +283,7 @@ export async function updateClient(profile: IFusebitProfile, client: any): Promi
     let auth = await ensureAccessToken(profile);
     let result: any = await Superagent.patch(`${profile.baseUrl}/v1/account/${profile.account}/client/${client.id}`)
       .set('Authorization', `Bearer ${auth.access_token}`)
+      .set('x-user-agent', userAgent)
       .send({
         displayName: client.displayName,
         identities: client.identities,
@@ -334,6 +300,7 @@ export async function newClient(profile: IFusebitProfile, client: any): Promise<
     let auth = await ensureAccessToken(profile);
     let result: any = await Superagent.post(`${profile.baseUrl}/v1/account/${profile.account}/client`)
       .set('Authorization', `Bearer ${auth.access_token}`)
+      .set('x-user-agent', userAgent)
       .send({
         displayName: client.displayName,
         identities: client.identities,
@@ -370,7 +337,7 @@ export function normalizeAgent(user: any): Client | User {
   let normalized: any = {
     id: user.id,
   };
-  ['firstName', 'lastName', 'primaryEmail', 'displayName'].forEach((p) => {
+  ['firstName', 'lastName', 'primaryEmail', 'displayName'].forEach(p => {
     if (user[p] && user[p].trim().length > 0) {
       normalized[p] = user[p].trim();
     }
@@ -416,9 +383,9 @@ export async function getIssuers(profile: IFusebitProfile): Promise<Issuer[]> {
     let auth = await ensureAccessToken(profile);
     let next;
     do {
-      let result: any = await Superagent.get(
-        `${profile.baseUrl}/v1/account/${profile.account}/issuer${next || ''}`
-      ).set('Authorization', `Bearer ${auth.access_token}`);
+      let result: any = await Superagent.get(`${profile.baseUrl}/v1/account/${profile.account}/issuer${next || ''}`)
+        .set('Authorization', `Bearer ${auth.access_token}`)
+        .set('x-user-agent', userAgent);
       issuers = issuers.concat(result.body.items);
       next = result.body.next ? `?next=${result.body.next}` : undefined;
     } while (next);
@@ -437,7 +404,9 @@ export async function getIssuer(profile: IFusebitProfile, issuerId: string): Pro
     let auth = await ensureAccessToken(profile);
     let result: any = await Superagent.get(
       `${profile.baseUrl}/v1/account/${profile.account}/issuer/${encodeURIComponent(issuerId)}`
-    ).set('Authorization', `Bearer ${auth.access_token}`);
+    )
+      .set('Authorization', `Bearer ${auth.access_token}`)
+      .set('x-user-agent', userAgent);
     let newIssuer = result.body as Issuer;
     computePublicKeyAcquisition(newIssuer);
     return newIssuer;
@@ -453,6 +422,7 @@ export async function updateIssuer(profile: IFusebitProfile, issuer: any): Promi
       `${profile.baseUrl}/v1/account/${profile.account}/issuer/${encodeURIComponent(issuer.id)}`
     )
       .set('Authorization', `Bearer ${auth.access_token}`)
+      .set('x-user-agent', userAgent)
       .send({
         displayName: issuer.displayName,
         publicKeys: issuer.publicKeys,
@@ -473,6 +443,7 @@ export async function newIssuer(profile: IFusebitProfile, issuer: any): Promise<
       `${profile.baseUrl}/v1/account/${profile.account}/issuer/${encodeURIComponent(issuer.id)}`
     )
       .set('Authorization', `Bearer ${auth.access_token}`)
+      .set('x-user-agent', userAgent)
       .send({
         displayName: issuer.displayName,
         publicKeys: issuer.publicKeys,
@@ -493,7 +464,8 @@ export async function deleteUsers(profile: IFusebitProfile, userIds: string[]): 
       userIds.map((id: string) =>
         Superagent.delete(`${profile.baseUrl}/v1/account/${profile.account}/user/${id}`)
           .set('Authorization', `Bearer ${auth.access_token}`)
-          .ok((res) => res.status === 204)
+          .set('x-user-agent', userAgent)
+          .ok(res => res.status === 204)
       )
     );
   } catch (e) {
@@ -508,7 +480,8 @@ export async function deleteIssuers(profile: IFusebitProfile, issuerIds: string[
       issuerIds.map((id: string) =>
         Superagent.delete(`${profile.baseUrl}/v1/account/${profile.account}/issuer/${encodeURIComponent(id)}`)
           .set('Authorization', `Bearer ${auth.access_token}`)
-          .ok((res) => res.status === 204)
+          .set('x-user-agent', userAgent)
+          .ok(res => res.status === 204)
       )
     );
   } catch (e) {
@@ -539,14 +512,16 @@ export async function getAudit(profile: IFusebitProfile, filter: AuditFilter): P
 
       let result: any = await Superagent.get(
         `${profile.baseUrl}/v1/account/${profile.account}/audit?${query.join('&')}`
-      ).set('Authorization', `Bearer ${auth.access_token}`);
+      )
+        .set('Authorization', `Bearer ${auth.access_token}`)
+        .set('x-user-agent', userAgent);
       data = data.concat(result.body.items).slice(0, count);
       next = result.body.next ? `next=${result.body.next}` : undefined;
     } while (next && data.length < count);
   } catch (e) {
     throw createHttpException(e);
   }
-  data.forEach((d) => {
+  data.forEach(d => {
     d.id = createHash('md5')
       .update(`${d.resource}::${d.action}::${d.timestamp}::${d.issuerId}::${d.subject}`)
       .digest('hex');
@@ -562,7 +537,9 @@ export async function getClients(profile: IFusebitProfile): Promise<Client[]> {
     do {
       let result: any = await Superagent.get(
         `${profile.baseUrl}/v1/account/${profile.account}/client?include=all${next || ''}`
-      ).set('Authorization', `Bearer ${auth.access_token}`);
+      )
+        .set('Authorization', `Bearer ${auth.access_token}`)
+        .set('x-user-agent', userAgent);
       clients = clients.concat(result.body.items);
       next = result.body.next ? `&next=${result.body.next}` : undefined;
     } while (next);
@@ -579,7 +556,8 @@ export async function deleteClients(profile: IFusebitProfile, clientIds: string[
       clientIds.map((id: string) =>
         Superagent.delete(`${profile.baseUrl}/v1/account/${profile.account}/client/${id}`)
           .set('Authorization', `Bearer ${auth.access_token}`)
-          .ok((res) => res.status === 204)
+          .set('x-user-agent', userAgent)
+          .ok(res => res.status === 204)
       )
     );
   } catch (e) {
@@ -599,7 +577,8 @@ export async function tryGetFunction(
       `${profile.baseUrl}/v1/account/${profile.account}/subscription/${subscriptionId}/boundary/${boundaryId}/function/${functionId}`
     )
       .set('Authorization', `Bearer ${auth.access_token}`)
-      .ok((res) => res.status === 200 || res.status === 404);
+      .set('x-user-agent', userAgent)
+      .ok(res => res.status === 200 || res.status === 404);
     return response.status === 200 ? (response.body as ExistingFunctionSpecification) : null;
   } catch (e) {
     throw createHttpException(e);
@@ -619,12 +598,15 @@ export async function createFunction(
       `${profile.baseUrl}/v1/account/${profile.account}/subscription/${subscriptionId}/boundary/${boundaryId}/function/${functionId}`
     )
       .set('Authorization', `Bearer ${auth.access_token}`)
+      .set('x-user-agent', userAgent)
       .send(functionSpecification);
     let attempts = 15;
     while (response.status === 201 && attempts > 0) {
       response = await Superagent.get(
         `${profile.baseUrl}/v1/account/${profile.account}/subscription/${subscriptionId}/boundary/${boundaryId}/function/${functionId}/build/${response.body.buildId}`
-      ).set('Authorization', `Bearer ${auth.access_token}`);
+      )
+        .set('Authorization', `Bearer ${auth.access_token}`)
+        .set('x-user-agent', userAgent);
       if (response.status === 200) {
         if (response.body.status === 'success') {
           return;
@@ -634,7 +616,7 @@ export async function createFunction(
           );
         }
       }
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await new Promise(resolve => setTimeout(resolve, 2000));
       attempts--;
     }
     if (attempts === 0) {
@@ -660,7 +642,9 @@ export async function getFunction(
     let auth = await ensureAccessToken(profile);
     let response: any = await Superagent.get(
       `${profile.baseUrl}/v1/account/${profile.account}/subscription/${subscriptionId}/boundary/${boundaryId}/function/${functionId}`
-    ).set('Authorization', `Bearer ${auth.access_token}`);
+    )
+      .set('Authorization', `Bearer ${auth.access_token}`)
+      .set('x-user-agent', userAgent);
     return response.body as ExistingFunctionSpecification;
   } catch (e) {
     throw createHttpException(e);
@@ -686,6 +670,7 @@ export async function deleteFunctions(
           return func.metadata && func.metadata.template && func.metadata.template.managerUrl
             ? Superagent.post(appendUrlSegment(func.metadata.template.managerUrl, 'uninstall'))
                 .set('Authorization', `Bearer ${auth.access_token}`)
+                .set('x-user-agent', userAgent)
                 .send({
                   baseUrl: profile.baseUrl,
                   accountId: profile.account,
@@ -695,7 +680,9 @@ export async function deleteFunctions(
                 })
             : Superagent.delete(
                 `${profile.baseUrl}/v1/account/${profile.account}/subscription/${subscriptionId}/boundary/${boundaryId}/function/${id}`
-              ).set('Authorization', `Bearer ${auth.access_token}`);
+              )
+                .set('Authorization', `Bearer ${auth.access_token}`)
+                .set('x-user-agent', userAgent);
         })()
       )
     );
@@ -716,10 +703,9 @@ export async function getFunctions(
     for (var i = 0; i < paths.length; i++) {
       let next;
       do {
-        let response: any = await Superagent.get(`${profile.baseUrl}/v1${paths[i]}${next || ''}`).set(
-          'Authorization',
-          `Bearer ${auth.access_token}`
-        );
+        let response: any = await Superagent.get(`${profile.baseUrl}/v1${paths[i]}${next || ''}`)
+          .set('Authorization', `Bearer ${auth.access_token}`)
+          .set('x-user-agent', userAgent);
         response.body.items.forEach((f: any) => {
           let boundary = (boundaries[f.boundaryId] = boundaries[f.boundaryId] || {
             boundaryId: f.boundaryId,
@@ -730,7 +716,7 @@ export async function getFunctions(
         next = response.body.next ? `?next=${response.body.next}` : undefined;
       } while (next);
     }
-    Object.keys(boundaries).forEach((boundaryId) => {
+    Object.keys(boundaries).forEach(boundaryId => {
       let boundary = boundaries[boundaryId];
       boundary.functions.sort((a: any, b: any) =>
         a.functionId < b.functionId ? -1 : a.functionId > b.functionId ? 1 : 0
@@ -744,60 +730,6 @@ export async function getFunctions(
     throw createHttpException(e);
   }
 }
-
-/*
-export async function getAudit(profile, filter) {
-  if (!filter) {
-    filter = {};
-  }
-
-  let resource = null;
-  if (filter.subscriptionId) {
-    resource = `/account/${profile.accountId}/subscription/${
-      filter.subscriptionId
-    }/`;
-    if (filter.boundaryId) {
-      resource += `boundary/${filter.boundaryId}/`;
-      if (filter.functionId) {
-        resource += `function/${filter.functionId}/`;
-      }
-    }
-  }
-
-  try {
-    await ensureAccessToken(profile);
-    let audit = [];
-    let next;
-    do {
-      let url = parseUrl(
-        `${profile.fusebitUrl}/v1/account/${profile.accountId}/audit`,
-        true
-      );
-      ["action", "issuerId", "subject", "from", "to"].forEach(p => {
-        if (filter[p] !== undefined) {
-          url.query[p] = filter[p];
-        }
-      });
-      if (next) url.query.next = next;
-      if (resource) url.query.resource = resource;
-      url.query.count = "100";
-      let finalUrl = url.toString();
-      let response = await Superagent.get(finalUrl).set(
-        "Authorization",
-        `Bearer ${profile.auth.access_token}`
-      );
-      audit = audit.concat(response.body.items);
-      next = response.body.next;
-    } while (next);
-    audit.sort((a, b) =>
-      a.timestamp < b.timstamp ? 1 : a.timestamp > b.timestamp ? -1 : 0
-    );
-    return audit;
-  } catch (e) {
-    throwHttpException(e);
-  }
-}
-*/
 
 export function computeFunctionScopes(profile: IFusebitProfile, subscriptionId: string, boundaryId?: string) {
   let result = [];

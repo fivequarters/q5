@@ -1,5 +1,6 @@
 import { FusebitError } from '../components/ErrorBoundary';
 import { Catalog, isCatalog } from './CatalogTypes';
+import { userAgent } from './Fusebit';
 import Superagent from 'superagent';
 
 export interface IFusebitAuth {
@@ -223,7 +224,7 @@ async function getFusebitConfig(): Promise<IFusebitTenant> {
 
   let response: any;
   try {
-    response = await Superagent.get(url);
+    response = await Superagent.get(url).set('x-user-agent', userAgent);
   } catch (e) {
     throw new FusebitError('Unable to get configuration of the Fusebit Portal', {
       details: [
@@ -277,7 +278,7 @@ function setLocalSettings(settings: IFusebitLocalSettings) {
   let redux: IFusebitLocalSettings = {
     currentProfile: settings.currentProfile,
     ui: settings.ui,
-    profiles: settings.profiles.map((p) => ({
+    profiles: settings.profiles.map(p => ({
       id: p.id,
       subscription: p.subscription,
       boundary: p.boundary,
