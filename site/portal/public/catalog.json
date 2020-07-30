@@ -9,6 +9,14 @@
       "documentationUrl": "https://github.com/fusebit/samples"
     },
     {
+      "id": "sample-slack-addon",
+      "name": "Sample Slack AddOn",
+      "description": "A do-nothing Slack AddOn Starter",
+      "tags": ["slack", "addon"],
+      "managerUrl": "https://stage.us-west-2.fusebit.io/v1/run/sub-ed9d9341ea356841/template-manager/sample-slack-addon",
+      "documentationUrl": "https://github.com/fusebit/samples"
+    },
+    {
       "id": "connector-atlassian",
       "name": "Atlassian Connector",
       "description": "Authentication to Atlassian APIs for Fusebit AddOns",
@@ -38,6 +46,14 @@
       "description": "Authentication to Google APIs for Fusebit Add-Ons",
       "tags": ["google", "connector", "add-on", "addon", "form"],
       "managerUrl": "https://stage.us-west-2.fusebit.io/v1/run/sub-ed9d9341ea356841/template-manager/connector-google",
+      "documentationUrl": "https://github.com/fusebit/samples"
+    },
+    {
+      "id": "connector-slack",
+      "name": "Slack Connector",
+      "description": "Authentication to Slack APIs for Fusebit Add-Ons",
+      "tags": ["slack", "connector", "add-on", "addon"],
+      "managerUrl": "https://stage.us-west-2.fusebit.io/v1/run/sub-ed9d9341ea356841/template-manager/connector-slack",
       "documentationUrl": "https://github.com/fusebit/samples"
     },
     {

@@ -46,7 +46,7 @@ function NewFunctionCreate({ subscriptionId, boundaryId, templateId }: NewFuncti
     if (state.status === 'installing' && catalog.status === 'ready' && boundaries.status === 'ready') {
       (async () => {
         try {
-          const template = catalog.existing.templates.find(t => t.id === templateId);
+          const template = catalog.existing.templates.find((t) => t.id === templateId);
           if (!template) {
             throw new Error(`Unsupported function template '${templateId}'.`);
           }

@@ -17,10 +17,11 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
-## Version X.X.X
+## Version 1.8.2
 
-_Released XX/XX/XX_
+_Released 7/29/20_
 
+- **Enhancement**. Support for deploying functions with files in subdirectories in `fuse function deploy -d`.
 - **Typo Fix**. Eliminate several typographic errors in the help text.
 - **Require Node Version**. Require NodeJS v10+.
 - **Bug Fix**. Handle errors in `fuse function deploy` when in an empty directory better.
