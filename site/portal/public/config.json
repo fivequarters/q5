@@ -95,7 +95,7 @@
           "oauth": {
             "webAuthorizationUrl": "https://fusebit.auth0.com/authorize",
             "webClientId": "hSgWIXmbluQMADuWhDnRTpWyKptJe6LB",
-            "webLogoutUrl": "https://fusebit.auth0.com/v2/logout?client_id=hSgWIXmbluQMADuWhDnRTpWyKptJe6LB&returnTo=https://onelogin.portal.fusebit.io",
+            "webLogoutUrl": "https://fusebit.auth0.com/v2/logout?client_id=hSgWIXmbluQMADuWhDnRTpWyKptJe6LB&returnTo=https://portal.fusebit.io",
             "deviceAuthorizationUrl": "https://fusebit.auth0.com/oauth/device/code",
             "deviceClientId": "VFOtrBCVHEm7I9UNv7rFwu1ID1hTEueF",
             "tokenUrl": "https://fusebit.auth0.com/oauth/token"
@@ -112,7 +112,7 @@
           "oauth": {
             "webAuthorizationUrl": "https://fusebit.auth0.com/authorize",
             "webClientId": "hSgWIXmbluQMADuWhDnRTpWyKptJe6LB",
-            "webLogoutUrl": "https://fusebit.auth0.com/v2/logout?client_id=hSgWIXmbluQMADuWhDnRTpWyKptJe6LB&returnTo=https://criipto.portal.fusebit.io",
+            "webLogoutUrl": "https://fusebit.auth0.com/v2/logout?client_id=hSgWIXmbluQMADuWhDnRTpWyKptJe6LB&returnTo=https://portal.fusebit.io",
             "deviceAuthorizationUrl": "https://fusebit.auth0.com/oauth/device/code",
             "deviceClientId": "VFOtrBCVHEm7I9UNv7rFwu1ID1hTEueF",
             "tokenUrl": "https://fusebit.auth0.com/oauth/token"
@@ -120,7 +120,7 @@
         },
         {
           "id": "hyperproof-poc",
-          "displayName": "Hyperproof",
+          "displayName": "Hyperproof (East)",
           "icon": "https://cdn.fusebit.io/assets/images/hyperproof.png",
           "baseUrl": "https://api.us-east-1.fusebit.io",
           "account": "acc-162db008f84a48c7",
@@ -129,7 +129,24 @@
           "oauth": {
             "webAuthorizationUrl": "https://fusebit.auth0.com/authorize",
             "webClientId": "hSgWIXmbluQMADuWhDnRTpWyKptJe6LB",
-            "webLogoutUrl": "https://fusebit.auth0.com/v2/logout?client_id=hSgWIXmbluQMADuWhDnRTpWyKptJe6LB&returnTo=https://hyperproof.portal.fusebit.io",
+            "webLogoutUrl": "https://fusebit.auth0.com/v2/logout?client_id=hSgWIXmbluQMADuWhDnRTpWyKptJe6LB&returnTo=https://portal.fusebit.io",
+            "deviceAuthorizationUrl": "https://fusebit.auth0.com/oauth/device/code",
+            "deviceClientId": "VFOtrBCVHEm7I9UNv7rFwu1ID1hTEueF",
+            "tokenUrl": "https://fusebit.auth0.com/oauth/token"
+          }
+        },
+        {
+          "id": "hyperproof-poc-west",
+          "displayName": "Hyperproof (West)",
+          "icon": "https://cdn.fusebit.io/assets/images/hyperproof-west.png",
+          "baseUrl": "https://api.us-west-1.fusebit.io",
+          "account": "acc-3ffce725b97849ac",
+          "subscription": "sub-abf46d3a6e6d47f0",
+          "catalog": "https://api.us-west-1.fusebit.io/v1/run/sub-abf46d3a6e6d47f0/internal/config",
+          "oauth": {
+            "webAuthorizationUrl": "https://fusebit.auth0.com/authorize",
+            "webClientId": "hSgWIXmbluQMADuWhDnRTpWyKptJe6LB",
+            "webLogoutUrl": "https://fusebit.auth0.com/v2/logout?client_id=hSgWIXmbluQMADuWhDnRTpWyKptJe6LB&returnTo=https://portal.fusebit.io",
             "deviceAuthorizationUrl": "https://fusebit.auth0.com/oauth/device/code",
             "deviceClientId": "VFOtrBCVHEm7I9UNv7rFwu1ID1hTEueF",
             "tokenUrl": "https://fusebit.auth0.com/oauth/token"
@@ -142,7 +159,7 @@
       "profiles": [
         {
           "id": "hyperproof-poc",
-          "displayName": "Hyperproof",
+          "displayName": "Hyperproof (East)",
           "icon": "https://cdn.fusebit.io/assets/images/hyperproof.png",
           "baseUrl": "https://api.us-east-1.fusebit.io",
           "account": "acc-162db008f84a48c7",
@@ -156,9 +173,26 @@
             "deviceClientId": "VFOtrBCVHEm7I9UNv7rFwu1ID1hTEueF",
             "tokenUrl": "https://fusebit.auth0.com/oauth/token"
           }
+        },
+        {
+          "id": "hyperproof-poc-west",
+          "displayName": "Hyperproof (West)",
+          "icon": "https://cdn.fusebit.io/assets/images/hyperproof-west.png",
+          "baseUrl": "https://api.us-west-1.fusebit.io",
+          "account": "acc-3ffce725b97849ac",
+          "subscription": "sub-abf46d3a6e6d47f0",
+          "catalog": "https://api.us-west-1.fusebit.io/v1/run/sub-abf46d3a6e6d47f0/internal/config",
+          "oauth": {
+            "webAuthorizationUrl": "https://fusebit.auth0.com/authorize",
+            "webClientId": "hSgWIXmbluQMADuWhDnRTpWyKptJe6LB",
+            "webLogoutUrl": "https://fusebit.auth0.com/v2/logout?client_id=hSgWIXmbluQMADuWhDnRTpWyKptJe6LB&returnTo=https://hyperproof.portal.fusebit.io",
+            "deviceAuthorizationUrl": "https://fusebit.auth0.com/oauth/device/code",
+            "deviceClientId": "VFOtrBCVHEm7I9UNv7rFwu1ID1hTEueF",
+            "tokenUrl": "https://fusebit.auth0.com/oauth/token"
+          }
         }
       ],
-      "defaultProfile": "hyperproof-poc"
+      "defaultProfile": "hyperproof-poc-west"
     },
     "criipto": {
       "profiles": [
