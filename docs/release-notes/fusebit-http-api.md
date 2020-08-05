@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.17.4
+
+_Released 8/10/20_
+
+- **Enhancement.** Support searching for functions by metadata characteristics.
+
 ## Version 1.17.3
 
 _Released 7/14/20_

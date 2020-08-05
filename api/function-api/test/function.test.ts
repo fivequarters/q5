@@ -563,7 +563,7 @@ describe('function', () => {
         { boundaryId, functionId: function2Id },
       ])
     );
-    response = await listFunctions(account, boundaryId, undefined, 2, response.data.next);
+    response = await listFunctions(account, boundaryId, undefined, 2, undefined, response.data.next);
     expect(response.status).toEqual(200);
     expect(response.data).toEqual({ items: expect.any(Array), next: expect.any(String) });
     expect(response.data.items).toHaveLength(2);
@@ -573,7 +573,7 @@ describe('function', () => {
         { boundaryId, functionId: function4Id },
       ])
     );
-    response = await listFunctions(account, boundaryId, undefined, 2, response.data.next);
+    response = await listFunctions(account, boundaryId, undefined, 2, undefined, response.data.next);
     expect(response.status).toEqual(200);
     expect(response.data).toEqual({ items: expect.any(Array) });
     expect(response.data.items).toHaveLength(1);
