@@ -879,7 +879,7 @@ describe('function', () => {
     });
   }, 10000);
 
-  test('PUT updates function without a temporary 404', async () => {
+  test.only('PUT updates function without a temporary 404', async () => {
     const response = await putFunction(account, boundaryId, function1Id, helloWorld);
     expect(response.status).toEqual(200);
 
@@ -914,5 +914,5 @@ describe('function', () => {
     stop = true;
     await Promise.all(promises);
     expect(failures).toBe(0);
-  }, 20000);
+  }, 60000);
 });

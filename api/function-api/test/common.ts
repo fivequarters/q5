@@ -77,7 +77,12 @@ const setupEnvironment = () => {
     return account;
   };
 
-  const createFunction = async (functionId: string, payload: string) => {
+  const createFunction = async (
+    functionId: string,
+    payload: string,
+    packageJson: any = undefined,
+    metadata: any = undefined
+  ) => {
     let response = await putFunction(account, boundaryId, functionId, {
       nodejs: {
         files: {
@@ -86,9 +91,11 @@ const setupEnvironment = () => {
             engines: {
               node: '10',
             },
+            ...packageJson,
           },
         },
       },
+      metadata,
     });
     httpExpect(response, { status: 200, data: { status: 'success' } });
     return response;
