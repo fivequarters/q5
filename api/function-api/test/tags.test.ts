@@ -7,6 +7,8 @@ import { manage_tags } from '@5qtrs/function-lambda';
 import { DynamoDB } from 'aws-sdk';
 const dynamo = new DynamoDB({ apiVersion: '2012-08-10' });
 
+import { deleteAll, scanForTags } from './tags';
+
 /* XXX XXX XXX
  * Instead of loading the prior spec file, do a query to get the full set
  * Can you do a global secondary index with a begins_with on a:s:b:f:k:v and capture all of them?
@@ -24,10 +26,6 @@ const dynamo = new DynamoDB({ apiVersion: '2012-08-10' });
  * process (since they should be picked up by the scan).
  *
  */
-interface IExpected {
-  [index: string]: any;
-}
-
 const funcSpecs = [
   {
     compute: { timeout: 30, staticIp: false },
@@ -67,13 +65,13 @@ const funcSpecs = [
 
 const funcOptions = [
   {
-    accountId: 'acc-1111',
+    accountId: 'acc-9999',
     subscriptionId: 'sub-2222',
     boundaryId: 'bound-3333',
     functionId: 'func-4444',
   },
   {
-    accountId: 'acc-1111',
+    accountId: 'acc-9999',
     subscriptionId: 'sub-2222',
     boundaryId: 'bound-3333',
     functionId: 'func-5555',
@@ -113,15 +111,15 @@ describe('manage_tags', () => {
       expect(item.key.S).toContain(funcOptions[0].subscriptionId);
       expect(item.key.S).toContain(funcOptions[0].boundaryId);
       expect(item.key.S).toContain(funcOptions[0].functionId);
-      expect(item.key.S).toContain(item.tagKey.S);
+      expect(item.key.S).toContain(manage_tags.encode(item.tagKey.S));
       if (item.tagValue.S) {
-        expect(item.key.S).toContain(item.tagValue.S);
+        expect(item.key.S).toContain(manage_tags.encode(item.tagValue.S));
       }
       if (item.tagValue.N) {
-        expect(item.key.S).toContain(item.tagValue.N);
+        expect(item.key.S).toContain(manage_tags.encode(item.tagValue.N));
       }
       if (item.tagValue.BOOL) {
-        expect(item.key.S).toContain(item.tagValue.N);
+        expect(item.key.S).toContain(manage_tags.encode(item.tagValue.N));
       }
 
       // Expect the various promoted attributes
@@ -146,72 +144,8 @@ describe('manage_tags', () => {
   }, 10000);
 
   test('dynamo tests', async () => {
-    const makePre = (o: any, b: boolean) =>
-      b ? [o.accountId, o.subscriptionId, o.boundaryId] : [o.accountId, o.subscriptionId];
-    const makePost = (o: any, b: boolean) => (b ? [o.functionId] : [o.boundaryId, o.functionId]);
-
-    const makeExpected = (o: any, key: any, value: any) => [
-      [manage_tags.TAG_CATEGORY_BOUNDARY, ...makePre(o, true), key, value, ...makePost(o, true)].join(
-        manage_tags.TAG_SEP
-      ),
-      [manage_tags.TAG_CATEGORY_SUBSCRIPTION, ...makePre(o, false), key, value, ...makePost(o, false)].join(
-        manage_tags.TAG_SEP
-      ),
-    ];
-
-    const makeEntry = (e: any) => `${[e.category.S, e.key.S].join(manage_tags.TAG_SEP)}`;
-
-    let expected: any;
-    const findEntry = (entry: any) => {
-      const flatEntry = makeEntry(entry);
-      expect(expected).toContain(flatEntry);
-      expected = expected.filter((e: any) => e !== flatEntry);
-    };
-
-    const validateEandD = (e: any, d: any) => {
-      expect(e).toBeNull();
-      expect(d.Items).toBeDefined();
-      if (!d.Items) {
-        return;
-      }
-
-      // Make sure we filter out anything that doesn't match this.
-      d.Items = d.Items.filter(
-        (i: any) =>
-          (i.category.S === manage_tags.TAG_CATEGORY_BOUNDARY ||
-            i.category.S === manage_tags.TAG_CATEGORY_SUBSCRIPTION) &&
-          i.accountId.S === funcOptions[0].accountId
-      );
-      expect(d.Items.length).toBeDefined();
-    };
-
-    const scanParams = {
-      TableName: manage_tags.keyValueTableName,
-    };
-
     // Delete any old lingering entries.
-    expect(
-      await new Promise((resolve, reject) => {
-        dynamo.scan(scanParams, async (e, d) => {
-          if (!d.Items) {
-            return resolve(null);
-          }
-          validateEandD(e, d);
-          for (const item of d.Items) {
-            await new Promise((res, rej) =>
-              dynamo.deleteItem(
-                {
-                  TableName: manage_tags.keyValueTableName,
-                  Key: { category: { S: item.category.S }, key: { S: item.key.S } },
-                },
-                res
-              )
-            );
-          }
-          resolve(null);
-        });
-      })
-    ).toBeNull();
+    await deleteAll(funcOptions[0].accountId);
 
     // Add two different functions worth of tags.
     expect(
@@ -222,35 +156,20 @@ describe('manage_tags', () => {
     ).toBeFalsy();
 
     // Check to make sure the items are present.
-    expect(
-      await new Promise((resolve, reject) => {
-        dynamo.scan(scanParams, (e, d) => {
-          validateEandD(e, d);
-          if (!d.Items) {
-            return resolve(null);
-          }
-          const fs = funcSpecs[0];
-          const byOption = (o: any) => [
-            ...makeExpected(o, manage_tags.get_compute_tag_key('timeout'), fs.compute.timeout),
-            ...makeExpected(o, manage_tags.get_compute_tag_key('staticIp'), fs.compute.staticIp),
-            ...makeExpected(o, manage_tags.get_metadata_tag_key('master_user'), fs.metadata.tags.master_user),
-            ...makeExpected(o, manage_tags.get_metadata_tag_key('master_owner'), fs.metadata.tags.master_owner),
-            ...makeExpected(o, manage_tags.get_metadata_tag_key('level'), fs.metadata.tags.level),
-            ...makeExpected(o, manage_tags.get_metadata_tag_key('flies'), ''),
-            ...makeExpected(o, manage_tags.get_dependency_tag_key('ms'), fs.internal.resolved_dependencies.ms),
-          ];
-          expected = [...byOption(funcOptions[0]), ...byOption(funcOptions[1])];
-          d.Items.forEach(findEntry);
-          expect(expected.length).toBe(0);
-
-          resolve(null);
-        });
-      })
-    ).toBeFalsy();
+    const expectedTags = {
+      [manage_tags.get_compute_tag_key('timeout')]: funcSpecs[0].compute.timeout,
+      [manage_tags.get_compute_tag_key('staticIp')]: funcSpecs[0].compute.staticIp,
+      [manage_tags.get_metadata_tag_key('master_user')]: funcSpecs[0].metadata.tags.master_user,
+      [manage_tags.get_metadata_tag_key('master_owner')]: funcSpecs[0].metadata.tags.master_owner,
+      [manage_tags.get_metadata_tag_key('level')]: funcSpecs[0].metadata.tags.level,
+      [manage_tags.get_metadata_tag_key('flies')]: funcSpecs[0].metadata.tags.flies,
+      [manage_tags.get_dependency_tag_key('ms')]: funcSpecs[0].internal.resolved_dependencies.ms,
+    };
+    await scanForTags(funcOptions.map((o) => [o, expectedTags]));
 
     // Update one functions tags.
     expect(
-      await new Promise((resolve, reject) => manage_tags.update_function_tags(funcOptions[1], funcSpecs[1], resolve))
+      await new Promise((resolve, reject) => manage_tags.create_function_tags(funcOptions[1], funcSpecs[1], resolve))
     ).toBeFalsy();
 
     // Remove the other functions tags.
@@ -258,47 +177,22 @@ describe('manage_tags', () => {
       await new Promise((resolve, reject) => manage_tags.delete_function_tags(funcOptions[0], resolve))
     ).toBeFalsy();
 
-    // Check to make sure the right items are present.
-    expect(
-      await new Promise((resolve, reject) => {
-        dynamo.scan(scanParams, (e, d) => {
-          validateEandD(e, d);
-          if (!d.Items) {
-            return resolve(e);
-          }
-          const o = funcOptions[1];
-          const s = funcSpecs[1];
-          expected = [
-            ...makeExpected(o, manage_tags.get_compute_tag_key('timeout'), s.compute.timeout),
-            ...makeExpected(o, manage_tags.get_compute_tag_key('staticIp'), s.compute.staticIp),
-            ...makeExpected(o, manage_tags.get_metadata_tag_key('master_user'), s.metadata.tags.master_user),
-            ...makeExpected(o, manage_tags.get_metadata_tag_key('level'), s.metadata.tags.level),
-            ...makeExpected(o, manage_tags.get_metadata_tag_key('nani'), s.metadata.tags.nani),
-            ...makeExpected(o, manage_tags.get_dependency_tag_key('ms'), s.internal.resolved_dependencies.ms),
-          ];
-
-          d.Items.forEach(findEntry);
-          expect(expected.length).toBe(0);
-
-          resolve();
-        });
-      })
-    ).toBeFalsy();
+    await scanForTags([
+      [
+        funcOptions[1],
+        {
+          [manage_tags.get_compute_tag_key('timeout')]: funcSpecs[1].compute.timeout,
+          [manage_tags.get_compute_tag_key('staticIp')]: funcSpecs[1].compute.staticIp,
+          [manage_tags.get_metadata_tag_key('master_user')]: funcSpecs[1].metadata.tags.master_user,
+          [manage_tags.get_metadata_tag_key('level')]: funcSpecs[1].metadata.tags.level,
+          [manage_tags.get_metadata_tag_key('nani')]: funcSpecs[1].metadata.tags.nani,
+          [manage_tags.get_dependency_tag_key('ms')]: funcSpecs[1].internal.resolved_dependencies.ms,
+        },
+      ],
+    ]);
 
     // Delete the last entries to leave the state clean.
     await new Promise((resolve, reject) => manage_tags.delete_function_tags(funcOptions[1], resolve));
-
-    // Make sure there's no lingering entries.
-    await new Promise((resolve, reject) => {
-      dynamo.scan(scanParams, async (e, d) => {
-        if (!d.Items) {
-          return;
-        }
-        validateEandD(e, d);
-        expect(d.Items.length).toBe(0);
-
-        resolve();
-      });
-    });
+    await scanForTags([[funcOptions[0], {}]]);
   }, 30000);
 });
