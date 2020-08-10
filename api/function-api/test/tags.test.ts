@@ -9,23 +9,6 @@ const dynamo = new DynamoDB({ apiVersion: '2012-08-10' });
 
 import { deleteAll, scanForTags } from './tags';
 
-/* XXX XXX XXX
- * Instead of loading the prior spec file, do a query to get the full set
- * Can you do a global secondary index with a begins_with on a:s:b:f:k:v and capture all of them?
- * fuse-ops-deplyment-add, look at tables created, look at the table and see if the gsi is present.
- *
- * Add the scan instead of the spec file.
- * Create issue tracking conversion of scan to using a GSI (tb created by fuse-ops).
- * Finish create/put/delete function and make sure that's plummed in correctly.
- * Test the > 25 tags and make sure operations get batched correctly.
- * Test the error handling by tweaking the 25 and making sure that the error logic does something useful with
- * the backoff (manual).
- * Modify list_function to be able to filter based on tags, probably using a simple foo=bar,muh=bleh,argh (any
- * value and presence).  No negation testing because it's not that sophisticated.
- * Add testing to make sure externally added (to simulate garbage) entries get deleted correctly by the
- * process (since they should be picked up by the scan).
- *
- */
 const funcSpecs = [
   {
     compute: { timeout: 30, staticIp: false },
@@ -79,7 +62,7 @@ const funcOptions = [
 ];
 
 describe('manage_tags', () => {
-  test('spec to tags', async () => {
+  test.only('spec to tags', async () => {
     const expected = {
       [manage_tags.get_compute_tag_key('timeout')]: funcSpecs[0].compute.timeout,
       [manage_tags.get_compute_tag_key('staticIp')]: funcSpecs[0].compute.staticIp,
@@ -91,7 +74,7 @@ describe('manage_tags', () => {
     };
 
     expect(manage_tags.convert_spec_to_tags(funcSpecs[0])).toStrictEqual(expected);
-  }, 10000);
+  }, 120000);
 
   test('spec to request', async () => {
     const req = manage_tags.get_dynamo_create_request(funcOptions[0], funcSpecs[0]);
@@ -141,7 +124,7 @@ describe('manage_tags', () => {
         expect(item.tagValue.NULL).toBe(true);
       }
     });
-  }, 10000);
+  }, 120000);
 
   test('dynamo tests', async () => {
     // Delete any old lingering entries.
@@ -194,5 +177,40 @@ describe('manage_tags', () => {
     // Delete the last entries to leave the state clean.
     await new Promise((resolve, reject) => manage_tags.delete_function_tags(funcOptions[1], resolve));
     await scanForTags([[funcOptions[0], {}]]);
-  }, 30000);
+  }, 120000);
+
+  test('bulk tests', async () => {
+    // Delete any old lingering entries.
+    await deleteAll(funcOptions[0].accountId);
+
+    // Make a copy
+    const spec = JSON.parse(JSON.stringify(funcSpecs[0]));
+    const options = funcOptions[0];
+
+    // Add a bunch of parameters
+    for (let i = 0; i < 100; i++) {
+      spec.metadata.tags[`tag${i}`] = i;
+    }
+
+    // Add two different functions worth of tags.
+    expect(
+      await new Promise((resolve, reject) => manage_tags.create_function_tags(options, spec, resolve))
+    ).toBeFalsy();
+
+    // Check to make sure the items are present.
+    const expectedTags = {
+      [manage_tags.get_compute_tag_key('timeout')]: spec.compute.timeout,
+      [manage_tags.get_compute_tag_key('staticIp')]: spec.compute.staticIp,
+      [manage_tags.get_dependency_tag_key('ms')]: spec.internal.resolved_dependencies.ms,
+    };
+    for (const [key, value] of Object.entries(spec.metadata.tags)) {
+      expectedTags[manage_tags.get_metadata_tag_key(key)] = value;
+    }
+
+    await scanForTags([[options, expectedTags]]);
+
+    // Delete the last entries to leave the state clean.
+    await new Promise((resolve, reject) => manage_tags.delete_function_tags(options, resolve));
+    await scanForTags([[options, {}]]);
+  }, 120000);
 });

@@ -312,6 +312,7 @@ export async function listFunctions(
   boundaryId?: string,
   cron?: boolean,
   count?: number,
+  search?: string,
   next?: string
 ) {
   let url = boundaryId
@@ -323,6 +324,9 @@ export async function listFunctions(
   }
   if (count) {
     query.push(`count=${count}`);
+  }
+  if (search) {
+    query.push(`search=${encodeURIComponent(search)}`);
   }
   if (next) {
     query.push(`next=${next}`);

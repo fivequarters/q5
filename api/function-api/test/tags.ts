@@ -72,6 +72,9 @@ export const scanForTags = async (optionTags: any) => {
           });
         });
 
+        if (tags.length != d.Items.length) {
+          await getAllTags(optionTags[0][0].accountId);
+        }
         expect(tags.length).toBe(d.Items.length);
 
         d.Items.forEach((i) => {
@@ -81,7 +84,27 @@ export const scanForTags = async (optionTags: any) => {
         tags = tags.filter((i) => i);
 
         expect(tags.length).toBe(0);
-        resolve();
+        return resolve();
+      });
+    })
+  ).toBeFalsy();
+};
+
+export const getAllTags = async (accountId: string) => {
+  expect(
+    await new Promise((resolve, reject) => {
+      return dynamo.scan({ TableName: manage_tags.keyValueTableName }, async (e, d) => {
+        if (e) {
+          return resolve(e);
+        }
+        if (!d.Items) {
+          console.log('None');
+          return resolve();
+        }
+        validateEandD(accountId, e, d);
+
+        console.log(`${JSON.stringify(d.Items.map((i) => i.key.S))}`);
+        return resolve();
       });
     })
   ).toBeFalsy();
