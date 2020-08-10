@@ -198,7 +198,7 @@ describe('function.tags', () => {
     expect(expected.length).toBe(0);
   }, 120000);
 
-  test.only('listFunctions', async () => {
+  test('listFunctions', async () => {
     const account = getAccount();
     const boundaryId = rotateBoundary();
 
