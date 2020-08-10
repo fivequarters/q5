@@ -28,6 +28,12 @@ const command = {
       default: '100',
     },
     {
+      name: 'search',
+      aliases: ['s'],
+      description: 'Search for functions containing these tags in their metadata',
+      type: ArgType.string,
+    },
+    {
       name: 'output',
       aliases: ['o'],
       description: "The format to display the output: 'pretty', 'json'",
@@ -62,11 +68,13 @@ export class FunctionListCommand extends Command {
     const output = input.options.output as string;
     const cron = input.options.cron as boolean;
     const count = input.options.count as string;
+    const search = input.options.search as string;
     const next = input.options.next as string;
 
     const options: any = {
       cron,
       count,
+      search,
       next,
     };
 
