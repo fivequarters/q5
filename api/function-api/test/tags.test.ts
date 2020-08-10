@@ -62,7 +62,7 @@ const funcOptions = [
 ];
 
 describe('manage_tags', () => {
-  test.only('spec to tags', async () => {
+  test('spec to tags', async () => {
     const expected = {
       [manage_tags.get_compute_tag_key('timeout')]: funcSpecs[0].compute.timeout,
       [manage_tags.get_compute_tag_key('staticIp')]: funcSpecs[0].compute.staticIp,
