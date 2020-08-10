@@ -597,7 +597,7 @@ export class FunctionService {
       query.push(`count=${options.count}`);
     }
     if (options.search) {
-      query.push(`search=${encodeURIComponent(options.search)}`);
+      query.push(`search=${options.search}`);
     }
     if (options.next) {
       query.push(`next=${options.next}`);

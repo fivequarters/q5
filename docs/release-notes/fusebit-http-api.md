@@ -21,7 +21,7 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 
 _Released 8/10/20_
 
-- **Enhancement.** Support searching for functions by metadata characteristics.
+- **Enhancement.** Support searching for functions by properties contained in the configuration or metadata of the function.
 
 ## Version 1.17.3
 

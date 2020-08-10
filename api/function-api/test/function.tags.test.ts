@@ -9,7 +9,7 @@ process.env.LOGS_DISABLE = 'true';
 
 import { manage_tags } from '@5qtrs/function-lambda';
 
-import { getAllTags, scanForTags } from './tags';
+import { scanForTags } from './tags';
 
 import { DynamoDB } from 'aws-sdk';
 const dynamo = new DynamoDB({ apiVersion: '2012-08-10' });
@@ -40,7 +40,19 @@ const helloWorldUpdated = {
     },
   },
   compute: { memorySize: 256 },
-  metadata: { tags: { common: 3, foo: 5, whiz: 'bang' } },
+  metadata: { tags: { 'eq=key': 'found', eqval: 'fou=nd', common: 3, foo: 5, whiz: 'bang' } },
+};
+
+const helloWorldWithCron = {
+  nodejs: {
+    files: {
+      'index.js': 'module.exports = (ctx, cb) => cb(null, { body: "hello" });',
+    },
+  },
+  schedule: {
+    cron: '0 0 1 1 *', // at midnight on January 1st
+    timezone: 'UTC',
+  },
 };
 
 describe('function.tags', () => {
@@ -71,6 +83,7 @@ describe('function.tags', () => {
           ['tag.foo']: 1,
           ['tag.bar']: 'muh',
           ['tag.flies']: null,
+          ['cron']: false,
         },
       ],
     ]);
@@ -89,6 +102,9 @@ describe('function.tags', () => {
           ['tag.common']: 3,
           ['tag.foo']: 5,
           ['tag.whiz']: 'bang',
+          ['tag.eq=key']: 'found',
+          ['tag.eqval']: 'fou=nd',
+          ['cron']: false,
         },
       ],
     ]);
@@ -127,7 +143,7 @@ describe('function.tags', () => {
         })
       ).toBeFalsy();
       expect(results).toBeDefined();
-      expect(results.length).toBe(expected.length);
+      expect(results).toHaveLength(expected.length);
       if (results) {
         results.forEach((e: any) => expect(expected).toContain(e.functionId));
       }
@@ -141,6 +157,12 @@ describe('function.tags', () => {
     search(manage_tags.get_metadata_tag_key('flies'), null, [function1Id]);
     search(manage_tags.get_metadata_tag_key('flies'), 'null', [function1Id]); // Probably shouldn't be true, but...
     search(manage_tags.get_compute_tag_key('memorySize'), 256, [function2Id]);
+    search(manage_tags.get_metadata_tag_key('eq=key'), undefined, [function2Id]);
+    search(manage_tags.get_metadata_tag_key('eq=key'), 'found', [function2Id]);
+    search(manage_tags.get_metadata_tag_key('eqval'), undefined, [function2Id]);
+    search(manage_tags.get_metadata_tag_key('eqval'), 'fou=nd', [function2Id]);
+    search('cron', false, [function1Id, function2Id]);
+    search('cron', undefined, [function1Id, function2Id]);
   }, 120000);
 
   test('paginated search', async () => {
@@ -180,13 +202,13 @@ describe('function.tags', () => {
     let result: any;
     const found: any = [];
     result = await search(manage_tags.get_metadata_tag_key('common'), 3, undefined, 2);
-    expect(result[0].length).toBe(2);
+    expect(result[0]).toHaveLength(2);
     found.push(...result[0]);
     result = await search(manage_tags.get_metadata_tag_key('common'), 3, result[1], 2);
-    expect(result[0].length).toBe(1);
+    expect(result[0]).toHaveLength(1);
     found.push(...result[0]);
 
-    expect(found.length).toBe(3);
+    expect(found).toHaveLength(3);
     let expected = [
       { boundaryId, functionId: function1Id },
       { boundaryId, functionId: function2Id },
@@ -195,10 +217,10 @@ describe('function.tags', () => {
     found.forEach((f: any) => {
       expected = expected.filter((e: any) => e.boundaryId !== f.boundaryId && e.functionId !== f.functionId);
     });
-    expect(expected.length).toBe(0);
+    expect(expected).toHaveLength(0);
   }, 120000);
 
-  test('listFunctions', async () => {
+  test.only('listFunctions', async () => {
     const account = getAccount();
     const boundaryId = rotateBoundary();
 
@@ -211,23 +233,88 @@ describe('function.tags', () => {
 
     // Create a couple functions to search for
     let response: any;
+    let result: any;
     response = await putFunction(account, boundaryId, function1Id, helloWorld);
     expect(response.status).toEqual(200);
     response = await putFunction(account, boundaryId, function2Id, helloWorldUpdated);
     expect(response.status).toEqual(200);
     response = await putFunction(account, boundaryId, function3Id, helloWorld);
     expect(response.status).toEqual(200);
+    response = await putFunction(account, boundaryId, function4Id, helloWorldWithCron);
+    expect(response.status).toEqual(200);
 
     response = await listFunctions(account, boundaryId, undefined, undefined, 'tag.common=3', undefined);
     expect(response.status).toEqual(200);
-    expect(response.data.items.length).toBe(3);
+    expect(response.data.items).toHaveLength(3);
 
     response = await listFunctions(account, boundaryId, undefined, undefined, 'tag.flies', undefined);
     expect(response.status).toEqual(200);
-    expect(response.data.items.length).toBe(2);
+    expect(response.data.items).toHaveLength(2);
 
     response = await listFunctions(account, boundaryId, undefined, undefined, 'tag.whiz=bang', undefined);
     expect(response.status).toEqual(200);
-    expect(response.data.items.length).toBe(1);
+    expect(response.data.items).toHaveLength(1);
+
+    response = await listFunctions(account, boundaryId, undefined, undefined, 'tag.eq%3Dkey=found', undefined);
+    expect(response.status).toEqual(200);
+    expect(response.data.items).toHaveLength(1);
+
+    response = await listFunctions(account, boundaryId, undefined, undefined, 'tag.eq%3Dkey', undefined);
+    expect(response.status).toEqual(200);
+    expect(response.data.items).toHaveLength(1);
+
+    response = await listFunctions(account, boundaryId, undefined, undefined, 'tag.eqval=fou%3Dnd', undefined);
+    expect(response.status).toEqual(200);
+    expect(response.data.items).toHaveLength(1);
+
+    response = await listFunctions(account, boundaryId, undefined, undefined, 'tag.eqval', undefined);
+    expect(response.status).toEqual(200);
+    expect(response.data.items).toHaveLength(1);
+
+    result = [];
+    response = await listFunctions(account, boundaryId, undefined, 2, 'cron', undefined);
+    expect(response.status).toEqual(200);
+    expect(response.data.items).toHaveLength(2);
+    expect(response.data.next).toBeTruthy();
+    result.push(...response.data.items);
+
+    response = await listFunctions(account, boundaryId, undefined, 2, 'cron', response.data.next);
+    expect(response.status).toEqual(200);
+    expect(response.data.items).toHaveLength(2);
+    result.push(...response.data.items);
+
+    expect(result).toEqual(
+      expect.arrayContaining([
+        { boundaryId, functionId: function1Id, schedule: {} },
+        { boundaryId, functionId: function2Id, schedule: {} },
+        { boundaryId, functionId: function3Id, schedule: {} },
+        { boundaryId, functionId: function4Id, schedule: helloWorldWithCron.schedule },
+      ])
+    );
+
+    result = [];
+
+    response = await listFunctions(account, boundaryId, false, 2, undefined, undefined);
+    expect(response.status).toEqual(200);
+    expect(response.data.items).toHaveLength(2);
+    result.push(...response.data.items);
+
+    response = await listFunctions(account, boundaryId, false, 2, undefined, response.data.next);
+    expect(response.status).toEqual(200);
+    expect(response.data.items).toHaveLength(1);
+    result.push(...response.data.items);
+
+    expect(result).toEqual(
+      expect.arrayContaining([
+        { boundaryId, functionId: function1Id, schedule: {} },
+        { boundaryId, functionId: function2Id, schedule: {} },
+        { boundaryId, functionId: function3Id, schedule: {} },
+      ])
+    );
+
+    response = await listFunctions(account, boundaryId, true, 2, undefined, undefined);
+    expect(response.status).toEqual(200);
+    expect(response.data.items).toHaveLength(1);
+    expect(response.data.items[0].functionId).toBe(function4Id);
   }, 120000);
 });

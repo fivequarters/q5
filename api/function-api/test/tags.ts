@@ -7,14 +7,14 @@ import { DynamoDB } from 'aws-sdk';
 
 const dynamo = new DynamoDB({ apiVersion: '2012-08-10' });
 
-export const deleteAll = async (accountId: string) => {
+export const deleteAll = async (accountId: string, boundaryId: string) => {
   expect(
     await new Promise((resolve, reject) => {
       dynamo.scan({ TableName: manage_tags.keyValueTableName }, async (e, d) => {
         if (!d.Items) {
           return resolve(null);
         }
-        validateEandD(accountId, e, d);
+        validateEandD(accountId, boundaryId, e, d);
         for (const item of d.Items) {
           await new Promise((res, rej) =>
             dynamo.deleteItem(
@@ -32,7 +32,7 @@ export const deleteAll = async (accountId: string) => {
   ).toBeNull();
 };
 
-const validateEandD = (accountId: string, e: any, d: any) => {
+const validateEandD = (accountId: string, boundaryId: string, e: any, d: any) => {
   expect(e).toBeNull();
   expect(d.Items).toBeDefined();
   if (!d.Items) {
@@ -43,7 +43,8 @@ const validateEandD = (accountId: string, e: any, d: any) => {
   d.Items = d.Items.filter(
     (i: any) =>
       (i.category.S === manage_tags.TAG_CATEGORY_BOUNDARY || i.category.S === manage_tags.TAG_CATEGORY_SUBSCRIPTION) &&
-      i.accountId.S === accountId
+      i.accountId.S === accountId &&
+      i.boundaryId.S === boundaryId
   );
 
   expect(d.Items.length).toBeDefined();
@@ -57,7 +58,7 @@ export const scanForTags = async (optionTags: any) => {
         if (!d.Items) {
           return resolve(null);
         }
-        validateEandD(optionTags[0][0].accountId, e, d);
+        validateEandD(optionTags[0][0].accountId, optionTags[0][0].boundaryId, e, d);
 
         const makeTag = (options: any, k: any, v: any) => [
           manage_tags.get_bound_sort_key(options, k, v),
@@ -72,10 +73,12 @@ export const scanForTags = async (optionTags: any) => {
           });
         });
 
-        if (tags.length != d.Items.length) {
-          await getAllTags(optionTags[0][0].accountId);
+        if (tags.length !== d.Items.length) {
+          const current = await getAllTags(optionTags[0][0].accountId, optionTags[0][0].boundaryId);
+          console.log(JSON.stringify(current.filter((t: any) => tags.indexOf(t) === -1)));
+          console.log(JSON.stringify(tags.filter((t: any) => current.indexOf(t) === -1)));
         }
-        expect(tags.length).toBe(d.Items.length);
+        expect(tags).toHaveLength(d.Items.length);
 
         d.Items.forEach((i) => {
           expect(tags).toContain(i.key.S);
@@ -83,29 +86,27 @@ export const scanForTags = async (optionTags: any) => {
         });
         tags = tags.filter((i) => i);
 
-        expect(tags.length).toBe(0);
+        expect(tags).toHaveLength(0);
         return resolve();
       });
     })
   ).toBeFalsy();
 };
 
-export const getAllTags = async (accountId: string) => {
-  expect(
-    await new Promise((resolve, reject) => {
-      return dynamo.scan({ TableName: manage_tags.keyValueTableName }, async (e, d) => {
-        if (e) {
-          return resolve(e);
-        }
-        if (!d.Items) {
-          console.log('None');
-          return resolve();
-        }
-        validateEandD(accountId, e, d);
+export const getAllTags = async (accountId: string, boundaryId: string) => {
+  const [err, results] = await new Promise((resolve, reject) => {
+    return dynamo.scan({ TableName: manage_tags.keyValueTableName }, async (e, d) => {
+      if (e) {
+        return resolve([e, null]);
+      }
+      if (!d.Items) {
+        return resolve([null, []]);
+      }
+      validateEandD(accountId, boundaryId, e, d);
 
-        console.log(`${JSON.stringify(d.Items.map((i) => i.key.S))}`);
-        return resolve();
-      });
-    })
-  ).toBeFalsy();
+      return resolve([null, d.Items.map((i) => i.key.S)]);
+    });
+  });
+  expect(err).toBeFalsy();
+  return results;
 };

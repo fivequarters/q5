@@ -21,7 +21,7 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 
 _Released 8/10/20_
 
-- **Enhancement**. Enable `fuse function ls --search` to search for functions by attributes contained in the configuration or metadata of the function.
+- **Enhancement**. Enable `fuse function ls --search` to search for functions by properties contained in the configuration or metadata of the function.
 
 ## Version 1.8.2
 

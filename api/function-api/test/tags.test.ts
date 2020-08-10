@@ -71,6 +71,7 @@ describe('manage_tags', () => {
       [manage_tags.get_metadata_tag_key('master_owner')]: funcSpecs[0].metadata.tags.master_owner,
       [manage_tags.get_metadata_tag_key('level')]: funcSpecs[0].metadata.tags.level,
       [manage_tags.get_metadata_tag_key('flies')]: funcSpecs[0].metadata.tags.flies,
+      ['cron']: false,
     };
 
     expect(manage_tags.convert_spec_to_tags(funcSpecs[0])).toStrictEqual(expected);
@@ -128,7 +129,7 @@ describe('manage_tags', () => {
 
   test('dynamo tests', async () => {
     // Delete any old lingering entries.
-    await deleteAll(funcOptions[0].accountId);
+    await deleteAll(funcOptions[0].accountId, funcOptions[0].boundaryId);
 
     // Add two different functions worth of tags.
     expect(
@@ -147,6 +148,7 @@ describe('manage_tags', () => {
       [manage_tags.get_metadata_tag_key('level')]: funcSpecs[0].metadata.tags.level,
       [manage_tags.get_metadata_tag_key('flies')]: funcSpecs[0].metadata.tags.flies,
       [manage_tags.get_dependency_tag_key('ms')]: funcSpecs[0].internal.resolved_dependencies.ms,
+      ['cron']: false,
     };
     await scanForTags(funcOptions.map((o) => [o, expectedTags]));
 
@@ -170,6 +172,7 @@ describe('manage_tags', () => {
           [manage_tags.get_metadata_tag_key('level')]: funcSpecs[1].metadata.tags.level,
           [manage_tags.get_metadata_tag_key('nani')]: funcSpecs[1].metadata.tags.nani,
           [manage_tags.get_dependency_tag_key('ms')]: funcSpecs[1].internal.resolved_dependencies.ms,
+          ['cron']: false,
         },
       ],
     ]);
@@ -181,7 +184,7 @@ describe('manage_tags', () => {
 
   test('bulk tests', async () => {
     // Delete any old lingering entries.
-    await deleteAll(funcOptions[0].accountId);
+    await deleteAll(funcOptions[0].accountId, funcOptions[0].boundaryId);
 
     // Make a copy
     const spec = JSON.parse(JSON.stringify(funcSpecs[0]));
@@ -202,6 +205,7 @@ describe('manage_tags', () => {
       [manage_tags.get_compute_tag_key('timeout')]: spec.compute.timeout,
       [manage_tags.get_compute_tag_key('staticIp')]: spec.compute.staticIp,
       [manage_tags.get_dependency_tag_key('ms')]: spec.internal.resolved_dependencies.ms,
+      ['cron']: false,
     };
     for (const [key, value] of Object.entries(spec.metadata.tags)) {
       expectedTags[manage_tags.get_metadata_tag_key(key)] = value;

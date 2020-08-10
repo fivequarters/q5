@@ -536,13 +536,13 @@ describe('function', () => {
     expect(response.data.items).toHaveLength(2);
     expect(response.data.items).toEqual(
       expect.arrayContaining([
-        { boundaryId, functionId: function1Id },
+        { boundaryId, functionId: function1Id, schedule: {} },
         { boundaryId, functionId: function2Id, schedule: helloWorldWithCron.schedule },
       ])
     );
   }, 20000);
 
-  test('LIST on boundary with paging works', async () => {
+  test.only('LIST on boundary with paging works', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
     expect(response.status).toEqual(200);
     response = await putFunction(account, boundaryId, function2Id, helloWorld);
@@ -559,8 +559,8 @@ describe('function', () => {
     expect(response.data.items).toHaveLength(2);
     expect(response.data.items).toEqual(
       expect.arrayContaining([
-        { boundaryId, functionId: function1Id },
-        { boundaryId, functionId: function2Id },
+        { boundaryId, functionId: function1Id, schedule: {} },
+        { boundaryId, functionId: function2Id, schedule: {} },
       ])
     );
     response = await listFunctions(account, boundaryId, undefined, 2, undefined, response.data.next);
@@ -569,16 +569,18 @@ describe('function', () => {
     expect(response.data.items).toHaveLength(2);
     expect(response.data.items).toEqual(
       expect.arrayContaining([
-        { boundaryId, functionId: function3Id },
-        { boundaryId, functionId: function4Id },
+        { boundaryId, functionId: function3Id, schedule: {} },
+        { boundaryId, functionId: function4Id, schedule: {} },
       ])
     );
     response = await listFunctions(account, boundaryId, undefined, 2, undefined, response.data.next);
     expect(response.status).toEqual(200);
     expect(response.data).toEqual({ items: expect.any(Array) });
     expect(response.data.items).toHaveLength(1);
-    expect(response.data.items).toEqual(expect.arrayContaining([{ boundaryId, functionId: function5Id }]));
-  }, 20000);
+    expect(response.data.items).toEqual(
+      expect.arrayContaining([{ boundaryId, functionId: function5Id, schedule: {} }])
+    );
+  }, 120000);
 
   test.skip('Bulk test PUTs', async () => {
     let fns = [];
@@ -610,7 +612,9 @@ describe('function', () => {
     expect(response.status).toEqual(200);
     expect(response.data).toEqual({ items: expect.any(Array) });
     expect(response.data.items).toHaveLength(1);
-    expect(response.data.items).toEqual(expect.arrayContaining([{ boundaryId, functionId: function1Id }]));
+    expect(response.data.items).toEqual(
+      expect.arrayContaining([{ boundaryId, functionId: function1Id, schedule: {} }])
+    );
   }, 20000);
 
   test('LIST on boundary retrieves the list of cron functions', async () => {
@@ -625,7 +629,7 @@ describe('function', () => {
     expect(response.data.items).toEqual(
       expect.arrayContaining([{ boundaryId, functionId: function2Id, schedule: helloWorldWithCron.schedule }])
     );
-  }, 20000);
+  }, 120000);
 
   test('LIST on subscription retrieves the list of all functions', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
@@ -638,7 +642,7 @@ describe('function', () => {
     expect(response.data.items.length).toBeGreaterThanOrEqual(2);
     expect(response.data.items).toEqual(
       expect.arrayContaining([
-        { boundaryId, functionId: function1Id },
+        { boundaryId, functionId: function1Id, schedule: {} },
         { boundaryId, functionId: function2Id, schedule: helloWorldWithCron.schedule },
       ])
     );

@@ -326,7 +326,7 @@ export async function listFunctions(
     query.push(`count=${count}`);
   }
   if (search) {
-    query.push(`search=${encodeURIComponent(search)}`);
+    query.push(`search=${search}`);
   }
   if (next) {
     query.push(`next=${next}`);
