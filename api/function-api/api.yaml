@@ -1246,6 +1246,20 @@ paths:
             If not specified, all functions will be returned.
           schema:
             type: boolean
+        - in: query
+          name: search
+          required: false
+          description: |
+            Search the metadata for functions that match this criteria.  Each method has several different scopes that can be searched
+            within, including `'compute'`, `'dependency'`, and `'tag'`, corresponding to values in the `compute`,
+            `internal.dependencies`, and `metadata.tags` sections of the function specification.
+
+            Search supports a single filtering criteria, in the form of `search=key` for any function posessing a key matching that
+            value, or `search=key%3Dvalue` for functions that specifically match a value.
+
+            Examples include `?search=compute.timeout%3D30`, `?search=dependency.ms%3D2.1.2`, `?search=tag.enabled`.
+          schema:
+            type: string
       responses:
         200:
           description: A list of functions
@@ -1328,6 +1342,20 @@ paths:
             If not specified, all functions will be returned.
           schema:
             type: boolean
+        - in: query
+          name: search
+          required: false
+          description: |
+            Search the metadata for functions that match this criteria.  Each method has several different scopes that can be searched
+            within, including `'compute'`, `'dependency'`, and `'tag'`, corresponding to values in the `compute`,
+            `internal.dependencies`, and `metadata.tags` sections of the function specification.
+
+            Search supports a single filtering criteria, in the form of `search=key` for any function posessing a key matching that
+            value, or `search=key%3Dvalue` for functions that specifically match a value.
+
+            Examples include `?search=compute.timeout%3D30`, `?search=dependency.ms%3D2.1.2`, `?search=tag.enabled`.
+          schema:
+            type: string
       responses:
         200:
           description: A list of functions
