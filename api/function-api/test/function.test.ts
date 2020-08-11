@@ -542,7 +542,7 @@ describe('function', () => {
     );
   }, 20000);
 
-  test.only('LIST on boundary with paging works', async () => {
+  test('LIST on boundary with paging works', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
     expect(response.status).toEqual(200);
     response = await putFunction(account, boundaryId, function2Id, helloWorld);
