@@ -1519,9 +1519,12 @@ paths:
         representing the function build process. This `buildId` can be used to poll for completion by calling
         `'GET /build/{buildId}'`.
 
+        Supply additional options in the `metadata.tags` object to provide additional properties on a function
+        that are searchable.
+
         The URL for executing the function will be provided as the `location` property of the response.
 
-        The maximum payload size is 100KB.
+        The maximum payload size is 500KB.
       operationId: putFunction
       requestBody:
         description: The function to build and deploy
@@ -3037,6 +3040,14 @@ components:
           type: string
         metadata:
           type: object
+          properties:
+            tags:
+              type: object
+              properties:
+                key:
+                  type: string
+                value:
+                  type: string
 
     FunctionList:
       type: object
