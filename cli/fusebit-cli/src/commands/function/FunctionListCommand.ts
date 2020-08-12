@@ -30,7 +30,7 @@ const command = {
     {
       name: 'search',
       aliases: ['s'],
-      description: 'Search for functions containing this function property in the metadata',
+      description: 'Search for functions containing this function property',
       type: ArgType.string,
     },
     {
