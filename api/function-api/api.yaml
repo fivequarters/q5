@@ -1269,7 +1269,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/FunctionList'
         400:
-          description: Malformed account or subscription id, or invalid query
+          description: Malformed account or subscription id, invalid next, or invalid query
           content:
             application/json:
               schema:
@@ -1366,7 +1366,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/FunctionList'
         400:
-          description: Malformed account or subscription id, or invalid query
+          description: Malformed account or subscription id, invalid next, or invalid query
           content:
             application/json:
               schema:
