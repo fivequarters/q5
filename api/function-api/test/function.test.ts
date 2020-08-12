@@ -154,15 +154,15 @@ const helloWorldWithNode8String = {
 
 beforeAll(async () => {
   account = await resolveAccount();
-}, 10000);
+}, 120000);
 
 afterAll(async () => {
   await deleteAllFunctions(account, boundaryId);
-}, 20000);
+}, 120000);
 
 beforeEach(async () => {
   await deleteAllFunctions(account, boundaryId);
-}, 20000);
+}, 120000);
 
 describe('function', () => {
   test('PUT completes synchronously', async () => {
@@ -178,7 +178,7 @@ describe('function', () => {
       },
       location: expect.stringMatching(/^http:|https:/),
     });
-  }, 10000);
+  }, 120000);
 
   test('PUT completes synchronously with no changes to function', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
@@ -187,7 +187,7 @@ describe('function', () => {
     response = await putFunction(account, boundaryId, function1Id, helloWorld);
     expect(response.status).toEqual(204);
     expect(response.data).toBeUndefined();
-  }, 20000);
+  }, 120000);
 
   test('PUT with empty compute resets compute', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithComputeSettings);
@@ -211,7 +211,7 @@ describe('function', () => {
     expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: false });
     expect(response.data.computeSerialized).toBeUndefined();
     expect(response.data.metadata).toBeUndefined();
-  }, 20000);
+  }, 120000);
 
   test('PUT with empty configuration resets configuration', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfigurationAndMetadata);
@@ -235,7 +235,7 @@ describe('function', () => {
     expect(response.data.configuration).toBeUndefined();
     expect(response.data.configurationSerialized).toBeUndefined();
     expect(response.data.metadata).toEqual({ baz: '123', foo: 'bar' });
-  }, 20000);
+  }, 120000);
 
   test('PUT with empty schedule reset schedule', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithCron);
@@ -254,7 +254,7 @@ describe('function', () => {
     expect(response.data.schedule).toBeUndefined();
     expect(response.data.scheduleSerialized).toBeUndefined();
     expect(response.data.metadata).toBeUndefined();
-  }, 20000);
+  }, 120000);
 
   test('PUT with undefined compute resets compute', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithComputeSettings);
@@ -278,7 +278,7 @@ describe('function', () => {
     expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: false });
     expect(response.data.computeSerialized).toBeUndefined();
     expect(response.data.metadata).toBeUndefined();
-  }, 20000);
+  }, 120000);
 
   test('PUT with undefined configuration resets configuration', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfigurationAndMetadata);
@@ -302,7 +302,7 @@ describe('function', () => {
     expect(response.data.configuration).toBeUndefined();
     expect(response.data.configurationSerialized).toBeUndefined();
     expect(response.data.metadata).toEqual({ baz: '123', foo: 'bar' });
-  }, 20000);
+  }, 120000);
 
   test('PUT with undefined schedule reset schedule', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithCron);
@@ -321,7 +321,7 @@ describe('function', () => {
     expect(response.data.schedule).toBeUndefined();
     expect(response.data.scheduleSerialized).toBeUndefined();
     expect(response.data.metadata).toBeUndefined();
-  }, 20000);
+  }, 120000);
 
   test('PUT with new compute values updates compute', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
@@ -340,7 +340,7 @@ describe('function', () => {
     response = await getFunction(account, boundaryId, function1Id);
     expect(response.status).toEqual(200);
     expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: true });
-  }, 20000);
+  }, 120000);
 
   test('PUT and GET roundtrip with no changes to function', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
@@ -351,7 +351,7 @@ describe('function', () => {
     response = await putFunction(account, boundaryId, function1Id, response.data);
     expect(response.status).toEqual(204);
     expect(response.data).toBeUndefined();
-  }, 10000);
+  }, 120000);
 
   test('PUT supports setting staticIP=true', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithStaticIp);
@@ -359,7 +359,7 @@ describe('function', () => {
     response = await getFunction(account, boundaryId, function1Id);
     expect(response.status).toBe(200);
     expect(response.data.compute).toEqual({ staticIp: true, memorySize: 128, timeout: 30 });
-  }, 10000);
+  }, 120000);
 
   test('PUT still supports lambda property for back-compat', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithLambda);
@@ -367,7 +367,7 @@ describe('function', () => {
     response = await getFunction(account, boundaryId, function1Id);
     expect(response.status).toBe(200);
     expect(response.data.compute).toEqual({ staticIp: false, memorySize: 128, timeout: 90 });
-  }, 10000);
+  }, 120000);
 
   test('DELETE removes function', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
@@ -382,7 +382,7 @@ describe('function', () => {
       statusCode: 404,
       message: 'Not Found',
     });
-  }, 10000);
+  }, 120000);
 
   test('DELETE on a non-existing function returns 404', async () => {
     const response = await deleteFunction(account, boundaryId, 'no-such-function');
@@ -392,7 +392,7 @@ describe('function', () => {
       statusCode: 404,
       message: 'Not Found',
     });
-  }, 10000);
+  }, 120000);
 
   test('DELETE on a deleted function returns 404', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
@@ -407,7 +407,7 @@ describe('function', () => {
       statusCode: 404,
       message: 'Not Found',
     });
-  }, 10000);
+  }, 120000);
 
   test('GET retrieves information of simple function', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
@@ -429,7 +429,7 @@ describe('function', () => {
     expect(response.data.schedule).toBeUndefined();
     expect(response.data.scheduleSerialized).toBeUndefined();
     expect(response.data.metadata).toBeUndefined();
-  }, 10000);
+  }, 120000);
 
   test('GET retrieves information of function with package.json as JavaScript object', async () => {
     let response = await putFunction(account, boundaryId, function2Id, helloWorldWithNode8JavaScript);
@@ -451,7 +451,7 @@ describe('function', () => {
     expect(response.data.schedule).toBeUndefined();
     expect(response.data.scheduleSerialized).toBeUndefined();
     expect(response.data.metadata).toBeUndefined();
-  }, 10000);
+  }, 120000);
 
   test('GET retrieves information of function with package.json as string', async () => {
     let response = await putFunction(account, boundaryId, function2Id, helloWorldWithNode8String);
@@ -473,7 +473,7 @@ describe('function', () => {
     expect(response.data.schedule).toBeUndefined();
     expect(response.data.scheduleSerialized).toBeUndefined();
     expect(response.data.metadata).toBeUndefined();
-  }, 10000);
+  }, 120000);
 
   test('GET location retrieves function location', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
@@ -481,7 +481,7 @@ describe('function', () => {
     response = await getFunctionLocation(account, boundaryId, function1Id);
     expect(response.status).toEqual(200);
     expect(response.data).toEqual({ location: expect.stringMatching(/^http:|https:/) });
-  }, 10000);
+  }, 120000);
 
   test('GET retrieves information of function with configuration and metadata', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfigurationAndMetadata);
@@ -502,7 +502,7 @@ describe('function', () => {
     expect(response.data.schedule).toBeUndefined();
     expect(response.data.scheduleSerialized).toBeUndefined();
     expect(response.data.metadata).toEqual({ baz: '123', foo: 'bar' });
-  }, 10000);
+  }, 120000);
 
   test('GET retrieves information of a cron function', async () => {
     let response = await putFunction(account, boundaryId, function2Id, helloWorldWithCron);
@@ -523,7 +523,7 @@ describe('function', () => {
     expect(response.data.schedule).toEqual(helloWorldWithCron.schedule);
     expect(response.data.scheduleSerialized).toBeUndefined();
     expect(response.data.metadata).toBeUndefined();
-  }, 10000);
+  }, 120000);
 
   test('LIST on boundary retrieves the list of all functions', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
@@ -540,7 +540,7 @@ describe('function', () => {
         { boundaryId, functionId: function2Id, schedule: helloWorldWithCron.schedule },
       ])
     );
-  }, 20000);
+  }, 120000);
 
   test('LIST on boundary with paging works', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
@@ -601,7 +601,7 @@ describe('function', () => {
       }
       await Promise.all(fs);
     }
-  }, 200000);
+  }, 120000);
 
   test('LIST on boundary retrieves the list of non-cron functions', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
@@ -615,7 +615,7 @@ describe('function', () => {
     expect(response.data.items).toEqual(
       expect.arrayContaining([{ boundaryId, functionId: function1Id, schedule: {} }])
     );
-  }, 20000);
+  }, 120000);
 
   test('LIST on boundary retrieves the list of cron functions', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
@@ -646,7 +646,7 @@ describe('function', () => {
         { boundaryId, functionId: function2Id, schedule: helloWorldWithCron.schedule },
       ])
     );
-  }, 20000);
+  }, 120000);
 
   test('PUT fails without .nodejs', async () => {
     let response = await putFunction(account, boundaryId, function1Id, {});
@@ -656,7 +656,7 @@ describe('function', () => {
       statusCode: 400,
       message: 'The `nodejs` body parameter is missing.',
     });
-  }, 10000);
+  }, 120000);
 
   test('PUT fails without .nodejs.files', async () => {
     let response = await putFunction(account, boundaryId, function1Id, { nodejs: {} });
@@ -666,7 +666,7 @@ describe('function', () => {
       statusCode: 400,
       message: 'The `nodejs.files` body parameter is missing.',
     });
-  }, 10000);
+  }, 120000);
 
   test('PUT fails with empty nodejs.files', async () => {
     let response = await putFunction(account, boundaryId, function1Id, { nodejs: { files: {} } });
@@ -676,7 +676,7 @@ describe('function', () => {
       statusCode: 400,
       message: '"index.js" is required',
     });
-  }, 10000);
+  }, 120000);
 
   test('PUT fails with nodejs.files lacking index.js', async () => {
     let response = await putFunction(account, boundaryId, function1Id, { nodejs: { files: { foo: 'bar' } } });
@@ -686,7 +686,7 @@ describe('function', () => {
       statusCode: 400,
       message: '"index.js" is required',
     });
-  }, 10000);
+  }, 120000);
 
   test('PUT fails with malformed package.json', async () => {
     let response = await putFunction(account, boundaryId, function1Id, {
@@ -703,7 +703,7 @@ describe('function', () => {
       statusCode: 400,
       message: 'The package.json file cannot be parsed as a JSON object.',
     });
-  }, 10000);
+  }, 120000);
 
   test('PUT fails with unsupported node.js version', async () => {
     let response = await putFunction(account, boundaryId, function1Id, {
@@ -724,7 +724,7 @@ describe('function', () => {
       statusCode: 400,
       message: expect.stringMatching(/^Unable to find Node.js runtime version matching/),
     });
-  }, 10000);
+  }, 120000);
 
   test('PUT fails with unrecognized element in body', async () => {
     let response = await putFunction(account, boundaryId, function1Id, {
@@ -741,7 +741,7 @@ describe('function', () => {
       statusCode: 400,
       message: '"unexpected" is not allowed',
     });
-  }, 10000);
+  }, 120000);
 
   test('PUT fails with non-string configuration setting', async () => {
     let response = await putFunction(account, boundaryId, function1Id, {
@@ -760,7 +760,7 @@ describe('function', () => {
       statusCode: 400,
       message: '"foo" must be a string',
     });
-  }, 10000);
+  }, 120000);
 
   test('PUT fails with too small memory limit', async () => {
     let response = await putFunction(account, boundaryId, function1Id, {
@@ -779,7 +779,7 @@ describe('function', () => {
       statusCode: 400,
       message: '"memorySize" must be larger than or equal to 64',
     });
-  }, 10000);
+  }, 120000);
 
   test('PUT fails with too large memory limit', async () => {
     let response = await putFunction(account, boundaryId, function1Id, {
@@ -798,7 +798,7 @@ describe('function', () => {
       statusCode: 400,
       message: '"memorySize" must be less than or equal to 3008',
     });
-  }, 10000);
+  }, 120000);
 
   test('PUT fails with too small time limit', async () => {
     let response = await putFunction(account, boundaryId, function1Id, {
@@ -817,7 +817,7 @@ describe('function', () => {
       statusCode: 400,
       message: '"timeout" must be larger than or equal to 1',
     });
-  }, 10000);
+  }, 120000);
 
   test('PUT fails with too large time limit', async () => {
     let response = await putFunction(account, boundaryId, function1Id, {
@@ -836,7 +836,7 @@ describe('function', () => {
       statusCode: 400,
       message: '"timeout" must be less than or equal to 120',
     });
-  }, 10000);
+  }, 120000);
 
   test('PUT fails with invalid cron expression', async () => {
     let response = await putFunction(account, boundaryId, function1Id, {
@@ -858,7 +858,7 @@ describe('function', () => {
         'Check https://crontab.guru/ for reference',
       ].join(' '),
     });
-  }, 10000);
+  }, 120000);
 
   test('PUT fails with invalid timezone', async () => {
     let response = await putFunction(account, boundaryId, function1Id, {
@@ -881,7 +881,7 @@ describe('function', () => {
         'Check https://en.wikipedia.org/wiki/List_of_tz_database_time_zones for reference',
       ].join(' '),
     });
-  }, 10000);
+  }, 120000);
 
   test('PUT updates function without a temporary 404', async () => {
     const response = await putFunction(account, boundaryId, function1Id, helloWorld);
@@ -918,5 +918,5 @@ describe('function', () => {
     stop = true;
     await Promise.all(promises);
     expect(failures).toBe(0);
-  }, 20000);
+  }, 120000);
 });

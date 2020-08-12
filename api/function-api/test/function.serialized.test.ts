@@ -79,15 +79,15 @@ const helloWorldWithCron = {
 
 beforeAll(async () => {
   account = await resolveAccount();
-}, 10000);
+}, 120000);
 
 afterAll(async () => {
   await deleteAllFunctions(account, boundaryId);
-}, 20000);
+}, 120000);
 
 beforeEach(async () => {
   await deleteAllFunctions(account, boundaryId);
-}, 20000);
+}, 120000);
 
 describe('function', () => {
   test('PUT completes synchronously', async () => {
@@ -103,7 +103,7 @@ describe('function', () => {
       },
       location: expect.stringMatching(/^http:|https:/),
     });
-  }, 10000);
+  }, 120000);
 
   test('PUT with configurationSerialized sets configuration', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfigurationSerialized);
@@ -113,7 +113,7 @@ describe('function', () => {
     expect(response.status).toBe(200);
     expect(response.data.configuration).toEqual({ FOO: '123', BAR: 'abc' });
     expect(response.data.configurationSerialized).toBe('FOO=123\n BAR  = abc');
-  }, 20000);
+  }, 120000);
 
   test('PUT with computeSerialized sets compute', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithComputeSerialized);
@@ -125,7 +125,7 @@ describe('function', () => {
     expect(response.data.compute).toEqual({ timeout: 120, memorySize: 128, staticIp: false });
     expect(response.data.computeSerialized).toBe('timeout= 120\nmemorySize=128\nstaticIp=false');
     expect(response.data.metadata).toBeUndefined();
-  }, 20000);
+  }, 120000);
 
   test('PUT with scheduleSerialized sets schedule', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithScheduleSerialized);
@@ -137,7 +137,7 @@ describe('function', () => {
     expect(response.data.schedule).toEqual({ cron: '0 0 1 1 *', timezone: 'UTC' });
     expect(response.data.scheduleSerialized).toBe('cron=0 0 1 1 *\n   timezone=UTC');
     expect(response.data.metadata).toBeUndefined();
-  }, 20000);
+  }, 120000);
 
   test('PUT with configurationSerialized set to empty string resets configurationSerialized', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfigurationSerialized);
@@ -161,7 +161,7 @@ describe('function', () => {
     expect(response.status).toBe(200);
     expect(response.data.configuration).toEqual({ FOO: '123', BAR: 'abc' });
     expect(response.data.configurationSerialized).toBe('FOO=123\nBAR=abc');
-  }, 20000);
+  }, 120000);
 
   test('PUT with computeSerialized set to empty string resets computeSerialized', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithComputeSerialized);
@@ -184,7 +184,7 @@ describe('function', () => {
     expect(response.status).toBe(200);
     expect(response.data.compute).toEqual({ timeout: 120, memorySize: 128, staticIp: false });
     expect(response.data.computeSerialized).toBe('timeout=120\nmemorySize=128\nstaticIp=false');
-  }, 20000);
+  }, 120000);
 
   test('PUT with scheduleSerialized set to empty string resets scheduleSerialized', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithScheduleSerialized);
@@ -205,7 +205,7 @@ describe('function', () => {
     response = await getFunction(account, boundaryId, function1Id, true);
     expect(response.data.schedule).toEqual({ cron: '0 0 1 1 *', timezone: 'UTC' });
     expect(response.data.scheduleSerialized).toBe('cron=0 0 1 1 *\ntimezone=UTC');
-  }, 20000);
+  }, 120000);
 
   test('PUT with configurationSerialized undefined is ignored', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfigurationSerialized);
@@ -220,7 +220,7 @@ describe('function', () => {
     response.data.configurationSerialized = undefined;
     response = await putFunction(account, boundaryId, function1Id, response.data);
     expect(response.status).toBe(204);
-  }, 20000);
+  }, 120000);
 
   test('PUT with computeSerialized undefined is ignored', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithComputeSerialized);
@@ -235,7 +235,7 @@ describe('function', () => {
     response.data.computeSerialized = undefined;
     response = await putFunction(account, boundaryId, function1Id, response.data);
     expect(response.status).toBe(204);
-  }, 20000);
+  }, 120000);
 
   test('PUT with scheduleSerialized undefined is ignored', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithScheduleSerialized);
@@ -250,7 +250,7 @@ describe('function', () => {
     response.data.scheduleSerialized = undefined;
     response = await putFunction(account, boundaryId, function1Id, response.data);
     expect(response.status).toBe(204);
-  }, 20000);
+  }, 120000);
 
   test('PUT with empty compute resets compute', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithComputeSerialized);
@@ -273,7 +273,7 @@ describe('function', () => {
     expect(response.status).toBe(200);
     expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: false });
     expect(response.data.computeSerialized).toBe('memorySize=128\ntimeout=30\nstaticIp=false');
-  }, 20000);
+  }, 120000);
 
   test('PUT with empty configuration resets configuration', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfiguration);
@@ -296,7 +296,7 @@ describe('function', () => {
     expect(response.status).toBe(200);
     expect(response.data.configuration).toBeUndefined();
     expect(response.data.configurationSerialized).toBeUndefined();
-  }, 20000);
+  }, 120000);
 
   test('PUT with empty schedule resets schedule', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithCron);
@@ -316,7 +316,7 @@ describe('function', () => {
     response = await getFunction(account, boundaryId, function1Id, true);
     expect(response.data.schedule).toBeUndefined();
     expect(response.data.scheduleSerialized).toBeUndefined();
-  }, 20000);
+  }, 120000);
 
   test('PUT with undefined compute is ignored', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithStaticIp);
@@ -332,7 +332,7 @@ describe('function', () => {
     response.data.compute = undefined;
     response = await putFunction(account, boundaryId, function1Id, response.data);
     expect(response.status).toBe(204);
-  }, 20000);
+  }, 120000);
 
   test('PUT with undefined configuration is ignored', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfiguration);
@@ -348,7 +348,7 @@ describe('function', () => {
     response.data.configuration = undefined;
     response = await putFunction(account, boundaryId, function1Id, response.data);
     expect(response.status).toBe(204);
-  }, 20000);
+  }, 120000);
 
   test('PUT with undefined schedule is ignored', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithCron);
@@ -364,7 +364,7 @@ describe('function', () => {
     response.data.schedule = undefined;
     response = await putFunction(account, boundaryId, function1Id, response.data);
     expect(response.status).toBe(204);
-  }, 20000);
+  }, 120000);
 
   test('PUT with undefined compute and undefined computeSerialized resets compute', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithComputeSerialized);
@@ -388,7 +388,7 @@ describe('function', () => {
     expect(response.status).toBe(200);
     expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: false });
     expect(response.data.computeSerialized).toBe('memorySize=128\ntimeout=30\nstaticIp=false');
-  }, 20000);
+  }, 120000);
 
   test('PUT with undefined configuration and undefined configurationSerialized resets configuration', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfiguration);
@@ -412,7 +412,7 @@ describe('function', () => {
     expect(response.status).toBe(200);
     expect(response.data.configuration).toBeUndefined();
     expect(response.data.configurationSerialized).toBeUndefined();
-  }, 20000);
+  }, 120000);
 
   test('PUT with undefined schedule and undefined scheduleSerialized resets schedule', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithCron);
@@ -436,7 +436,7 @@ describe('function', () => {
     expect(response.status).toBe(200);
     expect(response.data.schedule).toBeUndefined();
     expect(response.data.scheduleSerialized).toBeUndefined();
-  }, 20000);
+  }, 120000);
 
   test('PUT with new compute values updates compute and computeSerialized', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
@@ -457,7 +457,7 @@ describe('function', () => {
     expect(response.status).toBe(200);
     expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: true });
     expect(response.data.computeSerialized).toBe('memorySize=128\ntimeout=30\nstaticIp=true');
-  }, 20000);
+  }, 120000);
 
   test('PUT with new configuration values updates configuration and configurationSerialized', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfiguration);
@@ -478,7 +478,7 @@ describe('function', () => {
     expect(response.status).toBe(200);
     expect(response.data.configuration).toEqual({ FOO: '123', BAR: 'abc', BAZ: '789' });
     expect(response.data.configurationSerialized).toBe('FOO=123\nBAR=abc\nBAZ=789');
-  }, 20000);
+  }, 120000);
 
   test('PUT with new schedule values updates schedule and scheduleSerialized', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithCron);
@@ -499,7 +499,7 @@ describe('function', () => {
     expect(response.status).toBe(200);
     expect(response.data.schedule).toEqual({ cron: '0 0 1 2 *', timezone: 'UTC' });
     expect(response.data.scheduleSerialized).toBe('cron=0 0 1 2 *\ntimezone=UTC');
-  }, 20000);
+  }, 120000);
 
   test('PUT with non-conflicting serialized and structured data changes is supported', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfiguration);
@@ -519,7 +519,7 @@ describe('function', () => {
     expect(response.data.configurationSerialized).toBe('FOO=789\nBAR=abc');
     expect(response.data.compute).toEqual({ timeout: 60, memorySize: 128, staticIp: false });
     expect(response.data.computeSerialized).toBe('memorySize=128\ntimeout=60\nstaticIp=false');
-  }, 20000);
+  }, 120000);
 
   test('PUT with conflicting configuration and configurationSerialized uses configuration', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfiguration);
@@ -537,7 +537,7 @@ describe('function', () => {
     expect(response.status).toBe(200);
     expect(response.data.configuration).toEqual({ FOO: '123', BAR: 'abc', BAZ: '789' });
     expect(response.data.configurationSerialized).toBe('FOO=123\nBAR=abc\nBAZ=789');
-  }, 20000);
+  }, 120000);
 
   test('PUT with conflicting schedule and scheduleSerialized uses schedule', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithCron);
@@ -559,7 +559,7 @@ describe('function', () => {
     expect(response.status).toBe(200);
     expect(response.data.schedule).toEqual({ cron: '0 0 1 2 *', timezone: 'UTC' });
     expect(response.data.scheduleSerialized).toBe('cron=0 0 1 2 *\ntimezone=UTC');
-  }, 20000);
+  }, 120000);
 
   test('PUT with conflicting compute and computeSerialized uses compute', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
@@ -578,7 +578,7 @@ describe('function', () => {
     expect(response.status).toBe(200);
     expect(response.data.compute).toEqual({ timeout: 80, memorySize: 128, staticIp: false });
     expect(response.data.computeSerialized).toBe('memorySize=128\ntimeout=80\nstaticIp=false');
-  }, 20000);
+  }, 120000);
 
   test('GET retrieves information of simple function', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
@@ -600,5 +600,5 @@ describe('function', () => {
     expect(response.data.schedule).toBeUndefined();
     expect(response.data.scheduleSerialized).toBeUndefined();
     expect(response.data.metadata).toBeUndefined();
-  }, 10000);
+  }, 120000);
 });

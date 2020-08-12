@@ -220,7 +220,7 @@ describe('function.tags', () => {
     expect(expected).toHaveLength(0);
   }, 120000);
 
-  test.only('listFunctions', async () => {
+  test('listFunctions', async () => {
     const account = getAccount();
     const boundaryId = rotateBoundary();
 
