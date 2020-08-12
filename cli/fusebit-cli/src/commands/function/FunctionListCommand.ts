@@ -33,7 +33,7 @@ const command = {
       description: [
         'Search for functions containing this function property. Search',
         'supports a single filtering criteria, in the form of `search=key` for any',
-        'function posessing a key matching that value, or `search=key=value` for',
+        'function posessing a key matching that value, or `--search key=value` for',
         'functions that specifically match a value.  If the key or value contains',
         'an `=`, encode them to the URI specification first.',
       ].join(' '),
