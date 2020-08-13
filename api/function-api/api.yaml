@@ -2959,14 +2959,20 @@ components:
       required:
         - functionId
         - boundaryId
+        - schedule
+        - location
       properties:
         functionId:
           $ref: '#/components/schemas/FunctionId'
         boundaryId:
           $ref: '#/components/schemas/BoundaryId'
-        cron:
+        schedule:
           type: string
           example: '*/15 * * * *'
+        location:
+          type: string
+          description: The URL for executing the function
+          example: 'https://domain.com/function-abc'
 
     Function:
       allOf:

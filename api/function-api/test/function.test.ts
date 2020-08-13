@@ -536,8 +536,18 @@ describe('function', () => {
     expect(response.data.items).toHaveLength(2);
     expect(response.data.items).toEqual(
       expect.arrayContaining([
-        { boundaryId, functionId: function1Id, schedule: {} },
-        { boundaryId, functionId: function2Id, schedule: helloWorldWithCron.schedule },
+        {
+          boundaryId,
+          functionId: function1Id,
+          schedule: {},
+          location: (await getFunctionLocation(account, boundaryId, function1Id)).data.location,
+        },
+        {
+          boundaryId,
+          functionId: function2Id,
+          schedule: helloWorldWithCron.schedule,
+          location: (await getFunctionLocation(account, boundaryId, function2Id)).data.location,
+        },
       ])
     );
   }, 120000);
@@ -559,8 +569,18 @@ describe('function', () => {
     expect(response.data.items).toHaveLength(2);
     expect(response.data.items).toEqual(
       expect.arrayContaining([
-        { boundaryId, functionId: function1Id, schedule: {} },
-        { boundaryId, functionId: function2Id, schedule: {} },
+        {
+          boundaryId,
+          functionId: function1Id,
+          schedule: {},
+          location: (await getFunctionLocation(account, boundaryId, function1Id)).data.location,
+        },
+        {
+          boundaryId,
+          functionId: function2Id,
+          schedule: {},
+          location: (await getFunctionLocation(account, boundaryId, function2Id)).data.location,
+        },
       ])
     );
     response = await listFunctions(account, boundaryId, undefined, 2, undefined, response.data.next);
@@ -569,8 +589,18 @@ describe('function', () => {
     expect(response.data.items).toHaveLength(2);
     expect(response.data.items).toEqual(
       expect.arrayContaining([
-        { boundaryId, functionId: function3Id, schedule: {} },
-        { boundaryId, functionId: function4Id, schedule: {} },
+        {
+          boundaryId,
+          functionId: function3Id,
+          schedule: {},
+          location: (await getFunctionLocation(account, boundaryId, function3Id)).data.location,
+        },
+        {
+          boundaryId,
+          functionId: function4Id,
+          schedule: {},
+          location: (await getFunctionLocation(account, boundaryId, function4Id)).data.location,
+        },
       ])
     );
     response = await listFunctions(account, boundaryId, undefined, 2, undefined, response.data.next);
@@ -578,7 +608,14 @@ describe('function', () => {
     expect(response.data).toEqual({ items: expect.any(Array) });
     expect(response.data.items).toHaveLength(1);
     expect(response.data.items).toEqual(
-      expect.arrayContaining([{ boundaryId, functionId: function5Id, schedule: {} }])
+      expect.arrayContaining([
+        {
+          boundaryId,
+          functionId: function5Id,
+          schedule: {},
+          location: (await getFunctionLocation(account, boundaryId, function5Id)).data.location,
+        },
+      ])
     );
   }, 120000);
 
@@ -613,7 +650,14 @@ describe('function', () => {
     expect(response.data).toEqual({ items: expect.any(Array) });
     expect(response.data.items).toHaveLength(1);
     expect(response.data.items).toEqual(
-      expect.arrayContaining([{ boundaryId, functionId: function1Id, schedule: {} }])
+      expect.arrayContaining([
+        {
+          boundaryId,
+          functionId: function1Id,
+          schedule: {},
+          location: (await getFunctionLocation(account, boundaryId, function1Id)).data.location,
+        },
+      ])
     );
   }, 120000);
 
@@ -627,7 +671,14 @@ describe('function', () => {
     expect(response.data).toEqual({ items: expect.any(Array) });
     expect(response.data.items).toHaveLength(1);
     expect(response.data.items).toEqual(
-      expect.arrayContaining([{ boundaryId, functionId: function2Id, schedule: helloWorldWithCron.schedule }])
+      expect.arrayContaining([
+        {
+          boundaryId,
+          functionId: function2Id,
+          schedule: helloWorldWithCron.schedule,
+          location: (await getFunctionLocation(account, boundaryId, function2Id)).data.location,
+        },
+      ])
     );
   }, 120000);
 
@@ -642,8 +693,18 @@ describe('function', () => {
     expect(response.data.items.length).toBeGreaterThanOrEqual(2);
     expect(response.data.items).toEqual(
       expect.arrayContaining([
-        { boundaryId, functionId: function1Id, schedule: {} },
-        { boundaryId, functionId: function2Id, schedule: helloWorldWithCron.schedule },
+        {
+          boundaryId,
+          functionId: function1Id,
+          schedule: {},
+          location: (await getFunctionLocation(account, boundaryId, function1Id)).data.location,
+        },
+        {
+          boundaryId,
+          functionId: function2Id,
+          schedule: helloWorldWithCron.schedule,
+          location: (await getFunctionLocation(account, boundaryId, function2Id)).data.location,
+        },
       ])
     );
   }, 120000);

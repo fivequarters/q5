@@ -1,7 +1,7 @@
 import { request } from '@5qtrs/request';
 import { FakeAccount, IAccount, resolveAccount } from './accountResolver';
 import { httpExpect, setupEnvironment } from './common';
-import { deleteFunction, getFunction, listFunctions, putFunction } from './sdk';
+import { deleteFunction, getFunction, listFunctions, putFunction, getFunctionLocation } from './sdk';
 
 import dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
@@ -120,6 +120,7 @@ describe('function.tags', () => {
     const boundaryId = rotateBoundary();
 
     const options = {
+      req: { headers: { host: 'unused' }, protocol: 'http' },
       accountId: account.accountId,
       subscriptionId: account.subscriptionId,
       boundaryId,
@@ -170,6 +171,7 @@ describe('function.tags', () => {
     const boundaryId = rotateBoundary();
 
     const options = {
+      req: { headers: { host: 'unused' }, protocol: 'https' },
       accountId: account.accountId,
       subscriptionId: account.subscriptionId,
       boundaryId,
@@ -285,10 +287,30 @@ describe('function.tags', () => {
 
     expect(result).toEqual(
       expect.arrayContaining([
-        { boundaryId, functionId: function1Id, schedule: {} },
-        { boundaryId, functionId: function2Id, schedule: {} },
-        { boundaryId, functionId: function3Id, schedule: {} },
-        { boundaryId, functionId: function4Id, schedule: helloWorldWithCron.schedule },
+        {
+          boundaryId,
+          functionId: function1Id,
+          schedule: {},
+          location: (await getFunctionLocation(account, boundaryId, function1Id)).data.location,
+        },
+        {
+          boundaryId,
+          functionId: function2Id,
+          schedule: {},
+          location: (await getFunctionLocation(account, boundaryId, function2Id)).data.location,
+        },
+        {
+          boundaryId,
+          functionId: function3Id,
+          schedule: {},
+          location: (await getFunctionLocation(account, boundaryId, function3Id)).data.location,
+        },
+        {
+          boundaryId,
+          functionId: function4Id,
+          schedule: helloWorldWithCron.schedule,
+          location: (await getFunctionLocation(account, boundaryId, function4Id)).data.location,
+        },
       ])
     );
 
@@ -306,9 +328,24 @@ describe('function.tags', () => {
 
     expect(result).toEqual(
       expect.arrayContaining([
-        { boundaryId, functionId: function1Id, schedule: {} },
-        { boundaryId, functionId: function2Id, schedule: {} },
-        { boundaryId, functionId: function3Id, schedule: {} },
+        {
+          boundaryId,
+          functionId: function1Id,
+          schedule: {},
+          location: (await getFunctionLocation(account, boundaryId, function1Id)).data.location,
+        },
+        {
+          boundaryId,
+          functionId: function2Id,
+          schedule: {},
+          location: (await getFunctionLocation(account, boundaryId, function2Id)).data.location,
+        },
+        {
+          boundaryId,
+          functionId: function3Id,
+          schedule: {},
+          location: (await getFunctionLocation(account, boundaryId, function3Id)).data.location,
+        },
       ])
     );
 
