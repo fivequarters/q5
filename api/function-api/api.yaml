@@ -1252,7 +1252,7 @@ paths:
           description: |
             Search the metadata for functions that match this criteria.  Each method has several different scopes that can be searched
             within, including `'compute'`, `'dependency'`, and `'tag'`, corresponding to values in the `compute`,
-            dependencies in the `project.json`, and `metadata.tags` sections of the function specification.
+            dependencies in the `package.json`, and `metadata.tags` sections of the function specification.
 
             Search supports a single filtering criteria, in the form of `search=key` for any function posessing a key matching that
             value, or `search=key=value` for functions that specifically match a value.  If the key or value
@@ -1349,7 +1349,7 @@ paths:
           description: |
             Search the metadata for functions that match this criteria.  Each method has several different scopes that can be searched
             within, including `'compute'`, `'dependency'`, and `'tag'`, corresponding to values in the `compute`,
-            dependencies in the `project.json`, and `metadata.tags` sections of the function specification.
+            dependencies in the `package.json`, and `metadata.tags` sections of the function specification.
 
             Search supports a single filtering criteria, in the form of `search=key` for any function posessing a key matching that
             value, or `search=key=value` for functions that specifically match a value.  If the key or value
