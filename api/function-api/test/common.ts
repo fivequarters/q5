@@ -51,6 +51,9 @@ const setupEnvironment = () => {
   let boundaryId = newBoundaryId();
   const function1Id = 'test-function-1';
   const function2Id = 'test-function-2';
+  const function3Id = 'test-function-3';
+  const function4Id = 'test-function-4';
+  const function5Id = 'test-function-5';
 
   beforeAll(async () => {
     account = await resolveAccount();
@@ -77,7 +80,12 @@ const setupEnvironment = () => {
     return account;
   };
 
-  const createFunction = async (functionId: string, payload: string) => {
+  const createFunction = async (
+    functionId: string,
+    payload: string,
+    packageJson: any = undefined,
+    metadata: any = undefined
+  ) => {
     let response = await putFunction(account, boundaryId, functionId, {
       nodejs: {
         files: {
@@ -86,15 +94,27 @@ const setupEnvironment = () => {
             engines: {
               node: '10',
             },
+            ...packageJson,
           },
         },
       },
+      metadata,
     });
     httpExpect(response, { status: 200, data: { status: 'success' } });
     return response;
   };
 
-  return { getAccount, getBoundary, rotateBoundary, createFunction, function1Id, function2Id };
+  return {
+    getAccount,
+    getBoundary,
+    rotateBoundary,
+    createFunction,
+    function1Id,
+    function2Id,
+    function3Id,
+    function4Id,
+    function5Id,
+  };
 };
 
 export { setupEnvironment, httpExpect };

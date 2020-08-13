@@ -136,15 +136,15 @@ const helloWorldWithNode8String = {
 beforeAll(async () => {
   account = await resolveAccount();
   account = await cloneWithUserAgent(account, 'fusebit-editor/1.0.0');
-}, 10000);
+}, 120000);
 
 afterAll(async () => {
   await deleteAllFunctions(account, boundaryId);
-}, 20000);
+}, 120000);
 
 beforeEach(async () => {
   await deleteAllFunctions(account, boundaryId);
-}, 20000);
+}, 120000);
 
 describe('function', () => {
   test('PUT completes synchronously', async () => {
@@ -160,7 +160,7 @@ describe('function', () => {
       },
       location: expect.stringMatching(/^http:|https:/),
     });
-  }, 10000);
+  }, 120000);
 
   test('PUT with applicationSettings sets configuration', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithApplicationSettings);
@@ -175,7 +175,7 @@ describe('function', () => {
         computeSettings: 'memorySize=128\ntimeout=30\nstaticIp=false',
       },
     });
-  }, 20000);
+  }, 120000);
 
   test('PUT with computeSettings sets compute', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithComputeSettings);
@@ -190,7 +190,7 @@ describe('function', () => {
         computeSettings: 'timeout= 120\nmemorySize=128\nstaticIp=false',
       },
     });
-  }, 20000);
+  }, 120000);
 
   test('PUT with cronSettings sets schedule', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithCronSettings);
@@ -207,7 +207,7 @@ describe('function', () => {
         cronSettings: 'cron=0 0 1 1 *\n   timezone=UTC',
       },
     });
-  }, 20000);
+  }, 120000);
 
   test('PUT with applicationSettings set to empty string resets applicationSettings', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithApplicationSettings);
@@ -231,7 +231,7 @@ describe('function', () => {
     expect(response.status).toEqual(200);
     expect(response.data.configuration).toEqual({ FOO: '123', BAR: 'abc' });
     expect(response.data.metadata.fusebit.applicationSettings).toEqual('FOO=123\nBAR=abc');
-  }, 20000);
+  }, 120000);
 
   test('PUT with computeSettings set to empty string resets computeSettings', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithComputeSettings);
@@ -254,7 +254,7 @@ describe('function', () => {
     expect(response.status).toEqual(200);
     expect(response.data.compute).toEqual({ timeout: 120, memorySize: 128, staticIp: false });
     expect(response.data.metadata.fusebit.computeSettings).toBe('timeout=120\nmemorySize=128\nstaticIp=false');
-  }, 20000);
+  }, 120000);
 
   test('PUT with cronSettings set to empty string resets schedule', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithCronSettings);
@@ -275,7 +275,7 @@ describe('function', () => {
     response = await getFunction(account, boundaryId, function1Id);
     expect(response.data.schedule).toEqual({ cron: '0 0 1 1 *', timezone: 'UTC' });
     expect(response.data.metadata.fusebit.cronSettings).toEqual('cron=0 0 1 1 *\ntimezone=UTC');
-  }, 20000);
+  }, 120000);
 
   test('PUT with applicationSettings undefined is ignored', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfigurationAndMetadata);
@@ -295,7 +295,7 @@ describe('function', () => {
 
     expect(response.status).toEqual(200);
     expect(response.data.configuration).toEqual({ FOO: '123', BAR: 'abc' });
-  }, 20000);
+  }, 120000);
 
   test('PUT with computeSettings undefined is ignored', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithStaticIp);
@@ -314,7 +314,7 @@ describe('function', () => {
     response = await getFunction(account, boundaryId, function1Id);
     expect(response.status).toEqual(200);
     expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: true });
-  }, 20000);
+  }, 120000);
 
   test('PUT with cronSettings undefined is ignored', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithCron);
@@ -334,7 +334,7 @@ describe('function', () => {
 
     expect(response.status).toEqual(200);
     expect(response.data.schedule).toEqual({ cron: '0 0 1 1 *', timezone: 'UTC' });
-  }, 20000);
+  }, 120000);
 
   test('PUT with empty compute resets compute', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithComputeSettings);
@@ -357,7 +357,7 @@ describe('function', () => {
     expect(response.status).toEqual(200);
     expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: false });
     expect(response.data.metadata.fusebit.computeSettings).toEqual('memorySize=128\ntimeout=30\nstaticIp=false');
-  }, 20000);
+  }, 120000);
 
   test('PUT with empty configuration resets configuration', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfigurationAndMetadata);
@@ -380,7 +380,7 @@ describe('function', () => {
     expect(response.status).toEqual(200);
     expect(response.data.configuration).toBeUndefined();
     expect(response.data.metadata.fusebit.applicationSettings).toBeUndefined();
-  }, 20000);
+  }, 120000);
 
   test('PUT with empty schedule resets schedule', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithCron);
@@ -400,7 +400,7 @@ describe('function', () => {
     response = await getFunction(account, boundaryId, function1Id);
     expect(response.data.schedule).toBeUndefined();
     expect(response.data.metadata.fusebit.cronSettings).toBeUndefined();
-  }, 20000);
+  }, 120000);
 
   test('PUT with undefined compute is ignored', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithStaticIp);
@@ -421,7 +421,7 @@ describe('function', () => {
     expect(response.status).toEqual(200);
     expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: true });
     expect(response.data.metadata.fusebit.computeSettings).toEqual('staticIp=true\nmemorySize=128\ntimeout=30');
-  }, 20000);
+  }, 120000);
 
   test('PUT with undefined configuration is ignored', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfigurationAndMetadata);
@@ -443,7 +443,7 @@ describe('function', () => {
     expect(response.status).toEqual(200);
     expect(response.data.configuration).toEqual({ FOO: '123', BAR: 'abc' });
     expect(response.data.metadata.fusebit.applicationSettings).toEqual('FOO=123\nBAR=abc');
-  }, 20000);
+  }, 120000);
 
   test('PUT with undefined schedule is ignored', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithCron);
@@ -464,7 +464,7 @@ describe('function', () => {
     expect(response.status).toEqual(200);
     expect(response.data.schedule).toEqual({ cron: '0 0 1 1 *', timezone: 'UTC' });
     expect(response.data.metadata.fusebit.cronSettings).toEqual('cron=0 0 1 1 *\ntimezone=UTC');
-  }, 20000);
+  }, 120000);
 
   test('PUT with undefined compute and undefined computeSettings resets compute', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithComputeSettings);
@@ -487,7 +487,7 @@ describe('function', () => {
 
     expect(response.status).toEqual(200);
     expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: false });
-  }, 20000);
+  }, 120000);
 
   test('PUT with undefined configuration and undefined applicationSettings resets configuration', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfigurationAndMetadata);
@@ -511,7 +511,7 @@ describe('function', () => {
     expect(response.status).toEqual(200);
     expect(response.data.configuration).toBeUndefined();
     expect(response.data.metadata.fusebit.applicationSettings).toBeUndefined();
-  }, 20000);
+  }, 120000);
 
   test('PUT with undefined schedule and undefined cronSettings resets schedule', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithCron);
@@ -535,7 +535,7 @@ describe('function', () => {
     expect(response.status).toEqual(200);
     expect(response.data.schedule).toBeUndefined();
     expect(response.data.metadata.fusebit.cronSettings).toBeUndefined();
-  }, 20000);
+  }, 120000);
 
   test('PUT with new compute values updates compute and computeSettings', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
@@ -556,7 +556,7 @@ describe('function', () => {
     expect(response.status).toEqual(200);
     expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: true });
     expect(response.data.metadata.fusebit.computeSettings).toEqual('memorySize=128\ntimeout=30\nstaticIp=true');
-  }, 20000);
+  }, 120000);
 
   test('PUT with new configuration values configuration compute and applicationSettings', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfigurationAndMetadata);
@@ -577,7 +577,7 @@ describe('function', () => {
     expect(response.status).toEqual(200);
     expect(response.data.configuration).toEqual({ FOO: '123', BAR: 'abc', BAZ: '789' });
     expect(response.data.metadata.fusebit.applicationSettings).toEqual('FOO=123\nBAR=abc\nBAZ=789');
-  }, 20000);
+  }, 120000);
 
   test('PUT with new schedule values updates schedule and cronSettings', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithCron);
@@ -598,7 +598,7 @@ describe('function', () => {
     expect(response.status).toEqual(200);
     expect(response.data.schedule).toEqual({ cron: '0 0 1 2 *', timezone: 'UTC' });
     expect(response.data.metadata.fusebit.cronSettings).toEqual('cron=0 0 1 2 *\ntimezone=UTC');
-  }, 20000);
+  }, 120000);
 
   test('PUT with computeSettings and lambda uses computeSettings', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithStaticIp);
@@ -619,7 +619,7 @@ describe('function', () => {
 
     expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: true });
     expect(response.data.metadata.fusebit.computeSettings).toEqual('staticIp=true\nmemorySize=128\ntimeout=30');
-  }, 20000);
+  }, 120000);
 
   test('PUT with non-conflicting metadata and structured data changes is supported', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfigurationAndMetadata);
@@ -645,7 +645,7 @@ describe('function', () => {
         applicationSettings: 'FOO=789\nBAR=abc',
       },
     });
-  }, 20000);
+  }, 120000);
 
   test('PUT with conflicting configuration and application settings uses configuration', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfigurationAndMetadata);
@@ -663,7 +663,7 @@ describe('function', () => {
     expect(response.status).toEqual(200);
     expect(response.data.configuration).toEqual({ FOO: '123', BAR: 'abc', BAZ: '789' });
     expect(response.data.metadata.fusebit.applicationSettings).toEqual('FOO=123\nBAR=abc\nBAZ=789');
-  }, 20000);
+  }, 120000);
 
   test('PUT with conflicting schedule and cronSettings uses schedule', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithCron);
@@ -685,7 +685,7 @@ describe('function', () => {
     expect(response.status).toEqual(200);
     expect(response.data.schedule).toEqual({ cron: '0 0 1 2 *', timezone: 'UTC' });
     expect(response.data.metadata.fusebit.cronSettings).toEqual('cron=0 0 1 2 *\ntimezone=UTC');
-  }, 20000);
+  }, 120000);
 
   test('PUT with conflicting compute and computeSettings uses compute', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
@@ -707,7 +707,7 @@ describe('function', () => {
     expect(response.status).toEqual(200);
     expect(response.data.compute).toEqual({ timeout: 80, memorySize: 128, staticIp: false });
     expect(response.data.metadata.fusebit.computeSettings).toEqual('memorySize=128\ntimeout=80\nstaticIp=false');
-  }, 20000);
+  }, 120000);
 
   test('PUT supports setting staticIP=true', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithStaticIp);
@@ -715,7 +715,7 @@ describe('function', () => {
     response = await getFunction(account, boundaryId, function1Id);
     expect(response.status).toBe(200);
     expect(response.data.compute).toEqual({ staticIp: true, memorySize: 128, timeout: 30 });
-  }, 10000);
+  }, 120000);
 
   test('PUT still supports lambda property for back-compat', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithLambda);
@@ -723,7 +723,7 @@ describe('function', () => {
     response = await getFunction(account, boundaryId, function1Id);
     expect(response.status).toBe(200);
     expect(response.data.compute).toEqual({ staticIp: false, memorySize: 128, timeout: 90 });
-  }, 10000);
+  }, 120000);
 
   test('GET retrieves information of simple function', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
@@ -745,7 +745,7 @@ describe('function', () => {
       },
     });
     expect(response.data.schedule).toBeUndefined();
-  }, 10000);
+  }, 120000);
 
   test('GET retrieves information of function with package.json as JavaScript object', async () => {
     let response = await putFunction(account, boundaryId, function2Id, helloWorldWithNode8JavaScript);
@@ -767,7 +767,7 @@ describe('function', () => {
       },
     });
     expect(response.data.schedule).toBeUndefined();
-  }, 10000);
+  }, 120000);
 
   test('GET retrieves information of function with package.json as string', async () => {
     let response = await putFunction(account, boundaryId, function2Id, helloWorldWithNode8String);
@@ -789,7 +789,7 @@ describe('function', () => {
       },
     });
     expect(response.data.schedule).toBeUndefined();
-  }, 10000);
+  }, 120000);
 
   test('GET retrieves information of function with configuration and metadata', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfigurationAndMetadata);
@@ -813,7 +813,7 @@ describe('function', () => {
       },
     });
     expect(response.data.schedule).toBeUndefined();
-  }, 10000);
+  }, 120000);
 
   test('GET retrieves information of a cron function', async () => {
     let response = await putFunction(account, boundaryId, function2Id, helloWorldWithCron);
@@ -835,5 +835,5 @@ describe('function', () => {
       },
     });
     expect(response.data.schedule).toEqual(helloWorldWithCron.schedule);
-  }, 10000);
+  }, 120000);
 });

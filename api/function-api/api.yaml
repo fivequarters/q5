@@ -1246,6 +1246,21 @@ paths:
             If not specified, all functions will be returned.
           schema:
             type: boolean
+        - in: query
+          name: search
+          required: false
+          description: |
+            Search the metadata for functions that match this criteria.  Each method has several different scopes that can be searched
+            within, including `'compute'`, `'dependency'`, and `'tag'`, corresponding to values in the `compute`,
+            dependencies in the `project.json`, and `metadata.tags` sections of the function specification.
+
+            Search supports a single filtering criteria, in the form of `search=key` for any function posessing a key matching that
+            value, or `search=key=value` for functions that specifically match a value.  If the key or value
+            contains an `=`, encode them to the URI specification first.
+
+            Examples include `?search=compute.timeout=30`, `?search=dependency.ms=2.1.2`, `?search=tag.enabled`.
+          schema:
+            type: string
       responses:
         200:
           description: A list of functions
@@ -1254,7 +1269,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/FunctionList'
         400:
-          description: Malformed account or subscription id, or invalid query
+          description: Malformed account or subscription id, invalid next, or invalid query
           content:
             application/json:
               schema:
@@ -1328,6 +1343,21 @@ paths:
             If not specified, all functions will be returned.
           schema:
             type: boolean
+        - in: query
+          name: search
+          required: false
+          description: |
+            Search the metadata for functions that match this criteria.  Each method has several different scopes that can be searched
+            within, including `'compute'`, `'dependency'`, and `'tag'`, corresponding to values in the `compute`,
+            dependencies in the `project.json`, and `metadata.tags` sections of the function specification.
+
+            Search supports a single filtering criteria, in the form of `search=key` for any function posessing a key matching that
+            value, or `search=key=value` for functions that specifically match a value.  If the key or value
+            contains an `=`, encode them to the URI specification first.
+
+            Examples include `?search=compute.timeout=30`, `?search=dependency.ms=2.1.2`, `?search=tag.enabled`.
+          schema:
+            type: string
       responses:
         200:
           description: A list of functions
@@ -1336,7 +1366,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/FunctionList'
         400:
-          description: Malformed account or subscription id, or invalid query
+          description: Malformed account or subscription id, invalid next, or invalid query
           content:
             application/json:
               schema:
@@ -1489,9 +1519,12 @@ paths:
         representing the function build process. This `buildId` can be used to poll for completion by calling
         `'GET /build/{buildId}'`.
 
+        Supply additional options in the `metadata.tags` object to provide additional properties on a function
+        that are searchable.
+
         The URL for executing the function will be provided as the `location` property of the response.
 
-        The maximum payload size is 100KB.
+        The maximum payload size is 500KB.
       operationId: putFunction
       requestBody:
         description: The function to build and deploy
@@ -2926,14 +2959,20 @@ components:
       required:
         - functionId
         - boundaryId
+        - schedule
+        - location
       properties:
         functionId:
           $ref: '#/components/schemas/FunctionId'
         boundaryId:
           $ref: '#/components/schemas/BoundaryId'
-        cron:
+        schedule:
           type: string
           example: '*/15 * * * *'
+        location:
+          type: string
+          description: The URL for executing the function
+          example: 'https://domain.com/function-abc'
 
     Function:
       allOf:
@@ -3007,6 +3046,14 @@ components:
           type: string
         metadata:
           type: object
+          properties:
+            tags:
+              type: object
+              properties:
+                key:
+                  type: string
+                value:
+                  type: string
 
     FunctionList:
       type: object

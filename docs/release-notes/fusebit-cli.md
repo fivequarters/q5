@@ -17,6 +17,12 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.8.3
+
+_Released 8/12/20_
+
+- **Enhancement**. Enable `fuse function ls --search` to search for functions by properties contained in the configuration or metadata of the function.
+
 ## Version 1.8.2
 
 _Released 7/29/20_

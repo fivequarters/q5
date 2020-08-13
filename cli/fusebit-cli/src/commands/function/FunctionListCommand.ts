@@ -28,6 +28,18 @@ const command = {
       default: '100',
     },
     {
+      name: 'search',
+      aliases: ['s'],
+      description: [
+        'Search for functions containing this function property. Search',
+        'supports a single filtering criteria, in the form of `search=key` for any',
+        'function posessing a key matching that value, or `--search key=value` for',
+        'functions that specifically match a value.  If the key or value contains',
+        'an `=`, encode them to the URI specification first.',
+      ].join(' '),
+      type: ArgType.string,
+    },
+    {
       name: 'output',
       aliases: ['o'],
       description: "The format to display the output: 'pretty', 'json'",
@@ -62,11 +74,13 @@ export class FunctionListCommand extends Command {
     const output = input.options.output as string;
     const cron = input.options.cron as boolean;
     const count = input.options.count as string;
+    const search = input.options.search as string;
     const next = input.options.next as string;
 
     const options: any = {
       cron,
       count,
+      search,
       next,
     };
 

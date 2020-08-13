@@ -7,7 +7,7 @@
   "author": "FiveQuarters.io",
   "scripts": {
     "build": "tsc -b",
-    "test": "jest --colors",
+    "test": "node createEnv.js && jest --colors",
     "coverage": "jest --colors --coverage --detectOpenHandles",
     "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x} test/{,**/}*.ts{,x}",
     "clean": "rm -r -f libc",
