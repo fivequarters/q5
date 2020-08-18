@@ -9,7 +9,7 @@
           "baseUrl": "https://stage.us-west-2.fusebit.io",
           "account": "acc-9d9341ea356841ed",
           "subscription": "sub-ed9d9341ea356841",
-          "catalog": "/catalog.json",
+          "catalog": "https://stage.us-west-2.fusebit.io/v1/run/sub-ed9d9341ea356841/internal/config",
           "oauth": {
             "webAuthorizationUrl": "https://fusebit.auth0.com/authorize",
             "webClientId": "hSgWIXmbluQMADuWhDnRTpWyKptJe6LB",
@@ -26,7 +26,7 @@
           "baseUrl": "https://stage.eu-north-1.fusebit.io",
           "account": "acc-28550c6a43ee4e10",
           "subscription": "sub-77d91b1a326d4a6b",
-          "catalog": "/catalog.json",
+          "catalog": "https://stage.us-west-2.fusebit.io/v1/run/sub-ed9d9341ea356841/internal/config",
           "oauth": {
             "webAuthorizationUrl": "https://fusebit.auth0.com/authorize",
             "webClientId": "hSgWIXmbluQMADuWhDnRTpWyKptJe6LB",
@@ -42,7 +42,7 @@
           "baseUrl": "https://stage.us-west-2.fusebit.io",
           "account": "acc-9d9341ea356841ed",
           "subscription": "sub-ed9d9341ea356841",
-          "catalog": "/catalog.json",
+          "catalog": "https://stage.us-west-2.fusebit.io/v1/run/sub-ed9d9341ea356841/internal/config",
           "oauth": {
             "webAuthorizationUrl": "https://fusebit.auth0.com/authorize",
             "webClientId": "hSgWIXmbluQMADuWhDnRTpWyKptJe6LB",
@@ -58,7 +58,7 @@
           "baseUrl": "https://stage.eu-north-1.fusebit.io",
           "account": "acc-28550c6a43ee4e10",
           "subscription": "sub-77d91b1a326d4a6b",
-          "catalog": "/catalog.json",
+          "catalog": "https://stage.us-west-2.fusebit.io/v1/run/sub-ed9d9341ea356841/internal/config",
           "oauth": {
             "webAuthorizationUrl": "https://fusebit.auth0.com/authorize",
             "webClientId": "hSgWIXmbluQMADuWhDnRTpWyKptJe6LB",
@@ -74,7 +74,7 @@
           "baseUrl": "http://localhost:3001",
           "account": "acc-9d9341ea356841ed",
           "subscription": "sub-ed9d9341ea356841",
-          "catalog": "/catalog.json",
+          "catalog": "http://localhost:3001/v1/run/sub-ed9d9341ea356841/internal/config",
           "oauth": {
             "webAuthorizationUrl": "https://fusebit.auth0.com/authorize",
             "webClientId": "hSgWIXmbluQMADuWhDnRTpWyKptJe6LB",
