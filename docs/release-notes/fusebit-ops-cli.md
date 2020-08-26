@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.24.3
+
+_Released 8/25/20_
+
+- **Bugfix.** Fix internal analytics issue with cross-region deployments.
+
 ## Version 1.24.2
 
 _Released 7/17/20_

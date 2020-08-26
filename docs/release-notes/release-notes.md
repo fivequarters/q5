@@ -35,7 +35,7 @@ Fusebit Ops CLI <code>v1.24+</code> - <a href="{{ site.baseurl }}{% link release
 <td style="width:30%">
 <dl>
   <dt>Last updated</dt>
-  <dd>08/12/2020</dd>
+  <dd>08/25/2020</dd>
   <dt>LTS release</dt>
   <dd>No</dd>
 </dl>
