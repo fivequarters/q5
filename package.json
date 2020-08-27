@@ -187,7 +187,9 @@
       "lib/runtime/lambda-analytics",
       "lib/runtime/common",
       "lib/runtime/lambda-dwh",
-      "lib/runtime/ops-lambda-set"
+      "lib/runtime/ops-lambda-set",
+      "lib/constants",
+      "lib/server/function-tags"
     ]
   }
 }

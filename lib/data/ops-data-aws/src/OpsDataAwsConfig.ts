@@ -1,6 +1,6 @@
 import { IConfig } from '@5qtrs/config';
-import { OpsDataException } from '@5qtrs/ops-data';
-import { IOpsDeployment } from '@5qtrs/ops-data';
+import * as Constants from '@5qtrs/constants';
+import { IOpsDeployment, OpsDataException } from '@5qtrs/ops-data';
 
 // ------------------
 // Internal Constants
@@ -246,9 +246,7 @@ export class OpsDataAwsConfig implements IConfig {
   }
 
   public getS3Bucket(deployment: IOpsDeployment): string {
-    return deployment.featureUseDnsS3Bucket
-      ? `${deployment.deploymentName}.${deployment.region}.${deployment.domainName}`
-      : `fusebit-${deployment.deploymentName}-${deployment.region}`;
+    return Constants.get_deployment_s3_bucket(deployment);
   }
 
   public value(settingName: string) {

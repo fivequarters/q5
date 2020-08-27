@@ -10,7 +10,7 @@ const user_agent = require('./middleware/user_agent');
 const cors = require('cors');
 const create_error = require('http-errors');
 const health = require('./handlers/health');
-const { Common } = require('@5qtrs/runtime-common');
+const { get_function_location } = require('@5qtrs/constants');
 
 const { AccountActions } = require('@5qtrs/account');
 const account = require('./handlers/account');
@@ -742,7 +742,7 @@ function promote_to_name_params(req, res, next) {
   req.params.boundaryId = req.params[1];
   req.params.functionId = req.params[2];
   // Reverse back the run_route base url component.
-  req.params.baseUrl = Common.get_function_location(
+  req.params.baseUrl = get_function_location(
     req,
     req.params.subscriptionId,
     req.params.boundaryId,

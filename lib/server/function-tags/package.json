@@ -1,10 +1,11 @@
 {
-  "name": "@5qtrs/server-tags",
+  "name": "@5qtrs/function-tags",
   "version": "0.0.1",
   "description": "",
   "main": "libc/index.js",
   "license": "UNLICENSED",
   "author": "FiveQuarters.io",
+  "typings": "libc/index",
   "scripts": {
     "build": "tsc -b",
     "test": "jest --colors",
@@ -13,5 +14,7 @@
     "clean": "rm -r -f libc; rm -r -f coverage"
   },
   "keywords": [],
-  "dependencies": {}
+  "dependencies": {
+    "@5qtrs/constants": "^0.0.1"
+  }
 }

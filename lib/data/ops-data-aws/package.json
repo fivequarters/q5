@@ -33,7 +33,8 @@
     "@5qtrs/storage-data-aws": "^0.0.1",
     "@5qtrs/random": "^0.0.1",
     "@5qtrs/jwt": "^0.0.1",
-    "@5qtrs/ops-lambda-set": "^0.0.1"
+    "@5qtrs/ops-lambda-set": "^0.0.1",
+    "@5qtrs/constants": "^0.0.1"
   },
   "devDependencies": {
     "@types/async": "^2.4.1"

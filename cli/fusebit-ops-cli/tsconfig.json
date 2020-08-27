@@ -12,6 +12,8 @@
     { "path": "../../lib/data/ops-data-aws" },
     { "path": "../../lib/data/ops-data" },
     { "path": "../../lib/shared/config" },
-    { "path": "../../lib/aws/aws-cert" }
+    { "path": "../../lib/aws/aws-cert" },
+    { "path": "../../lib/constants" },
+    { "path": "../../lib/server/function-tags" }
   ]
 }

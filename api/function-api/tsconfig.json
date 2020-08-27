@@ -21,6 +21,8 @@
     { "path": "../../lib/data/storage-data" },
     { "path": "../../lib/data/storage-data-aws" },
     { "path": "../../lib/server/storage" },
-    { "path": "../../lib/server/function-lambda" }
+    { "path": "../../lib/server/function-lambda" },
+    { "path": "../../lib/constants" },
+    { "path": "../../lib/server/function-tags" }
   ]
 }

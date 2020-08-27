@@ -1,13 +1,13 @@
 import { request } from '@5qtrs/request';
 import { FakeAccount, IAccount, resolveAccount } from './accountResolver';
 import { httpExpect, setupEnvironment } from './common';
-import { deleteFunction, getFunction, listFunctions, putFunction, getFunctionLocation } from './sdk';
+import { deleteFunction, getFunction, getFunctionLocation, listFunctions, putFunction } from './sdk';
 
 import dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 process.env.LOGS_DISABLE = 'true';
 
-import { manage_tags } from '@5qtrs/function-lambda';
+import * as Tags from '@5qtrs/function-tags';
 
 import { scanForTags } from './tags';
 
@@ -75,15 +75,15 @@ describe('function.tags', () => {
       [
         options,
         {
-          [manage_tags.get_compute_tag_key('memorySize')]: 128,
-          [manage_tags.get_compute_tag_key('timeout')]: 30,
-          [manage_tags.get_compute_tag_key('runtime')]: 'nodejs10.x',
-          [manage_tags.get_compute_tag_key('staticIp')]: false,
-          [manage_tags.get_metadata_tag_key('common')]: 3,
-          [manage_tags.get_metadata_tag_key('foo')]: helloWorld.metadata.tags.foo,
-          [manage_tags.get_metadata_tag_key('bar')]: helloWorld.metadata.tags.bar,
-          [manage_tags.get_metadata_tag_key('flies')]: null,
-          [manage_tags.get_versions_tag_key('api')]: 'dev',
+          [Tags.get_compute_tag_key('memorySize')]: 128,
+          [Tags.get_compute_tag_key('timeout')]: 30,
+          [Tags.get_compute_tag_key('runtime')]: 'nodejs10.x',
+          [Tags.get_compute_tag_key('staticIp')]: false,
+          [Tags.get_metadata_tag_key('common')]: 3,
+          [Tags.get_metadata_tag_key('foo')]: helloWorld.metadata.tags.foo,
+          [Tags.get_metadata_tag_key('bar')]: helloWorld.metadata.tags.bar,
+          [Tags.get_metadata_tag_key('flies')]: null,
+          [Tags.get_versions_tag_key('api')]: 'dev',
           ['cron']: false,
         },
       ],
@@ -96,16 +96,16 @@ describe('function.tags', () => {
       [
         options,
         {
-          [manage_tags.get_compute_tag_key('memorySize')]: 256,
-          [manage_tags.get_compute_tag_key('timeout')]: 30,
-          [manage_tags.get_compute_tag_key('runtime')]: 'nodejs10.x',
-          [manage_tags.get_compute_tag_key('staticIp')]: false,
-          [manage_tags.get_metadata_tag_key('common')]: 3,
-          [manage_tags.get_metadata_tag_key('foo')]: helloWorldUpdated.metadata.tags.foo,
-          [manage_tags.get_metadata_tag_key('whiz')]: helloWorldUpdated.metadata.tags.whiz,
-          [manage_tags.get_metadata_tag_key('eq=key')]: helloWorldUpdated.metadata.tags['eq=key'],
-          [manage_tags.get_metadata_tag_key('eqval')]: helloWorldUpdated.metadata.tags.eqval,
-          [manage_tags.get_versions_tag_key('api')]: 'dev',
+          [Tags.get_compute_tag_key('memorySize')]: 256,
+          [Tags.get_compute_tag_key('timeout')]: 30,
+          [Tags.get_compute_tag_key('runtime')]: 'nodejs10.x',
+          [Tags.get_compute_tag_key('staticIp')]: false,
+          [Tags.get_metadata_tag_key('common')]: 3,
+          [Tags.get_metadata_tag_key('foo')]: helloWorldUpdated.metadata.tags.foo,
+          [Tags.get_metadata_tag_key('whiz')]: helloWorldUpdated.metadata.tags.whiz,
+          [Tags.get_metadata_tag_key('eq=key')]: helloWorldUpdated.metadata.tags['eq=key'],
+          [Tags.get_metadata_tag_key('eqval')]: helloWorldUpdated.metadata.tags.eqval,
+          [Tags.get_versions_tag_key('api')]: 'dev',
           ['cron']: false,
         },
       ],
@@ -139,7 +139,7 @@ describe('function.tags', () => {
       let results: any;
       expect(
         await new Promise((resolve, reject) => {
-          manage_tags.search_function_tags(options, k, v, undefined, undefined, (e: any, r: any, n: any) => {
+          Tags.search_function_tags(options, k, v, undefined, undefined, (e: any, r: any, n: any) => {
             results = r;
             resolve(e);
           });
@@ -152,18 +152,18 @@ describe('function.tags', () => {
       }
     };
 
-    search(manage_tags.get_metadata_tag_key('common'), 3, [function1Id, function2Id]);
-    search(manage_tags.get_metadata_tag_key('foo'), 1, [function1Id]);
-    search(manage_tags.get_metadata_tag_key('foo'), 5, [function2Id]);
-    search(manage_tags.get_metadata_tag_key('whiz'), 'bang', [function2Id]);
-    search(manage_tags.get_metadata_tag_key('whiz'), undefined, [function2Id]);
-    search(manage_tags.get_metadata_tag_key('flies'), null, [function1Id]);
-    search(manage_tags.get_metadata_tag_key('flies'), 'null', [function1Id]); // Probably shouldn't be true, but...
-    search(manage_tags.get_compute_tag_key('memorySize'), 256, [function2Id]);
-    search(manage_tags.get_metadata_tag_key('eq=key'), undefined, [function2Id]);
-    search(manage_tags.get_metadata_tag_key('eq=key'), 'found', [function2Id]);
-    search(manage_tags.get_metadata_tag_key('eqval'), undefined, [function2Id]);
-    search(manage_tags.get_metadata_tag_key('eqval'), 'fou=nd', [function2Id]);
+    search(Tags.get_metadata_tag_key('common'), 3, [function1Id, function2Id]);
+    search(Tags.get_metadata_tag_key('foo'), 1, [function1Id]);
+    search(Tags.get_metadata_tag_key('foo'), 5, [function2Id]);
+    search(Tags.get_metadata_tag_key('whiz'), 'bang', [function2Id]);
+    search(Tags.get_metadata_tag_key('whiz'), undefined, [function2Id]);
+    search(Tags.get_metadata_tag_key('flies'), null, [function1Id]);
+    search(Tags.get_metadata_tag_key('flies'), 'null', [function1Id]); // Probably shouldn't be true, but...
+    search(Tags.get_compute_tag_key('memorySize'), 256, [function2Id]);
+    search(Tags.get_metadata_tag_key('eq=key'), undefined, [function2Id]);
+    search(Tags.get_metadata_tag_key('eq=key'), 'found', [function2Id]);
+    search(Tags.get_metadata_tag_key('eqval'), undefined, [function2Id]);
+    search(Tags.get_metadata_tag_key('eqval'), 'fou=nd', [function2Id]);
     search('cron', false, [function1Id, function2Id]);
     search('cron', undefined, [function1Id, function2Id]);
   }, 120000);
@@ -193,7 +193,7 @@ describe('function.tags', () => {
       let results: any;
       expect(
         await new Promise((resolve, reject) => {
-          manage_tags.search_function_tags(options, k, v, next, limit, (e: any, r: any, n: any) => {
+          Tags.search_function_tags(options, k, v, next, limit, (e: any, r: any, n: any) => {
             results = [r, n];
             resolve(e);
           });
@@ -205,10 +205,10 @@ describe('function.tags', () => {
 
     let result: any;
     const found: any = [];
-    result = await search(manage_tags.get_metadata_tag_key('common'), 3, undefined, 2);
+    result = await search(Tags.get_metadata_tag_key('common'), 3, undefined, 2);
     expect(result[0]).toHaveLength(2);
     found.push(...result[0]);
-    result = await search(manage_tags.get_metadata_tag_key('common'), 3, result[1], 2);
+    result = await search(Tags.get_metadata_tag_key('common'), 3, result[1], 2);
     expect(result[0]).toHaveLength(1);
     found.push(...result[0]);
 
