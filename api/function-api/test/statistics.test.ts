@@ -116,7 +116,7 @@ describe('statistics', () => {
     );
     httpExpect(response, { statusCode: 200 });
     expect(response.data.items.some((e: any) => e.requestId === entry.requestId)).toBe(true);
-  }, 30000);
+  }, 180000);
 
   test('failing exception logged as 500', async () => {
     const account = getAccount();
@@ -143,7 +143,7 @@ describe('statistics', () => {
     expect(entry.error.stack).toHaveProperty('0');
     expect(entry.error.stack).toHaveProperty('1');
     expect(entry.error.stack).toHaveProperty('2');
-  }, 30000);
+  }, 180000);
 
   test('code activity histogram contains a function event at various scopes', async () => {
     const account = getAccount();
@@ -217,7 +217,7 @@ describe('statistics', () => {
     );
     httpExpect(response, { statusCode: 200 });
     expect(response.data.items.length).toBeGreaterThanOrEqual(1);
-  }, 30000);
+  }, 180000);
 
   test('field unique histogram contains a function event at various scopes', async () => {
     const account = getAccount();
@@ -307,7 +307,7 @@ describe('statistics', () => {
       { field: 'foobar', codeGrouped: null }
     );
     httpExpect(response, { statusCode: 400 });
-  }, 30000);
+  }, 180000);
 
   test('validate codeGrouped works', async () => {
     const account = getAccount();
@@ -409,6 +409,6 @@ describe('statistics', () => {
     expect(response.data.items[0]).toHaveProperty('200', 1);
     expect(response.data.items[0]).toHaveProperty('304', 1);
     expect(response.data.items[0]).toHaveProperty('key');
-  }, 30000);
+  }, 180000);
   test.todo('cron function invocation event');
 });

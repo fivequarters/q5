@@ -28,11 +28,11 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await deleteAllFunctions(account, boundaryId);
-}, 20000);
+}, 180000);
 
 beforeEach(async () => {
   await deleteAllFunctions(account, boundaryId);
-}, 20000);
+}, 180000);
 
 describe('module', () => {
   test('PUT completes for function with superagent dependency', async () => {
@@ -52,7 +52,7 @@ describe('module', () => {
       },
       location: expect.stringMatching(/^http:|https:/),
     });
-  }, 20000);
+  }, 180000);
 
   test('PUT completes synchronously for function with superagent dependency if it was built before', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithSuperagentDependency);
@@ -67,7 +67,7 @@ describe('module', () => {
     response = await putFunction(account, boundaryId, function1Id, helloWorldWithSuperagentDependency);
     expect(response.status).toEqual(200);
     expect(response.data.status).toEqual('success');
-  }, 20000);
+  }, 180000);
 
   test('PUT completes for function with complex dependencies', async () => {
     let response = await putFunction(account, boundaryId, function1Id, {
@@ -105,7 +105,7 @@ describe('module', () => {
       },
       location: expect.stringMatching(/^http:|https:/),
     });
-  }, 20000);
+  }, 180000);
 
   test('PUT fails for function with nonexsitent dependency', async () => {
     let response = await putFunction(account, boundaryId, function1Id, {

@@ -15,7 +15,7 @@ beforeAll(async () => {
 
 afterEach(async () => {
   await cleanUpClients(account);
-}, 20000);
+}, 180000);
 
 describe('Legacy Client', () => {
   describe('Init', () => {
@@ -51,7 +51,7 @@ describe('Legacy Client', () => {
       expect(decoded.iat).toBeLessThan(now + 10);
       expect(decoded.exp).toBeGreaterThan(eightHoursFromNow - 10);
       expect(decoded.exp).toBeLessThan(eightHoursFromNow + 10);
-    }, 20000);
+    }, 180000);
 
     test('Getting an init token with a subscriptionId set should be supported', async () => {
       const identities = [{ issuerId: 'test', subject: `sub-${random()}` }];
@@ -84,7 +84,7 @@ describe('Legacy Client', () => {
       expect(decoded.iat).toBeLessThan(now + 10);
       expect(decoded.exp).toBeGreaterThan(eightHoursFromNow - 10);
       expect(decoded.exp).toBeLessThan(eightHoursFromNow + 10);
-    }, 20000);
+    }, 180000);
 
     test('Getting an init token with a boundaryId set should be supported', async () => {
       const identities = [{ issuerId: 'test', subject: `sub-${random()}` }];
@@ -121,7 +121,7 @@ describe('Legacy Client', () => {
       expect(decoded.iat).toBeLessThan(now + 10);
       expect(decoded.exp).toBeGreaterThan(eightHoursFromNow - 10);
       expect(decoded.exp).toBeLessThan(eightHoursFromNow + 10);
-    }, 20000);
+    }, 180000);
 
     test('Getting an init token with a functionId set should be supported', async () => {
       const identities = [{ issuerId: 'test', subject: `sub-${random()}` }];
@@ -160,7 +160,7 @@ describe('Legacy Client', () => {
       expect(decoded.iat).toBeLessThan(now + 10);
       expect(decoded.exp).toBeGreaterThan(eightHoursFromNow - 10);
       expect(decoded.exp).toBeLessThan(eightHoursFromNow + 10);
-    }, 20000);
+    }, 180000);
 
     test('Getting an init token with an invalid client id should return an error', async () => {
       const clientId = `clt-${random()}`;
@@ -171,7 +171,7 @@ describe('Legacy Client', () => {
       expect(client.data.message).toBe(
         `"clientId" with value "${clientId}" fails to match the required pattern: /^clt-[a-g0-9]{16}$/`
       );
-    }, 20000);
+    }, 180000);
 
     test('Getting a non-existing client should return an error', async () => {
       const clientId = `clt-${random({ lengthInBytes: 8 })}`;
@@ -180,13 +180,13 @@ describe('Legacy Client', () => {
       expect(client.data.status).toBe(404);
       expect(client.data.statusCode).toBe(404);
       expect(client.data.message).toBe(`The client '${clientId}' does not exist`);
-    }, 20000);
+    }, 180000);
 
     test('Getting an init token with a non-existing account should return an error', async () => {
       const original = await addClient(account, {});
       const client = await initClient(await getNonExistingAccount(), original.data.id);
       expectMore(client).toBeUnauthorizedError();
-    }, 10000);
+    }, 180000);
   });
 
   describe('Resolve', () => {
@@ -210,7 +210,7 @@ describe('Legacy Client', () => {
       expect(resolved.data.identities[0].issuerId).toBeDefined();
       expect(resolved.data.identities[0].subject).toBeDefined();
       expect(resolved.data.access).toEqual(access);
-    }, 20000);
+    }, 180000);
 
     test('Resolving an init token with no publicKey returns an error', async () => {
       const access = { allow: [{ action: 'client:*', resource: '/account/abc/' }] };
@@ -227,7 +227,7 @@ describe('Legacy Client', () => {
       expect(resolved.data.status).toBe(400);
       expect(resolved.data.statusCode).toBe(400);
       expect(resolved.data.message).toBe('"protocol" is required');
-    }, 20000);
+    }, 180000);
 
     test('Resolving an init token with no keyId returns an error', async () => {
       const access = { allow: [{ action: 'client:*', resource: '/account/abc/' }] };
@@ -244,7 +244,7 @@ describe('Legacy Client', () => {
       expect(resolved.data.status).toBe(400);
       expect(resolved.data.statusCode).toBe(400);
       expect(resolved.data.message).toBe('"protocol" is required');
-    }, 20000);
+    }, 180000);
 
     test('Resolving an init token with no jwt returns an error', async () => {
       const keyPair = await createKeyPair();
@@ -255,7 +255,7 @@ describe('Legacy Client', () => {
       expect(resolved.data.status).toBe(403);
       expect(resolved.data.statusCode).toBe(403);
       expect(resolved.data.message).toBe('Unauthorized');
-    }, 20000);
+    }, 180000);
 
     test('Resolving an init token with a non-existing account should return an error', async () => {
       const access = { allow: [{ action: 'client:*', resource: '/account/abc/' }] };
@@ -270,7 +270,7 @@ describe('Legacy Client', () => {
 
       const resolved = await resolveInit(await getNonExistingAccount(), jwt, { publicKey: keyPair.publicKey, keyId });
       expectMore(resolved).toBeUnauthorizedError();
-    }, 10000);
+    }, 180000);
 
     test('Resolving an init token with non-jwt should return an error', async () => {
       const jwt = 'not a jwt';
@@ -282,7 +282,7 @@ describe('Legacy Client', () => {
       expect(resolved.data.status).toBe(403);
       expect(resolved.data.statusCode).toBe(403);
       expect(resolved.data.message).toBe('Unauthorized');
-    }, 10000);
+    }, 180000);
 
     test('Resolving an init token with a jwt missing an accountId should return an error', async () => {
       const access = { allow: [{ action: 'client:*', resource: '/account/abc/' }] };
@@ -299,7 +299,7 @@ describe('Legacy Client', () => {
       expect(resolved.data.status).toBe(403);
       expect(resolved.data.statusCode).toBe(403);
       expect(resolved.data.message).toBe('Unauthorized');
-    }, 10000);
+    }, 180000);
 
     test('Resolving an init token with a jwt missing an agentId should return an error', async () => {
       const jwt = await signJwt({ accountId: account.accountId }, 'a secret');
@@ -311,7 +311,7 @@ describe('Legacy Client', () => {
       expect(resolved.data.status).toBe(403);
       expect(resolved.data.statusCode).toBe(403);
       expect(resolved.data.message).toBe('Unauthorized');
-    }, 10000);
+    }, 180000);
 
     test('Resolving an init token with a cloned and signed jwt returns an error', async () => {
       const access = { allow: [{ action: 'client:*', resource: '/account/abc/' }] };
@@ -330,6 +330,6 @@ describe('Legacy Client', () => {
       expect(resolved.data.status).toBe(403);
       expect(resolved.data.statusCode).toBe(403);
       expect(resolved.data.message).toBe('Unauthorized');
-    }, 10000);
+    }, 180000);
   });
 });

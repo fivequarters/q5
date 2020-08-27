@@ -39,7 +39,7 @@ describe('execution', () => {
     expect(response.status).toEqual(200);
     expect(response.data).toEqual('hello');
     expect(response.headers['x-fx-response-source']).toEqual('function');
-  }, 10000);
+  }, 180000);
 
   test('function with module succeeds on node 10', async () => {
     let response = await putFunction(account, boundaryId, function1Id, {
@@ -120,7 +120,7 @@ describe('execution', () => {
     expect(response.status).toEqual(418);
     expect(response.data).toEqual('teapot');
     expect(response.headers['x-fx-response-source']).toEqual('function');
-  }, 10000);
+  }, 180000);
 
   test('function can set response headers', async () => {
     let response = await putFunction(account, boundaryId, function1Id, {
@@ -138,7 +138,7 @@ describe('execution', () => {
     expect(response.headers.foo).toEqual('abc');
     expect(response.headers.bar).toEqual('def');
     expect(response.headers['x-fx-response-source']).toEqual('function');
-  }, 10000);
+  }, 180000);
 
   test('function without response payload returns empty response', async () => {
     let response = await putFunction(account, boundaryId, function1Id, {
@@ -154,7 +154,7 @@ describe('execution', () => {
     expect(response.status).toEqual(200);
     expect(response.data).toEqual(undefined);
     expect(response.headers['x-fx-response-source']).toEqual('function');
-  }, 10000);
+  }, 180000);
 
   test('function with empty response payload returns empty response', async () => {
     let response = await putFunction(account, boundaryId, function1Id, {
@@ -170,7 +170,7 @@ describe('execution', () => {
     expect(response.status).toEqual(200);
     expect(response.data).toEqual(undefined);
     expect(response.headers['x-fx-response-source']).toEqual('function');
-  }, 10000);
+  }, 180000);
 
   test('function with module dependency can load the module', async () => {
     let response = await putFunction(account, boundaryId, function1Id, {
@@ -251,7 +251,7 @@ describe('execution', () => {
         // stackTrace: expect.any(Array),
       },
     });
-  }, 10000);
+  }, 180000);
 
   test('function with synchronous exception fails', async () => {
     let response = await putFunction(account, boundaryId, function1Id, {
@@ -276,7 +276,7 @@ describe('execution', () => {
         // stackTrace: expect.any(Array),
       },
     });
-  }, 10000);
+  }, 180000);
 
   test('function with callback exception fails', async () => {
     let response = await putFunction(account, boundaryId, function1Id, {
@@ -301,7 +301,7 @@ describe('execution', () => {
         // stackTrace: expect.any(Array),
       },
     });
-  }, 10000);
+  }, 180000);
 
   test('function with async exception fails', async () => {
     let response = await putFunction(account, boundaryId, function1Id, {
@@ -332,7 +332,7 @@ describe('execution', () => {
         errorMessage: expect.stringMatching(/Async error/),
       },
     });
-  }, 10000);
+  }, 180000);
 
   test('function with payload below limit succeeds', async () => {
     let response = await putFunction(account, boundaryId, function1Id, {
@@ -363,7 +363,7 @@ describe('execution', () => {
     expect(response.data).toMatchObject({
       size: 490 * 1024 + 11,
     });
-  }, 10000);
+  }, 180000);
 
   test('function with payload above limit fails', async () => {
     let response = await putFunction(account, boundaryId, function1Id, {
@@ -390,7 +390,7 @@ describe('execution', () => {
       parseJson: true,
     });
     expect(response.status).toEqual(413);
-  }, 10000);
+  }, 180000);
 
   test('function with wrong signature fails', async () => {
     let response = await putFunction(account, boundaryId, function1Id, {
@@ -415,7 +415,7 @@ describe('execution', () => {
         // stackTrace: expect.any(Array),
       },
     });
-  }, 10000);
+  }, 180000);
 
   test('return values ignored in favor of calls to cb()', async () => {
     let response = await putFunction(account, boundaryId, function1Id, {
@@ -439,5 +439,5 @@ describe('execution', () => {
     expect(response.status).toEqual(200);
     expect(response.data).toEqual('hello');
     expect(response.headers['x-fx-response-source']).toEqual('function');
-  }, 10000);
+  }, 180000);
 });
