@@ -36,7 +36,6 @@ export async function bqInsert(ctx: IExportContext, table: string, payload: any[
       .catch((e: any) => {
         console.log(`ERROR inserting ${payload.length} records to dwh.${table} table in Big Query`, e.message);
         console.log('ERROR[0]', e.errors ? JSON.stringify(e.errors[0], null, 2) : 'NA');
-        throw e;
       })
   );
 }
@@ -46,14 +45,8 @@ export async function exportDynamoTable(
   config: IExportConfig,
   dynamoTable: string,
   bqTable: string,
-  itemMapper: (x: any) => any,
-  skipDelete?: boolean
+  itemMapper: (x: any) => any
 ) {
-  if (!skipDelete) {
-    await ctx.bq.query(
-      `DELETE FROM \`dwh.${dynamoTable}\` WHERE ts = '${config.ts}' AND deploymentId = '${config.deploymentId}'`
-    );
-  }
   await exportDynamoTableCore();
 
   return;
