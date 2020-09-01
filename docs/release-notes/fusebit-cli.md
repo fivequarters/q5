@@ -17,6 +17,12 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.8.4
+
+_Released 9/3/20_
+
+- **Bug Fix**. Add `subscription` to the output of `fuse profile get -o json`.
+
 ## Version 1.8.3
 
 _Released 8/12/20_
