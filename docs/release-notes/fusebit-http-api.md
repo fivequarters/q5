@@ -23,6 +23,7 @@ _Released 9/3/20_
 
 - **Bug fix.** Improve fault tolerance of DynamoDB interface when searching for functions.
 - **Enhancement.** Increase automatically generated attributes to include template attributes.
+- **Enhancement.** Record environmental version numbers as part of searchable function tags.
 
 ## Version 1.17.4
 
