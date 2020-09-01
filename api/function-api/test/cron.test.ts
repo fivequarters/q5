@@ -14,11 +14,11 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await deleteAllFunctions(account, boundaryId);
-}, 20000);
+}, 180000);
 
 beforeEach(async () => {
   await deleteAllFunctions(account, boundaryId);
-}, 20000);
+}, 180000);
 
 describe('cron', () => {
   test(

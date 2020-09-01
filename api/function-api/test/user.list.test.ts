@@ -15,7 +15,7 @@ beforeAll(async () => {
 
 afterEach(async () => {
   await cleanUpUsers(account);
-}, 20000);
+}, 180000);
 
 describe('User', () => {
   describe('List', () => {
@@ -30,7 +30,7 @@ describe('User', () => {
       const result = await listUsers(account);
       expect(result.status).toBe(200);
       expect(result.data.items.length).toBeGreaterThanOrEqual(5);
-    }, 50000);
+    }, 180000);
 
     test('Listing all users does not return identities and access by default', async () => {
       const access = { allow: [{ action: 'user:*', resource: '/account/abc/' }] };
@@ -52,7 +52,7 @@ describe('User', () => {
         expect(item.identities).toBeUndefined();
         expect(item.access).toBeUndefined();
       }
-    }, 50000);
+    }, 180000);
 
     test('Listing all users does return identities and access if include=all', async () => {
       const access = { allow: [{ action: 'user:*', resource: '/account/abc/' }] };
@@ -74,7 +74,7 @@ describe('User', () => {
         expect(item.identities.length).toBe(1);
         expect(item.access).toEqual(access);
       }
-    }, 50000);
+    }, 180000);
 
     test('Listing all users filtered by first name should return only filtered users', async () => {
       await Promise.all([
@@ -94,7 +94,7 @@ describe('User', () => {
         lookup[item.id] = item;
         expect(item.firstName.indexOf(`${testRunId} - 1`)).toBe(0);
       }
-    }, 50000);
+    }, 180000);
 
     test('Listing all users filtered by last name should return only filtered users', async () => {
       await Promise.all([
@@ -114,7 +114,7 @@ describe('User', () => {
         lookup[item.id] = item;
         expect(item.lastName.indexOf(`${testRunId} - 2`)).toBe(0);
       }
-    }, 50000);
+    }, 180000);
 
     test('Listing all users filtered by first and last name should return only filtered users', async () => {
       await Promise.all([
@@ -138,7 +138,7 @@ describe('User', () => {
           expect(item.firstName.indexOf(`${testRunId} - 3`)).toBe(0);
         }
       }
-    }, 50000);
+    }, 180000);
 
     test('Listing all users filtered by email should return only filtered users', async () => {
       await Promise.all([
@@ -158,7 +158,7 @@ describe('User', () => {
         lookup[item.id] = item;
         expect(item.primaryEmail.indexOf(`${testRunId} - 4`)).toBe(0);
       }
-    }, 50000);
+    }, 180000);
 
     test('Listing all users filtered by name and email should return only filtered users', async () => {
       await Promise.all([
@@ -179,7 +179,7 @@ describe('User', () => {
         expect(item.primaryEmail.indexOf(`${testRunId} - email - 5`)).toBe(0);
         expect(item.firstName.indexOf(`${testRunId} - name - 5`)).toBe(0);
       }
-    }, 50000);
+    }, 180000);
 
     test('Listing all users filtered by issuerId should return only exact matches', async () => {
       await Promise.all([
@@ -196,7 +196,7 @@ describe('User', () => {
         lookup[item.id] = item;
         expect(item.identities[0].issuerId).toBe(`${testRunId} - 11`);
       }
-    }, 50000);
+    }, 180000);
 
     test('Listing all users filtered by issuerId and subject should return only exact matches', async () => {
       await Promise.all([
@@ -220,7 +220,7 @@ describe('User', () => {
         expect(item.identities[0].subject).toBe(`${testRunId} - 12`);
         expect(item.identities[0].issuerId).toBe('foo');
       }
-    }, 50000);
+    }, 180000);
 
     test('Listing all users with a count and next should work', async () => {
       const userId = `test-${random()}`;
@@ -249,7 +249,7 @@ describe('User', () => {
         lookup[item.id] = item;
         expect(item.firstName.indexOf(`${testRunId} - 13`)).toBe(0);
       }
-    }, 50000);
+    }, 180000);
 
     test('Listing all users with a count of 0 should use default count', async () => {
       await Promise.all([
@@ -268,12 +268,12 @@ describe('User', () => {
         lookup[item.id] = item;
         expect(item.lastName.indexOf(`${testRunId} - 14`)).toBe(0);
       }
-    }, 50000);
+    }, 180000);
 
     test('Listing all users with a negative count should return an error', async () => {
       const result = await listUsers(account, { count: -5 });
       expectMore(result).toBeHttpError(400, "The limit value '-5' is invalid; must be a positive number");
-    }, 10000);
+    }, 180000);
 
     test('Listing all users with an overly large count should use default max count', async () => {
       await Promise.all([
@@ -292,7 +292,7 @@ describe('User', () => {
         lookup[item.id] = item;
         expect(item.lastName.indexOf(`${testRunId} - 15`)).toBe(0);
       }
-    }, 50000);
+    }, 180000);
 
     test('Listing all users filtered by subject without issuerId should return an error', async () => {
       await Promise.all([
@@ -304,17 +304,17 @@ describe('User', () => {
         400,
         `The 'subject' filter '${testRunId} - 7' can not be specified without the 'issuerId' filter`
       );
-    }, 50000);
+    }, 180000);
 
     test('Listing users with a malformed account should return an error', async () => {
       const malformed = await getMalformedAccount();
       const user = await listUsers(malformed);
       expectMore(user).toBeMalformedAccountError(malformed.accountId);
-    }, 20000);
+    }, 180000);
 
     test('Listing users with a non-existing account should return an error', async () => {
       const user = await listUsers(await getNonExistingAccount());
       expectMore(user).toBeUnauthorizedError();
-    }, 20000);
+    }, 180000);
   });
 });

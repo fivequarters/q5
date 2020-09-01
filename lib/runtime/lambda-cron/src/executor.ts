@@ -1,9 +1,10 @@
-import * as AWS from 'aws-sdk';
+import * as Constants from '@5qtrs/constants';
+import * as Common from '@5qtrs/runtime-common';
 import * as Async from 'async';
+import * as AWS from 'aws-sdk';
 import * as Cron from 'cron-parser';
 import * as Crypto from 'crypto';
 import * as Jwt from 'jsonwebtoken';
-import * as Runtime from '@5qtrs/runtime-common';
 import { v4 as uuidv4 } from 'uuid';
 
 const s3 = new AWS.S3({
@@ -11,10 +12,10 @@ const s3 = new AWS.S3({
   signatureVersion: 'v4',
 });
 
-const concurrentExecutionLimit = +(<string>process.env.CRON_CONCURRENT_EXECUTION_LIMIT) || 5;
+const concurrentExecutionLimit = +(process.env.CRON_CONCURRENT_EXECUTION_LIMIT as string) || 5;
 
 export function executor(event: any, context: any, cb: any) {
-  let result: any = {
+  const result: any = {
     success: [],
     failure: [],
     skipped: [],
@@ -28,7 +29,7 @@ export function executor(event: any, context: any, cb: any) {
   );
 
   function maybeExecuteCronJob(msg: any, cb: any) {
-    let body = JSON.parse(msg.body);
+    const body = JSON.parse(msg.body);
     return Async.waterfall(
       [(cb: any) => checkCronStillExists(cb), (exists: boolean, cb: any) => runIfExists(exists, cb)],
       cb
@@ -37,7 +38,7 @@ export function executor(event: any, context: any, cb: any) {
     function checkCronStillExists(cb: any) {
       s3.headObject(
         {
-          Bucket: <string>process.env.AWS_S3_BUCKET,
+          Bucket: process.env.AWS_S3_BUCKET as string,
           Key: body.key,
         },
         (e, d) => cb(null, !!(!e && d))
@@ -52,8 +53,8 @@ export function executor(event: any, context: any, cb: any) {
       }
 
       // Calculate the deviation from the actual expected time to now.
-      let startTime = Date.now();
-      let deviation =
+      const startTime = Date.now();
+      const deviation =
         startTime -
         Date.parse(
           Cron.parseExpression(body.cron, {
@@ -65,11 +66,11 @@ export function executor(event: any, context: any, cb: any) {
         );
 
       // Generate a pseudo-request object to drive the invocation.
-      let request = {
+      const request = {
         method: 'CRON',
         url: '',
-        path: Runtime.Common.get_user_function_name(body),
-        body: body,
+        path: Constants.get_user_function_name(body),
+        body,
         protocol: 'cron',
         headers: { 'x-forwarded-proto': 'cron', host: 'fusebit' },
         query: {},
@@ -78,7 +79,7 @@ export function executor(event: any, context: any, cb: any) {
         startTime,
       };
 
-      request.url = Runtime.Common.get_function_location(
+      request.url = Constants.get_function_location(
         request,
         request.params.subscriptionId,
         request.params.boundaryId,
@@ -86,7 +87,7 @@ export function executor(event: any, context: any, cb: any) {
       );
 
       // Execute, and record the results.
-      return Runtime.invoke_function(request, (error: any, response: any, meta: any) => {
+      return Common.invoke_function(request, (error: any, response: any, meta: any) => {
         meta.metrics.cron = { deviation };
         dispatch_cron_event({ request, error, response, meta });
 
@@ -103,7 +104,7 @@ export function executor(event: any, context: any, cb: any) {
 }
 
 function dispatch_cron_event(details: any) {
-  let fusebit = {
+  const fusebit = {
     subscriptionId: details.request.params.subscriptionId,
     boundaryId: details.request.params.boundaryId,
     functionId: details.request.params.functionId,
@@ -130,5 +131,5 @@ function dispatch_cron_event(details: any) {
     event.response = { statusCode: details.error.statusCode || 501, headers: [] };
   }
 
-  Runtime.dispatch_event(event);
+  Common.dispatch_event(event);
 }

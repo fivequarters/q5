@@ -16,6 +16,7 @@
   "keywords": [],
   "dependencies": {
     "@5qtrs/bq-metering": "^0.0.1",
-    "stack-trace": "^0.0.10"
+    "stack-trace": "^0.0.10",
+    "@5qtrs/constants": "^0.0.1"
   }
 }

@@ -1,0 +1,13 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "module": "CommonJS",
+    "outDir": "libc",
+    "allowJs": true,
+    "declarationMap": true,
+    "composite": true
+  },
+  "include": ["src"],
+  "references": [{ "path": "../../constants" }]
+}

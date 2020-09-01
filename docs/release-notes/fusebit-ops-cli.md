@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.24.4
+
+_Released 9/1/20_
+
+- **Enhancement.** Support `fuse-ops action regenTags` to rebuild internal indicies during upgrades.
+
 ## Version 1.24.3
 
 _Released 8/25/20_

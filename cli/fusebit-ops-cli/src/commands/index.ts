@@ -11,3 +11,4 @@ export { StackCommand } from './stack/StackCommand';
 export { SubscriptionCommand } from './subscription/SubscriptionCommand';
 export { AdminCommand } from './admin/AdminCommand';
 export { VersionCommand } from './VersionCommand';
+export { ActionCommand } from './action/ActionCommand';

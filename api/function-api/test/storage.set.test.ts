@@ -13,7 +13,7 @@ beforeAll(async () => {
 
 afterEach(async () => {
   await cleanUpStorage(account);
-}, 10000);
+}, 180000);
 
 describe('Storage', () => {
   describe('Set', () => {
@@ -24,7 +24,7 @@ describe('Storage', () => {
       expect(storage.status).toBe(200);
       expect(storage.headers.etag).toBe('W/"9c05511a31375a8a278a75207331bb1714e69dd1"');
       expect(storage.data).toEqual({ etag: '9c05511a31375a8a278a75207331bb1714e69dd1', data: 'hello world' });
-    }, 10000);
+    }, 180000);
 
     test('Setting storage with a valid etag in the body and no storage path should work', async () => {
       const storageId = `test-${random()}`;
@@ -40,7 +40,7 @@ describe('Storage', () => {
         etag: '259a91211006602f044467037d6625f9caf88982',
         data: 'hello world - updated',
       });
-    }, 10000);
+    }, 180000);
 
     test('Setting storage with a valid etag in the header and no storage path should work', async () => {
       const storageId = `test-${random()}`;
@@ -58,7 +58,7 @@ describe('Storage', () => {
         etag: '259a91211006602f044467037d6625f9caf88982',
         data: 'hello world - updated',
       });
-    }, 10000);
+    }, 180000);
 
     test('Setting storage with a valid etag in the header and body and no storage path should work', async () => {
       const storageId = `test-${random()}`;
@@ -75,7 +75,7 @@ describe('Storage', () => {
         etag: '259a91211006602f044467037d6625f9caf88982',
         data: 'hello world - updated',
       });
-    }, 10000);
+    }, 180000);
 
     test('Setting storage with an invalid etag in the header and no storage path should return an error', async () => {
       const storageId = `test-${random()}`;
@@ -89,7 +89,7 @@ describe('Storage', () => {
 
       const storageUpdated = await setStorage(account, storageId, updatedData, invalidEtag);
       expectMore(storageUpdated).toBeStorageConflict(storageId, invalidEtag);
-    }, 10000);
+    }, 180000);
 
     test('Setting storage with an invalid etag in the body and no storage path should return an error', async () => {
       const storageId = `test-${random()}`;
@@ -101,7 +101,7 @@ describe('Storage', () => {
 
       const storageUpdated = await setStorage(account, storageId, updatedData);
       expectMore(storageUpdated).toBeStorageConflict(storageId, updatedData.etag);
-    }, 10000);
+    }, 180000);
 
     test('Setting storage with an etag mismatch in the header and body should return an error', async () => {
       const storageId = `test-${random()}`;
@@ -121,7 +121,7 @@ describe('Storage', () => {
           "the etag in the If-Match header '9c05511a31375a8a278a75207331bb1714e69dd1abc'",
         ].join(' ')
       );
-    }, 10000);
+    }, 180000);
 
     test('Setting storage with no data should return an error', async () => {
       const storageId = `test-${random()}`;
@@ -131,7 +131,7 @@ describe('Storage', () => {
       expect(storage.data.status).toBe(400);
       expect(storage.data.statusCode).toBe(400);
       expect(storage.data.message).toBe(`No data was provided for '${storageId}'`);
-    }, 10000);
+    }, 180000);
 
     test('Setting storage with no etag and one storage path segment should work', async () => {
       const storageId = `test-${random()}`;
@@ -152,7 +152,7 @@ describe('Storage', () => {
         etag: 'd4b9870c9c43bd2e5c79cab3a8545f17c2b3d91d',
         data: { a: 'hello world' },
       });
-    }, 10000);
+    }, 180000);
 
     test('Setting storage with no etag and many storage path segments should work', async () => {
       const storageId = `test-${random()}`;
@@ -173,7 +173,7 @@ describe('Storage', () => {
         etag: 'b6a79c761c0cae18919ccfd12e01b0964bd52589',
         data: { 'and here is a path': { 'with a bunch of crazy': { '__#$yo!': 'hello world' } } },
       });
-    }, 10000);
+    }, 180000);
 
     test('Setting storage with a storage path that replaces a non-object should work', async () => {
       const storageId = `test-${random()}`;
@@ -197,7 +197,7 @@ describe('Storage', () => {
         etag: 'd4b9870c9c43bd2e5c79cab3a8545f17c2b3d91d',
         data: { a: 'hello world' },
       });
-    }, 10000);
+    }, 180000);
 
     test('Setting storage with a valid etag in the body and a storage path should work', async () => {
       const storageId = `test-${random()}`;
@@ -223,7 +223,7 @@ describe('Storage', () => {
         etag: '56334875cec73e43b0bb2f6cea5c66fec4ba5758',
         data: { a: 'hello world - updated' },
       });
-    }, 20000);
+    }, 180000);
 
     test('Setting storage with a valid etag in the header and a storage path should work', async () => {
       const storageId = `test-${random()}`;
@@ -251,7 +251,7 @@ describe('Storage', () => {
         etag: '56334875cec73e43b0bb2f6cea5c66fec4ba5758',
         data: { a: 'hello world - updated' },
       });
-    }, 20000);
+    }, 180000);
 
     test('Setting storage with a valid etag in both the header and body and a storage path should work', async () => {
       const storageId = `test-${random()}`;
@@ -278,7 +278,7 @@ describe('Storage', () => {
         etag: '56334875cec73e43b0bb2f6cea5c66fec4ba5758',
         data: { a: 'hello world - updated' },
       });
-    }, 20000);
+    }, 180000);
 
     test('Setting storage with an invalid etag in the header and no storage path should return an error', async () => {
       const storageId = `test-${random()}`;
@@ -293,7 +293,7 @@ describe('Storage', () => {
 
       const storageUpdated = await setStorage(account, storageId, updatedData, invalidEtag, storagePath);
       expectMore(storageUpdated).toBeStorageConflict(storageId, invalidEtag, true, storagePath);
-    }, 10000);
+    }, 180000);
 
     test('Setting storage with an invalid etag in the body and a storage path should return an error', async () => {
       const storageId = `test-${random()}`;
@@ -306,22 +306,22 @@ describe('Storage', () => {
 
       const storageUpdated = await setStorage(account, storageId, updatedData, undefined, storagePath);
       expectMore(storageUpdated).toBeStorageConflict(storageId, updatedData.etag, true, storagePath);
-    }, 10000);
+    }, 180000);
 
     test('Setting storage with no storage id should return an error', async () => {
       const storage = await setStorage(account, '', { msg: 'test-data' });
       expectMore(storage).toBeNotFoundError();
-    }, 10000);
+    }, 180000);
 
     test('Setting storage with a malformed account id should return an error', async () => {
       const malformed = await getMalformedAccount();
       const storage = await setStorage(malformed, 'some-id', {});
       expectMore(storage).toBeMalformedAccountError(malformed.accountId);
-    }, 10000);
+    }, 180000);
 
     test('Setting storage with a non-existing account should return an error', async () => {
       const storage = await setStorage(await getNonExistingAccount(), 'some-id', {});
       expectMore(storage).toBeUnauthorizedError();
-    }, 10000);
+    }, 180000);
   });
 });

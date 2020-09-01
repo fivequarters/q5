@@ -15,7 +15,7 @@ beforeAll(async () => {
 
 afterEach(async () => {
   await cleanUpUsers(account);
-}, 20000);
+}, 180000);
 
 describe('User', () => {
   describe('Init PKI', () => {
@@ -58,7 +58,7 @@ describe('User', () => {
       expect(decoded.iat).toBeLessThan(now + 10);
       expect(decoded.exp).toBeGreaterThan(eightHoursFromNow - 10);
       expect(decoded.exp).toBeLessThan(eightHoursFromNow + 10);
-    }, 20000);
+    }, 180000);
 
     test('Getting an init token with id and displayName should be supported', async () => {
       const identities = [{ issuerId: 'test', subject: `sub-${random()}` }];
@@ -104,7 +104,7 @@ describe('User', () => {
       expect(decoded.iat).toBeLessThan(now + 10);
       expect(decoded.exp).toBeGreaterThan(eightHoursFromNow - 10);
       expect(decoded.exp).toBeLessThan(eightHoursFromNow + 10);
-    }, 20000);
+    }, 180000);
 
     test('Getting an init token with a subscriptionId set should be supported', async () => {
       const identities = [{ issuerId: 'test', subject: `sub-${random()}` }];
@@ -146,7 +146,7 @@ describe('User', () => {
       expect(decoded.iat).toBeLessThan(now + 10);
       expect(decoded.exp).toBeGreaterThan(eightHoursFromNow - 10);
       expect(decoded.exp).toBeLessThan(eightHoursFromNow + 10);
-    }, 20000);
+    }, 180000);
 
     test('Getting an init token with a boundaryId set should be supported', async () => {
       const identities = [{ issuerId: 'test', subject: `sub-${random()}` }];
@@ -189,7 +189,7 @@ describe('User', () => {
       expect(decoded.iat).toBeLessThan(now + 10);
       expect(decoded.exp).toBeGreaterThan(eightHoursFromNow - 10);
       expect(decoded.exp).toBeLessThan(eightHoursFromNow + 10);
-    }, 20000);
+    }, 180000);
 
     test('Getting an init token with a functionId set should be supported', async () => {
       const identities = [{ issuerId: 'test', subject: `sub-${random()}` }];
@@ -233,7 +233,7 @@ describe('User', () => {
       expect(decoded.iat).toBeLessThan(now + 10);
       expect(decoded.exp).toBeGreaterThan(eightHoursFromNow - 10);
       expect(decoded.exp).toBeLessThan(eightHoursFromNow + 10);
-    }, 20000);
+    }, 180000);
 
     test('Getting an init token with invalid protocol should fail', async () => {
       const identities = [{ issuerId: 'test', subject: `sub-${random()}` }];
@@ -249,7 +249,7 @@ describe('User', () => {
         protocol: 'foo',
       });
       expectMore(user).toBeHttpError(400, `"protocol" must be one of [pki, oauth]`);
-    }, 20000);
+    }, 180000);
 
     test('Getting an init token without profile should fail', async () => {
       const identities = [{ issuerId: 'test', subject: `sub-${random()}` }];
@@ -265,7 +265,7 @@ describe('User', () => {
         protocol: 'pki',
       });
       expectMore(user).toBeHttpError(400, `"profile" is required`);
-    }, 20000);
+    }, 180000);
 
     test('Getting an init token with an invalid user id should return an error', async () => {
       const userId = `usr-${random()}`;
@@ -274,26 +274,26 @@ describe('User', () => {
         400,
         `"userId" with value "${userId}" fails to match the required pattern: /^usr-[a-g0-9]{16}$/`
       );
-    }, 20000);
+    }, 180000);
 
     test('Getting a non-existing user should return an error', async () => {
       const userId = `usr-${random({ lengthInBytes: 8 })}`;
       const user = await initUser(account, userId, { protocol: 'pki', profile: {} });
       expectMore(user).toBeHttpError(404, `The user '${userId}' does not exist`);
-    }, 20000);
+    }, 180000);
 
     test('Getting an init token with a malformed account account should return an error', async () => {
       const malformed = await getMalformedAccount();
       const original = await addUser(account, {});
       const user = await initUser(malformed, original.data.id, { protocol: 'pki', profile: {} });
       expectMore(user).toBeMalformedAccountError(malformed.accountId);
-    }, 10000);
+    }, 180000);
 
     test('Getting an init token with a non-existing account should return an error', async () => {
       const original = await addUser(account, {});
       const user = await initUser(await getNonExistingAccount(), original.data.id, { protocol: 'pki', profile: {} });
       expectMore(user).toBeUnauthorizedError();
-    }, 10000);
+    }, 180000);
   });
 
   describe('Resolve PKI', () => {
@@ -329,7 +329,7 @@ describe('User', () => {
       expect(resolved.data.identities[0].issuerId).toBe(initToken.profile.issuerId);
       expect(resolved.data.identities[0].subject).toBe(initToken.profile.subject);
       expect(resolved.data.access).toEqual(access);
-    }, 20000);
+    }, 180000);
 
     test('Resolving an init token with invalid protocol should fail', async () => {
       const access = { allow: [{ action: 'user:*', resource: '/account/abc/' }] };
@@ -344,7 +344,7 @@ describe('User', () => {
 
       const resolved = await resolveInit(account, jwt, { protocol: 'none' });
       expectMore(resolved).toBeHttpError(400, '"protocol" must be one of [pki, oauth]');
-    }, 20000);
+    }, 180000);
 
     test('Resolving an init token with no accessToken returns an error', async () => {
       const access = { allow: [{ action: 'user:*', resource: '/account/abc/' }] };
@@ -359,7 +359,7 @@ describe('User', () => {
 
       const resolved = await resolveInit(account, jwt, { protocol: 'pki' });
       expectMore(resolved).toBeHttpError(400, '"accessToken" is required');
-    }, 20000);
+    }, 180000);
 
     test('Resolving an init token with no publicKey returns an error', async () => {
       const access = { allow: [{ action: 'user:*', resource: '/account/abc/' }] };
@@ -384,7 +384,7 @@ describe('User', () => {
 
       const resolved = await resolveInit(account, jwt, { protocol: 'pki', accessToken });
       expectMore(resolved).toBeHttpError(400, '"publicKey" is required');
-    }, 20000);
+    }, 180000);
 
     test('Resolving an init token with no jwt returns an error', async () => {
       const access = { allow: [{ action: 'user:*', resource: '/account/abc/' }] };
@@ -414,7 +414,7 @@ describe('User', () => {
       });
 
       expectMore(resolved).toBeUnauthorizedError();
-    }, 20000);
+    }, 180000);
 
     test('Resolving an init token with a non-existing account should return an error', async () => {
       const access = { allow: [{ action: 'user:*', resource: '/account/abc/' }] };
@@ -444,7 +444,7 @@ describe('User', () => {
       });
 
       expectMore(resolved).toBeUnauthorizedError();
-    }, 10000);
+    }, 180000);
 
     test('Resolving an init token with non-jwt should return an error', async () => {
       const access = { allow: [{ action: 'user:*', resource: '/account/abc/' }] };
@@ -474,7 +474,7 @@ describe('User', () => {
       });
 
       expectMore(resolved).toBeUnauthorizedError();
-    }, 10000);
+    }, 180000);
 
     test('Resolving an init token using an access token with different issuerId should return an error', async () => {
       const access = { allow: [{ action: 'user:*', resource: '/account/abc/' }] };
@@ -503,7 +503,7 @@ describe('User', () => {
         accessToken,
       });
       expectMore(resolved).toBeUnauthorizedError();
-    }, 10000);
+    }, 180000);
 
     test('Resolving an init token using an access token with different subject should return an error', async () => {
       const access = { allow: [{ action: 'user:*', resource: '/account/abc/' }] };
@@ -532,6 +532,6 @@ describe('User', () => {
         accessToken,
       });
       expectMore(resolved).toBeUnauthorizedError();
-    }, 10000);
+    }, 180000);
   });
 });

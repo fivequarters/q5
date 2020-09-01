@@ -72,15 +72,15 @@ const execApacheBench = async (url: string, durSecs: number) => {
 
 beforeAll(async () => {
   account = await resolveAccount();
-}, 10000);
+}, 180000);
 
 afterAll(async () => {
   await Promise.all(boundaries.map((b: string) => deleteAllFunctions(account, b)));
-}, 20000);
+}, 180000);
 
 beforeEach(async () => {
   await Promise.all(boundaries.map((b: string) => deleteAllFunctions(account, b)));
-}, 20000);
+}, 180000);
 
 describe('traffic', () => {
   test.skip(

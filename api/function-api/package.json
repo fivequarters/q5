@@ -37,7 +37,9 @@
     "aws4": "^1.10.0",
     "swagger-ui-express": "^4.0.2",
     "uuid": "^7.0.3",
-    "yamljs": "^0.3.0"
+    "yamljs": "^0.3.0",
+    "@5qtrs/constants": "^0.0.1",
+    "@5qtrs/function-tags": "^0.0.1"
   },
   "devDependencies": {
     "@5qtrs/fusebit-profile-sdk": "^0.0.1",

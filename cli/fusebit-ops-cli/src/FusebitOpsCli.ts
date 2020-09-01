@@ -14,6 +14,7 @@ import {
   SubscriptionCommand,
   AdminCommand,
   VersionCommand,
+  ActionCommand,
 } from './commands';
 
 // ------------------
@@ -46,6 +47,7 @@ export class FusebitOpsCli extends Command {
     subCommands.push(await SetupCommand.create());
     subCommands.push(await ProfileCommand.create());
     subCommands.push(await AccountCommand.create());
+    subCommands.push(await ActionCommand.create());
     subCommands.push(await NetworkCommand.create());
     subCommands.push(await DomainCommand.create());
     subCommands.push(await ImageCommand.create());

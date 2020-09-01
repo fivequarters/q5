@@ -15,7 +15,7 @@ beforeAll(async () => {
 
 afterEach(async () => {
   await cleanUpClients(account);
-}, 20000);
+}, 180000);
 
 describe('Client', () => {
   describe('List', () => {
@@ -30,7 +30,7 @@ describe('Client', () => {
       const result = await listClients(account);
       expect(result.status).toBe(200);
       expect(result.data.items.length).toBeGreaterThanOrEqual(5);
-    }, 50000);
+    }, 180000);
 
     test('Listing all clients does not return identities and access by default', async () => {
       const access = { allow: [{ action: 'client:*', resource: '/account/abc/' }] };
@@ -52,7 +52,7 @@ describe('Client', () => {
         expect(item.identities).toBeUndefined();
         expect(item.access).toBeUndefined();
       }
-    }, 50000);
+    }, 180000);
 
     test('Listing all clients does return identities and access by default if include=all', async () => {
       const access = { allow: [{ action: 'client:*', resource: '/account/abc/' }] };
@@ -74,7 +74,7 @@ describe('Client', () => {
         expect(item.identities.length).toBe(1);
         expect(item.access).toEqual(access);
       }
-    }, 50000);
+    }, 180000);
 
     test('Listing all clients filtered by display name should return only filtered clients', async () => {
       await Promise.all([
@@ -94,7 +94,7 @@ describe('Client', () => {
         lookup[item.id] = item;
         expect(item.displayName.indexOf(`${testRunId} - 1`)).toBe(0);
       }
-    }, 50000);
+    }, 180000);
 
     test('Listing all clients filtered by issuerId should return only exact matches', async () => {
       await Promise.all([
@@ -111,7 +111,7 @@ describe('Client', () => {
         lookup[item.id] = item;
         expect(item.identities[0].issuerId).toBe(`${testRunId} - 11`);
       }
-    }, 50000);
+    }, 180000);
 
     test('Listing all clients filtered by issuerId and subject should return only exact matches', async () => {
       await Promise.all([
@@ -135,7 +135,7 @@ describe('Client', () => {
         expect(item.identities[0].subject).toBe(`${testRunId} - 12`);
         expect(item.identities[0].issuerId).toBe('foo');
       }
-    }, 50000);
+    }, 180000);
 
     test('Listing all clients with a count and next should work', async () => {
       const clientId = `test-${random()}`;
@@ -164,7 +164,7 @@ describe('Client', () => {
         lookup[item.id] = item;
         expect(item.displayName.indexOf(`${testRunId} - 13`)).toBe(0);
       }
-    }, 50000);
+    }, 180000);
 
     test('Listing all clients with a count of 0 should use default count', async () => {
       await Promise.all([
@@ -183,12 +183,12 @@ describe('Client', () => {
         lookup[item.id] = item;
         expect(item.displayName.indexOf(`${testRunId} - 14`)).toBe(0);
       }
-    }, 50000);
+    }, 180000);
 
     test('Listing all clients with a negative count should return an error', async () => {
       const result = await listClients(account, { count: -5 });
       expectMore(result).toBeHttpError(400, "The limit value '-5' is invalid; must be a positive number");
-    }, 10000);
+    }, 180000);
 
     test('Listing all clients with an overly large count should use default max count', async () => {
       await Promise.all([
@@ -207,7 +207,7 @@ describe('Client', () => {
         lookup[item.id] = item;
         expect(item.displayName.indexOf(`${testRunId} - 15`)).toBe(0);
       }
-    }, 50000);
+    }, 180000);
 
     test('Listing all clients filtered by subject without issuerId should return an error', async () => {
       await Promise.all([
@@ -219,17 +219,17 @@ describe('Client', () => {
         400,
         `The 'subject' filter '${testRunId} - 7' can not be specified without the 'issuerId' filter`
       );
-    }, 50000);
+    }, 180000);
 
     test('Listing clients with a malformed account should return an error', async () => {
       const malformed = await getMalformedAccount();
       const client = await listClients(malformed);
       expectMore(client).toBeMalformedAccountError(malformed.accountId);
-    }, 20000);
+    }, 180000);
 
     test('Listing clients with a non-existing account should return an error', async () => {
       const client = await listClients(await getNonExistingAccount());
       expectMore(client).toBeUnauthorizedError();
-    }, 20000);
+    }, 180000);
   });
 });

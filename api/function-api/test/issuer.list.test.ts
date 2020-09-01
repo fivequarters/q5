@@ -15,7 +15,7 @@ beforeAll(async () => {
 
 afterEach(async () => {
   await cleanUpIssuers(account);
-}, 10000);
+}, 180000);
 
 describe('Issuer', () => {
   describe('List', () => {
@@ -31,7 +31,7 @@ describe('Issuer', () => {
       const result = await listIssuers(account);
       expect(result.status).toBe(200);
       expect(result.data.items.length).toBeGreaterThanOrEqual(5);
-    }, 10000);
+    }, 180000);
 
     test('Listing all issuers filtered by name should return only filtered issuers', async () => {
       const issuerId = `test-${random()}`;
@@ -54,7 +54,7 @@ describe('Issuer', () => {
         expect(item.displayName.indexOf(`test: ${testRunId} - 2`)).toBe(0);
         expect(item.id.indexOf(`${issuerId}-2`)).toBe(0);
       }
-    }, 10000);
+    }, 180000);
 
     test('Listing all issuers with a count and next should work', async () => {
       const issuerId = `test-${random()}`;
@@ -86,7 +86,7 @@ describe('Issuer', () => {
         expect(item.displayName.indexOf(`test: ${testRunId} - 3`)).toBe(0);
         expect(item.id.indexOf(`${issuerId}-3`)).toBe(0);
       }
-    }, 30000);
+    }, 180000);
 
     test('Listing all issuers with a count of 1 and next should work', async () => {
       const issuerId = `test-${random()}`;
@@ -121,7 +121,7 @@ describe('Issuer', () => {
         expect(item.displayName.indexOf(`test: ${testRunId} - 4`)).toBe(0);
         expect(item.id.indexOf(`${issuerId}-4`)).toBe(0);
       }
-    }, 50000);
+    }, 180000);
 
     test('Listing all issuers with a count of 0 should use default count', async () => {
       const issuerId = `test-${random()}`;
@@ -144,7 +144,7 @@ describe('Issuer', () => {
         expect(item.displayName.indexOf(`test: ${testRunId} - 5`)).toBe(0);
         expect(item.id.indexOf(`${issuerId}-5`)).toBe(0);
       }
-    }, 10000);
+    }, 180000);
 
     test('Listing all issuers with a negative count should return an error', async () => {
       const issuerId = `test-${random()}`;
@@ -158,7 +158,7 @@ describe('Issuer', () => {
       expect(result.data.status).toBe(400);
       expect(result.data.statusCode).toBe(400);
       expect(result.data.message).toBe("The limit value '-5' is invalid; must be a positive number");
-    }, 10000);
+    }, 180000);
 
     test('Listing all issuers with an overly large count should use default max count', async () => {
       const issuerId = `test-${random()}`;
@@ -181,17 +181,17 @@ describe('Issuer', () => {
         expect(item.displayName.indexOf(`test: ${testRunId} - 6`)).toBe(0);
         expect(item.id.indexOf(`${issuerId}-6`)).toBe(0);
       }
-    }, 10000);
+    }, 180000);
 
     test('Listing issuers with a malformed account should return an error', async () => {
       const malformed = await getMalformedAccount();
       const issuer = await listIssuers(malformed);
       expectMore(issuer).toBeMalformedAccountError(malformed.accountId);
-    }, 10000);
+    }, 180000);
 
     test('Listing issuers with a non-existing account should return an error', async () => {
       const issuer = await listIssuers(await getNonExistingAccount());
       expectMore(issuer).toBeUnauthorizedError();
-    }, 10000);
+    }, 180000);
   });
 });

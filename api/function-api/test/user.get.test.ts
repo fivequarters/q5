@@ -13,7 +13,7 @@ beforeAll(async () => {
 
 afterEach(async () => {
   await cleanUpUsers(account);
-}, 20000);
+}, 180000);
 
 describe('User', () => {
   describe('Get', () => {
@@ -36,7 +36,7 @@ describe('User', () => {
       expect(user.data.identities).toEqual(identities);
       expect(user.data.access).toEqual(access);
       expect(user.data.id).toBe(original.data.id);
-    }, 20000);
+    }, 180000);
 
     test('Getting a user with an invalid user id should return an error', async () => {
       const userId = `usr-${random()}`;
@@ -45,25 +45,25 @@ describe('User', () => {
         400,
         `"userId" with value "${userId}" fails to match the required pattern: /^usr-[a-g0-9]{16}$/`
       );
-    }, 20000);
+    }, 180000);
 
     test('Getting a non-existing user should return an error', async () => {
       const userId = `usr-${random({ lengthInBytes: 8 })}`;
       const user = await getUser(account, userId);
       expectMore(user).toBeHttpError(404, `The user '${userId}' does not exist`);
-    }, 20000);
+    }, 180000);
 
     test('Getting a user with a malformed account should return an error', async () => {
       const malformed = await getMalformedAccount();
       const original = await addUser(account, {});
       const user = await getUser(malformed, original.data.id);
       expectMore(user).toBeMalformedAccountError(malformed.accountId);
-    }, 10000);
+    }, 180000);
 
     test('Getting a user with a non-existing account should return an error', async () => {
       const original = await addUser(account, {});
       const user = await getUser(await getNonExistingAccount(), original.data.id);
       expectMore(user).toBeUnauthorizedError();
-    }, 10000);
+    }, 180000);
   });
 });

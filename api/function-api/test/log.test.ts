@@ -13,16 +13,16 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await deleteAllFunctions(account, boundaryId);
-}, 20000);
+}, 180000);
 
 beforeEach(async () => {
   boundaryId = `test-boundary-${Math.floor(Math.random() * 99999999).toString(32)}`;
   // await deleteAllFunctions(account, boundaryId);
-}, 20000);
+}, 180000);
 
 afterEach(async () => {
   await deleteAllFunctions(account, boundaryId);
-}, 20000);
+}, 180000);
 
 describe('log', () => {
   function create_positive_log_test(node: string, boundary: boolean) {
@@ -72,9 +72,9 @@ describe('log', () => {
     };
   }
 
-  test('function logs work on node 10', create_positive_log_test('10', false), 30000);
+  test('function logs work on node 10', create_positive_log_test('10', false), 120000);
 
-  test('boundary logs work on node 10', create_positive_log_test('10', true), 30000);
+  test('boundary logs work on node 10', create_positive_log_test('10', true), 120000);
 
   function create_exception_log_test(ret: boolean, sync: boolean) {
     return async () => {
@@ -121,9 +121,9 @@ describe('log', () => {
     };
   }
 
-  test('sync exception is propagated to logs', create_exception_log_test(false, true), 30000);
+  test('sync exception is propagated to logs', create_exception_log_test(false, true), 120000);
 
-  test('async exception is propagated to logs', create_exception_log_test(false, false), 30000);
+  test('async exception is propagated to logs', create_exception_log_test(false, false), 120000);
 
-  test('returned exception is propagated to logs', create_exception_log_test(true, false), 30000);
+  test('returned exception is propagated to logs', create_exception_log_test(true, false), 120000);
 });

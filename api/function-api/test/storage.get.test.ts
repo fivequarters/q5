@@ -13,7 +13,7 @@ beforeAll(async () => {
 
 afterEach(async () => {
   await cleanUpStorage(account);
-}, 10000);
+}, 180000);
 
 describe('Storage', () => {
   describe('Get', () => {
@@ -27,13 +27,13 @@ describe('Storage', () => {
       expect(retrievedStorage.status).toBe(200);
       expect(retrievedStorage.headers.etag).toBe('W/"9c05511a31375a8a278a75207331bb1714e69dd1"');
       expect(retrievedStorage.data).toEqual({ etag: '9c05511a31375a8a278a75207331bb1714e69dd1', data: 'hello world' });
-    }, 20000);
+    }, 180000);
 
     test('Getting storage that does not exist should return an error', async () => {
       const storageId = `test-${random()}`;
       const retrievedStorage = await getStorage(account, storageId);
       expectMore(retrievedStorage).toBeStorageNotFound(storageId);
-    }, 20000);
+    }, 180000);
 
     test('Getting storage with a storage path should work', async () => {
       const storageId = `test-${random()}`;
@@ -54,14 +54,14 @@ describe('Storage', () => {
         etag: '5fb4267919d3b24fc7dafc928ae1b97104b0a5a6',
         data: { a: { b: { c: 'hello world' } } },
       });
-    }, 20000);
+    }, 180000);
 
     test('Getting storage that does not exist with a storage path should return an error', async () => {
       const storageId = `test-${random()}`;
       const storagePath = 'a/b/c';
       const retrievedStorage = await getStorage(account, storageId, storagePath);
       expectMore(retrievedStorage).toBeStorageNotFound(storageId, storagePath);
-    }, 20000);
+    }, 180000);
 
     test('Getting storage with a storage path that does not exist should return an error', async () => {
       const storageId = `test-${random()}`;
@@ -72,17 +72,17 @@ describe('Storage', () => {
 
       const retrievedStorage = await getStorage(account, storageId, 'a/b/does-not-exist');
       expectMore(retrievedStorage).toBeStorageNotFound(storageId, 'a/b/does-not-exist');
-    }, 20000);
+    }, 180000);
 
     test('Getting storage with a malformed account id should return an error', async () => {
       const malformed = await getMalformedAccount();
       const storage = await getStorage(malformed, 'some-id');
       expectMore(storage).toBeMalformedAccountError(malformed.accountId);
-    }, 10000);
+    }, 180000);
 
     test('Getting storage with a non-existing account should return an error', async () => {
       const storage = await getStorage(await getNonExistingAccount(), 'some-id');
       expectMore(storage).toBeUnauthorizedError();
-    }, 10000);
+    }, 180000);
   });
 });

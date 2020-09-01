@@ -13,7 +13,7 @@ beforeAll(async () => {
 
 afterEach(async () => {
   await cleanUpIssuers(account);
-}, 10000);
+}, 180000);
 
 describe('Issuer', () => {
   describe('Get', () => {
@@ -27,7 +27,7 @@ describe('Issuer', () => {
       expect(issuer.data.jsonKeysUrl).toBe('foo');
       expect(issuer.data.publicKeys).toBeUndefined();
       expect(issuer.data.displayName).toBeUndefined();
-    }, 10000);
+    }, 180000);
 
     test('Getting an issuer with publicKeys should be supported', async () => {
       const issuerId = `test-${random()}`;
@@ -39,23 +39,23 @@ describe('Issuer', () => {
       expect(issuer.data.id).toBe(issuerId);
       expect(issuer.data.publicKeys).toEqual(publicKeys);
       expect(issuer.data.displayName).toBe('fuzz');
-    }, 10000);
+    }, 180000);
 
     test('Getting a non-existing issuer should return an error', async () => {
       const issuerId = `test-${random()}`;
       const issuer = await getIssuer(account, issuerId);
       expectMore(issuer).toBeHttpError(404, `The issuer '${issuerId}' is not associated with the account`);
-    }, 10000);
+    }, 180000);
 
     test('Getting an issuer with an malformed account id should return an error', async () => {
       const malformed = await getMalformedAccount();
       const issuer = await getIssuer(malformed, `test-${random()}`);
       expectMore(issuer).toBeMalformedAccountError(malformed.accountId);
-    }, 10000);
+    }, 180000);
 
     test('Getting an issuer with a non-existing account should return an error', async () => {
       const issuer = await getIssuer(await getNonExistingAccount(), `test-${random()}`);
       expectMore(issuer).toBeUnauthorizedError();
-    }, 10000);
+    }, 180000);
   });
 });

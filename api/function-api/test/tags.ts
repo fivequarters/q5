@@ -2,7 +2,8 @@ import dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 process.env.LOGS_DISABLE = 'true';
 
-import { manage_tags } from '@5qtrs/function-lambda';
+import * as Tags from '@5qtrs/function-tags';
+
 import { DynamoDB } from 'aws-sdk';
 
 const dynamo = new DynamoDB({ apiVersion: '2012-08-10' });
@@ -10,7 +11,7 @@ const dynamo = new DynamoDB({ apiVersion: '2012-08-10' });
 export const deleteAll = async (accountId: string, boundaryId: string) => {
   expect(
     await new Promise((resolve, reject) => {
-      dynamo.scan({ TableName: manage_tags.keyValueTableName }, async (e, d) => {
+      dynamo.scan({ TableName: Tags.keyValueTableName }, async (e, d) => {
         if (!d.Items) {
           return resolve(null);
         }
@@ -19,7 +20,7 @@ export const deleteAll = async (accountId: string, boundaryId: string) => {
           await new Promise((res, rej) =>
             dynamo.deleteItem(
               {
-                TableName: manage_tags.keyValueTableName,
+                TableName: Tags.keyValueTableName,
                 Key: { category: { S: item.category.S }, key: { S: item.key.S } },
               },
               res
@@ -42,7 +43,7 @@ const validateEandD = (accountId: string, boundaryId: string, e: any, d: any) =>
   // Make sure we filter out anything that doesn't match this.
   d.Items = d.Items.filter(
     (i: any) =>
-      (i.category.S === manage_tags.TAG_CATEGORY_BOUNDARY || i.category.S === manage_tags.TAG_CATEGORY_SUBSCRIPTION) &&
+      (i.category.S === Tags.TAG_CATEGORY_BOUNDARY || i.category.S === Tags.TAG_CATEGORY_SUBSCRIPTION) &&
       i.accountId.S === accountId &&
       i.boundaryId.S === boundaryId
   );
@@ -54,15 +55,15 @@ export const scanForTags = async (optionTags: any) => {
   // Scan, and make sure the expected tags are present.
   expect(
     await new Promise((resolve, reject) => {
-      return dynamo.scan({ TableName: manage_tags.keyValueTableName }, async (e, d) => {
+      return dynamo.scan({ TableName: Tags.keyValueTableName }, async (e, d) => {
         if (!d.Items) {
           return resolve(null);
         }
         validateEandD(optionTags[0][0].accountId, optionTags[0][0].boundaryId, e, d);
 
         const makeTag = (options: any, k: any, v: any) => [
-          manage_tags.get_bound_sort_key(options, k, v),
-          manage_tags.get_sub_sort_key(options, k, v),
+          Tags.get_bound_sort_key(options, k, v),
+          Tags.get_sub_sort_key(options, k, v),
         ];
 
         let tags: string[] = [];
@@ -95,7 +96,7 @@ export const scanForTags = async (optionTags: any) => {
 
 export const getAllTags = async (accountId: string, boundaryId: string) => {
   const [err, results] = await new Promise((resolve, reject) => {
-    return dynamo.scan({ TableName: manage_tags.keyValueTableName }, async (e, d) => {
+    return dynamo.scan({ TableName: Tags.keyValueTableName }, async (e, d) => {
       if (e) {
         return resolve([e, null]);
       }

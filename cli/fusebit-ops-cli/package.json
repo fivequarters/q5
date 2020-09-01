@@ -1,6 +1,6 @@
 {
   "name": "@5qtrs/fusebit-ops-cli",
-  "version": "1.24.3",
+  "version": "1.24.4",
   "description": "The Fusebit Platform Operations CLI",
   "main": "libc/index.js",
   "license": "UNLICENSED",
@@ -37,7 +37,9 @@
     "@5qtrs/text": "^0.0.1",
     "aws-sdk": "^2.451.0",
     "jszip": "^3.4.0",
-    "rimraf": "^3.0.2"
+    "rimraf": "^3.0.2",
+    "@5qtrs/constants": "^0.0.1",
+    "@5qtrs/function-tags": "^0.0.1"
   },
   "devDependencies": {
     "@types/jszip": "^3.4.1",

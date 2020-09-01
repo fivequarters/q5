@@ -13,7 +13,7 @@ beforeAll(async () => {
 
 afterEach(async () => {
   await cleanUpIssuers(account);
-}, 10000);
+}, 180000);
 
 describe('Issuer', () => {
   describe('Remove', () => {
@@ -27,13 +27,13 @@ describe('Issuer', () => {
 
       const removed = await getIssuer(account, issuerId);
       expectMore(removed).toBeHttpError(404, `The issuer '${issuerId}' is not associated with the account`);
-    }, 10000);
+    }, 180000);
 
     test('Removing a non-existing issuer should return an error', async () => {
       const issuerId = `test-${random()}`;
       const issuer = await removeIssuer(account, issuerId);
       expectMore(issuer).toBeHttpError(404, `The issuer '${issuerId}' is not associated with the account`);
-    }, 10000);
+    }, 180000);
 
     test('Getting an issuer with a malformed account should return an error', async () => {
       const issuerId = `test-${random()}`;
@@ -43,7 +43,7 @@ describe('Issuer', () => {
       const malformed = await getMalformedAccount();
       const issuer = await removeIssuer(malformed, issuerId);
       expectMore(issuer).toBeMalformedAccountError(malformed.accountId);
-    }, 10000);
+    }, 180000);
 
     test('Getting an issuer with a non-existing account should return an error', async () => {
       const issuerId = `test-${random()}`;
@@ -52,6 +52,6 @@ describe('Issuer', () => {
 
       const issuer = await removeIssuer(await getNonExistingAccount(), issuerId);
       expectMore(issuer).toBeUnauthorizedError();
-    }, 10000);
+    }, 180000);
   });
 });

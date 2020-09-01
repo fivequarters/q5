@@ -33,7 +33,7 @@ afterEach(async () => {
   await cleanUpClients(account);
   await cleanUpIssuers(account);
   await cleanUpHostedIssuers(account);
-}, 50000);
+}, 180000);
 
 describe('Audit', () => {
   describe('List', () => {
@@ -49,7 +49,7 @@ describe('Audit', () => {
       expect(audit.data).toBeDefined();
       expect(audit.data.items).toBeDefined();
       expect(audit.data.items.length).toBeGreaterThan(2);
-    }, 50000);
+    }, 180000);
 
     test('Listing audit entries should return in order by timestamp', async () => {
       const testUser = await createTestUser(account, {
@@ -69,7 +69,7 @@ describe('Audit', () => {
         expect(timestamp).toBeGreaterThanOrEqual(lastTime);
         lastTime = timestamp;
       }
-    }, 50000);
+    }, 180000);
 
     test('Listing audit entries filtered by issuer should be supported', async () => {
       const testUser = await createTestUser(account, {
@@ -102,7 +102,7 @@ describe('Audit', () => {
           expect(item.resource).toBe(`/account/${testAccount.accountId}/client/`);
         }
       }
-    }, 50000);
+    }, 180000);
 
     test('Listing audit entries filtered by issuer and subject should be supported', async () => {
       const testIssuer = await createTestJwksIssuer(account);
@@ -136,7 +136,7 @@ describe('Audit', () => {
         expect(item.authorized).toBe(true);
         expect(item.resource).toBe(`/account/${testAccount1.accountId}/user/`);
       }
-    }, 50000);
+    }, 180000);
 
     test('Listing audit entries filtered by subject without issuer is not supported', async () => {
       const testUser = await createTestUser(account, {
@@ -152,7 +152,7 @@ describe('Audit', () => {
         400,
         `The 'subject' filter '${subject}' can not be specified without the 'issuerId' filter`
       );
-    }, 50000);
+    }, 180000);
 
     test('Listing audit entries filtered by a wildcard action should be supported', async () => {
       const testUser = await createTestUser(account, {
@@ -180,7 +180,7 @@ describe('Audit', () => {
         expect(item.authorized).toBe(false);
         expect(item.resource).toBe(`/account/${testAccount.accountId}/client/`);
       }
-    }, 50000);
+    }, 180000);
 
     test('Listing audit entries filtered by a full action should be supported', async () => {
       const testUser = await createTestUser(account, {
@@ -208,7 +208,7 @@ describe('Audit', () => {
         expect(item.authorized).toBe(true);
         expect(item.resource).toBe(`/account/${testAccount.accountId}/user/`);
       }
-    }, 50000);
+    }, 180000);
 
     test('Listing audit entries filtered by resource should be supported', async () => {
       const testUser = await createTestUser(account, {
@@ -241,7 +241,7 @@ describe('Audit', () => {
         expect(item.authorized).toBe(true);
         expect(item.resource).toBe(`/account/${testAccount.accountId}/user/`);
       }
-    }, 50000);
+    }, 180000);
 
     test('Listing audit entries filtered by from using a relative time should be supported', async () => {
       const testUser = await createTestUser(account, {
@@ -274,7 +274,7 @@ describe('Audit', () => {
         expect(item.authorized).toBe(true);
         expect(item.resource).toBe(`/account/${testAccount.accountId}/user/`);
       }
-    }, 50000);
+    }, 180000);
 
     test('Listing audit entries filtered by to using a relative time should be supported', async () => {
       const testUser = await createTestUser(account, {
@@ -308,7 +308,7 @@ describe('Audit', () => {
         expect(item.authorized).toBe(true);
         expect(item.resource).toBe(`/account/${testAccount.accountId}/user/`);
       }
-    }, 50000);
+    }, 180000);
 
     test('Listing audit entries filtered by from and to using a relative time should be supported', async () => {
       const testUser = await createTestUser(account, {
@@ -345,7 +345,7 @@ describe('Audit', () => {
         expect(item.authorized).toBe(true);
         expect(item.resource).toBe(`/account/${testAccount.accountId}/user/`);
       }
-    }, 50000);
+    }, 180000);
 
     test('Listing audit entries filtered by from and to using Date.getTime() should be supported', async () => {
       const testUser = await createTestUser(account, {
@@ -386,7 +386,7 @@ describe('Audit', () => {
         expect(item.authorized).toBe(true);
         expect(item.resource).toBe(`/account/${testAccount.accountId}/user/`);
       }
-    }, 50000);
+    }, 180000);
 
     test('Listing audit entries filtered by from and to using ISO dates should be supported', async () => {
       const testUser = await createTestUser(account, {
@@ -427,7 +427,7 @@ describe('Audit', () => {
         expect(item.authorized).toBe(true);
         expect(item.resource).toBe(`/account/${testAccount.accountId}/user/`);
       }
-    }, 50000);
+    }, 180000);
 
     test('Listing audit entries filtered by from and to using UTC dates should be supported', async () => {
       const testUser = await createTestUser(account, {
@@ -468,7 +468,7 @@ describe('Audit', () => {
         expect(item.authorized).toBe(true);
         expect(item.resource).toBe(`/account/${testAccount.accountId}/user/`);
       }
-    }, 50000);
+    }, 180000);
 
     test('Listing audit entries filtered by from and to using relative minutes should be supported', async () => {
       const audit = await listAudit(account, { from: '-15m', to: '-5m' });
@@ -476,7 +476,7 @@ describe('Audit', () => {
       expect(audit.status).toBe(200);
       expect(audit.data).toBeDefined();
       expect(audit.data.items).toBeDefined();
-    }, 50000);
+    }, 180000);
 
     test('Listing audit entries filtered by from and to using relative hours should be supported', async () => {
       const audit = await listAudit(account, { from: '-3h', to: '-1h' });
@@ -484,14 +484,14 @@ describe('Audit', () => {
       expect(audit.status).toBe(200);
       expect(audit.data).toBeDefined();
       expect(audit.data.items).toBeDefined();
-    }, 50000);
+    }, 180000);
 
     test('Listing audit entries filtered by from and to using relative days should be supported', async () => {
       const audit = await listAudit(account, { from: '-2d', to: '-1d' });
       expect(audit.status).toBe(200);
       expect(audit.data).toBeDefined();
       expect(audit.data.items).toBeDefined();
-    }, 50000);
+    }, 180000);
 
     test('Listing audit entries filtered by from with an invalid date/time returns an error', async () => {
       const audit = await listAudit(account, { from: 'nope' });
@@ -502,7 +502,7 @@ describe('Audit', () => {
           "Specify an absolute date/time, or a relative time such as '-15m', '-2h', or '-6d'",
         ].join(' ')
       );
-    }, 50000);
+    }, 180000);
 
     test('Listing audit entries filtered by to with an invalid date/time returns an error', async () => {
       const audit = await listAudit(account, { to: 'blah' });
@@ -513,7 +513,7 @@ describe('Audit', () => {
           "Specify an absolute date/time, or a relative time such as '-15m', '-2h', or '-6d'",
         ].join(' ')
       );
-    }, 50000);
+    }, 180000);
 
     test('Listing audit entries filtered with a larger to than from returns an error', async () => {
       const audit = await listAudit(account, { from: '-5m', to: '-10m' });
@@ -521,22 +521,22 @@ describe('Audit', () => {
       expect(audit.data.status).toBe(400);
       expect(audit.data.statusCode).toBe(400);
       expect(audit.data.message.indexOf("must be later in time than the 'from' filter")).toBeGreaterThan(0);
-    }, 50000);
+    }, 180000);
 
     test('Listing audit entries filtered by an invalid action should return an error', async () => {
       const audit = await listAudit(account, { action: 'client' });
       expectMore(audit).toBeHttpError(400, `The 'action' filter 'client' is invalid`);
-    }, 50000);
+    }, 180000);
 
     test('Listing audit entries with a malformed account should return an error', async () => {
       const malformed = await getMalformedAccount();
       const audit = await listAudit(malformed);
       expectMore(audit).toBeMalformedAccountError(malformed.accountId);
-    }, 20000);
+    }, 180000);
 
     test('Listing audit entries with a non-existing account should return an error', async () => {
       const audit = await listAudit(await getNonExistingAccount());
       expectMore(audit).toBeUnauthorizedError();
-    }, 20000);
+    }, 180000);
   });
 });
