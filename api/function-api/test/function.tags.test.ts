@@ -31,6 +31,7 @@ const helloWorld = {
     },
   },
   metadata: { tags: { common: 3, foo: 1, bar: 'muh', flies: null } },
+  runtime: { tags: { various: 'pieces', including: 'gibberish' } },
 };
 
 const helloWorldUpdated = {
