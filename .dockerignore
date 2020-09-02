@@ -9,6 +9,7 @@
 !lib/aws
 !lib/node
 !lib/server
+!lib/constants
 !lib/runtime/common
 !lib/runtime/ops-lambda-set
 !sdk
