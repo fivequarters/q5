@@ -3054,6 +3054,18 @@ components:
                   type: string
                 value:
                   type: string
+        runtime:
+          type: object
+          description: Ignored during function creation operations.
+          properties:
+            tags:
+              type: object
+              description: The tags generated for this function by the system
+              properties:
+                key:
+                  type: string
+                value:
+                  type: string
 
     FunctionList:
       type: object
