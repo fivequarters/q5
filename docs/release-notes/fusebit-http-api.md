@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.17.6
+
+_Released 9/3/20_
+
+- **Enhancement.** Return computed function tags in the `runtime` object on a function specification.
+
 ## Version 1.17.5
 
 _Released 9/3/20_
