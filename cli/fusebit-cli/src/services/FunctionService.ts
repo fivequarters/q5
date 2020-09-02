@@ -1021,6 +1021,7 @@ export class FunctionService {
       files: functionSpec.nodejs && functionSpec.nodejs.files ? Object.keys(functionSpec.nodejs.files) : [],
       configuration: functionSpec.configuration,
       location: functionSpec.location,
+      tags: functionSpec.tags,
     };
 
     if (this.input.options.output === 'json') {
@@ -1038,6 +1039,14 @@ export class FunctionService {
         Text.eol(),
         Text.dim('Function: '),
         functionData.id,
+        Text.eol(),
+        Text.eol(),
+        Text.dim('Tags'),
+        Text.create(
+          Object.keys(functionData.tags).map((key: string) =>
+            Text.create(Text.eol(), Text.dim('• '), key, Text.dim(': '), `${functionData.tags[key]}`)
+          )
+        ),
         Text.eol(),
         Text.eol(),
         Text.dim('Files'),
