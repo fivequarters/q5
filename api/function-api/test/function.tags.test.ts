@@ -357,4 +357,60 @@ describe('function.tags', () => {
     expect(response.data.items).toHaveLength(1);
     expect(response.data.items[0].functionId).toBe(function4Id);
   }, 120000);
+
+  test.only('multisearch functions', async () => {
+    const account = getAccount();
+    const boundaryId = rotateBoundary();
+
+    const options = {
+      accountId: account.accountId,
+      subscriptionId: account.subscriptionId,
+      boundaryId,
+      functionId: function1Id,
+    };
+
+    // Create a couple functions to search for
+    let response: any;
+    response = await putFunction(account, boundaryId, function1Id, helloWorld);
+    expect(response.status).toEqual(200);
+    response = await putFunction(account, boundaryId, function2Id, helloWorldUpdated);
+    expect(response.status).toEqual(200);
+    response = await putFunction(account, boundaryId, function3Id, helloWorld);
+    expect(response.status).toEqual(200);
+
+    let search: string[];
+
+    search = ['common=3', 'foo=1'].map((t) => Tags.get_metadata_tag_key(t));
+    response = await listFunctions(account, boundaryId, undefined, undefined, search, undefined);
+    expect(response.status).toEqual(200);
+    expect(response.data.items).toHaveLength(2);
+
+    search = ['common=3', 'foo=5'].map((t) => Tags.get_metadata_tag_key(t));
+    response = await listFunctions(account, boundaryId, undefined, undefined, search, undefined);
+    expect(response.status).toEqual(200);
+    expect(response.data.items).toHaveLength(1);
+
+    // XXX This fails because the overlap of the fields can produce matching results in different pages of the
+    // two queries, i.e. [A, A'], [B, C], [none, B] across three queries.  The correct result is [A, B], but
+    // this returns [A].
+    //
+    // Test the `next` handling
+    search = ['common=3', 'foo=1'].map((t) => Tags.get_metadata_tag_key(t));
+    response = await listFunctions(account, boundaryId, undefined, 1, search, undefined);
+    expect(response.status).toEqual(200);
+    expect(response.data.items).toHaveLength(1);
+    console.log(response.data.items.functionId);
+    expect(response.data.next).toHaveLength(2);
+
+    response = await listFunctions(account, boundaryId, undefined, 1, search, response.data.next);
+    expect(response.status).toEqual(200);
+    expect(response.data.items).toHaveLength(1);
+    console.log(response.data.items.functionId);
+    expect(response.data.next).toBeUndefined();
+
+    response = await listFunctions(account, boundaryId, undefined, 1, search, response.data.next);
+    expect(response.status).toEqual(200);
+    expect(response.data.items).toHaveLength(0);
+    expect(response.data.next).toBeUndefined();
+  }, 120000);
 });

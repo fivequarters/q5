@@ -312,8 +312,8 @@ export async function listFunctions(
   boundaryId?: string,
   cron?: boolean,
   count?: number,
-  search?: string,
-  next?: string
+  search?: string | string[],
+  next?: string | string[]
 ) {
   let url = boundaryId
     ? `${account.baseUrl}/v1/account/${account.accountId}/subscription/${account.subscriptionId}/boundary/${boundaryId}/function`
@@ -326,10 +326,16 @@ export async function listFunctions(
     query.push(`count=${count}`);
   }
   if (search) {
-    query.push(`search=${search}`);
+    if (typeof search === 'string') {
+      search = [search];
+    }
+    search.forEach((s) => query.push(`search=${s}`));
   }
   if (next) {
-    query.push(`next=${next}`);
+    if (typeof next === 'string') {
+      next = [next];
+    }
+    next.forEach((n) => query.push(`next=${n}`));
   }
   if (query.length > 0) {
     url += `?${query.join('&')}`;
