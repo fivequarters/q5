@@ -1,7 +1,7 @@
 const Joi = require('joi');
 
 module.exports = Joi.object().keys({
-  next: [Joi.string(), Joi.array()],
+  next: Joi.string(),
   count: Joi.number().integer(),
   name: Joi.string(),
   email: Joi.string(),
