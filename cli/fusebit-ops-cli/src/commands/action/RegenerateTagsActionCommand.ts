@@ -152,9 +152,6 @@ export class RegenerateTagsActionCommand extends Command {
     // Load tags once the AWS configuration has been set correctly.
     const Tags = require('@5qtrs/function-tags');
 
-    // Override the default dynamo object.
-    Tags.setDynamo(dynamo);
-
     const getSpec = async (file: string): Promise<any> => {
       const params = { Key: file };
       const response = await s3.getObject(params).promise();
@@ -177,7 +174,7 @@ export class RegenerateTagsActionCommand extends Command {
       }
 
       const e = await new Promise((resolve, reject) => {
-        Tags.create_function_tags(spec, spec, resolve);
+        Tags.create_function_tags({ ...spec, dynamo }, spec, resolve);
       });
       if (e) {
         await executeService.warning(

@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.24.5
+
+_Released 9/6/20_
+
+- **Enhancement.** Support `fuse-ops action clearTags` to remove legacy tags during upgrade processes.
+
 ## Version 1.24.4
 
 _Released 9/1/20_

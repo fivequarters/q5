@@ -19,9 +19,10 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 
 ## Version 1.8.5
 
-_Released 9/3/20_
+_Released 9/6/20_
 
 - **Enhancement**. Report the tags of a function in `fuse function get`.
+- **Enhancement**. Support multi-criteria search in `fuse function ls`.
 
 ## Version 1.8.4
 

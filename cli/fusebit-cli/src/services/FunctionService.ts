@@ -79,7 +79,7 @@ export interface IFusebitFunctionListOptions {
   cron?: boolean;
   next?: string;
   count?: number;
-  search?: string;
+  search?: string[];
 }
 
 export interface IFusebitFunctionListResult {
@@ -597,7 +597,7 @@ export class FunctionService {
       query.push(`count=${options.count}`);
     }
     if (options.search) {
-      query.push(`search=${options.search}`);
+      options.search.forEach((q: string) => query.push(`search=${q}`));
     }
     if (options.next) {
       query.push(`next=${options.next}`);
