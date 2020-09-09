@@ -9,7 +9,7 @@ module.exports = Joi.object().keys({
   subject: Joi.string(),
   include: Joi.string().valid('all'),
   cron: Joi.string().valid('true', 'false', '1', '0'),
-  search: Joi.string(),
+  search: [Joi.string(), Joi.array()],
   action: Joi.string(),
   resource: Joi.string(),
   from: Joi.string(),

@@ -4,6 +4,9 @@ process.env.LOGS_DISABLE = 'true';
 
 import * as Tags from '@5qtrs/function-tags';
 
+const TC = Tags.Constants;
+const TD = Tags.Dynamo;
+
 import { DynamoDB } from 'aws-sdk';
 const dynamo = new DynamoDB({ apiVersion: '2012-08-10' });
 
@@ -64,47 +67,37 @@ const funcOptions = [
 describe('Tags', () => {
   test('spec to tags', async () => {
     const expected = {
-      [Tags.get_compute_tag_key('timeout')]: funcSpecs[0].compute.timeout,
-      [Tags.get_compute_tag_key('staticIp')]: funcSpecs[0].compute.staticIp,
-      [Tags.get_dependency_tag_key('ms')]: funcSpecs[0].internal.resolved_dependencies.ms,
-      [Tags.get_metadata_tag_key('master_user')]: funcSpecs[0].metadata.tags.master_user,
-      [Tags.get_metadata_tag_key('master_owner')]: funcSpecs[0].metadata.tags.master_owner,
-      [Tags.get_metadata_tag_key('level')]: funcSpecs[0].metadata.tags.level,
-      [Tags.get_metadata_tag_key('flies')]: funcSpecs[0].metadata.tags.flies,
+      [TC.get_compute_tag_key('timeout')]: funcSpecs[0].compute.timeout,
+      [TC.get_compute_tag_key('staticIp')]: funcSpecs[0].compute.staticIp,
+      [TC.get_dependency_tag_key('ms')]: funcSpecs[0].internal.resolved_dependencies.ms,
+      [TC.get_metadata_tag_key('master_user')]: funcSpecs[0].metadata.tags.master_user,
+      [TC.get_metadata_tag_key('master_owner')]: funcSpecs[0].metadata.tags.master_owner,
+      [TC.get_metadata_tag_key('level')]: funcSpecs[0].metadata.tags.level,
+      [TC.get_metadata_tag_key('flies')]: funcSpecs[0].metadata.tags.flies,
       ['cron']: false,
     };
 
-    expect(Tags.convert_spec_to_tags(funcSpecs[0])).toStrictEqual(expected);
+    expect(TC.convert_spec_to_tags(funcSpecs[0])).toStrictEqual(expected);
   }, 120000);
 
   test('spec to request', async () => {
-    const req = Tags.get_dynamo_create_request(funcOptions[0], funcSpecs[0]);
+    const req = TD.get_dynamo_create_request(funcOptions[0], funcSpecs[0]);
 
     // Make sure that the expected number of request objects are created, for both boundary and subscription
     // search criteria, per the number of tags created.
-    expect(req.length).toBe(Object.keys(Tags.convert_spec_to_tags(funcSpecs[0])).length * 2);
+    expect(req.length).toBe(1);
 
     req.forEach((r: any) => {
       const item = r.PutRequest.Item;
 
-      // Make sure it's one of the expected categories.
-      expect([Tags.TAG_CATEGORY_BOUNDARY, Tags.TAG_CATEGORY_SUBSCRIPTION]).toContain(item.category.S);
+      // Make sure it's the expected category.
+      expect([TC.TAG_CATEGORY_FUNCTION]).toContain(item.category.S);
 
       // Make sure the key always contains the full spec.
       expect(item.key.S).toContain(funcOptions[0].accountId);
       expect(item.key.S).toContain(funcOptions[0].subscriptionId);
       expect(item.key.S).toContain(funcOptions[0].boundaryId);
       expect(item.key.S).toContain(funcOptions[0].functionId);
-      expect(item.key.S).toContain(Tags.encode(item.tagKey.S));
-      if (item.tagValue.S) {
-        expect(item.key.S).toContain(Tags.encode(item.tagValue.S));
-      }
-      if (item.tagValue.N) {
-        expect(item.key.S).toContain(Tags.encode(item.tagValue.N));
-      }
-      if (item.tagValue.BOOL) {
-        expect(item.key.S).toContain(Tags.encode(item.tagValue.N));
-      }
 
       // Expect the various promoted attributes
       expect(item.accountId.S).toBe(funcOptions[0].accountId);
@@ -112,105 +105,17 @@ describe('Tags', () => {
       expect(item.functionId.S).toBe(funcOptions[0].functionId);
       expect(item.boundaryId.S).toBe(funcOptions[0].boundaryId);
 
-      // Check the tagKey and tagValue options selectively with different types.
-      if (item.tagKey.S === Tags.get_metadata_tag_key('master_user')) {
-        expect(typeof item.tagValue.S).toBe('string');
+      if (item[TC.get_metadata_tag_key('master_user')]) {
+        expect(item[TC.get_metadata_tag_key('master_user')].S).toBe(funcSpecs[0].metadata.tags.master_user);
       }
-      if (item.tagKey.S === Tags.get_metadata_tag_key('level')) {
-        expect(typeof item.tagValue.N).toBe('string');
-        expect(parseInt(item.tagValue.N, 10)).toBe(9001);
+      if (item[TC.get_metadata_tag_key('level')]) {
+        expect(typeof item[TC.get_metadata_tag_key('level')].N).toBe('string');
+        expect(parseInt(item[TC.get_metadata_tag_key('level')].N, 10)).toBe(funcSpecs[0].metadata.tags.level);
       }
-      if (item.tagKey.S === Tags.get_metadata_tag_key('flies')) {
-        expect(typeof item.tagValue.NULL).toBe('boolean');
-        expect(item.tagValue.NULL).toBe(true);
+      if (item[TC.get_metadata_tag_key('flies')]) {
+        expect(typeof item[TC.get_metadata_tag_key('flies')].NULL).toBe('boolean');
+        expect(item[TC.get_metadata_tag_key('flies')].NULL).toBe(true);
       }
     });
-  }, 120000);
-
-  test('dynamo tests', async () => {
-    // Delete any old lingering entries.
-    await deleteAll(funcOptions[0].accountId, funcOptions[0].boundaryId);
-
-    // Add two different functions worth of tags.
-    expect(
-      await new Promise((resolve, reject) => Tags.create_function_tags(funcOptions[0], funcSpecs[0], resolve))
-    ).toBeFalsy();
-    expect(
-      await new Promise((resolve, reject) => Tags.create_function_tags(funcOptions[1], funcSpecs[0], resolve))
-    ).toBeFalsy();
-
-    // Check to make sure the items are present.
-    const expectedTags = {
-      [Tags.get_compute_tag_key('timeout')]: funcSpecs[0].compute.timeout,
-      [Tags.get_compute_tag_key('staticIp')]: funcSpecs[0].compute.staticIp,
-      [Tags.get_metadata_tag_key('master_user')]: funcSpecs[0].metadata.tags.master_user,
-      [Tags.get_metadata_tag_key('master_owner')]: funcSpecs[0].metadata.tags.master_owner,
-      [Tags.get_metadata_tag_key('level')]: funcSpecs[0].metadata.tags.level,
-      [Tags.get_metadata_tag_key('flies')]: funcSpecs[0].metadata.tags.flies,
-      [Tags.get_dependency_tag_key('ms')]: funcSpecs[0].internal.resolved_dependencies.ms,
-      ['cron']: false,
-    };
-    await scanForTags(funcOptions.map((o) => [o, expectedTags]));
-
-    // Update one functions tags.
-    expect(
-      await new Promise((resolve, reject) => Tags.create_function_tags(funcOptions[1], funcSpecs[1], resolve))
-    ).toBeFalsy();
-
-    // Remove the other functions tags.
-    expect(await new Promise((resolve, reject) => Tags.delete_function_tags(funcOptions[0], resolve))).toBeFalsy();
-
-    await scanForTags([
-      [
-        funcOptions[1],
-        {
-          [Tags.get_compute_tag_key('timeout')]: funcSpecs[1].compute.timeout,
-          [Tags.get_compute_tag_key('staticIp')]: funcSpecs[1].compute.staticIp,
-          [Tags.get_metadata_tag_key('master_user')]: funcSpecs[1].metadata.tags.master_user,
-          [Tags.get_metadata_tag_key('level')]: funcSpecs[1].metadata.tags.level,
-          [Tags.get_metadata_tag_key('nani')]: funcSpecs[1].metadata.tags.nani,
-          [Tags.get_dependency_tag_key('ms')]: funcSpecs[1].internal.resolved_dependencies.ms,
-          ['cron']: false,
-        },
-      ],
-    ]);
-
-    // Delete the last entries to leave the state clean.
-    await new Promise((resolve, reject) => Tags.delete_function_tags(funcOptions[1], resolve));
-    await scanForTags([[funcOptions[0], {}]]);
-  }, 120000);
-
-  test('bulk tests', async () => {
-    // Delete any old lingering entries.
-    await deleteAll(funcOptions[0].accountId, funcOptions[0].boundaryId);
-
-    // Make a copy
-    const spec = JSON.parse(JSON.stringify(funcSpecs[0]));
-    const options = funcOptions[0];
-
-    // Add a bunch of parameters
-    for (let i = 0; i < 100; i++) {
-      spec.metadata.tags[`tag${i}`] = i;
-    }
-
-    // Add two different functions worth of tags.
-    expect(await new Promise((resolve, reject) => Tags.create_function_tags(options, spec, resolve))).toBeFalsy();
-
-    // Check to make sure the items are present.
-    const expectedTags = {
-      [Tags.get_compute_tag_key('timeout')]: spec.compute.timeout,
-      [Tags.get_compute_tag_key('staticIp')]: spec.compute.staticIp,
-      [Tags.get_dependency_tag_key('ms')]: spec.internal.resolved_dependencies.ms,
-      ['cron']: false,
-    };
-    for (const [key, value] of Object.entries(spec.metadata.tags)) {
-      expectedTags[Tags.get_metadata_tag_key(key)] = value;
-    }
-
-    await scanForTags([[options, expectedTags]]);
-
-    // Delete the last entries to leave the state clean.
-    await new Promise((resolve, reject) => Tags.delete_function_tags(options, resolve));
-    await scanForTags([[options, {}]]);
   }, 120000);
 });

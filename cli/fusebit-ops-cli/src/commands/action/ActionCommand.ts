@@ -1,5 +1,6 @@
 import { Command, ICommand } from '@5qtrs/cli';
 import { RegenerateTagsActionCommand } from './RegenerateTagsActionCommand';
+import { ClearTagsActionCommand } from './ClearTagsActionCommand';
 
 // ------------------
 // Internal Constants
@@ -20,6 +21,7 @@ export class ActionCommand extends Command {
   public static async create() {
     const subCommands = [];
     subCommands.push(await RegenerateTagsActionCommand.create());
+    subCommands.push(await ClearTagsActionCommand.create());
     commands.subCommands = subCommands;
     return new ActionCommand(commands);
   }

@@ -8,8 +8,7 @@ dotenv.config({ path: '.env' });
 process.env.LOGS_DISABLE = 'true';
 
 import * as Tags from '@5qtrs/function-tags';
-
-import { scanForTags } from './tags';
+const TC = Tags.Constants;
 
 import { DynamoDB } from 'aws-sdk';
 const dynamo = new DynamoDB({ apiVersion: '2012-08-10' });
@@ -31,6 +30,7 @@ const helloWorld = {
     },
   },
   metadata: { tags: { common: 3, foo: 1, bar: 'muh', flies: null } },
+  runtime: { tags: { various: 'pieces', including: 'gibberish' } },
 };
 
 const helloWorldUpdated = {
@@ -56,67 +56,6 @@ const helloWorldWithCron = {
 };
 
 describe('function.tags', () => {
-  test('create function and validate tags exist', async () => {
-    const account = getAccount();
-    const boundaryId = rotateBoundary();
-
-    const options = {
-      accountId: account.accountId,
-      subscriptionId: account.subscriptionId,
-      boundaryId,
-      functionId: function1Id,
-    };
-    // Add a response to make sure only the requested data is returned
-    let response = await putFunction(account, boundaryId, function1Id, helloWorld);
-    expect(response.status).toEqual(200);
-
-    // Scan, and make sure the expected tags are present.
-    await scanForTags([
-      [
-        options,
-        {
-          [Tags.get_compute_tag_key('memorySize')]: 128,
-          [Tags.get_compute_tag_key('timeout')]: 30,
-          [Tags.get_compute_tag_key('runtime')]: 'nodejs10.x',
-          [Tags.get_compute_tag_key('staticIp')]: false,
-          [Tags.get_metadata_tag_key('common')]: 3,
-          [Tags.get_metadata_tag_key('foo')]: helloWorld.metadata.tags.foo,
-          [Tags.get_metadata_tag_key('bar')]: helloWorld.metadata.tags.bar,
-          [Tags.get_metadata_tag_key('flies')]: null,
-          [Tags.get_versions_tag_key('api')]: 'dev',
-          ['cron']: false,
-        },
-      ],
-    ]);
-
-    // Modify the function and specify some new pieces of metadata.
-    response = await putFunction(account, boundaryId, function1Id, helloWorldUpdated);
-    expect(response.status).toEqual(200);
-    await scanForTags([
-      [
-        options,
-        {
-          [Tags.get_compute_tag_key('memorySize')]: 256,
-          [Tags.get_compute_tag_key('timeout')]: 30,
-          [Tags.get_compute_tag_key('runtime')]: 'nodejs10.x',
-          [Tags.get_compute_tag_key('staticIp')]: false,
-          [Tags.get_metadata_tag_key('common')]: 3,
-          [Tags.get_metadata_tag_key('foo')]: helloWorldUpdated.metadata.tags.foo,
-          [Tags.get_metadata_tag_key('whiz')]: helloWorldUpdated.metadata.tags.whiz,
-          [Tags.get_metadata_tag_key('eq=key')]: helloWorldUpdated.metadata.tags['eq=key'],
-          [Tags.get_metadata_tag_key('eqval')]: helloWorldUpdated.metadata.tags.eqval,
-          [Tags.get_versions_tag_key('api')]: 'dev',
-          ['cron']: false,
-        },
-      ],
-    ]);
-
-    // Delete the function, and make sure the expected tags are gone.
-    response = await deleteFunction(account, boundaryId, function1Id);
-    expect(response.status).toEqual(204);
-    await scanForTags([[options, {}]]);
-  }, 120000);
-
   test('create functions and search', async () => {
     const account = getAccount();
     const boundaryId = rotateBoundary();
@@ -127,6 +66,7 @@ describe('function.tags', () => {
       subscriptionId: account.subscriptionId,
       boundaryId,
       functionId: function1Id,
+      dynamo,
     };
 
     // Create a couple functions to search for
@@ -137,14 +77,13 @@ describe('function.tags', () => {
 
     const search = async (k: string, v: any, expected: any) => {
       let results: any;
-      expect(
-        await new Promise((resolve, reject) => {
-          Tags.search_function_tags(options, k, v, undefined, undefined, (e: any, r: any, n: any) => {
-            results = r;
-            resolve(e);
-          });
-        })
-      ).toBeFalsy();
+      const err = await new Promise((resolve, reject) => {
+        Tags.search_function_tags(options, { [k]: v }, undefined, undefined, (e: any, r: any, n: any) => {
+          results = r;
+          resolve(e);
+        });
+      });
+      expect(err).toBeFalsy();
       expect(results).toBeDefined();
       expect(results).toHaveLength(expected.length);
       if (results) {
@@ -152,20 +91,20 @@ describe('function.tags', () => {
       }
     };
 
-    search(Tags.get_metadata_tag_key('common'), 3, [function1Id, function2Id]);
-    search(Tags.get_metadata_tag_key('foo'), 1, [function1Id]);
-    search(Tags.get_metadata_tag_key('foo'), 5, [function2Id]);
-    search(Tags.get_metadata_tag_key('whiz'), 'bang', [function2Id]);
-    search(Tags.get_metadata_tag_key('whiz'), undefined, [function2Id]);
-    search(Tags.get_metadata_tag_key('flies'), null, [function1Id]);
-    search(Tags.get_metadata_tag_key('flies'), 'null', [function1Id]); // Probably shouldn't be true, but...
-    search(Tags.get_compute_tag_key('memorySize'), 256, [function2Id]);
-    search(Tags.get_metadata_tag_key('eq=key'), undefined, [function2Id]);
-    search(Tags.get_metadata_tag_key('eq=key'), 'found', [function2Id]);
-    search(Tags.get_metadata_tag_key('eqval'), undefined, [function2Id]);
-    search(Tags.get_metadata_tag_key('eqval'), 'fou=nd', [function2Id]);
-    search('cron', false, [function1Id, function2Id]);
-    search('cron', undefined, [function1Id, function2Id]);
+    await search(TC.get_metadata_tag_key('common'), 3, [function1Id, function2Id]);
+    await search(TC.get_metadata_tag_key('foo'), 1, [function1Id]);
+    await search(TC.get_metadata_tag_key('foo'), 5, [function2Id]);
+    await search(TC.get_metadata_tag_key('whiz'), 'bang', [function2Id]);
+    await search(TC.get_metadata_tag_key('whiz'), undefined, [function2Id]);
+    await search(TC.get_metadata_tag_key('flies'), null, [function1Id]);
+    await search(TC.get_metadata_tag_key('flies'), 'null', [function1Id]); // Probably shouldn't be true, but...
+    await search(TC.get_compute_tag_key('memorySize'), 256, [function2Id]);
+    await search(TC.get_metadata_tag_key('eq=key'), undefined, [function2Id]);
+    await search(TC.get_metadata_tag_key('eq=key'), 'found', [function2Id]);
+    await search(TC.get_metadata_tag_key('eqval'), undefined, [function2Id]);
+    await search(TC.get_metadata_tag_key('eqval'), 'fou=nd', [function2Id]);
+    await search('cron', false, [function1Id, function2Id]);
+    await search('cron', undefined, [function1Id, function2Id]);
   }, 120000);
 
   test('paginated search', async () => {
@@ -178,6 +117,7 @@ describe('function.tags', () => {
       subscriptionId: account.subscriptionId,
       boundaryId,
       functionId: function1Id,
+      dynamo,
     };
 
     // Create a couple functions to search for
@@ -193,7 +133,7 @@ describe('function.tags', () => {
       let results: any;
       expect(
         await new Promise((resolve, reject) => {
-          Tags.search_function_tags(options, k, v, next, limit, (e: any, r: any, n: any) => {
+          Tags.search_function_tags(options, { [k]: v }, next, limit, (e: any, r: any, n: any) => {
             results = [r, n];
             resolve(e);
           });
@@ -205,10 +145,10 @@ describe('function.tags', () => {
 
     let result: any;
     const found: any = [];
-    result = await search(Tags.get_metadata_tag_key('common'), 3, undefined, 2);
+    result = await search(TC.get_metadata_tag_key('common'), 3, undefined, 2);
     expect(result[0]).toHaveLength(2);
     found.push(...result[0]);
-    result = await search(Tags.get_metadata_tag_key('common'), 3, result[1], 2);
+    result = await search(TC.get_metadata_tag_key('common'), 3, result[1], 2);
     expect(result[0]).toHaveLength(1);
     found.push(...result[0]);
 
@@ -238,6 +178,7 @@ describe('function.tags', () => {
     // Create a couple functions to search for
     let response: any;
     let result: any;
+    let next: any;
     response = await putFunction(account, boundaryId, function1Id, helloWorld);
     expect(response.status).toEqual(200);
     response = await putFunction(account, boundaryId, function2Id, helloWorldUpdated);
@@ -246,6 +187,17 @@ describe('function.tags', () => {
     expect(response.status).toEqual(200);
     response = await putFunction(account, boundaryId, function4Id, helloWorldWithCron);
     expect(response.status).toEqual(200);
+
+    result = [];
+    next = undefined;
+    do {
+      response = await listFunctions(account, boundaryId, true, 2, undefined, next);
+      expect(response.status).toEqual(200);
+      result = [...result, ...response.data.items];
+      next = response.data.next;
+    } while (next);
+    expect(result).toHaveLength(1);
+    expect(result[0].functionId).toBe(function4Id);
 
     response = await listFunctions(account, boundaryId, undefined, undefined, 'tag.common=3', undefined);
     expect(response.status).toEqual(200);
@@ -276,16 +228,13 @@ describe('function.tags', () => {
     expect(response.data.items).toHaveLength(1);
 
     result = [];
-    response = await listFunctions(account, boundaryId, undefined, 2, 'cron', undefined);
-    expect(response.status).toEqual(200);
-    expect(response.data.items).toHaveLength(2);
-    expect(response.data.next).toBeTruthy();
-    result.push(...response.data.items);
-
-    response = await listFunctions(account, boundaryId, undefined, 2, 'cron', response.data.next);
-    expect(response.status).toEqual(200);
-    expect(response.data.items).toHaveLength(2);
-    result.push(...response.data.items);
+    next = undefined;
+    do {
+      response = await listFunctions(account, boundaryId, undefined, 2, 'cron', next);
+      expect(response.status).toEqual(200);
+      result = [...result, ...response.data.items];
+      next = response.data.next;
+    } while (next);
 
     expect(result).toEqual(
       expect.arrayContaining([
@@ -317,16 +266,13 @@ describe('function.tags', () => {
     );
 
     result = [];
-
-    response = await listFunctions(account, boundaryId, false, 2, undefined, undefined);
-    expect(response.status).toEqual(200);
-    expect(response.data.items).toHaveLength(2);
-    result.push(...response.data.items);
-
-    response = await listFunctions(account, boundaryId, false, 2, undefined, response.data.next);
-    expect(response.status).toEqual(200);
-    expect(response.data.items).toHaveLength(1);
-    result.push(...response.data.items);
+    next = undefined;
+    do {
+      response = await listFunctions(account, boundaryId, false, 2, undefined, next);
+      expect(response.status).toEqual(200);
+      result = [...result, ...response.data.items];
+      next = response.data.next;
+    } while (next);
 
     expect(result).toEqual(
       expect.arrayContaining([
@@ -350,10 +296,51 @@ describe('function.tags', () => {
         },
       ])
     );
+  }, 120000);
 
-    response = await listFunctions(account, boundaryId, true, 2, undefined, undefined);
+  test('multisearch functions', async () => {
+    const account = getAccount();
+    const boundaryId = rotateBoundary();
+
+    const options = {
+      accountId: account.accountId,
+      subscriptionId: account.subscriptionId,
+      boundaryId,
+      functionId: function1Id,
+    };
+
+    // Create a couple of functions to search for
+    let response: any;
+    response = await putFunction(account, boundaryId, function1Id, helloWorld);
+    expect(response.status).toEqual(200);
+    response = await putFunction(account, boundaryId, function2Id, helloWorldUpdated);
+    expect(response.status).toEqual(200);
+    response = await putFunction(account, boundaryId, function3Id, helloWorld);
+    expect(response.status).toEqual(200);
+
+    let search: string[];
+
+    search = ['common=3', 'foo=1'].map((t) => TC.get_metadata_tag_key(t));
+    response = await listFunctions(account, boundaryId, undefined, undefined, search, undefined);
+    expect(response.status).toEqual(200);
+    expect(response.data.items).toHaveLength(2);
+
+    search = ['common=3', 'foo=5'].map((t) => TC.get_metadata_tag_key(t));
+    response = await listFunctions(account, boundaryId, undefined, undefined, search, undefined);
     expect(response.status).toEqual(200);
     expect(response.data.items).toHaveLength(1);
-    expect(response.data.items[0].functionId).toBe(function4Id);
+
+    // Test the `next` handling
+    let result: any[] = [];
+    search = ['common=3', 'foo=1'].map((t) => TC.get_metadata_tag_key(t));
+    let next;
+    do {
+      response = await listFunctions(account, boundaryId, undefined, 1, search, next);
+      expect(response.status).toEqual(200);
+      result = [...result, ...response.data.items];
+      next = response.data.next;
+    } while (next);
+
+    expect(result).toHaveLength(2);
   }, 120000);
 });

@@ -1,3 +1,4 @@
+// This action can be retired once all stacks are above 1.17.6
 import { AwsCreds } from '@5qtrs/aws-config';
 import { ArgType, Command, IExecuteInput } from '@5qtrs/cli';
 import { IFusebitAccount, IFusebitSubscriptionDetails } from '@5qtrs/ops-data';
@@ -6,16 +7,90 @@ import { OpsService } from '../../services/OpsService';
 
 import * as Constants from '@5qtrs/constants';
 
+export const TAG_CATEGORY_BOUNDARY = 'function-tags-boundary';
+export const TAG_CATEGORY_SUBSCRIPTION = 'function-tags-subscription';
+
+const DYNAMO_BATCH_ITEMS_MAX = 25;
+const DYNAMO_BACKOFF_TRIES_MAX = 5;
+const DYNAMO_BACKOFF_DELAY = 300;
+const expBackoff = (c: number) => Math.pow(2, c - 1) * DYNAMO_BACKOFF_DELAY;
+
+function scan_dynamo_old_categories(
+  options: any,
+  cb: any,
+  results: any[] = [],
+  lastEvaluatedKey?: string,
+  backoff = 0
+) {
+  setTimeout(
+    () => {
+      const params = {
+        TableName: options.keyValueTableName,
+        ProjectionExpression: 'category, #k',
+        ExpressionAttributeNames: { '#k': 'key' },
+        ExpressionAttributeValues: {
+          ':c1': { S: TAG_CATEGORY_BOUNDARY },
+          ':c2': { S: TAG_CATEGORY_SUBSCRIPTION },
+        },
+        ExclusiveStartKey: lastEvaluatedKey,
+        FilterExpression: 'category = :c1 OR category = :c2',
+      };
+
+      return options.dynamo.scan(params, (e: any, d: any) => {
+        if (e) {
+          if (e.retryable) {
+            // Some entries didn't get processed; try again (and save the overflow).
+            if (backoff > DYNAMO_BACKOFF_TRIES_MAX) {
+              return cb('Unable to scan tags, exhausted allowed attempts');
+            }
+            return scan_dynamo_old_categories(options, cb, results, lastEvaluatedKey, backoff + 1);
+          }
+
+          return cb(e);
+        }
+
+        // Collect the items found for future deletion.
+        d.Items.forEach((t: any) => results.push([t.category.S, t.key.S]));
+
+        // Continue scanning and accumulating results.
+        if (d.LastEvaluatedKey) {
+          return scan_dynamo_old_categories(options, cb, results, d.LastEvaluatedKey, backoff);
+        }
+
+        // Scan completed, return results.
+        return cb(null, results);
+      });
+    },
+    backoff > 0 ? expBackoff(backoff) : 0
+  );
+}
+
+function get_dynamo_delete_request(category: string, key: string) {
+  return [
+    {
+      DeleteRequest: {
+        Key: {
+          category: {
+            S: category,
+          },
+          key: {
+            S: key,
+          },
+        },
+      },
+    },
+  ];
+}
+
 // ------------------
 // Internal Constants
 // ------------------
 
 const command = {
-  name: 'Regenerate Tags',
-  cmd: 'regenTags',
-  summary: 'Regenerate tags for functions',
-  description:
-    'Regenerate all of the tags for the functions in a given deployment from their base specifications.  This script is necessary if functions known to exist do not show up in `fuse function ls`, or if the tag specification changes as the result of an upgrade.',
+  name: 'Clear Old Tags',
+  cmd: 'clearTags',
+  summary: 'Clear old function tags (<1.17.6)',
+  description: 'Remove any old tags from the deployment.',
   arguments: [
     {
       name: 'deployment',
@@ -51,9 +126,9 @@ const command = {
 // Exported Classes
 // ----------------
 
-export class RegenerateTagsActionCommand extends Command {
+export class ClearTagsActionCommand extends Command {
   public static async create() {
-    return new RegenerateTagsActionCommand();
+    return new ClearTagsActionCommand();
   }
 
   private constructor() {
@@ -69,11 +144,6 @@ export class RegenerateTagsActionCommand extends Command {
     const region = input.options.region as string;
     const dryRun = input.options['dry-run'] as boolean | undefined;
     const confirm = input.options.confirm as boolean | undefined;
-
-    let token: string | undefined;
-    let len;
-    let cnt = 0;
-    let cntFailed = 0;
 
     // Get the deployment
     const opsService = await OpsService.create(input);
@@ -109,34 +179,10 @@ export class RegenerateTagsActionCommand extends Command {
       }
     }
 
-    // Get the subscriptions to fill in missing data
-    const subscriptions = await deploymentData.listAllSubscriptions(deployment);
-    const subToAccount: { [subId: string]: string } = {};
-    subscriptions.forEach((account: IFusebitAccount) =>
-      account.subscriptions.forEach((s: IFusebitSubscriptionDetails) => {
-        subToAccount[s.id] = account.id;
-      })
-    );
-
-    await executeService.info('Setup', `Loaded information for ${subscriptions.length} subscriptions`);
-
     // Load in some defaults to make sure the tag code works correctly.
     const AWS = require('aws-sdk');
     AWS.config.update({ region: deployment.region });
     process.env.DEPLOYMENT_KEY = deployment.deploymentName;
-
-    // Establish the S3 context
-    const s3 = new AWS.S3({
-      apiVersion: '2006-03-01',
-      signatureVersion: 'v4',
-      region: deployment.region,
-      accessKeyId: credentials.accessKeyId,
-      secretAccessKey: credentials.secretAccessKey,
-      sessionToken: credentials.sessionToken,
-      params: {
-        Bucket: Constants.get_deployment_s3_bucket(deployment),
-      },
-    });
 
     const dynamo = new AWS.DynamoDB({
       apiVersion: '2012-08-10',
@@ -152,70 +198,38 @@ export class RegenerateTagsActionCommand extends Command {
     // Load tags once the AWS configuration has been set correctly.
     const Tags = require('@5qtrs/function-tags');
 
-    const getSpec = async (file: string): Promise<any> => {
-      const params = { Key: file };
-      const response = await s3.getObject(params).promise();
+    const dynOptions = { keyValueTableName: Tags.Constants.keyValueTableName, dynamo };
 
-      return JSON.parse(response.Body as string);
-    };
-
-    const createTags = async (subs: { [subId: string]: string }, file: string) => {
-      const spec = await getSpec(file);
-      if (!spec.accountId) {
-        spec.accountId = subs[spec.subscriptionId] || 'acc-0000000000000000';
-      }
-
-      if (dryRun) {
-        await executeService.info(
-          'Action',
-          `Rebuilding function:\n${spec.accountId}.${spec.subscriptionId}\n${spec.boundaryId}.${spec.functionId}`
-        );
-        return;
-      }
-
-      const e = await new Promise((resolve, reject) => {
-        Tags.create_function_tags({ ...spec, dynamo }, spec, resolve);
+    const scanResult: any[] = await new Promise((resolve, reject) => {
+      scan_dynamo_old_categories(dynOptions, (e: any, d: any) => {
+        if (e) {
+          return reject(e);
+        } else {
+          return resolve(d);
+        }
       });
-      if (e) {
-        await executeService.warning(
-          'Failed',
-          `Tag generation for function ${spec.accountId}.${spec.subscriptionId}.${spec.boundaryId}.${spec.functionId} encountered an error: ${e}\nRetry command or rebuild the function.`
-        );
-        cntFailed++;
-      }
-    };
+    });
 
-    const listSpecs = async (
-      subs: { [subId: string]: string },
-      nextToken: string | undefined
-    ): Promise<[number, string | undefined]> => {
-      const params = {
-        Prefix: 'function-spec',
-        ContinuationToken: nextToken,
-      };
-      const response = await s3.listObjectsV2(params).promise();
+    if (dryRun) {
+      await executeService.result('Completed', `Identified ${scanResult.length} old entries`);
+      return 0;
+    }
 
-      if (response.Contents) {
-        await executeService.info('In Progress', `Processing batch of ${response.Contents.length} functions`);
-        await Promise.all(response.Contents.map((obj: any) => createTags(subs, obj.Key)));
-        return [response.Contents.length, response.NextContinuationToken];
-      }
+    const request: any[] = [];
 
-      return [0, undefined];
-    };
+    scanResult.forEach((e) => request.push(...get_dynamo_delete_request(e[0], e[1])));
 
-    await executeService.info('In Progress', `Acquiring function specifications`);
+    await new Promise((resolve, reject) => {
+      Tags.Dynamo.execute_dynamo_batch_write(dynOptions, request, (e: any, d: any) => {
+        if (e) {
+          return reject(e);
+        } else {
+          return resolve(d);
+        }
+      });
+    });
 
-    // Iterate over the functions and regenerate their tags
-    do {
-      [len, token] = await listSpecs(subToAccount, token);
-      cnt += len;
-      if (!token) {
-        break;
-      }
-    } while (true);
-
-    await executeService.result('Completed', `Processed ${cnt - cntFailed}/${cnt} functions`);
+    await executeService.result('Completed', `Cleared ${scanResult.length} old entries`);
 
     return 0;
   }

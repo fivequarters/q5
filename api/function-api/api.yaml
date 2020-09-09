@@ -1231,7 +1231,7 @@ paths:
         - in: query
           name: count
           required: false
-          description: Optional number of results to return
+          description: Maximum number of results to return.  Each query will return between 1 and `count` entries.
           schema:
             type: number
             minimum: 1
@@ -1259,6 +1259,9 @@ paths:
             contains an `=`, encode them to the URI specification first.
 
             Examples include `?search=compute.timeout=30`, `?search=dependency.ms=2.1.2`, `?search=tag.enabled`.
+
+            Specifying `search` multiple times acts as a logical AND between the criteria, returning only
+            functions which match all of the requested elements.
           schema:
             type: string
       responses:
@@ -1328,7 +1331,7 @@ paths:
         - in: query
           name: count
           required: false
-          description: Optional number of results to return
+          description: Maximum number of results to return.  Each query will return between 1 and `count` entries.
           schema:
             type: number
             minimum: 1
@@ -1356,6 +1359,9 @@ paths:
             contains an `=`, encode them to the URI specification first.
 
             Examples include `?search=compute.timeout=30`, `?search=dependency.ms=2.1.2`, `?search=tag.enabled`.
+
+            Specifying `search` multiple times acts as a logical AND between the criteria, returning only
+            functions which match all of the requested elements.
           schema:
             type: string
       responses:
@@ -3049,6 +3055,18 @@ components:
           properties:
             tags:
               type: object
+              properties:
+                key:
+                  type: string
+                value:
+                  type: string
+        runtime:
+          type: object
+          description: Ignored during function creation operations.
+          properties:
+            tags:
+              type: object
+              description: The tags generated for this function by the system
               properties:
                 key:
                   type: string

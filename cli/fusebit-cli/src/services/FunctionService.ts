@@ -79,7 +79,7 @@ export interface IFusebitFunctionListOptions {
   cron?: boolean;
   next?: string;
   count?: number;
-  search?: string;
+  search?: string[];
 }
 
 export interface IFusebitFunctionListResult {
@@ -597,7 +597,7 @@ export class FunctionService {
       query.push(`count=${options.count}`);
     }
     if (options.search) {
-      query.push(`search=${options.search}`);
+      options.search.forEach((q: string) => query.push(`search=${q}`));
     }
     if (options.next) {
       query.push(`next=${options.next}`);
@@ -1021,6 +1021,7 @@ export class FunctionService {
       files: functionSpec.nodejs && functionSpec.nodejs.files ? Object.keys(functionSpec.nodejs.files) : [],
       configuration: functionSpec.configuration,
       location: functionSpec.location,
+      runtime: functionSpec.runtime,
     };
 
     if (this.input.options.output === 'json') {
@@ -1038,6 +1039,14 @@ export class FunctionService {
         Text.eol(),
         Text.dim('Function: '),
         functionData.id,
+        Text.eol(),
+        Text.eol(),
+        Text.dim('Tags'),
+        Text.create(
+          Object.keys(functionData.runtime.tags).map((key: string) =>
+            Text.create(Text.eol(), Text.dim('• '), key, Text.dim(': '), `${functionData.runtime.tags[key]}`)
+          )
+        ),
         Text.eol(),
         Text.eol(),
         Text.dim('Files'),

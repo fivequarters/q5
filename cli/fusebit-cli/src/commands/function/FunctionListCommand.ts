@@ -38,6 +38,7 @@ const command = {
         'an `=`, encode them to the URI specification first.',
       ].join(' '),
       type: ArgType.string,
+      allowMany: true,
     },
     {
       name: 'output',
@@ -74,7 +75,7 @@ export class FunctionListCommand extends Command {
     const output = input.options.output as string;
     const cron = input.options.cron as boolean;
     const count = input.options.count as string;
-    const search = input.options.search as string;
+    const search = input.options.search as string[];
     const next = input.options.next as string;
 
     const options: any = {
