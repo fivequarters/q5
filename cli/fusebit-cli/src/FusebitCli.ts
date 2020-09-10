@@ -63,7 +63,7 @@ export class FusebitCli extends Command {
   }
 
   protected async onSubCommandError(command: Command, input: IExecuteInput, error: Error) {
-    const verbose = input.options.verbose as boolean;
+    const verbose = (input.options.verbose as boolean) || process.env.FUSEBIT_DEBUG;
     if (verbose) {
       try {
         input.io.writeRaw(

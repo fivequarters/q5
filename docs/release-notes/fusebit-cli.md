@@ -17,6 +17,12 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.8.6
+
+_Released 9/9/20_
+
+- **Bug Fix**. Support missing tags for older server versions.
+
 ## Version 1.8.5
 
 _Released 9/6/20_
