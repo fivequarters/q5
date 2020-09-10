@@ -1042,16 +1042,22 @@ export class FunctionService {
         Text.eol(),
         Text.eol(),
         Text.dim('Tags'),
-        Text.create(
-          Object.keys(functionData.runtime.tags).map((key: string) =>
-            Text.create(Text.eol(), Text.dim('• '), key, Text.dim(': '), `${functionData.runtime.tags[key]}`)
-          )
-        ),
-        Text.eol(),
-        Text.eol(),
-        Text.dim('Files'),
-        Text.create(functionData.files.map((file) => Text.create(Text.eol(), Text.dim('• '), file))),
       ];
+
+      if (functionData.runtime && functionData.runtime.tags) {
+        details.push(
+          Text.create(
+            Object.keys(functionData.runtime.tags).map((key: string) =>
+              Text.create(Text.eol(), Text.dim('• '), key, Text.dim(': '), `${functionData.runtime.tags[key]}`)
+            )
+          )
+        );
+      }
+      details.push(Text.eol());
+      details.push(Text.eol());
+
+      details.push(Text.dim('Files'));
+      details.push(Text.create(functionData.files.map((file) => Text.create(Text.eol(), Text.dim('• '), file))));
 
       if (functionData.configuration) {
         const keys = Object.keys(functionData.configuration);
