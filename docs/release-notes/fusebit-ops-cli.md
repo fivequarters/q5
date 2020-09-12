@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.24.6
+
+_Released 9/12/20_
+
+- **Bug Fix.** Resolve an issue in the cron scheduling system that prevented event scheduling.
+
 ## Version 1.24.5
 
 _Released 9/6/20_
