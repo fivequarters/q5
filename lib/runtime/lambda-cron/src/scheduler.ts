@@ -1,6 +1,7 @@
 import * as AWS from 'aws-sdk';
 import * as Async from 'async';
 import * as Cron from 'cron-parser';
+import { v4 as uuidv4 } from 'uuid';
 
 const s3 = new AWS.S3({
   apiVersion: '2006-03-01',
@@ -89,7 +90,7 @@ export function scheduler(event: any, context: any, cb: any) {
             break;
           }
           sqsEntries.push({
-            Id: at.getTime().toString(),
+            Id: uuidv4(),
             DelaySeconds: Math.floor(Math.max(0, at.getTime() - now.getTime()) / 1000),
             MessageBody: JSON.stringify(ctx),
           });
