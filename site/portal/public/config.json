@@ -168,6 +168,23 @@
             "deviceClientId": "VFOtrBCVHEm7I9UNv7rFwu1ID1hTEueF",
             "tokenUrl": "https://fusebit.auth0.com/oauth/token"
           }
+        },
+        {
+          "id": "castle-poc",
+          "displayName": "Castle",
+          "icon": "https://cdn.fusebit.io/assets/images/castle.png",
+          "baseUrl": "https://api.us-east-1.fusebit.io",
+          "account": "acc-3e8c2e435cc64698",
+          "subscription": "sub-3f65848f431e4bb4",
+          "catalog": "https://api.us-east-1.fusebit.io/v1/run/sub-3f65848f431e4bb4/internal/config",
+          "oauth": {
+            "webAuthorizationUrl": "https://fusebit.auth0.com/authorize",
+            "webClientId": "hSgWIXmbluQMADuWhDnRTpWyKptJe6LB",
+            "webLogoutUrl": "https://fusebit.auth0.com/v2/logout?client_id=hSgWIXmbluQMADuWhDnRTpWyKptJe6LB&returnTo=https://castle.portal.fusebit.io",
+            "deviceAuthorizationUrl": "https://fusebit.auth0.com/oauth/device/code",
+            "deviceClientId": "VFOtrBCVHEm7I9UNv7rFwu1ID1hTEueF",
+            "tokenUrl": "https://fusebit.auth0.com/oauth/token"
+          }
         }
       ],
       "defaultProfile": "stage-us-portal-dev"
@@ -276,6 +293,28 @@
         }
       ],
       "defaultProfile": "leasera-poc"
+    },
+    "castle": {
+      "profiles": [
+        {
+          "id": "castle-poc",
+          "displayName": "Castle",
+          "icon": "https://cdn.fusebit.io/assets/images/castle.png",
+          "baseUrl": "https://api.us-east-1.fusebit.io",
+          "account": "acc-3e8c2e435cc64698",
+          "subscription": "sub-3f65848f431e4bb4",
+          "catalog": "https://api.us-east-1.fusebit.io/v1/run/sub-3f65848f431e4bb4/internal/config",
+          "oauth": {
+            "webAuthorizationUrl": "https://fusebit.auth0.com/authorize",
+            "webClientId": "hSgWIXmbluQMADuWhDnRTpWyKptJe6LB",
+            "webLogoutUrl": "https://fusebit.auth0.com/v2/logout?client_id=hSgWIXmbluQMADuWhDnRTpWyKptJe6LB&returnTo=https://castle.portal.fusebit.io",
+            "deviceAuthorizationUrl": "https://fusebit.auth0.com/oauth/device/code",
+            "deviceClientId": "VFOtrBCVHEm7I9UNv7rFwu1ID1hTEueF",
+            "tokenUrl": "https://fusebit.auth0.com/oauth/token"
+          }
+        }
+      ],
+      "defaultProfile": "castle-poc"
     }
   }
 }
