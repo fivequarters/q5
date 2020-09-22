@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.24.7
+
+_Released 9/22/20_
+
+- **Enhancement.** Record the `fuse-ops` version within DynamoDB for artifacts created.
+
 ## Version 1.24.6
 
 _Released 9/12/20_

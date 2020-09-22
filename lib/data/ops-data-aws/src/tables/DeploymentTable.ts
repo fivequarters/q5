@@ -31,6 +31,9 @@ function toItem(deployment: IOpsDeployment) {
   item.networkName = { S: deployment.networkName };
   item.domainName = { S: deployment.domainName };
   item.size = { N: deployment.size.toString() };
+  if (process.env.FUSEOPS_VERSION) {
+    item.fuseopsVersion = { S: process.env.FUSEOPS_VERSION };
+  }
 
   // Support clearing the Elastic Search parameter using an empty string.
   if (deployment.elasticSearch.length == 0) {

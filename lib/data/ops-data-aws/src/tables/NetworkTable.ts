@@ -29,6 +29,10 @@ function toKey(key: { networkName: string; region: string }) {
 function toItem(network: IOpsNetwork) {
   const item: any = toKey(network);
   item.accountName = { S: network.accountName };
+  if (process.env.FUSEOPS_VERSION) {
+    item.fuseopsVersion = { S: process.env.FUSEOPS_VERSION };
+  }
+
   return item;
 }
 

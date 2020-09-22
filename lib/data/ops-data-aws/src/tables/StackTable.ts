@@ -32,6 +32,10 @@ function toItem(stack: IOpsStack) {
   item.tag = { S: stack.tag };
   item.size = { N: stack.size.toString() };
   item.active = { BOOL: stack.active };
+  if (process.env.FUSEOPS_VERSION) {
+    item.fuseopsVersion = { S: process.env.FUSEOPS_VERSION };
+  }
+
   return item;
 }
 
