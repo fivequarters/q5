@@ -110,15 +110,15 @@ export class RegenerateTagsActionCommand extends Command {
     }
 
     // Get the subscriptions to fill in missing data
-    const subscriptions = await deploymentData.listAllSubscriptions(deployment);
+    const accounts = await deploymentData.listAllSubscriptions(deployment);
     const subToAccount: { [subId: string]: string } = {};
-    subscriptions.forEach((account: IFusebitAccount) =>
+    accounts.forEach((account: IFusebitAccount) =>
       account.subscriptions.forEach((s: IFusebitSubscriptionDetails) => {
         subToAccount[s.id] = account.id;
       })
     );
 
-    await executeService.info('Setup', `Loaded information for ${subscriptions.length} subscriptions`);
+    await executeService.info('Setup', `Loaded information for ${Object.keys(subToAccount).length} subscriptions`);
 
     // Load in some defaults to make sure the tag code works correctly.
     const AWS = require('aws-sdk');
