@@ -32,6 +32,10 @@ function toItem(stack: IOpsStack) {
   item.tag = { S: stack.tag };
   item.size = { N: stack.size.toString() };
   item.active = { BOOL: stack.active };
+  if (process.env.FUSEOPS_VERSION) {
+    item.fuseopsVersion = { S: process.env.FUSEOPS_VERSION };
+  }
+
   return item;
 }
 
@@ -44,6 +48,7 @@ function fromItem(item: any): IOpsStack {
     tag: item.tag.S,
     size: parseInt(item.size.N, 10),
     active: item.active.BOOL,
+    fuseopsVersion: item.fuseopsVersion === undefined ? '' : item.fuseopsVersion.S,
   };
 }
 
@@ -75,6 +80,7 @@ export interface IOpsStack {
   tag: string;
   size: number;
   active: boolean;
+  fuseopsVersion: string;
 }
 
 export interface IListOpsStackOptions {

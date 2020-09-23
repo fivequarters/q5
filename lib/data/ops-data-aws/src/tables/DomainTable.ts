@@ -28,6 +28,10 @@ function toKey(domainName: string) {
 function toItem(domain: IOpsDomain) {
   const item: any = toKey(domain.domainName);
   item.accountName = { S: domain.accountName };
+  if (process.env.FUSEOPS_VERSION) {
+    item.fuseopsVersion = { S: process.env.FUSEOPS_VERSION };
+  }
+
   return item;
 }
 

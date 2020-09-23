@@ -17,6 +17,7 @@ export interface IOpsStack extends IOpsNewStack {
   id: number;
   size: number;
   active: boolean;
+  fuseopsVersion: string;
 }
 
 export interface IListOpsStackOptions {

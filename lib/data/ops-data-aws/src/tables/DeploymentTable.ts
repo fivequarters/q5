@@ -31,6 +31,9 @@ function toItem(deployment: IOpsDeployment) {
   item.networkName = { S: deployment.networkName };
   item.domainName = { S: deployment.domainName };
   item.size = { N: deployment.size.toString() };
+  if (process.env.FUSEOPS_VERSION) {
+    item.fuseopsVersion = { S: process.env.FUSEOPS_VERSION };
+  }
 
   // Support clearing the Elastic Search parameter using an empty string.
   if (deployment.elasticSearch.length == 0) {
@@ -51,7 +54,8 @@ function fromItem(item: any): IOpsDeployment {
     networkName: item.networkName.S,
     domainName: item.domainName.S,
     size: parseInt(item.size.N, 10),
-    elasticSearch: item.elasticSearch == undefined ? '' : item.elasticSearch.S,
+    elasticSearch: item.elasticSearch === undefined ? '' : item.elasticSearch.S,
+    fuseopsVersion: item.fuseopsVersion === undefined ? '' : item.fuseopsVersion.S,
     dataWarehouseEnabled: item.dataWarehouseEnabled.BOOL,
     featureUseDnsS3Bucket: item.featureUseDnsS3Bucket && item.featureUseDnsS3Bucket.BOOL,
   };
@@ -83,6 +87,7 @@ export interface IOpsDeployment {
   domainName: string;
   size: number;
   elasticSearch: string;
+  fuseopsVersion: string;
   dataWarehouseEnabled: boolean;
   featureUseDnsS3Bucket: boolean;
 }

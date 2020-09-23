@@ -139,7 +139,15 @@ export class OpsStackData extends DataSource implements IOpsStackData {
     const targetGroupArn = await this.opsAlb.addTargetGroup(deployment, id);
     await awsAutoScale.attachToTargetGroup(autoScaleName, targetGroupArn);
 
-    const stack = { id, deploymentName, tag, size: size as number, region: deployment.region, active: false };
+    const stack = {
+      id,
+      deploymentName,
+      tag,
+      size: size as number,
+      region: deployment.region,
+      active: false,
+      fuseopsVersion: process.env.FUSEOPS_VERSION || '',
+    };
     await this.tables.stackTable.add(stack);
 
     return stack;
