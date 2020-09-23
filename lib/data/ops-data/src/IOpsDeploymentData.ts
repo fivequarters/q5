@@ -12,6 +12,7 @@ export interface IOpsDeployment {
   domainName: string;
   size: number;
   elasticSearch: string;
+  fuseopsVersion: string;
   dataWarehouseEnabled: boolean;
   featureUseDnsS3Bucket: boolean;
 }

@@ -312,6 +312,9 @@ export class StackService {
       Text.dim('Elastic Search: '),
       deployment ? deployment.elasticSearch : '',
       Text.eol(),
+      Text.dim('fuse-ops Version: '),
+      stack.fuseopsVersion,
+      Text.eol(),
       Text.dim('Status: '),
       stack.active ? 'ACTIVE' : 'NOT ACTIVE',
     ];

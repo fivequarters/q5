@@ -54,7 +54,8 @@ function fromItem(item: any): IOpsDeployment {
     networkName: item.networkName.S,
     domainName: item.domainName.S,
     size: parseInt(item.size.N, 10),
-    elasticSearch: item.elasticSearch == undefined ? '' : item.elasticSearch.S,
+    elasticSearch: item.elasticSearch === undefined ? '' : item.elasticSearch.S,
+    fuseopsVersion: item.fuseopsVersion === undefined ? '' : item.fuseopsVersion.S,
     dataWarehouseEnabled: item.dataWarehouseEnabled.BOOL,
     featureUseDnsS3Bucket: item.featureUseDnsS3Bucket && item.featureUseDnsS3Bucket.BOOL,
   };
@@ -86,6 +87,7 @@ export interface IOpsDeployment {
   domainName: string;
   size: number;
   elasticSearch: string;
+  fuseopsVersion: string;
   dataWarehouseEnabled: boolean;
   featureUseDnsS3Bucket: boolean;
 }
