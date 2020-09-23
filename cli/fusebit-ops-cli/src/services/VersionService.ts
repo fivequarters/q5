@@ -3,13 +3,7 @@ import { join } from 'path';
 import { readFile } from '@5qtrs/file';
 
 export async function getVersion() {
-  let version;
-  const path = join(__dirname, '..', '..', 'package.json');
-  const buffer = await readFile(path);
-  const content = buffer.toString();
-  const json = JSON.parse(content);
-  version = json.version;
-  return version;
+  return require('../../package.json').version;
 }
 
 // ----------------
