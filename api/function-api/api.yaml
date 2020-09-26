@@ -32,6 +32,8 @@ tags:
     description: Function management operations
 #  - name: Statistics
 #    description: Statistical queries on function behavior
+#  - name: Registries
+#    description: Package registries for private implementations
 
 paths:
   /v1/account/{accountId}:
@@ -2283,8 +2285,178 @@ paths:
 #      security:
 #        - AccessToken: []
 #
-#
-#
+####################################################
+  v1/account/{accountId}/subscription/{subscriptionId}/registry/{registryId}:
+    parameters:
+      - name: accountId
+        in: path
+        required: true
+        description: Account id
+        schema:
+          $ref: '#/components/schemas/AccountId'
+      - name: subscriptionId
+        in: path
+        description: The subscription id
+        required: true
+        schema:
+          $ref: '#/components/schemas/SubscriptionId'
+      - name: registryId
+        in: path
+        description: The registry id
+        required: true
+        schema:
+          $ref: '#/components/schemas/RegistryId'
+    get:
+      tags:
+        - Registry
+      summary: Get the registry configuration
+      description: |
+        Returns the configuration for the specified registry
+      operationId: getRegistry
+      responses:
+        200:
+          description: Response body contains the requested data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Registry/Get'
+        403:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        404:
+          description: Query was not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - AccessToken: []
+
+    patch:
+      tags:
+        - Registry
+      summary: Update a registry configuration
+      description: |
+        Change the configuration of a registry
+      operationId: patchRegistry
+      requestBody:
+        description: The details of the registry to update
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Registry'
+      responses:
+        200:
+          description: Patch successfully applied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Registry/Get'
+        403:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        404:
+          description: Query was not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - AccessToken: []
+
+    put:
+      tags:
+        - Registry
+      summary: Creates a new registry with the specified name
+      description: |
+        Creates a new registry, with the supplied configuration.
+      operationId: putRegistry
+      requestBody:
+        description: The registry to create
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Registry/Put'
+      responses:
+        200:
+          description: Registry successfully created
+        400:
+          description: Malformed registry specification
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        403:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - AccessToken: []
+
+    delete:
+      tags:
+        - Registry
+      summary: Deletes an existing registry
+      description: |
+        Delete a registry with this id.
+      operationId: deleteRegistry
+      responses:
+        200:
+          description: Registry successfully deleted
+        400:
+          description: Malformed registry specification
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        403:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        404:
+          description: Registry not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - AccessToken: []
+
+  v1/account/{accountId}/subscription/{subscriptionId}/registry/{registryId}/npm:
+    parameters:
+      - name: accountId
+        in: path
+        required: true
+        description: Account id
+        schema:
+          $ref: '#/components/schemas/AccountId'
+      - name: subscriptionId
+        in: path
+        description: The subscription id
+        required: true
+        schema:
+          $ref: '#/components/schemas/SubscriptionId'
+      - name: registryId
+        in: path
+        description: The registry id
+        required: true
+        schema:
+          $ref: '#/components/schemas/RegistryId'
+    description: |
+      An endpoint that conforms to the protocol supported by the `npm` command line tool, which can be used to publish and retrieve packages from this registry.
+ 
   # /v1/account/{accountId}/subscription/{subscriptionId}/storage:
   #   parameters:
   #     - in: path

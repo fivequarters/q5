@@ -18,5 +18,6 @@ function getHealth() {
 }
 
 module.exports = {
+  version,
   getHealth,
 };

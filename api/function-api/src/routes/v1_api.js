@@ -21,6 +21,8 @@ const client = require('./handlers/client');
 const agent = require('./handlers/agent');
 const audit = require('./handlers/audit');
 const statistics = require('./handlers/statistics');
+const npm = require('./handlers/npm');
+const registry = require('./handlers/registry');
 
 const { StorageActions } = require('@5qtrs/storage');
 const storage = require('./handlers/storage');
@@ -731,6 +733,250 @@ router.get(
   authorize({ operation: 'function:get' }),
   validate_schema({ params: require('./schemas/api_params') }),
   statistics.statisticsGet(),
+  analytics.finished
+);
+
+// Registry Service
+const registryBase = '/account/:accountId/subscription/:subscriptionId/registry/:registryId';
+
+router.options(registryBase, cors(corsManagementOptions));
+router.get(
+  registryBase,
+  analytics.enterHandler(analytics.Modes.Administration),
+  cors(corsManagementOptions),
+  //validate_schema({ params: require('./schemas/api_account') }),
+  authorize({ operation: 'registry:get' }),
+  //validate_schema({ params: require('./schemas/api_params'), }),
+  user_agent(),
+  determine_provider(),
+  registry.registryGet(),
+  analytics.finished
+);
+
+router.options(registryBase, cors(corsManagementOptions));
+router.patch(
+  registryBase,
+  analytics.enterHandler(analytics.Modes.Administration),
+  cors(corsManagementOptions),
+  //validate_schema({ params: require('./schemas/api_account') }),
+  authorize({ operation: 'registry:put' }),
+  //validate_schema({ params: require('./schemas/api_params'), }),
+  user_agent(),
+  determine_provider(),
+  registry.registryPatch(),
+  analytics.finished
+);
+
+router.options(registryBase, cors(corsManagementOptions));
+router.put(
+  registryBase,
+  analytics.enterHandler(analytics.Modes.Administration),
+  cors(corsManagementOptions),
+  //validate_schema({ params: require('./schemas/api_account') }),
+  authorize({ operation: 'registry:put' }),
+  //validate_schema({ params: require('./schemas/api_params'), }),
+  user_agent(),
+  determine_provider(),
+  registry.registryPut(),
+  analytics.finished
+);
+
+router.options(registryBase, cors(corsManagementOptions));
+router.delete(
+  registryBase,
+  analytics.enterHandler(analytics.Modes.Administration),
+  cors(corsManagementOptions),
+  //validate_schema({ params: require('./schemas/api_account') }),
+  authorize({ operation: 'registry:delete' }),
+  //validate_schema({ params: require('./schemas/api_params'), }),
+  user_agent(),
+  determine_provider(),
+  registry.registryDelete(),
+  analytics.finished
+);
+
+// NPM Service
+const registryNpmBase = '/account/:accountId/subscription/:subscriptionId/registry/:registryId/npm';
+
+router.options(registryNpmBase + '/-/version', cors(corsManagementOptions));
+router.get(
+  registryNpmBase + '/-/version',
+  analytics.enterHandler(analytics.Modes.Administration),
+  cors(corsManagementOptions),
+  //validate_schema({ params: require('./schemas/api_account') }),
+  authorize({ operation: 'registry:get' }),
+  //validate_schema({ params: require('./schemas/api_params'), }),
+  user_agent(),
+  determine_provider(),
+  npm.versionGet(),
+  analytics.finished
+);
+
+router.options(registryNpmBase + '/-/ping', cors(corsManagementOptions));
+router.get(
+  registryNpmBase + '/-/ping',
+  analytics.enterHandler(analytics.Modes.Administration),
+  cors(corsManagementOptions),
+  //validate_schema({ params: require('./schemas/api_account') }),
+  authorize({ operation: 'registry:get' }),
+  //validate_schema({ params: require('./schemas/api_params'), }),
+  user_agent(),
+  determine_provider(),
+  npm.pingGet(),
+  analytics.finished
+);
+
+router.options(registryNpmBase + '/:scope?/:name/-/:scope2?/:filename/:sha?', cors(corsManagementOptions));
+router.get(
+  registryNpmBase + '/:scope?/:name/-/:scope2?/:filename/:sha',
+  analytics.enterHandler(analytics.Modes.Administration),
+  cors(corsManagementOptions),
+  //validate_schema({ params: require('./schemas/api_account') }),
+  authorize({ operation: 'registry:get' }),
+  //validate_schema({ params: require('./schemas/api_params'), }),
+  user_agent(),
+  determine_provider(),
+  npm.tarballGet(),
+  analytics.finished
+);
+
+router.options(registryNpmBase + '/:name', cors(corsManagementOptions));
+router.put(
+  registryNpmBase + '/:name',
+  analytics.enterHandler(analytics.Modes.Administration),
+  cors(corsManagementOptions),
+  //validate_schema({ params: require('./schemas/api_account') }),
+  authorize({ operation: 'registry:put' }),
+  //validate_schema({ params: require('./schemas/api_params'), }),
+  user_agent(),
+  determine_provider(),
+  npm.packagePut(),
+  analytics.finished
+);
+
+router.options(registryNpmBase + '/:name', cors(corsManagementOptions));
+router.get(
+  registryNpmBase + '/:name',
+  analytics.enterHandler(analytics.Modes.Administration),
+  cors(corsManagementOptions),
+  //validate_schema({ params: require('./schemas/api_account') }),
+  authorize({ operation: 'registry:put' }),
+  //validate_schema({ params: require('./schemas/api_params'), }),
+  user_agent(),
+  determine_provider(),
+  npm.packageGet(),
+  analytics.finished
+);
+
+router.options(registryNpmBase + '/-/invalidate/:name', cors(corsManagementOptions));
+router.post(
+  registryNpmBase + '/-/invalidate/:name',
+  analytics.enterHandler(analytics.Modes.Administration),
+  cors(corsManagementOptions),
+  //validate_schema({ params: require('./schemas/api_account') }),
+  authorize({ operation: 'registry:put' }),
+  //validate_schema({ params: require('./schemas/api_params'), }),
+  user_agent(),
+  determine_provider(),
+  npm.invalidatePost(),
+  analytics.finished
+);
+
+router.options(registryNpmBase + '/-/package/:name/dist-tags', cors(corsManagementOptions));
+router.post(
+  registryNpmBase + '/-/package/:name/dist-tags',
+  analytics.enterHandler(analytics.Modes.Administration),
+  cors(corsManagementOptions),
+  //validate_schema({ params: require('./schemas/api_account') }),
+  authorize({ operation: 'registry:put' }),
+  //validate_schema({ params: require('./schemas/api_params'), }),
+  user_agent(),
+  determine_provider(),
+  npm.distTagsGet(),
+  analytics.finished
+);
+
+router.options(registryNpmBase + '/-/package/:name/dist-tags/:tag', cors(corsManagementOptions));
+router.put(
+  registryNpmBase + '/-/package/:name/dist-tags/:tag',
+  analytics.enterHandler(analytics.Modes.Administration),
+  cors(corsManagementOptions),
+  //validate_schema({ params: require('./schemas/api_account') }),
+  authorize({ operation: 'registry:put' }),
+  //validate_schema({ params: require('./schemas/api_params'), }),
+  user_agent(),
+  determine_provider(),
+  npm.distTagsPut(),
+  analytics.finished
+);
+
+router.options(registryNpmBase + '/-/package/:name/dist-tags/:tag', cors(corsManagementOptions));
+router.delete(
+  registryNpmBase + '/-/package/:name/dist-tags/:tag',
+  analytics.enterHandler(analytics.Modes.Administration),
+  cors(corsManagementOptions),
+  //validate_schema({ params: require('./schemas/api_account') }),
+  authorize({ operation: 'registry:put' }),
+  //validate_schema({ params: require('./schemas/api_params'), }),
+  user_agent(),
+  determine_provider(),
+  npm.distTagsDelete(),
+  analytics.finished
+);
+
+router.options(registryNpmBase + '/-/api/v1/packages', cors(corsManagementOptions));
+router.get(
+  registryNpmBase + '/-/api/v1/packages',
+  analytics.enterHandler(analytics.Modes.Administration),
+  cors(corsManagementOptions),
+  //validate_schema({ params: require('./schemas/api_account') }),
+  authorize({ operation: 'registry:get' }),
+  //validate_schema({ params: require('./schemas/api_params'), }),
+  user_agent(),
+  determine_provider(),
+  npm.allPackagesGet(),
+  analytics.finished
+);
+
+router.options(registryNpmBase + '/-/user/:user', cors(corsManagementOptions));
+router.put(
+  registryNpmBase + '/-/user/:user',
+  analytics.enterHandler(analytics.Modes.Administration),
+  cors(corsManagementOptions),
+  //validate_schema({ params: require('./schemas/api_account') }),
+  authorize({ operation: 'registry:get' }),
+  //validate_schema({ params: require('./schemas/api_params'), }),
+  user_agent(),
+  determine_provider(),
+  npm.loginPut(), // Always will succeed
+  analytics.finished
+);
+
+router.options(registryNpmBase + '/-/whoami', cors(corsManagementOptions));
+router.get(
+  registryNpmBase + '/-/whoami',
+  analytics.enterHandler(analytics.Modes.Administration),
+  cors(corsManagementOptions),
+  //validate_schema({ params: require('./schemas/api_account') }),
+  authorize({ operation: 'registry:get' }),
+  //validate_schema({ params: require('./schemas/api_params'), }),
+  user_agent(),
+  determine_provider(),
+  npm.whoamiGet(),
+  analytics.finished
+);
+
+router.options(registryNpmBase + '/-/npm/v1/security/audits', cors(corsManagementOptions));
+router.post(
+  registryNpmBase + '/-/npm/v1/security/audits',
+  analytics.enterHandler(analytics.Modes.Administration),
+  cors(corsManagementOptions),
+  //validate_schema({ params: require('./schemas/api_account') }),
+  authorize({ operation: 'registry:get' }),
+  //validate_schema({ params: require('./schemas/api_params'), }),
+  user_agent(),
+  determine_provider(),
+  npm.auditPost(),
   analytics.finished
 );
 
