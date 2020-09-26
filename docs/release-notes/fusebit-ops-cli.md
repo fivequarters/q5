@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.24.8
+
+_Released XX/XX/20_
+
+- **NFC.** Correct output on the `action regenTags` command to accurately reflect the number of subscriptions loaded.
+
 ## Version 1.24.7
 
 _Released 9/22/20_
