@@ -17,6 +17,13 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.17.7
+
+_Released 09/24/20_
+
+- **Enhancement.** ElasticSearch: Reduce the number of shards per index.
+- **Enhancement.** ElasticSearch: Name indexes on month granularity, rather than day, and include the region.
+
 ## Version 1.17.6
 
 _Released 9/3/20_

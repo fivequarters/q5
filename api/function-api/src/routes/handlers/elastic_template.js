@@ -1,5 +1,8 @@
 const fusebitTemplate = {
   index_patterns: ['fusebit-*'],
+  settings: {
+    number_of_shards: 1,
+  },
   mappings: {
     properties: {
       '@id': {
@@ -1450,7 +1453,13 @@ const fusebitTemplate = {
                 },
               },
               next: {
-                type: 'long',
+                type: 'text',
+                fields: {
+                  keyword: {
+                    type: 'keyword',
+                    ignore_above: 256,
+                  },
+                },
               },
               returnTo: {
                 type: 'text',
