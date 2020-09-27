@@ -857,6 +857,11 @@ router.put(
 router.options(registryNpmBase + '/:name', cors(corsManagementOptions));
 router.get(
   registryNpmBase + '/:name',
+  (req, res, next) => {
+    /* XXX XXX XXX XXX */
+    console.log(req.method, req.url, req.headers);
+    return next();
+  },
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
   //validate_schema({ params: require('./schemas/api_account') }),

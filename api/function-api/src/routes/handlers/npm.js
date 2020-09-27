@@ -16,48 +16,48 @@ const pingGet = () => {
 const tarballGet = () => {
   return async (req, res, next) => {
     const pkg = `${req.params.scope ? req.params.scope + '/' : ''}${req.params.name}`;
-    return httpError(501, `unsupported tarballGet '${pkg}'`);
+    return next(httpError(501, `unsupported tarballGet '${pkg}'`));
   };
 };
 
 const packagePut = () => {
   return async (req, res, next) => {
-    return httpError(501, `unsupported packagePut '${req.params.name}'`);
+    return next(httpError(501, `unsupported packagePut '${req.params.name}'`));
   };
 };
 
 const packageGet = () => {
   return async (req, res, next) => {
-    return httpError(501, `unsupported packageGet '${req.params.name}'`);
+    return next(httpError(404, `unsupported packageGet '${req.params.name}'`));
   };
 };
 
 const invalidatePost = () => {
   return async (req, res, next) => {
-    return httpError(501, `unsupported invalidatePost '${req.params.name}'`);
+    return next(httpError(501, `unsupported invalidatePost '${req.params.name}'`));
   };
 };
 
 const distTagsGet = () => {
   return async (req, res, next) => {
-    return httpError(501, `unsupported distTagsGet '${req.params.name}'`);
+    return next(httpError(501, `unsupported distTagsGet '${req.params.name}'`));
   };
 };
 const distTagsPut = () => {
   return async (req, res, next) => {
-    return httpError(501, `unsupported distTagsPut '${req.params.name}/${req.params.tag}'`);
+    return next(httpError(501, `unsupported distTagsPut '${req.params.name}/${req.params.tag}'`));
   };
 };
 
 const distTagsDelete = () => {
   return async (req, res, next) => {
-    return httpError(501, `unsupported distTagsDelete '${req.params.name}/${req.params.tag}'`);
+    return next(httpError(501, `unsupported distTagsDelete '${req.params.name}/${req.params.tag}'`));
   };
 };
 
 const allPackagesGet = () => {
   return async (req, res, next) => {
-    return httpError(501, `unsupported allPackagesGet`);
+    return next(httpError(501, `unsupported allPackagesGet`));
   };
 };
 
@@ -76,7 +76,7 @@ const whoamiGet = () => {
 
 const auditPost = () => {
   return async (req, res, next) => {
-    return httpError(501, `unsupported auditPost`);
+    return next(httpError(501, `unsupported auditPost`));
   };
 };
 
