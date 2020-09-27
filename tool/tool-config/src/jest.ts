@@ -3,7 +3,7 @@
 // ------------------
 
 export const jest: any = {
-  moduleFileExtensions: ['ts', 'tsx', 'js'],
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'json'],
   transform: {
     '\\.(ts|tsx)$': 'ts-jest',
   },

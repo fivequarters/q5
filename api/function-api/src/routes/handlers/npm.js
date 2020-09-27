@@ -44,13 +44,15 @@ const distTagsGet = () => {
   };
 };
 const distTagsPut = () => {
-  return httpError(501, `unsupported distTagsPut '${req.params.name}/${req.params.tag}'`);
-  return async (req, res, next) => {};
+  return async (req, res, next) => {
+    return httpError(501, `unsupported distTagsPut '${req.params.name}/${req.params.tag}'`);
+  };
 };
 
 const distTagsDelete = () => {
-  return httpError(501, `unsupported distTagsDelete '${req.params.name}/${req.params.tag}'`);
-  return async (req, res, next) => {};
+  return async (req, res, next) => {
+    return httpError(501, `unsupported distTagsDelete '${req.params.name}/${req.params.tag}'`);
+  };
 };
 
 const allPackagesGet = () => {
@@ -88,7 +90,7 @@ module.exports = {
   distTagsGet,
   distTagsPut,
   distTagsDelete,
-  packagesGet,
+  allPackagesGet,
   loginPut,
   whoamiGet,
   auditPost,
