@@ -1,0 +1,90 @@
+{
+    "objects": [
+        {
+            "package": {
+                "name": "@fusebit/add-on-sdk",
+                "scope": "fusebit",
+                "version": "2.0.0",
+                "description": "SDK for implementing Fusebit Add-Ons",
+                "date": "2020-09-04T00:41:41.137Z",
+                "links": {
+                    "npm": "https://www.npmjs.com/package/%40fusebit%2Fadd-on-sdk"
+                },
+                "author": {
+                    "name": "https://fusebit.io"
+                },
+                "publisher": {
+                    "username": "yavorg",
+                    "email": "yavor@fusebit.io"
+                },
+                "maintainers": [
+                    {
+                        "username": "bennbollay",
+                        "email": "bb.npm@magitech.org"
+                    },
+                    {
+                        "username": "tjanczuk",
+                        "email": "tomasz@janczuk.org"
+                    },
+                    {
+                        "username": "yavorg",
+                        "email": "yavor@fusebit.io"
+                    }
+                ]
+            },
+            "score": {
+                "final": 0.2513625613937309,
+                "detail": {
+                    "quality": 0.43766589469367434,
+                    "popularity": 0.009703218054177107,
+                    "maintenance": 0.3333333333333333
+                }
+            },
+            "searchScore": 1.2154635e-08
+        },
+        {
+            "package": {
+                "name": "@fusebit/cli",
+                "scope": "fusebit",
+                "version": "1.8.4",
+                "description": "The Fusebit CLI is a command-line tool for the management of Fusebit accounts, users, functions and more. For more information about the Fusebit platform, see [https://fusebit.io](https://fusebit.io)",
+                "date": "2020-09-01T22:04:16.907Z",
+                "links": {
+                    "npm": "https://www.npmjs.com/package/%40fusebit%2Fcli"
+                },
+                "author": {
+                    "name": "https://fusebit.io"
+                },
+                "publisher": {
+                    "username": "bennbollay",
+                    "email": "bb.npm@magitech.org"
+                },
+                "maintainers": [
+                    {
+                        "username": "bennbollay",
+                        "email": "bb.npm@magitech.org"
+                    },
+                    {
+                        "username": "yavorg",
+                        "email": "yavor@fusebit.io"
+                    },
+                    {
+                        "username": "tjanczuk",
+                        "email": "tomasz@janczuk.org"
+                    }
+                ]
+            },
+            "score": {
+                "final": 0.17842324550867156,
+                "detail": {
+                    "quality": 0.19525585331545212,
+                    "popularity": 0.009085208135340778,
+                    "maintenance": 0.3333333333333333
+                }
+            },
+            "searchScore": 1.0667272e-10
+        }
+    ],
+    "total": 2,
+    "time": "Tue Sep 29 2020 22:00:49 GMT+0000 (UTC)"
+}

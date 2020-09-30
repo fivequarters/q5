@@ -135,7 +135,9 @@
       "@5qtrs/lambda-dwh": ["lib/runtime/lambda-dwh/src"],
       "@5qtrs/ops-lambda-set": ["lib/runtime/ops-lambda-set/src"],
       "@5qtrs/constants": ["lib/constants/src"],
-      "@5qtrs/function-tags": ["lib/server/function-tags/src"]
+      "@5qtrs/function-tags": ["lib/server/function-tags/src"],
+      "@5qtrs/npm": ["lib/server/npm/src"],
+      "@5qtrs/registry": ["lib/server/registry/src"]
     }
   }
 }

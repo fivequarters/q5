@@ -4,6 +4,7 @@ const { getAWSCredentials } = require('../credentials');
 let version = '<unknown>';
 try {
   version = require(join(__dirname, '..', '..', '..', '..', '..', 'package.json')).version;
+  process.env.FUNCTION_API_VERSION = version;
 } catch (_) {}
 
 function getHealth() {

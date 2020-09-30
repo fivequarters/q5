@@ -23,6 +23,7 @@
     { "path": "../../lib/server/storage" },
     { "path": "../../lib/server/function-lambda" },
     { "path": "../../lib/constants" },
-    { "path": "../../lib/server/function-tags" }
+    { "path": "../../lib/server/function-tags" },
+    { "path": "../../lib/server/npm" }
   ]
 }
