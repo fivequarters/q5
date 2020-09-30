@@ -22,4 +22,4 @@ This page contains download links for the components of the Fusebit platform. A 
 - Fusebit Portal: `fuse-ops portal deploy`
 - Fusebit HTTP API
   - Cloud deployment - `https://api.{region}.fusebit.io/v1`
-  - Private deployment image - `fuse-ops image pull 1.17.8`
+  - Private deployment image - `fuse-ops image pull 1.17.9`
