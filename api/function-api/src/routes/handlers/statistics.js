@@ -390,8 +390,7 @@ const makeQuery = async (request, key, queryParams = null) => {
   }
 
   // Make the request to elasticsearch
-  let response = await postES(`/fusebit-${process.env.DEPLOYMENT_KEY}-*/_search`, body);
-
+  let response = await postES(`/fusebit-${process.env.AWS_REGION}-${process.env.DEPLOYMENT_KEY}-*/_search`, body);
   if (response.statusCode == 200) {
     let payload;
     try {

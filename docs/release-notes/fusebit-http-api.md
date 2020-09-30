@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.17.9
+
+_Released 9/30/20_
+
+- **Bug fix.** Scope ElasticSearch queries correctly for region-restricted indexes.
+
 ## Version 1.17.8
 
 _Released 9/29/20_
