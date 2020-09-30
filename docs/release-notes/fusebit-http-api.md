@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.17.7
+
+_Released 9/29/20_
+
+- **Bug fix.** Fix for HTTP 500 when searching for functions using search criteria.
+
 ## Version 1.17.6
 
 _Released 9/3/20_

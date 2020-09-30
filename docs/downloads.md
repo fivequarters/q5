@@ -6,7 +6,7 @@ nav_exclude: true
 
 # Downloads
 
-_Last updated August 25, 2020_
+_Last updated September 29, 2020_
 
 This page contains download links for the components of the Fusebit platform. A description of our versioning and support policy is available [here](https://fusebit.io/docs/integrator-guide/versioning/).
 
@@ -22,4 +22,4 @@ This page contains download links for the components of the Fusebit platform. A 
 - Fusebit Portal: `fuse-ops portal deploy`
 - Fusebit HTTP API
   - Cloud deployment - `https://api.{region}.fusebit.io/v1`
-  - Private deployment image - `fuse-ops image pull 1.17.4`
+  - Private deployment image - `fuse-ops image pull 1.17.7`
