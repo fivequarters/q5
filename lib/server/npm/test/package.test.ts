@@ -1,16 +1,17 @@
-import { Request, Response } from 'express';
+import { Express, NextFunction, Request, Response } from 'express';
 import express from 'express';
+
+import bodyParser from 'body-parser';
+
 import * as fs from 'fs';
 import * as http from 'http';
 import libnpm from 'libnpm';
 import { AddressInfo } from 'net';
 
-import bodyParser from 'body-parser';
-
 import { packageGet, packagePut, searchGet, tarballGet } from '../src';
 import { IFunctionApiRequest } from '../src/request';
 
-const log = console.log;
+import { MemRegistry } from '@5qtrs/registry';
 
 const enableForceClose = (server: http.Server) => {
   const sockets = new Set();
@@ -23,35 +24,6 @@ const enableForceClose = (server: http.Server) => {
 
   return () => {
     sockets.forEach((s: any) => s.destroy());
-  };
-};
-
-const mockRegistry = () => {
-  const registry: { [key: string]: any } = { pkg: {}, tgz: {} };
-  return {
-    registry,
-    handler: (reqExpress: Request, res: Response, next: any) => {
-      const req: IFunctionApiRequest = reqExpress as IFunctionApiRequest;
-
-      req.registry = {
-        put: (key: string, pkg: any, payload: any): number => {
-          registry.pkg[key] = pkg;
-          registry.tgz[key] = payload;
-          return 200;
-        },
-        get: (key: any): any => {
-          return registry.pkg[key];
-        },
-        tarball: (key: any): any => {
-          return registry.tgz[key];
-        },
-        search: (keywords: string[]): any => {
-          return {};
-        },
-      };
-
-      return next();
-    },
   };
 };
 
@@ -69,17 +41,18 @@ const startServer = async (app: express.Application) => {
 
 const startExpress = async (): Promise<any> => {
   const app = express();
-  const { registry, handler: regHandler } = mockRegistry();
   const { server, forceClose, port } = await startServer(app);
 
+  const { registry, handler } = MemRegistry.handler();
+
   app.use(bodyParser.json());
-  app.use(regHandler);
-  app.use((req: any, res: any, next: any) => {
-    log(`${req.method} ${req.url}\n${JSON.stringify(req.headers)}\n${JSON.stringify(req.body, null, 2)}`);
+  app.use(handler);
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    console.log(`${req.method} ${req.url}\n${JSON.stringify(req.headers)}\n${JSON.stringify(req.body, null, 2)}`);
     return next();
   });
 
-  return { app, registry, regHandler, server, forceClose, port };
+  return { app, registry, server, forceClose, port };
 };
 
 let globalServer: any;
@@ -115,7 +88,7 @@ describe('packagePut', () => {
 
     // Publish a package
     await libnpm.publish(manifest, tarData, { registry: url });
-    expect(registry.pkg['@testscope/foobar'].name).toBeTruthy();
+    expect(registry.registry.pkg['@testscope/foobar'].name).toBeTruthy();
 
     // Get a package
     m = await libnpm.manifest('@testscope/foobar', { registry: url });

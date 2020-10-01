@@ -1,25 +1,21 @@
-const { version } = require('./health');
-const httpError = require('http-errors');
+import { Response } from 'express';
+import { IFunctionApiRequest } from './request';
 
 const distTagsGet = () => {
-  return async (req, res, next) => {
-    return next(httpError(501, `unsupported distTagsGet '${req.params.name}'`));
+  return async (req: IFunctionApiRequest, res: Response) => {
+    return res.status(501).json({ status: 501, statusCode: 501, message: 'distTagsGet' });
   };
 };
 const distTagsPut = () => {
-  return async (req, res, next) => {
-    return next(httpError(501, `unsupported distTagsPut '${req.params.name}/${req.params.tag}'`));
+  return async (req: IFunctionApiRequest, res: Response) => {
+    return res.status(501).json({ status: 501, statusCode: 501, message: 'distTagsPut' });
   };
 };
 
 const distTagsDelete = () => {
-  return async (req, res, next) => {
-    return next(httpError(501, `unsupported distTagsDelete '${req.params.name}/${req.params.tag}'`));
+  return async (req: IFunctionApiRequest, res: Response) => {
+    return res.status(501).json({ status: 501, statusCode: 501, message: 'distTagsDelete' });
   };
 };
 
-module.exports = {
-  distTagsGet,
-  distTagsPut,
-  distTagsDelete,
-};
+export { distTagsGet, distTagsPut, distTagsDelete };

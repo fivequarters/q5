@@ -38,7 +38,7 @@ const packagePut = () => {
     }
 
     // Get the existing manifest:
-    const existing = req.registry.get(pkg.name);
+    const existing = await req.registry.get(pkg.name);
     if (existing) {
       // Copy over the necessary elements
       pkg.versions = { ...existing.versions, ...pkg.versions };
@@ -50,7 +50,7 @@ const packagePut = () => {
     pkg.date = new Date().toUTCString();
 
     // Save the attachment in the registry, and merge the previous document from dynamo
-    req.registry.put(pkg.name, pkg, payload);
+    await req.registry.put(pkg.name, pkg, payload);
 
     res.status(201).json({});
   };
@@ -59,7 +59,7 @@ const packagePut = () => {
 const packageGet = () => {
   return async (req: IFunctionApiRequest, res: Response) => {
     const etag = req.headers['if-none-match'];
-    const pkg = req.registry.get(req.params.name);
+    const pkg = await req.registry.get(req.params.name);
     if (!pkg) {
       return res.status(404).json({ status: 404, statusCode: 404, message: 'package not found' });
     }

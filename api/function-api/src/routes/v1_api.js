@@ -21,7 +21,7 @@ const client = require('./handlers/client');
 const agent = require('./handlers/agent');
 const audit = require('./handlers/audit');
 const statistics = require('./handlers/statistics');
-const npm = require('./handlers/npm');
+const npm = require('@5qtrs/npm');
 const registry = require('./handlers/registry');
 
 const { StorageActions } = require('@5qtrs/storage');

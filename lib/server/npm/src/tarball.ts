@@ -5,8 +5,8 @@ const tarballGet = () => {
   return async (req: IFunctionApiRequest, res: Response) => {
     const pkgName = `${req.params.scope ? req.params.scope + '/' : ''}${req.params.name}`;
 
-    const pkg = req.registry.get(pkgName);
-    const tgz = req.registry.tarball(pkgName);
+    const pkg = await req.registry.get(pkgName);
+    const tgz = await req.registry.tarball(pkgName);
     if (!tgz) {
       res.status(404).json({ status: 404, statusCode: 404, message: `unknown pkg ${pkgName}` });
     }

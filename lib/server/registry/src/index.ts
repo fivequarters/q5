@@ -1,11 +1,4 @@
-export interface IRegistryStore {
-  // Load the existing entry
-  // Add the _attachments field to it
-  // Add the versions field to it
-  // Save it, validating etag
+import { MemRegistry } from './MemRegistry';
+import { IRegistryStore } from './Registry';
 
-  put: (key: any, version: any, payload: any) => number;
-  get: (key: any) => any;
-  tarball: (key: any) => any;
-  search: (keywords: string[]) => any;
-}
+export { MemRegistry, IRegistryStore };
