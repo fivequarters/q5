@@ -8,7 +8,6 @@ class PackagePutException extends Error {}
 
 const packagePut = () => {
   return async (req: IFunctionApiRequest, res: Response) => {
-    console.log(`${req.method} ${req.url}`);
     // Get pkg
     const pkg = req.body;
     if (Object.keys(pkg._attachments).length !== 1 || Object.keys(pkg.versions).length !== 1) {
@@ -59,7 +58,6 @@ const packagePut = () => {
 
 const packageGet = () => {
   return async (req: IFunctionApiRequest, res: Response) => {
-    console.log(`${req.method} ${req.url}`);
     const etag = req.headers['if-none-match'];
     const pkg = req.registry.get(req.params.name);
     if (!pkg) {

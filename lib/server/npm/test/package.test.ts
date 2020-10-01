@@ -35,21 +35,17 @@ const mockRegistry = () => {
 
       req.registry = {
         put: (key: string, pkg: any, payload: any): number => {
-          log('REG PUT', key, payload.length, 'bytes');
           registry.pkg[key] = pkg;
           registry.tgz[key] = payload;
           return 200;
         },
         get: (key: any): any => {
-          log('REG GET', key);
           return registry.pkg[key];
         },
         tarball: (key: any): any => {
-          log('REG TAR', key);
           return registry.tgz[key];
         },
         search: (keywords: string[]): any => {
-          log('REG SEARCH', keywords);
           return {};
         },
       };
@@ -97,44 +93,43 @@ afterEach(async () => {
   await new Promise((resolve, reject) => globalServer.server.close(resolve));
 });
 
+const createServer = () => {
+  const { app, registry, server, forceClose, port } = globalServer;
+  app.put(`/:name`, packagePut());
+  app.get(`/:name`, packageGet());
+  app.get('/:scope?/:name/-/:scope2?/:filename/', tarballGet());
+  app.get('/-/v1/search', searchGet());
+  const url = `http://localhost:${port}/`;
+
+  return { registry, url };
+};
+
 describe('packagePut', () => {
   it('putAddsRegistry', async () => {
-    const { app, registry, server, forceClose, port } = globalServer;
-    app.put(`/:name`, packagePut());
-    app.get(`/:name`, packageGet());
-    app.get('/:scope?/:name/-/:scope2?/:filename/', tarballGet());
-    app.get('/-/v1/search', searchGet());
-    const url = `http://localhost:${port}/`;
+    const { registry, url } = createServer();
 
     const manifest = JSON.parse(fs.readFileSync('test/mock/sample-npm.manifest.json').toString('utf8'));
     const tarData = fs.readFileSync('test/mock/sample-npm.tgz');
 
+    let m: any;
+
     // Publish a package
-    try {
-      await libnpm.publish(manifest, tarData, { registry: url });
-    } catch (e) {
-      expect(e.body).toBeNull();
-    }
+    await libnpm.publish(manifest, tarData, { registry: url });
     expect(registry.pkg['@testscope/foobar'].name).toBeTruthy();
 
     // Get a package
-    try {
-      const m = await libnpm.manifest('@testscope/foobar', { registry: url });
-      expect(m.name).toBe('@testscope/foobar');
-    } catch (e) {
-      expect(e.body).toBeNull();
-    }
+    m = await libnpm.manifest('@testscope/foobar', { registry: url });
+    expect(m.name).toBe('@testscope/foobar');
+
+    // Get a tarball
+    m = await libnpm.tarball('@testscope/foobar', { registry: url });
+    expect(m).toHaveLength(tarData.length);
+    expect(m.equals(tarData)).toBeTruthy();
 
     // Search for a package
-    try {
-      let m = await libnpm.search('foo', { registry: url });
-      expect(m).toHaveLength(0);
-      m = await libnpm.search('@testscope/foobar', { registry: url });
-      log(m);
-      expect(m).toHaveLength(1);
-    } catch (e) {
-      log(e);
-      expect(e.body.toString()).toBeNull();
-    }
+    m = await libnpm.search('foo', { registry: url });
+    expect(m).toHaveLength(0);
+    m = await libnpm.search('@testscope/foobar', { registry: url });
+    expect(m).toHaveLength(1);
   });
 });
