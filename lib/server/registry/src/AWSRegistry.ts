@@ -4,15 +4,8 @@ import * as Constants from '@5qtrs/constants';
 
 import { IRegistryStore } from './Registry';
 
-const s3 = new AWS.S3({
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  region: process.env.AWS_REGION,
-});
+const s3 = new AWS.S3();
 const ddb = new AWS.DynamoDB({
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  region: process.env.AWS_REGION,
   apiVersion: '2012-08-10',
   httpOptions: {
     timeout: 5000,
@@ -58,7 +51,7 @@ class AWSRegistry implements IRegistryStore {
         Item: {
           category: { S: 'registry-npm-package' },
           key: { S: [this.keyPrefix, key].join('/') },
-          pkg: { S: pkg },
+          pkg: { S: JSON.stringify(pkg) },
         },
       })
       .promise();
@@ -68,12 +61,14 @@ class AWSRegistry implements IRegistryStore {
     // Retrieve record from DynamoDB
     const params = {
       TableName: tableName,
-      Item: {
+      Key: {
         category: { S: 'registry-npm-package' },
         key: { S: [this.keyPrefix, key].join('/') },
       },
     };
-    await ddb.putItem(params).promise();
+
+    const result = await ddb.getItem(params).promise();
+    return result && result.Item && result.Item.pkg ? JSON.parse(result.Item.pkg.S as string) : undefined;
   }
 
   // Presumes the key has already been modified with the subscription/registry warts.

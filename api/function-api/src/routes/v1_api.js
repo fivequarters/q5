@@ -12,6 +12,9 @@ const create_error = require('http-errors');
 const health = require('./handlers/health');
 const { get_function_location } = require('@5qtrs/constants');
 
+const AWS = require('aws-sdk');
+AWS.config.logger = console;
+
 const { AccountActions } = require('@5qtrs/account');
 const account = require('./handlers/account');
 const subscription = require('./handlers/subscription');
@@ -23,6 +26,7 @@ const audit = require('./handlers/audit');
 const statistics = require('./handlers/statistics');
 const npm = require('@5qtrs/npm');
 const registry = require('./handlers/registry');
+const { AWSRegistry } = require('@5qtrs/registry');
 
 const { StorageActions } = require('@5qtrs/storage');
 const storage = require('./handlers/storage');
@@ -40,6 +44,8 @@ var corsExecutionOptions = {
   exposedHeaders: 'x-fx-logs,x-fx-response-source,content-length',
   credentials: true,
 };
+
+const npmRegistry = AWSRegistry;
 
 const NotImplemented = (_, __, next) => next(create_error(501, 'Not implemented'));
 
@@ -801,7 +807,11 @@ const registryNpmBase = '/account/:accountId/subscription/:subscriptionId/regist
 const logEvent = (req, res, next) => {
   /* XXX XXX XXX XXX */
   console.log(
-    `${req.method} ${req.url}\n${JSON.stringify(req.headers, null, 2)}\n${JSON.stringify(req.params, null, 2)}\n`
+    `\n` +
+      `${req.method} ${req.url}\n${JSON.stringify(req.headers, null, 2)}\n` +
+      `${JSON.stringify(req.params, null, 2)}\n` +
+      `${JSON.stringify(req.body, null, 2)}\n` +
+      `${JSON.stringify(req.json, null, 2)}\n`
   );
   return next();
 };
@@ -816,6 +826,7 @@ router.get(
   //validate_schema({ params: require('./schemas/api_params'), }),
   user_agent(),
   determine_provider(),
+  AWSRegistry.handler(),
   npm.versionGet(),
   analytics.finished
 );
@@ -830,6 +841,7 @@ router.get(
   //validate_schema({ params: require('./schemas/api_params'), }),
   user_agent(),
   determine_provider(),
+  AWSRegistry.handler(),
   npm.pingGet(),
   analytics.finished
 );
@@ -845,6 +857,7 @@ router.get(
   //validate_schema({ params: require('./schemas/api_params'), }),
   user_agent(),
   determine_provider(),
+  AWSRegistry.handler(),
   npm.tarballGet(),
   analytics.finished
 );
@@ -852,14 +865,16 @@ router.get(
 router.options(registryNpmBase + '/:name', cors(corsManagementOptions));
 router.put(
   registryNpmBase + '/:name',
-  logEvent,
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
   //validate_schema({ params: require('./schemas/api_account') }),
   authorize({ operation: 'registry:put' }),
+  express.json(),
   //validate_schema({ params: require('./schemas/api_params'), }),
   user_agent(),
   determine_provider(),
+  AWSRegistry.handler(),
+  logEvent,
   npm.packagePut(),
   analytics.finished
 );
@@ -875,6 +890,7 @@ router.get(
   //validate_schema({ params: require('./schemas/api_params'), }),
   user_agent(),
   determine_provider(),
+  AWSRegistry.handler(),
   npm.packageGet(),
   analytics.finished
 );
@@ -887,9 +903,11 @@ router.post(
   cors(corsManagementOptions),
   //validate_schema({ params: require('./schemas/api_account') }),
   authorize({ operation: 'registry:put' }),
+  express.json(),
   //validate_schema({ params: require('./schemas/api_params'), }),
   user_agent(),
   determine_provider(),
+  AWSRegistry.handler(),
   npm.invalidatePost(),
   analytics.finished
 );
@@ -902,9 +920,11 @@ router.post(
   cors(corsManagementOptions),
   //validate_schema({ params: require('./schemas/api_account') }),
   authorize({ operation: 'registry:put' }),
+  express.json(),
   //validate_schema({ params: require('./schemas/api_params'), }),
   user_agent(),
   determine_provider(),
+  AWSRegistry.handler(),
   npm.distTagsGet(),
   analytics.finished
 );
@@ -917,9 +937,11 @@ router.put(
   cors(corsManagementOptions),
   //validate_schema({ params: require('./schemas/api_account') }),
   authorize({ operation: 'registry:put' }),
+  express.json(),
   //validate_schema({ params: require('./schemas/api_params'), }),
   user_agent(),
   determine_provider(),
+  AWSRegistry.handler(),
   npm.distTagsPut(),
   analytics.finished
 );
@@ -935,6 +957,7 @@ router.delete(
   //validate_schema({ params: require('./schemas/api_params'), }),
   user_agent(),
   determine_provider(),
+  AWSRegistry.handler(),
   npm.distTagsDelete(),
   analytics.finished
 );
@@ -950,6 +973,7 @@ router.get(
   //validate_schema({ params: require('./schemas/api_params'), }),
   user_agent(),
   determine_provider(),
+  AWSRegistry.handler(),
   npm.allPackagesGet(),
   analytics.finished
 );
@@ -962,9 +986,11 @@ router.put(
   cors(corsManagementOptions),
   //validate_schema({ params: require('./schemas/api_account') }),
   authorize({ operation: 'registry:get' }),
+  express.json(),
   //validate_schema({ params: require('./schemas/api_params'), }),
   user_agent(),
   determine_provider(),
+  AWSRegistry.handler(),
   npm.loginPut(), // Always will succeed
   analytics.finished
 );
@@ -980,6 +1006,7 @@ router.get(
   //validate_schema({ params: require('./schemas/api_params'), }),
   user_agent(),
   determine_provider(),
+  AWSRegistry.handler(),
   npm.whoamiGet(),
   analytics.finished
 );
@@ -992,9 +1019,11 @@ router.post(
   cors(corsManagementOptions),
   //validate_schema({ params: require('./schemas/api_account') }),
   authorize({ operation: 'registry:get' }),
+  express.json(),
   //validate_schema({ params: require('./schemas/api_params'), }),
   user_agent(),
   determine_provider(),
+  AWSRegistry.handler(),
   npm.auditPost(),
   analytics.finished
 );

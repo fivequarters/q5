@@ -11,7 +11,10 @@ const tarballGet = () => {
       res.status(404).json({ status: 404, statusCode: 404, message: `unknown pkg ${pkgName}` });
     }
 
-    // 303 Redirects are supported by the client, if we want to return a signed url to S3.
+    if (typeof tgz === 'string') {
+      return res.redirect(tgz as string);
+    }
+
     res.set('ETag', pkg.etag).status(200).send(tgz);
   };
 };
