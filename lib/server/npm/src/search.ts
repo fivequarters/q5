@@ -3,20 +3,12 @@ import { IFunctionApiRequest } from './request';
 
 const searchGet = () => {
   return async (req: IFunctionApiRequest, res: Response) => {
-    const pkg = await req.registry.get(req.query.text);
-    if (!pkg) {
-      return res.status(200).json({ objects: [], total: 0, time: new Date().toUTCString() });
-    }
+    const count = req.query.count ? Number(req.query.count) : 100;
+    const next = req.query.next ? (req.query.next as string) : undefined;
+    const results = await req.registry.search(req.query.text as string, count, next);
+    console.log('XXX XXX XXX', JSON.stringify(results, null, 2));
 
-    return res.status(200).json({
-      objects: [
-        {
-          package: pkg,
-        },
-      ],
-      total: 1,
-      time: new Date().toUTCString(),
-    });
+    return res.status(200).json(results);
   };
 };
 

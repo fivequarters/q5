@@ -15,6 +15,7 @@ import {
 import { ExecuteService } from './ExecuteService';
 import { request } from '@5qtrs/request';
 const QR = require('qrcode-terminal');
+const fs = require('fs');
 
 // ------------------
 // Internal Constants
@@ -605,6 +606,16 @@ export class ProfileService {
 
     if (output === 'raw') {
       await this.input.io.writeLineRaw(profile.accessToken);
+      return;
+    }
+
+    if (output === 'npm') {
+      const protoUrl = `${profile.baseUrl.replace(/http[s]?:\/\//, '')}`;
+      const npmUrl = `${profile.baseUrl}/v1/account/${profile.account}/subscription/${profile.subscription}/registry/default/npm/`;
+      const npmProtoUrl = `${protoUrl}/v1/account/${profile.account}/subscription/${profile.subscription}/registry/default/npm/`;
+      await this.input.io.writeLineRaw(
+        `//${npmProtoUrl}:_authToken=${profile.accessToken}\n` + `@fusebit:registry=${npmUrl}\n`
+      );
       return;
     }
 

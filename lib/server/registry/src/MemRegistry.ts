@@ -34,7 +34,7 @@ class MemRegistry implements IRegistryStore {
     return this.registry.tgz[key];
   }
 
-  public async search(keywords: string[]): Promise<any> {
+  public async search(keyword: string, count: number, next?: string): Promise<any> {
     return {};
   }
 }

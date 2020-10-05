@@ -1028,6 +1028,22 @@ router.post(
   analytics.finished
 );
 
+router.options(registryNpmBase + '/-/v1/search', cors(corsManagementOptions));
+router.get(
+  registryNpmBase + '/-/v1/search',
+  logEvent,
+  analytics.enterHandler(analytics.Modes.Administration),
+  cors(corsManagementOptions),
+  //validate_schema({ params: require('./schemas/api_account') }),
+  authorize({ operation: 'registry:get' }),
+  //validate_schema({ params: require('./schemas/api_params'), }),
+  user_agent(),
+  determine_provider(),
+  AWSRegistry.handler(),
+  npm.searchGet(),
+  analytics.finished
+);
+
 // Not part of public contract
 
 let run_route = /^\/run\/([^\/]+)\/([^\/]+)\/([^\/]+).*$/;

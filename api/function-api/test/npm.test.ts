@@ -11,9 +11,13 @@ const { getAccount } = setupEnvironment();
 
 const scope = '@testscope';
 
-const getOpts = (account: IAccount): any => {
+const getRegistryUrl = (account: IAccount): any => {
   const registryPath = `localhost:3001/v1/account/${account.accountId}/subscription/${account.subscriptionId}/registry/default/npm/`;
-  const registryUrl = `http://${registryPath}`;
+  return { registryPath, registryUrl: `http://${registryPath}` };
+};
+
+const getOpts = (account: IAccount): any => {
+  const { registryPath, registryUrl } = getRegistryUrl(account);
 
   const registry = { [`${scope}:registry`]: registryUrl };
   const token = {
@@ -53,5 +57,16 @@ describe('npm', () => {
     const packu = await libnpm.packument(manifest.name, getOpts(account));
 
     // await libnpm.unpublish(manifest.name, getOpts(account));
+  }, 180000);
+
+  test.only('search', async () => {
+    const account = getAccount();
+    const { registryPath, registryUrl } = getRegistryUrl(account);
+
+    const { manifest, tarData } = preparePackage();
+
+    await libnpm.publish(manifest, tarData, getOpts(account));
+    const results = await libnpm.search(manifest.name, { ...getOpts(account), registry: registryUrl });
+    console.log('XXXYYYXXX', JSON.stringify(results, null, 2));
   }, 180000);
 });

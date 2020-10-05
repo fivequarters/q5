@@ -4,6 +4,8 @@ import * as Constants from '@5qtrs/constants';
 
 import { IRegistryStore } from './Registry';
 
+const CATEGORY_REGISTRY = 'registry-npm-package';
+
 const s3 = new AWS.S3();
 const ddb = new AWS.DynamoDB({
   apiVersion: '2012-08-10',
@@ -49,9 +51,10 @@ class AWSRegistry implements IRegistryStore {
       .putItem({
         TableName: tableName,
         Item: {
-          category: { S: 'registry-npm-package' },
+          category: { S: CATEGORY_REGISTRY },
           key: { S: [this.keyPrefix, key].join('/') },
           pkg: { S: JSON.stringify(pkg) },
+          name: { S: pkg.name },
         },
       })
       .promise();
@@ -86,8 +89,41 @@ class AWSRegistry implements IRegistryStore {
     return url;
   }
 
-  public async search(keywords: string[]): Promise<any> {
-    return {};
+  public async search(keyword: string, count: number = 100, next?: string): Promise<any> {
+    // Build the request
+    const params = {
+      TableName: tableName,
+      ProjectionExpression: 'category, #k, pkg',
+      ExpressionAttributeNames: { '#k': 'key', '#n': 'name' },
+      ExpressionAttributeValues: {
+        ':searchCategory': { S: CATEGORY_REGISTRY },
+        ':sortKeyPrefix': { S: this.keyPrefix },
+        ':searchKey': { S: keyword },
+      },
+      KeyConditionExpression: `category = :searchCategory AND begins_with(#k, :sortKeyPrefix)`,
+      // Filter based on the criteria supplied
+      FilterExpression: 'contains(#n, :searchKey)',
+      ExclusiveStartKey: next
+        ? JSON.parse(Buffer.from(decodeURIComponent(next), 'base64').toString('utf8'))
+        : undefined,
+    };
+    const result = await ddb.query(params).promise();
+    const items = result.Items || [];
+
+    console.log(
+      'XXXXXXXXX',
+      JSON.stringify({
+        objects: items.map((o: any) => ({ package: JSON.parse(o.pkg.S) })),
+        total: items.length,
+        time: new Date().toUTCString(),
+      })
+    );
+
+    return {
+      objects: items.map((o: any) => ({ package: JSON.parse(o.pkg.S) })),
+      total: items.length,
+      time: new Date().toUTCString(),
+    };
   }
 }
 
