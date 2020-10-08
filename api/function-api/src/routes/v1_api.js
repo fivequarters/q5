@@ -25,7 +25,6 @@ const agent = require('./handlers/agent');
 const audit = require('./handlers/audit');
 const statistics = require('./handlers/statistics');
 const npm = require('@5qtrs/npm');
-const registry = require('./handlers/registry');
 const { AWSRegistry } = require('@5qtrs/registry');
 
 const { StorageActions } = require('@5qtrs/storage');
@@ -755,21 +754,12 @@ router.get(
   //validate_schema({ params: require('./schemas/api_params'), }),
   user_agent(),
   determine_provider(),
-  registry.registryGet(),
-  analytics.finished
-);
-
-router.options(registryBase, cors(corsManagementOptions));
-router.patch(
-  registryBase,
-  analytics.enterHandler(analytics.Modes.Administration),
-  cors(corsManagementOptions),
-  //validate_schema({ params: require('./schemas/api_account') }),
-  authorize({ operation: 'registry:put' }),
-  //validate_schema({ params: require('./schemas/api_params'), }),
-  user_agent(),
-  determine_provider(),
-  registry.registryPatch(),
+  npmRegistry.handler(),
+  async (req, res) =>
+    res.status(200).json({
+      ...(await req.registry.configGet()),
+      url: process.env.API_SERVER + req.originalUrl + 'npm/',
+    }),
   analytics.finished
 );
 
@@ -780,29 +770,21 @@ router.put(
   cors(corsManagementOptions),
   //validate_schema({ params: require('./schemas/api_account') }),
   authorize({ operation: 'registry:put' }),
+  express.json(),
   //validate_schema({ params: require('./schemas/api_params'), }),
   user_agent(),
   determine_provider(),
-  registry.registryPut(),
-  analytics.finished
-);
-
-router.options(registryBase, cors(corsManagementOptions));
-router.delete(
-  registryBase,
-  analytics.enterHandler(analytics.Modes.Administration),
-  cors(corsManagementOptions),
-  //validate_schema({ params: require('./schemas/api_account') }),
-  authorize({ operation: 'registry:delete' }),
-  //validate_schema({ params: require('./schemas/api_params'), }),
-  user_agent(),
-  determine_provider(),
-  registry.registryDelete(),
+  npmRegistry.handler(),
+  async (req, res) => {
+    console.log(req);
+    await req.registry.configPut(req.body);
+    res.status(200).end();
+  },
   analytics.finished
 );
 
 // NPM Service
-const registryNpmBase = '/account/:accountId/subscription/:subscriptionId/registry/:registryId/npm';
+const registryNpmBase = registryBase + '/npm';
 
 const logEvent = (req, res, next) => {
   /* XXX XXX XXX XXX */
@@ -826,7 +808,7 @@ router.get(
   //validate_schema({ params: require('./schemas/api_params'), }),
   user_agent(),
   determine_provider(),
-  AWSRegistry.handler(),
+  npmRegistry.handler(),
   npm.versionGet(),
   analytics.finished
 );
@@ -841,7 +823,7 @@ router.get(
   //validate_schema({ params: require('./schemas/api_params'), }),
   user_agent(),
   determine_provider(),
-  AWSRegistry.handler(),
+  npmRegistry.handler(),
   npm.pingGet(),
   analytics.finished
 );
@@ -857,7 +839,7 @@ router.get(
   //validate_schema({ params: require('./schemas/api_params'), }),
   user_agent(),
   determine_provider(),
-  AWSRegistry.handler(),
+  npmRegistry.handler(),
   npm.tarballGet(),
   analytics.finished
 );
@@ -873,7 +855,7 @@ router.put(
   //validate_schema({ params: require('./schemas/api_params'), }),
   user_agent(),
   determine_provider(),
-  AWSRegistry.handler(),
+  npmRegistry.handler(),
   logEvent,
   npm.packagePut(),
   analytics.finished
@@ -890,7 +872,7 @@ router.get(
   //validate_schema({ params: require('./schemas/api_params'), }),
   user_agent(),
   determine_provider(),
-  AWSRegistry.handler(),
+  npmRegistry.handler(),
   npm.packageGet(),
   analytics.finished
 );
@@ -907,7 +889,7 @@ router.post(
   //validate_schema({ params: require('./schemas/api_params'), }),
   user_agent(),
   determine_provider(),
-  AWSRegistry.handler(),
+  npmRegistry.handler(),
   npm.invalidatePost(),
   analytics.finished
 );
@@ -924,7 +906,7 @@ router.post(
   //validate_schema({ params: require('./schemas/api_params'), }),
   user_agent(),
   determine_provider(),
-  AWSRegistry.handler(),
+  npmRegistry.handler(),
   npm.distTagsGet(),
   analytics.finished
 );
@@ -941,7 +923,7 @@ router.put(
   //validate_schema({ params: require('./schemas/api_params'), }),
   user_agent(),
   determine_provider(),
-  AWSRegistry.handler(),
+  npmRegistry.handler(),
   npm.distTagsPut(),
   analytics.finished
 );
@@ -957,7 +939,7 @@ router.delete(
   //validate_schema({ params: require('./schemas/api_params'), }),
   user_agent(),
   determine_provider(),
-  AWSRegistry.handler(),
+  npmRegistry.handler(),
   npm.distTagsDelete(),
   analytics.finished
 );
@@ -973,7 +955,7 @@ router.get(
   //validate_schema({ params: require('./schemas/api_params'), }),
   user_agent(),
   determine_provider(),
-  AWSRegistry.handler(),
+  npmRegistry.handler(),
   npm.allPackagesGet(),
   analytics.finished
 );
@@ -990,7 +972,7 @@ router.put(
   //validate_schema({ params: require('./schemas/api_params'), }),
   user_agent(),
   determine_provider(),
-  AWSRegistry.handler(),
+  npmRegistry.handler(),
   npm.loginPut(), // Always will succeed
   analytics.finished
 );
@@ -1006,7 +988,7 @@ router.get(
   //validate_schema({ params: require('./schemas/api_params'), }),
   user_agent(),
   determine_provider(),
-  AWSRegistry.handler(),
+  npmRegistry.handler(),
   npm.whoamiGet(),
   analytics.finished
 );
@@ -1023,7 +1005,7 @@ router.post(
   //validate_schema({ params: require('./schemas/api_params'), }),
   user_agent(),
   determine_provider(),
-  AWSRegistry.handler(),
+  npmRegistry.handler(),
   npm.auditPost(),
   analytics.finished
 );
@@ -1039,7 +1021,7 @@ router.get(
   //validate_schema({ params: require('./schemas/api_params'), }),
   user_agent(),
   determine_provider(),
-  AWSRegistry.handler(),
+  npmRegistry.handler(),
   npm.searchGet(),
   analytics.finished
 );

@@ -2,9 +2,10 @@ import AWS from 'aws-sdk';
 
 import * as Constants from '@5qtrs/constants';
 
-import { IRegistryStore } from './Registry';
+import { IRegistryConfig, IRegistryStore } from './Registry';
 
 const CATEGORY_REGISTRY = 'registry-npm-package';
+const CATEGORY_REGISTRY_CONFIG = 'registry-npm-config';
 
 const s3 = new AWS.S3();
 const ddb = new AWS.DynamoDB({
@@ -65,7 +66,7 @@ class AWSRegistry implements IRegistryStore {
     const params = {
       TableName: tableName,
       Key: {
-        category: { S: 'registry-npm-package' },
+        category: { S: CATEGORY_REGISTRY },
         key: { S: [this.keyPrefix, key].join('/') },
       },
     };
@@ -110,20 +111,40 @@ class AWSRegistry implements IRegistryStore {
     const result = await ddb.query(params).promise();
     const items = result.Items || [];
 
-    console.log(
-      'XXXXXXXXX',
-      JSON.stringify({
-        objects: items.map((o: any) => ({ package: JSON.parse(o.pkg.S) })),
-        total: items.length,
-        time: new Date().toUTCString(),
-      })
-    );
-
     return {
       objects: items.map((o: any) => ({ package: JSON.parse(o.pkg.S) })),
       total: items.length,
       time: new Date().toUTCString(),
     };
+  }
+
+  public async configPut(config: IRegistryConfig): Promise<void> {
+    // Add record to dynamodb.
+    await ddb
+      .putItem({
+        TableName: tableName,
+        Item: {
+          category: { S: CATEGORY_REGISTRY_CONFIG },
+          key: { S: this.keyPrefix },
+          config: { S: JSON.stringify(config) },
+        },
+      })
+      .promise();
+  }
+
+  public async configGet(): Promise<IRegistryConfig> {
+    // Retrieve record from DynamoDB
+    const result = await ddb
+      .getItem({
+        TableName: tableName,
+        Key: {
+          category: { S: CATEGORY_REGISTRY_CONFIG },
+          key: { S: this.keyPrefix },
+        },
+      })
+      .promise();
+
+    return result && result.Item && result.Item.config ? JSON.parse(result.Item.config.S as string) : { scopes: [] };
   }
 }
 

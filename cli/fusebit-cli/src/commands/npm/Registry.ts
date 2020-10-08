@@ -16,21 +16,13 @@ interface IEnv {
 }
 
 async function getRegistry(profile: IFusebitExecutionProfile): Promise<IRegistries> {
-  /*
-    const response: any = await request({
-      method: 'GET',
-      url: [`${profile.baseUrl}/v1/account/${profile.account}/registry/default`].join(''),
-      headers: { Authorization: `bearer ${profile.accessToken}` },
-    });
-    return response.body as IRegistry;
-    */
-  // Add an assertion to make sure that the url always ends in a trailing '/'...
-  return {
-    default: {
-      url: `${profile.baseUrl}/v1/account/${profile.account}/subscription/${profile.subscription}/registry/default/npm/`,
-      scopes: ['@fusebit', '@testscope'],
-    },
-  };
+  const response: any = await request({
+    method: 'GET',
+    url: `${profile.baseUrl}/v1/account/${profile.account}/subscription/${profile.subscription}/registry/default/`,
+    headers: { Authorization: `bearer ${profile.accessToken}` },
+  });
+
+  return { default: response.data as IRegistry };
 }
 
 function getProtoUrl(url: string): string {
