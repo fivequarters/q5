@@ -1,8 +1,9 @@
 import AWS from 'aws-sdk';
+import { maxSatisfying } from 'semver';
 
 import * as Constants from '@5qtrs/constants';
 
-import { IRegistryConfig, IRegistryStore } from './Registry';
+import { IRegistryConfig, IRegistryParams, IRegistryStore } from './Registry';
 
 const CATEGORY_REGISTRY = 'registry-npm-package';
 const CATEGORY_REGISTRY_CONFIG = 'registry-npm-config';
@@ -25,11 +26,13 @@ class AWSRegistry implements IRegistryStore {
   public static handler(): ExpressHandler {
     return (reqExpress: Request, res: Response, next: any) => {
       const req: any = reqExpress;
-      req.registry = new AWSRegistry(
-        [req.params.accountId, req.params.subscriptionId, req.params.registryId].join('/')
-      );
+      req.registry = AWSRegistry.create(req.params);
       return next();
     };
+  }
+
+  public static create(params: IRegistryParams): IRegistryStore {
+    return new AWSRegistry([params.accountId, params.subscriptionId, params.registryId].join('/'));
   }
 
   private keyPrefix: string;
@@ -88,6 +91,11 @@ class AWSRegistry implements IRegistryStore {
     });
 
     return url;
+  }
+
+  public async semverGet(key: string, filter: string): Promise<string | null> {
+    const pkg = await this.get(key);
+    return maxSatisfying(Object.keys(pkg.versions), filter);
   }
 
   public async search(keyword: string, count: number = 100, next?: string): Promise<any> {

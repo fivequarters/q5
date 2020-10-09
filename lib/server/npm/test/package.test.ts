@@ -90,6 +90,11 @@ describe('packagePut', () => {
     await libnpm.publish(manifest, tarData, { registry: url });
     expect(registry.registry.pkg['@testscope/foobar'].name).toBeTruthy();
 
+    // Add another version
+    manifest.version = '2.0.1';
+    await libnpm.publish(manifest, tarData, { registry: url });
+    expect(Object.keys(registry.registry.pkg['@testscope/foobar'].versions)).toStrictEqual(['1.0.0', '2.0.1']);
+
     // Get a package
     m = await libnpm.manifest('@testscope/foobar', { registry: url });
     expect(m.name).toBe('@testscope/foobar');
@@ -100,9 +105,9 @@ describe('packagePut', () => {
     expect(m.equals(tarData)).toBeTruthy();
 
     // Search for a package
-    m = await libnpm.search('foo', { registry: url });
+    m = await libnpm.search('xxx', { registry: url });
     expect(m).toHaveLength(0);
-    m = await libnpm.search('@testscope/foobar', { registry: url });
+    m = await libnpm.search('foo', { registry: url });
     expect(m).toHaveLength(1);
   });
 });

@@ -39,12 +39,12 @@ function get_deployment_s3_bucket(deployment: any): string {
     : `fusebit-${deployment.deploymentName}-${deployment.region}`;
 }
 
-function get_module_metadata_key(runtime: string, name: string, version: string) {
-  return `${module_key_prefix}/${runtime}/${name}/${version}/metadata.json`;
+function get_module_metadata_key(options: any, name: string, version: string) {
+  return `${module_key_prefix}/${options.accountId}/${options.subscriptionId}/${options.registry}/${options.runtime}/${name}/${version}/metadata.json`;
 }
 
-function get_module_key(runtime: string, name: string, version: string) {
-  return `${module_key_prefix}/${runtime}/${name}/${version}/package.zip`;
+function get_module_key(options: any, name: string, version: string) {
+  return `${module_key_prefix}/${options.accountId}/${options.subscriptionId}/${options.registry}/${options.runtime}/${name}/${version}/package.zip`;
 }
 
 function get_user_function_build_status_key(options: any) {

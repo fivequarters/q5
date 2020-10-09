@@ -609,16 +609,6 @@ export class ProfileService {
       return;
     }
 
-    if (output === 'npm') {
-      const protoUrl = `${profile.baseUrl.replace(/http[s]?:\/\//, '')}`;
-      const npmUrl = `${profile.baseUrl}/v1/account/${profile.account}/subscription/${profile.subscription}/registry/default/npm/`;
-      const npmProtoUrl = `${protoUrl}/v1/account/${profile.account}/subscription/${profile.subscription}/registry/default/npm/`;
-      await this.input.io.writeLineRaw(
-        `//${npmProtoUrl}:_authToken=${profile.accessToken}\n` + `@fusebit:registry=${npmUrl}\n`
-      );
-      return;
-    }
-
     const details = [
       Text.dim('Deployment: '),
       profile.baseUrl,

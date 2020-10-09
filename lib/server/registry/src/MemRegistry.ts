@@ -1,3 +1,5 @@
+import { maxSatisfying } from 'semver';
+
 import { Express, NextFunction, Request, Response } from 'express';
 import { IRegistryConfig, IRegistryStore } from './Registry';
 
@@ -28,8 +30,13 @@ class MemRegistry implements IRegistryStore {
     this.registry.tgz[key] = payload;
   }
 
-  public async get(key: any): Promise<any> {
+  public async get(key: string): Promise<any> {
     return this.registry.pkg[key];
+  }
+
+  public async semverGet(key: string, filter: string): Promise<string | null> {
+    const pkg = await this.get(key);
+    return maxSatisfying(Object.keys(pkg.versions), filter);
   }
 
   public async tarball(key: any): Promise<Buffer> {
@@ -37,8 +44,15 @@ class MemRegistry implements IRegistryStore {
   }
 
   public async search(keyword: string, count: number, next?: string): Promise<any> {
-    return {};
+    const objects = Object.keys(this.registry.pkg)
+      .filter((p: any) => p.indexOf(keyword) >= 0)
+      .map((name: any) => ({ package: this.registry.pkg[name] }));
+    const total = objects.length;
+    const time = new Date().toUTCString();
+
+    return { objects, total, time };
   }
+
   public async configPut(config: IRegistryConfig): Promise<void> {
     this.config = config;
   }

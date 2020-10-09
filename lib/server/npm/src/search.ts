@@ -6,7 +6,6 @@ const searchGet = () => {
     const count = req.query.count ? Number(req.query.count) : 100;
     const next = req.query.next ? (req.query.next as string) : undefined;
     const results = await req.registry.search(req.query.text as string, count, next);
-    console.log('XXX XXX XXX', JSON.stringify(results, null, 2));
 
     return res.status(200).json(results);
   };

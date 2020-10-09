@@ -541,6 +541,7 @@ router.put(
   }),
   user_agent(),
   determine_provider(),
+  npmRegistry.handler(),
   (req, res, next) => provider_handlers[req.provider].put_function(req, res, next),
   analytics.finished
 );
