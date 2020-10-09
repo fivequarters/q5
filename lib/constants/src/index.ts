@@ -25,6 +25,8 @@ const cron_key_prefix = 'function-cron';
 // Stores built NPM modules
 const module_key_prefix = 'npm-module';
 
+const REGISTRY_DEFAULT = 'default';
+
 function get_log_table_name(deploymentKey: string): string {
   return `${deploymentKey}.log`;
 }
@@ -114,4 +116,5 @@ export {
   get_cron_key,
   get_function_location,
   get_deployment_s3_bucket,
+  REGISTRY_DEFAULT,
 };

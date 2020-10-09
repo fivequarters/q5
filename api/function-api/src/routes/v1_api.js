@@ -13,7 +13,7 @@ const health = require('./handlers/health');
 const { get_function_location } = require('@5qtrs/constants');
 
 const AWS = require('aws-sdk');
-AWS.config.logger = console;
+//AWS.config.logger = console;
 
 const { AccountActions } = require('@5qtrs/account');
 const account = require('./handlers/account');

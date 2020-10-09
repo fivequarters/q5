@@ -32,7 +32,9 @@ class AWSRegistry implements IRegistryStore {
   }
 
   public static create(params: IRegistryParams): IRegistryStore {
-    return new AWSRegistry([params.accountId, params.subscriptionId, params.registryId].join('/'));
+    return new AWSRegistry(
+      [params.accountId, params.subscriptionId, params.registryId || Constants.REGISTRY_DEFAULT].join('/')
+    );
   }
 
   private keyPrefix: string;
