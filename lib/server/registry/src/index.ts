@@ -1,5 +1,5 @@
 import { AWSRegistry } from './AWSRegistry';
 import { MemRegistry } from './MemRegistry';
-import { IRegistryStore } from './Registry';
+import { IRegistryGlobalConfig, IRegistryStore } from './Registry';
 
-export { MemRegistry, AWSRegistry, IRegistryStore };
+export { IRegistryGlobalConfig, IRegistryStore, MemRegistry, AWSRegistry };

@@ -39,7 +39,8 @@
     "jszip": "^3.4.0",
     "rimraf": "^3.0.2",
     "@5qtrs/constants": "^0.0.1",
-    "@5qtrs/function-tags": "^0.0.1"
+    "@5qtrs/function-tags": "^0.0.1",
+    "@5qtrs/registry": "^0.0.1"
   },
   "devDependencies": {
     "@types/jszip": "^3.4.1",

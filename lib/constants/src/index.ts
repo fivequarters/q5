@@ -25,7 +25,11 @@ const cron_key_prefix = 'function-cron';
 // Stores built NPM modules
 const module_key_prefix = 'npm-module';
 
+const REGISTRY_CATEGORY = 'registry-npm-package';
+const REGISTRY_CATEGORY_CONFIG = 'registry-npm-config';
+
 const REGISTRY_DEFAULT = 'default';
+const REGISTRY_GLOBAL = 'registry-global';
 
 function get_log_table_name(deploymentKey: string): string {
   return `${deploymentKey}.log`;
@@ -116,5 +120,8 @@ export {
   get_cron_key,
   get_function_location,
   get_deployment_s3_bucket,
+  REGISTRY_CATEGORY,
+  REGISTRY_CATEGORY_CONFIG,
   REGISTRY_DEFAULT,
+  REGISTRY_GLOBAL,
 };

@@ -1,12 +1,32 @@
 interface IRegistryConfig {
-  url?: string;
+  url?: string; // Only present when returned to the caller, populated by function-api
   scopes: string[];
 }
 
+interface IRegistryInternalConfig extends IRegistryConfig {
+  url?: string;
+  scopes: string[];
+  global: IRegistryGlobalConfig;
+}
+
+// Updated via fuse-ops, as global changes will be very rare; touching all of the registry configs to change
+// will be cheaper than requiring a double-lookup on every operation.
+interface IRegistryGlobalConfig {
+  scopes: string[]; // Validate the params are set before allowing scopes to be changed.
+  params: IRegistryParams;
+}
+
+// Also hung in 'default' in DynamoDB - points to the location of the global registry
 interface IRegistryParams {
   accountId: string;
-  subscriptionId?: string;
   registryId: string;
+}
+
+interface IRegistrySearchResults {
+  objects: any[];
+  total: number;
+  time: string;
+  next?: string;
 }
 
 interface IRegistryStore {
@@ -19,4 +39,14 @@ interface IRegistryStore {
   configGet(): Promise<IRegistryConfig>;
 }
 
-export { IRegistryConfig, IRegistryParams, IRegistryStore };
+class InvalidScopeException extends Error {}
+
+export {
+  IRegistryConfig,
+  IRegistryInternalConfig,
+  IRegistryGlobalConfig,
+  IRegistryParams,
+  IRegistrySearchResults,
+  IRegistryStore,
+  InvalidScopeException,
+};

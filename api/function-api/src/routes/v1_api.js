@@ -743,7 +743,7 @@ router.get(
 );
 
 // Registry Service
-const registryBase = '/account/:accountId/subscription/:subscriptionId/registry/:registryId';
+const registryBase = '/account/:accountId/registry/:registryId';
 
 router.options(registryBase, cors(corsManagementOptions));
 router.get(

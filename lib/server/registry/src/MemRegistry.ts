@@ -60,6 +60,10 @@ class MemRegistry implements IRegistryStore {
   public async configGet(): Promise<IRegistryConfig> {
     return this.config;
   }
+
+  public async configInternalGet(): Promise<any> {
+    return this.config;
+  }
 }
 
 export { MemRegistry };
