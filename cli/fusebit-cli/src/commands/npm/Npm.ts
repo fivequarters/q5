@@ -2,31 +2,10 @@ import { request } from '@5qtrs/request';
 
 import { IFusebitExecutionProfile } from '@5qtrs/fusebit-profile-sdk';
 
-interface IRegistries {
-  [registryName: string]: IRegistry;
-}
-
-interface IRegistry {
-  url: string;
-  scopes: string[];
-}
+import { getProtoUrl, IRegistries } from '../registry/Registry';
 
 interface IEnv {
   [key: string]: string;
-}
-
-async function getRegistry(profile: IFusebitExecutionProfile): Promise<IRegistries> {
-  const response: any = await request({
-    method: 'GET',
-    url: `${profile.baseUrl}/v1/account/${profile.account}/registry/default/`,
-    headers: { Authorization: `bearer ${profile.accessToken}` },
-  });
-
-  return { default: response.data as IRegistry };
-}
-
-function getProtoUrl(url: string): string {
-  return url.replace(/^http[s]?:/, '');
 }
 
 function createEnv(profile: IFusebitExecutionProfile, registries: IRegistries, setDefault: boolean = false): IEnv {
@@ -48,4 +27,4 @@ function createEnv(profile: IFusebitExecutionProfile, registries: IRegistries, s
   return env;
 }
 
-export { IRegistries, IRegistry, getProtoUrl, getRegistry, createEnv };
+export { createEnv };

@@ -12,6 +12,7 @@ import {
   TokenCommand,
   UserCommand,
   VersionCommand,
+  RegistryCommand,
 } from './commands';
 
 // ------------------
@@ -48,6 +49,7 @@ async function getSubCommands() {
   subCommands.push(await ClientCommand.create());
   subCommands.push(await IssuerCommand.create());
   subCommands.push(await VersionCommand.create());
+  subCommands.push(await RegistryCommand.create());
   subCommands.push(await NpmCommand.create());
   return subCommands;
 }

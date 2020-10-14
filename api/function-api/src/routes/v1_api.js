@@ -742,6 +742,18 @@ router.get(
   analytics.finished
 );
 
+const logEvent = (req, res, next) => {
+  /* XXX XXX XXX XXX */
+  console.log(
+    `\n` +
+      `${req.method} ${req.url}\n${JSON.stringify(req.headers, null, 2)}\n` +
+      `Params: ${JSON.stringify(req.params, null, 2)}\n` +
+      `Body: ${JSON.stringify(req.body, null, 2)}\n` +
+      `Json: ${JSON.stringify(req.json, null, 2)}\n`
+  );
+  return next();
+};
+
 // Registry Service
 const registryBase = '/account/:accountId/registry/:registryId';
 
@@ -776,27 +788,21 @@ router.put(
   user_agent(),
   determine_provider(),
   npmRegistry.handler(),
+  logEvent,
   async (req, res) => {
-    await req.registry.configPut(req.body);
-    res.status(200).end();
+    try {
+      await req.registry.configPut(req.body);
+      res.status(200).end();
+    } catch (e) {
+      console.log(e);
+      res.status(501).end();
+    }
   },
   analytics.finished
 );
 
 // NPM Service
 const registryNpmBase = registryBase + '/npm';
-
-const logEvent = (req, res, next) => {
-  /* XXX XXX XXX XXX */
-  console.log(
-    `\n` +
-      `${req.method} ${req.url}\n${JSON.stringify(req.headers, null, 2)}\n` +
-      `${JSON.stringify(req.params, null, 2)}\n` +
-      `${JSON.stringify(req.body, null, 2)}\n` +
-      `${JSON.stringify(req.json, null, 2)}\n`
-  );
-  return next();
-};
 
 router.options(registryNpmBase + '/-/version', cors(corsManagementOptions));
 router.get(

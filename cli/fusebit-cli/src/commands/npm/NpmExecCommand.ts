@@ -5,7 +5,9 @@ import { FusebitProfile, IFusebitExecutionProfile, IFusebitProfile } from '@5qtr
 
 import { ProfileService } from '../../services';
 
-import { createEnv, getRegistry, IRegistries } from './Registry';
+import { createEnv } from './Npm';
+
+import { getRegistry } from '../registry/Registry';
 
 // ------------------
 // Internal Constants

@@ -5,7 +5,9 @@ import { request } from '@5qtrs/request';
 
 import { ProfileService } from '../../services/ProfileService';
 
-import { createEnv, getRegistry } from './Registry';
+import { createEnv } from './Npm';
+
+import { getRegistry } from '../registry/Registry';
 
 const commandDesc: ICommand = {
   name: 'NPM Package Search',
