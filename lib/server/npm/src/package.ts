@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import ssri from 'ssri';
+import { v4 as uuid } from 'uuid';
 
 import { Response } from 'express';
 import { IFunctionApiRequest } from './request';
@@ -10,12 +11,17 @@ const packagePut = () => {
   return async (req: IFunctionApiRequest, res: Response) => {
     // Get pkg
     const pkg = req.body;
+
     if (Object.keys(pkg._attachments).length !== 1 || Object.keys(pkg.versions).length !== 1) {
       return res.status(501).json({ status: 501, statusCode: 501, message: 'invalid parameter length' });
     }
     const attachment = pkg._attachments;
     delete pkg._attachments;
+
+    const scope = pkg.name.split('/')[0];
+    const name = pkg.name.split('/')[1];
     const version = pkg.versions[Object.keys(pkg.versions)[0]];
+    const versionId = version.version;
 
     // Extract the buffer
     const payload = Buffer.from(attachment[Object.keys(attachment)[0]].data, 'base64');
@@ -43,14 +49,18 @@ const packagePut = () => {
       // Copy over the necessary elements
       pkg.versions = { ...existing.versions, ...pkg.versions };
       pkg['dist-tags'] = { ...existing['dist-tags'], ...pkg['dist-tags'] };
+      pkg._rev = uuid();
     }
 
     // Update the etag
     pkg.etag = Math.random().toString().slice(2);
     pkg.date = new Date().toUTCString();
 
+    // Update the package URLs to be just the useful parts.
+    dist.tarball = { scope, name, version: versionId };
+
     // Save the attachment in the registry, and merge the previous document from dynamo
-    await req.registry.put(pkg.name, pkg, payload);
+    await req.registry.put(pkg.name, pkg, versionId, payload);
 
     res.status(201).json({});
   };
@@ -65,8 +75,23 @@ const packageGet = () => {
     }
 
     res.set('ETag', pkg.etag);
+    console.log(`packageGet: ${JSON.stringify(pkg, null, 2)}`);
+
+    tarballUrlUpdate(req, pkg);
+
+    console.log(`packageGet: ${JSON.stringify(pkg, null, 2)}`);
     return res.status(200).json(pkg);
   };
 };
 
-export { packagePut, packageGet };
+const tarballUrlUpdate = (req: IFunctionApiRequest, pkg: any) => {
+  // Update the dist tarball URL's to be within this account
+  for (const version of Object.keys(pkg.versions)) {
+    const tarball = pkg.versions[version].dist.tarball;
+    pkg.versions[
+      version
+    ].dist.tarball = `${process.env.API_SERVER}/v1/account/${req.params.accountId}/registry/${req.params.registryId}/npm/${tarball.scope}/${tarball.name}/-/${tarball.scope}/${tarball.name}@${tarball.version}`;
+  }
+};
+
+export { packagePut, packageGet, tarballUrlUpdate };

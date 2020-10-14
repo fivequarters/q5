@@ -4,7 +4,6 @@
     "rootDir": "src",
     "module": "CommonJS",
     "outDir": "libc",
-    "typeRoots": ["./types", "./node_modules/@types"],
     "esModuleInterop": true
   },
   "include": ["src"],

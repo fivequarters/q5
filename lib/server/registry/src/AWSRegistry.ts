@@ -13,7 +13,7 @@ import {
   IRegistryStore,
 } from './Registry';
 
-const s3Path = '/registry/npm';
+const s3Path = 'registry/npm';
 
 type ExpressHandler = (reqExpress: Request, res: Response, next: any) => any;
 
@@ -53,12 +53,14 @@ class AWSRegistry implements IRegistryStore {
     this.tableName = Constants.get_key_value_table_name(process.env.DEPLOYMENT_KEY as string);
   }
 
-  public async put(key: string, pkg: any, payload: any): Promise<void> {
+  public async put(key: string, pkg: any, id: string, payload: any): Promise<void> {
+    console.log(`AWSRegistry::put ${key}, ${id}`);
+
     // Upload file
     await this.s3
       .upload({
         Bucket: process.env.AWS_S3_BUCKET as string,
-        Key: [this.keyPrefix, s3Path, key].join('/'),
+        Key: this.getS3Path(`${key}@${id}`),
         Body: payload,
       })
       .promise();
@@ -69,7 +71,7 @@ class AWSRegistry implements IRegistryStore {
         TableName: this.tableName,
         Item: {
           category: { S: Constants.REGISTRY_CATEGORY },
-          key: { S: [this.keyPrefix, key].join('/') },
+          key: { S: this.getDynamoKey(key) },
           pkg: { S: JSON.stringify(pkg) },
           name: { S: pkg.name },
         },
@@ -77,7 +79,7 @@ class AWSRegistry implements IRegistryStore {
       .promise();
   }
 
-  public findScope(cfg: IRegistryInternalConfig, key: string): IRegistryStore {
+  public findScope(cfg: IRegistryInternalConfig, key: string): AWSRegistry {
     const parts = key.split('/');
     if (parts.length !== 2) {
       throw new InvalidScopeException();
@@ -85,7 +87,7 @@ class AWSRegistry implements IRegistryStore {
     if (cfg.scopes.indexOf(parts[0]) >= 0) {
       return this;
     } else if (cfg.global.scopes.indexOf(parts[0]) >= 0) {
-      return AWSRegistry.create(cfg.global.params);
+      return (AWSRegistry.create(cfg.global.params) as unknown) as AWSRegistry;
     }
     throw new InvalidScopeException();
   }
@@ -95,8 +97,8 @@ class AWSRegistry implements IRegistryStore {
       const cfg = await this.internalConfigGet();
 
       // Delegate get's to the internal registry for scopes that match
-      const reg: IRegistryStore = this.findScope(cfg, key);
-      return this.internalGet(key);
+      const reg: AWSRegistry = this.findScope(cfg, key);
+      return reg.internalGet(key);
     } catch (e) {
       return undefined;
     }
@@ -109,33 +111,65 @@ class AWSRegistry implements IRegistryStore {
         TableName: this.tableName,
         Key: {
           category: { S: Constants.REGISTRY_CATEGORY },
-          key: { S: [this.keyPrefix, key].join('/') },
+          key: { S: this.getDynamoKey(key) },
         },
       })
       .promise();
     return result && result.Item && result.Item.pkg ? JSON.parse(result.Item.pkg.S as string) : undefined;
   }
 
-  public async tarball(key: string): Promise<any> {
+  public async delete(key: string): Promise<any> {
+    // Remove the document from dynamodb
+    const pkg = await this.internalGet(key);
+    const result = await this.ddb
+      .deleteItem({
+        TableName: this.tableName,
+        Key: {
+          category: { S: Constants.REGISTRY_CATEGORY },
+          key: { S: [this.keyPrefix, key].join('/') },
+        },
+      })
+      .promise();
+
+    // NYI: Remove all of the tarballs from S3
+  }
+
+  public async tarballGet(id: string): Promise<any> {
+    console.log(`AWSRegistry::tarballGet ${id}`);
     try {
       const cfg = await this.internalConfigGet();
 
       // Delegate get's to the internal registry for scopes that match
-      const reg: IRegistryStore = this.findScope(cfg, key);
-      return this.internalTarball(key);
+      const reg: AWSRegistry = this.findScope(cfg, id);
+      return reg.internalTarball(id);
     } catch (e) {
       return undefined;
     }
   }
 
+  public async tarballDelete(id: string): Promise<any> {
+    // XXX this doesn't seem to be the right S3 call?
+    // XXX Next, wire the npm revision.ts stuff in to the route table
+    //     Make sure that the tarballDelete() is called for each desired revision
+    //     Likely needs to be encoded into the key in an intelligent way
+    //     Support revisionPut and revisionTarballDelete
+    //     Then go back to the unittests and finish adding out the rest of the master search and package get
+    //     capabilities.
+    const params = {
+      Bucket: process.env.AWS_S3_BUCKET as string,
+      Key: this.getS3Path(id),
+    };
+    await this.s3.deleteObject(params).promise();
+  }
+
   // Presumes the key has already been modified with the subscription/registry warts.
-  public async internalTarball(key: any): Promise<string> {
+  public async internalTarball(id: any): Promise<string> {
     // Retrieve file from S3
     const signedUrlExpireSeconds = 60 * 5;
 
     const url = this.s3.getSignedUrl('getObject', {
       Bucket: process.env.AWS_S3_BUCKET,
-      Key: [this.keyPrefix, s3Path, key].join('/'),
+      Key: this.getS3Path(id),
       Expires: signedUrlExpireSeconds,
     });
 
@@ -160,7 +194,7 @@ class AWSRegistry implements IRegistryStore {
     // Because we have to do multiple queries, ignore the 'next' and 'count' for the internal search
     const results = await Promise.all([
       this.internalSearch(keyword, count / 2, next ? next.split('.')[0] : undefined),
-      async (): Promise<any> => {
+      (async (): Promise<any> => {
         // Search the global registry as well.
         const cfg = await this.internalConfigGet();
 
@@ -171,22 +205,22 @@ class AWSRegistry implements IRegistryStore {
 
         const globalReg = (AWSRegistry.create(cfg.global.params) as unknown) as AWSRegistry;
         return globalReg.internalSearch(keyword, count / 2, next ? next.split('.')[1] : undefined);
-      },
+      })(),
     ]);
 
     // Merge the results together.
-    const final: IRegistrySearchResults = {
+    const ret: IRegistrySearchResults = {
       objects: [...results[0].objects, ...results[1].objects],
       total: 0,
       time: new Date().toUTCString(),
     };
-    final.total = final.objects.length;
+    ret.total = ret.objects.length;
 
     if (results[0].next || results[1].next) {
-      final.next = `${results[0].next || ''}.${results[1].next || ''}`;
+      ret.next = `${results[0].next || ''}.${results[1].next || ''}`;
     }
 
-    return final;
+    return ret;
   }
 
   public async internalSearch(keyword: string, count: number = 100, next?: string): Promise<any> {
@@ -216,47 +250,6 @@ class AWSRegistry implements IRegistryStore {
       time: new Date().toUTCString(),
       next: result.LastEvaluatedKey,
     };
-  }
-
-  // Refresh this registry's global configuration blob based on the current value.
-  public async refreshGlobal(): Promise<void> {
-    const global = ((await new AWSRegistry(
-      Constants.REGISTRY_GLOBAL
-    ).internalConfigGet()) as unknown) as IRegistryGlobalConfig;
-    return this.globalConfigUpdate(global);
-  }
-
-  public async globalConfigUpdate(global: IRegistryGlobalConfig): Promise<void> {
-    // Update just the global configuration.
-    await this.ddb
-      .updateItem({
-        TableName: this.tableName,
-        Key: {
-          key: { S: this.keyPrefix },
-          category: { S: Constants.REGISTRY_CATEGORY_CONFIG },
-        },
-
-        ExpressionAttributeNames: { '#G': 'global' },
-        ExpressionAttributeValues: { ':g': { S: JSON.stringify(global) } },
-        UpdateExpression: 'SET #G = :g',
-      })
-      .promise();
-  }
-
-  // Write the config as a global config object instead of the usual registry config
-  public async globalConfigPut(global: IRegistryGlobalConfig): Promise<void> {
-    // Add record to dynamodb.
-    await this.ddb
-      .putItem({
-        TableName: this.tableName,
-        Item: {
-          category: { S: Constants.REGISTRY_CATEGORY_CONFIG },
-          key: { S: this.keyPrefix },
-          params: { S: JSON.stringify(global.params) },
-          scopes: { SS: global.scopes },
-        },
-      })
-      .promise();
   }
 
   public async configPut(config: IRegistryConfig): Promise<void> {
@@ -303,6 +296,73 @@ class AWSRegistry implements IRegistryStore {
       scopes: result.Item.scopes ? (result.Item.scopes.SS as string[]) : [],
       global: result.Item.global ? JSON.parse(result.Item.global.S as string) : defaultGlobal,
     };
+  }
+
+  // Refresh this registry's global configuration blob based on the current value.
+  public async refreshGlobal(): Promise<void> {
+    const global = await this.globalConfigGet();
+    if (global) {
+      return this.globalConfigUpdate(global);
+    }
+  }
+
+  // Write the config as a global config object instead of the usual registry config
+  public async globalConfigPut(global: IRegistryGlobalConfig): Promise<void> {
+    // Add record to dynamodb.
+    await this.ddb
+      .putItem({
+        TableName: this.tableName,
+        Item: {
+          category: { S: Constants.REGISTRY_CATEGORY_CONFIG },
+          key: { S: Constants.REGISTRY_GLOBAL },
+          params: { S: JSON.stringify(global.params) },
+          scopes: { SS: global.scopes },
+        },
+      })
+      .promise();
+  }
+
+  // Write the config as a global config object instead of the usual registry config
+  public async globalConfigGet(): Promise<IRegistryGlobalConfig | undefined> {
+    // Add record to dynamodb.
+    const result = await this.ddb
+      .getItem({
+        TableName: this.tableName,
+        Key: {
+          category: { S: Constants.REGISTRY_CATEGORY_CONFIG },
+          key: { S: Constants.REGISTRY_GLOBAL },
+        },
+      })
+      .promise();
+
+    if (result.Item) {
+      return { params: JSON.parse(result.Item.params.S as string), scopes: result.Item.scopes.SS as string[] };
+    }
+  }
+
+  private getS3Path(id: string): string {
+    return [s3Path, this.keyPrefix, id].join('/');
+  }
+
+  private getDynamoKey(key: string): string {
+    return [this.keyPrefix, key].join('/');
+  }
+
+  private async globalConfigUpdate(global: IRegistryGlobalConfig): Promise<void> {
+    // Update just the global configuration of this registry
+    await this.ddb
+      .updateItem({
+        TableName: this.tableName,
+        Key: {
+          key: { S: this.keyPrefix },
+          category: { S: Constants.REGISTRY_CATEGORY_CONFIG },
+        },
+
+        ExpressionAttributeNames: { '#G': 'global' },
+        ExpressionAttributeValues: { ':g': { S: JSON.stringify(global) } },
+        UpdateExpression: 'SET #G = :g',
+      })
+      .promise();
   }
 }
 

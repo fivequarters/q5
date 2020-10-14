@@ -777,7 +777,6 @@ router.put(
   determine_provider(),
   npmRegistry.handler(),
   async (req, res) => {
-    console.log(req);
     await req.registry.configPut(req.body);
     res.status(200).end();
   },
@@ -829,9 +828,9 @@ router.get(
   analytics.finished
 );
 
-router.options(registryNpmBase + '/:scope?/:name/-/:scope2?/:filename/:sha?', cors(corsManagementOptions));
+router.options(registryNpmBase + '/:scope?/:name/-/:scope2?/:filename', cors(corsManagementOptions));
 router.get(
-  registryNpmBase + '/:scope?/:name/-/:scope2?/:filename/:sha',
+  registryNpmBase + '/:scope?/:name/-/:scope2?/:filename',
   logEvent,
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
@@ -862,7 +861,6 @@ router.put(
   analytics.finished
 );
 
-router.options(registryNpmBase + '/:name', cors(corsManagementOptions));
 router.get(
   registryNpmBase + '/:name',
   logEvent,
@@ -875,6 +873,22 @@ router.get(
   determine_provider(),
   npmRegistry.handler(),
   npm.packageGet(),
+  analytics.finished
+);
+
+router.options(registryNpmBase + '/:name/-rev/:revId', cors(corsManagementOptions));
+router.delete(
+  registryNpmBase + '/:name/-rev/:revId',
+  logEvent,
+  analytics.enterHandler(analytics.Modes.Administration),
+  cors(corsManagementOptions),
+  //validate_schema({ params: require('./schemas/api_account') }),
+  authorize({ operation: 'registry:put' }),
+  //validate_schema({ params: require('./schemas/api_params'), }),
+  user_agent(),
+  determine_provider(),
+  npmRegistry.handler(),
+  npm.revisionDelete(),
   analytics.finished
 );
 

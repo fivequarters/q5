@@ -3,10 +3,10 @@ import { IFunctionApiRequest } from './request';
 
 const tarballGet = () => {
   return async (req: IFunctionApiRequest, res: Response) => {
-    const pkgName = `${req.params.scope ? req.params.scope + '/' : ''}${req.params.name}`;
+    const pkgName = `${req.params.scope}/${req.params.filename}`;
 
-    const pkg = await req.registry.get(pkgName);
-    const tgz = await req.registry.tarball(pkgName);
+    const pkg = await req.registry.get(`${req.params.scope}/${req.params.name}`);
+    const tgz = await req.registry.tarballGet(pkgName);
     if (!tgz) {
       res.status(404).json({ status: 404, statusCode: 404, message: `unknown pkg ${pkgName}` });
     }

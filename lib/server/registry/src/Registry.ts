@@ -30,10 +30,11 @@ interface IRegistrySearchResults {
 }
 
 interface IRegistryStore {
-  put(key: string, pkg: any, payload: any): Promise<void>;
+  put(key: string, pkg: any, id: string, payload: any): Promise<void>;
   get(key: string): Promise<any>;
+  delete(key: string): Promise<any>;
   semverGet(key: string, filter: string): Promise<string | null>;
-  tarball(key: string): Promise<Buffer | string>;
+  tarballGet(id: string): Promise<Buffer | string>;
   search(keyword: string, count: number, next: string | undefined): Promise<any>;
   configPut(config: IRegistryConfig): Promise<void>;
   configGet(): Promise<IRegistryConfig>;

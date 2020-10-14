@@ -25,13 +25,18 @@ class MemRegistry implements IRegistryStore {
     this.config = { url: '', scopes: [] };
   }
 
-  public async put(key: string, pkg: any, payload: any): Promise<void> {
+  public async put(key: string, pkg: any, id: string, payload: any): Promise<void> {
     this.registry.pkg[key] = pkg;
-    this.registry.tgz[key] = payload;
+    this.registry.tgz[id] = payload;
   }
 
   public async get(key: string): Promise<any> {
     return this.registry.pkg[key];
+  }
+
+  public async delete(key: string): Promise<any> {
+    delete this.registry.pkg[key];
+    delete this.registry.tgz[key];
   }
 
   public async semverGet(key: string, filter: string): Promise<string | null> {
@@ -39,8 +44,8 @@ class MemRegistry implements IRegistryStore {
     return maxSatisfying(Object.keys(pkg.versions), filter);
   }
 
-  public async tarball(key: any): Promise<Buffer> {
-    return this.registry.tgz[key];
+  public async tarballGet(id: any): Promise<Buffer> {
+    return this.registry.tgz[id];
   }
 
   public async search(keyword: string, count: number, next?: string): Promise<any> {
