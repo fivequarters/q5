@@ -18,7 +18,7 @@ interface IEnv {
 async function getRegistry(profile: IFusebitExecutionProfile): Promise<IRegistries> {
   const response: any = await request({
     method: 'GET',
-    url: `${profile.baseUrl}/v1/account/${profile.account}/subscription/${profile.subscription}/registry/default/`,
+    url: `${profile.baseUrl}/v1/account/${profile.account}/registry/default/`,
     headers: { Authorization: `bearer ${profile.accessToken}` },
   });
 
