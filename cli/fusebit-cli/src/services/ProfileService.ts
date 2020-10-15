@@ -15,7 +15,6 @@ import {
 import { ExecuteService } from './ExecuteService';
 import { request } from '@5qtrs/request';
 const QR = require('qrcode-terminal');
-const fs = require('fs');
 
 // ------------------
 // Internal Constants

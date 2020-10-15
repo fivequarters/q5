@@ -12,9 +12,6 @@ const create_error = require('http-errors');
 const health = require('./handlers/health');
 const { get_function_location } = require('@5qtrs/constants');
 
-const AWS = require('aws-sdk');
-//AWS.config.logger = console;
-
 const { AccountActions } = require('@5qtrs/account');
 const account = require('./handlers/account');
 const subscription = require('./handlers/subscription');
@@ -742,18 +739,6 @@ router.get(
   analytics.finished
 );
 
-const logEvent = (req, res, next) => {
-  /* XXX XXX XXX XXX */
-  console.log(
-    `\n` +
-      `${req.method} ${req.url}\n${JSON.stringify(req.headers, null, 2)}\n` +
-      `Params: ${JSON.stringify(req.params, null, 2)}\n` +
-      `Body: ${JSON.stringify(req.body, null, 2)}\n` +
-      `Json: ${JSON.stringify(req.json, null, 2)}\n`
-  );
-  return next();
-};
-
 // Registry Service
 const registryBase = '/account/:accountId/registry/:registryId';
 
@@ -788,7 +773,6 @@ router.put(
   user_agent(),
   determine_provider(),
   npmRegistry.handler(),
-  logEvent,
   async (req, res) => {
     try {
       await req.registry.configPut(req.body);
@@ -837,7 +821,6 @@ router.get(
 router.options(registryNpmBase + '/:scope?/:name/-/:scope2?/:filename', cors(corsManagementOptions));
 router.get(
   registryNpmBase + '/:scope?/:name/-/:scope2?/:filename',
-  logEvent,
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
   //validate_schema({ params: require('./schemas/api_account') }),
@@ -862,14 +845,12 @@ router.put(
   user_agent(),
   determine_provider(),
   npmRegistry.handler(),
-  logEvent,
   npm.packagePut(),
   analytics.finished
 );
 
 router.get(
   registryNpmBase + '/:name',
-  logEvent,
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
   //validate_schema({ params: require('./schemas/api_account') }),
@@ -885,7 +866,6 @@ router.get(
 router.options(registryNpmBase + '/:name/-rev/:revId', cors(corsManagementOptions));
 router.delete(
   registryNpmBase + '/:name/-rev/:revId',
-  logEvent,
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
   //validate_schema({ params: require('./schemas/api_account') }),
@@ -901,7 +881,6 @@ router.delete(
 router.options(registryNpmBase + '/-/invalidate/:name', cors(corsManagementOptions));
 router.post(
   registryNpmBase + '/-/invalidate/:name',
-  logEvent,
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
   //validate_schema({ params: require('./schemas/api_account') }),
@@ -918,7 +897,6 @@ router.post(
 router.options(registryNpmBase + '/-/package/:name/dist-tags', cors(corsManagementOptions));
 router.post(
   registryNpmBase + '/-/package/:name/dist-tags',
-  logEvent,
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
   //validate_schema({ params: require('./schemas/api_account') }),
@@ -935,7 +913,6 @@ router.post(
 router.options(registryNpmBase + '/-/package/:name/dist-tags/:tag', cors(corsManagementOptions));
 router.put(
   registryNpmBase + '/-/package/:name/dist-tags/:tag',
-  logEvent,
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
   //validate_schema({ params: require('./schemas/api_account') }),
@@ -952,7 +929,6 @@ router.put(
 router.options(registryNpmBase + '/-/package/:name/dist-tags/:tag', cors(corsManagementOptions));
 router.delete(
   registryNpmBase + '/-/package/:name/dist-tags/:tag',
-  logEvent,
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
   //validate_schema({ params: require('./schemas/api_account') }),
@@ -968,7 +944,6 @@ router.delete(
 router.options(registryNpmBase + '/-/api/v1/packages', cors(corsManagementOptions));
 router.get(
   registryNpmBase + '/-/api/v1/packages',
-  logEvent,
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
   //validate_schema({ params: require('./schemas/api_account') }),
@@ -984,7 +959,6 @@ router.get(
 router.options(registryNpmBase + '/-/user/:user', cors(corsManagementOptions));
 router.put(
   registryNpmBase + '/-/user/:user',
-  logEvent,
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
   //validate_schema({ params: require('./schemas/api_account') }),
@@ -1001,7 +975,6 @@ router.put(
 router.options(registryNpmBase + '/-/whoami', cors(corsManagementOptions));
 router.get(
   registryNpmBase + '/-/whoami',
-  logEvent,
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
   //validate_schema({ params: require('./schemas/api_account') }),
@@ -1017,7 +990,6 @@ router.get(
 router.options(registryNpmBase + '/-/npm/v1/security/audits', cors(corsManagementOptions));
 router.post(
   registryNpmBase + '/-/npm/v1/security/audits',
-  logEvent,
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
   //validate_schema({ params: require('./schemas/api_account') }),
@@ -1034,7 +1006,6 @@ router.post(
 router.options(registryNpmBase + '/-/v1/search', cors(corsManagementOptions));
 router.get(
   registryNpmBase + '/-/v1/search',
-  logEvent,
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
   //validate_schema({ params: require('./schemas/api_account') }),

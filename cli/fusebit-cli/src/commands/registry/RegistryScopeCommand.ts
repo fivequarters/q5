@@ -1,12 +1,10 @@
-const { spawn } = require('child_process');
-
-import { ArgType, Command, ICommand, IExecuteInput } from '@5qtrs/cli';
+import { Command, ICommand, IExecuteInput } from '@5qtrs/cli';
 import { IText, Text } from '@5qtrs/text';
 
 import { ExecuteService } from '../../services/ExecuteService';
 import { ProfileService } from '../../services/ProfileService';
 
-import { getProtoUrl, putRegistry, getRegistry, IRegistries, IRegistry } from '../registry/Registry';
+import { getProtoUrl, getRegistry, IRegistries, IRegistry, putRegistry } from '../registry/Registry';
 
 const commandDesc: ICommand = {
   name: 'Set or get registry scopes',

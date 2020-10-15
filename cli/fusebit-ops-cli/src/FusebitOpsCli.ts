@@ -1,21 +1,21 @@
-import { ArgType, Command, ICommand, ICommandIO, IExecuteInput } from '@5qtrs/cli';
+import { Command, ICommand, ICommandIO, IExecuteInput, ArgType } from '@5qtrs/cli';
 import { Text } from '@5qtrs/text';
 import {
-  AccountCommand,
-  ActionCommand,
-  AdminCommand,
-  DeploymentCommand,
-  DomainCommand,
-  ImageCommand,
   InitCommand,
-  NetworkCommand,
-  PortalCommand,
-  ProfileCommand,
-  RegistryCommand,
   SetupCommand,
+  ProfileCommand,
+  AccountCommand,
+  NetworkCommand,
+  DomainCommand,
+  PortalCommand,
+  ImageCommand,
+  DeploymentCommand,
   StackCommand,
   SubscriptionCommand,
+  AdminCommand,
   VersionCommand,
+  ActionCommand,
+  RegistryCommand,
 } from './commands';
 
 // ------------------

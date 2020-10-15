@@ -18,8 +18,7 @@ const packagePut = () => {
     const attachment = pkg._attachments;
     delete pkg._attachments;
 
-    const scope = pkg.name.split('/')[0];
-    const name = pkg.name.split('/')[1];
+    const [scope, name] = pkg.name.split('/');
     const version = pkg.versions[Object.keys(pkg.versions)[0]];
     const versionId = version.version;
 
@@ -75,22 +74,24 @@ const packageGet = () => {
     }
 
     res.set('ETag', pkg.etag);
-    console.log(`packageGet: ${JSON.stringify(pkg, null, 2)}`);
 
     tarballUrlUpdate(req, pkg);
 
-    console.log(`packageGet: ${JSON.stringify(pkg, null, 2)}`);
     return res.status(200).json(pkg);
   };
 };
 
+// Convert the urls in the tarball section to match the current account, even if they're nominally hosted in
+// the global registry (or some other delegate, eventually).  This makes sure that any requests come back to
+// the account where the credentials match, and eventually get converted into signed S3 URLs.
 const tarballUrlUpdate = (req: IFunctionApiRequest, pkg: any) => {
+  const baseUrl = `${process.env.API_SERVER}/v1/account/${req.params.accountId}/registry/${req.params.registryId}/npm`;
   // Update the dist tarball URL's to be within this account
   for (const version of Object.keys(pkg.versions)) {
     const tarball = pkg.versions[version].dist.tarball;
-    pkg.versions[
-      version
-    ].dist.tarball = `${process.env.API_SERVER}/v1/account/${req.params.accountId}/registry/${req.params.registryId}/npm/${tarball.scope}/${tarball.name}/-/${tarball.scope}/${tarball.name}@${tarball.version}`;
+    const scope = tarball.scope;
+    const name = tarball.name;
+    pkg.versions[version].dist.tarball = `${baseUrl}/${scope}/${name}/-/${scope}/${name}@${tarball.version}`;
   }
 };
 

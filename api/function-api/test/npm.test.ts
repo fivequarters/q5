@@ -117,7 +117,8 @@ describe('npm', () => {
     gv.dist.tarball.scope = masterScope;
     gv.dist.tarball.name = 'libnpm';
 
-    // Put the resulting object.
+    // Put the resulting object directly, bypassing function-api, because we're using a ficticious account as
+    // a proxy for a real deployment where it'd be the account only fusebit operators have access to.
     globalReg.put(`${pkg.name}`, pkg, manifest.version, tarData);
 
     // Request package from accountReg, validate it is accepted
@@ -151,6 +152,5 @@ describe('npm', () => {
       ...fullOpts,
     });
     expect(data).toEqual(tarData);
-    // data = await libnpm.tarball(results[1].versions['1.0.0'].dist.tarball, fullOpts);
   }, 180000);
 });

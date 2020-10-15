@@ -53,14 +53,12 @@ class AWSRegistry implements IRegistryStore {
     this.tableName = Constants.get_key_value_table_name(process.env.DEPLOYMENT_KEY as string);
   }
 
-  public async put(key: string, pkg: any, id: string, payload: any): Promise<void> {
-    console.log(`AWSRegistry::put ${key}, ${id}`);
-
+  public async put(name: string, pkg: any, ver: string, payload: any): Promise<void> {
     // Upload file
     await this.s3
       .upload({
         Bucket: process.env.AWS_S3_BUCKET as string,
-        Key: this.getS3Path(`${key}@${id}`),
+        Key: this.getS3Path(`${name}@${ver}`),
         Body: payload,
       })
       .promise();
@@ -71,7 +69,7 @@ class AWSRegistry implements IRegistryStore {
         TableName: this.tableName,
         Item: {
           category: { S: Constants.REGISTRY_CATEGORY },
-          key: { S: this.getDynamoKey(key) },
+          key: { S: this.getDynamoKey(name) },
           pkg: { S: JSON.stringify(pkg) },
           name: { S: pkg.name },
         },
@@ -79,11 +77,14 @@ class AWSRegistry implements IRegistryStore {
       .promise();
   }
 
-  public findScope(cfg: IRegistryInternalConfig, key: string): AWSRegistry {
-    const parts = key.split('/');
+  // Determine whether the scope in the key is part of this registry, or part of the global registry.  Return
+  // a registry object that matches the target namespace.
+  public findScope(cfg: IRegistryInternalConfig, name: string): AWSRegistry {
+    const parts = name.split('/');
     if (parts.length !== 2) {
       throw new InvalidScopeException();
     }
+
     if (cfg.scopes.indexOf(parts[0]) >= 0) {
       return this;
     } else if (cfg.global.scopes.indexOf(parts[0]) >= 0) {
@@ -92,41 +93,41 @@ class AWSRegistry implements IRegistryStore {
     throw new InvalidScopeException();
   }
 
-  public async get(key: string): Promise<any> {
+  public async get(name: string): Promise<any> {
     try {
       const cfg = await this.internalConfigGet();
 
-      // Delegate get's to the internal registry for scopes that match
-      const reg: AWSRegistry = this.findScope(cfg, key);
-      return reg.internalGet(key);
+      // Delegate get's to the global registry for scopes that match
+      const reg: AWSRegistry = this.findScope(cfg, name);
+      return reg.internalGet(name);
     } catch (e) {
       return undefined;
     }
   }
 
-  public async internalGet(key: string): Promise<any> {
+  public async internalGet(name: string): Promise<any> {
     // Retrieve record from DynamoDB
     const result = await this.ddb
       .getItem({
         TableName: this.tableName,
         Key: {
           category: { S: Constants.REGISTRY_CATEGORY },
-          key: { S: this.getDynamoKey(key) },
+          key: { S: this.getDynamoKey(name) },
         },
       })
       .promise();
     return result && result.Item && result.Item.pkg ? JSON.parse(result.Item.pkg.S as string) : undefined;
   }
 
-  public async delete(key: string): Promise<any> {
+  public async delete(name: string): Promise<any> {
     // Remove the document from dynamodb
-    const pkg = await this.internalGet(key);
+    const pkg = await this.internalGet(name);
     const result = await this.ddb
       .deleteItem({
         TableName: this.tableName,
         Key: {
           category: { S: Constants.REGISTRY_CATEGORY },
-          key: { S: [this.keyPrefix, key].join('/') },
+          key: { S: [this.keyPrefix, name].join('/') },
         },
       })
       .promise();
@@ -134,51 +135,40 @@ class AWSRegistry implements IRegistryStore {
     // NYI: Remove all of the tarballs from S3
   }
 
-  public async tarballGet(id: string): Promise<any> {
-    console.log(`AWSRegistry::tarballGet ${id}`);
+  public async tarballGet(nameVer: string): Promise<any> {
     try {
       const cfg = await this.internalConfigGet();
 
-      // Delegate get's to the internal registry for scopes that match
-      const reg: AWSRegistry = this.findScope(cfg, id);
-      return reg.internalTarball(id);
+      // Delegate get's to the global registry for scopes that match
+      const reg: AWSRegistry = this.findScope(cfg, nameVer);
+      return reg.internalTarball(nameVer);
     } catch (e) {
       return undefined;
     }
   }
 
-  public async tarballDelete(id: string): Promise<any> {
-    // XXX this doesn't seem to be the right S3 call?
-    // XXX Next, wire the npm revision.ts stuff in to the route table
-    //     Make sure that the tarballDelete() is called for each desired revision
-    //     Likely needs to be encoded into the key in an intelligent way
-    //     Support revisionPut and revisionTarballDelete
-    //     Then go back to the unittests and finish adding out the rest of the master search and package get
-    //     capabilities.
-    const params = {
-      Bucket: process.env.AWS_S3_BUCKET as string,
-      Key: this.getS3Path(id),
-    };
-    await this.s3.deleteObject(params).promise();
+  public async tarballDelete(nameVer: string): Promise<any> {
+    // NYI.
+    return 0;
   }
 
   // Presumes the key has already been modified with the subscription/registry warts.
-  public async internalTarball(id: any): Promise<string> {
+  public async internalTarball(nameVer: any): Promise<string> {
     // Retrieve file from S3
     const signedUrlExpireSeconds = 60 * 5;
 
     const url = this.s3.getSignedUrl('getObject', {
       Bucket: process.env.AWS_S3_BUCKET,
-      Key: this.getS3Path(id),
+      Key: this.getS3Path(nameVer),
       Expires: signedUrlExpireSeconds,
     });
 
     return url;
   }
 
-  public async semverGet(key: string, filter: string): Promise<string | null> {
+  public async semverGet(name: string, filter: string): Promise<string | null> {
     try {
-      const pkg = await this.get(key);
+      const pkg = await this.get(name);
       return maxSatisfying(Object.keys(pkg.versions), filter);
     } catch (e) {
       return null;
@@ -191,9 +181,8 @@ class AWSRegistry implements IRegistryStore {
     const split = next ? next.split('.') : [undefined, undefined];
     nexts = [split[0] || undefined, split[1] || undefined];
 
-    // Because we have to do multiple queries, ignore the 'next' and 'count' for the internal search
     const results = await Promise.all([
-      this.internalSearch(keyword, count / 2, next ? next.split('.')[0] : undefined),
+      this.internalSearch(keyword, count / 2, nexts[0]),
       (async (): Promise<any> => {
         // Search the global registry as well.
         const cfg = await this.internalConfigGet();
@@ -204,7 +193,7 @@ class AWSRegistry implements IRegistryStore {
         }
 
         const globalReg = (AWSRegistry.create(cfg.global.params) as unknown) as AWSRegistry;
-        return globalReg.internalSearch(keyword, count / 2, next ? next.split('.')[1] : undefined);
+        return globalReg.internalSearch(keyword, count / 2, nexts[1]);
       })(),
     ]);
 
@@ -340,15 +329,7 @@ class AWSRegistry implements IRegistryStore {
     }
   }
 
-  private getS3Path(id: string): string {
-    return [s3Path, this.keyPrefix, id].join('/');
-  }
-
-  private getDynamoKey(key: string): string {
-    return [this.keyPrefix, key].join('/');
-  }
-
-  private async globalConfigUpdate(global: IRegistryGlobalConfig): Promise<void> {
+  public async globalConfigUpdate(global: IRegistryGlobalConfig): Promise<void> {
     // Update just the global configuration of this registry
     await this.ddb
       .updateItem({
@@ -363,6 +344,14 @@ class AWSRegistry implements IRegistryStore {
         UpdateExpression: 'SET #G = :g',
       })
       .promise();
+  }
+
+  private getS3Path(nameVer: string): string {
+    return [s3Path, this.keyPrefix, nameVer].join('/');
+  }
+
+  private getDynamoKey(name: string): string {
+    return [this.keyPrefix, name].join('/');
   }
 }
 

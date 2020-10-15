@@ -1,18 +1,16 @@
-import { ArgType, Command, ICommand, IExecuteInput } from '@5qtrs/cli';
-
+import { Command, ICommand, IExecuteInput, ArgType } from '@5qtrs/cli';
 import { Text } from '@5qtrs/text';
-
 import {
   ClientCommand,
   FunctionCommand,
   InitCommand,
-  IssuerCommand,
-  NpmCommand,
-  ProfileCommand,
   TokenCommand,
+  IssuerCommand,
+  ProfileCommand,
   UserCommand,
   VersionCommand,
   RegistryCommand,
+  NpmCommand,
 } from './commands';
 
 // ------------------
@@ -59,13 +57,13 @@ async function getSubCommands() {
 // ----------------
 
 export class FusebitCli extends Command {
+  private constructor(command: ICommand) {
+    super(command);
+  }
+
   public static async create() {
     cli.subCommands = await getSubCommands();
     return new FusebitCli(cli);
-  }
-
-  private constructor(command: ICommand) {
-    super(command);
   }
 
   protected async onSubCommandError(command: Command, input: IExecuteInput, error: Error) {

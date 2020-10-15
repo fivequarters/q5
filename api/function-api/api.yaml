@@ -2285,8 +2285,8 @@ paths:
 #      security:
 #        - AccessToken: []
 #
-####################################################
-  v1/account/{accountId}/subscription/{subscriptionId}/registry/{registryId}:
+
+  /v1/account/{accountId}/registry/{registryId}:
     parameters:
       - name: accountId
         in: path
@@ -2334,43 +2334,6 @@ paths:
                 $ref: '#/components/schemas/Error'
       security:
         - AccessToken: []
-
-    patch:
-      tags:
-        - Registry
-      summary: Update a registry configuration
-      description: |
-        Change the configuration of a registry
-      operationId: patchRegistry
-      requestBody:
-        description: The details of the registry to update
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Registry'
-      responses:
-        200:
-          description: Patch successfully applied
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Registry/Get'
-        403:
-          description: Not authorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        404:
-          description: Query was not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-      security:
-        - AccessToken: []
-
     put:
       tags:
         - Registry
@@ -2403,38 +2366,7 @@ paths:
       security:
         - AccessToken: []
 
-    delete:
-      tags:
-        - Registry
-      summary: Deletes an existing registry
-      description: |
-        Delete a registry with this id.
-      operationId: deleteRegistry
-      responses:
-        200:
-          description: Registry successfully deleted
-        400:
-          description: Malformed registry specification
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        403:
-          description: Not authorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        404:
-          description: Registry not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-      security:
-        - AccessToken: []
-
-  v1/account/{accountId}/subscription/{subscriptionId}/registry/{registryId}/npm:
+  /v1/account/{accountId}/subscription/{subscriptionId}/registry/{registryId}/npm:
     parameters:
       - name: accountId
         in: path
