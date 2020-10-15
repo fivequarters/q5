@@ -27,7 +27,7 @@ class MemRegistry implements IRegistryStore {
 
   public async put(key: string, pkg: any, id: string, payload: any): Promise<void> {
     this.registry.pkg[key] = pkg;
-    this.registry.tgz[id] = payload;
+    this.registry.tgz[`${key}@${id}`] = payload;
   }
 
   public async get(key: string): Promise<any> {

@@ -48,13 +48,24 @@ const resetScope = async (account: IAccount) => {
   config.scopes = [regScope];
   expect(await Registry.putConfig(account, config)).toBe(200);
 
-  const { globalReg, accountReg } = await Registry.setGlobal(masterAccount, account, masterScope, regScope);
+  const { globalReg, accountReg } = await Registry.setupGlobal(masterAccount, account, masterScope, regScope);
 
   config = await Registry.getConfig(account);
   expect(config.scopes).toEqual([regScope, masterScope]);
 
   return { globalReg, accountReg };
 };
+
+let oldGlobalConfig: any;
+
+beforeEach(async () => {
+  oldGlobalConfig = await Registry.getGlobal();
+}, 180000);
+
+afterEach(async () => {
+  await Registry.setGlobal(oldGlobalConfig);
+  oldGlobalConfig = undefined;
+}, 180000);
 
 /* Tests */
 describe('npm', () => {
@@ -85,7 +96,6 @@ describe('npm', () => {
 
     await libnpm.publish(manifest, tarData, getOpts(regScope, account));
     const results = await libnpm.search(manifest.name, { ...getOpts(regScope, account), registry: registryUrl });
-    console.log(`Search Results: ${JSON.stringify(results)}`);
     expect(results.length).toBe(1);
     expect(results[0].name).toBe(manifest.name);
   }, 180000);

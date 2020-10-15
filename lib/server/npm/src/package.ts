@@ -85,7 +85,11 @@ const packageGet = () => {
 // the global registry (or some other delegate, eventually).  This makes sure that any requests come back to
 // the account where the credentials match, and eventually get converted into signed S3 URLs.
 const tarballUrlUpdate = (req: IFunctionApiRequest, pkg: any) => {
-  const baseUrl = `${process.env.API_SERVER}/v1/account/${req.params.accountId}/registry/${req.params.registryId}/npm`;
+  // Allow for override for tests.
+  const baseUrl =
+    req.tarballRootUrl ||
+    `${process.env.API_SERVER}/v1/account/${req.params.accountId}/registry/${req.params.registryId}/npm`;
+
   // Update the dist tarball URL's to be within this account
   for (const version of Object.keys(pkg.versions)) {
     const tarball = pkg.versions[version].dist.tarball;

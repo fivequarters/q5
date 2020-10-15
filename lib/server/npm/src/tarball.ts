@@ -8,7 +8,7 @@ const tarballGet = () => {
     const pkg = await req.registry.get(`${req.params.scope}/${req.params.name}`);
     const tgz = await req.registry.tarballGet(pkgName);
     if (!tgz) {
-      res.status(404).json({ status: 404, statusCode: 404, message: `unknown pkg ${pkgName}` });
+      return res.status(404).json({ status: 404, statusCode: 404, message: `unknown pkg ${pkgName}` });
     }
 
     if (typeof tgz === 'string') {

@@ -5,7 +5,9 @@ import bodyParser from 'body-parser';
 
 import * as fs from 'fs';
 import * as http from 'http';
-import libnpm from 'libnpm';
+
+const libnpm = require('libnpm');
+
 import { AddressInfo } from 'net';
 
 import { packageGet, packagePut, searchGet, tarballGet } from '../src';
@@ -45,6 +47,13 @@ const startExpress = async (): Promise<any> => {
 
   const { registry, handler } = MemRegistry.handler();
 
+  const url = `http://localhost:${port}`;
+
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    (req as any).tarballRootUrl = url;
+    return next();
+  });
+
   app.use(bodyParser.json());
   app.use(handler);
   app.use((req: Request, res: Response, next: NextFunction) => {
@@ -52,7 +61,7 @@ const startExpress = async (): Promise<any> => {
     return next();
   });
 
-  return { app, registry, server, forceClose, port };
+  return { app, registry, server, forceClose, port, url};
 };
 
 let globalServer: any;
@@ -67,14 +76,12 @@ afterEach(async () => {
 });
 
 const createServer = () => {
-  const { app, registry, server, forceClose, port } = globalServer;
+  const { app, registry, server, forceClose, port , url } = globalServer;
   app.put(`/:name`, packagePut());
   app.get(`/:name`, packageGet());
   app.get('/:scope?/:name/-/:scope2?/:filename/', tarballGet());
   app.get('/-/v1/search', searchGet());
-  const url = `http://localhost:${port}/`;
-
-  return { registry, url };
+  return { registry, url: `${url}/` };
 };
 
 describe('packagePut', () => {
