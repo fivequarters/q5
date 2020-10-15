@@ -157,7 +157,7 @@ class AWSRegistry implements IRegistryStore {
     // Retrieve file from S3
     const signedUrlExpireSeconds = 60 * 5;
 
-    const url = this.s3.getSignedUrl('getObject', {
+    const url = await this.s3.getSignedUrlPromise('getObject', {
       Bucket: process.env.AWS_S3_BUCKET,
       Key: this.getS3Path(nameVer),
       Expires: signedUrlExpireSeconds,
