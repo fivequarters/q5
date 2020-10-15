@@ -61,7 +61,7 @@ const startExpress = async (): Promise<any> => {
     return next();
   });
 
-  return { app, registry, server, forceClose, port, url};
+  return { app, registry, server, forceClose, port, url };
 };
 
 let globalServer: any;
@@ -76,7 +76,7 @@ afterEach(async () => {
 });
 
 const createServer = () => {
-  const { app, registry, server, forceClose, port , url } = globalServer;
+  const { app, registry, server, forceClose, port, url } = globalServer;
   app.put(`/:name`, packagePut());
   app.get(`/:name`, packageGet());
   app.get('/:scope?/:name/-/:scope2?/:filename/', tarballGet());
@@ -88,7 +88,7 @@ describe('packagePut', () => {
   it('putAddsRegistry', async () => {
     const { registry, url } = createServer();
 
-    const manifest = JSON.parse(fs.readFileSync('test/mock/sample-npm.manifest.json').toString('utf8'));
+    const manifest = require('./mock/sample-npm.manifest.json');
     const tarData = fs.readFileSync('test/mock/sample-npm.tgz');
 
     let m: any;
