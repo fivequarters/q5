@@ -2,7 +2,7 @@ import { request } from '@5qtrs/request';
 
 import { IFusebitExecutionProfile } from '@5qtrs/fusebit-profile-sdk';
 
-import { getProtoUrl, IRegistries } from '../registry/Registry';
+import { getProtoUrl, IRegistries } from './registry/Registry';
 
 interface IEnv {
   [key: string]: string;

@@ -7,7 +7,7 @@ import { ProfileService } from '../../services';
 
 import { createEnv } from './Npm';
 
-import { getRegistry } from '../registry/Registry';
+import { getRegistry } from './registry/Registry';
 
 // ------------------
 // Internal Constants

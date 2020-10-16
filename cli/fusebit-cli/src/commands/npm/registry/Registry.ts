@@ -1,5 +1,8 @@
 import { request } from '@5qtrs/request';
 
+import { IText, Text } from '@5qtrs/text';
+import { ExecuteService } from '../../../services/ExecuteService';
+
 import { IFusebitExecutionProfile } from '@5qtrs/fusebit-profile-sdk';
 
 interface IRegistries {
@@ -36,4 +39,13 @@ function getProtoUrl(url: string): string {
   return url.replace(/^http[s]?:/, '');
 }
 
-export { IRegistries, IRegistry, getProtoUrl, getRegistry, putRegistry };
+async function printRegistries(executeService: ExecuteService, registries: IRegistries) {
+  for (const [name, registry] of Object.entries(registries)) {
+    await executeService.result(
+      `${name === 'default' ? 'Mapped Scopes' : name}`,
+      Text.create(`${(registry as IRegistry).scopes.join(', ')}`)
+    );
+  }
+}
+
+export { IRegistries, IRegistry, getProtoUrl, getRegistry, putRegistry, printRegistries };

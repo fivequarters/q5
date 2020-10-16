@@ -4,7 +4,7 @@ import { ArgType, Command, ICommand, IExecuteInput } from '@5qtrs/cli';
 
 import { ProfileService } from '../../services/ProfileService';
 
-import { getProtoUrl, getRegistry } from '../registry/Registry';
+import { getProtoUrl, getRegistry } from './registry/Registry';
 
 const commandDesc: ICommand = {
   name: 'NPM Login',

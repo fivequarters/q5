@@ -3,6 +3,7 @@ import { Command, ICommand } from '@5qtrs/cli';
 import { NpmExecCommand } from './NpmExecCommand';
 import { NpmLoginCommand } from './NpmLoginCommand';
 import { NpmSearchCommand } from './NpmSearchCommand';
+import { RegistryCommand } from './registry/RegistryCommand';
 
 // ------------------
 // Internal Constants
@@ -36,6 +37,7 @@ export class NpmCommand extends Command {
     subCommands.push(await NpmSearchCommand.create());
     subCommands.push(await NpmLoginCommand.create());
     subCommands.push(await NpmExecCommand.create());
+    subCommands.push(await RegistryCommand.create());
     return subCommands;
   }
 

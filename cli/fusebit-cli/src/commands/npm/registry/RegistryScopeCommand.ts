@@ -1,15 +1,16 @@
 import { Command, ICommand } from '@5qtrs/cli';
 
-import { RegistryScopeCommand } from './RegistryScopeCommand';
+import { RegistryScopeGetCommand } from './RegistryScopeGetCommand';
+import { RegistryScopeSetCommand } from './RegistryScopeSetCommand';
 
 // ------------------
 // Internal Constants
 // ------------------
 
 const commandDesc: ICommand = {
-  name: 'Registry Management',
-  cmd: 'registry',
-  summary: 'Set registry configuration for an account',
+  name: 'NPM Package Scope Management',
+  cmd: 'scope',
+  summary: 'Manage the authoritative scopes for the registry',
   description: ['Set and get the allowed scopes that the internal registry supports.'].join(' '),
   options: [
     {
@@ -25,16 +26,17 @@ const commandDesc: ICommand = {
 // Exported Classes
 // ----------------
 
-export class RegistryCommand extends Command {
+export class RegistryScopeCommand extends Command {
   public static async getSubCommands() {
     const subCommands = [];
-    subCommands.push(await RegistryScopeCommand.create());
+    subCommands.push(await RegistryScopeGetCommand.create());
+    subCommands.push(await RegistryScopeSetCommand.create());
     return subCommands;
   }
 
   public static async create() {
-    commandDesc.subCommands = await RegistryCommand.getSubCommands();
-    return new RegistryCommand(commandDesc);
+    commandDesc.subCommands = await RegistryScopeCommand.getSubCommands();
+    return new RegistryScopeCommand(commandDesc);
   }
 
   private constructor(command: ICommand) {
