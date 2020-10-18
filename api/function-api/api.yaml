@@ -1613,6 +1613,36 @@ paths:
                 $ref: '#/components/schemas/Error'
       security:
         - AccessToken: []
+    patch:
+      tags:
+        - Functions
+      summary: Change specific elements of the function specification
+      description: |
+        This is most commonly used to change the availability of the function via the `enable` value in the specification, as well as trigger an update of the dependencies according to the semver rules in `package.json` with 'rebuild'.
+      operationId: patchFunction
+      responses:
+        200:
+          description: The operation succeeded
+        400:
+          description: Malformed account, subscription, boundary or function id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        403:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        404:
+          description: Subscription, boundary or function not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - AccessToken: []
 
   /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/function/{functionId}/log:
     parameters:
