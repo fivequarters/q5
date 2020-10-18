@@ -4,6 +4,8 @@ module.exports = Joi.object().keys({
   accountId: Joi.string().regex(/^acc-[a-g0-9]{16}$/),
   subscriptionId: Joi.string().regex(/^sub-[a-g0-9]{16}$/),
   boundaryId: Joi.string().regex(/^[a-z0-9\-]{1,63}$/),
+  enable: Joi.boolean(),
+  rebuild: Joi.boolean(),
   id: Joi.string().regex(/^[a-z0-9\-]{1,64}$/),
   location: Joi.string(),
   environment: Joi.string().valid(['nodejs']).default('nodejs'),
