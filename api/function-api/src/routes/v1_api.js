@@ -770,10 +770,12 @@ router.get(
   user_agent(),
   determine_provider(),
   npmRegistry.handler(),
-  async (req, res) =>
-    res.status(200).json({
-      ...(await req.registry.configGet()),
-      url: process.env.API_SERVER + req.originalUrl + 'npm/',
+  (req, res) =>
+    req.registry.configGet().then((config) => {
+      res.status(200).json({
+        ...config,
+        url: process.env.API_SERVER + req.originalUrl + 'npm/',
+      });
     }),
   analytics.finished
 );
@@ -789,10 +791,11 @@ router.put(
   user_agent(),
   determine_provider(),
   npmRegistry.handler(),
-  async (req, res) => {
+  (req, res) => {
     try {
-      await req.registry.configPut(req.body);
-      res.status(200).end();
+      req.registry.configPut(req.body).then((c) => {
+        res.status(200).end();
+      });
     } catch (e) {
       console.log(e);
       res.status(501).end();

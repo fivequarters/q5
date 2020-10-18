@@ -1086,6 +1086,43 @@ export class FunctionService {
     }
   }
 
+  public async patchFunction(functionId: string, verb: string, mode: boolean, quiet: boolean = false): Promise<void> {
+    const profile = await this.getFunctionExecutionProfile(true, functionId, process.cwd());
+
+    let action;
+    if (verb === 'enable') {
+      action = mode ? 'Enable' : 'Disable';
+    } else if (verb === 'rebuild') {
+      action = 'Rebuild';
+    }
+
+    const data = await this.executeService.executeRequest(
+      quiet
+        ? {}
+        : {
+            header: `${action} function`,
+            message: Text.create('Success'),
+            errorHeader: `${action} Function Error`,
+            errorMessage: Text.create(
+              "Unable to act on function '",
+              Text.bold(`${profile.function}`),
+              "' in boundary '",
+              Text.bold(`${profile.boundary}`),
+              "'"
+            ),
+          },
+      {
+        method: 'PATCH',
+        url: [
+          `${profile.baseUrl}/v1/account/${profile.account}/subscription/`,
+          `${profile.subscription}/boundary/${profile.boundary}/function/${profile.function}`,
+        ].join(''),
+        headers: { Authorization: `bearer ${profile.accessToken}` },
+        data: { [verb]: mode },
+      }
+    );
+  }
+
   private async getConfirmDeployDetails(profile: IFusebitExecutionProfile, functionSpec: any, cron?: string) {
     const scheduleSource = cron ? Text.empty() : fromFusebitJson;
     let schedule = notSet;
