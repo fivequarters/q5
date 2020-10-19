@@ -185,6 +185,23 @@
             "deviceClientId": "VFOtrBCVHEm7I9UNv7rFwu1ID1hTEueF",
             "tokenUrl": "https://fusebit.auth0.com/oauth/token"
           }
+        },
+        {
+          "id": "metacx-poc",
+          "displayName": "MetaCX",
+          "icon": "https://cdn.fusebit.io/assets/images/metacx.png",
+          "baseUrl": "https://api.us-west-1.fusebit.io",
+          "account": "acc-9446c6fe123340f0",
+          "subscription": "sub-ed3573ac6bb14587",
+          "catalog": "https://api.us-west-1.fusebit.io/v1/run/sub-ed3573ac6bb14587/internal/config",
+          "oauth": {
+            "webAuthorizationUrl": "https://fusebit.auth0.com/authorize",
+            "webClientId": "hSgWIXmbluQMADuWhDnRTpWyKptJe6LB",
+            "webLogoutUrl": "https://fusebit.auth0.com/v2/logout?client_id=hSgWIXmbluQMADuWhDnRTpWyKptJe6LB&returnTo=https://metacx.portal.fusebit.io",
+            "deviceAuthorizationUrl": "https://fusebit.auth0.com/oauth/device/code",
+            "deviceClientId": "VFOtrBCVHEm7I9UNv7rFwu1ID1hTEueF",
+            "tokenUrl": "https://fusebit.auth0.com/oauth/token"
+          }
         }
       ],
       "defaultProfile": "stage-us-portal-dev"
@@ -315,6 +332,28 @@
         }
       ],
       "defaultProfile": "castle-poc"
+    },
+    "metacx": {
+      "profiles": [
+        {
+          "id": "metacx-poc",
+          "displayName": "MetaCX",
+          "icon": "https://cdn.fusebit.io/assets/images/metacx.png",
+          "baseUrl": "https://api.us-west-1.fusebit.io",
+          "account": "acc-9446c6fe123340f0",
+          "subscription": "sub-ed3573ac6bb14587",
+          "catalog": "https://api.us-west-1.fusebit.io/v1/run/sub-ed3573ac6bb14587/internal/config",
+          "oauth": {
+            "webAuthorizationUrl": "https://fusebit.auth0.com/authorize",
+            "webClientId": "hSgWIXmbluQMADuWhDnRTpWyKptJe6LB",
+            "webLogoutUrl": "https://fusebit.auth0.com/v2/logout?client_id=hSgWIXmbluQMADuWhDnRTpWyKptJe6LB&returnTo=https://metacx.portal.fusebit.io",
+            "deviceAuthorizationUrl": "https://fusebit.auth0.com/oauth/device/code",
+            "deviceClientId": "VFOtrBCVHEm7I9UNv7rFwu1ID1hTEueF",
+            "tokenUrl": "https://fusebit.auth0.com/oauth/token"
+          }
+        }
+      ],
+      "defaultProfile": "metacx-poc"
     }
   }
 }
