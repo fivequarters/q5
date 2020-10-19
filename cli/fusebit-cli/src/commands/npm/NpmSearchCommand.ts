@@ -59,7 +59,10 @@ export class NpmSearchCommand extends Command {
     const env = createEnv(profile, registries, true);
 
     // Delegate to the npm executable
-    const args: string[] = (longDesc ? ['search'].concat('--long') : ['search']).concat([input.arguments[0] as string]);
+    const args: string[] = (longDesc
+      ? ['search', '--userconfig', '.'].concat('--long')
+      : ['search', '--userconfig', '.']
+    ).concat([input.arguments[0] as string]);
     const child = spawn('npm', args, { stdio: 'inherit', env: { ...process.env, ...env } });
 
     const exitCode: number = await new Promise((resolve, reject) => {
