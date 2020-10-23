@@ -33,12 +33,12 @@ const command: ICommand = {
       name: 'boundary',
       aliases: ['b'],
       description: 'The boundary id to use when executing the command',
-      defaultText: 'boundary id',
+      defaultText: 'profile value',
     },
     {
       name: 'subscription',
       description: 'The subscription id to use when executing the command',
-      defaultText: 'subscription id',
+      defaultText: 'profile value',
     },
   ],
 };
