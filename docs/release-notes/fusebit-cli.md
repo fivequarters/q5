@@ -17,6 +17,12 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.8.7
+
+_Released 10/22/20_
+
+- **Enhancement**. Support the `--subscription` override to all `fuse function` commands.
+
 ## Version 1.8.6
 
 _Released 9/9/20_
