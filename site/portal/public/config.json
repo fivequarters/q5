@@ -202,6 +202,23 @@
             "deviceClientId": "VFOtrBCVHEm7I9UNv7rFwu1ID1hTEueF",
             "tokenUrl": "https://fusebit.auth0.com/oauth/token"
           }
+        },
+        {
+          "id": "amaranthine-poc",
+          "displayName": "Amaranthine",
+          "icon": "https://cdn.fusebit.io/assets/images/amaranthine.png",
+          "baseUrl": "https://api.us-west-1.fusebit.io",
+          "account": "acc-c6174d2c86fe4c51",
+          "subscription": "sub-1c8f1b9df6774bfd",
+          "catalog": "https://api.us-west-1.fusebit.io/v1/run/sub-1c8f1b9df6774bfd/internal/config",
+          "oauth": {
+            "webAuthorizationUrl": "https://fusebit.auth0.com/authorize",
+            "webClientId": "hSgWIXmbluQMADuWhDnRTpWyKptJe6LB",
+            "webLogoutUrl": "https://fusebit.auth0.com/v2/logout?client_id=hSgWIXmbluQMADuWhDnRTpWyKptJe6LB&returnTo=https://amaranthine.portal.fusebit.io",
+            "deviceAuthorizationUrl": "https://fusebit.auth0.com/oauth/device/code",
+            "deviceClientId": "VFOtrBCVHEm7I9UNv7rFwu1ID1hTEueF",
+            "tokenUrl": "https://fusebit.auth0.com/oauth/token"
+          }
         }
       ],
       "defaultProfile": "stage-us-portal-dev"
@@ -354,6 +371,28 @@
         }
       ],
       "defaultProfile": "metacx-poc"
+    },
+    "amaranthine": {
+      "profiles": [
+        {
+          "id": "amaranthine-poc",
+          "displayName": "Amaranthine",
+          "icon": "https://cdn.fusebit.io/assets/images/amaranthine.png",
+          "baseUrl": "https://api.us-west-1.fusebit.io",
+          "account": "acc-c6174d2c86fe4c51",
+          "subscription": "sub-1c8f1b9df6774bfd",
+          "catalog": "https://api.us-west-1.fusebit.io/v1/run/sub-1c8f1b9df6774bfd/internal/config",
+          "oauth": {
+            "webAuthorizationUrl": "https://fusebit.auth0.com/authorize",
+            "webClientId": "hSgWIXmbluQMADuWhDnRTpWyKptJe6LB",
+            "webLogoutUrl": "https://fusebit.auth0.com/v2/logout?client_id=hSgWIXmbluQMADuWhDnRTpWyKptJe6LB&returnTo=https://amaranthine.portal.fusebit.io",
+            "deviceAuthorizationUrl": "https://fusebit.auth0.com/oauth/device/code",
+            "deviceClientId": "VFOtrBCVHEm7I9UNv7rFwu1ID1hTEueF",
+            "tokenUrl": "https://fusebit.auth0.com/oauth/token"
+          }
+        }
+      ],
+      "defaultProfile": "amaranthine-poc"
     }
   }
 }
