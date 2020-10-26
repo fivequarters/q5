@@ -43,6 +43,8 @@ const REGISTRY_GLOBAL = 'registry-global';
 
 const MODULE_PUBLIC_REGISTRY = 'public';
 
+const RUNAS_ISSUER = 'runas-system-issuer';
+
 function get_log_table_name(deploymentKey: string): string {
   return `${deploymentKey}.log`;
 }
@@ -163,6 +165,11 @@ function duplicate(dst: any, src: any) {
   return dst;
 }
 
+function isSystemIssuer(issuerId: string) {
+  /* XXX Should this be more sophisticated? Include the AWS instance id? */
+  return issuerId.match(/fusebit.io$/);
+}
+
 export {
   get_log_table_name,
   get_key_value_table_name,
@@ -196,9 +203,11 @@ export {
   RestrictedPermissions,
   UserPermissions,
   isSpecialized,
+  isSystemIssuer,
   REGISTRY_CATEGORY,
   REGISTRY_CATEGORY_CONFIG,
   REGISTRY_DEFAULT,
   REGISTRY_GLOBAL,
   MODULE_PUBLIC_REGISTRY,
+  RUNAS_ISSUER,
 };

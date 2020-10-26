@@ -9,11 +9,13 @@ export interface IIssuerPublicKey {
   publicKey: string;
 }
 
+export type IIssuerKeyStore = (kid: string) => Promise<string>;
+
 export interface IIssuer {
   id: string;
   displayName?: string;
   jsonKeysUrl?: string;
-  publicKeys?: IIssuerPublicKey[];
+  publicKeys?: IIssuerPublicKey[] | IIssuerKeyStore;
 }
 
 export interface IListIssuersOptions {

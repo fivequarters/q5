@@ -1,5 +1,8 @@
 const express = require('express');
 const router = express.Router();
+
+require('aws-sdk').config.logger = console;
+
 const analytics = require('./middleware/analytics');
 const determine_provider = require('./middleware/determine_provider');
 const parse_body_conditional = require('./middleware/parse_body_conditional');
@@ -24,6 +27,7 @@ const statistics = require('./handlers/statistics');
 const npm = require('@5qtrs/npm');
 const { AWSRegistry } = require('@5qtrs/registry');
 
+const { loadSummary } = require('@5qtrs/runas');
 const { StorageActions } = require('@5qtrs/storage');
 const storage = require('./handlers/storage');
 
@@ -1064,11 +1068,13 @@ router.get(
 
 // Not part of public contract
 
-let run_route = /^\/run\/([^\/]+)\/([^\/]+)\/([^\/]+).*$/;
+/* XXX Why were these regex instead of named parameters? */
+let run_routes = [
+  '/run/:subscriptionId/:boundaryId/:functionId/*',
+  '/exec/:accountId/:subscriptionId/:boundaryId/:functionId/*',
+];
+
 function promote_to_name_params(req, res, next) {
-  req.params.subscriptionId = req.params[0];
-  req.params.boundaryId = req.params[1];
-  req.params.functionId = req.params[2];
   // Reverse back the run_route base url component.
   req.params.baseUrl = get_function_location(
     req,
@@ -1076,45 +1082,44 @@ function promote_to_name_params(req, res, next) {
     req.params.boundaryId,
     req.params.functionId
   );
-  delete req.params[0];
-  delete req.params[1];
-  delete req.params[2];
   return next();
 }
 
-router.options(run_route, cors(corsExecutionOptions));
+run_routes.forEach((run_route) => {
+  router.options(run_route, cors(corsExecutionOptions));
+  ['post', 'put', 'patch'].forEach((verb) => {
+    router[verb](
+      run_route,
+      analytics.enterHandler(analytics.Modes.Execution),
+      cors(corsExecutionOptions),
+      promote_to_name_params,
+      validate_schema({
+        params: require('./schemas/api_params'),
+      }),
+      determine_provider(),
+      parse_body_conditional({
+        condition: (req) => req.provider === 'lambda',
+      }),
+      loadSummary(),
+      (req, res, next) => provider_handlers[req.provider].execute_function(req, res, next),
+      analytics.finished
+    );
+  });
 
-['post', 'put', 'patch'].forEach((verb) => {
-  router[verb](
-    run_route,
-    analytics.enterHandler(analytics.Modes.Execution),
-    cors(corsExecutionOptions),
-    promote_to_name_params,
-    validate_schema({
-      params: require('./schemas/api_params'),
-    }),
-    determine_provider(),
-    parse_body_conditional({
-      condition: (req) => req.provider === 'lambda',
-    }),
-    (req, res, next) => provider_handlers[req.provider].execute_function(req, res, next),
-    analytics.finished
-  );
+  ['delete', 'get', 'head'].forEach((verb) => {
+    router[verb](
+      run_route,
+      analytics.enterHandler(analytics.Modes.Execution),
+      cors(corsExecutionOptions),
+      promote_to_name_params,
+      validate_schema({
+        params: require('./schemas/api_params'),
+      }),
+      determine_provider(),
+      loadSummary(),
+      (req, res, next) => provider_handlers[req.provider].execute_function(req, res, next),
+      analytics.finished
+    );
+  });
 });
-
-['delete', 'get', 'head'].forEach((verb) => {
-  router[verb](
-    run_route,
-    analytics.enterHandler(analytics.Modes.Execution),
-    cors(corsExecutionOptions),
-    promote_to_name_params,
-    validate_schema({
-      params: require('./schemas/api_params'),
-    }),
-    determine_provider(),
-    (req, res, next) => provider_handlers[req.provider].execute_function(req, res, next),
-    analytics.finished
-  );
-});
-
 module.exports = router;

@@ -137,7 +137,8 @@
       "@5qtrs/constants": ["lib/constants/src"],
       "@5qtrs/function-tags": ["lib/server/function-tags/src"],
       "@5qtrs/npm": ["lib/server/npm/src"],
-      "@5qtrs/registry": ["lib/server/registry/src"]
+      "@5qtrs/registry": ["lib/server/registry/src"],
+      "@5qtrs/runas": ["lib/server/runas/src"]
     }
   }
 }

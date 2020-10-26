@@ -11,6 +11,10 @@ import { decodeJwt, decodeJwtHeader, verifyJwt } from '@5qtrs/jwt';
 import { AccountConfig } from './AccountConfig';
 import { cancelOnError } from '@5qtrs/promise';
 
+import { findInternalIssuer, SystemAgent } from '@5qtrs/runas';
+
+import { isSystemIssuer } from '@5qtrs/constants';
+
 // ------------------
 // Internal Constants
 // ------------------
@@ -37,15 +41,26 @@ async function validateJwt(
 ) {
   const decodedJwtHeader = decodeJwtHeader(jwt);
   const kid = decodedJwtHeader.kid;
-  const issuer = await dataContext.issuerData.get(accountId, issuerId);
+
+  // Get either the system issuer or the actual issuer.
+  const issuer = await (isSystemIssuer(issuerId)
+    ? findInternalIssuer(issuerId)
+    : dataContext.issuerData.get(accountId, issuerId));
+
   let secretOrUrl;
   if (issuer.jsonKeysUrl) {
     secretOrUrl = issuer.jsonKeysUrl;
   } else if (issuer.publicKeys) {
-    for (const publicKey of issuer.publicKeys) {
-      if (publicKey.keyId === kid) {
-        secretOrUrl = publicKey.publicKey;
+    if (Array.isArray(issuer.publicKeys)) {
+      for (const publicKey of issuer.publicKeys) {
+        if (publicKey.keyId === kid) {
+          secretOrUrl = publicKey.publicKey;
+        }
       }
+    } else {
+      // Find keys in Dynamo for system issuers that aren't cached - should always return a key, even when
+      // it's not found, to force an invalidJwt error.
+      secretOrUrl = await issuer.publicKeys(kid);
     }
   }
 
@@ -126,7 +141,14 @@ export class ResolvedAgent implements IAgent {
     const identity = { issuerId, subject };
     const audience = accountConfig.jwtAudience;
 
-    const agentPromise = dataContext.agentData.get(accountId, { issuerId, subject });
+    const agentPromise = isSystemIssuer(issuerId)
+      ? Promise.resolve(new SystemAgent(decodedJwtPayload))
+      : dataContext.agentData.get(accountId, identity);
+    /*
+     * FUTURE: Interesect permissions encoded in the JWT with permisisons available to the client natively
+     * to support limited-permissions minted by other issuers.
+     */
+
     const validatePromise = validateJwt(dataContext, accountId, audience, jwt, issuerId);
 
     try {
