@@ -1,6 +1,6 @@
 {
   "extends": "../../../tsconfig.json",
-  "compilerOptions": { "rootDir": "src", "module": "CommonJS", "outDir": "libc" },
+  "compilerOptions": { "rootDir": "src", "module": "CommonJS", "outDir": "libc", "esModuleInterop": true },
   "include": ["src"],
   "references": [
     { "path": "../function-tags" },

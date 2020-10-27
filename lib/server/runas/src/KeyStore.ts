@@ -8,6 +8,7 @@ import * as crypto from 'crypto';
 
 const KEYSTORE_MAX_KEY_TTL = 12 * 60 * 60 * 1000; // 12 hrs
 const KEYSTORE_MIN_WINDOW = 5 * 60 * 1000; // 5 minutes
+const KEYSTORE_DEFAULT_ALG = 'RS256';
 
 interface IKeyPair {
   kid: string;
@@ -16,54 +17,63 @@ interface IKeyPair {
   ttl: number;
 }
 
-class KeyStore {
-  private keyPairs: IKeyPair[];
+interface IKeyStoreOptions {
+  maxKeyTtl?: number;
+  minValidWindow?: number;
+  jwtAlgorithm?: string;
+}
 
-  constructor(instanceId: string) {
-    this.keyPairs = [];
+class KeyStore {
+  private keyPair: IKeyPair;
+
+  private maxKeyTtl: number;
+  private minValidWindow: number;
+  private jwtAlgorithm: string;
+
+  constructor(options: IKeyStoreOptions = {}) {
+    this.keyPair = { kid: 'A', publicKey: 'A', ttl: 0 };
+    this.maxKeyTtl = options.maxKeyTtl || KEYSTORE_MAX_KEY_TTL;
+    this.minValidWindow = options.minValidWindow || KEYSTORE_MIN_WINDOW;
+    this.jwtAlgorithm = options.jwtAlgorithm || KEYSTORE_DEFAULT_ALG;
   }
 
   public async signJwt(payload: any): Promise<string> {
-    this.sweep();
-    const key = this.keyPairs[0];
+    const key = this.keyPair;
+
+    if (!key) {
+      throw Error('unable to create jwt');
+    }
 
     payload.aud = `${process.env.API_SERVER}`;
     payload.iss = `${process.env.API_SERVER}/issuer`;
     payload.kid = key.kid;
     payload.iat = Date.now();
-    payload.exp = Date.now() + KEYSTORE_MIN_WINDOW;
 
-    return signJwt(payload, key.privateKey as string);
+    return signJwt(payload, key.privateKey as string, {
+      algorithm: this.jwtAlgorithm,
+      expiresIn: this.minValidWindow,
+    });
   }
 
-  public async verifyJwt(token: string): Promise<any> {
-    this.sweep();
-
-    // Figure out which keypair it relates to
-    return verifyJwt(token, this.keyPairs[0].privateKey as string);
-  }
-
-  public sweep() {
-    const now = Date.now();
-    this.keyPairs = this.keyPairs.filter((e) => e.ttl < now - KEYSTORE_MIN_WINDOW);
-  }
-
-  public async rekey(ttl: number = KEYSTORE_MAX_KEY_TTL): Promise<{ publicKey: string; kid: string }> {
+  public async rekey(): Promise<IKeyPair> {
     const { publicKey, privateKey } = await createKeyPair();
     const kid = crypto.randomBytes(4).toString('hex');
 
-    this.keyPairs.push({ kid, publicKey, privateKey, ttl: Date.now() + ttl });
+    const keyPair = { kid, publicKey, privateKey, ttl: Date.now() + this.maxKeyTtl };
 
-    return { publicKey, kid };
+    return keyPair;
   }
 
-  public getPublicKeys(): IKeyPair[] {
-    // Expunge any old entries.
-    this.sweep();
+  // Separate the key pair generation from assignment to allow async operations like AWS to complete before
+  // attempting to use it to mint JWTs.
+  public setKeyPair(keyPair: IKeyPair) {
+    this.keyPair = keyPair;
+  }
 
+  public getPublicKey(): IKeyPair {
     // Return the public key and TTL for each valid key
-    return this.keyPairs.map((k) => ({ publicKey: k.publicKey, ttl: k.ttl, kid: k.kid }));
+    return { publicKey: this.keyPair.publicKey, ttl: this.keyPair.ttl, kid: this.keyPair.kid };
   }
 }
 
-export { KeyStore, IKeyPair, KEYSTORE_MAX_KEY_TTL };
+export { KeyStore, IKeyPair, KEYSTORE_MAX_KEY_TTL, KEYSTORE_MIN_WINDOW, KEYSTORE_DEFAULT_ALG };

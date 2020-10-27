@@ -2,7 +2,7 @@ import { DynamoDB } from 'aws-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import * as Constants from '@5qtrs/constants';
 
-import { KeyStore, KEYSTORE_MAX_KEY_TTL } from './KeyStore';
+import { KeyStore, IKeyPair } from './KeyStore';
 
 class AwsKeyStore extends KeyStore {
   protected dynamo: DynamoDB;
@@ -22,8 +22,9 @@ class AwsKeyStore extends KeyStore {
     this.storeId = uuidv4();
   }
 
-  public async rekey(ttl: number = KEYSTORE_MAX_KEY_TTL): Promise<{ kid: string; publicKey: string }> {
-    const { publicKey, kid } = await super.rekey(ttl);
+  public async rekey(): Promise<IKeyPair> {
+    const keyPair = await super.rekey();
+    const { kid, publicKey, ttl } = keyPair;
 
     // Put to k-v with TTL
     await this.dynamo
@@ -40,7 +41,8 @@ class AwsKeyStore extends KeyStore {
       })
       .promise();
 
-    return { kid, publicKey };
+    super.setKeyPair(keyPair);
+    return keyPair;
   }
 
   public async signJwt(payload: any): Promise<string> {
