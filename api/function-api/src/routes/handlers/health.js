@@ -1,11 +1,8 @@
 const { join } = require('path');
 const { getAWSCredentials } = require('../credentials');
 
-let version = '<unknown>';
-try {
-  version = require(join(__dirname, '..', '..', '..', '..', '..', 'package.json')).version;
-  process.env.FUNCTION_API_VERSION = version;
-} catch (_) {}
+const version = require(join(__dirname, '..', '..', '..', '..', '..', 'package.json')).version;
+process.env.FUNCTION_API_VERSION = version;
 
 function getHealth() {
   return async (req, res, next) => {
