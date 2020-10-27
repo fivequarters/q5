@@ -10,7 +10,7 @@ class PackagePutException extends Error {}
 const packagePut = () => {
   return async (req: IFunctionApiRequest, res: Response) => {
     // Get pkg
-    const pkg = req.body;
+    let pkg = req.body;
 
     if (Object.keys(pkg._attachments).length !== 1 || Object.keys(pkg.versions).length !== 1) {
       return res.status(501).json({ status: 501, statusCode: 501, message: 'invalid parameter length' });
@@ -61,7 +61,11 @@ const packagePut = () => {
     // Save the attachment in the registry, and merge the previous document from dynamo
     await req.registry.put(pkg.name, pkg, versionId, payload);
 
-    res.status(201).json({});
+    // Get the articulated version from the registry
+    pkg = await req.registry.get(req.params.name);
+    tarballUrlUpdate(req, pkg);
+
+    res.status(200).json(pkg);
   };
 };
 
