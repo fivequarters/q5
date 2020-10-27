@@ -2316,7 +2316,7 @@ paths:
 #        - AccessToken: []
 #
 
-  /v1/account/{accountId}/registry/{registryId}:
+  /v1/account/{accountId}/registry/default:
     parameters:
       - name: accountId
         in: path
@@ -2324,18 +2324,6 @@ paths:
         description: Account id
         schema:
           $ref: '#/components/schemas/AccountId'
-      - name: subscriptionId
-        in: path
-        description: The subscription id
-        required: true
-        schema:
-          $ref: '#/components/schemas/SubscriptionId'
-      - name: registryId
-        in: path
-        description: The registry id
-        required: true
-        schema:
-          $ref: '#/components/schemas/RegistryId'
     get:
       tags:
         - Registry
@@ -2345,7 +2333,7 @@ paths:
       operationId: getRegistry
       responses:
         200:
-          description: Response body contains the requested data
+          description: Configuration details for the registry
           content:
             application/json:
               schema:
@@ -2357,7 +2345,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         404:
-          description: Query was not found
+          description: Registry was not found
           content:
             application/json:
               schema:
@@ -2367,9 +2355,9 @@ paths:
     put:
       tags:
         - Registry
-      summary: Creates a new registry with the specified name
+      summary: Updates the registry configuration.
       description: |
-        Creates a new registry, with the supplied configuration.
+        Updates the registry, with the supplied configuration.
       operationId: putRegistry
       requestBody:
         description: The registry to create
@@ -2380,7 +2368,7 @@ paths:
               $ref: '#/components/schemas/Registry/Put'
       responses:
         200:
-          description: Registry successfully created
+          description: Registry successfully updated 
         400:
           description: Malformed registry specification
           content:
@@ -2396,7 +2384,7 @@ paths:
       security:
         - AccessToken: []
 
-  /v1/account/{accountId}/subscription/{subscriptionId}/registry/{registryId}/npm:
+  /v1/account/{accountId}/registry/default/npm:
     parameters:
       - name: accountId
         in: path
@@ -2404,18 +2392,6 @@ paths:
         description: Account id
         schema:
           $ref: '#/components/schemas/AccountId'
-      - name: subscriptionId
-        in: path
-        description: The subscription id
-        required: true
-        schema:
-          $ref: '#/components/schemas/SubscriptionId'
-      - name: registryId
-        in: path
-        description: The registry id
-        required: true
-        schema:
-          $ref: '#/components/schemas/RegistryId'
     description: |
       An endpoint that conforms to the protocol supported by the `npm` command line tool, which can be used to publish and retrieve packages from this registry.
  
@@ -3206,6 +3182,12 @@ components:
                   type: string
                 value:
                   type: string
+        enable:
+          type: boolean
+          description: Indicate if the function is enabled or if requests will be rejected.
+        rebuild:
+          type: boolean
+          description: Trigger a review of the semver packages of this functions dependencies.
 
     FunctionList:
       type: object
@@ -3250,6 +3232,32 @@ components:
             transitions:
               type: 'object'
         - $ref: '#/components/schemas/FunctionLocation'
+
+    Registry:
+      Get:
+        type: object
+        properties:
+          scopes:
+            type: array
+            description: A list of the NPM package scopes reserved in this registry
+            items:
+              type: string
+              description: An NPM package scope, such as '@internal'
+              example: '@internal'
+          url:
+            type: string
+            description: The URL for the NPM endpoint for this registry
+            example: 'https://api.{region}.fusebit.io/v1/account/{accountId}/registry/default/npm'
+      Put:
+        type: object
+        properties:
+          scopes:
+            type: array
+            description: A list of the NPM package scopes reserved in this registry
+            items:
+              type: string
+              description: An NPM package scope, such as '@internal'
+              example: '@internal'
 
 #    Statistics:
 #      HistogramEntry:
