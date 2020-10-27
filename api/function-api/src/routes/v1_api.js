@@ -798,7 +798,6 @@ router.get(
   analytics.finished
 );
 
-router.options(registryBase, cors(corsManagementOptions));
 router.put(
   registryBase,
   analytics.enterHandler(analytics.Modes.Administration),
@@ -809,14 +808,13 @@ router.put(
   user_agent(),
   determine_provider(),
   npmRegistry.handler(),
-  (req, res) => {
+  (req, res, next) => {
     try {
       req.registry.configPut(req.body).then((c) => {
         res.status(200).end();
       });
     } catch (e) {
-      console.log(e);
-      res.status(501).end();
+      next(e);
     }
   },
   analytics.finished
@@ -853,9 +851,9 @@ router.get(
   analytics.finished
 );
 
-router.options(registryNpmBase + '/:scope?/:name/-/:scope2?/:filename', cors(corsManagementOptions));
+router.options(registryNpmBase + '/:scope/:name/-/:scope2/:filename', cors(corsManagementOptions));
 router.get(
-  registryNpmBase + '/:scope?/:name/-/:scope2?/:filename',
+  registryNpmBase + '/:scope/:name/-/:scope2/:filename',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
   validate_schema({ params: require('./schemas/api_account') }),
@@ -874,7 +872,7 @@ router.put(
   cors(corsManagementOptions),
   validate_schema({ params: require('./schemas/api_account') }),
   authorize({ operation: 'registry:put' }),
-  express.json(),
+  express.json({ limit: process.env.PACKAGE_SIZE_LIMIT || '1000kb' }),
   user_agent(),
   determine_provider(),
   npmRegistry.handler(),
@@ -946,7 +944,7 @@ router.put(
   cors(corsManagementOptions),
   validate_schema({ params: require('./schemas/api_account') }),
   authorize({ operation: 'registry:put' }),
-  express.json(),
+  express.json({ limit: process.env.PACKAGE_SIZE_LIMIT || '1000kb' }),
   user_agent(),
   determine_provider(),
   npmRegistry.handler(),
@@ -988,7 +986,7 @@ router.put(
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
   validate_schema({ params: require('./schemas/api_account') }),
-  authorize({ operation: 'registry:put' }),
+  authorize({ operation: 'registry:get' }),
   express.json(),
   user_agent(),
   determine_provider(),

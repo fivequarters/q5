@@ -78,7 +78,7 @@ export class NpmExecCommand extends Command {
     if (profileIndex >= 0) {
       const profileName = args[profileIndex + 1];
       // Remove the `--profile profileName` option from the command line
-      args = [...args.slice(0, profileIndex), ...args.slice(profileIndex + 2)];
+      args.splice(profileIndex, 2);
       options.profile = profileName;
     }
 

@@ -36,7 +36,7 @@ async function putRegistry(profile: IFusebitExecutionProfile, scopes: string[]):
 }
 
 function getProtoUrl(url: string): string {
-  return url.replace(/^http[s]?:/, '');
+  return url.replace(/^http[s]?:/i, '');
 }
 
 async function printRegistries(executeService: ExecuteService, registries: IRegistries) {

@@ -6,7 +6,7 @@ import { RegistrySetMasterCommand } from './RegistrySetMasterCommand';
 // ------------------
 
 const commands: ICommand = {
-  name: 'Registrys',
+  name: 'Registry',
   cmd: 'registry',
   summary: 'Update registry configuration',
   description: 'Update the configuration of the global registry.',

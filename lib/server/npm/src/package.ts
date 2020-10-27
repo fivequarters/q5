@@ -73,6 +73,10 @@ const packageGet = () => {
       return res.status(404).json({ status: 404, statusCode: 404, message: 'package not found' });
     }
 
+    if (pkg.etag === etag) {
+      return res.status(304);
+    }
+
     res.set('ETag', pkg.etag);
 
     tarballUrlUpdate(req, pkg);
