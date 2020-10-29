@@ -19,4 +19,15 @@ const tarballGet = () => {
   };
 };
 
-export { tarballGet };
+const tarballDelete = () => {
+  return async (req: IFunctionApiRequest, res: Response) => {
+    const pkgName = `${req.params.scope}/${req.params.filename}`;
+
+    const pkg = await req.registry.get(`${req.params.scope}/${req.params.name}`);
+    await req.registry.tarballDelete(pkgName);
+
+    res.set('ETag', pkg.etag).status(200).send({});
+  };
+};
+
+export { tarballGet, tarballDelete };

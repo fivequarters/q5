@@ -53,15 +53,21 @@ class AWSRegistry implements IRegistryStore {
     this.tableName = Constants.get_key_value_table_name(process.env.DEPLOYMENT_KEY as string);
   }
 
-  public async put(name: string, pkg: any, ver: string, payload: any): Promise<void> {
-    // Upload file
-    await this.s3
-      .upload({
-        Bucket: process.env.AWS_S3_BUCKET as string,
-        Key: this.getS3Path(`${name}@${ver}`),
-        Body: payload,
-      })
-      .promise();
+  public name() {
+    return this.keyPrefix;
+  }
+
+  public async put(name: string, pkg: any, ver?: string, payload?: any): Promise<void> {
+    if (payload) {
+      // Upload file
+      await this.s3
+        .upload({
+          Bucket: process.env.AWS_S3_BUCKET as string,
+          Key: this.getS3Path(`${name}@${ver}`),
+          Body: payload,
+        })
+        .promise();
+    }
 
     // Add record to dynamodb.
     await this.ddb
@@ -148,7 +154,13 @@ class AWSRegistry implements IRegistryStore {
   }
 
   public async tarballDelete(nameVer: string): Promise<any> {
-    // NYI.
+    return this.s3
+      .deleteObject({
+        Bucket: process.env.AWS_S3_BUCKET as string,
+        Key: this.getS3Path(nameVer),
+      })
+      .promise();
+
     return 0;
   }
 

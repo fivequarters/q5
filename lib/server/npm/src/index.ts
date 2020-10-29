@@ -3,9 +3,9 @@ import { invalidatePost } from './invalidate';
 import { auditPost, loginPut, pingGet, versionGet, whoamiGet } from './misc';
 import { packageGet, packagePut } from './package';
 import { allPackagesGet } from './packages';
-import { revisionDelete } from './revision';
+import { revisionDelete, revisionPut } from './revision';
 import { searchGet } from './search';
-import { tarballGet } from './tarball';
+import { tarballDelete, tarballGet } from './tarball';
 
 export {
   allPackagesGet,
@@ -18,9 +18,11 @@ export {
   packageGet,
   packagePut,
   pingGet,
+  revisionPut,
   revisionDelete,
   searchGet,
   tarballGet,
+  tarballDelete,
   versionGet,
   whoamiGet,
 };

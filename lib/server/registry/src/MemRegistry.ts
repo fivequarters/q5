@@ -3,6 +3,8 @@ import { maxSatisfying } from 'semver';
 import { Express, NextFunction, Request, Response } from 'express';
 import { IRegistryConfig, IRegistryStore } from './Registry';
 
+import { duplicate } from '@5qtrs/constants';
+
 type ExpressHandler = (reqExpress: Request, res: Response, next: NextFunction) => any;
 
 class MemRegistry implements IRegistryStore {
@@ -25,13 +27,20 @@ class MemRegistry implements IRegistryStore {
     this.config = { url: '', scopes: [] };
   }
 
-  public async put(key: string, pkg: any, id: string, payload: any): Promise<void> {
-    this.registry.pkg[key] = pkg;
-    this.registry.tgz[`${key}@${id}`] = payload;
+  public name() {
+    return 'mem';
+  }
+
+  public async put(key: string, pkg: any, ver?: string, payload?: any): Promise<void> {
+    this.registry.pkg[key] = duplicate({}, pkg);
+    if (payload) {
+      this.registry.tgz[`${key}@${ver}`] = payload;
+    }
   }
 
   public async get(key: string): Promise<any> {
-    return this.registry.pkg[key];
+    // Prevent accidental modification of the in-memory object.
+    return duplicate({}, this.registry.pkg[key] || {});
   }
 
   public async delete(key: string): Promise<any> {
@@ -48,10 +57,14 @@ class MemRegistry implements IRegistryStore {
     return this.registry.tgz[id];
   }
 
+  public async tarballDelete(nameVer: string): Promise<any> {
+    // Remove the tarball specified by ver.
+  }
+
   public async search(keyword: string, count: number, next?: string): Promise<any> {
     const objects = Object.keys(this.registry.pkg)
       .filter((p: any) => p.indexOf(keyword) >= 0)
-      .map((name: any) => ({ package: this.registry.pkg[name] }));
+      .map((name: any) => ({ package: duplicate({}, this.registry.pkg[name]) }));
     const total = objects.length;
     const time = new Date().toUTCString();
 

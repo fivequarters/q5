@@ -1,5 +1,10 @@
 import Crypto from 'crypto';
 
+interface IModuleSpec {
+  registry: string;
+  version: string;
+}
+
 const valid_boundary_name = /^[a-z0-9\-]{1,63}$/;
 
 const valid_function_name = /^[a-z0-9\-]{1,64}$/;
@@ -31,6 +36,8 @@ const REGISTRY_CATEGORY_CONFIG = 'registry-npm-config';
 const REGISTRY_DEFAULT = 'default';
 const REGISTRY_GLOBAL = 'registry-global';
 
+const MODULE_PUBLIC_REGISTRY = 'public';
+
 function get_log_table_name(deploymentKey: string): string {
   return `${deploymentKey}.log`;
 }
@@ -45,12 +52,20 @@ function get_deployment_s3_bucket(deployment: any): string {
     : `fusebit-${deployment.deploymentName}-${deployment.region}`;
 }
 
-function get_module_metadata_key(options: any, name: string, version: string) {
-  return `${module_key_prefix}/${options.accountId}/${options.subscriptionId}/${options.registry}/${options.runtime}/${name}/${version}/metadata.json`;
+function get_module_prefix(runtime: string, name: string, moduleSpec: IModuleSpec | string) {
+  if (typeof moduleSpec === 'string') {
+    // Old style module, assume it's global.
+    return `${module_key_prefix}/${runtime}/${name}/${moduleSpec}`;
+  }
+  return `${module_key_prefix}/${moduleSpec.registry}/${runtime}/${name}/${moduleSpec.version}`;
 }
 
-function get_module_key(options: any, name: string, version: string) {
-  return `${module_key_prefix}/${options.accountId}/${options.subscriptionId}/${options.registry}/${options.runtime}/${name}/${version}/package.zip`;
+function get_module_metadata_key(runtime: string, name: string, moduleSpec: IModuleSpec | string) {
+  return `${get_module_prefix(runtime, name, moduleSpec)}/metadata.json`;
+}
+
+function get_module_key(runtime: string, name: string, moduleSpec: IModuleSpec) {
+  return `${get_module_prefix(runtime, name, moduleSpec)}/package.zip`;
 }
 
 function get_user_function_build_status_key(options: any) {
@@ -96,6 +111,14 @@ function get_function_location(req: any, subscriptionId: string, boundaryId: str
   return `${baseUrl}/v1/run/${subscriptionId}/${boundaryId}/${functionId}`;
 }
 
+function duplicate(dst: any, src: any) {
+  Object.keys(src).forEach((k) => {
+    dst[k] = typeof src[k] === 'object' ? duplicate({}, src[k]) : (dst[k] = src[k]);
+  });
+
+  return dst;
+}
+
 export {
   get_log_table_name,
   get_key_value_table_name,
@@ -120,8 +143,10 @@ export {
   get_cron_key,
   get_function_location,
   get_deployment_s3_bucket,
+  duplicate,
   REGISTRY_CATEGORY,
   REGISTRY_CATEGORY_CONFIG,
   REGISTRY_DEFAULT,
   REGISTRY_GLOBAL,
+  MODULE_PUBLIC_REGISTRY,
 };

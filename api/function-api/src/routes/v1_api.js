@@ -864,6 +864,18 @@ router.get(
   npm.tarballGet(),
   analytics.finished
 );
+router.delete(
+  registryNpmBase + '/:scope/:name/-/:scope2/:filename/-rev/:revisionId',
+  analytics.enterHandler(analytics.Modes.Administration),
+  cors(corsManagementOptions),
+  validate_schema({ params: require('./schemas/api_account') }),
+  authorize({ operation: 'registry:put' }),
+  user_agent(),
+  determine_provider(),
+  npmRegistry.handler(),
+  npm.tarballDelete(),
+  analytics.finished
+);
 
 router.options(registryNpmBase + '/:name', cors(corsManagementOptions));
 router.put(
@@ -894,6 +906,18 @@ router.get(
 );
 
 router.options(registryNpmBase + '/:name/-rev/:revId', cors(corsManagementOptions));
+router.put(
+  registryNpmBase + '/:name/-rev/:revId',
+  analytics.enterHandler(analytics.Modes.Administration),
+  cors(corsManagementOptions),
+  validate_schema({ params: require('./schemas/api_account') }),
+  authorize({ operation: 'registry:put' }),
+  user_agent(),
+  determine_provider(),
+  npmRegistry.handler(),
+  npm.revisionPut(),
+  analytics.finished
+);
 router.delete(
   registryNpmBase + '/:name/-rev/:revId',
   analytics.enterHandler(analytics.Modes.Administration),

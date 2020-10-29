@@ -10,10 +10,12 @@ const libnpm = require('libnpm');
 
 import { AddressInfo } from 'net';
 
-import { packageGet, packagePut, searchGet, tarballGet } from '../src';
+import { packageGet, packagePut, revisionDelete, revisionPut, searchGet, tarballDelete, tarballGet } from '../src';
 import { IFunctionApiRequest } from '../src/request';
 
 import { MemRegistry } from '@5qtrs/registry';
+
+let logEnabled = false;
 
 const enableForceClose = (server: http.Server) => {
   const sockets = new Set();
@@ -57,7 +59,9 @@ const startExpress = async (): Promise<any> => {
   app.use(bodyParser.json());
   app.use(handler);
   app.use((req: Request, res: Response, next: NextFunction) => {
-    console.log(`${req.method} ${req.url}\n${JSON.stringify(req.headers)}\n${JSON.stringify(req.body, null, 2)}`);
+    if (logEnabled) {
+      console.log(`${req.method} ${req.url}\n${JSON.stringify(req.headers)}\n${JSON.stringify(req.body, null, 2)}`);
+    }
     return next();
   });
 
@@ -77,10 +81,14 @@ afterEach(async () => {
 
 const createServer = () => {
   const { app, registry, server, forceClose, port, url } = globalServer;
-  app.put(`/:name`, packagePut());
-  app.get(`/:name`, packageGet());
+  app.put('/:name', packagePut());
+  app.get('/:name', packageGet());
   app.get('/:scope?/:name/-/:scope2?/:filename/', tarballGet());
   app.get('/-/v1/search', searchGet());
+  app.delete('/:name/-rev/:revisionId', revisionDelete());
+  app.put('/:name/-rev/:revisionId', revisionPut());
+
+  app.delete('/:scope/:name/-/:scope2/:filename/-rev/:revisionId', tarballDelete());
   return { registry, url: `${url}/` };
 };
 
@@ -96,11 +104,28 @@ describe('packagePut', () => {
     // Publish a package
     await libnpm.publish(manifest, tarData, { registry: url });
     expect(registry.registry.pkg['@testscope/foobar'].name).toBeTruthy();
+    expect(registry.registry.pkg['@testscope/foobar'].versions[manifest.version].dist.tarball).toMatchObject({
+      scope: '@testscope',
+      name: 'foobar',
+      version: '1.0.0',
+    });
 
     // Add another version
     manifest.version = '2.0.1';
     await libnpm.publish(manifest, tarData, { registry: url });
     expect(Object.keys(registry.registry.pkg['@testscope/foobar'].versions)).toStrictEqual(['1.0.0', '2.0.1']);
+
+    expect(registry.registry.pkg['@testscope/foobar'].versions['1.0.0'].dist.tarball).toMatchObject({
+      scope: '@testscope',
+      name: 'foobar',
+      version: '1.0.0',
+    });
+
+    expect(registry.registry.pkg['@testscope/foobar'].versions['2.0.1'].dist.tarball).toMatchObject({
+      scope: '@testscope',
+      name: 'foobar',
+      version: '2.0.1',
+    });
 
     // Get a package
     m = await libnpm.manifest('@testscope/foobar', { registry: url });
@@ -116,5 +141,30 @@ describe('packagePut', () => {
     expect(m).toHaveLength(0);
     m = await libnpm.search('foo', { registry: url });
     expect(m).toHaveLength(1);
-  });
+
+    expect(registry.registry.pkg['@testscope/foobar'].versions['1.0.0'].dist.tarball).toMatchObject({
+      scope: '@testscope',
+      name: 'foobar',
+      version: '1.0.0',
+    });
+
+    expect(registry.registry.pkg['@testscope/foobar'].versions['2.0.1'].dist.tarball).toMatchObject({
+      scope: '@testscope',
+      name: 'foobar',
+      version: '2.0.1',
+    });
+
+    // Unpublish a version
+    await libnpm.unpublish('@testscope/foobar@2.0.1', { registry: url });
+    expect(Object.keys(registry.registry.pkg['@testscope/foobar'].versions)).toStrictEqual(['1.0.0']);
+    expect(registry.registry.pkg['@testscope/foobar'].versions['1.0.0'].dist.tarball).toMatchObject({
+      scope: '@testscope',
+      name: 'foobar',
+      version: '1.0.0',
+    });
+
+    // Unpublish the last version
+    await libnpm.unpublish('@testscope/foobar@1.0.0', { registry: url });
+    expect(registry.registry.pkg['@testscope/foobar']).toBeUndefined();
+  }, 10000);
 });
