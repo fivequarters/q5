@@ -10,12 +10,12 @@ import { RegistryCommand } from './registry/RegistryCommand';
 // ------------------
 
 const commandDesc: ICommand = {
-  name: 'NPM Registry',
+  name: 'npm registry',
   cmd: 'npm',
-  summary: 'Manipulate NPM Packages',
+  summary: 'Manipulate npm packages',
   description: [
     'Execute commands with the Fusebit registry for this profile mapped to',
-    'the appropriate NPM scopes.',
+    'the appropriate npm scopes.',
   ].join(' '),
   options: [
     {
@@ -34,10 +34,10 @@ const commandDesc: ICommand = {
 export class NpmCommand extends Command {
   public static async getSubCommands() {
     const subCommands = [];
-    subCommands.push(await NpmSearchCommand.create());
     subCommands.push(await NpmLoginCommand.create());
-    subCommands.push(await NpmExecCommand.create());
     subCommands.push(await RegistryCommand.create());
+    subCommands.push(await NpmSearchCommand.create());
+    subCommands.push(await NpmExecCommand.create());
     return subCommands;
   }
 

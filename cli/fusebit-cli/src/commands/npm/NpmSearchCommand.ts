@@ -10,10 +10,10 @@ import { createEnv } from './Npm';
 import { getRegistry } from './registry/Registry';
 
 const commandDesc: ICommand = {
-  name: 'NPM Package Search',
+  name: 'npm package search',
   cmd: 'search',
   summary: 'Search for packages matching a keyword',
-  description: ['Search for packages in the Fusebit NPM repository that have the keyword in the name.'].join(' '),
+  description: ['Search for packages in the Fusebit npm repository that have the keyword in the name.'].join(' '),
   arguments: [
     {
       name: 'keyword',

@@ -8,7 +8,7 @@ import { RegistryScopeSetCommand } from './RegistryScopeSetCommand';
 // ------------------
 
 const commandDesc: ICommand = {
-  name: 'NPM Package Scope Management',
+  name: 'npm package scope management',
   cmd: 'scope',
   summary: 'Manage the authoritative scopes for the registry',
   description: ['Set and get the allowed scopes that the internal registry supports.'].join(' '),

@@ -40,13 +40,13 @@ async function getSubCommands() {
   const subCommands: Command[] = [];
   subCommands.push(await InitCommand.create());
   subCommands.push(await FunctionCommand.create());
+  subCommands.push(await NpmCommand.create());
   subCommands.push(await ProfileCommand.create());
   subCommands.push(await TokenCommand.create());
   subCommands.push(await UserCommand.create());
   subCommands.push(await ClientCommand.create());
   subCommands.push(await IssuerCommand.create());
   subCommands.push(await VersionCommand.create());
-  subCommands.push(await NpmCommand.create());
   return subCommands;
 }
 

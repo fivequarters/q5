@@ -14,12 +14,12 @@ import { getRegistry } from './registry/Registry';
 // ------------------
 
 const commandDesc: ICommand = {
-  name: 'Execute NPM Commands',
+  name: 'Execute npm Commands',
   cmd: 'exec',
-  summary: 'Execute NPM commands with the appropriate Fusebit login credentials',
+  summary: 'Execute npm commands with the appropriate Fusebit login credentials',
   description: [
     'Execute commands with the Fusebit registry for this profile mapped to',
-    'the appropriate NPM scopes.',
+    'the appropriate npm scopes.',
   ].join(' '),
   delegate: true,
   options: [
