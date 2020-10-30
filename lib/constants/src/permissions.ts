@@ -1,0 +1,67 @@
+export enum Permissions {
+  addAccount = 'global:add:account',
+  getAccount = 'account:get',
+  updateAccount = 'account:update',
+  deleteAccount = 'global:delete:account',
+
+  addSubscription = 'global:add:subscription',
+  getSubscription = 'subscription:get',
+  updateSubscription = 'subscription:update',
+  deleteSubscription = 'global:delete:subscription',
+
+  allIssuer = 'issuer:*',
+  addIssuer = 'issuer:add',
+  getIssuer = 'issuer:get',
+  updateIssuer = 'issuer:update',
+  deleteIssuer = 'issuer:delete',
+
+  allUser = 'user:*',
+  addUser = 'user:add',
+  getUser = 'user:get',
+  updateUser = 'user:update',
+  deleteUser = 'user:delete',
+  initUser = 'user:init',
+
+  allClient = 'client:*',
+  addClient = 'client:add',
+  getClient = 'client:get',
+  updateClient = 'client:update',
+  deleteClient = 'client:delete',
+  initClient = 'client:init',
+
+  getAudit = 'audit:get',
+
+  allStorage = 'storage:*',
+  getStorage = 'storage:get',
+  putStorage = 'storage:put',
+  deleteStorage = 'storage:delete',
+
+  allFunction = 'function:*',
+  putFunction = 'function:put',
+  getFunction = 'function:get',
+
+  allRegistry = 'registry:*',
+  configRegistry = 'registry-config:put',
+  getRegistry = 'registry:get',
+  putRegistry = 'registry:put',
+}
+
+// Deployment Administrator Permissions
+export const RestrictedPermissions: string[] = [
+  Permissions.addAccount,
+  Permissions.updateAccount,
+  Permissions.deleteAccount,
+
+  Permissions.addSubscription,
+  Permissions.updateSubscription,
+  Permissions.deleteSubscription,
+];
+
+export const UserPermissions: string[] = Object.values(Permissions).filter(
+  (e) => RestrictedPermissions.indexOf(e) === -1
+);
+
+export const isSpecialized = (permission: Permissions, query: string): boolean => {
+  const leader = query.split(':')[0];
+  return permission.indexOf(leader) === 0;
+};

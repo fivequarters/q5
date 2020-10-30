@@ -2,6 +2,8 @@ import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
 import { ExecuteService, AgentService, ProfileService } from '../../../services';
 import { Text } from '@5qtrs/text';
 
+import { isSpecialized, Permissions, UserPermissions } from '@5qtrs/constants';
+
 // ------------------
 // Internal Constants
 // ------------------
@@ -78,18 +80,9 @@ export class UserAccessAddCommand extends Command {
 
     await executeService.newLine();
 
-    const allowedActions = [
-      'user:*',
-      'client:*',
-      'issuer:*',
-      'function:*',
-      'subscription:get',
-      'account:get',
-      'audit:get',
-    ];
-    if (allowedActions.indexOf(action) === -1) {
+    if (UserPermissions.indexOf(action) === -1) {
       const text = ["The '", Text.bold('action'), "' options must be one of the following values:"];
-      text.push(...allowedActions.map((act) => Text.create(" '", Text.bold(act), "'")));
+      text.push(...UserPermissions.map((act) => Text.create(" '", Text.bold(act), "'")));
       await executeService.error('Invalid Options', Text.create(text));
     }
 
@@ -97,16 +90,17 @@ export class UserAccessAddCommand extends Command {
 
     const user = await userService.getAgent(id);
 
+    const isFunctionPermission = isSpecialized(Permissions.allFunction, action);
     const newAccess = {
       action,
       account: profile.account,
-      subscription: action === 'function:*' ? profile.subscription : undefined,
-      boundary: action === 'function:*' ? profile.boundary : undefined,
-      function: action === 'function:*' ? profile.function : undefined,
+      subscription: isFunctionPermission ? profile.subscription : undefined,
+      boundary: isFunctionPermission ? profile.boundary : undefined,
+      function: isFunctionPermission ? profile.function : undefined,
     };
 
     const resourcePath = [`/account/${newAccess.account}/`];
-    if (action === 'function:*') {
+    if (isFunctionPermission) {
       if (newAccess.subscription) {
         resourcePath.push(`subscription/${newAccess.subscription}/`);
         if (newAccess.boundary) {

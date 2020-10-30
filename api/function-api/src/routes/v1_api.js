@@ -802,7 +802,7 @@ router.put(
   registryBase,
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  authorize({ operation: 'registry:config' }),
+  authorize({ operation: 'registry-config:put' }),
   express.json(),
   validate_schema({ body: require('./schemas/registry_specification') }),
   user_agent(),

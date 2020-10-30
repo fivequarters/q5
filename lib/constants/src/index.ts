@@ -6,6 +6,8 @@ interface IModuleSpec {
   version: string;
 }
 
+import { isSpecialized, Permissions, RestrictedPermissions, UserPermissions } from './permissions';
+
 const builder_version = require(Path.join(__dirname, '..', '..', '..', 'package.json')).version;
 
 const valid_boundary_name = /^[a-z0-9\-]{1,63}$/;
@@ -190,6 +192,10 @@ export {
   get_function_location,
   get_deployment_s3_bucket,
   duplicate,
+  Permissions,
+  RestrictedPermissions,
+  UserPermissions,
+  isSpecialized,
   REGISTRY_CATEGORY,
   REGISTRY_CATEGORY_CONFIG,
   REGISTRY_DEFAULT,

@@ -72,6 +72,10 @@ const actions = [
   { action: 'issuer:update', description: 'Update issuers' },
   { action: 'issuer:delete', description: 'Delete issuers' },
   // omitted - storage permissions
+  { action: 'registry:*', description: 'Full control of the npm registry' },
+  { action: 'registry:get', description: 'Get packages from the npm registry' },
+  { action: 'registry-config:put', description: 'Configure the supported scopes in the registry' },
+  { action: 'registry:put', description: 'Put or delete packages in the npm registry' },
 ];
 
 const actionsHash = actions.reduce<any>((current, value) => {
