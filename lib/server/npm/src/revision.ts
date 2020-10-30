@@ -2,14 +2,16 @@ import { Response } from 'express';
 import { IFunctionApiRequest } from './request';
 import { tarballUrlUpdate } from './tarballUrlUpdate';
 
+import create_error from 'http-errors';
+
 const revisionDelete = () => {
-  return async (req: IFunctionApiRequest, res: Response) => {
+  return async (req: IFunctionApiRequest, res: Response, next: any) => {
     const etag = req.headers['if-none-match'];
     const pkg = await req.registry.get(req.params.name);
     const rev = req.params.revisionId;
 
     if (!pkg) {
-      return res.status(404).json({ status: 404, statusCode: 404, message: 'package not found' });
+      return next(create_error(404, 'package not found'));
     }
 
     if (pkg._rev === rev) {
@@ -23,13 +25,13 @@ const revisionDelete = () => {
 };
 
 const revisionPut = () => {
-  return async (req: IFunctionApiRequest, res: Response) => {
+  return async (req: IFunctionApiRequest, res: Response, next: any) => {
     const etag = req.headers['if-none-match'];
     const pkg = await req.registry.get(req.params.name);
     const rev = req.params.revisionId;
 
     if (!pkg) {
-      return res.status(404).json({ status: 404, statusCode: 404, message: 'package not found' });
+      return next(create_error(404, 'package not found'));
     }
 
     if (pkg._rev === rev) {
@@ -55,4 +57,5 @@ const revisionPut = () => {
     return res.status(200).json(pkg);
   };
 };
+
 export { revisionDelete, revisionPut };

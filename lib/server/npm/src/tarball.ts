@@ -1,14 +1,16 @@
 import { Response } from 'express';
 import { IFunctionApiRequest } from './request';
 
+import create_error from 'http-errors';
+
 const tarballGet = () => {
-  return async (req: IFunctionApiRequest, res: Response) => {
+  return async (req: IFunctionApiRequest, res: Response, next: any) => {
     const pkgName = `${req.params.scope}/${req.params.filename}`;
 
     const pkg = await req.registry.get(`${req.params.scope}/${req.params.name}`);
     const tgz = await req.registry.tarballGet(pkgName);
     if (!tgz) {
-      return res.status(404).json({ status: 404, statusCode: 404, message: `unknown pkg ${pkgName}` });
+      return next(create_error(404, `unknown pkg ${pkgName}`));
     }
 
     if (typeof tgz === 'string') {

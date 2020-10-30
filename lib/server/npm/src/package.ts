@@ -5,17 +5,19 @@ import { v4 as uuid } from 'uuid';
 import { Response } from 'express';
 import { IFunctionApiRequest } from './request';
 
+import create_error from 'http-errors';
+
 import { tarballUrlUpdate } from './tarballUrlUpdate';
 
 class PackagePutException extends Error {}
 
 const packagePut = () => {
-  return async (req: IFunctionApiRequest, res: Response) => {
+  return async (req: IFunctionApiRequest, res: Response, next: any) => {
     // Get pkg
     let pkg = req.body;
 
     if (Object.keys(pkg._attachments).length !== 1 || Object.keys(pkg.versions).length !== 1) {
-      return res.status(501).json({ status: 501, statusCode: 501, message: 'invalid parameter length' });
+      return next(create_error(501, 'invalid parameter length'));
     }
     const attachment = pkg._attachments;
     delete pkg._attachments;
@@ -29,7 +31,7 @@ const packagePut = () => {
     const length = attachment[Object.keys(attachment)[0]].length;
 
     if (payload.length !== length) {
-      return res.status(501).json({ status: 501, statusCode: 501, message: 'invalid payload length' });
+      return next(create_error(501, 'invalid parameter length'));
     }
 
     // Validate integrity and shasum are correct
@@ -38,10 +40,10 @@ const packagePut = () => {
 
     const dist = version.dist;
     if (shasum !== dist.shasum) {
-      return res.status(501).json({ status: 501, statusCode: 501, message: 'invalid checksum' });
+      return next(create_error(501, 'invalid checksum'));
     }
     if (integrity !== dist.integrity) {
-      return res.status(501).json({ status: 501, statusCode: 501, message: 'invalid integrity' });
+      return next(create_error(501, 'invalid integrity'));
     }
 
     // Get the existing manifest:
@@ -72,11 +74,11 @@ const packagePut = () => {
 };
 
 const packageGet = () => {
-  return async (req: IFunctionApiRequest, res: Response) => {
+  return async (req: IFunctionApiRequest, res: Response, next: any) => {
     const etag = req.headers['if-none-match'];
     const pkg = await req.registry.get(req.params.name);
     if (!pkg) {
-      return res.status(404).json({ status: 404, statusCode: 404, message: 'package not found' });
+      return next(create_error(404, 'package not found'));
     }
 
     if (pkg.etag === etag) {
