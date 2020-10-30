@@ -10,8 +10,6 @@ const TD = Tags.Dynamo;
 import { DynamoDB } from 'aws-sdk';
 const dynamo = new DynamoDB({ apiVersion: '2012-08-10' });
 
-import { deleteAll, scanForTags } from './tags';
-
 const funcSpecs = [
   {
     compute: { timeout: 30, staticIp: false },
@@ -69,6 +67,7 @@ describe('Tags', () => {
     const expected = {
       [TC.get_compute_tag_key('timeout')]: funcSpecs[0].compute.timeout,
       [TC.get_compute_tag_key('staticIp')]: funcSpecs[0].compute.staticIp,
+      [TC.get_compute_tag_key('enable')]: true,
       [TC.get_dependency_tag_key('ms')]: funcSpecs[0].internal.resolved_dependencies.ms,
       [TC.get_metadata_tag_key('master_user')]: funcSpecs[0].metadata.tags.master_user,
       [TC.get_metadata_tag_key('master_owner')]: funcSpecs[0].metadata.tags.master_owner,

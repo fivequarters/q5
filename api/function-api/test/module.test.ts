@@ -107,7 +107,7 @@ describe('module', () => {
     });
   }, 180000);
 
-  test('PUT fails for function with nonexsitent dependency', async () => {
+  test('PUT fails for function with nonexistent dependency', async () => {
     let response = await putFunction(account, boundaryId, function1Id, {
       nodejs: {
         files: {

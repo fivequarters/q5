@@ -53,11 +53,13 @@ function get_deployment_s3_bucket(deployment: any): string {
 }
 
 function get_module_prefix(runtime: string, name: string, moduleSpec: IModuleSpec | string) {
-  if (typeof moduleSpec === 'string') {
+  const version = typeof moduleSpec === 'string' ? moduleSpec : moduleSpec.version;
+
+  if (typeof moduleSpec === 'string' || moduleSpec.registry === MODULE_PUBLIC_REGISTRY) {
     // Old style module, assume it's global.
-    return `${module_key_prefix}/${runtime}/${name}/${moduleSpec}`;
+    return `${module_key_prefix}/${runtime}/${name}/${version}`;
   }
-  return `${module_key_prefix}/${moduleSpec.registry}/${runtime}/${name}/${moduleSpec.version}`;
+  return `${module_key_prefix}/${moduleSpec.registry}/${runtime}/${name}/${version}`;
 }
 
 function get_module_metadata_key(runtime: string, name: string, moduleSpec: IModuleSpec | string) {
