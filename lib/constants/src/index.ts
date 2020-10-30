@@ -1,9 +1,12 @@
 import Crypto from 'crypto';
+import Path from 'path';
 
 interface IModuleSpec {
   registry: string;
   version: string;
 }
+
+const builder_version = require(Path.join(__dirname, '..', '..', '..', 'package.json')).version;
 
 const valid_boundary_name = /^[a-z0-9\-]{1,63}$/;
 
@@ -52,22 +55,59 @@ function get_deployment_s3_bucket(deployment: any): string {
     : `fusebit-${deployment.deploymentName}-${deployment.region}`;
 }
 
-function get_module_prefix(runtime: string, name: string, moduleSpec: IModuleSpec | string) {
+function get_module_prefix(
+  prefix: string,
+  runtime: string,
+  name: string,
+  moduleSpec: IModuleSpec | string,
+  useVer: boolean,
+  sep: string
+) {
   const version = typeof moduleSpec === 'string' ? moduleSpec : moduleSpec.version;
 
   if (typeof moduleSpec === 'string' || moduleSpec.registry === MODULE_PUBLIC_REGISTRY) {
     // Old style module, assume it's global.
-    return `${module_key_prefix}/${runtime}/${name}/${version}`;
+    return (useVer ? [prefix, runtime, name, version] : [prefix, runtime, name]).join(sep);
   }
-  return `${module_key_prefix}/${moduleSpec.registry}/${runtime}/${name}/${version}`;
+  return (useVer
+    ? [prefix, moduleSpec.registry, runtime, name, version]
+    : [prefix, moduleSpec.registry, runtime, name]
+  ).join(sep);
 }
 
 function get_module_metadata_key(runtime: string, name: string, moduleSpec: IModuleSpec | string) {
-  return `${get_module_prefix(runtime, name, moduleSpec)}/metadata.json`;
+  return `${get_module_prefix(module_key_prefix, runtime, name, moduleSpec, true, '/')}/metadata.json`;
 }
 
 function get_module_key(runtime: string, name: string, moduleSpec: IModuleSpec) {
-  return `${get_module_prefix(runtime, name, moduleSpec)}/package.zip`;
+  return `${get_module_prefix(module_key_prefix, runtime, name, moduleSpec, true, '/')}/package.zip`;
+}
+
+function get_module_builder_description(ctx: any, name: string, moduleSpec: IModuleSpec) {
+  return get_module_prefix(
+    'module-builder',
+    ctx.options.compute.runtime,
+    [name, builder_version].join(':'),
+    moduleSpec,
+    false,
+    ':'
+  );
+}
+
+function get_function_builder_description(options: any) {
+  return `function-builder:${options.compute.runtime}:${builder_version}`;
+}
+
+// Create a predictable fixed-length version of the lambda name, to avoid accidentally exceeding any name
+// limits.
+function get_function_builder_name(options: any) {
+  return Crypto.createHash('sha1').update(get_function_builder_description(options)).digest('hex');
+}
+
+function get_module_builder_name(ctx: any, name: string) {
+  return Crypto.createHash('sha1')
+    .update(get_module_builder_description(ctx, name, ctx.options.internal.resolved_dependencies[name]))
+    .digest('hex');
 }
 
 function get_user_function_build_status_key(options: any) {
@@ -140,6 +180,10 @@ export {
   get_user_function_spec_key,
   get_user_function_description,
   get_user_function_name,
+  get_function_builder_description,
+  get_module_builder_description,
+  get_function_builder_name,
+  get_module_builder_name,
   get_cron_key_prefix,
   get_cron_key_suffix,
   get_cron_key,
