@@ -1,6 +1,6 @@
 import { IFunctionParams, IFunctionPermission } from './Request';
 
-import { signJwt, verifyJwt } from '@5qtrs/jwt';
+import { signJwt } from '@5qtrs/jwt';
 
 import { createKeyPair } from '@5qtrs/key-pair';
 
@@ -44,14 +44,15 @@ class KeyStore {
       throw Error('unable to create jwt');
     }
 
+    const header = { kid: key.kid };
     payload.aud = `${process.env.API_SERVER}`;
-    payload.iss = `${process.env.API_SERVER}/issuer`;
-    payload.kid = key.kid;
+    payload.iss = `${key.kid}.system.${process.env.AWS_S3_BUCKET}`; /* XXX choose better */
     payload.iat = Date.now();
 
     return signJwt(payload, key.privateKey as string, {
       algorithm: this.jwtAlgorithm,
       expiresIn: this.minValidWindow,
+      header,
     });
   }
 

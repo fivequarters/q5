@@ -1,4 +1,4 @@
-import { IAgent, IIdentity, IAccessEntry } from '@5qtrs/account-data';
+import { IAccessEntry, IAgent, IIdentity } from '@5qtrs/account-data';
 
 class SystemAgent implements IAgent {
   public id: string;
@@ -8,7 +8,8 @@ class SystemAgent implements IAgent {
   };
 
   constructor(jwtPayload: any) {
-    // create access.allow block based on contents of jwtPayload.
+    console.log('SystemAgent new');
+    // XXX create access.allow block based on contents of jwtPayload.
     this.id = '';
     this.identities = [];
     this.access = {};

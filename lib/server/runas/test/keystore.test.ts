@@ -2,6 +2,10 @@ import { verifyJwt } from '@5qtrs/jwt';
 
 import { KeyStore, KEYSTORE_DEFAULT_ALG } from '../src/KeyStore';
 
+import { startExpress } from './server';
+
+import { execAs } from '../src/ExecAs';
+
 describe('keystore', () => {
   it('create', async () => {
     const ks = new KeyStore();

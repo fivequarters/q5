@@ -35,8 +35,10 @@ const httpExpect = (response: IHttpResponse, { statusCode, data, headers, tests 
     }
   } catch (err) {
     err.message = `${err.message}\n\nfailing response:\n${response.status} - ${JSON.stringify(
-      response.headers
-    )} - ${JSON.stringify(response.data)}`;
+      response.headers,
+      null,
+      2
+    )} - ${JSON.stringify(response.data, null, 2)}`;
     throw err;
   }
 };
@@ -56,6 +58,7 @@ const setupEnvironment = () => {
   const function5Id = 'test-function-5';
 
   beforeAll(async () => {
+    console.log(`beforeAll 1`);
     account = await resolveAccount();
   });
 

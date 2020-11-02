@@ -61,8 +61,10 @@ module.exports = function authorize_factory(options) {
     const accountId = req.params.accountId;
 
     try {
+      console.log(`authorize getResolvedAgent(${accountId})`);
       const resolvedAgent = await getResolvedAgent(accountId, token);
 
+      console.log(`authorize resolvedAgent ${resolvedAgent.identity}`);
       req.resolvedAgent = resolvedAgent;
       if (options && options.operation) {
         const resource = req.path;
@@ -88,6 +90,7 @@ module.exports = function authorize_factory(options) {
       }
       next();
     } catch (error) {
+      console.log(`authorize failed ${error}`);
       errorHandler(res)(error);
     }
   };

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-require('aws-sdk').config.logger = console;
+//require('aws-sdk').config.logger = console;
 
 const analytics = require('./middleware/analytics');
 const determine_provider = require('./middleware/determine_provider');
@@ -26,7 +26,7 @@ const audit = require('./handlers/audit');
 const statistics = require('./handlers/statistics');
 const npm = require('@5qtrs/npm');
 const { AWSRegistry } = require('@5qtrs/registry');
-
+const { execAs, AwsKeyStore } = require('@5qtrs/runas');
 const { loadSummary } = require('@5qtrs/runas');
 const { StorageActions } = require('@5qtrs/storage');
 const storage = require('./handlers/storage');
@@ -45,7 +45,11 @@ var corsExecutionOptions = {
   credentials: true,
 };
 
+/* XXX Rename to AwsRegistry */
 const npmRegistry = AWSRegistry;
+
+const keyStore = new AwsKeyStore({});
+keyStore.rekey();
 
 const NotImplemented = (_, __, next) => next(create_error(501, 'Not implemented'));
 
@@ -1070,8 +1074,8 @@ router.get(
 
 /* XXX Why were these regex instead of named parameters? */
 let run_routes = [
-  '/run/:subscriptionId/:boundaryId/:functionId/*',
-  '/exec/:accountId/:subscriptionId/:boundaryId/:functionId/*',
+  '/run/:subscriptionId/:boundaryId/:functionId',
+  '/exec/:accountId/:subscriptionId/:boundaryId/:functionId',
 ];
 
 function promote_to_name_params(req, res, next) {
@@ -1101,6 +1105,7 @@ run_routes.forEach((run_route) => {
         condition: (req) => req.provider === 'lambda',
       }),
       loadSummary(),
+      execAs(authorize, keyStore),
       (req, res, next) => provider_handlers[req.provider].execute_function(req, res, next),
       analytics.finished
     );
@@ -1117,6 +1122,7 @@ run_routes.forEach((run_route) => {
       }),
       determine_provider(),
       loadSummary(),
+      execAs(authorize, keyStore),
       (req, res, next) => provider_handlers[req.provider].execute_function(req, res, next),
       analytics.finished
     );

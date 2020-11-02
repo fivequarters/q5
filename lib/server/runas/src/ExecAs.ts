@@ -8,6 +8,11 @@ type AuthorizationFactory = (options: any) => ExpressHandler;
 
 const execAs = (authorize: AuthorizationFactory, keyStore: KeyStore) => {
   return async (req: IFunctionApiRequest, res: Response, next: any) => {
+    console.log(
+      `execAs ${req.url} ${JSON.stringify(req.params)} ${JSON.stringify(req.functionSummary)} ${JSON.stringify(
+        req.body
+      )}`
+    );
     if (!req.functionSummary || !req.functionSummary[Tags.get_compute_tag_key('permissions')]) {
       return next();
     }
@@ -36,5 +41,9 @@ const execAs = (authorize: AuthorizationFactory, keyStore: KeyStore) => {
 
     // Specify it into the request so it gets passed into the executor.
     req.headers.authorization = jwt;
+
+    return next();
   };
 };
+
+export { execAs };

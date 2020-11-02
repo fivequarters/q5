@@ -11,7 +11,7 @@ import { decodeJwt, decodeJwtHeader, verifyJwt } from '@5qtrs/jwt';
 import { AccountConfig } from './AccountConfig';
 import { cancelOnError } from '@5qtrs/promise';
 
-import { findInternalIssuer, SystemAgent } from '@5qtrs/runas';
+import { InternalIssuerCache, SystemAgent } from '@5qtrs/runas';
 
 import { isSystemIssuer } from '@5qtrs/constants';
 
@@ -28,6 +28,8 @@ const rootAgent = {
   },
 };
 
+const internalIssuerCache = new InternalIssuerCache({});
+
 // ------------------
 // Internal Functions
 // ------------------
@@ -42,9 +44,10 @@ async function validateJwt(
   const decodedJwtHeader = decodeJwtHeader(jwt);
   const kid = decodedJwtHeader.kid;
 
+  console.log(`validateJwt ${issuerId}, ${JSON.stringify(decodedJwtHeader)}`);
   // Get either the system issuer or the actual issuer.
   const issuer = await (isSystemIssuer(issuerId)
-    ? findInternalIssuer(issuerId)
+    ? internalIssuerCache.findInternalIssuer(issuerId)
     : dataContext.issuerData.get(accountId, issuerId));
 
   let secretOrUrl;
@@ -60,6 +63,7 @@ async function validateJwt(
     } else {
       // Find keys in Dynamo for system issuers that aren't cached - should always return a key, even when
       // it's not found, to force an invalidJwt error.
+      console.log(`validateJwt issuer.publicKeys(${kid})`);
       secretOrUrl = await issuer.publicKeys(kid);
     }
   }
@@ -69,6 +73,7 @@ async function validateJwt(
   }
 
   try {
+    console.log(`validateJwt verifyJwt`);
     await verifyJwt(jwt, secretOrUrl, { audience, algorithms, issuer });
   } catch (error) {
     throw AccountDataException.invalidJwt(error);
@@ -151,8 +156,10 @@ export class ResolvedAgent implements IAgent {
 
     const validatePromise = validateJwt(dataContext, accountId, audience, jwt, issuerId);
 
+    console.log(`ResolvedAgent::create validatePromise`);
     try {
       const agent = await cancelOnError(validatePromise, agentPromise);
+      console.log(`ResolvedAgent::create new ResolvedAgent`);
       return new ResolvedAgent(dataContext, accountId, agent, identity);
     } catch (error) {
       if (error.code === AccountDataExceptionCode.noIssuer || error.code === AccountDataExceptionCode.noIdentity) {

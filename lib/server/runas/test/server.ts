@@ -34,8 +34,8 @@ const startServer = async (app: Application) => {
   return { server, forceClose, port };
 };
 
-type IAddHandler = (app: Application) => undefined;
-const startExpress = async (addHandlers: IAddHandler = undefined): Promise<any> => {
+type IAddHandler = (app: Application) => void;
+const startExpress = async (addHandlers: IAddHandler): Promise<any> => {
   const app = express();
   const { server, forceClose, port } = await startServer(app);
 

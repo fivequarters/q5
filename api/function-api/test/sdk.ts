@@ -1070,3 +1070,14 @@ export async function createPKIAccessToken(
 
   return signJwt({}, keyPair.privateKey, options);
 }
+
+export async function getMe(account: IAccount, accessToken?: string) {
+  return request({
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${accessToken || account.accessToken}`,
+      'user-agent': account.userAgent,
+    },
+    url: `${account.baseUrl}/v1/account/${account.accountId}/me`,
+  });
+}

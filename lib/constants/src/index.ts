@@ -167,7 +167,7 @@ function duplicate(dst: any, src: any) {
 
 function isSystemIssuer(issuerId: string) {
   /* XXX Should this be more sophisticated? Include the AWS instance id? */
-  return issuerId.match(/fusebit.io$/);
+  return issuerId.match(`system.${process.env.AWS_S3_BUCKET}$`); /* XXX choose better */
 }
 
 export {

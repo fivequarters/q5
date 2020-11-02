@@ -2,8 +2,6 @@ import { IAccount } from './accountResolver';
 import { httpExpect, setupEnvironment } from './common';
 import * as Registry from './registry';
 
-import { request } from '@5qtrs/request';
-
 const fs = require('fs');
 
 const libnpm = require('libnpm');

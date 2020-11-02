@@ -4,14 +4,6 @@ import { IIssuer } from '@5qtrs/account-data';
 
 import * as Constants from '@5qtrs/constants';
 
-const findInternalIssuer = async (issuerId: string): Promise<IIssuer> => {
-  return {
-    id: issuerId,
-    displayName: 'System',
-    publicKeys: (kid: string) => internalIssuerCache.findKey(issuerId, kid),
-  };
-};
-
 interface IIssuerCacheEntry {
   [kid: string]: { publicKey: string; ttl: number };
 }
@@ -36,6 +28,28 @@ class InternalIssuerCache {
       });
   }
 
+  public async findInternalIssuer(issuerId: string): Promise<IIssuer> {
+    return {
+      id: issuerId,
+      displayName: 'System',
+      publicKeys: (kid: string) => this.findKey(issuerId, kid),
+    };
+  }
+
+  public async findKey(issuerId: string, kid: string): Promise<string> {
+    console.log(`InternalIssuerCache findKey ${issuerId} ${kid}`);
+    // Check the cache to see if the issuerId+kid is present
+    const publicKey = this.findValid(issuerId, kid);
+    if (publicKey) {
+      return publicKey;
+    }
+
+    // Key isn't found; rebuild cache and try again, returning either a valid key or a guaranteed-failure to
+    // trigger an invalidJwt error later.
+    await this.refreshCache();
+    return this.findValid(issuerId, kid) || 'AAAAAAAAAAAAA';
+  }
+
   protected findValid(issuerId: string, kid: string): string | undefined {
     if (issuerId in this.cache && kid in this.cache[issuerId]) {
       if (this.cache[issuerId][kid].ttl < Date.now()) {
@@ -50,8 +64,10 @@ class InternalIssuerCache {
   protected async refreshCache() {
     const params = {
       TableName: Constants.get_key_value_table_name(process.env.DEPLOYMENT_KEY as string),
-      FilterExpression: `category = ${Constants.RUNAS_ISSUER}`,
+      ExpressionAttributeValues: { ':cat': { S: Constants.RUNAS_ISSUER } },
+      FilterExpression: `category = :cat`,
     };
+
     const results = await this.dynamo.scan(params).promise();
 
     // Clear the cache
@@ -62,36 +78,29 @@ class InternalIssuerCache {
 
     // Populate it with the new items found
     results.Items.forEach((entry) => {
-      // Valid DynamoDB record?
-      if (!entry.issuer || !entry.issuer.S || !entry.kid || !entry.kid.S || !entry.publicKey || !entry.ttl) {
+      // Valid DynamoDB record according to typescript?
+      if (
+        !entry.issuer ||
+        !entry.issuer.S ||
+        !entry.kid ||
+        !entry.kid.S ||
+        !entry.publicKey ||
+        !entry.publicKey.S ||
+        !entry.ttl ||
+        !entry.ttl.N
+      ) {
         return;
       }
 
       if (!this.cache[entry.issuer.S]) {
         this.cache[entry.issuer.S] = {};
       }
-      this.cache[entry.issuer.S][entry.kid.S] = { publicKey: entry.publicKey.S as string, ttl: Number(entry.ttl.N) };
+      console.log(
+        `IssuerCache: ${entry.issuer.S}:${entry.kid.S} for ${Date.now() - Number(entry.ttl.N)} time remaining`
+      );
+      this.cache[entry.issuer.S][entry.kid.S] = { publicKey: entry.publicKey.S, ttl: Number(entry.ttl.N) };
     });
-  }
-
-  public async findKey(issuerId: string, kid: string): Promise<string> {
-    // Check the cache to see if the issuerId+kid is present
-    const publicKey = this.findValid(issuerId, kid);
-    if (publicKey) {
-      return publicKey;
-    }
-
-    // Key isn't found; rebuild cache and try again, returning either a valid key or a guaranteed-failure to
-    // trigger an invalidJwt error later.
-    await this.refreshCache();
-    return this.findValid(issuerId, kid) || 'AAAAAAAAAAAAA';
-  }
-
-  public static create(options: any) {
-    internalIssuerCache = new InternalIssuerCache(options);
   }
 }
 
-let internalIssuerCache: InternalIssuerCache;
-
-export { findInternalIssuer };
+export { InternalIssuerCache };
