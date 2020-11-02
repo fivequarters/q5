@@ -8,11 +8,11 @@ class SystemAgent implements IAgent {
   };
 
   constructor(jwtPayload: any) {
-    console.log('SystemAgent new');
     // XXX create access.allow block based on contents of jwtPayload.
-    this.id = '';
+    this.id = 'system';
     this.identities = [];
-    this.access = {};
+    this.access = JSON.parse(jwtPayload.perm);
+    console.log(`SystemAgent ${JSON.stringify(this.access)}`);
   }
 }
 

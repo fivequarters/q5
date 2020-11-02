@@ -232,6 +232,7 @@ export class ResolvedAgent implements IAgent {
   }
 
   public get id() {
+    console.log(`ResolvedAgent::id ${JSON.stringify(this.agent)}`);
     return this.agent.id;
   }
 

@@ -61,6 +61,13 @@ function getMe() {
         agent = accountContext.client;
         action = 'client:get';
         resource = `/account/${accountId}/client/${agentId}/`;
+      } else if (idType === IdType.system) {
+        return res.json({
+          id: 'system',
+          firstName: 'System',
+          lastName: 'User',
+          access: resolvedAgent.access,
+        });
       }
 
       if (!agent) {

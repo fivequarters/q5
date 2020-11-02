@@ -1,13 +1,14 @@
 import { random } from '@5qtrs/random';
 import { request } from '@5qtrs/request';
 
+import { decodeJwt } from '@5qtrs/jwt';
+
 import { FakeAccount, IAccount, resolveAccount } from './accountResolver';
 import { httpExpect, setupEnvironment } from './common';
 import { getMe, deleteAllFunctions, deleteFunction, getFunction, getFunctionLocation, putFunction } from './sdk';
 
 let account: IAccount = FakeAccount;
-const { getAccount } = setupEnvironment();
-const boundaryId = `test-bnd-runas-${random({ lengthInBytes: 8 })}`;
+const { getAccount, getBoundary } = setupEnvironment();
 const function1Id = 'test-fun-runas-1';
 
 // Convert '/run' to '/exec/acc-1234'.
@@ -22,7 +23,7 @@ const helloWorld = {
 };
 
 const helloWorldRunas = {
-  permissions: ['function:*:/'],
+  permissions: { allow: [{ action: '*', resource: '/' }] },
   nodejs: {
     files: {
       'index.js': 'module.exports = async (ctx) => { return { body: ctx }; };',
@@ -33,6 +34,7 @@ const helloWorldRunas = {
 describe('runas', () => {
   test('normal function has no permissions added', async () => {
     account = getAccount();
+    const boundaryId = getBoundary();
     const create = await putFunction(account, boundaryId, function1Id, helloWorld);
     expect(create.status).toEqual(200);
     let url: string;
@@ -52,8 +54,9 @@ describe('runas', () => {
     expect(response.data.headers.authorization).toBeUndefined();
   }, 180000);
 
-  test.only('jwt created with permissions', async () => {
+  test('jwt created with permissions', async () => {
     account = getAccount();
+    const boundaryId = getBoundary();
     const create = await putFunction(account, boundaryId, function1Id, helloWorldRunas);
     httpExpect(create, { statusCode: 200 });
     let url: string;
@@ -71,10 +74,13 @@ describe('runas', () => {
     response = await request(url);
     httpExpect(response, { statusCode: 200 });
     expect(response.data.headers.authorization).not.toBeUndefined();
-    console.log(
-      `curl ${account.baseUrl}/v1/account/${account.accountId}/me -H 'Authorization: Bearer ${response.data.headers.authorization}'\n` +
-        `jwtd ${response.data.headers.authorization}`
-    );
-    const r = (await getMe(account)).data.id === (await getMe(account, response.data.headers.authorization)).data.id;
+    const token = response.data.headers.authorization;
+    // console.log( `curl ${account.baseUrl}/v1/account/${account.accountId}/me -H 'Authorization: Bearer ${token}'`);
+    // console.log(`JWT: ${JSON.stringify(decodeJwt(token))}`);
+    // const r = (await getMe(account, response.data.headers.authorization)).data;
+    account.accessToken = token;
+    response = await getFunction(account, boundaryId, function1Id);
+    httpExpect(response, { statusCode: 200 });
+    console.log(`${JSON.stringify(response.data)}`);
   }, 180000);
 });

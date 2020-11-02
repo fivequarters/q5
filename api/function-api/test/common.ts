@@ -6,7 +6,7 @@ const httpExpect = (response: IHttpResponse, { statusCode, data, headers, tests 
   try {
     if (statusCode) {
       if (typeof statusCode === 'object') {
-        expect(status).toContain(response.status);
+        expect(statusCode).toContain(response.status);
       } else {
         expect(response.status).toEqual(statusCode);
       }

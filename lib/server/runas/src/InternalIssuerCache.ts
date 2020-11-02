@@ -4,12 +4,8 @@ import { IIssuer } from '@5qtrs/account-data';
 
 import * as Constants from '@5qtrs/constants';
 
-interface IIssuerCacheEntry {
-  [kid: string]: { publicKey: string; ttl: number };
-}
-
 interface IIssuerCache {
-  [issuerId: string]: IIssuerCacheEntry;
+  [kid: string]: { publicKey: string; ttl: number };
 }
 
 class InternalIssuerCache {
@@ -51,12 +47,12 @@ class InternalIssuerCache {
   }
 
   protected findValid(issuerId: string, kid: string): string | undefined {
-    if (issuerId in this.cache && kid in this.cache[issuerId]) {
-      if (this.cache[issuerId][kid].ttl < Date.now()) {
-        delete this.cache[issuerId][kid];
+    if (kid in this.cache) {
+      if (this.cache[kid].ttl < Date.now()) {
+        delete this.cache[kid];
         return undefined;
       }
-      return this.cache[issuerId][kid].publicKey;
+      return this.cache[kid].publicKey;
     }
     return undefined;
   }
@@ -92,13 +88,11 @@ class InternalIssuerCache {
         return;
       }
 
-      if (!this.cache[entry.issuer.S]) {
-        this.cache[entry.issuer.S] = {};
-      }
       console.log(
         `IssuerCache: ${entry.issuer.S}:${entry.kid.S} for ${Date.now() - Number(entry.ttl.N)} time remaining`
       );
-      this.cache[entry.issuer.S][entry.kid.S] = { publicKey: entry.publicKey.S, ttl: Number(entry.ttl.N) };
+      // XXX need additional entropy off of the kid?  Issuer as guid worthwhile?
+      this.cache[entry.kid.S] = { publicKey: entry.publicKey.S, ttl: Number(entry.ttl.N) };
     });
   }
 }

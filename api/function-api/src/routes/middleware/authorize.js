@@ -64,13 +64,16 @@ module.exports = function authorize_factory(options) {
       console.log(`authorize getResolvedAgent(${accountId})`);
       const resolvedAgent = await getResolvedAgent(accountId, token);
 
-      console.log(`authorize resolvedAgent ${resolvedAgent.identity}`);
+      console.log(`authorize resolvedAgent ${JSON.stringify(Object.keys(resolvedAgent))}`);
       req.resolvedAgent = resolvedAgent;
       if (options && options.operation) {
         const resource = req.path;
         const action = options.operation;
         const { issuerId, subject } = resolvedAgent.identities[0];
+
+        console.log(`authorize issuerId ${issuerId} subject ${subject} action ${action} resource ${resource}`);
         await resolvedAgent.ensureAuthorized(action, resource);
+        console.log(`authorize ensured`);
         if (meteringEnabled) {
           meterApiCall({
             deploymentId: process.env.DEPLOYMENT_KEY,
