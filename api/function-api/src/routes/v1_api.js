@@ -800,7 +800,7 @@ router.get(
     req.registry.configGet().then((config) => {
       res.status(200).json({
         ...config,
-        url: process.env.API_SERVER + req.originalUrl + 'npm/',
+        url: process.env.API_SERVER + require('url').parse(req.url).pathname + 'npm/',
       });
     }),
   analytics.finished
