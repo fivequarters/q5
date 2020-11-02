@@ -45,6 +45,8 @@ const MODULE_PUBLIC_REGISTRY = 'public';
 
 const RUNAS_ISSUER = 'runas-system-issuer';
 
+const JWT_PERMISSION_CLAIM = 'https://fusebit.io/permissions';
+
 function get_log_table_name(deploymentKey: string): string {
   return `${deploymentKey}.log`;
 }
@@ -210,4 +212,5 @@ export {
   REGISTRY_GLOBAL,
   MODULE_PUBLIC_REGISTRY,
   RUNAS_ISSUER,
+  JWT_PERMISSION_CLAIM,
 };

@@ -76,7 +76,7 @@ describe('runas', () => {
     expect(response.data.headers.authorization).not.toBeUndefined();
     const token = response.data.headers.authorization;
     // console.log( `curl ${account.baseUrl}/v1/account/${account.accountId}/me -H 'Authorization: Bearer ${token}'`);
-    // console.log(`JWT: ${JSON.stringify(decodeJwt(token))}`);
+    console.log(`JWT: ${JSON.stringify(decodeJwt(token), null, 2)}`);
     // const r = (await getMe(account, response.data.headers.authorization)).data;
     account.accessToken = token;
     response = await getFunction(account, boundaryId, function1Id);
