@@ -15,7 +15,8 @@ export interface IIssuer {
   id: string;
   displayName?: string;
   jsonKeysUrl?: string;
-  publicKeys?: IIssuerPublicKey[] | IIssuerKeyStore;
+  publicKeys?: IIssuerPublicKey[];
+  keyStore?: IIssuerKeyStore;
 }
 
 export interface IListIssuersOptions {

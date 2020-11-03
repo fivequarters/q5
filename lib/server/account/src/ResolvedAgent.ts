@@ -54,18 +54,14 @@ async function validateJwt(
   if (issuer.jsonKeysUrl) {
     secretOrUrl = issuer.jsonKeysUrl;
   } else if (issuer.publicKeys) {
-    if (Array.isArray(issuer.publicKeys)) {
-      for (const publicKey of issuer.publicKeys) {
-        if (publicKey.keyId === kid) {
-          secretOrUrl = publicKey.publicKey;
-        }
+    for (const publicKey of issuer.publicKeys) {
+      if (publicKey.keyId === kid) {
+        secretOrUrl = publicKey.publicKey;
       }
-    } else {
-      // Find keys in Dynamo for system issuers that aren't cached - should always return a key, even when
-      // it's not found, to force an invalidJwt error.
-      console.log(`validateJwt issuer.publicKeys(${kid})`);
-      secretOrUrl = await issuer.publicKeys(kid);
     }
+  } else if (issuer.keyStore) {
+    console.log(`validateJwt issuer.publicKeys(${kid})`);
+    secretOrUrl = await issuer.keyStore(kid);
   }
 
   if (!secretOrUrl) {
