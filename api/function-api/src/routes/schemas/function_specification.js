@@ -39,5 +39,12 @@ module.exports = Joi.object().keys({
   scheduleSerialized: Joi.string().allow('').optional(),
   metadata: Joi.object(),
   runtime: Joi.object(),
-  permissions: Joi.any() /* XXX TBD */,
+  permissions: Joi.object().keys({
+    allow: Joi.array().items(
+      Joi.object().keys({
+        action: Joi.string(),
+        resource: Joi.string(),
+      })
+    ),
+  }),
 });

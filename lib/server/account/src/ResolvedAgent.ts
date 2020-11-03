@@ -213,7 +213,9 @@ export class ResolvedAgent implements IAgent {
   public isAuthorized(action: string, resource: string) {
     const accessEntries = this.agent.access && this.agent.access.allow ? this.agent.access.allow : [];
 
+    console.log(`ResolvedAgent::isAuthorized ${JSON.stringify(accessEntries)} <= ${action}/${resource}`);
     resource = Resource.normalize(resource);
+    console.log(`ResolvedAgent::isAuthorized2 ${JSON.stringify(accessEntries)} <= ${action}/${resource}`);
     for (const accessEntry of accessEntries) {
       if (doesAccessEntryAuthorize(accessEntry, action, resource)) {
         return true;

@@ -49,6 +49,7 @@ const newBoundaryId = (): string => {
 
 const setupEnvironment = () => {
   let account: IAccount = FakeAccount;
+  let accountToken: string;
 
   let boundaryId = newBoundaryId();
   const function1Id = 'test-function-1';
@@ -58,15 +59,17 @@ const setupEnvironment = () => {
   const function5Id = 'test-function-5';
 
   beforeAll(async () => {
-    console.log(`beforeAll 1`);
     account = await resolveAccount();
+    accountToken = account.accessToken;
   });
 
   afterAll(async () => {
+    account.accessToken = accountToken;
     await deleteAllFunctions(account, boundaryId);
   }, 200000);
 
   beforeEach(async () => {
+    account.accessToken = accountToken;
     await deleteAllFunctions(account, boundaryId);
   }, 200000);
 
@@ -89,7 +92,7 @@ const setupEnvironment = () => {
     packageJson: any = undefined,
     metadata: any = undefined
   ) => {
-    let response = await putFunction(account, boundaryId, functionId, {
+    const response = await putFunction(account, boundaryId, functionId, {
       nodejs: {
         files: {
           'index.js': payload,
