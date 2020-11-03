@@ -23,7 +23,7 @@ class AwsKeyStore extends KeyStore {
   }
 
   public async rekey(): Promise<IKeyPair> {
-    const keyPair = await super.rekey();
+    const keyPair = await this.createKey();
     const { kid, publicKey, ttl } = keyPair;
 
     // Put to k-v with TTL

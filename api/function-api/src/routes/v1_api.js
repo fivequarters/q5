@@ -73,7 +73,10 @@ const traceEvent = (key) => {
 
 // Health
 
-router.get('/health', health.getHealth());
+router.get(
+  '/health',
+  health.getHealth(async () => keyStore.healthCheck())
+);
 
 // Real-time logs from execution
 

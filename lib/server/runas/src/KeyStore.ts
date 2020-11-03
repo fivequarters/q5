@@ -40,7 +40,7 @@ class KeyStore {
   public async signJwt(payload: any): Promise<string> {
     const key = this.keyPair;
 
-    if (!key) {
+    if (!key || key.ttl < Date.now()) {
       throw Error('unable to create jwt');
     }
 
@@ -56,7 +56,7 @@ class KeyStore {
     });
   }
 
-  public async rekey(): Promise<IKeyPair> {
+  public async createKey(): Promise<IKeyPair> {
     const { publicKey, privateKey } = await createKeyPair();
     const kid = crypto.randomBytes(4).toString('hex');
 
@@ -65,8 +65,14 @@ class KeyStore {
     return keyPair;
   }
 
-  // Separate the key pair generation from assignment to allow async operations like AWS to complete before
-  // attempting to use it to mint JWTs.
+  public async rekey(): Promise<IKeyPair> {
+    const keyPair = await this.createKey();
+    this.setKeyPair(keyPair);
+    return keyPair;
+  }
+
+  // Separate the key pair generation from assignment to allow async operations like AWS to complete writing
+  // to DynamoDB before attempting to use it to mint JWTs.
   public setKeyPair(keyPair: IKeyPair) {
     this.keyPair = keyPair;
   }
@@ -74,6 +80,19 @@ class KeyStore {
   public getPublicKey(): IKeyPair {
     // Return the public key and TTL for each valid key
     return { publicKey: this.keyPair.publicKey, ttl: this.keyPair.ttl, kid: this.keyPair.kid };
+  }
+
+  public async healthCheck() {
+    const key = this.keyPair;
+
+    if (!key || key.ttl < Date.now()) {
+      throw Error('invalid keypair');
+    }
+
+    // Trigger a rekey well in advance of the validity window.
+    if (key.ttl < Date.now() + 10 * KEYSTORE_MIN_WINDOW) {
+      this.rekey();
+    }
   }
 }
 
