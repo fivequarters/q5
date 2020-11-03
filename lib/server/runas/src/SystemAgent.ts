@@ -9,7 +9,6 @@ class SystemAgent implements IAgent {
   };
 
   constructor(jwtPayload: any) {
-    // XXX create access.allow block based on contents of jwtPayload.
     this.id = 'system';
     this.identities = [];
     this.access = jwtPayload[Constants.JWT_PERMISSION_CLAIM];

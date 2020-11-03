@@ -190,6 +190,7 @@ describe('runas', () => {
     let response = await putFunction(account, boundaryId, function1Id, spec);
     httpExpect(response, { statusCode: 200 });
     const url = tweakUrl(response.data.location);
+    console.log(url);
     response = await request(url);
     httpExpect(response, { statusCode: 200 });
     expect(response.data.headers.authorization).not.toBeUndefined();

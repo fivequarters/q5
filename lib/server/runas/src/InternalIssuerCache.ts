@@ -28,7 +28,7 @@ class InternalIssuerCache {
     return {
       id: issuerId,
       displayName: 'System',
-      publicKeys: (kid: string) => this.findKey(issuerId, kid),
+      keyStore: (kid: string) => this.findKey(issuerId, kid),
     };
   }
 

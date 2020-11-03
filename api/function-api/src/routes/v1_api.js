@@ -1075,13 +1075,19 @@ router.get(
 
 // Not part of public contract
 
-/* XXX Why were these regex instead of named parameters? */
-let run_routes = [
-  '/run/:subscriptionId/:boundaryId/:functionId',
-  '/exec/:accountId/:subscriptionId/:boundaryId/:functionId',
-];
+let run_routes = [/^\/run\/([^\/]+)\/([^\/]+)\/([^\/]+).*$/, /^\/exec\/([^\/]+)\/([^\/]+)\/([^\/]+)\/([^\/]+).*$/];
 
 function promote_to_name_params(req, res, next) {
+  if (req.params[3]) {
+    req.params.accountId = req.params[0];
+    req.params.subscriptionId = req.params[1];
+    req.params.boundaryId = req.params[2];
+    req.params.functionId = req.params[3];
+  } else {
+    req.params.subscriptionId = req.params[0];
+    req.params.boundaryId = req.params[1];
+    req.params.functionId = req.params[2];
+  }
   // Reverse back the run_route base url component.
   req.params.baseUrl = get_function_location(
     req,
@@ -1089,6 +1095,10 @@ function promote_to_name_params(req, res, next) {
     req.params.boundaryId,
     req.params.functionId
   );
+  delete req.params[0];
+  delete req.params[1];
+  delete req.params[2];
+  delete req.params[3];
   return next();
 }
 
