@@ -1,10 +1,10 @@
-import { IFunctionParams, IFunctionPermission } from './Request';
+import * as crypto from 'crypto';
 
 import { signJwt } from '@5qtrs/jwt';
-
 import { createKeyPair } from '@5qtrs/key-pair';
+import * as Constants from '@5qtrs/constants';
 
-import * as crypto from 'crypto';
+import { IFunctionParams, IFunctionPermission } from './Request';
 
 const KEYSTORE_MAX_KEY_TTL = 12 * 60 * 60 * 1000; // 12 hrs
 const KEYSTORE_MIN_WINDOW = 5 * 60 * 1000; // 5 minutes
@@ -46,7 +46,7 @@ class KeyStore {
 
     const header = { kid: key.kid };
     payload.aud = `${process.env.API_SERVER}`;
-    payload.iss = `${key.kid}.system.${process.env.AWS_S3_BUCKET}`; /* XXX choose better */
+    payload.iss = Constants.makeSystemIssuerId(key.kid);
     payload.iat = Date.now();
 
     return signJwt(payload, key.privateKey as string, {
