@@ -36,7 +36,7 @@ class AwsKeyStore extends KeyStore {
           key: { S: `${this.storeId}/${kid}` },
           kid: { S: kid },
           publicKey: { S: publicKey },
-          ttl: { N: `${ttl}` },
+          ttl: { N: `${ttl / 1000}` },
         },
       })
       .promise();
