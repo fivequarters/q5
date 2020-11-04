@@ -163,6 +163,24 @@ function duplicate(dst: any, src: any) {
   return dst;
 }
 
+async function asyncPool<T>(poolLimit: number, array: T[], iteratorFn: (item: T, array: T[]) => any): Promise<any> {
+  const ret = [];
+  const executing: Promise<any>[] = [];
+  for (const item of array) {
+    const p = Promise.resolve().then(() => iteratorFn(item, array));
+    ret.push(p);
+
+    if (poolLimit <= array.length) {
+      const e: Promise<any> = p.then(() => executing.splice(executing.indexOf(e), 1));
+      executing.push(e);
+      if (executing.length >= poolLimit) {
+        await Promise.race(executing);
+      }
+    }
+  }
+  return Promise.all(ret);
+}
+
 export {
   get_log_table_name,
   get_key_value_table_name,
@@ -196,6 +214,7 @@ export {
   RestrictedPermissions,
   UserPermissions,
   isSpecialized,
+  asyncPool,
   REGISTRY_CATEGORY,
   REGISTRY_CATEGORY_CONFIG,
   REGISTRY_DEFAULT,

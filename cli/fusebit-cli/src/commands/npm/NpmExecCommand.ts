@@ -47,7 +47,7 @@ export class NpmExecCommand extends Command {
 
   public async execute(args: string[], io: ICommandIO): Promise<number> {
     // Chop off the leading 'npm exec'
-    args = args.slice(2);
+    args = args.slice(3);
 
     const profile = await this.getProfile(args, io);
     const registries = await getRegistry(profile);

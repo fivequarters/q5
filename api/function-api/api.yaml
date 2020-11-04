@@ -1613,18 +1613,58 @@ paths:
                 $ref: '#/components/schemas/Error'
       security:
         - AccessToken: []
-    patch:
+
+  /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/function/{functionId}/build:
+    parameters:
+      - in: path
+        name: accountId
+        required: true
+        description: Account id
+        schema:
+          $ref: '#/components/schemas/AccountId'
+      - name: subscriptionId
+        in: path
+        description: The subscription id
+        required: true
+        schema:
+          $ref: '#/components/schemas/SubscriptionId'
+      - name: boundaryId
+        in: path
+        description: The boundary id, unique within the subscription.
+        required: true
+        schema:
+          $ref: '#/components/schemas/BoundaryId'
+      - name: functionId
+        in: path
+        description: The function id, unique within the boundary.
+        required: true
+        schema:
+          $ref: '#/components/schemas/FunctionId'
+    post:
       tags:
         - Functions
-      summary: Change specific elements of the function specification
+      summary: Evaluate and rebuild a function
       description: |
-        This is most commonly used to change the availability of the function via the `enable` value in the specification, as well as trigger an update of the dependencies according to the semver rules in `package.json` with 'rebuild'.
-      operationId: patchFunction
+        Evaulate each of a functions dependencies using `semver` and rebuild using
+        the latest packages that satisfy the versioning requirements.
+      operationId: postFunctionBuild
       responses:
         200:
-          description: The operation succeeded
+          description: Function build complete
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Build'
+        201:
+          description: Function build in progress
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Build'
+        204:
+          description: No change to function
         400:
-          description: Malformed account, subscription, boundary or function id
+          description: Malformed account, subscription, boundary or function id, or invalid function
           content:
             application/json:
               schema:
@@ -1637,6 +1677,12 @@ paths:
                 $ref: '#/components/schemas/Error'
         404:
           description: Subscription, boundary or function not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        429:
+          description: Module dependency failed to build
           content:
             application/json:
               schema:
