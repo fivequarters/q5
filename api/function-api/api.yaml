@@ -3228,12 +3228,6 @@ components:
                   type: string
                 value:
                   type: string
-        enable:
-          type: boolean
-          description: Indicate if the function is enabled or if requests will be rejected.
-        rebuild:
-          type: boolean
-          description: Trigger a review of the semver packages of this functions dependencies.
 
     FunctionList:
       type: object

@@ -577,23 +577,6 @@ router.delete(
   (req, res, next) => provider_handlers[req.provider].delete_function(req, res, next),
   analytics.finished
 );
-router.patch(
-  '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId',
-  analytics.enterHandler(analytics.Modes.Administration),
-  cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
-  authorize({ operation: 'function:put' }),
-  express.json({ limit: process.env.FUNCTION_SIZE_LIMIT || '500kb' }),
-  validate_schema({
-    params: require('./schemas/api_params'),
-    body: require('./schemas/function_specification'),
-  }),
-  user_agent(),
-  determine_provider(),
-  npmRegistry.handler(),
-  (req, res, next) => provider_handlers[req.provider].patch_function(req, res, next),
-  analytics.finished
-);
 
 router.options(
   '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/log',
