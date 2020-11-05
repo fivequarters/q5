@@ -831,7 +831,7 @@ router.put(
   analytics.finished
 );
 
-// NPM Service
+// npm Service
 const registryNpmBase = registryBase + '/npm';
 
 router.options(registryNpmBase + '/-/version', cors(corsManagementOptions));

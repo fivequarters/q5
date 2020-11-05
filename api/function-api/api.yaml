@@ -3279,24 +3279,24 @@ components:
         properties:
           scopes:
             type: array
-            description: A list of the NPM package scopes reserved in this registry
+            description: A list of the npm package scopes reserved in this registry
             items:
               type: string
-              description: An NPM package scope, such as '@internal'
+              description: An npm package scope, such as '@internal'
               example: '@internal'
           url:
             type: string
-            description: The URL for the NPM endpoint for this registry
+            description: The URL for the npm endpoint for this registry
             example: 'https://api.{region}.fusebit.io/v1/account/{accountId}/registry/default/npm'
       Put:
         type: object
         properties:
           scopes:
             type: array
-            description: A list of the NPM package scopes reserved in this registry
+            description: A list of the npm package scopes reserved in this registry
             items:
               type: string
-              description: An NPM package scope, such as '@internal'
+              description: An npm package scope, such as '@internal'
               example: '@internal'
 
 #    Statistics:

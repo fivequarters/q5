@@ -32,7 +32,7 @@ const function_spec_key_prefix = 'function-spec';
 // Stores registrations of active cron jobs
 const cron_key_prefix = 'function-cron';
 
-// Stores built NPM modules
+// Stores built npm modules
 const module_key_prefix = 'npm-module';
 
 const REGISTRY_CATEGORY = 'registry-npm-package';
