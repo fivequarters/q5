@@ -17,17 +17,17 @@ const s3Path = 'registry/npm';
 
 type ExpressHandler = (reqExpress: Request, res: Response, next: any) => any;
 
-class AWSRegistry implements IRegistryStore {
+class AwsRegistry implements IRegistryStore {
   public static handler(): ExpressHandler {
     return (reqExpress: Request, res: Response, next: any) => {
       const req: any = reqExpress;
-      req.registry = AWSRegistry.create(req.params);
+      req.registry = AwsRegistry.create(req.params);
       return next();
     };
   }
 
   public static create(params: IRegistryParams, s3Opts?: any, dynamoDbOpts?: any): IRegistryStore {
-    return new AWSRegistry(
+    return new AwsRegistry(
       [params.accountId, params.registryId || Constants.REGISTRY_DEFAULT].join('/'),
       s3Opts,
       dynamoDbOpts
@@ -85,7 +85,7 @@ class AWSRegistry implements IRegistryStore {
 
   // Determine whether the scope in the key is part of this registry, or part of the global registry.  Return
   // a registry object that matches the target namespace.
-  public findScope(cfg: IRegistryInternalConfig, name: string): AWSRegistry {
+  public findScope(cfg: IRegistryInternalConfig, name: string): AwsRegistry {
     const parts = name.split('/');
     if (parts.length !== 2) {
       throw new InvalidScopeException();
@@ -94,7 +94,7 @@ class AWSRegistry implements IRegistryStore {
     if (cfg.scopes.indexOf(parts[0]) >= 0) {
       return this;
     } else if (cfg.global.scopes.indexOf(parts[0]) >= 0) {
-      return (AWSRegistry.create(cfg.global.params) as unknown) as AWSRegistry;
+      return (AwsRegistry.create(cfg.global.params) as unknown) as AwsRegistry;
     }
     throw new InvalidScopeException();
   }
@@ -104,7 +104,7 @@ class AWSRegistry implements IRegistryStore {
       const cfg = await this.internalConfigGet();
 
       // Delegate get's to the global registry for scopes that match
-      const reg: AWSRegistry = this.findScope(cfg, name);
+      const reg: AwsRegistry = this.findScope(cfg, name);
       return reg.internalGet(name);
     } catch (e) {
       return undefined;
@@ -146,7 +146,7 @@ class AWSRegistry implements IRegistryStore {
       const cfg = await this.internalConfigGet();
 
       // Delegate get's to the global registry for scopes that match
-      const reg: AWSRegistry = this.findScope(cfg, nameVer);
+      const reg: AwsRegistry = this.findScope(cfg, nameVer);
       return reg.internalTarball(nameVer);
     } catch (e) {
       return undefined;
@@ -204,7 +204,7 @@ class AWSRegistry implements IRegistryStore {
           return { objects: [] };
         }
 
-        const globalReg = (AWSRegistry.create(cfg.global.params) as unknown) as AWSRegistry;
+        const globalReg = (AwsRegistry.create(cfg.global.params) as unknown) as AwsRegistry;
         return globalReg.internalSearch(keyword, count / 2, nexts[1]);
       })(),
     ]);
@@ -367,4 +367,4 @@ class AWSRegistry implements IRegistryStore {
   }
 }
 
-export { AWSRegistry };
+export { AwsRegistry };

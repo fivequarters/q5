@@ -41,6 +41,8 @@ const REGISTRY_CATEGORY_CONFIG = 'registry-npm-config';
 const REGISTRY_DEFAULT = 'default';
 const REGISTRY_GLOBAL = 'registry-global';
 
+const REGISTRY_RESERVED_SCOPE_PREFIX = '@fuse';
+
 const MODULE_PUBLIC_REGISTRY = 'public';
 
 function get_log_table_name(deploymentKey: string): string {
@@ -220,4 +222,5 @@ export {
   REGISTRY_DEFAULT,
   REGISTRY_GLOBAL,
   MODULE_PUBLIC_REGISTRY,
+  REGISTRY_RESERVED_SCOPE_PREFIX,
 };

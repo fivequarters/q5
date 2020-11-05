@@ -1,6 +1,8 @@
 import { Command, ICommand, IExecuteInput } from '@5qtrs/cli';
 import { IText, Text } from '@5qtrs/text';
 
+import { REGISTRY_RESERVED_SCOPE_PREFIX } from '@5qtrs/constants';
+
 import { ExecuteService } from '../../../services/ExecuteService';
 import { ProfileService } from '../../../services/ProfileService';
 
@@ -41,11 +43,18 @@ export class RegistryScopeSetCommand extends Command {
     const executeService = await ExecuteService.create(input);
     const profile = await profileService.getExecutionProfile();
 
-    const scopes = input.arguments[0] as string;
+    const scopes = (input.arguments[0] as string).split(',');
 
-    let registries: IRegistries = await getRegistry(profile);
+    if (scopes.filter((s: string) => s.indexOf(REGISTRY_RESERVED_SCOPE_PREFIX) !== -1).length) {
+      await executeService.error(
+        'Invalid Scopes',
+        `Scopes starting with '${REGISTRY_RESERVED_SCOPE_PREFIX}' are not allowed.`
+      );
 
-    registries = await putRegistry(profile, scopes.split(','));
+      return -1;
+    }
+
+    const registries = await putRegistry(profile, executeService, scopes);
 
     await printRegistries(executeService, registries);
 

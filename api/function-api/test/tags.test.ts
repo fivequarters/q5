@@ -67,7 +67,7 @@ describe('Tags', () => {
     const expected = {
       [TC.get_compute_tag_key('timeout')]: funcSpecs[0].compute.timeout,
       [TC.get_compute_tag_key('staticIp')]: funcSpecs[0].compute.staticIp,
-      [TC.get_dependency_tag_key('ms')]: funcSpecs[0].internal.resolved_dependencies.ms,
+      [TC.get_dependency_tag_key('version.ms')]: funcSpecs[0].internal.resolved_dependencies.ms,
       [TC.get_metadata_tag_key('master_user')]: funcSpecs[0].metadata.tags.master_user,
       [TC.get_metadata_tag_key('master_owner')]: funcSpecs[0].metadata.tags.master_owner,
       [TC.get_metadata_tag_key('level')]: funcSpecs[0].metadata.tags.level,

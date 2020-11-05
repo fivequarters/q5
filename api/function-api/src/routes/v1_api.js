@@ -22,7 +22,8 @@ const agent = require('./handlers/agent');
 const audit = require('./handlers/audit');
 const statistics = require('./handlers/statistics');
 const npm = require('@5qtrs/npm');
-const { AWSRegistry } = require('@5qtrs/registry');
+const { AwsRegistry } = require('@5qtrs/registry');
+const Constants = require('@5qtrs/constants');
 
 const { StorageActions } = require('@5qtrs/storage');
 const storage = require('./handlers/storage');
@@ -41,7 +42,7 @@ var corsExecutionOptions = {
   credentials: true,
 };
 
-const npmRegistry = AWSRegistry;
+const npmRegistry = AwsRegistry;
 
 const NotImplemented = (_, __, next) => next(create_error(501, 'Not implemented'));
 
@@ -832,6 +833,11 @@ router.put(
   npmRegistry.handler(),
   (req, res, next) => {
     try {
+      if (req.body.scopes.filter((s) => s.indexOf(Constants.REGISTRY_RESERVED_SCOPE_PREFIX) !== -1).length > 0) {
+        return next(
+          create_error(400, `Scopes starting with '${Constants.REGISTRY_RESERVED_SCOPE_PREFIX}' are not allowed`)
+        );
+      }
       req.registry.configPut(req.body).then((c) => {
         res.status(200).end();
       });
