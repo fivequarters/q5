@@ -58,7 +58,7 @@ class KeyStore {
 
   public async createKey(): Promise<IKeyPair> {
     const { publicKey, privateKey } = await createKeyPair();
-    const kid = crypto.randomBytes(4).toString('hex');
+    const kid = crypto.randomBytes(Constants.RUNAS_KID_LEN).toString('hex');
 
     const keyPair = { kid, publicKey, privateKey, ttl: Date.now() + this.maxKeyTtl };
 

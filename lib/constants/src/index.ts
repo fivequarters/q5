@@ -49,6 +49,8 @@ const RUNAS_ISSUER = 'runas-system-issuer';
 
 const JWT_PERMISSION_CLAIM = 'https://fusebit.io/permissions';
 
+const RUNAS_KID_LEN = 8;
+
 function get_log_table_name(deploymentKey: string): string {
   return `${deploymentKey}.log`;
 }
@@ -237,6 +239,7 @@ export {
   REGISTRY_GLOBAL,
   MODULE_PUBLIC_REGISTRY,
   RUNAS_ISSUER,
+  RUNAS_KID_LEN,
   JWT_PERMISSION_CLAIM,
   REGISTRY_RESERVED_SCOPE_PREFIX,
 };
