@@ -2,6 +2,8 @@ import dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 process.env.LOGS_DISABLE = 'true';
 
+import * as Constants from '@5qtrs/constants';
+
 import * as Tags from '@5qtrs/function-tags';
 
 const TC = Tags.Constants;
@@ -22,8 +24,8 @@ const funcSpecs = [
       },
     },
     internal: {
-      dependencies: { ms: '*' },
-      resolved_dependencies: { ms: '2.1.2' },
+      dependencies: { ms: '^0.7.2' },
+      resolved_dependencies: { ms: '0.7.3' },
     },
   },
   {
@@ -42,7 +44,7 @@ const funcSpecs = [
     },
     internal: {
       dependencies: { ms: '*' },
-      resolved_dependencies: { ms: '2.1.3' }, // Bump version number.
+      resolved_dependencies: { ms: '2.1.2' }, // Bump version number.
     },
   },
 ];
@@ -68,6 +70,8 @@ describe('Tags', () => {
       [TC.get_compute_tag_key('timeout')]: funcSpecs[0].compute.timeout,
       [TC.get_compute_tag_key('staticIp')]: funcSpecs[0].compute.staticIp,
       [TC.get_dependency_tag_key('version.ms')]: funcSpecs[0].internal.resolved_dependencies.ms,
+      [TC.get_dependency_tag_key('semver.ms')]: funcSpecs[0].internal.dependencies.ms,
+      [TC.get_dependency_tag_key('registry.ms')]: Constants.MODULE_PUBLIC_REGISTRY,
       [TC.get_metadata_tag_key('master_user')]: funcSpecs[0].metadata.tags.master_user,
       [TC.get_metadata_tag_key('master_owner')]: funcSpecs[0].metadata.tags.master_owner,
       [TC.get_metadata_tag_key('level')]: funcSpecs[0].metadata.tags.level,
