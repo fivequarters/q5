@@ -69,11 +69,14 @@ function TemplateCard({
       <div>
         <div className={classes.cardHeader}>
           {!template.icon && <FusebitMark size={84} margin={0} />}
-          {template.icon && (
-            <Icon fontSize="inherit" color="primary">
-              {template.icon}
-            </Icon>
-          )}
+          {template.icon &&
+            (template.icon.startsWith('http') ? (
+              <img alt="" width={84} height={84} src={template.icon} />
+            ) : (
+              <Icon fontSize="inherit" color="primary">
+                {template.icon}
+              </Icon>
+            ))}
         </div>
         <div className={classes.cardDescription}>
           <Typography variant="h6">{template.name}</Typography>

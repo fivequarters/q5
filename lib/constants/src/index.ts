@@ -32,7 +32,7 @@ const function_spec_key_prefix = 'function-spec';
 // Stores registrations of active cron jobs
 const cron_key_prefix = 'function-cron';
 
-// Stores built NPM modules
+// Stores built npm modules
 const module_key_prefix = 'npm-module';
 
 const REGISTRY_CATEGORY = 'registry-npm-package';
@@ -40,6 +40,8 @@ const REGISTRY_CATEGORY_CONFIG = 'registry-npm-config';
 
 const REGISTRY_DEFAULT = 'default';
 const REGISTRY_GLOBAL = 'registry-global';
+
+const REGISTRY_RESERVED_SCOPE_PREFIX = '@fuse';
 
 const MODULE_PUBLIC_REGISTRY = 'public';
 
@@ -175,6 +177,24 @@ function makeSystemIssuerId(kid: string) {
   return `${kid}.system.fusebit.io`;
 }
 
+async function asyncPool<T>(poolLimit: number, array: T[], iteratorFn: (item: T, array: T[]) => any): Promise<any> {
+  const ret = [];
+  const executing: Promise<any>[] = [];
+  for (const item of array) {
+    const p = Promise.resolve().then(() => iteratorFn(item, array));
+    ret.push(p);
+
+    if (poolLimit <= array.length) {
+      const e: Promise<any> = p.then(() => executing.splice(executing.indexOf(e), 1));
+      executing.push(e);
+      if (executing.length >= poolLimit) {
+        await Promise.race(executing);
+      }
+    }
+  }
+  return Promise.all(ret);
+}
+
 export {
   get_log_table_name,
   get_key_value_table_name,
@@ -210,6 +230,7 @@ export {
   isSpecialized,
   isSystemIssuer,
   makeSystemIssuerId,
+  asyncPool,
   REGISTRY_CATEGORY,
   REGISTRY_CATEGORY_CONFIG,
   REGISTRY_DEFAULT,
@@ -217,4 +238,5 @@ export {
   MODULE_PUBLIC_REGISTRY,
   RUNAS_ISSUER,
   JWT_PERMISSION_CLAIM,
+  REGISTRY_RESERVED_SCOPE_PREFIX,
 };

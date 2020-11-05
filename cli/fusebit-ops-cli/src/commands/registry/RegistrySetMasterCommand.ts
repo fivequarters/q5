@@ -7,7 +7,7 @@ import { OpsService } from '../../services/OpsService';
 
 import * as Constants from '@5qtrs/constants';
 
-import { AWSRegistry, IRegistryGlobalConfig } from '@5qtrs/registry';
+import { AwsRegistry, IRegistryGlobalConfig } from '@5qtrs/registry';
 
 // ------------------
 // Internal Constants
@@ -109,16 +109,16 @@ export class RegistrySetMasterCommand extends Command {
     const global: IRegistryGlobalConfig = { params: { accountId, registryId: Constants.REGISTRY_DEFAULT }, scopes };
 
     // Set the global entry to the new value
-    await new AWSRegistry(Constants.REGISTRY_GLOBAL, s3Opts, dynamoOpts).globalConfigPut(global);
+    await new AwsRegistry(Constants.REGISTRY_GLOBAL, s3Opts, dynamoOpts).globalConfigPut(global);
 
     // Update all of the current accounts to have the new value
     await Promise.all(
       accounts.map((account) =>
-        (AWSRegistry.create(
+        (AwsRegistry.create(
           { accountId: account.id, registryId: Constants.REGISTRY_DEFAULT },
           s3Opts,
           dynamoOpts
-        ) as AWSRegistry).globalConfigUpdate(global)
+        ) as AwsRegistry).globalConfigUpdate(global)
       )
     );
 

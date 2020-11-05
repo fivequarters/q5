@@ -24,13 +24,22 @@ async function getRegistry(profile: IFusebitExecutionProfile): Promise<IRegistri
   return { default: response.data as IRegistry };
 }
 
-async function putRegistry(profile: IFusebitExecutionProfile, scopes: string[]): Promise<IRegistries> {
+async function putRegistry(
+  profile: IFusebitExecutionProfile,
+  executeService: ExecuteService,
+  scopes: string[]
+): Promise<IRegistries> {
   const response: any = await request({
     method: 'PUT',
     url: `${profile.baseUrl}/v1/account/${profile.account}/registry/default/`,
     headers: { Authorization: `bearer ${profile.accessToken}` },
     data: { scopes },
   });
+
+  if (response.status !== 200) {
+    await executeService.error(`Error`, response.data.message);
+    return {};
+  }
 
   return getRegistry(profile);
 }

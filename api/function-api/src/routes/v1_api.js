@@ -25,9 +25,13 @@ const agent = require('./handlers/agent');
 const audit = require('./handlers/audit');
 const statistics = require('./handlers/statistics');
 const npm = require('@5qtrs/npm');
-const { AWSRegistry } = require('@5qtrs/registry');
+
+const { AwsRegistry } = require('@5qtrs/registry');
+const Constants = require('@5qtrs/constants');
+
 const { execAs, AwsKeyStore } = require('@5qtrs/runas');
 const { loadSummary } = require('@5qtrs/runas');
+
 const { StorageActions } = require('@5qtrs/storage');
 const storage = require('./handlers/storage');
 
@@ -45,8 +49,7 @@ var corsExecutionOptions = {
   credentials: true,
 };
 
-/* XXX Rename to AwsRegistry */
-const npmRegistry = AWSRegistry;
+const npmRegistry = AwsRegistry;
 
 const keyStore = new AwsKeyStore({});
 keyStore.rekey();
@@ -587,23 +590,6 @@ router.delete(
   (req, res, next) => provider_handlers[req.provider].delete_function(req, res, next),
   analytics.finished
 );
-router.patch(
-  '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId',
-  analytics.enterHandler(analytics.Modes.Administration),
-  cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
-  authorize({ operation: 'function:put' }),
-  express.json({ limit: process.env.FUNCTION_SIZE_LIMIT || '500kb' }),
-  validate_schema({
-    params: require('./schemas/api_params'),
-    body: require('./schemas/function_specification'),
-  }),
-  user_agent(),
-  determine_provider(),
-  npmRegistry.handler(),
-  (req, res, next) => provider_handlers[req.provider].patch_function(req, res, next),
-  analytics.finished
-);
 
 router.options(
   '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/log',
@@ -645,6 +631,28 @@ router.get(
   }),
   determine_provider(),
   (req, res, next) => provider_handlers[req.provider].get_location(req, res, next),
+  analytics.finished
+);
+
+router.options(
+  '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/build',
+  cors(corsManagementOptions)
+);
+router.post(
+  '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/build',
+  analytics.enterHandler(analytics.Modes.Administration),
+  cors(corsManagementOptions),
+  validate_schema({ params: require('./schemas/api_account') }),
+  authorize({ operation: 'function:put' }),
+  express.json({ limit: process.env.FUNCTION_SIZE_LIMIT || '500kb' }),
+  validate_schema({
+    params: require('./schemas/api_params'),
+    body: require('./schemas/function_specification'),
+  }),
+  user_agent(),
+  determine_provider(),
+  npmRegistry.handler(),
+  (req, res, next) => provider_handlers[req.provider].post_function_build(req, res, next),
   analytics.finished
 );
 
@@ -821,6 +829,11 @@ router.put(
   npmRegistry.handler(),
   (req, res, next) => {
     try {
+      if (req.body.scopes.filter((s) => s.indexOf(Constants.REGISTRY_RESERVED_SCOPE_PREFIX) !== -1).length > 0) {
+        return next(
+          create_error(400, `Scopes starting with '${Constants.REGISTRY_RESERVED_SCOPE_PREFIX}' are not allowed`)
+        );
+      }
       req.registry.configPut(req.body).then((c) => {
         res.status(200).end();
       });
@@ -831,7 +844,7 @@ router.put(
   analytics.finished
 );
 
-// NPM Service
+// npm Service
 const registryNpmBase = registryBase + '/npm';
 
 router.options(registryNpmBase + '/-/version', cors(corsManagementOptions));
