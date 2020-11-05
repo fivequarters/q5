@@ -171,12 +171,14 @@ function duplicate(dst: any, src: any) {
   return dst;
 }
 
+const RUNAS_SYSTEM_ISSUER_SUFFIX = 'system.fusebit.io';
+
 function isSystemIssuer(issuerId: string) {
-  return issuerId.match(`system.fusebit.io$`);
+  return issuerId.match(`${RUNAS_SYSTEM_ISSUER_SUFFIX}$`);
 }
 
 function makeSystemIssuerId(kid: string) {
-  return `${kid}.system.fusebit.io`;
+  return `${kid}.${RUNAS_SYSTEM_ISSUER_SUFFIX}`;
 }
 
 async function asyncPool<T>(poolLimit: number, array: T[], iteratorFn: (item: T, array: T[]) => any): Promise<any> {
@@ -242,4 +244,5 @@ export {
   RUNAS_KID_LEN,
   JWT_PERMISSION_CLAIM,
   REGISTRY_RESERVED_SCOPE_PREFIX,
+  RUNAS_SYSTEM_ISSUER_SUFFIX,
 };

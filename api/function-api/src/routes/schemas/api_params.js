@@ -1,9 +1,12 @@
 const Joi = require('joi');
+
+const { RUNAS_SYSTEM_ISSUER_SUFFIX } = require('@5qtrs/constants');
+
 const { statisticsQueries } = require('../handlers/statistics.js');
 
 module.exports = Joi.object().keys({
   accountId: Joi.string().regex(/^acc-[a-g0-9]{16}$/),
-  issuerId: Joi.string(),
+  issuerId: Joi.string().regex(new RegExp(`^((?!${RUNAS_SYSTEM_ISSUER_SUFFIX}$).)*$`)),
   clientId: Joi.string().regex(/^clt-[a-g0-9]{16}$/),
   userId: Joi.string().regex(/^usr-[a-g0-9]{16}$/),
   initId: Joi.string().regex(/^int-[a-g0-9]{16}$/),

@@ -3,6 +3,8 @@ import { IAccount, FakeAccount, resolveAccount, getMalformedAccount, getNonExist
 import { addIssuer, cleanUpIssuers } from './sdk';
 import { extendExpect } from './extendJest';
 
+import { RUNAS_SYSTEM_ISSUER_SUFFIX } from '@5qtrs/constants';
+
 const expectMore = extendExpect(expect);
 
 let account: IAccount = FakeAccount;
@@ -170,6 +172,15 @@ describe('Issuer', () => {
       const publicKeys = [{ publicKey: 'foo', keyId: 'bar' }];
       const issuer = await addIssuer(await getNonExistingAccount(), issuerId, { publicKeys });
       expectMore(issuer).toBeUnauthorizedError();
+    }, 180000);
+
+    test('Adding an issuer with a reserved issuerId is not supported', async () => {
+      const issuerId = `test-${RUNAS_SYSTEM_ISSUER_SUFFIX}`;
+      const issuer = await addIssuer(account, issuerId, { jsonKeysUrl: 'foo' });
+      expectMore(issuer).toBeHttpError(
+        400,
+        '"issuerId" with value "test-system.fusebit.io" fails to match the required pattern: /^((?!system.fusebit.io$).)*$/'
+      );
     }, 180000);
   });
 });
