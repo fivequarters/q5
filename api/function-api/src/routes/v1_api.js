@@ -29,8 +29,7 @@ const npm = require('@5qtrs/npm');
 const { AwsRegistry } = require('@5qtrs/registry');
 const Constants = require('@5qtrs/constants');
 
-const { execAs, AwsKeyStore } = require('@5qtrs/runas');
-const { loadSummary } = require('@5qtrs/runas');
+const { execAs, loadSummary, loadSubscription, AwsKeyStore, SubscriptionCache } = require('@5qtrs/runas');
 
 const { StorageActions } = require('@5qtrs/storage');
 const storage = require('./handlers/storage');
@@ -49,11 +48,18 @@ var corsExecutionOptions = {
   credentials: true,
 };
 
+// Load the global npm registry in AWS
 const npmRegistry = AwsRegistry;
 
+// Create the keystore and guarantee an initial key
 const keyStore = new AwsKeyStore({});
 keyStore.rekey();
 
+// Create and load a cache with the current subscription->account mapping
+const subscriptionCache = new SubscriptionCache({});
+subscriptionCache.refresh();
+
+// Utility functions
 const NotImplemented = (_, __, next) => next(create_error(501, 'Not implemented'));
 
 const debugLogEvent = (req, res, next) => {
@@ -78,7 +84,10 @@ const traceEvent = (key) => {
 
 router.get(
   '/health',
-  health.getHealth(async () => keyStore.healthCheck())
+  health.getHealth(
+    async () => keyStore.healthCheck(),
+    async () => subscriptionCache.healthCheck()
+  )
 );
 
 // Real-time logs from execution
@@ -956,19 +965,13 @@ router.get(
 
 // Not part of public contract
 
-let run_routes = [/^\/run\/([^\/]+)\/([^\/]+)\/([^\/]+).*$/, /^\/exec\/([^\/]+)\/([^\/]+)\/([^\/]+)\/([^\/]+).*$/];
+let run_route = /^\/run\/([^\/]+)\/([^\/]+)\/([^\/]+).*$/;
 
 function promote_to_name_params(req, res, next) {
-  if (req.params[3]) {
-    req.params.accountId = req.params[0];
-    req.params.subscriptionId = req.params[1];
-    req.params.boundaryId = req.params[2];
-    req.params.functionId = req.params[3];
-  } else {
-    req.params.subscriptionId = req.params[0];
-    req.params.boundaryId = req.params[1];
-    req.params.functionId = req.params[2];
-  }
+  req.params.subscriptionId = req.params[0];
+  req.params.boundaryId = req.params[1];
+  req.params.functionId = req.params[2];
+
   // Reverse back the run_route base url component.
   req.params.baseUrl = get_function_location(
     req,
@@ -976,46 +979,47 @@ function promote_to_name_params(req, res, next) {
     req.params.boundaryId,
     req.params.functionId
   );
+
   delete req.params[0];
   delete req.params[1];
   delete req.params[2];
-  delete req.params[3];
+
   return next();
 }
 
-run_routes.forEach((run_route) => {
-  router.options(run_route, cors(corsExecutionOptions));
-  ['post', 'put', 'patch'].forEach((verb) => {
-    router[verb](
-      run_route,
-      analytics.enterHandler(analytics.Modes.Execution),
-      cors(corsExecutionOptions),
-      promote_to_name_params,
-      validate_schema({ params: require('./schemas/api_params') }),
-      determine_provider(),
-      parse_body_conditional({
-        condition: (req) => req.provider === 'lambda',
-      }),
-      loadSummary(),
-      execAs(authorize, keyStore),
-      (req, res, next) => provider_handlers[req.provider].execute_function(req, res, next),
-      analytics.finished
-    );
-  });
+router.options(run_route, cors(corsExecutionOptions));
+['post', 'put', 'patch'].forEach((verb) => {
+  router[verb](
+    run_route,
+    analytics.enterHandler(analytics.Modes.Execution),
+    cors(corsExecutionOptions),
+    promote_to_name_params,
+    validate_schema({ params: require('./schemas/api_params') }),
+    determine_provider(),
+    parse_body_conditional({
+      condition: (req) => req.provider === 'lambda',
+    }),
+    loadSubscription(subscriptionCache),
+    loadSummary(),
+    execAs(authorize, keyStore),
+    (req, res, next) => provider_handlers[req.provider].execute_function(req, res, next),
+    analytics.finished
+  );
+});
 
-  ['delete', 'get', 'head'].forEach((verb) => {
-    router[verb](
-      run_route,
-      analytics.enterHandler(analytics.Modes.Execution),
-      cors(corsExecutionOptions),
-      promote_to_name_params,
-      validate_schema({ params: require('./schemas/api_params') }),
-      determine_provider(),
-      loadSummary(),
-      execAs(authorize, keyStore),
-      (req, res, next) => provider_handlers[req.provider].execute_function(req, res, next),
-      analytics.finished
-    );
-  });
+['delete', 'get', 'head'].forEach((verb) => {
+  router[verb](
+    run_route,
+    analytics.enterHandler(analytics.Modes.Execution),
+    cors(corsExecutionOptions),
+    promote_to_name_params,
+    validate_schema({ params: require('./schemas/api_params') }),
+    determine_provider(),
+    loadSubscription(subscriptionCache),
+    loadSummary(),
+    execAs(authorize, keyStore),
+    (req, res, next) => provider_handlers[req.provider].execute_function(req, res, next),
+    analytics.finished
+  );
 });
 module.exports = router;

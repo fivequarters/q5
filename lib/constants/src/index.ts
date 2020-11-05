@@ -59,6 +59,10 @@ function get_key_value_table_name(deploymentKey: string): string {
   return `${deploymentKey}.key-value`;
 }
 
+function get_subscription_table_name(deploymentKey: string): string {
+  return `${deploymentKey}.subscription`;
+}
+
 function get_deployment_s3_bucket(deployment: any): string {
   return deployment.featureUseDnsS3Bucket
     ? `${deployment.deploymentName}.${deployment.region}.${deployment.domainName}`
@@ -202,6 +206,7 @@ async function asyncPool<T>(poolLimit: number, array: T[], iteratorFn: (item: T,
 export {
   get_log_table_name,
   get_key_value_table_name,
+  get_subscription_table_name,
   valid_boundary_name,
   valid_function_name,
   function_build_status_key_prefix,

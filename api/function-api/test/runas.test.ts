@@ -13,9 +13,6 @@ let account: IAccount = FakeAccount;
 const { getAccount, getBoundary } = setupEnvironment();
 const function1Id = 'test-fun-runas-1';
 
-// Convert '/run' to '/exec/acc-1234'.
-const tweakUrl = (url: string) => url.replace('run', `exec/${account.accountId}`);
-
 const helloWorld = {
   nodejs: {
     files: {
@@ -63,8 +60,6 @@ describe('runas', () => {
     httpExpect(response, { statusCode: 200 });
     expect(response.data.headers.authorization).toBeUndefined();
 
-    // Check the exec variant
-    url = tweakUrl(url);
     response = await request(url);
     httpExpect(response, { statusCode: 200 });
     expect(response.data.headers.authorization).toBeUndefined();
@@ -80,13 +75,7 @@ describe('runas', () => {
 
     url = response.data.location;
 
-    // Check the run variant
-    response = await request(url);
-    httpExpect(response, { statusCode: 200 });
-    expect(response.data.headers.authorization).toBeUndefined();
-
     // Get the token
-    url = tweakUrl(url);
     response = await request(url);
     httpExpect(response, { statusCode: 200 });
     expect(response.data.headers.authorization).not.toBeUndefined();
@@ -145,7 +134,8 @@ describe('runas', () => {
     spec.permissions = permFunctionPutLimited('function:put', account, boundaryId);
     let response = await putFunction(account, boundaryId, function1Id, spec);
     httpExpect(response, { statusCode: 200 });
-    const url = tweakUrl(response.data.location);
+
+    const url = response.data.location;
     response = await request(url);
     httpExpect(response, { statusCode: 200 });
     expect(response.data.headers.authorization).not.toBeUndefined();
@@ -189,8 +179,8 @@ describe('runas', () => {
     spec.permissions = permFunctionPutLimited('function:*', account, boundaryId);
     let response = await putFunction(account, boundaryId, function1Id, spec);
     httpExpect(response, { statusCode: 200 });
-    const url = tweakUrl(response.data.location);
-    console.log(url);
+
+    const url = response.data.location;
     response = await request(url);
     httpExpect(response, { statusCode: 200 });
     expect(response.data.headers.authorization).not.toBeUndefined();
