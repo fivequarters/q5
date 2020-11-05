@@ -17,6 +17,13 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.8.8
+
+_Released 11/05/20_
+
+- **Enhancement.** Support private npm registries through `fuse npm`, including `fuse npm login` to use normal `npm` commands.
+- **Enhancement.** Re-evaluate, and possibly rebuild, a function's calculated dependencies through `fuse function rebuild`.
+
 ## Version 1.8.7
 
 _Released 10/22/20_

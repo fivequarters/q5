@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.24.9
+
+_Released 11/05/20_
+
+- **Enhancement.** Support a private global npm registry against a specific account for hosting deployment-wide packages within specific scopes.
+
 ## Version 1.24.8
 
 _Released 9/23/20_

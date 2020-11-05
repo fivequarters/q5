@@ -17,6 +17,13 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.17.11
+
+_Released 11/05/20_
+
+- **Enhancement.** Registry: Support a private internal npm registry for hosting packages within configured scopes.
+- **Enhancement.** Tags: Add version information about directly dependent packages to each function specification.
+
 ## Version 1.17.10
 
 _Released 10/09/20_
