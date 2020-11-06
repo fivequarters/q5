@@ -40,7 +40,7 @@ export class DomainService {
 
     if (exists) {
       this.executeService.warning('Domain Exists', `There is already a '${Text.bold(domain.domainName)}' domain`);
-      throw Error('Domain already Exists');
+      throw new Error('Domain already Exists');
     }
   }
 

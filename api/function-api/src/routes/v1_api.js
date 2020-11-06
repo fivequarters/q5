@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-//require('aws-sdk').config.logger = console;
+// require('aws-sdk').config.logger = console;
 
 const analytics = require('./middleware/analytics');
 const determine_provider = require('./middleware/determine_provider');

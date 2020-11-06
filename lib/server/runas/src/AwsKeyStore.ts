@@ -34,7 +34,7 @@ class AwsKeyStore extends KeyStore {
           issuer: { S: Constants.makeSystemIssuerId(kid) },
           kid: { S: kid },
           publicKey: { S: publicKey },
-          ttl: { N: `${ttl / 1000}` },
+          ttl: { N: `${Math.floor(ttl / 1000)}` },
         },
       })
       .promise();

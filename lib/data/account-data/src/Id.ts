@@ -6,7 +6,7 @@ const accountPrefix = 'acc';
 const subscriptionPrefix = 'sub';
 const userPrefix = 'usr';
 const clientPrefix = 'clt';
-const systemPrefix = 'system';
+const systemPrefix = 'sys';
 
 const idPrefixes: { [index: string]: string } = {
   account: accountPrefix,

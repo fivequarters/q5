@@ -42,7 +42,7 @@ class KeyStore {
     const key = this.keyPair;
 
     if (!key || key.ttl < Date.now()) {
-      throw Error('unable to create jwt');
+      throw new Error('unable to create jwt');
     }
 
     const header = { kid: key.kid };
@@ -87,7 +87,7 @@ class KeyStore {
     const key = this.keyPair;
 
     if (!key || key.ttl < Date.now()) {
-      throw Error('invalid keypair');
+      throw new Error('invalid keypair');
     }
 
     // Trigger a rekey well in advance of the validity window.

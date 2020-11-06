@@ -4,15 +4,19 @@ import { IIssuer } from '@5qtrs/account-data';
 
 import * as Constants from '@5qtrs/constants';
 
+const MIN_REFRESH_INTERVAL = 10 * 1000;
+
 interface IIssuerCache {
   [kid: string]: { publicKey: string; ttl: number };
 }
 
 class InternalIssuerCache {
   protected cache: IIssuerCache = {};
+  protected lastCacheRefresh: number;
   protected dynamo: DynamoDB;
 
   constructor(options: any) {
+    this.lastCacheRefresh = 0;
     this.dynamo =
       options.dynamo ||
       new DynamoDB({
@@ -58,10 +62,18 @@ class InternalIssuerCache {
   }
 
   protected async refreshCache() {
+    if (this.lastCacheRefresh + MIN_REFRESH_INTERVAL > Date.now()) {
+      return;
+    }
+
     const params = {
       TableName: Constants.get_key_value_table_name(process.env.DEPLOYMENT_KEY as string),
-      ExpressionAttributeValues: { ':cat': { S: Constants.RUNAS_ISSUER } },
-      FilterExpression: `category = :cat`,
+      ExpressionAttributeNames: { '#ttl': 'ttl' },
+      ExpressionAttributeValues: {
+        ':cat': { S: Constants.RUNAS_ISSUER },
+        ':now': { N: `${Math.floor(Date.now() / 1000)}` },
+      },
+      FilterExpression: `category = :cat AND #ttl > :now`,
     };
 
     const results = await Constants.dynamoScanTable(this.dynamo, params);

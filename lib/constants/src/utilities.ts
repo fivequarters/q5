@@ -11,7 +11,9 @@ async function dynamoScanTable(dynamo: any, params: any, map: any = (e: any) => 
   let next;
   let backoff = 0;
 
+  console.log(`dynamoScanTable enter`);
   do {
+    console.log(`dynamoScanTable loop`);
     try {
       // Wait some time, if a backoff is necessary
       await expBackoff(backoff);
@@ -36,6 +38,8 @@ async function dynamoScanTable(dynamo: any, params: any, map: any = (e: any) => 
 
         continue;
       }
+      console.log(`dynamoScanTable error: ${e}`);
+      throw e;
     }
   } while (true);
 
