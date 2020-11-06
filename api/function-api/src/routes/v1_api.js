@@ -31,6 +31,8 @@ const Constants = require('@5qtrs/constants');
 
 const { execAs, loadSummary, loadSubscription, AwsKeyStore, SubscriptionCache } = require('@5qtrs/runas');
 
+const { loadLogging, addLogging } = require('@5qtrs/runtime-common');
+
 const { StorageActions } = require('@5qtrs/storage');
 const storage = require('./handlers/storage');
 
@@ -88,18 +90,6 @@ router.get(
     async () => keyStore.healthCheck(),
     async () => subscriptionCache.healthCheck()
   )
-);
-
-// Real-time logs from execution
-
-router.post(
-  '/internal/logs',
-  analytics.enterHandler(analytics.Modes.Operations),
-  authorize({ logs: true }),
-  express.json(),
-  determine_provider(),
-  (req, res, next) => provider_handlers[req.provider].post_logs(req, res, next),
-  analytics.finished
 );
 
 // Accounts
@@ -517,6 +507,16 @@ router.get(
   user_agent(),
   determine_provider(),
   (req, res, next) => provider_handlers[req.provider].get_logs(req, res, next),
+  analytics.finished
+);
+router.post(
+  '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/log',
+  analytics.enterHandler(analytics.Modes.Operations),
+  cors(corsManagementOptions),
+  authorize({ operation: Constants.Permissions.logFunction }),
+  express.json(),
+  determine_provider(),
+  (req, res, next) => provider_handlers[req.provider].post_logs(req, res, next),
   analytics.finished
 );
 
@@ -1001,7 +1001,9 @@ router.options(run_route, cors(corsExecutionOptions));
     }),
     loadSubscription(subscriptionCache),
     loadSummary(),
+    loadLogging(),
     execAs(authorize, keyStore),
+    addLogging(keyStore),
     (req, res, next) => provider_handlers[req.provider].execute_function(req, res, next),
     analytics.finished
   );
@@ -1017,7 +1019,9 @@ router.options(run_route, cors(corsExecutionOptions));
     determine_provider(),
     loadSubscription(subscriptionCache),
     loadSummary(),
+    loadLogging(),
     execAs(authorize, keyStore),
+    addLogging(keyStore),
     (req, res, next) => provider_handlers[req.provider].execute_function(req, res, next),
     analytics.finished
   );

@@ -39,6 +39,7 @@ export enum Permissions {
   allFunction = 'function:*',
   putFunction = 'function:put',
   getFunction = 'function:get',
+  logFunction = 'function:post-logs',
 
   allRegistry = 'registry:*',
   configRegistry = 'registry-config:put',

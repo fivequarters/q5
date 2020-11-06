@@ -1,8 +1,9 @@
 import * as crypto from 'crypto';
 
+import * as Constants from '@5qtrs/constants';
+
 import { signJwt } from '@5qtrs/jwt';
 import { createKeyPair } from '@5qtrs/key-pair';
-import * as Constants from '@5qtrs/constants';
 
 import { IFunctionParams, IFunctionPermission } from './Request';
 

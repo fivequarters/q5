@@ -19,7 +19,7 @@ const execAs = (authorize: AuthorizationFactory, keyStore: KeyStore) => {
     }
 
     const payload: { [key: string]: any } = {
-      sub: `uri:function:${req.params.accountId}:${req.params.subscriptionId}:${req.params.boundaryId}:${req.params.functionId}`,
+      sub: Constants.makeFunctionSub(req.params, 'exec'),
     };
 
     if (req.headers.authorization) {

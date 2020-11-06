@@ -185,6 +185,12 @@ function makeSystemIssuerId(kid: string) {
   return `${kid}.${RUNAS_SYSTEM_ISSUER_SUFFIX}`;
 }
 
+function makeFunctionSub(params: any, mode: string) {
+  return ['uri', 'function', params.accountId, params.subscriptionId, params.boundaryId, params.functionId, mode].join(
+    ':'
+  );
+}
+
 async function asyncPool<T>(poolLimit: number, array: T[], iteratorFn: (item: T, array: T[]) => any): Promise<any> {
   const ret = [];
   const executing: Promise<any>[] = [];
@@ -239,6 +245,7 @@ export {
   isSpecialized,
   isSystemIssuer,
   makeSystemIssuerId,
+  makeFunctionSub,
   asyncPool,
   REGISTRY_CATEGORY,
   REGISTRY_CATEGORY_CONFIG,
