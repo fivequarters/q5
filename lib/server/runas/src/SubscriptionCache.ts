@@ -66,18 +66,7 @@ class SubscriptionCache {
       TableName: Constants.get_subscription_table_name(process.env.DEPLOYMENT_KEY as string),
     };
 
-    const results = await this.dynamo.scan(params).promise();
-
-    // Don't throw away the cache if the dynamo lookup returned no items.
-    if (!results.Items) {
-      return;
-    }
-
-    // Clear the cache
-    this.cache = {};
-
-    // Populate it with the new items found
-    results.Items.forEach((entry) => {
+    const results = await Constants.dynamoScanTable(this.dynamo, params, (entry: any) => {
       // Valid DynamoDB record according to typescript?
       if (
         !entry.accountId ||
@@ -90,10 +79,23 @@ class SubscriptionCache {
         return;
       }
 
-      this.cache[entry.subscriptionId.S] = { accountId: entry.accountId.S, displayName: entry.displayName.S };
+      return { subscriptionId: entry.subscriptionId.S, accountId: entry.accountId.S, displayName: entry.displayName.S };
     });
 
-    console.log(`CACHE: Subscription cache refreshed: ${results.Items.length} subscriptions loaded`);
+    // Don't throw away the cache if the dynamo lookup returned no items.
+    if (!results.length) {
+      return;
+    }
+
+    // Clear the cache
+    this.cache = {};
+
+    // Populate it with the new items found
+    results.forEach((entry: any) => {
+      this.cache[entry.subscriptionId] = { accountId: entry.accountId, displayName: entry.displayName };
+    });
+
+    console.log(`CACHE: Subscription cache refreshed: ${results.length} subscriptions loaded`);
   }
 
   public healthCheck() {

@@ -1,6 +1,8 @@
 import Crypto from 'crypto';
 import Path from 'path';
 
+import { dynamoScanTable, expBackoff, asyncPool, duplicate } from './utilities';
+
 interface IModuleSpec {
   registry: string;
   version: string;
@@ -46,6 +48,7 @@ const REGISTRY_RESERVED_SCOPE_PREFIX = '@fuse';
 const MODULE_PUBLIC_REGISTRY = 'public';
 
 const RUNAS_ISSUER = 'runas-system-issuer';
+const RUNAS_SYSTEM_ISSUER_SUFFIX = 'system.fusebit.io';
 
 const JWT_PERMISSION_CLAIM = 'https://fusebit.io/permissions';
 
@@ -167,16 +170,6 @@ function get_function_location(req: any, subscriptionId: string, boundaryId: str
   return `${baseUrl}/v1/run/${subscriptionId}/${boundaryId}/${functionId}`;
 }
 
-function duplicate(dst: any, src: any) {
-  Object.keys(src).forEach((k) => {
-    dst[k] = typeof src[k] === 'object' ? duplicate({}, src[k]) : (dst[k] = src[k]);
-  });
-
-  return dst;
-}
-
-const RUNAS_SYSTEM_ISSUER_SUFFIX = 'system.fusebit.io';
-
 function isSystemIssuer(issuerId: string) {
   return issuerId.match(`${RUNAS_SYSTEM_ISSUER_SUFFIX}$`);
 }
@@ -189,24 +182,6 @@ function makeFunctionSub(params: any, mode: string) {
   return ['uri', 'function', params.accountId, params.subscriptionId, params.boundaryId, params.functionId, mode].join(
     ':'
   );
-}
-
-async function asyncPool<T>(poolLimit: number, array: T[], iteratorFn: (item: T, array: T[]) => any): Promise<any> {
-  const ret = [];
-  const executing: Promise<any>[] = [];
-  for (const item of array) {
-    const p = Promise.resolve().then(() => iteratorFn(item, array));
-    ret.push(p);
-
-    if (poolLimit <= array.length) {
-      const e: Promise<any> = p.then(() => executing.splice(executing.indexOf(e), 1));
-      executing.push(e);
-      if (executing.length >= poolLimit) {
-        await Promise.race(executing);
-      }
-    }
-  }
-  return Promise.all(ret);
 }
 
 export {
@@ -238,7 +213,6 @@ export {
   get_cron_key,
   get_function_location,
   get_deployment_s3_bucket,
-  duplicate,
   Permissions,
   RestrictedPermissions,
   UserPermissions,
@@ -246,7 +220,6 @@ export {
   isSystemIssuer,
   makeSystemIssuerId,
   makeFunctionSub,
-  asyncPool,
   REGISTRY_CATEGORY,
   REGISTRY_CATEGORY_CONFIG,
   REGISTRY_DEFAULT,
@@ -257,4 +230,8 @@ export {
   JWT_PERMISSION_CLAIM,
   REGISTRY_RESERVED_SCOPE_PREFIX,
   RUNAS_SYSTEM_ISSUER_SUFFIX,
+  dynamoScanTable,
+  expBackoff,
+  asyncPool,
+  duplicate,
 };

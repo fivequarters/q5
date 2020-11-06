@@ -64,16 +64,16 @@ class InternalIssuerCache {
       FilterExpression: `category = :cat`,
     };
 
-    const results = await this.dynamo.scan(params).promise();
+    const results = await Constants.dynamoScanTable(this.dynamo, params);
 
     // Clear the cache
     this.cache = {};
-    if (!results.Items) {
+    if (!results.length) {
       return;
     }
 
     // Populate it with the new items found
-    results.Items.forEach((entry) => {
+    results.forEach((entry) => {
       // Valid DynamoDB record according to typescript?
       if (
         !entry.issuer ||
@@ -88,10 +88,6 @@ class InternalIssuerCache {
         return;
       }
 
-      console.log(
-        `IssuerCache: ${entry.issuer.S}:${entry.kid.S} for ${Number(entry.ttl.N) * 1000 - Date.now()} time remaining`
-      );
-      // XXX need additional entropy off of the kid?  Issuer as guid worthwhile?
       this.cache[entry.kid.S] = { publicKey: entry.publicKey.S, ttl: Number(entry.ttl.N) * 1000 };
     });
   }
