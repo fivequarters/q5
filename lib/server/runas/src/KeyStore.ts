@@ -48,7 +48,7 @@ class KeyStore {
     const header = { kid: key.kid };
     payload.aud = `${process.env.API_SERVER}`;
     payload.iss = Constants.makeSystemIssuerId(key.kid);
-    payload.iat = Date.now();
+    payload.iat = Date.now() / 1000;
 
     return signJwt(payload, key.privateKey as string, {
       algorithm: this.jwtAlgorithm,
