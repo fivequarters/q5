@@ -311,7 +311,6 @@ LAMBDA_USER_FUNCTION_ROLE=${this.config.arnPrefix}:iam::${account}:role/${this.c
 LAMBDA_VPC_SUBNETS=${subnetIds.join(',')}
 LAMBDA_VPC_SECURITY_GROUPS=${securityGroupIds.join(',')}
 CRON_QUEUE_URL=https://sqs.${region}.amazonaws.com/${account}/${deploymentName}-cron
-LOGS_TOKEN_SIGNATURE_KEY=${random({ lengthInBytes: 32 })}
 API_STACK_VERSION=${tag}
 API_STACK_ID=${id}
 API_STACK_AMI=${amiId}
