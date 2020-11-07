@@ -14,12 +14,14 @@ export interface IIdentity {
   subject: string;
 }
 
+export interface IPermissions {
+  allow?: IAccessEntry[];
+}
+
 export interface IAgent {
   id?: string;
   identities?: IIdentity[];
-  access?: {
-    allow?: IAccessEntry[];
-  };
+  access?: IPermissions;
 }
 
 // -------------------

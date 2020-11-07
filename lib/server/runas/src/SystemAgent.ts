@@ -12,7 +12,6 @@ class SystemAgent implements IAgent {
     this.id = 'system';
     this.identities = [];
     this.access = jwtPayload[Constants.JWT_PERMISSION_CLAIM];
-    console.log(`SystemAgent ${JSON.stringify(this.access)}`);
   }
 }
 

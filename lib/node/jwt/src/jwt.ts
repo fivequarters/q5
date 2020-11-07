@@ -172,6 +172,7 @@ export async function verifyJwt(token: string, secretOrUrl: string, options?: an
 }
 
 export async function signJwt(payload: any, secret: string, options?: any): Promise<string> {
+  console.log(`signJwt ${JSON.stringify(payload)}`);
   return new Promise((resolve, reject) => {
     jwt.sign(payload, secret, options || {}, (error, token) => {
       if (error) {

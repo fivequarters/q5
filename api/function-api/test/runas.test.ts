@@ -5,6 +5,8 @@ import { decodeJwt } from '@5qtrs/jwt';
 
 import * as Constants from '@5qtrs/constants';
 
+import { FusebitProfile } from '@5qtrs/fusebit-profile-sdk';
+
 import { FakeAccount, IAccount, resolveAccount } from './accountResolver';
 import { httpExpect, setupEnvironment } from './common';
 import { deleteAllFunctions, deleteFunction, getFunction, getFunctionLocation, getMe, putFunction } from './sdk';
@@ -193,6 +195,39 @@ describe('runas', () => {
     spec.permissions = permFunctionPutLimited('function:get', account, boundaryId);
     response = await putFunction(account, boundaryId, function1Id + '2', spec);
     httpExpect(response, { statusCode: 200 });
+    account.accessToken = oldToken;
+  }, 180000);
+
+  test.only('self-minted jwt with lower permissions', async () => {
+    const profile = await FusebitProfile.create();
+    let executionProfile = await profile.getPKIExecutionProfile(process.env.FUSE_PROFILE, true, permFunctionPut);
+    console.log(`JWT: ${JSON.stringify(decodeJwt(executionProfile.accessToken), null, 2)}`);
+
+    // Put a function that has a broad set of permissions
+    account = getAccount();
+    const boundaryId = getBoundary();
+    const oldToken = account.accessToken;
+
+    // Use the downgraded token
+    account.accessToken = executionProfile.accessToken;
+
+    const spec = Constants.duplicate({}, specFuncReturnCtx);
+    spec.permissions = permFunctionPutLimited('function:*', account, boundaryId);
+    let response = await putFunction(account, boundaryId, function1Id, spec);
+    httpExpect(response, { statusCode: 200 });
+
+    // Validate that it doesn't have permission to get the function.
+    response = await getFunction(account, boundaryId, function1Id);
+    httpExpect(response, { statusCode: 403 });
+
+    // Mint a new token with GET and validate
+    executionProfile = await profile.getPKIExecutionProfile(process.env.FUSE_PROFILE, true, permFunctionGet);
+    console.log(`JWT: ${JSON.stringify(decodeJwt(executionProfile.accessToken), null, 2)}`);
+    account.accessToken = executionProfile.accessToken;
+    response = await getFunction(account, boundaryId, function1Id);
+    httpExpect(response, { statusCode: 200 });
+
+    // Restore the old token.
     account.accessToken = oldToken;
   }, 180000);
 });

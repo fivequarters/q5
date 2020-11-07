@@ -13,7 +13,7 @@ import { cancelOnError } from '@5qtrs/promise';
 
 import { InternalIssuerCache, SystemAgent } from '@5qtrs/runas';
 
-import { isSystemIssuer } from '@5qtrs/constants';
+import { JWT_PERMISSION_CLAIM, isSystemIssuer } from '@5qtrs/constants';
 
 // ------------------
 // Internal Constants
@@ -142,16 +142,21 @@ export class ResolvedAgent implements IAgent {
     const agentPromise = isSystemIssuer(issuerId)
       ? Promise.resolve(new SystemAgent(decodedJwtPayload))
       : dataContext.agentData.get(accountId, identity);
-    /*
-     * FUTURE: Interesect permissions encoded in the JWT with permisisons available to the client natively
-     * to support limited-permissions minted by other issuers.
-     */
 
     const validatePromise = validateJwt(dataContext, accountId, audience, jwt, issuerId);
 
     try {
       const agent = await cancelOnError(validatePromise, agentPromise);
-      return new ResolvedAgent(dataContext, accountId, agent, identity);
+      const resolvedAgent = new ResolvedAgent(dataContext, accountId, agent, identity);
+
+      console.log(`${!isSystemIssuer(issuerId)} && ${JSON.stringify(decodedJwtPayload[JWT_PERMISSION_CLAIM])}`);
+      // Downgrade non-system issuers with claims if they are a subset of agent's permissions.
+      if (!isSystemIssuer(issuerId) && decodedJwtPayload[JWT_PERMISSION_CLAIM]) {
+        await resolvedAgent.checkPermissionSubset(decodedJwtPayload[JWT_PERMISSION_CLAIM]);
+        resolvedAgent.agent.access = decodedJwtPayload[JWT_PERMISSION_CLAIM];
+      }
+
+      return resolvedAgent;
     } catch (error) {
       if (error.code === AccountDataExceptionCode.noIssuer || error.code === AccountDataExceptionCode.noIdentity) {
         throw AccountDataException.unresolvedAgent(error);
@@ -220,6 +225,10 @@ export class ResolvedAgent implements IAgent {
     if (!authorized) {
       throw AccountDataException.unauthorized(this.id as string, action, resource);
     }
+  }
+
+  public async checkPermissionSubset(permissions: any) {
+    Promise.all(permissions.allow.map((entry: any) => this.ensureAuthorized(entry.action, entry.resource)));
   }
 
   public get id() {
