@@ -358,7 +358,6 @@ export class FusebitProfile {
     ignoreCache: boolean = false,
     permissions?: IPermissions
   ): Promise<string> {
-    console.log(`getPKIAccessToken ${JSON.stringify(permissions)}`);
     const profile = await this.getProfileOrDefaultOrThrow(name);
     if (!profile.kid || !profile.keyPair) {
       throw FusebitProfileException.notPKIProfile(name || '<default>');
@@ -422,7 +421,6 @@ export class FusebitProfile {
   }
 
   private async generateAccessToken(profile: IPKIFusebitProfile, permissions?: IPermissions): Promise<string> {
-    console.log(`generateAccessToken${JSON.stringify(permissions)}`);
     const privateKey = await this.dotConfig.getPrivateKey(profile.keyPair, profile.kid);
 
     const expires = new Date(Date.now() + 1000 * expireInSeconds);

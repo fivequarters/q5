@@ -149,7 +149,6 @@ export class ResolvedAgent implements IAgent {
       const agent = await cancelOnError(validatePromise, agentPromise);
       const resolvedAgent = new ResolvedAgent(dataContext, accountId, agent, identity);
 
-      console.log(`${!isSystemIssuer(issuerId)} && ${JSON.stringify(decodedJwtPayload[JWT_PERMISSION_CLAIM])}`);
       // Downgrade non-system issuers with claims if they are a subset of agent's permissions.
       if (!isSystemIssuer(issuerId) && decodedJwtPayload[JWT_PERMISSION_CLAIM]) {
         await resolvedAgent.checkPermissionSubset(decodedJwtPayload[JWT_PERMISSION_CLAIM]);
@@ -228,7 +227,7 @@ export class ResolvedAgent implements IAgent {
   }
 
   public async checkPermissionSubset(permissions: any) {
-    Promise.all(permissions.allow.map((entry: any) => this.ensureAuthorized(entry.action, entry.resource)));
+    return Promise.all(permissions.allow.map((entry: any) => this.ensureAuthorized(entry.action, entry.resource)));
   }
 
   public get id() {

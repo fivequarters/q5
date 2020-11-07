@@ -198,12 +198,11 @@ describe('runas', () => {
     account.accessToken = oldToken;
   }, 180000);
 
-  test.only('self-minted jwt with lower permissions', async () => {
+  test('self-minted jwt with lower permissions', async () => {
     const profile = await FusebitProfile.create();
     let executionProfile = await profile.getPKIExecutionProfile(process.env.FUSE_PROFILE, true, permFunctionPut);
-    console.log(`JWT: ${JSON.stringify(decodeJwt(executionProfile.accessToken), null, 2)}`);
 
-    // Put a function that has a broad set of permissions
+    // Put a function using the put-only token
     account = getAccount();
     const boundaryId = getBoundary();
     const oldToken = account.accessToken;
@@ -211,21 +210,30 @@ describe('runas', () => {
     // Use the downgraded token
     account.accessToken = executionProfile.accessToken;
 
+    // Try to create a function with a superset of permissions
     const spec = Constants.duplicate({}, specFuncReturnCtx);
-    spec.permissions = permFunctionPutLimited('function:*', account, boundaryId);
+    spec.permissions = permFunctionWildcard;
     let response = await putFunction(account, boundaryId, function1Id, spec);
+    httpExpect(response, { statusCode: 403 });
+
+    // Try to create a function with no permissions
+    spec.permissions = undefined;
+    response = await putFunction(account, boundaryId, function1Id, spec);
     httpExpect(response, { statusCode: 200 });
 
-    // Validate that it doesn't have permission to get the function.
+    // Validate that the token doesn't have permission to get the created function.
     response = await getFunction(account, boundaryId, function1Id);
     httpExpect(response, { statusCode: 403 });
 
-    // Mint a new token with GET and validate
+    // Mint a new token with GET and validate it can retrieve the function
     executionProfile = await profile.getPKIExecutionProfile(process.env.FUSE_PROFILE, true, permFunctionGet);
-    console.log(`JWT: ${JSON.stringify(decodeJwt(executionProfile.accessToken), null, 2)}`);
     account.accessToken = executionProfile.accessToken;
     response = await getFunction(account, boundaryId, function1Id);
     httpExpect(response, { statusCode: 200 });
+
+    // And denied to function:put
+    response = await putFunction(account, boundaryId, function1Id, spec);
+    httpExpect(response, { statusCode: 403 });
 
     // Restore the old token.
     account.accessToken = oldToken;
