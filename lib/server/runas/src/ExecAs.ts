@@ -15,9 +15,7 @@ const execAs = (keyStore: KeyStore) => {
       sub: Constants.makeFunctionSub(req.params, 'exec'),
     };
 
-    payload[Constants.JWT_PERMISSION_CLAIM] = JSON.parse(
-      req.functionSummary[Tags.get_compute_tag_key('permissions')] as string
-    );
+    payload[Constants.JWT_PERMISSION_CLAIM] = req.functionSummary[Tags.get_compute_tag_key('permissions')];
 
     // Create a JWT
     const jwt = await keyStore.signJwt(payload);

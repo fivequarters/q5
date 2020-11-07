@@ -1,4 +1,5 @@
-import { verifyJwt } from '@5qtrs/jwt';
+import { verifyJwt, decodeJwt } from '@5qtrs/jwt';
+import * as Constants from '@5qtrs/constants';
 
 import { KeyStore, KEYSTORE_DEFAULT_ALG } from '../src/KeyStore';
 
@@ -19,19 +20,16 @@ const globalParams = {
 
 let functionSummary = {};
 
+const setFunctionSummary = (req: any, res: any, next: any) => {
+  req.functionSummary = functionSummary;
+  return next();
+};
+
 beforeEach(async () => {
   const ks = new KeyStore();
   const keyPair = await ks.rekey();
   ks.setKeyPair(keyPair);
-  const authorize = (options: any) => (req: any, res: any) => ({});
-  globalServer = await startExpress((app: any): void => {
-    app.get('/exec/:accountId/:subscriptionId/:boundaryId/:functionId', (req: any, res: any, next: any) => {
-      req.functionSummary = functionSummary;
-      console.log(`metadata ${req.url} ${JSON.stringify(req.params)} ${JSON.stringify(req.functionSummary)}`);
-      return next();
-    });
-    app.get('/exec/:accountId/:subscriptionId/:boundaryId/:functionId', execAs(authorize, ks));
-  });
+  globalServer = await startExpress();
   globalServer.ks = ks;
 });
 
@@ -43,31 +41,37 @@ afterEach(async () => {
 describe('keystore', () => {
   it('execAs', async () => {
     const { app, ks, server, forceClose, port, url } = globalServer;
-    const perm = ['function:*::/'];
+    const perm = { allow: [{ action: 'function:*', resource: '/' }] };
     process.env.API_SERVER = url;
     functionSummary = { 'compute.permissions': perm };
 
     app.get('/', (req: any, res: any) => {
-      expect(req.headers.authorization).toBeUndefined();
+      expect(req.params.functionAccessToken).toBeUndefined();
       res.status(200).json({});
     });
 
-    app.get('/exec/:accountId/:subscriptionId/:boundaryId/:functionId', async (req: any, res: any) => {
-      const jwt = req.headers.authorization;
-      expect(jwt).not.toBeUndefined();
-      const result = await verifyJwt(jwt, ks.getPublicKey().publicKey);
-      expect(result.sub).toBeDefined();
-      expect(result.kid).toBeDefined();
-      expect(result.perm).toEqual(perm);
-      expect(result.aud).toBe(url);
-      expect(result.iss).toBe(url + '/issuer');
-      expect(result.iat).toBeGreaterThan(Date.now() - 1000);
-      expect(result.iat).toBeLessThan(Date.now() + 1000);
-      expect(result.exp).toBeGreaterThan(Date.now());
-      res.status(200).json({});
-    });
+    app.get(
+      '/exec/:accountId/:subscriptionId/:boundaryId/:functionId',
+      setFunctionSummary,
+      execAs(ks),
+      async (req: any, res: any) => {
+        const jwt = req.params.functionAccessToken;
+        expect(jwt).not.toBeUndefined();
+        const valid = await verifyJwt(jwt, ks.getPublicKey().publicKey);
+        const result = await decodeJwt(jwt, false, true);
+        expect(result.payload.sub).toBeDefined();
+        expect(result.header.kid).toBeDefined();
+        expect(result.payload[Constants.JWT_PERMISSION_CLAIM]).toEqual(perm);
+        expect(result.payload.aud).toBe(url);
+        expect(Constants.isSystemIssuer(result.payload.iss)).toBeTruthy();
+        expect(result.payload.iat).toBeGreaterThan((Date.now() - 1000) / 1000);
+        expect(result.payload.iat).toBeLessThan((Date.now() + 1000) / 1000);
+        expect(result.payload.exp).toBeGreaterThan(Date.now() / 1000);
+        res.status(200).json({});
+      }
+    );
 
-    await superagent.get(
+    const response = await superagent.get(
       [
         url,
         'exec',
@@ -77,5 +81,6 @@ describe('keystore', () => {
         globalParams.functionId,
       ].join('/')
     );
+    expect(response.status).toBe(200);
   });
 });

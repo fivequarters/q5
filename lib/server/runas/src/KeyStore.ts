@@ -48,11 +48,11 @@ class KeyStore {
     const header = { kid: key.kid };
     payload.aud = `${process.env.API_SERVER}`;
     payload.iss = Constants.makeSystemIssuerId(key.kid);
-    payload.iat = Date.now() / 1000;
+    payload.iat = Math.floor(Date.now() / 1000);
 
     return signJwt(payload, key.privateKey as string, {
       algorithm: this.jwtAlgorithm,
-      expiresIn: this.minValidWindow,
+      expiresIn: Math.floor(this.minValidWindow / 1000),
       header,
     });
   }
@@ -91,7 +91,7 @@ class KeyStore {
     }
 
     // Trigger a rekey well in advance of the validity window.
-    if (key.ttl < Date.now() + 10 * KEYSTORE_MIN_WINDOW) {
+    if (key.ttl < Date.now() + 10 * this.minValidWindow) {
       this.rekey();
     }
   }

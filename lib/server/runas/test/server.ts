@@ -35,16 +35,11 @@ const startServer = async (app: Application) => {
 };
 
 type IAddHandler = (app: Application) => void;
-const startExpress = async (addHandlers: IAddHandler): Promise<any> => {
+const startExpress = async (addHandlers?: IAddHandler): Promise<any> => {
   const app = express();
   const { server, forceClose, port } = await startServer(app);
 
   const url = `http://localhost:${port}`;
-
-  app.use((req: Request, res: Response, next: NextFunction) => {
-    (req as any).tarballRootUrl = url;
-    return next();
-  });
 
   app.use(bodyParser.json());
 

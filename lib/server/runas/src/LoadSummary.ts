@@ -1,10 +1,12 @@
-import { get_function_tags } from '@5qtrs/function-tags';
+import create_error from 'http-errors';
+
+import { get_function_tags, Constants as Tags } from '@5qtrs/function-tags';
 import { IFunctionApiRequest } from './Request';
 
 const loadSummary = () => {
   return (req: IFunctionApiRequest, res: Response, next: any) => {
     if (!req.params.accountId) {
-      return next();
+      return next(create_error(403, 'Unable to acquire "accountId"'));
     }
 
     return get_function_tags(
@@ -19,6 +21,11 @@ const loadSummary = () => {
           return next(e);
         }
         req.functionSummary = d;
+        if (req.functionSummary[Tags.get_compute_tag_key('permissions')]) {
+          req.functionSummary[Tags.get_compute_tag_key('permissions')] = JSON.parse(
+            req.functionSummary[Tags.get_compute_tag_key('permissions')] as string
+          );
+        }
         return next();
       }
     );

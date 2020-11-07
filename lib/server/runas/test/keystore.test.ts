@@ -1,6 +1,7 @@
 import { verifyJwt } from '@5qtrs/jwt';
+import * as Constants from '@5qtrs/constants';
 
-import { KeyStore, KEYSTORE_DEFAULT_ALG } from '../src/KeyStore';
+import { KeyStore, KEYSTORE_MAX_KEY_TTL, KEYSTORE_MIN_WINDOW, KEYSTORE_DEFAULT_ALG } from '../src/KeyStore';
 
 import { startExpress } from './server';
 
@@ -9,14 +10,19 @@ import { execAs } from '../src/ExecAs';
 describe('keystore', () => {
   it('create', async () => {
     const ks = new KeyStore();
-    await expect(ks.signJwt({})).rejects.toThrow('secret');
+    await expect(ks.signJwt({})).rejects.toThrow('create');
     const keyPair = await ks.rekey();
     ks.setKeyPair(keyPair);
-    expect(keyPair.ttl).toBeGreaterThan(Date.now());
-    expect(keyPair.kid).toHaveLength(8);
+    const nowms = Date.now();
+    expect(keyPair.ttl).toBeGreaterThanOrEqual(nowms);
+    expect(keyPair.ttl).toBeLessThanOrEqual(nowms + KEYSTORE_MAX_KEY_TTL);
+    expect(keyPair.kid).toHaveLength(Constants.RUNAS_KID_LEN * 2);
     const jwt = await ks.signJwt({});
     const result = await verifyJwt(jwt, keyPair.publicKey);
-    expect(result.iat).toBeLessThan(Date.now());
-    expect(result.exp).toBeGreaterThan(Date.now());
+    const now = Date.now() / 1000;
+    expect(result.iat).toBeGreaterThan(now - 5);
+    expect(result.iat).toBeLessThan(now);
+    expect(result.exp).toBeGreaterThan(now);
+    expect(result.exp).toBeLessThan(KEYSTORE_MIN_WINDOW / 1000 + now);
   });
 });
