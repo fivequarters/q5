@@ -179,7 +179,7 @@ describe('Issuer', () => {
       const issuer = await addIssuer(account, issuerId, { jsonKeysUrl: 'foo' });
       expectMore(issuer).toBeHttpError(
         400,
-        '"issuerId" with value "test-system.fusebit.io" fails to match the required pattern: /^((?!system.fusebit.io$).)*$/'
+        `"issuerId" with value "test-${RUNAS_SYSTEM_ISSUER_SUFFIX}" fails to match the required pattern: /^((?!${RUNAS_SYSTEM_ISSUER_SUFFIX}$).)*$/`
       );
     }, 180000);
   });
