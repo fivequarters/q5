@@ -62,4 +62,9 @@ export interface IFunctionSpecification {
    * A serialized version of the schedule that can include comments (lines starting with '#') and key values in the form of {key}={value}
    */
   scheduleSerialized?: string;
+
+  /*
+   * Permissions that the function will execute under.
+   */
+  permissions?: { allow: [{ action: string; resource: string }] };
 }

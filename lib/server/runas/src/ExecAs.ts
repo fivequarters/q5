@@ -5,9 +5,7 @@ import { IFunctionApiRequest } from './Request';
 
 type ExpressHandler = (req: IFunctionApiRequest, res: any, next: any) => any;
 
-type AuthorizationFactory = (options: any) => ExpressHandler;
-
-const execAs = (authorize: AuthorizationFactory, keyStore: KeyStore) => {
+const execAs = (keyStore: KeyStore) => {
   return async (req: IFunctionApiRequest, res: Response, next: any) => {
     console.log(
       `execAs ${req.url} ${JSON.stringify(req.params)} ${JSON.stringify(req.functionSummary)} ${JSON.stringify(
@@ -22,19 +20,6 @@ const execAs = (authorize: AuthorizationFactory, keyStore: KeyStore) => {
       sub: Constants.makeFunctionSub(req.params, 'exec'),
     };
 
-    if (req.headers.authorization) {
-      // There's an existing authorization header - validate it and add it to the JWT for auditing purposes.
-      const err = await new Promise((resolve, reject) => authorize({})(req, res, (e: any) => resolve(e)));
-      if (err) {
-        return next(err);
-      }
-
-      if (req.resolvedAgent || req.resolvedAgent.identities.length >= 1) {
-        const { issuerId, subject } = req.resolvedAgent.identities[0];
-        payload.behalfOf = `${issuerId}:${subject}`;
-      }
-    }
-
     payload[Constants.JWT_PERMISSION_CLAIM] = JSON.parse(
       req.functionSummary[Tags.get_compute_tag_key('permissions')] as string
     );
@@ -43,7 +28,7 @@ const execAs = (authorize: AuthorizationFactory, keyStore: KeyStore) => {
     const jwt = await keyStore.signJwt(payload);
 
     // Specify it into the request so it gets passed into the executor.
-    req.headers.authorization = jwt;
+    req.params.functionAccessToken = jwt;
 
     return next();
   };

@@ -1006,7 +1006,7 @@ router.options(run_route, cors(corsExecutionOptions));
     loadSubscription(subscriptionCache),
     loadSummary(),
     loadLogging(),
-    execAs(authorize, keyStore),
+    execAs(keyStore),
     addLogging(keyStore),
     (req, res, next) => provider_handlers[req.provider].execute_function(req, res, next),
     analytics.finished
@@ -1024,7 +1024,7 @@ router.options(run_route, cors(corsExecutionOptions));
     loadSubscription(subscriptionCache),
     loadSummary(),
     loadLogging(),
-    execAs(authorize, keyStore),
+    execAs(keyStore),
     addLogging(keyStore),
     (req, res, next) => provider_handlers[req.provider].execute_function(req, res, next),
     analytics.finished

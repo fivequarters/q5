@@ -16,7 +16,7 @@ const function1Id = 'test-fun-runas-1';
 const helloWorld = {
   nodejs: {
     files: {
-      'index.js': 'module.exports = async (ctx) => { return { body: ctx }; };',
+      'index.js': 'module.exports = async (ctx) => { return { body: ctx.fusebit }; };',
     },
   },
 };
@@ -25,7 +25,7 @@ const specFuncReturnCtx = {
   permissions: { allow: [{ action: '*', resource: '/' }] },
   nodejs: {
     files: {
-      'index.js': 'module.exports = async (ctx) => { return { body: ctx }; };',
+      'index.js': 'module.exports = async (ctx) => { return { body: ctx.fusebit }; };',
     },
   },
 };
@@ -58,11 +58,11 @@ describe('runas', () => {
     // Check the run variant
     response = await request(url);
     httpExpect(response, { statusCode: 200 });
-    expect(response.data.headers.authorization).toBeUndefined();
+    expect(response.data.functionAccessToken).toBeUndefined();
 
     response = await request(url);
     httpExpect(response, { statusCode: 200 });
-    expect(response.data.headers.authorization).toBeUndefined();
+    expect(response.data.functionAccessToken).toBeUndefined();
   }, 180000);
 
   test('jwt created with permissions', async () => {
@@ -78,12 +78,12 @@ describe('runas', () => {
     // Get the token
     response = await request(url);
     httpExpect(response, { statusCode: 200 });
-    expect(response.data.headers.authorization).not.toBeUndefined();
-    token = response.data.headers.authorization;
+    expect(response.data.functionAccessToken).not.toBeUndefined();
+    token = response.data.functionAccessToken;
 
     // console.log( `curl ${account.baseUrl}/v1/account/${account.accountId}/me -H 'Authorization: Bearer ${token}'`);
     // console.log(`JWT: ${JSON.stringify(decodeJwt(token), null, 2)}`);
-    // const r = (await getMe(account, response.data.headers.authorization)).data;
+    // const r = (await getMe(account, response.data.functionAccessToken)).data;
 
     // Make sure the permissions are correctly encoded in the JWT.
     let decoded = decodeJwt(token);
@@ -106,8 +106,8 @@ describe('runas', () => {
 
     response = await request(url);
     httpExpect(response, { statusCode: 200 });
-    expect(response.data.headers.authorization).not.toBeUndefined();
-    token = response.data.headers.authorization;
+    expect(response.data.functionAccessToken).not.toBeUndefined();
+    token = response.data.functionAccessToken;
 
     // Did the permissions update?
     decoded = decodeJwt(token);
@@ -138,8 +138,8 @@ describe('runas', () => {
     const url = response.data.location;
     response = await request(url);
     httpExpect(response, { statusCode: 200 });
-    expect(response.data.headers.authorization).not.toBeUndefined();
-    const limitedToken = response.data.headers.authorization;
+    expect(response.data.functionAccessToken).not.toBeUndefined();
+    const limitedToken = response.data.functionAccessToken;
 
     spec.permissions = undefined;
     account.accessToken = limitedToken;
@@ -183,8 +183,8 @@ describe('runas', () => {
     const url = response.data.location;
     response = await request(url);
     httpExpect(response, { statusCode: 200 });
-    expect(response.data.headers.authorization).not.toBeUndefined();
-    const limitedToken = response.data.headers.authorization;
+    expect(response.data.functionAccessToken).not.toBeUndefined();
+    const limitedToken = response.data.functionAccessToken;
 
     spec.permissions = permFunctionPut;
     account.accessToken = limitedToken;
