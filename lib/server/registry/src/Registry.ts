@@ -42,6 +42,10 @@ interface IRegistryStore {
   configGet(): Promise<IRegistryConfig>;
 }
 
+interface IRegistryEvents {
+  onNewPackage?(name: string, version: string, registry: string): Promise<void>;
+}
+
 class InvalidScopeException extends Error {}
 
 export {
@@ -51,5 +55,6 @@ export {
   IRegistryParams,
   IRegistrySearchResults,
   IRegistryStore,
+  IRegistryEvents,
   InvalidScopeException,
 };

@@ -18,5 +18,6 @@ module.exports = Joi.object().keys({
   registryId: Joi.string().valid('default'),
   baseUrl: Joi.string(),
   buildId: Joi.string(),
+  name: Joi.string(),
   '0': Joi.string().allow(''), // Used for storage for the storagePath
 });

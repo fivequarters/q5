@@ -147,7 +147,6 @@ async function resolveSecret(token: string, secretOrUrl: string, ignoreCache: bo
 
 export function decodeJwtHeader(token: string) {
   const decoded = jwt.decode(token, { complete: true }) as { [key: string]: any };
-  console.log(`decodeJwtHeader ${JSON.stringify(decoded)}`);
   if (decoded && decoded.header) {
     return decoded.header;
   }

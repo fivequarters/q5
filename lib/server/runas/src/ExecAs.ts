@@ -7,11 +7,6 @@ type ExpressHandler = (req: IFunctionApiRequest, res: any, next: any) => any;
 
 const execAs = (keyStore: KeyStore) => {
   return async (req: IFunctionApiRequest, res: Response, next: any) => {
-    console.log(
-      `execAs ${req.url} ${JSON.stringify(req.params)} ${JSON.stringify(req.functionSummary)} ${JSON.stringify(
-        req.body
-      )}`
-    );
     if (!req.functionSummary || !req.functionSummary[Tags.get_compute_tag_key('permissions')]) {
       return next();
     }

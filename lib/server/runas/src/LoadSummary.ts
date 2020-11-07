@@ -3,7 +3,6 @@ import { IFunctionApiRequest } from './Request';
 
 const loadSummary = () => {
   return (req: IFunctionApiRequest, res: Response, next: any) => {
-    console.log(`loadSummary ${req.params.accountId}`);
     if (!req.params.accountId) {
       return next();
     }
@@ -16,7 +15,6 @@ const loadSummary = () => {
         functionId: req.params.functionId,
       },
       (e: any, d: any) => {
-        console.log(`loadSummary result ${e}, ${JSON.stringify(d)}`);
         if (e) {
           return next(e);
         }

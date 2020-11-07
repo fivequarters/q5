@@ -26,6 +26,7 @@ const audit = require('./handlers/audit');
 const statistics = require('./handlers/statistics');
 const npm = require('@5qtrs/npm');
 
+const { clear_built_module } = require('@5qtrs/function-lambda');
 const { AwsRegistry } = require('@5qtrs/registry');
 const Constants = require('@5qtrs/constants');
 
@@ -51,7 +52,11 @@ var corsExecutionOptions = {
 };
 
 // Load the global npm registry in AWS
-const npmRegistry = AwsRegistry;
+const npmRegistry = () =>
+  AwsRegistry.handler({
+    // Clear built modules from S3 when a version is put to force a rebuild
+    onNewPackage: async (name, ver, registry) => clear_built_module(name, { version: ver, registry }),
+  });
 
 // Create the keystore and guarantee an initial key
 const keyStore = new AwsKeyStore({});
@@ -475,7 +480,7 @@ router.put(
   validate_schema({ body: require('./schemas/function_specification') }),
   user_agent(),
   determine_provider(),
-  npmRegistry.handler(),
+  npmRegistry(),
   (req, res, next) => {
     req.keyStore = keyStore;
     next();
@@ -554,7 +559,7 @@ router.post(
   validate_schema({ body: require('./schemas/function_specification') }),
   user_agent(),
   determine_provider(),
-  npmRegistry.handler(),
+  npmRegistry(),
   (req, res, next) => provider_handlers[req.provider].post_function_build(req, res, next),
   analytics.finished
 );
@@ -687,12 +692,12 @@ router.get(
   authorize({ operation: 'registry:get' }),
   user_agent(),
   determine_provider(),
-  npmRegistry.handler(),
+  npmRegistry(),
   (req, res) =>
     req.registry.configGet().then((config) => {
       res.status(200).json({
         ...config,
-        url: process.env.API_SERVER + require('url').parse(req.url).pathname + 'npm/',
+        url: `${process.env.API_SERVER}/v1${require('url').parse(req.url).pathname}npm/`,
       });
     }),
   analytics.finished
@@ -707,7 +712,7 @@ router.put(
   validate_schema({ body: require('./schemas/registry_specification') }),
   user_agent(),
   determine_provider(),
-  npmRegistry.handler(),
+  npmRegistry(),
   (req, res, next) => {
     try {
       if (req.body.scopes.filter((s) => s.indexOf(Constants.REGISTRY_RESERVED_SCOPE_PREFIX) !== -1).length > 0) {
@@ -733,11 +738,11 @@ router.get(
   registryNpmBase + '/-/version',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_params') }),
+  validate_schema({ params: require('./schemas/npm_params') }),
   authorize({ operation: 'registry:get' }),
   user_agent(),
   determine_provider(),
-  npmRegistry.handler(),
+  npmRegistry(),
   npm.versionGet(),
   analytics.finished
 );
@@ -747,11 +752,11 @@ router.get(
   registryNpmBase + '/-/ping',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_params') }),
+  validate_schema({ params: require('./schemas/npm_params') }),
   authorize({ operation: 'registry:get' }),
   user_agent(),
   determine_provider(),
-  npmRegistry.handler(),
+  npmRegistry(),
   npm.pingGet(),
   analytics.finished
 );
@@ -761,11 +766,11 @@ router.get(
   registryNpmBase + '/:scope/:name/-/:scope2/:filename',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_params') }),
+  validate_schema({ params: require('./schemas/npm_params') }),
   authorize({ operation: 'registry:get' }),
   user_agent(),
   determine_provider(),
-  npmRegistry.handler(),
+  npmRegistry(),
   npm.tarballGet(),
   analytics.finished
 );
@@ -773,11 +778,11 @@ router.delete(
   registryNpmBase + '/:scope/:name/-/:scope2/:filename/-rev/:revisionId',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_params') }),
+  validate_schema({ params: require('./schemas/npm_params') }),
   authorize({ operation: 'registry:put' }),
   user_agent(),
   determine_provider(),
-  npmRegistry.handler(),
+  npmRegistry(),
   npm.tarballDelete(),
   analytics.finished
 );
@@ -787,12 +792,12 @@ router.put(
   registryNpmBase + '/:name',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_params') }),
+  validate_schema({ params: require('./schemas/npm_params') }),
   authorize({ operation: 'registry:put' }),
   express.json({ limit: process.env.PACKAGE_SIZE_LIMIT || '1000kb' }),
   user_agent(),
   determine_provider(),
-  npmRegistry.handler(),
+  npmRegistry(),
   npm.packagePut(),
   analytics.finished
 );
@@ -801,37 +806,37 @@ router.get(
   registryNpmBase + '/:name',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_params') }),
+  validate_schema({ params: require('./schemas/npm_params') }),
   authorize({ operation: 'registry:get' }),
   user_agent(),
   determine_provider(),
-  npmRegistry.handler(),
+  npmRegistry(),
   npm.packageGet(),
   analytics.finished
 );
 
-router.options(registryNpmBase + '/:name/-rev/:revId', cors(corsManagementOptions));
+router.options(registryNpmBase + '/:name/-rev/:revisionId', cors(corsManagementOptions));
 router.put(
-  registryNpmBase + '/:name/-rev/:revId',
+  registryNpmBase + '/:name/-rev/:revisionId',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_params') }),
+  validate_schema({ params: require('./schemas/npm_params') }),
   authorize({ operation: 'registry:put' }),
   user_agent(),
   determine_provider(),
-  npmRegistry.handler(),
+  npmRegistry(),
   npm.revisionPut(),
   analytics.finished
 );
 router.delete(
-  registryNpmBase + '/:name/-rev/:revId',
+  registryNpmBase + '/:name/-rev/:revisionId',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_params') }),
+  validate_schema({ params: require('./schemas/npm_params') }),
   authorize({ operation: 'registry:put' }),
   user_agent(),
   determine_provider(),
-  npmRegistry.handler(),
+  npmRegistry(),
   npm.revisionDelete(),
   analytics.finished
 );
@@ -841,12 +846,12 @@ router.post(
   registryNpmBase + '/-/invalidate/:name',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_params') }),
+  validate_schema({ params: require('./schemas/npm_params') }),
   authorize({ operation: 'registry:put' }),
   express.json(),
   user_agent(),
   determine_provider(),
-  npmRegistry.handler(),
+  npmRegistry(),
   npm.invalidatePost(),
   analytics.finished
 );
@@ -856,12 +861,12 @@ router.post(
   registryNpmBase + '/-/package/:name/dist-tags',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_params') }),
+  validate_schema({ params: require('./schemas/npm_params') }),
   authorize({ operation: 'registry:get' }),
   express.json(),
   user_agent(),
   determine_provider(),
-  npmRegistry.handler(),
+  npmRegistry(),
   npm.distTagsGet(),
   analytics.finished
 );
@@ -871,12 +876,12 @@ router.put(
   registryNpmBase + '/-/package/:name/dist-tags/:tag',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_params') }),
+  validate_schema({ params: require('./schemas/npm_params') }),
   authorize({ operation: 'registry:put' }),
   express.json({ limit: process.env.PACKAGE_SIZE_LIMIT || '1000kb' }),
   user_agent(),
   determine_provider(),
-  npmRegistry.handler(),
+  npmRegistry(),
   npm.distTagsPut(),
   analytics.finished
 );
@@ -886,11 +891,11 @@ router.delete(
   registryNpmBase + '/-/package/:name/dist-tags/:tag',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_params') }),
+  validate_schema({ params: require('./schemas/npm_params') }),
   authorize({ operation: 'registry:put' }),
   user_agent(),
   determine_provider(),
-  npmRegistry.handler(),
+  npmRegistry(),
   npm.distTagsDelete(),
   analytics.finished
 );
@@ -900,11 +905,11 @@ router.get(
   registryNpmBase + '/-/api/v1/packages',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_params') }),
+  validate_schema({ params: require('./schemas/npm_params') }),
   authorize({ operation: 'registry:get' }),
   user_agent(),
   determine_provider(),
-  npmRegistry.handler(),
+  npmRegistry(),
   npm.allPackagesGet(),
   analytics.finished
 );
@@ -914,12 +919,12 @@ router.put(
   registryNpmBase + '/-/user/:user',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_params') }),
+  validate_schema({ params: require('./schemas/npm_params') }),
   authorize({ operation: 'registry:get' }),
   express.json(),
   user_agent(),
   determine_provider(),
-  npmRegistry.handler(),
+  npmRegistry(),
   npm.loginPut(), // Always will succeed
   analytics.finished
 );
@@ -929,11 +934,11 @@ router.get(
   registryNpmBase + '/-/whoami',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_params') }),
+  validate_schema({ params: require('./schemas/npm_params') }),
   authorize({ operation: 'registry:get' }),
   user_agent(),
   determine_provider(),
-  npmRegistry.handler(),
+  npmRegistry(),
   npm.whoamiGet(),
   analytics.finished
 );
@@ -943,12 +948,12 @@ router.post(
   registryNpmBase + '/-/npm/v1/security/audits',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_params') }),
+  validate_schema({ params: require('./schemas/npm_params') }),
   authorize({ operation: 'registry:get' }),
   express.json(),
   user_agent(),
   determine_provider(),
-  npmRegistry.handler(),
+  npmRegistry(),
   npm.auditPost(),
   analytics.finished
 );
@@ -958,11 +963,11 @@ router.get(
   registryNpmBase + '/-/v1/search',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_params') }),
+  validate_schema({ params: require('./schemas/npm_params') }),
   authorize({ operation: 'registry:get' }),
   user_agent(),
   determine_provider(),
-  npmRegistry.handler(),
+  npmRegistry(),
   npm.searchGet(),
   analytics.finished
 );

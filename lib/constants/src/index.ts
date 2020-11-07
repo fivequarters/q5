@@ -10,6 +10,10 @@ interface IModuleSpec {
 
 import { isSpecialized, Permissions, RestrictedPermissions, UserPermissions } from './permissions';
 
+const API_PUBLIC_ENDPOINT = process.env.LOGS_HOST
+  ? `http://${process.env.LOGS_HOST}`
+  : (process.env.API_SERVER as string);
+
 const builder_version = require(Path.join(__dirname, '..', '..', '..', 'package.json')).version;
 
 const valid_boundary_name = /^[a-z0-9\-]{1,63}$/;
@@ -230,8 +234,10 @@ export {
   JWT_PERMISSION_CLAIM,
   REGISTRY_RESERVED_SCOPE_PREFIX,
   RUNAS_SYSTEM_ISSUER_SUFFIX,
+  API_PUBLIC_ENDPOINT,
   dynamoScanTable,
   expBackoff,
   asyncPool,
   duplicate,
+  IModuleSpec,
 };

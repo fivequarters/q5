@@ -37,7 +37,6 @@ class InternalIssuerCache {
   }
 
   public async findKey(issuerId: string, kid: string): Promise<string> {
-    console.log(`InternalIssuerCache findKey ${issuerId} ${kid}`);
     // Check the cache to see if the issuerId+kid is present
     const publicKey = this.findValid(issuerId, kid);
     if (publicKey) {

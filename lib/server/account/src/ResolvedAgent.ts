@@ -44,7 +44,6 @@ async function validateJwt(
   const decodedJwtHeader = decodeJwtHeader(jwt);
   const kid = decodedJwtHeader.kid;
 
-  console.log(`validateJwt ${issuerId}, ${JSON.stringify(decodedJwtHeader)}`);
   // Get either the system issuer or the actual issuer.
   const issuer = await (isSystemIssuer(issuerId)
     ? internalIssuerCache.findInternalIssuer(issuerId)
@@ -60,7 +59,6 @@ async function validateJwt(
       }
     }
   } else if (issuer.keyStore) {
-    console.log(`validateJwt issuer.publicKeys(${kid})`);
     secretOrUrl = await issuer.keyStore(kid);
   }
 
@@ -69,7 +67,6 @@ async function validateJwt(
   }
 
   try {
-    console.log(`validateJwt verifyJwt`);
     await verifyJwt(jwt, secretOrUrl, { audience, algorithms, issuer });
   } catch (error) {
     throw AccountDataException.invalidJwt(error);
@@ -152,10 +149,8 @@ export class ResolvedAgent implements IAgent {
 
     const validatePromise = validateJwt(dataContext, accountId, audience, jwt, issuerId);
 
-    console.log(`ResolvedAgent::create validatePromise`);
     try {
       const agent = await cancelOnError(validatePromise, agentPromise);
-      console.log(`ResolvedAgent::create new ResolvedAgent`);
       return new ResolvedAgent(dataContext, accountId, agent, identity);
     } catch (error) {
       if (error.code === AccountDataExceptionCode.noIssuer || error.code === AccountDataExceptionCode.noIdentity) {
@@ -209,9 +204,7 @@ export class ResolvedAgent implements IAgent {
   public isAuthorized(action: string, resource: string) {
     const accessEntries = this.agent.access && this.agent.access.allow ? this.agent.access.allow : [];
 
-    console.log(`ResolvedAgent::isAuthorized ${JSON.stringify(accessEntries)} <= ${action}/${resource}`);
     resource = Resource.normalize(resource);
-    console.log(`ResolvedAgent::isAuthorized2 ${JSON.stringify(accessEntries)} <= ${action}/${resource}`);
     for (const accessEntry of accessEntries) {
       if (doesAccessEntryAuthorize(accessEntry, action, resource)) {
         return true;
@@ -230,7 +223,6 @@ export class ResolvedAgent implements IAgent {
   }
 
   public get id() {
-    console.log(`ResolvedAgent::id ${JSON.stringify(this.agent)}`);
     return this.agent.id;
   }
 
