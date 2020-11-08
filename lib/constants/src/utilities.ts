@@ -63,7 +63,7 @@ async function asyncPool<T>(poolLimit: number, array: T[], iteratorFn: (item: T,
 
 function duplicate(dst: any, src: any) {
   Object.keys(src).forEach((k) => {
-    dst[k] = typeof src[k] === 'object' ? duplicate({}, src[k]) : (dst[k] = src[k]);
+    dst[k] = typeof src[k] === 'object' ? duplicate(Array.isArray(src[k]) ? [] : {}, src[k]) : (dst[k] = src[k]);
   });
 
   return dst;

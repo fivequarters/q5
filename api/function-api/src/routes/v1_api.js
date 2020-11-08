@@ -30,7 +30,14 @@ const { clear_built_module } = require('@5qtrs/function-lambda');
 const { AwsRegistry } = require('@5qtrs/registry');
 const Constants = require('@5qtrs/constants');
 
-const { execAs, loadSummary, loadSubscription, AwsKeyStore, SubscriptionCache } = require('@5qtrs/runas');
+const {
+  execAs,
+  loadSummary,
+  loadSubscription,
+  AwsKeyStore,
+  SubscriptionCache,
+  checkRequirements,
+} = require('@5qtrs/runas');
 
 const { loadLogging, addLogging } = require('@5qtrs/runtime-common');
 
@@ -1010,6 +1017,7 @@ router.options(run_route, cors(corsExecutionOptions));
     }),
     loadSubscription(subscriptionCache),
     loadSummary(),
+    checkRequirements(authorize),
     loadLogging(),
     execAs(keyStore),
     addLogging(keyStore),
@@ -1028,6 +1036,7 @@ router.options(run_route, cors(corsExecutionOptions));
     determine_provider(),
     loadSubscription(subscriptionCache),
     loadSummary(),
+    checkRequirements(authorize),
     loadLogging(),
     execAs(keyStore),
     addLogging(keyStore),

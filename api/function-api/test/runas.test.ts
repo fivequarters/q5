@@ -4,6 +4,7 @@ import { request } from '@5qtrs/request';
 import { decodeJwt } from '@5qtrs/jwt';
 
 import * as Constants from '@5qtrs/constants';
+const Permissions = Constants.Permissions;
 
 import { FusebitProfile } from '@5qtrs/fusebit-profile-sdk';
 
@@ -15,16 +16,8 @@ let account: IAccount = FakeAccount;
 const { getAccount, getBoundary } = setupEnvironment();
 const function1Id = 'test-fun-runas-1';
 
-const helloWorld = {
-  nodejs: {
-    files: {
-      'index.js': 'module.exports = async (ctx) => { return { body: ctx.fusebit }; };',
-    },
-  },
-};
-
 const specFuncReturnCtx = {
-  permissions: { allow: [{ action: '*', resource: '/' }] },
+  permissions: { allow: [{ action: Permissions.allPermissions, resource: '/' }] },
   nodejs: {
     files: {
       'index.js': 'module.exports = async (ctx) => { return { body: ctx.fusebit }; };',
@@ -32,9 +25,9 @@ const specFuncReturnCtx = {
   },
 };
 
-const permFunctionGet = { allow: [{ action: 'function:get', resource: '/' }] };
-const permFunctionPut = { allow: [{ action: 'function:put', resource: '/' }] };
-const permFunctionWildcard = { allow: [{ action: 'function:*', resource: '/' }] };
+const permFunctionGet = { allow: [{ action: Permissions.getFunction, resource: '/' }] };
+const permFunctionPut = { allow: [{ action: Permissions.putFunction, resource: '/' }] };
+const permFunctionWildcard = { allow: [{ action: Permissions.allFunction, resource: '/' }] };
 
 const permFunctionPutLimited = (perm: string, acc: IAccount, boundaryId: string) => ({
   allow: [
@@ -50,7 +43,9 @@ describe('runas', () => {
   test('normal function has no permissions added', async () => {
     account = getAccount();
     const boundaryId = getBoundary();
-    const create = await putFunction(account, boundaryId, function1Id, helloWorld);
+    const specNoPerm = Constants.duplicate({}, specFuncReturnCtx);
+    delete specNoPerm.permissions;
+    const create = await putFunction(account, boundaryId, function1Id, specNoPerm);
     expect(create.status).toEqual(200);
     let url: string;
     let response;
@@ -133,7 +128,7 @@ describe('runas', () => {
     const oldToken = account.accessToken;
 
     const spec = Constants.duplicate({}, specFuncReturnCtx);
-    spec.permissions = permFunctionPutLimited('function:put', account, boundaryId);
+    spec.permissions = permFunctionPutLimited(Permissions.putFunction, account, boundaryId);
     let response = await putFunction(account, boundaryId, function1Id, spec);
     httpExpect(response, { statusCode: 200 });
 
@@ -156,12 +151,12 @@ describe('runas', () => {
     httpExpect(response, { statusCode: 403 });
 
     // Create a function with too many permissions, fail
-    spec.permissions = permFunctionPutLimited('function:*', account, boundaryId);
+    spec.permissions = permFunctionPutLimited(Permissions.allFunction, account, boundaryId);
     response = await putFunction(account, boundaryId, function1Id + '4', spec);
     httpExpect(response, { statusCode: 403 });
 
     // Create a function with higher path permissions, fail
-    spec.permissions = permFunctionPutLimitedHigher('function:put', account);
+    spec.permissions = permFunctionPutLimitedHigher(Permissions.putFunction, account);
     response = await putFunction(account, boundaryId, function1Id + '5', spec);
     httpExpect(response, { statusCode: 403 });
 
@@ -178,7 +173,7 @@ describe('runas', () => {
     const oldToken = account.accessToken;
 
     const spec = Constants.duplicate({}, specFuncReturnCtx);
-    spec.permissions = permFunctionPutLimited('function:*', account, boundaryId);
+    spec.permissions = permFunctionPutLimited(Permissions.allFunction, account, boundaryId);
     let response = await putFunction(account, boundaryId, function1Id, spec);
     httpExpect(response, { statusCode: 200 });
 
@@ -192,7 +187,7 @@ describe('runas', () => {
     account.accessToken = limitedToken;
 
     // Create a function with fewer permissions, succeed
-    spec.permissions = permFunctionPutLimited('function:get', account, boundaryId);
+    spec.permissions = permFunctionPutLimited(Permissions.getFunction, account, boundaryId);
     response = await putFunction(account, boundaryId, function1Id + '2', spec);
     httpExpect(response, { statusCode: 200 });
     account.accessToken = oldToken;

@@ -38,6 +38,12 @@ module.exports = Joi.object().keys({
   metadata: Joi.object(),
   runtime: Joi.object(),
   permissions: Joi.object().keys({
+    require: Joi.array().items(
+      Joi.object().keys({
+        action: Joi.string(),
+        resource: Joi.string(),
+      })
+    ),
     allow: Joi.array().items(
       Joi.object().keys({
         action: Joi.string(),

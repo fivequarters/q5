@@ -8,6 +8,7 @@
   "author": "FiveQuarters.io",
   "scripts": {
     "build": "tsc -b",
+    "test": "jest --colors",
     "coverage": "jest --colors --coverage",
     "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x} test/{,**/}*.ts{,x}",
     "clean": "rm -r -f libc; rm -r -f libm; rm -r -f coverage"
