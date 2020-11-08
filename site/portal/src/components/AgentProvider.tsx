@@ -14,6 +14,7 @@ export type AgentState =
   | {
       status: 'ready' | 'updating';
       isUser: boolean;
+      prefix?: string;
       agentId: string;
       dirty: boolean;
       existing: Client;
@@ -24,6 +25,7 @@ export type AgentState =
   | {
       status: 'ready' | 'updating';
       isUser: boolean;
+      prefix?: string;
       agentId: string;
       dirty: boolean;
       existing: User;

@@ -32,6 +32,25 @@ function AgentTooltip({ issuerId, subject, agents, onSetAgent, children }: Agent
     if (loading) {
       (async () => {
         try {
+          if (subject.indexOf('uri:') === 0) {
+            // System-issued credentials -- attribute to the function.
+            const details = subject.split(':');
+            const message = `${details.slice(4, 6).join('/')}`;
+            const fakeClient = { id: subject, displayName: message };
+            setLoading(false);
+            onSetAgent(issuerId, subject, {
+              status: 'ready',
+              isUser: false,
+              prefix: 'Function',
+              agentId: message,
+              dirty: false,
+              existing: fakeClient,
+              modified: fakeClient,
+            });
+            return;
+          }
+
+          // Load the normal user in.
           const [agent, isUser] = await getAgent(profile, issuerId, subject);
           if (!cancelled) {
             setLoading(false);
@@ -120,7 +139,7 @@ function AgentTooltip({ issuerId, subject, agents, onSetAgent, children }: Agent
             to={`/accounts/${profile.account}/${agent.isUser ? 'users' : 'clients'}/${agent.agentId}/properties`}
           >
             <Typography variant="body2" color="inherit">
-              {agent.isUser ? 'User' : 'Client'}: {formatAgent(agent)}
+              {agent.prefix ? agent.prefix : agent.isUser ? 'User' : 'Client'}: {formatAgent(agent)}
             </Typography>
           </Link>
         }
