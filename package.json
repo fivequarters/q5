@@ -1,5 +1,5 @@
 {
-  "version": "1.17.10",
+  "version": "1.17.11",
   "private": true,
   "org": "5qtrs",
   "scripts": {
@@ -189,7 +189,9 @@
       "lib/runtime/lambda-dwh",
       "lib/runtime/ops-lambda-set",
       "lib/constants",
-      "lib/server/function-tags"
+      "lib/server/function-tags",
+      "lib/server/npm",
+      "lib/server/registry"
     ]
   }
 }

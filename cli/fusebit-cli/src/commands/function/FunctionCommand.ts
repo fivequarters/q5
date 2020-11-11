@@ -8,6 +8,7 @@ import { FunctionDeployCommand } from './FunctionDeployCommand';
 import { FunctionEditCommand } from './FunctionEditCommand';
 import { FunctionInitCommand } from './FunctionInitCommand';
 import { FunctionUrlCommand } from './FunctionUrlCommand';
+import { FunctionRebuildCommand } from './FunctionRebuildCommand';
 
 // ------------------
 // Internal Constants
@@ -55,6 +56,7 @@ async function getSubCommands() {
   subCommands.push(await FunctionGetCommand.create());
   subCommands.push(await FunctionUrlCommand.create());
   subCommands.push(await FunctionDeployCommand.create());
+  subCommands.push(await FunctionRebuildCommand.create());
   subCommands.push(await FunctionRemoveCommand.create());
   subCommands.push(await FunctionLogCommand.create());
   return subCommands;

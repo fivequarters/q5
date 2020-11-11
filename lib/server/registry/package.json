@@ -1,0 +1,23 @@
+{
+  "name": "@5qtrs/registry",
+  "version": "0.0.1",
+  "description": "",
+  "main": "libc/index.js",
+  "license": "UNLICENSED",
+  "author": "FiveQuarters.io",
+  "scripts": {
+    "build": "tsc -b",
+    "test": "jest --colors",
+    "coverage": "jest --colors --coverage",
+    "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x} test/{,**/}*.ts{,x}",
+    "clean": "rm -r -f libc; rm -r -f coverage"
+  },
+  "keywords": [],
+  "dependencies": {
+    "@5qtrs/constants": "^0.0.1",
+    "semver": "^7.3.2"
+  },
+  "devDependencies": {
+    "@types/semver": "^7.3.4"
+  }
+}

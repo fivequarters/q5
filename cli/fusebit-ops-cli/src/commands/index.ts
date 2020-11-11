@@ -12,3 +12,4 @@ export { SubscriptionCommand } from './subscription/SubscriptionCommand';
 export { AdminCommand } from './admin/AdminCommand';
 export { VersionCommand } from './VersionCommand';
 export { ActionCommand } from './action/ActionCommand';
+export { RegistryCommand } from './registry/RegistryCommand';

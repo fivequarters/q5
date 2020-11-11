@@ -1,4 +1,14 @@
 import Crypto from 'crypto';
+import Path from 'path';
+
+interface IModuleSpec {
+  registry: string;
+  version: string;
+}
+
+import { isSpecialized, Permissions, RestrictedPermissions, UserPermissions } from './permissions';
+
+const builder_version = require(Path.join(__dirname, '..', '..', '..', 'package.json')).version;
 
 const valid_boundary_name = /^[a-z0-9\-]{1,63}$/;
 
@@ -22,8 +32,18 @@ const function_spec_key_prefix = 'function-spec';
 // Stores registrations of active cron jobs
 const cron_key_prefix = 'function-cron';
 
-// Stores built NPM modules
+// Stores built npm modules
 const module_key_prefix = 'npm-module';
+
+const REGISTRY_CATEGORY = 'registry-npm-package';
+const REGISTRY_CATEGORY_CONFIG = 'registry-npm-config';
+
+const REGISTRY_DEFAULT = 'default';
+const REGISTRY_GLOBAL = 'registry-global';
+
+const REGISTRY_RESERVED_SCOPE_PREFIX = '@fuse';
+
+const MODULE_PUBLIC_REGISTRY = 'public';
 
 function get_log_table_name(deploymentKey: string): string {
   return `${deploymentKey}.log`;
@@ -39,12 +59,59 @@ function get_deployment_s3_bucket(deployment: any): string {
     : `fusebit-${deployment.deploymentName}-${deployment.region}`;
 }
 
-function get_module_metadata_key(runtime: string, name: string, version: string) {
-  return `${module_key_prefix}/${runtime}/${name}/${version}/metadata.json`;
+function get_module_prefix(
+  prefix: string,
+  runtime: string,
+  name: string,
+  moduleSpec: IModuleSpec | string,
+  useVer: boolean,
+  sep: string
+) {
+  const version = typeof moduleSpec === 'string' ? moduleSpec : moduleSpec.version;
+
+  if (typeof moduleSpec === 'string' || moduleSpec.registry === MODULE_PUBLIC_REGISTRY) {
+    // Old style module, assume it's global.
+    return (useVer ? [prefix, runtime, name, version] : [prefix, runtime, name]).join(sep);
+  }
+  return (useVer
+    ? [prefix, moduleSpec.registry, runtime, name, version]
+    : [prefix, moduleSpec.registry, runtime, name]
+  ).join(sep);
 }
 
-function get_module_key(runtime: string, name: string, version: string) {
-  return `${module_key_prefix}/${runtime}/${name}/${version}/package.zip`;
+function get_module_metadata_key(runtime: string, name: string, moduleSpec: IModuleSpec | string) {
+  return `${get_module_prefix(module_key_prefix, runtime, name, moduleSpec, true, '/')}/metadata.json`;
+}
+
+function get_module_key(runtime: string, name: string, moduleSpec: IModuleSpec) {
+  return `${get_module_prefix(module_key_prefix, runtime, name, moduleSpec, true, '/')}/package.zip`;
+}
+
+function get_module_builder_description(ctx: any, name: string, moduleSpec: IModuleSpec) {
+  return get_module_prefix(
+    'module-builder',
+    ctx.options.compute.runtime,
+    [name, builder_version].join(':'),
+    moduleSpec,
+    false,
+    ':'
+  );
+}
+
+function get_function_builder_description(options: any) {
+  return `function-builder:${options.compute.runtime}:${builder_version}`;
+}
+
+// Create a predictable fixed-length version of the lambda name, to avoid accidentally exceeding any name
+// limits.
+function get_function_builder_name(options: any) {
+  return Crypto.createHash('sha1').update(get_function_builder_description(options)).digest('hex');
+}
+
+function get_module_builder_name(ctx: any, name: string) {
+  return Crypto.createHash('sha1')
+    .update(get_module_builder_description(ctx, name, ctx.options.internal.resolved_dependencies[name]))
+    .digest('hex');
 }
 
 function get_user_function_build_status_key(options: any) {
@@ -90,6 +157,32 @@ function get_function_location(req: any, subscriptionId: string, boundaryId: str
   return `${baseUrl}/v1/run/${subscriptionId}/${boundaryId}/${functionId}`;
 }
 
+function duplicate(dst: any, src: any) {
+  Object.keys(src).forEach((k) => {
+    dst[k] = typeof src[k] === 'object' ? duplicate({}, src[k]) : (dst[k] = src[k]);
+  });
+
+  return dst;
+}
+
+async function asyncPool<T>(poolLimit: number, array: T[], iteratorFn: (item: T, array: T[]) => any): Promise<any> {
+  const ret = [];
+  const executing: Promise<any>[] = [];
+  for (const item of array) {
+    const p = Promise.resolve().then(() => iteratorFn(item, array));
+    ret.push(p);
+
+    if (poolLimit <= array.length) {
+      const e: Promise<any> = p.then(() => executing.splice(executing.indexOf(e), 1));
+      executing.push(e);
+      if (executing.length >= poolLimit) {
+        await Promise.race(executing);
+      }
+    }
+  }
+  return Promise.all(ret);
+}
+
 export {
   get_log_table_name,
   get_key_value_table_name,
@@ -109,9 +202,25 @@ export {
   get_user_function_spec_key,
   get_user_function_description,
   get_user_function_name,
+  get_function_builder_description,
+  get_module_builder_description,
+  get_function_builder_name,
+  get_module_builder_name,
   get_cron_key_prefix,
   get_cron_key_suffix,
   get_cron_key,
   get_function_location,
   get_deployment_s3_bucket,
+  duplicate,
+  Permissions,
+  RestrictedPermissions,
+  UserPermissions,
+  isSpecialized,
+  asyncPool,
+  REGISTRY_CATEGORY,
+  REGISTRY_CATEGORY_CONFIG,
+  REGISTRY_DEFAULT,
+  REGISTRY_GLOBAL,
+  MODULE_PUBLIC_REGISTRY,
+  REGISTRY_RESERVED_SCOPE_PREFIX,
 };

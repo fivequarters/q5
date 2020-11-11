@@ -6,3 +6,4 @@ export { FunctionCommand } from './function/FunctionCommand';
 export { InitCommand } from './InitCommand';
 export { TokenCommand } from './TokenCommand';
 export { VersionCommand } from './VersionCommand';
+export { NpmCommand } from './npm/NpmCommand';

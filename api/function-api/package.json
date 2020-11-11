@@ -39,7 +39,9 @@
     "uuid": "^7.0.3",
     "yamljs": "^0.3.0",
     "@5qtrs/constants": "^0.0.1",
-    "@5qtrs/function-tags": "^0.0.1"
+    "@5qtrs/function-tags": "^0.0.1",
+    "@5qtrs/npm": "^0.0.1",
+    "@5qtrs/registry": "^0.0.1"
   },
   "devDependencies": {
     "@5qtrs/fusebit-profile-sdk": "^0.0.1",
@@ -48,7 +50,11 @@
     "@types/pem-jwk": "^1.5.0",
     "aws-sdk": "^2.539.0",
     "pem-jwk": "^2.0.0",
-    "superagent": "^5.2.2"
+    "superagent": "^5.2.2",
+    "libnpm": "^3.0.1",
+    "@npm/types": "^1.0.1",
+    "spdx-license-ids": "^3.0.6",
+    "ssri": "^8.0.0"
   },
   "devServer": {
     "port": 3001

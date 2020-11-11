@@ -746,9 +746,23 @@ export class FunctionService {
     );
   }
 
-  public async deployFunction(path: string | undefined, functionId: string, functionSpec: any): Promise<string> {
+  public async deployFunction(path: string | undefined, functionId: string, functionSpec?: any): Promise<string> {
     const profile = await this.getFunctionExecutionProfile(true, functionId, path);
 
+    return this.deployFunctionEx(profile, functionSpec);
+  }
+
+  public async deployFunctionEx(
+    profile: {
+      baseUrl: string;
+      account: string;
+      subscription?: string;
+      function?: string;
+      boundary?: string;
+      accessToken: string;
+    },
+    functionSpec?: string
+  ) {
     let result = await this.executeService.executeRequest(
       {
         header: 'Deploy Function',
@@ -769,8 +783,10 @@ export class FunctionService {
         ),
       },
       {
-        method: 'PUT',
-        url: `${profile.baseUrl}/v1/account/${profile.account}/subscription/${profile.subscription}/boundary/${profile.boundary}/function/${profile.function}`,
+        method: functionSpec ? 'PUT' : 'POST',
+        url: functionSpec
+          ? `${profile.baseUrl}/v1/account/${profile.account}/subscription/${profile.subscription}/boundary/${profile.boundary}/function/${profile.function}`
+          : `${profile.baseUrl}/v1/account/${profile.account}/subscription/${profile.subscription}/boundary/${profile.boundary}/function/${profile.function}/build`,
         headers: {
           Authorization: `Bearer ${profile.accessToken}`,
         },
@@ -780,7 +796,7 @@ export class FunctionService {
 
     if (!result) {
       await this.executeService.info('No Change', 'The function has not changed since the previous deployment');
-      return this.getFunctionUrl(functionId, true);
+      return this.getFunctionUrl(profile.function, true);
     }
 
     if (result.status === 'pending' || result.status === 'building') {

@@ -15,6 +15,7 @@ import {
   AdminCommand,
   VersionCommand,
   ActionCommand,
+  RegistryCommand,
 } from './commands';
 
 // ------------------
@@ -42,6 +43,11 @@ const cli: ICommand = {
 
 export class FusebitOpsCli extends Command {
   public static async create(io: ICommandIO) {
+    if (process.env.FUSEBIT_DEBUG) {
+      const AWS = require('aws-sdk');
+      AWS.config.logger = console;
+    }
+
     const subCommands: Command[] = [];
     subCommands.push(await InitCommand.create());
     subCommands.push(await SetupCommand.create());
@@ -54,6 +60,7 @@ export class FusebitOpsCli extends Command {
     subCommands.push(await DeploymentCommand.create());
     subCommands.push(await StackCommand.create());
     subCommands.push(await SubscriptionCommand.create());
+    subCommands.push(await RegistryCommand.create());
     subCommands.push(await AdminCommand.create());
     subCommands.push(await PortalCommand.create());
     subCommands.push(await VersionCommand.create());
@@ -66,7 +73,7 @@ export class FusebitOpsCli extends Command {
   }
 
   protected async onSubCommandError(command: Command, input: IExecuteInput, error: Error) {
-    const verbose = input.options.verbose as boolean;
+    const verbose = (input.options.verbose as boolean) || process.env.FUSEBIT_DEBUG;
     if (verbose) {
       try {
         input.io.writeRaw(

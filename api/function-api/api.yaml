@@ -32,6 +32,8 @@ tags:
     description: Function management operations
 #  - name: Statistics
 #    description: Statistical queries on function behavior
+#  - name: Registries
+#    description: Package registries for private implementations
 
 paths:
   /v1/account/{accountId}:
@@ -1612,6 +1614,82 @@ paths:
       security:
         - AccessToken: []
 
+  /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/function/{functionId}/build:
+    parameters:
+      - in: path
+        name: accountId
+        required: true
+        description: Account id
+        schema:
+          $ref: '#/components/schemas/AccountId'
+      - name: subscriptionId
+        in: path
+        description: The subscription id
+        required: true
+        schema:
+          $ref: '#/components/schemas/SubscriptionId'
+      - name: boundaryId
+        in: path
+        description: The boundary id, unique within the subscription.
+        required: true
+        schema:
+          $ref: '#/components/schemas/BoundaryId'
+      - name: functionId
+        in: path
+        description: The function id, unique within the boundary.
+        required: true
+        schema:
+          $ref: '#/components/schemas/FunctionId'
+    post:
+      tags:
+        - Functions
+      summary: Evaluate and rebuild a function
+      description: |
+        Evaulate each of a functions dependencies using `semver` and rebuild using
+        the latest packages that satisfy the versioning requirements.
+      operationId: postFunctionBuild
+      responses:
+        200:
+          description: Function build complete
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Build'
+        201:
+          description: Function build in progress
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Build'
+        204:
+          description: No change to function
+        400:
+          description: Malformed account, subscription, boundary or function id, or invalid function
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        403:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        404:
+          description: Subscription, boundary or function not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        429:
+          description: Module dependency failed to build
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - AccessToken: []
+
   /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/function/{functionId}/log:
     parameters:
       - in: path
@@ -2283,8 +2361,86 @@ paths:
 #      security:
 #        - AccessToken: []
 #
-#
-#
+
+  /v1/account/{accountId}/registry/default:
+    parameters:
+      - name: accountId
+        in: path
+        required: true
+        description: Account id
+        schema:
+          $ref: '#/components/schemas/AccountId'
+    get:
+      tags:
+        - Registry
+      summary: Get the registry configuration
+      description: |
+        Returns the configuration for the specified registry
+      operationId: getRegistry
+      responses:
+        200:
+          description: Configuration details for the registry
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Registry/Get'
+        403:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        404:
+          description: Registry was not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - AccessToken: []
+    put:
+      tags:
+        - Registry
+      summary: Updates the registry configuration.
+      description: |
+        Updates the registry, with the supplied configuration.
+      operationId: putRegistry
+      requestBody:
+        description: The registry to create
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Registry/Put'
+      responses:
+        200:
+          description: Registry successfully updated 
+        400:
+          description: Malformed registry specification
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        403:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - AccessToken: []
+
+  /v1/account/{accountId}/registry/default/npm:
+    parameters:
+      - name: accountId
+        in: path
+        required: true
+        description: Account id
+        schema:
+          $ref: '#/components/schemas/AccountId'
+    description: |
+      An endpoint that conforms to the protocol supported by the `npm` command line tool, which can be used to publish and retrieve packages from this registry.
+ 
   # /v1/account/{accountId}/subscription/{subscriptionId}/storage:
   #   parameters:
   #     - in: path
@@ -3116,6 +3272,32 @@ components:
             transitions:
               type: 'object'
         - $ref: '#/components/schemas/FunctionLocation'
+
+    Registry:
+      Get:
+        type: object
+        properties:
+          scopes:
+            type: array
+            description: A list of the npm package scopes reserved in this registry
+            items:
+              type: string
+              description: An npm package scope, such as '@internal'
+              example: '@internal'
+          url:
+            type: string
+            description: The URL for the npm endpoint for this registry
+            example: 'https://api.{region}.fusebit.io/v1/account/{accountId}/registry/default/npm'
+      Put:
+        type: object
+        properties:
+          scopes:
+            type: array
+            description: A list of the npm package scopes reserved in this registry
+            items:
+              type: string
+              description: An npm package scope, such as '@internal'
+              example: '@internal'
 
 #    Statistics:
 #      HistogramEntry:

@@ -143,6 +143,7 @@ export interface ICommand {
   arguments?: IArgument[];
   modes?: string[];
   subCommands?: ICommand[];
+  delegate?: boolean;
   docsUrl?: string;
   cli?: string;
 }
@@ -173,6 +174,7 @@ export class Command implements ICommand {
   private ignoreOptionsProp: string[];
   private argumentsProp: Argument[];
   private subCommandsProp: Command[];
+  private delegateProp: boolean;
   private modesProp: string[];
   private docsUrlProp: string;
   private cliProp: string;
@@ -188,6 +190,7 @@ export class Command implements ICommand {
     this.argumentsProp = ensureArguments(command.arguments);
     this.modesProp = ensureArray(command.modes);
     this.subCommandsProp = ensureSubCommands(command.subCommands);
+    this.delegateProp = command.delegate || false;
     this.docsUrlProp = command.docsUrl || '';
     this.cliProp = command.cli || '';
     this.ignoreOptionsProp = command.ignoreOptions || [];
@@ -202,7 +205,7 @@ export class Command implements ICommand {
 
     if (command) {
       const displayHelp =
-        command.subCommands.length > 0 ||
+        (command.subCommands.length > 0 && command.delegateProp === false) ||
         parsedArgs.options['--help'] !== undefined ||
         parsedArgs.options['-h'] !== undefined ||
         parsedArgs.options['-H'] !== undefined;
@@ -212,6 +215,16 @@ export class Command implements ICommand {
       }
 
       let result = 1;
+
+      if (command.delegateProp) {
+        try {
+          result = await command.execute(args, io);
+        } catch (error) {
+          result = 1;
+        }
+        return result;
+      }
+
       const input = await this.getExecuteInput(command, parsedArgs, io);
       if (input) {
         await this.onSubCommandExecuting(command, input);
@@ -602,6 +615,16 @@ export class Command implements ICommand {
     });
     message.write(input.io);
     return new Promise((resolve) => setImmediate(() => resolve(1)));
+  }
+
+  protected async onExecuteRaw(args: string[], io: ICommandIO): Promise<number> {
+    const message = await Message.create({
+      kind: MessageKind.warning,
+      header: 'Not Implemented:',
+      message: 'The Command is not currently implemented',
+    });
+    message.write(io);
+    return 1;
   }
 
   protected async onGetMode(parsedArgs: ParsedArgs, io: ICommandIO): Promise<string | undefined> {

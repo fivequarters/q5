@@ -9,6 +9,7 @@ import {
   ProfileCommand,
   UserCommand,
   VersionCommand,
+  NpmCommand,
 } from './commands';
 
 // ------------------
@@ -39,6 +40,7 @@ async function getSubCommands() {
   const subCommands: Command[] = [];
   subCommands.push(await InitCommand.create());
   subCommands.push(await FunctionCommand.create());
+  subCommands.push(await NpmCommand.create());
   subCommands.push(await ProfileCommand.create());
   subCommands.push(await TokenCommand.create());
   subCommands.push(await UserCommand.create());

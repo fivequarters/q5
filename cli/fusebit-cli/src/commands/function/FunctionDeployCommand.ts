@@ -16,7 +16,7 @@ const command = {
     Text.eol(),
     Text.eol(),
     'At a minimum, there must be an index.js file within the directory. Additionally, further application ',
-    'settings can be specified in a .env file. Any NPM module dependencies can be specified in a regular ',
+    'settings can be specified in a .env file. Any npm module dependencies can be specified in a regular ',
     'package.json file. These files must be located directly in the given directory; subdirectories are ',
     'not considered.'
   ),
