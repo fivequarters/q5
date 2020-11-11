@@ -151,7 +151,10 @@ class AwsRegistry implements IRegistryStore {
       })
       .promise();
 
-    // NYI: Remove all of the tarballs from S3
+    // Remove all of the tarballs from S3
+    for (const ver of Object.keys(pkg.versions)) {
+      await this.tarballDelete(`${pkg.name}@${ver}`);
+    }
   }
 
   public async tarballGet(nameVer: string): Promise<any> {

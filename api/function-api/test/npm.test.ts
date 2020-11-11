@@ -1,10 +1,10 @@
 import { IAccount } from './accountResolver';
 
-import { request, IHttpResponse } from '@5qtrs/request';
+import { IHttpResponse, request } from '@5qtrs/request';
 
-import { waitForBuild, putFunction, deleteFunction } from './sdk';
 import { httpExpect, setupEnvironment } from './common';
 import * as Registry from './registry';
+import { deleteFunction, putFunction, waitForBuild } from './sdk';
 
 import * as Constants from '@5qtrs/constants';
 
@@ -226,5 +226,20 @@ describe('npm', () => {
 
     // Clean up
     await deleteFunction(account, 'test-npm-build', 'testfunc');
+  }, 180000);
+
+  test('registry scope configure', async () => {
+    const account = getAccount();
+    const config = await Registry.getConfig(account);
+    expect(config.scopes.filter((e: string) => e.indexOf(Constants.REGISTRY_RESERVED_SCOPE_PREFIX) === 0)).toHaveLength(
+      1
+    );
+
+    // Test that roundtripping works
+    expect(await Registry.putConfig(account, config)).toBe(200);
+
+    // Try to add an invalid scope
+    config.scopes = [...config.scopes, Constants.REGISTRY_RESERVED_SCOPE_PREFIX + 'foobar'];
+    expect(await Registry.putConfig(account, config)).toBe(400);
   }, 180000);
 });

@@ -209,7 +209,6 @@ export class FunctionService {
     const functionSpec: any = { nodejs: { files: {} } };
     const fusebitJson = (await this.getFusebitJson(path)) || {};
 
-    functionSpec.enable = fusebitJson.enable;
     functionSpec.metadata = fusebitJson.metadata;
 
     functionSpec.compute = fusebitJson.compute || fusebitJson.lambda;
