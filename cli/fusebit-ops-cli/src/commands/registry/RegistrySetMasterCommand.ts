@@ -21,7 +21,7 @@ const command = {
   arguments: [
     {
       name: 'deployment',
-      description: 'The deployment to regenerate the tags.',
+      description: 'The deployment to set the master registry for.',
     },
     {
       name: 'accountId',

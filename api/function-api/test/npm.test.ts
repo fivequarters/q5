@@ -2,6 +2,8 @@ import { IAccount } from './accountResolver';
 import { httpExpect, setupEnvironment } from './common';
 import * as Registry from './registry';
 
+import * as Constants from '@5qtrs/constants';
+
 import { request } from '@5qtrs/request';
 
 const fs = require('fs');
@@ -162,5 +164,20 @@ describe('npm', () => {
       ...fullOpts,
     });
     expect(data).toEqual(tarData);
+  }, 180000);
+
+  test('registry scope configure', async () => {
+    const account = getAccount();
+    const config = await Registry.getConfig(account);
+    expect(config.scopes.filter((e: string) => e.indexOf(Constants.REGISTRY_RESERVED_SCOPE_PREFIX) === 0)).toHaveLength(
+      1
+    );
+
+    // Test that roundtripping works
+    expect(await Registry.putConfig(account, config)).toBe(200);
+
+    // Try to add an invalid scope
+    config.scopes = [...config.scopes, Constants.REGISTRY_RESERVED_SCOPE_PREFIX + 'foobar'];
+    expect(await Registry.putConfig(account, config)).toBe(400);
   }, 180000);
 });

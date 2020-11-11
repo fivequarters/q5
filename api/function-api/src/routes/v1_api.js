@@ -631,10 +631,9 @@ router.post(
   cors(corsManagementOptions),
   validate_schema({ params: require('./schemas/api_account') }),
   authorize({ operation: 'function:put' }),
-  express.json({ limit: process.env.FUNCTION_SIZE_LIMIT || '500kb' }),
+  express.json({ limit: '0kb' }),
   validate_schema({
     params: require('./schemas/api_params'),
-    body: require('./schemas/function_specification'),
   }),
   user_agent(),
   determine_provider(),
@@ -814,16 +813,22 @@ router.put(
   user_agent(),
   determine_provider(),
   npmRegistry.handler(),
-  (req, res, next) => {
+  async (req, res, next) => {
     try {
+      // Exclude the existing scopes that match the reserved prefix
+      const internalConfig = await req.registry.internalConfigGet();
+
+      // Filter out any of the global scopes - allows easy roundtrip by the caller.
+      req.body.scopes = req.body.scopes.filter((s) => s.indexOf(internalConfig.global.scopes) === -1);
+
+      // Make sure none of the scopes specified interfere with the reserved scope prefix.
       if (req.body.scopes.filter((s) => s.indexOf(Constants.REGISTRY_RESERVED_SCOPE_PREFIX) !== -1).length > 0) {
         return next(
           create_error(400, `Scopes starting with '${Constants.REGISTRY_RESERVED_SCOPE_PREFIX}' are not allowed`)
         );
       }
-      req.registry.configPut(req.body).then((c) => {
-        res.status(200).end();
-      });
+      await req.registry.configPut(req.body);
+      res.status(200).end();
     } catch (e) {
       next(e);
     }

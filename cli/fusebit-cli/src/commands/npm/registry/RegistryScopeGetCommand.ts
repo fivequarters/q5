@@ -8,7 +8,7 @@ import { getRegistry, IRegistries, printRegistries } from './Registry';
 
 const commandDesc: ICommand = {
   name: 'Get registry scopes',
-  cmd: 'ls',
+  cmd: 'get',
   summary: 'Get the allowed registry scopes',
   description: ['Return the configured scopes, both for the application as well as globally.'].join(' '),
   options: [
