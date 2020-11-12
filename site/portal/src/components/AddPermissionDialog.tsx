@@ -41,6 +41,7 @@ function AddPermissionDialog({ onClose }: any) {
       boundaryId: '',
       functionId: '',
     },
+    serialized: `/account/${profile.account}/`,
   });
   const [activeStep, setActiveStep] = React.useState(0);
   const [agent, setAgent] = useAgent();
@@ -82,6 +83,7 @@ function AddPermissionDialog({ onClose }: any) {
           boundaryId: '',
           functionId: '',
         },
+        serialized: `/account/${profile.account}/`,
       });
     }
     setActiveStep(nextStep);

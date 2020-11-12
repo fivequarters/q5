@@ -72,10 +72,10 @@ const actions = [
   { action: 'issuer:update', description: 'Update issuers' },
   { action: 'issuer:delete', description: 'Delete issuers' },
   // omitted - storage permissions
-  { action: 'registry:*', description: 'Full control of the npm registry' },
+  { action: 'registry:*', description: 'Add, remove, and pull packages from the npm registry' },
   { action: 'registry:get', description: 'Get packages from the npm registry' },
-  { action: 'registry-config:put', description: 'Configure the supported scopes in the registry' },
-  { action: 'registry:put', description: 'Put or delete packages in the npm registry' },
+  { action: 'registry-config:put', description: 'Configure the internal scopes in the registry' },
+  { action: 'registry:put', description: 'Add or remove packages in the npm registry' },
 ];
 
 const actionsHash = actions.reduce<any>((current, value) => {
@@ -102,13 +102,23 @@ const roles = [
     role: 'developer',
     title: 'Function developer',
     description: 'Full control of functions, list/get details of subscriptions and the account',
-    actions: ['function:*', 'subscription:get', 'account:get'],
+    actions: ['function:*', 'subscription:get', 'account:get', 'registry:*'],
   },
   {
     role: 'admin',
     title: 'Account admin',
     description: 'Full control of the account',
-    actions: ['function:*', 'subscription:get', 'account:get', 'issuer:*', 'user:*', 'client:*', 'audit:get'],
+    actions: [
+      'function:*',
+      'subscription:get',
+      'account:get',
+      'issuer:*',
+      'user:*',
+      'client:*',
+      'audit:get',
+      'registry:*',
+      'registry-config:put',
+    ],
   },
 ];
 

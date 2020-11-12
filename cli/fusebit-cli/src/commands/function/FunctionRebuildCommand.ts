@@ -116,8 +116,8 @@ export class FunctionRebuildCommand extends Command {
       return 0;
     }
 
-    // Set the boundary explicitly just to prevent getExecutionProfile from erroring.
-    input.options.boundary = 'placeholder';
+    // Get the execution profile once, since it matches all of the functions.
+    input.options.boundary = functions[0].boundaryId;
     const profile = await functionService.getFunctionExecutionProfile(true, functions[0].functionId);
 
     // Encourage deployFunctionEx to be quiet.

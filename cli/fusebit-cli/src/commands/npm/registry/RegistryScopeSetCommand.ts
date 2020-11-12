@@ -1,3 +1,5 @@
+import { EOL } from 'os';
+
 import { Command, ICommand, IExecuteInput } from '@5qtrs/cli';
 import { IText, Text } from '@5qtrs/text';
 
@@ -14,7 +16,8 @@ const commandDesc: ICommand = {
   summary: 'Set the allowed registry scopes',
   description: [
     'Set the allowed registry scopes as a series of comma separated scopes.',
-    'For example, "@scope1,@scope2,@internal,@packages"',
+    `For example, "@scope1,@scope2,@internal,@packages".`,
+    `${EOL}${EOL}NOTE: scopes that start with "${REGISTRY_RESERVED_SCOPE_PREFIX}" are reserved for system use only.`,
   ].join(' '),
   arguments: [
     {
@@ -45,7 +48,7 @@ export class RegistryScopeSetCommand extends Command {
 
     const scopes = (input.arguments[0] as string).split(',');
 
-    if (scopes.filter((s: string) => s.indexOf(REGISTRY_RESERVED_SCOPE_PREFIX) !== -1).length) {
+    if (scopes.filter((s: string) => s.indexOf(REGISTRY_RESERVED_SCOPE_PREFIX) === 0).length) {
       await executeService.error(
         'Invalid Scopes',
         `Scopes starting with '${REGISTRY_RESERVED_SCOPE_PREFIX}' are not allowed.`
