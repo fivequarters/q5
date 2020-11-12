@@ -18,13 +18,17 @@ interface ISubscriptionCache {
 
 const loadSubscription = (cache: SubscriptionCache) => {
   return async (req: IFunctionApiRequest, res: Response, next: any) => {
-    const sub = await cache.find(req.params.subscriptionId);
-    if (!sub) {
-      return next(create_error(404, 'subscription not found'));
-    }
+    try {
+      const sub = await cache.find(req.params.subscriptionId);
+      if (!sub) {
+        return next(create_error(404, 'subscription not found'));
+      }
 
-    req.params.accountId = sub.accountId;
-    return next();
+      req.params.accountId = sub.accountId;
+      return next();
+    } catch (e) {
+      return next(e);
+    }
   };
 };
 
