@@ -3,10 +3,6 @@ import { FakeAccount, IAccount, resolveAccount } from './accountResolver';
 import { httpExpect, setupEnvironment } from './common';
 import { deleteFunction, getFunction, getFunctionLocation, listFunctions, putFunction } from './sdk';
 
-import dotenv from 'dotenv';
-dotenv.config({ path: '.env' });
-process.env.LOGS_DISABLE = 'true';
-
 import * as Tags from '@5qtrs/function-tags';
 const TC = Tags.Constants;
 

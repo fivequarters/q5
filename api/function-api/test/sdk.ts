@@ -1,5 +1,3 @@
-require('dotenv').config();
-
 import { IAccount } from './accountResolver';
 import { request, IHttpResponse } from '@5qtrs/request';
 import { random } from '@5qtrs/random';

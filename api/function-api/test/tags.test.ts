@@ -1,7 +1,3 @@
-import dotenv from 'dotenv';
-dotenv.config({ path: '.env' });
-process.env.LOGS_DISABLE = 'true';
-
 import * as Constants from '@5qtrs/constants';
 
 import * as Tags from '@5qtrs/function-tags';
