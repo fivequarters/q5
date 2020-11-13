@@ -14,7 +14,10 @@ const API_PUBLIC_ENDPOINT = process.env.LOGS_HOST
   ? `http://${process.env.LOGS_HOST}`
   : (process.env.API_SERVER as string);
 
-const builder_version = require(Path.join(__dirname, '..', '..', '..', 'package.json')).version;
+let builderVersion: string = 'unknown';
+try {
+  builderVersion = require(Path.join(__dirname, '..', '..', '..', 'package.json')).version;
+} catch (_) {}
 
 const valid_boundary_name = /^[a-z0-9\-]{1,63}$/;
 
@@ -108,7 +111,7 @@ function get_module_builder_description(ctx: any, name: string, moduleSpec: IMod
   return get_module_prefix(
     'module-builder',
     ctx.options.compute.runtime,
-    [name, builder_version].join(':'),
+    [name, builderVersion].join(':'),
     moduleSpec,
     false,
     ':'
@@ -116,7 +119,7 @@ function get_module_builder_description(ctx: any, name: string, moduleSpec: IMod
 }
 
 function get_function_builder_description(options: any) {
-  return `function-builder:${options.compute.runtime}:${builder_version}`;
+  return `function-builder:${options.compute.runtime}:${builderVersion}`;
 }
 
 // Create a predictable fixed-length version of the lambda name, to avoid accidentally exceeding any name

@@ -51,11 +51,16 @@ class SubscriptionCache {
   }
 
   public async find(key: string): Promise<ISubscription | undefined> {
-    if (key in this.cache) {
-      return this.cache[key];
-    }
+    try {
+      const result = this.cache[key];
+      if (result) {
+        return result;
+      }
 
-    await this.refresh();
+      await this.refresh();
+    } catch (e) {
+      return undefined;
+    }
 
     // May still fail if the entry isn't found in the cache.
     return this.cache[key];
@@ -102,6 +107,7 @@ class SubscriptionCache {
     console.log(`CACHE: Subscription cache refreshed: ${results.length} subscriptions loaded`);
   }
 
+  // Fastest way to see if a javascript dictionary has any members.
   public healthCheck() {
     for (const i in this.cache) {
       return true;

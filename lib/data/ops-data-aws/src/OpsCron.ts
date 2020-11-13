@@ -220,6 +220,7 @@ export async function createCron(config: OpsDataAwsConfig, awsConfig: IAwsConfig
           CRON_QUEUE_URL: ctx.queueUrl,
           DEPLOYMENT_KEY: awsConfig.prefix || 'global',
           LOGS_DISABLE: 'true',
+          API_SERVER: `https://${deployment.deploymentName}.${deployment.region}.${deployment.domainName}`,
         },
       },
     };

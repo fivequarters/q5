@@ -67,6 +67,10 @@ async function validateJwt(
   }
 
   try {
+    if (process.env.JWT_ALT_AUDIENCE && decodeJwt(jwt).aud === process.env.JWT_ALT_AUDIENCE) {
+      // Debugging only - allow a specified alternative audience for JWT validation.
+      audience = process.env.JWT_ALT_AUDIENCE;
+    }
     await verifyJwt(jwt, secretOrUrl, { audience, algorithms, issuer });
   } catch (error) {
     throw AccountDataException.invalidJwt(error);
