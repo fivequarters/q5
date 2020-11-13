@@ -84,7 +84,7 @@ describe('runas', () => {
     token = response.data.functionAccessToken;
 
     // console.log( `curl ${account.baseUrl}/v1/account/${account.accountId}/me -H 'Authorization: Bearer ${token}'`);
-    // console.log(`JWT: ${JSON.stringify(decodeJwt(token), null, 2)}`);
+    // console.log(`JWT: ${JSON.stringify(decodeJwt(token, false, true), null, 2)}`);
     // const r = (await getMe(account, response.data.functionAccessToken)).data;
 
     // Make sure the permissions are correctly encoded in the JWT.

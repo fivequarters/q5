@@ -7,11 +7,11 @@ type ExpressHandler = (req: IFunctionApiRequest, res: any, next: any) => any;
 
 const execAs = (keyStore: KeyStore) => {
   return async (req: IFunctionApiRequest, res: Response, next: any) => {
-    try {
-      if (!req.functionSummary) {
-        next();
-      }
+    if (!req.functionSummary) {
+      return next();
+    }
 
+    try {
       const jwt = await mintJwtForPermissions(
         keyStore,
         req.params,
