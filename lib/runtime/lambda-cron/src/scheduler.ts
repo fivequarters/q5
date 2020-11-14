@@ -8,6 +8,8 @@ import { Constants as Tags } from '@5qtrs/function-tags';
 
 import { mintJwtForPermissions, loadFunctionSummary, AwsKeyStore, SubscriptionCache } from '@5qtrs/runas';
 
+import { pollOnce, is_logging_enabled, addLogPermission, getLogUrl } from '@5qtrs/runtime-common';
+
 const filter = eval(process.env.CRON_FILTER || 'ctx => true;');
 const MAX_EXECUTIONS_PER_WINDOW = +(process.env.CRON_MAX_EXECUTIONS_PER_WINDOW as string) || 120;
 const SQS_QUEUE_URL = process.env.CRON_QUEUE_URL as string;
@@ -40,8 +42,9 @@ const keyStoreHealth = keyStore.rekey();
 
 // Entrypoint for the scheduler
 export async function scheduler(event: any, context: any, cbScheduler: any) {
-  // Make sure both of these processes have completed before continuing.
-  await Promise.all([subscriptionCacheHealth, keyStoreHealth]);
+  // Make sure both of these processes have completed before continuing, and trigger the realtime logging
+  // system to poll once.
+  await Promise.all([subscriptionCacheHealth, keyStoreHealth, new Promise((resolve, reject) => pollOnce(resolve))]);
 
   // Give the keystore an opportunity to rekey on long-lived lambdas
   await keyStore.healthCheck();
@@ -98,7 +101,7 @@ async function scheduleExecutions(stats: any, contents: any[], fromTime: Date, t
       // Format of the S3 key is 'function-cron/{subscriptionId}/{boundaryId}/{functionId}/{encoded_schedule}'
       const segments = entry.Key.split('/');
 
-      const ctx: { [property: string]: string | undefined } = {
+      const ctx: { [property: string]: string | any | undefined } = {
         key: entry.Key,
         subscriptionId: segments[1],
         boundaryId: segments[2],
@@ -129,6 +132,12 @@ async function scheduleExecutions(stats: any, contents: any[], fromTime: Date, t
         return;
       }
 
+      console.log(`X1 ${getLogUrl(ctx)} ${is_logging_enabled(ctx)}`);
+      if (true || is_logging_enabled(ctx)) {
+        // Add the realtime logging permissions to the summary.
+        addLogPermission(ctx, functionSummary);
+      }
+
       // Mint a JWT, if necessary, and add it to the context.
       ctx.functionAccessToken = await mintJwtForPermissions(
         keyStore,
@@ -136,6 +145,19 @@ async function scheduleExecutions(stats: any, contents: any[], fromTime: Date, t
         functionSummary[Tags.get_compute_tag_key('permissions')],
         'cron'
       );
+
+      if (true || is_logging_enabled(ctx)) {
+        console.log(`Enabling logging for ${getLogUrl(ctx)}`);
+        // Add the realtime logging configuration to the ctx
+        ctx.logs = {
+          token: ctx.functionAccessToken,
+          path: `/v1/${getLogUrl(ctx)}`,
+          host: Constants.API_PUBLIC_ENDPOINT.replace(/http[s]?:\/\//i, ''),
+          protocol: 'https',
+        };
+      }
+
+      console.log(`${JSON.stringify(ctx.logs)}`);
 
       // Parse the encoded schedule
       const tmp = JSON.parse(Buffer.from(segments[4], 'hex').toString());
@@ -168,8 +190,9 @@ async function scheduleExecutions(stats: any, contents: any[], fromTime: Date, t
           MessageBody: JSON.stringify(ctx),
         });
       }
-    } catch (_) {
+    } catch (e) {
       // Prevent the failure of any one lookup from early-terminating the Promise.all()
+      console.log(e);
     }
   });
 
