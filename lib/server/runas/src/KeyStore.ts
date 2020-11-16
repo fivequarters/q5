@@ -34,6 +34,7 @@ class KeyStore {
   private jwtValidDuration: number;
   private rekeyInterval: number;
   private jwtAlgorithm: string;
+  private keyRefreshTimer: ReturnType<typeof setTimeout> | undefined;
 
   constructor(options: IKeyStoreOptions = {}) {
     this.keyPair = { kid: 'A', publicKey: 'A', ttl: 0 };
@@ -74,13 +75,21 @@ class KeyStore {
   public async rekey(): Promise<IKeyPair> {
     const keyPair = await this.createKey();
     this.setKeyPair(keyPair);
+
     return keyPair;
   }
 
   // Separate the key pair generation from assignment to allow async operations like AWS to complete writing
   // to DynamoDB before attempting to use it to mint JWTs.
+  //
+  // Additionaly, restart the timer for a rekey based on this key being created.
   public setKeyPair(keyPair: IKeyPair) {
     this.keyPair = keyPair;
+
+    if (this.keyRefreshTimer) {
+      clearTimeout(this.keyRefreshTimer);
+    }
+    this.keyRefreshTimer = setTimeout(() => this.rekey(), this.rekeyInterval);
   }
 
   public getPublicKey(): IKeyPair {
@@ -93,11 +102,6 @@ class KeyStore {
 
     if (!key || key.ttl < Date.now()) {
       throw new Error('invalid keypair');
-    }
-
-    // Trigger a rekey well in advance of the validity window.
-    if (key.ttl < Date.now() + this.rekeyInterval) {
-      return this.rekey();
     }
   }
 }
