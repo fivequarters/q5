@@ -1,110 +1,177 @@
-import * as Constants from '@5qtrs/constants';
-import * as Common from '@5qtrs/runtime-common';
 import * as Async from 'async';
 import * as AWS from 'aws-sdk';
 import * as Cron from 'cron-parser';
-import * as Crypto from 'crypto';
-import * as Jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
+
+import { Constants as Tags } from '@5qtrs/function-tags';
+import * as Constants from '@5qtrs/constants';
+import * as Common from '@5qtrs/runtime-common';
 
 const s3 = new AWS.S3({
   apiVersion: '2006-03-01',
   signatureVersion: 'v4',
 });
 
+import { mintJwtForPermissions, loadFunctionSummary, AwsKeyStore, SubscriptionCache } from '@5qtrs/runas';
+
+const maxParallelLookup = 20; // Only lookup 20 functions at a time from Dynamo
 const concurrentExecutionLimit = +(process.env.CRON_CONCURRENT_EXECUTION_LIMIT as string) || 5;
 
-export function executor(event: any, context: any, cb: any) {
+// Create the keystore and guarantee an initial key
+const keyStore = new AwsKeyStore({
+  // Maximum key lifetime is three hours
+  maxKeyTtl: 3 * 60 * 60 * 1000,
+  // Let the JWTs last for 30 minutes, since they will be scheduled at most 15 minutes in the future.
+  jwtValidDuration: 30 * 60 * 1000,
+  // Rekey every hour
+  rekeyInterval: 60 * 60 * 1000,
+});
+let keyStoreHealth: Promise<any>;
+
+export async function executor(event: any, context: any) {
+  if (keyStoreHealth === undefined) {
+    keyStoreHealth = keyStore.rekey();
+  }
+
+  // Make sure both of these processes have completed before continuing, and trigger the realtime logging
+  // system to poll once on each invocation of the executor.
+  await Promise.all([keyStoreHealth, new Promise((resolve, reject) => Common.pollOnce(resolve))]);
+
+  // Give the keystore an opportunity to rekey on long-lived lambdas
+  await keyStore.healthCheck();
+
   const result: any = {
     success: [],
     failure: [],
     skipped: [],
   };
 
-  return Async.eachLimit(
-    event.Records,
-    concurrentExecutionLimit,
-    (msg, cb) => maybeExecuteCronJob(msg, cb),
-    (e) => cb(e, result)
-  );
+  await Constants.asyncPool(concurrentExecutionLimit, event.Records, async (msg: any) => {
+    const ctx = JSON.parse(msg.body);
 
-  function maybeExecuteCronJob(msg: any, cb: any) {
-    const body = JSON.parse(msg.body);
-    return Async.waterfall(
-      [(cb: any) => checkCronStillExists(cb), (exists: boolean, cb: any) => runIfExists(exists, cb)],
-      cb
-    );
+    try {
+      const exists = await checkCronStillExists(ctx.key);
 
-    function checkCronStillExists(cb: any) {
-      s3.headObject(
-        {
-          Bucket: process.env.AWS_S3_BUCKET as string,
-          Key: body.key,
-        },
-        (e, d) => cb(null, !!(!e && d))
-      );
-    }
-
-    function runIfExists(exists: boolean, cb: any) {
-      console.log(exists ? 'RUNNING CRON JOB' : 'SKIPPING CRON JOB', msg);
+      console.log(exists ? 'RUNNING CRON JOB' : 'SKIPPING CRON JOB', ctx);
       if (!exists) {
-        result.skipped.push(msg);
-        return cb();
+        result.skipped.push(ctx.key);
+        return;
       }
 
-      // Calculate the deviation from the actual expected time to now.
-      const startTime = Date.now();
-      const deviation =
-        startTime -
-        Date.parse(
-          Cron.parseExpression(body.cron, {
-            currentDate: startTime,
-            tz: body.timezone,
-          })
-            .prev()
-            .toString()
-        );
-
-      // Generate a pseudo-request object to drive the invocation.
-      const request = {
-        method: 'CRON',
-        url: '',
-        path: Constants.get_user_function_name(body),
-        body,
-        protocol: 'cron',
-        headers: { 'x-forwarded-proto': 'cron', host: 'fusebit' },
-        query: {},
-        params: body,
-        requestId: uuidv4(),
-        startTime,
-      };
-
-      request.url = Constants.get_function_location(
-        request,
-        request.params.subscriptionId,
-        request.params.boundaryId,
-        request.params.functionId
-      );
-
-      // Execute, and record the results.
-      return Common.invoke_function(request, (error: any, response: any, meta: any) => {
-        meta.metrics.cron = { deviation };
-        dispatch_cron_event({ request, error, response, meta });
-
-        if (error) {
-          result.failure.push(msg);
-        } else {
-          result.success.push(msg);
-        }
-
-        return cb();
-      });
+      await executeFunction(ctx);
+      result.success.push({ key: ctx.key, logs: ctx.logs ? 'enabled' : 'disabled' });
+    } catch (e) {
+      result.failure.push({ key: ctx.key, error: `${e}` });
     }
+  });
+
+  console.log(`RESULTS: ${JSON.stringify(result)}`);
+  return {};
+}
+
+async function checkCronStillExists(key: string) {
+  try {
+    const d = await s3.headObject({ Bucket: process.env.AWS_S3_BUCKET as string, Key: key }).promise();
+    return !!d;
+  } catch (e) {
+    return false;
   }
 }
 
-function dispatch_cron_event(details: any) {
+async function executeFunction(ctx: any) {
+  // Add any necessary security tokens to the request.
+  await addSecurityTokens(ctx);
+
+  const { startTime, deviation } = calculateCronDeviation(ctx.cron, ctx.timezone);
+
+  // Generate a pseudo-request object to drive the invocation.
+  const request = {
+    method: 'CRON',
+    url: '',
+    path: Constants.get_user_function_name(ctx),
+    body: ctx,
+    protocol: 'cron',
+    headers: { 'x-forwarded-proto': 'cron', host: 'fusebit' },
+    query: {},
+    params: ctx,
+    requestId: uuidv4(),
+    startTime,
+  };
+
+  request.url = Constants.get_function_location(
+    request,
+    request.params.subscriptionId,
+    request.params.boundaryId,
+    request.params.functionId
+  );
+
+  // Execute, and record the results.
+  await new Promise((resolve, reject) =>
+    Common.invoke_function(request, (error: any, response: any, meta: any) => {
+      meta.metrics.cron = { deviation };
+      dispatchCronEvent({ request, error, response, meta });
+
+      if (error) {
+        reject(error);
+      } else {
+        resolve(ctx);
+      }
+    })
+  );
+}
+
+// Add tokens for both RunAs permissions as well as any logging permissions that are needed.
+async function addSecurityTokens(ctx: any) {
+  // Load the desired function summary from DynamoDB
+  let functionSummary;
+  try {
+    functionSummary = await loadFunctionSummary(ctx);
+  } catch (e) {
+    console.log(
+      `ERROR: Unable to load summary for ${ctx.accountId}/${ctx.subscriptionId}/${ctx.boundaryId}/${ctx.functionId}: ${e}`
+    );
+    throw e;
+  }
+
+  // Add the realtime logging permissions to the summary.
+  const permissions = Common.is_logging_enabled(ctx)
+    ? Common.addLogPermission(ctx, Constants.getFunctionPermissions(functionSummary, true))
+    : Constants.getFunctionPermissions(functionSummary);
+
+  // Mint a JWT, if necessary, and add it to the context.
+  ctx.functionAccessToken = await mintJwtForPermissions(keyStore, ctx, permissions, 'cron');
+
+  // Add the realtime logging configuration to the ctx
+  ctx.logs = Common.is_logging_enabled(ctx)
+    ? {
+        token: ctx.functionAccessToken,
+        path: `/v1${Common.getLogUrl(ctx)}`,
+        host: Constants.API_PUBLIC_ENDPOINT.replace(/http[s]?:\/\//i, ''),
+        protocol: 'https',
+      }
+    : undefined;
+}
+
+// Calculate the deviation from the actual expected time to now.
+function calculateCronDeviation(expression: string, timezone: string) {
+  const startTime = Date.now();
+  const deviation =
+    startTime -
+    Date.parse(
+      Cron.parseExpression(expression, {
+        currentDate: startTime,
+        tz: timezone,
+      })
+        .prev()
+        .toString()
+    );
+
+  return { startTime, deviation };
+}
+
+function dispatchCronEvent(details: any) {
   const fusebit = {
+    accountId: details.request.params.accountId,
     subscriptionId: details.request.params.subscriptionId,
     boundaryId: details.request.params.boundaryId,
     functionId: details.request.params.functionId,

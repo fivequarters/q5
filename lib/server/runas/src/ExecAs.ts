@@ -15,7 +15,7 @@ const execAs = (keyStore: KeyStore) => {
       const jwt = await mintJwtForPermissions(
         keyStore,
         req.params,
-        req.functionSummary[Tags.get_compute_tag_key('permissions')]
+        Constants.getFunctionPermissions(req.functionSummary)
       );
 
       // Specify it into the request so it gets passed into the executor.

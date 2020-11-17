@@ -179,6 +179,12 @@ function get_function_location(req: any, subscriptionId: string, boundaryId: str
   return `${baseUrl}/v1/run/${subscriptionId}/${boundaryId}/${functionId}`;
 }
 
+const get_compute_tag_key = (key: string) => `compute.${key}`;
+const get_dependency_tag_key = (key: string) => `dependency.${key}`;
+const get_versions_tag_key = (key: string) => `environment.${key}`;
+const get_metadata_tag_key = (key: string) => `tag.${key}`;
+const get_template_tag_key = (key: string) => `template.${key}`;
+
 function isSystemIssuer(issuerId: string) {
   return issuerId.match(`${RUNAS_SYSTEM_ISSUER_SUFFIX}$`);
 }
@@ -192,6 +198,14 @@ function makeFunctionSub(params: any, mode: string) {
     ':'
   );
 }
+
+const getFunctionPermissions = (summary: any, orCreate: boolean = false): any => {
+  if (!summary[get_compute_tag_key('permissions')] && orCreate) {
+    console.log(`creating permissions object`);
+    summary[get_compute_tag_key('permissions')] = { allow: [] };
+  }
+  return summary[get_compute_tag_key('permissions')];
+};
 
 export {
   get_log_table_name,
@@ -222,6 +236,11 @@ export {
   get_cron_key,
   get_function_location,
   get_deployment_s3_bucket,
+  get_compute_tag_key,
+  get_dependency_tag_key,
+  get_versions_tag_key,
+  get_metadata_tag_key,
+  get_template_tag_key,
   Permissions,
   RestrictedPermissions,
   UserPermissions,
@@ -229,6 +248,7 @@ export {
   isSystemIssuer,
   makeSystemIssuerId,
   makeFunctionSub,
+  getFunctionPermissions,
   REGISTRY_CATEGORY,
   REGISTRY_CATEGORY_CONFIG,
   REGISTRY_DEFAULT,

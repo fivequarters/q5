@@ -3,6 +3,8 @@ import create_error from 'http-errors';
 import { get_function_tags, Constants as Tags } from '@5qtrs/function-tags';
 import { IFunctionApiRequest } from './Request';
 
+import { get_compute_tag_key } from '@5qtrs/constants';
+
 const loadSummary = () => {
   return async (req: IFunctionApiRequest, res: Response, next: any) => {
     try {
@@ -32,9 +34,9 @@ const loadFunctionSummary = async (params: any): Promise<any> => {
           return reject(e);
         }
         const functionSummary = d;
-        if (functionSummary[Tags.get_compute_tag_key('permissions')]) {
-          functionSummary[Tags.get_compute_tag_key('permissions')] = JSON.parse(
-            functionSummary[Tags.get_compute_tag_key('permissions')] as string
+        if (functionSummary[get_compute_tag_key('permissions')]) {
+          functionSummary[get_compute_tag_key('permissions')] = JSON.parse(
+            functionSummary[get_compute_tag_key('permissions')] as string
           );
         }
         return resolve(functionSummary);

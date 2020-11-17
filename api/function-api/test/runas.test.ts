@@ -61,10 +61,6 @@ describe('runas', () => {
     response = await request(url);
     httpExpect(response, { statusCode: 200 });
     expect(response.data.functionAccessToken).toBeUndefined();
-
-    response = await request(url);
-    httpExpect(response, { statusCode: 200 });
-    expect(response.data.functionAccessToken).toBeUndefined();
   }, 180000);
 
   test('jwt created with permissions', async () => {

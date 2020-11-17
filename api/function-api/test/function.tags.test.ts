@@ -4,7 +4,8 @@ import { httpExpect, setupEnvironment } from './common';
 import { deleteFunction, getFunction, getFunctionLocation, listFunctions, putFunction } from './sdk';
 
 import * as Tags from '@5qtrs/function-tags';
-const TC = Tags.Constants;
+
+import * as Constants from '@5qtrs/constants';
 
 import { DynamoDB } from 'aws-sdk';
 const dynamo = new DynamoDB({ apiVersion: '2012-08-10' });
@@ -87,18 +88,18 @@ describe('function.tags', () => {
       }
     };
 
-    await search(TC.get_metadata_tag_key('common'), 3, [function1Id, function2Id]);
-    await search(TC.get_metadata_tag_key('foo'), 1, [function1Id]);
-    await search(TC.get_metadata_tag_key('foo'), 5, [function2Id]);
-    await search(TC.get_metadata_tag_key('whiz'), 'bang', [function2Id]);
-    await search(TC.get_metadata_tag_key('whiz'), undefined, [function2Id]);
-    await search(TC.get_metadata_tag_key('flies'), null, [function1Id]);
-    await search(TC.get_metadata_tag_key('flies'), 'null', [function1Id]); // Probably shouldn't be true, but...
-    await search(TC.get_compute_tag_key('memorySize'), 256, [function2Id]);
-    await search(TC.get_metadata_tag_key('eq=key'), undefined, [function2Id]);
-    await search(TC.get_metadata_tag_key('eq=key'), 'found', [function2Id]);
-    await search(TC.get_metadata_tag_key('eqval'), undefined, [function2Id]);
-    await search(TC.get_metadata_tag_key('eqval'), 'fou=nd', [function2Id]);
+    await search(Constants.get_metadata_tag_key('common'), 3, [function1Id, function2Id]);
+    await search(Constants.get_metadata_tag_key('foo'), 1, [function1Id]);
+    await search(Constants.get_metadata_tag_key('foo'), 5, [function2Id]);
+    await search(Constants.get_metadata_tag_key('whiz'), 'bang', [function2Id]);
+    await search(Constants.get_metadata_tag_key('whiz'), undefined, [function2Id]);
+    await search(Constants.get_metadata_tag_key('flies'), null, [function1Id]);
+    await search(Constants.get_metadata_tag_key('flies'), 'null', [function1Id]); // Probably shouldn't be true, but...
+    await search(Constants.get_compute_tag_key('memorySize'), 256, [function2Id]);
+    await search(Constants.get_metadata_tag_key('eq=key'), undefined, [function2Id]);
+    await search(Constants.get_metadata_tag_key('eq=key'), 'found', [function2Id]);
+    await search(Constants.get_metadata_tag_key('eqval'), undefined, [function2Id]);
+    await search(Constants.get_metadata_tag_key('eqval'), 'fou=nd', [function2Id]);
     await search('cron', false, [function1Id, function2Id]);
     await search('cron', undefined, [function1Id, function2Id]);
   }, 120000);
@@ -141,10 +142,10 @@ describe('function.tags', () => {
 
     let result: any;
     const found: any = [];
-    result = await search(TC.get_metadata_tag_key('common'), 3, undefined, 2);
+    result = await search(Constants.get_metadata_tag_key('common'), 3, undefined, 2);
     expect(result[0]).toHaveLength(2);
     found.push(...result[0]);
-    result = await search(TC.get_metadata_tag_key('common'), 3, result[1], 2);
+    result = await search(Constants.get_metadata_tag_key('common'), 3, result[1], 2);
     expect(result[0]).toHaveLength(1);
     found.push(...result[0]);
 
@@ -316,19 +317,19 @@ describe('function.tags', () => {
 
     let search: string[];
 
-    search = ['common=3', 'foo=1'].map((t) => TC.get_metadata_tag_key(t));
+    search = ['common=3', 'foo=1'].map((t) => Constants.get_metadata_tag_key(t));
     response = await listFunctions(account, boundaryId, undefined, undefined, search, undefined);
     expect(response.status).toEqual(200);
     expect(response.data.items).toHaveLength(2);
 
-    search = ['common=3', 'foo=5'].map((t) => TC.get_metadata_tag_key(t));
+    search = ['common=3', 'foo=5'].map((t) => Constants.get_metadata_tag_key(t));
     response = await listFunctions(account, boundaryId, undefined, undefined, search, undefined);
     expect(response.status).toEqual(200);
     expect(response.data.items).toHaveLength(1);
 
     // Test the `next` handling
     let result: any[] = [];
-    search = ['common=3', 'foo=1'].map((t) => TC.get_metadata_tag_key(t));
+    search = ['common=3', 'foo=1'].map((t) => Constants.get_metadata_tag_key(t));
     let next;
     do {
       response = await listFunctions(account, boundaryId, undefined, 1, search, next);

@@ -1,5 +1,5 @@
 import { IAccount, FakeAccount, resolveAccount } from './accountResolver';
-import { deleteFunction, putFunction, deleteAllFunctions, waitForBuild, sleep, getFunction } from './sdk';
+import { deleteFunction, putFunction, deleteAllFunctions, waitForBuild, sleep, getFunction, getLogs } from './sdk';
 import { request } from '@5qtrs/request';
 
 let account: IAccount = FakeAccount;
@@ -72,6 +72,7 @@ describe('cron', () => {
                   .set('Authorization', 'Bearer ' + ctx.fusebit.functionAccessToken);
 
                 let runs = JSON.parse(Buffer.from(r.body.configuration.runs, 'base64').toString('utf8'));
+                console.log('Number of runs: ', runs.length);
                 runs.push(Date.now());
                 runs = Buffer.from(JSON.stringify(runs), 'utf8').toString('base64');
                 await Superagent.put("${functionUrl}")
@@ -101,6 +102,11 @@ describe('cron', () => {
       }
       expect(response.data.status).toEqual('success');
 
+      // Start logging for the first 10 minutes, to make sure both function-api triggered and cron-scheduler
+      // triggered events are captured.  The timer is set to 15, but the connection is unlikely to stay open
+      // that long due to internal configuration entities.
+      const logsPromise = getLogs(account, boundaryId, function1Id, false, 15 * 60 * 1000);
+
       const getRuns = async () => {
         const res = await getFunction(account, boundaryId, function2Id);
         expect(res.status).toEqual(200);
@@ -121,6 +127,14 @@ describe('cron', () => {
           lastRuns.shift();
         }
       }
+
+      const logResponse = await logsPromise;
+      expect(logResponse.status).toEqual(200);
+      expect(logResponse.headers['content-type']).toMatch(/text\/event-stream/);
+
+      // Make sure we got at least halfway through the number of events to maximize the chance we validate
+      // both function-api scheduled events as well as cron-scheduler triggered events.
+      expect(logResponse.data.indexOf('Number of runs:  8') > 0);
 
       // delete cron job
       response = await deleteFunction(account, boundaryId, function1Id);
