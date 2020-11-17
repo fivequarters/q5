@@ -18,6 +18,13 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.24.10
+
+_Released 11/17/20_
+
+- **Enhancement.** Enable cron functions to execute with Fusebit priviledges.
+- **Enhancement.** Support realtime log output from cron functions.
+
 ## Version 1.24.9
 
 _Released 11/05/20_
