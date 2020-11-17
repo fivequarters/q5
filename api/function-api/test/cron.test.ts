@@ -90,7 +90,7 @@ describe('cron', () => {
         schedule: {
           cron: '* * * * *', // run every minute
         },
-        permissions: {
+        functionPermissions: {
           allow: [{ action: 'function:*', resource: function2Resource }],
         },
       });

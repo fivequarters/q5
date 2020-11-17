@@ -66,5 +66,5 @@ export interface IFunctionSpecification {
   /*
    * Permissions that the function will execute under.
    */
-  permissions?: { allow: [{ action: string; resource: string }] };
+  functionPermissions?: { allow: [{ action: string; resource: string }] };
 }
