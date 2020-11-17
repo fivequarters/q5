@@ -1,7 +1,7 @@
 import { verifyJwt } from '@5qtrs/jwt';
 import * as Constants from '@5qtrs/constants';
 
-import { KeyStore, KEYSTORE_MAX_KEY_TTL, KEYSTORE_MIN_WINDOW, KEYSTORE_DEFAULT_ALG } from '../src/KeyStore';
+import { KeyStore, KEYSTORE_MAX_KEY_TTL, KEYSTORE_JWT_VALIDITY, KEYSTORE_DEFAULT_ALG } from '../src/KeyStore';
 
 import { startExpress } from './server';
 
@@ -23,6 +23,6 @@ describe('keystore', () => {
     expect(result.iat).toBeGreaterThan(now - 5);
     expect(result.iat).toBeLessThan(now);
     expect(result.exp).toBeGreaterThan(now);
-    expect(result.exp).toBeLessThan(KEYSTORE_MIN_WINDOW / 1000 + now);
+    expect(result.exp).toBeLessThan(KEYSTORE_JWT_VALIDITY / 1000 + now);
   });
 });

@@ -14,7 +14,10 @@ const API_PUBLIC_ENDPOINT = process.env.LOGS_HOST
   ? `http://${process.env.LOGS_HOST}`
   : (process.env.API_SERVER as string);
 
-const builder_version = require(Path.join(__dirname, '..', '..', '..', 'package.json')).version;
+let builderVersion: string = 'unknown';
+try {
+  builderVersion = require(Path.join(__dirname, '..', '..', '..', 'package.json')).version;
+} catch (_) {}
 
 const valid_boundary_name = /^[a-z0-9\-]{1,63}$/;
 
@@ -52,6 +55,8 @@ const REGISTRY_RESERVED_SCOPE_PREFIX = '@fuse';
 const MODULE_PUBLIC_REGISTRY = 'public';
 
 const RUNAS_ISSUER = 'runas-system-issuer';
+
+// Changes to this variable will also require changing AgentTooltip.tsx in Portal.
 const RUNAS_SYSTEM_ISSUER_SUFFIX = 'system.fusebit.io';
 
 const JWT_PERMISSION_CLAIM = 'https://fusebit.io/permissions';
@@ -108,7 +113,7 @@ function get_module_builder_description(ctx: any, name: string, moduleSpec: IMod
   return get_module_prefix(
     'module-builder',
     ctx.options.compute.runtime,
-    [name, builder_version].join(':'),
+    [name, builderVersion].join(':'),
     moduleSpec,
     false,
     ':'
@@ -116,7 +121,7 @@ function get_module_builder_description(ctx: any, name: string, moduleSpec: IMod
 }
 
 function get_function_builder_description(options: any) {
-  return `function-builder:${options.compute.runtime}:${builder_version}`;
+  return `function-builder:${options.compute.runtime}:${builderVersion}`;
 }
 
 // Create a predictable fixed-length version of the lambda name, to avoid accidentally exceeding any name
@@ -174,6 +179,12 @@ function get_function_location(req: any, subscriptionId: string, boundaryId: str
   return `${baseUrl}/v1/run/${subscriptionId}/${boundaryId}/${functionId}`;
 }
 
+const get_compute_tag_key = (key: string) => `compute.${key}`;
+const get_dependency_tag_key = (key: string) => `dependency.${key}`;
+const get_versions_tag_key = (key: string) => `environment.${key}`;
+const get_metadata_tag_key = (key: string) => `tag.${key}`;
+const get_template_tag_key = (key: string) => `template.${key}`;
+
 function isSystemIssuer(issuerId: string) {
   return issuerId.match(`${RUNAS_SYSTEM_ISSUER_SUFFIX}$`);
 }
@@ -187,6 +198,14 @@ function makeFunctionSub(params: any, mode: string) {
     ':'
   );
 }
+
+const getFunctionPermissions = (summary: any, orCreate: boolean = false): any => {
+  if (!summary[get_compute_tag_key('permissions')] && orCreate) {
+    console.log(`creating permissions object`);
+    summary[get_compute_tag_key('permissions')] = { allow: [] };
+  }
+  return summary[get_compute_tag_key('permissions')];
+};
 
 export {
   get_log_table_name,
@@ -217,6 +236,11 @@ export {
   get_cron_key,
   get_function_location,
   get_deployment_s3_bucket,
+  get_compute_tag_key,
+  get_dependency_tag_key,
+  get_versions_tag_key,
+  get_metadata_tag_key,
+  get_template_tag_key,
   Permissions,
   RestrictedPermissions,
   UserPermissions,
@@ -224,6 +248,7 @@ export {
   isSystemIssuer,
   makeSystemIssuerId,
   makeFunctionSub,
+  getFunctionPermissions,
   REGISTRY_CATEGORY,
   REGISTRY_CATEGORY_CONFIG,
   REGISTRY_DEFAULT,

@@ -699,13 +699,17 @@ router.get(
   user_agent(),
   determine_provider(),
   npmRegistry(),
-  (req, res) =>
-    req.registry.configGet().then((config) => {
+  async (req, res, next) => {
+    try {
+      const config = await req.registry.configGet();
       res.status(200).json({
         ...config,
         url: `${process.env.API_SERVER}/v1${require('url').parse(req.url).pathname}npm/`,
       });
-    }),
+    } catch (e) {
+      next(e);
+    }
+  },
   analytics.finished
 );
 

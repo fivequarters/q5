@@ -53,7 +53,7 @@ export function createLogsPanel(element: HTMLElement, editorContext: EditorConte
   editorContext.on(Events.Events.LogsEntry, (e: Events.LogsEntryEvent) => {
     try {
       const json = JSON.parse(e.data);
-      append(`SERVER ${json.level === 30 ? 'STDOUT' : 'STDERR'}: ${json.msg}`);
+      append(`${json.method || 'SERVER'} ${json.level === 30 ? 'STDOUT' : 'STDERR'}: ${json.msg}`);
     } catch (_) {
       // do nothing
     }

@@ -3228,6 +3228,14 @@ components:
                   type: string
                 value:
                   type: string
+        functionPermission:
+          type: object
+          description: Provide a `ctx.fusebit.functionAccessToken` on execution with these credentials, allowing the function to act with permissions different than the caller.
+          properties:
+            allow:
+              type: array
+              items:
+                $ref: '#/components/schemas/AccessStatement'
 
     FunctionList:
       type: object

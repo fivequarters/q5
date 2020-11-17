@@ -8,7 +8,9 @@ import { createKeyPair } from '@5qtrs/key-pair';
 import { IFunctionParams, IFunctionPermission } from './Request';
 
 const KEYSTORE_MAX_KEY_TTL = 12 * 60 * 60 * 1000; // 12 hrs
-const KEYSTORE_MIN_WINDOW = 5 * 60 * 1000; // 5 minutes
+const KEYSTORE_JWT_VALIDITY = 15 * 60 * 1000; // 15 minutes, to cover cron invocations
+const KEYSTORE_REKEY_BEFORE = 10 * KEYSTORE_JWT_VALIDITY; // Rekey when the life of the key closer than this.
+
 const KEYSTORE_DEFAULT_ALG = 'RS256';
 
 interface IKeyPair {
@@ -20,21 +22,25 @@ interface IKeyPair {
 
 interface IKeyStoreOptions {
   maxKeyTtl?: number;
-  minValidWindow?: number;
+  jwtValidDuration?: number;
   jwtAlgorithm?: string;
+  rekeyInterval?: number;
 }
 
 class KeyStore {
   private keyPair: IKeyPair;
 
   private maxKeyTtl: number;
-  private minValidWindow: number;
+  private jwtValidDuration: number;
+  private rekeyInterval: number;
   private jwtAlgorithm: string;
+  private keyRefreshTimer: ReturnType<typeof setTimeout> | undefined;
 
   constructor(options: IKeyStoreOptions = {}) {
     this.keyPair = { kid: 'A', publicKey: 'A', ttl: 0 };
     this.maxKeyTtl = options.maxKeyTtl || KEYSTORE_MAX_KEY_TTL;
-    this.minValidWindow = options.minValidWindow || KEYSTORE_MIN_WINDOW;
+    this.jwtValidDuration = options.jwtValidDuration || KEYSTORE_JWT_VALIDITY;
+    this.rekeyInterval = options.rekeyInterval || KEYSTORE_REKEY_BEFORE;
     this.jwtAlgorithm = options.jwtAlgorithm || KEYSTORE_DEFAULT_ALG;
   }
 
@@ -52,7 +58,7 @@ class KeyStore {
 
     return signJwt(payload, key.privateKey as string, {
       algorithm: this.jwtAlgorithm,
-      expiresIn: Math.floor(this.minValidWindow / 1000),
+      expiresIn: Math.floor(this.jwtValidDuration / 1000),
       header,
     });
   }
@@ -69,13 +75,21 @@ class KeyStore {
   public async rekey(): Promise<IKeyPair> {
     const keyPair = await this.createKey();
     this.setKeyPair(keyPair);
+
     return keyPair;
   }
 
   // Separate the key pair generation from assignment to allow async operations like AWS to complete writing
   // to DynamoDB before attempting to use it to mint JWTs.
+  //
+  // Additionaly, restart the timer for a rekey based on this key being created.
   public setKeyPair(keyPair: IKeyPair) {
     this.keyPair = keyPair;
+
+    if (this.keyRefreshTimer) {
+      clearTimeout(this.keyRefreshTimer);
+    }
+    this.keyRefreshTimer = setTimeout(() => this.rekey(), this.rekeyInterval);
   }
 
   public getPublicKey(): IKeyPair {
@@ -89,12 +103,7 @@ class KeyStore {
     if (!key || key.ttl < Date.now()) {
       throw new Error('invalid keypair');
     }
-
-    // Trigger a rekey well in advance of the validity window.
-    if (key.ttl < Date.now() + 10 * this.minValidWindow) {
-      this.rekey();
-    }
   }
 }
 
-export { KeyStore, IKeyPair, KEYSTORE_MAX_KEY_TTL, KEYSTORE_MIN_WINDOW, KEYSTORE_DEFAULT_ALG };
+export { KeyStore, IKeyPair, KEYSTORE_MAX_KEY_TTL, KEYSTORE_JWT_VALIDITY, KEYSTORE_DEFAULT_ALG };

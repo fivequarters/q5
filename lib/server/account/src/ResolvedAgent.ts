@@ -67,6 +67,10 @@ async function validateJwt(
   }
 
   try {
+    if (process.env.JWT_ALT_AUDIENCE && decodeJwt(jwt).aud === process.env.JWT_ALT_AUDIENCE) {
+      // Debugging only - allow a specified alternative audience for JWT validation.
+      audience = process.env.JWT_ALT_AUDIENCE;
+    }
     await verifyJwt(jwt, secretOrUrl, { audience, algorithms, issuer });
   } catch (error) {
     throw AccountDataException.invalidJwt(error);
@@ -149,7 +153,9 @@ export class ResolvedAgent implements IAgent {
       const agent = await cancelOnError(validatePromise, agentPromise);
       const resolvedAgent = new ResolvedAgent(dataContext, accountId, agent, identity);
 
-      // Downgrade non-system issuers with claims if they are a subset of agent's permissions.
+      // Non-system issuers presenting claims must only present claims that are a subset of the resolved
+      // agent's permissions.  If the presented claims exceed the agent's permissions, an error will be
+      // thrown.
       if (!isSystemIssuer(issuerId) && decodedJwtPayload[JWT_PERMISSION_CLAIM]) {
         await resolvedAgent.checkPermissionSubset(decodedJwtPayload[JWT_PERMISSION_CLAIM]);
         resolvedAgent.agent.access = decodedJwtPayload[JWT_PERMISSION_CLAIM];

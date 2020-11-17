@@ -99,6 +99,12 @@ export class OpsStackData extends DataSource implements IOpsStackData {
     const subnetIds = network.privateSubnets.map((subnet) => subnet.id);
     const securityGroupIds = [network.lambdaSecurityGroupId];
 
+    // Defensively filter restricted variables out of the command-line supplied environment file
+    newStack.env = (newStack.env || '')
+      .split('\n')
+      .filter((line: string) => line.indexOf('JWT_ALT_AUDIENCE') === -1)
+      .join('\n');
+
     const userData = [
       '#!/bin/bash',
       this.dockerImageForUserData(tag),

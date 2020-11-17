@@ -32,7 +32,7 @@ function AgentTooltip({ issuerId, subject, agents, onSetAgent, children }: Agent
     if (loading) {
       (async () => {
         try {
-          if (subject.indexOf('uri:') === 0) {
+          if (issuerId.match('system.fusebit.io$')) {
             // System-issued credentials -- attribute to the function.
             const details = subject.split(':');
             const message = `${details.slice(4, 6).join('/')}`;

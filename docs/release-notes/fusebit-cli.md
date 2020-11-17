@@ -17,6 +17,15 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.8.9
+
+_Released 11/17/20_
+
+- **Enhancement.** Enable functions to execute with Fusebit priviledges independent of the caller's credentials.
+- **Enhancement.** Annotate realtime log output with it's HTTP method.
+- **Enhancement.** Support realtime log output from cron functions.
+- **Enhancement.** Support the environmental override `FUSEBIT_EDITOR_IP` when editing functions via `fuse function edit` on a remote host.
+
 ## Version 1.8.8
 
 _Released 11/05/20_

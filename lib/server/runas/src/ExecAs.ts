@@ -7,24 +7,45 @@ type ExpressHandler = (req: IFunctionApiRequest, res: any, next: any) => any;
 
 const execAs = (keyStore: KeyStore) => {
   return async (req: IFunctionApiRequest, res: Response, next: any) => {
-    if (!req.functionSummary || !req.functionSummary[Tags.get_compute_tag_key('permissions')]) {
+    if (!req.functionSummary) {
       return next();
     }
 
-    const payload: { [key: string]: any } = {
-      sub: Constants.makeFunctionSub(req.params, 'exec'),
-    };
+    try {
+      const jwt = await mintJwtForPermissions(
+        keyStore,
+        req.params,
+        Constants.getFunctionPermissions(req.functionSummary)
+      );
 
-    payload[Constants.JWT_PERMISSION_CLAIM] = req.functionSummary[Tags.get_compute_tag_key('permissions')];
+      // Specify it into the request so it gets passed into the executor.
+      req.params.functionAccessToken = jwt;
 
-    // Create a JWT
-    const jwt = await keyStore.signJwt(payload);
-
-    // Specify it into the request so it gets passed into the executor.
-    req.params.functionAccessToken = jwt;
-
-    return next();
+      return next();
+    } catch (e) {
+      return next(e);
+    }
   };
 };
 
-export { execAs };
+const mintJwtForPermissions = async (
+  keyStore: KeyStore,
+  params: any,
+  permissions: any,
+  mode: string = 'exec'
+): Promise<string | undefined> => {
+  if (!permissions) {
+    return undefined;
+  }
+
+  const payload: { [key: string]: any } = {
+    sub: Constants.makeFunctionSub(params, mode),
+  };
+
+  payload[Constants.JWT_PERMISSION_CLAIM] = permissions;
+
+  // Create a JWT
+  return keyStore.signJwt(payload);
+};
+
+export { execAs, mintJwtForPermissions };

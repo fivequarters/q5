@@ -37,13 +37,15 @@ module.exports = Joi.object().keys({
   scheduleSerialized: Joi.string().allow('').optional(),
   metadata: Joi.object(),
   runtime: Joi.object(),
-  permissions: Joi.object().keys({
-    require: Joi.array().items(
+  authorization: Joi.array()
+    .items(
       Joi.object().keys({
         action: Joi.string(),
         resource: Joi.string(),
       })
-    ),
+    )
+    .optional(),
+  functionPermissions: Joi.object().keys({
     allow: Joi.array().items(
       Joi.object().keys({
         action: Joi.string(),

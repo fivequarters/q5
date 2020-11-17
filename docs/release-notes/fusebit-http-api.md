@@ -17,6 +17,14 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.17.12
+
+_Released 11/17/20_
+
+- **Enhancement.** Enable functions to execute with Fusebit priviledges independent of the caller's credentials.
+- **Enhancement.** Annotate realtime log output with it's HTTP method.
+- **Enhancement.** Support realtime log output from cron functions.
+
 ## Version 1.17.11
 
 _Released 11/05/20_
