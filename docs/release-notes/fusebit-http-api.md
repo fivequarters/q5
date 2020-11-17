@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.18.0
+
+_Released 11/16/20_
+
+- **Enhancement.** Support for hierarchical document storage
+
 ## Version 1.17.11
 
 _Released 11/05/20_

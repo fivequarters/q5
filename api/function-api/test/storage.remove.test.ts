@@ -31,6 +31,64 @@ describe('Storage', () => {
       expectMore(noSuchStorage).toBeStorageNotFound(storageId);
     }, 180000);
 
+    test('Removing storage with hierarchy should work', async () => {
+      const storageId = `test-${random()}/foo`;
+      const storageData = { data: 'hello world' };
+      const storage = await setStorage(account, storageId, storageData);
+      expect(storage.status).toBe(200);
+
+      const removedStorage = await removeStorage(account, storageId);
+      expect(removedStorage.status).toBe(204);
+      expect(removedStorage.data).toBeUndefined();
+
+      const noSuchStorage = await getStorage(account, storageId);
+      expectMore(noSuchStorage).toBeStorageNotFound(storageId);
+    }, 180000);
+
+    test('Removing storage with hierarchy recursively should work', async () => {
+      const storageIdPrefix = `test-${random()}`;
+      const storageData = { data: 'hello world' };
+      let storage = await setStorage(account, `${storageIdPrefix}/foo`, storageData);
+      expect(storage.status).toBe(200);
+      storage = await setStorage(account, `${storageIdPrefix}/bar/baz`, storageData);
+      expect(storage.status).toBe(200);
+      storage = await setStorage(account, `${storageIdPrefix}/bar`, storageData);
+      expect(storage.status).toBe(200);
+
+      const removedStorage = await removeStorage(account, `${storageIdPrefix}/*`);
+      expect(removedStorage.status).toBe(204);
+      expect(removedStorage.data).toBeUndefined();
+
+      let noSuchStorage = await getStorage(account, `${storageIdPrefix}/foo`);
+      expectMore(noSuchStorage).toBeStorageNotFound(`${storageIdPrefix}/foo`);
+      noSuchStorage = await getStorage(account, `${storageIdPrefix}/bar/baz`);
+      expectMore(noSuchStorage).toBeStorageNotFound(`${storageIdPrefix}/bar/baz`);
+      noSuchStorage = await getStorage(account, `${storageIdPrefix}/bar`);
+      expectMore(noSuchStorage).toBeStorageNotFound(`${storageIdPrefix}/bar`);
+    }, 180000);
+
+    test('Removing storage node from hierarchy does not affect other nodes', async () => {
+      const storageIdPrefix = `test-${random()}`;
+      const storageData = { data: 'hello world' };
+      let storage = await setStorage(account, `${storageIdPrefix}/foo`, storageData);
+      expect(storage.status).toBe(200);
+      storage = await setStorage(account, `${storageIdPrefix}/bar/baz`, storageData);
+      expect(storage.status).toBe(200);
+      storage = await setStorage(account, `${storageIdPrefix}/bar`, storageData);
+      expect(storage.status).toBe(200);
+
+      const removedStorage = await removeStorage(account, `${storageIdPrefix}/bar`);
+      expect(removedStorage.status).toBe(204);
+      expect(removedStorage.data).toBeUndefined();
+
+      let retrievedStorage = await getStorage(account, `${storageIdPrefix}/foo`);
+      expect(retrievedStorage.status).toBe(200);
+      retrievedStorage = await getStorage(account, `${storageIdPrefix}/bar/baz`);
+      expect(retrievedStorage.status).toBe(200);
+      let noSuchStorage = await getStorage(account, `${storageIdPrefix}/bar`);
+      expectMore(noSuchStorage).toBeStorageNotFound(`${storageIdPrefix}/bar`);
+    }, 180000);
+
     test('Removing storage with a valid etag in the header and no storage path should work', async () => {
       const storageId = `test-${random()}`;
       const storageData = { data: 'hello world' };
@@ -77,82 +135,6 @@ describe('Storage', () => {
 
       const removedAgainStorage = await removeStorage(account, storageId, etag);
       expectMore(removedAgainStorage).toBeStorageConflict(storageId, etag, false);
-    }, 180000);
-
-    test('Removing storage with no etag with a storage path should work', async () => {
-      const storageId = `test-${random()}`;
-      const storageData = { data: 'hello world' };
-      const storagePath = 'a/b/c';
-      const storage = await setStorage(account, storageId, storageData, undefined, storagePath);
-      expect(storage.status).toBe(200);
-
-      const removedStorage = await removeStorage(account, storageId, undefined, storagePath);
-      expect(removedStorage.status).toBe(204);
-      expect(removedStorage.data).toBeUndefined();
-
-      const noSuchStorage = await getStorage(account, storageId, storagePath);
-      expectMore(noSuchStorage).toBeStorageNotFound(storageId, storagePath);
-
-      const checkStorage = await getStorage(account, storageId);
-      expect(checkStorage.status).toBe(200);
-      expect(checkStorage.headers.etag).toBe('W/"36bd50cf1ba0d5342e109efd632360fc53891b37"');
-      expect(checkStorage.data).toEqual({
-        etag: '36bd50cf1ba0d5342e109efd632360fc53891b37',
-        data: { a: { b: {} } },
-      });
-    }, 180000);
-
-    test('Removing storage with a valid etag in the header and a storage path should work', async () => {
-      const storageId = `test-${random()}`;
-      const storageData = { data: 'hello world' };
-      const storagePath = 'a/b/c';
-      const storage = await setStorage(account, storageId, storageData, undefined, storagePath);
-      expect(storage.status).toBe(200);
-
-      const removedStorage = await removeStorage(account, storageId, storage.data.etag, storagePath);
-      expect(removedStorage.status).toBe(204);
-      expect(removedStorage.data).toBeUndefined();
-
-      const noSuchStorage = await getStorage(account, storageId, storagePath);
-      expectMore(noSuchStorage).toBeStorageNotFound(storageId, storagePath);
-
-      const checkStorage = await getStorage(account, storageId);
-      expect(checkStorage.status).toBe(200);
-      expect(checkStorage.headers.etag).toBe('W/"36bd50cf1ba0d5342e109efd632360fc53891b37"');
-      expect(checkStorage.data).toEqual({
-        etag: '36bd50cf1ba0d5342e109efd632360fc53891b37',
-        data: { a: { b: {} } },
-      });
-    }, 180000);
-
-    test('Removing storage with an invalid etag in the header and a storage path should return an error', async () => {
-      const storageId = `test-${random()}`;
-      const storageData = { data: 'hello world' };
-      const storagePath = 'a/b/c';
-      const storage = await setStorage(account, storageId, storageData, undefined, storagePath);
-      expect(storage.status).toBe(200);
-      const etag = storage.data.etag + 'abc';
-
-      const removedStorage = await removeStorage(account, storageId, etag, storagePath);
-      expectMore(removedStorage).toBeStorageConflict(storageId, etag, false, storagePath);
-    }, 180000);
-
-    test('Removing storage that does not exist with a storage path should return an error', async () => {
-      const storageId = `test-${random()}`;
-      const storagePath = 'a/b/c';
-      const removedStorage = await removeStorage(account, storageId, undefined, storagePath);
-      expectMore(removedStorage).toBeStorageNotFound(storageId, storagePath);
-    }, 180000);
-
-    test('Removing storage with a storage path that does not exist should return an error', async () => {
-      const storageId = `test-${random()}`;
-      const storageData = { data: 'hello world' };
-      const storagePath = 'a/b/c';
-      const storage = await setStorage(account, storageId, storageData, undefined, storagePath);
-      expect(storage.status).toBe(200);
-
-      const removedStorage = await removeStorage(account, storageId, undefined, 'a/b/does-not-exist');
-      expectMore(removedStorage).toBeStorageNotFound(storageId, 'a/b/does-not-exist');
     }, 180000);
 
     test('Removing storage with a malformed account id should return an error', async () => {

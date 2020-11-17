@@ -28,40 +28,6 @@ function isObject(value: any) {
   return !Array.isArray(value) && typeof value === 'object' && value !== null;
 }
 
-function getStorageFromPath(storage: any, storageId: string, storagePath: string) {
-  storage = storage || {};
-
-  const storagePaths = storagePath.split('/').filter((path) => path);
-  let current = storage;
-  while (storagePaths.length) {
-    const currentPath = storagePaths.shift() as string;
-    if (!current[currentPath]) {
-      throw StorageDataException.noStorage(storageId, storagePath);
-    }
-    current = current[currentPath];
-  }
-  return current;
-}
-
-function setStorageFromPath(storage: any, data: any, storagePath: string) {
-  storage = storage || {};
-  if (!isObject(storage)) {
-    storage = {};
-  }
-
-  const storagePaths = storagePath.split('/').filter((path) => path);
-  let current = storage;
-  while (storagePaths.length > 1) {
-    const currentPath = storagePaths.shift() as string;
-    if (!isObject(current[currentPath])) {
-      current[currentPath] = {};
-    }
-    current = current[currentPath];
-  }
-  current[storagePaths[0]] = data;
-  return storage;
-}
-
 // ----------------
 // Exported Classes
 // ----------------
@@ -82,15 +48,9 @@ export class StorageData extends DataSource implements IStorageData {
   public async get(
     accountId: string,
     subscriptionId: string,
-    storageId: string,
-    storagePath?: string
+    storageId: string
   ): Promise<IStorage> {
-    const storage = await this.getStorage(accountId, subscriptionId, storageId, true, storagePath);
-
-    if (storagePath) {
-      storage.data = getStorageFromPath(storage.data, storageId, storagePath);
-      storage.etag = getEtag(storage.data);
-    }
+    const storage = await this.getStorage(accountId, subscriptionId, storageId, true);
 
     return storage as IStorage;
   }
@@ -98,61 +58,35 @@ export class StorageData extends DataSource implements IStorageData {
   public async list(
     accountId: string,
     subscriptionId: string,
+    storageId: string,
     options?: IListStorageOptions
   ): Promise<IListStorageResult> {
-    return this.storageTable.list(accountId, subscriptionId, options);
+    return this.storageTable.list(accountId, subscriptionId, storageId, options);
   }
 
   public async set(
     accountId: string,
     subscriptionId: string,
     storageId: string,
-    storage: IStorage,
-    storagePath?: string
+    storage: IStorage
   ): Promise<IStorage> {
     if (!storage || !storage.data) {
-      throw StorageDataException.missingData(storageId, storagePath);
+      throw StorageDataException.missingData(storageId);
     }
 
-    if (!storagePath) {
-      const etag = await this.setStorage(accountId, subscriptionId, storageId, storage);
-      return { etag, data: storage.data };
-    }
-
-    const existing = await this.getStorage(accountId, subscriptionId, storageId, false, storagePath);
-    if (storage.etag) {
-      const data = getStorageFromPath(existing.data, storageId, storagePath);
-      if (storage.etag !== getEtag(data)) {
-        throw StorageDataException.storageConflict(storageId, true, storage.etag, storagePath);
-      }
-    }
-
-    existing.data = setStorageFromPath(existing.data, storage.data, storagePath);
-    await this.setStorage(accountId, subscriptionId, storageId, existing as IStorage);
-
-    return { etag: getEtag(storage.data), data: storage.data };
+    const etag = await this.setStorage(accountId, subscriptionId, storageId, storage);
+    return { etag, data: storage.data };
   }
 
   public async delete(
     accountId: string,
     subscriptionId: string,
     storageId: string,
+    recursive: boolean,
     etag?: string,
-    storagePath?: string
   ): Promise<void> {
-    if (!storagePath) {
-      await this.storageTable.delete(accountId, subscriptionId, storageId, etag);
-      return;
-    }
-
-    const storage = await this.getStorage(accountId, subscriptionId, storageId, true, storagePath);
-    const data = getStorageFromPath(storage.data, storageId, storagePath);
-    if (etag && etag !== getEtag(data)) {
-      throw StorageDataException.storageConflict(storageId, false, etag, storagePath);
-    }
-
-    storage.data = setStorageFromPath(storage.data, undefined, storagePath);
-    await this.setStorage(accountId, subscriptionId, storageId, storage as IStorage);
+    await this.storageTable.delete(accountId, subscriptionId, storageId, recursive, etag);
+    return;
   }
 
   private async setStorage(accountId: string, subscriptionId: string, storageId: string, storage: IStorage) {
@@ -170,7 +104,6 @@ export class StorageData extends DataSource implements IStorageData {
     subscriptionId: string,
     storageId: string,
     throwIfNotFound: boolean = true,
-    storagePath: string = ''
   ) {
     try {
       const storage = await this.storageTable.get(accountId, subscriptionId, storageId);
@@ -179,7 +112,7 @@ export class StorageData extends DataSource implements IStorageData {
     } catch (error) {
       if (error.code === 'noStorage') {
         if (throwIfNotFound) {
-          throw StorageDataException.noStorage(storageId, storagePath);
+          throw StorageDataException.noStorage(storageId);
         }
         return { data: {} };
       }

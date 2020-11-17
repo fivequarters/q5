@@ -57,9 +57,8 @@ export class StorageDataException extends Exception {
     );
   }
 
-  public static missingData(storageId: string, storagePath: string = '') {
-    const storagePathMessage = storagePath ? ` with a storage path of '${storagePath}'` : '';
-    const message = `No data was provided for '${storageId}'${storagePathMessage}`;
-    return new StorageDataException(StorageDataExceptionCode.missingData, message, [storageId, storagePath]);
+  public static missingData(storageId: string) {
+    const message = `No data was provided for '${storageId}'`;
+    return new StorageDataException(StorageDataExceptionCode.missingData, message, [storageId]);
   }
 }

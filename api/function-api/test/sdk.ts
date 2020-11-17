@@ -105,6 +105,7 @@ export interface IInitResolve {
 export interface IListStorageOptions {
   count?: number;
   next?: string;
+  storageId?: string;
 }
 
 export interface ITestUser {
@@ -761,12 +762,12 @@ export async function listStorage(account: IAccount, options?: IListStorageOptio
       'Content-Type': 'application/json',
       'user-agent': account.userAgent,
     },
-    url: `${account.baseUrl}/v1/account/${account.accountId}/subscription/${account.subscriptionId}/storage${queryString}`,
+    url: `${account.baseUrl}/v1/account/${account.accountId}/subscription/${account.subscriptionId}/storage${options && options.storageId && ('/' + options.storageId) || ''}${queryString}`,
   });
 }
 
-export async function getStorage(account: IAccount, storageId: string, storagePath?: string) {
-  const storage = storagePath ? `${storageId}/${storagePath}` : storageId;
+export async function getStorage(account: IAccount, storageId: string) {
+  const storage = storageId;
   return request({
     method: 'GET',
     headers: {
@@ -778,8 +779,8 @@ export async function getStorage(account: IAccount, storageId: string, storagePa
   });
 }
 
-export async function setStorage(account: IAccount, storageId: string, data: any, etag?: string, storagePath?: string) {
-  const storage = storagePath ? `${storageId}/${storagePath}` : storageId;
+export async function setStorage(account: IAccount, storageId: string, data: any, etag?: string) {
+  const storage = storageId;
   const headers: any = {
     Authorization: `Bearer ${account.accessToken}`,
     'Content-Type': 'application/json',
@@ -799,8 +800,8 @@ export async function setStorage(account: IAccount, storageId: string, data: any
   });
 }
 
-export async function removeStorage(account: IAccount, storageId: string, etag?: string, storagePath?: string) {
-  const storage = storagePath ? `${storageId}/${storagePath}` : storageId;
+export async function removeStorage(account: IAccount, storageId: string, etag?: string) {
+  const storage = storageId;
   const headers: any = {
     Authorization: `Bearer ${account.accessToken}`,
     'Content-Type': 'application/json',

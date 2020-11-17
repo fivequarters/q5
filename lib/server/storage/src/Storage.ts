@@ -23,19 +23,19 @@ export class Storage {
     resolvedAgent: ResolvedAgent,
     accountId: string,
     subscriptionId: string,
-    storageId: string,
-    storagePath: string = ''
+    storageId: string
   ): Promise<IStorage> {
-    return this.dataContext.storageData.get(accountId, subscriptionId, storageId, storagePath);
+    return this.dataContext.storageData.get(accountId, subscriptionId, storageId);
   }
 
   public async list(
     resolvedAgent: ResolvedAgent,
     accountId: string,
     subscriptionId: string,
+    storageId: string,
     options?: IListStorageOptions
   ): Promise<IListStorageResult> {
-    return this.dataContext.storageData.list(accountId, subscriptionId, options);
+    return this.dataContext.storageData.list(accountId, subscriptionId, storageId, options);
   }
 
   public async set(
@@ -44,9 +44,8 @@ export class Storage {
     subscriptionId: string,
     storageId: string,
     storage: IStorage,
-    storagePath: string = ''
   ): Promise<IStorage> {
-    return this.dataContext.storageData.set(accountId, subscriptionId, storageId, storage, storagePath);
+    return this.dataContext.storageData.set(accountId, subscriptionId, storageId, storage);
   }
 
   public async delete(
@@ -54,9 +53,9 @@ export class Storage {
     accountId: string,
     subscriptionId: string,
     storageId: string,
+    recursive: boolean,
     etag: string = '',
-    storagePath: string = ''
   ): Promise<void> {
-    return this.dataContext.storageData.delete(accountId, subscriptionId, storageId, etag, storagePath);
+    return this.dataContext.storageData.delete(accountId, subscriptionId, storageId, recursive, etag);
   }
 }

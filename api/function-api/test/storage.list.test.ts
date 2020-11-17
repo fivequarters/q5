@@ -30,6 +30,32 @@ describe('Storage', () => {
       expect(result.data.items.length).toBeGreaterThanOrEqual(5);
     }, 180000);
 
+    test('Listing storage with hierarchy from root should work', async () => {
+      const storageIdPrefix = `test-${random()}`;
+      await Promise.all([
+        setStorage(account, `${storageIdPrefix}`, { data: 'hello world' }),
+        setStorage(account, `${storageIdPrefix}/foo`, { data: 'hello world' }),
+        setStorage(account, `${storageIdPrefix}/bar`, { data: 'hello world' }),
+        setStorage(account, `${storageIdPrefix}/foo/bar`, { data: 'hello world' }),
+      ]);
+      const result = await listStorage(account);
+      expect(result.status).toBe(200);
+      expect(result.data.items.length).toBeGreaterThanOrEqual(4);
+    }, 180000);
+
+    test('Listing storage with hierarchy from storageId should work', async () => {
+      const storageIdPrefix = `test-${random()}`;
+      await Promise.all([
+        setStorage(account, `${storageIdPrefix}`, { data: 'hello world' }),
+        setStorage(account, `${storageIdPrefix}/foo`, { data: 'hello world' }),
+        setStorage(account, `${storageIdPrefix}/bar`, { data: 'hello world' }),
+        setStorage(account, `${storageIdPrefix}/foo/bar`, { data: 'hello world' }),
+      ]);
+      const result = await listStorage(account, { storageId: `${storageIdPrefix}/*` });
+      expect(result.status).toBe(200);
+      expect(result.data.items.length).toBe(4);
+    }, 180000);
+
     test('Listing storage with a count and next should work', async () => {
       await Promise.all([
         setStorage(account, `test-${random()}`, { data: 'hello world' }),

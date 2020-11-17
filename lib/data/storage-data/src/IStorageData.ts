@@ -24,20 +24,19 @@ export interface IListStorageResult {
 }
 
 export interface IStorageData extends IDataSource {
-  get(accountId: string, subscriptionId: string, storageId: string, storagePath?: string): Promise<IStorage>;
-  list(accountId: string, subscriptionId: string, options?: IListStorageOptions): Promise<IListStorageResult>;
+  get(accountId: string, subscriptionId: string, storageId: string): Promise<IStorage>;
+  list(accountId: string, subscriptionId: string, storageId: string, options?: IListStorageOptions): Promise<IListStorageResult>;
   set(
     accountId: string,
     subscriptionId: string,
     storageId: string,
     storage: IStorage,
-    storagePath?: string
   ): Promise<IStorage>;
   delete(
     accountId: string,
     subscriptionId: string,
     storageId: string,
+    recursive: boolean,
     etag?: string,
-    storagePath?: string
   ): Promise<void>;
 }
