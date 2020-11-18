@@ -19,7 +19,7 @@ function toAgent(agentId: string, identities: IIdentity[], accessEntries: IAcces
     access:
       accessEntries && accessEntries.length
         ? {
-            allow: accessEntries ? accessEntries.map(toAccessEntries) : undefined,
+            allow: accessEntries.map(toAccessEntries),
           }
         : undefined,
   };
