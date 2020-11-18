@@ -207,6 +207,10 @@ const getFunctionPermissions = (summary: any, orCreate: boolean = false): any =>
   return summary[get_compute_tag_key('permissions')];
 };
 
+const getFunctionAuthorizations = (summary: any): any => {
+  return summary[get_compute_tag_key('authorizations')];
+};
+
 export {
   get_log_table_name,
   get_key_value_table_name,
@@ -249,6 +253,7 @@ export {
   makeSystemIssuerId,
   makeFunctionSub,
   getFunctionPermissions,
+  getFunctionAuthorizations,
   REGISTRY_CATEGORY,
   REGISTRY_CATEGORY_CONFIG,
   REGISTRY_DEFAULT,

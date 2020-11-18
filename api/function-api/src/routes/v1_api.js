@@ -36,7 +36,7 @@ const {
   loadSubscription,
   AwsKeyStore,
   SubscriptionCache,
-  checkRequirements,
+  checkAuthorization,
 } = require('@5qtrs/runas');
 
 const { loadLogging, addLogging } = require('@5qtrs/runtime-common');
@@ -1026,7 +1026,7 @@ router.options(run_route, cors(corsExecutionOptions));
     }),
     loadSubscription(subscriptionCache),
     loadSummary(),
-    checkRequirements(authorize),
+    checkAuthorization(authorize),
     loadLogging(),
     execAs(keyStore),
     addLogging(keyStore),
@@ -1045,7 +1045,7 @@ router.options(run_route, cors(corsExecutionOptions));
     determine_provider(),
     loadSubscription(subscriptionCache),
     loadSummary(),
-    checkRequirements(authorize),
+    checkAuthorization(authorize),
     loadLogging(),
     execAs(keyStore),
     addLogging(keyStore),

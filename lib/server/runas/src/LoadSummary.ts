@@ -34,9 +34,16 @@ const loadFunctionSummary = async (params: any): Promise<any> => {
           return reject(e);
         }
         const functionSummary = d;
+
         if (functionSummary[get_compute_tag_key('permissions')]) {
           functionSummary[get_compute_tag_key('permissions')] = JSON.parse(
             functionSummary[get_compute_tag_key('permissions')] as string
+          );
+        }
+
+        if (functionSummary[get_compute_tag_key('authorizations')]) {
+          functionSummary[get_compute_tag_key('authorizations')] = JSON.parse(
+            functionSummary[get_compute_tag_key('authorizations')] as string
           );
         }
         return resolve(functionSummary);

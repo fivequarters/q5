@@ -24,20 +24,18 @@ const specFuncReturnCtx = {
   },
 };
 
-const reqFunctionBase = [];
+/* XXX Should exe be a requirement for put when adding an exe requirement to a function? */
+
+const reqFunctionWild = { action: Permissions.allFunction, resource: '/' };
 const reqFunctionGet = { action: Permissions.getFunction, resource: '/' };
-const permFunctionWildcard = { allow: [{ action: Permissions.allFunction, resource: '/' }] };
-const permFunctionPut = {
-  require: [],
-  allow: [{ action: Permissions.putFunction, resource: '/' }],
-};
-const permFunctionExecute = { allow: [{ action: Permissions.exeFunction, resource: '/' }] };
-const permFunctionGetExecute = {
-  allow: [
-    { action: Permissions.getFunction, resource: '/' },
-    { action: Permissions.exeFunction, resource: '/' },
-  ],
-};
+const reqFunctionPut = { action: Permissions.putFunction, resource: '/' };
+const reqFunctionExe = { action: Permissions.exeFunction, resource: '/' };
+
+const permFunctionWildcard = { allow: [reqFunctionWild] };
+const permFunctionPut = { allow: [reqFunctionPut] };
+const permFunctionPutExe = { allow: [reqFunctionPut, reqFunctionExe] };
+const permFunctionExe = { allow: [reqFunctionExe] };
+const permFunctionGetExe = { allow: [reqFunctionGet, reqFunctionExe] };
 
 const permFunctionPutLimited = (perm: string, acc: IAccount, boundaryId: string) => ({
   allow: [
@@ -52,55 +50,65 @@ const permFunctionPutLimitedHigher = (perm: string, acc: IAccount) => ({
 describe('function.exec', () => {
   test('attempt to run a function', async () => {
     const profile = await FusebitProfile.create();
-    let executionProfile = await profile.getPKIExecutionProfile(process.env.FUSE_PROFILE, true, permFunctionPut);
 
-    // Put a function using the put-only token
+    // Create some access tokens for general use
+    let executionProfile = await profile.getPKIExecutionProfile(process.env.FUSE_PROFILE, true, permFunctionPutExe);
+    const putExeAccessToken = executionProfile.accessToken;
+
+    executionProfile = await profile.getPKIExecutionProfile(process.env.FUSE_PROFILE, true, permFunctionPut);
+    const putAccessToken = executionProfile.accessToken;
+
+    executionProfile = await profile.getPKIExecutionProfile(process.env.FUSE_PROFILE, true, permFunctionGetExe);
+    const getExeAccessToken = executionProfile.accessToken;
+
+    executionProfile = await profile.getPKIExecutionProfile(process.env.FUSE_PROFILE, true, permFunctionExe);
+    const exeAccessToken = executionProfile.accessToken;
+
+    // Get the master account and access token
     account = getAccount();
     const boundaryId = getBoundary();
-    const oldToken = account.accessToken;
+    const allAccessToken = account.accessToken;
 
-    // Use the downgraded token
-    account.accessToken = executionProfile.accessToken;
+    // Use the downgraded PUT+EXEC token
+    account.accessToken = putExeAccessToken;
 
-    // Create a function with an exec requirement using a PUT-enabled credential
+    // Test: Create a function with an exec requirement using a PUT+EXEC-enabled credential
     let spec = Constants.duplicate({}, specFuncReturnCtx);
-    spec.permissions = permFunctionPut;
+    spec.functionPermissions = permFunctionPut;
+    spec.authorizations = [reqFunctionExe];
     let response = await putFunction(account, boundaryId, function1Id, spec);
     httpExpect(response, { statusCode: 200 });
 
     const url = response.data.location;
 
-    // Call without an identity should result in a 403
+    // Test: Execute without an identity should result in a 403
     response = await request(url);
     httpExpect(response, { statusCode: 403 });
 
-    // Call with an identity without function:exec
-    response = await callFunction(account.accessToken, url);
+    // Test: Call with an identity without function:exe
+    response = await callFunction(putAccessToken, url);
     httpExpect(response, { statusCode: 403 });
 
-    // Call with an identity with function:exec
-    executionProfile = await profile.getPKIExecutionProfile(process.env.FUSE_PROFILE, true, permFunctionExecute);
-    response = await callFunction(executionProfile.accessToken, url);
+    // Test: Call with an identity with function:exec
+    response = await callFunction(exeAccessToken, url);
     httpExpect(response, { statusCode: 200 });
 
-    // Create a function with an exec AND get requirement
-    account.accessToken = oldToken;
+    // Test: Create a function with an exe+get requirement
+    account.accessToken = allAccessToken;
     spec = Constants.duplicate({}, specFuncReturnCtx);
-    spec.permissions = Constants.duplicate({}, permFunctionPut);
-    spec.permissions.require.push(reqFunctionGet);
+    spec.authorizations = [reqFunctionGet, reqFunctionExe];
     response = await putFunction(account, boundaryId, function1Id, spec);
     httpExpect(response, { statusCode: 200 });
 
-    // Call with an identity with function:exec
-    response = await callFunction(executionProfile.accessToken, url);
+    // Test: Call with an identity with exe
+    response = await callFunction(exeAccessToken, url);
     httpExpect(response, { statusCode: 403 });
 
-    // Call with an identity with function:exec and function:get
-    executionProfile = await profile.getPKIExecutionProfile(process.env.FUSE_PROFILE, true, permFunctionGetExecute);
-    response = await callFunction(executionProfile.accessToken, url);
+    // Test: Call with an identity with exe+get
+    response = await callFunction(getExeAccessToken, url);
     httpExpect(response, { statusCode: 200 });
 
-    // Restore the old token.
-    account.accessToken = oldToken;
+    // Restore the old token so that things get cleaned up properly
+    account.accessToken = allAccessToken;
   }, 180000);
 });
