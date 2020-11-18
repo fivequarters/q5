@@ -15,7 +15,7 @@ export interface IIdentity {
 }
 
 export interface IPermissions {
-  allow?: IAccessEntry[];
+  allow: IAccessEntry[];
 }
 
 export interface IAgent {

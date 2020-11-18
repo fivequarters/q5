@@ -3228,9 +3228,9 @@ components:
                   type: string
                 value:
                   type: string
-        functionPermission:
+        functionPermissions:
           type: object
-          description: Provide a `ctx.fusebit.functionAccessToken` on execution with these credentials, allowing the function to act with permissions different than the caller.
+          description: Provide a `ctx.fusebit.functionAccessToken` with these permissions during function execution, allowing the function to make calls to Fusebit APIs.
           properties:
             allow:
               type: array
