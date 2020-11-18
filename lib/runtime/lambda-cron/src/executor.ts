@@ -35,10 +35,17 @@ export async function executor(event: any, context: any) {
 
   // Make sure both of these processes have completed before continuing, and trigger the realtime logging
   // system to poll once on each invocation of the executor.
-  await Promise.all([keyStoreHealth, new Promise((resolve, reject) => Common.pollOnce(resolve))]);
-
-  // Give the keystore an opportunity to rekey on long-lived lambdas
-  await keyStore.healthCheck();
+  await Promise.all([
+    keyStoreHealth,
+    new Promise((resolve, reject) =>
+      Common.pollOnce((e: any) => {
+        if (e) {
+          return reject(e);
+        }
+        resolve();
+      })
+    ),
+  ]);
 
   const result: any = {
     success: [],

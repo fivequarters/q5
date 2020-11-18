@@ -5,7 +5,7 @@ class SystemAgent implements IAgent {
   public id: string;
   public identities: IIdentity[];
   public access: {
-    allow?: IAccessEntry[];
+    allow: IAccessEntry[];
   };
 
   constructor(jwtPayload: any) {

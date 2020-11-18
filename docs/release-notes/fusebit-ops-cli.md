@@ -22,7 +22,7 @@ All public releases of the Fusebit Operations CLI are documented here, including
 
 _Released 11/17/20_
 
-- **Enhancement.** Enable cron functions to execute with Fusebit priviledges.
+- **Enhancement.** Enable cron functions to call Fusebit APIs with permissions specified at function creation.
 - **Enhancement.** Support realtime log output from cron functions.
 
 ## Version 1.24.9
