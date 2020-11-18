@@ -8,6 +8,7 @@
     { "path": "../../lib/node/key-pair" },
     { "path": "../../lib/shared/random" },
     { "path": "../../lib/shared/base64" },
-    { "path": "../../lib/shared/exception" }
+    { "path": "../../lib/shared/exception" },
+    { "path": "../../lib/constants" }
   ]
 }

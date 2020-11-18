@@ -7,7 +7,7 @@ export {
   IListSubscriptionsResult,
 } from './ISubscriptionData';
 export { IIssuerData, IIssuer, IIssuerPublicKey, IListIssuersOptions, IListIssuersResult } from './IIssuerData';
-export { IAgentData, IAgent, IIdentity, IAccessEntry } from './IAgentData';
+export { IAgentData, IAgent, IIdentity, IAccessEntry, IPermissions } from './IAgentData';
 export { IUserData, IUser, IListUsersOptions, IListUsersResult, UserInclude } from './IUserData';
 export { IClientData, IClient, IListClientsOptions, IListClientsResult, ClientInclude } from './IClientData';
 export { IAuditData, IAuditEntry, IListAuditEntriesOptions, IListAuditEntriesResult } from './IAuditData';

@@ -34,7 +34,7 @@ export class NetworkService {
         'Invalid Name',
         `The name '${network.networkName}' uses characters outside of alphanumerics.`
       );
-      throw Error('Invalid network name');
+      throw new Error('Invalid network name');
     }
 
     const exists = await this.executeService.execute(
@@ -48,7 +48,7 @@ export class NetworkService {
 
     if (exists) {
       this.executeService.warning('Network Exists', `There is already a '${Text.bold(network.networkName)}' network`);
-      throw Error('Network already Exists');
+      throw new Error('Network already Exists');
     }
   }
 

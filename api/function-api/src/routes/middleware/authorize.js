@@ -20,20 +20,6 @@ module.exports = function authorize_factory(options) {
       return res.status(403).json({ status: 403, statusCode: 403, message: 'Unauthorized' });
     }
 
-    if (options.logs) {
-      let logs;
-      try {
-        logs = await verifyJwt(token, process.env.LOGS_TOKEN_SIGNATURE_KEY);
-      } catch (e) {
-        // do nothing
-      }
-      if (!logs || !logs.subscriptionId || !logs.boundaryId || !logs.functionId) {
-        return res.status(403).json({ status: 403, statusCode: 403, message: 'Unauthorized' });
-      }
-      req.logs = logs;
-      return next();
-    }
-
     if (options.resolve) {
       req.token = token;
       if (req.body && req.body.accessToken) {
@@ -68,6 +54,7 @@ module.exports = function authorize_factory(options) {
         const resource = req.path;
         const action = options.operation;
         const { issuerId, subject } = resolvedAgent.identities[0];
+
         await resolvedAgent.ensureAuthorized(action, resource);
         if (meteringEnabled) {
           meterApiCall({

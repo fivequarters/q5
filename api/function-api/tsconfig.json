@@ -25,6 +25,7 @@
     { "path": "../../lib/constants" },
     { "path": "../../lib/server/function-tags" },
     { "path": "../../lib/server/npm" },
-    { "path": "../../lib/server/registry" }
+    { "path": "../../lib/server/registry" },
+    { "path": "../../lib/server/runas" }
   ]
 }

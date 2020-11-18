@@ -46,29 +46,32 @@ const packagePut = () => {
       return next(create_error(501, 'invalid integrity'));
     }
 
-    // Get the existing manifest:
-    const existing = await req.registry.get(pkg.name);
-    if (existing) {
-      // Copy over the necessary elements
-      pkg.versions = { ...existing.versions, ...pkg.versions };
-      pkg['dist-tags'] = { ...existing['dist-tags'], ...pkg['dist-tags'] };
-      pkg._rev = uuid();
+    try {
+      // Get the existing manifest:
+      const existing = await req.registry.get(pkg.name);
+      if (existing) {
+        // Copy over the necessary elements
+        pkg.versions = { ...existing.versions, ...pkg.versions };
+        pkg['dist-tags'] = { ...existing['dist-tags'], ...pkg['dist-tags'] };
+        pkg._rev = uuid();
+      }
+
+      // Update the etag
+      pkg.etag = Math.random().toString().slice(2);
+      pkg.date = new Date().toUTCString();
+
+      // Update the package URLs to be just the useful parts.
+      dist.tarball = { scope, name, version: versionId };
+
+      // Save the attachment in the registry, and merge the previous document from dynamo
+      await req.registry.put(pkg.name, pkg, versionId, payload);
+
+      // Get the articulated version from the registry
+      pkg = await req.registry.get(req.params.name);
+      tarballUrlUpdate(req, pkg);
+    } catch (e) {
+      return next(e);
     }
-
-    // Update the etag
-    pkg.etag = Math.random().toString().slice(2);
-    pkg.date = new Date().toUTCString();
-
-    // Update the package URLs to be just the useful parts.
-    dist.tarball = { scope, name, version: versionId };
-
-    // Save the attachment in the registry, and merge the previous document from dynamo
-    await req.registry.put(pkg.name, pkg, versionId, payload);
-
-    // Get the articulated version from the registry
-    pkg = await req.registry.get(req.params.name);
-    tarballUrlUpdate(req, pkg);
-
     res.status(200).json(pkg);
   };
 };

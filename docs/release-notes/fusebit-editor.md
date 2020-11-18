@@ -17,6 +17,14 @@ All public releases of the Fusebit editor are documented here, including notable
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.4.2
+
+_Released 11/17/20_
+
+- **Enhancement.** Enable functions to call Fusebit APIs with permissions specified at function creation.
+- **Enhancement.** Annotate realtime log output with it's HTTP method.
+- **Enhancement.** Support realtime log output from cron functions.
+
 ## Version 1.4.1
 
 _Released 6/3/20_

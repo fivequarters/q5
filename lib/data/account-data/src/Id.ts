@@ -6,12 +6,14 @@ const accountPrefix = 'acc';
 const subscriptionPrefix = 'sub';
 const userPrefix = 'usr';
 const clientPrefix = 'clt';
+const systemPrefix = 'sys';
 
 const idPrefixes: { [index: string]: string } = {
   account: accountPrefix,
   subscription: subscriptionPrefix,
   user: userPrefix,
   client: clientPrefix,
+  system: systemPrefix,
 };
 
 // -------------------
@@ -23,6 +25,7 @@ export enum IdType {
   subscription = 'subscription',
   user = 'user',
   client = 'client',
+  system = 'system',
 }
 
 // ----------------

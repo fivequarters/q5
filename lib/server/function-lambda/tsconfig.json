@@ -16,6 +16,7 @@
     { "path": "../../shared/key-value" },
     { "path": "../../runtime/common" },
     { "path": "../../constants" },
-    { "path": "../function-tags" }
+    { "path": "../function-tags" },
+    { "path": "../runas" }
   ]
 }

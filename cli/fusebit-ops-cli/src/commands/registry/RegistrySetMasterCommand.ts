@@ -109,13 +109,14 @@ export class RegistrySetMasterCommand extends Command {
     const global: IRegistryGlobalConfig = { params: { accountId, registryId: Constants.REGISTRY_DEFAULT }, scopes };
 
     // Set the global entry to the new value
-    await new AwsRegistry(Constants.REGISTRY_GLOBAL, s3Opts, dynamoOpts).globalConfigPut(global);
+    await new AwsRegistry(Constants.REGISTRY_GLOBAL, {}, s3Opts, dynamoOpts).globalConfigPut(global);
 
     // Update all of the current accounts to have the new value
     await Promise.all(
       accounts.map((account) =>
         (AwsRegistry.create(
           { accountId: account.id, registryId: Constants.REGISTRY_DEFAULT },
+          {},
           s3Opts,
           dynamoOpts
         ) as AwsRegistry).globalConfigUpdate(global)

@@ -1,6 +1,8 @@
 import Crypto from 'crypto';
 import Path from 'path';
 
+import { dynamoScanTable, expBackoff, asyncPool, duplicate } from './utilities';
+
 interface IModuleSpec {
   registry: string;
   version: string;
@@ -8,7 +10,14 @@ interface IModuleSpec {
 
 import { isSpecialized, Permissions, RestrictedPermissions, UserPermissions } from './permissions';
 
-const builder_version = require(Path.join(__dirname, '..', '..', '..', 'package.json')).version;
+const API_PUBLIC_ENDPOINT = process.env.LOGS_HOST
+  ? `http://${process.env.LOGS_HOST}`
+  : (process.env.API_SERVER as string);
+
+let builderVersion: string = 'unknown';
+try {
+  builderVersion = require(Path.join(__dirname, '..', '..', '..', 'package.json')).version;
+} catch (_) {}
 
 const valid_boundary_name = /^[a-z0-9\-]{1,63}$/;
 
@@ -45,12 +54,25 @@ const REGISTRY_RESERVED_SCOPE_PREFIX = '@fuse';
 
 const MODULE_PUBLIC_REGISTRY = 'public';
 
+const RUNAS_ISSUER = 'runas-system-issuer';
+
+// Changes to this variable will also require changing AgentTooltip.tsx in Portal.
+const RUNAS_SYSTEM_ISSUER_SUFFIX = 'system.fusebit.io';
+
+const JWT_PERMISSION_CLAIM = 'https://fusebit.io/permissions';
+
+const RUNAS_KID_LEN = 8;
+
 function get_log_table_name(deploymentKey: string): string {
   return `${deploymentKey}.log`;
 }
 
 function get_key_value_table_name(deploymentKey: string): string {
   return `${deploymentKey}.key-value`;
+}
+
+function get_subscription_table_name(deploymentKey: string): string {
+  return `${deploymentKey}.subscription`;
 }
 
 function get_deployment_s3_bucket(deployment: any): string {
@@ -91,7 +113,7 @@ function get_module_builder_description(ctx: any, name: string, moduleSpec: IMod
   return get_module_prefix(
     'module-builder',
     ctx.options.compute.runtime,
-    [name, builder_version].join(':'),
+    [name, builderVersion].join(':'),
     moduleSpec,
     false,
     ':'
@@ -99,7 +121,7 @@ function get_module_builder_description(ctx: any, name: string, moduleSpec: IMod
 }
 
 function get_function_builder_description(options: any) {
-  return `function-builder:${options.compute.runtime}:${builder_version}`;
+  return `function-builder:${options.compute.runtime}:${builderVersion}`;
 }
 
 // Create a predictable fixed-length version of the lambda name, to avoid accidentally exceeding any name
@@ -157,35 +179,38 @@ function get_function_location(req: any, subscriptionId: string, boundaryId: str
   return `${baseUrl}/v1/run/${subscriptionId}/${boundaryId}/${functionId}`;
 }
 
-function duplicate(dst: any, src: any) {
-  Object.keys(src).forEach((k) => {
-    dst[k] = typeof src[k] === 'object' ? duplicate({}, src[k]) : (dst[k] = src[k]);
-  });
+const get_compute_tag_key = (key: string) => `compute.${key}`;
+const get_dependency_tag_key = (key: string) => `dependency.${key}`;
+const get_versions_tag_key = (key: string) => `environment.${key}`;
+const get_metadata_tag_key = (key: string) => `tag.${key}`;
+const get_template_tag_key = (key: string) => `template.${key}`;
 
-  return dst;
+function isSystemIssuer(issuerId: string) {
+  return issuerId.match(`${RUNAS_SYSTEM_ISSUER_SUFFIX}$`);
 }
 
-async function asyncPool<T>(poolLimit: number, array: T[], iteratorFn: (item: T, array: T[]) => any): Promise<any> {
-  const ret = [];
-  const executing: Promise<any>[] = [];
-  for (const item of array) {
-    const p = Promise.resolve().then(() => iteratorFn(item, array));
-    ret.push(p);
+function makeSystemIssuerId(kid: string) {
+  return `${kid}.${RUNAS_SYSTEM_ISSUER_SUFFIX}`;
+}
 
-    if (poolLimit <= array.length) {
-      const e: Promise<any> = p.then(() => executing.splice(executing.indexOf(e), 1));
-      executing.push(e);
-      if (executing.length >= poolLimit) {
-        await Promise.race(executing);
-      }
-    }
+function makeFunctionSub(params: any, mode: string) {
+  return ['uri', 'function', params.accountId, params.subscriptionId, params.boundaryId, params.functionId, mode].join(
+    ':'
+  );
+}
+
+const getFunctionPermissions = (summary: any, orCreate: boolean = false): any => {
+  if (!summary[get_compute_tag_key('permissions')] && orCreate) {
+    console.log(`creating permissions object`);
+    summary[get_compute_tag_key('permissions')] = { allow: [] };
   }
-  return Promise.all(ret);
-}
+  return summary[get_compute_tag_key('permissions')];
+};
 
 export {
   get_log_table_name,
   get_key_value_table_name,
+  get_subscription_table_name,
   valid_boundary_name,
   valid_function_name,
   function_build_status_key_prefix,
@@ -211,16 +236,33 @@ export {
   get_cron_key,
   get_function_location,
   get_deployment_s3_bucket,
-  duplicate,
+  get_compute_tag_key,
+  get_dependency_tag_key,
+  get_versions_tag_key,
+  get_metadata_tag_key,
+  get_template_tag_key,
   Permissions,
   RestrictedPermissions,
   UserPermissions,
   isSpecialized,
-  asyncPool,
+  isSystemIssuer,
+  makeSystemIssuerId,
+  makeFunctionSub,
+  getFunctionPermissions,
   REGISTRY_CATEGORY,
   REGISTRY_CATEGORY_CONFIG,
   REGISTRY_DEFAULT,
   REGISTRY_GLOBAL,
   MODULE_PUBLIC_REGISTRY,
+  RUNAS_ISSUER,
+  RUNAS_KID_LEN,
+  JWT_PERMISSION_CLAIM,
   REGISTRY_RESERVED_SCOPE_PREFIX,
+  RUNAS_SYSTEM_ISSUER_SUFFIX,
+  API_PUBLIC_ENDPOINT,
+  dynamoScanTable,
+  expBackoff,
+  asyncPool,
+  duplicate,
+  IModuleSpec,
 };

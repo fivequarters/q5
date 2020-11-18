@@ -82,6 +82,10 @@ export function updateFusebitContextTypings(configuration: { [index: string]: st
        */
       baseUrl: string;
       /**
+       * Access tokens used to communicate with the Fusebit API.
+       */
+      fusebit: { functionAccessToken: string };
+      /**
        * Configuration settings of the function.
        */
       configuration: { ${Object.keys(configuration)

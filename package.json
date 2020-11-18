@@ -1,5 +1,5 @@
 {
-  "version": "1.17.11",
+  "version": "1.17.12",
   "private": true,
   "org": "5qtrs",
   "scripts": {
@@ -191,7 +191,8 @@
       "lib/constants",
       "lib/server/function-tags",
       "lib/server/npm",
-      "lib/server/registry"
+      "lib/server/registry",
+      "lib/server/runas"
     ]
   }
 }

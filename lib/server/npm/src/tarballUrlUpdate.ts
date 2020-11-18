@@ -1,4 +1,5 @@
 import { IFunctionApiRequest } from './request';
+import * as Constants from '@5qtrs/constants';
 
 // Convert the urls in the tarball section to match the current account, even if they're nominally hosted in
 // the global registry (or some other delegate, eventually).  This makes sure that any requests come back to
@@ -7,7 +8,7 @@ const tarballUrlUpdate = (req: IFunctionApiRequest, pkg: any) => {
   // Allow for override for tests.
   const baseUrl =
     req.tarballRootUrl ||
-    `${process.env.API_SERVER}/v1/account/${req.params.accountId}/registry/${req.params.registryId}/npm`;
+    `${Constants.API_PUBLIC_ENDPOINT}/v1/account/${req.params.accountId}/registry/${req.params.registryId}/npm`;
 
   // Update the dist tarball URL's to be within this account
   for (const version of Object.keys(pkg.versions)) {

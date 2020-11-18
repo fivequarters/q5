@@ -153,8 +153,8 @@ export function decodeJwtHeader(token: string) {
   return undefined;
 }
 
-export function decodeJwt(token: string, json: boolean = false) {
-  return jwt.decode(token, { json }) as { [key: string]: any };
+export function decodeJwt(token: string, json: boolean = false, complete?: boolean) {
+  return jwt.decode(token, { json, complete }) as { [key: string]: any };
 }
 
 export async function verifyJwt(token: string, secretOrUrl: string, options?: any): Promise<any> {

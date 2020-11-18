@@ -336,6 +336,7 @@ export class Server {
           scheduleSerialized: editorContext.functionSpecification.scheduleSerialized,
           nodejs: editorContext.functionSpecification.nodejs,
           metadata: editorContext.functionSpecification.metadata,
+          functionPermissions: editorContext.functionSpecification.functionPermissions,
         };
         return Superagent.put(url)
           .set('Authorization', `Bearer ${this.account.accessToken}`)
