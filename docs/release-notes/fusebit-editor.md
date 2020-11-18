@@ -17,7 +17,7 @@ All public releases of the Fusebit editor are documented here, including notable
 <!-- 1. TOC
 {:toc} -->
 
-## Version 1.4.2
+## Version 1.4.3
 
 _Released 11/17/20_
 
