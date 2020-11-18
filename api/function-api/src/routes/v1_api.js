@@ -675,15 +675,13 @@ router.get(
 // /account/:accountId/subscription/:subscriptionId/storage/p1/p2/.../pN/* (list)
 // /account/:accountId/subscription/:subscriptionId/storage/p1/p2/.../pN/*/ (list)
 const storage_path_get_regexp = new RegExp(
-  '^/account/([^/]+)/subscription/([^/]+)/storage(?:((?:/[a-z0-9-]{1,64})*)(?:/([*]))?/?)$'
+  '^/account/([^/]+)/subscription/([^/]+)/storage(?:((?:/[^/*]+)*)(?:/([*]))?/?)$'
 );
 
 // Matches PUT API paths:
 // /account/:accountId/subscription/:subscriptionId/storage/p1/p2/.../pN
 // /account/:accountId/subscription/:subscriptionId/storage/p1/p2/.../pN/
-const storage_path_put_regexp = new RegExp(
-  '^/account/([^/]+)/subscription/([^/]+)/storage(?:((?:/[a-z0-9-]{1,64})+)/?)$'
-);
+const storage_path_put_regexp = new RegExp('^/account/([^/]+)/subscription/([^/]+)/storage(?:((?:/[^/*]+)+)/?)$');
 
 // Matches DELETE API paths:
 // /account/:accountId/subscription/:subscriptionId/storage/p1/p2/.../pN (delete)
@@ -691,7 +689,7 @@ const storage_path_put_regexp = new RegExp(
 // /account/:accountId/subscription/:subscriptionId/storage/p1/p2/.../pN/* (delete recursive)
 // /account/:accountId/subscription/:subscriptionId/storage/p1/p2/.../pN/*/ (delete recursive)
 const storage_path_delete_regexp = new RegExp(
-  '^/account/([^/]+)/subscription/([^/]+)/storage(?:((?:/[a-z0-9-]{1,64})+)(?:/([*]))?/?)$'
+  '^/account/([^/]+)/subscription/([^/]+)/storage(?:((?:/[^/*]+)+)(?:/([*]))?/?)$'
 );
 
 const promote_storage_params = (req, res, next) => {

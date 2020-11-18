@@ -56,6 +56,20 @@ describe('Storage', () => {
       expect(result.data.items.length).toBe(4);
     }, 180000);
 
+    test('Listing storage with hierarchy from storageId with funky characters should work', async () => {
+      const storageIdPrefix = `test-${random()}`;
+      await Promise.all([
+        setStorage(account, `${storageIdPrefix}`, { data: 'hello world' }),
+        setStorage(account, `${storageIdPrefix}/fo!@$^&()o`, { data: 'hello world' }),
+        setStorage(account, `${storageIdPrefix}/bar`, { data: 'hello world' }),
+        setStorage(account, `${storageIdPrefix}/foo/bar`, { data: 'hello world' }),
+      ]);
+      const result = await listStorage(account, { storageId: `${storageIdPrefix}/*` });
+      console.log(result.data)
+      expect(result.status).toBe(200);
+      expect(result.data.items.length).toBe(4);
+    }, 180000);
+
     test('Listing storage with a count and next should work', async () => {
       await Promise.all([
         setStorage(account, `test-${random()}`, { data: 'hello world' }),

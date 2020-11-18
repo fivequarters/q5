@@ -41,6 +41,18 @@ describe('Storage', () => {
       expect(retrievedStorage.data).toEqual({ etag: '9c05511a31375a8a278a75207331bb1714e69dd1', data: 'hello world' });
     }, 180000);
 
+    test('Getting storage with hierarchy and funky characters should work', async () => {
+      const storageId = `test-${random()}/:$()!@/b12+/ba_^`;
+      const storageData = { data: 'hello world' };
+      const storage = await setStorage(account, storageId, storageData);
+      expect(storage.status).toBe(200);
+
+      const retrievedStorage = await getStorage(account, storageId);
+      expect(retrievedStorage.status).toBe(200);
+      expect(retrievedStorage.headers.etag).toBe('W/"9c05511a31375a8a278a75207331bb1714e69dd1"');
+      expect(retrievedStorage.data).toEqual({ etag: '9c05511a31375a8a278a75207331bb1714e69dd1', data: 'hello world' });
+    }, 180000);
+
     test('Getting storage that does not exist should return an error', async () => {
       const storageId = `test-${random()}`;
       const retrievedStorage = await getStorage(account, storageId);
