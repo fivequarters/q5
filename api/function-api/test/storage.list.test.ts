@@ -65,7 +65,6 @@ describe('Storage', () => {
         setStorage(account, `${storageIdPrefix}/foo/bar`, { data: 'hello world' }),
       ]);
       const result = await listStorage(account, { storageId: `${storageIdPrefix}/*` });
-      console.log(result.data)
       expect(result.status).toBe(200);
       expect(result.data.items.length).toBe(4);
     }, 180000);
