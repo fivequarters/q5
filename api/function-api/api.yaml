@@ -1210,7 +1210,7 @@ paths:
           $ref: '#/components/schemas/AccountId'
       - name: subscriptionId
         in: path
-        description: The subscription id
+        description: Subscription id
         required: true
         schema:
           $ref: '#/components/schemas/SubscriptionId'
@@ -1304,7 +1304,7 @@ paths:
           $ref: '#/components/schemas/AccountId'
       - name: subscriptionId
         in: path
-        description: The subscription id
+        description: Subscription id
         required: true
         schema:
           $ref: '#/components/schemas/SubscriptionId'
@@ -1404,7 +1404,7 @@ paths:
           $ref: '#/components/schemas/AccountId'
       - name: subscriptionId
         in: path
-        description: The subscription id
+        description: Subscription id
         required: true
         schema:
           $ref: '#/components/schemas/SubscriptionId'
@@ -1456,7 +1456,7 @@ paths:
           $ref: '#/components/schemas/AccountId'
       - name: subscriptionId
         in: path
-        description: The subscription id
+        description: Subscription id
         required: true
         schema:
           $ref: '#/components/schemas/SubscriptionId'
@@ -1624,7 +1624,7 @@ paths:
           $ref: '#/components/schemas/AccountId'
       - name: subscriptionId
         in: path
-        description: The subscription id
+        description: Subscription id
         required: true
         schema:
           $ref: '#/components/schemas/SubscriptionId'
@@ -1700,7 +1700,7 @@ paths:
           $ref: '#/components/schemas/AccountId'
       - name: subscriptionId
         in: path
-        description: The subscription id
+        description: Subscription id
         required: true
         schema:
           $ref: '#/components/schemas/SubscriptionId'
@@ -1757,7 +1757,7 @@ paths:
           $ref: '#/components/schemas/AccountId'
       - name: subscriptionId
         in: path
-        description: The subscription id
+        description: Subscription id
         required: true
         schema:
           $ref: '#/components/schemas/SubscriptionId'
@@ -1818,7 +1818,7 @@ paths:
           $ref: '#/components/schemas/AccountId'
       - name: subscriptionId
         in: path
-        description: The subscription id
+        description: Subscription id
         required: true
         schema:
           $ref: '#/components/schemas/SubscriptionId'
@@ -1900,7 +1900,7 @@ paths:
   #          $ref: '#/components/schemas/AccountId'
   #      - name: subscriptionId
   #        in: path
-  #        description: The subscription id
+  #        description: Subscription id
   #        required: false
   #        schema:
   #          $ref: '#/components/schemas/SubscriptionId'
@@ -1995,7 +1995,7 @@ paths:
   #          $ref: '#/components/schemas/AccountId'
   #      - name: subscriptionId
   #        in: path
-  #        description: The subscription id
+  #        description: Subscription id
   #        required: false
   #        schema:
   #          $ref: '#/components/schemas/SubscriptionId'
@@ -2090,7 +2090,7 @@ paths:
   #          $ref: '#/components/schemas/AccountId'
   #      - name: subscriptionId
   #        in: path
-  #        description: The subscription id
+  #        description: Subscription id
   #        required: false
   #        schema:
   #          $ref: '#/components/schemas/SubscriptionId'
@@ -2185,7 +2185,7 @@ paths:
   #          $ref: '#/components/schemas/AccountId'
   #      - name: subscriptionId
   #        in: path
-  #        description: The subscription id
+  #        description: Subscription id
   #        required: false
   #        schema:
   #          $ref: '#/components/schemas/SubscriptionId'
@@ -2284,7 +2284,7 @@ paths:
   #          $ref: '#/components/schemas/AccountId'
   #      - name: subscriptionId
   #        in: path
-  #        description: The subscription id
+  #        description: Subscription id
   #        required: false
   #        schema:
   #          $ref: '#/components/schemas/SubscriptionId'
@@ -2450,7 +2450,7 @@ paths:
           $ref: '#/components/schemas/AccountId'
       - name: subscriptionId
         in: path
-        description: The subscription id
+        description: Subscription id
         required: true
         schema:
           $ref: '#/components/schemas/SubscriptionId'
@@ -2511,7 +2511,7 @@ paths:
           $ref: '#/components/schemas/AccountId'
       - name: subscriptionId
         in: path
-        description: The subscription id
+        description: Subscription id
         required: true
         schema:
           $ref: '#/components/schemas/SubscriptionId'
@@ -2685,7 +2685,7 @@ paths:
           $ref: '#/components/schemas/AccountId'
       - name: subscriptionId
         in: path
-        description: The subscription id
+        description: Subscription id
         required: true
         schema:
           $ref: '#/components/schemas/SubscriptionId'
