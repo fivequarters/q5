@@ -170,6 +170,11 @@ describe('Storage', () => {
       expectMore(storage).toBeNotFoundError();
     }, 180000);
 
+    test('Setting storage with no storage id and no trailing slash should return an error', async () => {
+      const storage = await setStorage(account, '', { msg: 'test-data' }, undefined, true);
+      expectMore(storage).toBeNotFoundError();
+    }, 180000);
+
     test('Setting storage with a malformed account id should return an error', async () => {
       const malformed = await getMalformedAccount();
       const storage = await setStorage(malformed, 'some-id', {});
