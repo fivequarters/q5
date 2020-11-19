@@ -44,7 +44,7 @@ describe('runas', () => {
     account = getAccount();
     const boundaryId = getBoundary();
     const specNoPerm = Constants.duplicate({}, specFuncReturnCtx);
-    delete specNoPerm.permissions;
+    delete specNoPerm.functionPermissions;
     const create = await putFunction(account, boundaryId, function1Id, specNoPerm);
     expect(create.status).toEqual(200);
     let url: string;
