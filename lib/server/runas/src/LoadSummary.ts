@@ -46,6 +46,7 @@ const loadFunctionSummary = async (params: any): Promise<any> => {
             functionSummary[get_compute_tag_key('authorizations')] as string
           );
         }
+
         return resolve(functionSummary);
       }
     );
