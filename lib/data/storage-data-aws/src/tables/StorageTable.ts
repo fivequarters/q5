@@ -156,19 +156,24 @@ export class StorageTable extends AwsDynamoTable {
     await this.putItem(storage, options);
   }
 
-  public async delete(accountId: string, subscriptionId: string, storageId: string, recursive: boolean, etag: string = ''): Promise<void> {
+  public async delete(
+    accountId: string,
+    subscriptionId: string,
+    storageId: string,
+    recursive: boolean,
+    etag: string = ''
+  ): Promise<void> {
     if (recursive) {
       while (true) {
         const list = await this.list(accountId, subscriptionId, storageId, { limit: 10 });
         if (list.items && list.items.length > 0) {
-          await Promise.all(list.items.map(s => this.delete(accountId, subscriptionId, s.storageId, false)));
+          await Promise.all(list.items.map((s) => this.delete(accountId, subscriptionId, s.storageId, false)));
         }
         if (!list.next) {
           break;
         }
       }
-    }
-    else {
+    } else {
       const options = getUpdateOrDeleteOptions(accountId, subscriptionId, false, etag);
       await this.deleteItem(storageId, options);
     }

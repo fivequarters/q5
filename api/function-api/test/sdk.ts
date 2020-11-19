@@ -761,7 +761,9 @@ export async function listStorage(account: IAccount, options?: IListStorageOptio
       'Content-Type': 'application/json',
       'user-agent': account.userAgent,
     },
-    url: `${account.baseUrl}/v1/account/${account.accountId}/subscription/${account.subscriptionId}/storage${options && options.storageId && ('/' + options.storageId) || ''}${queryString}`,
+    url: `${account.baseUrl}/v1/account/${account.accountId}/subscription/${account.subscriptionId}/storage${
+      (options && options.storageId && '/' + options.storageId) || ''
+    }${queryString}`,
   });
 }
 
@@ -778,7 +780,13 @@ export async function getStorage(account: IAccount, storageId: string) {
   });
 }
 
-export async function setStorage(account: IAccount, storageId: string, data: any, etag?: string, skipLeadingSlash?: boolean) {
+export async function setStorage(
+  account: IAccount,
+  storageId: string,
+  data: any,
+  etag?: string,
+  skipLeadingSlash?: boolean
+) {
   const storage = storageId;
   const headers: any = {
     Authorization: `Bearer ${account.accessToken}`,
@@ -794,7 +802,9 @@ export async function setStorage(account: IAccount, storageId: string, data: any
   return request({
     method: 'PUT',
     headers,
-    url: `${account.baseUrl}/v1/account/${account.accountId}/subscription/${account.subscriptionId}/storage${skipLeadingSlash ? '' : '/'}${storage}`,
+    url: `${account.baseUrl}/v1/account/${account.accountId}/subscription/${account.subscriptionId}/storage${
+      skipLeadingSlash ? '' : '/'
+    }${storage}`,
     data: JSON.stringify(data),
   });
 }

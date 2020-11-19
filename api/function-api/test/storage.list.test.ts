@@ -63,11 +63,11 @@ describe('Storage', () => {
       const storageIdPrefix = `test-${random()}`;
       const storageIds = [
         `${storageIdPrefix}`,
-        `${storageIdPrefix}/fo!@$^&(){}o`,
+        `${storageIdPrefix}/fo!@$^&(){}-"':;<>o`,
         `${storageIdPrefix}/bar`,
-        `${storageIdPrefix}/foo/bar`
+        `${storageIdPrefix}/foo/bar`,
       ];
-      await Promise.all(storageIds.map(s => setStorage(account, s, { data: 'hello world' })));
+      await Promise.all(storageIds.map((s) => setStorage(account, s, { data: 'hello world' })));
       const result = await listStorage(account, { storageId: `${storageIdPrefix}/*` });
       expect(result.status).toBe(200);
       expect(result.data.items.length).toBe(3);

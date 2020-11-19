@@ -45,11 +45,7 @@ export class StorageData extends DataSource implements IStorageData {
     this.storageTable = storageTable;
   }
 
-  public async get(
-    accountId: string,
-    subscriptionId: string,
-    storageId: string
-  ): Promise<IStorage> {
+  public async get(accountId: string, subscriptionId: string, storageId: string): Promise<IStorage> {
     const storage = await this.getStorage(accountId, subscriptionId, storageId, true);
 
     return storage as IStorage;
@@ -64,12 +60,7 @@ export class StorageData extends DataSource implements IStorageData {
     return this.storageTable.list(accountId, subscriptionId, storageId, options);
   }
 
-  public async set(
-    accountId: string,
-    subscriptionId: string,
-    storageId: string,
-    storage: IStorage
-  ): Promise<IStorage> {
+  public async set(accountId: string, subscriptionId: string, storageId: string, storage: IStorage): Promise<IStorage> {
     if (!storage || !storage.data) {
       throw StorageDataException.missingData(storageId);
     }
@@ -83,7 +74,7 @@ export class StorageData extends DataSource implements IStorageData {
     subscriptionId: string,
     storageId: string,
     recursive: boolean,
-    etag?: string,
+    etag?: string
   ): Promise<void> {
     await this.storageTable.delete(accountId, subscriptionId, storageId, recursive, etag);
     return;
@@ -103,7 +94,7 @@ export class StorageData extends DataSource implements IStorageData {
     accountId: string,
     subscriptionId: string,
     storageId: string,
-    throwIfNotFound: boolean = true,
+    throwIfNotFound: boolean = true
   ) {
     try {
       const storage = await this.storageTable.get(accountId, subscriptionId, storageId);

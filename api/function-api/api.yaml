@@ -94,7 +94,7 @@ paths:
         - in: query
           name: next
           required: false
-          description: Optional opaque token to start returning results from
+          description: Opaque token to start returning results from
           schema:
             type: string
         - in: query
@@ -278,7 +278,7 @@ paths:
       - in: query
         name: next
         required: false
-        description: Optional opaque token to start returning results from
+        description: Opaque token to start returning results from
         schema:
           type: string
       - in: query
@@ -399,7 +399,7 @@ paths:
         - in: query
           name: next
           required: false
-          description: Optional opaque token to start returning results from
+          description: Opaque token to start returning results from
           schema:
             type: string
         - in: query
@@ -643,7 +643,7 @@ paths:
         - in: query
           name: next
           required: false
-          description: Optional opaque token to start returning results from
+          description: Opaque token to start returning results from
           schema:
             type: string
         - in: query
@@ -954,7 +954,7 @@ paths:
         - in: query
           name: next
           required: false
-          description: Optional opaque token to start returning results from
+          description: Opaque token to start returning results from
           schema:
             type: string
         - in: query
@@ -1227,7 +1227,7 @@ paths:
         - in: query
           name: next
           required: false
-          description: Optional opaque token to start returning results from
+          description: Opaque token to start returning results from
           schema:
             type: string
         - in: query
@@ -1327,7 +1327,7 @@ paths:
         - in: query
           name: next
           required: false
-          description: Optional opaque token to start returning results from
+          description: Opaque token to start returning results from
           schema:
             type: string
         - in: query
@@ -2314,7 +2314,7 @@ paths:
   #          default: 200
   #      - name: next
   #        in: query
-  #        description: Optional opaque token to start returning results from.
+  #        description: Opaque token to start returning results from.
   #        require: false
   #        schema:
   #          type: number
@@ -2457,7 +2457,7 @@ paths:
       - in: query
         name: next
         required: false
-        description: Optional opaque token to start returning results from
+        description: Opaque token to start returning results from
         schema:
           type: string
       - in: query
@@ -2517,7 +2517,7 @@ paths:
           $ref: '#/components/schemas/SubscriptionId'
       - name: storageId
         in: path
-        description: The hierarchical storage Id which is a sequence of segments separated with a '/'
+        description: The unique path to the storage location, containing all URL path segments after /storage/
         required: true
         schema:
           $ref: '#/components/schemas/StorageId'
@@ -2525,9 +2525,9 @@ paths:
       tags:
         - Storage
       summary: |
-        Get the stored data for the given storage Id
+        Get the stored data for the given storage id
       description: |
-        Returns the JSON of the stored data for the given storage Id
+        Returns the JSON of the stored data for the given storage id
       operationId: getStorage
       responses:
         200:
@@ -2574,12 +2574,12 @@ paths:
       tags:
         - Storage
       summary: |
-        Sets the stored data for the given storage Id
+        Sets the stored data for the given storage id
       description: |
-        Sets the JSON of the stored data for the given storage Id
+        Sets the JSON of the stored data for the given storage id
       operationId: putStorage
       requestBody:
-        description: The JSON to set as the stored data for the given storage Id
+        description: The JSON to set as the stored data for the given storage id
         required: true
         content:
           application/json:
@@ -2636,9 +2636,9 @@ paths:
       tags:
         - Storage
       summary: |
-        Deletes the stored data for the given storage Id
+        Deletes the stored data for the given storage id
       description: |
-        Deletes the JSON of the stored data for the given storage Id
+        Deletes the JSON of the stored data for the given storage id
       operationId: deleteStorage
       responses:
         204:
@@ -2691,7 +2691,7 @@ paths:
           $ref: '#/components/schemas/SubscriptionId'
       - name: storageId
         in: path
-        description: The hierarchical storage Id which is a sequence of segments separated with a '/'
+        description: The hierarchical storage id which is a sequence of segments separated with a '/'
         required: true
         schema:
           $ref: '#/components/schemas/StorageId'
@@ -2700,7 +2700,7 @@ paths:
         - in: query
           name: next
           required: false
-          description: Optional opaque token to start returning results from
+          description: Opaque token to start returning results from
           schema:
             type: string
         - in: query
@@ -2714,7 +2714,7 @@ paths:
       tags:
         - Storage
       summary: |
-        List all subordinate storage Ids, excluding the storage Id itself
+        List all subordinate storage ids, excluding the storage id itself
       operationId: getStorageListRecursive
       responses:
         200:
@@ -2749,7 +2749,7 @@ paths:
       summary: |
         Deletes the stored data recursively
       description: |
-        Deletes the JSON of the stored data for all subordinate storage Ids in the storage hierarchy, excluding the storage Id itself
+        Deletes the JSON of the stored data for all subordinate storage ids in the storage hierarchy, excluding the storage id itself
       operationId: deleteStorageRecusive
       responses:
         204:
@@ -3484,7 +3484,7 @@ components:
     #              $ref: '#/components/schemas/Statistics/BulkEntry'
     #          next:
     #            type: number
-    #            description: Optional opaque token to start returning results from.
+    #            description: Opaque token to start returning results from.
     #          total:
     #            type: number
     #            description: The number of total entries in this time range for this query.
@@ -3510,7 +3510,7 @@ components:
           description: Opaque token to continue getting results from
         items:
           type: array
-          description: A list of storage Ids
+          description: A list of storage ids
           items:
             $ref: '#/components/schemas/StorageShort'
     StorageData:

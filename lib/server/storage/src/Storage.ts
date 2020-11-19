@@ -43,7 +43,7 @@ export class Storage {
     accountId: string,
     subscriptionId: string,
     storageId: string,
-    storage: IStorage,
+    storage: IStorage
   ): Promise<IStorage> {
     return this.dataContext.storageData.set(accountId, subscriptionId, storageId, storage);
   }
@@ -54,7 +54,7 @@ export class Storage {
     subscriptionId: string,
     storageId: string,
     recursive: boolean,
-    etag: string = '',
+    etag: string = ''
   ): Promise<void> {
     return this.dataContext.storageData.delete(accountId, subscriptionId, storageId, recursive, etag);
   }
