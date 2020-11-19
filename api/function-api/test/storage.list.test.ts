@@ -40,7 +40,7 @@ describe('Storage', () => {
       ]);
       const result = await listStorage(account);
       expect(result.status).toBe(200);
-      expect(result.data.items.length).toBeGreaterThanOrEqual(4);
+      expect(result.data.items.length).toBeGreaterThanOrEqual(3);
     }, 180000);
 
     test('Listing storage with hierarchy from storageId should work', async () => {
@@ -51,22 +51,33 @@ describe('Storage', () => {
         setStorage(account, `${storageIdPrefix}/bar`, { data: 'hello world' }),
         setStorage(account, `${storageIdPrefix}/foo/bar`, { data: 'hello world' }),
       ]);
-      const result = await listStorage(account, { storageId: `${storageIdPrefix}/*` });
+      let result = await listStorage(account, { storageId: `${storageIdPrefix}/*` });
       expect(result.status).toBe(200);
-      expect(result.data.items.length).toBe(4);
+      expect(result.data.items.length).toBe(3);
+      result = await listStorage(account, { storageId: `${storageIdPrefix}/*/` });
+      expect(result.status).toBe(200);
+      expect(result.data.items.length).toBe(3);
     }, 180000);
 
     test('Listing storage with hierarchy from storageId with funky characters should work', async () => {
       const storageIdPrefix = `test-${random()}`;
-      await Promise.all([
-        setStorage(account, `${storageIdPrefix}`, { data: 'hello world' }),
-        setStorage(account, `${storageIdPrefix}/fo!@$^&()o`, { data: 'hello world' }),
-        setStorage(account, `${storageIdPrefix}/bar`, { data: 'hello world' }),
-        setStorage(account, `${storageIdPrefix}/foo/bar`, { data: 'hello world' }),
-      ]);
+      const storageIds = [
+        `${storageIdPrefix}`,
+        `${storageIdPrefix}/fo!@$^&(){}o`,
+        `${storageIdPrefix}/bar`,
+        `${storageIdPrefix}/foo/bar`
+      ];
+      await Promise.all(storageIds.map(s => setStorage(account, s, { data: 'hello world' })));
       const result = await listStorage(account, { storageId: `${storageIdPrefix}/*` });
       expect(result.status).toBe(200);
-      expect(result.data.items.length).toBe(4);
+      expect(result.data.items.length).toBe(3);
+      storageIds.shift();
+      result.data.items.forEach((i: any) => {
+        const index = storageIds.indexOf(i.storageId);
+        expect(index).toBeGreaterThanOrEqual(0);
+        storageIds.splice(index, 1);
+      });
+      expect(storageIds.length).toBe(0);
     }, 180000);
 
     test('Listing storage with a count and next should work', async () => {

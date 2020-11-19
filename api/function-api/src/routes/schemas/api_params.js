@@ -13,7 +13,9 @@ module.exports = Joi.object().keys({
   subscriptionId: Joi.string().regex(/^sub-[a-g0-9]{16}$/),
   boundaryId: Joi.string().regex(/^[a-z0-9\-]{1,63}$/),
   functionId: Joi.string().regex(/^[a-z0-9\-]{1,64}$/),
-  storageId: Joi.string().allow('', /^[^\/*]+(?:\/[^\/*])*$/),
+  storageId: Joi.string()
+    .regex(/^[^\/\*]+(?:\/[^\/\*]+)*\/?$/)
+    .allow(''),
   recursive: Joi.boolean(),
   statisticsKey: Joi.string().valid(Object.keys(statisticsQueries)),
   registryId: Joi.string().valid('default'),

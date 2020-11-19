@@ -35,6 +35,13 @@ describe('Storage', () => {
       expect(storage.data).toEqual({ etag: '9c05511a31375a8a278a75207331bb1714e69dd1', data: 'hello world' });
     }, 180000);
 
+    test('Setting storage with hierarchy without leading slash should fail', async () => {
+      const storageId = `test-${random()}/foo/bar/baz`;
+      const storageData = { data: 'hello world' };
+      const storage = await setStorage(account, storageId, storageData, undefined, true);
+      expect(storage.status).toBe(404);
+    }, 180000);
+
     test('Setting storage with hierarchy and funky characters should work', async () => {
       const storageId = `test-${random()}/:$()!@/b12+/ba_^`;
       const storageData = { data: 'hello world' };
@@ -48,7 +55,7 @@ describe('Storage', () => {
       const storageId = `test-${random()}/foo/b*r/baz`;
       const storageData = { data: 'hello world' };
       const storage = await setStorage(account, storageId, storageData);
-      expect(storage.status).toBe(404);
+      expect(storage.status).toBe(400);
     }, 180000);
 
     test('Setting storage with a valid etag in the body and no storage path should work', async () => {

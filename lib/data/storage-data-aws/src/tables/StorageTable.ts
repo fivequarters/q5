@@ -163,7 +163,9 @@ export class StorageTable extends AwsDynamoTable {
         if (list.items && list.items.length > 0) {
           await Promise.all(list.items.map(s => this.delete(accountId, subscriptionId, s.storageId, false)));
         }
-        if (!list.next) break;
+        if (!list.next) {
+          break;
+        }
       }
     }
     else {

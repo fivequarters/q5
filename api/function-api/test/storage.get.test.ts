@@ -42,7 +42,7 @@ describe('Storage', () => {
     }, 180000);
 
     test('Getting storage with hierarchy and funky characters should work', async () => {
-      const storageId = `test-${random()}/:$()!@/b12+/ba_^`;
+      const storageId = `test-${random()}/:$(){}-!@/b12+/ba_^`;
       const storageData = { data: 'hello world' };
       const storage = await setStorage(account, storageId, storageData);
       expect(storage.status).toBe(200);

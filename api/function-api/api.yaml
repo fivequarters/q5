@@ -2714,7 +2714,7 @@ paths:
       tags:
         - Storage
       summary: |
-        List all subordinate storage ids
+        List all subordinate storage Ids, excluding the storage Id itself
       operationId: getStorageListRecursive
       responses:
         200:
@@ -2749,7 +2749,7 @@ paths:
       summary: |
         Deletes the stored data recursively
       description: |
-        Deletes the JSON of the stored data for the given storage Id and all storage Ids subordinate to it in the storage hierarchy
+        Deletes the JSON of the stored data for all subordinate storage Ids in the storage hierarchy, excluding the storage Id itself
       operationId: deleteStorageRecusive
       responses:
         204:

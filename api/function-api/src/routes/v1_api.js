@@ -581,6 +581,7 @@ router.get(
 
 // Storage
 
+// This is the logic to process the URL path subordinate to ".../storage":
 // Matches GET and LIST API paths:
 // /account/:accountId/subscription/:subscriptionId/storage (list)
 // /account/:accountId/subscription/:subscriptionId/storage/ (list)
@@ -590,56 +591,66 @@ router.get(
 // /account/:accountId/subscription/:subscriptionId/storage/p1/p2/.../pN/ (get)
 // /account/:accountId/subscription/:subscriptionId/storage/p1/p2/.../pN/* (list)
 // /account/:accountId/subscription/:subscriptionId/storage/p1/p2/.../pN/*/ (list)
-const storage_path_get_regexp = new RegExp(
-  '^/account/([^/]+)/subscription/([^/]+)/storage(?:((?:/[^/*]+)*)(?:/([*]))?/?)$'
-);
-
 // Matches PUT API paths:
-// /account/:accountId/subscription/:subscriptionId/storage/p1/p2/.../pN
-// /account/:accountId/subscription/:subscriptionId/storage/p1/p2/.../pN/
-const storage_path_put_regexp = new RegExp('^/account/([^/]+)/subscription/([^/]+)/storage(?:((?:/[^/*]+)+)/?)$');
-
+// /account/:accountId/subscription/:subscriptionId/storage/p1/p2/.../pN (put)
+// /account/:accountId/subscription/:subscriptionId/storage/p1/p2/.../pN/ (put)
 // Matches DELETE API paths:
 // /account/:accountId/subscription/:subscriptionId/storage/p1/p2/.../pN (delete)
 // /account/:accountId/subscription/:subscriptionId/storage/p1/p2/.../pN/ (delete)
 // /account/:accountId/subscription/:subscriptionId/storage/p1/p2/.../pN/* (delete recursive)
 // /account/:accountId/subscription/:subscriptionId/storage/p1/p2/.../pN/*/ (delete recursive)
-const storage_path_delete_regexp = new RegExp(
-  '^/account/([^/]+)/subscription/([^/]+)/storage(?:((?:/[^/*]+)+)(?:/([*]))?/?)$'
-);
-
 const promote_storage_params = (req, res, next) => {
-  req.params.accountId = req.params[0];
-  req.params.subscriptionId = req.params[1];
-  // storageId will be just the "p1/p2/.../pN" fragment:
-  req.params.storageId = req.params[2] && req.params[2].length > 0 ? req.params[2].substring(1) : '';
-  req.params.recursive = req.params[3] === '*' || !req.params.storageId;
-  [0, 1, 2, 3].forEach((x) => delete req.params[x.toString()]);
+  if (req.params[0][0] === '/') {
+    // ".../storage/[...]"
+    const match = req.params[0].match(/\/\*\/?$/);
+    if (match) {
+      // "/p1/p2/.../pN/*" or "/p1/p2/.../pN/*/"
+      // remove leading '/' but leave the trailing one: "p1/p2/.../pN/" for prefix match
+      req.params.recursive = true;
+      req.params.storageId = req.params[0].substring(1, req.params[0].length - match[0].length + 1);
+    } else if (req.params[0].match(/.\/$/)) {
+      // "/p1/p2/.../pN/"
+      // remove leading and trailing '/': "p1/p2/.../pN" for exact match
+      req.params.recursive = false;
+      req.params.storageId = req.params[0].substring(1, req.params[0].length - 1);
+    } else {
+      // "/p1/p2/.../pN"
+      // remove leading '/': "p1/p2/.../pN" for exact match
+      req.params.recursive = false;
+      req.params.storageId = req.params[0].substring(1);
+    }
+  } else if (req.params[0].length === 0) {
+    // ".../storage"
+    req.params.recursive = false;
+    req.params.storageId = '';
+  } else {
+    // ".../storagefoobar"
+    return next(create_error(404));
+  }
+  delete req.params[0];
   next();
 };
 
 const storage_get = storage.storageGet();
 const storage_list = storage.storageList();
 
-router.options(storage_path_get_regexp, cors(corsManagementOptions));
+router.options('/account/:accountId/subscription/:subscriptionId/storage*', cors(corsManagementOptions));
 router.get(
-  storage_path_get_regexp,
+  '/account/:accountId/subscription/:subscriptionId/storage*',
   promote_storage_params,
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
   validate_schema({ params: require('./schemas/api_params'), query: require('./schemas/api_query') }),
   authorize({ operation: StorageActions.getStorage }),
-  validate_schema({
-    query: require('./schemas/api_query'),
-    params: require('./schemas/api_params'),
-  }),
-  (req, res, next) => (req.params.recursive ? storage_list : storage_get)(req, res, next),
+  (req, res, next) =>
+    (req.params.recursive || req.params.storageId === '' ? storage_list : storage_get)(req, res, next),
   analytics.finished
 );
 
 router.put(
-  storage_path_put_regexp,
+  '/account/:accountId/subscription/:subscriptionId/storage*',
   promote_storage_params,
+  (req, res, next) => (req.params.recursive || req.params.storageId === '' ? next(create_error(404)) : next()),
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
   validate_schema({ params: require('./schemas/api_params') }),
@@ -651,7 +662,7 @@ router.put(
 );
 
 router.delete(
-  storage_path_delete_regexp,
+  '/account/:accountId/subscription/:subscriptionId/storage*',
   promote_storage_params,
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),

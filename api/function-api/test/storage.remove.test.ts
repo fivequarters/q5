@@ -54,6 +54,8 @@ describe('Storage', () => {
       expect(storage.status).toBe(200);
       storage = await setStorage(account, `${storageIdPrefix}/bar`, storageData);
       expect(storage.status).toBe(200);
+      storage = await setStorage(account, `${storageIdPrefix}`, storageData);
+      expect(storage.status).toBe(200);
 
       const removedStorage = await removeStorage(account, `${storageIdPrefix}/*`);
       expect(removedStorage.status).toBe(204);
@@ -65,6 +67,17 @@ describe('Storage', () => {
       expectMore(noSuchStorage).toBeStorageNotFound(`${storageIdPrefix}/bar/baz`);
       noSuchStorage = await getStorage(account, `${storageIdPrefix}/bar`);
       expectMore(noSuchStorage).toBeStorageNotFound(`${storageIdPrefix}/bar`);
+      // Recursive removal of "foo/*" does not remove "foo" itself:
+      storage = await getStorage(account, `${storageIdPrefix}`);
+      expect(storage.status).toBe(200);
+    }, 180000);
+
+    test('Removing storage that does not exist recursively should work', async () => {
+      const storageIdPrefix = `test-${random()}`;
+
+      const removedStorage = await removeStorage(account, `${storageIdPrefix}/*`);
+      expect(removedStorage.status).toBe(204);
+      expect(removedStorage.data).toBeUndefined();
     }, 180000);
 
     test('Removing storage node from hierarchy does not affect other nodes', async () => {
