@@ -94,7 +94,7 @@ paths:
         - in: query
           name: next
           required: false
-          description: Optional opaque token to start returning results from
+          description: Opaque token to start returning results from
           schema:
             type: string
         - in: query
@@ -278,7 +278,7 @@ paths:
       - in: query
         name: next
         required: false
-        description: Optional opaque token to start returning results from
+        description: Opaque token to start returning results from
         schema:
           type: string
       - in: query
@@ -399,7 +399,7 @@ paths:
         - in: query
           name: next
           required: false
-          description: Optional opaque token to start returning results from
+          description: Opaque token to start returning results from
           schema:
             type: string
         - in: query
@@ -643,7 +643,7 @@ paths:
         - in: query
           name: next
           required: false
-          description: Optional opaque token to start returning results from
+          description: Opaque token to start returning results from
           schema:
             type: string
         - in: query
@@ -954,7 +954,7 @@ paths:
         - in: query
           name: next
           required: false
-          description: Optional opaque token to start returning results from
+          description: Opaque token to start returning results from
           schema:
             type: string
         - in: query
@@ -1210,7 +1210,7 @@ paths:
           $ref: '#/components/schemas/AccountId'
       - name: subscriptionId
         in: path
-        description: The subscription id
+        description: Subscription id
         required: true
         schema:
           $ref: '#/components/schemas/SubscriptionId'
@@ -1227,7 +1227,7 @@ paths:
         - in: query
           name: next
           required: false
-          description: Optional opaque token to start returning results from
+          description: Opaque token to start returning results from
           schema:
             type: string
         - in: query
@@ -1304,7 +1304,7 @@ paths:
           $ref: '#/components/schemas/AccountId'
       - name: subscriptionId
         in: path
-        description: The subscription id
+        description: Subscription id
         required: true
         schema:
           $ref: '#/components/schemas/SubscriptionId'
@@ -1327,7 +1327,7 @@ paths:
         - in: query
           name: next
           required: false
-          description: Optional opaque token to start returning results from
+          description: Opaque token to start returning results from
           schema:
             type: string
         - in: query
@@ -1404,7 +1404,7 @@ paths:
           $ref: '#/components/schemas/AccountId'
       - name: subscriptionId
         in: path
-        description: The subscription id
+        description: Subscription id
         required: true
         schema:
           $ref: '#/components/schemas/SubscriptionId'
@@ -1456,7 +1456,7 @@ paths:
           $ref: '#/components/schemas/AccountId'
       - name: subscriptionId
         in: path
-        description: The subscription id
+        description: Subscription id
         required: true
         schema:
           $ref: '#/components/schemas/SubscriptionId'
@@ -1624,7 +1624,7 @@ paths:
           $ref: '#/components/schemas/AccountId'
       - name: subscriptionId
         in: path
-        description: The subscription id
+        description: Subscription id
         required: true
         schema:
           $ref: '#/components/schemas/SubscriptionId'
@@ -1700,7 +1700,7 @@ paths:
           $ref: '#/components/schemas/AccountId'
       - name: subscriptionId
         in: path
-        description: The subscription id
+        description: Subscription id
         required: true
         schema:
           $ref: '#/components/schemas/SubscriptionId'
@@ -1757,7 +1757,7 @@ paths:
           $ref: '#/components/schemas/AccountId'
       - name: subscriptionId
         in: path
-        description: The subscription id
+        description: Subscription id
         required: true
         schema:
           $ref: '#/components/schemas/SubscriptionId'
@@ -1818,7 +1818,7 @@ paths:
           $ref: '#/components/schemas/AccountId'
       - name: subscriptionId
         in: path
-        description: The subscription id
+        description: Subscription id
         required: true
         schema:
           $ref: '#/components/schemas/SubscriptionId'
@@ -1890,477 +1890,476 @@ paths:
       security:
         - AccessToken: []
 
-
-#  /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/statistics/codeactivityhg:
-#    parameters:
-#      - name: accountId
-#        in: path
-#        required: true
-#        description: Account id
-#        schema:
-#          $ref: '#/components/schemas/AccountId'
-#      - name: subscriptionId
-#        in: path
-#        description: The subscription id
-#        required: false
-#        schema:
-#          $ref: '#/components/schemas/SubscriptionId'
-#      - name: boundaryId
-#        in: path
-#        description: The boundary id, unique within the subscription.
-#        required: false
-#        schema:
-#          $ref: '#/components/schemas/BoundaryId'
-#      - name: from
-#        in: query
-#        description: Report on statistics starting with this ISO 8601 date string.
-#        required: true
-#        schema:
-#          type: string
-#      - name: to
-#        in: query
-#        description: Report on statistics ending with this ISO 8601 date string.
-#        required: true
-#        schema:
-#          type: string
-#      - name: width
-#        in: query
-#        description: |
-#          Aggregate statistical analysis on a bucket of this width.
-#
-#          Valid widths:
-#
-#            - `1s` - Aggregate on buckets 1 second in width
-#            - `1m` - Aggregate on buckets 1 minute in width
-#            - `1h` - Aggregate on buckets 1 hour in width
-#            - `1d` - Aggregate on buckets one day in width
-#            - `1w` - Aggregate on buckets on a weekly basis
-#            - `1M` - Aggregate on buckets on a monthly basis
-#            - `1q` - Aggregate on buckets on a quarterly basis
-#            - `1y` - Aggregate on buckets on a yearly basis
-#
-#          The width is passed to the Elastic Search backend, and follows the [calendar interval specification](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-bucket-datehistogram-aggregation.html#calendar_intervals).
-#        required: false
-#        schema:
-#          type: string
-#          default: "1d"
-#      - name: codeGrouped
-#        in: query
-#        description: Group HTTP response codes by 2xx, 3xx, 4xx, and 5xx instead of granular by each code
-#        required: false
-#        schema:
-#          type: boolean
-#          default: false
-#    get:
-#      tags:
-#        - Statistics
-#      summary: Aggregated total count results
-#      description: |
-#        Returns the aggregated __total count__ results for all active HTTP status codes during the specified time period.
-#      operationId: getStatisticsCodeActivityHG
-#      responses:
-#        200:
-#          description: Response body contains the requested data
-#          content:
-#            application/json:
-#              schema:
-#                $ref: '#/components/schemas/Statistics/Histogram'
-#        400:
-#          description: Malformed query parameters
-#          content:
-#            application/json:
-#              schema:
-#                $ref: '#/components/schemas/Error'
-#        403:
-#          description: Not authorized
-#          content:
-#            application/json:
-#              schema:
-#                $ref: '#/components/schemas/Error'
-#        405:
-#          description: Query was not found
-#          content:
-#            application/json:
-#              schema:
-#                $ref: '#/components/schemas/Error'
-#      security:
-#        - AccessToken: []
-#
-#  /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/statistics/codelatencyhg:
-#    parameters:
-#      - name: accountId
-#        in: path
-#        required: true
-#        description: Account id
-#        schema:
-#          $ref: '#/components/schemas/AccountId'
-#      - name: subscriptionId
-#        in: path
-#        description: The subscription id
-#        required: false
-#        schema:
-#          $ref: '#/components/schemas/SubscriptionId'
-#      - name: boundaryId
-#        in: path
-#        description: The boundary id, unique within the subscription.
-#        required: false
-#        schema:
-#          $ref: '#/components/schemas/BoundaryId'
-#      - name: from
-#        in: query
-#        description: Report on statistics starting with this ISO 8601 date string.
-#        required: true
-#        schema:
-#          type: string
-#      - name: to
-#        in: query
-#        description: Report on statistics ending with this ISO 8601 date string.
-#        required: true
-#        schema:
-#          type: string
-#      - name: width
-#        in: query
-#        description: |
-#          Aggregate statistical analysis on a bucket of this width.
-#
-#          Valid widths:
-#
-#            - `1s` - Aggregate on buckets 1 second in width
-#            - `1m` - Aggregate on buckets 1 minute in width
-#            - `1h` - Aggregate on buckets 1 hour in width
-#            - `1d` - Aggregate on buckets one day in width
-#            - `1w` - Aggregate on buckets on a weekly basis
-#            - `1M` - Aggregate on buckets on a monthly basis
-#            - `1q` - Aggregate on buckets on a quarterly basis
-#            - `1y` - Aggregate on buckets on a yearly basis
-#
-#          The width is passed to the Elastic Search backend, and follows the [calendar interval specification](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-bucket-datehistogram-aggregation.html#calendar_intervals).
-#        required: false
-#        schema:
-#          type: string
-#          default: "1d"
-#      - name: codeGrouped
-#        in: query
-#        description: Group HTTP response codes by 2xx, 3xx, 4xx, and 5xx instead of granular by each code
-#        required: false
-#        schema:
-#          type: boolean
-#          default: false
-#    get:
-#      tags:
-#        - Statistics
-#      summary: Aggregated average latency results
-#      description: |
-#        Returns the aggregated __average latency__ results for all active HTTP status codes.
-#      operationId: getStatisticsLatencyHG
-#      responses:
-#        200:
-#          description: Response body contains the requested data
-#          content:
-#            application/json:
-#              schema:
-#                $ref: '#/components/schemas/Statistics/Histogram'
-#        400:
-#          description: Malformed query parameters
-#          content:
-#            application/json:
-#              schema:
-#                $ref: '#/components/schemas/Error'
-#        403:
-#          description: Not authorized
-#          content:
-#            application/json:
-#              schema:
-#                $ref: '#/components/schemas/Error'
-#        404:
-#          description: Query was not found
-#          content:
-#            application/json:
-#              schema:
-#                $ref: '#/components/schemas/Error'
-#      security:
-#        - AccessToken: []
-#
-#  /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/statistics/codeactivitylatencyhg:
-#    parameters:
-#      - name: accountId
-#        in: path
-#        required: true
-#        description: Account id
-#        schema:
-#          $ref: '#/components/schemas/AccountId'
-#      - name: subscriptionId
-#        in: path
-#        description: The subscription id
-#        required: false
-#        schema:
-#          $ref: '#/components/schemas/SubscriptionId'
-#      - name: boundaryId
-#        in: path
-#        description: The boundary id, unique within the subscription.
-#        required: false
-#        schema:
-#          $ref: '#/components/schemas/BoundaryId'
-#      - name: from
-#        in: query
-#        description: Report on statistics starting with this ISO 8601 date string.
-#        required: true
-#        schema:
-#          type: string
-#      - name: to
-#        in: query
-#        description: Report on statistics ending with this ISO 8601 date string.
-#        required: true
-#        schema:
-#          type: string
-#      - name: width
-#        in: query
-#        description: |
-#          Aggregate statistical analysis on a bucket of this width.
-#
-#          Valid widths:
-#
-#            - `1s` - Aggregate on buckets 1 second in width
-#            - `1m` - Aggregate on buckets 1 minute in width
-#            - `1h` - Aggregate on buckets 1 hour in width
-#            - `1d` - Aggregate on buckets one day in width
-#            - `1w` - Aggregate on buckets on a weekly basis
-#            - `1M` - Aggregate on buckets on a monthly basis
-#            - `1q` - Aggregate on buckets on a quarterly basis
-#            - `1y` - Aggregate on buckets on a yearly basis
-#
-#          The width is passed to the Elastic Search backend, and follows the [calendar interval specification](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-bucket-datehistogram-aggregation.html#calendar_intervals).
-#        required: false
-#        schema:
-#          type: string
-#          default: "1d"
-#      - name: codeGrouped
-#        in: query
-#        description: Group HTTP response codes by 2xx, 3xx, 4xx, and 5xx instead of granular by each code
-#        required: false
-#        schema:
-#          type: boolean
-#          default: false
-#    get:
-#      tags:
-#        - Statistics
-#      summary: Aggregated average latency and total count results
-#      description: |
-#        Returns the aggregated __average latency__ and __total count__ results for all active HTTP status codes.
-#      operationId: getStatisticsActivityLatencyHG
-#      responses:
-#        200:
-#          description: Response body contains the requested data
-#          content:
-#            application/json:
-#              schema:
-#                $ref: '#/components/schemas/Statistics/HistogramPair'
-#        400:
-#          description: Malformed query parameters
-#          content:
-#            application/json:
-#              schema:
-#                $ref: '#/components/schemas/Error'
-#        403:
-#          description: Not authorized
-#          content:
-#            application/json:
-#              schema:
-#                $ref: '#/components/schemas/Error'
-#        404:
-#          description: Query was not found
-#          content:
-#            application/json:
-#              schema:
-#                $ref: '#/components/schemas/Error'
-#      security:
-#        - AccessToken: []
-#
-#  /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/statistics/fielduniquehg:
-#    parameters:
-#      - name: accountId
-#        in: path
-#        required: true
-#        description: Account id
-#        schema:
-#          $ref: '#/components/schemas/AccountId'
-#      - name: subscriptionId
-#        in: path
-#        description: The subscription id
-#        required: false
-#        schema:
-#          $ref: '#/components/schemas/SubscriptionId'
-#      - name: boundaryId
-#        in: path
-#        description: The boundary id, unique within the subscription.
-#        required: false
-#        schema:
-#          $ref: '#/components/schemas/BoundaryId'
-#      - name: from
-#        in: query
-#        description: Report on statistics starting with this ISO 8601 date string.
-#        required: true
-#        schema:
-#          type: string
-#      - name: to
-#        in: query
-#        description: Report on statistics ending with this ISO 8601 date string.
-#        required: true
-#        schema:
-#          type: string
-#      - name: width
-#        in: query
-#        description: |
-#          Aggregate statistical analysis on a bucket of this width.
-#
-#          Valid widths:
-#
-#            - `1s` - Aggregate on buckets 1 second in width
-#            - `1m` - Aggregate on buckets 1 minute in width
-#            - `1h` - Aggregate on buckets 1 hour in width
-#            - `1d` - Aggregate on buckets one day in width
-#            - `1w` - Aggregate on buckets on a weekly basis
-#            - `1M` - Aggregate on buckets on a monthly basis
-#            - `1q` - Aggregate on buckets on a quarterly basis
-#            - `1y` - Aggregate on buckets on a yearly basis
-#
-#          The width is passed to the Elastic Search backend, and follows the [calendar interval specification](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-bucket-datehistogram-aggregation.html#calendar_intervals).
-#        required: false
-#        schema:
-#          type: string
-#          default: "1d"
-#      - name: codeGrouped
-#        in: query
-#        description: Group HTTP response codes by 2xx, 3xx, 4xx, and 5xx instead of granular by each code
-#        required: false
-#        schema:
-#          type: boolean
-#          default: false
-#      - name: field
-#        in: query
-#        description: Group the histogram based on the number of unique values for the following keys: deploymentkey, accountid, subscriptionid, boundaryid, functionid
-#        required: true
-#    get:
-#      tags:
-#        - Statistics
-#      summary: Aggregated total count results
-#      description: |
-#        Returns the aggregated __unique count__ results for all active HTTP status codes during the specified time period across the specified field.
-#      operationId: getStatisticsCodeActivityHG
-#      responses:
-#        200:
-#          description: Response body contains the requested data
-#          content:
-#            application/json:
-#              schema:
-#                $ref: '#/components/schemas/Statistics/Histogram'
-#        400:
-#          description: Malformed query parameters
-#          content:
-#            application/json:
-#              schema:
-#                $ref: '#/components/schemas/Error'
-#        403:
-#          description: Not authorized
-#          content:
-#            application/json:
-#              schema:
-#                $ref: '#/components/schemas/Error'
-#        405:
-#          description: Query was not found
-#          content:
-#            application/json:
-#              schema:
-#                $ref: '#/components/schemas/Error'
-#      security:
-#        - AccessToken: []
-#
-#  /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/statistics/itemizedbulk:
-#    parameters:
-#      - name: accountId
-#        in: path
-#        required: true
-#        description: Account id
-#        schema:
-#          $ref: '#/components/schemas/AccountId'
-#      - name: subscriptionId
-#        in: path
-#        description: The subscription id
-#        required: false
-#        schema:
-#          $ref: '#/components/schemas/SubscriptionId'
-#      - name: boundaryId
-#        in: path
-#        description: The boundary id, unique within the subscription.
-#        required: false
-#        schema:
-#          $ref: '#/components/schemas/BoundaryId'
-#      - name: from
-#        in: query
-#        description: Report on statistics starting with this ISO 8601 date string.
-#        required: true
-#        schema:
-#          type: string
-#      - name: to
-#        in: query
-#        description: Report on statistics ending with this ISO 8601 date string.
-#        required: true
-#        schema:
-#          type: string
-#      - name: code
-#        in: query
-#        description: Filter the reported statistics on this HTTP status code, or status code group such as 2xx, 3xx, etc.
-#        schema:
-#          type: string
-#          default: 200
-#      - name: next
-#        in: query
-#        description: Optional opaque token to start returning results from.
-#        require: false
-#        schema:
-#          type: number
-#      - name: count
-#        in: query
-#        description: Include this many entries in the response.
-#        require: false
-#        schema:
-#          type: number
-#          default: 10
-#    get:
-#      tags:
-#        - Statistics
-#      summary: All function events
-#      description: |
-#        Returns the __full event details__ for the specified HTTP status code (or `200` if unspecified).
-#      operationId: getStatisticsBulk
-#      responses:
-#        200:
-#          description: Response body contains the requested data
-#          content:
-#            application/json:
-#              schema:
-#                $ref: '#/components/schemas/Statistics/Bulk'
-#        400:
-#          description: Malformed query parameters
-#          content:
-#            application/json:
-#              schema:
-#                $ref: '#/components/schemas/Error'
-#        403:
-#          description: Not authorized
-#          content:
-#            application/json:
-#              schema:
-#                $ref: '#/components/schemas/Error'
-#        404:
-#          description: Query was not found
-#          content:
-#            application/json:
-#              schema:
-#                $ref: '#/components/schemas/Error'
-#      security:
-#        - AccessToken: []
-#
+  #  /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/statistics/codeactivityhg:
+  #    parameters:
+  #      - name: accountId
+  #        in: path
+  #        required: true
+  #        description: Account id
+  #        schema:
+  #          $ref: '#/components/schemas/AccountId'
+  #      - name: subscriptionId
+  #        in: path
+  #        description: Subscription id
+  #        required: false
+  #        schema:
+  #          $ref: '#/components/schemas/SubscriptionId'
+  #      - name: boundaryId
+  #        in: path
+  #        description: The boundary id, unique within the subscription.
+  #        required: false
+  #        schema:
+  #          $ref: '#/components/schemas/BoundaryId'
+  #      - name: from
+  #        in: query
+  #        description: Report on statistics starting with this ISO 8601 date string.
+  #        required: true
+  #        schema:
+  #          type: string
+  #      - name: to
+  #        in: query
+  #        description: Report on statistics ending with this ISO 8601 date string.
+  #        required: true
+  #        schema:
+  #          type: string
+  #      - name: width
+  #        in: query
+  #        description: |
+  #          Aggregate statistical analysis on a bucket of this width.
+  #
+  #          Valid widths:
+  #
+  #            - `1s` - Aggregate on buckets 1 second in width
+  #            - `1m` - Aggregate on buckets 1 minute in width
+  #            - `1h` - Aggregate on buckets 1 hour in width
+  #            - `1d` - Aggregate on buckets one day in width
+  #            - `1w` - Aggregate on buckets on a weekly basis
+  #            - `1M` - Aggregate on buckets on a monthly basis
+  #            - `1q` - Aggregate on buckets on a quarterly basis
+  #            - `1y` - Aggregate on buckets on a yearly basis
+  #
+  #          The width is passed to the Elastic Search backend, and follows the [calendar interval specification](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-bucket-datehistogram-aggregation.html#calendar_intervals).
+  #        required: false
+  #        schema:
+  #          type: string
+  #          default: "1d"
+  #      - name: codeGrouped
+  #        in: query
+  #        description: Group HTTP response codes by 2xx, 3xx, 4xx, and 5xx instead of granular by each code
+  #        required: false
+  #        schema:
+  #          type: boolean
+  #          default: false
+  #    get:
+  #      tags:
+  #        - Statistics
+  #      summary: Aggregated total count results
+  #      description: |
+  #        Returns the aggregated __total count__ results for all active HTTP status codes during the specified time period.
+  #      operationId: getStatisticsCodeActivityHG
+  #      responses:
+  #        200:
+  #          description: Response body contains the requested data
+  #          content:
+  #            application/json:
+  #              schema:
+  #                $ref: '#/components/schemas/Statistics/Histogram'
+  #        400:
+  #          description: Malformed query parameters
+  #          content:
+  #            application/json:
+  #              schema:
+  #                $ref: '#/components/schemas/Error'
+  #        403:
+  #          description: Not authorized
+  #          content:
+  #            application/json:
+  #              schema:
+  #                $ref: '#/components/schemas/Error'
+  #        405:
+  #          description: Query was not found
+  #          content:
+  #            application/json:
+  #              schema:
+  #                $ref: '#/components/schemas/Error'
+  #      security:
+  #        - AccessToken: []
+  #
+  #  /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/statistics/codelatencyhg:
+  #    parameters:
+  #      - name: accountId
+  #        in: path
+  #        required: true
+  #        description: Account id
+  #        schema:
+  #          $ref: '#/components/schemas/AccountId'
+  #      - name: subscriptionId
+  #        in: path
+  #        description: Subscription id
+  #        required: false
+  #        schema:
+  #          $ref: '#/components/schemas/SubscriptionId'
+  #      - name: boundaryId
+  #        in: path
+  #        description: The boundary id, unique within the subscription.
+  #        required: false
+  #        schema:
+  #          $ref: '#/components/schemas/BoundaryId'
+  #      - name: from
+  #        in: query
+  #        description: Report on statistics starting with this ISO 8601 date string.
+  #        required: true
+  #        schema:
+  #          type: string
+  #      - name: to
+  #        in: query
+  #        description: Report on statistics ending with this ISO 8601 date string.
+  #        required: true
+  #        schema:
+  #          type: string
+  #      - name: width
+  #        in: query
+  #        description: |
+  #          Aggregate statistical analysis on a bucket of this width.
+  #
+  #          Valid widths:
+  #
+  #            - `1s` - Aggregate on buckets 1 second in width
+  #            - `1m` - Aggregate on buckets 1 minute in width
+  #            - `1h` - Aggregate on buckets 1 hour in width
+  #            - `1d` - Aggregate on buckets one day in width
+  #            - `1w` - Aggregate on buckets on a weekly basis
+  #            - `1M` - Aggregate on buckets on a monthly basis
+  #            - `1q` - Aggregate on buckets on a quarterly basis
+  #            - `1y` - Aggregate on buckets on a yearly basis
+  #
+  #          The width is passed to the Elastic Search backend, and follows the [calendar interval specification](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-bucket-datehistogram-aggregation.html#calendar_intervals).
+  #        required: false
+  #        schema:
+  #          type: string
+  #          default: "1d"
+  #      - name: codeGrouped
+  #        in: query
+  #        description: Group HTTP response codes by 2xx, 3xx, 4xx, and 5xx instead of granular by each code
+  #        required: false
+  #        schema:
+  #          type: boolean
+  #          default: false
+  #    get:
+  #      tags:
+  #        - Statistics
+  #      summary: Aggregated average latency results
+  #      description: |
+  #        Returns the aggregated __average latency__ results for all active HTTP status codes.
+  #      operationId: getStatisticsLatencyHG
+  #      responses:
+  #        200:
+  #          description: Response body contains the requested data
+  #          content:
+  #            application/json:
+  #              schema:
+  #                $ref: '#/components/schemas/Statistics/Histogram'
+  #        400:
+  #          description: Malformed query parameters
+  #          content:
+  #            application/json:
+  #              schema:
+  #                $ref: '#/components/schemas/Error'
+  #        403:
+  #          description: Not authorized
+  #          content:
+  #            application/json:
+  #              schema:
+  #                $ref: '#/components/schemas/Error'
+  #        404:
+  #          description: Query was not found
+  #          content:
+  #            application/json:
+  #              schema:
+  #                $ref: '#/components/schemas/Error'
+  #      security:
+  #        - AccessToken: []
+  #
+  #  /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/statistics/codeactivitylatencyhg:
+  #    parameters:
+  #      - name: accountId
+  #        in: path
+  #        required: true
+  #        description: Account id
+  #        schema:
+  #          $ref: '#/components/schemas/AccountId'
+  #      - name: subscriptionId
+  #        in: path
+  #        description: Subscription id
+  #        required: false
+  #        schema:
+  #          $ref: '#/components/schemas/SubscriptionId'
+  #      - name: boundaryId
+  #        in: path
+  #        description: The boundary id, unique within the subscription.
+  #        required: false
+  #        schema:
+  #          $ref: '#/components/schemas/BoundaryId'
+  #      - name: from
+  #        in: query
+  #        description: Report on statistics starting with this ISO 8601 date string.
+  #        required: true
+  #        schema:
+  #          type: string
+  #      - name: to
+  #        in: query
+  #        description: Report on statistics ending with this ISO 8601 date string.
+  #        required: true
+  #        schema:
+  #          type: string
+  #      - name: width
+  #        in: query
+  #        description: |
+  #          Aggregate statistical analysis on a bucket of this width.
+  #
+  #          Valid widths:
+  #
+  #            - `1s` - Aggregate on buckets 1 second in width
+  #            - `1m` - Aggregate on buckets 1 minute in width
+  #            - `1h` - Aggregate on buckets 1 hour in width
+  #            - `1d` - Aggregate on buckets one day in width
+  #            - `1w` - Aggregate on buckets on a weekly basis
+  #            - `1M` - Aggregate on buckets on a monthly basis
+  #            - `1q` - Aggregate on buckets on a quarterly basis
+  #            - `1y` - Aggregate on buckets on a yearly basis
+  #
+  #          The width is passed to the Elastic Search backend, and follows the [calendar interval specification](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-bucket-datehistogram-aggregation.html#calendar_intervals).
+  #        required: false
+  #        schema:
+  #          type: string
+  #          default: "1d"
+  #      - name: codeGrouped
+  #        in: query
+  #        description: Group HTTP response codes by 2xx, 3xx, 4xx, and 5xx instead of granular by each code
+  #        required: false
+  #        schema:
+  #          type: boolean
+  #          default: false
+  #    get:
+  #      tags:
+  #        - Statistics
+  #      summary: Aggregated average latency and total count results
+  #      description: |
+  #        Returns the aggregated __average latency__ and __total count__ results for all active HTTP status codes.
+  #      operationId: getStatisticsActivityLatencyHG
+  #      responses:
+  #        200:
+  #          description: Response body contains the requested data
+  #          content:
+  #            application/json:
+  #              schema:
+  #                $ref: '#/components/schemas/Statistics/HistogramPair'
+  #        400:
+  #          description: Malformed query parameters
+  #          content:
+  #            application/json:
+  #              schema:
+  #                $ref: '#/components/schemas/Error'
+  #        403:
+  #          description: Not authorized
+  #          content:
+  #            application/json:
+  #              schema:
+  #                $ref: '#/components/schemas/Error'
+  #        404:
+  #          description: Query was not found
+  #          content:
+  #            application/json:
+  #              schema:
+  #                $ref: '#/components/schemas/Error'
+  #      security:
+  #        - AccessToken: []
+  #
+  #  /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/statistics/fielduniquehg:
+  #    parameters:
+  #      - name: accountId
+  #        in: path
+  #        required: true
+  #        description: Account id
+  #        schema:
+  #          $ref: '#/components/schemas/AccountId'
+  #      - name: subscriptionId
+  #        in: path
+  #        description: Subscription id
+  #        required: false
+  #        schema:
+  #          $ref: '#/components/schemas/SubscriptionId'
+  #      - name: boundaryId
+  #        in: path
+  #        description: The boundary id, unique within the subscription.
+  #        required: false
+  #        schema:
+  #          $ref: '#/components/schemas/BoundaryId'
+  #      - name: from
+  #        in: query
+  #        description: Report on statistics starting with this ISO 8601 date string.
+  #        required: true
+  #        schema:
+  #          type: string
+  #      - name: to
+  #        in: query
+  #        description: Report on statistics ending with this ISO 8601 date string.
+  #        required: true
+  #        schema:
+  #          type: string
+  #      - name: width
+  #        in: query
+  #        description: |
+  #          Aggregate statistical analysis on a bucket of this width.
+  #
+  #          Valid widths:
+  #
+  #            - `1s` - Aggregate on buckets 1 second in width
+  #            - `1m` - Aggregate on buckets 1 minute in width
+  #            - `1h` - Aggregate on buckets 1 hour in width
+  #            - `1d` - Aggregate on buckets one day in width
+  #            - `1w` - Aggregate on buckets on a weekly basis
+  #            - `1M` - Aggregate on buckets on a monthly basis
+  #            - `1q` - Aggregate on buckets on a quarterly basis
+  #            - `1y` - Aggregate on buckets on a yearly basis
+  #
+  #          The width is passed to the Elastic Search backend, and follows the [calendar interval specification](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-bucket-datehistogram-aggregation.html#calendar_intervals).
+  #        required: false
+  #        schema:
+  #          type: string
+  #          default: "1d"
+  #      - name: codeGrouped
+  #        in: query
+  #        description: Group HTTP response codes by 2xx, 3xx, 4xx, and 5xx instead of granular by each code
+  #        required: false
+  #        schema:
+  #          type: boolean
+  #          default: false
+  #      - name: field
+  #        in: query
+  #        description: Group the histogram based on the number of unique values for the following keys: deploymentkey, accountid, subscriptionid, boundaryid, functionid
+  #        required: true
+  #    get:
+  #      tags:
+  #        - Statistics
+  #      summary: Aggregated total count results
+  #      description: |
+  #        Returns the aggregated __unique count__ results for all active HTTP status codes during the specified time period across the specified field.
+  #      operationId: getStatisticsCodeActivityHG
+  #      responses:
+  #        200:
+  #          description: Response body contains the requested data
+  #          content:
+  #            application/json:
+  #              schema:
+  #                $ref: '#/components/schemas/Statistics/Histogram'
+  #        400:
+  #          description: Malformed query parameters
+  #          content:
+  #            application/json:
+  #              schema:
+  #                $ref: '#/components/schemas/Error'
+  #        403:
+  #          description: Not authorized
+  #          content:
+  #            application/json:
+  #              schema:
+  #                $ref: '#/components/schemas/Error'
+  #        405:
+  #          description: Query was not found
+  #          content:
+  #            application/json:
+  #              schema:
+  #                $ref: '#/components/schemas/Error'
+  #      security:
+  #        - AccessToken: []
+  #
+  #  /v1/account/{accountId}/subscription/{subscriptionId}/boundary/{boundaryId}/statistics/itemizedbulk:
+  #    parameters:
+  #      - name: accountId
+  #        in: path
+  #        required: true
+  #        description: Account id
+  #        schema:
+  #          $ref: '#/components/schemas/AccountId'
+  #      - name: subscriptionId
+  #        in: path
+  #        description: Subscription id
+  #        required: false
+  #        schema:
+  #          $ref: '#/components/schemas/SubscriptionId'
+  #      - name: boundaryId
+  #        in: path
+  #        description: The boundary id, unique within the subscription.
+  #        required: false
+  #        schema:
+  #          $ref: '#/components/schemas/BoundaryId'
+  #      - name: from
+  #        in: query
+  #        description: Report on statistics starting with this ISO 8601 date string.
+  #        required: true
+  #        schema:
+  #          type: string
+  #      - name: to
+  #        in: query
+  #        description: Report on statistics ending with this ISO 8601 date string.
+  #        required: true
+  #        schema:
+  #          type: string
+  #      - name: code
+  #        in: query
+  #        description: Filter the reported statistics on this HTTP status code, or status code group such as 2xx, 3xx, etc.
+  #        schema:
+  #          type: string
+  #          default: 200
+  #      - name: next
+  #        in: query
+  #        description: Opaque token to start returning results from.
+  #        require: false
+  #        schema:
+  #          type: number
+  #      - name: count
+  #        in: query
+  #        description: Include this many entries in the response.
+  #        require: false
+  #        schema:
+  #          type: number
+  #          default: 10
+  #    get:
+  #      tags:
+  #        - Statistics
+  #      summary: All function events
+  #      description: |
+  #        Returns the __full event details__ for the specified HTTP status code (or `200` if unspecified).
+  #      operationId: getStatisticsBulk
+  #      responses:
+  #        200:
+  #          description: Response body contains the requested data
+  #          content:
+  #            application/json:
+  #              schema:
+  #                $ref: '#/components/schemas/Statistics/Bulk'
+  #        400:
+  #          description: Malformed query parameters
+  #          content:
+  #            application/json:
+  #              schema:
+  #                $ref: '#/components/schemas/Error'
+  #        403:
+  #          description: Not authorized
+  #          content:
+  #            application/json:
+  #              schema:
+  #                $ref: '#/components/schemas/Error'
+  #        404:
+  #          description: Query was not found
+  #          content:
+  #            application/json:
+  #              schema:
+  #                $ref: '#/components/schemas/Error'
+  #      security:
+  #        - AccessToken: []
+  #
 
   /v1/account/{accountId}/registry/default:
     parameters:
@@ -2414,7 +2413,7 @@ paths:
               $ref: '#/components/schemas/Registry/Put'
       responses:
         200:
-          description: Registry successfully updated 
+          description: Registry successfully updated
         400:
           description: Malformed registry specification
           content:
@@ -2440,250 +2439,345 @@ paths:
           $ref: '#/components/schemas/AccountId'
     description: |
       An endpoint that conforms to the protocol supported by the `npm` command line tool, which can be used to publish and retrieve packages from this registry.
- 
-  # /v1/account/{accountId}/subscription/{subscriptionId}/storage:
-  #   parameters:
-  #     - in: path
-  #       name: accountId
-  #       required: true
-  #       description: Account id
-  #       schema:
-  #         $ref: '#/components/schemas/AccountId'
-  #     - name: subscriptionId
-  #       in: path
-  #       description: The subscription id
-  #       required: true
-  #       schema:
-  #         $ref: '#/components/schemas/SubscriptionId'
-  #     - in: query
-  #       name: next
-  #       required: false
-  #       description: Optional opaque token to start returning results from
-  #       schema:
-  #         type: string
-  #     - in: query
-  #       name: count
-  #       required: false
-  #       description: Optional number of results to return
-  #       schema:
-  #         type: number
-  #         minimum: 1
-  #         maximum: 100
-  #   get:
-  #     tags:
-  #       - Storage
-  #     summary: |
-  #       List the storage ids for the given subscription
-  #     operationId: getStorageList
-  #     responses:
-  #       200:
-  #         description: A list of storage ids
-  #         content:
-  #           application/json:
-  #             schema:
-  #               $ref: '#/components/schemas/StorageList'
-  #       400:
-  #         description: Malformed account or subscription id, or invalid query
-  #         content:
-  #           application/json:
-  #             schema:
-  #               $ref: '#/components/schemas/Error'
-  #       403:
-  #         description: Not authorized
-  #         content:
-  #           application/json:
-  #             schema:
-  #               $ref: '#/components/schemas/Error'
-  #       404:
-  #         description: Subscription not found
-  #         content:
-  #           application/json:
-  #             schema:
-  #               $ref: '#/components/schemas/Error'
-  #     security:
-  #       - AccessToken: []
-  # /v1/account/{accountId}/subscription/{subscriptionId}/storage/{storageId}/{storagePath}:
-  #   parameters:
-  #     - in: path
-  #       name: accountId
-  #       required: true
-  #       description: Account id
-  #       schema:
-  #         $ref: '#/components/schemas/AccountId'
-  #     - name: subscriptionId
-  #       in: path
-  #       description: The subscription id
-  #       required: true
-  #       schema:
-  #         $ref: '#/components/schemas/SubscriptionId'
-  #     - name: storageId
-  #       in: path
-  #       description: The storage id
-  #       required: true
-  #       schema:
-  #         $ref: '#/components/schemas/StorageId'
-  #     - name: storagePath
-  #       in: path
-  #       description: |
-  #         One or more JSON object property names separated by a '/' to reference only a portion of
-  #         the stored data object
-  #       required: false
-  #       schema:
-  #         $ref: '#/components/schemas/StorageId'
-  #   get:
-  #     tags:
-  #       - Storage
-  #     summary: |
-  #       Get the stored data for the given storage Id and storage path
-  #     description: |
-  #       Returns the JSON of the stored data for the given storage Id and storage path
-  #     operationId: getStorage
-  #     responses:
-  #       200:
-  #         description: The stored data object
-  #         headers:
-  #           ETag:
-  #             schema:
-  #               type: string
-  #             description: |
-  #               An opaque token that represents the state of the stored data
-  #         content:
-  #           application/json:
-  #             schema:
-  #               $ref: '#/components/schemas/StorageData'
-  #       400:
-  #         description: Malformed account, subscription or storage id
-  #         content:
-  #           application/json:
-  #             schema:
-  #               $ref: '#/components/schemas/Error'
-  #       403:
-  #         description: Not authorized
-  #         content:
-  #           application/json:
-  #             schema:
-  #               $ref: '#/components/schemas/Error'
-  #       404:
-  #         description: Storage not found
-  #         content:
-  #           application/json:
-  #             schema:
-  #               $ref: '#/components/schemas/Error'
-  #     security:
-  #       - AccessToken: []
-  #   put:
-  #     parameters:
-  #       - in: header
-  #         name: If-Match
-  #         required: false
-  #         description: |
-  #           An opaque token indicates the state of the stored data when it was last retrieved; the operation should only succeed if the stored data state still matches the opaque token
-  #         schema:
-  #           type: string
-  #     tags:
-  #       - Storage
-  #     summary: |
-  #       Sets the stored data for the given storage Id and storage path
-  #     description: |
-  #       Sets the JSON of the stored data for the given storage Id and storage path
-  #     operationId: putStorage
-  #     requestBody:
-  #       description: The JSON to set as the stored data for the given storage Id and storage path
-  #       required: true
-  #       content:
-  #         application/json:
-  #           schema:
-  #             $ref: '#/components/schemas/StorageData'
-  #     responses:
-  #       200:
-  #         description: The data was stored
-  #         headers:
-  #           ETag:
-  #             schema:
-  #               type: string
-  #             description: |
-  #               An opaque token that represents the state of the stored data
-  #         content:
-  #           application/json:
-  #             schema:
-  #               $ref: '#/components/schemas/StorageData'
-  #       400:
-  #         description: Malformed account, subscription or storage id
-  #         content:
-  #           application/json:
-  #             schema:
-  #               $ref: '#/components/schemas/Error'
-  #       403:
-  #         description: Not authorized
-  #         content:
-  #           application/json:
-  #             schema:
-  #               $ref: '#/components/schemas/Error'
-  #       404:
-  #         description: Subscription or storage not found
-  #         content:
-  #           application/json:
-  #             schema:
-  #               $ref: '#/components/schemas/Error'
-  #       409:
-  #         description: Etag Conflict
-  #         content:
-  #           application/json:
-  #             schema:
-  #               $ref: '#/components/schemas/Error'
-  #     security:
-  #       - AccessToken: []
-  #   delete:
-  #     parameters:
-  #       - in: header
-  #         name: If-Match
-  #         required: false
-  #         description: |
-  #           An opaque token indicates the state of the stored data when it was last retrieved; the operation should only succeed if the stored data state still matches the opaque token
-  #         schema:
-  #           type: string
-  #     tags:
-  #       - Storage
-  #     summary: |
-  #       Deletes the stored data for the given storage Id and storage path
-  #     description: |
-  #       Deletes the JSON of the stored data for the given storage Id and storage path
-  #     operationId: deleteStorage
-  #     responses:
-  #       204:
-  #         description: The data was deleted
-  #       400:
-  #         description: Malformed account, subscription or storage id
-  #         content:
-  #           application/json:
-  #             schema:
-  #               $ref: '#/components/schemas/Error'
-  #       403:
-  #         description: Not authorized
-  #         content:
-  #           application/json:
-  #             schema:
-  #               $ref: '#/components/schemas/Error'
-  #       404:
-  #         description: Subscription or storage not found
-  #         content:
-  #           application/json:
-  #             schema:
-  #               $ref: '#/components/schemas/Error'
-  #       409:
-  #         description: Etag Conflict
-  #         headers:
-  #           ETag:
-  #             schema:
-  #               type: string
-  #             description: |
-  #               An opaque token that represents the state of the stored data
-  #         content:
-  #           application/json:
-  #             schema:
-  #               $ref: '#/components/schemas/StorageData'
-  #     security:
-  #       - AccessToken: []
+
+  /v1/account/{accountId}/subscription/{subscriptionId}/storage:
+    parameters:
+      - in: path
+        name: accountId
+        required: true
+        description: Account id
+        schema:
+          $ref: '#/components/schemas/AccountId'
+      - name: subscriptionId
+        in: path
+        description: Subscription id
+        required: true
+        schema:
+          $ref: '#/components/schemas/SubscriptionId'
+      - in: query
+        name: next
+        required: false
+        description: Opaque token to start returning results from
+        schema:
+          type: string
+      - in: query
+        name: count
+        required: false
+        description: Optional number of results to return
+        schema:
+          type: number
+          minimum: 1
+          maximum: 100
+    get:
+      tags:
+        - Storage
+      summary: |
+        List all storage ids for the given subscription
+      operationId: getStorageList
+      responses:
+        200:
+          description: A list of all storage ids
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StorageList'
+        400:
+          description: Malformed account or subscription id, or invalid query
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        403:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        404:
+          description: Subscription not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - AccessToken: []
+  /v1/account/{accountId}/subscription/{subscriptionId}/storage/{storageId}:
+    parameters:
+      - in: path
+        name: accountId
+        required: true
+        description: Account id
+        schema:
+          $ref: '#/components/schemas/AccountId'
+      - name: subscriptionId
+        in: path
+        description: Subscription id
+        required: true
+        schema:
+          $ref: '#/components/schemas/SubscriptionId'
+      - name: storageId
+        in: path
+        description: The unique path to the storage location, containing all URL path segments after /storage/
+        required: true
+        schema:
+          $ref: '#/components/schemas/StorageId'
+    get:
+      tags:
+        - Storage
+      summary: |
+        Get the stored data for the given storage id
+      description: |
+        Returns the JSON of the stored data for the given storage id
+      operationId: getStorage
+      responses:
+        200:
+          description: The stored data object
+          headers:
+            ETag:
+              schema:
+                type: string
+              description: |
+                An opaque token that represents the state of the stored data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StorageData'
+        400:
+          description: Malformed account, subscription or storage id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        403:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        404:
+          description: Storage not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - AccessToken: []
+    put:
+      parameters:
+        - in: header
+          name: If-Match
+          required: false
+          description: |
+            An opaque token indicates the state of the stored data when it was last retrieved; the operation should only succeed if the stored data state still matches the opaque token
+          schema:
+            type: string
+      tags:
+        - Storage
+      summary: |
+        Sets the stored data for the given storage id
+      description: |
+        Sets the JSON of the stored data for the given storage id
+      operationId: putStorage
+      requestBody:
+        description: The JSON to set as the stored data for the given storage id
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StorageData'
+      responses:
+        200:
+          description: The data was stored
+          headers:
+            ETag:
+              schema:
+                type: string
+              description: |
+                An opaque token that represents the state of the stored data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StorageData'
+        400:
+          description: Malformed account, subscription or storage id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        403:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        404:
+          description: Subscription or storage not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        409:
+          description: Etag Conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - AccessToken: []
+    delete:
+      parameters:
+        - in: header
+          name: If-Match
+          required: false
+          description: |
+            An opaque token indicates the state of the stored data when it was last retrieved; the operation should only succeed if the stored data state still matches the opaque token
+          schema:
+            type: string
+      tags:
+        - Storage
+      summary: |
+        Deletes the stored data for the given storage id
+      description: |
+        Deletes the JSON of the stored data for the given storage id
+      operationId: deleteStorage
+      responses:
+        204:
+          description: The data was deleted
+        400:
+          description: Malformed account, subscription or storage id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        403:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        404:
+          description: Subscription or storage not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        409:
+          description: Etag Conflict
+          headers:
+            ETag:
+              schema:
+                type: string
+              description: |
+                An opaque token that represents the state of the stored data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StorageData'
+      security:
+        - AccessToken: []
+  /v1/account/{accountId}/subscription/{subscriptionId}/storage/{storageId}/*:
+    parameters:
+      - in: path
+        name: accountId
+        required: true
+        description: Account id
+        schema:
+          $ref: '#/components/schemas/AccountId'
+      - name: subscriptionId
+        in: path
+        description: Subscription id
+        required: true
+        schema:
+          $ref: '#/components/schemas/SubscriptionId'
+      - name: storageId
+        in: path
+        description: The hierarchical storage id which is a sequence of segments separated with a '/'
+        required: true
+        schema:
+          $ref: '#/components/schemas/StorageId'
+    get:
+      parameters:
+        - in: query
+          name: next
+          required: false
+          description: Opaque token to start returning results from
+          schema:
+            type: string
+        - in: query
+          name: count
+          required: false
+          description: Optional number of results to return
+          schema:
+            type: number
+            minimum: 1
+            maximum: 100
+      tags:
+        - Storage
+      summary: |
+        List all subordinate storage ids, excluding the storage id itself
+      operationId: getStorageListRecursive
+      responses:
+        200:
+          description: A list of storage ids
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StorageList'
+        400:
+          description: Malformed account, subscription id, storage id, or invalid query
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        403:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        404:
+          description: Subscription not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - AccessToken: []
+    delete:
+      tags:
+        - Storage
+      summary: |
+        Deletes the stored data recursively
+      description: |
+        Deletes the JSON of the stored data for all subordinate storage ids in the storage hierarchy, excluding the storage id itself
+      operationId: deleteStorageRecusive
+      responses:
+        204:
+          description: The data was deleted
+        400:
+          description: Malformed account, subscription or storage id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        403:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        404:
+          description: Subscription or storage not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StorageData'
+      security:
+        - AccessToken: []
 
 components:
   securitySchemes:
@@ -3307,115 +3401,115 @@ components:
               description: An npm package scope, such as '@internal'
               example: '@internal'
 
-#    Statistics:
-#      HistogramEntry:
-#        type: object
-#        properties:
-#          key:
-#            type: string
-#            description: The date in ISO 8601 string format.
-#          "200,404,503,2xx,3xx,etc":
-#            type: string 
-#            description: |
-#              The tally for each HTTP status code active during this aggregate.
-#
-#              For example:
-#                `{ "key": "2020-04-22T22:13:51.066Z", "200": 512, "403": 15, "501": 2 }`
-#
-#      Histogram:
-#        type: object
-#        description: A collection of histogram artifacts ranging across the specified time range.
-#        properties:
-#          items:
-#            type: array
-#            description: A list of histogram aggregated intervals
-#            items:
-#              $ref: '#/components/schemas/Statistics/HistogramEntry'
-#          codes:
-#            type: array
-#            items:
-#              type: number
-#            description: The HTTP status codes active during this interval.
+    #    Statistics:
+    #      HistogramEntry:
+    #        type: object
+    #        properties:
+    #          key:
+    #            type: string
+    #            description: The date in ISO 8601 string format.
+    #          "200,404,503,2xx,3xx,etc":
+    #            type: string
+    #            description: |
+    #              The tally for each HTTP status code active during this aggregate.
+    #
+    #              For example:
+    #                `{ "key": "2020-04-22T22:13:51.066Z", "200": 512, "403": 15, "501": 2 }`
+    #
+    #      Histogram:
+    #        type: object
+    #        description: A collection of histogram artifacts ranging across the specified time range.
+    #        properties:
+    #          items:
+    #            type: array
+    #            description: A list of histogram aggregated intervals
+    #            items:
+    #              $ref: '#/components/schemas/Statistics/HistogramEntry'
+    #          codes:
+    #            type: array
+    #            items:
+    #              type: number
+    #            description: The HTTP status codes active during this interval.
 
-#      HistogramPairEntry:
-#        type: object
-#        properties:
-#          key:
-#            type: string
-#            description: The date in ISO 8601 string format.
-#          "200,404,503,2xx,3xx,etc":
-#            type: string 
-#            description: |
-#              A _pair_ of the average latency and the tally for each HTTP status code active during this aggregate.
-#
-#              For example:
-#                `{ "key": "2020-04-22T22:13:51.066Z", "200": [125.3, 512], "403": [25.12, 15], "501": [12.5, 2] }`
-#
-#      HistogramPair:
-#        type: object
-#        description: A collection of histogram artifacts ranging across the specified time range.
-#        properties:
-#          items:
-#            type: array
-#            description: A list of histogram aggregated intervals
-#            items:
-#              $ref: '#/components/schemas/Statistics/HistogramPairEntry'
-#          codes:
-#            type: array
-#            items:
-#              type: string
-#            description: |
-#             The HTTP status codes active during this interval.  For example, `[200, 301, 404]` or
-#             `["2xx", "3xx", "4xx"]` if codeGrouped is specified.
-#
-#      BulkEntry:
-#        description: An object containing all of the collected metrics and behaviors for an event
-#        type: object
-#
-#      Bulk:
-#        type: object
-#        description: A collection of bulk events ranging across the specified time range
-#        properties:
-#          items:
-#            type: array
-#            items:
-#              $ref: '#/components/schemas/Statistics/BulkEntry'
-#          next:
-#            type: number
-#            description: Optional opaque token to start returning results from.
-#          total:
-#            type: number
-#            description: The number of total entries in this time range for this query.
-#
-    # StorageId:
-    #   type: string
-    #   description: Storage id
-    #   example: my-storage-id
-    # StorageShort:
-    #   type: object
-    #   required:
-    #     - storageId
-    #   properties:
-    #     storageId:
-    #       $ref: '#/components/schemas/StorageId'
-    # StorageList:
-    #   type: object
-    #   required:
-    #     - items
-    #   properties:
-    #     next:
-    #       type: string
-    #       description: Opaque token to continue getting results from
-    #     items:
-    #       type: array
-    #       description: A list of storage Ids
-    #       items:
-    #         $ref: '#/components/schemas/StorageShort'
-    # StorageData:
-    #   type: object
-    #   properties:
-    #     etag:
-    #       type: string
-    #       description: An opaque token that represents the state of the stored data
-    #     data:
-    #       description: A JSON value of stored data
+    #      HistogramPairEntry:
+    #        type: object
+    #        properties:
+    #          key:
+    #            type: string
+    #            description: The date in ISO 8601 string format.
+    #          "200,404,503,2xx,3xx,etc":
+    #            type: string
+    #            description: |
+    #              A _pair_ of the average latency and the tally for each HTTP status code active during this aggregate.
+    #
+    #              For example:
+    #                `{ "key": "2020-04-22T22:13:51.066Z", "200": [125.3, 512], "403": [25.12, 15], "501": [12.5, 2] }`
+    #
+    #      HistogramPair:
+    #        type: object
+    #        description: A collection of histogram artifacts ranging across the specified time range.
+    #        properties:
+    #          items:
+    #            type: array
+    #            description: A list of histogram aggregated intervals
+    #            items:
+    #              $ref: '#/components/schemas/Statistics/HistogramPairEntry'
+    #          codes:
+    #            type: array
+    #            items:
+    #              type: string
+    #            description: |
+    #             The HTTP status codes active during this interval.  For example, `[200, 301, 404]` or
+    #             `["2xx", "3xx", "4xx"]` if codeGrouped is specified.
+    #
+    #      BulkEntry:
+    #        description: An object containing all of the collected metrics and behaviors for an event
+    #        type: object
+    #
+    #      Bulk:
+    #        type: object
+    #        description: A collection of bulk events ranging across the specified time range
+    #        properties:
+    #          items:
+    #            type: array
+    #            items:
+    #              $ref: '#/components/schemas/Statistics/BulkEntry'
+    #          next:
+    #            type: number
+    #            description: Opaque token to start returning results from.
+    #          total:
+    #            type: number
+    #            description: The number of total entries in this time range for this query.
+    #
+    StorageId:
+      type: string
+      description: Storage id
+      example: my-storage-id
+    StorageShort:
+      type: object
+      required:
+        - storageId
+      properties:
+        storageId:
+          $ref: '#/components/schemas/StorageId'
+    StorageList:
+      type: object
+      required:
+        - items
+      properties:
+        next:
+          type: string
+          description: Opaque token to continue getting results from
+        items:
+          type: array
+          description: A list of storage ids
+          items:
+            $ref: '#/components/schemas/StorageShort'
+    StorageData:
+      type: object
+      properties:
+        etag:
+          type: string
+          description: An opaque token that represents the state of the stored data
+        data:
+          description: A JSON value of stored data

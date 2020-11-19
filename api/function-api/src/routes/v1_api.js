@@ -581,31 +581,63 @@ router.get(
 
 // Storage
 
-router.options('/account/:accountId/subscription/:subscriptionId/storage', cors(corsManagementOptions));
-router.get(
-  '/account/:accountId/subscription/:subscriptionId/storage',
-  analytics.enterHandler(analytics.Modes.Administration),
-  cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_params') }),
-  authorize({ operation: StorageActions.getStorage }),
-  validate_schema({ query: require('./schemas/api_query') }),
-  storage.storageList(),
-  analytics.finished
-);
+// This is the logic to process the URL path subordinate to ".../storage":
+// Matches GET and LIST API paths:
+// /account/:accountId/subscription/:subscriptionId/storage (list)
+// /account/:accountId/subscription/:subscriptionId/storage/ (list)
+// /account/:accountId/subscription/:subscriptionId/storage/* (list)
+// /account/:accountId/subscription/:subscriptionId/storage/*/ (list)
+// /account/:accountId/subscription/:subscriptionId/storage/p1/p2/.../pN (get)
+// /account/:accountId/subscription/:subscriptionId/storage/p1/p2/.../pN/ (get)
+// /account/:accountId/subscription/:subscriptionId/storage/p1/p2/.../pN/* (list)
+// /account/:accountId/subscription/:subscriptionId/storage/p1/p2/.../pN/*/ (list)
+// Matches PUT API paths:
+// /account/:accountId/subscription/:subscriptionId/storage/p1/p2/.../pN (put)
+// /account/:accountId/subscription/:subscriptionId/storage/p1/p2/.../pN/ (put)
+// Matches DELETE API paths:
+// /account/:accountId/subscription/:subscriptionId/storage/p1/p2/.../pN (delete)
+// /account/:accountId/subscription/:subscriptionId/storage/p1/p2/.../pN/ (delete)
+// /account/:accountId/subscription/:subscriptionId/storage/p1/p2/.../pN/* (delete recursive)
+// /account/:accountId/subscription/:subscriptionId/storage/p1/p2/.../pN/*/ (delete recursive)
+const promote_storage_params = (req, res, next) => {
+  const storagePath = req.params[0];
+  delete req.params[0];
+  if (storagePath.length === 0 || storagePath[0] === '/') {
+    // Set recursive flag depending on the presence of trailing `*` or `*/`:
+    req.params.recursive = !!storagePath.match(/\*\/?$/);
+    // Set storageId such that:
+    // 1. There is no leading slash ("p1/p2/...")
+    // 2. The trailing `*` or `*/` are removed
+    // 3. There is a trailing slash (".../pN/") if the storagePath is recursive
+    // 4. There is no trailing slash (".../pN") if the storagePath is not recursive
+    req.params.storageId = storagePath.replace(/(((\/)\*)?\/?)$/, '$3').substring(1);
+  } else {
+    // ".../storagefoobar"
+    return next(create_error(404));
+  }
+  next();
+};
 
-router.options('/account/:accountId/subscription/:subscriptionId/storage/:storageId*', cors(corsManagementOptions));
+const storage_get = storage.storageGet();
+const storage_list = storage.storageList();
+
+router.options('/account/:accountId/subscription/:subscriptionId/storage*', cors(corsManagementOptions));
 router.get(
-  '/account/:accountId/subscription/:subscriptionId/storage/:storageId*',
+  '/account/:accountId/subscription/:subscriptionId/storage*',
+  promote_storage_params,
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_params') }),
+  validate_schema({ params: require('./schemas/api_params'), query: require('./schemas/api_query') }),
   authorize({ operation: StorageActions.getStorage }),
-  storage.storageGet(),
+  (req, res, next) =>
+    (req.params.recursive || req.params.storageId === '' ? storage_list : storage_get)(req, res, next),
   analytics.finished
 );
 
 router.put(
-  '/account/:accountId/subscription/:subscriptionId/storage/:storageId*',
+  '/account/:accountId/subscription/:subscriptionId/storage*',
+  promote_storage_params,
+  (req, res, next) => (req.params.recursive || req.params.storageId === '' ? next(create_error(404)) : next()),
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
   validate_schema({ params: require('./schemas/api_params') }),
@@ -617,7 +649,8 @@ router.put(
 );
 
 router.delete(
-  '/account/:accountId/subscription/:subscriptionId/storage/:storageId*',
+  '/account/:accountId/subscription/:subscriptionId/storage*',
+  promote_storage_params,
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
   validate_schema({ params: require('./schemas/api_params') }),
