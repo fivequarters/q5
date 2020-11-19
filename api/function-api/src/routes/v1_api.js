@@ -602,29 +602,15 @@ router.get(
 const promote_storage_params = (req, res, next) => {
   const storagePath = req.params[0];
   delete req.params[0];
-  if (storagePath[0] === '/') {
-    // ".../storage/[...]"
-    const match = storagePath.match(/\/\*\/?$/);
-    if (match) {
-      // "/p1/p2/.../pN/*" or "/p1/p2/.../pN/*/"
-      // remove leading '/' but leave the trailing one: "p1/p2/.../pN/" for prefix match
-      req.params.recursive = true;
-      req.params.storageId = storagePath.substring(1, storagePath.length - match[0].length + 1);
-    } else if (storagePath.match(/.\/$/)) {
-      // "/p1/p2/.../pN/"
-      // remove leading and trailing '/': "p1/p2/.../pN" for exact match
-      req.params.recursive = false;
-      req.params.storageId = storagePath.substring(1, req.params[0].length - 1);
-    } else {
-      // "/p1/p2/.../pN"
-      // remove leading '/': "p1/p2/.../pN" for exact match
-      req.params.recursive = false;
-      req.params.storageId = storagePath.substring(1);
-    }
-  } else if (storagePath.length === 0) {
-    // ".../storage"
-    req.params.recursive = false;
-    req.params.storageId = '';
+  if (storagePath.length === 0 || storagePath[0] === '/') {
+    // Set recursive flag depending on the presence of trailing `*` or `*/`:
+    req.params.recursive = !!storagePath.match(/\*\/?$/);
+    // Set storageId such that:
+    // 1. There is no leading slash ("p1/p2/...")
+    // 2. The trailing `*` or `*/` are removed
+    // 3. There is a trailing slash (".../pN/") if the storagePath is recursive
+    // 4. There is no trailing slash (".../pN") if the storagePath is not recursive
+    req.params.storageId = storagePath.replace(/(((\/)\*)?\/?)$/, '$3').substring(1);
   } else {
     // ".../storagefoobar"
     return next(create_error(404));
