@@ -19,9 +19,17 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 
 ## Version 1.18.0
 
-_Released 11/16/20_
+_Released 11/18/20_
 
 - **Enhancement.** Support for hierarchical document storage
+
+## Version 1.17.12
+
+_Released 11/17/20_
+
+- **Enhancement.** Enable functions to call Fusebit APIs with permissions specified at function creation.
+- **Enhancement.** Annotate realtime log output with it's HTTP method.
+- **Enhancement.** Support realtime log output from cron functions.
 
 ## Version 1.17.11
 

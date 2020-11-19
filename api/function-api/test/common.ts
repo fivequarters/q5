@@ -6,7 +6,7 @@ const httpExpect = (response: IHttpResponse, { statusCode, data, headers, tests 
   try {
     if (statusCode) {
       if (typeof statusCode === 'object') {
-        expect(status).toContain(response.status);
+        expect(statusCode).toContain(response.status);
       } else {
         expect(response.status).toEqual(statusCode);
       }
@@ -35,8 +35,10 @@ const httpExpect = (response: IHttpResponse, { statusCode, data, headers, tests 
     }
   } catch (err) {
     err.message = `${err.message}\n\nfailing response:\n${response.status} - ${JSON.stringify(
-      response.headers
-    )} - ${JSON.stringify(response.data)}`;
+      response.headers,
+      null,
+      2
+    )} - ${JSON.stringify(response.data, null, 2)}`;
     throw err;
   }
 };
@@ -47,6 +49,7 @@ const newBoundaryId = (): string => {
 
 const setupEnvironment = () => {
   let account: IAccount = FakeAccount;
+  let accountToken: string;
 
   let boundaryId = newBoundaryId();
   const function1Id = 'test-function-1';
@@ -57,13 +60,16 @@ const setupEnvironment = () => {
 
   beforeAll(async () => {
     account = await resolveAccount();
+    accountToken = account.accessToken;
   });
 
   afterAll(async () => {
+    account.accessToken = accountToken;
     await deleteAllFunctions(account, boundaryId);
   }, 200000);
 
   beforeEach(async () => {
+    account.accessToken = accountToken;
     await deleteAllFunctions(account, boundaryId);
   }, 200000);
 
@@ -86,7 +92,7 @@ const setupEnvironment = () => {
     packageJson: any = undefined,
     metadata: any = undefined
   ) => {
-    let response = await putFunction(account, boundaryId, functionId, {
+    const response = await putFunction(account, boundaryId, functionId, {
       nodejs: {
         files: {
           'index.js': payload,

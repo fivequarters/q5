@@ -52,7 +52,7 @@ export class DeploymentService {
         'Deployment Exists',
         `'${Text.bold(deployment.deploymentName)}' has been updated with the supplied parameters.`
       );
-      throw Error('Deployment already Exists');
+      throw new Error('Deployment already Exists');
     }
 
     return deployment as IOpsDeployment;
@@ -67,7 +67,7 @@ export class DeploymentService {
         'Target File Exists',
         `Cannot generate configuration in '${Text.bold(outFile)}': file exists.`
       );
-      throw Error('Target File Exists');
+      throw new Error('Target File Exists');
     }
 
     fs.writeFileSync(

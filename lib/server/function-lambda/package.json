@@ -26,7 +26,8 @@
     "@5qtrs/json-stable": "^0.0.1",
     "@5qtrs/key-value": "^0.0.1",
     "@5qtrs/runtime-common": "^0.0.1",
-    "@5qtrs/constants": "^0.0.1"
+    "@5qtrs/constants": "^0.0.1",
+    "@5qtrs/runas": "^0.0.1"
   },
   "devDependencies": {
     "@types/async": "^2.4.0"

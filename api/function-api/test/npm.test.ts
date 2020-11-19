@@ -1,10 +1,12 @@
 import { IAccount } from './accountResolver';
+
+import { IHttpResponse, request } from '@5qtrs/request';
+
 import { httpExpect, setupEnvironment } from './common';
 import * as Registry from './registry';
+import { deleteFunction, putFunction, waitForBuild } from './sdk';
 
 import * as Constants from '@5qtrs/constants';
-
-import { request } from '@5qtrs/request';
 
 const fs = require('fs');
 
@@ -16,9 +18,22 @@ const regScope = '@package';
 const masterAccount = 'acc-00000000';
 const masterScope = '@fusebit';
 
+const VALID_PKG = 'test/mock/sample-npm.tgz';
+const BROKEN_PKG = 'test/mock/sample-broken-npm.tgz';
+
+const funcWithDep = (pkgName: string) => ({
+  nodejs: {
+    files: {
+      'index.js': `const s = require("${pkgName}"); module.exports = (ctx, cb) => cb(null, { body: typeof s });`,
+      'package.json': { engines: { node: '10' }, dependencies: { [pkgName]: '*' } },
+    },
+  },
+});
+
 /* Utility functions */
 const getRegistryUrl = (account: IAccount): any => {
-  const registryPath = `localhost:3001/v1/account/${account.accountId}/registry/default/npm/`;
+  const host = Constants.API_PUBLIC_ENDPOINT.replace(/http[s]?:\/\//, '');
+  const registryPath = `${host}/v1/account/${account.accountId}/registry/default/npm/`;
   return { registryPath, registryUrl: `http://${registryPath}` };
 };
 
@@ -33,8 +48,8 @@ const getOpts = (scope: string, account: IAccount): any => {
   return { ...registry, ...token };
 };
 
-const preparePackage = (scope: string) => {
-  const tarData = fs.readFileSync('test/mock/sample-npm.tgz');
+const preparePackage = (scope: string, pkgFile: string = VALID_PKG) => {
+  const tarData = fs.readFileSync(pkgFile);
   const manifest = {
     name: `${scope}/libnpmpublish`,
     version: '1.0.0',
@@ -164,6 +179,53 @@ describe('npm', () => {
       ...fullOpts,
     });
     expect(data).toEqual(tarData);
+  }, 180000);
+
+  test('build', async () => {
+    const account = getAccount();
+    await resetScope(account);
+    const { registryPath, registryUrl } = getRegistryUrl(account);
+
+    // Start by publishing a package we know fails
+    let pkg = preparePackage(regScope, BROKEN_PKG);
+
+    let manifest = pkg.manifest;
+    let tarData = pkg.tarData;
+    await libnpm.publish(manifest, tarData, getOpts(regScope, account));
+
+    // Defensively delete the function.
+    await deleteFunction(account, 'test-npm-build', 'testfunc');
+    let response = await putFunction(account, 'test-npm-build', 'testfunc', funcWithDep(manifest.name));
+    expect([200, 201]).toContain(response.status);
+    if (response.status === 201) {
+      response = await waitForBuild(account, response.data, 15, 1000);
+      httpExpect(response, { statusCode: 200 });
+    }
+
+    response = await request({ method: 'GET', url: response.data.location });
+    httpExpect(response, { statusCode: 500 });
+
+    // Now publish a known working package, remove the function, and build
+    pkg = preparePackage(regScope, VALID_PKG);
+    manifest = pkg.manifest;
+    tarData = pkg.tarData;
+
+    await libnpm.publish(manifest, tarData, getOpts(regScope, account));
+
+    await deleteFunction(account, 'test-npm-build', 'testfunc');
+    response = await putFunction(account, 'test-npm-build', 'testfunc', funcWithDep(manifest.name));
+    expect([200, 201]).toContain(response.status);
+    if (response.status === 201) {
+      response = await waitForBuild(account, response.data, 15, 1000);
+      httpExpect(response, { statusCode: 200 });
+      expect(response.status).toEqual(200);
+    }
+
+    response = await request({ method: 'GET', url: response.data.location });
+    httpExpect(response, { statusCode: 200, data: 'object' });
+
+    // Clean up
+    await deleteFunction(account, 'test-npm-build', 'testfunc');
   }, 180000);
 
   test('registry scope configure', async () => {

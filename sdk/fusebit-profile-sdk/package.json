@@ -19,6 +19,7 @@
     "@5qtrs/key-pair": "^0.0.1",
     "@5qtrs/random": "^0.0.1",
     "@5qtrs/base64": "^0.0.1",
-    "@5qtrs/exception": "^0.0.1"
+    "@5qtrs/exception": "^0.0.1",
+    "@5qtrs/constants": "^0.0.1"
   }
 }

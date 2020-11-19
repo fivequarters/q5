@@ -40,7 +40,7 @@ export class AccountService {
 
     if (exists) {
       this.executeService.warning('Account Exists', `There is already an '${Text.bold(account.name)}' account`);
-      throw Error('Account already Exists');
+      throw new Error('Account already Exists');
     }
   }
 

@@ -20,6 +20,8 @@ const cronOffRegex = /^off$/i;
 const fromFusebitJson = Text.dim(' (from fusebit.json)');
 const notSet = Text.dim(Text.italic('<not set>'));
 const hiddenValue = '****';
+const editorIp = process.env.FUSEBIT_EDITOR_IP || '127.0.0.1';
+const maxHttpMethodLen = 7;
 
 // ------------------
 // Internal Functions
@@ -213,6 +215,8 @@ export class FunctionService {
     functionSpec.compute = fusebitJson.compute || fusebitJson.lambda;
     functionSpec.computeSerialized = fusebitJson.computeSerialized;
 
+    functionSpec.functionPermissions = fusebitJson.functionPermissions;
+
     // schedule and scheduleSerialized
     const cronDisabled = cronOffRegex.test(cron || '');
     if (cronDisabled) {
@@ -301,6 +305,7 @@ export class FunctionService {
     fusebitJson.computeSerialized = functionSpec.computeSerialized;
     fusebitJson.schedule = functionSpec.schedule;
     fusebitJson.scheduleSerialized = functionSpec.scheduleSerialized;
+    fusebitJson.functionPermissions = functionSpec.functionPermissions;
 
     try {
       await writeFile(join(path, 'fusebit.json'), JSON.stringify(fusebitJson, null, 2));
@@ -364,7 +369,7 @@ export class FunctionService {
         attempts++;
         const port = 8000 + Math.floor(Math.random() * 100);
         await startServer(port);
-        open(`http://127.0.0.1:${port}`);
+        open(`http://${editorIp}:${port}`);
         return port;
       } catch (error) {
         if (attempts >= 10) {
@@ -394,7 +399,7 @@ export class FunctionService {
         Text.eol(),
         Text.eol(),
         'Hosting the Fusebit editor at ',
-        Text.bold(`http://127.0.0.1:${port}`),
+        Text.bold(`http://${editorIp}:${port}`),
         Text.eol(),
         'If the browser does not open automatically, navigate to this URL.',
         Text.eol(),
@@ -545,7 +550,13 @@ export class FunctionService {
                       error
                     );
                   }
-                  this.input.io.write(Text.dim(`[${new Date(parsed.time).toLocaleTimeString()}] `));
+                  this.input.io.write(
+                    Text.dim(
+                      `[${new Date(parsed.time).toLocaleTimeString()}] ${(parsed.method || '').padStart(
+                        maxHttpMethodLen
+                      )}> `
+                    )
+                  );
                   this.input.io.writeLineRaw(parsed.level > 30 ? Text.red(parsed.msg).toString() : parsed.msg);
                   if (parsed.properties) {
                     let trace = parsed.properties.trace || parsed.properties.stackTrace;

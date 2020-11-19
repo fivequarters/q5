@@ -11,6 +11,10 @@ import { decodeJwt, decodeJwtHeader, verifyJwt } from '@5qtrs/jwt';
 import { AccountConfig } from './AccountConfig';
 import { cancelOnError } from '@5qtrs/promise';
 
+import { InternalIssuerCache, SystemAgent } from '@5qtrs/runas';
+
+import { JWT_PERMISSION_CLAIM, isSystemIssuer } from '@5qtrs/constants';
+
 // ------------------
 // Internal Constants
 // ------------------
@@ -23,6 +27,8 @@ const rootAgent = {
     allow: [{ action: '*', resource: '/' }],
   },
 };
+
+const internalIssuerCache = new InternalIssuerCache({});
 
 // ------------------
 // Internal Functions
@@ -37,7 +43,12 @@ async function validateJwt(
 ) {
   const decodedJwtHeader = decodeJwtHeader(jwt);
   const kid = decodedJwtHeader.kid;
-  const issuer = await dataContext.issuerData.get(accountId, issuerId);
+
+  // Get either the system issuer or the actual issuer.
+  const issuer = await (isSystemIssuer(issuerId)
+    ? internalIssuerCache.findInternalIssuer(issuerId)
+    : dataContext.issuerData.get(accountId, issuerId));
+
   let secretOrUrl;
   if (issuer.jsonKeysUrl) {
     secretOrUrl = issuer.jsonKeysUrl;
@@ -47,6 +58,8 @@ async function validateJwt(
         secretOrUrl = publicKey.publicKey;
       }
     }
+  } else if (issuer.keyStore) {
+    secretOrUrl = await issuer.keyStore(kid);
   }
 
   if (!secretOrUrl) {
@@ -54,6 +67,10 @@ async function validateJwt(
   }
 
   try {
+    if (process.env.JWT_ALT_AUDIENCE && decodeJwt(jwt).aud === process.env.JWT_ALT_AUDIENCE) {
+      // Debugging only - allow a specified alternative audience for JWT validation.
+      audience = process.env.JWT_ALT_AUDIENCE;
+    }
     await verifyJwt(jwt, secretOrUrl, { audience, algorithms, issuer });
   } catch (error) {
     throw AccountDataException.invalidJwt(error);
@@ -126,12 +143,25 @@ export class ResolvedAgent implements IAgent {
     const identity = { issuerId, subject };
     const audience = accountConfig.jwtAudience;
 
-    const agentPromise = dataContext.agentData.get(accountId, { issuerId, subject });
+    const agentPromise = isSystemIssuer(issuerId)
+      ? Promise.resolve(new SystemAgent(decodedJwtPayload))
+      : dataContext.agentData.get(accountId, identity);
+
     const validatePromise = validateJwt(dataContext, accountId, audience, jwt, issuerId);
 
     try {
       const agent = await cancelOnError(validatePromise, agentPromise);
-      return new ResolvedAgent(dataContext, accountId, agent, identity);
+      const resolvedAgent = new ResolvedAgent(dataContext, accountId, agent, identity);
+
+      // Non-system issuers presenting claims must only present claims that are a subset of the resolved
+      // agent's permissions.  If the presented claims exceed the agent's permissions, an error will be
+      // thrown.
+      if (!isSystemIssuer(issuerId) && decodedJwtPayload[JWT_PERMISSION_CLAIM]) {
+        await resolvedAgent.checkPermissionSubset(decodedJwtPayload[JWT_PERMISSION_CLAIM]);
+        resolvedAgent.agent.access = decodedJwtPayload[JWT_PERMISSION_CLAIM];
+      }
+
+      return resolvedAgent;
     } catch (error) {
       if (error.code === AccountDataExceptionCode.noIssuer || error.code === AccountDataExceptionCode.noIdentity) {
         throw AccountDataException.unresolvedAgent(error);
@@ -200,6 +230,10 @@ export class ResolvedAgent implements IAgent {
     if (!authorized) {
       throw AccountDataException.unauthorized(this.id as string, action, resource);
     }
+  }
+
+  public async checkPermissionSubset(permissions: any) {
+    return Promise.all(permissions.allow.map((entry: any) => this.ensureAuthorized(entry.action, entry.resource)));
   }
 
   public get id() {

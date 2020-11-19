@@ -65,7 +65,7 @@ export class PortalService {
         'Domain Name Error',
         `The portal must be deployed on a subdomain of a domain previously registered with 'fuse-ops domain add'.`
       );
-      throw Error('No root domain');
+      throw new Error('No root domain');
     }
 
     const existingDomains = await this.executeService.execute(
@@ -90,7 +90,7 @@ export class PortalService {
           existingDomains && existingDomains.length > 0 ? existingDomains.map((d) => d.domainName).join(', ') : 'N/A'
         }.`
       );
-      throw Error('Root domain does not exist');
+      throw new Error('Root domain does not exist');
     }
 
     return existing;

@@ -1,5 +1,3 @@
-require('dotenv').config();
-
 import { IAccount } from './accountResolver';
 import { request, IHttpResponse } from '@5qtrs/request';
 import { random } from '@5qtrs/random';
@@ -193,7 +191,8 @@ export async function getLogs(
   account: IAccount,
   boundaryId: string,
   functionId?: string,
-  ignoreLogs: boolean = false
+  ignoreLogs: boolean = false,
+  logTimeout: number = 15000
 ): Promise<any> {
   const http = account.baseUrl.startsWith('https') ? require('https') : require('http');
   const rootPath = `${account.baseUrl}/v1/account/${account.accountId}/subscription/${account.subscriptionId}`;
@@ -252,7 +251,7 @@ export async function getLogs(
     logRequest = http.get(url, { headers, agent: false }, onResponse);
 
     if (!ignoreLogs) {
-      timer = setTimeout(onDone, 15000);
+      timer = setTimeout(onDone, logTimeout);
     }
   });
 }
@@ -1070,4 +1069,15 @@ export async function createPKIAccessToken(
   };
 
   return signJwt({}, keyPair.privateKey, options);
+}
+
+export async function getMe(account: IAccount, accessToken?: string) {
+  return request({
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${accessToken || account.accessToken}`,
+      'user-agent': account.userAgent,
+    },
+    url: `${account.baseUrl}/v1/account/${account.accountId}/me`,
+  });
 }

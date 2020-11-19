@@ -3330,6 +3330,14 @@ components:
                   type: string
                 value:
                   type: string
+        functionPermissions:
+          type: object
+          description: Provide a `ctx.fusebit.functionAccessToken` with these permissions during function execution, allowing the function to make calls to Fusebit APIs.
+          properties:
+            allow:
+              type: array
+              items:
+                $ref: '#/components/schemas/AccessStatement'
 
     FunctionList:
       type: object

@@ -1,5 +1,8 @@
 const express = require('express');
 const router = express.Router();
+
+// require('aws-sdk').config.logger = console;
+
 const analytics = require('./middleware/analytics');
 const determine_provider = require('./middleware/determine_provider');
 const parse_body_conditional = require('./middleware/parse_body_conditional');
@@ -22,8 +25,14 @@ const agent = require('./handlers/agent');
 const audit = require('./handlers/audit');
 const statistics = require('./handlers/statistics');
 const npm = require('@5qtrs/npm');
+
+const { clear_built_module } = require('@5qtrs/function-lambda');
 const { AwsRegistry } = require('@5qtrs/registry');
 const Constants = require('@5qtrs/constants');
+
+const { execAs, loadSummary, loadSubscription, AwsKeyStore, SubscriptionCache } = require('@5qtrs/runas');
+
+const { loadLogging, addLogging } = require('@5qtrs/runtime-common');
 
 const { StorageActions } = require('@5qtrs/storage');
 const storage = require('./handlers/storage');
@@ -42,8 +51,22 @@ var corsExecutionOptions = {
   credentials: true,
 };
 
-const npmRegistry = AwsRegistry;
+// Load the global npm registry in AWS
+const npmRegistry = () =>
+  AwsRegistry.handler({
+    // Clear built modules from S3 when a version is put to force a rebuild
+    onNewPackage: async (name, ver, registry) => clear_built_module(name, { version: ver, registry }),
+  });
 
+// Create the keystore and guarantee an initial key
+const keyStore = new AwsKeyStore({});
+keyStore.rekey();
+
+// Create and load a cache with the current subscription->account mapping
+const subscriptionCache = new SubscriptionCache({});
+subscriptionCache.refresh();
+
+// Utility functions
 const NotImplemented = (_, __, next) => next(create_error(501, 'Not implemented'));
 
 const debugLogEvent = (req, res, next) => {
@@ -66,20 +89,12 @@ const traceEvent = (key) => {
 
 // Health
 
-router.get('/health', health.getHealth());
-
-// Real-time logs from execution
-
-router.post(
-  '/internal/logs',
-  analytics.enterHandler(analytics.Modes.Operations),
-  authorize({
-    logs: true,
-  }),
-  express.json(),
-  determine_provider(),
-  (req, res, next) => provider_handlers[req.provider].post_logs(req, res, next),
-  analytics.finished
+router.get(
+  '/health',
+  health.getHealth(
+    async () => keyStore.healthCheck(),
+    async () => subscriptionCache.healthCheck()
+  )
 );
 
 // Accounts
@@ -89,12 +104,10 @@ router.post(
   '/account',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
+  validate_schema({ params: require('./schemas/api_params') }),
   authorize({ operation: AccountActions.addAccount }),
   express.json(),
-  validate_schema({
-    body: require('./schemas/account'),
-  }),
+  validate_schema({ body: require('./schemas/account') }),
   account.accountPost(),
   analytics.finished
 );
@@ -104,11 +117,8 @@ router.get(
   '/account/:accountId',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
+  validate_schema({ params: require('./schemas/api_params') }),
   authorize({ operation: AccountActions.getAccount }),
-  validate_schema({
-    params: require('./schemas/api_params'),
-  }),
   account.accountGet(),
   analytics.finished
 );
@@ -118,12 +128,9 @@ router.get(
   '/account/:accountId/audit',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
+  validate_schema({ params: require('./schemas/api_params') }),
   authorize({ operation: AccountActions.getAudit }),
-  validate_schema({
-    query: require('./schemas/api_query'),
-    params: require('./schemas/api_params'),
-  }),
+  validate_schema({ query: require('./schemas/api_query') }),
   audit.auditGet(),
   analytics.finished
 );
@@ -135,12 +142,9 @@ router.get(
   '/account/:accountId/issuer',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
+  validate_schema({ params: require('./schemas/api_params') }),
   authorize({ operation: AccountActions.getIssuer }),
-  validate_schema({
-    query: require('./schemas/api_query'),
-    params: require('./schemas/api_params'),
-  }),
+  validate_schema({ query: require('./schemas/api_query') }),
   issuer.issuerList(),
   analytics.finished
 );
@@ -150,11 +154,8 @@ router.get(
   '/account/:accountId/issuer/:issuerId',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
+  validate_schema({ params: require('./schemas/api_params') }),
   authorize({ operation: AccountActions.getIssuer }),
-  validate_schema({
-    params: require('./schemas/api_params'),
-  }),
   issuer.issuerGet(),
   analytics.finished
 );
@@ -163,12 +164,10 @@ router.post(
   '/account/:accountId/issuer/:issuerId',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
+  validate_schema({ params: require('./schemas/api_params') }),
   authorize({ operation: AccountActions.addIssuer }),
   express.json(),
-  validate_schema({
-    body: require('./schemas/issuer'),
-  }),
+  validate_schema({ body: require('./schemas/issuer') }),
   issuer.issuerPost(),
   analytics.finished
 );
@@ -177,12 +176,10 @@ router.patch(
   '/account/:accountId/issuer/:issuerId',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
+  validate_schema({ params: require('./schemas/api_params') }),
   authorize({ operation: AccountActions.updateIssuer }),
   express.json(),
-  validate_schema({
-    body: require('./schemas/update_issuer'),
-  }),
+  validate_schema({ body: require('./schemas/update_issuer') }),
   issuer.issuerPatch(),
   analytics.finished
 );
@@ -191,11 +188,8 @@ router.delete(
   '/account/:accountId/issuer/:issuerId',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
+  validate_schema({ params: require('./schemas/api_params') }),
   authorize({ operation: AccountActions.deleteIssuer }),
-  validate_schema({
-    params: require('./schemas/api_params'),
-  }),
   issuer.issuerDelete(),
   analytics.finished
 );
@@ -207,13 +201,10 @@ router.post(
   '/account/:accountId/subscription',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
+  validate_schema({ params: require('./schemas/api_params') }),
   authorize({ operation: AccountActions.addSubscription }),
   express.json(),
-  validate_schema({
-    params: require('./schemas/api_params'),
-    body: require('./schemas/subscription'),
-  }),
+  validate_schema({ body: require('./schemas/subscription') }),
   subscription.subscriptionPost(),
   analytics.finished
 );
@@ -223,12 +214,9 @@ router.get(
   '/account/:accountId/subscription',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
+  validate_schema({ params: require('./schemas/api_params') }),
   authorize({ operation: AccountActions.getSubscription }),
-  validate_schema({
-    query: require('./schemas/api_query'),
-    params: require('./schemas/api_params'),
-  }),
+  validate_schema({ query: require('./schemas/api_query') }),
   subscription.subscriptionList(),
   analytics.finished
 );
@@ -238,11 +226,8 @@ router.get(
   '/account/:accountId/subscription/:subscriptionId',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
+  validate_schema({ params: require('./schemas/api_params') }),
   authorize({ operation: AccountActions.getSubscription }),
-  validate_schema({
-    params: require('./schemas/api_params'),
-  }),
   subscription.subscriptionGet(),
   analytics.finished
 );
@@ -254,7 +239,7 @@ router.get(
   '/account/:accountId/me',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
+  validate_schema({ params: require('./schemas/api_params') }),
   authorize({}),
   agent.getMe(),
   analytics.finished
@@ -265,12 +250,9 @@ router.post(
   '/account/:accountId/init',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
+  validate_schema({ params: require('./schemas/api_params') }),
   express.json(),
-  validate_schema({
-    params: require('./schemas/api_params'),
-    body: require('./schemas/initResolve'),
-  }),
+  validate_schema({ body: require('./schemas/initResolve') }),
   authorize({ resolve: true }),
   agent.initResolve(),
   analytics.finished
@@ -283,12 +265,9 @@ router.get(
   '/account/:accountId/user',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
+  validate_schema({ params: require('./schemas/api_params') }),
   authorize({ operation: AccountActions.getUser }),
-  validate_schema({
-    query: require('./schemas/api_query'),
-    params: require('./schemas/api_params'),
-  }),
+  validate_schema({ query: require('./schemas/api_query') }),
   user.userList(),
   analytics.finished
 );
@@ -297,13 +276,10 @@ router.post(
   '/account/:accountId/user',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
+  validate_schema({ params: require('./schemas/api_params') }),
   authorize({ operation: AccountActions.addUser }),
   express.json(),
-  validate_schema({
-    params: require('./schemas/api_params'),
-    body: require('./schemas/user'),
-  }),
+  validate_schema({ body: require('./schemas/user') }),
   user.userPost(),
   analytics.finished
 );
@@ -313,11 +289,8 @@ router.get(
   '/account/:accountId/user/:userId',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
+  validate_schema({ params: require('./schemas/api_params') }),
   authorize({ operation: AccountActions.getUser }),
-  validate_schema({
-    params: require('./schemas/api_params'),
-  }),
   user.userGet(),
   analytics.finished
 );
@@ -326,13 +299,10 @@ router.patch(
   '/account/:accountId/user/:userId',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
+  validate_schema({ params: require('./schemas/api_params') }),
   authorize({ operation: AccountActions.updateUser }),
   express.json(),
-  validate_schema({
-    params: require('./schemas/api_params'),
-    body: require('./schemas/update_user'),
-  }),
+  validate_schema({ body: require('./schemas/update_user') }),
   user.userPatch(),
   analytics.finished
 );
@@ -341,11 +311,8 @@ router.delete(
   '/account/:accountId/user/:userId',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
+  validate_schema({ params: require('./schemas/api_params') }),
   authorize({ operation: AccountActions.deleteUser }),
-  validate_schema({
-    params: require('./schemas/api_params'),
-  }),
   user.userDelete(),
   analytics.finished
 );
@@ -355,13 +322,10 @@ router.post(
   '/account/:accountId/user/:userId/init',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
+  validate_schema({ params: require('./schemas/api_params') }),
   authorize({ operation: AccountActions.initUser }),
   express.json(),
-  validate_schema({
-    params: require('./schemas/api_params'),
-    body: require('./schemas/init'),
-  }),
+  validate_schema({ body: require('./schemas/init') }),
   user.userInit(),
   analytics.finished
 );
@@ -373,12 +337,9 @@ router.get(
   '/account/:accountId/client',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
+  validate_schema({ params: require('./schemas/api_params') }),
   authorize({ operation: AccountActions.getClient }),
-  validate_schema({
-    query: require('./schemas/api_query'),
-    params: require('./schemas/api_params'),
-  }),
+  validate_schema({ query: require('./schemas/api_query') }),
   client.clientList(),
   analytics.finished
 );
@@ -387,13 +348,10 @@ router.post(
   '/account/:accountId/client',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
+  validate_schema({ params: require('./schemas/api_params') }),
   authorize({ operation: AccountActions.addClient }),
   express.json(),
-  validate_schema({
-    params: require('./schemas/api_params'),
-    body: require('./schemas/client'),
-  }),
+  validate_schema({ body: require('./schemas/client') }),
   client.clientPost(),
   analytics.finished
 );
@@ -403,11 +361,8 @@ router.get(
   '/account/:accountId/client/:clientId',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
+  validate_schema({ params: require('./schemas/api_params') }),
   authorize({ operation: AccountActions.getClient }),
-  validate_schema({
-    params: require('./schemas/api_params'),
-  }),
   client.clientGet(),
   analytics.finished
 );
@@ -416,13 +371,10 @@ router.patch(
   '/account/:accountId/client/:clientId',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
+  validate_schema({ params: require('./schemas/api_params') }),
   authorize({ operation: AccountActions.updateClient }),
   express.json(),
-  validate_schema({
-    params: require('./schemas/api_params'),
-    body: require('./schemas/update_client'),
-  }),
+  validate_schema({ body: require('./schemas/update_client') }),
   client.clientPatch(),
   analytics.finished
 );
@@ -431,11 +383,8 @@ router.delete(
   '/account/:accountId/client/:clientId',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
+  validate_schema({ params: require('./schemas/api_params') }),
   authorize({ operation: AccountActions.deleteClient }),
-  validate_schema({
-    params: require('./schemas/api_params'),
-  }),
   client.clientDelete(),
   analytics.finished
 );
@@ -445,13 +394,10 @@ router.post(
   '/account/:accountId/client/:clientId/init',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
+  validate_schema({ params: require('./schemas/api_params') }),
   authorize({ operation: AccountActions.initClient }),
   express.json(),
-  validate_schema({
-    params: require('./schemas/api_params'),
-    body: require('./schemas/init'),
-  }),
+  validate_schema({ body: require('./schemas/init') }),
   client.clientInit(),
   analytics.finished
 );
@@ -466,14 +412,9 @@ router.get(
   '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
-  authorize({
-    operation: 'function:get',
-  }),
-  validate_schema({
-    query: require('./schemas/api_query'),
-    params: require('./schemas/api_params'),
-  }),
+  validate_schema({ params: require('./schemas/api_params') }),
+  authorize({ operation: 'function:get' }),
+  validate_schema({ query: require('./schemas/api_query') }),
   determine_provider(),
   (req, res, next) => provider_handlers[req.provider].list_functions(req, res, next),
   analytics.finished
@@ -488,13 +429,10 @@ router.get(
   '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/log',
   analytics.enterHandler(analytics.Modes.Operations),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
+  validate_schema({ params: require('./schemas/api_params') }),
   authorize({
     operation: 'function:get-log',
     getToken: (req) => req.query && req.query.token,
-  }),
-  validate_schema({
-    params: require('./schemas/api_params'),
   }),
   determine_provider(),
   (req, res, next) => provider_handlers[req.provider].get_logs(req, res, next),
@@ -508,14 +446,9 @@ router.get(
   '/account/:accountId/subscription/:subscriptionId/function',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
-  authorize({
-    operation: 'function:get',
-  }),
-  validate_schema({
-    query: require('./schemas/api_query'),
-    params: require('./schemas/api_params'),
-  }),
+  validate_schema({ params: require('./schemas/api_params') }),
+  authorize({ operation: 'function:get' }),
+  validate_schema({ query: require('./schemas/api_query') }),
   user_agent(),
   determine_provider(),
   (req, res, next) => provider_handlers[req.provider].list_functions(req, res, next),
@@ -530,13 +463,8 @@ router.get(
   '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
-  authorize({
-    operation: 'function:get',
-  }),
-  validate_schema({
-    params: require('./schemas/api_params'),
-  }),
+  validate_schema({ params: require('./schemas/api_params') }),
+  authorize({ operation: 'function:get' }),
   user_agent(),
   determine_provider(),
   (req, res, next) => provider_handlers[req.provider].get_function(req, res, next),
@@ -546,18 +474,17 @@ router.put(
   '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
-  authorize({
-    operation: 'function:put',
-  }),
+  validate_schema({ params: require('./schemas/api_params') }),
+  authorize({ operation: 'function:put' }),
   express.json({ limit: process.env.FUNCTION_SIZE_LIMIT || '500kb' }),
-  validate_schema({
-    body: require('./schemas/function_specification'),
-    params: require('./schemas/api_params'),
-  }),
+  validate_schema({ body: require('./schemas/function_specification') }),
   user_agent(),
   determine_provider(),
-  npmRegistry.handler(),
+  npmRegistry(),
+  (req, res, next) => {
+    req.keyStore = keyStore;
+    next();
+  },
   (req, res, next) => provider_handlers[req.provider].put_function(req, res, next),
   analytics.finished
 );
@@ -565,13 +492,8 @@ router.delete(
   '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
-  authorize({
-    operation: 'function:delete',
-  }),
-  validate_schema({
-    params: require('./schemas/api_params'),
-  }),
+  validate_schema({ params: require('./schemas/api_params') }),
+  authorize({ operation: 'function:delete' }),
   user_agent(),
   determine_provider(),
   (req, res, next) => provider_handlers[req.provider].delete_function(req, res, next),
@@ -586,17 +508,24 @@ router.get(
   '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/log',
   analytics.enterHandler(analytics.Modes.Operations),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
+  validate_schema({ params: require('./schemas/api_params') }),
   authorize({
     operation: 'function:get-log',
     getToken: (req) => req.query && req.query.token,
   }),
-  validate_schema({
-    params: require('./schemas/api_params'),
-  }),
   user_agent(),
   determine_provider(),
   (req, res, next) => provider_handlers[req.provider].get_logs(req, res, next),
+  analytics.finished
+);
+router.post(
+  '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/log',
+  analytics.enterHandler(analytics.Modes.Operations),
+  cors(corsManagementOptions),
+  authorize({ operation: Constants.Permissions.logFunction }),
+  express.json(),
+  determine_provider(),
+  (req, res, next) => provider_handlers[req.provider].post_logs(req, res, next),
   analytics.finished
 );
 
@@ -608,14 +537,9 @@ router.get(
   '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/location',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
-  authorize({
-    operation: 'function:get',
-  }),
+  validate_schema({ params: require('./schemas/api_params') }),
+  authorize({ operation: 'function:get' }),
   user_agent(),
-  validate_schema({
-    params: require('./schemas/api_params'),
-  }),
   determine_provider(),
   (req, res, next) => provider_handlers[req.provider].get_location(req, res, next),
   analytics.finished
@@ -629,15 +553,12 @@ router.post(
   '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/build',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
+  validate_schema({ params: require('./schemas/api_params') }),
   authorize({ operation: 'function:put' }),
   express.json({ limit: '0kb' }),
-  validate_schema({
-    params: require('./schemas/api_params'),
-  }),
   user_agent(),
   determine_provider(),
-  npmRegistry.handler(),
+  npmRegistry(),
   (req, res, next) => provider_handlers[req.provider].post_function_build(req, res, next),
   analytics.finished
 );
@@ -650,13 +571,8 @@ router.get(
   '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/build/:buildId',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
-  authorize({
-    operation: 'function:get',
-  }),
-  validate_schema({
-    params: require('./schemas/api_params'),
-  }),
+  validate_schema({ params: require('./schemas/api_params') }),
+  authorize({ operation: 'function:get' }),
   user_agent(),
   determine_provider(),
   (req, res, next) => provider_handlers[req.provider].get_function_build(req, res, next),
@@ -711,7 +627,7 @@ router.get(
   promote_storage_params,
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
+  validate_schema({ params: require('./schemas/api_params'), query: require('./schemas/api_query') }),
   authorize({ operation: StorageActions.getStorage }),
   validate_schema({
     query: require('./schemas/api_query'),
@@ -726,13 +642,10 @@ router.put(
   promote_storage_params,
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
+  validate_schema({ params: require('./schemas/api_params') }),
   authorize({ operation: StorageActions.putStorage }),
   express.json(),
-  validate_schema({
-    params: require('./schemas/api_params'),
-    body: require('./schemas/storage'),
-  }),
+  validate_schema({ body: require('./schemas/storage') }),
   storage.storagePut(),
   analytics.finished
 );
@@ -742,11 +655,8 @@ router.delete(
   promote_storage_params,
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
+  validate_schema({ params: require('./schemas/api_params') }),
   authorize({ operation: StorageActions.deleteStorage }),
-  validate_schema({
-    params: require('./schemas/api_params'),
-  }),
   storage.storageDelete(),
   analytics.finished
 );
@@ -759,9 +669,8 @@ router.get(
   '/account/:accountId/' + statisticsUrl,
   analytics.enterHandler(analytics.Modes.Operations),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account'), query: require('./schemas/statistics_query') }),
+  validate_schema({ params: require('./schemas/api_params'), query: require('./schemas/statistics_query') }),
   authorize({ operation: 'function:get' }),
-  validate_schema({ params: require('./schemas/api_params') }),
   statistics.statisticsGet(),
   analytics.finished
 );
@@ -771,9 +680,8 @@ router.get(
   '/account/:accountId/subscription/:subscriptionId/' + statisticsUrl,
   analytics.enterHandler(analytics.Modes.Operations),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account'), query: require('./schemas/statistics_query') }),
+  validate_schema({ params: require('./schemas/api_params'), query: require('./schemas/statistics_query') }),
   authorize({ operation: 'function:get' }),
-  validate_schema({ params: require('./schemas/api_params') }),
   statistics.statisticsGet(),
   analytics.finished
 );
@@ -786,9 +694,8 @@ router.get(
   '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/' + statisticsUrl,
   analytics.enterHandler(analytics.Modes.Operations),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account'), query: require('./schemas/statistics_query') }),
+  validate_schema({ params: require('./schemas/api_params'), query: require('./schemas/statistics_query') }),
   authorize({ operation: 'function:get' }),
-  validate_schema({ params: require('./schemas/api_params') }),
   statistics.statisticsGet(),
   analytics.finished
 );
@@ -801,9 +708,8 @@ router.get(
   '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/' + statisticsUrl,
   analytics.enterHandler(analytics.Modes.Operations),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account'), query: require('./schemas/statistics_query') }),
+  validate_schema({ params: require('./schemas/api_params'), query: require('./schemas/statistics_query') }),
   authorize({ operation: 'function:get' }),
-  validate_schema({ params: require('./schemas/api_params') }),
   statistics.statisticsGet(),
   analytics.finished
 );
@@ -816,19 +722,22 @@ router.get(
   registryBase,
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
-  authorize({ operation: 'registry:get' }),
   validate_schema({ params: require('./schemas/api_params') }),
+  authorize({ operation: 'registry:get' }),
   user_agent(),
   determine_provider(),
-  npmRegistry.handler(),
-  (req, res) =>
-    req.registry.configGet().then((config) => {
+  npmRegistry(),
+  async (req, res, next) => {
+    try {
+      const config = await req.registry.configGet();
       res.status(200).json({
         ...config,
-        url: process.env.API_SERVER + require('url').parse(req.url).pathname + 'npm/',
+        url: `${process.env.API_SERVER}/v1${require('url').parse(req.url).pathname}npm/`,
       });
-    }),
+    } catch (e) {
+      next(e);
+    }
+  },
   analytics.finished
 );
 
@@ -841,7 +750,7 @@ router.put(
   validate_schema({ body: require('./schemas/registry_specification') }),
   user_agent(),
   determine_provider(),
-  npmRegistry.handler(),
+  npmRegistry(),
   async (req, res, next) => {
     try {
       // Exclude the existing scopes that match the reserved prefix
@@ -873,11 +782,11 @@ router.get(
   registryNpmBase + '/-/version',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
+  validate_schema({ params: require('./schemas/npm_params') }),
   authorize({ operation: 'registry:get' }),
   user_agent(),
   determine_provider(),
-  npmRegistry.handler(),
+  npmRegistry(),
   npm.versionGet(),
   analytics.finished
 );
@@ -887,11 +796,11 @@ router.get(
   registryNpmBase + '/-/ping',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
+  validate_schema({ params: require('./schemas/npm_params') }),
   authorize({ operation: 'registry:get' }),
   user_agent(),
   determine_provider(),
-  npmRegistry.handler(),
+  npmRegistry(),
   npm.pingGet(),
   analytics.finished
 );
@@ -901,11 +810,11 @@ router.get(
   registryNpmBase + '/:scope/:name/-/:scope2/:filename',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
+  validate_schema({ params: require('./schemas/npm_params') }),
   authorize({ operation: 'registry:get' }),
   user_agent(),
   determine_provider(),
-  npmRegistry.handler(),
+  npmRegistry(),
   npm.tarballGet(),
   analytics.finished
 );
@@ -913,11 +822,11 @@ router.delete(
   registryNpmBase + '/:scope/:name/-/:scope2/:filename/-rev/:revisionId',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
+  validate_schema({ params: require('./schemas/npm_params') }),
   authorize({ operation: 'registry:put' }),
   user_agent(),
   determine_provider(),
-  npmRegistry.handler(),
+  npmRegistry(),
   npm.tarballDelete(),
   analytics.finished
 );
@@ -927,12 +836,12 @@ router.put(
   registryNpmBase + '/:name',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
+  validate_schema({ params: require('./schemas/npm_params') }),
   authorize({ operation: 'registry:put' }),
   express.json({ limit: process.env.PACKAGE_SIZE_LIMIT || '1000kb' }),
   user_agent(),
   determine_provider(),
-  npmRegistry.handler(),
+  npmRegistry(),
   npm.packagePut(),
   analytics.finished
 );
@@ -941,37 +850,37 @@ router.get(
   registryNpmBase + '/:name',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
+  validate_schema({ params: require('./schemas/npm_params') }),
   authorize({ operation: 'registry:get' }),
   user_agent(),
   determine_provider(),
-  npmRegistry.handler(),
+  npmRegistry(),
   npm.packageGet(),
   analytics.finished
 );
 
-router.options(registryNpmBase + '/:name/-rev/:revId', cors(corsManagementOptions));
+router.options(registryNpmBase + '/:name/-rev/:revisionId', cors(corsManagementOptions));
 router.put(
-  registryNpmBase + '/:name/-rev/:revId',
+  registryNpmBase + '/:name/-rev/:revisionId',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
+  validate_schema({ params: require('./schemas/npm_params') }),
   authorize({ operation: 'registry:put' }),
   user_agent(),
   determine_provider(),
-  npmRegistry.handler(),
+  npmRegistry(),
   npm.revisionPut(),
   analytics.finished
 );
 router.delete(
-  registryNpmBase + '/:name/-rev/:revId',
+  registryNpmBase + '/:name/-rev/:revisionId',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
+  validate_schema({ params: require('./schemas/npm_params') }),
   authorize({ operation: 'registry:put' }),
   user_agent(),
   determine_provider(),
-  npmRegistry.handler(),
+  npmRegistry(),
   npm.revisionDelete(),
   analytics.finished
 );
@@ -981,12 +890,12 @@ router.post(
   registryNpmBase + '/-/invalidate/:name',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
+  validate_schema({ params: require('./schemas/npm_params') }),
   authorize({ operation: 'registry:put' }),
   express.json(),
   user_agent(),
   determine_provider(),
-  npmRegistry.handler(),
+  npmRegistry(),
   npm.invalidatePost(),
   analytics.finished
 );
@@ -996,12 +905,12 @@ router.post(
   registryNpmBase + '/-/package/:name/dist-tags',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
+  validate_schema({ params: require('./schemas/npm_params') }),
   authorize({ operation: 'registry:get' }),
   express.json(),
   user_agent(),
   determine_provider(),
-  npmRegistry.handler(),
+  npmRegistry(),
   npm.distTagsGet(),
   analytics.finished
 );
@@ -1011,12 +920,12 @@ router.put(
   registryNpmBase + '/-/package/:name/dist-tags/:tag',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
+  validate_schema({ params: require('./schemas/npm_params') }),
   authorize({ operation: 'registry:put' }),
   express.json({ limit: process.env.PACKAGE_SIZE_LIMIT || '1000kb' }),
   user_agent(),
   determine_provider(),
-  npmRegistry.handler(),
+  npmRegistry(),
   npm.distTagsPut(),
   analytics.finished
 );
@@ -1026,11 +935,11 @@ router.delete(
   registryNpmBase + '/-/package/:name/dist-tags/:tag',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
+  validate_schema({ params: require('./schemas/npm_params') }),
   authorize({ operation: 'registry:put' }),
   user_agent(),
   determine_provider(),
-  npmRegistry.handler(),
+  npmRegistry(),
   npm.distTagsDelete(),
   analytics.finished
 );
@@ -1040,11 +949,11 @@ router.get(
   registryNpmBase + '/-/api/v1/packages',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
+  validate_schema({ params: require('./schemas/npm_params') }),
   authorize({ operation: 'registry:get' }),
   user_agent(),
   determine_provider(),
-  npmRegistry.handler(),
+  npmRegistry(),
   npm.allPackagesGet(),
   analytics.finished
 );
@@ -1054,12 +963,12 @@ router.put(
   registryNpmBase + '/-/user/:user',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
+  validate_schema({ params: require('./schemas/npm_params') }),
   authorize({ operation: 'registry:get' }),
   express.json(),
   user_agent(),
   determine_provider(),
-  npmRegistry.handler(),
+  npmRegistry(),
   npm.loginPut(), // Always will succeed
   analytics.finished
 );
@@ -1069,11 +978,11 @@ router.get(
   registryNpmBase + '/-/whoami',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
+  validate_schema({ params: require('./schemas/npm_params') }),
   authorize({ operation: 'registry:get' }),
   user_agent(),
   determine_provider(),
-  npmRegistry.handler(),
+  npmRegistry(),
   npm.whoamiGet(),
   analytics.finished
 );
@@ -1083,12 +992,12 @@ router.post(
   registryNpmBase + '/-/npm/v1/security/audits',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
+  validate_schema({ params: require('./schemas/npm_params') }),
   authorize({ operation: 'registry:get' }),
   express.json(),
   user_agent(),
   determine_provider(),
-  npmRegistry.handler(),
+  npmRegistry(),
   npm.auditPost(),
   analytics.finished
 );
@@ -1098,11 +1007,11 @@ router.get(
   registryNpmBase + '/-/v1/search',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./schemas/api_account') }),
+  validate_schema({ params: require('./schemas/npm_params') }),
   authorize({ operation: 'registry:get' }),
   user_agent(),
   determine_provider(),
-  npmRegistry.handler(),
+  npmRegistry(),
   npm.searchGet(),
   analytics.finished
 );
@@ -1110,10 +1019,12 @@ router.get(
 // Not part of public contract
 
 let run_route = /^\/run\/([^\/]+)\/([^\/]+)\/([^\/]+).*$/;
+
 function promote_to_name_params(req, res, next) {
   req.params.subscriptionId = req.params[0];
   req.params.boundaryId = req.params[1];
   req.params.functionId = req.params[2];
+
   // Reverse back the run_route base url component.
   req.params.baseUrl = get_function_location(
     req,
@@ -1121,27 +1032,31 @@ function promote_to_name_params(req, res, next) {
     req.params.boundaryId,
     req.params.functionId
   );
+
   delete req.params[0];
   delete req.params[1];
   delete req.params[2];
+
   return next();
 }
 
 router.options(run_route, cors(corsExecutionOptions));
-
 ['post', 'put', 'patch'].forEach((verb) => {
   router[verb](
     run_route,
     analytics.enterHandler(analytics.Modes.Execution),
     cors(corsExecutionOptions),
     promote_to_name_params,
-    validate_schema({
-      params: require('./schemas/api_params'),
-    }),
+    validate_schema({ params: require('./schemas/api_params') }),
     determine_provider(),
     parse_body_conditional({
       condition: (req) => req.provider === 'lambda',
     }),
+    loadSubscription(subscriptionCache),
+    loadSummary(),
+    loadLogging(),
+    execAs(keyStore),
+    addLogging(keyStore),
     (req, res, next) => provider_handlers[req.provider].execute_function(req, res, next),
     analytics.finished
   );
@@ -1153,13 +1068,15 @@ router.options(run_route, cors(corsExecutionOptions));
     analytics.enterHandler(analytics.Modes.Execution),
     cors(corsExecutionOptions),
     promote_to_name_params,
-    validate_schema({
-      params: require('./schemas/api_params'),
-    }),
+    validate_schema({ params: require('./schemas/api_params') }),
     determine_provider(),
+    loadSubscription(subscriptionCache),
+    loadSummary(),
+    loadLogging(),
+    execAs(keyStore),
+    addLogging(keyStore),
     (req, res, next) => provider_handlers[req.provider].execute_function(req, res, next),
     analytics.finished
   );
 });
-
 module.exports = router;

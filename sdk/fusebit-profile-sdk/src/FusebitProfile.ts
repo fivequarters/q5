@@ -5,6 +5,8 @@ import { random } from '@5qtrs/random';
 import { FusebitDotConfig } from './FusebitDotConfig';
 import { FusebitProfileException } from './FusebitProfileException';
 
+import * as Constants from '@5qtrs/constants';
+
 // ------------------
 // Internal Constants
 // ------------------
@@ -13,6 +15,15 @@ const expireInSeconds = 60 * 60 * 2;
 const minExpireInterval = 1000 * 60 * 5;
 const kidLength = 8;
 const jwtAlgorithm = 'RS256';
+
+interface IPermission {
+  action: string;
+  resource: string;
+}
+
+interface IPermissions {
+  allow: IPermission[];
+}
 
 // ------------------
 // Internal Functions
@@ -342,18 +353,22 @@ export class FusebitProfile {
     }
   }
 
-  public async getPKIAccessToken(name?: string, ignoreCache: boolean = false): Promise<string> {
-    let profile = await this.getProfileOrDefaultOrThrow(name);
+  public async getPKIAccessToken(
+    name?: string,
+    ignoreCache: boolean = false,
+    permissions?: IPermissions
+  ): Promise<string> {
+    const profile = await this.getProfileOrDefaultOrThrow(name);
     if (!profile.kid || !profile.keyPair) {
       throw FusebitProfileException.notPKIProfile(name || '<default>');
     }
-    let pkiProfile = profile as IPKIFusebitProfile;
+    const pkiProfile = profile as IPKIFusebitProfile;
     if (ignoreCache) {
-      return this.generateAccessToken(pkiProfile);
+      return this.generateAccessToken(pkiProfile, permissions);
     }
 
-    const accessToken = await this.getCachedAccessToken(profile);
-    return accessToken !== undefined ? accessToken : this.generateAccessToken(pkiProfile);
+    const accessToken = !permissions ? await this.getCachedAccessToken(profile) : undefined;
+    return accessToken !== undefined ? accessToken : this.generateAccessToken(pkiProfile, permissions);
   }
 
   public async getPKICredentials(profile: IPKIFusebitProfile): Promise<any> {
@@ -370,9 +385,13 @@ export class FusebitProfile {
     return result;
   }
 
-  public async getPKIExecutionProfile(name?: string, ignoreCache: boolean = false): Promise<IFusebitExecutionProfile> {
+  public async getPKIExecutionProfile(
+    name?: string,
+    ignoreCache: boolean = false,
+    permissions?: IPermissions
+  ): Promise<IFusebitExecutionProfile> {
     const profile = await this.getProfileOrDefaultOrThrow(name);
-    const accessToken = await this.getPKIAccessToken(name, ignoreCache);
+    const accessToken = await this.getPKIAccessToken(name, ignoreCache, permissions);
     return {
       accessToken,
       baseUrl: profile.baseUrl,
@@ -401,7 +420,7 @@ export class FusebitProfile {
     return kid;
   }
 
-  private async generateAccessToken(profile: IPKIFusebitProfile): Promise<string> {
+  private async generateAccessToken(profile: IPKIFusebitProfile, permissions?: IPermissions): Promise<string> {
     const privateKey = await this.dotConfig.getPrivateKey(profile.keyPair, profile.kid);
 
     const expires = new Date(Date.now() + 1000 * expireInSeconds);
@@ -417,8 +436,10 @@ export class FusebitProfile {
       },
     };
 
-    const accessToken = await signJwt({}, privateKey, options);
-    await this.setCachedAccessToken(profile, accessToken, expires);
+    const accessToken = await signJwt({ [Constants.JWT_PERMISSION_CLAIM]: permissions }, privateKey, options);
+    if (!permissions) {
+      await this.setCachedAccessToken(profile, accessToken, expires);
+    }
 
     return accessToken;
   }

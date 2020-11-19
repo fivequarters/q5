@@ -191,7 +191,8 @@
       "lib/constants",
       "lib/server/function-tags",
       "lib/server/npm",
-      "lib/server/registry"
+      "lib/server/registry",
+      "lib/server/runas"
     ]
   }
 }

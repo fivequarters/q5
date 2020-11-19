@@ -17,6 +17,13 @@ All public releases of the Fusebit Portal are documented here, including notable
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.0.2
+
+_Released 11/17/20_
+
+- **Enhancement**. Improve version specification support.
+- **Enhancement**. Present audit entries performed by permissioned functions clearly.
+
 ## Version 1.0.0
 
 _Released 7/28/20_

@@ -10,61 +10,6 @@ import * as Constants from '@5qtrs/constants';
 export const TAG_CATEGORY_BOUNDARY = 'function-tags-boundary';
 export const TAG_CATEGORY_SUBSCRIPTION = 'function-tags-subscription';
 
-const DYNAMO_BATCH_ITEMS_MAX = 25;
-const DYNAMO_BACKOFF_TRIES_MAX = 5;
-const DYNAMO_BACKOFF_DELAY = 300;
-const expBackoff = (c: number) => Math.pow(2, c - 1) * DYNAMO_BACKOFF_DELAY;
-
-function scan_dynamo_old_categories(
-  options: any,
-  cb: any,
-  results: any[] = [],
-  lastEvaluatedKey?: string,
-  backoff = 0
-) {
-  setTimeout(
-    () => {
-      const params = {
-        TableName: options.keyValueTableName,
-        ProjectionExpression: 'category, #k',
-        ExpressionAttributeNames: { '#k': 'key' },
-        ExpressionAttributeValues: {
-          ':c1': { S: TAG_CATEGORY_BOUNDARY },
-          ':c2': { S: TAG_CATEGORY_SUBSCRIPTION },
-        },
-        ExclusiveStartKey: lastEvaluatedKey,
-        FilterExpression: 'category = :c1 OR category = :c2',
-      };
-
-      return options.dynamo.scan(params, (e: any, d: any) => {
-        if (e) {
-          if (e.retryable) {
-            // Some entries didn't get processed; try again (and save the overflow).
-            if (backoff > DYNAMO_BACKOFF_TRIES_MAX) {
-              return cb('Unable to scan tags, exhausted allowed attempts');
-            }
-            return scan_dynamo_old_categories(options, cb, results, lastEvaluatedKey, backoff + 1);
-          }
-
-          return cb(e);
-        }
-
-        // Collect the items found for future deletion.
-        d.Items.forEach((t: any) => results.push([t.category.S, t.key.S]));
-
-        // Continue scanning and accumulating results.
-        if (d.LastEvaluatedKey) {
-          return scan_dynamo_old_categories(options, cb, results, d.LastEvaluatedKey, backoff);
-        }
-
-        // Scan completed, return results.
-        return cb(null, results);
-      });
-    },
-    backoff > 0 ? expBackoff(backoff) : 0
-  );
-}
-
 function get_dynamo_delete_request(category: string, key: string) {
   return [
     {
@@ -200,15 +145,20 @@ export class ClearTagsActionCommand extends Command {
 
     const dynOptions = { keyValueTableName: Tags.Constants.keyValueTableName, dynamo };
 
-    const scanResult: any[] = await new Promise((resolve, reject) => {
-      scan_dynamo_old_categories(dynOptions, (e: any, d: any) => {
-        if (e) {
-          return reject(e);
-        } else {
-          return resolve(d);
-        }
-      });
-    });
+    const scanResult: any[] = await Constants.dynamoScanTable(
+      dynamo,
+      {
+        TableName: Tags.Constants.keyValueTableName,
+        ProjectionExpression: 'category, #k',
+        ExpressionAttributeNames: { '#k': 'key' },
+        ExpressionAttributeValues: {
+          ':c1': { S: TAG_CATEGORY_BOUNDARY },
+          ':c2': { S: TAG_CATEGORY_SUBSCRIPTION },
+        },
+        FilterExpression: 'category = :c1 OR category = :c2',
+      },
+      (t: any) => [t.category.S, t.key.S]
+    );
 
     if (dryRun) {
       await executeService.result('Completed', `Identified ${scanResult.length} old entries`);

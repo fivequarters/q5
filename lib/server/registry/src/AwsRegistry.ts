@@ -11,6 +11,7 @@ import {
   IRegistryParams,
   IRegistrySearchResults,
   IRegistryStore,
+  IRegistryEvents,
 } from './Registry';
 
 const s3Path = 'registry/npm';
@@ -18,29 +19,37 @@ const s3Path = 'registry/npm';
 type ExpressHandler = (reqExpress: Request, res: Response, next: any) => any;
 
 class AwsRegistry implements IRegistryStore {
-  public static handler(): ExpressHandler {
+  public static handler(events: IRegistryEvents): ExpressHandler {
     return (reqExpress: Request, res: Response, next: any) => {
       const req: any = reqExpress;
-      req.registry = AwsRegistry.create(req.params);
+      req.registry = AwsRegistry.create(req.params, events);
       return next();
     };
   }
 
-  public static create(params: IRegistryParams, s3Opts?: any, dynamoDbOpts?: any): IRegistryStore {
+  public static create(
+    params: IRegistryParams,
+    events?: IRegistryEvents,
+    s3Opts?: any,
+    dynamoDbOpts?: any
+  ): IRegistryStore {
     return new AwsRegistry(
       [params.accountId, params.registryId || Constants.REGISTRY_DEFAULT].join('/'),
+      events,
       s3Opts,
       dynamoDbOpts
     );
   }
 
   private keyPrefix: string;
+  private events: IRegistryEvents;
   private s3: AWS.S3;
   private ddb: AWS.DynamoDB;
   private tableName: string;
 
-  constructor(prefix: string, s3Opts?: any, dynamoDbOpts?: any) {
+  constructor(prefix: string, events: IRegistryEvents = {}, s3Opts?: any, dynamoDbOpts?: any) {
     this.keyPrefix = prefix;
+    this.events = events;
     this.s3 = new AWS.S3(s3Opts);
     this.ddb = new AWS.DynamoDB({
       apiVersion: '2012-08-10',
@@ -57,7 +66,7 @@ class AwsRegistry implements IRegistryStore {
     return this.keyPrefix;
   }
 
-  public async put(name: string, pkg: any, ver?: string, payload?: any): Promise<void> {
+  public async put(name: string, pkg: any, ver: string, payload?: any): Promise<void> {
     if (payload) {
       // Upload file
       await this.s3
@@ -81,6 +90,10 @@ class AwsRegistry implements IRegistryStore {
         },
       })
       .promise();
+
+    if (this.events.onNewPackage) {
+      return this.events.onNewPackage(name, ver, this.keyPrefix);
+    }
   }
 
   // Determine whether the scope in the key is part of this registry, or part of the global registry.  Return
