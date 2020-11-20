@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.24.11
+
+_Released 11/20/20_
+
+- **Enhancement.** Update to cron executor to fully populate function `ctx` object.
+
 ## Version 1.24.10
 
 _Released 11/17/20_
