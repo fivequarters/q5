@@ -37,7 +37,7 @@ module.exports = Joi.object().keys({
   scheduleSerialized: Joi.string().allow('').optional(),
   metadata: Joi.object(),
   runtime: Joi.object(),
-  authentication: Joi.string().valid('none', 'optional', 'required').optional(),
+  authentication: Joi.string().valid('none', 'optional', 'required').default('none'),
   authorizations: Joi.when('authentication', {
     is: 'none',
     then: Joi.any().forbidden(),

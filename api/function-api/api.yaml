@@ -3325,8 +3325,8 @@ components:
         authorizations:
           type: array
           description: |
-            Validate that the caller has these parameters when `authentication` is set to `required`.
-            Forbidden when `authentication` is `none`.
+            Validate that the caller has these parameters when `authentication` is set to `required` or
+            `optional`.  Forbidden when `authentication` is `none`.
           items:
             $ref: '#/components/schemas/AccessStatement'
         authentication:
@@ -3344,15 +3344,17 @@ components:
             If the value is `optional` and `authorizations contains a set of permissions but the caller does
             not supply any JWT, the function is executed with `ctx.caller.permissions` and
             `ctx.fusebit.callerAccessToken` as undefined.  If the caller supplies an invalid JWT, then a 403
-            response is generated.
+            response is generated.  If the caller supplies a valid JWT with the permissions as specified in
+            `authorizations`, then `ctx.fusebit.callerAccessToken` and `ctx.caller.permissions` are set and
+            the function is executed.
 
             If the value is `optional` and `authorizations` does not contain a set of permissions, then
-            `ctx.caller.permissions` and `ctx.fusebit.callerAccessToken` are specified if the caller provides
-            a valid JWT token, otherwise both are undefined.
+            `ctx.caller.permissions` and `ctx.fusebit.callerAccessToken` are specified only if the caller provides
+            any valid JWT token, otherwise both are undefined.
 
             If the value is `required` and `authorizations` contains a set of permissions, then the caller must
             supply a JWT that has those permissions.  The `ctx.caller.permissions` and `ctx.fusebit.callerAccessToken`
-            will be specified accordingly.  Failure to do so will generate a 403 response.
+            will be specified accordingly.  An invalid JWT will generate a 403 response.
 
             If the value is `required` and `authorizations` does not contain a set of permissions, then the
             caller must supply a valid JWT, but the JWT is not checked against any particular set of

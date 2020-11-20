@@ -17,6 +17,13 @@ All public releases of the Fusebit editor are documented here, including notable
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.4.4
+
+_Released 11/20/20_
+
+- **Enhancement.** Enable functions to restrict the caller based on permissions using the `authorizations` and `authentication` fields in the function specificaion.
+- **Enhancement.** Include the `accountId` in the function execution `ctx` object.
+
 ## Version 1.4.3
 
 _Released 11/17/20_

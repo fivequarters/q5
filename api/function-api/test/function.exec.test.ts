@@ -17,6 +17,7 @@ const { getAccount, getBoundary } = setupEnvironment();
 const function1Id = 'test-fun-exec-1';
 
 const specFuncReturnCtx = {
+  authentication: 'required',
   nodejs: {
     files: {
       'index.js': 'module.exports = async (ctx) => { return { body: ctx.fusebit }; };',

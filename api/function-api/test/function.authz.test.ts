@@ -51,8 +51,6 @@ const runTest = async (
   expect(response.data).toMatchObject(resultObj);
 };
 
-/* XXX Add tests validating the function_specification schema. */
-/*     Then validate that the rest of the runas/function.exec tests are working correctly. */
 describe('function authorization', () => {
   test('None prevents authorizations', async () => {
     const account = getAccount();
@@ -60,6 +58,17 @@ describe('function authorization', () => {
 
     const spec = Constants.duplicate({}, specFuncReturnCtx);
     spec.authentication = 'none';
+    spec.authorizations = [AuthZ.reqFunctionExe];
+
+    const response = await putFunction(account, boundaryId, function1Id, spec);
+    httpExpect(response, { statusCode: 400 });
+  }, 180000);
+
+  test.only('Authentication undefined prevents authorizations', async () => {
+    const account = getAccount();
+    const boundaryId = getBoundary();
+
+    const spec = Constants.duplicate({}, specFuncReturnCtx);
     spec.authorizations = [AuthZ.reqFunctionExe];
 
     const response = await putFunction(account, boundaryId, function1Id, spec);
