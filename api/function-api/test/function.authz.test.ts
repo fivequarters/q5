@@ -75,7 +75,7 @@ describe('function authorization', () => {
     httpExpect(response, { statusCode: 400 });
   }, 180000);
 
-  test('Authorizations must not be empty when required', async () => {
+  test('Authorization must not be empty when required', async () => {
     const account = getAccount();
     const boundaryId = getBoundary();
 

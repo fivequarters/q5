@@ -5,7 +5,7 @@ import { decodeJwt } from '@5qtrs/jwt';
 
 import * as Constants from '@5qtrs/constants';
 
-import * as AuthZ from './authorizations';
+import * as AuthZ from './authz';
 import { FusebitProfile } from '@5qtrs/fusebit-profile-sdk';
 
 import { FakeAccount, IAccount, resolveAccount } from './accountResolver';
@@ -44,7 +44,7 @@ describe('function.exec', () => {
     account.accessToken = putAccessToken;
     let spec = Constants.duplicate({}, specFuncReturnCtx);
     spec.functionPermissions = AuthZ.permFunctionPut;
-    spec.authorizations = [AuthZ.reqFunctionExe];
+    spec.authorization = [AuthZ.reqFunctionExe];
     let response = await putFunction(account, boundaryId, function1Id, spec);
     httpExpect(response, { statusCode: 200 });
 
@@ -65,7 +65,7 @@ describe('function.exec', () => {
     // Test: Create a function with an exe+get requirement
     account.accessToken = putAccessToken;
     spec = Constants.duplicate({}, specFuncReturnCtx);
-    spec.authorizations = [AuthZ.reqFunctionGet, AuthZ.reqFunctionExe];
+    spec.authorization = [AuthZ.reqFunctionGet, AuthZ.reqFunctionExe];
     response = await putFunction(account, boundaryId, function1Id, spec);
     httpExpect(response, { statusCode: 200 });
 

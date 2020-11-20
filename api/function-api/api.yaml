@@ -3345,7 +3345,7 @@ components:
             If the value is `required`, the caller must supply a token in the `Authentication`, and this token
             must be valid.
 
-            If the value is `optional`, the token is validated if present and, if a list of `authorizations`
+            If the value is `optional`, the token is validated if present and, if a list of `authorization`
             has been specified, an error generated if the validation fails.  If the token is not present, then
             the function is executed as if the `authentication` value was `none`.
 
