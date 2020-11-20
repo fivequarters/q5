@@ -8,10 +8,9 @@ function storageGet() {
       const accountId = req.params.accountId;
       const subscriptionId = req.params.subscriptionId;
       const storageId = req.params.storageId;
-      const storagePath = req.params['0'];
 
       storageContext.storage
-        .get(resolvedAgent, accountId, subscriptionId, storageId, storagePath)
+        .get(resolvedAgent, accountId, subscriptionId, storageId)
         .then((result) => {
           if (result && result.etag) {
             res.set('Etag', `W/"${result.etag}"`);
@@ -29,12 +28,13 @@ function storageList() {
       const resolvedAgent = req.resolvedAgent;
       const accountId = req.params.accountId;
       const subscriptionId = req.params.subscriptionId;
+      const storageId = req.params.storageId;
       const limit = req.query.count;
       const next = req.query.next;
       const options = { limit, next };
 
       storageContext.storage
-        .list(resolvedAgent, accountId, subscriptionId, options)
+        .list(resolvedAgent, accountId, subscriptionId, storageId, options)
         .then((result) => res.json(result))
         .catch(errorHandler(res));
     });
@@ -48,7 +48,6 @@ function storagePut() {
       const accountId = req.params.accountId;
       const subscriptionId = req.params.subscriptionId;
       const storageId = req.params.storageId;
-      const storagePath = req.params['0'];
       const storage = req.body;
       const etag = req.header('If-Match');
       if (storage.etag && etag && storage.etag !== etag) {
@@ -62,7 +61,7 @@ function storagePut() {
       }
 
       storageContext.storage
-        .set(resolvedAgent, accountId, subscriptionId, storageId, storage, storagePath)
+        .set(resolvedAgent, accountId, subscriptionId, storageId, storage)
         .then((result) => {
           if (result && result.etag) {
             res.set('Etag', `W/"${result.etag}"`);
@@ -81,11 +80,11 @@ function storageDelete() {
       const accountId = req.params.accountId;
       const subscriptionId = req.params.subscriptionId;
       const storageId = req.params.storageId;
-      const storagePath = req.params['0'];
+      const recursive = req.params.recursive;
       const etag = req.header('If-Match');
 
       storageContext.storage
-        .delete(resolvedAgent, accountId, subscriptionId, storageId, etag, storagePath)
+        .delete(resolvedAgent, accountId, subscriptionId, storageId, recursive, etag)
         .then(() => {
           res.status(204);
           res.end();

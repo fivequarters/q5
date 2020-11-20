@@ -129,10 +129,16 @@ export class StorageTable extends AwsDynamoTable {
   public async list(
     accountId: string,
     subscriptionId: string,
+    storageId: string,
     options?: IListStorageOptions
   ): Promise<IListStorageResult> {
     const keyConditions = ['accountIdSubscriptionId = :accountIdSubscriptionId'];
     const expressionValues: any = { ':accountIdSubscriptionId': { S: [accountId, subscriptionId].join(delimiter) } };
+
+    if (storageId.length > 0) {
+      keyConditions.push('begins_with(storageId, :storageIdPrefix)');
+      expressionValues[':storageIdPrefix'] = { S: storageId };
+    }
 
     const queryOptions = {
       next: options && options.next ? options.next : undefined,
@@ -150,8 +156,26 @@ export class StorageTable extends AwsDynamoTable {
     await this.putItem(storage, options);
   }
 
-  public async delete(accountId: string, subscriptionId: string, storageId: string, etag: string = ''): Promise<void> {
-    const options = getUpdateOrDeleteOptions(accountId, subscriptionId, false, etag);
-    await this.deleteItem(storageId, options);
+  public async delete(
+    accountId: string,
+    subscriptionId: string,
+    storageId: string,
+    recursive: boolean,
+    etag: string = ''
+  ): Promise<void> {
+    if (recursive) {
+      while (true) {
+        const list = await this.list(accountId, subscriptionId, storageId, { limit: 10 });
+        if (list.items && list.items.length > 0) {
+          await Promise.all(list.items.map((s) => this.delete(accountId, subscriptionId, s.storageId, false)));
+        }
+        if (!list.next) {
+          break;
+        }
+      }
+    } else {
+      const options = getUpdateOrDeleteOptions(accountId, subscriptionId, false, etag);
+      await this.deleteItem(storageId, options);
+    }
   }
 }
