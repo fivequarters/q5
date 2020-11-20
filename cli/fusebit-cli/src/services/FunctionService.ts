@@ -216,7 +216,7 @@ export class FunctionService {
     functionSpec.computeSerialized = fusebitJson.computeSerialized;
 
     functionSpec.functionPermissions = fusebitJson.functionPermissions;
-    functionSpec.authorizations = fusebitJson.authorizations;
+    functionSpec.authorization = fusebitJson.authorization;
     functionSpec.authentication = fusebitJson.authentication;
 
     // schedule and scheduleSerialized
@@ -308,7 +308,7 @@ export class FunctionService {
     fusebitJson.schedule = functionSpec.schedule;
     fusebitJson.scheduleSerialized = functionSpec.scheduleSerialized;
     fusebitJson.functionPermissions = functionSpec.functionPermissions;
-    fusebitJson.authorizations = functionSpec.authorizations;
+    fusebitJson.authorization = functionSpec.authorization;
     fusebitJson.authentication = functionSpec.authentication;
 
     try {

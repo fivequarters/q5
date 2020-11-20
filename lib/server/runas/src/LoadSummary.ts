@@ -41,9 +41,9 @@ const loadFunctionSummary = async (params: any): Promise<any> => {
           );
         }
 
-        if (functionSummary[get_compute_tag_key('authorizations')]) {
-          functionSummary[get_compute_tag_key('authorizations')] = JSON.parse(
-            functionSummary[get_compute_tag_key('authorizations')] as string
+        if (functionSummary[get_compute_tag_key('authorization')]) {
+          functionSummary[get_compute_tag_key('authorization')] = JSON.parse(
+            functionSummary[get_compute_tag_key('authorization')] as string
           );
         }
 

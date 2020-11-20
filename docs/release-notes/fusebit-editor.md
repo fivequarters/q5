@@ -21,7 +21,7 @@ All public releases of the Fusebit editor are documented here, including notable
 
 _Released 11/20/20_
 
-- **Enhancement.** Enable functions to restrict the caller based on permissions using the `authorizations` and `authentication` fields in the function specificaion.
+- **Enhancement.** Enable functions to restrict the caller based on permissions using the `authorization` and `authentication` fields in the function specification.
 - **Enhancement.** Include the `accountId` in the function execution `ctx` object.
 
 ## Version 1.4.3

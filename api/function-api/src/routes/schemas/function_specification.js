@@ -38,7 +38,7 @@ module.exports = Joi.object().keys({
   metadata: Joi.object(),
   runtime: Joi.object(),
   authentication: Joi.string().valid('none', 'optional', 'required').default('none'),
-  authorizations: Joi.when('authentication', {
+  authorization: Joi.when('authentication', {
     is: 'none',
     then: Joi.any().forbidden(),
     otherwise: Joi.array()

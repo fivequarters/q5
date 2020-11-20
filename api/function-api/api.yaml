@@ -3322,45 +3322,41 @@ components:
                   type: string
                 value:
                   type: string
-        authorizations:
+        authorization:
           type: array
           description: |
-            Validate that the caller has these parameters when `authentication` is set to `required` or
-            `optional`.  Forbidden when `authentication` is `none`.
+            Use the specified permissions to validate the caller as per the `authentication` mode.  Must be
+            `undefined` when `authentication` is `none`.
+
+            If the `authorization` is an empty list or undefined, then any valid JWT is accepted.
           items:
             $ref: '#/components/schemas/AccessStatement'
         authentication:
           description: |
-            Specifies the way the `authorizations` field will be enforced. If the value is absent or `none`,
-            then the function is always executed and no validation os performed of the caller.  The
-            `authorizations` object must be empty.
+            Controls the way authentication is performed of the caller of the function, based on the JWT
+            supplied by the caller in the `Authentication` header of the HTTP request.
 
-            If the value is `optional` and `authorizations` contains a set of permissions and the caller
-            supplies a valid JWT, then the callers permissions are validated against the permissions specified
-            in `authorizations.  The `ctx.caller.permissions` object will contain the validated set of
-            permissions, and the `ctx.fusebit.callerAccessToken` will contain the JWT that the caller used to
-            perform the request.
+            Validation is determined both by the cryptographic validity of the JWT as well as it's enablement
+            within the set specified in `authorization`, if any.
 
-            If the value is `optional` and `authorizations contains a set of permissions but the caller does
-            not supply any JWT, the function is executed with `ctx.caller.permissions` and
-            `ctx.fusebit.callerAccessToken` as undefined.  If the caller supplies an invalid JWT, then a 403
-            response is generated.  If the caller supplies a valid JWT with the permissions as specified in
-            `authorizations`, then `ctx.fusebit.callerAccessToken` and `ctx.caller.permissions` are set and
-            the function is executed.
+            If the value is `none`, then the `Authentication` header is not evaluated and the function is
+            executed.
 
-            If the value is `optional` and `authorizations` does not contain a set of permissions, then
-            `ctx.caller.permissions` and `ctx.fusebit.callerAccessToken` are specified only if the caller provides
-            any valid JWT token, otherwise both are undefined.
+            If the value is `required`, the caller must supply a token in the `Authentication`, and this token
+            must be valid.
 
-            If the value is `required` and `authorizations` contains a set of permissions, then the caller must
-            supply a JWT that has those permissions.  The `ctx.caller.permissions` and `ctx.fusebit.callerAccessToken`
-            will be specified accordingly.  An invalid JWT will generate a 403 response.
+            If the value is `optional`, the token is validated if present and, if a list of `authorizations`
+            has been specified, an error generated if the validation fails.  If the token is not present, then
+            the function is executed as if the `authentication` value was `none`.
 
-            If the value is `required` and `authorizations` does not contain a set of permissions, then the
-            caller must supply a valid JWT, but the JWT is not checked against any particular set of
-            permissions.  The `ctx.caller.permissions` and `ctx.fusebit.callerAccessToken` are populated with
-            the permissions associated with that JWT and the JWT itself, respectively.  If the caller does not
-            supply a valid JWT, then a 403 response is generated.
+            When the token has been found valid, the `ctx.caller.permissions` object is set to the list of
+            validated permissions, either contained within the token or configured on the user or client
+            entity, and the `ctx.fusebit.callerAccessToken` contains the supplied JWT.
+
+            If the token was not evaluated, the `ctx.caller.permissions` and `ctx.fusebit.callerAccessToken`
+            fields are left `undefined`.
+
+            Validation failure generates a 403 Forbidden error response.
           schema:
             type: string
             enum:
@@ -3373,6 +3369,9 @@ components:
           description: |
             Provide a `ctx.fusebit.functionAccessToken` with these permissions during function execution,
             allowing the function to make calls to Fusebit APIs.
+
+            The function creator must have these permissions, as well as `function:put` for this function,
+            otherwise the function creation will be rejected.
           properties:
             allow:
               type: array

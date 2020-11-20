@@ -22,7 +22,7 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 _Released 11/20/20_
 
 - **Enhancement.** Extend the list of permissions that can be set for user and client identities.
-- **Enhancement.** Support setting function `authorizations` and `authentication` in the specification.
+- **Enhancement.** Support setting function `authorization` and `authentication` in the specification.
 
 ## Version 1.8.9
 

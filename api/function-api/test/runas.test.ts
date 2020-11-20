@@ -5,7 +5,7 @@ import { decodeJwt } from '@5qtrs/jwt';
 
 import * as Constants from '@5qtrs/constants';
 const Permissions = Constants.Permissions;
-import * as AuthZ from './authorizations';
+import * as AuthZ from './authz';
 
 import { FusebitProfile } from '@5qtrs/fusebit-profile-sdk';
 

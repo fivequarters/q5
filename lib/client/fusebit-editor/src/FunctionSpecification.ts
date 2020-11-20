@@ -80,12 +80,12 @@ export interface IFunctionSpecification {
   functionPermissions?: { allow: [{ action: string; resource: string }] };
 
   /*
-   * Required authorizations by the caller to execute the function.
+   * Required authorization by the caller to execute the function.
    */
-  authorizations?: [{ action: string; resource: string }];
+  authorization?: [{ action: string; resource: string }];
 
   /*
-   * Required authorizations by the caller to execute the function.
+   * Required authorization by the caller to execute the function.
    */
   authentication?: IFunctionAuthentication;
 }

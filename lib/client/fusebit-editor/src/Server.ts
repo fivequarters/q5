@@ -337,7 +337,7 @@ export class Server {
           nodejs: editorContext.functionSpecification.nodejs,
           metadata: editorContext.functionSpecification.metadata,
           functionPermissions: editorContext.functionSpecification.functionPermissions,
-          authorizations: editorContext.functionSpecification.authorizations,
+          authorization: editorContext.functionSpecification.authorization,
           authentication: editorContext.functionSpecification.authentication,
         };
         return Superagent.put(url)

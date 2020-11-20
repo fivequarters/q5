@@ -10,7 +10,7 @@ import { IAccount } from './accountResolver';
 import { httpExpect, setupEnvironment } from './common';
 import { callFunction, getFunction, putFunction } from './sdk';
 
-import * as AuthZ from './authorizations';
+import * as AuthZ from './authz';
 
 const { getAccount, getBoundary } = setupEnvironment();
 const function1Id = 'test-fun-authz-1';
@@ -23,11 +23,11 @@ const createFunction = async (
   account: IAccount,
   boundaryId: string,
   authentication: string | undefined,
-  authorizations: any[] | undefined
+  authorization: any[] | undefined
 ) => {
   const spec = Constants.duplicate({}, specFuncReturnCtx);
   spec.authentication = authentication;
-  spec.authorizations = authorizations;
+  spec.authorization = authorization;
   const response = await putFunction(account, boundaryId, function1Id, spec);
   httpExpect(response, { statusCode: 200 });
   return response;
@@ -36,14 +36,14 @@ const createFunction = async (
 const runTest = async (
   account: IAccount,
   authentication: string | undefined,
-  authorizations: any[] | undefined,
+  authorization: any[] | undefined,
   token: string,
   resultCode: number,
   resultObj: any
 ) => {
   const boundaryId = getBoundary();
 
-  let response = await createFunction(account, boundaryId, authentication, authorizations);
+  let response = await createFunction(account, boundaryId, authentication, authorization);
 
   response = await callFunction(token, response.data.location);
   httpExpect(response, { statusCode: resultCode });
@@ -52,36 +52,48 @@ const runTest = async (
 };
 
 describe('function authorization', () => {
-  test('None prevents authorizations', async () => {
+  test('None prevents authorization', async () => {
     const account = getAccount();
     const boundaryId = getBoundary();
 
     const spec = Constants.duplicate({}, specFuncReturnCtx);
     spec.authentication = 'none';
-    spec.authorizations = [AuthZ.reqFunctionExe];
+    spec.authorization = [AuthZ.reqFunctionExe];
 
     const response = await putFunction(account, boundaryId, function1Id, spec);
     httpExpect(response, { statusCode: 400 });
   }, 180000);
 
-  test.only('Authentication undefined prevents authorizations', async () => {
+  test('Authentication undefined prevents authorization', async () => {
     const account = getAccount();
     const boundaryId = getBoundary();
 
     const spec = Constants.duplicate({}, specFuncReturnCtx);
-    spec.authorizations = [AuthZ.reqFunctionExe];
+    spec.authorization = [AuthZ.reqFunctionExe];
 
     const response = await putFunction(account, boundaryId, function1Id, spec);
     httpExpect(response, { statusCode: 400 });
   }, 180000);
 
-  test('Authorizations must not be empty', async () => {
+  test('Authorizations must not be empty when required', async () => {
     const account = getAccount();
     const boundaryId = getBoundary();
 
     const spec = Constants.duplicate({}, specFuncReturnCtx);
     spec.authentication = 'required';
-    spec.authorizations = [];
+    spec.authorization = [];
+
+    const response = await putFunction(account, boundaryId, function1Id, spec);
+    httpExpect(response, { statusCode: 400 });
+  }, 180000);
+
+  test('Caller must always be present', async () => {
+    const account = getAccount();
+    const boundaryId = getBoundary();
+
+    const spec = Constants.duplicate({}, specFuncReturnCtx);
+    spec.authentication = 'required';
+    spec.authorization = [];
 
     const response = await putFunction(account, boundaryId, function1Id, spec);
     httpExpect(response, { statusCode: 400 });
@@ -101,7 +113,7 @@ describe('function authorization', () => {
 
     await runTest(account, 'optional', undefined, 'abcdefg', 200, {
       fusebit: {},
-      caller: { permissions: [] },
+      caller: {},
     });
   }, 180000);
 
@@ -110,7 +122,7 @@ describe('function authorization', () => {
 
     await runTest(account, 'optional', undefined, '', 200, {
       fusebit: {},
-      caller: { permissions: [] },
+      caller: {},
     });
   }, 180000);
 
@@ -128,7 +140,7 @@ describe('function authorization', () => {
     const getAccessToken = await AuthZ.getTokenByPerm(AuthZ.permFunctionGet);
 
     await runTest(account, 'optional', [AuthZ.reqFunctionExe], getAccessToken, 403, {
-      message: 'Insufficient permissions',
+      message: 'Unauthorized',
     });
   }, 180000);
 
@@ -137,7 +149,7 @@ describe('function authorization', () => {
 
     await runTest(account, 'optional', [AuthZ.reqFunctionExe], 'abcdefg', 200, {
       fusebit: {},
-      caller: { permissions: [] },
+      caller: {},
     });
   }, 180000);
 
@@ -146,7 +158,7 @@ describe('function authorization', () => {
 
     await runTest(account, 'optional', [AuthZ.reqFunctionExe], '', 200, {
       fusebit: {},
-      caller: { permissions: [] },
+      caller: {},
     });
   }, 180000);
 
@@ -163,7 +175,7 @@ describe('function authorization', () => {
     const account = getAccount();
 
     await runTest(account, 'required', undefined, 'abcdefg', 403, {
-      message: 'Insufficient permissions',
+      message: 'Unauthorized',
     });
   }, 180000);
 
@@ -189,7 +201,7 @@ describe('function authorization', () => {
     const getAccessToken = await AuthZ.getTokenByPerm(AuthZ.permFunctionGet);
 
     await runTest(account, 'required', [AuthZ.reqFunctionExe], getAccessToken, 403, {
-      message: 'Insufficient permissions',
+      message: 'Unauthorized',
     });
   }, 180000);
 
@@ -197,7 +209,7 @@ describe('function authorization', () => {
     const account = getAccount();
 
     await runTest(account, 'required', [AuthZ.reqFunctionExe], 'abcdefg', 403, {
-      message: 'Insufficient permissions',
+      message: 'Unauthorized',
     });
   }, 180000);
 

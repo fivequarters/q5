@@ -7,36 +7,34 @@ type ExpressHandler = (req: IFunctionApiRequest, res: any, next: any) => any;
 type AuthorizationFactory = (options: any) => ExpressHandler;
 
 export const checkAuthorization = (authorize: AuthorizationFactory) => {
+  const authorizer = authorize({ failByCallback: true });
   return (req: IFunctionApiRequest, res: any, next: any) => {
     const authentication = Constants.getFunctionAuthentication(req.functionSummary);
-    const authorizations = Constants.getFunctionAuthorizations(req.functionSummary);
+    const authorization = Constants.getFunctionAuthorization(req.functionSummary);
     const callerJwt = req.headers.authorization;
 
     if (authentication === 'none' || (authentication === 'optional' && !callerJwt)) {
       return next();
     }
 
-    return authorize({ failByCallback: true })(req, res, async (e: any) => {
+    return authorizer(req, res, async (e: any) => {
       if (e) {
-        return next(authentication === 'required' ? create_error(403, 'Insufficient permissions') : undefined);
+        return next(authentication === 'required' ? create_error(403, 'Unauthorized') : undefined);
       }
 
-      await checkAuthorizations(req, next, authorizations);
+      // No explicit authorization permissions only requires a valid JWT from the caller
+      if (!authorization || authorization.length === 0) {
+        return next();
+      }
+
+      // Make sure all requirements are a subset of the agent's permissions
+      try {
+        await req.resolvedAgent.checkPermissionSubset({ allow: authorization });
+      } catch (e) {
+        return next(create_error(403, 'Unauthorized'));
+      }
+
+      return next();
     });
   };
-};
-
-const checkAuthorizations = async (req: IFunctionApiRequest, next: any, authorizations?: any[]): Promise<any> => {
-  // No explicit authorization permissions only requires a valid JWT from the caller
-  if (!authorizations || authorizations.length === 0) {
-    return next();
-  }
-
-  // Make sure all requirements are a subset of the agent's permissions
-  try {
-    await req.resolvedAgent.checkPermissionSubset({ allow: authorizations });
-    return next();
-  } catch (e) {
-    return next(create_error(403, 'Insufficient permissions'));
-  }
 };

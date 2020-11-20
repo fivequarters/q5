@@ -21,7 +21,7 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 
 _Released 11/20/20_
 
-- **Enhancement.** Allow functions to require explicit permissions on the part of the caller before execution.
+- **Enhancement.** Allow functions to specify caller authentication and authorization requirements.
 - **Enhancement.** Include the `accountId` in the function execution `ctx` object.
 
 ## Version 1.18.0

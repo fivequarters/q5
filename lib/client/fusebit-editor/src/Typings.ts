@@ -92,11 +92,11 @@ export function updateFusebitContextTypings(configuration: { [index: string]: st
       /**
        * Access tokens used to communicate with the Fusebit API.
        */
-      fusebit: { functionAccessToken: string, callerAccessToken: string};
+      fusebit: { functionAccessToken?: string, callerAccessToken?: string};
       /**
        * Permissions that the caller has been validated to have.
        */
-      caller: { permissions: { allow: [ {action: string, resource: string } ] } };
+      caller: { permissions?: { allow: [ {action: string, resource: string } ] } };
       /**
        * Configuration settings of the function.
        */
