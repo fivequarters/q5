@@ -2,8 +2,8 @@
  * List of files making up the Node.js function. Each key represents the file name, and the value content of the file.
  * The value may be a string or a JavaScript object which will be JSON-serialized to arrive at the file content.
  *
- * At minimum you must specify the `index.js` file. Commonly specified is also `package.json`, which can be used to select
- * the Node.js version and list npm module dependencies.
+ * At minimum you must specify the `index.js` file. Commonly specified is also `package.json`, which can be
+ * used to select the Node.js version and list npm module dependencies.
  */
 export interface INodejsFileSettings {
   [property: string]: string | object;
@@ -17,6 +17,15 @@ export interface INodejsSettings {
    * Files making up the Node.js function.
    */
   files: INodejsFileSettings;
+}
+
+/**
+ * Supported values for the `authentication` field in a IFunctionSpecification
+ */
+export enum IFunctionAuthentication {
+  None = 'none',
+  Optional = 'optional',
+  Required = 'required',
 }
 
 /**
@@ -40,7 +49,8 @@ export interface INodejsSettings {
  */
 export interface IFunctionSpecification {
   /**
-   * A serialized version of the configuration that can include comments (lines starting with '#') and key values in the form of {key}={value}
+   * A serialized version of the configuration that can include comments (lines starting with '#') and key
+   * values in the form of {key}={value}
    */
   configurationSerialized?: string;
   /**
@@ -53,13 +63,14 @@ export interface IFunctionSpecification {
    */
   nodejs?: INodejsSettings;
   /**
-   * Arbitrary metadata associated with the function. This is stored alongside the function specification on the server,
-   * but does not affect the behavior of the server. This is a useful place for client side tooling to durably store metadata
-   * useful during function development.
+   * Arbitrary metadata associated with the function. This is stored alongside the function specification on
+   * the server, but does not affect the behavior of the server. This is a useful place for client side
+   * tooling to durably store metadata useful during function development.
    */
   metadata?: { [property: string]: any };
   /**
-   * A serialized version of the schedule that can include comments (lines starting with '#') and key values in the form of {key}={value}
+   * A serialized version of the schedule that can include comments (lines starting with '#') and key values
+   * in the form of {key}={value}
    */
   scheduleSerialized?: string;
 
@@ -67,4 +78,14 @@ export interface IFunctionSpecification {
    * Permissions that the function will execute under.
    */
   functionPermissions?: { allow: [{ action: string; resource: string }] };
+
+  /*
+   * Required authorizations by the caller to execute the function.
+   */
+  authorizations?: [{ action: string; resource: string }];
+
+  /*
+   * Required authorizations by the caller to execute the function.
+   */
+  authentication?: IFunctionAuthentication;
 }

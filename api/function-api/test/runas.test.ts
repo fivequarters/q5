@@ -5,6 +5,7 @@ import { decodeJwt } from '@5qtrs/jwt';
 
 import * as Constants from '@5qtrs/constants';
 const Permissions = Constants.Permissions;
+import * as AuthZ from './authorizations';
 
 import { FusebitProfile } from '@5qtrs/fusebit-profile-sdk';
 
@@ -17,27 +18,13 @@ const { getAccount, getBoundary } = setupEnvironment();
 const function1Id = 'test-fun-runas-1';
 
 const specFuncReturnCtx = {
-  functionPermissions: { allow: [{ action: Permissions.allPermissions, resource: '/' }] },
+  functionPermissions: AuthZ.permFunctionWild,
   nodejs: {
     files: {
       'index.js': 'module.exports = async (ctx) => { return { body: ctx.fusebit }; };',
     },
   },
 };
-
-const permFunctionGet = { allow: [{ action: Permissions.getFunction, resource: '/' }] };
-const permFunctionPut = { allow: [{ action: Permissions.putFunction, resource: '/' }] };
-const permFunctionWildcard = { allow: [{ action: Permissions.allFunction, resource: '/' }] };
-
-const permFunctionPutLimited = (perm: string, acc: IAccount, boundaryId: string) => ({
-  allow: [
-    { action: perm, resource: `/account/${acc.accountId}/subscription/${acc.subscriptionId}/boundary/${boundaryId}/` },
-  ],
-});
-
-const permFunctionPutLimitedHigher = (perm: string, acc: IAccount) => ({
-  allow: [{ action: perm, resource: `/account/${acc.accountId}/` }],
-});
 
 describe('runas', () => {
   test('normal function has no permissions added', async () => {
@@ -93,7 +80,7 @@ describe('runas', () => {
 
     // Update the permissions
     const specGet = Constants.duplicate({}, specFuncReturnCtx);
-    specGet.functionPermissions = permFunctionGet;
+    specGet.functionPermissions = AuthZ.permFunctionGet;
     response = await putFunction(account, boundaryId, function1Id, specGet);
     httpExpect(response, { statusCode: 200 });
 
@@ -124,7 +111,7 @@ describe('runas', () => {
     const oldToken = account.accessToken;
 
     const spec = Constants.duplicate({}, specFuncReturnCtx);
-    spec.functionPermissions = permFunctionPutLimited(Permissions.putFunction, account, boundaryId);
+    spec.functionPermissions = AuthZ.permFunctionPutLimited(Permissions.putFunction, account, boundaryId);
     let response = await putFunction(account, boundaryId, function1Id, spec);
     httpExpect(response, { statusCode: 200 });
 
@@ -142,17 +129,17 @@ describe('runas', () => {
     httpExpect(response, { statusCode: 200 });
 
     // Create a function with different permissions, fail
-    spec.functionPermissions = permFunctionGet;
+    spec.functionPermissions = AuthZ.permFunctionGet;
     response = await putFunction(account, boundaryId, function1Id + '3', spec);
     httpExpect(response, { statusCode: 403 });
 
     // Create a function with too many permissions, fail
-    spec.functionPermissions = permFunctionPutLimited(Permissions.allFunction, account, boundaryId);
+    spec.functionPermissions = AuthZ.permFunctionPutLimited(Permissions.allFunction, account, boundaryId);
     response = await putFunction(account, boundaryId, function1Id + '4', spec);
     httpExpect(response, { statusCode: 403 });
 
     // Create a function with higher path permissions, fail
-    spec.functionPermissions = permFunctionPutLimitedHigher(Permissions.putFunction, account);
+    spec.functionPermissions = AuthZ.permFunctionPutLimitedHigher(Permissions.putFunction, account);
     response = await putFunction(account, boundaryId, function1Id + '5', spec);
     httpExpect(response, { statusCode: 403 });
 
@@ -169,7 +156,7 @@ describe('runas', () => {
     const oldToken = account.accessToken;
 
     const spec = Constants.duplicate({}, specFuncReturnCtx);
-    spec.functionPermissions = permFunctionPutLimited(Permissions.allFunction, account, boundaryId);
+    spec.functionPermissions = AuthZ.permFunctionPutLimited(Permissions.allFunction, account, boundaryId);
     let response = await putFunction(account, boundaryId, function1Id, spec);
     httpExpect(response, { statusCode: 200 });
 
@@ -179,11 +166,11 @@ describe('runas', () => {
     expect(response.data.functionAccessToken).not.toBeUndefined();
     const limitedToken = response.data.functionAccessToken;
 
-    spec.functionPermissions = permFunctionPut;
+    spec.functionPermissions = AuthZ.permFunctionPut;
     account.accessToken = limitedToken;
 
     // Create a function with fewer permissions, succeed
-    spec.functionPermissions = permFunctionPutLimited(Permissions.getFunction, account, boundaryId);
+    spec.functionPermissions = AuthZ.permFunctionPutLimited(Permissions.getFunction, account, boundaryId);
     response = await putFunction(account, boundaryId, function1Id + '2', spec);
     httpExpect(response, { statusCode: 200 });
     account.accessToken = oldToken;
@@ -191,7 +178,7 @@ describe('runas', () => {
 
   test('self-minted jwt with lower permissions', async () => {
     const profile = await FusebitProfile.create();
-    let executionProfile = await profile.getPKIExecutionProfile(process.env.FUSE_PROFILE, true, permFunctionPut);
+    let executionProfile = await profile.getPKIExecutionProfile(process.env.FUSE_PROFILE, true, AuthZ.permFunctionPut);
 
     // Put a function using the put-only token
     account = getAccount();
@@ -203,7 +190,7 @@ describe('runas', () => {
 
     // Try to create a function with a superset of permissions
     const spec = Constants.duplicate({}, specFuncReturnCtx);
-    spec.functionPermissions = permFunctionWildcard;
+    spec.functionPermissions = AuthZ.permFunctionWild;
     let response = await putFunction(account, boundaryId, function1Id, spec);
     httpExpect(response, { statusCode: 403 });
 
@@ -217,7 +204,7 @@ describe('runas', () => {
     httpExpect(response, { statusCode: 403 });
 
     // Mint a new token with GET and validate it can retrieve the function
-    executionProfile = await profile.getPKIExecutionProfile(process.env.FUSE_PROFILE, true, permFunctionGet);
+    executionProfile = await profile.getPKIExecutionProfile(process.env.FUSE_PROFILE, true, AuthZ.permFunctionGet);
     account.accessToken = executionProfile.accessToken;
     response = await getFunction(account, boundaryId, function1Id);
     httpExpect(response, { statusCode: 200 });

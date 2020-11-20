@@ -8,25 +8,35 @@ type AuthorizationFactory = (options: any) => ExpressHandler;
 
 export const checkAuthorization = (authorize: AuthorizationFactory) => {
   return (req: IFunctionApiRequest, res: any, next: any) => {
+    const authentication = Constants.getFunctionAuthentication(req.functionSummary);
     const authorizations = Constants.getFunctionAuthorizations(req.functionSummary);
+    const callerJwt = req.headers.authorization;
 
-    // No authorizations, or an empty authorization array - do nothing.
-    if (!authorizations || authorizations.length === 0) {
+    if (authentication === 'none' || (authentication === 'optional' && !callerJwt)) {
       return next();
     }
 
-    // Validate against the first permission, then use resolvedAgent to evaluate the rest of the
-    // authorization requirements.
-    return authorize({})(req, res, (e: any) => {
+    return authorize({ failByCallback: true })(req, res, async (e: any) => {
       if (e) {
-        return next(e);
+        return next(authentication === 'required' ? create_error(403, 'Insufficient permissions') : undefined);
       }
 
-      // Make sure all requirements are a subset of the agent's permissions
-      return req.resolvedAgent
-        .checkPermissionSubset({ allow: authorizations })
-        .then(() => next())
-        .catch(() => next(create_error(403, 'Insufficient permissions')));
+      await checkAuthorizations(req, next, authorizations);
     });
   };
+};
+
+const checkAuthorizations = async (req: IFunctionApiRequest, next: any, authorizations?: any[]): Promise<any> => {
+  // No explicit authorization permissions only requires a valid JWT from the caller
+  if (!authorizations || authorizations.length === 0) {
+    return next();
+  }
+
+  // Make sure all requirements are a subset of the agent's permissions
+  try {
+    await req.resolvedAgent.checkPermissionSubset({ allow: authorizations });
+    return next();
+  } catch (e) {
+    return next(create_error(403, 'Insufficient permissions'));
+  }
 };

@@ -37,14 +37,21 @@ module.exports = Joi.object().keys({
   scheduleSerialized: Joi.string().allow('').optional(),
   metadata: Joi.object(),
   runtime: Joi.object(),
-  authorizations: Joi.array()
-    .items(
-      Joi.object().keys({
-        action: Joi.string(),
-        resource: Joi.string(),
-      })
-    )
-    .optional(),
+  authentication: Joi.string().valid('none', 'optional', 'required').optional(),
+  authorizations: Joi.when('authentication', {
+    is: 'none',
+    then: Joi.any().forbidden(),
+    otherwise: Joi.array()
+      .items(
+        Joi.object()
+          .keys({
+            action: Joi.string(),
+            resource: Joi.string(),
+          })
+          .optional()
+      )
+      .min(1),
+  }),
   functionPermissions: Joi.object().keys({
     allow: Joi.array().items(
       Joi.object().keys({

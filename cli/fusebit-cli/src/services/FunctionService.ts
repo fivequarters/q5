@@ -216,6 +216,8 @@ export class FunctionService {
     functionSpec.computeSerialized = fusebitJson.computeSerialized;
 
     functionSpec.functionPermissions = fusebitJson.functionPermissions;
+    functionSpec.authorizations = fusebitJson.authorizations;
+    functionSpec.authentication = fusebitJson.authentication;
 
     // schedule and scheduleSerialized
     const cronDisabled = cronOffRegex.test(cron || '');
@@ -306,6 +308,8 @@ export class FunctionService {
     fusebitJson.schedule = functionSpec.schedule;
     fusebitJson.scheduleSerialized = functionSpec.scheduleSerialized;
     fusebitJson.functionPermissions = functionSpec.functionPermissions;
+    fusebitJson.authorizations = functionSpec.authorizations;
+    fusebitJson.authentication = functionSpec.authentication;
 
     try {
       await writeFile(join(path, 'fusebit.json'), JSON.stringify(fusebitJson, null, 2));

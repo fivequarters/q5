@@ -70,6 +70,14 @@ export function updateFusebitContextTypings(configuration: { [index: string]: st
        */
       url: string;
       /**
+       * Fusebit function account id.
+       */
+      accountId: string;
+      /**
+       * Fusebit function subscription id.
+       */
+      subscriptionId: string;
+      /**
        * Fusebit function boundary id.
        */
       boundaryId: string;
@@ -84,7 +92,11 @@ export function updateFusebitContextTypings(configuration: { [index: string]: st
       /**
        * Access tokens used to communicate with the Fusebit API.
        */
-      fusebit: { functionAccessToken: string };
+      fusebit: { functionAccessToken: string, callerAccessToken: string};
+      /**
+       * Permissions that the caller has been validated to have.
+       */
+      caller: { permissions: { allow: [ {action: string, resource: string } ] } };
       /**
        * Configuration settings of the function.
        */

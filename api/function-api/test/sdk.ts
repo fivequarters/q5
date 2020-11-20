@@ -309,9 +309,11 @@ export async function getFunctionLocation(account: IAccount, boundaryId: string,
 export async function callFunction(token: string, url: string) {
   return request({
     method: 'GET',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: token
+      ? {
+          Authorization: `Bearer ${token}`,
+        }
+      : {},
     url,
   });
 }
