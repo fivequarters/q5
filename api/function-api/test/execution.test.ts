@@ -440,4 +440,20 @@ describe('execution', () => {
     expect(response.data).toEqual('hello');
     expect(response.headers['x-fx-response-source']).toEqual('function');
   }, 180000);
+
+  test('Function context has `accountId` present on it', async () => {
+    let response = await putFunction(account, boundaryId, function1Id, {
+      nodejs: {
+        files: {
+          'index.js': `module.exports = (ctx, cb) => cb(null, { body: ctx.accountId });`,
+          'package.json': { engines: { node: '10' } },
+        },
+      },
+    });
+    expect(response.status).toEqual(200);
+    expect(response.data.status).toEqual('success');
+    response = await request(response.data.location);
+    expect(response.status).toEqual(200);
+    expect(response.data).toEqual(account.accountId);
+  }, 180000);
 });

@@ -337,6 +337,8 @@ export class Server {
           nodejs: editorContext.functionSpecification.nodejs,
           metadata: editorContext.functionSpecification.metadata,
           functionPermissions: editorContext.functionSpecification.functionPermissions,
+          authorization: editorContext.functionSpecification.authorization,
+          authentication: editorContext.functionSpecification.authentication,
         };
         return Superagent.put(url)
           .set('Authorization', `Bearer ${this.account.accessToken}`)

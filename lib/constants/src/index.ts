@@ -201,10 +201,17 @@ function makeFunctionSub(params: any, mode: string) {
 
 const getFunctionPermissions = (summary: any, orCreate: boolean = false): any => {
   if (!summary[get_compute_tag_key('permissions')] && orCreate) {
-    console.log(`creating permissions object`);
     summary[get_compute_tag_key('permissions')] = { allow: [] };
   }
   return summary[get_compute_tag_key('permissions')];
+};
+
+const getFunctionAuthorization = (summary: any): any => {
+  return summary[get_compute_tag_key('authorization')];
+};
+
+const getFunctionAuthentication = (summary: any): any => {
+  return summary[get_compute_tag_key('authentication')];
 };
 
 export {
@@ -249,6 +256,8 @@ export {
   makeSystemIssuerId,
   makeFunctionSub,
   getFunctionPermissions,
+  getFunctionAuthorization,
+  getFunctionAuthentication,
   REGISTRY_CATEGORY,
   REGISTRY_CATEGORY_CONFIG,
   REGISTRY_DEFAULT,

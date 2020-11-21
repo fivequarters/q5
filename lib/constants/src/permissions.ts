@@ -1,4 +1,6 @@
 export enum Permissions {
+  allPermissions = '*',
+
   addAccount = 'global:add:account',
   getAccount = 'account:get',
   updateAccount = 'account:update',
@@ -40,6 +42,7 @@ export enum Permissions {
   putFunction = 'function:put',
   getFunction = 'function:get',
   logFunction = 'function:post-logs',
+  exeFunction = 'function:execute',
 
   allRegistry = 'registry:*',
   configRegistry = 'registry-config:put',
@@ -49,6 +52,8 @@ export enum Permissions {
 
 // Deployment Administrator Permissions
 export const RestrictedPermissions: string[] = [
+  Permissions.allPermissions,
+
   Permissions.addAccount,
   Permissions.updateAccount,
   Permissions.deleteAccount,
@@ -56,6 +61,8 @@ export const RestrictedPermissions: string[] = [
   Permissions.addSubscription,
   Permissions.updateSubscription,
   Permissions.deleteSubscription,
+
+  Permissions.logFunction,
 ];
 
 export const UserPermissions: string[] = Object.values(Permissions).filter(

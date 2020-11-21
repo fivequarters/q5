@@ -17,6 +17,13 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.8.10
+
+_Released 11/20/20_
+
+- **Enhancement.** Extend the list of permissions that can be set for user and client identities.
+- **Enhancement.** Support setting function `authorization` and `authentication` in the specification.
+
 ## Version 1.8.9
 
 _Released 11/17/20_

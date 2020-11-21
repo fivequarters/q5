@@ -307,6 +307,18 @@ export async function getFunctionLocation(account: IAccount, boundaryId: string,
   });
 }
 
+export async function callFunction(token: string, url: string) {
+  return request({
+    method: 'GET',
+    headers: token
+      ? {
+          Authorization: `Bearer ${token}`,
+        }
+      : {},
+    url,
+  });
+}
+
 export async function listFunctions(
   account: IAccount,
   boundaryId?: string,
