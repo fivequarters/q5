@@ -3327,7 +3327,9 @@ components:
           description: |
             Use the specified permissions to validate the caller.
 
-            If `authorization` is an empty list or undefined, then any valid JWT is accepted.
+            If `authorization` is undefined, then any valid JWT is accepted.
+
+            If `authentication` is `none`, `authorization` must be undefined.
 
             When the caller has been authorized, the `ctx.caller.permissions` property is set to the validated
             permissions of the caller.  Otherwise, `ctx.caller.permissions` will be `undefined`.
