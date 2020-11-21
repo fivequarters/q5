@@ -3333,7 +3333,7 @@ components:
             $ref: '#/components/schemas/AccessStatement'
         authentication:
           description: |
-            Controls the way authentication is performed of the caller of the function, based on the JWT
+            Controls the way authentication of the caller of the function is performed, based on the bearer token
             supplied by the caller in the `Authentication` header of the HTTP request.
 
             Validation is determined both by the cryptographic validity of the JWT as well as it's enablement
@@ -3342,12 +3342,13 @@ components:
             If the value is `none`, then the `Authentication` header is not evaluated and the function is
             executed.
 
-            If the value is `required`, the caller must supply a token in the `Authentication`, and this token
-            must be valid.
+            If the value is `required`, the caller must supply a bearer token in the `Authentication`, and
+            this token must be valid.
 
-            If the value is `optional`, the token is validated if present and, if a list of `authorization`
-            has been specified, an error generated if the validation fails.  If the token is not present, then
-            the function is executed as if the `authentication` value was `none`.
+            If the value is `optional`, the token is validated if present and, if a list of required
+            permissions have been specified in the `authorization` property, an error generated if the
+            validation fails.  If the token is not present or not cryptographically valid, then the function
+            is executed as if the `authentication` value was `none`.
 
             When the token has been found valid, the `ctx.caller.permissions` object is set to the list of
             validated permissions, either contained within the token or configured on the user or client
