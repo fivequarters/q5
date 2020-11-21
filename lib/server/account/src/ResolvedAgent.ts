@@ -77,7 +77,7 @@ async function validateJwt(
   }
 }
 
-function doesResouceAuthorize(grantedResource: string, requestedResource: string) {
+function doesResourceAuthorize(grantedResource: string, requestedResource: string) {
   return requestedResource.indexOf(grantedResource) === 0;
 }
 
@@ -105,7 +105,7 @@ function doesActionAuthorize(grantedAction: string, requestedAction: string) {
 
 function doesAccessEntryAuthorize(accessEntry: IAccessEntry, action: string, resource: string) {
   const actionAuth = doesActionAuthorize(accessEntry.action, action);
-  const resourceAuth = doesResouceAuthorize(Resource.normalize(accessEntry.resource), resource);
+  const resourceAuth = doesResourceAuthorize(Resource.normalize(accessEntry.resource), resource);
   return actionAuth && resourceAuth;
 }
 
