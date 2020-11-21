@@ -3,7 +3,7 @@ var http_error = require('http-errors');
 
 // Require clients of at least this version in order to access this API endpoint.
 const supportedClientVersion = {
-  client: '^1.18.10',
+  client: '^1.8.10',
   editor: '^1.4.4',
 };
 

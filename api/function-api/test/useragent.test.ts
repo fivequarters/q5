@@ -38,7 +38,7 @@ describe('User Agent', () => {
     response = await getFunction(account, boundaryId, function1Id);
     httpExpect(response, { statusCode: 200 });
 
-    account.userAgent = 'fusebit-cli/1.18.9';
+    account.userAgent = 'fusebit-cli/1.8.9';
     response = await getFunction(account, boundaryId, function1Id);
     httpExpect(response, { statusCode: 400 });
 
