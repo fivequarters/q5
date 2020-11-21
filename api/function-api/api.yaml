@@ -1233,7 +1233,7 @@ paths:
         - in: query
           name: count
           required: false
-          description: Maximum number of results to return.  Each query will return between 1 and `count` entries.
+          description: Maximum number of results to return. Each query will return between 1 and `count` entries.
           schema:
             type: number
             minimum: 1
@@ -1252,12 +1252,12 @@ paths:
           name: search
           required: false
           description: |
-            Search the metadata for functions that match this criteria.  Each method has several different scopes that can be searched
+            Search the metadata for functions that match this criteria. Each method has several different scopes that can be searched
             within, including `'compute'`, `'dependency'`, and `'tag'`, corresponding to values in the `compute`,
             dependencies in the `package.json`, and `metadata.tags` sections of the function specification.
 
             Search supports a single filtering criteria, in the form of `search=key` for any function posessing a key matching that
-            value, or `search=key=value` for functions that specifically match a value.  If the key or value
+            value, or `search=key=value` for functions that specifically match a value. If the key or value
             contains an `=`, encode them to the URI specification first.
 
             Examples include `?search=compute.timeout=30`, `?search=dependency.ms=2.1.2`, `?search=tag.enabled`.
@@ -1333,7 +1333,7 @@ paths:
         - in: query
           name: count
           required: false
-          description: Maximum number of results to return.  Each query will return between 1 and `count` entries.
+          description: Maximum number of results to return. Each query will return between 1 and `count` entries.
           schema:
             type: number
             minimum: 1
@@ -1352,12 +1352,12 @@ paths:
           name: search
           required: false
           description: |
-            Search the metadata for functions that match this criteria.  Each method has several different scopes that can be searched
+            Search the metadata for functions that match this criteria. Each method has several different scopes that can be searched
             within, including `'compute'`, `'dependency'`, and `'tag'`, corresponding to values in the `compute`,
             dependencies in the `package.json`, and `metadata.tags` sections of the function specification.
 
             Search supports a single filtering criteria, in the form of `search=key` for any function posessing a key matching that
-            value, or `search=key=value` for functions that specifically match a value.  If the key or value
+            value, or `search=key=value` for functions that specifically match a value. If the key or value
             contains an `=`, encode them to the URI specification first.
 
             Examples include `?search=compute.timeout=30`, `?search=dependency.ms=2.1.2`, `?search=tag.enabled`.
@@ -3325,37 +3325,34 @@ components:
         authorization:
           type: array
           description: |
-            Use the specified permissions to validate the caller as per the `authentication` mode.  Must be
-            `undefined` when `authentication` is `none`.
+            Use the specified permissions to validate the caller.
 
-            If the `authorization` is an empty list or undefined, then any valid JWT is accepted.
+            If `authorization` is an empty list or undefined, then any valid JWT is accepted.
+
+            When the caller has been authorized, the `ctx.caller.permissions` property is set to the validated
+            permissions of the caller.  Otherwise, `ctx.caller.permissions` will be `undefined`.
           items:
             $ref: '#/components/schemas/AccessStatement'
         authentication:
           description: |
-            Controls the way authentication of the caller of the function is performed, based on the bearer token
-            supplied by the caller in the `Authentication` header of the HTTP request.
+            Controls the authentication of the caller of the function, based on the bearer token supplied by
+            the caller in the `Authorization` header of the HTTP request.
 
-            Validation is determined both by the cryptographic validity of the JWT as well as it's enablement
-            within the set specified in `authorization`, if any.
-
-            If the value is `none`, then the `Authentication` header is not evaluated and the function is
+            If the value is `none`, then the `Authorization` header is not evaluated and the function is
             executed.
 
-            If the value is `required`, the caller must supply a bearer token in the `Authentication`, and
-            this token must be valid.
+            If the value is `required`, the caller must supply a bearer token, and this token must be valid.
 
-            If the value is `optional`, the token is validated if present and, if a list of required
-            permissions have been specified in the `authorization` property, an error generated if the
-            validation fails.  If the token is not present or not cryptographically valid, then the function
-            is executed as if the `authentication` value was `none`.
+            If the value is `optional`, then the caller may supply a bearer token. If a token is not present
+            or not valid, the function executes as an unauthenticated user. If the token is present and valid,
+            a successful `authorization` check will result in the function executing, otherwise a validation
+            failure will occur.
 
-            When the token has been found valid, the `ctx.caller.permissions` object is set to the list of
-            validated permissions, either contained within the token or configured on the user or client
-            entity, and the `ctx.fusebit.callerAccessToken` contains the supplied JWT.
+            When the token has been found valid and authorized, the `ctx.fusebit.callerAccessToken` property
+            contains the supplied JWT.
 
-            If the token was not evaluated, the `ctx.caller.permissions` and `ctx.fusebit.callerAccessToken`
-            fields are left `undefined`.
+            If the token was not evaluated or found invalid, the `ctx.fusebit.callerAccessToken` property
+            field is left `undefined`.
 
             Validation failure generates a 403 Forbidden error response.
           schema:
@@ -3507,7 +3504,7 @@ components:
     #            items:
     #              type: string
     #            description: |
-    #             The HTTP status codes active during this interval.  For example, `[200, 301, 404]` or
+    #             The HTTP status codes active during this interval. For example, `[200, 301, 404]` or
     #             `["2xx", "3xx", "4xx"]` if codeGrouped is specified.
     #
     #      BulkEntry:
