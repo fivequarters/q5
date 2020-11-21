@@ -10,6 +10,7 @@ const provider_handlers = require('./handlers/provider_handlers');
 const validate_schema = require('./middleware/validate_schema');
 const authorize = require('./middleware/authorize');
 const user_agent = require('./middleware/user_agent');
+const { check_agent_version } = require('./middleware/check_agent_version');
 const cors = require('cors');
 const create_error = require('http-errors');
 const health = require('./handlers/health');
@@ -457,6 +458,7 @@ router.get(
   authorize({ operation: 'function:get' }),
   validate_schema({ query: require('./schemas/api_query') }),
   user_agent(),
+  check_agent_version(),
   determine_provider(),
   (req, res, next) => provider_handlers[req.provider].list_functions(req, res, next),
   analytics.finished
@@ -473,6 +475,7 @@ router.get(
   validate_schema({ params: require('./schemas/api_params') }),
   authorize({ operation: 'function:get' }),
   user_agent(),
+  check_agent_version(),
   determine_provider(),
   (req, res, next) => provider_handlers[req.provider].get_function(req, res, next),
   analytics.finished
@@ -486,6 +489,7 @@ router.put(
   express.json({ limit: process.env.FUNCTION_SIZE_LIMIT || '500kb' }),
   validate_schema({ body: require('./schemas/function_specification') }),
   user_agent(),
+  check_agent_version(),
   determine_provider(),
   npmRegistry(),
   (req, res, next) => {
@@ -502,6 +506,7 @@ router.delete(
   validate_schema({ params: require('./schemas/api_params') }),
   authorize({ operation: 'function:delete' }),
   user_agent(),
+  check_agent_version(),
   determine_provider(),
   (req, res, next) => provider_handlers[req.provider].delete_function(req, res, next),
   analytics.finished
@@ -521,6 +526,7 @@ router.get(
     getToken: (req) => req.query && req.query.token,
   }),
   user_agent(),
+  check_agent_version(),
   determine_provider(),
   (req, res, next) => provider_handlers[req.provider].get_logs(req, res, next),
   analytics.finished
@@ -547,6 +553,7 @@ router.get(
   validate_schema({ params: require('./schemas/api_params') }),
   authorize({ operation: 'function:get' }),
   user_agent(),
+  check_agent_version(),
   determine_provider(),
   (req, res, next) => provider_handlers[req.provider].get_location(req, res, next),
   analytics.finished
@@ -564,6 +571,7 @@ router.post(
   authorize({ operation: 'function:put' }),
   express.json({ limit: '0kb' }),
   user_agent(),
+  check_agent_version(),
   determine_provider(),
   npmRegistry(),
   (req, res, next) => provider_handlers[req.provider].post_function_build(req, res, next),
@@ -581,6 +589,7 @@ router.get(
   validate_schema({ params: require('./schemas/api_params') }),
   authorize({ operation: 'function:get' }),
   user_agent(),
+  check_agent_version(),
   determine_provider(),
   (req, res, next) => provider_handlers[req.provider].get_function_build(req, res, next),
   analytics.finished
@@ -730,6 +739,7 @@ router.get(
   validate_schema({ params: require('./schemas/api_params') }),
   authorize({ operation: 'registry:get' }),
   user_agent(),
+  check_agent_version(),
   determine_provider(),
   npmRegistry(),
   async (req, res, next) => {
@@ -754,6 +764,7 @@ router.put(
   express.json(),
   validate_schema({ body: require('./schemas/registry_specification') }),
   user_agent(),
+  check_agent_version(),
   determine_provider(),
   npmRegistry(),
   async (req, res, next) => {
@@ -790,6 +801,7 @@ router.get(
   validate_schema({ params: require('./schemas/npm_params') }),
   authorize({ operation: 'registry:get' }),
   user_agent(),
+  check_agent_version(),
   determine_provider(),
   npmRegistry(),
   npm.versionGet(),
@@ -804,6 +816,7 @@ router.get(
   validate_schema({ params: require('./schemas/npm_params') }),
   authorize({ operation: 'registry:get' }),
   user_agent(),
+  check_agent_version(),
   determine_provider(),
   npmRegistry(),
   npm.pingGet(),
@@ -818,6 +831,7 @@ router.get(
   validate_schema({ params: require('./schemas/npm_params') }),
   authorize({ operation: 'registry:get' }),
   user_agent(),
+  check_agent_version(),
   determine_provider(),
   npmRegistry(),
   npm.tarballGet(),
@@ -830,6 +844,7 @@ router.delete(
   validate_schema({ params: require('./schemas/npm_params') }),
   authorize({ operation: 'registry:put' }),
   user_agent(),
+  check_agent_version(),
   determine_provider(),
   npmRegistry(),
   npm.tarballDelete(),
@@ -845,6 +860,7 @@ router.put(
   authorize({ operation: 'registry:put' }),
   express.json({ limit: process.env.PACKAGE_SIZE_LIMIT || '1000kb' }),
   user_agent(),
+  check_agent_version(),
   determine_provider(),
   npmRegistry(),
   npm.packagePut(),
@@ -858,6 +874,7 @@ router.get(
   validate_schema({ params: require('./schemas/npm_params') }),
   authorize({ operation: 'registry:get' }),
   user_agent(),
+  check_agent_version(),
   determine_provider(),
   npmRegistry(),
   npm.packageGet(),
@@ -872,6 +889,7 @@ router.put(
   validate_schema({ params: require('./schemas/npm_params') }),
   authorize({ operation: 'registry:put' }),
   user_agent(),
+  check_agent_version(),
   determine_provider(),
   npmRegistry(),
   npm.revisionPut(),
@@ -884,6 +902,7 @@ router.delete(
   validate_schema({ params: require('./schemas/npm_params') }),
   authorize({ operation: 'registry:put' }),
   user_agent(),
+  check_agent_version(),
   determine_provider(),
   npmRegistry(),
   npm.revisionDelete(),
@@ -899,6 +918,7 @@ router.post(
   authorize({ operation: 'registry:put' }),
   express.json(),
   user_agent(),
+  check_agent_version(),
   determine_provider(),
   npmRegistry(),
   npm.invalidatePost(),
@@ -914,6 +934,7 @@ router.post(
   authorize({ operation: 'registry:get' }),
   express.json(),
   user_agent(),
+  check_agent_version(),
   determine_provider(),
   npmRegistry(),
   npm.distTagsGet(),
@@ -929,6 +950,7 @@ router.put(
   authorize({ operation: 'registry:put' }),
   express.json({ limit: process.env.PACKAGE_SIZE_LIMIT || '1000kb' }),
   user_agent(),
+  check_agent_version(),
   determine_provider(),
   npmRegistry(),
   npm.distTagsPut(),
@@ -943,6 +965,7 @@ router.delete(
   validate_schema({ params: require('./schemas/npm_params') }),
   authorize({ operation: 'registry:put' }),
   user_agent(),
+  check_agent_version(),
   determine_provider(),
   npmRegistry(),
   npm.distTagsDelete(),
@@ -957,6 +980,7 @@ router.get(
   validate_schema({ params: require('./schemas/npm_params') }),
   authorize({ operation: 'registry:get' }),
   user_agent(),
+  check_agent_version(),
   determine_provider(),
   npmRegistry(),
   npm.allPackagesGet(),
@@ -972,6 +996,7 @@ router.put(
   authorize({ operation: 'registry:get' }),
   express.json(),
   user_agent(),
+  check_agent_version(),
   determine_provider(),
   npmRegistry(),
   npm.loginPut(), // Always will succeed
@@ -986,6 +1011,7 @@ router.get(
   validate_schema({ params: require('./schemas/npm_params') }),
   authorize({ operation: 'registry:get' }),
   user_agent(),
+  check_agent_version(),
   determine_provider(),
   npmRegistry(),
   npm.whoamiGet(),
@@ -1001,6 +1027,7 @@ router.post(
   authorize({ operation: 'registry:get' }),
   express.json(),
   user_agent(),
+  check_agent_version(),
   determine_provider(),
   npmRegistry(),
   npm.auditPost(),
@@ -1015,6 +1042,7 @@ router.get(
   validate_schema({ params: require('./schemas/npm_params') }),
   authorize({ operation: 'registry:get' }),
   user_agent(),
+  check_agent_version(),
   determine_provider(),
   npmRegistry(),
   npm.searchGet(),
