@@ -3087,9 +3087,6 @@ describe('Authorization', () => {
     const allowedSet = await setStorage(userAccount, storageId, { data: { msg: 'hello world' } });
     expect(allowedSet.status).toBe(200);
 
-    const allowedSetWithPath = await setStorage(userAccount, storageId, { data: 'hello world' }, undefined, 'a/b/c');
-    expect(allowedSetWithPath.status).toBe(200);
-
     const allowedGet = await getStorage(userAccount, storageId);
     expect(allowedGet.status).toBe(200);
 
@@ -3203,15 +3200,6 @@ describe('Authorization', () => {
     const allowedSet = await setStorage(userAccount, storageId, { data: { msg: 'hello world' } });
     expect(allowedSet.status).toBe(200);
 
-    const allowedSetWithPath = await setStorage(
-      userAccount,
-      storageId,
-      { data: { msg: 'hello world' } },
-      undefined,
-      'a/b/c'
-    );
-    expect(allowedSetWithPath.status).toBe(200);
-
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
       getFunction(userAccount, 'boundary', 'function'),
@@ -3316,9 +3304,6 @@ describe('Authorization', () => {
 
     const allowedSet = await setStorage(userAccount, storageId, { data: { msg: 'hello world' } });
     expect(allowedSet.status).toBe(200);
-
-    const allowedSetWithPath = await setStorage(userAccount, storageId, { data: 'hello world' }, undefined, 'a/b/c');
-    expect(allowedSetWithPath.status).toBe(200);
 
     const allowedGet = await getStorage(userAccount, storageId);
     expect(allowedGet.status).toBe(200);
@@ -3432,15 +3417,6 @@ describe('Authorization', () => {
     const allowedSet = await setStorage(userAccount, storageId, { data: { msg: 'hello world' } });
     expect(allowedSet.status).toBe(200);
 
-    const allowedSetWithPath = await setStorage(
-      userAccount,
-      storageId,
-      { data: { msg: 'hello world' } },
-      undefined,
-      'a/b/c'
-    );
-    expect(allowedSetWithPath.status).toBe(200);
-
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
       getFunction(userAccount, 'boundary', 'function'),
@@ -3545,30 +3521,6 @@ describe('Authorization', () => {
     const jwt = await testIssuer.getAccessToken(subject);
     const userAccount = cloneWithAccessToken(account, jwt);
 
-    const allowedSetWithPath = await setStorage(
-      userAccount,
-      storageId,
-      { data: { msg: 'hello world' } },
-      undefined,
-      'a/b/c'
-    );
-    expect(allowedSetWithPath.status).toBe(200);
-
-    const allowedSetWithPath2 = await setStorage(
-      userAccount,
-      storageId,
-      { data: { msg: 'hello world' } },
-      undefined,
-      'a/b/c/d'
-    );
-    expect(allowedSetWithPath2.status).toBe(200);
-
-    const allowedGet = await getStorage(userAccount, storageId, 'a/b/c');
-    expect(allowedGet.status).toBe(200);
-
-    const allowedRemove = await removeStorage(userAccount, storageId, undefined, 'a/b/c');
-    expect(allowedRemove.status).toBe(204);
-
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
       getFunction(userAccount, 'boundary', 'function'),
@@ -3596,9 +3548,7 @@ describe('Authorization', () => {
       initClient(userAccount, 'clt-1234567890123456'),
       listAudit(userAccount),
       setStorage(userAccount, storageId, { data: 'hello world' }),
-      setStorage(userAccount, storageId, { data: 'hello world' }, undefined, 'a/b'),
       getStorage(userAccount, storageId),
-      getStorage(userAccount, storageId, 'a/b'),
       removeStorage(userAccount, storageId),
       removeStorage(userAccount, storageId, 'a/b'),
       listStorage(userAccount),
@@ -3621,21 +3571,6 @@ describe('Authorization', () => {
     const jwt = await testIssuer.getAccessToken(subject);
     const userAccount = cloneWithAccessToken(account, jwt);
 
-    const allowedSet = await setStorage(
-      account,
-      storageId,
-      { data: { msg: 'hello world', d: 'same' } },
-      undefined,
-      'a/b/c'
-    );
-    expect(allowedSet.status).toBe(200);
-
-    const allowedGet = await getStorage(userAccount, storageId, 'a/b/c');
-    expect(allowedGet.status).toBe(200);
-
-    const allowedGet2 = await getStorage(userAccount, storageId, 'a/b/c/d');
-    expect(allowedGet2.status).toBe(200);
-
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
       getFunction(userAccount, 'boundary', 'function'),
@@ -3663,7 +3598,6 @@ describe('Authorization', () => {
       initClient(userAccount, 'clt-1234567890123456'),
       listAudit(userAccount),
       getStorage(userAccount, storageId),
-      getStorage(userAccount, storageId, 'a/b'),
       setStorage(userAccount, storageId, { data: 'hello' }),
       removeStorage(userAccount, storageId),
     ]);
@@ -3684,24 +3618,6 @@ describe('Authorization', () => {
     });
     const jwt = await testIssuer.getAccessToken(subject);
     const userAccount = cloneWithAccessToken(account, jwt);
-
-    const allowedSetWithPath = await setStorage(
-      userAccount,
-      storageId,
-      { data: { msg: 'hello world' } },
-      undefined,
-      'a/b/c'
-    );
-    expect(allowedSetWithPath.status).toBe(200);
-
-    const allowedSetWithPath2 = await setStorage(
-      userAccount,
-      storageId,
-      { data: { msg: 'hello world' } },
-      undefined,
-      'a/b/c/d'
-    );
-    expect(allowedSetWithPath2.status).toBe(200);
 
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
@@ -3730,7 +3646,6 @@ describe('Authorization', () => {
       initClient(userAccount, 'clt-1234567890123456'),
       listAudit(userAccount),
       setStorage(userAccount, storageId, { data: 'hello world' }),
-      setStorage(userAccount, storageId, { data: 'hello world' }, undefined, 'a/b'),
       getStorage(userAccount, storageId),
       removeStorage(userAccount, storageId),
       listStorage(userAccount),
@@ -3753,12 +3668,6 @@ describe('Authorization', () => {
     const jwt = await testIssuer.getAccessToken(subject);
     const userAccount = cloneWithAccessToken(account, jwt);
 
-    const allowedSet = await setStorage(account, storageId, { data: { msg: 'hello world' } }, undefined, 'a/b/c');
-    expect(allowedSet.status).toBe(200);
-
-    const allowedRemove = await removeStorage(userAccount, storageId, undefined, 'a/b/c');
-    expect(allowedRemove.status).toBe(204);
-
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
       getFunction(userAccount, 'boundary', 'function'),
@@ -3788,7 +3697,6 @@ describe('Authorization', () => {
       setStorage(userAccount, storageId, { data: 'hello world' }),
       getStorage(userAccount, storageId),
       removeStorage(userAccount, storageId),
-      removeStorage(userAccount, storageId, undefined, 'a/b'),
       listStorage(userAccount),
     ]);
 
