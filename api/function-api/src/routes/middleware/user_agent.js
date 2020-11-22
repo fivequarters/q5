@@ -1,4 +1,6 @@
-const agentRegex = /fusebit-(editor|cli)\/(\d+)\.(\d+)\.(\d+)(-([\w\d\.]+))?/;
+const semver = require('semver');
+
+const agentRegex = /fusebit-(editor|cli)\/([\S]*)/;
 
 module.exports = function agent_factory() {
   return function agent(req, res, next) {
@@ -6,13 +8,8 @@ module.exports = function agent_factory() {
       isFusebitClient: false,
       isFusebitEditor: false,
       isFusebitCli: false,
-      majorVersion: -1,
-      minorVersion: -1,
-      patchVersion: -1,
-      preReleaseVersion: undefined,
-      isAtLeastVersion: (major, minor, patch) => {
-        return agent.majorVersion > major || agent.minorVersion > minor || agent.patchVersion >= patch;
-      },
+      version: '0.0.0',
+      validate: (version) => semver.satisfies(agent.version, version),
     };
 
     const agentHeader = req.headers['x-user-agent'] || req.headers['user-agent'];
@@ -22,10 +19,7 @@ module.exports = function agent_factory() {
         agent.isFusebitClient = true;
         agent.isFusebitCli = match[1] === 'cli';
         agent.isFusebitEditor = match[1] === 'editor';
-        agent.majorVersion = +match[2];
-        agent.minorVersion = +match[3];
-        agent.patchVersion = +match[4];
-        agent.preReleaseVersion = match[6];
+        agent.version = match[2];
       }
     }
     req.userAgent = agent;

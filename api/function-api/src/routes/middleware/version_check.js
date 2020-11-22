@@ -1,4 +1,3 @@
-const semver = require('semver');
 var http_error = require('http-errors');
 
 // Require clients of at least this version in order to access this API endpoint.
@@ -14,13 +13,13 @@ const check_agent_version = () => {
     // If the client is a known agent, use the extracted user agent details to determine the version.
     if (agent && agent.isFusebitClient) {
       const client = agent.isFusebitCli ? 'client' : agent.isFusebitEditor ? 'editor' : undefined;
-      const version = `${agent.majorVersion}.${agent.minorVersion}.${agent.patchVersion}`;
-      if (agent.preReleaseVersion) {
-        version += `.${agent.preReleaseVersion}`;
-      }
-
-      if (!semver.satisfies(version, supportedClientVersion[client])) {
-        return next(http_error(400, `Client version is out of date (required: '${supportedClientVersion[client]}')`));
+      if (!agent.validate(supportedClientVersion[client])) {
+        return next(
+          http_error(
+            400,
+            `Client '${client}/${agent.version}' is out of date (required: '${supportedClientVersion[client]}')`
+          )
+        );
       }
     }
 
