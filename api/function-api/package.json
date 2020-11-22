@@ -42,7 +42,8 @@
     "@5qtrs/function-tags": "^0.0.1",
     "@5qtrs/npm": "^0.0.1",
     "@5qtrs/registry": "^0.0.1",
-    "@5qtrs/runas": "^0.0.1"
+    "@5qtrs/runas": "^0.0.1",
+    "semver": "^7.3.2"
   },
   "devDependencies": {
     "@5qtrs/fusebit-profile-sdk": "^0.0.1",
