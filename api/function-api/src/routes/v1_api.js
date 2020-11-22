@@ -40,7 +40,7 @@ const {
   checkAuthorization,
 } = require('@5qtrs/runas');
 
-const { loadLogging, addLogging } = require('@5qtrs/runtime-common');
+const { addLogging } = require('@5qtrs/runtime-common');
 
 const { StorageActions } = require('@5qtrs/storage');
 const storage = require('./handlers/storage');
@@ -1088,7 +1088,6 @@ router.options(run_route, cors(corsExecutionOptions));
     loadSubscription(subscriptionCache),
     loadSummary(),
     checkAuthorization(authorize),
-    loadLogging(),
     execAs(keyStore),
     addLogging(keyStore),
     (req, res, next) => provider_handlers[req.provider].execute_function(req, res, next),
@@ -1107,7 +1106,6 @@ router.options(run_route, cors(corsExecutionOptions));
     loadSubscription(subscriptionCache),
     loadSummary(),
     checkAuthorization(authorize),
-    loadLogging(),
     execAs(keyStore),
     addLogging(keyStore),
     (req, res, next) => provider_handlers[req.provider].execute_function(req, res, next),

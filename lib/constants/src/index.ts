@@ -199,10 +199,7 @@ function makeFunctionSub(params: any, mode: string) {
   );
 }
 
-const getFunctionPermissions = (summary: any, orCreate: boolean = false): any => {
-  if (!summary[get_compute_tag_key('permissions')] && orCreate) {
-    summary[get_compute_tag_key('permissions')] = { allow: [] };
-  }
+const getFunctionPermissions = (summary: any): any => {
   return summary[get_compute_tag_key('permissions')];
 };
 
