@@ -66,7 +66,7 @@ export async function executor(event: any, context: any) {
       }
 
       await executeFunction(ctx);
-      result.success.push({ key: ctx.key, logs: ctx.logs ? 'enabled' : 'disabled' });
+      result.success.push({ key: ctx.key, logs: ctx.logs.token ? 'enabled' : 'disabled' });
     } catch (e) {
       result.failure.push({ key: ctx.key, error: `${e}` });
     }
@@ -151,7 +151,7 @@ async function addSecurityTokens(ctx: any) {
   // Add the realtime logging configuration to the ctx
   ctx.logs = await Common.createLoggingCtx(
     keyStore,
-    ctx.params,
+    ctx,
     'https',
     Constants.API_PUBLIC_ENDPOINT.replace(/http[s]?:\/\//i, '')
   );
