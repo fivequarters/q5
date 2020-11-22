@@ -3329,7 +3329,7 @@ components:
             when `authentication` is `none` or undefined, and all callers will be allowed.
 
             If the caller is authenticated, you can use this property to only allow callers with specific 
-            permissions to invoke this function. You can also leave it blank, which will allow all authenticated
+            permissions to invoke this function. You can also leave it undefined, which will allow all authenticated
             callers to invoke the function, without checking what permissions they have. 
             
             The following example will only allow callers who have `function:execute` permission to the given subscription:
@@ -3354,8 +3354,9 @@ components:
 
             If the value is `optional`, then the caller may supply a Fusebit JWT. If a token is not present
             or not valid, the function executes as an unauthenticated user. If the token is present and valid,
-            an authorization check will be performed as described above. This authentication option allows you to use 
-            Fusebit authorization for certain paths in your function, while implementing your own authorization for other paths. 
+            an authorization check will be performed as described in the `required` property description. This 
+            authentication option allows you to use Fusebit authorization for certain paths in your function, 
+            while implementing your own authorization for other paths. 
           schema:
             type: string
             enum:
