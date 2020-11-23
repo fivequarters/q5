@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.18.4
+
+_Released 11/25/20_
+
+- **Bugfix.** Separate the logging credential from the `functionPermissions` credentials to avoid accidental credential leak.
+
 ## Version 1.18.3
 
 _Released 11/23/20_

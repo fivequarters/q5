@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.24.12
+
+_Released 11/24/20_
+
+- **Bugfix.** Separate logging credentials from `functionPermission` credentials to eliminate credential leak.
+
 ## Version 1.24.11
 
 _Released 11/20/20_
