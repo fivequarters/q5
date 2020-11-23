@@ -1,9 +1,17 @@
-var http_error = require('http-errors');
+const http_error = require('http-errors');
 
 // Require clients of at least this version in order to access this API endpoint.
 const supportedClientVersion = {
-  client: '^1.8.10',
-  editor: '^1.4.4',
+  client: {
+    v: '^1.8.10',
+    m: (agent) =>
+      `Your @fusebit/cli version ${agent.version} is out of date (required: ${supportedClientVersion.client.v}). Please run 'npm install -g @fusebit/cli' to update.`,
+  },
+  editor: {
+    v: '^1.4.4',
+    m: (agent) =>
+      `Your editor version ${agent.version} is out of date (required: ${supportedClientVersion.editor.v}). Please notify your administrator.`,
+  },
 };
 
 const check_agent_version = () => {
@@ -13,16 +21,10 @@ const check_agent_version = () => {
     // If the client is a known agent, use the extracted user agent details to determine the version.
     if (agent && agent.isFusebitClient) {
       const client = agent.isFusebitCli ? 'client' : agent.isFusebitEditor ? 'editor' : undefined;
-      if (!agent.validate(supportedClientVersion[client])) {
-        return next(
-          http_error(
-            400,
-            `Client '${client}/${agent.version}' is out of date (required: '${supportedClientVersion[client]}')`
-          )
-        );
+      if (!agent.validate(supportedClientVersion[client].v)) {
+        return next(http_error(400, supportedClientVersion[client].m(agent)));
       }
     }
-
     return next();
   };
 };
