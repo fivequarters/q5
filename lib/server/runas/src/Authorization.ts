@@ -13,7 +13,7 @@ export const checkAuthorization = (authorize: AuthorizationFactory) => {
     const authorization = Constants.getFunctionAuthorization(req.functionSummary);
     const callerJwt = req.headers.authorization;
 
-    if (authentication === 'none' || (authentication === 'optional' && !callerJwt)) {
+    if (!authentication || authentication === 'none' || (authentication === 'optional' && !callerJwt)) {
       return next();
     }
 
