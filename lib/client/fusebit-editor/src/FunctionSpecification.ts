@@ -29,6 +29,26 @@ export enum IFunctionAuthentication {
 }
 
 /**
+ * Specification of the security block for a function.
+ */
+export interface IFunctionSecurity {
+  /*
+   * Permissions that the function will execute under.
+   */
+  functionPermissions?: { allow: [{ action: string; resource: string }] };
+
+  /*
+   * Required authorization by the caller to execute the function.
+   */
+  authorization?: [{ action: string; resource: string }];
+
+  /*
+   * Required authorization by the caller to execute the function.
+   */
+  authentication?: IFunctionAuthentication;
+}
+
+/**
  * Specification of a single function. Used when creating a [[EditorContext]].
  *
  * Example of a simple function specification:
@@ -74,18 +94,8 @@ export interface IFunctionSpecification {
    */
   scheduleSerialized?: string;
 
-  /*
-   * Permissions that the function will execute under.
+  /**
+   * Function security specification, including access control and permission granting capabilities.
    */
-  functionPermissions?: { allow: [{ action: string; resource: string }] };
-
-  /*
-   * Required authorization by the caller to execute the function.
-   */
-  authorization?: [{ action: string; resource: string }];
-
-  /*
-   * Required authorization by the caller to execute the function.
-   */
-  authentication?: IFunctionAuthentication;
+  security?: IFunctionSecurity;
 }

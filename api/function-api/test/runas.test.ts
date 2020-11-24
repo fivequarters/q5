@@ -18,7 +18,9 @@ const { getAccount, getBoundary } = setupEnvironment();
 const function1Id = 'test-fun-runas-1';
 
 const specFuncReturnCtx = {
-  functionPermissions: AuthZ.permFunctionWild,
+  security: {
+    functionPermissions: AuthZ.permFunctionWild,
+  },
   nodejs: {
     files: {
       'index.js': 'module.exports = async (ctx) => { return { body: ctx.fusebit }; };',
@@ -31,7 +33,7 @@ describe('runas', () => {
     account = getAccount();
     const boundaryId = getBoundary();
     const specNoPerm = Constants.duplicate({}, specFuncReturnCtx);
-    delete specNoPerm.functionPermissions;
+    delete specNoPerm.security.functionPermissions;
     const create = await putFunction(account, boundaryId, function1Id, specNoPerm);
     expect(create.status).toEqual(200);
     let url: string;
@@ -67,7 +69,7 @@ describe('runas', () => {
 
     // Make sure the permissions are correctly encoded in the JWT.
     let decoded = decodeJwt(token);
-    expect(decoded[Constants.JWT_PERMISSION_CLAIM]).toMatchObject(specFuncReturnCtx.functionPermissions);
+    expect(decoded[Constants.JWT_PERMISSION_CLAIM]).toMatchObject(specFuncReturnCtx.security.functionPermissions);
 
     // Save the current token
     const oldToken = account.accessToken;
@@ -80,7 +82,7 @@ describe('runas', () => {
 
     // Update the permissions
     const specGet = Constants.duplicate({}, specFuncReturnCtx);
-    specGet.functionPermissions = AuthZ.permFunctionGet;
+    specGet.security.functionPermissions = AuthZ.permFunctionGet;
     response = await putFunction(account, boundaryId, function1Id, specGet);
     httpExpect(response, { statusCode: 200 });
 
@@ -91,7 +93,7 @@ describe('runas', () => {
 
     // Did the permissions update?
     decoded = decodeJwt(token);
-    expect(decoded[Constants.JWT_PERMISSION_CLAIM]).toMatchObject(specGet.functionPermissions);
+    expect(decoded[Constants.JWT_PERMISSION_CLAIM]).toMatchObject(specGet.security.functionPermissions);
 
     // Can the function still be gotten?
     account.accessToken = token;
@@ -111,7 +113,7 @@ describe('runas', () => {
     const oldToken = account.accessToken;
 
     const spec = Constants.duplicate({}, specFuncReturnCtx);
-    spec.functionPermissions = AuthZ.permFunctionPutLimited(Permissions.putFunction, account, boundaryId);
+    spec.security.functionPermissions = AuthZ.permFunctionPutLimited(Permissions.putFunction, account, boundaryId);
     let response = await putFunction(account, boundaryId, function1Id, spec);
     httpExpect(response, { statusCode: 200 });
 
@@ -121,7 +123,7 @@ describe('runas', () => {
     expect(response.data.functionAccessToken).not.toBeUndefined();
     const limitedToken = response.data.functionAccessToken;
 
-    spec.functionPermissions = undefined;
+    spec.security.functionPermissions = undefined;
     account.accessToken = limitedToken;
 
     // Create a function in the boundary, succeed
@@ -129,17 +131,17 @@ describe('runas', () => {
     httpExpect(response, { statusCode: 200 });
 
     // Create a function with different permissions, fail
-    spec.functionPermissions = AuthZ.permFunctionGet;
+    spec.security.functionPermissions = AuthZ.permFunctionGet;
     response = await putFunction(account, boundaryId, function1Id + '3', spec);
     httpExpect(response, { statusCode: 403 });
 
     // Create a function with too many permissions, fail
-    spec.functionPermissions = AuthZ.permFunctionPutLimited(Permissions.allFunction, account, boundaryId);
+    spec.security.functionPermissions = AuthZ.permFunctionPutLimited(Permissions.allFunction, account, boundaryId);
     response = await putFunction(account, boundaryId, function1Id + '4', spec);
     httpExpect(response, { statusCode: 403 });
 
     // Create a function with higher path permissions, fail
-    spec.functionPermissions = AuthZ.permFunctionPutLimitedHigher(Permissions.putFunction, account);
+    spec.security.functionPermissions = AuthZ.permFunctionPutLimitedHigher(Permissions.putFunction, account);
     response = await putFunction(account, boundaryId, function1Id + '5', spec);
     httpExpect(response, { statusCode: 403 });
 
@@ -156,7 +158,7 @@ describe('runas', () => {
     const oldToken = account.accessToken;
 
     const spec = Constants.duplicate({}, specFuncReturnCtx);
-    spec.functionPermissions = AuthZ.permFunctionPutLimited(Permissions.allFunction, account, boundaryId);
+    spec.security.functionPermissions = AuthZ.permFunctionPutLimited(Permissions.allFunction, account, boundaryId);
     let response = await putFunction(account, boundaryId, function1Id, spec);
     httpExpect(response, { statusCode: 200 });
 
@@ -166,11 +168,11 @@ describe('runas', () => {
     expect(response.data.functionAccessToken).not.toBeUndefined();
     const limitedToken = response.data.functionAccessToken;
 
-    spec.functionPermissions = AuthZ.permFunctionPut;
+    spec.security.functionPermissions = AuthZ.permFunctionPut;
     account.accessToken = limitedToken;
 
     // Create a function with fewer permissions, succeed
-    spec.functionPermissions = AuthZ.permFunctionPutLimited(Permissions.getFunction, account, boundaryId);
+    spec.security.functionPermissions = AuthZ.permFunctionPutLimited(Permissions.getFunction, account, boundaryId);
     response = await putFunction(account, boundaryId, function1Id + '2', spec);
     httpExpect(response, { statusCode: 200 });
     account.accessToken = oldToken;
@@ -190,12 +192,12 @@ describe('runas', () => {
 
     // Try to create a function with a superset of permissions
     const spec = Constants.duplicate({}, specFuncReturnCtx);
-    spec.functionPermissions = AuthZ.permFunctionWild;
+    spec.security.functionPermissions = AuthZ.permFunctionWild;
     let response = await putFunction(account, boundaryId, function1Id, spec);
     httpExpect(response, { statusCode: 403 });
 
     // Try to create a function with no permissions
-    spec.functionPermissions = undefined;
+    spec.security.functionPermissions = undefined;
     response = await putFunction(account, boundaryId, function1Id, spec);
     httpExpect(response, { statusCode: 200 });
 

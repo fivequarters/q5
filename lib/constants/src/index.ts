@@ -184,6 +184,8 @@ const get_dependency_tag_key = (key: string) => `dependency.${key}`;
 const get_versions_tag_key = (key: string) => `environment.${key}`;
 const get_metadata_tag_key = (key: string) => `tag.${key}`;
 const get_template_tag_key = (key: string) => `template.${key}`;
+const get_fusebit_tag_key = (key: string) => `fusebit.${key}`;
+const get_security_tag_key = (key: string) => `security.${key}`;
 
 function isSystemIssuer(issuerId: string) {
   return issuerId.match(`${RUNAS_SYSTEM_ISSUER_SUFFIX}$`);
@@ -200,15 +202,15 @@ function makeFunctionSub(params: any, mode: string) {
 }
 
 const getFunctionPermissions = (summary: any): any => {
-  return summary[get_compute_tag_key('permissions')];
+  return summary[get_security_tag_key('permissions')];
 };
 
 const getFunctionAuthorization = (summary: any): any => {
-  return summary[get_compute_tag_key('authorization')];
+  return summary[get_security_tag_key('authorization')];
 };
 
 const getFunctionAuthentication = (summary: any): any => {
-  return summary[get_compute_tag_key('authentication')];
+  return summary[get_security_tag_key('authentication')];
 };
 
 export {
@@ -245,6 +247,8 @@ export {
   get_versions_tag_key,
   get_metadata_tag_key,
   get_template_tag_key,
+  get_fusebit_tag_key,
+  get_security_tag_key,
   Permissions,
   RestrictedPermissions,
   UserPermissions,

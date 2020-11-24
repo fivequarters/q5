@@ -71,6 +71,7 @@ describe('Tags', () => {
       [Constants.get_metadata_tag_key('master_owner')]: funcSpecs[0].metadata.tags.master_owner,
       [Constants.get_metadata_tag_key('level')]: funcSpecs[0].metadata.tags.level,
       [Constants.get_metadata_tag_key('flies')]: funcSpecs[0].metadata.tags.flies,
+      [Constants.get_security_tag_key('authentication')]: 'none',
       ['cron']: false,
     };
 

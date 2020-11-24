@@ -17,6 +17,7 @@ const function1Id = 'test-fun-authz-1';
 
 const specFuncReturnCtx = {
   nodejs: { files: { 'index.js': 'module.exports = async (ctx) => { return { body: ctx }; };' } },
+  security: {},
 };
 
 const createFunction = async (
@@ -26,8 +27,8 @@ const createFunction = async (
   authorization: any[] | undefined
 ) => {
   const spec = Constants.duplicate({}, specFuncReturnCtx);
-  spec.authentication = authentication;
-  spec.authorization = authorization;
+  spec.security.authentication = authentication;
+  spec.security.authorization = authorization;
   const response = await putFunction(account, boundaryId, function1Id, spec);
   httpExpect(response, { statusCode: 200 });
   return response;
@@ -57,8 +58,8 @@ describe('function authorization', () => {
     const boundaryId = getBoundary();
 
     const spec = Constants.duplicate({}, specFuncReturnCtx);
-    spec.authentication = 'none';
-    spec.authorization = [AuthZ.reqFunctionExe];
+    spec.security.authentication = 'none';
+    spec.security.authorization = [AuthZ.reqFunctionExe];
 
     const response = await putFunction(account, boundaryId, function1Id, spec);
     httpExpect(response, { statusCode: 400 });
@@ -69,7 +70,7 @@ describe('function authorization', () => {
     const boundaryId = getBoundary();
 
     const spec = Constants.duplicate({}, specFuncReturnCtx);
-    spec.authorization = [AuthZ.reqFunctionExe];
+    spec.security.authorization = [AuthZ.reqFunctionExe];
 
     const response = await putFunction(account, boundaryId, function1Id, spec);
     httpExpect(response, { statusCode: 400 });
@@ -80,8 +81,8 @@ describe('function authorization', () => {
     const boundaryId = getBoundary();
 
     const spec = Constants.duplicate({}, specFuncReturnCtx);
-    spec.authentication = 'required';
-    spec.authorization = [];
+    spec.security.authentication = 'required';
+    spec.security.authorization = [];
 
     const response = await putFunction(account, boundaryId, function1Id, spec);
     httpExpect(response, { statusCode: 400 });
@@ -92,8 +93,8 @@ describe('function authorization', () => {
     const boundaryId = getBoundary();
 
     const spec = Constants.duplicate({}, specFuncReturnCtx);
-    spec.authentication = 'required';
-    spec.authorization = [];
+    spec.security.authentication = 'required';
+    spec.security.authorization = [];
 
     const response = await putFunction(account, boundaryId, function1Id, spec);
     httpExpect(response, { statusCode: 400 });

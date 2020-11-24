@@ -17,7 +17,7 @@ const { getAccount, getBoundary } = setupEnvironment();
 const function1Id = 'test-fun-exec-1';
 
 const specFuncReturnCtx = {
-  authentication: 'required',
+  security: { authentication: 'required' },
   nodejs: {
     files: {
       'index.js': 'module.exports = async (ctx) => { return { body: ctx.fusebit }; };',
@@ -43,8 +43,8 @@ describe('function.exec', () => {
     // Test: Create a function with an exec requirement using a PUT-enabled credential
     account.accessToken = putAccessToken;
     let spec = Constants.duplicate({}, specFuncReturnCtx);
-    spec.functionPermissions = AuthZ.permFunctionPut;
-    spec.authorization = [AuthZ.reqFunctionExe];
+    spec.security.functionPermissions = AuthZ.permFunctionPut;
+    spec.security.authorization = [AuthZ.reqFunctionExe];
     let response = await putFunction(account, boundaryId, function1Id, spec);
     httpExpect(response, { statusCode: 200 });
 
@@ -65,7 +65,7 @@ describe('function.exec', () => {
     // Test: Create a function with an exe+get requirement
     account.accessToken = putAccessToken;
     spec = Constants.duplicate({}, specFuncReturnCtx);
-    spec.authorization = [AuthZ.reqFunctionGet, AuthZ.reqFunctionExe];
+    spec.security.authorization = [AuthZ.reqFunctionGet, AuthZ.reqFunctionExe];
     response = await putFunction(account, boundaryId, function1Id, spec);
     httpExpect(response, { statusCode: 200 });
 
