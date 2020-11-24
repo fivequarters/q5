@@ -90,9 +90,11 @@ describe('cron', () => {
         schedule: {
           cron: '* * * * *', // run every minute
         },
-        functionPermissions: {
-          allow: [{ action: 'function:*', resource: function2Resource }],
-        },
+        security: {
+          functionPermissions: {
+            allow: [{ action: 'function:*', resource: function2Resource }],
+          },
+        }
       });
 
       expect([200, 201]).toContain(response.status);

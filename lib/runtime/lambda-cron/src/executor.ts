@@ -66,7 +66,7 @@ export async function executor(event: any, context: any) {
       }
 
       await executeFunction(ctx);
-      result.success.push({ key: ctx.key, logs: ctx.logs.token ? 'enabled' : 'disabled' });
+      result.success.push({ key: ctx.key, logs: ctx.logs ? 'enabled' : 'disabled' });
     } catch (e) {
       result.failure.push({ key: ctx.key, error: `${e}` });
     }
