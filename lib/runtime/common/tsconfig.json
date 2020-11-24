@@ -2,5 +2,10 @@
   "extends": "../../../tsconfig.json",
   "compilerOptions": { "rootDir": "src", "module": "CommonJS", "outDir": "libc", "allowJs": true },
   "include": ["src"],
-  "references": [{ "path": "../../server/bq-metering" }, { "path": "../../constants" }, { "path": "../../node/jwt" }]
+  "references": [
+    { "path": "../../server/bq-metering" },
+    { "path": "../../constants" },
+    { "path": "../../node/jwt" },
+    { "path": "../../server/runas" }
+  ]
 }

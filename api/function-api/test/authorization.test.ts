@@ -71,7 +71,7 @@ describe('Authorization', () => {
   test('A user without access should not be authorized to do anything', async () => {
     const subject = `sub-${random({ lengthInBytes: 8 })}`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
     });
     const jwt = await testIssuer.getAccessToken(subject);
     const userAccount = cloneWithAccessToken(account, jwt);
@@ -116,7 +116,7 @@ describe('Authorization', () => {
   test('A client without access should not be authorized to do anything', async () => {
     const subject = `sub-${random({ lengthInBytes: 8 })}`;
     await addClient(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
     });
     const jwt = await testIssuer.getAccessToken(subject);
     const clientAccount = cloneWithAccessToken(account, jwt);
@@ -169,7 +169,7 @@ describe('Authorization', () => {
     ].join('');
 
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -229,7 +229,7 @@ describe('Authorization', () => {
     ].join('');
 
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -291,7 +291,7 @@ describe('Authorization', () => {
     const resource = `/account/${account.accountId}/subscription/${account.subscriptionId}`;
 
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -360,7 +360,7 @@ describe('Authorization', () => {
     ].join('');
 
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -418,7 +418,7 @@ describe('Authorization', () => {
     ].join('');
 
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -473,7 +473,7 @@ describe('Authorization', () => {
     const resource = `/account/${account.accountId}/subscription/${account.subscriptionId}`;
 
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -543,7 +543,7 @@ describe('Authorization', () => {
     ].join('');
 
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -599,7 +599,7 @@ describe('Authorization', () => {
     ].join('');
 
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -653,14 +653,14 @@ describe('Authorization', () => {
     const resource = `/account/${account.accountId}/subscription/${account.subscriptionId}`;
 
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
     const userAccount = cloneWithAccessToken(account, jwt);
 
-    let boundaryId = `test-boundary-${random({ lengthInBytes: 8 })}`;
-    let functionId = `test-function-${random({ lengthInBytes: 8 })}`;
+    const boundaryId = `test-boundary-${random({ lengthInBytes: 8 })}`;
+    const functionId = `test-function-${random({ lengthInBytes: 8 })}`;
     const allowedResult = await deleteFunction(userAccount, boundaryId, functionId);
     expectMore(allowedResult).toBeNotFoundError();
 
@@ -710,7 +710,7 @@ describe('Authorization', () => {
     ].join('');
 
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -767,7 +767,7 @@ describe('Authorization', () => {
     ].join('');
 
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -822,14 +822,14 @@ describe('Authorization', () => {
     const resource = `/account/${account.accountId}/subscription/${account.subscriptionId}`;
 
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
     const userAccount = cloneWithAccessToken(account, jwt);
 
-    let boundaryId = `test-boundary-${random({ lengthInBytes: 8 })}`;
-    let functionId = `test-function-${random({ lengthInBytes: 8 })}`;
+    const boundaryId = `test-boundary-${random({ lengthInBytes: 8 })}`;
+    const functionId = `test-function-${random({ lengthInBytes: 8 })}`;
     const allowedLogs = await getLogs(userAccount, boundaryId, functionId, true);
     expect(allowedLogs.status).toBe(200);
 
@@ -881,7 +881,7 @@ describe('Authorization', () => {
     ].join('');
 
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -949,7 +949,7 @@ describe('Authorization', () => {
     ].join('');
 
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -1016,14 +1016,14 @@ describe('Authorization', () => {
     const resource = `/account/${account.accountId}/subscription/${account.subscriptionId}`;
 
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
     const userAccount = cloneWithAccessToken(account, jwt);
 
-    let boundaryId = `test-boundary-${random({ lengthInBytes: 8 })}`;
-    let functionId = `test-function-${random({ lengthInBytes: 8 })}`;
+    const boundaryId = `test-boundary-${random({ lengthInBytes: 8 })}`;
+    const functionId = `test-function-${random({ lengthInBytes: 8 })}`;
 
     const allowedPut = await putFunction(userAccount, boundaryId, functionId, helloFunction);
     expect(allowedPut.status).toBe(200);
@@ -1075,7 +1075,7 @@ describe('Authorization', () => {
     const action = 'issuer:add';
     const resource = `/account/${account.accountId}/issuer/${issuerId}`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -1128,7 +1128,7 @@ describe('Authorization', () => {
     const action = 'issuer:add';
     const resource = `/account/${account.accountId}`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -1180,7 +1180,7 @@ describe('Authorization', () => {
     const action = 'issuer:get';
     const resource = `/account/${account.accountId}/issuer/${issuerId}`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -1232,7 +1232,7 @@ describe('Authorization', () => {
     const action = 'issuer:get';
     const resource = `/account/${account.accountId}`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -1288,7 +1288,7 @@ describe('Authorization', () => {
     const action = 'issuer:update';
     const resource = `/account/${account.accountId}/issuer/${issuerId}`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -1340,7 +1340,7 @@ describe('Authorization', () => {
     const action = 'issuer:update';
     const resource = `/account/${account.accountId}`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -1391,7 +1391,7 @@ describe('Authorization', () => {
     const action = 'issuer:delete';
     const resource = `/account/${account.accountId}/issuer/${issuerId}`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -1444,7 +1444,7 @@ describe('Authorization', () => {
     const action = 'issuer:delete';
     const resource = `/account/${account.accountId}`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -1495,7 +1495,7 @@ describe('Authorization', () => {
     const action = 'issuer:*';
     const resource = `/account/${account.accountId}/issuer/${issuerId}`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -1556,7 +1556,7 @@ describe('Authorization', () => {
     const action = 'issuer:*';
     const resource = `/account/${account.accountId}`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -1614,7 +1614,7 @@ describe('Authorization', () => {
     const action = 'user:add';
     const resource = `/account/${account.accountId}/user`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -1677,7 +1677,7 @@ describe('Authorization', () => {
     };
 
     const user = await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }, additionalAccess] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -1722,7 +1722,7 @@ describe('Authorization', () => {
     const action = 'user:get';
     const resource = `/account/${account.accountId}/user/${userId}`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -1750,11 +1750,11 @@ describe('Authorization', () => {
       removeUser(userAccount, userId),
       initUser(userAccount, userId),
       addClient(userAccount, {}),
-      getClient(userAccount, userId),
+      getClient(userAccount, 'clt-1234567890123456'),
       listClients(userAccount, {}),
-      updateClient(userAccount, userId, {}),
-      removeClient(userAccount, userId),
-      initClient(userAccount, userId),
+      updateClient(userAccount, 'clt-1234567890123456', {}),
+      removeClient(userAccount, 'clt-1234567890123456'),
+      initClient(userAccount, 'clt-1234567890123456'),
       listAudit(userAccount),
       getStorage(userAccount, 'some-id'),
       setStorage(userAccount, 'some-id', { data: 'hello' }),
@@ -1777,7 +1777,7 @@ describe('Authorization', () => {
     const action = 'user:get';
     const resource = `/account/${account.accountId}/user`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -1809,11 +1809,11 @@ describe('Authorization', () => {
       removeUser(userAccount, userId),
       initUser(userAccount, userId),
       addClient(userAccount, {}),
-      getClient(userAccount, userId),
+      getClient(userAccount, 'clt-1234567890123456'),
       listClients(userAccount, {}),
-      updateClient(userAccount, userId, {}),
-      removeClient(userAccount, userId),
-      initClient(userAccount, userId),
+      updateClient(userAccount, 'clt-1234567890123456', {}),
+      removeClient(userAccount, 'clt-1234567890123456'),
+      initClient(userAccount, 'clt-1234567890123456'),
       listAudit(userAccount),
       getStorage(userAccount, 'some-id'),
       setStorage(userAccount, 'some-id', { data: 'hello' }),
@@ -1836,7 +1836,7 @@ describe('Authorization', () => {
     const action = 'user:update';
     const resource = `/account/${account.accountId}/user/${userId}`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -1865,11 +1865,11 @@ describe('Authorization', () => {
       updateUser(userAccount, 'usr-1234567890123456', {}),
       initUser(userAccount, userId),
       addClient(userAccount, {}),
-      getClient(userAccount, userId),
+      getClient(userAccount, 'clt-1234567890123456'),
       listClients(userAccount, {}),
-      updateClient(userAccount, userId, {}),
-      removeClient(userAccount, userId),
-      initClient(userAccount, userId),
+      updateClient(userAccount, 'clt-1234567890123456', {}),
+      removeClient(userAccount, 'clt-1234567890123456'),
+      initClient(userAccount, 'clt-1234567890123456'),
       listAudit(userAccount),
       getStorage(userAccount, 'some-id'),
       setStorage(userAccount, 'some-id', { data: 'hello' }),
@@ -1892,7 +1892,7 @@ describe('Authorization', () => {
     const action = 'user:update';
     const resource = `/account/${account.accountId}/user`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -1920,11 +1920,11 @@ describe('Authorization', () => {
       removeUser(userAccount, userId),
       initUser(userAccount, userId),
       addClient(userAccount, {}),
-      getClient(userAccount, userId),
+      getClient(userAccount, 'clt-1234567890123456'),
       listClients(userAccount, {}),
-      updateClient(userAccount, userId, {}),
-      removeClient(userAccount, userId),
-      initClient(userAccount, userId),
+      updateClient(userAccount, 'clt-1234567890123456', {}),
+      removeClient(userAccount, 'clt-1234567890123456'),
+      initClient(userAccount, 'clt-1234567890123456'),
       listAudit(userAccount),
       getStorage(userAccount, 'some-id'),
       setStorage(userAccount, 'some-id', { data: 'hello' }),
@@ -1954,7 +1954,7 @@ describe('Authorization', () => {
     };
 
     const user = await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }, additionalAccess] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -2002,7 +2002,7 @@ describe('Authorization', () => {
     const action = 'user:delete';
     const resource = `/account/${account.accountId}/user/${userId}`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -2028,15 +2028,15 @@ describe('Authorization', () => {
       getUser(userAccount, userId),
       updateUser(userAccount, userId, {}),
       listUsers(userAccount),
-      removeUser(userAccount, 'another-user'),
+      removeUser(userAccount, 'usr-1234567890123456'),
       updateUser(userAccount, 'usr-1234567890123456', {}),
       initUser(userAccount, userId),
       addClient(userAccount, {}),
-      getClient(userAccount, userId),
+      getClient(userAccount, 'clt-1234567890123456'),
       listClients(userAccount, {}),
-      updateClient(userAccount, userId, {}),
-      removeClient(userAccount, userId),
-      initClient(userAccount, userId),
+      updateClient(userAccount, 'clt-1234567890123456', {}),
+      removeClient(userAccount, 'clt-1234567890123456'),
+      initClient(userAccount, 'clt-1234567890123456'),
       listAudit(userAccount),
       getStorage(userAccount, 'some-id'),
       setStorage(userAccount, 'some-id', { data: 'hello' }),
@@ -2059,7 +2059,7 @@ describe('Authorization', () => {
     const action = 'user:delete';
     const resource = `/account/${account.accountId}/user`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -2087,11 +2087,11 @@ describe('Authorization', () => {
       listUsers(userAccount),
       initUser(userAccount, userId),
       addClient(userAccount, {}),
-      getClient(userAccount, userId),
+      getClient(userAccount, 'clt-1234567890123456'),
       listClients(userAccount, {}),
-      updateClient(userAccount, userId, {}),
-      removeClient(userAccount, userId),
-      initClient(userAccount, userId),
+      updateClient(userAccount, 'clt-1234567890123456', {}),
+      removeClient(userAccount, 'clt-1234567890123456'),
+      initClient(userAccount, 'clt-1234567890123456'),
       listAudit(userAccount),
       getStorage(userAccount, 'some-id'),
       setStorage(userAccount, 'some-id', { data: 'hello' }),
@@ -2114,7 +2114,7 @@ describe('Authorization', () => {
     const action = 'user:init';
     const resource = `/account/${account.accountId}/user/${userId}`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -2143,13 +2143,13 @@ describe('Authorization', () => {
       removeUser(userAccount, userId),
       updateUser(userAccount, 'usr-1234567890123456', {}),
       removeUser(userAccount, userId),
-      initUser(userAccount, 'another-user'),
+      initUser(userAccount, 'usr-1234567890123456'),
       addClient(userAccount, {}),
-      getClient(userAccount, userId),
+      getClient(userAccount, 'clt-1234567890123456'),
       listClients(userAccount, {}),
-      updateClient(userAccount, userId, {}),
-      removeClient(userAccount, userId),
-      initClient(userAccount, userId),
+      updateClient(userAccount, 'clt-1234567890123456', {}),
+      removeClient(userAccount, 'clt-1234567890123456'),
+      initClient(userAccount, 'clt-1234567890123456'),
       listAudit(userAccount),
       getStorage(userAccount, 'some-id'),
       setStorage(userAccount, 'some-id', { data: 'hello' }),
@@ -2172,7 +2172,7 @@ describe('Authorization', () => {
     const action = 'user:init';
     const resource = `/account/${account.accountId}/user`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -2199,11 +2199,11 @@ describe('Authorization', () => {
       updateUser(userAccount, userId, {}),
       listUsers(userAccount),
       addClient(userAccount, {}),
-      getClient(userAccount, userId),
+      getClient(userAccount, 'clt-1234567890123456'),
       listClients(userAccount, {}),
-      updateClient(userAccount, userId, {}),
-      removeClient(userAccount, userId),
-      initClient(userAccount, userId),
+      updateClient(userAccount, 'clt-1234567890123456', {}),
+      removeClient(userAccount, 'clt-1234567890123456'),
+      initClient(userAccount, 'clt-1234567890123456'),
       listAudit(userAccount),
       getStorage(userAccount, 'some-id'),
       setStorage(userAccount, 'some-id', { data: 'hello' }),
@@ -2226,7 +2226,7 @@ describe('Authorization', () => {
     const action = 'user:*';
     const resource = `/account/${account.accountId}/user/${userId}`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -2260,11 +2260,11 @@ describe('Authorization', () => {
       addUser(userAccount, {}),
       listUsers(userAccount),
       addClient(userAccount, {}),
-      getClient(userAccount, userId),
+      getClient(userAccount, 'clt-1234567890123456'),
       listClients(userAccount, {}),
-      updateClient(userAccount, userId, {}),
-      removeClient(userAccount, userId),
-      initClient(userAccount, userId),
+      updateClient(userAccount, 'clt-1234567890123456', {}),
+      removeClient(userAccount, 'clt-1234567890123456'),
+      initClient(userAccount, 'clt-1234567890123456'),
       listAudit(userAccount),
       getStorage(userAccount, 'some-id'),
       setStorage(userAccount, 'some-id', { data: 'hello' }),
@@ -2282,7 +2282,7 @@ describe('Authorization', () => {
     const action = 'user:*';
     const resource = `/account/${account.accountId}/user`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -2321,11 +2321,11 @@ describe('Authorization', () => {
       updateIssuer(userAccount, 'issuerId', {}),
       removeIssuer(userAccount, 'issuerId'),
       addClient(userAccount, {}),
-      getClient(userAccount, userId),
+      getClient(userAccount, 'clt-1234567890123456'),
       listClients(userAccount, {}),
-      updateClient(userAccount, userId, {}),
-      removeClient(userAccount, userId),
-      initClient(userAccount, userId),
+      updateClient(userAccount, 'clt-1234567890123456', {}),
+      removeClient(userAccount, 'clt-1234567890123456'),
+      initClient(userAccount, 'clt-1234567890123456'),
       listAudit(userAccount),
       getStorage(userAccount, 'some-id'),
       setStorage(userAccount, 'some-id', { data: 'hello' }),
@@ -2343,7 +2343,7 @@ describe('Authorization', () => {
     const action = 'client:add';
     const resource = `/account/${account.accountId}/client`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -2406,7 +2406,7 @@ describe('Authorization', () => {
     };
 
     const user = await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }, additionalAccess] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -2451,7 +2451,7 @@ describe('Authorization', () => {
     const action = 'client:get';
     const resource = `/account/${account.accountId}/client/${clientId}`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -2473,11 +2473,11 @@ describe('Authorization', () => {
       getIssuer(userAccount, 'issuerId'),
       updateIssuer(userAccount, 'issuerId', {}),
       removeIssuer(userAccount, 'issuerId'),
-      getUser(userAccount, clientId),
+      getUser(userAccount, 'usr-1234567890123456'),
       listUsers(userAccount, {}),
-      updateUser(userAccount, clientId, {}),
-      removeUser(userAccount, clientId),
-      initUser(userAccount, clientId),
+      updateUser(userAccount, 'usr-1234567890123456', {}),
+      removeUser(userAccount, 'usr-1234567890123456'),
+      initUser(userAccount, 'usr-1234567890123456'),
       addClient(userAccount, {}),
       getClient(userAccount, 'clt-1234567890123456'),
       listClients(userAccount, {}),
@@ -2506,7 +2506,7 @@ describe('Authorization', () => {
     const action = 'client:get';
     const resource = `/account/${account.accountId}/client`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -2534,11 +2534,11 @@ describe('Authorization', () => {
       getIssuer(userAccount, 'issuerId'),
       updateIssuer(userAccount, 'issuerId', {}),
       removeIssuer(userAccount, 'issuerId'),
-      getUser(userAccount, clientId),
+      getUser(userAccount, 'usr-1234567890123456'),
       listUsers(userAccount, {}),
-      updateUser(userAccount, clientId, {}),
-      removeUser(userAccount, clientId),
-      initUser(userAccount, clientId),
+      updateUser(userAccount, 'usr-1234567890123456', {}),
+      removeUser(userAccount, 'usr-1234567890123456'),
+      initUser(userAccount, 'usr-1234567890123456'),
       addClient(userAccount, {}),
       updateClient(userAccount, clientId, {}),
       removeClient(userAccount, clientId),
@@ -2565,7 +2565,7 @@ describe('Authorization', () => {
     const action = 'client:update';
     const resource = `/account/${account.accountId}/client/${clientId}`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -2588,11 +2588,11 @@ describe('Authorization', () => {
       updateIssuer(userAccount, 'issuerId', {}),
       removeIssuer(userAccount, 'issuerId'),
       addUser(userAccount, {}),
-      getUser(userAccount, clientId),
+      getUser(userAccount, 'usr-1234567890123456'),
       listUsers(userAccount),
-      removeUser(userAccount, clientId),
-      updateUser(userAccount, clientId, {}),
-      initUser(userAccount, clientId),
+      removeUser(userAccount, 'usr-1234567890123456'),
+      updateUser(userAccount, 'usr-1234567890123456', {}),
+      initUser(userAccount, 'usr-1234567890123456'),
       addClient(userAccount, {}),
       getClient(userAccount, clientId),
       listClients(userAccount, {}),
@@ -2621,7 +2621,7 @@ describe('Authorization', () => {
     const action = 'client:update';
     const resource = `/account/${account.accountId}/client`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -2644,11 +2644,11 @@ describe('Authorization', () => {
       updateIssuer(userAccount, 'issuerId', {}),
       removeIssuer(userAccount, 'issuerId'),
       addUser(userAccount, {}),
-      updateUser(userAccount, clientId, {}),
-      getUser(userAccount, clientId),
+      updateUser(userAccount, 'usr-1234567890123456', {}),
+      getUser(userAccount, 'usr-1234567890123456'),
       listUsers(userAccount),
-      removeUser(userAccount, clientId),
-      initUser(userAccount, clientId),
+      removeUser(userAccount, 'usr-1234567890123456'),
+      initUser(userAccount, 'usr-1234567890123456'),
       addClient(userAccount, {}),
       getClient(userAccount, clientId),
       listClients(userAccount, {}),
@@ -2683,7 +2683,7 @@ describe('Authorization', () => {
     };
 
     const user = await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }, additionalAccess] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -2731,7 +2731,7 @@ describe('Authorization', () => {
     const action = 'client:delete';
     const resource = `/account/${account.accountId}/client/${clientId}`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -2764,7 +2764,7 @@ describe('Authorization', () => {
       getClient(userAccount, clientId),
       listClients(userAccount, {}),
       updateClient(userAccount, clientId, {}),
-      removeClient(userAccount, 'another-client'),
+      removeClient(userAccount, 'clt-1234567890123456'),
       initClient(userAccount, clientId),
       listAudit(userAccount),
       getStorage(userAccount, 'some-id'),
@@ -2788,7 +2788,7 @@ describe('Authorization', () => {
     const action = 'client:delete';
     const resource = `/account/${account.accountId}/client`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -2811,11 +2811,11 @@ describe('Authorization', () => {
       updateIssuer(userAccount, 'issuerId', {}),
       removeIssuer(userAccount, 'issuerId'),
       addUser(userAccount, {}),
-      getUser(userAccount, clientId),
-      updateUser(userAccount, clientId, {}),
+      getUser(userAccount, 'usr-1234567890123456'),
+      updateUser(userAccount, 'usr-1234567890123456', {}),
       listUsers(userAccount),
-      removeUser(userAccount, clientId),
-      initUser(userAccount, clientId),
+      removeUser(userAccount, 'usr-1234567890123456'),
+      initUser(userAccount, 'usr-1234567890123456'),
       addClient(userAccount, {}),
       getClient(userAccount, clientId),
       listClients(userAccount, {}),
@@ -2843,7 +2843,7 @@ describe('Authorization', () => {
     const action = 'client:init';
     const resource = `/account/${account.accountId}/client/${clientId}`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -2866,19 +2866,19 @@ describe('Authorization', () => {
       updateIssuer(userAccount, 'issuerId', {}),
       removeIssuer(userAccount, 'issuerId'),
       addUser(userAccount, {}),
-      getUser(userAccount, clientId),
-      updateUser(userAccount, clientId, {}),
+      getUser(userAccount, 'usr-1234567890123456'),
+      updateUser(userAccount, 'usr-1234567890123456', {}),
       listUsers(userAccount),
-      removeUser(userAccount, clientId),
-      updateUser(userAccount, clientId, {}),
-      removeUser(userAccount, clientId),
-      initUser(userAccount, clientId),
+      removeUser(userAccount, 'usr-1234567890123456'),
+      updateUser(userAccount, 'usr-1234567890123456', {}),
+      removeUser(userAccount, 'usr-1234567890123456'),
+      initUser(userAccount, 'usr-1234567890123456'),
       addClient(userAccount, {}),
       getClient(userAccount, clientId),
       listClients(userAccount, {}),
       updateClient(userAccount, clientId, {}),
       removeClient(userAccount, clientId),
-      initClient(userAccount, 'another-user'),
+      initClient(userAccount, 'clt-1234567890123456'),
       listAudit(userAccount),
       getStorage(userAccount, 'some-id'),
       setStorage(userAccount, 'some-id', { data: 'hello' }),
@@ -2901,7 +2901,7 @@ describe('Authorization', () => {
     const action = 'client:init';
     const resource = `/account/${account.accountId}/client`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -2924,11 +2924,11 @@ describe('Authorization', () => {
       updateIssuer(userAccount, 'issuerId', {}),
       removeIssuer(userAccount, 'issuerId'),
       addUser(userAccount, {}),
-      getUser(userAccount, clientId),
-      updateUser(userAccount, clientId, {}),
-      removeUser(userAccount, clientId),
+      getUser(userAccount, 'usr-1234567890123456'),
+      updateUser(userAccount, 'usr-1234567890123456', {}),
+      removeUser(userAccount, 'usr-1234567890123456'),
       listUsers(userAccount),
-      initUser(userAccount, clientId),
+      initUser(userAccount, 'usr-1234567890123456'),
       addClient(userAccount, {}),
       getClient(userAccount, clientId),
       listClients(userAccount, {}),
@@ -2956,7 +2956,7 @@ describe('Authorization', () => {
     const action = 'client:*';
     const resource = `/account/${account.accountId}/client/${clientId}`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -2989,16 +2989,12 @@ describe('Authorization', () => {
       removeIssuer(userAccount, 'issuerId'),
       addUser(userAccount, {}),
       listUsers(userAccount),
-      getUser(userAccount, clientId),
-      updateUser(userAccount, clientId, {}),
-      removeUser(userAccount, clientId),
-      initUser(userAccount, clientId),
+      getUser(userAccount, 'usr-1234567890123456'),
+      updateUser(userAccount, 'usr-1234567890123456', {}),
+      removeUser(userAccount, 'usr-1234567890123456'),
+      initUser(userAccount, 'usr-1234567890123456'),
       addClient(userAccount, {}),
       listClients(userAccount, {}),
-      getUser(userAccount, 'clt-1234567890123456'),
-      updateUser(userAccount, 'clt-1234567890123456', {}),
-      removeUser(userAccount, 'clt-1234567890123456'),
-      initUser(userAccount, 'clt-1234567890123456'),
       listAudit(userAccount),
       getStorage(userAccount, 'some-id'),
       setStorage(userAccount, 'some-id', { data: 'hello' }),
@@ -3016,7 +3012,7 @@ describe('Authorization', () => {
     const action = 'client:*';
     const resource = `/account/${account.accountId}/client`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -3055,11 +3051,11 @@ describe('Authorization', () => {
       updateIssuer(userAccount, 'issuerId', {}),
       removeIssuer(userAccount, 'issuerId'),
       addUser(userAccount, {}),
-      getUser(userAccount, clientId),
+      getUser(userAccount, 'usr-1234567890123456'),
       listUsers(userAccount, {}),
-      updateUser(userAccount, clientId, {}),
-      removeUser(userAccount, clientId),
-      initUser(userAccount, clientId),
+      updateUser(userAccount, 'usr-1234567890123456', {}),
+      removeUser(userAccount, 'usr-1234567890123456'),
+      initUser(userAccount, 'usr-1234567890123456'),
       listAudit(userAccount),
       getStorage(userAccount, 'some-id'),
       setStorage(userAccount, 'some-id', { data: 'hello' }),
@@ -3077,7 +3073,7 @@ describe('Authorization', () => {
     const action = 'storage:*';
     const resource = `/account/${account.accountId}/subscription/${account.subscriptionId}/storage`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -3134,7 +3130,7 @@ describe('Authorization', () => {
     const action = 'storage:get';
     const resource = `/account/${account.accountId}/subscription/${account.subscriptionId}/storage`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -3190,7 +3186,7 @@ describe('Authorization', () => {
     const action = 'storage:put';
     const resource = `/account/${account.accountId}/subscription/${account.subscriptionId}/storage`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -3241,7 +3237,7 @@ describe('Authorization', () => {
     const action = 'storage:delete';
     const resource = `/account/${account.accountId}/subscription/${account.subscriptionId}/storage`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -3296,7 +3292,7 @@ describe('Authorization', () => {
     const storageId = `test-${random()}`;
     const resource = `/account/${account.accountId}/subscription/${account.subscriptionId}/storage/${storageId}`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -3354,7 +3350,7 @@ describe('Authorization', () => {
     const storageId = `test-${random()}`;
     const resource = `/account/${account.accountId}/subscription/${account.subscriptionId}/storage/${storageId}`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -3408,7 +3404,7 @@ describe('Authorization', () => {
     const storageId = `test-${random()}`;
     const resource = `/account/${account.accountId}/subscription/${account.subscriptionId}/storage/${storageId}`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -3460,7 +3456,7 @@ describe('Authorization', () => {
     const storageId = `test-${random()}`;
     const resource = `/account/${account.accountId}/subscription/${account.subscriptionId}/storage/${storageId}`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -3515,7 +3511,7 @@ describe('Authorization', () => {
     const storageId = `test-${random()}`;
     const resource = `/account/${account.accountId}/subscription/${account.subscriptionId}/storage/${storageId}/a/b/c`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -3565,7 +3561,7 @@ describe('Authorization', () => {
     const storageId = `test-${random()}`;
     const resource = `/account/${account.accountId}/subscription/${account.subscriptionId}/storage/${storageId}/a/b/c`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -3613,7 +3609,7 @@ describe('Authorization', () => {
     const storageId = `test-${random()}`;
     const resource = `/account/${account.accountId}/subscription/${account.subscriptionId}/storage/${storageId}/a/b/c`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
@@ -3662,7 +3658,7 @@ describe('Authorization', () => {
     const storageId = `test-${random()}`;
     const resource = `/account/${account.accountId}/subscription/${account.subscriptionId}/storage/${storageId}/a/b/c`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action, resource }] },
     });
     const jwt = await testIssuer.getAccessToken(subject);

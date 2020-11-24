@@ -17,6 +17,12 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.8.11
+
+_Released 11/24/20_
+
+- **Bugfix.** Move the functionPermission, authorization, and authentication variables out of the top level and into `security` within the function specification.
+
 ## Version 1.8.10
 
 _Released 11/20/20_

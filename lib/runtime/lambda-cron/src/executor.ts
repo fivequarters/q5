@@ -140,23 +140,21 @@ async function addSecurityTokens(ctx: any) {
     throw e;
   }
 
-  // Add the realtime logging permissions to the summary.
-  const permissions = Common.is_logging_enabled(ctx)
-    ? Common.addLogPermission(ctx, Constants.getFunctionPermissions(functionSummary, true))
-    : Constants.getFunctionPermissions(functionSummary);
-
   // Mint a JWT, if necessary, and add it to the context.
-  ctx.functionAccessToken = await mintJwtForPermissions(keyStore, ctx, permissions, 'cron');
+  ctx.functionAccessToken = await mintJwtForPermissions(
+    keyStore,
+    ctx,
+    Constants.getFunctionPermissions(functionSummary),
+    'cron'
+  );
 
   // Add the realtime logging configuration to the ctx
-  ctx.logs = Common.is_logging_enabled(ctx)
-    ? {
-        token: ctx.functionAccessToken,
-        path: `/v1${Common.getLogUrl(ctx)}`,
-        host: Constants.API_PUBLIC_ENDPOINT.replace(/http[s]?:\/\//i, ''),
-        protocol: 'https',
-      }
-    : undefined;
+  ctx.logs = await Common.createLoggingCtx(
+    keyStore,
+    ctx,
+    'https',
+    Constants.API_PUBLIC_ENDPOINT.replace(/http[s]?:\/\//i, '')
+  );
 }
 
 // Calculate the deviation from the actual expected time to now.

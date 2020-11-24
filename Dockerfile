@@ -5,6 +5,8 @@ WORKDIR /fuse
 ADD package.json ./
 ADD tsconfig.json ./
 ADD yarn.lock ./
+ADD .yarnrc ./
+ADD .yarn/releases/yarn-1.21.1.cjs ./.yarn/releases/yarn-1.21.1.cjs
 ADD api ./api
 ADD lib ./lib
 ADD tool ./tool

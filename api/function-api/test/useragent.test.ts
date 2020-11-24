@@ -34,7 +34,7 @@ describe('User Agent', () => {
     response = await getFunction(account, boundaryId, function1Id);
     httpExpect(response, { statusCode: 400 });
 
-    account.userAgent = `fusebit-editor/${semver.minVersion(supportedClientVersion.editor)}`;
+    account.userAgent = `fusebit-editor/${semver.minVersion(supportedClientVersion.editor.v)}`;
     response = await getFunction(account, boundaryId, function1Id);
     httpExpect(response, { statusCode: 200 });
 
@@ -42,7 +42,7 @@ describe('User Agent', () => {
     response = await getFunction(account, boundaryId, function1Id);
     httpExpect(response, { statusCode: 400 });
 
-    account.userAgent = `fusebit-cli/${semver.minVersion(supportedClientVersion.client)}`;
+    account.userAgent = `fusebit-cli/${semver.minVersion(supportedClientVersion.client.v)}`;
     response = await getFunction(account, boundaryId, function1Id);
     httpExpect(response, { statusCode: 200 });
   }, 180000);
