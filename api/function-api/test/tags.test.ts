@@ -9,6 +9,10 @@ const dynamo = new DynamoDB({ apiVersion: '2012-08-10' });
 
 const funcSpecs = [
   {
+    accountId: 'acc-9999',
+    subscriptionId: 'sub-2222',
+    boundaryId: 'bound-3333',
+    functionId: 'func-4444',
     compute: { timeout: 30, staticIp: false },
     metadata: {
       tags: {
@@ -62,6 +66,10 @@ const funcOptions = [
 describe('Tags', () => {
   test('spec to tags', async () => {
     const expected = {
+      [Constants.get_fusebit_tag_key('accountId')]: funcSpecs[0].accountId,
+      [Constants.get_fusebit_tag_key('subscriptionId')]: funcSpecs[0].subscriptionId,
+      [Constants.get_fusebit_tag_key('boundaryId')]: funcSpecs[0].boundaryId,
+      [Constants.get_fusebit_tag_key('functionId')]: funcSpecs[0].functionId,
       [Constants.get_compute_tag_key('timeout')]: funcSpecs[0].compute.timeout,
       [Constants.get_compute_tag_key('staticIp')]: funcSpecs[0].compute.staticIp,
       [Constants.get_dependency_tag_key('version.ms')]: funcSpecs[0].internal.resolved_dependencies.ms,

@@ -3054,7 +3054,7 @@ describe('Authorization', () => {
       getUser(userAccount, 'usr-1234567890123456'),
       listUsers(userAccount, {}),
       updateUser(userAccount, 'usr-1234567890123456', {}),
-      removeUser(userAccount,'usr-1234567890123456' ),
+      removeUser(userAccount, 'usr-1234567890123456'),
       initUser(userAccount, 'usr-1234567890123456'),
       listAudit(userAccount),
       getStorage(userAccount, 'some-id'),
