@@ -19,7 +19,7 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 
 ## Version 1.18.4
 
-_Released 11/25/20_
+_Released 11/24/20_
 
 - **Bugfix.** Separate the logging credential from the `functionPermissions` credentials to avoid accidental credential leak.
 - **Bugfix.** Move the functionPermission, authorization, and authentication variables out of the top level and into `security` within the function specification.
