@@ -17,6 +17,12 @@ All public releases of the Fusebit editor are documented here, including notable
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.4.5
+
+_Released 11/24/20_
+
+- **Bugfix.** Move the functionPermission, authorization, and authentication variables out of the top level and into `security` within the function specification.
+
 ## Version 1.4.4
 
 _Released 11/20/20_
