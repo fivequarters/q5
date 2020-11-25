@@ -3356,9 +3356,9 @@ components:
 
             If the value is `optional`, then the caller may supply a valid JWT trusted by Fusebit. If the token is 
             present and valid, an authorization check will be performed as described in the `required` property 
-            description. If a token is not present or not valid, the function executes as an unauthenticated user. 
-            This authentication option allows you to use Fusebit authorization for certain paths in your function, 
-            while implementing your own authorization for other paths. 
+            description. If a token is not present, not valid, or fails the authorization check, the function executes 
+            as an unauthenticated user. This authentication option allows you to use Fusebit authorization for certain 
+            paths in your function, while implementing your own authorization for other paths. 
           schema:
             type: string
             enum:
@@ -3376,7 +3376,7 @@ components:
             `{ "allow": [{ "action": "storage:*", resource: "/account/acc-5555555555555555/subscription/sub-5555555555555555/" }] }`
 
             The function creator (the caller of this API) must have the same or broader permissions as what's being 
-            assigned here, as well as `function:put` for this function,otherwise the function creation will be rejected.
+            assigned here, as well as `function:put` for this function, otherwise the function creation will be rejected.
           properties:
             allow:
               type: array
