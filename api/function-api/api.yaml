@@ -3322,61 +3322,70 @@ components:
                   type: string
                 value:
                   type: string
-        authorization:
-          type: array
-          description: |
-            Use the specified permissions to validate the caller.
-
-            If `authorization` is undefined, then any valid JWT is accepted.
-
-            If `authentication` is `none`, `authorization` must be undefined.
-
-            When the caller has been authorized, the `ctx.caller.permissions` property is set to the validated
-            permissions of the caller.  Otherwise, `ctx.caller.permissions` will be `undefined`.
-          items:
-            $ref: '#/components/schemas/AccessStatement'
-        authentication:
-          description: |
-            Controls the authentication of the caller of the function, based on the bearer token supplied by
-            the caller in the `Authorization` header of the HTTP request.
-
-            If the value is `none`, then the `Authorization` header is not evaluated and the function is
-            executed.
-
-            If the value is `required`, the caller must supply a bearer token, and this token must be valid.
-
-            If the value is `optional`, then the caller may supply a bearer token. If a token is not present
-            or not valid, the function executes as an unauthenticated user. If the token is present and valid,
-            a successful `authorization` check will result in the function executing, otherwise a validation
-            failure will occur.
-
-            When the token has been found valid and authorized, the `ctx.fusebit.callerAccessToken` property
-            contains the supplied JWT.
-
-            If the token was not evaluated or found invalid, the `ctx.fusebit.callerAccessToken` property
-            field is left `undefined`.
-
-            Validation failure generates a 403 Forbidden error response.
-          schema:
-            type: string
-            enum:
-              - none
-              - optional
-              - required
-            default: 'none'
-        functionPermissions:
+        security:
           type: object
-          description: |
-            Provide a `ctx.fusebit.functionAccessToken` with these permissions during function execution,
-            allowing the function to make calls to Fusebit APIs.
-
-            The function creator must have these permissions, as well as `function:put` for this function,
-            otherwise the function creation will be rejected.
+          description: Properties that impact the runtime security of the function.
           properties:
-            allow:
+            authorization:
               type: array
+              description: |
+                Use this property in conjunction with the `authentication` property. This property should not be usedg
+                when `authentication` is `none` or undefined, because in those cases all callers will be allowed.g
+
+                If the caller is authenticated, you can use this property to only allow callers with specificg
+                permissions to invoke this function. You can also leave it undefined, which will allow all authenticated
+                callers to invoke the function, without checking what permissions they have.g
+               g
+                The following example will only allow callers who have `function:execute` permission to the given subscription:
+                `[{ action: "function:execute", resource: "/account/acc-5555555555555555/subscription/sub-5555555555555555/" }]`
+
+                When the caller has been authorized, the `ctx.caller.permissions` property is set to the validated
+                permissions of the caller. Otherwise, the property will be undefined.
               items:
                 $ref: '#/components/schemas/AccessStatement'
+            authentication:
+              description: |
+                Controls the authentication of the caller of the function, based on the bearer token supplied in theg
+                `Authorization` header of the HTTP request.g
+
+                If the value is `none` or the property is undefined, then the `Authorization` header is notg
+                evaluated and the function is executed.
+
+                If the value is `required`, the caller must supply a valid JWT trusted by Fusebit. If the token isg
+                present and valid, a check will be performed as described in the `authorization` property. If theg
+                check succeeds, the function will execute, the `ctx.fusebit.callerAccessToken` property
+                will contain the supplied JWT, and the `ctx.caller.permission` property will contain the set ofg
+                authorized permissions associated with the caller. If the check fails, a 403 Forbidden error responseg
+                will be returned.
+
+                If the value is `optional`, then the caller may supply a valid JWT trusted by Fusebit. If the token isg
+                present and valid, an authorization check will be performed as described in the `required` propertyg
+                description. If a token is not present, not valid, or fails the authorization check, the function executesg
+                as an unauthenticated user. This authentication option allows you to use Fusebit authorization for certaing
+                paths in your function, while implementing your own authorization for other paths.g
+              schema:
+                type: string
+                enum:
+                  - none
+                  - optional
+                  - required
+                default: 'none'
+            functionPermissions:
+              type: object
+              description: |
+                In case a function needs to call Fusebit management APIs, the system can provide the necessary
+                JWT via the `ctx.fusebit.functionAccessToken` property. The permissions of that token can be set using this
+                property. For example, the following object will result in a token that has full control of all storage
+                objects under the given subscription:g
+                `{ "allow": [{ "action": "storage:*", resource: "/account/acc-5555555555555555/subscription/sub-5555555555555555/" }] }`
+
+                The function creator (the caller of this API) must have the same or broader permissions as what's beingg
+                assigned here, as well as `function:put` for this function, otherwise the function creation will be rejected.
+              properties:
+                allow:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/AccessStatement'
 
     FunctionList:
       type: object
