@@ -62,5 +62,6 @@ module.exports = Joi.object().keys({
           })
         ),
       }),
-    }).default({authentication: 'none'}),
+    })
+    .default({ authentication: 'none' }),
 });

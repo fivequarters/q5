@@ -94,7 +94,7 @@ describe('cron', () => {
           functionPermissions: {
             allow: [{ action: 'function:*', resource: function2Resource }],
           },
-        }
+        },
       });
 
       expect([200, 201]).toContain(response.status);
