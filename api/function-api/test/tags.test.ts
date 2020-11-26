@@ -58,11 +58,11 @@ const mustacheSpec = {
   boundaryId: 'bound-3333',
   functionId: 'func-4444',
   security: {
-  functionPermissions: {
-    allow: [{ action: 'function:put', resource: '/{{fusebit.accountId}}/a/' }],
+    functionPermissions: {
+      allow: [{ action: 'function:put', resource: '/{{fusebit.accountId}}/a/' }],
+    },
+    authorization: [{ action: 'function:put', resource: '/{{accountId}}/b/' }],
   },
-  authorization: [{ action: 'function:put', resource: '/{{accountId}}/b/' }],
-  }
 };
 
 const funcOptions = [
@@ -112,9 +112,7 @@ describe('Tags', () => {
       ['cron']: false,
       [Constants.get_security_tag_key('authentication')]: 'none',
       [Constants.get_security_tag_key('permissions')]: JSON.stringify({
-        allow: [
-          { action: 'function:put', resource: `/${mustacheSpec.accountId}/a/` },
-        ],
+        allow: [{ action: 'function:put', resource: `/${mustacheSpec.accountId}/a/` }],
       }),
       [Constants.get_security_tag_key('authorization')]: JSON.stringify([
         { action: 'function:put', resource: `/${mustacheSpec.accountId}/b/` },
