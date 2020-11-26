@@ -51,6 +51,7 @@
     "jest": "^24.9.0",
     "nodemon": "^1.18.9",
     "prettier": "^2.0.5",
+    "redoc-cli": "^0.10.1",
     "style-loader": "^0.23.1",
     "terser-webpack-plugin": "^1.2.2",
     "ts-jest": "^24.2.0",

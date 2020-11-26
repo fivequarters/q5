@@ -2772,6 +2772,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+        409:
+          description: Etag Conflict
+          headers:
+            ETag:
+              schema:
+                type: string
+              description: |
+                An opaque token that represents the state of the stored data
           content:
             application/json:
               schema:
@@ -3329,13 +3337,13 @@ components:
             authorization:
               type: array
               description: |
-                Use this property in conjunction with the `authentication` property. This property should not be usedg
-                when `authentication` is `none` or undefined, because in those cases all callers will be allowed.g
+                Use this property in conjunction with the `authentication` property. This property should not be used
+                when `authentication` is `none` or undefined, because in those cases all callers will be allowed.
 
-                If the caller is authenticated, you can use this property to only allow callers with specificg
+                If the caller is authenticated, you can use this property to only allow callers with specific
                 permissions to invoke this function. You can also leave it undefined, which will allow all authenticated
-                callers to invoke the function, without checking what permissions they have.g
-               g
+                callers to invoke the function, without checking what permissions they have.
+
                 The following example will only allow callers who have `function:execute` permission to the given subscription:
                 `[{ action: "function:execute", resource: "/account/acc-5555555555555555/subscription/sub-5555555555555555/" }]`
 
@@ -3345,24 +3353,24 @@ components:
                 $ref: '#/components/schemas/AccessStatement'
             authentication:
               description: |
-                Controls the authentication of the caller of the function, based on the bearer token supplied in theg
-                `Authorization` header of the HTTP request.g
+                Controls the authentication of the caller of the function, based on the bearer token supplied in the
+                `Authorization` header of the HTTP request.
 
-                If the value is `none` or the property is undefined, then the `Authorization` header is notg
+                If the value is `none` or the property is undefined, then the `Authorization` header is not
                 evaluated and the function is executed.
 
-                If the value is `required`, the caller must supply a valid JWT trusted by Fusebit. If the token isg
-                present and valid, a check will be performed as described in the `authorization` property. If theg
+                If the value is `required`, the caller must supply a valid JWT trusted by Fusebit. If the token is
+                present and valid, a check will be performed as described in the `authorization` property. If the
                 check succeeds, the function will execute, the `ctx.fusebit.callerAccessToken` property
-                will contain the supplied JWT, and the `ctx.caller.permission` property will contain the set ofg
-                authorized permissions associated with the caller. If the check fails, a 403 Forbidden error responseg
+                will contain the supplied JWT, and the `ctx.caller.permission` property will contain the set of
+                authorized permissions associated with the caller. If the check fails, a 403 Forbidden error response
                 will be returned.
 
-                If the value is `optional`, then the caller may supply a valid JWT trusted by Fusebit. If the token isg
-                present and valid, an authorization check will be performed as described in the `required` propertyg
-                description. If a token is not present, not valid, or fails the authorization check, the function executesg
-                as an unauthenticated user. This authentication option allows you to use Fusebit authorization for certaing
-                paths in your function, while implementing your own authorization for other paths.g
+                If the value is `optional`, then the caller may supply a valid JWT trusted by Fusebit. If the token is
+                present and valid, an authorization check will be performed as described in the `required` property
+                description. If a token is not present, not valid, or fails the authorization check, the function executes
+                as an unauthenticated user. This authentication option allows you to use Fusebit authorization for certain
+                paths in your function, while implementing your own authorization for other paths.
               schema:
                 type: string
                 enum:
@@ -3376,10 +3384,10 @@ components:
                 In case a function needs to call Fusebit management APIs, the system can provide the necessary
                 JWT via the `ctx.fusebit.functionAccessToken` property. The permissions of that token can be set using this
                 property. For example, the following object will result in a token that has full control of all storage
-                objects under the given subscription:g
+                objects under the given subscription:
                 `{ "allow": [{ "action": "storage:*", resource: "/account/acc-5555555555555555/subscription/sub-5555555555555555/" }] }`
 
-                The function creator (the caller of this API) must have the same or broader permissions as what's beingg
+                The function creator (the caller of this API) must have the same or broader permissions as what's being
                 assigned here, as well as `function:put` for this function, otherwise the function creation will be rejected.
               properties:
                 allow:
