@@ -57,15 +57,12 @@ const mustacheSpec = {
   subscriptionId: 'sub-2222',
   boundaryId: 'bound-3333',
   functionId: 'func-4444',
-  metadata: {
-    tags: {
-      bounds: 'a|b|c',
-    },
-  },
+  security: {
   functionPermissions: {
-    allow: [{ action: 'function:put', resource: '{{#tag.bounds}}/{{fusebit.accountId}}/{{.}}/\n{{/tag.bounds}}' }],
+    allow: [{ action: 'function:put', resource: '/{{fusebit.accountId}}/a/' }],
   },
-  authorization: [{ action: 'function:put', resource: '{{#tag.bounds}}/{{accountId}}/{{.}}/\n{{/tag.bounds}}' }],
+  authorization: [{ action: 'function:put', resource: '/{{accountId}}/b/' }],
+  }
 };
 
 const funcOptions = [
@@ -113,19 +110,14 @@ describe('Tags', () => {
       [Constants.get_fusebit_tag_key('boundaryId')]: mustacheSpec.boundaryId,
       [Constants.get_fusebit_tag_key('functionId')]: mustacheSpec.functionId,
       ['cron']: false,
-      [Constants.get_metadata_tag_key('bounds')]: mustacheSpec.metadata.tags.bounds,
-      [Constants.get_compute_tag_key('authentication')]: 'none',
-      [Constants.get_compute_tag_key('permissions')]: JSON.stringify({
+      [Constants.get_security_tag_key('authentication')]: 'none',
+      [Constants.get_security_tag_key('permissions')]: JSON.stringify({
         allow: [
           { action: 'function:put', resource: `/${mustacheSpec.accountId}/a/` },
-          { action: 'function:put', resource: `/${mustacheSpec.accountId}/b/` },
-          { action: 'function:put', resource: `/${mustacheSpec.accountId}/c/` },
         ],
       }),
-      [Constants.get_compute_tag_key('authorization')]: JSON.stringify([
-        { action: 'function:put', resource: `/${mustacheSpec.accountId}/a/` },
+      [Constants.get_security_tag_key('authorization')]: JSON.stringify([
         { action: 'function:put', resource: `/${mustacheSpec.accountId}/b/` },
-        { action: 'function:put', resource: `/${mustacheSpec.accountId}/c/` },
       ]),
     };
     expect(Tags.Constants.convert_spec_to_tags(mustacheSpec)).toStrictEqual(expected);
