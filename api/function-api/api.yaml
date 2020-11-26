@@ -2772,18 +2772,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-        409:
-          description: Etag Conflict
-          headers:
-            ETag:
-              schema:
-                type: string
-              description: |
-                An opaque token that represents the state of the stored data
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StorageData'
       security:
         - AccessToken: []
 
