@@ -28,6 +28,10 @@ const funcSpecs = [
     },
   },
   {
+    accountId: 'acc-9999',
+    subscriptionId: 'sub-2222',
+    boundaryId: 'bound-3333',
+    functionId: 'func-4444',
     compute: {
       timeout: 0, // Change to a logic-false value.
       staticIp: false, // Remain the same.
@@ -47,6 +51,19 @@ const funcSpecs = [
     },
   },
 ];
+
+const mustacheSpec = {
+  accountId: 'acc-9999',
+  subscriptionId: 'sub-2222',
+  boundaryId: 'bound-3333',
+  functionId: 'func-4444',
+  security: {
+    functionPermissions: {
+      allow: [{ action: 'function:put', resource: '/{{fusebit.accountId}}/a/' }],
+    },
+    authorization: [{ action: 'function:put', resource: '/{{accountId}}/b/' }],
+  },
+};
 
 const funcOptions = [
   {
@@ -85,6 +102,24 @@ describe('Tags', () => {
 
     expect(Tags.Constants.convert_spec_to_tags(funcSpecs[0])).toStrictEqual(expected);
   }, 120000);
+
+  test('mustache spec', async () => {
+    const expected = {
+      [Constants.get_fusebit_tag_key('accountId')]: mustacheSpec.accountId,
+      [Constants.get_fusebit_tag_key('subscriptionId')]: mustacheSpec.subscriptionId,
+      [Constants.get_fusebit_tag_key('boundaryId')]: mustacheSpec.boundaryId,
+      [Constants.get_fusebit_tag_key('functionId')]: mustacheSpec.functionId,
+      ['cron']: false,
+      [Constants.get_security_tag_key('authentication')]: 'none',
+      [Constants.get_security_tag_key('permissions')]: JSON.stringify({
+        allow: [{ action: 'function:put', resource: `/${mustacheSpec.accountId}/a/` }],
+      }),
+      [Constants.get_security_tag_key('authorization')]: JSON.stringify([
+        { action: 'function:put', resource: `/${mustacheSpec.accountId}/b/` },
+      ]),
+    };
+    expect(Tags.Constants.convert_spec_to_tags(mustacheSpec)).toStrictEqual(expected);
+  }, 180000);
 
   test('spec to request', async () => {
     const req = TD.get_dynamo_create_request(funcOptions[0], funcSpecs[0]);
