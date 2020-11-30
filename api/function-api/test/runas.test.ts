@@ -126,7 +126,8 @@ describe('runas', () => {
     spec.security.functionPermissions = undefined;
     account.accessToken = limitedToken;
 
-    // Create a function in the boundary, succeed
+    // Create a function in the boundary, with the same permissions, succeed
+    spec.security.functionPermissions = AuthZ.permFunctionPutLimited(Permissions.putFunction, account, boundaryId);
     response = await putFunction(account, boundaryId, function1Id + '2', spec);
     httpExpect(response, { statusCode: 200 });
 
@@ -145,9 +146,6 @@ describe('runas', () => {
     response = await putFunction(account, boundaryId, function1Id + '5', spec);
     httpExpect(response, { statusCode: 403 });
 
-    // Use that function to create another function with a narrower set of permissions, pass
-    // Attempt to use that function to create a function with a broader set of permissions, fail.
-    // Test function:* <-> function:get, * <-> function:get, and path variances.
     account.accessToken = oldToken;
   }, 180000);
 
