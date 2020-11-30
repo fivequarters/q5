@@ -1,5 +1,6 @@
 import { random } from '@5qtrs/random';
 import { request } from '@5qtrs/request';
+import * as Constants from '@5qtrs/constants';
 import { IAccount, FakeAccount, resolveAccount, cloneWithUserAgent } from './accountResolver';
 import {
   deleteFunction,
@@ -9,6 +10,7 @@ import {
   deleteAllFunctions,
   getFunctionLocation,
 } from './sdk';
+
 
 let account: IAccount = FakeAccount;
 
@@ -151,6 +153,38 @@ const helloWorldWithNode8String = {
     },
   },
 };
+
+const helloWorldWithMustache = {
+  nodejs: {
+    files: {
+      'index.js': 'module.exports = (ctx, cb) => cb(null, { body: "hello" });',
+    },
+  },
+  security: {
+    functionPermissions: {
+      allow: [
+        { action: 'function:put', resource: '/account/{{accountId}}/subscription/{{fusebit.subscriptionId}}/'},
+      ]
+    }
+  }
+};
+
+const helloWorldWithBadMustache = {
+  nodejs: {
+    files: {
+      'index.js': 'module.exports = (ctx, cb) => cb(null, { body: "hello" });',
+    },
+  },
+  security: {
+    functionPermissions: {
+      allow: [
+        // Missing } on subscriptionId.
+        { action: 'function:put', resource: '/account/{{accountId}}/subscription/{{fusebit.subscriptionId}/'},
+      ]
+    }
+  }
+};
+
 
 beforeAll(async () => {
   account = await resolveAccount();
@@ -979,5 +1013,29 @@ describe('function', () => {
     stop = true;
     await Promise.all(promises);
     expect(failures).toBe(0);
+  }, 120000);
+
+  test('PUT with Mustache', async () => {
+    let response = await putFunction(account, boundaryId, function1Id, helloWorldWithMustache);
+    expect(response.status).toEqual(200);
+    expect(response.data).toMatchObject({
+      status: 'success',
+      subscriptionId: account.subscriptionId,
+      boundaryId,
+      functionId: function1Id,
+      transitions: {
+        success: expect.any(String),
+      },
+      location: expect.stringMatching(/^http:|https:/),
+    });
+    response = await getFunction(account, boundaryId, function1Id);
+    expect(response.status).toEqual(200);
+    expect(JSON.parse(Constants.getFunctionPermissions(response.data.runtime.tags))).toMatchObject(
+      {allow: [{action: 'function:put', resource: `/account/${account.accountId}/subscription/${account.subscriptionId}/`}]});
+  }, 120000);
+
+  test('PUT with Bad Mustache', async () => {
+    const response = await putFunction(account, boundaryId, function1Id, helloWorldWithBadMustache);
+    expect(response.status).toEqual(400);
   }, 120000);
 });

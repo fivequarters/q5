@@ -233,7 +233,23 @@ export class ResolvedAgent implements IAgent {
   }
 
   public async checkPermissionSubset(permissions: any) {
-    return Promise.all(permissions.allow.map((entry: any) => this.ensureAuthorized(entry.action, entry.resource)));
+    let lastEntry: any;
+    try {
+      await Promise.all(
+        permissions.allow.map(async (entry: any) => {
+          lastEntry = entry;
+          await this.ensureAuthorized(entry.action, entry.resource);
+          return this.addAuditEntry(lastEntry.action, lastEntry.resource, true);
+        })
+      );
+    } catch (e) {
+      if (lastEntry) {
+        await this.addAuditEntry(lastEntry.action, lastEntry.resource, false);
+      }
+
+      // Pass the error on to the caller.
+      throw e;
+    }
   }
 
   public get id() {
@@ -264,6 +280,7 @@ export class ResolvedAgent implements IAgent {
       resource,
       authorized,
     };
+
     await this.dataContext.auditData.add(auditEntry);
   }
 }
