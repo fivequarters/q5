@@ -106,9 +106,7 @@ function flushApiMetering() {
   bq.dataset('dwh')
     .table('api_call')
     .insert(tmp, { raw: true })
-    .then(async () => {
-      console.log(`SUCCESS inserting ${tmp.length} records to dwh.api_call table in Big Query`);
-    })
+    .then(async () => {})
     .catch((e: any) => {
       console.log(`ERROR inserting ${tmp.length} records to dwh.api_call table in Big Query`, e.message);
       console.log('ERROR[0]', e.errors ? JSON.stringify(e.errors[0], null, 2) : 'NA');
@@ -143,9 +141,7 @@ function generateExecutionCounters() {
     bq.dataset('dwh')
       .table('execution')
       .insert(bqInsertPayload, { raw: true })
-      .then(async () => {
-        console.log(`SUCCESS inserting ${bqInsertPayload.length} records to dwh.execution table in Big Query`);
-      })
+      .then(async () => {})
       .catch((e: any) => {
         console.log(`ERROR inserting ${bqInsertPayload.length} records to dwh.execution table in Big Query`, e.message);
         console.log('ERROR[0]', e.errors ? JSON.stringify(e.errors[0], null, 2) : 'NA');
