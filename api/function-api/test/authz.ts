@@ -20,7 +20,10 @@ export const permFunctionGetExe = { allow: [reqFunctionGet, reqFunctionExe] };
 
 export const permFunctionPutLimited = (perm: string, acc: IAccount, boundaryId: string) => ({
   allow: [
-    { action: perm, resource: `/account/${acc.accountId}/subscription/{{subscriptionId}}/boundary/{{fusebit.boundaryId}}/` },
+    {
+      action: perm,
+      resource: `/account/${acc.accountId}/subscription/{{subscriptionId}}/boundary/{{fusebit.boundaryId}}/`,
+    },
   ],
 });
 

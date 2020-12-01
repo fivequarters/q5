@@ -11,7 +11,6 @@ import {
   getFunctionLocation,
 } from './sdk';
 
-
 let account: IAccount = FakeAccount;
 
 const boundaryId = `test-boundary-${random({ lengthInBytes: 8 })}`;
@@ -162,11 +161,9 @@ const helloWorldWithMustache = {
   },
   security: {
     functionPermissions: {
-      allow: [
-        { action: 'function:put', resource: '/account/{{accountId}}/subscription/{{fusebit.subscriptionId}}/'},
-      ]
-    }
-  }
+      allow: [{ action: 'function:put', resource: '/account/{{accountId}}/subscription/{{fusebit.subscriptionId}}/' }],
+    },
+  },
 };
 
 const helloWorldWithBadMustache = {
@@ -179,12 +176,11 @@ const helloWorldWithBadMustache = {
     functionPermissions: {
       allow: [
         // Missing } on subscriptionId.
-        { action: 'function:put', resource: '/account/{{accountId}}/subscription/{{fusebit.subscriptionId}/'},
-      ]
-    }
-  }
+        { action: 'function:put', resource: '/account/{{accountId}}/subscription/{{fusebit.subscriptionId}/' },
+      ],
+    },
+  },
 };
-
 
 beforeAll(async () => {
   account = await resolveAccount();
@@ -1030,8 +1026,11 @@ describe('function', () => {
     });
     response = await getFunction(account, boundaryId, function1Id);
     expect(response.status).toEqual(200);
-    expect(JSON.parse(Constants.getFunctionPermissions(response.data.runtime.tags))).toMatchObject(
-      {allow: [{action: 'function:put', resource: `/account/${account.accountId}/subscription/${account.subscriptionId}/`}]});
+    expect(JSON.parse(Constants.getFunctionPermissions(response.data.runtime.tags))).toMatchObject({
+      allow: [
+        { action: 'function:put', resource: `/account/${account.accountId}/subscription/${account.subscriptionId}/` },
+      ],
+    });
   }, 120000);
 
   test('PUT with Bad Mustache', async () => {
