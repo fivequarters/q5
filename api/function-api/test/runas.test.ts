@@ -134,17 +134,17 @@ describe('runas', () => {
     // Create a function with different permissions, fail
     spec.security.functionPermissions = AuthZ.permFunctionGet;
     response = await putFunction(account, boundaryId, function1Id + '3', spec);
-    httpExpect(response, { statusCode: 403 });
+    httpExpect(response, { statusCode: 400 });
 
     // Create a function with too many permissions, fail
     spec.security.functionPermissions = AuthZ.permFunctionPutLimited(Permissions.allFunction, account, boundaryId);
     response = await putFunction(account, boundaryId, function1Id + '4', spec);
-    httpExpect(response, { statusCode: 403 });
+    httpExpect(response, { statusCode: 400 });
 
     // Create a function with higher path permissions, fail
     spec.security.functionPermissions = AuthZ.permFunctionPutLimitedHigher(Permissions.putFunction, account);
     response = await putFunction(account, boundaryId, function1Id + '5', spec);
-    httpExpect(response, { statusCode: 403 });
+    httpExpect(response, { statusCode: 400 });
 
     account.accessToken = oldToken;
   }, 180000);
@@ -192,7 +192,7 @@ describe('runas', () => {
     const spec = Constants.duplicate({}, specFuncReturnCtx);
     spec.security.functionPermissions = AuthZ.permFunctionWild;
     let response = await putFunction(account, boundaryId, function1Id, spec);
-    httpExpect(response, { statusCode: 403 });
+    httpExpect(response, { statusCode: 400 });
 
     // Try to create a function with no permissions
     spec.security.functionPermissions = undefined;

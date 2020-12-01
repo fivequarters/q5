@@ -22,7 +22,6 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 _Released 11/30/20_
 
 - **Bugfix.** Correctly validate user permissions against permissions with mustache parsing.
-- **Bugfix.** Add audit entries for permission checks on function creation.
 
 ## Version 1.18.6
 
