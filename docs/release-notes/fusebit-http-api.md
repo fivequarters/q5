@@ -17,7 +17,15 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.18.7
+
+_Released 11/30/20_
+
+- **Bugfix.** Correctly validate user permissions against permissions with mustache parsing.
+
 ## Version 1.18.6
+
+_Released 11/26/20_
 
 - **Enhancement.** Support mustache notation in permissions and authorization rule specification.
 

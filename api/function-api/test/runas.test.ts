@@ -126,28 +126,26 @@ describe('runas', () => {
     spec.security.functionPermissions = undefined;
     account.accessToken = limitedToken;
 
-    // Create a function in the boundary, succeed
+    // Create a function in the boundary, with the same permissions, succeed
+    spec.security.functionPermissions = AuthZ.permFunctionPutLimited(Permissions.putFunction, account, boundaryId);
     response = await putFunction(account, boundaryId, function1Id + '2', spec);
     httpExpect(response, { statusCode: 200 });
 
     // Create a function with different permissions, fail
     spec.security.functionPermissions = AuthZ.permFunctionGet;
     response = await putFunction(account, boundaryId, function1Id + '3', spec);
-    httpExpect(response, { statusCode: 403 });
+    httpExpect(response, { statusCode: 400 });
 
     // Create a function with too many permissions, fail
     spec.security.functionPermissions = AuthZ.permFunctionPutLimited(Permissions.allFunction, account, boundaryId);
     response = await putFunction(account, boundaryId, function1Id + '4', spec);
-    httpExpect(response, { statusCode: 403 });
+    httpExpect(response, { statusCode: 400 });
 
     // Create a function with higher path permissions, fail
     spec.security.functionPermissions = AuthZ.permFunctionPutLimitedHigher(Permissions.putFunction, account);
     response = await putFunction(account, boundaryId, function1Id + '5', spec);
-    httpExpect(response, { statusCode: 403 });
+    httpExpect(response, { statusCode: 400 });
 
-    // Use that function to create another function with a narrower set of permissions, pass
-    // Attempt to use that function to create a function with a broader set of permissions, fail.
-    // Test function:* <-> function:get, * <-> function:get, and path variances.
     account.accessToken = oldToken;
   }, 180000);
 
@@ -194,7 +192,7 @@ describe('runas', () => {
     const spec = Constants.duplicate({}, specFuncReturnCtx);
     spec.security.functionPermissions = AuthZ.permFunctionWild;
     let response = await putFunction(account, boundaryId, function1Id, spec);
-    httpExpect(response, { statusCode: 403 });
+    httpExpect(response, { statusCode: 400 });
 
     // Try to create a function with no permissions
     spec.security.functionPermissions = undefined;

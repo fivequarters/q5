@@ -1,7 +1,7 @@
 import { request } from '@5qtrs/request';
 import { FakeAccount, IAccount, resolveAccount } from './accountResolver';
 import { httpExpect, setupEnvironment } from './common';
-import { deleteFunction, getFunction, getFunctionLocation, listFunctions, putFunction } from './sdk';
+import { deleteFunction, getFunctionLocation, listFunctions, putFunction } from './sdk';
 
 import * as Tags from '@5qtrs/function-tags';
 
