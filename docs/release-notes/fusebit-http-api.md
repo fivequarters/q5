@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.18.8
+
+_Released 12/1/20_
+
+- **Bugfix.** Treat a `Basic` authentication as invalid for `optional` mode authentication.
+
 ## Version 1.18.7
 
 _Released 11/30/20_

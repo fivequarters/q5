@@ -40,13 +40,23 @@ const runTest = async (
   authorization: any[] | undefined,
   token: string,
   resultCode: number,
-  resultObj: any
+  resultObj: any,
+  requestParams?: any
 ) => {
   const boundaryId = getBoundary();
 
   let response = await createFunction(account, boundaryId, authentication, authorization);
 
-  response = await callFunction(token, response.data.location);
+  if (!requestParams) {
+    response = await callFunction(token, response.data.location);
+  } else {
+    response = await request({
+      method: 'GET',
+      url: response.data.location,
+      ...requestParams,
+    });
+  }
+
   httpExpect(response, { statusCode: resultCode });
 
   expect(response.data).toMatchObject(resultObj);
@@ -152,6 +162,25 @@ describe('function authorization', () => {
       fusebit: {},
       caller: {},
     });
+  }, 180000);
+
+  test('Optional | AuthZ | Basic', async () => {
+    const account = getAccount();
+
+    await runTest(
+      account,
+      'optional',
+      [AuthZ.reqFunctionExe],
+      'abcdefg',
+      200,
+      {
+        fusebit: {},
+        caller: {},
+      },
+      {
+        headers: { Authorization: `Basic foobar` },
+      }
+    );
   }, 180000);
 
   test('Optional | AuthZ | Empty', async () => {
