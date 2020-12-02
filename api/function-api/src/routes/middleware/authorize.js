@@ -29,7 +29,7 @@ module.exports = function authorize_factory(options) {
           try {
             req.body.decodedAccessToken = await validateAccessToken(req.params.accountId, req.body.accessToken);
             if (!req.body.decodedAccessToken) {
-              return next(create_error(403, 'Unauthorized'));
+              throw new Error('Unauthorized');
             }
           } catch (_) {
             return next(create_error(403, 'Unauthorized'));
@@ -38,7 +38,7 @@ module.exports = function authorize_factory(options) {
           try {
             req.body.decodedAccessToken = await validateAccessTokenSignature(req.body.accessToken, req.body.publicKey);
             if (!req.body.decodedAccessToken) {
-              return next(create_error(403, 'Unauthorized'));
+              throw new Error('Unauthorized');
             }
           } catch (_) {
             return next(create_error(403, 'Unauthorized'));
@@ -79,12 +79,12 @@ module.exports = function authorize_factory(options) {
           });
         }
       }
-      next();
     } catch (error) {
       if (options.failByCallback) {
         return next(error);
       }
-      errorHandler(res)(error);
+      return errorHandler(res)(error);
     }
+    return next();
   };
 };
