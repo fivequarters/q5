@@ -1,3 +1,5 @@
+const create_error = require('http-errors');
+
 const { getResolvedAgent, validateAccessToken, validateAccessTokenSignature, errorHandler } = require('../account');
 const { verifyJwt } = require('@5qtrs/jwt');
 const { meterApiCall } = require('@5qtrs/bq-metering');
@@ -17,7 +19,7 @@ module.exports = function authorize_factory(options) {
     }
 
     if (!token) {
-      return res.status(403).json({ status: 403, statusCode: 403, message: 'Unauthorized' });
+      return next(create_error(403, 'Unauthorized'));
     }
 
     if (options.resolve) {
@@ -26,19 +28,23 @@ module.exports = function authorize_factory(options) {
         if (req.body.protocol === 'oauth') {
           try {
             req.body.decodedAccessToken = await validateAccessToken(req.params.accountId, req.body.accessToken);
-            if (!req.body.decodedAccessToken) throw new Error('Unauthorized');
+            if (!req.body.decodedAccessToken) {
+              throw new Error('Unauthorized');
+            }
           } catch (_) {
-            return res.status(403).json({ status: 403, statusCode: 403, message: 'Unauthorized' });
+            return next(create_error(403, 'Unauthorized'));
           }
         } else if (req.body.protocol === 'pki' && req.body.publicKey) {
           try {
             req.body.decodedAccessToken = await validateAccessTokenSignature(req.body.accessToken, req.body.publicKey);
-            if (!req.body.decodedAccessToken) throw new Error('Unauthorized');
+            if (!req.body.decodedAccessToken) {
+              throw new Error('Unauthorized');
+            }
           } catch (_) {
-            return res.status(403).json({ status: 403, statusCode: 403, message: 'Unauthorized' });
+            return next(create_error(403, 'Unauthorized'));
           }
         } else {
-          return res.status(400).json({ status: 400, statusCode: 400, message: 'Invalid request' });
+          return next(create_error(400, 'Invalid request'));
         }
       }
       return next();
@@ -73,12 +79,12 @@ module.exports = function authorize_factory(options) {
           });
         }
       }
-      next();
     } catch (error) {
       if (options.failByCallback) {
         return next(error);
       }
-      errorHandler(res)(error);
+      return errorHandler(res)(error);
     }
+    return next();
   };
 };
