@@ -8,7 +8,9 @@ module.exports = function validate_schema_factory(options) {
       Assert.ok(req[p], `req.${p} must be present for validation to work`);
       let result = Joi.validate(req[p], options[p]);
       if (result.error) {
-        return next(create_error(400, result.error.details[0].message));
+        const detail = result.error.details[0];
+        console.log(`${JSON.stringify(result.error)}`);
+        return next(create_error(400, `${detail.path.join('.')}: ${detail.message}`));
       }
       req[p] = result.value;
     }

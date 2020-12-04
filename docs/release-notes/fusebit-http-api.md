@@ -22,6 +22,7 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 _Released 12/3/20_
 
 - **Bugfix.** Correctly filter npm scopes from specified global entries.
+- **Bugfix.** Allow empty strings for `configuration` entries in the function specification.
 
 ## Version 1.18.8
 
