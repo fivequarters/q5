@@ -47,6 +47,15 @@ const helloWorldWithConfigurationSerialized = {
   configurationSerialized: 'FOO=123\n BAR  = abc',
 };
 
+const helloWorldWithConfigurationSerializedEmptyValue = {
+  nodejs: {
+    files: {
+      'index.js': 'module.exports = (ctx, cb) => cb(null, { body: "hello" });',
+    },
+  },
+  configurationSerialized: 'FOO=\nBAR=abc',
+};
+
 const helloWorldWithComputeSerialized = {
   nodejs: {
     files: {
@@ -113,6 +122,24 @@ describe('function', () => {
     expect(response.status).toBe(200);
     expect(response.data.configuration).toEqual({ FOO: '123', BAR: 'abc' });
     expect(response.data.configurationSerialized).toBe('FOO=123\n BAR  = abc');
+  }, 120000);
+
+  test('PUT with configurationSerialized with empty value sets configuration', async () => {
+    let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfigurationSerializedEmptyValue);
+    expect(response.status).toBe(200);
+    expect(response.data.status).toBe('success');
+    response = await getFunction(account, boundaryId, function1Id, true);
+    expect(response.status).toBe(200);
+    expect(response.data.configuration).toEqual({ FOO: '', BAR: 'abc' });
+    expect(response.data.configurationSerialized).toBe('FOO=\nBAR=abc');
+
+    // Make sure it round-trips correctly.
+    response = await putFunction(account, boundaryId, function1Id, response.data);
+    expect(response.status).toBe(204);
+    response = await getFunction(account, boundaryId, function1Id, true);
+    expect(response.status).toBe(200);
+    expect(response.data.configuration).toEqual({ FOO: '', BAR: 'abc' });
+    expect(response.data.configurationSerialized).toBe('FOO=\nBAR=abc');
   }, 120000);
 
   test('PUT with computeSerialized sets compute', async () => {

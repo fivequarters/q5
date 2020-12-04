@@ -765,7 +765,7 @@ describe('function', () => {
     expect(response.data).toMatchObject({
       status: 400,
       statusCode: 400,
-      message: '"index.js" is required',
+      message: 'nodejs.files.index.js: "index.js" is required',
     });
   }, 120000);
 
@@ -775,7 +775,7 @@ describe('function', () => {
     expect(response.data).toMatchObject({
       status: 400,
       statusCode: 400,
-      message: '"index.js" is required',
+      message: 'nodejs.files.index.js: "index.js" is required',
     });
   }, 120000);
 
@@ -830,7 +830,7 @@ describe('function', () => {
     expect(response.data).toMatchObject({
       status: 400,
       statusCode: 400,
-      message: '"unexpected" is not allowed',
+      message: 'unexpected: "unexpected" is not allowed',
     });
   }, 120000);
 
@@ -849,7 +849,7 @@ describe('function', () => {
     expect(response.data).toMatchObject({
       status: 400,
       statusCode: 400,
-      message: '"foo" must be a string',
+      message: 'configuration.foo: "foo" must be a string',
     });
   }, 120000);
 
@@ -868,7 +868,7 @@ describe('function', () => {
     expect(response.data).toMatchObject({
       status: 400,
       statusCode: 400,
-      message: '"memorySize" must be larger than or equal to 64',
+      message: 'compute.memorySize: "memorySize" must be larger than or equal to 64',
     });
   }, 120000);
 
@@ -887,7 +887,7 @@ describe('function', () => {
     expect(response.data).toMatchObject({
       status: 400,
       statusCode: 400,
-      message: '"memorySize" must be less than or equal to 3008',
+      message: 'compute.memorySize: "memorySize" must be less than or equal to 3008',
     });
   }, 120000);
 
@@ -906,7 +906,7 @@ describe('function', () => {
     expect(response.data).toMatchObject({
       status: 400,
       statusCode: 400,
-      message: '"timeout" must be larger than or equal to 1',
+      message: 'compute.timeout: "timeout" must be larger than or equal to 1',
     });
   }, 120000);
 
@@ -925,7 +925,7 @@ describe('function', () => {
     expect(response.data).toMatchObject({
       status: 400,
       statusCode: 400,
-      message: '"timeout" must be less than or equal to 120',
+      message: 'compute.timeout: "timeout" must be less than or equal to 120',
     });
   }, 120000);
 
