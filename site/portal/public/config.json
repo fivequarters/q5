@@ -239,7 +239,7 @@
         },
         {
           "id": "fusebit-api-us-west-1-internal",
-          "displayName": "Fusebit Internal",
+          "displayName": "Internal (api.us-west-1)",
           "icon": "https://cdn.fusebit.io/assets/logo/logo-yellow.png",
           "baseUrl": "https://api.us-west-1.fusebit.io",
           "account": "acc-828c6c45cba94d93",
@@ -432,7 +432,7 @@
       "profiles": [
         {
           "id": "fusebit-api-us-west-1-internal",
-          "displayName": "Fusebit Internal",
+          "displayName": "Internal (api.us-west-1)",
           "icon": "https://cdn.fusebit.io/assets/logo/logo-yellow.png",
           "baseUrl": "https://api.us-west-1.fusebit.io",
           "account": "acc-828c6c45cba94d93",
