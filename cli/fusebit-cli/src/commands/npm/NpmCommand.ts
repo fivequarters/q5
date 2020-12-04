@@ -17,14 +17,7 @@ const commandDesc: ICommand = {
     'Execute commands with the Fusebit registry for this profile mapped to',
     'the appropriate npm scopes.',
   ].join(' '),
-  options: [
-    {
-      name: 'profile',
-      aliases: ['p'],
-      description: 'The name of the profile to use when executing the command',
-      defaultText: 'default profile',
-    },
-  ],
+  options: [],
 };
 
 // ----------------

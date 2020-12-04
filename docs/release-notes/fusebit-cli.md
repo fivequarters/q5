@@ -17,6 +17,12 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.8.12
+
+_Released 12/3/20_
+
+- **Bugfix.** Remove unnecessary `--profile` option specifications in the `npm registry scope` command.
+
 ## Version 1.8.11
 
 _Released 11/24/20_

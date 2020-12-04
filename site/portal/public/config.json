@@ -236,6 +236,23 @@
             "deviceClientId": "VFOtrBCVHEm7I9UNv7rFwu1ID1hTEueF",
             "tokenUrl": "https://fusebit.auth0.com/oauth/token"
           }
+        },
+        {
+          "id": "fusebit-api-us-west-1-internal",
+          "displayName": "Fusebit Internal",
+          "icon": "https://cdn.fusebit.io/assets/logo/logo-yellow.png",
+          "baseUrl": "https://api.us-west-1.fusebit.io",
+          "account": "acc-828c6c45cba94d93",
+          "subscription": "sub-b25bdcca338b4c32",
+          "catalog": "https://api.us-west-1.fusebit.io/v1/run/sub-b25bdcca338b4c32/internal/config",
+          "oauth": {
+            "webAuthorizationUrl": "https://fusebit.auth0.com/authorize",
+            "webClientId": "hSgWIXmbluQMADuWhDnRTpWyKptJe6LB",
+            "webLogoutUrl": "https://fusebit.auth0.com/v2/logout?client_id=hSgWIXmbluQMADuWhDnRTpWyKptJe6LB&returnTo=https://fusebit.portal.fusebit.io",
+            "deviceAuthorizationUrl": "https://fusebit.auth0.com/oauth/device/code",
+            "deviceClientId": "VFOtrBCVHEm7I9UNv7rFwu1ID1hTEueF",
+            "tokenUrl": "https://fusebit.auth0.com/oauth/token"
+          }
         }
       ],
       "defaultProfile": "stage-us-portal-dev"
@@ -410,6 +427,28 @@
         }
       ],
       "defaultProfile": "amaranthine-poc"
+    },
+    "fusebit-api-us-west-1-internal": {
+      "profiles": [
+        {
+          "id": "fusebit-api-us-west-1-internal",
+          "displayName": "Fusebit Internal",
+          "icon": "https://cdn.fusebit.io/assets/logo/logo-yellow.png",
+          "baseUrl": "https://api.us-west-1.fusebit.io",
+          "account": "acc-828c6c45cba94d93",
+          "subscription": "sub-b25bdcca338b4c32",
+          "catalog": "https://api.us-west-1.fusebit.io/v1/run/sub-b25bdcca338b4c32/internal/config",
+          "oauth": {
+            "webAuthorizationUrl": "https://fusebit.auth0.com/authorize",
+            "webClientId": "hSgWIXmbluQMADuWhDnRTpWyKptJe6LB",
+            "webLogoutUrl": "https://fusebit.auth0.com/v2/logout?client_id=hSgWIXmbluQMADuWhDnRTpWyKptJe6LB&returnTo=https://fusebit.portal.fusebit.io",
+            "deviceAuthorizationUrl": "https://fusebit.auth0.com/oauth/device/code",
+            "deviceClientId": "VFOtrBCVHEm7I9UNv7rFwu1ID1hTEueF",
+            "tokenUrl": "https://fusebit.auth0.com/oauth/token"
+          }
+        }
+      ],
+      "defaultProfile": "fusebit-api-us-west-1-internal"
     }
   }
 }

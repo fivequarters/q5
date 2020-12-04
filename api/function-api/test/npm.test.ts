@@ -80,7 +80,9 @@ beforeEach(async () => {
 }, 180000);
 
 afterEach(async () => {
-  await Registry.setGlobal(oldGlobalConfig);
+  if (oldGlobalConfig) {
+    await Registry.setGlobal(oldGlobalConfig);
+  }
   oldGlobalConfig = undefined;
 }, 180000);
 

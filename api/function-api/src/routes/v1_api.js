@@ -773,7 +773,7 @@ router.put(
       const internalConfig = await req.registry.internalConfigGet();
 
       // Filter out any of the global scopes - allows easy roundtrip by the caller.
-      req.body.scopes = req.body.scopes.filter((s) => s.indexOf(internalConfig.global.scopes) === -1);
+      req.body.scopes = req.body.scopes.filter((s) => internalConfig.global.scopes.indexOf(s) === -1);
 
       // Make sure none of the scopes specified interfere with the reserved scope prefix.
       if (req.body.scopes.filter((s) => s.indexOf(Constants.REGISTRY_RESERVED_SCOPE_PREFIX) !== -1).length > 0) {

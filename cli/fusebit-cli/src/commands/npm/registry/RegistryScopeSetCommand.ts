@@ -26,14 +26,7 @@ const commandDesc: ICommand = {
       required: true,
     },
   ],
-  options: [
-    {
-      name: 'profile',
-      aliases: ['p'],
-      description: 'The name of the profile to use when executing the command',
-      defaultText: 'default profile',
-    },
-  ],
+  options: [],
 };
 
 export class RegistryScopeSetCommand extends Command {
