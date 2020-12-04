@@ -8,7 +8,7 @@ module.exports = Joi.object().keys({
   location: Joi.string(),
   environment: Joi.string().valid(['nodejs']).default('nodejs'),
   provider: Joi.string().valid(['lambda']).default('lambda'),
-  configuration: Joi.object().pattern(/\w+/, Joi.string()),
+  configuration: Joi.object().pattern(/\w+/, Joi.string().allow('')),
   configurationSerialized: Joi.string().allow('').optional(),
   nodejs: Joi.object().keys({
     files: Joi.object()

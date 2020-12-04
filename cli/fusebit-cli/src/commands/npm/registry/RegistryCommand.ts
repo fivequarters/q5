@@ -11,14 +11,7 @@ const commandDesc: ICommand = {
   cmd: 'registry',
   summary: 'Manage registry configuration for an account',
   description: ['Set and get the allowed scopes that the internal registry supports.'].join(' '),
-  options: [
-    {
-      name: 'profile',
-      aliases: ['p'],
-      description: 'The name of the profile to use when executing the command',
-      defaultText: 'default profile',
-    },
-  ],
+  options: [],
 };
 
 // ----------------

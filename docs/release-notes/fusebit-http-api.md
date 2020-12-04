@@ -17,6 +17,13 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.18.9
+
+_Released 12/3/20_
+
+- **Bugfix.** Correctly filter npm scopes from specified global entries.
+- **Bugfix.** Allow empty strings for `configuration` entries in the function specification.
+
 ## Version 1.18.8
 
 _Released 12/1/20_
