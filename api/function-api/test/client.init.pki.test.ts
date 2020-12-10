@@ -3,9 +3,7 @@ import { addClient, initClient, resolveInit, cleanUpClients, createPKIAccessToke
 import { random } from '@5qtrs/random';
 import { decodeJwt, decodeJwtHeader, signJwt } from '@5qtrs/jwt';
 import { createKeyPair } from '@5qtrs/key-pair';
-import { extendExpect } from './extendJest';
-
-const expectMore = extendExpect(expect);
+import './extendJest';
 
 let account: IAccount = FakeAccount;
 
@@ -31,7 +29,7 @@ describe('User', () => {
         protocol: 'pki',
         profile: {},
       });
-      expect(client.status).toBe(200);
+      expect(client).toBeHttp({ statusCode: 200 });
 
       const jwt = client.data;
 
@@ -73,7 +71,7 @@ describe('User', () => {
           displayName: 'display-name',
         },
       });
-      expect(client.status).toBe(200);
+      expect(client).toBeHttp({ statusCode: 200 });
 
       const jwt = client.data;
 
@@ -114,7 +112,7 @@ describe('User', () => {
         protocol: 'pki',
         profile: { subscription: account.subscriptionId },
       });
-      expect(client.status).toBe(200);
+      expect(client).toBeHttp({ statusCode: 200 });
 
       const jwt = client.data;
 
@@ -154,7 +152,7 @@ describe('User', () => {
         protocol: 'pki',
         profile: { subscription: account.subscriptionId, boundary: 'boundary-abc' },
       });
-      expect(client.status).toBe(200);
+      expect(client).toBeHttp({ statusCode: 200 });
 
       const jwt = client.data;
 
@@ -195,7 +193,7 @@ describe('User', () => {
         protocol: 'pki',
         profile: { subscription: account.subscriptionId, boundary: 'boundary-abc', function: 'function-abc' },
       });
-      expect(client.status).toBe(200);
+      expect(client).toBeHttp({ statusCode: 200 });
 
       const jwt = client.data;
 
@@ -236,7 +234,7 @@ describe('User', () => {
       const client = await initClient(account, original.data.id, {
         protocol: 'foo',
       });
-      expectMore(client).toBeHttpError(400, `"protocol" must be one of [pki, oauth]`);
+      expect(client).toBeHttpError(400, `"protocol" must be one of [pki, oauth]`);
     }, 180000);
 
     test('Getting an init token without profile should fail', async () => {
@@ -250,13 +248,13 @@ describe('User', () => {
       const client = await initClient(account, original.data.id, {
         protocol: 'pki',
       });
-      expectMore(client).toBeHttpError(400, `"profile" is required`);
+      expect(client).toBeHttpError(400, `"profile" is required`);
     }, 180000);
 
     test('Getting an init token with an invalid client id should return an error', async () => {
       const clientId = `clt-${random()}`;
       const client = await initClient(account, clientId, { protocol: 'pki', profile: {} });
-      expectMore(client).toBeHttpError(
+      expect(client).toBeHttpError(
         400,
         `"clientId" with value "${clientId}" fails to match the required pattern: /^clt-[a-g0-9]{16}$/`
       );
@@ -265,14 +263,14 @@ describe('User', () => {
     test('Getting a non-existing client should return an error', async () => {
       const clientId = `clt-${random({ lengthInBytes: 8 })}`;
       const client = await initClient(account, clientId, { protocol: 'pki', profile: {} });
-      expectMore(client).toBeHttpError(404, `The client '${clientId}' does not exist`);
+      expect(client).toBeHttpError(404, `The client '${clientId}' does not exist`);
     }, 180000);
 
     test('Getting an init token with a malformed account account should return an error', async () => {
       const malformed = await getMalformedAccount();
       const original = await addClient(account, {});
       const client = await initClient(malformed, original.data.id, { protocol: 'pki', profile: {} });
-      expectMore(client).toBeMalformedAccountError(malformed.accountId);
+      expect(client).toBeMalformedAccountError(malformed.accountId);
     }, 180000);
 
     test('Getting an init token with a non-existing account should return an error', async () => {
@@ -281,7 +279,7 @@ describe('User', () => {
         protocol: 'pki',
         profile: {},
       });
-      expectMore(client).toBeUnauthorizedError();
+      expect(client).toBeUnauthorizedError();
     }, 180000);
   });
 
@@ -306,7 +304,7 @@ describe('User', () => {
       );
 
       const resolved = await resolveInit(account, jwt, { protocol: 'pki', publicKey: keyPair.publicKey, accessToken });
-      expect(resolved.status).toBe(200);
+      expect(resolved).toBeHttp({ statusCode: 200 });
       expect(resolved.data.id).toBe(original.data.id);
       expect(resolved.data.displayName).toBe('display');
       expect(resolved.data.identities).toBeDefined();
@@ -326,7 +324,7 @@ describe('User', () => {
       const jwt = client.data;
 
       const resolved = await resolveInit(account, jwt, { protocol: 'none' });
-      expectMore(resolved).toBeHttpError(400, '"protocol" must be one of [pki, oauth]');
+      expect(resolved).toBeHttpError(400, '"protocol" must be one of [pki, oauth]');
     }, 180000);
 
     test('Resolving an init token with no accessToken returns an error', async () => {
@@ -339,7 +337,7 @@ describe('User', () => {
       const jwt = client.data;
 
       const resolved = await resolveInit(account, jwt, { protocol: 'pki' });
-      expectMore(resolved).toBeHttpError(400, '"accessToken" is required');
+      expect(resolved).toBeHttpError(400, '"accessToken" is required');
     }, 180000);
 
     test('Resolving an init token with no publicKey returns an error', async () => {
@@ -362,7 +360,7 @@ describe('User', () => {
       );
 
       const resolved = await resolveInit(account, jwt, { protocol: 'pki', accessToken });
-      expectMore(resolved).toBeHttpError(400, '"publicKey" is required');
+      expect(resolved).toBeHttpError(400, '"publicKey" is required');
     }, 180000);
 
     test('Resolving an init token with no jwt returns an error', async () => {
@@ -390,7 +388,7 @@ describe('User', () => {
         accessToken,
       });
 
-      expectMore(resolved).toBeUnauthorizedError();
+      expect(resolved).toBeUnauthorizedError();
     }, 180000);
 
     test('Resolving an init token with a non-existing account should return an error', async () => {
@@ -418,7 +416,7 @@ describe('User', () => {
         accessToken,
       });
 
-      expectMore(resolved).toBeUnauthorizedError();
+      expect(resolved).toBeUnauthorizedError();
     }, 180000);
 
     test('Resolving an init token with non-jwt should return an error', async () => {
@@ -446,7 +444,7 @@ describe('User', () => {
         accessToken,
       });
 
-      expectMore(resolved).toBeUnauthorizedError();
+      expect(resolved).toBeUnauthorizedError();
     }, 180000);
 
     test('Resolving an init token using an access token with different issuerId should return an error', async () => {
@@ -473,7 +471,7 @@ describe('User', () => {
         publicKey: keyPair.publicKey,
         accessToken,
       });
-      expectMore(resolved).toBeUnauthorizedError();
+      expect(resolved).toBeUnauthorizedError();
     }, 180000);
 
     test('Resolving an init token using an access token with different subject should return an error', async () => {
@@ -500,7 +498,7 @@ describe('User', () => {
         publicKey: keyPair.publicKey,
         accessToken,
       });
-      expectMore(resolved).toBeUnauthorizedError();
+      expect(resolved).toBeUnauthorizedError();
     }, 180000);
   });
 });

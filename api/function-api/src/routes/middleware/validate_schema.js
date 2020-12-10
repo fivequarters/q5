@@ -9,7 +9,6 @@ module.exports = function validate_schema_factory(options) {
       let result = Joi.validate(req[p], options[p]);
       if (result.error) {
         const detail = result.error.details[0];
-        console.log(`${JSON.stringify(result.error)}`);
         return next(create_error(400, `${detail.path.join('.')}: ${detail.message}`));
       }
       req[p] = result.value;

@@ -6,8 +6,10 @@ import { decodeJwt } from '@5qtrs/jwt';
 import * as Constants from '@5qtrs/constants';
 const Permissions = Constants.Permissions;
 
+import './extendJest';
+
 import { IAccount } from './accountResolver';
-import { httpExpect, setupEnvironment } from './common';
+import { setupEnvironment } from './common';
 import { callFunction, getFunction, putFunction } from './sdk';
 
 import * as AuthZ from './authz';
@@ -30,7 +32,7 @@ const createFunction = async (
   spec.security.authentication = authentication;
   spec.security.authorization = authorization;
   const response = await putFunction(account, boundaryId, function1Id, spec);
-  httpExpect(response, { statusCode: 200 });
+  expect(response).toBeHttp({ statusCode: 200 });
   return response;
 };
 
@@ -57,9 +59,7 @@ const runTest = async (
     });
   }
 
-  httpExpect(response, { statusCode: resultCode });
-
-  expect(response.data).toMatchObject(resultObj);
+  expect(response).toBeHttp({ statusCode: resultCode, data: resultObj });
 };
 
 describe('function authorization', () => {
@@ -72,7 +72,7 @@ describe('function authorization', () => {
     spec.security.authorization = [AuthZ.reqFunctionExe];
 
     const response = await putFunction(account, boundaryId, function1Id, spec);
-    httpExpect(response, { statusCode: 400 });
+    expect(response).toBeHttp({ statusCode: 400 });
   }, 180000);
 
   test('Authentication undefined prevents authorization', async () => {
@@ -83,7 +83,7 @@ describe('function authorization', () => {
     spec.security.authorization = [AuthZ.reqFunctionExe];
 
     const response = await putFunction(account, boundaryId, function1Id, spec);
-    httpExpect(response, { statusCode: 400 });
+    expect(response).toBeHttp({ statusCode: 400 });
   }, 180000);
 
   test('Authorization must not be empty when required', async () => {
@@ -95,7 +95,7 @@ describe('function authorization', () => {
     spec.security.authorization = [];
 
     const response = await putFunction(account, boundaryId, function1Id, spec);
-    httpExpect(response, { statusCode: 400 });
+    expect(response).toBeHttp({ statusCode: 400 });
   }, 180000);
 
   test('Caller must always be present', async () => {
@@ -107,7 +107,7 @@ describe('function authorization', () => {
     spec.security.authorization = [];
 
     const response = await putFunction(account, boundaryId, function1Id, spec);
-    httpExpect(response, { statusCode: 400 });
+    expect(response).toBeHttp({ statusCode: 400 });
   }, 180000);
 
   test('Optional | No AuthZ | Valid', async () => {

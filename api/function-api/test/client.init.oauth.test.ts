@@ -11,9 +11,7 @@ import {
 import { random } from '@5qtrs/random';
 import { decodeJwt, decodeJwtHeader } from '@5qtrs/jwt';
 import { createKeyPair, IKeyPairResult } from '@5qtrs/key-pair';
-import { extendExpect } from './extendJest';
-
-const expectMore = extendExpect(expect);
+import './extendJest';
 
 let account: IAccount = FakeAccount;
 let issuerKeyPair: IKeyPairResult = { publicKey: '', privateKey: '' };
@@ -31,7 +29,7 @@ beforeAll(async () => {
       },
     ],
   });
-  expect(issuer.status).toBe(200);
+  expect(issuer).toBeHttp({ statusCode: 200 });
 });
 
 afterAll(async () => {
@@ -66,7 +64,7 @@ describe('User', () => {
         },
       };
       const client = await initClient(account, original.data.id, request);
-      expect(client.status).toBe(200);
+      expect(client).toBeHttp({ statusCode: 200 });
 
       const jwt = client.data;
 
@@ -119,7 +117,7 @@ describe('User', () => {
         },
       };
       const client = await initClient(account, original.data.id, request);
-      expect(client.status).toBe(200);
+      expect(client).toBeHttp({ statusCode: 200 });
 
       const jwt = client.data;
 
@@ -173,7 +171,7 @@ describe('User', () => {
         },
       };
       const client = await initClient(account, original.data.id, request);
-      expect(client.status).toBe(200);
+      expect(client).toBeHttp({ statusCode: 200 });
 
       const jwt = client.data;
 
@@ -227,7 +225,7 @@ describe('User', () => {
         },
       };
       const client = await initClient(account, original.data.id, request);
-      expect(client.status).toBe(200);
+      expect(client).toBeHttp({ statusCode: 200 });
 
       const jwt = client.data;
 
@@ -283,7 +281,7 @@ describe('User', () => {
         },
       };
       const client = await initClient(account, original.data.id, request);
-      expect(client.status).toBe(200);
+      expect(client).toBeHttp({ statusCode: 200 });
 
       const jwt = client.data;
 
@@ -326,7 +324,7 @@ describe('User', () => {
       const client = await initClient(account, original.data.id, {
         protocol: 'oauth',
       });
-      expectMore(client).toBeHttpError(400, `"profile" is required`);
+      expect(client).toBeHttpError(400, `"profile" is required`);
     }, 180000);
   });
 
@@ -342,7 +340,7 @@ describe('User', () => {
       const accessToken = await createPKIAccessToken(issuerKeyPair, issuerKeyId, issuerId, 'client-1', account.baseUrl);
 
       const resolved = await resolveInit(account, jwt, { protocol: 'oauth', accessToken });
-      expect(resolved.status).toBe(200);
+      expect(resolved).toBeHttp({ statusCode: 200 });
       expect(resolved.data.id).toBe(original.data.id);
       expect(resolved.data.displayName).toBe('display');
       expect(resolved.data.identities).toBeDefined();
@@ -362,7 +360,7 @@ describe('User', () => {
       const jwt = client.data;
 
       const resolved = await resolveInit(account, jwt, { protocol: 'none' });
-      expectMore(resolved).toBeHttpError(400, '"protocol" must be one of [pki, oauth]');
+      expect(resolved).toBeHttpError(400, '"protocol" must be one of [pki, oauth]');
     }, 180000);
 
     test('Resolving an init token with no accessToken returns an error', async () => {
@@ -375,7 +373,7 @@ describe('User', () => {
       const jwt = client.data;
 
       const resolved = await resolveInit(account, jwt, { protocol: 'oauth' });
-      expectMore(resolved).toBeHttpError(400, '"accessToken" is required');
+      expect(resolved).toBeHttpError(400, '"accessToken" is required');
     }, 180000);
 
     test('Resolving an init token with no jwt returns an error', async () => {
@@ -391,7 +389,7 @@ describe('User', () => {
         accessToken,
       });
 
-      expectMore(resolved).toBeUnauthorizedError();
+      expect(resolved).toBeUnauthorizedError();
     }, 180000);
 
     test('Resolving an init token with a non-existing account should return an error', async () => {
@@ -407,7 +405,7 @@ describe('User', () => {
         accessToken,
       });
 
-      expectMore(resolved).toBeUnauthorizedError();
+      expect(resolved).toBeUnauthorizedError();
     }, 180000);
 
     test('Resolving an init token with non-jwt should return an error', async () => {
@@ -423,7 +421,7 @@ describe('User', () => {
         accessToken,
       });
 
-      expectMore(resolved).toBeUnauthorizedError();
+      expect(resolved).toBeUnauthorizedError();
     }, 180000);
 
     test('Resolving an init token using an access token with untrusted issuerId should return an error', async () => {
@@ -444,7 +442,7 @@ describe('User', () => {
         protocol: 'oauth',
         accessToken,
       });
-      expectMore(resolved).toBeUnauthorizedError();
+      expect(resolved).toBeUnauthorizedError();
     }, 180000);
 
     test('Resolving an init token using an access token with unrecognized keyId should return an error', async () => {
@@ -465,7 +463,7 @@ describe('User', () => {
         protocol: 'oauth',
         accessToken,
       });
-      expectMore(resolved).toBeUnauthorizedError();
+      expect(resolved).toBeUnauthorizedError();
     }, 180000);
   });
 });

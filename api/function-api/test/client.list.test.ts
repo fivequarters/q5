@@ -1,9 +1,7 @@
 import { IAccount, FakeAccount, resolveAccount, getMalformedAccount, getNonExistingAccount } from './accountResolver';
 import { addClient, listClients, cleanUpClients } from './sdk';
 import { random } from '@5qtrs/random';
-import { extendExpect } from './extendJest';
-
-const expectMore = extendExpect(expect);
+import './extendJest';
 
 let account: IAccount = FakeAccount;
 let testRunId: string = '00000';
@@ -28,7 +26,7 @@ describe('Client', () => {
         addClient(account, {}),
       ]);
       const result = await listClients(account);
-      expect(result.status).toBe(200);
+      expect(result).toBeHttp({ statusCode: 200 });
       expect(result.data.items.length).toBeGreaterThanOrEqual(5);
     }, 180000);
 
@@ -41,7 +39,7 @@ describe('Client', () => {
         addClient(account, { displayName, access, identities: [{ issuerId: 'foo', subject: `sub-${random()}` }] }),
       ]);
       const result = await listClients(account, { name: displayName });
-      expect(result.status).toBe(200);
+      expect(result).toBeHttp({ statusCode: 200 });
       expect(result.data.items.length).toBe(3);
       const lookup: any = {};
 
@@ -63,7 +61,7 @@ describe('Client', () => {
         addClient(account, { displayName, access, identities: [{ issuerId: 'foo', subject: `sub-${random()}` }] }),
       ]);
       const result = await listClients(account, { name: displayName, include: true });
-      expect(result.status).toBe(200);
+      expect(result).toBeHttp({ statusCode: 200 });
       expect(result.data.items.length).toBe(3);
       const lookup: any = {};
 
@@ -85,7 +83,7 @@ describe('Client', () => {
         addClient(account, { displayName: `${testRunId} - 1e` }),
       ]);
       const result = await listClients(account, { name: `${testRunId} - 1` });
-      expect(result.status).toBe(200);
+      expect(result).toBeHttp({ statusCode: 200 });
       expect(result.data.items.length).toBe(5);
       const lookup: any = {};
 
@@ -102,7 +100,7 @@ describe('Client', () => {
         addClient(account, { identities: [{ issuerId: `${testRunId} - 11a`, subject: `sub-${random()}` }] }),
       ]);
       const result = await listClients(account, { issuerId: `${testRunId} - 11`, include: true });
-      expect(result.status).toBe(200);
+      expect(result).toBeHttp({ statusCode: 200 });
       expect(result.data.items.length).toBe(1);
       const lookup: any = {};
 
@@ -125,7 +123,7 @@ describe('Client', () => {
         issuerId: 'foo',
         include: true,
       });
-      expect(result.status).toBe(200);
+      expect(result).toBeHttp({ statusCode: 200 });
       expect(result.data.items.length).toBe(1);
       const lookup: any = {};
 
@@ -147,12 +145,12 @@ describe('Client', () => {
         addClient(account, { displayName: `${testRunId} - 13e` }),
       ]);
       const result1 = await listClients(account, { name: `${testRunId} - 13`, count: 3 });
-      expect(result1.status).toBe(200);
+      expect(result1).toBeHttp({ statusCode: 200 });
       expect(result1.data.items.length).toBe(3);
       expect(result1.data.next).toBeDefined();
 
       const result2 = await listClients(account, { name: `${testRunId} - 13`, next: result1.data.next });
-      expect(result2.status).toBe(200);
+      expect(result2).toBeHttp({ statusCode: 200 });
       expect(result2.data.items.length).toBe(2);
       expect(result2.data.next).toBeUndefined();
 
@@ -173,7 +171,7 @@ describe('Client', () => {
         addClient(account, { displayName: `${testRunId} - 14c` }),
       ]);
       const result = await listClients(account, { name: `${testRunId} - 14`, count: 0 });
-      expect(result.status).toBe(200);
+      expect(result).toBeHttp({ statusCode: 200 });
       expect(result.data.items.length).toBe(3);
       expect(result.data.next).toBeUndefined();
 
@@ -187,7 +185,7 @@ describe('Client', () => {
 
     test('Listing all clients with a negative count should return an error', async () => {
       const result = await listClients(account, { count: -5 });
-      expectMore(result).toBeHttpError(400, "The limit value '-5' is invalid; must be a positive number");
+      expect(result).toBeHttpError(400, "The limit value '-5' is invalid; must be a positive number");
     }, 180000);
 
     test('Listing all clients with an overly large count should use default max count', async () => {
@@ -197,7 +195,7 @@ describe('Client', () => {
         addClient(account, { displayName: `${testRunId} - 15c` }),
       ]);
       const result = await listClients(account, { name: `${testRunId} - 15`, count: 5000 });
-      expect(result.status).toBe(200);
+      expect(result).toBeHttp({ statusCode: 200 });
       expect(result.data.items.length).toBe(3);
       expect(result.data.next).toBeUndefined();
 
@@ -215,7 +213,7 @@ describe('Client', () => {
         addClient(account, { identities: [{ subject: `${testRunId} - 7`, issuerId: `foo2` }] }),
       ]);
       const result = await listClients(account, { subject: `${testRunId} - 7`, include: true });
-      expectMore(result).toBeHttpError(
+      expect(result).toBeHttpError(
         400,
         `The 'subject' filter '${testRunId} - 7' can not be specified without the 'issuerId' filter`
       );
@@ -224,12 +222,12 @@ describe('Client', () => {
     test('Listing clients with a malformed account should return an error', async () => {
       const malformed = await getMalformedAccount();
       const client = await listClients(malformed);
-      expectMore(client).toBeMalformedAccountError(malformed.accountId);
+      expect(client).toBeMalformedAccountError(malformed.accountId);
     }, 180000);
 
     test('Listing clients with a non-existing account should return an error', async () => {
       const client = await listClients(await getNonExistingAccount());
-      expectMore(client).toBeUnauthorizedError();
+      expect(client).toBeUnauthorizedError();
     }, 180000);
   });
 });

@@ -35,9 +35,7 @@ import {
   createTestJwksIssuer,
   cleanUpHostedIssuers,
 } from './sdk';
-import { extendExpect } from './extendJest';
-
-const expectMore = extendExpect(expect);
+import './extendJest';
 
 const helloFunction = {
   nodejs: {
@@ -109,7 +107,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -154,7 +152,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -176,10 +174,10 @@ describe('Authorization', () => {
     const userAccount = cloneWithAccessToken(account, jwt);
 
     const allowedResult = await getFunction(userAccount, boundaryId, functionId);
-    expectMore(allowedResult).toBeNotFoundError();
+    expect(allowedResult).toBeNotFoundError();
 
     const allowedLocation = await getFunctionLocation(userAccount, boundaryId, functionId);
-    expect(allowedLocation.status).toBe(200);
+    expect(allowedLocation).toBeHttp({ statusCode: 200 });
 
     const results = await Promise.all([
       putFunction(userAccount, boundaryId, functionId, {}),
@@ -215,7 +213,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -237,16 +235,16 @@ describe('Authorization', () => {
 
     const functionId = `test-function-${random({ lengthInBytes: 8 })}`;
     const allowedResult = await getFunction(userAccount, boundaryId, functionId);
-    expectMore(allowedResult).toBeNotFoundError();
+    expect(allowedResult).toBeNotFoundError();
 
     const allowedResult2 = await getFunction(userAccount, boundaryId, `test-function-${random({ lengthInBytes: 8 })}`);
-    expectMore(allowedResult2).toBeNotFoundError();
+    expect(allowedResult2).toBeNotFoundError();
 
     const allowedToList = await listFunctions(userAccount, boundaryId);
-    expect(allowedToList.status).toBe(200);
+    expect(allowedToList).toBeHttp({ statusCode: 200 });
 
     const allowedLocation = await getFunctionLocation(userAccount, boundaryId, functionId);
-    expect(allowedLocation.status).toBe(200);
+    expect(allowedLocation).toBeHttp({ statusCode: 200 });
 
     const results = await Promise.all([
       putFunction(userAccount, boundaryId, functionId, {}),
@@ -281,7 +279,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -300,20 +298,20 @@ describe('Authorization', () => {
     const boundaryId = `test-boundary-${random({ lengthInBytes: 8 })}`;
     const functionId = `test-function-${random({ lengthInBytes: 8 })}`;
     const allowedResult = await getFunction(userAccount, boundaryId, functionId);
-    expectMore(allowedResult).toBeNotFoundError();
+    expect(allowedResult).toBeNotFoundError();
 
     const allowedResult2 = await getFunction(
       userAccount,
       `test-boundary-${random({ lengthInBytes: 8 })}`,
       `test-function-${random({ lengthInBytes: 8 })}`
     );
-    expectMore(allowedResult2).toBeNotFoundError();
+    expect(allowedResult2).toBeNotFoundError();
 
     const allowedToList = await listFunctions(userAccount);
-    expect(allowedToList.status).toBe(200);
+    expect(allowedToList).toBeHttp({ statusCode: 200 });
 
     const allowedLocation = await getFunctionLocation(userAccount, boundaryId, functionId);
-    expect(allowedLocation.status).toBe(200);
+    expect(allowedLocation).toBeHttp({ statusCode: 200 });
 
     const results = await Promise.all([
       putFunction(userAccount, boundaryId, functionId, {}),
@@ -345,7 +343,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -367,7 +365,7 @@ describe('Authorization', () => {
     const userAccount = cloneWithAccessToken(account, jwt);
 
     const allowedResult = await putFunction(userAccount, boundaryId, functionId, helloFunction);
-    expectMore(allowedResult.status).toBe(200);
+    expect(allowedResult).toBeHttp({ statusCode: 200 });
     await deleteFunction(account, boundaryId, functionId);
 
     const results = await Promise.all([
@@ -404,7 +402,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -426,7 +424,7 @@ describe('Authorization', () => {
 
     const functionId = `test-function-${random({ lengthInBytes: 8 })}`;
     const allowedResult = await putFunction(userAccount, boundaryId, functionId, helloFunction);
-    expectMore(allowedResult.status).toBe(200);
+    expect(allowedResult).toBeHttp({ statusCode: 200 });
     await deleteFunction(account, boundaryId, functionId);
 
     const results = await Promise.all([
@@ -463,7 +461,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -482,7 +480,7 @@ describe('Authorization', () => {
     let boundaryId = `test-boundary-${random({ lengthInBytes: 8 })}`;
     let functionId = `test-function-${random({ lengthInBytes: 8 })}`;
     const allowedResult = await putFunction(userAccount, boundaryId, functionId, helloFunction);
-    expectMore(allowedResult.status).toBe(200);
+    expect(allowedResult).toBeHttp({ statusCode: 200 });
     await deleteFunction(account, boundaryId, functionId);
 
     boundaryId = `test-boundary-${random({ lengthInBytes: 8 })}`;
@@ -494,7 +492,7 @@ describe('Authorization', () => {
         },
       },
     });
-    expectMore(allowedResult2.status).toBe(200);
+    expect(allowedResult2.status).toBe(200);
     await deleteFunction(account, boundaryId, functionId);
 
     const results = await Promise.all([
@@ -528,7 +526,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -550,7 +548,7 @@ describe('Authorization', () => {
     const userAccount = cloneWithAccessToken(account, jwt);
 
     const allowedResult = await deleteFunction(userAccount, boundaryId, functionId);
-    expectMore(allowedResult).toBeNotFoundError();
+    expect(allowedResult).toBeNotFoundError();
 
     const results = await Promise.all([
       putFunction(userAccount, boundaryId, functionId, {}),
@@ -585,7 +583,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -607,7 +605,7 @@ describe('Authorization', () => {
 
     const functionId = `test-function-${random({ lengthInBytes: 8 })}`;
     const allowedResult = await deleteFunction(userAccount, boundaryId, functionId);
-    expectMore(allowedResult).toBeNotFoundError();
+    expect(allowedResult).toBeNotFoundError();
 
     const results = await Promise.all([
       putFunction(userAccount, boundaryId, functionId, {}),
@@ -643,7 +641,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -662,7 +660,7 @@ describe('Authorization', () => {
     const boundaryId = `test-boundary-${random({ lengthInBytes: 8 })}`;
     const functionId = `test-function-${random({ lengthInBytes: 8 })}`;
     const allowedResult = await deleteFunction(userAccount, boundaryId, functionId);
-    expectMore(allowedResult).toBeNotFoundError();
+    expect(allowedResult).toBeNotFoundError();
 
     const results = await Promise.all([
       putFunction(userAccount, boundaryId, functionId, {}),
@@ -695,7 +693,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -717,7 +715,7 @@ describe('Authorization', () => {
     const userAccount = cloneWithAccessToken(account, jwt);
 
     const allowedResult = await getLogs(userAccount, boundaryId, functionId, true);
-    expect(allowedResult.status).toBe(200);
+    expect(allowedResult).toBeHttp({ statusCode: 200 });
 
     const results = await Promise.all([
       putFunction(userAccount, boundaryId, functionId, {}),
@@ -753,7 +751,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -776,7 +774,7 @@ describe('Authorization', () => {
     const functionId = `test-function-${random({ lengthInBytes: 8 })}`;
 
     const allowedResult = await getLogs(userAccount, boundaryId, functionId, true);
-    expect(allowedResult.status).toBe(200);
+    expect(allowedResult).toBeHttp({ statusCode: 200 });
 
     const results = await Promise.all([
       putFunction(userAccount, boundaryId, functionId, {}),
@@ -812,7 +810,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -831,7 +829,7 @@ describe('Authorization', () => {
     const boundaryId = `test-boundary-${random({ lengthInBytes: 8 })}`;
     const functionId = `test-function-${random({ lengthInBytes: 8 })}`;
     const allowedLogs = await getLogs(userAccount, boundaryId, functionId, true);
-    expect(allowedLogs.status).toBe(200);
+    expect(allowedLogs).toBeHttp({ statusCode: 200 });
 
     const allowedLogs2 = await getLogs(userAccount, boundaryId, undefined, true);
     expect(allowedLogs2.status).toBe(200);
@@ -866,7 +864,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -888,19 +886,19 @@ describe('Authorization', () => {
     const userAccount = cloneWithAccessToken(account, jwt);
 
     const allowedPut = await putFunction(userAccount, boundaryId, functionId, helloFunction);
-    expect(allowedPut.status).toBe(200);
+    expect(allowedPut).toBeHttp({ statusCode: 200 });
 
     const allowedGet = await getFunction(userAccount, boundaryId, functionId);
-    expect(allowedGet.status).toBe(200);
+    expect(allowedGet).toBeHttp({ statusCode: 200 });
 
     const allowedLocation = await getFunctionLocation(userAccount, boundaryId, functionId);
-    expect(allowedLocation.status).toBe(200);
+    expect(allowedLocation).toBeHttp({ statusCode: 200 });
 
     const allowedLogs = await getLogs(userAccount, boundaryId, functionId, true);
-    expect(allowedLogs.status).toBe(200);
+    expect(allowedLogs).toBeHttp({ statusCode: 200 });
 
     const allowedDelete = await deleteFunction(userAccount, boundaryId, functionId);
-    expect(allowedDelete.status).toBe(204);
+    expect(allowedDelete).toBeHttp({ statusCode: 204 });
 
     const results = await Promise.all([
       putFunction(userAccount, boundaryId, 'another-function', {}),
@@ -935,7 +933,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -958,19 +956,19 @@ describe('Authorization', () => {
     const functionId = `test-function-${random({ lengthInBytes: 8 })}`;
 
     const allowedPut = await putFunction(userAccount, boundaryId, functionId, helloFunction);
-    expect(allowedPut.status).toBe(200);
+    expect(allowedPut).toBeHttp({ statusCode: 200 });
 
     const allowedGet = await getFunction(userAccount, boundaryId, functionId);
-    expect(allowedGet.status).toBe(200);
+    expect(allowedGet).toBeHttp({ statusCode: 200 });
 
     const allowedLocation = await getFunctionLocation(userAccount, boundaryId, functionId);
-    expect(allowedLocation.status).toBe(200);
+    expect(allowedLocation).toBeHttp({ statusCode: 200 });
 
     const allowedLogs = await getLogs(userAccount, boundaryId, functionId, true);
-    expect(allowedLogs.status).toBe(200);
+    expect(allowedLogs).toBeHttp({ statusCode: 200 });
 
     const allowedDelete = await deleteFunction(userAccount, boundaryId, functionId);
-    expect(allowedDelete.status).toBe(204);
+    expect(allowedDelete).toBeHttp({ statusCode: 204 });
 
     const results = await Promise.all([
       putFunction(userAccount, 'another-boundary', functionId, {}),
@@ -1006,7 +1004,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -1026,19 +1024,19 @@ describe('Authorization', () => {
     const functionId = `test-function-${random({ lengthInBytes: 8 })}`;
 
     const allowedPut = await putFunction(userAccount, boundaryId, functionId, helloFunction);
-    expect(allowedPut.status).toBe(200);
+    expect(allowedPut).toBeHttp({ statusCode: 200 });
 
     const allowedGet = await getFunction(userAccount, boundaryId, functionId);
-    expect(allowedGet.status).toBe(200);
+    expect(allowedGet).toBeHttp({ statusCode: 200 });
 
     const allowedLocation = await getFunctionLocation(userAccount, boundaryId, functionId);
-    expect(allowedLocation.status).toBe(200);
+    expect(allowedLocation).toBeHttp({ statusCode: 200 });
 
     const allowedLogs = await getLogs(userAccount, boundaryId, functionId, true);
-    expect(allowedLogs.status).toBe(200);
+    expect(allowedLogs).toBeHttp({ statusCode: 200 });
 
     const allowedDelete = await deleteFunction(userAccount, boundaryId, functionId);
-    expect(allowedDelete.status).toBe(204);
+    expect(allowedDelete).toBeHttp({ statusCode: 204 });
 
     const results = await Promise.all([
       addIssuer(userAccount, 'some-issuer', {}),
@@ -1065,7 +1063,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -1082,7 +1080,7 @@ describe('Authorization', () => {
     const userAccount = cloneWithAccessToken(account, jwt);
 
     const allowedAdd = await addIssuer(userAccount, issuerId, { jsonKeysUrl: 'some-key' });
-    expect(allowedAdd.status).toBe(200);
+    expect(allowedAdd).toBeHttp({ statusCode: 200 });
     await removeIssuer(account, issuerId);
 
     const results = await Promise.all([
@@ -1118,7 +1116,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -1135,7 +1133,7 @@ describe('Authorization', () => {
     const userAccount = cloneWithAccessToken(account, jwt);
 
     const allowedAdd = await addIssuer(userAccount, issuerId, { jsonKeysUrl: 'some-key' });
-    expect(allowedAdd.status).toBe(200);
+    expect(allowedAdd).toBeHttp({ statusCode: 200 });
     await removeIssuer(account, issuerId);
 
     const results = await Promise.all([
@@ -1170,7 +1168,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -1222,7 +1220,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -1245,7 +1243,7 @@ describe('Authorization', () => {
     expect(allowedGet2.status).toBe(200);
 
     const allowedlist = await listIssuers(userAccount);
-    expect(allowedlist.status).toBe(200);
+    expect(allowedlist).toBeHttp({ statusCode: 200 });
 
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
@@ -1278,7 +1276,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -1330,7 +1328,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -1381,7 +1379,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -1434,7 +1432,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -1485,7 +1483,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -1502,16 +1500,16 @@ describe('Authorization', () => {
     const userAccount = cloneWithAccessToken(account, jwt);
 
     const allowedAdd = await addIssuer(userAccount, issuerId, { jsonKeysUrl: 'some-key' });
-    expect(allowedAdd.status).toBe(200);
+    expect(allowedAdd).toBeHttp({ statusCode: 200 });
 
     const allowedGet = await getIssuer(userAccount, issuerId);
-    expect(allowedGet.status).toBe(200);
+    expect(allowedGet).toBeHttp({ statusCode: 200 });
 
     const allowedUpdate = await updateIssuer(userAccount, issuerId, { jsonKeysUrl: 'some-other-key' });
-    expect(allowedUpdate.status).toBe(200);
+    expect(allowedUpdate).toBeHttp({ statusCode: 200 });
 
     const allowedRemove = await removeIssuer(userAccount, issuerId);
-    expect(allowedRemove.status).toBe(204);
+    expect(allowedRemove).toBeHttp({ statusCode: 204 });
 
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
@@ -1546,7 +1544,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -1563,19 +1561,19 @@ describe('Authorization', () => {
     const userAccount = cloneWithAccessToken(account, jwt);
 
     const allowedAdd = await addIssuer(userAccount, issuerId, { jsonKeysUrl: 'some-key' });
-    expect(allowedAdd.status).toBe(200);
+    expect(allowedAdd).toBeHttp({ statusCode: 200 });
 
     const allowedGet = await getIssuer(userAccount, issuerId);
-    expect(allowedGet.status).toBe(200);
+    expect(allowedGet).toBeHttp({ statusCode: 200 });
 
     const allowedUpdate = await updateIssuer(userAccount, issuerId, { jsonKeysUrl: 'some-other-key' });
-    expect(allowedUpdate.status).toBe(200);
+    expect(allowedUpdate).toBeHttp({ statusCode: 200 });
 
     const allowedlist = await listIssuers(userAccount);
-    expect(allowedlist.status).toBe(200);
+    expect(allowedlist).toBeHttp({ statusCode: 200 });
 
     const allowedRemove = await removeIssuer(userAccount, issuerId);
-    expect(allowedRemove.status).toBe(204);
+    expect(allowedRemove).toBeHttp({ statusCode: 204 });
 
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
@@ -1605,7 +1603,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -1621,7 +1619,7 @@ describe('Authorization', () => {
     const userAccount = cloneWithAccessToken(account, jwt);
 
     const allowedAdd = await addUser(userAccount, {});
-    expect(allowedAdd.status).toBe(200);
+    expect(allowedAdd).toBeHttp({ statusCode: 200 });
     const userId = allowedAdd.data.id;
 
     const results = await Promise.all([
@@ -1656,7 +1654,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -1685,7 +1683,7 @@ describe('Authorization', () => {
     const userId = user.data.id;
 
     const allowedAdd = await addUser(userAccount, { access: { allow: [additionalAccess] } });
-    expect(allowedAdd.status).toBe(200);
+    expect(allowedAdd).toBeHttp({ statusCode: 200 });
 
     const allowStatements = [
       {
@@ -1708,7 +1706,7 @@ describe('Authorization', () => {
 
     results.forEach((result: any, index: number) => {
       const { action, resource } = allowStatements[index];
-      expectMore(result).toBeUnauthorizedToGrantError(userId, action, resource);
+      expect(result).toBeUnauthorizedToGrantError(userId, action, resource);
     });
   }, 180000);
 
@@ -1716,7 +1714,7 @@ describe('Authorization', () => {
     const subject = `sub-${random({ lengthInBytes: 8 })}`;
 
     const user = await addUser(account, {});
-    expect(user.status).toBe(200);
+    expect(user).toBeHttp({ statusCode: 200 });
     const userId = user.data.id;
 
     const action = 'user:get';
@@ -1729,7 +1727,7 @@ describe('Authorization', () => {
     const userAccount = cloneWithAccessToken(account, jwt);
 
     const allowedGet = await getUser(userAccount, userId);
-    expect(allowedGet.status).toBe(200);
+    expect(allowedGet).toBeHttp({ statusCode: 200 });
 
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
@@ -1763,7 +1761,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -1771,7 +1769,7 @@ describe('Authorization', () => {
     const subject = `sub-${random({ lengthInBytes: 8 })}`;
 
     const user = await addUser(account, {});
-    expect(user.status).toBe(200);
+    expect(user).toBeHttp({ statusCode: 200 });
     const userId = user.data.id;
 
     const action = 'user:get';
@@ -1784,13 +1782,13 @@ describe('Authorization', () => {
     const userAccount = cloneWithAccessToken(account, jwt);
 
     const allowedGet = await getUser(userAccount, userId);
-    expect(allowedGet.status).toBe(200);
+    expect(allowedGet).toBeHttp({ statusCode: 200 });
 
     const allowedGet2 = await getUser(userAccount, 'usr-1234567890123456');
     expect(allowedGet2.status).toBe(404);
 
     const allowedList = await listUsers(userAccount, {});
-    expect(allowedList.status).toBe(200);
+    expect(allowedList).toBeHttp({ statusCode: 200 });
 
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
@@ -1822,7 +1820,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -1830,7 +1828,7 @@ describe('Authorization', () => {
     const subject = `sub-${random({ lengthInBytes: 8 })}`;
 
     const user = await addUser(account, {});
-    expect(user.status).toBe(200);
+    expect(user).toBeHttp({ statusCode: 200 });
     const userId = user.data.id;
 
     const action = 'user:update';
@@ -1843,7 +1841,7 @@ describe('Authorization', () => {
     const userAccount = cloneWithAccessToken(account, jwt);
 
     const allowedUpdate = await updateUser(userAccount, userId, { firstName: 'test user' });
-    expect(allowedUpdate.status).toBe(200);
+    expect(allowedUpdate).toBeHttp({ statusCode: 200 });
 
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
@@ -1878,7 +1876,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -1886,7 +1884,7 @@ describe('Authorization', () => {
     const subject = `sub-${random({ lengthInBytes: 8 })}`;
 
     const user = await addUser(account, {});
-    expect(user.status).toBe(200);
+    expect(user).toBeHttp({ statusCode: 200 });
     const userId = user.data.id;
 
     const action = 'user:update';
@@ -1899,7 +1897,7 @@ describe('Authorization', () => {
     const userAccount = cloneWithAccessToken(account, jwt);
 
     const allowedUpdate = await updateUser(userAccount, userId, { firstName: 'test user' });
-    expect(allowedUpdate.status).toBe(200);
+    expect(allowedUpdate).toBeHttp({ statusCode: 200 });
 
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
@@ -1933,7 +1931,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -1965,7 +1963,7 @@ describe('Authorization', () => {
     const newUserId = newUser.data.id;
 
     const allowedUpdate = await updateUser(userAccount, newUserId, { access: { allow: [additionalAccess] } });
-    expect(allowedUpdate.status).toBe(200);
+    expect(allowedUpdate).toBeHttp({ statusCode: 200 });
 
     const allowStatements = [
       {
@@ -1988,7 +1986,7 @@ describe('Authorization', () => {
 
     results.forEach((result: any, index: number) => {
       const { action, resource } = allowStatements[index];
-      expectMore(result).toBeUnauthorizedToGrantError(userId, action, resource);
+      expect(result).toBeUnauthorizedToGrantError(userId, action, resource);
     });
   }, 180000);
 
@@ -1996,7 +1994,7 @@ describe('Authorization', () => {
     const subject = `sub-${random({ lengthInBytes: 8 })}`;
 
     const user = await addUser(account, {});
-    expect(user.status).toBe(200);
+    expect(user).toBeHttp({ statusCode: 200 });
     const userId = user.data.id;
 
     const action = 'user:delete';
@@ -2009,7 +2007,7 @@ describe('Authorization', () => {
     const userAccount = cloneWithAccessToken(account, jwt);
 
     const allowedRemove = await removeUser(userAccount, userId);
-    expect(allowedRemove.status).toBe(204);
+    expect(allowedRemove).toBeHttp({ statusCode: 204 });
 
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
@@ -2045,7 +2043,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -2053,7 +2051,7 @@ describe('Authorization', () => {
     const subject = `sub-${random({ lengthInBytes: 8 })}`;
 
     const user = await addUser(account, {});
-    expect(user.status).toBe(200);
+    expect(user).toBeHttp({ statusCode: 200 });
     const userId = user.data.id;
 
     const action = 'user:delete';
@@ -2066,7 +2064,7 @@ describe('Authorization', () => {
     const userAccount = cloneWithAccessToken(account, jwt);
 
     const allowedRemove = await removeUser(userAccount, userId);
-    expect(allowedRemove.status).toBe(204);
+    expect(allowedRemove).toBeHttp({ statusCode: 204 });
 
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
@@ -2100,7 +2098,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -2108,7 +2106,7 @@ describe('Authorization', () => {
     const subject = `sub-${random({ lengthInBytes: 8 })}`;
 
     const user = await addUser(account, {});
-    expect(user.status).toBe(200);
+    expect(user).toBeHttp({ statusCode: 200 });
     const userId = user.data.id;
 
     const action = 'user:init';
@@ -2121,7 +2119,7 @@ describe('Authorization', () => {
     const userAccount = cloneWithAccessToken(account, jwt);
 
     const allowedInit = await initUser(userAccount, userId);
-    expect(allowedInit.status).toBe(200);
+    expect(allowedInit).toBeHttp({ statusCode: 200 });
 
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
@@ -2158,7 +2156,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -2166,7 +2164,7 @@ describe('Authorization', () => {
     const subject = `sub-${random({ lengthInBytes: 8 })}`;
 
     const user = await addUser(account, {});
-    expect(user.status).toBe(200);
+    expect(user).toBeHttp({ statusCode: 200 });
     const userId = user.data.id;
 
     const action = 'user:init';
@@ -2179,7 +2177,7 @@ describe('Authorization', () => {
     const userAccount = cloneWithAccessToken(account, jwt);
 
     const allowedInit = await initUser(userAccount, userId);
-    expect(allowedInit.status).toBe(200);
+    expect(allowedInit).toBeHttp({ statusCode: 200 });
 
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
@@ -2212,7 +2210,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -2220,7 +2218,7 @@ describe('Authorization', () => {
     const subject = `sub-${random({ lengthInBytes: 8 })}`;
 
     const user = await addUser(account, {});
-    expect(user.status).toBe(200);
+    expect(user).toBeHttp({ statusCode: 200 });
     const userId = user.data.id;
 
     const action = 'user:*';
@@ -2233,16 +2231,16 @@ describe('Authorization', () => {
     const userAccount = cloneWithAccessToken(account, jwt);
 
     const allowedGet = await getUser(userAccount, userId);
-    expect(allowedGet.status).toBe(200);
+    expect(allowedGet).toBeHttp({ statusCode: 200 });
 
     const allowedUpdate = await updateUser(userAccount, userId, { firstName: 'test user' });
-    expect(allowedUpdate.status).toBe(200);
+    expect(allowedUpdate).toBeHttp({ statusCode: 200 });
 
     const allowedInit = await initUser(userAccount, userId);
-    expect(allowedInit.status).toBe(200);
+    expect(allowedInit).toBeHttp({ statusCode: 200 });
 
     const allowedRemove = await removeUser(userAccount, userId);
-    expect(allowedRemove.status).toBe(204);
+    expect(allowedRemove).toBeHttp({ statusCode: 204 });
 
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
@@ -2273,7 +2271,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -2289,23 +2287,23 @@ describe('Authorization', () => {
     const userAccount = cloneWithAccessToken(account, jwt);
 
     const user = await addUser(userAccount, {});
-    expect(user.status).toBe(200);
+    expect(user).toBeHttp({ statusCode: 200 });
     const userId = user.data.id;
 
     const allowedGet = await getUser(userAccount, userId);
-    expect(allowedGet.status).toBe(200);
+    expect(allowedGet).toBeHttp({ statusCode: 200 });
 
     const allowedList = await listUsers(userAccount);
-    expect(allowedList.status).toBe(200);
+    expect(allowedList).toBeHttp({ statusCode: 200 });
 
     const allowedUpdate = await updateUser(userAccount, userId, { firstName: 'test user' });
-    expect(allowedUpdate.status).toBe(200);
+    expect(allowedUpdate).toBeHttp({ statusCode: 200 });
 
     const allowedInit = await initUser(userAccount, userId);
-    expect(allowedInit.status).toBe(200);
+    expect(allowedInit).toBeHttp({ statusCode: 200 });
 
     const allowedRemove = await removeUser(userAccount, userId);
-    expect(allowedRemove.status).toBe(204);
+    expect(allowedRemove).toBeHttp({ statusCode: 204 });
 
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
@@ -2334,7 +2332,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -2350,7 +2348,7 @@ describe('Authorization', () => {
     const userAccount = cloneWithAccessToken(account, jwt);
 
     const allowedAdd = await addClient(userAccount, {});
-    expect(allowedAdd.status).toBe(200);
+    expect(allowedAdd).toBeHttp({ statusCode: 200 });
     const clientId = allowedAdd.data.id;
 
     const results = await Promise.all([
@@ -2385,7 +2383,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -2414,7 +2412,7 @@ describe('Authorization', () => {
     const userId = user.data.id;
 
     const allowedAdd = await addClient(userAccount, { access: { allow: [additionalAccess] } });
-    expect(allowedAdd.status).toBe(200);
+    expect(allowedAdd).toBeHttp({ statusCode: 200 });
 
     const allowStatements = [
       {
@@ -2437,7 +2435,7 @@ describe('Authorization', () => {
 
     results.forEach((result: any, index: number) => {
       const { action, resource } = allowStatements[index];
-      expectMore(result).toBeUnauthorizedToGrantError(userId, action, resource);
+      expect(result).toBeUnauthorizedToGrantError(userId, action, resource);
     });
   }, 180000);
 
@@ -2445,7 +2443,7 @@ describe('Authorization', () => {
     const subject = `sub-${random({ lengthInBytes: 8 })}`;
 
     const client = await addClient(account, {});
-    expect(client.status).toBe(200);
+    expect(client).toBeHttp({ statusCode: 200 });
     const clientId = client.data.id;
 
     const action = 'client:get';
@@ -2458,7 +2456,7 @@ describe('Authorization', () => {
     const userAccount = cloneWithAccessToken(account, jwt);
 
     const allowedGet = await getClient(userAccount, clientId);
-    expect(allowedGet.status).toBe(200);
+    expect(allowedGet).toBeHttp({ statusCode: 200 });
 
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
@@ -2492,7 +2490,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -2500,7 +2498,7 @@ describe('Authorization', () => {
     const subject = `sub-${random({ lengthInBytes: 8 })}`;
 
     const client = await addClient(account, {});
-    expect(client.status).toBe(200);
+    expect(client).toBeHttp({ statusCode: 200 });
     const clientId = client.data.id;
 
     const action = 'client:get';
@@ -2513,13 +2511,13 @@ describe('Authorization', () => {
     const userAccount = cloneWithAccessToken(account, jwt);
 
     const allowedGet = await getClient(userAccount, clientId);
-    expect(allowedGet.status).toBe(200);
+    expect(allowedGet).toBeHttp({ statusCode: 200 });
 
     const allowedGet2 = await getClient(userAccount, 'clt-1234567890123456');
     expect(allowedGet2.status).toBe(404);
 
     const allowedList = await listClients(userAccount, {});
-    expect(allowedList.status).toBe(200);
+    expect(allowedList).toBeHttp({ statusCode: 200 });
 
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
@@ -2551,7 +2549,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -2559,7 +2557,7 @@ describe('Authorization', () => {
     const subject = `sub-${random({ lengthInBytes: 8 })}`;
 
     const client = await addClient(account, {});
-    expect(client.status).toBe(200);
+    expect(client).toBeHttp({ statusCode: 200 });
     const clientId = client.data.id;
 
     const action = 'client:update';
@@ -2572,7 +2570,7 @@ describe('Authorization', () => {
     const userAccount = cloneWithAccessToken(account, jwt);
 
     const allowedUpdate = await updateClient(userAccount, clientId, { displayName: 'test client' });
-    expect(allowedUpdate.status).toBe(200);
+    expect(allowedUpdate).toBeHttp({ statusCode: 200 });
 
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
@@ -2607,7 +2605,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -2615,7 +2613,7 @@ describe('Authorization', () => {
     const subject = `sub-${random({ lengthInBytes: 8 })}`;
 
     const client = await addClient(account, {});
-    expect(client.status).toBe(200);
+    expect(client).toBeHttp({ statusCode: 200 });
     const clientId = client.data.id;
 
     const action = 'client:update';
@@ -2628,7 +2626,7 @@ describe('Authorization', () => {
     const userAccount = cloneWithAccessToken(account, jwt);
 
     const allowedUpdate = await updateClient(userAccount, clientId, { displayName: 'test client' });
-    expect(allowedUpdate.status).toBe(200);
+    expect(allowedUpdate).toBeHttp({ statusCode: 200 });
 
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
@@ -2662,7 +2660,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -2694,7 +2692,7 @@ describe('Authorization', () => {
     const newClientId = newClient.data.id;
 
     const allowedUpdate = await updateClient(userAccount, newClientId, { access: { allow: [additionalAccess] } });
-    expect(allowedUpdate.status).toBe(200);
+    expect(allowedUpdate).toBeHttp({ statusCode: 200 });
 
     const allowStatements = [
       {
@@ -2717,7 +2715,7 @@ describe('Authorization', () => {
 
     results.forEach((result: any, index: number) => {
       const { action, resource } = allowStatements[index];
-      expectMore(result).toBeUnauthorizedToGrantError(userId, action, resource);
+      expect(result).toBeUnauthorizedToGrantError(userId, action, resource);
     });
   }, 180000);
 
@@ -2725,7 +2723,7 @@ describe('Authorization', () => {
     const subject = `sub-${random({ lengthInBytes: 8 })}`;
 
     const client = await addClient(account, {});
-    expect(client.status).toBe(200);
+    expect(client).toBeHttp({ statusCode: 200 });
     const clientId = client.data.id;
 
     const action = 'client:delete';
@@ -2738,7 +2736,7 @@ describe('Authorization', () => {
     const userAccount = cloneWithAccessToken(account, jwt);
 
     const allowedRemove = await removeClient(userAccount, clientId);
-    expect(allowedRemove.status).toBe(204);
+    expect(allowedRemove).toBeHttp({ statusCode: 204 });
 
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
@@ -2774,7 +2772,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -2782,7 +2780,7 @@ describe('Authorization', () => {
     const subject = `sub-${random({ lengthInBytes: 8 })}`;
 
     const client = await addClient(account, {});
-    expect(client.status).toBe(200);
+    expect(client).toBeHttp({ statusCode: 200 });
     const clientId = client.data.id;
 
     const action = 'client:delete';
@@ -2795,7 +2793,7 @@ describe('Authorization', () => {
     const userAccount = cloneWithAccessToken(account, jwt);
 
     const allowedRemove = await removeClient(userAccount, clientId);
-    expect(allowedRemove.status).toBe(204);
+    expect(allowedRemove).toBeHttp({ statusCode: 204 });
 
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
@@ -2829,7 +2827,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -2837,7 +2835,7 @@ describe('Authorization', () => {
     const subject = `sub-${random({ lengthInBytes: 8 })}`;
 
     const client = await addClient(account, {});
-    expect(client.status).toBe(200);
+    expect(client).toBeHttp({ statusCode: 200 });
     const clientId = client.data.id;
 
     const action = 'client:init';
@@ -2850,7 +2848,7 @@ describe('Authorization', () => {
     const userAccount = cloneWithAccessToken(account, jwt);
 
     const allowedInit = await initClient(userAccount, clientId);
-    expect(allowedInit.status).toBe(200);
+    expect(allowedInit).toBeHttp({ statusCode: 200 });
 
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
@@ -2887,7 +2885,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -2895,7 +2893,7 @@ describe('Authorization', () => {
     const subject = `sub-${random({ lengthInBytes: 8 })}`;
 
     const client = await addClient(account, {});
-    expect(client.status).toBe(200);
+    expect(client).toBeHttp({ statusCode: 200 });
     const clientId = client.data.id;
 
     const action = 'client:init';
@@ -2908,7 +2906,7 @@ describe('Authorization', () => {
     const userAccount = cloneWithAccessToken(account, jwt);
 
     const allowedInit = await initClient(userAccount, clientId);
-    expect(allowedInit.status).toBe(200);
+    expect(allowedInit).toBeHttp({ statusCode: 200 });
 
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
@@ -2942,7 +2940,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -2950,7 +2948,7 @@ describe('Authorization', () => {
     const subject = `sub-${random({ lengthInBytes: 8 })}`;
 
     const client = await addClient(account, {});
-    expect(client.status).toBe(200);
+    expect(client).toBeHttp({ statusCode: 200 });
     const clientId = client.data.id;
 
     const action = 'client:*';
@@ -2963,16 +2961,16 @@ describe('Authorization', () => {
     const userAccount = cloneWithAccessToken(account, jwt);
 
     const allowedGet = await getClient(userAccount, clientId);
-    expect(allowedGet.status).toBe(200);
+    expect(allowedGet).toBeHttp({ statusCode: 200 });
 
     const allowedUpdate = await updateClient(userAccount, clientId, { displayName: 'test client' });
-    expect(allowedUpdate.status).toBe(200);
+    expect(allowedUpdate).toBeHttp({ statusCode: 200 });
 
     const allowedInit = await initClient(userAccount, clientId);
-    expect(allowedInit.status).toBe(200);
+    expect(allowedInit).toBeHttp({ statusCode: 200 });
 
     const allowedRemove = await removeClient(userAccount, clientId);
-    expect(allowedRemove.status).toBe(204);
+    expect(allowedRemove).toBeHttp({ statusCode: 204 });
 
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
@@ -3003,7 +3001,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -3019,23 +3017,23 @@ describe('Authorization', () => {
     const userAccount = cloneWithAccessToken(account, jwt);
 
     const client = await addClient(userAccount, {});
-    expect(client.status).toBe(200);
+    expect(client).toBeHttp({ statusCode: 200 });
     const clientId = client.data.id;
 
     const allowedGet = await getClient(userAccount, clientId);
-    expect(allowedGet.status).toBe(200);
+    expect(allowedGet).toBeHttp({ statusCode: 200 });
 
     const allowedList = await listClients(userAccount);
-    expect(allowedList.status).toBe(200);
+    expect(allowedList).toBeHttp({ statusCode: 200 });
 
     const allowedUpdate = await updateClient(userAccount, clientId, { displayName: 'test client' });
-    expect(allowedUpdate.status).toBe(200);
+    expect(allowedUpdate).toBeHttp({ statusCode: 200 });
 
     const allowedInit = await initClient(userAccount, clientId);
-    expect(allowedInit.status).toBe(200);
+    expect(allowedInit).toBeHttp({ statusCode: 200 });
 
     const allowedRemove = await removeClient(userAccount, clientId);
-    expect(allowedRemove.status).toBe(204);
+    expect(allowedRemove).toBeHttp({ statusCode: 204 });
 
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
@@ -3064,7 +3062,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -3081,16 +3079,16 @@ describe('Authorization', () => {
 
     const storageId = `test-${random()}`;
     const allowedSet = await setStorage(userAccount, storageId, { data: { msg: 'hello world' } });
-    expect(allowedSet.status).toBe(200);
+    expect(allowedSet).toBeHttp({ statusCode: 200 });
 
     const allowedGet = await getStorage(userAccount, storageId);
-    expect(allowedGet.status).toBe(200);
+    expect(allowedGet).toBeHttp({ statusCode: 200 });
 
     const allowedList = await listStorage(userAccount);
-    expect(allowedList.status).toBe(200);
+    expect(allowedList).toBeHttp({ statusCode: 200 });
 
     const allowedRemove = await removeStorage(userAccount, storageId);
-    expect(allowedRemove.status).toBe(204);
+    expect(allowedRemove).toBeHttp({ statusCode: 204 });
 
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
@@ -3121,7 +3119,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -3138,13 +3136,13 @@ describe('Authorization', () => {
 
     const storageId = `test-${random()}`;
     const allowedSet = await setStorage(account, storageId, { data: { msg: 'hello world' } });
-    expect(allowedSet.status).toBe(200);
+    expect(allowedSet).toBeHttp({ statusCode: 200 });
 
     const allowedGet = await getStorage(userAccount, storageId);
-    expect(allowedGet.status).toBe(200);
+    expect(allowedGet).toBeHttp({ statusCode: 200 });
 
     const allowedList = await listStorage(userAccount);
-    expect(allowedList.status).toBe(200);
+    expect(allowedList).toBeHttp({ statusCode: 200 });
 
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
@@ -3177,7 +3175,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -3194,7 +3192,7 @@ describe('Authorization', () => {
 
     const storageId = `test-${random()}`;
     const allowedSet = await setStorage(userAccount, storageId, { data: { msg: 'hello world' } });
-    expect(allowedSet.status).toBe(200);
+    expect(allowedSet).toBeHttp({ statusCode: 200 });
 
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
@@ -3228,7 +3226,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -3245,10 +3243,10 @@ describe('Authorization', () => {
 
     const storageId = `test-${random()}`;
     const allowedSet = await setStorage(account, storageId, { data: { msg: 'hello world' } });
-    expect(allowedSet.status).toBe(200);
+    expect(allowedSet).toBeHttp({ statusCode: 200 });
 
     const allowedRemove = await removeStorage(userAccount, storageId);
-    expect(allowedRemove.status).toBe(204);
+    expect(allowedRemove).toBeHttp({ statusCode: 204 });
 
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
@@ -3282,7 +3280,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -3299,13 +3297,13 @@ describe('Authorization', () => {
     const userAccount = cloneWithAccessToken(account, jwt);
 
     const allowedSet = await setStorage(userAccount, storageId, { data: { msg: 'hello world' } });
-    expect(allowedSet.status).toBe(200);
+    expect(allowedSet).toBeHttp({ statusCode: 200 });
 
     const allowedGet = await getStorage(userAccount, storageId);
-    expect(allowedGet.status).toBe(200);
+    expect(allowedGet).toBeHttp({ statusCode: 200 });
 
     const allowedRemove = await removeStorage(userAccount, storageId);
-    expect(allowedRemove.status).toBe(204);
+    expect(allowedRemove).toBeHttp({ statusCode: 204 });
 
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
@@ -3340,7 +3338,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -3357,10 +3355,10 @@ describe('Authorization', () => {
     const userAccount = cloneWithAccessToken(account, jwt);
 
     const allowedSet = await setStorage(account, storageId, { data: { msg: 'hello world' } });
-    expect(allowedSet.status).toBe(200);
+    expect(allowedSet).toBeHttp({ statusCode: 200 });
 
     const allowedGet = await getStorage(userAccount, storageId);
-    expect(allowedGet.status).toBe(200);
+    expect(allowedGet).toBeHttp({ statusCode: 200 });
 
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
@@ -3394,7 +3392,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -3411,7 +3409,7 @@ describe('Authorization', () => {
     const userAccount = cloneWithAccessToken(account, jwt);
 
     const allowedSet = await setStorage(userAccount, storageId, { data: { msg: 'hello world' } });
-    expect(allowedSet.status).toBe(200);
+    expect(allowedSet).toBeHttp({ statusCode: 200 });
 
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
@@ -3446,7 +3444,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -3463,10 +3461,10 @@ describe('Authorization', () => {
     const userAccount = cloneWithAccessToken(account, jwt);
 
     const allowedSet = await setStorage(account, storageId, { data: { msg: 'hello world' } });
-    expect(allowedSet.status).toBe(200);
+    expect(allowedSet).toBeHttp({ statusCode: 200 });
 
     const allowedRemove = await removeStorage(userAccount, storageId);
-    expect(allowedRemove.status).toBe(204);
+    expect(allowedRemove).toBeHttp({ statusCode: 204 });
 
     const results = await Promise.all([
       putFunction(userAccount, 'boundary', 'function', {}),
@@ -3501,7 +3499,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -3551,7 +3549,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -3599,7 +3597,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -3648,7 +3646,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 
@@ -3697,7 +3695,7 @@ describe('Authorization', () => {
     ]);
 
     for (const result of results) {
-      expectMore(result).toBeUnauthorizedError();
+      expect(result).toBeUnauthorizedError();
     }
   }, 180000);
 });

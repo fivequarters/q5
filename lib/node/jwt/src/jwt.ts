@@ -74,7 +74,9 @@ function rsaPublicKeyToPEM(modulusB64: string, exponentB64: string) {
 async function downloadJson(url: string) {
   const response = await request(url);
   if (response.status !== 200) {
-    throw new Error(`Unable to resolve secret; Downloading key file returned status code '${response.status}'.`);
+    throw new Error(
+      `Unable to resolve secret '${url}'; Downloading key file returned status code '${response.status}'.`
+    );
   }
   return response.data;
 }

@@ -1,9 +1,7 @@
 import { IAccount, FakeAccount, resolveAccount, getMalformedAccount, getNonExistingAccount } from './accountResolver';
 import { addUser, addClient, cleanUpUsers } from './sdk';
 import { random } from '@5qtrs/random';
-import { extendExpect } from './extendJest';
-
-const expectMore = extendExpect(expect);
+import './extendJest';
 
 let account: IAccount = FakeAccount;
 beforeAll(async () => {
@@ -18,7 +16,7 @@ describe('User', () => {
   describe('Add', () => {
     test('Adding a user should generate a user id', async () => {
       const user = await addUser(account, {});
-      expect(user.status).toBe(200);
+      expect(user).toBeHttp({ statusCode: 200 });
       expect(user.data.id).toBeDefined();
       expect(user.data.firstName).toBeUndefined();
       expect(user.data.lastName).toBeUndefined();
@@ -30,7 +28,7 @@ describe('User', () => {
 
     test('Adding a user with a first name should be supported', async () => {
       const user = await addUser(account, { firstName: 'first - test user' });
-      expect(user.status).toBe(200);
+      expect(user).toBeHttp({ statusCode: 200 });
       expect(user.data.id).toBeDefined();
       expect(user.data.firstName).toBe('first - test user');
       expect(user.data.lastName).toBeUndefined();
@@ -42,7 +40,7 @@ describe('User', () => {
 
     test('Adding a user with a last name should be supported', async () => {
       const user = await addUser(account, { lastName: 'last - test user' });
-      expect(user.status).toBe(200);
+      expect(user).toBeHttp({ statusCode: 200 });
       expect(user.data.id).toBeDefined();
       expect(user.data.firstName).toBeUndefined();
       expect(user.data.lastName).toBe('last - test user');
@@ -54,7 +52,7 @@ describe('User', () => {
 
     test('Adding a user with a primary email should be supported', async () => {
       const user = await addUser(account, { primaryEmail: 'test@users.com' });
-      expect(user.status).toBe(200);
+      expect(user).toBeHttp({ statusCode: 200 });
       expect(user.data.id).toBeDefined();
       expect(user.data.firstName).toBeUndefined();
       expect(user.data.lastName).toBeUndefined();
@@ -67,7 +65,7 @@ describe('User', () => {
     test('Adding a user with an identity should be supported', async () => {
       const identities = [{ issuerId: 'foo', subject: `subj-${random()}` }];
       const user = await addUser(account, { identities });
-      expect(user.status).toBe(200);
+      expect(user).toBeHttp({ statusCode: 200 });
       expect(user.data.id).toBeDefined();
       expect(user.data.firstName).toBeUndefined();
       expect(user.data.lastName).toBeUndefined();
@@ -80,7 +78,7 @@ describe('User', () => {
     test('Adding a user with access should be supported', async () => {
       const access = { allow: [{ action: '*', resource: '/' }] };
       const user = await addUser(account, { access });
-      expect(user.status).toBe(200);
+      expect(user).toBeHttp({ statusCode: 200 });
       expect(user.data.id).toBeDefined();
       expect(user.data.firstName).toBeUndefined();
       expect(user.data.lastName).toBeUndefined();
@@ -96,7 +94,7 @@ describe('User', () => {
 
       access.allow[0].resource = `${access.allow[0].resource}/`;
 
-      expect(user.status).toBe(200);
+      expect(user).toBeHttp({ statusCode: 200 });
       expect(user.data.id).toBeDefined();
       expect(user.data.firstName).toBeUndefined();
       expect(user.data.lastName).toBeUndefined();
@@ -110,22 +108,22 @@ describe('User', () => {
       const subject = `sub-${random()}`;
       const identities = [{ id: 'usr-5555555555555555', issuerId: 'test', subject }];
       const client = await addClient(account, { identities });
-      expectMore(client).toBeHttpError(400, '"id" is not allowed');
+      expect(client).toBeHttpError(400, '"id" is not allowed');
     }, 180000);
 
     test('Adding a user with an empty string first name is not supported', async () => {
       const user = await addUser(account, { firstName: '' });
-      expectMore(user).toBeHttpError(400, '"firstName" is not allowed to be empty');
+      expect(user).toBeHttpError(400, '"firstName" is not allowed to be empty');
     }, 180000);
 
     test('Adding a user with an empty string last name is not supported', async () => {
       const user = await addUser(account, { lastName: '' });
-      expectMore(user).toBeHttpError(400, '"lastName" is not allowed to be empty');
+      expect(user).toBeHttpError(400, '"lastName" is not allowed to be empty');
     }, 180000);
 
     test('Adding a user with an empty string primary email is not supported', async () => {
       const user = await addUser(account, { primaryEmail: '' });
-      expectMore(user).toBeHttpError(400, '"primaryEmail" is not allowed to be empty');
+      expect(user).toBeHttpError(400, '"primaryEmail" is not allowed to be empty');
     }, 180000);
 
     test('Adding a user with an exisitng identity returns an error', async () => {
@@ -133,7 +131,7 @@ describe('User', () => {
       const identities = [{ issuerId: 'test', subject }];
       await addUser(account, { identities });
       const user = await addUser(account, { identities });
-      expectMore(user).toBeHttpError(
+      expect(user).toBeHttpError(
         400,
         `The identity with issuer 'test' and subject '${subject}' is already associated with a user or client`
       );
@@ -144,7 +142,7 @@ describe('User', () => {
       const identities = [{ issuerId: 'test', subject }];
       await addClient(account, { identities });
       const user = await addUser(account, { identities });
-      expectMore(user).toBeHttpError(
+      expect(user).toBeHttpError(
         400,
         `The identity with issuer 'test' and subject '${subject}' is already associated with a user or client`
       );
@@ -153,80 +151,80 @@ describe('User', () => {
     test('Adding a user with an identity with an empty issuerId is not supported', async () => {
       const identities = [{ issuerId: '', subject: `sub-${random()}` }];
       const user = await addUser(account, { identities });
-      expectMore(user).toBeHttpError(400, '"issuerId" is not allowed to be empty');
+      expect(user).toBeHttpError(400, '"issuerId" is not allowed to be empty');
     }, 180000);
 
     test('Adding a user with an identity with a missing issuerId is not supported', async () => {
       const identities = [{ subject: `sub-${random()}` }];
       const user = await addUser(account, { identities });
-      expectMore(user).toBeHttpError(400, '"issuerId" is required');
+      expect(user).toBeHttpError(400, '"issuerId" is required');
     }, 180000);
 
     test('Adding a user with an identity with an empty subject is not supported', async () => {
       const identities = [{ issuerId: 'foo', subject: '' }];
       const user = await addUser(account, { identities });
-      expectMore(user).toBeHttpError(400, '"subject" is not allowed to be empty');
+      expect(user).toBeHttpError(400, '"subject" is not allowed to be empty');
     }, 180000);
 
     test('Adding a user with an identity with a missing subject is not supported', async () => {
       const identities = [{ issuerId: 'foo' }];
       const user = await addUser(account, { identities });
-      expectMore(user).toBeHttpError(400, '"subject" is required');
+      expect(user).toBeHttpError(400, '"subject" is required');
     }, 180000);
 
     test('Adding a user with access with an empty action is not supported', async () => {
       const access = { allow: [{ action: '', resource: '/' }] };
       const user = await addUser(account, { access });
-      expectMore(user).toBeHttpError(400, '"action" is not allowed to be empty');
+      expect(user).toBeHttpError(400, '"action" is not allowed to be empty');
     }, 180000);
 
     test('Adding a user with access with a missing action is not supported', async () => {
       const access = { allow: [{ resource: '/' }] };
       const user = await addUser(account, { access });
-      expectMore(user).toBeHttpError(400, '"action" is required');
+      expect(user).toBeHttpError(400, '"action" is required');
     }, 180000);
 
     test('Adding a user with access with an empty resource is not supported', async () => {
       const access = { allow: [{ action: '*', resource: '' }] };
       const user = await addUser(account, { access });
-      expectMore(user).toBeHttpError(400, '"resource" is not allowed to be empty');
+      expect(user).toBeHttpError(400, '"resource" is not allowed to be empty');
     }, 180000);
 
     test('Adding a user with access with a missing resource is not supported', async () => {
       const access = { allow: [{ action: '*' }] };
       const user = await addUser(account, { access });
-      expectMore(user).toBeHttpError(400, '"resource" is required');
+      expect(user).toBeHttpError(400, '"resource" is required');
     }, 180000);
 
     test('Adding a user with access with no allow is not supported', async () => {
       const access = {};
       const user = await addUser(account, { access });
-      expectMore(user).toBeHttpError(400, '"allow" is required');
+      expect(user).toBeHttpError(400, '"allow" is required');
     }, 180000);
 
     test('Adding a user with access with an empty allow array is supported', async () => {
       const access = { allow: [] };
       const user = await addUser(account, { access });
-      expect(user.status).toBe(200);
+      expect(user).toBeHttp({ statusCode: 200 });
       expect(user.data).toEqual({ id: user.data.id });
     }, 180000);
 
     test('Adding a user with identities with an empty array is supported', async () => {
       const identities: any = [];
       const user = await addUser(account, { identities });
-      expect(user.status).toBe(200);
+      expect(user).toBeHttp({ statusCode: 200 });
       expect(user.data).toEqual({ id: user.data.id });
     }, 180000);
 
     test('Adding a user with a malformed account should return an error', async () => {
       const malformed = await getMalformedAccount();
       const user = await addUser(malformed, {});
-      expectMore(user).toBeMalformedAccountError(malformed.accountId);
+      expect(user).toBeMalformedAccountError(malformed.accountId);
     }, 180000);
 
     test('Adding a user with a non-existing account should return an error', async () => {
       const user = await addUser(await getNonExistingAccount(), {});
-      expectMore(user).toBeUnauthorizedError();
+      expect(user).toBeUnauthorizedError();
     }, 180000);
   });
 });

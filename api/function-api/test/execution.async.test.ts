@@ -2,6 +2,8 @@ import { IAccount, FakeAccount, resolveAccount } from './accountResolver';
 import { putFunction, deleteAllFunctions, waitForBuild } from './sdk';
 import { request } from '@5qtrs/request';
 
+import './extendJest';
+
 let account: IAccount = FakeAccount;
 
 const boundaryId = `test-boundary-${Math.floor(Math.random() * 99999999).toString(32)}`;
@@ -19,45 +21,6 @@ beforeEach(async () => {
   await deleteAllFunctions(account, boundaryId);
 }, 200000);
 
-const httpExpect = (response: any, { statusCode, data, headers, tests }: any): void => {
-  try {
-    if (statusCode) {
-      if (typeof statusCode === 'object') {
-        expect(status).toContain(response.status);
-      } else {
-        expect(response.status).toEqual(statusCode);
-      }
-    }
-
-    if (data) {
-      if (typeof data === 'object') {
-        for (let [key, value] of Object.entries(data)) {
-          expect(response.data[key]).toEqual(value);
-        }
-      } else {
-        expect(response.data).toEqual(data);
-      }
-    }
-
-    if (headers) {
-      for (let [key, value] of Object.entries(headers)) {
-        expect(response.headers[key]).toEqual(value);
-      }
-    }
-
-    if (tests) {
-      for (let test of tests) {
-        test();
-      }
-    }
-  } catch (err) {
-    err.message = `${err.message}\n\nfailing response:\n${response.status} - ${JSON.stringify(
-      response.headers
-    )} - ${JSON.stringify(response.data)}`;
-    throw err;
-  }
-};
-
 describe('execution', () => {
   test('hello, world succeeds on node 10', async () => {
     let response = await putFunction(account, boundaryId, function1Id, {
@@ -72,9 +35,9 @@ describe('execution', () => {
         },
       },
     });
-    httpExpect(response, { status: 200, data: { status: 'success' } });
+    expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
     response = await request(response.data.location);
-    httpExpect(response, { status: 200, data: 'hello', headers: { 'x-fx-response-source': 'function' } });
+    expect(response).toBeHttp({ statusCode: 200, data: 'hello', headers: { 'x-fx-response-source': 'function' } });
   }, 180000);
 
   test('function with module succeeds on node 10', async () => {
@@ -93,13 +56,13 @@ describe('execution', () => {
         },
       },
     });
-    httpExpect(response, { status: [200, 201] });
+    expect(response).toBeHttp({ statusCode: [200, 201] });
     if (response.status === 201) {
       response = await waitForBuild(account, response.data, 15, 1000);
     }
-    httpExpect(response, { status: 200, data: { status: 'success' } });
+    expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
     response = await request(response.data.location);
-    httpExpect(response, { status: 200, data: 'function', headers: { 'x-fx-response-source': 'function' } });
+    expect(response).toBeHttp({ statusCode: 200, data: 'function', headers: { 'x-fx-response-source': 'function' } });
   }, 15000);
 
   test('function context APIs work as expected', async () => {
@@ -115,7 +78,7 @@ describe('execution', () => {
     };
 
     let response = await putFunction(account, boundaryId, function1Id, reflectContext);
-    httpExpect(response, { status: 200, data: { status: 'success' } });
+    expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
     response = await request({
       method: 'POST',
       url: response.data.location,
@@ -123,8 +86,8 @@ describe('execution', () => {
         somedata: 'inthebody',
       },
     });
-    httpExpect(response, {
-      status: 200,
+    expect(response).toBeHttp({
+      statusCode: 200,
       headers: { 'x-fx-response-source': 'function' },
       tests: [
         () =>
@@ -151,9 +114,9 @@ describe('execution', () => {
         },
       },
     });
-    httpExpect(response, { status: 200, data: { status: 'success' } });
+    expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
     response = await request(response.data.location);
-    httpExpect(response, { status: 418, data: 'teapot', headers: { 'x-fx-response-source': 'function' } });
+    expect(response).toBeHttp({ statusCode: 418, data: 'teapot', headers: { 'x-fx-response-source': 'function' } });
   }, 180000);
 
   test('function can set response headers', async () => {
@@ -164,10 +127,9 @@ describe('execution', () => {
         },
       },
     });
-    expect(response.status).toEqual(200);
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
     response = await request(response.data.location);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data).toEqual('teapot');
     expect(response.headers.foo).toEqual('abc');
     expect(response.headers.bar).toEqual('def');
@@ -182,10 +144,9 @@ describe('execution', () => {
         },
       },
     });
-    expect(response.status).toEqual(200);
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
     response = await request(response.data.location);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data).toEqual(undefined);
     expect(response.headers['x-fx-response-source']).toEqual('function');
   }, 180000);
@@ -198,10 +159,9 @@ describe('execution', () => {
         },
       },
     });
-    expect(response.status).toEqual(200);
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
     response = await request(response.data.location);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data).toEqual(undefined);
     expect(response.headers['x-fx-response-source']).toEqual('function');
   }, 180000);
@@ -222,17 +182,17 @@ describe('execution', () => {
         },
       },
     });
-    expect([200, 201]).toContain(response.status);
+    expect(response).toBeHttp({ statusCode: [200, 201] });
     if (response.status === 201) {
       response = await waitForBuild(account, response.data, 15, 1000);
-      expect(response.status).toEqual(200);
+      expect(response).toBeHttp({ statusCode: 200 });
     }
     expect(response.data).toMatchObject({
       status: 'success',
       location: expect.stringMatching(/^http:|https:/),
     });
     response = await request(response.data.location);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data).toEqual('function');
     expect(response.headers['x-fx-response-source']).toEqual('function');
   }, 15000);
@@ -245,10 +205,9 @@ describe('execution', () => {
         },
       },
     });
-    expect(response.status).toEqual(200);
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
     response = await request(response.data.location);
-    expect(response.status).toEqual(500);
+    expect(response).toBeHttp({ statusCode: 500 });
     expect(response.headers['x-fx-response-source']).toEqual('provider');
     expect(response.data).toMatchObject({
       status: 500,
@@ -270,10 +229,9 @@ describe('execution', () => {
         },
       },
     });
-    expect(response.status).toEqual(200);
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
     response = await request(response.data.location);
-    expect(response.status).toEqual(500);
+    expect(response).toBeHttp({ statusCode: 500 });
     expect(response.headers['x-fx-response-source']).toEqual('provider');
     expect(response.data).toMatchObject({
       status: 500,
@@ -295,10 +253,9 @@ describe('execution', () => {
         },
       },
     });
-    expect(response.status).toEqual(200);
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
     response = await request(response.data.location);
-    expect(response.status).toEqual(500);
+    expect(response).toBeHttp({ statusCode: 500 });
     expect(response.headers['x-fx-response-source']).toEqual('provider');
     expect(response.data).toMatchObject({
       status: 500,
@@ -320,10 +277,9 @@ describe('execution', () => {
         },
       },
     });
-    expect(response.status).toEqual(200);
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
     response = await request(response.data.location);
-    expect(response.status).toEqual(500);
+    expect(response).toBeHttp({ statusCode: 500 });
     expect(response.headers['x-fx-response-source']).toEqual('provider');
     expect(response.data).toMatchObject({
       status: 500,
@@ -359,10 +315,9 @@ describe('execution', () => {
         },
       },
     });
-    expect(response.status).toEqual(200);
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
     response = await request(response.data.location);
-    expect(response.status).toEqual(500);
+    expect(response).toBeHttp({ statusCode: 500 });
     expect(response.headers['x-fx-response-source']).toEqual('provider');
     expect(response.data).toMatchObject({
       status: 500,
@@ -389,8 +344,7 @@ describe('execution', () => {
         },
       },
     });
-    expect(response.status).toEqual(200);
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
     response = await request({
       method: 'POST',
       url: response.data.location,
@@ -398,7 +352,7 @@ describe('execution', () => {
       data: { data: '.'.repeat(490 * 1024) },
       parseJson: true,
     });
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.headers['x-fx-response-source']).toEqual('function');
     expect(response.data).toMatchObject({
       size: 490 * 1024 + 11,
@@ -420,8 +374,7 @@ describe('execution', () => {
         },
       },
     });
-    expect(response.status).toEqual(200);
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
     response = await request({
       method: 'POST',
       url: response.data.location,
@@ -440,10 +393,9 @@ describe('execution', () => {
         },
       },
     });
-    expect(response.status).toEqual(200);
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
     response = await request(response.data.location);
-    expect(response.status).toEqual(500);
+    expect(response).toBeHttp({ statusCode: 500 });
     expect(response.headers['x-fx-response-source']).toEqual('provider');
     expect(response.data).toMatchObject({
       status: 500,

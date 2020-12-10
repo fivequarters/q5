@@ -12,4 +12,6 @@ assert(Constants.API_PUBLIC_ENDPOINT);
 
 // This is required for the cron tests to successfully roundtrip.  It should be set to the fully qualified
 // https://stack.deployment.domain.com url
-assert(process.env.JWT_ALT_AUDIENCE);
+if ((process.env.API_SERVER as string).indexOf('localhost') !== -1) {
+  assert(process.env.JWT_ALT_AUDIENCE);
+}

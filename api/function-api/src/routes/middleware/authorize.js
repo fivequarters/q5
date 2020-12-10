@@ -1,7 +1,6 @@
 const create_error = require('http-errors');
 
 const { getResolvedAgent, validateAccessToken, validateAccessTokenSignature, errorHandler } = require('../account');
-const { verifyJwt } = require('@5qtrs/jwt');
 const { meterApiCall } = require('@5qtrs/bq-metering');
 
 const meteringEnabled = process.env.METERING_ENABLED === 'false' ? false : true;

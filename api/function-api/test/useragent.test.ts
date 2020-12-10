@@ -4,8 +4,10 @@ import * as semver from 'semver';
 import { supportedClientVersion } from '../src/routes/middleware/version_check';
 
 import { FakeAccount, IAccount, resolveAccount } from './accountResolver';
-import { httpExpect, setupEnvironment } from './common';
+import { setupEnvironment } from './common';
 import { getFunction, putFunction } from './sdk';
+
+import './extendJest';
 
 const { getAccount, getBoundary } = setupEnvironment();
 const function1Id = 'test-user-agent-1';
@@ -25,25 +27,25 @@ describe('User Agent', () => {
     const boundaryId = getBoundary();
 
     let response = await putFunction(account, boundaryId, function1Id, simpleFuncSpec);
-    httpExpect(response, { statusCode: 200 });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id);
-    httpExpect(response, { statusCode: 200 });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     account.userAgent = 'fusebit-editor/1.4.3';
     response = await getFunction(account, boundaryId, function1Id);
-    httpExpect(response, { statusCode: 400 });
+    expect(response).toBeHttp({ statusCode: 400 });
 
     account.userAgent = `fusebit-editor/${semver.minVersion(supportedClientVersion.editor.v)}`;
     response = await getFunction(account, boundaryId, function1Id);
-    httpExpect(response, { statusCode: 200 });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     account.userAgent = 'fusebit-cli/1.8.9';
     response = await getFunction(account, boundaryId, function1Id);
-    httpExpect(response, { statusCode: 400 });
+    expect(response).toBeHttp({ statusCode: 400 });
 
     account.userAgent = `fusebit-cli/${semver.minVersion(supportedClientVersion.client.v)}`;
     response = await getFunction(account, boundaryId, function1Id);
-    httpExpect(response, { statusCode: 200 });
+    expect(response).toBeHttp({ statusCode: 200 });
   }, 180000);
 });

@@ -4,50 +4,122 @@ import { IHttpResponse } from '@5qtrs/request';
 // Internal Functions
 // ------------------
 
-function toBeHttpError(received: any, status: number, message: string) {
-  let pass = false;
-  let result = `expected HTTP response to be defined`;
-  if (received) {
-    if (!received.status) {
-      result = `expected HTTP response to have a status`;
-    } else if (received.status !== status) {
-      result = `expected HTTP response status '${received.status}' to be '${status}'`;
-    } else {
-      if (!received.data) {
-        result = `expected HTTP response to have data'`;
+function toBeHttp(response: IHttpResponse, { statusCode, data, headers, has, hasNot, tests }: any) {
+  try {
+    if (statusCode) {
+      if (typeof statusCode === 'object') {
+        expect(statusCode).toContain(response.status);
       } else {
-        if (!received.data.status) {
-          result = `expected HTTP response data to have a 'status' property`;
-        } else if (received.data.status !== status) {
-          result = `expected HTTP response data status '${received.data.status}' to be '${status}'`;
-        } else {
-          if (!received.data.statusCode) {
-            result = `expected HTTP response data to have a 'statusCode' property`;
-          } else if (received.data.statusCode !== status) {
-            result = `expected HTTP response data status code '${received.data.statusCode}' to be '${status}'`;
-          } else {
-            if (!received.data.message) {
-              result = `expected HTTP response data to have a 'message' property`;
-            } else if (received.data.message !== message) {
-              result = `expected HTTP response data message '${received.data.message}' to be '${message}'`;
-            } else {
-              pass = true;
-            }
-          }
-        }
+        expect(response.status).toEqual(statusCode);
       }
     }
+
+    if (data) {
+      if (typeof data === 'object') {
+        for (const [key, value] of Object.entries(data)) {
+          expect(response.data[key]).toEqual(value);
+        }
+      } else {
+        expect(response.data).toEqual(data);
+      }
+    }
+
+    if (has) {
+      expect(response.data).toBeDefined();
+      has.forEach((h: string) => {
+        expect(response.data[h]).toBeDefined();
+      });
+    }
+
+    if (hasNot) {
+      expect(response.data).toBeDefined();
+      hasNot.forEach((h: string) => {
+        expect(response.data[h]).toBeUndefined();
+      });
+    }
+
+    if (headers) {
+      for (const [key, value] of Object.entries(headers)) {
+        expect(response.headers[key]).toEqual(value);
+      }
+    }
+
+    if (tests) {
+      for (const test of tests) {
+        test();
+      }
+    }
+  } catch (err) {
+    const msg = `${err.message}\n\nfailing response:\n${response.status} - ${JSON.stringify(
+      response.headers,
+      null,
+      2
+    )} - ${JSON.stringify(response.data, null, 2)}`;
+    return { message: () => msg, pass: false };
+  }
+  return { message: () => '', pass: true };
+}
+
+function toBeHttpError(received: any, status: number, message?: string) {
+  let pass = false;
+
+  const asResult = (msg: string) => {
+    const err = `${msg}\n\nfailing response:\n${received.status} - ${JSON.stringify(
+      received.headers,
+      null,
+      2
+    )} - ${JSON.stringify(received.data, null, 2)}`;
+    return { message: () => err, pass };
+  };
+
+  if (!received) {
+    return asResult(`expected HTTP response to be defined`);
   }
 
-  return {
-    message: () => result,
-    pass,
-  };
+  if (!received.status) {
+    return asResult(`expected HTTP response to have a status`);
+  }
+
+  if (received.status !== status) {
+    return asResult(`expected HTTP response status '${received.status}' to be '${status}'`);
+  }
+
+  if (!received.data) {
+    return asResult(`expected HTTP response to have data'`);
+  }
+
+  if (!received.data.status) {
+    return asResult(`expected HTTP response data to have a 'status' property`);
+  }
+
+  if (received.data.status !== status) {
+    return asResult(`expected HTTP response data status '${received.data.status}' to be '${status}'`);
+  }
+
+  if (!received.data.statusCode) {
+    return asResult(`expected HTTP response data to have a 'statusCode' property`);
+  }
+
+  if (received.data.statusCode !== status) {
+    return asResult(`expected HTTP response data status code '${received.data.statusCode}' to be '${status}'`);
+  }
+
+  if (!received.data.message) {
+    return asResult(`expected HTTP response data to have a 'message' property`);
+  }
+
+  if (received.data.message.indexOf(message) === -1) {
+    return asResult(`expected HTTP response data message '${received.data.message}' to be '${message}'`);
+  }
+
+  pass = true;
+
+  return asResult('');
 }
 
 function toBeMalformedAccountError(received: any, malformedAccountId: string) {
   const message = [
-    `"accountId" with value "${malformedAccountId}"`,
+    `accountId: "accountId" with value "${malformedAccountId}"`,
     'fails to match the required pattern: /^acc-[a-g0-9]{16}$/',
   ].join(' ');
   return toBeHttpError(received, 400, message);
@@ -97,34 +169,34 @@ function toBeStorageNotFound(received: any, storageId: string, storagePath?: str
   return toBeHttpError(received, 404, `The storage for '${storageId}' ${storagePathMessage}does not exist`);
 }
 
-// -------------------
-// Exported Interfaces
-// -------------------
+const matchers = {
+  toBeHttp,
+  toBeHttpError,
+  toBeMalformedAccountError,
+  toBeUnauthorizedError,
+  toBeNotFoundError,
+  toBeUnauthorizedToGrantError,
+  toBeStorageConflict,
+  toBeStorageNotFound,
+};
 
-export interface ExtendedMatchers extends jest.Matchers<IHttpResponse, IHttpResponse> {
-  toBeHttpError: (status: number, message: string) => void;
-  toBeMalformedAccountError: (malformedAccountId: string) => void;
-  toBeUnauthorizedError: () => void;
-  toBeNotFoundError: () => void;
-  toBeUnauthorizedToGrantError: (userId: string, action: string, resource: string) => void;
-  toBeStorageConflict: (storageId: string, etag: string, isUpdate?: boolean, storagePath?: string) => void;
-  toBeStorageNotFound: (storageId: string, storagePath?: string) => void;
+declare global {
+  namespace jest {
+    interface Matchers<R, T> {
+      toBeHttp: ({ statusCode, data, headers, tests }: any) => R;
+      toBeHttpError: (status: number, message: string) => R;
+      toBeMalformedAccountError: (malformedAccountId: string) => R;
+      toBeUnauthorizedError: () => R;
+      toBeNotFoundError: () => R;
+      toBeUnauthorizedToGrantError: (userId: string, action: string, resource: string) => R;
+      toBeStorageConflict: (storageId: string, etag: string, isUpdate?: boolean, storagePath?: string) => R;
+      toBeStorageNotFound: (storageId: string, storagePath?: string) => R;
+    }
+  }
 }
 
-// ------------------
-// Exported Functions
-// ------------------
-
-export function extendExpect(expect: any): (value: any) => ExtendedMatchers {
-  expect.extend({
-    toBeHttpError,
-    toBeMalformedAccountError,
-    toBeUnauthorizedError,
-    toBeNotFoundError,
-    toBeUnauthorizedToGrantError,
-    toBeStorageConflict,
-    toBeStorageNotFound,
-  });
-
-  return expect as (value: any) => ExtendedMatchers;
+// Load in the enhancements to expect
+const jestExpect = (global as any).expect;
+if (jestExpect !== undefined) {
+  jestExpect.extend(matchers);
 }

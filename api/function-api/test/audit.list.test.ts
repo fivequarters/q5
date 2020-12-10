@@ -18,9 +18,7 @@ import {
   cleanUpHostedIssuers,
 } from './sdk';
 import { random } from '@5qtrs/random';
-import { extendExpect } from './extendJest';
-
-const expectMore = extendExpect(expect);
+import './extendJest';
 
 let account: IAccount = FakeAccount;
 
@@ -45,9 +43,7 @@ describe('Audit', () => {
       await Promise.all([addUser(testAccount, {}), addClient(testAccount, {})]);
 
       const audit = await listAudit(account);
-      expect(audit.status).toBe(200);
-      expect(audit.data).toBeDefined();
-      expect(audit.data.items).toBeDefined();
+      expect(audit).toBeHttp({ statusCode: 200, has: ['items'] });
       expect(audit.data.items.length).toBeGreaterThan(2);
     }, 180000);
 
@@ -59,9 +55,7 @@ describe('Audit', () => {
       await Promise.all([addUser(testAccount, {}), addClient(testAccount, {})]);
 
       const audit = await listAudit(account);
-      expect(audit.status).toBe(200);
-      expect(audit.data).toBeDefined();
-      expect(audit.data.items).toBeDefined();
+      expect(audit).toBeHttp({ statusCode: 200, has: ['items'] });
       expect(audit.data.items.length).toBeGreaterThan(2);
       let lastTime = new Date(audit.data.items[0].timestamp).getTime();
       for (const item of audit.data.items) {
@@ -80,9 +74,7 @@ describe('Audit', () => {
       const now = Date.now();
 
       const audit = await listAudit(account, { issuerId: testUser.identities[0].issuerId });
-      expect(audit.status).toBe(200);
-      expect(audit.data).toBeDefined();
-      expect(audit.data.items).toBeDefined();
+      expect(audit).toBeHttp({ statusCode: 200, has: ['items'] });
       expect(audit.data.items.length).toBe(2);
       for (const item of audit.data.items) {
         expect(item.issuerId).toBe(testUser.identities[0].issuerId);
@@ -122,9 +114,7 @@ describe('Audit', () => {
       const now = Date.now();
 
       const audit = await listAudit(account, { issuerId: testIssuer.issuerId, subject: subject1 });
-      expect(audit.status).toBe(200);
-      expect(audit.data).toBeDefined();
-      expect(audit.data.items).toBeDefined();
+      expect(audit).toBeHttp({ statusCode: 200, has: ['items'] });
       expect(audit.data.items.length).toBe(1);
       for (const item of audit.data.items) {
         expect(item.issuerId).toBe(testIssuer.issuerId);
@@ -148,7 +138,7 @@ describe('Audit', () => {
 
       const subject = testUser.identities[0].subject;
       const audit = await listAudit(account, { subject });
-      expectMore(audit).toBeHttpError(
+      expect(audit).toBeHttpError(
         400,
         `The 'subject' filter '${subject}' can not be specified without the 'issuerId' filter`
       );
@@ -163,9 +153,7 @@ describe('Audit', () => {
       const now = Date.now();
 
       const audit = await listAudit(account, { issuerId: testUser.identities[0].issuerId, action: 'client:*' });
-      expect(audit.status).toBe(200);
-      expect(audit.data).toBeDefined();
-      expect(audit.data.items).toBeDefined();
+      expect(audit).toBeHttp({ statusCode: 200, has: ['items'] });
       expect(audit.data.items.length).toBe(1);
       for (const item of audit.data.items) {
         expect(item.issuerId).toBe(testUser.identities[0].issuerId);
@@ -191,9 +179,7 @@ describe('Audit', () => {
       const now = Date.now();
 
       const audit = await listAudit(account, { issuerId: testUser.identities[0].issuerId, action: 'user:add' });
-      expect(audit.status).toBe(200);
-      expect(audit.data).toBeDefined();
-      expect(audit.data.items).toBeDefined();
+      expect(audit).toBeHttp({ statusCode: 200, has: ['items'] });
       expect(audit.data.items.length).toBe(1);
       for (const item of audit.data.items) {
         expect(item.issuerId).toBe(testUser.identities[0].issuerId);
@@ -223,9 +209,7 @@ describe('Audit', () => {
         resource: `/account/${account.accountId}/user`,
       });
 
-      expect(audit.status).toBe(200);
-      expect(audit.data).toBeDefined();
-      expect(audit.data.items).toBeDefined();
+      expect(audit).toBeHttp({ statusCode: 200, has: ['items'] });
       expect(audit.data.items.length).toBe(1);
 
       for (const item of audit.data.items) {
@@ -256,9 +240,7 @@ describe('Audit', () => {
 
       const audit = await listAudit(account, { issuerId: testUser.identities[0].issuerId, from: '-5s' });
 
-      expect(audit.status).toBe(200);
-      expect(audit.data).toBeDefined();
-      expect(audit.data.items).toBeDefined();
+      expect(audit).toBeHttp({ statusCode: 200, has: ['items'] });
       expect(audit.data.items.length).toBe(1);
 
       for (const item of audit.data.items) {
@@ -290,9 +272,7 @@ describe('Audit', () => {
 
       const audit = await listAudit(account, { issuerId: testUser.identities[0].issuerId, to: '-5s' });
 
-      expect(audit.status).toBe(200);
-      expect(audit.data).toBeDefined();
-      expect(audit.data.items).toBeDefined();
+      expect(audit).toBeHttp({ statusCode: 200, has: ['items'] });
       expect(audit.data.items.length).toBe(1);
 
       for (const item of audit.data.items) {
@@ -327,9 +307,7 @@ describe('Audit', () => {
 
       const audit = await listAudit(account, { issuerId: testUser.identities[0].issuerId, from: '-15s', to: '-5s' });
 
-      expect(audit.status).toBe(200);
-      expect(audit.data).toBeDefined();
-      expect(audit.data.items).toBeDefined();
+      expect(audit).toBeHttp({ statusCode: 200, has: ['items'] });
       expect(audit.data.items.length).toBe(1);
 
       for (const item of audit.data.items) {
@@ -368,9 +346,7 @@ describe('Audit', () => {
 
       const audit = await listAudit(account, { issuerId: testUser.identities[0].issuerId, from, to });
 
-      expect(audit.status).toBe(200);
-      expect(audit.data).toBeDefined();
-      expect(audit.data.items).toBeDefined();
+      expect(audit).toBeHttp({ statusCode: 200, has: ['items'] });
       expect(audit.data.items.length).toBe(1);
 
       for (const item of audit.data.items) {
@@ -409,9 +385,7 @@ describe('Audit', () => {
 
       const audit = await listAudit(account, { issuerId: testUser.identities[0].issuerId, from, to });
 
-      expect(audit.status).toBe(200);
-      expect(audit.data).toBeDefined();
-      expect(audit.data.items).toBeDefined();
+      expect(audit).toBeHttp({ statusCode: 200, has: ['items'] });
       expect(audit.data.items.length).toBe(1);
 
       for (const item of audit.data.items) {
@@ -450,9 +424,7 @@ describe('Audit', () => {
 
       const audit = await listAudit(account, { issuerId: testUser.identities[0].issuerId, from, to });
 
-      expect(audit.status).toBe(200);
-      expect(audit.data).toBeDefined();
-      expect(audit.data.items).toBeDefined();
+      expect(audit).toBeHttp({ statusCode: 200, has: ['items'] });
       expect(audit.data.items.length).toBe(1);
 
       for (const item of audit.data.items) {
@@ -473,29 +445,23 @@ describe('Audit', () => {
     test('Listing audit entries filtered by from and to using relative minutes should be supported', async () => {
       const audit = await listAudit(account, { from: '-15m', to: '-5m' });
 
-      expect(audit.status).toBe(200);
-      expect(audit.data).toBeDefined();
-      expect(audit.data.items).toBeDefined();
+      expect(audit).toBeHttp({ statusCode: 200, has: ['items'] });
     }, 180000);
 
     test('Listing audit entries filtered by from and to using relative hours should be supported', async () => {
       const audit = await listAudit(account, { from: '-3h', to: '-1h' });
 
-      expect(audit.status).toBe(200);
-      expect(audit.data).toBeDefined();
-      expect(audit.data.items).toBeDefined();
+      expect(audit).toBeHttp({ statusCode: 200, has: ['items'] });
     }, 180000);
 
     test('Listing audit entries filtered by from and to using relative days should be supported', async () => {
       const audit = await listAudit(account, { from: '-2d', to: '-1d' });
-      expect(audit.status).toBe(200);
-      expect(audit.data).toBeDefined();
-      expect(audit.data.items).toBeDefined();
+      expect(audit).toBeHttp({ statusCode: 200, has: ['items'] });
     }, 180000);
 
     test('Listing audit entries filtered by from with an invalid date/time returns an error', async () => {
       const audit = await listAudit(account, { from: 'nope' });
-      expectMore(audit).toBeHttpError(
+      expect(audit).toBeHttpError(
         400,
         [
           "The 'from' filter date/time 'nope' is invalid.",
@@ -506,7 +472,7 @@ describe('Audit', () => {
 
     test('Listing audit entries filtered by to with an invalid date/time returns an error', async () => {
       const audit = await listAudit(account, { to: 'blah' });
-      expectMore(audit).toBeHttpError(
+      expect(audit).toBeHttpError(
         400,
         [
           "The 'to' filter date/time 'blah' is invalid.",
@@ -525,18 +491,18 @@ describe('Audit', () => {
 
     test('Listing audit entries filtered by an invalid action should return an error', async () => {
       const audit = await listAudit(account, { action: 'client' });
-      expectMore(audit).toBeHttpError(400, `The 'action' filter 'client' is invalid`);
+      expect(audit).toBeHttpError(400, `The 'action' filter 'client' is invalid`);
     }, 180000);
 
     test('Listing audit entries with a malformed account should return an error', async () => {
       const malformed = await getMalformedAccount();
       const audit = await listAudit(malformed);
-      expectMore(audit).toBeMalformedAccountError(malformed.accountId);
+      expect(audit).toBeMalformedAccountError(malformed.accountId);
     }, 180000);
 
     test('Listing audit entries with a non-existing account should return an error', async () => {
       const audit = await listAudit(await getNonExistingAccount());
-      expectMore(audit).toBeUnauthorizedError();
+      expect(audit).toBeUnauthorizedError();
     }, 180000);
   });
 });

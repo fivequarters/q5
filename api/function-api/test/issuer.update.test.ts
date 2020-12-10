@@ -1,9 +1,7 @@
 import { random } from '@5qtrs/random';
 import { IAccount, FakeAccount, resolveAccount, getMalformedAccount, getNonExistingAccount } from './accountResolver';
 import { addIssuer, updateIssuer, cleanUpIssuers } from './sdk';
-import { extendExpect } from './extendJest';
-
-const expectMore = extendExpect(expect);
+import './extendJest';
 
 let account: IAccount = FakeAccount;
 beforeAll(async () => {
@@ -21,7 +19,7 @@ describe('Issuer', () => {
       await addIssuer(account, issuerId, { jsonKeysUrl: 'foo' });
 
       const issuer = await updateIssuer(account, issuerId, { jsonKeysUrl: 'bar' });
-      expect(issuer.status).toBe(200);
+      expect(issuer).toBeHttp({ statusCode: 200 });
       expect(issuer.data.id).toBe(issuerId);
       expect(issuer.data.jsonKeysUrl).toBe('bar');
       expect(issuer.data.publicKeys).toBeUndefined();
@@ -34,7 +32,7 @@ describe('Issuer', () => {
       await addIssuer(account, issuerId, { publicKeys });
 
       const issuer = await updateIssuer(account, issuerId, { jsonKeysUrl: 'bar' });
-      expect(issuer.status).toBe(200);
+      expect(issuer).toBeHttp({ statusCode: 200 });
       expect(issuer.data.id).toBe(issuerId);
       expect(issuer.data.jsonKeysUrl).toBe('bar');
       expect(issuer.data.publicKeys).toBeUndefined();
@@ -48,7 +46,7 @@ describe('Issuer', () => {
 
       publicKeys[0].publicKey = 'foo';
       const issuer = await updateIssuer(account, issuerId, { publicKeys });
-      expect(issuer.status).toBe(200);
+      expect(issuer).toBeHttp({ statusCode: 200 });
       expect(issuer.data.id).toBe(issuerId);
       expect(issuer.data.publicKeys).toEqual(publicKeys);
     }, 180000);
@@ -59,7 +57,7 @@ describe('Issuer', () => {
       await addIssuer(account, issuerId, { jsonKeysUrl: 'foo' });
 
       const issuer = await updateIssuer(account, issuerId, { publicKeys });
-      expect(issuer.status).toBe(200);
+      expect(issuer).toBeHttp({ statusCode: 200 });
       expect(issuer.data.id).toBe(issuerId);
       expect(issuer.data.publicKeys).toEqual(publicKeys);
     }, 180000);
@@ -69,7 +67,7 @@ describe('Issuer', () => {
       await addIssuer(account, issuerId, { jsonKeysUrl: 'foo', displayName: 'bar' });
 
       const issuer = await updateIssuer(account, issuerId, { displayName: 'biz' });
-      expect(issuer.status).toBe(200);
+      expect(issuer).toBeHttp({ statusCode: 200 });
       expect(issuer.data.id).toBe(issuerId);
       expect(issuer.data.jsonKeysUrl).toBe('foo');
       expect(issuer.data.publicKeys).toBeUndefined();
@@ -85,7 +83,7 @@ describe('Issuer', () => {
         { publicKey: 'bat', keyId: 'kid-2' },
       ];
       const issuer = await updateIssuer(account, issuerId, { publicKeys });
-      expect(issuer.status).toBe(200);
+      expect(issuer).toBeHttp({ statusCode: 200 });
       expect(issuer.data.id).toBe(issuerId);
       expect(issuer.data.publicKeys).toEqual(publicKeys);
     }, 180000);
@@ -96,10 +94,7 @@ describe('Issuer', () => {
 
       const publicKeys = [{ publicKey: 'bar', keyId: 'kid-0' }];
       const issuer = await updateIssuer(account, issuerId, { publicKeys, jsonKeysUrl: 'foo' });
-      expectMore(issuer).toBeHttpError(
-        400,
-        `The issuer '${issuerId}' can not have both public keys and a json keys URL`
-      );
+      expect(issuer).toBeHttpError(400, `The issuer '${issuerId}' can not have both public keys and a json keys URL`);
     }, 180000);
 
     test('Updating an issuer with empty string jsonKeysUrl is be supported', async () => {
@@ -107,7 +102,7 @@ describe('Issuer', () => {
       await addIssuer(account, issuerId, { jsonKeysUrl: 'foo' });
 
       const issuer = await updateIssuer(account, issuerId, { jsonKeysUrl: '' });
-      expectMore(issuer).toBeHttpError(400, '"jsonKeysUrl" is not allowed to be empty');
+      expect(issuer).toBeHttpError(400, '"jsonKeysUrl" is not allowed to be empty');
     }, 180000);
 
     test('Updating an issuer with empty string displayName is be supported', async () => {
@@ -115,14 +110,14 @@ describe('Issuer', () => {
       await addIssuer(account, issuerId, { jsonKeysUrl: 'foo' });
 
       const issuer = await updateIssuer(account, issuerId, { displayName: '' });
-      expectMore(issuer).toBeHttpError(400, '"displayName" is not allowed to be empty');
+      expect(issuer).toBeHttpError(400, '"displayName" is not allowed to be empty');
     }, 180000);
 
     test('Updating an issuer with the id in the body should be supported', async () => {
       const issuerId = `test-${random()}`;
       await addIssuer(account, issuerId, { jsonKeysUrl: 'foo' });
       const issuer = await updateIssuer(account, issuerId, { id: issuerId, jsonKeysUrl: 'updated' });
-      expect(issuer.status).toBe(200);
+      expect(issuer).toBeHttp({ statusCode: 200 });
       expect(issuer.data.id).toBeDefined();
       expect(issuer.data.jsonKeysUrl).toBe('updated');
       expect(issuer.data.id).toBe(issuerId);
@@ -133,7 +128,7 @@ describe('Issuer', () => {
       await addIssuer(account, issuerId, { jsonKeysUrl: 'foo' });
       const id = 'other-issuer-id';
       const issuer = await updateIssuer(account, issuerId, { id, jsonKeysUrl: 'updated' });
-      expectMore(issuer).toBeHttpError(
+      expect(issuer).toBeHttpError(
         400,
         `The issuerId in the body '${id}' does not match the issuerId in the URL '${issuerId}'`
       );
@@ -150,10 +145,7 @@ describe('Issuer', () => {
         { publicKey: 'bap', keyId: 'kid-3' },
       ];
       const issuer = await updateIssuer(account, issuerId, { publicKeys });
-      expect(issuer.status).toBe(400);
-      expect(issuer.data.status).toBe(400);
-      expect(issuer.data.statusCode).toBe(400);
-      expect(issuer.data.message).toBe('"publicKeys" must contain less than or equal to 3 items');
+      expect(issuer).toBeHttpError(400, '"publicKeys" must contain less than or equal to 3 items');
     }, 180000);
 
     test('Updating an issuer with no updated fields is a no-op', async () => {
@@ -161,7 +153,7 @@ describe('Issuer', () => {
       await addIssuer(account, issuerId, { jsonKeysUrl: 'foo' });
 
       const issuer = await updateIssuer(account, issuerId, {});
-      expect(issuer.status).toBe(200);
+      expect(issuer).toBeHttp({ statusCode: 200 });
       expect(issuer.data.id).toBe(issuerId);
       expect(issuer.data.jsonKeysUrl).toBe('foo');
       expect(issuer.data.publicKeys).toBeUndefined();
@@ -172,7 +164,7 @@ describe('Issuer', () => {
       await addIssuer(account, issuerId, { jsonKeysUrl: 'foo' });
 
       const issuer = await updateIssuer(account, issuerId, { publicKeys: [] });
-      expectMore(issuer).toBeHttpError(400, `"publicKeys" must contain at least 1 items`);
+      expect(issuer).toBeHttpError(400, `"publicKeys" must contain at least 1 items`);
     }, 180000);
 
     test('Updating an issuer with a publicKey without a key id is not supported', async () => {
@@ -180,7 +172,7 @@ describe('Issuer', () => {
       await addIssuer(account, issuerId, { jsonKeysUrl: 'foo' });
 
       const issuer = await updateIssuer(account, issuerId, { publicKeys: [{ publicKey: 'bar' }] });
-      expectMore(issuer).toBeHttpError(400, '"keyId" is required');
+      expect(issuer).toBeHttpError(400, '"keyId" is required');
     }, 180000);
 
     test('Updating an issuer with a publicKey with an empty key id is not supported', async () => {
@@ -188,7 +180,7 @@ describe('Issuer', () => {
       await addIssuer(account, issuerId, { jsonKeysUrl: 'foo' });
 
       const issuer = await updateIssuer(account, issuerId, { publicKeys: [{ publicKey: 'bar', keyId: '' }] });
-      expectMore(issuer).toBeHttpError(400, '"keyId" is not allowed to be empty');
+      expect(issuer).toBeHttpError(400, '"keyId" is not allowed to be empty');
     }, 180000);
 
     test('Updating an issuer with a publicKey without an actual publicKey is not supported', async () => {
@@ -196,7 +188,7 @@ describe('Issuer', () => {
       await addIssuer(account, issuerId, { jsonKeysUrl: 'foo' });
 
       const issuer = await updateIssuer(account, issuerId, { publicKeys: [{ keyId: 'bar' }] });
-      expectMore(issuer).toBeHttpError(400, '"publicKey" is required');
+      expect(issuer).toBeHttpError(400, '"publicKey" is required');
     }, 180000);
 
     test('Updating an issuer with a publicKey with an empty publicKey is not supported', async () => {
@@ -204,7 +196,7 @@ describe('Issuer', () => {
       await addIssuer(account, issuerId, { jsonKeysUrl: 'foo' });
 
       const issuer = await updateIssuer(account, issuerId, { publicKeys: [{ keyId: 'bar', publicKey: '' }] });
-      expectMore(issuer).toBeHttpError(400, '"publicKey" is not allowed to be empty');
+      expect(issuer).toBeHttpError(400, '"publicKey" is not allowed to be empty');
     }, 180000);
 
     test('Updating a non-existing issuer should return an error', async () => {
@@ -212,7 +204,7 @@ describe('Issuer', () => {
       const publicKeys = [{ publicKey: 'bar', keyId: 'kid-0' }];
 
       const issuer = await updateIssuer(account, issuerId, { publicKeys });
-      expectMore(issuer).toBeHttpError(404, `The issuer '${issuerId}' is not associated with the account`);
+      expect(issuer).toBeHttpError(404, `The issuer '${issuerId}' is not associated with the account`);
     }, 180000);
 
     test('Getting an issuer with a malformed account should return an error', async () => {
@@ -222,7 +214,7 @@ describe('Issuer', () => {
 
       const malformed = await getMalformedAccount();
       const issuer = await updateIssuer(malformed, issuerId, { publicKeys });
-      expectMore(issuer).toBeMalformedAccountError(malformed.accountId);
+      expect(issuer).toBeMalformedAccountError(malformed.accountId);
     }, 180000);
 
     test('Getting an issuer with a non-existing account should return an error', async () => {
@@ -231,7 +223,7 @@ describe('Issuer', () => {
       await addIssuer(account, issuerId, { publicKeys });
 
       const issuer = await updateIssuer(await getNonExistingAccount(), issuerId, { publicKeys });
-      expectMore(issuer).toBeUnauthorizedError();
+      expect(issuer).toBeUnauthorizedError();
     }, 180000);
   });
 });

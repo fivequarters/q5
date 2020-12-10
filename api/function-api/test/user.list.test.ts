@@ -1,9 +1,7 @@
 import { IAccount, FakeAccount, resolveAccount, getMalformedAccount, getNonExistingAccount } from './accountResolver';
 import { addUser, listUsers, cleanUpUsers } from './sdk';
 import { random } from '@5qtrs/random';
-import { extendExpect } from './extendJest';
-
-const expectMore = extendExpect(expect);
+import './extendJest';
 
 let account: IAccount = FakeAccount;
 let testRunId: string = '00000';
@@ -28,7 +26,7 @@ describe('User', () => {
         addUser(account, {}),
       ]);
       const result = await listUsers(account);
-      expect(result.status).toBe(200);
+      expect(result).toBeHttp({ statusCode: 200 });
       expect(result.data.items.length).toBeGreaterThanOrEqual(5);
     }, 180000);
 
@@ -41,7 +39,7 @@ describe('User', () => {
         addUser(account, { firstName, access, identities: [{ issuerId: 'foo', subject: `sub-${random()}` }] }),
       ]);
       const result = await listUsers(account, { name: firstName });
-      expect(result.status).toBe(200);
+      expect(result).toBeHttp({ statusCode: 200 });
       expect(result.data.items.length).toBe(3);
       const lookup: any = {};
 
@@ -63,7 +61,7 @@ describe('User', () => {
         addUser(account, { firstName, access, identities: [{ issuerId: 'foo', subject: `sub-${random()}` }] }),
       ]);
       const result = await listUsers(account, { name: firstName, include: true });
-      expect(result.status).toBe(200);
+      expect(result).toBeHttp({ statusCode: 200 });
       expect(result.data.items.length).toBe(3);
       const lookup: any = {};
 
@@ -85,7 +83,7 @@ describe('User', () => {
         addUser(account, { firstName: `${testRunId} - 1e` }),
       ]);
       const result = await listUsers(account, { name: `${testRunId} - 1` });
-      expect(result.status).toBe(200);
+      expect(result).toBeHttp({ statusCode: 200 });
       expect(result.data.items.length).toBe(5);
       const lookup: any = {};
 
@@ -105,7 +103,7 @@ describe('User', () => {
         addUser(account, { lastName: `${testRunId} - 2e` }),
       ]);
       const result = await listUsers(account, { name: `${testRunId} - 2` });
-      expect(result.status).toBe(200);
+      expect(result).toBeHttp({ statusCode: 200 });
       expect(result.data.items.length).toBe(5);
       const lookup: any = {};
 
@@ -125,7 +123,7 @@ describe('User', () => {
         addUser(account, { lastName: `${testRunId} - 3e` }),
       ]);
       const result = await listUsers(account, { name: `${testRunId} - 3` });
-      expect(result.status).toBe(200);
+      expect(result).toBeHttp({ statusCode: 200 });
       expect(result.data.items.length).toBe(5);
       const lookup: any = {};
 
@@ -149,7 +147,7 @@ describe('User', () => {
         addUser(account, { primaryEmail: `${testRunId} - 4e` }),
       ]);
       const result = await listUsers(account, { email: `${testRunId} - 4` });
-      expect(result.status).toBe(200);
+      expect(result).toBeHttp({ statusCode: 200 });
       expect(result.data.items.length).toBe(5);
       const lookup: any = {};
 
@@ -169,7 +167,7 @@ describe('User', () => {
         addUser(account, { primaryEmail: `${testRunId} - email - 5e` }),
       ]);
       const result = await listUsers(account, { email: `${testRunId} - email - 5`, name: `${testRunId} - name - 5` });
-      expect(result.status).toBe(200);
+      expect(result).toBeHttp({ statusCode: 200 });
       expect(result.data.items.length).toBe(2);
       const lookup: any = {};
 
@@ -187,7 +185,7 @@ describe('User', () => {
         addUser(account, { identities: [{ issuerId: `${testRunId} - 11a`, subject: `sub-${random()}` }] }),
       ]);
       const result = await listUsers(account, { issuerId: `${testRunId} - 11`, include: true });
-      expect(result.status).toBe(200);
+      expect(result).toBeHttp({ statusCode: 200 });
       expect(result.data.items.length).toBe(1);
       const lookup: any = {};
 
@@ -210,7 +208,7 @@ describe('User', () => {
         issuerId: 'foo',
         include: true,
       });
-      expect(result.status).toBe(200);
+      expect(result).toBeHttp({ statusCode: 200 });
       expect(result.data.items.length).toBe(1);
       const lookup: any = {};
 
@@ -232,12 +230,12 @@ describe('User', () => {
         addUser(account, { firstName: `${testRunId} - 13e` }),
       ]);
       const result1 = await listUsers(account, { name: `${testRunId} - 13`, count: 3 });
-      expect(result1.status).toBe(200);
+      expect(result1).toBeHttp({ statusCode: 200 });
       expect(result1.data.items.length).toBe(3);
       expect(result1.data.next).toBeDefined();
 
       const result2 = await listUsers(account, { name: `${testRunId} - 13`, next: result1.data.next });
-      expect(result2.status).toBe(200);
+      expect(result2).toBeHttp({ statusCode: 200 });
       expect(result2.data.items.length).toBe(2);
       expect(result2.data.next).toBeUndefined();
 
@@ -258,7 +256,7 @@ describe('User', () => {
         addUser(account, { lastName: `${testRunId} - 14c` }),
       ]);
       const result = await listUsers(account, { name: `${testRunId} - 14`, count: 0 });
-      expect(result.status).toBe(200);
+      expect(result).toBeHttp({ statusCode: 200 });
       expect(result.data.items.length).toBe(3);
       expect(result.data.next).toBeUndefined();
 
@@ -272,7 +270,7 @@ describe('User', () => {
 
     test('Listing all users with a negative count should return an error', async () => {
       const result = await listUsers(account, { count: -5 });
-      expectMore(result).toBeHttpError(400, "The limit value '-5' is invalid; must be a positive number");
+      expect(result).toBeHttpError(400, "The limit value '-5' is invalid; must be a positive number");
     }, 180000);
 
     test('Listing all users with an overly large count should use default max count', async () => {
@@ -282,7 +280,7 @@ describe('User', () => {
         addUser(account, { lastName: `${testRunId} - 15c` }),
       ]);
       const result = await listUsers(account, { name: `${testRunId} - 15`, count: 5000 });
-      expect(result.status).toBe(200);
+      expect(result).toBeHttp({ statusCode: 200 });
       expect(result.data.items.length).toBe(3);
       expect(result.data.next).toBeUndefined();
 
@@ -300,7 +298,7 @@ describe('User', () => {
         addUser(account, { identities: [{ subject: `${testRunId} - 7`, issuerId: `foo2` }] }),
       ]);
       const result = await listUsers(account, { subject: `${testRunId} - 7`, include: true });
-      expectMore(result).toBeHttpError(
+      expect(result).toBeHttpError(
         400,
         `The 'subject' filter '${testRunId} - 7' can not be specified without the 'issuerId' filter`
       );
@@ -309,12 +307,12 @@ describe('User', () => {
     test('Listing users with a malformed account should return an error', async () => {
       const malformed = await getMalformedAccount();
       const user = await listUsers(malformed);
-      expectMore(user).toBeMalformedAccountError(malformed.accountId);
+      expect(user).toBeMalformedAccountError(malformed.accountId);
     }, 180000);
 
     test('Listing users with a non-existing account should return an error', async () => {
       const user = await listUsers(await getNonExistingAccount());
-      expectMore(user).toBeUnauthorizedError();
+      expect(user).toBeUnauthorizedError();
     }, 180000);
   });
 });

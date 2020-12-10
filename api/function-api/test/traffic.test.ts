@@ -82,8 +82,8 @@ beforeEach(async () => {
   await Promise.all(boundaries.map((b: string) => deleteAllFunctions(account, b)));
 }, 180000);
 
-describe('traffic', () => {
-  test.skip(
+describe.skip('traffic', () => {
+  test(
     `Generate a bunch of traffic for ${process.env.TRAFFIC_DURATION} seconds`,
     async () => {
       if (!process.env.TRAFFIC_DURATION) {

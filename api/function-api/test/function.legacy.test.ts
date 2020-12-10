@@ -2,6 +2,8 @@ import { random } from '@5qtrs/random';
 import { IAccount, FakeAccount, resolveAccount, cloneWithUserAgent } from './accountResolver';
 import { putFunction, getFunction, deleteAllFunctions } from './sdk';
 
+import './extendJest';
+
 let account: IAccount = FakeAccount;
 
 const boundaryId = `test-boundary-${random({ lengthInBytes: 8 })}`;
@@ -146,14 +148,14 @@ beforeEach(async () => {
   await deleteAllFunctions(account, boundaryId);
 }, 120000);
 
-describe('function', () => {
+describe.skip('function', () => {
   test('PUT completes synchronously', async () => {
-    let response = await putFunction(account, boundaryId, function1Id, helloWorld);
-    expect(response.status).toEqual(200);
+    const response = await putFunction(account, boundaryId, function1Id, helloWorld);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data).toMatchObject({
       status: 'success',
       subscriptionId: account.subscriptionId,
-      boundaryId: boundaryId,
+      boundaryId,
       functionId: function1Id,
       transitions: {
         success: expect.any(String),
@@ -164,10 +166,9 @@ describe('function', () => {
 
   test('PUT with applicationSettings sets configuration', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithApplicationSettings);
-    expect(response.status).toEqual(200);
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
     response = await getFunction(account, boundaryId, function1Id);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.configuration).toEqual({ FOO: '123', BAR: 'abc' });
     expect(response.data.metadata).toEqual({
       fusebit: {
@@ -179,10 +180,9 @@ describe('function', () => {
 
   test('PUT with computeSettings sets compute', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithComputeSettings);
-    expect(response.status).toEqual(200);
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
     response = await getFunction(account, boundaryId, function1Id);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.configuration).toBeUndefined();
     expect(response.data.compute).toEqual({ timeout: 120, memorySize: 128, staticIp: false });
     expect(response.data.metadata).toEqual({
@@ -194,10 +194,9 @@ describe('function', () => {
 
   test('PUT with cronSettings sets schedule', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithCronSettings);
-    expect(response.status).toEqual(200);
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
     response = await getFunction(account, boundaryId, function1Id);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.configuration).toBeUndefined();
     expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: false });
     expect(response.data.schedule).toEqual({ cron: '0 0 1 1 *', timezone: 'UTC' });
@@ -211,66 +210,60 @@ describe('function', () => {
 
   test('PUT with applicationSettings set to empty string resets applicationSettings', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithApplicationSettings);
-    expect(response.status).toEqual(200);
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
 
     response = await getFunction(account, boundaryId, function1Id);
 
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.configuration).toEqual({ FOO: '123', BAR: 'abc' });
     expect(response.data.metadata.fusebit.applicationSettings).toEqual('FOO=123\n BAR  = abc');
 
     response.data.metadata.fusebit.applicationSettings = '';
 
     response = await putFunction(account, boundaryId, function1Id, response.data);
-    expect(response.status).toEqual(200);
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
 
     response = await getFunction(account, boundaryId, function1Id);
 
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.configuration).toEqual({ FOO: '123', BAR: 'abc' });
     expect(response.data.metadata.fusebit.applicationSettings).toEqual('FOO=123\nBAR=abc');
   }, 120000);
 
   test('PUT with computeSettings set to empty string resets computeSettings', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithComputeSettings);
-    expect(response.status).toEqual(200);
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
 
     response = await getFunction(account, boundaryId, function1Id);
 
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.compute).toEqual({ timeout: 120, memorySize: 128, staticIp: false });
     expect(response.data.metadata.fusebit.computeSettings).toBe('timeout= 120\nmemorySize=128\nstaticIp=false');
 
     response.data.metadata.fusebit.computeSettings = '';
     response = await putFunction(account, boundaryId, function1Id, response.data);
-    expect(response.status).toEqual(200);
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
 
     response = await getFunction(account, boundaryId, function1Id);
 
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.compute).toEqual({ timeout: 120, memorySize: 128, staticIp: false });
     expect(response.data.metadata.fusebit.computeSettings).toBe('timeout=120\nmemorySize=128\nstaticIp=false');
   }, 120000);
 
   test('PUT with cronSettings set to empty string resets schedule', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithCronSettings);
-    expect(response.status).toEqual(200);
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
 
     response = await getFunction(account, boundaryId, function1Id);
 
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.schedule).toEqual({ cron: '0 0 1 1 *', timezone: 'UTC' });
     expect(response.data.metadata.fusebit.cronSettings).toEqual('cron=0 0 1 1 *\n   timezone=UTC');
     response.data.metadata.fusebit.cronSettings = '';
 
     response = await putFunction(account, boundaryId, function1Id, response.data);
-    expect(response.status).toEqual(200);
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
 
     response = await getFunction(account, boundaryId, function1Id);
     expect(response.data.schedule).toEqual({ cron: '0 0 1 1 *', timezone: 'UTC' });
@@ -279,123 +272,115 @@ describe('function', () => {
 
   test('PUT with applicationSettings undefined is ignored', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfigurationAndMetadata);
-    expect(response.status).toEqual(200);
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
 
     response = await getFunction(account, boundaryId, function1Id);
 
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.configuration).toEqual({ FOO: '123', BAR: 'abc' });
 
     response.data.metadata.fusebit.applicationSettings = undefined;
     response = await putFunction(account, boundaryId, function1Id, response.data);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id);
 
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.configuration).toEqual({ FOO: '123', BAR: 'abc' });
   }, 120000);
 
   test('PUT with computeSettings undefined is ignored', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithStaticIp);
-    expect(response.status).toEqual(200);
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
 
     response = await getFunction(account, boundaryId, function1Id);
 
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: true });
 
     response.data.metadata.fusebit.computeSettings = undefined;
     response = await putFunction(account, boundaryId, function1Id, response.data);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: true });
   }, 120000);
 
   test('PUT with cronSettings undefined is ignored', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithCron);
-    expect(response.status).toEqual(200);
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
 
     response = await getFunction(account, boundaryId, function1Id);
 
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.schedule).toEqual({ cron: '0 0 1 1 *', timezone: 'UTC' });
 
     response.data.metadata.fusebit.cronSettings = undefined;
     response = await putFunction(account, boundaryId, function1Id, response.data);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id);
 
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.schedule).toEqual({ cron: '0 0 1 1 *', timezone: 'UTC' });
   }, 120000);
 
   test('PUT with empty compute resets compute', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithComputeSettings);
-    expect(response.status).toEqual(200);
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
 
     response = await getFunction(account, boundaryId, function1Id);
 
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.compute).toEqual({ timeout: 120, memorySize: 128, staticIp: false });
     expect(response.data.metadata.fusebit.computeSettings).toEqual('timeout= 120\nmemorySize=128\nstaticIp=false');
 
     response.data.compute = {};
     response = await putFunction(account, boundaryId, function1Id, response.data);
-    expect(response.status).toEqual(200);
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
 
     response = await getFunction(account, boundaryId, function1Id);
 
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: false });
     expect(response.data.metadata.fusebit.computeSettings).toEqual('memorySize=128\ntimeout=30\nstaticIp=false');
   }, 120000);
 
   test('PUT with empty configuration resets configuration', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfigurationAndMetadata);
-    expect(response.status).toEqual(200);
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
 
     response = await getFunction(account, boundaryId, function1Id);
 
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.configuration).toEqual({ FOO: '123', BAR: 'abc' });
     expect(response.data.metadata.fusebit.applicationSettings).toEqual('FOO=123\nBAR=abc');
 
     response.data.configuration = {};
     response = await putFunction(account, boundaryId, function1Id, response.data);
-    expect(response.status).toEqual(200);
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
 
     response = await getFunction(account, boundaryId, function1Id);
 
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.configuration).toBeUndefined();
     expect(response.data.metadata.fusebit.applicationSettings).toBeUndefined();
   }, 120000);
 
   test('PUT with empty schedule resets schedule', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithCron);
-    expect(response.status).toEqual(200);
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
 
     response = await getFunction(account, boundaryId, function1Id);
 
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.schedule).toEqual({ cron: '0 0 1 1 *', timezone: 'UTC' });
     expect(response.data.metadata.fusebit.cronSettings).toEqual('cron=0 0 1 1 *\ntimezone=UTC');
 
     response.data.schedule = {};
     response = await putFunction(account, boundaryId, function1Id, response.data);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id);
     expect(response.data.schedule).toBeUndefined();
@@ -404,145 +389,136 @@ describe('function', () => {
 
   test('PUT with undefined compute is ignored', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithStaticIp);
-    expect(response.status).toEqual(200);
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
 
     response = await getFunction(account, boundaryId, function1Id);
 
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: true });
     expect(response.data.metadata.fusebit.computeSettings).toEqual('staticIp=true\nmemorySize=128\ntimeout=30');
 
     response.data.compute = undefined;
     response = await putFunction(account, boundaryId, function1Id, response.data);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: true });
     expect(response.data.metadata.fusebit.computeSettings).toEqual('staticIp=true\nmemorySize=128\ntimeout=30');
   }, 120000);
 
   test('PUT with undefined configuration is ignored', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfigurationAndMetadata);
-    expect(response.status).toEqual(200);
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
 
     response = await getFunction(account, boundaryId, function1Id);
 
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.configuration).toEqual({ FOO: '123', BAR: 'abc' });
     expect(response.data.metadata.fusebit.applicationSettings).toEqual('FOO=123\nBAR=abc');
 
     response.data.configuration = undefined;
     response = await putFunction(account, boundaryId, function1Id, response.data);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id);
 
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.configuration).toEqual({ FOO: '123', BAR: 'abc' });
     expect(response.data.metadata.fusebit.applicationSettings).toEqual('FOO=123\nBAR=abc');
   }, 120000);
 
   test('PUT with undefined schedule is ignored', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithCron);
-    expect(response.status).toEqual(200);
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
 
     response = await getFunction(account, boundaryId, function1Id);
 
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.schedule).toEqual({ cron: '0 0 1 1 *', timezone: 'UTC' });
     expect(response.data.metadata.fusebit.cronSettings).toEqual('cron=0 0 1 1 *\ntimezone=UTC');
 
     response.data.schedule = undefined;
     response = await putFunction(account, boundaryId, function1Id, response.data);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.schedule).toEqual({ cron: '0 0 1 1 *', timezone: 'UTC' });
     expect(response.data.metadata.fusebit.cronSettings).toEqual('cron=0 0 1 1 *\ntimezone=UTC');
   }, 120000);
 
   test('PUT with undefined compute and undefined computeSettings resets compute', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithComputeSettings);
-    expect(response.status).toEqual(200);
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
 
     response = await getFunction(account, boundaryId, function1Id);
 
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.metadata.fusebit.computeSettings).toEqual('timeout= 120\nmemorySize=128\nstaticIp=false');
     expect(response.data.compute).toEqual({ timeout: 120, memorySize: 128, staticIp: false });
 
     response.data.metadata.fusebit.computeSettings = undefined;
     response.data.compute = undefined;
     response = await putFunction(account, boundaryId, function1Id, response.data);
-    expect(response.status).toEqual(200);
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
 
     response = await getFunction(account, boundaryId, function1Id);
 
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: false });
   }, 120000);
 
   test('PUT with undefined configuration and undefined applicationSettings resets configuration', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfigurationAndMetadata);
-    expect(response.status).toEqual(200);
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
 
     response = await getFunction(account, boundaryId, function1Id);
 
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.configuration).toEqual({ FOO: '123', BAR: 'abc' });
     expect(response.data.metadata.fusebit.applicationSettings).toEqual('FOO=123\nBAR=abc');
 
     response.data.metadata.fusebit.applicationSettings = undefined;
     response.data.configuration = undefined;
     response = await putFunction(account, boundaryId, function1Id, response.data);
-    expect(response.status).toEqual(200);
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
 
     response = await getFunction(account, boundaryId, function1Id);
 
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.configuration).toBeUndefined();
     expect(response.data.metadata.fusebit.applicationSettings).toBeUndefined();
   }, 120000);
 
   test('PUT with undefined schedule and undefined cronSettings resets schedule', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithCron);
-    expect(response.status).toEqual(200);
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
 
     response = await getFunction(account, boundaryId, function1Id);
 
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.schedule).toEqual({ cron: '0 0 1 1 *', timezone: 'UTC' });
     expect(response.data.metadata.fusebit.cronSettings).toEqual('cron=0 0 1 1 *\ntimezone=UTC');
 
     response.data.metadata.fusebit.cronSettings = undefined;
     response.data.schedule = undefined;
     response = await putFunction(account, boundaryId, function1Id, response.data);
-    expect(response.status).toEqual(200);
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
 
     response = await getFunction(account, boundaryId, function1Id);
 
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.schedule).toBeUndefined();
     expect(response.data.metadata.fusebit.cronSettings).toBeUndefined();
   }, 120000);
 
   test('PUT with new compute values updates compute and computeSettings', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
 
     const data = response.data;
     expect(data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: false });
@@ -550,72 +526,70 @@ describe('function', () => {
 
     data.compute.staticIp = true;
     response = await putFunction(account, boundaryId, function1Id, data);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: true });
     expect(response.data.metadata.fusebit.computeSettings).toEqual('memorySize=128\ntimeout=30\nstaticIp=true');
   }, 120000);
 
   test('PUT with new configuration values configuration compute and applicationSettings', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfigurationAndMetadata);
-    expect(response.status).toEqual(200);
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
 
     response = await getFunction(account, boundaryId, function1Id);
 
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.configuration).toEqual({ FOO: '123', BAR: 'abc' });
     expect(response.data.metadata.fusebit.applicationSettings).toEqual('FOO=123\nBAR=abc');
 
     response.data.configuration.BAZ = '789';
     response = await putFunction(account, boundaryId, function1Id, response.data);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.configuration).toEqual({ FOO: '123', BAR: 'abc', BAZ: '789' });
     expect(response.data.metadata.fusebit.applicationSettings).toEqual('FOO=123\nBAR=abc\nBAZ=789');
   }, 120000);
 
   test('PUT with new schedule values updates schedule and cronSettings', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithCron);
-    expect(response.status).toEqual(200);
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
 
     response = await getFunction(account, boundaryId, function1Id);
 
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.schedule).toEqual({ cron: '0 0 1 1 *', timezone: 'UTC' });
     expect(response.data.metadata.fusebit.cronSettings).toEqual('cron=0 0 1 1 *\ntimezone=UTC');
 
     response.data.schedule.cron = '0 0 1 2 *';
     response = await putFunction(account, boundaryId, function1Id, response.data);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.schedule).toEqual({ cron: '0 0 1 2 *', timezone: 'UTC' });
     expect(response.data.metadata.fusebit.cronSettings).toEqual('cron=0 0 1 2 *\ntimezone=UTC');
   }, 120000);
 
   test('PUT with computeSettings and lambda uses computeSettings', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithStaticIp);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
 
     expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: true });
     expect(response.data.metadata.fusebit.computeSettings).toEqual('staticIp=true\nmemorySize=128\ntimeout=30');
 
     response.data.lambda = { staticIp: false };
     response = await putFunction(account, boundaryId, function1Id, response.data);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
 
     expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: true });
     expect(response.data.metadata.fusebit.computeSettings).toEqual('staticIp=true\nmemorySize=128\ntimeout=30');
@@ -623,8 +597,7 @@ describe('function', () => {
 
   test('PUT with non-conflicting metadata and structured data changes is supported', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfigurationAndMetadata);
-    expect(response.status).toEqual(200);
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
     response = await getFunction(account, boundaryId, function1Id);
     const data = response.data;
     data.compute.timeout = 60;
@@ -632,9 +605,9 @@ describe('function', () => {
     data.configuration.FOO = '789';
     data.metadata.fusebit.applicationSettings = data.metadata.fusebit.applicationSettings.replace('123', '789');
     response = await putFunction(account, boundaryId, function1Id, data);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     response = await getFunction(account, boundaryId, function1Id);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.configuration).toEqual({ BAR: 'abc', FOO: '789' });
     expect(response.data.compute).toEqual({ timeout: 60, memorySize: 128, staticIp: false });
     expect(response.data.metadata).toEqual({
@@ -649,48 +622,45 @@ describe('function', () => {
 
   test('PUT with conflicting configuration and application settings uses configuration', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfigurationAndMetadata);
-    expect(response.status).toEqual(200);
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
     response = await getFunction(account, boundaryId, function1Id);
 
     const data = response.data;
     data.configuration.BAZ = '789';
     data.metadata.fusebit.applicationSettings = data.metadata.fusebit.applicationSettings.replace('123', '456');
     response = await putFunction(account, boundaryId, function1Id, data);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.configuration).toEqual({ FOO: '123', BAR: 'abc', BAZ: '789' });
     expect(response.data.metadata.fusebit.applicationSettings).toEqual('FOO=123\nBAR=abc\nBAZ=789');
   }, 120000);
 
   test('PUT with conflicting schedule and cronSettings uses schedule', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithCron);
-    expect(response.status).toEqual(200);
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
 
     response = await getFunction(account, boundaryId, function1Id);
 
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.schedule).toEqual({ cron: '0 0 1 1 *', timezone: 'UTC' });
     expect(response.data.metadata.fusebit.cronSettings).toEqual('cron=0 0 1 1 *\ntimezone=UTC');
 
     response.data.schedule.cron = '0 0 1 2 *';
     response.data.metadata.fusebit.cronSettings = 'cron=0 0 1 1 *\ntimezone=Etc/GMT-12';
     response = await putFunction(account, boundaryId, function1Id, response.data);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.schedule).toEqual({ cron: '0 0 1 2 *', timezone: 'UTC' });
     expect(response.data.metadata.fusebit.cronSettings).toEqual('cron=0 0 1 2 *\ntimezone=UTC');
   }, 120000);
 
   test('PUT with conflicting compute and computeSettings uses compute', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
-    expect(response.status).toEqual(200);
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
     response = await getFunction(account, boundaryId, function1Id);
 
     const data = response.data;
@@ -701,39 +671,38 @@ describe('function', () => {
     );
 
     response = await putFunction(account, boundaryId, function1Id, data);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.compute).toEqual({ timeout: 80, memorySize: 128, staticIp: false });
     expect(response.data.metadata.fusebit.computeSettings).toEqual('memorySize=128\ntimeout=80\nstaticIp=false');
   }, 120000);
 
   test('PUT supports setting staticIP=true', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithStaticIp);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     response = await getFunction(account, boundaryId, function1Id);
-    expect(response.status).toBe(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.compute).toEqual({ staticIp: true, memorySize: 128, timeout: 30 });
   }, 120000);
 
   test('PUT still supports lambda property for back-compat', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithLambda);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     response = await getFunction(account, boundaryId, function1Id);
-    expect(response.status).toBe(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.compute).toEqual({ staticIp: false, memorySize: 128, timeout: 90 });
   }, 120000);
 
   test('GET retrieves information of simple function', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
-    expect(response.status).toEqual(200);
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
     response = await getFunction(account, boundaryId, function1Id);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data).toMatchObject({
       subscriptionId: account.subscriptionId,
-      boundaryId: boundaryId,
+      boundaryId,
       id: function1Id,
       location: expect.stringMatching(/^http:|https:/),
     });
@@ -749,13 +718,12 @@ describe('function', () => {
 
   test('GET retrieves information of function with package.json as JavaScript object', async () => {
     let response = await putFunction(account, boundaryId, function2Id, helloWorldWithNode8JavaScript);
-    expect(response.status).toEqual(200);
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
     response = await getFunction(account, boundaryId, function2Id);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data).toMatchObject({
       subscriptionId: account.subscriptionId,
-      boundaryId: boundaryId,
+      boundaryId,
       id: function2Id,
       location: expect.stringMatching(/^http:|https:/),
     });
@@ -771,13 +739,12 @@ describe('function', () => {
 
   test('GET retrieves information of function with package.json as string', async () => {
     let response = await putFunction(account, boundaryId, function2Id, helloWorldWithNode8String);
-    expect(response.status).toEqual(200);
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
     response = await getFunction(account, boundaryId, function2Id);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data).toMatchObject({
       subscriptionId: account.subscriptionId,
-      boundaryId: boundaryId,
+      boundaryId,
       id: function2Id,
       location: expect.stringMatching(/^http:|https:/),
     });
@@ -793,12 +760,12 @@ describe('function', () => {
 
   test('GET retrieves information of function with configuration and metadata', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfigurationAndMetadata);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     response = await getFunction(account, boundaryId, function1Id);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data).toMatchObject({
       subscriptionId: account.subscriptionId,
-      boundaryId: boundaryId,
+      boundaryId,
       id: function1Id,
       location: expect.stringMatching(/^http:|https:/),
     });
@@ -817,12 +784,12 @@ describe('function', () => {
 
   test('GET retrieves information of a cron function', async () => {
     let response = await putFunction(account, boundaryId, function2Id, helloWorldWithCron);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     response = await getFunction(account, boundaryId, function2Id);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data).toMatchObject({
       subscriptionId: account.subscriptionId,
-      boundaryId: boundaryId,
+      boundaryId,
       id: function2Id,
       location: expect.stringMatching(/^http:|https:/),
     });

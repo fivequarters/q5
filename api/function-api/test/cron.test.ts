@@ -2,6 +2,8 @@ import { IAccount, FakeAccount, resolveAccount } from './accountResolver';
 import { deleteFunction, putFunction, deleteAllFunctions, waitForBuild, sleep, getFunction, getLogs } from './sdk';
 import { request } from '@5qtrs/request';
 
+import './extendJest';
+
 let account: IAccount = FakeAccount;
 
 const boundaryId = `test-boundary-${Math.floor(Math.random() * 99999999).toString(32)}`;
@@ -20,7 +22,7 @@ beforeEach(async () => {
   await deleteAllFunctions(account, boundaryId);
 }, 180000);
 
-describe('cron', () => {
+describe.skip('cron', () => {
   test(
     'cron executes on schedule',
     async () => {
@@ -37,7 +39,7 @@ describe('cron', () => {
           runs,
         },
       });
-      expect(response.status).toEqual(200);
+      expect(response).toBeHttp({ statusCode: 200 });
 
       // Create cron that re-creates the storage function every second with a timestamp of its execution
 
@@ -96,11 +98,11 @@ describe('cron', () => {
           },
         },
       });
+      expect(response).toBeHttp({ statusCode: [200, 201] });
 
-      expect([200, 201]).toContain(response.status);
       if (response.status === 201) {
         response = await waitForBuild(account, response.data, 15, 1000);
-        expect(response.status).toEqual(200);
+        expect(response).toBeHttp({ statusCode: 200 });
       }
       expect(response.data.status).toEqual('success');
 
@@ -111,7 +113,7 @@ describe('cron', () => {
 
       const getRuns = async () => {
         const res = await getFunction(account, boundaryId, function2Id);
-        expect(res.status).toEqual(200);
+        expect(res).toBeHttp({ statusCode: 200 });
         return JSON.parse(Buffer.from(res.data.configuration.runs, 'base64').toString('utf8'));
       };
 
@@ -131,7 +133,7 @@ describe('cron', () => {
       }
 
       const logResponse = await logsPromise;
-      expect(logResponse.status).toEqual(200);
+      expect(logResponse).toBeHttp({ statusCode: 200 });
       expect(logResponse.headers['content-type']).toMatch(/text\/event-stream/);
 
       // Make sure we got at least halfway through the number of events to maximize the chance we validate

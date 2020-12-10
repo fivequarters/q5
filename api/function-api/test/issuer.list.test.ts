@@ -1,9 +1,7 @@
 import { random } from '@5qtrs/random';
 import { IAccount, FakeAccount, resolveAccount, getMalformedAccount, getNonExistingAccount } from './accountResolver';
 import { addIssuer, listIssuers, cleanUpIssuers } from './sdk';
-import { extendExpect } from './extendJest';
-
-const expectMore = extendExpect(expect);
+import './extendJest';
 
 let account: IAccount = FakeAccount;
 let testRunId: string = '00000';
@@ -29,7 +27,7 @@ describe('Issuer', () => {
         addIssuer(account, `${issuerId}-1e`, { jsonKeysUrl: 'foo', displayName: `test: ${testRunId} - 1e` }),
       ]);
       const result = await listIssuers(account);
-      expect(result.status).toBe(200);
+      expect(result).toBeHttp({ statusCode: 200 });
       expect(result.data.items.length).toBeGreaterThanOrEqual(5);
     }, 180000);
 
@@ -43,7 +41,7 @@ describe('Issuer', () => {
         addIssuer(account, `${issuerId}-2e`, { jsonKeysUrl: 'foo', displayName: `test: ${testRunId} - 2e` }),
       ]);
       const result = await listIssuers(account, undefined, undefined, `${testRunId} - 2`);
-      expect(result.status).toBe(200);
+      expect(result).toBeHttp({ statusCode: 200 });
       expect(result.data.items.length).toBe(5);
       const lookup: any = {};
 
@@ -66,12 +64,12 @@ describe('Issuer', () => {
         addIssuer(account, `${issuerId}-3e`, { jsonKeysUrl: 'foo', displayName: `test: ${testRunId} - 3e` }),
       ]);
       const result1 = await listIssuers(account, 3, undefined, `${testRunId} - 3`);
-      expect(result1.status).toBe(200);
+      expect(result1).toBeHttp({ statusCode: 200 });
       expect(result1.data.items.length).toBe(3);
       expect(result1.data.next).toBeDefined();
 
       const result2 = await listIssuers(account, undefined, result1.data.next, `${testRunId} - 3`);
-      expect(result2.status).toBe(200);
+      expect(result2).toBeHttp({ statusCode: 200 });
       expect(result2.data.items.length).toBe(2);
       expect(result2.data.next).toBeUndefined();
 
@@ -96,17 +94,17 @@ describe('Issuer', () => {
         addIssuer(account, `${issuerId}-4c`, { jsonKeysUrl: 'foo', displayName: `test: ${testRunId} - 4c` }),
       ]);
       const result1 = await listIssuers(account, 1, undefined, `${testRunId} - 4`);
-      expect(result1.status).toBe(200);
+      expect(result1).toBeHttp({ statusCode: 200 });
       expect(result1.data.items.length).toBe(1);
       expect(result1.data.next).toBeDefined();
 
       const result2 = await listIssuers(account, 1, result1.data.next, `${testRunId} - 4`);
-      expect(result2.status).toBe(200);
+      expect(result2).toBeHttp({ statusCode: 200 });
       expect(result2.data.items.length).toBe(1);
       expect(result2.data.next).toBeDefined();
 
       const result3 = await listIssuers(account, 1, result2.data.next, `${testRunId} - 4`);
-      expect(result3.status).toBe(200);
+      expect(result3).toBeHttp({ statusCode: 200 });
       expect(result3.data.items.length).toBe(1);
       expect(result3.data.next).toBeUndefined();
 
@@ -131,7 +129,7 @@ describe('Issuer', () => {
         addIssuer(account, `${issuerId}-5c`, { jsonKeysUrl: 'foo', displayName: `test: ${testRunId} - 5c` }),
       ]);
       const result = await listIssuers(account, 0, undefined, `${testRunId} - 5`);
-      expect(result.status).toBe(200);
+      expect(result).toBeHttp({ statusCode: 200 });
       expect(result.data.items.length).toBe(3);
       expect(result.data.next).toBeUndefined();
 
@@ -154,10 +152,7 @@ describe('Issuer', () => {
         addIssuer(account, `${issuerId}-5c`, { jsonKeysUrl: 'foo', displayName: `test: ${testRunId} - 5c` }),
       ]);
       const result = await listIssuers(account, -5, undefined, `${testRunId} - 5`);
-      expect(result.status).toBe(400);
-      expect(result.data.status).toBe(400);
-      expect(result.data.statusCode).toBe(400);
-      expect(result.data.message).toBe("The limit value '-5' is invalid; must be a positive number");
+      expect(result).toBeHttpError(400, "The limit value '-5' is invalid; must be a positive number");
     }, 180000);
 
     test('Listing all issuers with an overly large count should use default max count', async () => {
@@ -168,7 +163,7 @@ describe('Issuer', () => {
         addIssuer(account, `${issuerId}-6c`, { jsonKeysUrl: 'foo', displayName: `test: ${testRunId} - 6c` }),
       ]);
       const result = await listIssuers(account, 50000, undefined, `${testRunId} - 6`);
-      expect(result.status).toBe(200);
+      expect(result).toBeHttp({ statusCode: 200 });
       expect(result.data.items.length).toBe(3);
       expect(result.data.next).toBeUndefined();
 
@@ -186,12 +181,12 @@ describe('Issuer', () => {
     test('Listing issuers with a malformed account should return an error', async () => {
       const malformed = await getMalformedAccount();
       const issuer = await listIssuers(malformed);
-      expectMore(issuer).toBeMalformedAccountError(malformed.accountId);
+      expect(issuer).toBeMalformedAccountError(malformed.accountId);
     }, 180000);
 
     test('Listing issuers with a non-existing account should return an error', async () => {
       const issuer = await listIssuers(await getNonExistingAccount());
-      expectMore(issuer).toBeUnauthorizedError();
+      expect(issuer).toBeUnauthorizedError();
     }, 180000);
   });
 });

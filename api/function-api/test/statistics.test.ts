@@ -1,7 +1,9 @@
 import { IAccount, FakeAccount, resolveAccount } from './accountResolver';
 import { getStatistics, statisticsEnabled } from './sdk';
 import { request } from '@5qtrs/request';
-import { setupEnvironment, httpExpect } from './common';
+import { setupEnvironment } from './common';
+
+import './extendJest';
 
 const { getAccount, rotateBoundary, createFunction, function1Id, function2Id } = setupEnvironment();
 
@@ -17,7 +19,7 @@ const createAndHitFunction = async (
 
   // Hit the endpoint once.
   response = await request(response.data.location);
-  httpExpect(response, { statusCode: expectedCode, headers: { 'x-fx-response-source': expectedSource } });
+  expect(response).toBeHttp({ statusCode: expectedCode, headers: { 'x-fx-response-source': expectedSource } });
 
   // Get the bulk data from the endpoint.
   response = await getStatistics(
@@ -28,10 +30,10 @@ const createAndHitFunction = async (
       subscriptionId: account.subscriptionId,
       boundaryId,
     },
-    (response) => response.data.total != 0,
+    (r) => r.data.total !== 0,
     { code: expectedCode }
   );
-  httpExpect(response, { statusCode: 200, data: { total: 1, next: 1 } });
+  expect(response).toBeHttp({ statusCode: 200, data: { total: 1, next: 1 } });
 
   return response;
 };
@@ -56,14 +58,16 @@ const validateEntry = (account: IAccount, entry: any, boundaryId: string, functi
   expect(entry.fusebit.stackAMI).toEqual('0');
 };
 
-describe('statistics', () => {
+describe.skip('statistics', () => {
   test('itemized bulk contains a function event at various scopes', async () => {
     const account = getAccount();
-    let boundaryId = rotateBoundary();
-    if (!(await statisticsEnabled(account))) return;
+    const boundaryId = rotateBoundary();
+    if (!(await statisticsEnabled(account))) {
+      return;
+    }
 
     // Add a response to make sure only the requested data is returned
-    let responseAlt = await createAndHitFunction(
+    const responseAlt = await createAndHitFunction(
       account,
       boundaryId,
       'module.exports = async (ctx) => { return { status: 304, body: "hello" }; };',
@@ -83,7 +87,7 @@ describe('statistics', () => {
     // Validate: one response back from the statistics endpoint for this boundary
     expect(response.data.items.length).toEqual(1);
 
-    let entry = response.data.items[0];
+    const entry = response.data.items[0];
 
     // Validate: response.fusebit object contains expected results for filtering purposes
     validateEntry(account, entry, boundaryId, function1Id);
@@ -97,10 +101,10 @@ describe('statistics', () => {
         subscriptionId: account.subscriptionId,
         // Search w/o the boundaryId,
       },
-      (response) => response.data.total != 0,
+      (r) => r.data.total !== 0,
       { code: 200 }
     );
-    httpExpect(response, { statusCode: 200 });
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.items.some((e: any) => e.requestId === entry.requestId)).toBe(true);
 
     response = await getStatistics(
@@ -111,20 +115,22 @@ describe('statistics', () => {
         // Search w/o the subscriptionId
         // Search w/o the boundaryId
       },
-      (response) => response.data.total != 0,
+      (r) => r.data.total !== 0,
       { code: 200 }
     );
-    httpExpect(response, { statusCode: 200 });
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.items.some((e: any) => e.requestId === entry.requestId)).toBe(true);
   }, 180000);
 
   test('failing exception logged as 500', async () => {
     const account = getAccount();
-    let boundaryId = rotateBoundary();
-    if (!(await statisticsEnabled(account))) return;
+    const boundaryId = rotateBoundary();
+    if (!(await statisticsEnabled(account))) {
+      return;
+    }
 
     // Create and hit target function
-    let response = await createAndHitFunction(
+    const response = await createAndHitFunction(
       account,
       boundaryId,
       'module.exports = async (ctx) => { throw new Error("FOOBAR"); };',
@@ -132,11 +138,11 @@ describe('statistics', () => {
       'provider' // It's an open question whether this should be function or provider
     );
     expect(response.data.items.length).toEqual(1);
-    let entry = response.data.items[0];
+    const entry = response.data.items[0];
 
     // Validate that the object that's been returned contains useful and interesting details.
     validateEntry(account, entry, boundaryId, function1Id);
-    expect(entry.response.statusCode).toEqual(500);
+    expect(entry.response).toBeHttp({ statusCode: 500 });
     expect(entry.error).not.toBeNull();
     expect(entry.error.errorType).toEqual('Error');
     expect(entry.error.errorMessage).toEqual('FOOBAR');
@@ -147,11 +153,13 @@ describe('statistics', () => {
 
   test('code activity histogram contains a function event at various scopes', async () => {
     const account = getAccount();
-    let boundaryId = rotateBoundary();
-    if (!(await statisticsEnabled(account))) return;
+    const boundaryId = rotateBoundary();
+    if (!(await statisticsEnabled(account))) {
+      return;
+    }
 
     // Add a response to make sure only the requested data is returned
-    let responseAlt = await createAndHitFunction(
+    const responseAlt = await createAndHitFunction(
       account,
       boundaryId,
       'module.exports = async (ctx) => { return { status: 304, body: "hello" }; };',
@@ -169,7 +177,7 @@ describe('statistics', () => {
     );
     // Validate: one response back from the statistics endpoint for this boundary
     expect(response.data.items.length).toEqual(1);
-    let entry = response.data.items[0];
+    const entry = response.data.items[0];
     validateEntry(account, entry, boundaryId, function1Id);
 
     // Validate: increasing breadth of query by reducing IDs still includes target function UUID event
@@ -179,12 +187,12 @@ describe('statistics', () => {
       {
         accountId: account.accountId,
         subscriptionId: account.subscriptionId,
-        boundaryId: boundaryId,
+        boundaryId,
       },
-      (response) => response.data.items.length != 0,
+      (r) => r.data.items.length !== 0,
       { code: 200 }
     );
-    httpExpect(response, { statusCode: 200 });
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.items.length).toEqual(1);
     expect(response.data.items[0]).toHaveProperty('200', 1);
     expect(response.data.items[0]).toHaveProperty('key');
@@ -198,10 +206,10 @@ describe('statistics', () => {
         subscriptionId: account.subscriptionId,
         // Search w/o the boundaryId,
       },
-      (response) => response.data.items.length != 0,
+      (r) => r.data.items.length !== 0,
       { code: 200 }
     );
-    httpExpect(response, { statusCode: 200 });
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.items.length).toBeGreaterThanOrEqual(1);
 
     response = await getStatistics(
@@ -212,20 +220,22 @@ describe('statistics', () => {
         // Search w/o the subscriptionId
         // Search w/o the boundaryId
       },
-      (response) => response.data.total != 0,
+      (r) => r.data.total !== 0,
       { code: 200 }
     );
-    httpExpect(response, { statusCode: 200 });
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.items.length).toBeGreaterThanOrEqual(1);
   }, 180000);
 
   test('field unique histogram contains a function event at various scopes', async () => {
     const account = getAccount();
-    let boundaryId = rotateBoundary();
-    if (!(await statisticsEnabled(account))) return;
+    const boundaryId = rotateBoundary();
+    if (!(await statisticsEnabled(account))) {
+      return;
+    }
 
     // Add a response to make sure only the requested data is returned
-    let responseAlt = await createAndHitFunction(
+    const responseAlt = await createAndHitFunction(
       account,
       boundaryId,
       'module.exports = async (ctx) => { return { status: 304, body: "hello" }; };',
@@ -244,7 +254,7 @@ describe('statistics', () => {
 
     // Validate: one response back from the statistics endpoint for this boundary
     expect(response.data.items.length).toEqual(1);
-    let entry = response.data.items[0];
+    const entry = response.data.items[0];
     validateEntry(account, entry, boundaryId, function1Id);
 
     // Validate: value of 1 is present for a 200 success
@@ -254,12 +264,12 @@ describe('statistics', () => {
       {
         accountId: account.accountId,
         subscriptionId: account.subscriptionId,
-        boundaryId: boundaryId,
+        boundaryId,
       },
-      (response) => response.data.items.length != 0,
+      (r) => r.data.items.length !== 0,
       { field: 'accountid', code: 200 }
     );
-    httpExpect(response, { statusCode: 200 });
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.items.length).toEqual(1);
     expect(response.data.items[0]).toHaveProperty('200', 1);
     expect(response.data.items[0]).toHaveProperty('key');
@@ -272,12 +282,12 @@ describe('statistics', () => {
       {
         accountId: account.accountId,
         subscriptionId: account.subscriptionId,
-        boundaryId: boundaryId,
+        boundaryId,
       },
-      (response) => response.data.items.length == 0,
+      (r) => r.data.items.length === 0,
       { field: 'accountid', code: 300 }
     );
-    httpExpect(response, { statusCode: 200 });
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.items.length).toEqual(0);
 
     // Validate: Missing a 'field' returns a 400 error.
@@ -287,12 +297,12 @@ describe('statistics', () => {
       {
         accountId: account.accountId,
         subscriptionId: account.subscriptionId,
-        boundaryId: boundaryId,
+        boundaryId,
       },
-      (response) => true,
+      (r) => true,
       { codeGrouped: true }
     );
-    httpExpect(response, { statusCode: 400 });
+    expect(response).toBeHttp({ statusCode: 400 });
 
     // Validate: Supplying an incorrect field returns a 400
     response = await getStatistics(
@@ -301,21 +311,23 @@ describe('statistics', () => {
       {
         accountId: account.accountId,
         subscriptionId: account.subscriptionId,
-        boundaryId: boundaryId,
+        boundaryId,
       },
-      (response) => true,
+      (r) => true,
       { field: 'foobar', codeGrouped: null }
     );
-    httpExpect(response, { statusCode: 400 });
+    expect(response).toBeHttp({ statusCode: 400 });
   }, 180000);
 
   test('validate codeGrouped works', async () => {
     const account = getAccount();
-    let boundaryId = rotateBoundary();
-    if (!(await statisticsEnabled(account))) return;
+    const boundaryId = rotateBoundary();
+    if (!(await statisticsEnabled(account))) {
+      return;
+    }
 
     // Add a response to make sure only the requested data is returned
-    let responseAlt = await createAndHitFunction(
+    const responseAlt = await createAndHitFunction(
       account,
       boundaryId,
       'module.exports = async (ctx) => { return { status: 304, body: "hello" }; };',
@@ -335,7 +347,7 @@ describe('statistics', () => {
     // Validate: one response back from the statistics endpoint for this boundary
     expect(response.data.items.length).toEqual(1);
 
-    let entry = response.data.items[0];
+    const entry = response.data.items[0];
 
     // Validate: response.fusebit object contains expected results for filtering purposes
     validateEntry(account, entry, boundaryId, function1Id);
@@ -347,12 +359,12 @@ describe('statistics', () => {
       {
         accountId: account.accountId,
         subscriptionId: account.subscriptionId,
-        boundaryId: boundaryId,
+        boundaryId,
       },
-      (response) => response.data.total != 0,
+      (r) => r.data.total !== 0,
       { code: '2xx' }
     );
-    httpExpect(response, { statusCode: 200 });
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.items.length).toEqual(1);
     expect(response.data.items.some((e: any) => e.requestId === entry.requestId)).toBe(true);
 
@@ -363,12 +375,12 @@ describe('statistics', () => {
       {
         accountId: account.accountId,
         subscriptionId: account.subscriptionId,
-        boundaryId: boundaryId,
+        boundaryId,
       },
-      (response) => response.data.total == 1,
+      (r) => r.data.total === 1,
       { code: '3xx' }
     );
-    httpExpect(response, { statusCode: 200 });
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.items.length).toEqual(1);
 
     // Validate: grouped histogram queries return the event in the valid cateogry.
@@ -378,12 +390,12 @@ describe('statistics', () => {
       {
         accountId: account.accountId,
         subscriptionId: account.subscriptionId,
-        boundaryId: boundaryId,
+        boundaryId,
       },
-      (response) => response.data.total != 0,
+      (r) => r.data.total !== 0,
       { field: 'boundaryid', codeGrouped: true }
     );
-    httpExpect(response, { statusCode: 200 });
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.items.length).toEqual(1);
     expect(response.data.items[0]).toHaveProperty('2xx', 1);
     expect(response.data.items[0]).toHaveProperty('3xx', 1);
@@ -398,13 +410,13 @@ describe('statistics', () => {
       {
         accountId: account.accountId,
         subscriptionId: account.subscriptionId,
-        boundaryId: boundaryId,
+        boundaryId,
       },
-      (response) => response.data.total != 0,
+      (r) => r.data.total !== 0,
       { field: 'boundaryid', codeGrouped: false }
     );
 
-    httpExpect(response, { statusCode: 200 });
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.items.length).toEqual(1);
     expect(response.data.items[0]).toHaveProperty('200', 1);
     expect(response.data.items[0]).toHaveProperty('304', 1);
