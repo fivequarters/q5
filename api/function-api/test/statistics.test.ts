@@ -1,11 +1,11 @@
 import { IAccount, FakeAccount, resolveAccount } from './accountResolver';
-import { getStatistics, statisticsEnabled } from './sdk';
+import { putFunction, getStatistics, statisticsEnabled } from './sdk';
 import { request } from '@5qtrs/request';
 import { setupEnvironment } from './common';
 
 import './extendJest';
 
-const { getAccount, rotateBoundary, createFunction, function1Id, function2Id } = setupEnvironment();
+const { getAccount, rotateBoundary, function1Id, function2Id } = setupEnvironment();
 
 const createAndHitFunction = async (
   account: IAccount,
@@ -15,7 +15,8 @@ const createAndHitFunction = async (
   expectedSource: any = {}
 ) => {
   // Create a target function
-  let response = await createFunction(function1Id, func);
+  let response = await putFunction(getAccount(), rotateBoundary(), function1Id, func);
+  expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
 
   // Hit the endpoint once.
   response = await request(response.data.location);
