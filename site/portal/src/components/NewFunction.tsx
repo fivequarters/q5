@@ -112,15 +112,18 @@ function NewFunction({ subscriptionId, boundaryId }: any) {
     window.location.href = url;
   };
 
+  // Only show templates that:
+  // 1. are applicable to all subscriptions or are enabled for this subscription, and
+  // 2. match the user-specified filter, if any
   const filter = search.trim().toLowerCase();
-  const templates = filter
-    ? catalog.existing.templates.reduce((previous: CatalogTemplate[], current: CatalogTemplate) => {
-        if (current.name.toLowerCase().indexOf(filter) > -1 || current.description.toLowerCase().indexOf(filter) > -1) {
-          previous.push(current);
-        }
-        return previous;
-      }, [])
-    : catalog.existing.templates;
+  const templates = catalog.existing.templates.filter(
+    (template: CatalogTemplate) =>
+      (!template.enabledSubscriptions || template.enabledSubscriptions.indexOf(subscriptionId) > -1) &&
+      (!filter ||
+        template.name.toLowerCase().indexOf(filter) > -1 ||
+        template.description.toLowerCase().indexOf(filter) > -1 ||
+        (template.tags && template.tags.find((tag: string) => tag.toLowerCase().indexOf(filter) > -1)))
+  );
 
   return (
     <React.Fragment>
