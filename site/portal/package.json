@@ -1,6 +1,6 @@
 {
   "name": "@5qtrs/portal",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "Fusebit Portal",
   "private": true,
   "dependencies": {

@@ -6,6 +6,7 @@ export type CatalogTemplate = {
   icon?: string;
   managerUrl: string;
   documentationUrl?: string;
+  enabledSubscriptions?: string[];
 };
 
 export type Catalog = {
@@ -77,6 +78,16 @@ export function parseCatalog(data: any): Catalog {
       t.tags.forEach((e: any) => {
         if (typeof e !== 'string') {
           throw new Error(`The 'tags' property of a template must only contain strings.`);
+        }
+      });
+    }
+    if (t.enabledSubscriptions && !Array.isArray(t.enabledSubscriptions)) {
+      throw new Error(`The 'enabledSubscriptions' property of a template, if specified, must be an array of strings.`);
+    }
+    if (t.enabledSubscriptions) {
+      t.enabledSubscriptions.forEach((e: any) => {
+        if (typeof e !== 'string') {
+          throw new Error(`The 'enabledSubscriptions' property of a template must only contain strings.`);
         }
       });
     }
