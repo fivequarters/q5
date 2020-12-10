@@ -1,7 +1,9 @@
 import { request } from '@5qtrs/request';
 import { FakeAccount, IAccount, resolveAccount } from './accountResolver';
-import { httpExpect, setupEnvironment } from './common';
+import { setupEnvironment } from './common';
 import { deleteFunction, getFunctionLocation, listFunctions, putFunction } from './sdk';
+
+import './extendJest';
 
 import * as Tags from '@5qtrs/function-tags';
 
@@ -68,9 +70,9 @@ describe('function.tags', () => {
 
     // Create a couple functions to search for
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     response = await putFunction(account, boundaryId, function2Id, helloWorldUpdated);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
 
     const search = async (k: string, v: any, expected: any) => {
       let results: any;
@@ -120,11 +122,11 @@ describe('function.tags', () => {
     // Create a couple functions to search for
     let response: any;
     response = await putFunction(account, boundaryId, function1Id, helloWorld);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     response = await putFunction(account, boundaryId, function2Id, helloWorldUpdated);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     response = await putFunction(account, boundaryId, function3Id, helloWorld);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
 
     const search = async (k: string, v: any, next: any, limit: any) => {
       let results: any;
@@ -177,19 +179,19 @@ describe('function.tags', () => {
     let result: any;
     let next: any;
     response = await putFunction(account, boundaryId, function1Id, helloWorld);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     response = await putFunction(account, boundaryId, function2Id, helloWorldUpdated);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     response = await putFunction(account, boundaryId, function3Id, helloWorld);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     response = await putFunction(account, boundaryId, function4Id, helloWorldWithCron);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
 
     result = [];
     next = undefined;
     do {
       response = await listFunctions(account, boundaryId, true, 2, undefined, next);
-      expect(response.status).toEqual(200);
+      expect(response).toBeHttp({ statusCode: 200 });
       result = [...result, ...response.data.items];
       next = response.data.next;
     } while (next);
@@ -197,38 +199,38 @@ describe('function.tags', () => {
     expect(result[0].functionId).toBe(function4Id);
 
     response = await listFunctions(account, boundaryId, undefined, undefined, 'tag.common=3', undefined);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.items).toHaveLength(3);
 
     response = await listFunctions(account, boundaryId, undefined, undefined, 'tag.flies', undefined);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.items).toHaveLength(2);
 
     response = await listFunctions(account, boundaryId, undefined, undefined, 'tag.whiz=bang', undefined);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.items).toHaveLength(1);
 
     response = await listFunctions(account, boundaryId, undefined, undefined, 'tag.eq%3Dkey=found', undefined);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.items).toHaveLength(1);
 
     response = await listFunctions(account, boundaryId, undefined, undefined, 'tag.eq%3Dkey', undefined);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.items).toHaveLength(1);
 
     response = await listFunctions(account, boundaryId, undefined, undefined, 'tag.eqval=fou%3Dnd', undefined);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.items).toHaveLength(1);
 
     response = await listFunctions(account, boundaryId, undefined, undefined, 'tag.eqval', undefined);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.items).toHaveLength(1);
 
     result = [];
     next = undefined;
     do {
       response = await listFunctions(account, boundaryId, undefined, 2, 'cron', next);
-      expect(response.status).toEqual(200);
+      expect(response).toBeHttp({ statusCode: 200 });
       result = [...result, ...response.data.items];
       next = response.data.next;
     } while (next);
@@ -266,7 +268,7 @@ describe('function.tags', () => {
     next = undefined;
     do {
       response = await listFunctions(account, boundaryId, false, 2, undefined, next);
-      expect(response.status).toEqual(200);
+      expect(response).toBeHttp({ statusCode: 200 });
       result = [...result, ...response.data.items];
       next = response.data.next;
     } while (next);
@@ -309,22 +311,22 @@ describe('function.tags', () => {
     // Create a couple of functions to search for
     let response: any;
     response = await putFunction(account, boundaryId, function1Id, helloWorld);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     response = await putFunction(account, boundaryId, function2Id, helloWorldUpdated);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     response = await putFunction(account, boundaryId, function3Id, helloWorld);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
 
     let search: string[];
 
     search = ['common=3', 'foo=1'].map((t) => Constants.get_metadata_tag_key(t));
     response = await listFunctions(account, boundaryId, undefined, undefined, search, undefined);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.items).toHaveLength(2);
 
     search = ['common=3', 'foo=5'].map((t) => Constants.get_metadata_tag_key(t));
     response = await listFunctions(account, boundaryId, undefined, undefined, search, undefined);
-    expect(response.status).toEqual(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.items).toHaveLength(1);
 
     // Test the `next` handling
@@ -333,7 +335,7 @@ describe('function.tags', () => {
     let next;
     do {
       response = await listFunctions(account, boundaryId, undefined, 1, search, next);
-      expect(response.status).toEqual(200);
+      expect(response).toBeHttp({ statusCode: 200 });
       result = [...result, ...response.data.items];
       next = response.data.next;
     } while (next);

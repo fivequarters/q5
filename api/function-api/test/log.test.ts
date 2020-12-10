@@ -2,6 +2,8 @@ import { IAccount, FakeAccount, resolveAccount } from './accountResolver';
 import { putFunction, deleteAllFunctions, getLogs } from './sdk';
 import { request } from '@5qtrs/request';
 
+import './extendJest';
+
 let account: IAccount = FakeAccount;
 
 let boundaryId = `test-boundary-${Math.floor(Math.random() * 99999999).toString(32)}`;
@@ -26,7 +28,7 @@ afterEach(async () => {
 
 describe('log', () => {
   function create_positive_log_test(node: string, boundary: boolean) {
-    return async function () {
+    return async () => {
       let response = await putFunction(account, boundaryId, function1Id, {
         nodejs: {
           files: {
@@ -39,7 +41,7 @@ describe('log', () => {
           },
         },
       });
-      expect(response.status).toEqual(200);
+      expect(response).toBeHttp({ statusCode: 200 });
       expect(response.data).toMatchObject({
         location: expect.stringMatching(/^http:|https:/),
       });
@@ -50,21 +52,21 @@ describe('log', () => {
       // Real time logs can take up to 5s to become effective
       await new Promise((resolve) => setTimeout(resolve, 6000));
 
-      for (var i = 1; i < 5; i++) {
+      for (let i = 1; i < 5; i++) {
         response = await request(`${functionUrl}?n=${i}`);
-        expect(response.status).toEqual(200);
+        expect(response).toBeHttp({ statusCode: 200 });
       }
 
       // Wait for logs to drain
       await new Promise((resolve) => setTimeout(resolve, 4000));
 
       const logResponse = await logsPromise;
-      expect(logResponse.status).toEqual(200);
+      expect(logResponse).toBeHttp({ statusCode: 200 });
       expect(logResponse.headers['content-type']).toMatch(/text\/event-stream/);
-      let i1 = logResponse.data.indexOf('Hello 1');
-      let i2 = logResponse.data.indexOf('Hello 2');
-      let i3 = logResponse.data.indexOf('Hello 3');
-      let i4 = logResponse.data.indexOf('Hello 4');
+      const i1 = logResponse.data.indexOf('Hello 1');
+      const i2 = logResponse.data.indexOf('Hello 2');
+      const i3 = logResponse.data.indexOf('Hello 3');
+      const i4 = logResponse.data.indexOf('Hello 4');
       expect(i1).toBeGreaterThan(0);
       expect(i2).toBeGreaterThan(i1);
       expect(i3).toBeGreaterThan(i2);
@@ -94,7 +96,7 @@ describe('log', () => {
           },
         },
       });
-      expect(response.status).toEqual(200);
+      expect(response).toBeHttp({ statusCode: 200 });
       expect(response.data).toMatchObject({
         location: expect.stringMatching(/^http:|https:/),
       });
@@ -106,16 +108,16 @@ describe('log', () => {
       await new Promise((resolve) => setTimeout(resolve, 6000));
 
       response = await request(functionUrl);
-      expect(response.status).toEqual(500);
+      expect(response).toBeHttp({ statusCode: 500 });
 
       // Wait for logs to drain
       await new Promise((resolve) => setTimeout(resolve, 4000));
 
       const logResponse = await logsPromise;
-      expect(logResponse.status).toEqual(200);
+      expect(logResponse).toBeHttp({ statusCode: 200 });
       expect(logResponse.headers['content-type']).toMatch(/text\/event-stream/);
-      let i1 = logResponse.data.indexOf('ALL IS WELL');
-      let i2 = logResponse.data.indexOf('Foo');
+      const i1 = logResponse.data.indexOf('ALL IS WELL');
+      const i2 = logResponse.data.indexOf('Foo');
       expect(i1).toBeGreaterThan(0);
       expect(i2).toBeGreaterThan(i1);
     };

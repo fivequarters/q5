@@ -5,11 +5,13 @@ import { decodeJwt } from '@5qtrs/jwt';
 
 import * as Constants from '@5qtrs/constants';
 
+import './extendJest';
+
 import * as AuthZ from './authz';
 import { FusebitProfile } from '@5qtrs/fusebit-profile-sdk';
 
 import { FakeAccount, IAccount, resolveAccount } from './accountResolver';
-import { httpExpect, setupEnvironment } from './common';
+import { setupEnvironment } from './common';
 import { callFunction, getFunction, putFunction } from './sdk';
 
 let account: IAccount = FakeAccount;
@@ -46,36 +48,36 @@ describe('function.exec', () => {
     spec.security.functionPermissions = AuthZ.permFunctionPut;
     spec.security.authorization = [AuthZ.reqFunctionExe];
     let response = await putFunction(account, boundaryId, function1Id, spec);
-    httpExpect(response, { statusCode: 200 });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     const url = response.data.location;
 
     // Test: Execute without an identity should result in a 403
     response = await request(url);
-    httpExpect(response, { statusCode: 403 });
+    expect(response).toBeHttp({ statusCode: 403 });
 
     // Test: Call with an identity without function:exe
     response = await callFunction(putAccessToken, url);
-    httpExpect(response, { statusCode: 403 });
+    expect(response).toBeHttp({ statusCode: 403 });
 
     // Test: Call with an identity with function:exe
     response = await callFunction(exeAccessToken, url);
-    httpExpect(response, { statusCode: 200 });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     // Test: Create a function with an exe+get requirement
     account.accessToken = putAccessToken;
     spec = Constants.duplicate({}, specFuncReturnCtx);
     spec.security.authorization = [AuthZ.reqFunctionGet, AuthZ.reqFunctionExe];
     response = await putFunction(account, boundaryId, function1Id, spec);
-    httpExpect(response, { statusCode: 200 });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     // Test: Call with an identity with exe
     response = await callFunction(exeAccessToken, url);
-    httpExpect(response, { statusCode: 403 });
+    expect(response).toBeHttp({ statusCode: 403 });
 
     // Test: Call with an identity with get+get
     response = await callFunction(getExeAccessToken, url);
-    httpExpect(response, { statusCode: 200 });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     // Restore the old token so that things get cleaned up properly
     account.accessToken = allAccessToken;

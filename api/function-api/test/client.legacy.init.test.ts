@@ -3,9 +3,7 @@ import { addClient, initClient, resolveInit, cleanUpClients } from './sdk';
 import { random } from '@5qtrs/random';
 import { decodeJwt, decodeJwtHeader, signJwt } from '@5qtrs/jwt';
 import { createKeyPair } from '@5qtrs/key-pair';
-import { extendExpect } from './extendJest';
-
-const expectMore = extendExpect(expect);
+import './extendJest';
 
 let account: IAccount = FakeAccount;
 
@@ -28,7 +26,7 @@ describe('Legacy Client', () => {
         access,
       });
       const client = await initClient(account, original.data.id);
-      expect(client.status).toBe(200);
+      expect(client).toBeHttp({ statusCode: 200 });
 
       const jwt = client.data;
 
@@ -62,7 +60,7 @@ describe('Legacy Client', () => {
         access,
       });
       const client = await initClient(account, original.data.id, { subscriptionId: account.subscriptionId });
-      expect(client.status).toBe(200);
+      expect(client).toBeHttp({ statusCode: 200 });
 
       const jwt = client.data;
 
@@ -98,7 +96,7 @@ describe('Legacy Client', () => {
         subscriptionId: account.subscriptionId,
         boundaryId: 'boundary-abc',
       });
-      expect(client.status).toBe(200);
+      expect(client).toBeHttp({ statusCode: 200 });
 
       const jwt = client.data;
 
@@ -136,7 +134,7 @@ describe('Legacy Client', () => {
         boundaryId: 'boundary-abc',
         functionId: 'function-abc',
       });
-      expect(client.status).toBe(200);
+      expect(client).toBeHttp({ statusCode: 200 });
 
       const jwt = client.data;
 
@@ -165,10 +163,8 @@ describe('Legacy Client', () => {
     test('Getting an init token with an invalid client id should return an error', async () => {
       const clientId = `clt-${random()}`;
       const client = await initClient(account, clientId);
-      expect(client.status).toBe(400);
-      expect(client.data.status).toBe(400);
-      expect(client.data.statusCode).toBe(400);
-      expect(client.data.message).toBe(
+      expect(client).toBeHttpError(
+        400,
         `"clientId" with value "${clientId}" fails to match the required pattern: /^clt-[a-g0-9]{16}$/`
       );
     }, 180000);
@@ -176,16 +172,13 @@ describe('Legacy Client', () => {
     test('Getting a non-existing client should return an error', async () => {
       const clientId = `clt-${random({ lengthInBytes: 8 })}`;
       const client = await initClient(account, clientId);
-      expect(client.status).toBe(404);
-      expect(client.data.status).toBe(404);
-      expect(client.data.statusCode).toBe(404);
-      expect(client.data.message).toBe(`The client '${clientId}' does not exist`);
+      expect(client).toBeHttpError(404, `The client '${clientId}' does not exist`);
     }, 180000);
 
     test('Getting an init token with a non-existing account should return an error', async () => {
       const original = await addClient(account, {});
       const client = await initClient(await getNonExistingAccount(), original.data.id);
-      expectMore(client).toBeUnauthorizedError();
+      expect(client).toBeUnauthorizedError();
     }, 180000);
   });
 
@@ -202,9 +195,14 @@ describe('Legacy Client', () => {
       const keyId = random({ lengthInBytes: 4 }) as string;
 
       const resolved = await resolveInit(account, jwt, { publicKey: keyPair.publicKey, keyId });
-      expect(resolved.status).toBe(200);
-      expect(resolved.data.id).toBe(original.data.id);
-      expect(resolved.data.displayName).toBe('display');
+      expect(resolved).toBeHttp({
+        statusCode: 200,
+        data: {
+          id: original.data.id,
+          displayName: 'display',
+          access,
+        },
+      });
       expect(resolved.data.identities).toBeDefined();
       expect(resolved.data.identities.length).toBe(1);
       expect(resolved.data.identities[0].issuerId).toBeDefined();
@@ -223,10 +221,7 @@ describe('Legacy Client', () => {
       const keyId = random({ lengthInBytes: 4 }) as string;
 
       const resolved = await resolveInit(account, jwt, { keyId });
-      expect(resolved.status).toBe(400);
-      expect(resolved.data.status).toBe(400);
-      expect(resolved.data.statusCode).toBe(400);
-      expect(resolved.data.message).toBe('"protocol" is required');
+      expect(resolved).toBeHttpError(400, '"protocol" is required');
     }, 180000);
 
     test('Resolving an init token with no keyId returns an error', async () => {
@@ -240,10 +235,7 @@ describe('Legacy Client', () => {
       const keyPair = await createKeyPair();
 
       const resolved = await resolveInit(account, jwt, { publicKey: keyPair.publicKey });
-      expect(resolved.status).toBe(400);
-      expect(resolved.data.status).toBe(400);
-      expect(resolved.data.statusCode).toBe(400);
-      expect(resolved.data.message).toBe('"protocol" is required');
+      expect(resolved).toBeHttpError(400, '"protocol" is required');
     }, 180000);
 
     test('Resolving an init token with no jwt returns an error', async () => {
@@ -251,10 +243,7 @@ describe('Legacy Client', () => {
       const keyId = random({ lengthInBytes: 4 }) as string;
 
       const resolved = await resolveInit(account, undefined, { publicKey: keyPair.publicKey, keyId });
-      expect(resolved.status).toBe(403);
-      expect(resolved.data.status).toBe(403);
-      expect(resolved.data.statusCode).toBe(403);
-      expect(resolved.data.message).toBe('Unauthorized');
+      expect(resolved).toBeUnauthorizedError();
     }, 180000);
 
     test('Resolving an init token with a non-existing account should return an error', async () => {
@@ -269,7 +258,7 @@ describe('Legacy Client', () => {
       const keyId = random({ lengthInBytes: 4 }) as string;
 
       const resolved = await resolveInit(await getNonExistingAccount(), jwt, { publicKey: keyPair.publicKey, keyId });
-      expectMore(resolved).toBeUnauthorizedError();
+      expect(resolved).toBeUnauthorizedError();
     }, 180000);
 
     test('Resolving an init token with non-jwt should return an error', async () => {
@@ -278,10 +267,7 @@ describe('Legacy Client', () => {
       const keyId = random({ lengthInBytes: 4 }) as string;
 
       const resolved = await resolveInit(account, jwt, { publicKey: keyPair.publicKey, keyId });
-      expect(resolved.status).toBe(403);
-      expect(resolved.data.status).toBe(403);
-      expect(resolved.data.statusCode).toBe(403);
-      expect(resolved.data.message).toBe('Unauthorized');
+      expect(resolved).toBeUnauthorizedError();
     }, 180000);
 
     test('Resolving an init token with a jwt missing an accountId should return an error', async () => {
@@ -295,10 +281,7 @@ describe('Legacy Client', () => {
       const keyId = random({ lengthInBytes: 4 }) as string;
 
       const resolved = await resolveInit(account, jwt, { publicKey: keyPair.publicKey, keyId });
-      expect(resolved.status).toBe(403);
-      expect(resolved.data.status).toBe(403);
-      expect(resolved.data.statusCode).toBe(403);
-      expect(resolved.data.message).toBe('Unauthorized');
+      expect(resolved).toBeUnauthorizedError();
     }, 180000);
 
     test('Resolving an init token with a jwt missing an agentId should return an error', async () => {
@@ -307,10 +290,7 @@ describe('Legacy Client', () => {
       const keyId = random({ lengthInBytes: 4 }) as string;
 
       const resolved = await resolveInit(account, jwt, { publicKey: keyPair.publicKey, keyId });
-      expect(resolved.status).toBe(403);
-      expect(resolved.data.status).toBe(403);
-      expect(resolved.data.statusCode).toBe(403);
-      expect(resolved.data.message).toBe('Unauthorized');
+      expect(resolved).toBeUnauthorizedError();
     }, 180000);
 
     test('Resolving an init token with a cloned and signed jwt returns an error', async () => {
@@ -326,10 +306,7 @@ describe('Legacy Client', () => {
       const keyId = random({ lengthInBytes: 4 }) as string;
 
       const resolved = await resolveInit(account, jwt, { publicKey: keyPair.publicKey, keyId });
-      expect(resolved.status).toBe(403);
-      expect(resolved.data.status).toBe(403);
-      expect(resolved.data.statusCode).toBe(403);
-      expect(resolved.data.message).toBe('Unauthorized');
+      expect(resolved).toBeUnauthorizedError();
     }, 180000);
   });
 });

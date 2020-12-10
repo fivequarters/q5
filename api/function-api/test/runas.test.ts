@@ -10,8 +10,10 @@ import * as AuthZ from './authz';
 import { FusebitProfile } from '@5qtrs/fusebit-profile-sdk';
 
 import { FakeAccount, IAccount, resolveAccount } from './accountResolver';
-import { httpExpect, setupEnvironment } from './common';
+import { setupEnvironment } from './common';
 import { deleteAllFunctions, deleteFunction, getFunction, getFunctionLocation, getMe, putFunction } from './sdk';
+
+import './extendJest';
 
 let account: IAccount = FakeAccount;
 const { getAccount, getBoundary } = setupEnvironment();
@@ -35,7 +37,7 @@ describe('runas', () => {
     const specNoPerm = Constants.duplicate({}, specFuncReturnCtx);
     delete specNoPerm.security.functionPermissions;
     const create = await putFunction(account, boundaryId, function1Id, specNoPerm);
-    expect(create.status).toEqual(200);
+    expect(create).toBeHttp({ statusCode: 200 });
     let url: string;
     let response;
 
@@ -43,7 +45,7 @@ describe('runas', () => {
 
     // Check the run variant
     response = await request(url);
-    httpExpect(response, { statusCode: 200 });
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.functionAccessToken).toBeUndefined();
   }, 180000);
 
@@ -51,7 +53,7 @@ describe('runas', () => {
     account = getAccount();
     const boundaryId = getBoundary();
     let response = await putFunction(account, boundaryId, function1Id, specFuncReturnCtx);
-    httpExpect(response, { statusCode: 200 });
+    expect(response).toBeHttp({ statusCode: 200 });
     let url: string;
     let token: string;
 
@@ -59,7 +61,7 @@ describe('runas', () => {
 
     // Get the token
     response = await request(url);
-    httpExpect(response, { statusCode: 200 });
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.functionAccessToken).not.toBeUndefined();
     token = response.data.functionAccessToken;
 
@@ -77,17 +79,17 @@ describe('runas', () => {
     // Use the new token to get the function specification
     account.accessToken = token;
     response = await getFunction(account, boundaryId, function1Id);
-    httpExpect(response, { statusCode: 200 });
+    expect(response).toBeHttp({ statusCode: 200 });
     account.accessToken = oldToken;
 
     // Update the permissions
     const specGet = Constants.duplicate({}, specFuncReturnCtx);
     specGet.security.functionPermissions = AuthZ.permFunctionGet;
     response = await putFunction(account, boundaryId, function1Id, specGet);
-    httpExpect(response, { statusCode: 200 });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await request(url);
-    httpExpect(response, { statusCode: 200 });
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.functionAccessToken).not.toBeUndefined();
     token = response.data.functionAccessToken;
 
@@ -98,11 +100,11 @@ describe('runas', () => {
     // Can the function still be gotten?
     account.accessToken = token;
     response = await getFunction(account, boundaryId, function1Id);
-    httpExpect(response, { statusCode: 200 });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     // Attempt to do something not allowed.
     response = await putFunction(account, boundaryId, function1Id, specGet);
-    httpExpect(response, { statusCode: 403 });
+    expect(response).toBeHttp({ statusCode: 403 });
     account.accessToken = oldToken;
   }, 180000);
 
@@ -115,11 +117,11 @@ describe('runas', () => {
     const spec = Constants.duplicate({}, specFuncReturnCtx);
     spec.security.functionPermissions = AuthZ.permFunctionPutLimited(Permissions.putFunction, account, boundaryId);
     let response = await putFunction(account, boundaryId, function1Id, spec);
-    httpExpect(response, { statusCode: 200 });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     const url = response.data.location;
     response = await request(url);
-    httpExpect(response, { statusCode: 200 });
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.functionAccessToken).not.toBeUndefined();
     const limitedToken = response.data.functionAccessToken;
 
@@ -129,22 +131,22 @@ describe('runas', () => {
     // Create a function in the boundary, with the same permissions, succeed
     spec.security.functionPermissions = AuthZ.permFunctionPutLimited(Permissions.putFunction, account, boundaryId);
     response = await putFunction(account, boundaryId, function1Id + '2', spec);
-    httpExpect(response, { statusCode: 200 });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     // Create a function with different permissions, fail
     spec.security.functionPermissions = AuthZ.permFunctionGet;
     response = await putFunction(account, boundaryId, function1Id + '3', spec);
-    httpExpect(response, { statusCode: 400 });
+    expect(response).toBeHttp({ statusCode: 400 });
 
     // Create a function with too many permissions, fail
     spec.security.functionPermissions = AuthZ.permFunctionPutLimited(Permissions.allFunction, account, boundaryId);
     response = await putFunction(account, boundaryId, function1Id + '4', spec);
-    httpExpect(response, { statusCode: 400 });
+    expect(response).toBeHttp({ statusCode: 400 });
 
     // Create a function with higher path permissions, fail
     spec.security.functionPermissions = AuthZ.permFunctionPutLimitedHigher(Permissions.putFunction, account);
     response = await putFunction(account, boundaryId, function1Id + '5', spec);
-    httpExpect(response, { statusCode: 400 });
+    expect(response).toBeHttp({ statusCode: 400 });
 
     account.accessToken = oldToken;
   }, 180000);
@@ -158,11 +160,11 @@ describe('runas', () => {
     const spec = Constants.duplicate({}, specFuncReturnCtx);
     spec.security.functionPermissions = AuthZ.permFunctionPutLimited(Permissions.allFunction, account, boundaryId);
     let response = await putFunction(account, boundaryId, function1Id, spec);
-    httpExpect(response, { statusCode: 200 });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     const url = response.data.location;
     response = await request(url);
-    httpExpect(response, { statusCode: 200 });
+    expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.functionAccessToken).not.toBeUndefined();
     const limitedToken = response.data.functionAccessToken;
 
@@ -172,7 +174,7 @@ describe('runas', () => {
     // Create a function with fewer permissions, succeed
     spec.security.functionPermissions = AuthZ.permFunctionPutLimited(Permissions.getFunction, account, boundaryId);
     response = await putFunction(account, boundaryId, function1Id + '2', spec);
-    httpExpect(response, { statusCode: 200 });
+    expect(response).toBeHttp({ statusCode: 200 });
     account.accessToken = oldToken;
   }, 180000);
 
@@ -192,26 +194,26 @@ describe('runas', () => {
     const spec = Constants.duplicate({}, specFuncReturnCtx);
     spec.security.functionPermissions = AuthZ.permFunctionWild;
     let response = await putFunction(account, boundaryId, function1Id, spec);
-    httpExpect(response, { statusCode: 400 });
+    expect(response).toBeHttp({ statusCode: 400 });
 
     // Try to create a function with no permissions
     spec.security.functionPermissions = undefined;
     response = await putFunction(account, boundaryId, function1Id, spec);
-    httpExpect(response, { statusCode: 200 });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     // Validate that the token doesn't have permission to get the created function.
     response = await getFunction(account, boundaryId, function1Id);
-    httpExpect(response, { statusCode: 403 });
+    expect(response).toBeHttp({ statusCode: 403 });
 
     // Mint a new token with GET and validate it can retrieve the function
     executionProfile = await profile.getPKIExecutionProfile(process.env.FUSE_PROFILE, true, AuthZ.permFunctionGet);
     account.accessToken = executionProfile.accessToken;
     response = await getFunction(account, boundaryId, function1Id);
-    httpExpect(response, { statusCode: 200 });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     // And denied to function:put
     response = await putFunction(account, boundaryId, function1Id, spec);
-    httpExpect(response, { statusCode: 403 });
+    expect(response).toBeHttp({ statusCode: 403 });
 
     // Restore the old token.
     account.accessToken = oldToken;

@@ -20,7 +20,7 @@ function addAwsCredentials() {
     } catch (_) {}
   }
 
-  if (!creds) {
+  if (!creds && !process.env.EC2) {
     if (!process.env.MFA) {
       console.error('ERROR:', 'The MFA environment variable must be specified to provide the MFA code');
       process.exit(1);
@@ -49,11 +49,13 @@ function addAwsCredentials() {
 }
 
 function addCreds(creds) {
-  env = `${env}
+  if (!process.env.EC2) {
+    env = `${env}
 AWS_ACCESS_KEY_ID=${creds.Credentials.AccessKeyId}
 AWS_SECRET_ACCESS_KEY=${creds.Credentials.SecretAccessKey}
 AWS_SESSION_TOKEN=${creds.Credentials.SessionToken}
 `;
+  }
 }
 
 function addElasticsearchCredentials() {

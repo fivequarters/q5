@@ -2,13 +2,15 @@ import { IAccount } from './accountResolver';
 
 import { IHttpResponse, request } from '@5qtrs/request';
 
-import { httpExpect, setupEnvironment } from './common';
+import { setupEnvironment } from './common';
 import * as Registry from './registry';
 import { deleteFunction, putFunction, waitForBuild } from './sdk';
 
 import * as Constants from '@5qtrs/constants';
 
-const fs = require('fs');
+import './extendJest';
+
+import * as fs from 'fs';
 
 const libnpm = require('libnpm');
 
@@ -198,14 +200,14 @@ describe('npm', () => {
     // Defensively delete the function.
     await deleteFunction(account, 'test-npm-build', 'testfunc');
     let response = await putFunction(account, 'test-npm-build', 'testfunc', funcWithDep(manifest.name));
-    expect([200, 201]).toContain(response.status);
+    expect(response).toBeHttp({ statusCode: [200, 201] });
     if (response.status === 201) {
       response = await waitForBuild(account, response.data, 15, 1000);
-      httpExpect(response, { statusCode: 200 });
+      expect(response).toBeHttp({ statusCode: 200 });
     }
 
     response = await request({ method: 'GET', url: response.data.location });
-    httpExpect(response, { statusCode: 500 });
+    expect(response).toBeHttp({ statusCode: 500 });
 
     // Now publish a known working package, remove the function, and build
     pkg = preparePackage(regScope, VALID_PKG);
@@ -216,15 +218,14 @@ describe('npm', () => {
 
     await deleteFunction(account, 'test-npm-build', 'testfunc');
     response = await putFunction(account, 'test-npm-build', 'testfunc', funcWithDep(manifest.name));
-    expect([200, 201]).toContain(response.status);
+    expect(response).toBeHttp({ statusCode: [200, 201] });
     if (response.status === 201) {
       response = await waitForBuild(account, response.data, 15, 1000);
-      httpExpect(response, { statusCode: 200 });
-      expect(response.status).toEqual(200);
+      expect(response).toBeHttp({ statusCode: 200 });
     }
 
     response = await request({ method: 'GET', url: response.data.location });
-    httpExpect(response, { statusCode: 200, data: 'object' });
+    expect(response).toBeHttp({ statusCode: 200, data: 'object' });
 
     // Clean up
     await deleteFunction(account, 'test-npm-build', 'testfunc');

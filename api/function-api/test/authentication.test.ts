@@ -4,9 +4,7 @@ import { signJwt } from '@5qtrs/jwt';
 import { createKeyPair } from '@5qtrs/key-pair';
 import { random } from '@5qtrs/random';
 import { addUser, cleanUpUsers, createTestJwksIssuer, cleanUpHostedIssuers } from './sdk';
-import { extendExpect } from './extendJest';
-
-const expectMore = extendExpect(expect);
+import './extendJest';
 
 let account: IAccount = FakeAccount;
 
@@ -24,7 +22,7 @@ describe('Authentication', () => {
     const testIssuer = await createTestJwksIssuer(account);
     const subject = `sub-${random({ lengthInBytes: 8 })}`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action: 'user:*', resource: `/account/${account.accountId}` }] },
     });
 
@@ -46,7 +44,7 @@ describe('Authentication', () => {
       headers: { Authorization: `Bearer ${jwt}`, 'Content-Type': 'application/json' },
       url: `${account.baseUrl}/v1/account/${account.accountId}/user`,
     });
-    expect(response.status).toBe(200);
+    expect(response).toBeHttp({ statusCode: 200 });
   }, 180000);
 
   test('A request with no auth header should return 403', async () => {
@@ -55,7 +53,7 @@ describe('Authentication', () => {
       headers: { 'Content-Type': 'application/json' },
       url: `${account.baseUrl}/v1/account/${account.accountId}/user`,
     });
-    expectMore(response).toBeUnauthorizedError();
+    expect(response).toBeUnauthorizedError();
   }, 180000);
 
   test('A request with an auth header with no value should return 403', async () => {
@@ -64,7 +62,7 @@ describe('Authentication', () => {
       headers: { Authorization: '', 'Content-Type': 'application/json' },
       url: `${account.baseUrl}/v1/account/${account.accountId}/user`,
     });
-    expectMore(response).toBeUnauthorizedError();
+    expect(response).toBeUnauthorizedError();
   }, 180000);
 
   test('A request with an auth header with no bearer token should return 403', async () => {
@@ -73,7 +71,7 @@ describe('Authentication', () => {
       headers: { Authorization: 'Bearer', 'Content-Type': 'application/json' },
       url: `${account.baseUrl}/v1/account/${account.accountId}/user`,
     });
-    expectMore(response).toBeUnauthorizedError();
+    expect(response).toBeUnauthorizedError();
   }, 180000);
 
   test('A request with an auth header with an invalid flat token should return 403', async () => {
@@ -82,7 +80,7 @@ describe('Authentication', () => {
       headers: { Authorization: 'Bearer 123456', 'Content-Type': 'application/json' },
       url: `${account.baseUrl}/v1/account/${account.accountId}/user`,
     });
-    expectMore(response).toBeUnauthorizedError();
+    expect(response).toBeUnauthorizedError();
   }, 180000);
 
   test('A request with an auth header with a JWT with no issuer should return 403', async () => {
@@ -104,7 +102,7 @@ describe('Authentication', () => {
       headers: { Authorization: `Bearer ${jwt}`, 'Content-Type': 'application/json' },
       url: `${account.baseUrl}/v1/account/${account.accountId}/user`,
     });
-    expectMore(response).toBeUnauthorizedError();
+    expect(response).toBeUnauthorizedError();
   }, 180000);
 
   test('A request with an auth header with a JWT with no subject should return 403', async () => {
@@ -126,7 +124,7 @@ describe('Authentication', () => {
       headers: { Authorization: `Bearer ${jwt}`, 'Content-Type': 'application/json' },
       url: `${account.baseUrl}/v1/account/${account.accountId}/user`,
     });
-    expectMore(response).toBeUnauthorizedError();
+    expect(response).toBeUnauthorizedError();
   }, 180000);
 
   test('A request with an auth header with a JWT from an unknown issuer should return 403', async () => {
@@ -149,14 +147,14 @@ describe('Authentication', () => {
       headers: { Authorization: `Bearer ${jwt}`, 'Content-Type': 'application/json' },
       url: `${account.baseUrl}/v1/account/${account.accountId}/user`,
     });
-    expectMore(response).toBeUnauthorizedError();
+    expect(response).toBeUnauthorizedError();
   }, 180000);
 
   test('A request with an auth header with a JWT signed with the wrong key should return 403', async () => {
     const testIssuer = await createTestJwksIssuer(account);
     const subject = `sub-${random({ lengthInBytes: 8 })}`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action: 'user:*', resource: `/account/${account.accountId}` }] },
     });
 
@@ -179,14 +177,14 @@ describe('Authentication', () => {
       headers: { Authorization: `Bearer ${jwt}`, 'Content-Type': 'application/json' },
       url: `${account.baseUrl}/v1/account/${account.accountId}/user`,
     });
-    expectMore(response).toBeUnauthorizedError();
+    expect(response).toBeUnauthorizedError();
   }, 180000);
 
   test('A request with an auth header with a JWT with the wrong key id should return 403', async () => {
     const testIssuer = await createTestJwksIssuer(account);
     const subject = `sub-${random({ lengthInBytes: 8 })}`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action: 'user:*', resource: `/account/${account.accountId}` }] },
     });
 
@@ -208,14 +206,14 @@ describe('Authentication', () => {
       headers: { Authorization: `Bearer ${jwt}`, 'Content-Type': 'application/json' },
       url: `${account.baseUrl}/v1/account/${account.accountId}/user`,
     });
-    expectMore(response).toBeUnauthorizedError();
+    expect(response).toBeUnauthorizedError();
   }, 180000);
 
   test('A request with an auth header with a JWT with an unsupported algorithm should return 403', async () => {
     const testIssuer = await createTestJwksIssuer(account);
     const subject = `sub-${random({ lengthInBytes: 8 })}`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action: 'user:*', resource: `/account/${account.accountId}` }] },
     });
 
@@ -237,14 +235,14 @@ describe('Authentication', () => {
       headers: { Authorization: `Bearer ${jwt}`, 'Content-Type': 'application/json' },
       url: `${account.baseUrl}/v1/account/${account.accountId}/user`,
     });
-    expectMore(response).toBeUnauthorizedError();
+    expect(response).toBeUnauthorizedError();
   }, 180000);
 
   test('A request with an auth header with a JWT with an invalid audience should return 403', async () => {
     const testIssuer = await createTestJwksIssuer(account);
     const subject = `sub-${random({ lengthInBytes: 8 })}`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action: 'user:*', resource: `/account/${account.accountId}` }] },
     });
 
@@ -266,14 +264,14 @@ describe('Authentication', () => {
       headers: { Authorization: `Bearer ${jwt}`, 'Content-Type': 'application/json' },
       url: `${account.baseUrl}/v1/account/${account.accountId}/user`,
     });
-    expectMore(response).toBeUnauthorizedError();
+    expect(response).toBeUnauthorizedError();
   }, 180000);
 
   test('A request with an auth header with a JWT with an invalid issuerId should return 403', async () => {
     const testIssuer = await createTestJwksIssuer(account);
     const subject = `sub-${random({ lengthInBytes: 8 })}`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action: 'user:*', resource: `/account/${account.accountId}` }] },
     });
 
@@ -295,14 +293,14 @@ describe('Authentication', () => {
       headers: { Authorization: `Bearer ${jwt}`, 'Content-Type': 'application/json' },
       url: `${account.baseUrl}/v1/account/${account.accountId}/user`,
     });
-    expectMore(response).toBeUnauthorizedError();
+    expect(response).toBeUnauthorizedError();
   }, 180000);
 
   test('A request with an auth header with a JWT that has expired should return 403', async () => {
     const testIssuer = await createTestJwksIssuer(account);
     const subject = `sub-${random({ lengthInBytes: 8 })}`;
     await addUser(account, {
-      identities: [{ issuerId: testIssuer.issuerId, subject: subject }],
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
       access: { allow: [{ action: 'user:*', resource: `/account/${account.accountId}` }] },
     });
 
@@ -326,6 +324,6 @@ describe('Authentication', () => {
       headers: { Authorization: `Bearer ${jwt}`, 'Content-Type': 'application/json' },
       url: `${account.baseUrl}/v1/account/${account.accountId}/user`,
     });
-    expectMore(response).toBeUnauthorizedError();
+    expect(response).toBeUnauthorizedError();
   }, 180000);
 });

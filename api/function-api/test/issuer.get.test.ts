@@ -1,9 +1,7 @@
 import { random } from '@5qtrs/random';
 import { IAccount, FakeAccount, resolveAccount, getMalformedAccount, getNonExistingAccount } from './accountResolver';
 import { addIssuer, getIssuer, cleanUpIssuers } from './sdk';
-import { extendExpect } from './extendJest';
-
-const expectMore = extendExpect(expect);
+import './extendJest';
 
 let account: IAccount = FakeAccount;
 
@@ -22,7 +20,7 @@ describe('Issuer', () => {
       await addIssuer(account, issuerId, { jsonKeysUrl: 'foo' });
 
       const issuer = await getIssuer(account, issuerId);
-      expect(issuer.status).toBe(200);
+      expect(issuer).toBeHttp({ statusCode: 200 });
       expect(issuer.data.id).toBe(issuerId);
       expect(issuer.data.jsonKeysUrl).toBe('foo');
       expect(issuer.data.publicKeys).toBeUndefined();
@@ -35,7 +33,7 @@ describe('Issuer', () => {
       await addIssuer(account, issuerId, { publicKeys, displayName: 'fuzz' });
 
       const issuer = await getIssuer(account, issuerId);
-      expect(issuer.status).toBe(200);
+      expect(issuer).toBeHttp({ statusCode: 200 });
       expect(issuer.data.id).toBe(issuerId);
       expect(issuer.data.publicKeys).toEqual(publicKeys);
       expect(issuer.data.displayName).toBe('fuzz');
@@ -44,18 +42,18 @@ describe('Issuer', () => {
     test('Getting a non-existing issuer should return an error', async () => {
       const issuerId = `test-${random()}`;
       const issuer = await getIssuer(account, issuerId);
-      expectMore(issuer).toBeHttpError(404, `The issuer '${issuerId}' is not associated with the account`);
+      expect(issuer).toBeHttpError(404, `The issuer '${issuerId}' is not associated with the account`);
     }, 180000);
 
     test('Getting an issuer with an malformed account id should return an error', async () => {
       const malformed = await getMalformedAccount();
       const issuer = await getIssuer(malformed, `test-${random()}`);
-      expectMore(issuer).toBeMalformedAccountError(malformed.accountId);
+      expect(issuer).toBeMalformedAccountError(malformed.accountId);
     }, 180000);
 
     test('Getting an issuer with a non-existing account should return an error', async () => {
       const issuer = await getIssuer(await getNonExistingAccount(), `test-${random()}`);
-      expectMore(issuer).toBeUnauthorizedError();
+      expect(issuer).toBeUnauthorizedError();
     }, 180000);
   });
 });
