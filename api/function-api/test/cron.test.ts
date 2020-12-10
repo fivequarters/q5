@@ -22,7 +22,7 @@ beforeEach(async () => {
   await deleteAllFunctions(account, boundaryId);
 }, 180000);
 
-describe.skip('cron', () => {
+describe('cron', () => {
   test(
     'cron executes on schedule',
     async () => {
