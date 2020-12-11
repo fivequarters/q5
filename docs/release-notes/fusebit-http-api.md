@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.18.10
+
+_Released 12/11/20_
+
+- **Bugfix.** Improve JWT access credential redaction from the function activity analytics pipeline.
+
 ## Version 1.18.9
 
 _Released 12/3/20_

@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.24.13
+
+_Released 12/11/20_
+
+- **Bugfix.** Improve JWT access credential redaction from the function activity analytics pipeline.
+
 ## Version 1.24.12
 
 _Released 11/24/20_
