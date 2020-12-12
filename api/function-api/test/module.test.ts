@@ -1,12 +1,15 @@
-import { IAccount, FakeAccount, resolveAccount } from './accountResolver';
-import { deleteFunction, putFunction, deleteAllFunctions, waitForBuild } from './sdk';
+import { disableFunctionUsageRestriction, deleteFunction, putFunction, deleteAllFunctions, waitForBuild } from './sdk';
 
-import './extendJest';
+import { getEnv } from './setup';
 
-let account: IAccount = FakeAccount;
+let { account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv();
+beforeEach(() => {
+  ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
 
-const boundaryId = `test-boundary-${Math.floor(Math.random() * 99999999).toString(32)}`;
-const function1Id = 'test-function-1';
+  // No function invocations in this test suite; function usage restrictions do not apply as there is no race
+  // on lambda update.
+  disableFunctionUsageRestriction();
+});
 
 const helloWorldWithSuperagentDependency = {
   nodejs: {
@@ -23,18 +26,6 @@ const helloWorldWithSuperagentDependency = {
     },
   },
 };
-
-beforeAll(async () => {
-  account = await resolveAccount();
-});
-
-afterAll(async () => {
-  await deleteAllFunctions(account, boundaryId);
-}, 180000);
-
-beforeEach(async () => {
-  await deleteAllFunctions(account, boundaryId);
-}, 180000);
 
 describe('module', () => {
   test('PUT completes for function with superagent dependency', async () => {

@@ -1,14 +1,12 @@
-import { random } from '@5qtrs/random';
-import { IAccount, FakeAccount, resolveAccount, cloneWithUserAgent } from './accountResolver';
+import { cloneWithUserAgent } from './accountResolver';
 import { putFunction, getFunction, deleteAllFunctions } from './sdk';
 
-import './extendJest';
+import { getEnv } from './setup';
 
-let account: IAccount = FakeAccount;
-
-const boundaryId = `test-boundary-${random({ lengthInBytes: 8 })}`;
-const function1Id = 'test-function-1';
-const function2Id = 'test-function-2';
+let { account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv();
+beforeEach(() => {
+  ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
+});
 
 const helloWorld = {
   nodejs: {
@@ -136,16 +134,7 @@ const helloWorldWithNode8String = {
 };
 
 beforeAll(async () => {
-  account = await resolveAccount();
   account = await cloneWithUserAgent(account, 'fusebit-editor/1.0.0');
-}, 120000);
-
-afterAll(async () => {
-  await deleteAllFunctions(account, boundaryId);
-}, 120000);
-
-beforeEach(async () => {
-  await deleteAllFunctions(account, boundaryId);
 }, 120000);
 
 describe.skip('function', () => {

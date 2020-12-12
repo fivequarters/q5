@@ -1,12 +1,10 @@
-import { IAccount, FakeAccount, resolveAccount } from './accountResolver';
 import { request } from '@5qtrs/request';
 
-import './extendJest';
+import { getEnv } from './setup';
 
-let account: IAccount = FakeAccount;
-
-beforeAll(async () => {
-  account = await resolveAccount();
+let { account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv();
+beforeEach(() => {
+  ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
 });
 
 describe('health', () => {

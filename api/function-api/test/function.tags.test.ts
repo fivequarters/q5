@@ -1,26 +1,18 @@
-import { request } from '@5qtrs/request';
-import { FakeAccount, IAccount, resolveAccount } from './accountResolver';
-import { setupEnvironment } from './common';
-import { deleteFunction, getFunctionLocation, listFunctions, putFunction } from './sdk';
-
-import './extendJest';
+import { DynamoDB } from 'aws-sdk';
 
 import * as Tags from '@5qtrs/function-tags';
-
 import * as Constants from '@5qtrs/constants';
 
-import { DynamoDB } from 'aws-sdk';
-const dynamo = new DynamoDB({ apiVersion: '2012-08-10' });
+import { deleteFunction, getFunctionLocation, listFunctions, putFunction } from './sdk';
 
-const {
-  getAccount,
-  rotateBoundary,
-  function1Id,
-  function2Id,
-  function3Id,
-  function4Id,
-  function5Id,
-} = setupEnvironment();
+import { getEnv } from './setup';
+
+let { account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv();
+beforeEach(() => {
+  ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
+});
+
+const dynamo = new DynamoDB({ apiVersion: '2012-08-10' });
 
 const helloWorld = {
   nodejs: {
@@ -56,9 +48,6 @@ const helloWorldWithCron = {
 
 describe('function.tags', () => {
   test('create functions and search', async () => {
-    const account = getAccount();
-    const boundaryId = rotateBoundary();
-
     const options = {
       req: { headers: { host: 'unused' }, protocol: 'http' },
       accountId: account.accountId,
@@ -107,9 +96,6 @@ describe('function.tags', () => {
   }, 120000);
 
   test('paginated search', async () => {
-    const account = getAccount();
-    const boundaryId = rotateBoundary();
-
     const options = {
       req: { headers: { host: 'unused' }, protocol: 'https' },
       accountId: account.accountId,
@@ -164,9 +150,6 @@ describe('function.tags', () => {
   }, 120000);
 
   test('listFunctions', async () => {
-    const account = getAccount();
-    const boundaryId = rotateBoundary();
-
     const options = {
       accountId: account.accountId,
       subscriptionId: account.subscriptionId,
@@ -298,9 +281,6 @@ describe('function.tags', () => {
   }, 120000);
 
   test('multisearch functions', async () => {
-    const account = getAccount();
-    const boundaryId = rotateBoundary();
-
     const options = {
       accountId: account.accountId,
       subscriptionId: account.subscriptionId,

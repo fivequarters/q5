@@ -1,14 +1,15 @@
-import { IAccount, FakeAccount, resolveAccount, getMalformedAccount, getNonExistingAccount } from './accountResolver';
-import { addUser, initUser, resolveInit, cleanUpUsers } from './sdk';
 import { random } from '@5qtrs/random';
 import { decodeJwt, decodeJwtHeader, signJwt } from '@5qtrs/jwt';
 import { createKeyPair } from '@5qtrs/key-pair';
-import './extendJest';
 
-let account: IAccount = FakeAccount;
+import { getMalformedAccount, getNonExistingAccount } from './accountResolver';
+import { addUser, initUser, resolveInit, cleanUpUsers } from './sdk';
 
-beforeAll(async () => {
-  account = await resolveAccount();
+import { getEnv } from './setup';
+
+let { account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv();
+beforeEach(() => {
+  ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
 });
 
 afterEach(async () => {

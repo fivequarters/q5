@@ -1,30 +1,13 @@
-import { IAccount, FakeAccount, resolveAccount } from './accountResolver';
-import { putFunction, deleteAllFunctions, getLogs } from './sdk';
 import { request } from '@5qtrs/request';
 
-import './extendJest';
+import { putFunction, deleteAllFunctions, getLogs } from './sdk';
 
-let account: IAccount = FakeAccount;
+import { getEnv } from './setup';
 
-let boundaryId = `test-boundary-${Math.floor(Math.random() * 99999999).toString(32)}`;
-const function1Id = 'test-function-1';
-
-beforeAll(async () => {
-  account = await resolveAccount();
+let { account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv();
+beforeEach(() => {
+  ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
 });
-
-afterAll(async () => {
-  await deleteAllFunctions(account, boundaryId);
-}, 180000);
-
-beforeEach(async () => {
-  boundaryId = `test-boundary-${Math.floor(Math.random() * 99999999).toString(32)}`;
-  // await deleteAllFunctions(account, boundaryId);
-}, 180000);
-
-afterEach(async () => {
-  await deleteAllFunctions(account, boundaryId);
-}, 180000);
 
 describe('log', () => {
   function create_positive_log_test(node: string, boundary: boolean) {

@@ -1,19 +1,16 @@
-import { random } from '@5qtrs/random';
-import { request } from '@5qtrs/request';
-import { IAccount, FakeAccount, resolveAccount, cloneWithUserAgent } from './accountResolver';
-import {
-  deleteFunction,
-  putFunction,
-  getFunction,
-  listFunctions,
-  deleteAllFunctions,
-  getFunctionLocation,
-} from './sdk';
-
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 
-let account: IAccount = FakeAccount;
+import { random } from '@5qtrs/random';
+
+import { putFunction } from './sdk';
+
+import { getEnv, nextBoundary } from './setup';
+
+let { account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv();
+beforeEach(() => {
+  ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
+});
 
 const prob500 = 0.05;
 const prob404 = 0.2;
@@ -45,9 +42,7 @@ const numBoundaries = 3;
 const numFunctionsPerBoundary = [3, 7];
 
 // Create a bunch of boundaries
-const boundaries = Array.apply(null, Array(numBoundaries)).map(
-  (x, i) => `test-boundary-${random({ lengthInBytes: 8 })}`
-);
+const boundaries = Array.apply(null, Array(numBoundaries)).map((x, i) => nextBoundary());
 
 // Populate a boundary:function map
 const functions: any = [];
@@ -70,18 +65,6 @@ const execApacheBench = async (url: string, durSecs: number) => {
   }
 };
 
-beforeAll(async () => {
-  account = await resolveAccount();
-}, 180000);
-
-afterAll(async () => {
-  await Promise.all(boundaries.map((b: string) => deleteAllFunctions(account, b)));
-}, 180000);
-
-beforeEach(async () => {
-  await Promise.all(boundaries.map((b: string) => deleteAllFunctions(account, b)));
-}, 180000);
-
 describe.skip('traffic', () => {
   test(
     `Generate a bunch of traffic for ${process.env.TRAFFIC_DURATION} seconds`,
@@ -93,7 +76,7 @@ describe.skip('traffic', () => {
       console.time('setup');
       // Create a bunch of functions.
       // @ts-ignore - pending 3.8
-      let responses = await Promise.allSettled(
+      const responses = await Promise.allSettled(
         functions.map((f: [string, string]) => putFunction(account, f[0], f[1], trafficFunc))
       );
       console.log(responses);

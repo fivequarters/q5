@@ -1,21 +1,17 @@
-import { IAccount, FakeAccount, resolveAccount } from './accountResolver';
-import { putFunction, getStatistics, statisticsEnabled } from './sdk';
 import { request } from '@5qtrs/request';
-import { setupEnvironment } from './common';
 
-import './extendJest';
+import { putFunction, getStatistics, statisticsEnabled } from './sdk';
 
-const { getAccount, rotateBoundary, function1Id, function2Id } = setupEnvironment();
+import { getEnv } from './setup';
 
-const createAndHitFunction = async (
-  account: IAccount,
-  boundaryId: string,
-  func: string,
-  expectedCode: number,
-  expectedSource: any = {}
-) => {
+let { account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv();
+beforeEach(() => {
+  ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
+});
+
+const createAndHitFunction = async (func: string, expectedCode: number, expectedSource: any = {}) => {
   // Create a target function
-  let response = await putFunction(getAccount(), rotateBoundary(), function1Id, func);
+  let response = await putFunction(account, boundaryId, function1Id, func);
   expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
 
   // Hit the endpoint once.
@@ -39,7 +35,7 @@ const createAndHitFunction = async (
   return response;
 };
 
-const validateEntry = (account: IAccount, entry: any, boundaryId: string, functionId: string) => {
+const validateEntry = (entry: any, functionId: string) => {
   // Validate: response.fusebit object contains expected results for filtering purposes
   expect(entry.fusebit.accountId).toEqual(account.accountId);
   expect(entry.fusebit.subscriptionId).toEqual(account.subscriptionId);
@@ -61,16 +57,12 @@ const validateEntry = (account: IAccount, entry: any, boundaryId: string, functi
 
 describe.skip('statistics', () => {
   test('itemized bulk contains a function event at various scopes', async () => {
-    const account = getAccount();
-    const boundaryId = rotateBoundary();
     if (!(await statisticsEnabled(account))) {
       return;
     }
 
     // Add a response to make sure only the requested data is returned
     const responseAlt = await createAndHitFunction(
-      account,
-      boundaryId,
       'module.exports = async (ctx) => { return { status: 304, body: "hello" }; };',
       304,
       'function'
@@ -78,8 +70,6 @@ describe.skip('statistics', () => {
 
     // Create and hit target function
     let response = await createAndHitFunction(
-      account,
-      boundaryId,
       'module.exports = async (ctx) => { return { body: "hello" }; };',
       200,
       'function'
@@ -91,7 +81,7 @@ describe.skip('statistics', () => {
     const entry = response.data.items[0];
 
     // Validate: response.fusebit object contains expected results for filtering purposes
-    validateEntry(account, entry, boundaryId, function1Id);
+    validateEntry(entry, function1Id);
 
     // Validate: increasing breadth of query by reducing IDs still includes target function UUID event
     response = await getStatistics(
@@ -124,16 +114,12 @@ describe.skip('statistics', () => {
   }, 180000);
 
   test('failing exception logged as 500', async () => {
-    const account = getAccount();
-    const boundaryId = rotateBoundary();
     if (!(await statisticsEnabled(account))) {
       return;
     }
 
     // Create and hit target function
     const response = await createAndHitFunction(
-      account,
-      boundaryId,
       'module.exports = async (ctx) => { throw new Error("FOOBAR"); };',
       500,
       'provider' // It's an open question whether this should be function or provider
@@ -142,7 +128,7 @@ describe.skip('statistics', () => {
     const entry = response.data.items[0];
 
     // Validate that the object that's been returned contains useful and interesting details.
-    validateEntry(account, entry, boundaryId, function1Id);
+    validateEntry(entry, function1Id);
     expect(entry.response).toBeHttp({ statusCode: 500 });
     expect(entry.error).not.toBeNull();
     expect(entry.error.errorType).toEqual('Error');
@@ -153,16 +139,12 @@ describe.skip('statistics', () => {
   }, 180000);
 
   test('code activity histogram contains a function event at various scopes', async () => {
-    const account = getAccount();
-    const boundaryId = rotateBoundary();
     if (!(await statisticsEnabled(account))) {
       return;
     }
 
     // Add a response to make sure only the requested data is returned
     const responseAlt = await createAndHitFunction(
-      account,
-      boundaryId,
       'module.exports = async (ctx) => { return { status: 304, body: "hello" }; };',
       304,
       'function'
@@ -170,8 +152,6 @@ describe.skip('statistics', () => {
 
     // Create and hit target function
     let response = await createAndHitFunction(
-      account,
-      boundaryId,
       'module.exports = async (ctx) => { return { body: "hello" }; };',
       200,
       'function'
@@ -179,7 +159,7 @@ describe.skip('statistics', () => {
     // Validate: one response back from the statistics endpoint for this boundary
     expect(response.data.items.length).toEqual(1);
     const entry = response.data.items[0];
-    validateEntry(account, entry, boundaryId, function1Id);
+    validateEntry(entry, function1Id);
 
     // Validate: increasing breadth of query by reducing IDs still includes target function UUID event
     response = await getStatistics(
@@ -229,16 +209,12 @@ describe.skip('statistics', () => {
   }, 180000);
 
   test('field unique histogram contains a function event at various scopes', async () => {
-    const account = getAccount();
-    const boundaryId = rotateBoundary();
     if (!(await statisticsEnabled(account))) {
       return;
     }
 
     // Add a response to make sure only the requested data is returned
     const responseAlt = await createAndHitFunction(
-      account,
-      boundaryId,
       'module.exports = async (ctx) => { return { status: 304, body: "hello" }; };',
       304,
       'function'
@@ -246,8 +222,6 @@ describe.skip('statistics', () => {
 
     // Create and hit target function
     let response = await createAndHitFunction(
-      account,
-      boundaryId,
       'module.exports = async (ctx) => { return { body: "hello" }; };',
       200,
       'function'
@@ -256,7 +230,7 @@ describe.skip('statistics', () => {
     // Validate: one response back from the statistics endpoint for this boundary
     expect(response.data.items.length).toEqual(1);
     const entry = response.data.items[0];
-    validateEntry(account, entry, boundaryId, function1Id);
+    validateEntry(entry, function1Id);
 
     // Validate: value of 1 is present for a 200 success
     response = await getStatistics(
@@ -321,16 +295,12 @@ describe.skip('statistics', () => {
   }, 180000);
 
   test('validate codeGrouped works', async () => {
-    const account = getAccount();
-    const boundaryId = rotateBoundary();
     if (!(await statisticsEnabled(account))) {
       return;
     }
 
     // Add a response to make sure only the requested data is returned
     const responseAlt = await createAndHitFunction(
-      account,
-      boundaryId,
       'module.exports = async (ctx) => { return { status: 304, body: "hello" }; };',
       304,
       'function'
@@ -338,8 +308,6 @@ describe.skip('statistics', () => {
 
     // Create and hit target function
     let response = await createAndHitFunction(
-      account,
-      boundaryId,
       'module.exports = async (ctx) => { return { body: "hello" }; };',
       200,
       'function'
@@ -351,7 +319,7 @@ describe.skip('statistics', () => {
     const entry = response.data.items[0];
 
     // Validate: response.fusebit object contains expected results for filtering purposes
-    validateEntry(account, entry, boundaryId, function1Id);
+    validateEntry(entry, function1Id);
 
     // Validate: itemized bulk against 2xx returns the event
     response = await getStatistics(

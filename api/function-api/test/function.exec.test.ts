@@ -1,22 +1,16 @@
-import { random } from '@5qtrs/random';
 import { request } from '@5qtrs/request';
-
-import { decodeJwt } from '@5qtrs/jwt';
-
 import * as Constants from '@5qtrs/constants';
-
-import './extendJest';
-
-import * as AuthZ from './authz';
 import { FusebitProfile } from '@5qtrs/fusebit-profile-sdk';
 
-import { FakeAccount, IAccount, resolveAccount } from './accountResolver';
-import { setupEnvironment } from './common';
+import * as AuthZ from './authz';
 import { callFunction, getFunction, putFunction } from './sdk';
 
-let account: IAccount = FakeAccount;
-const { getAccount, getBoundary } = setupEnvironment();
-const function1Id = 'test-fun-exec-1';
+import { getEnv } from './setup';
+
+let { account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv();
+beforeEach(() => {
+  ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
+});
 
 const specFuncReturnCtx = {
   security: { authentication: 'required' },
@@ -34,17 +28,11 @@ describe('function.exec', () => {
     // Create some access tokens for general use
     const putExeAccessToken = await AuthZ.getTokenByPerm(AuthZ.permFunctionPutExe);
     const putAccessToken = await AuthZ.getTokenByPerm(AuthZ.permFunctionPut);
-    const getExeAccessToken = await AuthZ.getTokenByPerm(AuthZ.permFunctionGetExe);
     const exeAccessToken = await AuthZ.getTokenByPerm(AuthZ.permFunctionExe);
-
-    // Get the master account and access token
-    account = getAccount();
-    const boundaryId = getBoundary();
-    const allAccessToken = account.accessToken;
 
     // Test: Create a function with an exec requirement using a PUT-enabled credential
     account.accessToken = putAccessToken;
-    let spec = Constants.duplicate({}, specFuncReturnCtx);
+    const spec = Constants.duplicate({}, specFuncReturnCtx);
     spec.security.functionPermissions = AuthZ.permFunctionPut;
     spec.security.authorization = [AuthZ.reqFunctionExe];
     let response = await putFunction(account, boundaryId, function1Id, spec);
@@ -63,13 +51,20 @@ describe('function.exec', () => {
     // Test: Call with an identity with function:exe
     response = await callFunction(exeAccessToken, url);
     expect(response).toBeHttp({ statusCode: 200 });
+  }, 180000);
 
-    // Test: Create a function with an exe+get requirement
+  test('create a function with an exe+get requirement', async () => {
+    const putAccessToken = await AuthZ.getTokenByPerm(AuthZ.permFunctionPut);
+    const exeAccessToken = await AuthZ.getTokenByPerm(AuthZ.permFunctionExe);
+    const getExeAccessToken = await AuthZ.getTokenByPerm(AuthZ.permFunctionGetExe);
+
     account.accessToken = putAccessToken;
-    spec = Constants.duplicate({}, specFuncReturnCtx);
+    const spec = Constants.duplicate({}, specFuncReturnCtx);
     spec.security.authorization = [AuthZ.reqFunctionGet, AuthZ.reqFunctionExe];
-    response = await putFunction(account, boundaryId, function1Id, spec);
+    let response = await putFunction(account, boundaryId, function1Id, spec);
     expect(response).toBeHttp({ statusCode: 200 });
+
+    const url = response.data.location;
 
     // Test: Call with an identity with exe
     response = await callFunction(exeAccessToken, url);
@@ -78,8 +73,5 @@ describe('function.exec', () => {
     // Test: Call with an identity with get+get
     response = await callFunction(getExeAccessToken, url);
     expect(response).toBeHttp({ statusCode: 200 });
-
-    // Restore the old token so that things get cleaned up properly
-    account.accessToken = allAccessToken;
   }, 180000);
 });
