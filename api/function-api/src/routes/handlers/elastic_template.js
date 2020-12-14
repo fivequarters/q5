@@ -984,15 +984,6 @@ const fusebitTemplate = {
                   },
                 },
               },
-              authorization: {
-                type: 'text',
-                fields: {
-                  keyword: {
-                    type: 'keyword',
-                    ignore_above: 256,
-                  },
-                },
-              },
               'cache-control': {
                 type: 'text',
                 fields: {

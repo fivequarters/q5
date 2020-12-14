@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.24.14
+
+_Released 12/14/20_
+
+- **Bugfix.** Resolve ES schema confusion around analytics record schema for the JWT access credentials.
+
 ## Version 1.24.13
 
 _Released 12/11/20_

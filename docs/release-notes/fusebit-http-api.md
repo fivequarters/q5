@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.18.11
+
+_Released 12/14/20_
+
+- **Bugfix.** Resolve ES schema confusion around analytics record schema for the JWT access credentials.
+
 ## Version 1.18.10
 
 _Released 12/11/20_
