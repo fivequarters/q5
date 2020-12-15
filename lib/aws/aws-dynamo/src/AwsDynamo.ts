@@ -63,9 +63,6 @@ function applyOptions(options: any, params: any) {
       }
       params.Limit = parsed;
     }
-    if (options.consistentRead) {
-      params.ConsistentRead = true;
-    }
     if (options.next) {
       params.ExclusiveStartKey = nextToExclusiveStartKey(options.next);
     }
@@ -279,6 +276,7 @@ export interface IAwsDynamoGetAllOptions extends IAwsDynamoAllOptions {
 export interface IAwsDynamoGetOptions extends IAwsDynamoGetAllOptions {
   expressionNames?: { [index: string]: string };
   projection?: string;
+  consistentRead?: boolean;
 }
 
 export interface IAwsDynamoSetOptions extends IAwsDynamoAllOptions {
@@ -429,6 +427,9 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
     };
 
     applyOptions(options, params);
+
+    // Bias reads towards consistency.
+    params.ConsistentRead = options && options.consistentRead === false ? false : true;
 
     return new Promise((resolve, reject) => {
       reject = rejectOnce(reject);
@@ -682,12 +683,15 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
       params.Limit = maxLimit;
     }
 
+    // Bias reads towards consistency.
+    params.ConsistentRead = options && options.consistentRead === false ? false : true;
+
     const action = isScan ? 'scan' : 'query';
 
     return new Promise((resolve, reject) => {
       reject = rejectOnce(reject);
       let items: any[] = [];
-      let lastEvaluatedKey: any = undefined;
+      let lastEvaluatedKey: any;
       let remainingLimit = effectiveLimit;
 
       const func = () => {
@@ -767,6 +771,9 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
 
     const params: any = { RequestItems: {} };
     params.RequestItems[fullTableName] = { Keys: keys };
+
+    // Bias reads towards consistency.
+    params.ConsistentRead = true;
 
     return new Promise((resolve, reject) => {
       dynamo.batchGetItem(params, (error: any, data: any) => {

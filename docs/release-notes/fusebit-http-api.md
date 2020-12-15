@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.18.12
+
+_Released 12/19/20_
+
+- **Bugfix.** Enforce consistent reads to DynamoDB for operational API calls.
+
 ## Version 1.18.11
 
 _Released 12/14/20_

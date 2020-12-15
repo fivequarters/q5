@@ -77,6 +77,8 @@ subscriptionCache.refresh();
 // Utility functions
 const NotImplemented = (_, __, next) => next(create_error(501, 'Not implemented'));
 
+// Debug and Auditing tools
+
 const debugLogEvent = (req, res, next) => {
   console.log(
     `DEBUG: ${req.method} ${req.url}\n` +

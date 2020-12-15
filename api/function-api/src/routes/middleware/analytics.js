@@ -28,7 +28,7 @@ exports.enterHandler = (modality) => {
     req.requestId = uuidv4();
     res.metrics = {};
 
-    var end = res.end;
+    let end = res.end;
     res.end = (chunk, encoding, callback) => {
       res.endTime = Date.now();
 
