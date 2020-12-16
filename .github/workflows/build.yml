@@ -31,7 +31,16 @@ jobs:
       run: yarn --frozen-lockfile setup
 
     - name: Install dependencies
-      run: yarn install
+      run: yarn --frozen-lockfile install
       
     - name: Build Tree
       run: yarn build
+  
+    - name: Populate Fusebit Profile
+      run: mkdir -p ~/.fusebit/`cat ${FUSEBIT_STAGE_US_WEST_2} | jq -r '.keyPath'`
+    - run: cat ${FUSEBIT_STAGE_US_WEST_2} | jq -r '.privateKey' > ~/.fusebit/`cat ${FUSEBIT_STAGE_US_WEST_2} | jq -r '.keyPath'`/pri
+    - run: cat ${FUSEBIT_STAGE_US_WEST_2} | jq -r '.publicKey' > ~/.fusebit/`cat ${FUSEBIT_STAGE_US_WEST_2} | jq -r '.keyPath'`/pub
+    - run: cat ${FUSEBIT_STAGE_US_WEST_2} | jq -r '.settings' > ~/.fusebit/settings.json
+    
+    - name: Test Fuse Function ls
+      run: node cli/fusebit-cli/libc/index.js function ls
