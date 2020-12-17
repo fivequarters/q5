@@ -18,10 +18,10 @@ const command = {
   ],
   options: [
     {
-      name: 'format',
-      aliases: ['f'],
-      description: "The format to display the output: 'table', 'json'",
-      default: 'table',
+      name: 'output',
+      aliases: ['o'],
+      description: "The format to display the output: 'pretty', 'json'",
+      default: 'pretty',
     },
     {
       name: 'region',

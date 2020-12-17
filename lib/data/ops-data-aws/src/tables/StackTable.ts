@@ -64,8 +64,8 @@ function onStackAlreadyExists(stack: IOpsStack) {
 }
 
 function onStackDoesNotExist(deploymentName: string) {
-  return (stackId: number) => {
-    throw OpsDataException.noStack(stackId, deploymentName);
+  return (stackId: { id: number }) => {
+    throw OpsDataException.noStack(stackId.id, deploymentName);
   };
 }
 

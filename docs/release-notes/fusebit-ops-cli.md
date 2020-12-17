@@ -23,6 +23,7 @@ All public releases of the Fusebit Operations CLI are documented here, including
 _Released 12/18/20_
 
 - **Bugfix.** Enforce consistent reads to DynamoDB for table access operations.
+- **Bugfix.** Normalize output format control to `--output,-o`, removing the `--format,-f` option.
 
 ## Version 1.24.14
 

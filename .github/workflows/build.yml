@@ -1,4 +1,3 @@
-
 on: workflow_dispatch
 
 name: Build the package
@@ -9,14 +8,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-      
     - name: Use Node.js
       uses: actions/setup-node@v1
       with:
         node-version: '10.15.3'
 
+    ###########################################################################
+    # Turn on system level caching
     - name: Cache Node.js modules
       uses: actions/cache@v2
       with:
@@ -24,23 +22,160 @@ jobs:
         path: ~/.npm
         key: ${{ runner.OS }}-node
 
-    - name: Pin Yarn Version
+    - name: Get yarn cache directory path
+      id: yarn-cache-dir-path
+      run: echo "::set-output name=dir::$(yarn cache dir)"
+
+    - name: Cache yarn modules
+      uses: actions/cache@v2
+      id: yarn-cache
+      with:
+        path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+        key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-yarn-
+
+    ###########################################################################
+    # Checkout the repository
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    ###########################################################################
+    # Acquire the version of the various packages
+    - name: Version - function-api
+      id: version-function-api
+      run: |
+        export VERSION_FUNCTION_API=`jq -r '.version' ./package.json`
+        echo "::set-output name=version-function-api::${VERSION_FUNCTION_API}"
+        echo "VERSION_FUNCTION_API=${VERSION_FUNCTION_API}" >> $GITHUB_ENV
+
+    - name: Version - fusebit-cli
+      id: version-fusebit-cli
+      run: |
+        export VERSION_FUSEBIT_CLI=`jq -r '.version' ./cli/fusebit-cli/package.json`
+        echo "::set-output name=version-fusebit-cli::${VERSION_FUSEBIT_CLI}"
+        echo "VERSION_FUSEBIT_CLI=${VERSION_FUSEBIT_CLI}" >> $GITHUB_ENV
+
+    - name: Version - fusebit-ops-cli
+      id: version-fusebit-ops-cli
+      run: |
+        export VERSION_FUSEBIT_OPS_CLI=`jq -r '.version' ./cli/fusebit-ops-cli/package.json`
+        echo "::set-output name=version-fusebit-ops-cli::${VERSION_FUSEBIT_OPS_CLI}"
+        echo "VERSION_FUSEBIT_OPS_CLI=${VERSION_FUSEBIT_OPS_CLI}" >> $GITHUB_ENV
+
+    ###########################################################################
+    # Create the settings and profile files expected for a functioning environment
+    - name: Setup - function-api/.env
+      env:
+        dotenv: api/function-api/.env
+      run: |
+        echo DEPLOYMENT_KEY=stage > ${dotenv}.template
+        echo AWS_REGION=us-west-2 >> ${dotenv}.template
+        echo API_SERVER=https://stage.us-west-2.fusebit.io >> ${dotenv}.template
+        echo > ${dotenv}.bootstrap
+
+    - name: Setup - fuse profile
+      env:
+        SECRET_FUSEBIT_PROFILE: ${{secrets.FUSEBIT_STAGE_US_WEST_2}}
+      run: |
+        export FUSEBIT_KEYPATH=`echo ${SECRET_FUSEBIT_PROFILE} | jq -r '.user.keyPath'`
+        mkdir -p ~/.fusebit/${FUSEBIT_KEYPATH}
+        echo ${SECRET_FUSEBIT_PROFILE} | jq -r '.user.settings' > ~/.fusebit/settings.json
+        echo ${SECRET_FUSEBIT_PROFILE} | jq -r '.user.keys.privateKey' > ~/.fusebit/${FUSEBIT_KEYPATH}/pri
+        echo ${SECRET_FUSEBIT_PROFILE} | jq -r '.user.keys.publicKey' > ~/.fusebit/${FUSEBIT_KEYPATH}/pub
+
+    - name: Setup - fuse-ops profile
+      env:
+        SECRET_FUSEBIT_PROFILE: ${{secrets.FUSEBIT_STAGE_US_WEST_2}}
+      run: |
+        mkdir -p ~/.fusebit-ops
+        echo ${SECRET_FUSEBIT_PROFILE} | jq -r '.ops.settings' > ~/.fusebit-ops/settings.json
+
+    - name: Setup - AWS credentials
+      env:
+        SECRET_FUSEBIT_PROFILE: ${{secrets.FUSEBIT_STAGE_US_WEST_2}}
+      run: |
+        mkdir ~/.aws
+        echo "[default]" > ~/.aws/config
+        echo "region = us-west-2" >> ~/.aws/config
+
+        OPS_PROFILE_NAME=`echo ${SECRET_FUSEBIT_PROFILE} | jq -r '.ops.profileName'`
+        OPS_PROFILE=`echo ${SECRET_FUSEBIT_PROFILE} | jq -r '.ops.settings.profiles["'${OPS_PROFILE_NAME}'"]'`
+        echo "[default]" > ~/.aws/credentials
+        echo "aws_access_key_id = `echo ${OPS_PROFILE} | jq -r '.awsAccessKeyId'`" >> ~/.aws/credentials
+        echo "aws_secret_access_key = `echo ${OPS_PROFILE} | jq -r '.awsSecretAccessKey'`" >> ~/.aws/credentials
+
+    - name: Setup - npm credentials
+      env:
+        SECRET_NPM_TOKEN: ${{secrets.NPM_PUBLISH_TOKEN}}
+      run: |
+        echo //registry.npmjs.org/:_authToken=${SECRET_NPM_TOKEN} > ~/.npmrc
+
+    - name: Setup - deployment .env
+      env:
+        FUSEBIT_GC_BQ_KEY_BASE64: ${{secrets.FUSEBIT_GC_BQ_KEY_BASE64}}
+      run: echo FUSEBIT_GC_BQ_KEY_BASE64=${FUSEBIT_GC_BQ_KEY_BASE64} > gc_bq.env
+
+    - name: Qualify - aws-cli works
+      run: aws s3 ls
+
+    - name: Qualify - npm works
+      run: npm whoami
+
+    ###########################################################################
+    # Build the tree
+    - name: Pre-Build Summary
+      run: |
+        echo function-api: ${VERSION_FUNCTION_API}
+        echo fusebit-cli: ${VERSION_FUSEBIT_CLI}
+        echo fusebit-ops-cli: ${VERSION_FUSEBIT_OPS_CLI}
+
+    - name: Yarn - pin version
       run: yarn set version 1.21.1
-      
-    - name: Setup Yarn
+
+    - name: Yarn - setup
       run: yarn --frozen-lockfile setup
 
-    - name: Install dependencies
+    - name: Yarn - install
       run: yarn --frozen-lockfile install
-      
-    - name: Build Tree
+
+    - name: Yarn - build
       run: yarn build
-  
-    - name: Populate Fusebit Profile
-      run: mkdir -p ~/.fusebit/`cat ${FUSEBIT_STAGE_US_WEST_2} | jq -r '.keyPath'`
-    - run: cat ${FUSEBIT_STAGE_US_WEST_2} | jq -r '.privateKey' > ~/.fusebit/`cat ${FUSEBIT_STAGE_US_WEST_2} | jq -r '.keyPath'`/pri
-    - run: cat ${FUSEBIT_STAGE_US_WEST_2} | jq -r '.publicKey' > ~/.fusebit/`cat ${FUSEBIT_STAGE_US_WEST_2} | jq -r '.keyPath'`/pub
-    - run: cat ${FUSEBIT_STAGE_US_WEST_2} | jq -r '.settings' > ~/.fusebit/settings.json
-    
-    - name: Test Fuse Function ls
+
+    ###########################################################################
+    # Qualify that the tools work as expected
+    - name: Qualify - fuse-ops works
+      run: node cli/fusebit-ops-cli/libc/index.js stack ls
+
+    - name: Qualify - fuse works
       run: node cli/fusebit-cli/libc/index.js function ls
+
+    ###########################################################################
+    # Publish various artifacts
+    - name: Yarn - image
+      run: yarn image
+
+    - name: Publish - function-api
+      run: ./tool/cicd/actions/publish_function_api.sh
+
+    - name: Publish - fusebit-ops-cli
+      run: ./tool/cicd/actions/publish_fusebit_ops_cli.sh
+
+    - name: Publish - fusebit-cli
+      run: ./tool/cicd/actions/publish_fusebit_cli.sh
+
+    ###########################################################################
+    # Run automated tests
+    - name: Test - deploy exclusive to stage/us-west-2
+      env:
+        REGION: us-west-2
+        DEPLOYMENT_NAME: stage
+      run: ./tool/cicd/actions/deploy_exclusive_function_api.sh
+
+    - name: Test - function-api
+      env:
+        SECRET_FUSEBIT_PROFILE: ${{secrets.FUSEBIT_STAGE_US_WEST_2}}
+      run: |
+        cd api/function-api
+        export FUSE_PROFILE=`echo ${SECRET_FUSEBIT_PROFILE} | jq -r '.user.profileName'`
+        EC2=1 yarn test

@@ -120,7 +120,7 @@ export class AccountService {
   }
 
   public async displayAccounts(accounts: IOpsAccount[]) {
-    if (this.input.options.format === 'json') {
+    if (this.input.options.output === 'json') {
       this.input.io.writeLine(JSON.stringify(accounts, null, 2));
       return;
     }

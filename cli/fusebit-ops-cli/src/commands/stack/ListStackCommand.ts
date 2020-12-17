@@ -15,12 +15,6 @@ const command = {
       name: 'deployment',
       description: 'The name of the deployment to filter by',
     },
-    {
-      name: 'format',
-      aliases: ['f'],
-      description: "The format to display the output: 'table', 'json'",
-      default: 'table',
-    },
   ],
 };
 
@@ -41,13 +35,13 @@ export class ListStackCommand extends Command {
     await input.io.writeLine();
 
     const deploymentName = input.options.deployment as string;
-    const format = input.options.format as string;
+    const output = input.options.output as string;
 
     const stackService = await StackService.create(input);
     const deploymentService = await DeploymentService.create(input);
     const deployments = await deploymentService.listAllDeployments();
 
-    if (format === 'json') {
+    if (output === 'json') {
       const stacks = await stackService.listAllStacks(deploymentName);
       await stackService.displayStacks(stacks, deployments);
     } else {

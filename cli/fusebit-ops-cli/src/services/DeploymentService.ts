@@ -336,7 +336,7 @@ export class DeploymentService {
   }
 
   public async displaySubscriptions(deployment: IOpsDeployment, accounts: IFusebitAccount[]) {
-    if (this.input.options.format === 'json') {
+    if (this.input.options.output === 'json') {
       this.input.io.writeLine(JSON.stringify(accounts, null, 2));
       return;
     }
@@ -356,7 +356,7 @@ export class DeploymentService {
   }
 
   public async displayInit(init: IInitAdmin) {
-    if (this.input.options.format === 'json') {
+    if (this.input.options.output === 'json') {
       this.input.io.writeLine(JSON.stringify(init, null, 2));
       return;
     }
@@ -405,7 +405,7 @@ export class DeploymentService {
   }
 
   public async displayDeployments(deployments: IOpsDeployment[]) {
-    if (this.input.options.format === 'json') {
+    if (this.input.options.output === 'json') {
       this.input.io.writeLine(JSON.stringify(deployments, null, 2));
       return;
     }
@@ -422,7 +422,7 @@ export class DeploymentService {
   }
 
   public async displayDeployment(deployment: IOpsDeployment) {
-    if (this.input.options.format === 'json') {
+    if (this.input.options.output === 'json') {
       this.input.io.writeLine(JSON.stringify(deployment, null, 2));
       return;
     }
@@ -462,7 +462,7 @@ export class DeploymentService {
   }
 
   public async displaySubscription(subscription: IFusebitSubscription) {
-    if (this.input.options.format === 'json') {
+    if (this.input.options.output === 'json') {
       this.input.io.writeLine(JSON.stringify(subscription, null, 2));
       return;
     }

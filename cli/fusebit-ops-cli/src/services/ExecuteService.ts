@@ -31,7 +31,7 @@ export class ExecuteService {
   public async execute<T>(messages: IExcuteMessages, func?: () => Promise<T | undefined>) {
     try {
       if (messages.header || messages.message) {
-        if (!this.input.options.quiet) {
+        if (!this.input.options.quiet && this.isPrettyOutput()) {
           const message = await Message.create({
             header: messages.header,
             message: messages.message || '',
@@ -69,7 +69,7 @@ export class ExecuteService {
   }
 
   public async message(header: IText, message: IText, kind: MessageKind = MessageKind.result) {
-    if (!this.input.options.quiet) {
+    if (!this.input.options.quiet && this.isPrettyOutput()) {
       const formattedMessage = await Message.create({ header, message, kind });
       await formattedMessage.write(this.input.io);
     }

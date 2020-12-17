@@ -12,10 +12,10 @@ const command = {
   description: 'Lists the deployments in the Fusebit platform.',
   options: [
     {
-      name: 'format',
-      aliases: ['f'],
-      description: "The format to display the output: 'table', 'json'",
-      default: 'table',
+      name: 'output',
+      aliases: ['o'],
+      description: "The format to display the output: 'pretty', 'json'",
+      default: 'pretty',
     },
   ],
 };
@@ -36,11 +36,11 @@ export class ListDeploymentCommand extends Command {
   protected async onExecute(input: IExecuteInput): Promise<number> {
     await input.io.writeLine();
 
-    const format = input.options.format as string;
+    const output = input.options.output as string;
 
     const deploymentService = await DeploymentService.create(input);
 
-    if (format === 'json') {
+    if (output === 'json') {
       const accounts = await deploymentService.listAllDeployments();
       await deploymentService.displayDeployments(accounts);
     } else {

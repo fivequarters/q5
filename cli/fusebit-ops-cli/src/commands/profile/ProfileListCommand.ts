@@ -18,9 +18,10 @@ const command = {
       description: 'Only list profiles with the given text in the profile name',
     },
     {
-      name: 'format',
-      description: "The format to display the output: 'table', 'json'",
-      default: 'table',
+      name: 'output',
+      aliases: ['o'],
+      description: "The format to display the output: 'pretty', 'json'",
+      default: 'pretty',
     },
   ],
 };

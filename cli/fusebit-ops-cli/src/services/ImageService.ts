@@ -111,7 +111,7 @@ export class ImageService {
   }
 
   public async displayImages(images: IOpsImage[]) {
-    if (this.input.options.format === 'json') {
+    if (this.input.options.output === 'json') {
       this.input.io.writeLine(JSON.stringify(images, null, 2));
       return;
     }
