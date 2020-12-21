@@ -1,5 +1,5 @@
 import { cloneWithUserAgent } from './accountResolver';
-import { putFunction, getFunction, deleteAllFunctions } from './sdk';
+import { putFunction, getFunction } from './sdk';
 
 import { getEnv } from './setup';
 

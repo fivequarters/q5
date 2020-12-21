@@ -1,6 +1,6 @@
 import { request } from '@5qtrs/request';
 
-import { putFunction, deleteAllFunctions, waitForBuild } from './sdk';
+import { putFunction, waitForBuild } from './sdk';
 
 import { getEnv } from './setup';
 

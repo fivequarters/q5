@@ -8,7 +8,6 @@ import {
   putFunction,
   getFunction,
   listFunctions,
-  deleteAllFunctions,
   getFunctionLocation,
 } from './sdk';
 

@@ -1,4 +1,4 @@
-import { disableFunctionUsageRestriction, deleteFunction, putFunction, deleteAllFunctions, waitForBuild } from './sdk';
+import { disableFunctionUsageRestriction, deleteFunction, putFunction, waitForBuild } from './sdk';
 
 import { getEnv } from './setup';
 
