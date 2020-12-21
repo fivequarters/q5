@@ -893,7 +893,7 @@ export class PortalService {
   }
 
   public async displayPortals(portals: FusebitDistribution[]): Promise<void> {
-    if (this.input.options.format === 'json') {
+    if (this.input.options.output === 'json') {
       this.input.io.writeLine(JSON.stringify(portals, null, 2));
       return;
     }
@@ -934,7 +934,7 @@ export class PortalService {
   }
 
   public async displayPortal(portal: IPortal) {
-    if (this.input.options.format === 'json') {
+    if (this.input.options.output === 'json') {
       this.input.io.writeLine(JSON.stringify(portal, null, 2));
       return;
     }

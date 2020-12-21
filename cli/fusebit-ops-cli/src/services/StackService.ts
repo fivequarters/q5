@@ -213,6 +213,10 @@ export class StackService {
       'Stack Removed',
       `Stack '${Text.bold(id.toString())}' of deployment '${Text.bold(deploymentName)}' was successfully removed`
     );
+
+    if (this.input.options.output === 'json') {
+      this.input.io.writeLine(JSON.stringify({ id, deploymentName, region, active: false }, null, 2));
+    }
   }
 
   public async getStack(deploymentName: string, region: string, id: number): Promise<IOpsStack> {
@@ -268,7 +272,7 @@ export class StackService {
   }
 
   public async displayStacks(stacks: IOpsStack[], deployments: IOpsDeployment[]) {
-    if (this.input.options.format === 'json') {
+    if (this.input.options.output === 'json') {
       this.input.io.writeLine(JSON.stringify(stacks, null, 2));
       return;
     }
@@ -292,7 +296,7 @@ export class StackService {
   }
 
   public async displayStack(stack: IOpsStack) {
-    if (this.input.options.format === 'json') {
+    if (this.input.options.output === 'json') {
       this.input.io.writeLine(JSON.stringify(stack, null, 2));
       return;
     }

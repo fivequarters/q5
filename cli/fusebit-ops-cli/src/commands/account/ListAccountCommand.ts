@@ -12,10 +12,10 @@ const command = {
   description: 'Lists the accounts in the Fusebit platform.',
   options: [
     {
-      name: 'format',
-      aliases: ['f'],
-      description: "The format to display the output: 'table', 'json'",
-      default: 'table',
+      name: 'output',
+      aliases: ['o'],
+      description: "The format to display the output: 'pretty', 'json'",
+      default: 'pretty',
     },
   ],
 };
@@ -35,11 +35,11 @@ export class ListAccountCommand extends Command {
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
     await input.io.writeLine();
-    const format = input.options.format as string;
+    const output = input.options.output as string;
 
     const accountService = await AccountService.create(input);
 
-    if (format === 'json') {
+    if (output === 'json') {
       const accounts = await accountService.listAllAccounts();
       await accountService.displayAccounts(accounts);
     } else {

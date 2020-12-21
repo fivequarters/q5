@@ -137,7 +137,7 @@ export class DomainService {
   }
 
   public async displayDomains(domains: IOpsDomain[]) {
-    if (this.input.options.format === 'json') {
+    if (this.input.options.output === 'json') {
       this.input.io.writeLine(JSON.stringify(domains, null, 2));
       return;
     }
@@ -154,7 +154,7 @@ export class DomainService {
   }
 
   public async displayDomain(domain: IOpsDomain) {
-    if (this.input.options.format === 'json') {
+    if (this.input.options.output === 'json') {
       this.input.io.writeLine(JSON.stringify(domain, null, 2));
       return;
     }
