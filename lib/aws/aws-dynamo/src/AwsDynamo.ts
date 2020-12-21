@@ -270,6 +270,7 @@ export interface IAwsDynamoAllOptions {
 }
 
 export interface IAwsDynamoGetAllOptions extends IAwsDynamoAllOptions {
+  disableConsistentRead?: boolean;
   onNotFound?: (key: any) => any;
 }
 
@@ -454,7 +455,7 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
     const all = [];
     while (keys.length) {
       const next = keys.splice(0, 25);
-      const [items, unprocessed] = await this.getBatch(table.name, next);
+      const [items, unprocessed] = await this.getBatch(table.name, next, options);
       all.push(...items);
       if (unprocessed) {
         keys.unshift(...unprocessed);
@@ -684,7 +685,7 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
     }
 
     // Bias reads towards consistency.
-    params.ConsistentRead = options && options.disableConsistentRead === false ? false : true;
+    params.ConsistentRead = options && options.disableConsistentRead ? false : true;
 
     const action = isScan ? 'scan' : 'query';
 
@@ -765,7 +766,7 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
     });
   }
 
-  private async getBatch(tableName: string, keys: any[]): Promise<[any[], any[]]> {
+  private async getBatch(tableName: string, keys: any[], options?: IAwsDynamoGetAllOptions): Promise<[any[], any[]]> {
     const dynamo = await this.getAws();
     const fullTableName = this.getFullName(tableName);
 
@@ -773,7 +774,7 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
     params.RequestItems[fullTableName] = { Keys: keys };
 
     // Bias reads towards consistency.
-    params.ConsistentRead = true;
+    params.ConsistentRead = options && options.disableConsistentRead ? false : true;
 
     return new Promise((resolve, reject) => {
       dynamo.batchGetItem(params, (error: any, data: any) => {
