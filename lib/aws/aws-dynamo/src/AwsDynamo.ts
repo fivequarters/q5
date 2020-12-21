@@ -276,7 +276,7 @@ export interface IAwsDynamoGetAllOptions extends IAwsDynamoAllOptions {
 export interface IAwsDynamoGetOptions extends IAwsDynamoGetAllOptions {
   expressionNames?: { [index: string]: string };
   projection?: string;
-  consistentRead?: boolean;
+  disableConsistentRead?: boolean;
 }
 
 export interface IAwsDynamoSetOptions extends IAwsDynamoAllOptions {
@@ -303,7 +303,7 @@ export interface IAwsDynamoScanOptions {
   filters?: string[];
   limit?: number;
   maxLimit?: number;
-  consistentRead?: boolean;
+  disableConsistentRead?: boolean;
   next?: string;
 }
 
@@ -429,7 +429,7 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
     applyOptions(options, params);
 
     // Bias reads towards consistency.
-    params.ConsistentRead = options && options.consistentRead === false ? false : true;
+    params.ConsistentRead = options && options.disableConsistentRead ? false : true;
 
     return new Promise((resolve, reject) => {
       reject = rejectOnce(reject);
