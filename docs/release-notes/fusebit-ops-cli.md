@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.24.15
+
+_Released 12/18/20_
+
+- **Bugfix.** Enforce consistent reads to DynamoDB for table access operations.
+
 ## Version 1.24.14
 
 _Released 12/14/20_

@@ -63,9 +63,6 @@ function applyOptions(options: any, params: any) {
       }
       params.Limit = parsed;
     }
-    if (options.consistentRead) {
-      params.ConsistentRead = true;
-    }
     if (options.next) {
       params.ExclusiveStartKey = nextToExclusiveStartKey(options.next);
     }
@@ -273,12 +270,14 @@ export interface IAwsDynamoAllOptions {
 }
 
 export interface IAwsDynamoGetAllOptions extends IAwsDynamoAllOptions {
+  disableConsistentRead?: boolean;
   onNotFound?: (key: any) => any;
 }
 
 export interface IAwsDynamoGetOptions extends IAwsDynamoGetAllOptions {
   expressionNames?: { [index: string]: string };
   projection?: string;
+  disableConsistentRead?: boolean;
 }
 
 export interface IAwsDynamoSetOptions extends IAwsDynamoAllOptions {
@@ -305,7 +304,7 @@ export interface IAwsDynamoScanOptions {
   filters?: string[];
   limit?: number;
   maxLimit?: number;
-  consistentRead?: boolean;
+  disableConsistentRead?: boolean;
   next?: string;
 }
 
@@ -430,6 +429,9 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
 
     applyOptions(options, params);
 
+    // Bias reads towards consistency.
+    params.ConsistentRead = options && options.disableConsistentRead ? false : true;
+
     return new Promise((resolve, reject) => {
       reject = rejectOnce(reject);
       dynamo.getItem(params, (error: any, data: any) => {
@@ -453,7 +455,7 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
     const all = [];
     while (keys.length) {
       const next = keys.splice(0, 25);
-      const [items, unprocessed] = await this.getBatch(table.name, next);
+      const [items, unprocessed] = await this.getBatch(table.name, next, options);
       all.push(...items);
       if (unprocessed) {
         keys.unshift(...unprocessed);
@@ -682,12 +684,15 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
       params.Limit = maxLimit;
     }
 
+    // Bias reads towards consistency.
+    params.ConsistentRead = options && options.disableConsistentRead ? false : true;
+
     const action = isScan ? 'scan' : 'query';
 
     return new Promise((resolve, reject) => {
       reject = rejectOnce(reject);
       let items: any[] = [];
-      let lastEvaluatedKey: any = undefined;
+      let lastEvaluatedKey: any;
       let remainingLimit = effectiveLimit;
 
       const func = () => {
@@ -761,12 +766,15 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
     });
   }
 
-  private async getBatch(tableName: string, keys: any[]): Promise<[any[], any[]]> {
+  private async getBatch(tableName: string, keys: any[], options?: IAwsDynamoGetAllOptions): Promise<[any[], any[]]> {
     const dynamo = await this.getAws();
     const fullTableName = this.getFullName(tableName);
 
     const params: any = { RequestItems: {} };
     params.RequestItems[fullTableName] = { Keys: keys };
+
+    // Bias reads towards consistency.
+    params.ConsistentRead = options && options.disableConsistentRead ? false : true;
 
     return new Promise((resolve, reject) => {
       dynamo.batchGetItem(params, (error: any, data: any) => {
