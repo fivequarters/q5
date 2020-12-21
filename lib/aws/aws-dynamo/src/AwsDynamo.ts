@@ -684,7 +684,7 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
     }
 
     // Bias reads towards consistency.
-    params.ConsistentRead = options && options.consistentRead === false ? false : true;
+    params.ConsistentRead = options && options.disableConsistentRead === false ? false : true;
 
     const action = isScan ? 'scan' : 'query';
 
