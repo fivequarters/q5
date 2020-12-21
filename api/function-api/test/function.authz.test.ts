@@ -88,28 +88,28 @@ describe('function authorization', () => {
 
   test('Optional | No AuthZ | Valid', async () => {
     await runTest('optional', undefined, account.accessToken, 200, {
-      fusebit: { callerAccessToken: account.accessToken },
+      fusebit: { callerAccessToken: account.accessToken, endpoint: process.env.API_SERVER },
       caller: { permissions: AuthZ.permAllWild },
     });
   }, 180000);
 
   test('Optional | No AuthZ | Bad', async () => {
     await runTest('optional', undefined, 'abcdefg', 200, {
-      fusebit: {},
+      fusebit: { endpoint: process.env.API_SERVER },
       caller: {},
     });
   }, 180000);
 
   test('Optional | No AuthZ | Empty', async () => {
     await runTest('optional', undefined, '', 200, {
-      fusebit: {},
+      fusebit: { endpoint: process.env.API_SERVER },
       caller: {},
     });
   }, 180000);
 
   test('Optional | AuthZ | Valid', async () => {
     await runTest('optional', [AuthZ.reqFunctionExe], account.accessToken, 200, {
-      fusebit: { callerAccessToken: account.accessToken },
+      fusebit: { callerAccessToken: account.accessToken, endpoint: process.env.API_SERVER },
       caller: { permissions: AuthZ.permAllWild },
     });
   }, 180000);
@@ -124,7 +124,7 @@ describe('function authorization', () => {
 
   test('Optional | AuthZ | Bad', async () => {
     await runTest('optional', [AuthZ.reqFunctionExe], 'abcdefg', 200, {
-      fusebit: {},
+      fusebit: { endpoint: process.env.API_SERVER },
       caller: {},
     });
   }, 180000);
@@ -136,7 +136,7 @@ describe('function authorization', () => {
       'abcdefg',
       200,
       {
-        fusebit: {},
+        fusebit: { endpoint: process.env.API_SERVER },
         caller: {},
       },
       {
@@ -147,14 +147,14 @@ describe('function authorization', () => {
 
   test('Optional | AuthZ | Empty', async () => {
     await runTest('optional', [AuthZ.reqFunctionExe], '', 200, {
-      fusebit: {},
+      fusebit: { endpoint: process.env.API_SERVER },
       caller: {},
     });
   }, 180000);
 
   test('Required | No AuthZ | Valid', async () => {
     await runTest('required', undefined, account.accessToken, 200, {
-      fusebit: { callerAccessToken: account.accessToken },
+      fusebit: { callerAccessToken: account.accessToken, endpoint: process.env.API_SERVER },
       caller: { permissions: AuthZ.permAllWild },
     });
   }, 180000);
@@ -173,7 +173,7 @@ describe('function authorization', () => {
 
   test('Required | AuthZ | Valid', async () => {
     await runTest('required', [AuthZ.reqFunctionExe], account.accessToken, 200, {
-      fusebit: { callerAccessToken: account.accessToken },
+      fusebit: { callerAccessToken: account.accessToken, endpoint: process.env.API_SERVER },
       caller: { permissions: AuthZ.permAllWild },
     });
   }, 180000);

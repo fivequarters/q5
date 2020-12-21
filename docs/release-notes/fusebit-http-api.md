@@ -22,6 +22,8 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 _Released 12/19/20_
 
 - **Bugfix.** Enforce consistent reads to DynamoDB for operational API calls.
+- **Enhancement.** Add a `fusebit.endpoint` in the `ctx` for the endpoint of the Fusebit API.
+- **Enhancement.** Add `path` to the `ctx` for function invocations that includes the route under the function from the request.
 
 ## Version 1.18.11
 
