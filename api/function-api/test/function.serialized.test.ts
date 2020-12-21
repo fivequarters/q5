@@ -1,13 +1,14 @@
-import { random } from '@5qtrs/random';
-import { IAccount, FakeAccount, resolveAccount } from './accountResolver';
-import { putFunction, getFunction, deleteAllFunctions } from './sdk';
+import { putFunction, getFunction, disableFunctionUsageRestriction } from './sdk';
 
-import './extendJest';
+import { getEnv } from './setup';
 
-let account: IAccount = FakeAccount;
+let { account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv();
+beforeEach(() => {
+  ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
 
-const boundaryId = `test-boundary-serialized-${random({ lengthInBytes: 8 })}`;
-const function1Id = 'test-function-1';
+  // Tests here don't invoke the functions, so usage restrictions don't apply.
+  disableFunctionUsageRestriction();
+});
 
 const helloWorld = {
   nodejs: {
@@ -87,18 +88,6 @@ const helloWorldWithCron = {
     timezone: 'UTC',
   },
 };
-
-beforeAll(async () => {
-  account = await resolveAccount();
-}, 120000);
-
-afterAll(async () => {
-  await deleteAllFunctions(account, boundaryId);
-}, 120000);
-
-beforeEach(async () => {
-  await deleteAllFunctions(account, boundaryId);
-}, 120000);
 
 describe('function', () => {
   test('PUT completes synchronously', async () => {

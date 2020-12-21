@@ -1,13 +1,18 @@
 import { random } from '@5qtrs/random';
-import { IAccount, FakeAccount, resolveAccount, getMalformedAccount, getNonExistingAccount } from './accountResolver';
-import { addIssuer, listIssuers, cleanUpIssuers } from './sdk';
-import './extendJest';
 
-let account: IAccount = FakeAccount;
+import { getMalformedAccount, getNonExistingAccount } from './accountResolver';
+import { addIssuer, listIssuers, cleanUpIssuers } from './sdk';
+
+import { getEnv } from './setup';
+
+let { account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv();
+beforeEach(() => {
+  ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
+});
+
 let testRunId: string = '00000';
 
 beforeAll(async () => {
-  account = await resolveAccount();
   testRunId = random() as string;
 });
 

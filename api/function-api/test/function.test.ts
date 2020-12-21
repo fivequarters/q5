@@ -1,26 +1,26 @@
 import { random } from '@5qtrs/random';
 import { request } from '@5qtrs/request';
 import * as Constants from '@5qtrs/constants';
-import { IAccount, FakeAccount, resolveAccount, cloneWithUserAgent } from './accountResolver';
+
 import {
+  disableFunctionUsageRestriction,
   deleteFunction,
   putFunction,
   getFunction,
   listFunctions,
-  deleteAllFunctions,
   getFunctionLocation,
 } from './sdk';
 
-import './extendJest';
+import { getEnv } from './setup';
 
-let account: IAccount = FakeAccount;
+let { account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv();
+beforeEach(() => {
+  ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
 
-const boundaryId = `test-boundary-${random({ lengthInBytes: 8 })}`;
-const function1Id = 'test-function-1';
-const function2Id = 'test-function-2';
-const function3Id = 'test-function-3';
-const function4Id = 'test-function-4';
-const function5Id = 'test-function-5';
+  // Tests here don't invoke functions, or if they do they don't care about the result, so the usage
+  // restriction doesn't apply
+  disableFunctionUsageRestriction();
+});
 
 const helloWorld = {
   nodejs: {
@@ -184,18 +184,6 @@ const helloWorldWithBadMustache = {
   },
 };
 
-beforeAll(async () => {
-  account = await resolveAccount();
-}, 120000);
-
-afterAll(async () => {
-  await deleteAllFunctions(account, boundaryId);
-}, 120000);
-
-beforeEach(async () => {
-  await deleteAllFunctions(account, boundaryId);
-}, 120000);
-
 describe('function', () => {
   test('PUT completes synchronously', async () => {
     const response = await putFunction(account, boundaryId, function1Id, helloWorld);
@@ -214,8 +202,7 @@ describe('function', () => {
 
   test('PUT completes synchronously with no changes to function', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
-    expect(response).toBeHttp({ statusCode: 200 });
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
     response = await putFunction(account, boundaryId, function1Id, helloWorld);
     expect(response).toBeHttp({ statusCode: 204 });
     expect(response.data).toBeUndefined();
@@ -223,8 +210,7 @@ describe('function', () => {
 
   test('PUT with empty compute resets compute', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithComputeSettings);
-    expect(response).toBeHttp({ statusCode: 200 });
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
 
     response = await getFunction(account, boundaryId, function1Id);
 
@@ -234,8 +220,7 @@ describe('function', () => {
 
     response.data.compute = {};
     response = await putFunction(account, boundaryId, function1Id, response.data);
-    expect(response).toBeHttp({ statusCode: 200 });
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
 
     response = await getFunction(account, boundaryId, function1Id);
 
@@ -247,8 +232,7 @@ describe('function', () => {
 
   test('PUT with empty configuration resets configuration', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfigurationAndMetadata);
-    expect(response).toBeHttp({ statusCode: 200 });
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
 
     response = await getFunction(account, boundaryId, function1Id);
 
@@ -258,8 +242,7 @@ describe('function', () => {
 
     response.data.configuration = {};
     response = await putFunction(account, boundaryId, function1Id, response.data);
-    expect(response).toBeHttp({ statusCode: 200 });
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
 
     response = await getFunction(account, boundaryId, function1Id);
 
@@ -271,8 +254,7 @@ describe('function', () => {
 
   test('PUT with empty schedule reset schedule', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithCron);
-    expect(response).toBeHttp({ statusCode: 200 });
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
 
     response = await getFunction(account, boundaryId, function1Id);
 
@@ -290,8 +272,7 @@ describe('function', () => {
 
   test('PUT with undefined compute resets compute', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithComputeSettings);
-    expect(response).toBeHttp({ statusCode: 200 });
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
 
     response = await getFunction(account, boundaryId, function1Id);
 
@@ -301,8 +282,7 @@ describe('function', () => {
 
     response.data.compute = undefined;
     response = await putFunction(account, boundaryId, function1Id, response.data);
-    expect(response).toBeHttp({ statusCode: 200 });
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
 
     response = await getFunction(account, boundaryId, function1Id);
 
@@ -314,8 +294,7 @@ describe('function', () => {
 
   test('PUT with undefined configuration resets configuration', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfigurationAndMetadata);
-    expect(response).toBeHttp({ statusCode: 200 });
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
 
     response = await getFunction(account, boundaryId, function1Id);
 
@@ -325,8 +304,7 @@ describe('function', () => {
 
     response.data.configuration = undefined;
     response = await putFunction(account, boundaryId, function1Id, response.data);
-    expect(response).toBeHttp({ statusCode: 200 });
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
 
     response = await getFunction(account, boundaryId, function1Id);
 
@@ -338,8 +316,7 @@ describe('function', () => {
 
   test('PUT with undefined schedule reset schedule', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithCron);
-    expect(response).toBeHttp({ statusCode: 200 });
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
 
     response = await getFunction(account, boundaryId, function1Id);
 
@@ -376,8 +353,7 @@ describe('function', () => {
 
   test('PUT and GET roundtrip with no changes to function', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
-    expect(response).toBeHttp({ statusCode: 200 });
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
     response = await getFunction(account, boundaryId, function1Id);
     expect(response).toBeHttp({ statusCode: 200 });
     response = await putFunction(account, boundaryId, function1Id, response.data);
@@ -443,8 +419,7 @@ describe('function', () => {
 
   test('GET retrieves information of simple function', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
-    expect(response).toBeHttp({ statusCode: 200 });
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
     response = await getFunction(account, boundaryId, function1Id);
     expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data).toMatchObject({
@@ -465,8 +440,7 @@ describe('function', () => {
 
   test('GET retrieves information of function with package.json as JavaScript object', async () => {
     let response = await putFunction(account, boundaryId, function2Id, helloWorldWithNode8JavaScript);
-    expect(response).toBeHttp({ statusCode: 200 });
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
     response = await getFunction(account, boundaryId, function2Id);
     expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data).toMatchObject({
@@ -487,8 +461,7 @@ describe('function', () => {
 
   test('GET retrieves information of function with package.json as string', async () => {
     let response = await putFunction(account, boundaryId, function2Id, helloWorldWithNode8String);
-    expect(response).toBeHttp({ statusCode: 200 });
-    expect(response.data.status).toEqual('success');
+    expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
     response = await getFunction(account, boundaryId, function2Id);
     expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data).toMatchObject({

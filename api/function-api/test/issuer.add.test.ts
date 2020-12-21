@@ -1,14 +1,14 @@
 import { random } from '@5qtrs/random';
-import { IAccount, FakeAccount, resolveAccount, getMalformedAccount, getNonExistingAccount } from './accountResolver';
-import { addIssuer, cleanUpIssuers } from './sdk';
-import './extendJest';
-
 import { RUNAS_SYSTEM_ISSUER_SUFFIX } from '@5qtrs/constants';
 
-let account: IAccount = FakeAccount;
+import { getMalformedAccount, getNonExistingAccount } from './accountResolver';
+import { addIssuer, cleanUpIssuers } from './sdk';
 
-beforeAll(async () => {
-  account = await resolveAccount();
+import { getEnv } from './setup';
+
+let { account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv();
+beforeEach(() => {
+  ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
 });
 
 afterEach(async () => {

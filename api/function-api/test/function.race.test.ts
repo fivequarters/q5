@@ -1,24 +1,17 @@
-import { random } from '@5qtrs/random';
-import { request } from '@5qtrs/request';
-
 import * as Constants from '@5qtrs/constants';
 
-import { IAccount } from './accountResolver';
-import { setupEnvironment } from './common';
 import { callFunction, getFunction, putFunction } from './sdk';
-
-import './extendJest';
-
 import * as AuthZ from './authz';
 
-const { getAccount, getBoundary } = setupEnvironment();
-const function1Id = 'test-fun-authz-1';
+import { getEnv } from './setup';
+
+let { account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv();
+beforeEach(() => {
+  ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
+});
 
 describe.skip('function cycle', () => {
   test('looping 50 times', async () => {
-    const account = getAccount();
-    const boundaryId = getBoundary();
-
     const spec1 = {
       nodejs: { files: { 'index.js': `module.exports = async (ctx) => { return { body: "teapot", status: 200}; };` } },
       security: {

@@ -1,24 +1,13 @@
-import { IAccount, FakeAccount, resolveAccount } from './accountResolver';
-import { putFunction, deleteAllFunctions, waitForBuild } from './sdk';
 import { request } from '@5qtrs/request';
-import './extendJest';
 
-let account: IAccount = FakeAccount;
+import { putFunction, waitForBuild } from './sdk';
 
-const boundaryId = `test-boundary-${Math.floor(Math.random() * 99999999).toString(32)}`;
-const function1Id = 'test-function-1';
+import { getEnv } from './setup';
 
-beforeAll(async () => {
-  account = await resolveAccount();
+let { account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv();
+beforeEach(() => {
+  ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
 });
-
-afterAll(async () => {
-  await deleteAllFunctions(account, boundaryId);
-}, 200000);
-
-beforeEach(async () => {
-  await deleteAllFunctions(account, boundaryId);
-}, 200000);
 
 describe('execution', () => {
   test('hello, world succeeds on node 10', async () => {

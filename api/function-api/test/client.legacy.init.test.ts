@@ -1,14 +1,15 @@
-import { IAccount, FakeAccount, resolveAccount, getMalformedAccount, getNonExistingAccount } from './accountResolver';
-import { addClient, initClient, resolveInit, cleanUpClients } from './sdk';
 import { random } from '@5qtrs/random';
 import { decodeJwt, decodeJwtHeader, signJwt } from '@5qtrs/jwt';
 import { createKeyPair } from '@5qtrs/key-pair';
-import './extendJest';
 
-let account: IAccount = FakeAccount;
+import { getNonExistingAccount } from './accountResolver';
+import { addClient, initClient, resolveInit, cleanUpClients } from './sdk';
 
-beforeAll(async () => {
-  account = await resolveAccount();
+import { getEnv } from './setup';
+
+let { account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv();
+beforeEach(() => {
+  ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
 });
 
 afterEach(async () => {
@@ -94,7 +95,7 @@ describe('Legacy Client', () => {
       });
       const client = await initClient(account, original.data.id, {
         subscriptionId: account.subscriptionId,
-        boundaryId: 'boundary-abc',
+        boundaryId,
       });
       expect(client).toBeHttp({ statusCode: 200 });
 
@@ -107,7 +108,7 @@ describe('Legacy Client', () => {
       const decoded = decodeJwt(jwt, true);
       expect(decoded.accountId).toBe(account.accountId);
       expect(decoded.subscriptionId).toBe(account.subscriptionId);
-      expect(decoded.boundaryId).toBe('boundary-abc');
+      expect(decoded.boundaryId).toBe(boundaryId);
       expect(decoded.agentId).toBe(original.data.id);
       expect(decoded.baseUrl).toBe(account.baseUrl);
       expect(decoded.issuerId).toBeDefined();
@@ -131,8 +132,8 @@ describe('Legacy Client', () => {
       });
       const client = await initClient(account, original.data.id, {
         subscriptionId: account.subscriptionId,
-        boundaryId: 'boundary-abc',
-        functionId: 'function-abc',
+        boundaryId,
+        functionId: function1Id,
       });
       expect(client).toBeHttp({ statusCode: 200 });
 
@@ -145,8 +146,8 @@ describe('Legacy Client', () => {
       const decoded = decodeJwt(jwt, true);
       expect(decoded.accountId).toBe(account.accountId);
       expect(decoded.subscriptionId).toBe(account.subscriptionId);
-      expect(decoded.boundaryId).toBe('boundary-abc');
-      expect(decoded.functionId).toBe('function-abc');
+      expect(decoded.boundaryId).toBe(boundaryId);
+      expect(decoded.functionId).toBe(function1Id);
       expect(decoded.agentId).toBe(original.data.id);
       expect(decoded.baseUrl).toBe(account.baseUrl);
       expect(decoded.issuerId).toBeDefined();

@@ -1,11 +1,6 @@
-import {
-  IAccount,
-  FakeAccount,
-  cloneWithAccessToken,
-  resolveAccount,
-  getMalformedAccount,
-  getNonExistingAccount,
-} from './accountResolver';
+import { random } from '@5qtrs/random';
+
+import { cloneWithAccessToken, getMalformedAccount, getNonExistingAccount } from './accountResolver';
 import {
   createTestUser,
   createTestJwksIssuer,
@@ -17,13 +12,12 @@ import {
   cleanUpIssuers,
   cleanUpHostedIssuers,
 } from './sdk';
-import { random } from '@5qtrs/random';
-import './extendJest';
 
-let account: IAccount = FakeAccount;
+import { getEnv } from './setup';
 
-beforeAll(async () => {
-  account = await resolveAccount();
+let { account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv();
+beforeEach(() => {
+  ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
 });
 
 afterEach(async () => {
