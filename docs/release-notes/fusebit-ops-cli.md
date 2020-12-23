@@ -24,6 +24,9 @@ _Released 12/18/20_
 
 - **Bugfix.** Enforce consistent reads to DynamoDB for table access operations.
 - **Bugfix.** Normalize output format control to `--output,-o`, removing the `--format,-f` option.
+- **Enhancement.** Add a `fusebit.endpoint` in the `ctx` for the endpoint of the Fusebit API.
+- **Enhancement.** Add `baseUrl` to the `ctx` for function invocations that includes the full function HTTP endpoint being invoked.
+- **Enhancement.** Add `path` to the `ctx` for function invocations that includes the route under the function from the request.
 
 ## Version 1.24.14
 

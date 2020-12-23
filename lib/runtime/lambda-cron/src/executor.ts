@@ -94,22 +94,22 @@ async function executeFunction(ctx: any) {
   // Generate a pseudo-request object to drive the invocation.
   const request = {
     method: 'CRON',
-    url: '',
-    path: Constants.get_user_function_name(ctx),
+    url: `${Constants.get_function_path(ctx.subscriptionId, ctx.boundaryId, ctx.functionId)}`,
     body: ctx,
+    originalUrl: `/v1${Constants.get_function_path(ctx.subscriptionId, ctx.boundaryId, ctx.functionId)}`,
     protocol: 'cron',
-    headers: { 'x-forwarded-proto': 'cron', host: 'fusebit' },
+    headers: {},
     query: {},
     params: ctx,
     requestId: uuidv4(),
     startTime,
   };
 
-  request.url = Constants.get_function_location(
-    request,
-    request.params.subscriptionId,
-    request.params.boundaryId,
-    request.params.functionId
+  request.params.baseUrl = Constants.get_function_location(
+    { headers: { 'x-forwarded-proto': 'https', host: Constants.API_PUBLIC_ENDPOINT.replace(/http[s]?:\/\//i, '') } },
+    ctx.subscriptionId,
+    ctx.boundaryId,
+    ctx.functionId
   );
 
   // Execute, and record the results.
