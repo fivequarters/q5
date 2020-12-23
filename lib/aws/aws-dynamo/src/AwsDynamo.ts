@@ -774,7 +774,7 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
     params.RequestItems[fullTableName] = { Keys: keys };
 
     // Bias reads towards consistency.
-    params.ConsistentRead = options && options.disableConsistentRead ? false : true;
+    params.RequestItems[fullTableName].ConsistentRead = options && options.disableConsistentRead ? false : true;
 
     return new Promise((resolve, reject) => {
       dynamo.batchGetItem(params, (error: any, data: any) => {
