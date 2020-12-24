@@ -694,7 +694,7 @@ describe('function', () => {
     expect(response).toBeHttp({ statusCode: 200 });
     response = await listFunctions(account);
     expect(response).toBeHttp({ statusCode: 200 });
-    expect(response.data).toEqual({ items: expect.any(Array) });
+    expect(response.data).toMatchObject({ items: expect.any(Array) });
     expect(response.data.items.length).toBeGreaterThanOrEqual(2);
     expect(response.data.items).toEqual(
       expect.arrayContaining([

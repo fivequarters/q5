@@ -15,9 +15,9 @@ echoerr "Building package"
 rm -rf cli/fusebit-cli/package
 yarn package fusebit-cli 1>&2
 
-echoerr "Deploying to npm"
+echoerr "Deploying to npm (ignoring error on republish of same version)"
 cd cli/fusebit-cli/package
-npm publish 1>&2
+npm publish 1>&2 || true
 
 echoerr "Testing installation"
 npm install -g @fusebit/cli@${VERSION} 1>&2

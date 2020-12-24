@@ -164,6 +164,9 @@ jobs:
     - name: Publish - fusebit-cli
       run: ./tool/cicd/actions/publish_fusebit_cli.sh
 
+    - name: Publish - fusebit-editor
+      run: ./tool/cicd/actions/publish_fusebit_editor.sh
+
     ###########################################################################
     # Run automated tests
     - name: Test - deploy exclusive to stage/us-west-2
@@ -178,4 +181,4 @@ jobs:
       run: |
         cd api/function-api
         export FUSE_PROFILE=`echo ${SECRET_FUSEBIT_PROFILE} | jq -r '.user.profileName'`
-        EC2=1 yarn test
+        EC2=1 yarn test --testPathIgnorePatterns test/cron test/npm
