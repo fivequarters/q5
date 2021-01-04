@@ -14,9 +14,10 @@ import { FusebitEmail, FusebitAboutYou, FusebitAboutYouForm } from '@5qtrs/fuseb
 // Internal Constants
 // ------------------
 
-const contactUsHeading = "Let's Talk";
-const contactUsText =
-  "We'll contact you shortly to discuss how you can quickly enable the integrations your customer want with Fusebit.";
+const contactUsHeading = 'Get started';
+const contactUsText1 =
+  "We are excited to support your integration needs through Fusebit's Enterprise platform offering. We are also hard at work on our self-service Developer product.";
+const contactUsText2 = 'Either way, drop your email below and we will be in touch.';
 const sendButtonText = 'Send';
 const aboutYouHeading = 'About You';
 const aboutYouText = "If you don't mind, we'd love to learn a little about you and your interest in Fusebit.";
@@ -27,10 +28,10 @@ const aboutYouText = "If you don't mind, we'd love to learn a little about you a
 
 function getHeightFromPage(page: FusebitModalPage, isMobile?: boolean) {
   if (isMobile) {
-    return page === FusebitModalPage.ContactUs ? 370 : 540;
+    return page === FusebitModalPage.ContactUs ? 450 : 540;
   }
 
-  return page === FusebitModalPage.ContactUs ? 310 : 610;
+  return page === FusebitModalPage.ContactUs ? 400 : 610;
 }
 
 // --------------
@@ -80,8 +81,16 @@ function ContactUsPage({ modalPage, email, onClose, gaCategory, gaAction, gaLabe
         </FusebitButton>
       </Box>
       <Box height={20} />
-      <Box>
-        <FusebitText type={FusebitTextType.body}>{aboutYou ? aboutYouText : contactUsText}</FusebitText>
+      <Box width="100%">
+        {aboutYou ? (
+          <FusebitText type={FusebitTextType.body}>{aboutYouText}</FusebitText>
+        ) : (
+          <>
+            <FusebitText type={FusebitTextType.body}>{contactUsText1}</FusebitText>
+            <Box height={20} />
+            <FusebitText type={FusebitTextType.body}>{contactUsText2}</FusebitText>
+          </>
+        )}
       </Box>
       <Box height={30} />
       {aboutYou ? (

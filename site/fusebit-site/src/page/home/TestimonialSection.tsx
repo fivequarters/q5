@@ -14,7 +14,7 @@ import LogoFactoryFour from '../../../assets/img/logo-factoryfour.png';
 // ------------------
 
 const alexName = 'Alex Mathews';
-const alexTitle = 'CTO, FactoryFour';
+const alexTitle = 'CEO, FactoryFour';
 const alexQuote =
   'Fusebit takes the burden of integrations off of our customers, reducing a month long development cycle to a 15 minute coding exercise';
 const enableHeading = 'For FactoryFour, Fusebit enables:';
