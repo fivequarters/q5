@@ -21,50 +21,50 @@ const subHeading =
 
 const pains = [
   {
-    heading: 'Sales take long and deals are lost',
+    heading: 'Every integration is different',
     text:
-      'Inability to rapidly deliver missing integrations or support custom functionality prevents your sales team from closing',
-    height: 90,
+      'Dealing with separate auth mechanisms, changing schemas, rate limits, and everything else your integration partners throw at you wastes valuable time',
+    height: 110,
     scrollY: 350,
   },
   {
-    heading: 'Integrations get stuck in the product backlog',
-    text: 'My engineers are busy with the core product and integrations never get done',
-    height: 70,
-    scrollY: 350,
-  },
-  {
-    heading: '80% solved isn’t solved at all',
+    heading: 'Will it work at scale?',
     text:
-      'You don’t need hundreds of generic integrations that you’ll never use, just the ten your customers actually want, delivered on your timeline',
+      'Starting without a plan can lead to a massive headache down the line as tenancy, isolation, and custom requirements come into play',
     height: 90,
     scrollY: 0,
   },
   {
-    heading: 'It’s harder than it looks',
+    heading: 'No in-house expertise',
     text:
-      'Dealing with separate auth mechanisms, changing schemas, rate limits, and everything else your integration partners throw at you makes building an in-house platform an expensive and risky investment',
-    height: 150,
-    scrollY: 450,
+      'Hiring an integrations team and building up the expertise to deliver a great experience distracts from investing in your core business',
+    height: 90,
+    scrollY: 350,
   },
   {
-    heading: 'Integrations go down and engineers stay up',
+    heading: 'Integrations go down and developers stay up',
     text:
       'Fighting broken integrations in production without great metrics, logging, and alerting burns out your team and hurts your bottom line',
     height: 90,
     scrollY: 0,
   },
+  {
+    heading: 'Integrations get stuck in the product backlog',
+    text: 'My developers are busy with the core product and integrations never get done',
+    height: 70,
+    scrollY: 450,
+  },
 ];
 
 const personaCardMap = [
   { personaIndex: 0, pain: 0 },
-  { personaIndex: 1, pain: 1 },
+  { personaIndex: 0, pain: 1 },
   { personaIndex: 1, pain: 2 },
-  { personaIndex: 2, pain: 3 },
+  { personaIndex: 1, pain: 3 },
   { personaIndex: 2, pain: 4 },
 ];
 
-const personaTitles = ['Account Manager', 'Product Manager', 'Engineering Lead'];
+const personaTitles = ['Developer', 'Engineering Lead', 'Product Manager'];
 
 // ------------------
 // Internal Functions

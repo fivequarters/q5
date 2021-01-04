@@ -11,8 +11,9 @@ import { FusebitSection } from '@5qtrs/fusebit-page';
 // Internal Constants
 // ------------------
 
-const heading = 'Attract and retain customers with the integrations they want';
-const subHeading = 'Integrations tailored to your SaaS and done in no time';
+const heading = 'The first integration platform designed for developer joy';
+const subHeading =
+  'Quickly add integrations to your application using powerful and flexible API building blocks. We abstract third-party APIs and run infrastructure at scale, so that you can focus on delighting your customers.';
 
 // -------------------
 // Internal Components

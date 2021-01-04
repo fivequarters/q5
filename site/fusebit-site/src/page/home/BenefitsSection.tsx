@@ -17,39 +17,38 @@ import { FusebitSection } from '@5qtrs/fusebit-page';
 // Internal Constants
 // ------------------
 
-const heading = 'Attract and retain customers with the integrations they want';
-const subHeading = 'Integrations tailored to your SaaS and done in no time';
 const benefits = [
   {
-    heading: 'Buy, don’t build',
-    text: 'Fusebit provides powerful building blocks that free your engineering team from development and maintenance',
+    heading: 'Fast time to market',
+    text: "Fusebit provides connectors to popular SaaS APIs and hosts your integrations at scale, so you don't have to",
     icon: <PuzzleIcon color={FusebitColor.white} />,
   },
   {
-    heading: '100% fit',
+    heading: 'Powerful and flexible',
     text:
       'Integrations do exactly what your users want, and are customizable through Node.js code, leveraging the full npm ecosystem',
     icon: <EmptyTagIcon color={FusebitColor.white} />,
   },
   {
-    heading: 'Fast time to market',
-    text: 'The Fusebit platform building blocks allow rapid rollout of new integrations within days, not months',
+    heading: 'Embedded',
+    text: 'Fusebit provides customizable white-label building blocks that fit seamlessly inside your product',
     icon: <FourBoxesIcon color={FusebitColor.white} />,
   },
   {
-    heading: 'Built for scale',
-    text: 'Security, reliability, and monitoring are built in, not an afterthought',
-    icon: <ShieldIcon color={FusebitColor.white} />,
+    heading: 'Developer-first',
+    text:
+      'Our platform gives you powerful APIs and components to code against, supports source control, versioning, CI/CD, and everything else you expect',
+    icon: <OrgChartIcon color={FusebitColor.white} />,
   },
   {
     heading: 'Don’t get woken up',
-    text: 'Our financially-backed SLA ensures your integrations are always up',
+    text: 'Health checks, throttling, and buffering infrastructure takes care of common issues while you sleep',
     icon: <NetworkFileIcon color={FusebitColor.white} />,
   },
   {
-    heading: 'We’ll do it as a team',
-    text: 'We have the expertise and will work with you every step of the way',
-    icon: <OrgChartIcon color={FusebitColor.white} />,
+    heading: 'Robust and secure',
+    text: 'Designed with first-class security and privacy in mind, including private cloud hosting options',
+    icon: <ShieldIcon color={FusebitColor.white} />,
   },
 ];
 
