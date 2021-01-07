@@ -1,0 +1,55 @@
+###################################################################
+# Auto-created by the cicd-actions tool
+on: workflow_dispatch
+name: Full build
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 10.15.3
+      - name: Cache Node.js modules
+        uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.OS }}-node
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+      - name: Cache yarn modules
+        uses: actions/cache@v2
+        id: yarn-cache
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Version
+        id: package-versions
+        run: ./tool/cicd/actions/scripts/export_versions.sh
+      - name: Setup Environments and Profiles
+        env:
+          SECRET_FUSEBIT_PROFILE: ${{secrets.FUSEBIT_STAGE_US_WEST_2}}
+          SECRET_NPM_TOKEN: ${{secrets.NPM_PUBLISH_TOKEN}}
+          SECRET_GC_BQ_KEY_BASE64: ${{secrets.FUSEBIT_GC_BQ_KEY_BASE64}}
+        run: ./tool/cicd/actions/scripts/create_env_files.sh
+      - name: Qualify - aws-cli works
+        run: aws s3 ls
+      - name: Qualify - npm works
+        run: npm whoami
+      - name: Pre-Build Summary
+        run: |
+          echo function-api: ${VERSION_FUNCTION_API}
+          echo fusebit-cli: ${VERSION_FUSEBIT_CLI}
+          echo fusebit-ops-cli: ${VERSION_FUSEBIT_OPS_CLI}
+      - name: Build
+        run: ./tool/cicd/actions/scripts/build_tree.sh
+      - name: Qualify - fuse-ops works
+        run: node cli/fusebit-ops-cli/libc/index.js stack ls
+      - name: Qualify - fuse works
+        run: node cli/fusebit-cli/libc/index.js function ls
