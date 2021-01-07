@@ -138,7 +138,8 @@
       "@5qtrs/function-tags": ["lib/server/function-tags/src"],
       "@5qtrs/npm": ["lib/server/npm/src"],
       "@5qtrs/registry": ["lib/server/registry/src"],
-      "@5qtrs/runas": ["lib/server/runas/src"]
+      "@5qtrs/runas": ["lib/server/runas/src"],
+      "@5qtrs/cicd-actions": ["tool/cicd/actions/src"]
     }
   }
 }

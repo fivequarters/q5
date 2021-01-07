@@ -1,0 +1,13 @@
+steps:
+###########################################################################
+# Checkout the repository
+- name: Checkout
+  uses: actions/checkout@v2
+
+###########################################################################
+# Acquire the version of the various packages
+- name: Version
+  id: package-versions
+  run: ./tool/cicd/actions/scripts/export_versions.sh
+
+
