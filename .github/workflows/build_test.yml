@@ -1,7 +1,7 @@
 ###################################################################
 # Auto-created by the cicd-actions tool
 on: workflow_dispatch
-name: Deploy and Test
+name: Deploy to us-west-2/stage and Test
 jobs:
   deploy:
     name: Deploy
@@ -32,6 +32,11 @@ jobs:
       - name: Version
         id: package-versions
         run: ./tool/cicd/actions/scripts/export_versions.sh
+      - name: Discovered versions
+        run: >
+          echo "Versions: function_api/${{env.VERSION_FUNCTION_API}}
+          fuse-cli/${{env.VERSION_FUSEBIT_CLI}}
+          fuse-ops/${{env.VERSION_FUSEBIT_OPS_CLI}}"
       - name: Setup Environments and Profiles
         env:
           SECRET_FUSEBIT_PROFILE: ${{secrets.FUSEBIT_STAGE_US_WEST_2}}
@@ -53,6 +58,10 @@ jobs:
         run: node cli/fusebit-ops-cli/libc/index.js stack ls
       - name: Qualify - fuse works
         run: node cli/fusebit-cli/libc/index.js function ls
+      - name: Yarn - image
+        run: yarn image
+      - name: Publish - function-api
+        run: ./tool/cicd/actions/scripts/publish_function_api.sh
       - name: Test - deploy exclusive to stage/us-west-2
         env:
           REGION: us-west-2

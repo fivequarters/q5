@@ -7,7 +7,8 @@
   "license": "UNLICENSED",
   "author": "FiveQuarters.io",
   "scripts": {
-    "build": "tsc -b"
+    "build": "tsc -b",
+    "deploy": "yarn build && node libc/index.js"
   },
   "keywords": [],
   "dependencies": {},
