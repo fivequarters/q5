@@ -18,7 +18,7 @@ export function Privacy() {
   return (
     <Page header="Privacy Policy" updatedOn="August 9, 2019">
       <Section>
-        Thank you for choosing to be part of our community at Five Quarters LLC, doing business as Fusebit (“
+        Thank you for choosing to be part of our community at Fusebit, Inc. (“
         <strong>Fusebit</strong>”, “<strong>we</strong>”, “<strong>us</strong>”, or “<strong>our</strong>”). We are
         committed to protecting your personal information and your right to privacy. If you have any questions or
         concerns about our policy, or our practices with regards to your personal information, please contact us at
@@ -450,7 +450,7 @@ export function Privacy() {
         Janczuk, by email at tomek@fusebit.io, or by post to:
         <Break />
         <strong>
-          Five Quarters LLC
+          Fusebit Inc.
           <br />
           8714 233rd PL NE
           <br />
