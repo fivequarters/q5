@@ -1,0 +1,4 @@
+# Publish fusebit-ops-cli
+steps:
+- name: Publish - fusebit-ops-cli
+  run: ./tool/cicd/actions/scripts/publish_fusebit_ops_cli.sh

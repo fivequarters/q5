@@ -17,11 +17,19 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
-## Version 1.18.12
+## Version 1.18.13
 
 _Released 12/20/20_
 
 - **Bugfix.** Prevent functions from executing against previously configured security contexts.
+
+## Version 1.18.12
+
+_Released 12/19/20_
+
+- **Bugfix.** Enforce consistent reads to DynamoDB for operational API calls.
+- **Enhancement.** Add a `fusebit.endpoint` in the `ctx` for the endpoint of the Fusebit API.
+- **Enhancement.** Add `path` to the `ctx` for function invocations that includes the route under the function from the request.
 
 ## Version 1.18.11
 

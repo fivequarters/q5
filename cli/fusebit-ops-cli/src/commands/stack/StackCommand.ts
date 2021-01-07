@@ -14,6 +14,14 @@ const command: ICommand = {
   cmd: 'stack',
   summary: 'Manage stacks',
   description: 'Deploy, promote, demote, destroy and list stacks of deployments',
+  options: [
+    {
+      name: 'output',
+      aliases: ['o'],
+      description: "The format to display the output: 'pretty', 'json'",
+      default: 'pretty',
+    },
+  ],
 };
 
 // ----------------

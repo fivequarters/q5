@@ -1,5 +1,15 @@
 import { IHttpResponse } from '@5qtrs/request';
 
+import { getEnv, nextBoundary, initializeEnvironment, getAllBoundaries, resetEnvironment } from './environment';
+
+import {
+  IFunctionCatalog,
+  IFunctionCatalogEntry,
+  functionCatalog,
+  enableFunctionUsageRestriction,
+  deleteAllFunctions,
+} from './sdk';
+
 // ------------------
 // Internal Functions
 // ------------------
@@ -50,11 +60,12 @@ function toBeHttp(response: IHttpResponse, { statusCode, data, headers, has, has
       }
     }
   } catch (err) {
+    const { account } = getEnv();
     const msg = `${err.message}\n\nfailing response:\n${response.status} - ${JSON.stringify(
       response.headers,
       null,
       2
-    )} - ${JSON.stringify(response.data, null, 2)}`;
+    )} - ${JSON.stringify(response.data, null, 2)} - ${JSON.stringify(account)}`;
     return { message: () => msg, pass: false };
   }
   return { message: () => '', pass: true };
@@ -200,3 +211,51 @@ const jestExpect = (global as any).expect;
 if (jestExpect !== undefined) {
   jestExpect.extend(matchers);
 }
+
+// Defensive gates to prevent a function from accidentally being used multiple times in a way that will cause
+// a race.  Using the function metadata is fine; doing a PUT + PUT + execute with code changes may result in
+// either of the two functions being executed, depending on whether or not AWS had converged by the time the
+// execute was processed.
+
+class DuplicateFunctionUsage extends Error {
+  constructor(errors: IFunctionCatalog) {
+    const m =
+      Object.entries(errors)
+        .map(
+          (error: [string, IFunctionCatalogEntry]) =>
+            `\nFunction ${error[0]} is used ${error[1].cnt} times in the following tests:\n` +
+            Object.keys(error[1].testIds)
+              .map((test: string) => `+ ${test}`)
+              .join('\n')
+        )
+        .join('\n') + '\n';
+    super(m);
+  }
+}
+
+afterEach(() => {
+  // Automatically enable function reuse restrictions for each test.
+  enableFunctionUsageRestriction();
+});
+
+afterAll(() => {
+  // Report tests that use the same function name multiple times as an error; this tends to cause instability
+  // in the system unless carefully managed, as lambda does not guarantee that a successful putFunction will
+  // result in only that function getting executed subsequently.
+  const errors = Object.keys(functionCatalog).filter((k) => functionCatalog[k].cnt > 1);
+
+  if (errors.length > 0) {
+    const breakingEntries: IFunctionCatalog = {};
+    errors.forEach((e) => (breakingEntries[e] = functionCatalog[e]));
+    throw new DuplicateFunctionUsage(breakingEntries);
+  }
+});
+
+// Some general finalization processes to clean up after the test is done.
+afterAll(async () => {
+  resetEnvironment();
+  const { account } = getEnv();
+  await Promise.all(getAllBoundaries().map(async (boundaryId) => deleteAllFunctions(account, boundaryId)));
+}, 200000);
+
+export { getEnv, nextBoundary };

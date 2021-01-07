@@ -1,16 +1,15 @@
-import { random } from '@5qtrs/random';
-import { request } from '@5qtrs/request';
 import * as semver from 'semver';
+
 import { supportedClientVersion } from '../src/routes/middleware/version_check';
 
-import { FakeAccount, IAccount, resolveAccount } from './accountResolver';
-import { setupEnvironment } from './common';
 import { getFunction, putFunction } from './sdk';
 
-import './extendJest';
+import { getEnv } from './setup';
 
-const { getAccount, getBoundary } = setupEnvironment();
-const function1Id = 'test-user-agent-1';
+let { account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv();
+beforeEach(() => {
+  ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
+});
 
 const simpleFuncSpec = {
   nodejs: {
@@ -22,10 +21,6 @@ const simpleFuncSpec = {
 
 describe('User Agent', () => {
   test('Validate User Agent MinVer Requirements', async () => {
-    // Get the master account and access token
-    const account = getAccount();
-    const boundaryId = getBoundary();
-
     let response = await putFunction(account, boundaryId, function1Id, simpleFuncSpec);
     expect(response).toBeHttp({ statusCode: 200 });
 

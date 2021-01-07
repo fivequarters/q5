@@ -104,23 +104,21 @@ export function FusebitNavBar({ minWidth, maxWidth, onLetsTalkClicked, ...rest }
               color={FusebitColor.white}
               onClick={onMobileNavChange}
             />
-
             <FusebitNavLink
-              marginBottom={40}
+              marginBottom={20}
               linkType={FusebitNavLinkType.blog}
               color={FusebitColor.white}
               onClick={onMobileNavChange}
             />
             <FusebitNavLink
-              marginBottom={40}
+              marginBottom={20}
               linkType={FusebitNavLinkType.docs}
               color={FusebitColor.white}
               onClick={onMobileNavChange}
             />
-
             <Box marginBottom={20} stretch>
               <FusebitButton expand onClick={onLetsTalkClickedWrapped}>
-                Let's Talk
+                Get started
               </FusebitButton>
               <FusebitSocialButton marginLeft={20} type={FusebitSocialType.twitter} invertColor />
             </Box>
@@ -146,7 +144,7 @@ export function FusebitNavBar({ minWidth, maxWidth, onLetsTalkClicked, ...rest }
         <FusebitNavLink marginLeft={30} linkType={FusebitNavLinkType.blog} />
         <FusebitNavLink marginLeft={30} linkType={FusebitNavLinkType.docs} />
         <FusebitButton marginLeft={30} onClick={onLetsTalkClickedWrapped}>
-          Let's Talk
+          Get started
         </FusebitButton>
       </Box>
     );

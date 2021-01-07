@@ -1,26 +1,13 @@
-import { IAccount, FakeAccount, resolveAccount } from './accountResolver';
-import { deleteFunction, putFunction, deleteAllFunctions, waitForBuild, sleep, getFunction, getLogs } from './sdk';
 import { request } from '@5qtrs/request';
 
-import './extendJest';
+import { deleteFunction, putFunction, waitForBuild, sleep, getFunction, getLogs } from './sdk';
 
-let account: IAccount = FakeAccount;
+import { getEnv } from './setup';
 
-const boundaryId = `test-boundary-${Math.floor(Math.random() * 99999999).toString(32)}`;
-const function1Id = 'test-function-1';
-const function2Id = 'test-function-2';
-
-beforeAll(async () => {
-  account = await resolveAccount();
+let { account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv();
+beforeEach(() => {
+  ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
 });
-
-afterAll(async () => {
-  await deleteAllFunctions(account, boundaryId);
-}, 180000);
-
-beforeEach(async () => {
-  await deleteAllFunctions(account, boundaryId);
-}, 180000);
 
 describe('cron', () => {
   test(

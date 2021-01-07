@@ -12,8 +12,7 @@ import { FusebitSection } from '@5qtrs/fusebit-page';
 
 const heroText = (
   <>
-    What if you could quickly offer the <span style={{ color: FusebitColor.red }}>integrations</span> your customers
-    actually want?
+    Build <span style={{ color: FusebitColor.red }}>application integrations</span> with our fast and easy APIs
   </>
 );
 

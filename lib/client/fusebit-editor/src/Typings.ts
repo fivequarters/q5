@@ -66,7 +66,7 @@ export function updateFusebitContextTypings(configuration: { [index: string]: st
        */
       method: string;
       /**
-       * HTTP request url.
+       * The version-less HTTP request path of the function.
        */
       url: string;
       /**
@@ -86,13 +86,28 @@ export function updateFusebitContextTypings(configuration: { [index: string]: st
        */
       functionId: string;
       /**
-       * The base URL associated with the function.
+       * The HTTP endpoint for this function.
        */
       baseUrl: string;
       /**
-       * Access tokens used to communicate with the Fusebit API.
+       * The route within the function that has been requested, including any path elements that occur after
+       * the baseUrl in the HTTP request but not query string parameters.
        */
-      fusebit: { functionAccessToken?: string, callerAccessToken?: string};
+      path: string;
+      fusebit: {
+        /**
+         * The Fusebit access token with permissions specified at function creation.
+         */
+        functionAccessToken?: string,
+        /**
+         * The access token provided by the caller when invoking this function.
+         */
+        callerAccessToken?: string
+        /**
+         * The endpoint of the Fusebit platform serving this function.
+         */
+        endpoint: string
+      };
       /**
        * Permissions that the caller has been validated to have.
        */

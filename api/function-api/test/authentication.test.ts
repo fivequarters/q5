@@ -1,15 +1,15 @@
-import { IAccount, FakeAccount, resolveAccount } from './accountResolver';
+import { random } from '@5qtrs/random';
 import { request } from '@5qtrs/request';
 import { signJwt } from '@5qtrs/jwt';
 import { createKeyPair } from '@5qtrs/key-pair';
-import { random } from '@5qtrs/random';
+
 import { addUser, cleanUpUsers, createTestJwksIssuer, cleanUpHostedIssuers } from './sdk';
-import './extendJest';
 
-let account: IAccount = FakeAccount;
+import { getEnv } from './setup';
 
-beforeAll(async () => {
-  account = await resolveAccount();
+let { account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv();
+beforeEach(() => {
+  ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
 });
 
 afterEach(async () => {

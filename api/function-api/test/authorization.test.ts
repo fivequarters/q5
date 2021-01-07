@@ -1,5 +1,6 @@
-import { IAccount, FakeAccount, resolveAccount, cloneWithAccessToken } from './accountResolver';
 import { random } from '@5qtrs/random';
+
+import { cloneWithAccessToken } from './accountResolver';
 import {
   putFunction,
   getFunction,
@@ -35,7 +36,13 @@ import {
   createTestJwksIssuer,
   cleanUpHostedIssuers,
 } from './sdk';
-import './extendJest';
+
+import { getEnv } from './setup';
+
+let { account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv();
+beforeEach(() => {
+  ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
+});
 
 const helloFunction = {
   nodejs: {
@@ -51,10 +58,8 @@ let testIssuer = {
   getAccessToken: async (subject: string) => 'none',
 };
 
-let account: IAccount = FakeAccount;
-
 beforeAll(async () => {
-  account = await resolveAccount();
+  ({ account } = getEnv());
   testIssuer = await createTestJwksIssuer(account);
 }, 180000);
 
@@ -75,12 +80,12 @@ describe('Authorization', () => {
     const userAccount = cloneWithAccessToken(account, jwt);
 
     const results = await Promise.all([
-      putFunction(userAccount, 'boundary', 'function', {}),
-      getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary', undefined, true),
-      getLogs(userAccount, 'boundary', 'function', true),
-      getFunctionLocation(userAccount, 'boundary', 'function'),
-      deleteFunction(userAccount, 'boundary', 'function'),
+      putFunction(userAccount, boundaryId, function1Id, {}),
+      getFunction(userAccount, boundaryId, function1Id),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, function1Id, true),
+      getFunctionLocation(userAccount, boundaryId, function1Id),
+      deleteFunction(userAccount, boundaryId, function1Id),
       listFunctions(userAccount),
       addIssuer(userAccount, 'test-issuer', {}),
       listIssuers(userAccount),
@@ -120,12 +125,12 @@ describe('Authorization', () => {
     const clientAccount = cloneWithAccessToken(account, jwt);
 
     const results = await Promise.all([
-      putFunction(clientAccount, 'boundary', 'function', {}),
-      getFunction(clientAccount, 'boundary', 'function'),
-      getLogs(clientAccount, 'boundary', undefined, true),
-      getLogs(clientAccount, 'boundary', 'function', true),
-      getFunctionLocation(clientAccount, 'boundary', 'function'),
-      deleteFunction(clientAccount, 'boundary', 'function'),
+      putFunction(clientAccount, boundaryId, function1Id, {}),
+      getFunction(clientAccount, boundaryId, function1Id),
+      getLogs(clientAccount, boundaryId, undefined, true),
+      getLogs(clientAccount, boundaryId, function1Id, true),
+      getFunctionLocation(clientAccount, boundaryId, function1Id),
+      deleteFunction(clientAccount, boundaryId, function1Id),
       listFunctions(clientAccount),
       addIssuer(clientAccount, 'test-issuer', {}),
       listIssuers(clientAccount),
@@ -158,7 +163,6 @@ describe('Authorization', () => {
 
   test('A user with access to get a function should not have any additional access', async () => {
     const subject = `sub-${random({ lengthInBytes: 8 })}`;
-    const boundaryId = `test-boundary-${random({ lengthInBytes: 8 })}`;
     const functionId = `test-function-${random({ lengthInBytes: 8 })}`;
     const action = 'function:get';
     const resource = [
@@ -219,7 +223,6 @@ describe('Authorization', () => {
 
   test('A user with access to get functions of a boundary should not have any additional access', async () => {
     const subject = `sub-${random({ lengthInBytes: 8 })}`;
-    const boundaryId = `test-boundary-${random({ lengthInBytes: 8 })}`;
     const action = 'function:get';
     const resource = [
       `/account/${account.accountId}/subscription/${account.subscriptionId}`,
@@ -295,7 +298,6 @@ describe('Authorization', () => {
     const jwt = await testIssuer.getAccessToken(subject);
     const userAccount = cloneWithAccessToken(account, jwt);
 
-    const boundaryId = `test-boundary-${random({ lengthInBytes: 8 })}`;
     const functionId = `test-function-${random({ lengthInBytes: 8 })}`;
     const allowedResult = await getFunction(userAccount, boundaryId, functionId);
     expect(allowedResult).toBeNotFoundError();
@@ -349,7 +351,6 @@ describe('Authorization', () => {
 
   test('A user with access to put a function should not have any additional access', async () => {
     const subject = `sub-${random({ lengthInBytes: 8 })}`;
-    const boundaryId = `test-boundary-${random({ lengthInBytes: 8 })}`;
     const functionId = `test-function-${random({ lengthInBytes: 8 })}`;
     const action = 'function:put';
     const resource = [
@@ -408,7 +409,6 @@ describe('Authorization', () => {
 
   test('A user with access to put functions of a boundary should not have any additional access', async () => {
     const subject = `sub-${random({ lengthInBytes: 8 })}`;
-    const boundaryId = `test-boundary-${random({ lengthInBytes: 8 })}`;
     const action = 'function:put';
     const resource = [
       `/account/${account.accountId}/subscription/${account.subscriptionId}`,
@@ -532,7 +532,6 @@ describe('Authorization', () => {
 
   test('A user with access to remove a function should not have any additional access', async () => {
     const subject = `sub-${random({ lengthInBytes: 8 })}`;
-    const boundaryId = `test-boundary-${random({ lengthInBytes: 8 })}`;
     const functionId = `test-function-${random({ lengthInBytes: 8 })}`;
     const action = 'function:delete';
     const resource = [
@@ -589,7 +588,6 @@ describe('Authorization', () => {
 
   test('A user with access to remove functions of a boundary should not have any additional access', async () => {
     const subject = `sub-${random({ lengthInBytes: 8 })}`;
-    const boundaryId = `test-boundary-${random({ lengthInBytes: 8 })}`;
     const action = 'function:delete';
     const resource = [
       `/account/${account.accountId}/subscription/${account.subscriptionId}`,
@@ -657,7 +655,6 @@ describe('Authorization', () => {
     const jwt = await testIssuer.getAccessToken(subject);
     const userAccount = cloneWithAccessToken(account, jwt);
 
-    const boundaryId = `test-boundary-${random({ lengthInBytes: 8 })}`;
     const functionId = `test-function-${random({ lengthInBytes: 8 })}`;
     const allowedResult = await deleteFunction(userAccount, boundaryId, functionId);
     expect(allowedResult).toBeNotFoundError();
@@ -699,7 +696,6 @@ describe('Authorization', () => {
 
   test('A user with access to get logs of a function should not have any additional access', async () => {
     const subject = `sub-${random({ lengthInBytes: 8 })}`;
-    const boundaryId = `test-boundary-${random({ lengthInBytes: 8 })}`;
     const functionId = `test-function-${random({ lengthInBytes: 8 })}`;
     const action = 'function:get-log';
     const resource = [
@@ -757,7 +753,6 @@ describe('Authorization', () => {
 
   test('A user with access to get logs of functions of a boundary should not have any additional access', async () => {
     const subject = `sub-${random({ lengthInBytes: 8 })}`;
-    const boundaryId = `test-boundary-${random({ lengthInBytes: 8 })}`;
     const action = 'function:get-log';
     const resource = [
       `/account/${account.accountId}/subscription/${account.subscriptionId}`,
@@ -826,7 +821,6 @@ describe('Authorization', () => {
     const jwt = await testIssuer.getAccessToken(subject);
     const userAccount = cloneWithAccessToken(account, jwt);
 
-    const boundaryId = `test-boundary-${random({ lengthInBytes: 8 })}`;
     const functionId = `test-function-${random({ lengthInBytes: 8 })}`;
     const allowedLogs = await getLogs(userAccount, boundaryId, functionId, true);
     expect(allowedLogs).toBeHttp({ statusCode: 200 });
@@ -870,7 +864,6 @@ describe('Authorization', () => {
 
   test('A user with full access to a function should not have any additional access', async () => {
     const subject = `sub-${random({ lengthInBytes: 8 })}`;
-    const boundaryId = `test-boundary-${random({ lengthInBytes: 8 })}`;
     const functionId = `test-function-${random({ lengthInBytes: 8 })}`;
     const action = 'function:*';
     const resource = [
@@ -939,7 +932,6 @@ describe('Authorization', () => {
 
   test('A user with full access to functions of a boundary should not have any additional access', async () => {
     const subject = `sub-${random({ lengthInBytes: 8 })}`;
-    const boundaryId = `test-boundary-${random({ lengthInBytes: 8 })}`;
     const action = 'function:*';
     const resource = [
       `/account/${account.accountId}/subscription/${account.subscriptionId}`,
@@ -1020,7 +1012,6 @@ describe('Authorization', () => {
     const jwt = await testIssuer.getAccessToken(subject);
     const userAccount = cloneWithAccessToken(account, jwt);
 
-    const boundaryId = `test-boundary-${random({ lengthInBytes: 8 })}`;
     const functionId = `test-function-${random({ lengthInBytes: 8 })}`;
 
     const allowedPut = await putFunction(userAccount, boundaryId, functionId, helloFunction);
@@ -1084,15 +1075,15 @@ describe('Authorization', () => {
     await removeIssuer(account, issuerId);
 
     const results = await Promise.all([
-      putFunction(userAccount, 'boundary', 'function', {}),
-      getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary', undefined, true),
-      getLogs(userAccount, 'boundary', 'function', true),
-      getFunctionLocation(userAccount, 'boundary', 'function'),
-      deleteFunction(userAccount, 'boundary', 'function'),
+      putFunction(userAccount, boundaryId, function1Id, {}),
+      getFunction(userAccount, boundaryId, function1Id),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, function1Id, true),
+      getFunctionLocation(userAccount, boundaryId, function1Id),
+      deleteFunction(userAccount, boundaryId, function1Id),
       listFunctions(userAccount),
       listIssuers(userAccount),
-      addIssuer(userAccount, 'another-issuer', { jsonKeysUrl: 'some-key' }),
+      addIssuer(userAccount, 'test-issuer', { jsonKeysUrl: 'some-key' }),
       getIssuer(userAccount, issuerId),
       updateIssuer(userAccount, issuerId, {}),
       removeIssuer(userAccount, issuerId),
@@ -1137,12 +1128,12 @@ describe('Authorization', () => {
     await removeIssuer(account, issuerId);
 
     const results = await Promise.all([
-      putFunction(userAccount, 'boundary', 'function', {}),
-      getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary', undefined, true),
-      getLogs(userAccount, 'boundary', 'function', true),
-      getFunctionLocation(userAccount, 'boundary', 'function'),
-      deleteFunction(userAccount, 'boundary', 'function'),
+      putFunction(userAccount, boundaryId, function1Id, {}),
+      getFunction(userAccount, boundaryId, function1Id),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, function1Id, true),
+      getFunctionLocation(userAccount, boundaryId, function1Id),
+      deleteFunction(userAccount, boundaryId, function1Id),
       listFunctions(userAccount),
       listIssuers(userAccount),
       getIssuer(userAccount, issuerId),
@@ -1188,16 +1179,16 @@ describe('Authorization', () => {
     expect(allowedGet.status).toBe(404);
 
     const results = await Promise.all([
-      putFunction(userAccount, 'boundary', 'function', {}),
-      getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary', undefined, true),
-      getLogs(userAccount, 'boundary', 'function', true),
-      getFunctionLocation(userAccount, 'boundary', 'function'),
-      deleteFunction(userAccount, 'boundary', 'function'),
+      putFunction(userAccount, boundaryId, function1Id, {}),
+      getFunction(userAccount, boundaryId, function1Id),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, function1Id, true),
+      getFunctionLocation(userAccount, boundaryId, function1Id),
+      deleteFunction(userAccount, boundaryId, function1Id),
       listFunctions(userAccount),
       listIssuers(userAccount),
       addIssuer(userAccount, issuerId, { jsonKeysUrl: 'some-key' }),
-      getIssuer(userAccount, 'another-issuer'),
+      getIssuer(userAccount, 'test-issuer'),
       updateIssuer(userAccount, issuerId, {}),
       removeIssuer(userAccount, issuerId),
       addUser(userAccount, {}),
@@ -1246,12 +1237,12 @@ describe('Authorization', () => {
     expect(allowedlist).toBeHttp({ statusCode: 200 });
 
     const results = await Promise.all([
-      putFunction(userAccount, 'boundary', 'function', {}),
-      getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary', undefined, true),
-      getLogs(userAccount, 'boundary', 'function', true),
-      getFunctionLocation(userAccount, 'boundary', 'function'),
-      deleteFunction(userAccount, 'boundary', 'function'),
+      putFunction(userAccount, boundaryId, function1Id, {}),
+      getFunction(userAccount, boundaryId, function1Id),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, function1Id, true),
+      getFunctionLocation(userAccount, boundaryId, function1Id),
+      deleteFunction(userAccount, boundaryId, function1Id),
       listFunctions(userAccount),
       addIssuer(userAccount, issuerId, {}),
       updateIssuer(userAccount, issuerId, {}),
@@ -1296,17 +1287,17 @@ describe('Authorization', () => {
     expect(allowedUpdate.status).toBe(404);
 
     const results = await Promise.all([
-      putFunction(userAccount, 'boundary', 'function', {}),
-      getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary', undefined, true),
-      getLogs(userAccount, 'boundary', 'function', true),
-      getFunctionLocation(userAccount, 'boundary', 'function'),
-      deleteFunction(userAccount, 'boundary', 'function'),
+      putFunction(userAccount, boundaryId, function1Id, {}),
+      getFunction(userAccount, boundaryId, function1Id),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, function1Id, true),
+      getFunctionLocation(userAccount, boundaryId, function1Id),
+      deleteFunction(userAccount, boundaryId, function1Id),
       listFunctions(userAccount),
       listIssuers(userAccount),
       addIssuer(userAccount, issuerId, { jsonKeysUrl: 'some-key' }),
       getIssuer(userAccount, issuerId),
-      updateIssuer(userAccount, 'another-issuer', {}),
+      updateIssuer(userAccount, 'test-issuer', {}),
       removeIssuer(userAccount, issuerId),
       addUser(userAccount, {}),
       getUser(userAccount, 'usr-1234567890123456'),
@@ -1348,12 +1339,12 @@ describe('Authorization', () => {
     expect(allowedUpdate.status).toBe(404);
 
     const results = await Promise.all([
-      putFunction(userAccount, 'boundary', 'function', {}),
-      getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary', undefined, true),
-      getLogs(userAccount, 'boundary', 'function', true),
-      getFunctionLocation(userAccount, 'boundary', 'function'),
-      deleteFunction(userAccount, 'boundary', 'function'),
+      putFunction(userAccount, boundaryId, function1Id, {}),
+      getFunction(userAccount, boundaryId, function1Id),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, function1Id, true),
+      getFunctionLocation(userAccount, boundaryId, function1Id),
+      deleteFunction(userAccount, boundaryId, function1Id),
       listFunctions(userAccount),
       listIssuers(userAccount),
       getIssuer(userAccount, issuerId),
@@ -1399,19 +1390,19 @@ describe('Authorization', () => {
     expect(allowedRemove.status).toBe(404);
 
     const results = await Promise.all([
-      putFunction(userAccount, 'boundary', 'function', {}),
-      getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary', undefined, true),
-      getLogs(userAccount, 'boundary', 'function', true),
-      getFunctionLocation(userAccount, 'boundary', 'function'),
-      deleteFunction(userAccount, 'boundary', 'function'),
+      putFunction(userAccount, boundaryId, function1Id, {}),
+      getFunction(userAccount, boundaryId, function1Id),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, function1Id, true),
+      getFunctionLocation(userAccount, boundaryId, function1Id),
+      deleteFunction(userAccount, boundaryId, function1Id),
       listFunctions(userAccount),
       listIssuers(userAccount),
       addIssuer(userAccount, issuerId, { jsonKeysUrl: 'some-key' }),
       updateIssuer(userAccount, issuerId, { jsonKeysUrl: 'some-key' }),
       getIssuer(userAccount, issuerId),
       updateIssuer(userAccount, issuerId, {}),
-      removeIssuer(userAccount, 'another-issuer'),
+      removeIssuer(userAccount, 'test-issuer'),
       addUser(userAccount, {}),
       getUser(userAccount, 'usr-1234567890123456'),
       listUsers(userAccount, {}),
@@ -1452,12 +1443,12 @@ describe('Authorization', () => {
     expect(allowedRemove.status).toBe(404);
 
     const results = await Promise.all([
-      putFunction(userAccount, 'boundary', 'function', {}),
-      getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary', undefined, true),
-      getLogs(userAccount, 'boundary', 'function', true),
-      getFunctionLocation(userAccount, 'boundary', 'function'),
-      deleteFunction(userAccount, 'boundary', 'function'),
+      putFunction(userAccount, boundaryId, function1Id, {}),
+      getFunction(userAccount, boundaryId, function1Id),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, function1Id, true),
+      getFunctionLocation(userAccount, boundaryId, function1Id),
+      deleteFunction(userAccount, boundaryId, function1Id),
       listFunctions(userAccount),
       listIssuers(userAccount),
       getIssuer(userAccount, issuerId),
@@ -1512,18 +1503,18 @@ describe('Authorization', () => {
     expect(allowedRemove).toBeHttp({ statusCode: 204 });
 
     const results = await Promise.all([
-      putFunction(userAccount, 'boundary', 'function', {}),
-      getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary', undefined, true),
-      getLogs(userAccount, 'boundary', 'function', true),
-      getFunctionLocation(userAccount, 'boundary', 'function'),
-      deleteFunction(userAccount, 'boundary', 'function'),
+      putFunction(userAccount, boundaryId, function1Id, {}),
+      getFunction(userAccount, boundaryId, function1Id),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, function1Id, true),
+      getFunctionLocation(userAccount, boundaryId, function1Id),
+      deleteFunction(userAccount, boundaryId, function1Id),
       listFunctions(userAccount),
       listIssuers(userAccount),
-      addIssuer(userAccount, 'another-issuer', { jsonKeysUrl: 'some-key' }),
-      updateIssuer(userAccount, 'another-issuer', { jsonKeysUrl: 'some-key' }),
-      getIssuer(userAccount, 'another-issuer'),
-      removeIssuer(userAccount, 'another-issuer'),
+      addIssuer(userAccount, 'test-issuer', { jsonKeysUrl: 'some-key' }),
+      updateIssuer(userAccount, 'test-issuer', { jsonKeysUrl: 'some-key' }),
+      getIssuer(userAccount, 'test-issuer'),
+      removeIssuer(userAccount, 'test-issuer'),
       addUser(userAccount, {}),
       getUser(userAccount, 'usr-1234567890123456'),
       listUsers(userAccount, {}),
@@ -1576,12 +1567,12 @@ describe('Authorization', () => {
     expect(allowedRemove).toBeHttp({ statusCode: 204 });
 
     const results = await Promise.all([
-      putFunction(userAccount, 'boundary', 'function', {}),
-      getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary', undefined, true),
-      getLogs(userAccount, 'boundary', 'function', true),
-      getFunctionLocation(userAccount, 'boundary', 'function'),
-      deleteFunction(userAccount, 'boundary', 'function'),
+      putFunction(userAccount, boundaryId, function1Id, {}),
+      getFunction(userAccount, boundaryId, function1Id),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, function1Id, true),
+      getFunctionLocation(userAccount, boundaryId, function1Id),
+      deleteFunction(userAccount, boundaryId, function1Id),
       listFunctions(userAccount),
       addUser(userAccount, {}),
       getUser(userAccount, 'usr-1234567890123456'),
@@ -1623,15 +1614,15 @@ describe('Authorization', () => {
     const userId = allowedAdd.data.id;
 
     const results = await Promise.all([
-      putFunction(userAccount, 'boundary', 'function', {}),
-      getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary', undefined, true),
-      getLogs(userAccount, 'boundary', 'function', true),
-      getFunctionLocation(userAccount, 'boundary', 'function'),
-      deleteFunction(userAccount, 'boundary', 'function'),
+      putFunction(userAccount, boundaryId, function1Id, {}),
+      getFunction(userAccount, boundaryId, function1Id),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, function1Id, true),
+      getFunctionLocation(userAccount, boundaryId, function1Id),
+      deleteFunction(userAccount, boundaryId, function1Id),
       listFunctions(userAccount),
       listIssuers(userAccount),
-      addIssuer(userAccount, 'another-issuer', { jsonKeysUrl: 'some-key' }),
+      addIssuer(userAccount, 'test-issuer', { jsonKeysUrl: 'some-key' }),
       getIssuer(userAccount, 'issuerId'),
       updateIssuer(userAccount, 'issuerId', {}),
       removeIssuer(userAccount, 'issuerId'),
@@ -1659,24 +1650,22 @@ describe('Authorization', () => {
   }, 180000);
 
   test('A user with access to add any user should not be able to give that user any additional access', async () => {
+    const { account, boundaryId, function1Id } = getEnv();
     const subject = `sub-${random({ lengthInBytes: 8 })}`;
-    const action = 'user:add';
-    const resource = `/account/${account.accountId}/user`;
-
-    const boundaryId = `test-boundary-${random({ lengthInBytes: 8 })}`;
-    const functionId = `test-function-${random({ lengthInBytes: 8 })}`;
+    const userAction = 'user:add';
+    const userResource = `/account/${account.accountId}/user`;
 
     const additionalAccess = {
       action: 'function:get',
       resource: [
         `/account/${account.accountId}/subscription/${account.subscriptionId}`,
-        `/boundary/${boundaryId}/function/${functionId}`,
+        `/boundary/${boundaryId}/function/${function1Id}`,
       ].join(''),
     };
 
     const user = await addUser(account, {
       identities: [{ issuerId: testIssuer.issuerId, subject }],
-      access: { allow: [{ action, resource }, additionalAccess] },
+      access: { allow: [{ action: userAction, resource: userResource }, additionalAccess] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
     const userAccount = cloneWithAccessToken(account, jwt);
@@ -1696,7 +1685,7 @@ describe('Authorization', () => {
       },
       {
         action: 'function:put',
-        resource: `/account/${account.accountId}/subscription/${account.subscriptionId}/boundary/${boundaryId}/function/${functionId}`,
+        resource: `/account/${account.accountId}/subscription/${account.subscriptionId}/boundary/${boundaryId}/function/${function1Id}`,
       },
     ];
 
@@ -1730,15 +1719,15 @@ describe('Authorization', () => {
     expect(allowedGet).toBeHttp({ statusCode: 200 });
 
     const results = await Promise.all([
-      putFunction(userAccount, 'boundary', 'function', {}),
-      getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary', undefined, true),
-      getLogs(userAccount, 'boundary', 'function', true),
-      getFunctionLocation(userAccount, 'boundary', 'function'),
-      deleteFunction(userAccount, 'boundary', 'function'),
+      putFunction(userAccount, boundaryId, function1Id, {}),
+      getFunction(userAccount, boundaryId, function1Id),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, function1Id, true),
+      getFunctionLocation(userAccount, boundaryId, function1Id),
+      deleteFunction(userAccount, boundaryId, function1Id),
       listFunctions(userAccount),
       listIssuers(userAccount),
-      addIssuer(userAccount, 'another-issuer', { jsonKeysUrl: 'some-key' }),
+      addIssuer(userAccount, 'test-issuer', { jsonKeysUrl: 'some-key' }),
       getIssuer(userAccount, 'issuerId'),
       updateIssuer(userAccount, 'issuerId', {}),
       removeIssuer(userAccount, 'issuerId'),
@@ -1791,15 +1780,15 @@ describe('Authorization', () => {
     expect(allowedList).toBeHttp({ statusCode: 200 });
 
     const results = await Promise.all([
-      putFunction(userAccount, 'boundary', 'function', {}),
-      getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary', undefined, true),
-      getLogs(userAccount, 'boundary', 'function', true),
-      getFunctionLocation(userAccount, 'boundary', 'function'),
-      deleteFunction(userAccount, 'boundary', 'function'),
+      putFunction(userAccount, boundaryId, function1Id, {}),
+      getFunction(userAccount, boundaryId, function1Id),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, function1Id, true),
+      getFunctionLocation(userAccount, boundaryId, function1Id),
+      deleteFunction(userAccount, boundaryId, function1Id),
       listFunctions(userAccount),
       listIssuers(userAccount),
-      addIssuer(userAccount, 'another-issuer', { jsonKeysUrl: 'some-key' }),
+      addIssuer(userAccount, 'test-issuer', { jsonKeysUrl: 'some-key' }),
       getIssuer(userAccount, 'issuerId'),
       updateIssuer(userAccount, 'issuerId', {}),
       removeIssuer(userAccount, 'issuerId'),
@@ -1844,15 +1833,15 @@ describe('Authorization', () => {
     expect(allowedUpdate).toBeHttp({ statusCode: 200 });
 
     const results = await Promise.all([
-      putFunction(userAccount, 'boundary', 'function', {}),
-      getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary', undefined, true),
-      getLogs(userAccount, 'boundary', 'function', true),
-      getFunctionLocation(userAccount, 'boundary', 'function'),
-      deleteFunction(userAccount, 'boundary', 'function'),
+      putFunction(userAccount, boundaryId, function1Id, {}),
+      getFunction(userAccount, boundaryId, function1Id),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, function1Id, true),
+      getFunctionLocation(userAccount, boundaryId, function1Id),
+      deleteFunction(userAccount, boundaryId, function1Id),
       listFunctions(userAccount),
       listIssuers(userAccount),
-      addIssuer(userAccount, 'another-issuer', { jsonKeysUrl: 'some-key' }),
+      addIssuer(userAccount, 'test-issuer', { jsonKeysUrl: 'some-key' }),
       getIssuer(userAccount, 'issuerId'),
       updateIssuer(userAccount, 'issuerId', {}),
       removeIssuer(userAccount, 'issuerId'),
@@ -1900,15 +1889,15 @@ describe('Authorization', () => {
     expect(allowedUpdate).toBeHttp({ statusCode: 200 });
 
     const results = await Promise.all([
-      putFunction(userAccount, 'boundary', 'function', {}),
-      getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary', undefined, true),
-      getLogs(userAccount, 'boundary', 'function', true),
-      getFunctionLocation(userAccount, 'boundary', 'function'),
-      deleteFunction(userAccount, 'boundary', 'function'),
+      putFunction(userAccount, boundaryId, function1Id, {}),
+      getFunction(userAccount, boundaryId, function1Id),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, function1Id, true),
+      getFunctionLocation(userAccount, boundaryId, function1Id),
+      deleteFunction(userAccount, boundaryId, function1Id),
       listFunctions(userAccount),
       listIssuers(userAccount),
-      addIssuer(userAccount, 'another-issuer', { jsonKeysUrl: 'some-key' }),
+      addIssuer(userAccount, 'test-issuer', { jsonKeysUrl: 'some-key' }),
       getIssuer(userAccount, 'issuerId'),
       updateIssuer(userAccount, 'issuerId', {}),
       removeIssuer(userAccount, 'issuerId'),
@@ -1936,24 +1925,22 @@ describe('Authorization', () => {
   }, 180000);
 
   test('A user with access to update any user should not be able to give that user any additional access', async () => {
+    const { account, boundaryId, function1Id } = getEnv();
     const subject = `sub-${random({ lengthInBytes: 8 })}`;
-    const action = 'user:update';
-    const resource = `/account/${account.accountId}/user`;
-
-    const boundaryId = `test-boundary-${random({ lengthInBytes: 8 })}`;
-    const functionId = `test-function-${random({ lengthInBytes: 8 })}`;
+    const userAction = 'user:update';
+    const userResource = `/account/${account.accountId}/user`;
 
     const additionalAccess = {
       action: 'function:get',
       resource: [
         `/account/${account.accountId}/subscription/${account.subscriptionId}`,
-        `/boundary/${boundaryId}/function/${functionId}`,
+        `/boundary/${boundaryId}/function/${function1Id}`,
       ].join(''),
     };
 
     const user = await addUser(account, {
       identities: [{ issuerId: testIssuer.issuerId, subject }],
-      access: { allow: [{ action, resource }, additionalAccess] },
+      access: { allow: [{ action: userAction, resource: userResource }, additionalAccess] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
     const userAccount = cloneWithAccessToken(account, jwt);
@@ -1976,7 +1963,7 @@ describe('Authorization', () => {
       },
       {
         action: 'function:put',
-        resource: `/account/${account.accountId}/subscription/${account.subscriptionId}/boundary/${boundaryId}/function/${functionId}`,
+        resource: `/account/${account.accountId}/subscription/${account.subscriptionId}/boundary/${boundaryId}/function/${function1Id}`,
       },
     ];
 
@@ -2010,15 +1997,15 @@ describe('Authorization', () => {
     expect(allowedRemove).toBeHttp({ statusCode: 204 });
 
     const results = await Promise.all([
-      putFunction(userAccount, 'boundary', 'function', {}),
-      getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary', undefined, true),
-      getLogs(userAccount, 'boundary', 'function', true),
-      getFunctionLocation(userAccount, 'boundary', 'function'),
-      deleteFunction(userAccount, 'boundary', 'function'),
+      putFunction(userAccount, boundaryId, function1Id, {}),
+      getFunction(userAccount, boundaryId, function1Id),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, function1Id, true),
+      getFunctionLocation(userAccount, boundaryId, function1Id),
+      deleteFunction(userAccount, boundaryId, function1Id),
       listFunctions(userAccount),
       listIssuers(userAccount),
-      addIssuer(userAccount, 'another-issuer', { jsonKeysUrl: 'some-key' }),
+      addIssuer(userAccount, 'test-issuer', { jsonKeysUrl: 'some-key' }),
       getIssuer(userAccount, 'issuerId'),
       updateIssuer(userAccount, 'issuerId', {}),
       removeIssuer(userAccount, 'issuerId'),
@@ -2067,15 +2054,15 @@ describe('Authorization', () => {
     expect(allowedRemove).toBeHttp({ statusCode: 204 });
 
     const results = await Promise.all([
-      putFunction(userAccount, 'boundary', 'function', {}),
-      getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary', undefined, true),
-      getLogs(userAccount, 'boundary', 'function', true),
-      getFunctionLocation(userAccount, 'boundary', 'function'),
-      deleteFunction(userAccount, 'boundary', 'function'),
+      putFunction(userAccount, boundaryId, function1Id, {}),
+      getFunction(userAccount, boundaryId, function1Id),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, function1Id, true),
+      getFunctionLocation(userAccount, boundaryId, function1Id),
+      deleteFunction(userAccount, boundaryId, function1Id),
       listFunctions(userAccount),
       listIssuers(userAccount),
-      addIssuer(userAccount, 'another-issuer', { jsonKeysUrl: 'some-key' }),
+      addIssuer(userAccount, 'test-issuer', { jsonKeysUrl: 'some-key' }),
       getIssuer(userAccount, 'issuerId'),
       updateIssuer(userAccount, 'issuerId', {}),
       removeIssuer(userAccount, 'issuerId'),
@@ -2122,15 +2109,15 @@ describe('Authorization', () => {
     expect(allowedInit).toBeHttp({ statusCode: 200 });
 
     const results = await Promise.all([
-      putFunction(userAccount, 'boundary', 'function', {}),
-      getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary', undefined, true),
-      getLogs(userAccount, 'boundary', 'function', true),
-      getFunctionLocation(userAccount, 'boundary', 'function'),
-      deleteFunction(userAccount, 'boundary', 'function'),
+      putFunction(userAccount, boundaryId, function1Id, {}),
+      getFunction(userAccount, boundaryId, function1Id),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, function1Id, true),
+      getFunctionLocation(userAccount, boundaryId, function1Id),
+      deleteFunction(userAccount, boundaryId, function1Id),
       listFunctions(userAccount),
       listIssuers(userAccount),
-      addIssuer(userAccount, 'another-issuer', { jsonKeysUrl: 'some-key' }),
+      addIssuer(userAccount, 'test-issuer', { jsonKeysUrl: 'some-key' }),
       getIssuer(userAccount, 'issuerId'),
       updateIssuer(userAccount, 'issuerId', {}),
       removeIssuer(userAccount, 'issuerId'),
@@ -2180,15 +2167,15 @@ describe('Authorization', () => {
     expect(allowedInit).toBeHttp({ statusCode: 200 });
 
     const results = await Promise.all([
-      putFunction(userAccount, 'boundary', 'function', {}),
-      getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary', undefined, true),
-      getLogs(userAccount, 'boundary', 'function', true),
-      getFunctionLocation(userAccount, 'boundary', 'function'),
-      deleteFunction(userAccount, 'boundary', 'function'),
+      putFunction(userAccount, boundaryId, function1Id, {}),
+      getFunction(userAccount, boundaryId, function1Id),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, function1Id, true),
+      getFunctionLocation(userAccount, boundaryId, function1Id),
+      deleteFunction(userAccount, boundaryId, function1Id),
       listFunctions(userAccount),
       listIssuers(userAccount),
-      addIssuer(userAccount, 'another-issuer', { jsonKeysUrl: 'some-key' }),
+      addIssuer(userAccount, 'test-issuer', { jsonKeysUrl: 'some-key' }),
       getIssuer(userAccount, 'issuerId'),
       updateIssuer(userAccount, 'issuerId', {}),
       removeIssuer(userAccount, 'issuerId'),
@@ -2243,15 +2230,15 @@ describe('Authorization', () => {
     expect(allowedRemove).toBeHttp({ statusCode: 204 });
 
     const results = await Promise.all([
-      putFunction(userAccount, 'boundary', 'function', {}),
-      getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary', undefined, true),
-      getLogs(userAccount, 'boundary', 'function', true),
-      getFunctionLocation(userAccount, 'boundary', 'function'),
-      deleteFunction(userAccount, 'boundary', 'function'),
+      putFunction(userAccount, boundaryId, function1Id, {}),
+      getFunction(userAccount, boundaryId, function1Id),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, function1Id, true),
+      getFunctionLocation(userAccount, boundaryId, function1Id),
+      deleteFunction(userAccount, boundaryId, function1Id),
       listFunctions(userAccount),
       listIssuers(userAccount),
-      addIssuer(userAccount, 'another-issuer', { jsonKeysUrl: 'some-key' }),
+      addIssuer(userAccount, 'test-issuer', { jsonKeysUrl: 'some-key' }),
       getIssuer(userAccount, 'issuerId'),
       updateIssuer(userAccount, 'issuerId', {}),
       removeIssuer(userAccount, 'issuerId'),
@@ -2306,15 +2293,15 @@ describe('Authorization', () => {
     expect(allowedRemove).toBeHttp({ statusCode: 204 });
 
     const results = await Promise.all([
-      putFunction(userAccount, 'boundary', 'function', {}),
-      getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary', undefined, true),
-      getLogs(userAccount, 'boundary', 'function', true),
-      getFunctionLocation(userAccount, 'boundary', 'function'),
-      deleteFunction(userAccount, 'boundary', 'function'),
+      putFunction(userAccount, boundaryId, function1Id, {}),
+      getFunction(userAccount, boundaryId, function1Id),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, function1Id, true),
+      getFunctionLocation(userAccount, boundaryId, function1Id),
+      deleteFunction(userAccount, boundaryId, function1Id),
       listFunctions(userAccount),
       listIssuers(userAccount),
-      addIssuer(userAccount, 'another-issuer', { jsonKeysUrl: 'some-key' }),
+      addIssuer(userAccount, 'test-issuer', { jsonKeysUrl: 'some-key' }),
       getIssuer(userAccount, 'issuerId'),
       updateIssuer(userAccount, 'issuerId', {}),
       removeIssuer(userAccount, 'issuerId'),
@@ -2352,15 +2339,15 @@ describe('Authorization', () => {
     const clientId = allowedAdd.data.id;
 
     const results = await Promise.all([
-      putFunction(userAccount, 'boundary', 'function', {}),
-      getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary', undefined, true),
-      getLogs(userAccount, 'boundary', 'function', true),
-      getFunctionLocation(userAccount, 'boundary', 'function'),
-      deleteFunction(userAccount, 'boundary', 'function'),
+      putFunction(userAccount, boundaryId, function1Id, {}),
+      getFunction(userAccount, boundaryId, function1Id),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, function1Id, true),
+      getFunctionLocation(userAccount, boundaryId, function1Id),
+      deleteFunction(userAccount, boundaryId, function1Id),
       listFunctions(userAccount),
       listIssuers(userAccount),
-      addIssuer(userAccount, 'another-issuer', { jsonKeysUrl: 'some-key' }),
+      addIssuer(userAccount, 'test-issuer', { jsonKeysUrl: 'some-key' }),
       getIssuer(userAccount, 'issuerId'),
       updateIssuer(userAccount, 'issuerId', {}),
       removeIssuer(userAccount, 'issuerId'),
@@ -2388,24 +2375,22 @@ describe('Authorization', () => {
   }, 180000);
 
   test('A user with access to add any client should not be able to give that client any additional access', async () => {
+    const { account, boundaryId, function1Id } = getEnv();
     const subject = `sub-${random({ lengthInBytes: 8 })}`;
-    const action = 'client:add';
-    const resource = `/account/${account.accountId}/client`;
-
-    const boundaryId = `test-boundary-${random({ lengthInBytes: 8 })}`;
-    const functionId = `test-function-${random({ lengthInBytes: 8 })}`;
+    const clientAction = 'client:add';
+    const clientResource = `/account/${account.accountId}/client`;
 
     const additionalAccess = {
       action: 'function:get',
       resource: [
         `/account/${account.accountId}/subscription/${account.subscriptionId}`,
-        `/boundary/${boundaryId}/function/${functionId}`,
+        `/boundary/${boundaryId}/function/${function1Id}`,
       ].join(''),
     };
 
     const user = await addUser(account, {
       identities: [{ issuerId: testIssuer.issuerId, subject }],
-      access: { allow: [{ action, resource }, additionalAccess] },
+      access: { allow: [{ action: clientAction, resource: clientResource }, additionalAccess] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
     const userAccount = cloneWithAccessToken(account, jwt);
@@ -2425,7 +2410,7 @@ describe('Authorization', () => {
       },
       {
         action: 'function:put',
-        resource: `/account/${account.accountId}/subscription/${account.subscriptionId}/boundary/${boundaryId}/function/${functionId}`,
+        resource: `/account/${account.accountId}/subscription/${account.subscriptionId}/boundary/${boundaryId}/function/${function1Id}`,
       },
     ];
 
@@ -2459,15 +2444,15 @@ describe('Authorization', () => {
     expect(allowedGet).toBeHttp({ statusCode: 200 });
 
     const results = await Promise.all([
-      putFunction(userAccount, 'boundary', 'function', {}),
-      getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary', undefined, true),
-      getLogs(userAccount, 'boundary', 'function', true),
-      getFunctionLocation(userAccount, 'boundary', 'function'),
-      deleteFunction(userAccount, 'boundary', 'function'),
+      putFunction(userAccount, boundaryId, function1Id, {}),
+      getFunction(userAccount, boundaryId, function1Id),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, function1Id, true),
+      getFunctionLocation(userAccount, boundaryId, function1Id),
+      deleteFunction(userAccount, boundaryId, function1Id),
       listFunctions(userAccount),
       listIssuers(userAccount),
-      addIssuer(userAccount, 'another-issuer', { jsonKeysUrl: 'some-key' }),
+      addIssuer(userAccount, 'test-issuer', { jsonKeysUrl: 'some-key' }),
       getIssuer(userAccount, 'issuerId'),
       updateIssuer(userAccount, 'issuerId', {}),
       removeIssuer(userAccount, 'issuerId'),
@@ -2520,15 +2505,15 @@ describe('Authorization', () => {
     expect(allowedList).toBeHttp({ statusCode: 200 });
 
     const results = await Promise.all([
-      putFunction(userAccount, 'boundary', 'function', {}),
-      getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary', undefined, true),
-      getLogs(userAccount, 'boundary', 'function', true),
-      getFunctionLocation(userAccount, 'boundary', 'function'),
-      deleteFunction(userAccount, 'boundary', 'function'),
+      putFunction(userAccount, boundaryId, function1Id, {}),
+      getFunction(userAccount, boundaryId, function1Id),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, function1Id, true),
+      getFunctionLocation(userAccount, boundaryId, function1Id),
+      deleteFunction(userAccount, boundaryId, function1Id),
       listFunctions(userAccount),
       listIssuers(userAccount),
-      addIssuer(userAccount, 'another-issuer', { jsonKeysUrl: 'some-key' }),
+      addIssuer(userAccount, 'test-issuer', { jsonKeysUrl: 'some-key' }),
       getIssuer(userAccount, 'issuerId'),
       updateIssuer(userAccount, 'issuerId', {}),
       removeIssuer(userAccount, 'issuerId'),
@@ -2573,15 +2558,15 @@ describe('Authorization', () => {
     expect(allowedUpdate).toBeHttp({ statusCode: 200 });
 
     const results = await Promise.all([
-      putFunction(userAccount, 'boundary', 'function', {}),
-      getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary', undefined, true),
-      getLogs(userAccount, 'boundary', 'function', true),
-      getFunctionLocation(userAccount, 'boundary', 'function'),
-      deleteFunction(userAccount, 'boundary', 'function'),
+      putFunction(userAccount, boundaryId, function1Id, {}),
+      getFunction(userAccount, boundaryId, function1Id),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, function1Id, true),
+      getFunctionLocation(userAccount, boundaryId, function1Id),
+      deleteFunction(userAccount, boundaryId, function1Id),
       listFunctions(userAccount),
       listIssuers(userAccount),
-      addIssuer(userAccount, 'another-issuer', { jsonKeysUrl: 'some-key' }),
+      addIssuer(userAccount, 'test-issuer', { jsonKeysUrl: 'some-key' }),
       getIssuer(userAccount, 'issuerId'),
       updateIssuer(userAccount, 'issuerId', {}),
       removeIssuer(userAccount, 'issuerId'),
@@ -2629,15 +2614,15 @@ describe('Authorization', () => {
     expect(allowedUpdate).toBeHttp({ statusCode: 200 });
 
     const results = await Promise.all([
-      putFunction(userAccount, 'boundary', 'function', {}),
-      getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary', undefined, true),
-      getLogs(userAccount, 'boundary', 'function', true),
-      getFunctionLocation(userAccount, 'boundary', 'function'),
-      deleteFunction(userAccount, 'boundary', 'function'),
+      putFunction(userAccount, boundaryId, function1Id, {}),
+      getFunction(userAccount, boundaryId, function1Id),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, function1Id, true),
+      getFunctionLocation(userAccount, boundaryId, function1Id),
+      deleteFunction(userAccount, boundaryId, function1Id),
       listFunctions(userAccount),
       listIssuers(userAccount),
-      addIssuer(userAccount, 'another-issuer', { jsonKeysUrl: 'some-key' }),
+      addIssuer(userAccount, 'test-issuer', { jsonKeysUrl: 'some-key' }),
       getIssuer(userAccount, 'issuerId'),
       updateIssuer(userAccount, 'issuerId', {}),
       removeIssuer(userAccount, 'issuerId'),
@@ -2665,24 +2650,22 @@ describe('Authorization', () => {
   }, 180000);
 
   test('A user with access to update any client should not be able to give that client any additional access', async () => {
+    const { account, boundaryId, function1Id } = getEnv();
     const subject = `sub-${random({ lengthInBytes: 8 })}`;
-    const action = 'client:update';
-    const resource = `/account/${account.accountId}/client`;
-
-    const boundaryId = `test-boundary-${random({ lengthInBytes: 8 })}`;
-    const functionId = `test-function-${random({ lengthInBytes: 8 })}`;
+    const clientAction = 'client:update';
+    const clientResource = `/account/${account.accountId}/client`;
 
     const additionalAccess = {
       action: 'function:get',
       resource: [
         `/account/${account.accountId}/subscription/${account.subscriptionId}`,
-        `/boundary/${boundaryId}/function/${functionId}`,
+        `/boundary/${boundaryId}/function/${function1Id}`,
       ].join(''),
     };
 
     const user = await addUser(account, {
       identities: [{ issuerId: testIssuer.issuerId, subject }],
-      access: { allow: [{ action, resource }, additionalAccess] },
+      access: { allow: [{ action: clientAction, resource: clientResource }, additionalAccess] },
     });
     const jwt = await testIssuer.getAccessToken(subject);
     const userAccount = cloneWithAccessToken(account, jwt);
@@ -2705,7 +2688,7 @@ describe('Authorization', () => {
       },
       {
         action: 'function:put',
-        resource: `/account/${account.accountId}/subscription/${account.subscriptionId}/boundary/${boundaryId}/function/${functionId}`,
+        resource: `/account/${account.accountId}/subscription/${account.subscriptionId}/boundary/${boundaryId}/function/${function1Id}`,
       },
     ];
 
@@ -2739,15 +2722,15 @@ describe('Authorization', () => {
     expect(allowedRemove).toBeHttp({ statusCode: 204 });
 
     const results = await Promise.all([
-      putFunction(userAccount, 'boundary', 'function', {}),
-      getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary', undefined, true),
-      getLogs(userAccount, 'boundary', 'function', true),
-      getFunctionLocation(userAccount, 'boundary', 'function'),
-      deleteFunction(userAccount, 'boundary', 'function'),
+      putFunction(userAccount, boundaryId, function1Id, {}),
+      getFunction(userAccount, boundaryId, function1Id),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, function1Id, true),
+      getFunctionLocation(userAccount, boundaryId, function1Id),
+      deleteFunction(userAccount, boundaryId, function1Id),
       listFunctions(userAccount),
       listIssuers(userAccount),
-      addIssuer(userAccount, 'another-issuer', { jsonKeysUrl: 'some-key' }),
+      addIssuer(userAccount, 'test-issuer', { jsonKeysUrl: 'some-key' }),
       getIssuer(userAccount, 'issuerId'),
       updateIssuer(userAccount, 'issuerId', {}),
       removeIssuer(userAccount, 'issuerId'),
@@ -2796,15 +2779,15 @@ describe('Authorization', () => {
     expect(allowedRemove).toBeHttp({ statusCode: 204 });
 
     const results = await Promise.all([
-      putFunction(userAccount, 'boundary', 'function', {}),
-      getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary', undefined, true),
-      getLogs(userAccount, 'boundary', 'function', true),
-      getFunctionLocation(userAccount, 'boundary', 'function'),
-      deleteFunction(userAccount, 'boundary', 'function'),
+      putFunction(userAccount, boundaryId, function1Id, {}),
+      getFunction(userAccount, boundaryId, function1Id),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, function1Id, true),
+      getFunctionLocation(userAccount, boundaryId, function1Id),
+      deleteFunction(userAccount, boundaryId, function1Id),
       listFunctions(userAccount),
       listIssuers(userAccount),
-      addIssuer(userAccount, 'another-issuer', { jsonKeysUrl: 'some-key' }),
+      addIssuer(userAccount, 'test-issuer', { jsonKeysUrl: 'some-key' }),
       getIssuer(userAccount, 'issuerId'),
       updateIssuer(userAccount, 'issuerId', {}),
       removeIssuer(userAccount, 'issuerId'),
@@ -2851,15 +2834,15 @@ describe('Authorization', () => {
     expect(allowedInit).toBeHttp({ statusCode: 200 });
 
     const results = await Promise.all([
-      putFunction(userAccount, 'boundary', 'function', {}),
-      getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary', undefined, true),
-      getLogs(userAccount, 'boundary', 'function', true),
-      getFunctionLocation(userAccount, 'boundary', 'function'),
-      deleteFunction(userAccount, 'boundary', 'function'),
+      putFunction(userAccount, boundaryId, function1Id, {}),
+      getFunction(userAccount, boundaryId, function1Id),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, function1Id, true),
+      getFunctionLocation(userAccount, boundaryId, function1Id),
+      deleteFunction(userAccount, boundaryId, function1Id),
       listFunctions(userAccount),
       listIssuers(userAccount),
-      addIssuer(userAccount, 'another-issuer', { jsonKeysUrl: 'some-key' }),
+      addIssuer(userAccount, 'test-issuer', { jsonKeysUrl: 'some-key' }),
       getIssuer(userAccount, 'issuerId'),
       updateIssuer(userAccount, 'issuerId', {}),
       removeIssuer(userAccount, 'issuerId'),
@@ -2909,15 +2892,15 @@ describe('Authorization', () => {
     expect(allowedInit).toBeHttp({ statusCode: 200 });
 
     const results = await Promise.all([
-      putFunction(userAccount, 'boundary', 'function', {}),
-      getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary', undefined, true),
-      getLogs(userAccount, 'boundary', 'function', true),
-      getFunctionLocation(userAccount, 'boundary', 'function'),
-      deleteFunction(userAccount, 'boundary', 'function'),
+      putFunction(userAccount, boundaryId, function1Id, {}),
+      getFunction(userAccount, boundaryId, function1Id),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, function1Id, true),
+      getFunctionLocation(userAccount, boundaryId, function1Id),
+      deleteFunction(userAccount, boundaryId, function1Id),
       listFunctions(userAccount),
       listIssuers(userAccount),
-      addIssuer(userAccount, 'another-issuer', { jsonKeysUrl: 'some-key' }),
+      addIssuer(userAccount, 'test-issuer', { jsonKeysUrl: 'some-key' }),
       getIssuer(userAccount, 'issuerId'),
       updateIssuer(userAccount, 'issuerId', {}),
       removeIssuer(userAccount, 'issuerId'),
@@ -2973,15 +2956,15 @@ describe('Authorization', () => {
     expect(allowedRemove).toBeHttp({ statusCode: 204 });
 
     const results = await Promise.all([
-      putFunction(userAccount, 'boundary', 'function', {}),
-      getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary', undefined, true),
-      getLogs(userAccount, 'boundary', 'function', true),
-      getFunctionLocation(userAccount, 'boundary', 'function'),
-      deleteFunction(userAccount, 'boundary', 'function'),
+      putFunction(userAccount, boundaryId, function1Id, {}),
+      getFunction(userAccount, boundaryId, function1Id),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, function1Id, true),
+      getFunctionLocation(userAccount, boundaryId, function1Id),
+      deleteFunction(userAccount, boundaryId, function1Id),
       listFunctions(userAccount),
       listIssuers(userAccount),
-      addIssuer(userAccount, 'another-issuer', { jsonKeysUrl: 'some-key' }),
+      addIssuer(userAccount, 'test-issuer', { jsonKeysUrl: 'some-key' }),
       getIssuer(userAccount, 'issuerId'),
       updateIssuer(userAccount, 'issuerId', {}),
       removeIssuer(userAccount, 'issuerId'),
@@ -3036,15 +3019,15 @@ describe('Authorization', () => {
     expect(allowedRemove).toBeHttp({ statusCode: 204 });
 
     const results = await Promise.all([
-      putFunction(userAccount, 'boundary', 'function', {}),
-      getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary', undefined, true),
-      getLogs(userAccount, 'boundary', 'function', true),
-      getFunctionLocation(userAccount, 'boundary', 'function'),
-      deleteFunction(userAccount, 'boundary', 'function'),
+      putFunction(userAccount, boundaryId, function1Id, {}),
+      getFunction(userAccount, boundaryId, function1Id),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, function1Id, true),
+      getFunctionLocation(userAccount, boundaryId, function1Id),
+      deleteFunction(userAccount, boundaryId, function1Id),
       listFunctions(userAccount),
       listIssuers(userAccount),
-      addIssuer(userAccount, 'another-issuer', { jsonKeysUrl: 'some-key' }),
+      addIssuer(userAccount, 'test-issuer', { jsonKeysUrl: 'some-key' }),
       getIssuer(userAccount, 'issuerId'),
       updateIssuer(userAccount, 'issuerId', {}),
       removeIssuer(userAccount, 'issuerId'),
@@ -3091,12 +3074,12 @@ describe('Authorization', () => {
     expect(allowedRemove).toBeHttp({ statusCode: 204 });
 
     const results = await Promise.all([
-      putFunction(userAccount, 'boundary', 'function', {}),
-      getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary', undefined, true),
-      getLogs(userAccount, 'boundary', 'function', true),
-      getFunctionLocation(userAccount, 'boundary', 'function'),
-      deleteFunction(userAccount, 'boundary', 'function'),
+      putFunction(userAccount, boundaryId, function1Id, {}),
+      getFunction(userAccount, boundaryId, function1Id),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, function1Id, true),
+      getFunctionLocation(userAccount, boundaryId, function1Id),
+      deleteFunction(userAccount, boundaryId, function1Id),
       listFunctions(userAccount),
       addIssuer(userAccount, 'test-issuer', {}),
       listIssuers(userAccount),
@@ -3145,12 +3128,12 @@ describe('Authorization', () => {
     expect(allowedList).toBeHttp({ statusCode: 200 });
 
     const results = await Promise.all([
-      putFunction(userAccount, 'boundary', 'function', {}),
-      getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary', undefined, true),
-      getLogs(userAccount, 'boundary', 'function', true),
-      getFunctionLocation(userAccount, 'boundary', 'function'),
-      deleteFunction(userAccount, 'boundary', 'function'),
+      putFunction(userAccount, boundaryId, function1Id, {}),
+      getFunction(userAccount, boundaryId, function1Id),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, function1Id, true),
+      getFunctionLocation(userAccount, boundaryId, function1Id),
+      deleteFunction(userAccount, boundaryId, function1Id),
       listFunctions(userAccount),
       addIssuer(userAccount, 'test-issuer', {}),
       listIssuers(userAccount),
@@ -3195,12 +3178,12 @@ describe('Authorization', () => {
     expect(allowedSet).toBeHttp({ statusCode: 200 });
 
     const results = await Promise.all([
-      putFunction(userAccount, 'boundary', 'function', {}),
-      getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary', undefined, true),
-      getLogs(userAccount, 'boundary', 'function', true),
-      getFunctionLocation(userAccount, 'boundary', 'function'),
-      deleteFunction(userAccount, 'boundary', 'function'),
+      putFunction(userAccount, boundaryId, function1Id, {}),
+      getFunction(userAccount, boundaryId, function1Id),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, function1Id, true),
+      getFunctionLocation(userAccount, boundaryId, function1Id),
+      deleteFunction(userAccount, boundaryId, function1Id),
       listFunctions(userAccount),
       addIssuer(userAccount, 'test-issuer', {}),
       listIssuers(userAccount),
@@ -3249,12 +3232,12 @@ describe('Authorization', () => {
     expect(allowedRemove).toBeHttp({ statusCode: 204 });
 
     const results = await Promise.all([
-      putFunction(userAccount, 'boundary', 'function', {}),
-      getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary', undefined, true),
-      getLogs(userAccount, 'boundary', 'function', true),
-      getFunctionLocation(userAccount, 'boundary', 'function'),
-      deleteFunction(userAccount, 'boundary', 'function'),
+      putFunction(userAccount, boundaryId, function1Id, {}),
+      getFunction(userAccount, boundaryId, function1Id),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, function1Id, true),
+      getFunctionLocation(userAccount, boundaryId, function1Id),
+      deleteFunction(userAccount, boundaryId, function1Id),
       listFunctions(userAccount),
       addIssuer(userAccount, 'test-issuer', {}),
       listIssuers(userAccount),
@@ -3306,12 +3289,12 @@ describe('Authorization', () => {
     expect(allowedRemove).toBeHttp({ statusCode: 204 });
 
     const results = await Promise.all([
-      putFunction(userAccount, 'boundary', 'function', {}),
-      getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary', undefined, true),
-      getLogs(userAccount, 'boundary', 'function', true),
-      getFunctionLocation(userAccount, 'boundary', 'function'),
-      deleteFunction(userAccount, 'boundary', 'function'),
+      putFunction(userAccount, boundaryId, function1Id, {}),
+      getFunction(userAccount, boundaryId, function1Id),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, function1Id, true),
+      getFunctionLocation(userAccount, boundaryId, function1Id),
+      deleteFunction(userAccount, boundaryId, function1Id),
       listFunctions(userAccount),
       addIssuer(userAccount, 'test-issuer', {}),
       listIssuers(userAccount),
@@ -3361,12 +3344,12 @@ describe('Authorization', () => {
     expect(allowedGet).toBeHttp({ statusCode: 200 });
 
     const results = await Promise.all([
-      putFunction(userAccount, 'boundary', 'function', {}),
-      getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary', undefined, true),
-      getLogs(userAccount, 'boundary', 'function', true),
-      getFunctionLocation(userAccount, 'boundary', 'function'),
-      deleteFunction(userAccount, 'boundary', 'function'),
+      putFunction(userAccount, boundaryId, function1Id, {}),
+      getFunction(userAccount, boundaryId, function1Id),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, function1Id, true),
+      getFunctionLocation(userAccount, boundaryId, function1Id),
+      deleteFunction(userAccount, boundaryId, function1Id),
       listFunctions(userAccount),
       addIssuer(userAccount, 'test-issuer', {}),
       listIssuers(userAccount),
@@ -3412,12 +3395,12 @@ describe('Authorization', () => {
     expect(allowedSet).toBeHttp({ statusCode: 200 });
 
     const results = await Promise.all([
-      putFunction(userAccount, 'boundary', 'function', {}),
-      getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary', undefined, true),
-      getLogs(userAccount, 'boundary', 'function', true),
-      getFunctionLocation(userAccount, 'boundary', 'function'),
-      deleteFunction(userAccount, 'boundary', 'function'),
+      putFunction(userAccount, boundaryId, function1Id, {}),
+      getFunction(userAccount, boundaryId, function1Id),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, function1Id, true),
+      getFunctionLocation(userAccount, boundaryId, function1Id),
+      deleteFunction(userAccount, boundaryId, function1Id),
       listFunctions(userAccount),
       addIssuer(userAccount, 'test-issuer', {}),
       listIssuers(userAccount),
@@ -3467,12 +3450,12 @@ describe('Authorization', () => {
     expect(allowedRemove).toBeHttp({ statusCode: 204 });
 
     const results = await Promise.all([
-      putFunction(userAccount, 'boundary', 'function', {}),
-      getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary', undefined, true),
-      getLogs(userAccount, 'boundary', 'function', true),
-      getFunctionLocation(userAccount, 'boundary', 'function'),
-      deleteFunction(userAccount, 'boundary', 'function'),
+      putFunction(userAccount, boundaryId, function1Id, {}),
+      getFunction(userAccount, boundaryId, function1Id),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, function1Id, true),
+      getFunctionLocation(userAccount, boundaryId, function1Id),
+      deleteFunction(userAccount, boundaryId, function1Id),
       listFunctions(userAccount),
       addIssuer(userAccount, 'test-issuer', {}),
       listIssuers(userAccount),
@@ -3516,12 +3499,12 @@ describe('Authorization', () => {
     const userAccount = cloneWithAccessToken(account, jwt);
 
     const results = await Promise.all([
-      putFunction(userAccount, 'boundary', 'function', {}),
-      getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary', undefined, true),
-      getLogs(userAccount, 'boundary', 'function', true),
-      getFunctionLocation(userAccount, 'boundary', 'function'),
-      deleteFunction(userAccount, 'boundary', 'function'),
+      putFunction(userAccount, boundaryId, function1Id, {}),
+      getFunction(userAccount, boundaryId, function1Id),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, function1Id, true),
+      getFunctionLocation(userAccount, boundaryId, function1Id),
+      deleteFunction(userAccount, boundaryId, function1Id),
       listFunctions(userAccount),
       addIssuer(userAccount, 'test-issuer', {}),
       listIssuers(userAccount),
@@ -3566,12 +3549,12 @@ describe('Authorization', () => {
     const userAccount = cloneWithAccessToken(account, jwt);
 
     const results = await Promise.all([
-      putFunction(userAccount, 'boundary', 'function', {}),
-      getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary', undefined, true),
-      getLogs(userAccount, 'boundary', 'function', true),
-      getFunctionLocation(userAccount, 'boundary', 'function'),
-      deleteFunction(userAccount, 'boundary', 'function'),
+      putFunction(userAccount, boundaryId, function1Id, {}),
+      getFunction(userAccount, boundaryId, function1Id),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, function1Id, true),
+      getFunctionLocation(userAccount, boundaryId, function1Id),
+      deleteFunction(userAccount, boundaryId, function1Id),
       listFunctions(userAccount),
       addIssuer(userAccount, 'test-issuer', {}),
       listIssuers(userAccount),
@@ -3614,12 +3597,12 @@ describe('Authorization', () => {
     const userAccount = cloneWithAccessToken(account, jwt);
 
     const results = await Promise.all([
-      putFunction(userAccount, 'boundary', 'function', {}),
-      getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary', undefined, true),
-      getLogs(userAccount, 'boundary', 'function', true),
-      getFunctionLocation(userAccount, 'boundary', 'function'),
-      deleteFunction(userAccount, 'boundary', 'function'),
+      putFunction(userAccount, boundaryId, function1Id, {}),
+      getFunction(userAccount, boundaryId, function1Id),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, function1Id, true),
+      getFunctionLocation(userAccount, boundaryId, function1Id),
+      deleteFunction(userAccount, boundaryId, function1Id),
       listFunctions(userAccount),
       addIssuer(userAccount, 'test-issuer', {}),
       listIssuers(userAccount),
@@ -3663,12 +3646,12 @@ describe('Authorization', () => {
     const userAccount = cloneWithAccessToken(account, jwt);
 
     const results = await Promise.all([
-      putFunction(userAccount, 'boundary', 'function', {}),
-      getFunction(userAccount, 'boundary', 'function'),
-      getLogs(userAccount, 'boundary', undefined, true),
-      getLogs(userAccount, 'boundary', 'function', true),
-      getFunctionLocation(userAccount, 'boundary', 'function'),
-      deleteFunction(userAccount, 'boundary', 'function'),
+      putFunction(userAccount, boundaryId, function1Id, {}),
+      getFunction(userAccount, boundaryId, function1Id),
+      getLogs(userAccount, boundaryId, undefined, true),
+      getLogs(userAccount, boundaryId, function1Id, true),
+      getFunctionLocation(userAccount, boundaryId, function1Id),
+      deleteFunction(userAccount, boundaryId, function1Id),
       listFunctions(userAccount),
       addIssuer(userAccount, 'test-issuer', {}),
       listIssuers(userAccount),

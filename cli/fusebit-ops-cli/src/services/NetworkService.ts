@@ -204,7 +204,7 @@ export class NetworkService {
   }
 
   public async displayNetworks(networks: IOpsNetwork[]) {
-    if (this.input.options.format === 'json') {
+    if (this.input.options.output === 'json') {
       this.input.io.writeLine(JSON.stringify(networks, null, 2));
       return;
     }
@@ -221,7 +221,7 @@ export class NetworkService {
   }
 
   public async displayNetwork(network: IOpsNetwork) {
-    if (this.input.options.format === 'json') {
+    if (this.input.options.output === 'json') {
       this.input.io.writeLine(JSON.stringify(network, null, 2));
       return;
     }

@@ -176,10 +176,22 @@ function get_cron_key(options: any) {
 }
 
 function get_function_location(req: any, subscriptionId: string, boundaryId: string, functionId: string) {
-  const baseUrl = req.headers['x-forwarded-proto']
-    ? `${req.headers['x-forwarded-proto'].split(',')[0]}://${req.headers.host}`
-    : `${req.protocol}://${req.headers.host}`;
-  return `${baseUrl}/v1/run/${subscriptionId}/${boundaryId}/${functionId}`;
+  return `${get_fusebit_endpoint(req)}/v1${get_function_path(subscriptionId, boundaryId, functionId)}`;
+}
+
+function get_fusebit_endpoint(req: any) {
+  if (req.headers && req.headers['x-forwarded-proto'] && req.headers.host) {
+    return `${req.headers['x-forwarded-proto'].split(',')[0]}://${req.headers.host}`;
+  }
+
+  if (req.protocol && req.headers && req.headers.host) {
+    return `${req.protocol}://${req.headers.host}`;
+  }
+  return API_PUBLIC_ENDPOINT;
+}
+
+function get_function_path(subscriptionId: string, boundaryId: string, functionId: string) {
+  return `/run/${subscriptionId}/${boundaryId}/${functionId}`;
 }
 
 const get_compute_tag_key = (key: string) => `compute.${key}`;
@@ -248,6 +260,8 @@ export {
   get_cron_key_suffix,
   get_cron_key,
   get_function_location,
+  get_function_path,
+  get_fusebit_endpoint,
   get_deployment_s3_bucket,
   get_compute_tag_key,
   get_dependency_tag_key,

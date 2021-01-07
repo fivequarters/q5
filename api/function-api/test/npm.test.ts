@@ -1,24 +1,23 @@
-import { IAccount } from './accountResolver';
-
-import { IHttpResponse, request } from '@5qtrs/request';
-
-import { setupEnvironment } from './common';
-import * as Registry from './registry';
-import { deleteFunction, putFunction, waitForBuild } from './sdk';
-
-import * as Constants from '@5qtrs/constants';
-
-import './extendJest';
-
 import * as fs from 'fs';
-
 const libnpm = require('libnpm');
 
-const { getAccount } = setupEnvironment();
+import { IHttpResponse, request } from '@5qtrs/request';
+import * as Constants from '@5qtrs/constants';
+
+import * as Registry from './registry';
+import { putFunction, waitForBuild } from './sdk';
+
+import { getEnv } from './setup';
+
+let { account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv();
+beforeEach(() => {
+  ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
+});
+
 const regScope = '@package';
 
 const masterAccount = 'acc-00000000';
-const masterScope = '@fusebit';
+const masterScope = '@fuse-int';
 
 const VALID_PKG = 'test/mock/sample-npm.tgz';
 const BROKEN_PKG = 'test/mock/sample-broken-npm.tgz';
@@ -33,14 +32,14 @@ const funcWithDep = (pkgName: string) => ({
 });
 
 /* Utility functions */
-const getRegistryUrl = (account: IAccount): any => {
+const getRegistryUrl = (): any => {
   const host = Constants.API_PUBLIC_ENDPOINT.replace(/http[s]?:\/\//, '');
   const registryPath = `${host}/v1/account/${account.accountId}/registry/default/npm/`;
   return { registryPath, registryUrl: `http://${registryPath}` };
 };
 
-const getOpts = (scope: string, account: IAccount): any => {
-  const { registryPath, registryUrl } = getRegistryUrl(account);
+const getOpts = (scope: string): any => {
+  const { registryPath, registryUrl } = getRegistryUrl();
 
   const registry = { [`${scope}:registry`]: registryUrl };
   const token = {
@@ -61,7 +60,7 @@ const preparePackage = (scope: string, pkgFile: string = VALID_PKG) => {
   return { manifest, tarData };
 };
 
-const resetScope = async (account: IAccount) => {
+const resetScope = async () => {
   let config = await Registry.getConfig(account);
 
   config.scopes = [regScope];
@@ -79,6 +78,7 @@ let oldGlobalConfig: any;
 
 beforeEach(async () => {
   oldGlobalConfig = await Registry.getGlobal();
+  await resetScope();
 }, 180000);
 
 afterEach(async () => {
@@ -91,48 +91,42 @@ afterEach(async () => {
 /* Tests */
 describe('npm', () => {
   test('publish account package', async () => {
-    const account = getAccount();
-    await resetScope(account);
-
     const { manifest, tarData } = preparePackage(regScope);
-    await libnpm.publish(manifest, tarData, getOpts(regScope, account));
+    await libnpm.publish(manifest, tarData, getOpts(regScope));
 
     // Validate that the results match what's expected.
-    const mani = await libnpm.manifest(manifest.name, getOpts(regScope, account));
-    const packu = await libnpm.packument(manifest.name, getOpts(regScope, account));
+    const mani = await libnpm.manifest(manifest.name, getOpts(regScope));
+    const packu = await libnpm.packument(manifest.name, getOpts(regScope));
 
     const name = `${regScope}/libnpmpublish`;
     expect(mani).toMatchObject({ name, version: '1.0.0', _id: `${name}@1.0.0` });
     expect(packu).toMatchObject({ _id: name, 'dist-tags': { latest: '1.0.0' }, versions: { '1.0.0': { name } } });
 
-    await libnpm.unpublish(`${name}@1.0.0`, getOpts(regScope, account));
+    await libnpm.unpublish(`${name}@1.0.0`, getOpts(regScope));
   }, 180000);
 
   test('search', async () => {
-    const account = getAccount();
-    await resetScope(account);
-    const { registryPath, registryUrl } = getRegistryUrl(account);
+    const { registryPath, registryUrl } = getRegistryUrl();
 
     const { manifest, tarData } = preparePackage(regScope);
 
-    await libnpm.publish(manifest, tarData, getOpts(regScope, account));
-    const results = await libnpm.search(manifest.name, { ...getOpts(regScope, account), registry: registryUrl });
+    await libnpm.publish(manifest, tarData, getOpts(regScope));
+    const results = await libnpm.search(manifest.name, { ...getOpts(regScope), registry: registryUrl });
     expect(results.length).toBe(1);
     expect(results[0].name).toBe(manifest.name);
   }, 180000);
 
   test('get from master', async () => {
-    const account = getAccount();
-    const { globalReg, accountReg } = await resetScope(account);
-    const { registryPath, registryUrl } = getRegistryUrl(account);
+    const { globalReg, accountReg } = await resetScope();
+    const { registryPath, registryUrl } = getRegistryUrl();
     const fullOpts = {
-      ...getOpts(regScope, account),
-      ...getOpts(masterScope, account),
+      ...getOpts(regScope),
+      ...getOpts(masterScope),
     };
 
     // Publish a regScope package
     const { manifest, tarData } = preparePackage(regScope);
-    await libnpm.publish(manifest, tarData, getOpts(regScope, account));
+    await libnpm.publish(manifest, tarData, getOpts(regScope));
 
     // Get installed package and tarball
     const pkg = await accountReg.get(manifest.name);
@@ -154,13 +148,13 @@ describe('npm', () => {
 
     // Request package from accountReg, validate it is accepted
     let results = await libnpm.search(`${regScope}/libnpmpublish`, {
-      ...getOpts(regScope, account),
+      ...getOpts(regScope),
       registry: registryUrl,
     });
     expect(results.length).toBe(1);
 
     results = await libnpm.search(`libnpm`, {
-      ...getOpts(regScope, account),
+      ...getOpts(regScope),
       registry: registryUrl,
     });
     expect(results.length).toBe(2);
@@ -186,20 +180,17 @@ describe('npm', () => {
   }, 180000);
 
   test('build', async () => {
-    const account = getAccount();
-    await resetScope(account);
-    const { registryPath, registryUrl } = getRegistryUrl(account);
+    const { registryPath, registryUrl } = getRegistryUrl();
 
     // Start by publishing a package we know fails
     let pkg = preparePackage(regScope, BROKEN_PKG);
 
     let manifest = pkg.manifest;
     let tarData = pkg.tarData;
-    await libnpm.publish(manifest, tarData, getOpts(regScope, account));
+    await libnpm.publish(manifest, tarData, getOpts(regScope));
 
     // Defensively delete the function.
-    await deleteFunction(account, 'test-npm-build', 'testfunc');
-    let response = await putFunction(account, 'test-npm-build', 'testfunc', funcWithDep(manifest.name));
+    let response = await putFunction(account, boundaryId, function1Id, funcWithDep(manifest.name));
     expect(response).toBeHttp({ statusCode: [200, 201] });
     if (response.status === 201) {
       response = await waitForBuild(account, response.data, 15, 1000);
@@ -214,10 +205,9 @@ describe('npm', () => {
     manifest = pkg.manifest;
     tarData = pkg.tarData;
 
-    await libnpm.publish(manifest, tarData, getOpts(regScope, account));
+    await libnpm.publish(manifest, tarData, getOpts(regScope));
 
-    await deleteFunction(account, 'test-npm-build', 'testfunc');
-    response = await putFunction(account, 'test-npm-build', 'testfunc', funcWithDep(manifest.name));
+    response = await putFunction(account, boundaryId, function2Id, funcWithDep(manifest.name));
     expect(response).toBeHttp({ statusCode: [200, 201] });
     if (response.status === 201) {
       response = await waitForBuild(account, response.data, 15, 1000);
@@ -226,13 +216,9 @@ describe('npm', () => {
 
     response = await request({ method: 'GET', url: response.data.location });
     expect(response).toBeHttp({ statusCode: 200, data: 'object' });
-
-    // Clean up
-    await deleteFunction(account, 'test-npm-build', 'testfunc');
   }, 180000);
 
   test('registry scope configure', async () => {
-    const account = getAccount();
     const config = await Registry.getConfig(account);
     expect(config.scopes.filter((e: string) => e.indexOf(Constants.REGISTRY_RESERVED_SCOPE_PREFIX) === 0)).toHaveLength(
       1

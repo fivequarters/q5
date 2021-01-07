@@ -1,23 +1,24 @@
-import { random } from '@5qtrs/random';
 import { request } from '@5qtrs/request';
-
 import { decodeJwt } from '@5qtrs/jwt';
-
 import * as Constants from '@5qtrs/constants';
-const Permissions = Constants.Permissions;
-import * as AuthZ from './authz';
-
 import { FusebitProfile } from '@5qtrs/fusebit-profile-sdk';
 
-import { FakeAccount, IAccount, resolveAccount } from './accountResolver';
-import { setupEnvironment } from './common';
-import { deleteAllFunctions, deleteFunction, getFunction, getFunctionLocation, getMe, putFunction } from './sdk';
+import * as AuthZ from './authz';
 
-import './extendJest';
+import { disableFunctionUsageRestriction, getFunction, getFunctionLocation, putFunction } from './sdk';
 
-let account: IAccount = FakeAccount;
-const { getAccount, getBoundary } = setupEnvironment();
-const function1Id = 'test-fun-runas-1';
+import { getEnv } from './setup';
+
+let { account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv();
+beforeEach(() => {
+  ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
+
+  // Invocations in this test do not care about the function body, only the metadata, which is not subject to
+  // function usage restrictions.
+  disableFunctionUsageRestriction();
+});
+
+const Permissions = Constants.Permissions;
 
 const specFuncReturnCtx = {
   security: {
@@ -32,8 +33,6 @@ const specFuncReturnCtx = {
 
 describe('runas', () => {
   test('normal function has no permissions added', async () => {
-    account = getAccount();
-    const boundaryId = getBoundary();
     const specNoPerm = Constants.duplicate({}, specFuncReturnCtx);
     delete specNoPerm.security.functionPermissions;
     const create = await putFunction(account, boundaryId, function1Id, specNoPerm);
@@ -50,8 +49,6 @@ describe('runas', () => {
   }, 180000);
 
   test('jwt created with permissions', async () => {
-    account = getAccount();
-    const boundaryId = getBoundary();
     let response = await putFunction(account, boundaryId, function1Id, specFuncReturnCtx);
     expect(response).toBeHttp({ statusCode: 200 });
     let url: string;
@@ -64,10 +61,6 @@ describe('runas', () => {
     expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.functionAccessToken).not.toBeUndefined();
     token = response.data.functionAccessToken;
-
-    // console.log( `curl ${account.baseUrl}/v1/account/${account.accountId}/me -H 'Authorization: Bearer ${token}'`);
-    // console.log(`JWT: ${JSON.stringify(decodeJwt(token, false, true), null, 2)}`);
-    // const r = (await getMe(account, response.data.functionAccessToken)).data;
 
     // Make sure the permissions are correctly encoded in the JWT.
     let decoded = decodeJwt(token);
@@ -105,15 +98,10 @@ describe('runas', () => {
     // Attempt to do something not allowed.
     response = await putFunction(account, boundaryId, function1Id, specGet);
     expect(response).toBeHttp({ statusCode: 403 });
-    account.accessToken = oldToken;
   }, 180000);
 
   test('permissions restrictions', async () => {
     // Put a function that has a broad set of permissions
-    account = getAccount();
-    const boundaryId = getBoundary();
-    const oldToken = account.accessToken;
-
     const spec = Constants.duplicate({}, specFuncReturnCtx);
     spec.security.functionPermissions = AuthZ.permFunctionPutLimited(Permissions.putFunction, account, boundaryId);
     let response = await putFunction(account, boundaryId, function1Id, spec);
@@ -147,16 +135,10 @@ describe('runas', () => {
     spec.security.functionPermissions = AuthZ.permFunctionPutLimitedHigher(Permissions.putFunction, account);
     response = await putFunction(account, boundaryId, function1Id + '5', spec);
     expect(response).toBeHttp({ statusCode: 400 });
-
-    account.accessToken = oldToken;
   }, 180000);
 
   test('more permissions restrictions', async () => {
     // Put a function that has a broad set of permissions
-    account = getAccount();
-    const boundaryId = getBoundary();
-    const oldToken = account.accessToken;
-
     const spec = Constants.duplicate({}, specFuncReturnCtx);
     spec.security.functionPermissions = AuthZ.permFunctionPutLimited(Permissions.allFunction, account, boundaryId);
     let response = await putFunction(account, boundaryId, function1Id, spec);
@@ -175,7 +157,6 @@ describe('runas', () => {
     spec.security.functionPermissions = AuthZ.permFunctionPutLimited(Permissions.getFunction, account, boundaryId);
     response = await putFunction(account, boundaryId, function1Id + '2', spec);
     expect(response).toBeHttp({ statusCode: 200 });
-    account.accessToken = oldToken;
   }, 180000);
 
   test('self-minted jwt with lower permissions', async () => {
@@ -183,10 +164,6 @@ describe('runas', () => {
     let executionProfile = await profile.getPKIExecutionProfile(process.env.FUSE_PROFILE, true, AuthZ.permFunctionPut);
 
     // Put a function using the put-only token
-    account = getAccount();
-    const boundaryId = getBoundary();
-    const oldToken = account.accessToken;
-
     // Use the downgraded token
     account.accessToken = executionProfile.accessToken;
 
@@ -214,8 +191,5 @@ describe('runas', () => {
     // And denied to function:put
     response = await putFunction(account, boundaryId, function1Id, spec);
     expect(response).toBeHttp({ statusCode: 403 });
-
-    // Restore the old token.
-    account.accessToken = oldToken;
   }, 180000);
 });

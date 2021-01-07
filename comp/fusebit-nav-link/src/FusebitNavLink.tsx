@@ -45,7 +45,7 @@ export enum FusebitNavLinkType {
   blog = 'Blog',
   terms = 'Terms of Use',
   privacy = 'Privacy Policy',
-  copyRight = '© 2019-2020 Fusebit - All Rights Reserved',
+  copyRight = '© 2019-2021 Fusebit - All Rights Reserved',
 }
 
 export type FusebitNavLinkProps = {

@@ -1,0 +1,4 @@
+# Publish fusebit-cli
+steps:
+- name: Publish - fusebit-cli
+  run: ./tool/cicd/actions/scripts/publish_fusebit_cli.sh

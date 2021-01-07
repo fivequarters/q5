@@ -4,6 +4,7 @@ import { FusebitText, FusebitTextType, FusebitTextWeight } from '@5qtrs/fusebit-
 import { Image } from '@5qtrs/image';
 import { FusebitCard } from '@5qtrs/fusebit-card';
 import { FusebitColor } from '@5qtrs/fusebit-color';
+import { FusebitLink as Link } from '@5qtrs/fusebit-link';
 import { FusebitSocialButton, FusebitSocialType } from '@5qtrs/fusebit-social';
 import { AccoladeOneIcon, AccoladeTwoIcon, AccoladeThreeIcon } from '@5qtrs/fusebit-icon';
 import { FusebitPage, FusebitSection, FusebitBreak } from '@5qtrs/fusebit-page';
@@ -25,8 +26,8 @@ export function About() {
             engineering teams from core feature development. Our software platform is based on learnings from dozens of
             SaaS companies just like yours, and built on top of years of industry experience and proven technologies.
             <FusebitBreak />
-            Our overall vision is to democratize integration development, remove friction, and shorten time-to-market
-            across the developer spectrum.
+            Fusebit democratizes integration development, removes friction, and shortens time-to-market across the
+            developer spectrum.
             <FusebitBreak />
             Prior to co-founding Fusebit, the team worked together for years on cloud technologies, platforms, and
             products across Microsoft and Auth0. We are excited to contribute our collective experience to bringing
@@ -48,7 +49,7 @@ export function About() {
             <FusebitCard width="100%" padding={20}>
               <Box middle noWrap>
                 <AccoladeThreeIcon size={50} marginRight={20} color={FusebitColor.red} />
-                Rooted in careful analysis of SaaS vendor requirements and pain points
+                Proudly backed by Four Rivers Group and Founders Co-op
               </Box>
             </FusebitCard>
           </Box>
@@ -132,7 +133,7 @@ export function About() {
                 Benn Bollay
               </FusebitText>
               <FusebitText center>Co-founder {'&'} CTO</FusebitText>
-              <Box marginTop={10}>
+              <Box marginTop={10} center>
                 <FusebitSocialButton
                   type={FusebitSocialType.linkedIn}
                   href="https://www.linkedin.com/in/bennbollay"
@@ -142,6 +143,42 @@ export function About() {
               </Box>
             </Box>
           </Box>
+          <Box width={30} height={0} />
+        </Box>
+        <Box width="100%">
+          <Box center expand vertical minWidth={260} marginBottom={60}>
+            <Box vertical center marginTop={10}>
+              <FusebitText center type={FusebitTextType.body} weight={FusebitTextWeight.bold}>
+                Chris Dukelow
+              </FusebitText>
+              <FusebitText center>CFO</FusebitText>
+              <Box marginTop={10}>
+                <FusebitSocialButton
+                  type={FusebitSocialType.linkedIn}
+                  href="https://www.linkedin.com/in/dukelow/"
+                  small
+                  invertColor
+                />
+                <FusebitSocialButton
+                  type={FusebitSocialType.twitter}
+                  href="https://twitter.com/chrisdukelow"
+                  marginLeft={10}
+                  small
+                  invertColor
+                />
+              </Box>
+            </Box>
+          </Box>
+          <Box width={30} height={0} />
+          <Box vertical center expand minWidth={260} marginBottom={60}>
+            <Box vertical center marginTop={10}>
+              <FusebitText center type={FusebitTextType.body} weight={FusebitTextWeight.bold}>
+                YOU!
+              </FusebitText>
+              <Link href="https://angel.co/company/fusebitio/jobs">Our job postings</Link>
+            </Box>
+          </Box>
+          <Box width={30} height={0} />
         </Box>
       </FusebitSection>
     </FusebitPage>

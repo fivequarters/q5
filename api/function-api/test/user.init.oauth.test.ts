@@ -1,17 +1,23 @@
-import { IAccount, FakeAccount, resolveAccount, getNonExistingAccount } from './accountResolver';
-import { addUser, initUser, resolveInit, cleanUpUsers, cleanUpIssuers, createPKIAccessToken, addIssuer } from './sdk';
 import { random } from '@5qtrs/random';
 import { decodeJwt, decodeJwtHeader } from '@5qtrs/jwt';
 import { createKeyPair, IKeyPairResult } from '@5qtrs/key-pair';
-import './extendJest';
 
-let account: IAccount = FakeAccount;
+import { getNonExistingAccount } from './accountResolver';
+import { addUser, initUser, resolveInit, cleanUpUsers, cleanUpIssuers, createPKIAccessToken, addIssuer } from './sdk';
+
+import { getEnv } from './setup';
+
+let { account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv();
+beforeEach(() => {
+  ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
+});
+
 let issuerKeyPair: IKeyPairResult = { publicKey: '', privateKey: '' };
 const issuerId = `test-${random()}`;
 const issuerKeyId = 'kid-0';
 
 beforeAll(async () => {
-  account = await resolveAccount();
+  ({ account } = getEnv());
   issuerKeyPair = await createKeyPair();
   const issuer = await addIssuer(account, issuerId, {
     publicKeys: [

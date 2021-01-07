@@ -5,6 +5,8 @@ import { signJwt } from '@5qtrs/jwt';
 import { createKeyPair, IKeyPairResult } from '@5qtrs/key-pair';
 import { pem2jwk } from 'pem-jwk';
 
+import { nextBoundary } from './setup';
+
 import ms from 'ms';
 
 // ------------------
@@ -33,7 +35,7 @@ const testIssuers: string[] = [];
 const testHostedIssuers: string[] = [];
 const testStorage: string[] = [];
 
-const hostedIssuersBoundary = 'test-issuers';
+const hostedIssuersBoundary = nextBoundary();
 
 // -------------------
 // Exported Interfaces
@@ -144,15 +146,55 @@ export function ngrok_url(url: string) {
 }
 
 // ------------------
+// Defensively protect against function reuse
+// ------------------
+
+export interface IFunctionCatalogEntry {
+  testIds: { [key: string]: number };
+  boundaryId: string;
+  functionId: string;
+  cnt: number;
+}
+export interface IFunctionCatalog {
+  [key: string]: IFunctionCatalogEntry;
+}
+export const functionCatalog: IFunctionCatalog = {};
+let functionCatalogEnabled: boolean = true;
+
+export const disableFunctionUsageRestriction = () => (functionCatalogEnabled = false);
+export const enableFunctionUsageRestriction = () => (functionCatalogEnabled = true);
+
+const onPutFunction = (boundaryId: string, functionId: string) => {
+  if (!functionCatalogEnabled) {
+    return;
+  }
+  const test = expect.getState().currentTestName;
+
+  const key = `${boundaryId}/${functionId}`;
+  if (!(key in functionCatalog)) {
+    functionCatalog[key] = { testIds: { [test]: 1 }, boundaryId, functionId, cnt: 1 };
+    return;
+  }
+
+  if (!functionCatalog[key].testIds[test]) {
+    functionCatalog[key].testIds[test] = 1;
+  } else {
+    functionCatalog[key].testIds[test]++;
+  }
+
+  functionCatalog[key].cnt++;
+};
+
+// ------------------
 // Exported Functions
 // ------------------
 
-export async function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+export async function sleep(timeMs: number) {
+  return new Promise((resolve) => setTimeout(resolve, timeMs));
 }
 
 export async function deleteFunction(account: IAccount, boundaryId: string, functionId: string) {
-  return await request({
+  return request({
     method: 'DELETE',
     headers: {
       Authorization: `Bearer ${account.accessToken}`,
@@ -163,7 +205,8 @@ export async function deleteFunction(account: IAccount, boundaryId: string, func
 }
 
 export async function putFunction(account: IAccount, boundaryId: string, functionId: string, spec: any) {
-  let response = await request({
+  onPutFunction(boundaryId, functionId);
+  const response = await request({
     method: 'PUT',
     headers: {
       Authorization: `Bearer ${account.accessToken}`,
@@ -177,7 +220,7 @@ export async function putFunction(account: IAccount, boundaryId: string, functio
 }
 
 export async function getBuild(account: IAccount, build: { boundaryId: string; functionId: string; buildId: string }) {
-  return await request({
+  return request({
     method: 'GET',
     headers: {
       Authorization: `Bearer ${account.accessToken}`,
@@ -202,7 +245,7 @@ export async function getLogs(
   const headers = { Authorization: `Bearer ${account.accessToken}`, 'user-agent': account.userAgent };
 
   return new Promise((resolve, reject) => {
-    let bufferedResponse: any = {};
+    const bufferedResponse: any = {};
     let resolved = false;
     let timer: any = null;
     let logRequest: any = null;
@@ -262,9 +305,9 @@ export async function waitForBuild(
   count: number,
   delay: number
 ) {
-  let totalWait = count * delay;
+  const totalWait = count * delay;
   while (true) {
-    let response = await getBuild(account, build);
+    const response = await getBuild(account, build);
     if (response.status !== 201) {
       return response;
     }
@@ -282,7 +325,7 @@ export async function getFunction(
   functionId: string,
   includeSerialized: boolean = false
 ) {
-  let response = await request({
+  const response = await request({
     method: 'GET',
     headers: {
       Authorization: `Bearer ${account.accessToken}`,
@@ -297,7 +340,7 @@ export async function getFunction(
 }
 
 export async function getFunctionLocation(account: IAccount, boundaryId: string, functionId: string) {
-  return await request({
+  return request({
     method: 'GET',
     headers: {
       Authorization: `Bearer ${account.accessToken}`,
@@ -330,7 +373,7 @@ export async function listFunctions(
   let url = boundaryId
     ? `${account.baseUrl}/v1/account/${account.accountId}/subscription/${account.subscriptionId}/boundary/${boundaryId}/function`
     : `${account.baseUrl}/v1/account/${account.accountId}/subscription/${account.subscriptionId}/function`;
-  let query = [];
+  const query = [];
   if (cron !== undefined) {
     query.push(`cron=${cron}`);
   }
@@ -352,7 +395,7 @@ export async function listFunctions(
   if (query.length > 0) {
     url += `?${query.join('&')}`;
   }
-  return await request({
+  return request({
     method: 'GET',
     headers: {
       Authorization: `Bearer ${account.accessToken}`,
@@ -363,14 +406,8 @@ export async function listFunctions(
 }
 
 export async function deleteAllFunctions(account: IAccount, boundaryId?: string) {
-  let response = await listFunctions(account, boundaryId);
-  if (response.status !== 200) {
-    throw new Error(
-      `Unable to list functions in account ${account.accountId}, subscription ${account.subscriptionId}, boundary ${
-        boundaryId || '*'
-      } on deployment ${account.baseUrl}.`
-    );
-  }
+  const response = await listFunctions(account, boundaryId);
+  expect(response).toBeHttp({ statusCode: 200 });
   return Promise.all(
     response.data.items.map((x: { boundaryId: string; functionId: string }) =>
       deleteFunction(account, x.boundaryId, x.functionId)
@@ -390,6 +427,11 @@ export async function addIssuer(account: IAccount, issuerId: string, data: any) 
     data: JSON.stringify(data),
   });
   if (response.status === 200) {
+    if (issuerId === 'test-issuer') {
+      // Reject any successful addition of generic 'test-issuer', to prevent conflicts with other tests.
+      // Instead, modify the issuer name to include a random component.
+      expect(response).toBeHttp({ statusCode: 1 });
+    }
     testIssuers.push(issuerId);
   }
   return response;
@@ -703,7 +745,7 @@ export async function resolveInit(account: IAccount, jwt: string | undefined, in
     'user-agent': account.userAgent,
   };
   if (jwt !== undefined) {
-    headers['Authorization'] = `Bearer ${jwt}`;
+    headers.Authorization = `Bearer ${jwt}`;
   }
 
   return request({
@@ -847,23 +889,15 @@ export async function cleanUpStorage(account: IAccount) {
 
 export async function createTestUser(account: IAccount, data: any): Promise<ITestUser> {
   const user = await addUser(account, data);
-  if (user.status !== 200) {
-    throw new Error(`Failed to add test user: ${user.data ? user.data.message : '<no data>'}`);
-  }
+  expect(user).toBeHttp({ statusCode: 200 });
 
   const init = await initUser(account, user.data.id);
-  if (init.status !== 200) {
-    throw new Error(`Failed to init test user: ${init.data ? init.data.message : '<no data>'}`);
-  }
+  expect(init).toBeHttp({ statusCode: 200 });
 
   const keyPairs = await createKeyPairs(1);
   const keyPair = keyPairs[0];
   const resolved = await resolveInit(account, init.data, { publicKey: keyPair.publicKey, keyId: keyPair.keyId });
-  if (resolved.status !== 200) {
-    throw new Error(
-      `Failed to resolve init token for test user: ${resolved.data ? resolved.data.message : '<no data>'}`
-    );
-  }
+  expect(resolved).toBeHttp({ statusCode: 200 });
 
   const accessToken = await generateAccessToken(
     account.audience,
@@ -890,7 +924,7 @@ export interface IStatisticsScope {
   boundaryId?: string;
 }
 
-//export async function clearStatistics(username: string, password: string, hostname: string) {
+// export async function clearStatistics(username: string, password: string, hostname: string) {
 //  return request({
 //    method: 'DELETE',
 //    headers: {
@@ -903,16 +937,16 @@ export interface IStatisticsScope {
 //    query: params,
 //    url: `https://${hostname}/fusebit-*`,
 //  });
-//}
+// }
 
 export async function statisticsEnabled(account: IAccount): Promise<boolean> {
-  let response = await getStatistics(account, 'itemizedbulk', { accountId: account.accountId }, () => true, {
+  const response = await getStatistics(account, 'itemizedbulk', { accountId: account.accountId }, () => true, {
     from: new Date(),
     to: new Date(),
     code: 200,
   });
 
-  if (response.status == 200) {
+  if (response.status === 200) {
     return true;
   }
   expect(response.status).toEqual(405);
@@ -944,11 +978,11 @@ export async function getStatistics(
       code: 200,
     };
   } else {
-    if (params.to == undefined) {
+    if (params.to === undefined) {
       params.to = new Date(Date.now() + ms('5m'));
     }
 
-    if (params.from == undefined) {
+    if (params.from === undefined) {
       params.from = new Date(Date.now() - ms('15m'));
     }
   }
@@ -959,7 +993,7 @@ export async function getStatistics(
 
   // Poll for the test criteria to be satisfied, or a maximum interval.
   do {
-    if (retries != 0) {
+    if (retries !== 0) {
       await new Promise((resolve, reject) => setTimeout(() => resolve(), 1000));
     }
     response = await request({
@@ -969,12 +1003,12 @@ export async function getStatistics(
         'Content-Type': 'application/json',
       },
       query: params,
-      url: url,
+      url,
     });
     retries++;
   } while (!retryTest(response) && retries < maxRetryCount);
 
-  if (retries == maxRetryCount) {
+  if (retries === maxRetryCount) {
     throw new Error('Exceeded the number of allowed retries');
   }
 
@@ -1006,9 +1040,7 @@ export async function hostIssuer(account: IAccount, issuerId: string, keys: any)
   };
 
   const result = await putFunction(account, hostedIssuersBoundary, issuerId, issuerSpec);
-  if (result.status !== 200) {
-    throw new Error('Failed to create issuers function');
-  }
+  expect(result).toBeHttp({ statusCode: 200 });
 
   testHostedIssuers.push(issuerId);
 
@@ -1061,7 +1093,7 @@ export async function generateAccessToken(audience: string, keyPair: IKeyPair, i
     expiresIn: 600,
     audience,
     issuer: issuerId,
-    subject: subject,
+    subject,
     keyid: keyPair.keyId,
     header: {
       jwtId: random(),
@@ -1083,7 +1115,7 @@ export async function createPKIAccessToken(
     expiresIn: 600,
     audience,
     issuer: issuerId,
-    subject: subject,
+    subject,
     keyid: keyId,
     header: {
       jwtId: random(),
