@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 
+# -- Standard Header --
+set -e
+echoerr() { printf "%s\n" "$*" >&2; }
+
+# -- Script --
+
 export VERSION_FUNCTION_API=`jq -r '.version' ./package.json`
 echo "::set-output name=version-function-api::${VERSION_FUNCTION_API}"
 echo "VERSION_FUNCTION_API=${VERSION_FUNCTION_API}" >> $GITHUB_ENV
