@@ -11,11 +11,22 @@ const BANNER = [
   '',
 ].join('\n');
 
+const publishAll = ['publish_function_api', 'publish_fusebit_cli', 'publish_fusebit_editor', 'publish_fusebit_ops_cli'];
+const fullBuild = ['setup_env', 'full_build'];
+
 const specs = [
   { name: 'Checkout the project', inputs: ['checkout'], output: 'checkout' },
-  { name: 'Full build', inputs: ['checkout', 'setup_env', 'full_build'], output: 'full_build' },
-  { name: 'Deploy and Test', inputs: ['checkout', 'setup_env', 'full_build', 'deploy_test'], output: 'build_test' },
-  { name: 'Publish All Artifacts', inputs: ['checkout', 'setup_env', 'full_build', 'publish'], output: 'publish' },
+  { name: 'Full build', inputs: ['checkout', ...fullBuild], output: 'full_build' },
+  {
+    name: 'Deploy to us-west-2/stage and Test',
+    inputs: ['checkout', ...fullBuild, 'publish_function_api', 'deploy_test'],
+    output: 'build_test',
+  },
+  {
+    name: 'Publish All Artifacts',
+    inputs: ['checkout', ...fullBuild, ...publishAll],
+    output: 'publish',
+  },
 ];
 
 function buildSpec(name: string, inputs: string[], output: string, options: any = {}) {
