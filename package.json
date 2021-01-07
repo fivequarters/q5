@@ -197,7 +197,8 @@
       "lib/server/function-tags",
       "lib/server/npm",
       "lib/server/registry",
-      "lib/server/runas"
+      "lib/server/runas",
+      "tool/cicd/actions"
     ]
   }
 }

@@ -32,6 +32,11 @@ jobs:
       - name: Version
         id: package-versions
         run: ./tool/cicd/actions/scripts/export_versions.sh
+      - name: Discovered versions
+        run: >
+          echo "Versions: function_api/${{env.VERSION_FUNCTION_API}}
+          fuse-cli/${{env.VERSION_FUSEBIT_CLI}}
+          fuse-ops/${{env.VERSION_FUSEBIT_OPS_CLI}}"
       - name: Setup Environments and Profiles
         env:
           SECRET_FUSEBIT_PROFILE: ${{secrets.FUSEBIT_STAGE_US_WEST_2}}

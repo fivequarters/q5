@@ -1,0 +1,4 @@
+# Publish fusebit-editor
+steps:
+- name: Publish - fusebit-editor
+  run: ./tool/cicd/actions/scripts/publish_fusebit_editor.sh

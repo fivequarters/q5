@@ -32,6 +32,11 @@ jobs:
       - name: Version
         id: package-versions
         run: ./tool/cicd/actions/scripts/export_versions.sh
+      - name: Discovered versions
+        run: >
+          echo "Versions: function_api/${{env.VERSION_FUNCTION_API}}
+          fuse-cli/${{env.VERSION_FUSEBIT_CLI}}
+          fuse-ops/${{env.VERSION_FUSEBIT_OPS_CLI}}"
       - name: Setup Environments and Profiles
         env:
           SECRET_FUSEBIT_PROFILE: ${{secrets.FUSEBIT_STAGE_US_WEST_2}}
@@ -54,17 +59,12 @@ jobs:
       - name: Qualify - fuse works
         run: node cli/fusebit-cli/libc/index.js function ls
       - name: Yarn - image
-        if: ${{ env.ACTION_PUBLISH == 'true' }}
         run: yarn image
       - name: Publish - function-api
-        if: ${{ env.ACTION_PUBLISH == 'true' }}
         run: ./tool/cicd/actions/scripts/publish_function_api.sh
-      - name: Publish - fusebit-ops-cli
-        if: ${{ env.ACTION_PUBLISH == 'true' }}
-        run: ./tool/cicd/actions/scripts/publish_fusebit_ops_cli.sh
       - name: Publish - fusebit-cli
-        if: ${{ env.ACTION_PUBLISH == 'true' }}
         run: ./tool/cicd/actions/scripts/publish_fusebit_cli.sh
       - name: Publish - fusebit-editor
-        if: ${{ env.ACTION_PUBLISH == 'true' }}
         run: ./tool/cicd/actions/scripts/publish_fusebit_editor.sh
+      - name: Publish - fusebit-ops-cli
+        run: ./tool/cicd/actions/scripts/publish_fusebit_ops_cli.sh

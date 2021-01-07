@@ -1,0 +1,14 @@
+steps:
+# Checkout the repository
+- name: Checkout
+  uses: actions/checkout@v2
+
+# Acquire the version of the various packages
+- name: Version
+  id: package-versions
+  run: ./tool/cicd/actions/scripts/export_versions.sh
+
+# Print the versions
+- name: Discovered versions
+  run: |
+    echo "Versions: function_api/${{env.VERSION_FUNCTION_API}} fuse-cli/${{env.VERSION_FUSEBIT_CLI}} fuse-ops/${{env.VERSION_FUSEBIT_OPS_CLI}}"

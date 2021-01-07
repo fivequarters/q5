@@ -1,0 +1,19 @@
+steps:
+###########################################################################
+# Build the tree
+- name: Pre-Build Summary
+  run: |
+    echo function-api: ${VERSION_FUNCTION_API}
+    echo fusebit-cli: ${VERSION_FUSEBIT_CLI}
+    echo fusebit-ops-cli: ${VERSION_FUSEBIT_OPS_CLI}
+
+- name: Build
+  run: ./tool/cicd/actions/scripts/build_tree.sh
+
+###########################################################################
+# Qualify that the tools work as expected
+- name: Qualify - fuse-ops works
+  run: node cli/fusebit-ops-cli/libc/index.js stack ls
+
+- name: Qualify - fuse works
+  run: node cli/fusebit-cli/libc/index.js function ls

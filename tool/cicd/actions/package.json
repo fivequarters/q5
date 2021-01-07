@@ -1,0 +1,19 @@
+{
+  "name": "@5qtrs/cicd-actions",
+  "version": "0.0.1",
+  "description": "",
+  "main": "libc/index.js",
+  "sideEffects": false,
+  "license": "UNLICENSED",
+  "author": "FiveQuarters.io",
+  "scripts": {
+    "build": "tsc -b",
+    "deploy": "yarn build && node libc/index.js"
+  },
+  "keywords": [],
+  "dependencies": {},
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.0",
+    "js-yaml": "^4.0.0"
+  }
+}
