@@ -21,7 +21,7 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 
 _Released 12/20/20_
 
-- **Bugfix.** Prevent functions from executing against previously configured security contexts.
+- **Bugfix.** Eliminate a potential race allowing functions to execute against previously configured security contexts.
 
 ## Version 1.18.12
 
