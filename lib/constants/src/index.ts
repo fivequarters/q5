@@ -159,7 +159,7 @@ function get_user_function_description(options: any) {
 function get_user_function_name(options: any, version?: string) {
   return (
     Crypto.createHash('sha1').update(get_user_function_description(options)).digest('hex') +
-    (version ? `:${version}` : '')
+    (version !== undefined ? `:${version}` : '')
   );
 }
 

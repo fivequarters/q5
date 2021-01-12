@@ -1,11 +1,7 @@
-import { DynamoDB } from 'aws-sdk';
-
 import * as Constants from '@5qtrs/constants';
 import * as Tags from '@5qtrs/function-tags';
 
 const TD = Tags.Dynamo;
-
-const dynamo = new DynamoDB({ apiVersion: '2012-08-10' });
 
 const funcSpecs = [
   {

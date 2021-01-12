@@ -3,12 +3,13 @@ import create_error from 'http-errors';
 import { get_function_tags, Constants as Tags } from '@5qtrs/function-tags';
 import { IFunctionApiRequest } from './Request';
 
-import { get_security_tag_key } from '@5qtrs/constants';
+import { get_security_tag_key, getFunctionVersion } from '@5qtrs/constants';
 
 const loadSummary = () => {
   return async (req: IFunctionApiRequest, res: Response, next: any) => {
     try {
       req.functionSummary = await loadFunctionSummary(req.params);
+      req.params.version = getFunctionVersion(req.functionSummary);
       return next();
     } catch (e) {
       return next(e);
