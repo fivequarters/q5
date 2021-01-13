@@ -45,22 +45,23 @@ curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.34.0/install.sh | b
 sudo apt install zip
 ```
 
-3. Install the latest version of **nodeJS** (currently 11.9.0):
+3. Install the supported version of **nodeJS**:
 
 ```
-nvm install node
+nvm install 10.15.3
 ```
 
 4. Select the latest version of **nodeJS** to use:
 
 ```
-nvm use node
+nvm use 10.15.3
 ```
 
-5. Install the **yarn** node module globally:
+5. Install the **yarn** node module globally, and lock the version to the supported version:
 
 ```
 npm i -g yarn
+yarn set version 1.21.1
 ```
 
 6. Install the **ngrok** tool from [here](https://ngrok.com/download) and put the executable someplace on the PATH.
