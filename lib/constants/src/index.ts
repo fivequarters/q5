@@ -156,8 +156,11 @@ function get_user_function_description(options: any) {
   return `function:${options.subscriptionId}:${options.boundaryId}:${options.functionId}`;
 }
 
-function get_user_function_name(options: any) {
-  return Crypto.createHash('sha1').update(get_user_function_description(options)).digest('hex');
+function get_user_function_name(options: any, version?: string) {
+  return (
+    Crypto.createHash('sha1').update(get_user_function_description(options)).digest('hex') +
+    (version !== undefined ? `:${version}` : '')
+  );
 }
 
 function get_cron_key_prefix(options: any) {
@@ -217,6 +220,10 @@ const getFunctionPermissions = (summary: any): any => {
   return summary[get_security_tag_key('permissions')];
 };
 
+const getFunctionVersion = (summary: any): any => {
+  return summary[get_versions_tag_key('function')];
+};
+
 const getFunctionAuthorization = (summary: any): any => {
   return summary[get_security_tag_key('authorization')];
 };
@@ -271,6 +278,7 @@ export {
   makeSystemIssuerId,
   makeFunctionSub,
   getFunctionPermissions,
+  getFunctionVersion,
   getFunctionAuthorization,
   getFunctionAuthentication,
   REGISTRY_CATEGORY,

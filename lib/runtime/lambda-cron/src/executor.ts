@@ -86,8 +86,21 @@ async function checkCronStillExists(key: string) {
 }
 
 async function executeFunction(ctx: any) {
+  // Load the desired function summary from DynamoDB
+  let functionSummary;
+  try {
+    functionSummary = await loadFunctionSummary(ctx);
+  } catch (e) {
+    console.log(
+      `ERROR: Unable to load summary for ${ctx.accountId}/${ctx.subscriptionId}/${ctx.boundaryId}/${ctx.functionId}: ${e}`
+    );
+    throw e;
+  }
+
   // Add any necessary security tokens to the request.
-  await addSecurityTokens(ctx);
+  await addSecurityTokens(ctx, functionSummary);
+
+  ctx.version = Constants.getFunctionVersion(functionSummary);
 
   const { startTime, deviation } = calculateCronDeviation(ctx.cron, ctx.timezone);
 
@@ -128,18 +141,7 @@ async function executeFunction(ctx: any) {
 }
 
 // Add tokens for both RunAs permissions as well as any logging permissions that are needed.
-async function addSecurityTokens(ctx: any) {
-  // Load the desired function summary from DynamoDB
-  let functionSummary;
-  try {
-    functionSummary = await loadFunctionSummary(ctx);
-  } catch (e) {
-    console.log(
-      `ERROR: Unable to load summary for ${ctx.accountId}/${ctx.subscriptionId}/${ctx.boundaryId}/${ctx.functionId}: ${e}`
-    );
-    throw e;
-  }
-
+async function addSecurityTokens(ctx: any, functionSummary: any) {
   // Mint a JWT, if necessary, and add it to the context.
   ctx.functionAccessToken = await mintJwtForPermissions(
     keyStore,
@@ -155,6 +157,8 @@ async function addSecurityTokens(ctx: any) {
     'https',
     Constants.API_PUBLIC_ENDPOINT.replace(/http[s]?:\/\//i, '')
   );
+
+  return functionSummary;
 }
 
 // Calculate the deviation from the actual expected time to now.
