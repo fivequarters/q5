@@ -13,7 +13,8 @@
     "clean": "rm -r -f libc",
     "start": "node createEnv.js && node --trace-warnings libc/index.js",
     "ngrok": "ngrok http 3001",
-    "doc": "npx redoc-cli bundle api.yaml -o index.html --title \"Fusebit HTTP API\" --options.theme.colors.primary.main=#fb310a --options.expandResponses=200,201,204"
+    "doc": "npx redoc-cli bundle api.yaml -o index.html --title \"Fusebit HTTP API\" --options.theme.colors.primary.main=#fb310a --options.expandResponses=200,201,204",
+    "doc2": "npx redoc-cli bundle api2.yaml -o index2.html --title \"Fusebit2 HTTP API\" --options.theme.colors.primary.main=#fb310a --options.expandResponses=200,201,204"
   },
   "keywords": [],
   "dependencies": {
