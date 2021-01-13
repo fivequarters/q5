@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.24.16
+
+_Released 01/13/21_
+
+- **Bugfix.** Eliminate a potential race allowing functions to execute against previously configured security contexts.
+
 ## Version 1.24.15
 
 _Released 12/18/20_
