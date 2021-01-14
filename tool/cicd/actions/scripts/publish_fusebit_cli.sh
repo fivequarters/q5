@@ -22,5 +22,7 @@ npm publish 1>&2 || true
 echoerr "Testing installation"
 npm install -g @fusebit/cli@${VERSION} 1>&2
 
+fuse version 1>&2
+
 echoerr "Completed successfully:"
 echo { \"version\": \"${VERSION}\" }
