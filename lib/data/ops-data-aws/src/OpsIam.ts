@@ -1,11 +1,8 @@
 import { IDataSource } from '@5qtrs/data';
 import { OpsDataAwsProvider } from './OpsDataAwsProvider';
 import { OpsDataAwsConfig } from './OpsDataAwsConfig';
-import { createRole, createInstanceProfile } from './OpsRole';
-
-// ----------------
-// Exported Classes
-// ----------------
+import { createRole, createInstanceProfile, detachRolePolicy } from './OpsRole';
+import { createPolicy } from './OpsIamPolicy';
 
 export class OpsIam implements IDataSource {
   public static async create(config: OpsDataAwsConfig, provider: OpsDataAwsProvider) {
@@ -25,7 +22,79 @@ export class OpsIam implements IDataSource {
   }
 
   public async setup(): Promise<void> {
-    let awsConfig = await this.provider.getAwsConfigForMain();
+    const awsConfig = await this.provider.getAwsConfigForMain();
+
+    // Create an AWSLambdaFullAccess policy replacement; unspecialized, used to handle the deprecation of the
+    // role in 01/2021.
+    await createPolicy(
+      awsConfig,
+      this.config.lambdaExecutionRoleName,
+      {
+        Version: '2012-10-17',
+        Statement: [
+          {
+            Effect: 'Allow',
+            Action: [
+              'cloudformation:DescribeChangeSet',
+              'cloudformation:DescribeStackResources',
+              'cloudformation:DescribeStacks',
+              'cloudformation:GetTemplate',
+              'cloudformation:ListStackResources',
+              'cloudwatch:*',
+              'cognito-identity:ListIdentityPools',
+              'cognito-sync:GetCognitoEvents',
+              'cognito-sync:SetCognitoEvents',
+              'dynamodb:*',
+              'ec2:DescribeSecurityGroups',
+              'ec2:DescribeSubnets',
+              'ec2:DescribeVpcs',
+              'events:*',
+              'iam:GetPolicy',
+              'iam:GetPolicyVersion',
+              'iam:GetRole',
+              'iam:GetRolePolicy',
+              'iam:ListAttachedRolePolicies',
+              'iam:ListRolePolicies',
+              'iam:ListRoles',
+              'iam:PassRole',
+              'iot:AttachPrincipalPolicy',
+              'iot:AttachThingPrincipal',
+              'iot:CreateKeysAndCertificate',
+              'iot:CreatePolicy',
+              'iot:CreateThing',
+              'iot:CreateTopicRule',
+              'iot:DescribeEndpoint',
+              'iot:GetTopicRule',
+              'iot:ListPolicies',
+              'iot:ListThings',
+              'iot:ListTopicRules',
+              'iot:ReplaceTopicRule',
+              'kinesis:DescribeStream',
+              'kinesis:ListStreams',
+              'kinesis:PutRecord',
+              'kms:ListAliases',
+              'lambda:*',
+              'logs:*',
+              's3:*',
+              'sns:ListSubscriptions',
+              'sns:ListSubscriptionsByTopic',
+              'sns:ListTopics',
+              'sns:Publish',
+              'sns:Subscribe',
+              'sns:Unsubscribe',
+              'sqs:ListQueues',
+              'sqs:SendMessage',
+              'tag:GetResources',
+              'xray:PutTelemetryRecords',
+              'xray:PutTraceSegments',
+            ],
+            Resource: '*',
+          },
+        ],
+      },
+      'General purpose policy',
+      this.config.iamPermissionsBoundary
+    );
 
     // Ensure IAM roles for DWH export are created
 
@@ -48,7 +117,7 @@ export class OpsIam implements IDataSource {
       awsConfig,
       this.config.cronExecutorRoleName,
       [
-        `${this.config.arnPrefix}:iam::aws:policy/AWSLambdaFullAccess`,
+        `${this.config.arnPrefix}:iam::${awsConfig.account}:policy/${this.config.lambdaExecutionRoleName}`,
         `${this.config.arnPrefix}:iam::aws:policy/CloudWatchFullAccess`,
         `${this.config.arnPrefix}:iam::aws:policy/AmazonS3ReadOnlyAccess`,
         `${this.config.arnPrefix}:iam::aws:policy/service-role/AWSLambdaSQSQueueExecutionRole`,
@@ -56,6 +125,13 @@ export class OpsIam implements IDataSource {
       undefined,
       undefined,
       this.config.iamPermissionsBoundary
+    );
+
+    // Clean-up deprecated roles when transiting 1.24.17.
+    await detachRolePolicy(
+      awsConfig,
+      this.config.cronExecutorRoleName,
+      `${this.config.arnPrefix}:iam::aws:policy/AWSLambdaFullAccess`
     );
 
     // Ensure IAM roles for Analytics are created
@@ -132,7 +208,7 @@ export class OpsIam implements IDataSource {
       this.config.monoInstanceProfileName,
       [
         `${this.config.arnPrefix}:iam::aws:policy/AmazonSQSFullAccess`,
-        `${this.config.arnPrefix}:iam::aws:policy/AWSLambdaFullAccess`,
+        `${this.config.arnPrefix}:iam::${awsConfig.account}:policy/${this.config.lambdaExecutionRoleName}`,
         `${this.config.arnPrefix}:iam::aws:policy/AmazonS3FullAccess`,
         `${this.config.arnPrefix}:iam::aws:policy/CloudWatchAgentServerPolicy`,
         `${this.config.arnPrefix}:iam::aws:policy/AmazonDynamoDBFullAccess`,
@@ -153,6 +229,13 @@ export class OpsIam implements IDataSource {
         ],
       },
       this.config.iamPermissionsBoundary
+    );
+
+    // Clean-up deprecated roles when transiting 1.24.17.
+    await detachRolePolicy(
+      awsConfig,
+      this.config.monoInstanceProfileName,
+      `${this.config.arnPrefix}:iam::aws:policy/AWSLambdaFullAccess`
     );
   }
 }

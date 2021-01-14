@@ -220,3 +220,26 @@ export async function createRole(
     );
   }
 }
+
+export async function detachRolePolicy(awsConfig: IAwsConfig, roleName: string, policyArn: string) {
+  const credentials = await (awsConfig.creds as AwsCreds).getCredentials();
+  const options = {
+    signatureVersion: 'v4',
+    region: awsConfig.region,
+    accessKeyId: credentials.accessKeyId,
+    secretAccessKey: credentials.secretAccessKey,
+    sessionToken: credentials.sessionToken,
+    apiVersion: '2010-05-08',
+  };
+
+  const iam = new AWS.IAM(options);
+
+  try {
+    await iam.detachRolePolicy({ RoleName: roleName, PolicyArn: policyArn }).promise();
+  } catch (e) {
+    if (e.code === 'NoSuchEntity') {
+      return;
+    }
+    throw e;
+  }
+}

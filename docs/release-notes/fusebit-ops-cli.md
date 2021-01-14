@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.24.17
+
+_Released 01/14/21_
+
+- **Bugfix.** Resolve deprecation issued by AWS for AWSLambdaFullAccess.
+
 ## Version 1.24.16
 
 _Released 01/13/21_
