@@ -27,19 +27,18 @@ rm -rf lib/client/fusebit-editor/dist/
 yarn build
 yarn bundle fusebit-editor
 
+AWS_OPTS="--acl public-read --cache-control max-age=300"
 echoerr "Deploying CSS to S3"
 for file in ${CSS_FILES}; do
   for loc in ${S3_LOCS}; do
-    aws --profile=fuseprod s3 cp --acl public-read --content-type text/css --cache-control max-age=300
-      ${file} ${loc};
+    aws --profile=fuseprod s3 cp --content-type text/css ${AWS_OPTS} ${file} ${loc};
   done;
 done
 
 echoerr "Deploying JS to S3"
 for file in ${JS_FILES}; do
   for loc in ${S3_LOCS}; do
-    aws --profile=fuseprod s3 cp --acl public-read --content-type application/javascript --cache-control max-age=300
-      ${file} ${loc};
+    aws --profile=fuseprod s3 cp --content-type application/javascript ${AWS_OPTS} ${file} ${loc};
   done;
 done
 
