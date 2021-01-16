@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+# Example command line:
+# $ DEPLOYMENT_NAME=test1 REGION=us-west-2 tool/cicd/actions/scripts/deploy_exclusive_function_api.sh
+#
+# Deploys a new stack, promotes, and removes all other stacks from the specified deployment.
+
 # -- Standard Header --
 set -e
 
