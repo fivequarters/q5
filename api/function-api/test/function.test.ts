@@ -9,6 +9,7 @@ import {
   getFunction,
   listFunctions,
   getFunctionLocation,
+  waitForBuild,
 } from './sdk';
 
 import { getEnv } from './setup';
@@ -42,6 +43,17 @@ const helloWorldWithStaticIp = {
   nodejs: {
     files: {
       'index.js': 'module.exports = (ctx, cb) => cb(null, { body: "hello" });',
+    },
+  },
+  compute: {
+    staticIp: true,
+  },
+};
+
+const helloWorldUpdatedWithStaticIp = {
+  nodejs: {
+    files: {
+      'index.js': 'module.exports = (ctx, cb) => cb(null, { body: "hello - Updated" });',
     },
   },
   compute: {
@@ -344,7 +356,44 @@ describe('function', () => {
 
     data.compute.staticIp = true;
     response = await putFunction(account, boundaryId, function1Id, data);
+    expect(response).toBeHttp({ statusCode: 201 });
+    response = await waitForBuild(account, response.data, 120, 1000);
+    expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
+
+    response = await getFunction(account, boundaryId, function1Id);
     expect(response).toBeHttp({ statusCode: 200 });
+    expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: true });
+  }, 120000);
+
+  test('PUT multiple times on the same function', async () => {
+    let response = await putFunction(account, boundaryId, function1Id, helloWorld);
+    expect(response).toBeHttp({ statusCode: 200 });
+
+    response = await putFunction(account, boundaryId, function1Id, helloWorldWithStaticIp);
+    expect(response).toBeHttp({ statusCode: 201 });
+
+    // Instead of waiting for the function to complete it's build, try again and see what happens.
+    response = await putFunction(account, boundaryId, function1Id, helloWorld);
+    expect(response).toBeHttp({ statusCode: 204 }); // Lies, but unsurprising if not waiting for the build to complete.
+
+    response = await putFunction(account, boundaryId, function1Id, helloWorldUpdatedWithStaticIp);
+    expect(response).toBeHttp({ statusCode: 201 });
+  }, 120000);
+
+  test('PUT with new compute values and code executes async', async () => {
+    let response = await putFunction(account, boundaryId, function1Id, helloWorld);
+    expect(response).toBeHttp({ statusCode: 200 });
+
+    response = await getFunction(account, boundaryId, function1Id);
+    expect(response).toBeHttp({ statusCode: 200 });
+
+    const data = response.data;
+    expect(data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: false });
+
+    response = await putFunction(account, boundaryId, function1Id, helloWorldUpdatedWithStaticIp);
+    expect(response).toBeHttp({ statusCode: 201 });
+    response = await waitForBuild(account, response.data, 120, 1000);
+    expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
 
     response = await getFunction(account, boundaryId, function1Id);
     expect(response).toBeHttp({ statusCode: 200 });
@@ -363,7 +412,9 @@ describe('function', () => {
 
   test('PUT supports setting staticIP=true', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithStaticIp);
-    expect(response).toBeHttp({ statusCode: 200 });
+    expect(response).toBeHttp({ statusCode: 201 });
+    response = await waitForBuild(account, response.data, 120, 1000);
+    expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
     response = await getFunction(account, boundaryId, function1Id);
     expect(response.status).toBe(200);
     expect(response.data.compute).toEqual({ staticIp: true, memorySize: 128, timeout: 30 });
