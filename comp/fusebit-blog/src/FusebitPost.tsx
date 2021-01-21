@@ -40,7 +40,7 @@ const StickyBox = styled(Box)`
 `;
 
 function TableOfContents({ children, width, year, month, day, postId, ...rest }: FusebitPostProps) {
-  const links: any = [];
+  const links: any[] = [];
 
   if (React.Children.count(children) === 1) {
     React.Children.forEach(children, (child: any) => {
@@ -65,15 +65,17 @@ function TableOfContents({ children, width, year, month, day, postId, ...rest }:
       }
     }
   });
-
   return (
-    <Box vertical width={width || '100%'} {...rest}>
-      <FusebitText type={FusebitTextType.header3}>Table of Contents</FusebitText>
-      <ul style={{ marginLeft: -20 }}>
-        <FusebitText>{links}</FusebitText>
-      </ul>
-      <Box width="100%" height={1} background={opacity(FusebitColor.gray, 0.3)} />
-    </Box>
+    (links.length && (
+      <Box vertical width={width || '100%'} {...rest}>
+        <FusebitText type={FusebitTextType.header3}>Table of Contents</FusebitText>
+        <ul style={{ marginLeft: -20 }}>
+          <FusebitText>{links}</FusebitText>
+        </ul>
+        <Box width="100%" height={1} background={opacity(FusebitColor.gray, 0.3)} />
+      </Box>
+    )) ||
+    null
   );
 }
 
