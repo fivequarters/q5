@@ -1003,9 +1003,11 @@ describe('function', () => {
   test('PUT updates function without a temporary 404', async () => {
     const response = await putFunction(account, boundaryId, function1Id, helloWorld);
     expect(response).toBeHttp({ statusCode: 200 });
+    expect(await request(response.data.location)).toBeHttp({ statusCode: 200 });
 
     let failures = 0;
     let stop = false;
+    const responses: { [key: number]: number } = {};
     const func = async (delay: number): Promise<boolean> => {
       if (delay) {
         await new Promise((resolve) => setTimeout(resolve, 10 * delay));
@@ -1015,6 +1017,7 @@ describe('function', () => {
           const getResponse = await request(response.data.location);
           if (getResponse.status !== 200) {
             failures++;
+            responses[getResponse.status] = (responses[getResponse.status] || 0) + 1;
           }
         } catch (error) {
           failures++;
@@ -1034,6 +1037,9 @@ describe('function', () => {
     expect(updateResponse).toBeHttp({ statusCode: 200 });
     stop = true;
     await Promise.all(promises);
+    if (failures > 0) {
+      console.log(JSON.stringify(responses));
+    }
     expect(failures).toBe(0);
   }, 120000);
 
