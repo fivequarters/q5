@@ -21,6 +21,13 @@ const makeFunction = (version: number) => {
   };
 };
 
+const makeConfigFunction = (version: number) => {
+  return {
+    nodejs: { files: { 'index.js': 'module.exports = (ctx, cb) => cb(null, { body: ctx.configuration.TEST });' } },
+    configuration: { TEST: `${version}` },
+  };
+};
+
 const demoteFunction = async (targetVersion?: number) => {
   const functionKey = `${account.accountId}/${account.subscriptionId}/${boundaryId}/${function1Id}`;
 
@@ -127,4 +134,19 @@ describe('function.versions', () => {
     response = await callFunction('', location);
     expect(response).toBeHttp({ statusCode: 404 });
   }, 500000);
+
+  test('configuration changes get persisted', async () => {
+    disableFunctionUsageRestriction();
+
+    // Validate the version tag is increased as expected
+    for (let i = 1; i < 4; i++) {
+      let response = await putFunction(account, boundaryId, function1Id, makeConfigFunction(i));
+      expect(response).toBeHttp({ statusCode: 200 });
+      const location = response.data.location;
+      response = await getFunction(account, boundaryId, function1Id);
+      expect(response.data.runtime.tags['environment.function']).toBe(i);
+      response = await callFunction('', location);
+      expect(response.data).toBe(i);
+    }
+  }, 120000);
 });

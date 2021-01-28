@@ -1,4 +1,4 @@
-import { putFunction, getFunction, disableFunctionUsageRestriction } from './sdk';
+import { putFunction, getFunction, waitForBuild, disableFunctionUsageRestriction } from './sdk';
 
 import { getEnv } from './setup';
 
@@ -320,6 +320,7 @@ describe('function', () => {
 
   test('PUT with undefined compute is ignored', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithStaticIp);
+    response = await waitForBuild(account, response.data, 120, 1000);
     expect(response).toBeHttp({ statusCode: 200, status: 'success' });
 
     response = await getFunction(account, boundaryId, function1Id, true);
@@ -442,6 +443,8 @@ describe('function', () => {
 
     data.compute.staticIp = true;
     response = await putFunction(account, boundaryId, function1Id, data);
+    expect(response).toBeHttp({ statusCode: 201 });
+    response = await waitForBuild(account, response.data, 120, 1000);
     expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id, true);
