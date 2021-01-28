@@ -1,7 +1,13 @@
 #!/usr/bin/env bash
 
+# Example command line:
+# $ DEPLOYMENT_NAME=test1 REGION=us-west-2 tool/cicd/actions/scripts/deploy_exclusive_function_api.sh
+#
+# Deploys a new stack, promotes, and removes all other stacks from the specified deployment.
+
 # -- Standard Header --
 set -e
+
 echoerr() { printf "%s\n" "$*" >&2; }
 FUSEOPS="node cli/fusebit-ops-cli/libc/index.js"
 export FUSEBIT_DEBUG=
@@ -18,16 +24,26 @@ if [ -z "${REGION}" ]; then
 fi
 
 # -- Optional Parameters --
+# Pin to a specific version
 IMG_VER=${VERSION_FUNCTION_API:=`jq -r '.version' ./package.json`}
-ENV_FILE=${ENV_FILE:=./gc_bq.env}
+
+# Is there an environment file present?
+if [ -z ${ENV_FILE+x} ]; then
+  if [ -f "./gc_bq.env" ]; then
+    ENV_PARAMS="--env ./gc_bq.env"
+  fi
+else
+  ENV_PARAMS="--env ${ENV_FILE}"
+fi
 
 # -- Script --
 
 ALL_STACKS=`${FUSEOPS} stack ls -o json --deployment ${DEPLOYMENT_NAME}`
 OLD_STACKS=`echo ${ALL_STACKS} | jq --arg region ${REGION} -r 'map(select(.region == $region)) | .[] | .id'`
 
-echoerr "Deploying stack ${DEPLOYMENT_NAME}/${REGION}: ${IMG_VER}"
-STACK_ADD_PARAMS="--region ${REGION} -c false -o json --env ${ENV_FILE}"
+echoerr "Deploying stack ${DEPLOYMENT_NAME}/${REGION}: ${IMG_VER} with environment params: ${ENV_PARAMS}"
+
+STACK_ADD_PARAMS="--region ${REGION} -c false -o json ${ENV_PARAMS}"
 STACK_ADD=`${FUSEOPS} stack add ${DEPLOYMENT_NAME} ${IMG_VER} ${STACK_ADD_PARAMS}`
 NEW_STACK_ID=`echo ${STACK_ADD} | jq -r '.id'`
 

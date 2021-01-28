@@ -25,6 +25,7 @@ const defaultMonoAlbDeploymentName = 'deployment';
 const defaultMonoAlbDefaultTargetName = 'main';
 const defaultMonoAlbTargetNamePrefix = 'stack';
 const defaultMonoAlbHealthCheckPath = '/v1/health';
+const defaultLambdaExecutionRoleName = 'fusebit-lambda-execution';
 const defaultDwhExportRoleName = 'fusebit-dwh-export';
 const defaultCronExecutorRoleName = 'fusebit-cron-executor';
 const defaultCronSchedulerRoleName = 'fusebit-cron-scheduler';
@@ -125,6 +126,10 @@ export class OpsDataAwsConfig implements IConfig {
 
   public get ubuntuServerVersion(): string {
     return (this.config.value('ubuntuServerVersion') as string) || defaultUbuntuServerVersion;
+  }
+
+  public get lambdaExecutionRoleName(): string {
+    return (this.config.value('lambdaExecutionRoleName') as string) || defaultLambdaExecutionRoleName;
   }
 
   public get dwhExportRoleName(): string {
