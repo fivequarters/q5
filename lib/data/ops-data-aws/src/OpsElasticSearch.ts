@@ -67,14 +67,14 @@ const getDefaultElasticSearchConfig = async (
   return {
     DomainName: esName,
 
-    ElasticsearchVersion: '7.4',
+    ElasticsearchVersion: '7.9',
 
     DomainEndpointOptions: { EnforceHTTPS: true },
 
     EBSOptions: { EBSEnabled: true, VolumeType: 'gp2', VolumeSize: 10 },
 
     ElasticsearchClusterConfig: {
-      InstanceType: 'r5.large.elasticsearch',
+      InstanceType: 't3.medium.elasticsearch',
       InstanceCount: 1,
       DedicatedMasterEnabled: false,
       ZoneAwarenessEnabled: false,
