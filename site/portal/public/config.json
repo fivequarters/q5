@@ -253,6 +253,40 @@
             "deviceClientId": "VFOtrBCVHEm7I9UNv7rFwu1ID1hTEueF",
             "tokenUrl": "https://fusebit.auth0.com/oauth/token"
           }
+        },
+        {
+          "id": "influxdata",
+          "displayName": "InfluxData",
+          "icon": "https://cdn.fusebit.io/assets/images/influxdata.png",
+          "baseUrl": "https://api.us-east-1.fusebit.io",
+          "account": "acc-dd8828e9f4fe4b38",
+          "subscription": "sub-727fab1edecf433a",
+          "catalog": "https://api.us-east-1.fusebit.io/v1/run/sub-727fab1edecf433a/internal/config",
+          "oauth": {
+            "webAuthorizationUrl": "https://fusebit.auth0.com/authorize",
+            "webClientId": "hSgWIXmbluQMADuWhDnRTpWyKptJe6LB",
+            "webLogoutUrl": "https://fusebit.auth0.com/v2/logout?client_id=hSgWIXmbluQMADuWhDnRTpWyKptJe6LB&returnTo=https://influxdata.portal.fusebit.io",
+            "deviceAuthorizationUrl": "https://fusebit.auth0.com/oauth/device/code",
+            "deviceClientId": "VFOtrBCVHEm7I9UNv7rFwu1ID1hTEueF",
+            "tokenUrl": "https://fusebit.auth0.com/oauth/token"
+          }
+        },
+        {
+          "id": "reflective",
+          "displayName": "Reflective",
+          "icon": "https://cdn.fusebit.io/assets/images/reflective.png",
+          "baseUrl": "https://api.us-east-1.fusebit.io",
+          "account": "acc-36086c0f2dea4dc7",
+          "subscription": "sub-dc18b3611153436d",
+          "catalog": "https://api.us-east-1.fusebit.io/v1/run/sub-dc18b3611153436d/internal/config",
+          "oauth": {
+            "webAuthorizationUrl": "https://fusebit.auth0.com/authorize",
+            "webClientId": "hSgWIXmbluQMADuWhDnRTpWyKptJe6LB",
+            "webLogoutUrl": "https://fusebit.auth0.com/v2/logout?client_id=hSgWIXmbluQMADuWhDnRTpWyKptJe6LB&returnTo=https://reflective.portal.fusebit.io",
+            "deviceAuthorizationUrl": "https://fusebit.auth0.com/oauth/device/code",
+            "deviceClientId": "VFOtrBCVHEm7I9UNv7rFwu1ID1hTEueF",
+            "tokenUrl": "https://fusebit.auth0.com/oauth/token"
+          }
         }
       ],
       "defaultProfile": "stage-us-portal-dev"
@@ -471,6 +505,50 @@
         }
       ],
       "defaultProfile": "onramp"
+    },
+    "influxdata": {
+      "profiles": [
+        {
+          "id": "influxdata",
+          "displayName": "InfluxData",
+          "icon": "https://cdn.fusebit.io/assets/images/influxdata.png",
+          "baseUrl": "https://api.us-east-1.fusebit.io",
+          "account": "acc-dd8828e9f4fe4b38",
+          "subscription": "sub-727fab1edecf433a",
+          "catalog": "https://api.us-east-1.fusebit.io/v1/run/sub-727fab1edecf433a/internal/config",
+          "oauth": {
+            "webAuthorizationUrl": "https://fusebit.auth0.com/authorize",
+            "webClientId": "hSgWIXmbluQMADuWhDnRTpWyKptJe6LB",
+            "webLogoutUrl": "https://fusebit.auth0.com/v2/logout?client_id=hSgWIXmbluQMADuWhDnRTpWyKptJe6LB&returnTo=https://influxdata.portal.fusebit.io",
+            "deviceAuthorizationUrl": "https://fusebit.auth0.com/oauth/device/code",
+            "deviceClientId": "VFOtrBCVHEm7I9UNv7rFwu1ID1hTEueF",
+            "tokenUrl": "https://fusebit.auth0.com/oauth/token"
+          }
+        }
+      ],
+      "defaultProfile": "influxdata"
+    },
+    "reflective": {
+      "profiles": [
+        {
+          "id": "reflective",
+          "displayName": "Reflective",
+          "icon": "https://cdn.fusebit.io/assets/images/reflective.png",
+          "baseUrl": "https://api.us-east-1.fusebit.io",
+          "account": "acc-36086c0f2dea4dc7",
+          "subscription": "sub-dc18b3611153436d",
+          "catalog": "https://api.us-east-1.fusebit.io/v1/run/sub-dc18b3611153436d/internal/config",
+          "oauth": {
+            "webAuthorizationUrl": "https://fusebit.auth0.com/authorize",
+            "webClientId": "hSgWIXmbluQMADuWhDnRTpWyKptJe6LB",
+            "webLogoutUrl": "https://fusebit.auth0.com/v2/logout?client_id=hSgWIXmbluQMADuWhDnRTpWyKptJe6LB&returnTo=https://reflective.portal.fusebit.io",
+            "deviceAuthorizationUrl": "https://fusebit.auth0.com/oauth/device/code",
+            "deviceClientId": "VFOtrBCVHEm7I9UNv7rFwu1ID1hTEueF",
+            "tokenUrl": "https://fusebit.auth0.com/oauth/token"
+          }
+        }
+      ],
+      "defaultProfile": "reflective"
     }
   }
 }
