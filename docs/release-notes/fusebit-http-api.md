@@ -17,6 +17,13 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.18.15
+
+_Released 02/09/21_
+
+- **Enhancement.** Convert the audit table in DynamoDB to use a better scaling index.
+- **Bugfix.** Temporarily rename 'audit' to 'audit2' to manage the migration.
+
 ## Version 1.18.14
 
 _Released 1/18/21_

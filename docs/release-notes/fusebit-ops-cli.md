@@ -18,6 +18,13 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.24.18
+
+_Released 02/09/21_
+
+- **Enhancement.** Convert the audit table in DynamoDB to use a better scaling index.
+- **Bugfix.** Temporarily rename 'audit' to 'audit2' to manage the migration.
+
 ## Version 1.24.17
 
 _Released 01/14/21_
