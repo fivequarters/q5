@@ -684,7 +684,7 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
       params.Limit = maxLimit;
     }
 
-    // Bias reads towards consistency.
+    // Bias reads towards consistency; may fail if trying to read from a GSI index.
     params.ConsistentRead = options && options.disableConsistentRead ? false : true;
 
     const action = isScan ? 'scan' : 'query';

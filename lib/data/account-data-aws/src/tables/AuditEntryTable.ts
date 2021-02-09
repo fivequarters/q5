@@ -12,14 +12,14 @@ const identityIndex = 'identity';
 const delimiter = '::';
 
 const table: IAwsDynamoTable = {
-  name: 'audit',
+  name: 'audit2',
   attributes: { accountId: 'S', resource: 'S', identity: 'S', timestamp: 'N' },
   keys: ['accountId', 'resource'],
   ttlAttribute: 'ttl',
   toKey,
   toItem,
   fromItem,
-  localIndexes: [
+  globalIndexes: [
     {
       name: timestampIndex,
       keys: ['accountId', 'timestamp'],
@@ -142,6 +142,7 @@ export class AuditEntryTable extends AwsDynamoTable {
     let timeStampFilter = true;
     let resourceFilter = true;
     let identityFilter = true;
+    let disableConsistentRead = false;
     const filters: string[] = [];
     const keyConditions = ['accountId = :accountId'];
     const expressionNames: any = {};
@@ -151,10 +152,12 @@ export class AuditEntryTable extends AwsDynamoTable {
       if (options.from || options.to) {
         index = timestampIndex;
         timeStampFilter = false;
+        disableConsistentRead = true;
       } else if (options.issuerId) {
         const { issuerId, subject } = options;
         index = identityIndex;
         identityFilter = false;
+        disableConsistentRead = true;
         const identity = { S: toIdentity({ issuerId, subject: subject || '' }) };
         keyConditions.push('begins_with(#identity, :identity)');
         expressionNames['#identity'] = 'identity';
@@ -210,6 +213,7 @@ export class AuditEntryTable extends AwsDynamoTable {
     const queryOptions = {
       next: options && options.next ? options.next : undefined,
       limit: options && options.limit ? options.limit : undefined,
+      disableConsistentRead,
       index,
       keyConditions,
       filters,
