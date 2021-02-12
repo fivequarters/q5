@@ -221,6 +221,43 @@ describe('Audit', () => {
       }
     }, 180000);
 
+    test('Listing audit entries filtered by resource should support multiple pages', async () => {
+      const testUser = await createTestUser(account, {
+        access: { allow: [{ action: 'user:*', resource: `/account/${account.accountId}` }] },
+      });
+      const testAccount = cloneWithAccessToken(account, testUser.accessToken);
+      await Promise.all([
+        addUser(testAccount, {}),
+        addClient(testAccount, {}),
+        addUser(testAccount, {}),
+        addClient(testAccount, {}),
+        addUser(testAccount, {}),
+        addClient(testAccount, {}),
+        addUser(testAccount, {}),
+        addClient(testAccount, {}),
+        addUser(testAccount, {}),
+        addClient(testAccount, {}),
+      ]);
+      let audit = await listAudit(account, {
+        issuerId: testUser.identities[0].issuerId,
+        resource: `/account/${account.accountId}/user`,
+        count: 2,
+      });
+
+      expect(audit).toBeHttp({ statusCode: 200, has: ['items', 'next'] });
+      expect(audit.data.items.length).toBe(2);
+
+      audit = await listAudit(account, {
+        issuerId: testUser.identities[0].issuerId,
+        resource: `/account/${account.accountId}/user`,
+        count: 2,
+        next: audit.data.next,
+      });
+
+      expect(audit).toBeHttp({ statusCode: 200, has: ['items', 'next'] });
+      expect(audit.data.items.length).toBe(2);
+    }, 180000);
+
     test('Listing audit entries filtered by from using a relative time should be supported', async () => {
       const testUser = await createTestUser(account, {
         access: { allow: [{ action: 'user:*', resource: `/account/${account.accountId}` }] },

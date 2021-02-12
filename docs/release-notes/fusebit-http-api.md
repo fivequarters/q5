@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.18.16
+
+_Released 02/11/21_
+
+- **Bugfix.** Fix audit queries across multiple result pages.
+
 ## Version 1.18.15
 
 _Released 02/09/21_
