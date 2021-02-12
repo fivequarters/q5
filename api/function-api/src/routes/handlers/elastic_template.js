@@ -1423,7 +1423,13 @@ const fusebitTemplate = {
                 },
               },
               from: {
-                type: 'date',
+                type: 'text',
+                fields: {
+                  keyword: {
+                    type: 'keyword',
+                    ignore_above: 256,
+                  },
+                },
               },
               include: {
                 type: 'text',
@@ -1471,7 +1477,13 @@ const fusebitTemplate = {
                 },
               },
               to: {
-                type: 'date',
+                type: 'text',
+                fields: {
+                  keyword: {
+                    type: 'keyword',
+                    ignore_above: 256,
+                  },
+                },
               },
               token: {
                 type: 'text',
