@@ -708,12 +708,15 @@ export class AwsDynamo extends AwsBase<typeof DynamoDB> {
             lastEvaluatedKey = {};
             let keys = [...table.keys];
             if (params.IndexName) {
-              // If a local secondary index is used, the LastEvaluatedKey consists of the union
-              // of the primary keys and the local secondary index keys
+              // If a local or global secondary index is used, the LastEvaluatedKey consists of the union
+              // of the primary keys and the secondary index keys
               keys = [
                 ...keys,
                 ...((table.localIndexes && table.localIndexes.find((i) => i.name === params.IndexName)) || { keys: [] })
                   .keys,
+                ...(
+                  (table.globalIndexes && table.globalIndexes.find((i) => i.name === params.IndexName)) || { keys: [] }
+                ).keys,
               ];
             }
             keys.forEach((k) => {
