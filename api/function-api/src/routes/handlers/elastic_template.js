@@ -4,6 +4,7 @@ const fusebitTemplate = {
     number_of_shards: 1,
   },
   mappings: {
+    dynamic: false,
     properties: {
       '@id': {
         type: 'text',
