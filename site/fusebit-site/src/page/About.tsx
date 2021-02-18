@@ -11,6 +11,9 @@ import { FusebitPage, FusebitSection, FusebitBreak } from '@5qtrs/fusebit-page';
 import Tomek from '../../assets/img/tomek-full-4.png';
 import Yavor from '../../assets/img/yavor-full-4.png';
 import Benn from '../../assets/img/benn-full.png';
+import Chris from '../../assets/img/chris-full.png';
+import Duke from '../../assets/img/duke-full.png';
+import Jake from '../../assets/img/jake-full.png';
 
 // -------------------
 // Exported Components
@@ -146,7 +149,10 @@ export function About() {
           <Box width={30} height={0} />
         </Box>
         <Box width="100%">
-          <Box center expand vertical minWidth={260} marginBottom={60}>
+          <Box vertical center expand minWidth={260} marginBottom={60}>
+            <Box overlay height={220} width={0}>
+              <Image offsetX={-110} src={Duke} width={220} />
+            </Box>
             <Box vertical center marginTop={10}>
               <FusebitText center type={FusebitTextType.body} weight={FusebitTextWeight.bold}>
                 Chris Dukelow
@@ -170,6 +176,55 @@ export function About() {
             </Box>
           </Box>
           <Box width={30} height={0} />
+          <Box vertical center expand minWidth={260} marginBottom={60}>
+            <Box overlay height={220} width={0}>
+              <Image offsetX={-120} src={Chris} width={220} />
+            </Box>
+            <Box vertical center marginTop={10}>
+              <FusebitText center type={FusebitTextType.body} weight={FusebitTextWeight.bold}>
+                Chris More
+              </FusebitText>
+              <FusebitText center>VP of Growth</FusebitText>
+              <Box marginTop={10}>
+                <FusebitSocialButton
+                  type={FusebitSocialType.linkedIn}
+                  href="https://www.linkedin.com/in/chrismore/"
+                  small
+                  invertColor
+                />
+                <FusebitSocialButton
+                  type={FusebitSocialType.twitter}
+                  href="https://twitter.com/chrismore"
+                  marginLeft={10}
+                  small
+                  invertColor
+                />
+              </Box>
+            </Box>
+          </Box>
+          <Box width={30} height={0} />
+          <Box vertical center expand minWidth={260} marginBottom={60}>
+            <Box overlay height={220} width={0}>
+              <Image offsetX={-120} src={Jake} width={220} />
+            </Box>
+            <Box vertical center marginTop={10}>
+              <FusebitText center type={FusebitTextType.body} weight={FusebitTextWeight.bold}>
+                Jacob Haller-Roby
+              </FusebitText>
+              <FusebitText center>Engineer</FusebitText>
+              <Box marginTop={10}>
+                <FusebitSocialButton
+                  type={FusebitSocialType.linkedIn}
+                  href="https://www.linkedin.com/in/jacob-haller-roby-35118148/"
+                  small
+                  invertColor
+                />
+              </Box>
+            </Box>
+          </Box>
+          <Box width={30} height={0} />
+        </Box>
+        <Box width="100%">
           <Box vertical center expand minWidth={260} marginBottom={60}>
             <Box vertical center marginTop={10}>
               <FusebitText center type={FusebitTextType.body} weight={FusebitTextWeight.bold}>
