@@ -287,6 +287,23 @@
             "deviceClientId": "VFOtrBCVHEm7I9UNv7rFwu1ID1hTEueF",
             "tokenUrl": "https://fusebit.auth0.com/oauth/token"
           }
+        },
+        {
+          "id": "procsea",
+          "displayName": "ProcSea",
+          "icon": "https://cdn.fusebit.io/assets/images/procsea.png",
+          "baseUrl": "https://api.us-east-1.fusebit.io",
+          "account": "acc-2d025218c8904613",
+          "subscription": "sub-323b761c5a2c4555",
+          "catalog": "https://api.us-east-1.fusebit.io/v1/run/sub-323b761c5a2c4555/internal/config",
+          "oauth": {
+            "webAuthorizationUrl": "https://fusebit.auth0.com/authorize",
+            "webClientId": "hSgWIXmbluQMADuWhDnRTpWyKptJe6LB",
+            "webLogoutUrl": "https://fusebit.auth0.com/v2/logout?client_id=hSgWIXmbluQMADuWhDnRTpWyKptJe6LB&returnTo=https://procsea.portal.fusebit.io",
+            "deviceAuthorizationUrl": "https://fusebit.auth0.com/oauth/device/code",
+            "deviceClientId": "VFOtrBCVHEm7I9UNv7rFwu1ID1hTEueF",
+            "tokenUrl": "https://fusebit.auth0.com/oauth/token"
+          }
         }
       ],
       "defaultProfile": "stage-us-portal-dev"
@@ -549,6 +566,28 @@
         }
       ],
       "defaultProfile": "reflective"
+    },
+    "procsea": {
+      "profiles": [
+        {
+          "id": "procsea",
+          "displayName": "ProcSea",
+          "icon": "https://cdn.fusebit.io/assets/images/procsea.png",
+          "baseUrl": "https://api.us-east-1.fusebit.io",
+          "account": "acc-2d025218c8904613",
+          "subscription": "sub-323b761c5a2c4555",
+          "catalog": "https://api.us-east-1.fusebit.io/v1/run/sub-323b761c5a2c4555/internal/config",
+          "oauth": {
+            "webAuthorizationUrl": "https://fusebit.auth0.com/authorize",
+            "webClientId": "hSgWIXmbluQMADuWhDnRTpWyKptJe6LB",
+            "webLogoutUrl": "https://fusebit.auth0.com/v2/logout?client_id=hSgWIXmbluQMADuWhDnRTpWyKptJe6LB&returnTo=https://procsea.portal.fusebit.io",
+            "deviceAuthorizationUrl": "https://fusebit.auth0.com/oauth/device/code",
+            "deviceClientId": "VFOtrBCVHEm7I9UNv7rFwu1ID1hTEueF",
+            "tokenUrl": "https://fusebit.auth0.com/oauth/token"
+          }
+        }
+      ],
+      "defaultProfile": "procsea"
     }
   }
 }
