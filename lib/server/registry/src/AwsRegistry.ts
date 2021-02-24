@@ -18,36 +18,6 @@ const s3Path = 'registry/npm';
 
 type ExpressHandler = (reqExpress: Request, res: Response, next: any) => any;
 
-
-
-/*
-const produceMiddleware: () => (req: Request, res: Response, next?: () => any) => void = () => {
-  return (req: Request, res: Response) => void;
-}
-
-Input list (shared):
-Registry
-EventHandlerObject
-prefix (composed of params)
-
-AWS specific inputs:
-s3Opts?
-dynamoDbOpts?
-
-Mem specific inputs:
-none!
-
-Output list:
-(req, res, next) => ...; {save registry to req?}; next();
-
-IgetRegistry (options) => registry
-IgetAwsRegistry implements IgetRegistry
-igetMemRegistry implements IgetRegistry
-
-
- */
-
-
 class AwsRegistry implements IRegistryStore {
   public static handler(eventHandlers: IRegistryEventHandlers): ExpressHandler {
     return (reqExpress: Request, res: Response, next: any) => {
