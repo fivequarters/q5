@@ -1,5 +1,5 @@
 import AWS from 'aws-sdk';
-import { maxSatisfying } from 'semver';
+import {maxSatisfying} from 'semver';
 
 import * as Constants from '@5qtrs/constants';
 
@@ -11,45 +11,79 @@ import {
   IRegistryParams,
   IRegistrySearchResults,
   IRegistryStore,
-  IRegistryEvents,
+  IRegistryEventHandlers,
 } from './Registry';
 
 const s3Path = 'registry/npm';
 
 type ExpressHandler = (reqExpress: Request, res: Response, next: any) => any;
 
+
+
+/*
+const produceMiddleware: () => (req: Request, res: Response, next?: () => any) => void = () => {
+  return (req: Request, res: Response) => void;
+}
+
+Input list (shared):
+Registry
+EventHandlerObject
+prefix (composed of params)
+
+AWS specific inputs:
+s3Opts?
+dynamoDbOpts?
+
+Mem specific inputs:
+none!
+
+Output list:
+(req, res, next) => ...; {save registry to req?}; next();
+
+IgetRegistry (options) => registry
+IgetAwsRegistry implements IgetRegistry
+igetMemRegistry implements IgetRegistry
+
+
+ */
+
+
 class AwsRegistry implements IRegistryStore {
-  public static handler(events: IRegistryEvents): ExpressHandler {
+  public static handler(eventHandlers: IRegistryEventHandlers): ExpressHandler {
     return (reqExpress: Request, res: Response, next: any) => {
       const req: any = reqExpress;
-      req.registry = AwsRegistry.create(req.params, events);
+      req.registry = AwsRegistry.create(req.params, eventHandlers);
       return next();
     };
   }
 
   public static create(
     params: IRegistryParams,
-    events?: IRegistryEvents,
+    eventHandlers?: IRegistryEventHandlers,
     s3Opts?: any,
     dynamoDbOpts?: any
   ): IRegistryStore {
     return new AwsRegistry(
       [params.accountId, params.registryId || Constants.REGISTRY_DEFAULT].join('/'),
-      events,
+      eventHandlers,
       s3Opts,
       dynamoDbOpts
     );
   }
 
   private keyPrefix: string;
-  private events: IRegistryEvents;
+  private eventHandlers: Required<IRegistryEventHandlers>;
   private s3: AWS.S3;
   private ddb: AWS.DynamoDB;
   private tableName: string;
 
-  constructor(prefix: string, events: IRegistryEvents = {}, s3Opts?: any, dynamoDbOpts?: any) {
+  constructor(prefix: string, eventHandlers: IRegistryEventHandlers = {}, s3Opts?: any, dynamoDbOpts?: any) {
     this.keyPrefix = prefix;
-    this.events = events;
+    this.eventHandlers = {
+      onNewPackage: Promise.resolve,
+      onDeletePackage: Promise.resolve,
+      ...eventHandlers
+    };
     this.s3 = new AWS.S3(s3Opts);
     this.ddb = new AWS.DynamoDB({
       apiVersion: '2012-08-10',
@@ -90,10 +124,8 @@ class AwsRegistry implements IRegistryStore {
         },
       })
       .promise();
+    return this.eventHandlers.onNewPackage(name, ver, this.keyPrefix);
 
-    if (this.events.onNewPackage) {
-      return this.events.onNewPackage(name, ver, this.keyPrefix);
-    }
   }
 
   // Determine whether the scope in the key is part of this registry, or part of the global registry.  Return
@@ -155,6 +187,10 @@ class AwsRegistry implements IRegistryStore {
     for (const ver of Object.keys(pkg.versions)) {
       await this.tarballDelete(`${pkg.name}@${ver}`);
     }
+
+    return Promise.all(Object.keys(pkg.versions).map(
+      async (version: string) => this.eventHandlers.onDeletePackage(name, version, this.keyPrefix)
+    ));
   }
 
   public async tarballGet(nameVer: string): Promise<any> {
@@ -285,6 +321,18 @@ class AwsRegistry implements IRegistryStore {
       .promise();
   }
 
+  public async configDelete(): Promise<void> {
+    // Remove all registry info
+    await this.ddb
+      .deleteItem({
+        TableName: this.tableName,
+        Key: {
+          key: { S: this.keyPrefix },
+          category: { S: Constants.REGISTRY_CATEGORY_CONFIG }
+        }
+      }).promise();
+  }
+
   public async configGet(): Promise<IRegistryConfig> {
     // Retrieve record from DynamoDB, and only return the scopes.
     const config = await this.internalConfigGet();
@@ -383,4 +431,4 @@ class AwsRegistry implements IRegistryStore {
   }
 }
 
-export { AwsRegistry };
+export {AwsRegistry};

@@ -40,10 +40,15 @@ interface IRegistryStore {
   search(keyword: string, count: number, next: string | undefined): Promise<any>;
   configPut(config: IRegistryConfig): Promise<void>;
   configGet(): Promise<IRegistryConfig>;
+  configDelete(): Promise<void>;
 }
 
-interface IRegistryEvents {
+interface IRegistryEventHandlers {
   onNewPackage?(name: string, version: string, registry: string): Promise<void>;
+  onNewPackage?(): Promise<void>;
+
+  onDeletePackage?(name: string, version: string, registry: string): Promise<void>;
+  onDeletePackage?(): Promise<void>;
 }
 
 class InvalidScopeException extends Error {}
@@ -55,6 +60,6 @@ export {
   IRegistryParams,
   IRegistrySearchResults,
   IRegistryStore,
-  IRegistryEvents,
+  IRegistryEventHandlers,
   InvalidScopeException,
 };

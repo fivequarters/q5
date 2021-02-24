@@ -1,6 +1,6 @@
 import { maxSatisfying } from 'semver';
 
-import { Express, NextFunction, Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { IRegistryConfig, IRegistryStore } from './Registry';
 
 import { duplicate } from '@5qtrs/constants';
@@ -22,9 +22,12 @@ class MemRegistry implements IRegistryStore {
 
   public registry: { [key: string]: any };
   public config: IRegistryConfig;
+  private readonly initialRegistry = { pkg: {}, tgz: {} };
+  private readonly initialConfig = { url: '', scopes: [] };
+
   constructor() {
-    this.registry = { pkg: {}, tgz: {} };
-    this.config = { url: '', scopes: [] };
+    this.registry = this.initialRegistry;
+    this.config = this.initialConfig;
   }
 
   public name() {
@@ -77,6 +80,11 @@ class MemRegistry implements IRegistryStore {
 
   public async configGet(): Promise<IRegistryConfig> {
     return this.config;
+  }
+
+  public async configDelete(): Promise<void> {
+    this.config = this.initialConfig;
+    this.registry = this.initialRegistry;
   }
 
   public async configInternalGet(): Promise<any> {

@@ -64,6 +64,7 @@ const npmRegistry = () =>
   AwsRegistry.handler({
     // Clear built modules from S3 when a version is put to force a rebuild
     onNewPackage: async (name, ver, registry) => clear_built_module(name, { version: ver, registry }),
+    onDeletePackage: async (name, ver, registry) => clear_built_module(name, {version: ver, registry})
   });
 
 // Create the keystore and guarantee an initial key
@@ -82,10 +83,10 @@ const NotImplemented = (_, __, next) => next(create_error(501, 'Not implemented'
 const debugLogEvent = (req, res, next) => {
   console.log(
     `DEBUG: ${req.method} ${req.url}\n` +
-      `DEBUG: Headers: ${JSON.stringify(req.headers)}\n` +
-      `DEBUG: Params:  ${JSON.stringify(req.params)}\n` +
-      `DEBUG: Body:    ${JSON.stringify(req.body)}\n` +
-      `DEBUG: Json:    ${JSON.stringify(req.json)}\n`
+    `DEBUG: Headers: ${JSON.stringify(req.headers)}\n` +
+    `DEBUG: Params:  ${JSON.stringify(req.params)}\n` +
+    `DEBUG: Body:    ${JSON.stringify(req.body)}\n` +
+    `DEBUG: Json:    ${JSON.stringify(req.json)}\n`
   );
   return next();
 };
@@ -764,6 +765,7 @@ router.put(
   cors(corsManagementOptions),
   authorize({ operation: 'registry-config:put' }),
   express.json(),
+  validate_schema({ params: require('./schemas/api_params') }),
   validate_schema({ body: require('./schemas/registry_specification') }),
   user_agent(),
   check_agent_version(),
@@ -784,6 +786,28 @@ router.put(
         );
       }
       await req.registry.configPut(req.body);
+      res.status(200).end();
+    } catch (e) {
+      next(e);
+    }
+  },
+  analytics.finished
+);
+
+router.delete(
+  registryBase,
+  analytics.enterHandler(analytics.Modes.Administration),
+  cors(corsManagementOptions),
+  authorize({ operation: 'registry-config:delete' }),
+  express.json(),
+  validate_schema({ params: require('./schemas/api_params') }),
+  user_agent(),
+  check_agent_version(),
+  determine_provider(),
+  npmRegistry(),
+  async (req, res, next) => {
+    try {
+      await req.registry.configDelete();
       res.status(200).end();
     } catch (e) {
       next(e);

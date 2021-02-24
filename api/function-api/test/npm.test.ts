@@ -1,6 +1,4 @@
 import * as fs from 'fs';
-const libnpm = require('libnpm');
-
 import { IHttpResponse, request } from '@5qtrs/request';
 import * as Constants from '@5qtrs/constants';
 
@@ -8,6 +6,8 @@ import * as Registry from './registry';
 import { putFunction, waitForBuild } from './sdk';
 
 import { getEnv } from './setup';
+import * as npm from '@npm/types';
+import libnpm from "libnpm";
 
 let { account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv();
 beforeEach(() => {
