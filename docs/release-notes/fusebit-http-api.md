@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.18.18
+
+_Released 02/14/21_
+
+- **Bugfix.** Correctly close a connection for the internal npm registry.
+
 ## Version 1.18.17
 
 _Released 02/11/21_
