@@ -85,7 +85,7 @@ const packageGet = () => {
     }
 
     if (pkg.etag === etag) {
-      return res.status(304);
+      return res.status(304).end();
     }
 
     res.set('ETag', pkg.etag);
