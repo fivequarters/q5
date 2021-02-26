@@ -17,6 +17,7 @@ for (const path in html) {
     { name: 'twitter:site', content: '@fusebitio' },
     { name: 'twitter:creator', content: '@fusebitio' },
     { name: 'twitter:card', content: 'summary_large_image' },
+    { name: 'google-site-verification', content: 'ZeI3rI_zbytkLXohJFwqU0MWHagv2oSkczYi8UoHK2I' },
   ];
   if (pathHtml.title) {
     meta.push({ property: 'og:title', content: pathHtml.title });
