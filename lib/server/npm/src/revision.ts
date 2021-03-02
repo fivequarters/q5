@@ -7,7 +7,6 @@ import create_error from 'http-errors';
 const revisionDelete = () => {
   return async (reqGeneric: Request, res: Response, next: any) => {
     const req = reqGeneric as IFunctionApiRequest;
-    console.log('in revision delete');
     try {
       const pkg = await req.registry.get(req.params.name);
       const rev = req.params.revisionId;
