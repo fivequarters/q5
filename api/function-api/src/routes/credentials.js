@@ -75,4 +75,4 @@ const getAWSCredentials = async (wait = true) => {
 // Trigger a refresh if the credentials aren't supplied via the environment
 getAWSCredentials();
 
-export { getAWSCredentials };
+module.exports = { getAWSCredentials };

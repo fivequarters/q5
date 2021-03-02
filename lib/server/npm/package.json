@@ -22,6 +22,8 @@
     "@types/express": "^4.17.8",
     "@types/jest": "^26.0.14",
     "@types/ssri": "^7.1.0",
-    "libnpm": "^3.0.1"
+    "body-parser": "^1.19.0",
+    "libnpm": "^3.0.1",
+    "libnpmpublish": "git://github.com/fivequarters/libnpmpublish#80cc837e5095caf2d49e588e55af73bd59c42e47"
   }
 }
