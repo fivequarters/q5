@@ -1,21 +1,19 @@
-import { Response } from 'express';
+import {Response, Request, NextFunction} from 'express';
 import create_error from 'http-errors';
 
-import { IFunctionApiRequest } from './request';
-
 const distTagsGet = () => {
-  return (req: IFunctionApiRequest, res: Response, next: any) => {
+  return (reqGeneral: Request, res: Response, next: NextFunction) => {
     return next(create_error(501, 'distTagsGet unsupported'));
   };
 };
 const distTagsPut = () => {
-  return (req: IFunctionApiRequest, res: Response, next: any) => {
+  return (reqGeneral: Request, res: Response, next: NextFunction) => {
     return next(create_error(501, 'distTagsPut unsupported'));
   };
 };
 
 const distTagsDelete = () => {
-  return (req: IFunctionApiRequest, res: Response, next: any) => {
+  return (reqGeneral: Request, res: Response, next: NextFunction) => {
     return next(create_error(501, 'distTagsDelete unsupported'));
   };
 };

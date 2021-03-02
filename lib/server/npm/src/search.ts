@@ -1,9 +1,10 @@
-import { Response } from 'express';
+import { Response, Request } from 'express';
 import { tarballUrlUpdate } from './package';
 import { IFunctionApiRequest } from './request';
 
 const searchGet = () => {
-  return async (req: IFunctionApiRequest, res: Response, next: any) => {
+  return async (reqGeneric: Request, res: Response, next: any) => {
+    const req = reqGeneric as IFunctionApiRequest;
     const count = req.query.count ? Number(req.query.count) : 100;
     const searchNext = req.query.next ? (req.query.next as string) : undefined;
     try {

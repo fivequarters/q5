@@ -1,12 +1,13 @@
-import { Response } from 'express';
-import { IFunctionApiRequest } from './request';
-import { tarballUrlUpdate } from './tarballUrlUpdate';
+import {Response, Request} from 'express';
+import {IFunctionApiRequest} from './request';
+import {tarballUrlUpdate} from './tarballUrlUpdate';
 
 import create_error from 'http-errors';
 
 const revisionDelete = () => {
-  return async (req: IFunctionApiRequest, res: Response, next: any) => {
-    const etag = req.headers['if-none-match'];
+  return async (reqGeneric: Request, res: Response, next: any) => {
+    const req = reqGeneric as IFunctionApiRequest;
+    console.log('in revision delete');
     try {
       const pkg = await req.registry.get(req.params.name);
       const rev = req.params.revisionId;
@@ -29,19 +30,13 @@ const revisionDelete = () => {
 };
 
 const revisionPut = () => {
-  return async (req: IFunctionApiRequest, res: Response, next: any) => {
+  return async (reqGeneric: Request, res: Response, next: any) => {
+    const req = reqGeneric as IFunctionApiRequest;
     try {
-      const etag = req.headers['if-none-match'];
       const pkg = await req.registry.get(req.params.name);
-      const rev = req.params.revisionId;
 
       if (!pkg) {
         return next(create_error(404, 'package not found'));
-      }
-
-      if (pkg._rev === rev) {
-        // Intends to delete the entire document
-        await req.registry.delete(req.params.name);
       }
 
       // Save the version information for the preserved versions, specifically for the tarball configuration.
@@ -66,4 +61,4 @@ const revisionPut = () => {
   };
 };
 
-export { revisionDelete, revisionPut };
+export {revisionDelete, revisionPut};

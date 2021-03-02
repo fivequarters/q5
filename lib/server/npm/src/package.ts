@@ -1,18 +1,16 @@
 import crypto from 'crypto';
 import ssri from 'ssri';
-import { v4 as uuid } from 'uuid';
-
-import { Response } from 'express';
-import { IFunctionApiRequest } from './request';
+import {v4 as uuid} from 'uuid';
+import {NextFunction, Response, Request} from 'express';
+import {IFunctionApiRequest} from './request';
 
 import create_error from 'http-errors';
 
-import { tarballUrlUpdate } from './tarballUrlUpdate';
+import {tarballUrlUpdate} from './tarballUrlUpdate';
 
-class PackagePutException extends Error {}
-
-const packagePut = () => {
-  return async (req: IFunctionApiRequest, res: Response, next: any) => {
+const packagePut: () => (req: Request, res: Response, next: NextFunction) => void = () => {
+  return async (reqGeneric, res, next) => {
+    const req = reqGeneric as IFunctionApiRequest;
     // Get pkg
     let pkg = req.body;
 
@@ -77,7 +75,8 @@ const packagePut = () => {
 };
 
 const packageGet = () => {
-  return async (req: IFunctionApiRequest, res: Response, next: any) => {
+  return async (reqGeneric: Request, res: Response, next: any) => {
+    const req = reqGeneric as IFunctionApiRequest;
     const etag = req.headers['if-none-match'];
     const pkg = await req.registry.get(req.params.name);
     if (!pkg) {
@@ -96,4 +95,24 @@ const packageGet = () => {
   };
 };
 
-export { packagePut, packageGet, tarballUrlUpdate };
+const packageDelete = () => {
+  return async (reqGeneric: Request, res: Response, next: any) => {
+    const req = reqGeneric as IFunctionApiRequest;
+    try {
+      const pkg = await req.registry.get(req.params.name);
+
+      if (!pkg) {
+        return next(create_error(404, 'package not found'));
+      }
+
+      await req.registry.delete(req.params.name);
+
+      res.set('ETag', pkg.etag);
+      return res.status(200).json(pkg);
+    } catch (e) {
+      return next(e);
+    }
+  };
+}
+
+export {packagePut, packageGet, packageDelete, tarballUrlUpdate};

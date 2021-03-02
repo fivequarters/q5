@@ -11,12 +11,16 @@ const tarballUrlUpdate = (req: IFunctionApiRequest, pkg: any) => {
     `${Constants.API_PUBLIC_ENDPOINT}/v1/account/${req.params.accountId}/registry/${req.params.registryId}/npm`;
 
   // Update the dist tarball URL's to be within this account
-  for (const version of Object.keys(pkg.versions)) {
+  Object.keys(pkg.versions).forEach(version => {
+    if (!pkg.versions[version]) {
+      // Race condition handler
+      return;
+    }
     const tarball = pkg.versions[version].dist.tarball;
     const scope = tarball.scope;
     const name = tarball.name;
     pkg.versions[version].dist.tarball = `${baseUrl}/${scope}/${name}/-/${scope}/${name}@${tarball.version}`;
-  }
+  });
 };
 
 export { tarballUrlUpdate };

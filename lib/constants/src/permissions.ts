@@ -48,6 +48,7 @@ export enum Permissions {
   configRegistry = 'registry-config:put',
   getRegistry = 'registry:get',
   putRegistry = 'registry:put',
+  deleteRegistry = 'registry:delete'
 }
 
 // Deployment Administrator Permissions

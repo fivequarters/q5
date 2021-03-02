@@ -3,20 +3,16 @@ import bodyParser from 'body-parser';
 import * as fs from 'fs';
 import * as http from 'http';
 import {AddressInfo} from 'net';
-import {IFunctionApiRequest} from '../src/request';
+import {IFunctionApiRequest} from '@5qtrs/npm';
 import {MemRegistry} from '@5qtrs/registry';
 import libnpm from 'libnpm';
-import registryApp from "@5qtrs/function-api/src/routes/controllers/registry";
-// @ts-ignore
-import authorize from "@5qtrs/function-api/src/routes/middleware/authorize.js";
-console.log(authorize);
+import npmApp from "../src/routes/controllers/npm";
 
-jest.mock('authorize');
-const mockedAuthorize = authorize as jest.Mocked<typeof authorize>;
-mockedAuthorize.get.mockReturnValue((req: Request, res: Response, next: NextFunction) => next() )
+jest.mock("../src/routes/middleware/authorize.js");
+// @ts-ignore
+import authorize from "../src/routes/middleware/authorize.js";
 
 import manifest from './mock/sample-npm.manifest.json';
-import {packageGet, packagePut, revisionDelete, revisionPut, searchGet, tarballDelete, tarballGet} from "@5qtrs/npm";
 
 const tarData = fs.readFileSync('test/mock/sample-npm.tgz');
 const logEnabled = false;
@@ -26,7 +22,7 @@ const PACKAGE_NAME = 'foobar';
 const PACKAGE_FULL_NAME = PACKAGE_SCOPE + '/' + PACKAGE_NAME;
 const MANIFEST_VERSIONS = Object.freeze(['1.0.1', '1.0.2', '1.0.3']);
 const DIST_TAGS = 'dist-tags';
-const NPM_ROUTE_SCOPE = '/npm';
+const NPM_ROUTE_SCOPE = '/something_else';
 
 
 const startServer: (server: http.Server) => Promise<http.Server> = async (server) => {
@@ -40,12 +36,9 @@ const getServerPort: (server: http.Server) => number = (server) => {
   return (server.address() as AddressInfo).port;
 };
 
-const getUrlFromPort: (port: number) => string = (port) => {
-  return `http://localhost:${port}${NPM_ROUTE_SCOPE}`;
-};
 
 const getServerUrl: (server: http.Server) => string = (server) => {
-  return getUrlFromPort(getServerPort(server));
+  return `http://localhost:${getServerPort(server)}${NPM_ROUTE_SCOPE}`;
 }
 
 const setTarballRootUrl: (app: Express, url: string) => void = (app, url) => {
@@ -65,14 +58,7 @@ const setLoggerMiddleware: (app: Express) => void = (app) => {
 }
 
 const applyServerRoutes: (app: Express) => void = (app) => {
-
-  app.put('/:name', packagePut());
-  app.get('/:name', packageGet());
-  app.get('/:scope?/:name/-/:scope2?/:filename/', tarballGet());
-  app.get('/-/v1/search', searchGet());
-  app.delete('/:name/-rev/:revisionId', revisionDelete());
-  app.put('/:name/-rev/:revisionId', revisionPut());
-  app.delete('/:scope/:name/-/:scope2/:filename/-rev/:revisionId', tarballDelete());
+  app.use(NPM_ROUTE_SCOPE, npmApp);
 };
 
 const startExpress: () => Promise<ITestVariables> = async () => {
@@ -82,7 +68,6 @@ const startExpress: () => Promise<ITestVariables> = async () => {
   const server = http.createServer(app);
   await startServer(server);
   const url: string = getServerUrl(server);
-
 
   app.use(bodyParser.json());
   app.use(handler);
@@ -119,7 +104,6 @@ describe('registry Package tests', () => {
   beforeEach(async () => {
     // startserver
     testVariables = await startExpress();
-    await http.get(testVariables.url, (res) => console.log(res));
 
   }, 10001);
 
@@ -159,6 +143,7 @@ describe('registry Package tests', () => {
       .toEqual(expect.arrayContaining([...MANIFEST_VERSIONS]));
     // Unpublish one version
     const removedVersion = MANIFEST_VERSIONS[1];
+
     await libnpm.unpublish(`${PACKAGE_FULL_NAME}@${removedVersion}`, { registry: url });
     // Expect to see all published versions other than removed one
     expect(Object.keys(registry.registry.pkg[PACKAGE_FULL_NAME].versions)).toEqual(
@@ -182,7 +167,7 @@ describe('registry Package tests', () => {
     // expect latest to be next highest version number (1.0.2)
     const SECOND_LATEST_VERSION = MANIFEST_VERSIONS[MANIFEST_VERSIONS.length - 2];
     expect(registry.registry.pkg[PACKAGE_FULL_NAME][DIST_TAGS].latest).toEqual(SECOND_LATEST_VERSION);
-  });
+  }, 1000000);
 
   it('unpublish all causes removal', async () => {
     const { registry, url } = testVariables;
