@@ -76,13 +76,11 @@ async function downloadJson(url: string) {
   try {
     response = await request(url);
   } catch (error) {
-    throw new Error(`Unable to resolve secret '${url}'; Downloading key file failed: ${error}`);
+    throw new Error(`Unable to acquire JWKS at '${url}'; download failed: ${error}`);
   }
 
   if (response.status !== 200) {
-    throw new Error(
-      `Unable to resolve secret '${url}'; Downloading key file returned status code '${response.status}'.`
-    );
+    throw new Error(`Unable to acquire JWKS at '${url}'; status code: '${response.status}'.`);
   }
 
   return response.data;
