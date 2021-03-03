@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.18.19
+
+_Released 03/02/21_
+
+- **Bugfix.** Capture error when attempting to acquire an invalid JWT key.
+
 ## Version 1.18.18
 
 _Released 02/14/21_
