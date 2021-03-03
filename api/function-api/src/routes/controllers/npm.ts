@@ -18,12 +18,7 @@ npmApp.get(
 );
 
 npmApp.options('/-/ping');
-npmApp.get(
-  '/-/ping',
-  validate_schema({ params: npm_params }),
-  authorize({ operation: 'registry:get' }),
-  npm.pingGet()
-);
+npmApp.get('/-/ping', validate_schema({ params: npm_params }), authorize({ operation: 'registry:get' }), npm.pingGet());
 
 npmApp.options('/:scope/:name/-/:scope2/:filename');
 npmApp.get(
@@ -151,6 +146,17 @@ npmApp.get(
   npm.searchGet()
 );
 
-
-
-export default npmApp;
+// FIXME: this is a temporary fix because of a bug in libnpm.
+// once the bug is resolved, we will remove this as a function and simply `export default npmApp`
+// the below `.delete` can be safely removed at that time.
+//
+// libnpm issue: https://github.com/npm/libnpmpublish/issues/5
+export default (routeNamespace: string) => {
+  npmApp.delete(
+    routeNamespace + '/:scope/:name/-/:scope2/:filename/-rev/:revisionId',
+    validate_schema({ params: npm_params }),
+    authorize({ operation: 'registry:delete' }),
+    npm.tarballDelete()
+  );
+  return npmApp;
+};

@@ -1,5 +1,4 @@
 import { Response, Request } from 'express';
-import { IFunctionApiRequest } from './request';
 
 import create_error from 'http-errors';
 

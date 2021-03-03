@@ -19,11 +19,14 @@
     "ssri": "^8.0.0"
   },
   "devDependencies": {
+    "@npm/types": "^1.0.1",
     "@types/express": "^4.17.8",
     "@types/jest": "^26.0.14",
     "@types/ssri": "^7.1.0",
     "body-parser": "^1.19.0",
+    "express": "^4.17.1",
     "libnpm": "^3.0.1",
-    "libnpmpublish": "git://github.com/fivequarters/libnpmpublish#80cc837e5095caf2d49e588e55af73bd59c42e47"
+    "libnpmpublish": "git://github.com/fivequarters/libnpmpublish#80cc837e5095caf2d49e588e55af73bd59c42e47",
+    "uuid": "^8.3.2"
   }
 }

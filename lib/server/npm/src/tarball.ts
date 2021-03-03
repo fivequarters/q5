@@ -1,7 +1,11 @@
 import { Response, Request } from 'express';
-import { IFunctionApiRequest } from './request';
+import { IFunctionApiRequest } from './interfaces';
 
 import create_error from 'http-errors';
+
+interface tarball {
+
+}
 
 const tarballGet = () => {
   return async (reqGeneric: Request, res: Response, next: any) => {
@@ -29,7 +33,6 @@ const tarballGet = () => {
 const tarballDelete = () => {
   return async (reqGeneric: Request, res: Response, next: any) => {
     const req = reqGeneric as IFunctionApiRequest;
-    console.log('hit tarball delete')
     try {
       const pkgName = `${req.params.scope}/${req.params.filename}`;
 

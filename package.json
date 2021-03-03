@@ -13,7 +13,7 @@
     "start": "yarn-tool yarn start",
     "test": "yarn-tool yarn test",
     "lint": "yarn-tool yarn lint",
-    "clean": "yarn-tool yarn clean",
+    "clean": "yarn-tool yarn clean && find . -name \"tsconfig.tsbuildinfo\" -delete",
     "new": "yarn-tool new",
     "move": "yarn-tool move",
     "package": "yarn-tool package",

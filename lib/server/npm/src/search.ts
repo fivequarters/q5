@@ -1,6 +1,6 @@
 import { Response, Request } from 'express';
 import { tarballUrlUpdate } from './package';
-import { IFunctionApiRequest } from './request';
+import { IFunctionApiRequest } from './interfaces';
 
 const searchGet = () => {
   return async (reqGeneric: Request, res: Response, next: any) => {

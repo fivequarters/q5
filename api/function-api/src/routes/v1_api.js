@@ -1,8 +1,10 @@
+import npm_params from "./schemas/npm_params";
+
 const express = require('express');
 const router = express.Router();
 
 // require('aws-sdk').config.logger = console;
-import registryApp from "./controllers/registry";
+import registryApp from './controllers/registry';
 
 const analytics = require('./middleware/analytics');
 const determine_provider = require('./middleware/determine_provider');
@@ -44,17 +46,15 @@ const { addLogging } = require('@5qtrs/runtime-common');
 const { StorageActions } = require('@5qtrs/storage');
 const storage = require('./handlers/storage');
 
-import {
-  corsManagementOptions
-} from './constants';
-
+import { corsManagementOptions } from './constants';
+import * as npm from "@5qtrs/npm/src";
 
 // Load the global npm registry in AWS
 const npmRegistry = () =>
   AwsRegistry.handler({
     // Clear built modules from S3 when a version is put to force a rebuild
     onNewPackage: async (name, ver, registry) => clear_built_module(name, { version: ver, registry }),
-    onDeletePackage: async (name, ver, registry) => clear_built_module(name, { version: ver, registry })
+    onDeletePackage: async (name, ver, registry) => clear_built_module(name, { version: ver, registry }),
   });
 
 // Create the keystore and guarantee an initial key
@@ -73,10 +73,10 @@ const NotImplemented = (_, __, next) => next(create_error(501, 'Not implemented'
 const debugLogEvent = (req, res, next) => {
   console.log(
     `DEBUG: ${req.method} ${req.url}\n` +
-    `DEBUG: Headers: ${JSON.stringify(req.headers)}\n` +
-    `DEBUG: Params:  ${JSON.stringify(req.params)}\n` +
-    `DEBUG: Body:    ${JSON.stringify(req.body)}\n` +
-    `DEBUG: Json:    ${JSON.stringify(req.json)}\n`
+      `DEBUG: Headers: ${JSON.stringify(req.headers)}\n` +
+      `DEBUG: Params:  ${JSON.stringify(req.params)}\n` +
+      `DEBUG: Body:    ${JSON.stringify(req.body)}\n` +
+      `DEBUG: Json:    ${JSON.stringify(req.json)}\n`
   );
   return next();
 };
@@ -721,14 +721,15 @@ router.get(
   analytics.finished
 );
 
-router.use('/account/:accountId/registry/:registryId',
+router.use(
+  '/account/:accountId/registry/:registryId',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
   user_agent(),
   check_agent_version(),
   determine_provider(),
   npmRegistry(),
-  registryApp,
+  registryApp('/account/:accountId/registry/:registryId'),
   analytics.finished
 );
 

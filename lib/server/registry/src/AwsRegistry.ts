@@ -1,5 +1,5 @@
 import AWS from 'aws-sdk';
-import {maxSatisfying} from 'semver';
+import { maxSatisfying } from 'semver';
 
 import * as Constants from '@5qtrs/constants';
 
@@ -52,7 +52,7 @@ class AwsRegistry implements IRegistryStore {
     this.eventHandlers = {
       onNewPackage: Promise.resolve,
       onDeletePackage: Promise.resolve,
-      ...eventHandlers
+      ...eventHandlers,
     };
     this.s3 = new AWS.S3(s3Opts);
     this.ddb = new AWS.DynamoDB({
@@ -95,7 +95,6 @@ class AwsRegistry implements IRegistryStore {
       })
       .promise();
     return this.eventHandlers.onNewPackage(name, ver, this.keyPrefix);
-
   }
 
   // Determine whether the scope in the key is part of this registry, or part of the global registry.  Return
@@ -158,9 +157,11 @@ class AwsRegistry implements IRegistryStore {
       await this.tarballDelete(`${pkg.name}@${ver}`);
     }
 
-    return Promise.all(Object.keys(pkg.versions).map(
-      async (version: string) => this.eventHandlers.onDeletePackage(name, version, this.keyPrefix)
-    ));
+    return Promise.all(
+      Object.keys(pkg.versions).map(async (version: string) =>
+        this.eventHandlers.onDeletePackage(name, version, this.keyPrefix)
+      )
+    );
   }
 
   public async tarballGet(nameVer: string): Promise<any> {
@@ -298,9 +299,10 @@ class AwsRegistry implements IRegistryStore {
         TableName: this.tableName,
         Key: {
           key: { S: this.keyPrefix },
-          category: { S: Constants.REGISTRY_CATEGORY_CONFIG }
-        }
-      }).promise();
+          category: { S: Constants.REGISTRY_CATEGORY_CONFIG },
+        },
+      })
+      .promise();
   }
 
   public async configGet(): Promise<IRegistryConfig> {
@@ -401,4 +403,4 @@ class AwsRegistry implements IRegistryStore {
   }
 }
 
-export {AwsRegistry};
+export { AwsRegistry };

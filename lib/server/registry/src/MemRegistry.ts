@@ -26,8 +26,8 @@ class MemRegistry implements IRegistryStore {
   private readonly initialConfig = { url: '', scopes: [] };
 
   constructor() {
-    this.registry = this.initialRegistry;
-    this.config = this.initialConfig;
+    this.registry = JSON.parse(JSON.stringify(this.initialRegistry));
+    this.config = JSON.parse(JSON.stringify(this.initialConfig));
   }
 
   public name() {
@@ -83,8 +83,8 @@ class MemRegistry implements IRegistryStore {
   }
 
   public async configDelete(): Promise<void> {
-    this.config = this.initialConfig;
-    this.registry = this.initialRegistry;
+    this.registry = JSON.parse(JSON.stringify(this.initialRegistry));
+    this.config = JSON.parse(JSON.stringify(this.initialConfig));
   }
 
   public async configInternalGet(): Promise<any> {

@@ -1,20 +1,19 @@
-import express, {Request, Response, NextFunction} from 'express';
-import npmApp from "./npm";
+import express, { Request, Response, NextFunction } from 'express';
+import npmApp from './npm';
 import create_error from 'http-errors';
 import url from 'url';
 // @ts-ignore
 import validate_schema from '../middleware/validate_schema';
 // @ts-ignore
 import authorize from '../middleware/authorize';
-
-import {IFunctionApiRequest} from '@5qtrs/npm';
-import {AwsRegistry} from "@5qtrs/registry";
-import * as Constants from '@5qtrs/constants';
-
 // @ts-ignore
 import api_params from '../schemas/api_params';
 // @ts-ignore
 import registry_specification from '../schemas/registry_specification';
+
+import { IFunctionApiRequest } from '@5qtrs/npm';
+import { AwsRegistry } from '@5qtrs/registry';
+import * as Constants from '@5qtrs/constants';
 
 
 const registryApp = express.Router();
@@ -83,6 +82,14 @@ registryApp.delete(
   }
 );
 
-registryApp.use('/npm', npmApp);
 
-export default registryApp;
+
+export default (routeNamespace: string) => {
+  // FIXME: this is a temporary fix because of a bug in libnpm.
+  // once the bug is resolved, we will remove this as a function and simply `export default registryApp`
+  // the below `.use` will be staticly defined like all other routes in this file
+  //
+  // libnpm issue: https://github.com/npm/libnpmpublish/issues/5
+  registryApp.use('/npm', npmApp(`${routeNamespace}/npm`));
+  return registryApp;
+}

@@ -1,6 +1,6 @@
-import {Response, Request} from 'express';
-import {IFunctionApiRequest} from './request';
-import {tarballUrlUpdate} from './tarballUrlUpdate';
+import { Response, Request } from 'express';
+import { IFunctionApiRequest } from './interfaces';
+import { tarballUrlUpdate } from './tarballUrlUpdate';
 
 import create_error from 'http-errors';
 
@@ -60,4 +60,4 @@ const revisionPut = () => {
   };
 };
 
-export {revisionDelete, revisionPut};
+export { revisionDelete, revisionPut };

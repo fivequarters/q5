@@ -1,4 +1,4 @@
-import {Response, Request, NextFunction} from 'express';
+import { Response, Request, NextFunction } from 'express';
 import create_error from 'http-errors';
 
 const distTagsGet = () => {

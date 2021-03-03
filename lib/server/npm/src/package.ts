@@ -2,17 +2,18 @@ import crypto from 'crypto';
 import ssri from 'ssri';
 import {v4 as uuid} from 'uuid';
 import {NextFunction, Response, Request} from 'express';
-import {IFunctionApiRequest} from './request';
 
 import create_error from 'http-errors';
 
 import {tarballUrlUpdate} from './tarballUrlUpdate';
+import {IPackument, IDist, IPackumentVersion, IFunctionApiRequest} from "./interfaces";
+
 
 const packagePut: () => (req: Request, res: Response, next: NextFunction) => void = () => {
   return async (reqGeneric, res, next) => {
     const req = reqGeneric as IFunctionApiRequest;
     // Get pkg
-    let pkg = req.body;
+    let pkg: IPackument = req.body;
 
     if (Object.keys(pkg._attachments).length !== 1 || Object.keys(pkg.versions).length !== 1) {
       return next(create_error(501, 'invalid parameter length'));
@@ -21,22 +22,22 @@ const packagePut: () => (req: Request, res: Response, next: NextFunction) => voi
     delete pkg._attachments;
 
     const [scope, name] = pkg.name.split('/');
-    const version = pkg.versions[Object.keys(pkg.versions)[0]];
-    const versionId = version.version;
+    const version: IPackumentVersion = pkg.versions[Object.keys(pkg.versions)[0]];
+    const versionId: string = version.version;
 
     // Extract the buffer
-    const payload = Buffer.from(attachment[Object.keys(attachment)[0]].data, 'base64');
-    const length = attachment[Object.keys(attachment)[0]].length;
+    const payload: Buffer = Buffer.from(attachment[Object.keys(attachment)[0]].data, 'base64');
+    const length: number = attachment[Object.keys(attachment)[0]].length;
 
     if (payload.length !== length) {
       return next(create_error(501, 'invalid parameter length'));
     }
 
     // Validate integrity and shasum are correct
-    const shasum = crypto.createHash('sha1').update(payload).digest('hex');
-    const integrity = ssri.fromData(payload, { algorithms: ['sha512'] }).toString();
+    const shasum: string = crypto.createHash('sha1').update(payload).digest('hex');
+    const integrity: string = ssri.fromData(payload, { algorithms: ['sha512'] }).toString();
 
-    const dist = version.dist;
+    const dist: IDist = version.dist;
     if (shasum !== dist.shasum) {
       return next(create_error(501, 'invalid checksum'));
     }
@@ -46,7 +47,7 @@ const packagePut: () => (req: Request, res: Response, next: NextFunction) => voi
 
     try {
       // Get the existing manifest:
-      const existing = await req.registry.get(pkg.name);
+      const existing: IPackument = await req.registry.get(pkg.name);
       if (existing) {
         // Copy over the necessary elements
         pkg.versions = { ...existing.versions, ...pkg.versions };
@@ -78,7 +79,7 @@ const packageGet = () => {
   return async (reqGeneric: Request, res: Response, next: any) => {
     const req = reqGeneric as IFunctionApiRequest;
     const etag = req.headers['if-none-match'];
-    const pkg = await req.registry.get(req.params.name);
+    const pkg: IPackument = await req.registry.get(req.params.name);
     if (!pkg) {
       return next(create_error(404, 'package not found'));
     }
@@ -113,6 +114,6 @@ const packageDelete = () => {
       return next(e);
     }
   };
-}
+};
 
 export {packagePut, packageGet, packageDelete, tarballUrlUpdate};

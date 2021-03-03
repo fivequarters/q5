@@ -1,4 +1,4 @@
-import { IFunctionApiRequest } from './request';
+import { IFunctionApiRequest } from './interfaces';
 import * as Constants from '@5qtrs/constants';
 
 // Convert the urls in the tarball section to match the current account, even if they're nominally hosted in
@@ -11,7 +11,7 @@ const tarballUrlUpdate = (req: IFunctionApiRequest, pkg: any) => {
     `${Constants.API_PUBLIC_ENDPOINT}/v1/account/${req.params.accountId}/registry/${req.params.registryId}/npm`;
 
   // Update the dist tarball URL's to be within this account
-  Object.keys(pkg.versions).forEach(version => {
+  Object.keys(pkg.versions).forEach((version: string) => {
     if (!pkg.versions[version]) {
       // Race condition handler
       return;
