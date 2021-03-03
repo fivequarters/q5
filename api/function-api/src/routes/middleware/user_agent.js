@@ -4,6 +4,10 @@ const agentRegex = /fusebit-(editor|cli)\/([\S]*)/;
 
 module.exports = function agent_factory() {
   return function agent(req, res, next) {
+    if (req.method === 'OPTIONS') {
+      next();
+    }
+
     const agent = {
       isFusebitClient: false,
       isFusebitEditor: false,

@@ -16,6 +16,10 @@ const supportedClientVersion = {
 
 const check_agent_version = () => {
   return (req, res, next) => {
+    if (req.method === 'OPTIONS') {
+      next();
+    }
+
     const agent = req.userAgent;
 
     // If the client is a known agent, use the extracted user agent details to determine the version.
