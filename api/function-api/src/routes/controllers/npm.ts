@@ -30,7 +30,7 @@ npmApp.get(
 npmApp.delete(
   '/:scope/:name/-/:scope2/:filename/-rev/:revisionId',
   validate_schema({ params: npm_params }),
-  authorize({ operation: 'registry:delete' }),
+  authorize({ operation: 'registry:put' }),
   npm.tarballDelete()
 );
 
@@ -45,7 +45,7 @@ npmApp.put(
 npmApp.delete(
   '/:name',
   validate_schema({ params: npm_params }),
-  authorize({ operation: 'registry:delete' }),
+  authorize({ operation: 'registry:put' }),
   npm.packageDelete()
 );
 npmApp.get(
@@ -65,7 +65,7 @@ npmApp.put(
 npmApp.delete(
   '/:name/-rev/:revisionId',
   validate_schema({ params: npm_params }),
-  authorize({ operation: 'registry:delete' }),
+  authorize({ operation: 'registry:put' }),
   npm.revisionDelete()
 );
 
@@ -155,7 +155,7 @@ export default (routeNamespace: string) => {
   npmApp.delete(
     routeNamespace + '/:scope/:name/-/:scope2/:filename/-rev/:revisionId',
     validate_schema({ params: npm_params }),
-    authorize({ operation: 'registry:delete' }),
+    authorize({ operation: 'registry:put' }),
     npm.tarballDelete()
   );
   return npmApp;
