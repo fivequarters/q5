@@ -1,11 +1,12 @@
-import { Response } from 'express';
+import { Response, Request } from 'express';
 import { IFunctionApiRequest } from './request';
 import { tarballUrlUpdate } from './tarballUrlUpdate';
 
 import create_error from 'http-errors';
 
 const revisionDelete = () => {
-  return async (req: IFunctionApiRequest, res: Response, next: any) => {
+  return async (reqBase: Request, res: Response, next: any) => {
+    const req = reqBase as IFunctionApiRequest;
     const etag = req.headers['if-none-match'];
     try {
       const pkg = await req.registry.get(req.params.name);
@@ -29,19 +30,13 @@ const revisionDelete = () => {
 };
 
 const revisionPut = () => {
-  return async (req: IFunctionApiRequest, res: Response, next: any) => {
+  return async (reqBase: Request, res: Response, next: any) => {
+    const req = reqBase as IFunctionApiRequest;
     try {
-      const etag = req.headers['if-none-match'];
       const pkg = await req.registry.get(req.params.name);
-      const rev = req.params.revisionId;
 
       if (!pkg) {
         return next(create_error(404, 'package not found'));
-      }
-
-      if (pkg._rev === rev) {
-        // Intends to delete the entire document
-        await req.registry.delete(req.params.name);
       }
 
       // Save the version information for the preserved versions, specifically for the tarball configuration.
