@@ -1,10 +1,13 @@
+// tslint:disable:no-console
+// tslint:disable:no-empty
+import * as superagent from 'superagent';
+
 import { random } from '@5qtrs/random';
 import { request } from '@5qtrs/request';
 
 import { cloneWithAccessToken } from './accountResolver';
 import {
   addIssuer,
-  removeIssuer,
   addUser,
   cleanUpUsers,
   cleanUpClients,
@@ -13,9 +16,8 @@ import {
   cleanUpHostedIssuers,
   cleanUpIssuers,
   disableFunctionUsageRestriction,
-  callFunction,
-  getFunction,
   putFunction,
+  getMe,
 } from './sdk';
 
 import { getEnv } from './setup';
@@ -118,5 +120,64 @@ describe.skip('cycle test', () => {
       expect(user).toBeHttp({ statusCode: 200 });
       expect(allowedAdd).toBeHttp({ statusCode: 200 });
     }
+  }, 180000000);
+
+  test('measure timing of function execution loop', async () => {
+    disableFunctionUsageRestriction();
+    const spec1 = {
+      nodejs: {
+        files: {
+          'index.js': `module.exports = async (ctx) => { await new Promise((resolve) => setTimeout(resolve, 10000)); return { body: "teapot", status: 200}; };`,
+        },
+      },
+      compute: { timeout: 120 },
+    };
+    const response = await putFunction(account, boundaryId, function1Id, spec1);
+    expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
+
+    const reqs = [];
+    const results: number[] = [];
+    for (let n = 0; n < 200; n++) {
+      reqs.push(
+        (async () => {
+          const startTime = Date.now();
+          try {
+            await superagent.get(response.data.location);
+            results.push(Date.now() - startTime);
+          } catch (e) {}
+        })()
+      );
+    }
+    await Promise.all(reqs);
+    results.sort();
+    console.log(results.join(','));
+  }, 180000000);
+
+  test('measure timing of getMe loop', async () => {
+    const reqs = [];
+    const results: number[] = [];
+    const errs: string[] = [];
+    for (let n = 0; n < 5000; n++) {
+      reqs.push(
+        (async () => {
+          const startTime = Date.now();
+          try {
+            await getMe(account);
+            // Url doesn't exist, but has been added to test things for this usecase.
+            // await superagent
+            //  .get(`${account.baseUrl}/v1/account/${account.accountId}/authorize`)
+            //  .set('Authorization', `Bearer ${account.accessToken}`)
+            //  .set('User-Agent', account.userAgent);
+            results.push(Date.now() - startTime);
+          } catch (e) {
+            errs.push(`${e}`);
+          }
+        })()
+      );
+    }
+    await Promise.all(reqs);
+
+    require('fs').writeFile('data.csv', results.join(','));
+    require('fs').writeFile('errs.txt', errs.join('\n'));
   }, 180000000);
 });

@@ -61,11 +61,13 @@ function toBeHttp(response: IHttpResponse, { statusCode, data, headers, has, has
     }
   } catch (err) {
     const { account } = getEnv();
-    const msg = `${err.message}\n\nfailing response:\n${response.status} - ${JSON.stringify(
-      response.headers,
+    const msg = `${err.message}\n\nfailing request:\n${response.status} ${response.request.method.toUpperCase()} ${
+      response.request.url
+    } - headers: ${JSON.stringify(response.headers, null, 2)} - data: ${JSON.stringify(
+      response.data,
       null,
       2
-    )} - ${JSON.stringify(response.data, null, 2)} - ${JSON.stringify(account)}`;
+    )} - account: ${JSON.stringify(account)}`;
     return { message: () => msg, pass: false };
   }
   return { message: () => '', pass: true };

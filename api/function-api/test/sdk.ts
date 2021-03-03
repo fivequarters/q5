@@ -21,7 +21,7 @@ if (!process.env.LOGS_HOST) {
   }
 
   if (process.env.API_SERVER.indexOf('://localhost') > 0) {
-    console.log('WARNING: LOGS_HOST IS NOT SPECIFIED - localhost tests must have ngrok running.');
+    console.log('WARNING: LOGS_HOST IS NOT SPECIFIED - localhost tests must have a tunnel running.');
   }
 }
 

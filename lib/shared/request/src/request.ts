@@ -37,6 +37,7 @@ function getHttpResponse(axiosResponse: any, parseJson: boolean = true, validSta
     status: axiosResponse.status,
     headers: axiosResponse.headers,
     data: axiosResponse.data || undefined,
+    request: axiosResponse.config,
   };
 
   if (validStatus !== undefined) {
@@ -80,6 +81,7 @@ export interface IHttpResponse {
   status: number;
   headers: { [index: string]: string };
   data?: any;
+  request: any;
 }
 
 // ------------------
