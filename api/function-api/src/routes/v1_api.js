@@ -46,7 +46,7 @@ const { addLogging } = require('@5qtrs/runtime-common');
 const { StorageActions } = require('@5qtrs/storage');
 const storage = require('./handlers/storage');
 
-import { corsManagementOptions } from './constants';
+import {corsExecutionOptions, corsManagementOptions} from './constants';
 import * as npm from "@5qtrs/npm/src";
 
 // Load the global npm registry in AWS
@@ -721,10 +721,20 @@ router.get(
   analytics.finished
 );
 
+const corsExecution = cors(corsExecutionOptions);
+const corsManagement = cors(corsManagementOptions);
+const corsOptionSelector = (req, res, next) => {
+  if (req.method === 'OPTIONS') {
+    return corsManagement(req,res,next);
+  } else {
+    return corsExecution(req,res,next);
+  }
+}
+
 router.use(
   '/account/:accountId/registry/:registryId',
   analytics.enterHandler(analytics.Modes.Administration),
-  cors(corsManagementOptions),
+  corsOptionSelector,
   user_agent(),
   check_agent_version(),
   determine_provider(),
