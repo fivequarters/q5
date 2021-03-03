@@ -12,6 +12,9 @@ import { FusebitColor, opacity } from '@5qtrs/fusebit-color';
 // ------------------
 
 const defaultButtonText = 'Read More';
+const gaCategoryDefault = 'Link';
+const gaActionDefault = 'Clicked Read More Blog Link';
+const gaLabelDefault = location.pathname;
 
 // ------------------
 // Internal Functions
@@ -84,7 +87,7 @@ function MediumVersion({ title, subtitle, imageSrc, to, href, summary, buttonTex
       <Box marginTop={40}>
         <FusebitText type={FusebitTextType.bodySmall}>{summary}</FusebitText>
       </Box>
-      <FusebitButton href={href} to={to} marginTop={20} outline>
+      <FusebitButton href={href} to={to} marginTop={20} outline gaCategory={gaCategoryDefault} gaAction={gaActionDefault} gaLabel={gaLabelDefault}>
         {buttonText || defaultButtonText}
       </FusebitButton>
     </Box>
@@ -108,7 +111,7 @@ function MobileVersion({ title, subtitle, imageSrc, to, href, summary, buttonTex
           </Box>
         ) : undefined}
         <FusebitText>{summary}</FusebitText>
-        <FusebitButton href={href} to={to} marginTop={20} outline>
+        <FusebitButton href={href} to={to} marginTop={20} outline gaCategory={gaCategoryDefault} gaAction={gaActionDefault} gaLabel={gaLabelDefault}>
           {buttonText || defaultButtonText}
         </FusebitButton>
       </Box>
@@ -126,7 +129,7 @@ function NonMobileVersion({ title, subtitle, imageSrc, to, href, summary, button
         </FusebitLink>
         <Box height={20} />
         <FusebitText>{summary}</FusebitText>
-        <FusebitButton to={to} href={href} marginTop={20} outline>
+        <FusebitButton to={to} href={href} marginTop={20} outline gaCategory={gaCategoryDefault} gaAction={gaActionDefault} gaLabel={gaLabelDefault}>
           {buttonText || defaultButtonText}
         </FusebitButton>
       </Box>

@@ -17,8 +17,8 @@ const titleDefault = 'Your Title';
 const messageDefault = 'A Message';
 const buttonTextDefault = 'Send';
 const gaCategoryDefault = 'CTA';
-const gaActionDefault = 'About You';
-const gaLabelDefault = 'Solution';
+const gaActionDefault = 'Clicked send additional details form';
+const gaLabelDefault = location.pathname;
 
 // --------------
 // Exported Types

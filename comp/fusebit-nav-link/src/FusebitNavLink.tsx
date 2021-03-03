@@ -6,6 +6,10 @@ import { FusebitLink, FusebitLinkProps } from '@5qtrs/fusebit-link';
 import { FusebitText, FusebitTextProps, FusebitTextType } from '@5qtrs/fusebit-text';
 import { AboutUsIcon, DocsIcon, BlogIcon } from '@5qtrs/fusebit-icon';
 
+const gaCategoryDefault = 'Navigation';
+const gaActionDefault = 'Clicked';
+const gaLabelDefault = location.pathname;
+
 // -------------------
 // Internal Components
 // -------------------
@@ -92,18 +96,27 @@ export function FusebitNavLink({
       hover = hover || FusebitColor.red;
       icon = <AboutUsIcon color={color} />;
       to = '/about';
+      gaCategory=gaCategoryDefault;
+      gaAction="Clicked about nav";
+      gaLabel=gaLabelDefault;
       break;
     case FusebitNavLinkType.docs:
       color = color || FusebitColor.black;
       hover = hover || FusebitColor.red;
       icon = <DocsIcon color={color} />;
       href = '/docs';
+      gaCategory=gaCategoryDefault;
+      gaAction="Clicked docs nav";
+      gaLabel=gaLabelDefault;
       break;
     case FusebitNavLinkType.blog:
       color = color || FusebitColor.black;
       hover = hover || FusebitColor.red;
       icon = <BlogIcon color={color} />;
       to = '/blog';
+      gaCategory=gaCategoryDefault;
+      gaAction="Clicked blog nav";
+      gaLabel=gaLabelDefault;
       break;
     case FusebitNavLinkType.privacy:
       color = color || opacity(FusebitColor.white, 0.4);
@@ -112,6 +125,9 @@ export function FusebitNavLink({
       styledHover = false;
       noHover = true;
       to = '/privacy';
+      gaCategory=gaCategoryDefault;
+      gaAction="Clicked privacy nav";
+      gaLabel=gaLabelDefault;
       break;
     case FusebitNavLinkType.terms:
       color = color || opacity(FusebitColor.white, 0.4);
@@ -120,6 +136,9 @@ export function FusebitNavLink({
       styledHover = false;
       noHover = true;
       to = '/terms';
+      gaCategory=gaCategoryDefault;
+      gaAction="Clicked terms nav";
+      gaLabel=gaLabelDefault;
       break;
     default:
       color = color || opacity(FusebitColor.white, 0.4);

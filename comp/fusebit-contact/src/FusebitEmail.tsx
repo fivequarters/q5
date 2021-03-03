@@ -17,8 +17,8 @@ const placeHolderDefault = 'Enter Your Email';
 const buttonTextDefault = 'Get started';
 const errorTextDefault = 'Valid Email Required';
 const gaCategoryDefault = 'CTA';
-const gaActionDefault = 'Form Fill';
-const gaLabelDefault = 'Solution';
+const gaActionDefault = 'Clicked send email form';
+const gaLabelDefault = location.pathname;
 
 // ------------------
 // Internal Functions
