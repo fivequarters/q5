@@ -13,6 +13,7 @@
     "clean": "rm -r -f libc",
     "start": "node createEnv.js && node --trace-warnings libc/index.js",
     "ngrok": "ngrok http 3001",
+    "tunnel": "node ./maketunnel.js",
     "doc": "npx redoc-cli bundle api.yaml -o index.html --title \"Fusebit HTTP API\" --options.theme.colors.primary.main=#fb310a --options.expandResponses=200,201,204"
   },
   "keywords": [],
@@ -55,6 +56,7 @@
     "superagent": "^5.2.2",
     "libnpm": "^3.0.1",
     "@npm/types": "^1.0.1",
+    "localtunnel": "^2.0.1",
     "spdx-license-ids": "^3.0.6",
     "ssri": "^8.0.0"
   },

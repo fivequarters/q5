@@ -72,12 +72,17 @@ function rsaPublicKeyToPEM(modulusB64: string, exponentB64: string) {
 }
 
 async function downloadJson(url: string) {
-  const response = await request(url);
-  if (response.status !== 200) {
-    throw new Error(
-      `Unable to resolve secret '${url}'; Downloading key file returned status code '${response.status}'.`
-    );
+  let response;
+  try {
+    response = await request(url);
+  } catch (error) {
+    throw new Error(`Unable to acquire JWKS at '${url}'; download failed: ${error}`);
   }
+
+  if (response.status !== 200) {
+    throw new Error(`Unable to acquire JWKS at '${url}'; status code: '${response.status}'.`);
+  }
+
   return response.data;
 }
 
@@ -160,9 +165,8 @@ export function decodeJwt(token: string, json: boolean = false, complete?: boole
 }
 
 export async function verifyJwt(token: string, secretOrUrl: string, options?: any): Promise<any> {
-  return new Promise(async (resolve, reject) => {
-    const resolvedSecret = await resolveSecret(token, secretOrUrl);
-
+  const resolvedSecret = await resolveSecret(token, secretOrUrl);
+  return new Promise((resolve, reject) => {
     jwt.verify(token, resolvedSecret.secret, options || {}, (error, verifiedToken) => {
       if (error) {
         return reject(error);
