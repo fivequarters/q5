@@ -146,10 +146,11 @@ class AwsRegistry implements IRegistryStore {
         TableName: this.tableName,
         Key: {
           category: { S: Constants.REGISTRY_CATEGORY },
-          key: { S: [this.keyPrefix, name].join('/') },
+          key: { S: this.getDynamoKey(name) },
         },
       })
       .promise();
+    console.log('result from dynamo delete: ');
 
     // Remove all of the tarballs from S3
     for (const ver of Object.keys(pkg.versions)) {
@@ -176,8 +177,6 @@ class AwsRegistry implements IRegistryStore {
         Key: this.getS3Path(nameVer),
       })
       .promise();
-
-    return 0;
   }
 
   // Presumes the key has already been modified with the subscription/registry warts.

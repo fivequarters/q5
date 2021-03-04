@@ -848,6 +848,21 @@ router.delete(
   user_agent(),
   check_agent_version(),
   determine_provider(),
+  express.json(),
+  npmRegistry(),
+  npm.tarballDelete(),
+  analytics.finished
+);
+router.delete(
+  registryNpmBase + '/v1' + registryNpmBase + '/:scope/:name/-/:scope2/:filename/-rev/:revisionId',
+  analytics.enterHandler(analytics.Modes.Administration),
+  cors(corsManagementOptions),
+  validate_schema({ params: require('./schemas/npm_params') }),
+  authorize({ operation: 'registry:put' }),
+  user_agent(),
+  check_agent_version(),
+  determine_provider(),
+  express.json(),
   npmRegistry(),
   npm.tarballDelete(),
   analytics.finished
@@ -886,6 +901,10 @@ router.get(
 router.options(registryNpmBase + '/:name/-rev/:revisionId', cors(corsManagementOptions));
 router.put(
   registryNpmBase + '/:name/-rev/:revisionId',
+  (req, res, next) => {
+    console.log('i need a peak');
+    next();
+  },
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
   validate_schema({ params: require('./schemas/npm_params') }),
@@ -893,6 +912,7 @@ router.put(
   user_agent(),
   check_agent_version(),
   determine_provider(),
+  express.json(),
   npmRegistry(),
   npm.revisionPut(),
   analytics.finished

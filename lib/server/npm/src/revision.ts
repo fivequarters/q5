@@ -7,7 +7,6 @@ import create_error from 'http-errors';
 const revisionDelete = () => {
   return async (reqBase: Request, res: Response, next: any) => {
     const req = reqBase as IFunctionApiRequest;
-    const etag = req.headers['if-none-match'];
     try {
       const pkg = await req.registry.get(req.params.name);
       const rev = req.params.revisionId;
@@ -20,8 +19,6 @@ const revisionDelete = () => {
         // Intends to delete the entire document
         await req.registry.delete(req.params.name);
       }
-
-      res.set('ETag', pkg.etag);
       return res.status(200).json(pkg);
     } catch (e) {
       return next(e);

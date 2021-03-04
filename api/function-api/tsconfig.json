@@ -9,7 +9,7 @@
     "declarationMap": false,
     "composite": false
   },
-  "include": ["src"],
+  "include": ["src", "lib.d.ts"],
   "references": [
     { "path": "../../lib/node/jwt" },
     { "path": "../../lib/shared/request" },

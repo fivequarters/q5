@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import ssri from 'ssri';
 import { v4 as uuid } from 'uuid';
+import semver from 'semver';
 
 import { Response, Request } from 'express';
 import { IFunctionApiRequest } from './request';
@@ -52,8 +53,10 @@ const packagePut = () => {
         // Copy over the necessary elements
         pkg.versions = { ...existing.versions, ...pkg.versions };
         pkg['dist-tags'] = { ...existing['dist-tags'], ...pkg['dist-tags'] };
-        pkg._rev = uuid();
+        pkg['dist-tags'].latest = Object.keys(pkg.versions).sort(semver.compareLoose).pop();
       }
+
+      pkg._rev = uuid();
 
       // Update the etag
       pkg.etag = Math.random().toString().slice(2);
@@ -85,7 +88,7 @@ const packageGet = () => {
     }
 
     if (pkg.etag === etag) {
-      return res.status(304).end();
+      return res.status(304).json(pkg);
     }
 
     res.set('ETag', pkg.etag);

@@ -17,7 +17,7 @@ import {
   IFunctionApiRequest,
 } from '../src';
 
-import manifest from './mock/sample-npm.manifest.json';
+const manifest = require('./mock/sample-npm.manifest.json');
 
 const tarData = fs.readFileSync('test/mock/sample-npm.tgz');
 const logEnabled = false;
