@@ -853,6 +853,26 @@ router.delete(
   user_agent(),
   check_agent_version(),
   determine_provider(),
+  express.json(),
+  npmRegistry(),
+  npm.tarballDelete(),
+  analytics.finished
+);
+
+// There is a bug in libnpmpublish that causes the namespace portion of this uri to be duplicated.
+// Once the bug is resolved, this route can be safely removed
+// PR for libnpmpublish issue: https://github.com/npm/libnpmpublish/pull/18
+// Problem exists in libnpm 3.0.1 and libnpmpublish 4.0.0
+router.delete(
+  registryNpmBase + '/v1' + registryNpmBase + '/:scope/:name/-/:scope2/:filename/-rev/:revisionId',
+  analytics.enterHandler(analytics.Modes.Administration),
+  cors(corsManagementOptions),
+  validate_schema({ params: require('./schemas/npm_params') }),
+  authorize({ operation: 'registry:put' }),
+  user_agent(),
+  check_agent_version(),
+  determine_provider(),
+  express.json(),
   npmRegistry(),
   npm.tarballDelete(),
   analytics.finished
@@ -898,6 +918,7 @@ router.put(
   user_agent(),
   check_agent_version(),
   determine_provider(),
+  express.json(),
   npmRegistry(),
   npm.revisionPut(),
   analytics.finished

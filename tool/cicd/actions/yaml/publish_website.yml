@@ -1,0 +1,4 @@
+# Publish fusebit.io website
+steps:
+- name: Publish - website
+  run: ./tool/cicd/actions/scripts/publish_website.sh

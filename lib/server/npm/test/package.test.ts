@@ -1,170 +1,325 @@
-import { Express, NextFunction, Request, Response } from 'express';
-import express from 'express';
-
+import express, { Express, NextFunction, Request, Response } from 'express';
 import bodyParser from 'body-parser';
-
 import * as fs from 'fs';
 import * as http from 'http';
-
-const libnpm = require('libnpm');
-
 import { AddressInfo } from 'net';
-
-import { packageGet, packagePut, revisionDelete, revisionPut, searchGet, tarballDelete, tarballGet } from '../src';
-import { IFunctionApiRequest } from '../src/request';
+import libnpm from 'libnpm';
 
 import { MemRegistry } from '@5qtrs/registry';
+import {
+  packageGet,
+  packagePut,
+  revisionDelete,
+  revisionPut,
+  searchGet,
+  tarballDelete,
+  tarballGet,
+  IFunctionApiRequest,
+} from '../src';
 
-let logEnabled = false;
+const manifest = require('./mock/sample-npm.manifest.json');
 
-const enableForceClose = (server: http.Server) => {
-  const sockets = new Set();
-  server.on('connection', (socket) => {
-    sockets.add(socket);
-    socket.on('close', () => {
-      sockets.delete(socket);
-    });
+const tarData = fs.readFileSync('test/mock/sample-npm.tgz');
+const logEnabled = false;
+
+const PACKAGE_SCOPE = '@testscope';
+const PACKAGE_NAME = 'foobar';
+const PACKAGE_FULL_NAME = PACKAGE_SCOPE + '/' + PACKAGE_NAME;
+const MANIFEST_VERSIONS = Object.freeze(['1.0.1', '1.0.2', '1.0.3']);
+const DIST_TAGS = 'dist-tags';
+const NPM_ROUTE_SCOPE = '/npm';
+
+const startServer: (server: http.Server) => Promise<http.Server> = async (server) => {
+  await new Promise((resolve) => {
+    server.listen(0, resolve);
   });
-
-  return () => {
-    sockets.forEach((s: any) => s.destroy());
-  };
+  return server;
 };
 
-const startServer = async (app: express.Application) => {
-  const server = http.createServer(app);
-  const forceClose = enableForceClose(server);
-  const port: number = await new Promise((resolve, reject) => {
-    server.listen(0, () => {
-      resolve((server.address() as AddressInfo).port);
-    });
-  });
-
-  return { server, forceClose, port };
+const getServerPort: (server: http.Server) => number = (server) => {
+  return (server.address() as AddressInfo).port;
 };
 
-const startExpress = async (): Promise<any> => {
-  const app = express();
-  const { server, forceClose, port } = await startServer(app);
+const getUrlFromPort: (port: number) => string = (port) => {
+  return `http://localhost:${port}${NPM_ROUTE_SCOPE}`;
+};
 
+const getServerUrl: (server: http.Server) => string = (server) => {
+  return getUrlFromPort(getServerPort(server));
+};
+
+const setTarballRootUrl: (app: Express, url: string) => void = (app, url) => {
+  app.use((req: Request | IFunctionApiRequest, res: Response, next: NextFunction) => {
+    (req as IFunctionApiRequest).tarballRootUrl = url;
+    next();
+  });
+};
+
+const setLoggerMiddleware: (app: Express) => void = (app) => {
+  if (logEnabled) {
+    app.use((req: Request, res: Response, next: NextFunction) => {
+      console.log(`${req.method} ${req.url}\n${JSON.stringify(req.headers)}\n${JSON.stringify(req.body, null, 2)}`);
+      next();
+    });
+  }
+};
+
+const refreshRegistry: (req: Request, res: Response, next: NextFunction) => Promise<void> = async (
+  reqGeneral,
+  res: Response,
+  next: NextFunction
+) => {
+  const req = reqGeneral as IFunctionApiRequest;
+  await req.registry.delete(PACKAGE_FULL_NAME);
+  res.status(200).end();
+};
+
+const applyServerRoutes: (app: Express) => void = (app) => {
+  const npmRouter = express.Router();
+  npmRouter.post('/refresh', refreshRegistry);
+  npmRouter.put('/:name', packagePut());
+  npmRouter.get('/:name', packageGet());
+  npmRouter.get('/:scope?/:name/-/:scope2?/:filename/', tarballGet());
+  npmRouter.get('/-/v1/search', searchGet());
+  npmRouter.delete('/:name/-rev/:revisionId', revisionDelete());
+  npmRouter.put('/:name/-rev/:revisionId', revisionPut());
+  npmRouter.delete('/:scope/:name/-/:scope2/:filename/-rev/:revisionId', tarballDelete());
+
+  // Tarball delete route must be duplicated due to bug in libnpm
+  npmRouter.delete(NPM_ROUTE_SCOPE + '/:scope/:name/-/:scope2/:filename/-rev/:revisionId', tarballDelete());
+  app.use(NPM_ROUTE_SCOPE, npmRouter);
+};
+
+const startExpress: () => Promise<ITestVariables> = async () => {
+  const app: Express = express();
   const { registry, handler } = MemRegistry.handler();
 
-  const url = `http://localhost:${port}`;
-
-  app.use((req: Request, res: Response, next: NextFunction) => {
-    (req as any).tarballRootUrl = url;
-    return next();
-  });
+  const server = http.createServer(app);
+  await startServer(server);
+  const url: string = getServerUrl(server);
 
   app.use(bodyParser.json());
   app.use(handler);
-  app.use((req: Request, res: Response, next: NextFunction) => {
-    if (logEnabled) {
-      console.log(`${req.method} ${req.url}\n${JSON.stringify(req.headers)}\n${JSON.stringify(req.body, null, 2)}`);
-    }
-    return next();
+  setLoggerMiddleware(app);
+  setTarballRootUrl(app, url);
+  applyServerRoutes(app);
+
+  const onClosePromise: Promise<void> = new Promise((resolve) => server.on('close', resolve));
+  return {
+    url: `${url}/`,
+    registry,
+    onClosePromise,
+    server,
+    app,
+  };
+};
+
+interface ITestVariables {
+  url: string;
+  registry: MemRegistry;
+  onClosePromise: Promise<void>;
+  server: http.Server;
+  app: Express;
+}
+
+let testVariables: ITestVariables;
+
+describe('registry Package tests', () => {
+  beforeAll(async () => {
+    // startserver
+    testVariables = await startExpress();
+  }, 10001);
+
+  beforeEach(async () => {
+    await new Promise((resolve) => {
+      http.request(`${testVariables.url}/refresh`, { method: 'POST' }, resolve).end();
+    });
+    expect(testVariables.registry.registry.pkg[PACKAGE_FULL_NAME]).toBeUndefined();
   });
 
-  return { app, registry, server, forceClose, port, url };
-};
+  afterAll(async () => {
+    // stopserver
+    testVariables.server.close();
+    await testVariables.onClosePromise;
+  }, 10002);
 
-let globalServer: any;
+  it('create package', async () => {
+    const { registry, url } = testVariables;
 
-beforeEach(async () => {
-  globalServer = await startExpress();
-});
+    // Verify empty registry package
+    expect(registry.registry.pkg[PACKAGE_FULL_NAME]).toBeUndefined();
+    // Publish a package
+    await libnpm.publish(manifest, tarData, { registry: url });
+    // Expect updates in registry
+    expect(registry.registry.pkg[PACKAGE_FULL_NAME].name).toBeTruthy();
+    expect(registry.registry.pkg[PACKAGE_FULL_NAME].versions[manifest.version].dist.tarball).toMatchObject({
+      scope: PACKAGE_SCOPE,
+      name: PACKAGE_NAME,
+      version: manifest.version,
+    });
+  });
 
-afterEach(async () => {
-  globalServer.forceClose();
-  await new Promise((resolve, reject) => globalServer.server.close(resolve));
-});
+  it('unpublish package version', async () => {
+    const { registry, url } = testVariables;
 
-const createServer = () => {
-  const { app, registry, server, forceClose, port, url } = globalServer;
-  app.put('/:name', packagePut());
-  app.get('/:name', packageGet());
-  app.get('/:scope?/:name/-/:scope2?/:filename/', tarballGet());
-  app.get('/-/v1/search', searchGet());
-  app.delete('/:name/-rev/:revisionId', revisionDelete());
-  app.put('/:name/-rev/:revisionId', revisionPut());
+    // Publish multiple package versions
+    await Promise.all(
+      MANIFEST_VERSIONS.map(async (manifestVersion) => {
+        await libnpm.publish({ ...manifest, version: manifestVersion }, tarData, { registry: url });
+      })
+    );
+    // Expect to see all versions published
+    expect(Object.keys(registry.registry.pkg[PACKAGE_FULL_NAME].versions)).toEqual(
+      expect.arrayContaining([...MANIFEST_VERSIONS])
+    );
+    // Unpublish one version
+    const removedVersion = MANIFEST_VERSIONS[1];
+    await libnpm.unpublish(`${PACKAGE_FULL_NAME}@${removedVersion}`, { registry: url });
+    // Expect to see all published versions other than removed one
+    expect(Object.keys(registry.registry.pkg[PACKAGE_FULL_NAME].versions)).toEqual(
+      expect.arrayContaining(MANIFEST_VERSIONS.filter((version) => version !== removedVersion))
+    );
+  });
 
-  app.delete('/:scope/:name/-/:scope2/:filename/-rev/:revisionId', tarballDelete());
-  return { registry, url: `${url}/` };
-};
+  it('latest tag updates', async () => {
+    const { registry, url } = testVariables;
+    // Publish multiple package versions
+    await Promise.all(
+      MANIFEST_VERSIONS.map(async (manifestVersion) => {
+        await libnpm.publish({ ...manifest, version: manifestVersion }, tarData, { registry: url });
+      })
+    );
+    const LATEST_VERSION = MANIFEST_VERSIONS[MANIFEST_VERSIONS.length - 1];
+    // Expect latest to be highest version number (1.0.3)
+    expect(registry.registry.pkg[PACKAGE_FULL_NAME][DIST_TAGS].latest).toEqual(LATEST_VERSION);
+    // Unpublish latest
+    await libnpm.unpublish(`${PACKAGE_FULL_NAME}@${LATEST_VERSION}`, { registry: url });
+    // expect latest to be next highest version number (1.0.2)
+    const SECOND_LATEST_VERSION = MANIFEST_VERSIONS[MANIFEST_VERSIONS.length - 2];
+    expect(registry.registry.pkg[PACKAGE_FULL_NAME][DIST_TAGS].latest).toEqual(SECOND_LATEST_VERSION);
+  });
 
-describe('packagePut', () => {
-  it('putAddsRegistry', async () => {
-    const { registry, url } = createServer();
+  it('unpublish all causes removal', async () => {
+    const { registry, url } = testVariables;
+    // Publish multiple package versions
+    for (const manifestVersion of MANIFEST_VERSIONS) {
+      await libnpm.publish({ ...manifest, version: manifestVersion }, tarData, { registry: url });
+    }
 
-    const manifest = require('./mock/sample-npm.manifest.json');
-    const tarData = fs.readFileSync('test/mock/sample-npm.tgz');
+    // Verify 3 items exist
+    expect(Object.keys(registry.registry.pkg[PACKAGE_FULL_NAME].versions)).toEqual(
+      expect.arrayContaining([...MANIFEST_VERSIONS])
+    );
 
-    let m: any;
+    for (const manifestVersion of MANIFEST_VERSIONS) {
+      await libnpm.unpublish(`${PACKAGE_FULL_NAME}@${manifestVersion}`, { registry: url });
+    }
+    // Package should be automatically removed
+    expect(registry.registry.pkg[PACKAGE_FULL_NAME]).toBeUndefined();
+  });
+
+  it('unpublish entire package', async () => {
+    const { registry, url } = testVariables;
+    // Publish multiple package versions
+    const publishPackages = async () => {
+      await Promise.all(
+        MANIFEST_VERSIONS.map(async (manifestVersion) => {
+          await libnpm.publish({ ...manifest, version: manifestVersion }, tarData, { registry: url });
+        })
+      );
+    };
+    await publishPackages();
+    // Verify 3 items exist
+    const expectKeysPublished = () => {
+      expect(Object.keys(registry.registry.pkg[PACKAGE_FULL_NAME].versions)).toEqual(
+        expect.arrayContaining([...MANIFEST_VERSIONS])
+      );
+    };
+    expectKeysPublished();
+
+    const expectSearchSuccess = async (expectedSuccess: boolean) => {
+      const packages: [] = await libnpm.search(PACKAGE_NAME, { registry: url });
+      expect(packages).toHaveLength(expectedSuccess ? 1 : 0);
+    };
+    await expectSearchSuccess(true);
+
+    // Unpublish without version, removes all
+    await libnpm.unpublish(PACKAGE_FULL_NAME, { registry: url });
+    expect(registry.registry.pkg[PACKAGE_FULL_NAME]).toBeUndefined();
+    await expectSearchSuccess(false);
+
+    // Republish
+    await publishPackages();
+    expectKeysPublished();
+    await expectSearchSuccess(true);
+
+    // Unpublish with *
+    await libnpm.unpublish(`${PACKAGE_FULL_NAME}@*`, { registry: url });
+    expect(registry.registry.pkg[PACKAGE_FULL_NAME]).toBeUndefined();
+    await expectSearchSuccess(false);
+  });
+
+  it('can republish to namespace of unpublished package', async () => {
+    const { registry, url } = testVariables;
+    // Publish multiple package versions
+    await Promise.all(
+      MANIFEST_VERSIONS.map(async (manifestVersion) => {
+        await libnpm.publish({ ...manifest, version: manifestVersion }, tarData, { registry: url });
+      })
+    );
+    // Verify 3 items exist
+    expect(Object.keys(registry.registry.pkg[PACKAGE_FULL_NAME].versions)).toEqual(
+      expect.arrayContaining([...MANIFEST_VERSIONS])
+    );
+    // Unpublish without version, removes all
+    await libnpm.unpublish(PACKAGE_FULL_NAME, { registry: url });
+    expect(registry.registry.pkg[PACKAGE_FULL_NAME]).toBeUndefined();
+    // Republish to same namespace
+    await Promise.all(
+      MANIFEST_VERSIONS.map(async (manifestVersion) => {
+        await libnpm.publish({ ...manifest, version: manifestVersion }, tarData, { registry: url });
+      })
+    );
+    // Verify 3 items exist
+    expect(Object.keys(registry.registry.pkg[PACKAGE_FULL_NAME].versions)).toEqual(
+      expect.arrayContaining([...MANIFEST_VERSIONS])
+    );
+  });
+
+  it('verify tarball match', async () => {
+    const { registry, url } = testVariables;
 
     // Publish a package
     await libnpm.publish(manifest, tarData, { registry: url });
-    expect(registry.registry.pkg['@testscope/foobar'].name).toBeTruthy();
-    expect(registry.registry.pkg['@testscope/foobar'].versions[manifest.version].dist.tarball).toMatchObject({
-      scope: '@testscope',
-      name: 'foobar',
-      version: '1.0.0',
+    expect(registry.registry.pkg[PACKAGE_FULL_NAME].name).toBeTruthy();
+    expect(registry.registry.pkg[PACKAGE_FULL_NAME].versions[manifest.version].dist.tarball).toMatchObject({
+      scope: PACKAGE_SCOPE,
+      name: PACKAGE_NAME,
+      version: manifest.version,
     });
 
-    // Add another version
-    manifest.version = '2.0.1';
+    const tarball: any = await libnpm.tarball(PACKAGE_FULL_NAME, { registry: url });
+    expect(tarball).toHaveLength(tarData.length);
+    expect(tarball.equals(tarData)).toBeTruthy();
+  });
+
+  it('verify manifest', async () => {
+    const { url } = testVariables;
+    // Publish a package
     await libnpm.publish(manifest, tarData, { registry: url });
-    expect(Object.keys(registry.registry.pkg['@testscope/foobar'].versions)).toStrictEqual(['1.0.0', '2.0.1']);
+    // Fetch Manifest
+    const m: any = await libnpm.manifest(PACKAGE_FULL_NAME, { registry: url });
+    expect(m.name).toBe(PACKAGE_FULL_NAME);
+  });
 
-    expect(registry.registry.pkg['@testscope/foobar'].versions['1.0.0'].dist.tarball).toMatchObject({
-      scope: '@testscope',
-      name: 'foobar',
-      version: '1.0.0',
-    });
+  it('search for package', async () => {
+    const { url } = testVariables;
+    // Publish a package
+    await libnpm.publish(manifest, tarData, { registry: url });
 
-    expect(registry.registry.pkg['@testscope/foobar'].versions['2.0.1'].dist.tarball).toMatchObject({
-      scope: '@testscope',
-      name: 'foobar',
-      version: '2.0.1',
-    });
-
-    // Get a package
-    m = await libnpm.manifest('@testscope/foobar', { registry: url });
-    expect(m.name).toBe('@testscope/foobar');
-
-    // Get a tarball
-    m = await libnpm.tarball('@testscope/foobar', { registry: url });
-    expect(m).toHaveLength(tarData.length);
-    expect(m.equals(tarData)).toBeTruthy();
-
-    // Search for a package
-    m = await libnpm.search('xxx', { registry: url });
-    expect(m).toHaveLength(0);
-    m = await libnpm.search('foo', { registry: url });
-    expect(m).toHaveLength(1);
-
-    expect(registry.registry.pkg['@testscope/foobar'].versions['1.0.0'].dist.tarball).toMatchObject({
-      scope: '@testscope',
-      name: 'foobar',
-      version: '1.0.0',
-    });
-
-    expect(registry.registry.pkg['@testscope/foobar'].versions['2.0.1'].dist.tarball).toMatchObject({
-      scope: '@testscope',
-      name: 'foobar',
-      version: '2.0.1',
-    });
-
-    // Unpublish a version
-    await libnpm.unpublish('@testscope/foobar@2.0.1', { registry: url });
-    expect(Object.keys(registry.registry.pkg['@testscope/foobar'].versions)).toStrictEqual(['1.0.0']);
-    expect(registry.registry.pkg['@testscope/foobar'].versions['1.0.0'].dist.tarball).toMatchObject({
-      scope: '@testscope',
-      name: 'foobar',
-      version: '1.0.0',
-    });
-
-    // Unpublish the last version
-    await libnpm.unpublish('@testscope/foobar@1.0.0', { registry: url });
-    expect(registry.registry.pkg['@testscope/foobar']).toBeUndefined();
-  }, 10000);
+    let packages: [] = await libnpm.search('non-matching-string', { registry: url });
+    expect(packages).toHaveLength(0);
+    packages = await libnpm.search(PACKAGE_NAME.slice(2, 5), { registry: url });
+    expect(packages).toHaveLength(1);
+  });
 });

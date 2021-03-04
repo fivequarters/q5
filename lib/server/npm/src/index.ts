@@ -6,6 +6,7 @@ import { allPackagesGet } from './packages';
 import { revisionDelete, revisionPut } from './revision';
 import { searchGet } from './search';
 import { tarballDelete, tarballGet } from './tarball';
+import { IFunctionApiRequest } from './request';
 
 export {
   allPackagesGet,
@@ -25,4 +26,5 @@ export {
   tarballDelete,
   versionGet,
   whoamiGet,
+  IFunctionApiRequest,
 };

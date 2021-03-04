@@ -146,7 +146,7 @@ class AwsRegistry implements IRegistryStore {
         TableName: this.tableName,
         Key: {
           category: { S: Constants.REGISTRY_CATEGORY },
-          key: { S: [this.keyPrefix, name].join('/') },
+          key: { S: this.getDynamoKey(name) },
         },
       })
       .promise();
@@ -176,8 +176,6 @@ class AwsRegistry implements IRegistryStore {
         Key: this.getS3Path(nameVer),
       })
       .promise();
-
-    return 0;
   }
 
   // Presumes the key has already been modified with the subscription/registry warts.
