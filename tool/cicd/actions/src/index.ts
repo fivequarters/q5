@@ -27,6 +27,11 @@ const specs = [
     inputs: ['checkout', ...fullBuild, ...publishAll],
     output: 'publish',
   },
+  {
+    name: 'Publish the Website',
+    inputs: ['checkout', ...fullBuild, 'publish_website'],
+    output: 'publish_website',
+  },
 ];
 
 function buildSpec(name: string, inputs: string[], output: string, options: any = {}) {
