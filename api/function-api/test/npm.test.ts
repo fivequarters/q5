@@ -102,19 +102,16 @@ const publishVersion: (ver?: string) => Promise<IManifest> = async (ver = '1.0.0
   await libnpm.publish(manifest, tarData, getOpts(regScope));
 
   // Validate that the results match what's expected.
-
-  const name = `${regScope}/libnpmpublish`;
-
   if (isLatest) {
     const mani = await libnpm.manifest(manifest.name, getOpts(regScope));
-    const expectedMani = { name, version: ver, _id: `${name}@${ver}` };
+    const expectedMani = { name: manifest.name, version: ver, _id: `${manifest.name}@${ver}` };
     expect(mani).toMatchObject(expectedMani);
   }
   const packu = await libnpm.packument(manifest.name, getOpts(regScope));
   const expectedPacku = {
-    _id: name,
+    _id: manifest.name,
     'dist-tags': { latest: highestVersion },
-    versions: { ...existingVersions, [ver]: { name } },
+    versions: { ...existingVersions, [ver]: { name: manifest.name } },
   };
   expect(packu).toMatchObject(expectedPacku);
   return manifest;
