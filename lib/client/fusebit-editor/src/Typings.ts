@@ -144,7 +144,7 @@ export function updateNodejsTypings(version: string) {
     lastNodejsTypings = undefined;
   }
 
-  Superagent.get(`https://unpkg.com/@types/node@${version}/index.d.ts`)
+  Superagent.get(`https://cdn.jsdelivr.net/npm/@types/node@${version}/index.d.ts`)
     .then((res) => {
       lastNodejsTypings = Monaco.languages.typescript.javascriptDefaults.addExtraLib(
         res.text,
@@ -172,7 +172,7 @@ export function updateDependencyTypings(dependencies: { [property: string]: stri
   }
 
   function downloadAndInstallTypes(name: string, version: string) {
-    Superagent.get(`https://unpkg.com/@types/${name}@${version}/index.d.ts`)
+    Superagent.get(`https://cdn.jsdelivr.net/npm/@types/${name}@${version}/index.d.ts`)
       .then((res) => {
         dependencyTypings[name].typings = Monaco.languages.typescript.javascriptDefaults.addExtraLib(
           res.text,
