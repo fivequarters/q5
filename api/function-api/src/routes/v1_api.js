@@ -854,8 +854,6 @@ router.delete(
   analytics.finished
 );
 
-// FIXME:
-//
 // There is a bug in libnpmpublish that causes the namespace portion of this uri to be duplicated.
 // Once the bug is resolved, this route can be safely removed
 // PR for libnpmpublish issue: https://github.com/npm/libnpmpublish/pull/18
