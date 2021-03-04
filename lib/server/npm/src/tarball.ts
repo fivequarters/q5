@@ -10,11 +10,9 @@ const tarballGet = () => {
       const pkgName = `${req.params.scope}/${req.params.filename}`;
 
       const pkg = await req.registry.get(`${req.params.scope}/${req.params.name}`);
-      if (!pkg) {
-        return res.status(404).end();
-      }
       const tgz = await req.registry.tarballGet(pkgName);
-      if (!tgz) {
+
+      if (!pkg || !tgz) {
         return next(create_error(404, `unknown pkg ${pkgName}`));
       }
 
