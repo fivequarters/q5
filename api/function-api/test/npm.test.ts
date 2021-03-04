@@ -9,13 +9,14 @@ import * as Registry from './registry';
 import { putFunction, waitForBuild } from './sdk';
 
 import { getEnv } from './setup';
+import semver from 'semver/preload';
 
 let { account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv();
 beforeEach(() => {
   ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
 });
 
-const regScope = '@scopey';
+const regScope = '@package';
 
 const masterAccount = 'acc-00000000';
 const masterScope = '@fuse-int';
@@ -50,16 +51,25 @@ const getOpts = (scope: string): any => {
   return { ...registry, ...token, preferOnline: true };
 };
 
-const preparePackage = (scope: string, pkgFile: string = VALID_PKG) => {
+const preparePackage: (scope: string, pkgFile?: string) => { manifest: IManifest; tarData: Buffer } = (
+  scope,
+  pkgFile = VALID_PKG
+) => {
   const tarData = fs.readFileSync(pkgFile);
   const manifest = {
-    name: `${scope}/bapow`,
+    name: `${scope}/libnpmpublish`,
     version: '1.0.0',
     description: 'some stuff',
   };
 
   return { manifest, tarData };
 };
+
+interface IManifest {
+  name: string;
+  version: string;
+  description: string;
+}
 
 const resetScope = async () => {
   let config = await Registry.getConfig(account);
@@ -75,15 +85,62 @@ const resetScope = async () => {
   return { globalReg, accountReg };
 };
 
+const publishVersion: (ver?: string) => Promise<IManifest> = async (ver = '1.0.0') => {
+  const { manifest: preparedMani, tarData } = preparePackage(regScope);
+  const manifest = { ...preparedMani, version: ver };
+  let existingPacku;
+
+  try {
+    existingPacku = await libnpm.packument(manifest.name, getOpts(regScope));
+  } catch (e) {
+    existingPacku = {};
+  }
+
+  const existingVersions = existingPacku.versions || {};
+  const highestExistingVersion = [...Object.keys(existingVersions), '0.0.0'].sort(semver.compareLoose).pop() as string;
+  const isLatest = semver.gt(ver, highestExistingVersion);
+  const highestVersion = isLatest ? ver : highestExistingVersion;
+
+  await libnpm.publish(manifest, tarData, getOpts(regScope));
+
+  // Validate that the results match what's expected.
+
+  const name = `${regScope}/libnpmpublish`;
+
+  if (isLatest) {
+    const mani = await libnpm.manifest(manifest.name, getOpts(regScope));
+    const expectedMani = { name, version: ver, _id: `${name}@${ver}` };
+    expect(mani).toMatchObject(expectedMani);
+  }
+  const packu = await libnpm.packument(manifest.name, getOpts(regScope));
+  const expectedPacku = {
+    _id: name,
+    'dist-tags': { latest: highestVersion },
+    versions: { ...existingVersions, [ver]: { name } },
+  };
+  expect(packu).toMatchObject(expectedPacku);
+  return manifest;
+};
+
+const expect404: (name: string) => void = async (name) => {
+  let errorRecieved = false;
+  try {
+    await libnpm.packument(name, getOpts(regScope));
+  } catch (e) {
+    expect(e).toBeHttp({ status: 404 });
+    errorRecieved = true;
+  }
+  expect(errorRecieved).toBeTruthy();
+};
+
 let oldGlobalConfig: any;
 
 beforeEach(async () => {
   oldGlobalConfig = await Registry.getGlobal();
   await resetScope();
   try {
-    await libnpm.unpublish(`${regScope}/bapow`, getOpts(regScope));
+    await libnpm.unpublish(`${regScope}/libnpmpublish`, getOpts(regScope));
   } catch (e) {
-    console.error('Error doing pre-unpublish:');
     console.error(e);
   }
 }, 180000);
@@ -98,70 +155,53 @@ afterEach(async () => {
 /* Tests */
 describe('npm', () => {
   test('publish account package', async () => {
-    const { manifest, tarData } = preparePackage(regScope);
-    await libnpm.publish(manifest, tarData, getOpts(regScope));
+    await publishVersion();
+  }, 180000);
 
-    // Validate that the results match what's expected.
-    const mani = await libnpm.manifest(manifest.name, getOpts(regScope));
-    let packu = await libnpm.packument(manifest.name, getOpts(regScope));
+  test('unpublish single version package', async () => {
+    const manifest: IManifest = await publishVersion();
+    await libnpm.unpublish(`${manifest.name}@${manifest.version}`, getOpts(regScope));
+    await expect404(manifest.name);
+  }, 180000);
 
-    const name = `${regScope}/bapow`;
-    expect(mani).toMatchObject({ name, version: '1.0.0', _id: `${name}@1.0.0` });
-    expect(packu).toMatchObject({ _id: name, 'dist-tags': { latest: '1.0.0' }, versions: { '1.0.0': { name } } });
+  test('republish to deleted package', async () => {
+    const manifest: IManifest = await publishVersion();
+    await libnpm.unpublish(`${manifest.name}@${manifest.version}`, getOpts(regScope));
+    await expect404(manifest.name);
+    await publishVersion();
+  }, 180000);
 
-    await libnpm.unpublish(`${name}@1.0.0`, getOpts(regScope));
-    const expect404 = async () => {
-      let errorRecieved = false;
-      try {
-        await libnpm.packument(manifest.name, getOpts(regScope));
-      } catch (e) {
-        expect(e).toBeHttp({ status: 404 });
-        errorRecieved = true;
-      }
-      expect(errorRecieved).toBeTruthy();
-    };
-    await expect404();
-
-    // Publish multiple
-    await libnpm.publish(manifest, tarData, getOpts(regScope));
-    packu = await libnpm.packument(manifest.name, getOpts(regScope));
-    expect(packu).toMatchObject({ _id: name, 'dist-tags': { latest: '1.0.0' }, versions: { '1.0.0': { name } } });
-
-    await libnpm.publish({ ...manifest, version: '2.0.0' }, tarData, getOpts(regScope));
-    packu = await libnpm.packument(manifest.name, getOpts(regScope));
-    expect(packu).toMatchObject({
-      _id: name,
-      'dist-tags': { latest: '2.0.0' },
-      versions: { '2.0.0': { name }, '1.0.0': { name } },
-    });
-
-    // Unpublish 1, latest reverted
+  test('unpublish reverts latest', async () => {
+    await publishVersion('1.0.0');
+    const manifest: IManifest = await publishVersion('2.0.0');
+    const name = manifest.name;
     await libnpm.unpublish(`${name}@2.0.0`, getOpts(regScope));
-    packu = await libnpm.packument(manifest.name, getOpts(regScope));
-    expect(packu).toMatchObject({ _id: name, 'dist-tags': { latest: '1.0.0' }, versions: { '1.0.0': { name } } });
 
-    // Republish package 2.0.0
-    await libnpm.publish({ ...manifest, version: '2.0.0' }, tarData, getOpts(regScope));
-    packu = await libnpm.packument(manifest.name, getOpts(regScope));
-    expect(packu).toMatchObject({
+    const mani = await libnpm.manifest(name, getOpts(regScope));
+    const expectedMani = { name, version: '1.0.0', _id: `${name}@1.0.0` };
+    expect(mani).toMatchObject(expectedMani);
+
+    const packu = await libnpm.packument(name, getOpts(regScope));
+    const expectedPacku = {
       _id: name,
-      'dist-tags': { latest: '2.0.0' },
-      versions: { '2.0.0': { name }, '1.0.0': { name } },
-    });
+      'dist-tags': { latest: '1.0.0' },
+      versions: { '1.0.0': { name } },
+    };
+    expect(packu).toMatchObject(expectedPacku);
+  }, 180000);
 
-    // Unpublish all
-    await libnpm.unpublish(name, getOpts(regScope));
-    await expect404();
+  test('unpublish all without version', async () => {
+    await publishVersion('1.0.0');
+    const manifest: IManifest = await publishVersion('2.0.0');
+    await libnpm.unpublish(manifest.name, getOpts(regScope));
+    await expect404(manifest.name);
+  }, 180000);
 
-    // Republish 2 packages
-    await libnpm.publish(manifest, tarData, getOpts(regScope));
-    await libnpm.publish({ ...manifest, version: '2.0.0' }, tarData, getOpts(regScope));
-    packu = await libnpm.packument(manifest.name, getOpts(regScope));
-    expect(packu).toMatchObject({ _id: name, 'dist-tags': { latest: '2.0.0' }, versions: { '2.0.0': { name } } });
-
-    // Unpublish by *
-    await libnpm.unpublish(`${name}@*`, getOpts(regScope));
-    await expect404();
+  test('unpublish all with *', async () => {
+    await publishVersion('1.0.0');
+    const manifest: IManifest = await publishVersion('2.0.0');
+    await libnpm.unpublish(`${manifest.name}@*`, getOpts(regScope));
+    await expect404(manifest.name);
   }, 180000);
 
   test('search', async () => {
@@ -206,7 +246,7 @@ describe('npm', () => {
     globalReg.put(`${pkg.name}`, pkg, manifest.version, tarData);
 
     // Request package from accountReg, validate it is accepted
-    let results = await libnpm.search(`${regScope}/bapow`, {
+    let results = await libnpm.search(`${regScope}/libnpmpublish`, {
       ...getOpts(regScope),
       registry: registryUrl,
     });
@@ -290,19 +330,4 @@ describe('npm', () => {
     config.scopes = [...config.scopes, Constants.REGISTRY_RESERVED_SCOPE_PREFIX + 'foobar'];
     expect(await Registry.putConfig(account, config)).toBe(400);
   }, 180000);
-
-  test('unpublish package', async () => {
-    const { manifest, tarData } = preparePackage(regScope);
-    await libnpm.publish(manifest, tarData, getOpts(regScope));
-
-    // Validate that the results match what's expected.
-    const mani = await libnpm.manifest(manifest.name, getOpts(regScope));
-    const packu = await libnpm.packument(manifest.name, getOpts(regScope));
-
-    const name = `${regScope}/bapow`;
-    expect(mani).toMatchObject({ name, version: '1.0.0', _id: `${name}@1.0.0` });
-    expect(packu).toMatchObject({ _id: name, 'dist-tags': { latest: '1.0.0' }, versions: { '1.0.0': { name } } });
-
-    await libnpm.unpublish(`${name}@1.0.0`, getOpts(regScope));
-  });
 });

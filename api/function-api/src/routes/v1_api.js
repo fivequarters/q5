@@ -901,10 +901,6 @@ router.get(
 router.options(registryNpmBase + '/:name/-rev/:revisionId', cors(corsManagementOptions));
 router.put(
   registryNpmBase + '/:name/-rev/:revisionId',
-  (req, res, next) => {
-    console.log('i need a peak');
-    next();
-  },
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
   validate_schema({ params: require('./schemas/npm_params') }),
