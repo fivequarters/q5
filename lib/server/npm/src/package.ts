@@ -2,17 +2,16 @@ import crypto from 'crypto';
 import ssri from 'ssri';
 import { v4 as uuid } from 'uuid';
 
-import { Response } from 'express';
+import { Response, Request } from 'express';
 import { IFunctionApiRequest } from './request';
 
 import create_error from 'http-errors';
 
 import { tarballUrlUpdate } from './tarballUrlUpdate';
 
-class PackagePutException extends Error {}
-
 const packagePut = () => {
-  return async (req: IFunctionApiRequest, res: Response, next: any) => {
+  return async (reqBase: Request, res: Response, next: any) => {
+    const req = reqBase as IFunctionApiRequest;
     // Get pkg
     let pkg = req.body;
 
@@ -53,8 +52,9 @@ const packagePut = () => {
         // Copy over the necessary elements
         pkg.versions = { ...existing.versions, ...pkg.versions };
         pkg['dist-tags'] = { ...existing['dist-tags'], ...pkg['dist-tags'] };
-        pkg._rev = uuid();
       }
+
+      pkg._rev = uuid();
 
       // Update the etag
       pkg.etag = Math.random().toString().slice(2);
@@ -77,7 +77,8 @@ const packagePut = () => {
 };
 
 const packageGet = () => {
-  return async (req: IFunctionApiRequest, res: Response, next: any) => {
+  return async (reqBase: Request, res: Response, next: any) => {
+    const req = reqBase as IFunctionApiRequest;
     const etag = req.headers['if-none-match'];
     const pkg = await req.registry.get(req.params.name);
     if (!pkg) {
