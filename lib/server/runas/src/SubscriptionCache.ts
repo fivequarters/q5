@@ -34,6 +34,17 @@ const loadSubscription = (cache: SubscriptionCache) => {
   };
 };
 
+const refreshSubscription = (cache: SubscriptionCache) => {
+  return async (req: IFunctionApiRequest, res: any, next: any) => {
+    try {
+      const when = await cache.refresh();
+      res.json({ cache: when }).send();
+    } catch (error) {
+      return next(create_error(501, error));
+    }
+  };
+};
+
 class SubscriptionCache {
   protected cache: ISubscriptionCache = {};
   protected cacheRefreshTtl: number;
@@ -70,7 +81,7 @@ class SubscriptionCache {
 
   public async refresh() {
     if (this.cacheRefreshTtl > Date.now()) {
-      return;
+      return this.cacheRefreshTtl;
     }
 
     const params = {
@@ -82,6 +93,9 @@ class SubscriptionCache {
       Object.entries(entry).forEach((e) => {
         result[e[0]] = Object.values(entry[e[0]])[0];
       });
+
+      // Deserialize the limits field, if present
+      result.limits = result.limits && JSON.parse(result.limits);
 
       return result;
     });
@@ -100,6 +114,10 @@ class SubscriptionCache {
     });
 
     console.log(`CACHE: Subscription cache refreshed: ${results.length} subscriptions loaded`);
+
+    this.cacheRefreshTtl += Date.now() + MAX_CACHE_REFRESH_TTL;
+
+    return this.cacheRefreshTtl;
   }
 
   // Fastest way to see if a javascript dictionary has any members.
@@ -109,6 +127,15 @@ class SubscriptionCache {
     }
     throw new Error('subscription cache not loaded');
   }
+
+  public async requestRefresh(req: IFunctionApiRequest, res: any, next: any) {
+    try {
+      const when = await this.refresh();
+      res.json({ cache: when }).send();
+    } catch (error) {
+      return next(create_error(501, error));
+    }
+  }
 }
 
-export { SubscriptionCache, loadSubscription };
+export { SubscriptionCache, loadSubscription, refreshSubscription };

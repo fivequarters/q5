@@ -30,7 +30,7 @@ function toKey(subscriptionId: string, accountId: string) {
 function toItem(subscription: ISubscription, accountId: string) {
   const item: any = toKey(subscription.id, accountId);
   item.displayName = { S: subscription.displayName } || undefined;
-  item.concurrentLimit = { N: subscription.concurrentLimit } || undefined;
+  item.limits = { S: JSON.stringify(subscription.limits || {}) };
   return item;
 }
 
@@ -38,7 +38,7 @@ function fromItem(item: any): ISubscription {
   return {
     id: item.subscriptionId.S,
     displayName: item.displayName.S,
-    concurrentLimit: item.concurrentLimit ? item.concurrentLimit.N : undefined,
+    limits: JSON.parse(item.limits ? item.limits.S : '{}'),
   };
 }
 
@@ -65,7 +65,7 @@ export interface ISubscription {
   id: string;
   archived?: boolean;
   displayName?: string;
-  concurrentLimit?: number;
+  limits?: ISubscriptionLimits;
 }
 
 export interface IListSubscriptionsOptions {
@@ -77,6 +77,10 @@ export interface IListSubscriptionsOptions {
 export interface IListSubscriptionsResult {
   next?: string;
   items: ISubscription[];
+}
+
+export interface ISubscriptionLimits {
+  concurrency: number;
 }
 
 // ----------------
@@ -100,6 +104,7 @@ export class SubscriptionTable extends AwsDynamoTable {
 
   public async get(accountId: string, subscriptionId: string): Promise<ISubscription> {
     const options = { onNotFound: onNoSubscription, context: accountId };
+    console.log(`getItem: ${accountId}, ${subscriptionId}`);
     return this.getItem(subscriptionId, options);
   }
 
@@ -132,9 +137,9 @@ export class SubscriptionTable extends AwsDynamoTable {
       expressionValues[':displayName'] = { S: subscription.displayName };
     }
 
-    if (subscription.concurrentLimit !== undefined) {
-      sets.push('concurrentLimit = :concurrentLimit');
-      expressionValues[':concurrentLimit'] = { N: subscription.concurrentLimit };
+    if (subscription.limits !== undefined) {
+      sets.push('limits = :limits');
+      expressionValues[':limits'] = { S: JSON.stringify(subscription.limits) };
     }
 
     const options = {
@@ -144,6 +149,7 @@ export class SubscriptionTable extends AwsDynamoTable {
       onConditionCheckFailed: onNoSubscription,
     };
 
+    console.log(`${JSON.stringify(options)}`);
     return this.updateItem(subscription.id, options);
   }
 

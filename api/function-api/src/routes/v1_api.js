@@ -98,7 +98,7 @@ const traceEvent = (key) => {
   };
 };
 
-// Health
+// Health and Private Interfaces
 
 router.get(
   '/health',
@@ -109,6 +109,8 @@ router.get(
 );
 
 router.get('/metrics', (req, res) => res.json({ maxConcurrent: ratelimit.getMaximums() }).send());
+
+router.get('/refresh', (req, res, next) => subscriptionCache.requestRefresh(req, res, next));
 
 // Accounts
 

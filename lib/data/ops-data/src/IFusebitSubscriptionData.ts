@@ -21,12 +21,17 @@ export interface IFusebitSubscription {
   accountEmail?: string;
   subscriptionName?: string;
   subscription?: string;
-  concurrentLimit?: number;
+  limits?: IFusebitSubscriptionLimits;
+}
+
+export interface IFusebitSubscriptionLimits {
+  concurrency: number;
 }
 
 export interface IFusebitSubscriptionDetails {
   id: string;
   displayName?: string;
+  limits?: IFusebitSubscriptionLimits;
 }
 
 export interface IFusebitAccount {
