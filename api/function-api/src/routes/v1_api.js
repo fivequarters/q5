@@ -853,6 +853,12 @@ router.delete(
   npm.tarballDelete(),
   analytics.finished
 );
+
+// FIXME:
+//
+// There is a bug in libnpmpublish that causes the namespace portion of this uri to be duplicated.
+// Once the bug is resolved, this route can be safely removed
+// PR for libnpmpublish issue: https://github.com/npm/libnpmpublish/pull/18
 router.delete(
   registryNpmBase + '/v1' + registryNpmBase + '/:scope/:name/-/:scope2/:filename/-rev/:revisionId',
   analytics.enterHandler(analytics.Modes.Administration),

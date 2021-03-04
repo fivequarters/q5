@@ -9,7 +9,7 @@ import * as Registry from './registry';
 import { putFunction, waitForBuild } from './sdk';
 
 import { getEnv } from './setup';
-import semver from 'semver/preload';
+import semver from 'semver';
 
 let { account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv();
 beforeEach(() => {

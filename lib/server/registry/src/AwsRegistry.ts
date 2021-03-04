@@ -150,7 +150,6 @@ class AwsRegistry implements IRegistryStore {
         },
       })
       .promise();
-    console.log('result from dynamo delete: ');
 
     // Remove all of the tarballs from S3
     for (const ver of Object.keys(pkg.versions)) {
