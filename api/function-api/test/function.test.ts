@@ -153,6 +153,22 @@ const helloWorldWithNode8JavaScript = {
   },
 };
 
+const helloWorldWithNode8JavaScriptDependencies = {
+  nodejs: {
+    files: {
+      'index.js': 'module.exports = (ctx, cb) => cb(null, { body: "hello" });',
+      'package.json': {
+        engines: {
+          node: '10',
+        },
+        dependencies: {
+          'hello-world-npm': '1.1.1',
+        },
+      },
+    },
+  },
+};
+
 const helloWorldWithNode8String = {
   nodejs: {
     files: {
@@ -501,6 +517,27 @@ describe('function', () => {
       location: expect.stringMatching(/^http:|https:/),
     });
     expect(response.data.nodejs).toEqual(helloWorldWithNode8JavaScript.nodejs);
+    expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: false });
+    expect(response.data.computeSerialized).toBeUndefined();
+    expect(response.data.configuration).toBeUndefined();
+    expect(response.data.configurationSerialized).toBeUndefined();
+    expect(response.data.schedule).toBeUndefined();
+    expect(response.data.scheduleSerialized).toBeUndefined();
+    expect(response.data.metadata).toBeUndefined();
+  }, 120000);
+
+  test('GET retrieves information of function with package.json w/ dependencies as JavaScript object', async () => {
+    let response = await putFunction(account, boundaryId, function2Id, helloWorldWithNode8JavaScriptDependencies);
+    expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
+    response = await getFunction(account, boundaryId, function2Id);
+    expect(response).toBeHttp({ statusCode: 200 });
+    expect(response.data).toMatchObject({
+      subscriptionId: account.subscriptionId,
+      boundaryId,
+      id: function2Id,
+      location: expect.stringMatching(/^http:|https:/),
+    });
+    expect(response.data.nodejs).toEqual(helloWorldWithNode8JavaScriptDependencies.nodejs);
     expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: false });
     expect(response.data.computeSerialized).toBeUndefined();
     expect(response.data.configuration).toBeUndefined();
