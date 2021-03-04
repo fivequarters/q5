@@ -1,7 +1,6 @@
 import crypto from 'crypto';
 import ssri from 'ssri';
 import { v4 as uuid } from 'uuid';
-import semver from 'semver';
 
 import { Response, Request } from 'express';
 import { IFunctionApiRequest } from './request';
@@ -53,7 +52,6 @@ const packagePut = () => {
         // Copy over the necessary elements
         pkg.versions = { ...existing.versions, ...pkg.versions };
         pkg['dist-tags'] = { ...existing['dist-tags'], ...pkg['dist-tags'] };
-        pkg['dist-tags'].latest = Object.keys(pkg.versions).sort(semver.compareLoose).pop();
       }
 
       pkg._rev = uuid();
