@@ -14,7 +14,7 @@ jobs:
 
           unzip awscliv2.zip >/dev/null
 
-          sudo ./aws/install
+          sudo ./aws/install --update
 
           /usr/local/bin/aws --version
 
