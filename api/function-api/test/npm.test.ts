@@ -51,10 +51,8 @@ const getOpts = (scope: string): any => {
   return { ...registry, ...token, preferOnline: true };
 };
 
-const preparePackage: (scope: string, pkgFile?: string) => { manifest: IManifest; tarData: Buffer } = (
-  scope,
-  pkgFile = VALID_PKG
-) => {
+const preparePackage: (scope: string, pkgFile?: string) => { manifest: IManifest; tarData: Buffer }
+  = (scope, pkgFile = VALID_PKG) => {
   const tarData = fs.readFileSync(pkgFile);
   const manifest = {
     name: `${scope}/libnpmpublish`,
@@ -320,7 +318,7 @@ describe('npm', () => {
   test('registry scope configure', async () => {
     const config = await Registry.getConfig(account);
     expect(config.scopes.filter((e: string) => e.indexOf(Constants.REGISTRY_RESERVED_SCOPE_PREFIX) === 0)).toHaveLength(
-      1
+      1,
     );
 
     // Test that roundtripping works
