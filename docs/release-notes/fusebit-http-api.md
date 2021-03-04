@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.18.20
+
+_Released 03/04/21_
+
+- **Enhancement.** Add a maximum concurrency limit per subscription to lambda execution.
+
 ## Version 1.18.19
 
 _Released 03/02/21_

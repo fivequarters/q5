@@ -21,6 +21,7 @@ export interface IFusebitSubscription {
   accountEmail?: string;
   subscriptionName?: string;
   subscription?: string;
+  concurrentLimit?: number;
 }
 
 export interface IFusebitSubscriptionDetails {

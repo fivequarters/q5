@@ -30,6 +30,7 @@ function toKey(subscriptionId: string, accountId: string) {
 function toItem(subscription: ISubscription, accountId: string) {
   const item: any = toKey(subscription.id, accountId);
   item.displayName = { S: subscription.displayName } || undefined;
+  item.concurrentLimit = { N: subscription.concurrentLimit } || undefined;
   return item;
 }
 
@@ -37,6 +38,7 @@ function fromItem(item: any): ISubscription {
   return {
     id: item.subscriptionId.S,
     displayName: item.displayName.S,
+    concurrentLimit: item.concurrentLimit ? item.concurrentLimit.N : undefined,
   };
 }
 
@@ -63,6 +65,7 @@ export interface ISubscription {
   id: string;
   archived?: boolean;
   displayName?: string;
+  concurrentLimit?: number;
 }
 
 export interface IListSubscriptionsOptions {
@@ -127,6 +130,11 @@ export class SubscriptionTable extends AwsDynamoTable {
     if (subscription.displayName) {
       sets.push('displayName = :displayName');
       expressionValues[':displayName'] = { S: subscription.displayName };
+    }
+
+    if (subscription.concurrentLimit !== undefined) {
+      sets.push('concurrentLimit = :concurrentLimit');
+      expressionValues[':concurrentLimit'] = { N: subscription.concurrentLimit };
     }
 
     const options = {

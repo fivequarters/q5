@@ -17,6 +17,7 @@ export type IFunctionPermission = string;
 // Additions to the Request object added by function-api
 export interface IFunctionApiRequest extends Request {
   params: IFunctionParams;
+  subscription: any;
   resolvedAgent: any;
   functionSummary: IFunctionSummary;
 }

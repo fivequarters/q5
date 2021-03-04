@@ -195,6 +195,27 @@ export class DeploymentService {
     return subscription as IFusebitSubscription;
   }
 
+  public async limitSubscription(subscription: IFusebitSubscription): Promise<void> {
+    const opsDataContext = await this.opsService.getOpsDataContext();
+    const deploymentData = opsDataContext.deploymentData;
+
+    await this.executeService.execute(
+      {
+        header: 'Limit Subscription',
+        message: `Limiting '${Text.bold(subscription.subscription as string)}' to ${Text.bold(
+          `${subscription.concurrentLimit}`
+        )} concurrent executions`,
+        errorHeader: 'Subscription Error',
+      },
+      () => deploymentData.limitSubscription(subscription.account as string, subscription)
+    );
+
+    this.executeService.result(
+      'Subscription Limited',
+      `Limit applied to '${Text.bold(subscription.subscription as string)}'.`
+    );
+  }
+
   public async initAdmin(deployment: IOpsDeployment, init: IInitAdmin): Promise<IInitAdmin> {
     const opsDataContext = await this.opsService.getOpsDataContext();
     const deploymentData = opsDataContext.deploymentData;

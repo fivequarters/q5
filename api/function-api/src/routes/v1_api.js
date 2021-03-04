@@ -10,6 +10,7 @@ const provider_handlers = require('./handlers/provider_handlers');
 const validate_schema = require('./middleware/validate_schema');
 const authorize = require('./middleware/authorize');
 const user_agent = require('./middleware/user_agent');
+const ratelimit = require('./middleware/ratelimit');
 const { check_agent_version } = require('./middleware/version_check');
 const cors = require('cors');
 const create_error = require('http-errors');
@@ -106,6 +107,8 @@ router.get(
     async () => subscriptionCache.healthCheck()
   )
 );
+
+router.get('/metrics', (req, res) => res.json({ maxConcurrent: ratelimit.getMaximums() }).send());
 
 // Accounts
 
@@ -1088,6 +1091,7 @@ router.options(run_route, cors(corsExecutionOptions));
       condition: (req) => req.provider === 'lambda',
     }),
     loadSubscription(subscriptionCache),
+    ratelimit.rateLimit((req) => req.params.subscriptionId),
     loadSummary(),
     checkAuthorization(authorize),
     execAs(keyStore),
@@ -1106,6 +1110,7 @@ router.options(run_route, cors(corsExecutionOptions));
     validate_schema({ params: require('./schemas/api_params') }),
     determine_provider(),
     loadSubscription(subscriptionCache),
+    ratelimit.rateLimit((req) => req.params.subscriptionId),
     loadSummary(),
     checkAuthorization(authorize),
     execAs(keyStore),

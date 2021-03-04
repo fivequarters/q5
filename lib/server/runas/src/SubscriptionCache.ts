@@ -10,6 +10,7 @@ const MAX_CACHE_REFRESH_TTL = 60 * 1000; // Don't refresh more often than once a
 interface ISubscription {
   accountId: string;
   displayName: string;
+  [key: string]: any;
 }
 
 interface ISubscriptionCache {
@@ -24,6 +25,7 @@ const loadSubscription = (cache: SubscriptionCache) => {
         return next(create_error(404, 'subscription not found'));
       }
 
+      req.subscription = sub;
       req.params.accountId = sub.accountId;
       return next();
     } catch (e) {
@@ -76,19 +78,12 @@ class SubscriptionCache {
     };
 
     const results = await Constants.dynamoScanTable(this.dynamo, params, (entry: any) => {
-      // Valid DynamoDB record according to typescript?
-      if (
-        !entry.accountId ||
-        !entry.accountId.S ||
-        !entry.subscriptionId ||
-        !entry.subscriptionId.S ||
-        !entry.displayName ||
-        !entry.displayName.S
-      ) {
-        return;
-      }
+      const result: { [name: string]: any } = {};
+      Object.entries(entry).forEach((e) => {
+        result[e[0]] = Object.values(entry[e[0]])[0];
+      });
 
-      return { subscriptionId: entry.subscriptionId.S, accountId: entry.accountId.S, displayName: entry.displayName.S };
+      return result;
     });
 
     // Don't throw away the cache if the dynamo lookup returned no items.
@@ -101,7 +96,7 @@ class SubscriptionCache {
 
     // Populate it with the new items found
     results.forEach((entry: any) => {
-      this.cache[entry.subscriptionId] = { accountId: entry.accountId, displayName: entry.displayName };
+      this.cache[entry.subscriptionId] = entry;
     });
 
     console.log(`CACHE: Subscription cache refreshed: ${results.length} subscriptions loaded`);
