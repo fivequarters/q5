@@ -38,7 +38,7 @@ const tarballDelete = () => {
 
       res.set('ETag', pkg.etag).status(200).send({});
     } catch (e) {
-      return res.status(500).end();
+      return next(e);
     }
   };
 };
