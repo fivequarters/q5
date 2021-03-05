@@ -104,7 +104,6 @@ export class SubscriptionTable extends AwsDynamoTable {
 
   public async get(accountId: string, subscriptionId: string): Promise<ISubscription> {
     const options = { onNotFound: onNoSubscription, context: accountId };
-    console.log(`getItem: ${accountId}, ${subscriptionId}`);
     return this.getItem(subscriptionId, options);
   }
 
@@ -149,7 +148,6 @@ export class SubscriptionTable extends AwsDynamoTable {
       onConditionCheckFailed: onNoSubscription,
     };
 
-    console.log(`${JSON.stringify(options)}`);
     return this.updateItem(subscription.id, options);
   }
 
