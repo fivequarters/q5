@@ -27,7 +27,6 @@ const rateLimit = (req: IRequest, res: Response, next: NextFunction) => {
 
   const rateKey: string = req.params.subscriptionId;
   const limit: number = req.subscription.limits ? req.subscription.limits.concurrency : 0;
-  let deviation = 1;
 
   if (!rateKey) {
     return next();
@@ -38,10 +37,15 @@ const rateLimit = (req: IRequest, res: Response, next: NextFunction) => {
     maximum[rateKey] = 0;
   }
 
+  // Enforce hard limit on concurrency; 0 is unlimited, and -1 denies all requests.
+  if ((limit > 0 && limit <= current[rateKey]) || limit < 0) {
+    return next(create_error(429, 'Subscription has exceeded concurrency throttle'));
+  }
+
   // Hook on the end of the function to adjust the utilization metric.
   const end = res.end;
   res.end = (chunk?: any, encodingOrCb?: string | (() => void), callback?: () => void) => {
-    current[rateKey] = current[rateKey] - deviation;
+    current[rateKey] = current[rateKey] - 1;
 
     // Propagate the response.
     res.end = end;
@@ -52,13 +56,7 @@ const rateLimit = (req: IRequest, res: Response, next: NextFunction) => {
     }
   };
 
-  // Enforce hard limit on concurrency; 0 is unlimited, and -1 denies all requests.
-  if ((limit > 0 && limit <= current[rateKey]) || limit < 0) {
-    deviation = 0;
-    return next(create_error(429, 'Subscription has exceeded concurrency throttle'));
-  }
-
-  current[rateKey] = current[rateKey] + deviation;
+  current[rateKey] = current[rateKey] + 1;
   maximum[rateKey] = Math.max(current[rateKey], maximum[rateKey]);
 
   next();
