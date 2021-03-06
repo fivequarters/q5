@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request } from 'express';
 
 export interface IFunctionSummary {
   [key: string]: string | number | null | boolean;
@@ -21,3 +21,9 @@ export interface IFunctionApiRequest extends Request {
   resolvedAgent: any;
   functionSummary: IFunctionSummary;
 }
+
+export const requireRunAsRequest = (req: Request | IFunctionApiRequest): asserts req is IFunctionApiRequest => {
+  if ((req as IFunctionApiRequest).subscription === undefined) {
+    throw new Error(`Invalid Request Object: missing 'subscription'`);
+  }
+};

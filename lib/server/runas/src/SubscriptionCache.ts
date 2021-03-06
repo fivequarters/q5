@@ -1,11 +1,12 @@
 import { DynamoDB } from 'aws-sdk';
 import create_error from 'http-errors';
+import { Request, Response, NextFunction } from 'express';
 
 import * as Constants from '@5qtrs/constants';
 
 import { IFunctionApiRequest } from './Request';
 
-const MAX_CACHE_REFRESH_TTL = 60 * 1000; // Don't refresh more often than once a minute.
+const MAX_CACHE_REFRESH_RATE = 60 * 1000; // Don't refresh more often than once a minute.
 
 interface ISubscription {
   accountId: string;
@@ -47,7 +48,7 @@ const refreshSubscription = (cache: SubscriptionCache) => {
 
 class SubscriptionCache {
   protected cache: ISubscriptionCache = {};
-  protected cacheRefreshTtl: number;
+  protected allowRefreshAfter: number;
   protected dynamo: DynamoDB;
 
   constructor(options: any) {
@@ -60,7 +61,7 @@ class SubscriptionCache {
         },
         maxRetries: 3,
       });
-    this.cacheRefreshTtl = 0;
+    this.allowRefreshAfter = 0;
   }
 
   public async find(key: string): Promise<ISubscription | undefined> {
@@ -80,8 +81,8 @@ class SubscriptionCache {
   }
 
   public async refresh() {
-    if (this.cacheRefreshTtl > Date.now()) {
-      return this.cacheRefreshTtl;
+    if (this.allowRefreshAfter > Date.now()) {
+      return this.allowRefreshAfter;
     }
 
     const params = {
@@ -115,9 +116,9 @@ class SubscriptionCache {
 
     console.log(`CACHE: Subscription cache refreshed: ${results.length} subscriptions loaded`);
 
-    this.cacheRefreshTtl += Date.now() + MAX_CACHE_REFRESH_TTL;
+    this.allowRefreshAfter = Date.now() + MAX_CACHE_REFRESH_RATE;
 
-    return this.cacheRefreshTtl;
+    return this.allowRefreshAfter;
   }
 
   // Fastest way to see if a javascript dictionary has any members.
@@ -128,7 +129,7 @@ class SubscriptionCache {
     throw new Error('subscription cache not loaded');
   }
 
-  public async requestRefresh(req: IFunctionApiRequest, res: any, next: any) {
+  public async requestRefresh(req: Request, res: Response, next: NextFunction) {
     try {
       const when = await this.refresh();
       res.json({ cache: when }).send();

@@ -108,7 +108,7 @@ router.get(
   )
 );
 
-router.get('/metrics', (req, res) => res.json({ maxConcurrent: ratelimit.getMaximums() }).send());
+router.get('/metrics', (req, res) => res.json({ rateLimits: ratelimit.getMetrics() }).send());
 
 router.get('/refresh', (req, res, next) => subscriptionCache.requestRefresh(req, res, next));
 
@@ -1114,7 +1114,7 @@ router.options(run_route, cors(corsExecutionOptions));
       condition: (req) => req.provider === 'lambda',
     }),
     loadSubscription(subscriptionCache),
-    ratelimit.rateLimit((req) => req.params.subscriptionId),
+    ratelimit.rateLimit,
     loadSummary(),
     checkAuthorization(authorize),
     execAs(keyStore),
@@ -1133,7 +1133,7 @@ router.options(run_route, cors(corsExecutionOptions));
     validate_schema({ params: require('./schemas/api_params') }),
     determine_provider(),
     loadSubscription(subscriptionCache),
-    ratelimit.rateLimit((req) => req.params.subscriptionId),
+    ratelimit.rateLimit,
     loadSummary(),
     checkAuthorization(authorize),
     execAs(keyStore),

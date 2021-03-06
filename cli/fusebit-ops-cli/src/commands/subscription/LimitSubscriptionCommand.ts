@@ -25,7 +25,8 @@ const command = {
     },
     {
       name: 'limit',
-      description: 'The maximum number of concurrent function executions.',
+      description:
+        "The maximum number of concurrent function executions, 0 for unlimited, or 'block' to deny all invocations.",
     },
   ],
   options: [
@@ -52,11 +53,16 @@ export class LimitSubscriptionCommand extends Command {
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
     await input.io.writeLine();
-    const [deploymentName, accountId, subscriptionId, limit] = input.arguments as string[];
+    const [deploymentName, accountId, subscriptionId] = input.arguments as string[];
+    let limit = (input.arguments as string[]).pop() as string;
     const region = input.options.region as string;
 
     const deploymentService = await DeploymentService.create(input);
     const deployment = await deploymentService.getSingleDeployment(deploymentName, region);
+
+    if (limit === 'block') {
+      limit = '-1';
+    }
 
     const subscription = {
       deploymentName: deployment.deploymentName,

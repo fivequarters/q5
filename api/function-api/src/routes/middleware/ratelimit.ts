@@ -1,53 +1,69 @@
-import { Response, NextFunction } from 'express';
+import create_error from 'http-errors';
+import { Request, Response, NextFunction } from 'express';
 
-import { IFunctionApiRequest } from '@5qtrs/runas';
+// Support a request that's had the subscription object loaded via the RunAs.loadSubscription handler.
+interface ISubscriptionRequest extends Request {
+  subscription: any;
+}
+
+// Use a type assertion to simplify the resulting code.
+type IRequest = ISubscriptionRequest | Request;
+function requireSubscriptionRequest(
+  req: IRequest,
+  res: Response,
+  next: NextFunction
+): asserts req is ISubscriptionRequest {
+  if ((req as ISubscriptionRequest).subscription === undefined) {
+    next(create_error(501, 'Invalid internal object structure', { expose: true }));
+    throw new Error(`Invalid Request Object: missing 'subscription'`);
+  }
+}
 
 const maximum: { [subscriptionId: string]: number } = {};
 const current: { [subscriptionId: string]: number } = {};
 
-type IGetRatelimitKey = (req: IFunctionApiRequest) => string;
+const rateLimit = (req: IRequest, res: Response, next: NextFunction) => {
+  requireSubscriptionRequest(req, res, next);
 
-const rateLimit = (getKey: IGetRatelimitKey) => {
-  return async (req: IFunctionApiRequest, res: Response, next: NextFunction) => {
-    const rateKey: string = getKey(req);
-    if (!rateKey) {
-      return next();
+  const rateKey: string = req.params.subscriptionId;
+  const limit: number = req.subscription.limits ? req.subscription.limits.concurrency : 0;
+  let deviation = 1;
+
+  if (!rateKey) {
+    return next();
+  }
+
+  if (!(rateKey in current)) {
+    current[rateKey] = 0;
+    maximum[rateKey] = 0;
+  }
+
+  // Hook on the end of the function to adjust the utilization metric.
+  const end = res.end;
+  res.end = (chunk?: any, encodingOrCb?: string | (() => void), callback?: () => void) => {
+    current[rateKey] = current[rateKey] - deviation;
+
+    // Propagate the response.
+    res.end = end;
+    try {
+      res.end(chunk, encodingOrCb as string, callback);
+    } catch (e) {
+      (res as any).error = e;
     }
-
-    if (!(rateKey in current)) {
-      current[rateKey] = 0;
-      maximum[rateKey] = 0;
-    }
-
-    current[rateKey] = current[rateKey] + 1;
-    maximum[rateKey] = Math.max(current[rateKey], maximum[rateKey]);
-
-    const end: any = res.end;
-    res.end = (chunk?: any, encodingOrCb?: string | (() => void), callback?: () => void) => {
-      current[req.params.subscriptionId]--;
-
-      // Propagate the response.
-      res.end = end;
-      try {
-        res.end(chunk, encodingOrCb as string, callback);
-      } catch (e) {
-        (res as any).error = e;
-      }
-    };
-
-    // Enforce hard limit on concurrency
-    if (
-      req.subscription.limits &&
-      req.subscription.limits.concurrency > 0 &&
-      req.subscription.limits.concurrency < current[rateKey]
-    ) {
-      return res.status(429).send();
-    }
-
-    next();
   };
+
+  // Enforce hard limit on concurrency; 0 is unlimited, and -1 denies all requests.
+  if ((limit > 0 && limit <= current[rateKey]) || limit < 0) {
+    deviation = 0;
+    return next(create_error(429, 'Subscription has exceeded concurrency throttle'));
+  }
+
+  current[rateKey] = current[rateKey] + deviation;
+  maximum[rateKey] = Math.max(current[rateKey], maximum[rateKey]);
+
+  next();
 };
 
-const getMaximums = () => maximum;
+const getMetrics = () => ({ current, maximums: maximum });
 
-export { rateLimit, getMaximums };
+export { rateLimit, getMetrics };
