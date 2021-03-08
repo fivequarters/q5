@@ -61,22 +61,22 @@ const App = () => {
         <ScrollMemory />
         <FusebitNavBar onLetsTalkClicked={onLetsTalkClicked} />
         <Switch>
-          <Route path="/" exact render={renderHome} title='test this'/>
+          <Route path="/" exact render={renderHome} title='FIXME'/>
           {/* <Route path="/docs/" component={Docs} /> */}
-          <Route path="/about/" component={About} title='test this'/>
-          <Route path="/blog/" exact component={Blog} title='test this'/>
-          <Route path="/blog/:year?/:month?/:day?/:postId?" component={Blog} title='test this'/>
-          <Route path="/legal/" component={Legal} title='test this'/>
-          <Route path="/support/" component={Support} title='test this'/>
-          <Route path="/privacy/" component={Privacy} title='test this'/>
-          <Route path="/terms/" component={Terms} title='test this'/>
+          <Route path="/about/" component={About} title='FIXME'/>
+          <Route path="/blog/" exact component={Blog} title='FIXME'/>
+          <Route path="/blog/:year?/:month?/:day?/:postId?" component={Blog} title='FIXME'/>
+          <Route path="/legal/" component={Legal} title='FIXME'/>
+          <Route path="/support/" component={Support} title='FIXME'/>
+          <Route path="/privacy/" component={Privacy} title='FIXME'/>
+          <Route path="/terms/" component={Terms} title='FIXME'/>
           <Route
             path="/downloads/"
             component={() => {
               window.location.href = 'https://fivequarters.github.io/q5/downloads/';
               return null;
             }}
-            title='test this'
+            title='FIXME'
           />
         </Switch>
         <FusebitFooter />
