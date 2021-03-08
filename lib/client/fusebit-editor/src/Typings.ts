@@ -190,10 +190,11 @@ function getCdnTypes(name: string, version: string): Promise<Superagent.Response
   const cdns = [jsdelvr, unpkg];
 
   const cdnPromise: Promise<Superagent.Response> = new Promise((resolve, reject) => {
-    const promise = Promise.reject();
-    cdns.forEach((cdn) => promise.catch(() => Superagent.get(cdn)));
-    promise.then(resolve);
-    promise.catch(reject);
+    let promise: Promise<Superagent.Response> = Promise.reject();
+    cdns.forEach((cdn) => {
+      promise = promise.catch(() => Superagent.get(cdn))
+    });
+    promise.then(resolve).catch(reject);
   });
 
   cdnPromise.catch((e) => {
