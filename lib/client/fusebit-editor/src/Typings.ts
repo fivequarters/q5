@@ -184,23 +184,23 @@ export function updateDependencyTypings(dependencies: { [property: string]: stri
   }
 }
 
-function getCdnTypes(name: string, version: string): Promise<Superagent.Response> {
-  const jsdelvr = `https://cdn.jsdelivr.net/npm/@types/${name}@${version}/index.d.ts`;
-  const unpkg = `https://unpkg.com/@types/${name}@${version}/index.d.ts`;
-  const cdns = [jsdelvr, unpkg].sort(() => Math.random() - 0.5);
+async function getCdnTypes(name: string, version: string): Promise<Superagent.Response> {
+  const jsdelvr: string = `https://cdn.jsdelivr.net/npm/@types/${name}@${version}/index.d.ts`;
+  const unpkg: string = `https://unpkg.com/@types/${name}@${version}/index.d.ts`;
+  const cdns: string[] = [jsdelvr, unpkg].sort(() => Math.random() - 0.5);
+  const deadline: number = 60000;
 
-  const cdnPromise: Promise<Superagent.Response> = new Promise((resolve, reject) => {
-    let promise: Promise<Superagent.Response> = Promise.reject();
-    cdns.forEach((cdn) => {
-      promise = promise.catch(() => Superagent.get(cdn));
-    });
-    promise.then(resolve).catch(reject);
-  });
+  const errors: Error[] = [];
 
-  cdnPromise.catch((e) => {
-    console.error(`Unable to install typings for module ${name}@${version}:`, e);
-    throw e;
-  });
+  for (const cdn of cdns) {
+    try {
+      const res: Superagent.Response = await Superagent.get(cdn).timeout(deadline);
+      return res;
+    } catch (e) {
+      errors.push(e);
+      console.error(`Unable to install typings for module ${name}@${version} from ${cdn}:`, e);
+    }
+  }
 
-  return cdnPromise;
+  throw errors.pop();
 }
