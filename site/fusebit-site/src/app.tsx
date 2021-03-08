@@ -4,14 +4,14 @@ import ReactGA from 'react-ga';
 import ScrollMemory from 'react-router-scroll-memory';
 import { Body } from '@5qtrs/body';
 import { FusebitModal, FusebitModalPage } from '@5qtrs/fusebit-modal';
-import { BrowserRouter, Switch, Route } from '@5qtrs/fusebit-link';
+import { BrowserRouter, Switch } from '@5qtrs/fusebit-link';
 import { FusebitAppLoad } from '@5qtrs/fusebit-load';
 import { FusebitNavBar } from '@5qtrs/fusebit-nav-bar';
 import { FusebitFooter } from '@5qtrs/fusebit-footer';
 import { fusebitFonts } from '@5qtrs/fusebit-text';
 import '@5qtrs/fusebit-favicon';
 
-import { Home, About, Support, Legal, Blog, Privacy, Terms } from './page';
+import { Home, About, Support, Legal, Blog, Privacy, Terms, Route } from './page';
 
 const App = () => {
   const [ready, setReady] = useState(true);
@@ -61,21 +61,22 @@ const App = () => {
         <ScrollMemory />
         <FusebitNavBar onLetsTalkClicked={onLetsTalkClicked} />
         <Switch>
-          <Route path="/" exact render={renderHome} />
+          <Route path="/" exact render={renderHome} title='FIXME'/>
           {/* <Route path="/docs/" component={Docs} /> */}
-          <Route path="/about/" component={About} />
-          <Route path="/blog/" exact component={Blog} />
-          <Route path="/blog/:year?/:month?/:day?/:postId?" component={Blog} />
-          <Route path="/legal/" component={Legal} />
-          <Route path="/support/" component={Support} />
-          <Route path="/privacy/" component={Privacy} />
-          <Route path="/terms/" component={Terms} />
+          <Route path="/about/" component={About} title='FIXME'/>
+          <Route path="/blog/" exact component={Blog} title='FIXME'/>
+          <Route path="/blog/:year?/:month?/:day?/:postId?" component={Blog} title='FIXME'/>
+          <Route path="/legal/" component={Legal} title='FIXME'/>
+          <Route path="/support/" component={Support} title='FIXME'/>
+          <Route path="/privacy/" component={Privacy} title='FIXME'/>
+          <Route path="/terms/" component={Terms} title='FIXME'/>
           <Route
             path="/downloads/"
             component={() => {
               window.location.href = 'https://fivequarters.github.io/q5/downloads/';
               return null;
             }}
+            title='FIXME'
           />
         </Switch>
         <FusebitFooter />
@@ -84,7 +85,6 @@ const App = () => {
   );
 };
 
-document.title = 'Fusebit';
 ReactGA.initialize('UA-136792777-1');
 ReactGA.pageview(window.location.pathname + window.location.search);
 ReactDOM.render(<App />, document.getElementById('app'));
