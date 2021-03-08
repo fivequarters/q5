@@ -192,7 +192,7 @@ function getCdnTypes(name: string, version: string): Promise<Superagent.Response
   const cdnPromise: Promise<Superagent.Response> = new Promise((resolve, reject) => {
     let promise: Promise<Superagent.Response> = Promise.reject();
     cdns.forEach((cdn) => {
-      promise = promise.catch(() => Superagent.get(cdn))
+      promise = promise.catch(() => Superagent.get(cdn));
     });
     promise.then(resolve).catch(reject);
   });
