@@ -8,8 +8,8 @@ const html:
   } =
   {
     'default': {
-      'title': 'Fusebit - the first integration platform designed for developer joy',
-      'description': 'Quickly add integrations to your application using powerful and flexible API building blocks',
+      'title': 'usebit — a powerful integration platform built for developers',
+      'description': 'With Fusebit, quickly integrate your application to other SaaS applications using flexible API building blocks. Fusebit provides connectors to popular APIs and hosts your integrations at scale.',
       'image': 'https://cdn.fusebit.io/twitter/twitter-orange.png',
     },
     '/about': {
@@ -17,7 +17,7 @@ const html:
       'description': 'Meet the team behind Fusebit',
     },
     '/blog': {
-      'title': 'The Fusebit Blog',
+      'title': 'Fusebit - Blog',
       'description': 'The latest news, technical articles and industry insights from the Fusebit team',
     },
     '/blog/2019/06/08/twilio-segment-github-serverless-extensibility': {
