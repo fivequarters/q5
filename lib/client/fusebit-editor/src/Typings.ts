@@ -187,7 +187,7 @@ export function updateDependencyTypings(dependencies: { [property: string]: stri
 function getCdnTypes(name: string, version: string): Promise<Superagent.Response> {
   const jsdelvr = `https://cdn.jsdelivr.net/npm/@types/${name}@${version}/index.d.ts`;
   const unpkg = `https://unpkg.com/@types/${name}@${version}/index.d.ts`;
-  const cdns = [jsdelvr, unpkg];
+  const cdns = [jsdelvr, unpkg].sort(() => Math.random() - 0.5);
 
   const cdnPromise: Promise<Superagent.Response> = new Promise((resolve, reject) => {
     let promise: Promise<Superagent.Response> = Promise.reject();
