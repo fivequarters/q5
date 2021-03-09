@@ -1,7 +1,7 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": { "rootDir": "src", "outDir": "libm" },
-  "include": ["src"],
+  "include": ["src", "./src/config/html.json"],
   "references": [
     { "path": "../../comp/image" },
     { "path": "../../comp/scroll-stick" },

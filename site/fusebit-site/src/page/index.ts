@@ -5,3 +5,4 @@ export { Legal } from './Legal';
 export { Support } from './Support';
 export { Privacy } from './Privacy';
 export { Terms } from './Terms';
+export { Route } from './Route';
