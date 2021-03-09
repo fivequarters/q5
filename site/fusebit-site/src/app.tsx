@@ -71,7 +71,7 @@ const App = () => {
           <Route path="/privacy" component={Privacy} />
           <Route path="/terms" component={Terms} />
           <Route
-            path="/downloads/"
+            path="/downloads"
             component={() => {
               window.location.href = 'https://fivequarters.github.io/q5/downloads/';
               return null;
