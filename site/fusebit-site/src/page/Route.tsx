@@ -16,6 +16,6 @@ export const Route = (props: RouteProps) => {
     } else {
       document.title = html.default.title;
     }
-  });
+  }, [props.path]);
   return <ReactRouterRoute {...props} />;
 };
