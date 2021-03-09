@@ -63,13 +63,13 @@ const App = () => {
         <Switch>
           <Route path="/" exact render={renderHome} />
           {/* <Route path="/docs/" component={Docs} /> */}
-          <Route path="/about/" component={About} />
-          <Route path="/blog/" exact component={Blog} />
+          <Route path="/about" component={About} />
+          <Route path="/blog" exact component={Blog} />
           <Route path="/blog/:year?/:month?/:day?/:postId?" component={Blog} />
-          <Route path="/legal/" component={Legal} />
-          <Route path="/support/" component={Support} />
-          <Route path="/privacy/" component={Privacy} />
-          <Route path="/terms/" component={Terms} />
+          <Route path="/legal" component={Legal} />
+          <Route path="/support" component={Support} />
+          <Route path="/privacy" component={Privacy} />
+          <Route path="/terms" component={Terms} />
           <Route
             path="/downloads/"
             component={() => {

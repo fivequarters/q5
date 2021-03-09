@@ -1,6 +1,6 @@
 const { webpackDev } = require('@5qtrs/tool-config');
 const packageJson = require('./package.json');
-const html = require('./src/html');
+const html = require('./src/config/html.json');
 
 const options = { html: { default: { title: 'Fusebit' } } };
 

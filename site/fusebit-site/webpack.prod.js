@@ -1,6 +1,6 @@
 const { webpackProd } = require('@5qtrs/tool-config');
 const packageJson = require('./package.json');
-const html = require('./src/html.ts');
+const html = require('./src/config/html.json');
 
 const options = {
   hash: true,
