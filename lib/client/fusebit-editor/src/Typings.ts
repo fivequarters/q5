@@ -190,17 +190,16 @@ async function getCdnTypes(name: string, version: string): Promise<Superagent.Re
   const cdns: string[] = [jsdelvr, unpkg].sort(() => Math.random() - 0.5);
   const deadline: number = 60000;
 
-  const errors: Error[] = [];
-
+  let error: Error | undefined;
   for (const cdn of cdns) {
     try {
       const res: Superagent.Response = await Superagent.get(cdn).timeout(deadline);
       return res;
     } catch (e) {
-      errors.push(e);
+      error = e;
       console.error(`Unable to install typings for module ${name}@${version} from ${cdn}:`, e);
     }
   }
 
-  throw errors.pop();
+  throw error;
 }
