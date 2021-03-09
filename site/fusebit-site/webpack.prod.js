@@ -19,16 +19,6 @@ for (const path in html) {
     { name: 'twitter:creator', content: '@fusebitio' },
     { name: 'twitter:card', content: 'summary_large_image' },
   ];
-  if (pathHtml.title) {
-    title = pathHtml.title;
-    meta.push({ property: 'og:title', content: pathHtml.title });
-    meta.push({ name: 'twitter:title', content: pathHtml.title });
-  }
-  if (pathHtml.description) {
-    meta.push({ name: 'description', content: pathHtml.description });
-    meta.push({ property: 'og:description', content: pathHtml.description });
-    meta.push({ name: 'twitter:description', content: pathHtml.description });
-  }
   if (pathHtml.image) {
     meta.push({ property: 'og:image', content: pathHtml.image });
     meta.push({ property: 'og:image:secure_url', content: pathHtml.image });
