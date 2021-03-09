@@ -13,6 +13,8 @@ export const Route = (props: RouteProps) => {
   useEffect(() => {
     if (typeof props.path === 'string' && html[props.path]) {
       document.title = html[props.path].title;
+    } else {
+      document.title = html.default.title;
     }
   });
   return <ReactRouterRoute {...props} />;
