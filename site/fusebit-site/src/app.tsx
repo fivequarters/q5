@@ -62,7 +62,7 @@ const App = () => {
         <FusebitNavBar onLetsTalkClicked={onLetsTalkClicked} />
         <Switch>
           <Route path="/" exact render={renderHome} />
-          {/* <Route path="/docs/" component={Docs} /> */}
+          {/* <Route path="/docs" component={Docs} /> */}
           <Route path="/about" component={About} />
           <Route path="/blog" exact component={Blog} />
           <Route path="/blog/:year?/:month?/:day?/:postId?" component={Blog} />
