@@ -26,6 +26,7 @@ export const Route = (props: RouteProps) => {
 
   return <React.Fragment>
     <Helmet>
+      <script src="https://www.googleoptimize.com/optimize.js?id=OPT-KBDMH9D"></script> 
       <title>{title}</title>
       <meta name='og:title' content={title} />
       <meta name='twitter:title' content={title} />
