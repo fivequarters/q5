@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.18.21
+
+_Released 03/09/21_
+
+- **Enhancement.** Added additional npm cdn: jsdelvr. Traffic split between jsdelvr and unpkg, with fallbacks to one another.
+
 ## Version 1.18.20
 
 _Released 03/04/21_

@@ -17,8 +17,11 @@ Monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
 });
 
 let lastStaticTypings: Monaco.IDisposable | undefined;
+
 export function addStaticTypings() {
-  if (lastStaticTypings) return;
+  if (lastStaticTypings) {
+    return;
+  }
   const StaticTypings = `
 declare class FusebitCallbackResult {
   /**
@@ -45,6 +48,7 @@ type FusebitCallback = (error?: Error, result?: FusebitCallbackResult) => void;
 
 let lastConfigurationSettings: string | undefined;
 let lastFusebitContextTypings: Monaco.IDisposable | undefined;
+
 export function updateFusebitContextTypings(configuration: { [index: string]: string | number }) {
   let newConfigurationSettings = Object.keys(configuration).sort().join(':');
   if (newConfigurationSettings !== lastConfigurationSettings) {
@@ -134,6 +138,7 @@ export function updateFusebitContextTypings(configuration: { [index: string]: st
 
 let lastNodejsVersion: string | undefined;
 let lastNodejsTypings: Monaco.IDisposable | undefined;
+
 export function updateNodejsTypings(version: string) {
   if (lastNodejsVersion === version) {
     return;
@@ -144,19 +149,18 @@ export function updateNodejsTypings(version: string) {
     lastNodejsTypings = undefined;
   }
 
-  Superagent.get(`https://unpkg.com/@types/node@${version}/index.d.ts`)
-    .then((res) => {
+  getCdnTypes('node', version).then((res) => {
+    if (res) {
       lastNodejsTypings = Monaco.languages.typescript.javascriptDefaults.addExtraLib(
         res.text,
         'node_modules/@types/node/index.d.ts'
       );
-    })
-    .catch((e) => {
-      console.error(`Unable to install typings for Node.js version ${version}:`, e);
-    });
+    }
+  });
 }
 
 let dependencyTypings: { [property: string]: { version: string; typings: Monaco.IDisposable | undefined } } = {};
+
 export function updateDependencyTypings(dependencies: { [property: string]: string }) {
   for (var name in dependencies) {
     if (dependencyTypings[name] && dependencyTypings[name].version === dependencies[name]) {
@@ -172,16 +176,30 @@ export function updateDependencyTypings(dependencies: { [property: string]: stri
   }
 
   function downloadAndInstallTypes(name: string, version: string) {
-    Superagent.get(`https://unpkg.com/@types/${name}@${version}/index.d.ts`)
-      .then((res) => {
+    getCdnTypes(name, version).then((res: Superagent.Response | undefined) => {
+      if (res) {
         dependencyTypings[name].typings = Monaco.languages.typescript.javascriptDefaults.addExtraLib(
           res.text,
           `file:///node_modules/@types/${name}/index.d.ts`
           // `node_modules/${name}/index.d.ts`
         );
-      })
-      .catch((e) => {
-        console.error(`Unable to install typings for module ${name}@${version}:`, e);
-      });
+      }
+    });
+  }
+}
+
+async function getCdnTypes(name: string, version: string): Promise<Superagent.Response | undefined> {
+  const jsdelvr: string = `https://cdn.jsdelivr.net/npm/@types/${name}@${version}/index.d.ts`;
+  const unpkg: string = `https://unpkg.com/@types/${name}@${version}/index.d.ts`;
+  const cdns: string[] = [jsdelvr, unpkg].sort(() => Math.random() - 0.5);
+  const deadline: number = 60000;
+
+  for (const cdn of cdns) {
+    try {
+      const res: Superagent.Response = await Superagent.get(cdn).timeout(deadline);
+      return res;
+    } catch (e) {
+      console.error(`Unable to install typings for module ${name}@${version} from ${cdn}:`, e);
+    }
   }
 }
