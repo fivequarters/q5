@@ -26,25 +26,7 @@ export const Route = (props: RouteProps) => {
 
   return <React.Fragment>
     <Helmet>
-      <!-- Google Optimize async snippet  -->
       <script src="https://www.googleoptimize.com/optimize.js?id=OPT-KBDMH9D"></script> 
-      
-      <!-- Google Optimize anti-flicker snippet  -->
-      <style>.async-hide { opacity: 0 !important} </style>
-      <script>(function(a,s,y,n,c,h,i,d,e){s.className+=' '+y;h.start=1*new Date;
-      h.end=i=function(){s.className=s.className.replace(RegExp(' ?'+y),'')};
-      (a[n]=a[n]||[]).hide=h;setTimeout(function(){i();h.end=null},c);h.timeout=c;
-      })(window,document.documentElement,'async-hide','dataLayer',4000,
-      {'OPT-KBDMH9D':true});</script>
-
-      <!-- Google Optimize event detection  -->
-      window.dataLayer = window.dataLayer || []; 
-      if (MutationObserver) { 
-        new MutationObserver(function(){ 
-          dataLayer.push({'event': 'optimize.activate'}); 
-        }).observe(document.body, {subtree: true, attributes: true, characterData: true}); 
-      } 
-      
       <title>{title}</title>
       <meta name='og:title' content={title} />
       <meta name='twitter:title' content={title} />
