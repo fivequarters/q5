@@ -150,10 +150,12 @@ export function updateNodejsTypings(version: string) {
   }
 
   getCdnTypes('node', version).then((res) => {
-    lastNodejsTypings = Monaco.languages.typescript.javascriptDefaults.addExtraLib(
-      res.text,
-      'node_modules/@types/node/index.d.ts'
-    );
+    if (res) {
+      lastNodejsTypings = Monaco.languages.typescript.javascriptDefaults.addExtraLib(
+        res.text,
+        'node_modules/@types/node/index.d.ts'
+      );
+    }
   });
 }
 
@@ -174,32 +176,30 @@ export function updateDependencyTypings(dependencies: { [property: string]: stri
   }
 
   function downloadAndInstallTypes(name: string, version: string) {
-    getCdnTypes(name, version).then((res: Superagent.Response) => {
-      dependencyTypings[name].typings = Monaco.languages.typescript.javascriptDefaults.addExtraLib(
-        res.text,
-        `file:///node_modules/@types/${name}/index.d.ts`
-        // `node_modules/${name}/index.d.ts`
-      );
+    getCdnTypes(name, version).then((res: Superagent.Response | undefined) => {
+      if (res) {
+        dependencyTypings[name].typings = Monaco.languages.typescript.javascriptDefaults.addExtraLib(
+          res.text,
+          `file:///node_modules/@types/${name}/index.d.ts`
+          // `node_modules/${name}/index.d.ts`
+        );
+      }
     });
   }
 }
 
-async function getCdnTypes(name: string, version: string): Promise<Superagent.Response> {
+async function getCdnTypes(name: string, version: string): Promise<Superagent.Response | undefined> {
   const jsdelvr: string = `https://cdn.jsdelivr.net/npm/@types/${name}@${version}/index.d.ts`;
   const unpkg: string = `https://unpkg.com/@types/${name}@${version}/index.d.ts`;
   const cdns: string[] = [jsdelvr, unpkg].sort(() => Math.random() - 0.5);
   const deadline: number = 60000;
 
-  let error: Error | undefined;
   for (const cdn of cdns) {
     try {
       const res: Superagent.Response = await Superagent.get(cdn).timeout(deadline);
       return res;
     } catch (e) {
-      error = e;
       console.error(`Unable to install typings for module ${name}@${version} from ${cdn}:`, e);
     }
   }
-
-  throw error;
 }
