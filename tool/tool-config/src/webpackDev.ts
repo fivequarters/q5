@@ -12,6 +12,7 @@ function getDevServer(packageJson: any, options?: IWebpackDevOptions) {
       rewrites: [{ from: /app\.js$/, to: '/app.js' }],
     },
     allowedHosts: ['localhost.com', 'localhost'],
+    disableHostCheck: false,
     contentBase: '/assets/img',
   };
 
@@ -21,6 +22,11 @@ function getDevServer(packageJson: any, options?: IWebpackDevOptions) {
 
   if (options && options.devServer && options.devServer.port) {
     devServer.port = options.devServer.port;
+  }
+
+  if (options && options.devServer && options.devServer.disableHostCheck) {
+    devServer.disableHostCheck = true;
+    delete devServer.allowedHosts;
   }
 
   return devServer;
@@ -33,6 +39,7 @@ function getDevServer(packageJson: any, options?: IWebpackDevOptions) {
 export interface IWebpackDevOptions extends IWebpackCommonOptions {
   devServer?: {
     port?: number;
+    disableHostCheck?: boolean;
   };
 }
 

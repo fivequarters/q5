@@ -112,7 +112,9 @@ function MobileVersion(props: FusebitPostProps) {
 }
 
 function NonMobileVersion(props: FusebitPostProps) {
-  const { title, subtitle, children, imageSrc, maxWidth, ...rest } = props;
+  const { title, subtitle, children, maxWidth, ...rest } = props;
+  const imageSrc = props.largeImageSrc || props.imageSrc;
+
   return (
     <FusebitPage>
       <FusebitSection>

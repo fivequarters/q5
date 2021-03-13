@@ -3,7 +3,8 @@ import { Image } from '@5qtrs/image';
 import { FusebitAuthor } from '@5qtrs/fusebit-blog';
 import { FusebitSection as Section, FusebitBreak as Break, FusebitQuote as Quote } from '@5qtrs/fusebit-page';
 import { FusebitLink as Link } from '@5qtrs/fusebit-link';
-import MainImage from '../../../../assets/img/blog-interview-with-smartsheet-main.png';
+import SmallImage from '../../../../assets/img/blog-interview-with-smartsheet-main-2.png';
+import LargeImage from '../../../../assets/img/blog-interview-with-smartsheet-main.png';
 
 // -------------------
 // Exported Components
@@ -21,7 +22,8 @@ const meta = {
     'approach to integrations. Learn from an industry leader about how deep integrations',
     'were a deliberate strategic choice that paid off.',
   ].join(' '),
-  imageSrc: MainImage,
+  imageSrc: SmallImage,
+  largeImageSrc: LargeImage,
   author: FusebitAuthor.yavor,
   shareText:
     "Interview with Scott Willeke, Director of Product at Smartsheet, about his company's approach to integrations",
