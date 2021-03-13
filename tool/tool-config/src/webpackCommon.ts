@@ -180,7 +180,7 @@ export function webpackCommon(packageJson: any, options?: IWebpackCommonOptions,
     module: {
       rules: [
         {
-          test: /\.(png|jpg|jpeg|gif|xml|ico|svg|webmanifest)$/,
+          test: /\.(png|jpg|jpeg|gif|webp|xml|ico|svg|webmanifest)$/,
           use: ['file-loader?name=[name].[ext]'],
         },
       ],

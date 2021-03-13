@@ -3,7 +3,8 @@ import { Image } from '@5qtrs/image';
 import { FusebitAuthor } from '@5qtrs/fusebit-blog';
 import { FusebitSection as Section, FusebitBreak as Break, FusebitQuote as Quote } from '@5qtrs/fusebit-page';
 import { FusebitLink as Link } from '@5qtrs/fusebit-link';
-import MainImage from '../../../../assets/img/blog-interview-with-auth0-main.png';
+import LargeImage from '../../../../assets/img/blog-interview-with-auth0-main.png';
+import SmallImage from '../../../../assets/img/blog-interview-with-auth0-main-2.png';
 import Auth0Rules from '../../../../assets/img/blog-interview-auth0-rules.png';
 import Auth0Extensions from '../../../../assets/img/blog-interview-auth0-extensions.png';
 
@@ -23,7 +24,8 @@ const meta = {
     'approach to integrations. Get a glimpse into what makes a recent unicorn tick,',
     'what worked well, and what is yet to work better.',
   ].join(' '),
-  imageSrc: MainImage,
+  imageSrc: SmallImage,
+  largeImageSrc: LargeImage,
   author: FusebitAuthor.tomek,
   shareText: "Interview with Eugenio Pace, Auth0 CEO, about his company's approach to integrations",
 };

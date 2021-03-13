@@ -18,6 +18,7 @@ export type FusebitPostMeta = {
   day: number;
   summary?: string;
   imageSrc?: string;
+  largeImageSrc?: string;
   shareText?: string;
   twitterShareText?: string;
   linkedInShareText?: string;

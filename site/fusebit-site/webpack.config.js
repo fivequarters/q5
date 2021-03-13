@@ -2,7 +2,7 @@ const { webpackDev } = require('@5qtrs/tool-config');
 const packageJson = require('./package.json');
 const html = require('./src/config/html.json');
 
-const options = { html: { default: { title: 'Fusebit' } } };
+const options = { html: { default: { title: 'Fusebit' } }, devServer: { disableHostCheck: true } };
 
 for (const path in html) {
   let title = 'Fusebit';
