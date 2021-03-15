@@ -13,6 +13,7 @@ const options = {
         "<script>window.dataLayer = window.dataLayer || []; if (MutationObserver) { new MutationObserver(function(){ dataLayer.push({'event': 'optimize.activate'}); }).observe(document.body, {subtree: true, attributes: true, characterData: true}); }</script>",
     },
   },
+  devServer: {disableHostCheck: true}
 };
 
 for (const path in html) {

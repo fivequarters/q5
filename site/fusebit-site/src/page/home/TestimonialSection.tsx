@@ -6,7 +6,7 @@ import { FusebitColor } from '@5qtrs/fusebit-color';
 import { FusebitCard } from '@5qtrs/fusebit-card';
 import { QuoteIcon } from '@5qtrs/fusebit-icon';
 import { FusebitSection } from '@5qtrs/fusebit-page';
-import AlexFactoryFour from '../../../assets/img/alex-factoryfour.png';
+import AlexFactoryFour from '../../../assets/img/alex-factoryfour.webp';
 import LogoFactoryFour from '../../../assets/img/logo-factoryfour.png';
 
 // ------------------
