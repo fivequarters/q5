@@ -78,6 +78,9 @@ function applyHtmlOptions(base: any, html: IWebpackHtmlOptions) {
   if (html.bodySnippet) {
     base.bodyHtmlSnippet = html.bodySnippet;
   }
+  if (html.headSnippet) {
+    base.headHtmlSnippet = html.headSnippet;
+  }
 }
 
 function getHtmlPluginOptions(packageJson: any, options?: IWebpackCommonOptions, prod: boolean = false) {
@@ -136,6 +139,7 @@ export interface IWebpackHtmlOptions {
   links?: { [index: string]: string }[];
   meta?: { [index: string]: string }[];
   bodySnippet?: string;
+  headSnippet?: string;
 }
 
 export interface IWebpackCommonOptions {
