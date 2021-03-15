@@ -9,8 +9,8 @@ const options = {
       title: 'Fusebit',
       headSnippet:
         '<style>.async-hide { opacity: 0 !important}</style>' +
-        '<script src="https://www.googleoptimize.com/optimize.js?id=OPT-KBDMH9D"></script>' +
         "<script>(function(a,s,y,n,c,h,i,d,e){s.className+=' '+y;h.start=1*new Date;h.end=i=function(){s.className=s.className.replace(RegExp(' ?'+y),'')};(a[n]=a[n]||[]).hide=h;setTimeout(function(){i();h.end=null},c);h.timeout=c;})(window,document.documentElement,'async-hide','dataLayer',4000,{'OPT-KBDMH9D':true});</script>" +
+        '<script src="https://www.googleoptimize.com/optimize.js?id=OPT-KBDMH9D"></script>' +
         "<script>window.dataLayer = window.dataLayer || []; if (MutationObserver) { new MutationObserver(function(){ dataLayer.push({'event': 'optimize.activate'}); }).observe(document.body, {subtree: true, attributes: true, characterData: true}); }</script>",
     },
   },
