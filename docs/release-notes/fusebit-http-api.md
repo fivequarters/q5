@@ -17,11 +17,18 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
-## Version 1.18.21
+## Version 1.18.22
 
-_Released 03/05/21_
+_Released 03/18/21_
 
 - **Enhancement.** Add a maximum concurrency limit per subscription to lambda execution.
+
+## Version 1.18.21
+
+_Released 03/09/21_
+
+- **Enhancement.** Added additional npm cdn: jsdelvr. Traffic split between jsdelvr and unpkg, with fallbacks to one another.
+>>>>>>> master
 
 ## Version 1.18.20
 

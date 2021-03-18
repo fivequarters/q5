@@ -8,6 +8,7 @@ import { FusebitLinkCard, FusebitLinkCardType } from '@5qtrs/fusebit-link-card';
 import { FusebitPostCard, FusebitPostCardType, FusebitPostCardProps } from '@5qtrs/fusebit-blog';
 import { posts } from '../blog/posts';
 import FactoryFourImage from '../../../assets/img/industry-insight-ff.png';
+import SaaSTrendsImage from '../../../assets/img/2019-saas-trends-header-v2.webp';
 
 // ------------------
 // Internal Constants
@@ -26,7 +27,7 @@ function BlissfullyCard() {
     <FusebitLinkCard
       href="https://www.blissfully.com/saas-trends/2019-annual/"
       title="2019 SaaS Trends Report"
-      imageSrc="https://www.blissfully.com/wp-content/uploads/2019-saas-trends-header-v2.png"
+      imageSrc={SaaSTrendsImage}
       subtitle="Blissfully identifies trends in SaaS spend and usage"
       type={FusebitLinkCardType.small}
     />

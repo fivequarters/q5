@@ -3,7 +3,8 @@ import { Image } from '@5qtrs/image';
 import { FusebitAuthor } from '@5qtrs/fusebit-blog';
 import { FusebitSection as Section, FusebitBreak as Break, FusebitQuote as Quote } from '@5qtrs/fusebit-page';
 import { FusebitLink as Link } from '@5qtrs/fusebit-link';
-import MainImage from '../../../../assets/img/blog-interview-with-zaius-main-1.png';
+import LargeImage from '../../../../assets/img/blog-interview-with-zaius-main-1.png';
+import SmallImage from '../../../../assets/img/blog-interview-with-zaius-main-2.png';
 import ZaiusUsage from '../../../../assets/img/blog-interview-zaius-usage.png';
 import ZaiusArchitecture from '../../../../assets/img/blog-interview-zaius-architecture.png';
 
@@ -22,7 +23,8 @@ const meta = {
     'We interviewed Tyler Mills, Product Manager at Zaius, about how a leading B2C CRM ',
     'is built, and the challenges and opportunities in front of marketers today.',
   ].join(' '),
-  imageSrc: MainImage,
+  imageSrc: SmallImage,
+  largeImageSrc: LargeImage,
   author: FusebitAuthor.yavor,
   shareText: "We interviewed Tyler Mills, Product Manager at Zaius, about his company's approach to integrations",
 };

@@ -2,7 +2,8 @@ import { FusebitAuthor } from '@5qtrs/fusebit-blog';
 import { FusebitLink as Link } from '@5qtrs/fusebit-link';
 import { FusebitBreak as Break, FusebitQuote as Quote, FusebitSection as Section } from '@5qtrs/fusebit-page';
 import React from 'react';
-import MainImage from '../../../../assets/img/twitter-blog-funding-announcement.png';
+import SmallImage from '../../../../assets/img/twitter-blog-funding-announcement-2.png';
+import LargeImage from '../../../../assets/img/twitter-blog-funding-announcement.png';
 
 // -------------------
 // Exported Components
@@ -21,7 +22,8 @@ const meta = {
     'with participation from Seattle’s Founders’ Co-op. Angel investors include',
     'Eugenio Pace and Jonathan Gelsey, current and former CEO of Auth0',
   ].join(' '),
-  imageSrc: MainImage,
+  imageSrc: SmallImage,
+  largeImageSrc: LargeImage,
   author: FusebitAuthor.tomek,
   shareText: 'Fusebit raises $3.3M seed round to help developers build powerful integrations',
 };

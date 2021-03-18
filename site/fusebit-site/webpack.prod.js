@@ -1,13 +1,37 @@
 const { webpackProd } = require('@5qtrs/tool-config');
 const packageJson = require('./package.json');
-const html = require('./html.json');
+const html = require('./src/config/html.json');
 
 const options = {
   hash: true,
-  html: {},
+  html: {
+    default: {
+      title: 'Fusebit',
+      headSnippet:
+        '<style>.async-hide { opacity: 0 !important}</style>' +
+        "<script>(function(a,s,y,n,c,h,i,d,e){s.className+=' '+y;h.start=1*new Date;h.end=i=function(){s.className=s.className.replace(RegExp(' ?'+y),'')};(a[n]=a[n]||[]).hide=h;setTimeout(function(){i();h.end=null},c);h.timeout=c;})(window,document.documentElement,'async-hide','dataLayer',4000,{'OPT-KBDMH9D':true});</script>" +
+        '<script src="https://www.googleoptimize.com/optimize.js?id=OPT-KBDMH9D"></script>' +
+        '<script>' +
+        'window.dataLayer = window.dataLayer || [];\n' +
+        'if (MutationObserver) {\n' +
+        '  const createObserver = () => {\n' +
+        '    if (document.body instanceof HTMLElement) {\n' +
+        '      new MutationObserver(function () {\n' +
+        "        dataLayer.push({ event: 'optimize.activate' });\n" +
+        '      }).observe(document.body, { subtree: true, attributes: true, characterData: true });\n' +
+        '    } else {\n' +
+        '      setTimeout(createObserver, 500);\n' +
+        '    }\n' +
+        '  };\n' +
+        '  createObserver();\n' +
+        '}' +
+        '</script>',
+    },
+  },
 };
 
 for (const path in html) {
+  let title = 'Fusebit';
   const pathHtml = html[path];
   const meta = [
     { property: 'og:type', content: 'website' },
@@ -18,15 +42,6 @@ for (const path in html) {
     { name: 'twitter:creator', content: '@fusebitio' },
     { name: 'twitter:card', content: 'summary_large_image' },
   ];
-  if (pathHtml.title) {
-    meta.push({ property: 'og:title', content: pathHtml.title });
-    meta.push({ name: 'twitter:title', content: pathHtml.title });
-  }
-  if (pathHtml.description) {
-    meta.push({ name: 'description', content: pathHtml.description });
-    meta.push({ property: 'og:description', content: pathHtml.description });
-    meta.push({ name: 'twitter:description', content: pathHtml.description });
-  }
   if (pathHtml.image) {
     meta.push({ property: 'og:image', content: pathHtml.image });
     meta.push({ property: 'og:image:secure_url', content: pathHtml.image });
@@ -35,7 +50,7 @@ for (const path in html) {
     meta.push({ name: 'twitter:image:height', content: '512' });
   }
 
-  options.html[path] = { title: 'Fusebit', meta };
+  options.html[path] = { title, meta, ...options.html[path] };
 }
 
 module.exports = webpackProd(packageJson, options);
