@@ -26,7 +26,7 @@ const command = {
     {
       name: 'limit',
       description:
-        "The maximum number of concurrent function executions, 0 for unlimited, or 'block' to deny all invocations.",
+        "The maximum number of concurrent function executions, 'unlimited' for unlimited, or 0 to deny all invocations.",
     },
   ],
   options: [
@@ -60,7 +60,7 @@ export class LimitSubscriptionCommand extends Command {
     const deploymentService = await DeploymentService.create(input);
     const deployment = await deploymentService.getSingleDeployment(deploymentName, region);
 
-    if (limit === 'block') {
+    if (limit === 'unlimited') {
       limit = '-1';
     }
 

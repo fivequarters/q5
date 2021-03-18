@@ -26,7 +26,7 @@ const rateLimit = (req: IRequest, res: Response, next: NextFunction) => {
   requireSubscriptionRequest(req, res, next);
 
   const rateKey: string = req.params.subscriptionId;
-  const limit: number = req.subscription.limits ? req.subscription.limits.concurrency : 0;
+  const limit: number = req.subscription.limits ? req.subscription.limits.concurrency : -1;
 
   if (!rateKey) {
     return next();
@@ -37,8 +37,8 @@ const rateLimit = (req: IRequest, res: Response, next: NextFunction) => {
     maximum[rateKey] = 0;
   }
 
-  // Enforce hard limit on concurrency; 0 is unlimited, and -1 denies all requests.
-  if ((limit > 0 && limit <= current[rateKey]) || limit < 0) {
+  // Enforce hard limit on concurrency; -1 is unlimited, and 0 denies all requests.
+  if (limit >= 0 && limit <= current[rateKey]) {
     return next(create_error(429, 'Subscription has exceeded concurrency throttle'));
   }
 
@@ -49,11 +49,7 @@ const rateLimit = (req: IRequest, res: Response, next: NextFunction) => {
 
     // Propagate the response.
     res.end = end;
-    try {
-      res.end(chunk, encodingOrCb as string, callback);
-    } catch (e) {
-      (res as any).error = e;
-    }
+    res.end(chunk, encodingOrCb as string, callback);
   };
 
   current[rateKey] = current[rateKey] + 1;
@@ -62,6 +58,6 @@ const rateLimit = (req: IRequest, res: Response, next: NextFunction) => {
   next();
 };
 
-const getMetrics = () => ({ current, maximums: maximum });
+const getMetrics = () => ({ concurrency: { current, maximums: maximum } });
 
 export { rateLimit, getMetrics };

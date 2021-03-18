@@ -185,7 +185,7 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
     const accountData = await accountDataFactory.create(this.config);
 
     const currentSubscription = await accountData.subscriptionData.get(account, subscription.subscription as string);
-    currentSubscription.limits = { ...currentSubscription.limits, ...subscription.limits };
+    currentSubscription.limits = { concurrency: -1, ...currentSubscription.limits, ...subscription.limits };
     await accountData.subscriptionData.update(account, currentSubscription);
   }
 
