@@ -22,29 +22,31 @@ interface ISubscriptionCache {
 
 const loadSubscription = (cache: SubscriptionCache) => {
   return async (req: IFunctionApiRequest, res: Response, next: any) => {
+    let sub;
     try {
-      const sub = await cache.find(req.params.subscriptionId);
-      if (!sub) {
-        return next(create_error(404, 'subscription not found'));
-      }
-
-      req.subscription = sub;
-      req.params.accountId = sub.accountId;
-      return next();
+      sub = await cache.find(req.params.subscriptionId);
     } catch (e) {
       return next(e);
     }
+
+    if (!sub) {
+      return next(create_error(404, 'subscription not found'));
+    }
+    req.subscription = sub;
+    req.params.accountId = sub.accountId;
+    return next();
   };
 };
 
 const refreshSubscription = (cache: SubscriptionCache) => {
   return async (req: IFunctionApiRequest, res: any, next: any) => {
+    let when;
     try {
-      const when = await cache.refresh();
-      res.json({ cache: when }).send();
+      when = await cache.refresh();
     } catch (error) {
       return next(create_error(501, error));
     }
+    res.json({ cache: when }).send();
   };
 };
 
@@ -67,16 +69,12 @@ class SubscriptionCache {
   }
 
   public async find(key: string): Promise<ISubscription | undefined> {
-    try {
-      const result = this.cache[key];
-      if (result) {
-        return result;
-      }
-
-      await this.refresh();
-    } catch (e) {
-      return undefined;
+    const result = this.cache[key];
+    if (result) {
+      return result;
     }
+
+    await this.refresh();
 
     // May still fail if the entry isn't found in the cache.
     return this.cache[key];
@@ -132,21 +130,22 @@ class SubscriptionCache {
   }
 
   public async requestRefresh(req: Request, res: Response, next: NextFunction) {
+    let when;
     try {
-      const when = await this.refresh();
-
-      let instanceId: string = 'localhost';
-      try {
-        // Hit the aws metadata service to get the current instance id.
-        instanceId = (
-          await superagent.get('http://169.254.169.254/latest/meta-data/instance-id').timeout({ response: 1000 })
-        ).text;
-      } catch (e) {}
-
-      res.json({ cache: when, who: instanceId }).send();
+      when = await this.refresh();
     } catch (error) {
       return next(create_error(501, error));
     }
+
+    let instanceId: string = 'localhost';
+    try {
+      // Hit the aws metadata service to get the current instance id.
+      instanceId = (
+        await superagent.get('http://169.254.169.254/latest/meta-data/instance-id').timeout({ response: 1000 })
+      ).text;
+    } catch (e) {}
+
+    res.json({ cache: when, who: instanceId }).send();
   }
 }
 
