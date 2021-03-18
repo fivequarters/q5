@@ -20,7 +20,7 @@ All public releases of the Fusebit Operations CLI are documented here, including
 
 ## Version 1.24.19
 
-_Released 03/05/21_
+_Released 03/17/21_
 
 - **Enhancement.** Add a maximum concurrency limit per subscription to lambda execution.
 
