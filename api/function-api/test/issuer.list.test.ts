@@ -20,7 +20,7 @@ afterEach(async () => {
   await cleanUpIssuers(account);
 }, 180000);
 
-describe('Issuer', () => {
+describe('Issuer List', () => {
   describe('List', () => {
     test('Listing all issuers should return issuers', async () => {
       const issuerId = `test-${random()}`;

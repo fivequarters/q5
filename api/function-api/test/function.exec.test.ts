@@ -21,7 +21,7 @@ const specFuncReturnCtx = {
   },
 };
 
-describe('function.exec', () => {
+describe('Function Exec', () => {
   test('simple authorization requirements', async () => {
     const profile = await FusebitProfile.create();
 

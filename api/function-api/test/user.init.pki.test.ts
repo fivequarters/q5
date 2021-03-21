@@ -16,7 +16,7 @@ afterEach(async () => {
   await cleanUpUsers(account);
 }, 180000);
 
-describe('User', () => {
+describe('User Init PKI', () => {
   describe('Init PKI', () => {
     test('Getting an init token should be supported', async () => {
       const identities = [{ issuerId: 'test', subject: `sub-${random()}` }];

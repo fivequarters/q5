@@ -46,7 +46,7 @@ afterEach(async () => {
   await cleanUpClients(account);
 }, 180000);
 
-describe('User', () => {
+describe('User Init OAuth', () => {
   describe('Init OAuth', () => {
     test('Getting an init token should be supported', async () => {
       const identities = [{ issuerId: 'test', subject: `sub-${random()}` }];

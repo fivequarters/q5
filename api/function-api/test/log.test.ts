@@ -9,7 +9,7 @@ beforeEach(() => {
   ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
 });
 
-describe('log', () => {
+describe('Log', () => {
   function create_positive_log_test(node: string, boundary: boolean) {
     return async () => {
       let response = await putFunction(account, boundaryId, function1Id, {

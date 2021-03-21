@@ -15,7 +15,7 @@ afterEach(async () => {
   await cleanUpIssuers(account);
 }, 180000);
 
-describe('Issuer', () => {
+describe('Issuer Add', () => {
   describe('Add', () => {
     test('Adding an issuer with jsonKeysUrl should be supported', async () => {
       const issuerId = `test-${random()}`;

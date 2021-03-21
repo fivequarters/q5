@@ -14,7 +14,7 @@ afterEach(async () => {
   await cleanUpClients(account);
 }, 180000);
 
-describe('Client', () => {
+describe('Client Add', () => {
   describe('Add', () => {
     test('Adding a client should generate a client id', async () => {
       const client = await addClient(account, {});

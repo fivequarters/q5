@@ -89,7 +89,7 @@ const helloWorldWithCron = {
   },
 };
 
-describe('function', () => {
+describe('Function Serialized', () => {
   test('PUT completes synchronously', async () => {
     const response = await putFunction(account, boundaryId, function1Id, helloWorld);
     expect(response).toBeHttp({ statusCode: 200 });
@@ -332,7 +332,7 @@ describe('function', () => {
     response.data.compute = undefined;
     response = await putFunction(account, boundaryId, function1Id, response.data);
     expect(response.status).toBe(204);
-  }, 120000);
+  }, 240000);
 
   test('PUT with undefined configuration is ignored', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfiguration);
@@ -451,7 +451,7 @@ describe('function', () => {
     expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: true });
     expect(response.data.computeSerialized).toBe('memorySize=128\ntimeout=30\nstaticIp=true');
-  }, 120000);
+  }, 240000);
 
   test('PUT with new configuration values updates configuration and configurationSerialized', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithConfiguration);

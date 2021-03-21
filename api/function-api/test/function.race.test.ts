@@ -10,7 +10,7 @@ beforeEach(() => {
   ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
 });
 
-describe.skip('function cycle', () => {
+describe.skip('Function Race', () => {
   test('looping 50 times', async () => {
     const spec1 = {
       nodejs: { files: { 'index.js': `module.exports = async (ctx) => { return { body: "teapot", status: 200}; };` } },

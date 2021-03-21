@@ -14,7 +14,7 @@ afterEach(async () => {
   await cleanUpIssuers(account);
 }, 180000);
 
-describe('Issuer', () => {
+describe('Issuer Remove', () => {
   describe('Remove', () => {
     test('Removing an issuer should be supported', async () => {
       const issuerId = `test-${random()}`;

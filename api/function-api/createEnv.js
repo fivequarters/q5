@@ -91,7 +91,7 @@ function addLogsUrl() {
       if (r.body && r.body.tunnels) {
         for (var i = 0; i < r.body.tunnels.length; i++) {
           if (r.body.tunnels[i].proto === 'http') {
-            env = `${env}\nLOGS_HOST=${r.body.tunnels[i].public_url.replace(/http[s]:\/\//, '')}`;
+            env = `${env}\nLOGS_HOST=${r.body.tunnels[i].public_url.replace(/http[s]?:\/\//, '')}`;
             return saveEnv();
           }
         }

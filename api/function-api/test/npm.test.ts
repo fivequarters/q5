@@ -37,7 +37,7 @@ const funcWithDep = (pkgName: string) => ({
 const getRegistryUrl = (): any => {
   const host = Constants.API_PUBLIC_ENDPOINT.replace(/http[s]?:\/\//, '');
   const registryPath = `${host}/v1/account/${account.accountId}/registry/default/npm/`;
-  return { registryPath, registryUrl: `http://${registryPath}` };
+  return { registryPath, registryUrl: `https://${registryPath}` };
 };
 
 const getOpts = (scope: string): any => {
@@ -150,7 +150,7 @@ afterEach(async () => {
 }, 180000);
 
 /* Tests */
-describe('npm', () => {
+describe('Npm', () => {
   test('publish account package', async () => {
     await publishVersion();
   }, 180000);
@@ -289,7 +289,7 @@ describe('npm', () => {
     let response = await putFunction(account, boundaryId, function1Id, funcWithDep(manifest.name));
     expect(response).toBeHttp({ statusCode: [200, 201] });
     if (response.status === 201) {
-      response = await waitForBuild(account, response.data, 15, 1000);
+      response = await waitForBuild(account, response.data, 120, 1000);
       expect(response).toBeHttp({ statusCode: 200 });
     }
 
@@ -306,13 +306,13 @@ describe('npm', () => {
     response = await putFunction(account, boundaryId, function2Id, funcWithDep(manifest.name));
     expect(response).toBeHttp({ statusCode: [200, 201] });
     if (response.status === 201) {
-      response = await waitForBuild(account, response.data, 15, 1000);
+      response = await waitForBuild(account, response.data, 121, 1000);
       expect(response).toBeHttp({ statusCode: 200 });
     }
 
     response = await request({ method: 'GET', url: response.data.location });
     expect(response).toBeHttp({ statusCode: 200, data: 'object' });
-  }, 180000);
+  }, 500000);
 
   test('registry scope configure', async () => {
     const config = await Registry.getConfig(account);

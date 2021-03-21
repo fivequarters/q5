@@ -65,7 +65,7 @@ const execApacheBench = async (url: string, durSecs: number) => {
   }
 };
 
-describe.skip('traffic', () => {
+describe.skip('Traffic', () => {
   test(
     `Generate a bunch of traffic for ${process.env.TRAFFIC_DURATION} seconds`,
     async () => {

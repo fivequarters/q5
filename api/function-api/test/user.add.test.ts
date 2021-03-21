@@ -14,7 +14,7 @@ afterEach(async () => {
   await cleanUpUsers(account);
 }, 180000);
 
-describe('User', () => {
+describe('User Add', () => {
   describe('Add', () => {
     test('Adding a user should generate a user id', async () => {
       const user = await addUser(account, {});

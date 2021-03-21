@@ -137,7 +137,7 @@ beforeAll(async () => {
   account = await cloneWithUserAgent(account, 'fusebit-editor/1.0.0');
 }, 120000);
 
-describe.skip('function', () => {
+describe.skip('Function Legacy', () => {
   test('PUT completes synchronously', async () => {
     const response = await putFunction(account, boundaryId, function1Id, helloWorld);
     expect(response).toBeHttp({ statusCode: 200 });

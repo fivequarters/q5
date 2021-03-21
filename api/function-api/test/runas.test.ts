@@ -31,7 +31,7 @@ const specFuncReturnCtx = {
   },
 };
 
-describe('runas', () => {
+describe('Runas', () => {
   test('normal function has no permissions added', async () => {
     const specNoPerm = Constants.duplicate({}, specFuncReturnCtx);
     delete specNoPerm.security.functionPermissions;
