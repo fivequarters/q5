@@ -12,7 +12,7 @@ ADD lib ./lib
 ADD tool ./tool
 ADD sdk ./sdk
 
-RUN apt-get update && apt-get install -y zip
+RUN apk add zip
 RUN yarn setup
 RUN yarn build function-api
 
