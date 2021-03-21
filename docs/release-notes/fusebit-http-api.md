@@ -28,7 +28,6 @@ _Released 03/18/21_
 _Released 03/09/21_
 
 - **Enhancement.** Added additional npm cdn: jsdelvr. Traffic split between jsdelvr and unpkg, with fallbacks to one another.
->>>>>>> master
 
 ## Version 1.18.20
 
