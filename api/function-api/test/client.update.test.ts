@@ -14,7 +14,7 @@ afterEach(async () => {
   await cleanUpClients(account);
 }, 180000);
 
-describe('Client', () => {
+describe('Client Update', () => {
   describe('Update', () => {
     test('Updating a client with a display name and an existing display name should be supported', async () => {
       const original = await addClient(account, { displayName: 'display - test client' });

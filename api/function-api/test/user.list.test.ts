@@ -20,7 +20,7 @@ afterEach(async () => {
   await cleanUpUsers(account);
 }, 180000);
 
-describe('User', () => {
+describe('User List', () => {
   describe('List', () => {
     test('Listing all users should return users', async () => {
       await Promise.all([

@@ -14,7 +14,7 @@ afterEach(async () => {
   await cleanUpStorage(account);
 }, 180000);
 
-describe('Storage', () => {
+describe('Storage List', () => {
   describe('List', () => {
     test('Listing storage should work', async () => {
       await Promise.all([

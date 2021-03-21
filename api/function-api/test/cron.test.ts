@@ -35,7 +35,7 @@ describe('cron', () => {
         ...account,
         baseUrl:
           account.baseUrl.indexOf('://localhost') > -1 && process.env.LOGS_HOST
-            ? `http://${process.env.LOGS_HOST}`
+            ? `https://${process.env.LOGS_HOST}`
             : account.baseUrl,
       };
 

@@ -46,7 +46,7 @@ const helloWorldWithCron = {
   },
 };
 
-describe('function.tags', () => {
+describe('Function Tags', () => {
   test('create functions and search', async () => {
     const options = {
       req: { headers: { host: 'unused' }, protocol: 'http' },

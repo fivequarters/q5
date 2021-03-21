@@ -14,7 +14,7 @@ afterEach(async () => {
   await cleanUpStorage(account);
 }, 180000);
 
-describe('Storage', () => {
+describe('Storage Remove', () => {
   describe('Remove', () => {
     test('Removing storage with no etag and no storage path should work', async () => {
       const storageId = `test-${random()}`;

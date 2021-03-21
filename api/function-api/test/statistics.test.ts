@@ -55,7 +55,7 @@ const validateEntry = (entry: any, functionId: string) => {
   expect(entry.fusebit.stackAMI).toEqual('0');
 };
 
-describe.skip('statistics', () => {
+describe.skip('Statistics', () => {
   test('itemized bulk contains a function event at various scopes', async () => {
     if (!(await statisticsEnabled(account))) {
       return;

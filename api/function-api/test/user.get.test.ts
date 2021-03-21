@@ -14,7 +14,7 @@ afterEach(async () => {
   await cleanUpUsers(account);
 }, 180000);
 
-describe('User', () => {
+describe('User Get', () => {
   describe('Get', () => {
     test('Getting a user should be supported', async () => {
       const identities = [{ issuerId: 'test', subject: `sub-${random()}` }];

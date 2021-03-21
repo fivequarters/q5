@@ -50,7 +50,7 @@ const runTest = async (
   expect(response).toBeHttp({ statusCode: resultCode, data: resultObj });
 };
 
-describe('function authorization', () => {
+describe('Function Authz', () => {
   test('None prevents authorization', async () => {
     const spec = Constants.duplicate({}, specFuncReturnCtx);
     spec.security.authentication = 'none';

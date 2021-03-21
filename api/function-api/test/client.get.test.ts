@@ -14,7 +14,7 @@ afterEach(async () => {
   await cleanUpClients(account);
 }, 180000);
 
-describe('Client', () => {
+describe('Client Get', () => {
   describe('Get', () => {
     test('Getting a client should be supported', async () => {
       const identities = [{ issuerId: 'test', subject: `sub-${random()}` }];

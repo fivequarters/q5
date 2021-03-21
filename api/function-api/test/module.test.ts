@@ -27,7 +27,7 @@ const helloWorldWithSuperagentDependency = {
   },
 };
 
-describe('module', () => {
+describe('Module', () => {
   test('PUT completes for function with superagent dependency', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithSuperagentDependency);
     expect(response).toBeHttp({ statusCode: [200, 201] });

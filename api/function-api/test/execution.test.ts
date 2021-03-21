@@ -9,7 +9,7 @@ beforeEach(() => {
   ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
 });
 
-describe('execution', () => {
+describe('Execution', () => {
   test('hello, world succeeds on node 10', async () => {
     let response = await putFunction(account, boundaryId, function1Id, {
       nodejs: {

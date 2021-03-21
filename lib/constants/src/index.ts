@@ -11,7 +11,7 @@ interface IModuleSpec {
 import { isSpecialized, Permissions, RestrictedPermissions, UserPermissions } from './permissions';
 
 const API_PUBLIC_ENDPOINT = process.env.LOGS_HOST
-  ? `http://${process.env.LOGS_HOST}`
+  ? `https://${process.env.LOGS_HOST}`
   : (process.env.API_SERVER as string);
 
 let builderVersion: string = 'unknown';

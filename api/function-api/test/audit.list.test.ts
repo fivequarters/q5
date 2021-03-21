@@ -27,7 +27,7 @@ afterEach(async () => {
   await cleanUpHostedIssuers(account);
 }, 180000);
 
-describe('Audit', () => {
+describe('Audit List', () => {
   describe('List', () => {
     test('Listing audit entries without any options should be supported', async () => {
       const testUser = await createTestUser(account, {

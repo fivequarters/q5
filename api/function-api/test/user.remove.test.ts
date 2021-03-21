@@ -14,7 +14,7 @@ afterEach(async () => {
   await cleanUpUsers(account);
 }, 180000);
 
-describe('User', () => {
+describe('User Remove', () => {
   describe('Remove', () => {
     test('Removing a user should be supported', async () => {
       const identities = [{ issuerId: 'test', subject: `sub-${random()}` }];

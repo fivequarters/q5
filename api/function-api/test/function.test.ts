@@ -196,7 +196,7 @@ const helloWorldWithBadMustache = {
   },
 };
 
-describe('function', () => {
+describe('Function', () => {
   test('PUT completes synchronously', async () => {
     const response = await putFunction(account, boundaryId, function1Id, helloWorld);
     expect(response).toBeHttp({ statusCode: 200 });
@@ -363,7 +363,7 @@ describe('function', () => {
     response = await getFunction(account, boundaryId, function1Id);
     expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: true });
-  }, 120000);
+  }, 240000);
 
   test('PUT multiple times on the same function', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
@@ -398,7 +398,7 @@ describe('function', () => {
     response = await getFunction(account, boundaryId, function1Id);
     expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: true });
-  }, 120000);
+  }, 240000);
 
   test('PUT and GET roundtrip with no changes to function', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
@@ -418,7 +418,7 @@ describe('function', () => {
     response = await getFunction(account, boundaryId, function1Id);
     expect(response.status).toBe(200);
     expect(response.data.compute).toEqual({ staticIp: true, memorySize: 128, timeout: 30 });
-  }, 120000);
+  }, 240000);
 
   test('PUT still supports lambda property for back-compat', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithLambda);

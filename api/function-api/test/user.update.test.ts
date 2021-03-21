@@ -14,7 +14,7 @@ afterEach(async () => {
   await cleanUpUsers(account);
 }, 180000);
 
-describe('User', () => {
+describe('User Update', () => {
   describe('Update', () => {
     test('Updating a user with a first name and an existing first name should be supported', async () => {
       const original = await addUser(account, { firstName: 'first - test user' });

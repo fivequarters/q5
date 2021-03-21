@@ -52,7 +52,7 @@ const demoteFunction = async (targetVersion?: number) => {
   await dynamo.updateItem(params).promise();
 };
 
-describe('function.versions', () => {
+describe('Function Version', () => {
   test('metadata version increases with each call', async () => {
     disableFunctionUsageRestriction();
 
