@@ -1,15 +1,19 @@
 import { DynamoDB } from 'aws-sdk';
 import create_error from 'http-errors';
+import * as superagent from 'superagent';
+
+import { Request, Response, NextFunction } from 'express';
 
 import * as Constants from '@5qtrs/constants';
 
 import { IFunctionApiRequest } from './Request';
 
-const MAX_CACHE_REFRESH_TTL = 60 * 1000; // Don't refresh more often than once a minute.
+const MAX_CACHE_REFRESH_RATE = 60 * 1000; // Don't refresh more often than once a minute.
 
 interface ISubscription {
   accountId: string;
   displayName: string;
+  [key: string]: any;
 }
 
 interface ISubscriptionCache {
@@ -18,23 +22,37 @@ interface ISubscriptionCache {
 
 const loadSubscription = (cache: SubscriptionCache) => {
   return async (req: IFunctionApiRequest, res: Response, next: any) => {
+    let sub;
     try {
-      const sub = await cache.find(req.params.subscriptionId);
-      if (!sub) {
-        return next(create_error(404, 'subscription not found'));
-      }
-
-      req.params.accountId = sub.accountId;
-      return next();
+      sub = await cache.find(req.params.subscriptionId);
     } catch (e) {
       return next(e);
     }
+
+    if (!sub) {
+      return next(create_error(404, 'subscription not found'));
+    }
+    req.subscription = sub;
+    req.params.accountId = sub.accountId;
+    return next();
+  };
+};
+
+const refreshSubscription = (cache: SubscriptionCache) => {
+  return async (req: IFunctionApiRequest, res: any, next: any) => {
+    let when;
+    try {
+      when = await cache.refresh();
+    } catch (error) {
+      return next(create_error(501, error));
+    }
+    res.json({ cache: when }).send();
   };
 };
 
 class SubscriptionCache {
   protected cache: ISubscriptionCache = {};
-  protected cacheRefreshTtl: number;
+  protected allowRefreshAfter: number;
   protected dynamo: DynamoDB;
 
   constructor(options: any) {
@@ -47,28 +65,24 @@ class SubscriptionCache {
         },
         maxRetries: 3,
       });
-    this.cacheRefreshTtl = 0;
+    this.allowRefreshAfter = 0;
   }
 
   public async find(key: string): Promise<ISubscription | undefined> {
-    try {
-      const result = this.cache[key];
-      if (result) {
-        return result;
-      }
-
-      await this.refresh();
-    } catch (e) {
-      return undefined;
+    const result = this.cache[key];
+    if (result) {
+      return result;
     }
+
+    await this.refresh();
 
     // May still fail if the entry isn't found in the cache.
     return this.cache[key];
   }
 
   public async refresh() {
-    if (this.cacheRefreshTtl > Date.now()) {
-      return;
+    if (this.allowRefreshAfter > Date.now()) {
+      return this.allowRefreshAfter;
     }
 
     const params = {
@@ -76,19 +90,15 @@ class SubscriptionCache {
     };
 
     const results = await Constants.dynamoScanTable(this.dynamo, params, (entry: any) => {
-      // Valid DynamoDB record according to typescript?
-      if (
-        !entry.accountId ||
-        !entry.accountId.S ||
-        !entry.subscriptionId ||
-        !entry.subscriptionId.S ||
-        !entry.displayName ||
-        !entry.displayName.S
-      ) {
-        return;
-      }
+      const result: { [name: string]: any } = {};
+      Object.entries(entry).forEach((e) => {
+        result[e[0]] = Object.values(entry[e[0]])[0];
+      });
 
-      return { subscriptionId: entry.subscriptionId.S, accountId: entry.accountId.S, displayName: entry.displayName.S };
+      // Deserialize the limits field, if present
+      result.limits = result.limits && JSON.parse(result.limits);
+
+      return result;
     });
 
     // Don't throw away the cache if the dynamo lookup returned no items.
@@ -101,10 +111,14 @@ class SubscriptionCache {
 
     // Populate it with the new items found
     results.forEach((entry: any) => {
-      this.cache[entry.subscriptionId] = { accountId: entry.accountId, displayName: entry.displayName };
+      this.cache[entry.subscriptionId] = entry;
     });
 
     console.log(`CACHE: Subscription cache refreshed: ${results.length} subscriptions loaded`);
+
+    this.allowRefreshAfter = Date.now() + MAX_CACHE_REFRESH_RATE;
+
+    return this.allowRefreshAfter;
   }
 
   // Fastest way to see if a javascript dictionary has any members.
@@ -114,6 +128,25 @@ class SubscriptionCache {
     }
     throw new Error('subscription cache not loaded');
   }
+
+  public async requestRefresh(req: Request, res: Response, next: NextFunction) {
+    let when;
+    try {
+      when = await this.refresh();
+    } catch (error) {
+      return next(create_error(501, error));
+    }
+
+    let instanceId: string = 'localhost';
+    try {
+      // Hit the aws metadata service to get the current instance id.
+      instanceId = (
+        await superagent.get('http://169.254.169.254/latest/meta-data/instance-id').timeout({ response: 1000 })
+      ).text;
+    } catch (e) {}
+
+    res.json({ cache: when, who: instanceId }).send();
+  }
 }
 
-export { SubscriptionCache, loadSubscription };
+export { SubscriptionCache, loadSubscription, refreshSubscription };

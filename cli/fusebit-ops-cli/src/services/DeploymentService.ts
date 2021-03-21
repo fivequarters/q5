@@ -195,6 +195,29 @@ export class DeploymentService {
     return subscription as IFusebitSubscription;
   }
 
+  public async limitSubscription(subscription: IFusebitSubscription): Promise<void> {
+    const opsDataContext = await this.opsService.getOpsDataContext();
+    const deploymentData = opsDataContext.deploymentData;
+
+    await this.executeService.execute(
+      {
+        header: 'Limit Subscription',
+        message: `Limiting '${Text.bold(subscription.subscription as string)}' to ${Text.bold(
+          `${subscription.limits ? subscription.limits.concurrency : 'unlimited'}`
+        )} concurrent executions`,
+        errorHeader: 'Subscription Error',
+      },
+      () => deploymentData.limitSubscription(subscription.account as string, subscription)
+    );
+
+    this.executeService.result(
+      'Subscription Limited',
+      `Limit applied to '${Text.bold(subscription.subscription as string)}'.  Issue a '${Text.bold(
+        '/v1/refresh'
+      )}' request to each instance in the stack to apply the new limit.`
+    );
+  }
+
   public async initAdmin(deployment: IOpsDeployment, init: IInitAdmin): Promise<IInitAdmin> {
     const opsDataContext = await this.opsService.getOpsDataContext();
     const deploymentData = opsDataContext.deploymentData;
@@ -394,10 +417,14 @@ export class DeploymentService {
           s.id,
           Text.eol(),
           Text.dim('Subscription Name: '),
-          s.displayName || '<Not set>',
-          Text.eol(),
-          Text.eol()
+          s.displayName || '<Not set>'
         );
+        if (s.limits) {
+          Object.entries(s.limits).forEach((e: [string, number]) => {
+            details.push(Text.eol(), Text.dim(`Limit '${e[0]}': `), `${e[1]}`);
+          });
+        }
+        details.push(Text.eol(), Text.eol());
       });
     }
 
@@ -492,9 +519,14 @@ export class DeploymentService {
       subscription.region,
     ];
 
-    await this.executeService.message(
-      Text.bold((subscription.subscriptionName || subscription.subscription) as string),
-      Text.create(details)
-    );
+    if (subscription.limits) {
+      Object.entries(subscription.limits).forEach((e: [string, number]) => {
+        details.push(Text.eol(), Text.dim(`Limit '${e[0]}': `), `${e[1]}`);
+      });
+      await this.executeService.message(
+        Text.bold((subscription.subscriptionName || subscription.subscription) as string),
+        Text.create(details)
+      );
+    }
   }
 }

@@ -7,6 +7,7 @@ import { IDataSource } from '@5qtrs/data';
 export interface ISubscription {
   id?: string;
   displayName?: string;
+  limits?: ISubscriptionLimits;
 }
 
 export interface IListSubscriptionsOptions {
@@ -18,6 +19,10 @@ export interface IListSubscriptionsOptions {
 export interface IListSubscriptionsResult {
   next?: string;
   items: ISubscription[];
+}
+
+export interface ISubscriptionLimits {
+  concurrency: number;
 }
 
 export interface ISubscriptionData extends IDataSource {

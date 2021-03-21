@@ -177,6 +177,18 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
     }
   }
 
+  public async limitSubscription(account: string, subscription: IFusebitSubscription): Promise<void> {
+    debug('LIMIT SUBSCRIPTION', subscription);
+    const awsConfig = await this.provider.getAwsConfigForDeployment(subscription.deploymentName, subscription.region);
+
+    const accountDataFactory = await AccountDataAwsContextFactory.create(awsConfig);
+    const accountData = await accountDataFactory.create(this.config);
+
+    const currentSubscription = await accountData.subscriptionData.get(account, subscription.subscription as string);
+    currentSubscription.limits = { concurrency: -1, ...currentSubscription.limits, ...subscription.limits };
+    await accountData.subscriptionData.update(account, currentSubscription);
+  }
+
   public async get(deploymentName: string, region: string): Promise<IOpsDeployment> {
     return this.tables.deploymentTable.get(deploymentName, region);
   }
