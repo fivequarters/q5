@@ -1,4 +1,4 @@
-FROM node:10.15.3-slim
+FROM node:14.16.0-alpine3.13
 
 WORKDIR /fuse
 

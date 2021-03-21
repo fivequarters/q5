@@ -1,9 +1,9 @@
 {
-  "version": "1.18.22",
+  "version": "9.18.22",
   "private": true,
   "org": "5qtrs",
   "engines": {
-    "node": "10.15.3",
+    "node": "14.16.0",
     "yarn": "1.21.1"
   },
   "scripts": {
