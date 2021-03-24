@@ -16,7 +16,7 @@ const defaultMainPrefix = 'ops';
 const defaultMonoRepoName = 'fusebit-mono';
 const defaultMonoInstanceType = 't3.medium';
 const defaultMonoApiPort = 80;
-const defaultUbuntuServerVersion = '18.04';
+const defaultUbuntuServerVersion = '20.04';
 const defaultMonoInstanceProfileName = 'fusebit-EC2-instance';
 const defaultMonoHealthCheckGracePeriod = 300;
 const defaultCronFilter = 'ctx => true;';
