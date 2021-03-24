@@ -56,7 +56,7 @@ export async function readDirectory(
       if (!isItemDirectory || !options.filesOnly) {
         filteredItems.push(item);
       }
-      if (isItemDirectory && options.recursive) {
+      if (isItemDirectory && options.recursive && itemPath !== 'node_modules') {
         const childItems = await readDirectory(itemPath, recursiveOptions);
         joinPaths(item, childItems);
         filteredItems.push(...childItems);
