@@ -2,7 +2,7 @@ const Assert = require('assert');
 const Joi = require('joi');
 const create_error = require('http-errors');
 
-module.exports = function validate_schema_factory(options) {
+export default validate_schema = function validate_schema_factory(options) {
   return function validate_schema(req, res, next) {
     for (let p in options) {
       Assert.ok(req[p], `req.${p} must be present for validation to work`);

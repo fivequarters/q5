@@ -28,6 +28,10 @@ exports.enterHandler = (modality) => {
     req.requestId = uuidv4();
     res.metrics = {};
 
+    if (req.analyticsModality) {
+      modality = req.analyticsModality;
+    }
+
     let end = res.end;
     res.end = (chunk, encoding, callback) => {
       res.endTime = Date.now();
@@ -75,6 +79,11 @@ exports.enterHandler = (modality) => {
     };
     next();
   };
+};
+
+exports.setModality = (modality) => (req, res, next) => {
+  req.analyticsModality = modality;
+  return next();
 };
 
 exports.finished = (err, req, res, next) => {
