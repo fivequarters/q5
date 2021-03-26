@@ -32,7 +32,7 @@ function getTemplateDirectoryPath(): string {
 }
 
 async function getTemplateFiles(): Promise<string[]> {
-  return readDirectory(getTemplateDirectoryPath(), { joinPaths: false, filesOnly: true, ignoreDependencies: true });
+  return readDirectory(getTemplateDirectoryPath(), { joinPaths: false, filesOnly: true, ignore: ['node_modules'] });
 }
 
 async function getTemplateOverWriteFiles(path: string): Promise<string[]> {
@@ -60,7 +60,7 @@ async function getSaveOverWriteFiles(path: string, functionSpec: any): Promise<s
     recursive: false,
     filesOnly: true,
     joinPaths: false,
-    ignoreDependencies: true,
+    ignore: ['node_modules'],
   });
 
   const overwriteFiles = [];
@@ -250,7 +250,7 @@ export class FunctionService {
       filesOnly: true,
       joinPaths: false,
       recursive: true,
-      ignoreDependencies: true,
+      ignore: ['node_modules'],
     });
     for (const file of files) {
       if (file !== '.gitignore' && file !== 'fusebit.json') {

@@ -31,7 +31,6 @@ export async function readDirectory(
     filesOnly?: boolean;
     errorIfNotExist?: boolean;
     ignore?: string[];
-    ignoreDependencies?: boolean;
   } = {}
 ): Promise<string[]> {
   options.recursive = options.recursive === false ? false : true;
@@ -44,20 +43,14 @@ export async function readDirectory(
       throw error;
     }
   }
-  const ignore = options.ignore || [];
-  if (options.ignoreDependencies) {
-    ignore.push('node_modules');
+
+  if (options.ignore) {
+    items = items.filter((item) => !options.ignore?.includes(item));
   }
-  items = items.filter((item) => !ignore.includes(item));
 
   if (options.recursive || options.filesOnly) {
     const filteredItems = [];
-    const recursiveOptions = {
-      filesOnly: options.filesOnly,
-      recursive: true,
-      ignore: options.ignore,
-      ignoreDependencies: options.ignoreDependencies,
-    };
+    const recursiveOptions = { filesOnly: options.filesOnly, recursive: true, ignore: options.ignore };
 
     for (const item of items) {
       const itemPath = join(path, item);

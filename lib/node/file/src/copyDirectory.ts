@@ -13,7 +13,6 @@ async function recursiveCopy(sourcePath: string, destinationPath: string, option
     errorIfNotExist: options.errorIfNotExist,
     recursive: false,
     ignore: options.ignore,
-    ignoreDependencies: options.ignoreDependencies,
   });
 
   for (const item of items) {
@@ -26,6 +25,7 @@ async function recursiveCopy(sourcePath: string, destinationPath: string, option
           errorIfNotExist: options.errorIfNotExist,
           filesOnly: options.filesOnly,
           recursive: true,
+          ignore: options.ignore,
         };
         await recursiveCopy(itemSourcePath, itemDestinationPath, recursiveOptions);
       }
@@ -57,7 +57,6 @@ export async function copyDirectory(
     errorIfNotExist?: boolean;
     errorIfExists?: boolean;
     ignore?: string[];
-    ignoreDependencies?: boolean;
   } = {}
 ): Promise<void> {
   options.ensurePath = options.ensurePath === false ? false : true;
