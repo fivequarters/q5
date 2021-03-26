@@ -139,10 +139,10 @@ const helloWorldWithCron = {
   },
 };
 
-const helloWorldWithNode8JavaScript = {
+const helloWorldWithNode10JavaScript = {
   nodejs: {
     files: {
-      'index.js': 'module.exports = (ctx, cb) => cb(null, { body: "hello" });',
+      'index.js': 'module.exports = (ctx, cb) => cb(null, { body: process.version });',
       'package.json': {
         engines: {
           node: '10',
@@ -153,16 +153,41 @@ const helloWorldWithNode8JavaScript = {
   },
 };
 
-const helloWorldWithNode8String = {
+const helloWorldWithNode10String = {
   nodejs: {
     files: {
-      'index.js': 'module.exports = (ctx, cb) => cb(null, { body: "hello" });',
+      'index.js': 'module.exports = (ctx, cb) => cb(null, { body: process.version });',
       'package.json': JSON.stringify({
         engines: {
           node: '10',
         },
         dependencies: {},
       }),
+    },
+  },
+};
+
+const helloWorldWithNodeDefaultJavaScript = {
+  nodejs: {
+    files: {
+      'index.js': 'module.exports = (ctx, cb) => cb(null, { body: process.version });',
+      'package.json': {
+        dependencies: {},
+      },
+    },
+  },
+};
+
+const helloWorldWithNode14JavaScript = {
+  nodejs: {
+    files: {
+      'index.js': 'module.exports = (ctx, cb) => cb(null, { body: process.version });',
+      'package.json': {
+        engines: {
+          node: '14',
+        },
+        dependencies: {},
+      },
     },
   },
 };
@@ -197,6 +222,30 @@ const helloWorldWithBadMustache = {
 };
 
 describe('Function', () => {
+  test('PUT succeeds with supported node.js version 14', async () => {
+    const response = await putFunction(account, boundaryId, function1Id, helloWorldWithNode14JavaScript);
+    expect(response).toBeHttp({ statusCode: 200 });
+    const version = await request(response.data.location);
+    expect(version).toBeHttp({ statusCode: 200 });
+    expect(version.data).toMatch(/^v14/);
+  }, 120000);
+
+  test('PUT succeeds with supported node.js version 10', async () => {
+    const response = await putFunction(account, boundaryId, function1Id, helloWorldWithNode10JavaScript);
+    expect(response).toBeHttp({ statusCode: 200 });
+    const version = await request(response.data.location);
+    expect(version).toBeHttp({ statusCode: 200 });
+    expect(version.data).toMatch(/^v10/);
+  }, 120000);
+
+  test('PUT succeeds with default node.js matching version 14', async () => {
+    const response = await putFunction(account, boundaryId, function1Id, helloWorldWithNodeDefaultJavaScript);
+    expect(response).toBeHttp({ statusCode: 200 });
+    const version = await request(response.data.location);
+    expect(version).toBeHttp({ statusCode: 200 });
+    expect(version.data).toMatch(/^v14/);
+  }, 120000);
+
   test('PUT completes synchronously', async () => {
     const response = await putFunction(account, boundaryId, function1Id, helloWorld);
     expect(response).toBeHttp({ statusCode: 200 });
@@ -490,7 +539,7 @@ describe('Function', () => {
   }, 120000);
 
   test('GET retrieves information of function with package.json as JavaScript object', async () => {
-    let response = await putFunction(account, boundaryId, function2Id, helloWorldWithNode8JavaScript);
+    let response = await putFunction(account, boundaryId, function2Id, helloWorldWithNode10JavaScript);
     expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
     response = await getFunction(account, boundaryId, function2Id);
     expect(response).toBeHttp({ statusCode: 200 });
@@ -500,7 +549,7 @@ describe('Function', () => {
       id: function2Id,
       location: expect.stringMatching(/^http:|https:/),
     });
-    expect(response.data.nodejs).toEqual(helloWorldWithNode8JavaScript.nodejs);
+    expect(response.data.nodejs).toEqual(helloWorldWithNode10JavaScript.nodejs);
     expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: false });
     expect(response.data.computeSerialized).toBeUndefined();
     expect(response.data.configuration).toBeUndefined();
@@ -511,7 +560,7 @@ describe('Function', () => {
   }, 120000);
 
   test('GET retrieves information of function with package.json as string', async () => {
-    let response = await putFunction(account, boundaryId, function2Id, helloWorldWithNode8String);
+    let response = await putFunction(account, boundaryId, function2Id, helloWorldWithNode10String);
     expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
     response = await getFunction(account, boundaryId, function2Id);
     expect(response).toBeHttp({ statusCode: 200 });
@@ -521,7 +570,7 @@ describe('Function', () => {
       id: function2Id,
       location: expect.stringMatching(/^http:|https:/),
     });
-    expect(response.data.nodejs).toEqual(helloWorldWithNode8String.nodejs);
+    expect(response.data.nodejs).toEqual(helloWorldWithNode10String.nodejs);
     expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: false });
     expect(response.data.computeSerialized).toBeUndefined();
     expect(response.data.configuration).toBeUndefined();
