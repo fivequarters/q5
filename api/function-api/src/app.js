@@ -16,7 +16,7 @@ app.use(logger(process.stdout.isTTY ? 'dev' : 'combined'));
 //logActiveRequests();
 
 // Expose the v2 API
-//app.use('/v2/', require('./routes/v2_api'));
+app.use('/v2/', require('./routes/v2_api'));
 
 // Expose the v1 API over both v1 or v2.
 app.use('/v[12]?/', require('./routes/v1_api'));

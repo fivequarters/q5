@@ -31,7 +31,7 @@ const management = (options: ICommonOptions): Middleware[] => {
     options.authorize && authorize(options.authorize),
     express.json(),
     lateValidate && validate_schema(lateValidate),
-  ] as Middleware[];
+  ].filter((x) => x) as Middleware[];
 };
 
 const cors = () => [Cors(corsManagementOptions)];

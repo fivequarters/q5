@@ -114,7 +114,6 @@ router.get('/refresh', (req, res, next) => subscriptionCache.requestRefresh(req,
 
 // Accounts
 
-console.log(`XXX Validate_schema: ${require('util').inspect(validate_schema)}`);
 router.options('/account', cors(corsManagementOptions));
 router.post(
   '/account',
