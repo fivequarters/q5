@@ -17,7 +17,7 @@ interface ICommonOptions {
   authorize?: object;
 }
 
-type Middleware = (req: express.Request, res: express.Response, next: express.NextFunction) => void;
+type Middleware = (req: express.Request, res: express.Response, next: express.NextFunction) => void | Promise<void>;
 
 const management = (options: ICommonOptions): Middleware[] => {
   const [earlyValidate, lateValidate] = Array.isArray(options.validate)

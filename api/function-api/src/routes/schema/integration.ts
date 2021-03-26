@@ -1,9 +1,12 @@
 import express from 'express';
 
 import * as common from '../middleware/common';
+import * as analytics from '../middleware/analytics';
+
 import taggedEntity from './tagged';
 import session from './session';
-import * as analytics from '../middleware/analytics';
+import health from './health';
+
 import * as integration from '../handlers/integration';
 
 const router = express.Router();
@@ -17,8 +20,9 @@ router
   .get(common.management({}), integration.getAll)
   .post(common.management({}), integration.post);
 
-router.use('/:integrationId', taggedEntity);
-router.use('/:integrationId', session);
+router.use('/:integrationId/tag', taggedEntity);
+router.use('/:integrationId/session', session);
+router.use('/:integrationId/health', health);
 
 router
   .route('/:integrationId')
@@ -33,7 +37,7 @@ router
   .get(common.management({}), integration.instance.getAll)
   .post(common.management({}), integration.instance.post);
 
-router.use('/:integrationId/instance/:instanceId', taggedEntity);
+router.use('/:integrationId/instance/:instanceId/tag', taggedEntity);
 router
   .route('/:integrationId/instance/:instanceId')
   .options(common.cors())
