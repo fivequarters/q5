@@ -60,7 +60,7 @@ async function createAnalyticsConfig(
       Role: `${awsDataConfig.arnPrefix}:iam::${awsConfig.account}:role/${awsDataConfig.analyticsRoleName}`,
       Timeout: 60,
       MemorySize: 128,
-      Runtime: 'nodejs10.x',
+      Runtime: 'nodejs14.x',
       Code: { ZipFile: zipFile },
       Environment: {
         Variables: {

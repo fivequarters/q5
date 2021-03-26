@@ -18,7 +18,7 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
-## Version 1.24.20
+## Version 1.25.0
 
 _Released 03/29/21_
 
