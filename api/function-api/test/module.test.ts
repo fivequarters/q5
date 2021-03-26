@@ -114,7 +114,7 @@ describe('Module', () => {
         },
       },
     });
-    expect(response).toBeHttpError(400, 'Unable to fully resolve module version for i-dont-exist');
+    expect(response).toBeHttpError(404, 'Unable to fully resolve module version for i-dont-exist');
   }, 15000);
 
   test('PUT fails for function with dependency that fails to build', async () => {
