@@ -30,6 +30,7 @@ export async function readDirectory(
     recursive?: boolean;
     filesOnly?: boolean;
     errorIfNotExist?: boolean;
+    ignore?: string[];
   } = {}
 ): Promise<string[]> {
   options.recursive = options.recursive === false ? false : true;
@@ -42,12 +43,15 @@ export async function readDirectory(
       throw error;
     }
   }
+  const ignore = options.ignore || [];
+  items = items.filter((item) => !ignore.includes(item));
 
   if (options.recursive || options.filesOnly) {
     const filteredItems = [];
     const recursiveOptions = {
       filesOnly: options.filesOnly,
       recursive: true,
+      ignore: options.ignore,
     };
 
     for (const item of items) {
@@ -56,7 +60,7 @@ export async function readDirectory(
       if (!isItemDirectory || !options.filesOnly) {
         filteredItems.push(item);
       }
-      if (isItemDirectory && options.recursive && itemPath !== 'node_modules') {
+      if (isItemDirectory && options.recursive) {
         const childItems = await readDirectory(itemPath, recursiveOptions);
         joinPaths(item, childItems);
         filteredItems.push(...childItems);
@@ -71,4 +75,17 @@ export async function readDirectory(
   }
 
   return items;
+}
+export async function readDirectoryWithoutDependencies(
+  path: string,
+  options: {
+    joinPaths?: boolean;
+    recursive?: boolean;
+    filesOnly?: boolean;
+    errorIfNotExist?: boolean;
+    ignore?: string[];
+  } = {}
+): Promise<string[]> {
+  const ignore = ['node_modules', ...(options.ignore || [])];
+  return readDirectory(path, { ...options, ignore });
 }
