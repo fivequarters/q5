@@ -18,6 +18,14 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.24.20
+
+_Released 03/29/21_
+
+- **Enhancement.** Upgrade to NodeJS 14.16.0.
+- **Enhancement.** Upgrade to Docker Container 14.16.0-alpine3.13
+- **Enhancement.** Upgrade to EC2 OS Image Ubuntu 20.04.
+
 ## Version 1.24.19
 
 _Released 03/17/21_
