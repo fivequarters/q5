@@ -15,4 +15,4 @@ router
 
 router.route('/tag/:tagKey/:tagValue').options(common.cors()).put(common.management({}), tags.setTag);
 
-export default router;
+export { router as default };

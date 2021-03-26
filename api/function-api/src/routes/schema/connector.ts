@@ -42,4 +42,4 @@ router
   .patch(common.management({}), connector.identity.patch)
   .delete(common.management({}), connector.identity.remove);
 
-export default router;
+export { router as default };

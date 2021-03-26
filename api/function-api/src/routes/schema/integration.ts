@@ -42,4 +42,4 @@ router
   .patch(common.management({}), integration.instance.patch)
   .delete(common.management({}), integration.instance.remove);
 
-export default router;
+export { router as default };

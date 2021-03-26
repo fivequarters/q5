@@ -14,4 +14,4 @@ router
   .get(common.management({}), session.get)
   .post(common.management({}), session.post);
 
-export default router;
+export { router as default };
