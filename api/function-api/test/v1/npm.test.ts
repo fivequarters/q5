@@ -21,8 +21,8 @@ const regScope = '@package';
 const masterAccount = 'acc-00000000';
 const masterScope = '@fuse-int';
 
-const VALID_PKG = 'test/mock/sample-npm.tgz';
-const BROKEN_PKG = 'test/mock/sample-broken-npm.tgz';
+const VALID_PKG = 'test/v1/mock/sample-npm.tgz';
+const BROKEN_PKG = 'test/v1/mock/sample-broken-npm.tgz';
 
 const funcWithDep = (pkgName: string) => ({
   nodejs: {
