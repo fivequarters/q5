@@ -1,6 +1,6 @@
 import * as semver from 'semver';
 
-import { supportedClientVersion } from '../src/routes/middleware/version_check';
+import { supportedClientVersion } from '../../src/routes/middleware/version_check';
 
 import { getFunction, putFunction } from './sdk';
 

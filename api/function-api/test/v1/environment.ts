@@ -1,9 +1,5 @@
 import { FakeAccount, resolveAccount } from './accountResolver';
 
-const newBoundaryId = (): string => {
-  return `test-boundary-${Math.floor(Math.random() * 99999999).toString(32)}`;
-};
-
 let account = FakeAccount;
 let accountToken: string;
 let boundaries: string[] = [];
@@ -18,8 +14,45 @@ const getEnv = () => {
   return { account, boundaryId: boundaries[0], function1Id, function2Id, function3Id, function4Id, function5Id };
 };
 
+const findTestLine = () => {
+  if (!expect.getState().currentTestName) {
+    return 0;
+  }
+  const testFiles = require('fs').readFileSync(expect.getState().testPath).toString('utf-8').split('\n');
+  const testWords = expect.getState().currentTestName.replace(/ /g, '|');
+  let maxLine: number = -1;
+  testFiles.reduce((maxMatch: number, line: string, lineNo: number) => {
+    const matches = line.match(new RegExp(testWords, 'g'));
+    if (matches && matches.length > maxMatch) {
+      maxLine = lineNo;
+      return matches.length;
+    }
+    return maxMatch;
+  }, 0);
+
+  return maxLine + 1;
+};
+
+const getTestWart = () => {
+  const testLn = findTestLine();
+  if (testLn === 0) {
+    return 'test-boundary';
+  }
+
+  return (
+    'test-' +
+    require('path').basename(expect.getState().testPath).replace('.test.ts', '').replace(/\./g, '-') +
+    `-${testLn}`
+  );
+};
+
+const newBoundaryId = (wart: string): string => {
+  return `${wart}-${Math.floor(Math.random() * 99999999).toString(8)}`;
+};
+
 const nextBoundary = () => {
-  boundaries = [newBoundaryId(), ...boundaries];
+  boundaries = [newBoundaryId(getTestWart()), ...boundaries];
+  console.log(`Boundary: ${boundaries[0]}`);
   return boundaries[0];
 };
 
