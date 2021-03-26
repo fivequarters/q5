@@ -2,7 +2,7 @@ import { join } from 'path';
 import { createServer } from 'http';
 import open from 'open';
 import { EventStream, IEventMessage } from '@5qtrs/event-stream';
-import { readFile, readDirectoryWithoutDependencies, exists, copyDirectory, writeFile } from '@5qtrs/file';
+import { readFile, readDirectory, exists, copyDirectory, writeFile } from '@5qtrs/file';
 import { IFusebitExecutionProfile } from '@5qtrs/fusebit-profile-sdk';
 import { Message, IExecuteInput, Confirm } from '@5qtrs/cli';
 import { Text, IText } from '@5qtrs/text';
@@ -32,7 +32,7 @@ function getTemplateDirectoryPath(): string {
 }
 
 async function getTemplateFiles(): Promise<string[]> {
-  return readDirectoryWithoutDependencies(getTemplateDirectoryPath(), { joinPaths: false, filesOnly: true });
+  return readDirectory(getTemplateDirectoryPath(), { joinPaths: false, filesOnly: true, ignoreDependencies: true });
 }
 
 async function getTemplateOverWriteFiles(path: string): Promise<string[]> {
@@ -56,10 +56,11 @@ async function getSaveOverWriteFiles(path: string, functionSpec: any): Promise<s
     functionFiles.push(envFileName);
   }
 
-  const existingFiles = await readDirectoryWithoutDependencies(path, {
+  const existingFiles = await readDirectory(path, {
     recursive: false,
     filesOnly: true,
     joinPaths: false,
+    ignoreDependencies: true,
   });
 
   const overwriteFiles = [];
@@ -245,7 +246,12 @@ export class FunctionService {
     functionSpec.scheduleSerialized = fusebitJson.scheduleSerialized;
 
     // nodejs files & configuration & configurationSerialized
-    const files = await readDirectoryWithoutDependencies(path, { filesOnly: true, joinPaths: false, recursive: true });
+    const files = await readDirectory(path, {
+      filesOnly: true,
+      joinPaths: false,
+      recursive: true,
+      ignoreDependencies: true,
+    });
     for (const file of files) {
       if (file !== '.gitignore' && file !== 'fusebit.json') {
         const content = await readFile(join(path, file));

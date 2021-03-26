@@ -13,6 +13,7 @@ async function recursiveCopy(sourcePath: string, destinationPath: string, option
     errorIfNotExist: options.errorIfNotExist,
     recursive: false,
     ignore: options.ignore,
+    ignoreDependencies: options.ignoreDependencies,
   });
 
   for (const item of items) {
@@ -56,6 +57,7 @@ export async function copyDirectory(
     errorIfNotExist?: boolean;
     errorIfExists?: boolean;
     ignore?: string[];
+    ignoreDependencies?: boolean;
   } = {}
 ): Promise<void> {
   options.ensurePath = options.ensurePath === false ? false : true;
@@ -72,20 +74,4 @@ export async function copyDirectory(
     }
     await recursiveCopy(sourcePath, destinationPath, options);
   }
-}
-
-export async function copyDirectoryWithoutDependencies(
-  sourcePath: string,
-  destinationPath: string,
-  options: {
-    ensurePath?: boolean;
-    recursive?: boolean;
-    filesOnly?: boolean;
-    errorIfNotExist?: boolean;
-    errorIfExists?: boolean;
-    ignore?: string[];
-  } = {}
-): Promise<void> {
-  const ignore = ['node_modules', ...(options.ignore || [])];
-  return copyDirectory(sourcePath, destinationPath, { ...options, ignore });
 }
