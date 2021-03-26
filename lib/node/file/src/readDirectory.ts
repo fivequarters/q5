@@ -56,6 +56,7 @@ export async function readDirectory(
       filesOnly: options.filesOnly,
       recursive: true,
       ignore: options.ignore,
+      ignoreDependencies: options.ignoreDependencies,
     };
 
     for (const item of items) {
