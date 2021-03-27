@@ -167,6 +167,20 @@ const helloWorldWithNode10JavaScript = {
   },
 };
 
+const helloWorldWithNode12JavaScript = {
+  nodejs: {
+    files: {
+      'index.js': 'module.exports = (ctx, cb) => cb(null, { body: process.version });',
+      'package.json': {
+        engines: {
+          node: '12',
+        },
+        dependencies: {},
+      },
+    },
+  },
+};
+
 const helloWorldWithNode10String = {
   nodejs: {
     files: {
@@ -247,6 +261,14 @@ describe('Function', () => {
     const version = await request(response.data.location);
     expect(version).toBeHttp({ statusCode: 200 });
     expect(version.data).toMatch(/^v10/);
+  }, 120000);
+
+  test('PUT succeeds with supported node.js version 12', async () => {
+    const response = await putFunction(account, boundaryId, function1Id, helloWorldWithNode12JavaScript);
+    expect(response).toBeHttp({ statusCode: 200 });
+    const version = await request(response.data.location);
+    expect(version).toBeHttp({ statusCode: 200 });
+    expect(version.data).toMatch(/^v12/);
   }, 120000);
 
   test('PUT succeeds with supported node.js version 14', async () => {
