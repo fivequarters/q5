@@ -139,6 +139,20 @@ const helloWorldWithCron = {
   },
 };
 
+const helloWorldWithNode8JavaScript = {
+  nodejs: {
+    files: {
+      'index.js': 'module.exports = (ctx, cb) => cb(null, { body: process.version });',
+      'package.json': {
+        engines: {
+          node: '8',
+        },
+        dependencies: {},
+      },
+    },
+  },
+};
+
 const helloWorldWithNode10JavaScript = {
   nodejs: {
     files: {
@@ -222,12 +236,9 @@ const helloWorldWithBadMustache = {
 };
 
 describe('Function', () => {
-  test('PUT succeeds with supported node.js version 14', async () => {
-    const response = await putFunction(account, boundaryId, function1Id, helloWorldWithNode14JavaScript);
-    expect(response).toBeHttp({ statusCode: 200 });
-    const version = await request(response.data.location);
-    expect(version).toBeHttp({ statusCode: 200 });
-    expect(version.data).toMatch(/^v14/);
+  test('PUT fails with unsupported node.js version 8', async () => {
+    const response = await putFunction(account, boundaryId, function1Id, helloWorldWithNode8JavaScript);
+    expect(response).toBeHttp({ statusCode: 400 });
   }, 120000);
 
   test('PUT succeeds with supported node.js version 10', async () => {
@@ -236,6 +247,14 @@ describe('Function', () => {
     const version = await request(response.data.location);
     expect(version).toBeHttp({ statusCode: 200 });
     expect(version.data).toMatch(/^v10/);
+  }, 120000);
+
+  test('PUT succeeds with supported node.js version 14', async () => {
+    const response = await putFunction(account, boundaryId, function1Id, helloWorldWithNode14JavaScript);
+    expect(response).toBeHttp({ statusCode: 200 });
+    const version = await request(response.data.location);
+    expect(version).toBeHttp({ statusCode: 200 });
+    expect(version.data).toMatch(/^v14/);
   }, 120000);
 
   test('PUT succeeds with default node.js matching version 14', async () => {
