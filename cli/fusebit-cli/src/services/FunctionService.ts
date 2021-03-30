@@ -32,7 +32,7 @@ function getTemplateDirectoryPath(): string {
 }
 
 async function getTemplateFiles(): Promise<string[]> {
-  return readDirectory(getTemplateDirectoryPath(), { joinPaths: false, filesOnly: true });
+  return readDirectory(getTemplateDirectoryPath(), { joinPaths: false, filesOnly: true, ignore: ['node_modules'] });
 }
 
 async function getTemplateOverWriteFiles(path: string): Promise<string[]> {
@@ -56,7 +56,12 @@ async function getSaveOverWriteFiles(path: string, functionSpec: any): Promise<s
     functionFiles.push(envFileName);
   }
 
-  const existingFiles = await readDirectory(path, { recursive: false, filesOnly: true, joinPaths: false });
+  const existingFiles = await readDirectory(path, {
+    recursive: false,
+    filesOnly: true,
+    joinPaths: false,
+    ignore: ['node_modules'],
+  });
 
   const overwriteFiles = [];
   for (const file of functionFiles) {
@@ -241,7 +246,12 @@ export class FunctionService {
     functionSpec.scheduleSerialized = fusebitJson.scheduleSerialized;
 
     // nodejs files & configuration & configurationSerialized
-    const files = await readDirectory(path, { filesOnly: true, joinPaths: false, recursive: true });
+    const files = await readDirectory(path, {
+      filesOnly: true,
+      joinPaths: false,
+      recursive: true,
+      ignore: ['node_modules'],
+    });
     for (const file of files) {
       if (file !== '.gitignore' && file !== 'fusebit.json') {
         const content = await readFile(join(path, file));
