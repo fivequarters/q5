@@ -22,7 +22,6 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 _Released 03/29/21_
 
 - **Bugfix.** Corrected response code from npm cdns to be 400 instead of 503.
-- **Enhancement.** Function publishes now ignore the `node_modules` directory in the event that an `npm install` command was run.
 
 ## Version 1.18.22
 
