@@ -16,6 +16,11 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- prettier-ignore -->
 <!-- 1. TOC
 {:toc} -->
+## Version 1.8.13
+
+_Released 12/3/20_
+
+- **Bugfix.** Fixed argument slice range for `npm exec` command.
 
 ## Version 1.8.12
 
