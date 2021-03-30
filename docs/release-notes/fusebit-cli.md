@@ -18,7 +18,7 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 {:toc} -->
 ## Version 1.8.13
 
-_Released 12/3/20_
+_Released 03/29/21_
 
 - **Bugfix.** Fixed argument slice range for `npm exec` command.
 
