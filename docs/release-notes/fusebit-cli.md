@@ -17,6 +17,12 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.9.0
+
+_Released 3/29/21_
+
+- **Enhancement.** Remove the specified `"engine": "10"` clause from the default function template.
+
 ## Version 1.8.12
 
 _Released 12/3/20_
