@@ -21,6 +21,7 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 _Released 03/29/21_
 
 - **Bugfix.** Fixed argument slice range for `npm exec` command.
+- **Enhancement.** Function publishes now ignore the `node_modules` directory in the event that an `npm install` command was run.
 
 ## Version 1.8.12
 
