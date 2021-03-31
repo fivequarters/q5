@@ -9,7 +9,11 @@ import { readDirectory } from './readDirectory';
 // ------------------
 
 async function recursiveCopy(sourcePath: string, destinationPath: string, options: any): Promise<void> {
-  const items = await readDirectory(sourcePath, { errorIfNotExist: options.errorIfNotExist, recursive: false });
+  const items = await readDirectory(sourcePath, {
+    errorIfNotExist: options.errorIfNotExist,
+    recursive: false,
+    ignore: options.ignore,
+  });
 
   for (const item of items) {
     const itemSourcePath = join(sourcePath, item);
@@ -21,6 +25,7 @@ async function recursiveCopy(sourcePath: string, destinationPath: string, option
           errorIfNotExist: options.errorIfNotExist,
           filesOnly: options.filesOnly,
           recursive: true,
+          ignore: options.ignore,
         };
         await recursiveCopy(itemSourcePath, itemDestinationPath, recursiveOptions);
       }
@@ -51,6 +56,7 @@ export async function copyDirectory(
     filesOnly?: boolean;
     errorIfNotExist?: boolean;
     errorIfExists?: boolean;
+    ignore?: string[];
   } = {}
 ): Promise<void> {
   options.ensurePath = options.ensurePath === false ? false : true;

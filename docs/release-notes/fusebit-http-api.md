@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.18.23
+
+_Released 03/29/21_
+
+- **Bugfix.** Corrected response code from npm cdns to be 400 instead of 503.
+
 ## Version 1.18.22
 
 _Released 03/18/21_
