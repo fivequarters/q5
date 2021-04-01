@@ -444,7 +444,7 @@ class AwsRegistry implements IRegistryStore {
   }
 
   private getS3ManifestPath(nameVer: string): string {
-    return [s3Path, this.keyPrefix, `${nameVer}_manifest`].join('/');
+    return `${this.getS3Path(nameVer)}_manifest`;
   }
 
   private s3Package = { location: 's3' };
