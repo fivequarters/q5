@@ -30,6 +30,7 @@ export async function readDirectory(
     recursive?: boolean;
     filesOnly?: boolean;
     errorIfNotExist?: boolean;
+    followSymlinks?: boolean;
     ignore?: string[];
   } = {}
 ): Promise<string[]> {
@@ -50,15 +51,23 @@ export async function readDirectory(
 
   if (options.recursive || options.filesOnly) {
     const filteredItems = [];
-    const recursiveOptions = { filesOnly: options.filesOnly, recursive: true, ignore: options.ignore };
+    const recursiveOptions = {
+      filesOnly: options.filesOnly,
+      recursive: true,
+      ignore: options.ignore,
+      followSymlinks: options.followSymlinks,
+    };
 
     for (const item of items) {
-      const itemPath = join(path, item);
-      const isItemDirectory = await isDirectory(itemPath);
+      let itemPath = join(path, item);
+      const isItemDirectory = await isDirectory(itemPath, options.followSymlinks);
       if (!isItemDirectory || !options.filesOnly) {
         filteredItems.push(item);
       }
       if (isItemDirectory && options.recursive) {
+        if (options.followSymlinks) {
+          itemPath = fs.realpathSync(itemPath);
+        }
         const childItems = await readDirectory(itemPath, recursiveOptions);
         joinPaths(item, childItems);
         filteredItems.push(...childItems);

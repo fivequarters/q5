@@ -211,7 +211,7 @@ export class FunctionService {
     );
   }
 
-  public async getFunctionSpec(path: string, cron?: string, timezone?: string): Promise<any> {
+  public async getFunctionSpec(path: string, cron?: string, timezone?: string, links?: string[]): Promise<any> {
     const functionSpec: any = { nodejs: { files: {} } };
     const fusebitJson = (await this.getFusebitJson(path)) || {};
 
@@ -246,12 +246,41 @@ export class FunctionService {
     functionSpec.scheduleSerialized = fusebitJson.scheduleSerialized;
 
     // nodejs files & configuration & configurationSerialized
-    const files = await readDirectory(path, {
+    let files = await readDirectory(path, {
       filesOnly: true,
       joinPaths: false,
       recursive: true,
-      ignore: ['node_modules'],
+      followSymlinks: true,
+      ...(links ? {} : { ignore: ['node_modules'] }),
     });
+
+    const linkAddedDependencies: { [dep: string]: string } = {};
+    if (links) {
+      const linksRegex = new RegExp(
+        links.reduce((acc: string, link: string) => `${acc}|^node_modules/${link}`, `^node_modules/${links[0]}`)
+      );
+      const noSubNodeModulesRegex = new RegExp('node_modules.*node_modules');
+      const packageJsonRegex = new RegExp(
+        links.reduce(
+          (acc: string, link: string) => `${acc}|^node_modules/${link}/package.json`,
+          `^node_modules/${links[0]}/package.json`
+        )
+      );
+
+      // Filter out non-linked modules.
+      files = files.filter(
+        (file) => file.indexOf('node_modules') === -1 || (file.match(linksRegex) && !file.match(noSubNodeModulesRegex))
+      );
+
+      // Load the dependencies from linked modules, and store them for insertion at the top level.
+      const pkgJsons = files.filter((file) => file.match(packageJsonRegex));
+      for (const pkgJson of pkgJsons) {
+        for (const [dep, semver] of Object.entries(JSON.parse(await readFile(join(path, pkgJson))).dependencies)) {
+          linkAddedDependencies[dep] = semver as string;
+        }
+      }
+    }
+
     for (const file of files) {
       if (file !== '.gitignore' && file !== 'fusebit.json') {
         const content = await readFile(join(path, file));
@@ -275,6 +304,15 @@ export class FunctionService {
           "' file. Make sure it exists in the source directory."
         )
       );
+    }
+
+    // Add dependencies gleaned from links to the top level package.json, and remove any modules specified in
+    // links from the dependencies.
+    if (links && functionSpec.nodejs.files['package.json']) {
+      const pkg = JSON.parse(functionSpec.nodejs.files['package.json']);
+      pkg.dependencies = { ...linkAddedDependencies, ...pkg.dependencies };
+      links.forEach((link) => delete pkg.dependencies[link]);
+      functionSpec.nodejs.files['package.json'] = JSON.stringify(pkg);
     }
 
     if (functionSpec.metadata && functionSpec.metadata.fusebit) {

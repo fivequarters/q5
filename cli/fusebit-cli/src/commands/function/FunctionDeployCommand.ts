@@ -47,6 +47,23 @@ const command = {
       ),
     },
     {
+      name: 'link',
+      aliases: ['l'],
+      description: Text.create(
+        'Specify a package that has already been installed in the ',
+        Text.bold('node_modules'),
+        ' directory to be directly loaded into the function. Any dependencies of the package will be added to the top-level ',
+        Text.bold('package.json'),
+        ' file in the function. This is intended to be used with the ',
+        Text.bold('npm link'),
+        ' command, but can be used for unpublished private packages installed via ',
+        Text.bold('npm install'),
+        ' as well.'
+      ),
+      type: ArgType.string,
+      allowMany: true,
+    },
+    {
       name: 'timezone',
       aliases: ['t'],
       description: [
@@ -87,6 +104,7 @@ export class FunctionDeployCommand extends Command {
     const functionId = input.arguments[0] as string;
     const sourceDir = input.options.dir as string;
     const cron = input.options.cron as string;
+    const links = input.options.link as string[];
     const timezone = input.options.timezone as string;
 
     const functionService = await FunctionService.create(input);
@@ -95,7 +113,7 @@ export class FunctionDeployCommand extends Command {
     await executeService.newLine();
 
     const sourcePath = sourceDir ? join(process.cwd(), sourceDir) : process.cwd();
-    const functionSpec = await functionService.getFunctionSpec(sourcePath, cron, timezone);
+    const functionSpec = await functionService.getFunctionSpec(sourcePath, cron, timezone, links);
 
     await functionService.confirmDeploy(sourcePath, functionSpec, functionId, cron);
 

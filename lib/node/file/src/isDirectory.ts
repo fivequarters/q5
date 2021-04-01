@@ -11,10 +11,13 @@ const lstat = promisify(fs.lstat);
 // Exported Functions
 // ------------------
 
-export async function isDirectory(path: string): Promise<boolean> {
+export async function isDirectory(path: string, followSymlinks?: boolean): Promise<boolean> {
   try {
     const stats = await lstat(path);
-    return stats.isDirectory();
+    if (!followSymlinks || !stats.isSymbolicLink()) {
+      return stats.isDirectory();
+    }
+    return isDirectory(fs.realpathSync(path), followSymlinks);
   } catch (error) {
     return false;
   }
