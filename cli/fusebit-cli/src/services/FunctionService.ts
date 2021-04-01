@@ -306,12 +306,23 @@ export class FunctionService {
       );
     }
 
+    if (!links && functionSpec.nodejs.files['package.json']) {
+      // If links weren't specified, but were present in package.json (because the function was pulled
+      // down from fusebit), preserve by retrying the process with them as parameters.  This keeps the command
+      // line tool capable of supporting a roundtrip.
+      const pkg = JSON.parse(functionSpec.nodejs.files['package.json']);
+      if (pkg.links) {
+        return this.getFunctionSpec(path, cron, timezone, pkg.links);
+      }
+    }
+
     // Add dependencies gleaned from links to the top level package.json, and remove any modules specified in
     // links from the dependencies.
     if (links && functionSpec.nodejs.files['package.json']) {
       const pkg = JSON.parse(functionSpec.nodejs.files['package.json']);
       pkg.dependencies = { ...linkAddedDependencies, ...pkg.dependencies };
       links.forEach((link) => delete pkg.dependencies[link]);
+      pkg.links = links;
       functionSpec.nodejs.files['package.json'] = JSON.stringify(pkg);
     }
 
