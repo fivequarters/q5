@@ -918,7 +918,7 @@ router.put(
   user_agent(),
   check_agent_version(),
   determine_provider(),
-  express.json(),
+  express.json({ limit: process.env.PACKAGE_SIZE_LIMIT || '1000kb' }),
   npmRegistry(),
   npm.revisionPut(),
   analytics.finished

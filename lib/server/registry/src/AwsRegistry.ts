@@ -18,6 +18,8 @@ const s3Path = 'registry/npm';
 
 type ExpressHandler = (reqExpress: Request, res: Response, next: any) => any;
 
+const DdbByteSizeLimit = 300 * 1000;
+
 class AwsRegistry implements IRegistryStore {
   public static handler(events: IRegistryEvents): ExpressHandler {
     return (reqExpress: Request, res: Response, next: any) => {
@@ -79,19 +81,9 @@ class AwsRegistry implements IRegistryStore {
     }
 
     // Add record to dynamodb.
-    const useS3 = Buffer.byteLength(JSON.stringify(pkg), 'utf8') >= 400000;
-    const pkgToSave = useS3 ? this.s3Package : pkg;
-    await this.ddb
-      .putItem({
-        TableName: this.tableName,
-        Item: {
-          category: { S: Constants.REGISTRY_CATEGORY },
-          key: { S: this.getDynamoKey(name) },
-          pkg: { S: JSON.stringify(pkgToSave) },
-          name: { S: pkg.name },
-        },
-      })
-      .promise();
+    const stringifyPkg = JSON.stringify(pkg);
+    const useS3 = Buffer.byteLength(stringifyPkg, 'utf8') >= DdbByteSizeLimit;
+    const ddbPkg = useS3 ? JSON.stringify(this.s3Package) : stringifyPkg;
 
     if (useS3) {
       // Add manifest to S3
@@ -100,10 +92,29 @@ class AwsRegistry implements IRegistryStore {
           Bucket: process.env.AWS_S3_BUCKET as string,
           ContentType: 'application/json; charset=utf-8',
           Key: this.getS3ManifestPath(name),
-          Body: JSON.stringify(pkg),
+          Body: stringifyPkg,
+        })
+        .promise();
+    } else {
+      await this.s3
+        .deleteObject({
+          Bucket: process.env.AWS_S3_BUCKET as string,
+          Key: this.getS3ManifestPath(name),
         })
         .promise();
     }
+
+    await this.ddb
+      .putItem({
+        TableName: this.tableName,
+        Item: {
+          category: { S: Constants.REGISTRY_CATEGORY },
+          key: { S: this.getDynamoKey(name) },
+          pkg: { S: ddbPkg },
+          name: { S: pkg.name },
+        },
+      })
+      .promise();
 
     if (this.events.onNewPackage) {
       return this.events.onNewPackage(name, ver, this.keyPrefix);
@@ -433,13 +444,13 @@ class AwsRegistry implements IRegistryStore {
   }
 
   private getS3ManifestPath(nameVer: string): string {
-    return [s3Path, this.keyPrefix, nameVer + '_manifest'].join('/');
+    return [s3Path, this.keyPrefix, `${nameVer}_manifest`].join('/');
   }
 
   private s3Package = { location: 's3' };
 
-  private isS3Package(pkg: object): boolean {
-    return pkg.location === 's3';
+  private isS3Package(pkg: { location?: string }): boolean {
+    return pkg && pkg.location === this.s3Package.location;
   }
 }
 
