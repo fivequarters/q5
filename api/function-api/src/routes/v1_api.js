@@ -98,7 +98,23 @@ const traceEvent = (key) => {
   };
 };
 
-// Health and Private Interfaces
+// Segment example code
+const Segment = require('analytics-node');
+const segment = new Segment('i0hkFvCFkzg6yuAtLrAFPshFERv5mM9Y');
+
+const segmentEvent = (eventKey) => {
+  return (req, res, next) => {
+    if (req.resolvedAgent) {
+      const reqIdentity = [req.resolvedAgent.identities[0].issuerId, req.resolvedAgent.identities[0].subject].join('/');
+       // Doesn't need to be called every request, but KISS for the moment.
+       segment.identify({userId: reqIdentity, traits: { subscriptionId: req.params.subscriptionId } });
+       segment.track({userId: reqIdentity, event: eventKey, properties: { ...req.params }});
+    }
+    next();
+  }
+}
+
++// Health and Private Interfaces
 
 router.get(
   '/health',
@@ -295,6 +311,7 @@ router.post(
   authorize({ operation: AccountActions.addUser }),
   express.json(),
   validate_schema({ body: require('./schemas/user') }),
+  segmentEvent('userPost'),
   user.userPost(),
   analytics.finished
 );
@@ -367,6 +384,7 @@ router.post(
   authorize({ operation: AccountActions.addClient }),
   express.json(),
   validate_schema({ body: require('./schemas/client') }),
+  segmentEvent('clientPost'),
   client.clientPost(),
   analytics.finished
 );
@@ -503,6 +521,7 @@ router.put(
     req.keyStore = keyStore;
     next();
   },
+  segmentEvent('functionPut'),
   (req, res, next) => provider_handlers[req.provider].put_function(req, res, next),
   analytics.finished
 );
@@ -535,6 +554,7 @@ router.get(
   user_agent(),
   check_agent_version(),
   determine_provider(),
+  segmentEvent('functionLog'),
   (req, res, next) => provider_handlers[req.provider].get_logs(req, res, next),
   analytics.finished
 );
