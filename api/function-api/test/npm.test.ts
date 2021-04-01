@@ -21,8 +21,8 @@ const regScope = '@package';
 const masterAccount = 'acc-00000000';
 const masterScope = '@fuse-int';
 
-const VALID_PKG = 'test/mock/sample-npm.tgz';
-const BROKEN_PKG = 'test/mock/sample-broken-npm.tgz';
+const VALID_PKG = '/mock/sample-npm.tgz';
+const BROKEN_PKG = '/mock/sample-broken-npm.tgz';
 
 const funcWithDep = (pkgName: string) => ({
   nodejs: {
@@ -55,7 +55,7 @@ const preparePackage: (scope: string, pkgFile?: string) => { manifest: IManifest
   scope,
   pkgFile = VALID_PKG
 ) => {
-  const tarData = fs.readFileSync(pkgFile);
+  const tarData = fs.readFileSync(__dirname + pkgFile);
   const manifest = {
     name: `${scope}/libnpmpublish`,
     version: '1.0.0',
@@ -69,6 +69,7 @@ interface IManifest {
   name: string;
   version: string;
   description: string;
+  readme?: string;
 }
 
 const resetScope = async () => {
@@ -85,9 +86,9 @@ const resetScope = async () => {
   return { globalReg, accountReg };
 };
 
-const publishVersion: (ver?: string) => Promise<IManifest> = async (ver = '1.0.0') => {
+const publishVersion: (ver?: string, readme?: string) => Promise<IManifest> = async (ver = '1.0.0', readme) => {
   const { manifest: preparedMani, tarData } = preparePackage(regScope);
-  const manifest = { ...preparedMani, version: ver };
+  const manifest = { ...preparedMani, version: ver, readme };
   let existingPacku;
 
   try {
@@ -207,6 +208,20 @@ describe('Npm', () => {
     const { manifest, tarData } = preparePackage(regScope);
 
     await libnpm.publish(manifest, tarData, getOpts(regScope));
+    const results = await libnpm.search(manifest.name, { ...getOpts(regScope), registry: registryUrl });
+    expect(results.length).toBe(1);
+    expect(results[0].name).toBe(manifest.name);
+  }, 180000);
+
+  test('publish oversized readme', async () => {
+    const readme = Buffer.alloc(50000).toString('utf-8');
+    await publishVersion('1.0.0', readme);
+    await publishVersion('1.0.1', readme);
+    await publishVersion('2.0.0', readme);
+    await publishVersion('3.0.0', readme);
+
+    const { registryUrl } = getRegistryUrl();
+    const { manifest } = preparePackage(regScope);
     const results = await libnpm.search(manifest.name, { ...getOpts(regScope), registry: registryUrl });
     expect(results.length).toBe(1);
     expect(results[0].name).toBe(manifest.name);
