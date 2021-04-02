@@ -19,7 +19,7 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 
 ## Version 1.9.0
 
-_Released 3/2/21_
+_Released 4/5/21_
 
 - **Enhancement.** Remove the specified `"engine": "10"` clause from the default function template.
 - **Enhancement.** Support `--link` for deploying functions and preserving locally installed packages.
