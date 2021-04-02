@@ -25,6 +25,12 @@ Prior to deploying this version, please re-run `fuse-ops setup` and `fuse-ops de
 
 - **Enhancement.** Upgrade default Lambda runtime to NodeJS 14.16.0.
 
+## Version 1.18.24
+
+_Released 04/01/21_
+
+- **Enhancement.** Npm registry now uses a combination of S3 and DynamoDb in order to handle package manifests above 400kb.
+
 ## Version 1.18.23
 
 _Released 03/29/21_

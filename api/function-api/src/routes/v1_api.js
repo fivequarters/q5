@@ -60,6 +60,8 @@ var corsExecutionOptions = {
   credentials: true,
 };
 
+const npmPackageSizeLimit = process.env.PACKAGE_SIZE_LIMIT || '100mb';
+
 // Load the global npm registry in AWS
 const npmRegistry = () =>
   AwsRegistry.handler({
@@ -885,7 +887,7 @@ router.put(
   cors(corsManagementOptions),
   validate_schema({ params: require('./schemas/npm_params') }),
   authorize({ operation: 'registry:put' }),
-  express.json({ limit: process.env.PACKAGE_SIZE_LIMIT || '1000kb' }),
+  express.json({ limit: npmPackageSizeLimit }),
   user_agent(),
   check_agent_version(),
   determine_provider(),
@@ -918,7 +920,7 @@ router.put(
   user_agent(),
   check_agent_version(),
   determine_provider(),
-  express.json(),
+  express.json({ limit: npmPackageSizeLimit }),
   npmRegistry(),
   npm.revisionPut(),
   analytics.finished
@@ -976,7 +978,7 @@ router.put(
   cors(corsManagementOptions),
   validate_schema({ params: require('./schemas/npm_params') }),
   authorize({ operation: 'registry:put' }),
-  express.json({ limit: process.env.PACKAGE_SIZE_LIMIT || '1000kb' }),
+  express.json({ limit: npmPackageSizeLimit }),
   user_agent(),
   check_agent_version(),
   determine_provider(),
