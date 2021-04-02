@@ -19,11 +19,17 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 
 ## Version 1.19.0
 
-_Released 04/01/21_
+_Released 04/05/21_
 
 Prior to deploying this version, please re-run `fuse-ops setup` and `fuse-ops deployment add` on your deployment with `fuse-ops` version `1.25.0` or greater.
 
 - **Enhancement.** Upgrade default Lambda runtime to NodeJS 14.16.0.
+
+## Version 1.18.24
+
+_Released 04/01/21_
+
+- **Enhancement.** Npm registry now uses a combination of S3 and DynamoDb in order to handle package manifests above 400kb.
 
 ## Version 1.18.23
 
