@@ -17,6 +17,12 @@ All public releases of the Fusebit editor are documented here, including notable
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.5.0
+
+_Released 3/29/21_
+
+- **Enhancement.** Remove the specified `"engine": "10"` clause from the default function template.
+
 ## Version 1.4.6
 
 - **Enhancement.** Add a `fusebit.endpoint` in the `ctx` for the endpoint of the Fusebit API.

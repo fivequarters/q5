@@ -17,6 +17,14 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.19.0
+
+_Released 04/05/21_
+
+Prior to deploying this version, please re-run `fuse-ops setup` and `fuse-ops deployment add` on your deployment with `fuse-ops` version `1.25.0` or greater.
+
+- **Enhancement.** Upgrade default Lambda runtime to NodeJS 14.16.0.
+
 ## Version 1.18.24
 
 _Released 04/01/21_

@@ -1,4 +1,4 @@
-FROM node:10.15.3-slim
+FROM node:14.16.0-alpine3.13
 
 WORKDIR /fuse
 
@@ -12,7 +12,7 @@ ADD lib ./lib
 ADD tool ./tool
 ADD sdk ./sdk
 
-RUN apt-get update && apt-get install -y zip
+RUN apk add zip
 RUN yarn setup
 RUN yarn build function-api
 
