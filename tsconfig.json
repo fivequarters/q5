@@ -139,7 +139,9 @@
       "@5qtrs/npm": ["lib/server/npm/src"],
       "@5qtrs/registry": ["lib/server/registry/src"],
       "@5qtrs/runas": ["lib/server/runas/src"],
-      "@5qtrs/cicd-actions": ["tool/cicd/actions/src"]
+      "@5qtrs/cicd-actions": ["tool/cicd/actions/src"],
+      "@5qtrs/pkg-connector": ["lib/runtime/pkg-connector/src"],
+      "@5qtrs/pkg-integration": ["lib/runtime/pkg-integration/src"]
     }
   }
 }

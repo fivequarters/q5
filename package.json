@@ -65,7 +65,10 @@
     "yarn": "^1.12.3"
   },
   "workspaces": {
-    "nohoist": ["**/lambda-*", "**/lambda-*/**"],
+    "nohoist": [
+      "**/lambda-*",
+      "**/lambda-*/**"
+    ],
     "packages": [
       "tool/tool-config",
       "tool/workspace",
@@ -195,7 +198,9 @@
       "lib/server/npm",
       "lib/server/registry",
       "lib/server/runas",
-      "tool/cicd/actions"
+      "tool/cicd/actions",
+      "lib/runtime/pkg-connector",
+      "lib/runtime/pkg-integration"
     ]
   }
 }

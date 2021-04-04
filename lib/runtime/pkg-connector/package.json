@@ -1,0 +1,20 @@
+{
+  "name": "@5qtrs/pkg-connector",
+  "version": "1.0.0",
+  "description": "",
+  "main": "libc/index.js",
+  "license": "SEE LICENSE IN LICENSE",
+  "author": "FiveQuarters.io",
+  "scripts": {
+    "build": "tsc -b",
+    "test": "jest --colors",
+    "coverage": "jest --colors --coverage",
+    "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x} test/{,**/}*.ts{,x}",
+    "clean": "rm -r -f libc; rm -r -f coverage"
+  },
+  "keywords": [],
+  "dependencies": {},
+  "devServer": {
+    "port": 9512
+  }
+}
