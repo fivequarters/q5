@@ -1,0 +1,67 @@
+openapi: 3.0.0
+
+servers:
+  - url: https://api.{region}.fusebit.io
+    description: Production
+    variables:
+      region:
+        description: The region where the API is deployed, for example `'us-east-1'`
+
+info:
+  description: 'Fusebit HTTP API for the management and execution of Fusebit accounts, users, functions and more'
+  version: '1.0.0'
+  title: 'Fusebit HTTP API'
+  contact:
+    email: contact@fusebit.io
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+
+tags:
+  - name: Connector
+    description: Connectors
+
+paths:
+  /v1/account/{accountId}/subscription/{subscriptionId}/connector:
+    parameters:
+      - in: path
+        name: accountId
+        required: true
+        description: Account id
+        schema:
+          type: string
+      - in: path
+        name: subscriptionId
+        required: true
+        description: Subscription id
+        schema:
+          type: string
+    get:
+      tags:
+        - Connector
+      summary: Get all connectors
+      operationId: getAllConnectors
+      description: |
+        Returns details about all connectors
+      responses:
+        200:
+          description: The connectors
+          content:
+            application/json:
+              schema:
+                type: object
+        418:
+          description: You are a Teapot
+          content:
+            application/json:
+              schema:
+                type: object
+      security:
+        - AccessToken: []
+components:
+  securitySchemes:
+    AccessToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: For a description of the access token format, see [this doc](../../integrator-guide/authz-model).
