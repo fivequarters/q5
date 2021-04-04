@@ -1,18 +1,20 @@
 import express from 'express';
 
-import connector from './schema/connector';
-import integration from './schema/integration';
+import component from './schema/component';
+import identity from './schema/identity';
 import operation from './schema/operation';
 
 import * as common from './middleware/common';
 
 const router = express.Router();
 
-// Vendor specific endpoints
-router.use('/account/:accountId/subscription/:subscriptionId/connector', connector);
-router.use('/account/:accountId/subscription/:subscriptionId/integration', integration);
-router.use('/account/:accountId/subscription/:subscriptionId/operation', operation);
+const v2 = express.Router();
+v2.use('/:componentType(connector|integration)', component);
+v2.use('/:componentType(connector)/:componentId/identity', identity);
+v2.use('/operation', operation);
 
-router.use(common.final());
+v2.use(common.final());
+
+router.use('/account/:accountId/subscription/:subscriptionId', v2);
 
 module.exports = router;
