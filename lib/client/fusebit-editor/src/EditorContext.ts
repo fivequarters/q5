@@ -140,9 +140,6 @@ export class EditorContext extends EventEmitter {
         files: {
           'index.js': IndexPlaceholder,
           'package.json': {
-            engines: {
-              node: '10',
-            },
             dependencies: {},
           },
         },
@@ -650,7 +647,7 @@ export class EditorContext extends EventEmitter {
    */
   getNodeVersion(pj: any): string {
     let packageJson: any = pj || this.getPackageJson();
-    return (packageJson && packageJson.engines && packageJson.engines.node) || '8';
+    return (packageJson && packageJson.engines && packageJson.engines.node) || '14';
   }
 
   /**

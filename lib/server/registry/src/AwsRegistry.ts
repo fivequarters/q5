@@ -18,6 +18,8 @@ const s3Path = 'registry/npm';
 
 type ExpressHandler = (reqExpress: Request, res: Response, next: any) => any;
 
+const DdbByteSizeLimit = 300 * 1000;
+
 class AwsRegistry implements IRegistryStore {
   public static handler(events: IRegistryEvents): ExpressHandler {
     return (reqExpress: Request, res: Response, next: any) => {
@@ -79,13 +81,36 @@ class AwsRegistry implements IRegistryStore {
     }
 
     // Add record to dynamodb.
+    const stringifyPkg = JSON.stringify(pkg);
+    const useS3 = Buffer.byteLength(stringifyPkg, 'utf8') >= DdbByteSizeLimit;
+    const ddbPkg = useS3 ? JSON.stringify(this.s3Package) : stringifyPkg;
+
+    if (useS3) {
+      // Add manifest to S3
+      await this.s3
+        .upload({
+          Bucket: process.env.AWS_S3_BUCKET as string,
+          ContentType: 'application/json; charset=utf-8',
+          Key: this.getS3ManifestPath(name),
+          Body: stringifyPkg,
+        })
+        .promise();
+    } else {
+      await this.s3
+        .deleteObject({
+          Bucket: process.env.AWS_S3_BUCKET as string,
+          Key: this.getS3ManifestPath(name),
+        })
+        .promise();
+    }
+
     await this.ddb
       .putItem({
         TableName: this.tableName,
         Item: {
           category: { S: Constants.REGISTRY_CATEGORY },
           key: { S: this.getDynamoKey(name) },
-          pkg: { S: JSON.stringify(pkg) },
+          pkg: { S: ddbPkg },
           name: { S: pkg.name },
         },
       })
@@ -125,7 +150,16 @@ class AwsRegistry implements IRegistryStore {
   }
 
   public async internalGet(name: string): Promise<any> {
-    // Retrieve record from DynamoDB
+    const pkg = await this.internalGetDdb(name);
+
+    if (this.isS3Package(pkg)) {
+      return this.internalGetS3(name);
+    }
+
+    return pkg;
+  }
+
+  private async internalGetDdb(name: string): Promise<any> {
     const result = await this.ddb
       .getItem({
         TableName: this.tableName,
@@ -138,10 +172,25 @@ class AwsRegistry implements IRegistryStore {
     return result && result.Item && result.Item.pkg ? JSON.parse(result.Item.pkg.S as string) : undefined;
   }
 
+  private async internalGetS3(name: string): Promise<any> {
+    try {
+      const result = await this.s3
+        .getObject({
+          Bucket: process.env.AWS_S3_BUCKET as string,
+          Key: this.getS3ManifestPath(name),
+        })
+        .promise();
+      return result && result.Body && result.Body ? JSON.parse(result.Body.toString()) : undefined;
+    } catch (e) {
+      return undefined;
+    }
+  }
+
   public async delete(name: string): Promise<any> {
-    // Remove the document from dynamodb
     const pkg = await this.internalGet(name);
-    const result = await this.ddb
+
+    // Remove the record from dynamodb
+    await this.ddb
       .deleteItem({
         TableName: this.tableName,
         Key: {
@@ -151,10 +200,16 @@ class AwsRegistry implements IRegistryStore {
       })
       .promise();
 
+    // Remove the manifest from s3
+    await this.s3
+      .deleteObject({
+        Bucket: process.env.AWS_S3_BUCKET as string,
+        Key: this.getS3ManifestPath(name),
+      })
+      .promise();
+
     // Remove all of the tarballs from S3
-    for (const ver of Object.keys(pkg.versions)) {
-      await this.tarballDelete(`${pkg.name}@${ver}`);
-    }
+    await Promise.all(Object.keys(pkg.versions).map((ver) => this.tarballDelete(`${pkg.name}@${ver}`)));
   }
 
   public async tarballGet(nameVer: string): Promise<any> {
@@ -242,7 +297,7 @@ class AwsRegistry implements IRegistryStore {
     // Build the request
     const params = {
       TableName: this.tableName,
-      ProjectionExpression: 'category, #k, pkg',
+      ProjectionExpression: 'category, #k, #n, pkg',
       ExpressionAttributeNames: { '#k': 'key', '#n': 'name' },
       ExpressionAttributeValues: {
         ':searchCategory': { S: Constants.REGISTRY_CATEGORY },
@@ -258,9 +313,17 @@ class AwsRegistry implements IRegistryStore {
     };
     const result = await this.ddb.query(params).promise();
     const items = result.Items || [];
+    const manifestPromises = items.map((ddbResult) => {
+      const pkg = ddbResult.pkg.S && JSON.parse(ddbResult.pkg.S);
+      if (this.isS3Package(pkg)) {
+        return this.internalGetS3(ddbResult.name.S as string);
+      }
+      return pkg;
+    });
+    const manifests = await Promise.all(manifestPromises);
 
     return {
-      objects: items.map((o: any) => ({ package: JSON.parse(o.pkg.S) })),
+      objects: manifests.map((manifest) => ({ package: manifest })),
       total: items.length,
       time: new Date().toUTCString(),
       next: result.LastEvaluatedKey,
@@ -378,6 +441,16 @@ class AwsRegistry implements IRegistryStore {
 
   private getDynamoKey(name: string): string {
     return [this.keyPrefix, name].join('/');
+  }
+
+  private getS3ManifestPath(nameVer: string): string {
+    return `${this.getS3Path(nameVer)}_manifest`;
+  }
+
+  private s3Package = { location: 's3' };
+
+  private isS3Package(pkg: { location?: string }): boolean {
+    return pkg && pkg.location === this.s3Package.location;
   }
 }
 

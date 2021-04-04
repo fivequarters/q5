@@ -10,6 +10,7 @@ import { putFunction, waitForBuild } from './sdk';
 
 import { getEnv } from './setup';
 import semver from 'semver';
+import AWS from 'aws-sdk';
 
 let { account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv();
 beforeEach(() => {
@@ -21,8 +22,8 @@ const regScope = '@package';
 const masterAccount = 'acc-00000000';
 const masterScope = '@fuse-int';
 
-const VALID_PKG = 'test/v1/mock/sample-npm.tgz';
-const BROKEN_PKG = 'test/v1/mock/sample-broken-npm.tgz';
+const VALID_PKG = '/mock/sample-npm.tgz';
+const BROKEN_PKG = '/mock/sample-broken-npm.tgz';
 
 const funcWithDep = (pkgName: string) => ({
   nodejs: {
@@ -55,7 +56,7 @@ const preparePackage: (scope: string, pkgFile?: string) => { manifest: IManifest
   scope,
   pkgFile = VALID_PKG
 ) => {
-  const tarData = fs.readFileSync(pkgFile);
+  const tarData = fs.readFileSync(__dirname + pkgFile);
   const manifest = {
     name: `${scope}/libnpmpublish`,
     version: '1.0.0',
@@ -69,6 +70,7 @@ interface IManifest {
   name: string;
   version: string;
   description: string;
+  readme?: string;
 }
 
 const resetScope = async () => {
@@ -85,9 +87,9 @@ const resetScope = async () => {
   return { globalReg, accountReg };
 };
 
-const publishVersion: (ver?: string) => Promise<IManifest> = async (ver = '1.0.0') => {
+const publishVersion: (ver?: string, readme?: string) => Promise<IManifest> = async (ver = '1.0.0', readme) => {
   const { manifest: preparedMani, tarData } = preparePackage(regScope);
-  const manifest = { ...preparedMani, version: ver };
+  const manifest = { ...preparedMani, version: ver, readme };
   let existingPacku;
 
   try {
@@ -210,6 +212,62 @@ describe('Npm', () => {
     const results = await libnpm.search(manifest.name, { ...getOpts(regScope), registry: registryUrl });
     expect(results.length).toBe(1);
     expect(results[0].name).toBe(manifest.name);
+  }, 180000);
+
+  test('publish oversized readme', async () => {
+    const readme = Buffer.alloc(50000).toString('utf-8');
+    await publishVersion('1.0.0', readme);
+    await publishVersion('1.0.1', readme);
+    await publishVersion('2.0.0', readme);
+    await publishVersion('3.0.0', readme);
+
+    const { registryUrl } = getRegistryUrl();
+    const { manifest } = preparePackage(regScope);
+    const results = await libnpm.search(manifest.name, { ...getOpts(regScope), registry: registryUrl });
+    expect(results.length).toBe(1);
+    expect(results[0].name).toBe(manifest.name);
+  }, 180000);
+
+  test('swap between s3 and ddb as manifest size changes', async () => {
+    const { manifest } = preparePackage(regScope);
+    const s3Key = ['registry/npm', account.accountId, Constants.REGISTRY_DEFAULT, `${manifest.name}_manifest`].join(
+      '/'
+    );
+
+    const s3 = new AWS.S3();
+    const isInS3 = async () => {
+      try {
+        await s3
+          .getObject({
+            Bucket: process.env.AWS_S3_BUCKET as string,
+            Key: s3Key,
+          })
+          .promise();
+        return true;
+      } catch (e) {
+        return false;
+      }
+    };
+
+    const readme = Buffer.alloc(16000).toString('utf-8');
+
+    expect(await isInS3()).toBeFalsy();
+    await publishVersion('1.0.0', readme);
+    expect(await isInS3()).toBeFalsy();
+    await publishVersion('1.0.1', readme);
+    expect(await isInS3()).toBeFalsy();
+    await publishVersion('2.0.0', readme);
+    expect(await isInS3()).toBeTruthy();
+    await publishVersion('3.0.0', readme);
+    expect(await isInS3()).toBeTruthy();
+    await libnpm.unpublish(`${manifest.name}@3.0.0`, getOpts(regScope));
+    expect(await isInS3()).toBeTruthy();
+    await libnpm.unpublish(`${manifest.name}@2.0.0`, getOpts(regScope));
+    expect(await isInS3()).toBeFalsy();
+    await libnpm.unpublish(`${manifest.name}@1.0.1`, getOpts(regScope));
+    expect(await isInS3()).toBeFalsy();
+    await libnpm.unpublish(`${manifest.name}@1.0.0`, getOpts(regScope));
+    expect(await isInS3()).toBeFalsy();
   }, 180000);
 
   test('get from master', async () => {
