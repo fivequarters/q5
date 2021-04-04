@@ -3,7 +3,7 @@ import express from 'express';
 import * as common from '../middleware/common';
 import * as analytics from '../middleware/analytics';
 
-import taggedEntity from './tagged';
+import tagged, { search } from './tagged';
 import session from './session';
 import health from './health';
 
@@ -14,13 +14,10 @@ const router = express.Router();
 // Specify that all requests in this router are Administration requests
 router.use(analytics.setModality(analytics.Modes.Administration));
 
-router
-  .route('/')
-  .options(common.cors())
-  .get(common.management({}), integration.getAll)
-  .post(common.management({}), integration.post);
+router.route('/').options(common.cors()).post(common.management({}), integration.post);
 
-router.use('/:integrationId/tag', taggedEntity);
+router.use('/', search);
+router.use('/:integrationId/tag', tagged);
 router.use('/:integrationId/session', session);
 router.use('/:integrationId/health', health);
 
@@ -37,7 +34,8 @@ router
   .get(common.management({}), integration.instance.getAll)
   .post(common.management({}), integration.instance.post);
 
-router.use('/:integrationId/instance/:instanceId/tag', taggedEntity);
+router.use('/:integrationId/instance', search);
+router.use('/:integrationId/instance/:instanceId/tag', tagged);
 router
   .route('/:integrationId/instance/:instanceId')
   .options(common.cors())

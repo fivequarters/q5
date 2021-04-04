@@ -2,30 +2,35 @@ import create_error from 'http-errors';
 
 import { Request, Response, NextFunction } from 'express';
 
+// Get the connector definition
 const get = (req: Request, res: Response, next: NextFunction) => next(create_error(418));
-const getAll = (req: Request, res: Response, next: NextFunction) => next(create_error(418));
+
+// Create a new connector and associated artifacts
 const post = (req: Request, res: Response, next: NextFunction) => next(create_error(418));
+
+// Update a connector definition
 const put = (req: Request, res: Response, next: NextFunction) => next(create_error(418));
+
+// Delete a connector and associated artifacts
 const remove = (req: Request, res: Response, next: NextFunction) => next(create_error(418));
 
-const sessionGet = (req: Request, res: Response, next: NextFunction) => next(create_error(418));
-const sessionGetAll = (req: Request, res: Response, next: NextFunction) => next(create_error(418));
-const sessionPost = (req: Request, res: Response, next: NextFunction) => next(create_error(418));
-
-const session = { get: sessionGet, post: sessionPost, getAll: sessionGetAll };
-
+// Get the details for an identity
 const identityGet = (req: Request, res: Response, next: NextFunction) => next(create_error(418));
-const identityGetAll = (req: Request, res: Response, next: NextFunction) => next(create_error(418));
+
+// Create a new identity
 const identityPost = (req: Request, res: Response, next: NextFunction) => next(create_error(418));
+
+// Patch an identity
 const identityPatch = (req: Request, res: Response, next: NextFunction) => next(create_error(418));
+
+// Delete an identity
 const identityRemove = (req: Request, res: Response, next: NextFunction) => next(create_error(418));
 
 const identity = {
   get: identityGet,
   post: identityPost,
-  getAll: identityGetAll,
   patch: identityPatch,
   remove: identityRemove,
 };
 
-export { get, getAll, post, put, remove, session, identity };
+export { get, post, put, remove, identity };

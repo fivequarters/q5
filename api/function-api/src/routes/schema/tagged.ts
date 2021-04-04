@@ -1,7 +1,7 @@
 import express from 'express';
 
 import * as common from '../middleware/common';
-import * as tags from '../handlers/taggedEntity';
+import * as tags from '../handlers/tagged';
 
 const router = express.Router();
 
@@ -15,4 +15,7 @@ router
 
 router.route('/:tagKey/:tagValue').options(common.cors()).put(common.management({}), tags.setTag);
 
-export { router as default };
+const search = express.Router();
+search.route('/').options(common.cors()).get(common.management({}), tags.search);
+
+export { router as default, search };
