@@ -6,6 +6,16 @@ import { Request, Response, NextFunction } from 'express';
 const post = (req: Request, res: Response, next: NextFunction) => {
   // Process incoming message
   // Create function specification using appropriate dependencies
+  //
+  //   Note: Perform a pseudo-link where the files and package.json specified in the post are layed in the
+  //   function specification in the node_modules directory, with the dependencies promoted. The database
+  //   contents then become the file contents specified in the post.
+  //
+  //   The pkg-${componentType} version in the post contents is promoted as well.
+  //
+  //   The top level index.js and package.json should be a straight dispatch to
+  //   pkg-${componentType}.entrypoint, likely a single line worth of js.
+  //
   // Create new function
   // Return async operation url for status
   next(create_error(418));
@@ -15,6 +25,9 @@ const post = (req: Request, res: Response, next: NextFunction) => {
 const put = (req: Request, res: Response, next: NextFunction) => {
   // Process incoming message
   // Create function specification using appropriate dependencies
+  //
+  //   Note: Expect to fully regenerate the top-level package.json.  No reason not to.
+  //
   // Update existing function
   // Return async operation url for status
   next(create_error(418));
