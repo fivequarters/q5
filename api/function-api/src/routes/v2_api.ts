@@ -1,14 +1,19 @@
 import express from 'express';
 
+import * as common from './middleware/common';
+import * as analytics from './middleware/analytics';
+
 import component from './schema/component';
 import identity from './schema/identity';
 import operation from './schema/operation';
 
-import * as common from './middleware/common';
-
 const router = express.Router();
 
 const v2 = express.Router();
+
+// All requests except for dispatched requests to /api are administrative for now.
+v2.use(analytics.setModality(analytics.Modes.Administration));
+
 v2.use('/:componentType(connector|integration)', component);
 v2.use('/:componentType(connector)/:componentId/identity', identity);
 v2.use('/operation', operation);

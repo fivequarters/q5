@@ -28,10 +28,6 @@ exports.enterHandler = (modality) => {
     req.requestId = uuidv4();
     res.metrics = {};
 
-    if (req.analyticsModality) {
-      modality = req.analyticsModality;
-    }
-
     let end = res.end;
     res.end = (chunk, encoding, callback) => {
       res.endTime = Date.now();
@@ -54,7 +50,7 @@ exports.enterHandler = (modality) => {
         functionId: reqProps.params.functionId,
         deploymentKey: process.env.DEPLOYMENT_KEY,
         mode: 'request',
-        modality,
+        modality: req.analyticsModality || modality,
       };
 
       // Create a copy of params to avoid accidental side effects.

@@ -2,10 +2,10 @@ import express from 'express';
 
 import * as common from '../middleware/common';
 
+import * as identity from '../handlers/identity';
+
 import { tagged, search } from './tagged';
 import instance from './instance';
-
-import * as identity from '../handlers/identity';
 
 const router = express.Router();
 router.use(search);

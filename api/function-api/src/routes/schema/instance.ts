@@ -1,6 +1,8 @@
 import express from 'express';
 
+import * as analytics from '../middleware/analytics';
 import * as common from '../middleware/common';
+
 import * as component from '../handlers/component';
 
 import { tagged } from './tagged';
@@ -10,7 +12,7 @@ const router = express.Router();
 
 router.use('/tag', tagged);
 router.use('/session', session);
-router.use('/api', component.dispatch);
+router.use('/api', analytics.setModality(analytics.Modes.Execution), component.dispatch);
 
 router
   .route('/')
