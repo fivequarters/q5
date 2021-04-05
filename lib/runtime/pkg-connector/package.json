@@ -1,10 +1,10 @@
 {
-  "name": "@5qtrs/pkg-connector",
+  "name": "@fusebit-int/pkg-connector",
   "version": "1.0.0",
   "description": "",
   "main": "libc/index.js",
   "license": "SEE LICENSE IN LICENSE",
-  "author": "FiveQuarters.io",
+  "author": "Fusebit, Inc.",
   "scripts": {
     "build": "tsc -b",
     "test": "jest --colors",
@@ -13,8 +13,11 @@
     "clean": "rm -r -f libc; rm -r -f coverage"
   },
   "keywords": [],
-  "dependencies": {},
-  "devServer": {
-    "port": 9512
+  "dependencies": {
+    "http-errors": "^1.8.0",
+    "koa": "^2.13.1"
+  },
+  "devDependencies": {
+    "@types/koa": "^2.13.1"
   }
 }

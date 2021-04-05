@@ -48,13 +48,13 @@ sudo apt install zip
 3. Install the supported version of **nodeJS**:
 
 ```
-nvm install 10.15.3
+nvm install 14.16.0
 ```
 
 4. Select the latest version of **nodeJS** to use:
 
 ```
-nvm use 10.15.3
+nvm use 14.16.0
 ```
 
 5. Install the **yarn** node module globally, and lock the version to the supported version:
