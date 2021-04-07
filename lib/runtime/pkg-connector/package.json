@@ -14,10 +14,14 @@
   },
   "keywords": [],
   "dependencies": {
+    "@koa/router": "^10.0.0",
+    "@vendia/serverless-express": "^4.3.4",
     "http-errors": "^1.8.0",
     "koa": "^2.13.1"
   },
   "devDependencies": {
-    "@types/koa": "^2.13.1"
+    "@types/aws-lambda": "^8.10.73",
+    "@types/koa": "^2.13.1",
+    "@types/koa__router": "^8.0.4"
   }
 }
