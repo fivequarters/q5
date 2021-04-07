@@ -4,7 +4,7 @@ import * as common from './middleware/common';
 import * as analytics from './middleware/analytics';
 
 import component from './schema/component';
-import identity from './schema/identity';
+import element from './schema/element';
 import operation from './schema/operation';
 
 const router = express.Router();
@@ -15,7 +15,8 @@ const v2 = express.Router();
 v2.use(analytics.setModality(analytics.Modes.Administration));
 
 v2.use('/:componentType(connector|integration)', component);
-v2.use('/:componentType(connector)/:componentId/identity', identity);
+v2.use('/:componentType(connector)/:componentId/:elementType(identity)', element);
+v2.use('/:componentType(integration)/:componentId/:elementType(instance)', element);
 v2.use('/operation', operation);
 
 v2.use(common.final());
