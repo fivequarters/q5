@@ -11,29 +11,12 @@ class FusebitRouter extends Router {
   }
 
   // Type needs to be extracted from @types/koa__router
-  // These two functions could also be deduplicated by someone more skilled than I.
-  public cron(name: any, path: any, middleware: any[]) {
-    if (typeof path === 'string' || path instanceof RegExp) {
-      middleware = Array.prototype.slice.call(arguments, 2);
-    } else {
-      middleware = Array.prototype.slice.call(arguments, 1);
-      path = name;
-      name = null;
-    }
-
-    this.register(path, ['cron'], middleware, { name });
+  public cron(path: string, ...middleware: any[]) {
+    this.register(path, ['cron'], middleware, { name: path });
   }
 
-  public on(name: any, path: any, middleware: any[]) {
-    if (typeof path === 'string' || path instanceof RegExp) {
-      middleware = Array.prototype.slice.call(arguments, 2);
-    } else {
-      middleware = Array.prototype.slice.call(arguments, 1);
-      path = name;
-      name = null;
-    }
-
-    this.register(path, ['event'], middleware, { name });
+  public on(path: any, ...middleware: any[]) {
+    this.register(path, ['event'], middleware, { name: path });
   }
 }
 /*
@@ -53,5 +36,6 @@ class FusebitRouter extends Router {
       },
     });
 */
+type Context = Router.RouterContext;
 
-export { FusebitRouter as default };
+export { FusebitRouter as default, Context };

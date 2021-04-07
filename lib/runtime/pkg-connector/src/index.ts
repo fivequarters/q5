@@ -1,6 +1,6 @@
 import Koa from 'koa';
 import Router from '@koa/router';
-import FusebitRouter from './FusebitRouter';
+import FusebitRouter, { Context } from './FusebitRouter';
 
 class Manager {
   private error: any;
@@ -71,4 +71,4 @@ class Manager {
   }
 }
 
-export { FusebitRouter as default, Manager };
+export { FusebitRouter as default, Manager, Context };

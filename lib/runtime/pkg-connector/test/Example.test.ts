@@ -1,11 +1,15 @@
-import Router, { Manager } from '../src';
+import Router, { Manager, Context } from '../src';
 
 describe('Example', () => {
   it('Example implementation', async () => {
     // In the vendor's code:
     const router = new Router();
-    router.get('/sendMessage', async (ctx, next) => {
+    router.get('/sendMessage', async (ctx: Context) => {
       ctx.body = 'Message Sent';
+    });
+
+    router.cron('default', async (ctx: Context) => {
+      ctx.status = 418;
     });
 
     // In a @fusebit/slack-connector
@@ -22,10 +26,18 @@ describe('Example', () => {
     manager.setup(router, undefined);
 
     // In the handler in index.js for fusebit events
-    let result = await manager.handle({ body: {}, headers: {}, method: 'GET', path: '/sendMessage' });
+    let fusebitEventContext: any;
+
+    fusebitEventContext = { body: {}, headers: {}, method: 'GET', path: '/sendMessage' };
+    let result = await manager.handle(fusebitEventContext);
     expect(result.body).toBe('Message Sent');
 
-    result = await manager.handle({ body: {}, headers: {}, method: 'GET', path: '/health' });
+    fusebitEventContext = { body: {}, headers: {}, method: 'GET', path: '/health' };
+    result = await manager.handle(fusebitEventContext);
+    expect(result.statusCode).toBe(418);
+
+    fusebitEventContext = { body: {}, headers: {}, method: 'CRON', path: 'default' };
+    result = await manager.handle(fusebitEventContext);
     expect(result.statusCode).toBe(418);
   });
 });
