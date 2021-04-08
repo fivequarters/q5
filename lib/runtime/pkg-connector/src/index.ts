@@ -41,11 +41,24 @@ class Manager {
 
   public async handle(fusebitCtx: any) {
     const ctx = this.createKoaCtx(fusebitCtx);
-    await new Promise(async (resolve) => {
+    await this.execute(ctx);
+    return this.createFusebitResponse(ctx);
+  }
+
+  // Used to call, RPC style, an event function mounted on the router.
+  public async invoke(event: string, parameters: any) {
+    const ctx = this.createKoaCtx({ method: 'EVENT', path: event, request: { body: {}, rawBody: '', params: {} } });
+    (ctx as any).event = { parameters: { ...parameters, ctx } };
+    await this.execute(ctx);
+    return ctx.body;
+  }
+
+  // Need to supply a next, but not sure if it's ever invoked.  Worth looking at the Koa impl at some point.
+  protected async execute(ctx: Router.RouterContext) {
+    return new Promise(async (resolve) => {
       await this.router.routes()(ctx as any, resolve as Koa.Next);
       resolve();
     });
-    return this.createFusebitResponse(ctx);
   }
 
   public createFusebitResponse(ctx: Router.RouterContext) {

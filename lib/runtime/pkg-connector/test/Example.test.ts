@@ -17,11 +17,17 @@ describe('Example', () => {
       ctx.status = 418;
     });
 
-    router.on('newUserCreated', async (ctx: Context) => {
-      // do something in the database
-      //
-      // Return 200 (optional; default return value is 200 if unspecified).
-      ctx.status = 200;
+    // Show off event middleware; not super ideal, but workable.
+    router.on('healthCheck', async ({ ctx }: { ctx: any }, next: any) => {
+      // The result from the normal-style event handler has the return value stored in the `ctx.body`.
+      await next();
+      return ctx.body + 1;
+    });
+
+    // Show off a simple event handler
+    router.on('healthCheck', async ({ lastHealth }: { lastHealth: number }) => {
+      // This return value is stored in the ctx.body by the router.
+      return lastHealth + 1;
     });
 
     /////////////////////////////////////////////////////////////////////////
@@ -29,7 +35,8 @@ describe('Example', () => {
     class SlackConnector extends Manager {
       public addHttpRoutes() {
         this.router.get('/health', async (ctx, next) => {
-          ctx.status = 418;
+          // Example of calling an "event" extension.
+          ctx.status = await this.invoke('healthCheck', { lastHealth: 416 });
         });
       }
     }

@@ -16,26 +16,17 @@ class FusebitRouter extends Router {
   }
 
   public on(path: any, ...middleware: any[]) {
-    this.register(path, ['event'], middleware, { name: path });
+    this.register(
+      path,
+      ['event'],
+      // Use the parameters instead of the ctx as the first parameter, and save the result in the ctx.body
+      middleware.map((m) => async (ctx: Router.RouterContext, next: Koa.Next) => {
+        ctx.body = await m((ctx as any).event.parameters, next);
+      }),
+      { name: path }
+    );
   }
 }
-/*
-    this.handle = serverlessExpress({
-      app: this.app,
-      eventSource: {
-        getRequest: (ctx: FusebitCtx) => ({
-          method: 'get',
-          path: ctx.cronName || 'default',
-          headers: {},
-        }),
-        getResponse: (ctx: Koa.Context) => ({
-          body: ctx.body,
-          headers: ctx.headers,
-          statusCode: ctx.statusCode,
-        }),
-      },
-    });
-*/
 type Context = Router.RouterContext;
 
 export { FusebitRouter as default, Context };
