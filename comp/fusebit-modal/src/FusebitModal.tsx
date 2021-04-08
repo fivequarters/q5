@@ -14,11 +14,11 @@ import { FusebitEmail, FusebitAboutYou, FusebitAboutYouForm } from '@5qtrs/fuseb
 // Internal Constants
 // ------------------
 
-const contactUsHeading = 'Get started';
+const contactUsHeading = 'Join waitlist';
 const contactUsText1 =
   "We are excited to support your integration needs through Fusebit's Enterprise platform offering. We are also hard at work on our self-service Developer product.";
 const contactUsText2 = 'Either way, drop your email below and we will be in touch.';
-const sendButtonText = 'Send';
+const sendButtonText = 'Join';
 const aboutYouHeading = 'About You';
 const aboutYouText = "If you don't mind, we'd love to learn a little about you and your interest in Fusebit.";
 
