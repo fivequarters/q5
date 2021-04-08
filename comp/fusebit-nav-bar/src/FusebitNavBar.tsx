@@ -124,7 +124,7 @@ export function FusebitNavBar({ minWidth, maxWidth, onLetsTalkClicked, ...rest }
                 gaAction="Clicked main button"
                 gaLabel={location.pathname}
               >
-                Get started
+                Join waitlist
               </FusebitButton>
               <FusebitSocialButton marginLeft={20} type={FusebitSocialType.twitter} invertColor />
             </Box>
@@ -156,7 +156,7 @@ export function FusebitNavBar({ minWidth, maxWidth, onLetsTalkClicked, ...rest }
           gaAction="Clicked main button"
           gaLabel={location.pathname}
         >
-          Get started
+          Join waitlist
         </FusebitButton>
       </Box>
     );
