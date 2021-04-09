@@ -30,7 +30,7 @@ export async function createFunctionStorage(
         (cb: any) => configureLifecycle(cb),
       ],
       (e: any) => {
-        return e ? reject(e) : resolve();
+        return e ? reject(e) : resolve(undefined);
       }
     );
   });

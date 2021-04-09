@@ -114,14 +114,16 @@ export class AddDeploymentCommand extends Command {
       return 0;
     }
 
-    const deployment = await deploymentService.checkDeploymentExists(deploymentParameters);
+    const [deployment, exists] = await deploymentService.checkDeploymentExists(deploymentParameters);
 
-    if (confirm) {
-      await deploymentService.confirmAddDeployment(deployment);
+    if (!exists) {
+      if (confirm) {
+        await deploymentService.confirmAddDeployment(deployment);
+      }
+
+      const addedDeployment = await deploymentService.addDeployment(deployment);
+      await deploymentService.displayDeployment(addedDeployment);
     }
-
-    const addedDeployment = await deploymentService.addDeployment(deployment);
-    await deploymentService.displayDeployment(addedDeployment);
 
     return 0;
   }
