@@ -56,17 +56,19 @@ export async function createDatabase(
     { Key: 'fusebitDeployment', Value: deployment.deploymentName },
   ];
 
-  const tryGetAuroraCluster = (): Promise<AWS.RDS.DBCluster | undefined> => {
+  const tryGetAuroraCluster = async (): Promise<AWS.RDS.DBCluster | undefined> => {
     const params = {
       DBClusterIdentifier: getClusterIdentifier(),
     };
-    return new Promise((resolve, reject) => {
-      rds.describeDBClusters(params, (error, data) => {
-        return error && error.code !== 'DBClusterNotFoundFault'
-          ? reject(error)
-          : resolve(data && data.DBClusters && data.DBClusters[0]);
-      });
-    });
+    try {
+      const data = await rds.describeDBClusters(params).promise();
+      return data.DBClusters && data.DBClusters[0];
+    } catch (e) {
+      if (e.code === 'DBClusterNotFoundFault') {
+        return undefined;
+      }
+      throw e;
+    }
   };
 
   const createOrGetDBSubnetGroupName = async (): Promise<string> => {
@@ -78,11 +80,14 @@ export async function createDatabase(
       SubnetIds: network.existingPrivateSubnetIds || network.privateSubnets.map((s) => s.id),
       Tags: getCommonTags(),
     };
-    return new Promise((resolve, reject) => {
-      rds.createDBSubnetGroup(params, (error, data) => {
-        return error && error.code !== 'DBSubnetGroupAlreadyExists' ? reject(error) : resolve(subnetGroupName);
-      });
-    });
+    try {
+      await rds.createDBSubnetGroup(params).promise();
+    } catch (e) {
+      if (e.code !== 'DBSubnetGroupAlreadyExists') {
+        throw e;
+      }
+    }
+    return subnetGroupName;
   };
 
   const createOrGetDBSecurityGroups = async (): Promise<string[]> => {
@@ -99,53 +104,36 @@ export async function createDatabase(
         },
       ],
     };
-    return new Promise((resolve, reject) => {
-      ec2.describeSecurityGroups(params, (error, data) => {
-        debug('DESCRIBE SEC GROUP', error, data);
-        if (error) {
-          return reject(error);
-        }
-        if (data.SecurityGroups && data.SecurityGroups[0]) {
-          return resolve([data.SecurityGroups[0].GroupId as string]);
-        }
-        const params = {
-          Description: `DB Security Group for Aurora cluster ${getClusterIdentifier()}`,
-          GroupName: getSecurityGroupName(),
-          VpcId: network.existingVpcId || network.vpcId,
-        };
-        ec2.createSecurityGroup(params, (error, data) => {
-          debug('CREATE GROUP ERRROR', error);
-          if (error) {
-            return reject(error);
-          }
-          const params = {
-            GroupId: data.GroupId as string,
-            IpPermissions: [
-              {
-                FromPort: 5432,
-                ToPort: 5432,
-                IpProtocol: 'tcp',
-                IpRanges: [{ CidrIp: '0.0.0.0/0' }],
-                Ipv6Ranges: [{ CidrIpv6: '::/0' }],
-              },
-            ],
-          };
-          ec2.authorizeSecurityGroupIngress(params, (error) => {
-            debug('AUTHORIZE ERROR', error);
-            if (error) {
-              return reject(error);
-            }
-            const params = {
-              Resources: [data.GroupId as string],
-              Tags: [...getCommonTags(), { Key: 'Name', Value: getSecurityGroupName() }],
-            };
-            ec2.createTags(params, (error) => {
-              return error ? reject(error) : resolve([data.GroupId as string]);
-            });
-          });
-        });
-      });
-    });
+    const data = await ec2.describeSecurityGroups(params).promise();
+    if (data.SecurityGroups && data.SecurityGroups[0]) {
+      return [data.SecurityGroups[0].GroupId as string];
+    }
+    const params1 = {
+      Description: `DB Security Group for Aurora cluster ${getClusterIdentifier()}`,
+      GroupName: getSecurityGroupName(),
+      VpcId: network.existingVpcId || network.vpcId,
+    };
+    const data1 = await ec2.createSecurityGroup(params1).promise();
+    // FUTURE: if we need TCP access to PostgresSQL, we will need to allow ingress on port 5432
+    // const params2 = {
+    //   GroupId: data1.GroupId as string,
+    //   IpPermissions: [
+    //     {
+    //       FromPort: 5432,
+    //       ToPort: 5432,
+    //       IpProtocol: 'tcp',
+    //       IpRanges: [{ CidrIp: '0.0.0.0/0' }],
+    //       Ipv6Ranges: [{ CidrIpv6: '::/0' }],
+    //     },
+    //   ],
+    // };
+    // await ec2.authorizeSecurityGroupIngress(params2);
+    const params3 = {
+      Resources: [data1.GroupId as string],
+      Tags: [...getCommonTags(), { Key: 'Name', Value: getSecurityGroupName() }],
+    };
+    await ec2.createTags(params3).promise();
+    return [data1.GroupId as string];
   };
 
   const createAuroraCluster = async (): Promise<IDatabaseCredentials> => {
@@ -173,75 +161,55 @@ export async function createDatabase(
       VpcSecurityGroupIds: securityGroups,
       Tags: getCommonTags(),
     };
-    return new Promise((resolve, reject) => {
-      rds.createDBCluster(params, async (error, data) => {
-        if (error) {
-          return reject(error);
-        }
+    const data = await rds.createDBCluster(params).promise();
 
-        const storeDatabaseCredentials = async (cluster: AWS.RDS.DBCluster): Promise<string> => {
-          const name = getSecretName();
-          const params = {
-            Name: `${name}-${randomBytes(10).toString('hex')}`,
-            Description: `DB Credentials for Aurora cluster ${getClusterIdentifier()}`,
-            SecretString: JSON.stringify({
-              dbInstanceIdentifier: cluster.DBClusterIdentifier,
-              engine: cluster.Engine,
-              host: cluster.Endpoint,
-              port: cluster.Port,
-              resourceId: cluster.DbClusterResourceId,
-              username: cluster.MasterUsername,
-              password,
-            }),
-            Tags: [
-              ...getCommonTags(),
-              { Key: 'Name', Value: name },
-              { Key: 'dbArn', Value: cluster.DBClusterArn as string },
-            ],
-          };
-          return new Promise((resolve, reject) => {
-            return secretsmanager.createSecret(params, (error, data) => {
-              return error ? reject(error) : resolve(data.ARN as string);
-            });
-          });
+    const storeDatabaseCredentials = async (cluster: AWS.RDS.DBCluster): Promise<string> => {
+      const name = getSecretName();
+      const params = {
+        Name: `${name}-${randomBytes(10).toString('hex')}`,
+        Description: `DB Credentials for Aurora cluster ${getClusterIdentifier()}`,
+        SecretString: JSON.stringify({
+          dbInstanceIdentifier: cluster.DBClusterIdentifier,
+          engine: cluster.Engine,
+          host: cluster.Endpoint,
+          port: cluster.Port,
+          resourceId: cluster.DbClusterResourceId,
+          username: cluster.MasterUsername,
+          password,
+        }),
+        Tags: [
+          ...getCommonTags(),
+          { Key: 'Name', Value: name },
+          { Key: 'dbArn', Value: cluster.DBClusterArn as string },
+        ],
+      };
+      const data = await secretsmanager.createSecret(params).promise();
+      return data.ARN as string;
+    };
+
+    const waitForCluster = async (n: number): Promise<IDatabaseCredentials> => {
+      if (n <= 0) {
+        throw new Error(`Timed out waiting for the Aurora cluster to become available.`);
+      }
+      const cluster = await tryGetAuroraCluster();
+      debug('CLUSTER STATUS', n, cluster && cluster.Status);
+      if (!cluster || cluster.Status === 'creating') {
+        await new Promise((resolve) => setTimeout(() => resolve(undefined), 30000));
+        return await waitForCluster(n - 1);
+      } else if (cluster.Status === 'available') {
+        const secretArn = await storeDatabaseCredentials(cluster);
+        return {
+          resourceArn: cluster.DBClusterArn as string,
+          secretArn,
         };
+      } else {
+        throw new Error(
+          `Error creating Aurora cluster. Expected status of 'available' but arrived at '${cluster.Status}'.`
+        );
+      }
+    };
 
-        const wairForCluster = async (n: number): Promise<any> => {
-          if (n <= 0) {
-            return reject(new Error(`Timed out waiting for the Aurora cluster to become available.`));
-          }
-          let cluster;
-          try {
-            cluster = await tryGetAuroraCluster();
-          } catch (e) {
-            return reject(e);
-          }
-          debug('CLUSTER STATUS', n, cluster && cluster.Status);
-          if (!cluster || cluster.Status === 'creating') {
-            return setTimeout(() => wairForCluster(n - 1), 30000);
-          } else if (cluster.Status === 'available') {
-            let secretArn;
-            try {
-              secretArn = await storeDatabaseCredentials(cluster);
-            } catch (e) {
-              return reject(e);
-            }
-            return resolve({
-              resourceArn: cluster.DBClusterArn as string,
-              secretArn,
-            });
-          } else {
-            return reject(
-              new Error(
-                `Error creating Aurora cluster. Expected status of 'available' but arrived at '${cluster.Status}'.`
-              )
-            );
-          }
-        };
-
-        return wairForCluster(20);
-      });
-    });
+    return await waitForCluster(20);
   };
 
   const runDatabaseMigrations = async (dbCredentials: IDatabaseCredentials) => {
@@ -253,73 +221,56 @@ export async function createDatabase(
       ...commonParams,
       sql: 'select * from schemaVersion;',
     };
-    return new Promise((resolve, reject) => {
-      return rdsData.executeStatement(params, (error, data) => {
-        let currentSchemaVersion = -1;
-        if (error && error.code !== 'BadRequestException') {
-          return reject(error);
-        } else if (!error) {
-          if (
-            !data ||
-            !data.records ||
-            !data.records[0] ||
-            !data.records[0][0] ||
-            data.records[0][0].longValue === undefined
-          ) {
-            return reject(new Error('Unable to determine the schema version of the Aurora database.'));
-          }
-          currentSchemaVersion = data.records[0][0].longValue;
-        }
+    let data: AWS.RDSDataService.ExecuteStatementResponse;
+    let currentSchemaVersion = -1;
+    try {
+      data = await rdsData.executeStatement(params).promise();
+      if (!data.records || !data.records[0] || !data.records[0][0] || data.records[0][0].longValue === undefined) {
+        throw new Error('Unable to determine the schema version of the Aurora database.');
+      }
+      currentSchemaVersion = data.records[0][0].longValue;
+    } catch (e) {
+      if (e.code !== 'BadRequestException') {
+        throw e;
+      }
+    }
+    debug('DATABASE SCHEMA VERSION', currentSchemaVersion);
 
-        debug('DATABASE SCHEMA VERSION', currentSchemaVersion);
-        if (Migrations[currentSchemaVersion + 1] === undefined) {
-          debug('DATABASE SCHEMA IS UP TO DATE');
-          return resolve(undefined);
-        }
+    if (Migrations[currentSchemaVersion + 1] === undefined) {
+      debug('DATABASE SCHEMA IS UP TO DATE');
+      return undefined;
+    }
 
-        const migrationError = (n: number, transactionId: string, error: any) => {
-          return rdsData.rollbackTransaction({ ...dbCredentials, transactionId }, (e1, d1) => {
-            debug('ROLLBACK MIGRATION RESULT', n, e1, d1);
-            return reject(error);
-          });
-        };
+    const migrationError = async (n: number, transactionId: string, error: any) => {
+      try {
+        await rdsData.rollbackTransaction({ ...dbCredentials, transactionId }).promise();
+        debug('ROLLBACK MIGRATION SUCCESS', n);
+      } catch (e) {
+        debug('ROLLBACK MIGRATION ERROR', n, error);
+        throw e;
+      }
+    };
 
-        const runMigration = (n: number) => {
-          debug('STARTING MIGRATION', n);
-          rdsData.beginTransaction(commonParams, (error, data) => {
-            if (error) {
-              return reject(error);
-            }
-            params.sql = Migrations[n];
-            params.transactionId = data.transactionId as string;
-            rdsData.executeStatement(params, (error, data) => {
-              debug('MIGRATION EXECUTION RESULT', n, error, data && JSON.stringify(data, null, 2));
-              if (error) {
-                return migrationError(n, params.transactionId as string, error);
-              }
-              params.sql = `update schemaVersion set version = ${n};`;
-              rdsData.executeStatement(params, (error, data) => {
-                if (error) {
-                  return migrationError(n, params.transactionId as string, error);
-                }
-                rdsData.commitTransaction(
-                  { ...dbCredentials, transactionId: params.transactionId as string },
-                  (error) => {
-                    if (error) {
-                      return migrationError(n, params.transactionId as string, error);
-                    }
-                    debug('COMMITED MIGRATION', n);
-                    return Migrations[n + 1] === undefined ? resolve(undefined) : runMigration(n + 1);
-                  }
-                );
-              });
-            });
-          });
-        };
+    const runMigration = async (n: number): Promise<void> => {
+      debug('STARTING MIGRATION', n);
+      const { transactionId } = await rdsData.beginTransaction(commonParams).promise();
+      try {
+        params.sql = Migrations[n];
+        params.transactionId = transactionId as string;
+        const data = await rdsData.executeStatement(params).promise();
+        params.sql = `update schemaVersion set version = ${n};`;
+        await rdsData.executeStatement(params).promise();
+        debug('MIGRATION EXECUTION SUCCESS', n, data && JSON.stringify(data, null, 2));
+      } catch (e) {
+        debug('MIGRATION EXECUTION ERROR', n, e);
+        return await migrationError(n, transactionId as string, e);
+      }
+      await rdsData.commitTransaction({ ...dbCredentials, transactionId: params.transactionId as string }).promise();
+      debug('COMMITED MIGRATION', n);
+      return Migrations[n + 1] === undefined ? undefined : await runMigration(n + 1);
+    };
 
-        runMigration(currentSchemaVersion + 1);
-      });
-    });
+    return await runMigration(currentSchemaVersion + 1);
   };
 
   const updateAuroraCluster = async (cluster: AWS.RDS.DBCluster): Promise<IDatabaseCredentials> => {
@@ -358,30 +309,21 @@ export async function getDatabaseCredentials(
       { Key: 'tag-value', Values: [deploymentName] },
     ],
   };
-
-  return new Promise((resolve, reject) => {
-    return secretsmanager.listSecrets(params, (error, data) => {
-      debug('LIST SECRETS RESPONSE', error, data);
-      if (error) {
-        return reject(error);
-      }
-      if (!data.SecretList || data.SecretList.length !== 1) {
-        return reject(
-          new Error(
-            `Cannot find a unique secret to access Aurora cluster. Expected 1 matching secret, found ${
-              data.SecretList ? data.SecretList.length : 0
-            }`
-          )
-        );
-      }
-      const dbArnTag = data.SecretList[0].Tags?.find((t) => t.Key === 'dbArn');
-      if (!dbArnTag) {
-        return reject(new Error(`The secret to access Aurora cluster does not specify the database ARN.`));
-      }
-      return resolve({
-        resourceArn: dbArnTag.Value as string,
-        secretArn: data.SecretList[0].ARN as string,
-      });
-    });
-  });
+  const data = await secretsmanager.listSecrets(params).promise();
+  debug('LIST SECRETS RESPONSE', data);
+  if (!data.SecretList || data.SecretList.length !== 1) {
+    throw new Error(
+      `Cannot find a unique secret to access Aurora cluster. Expected 1 matching secret, found ${
+        data.SecretList ? data.SecretList.length : 0
+      }`
+    );
+  }
+  const dbArnTag = data.SecretList[0].Tags?.find((t) => t.Key === 'dbArn');
+  if (!dbArnTag) {
+    throw new Error(`The secret to access Aurora cluster does not specify the database ARN.`);
+  }
+  return {
+    resourceArn: dbArnTag.Value as string,
+    secretArn: data.SecretList[0].ARN as string,
+  };
 }

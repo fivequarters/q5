@@ -20,34 +20,28 @@ export interface IEntityKey {
   id: string;
 }
 
-export interface IListResponseItem extends IEntityKey {
+export interface IEntityKeyWithTags extends IEntityKey {
   tags?: ITags;
+}
+
+export interface IEntityBase extends IEntityKeyWithTags {
+  data: object;
 }
 
 export interface IListResponse {
-  items: IListResponseItem[];
+  items: IEntityKeyWithTags[];
   next?: string;
 }
 
-export interface IIntegration extends IEntityKey {
-  tags?: ITags;
-  definition: object;
-}
+export type IIntegration = IEntityBase;
 
-export interface IConnector extends IEntityKey {
-  tags?: ITags;
-  definition: object;
-}
+export type IConnector = IEntityBase;
 
-export interface IStorageItem extends IEntityKey {
-  tags?: ITags;
+export interface IStorageItem extends IEntityBase {
   expires?: number;
   etag?: string;
-  data: object;
 }
 
-export interface IOperation extends IEntityKey {
-  tags?: ITags;
+export interface IOperation extends IEntityBase {
   expires: number;
-  data: object;
 }

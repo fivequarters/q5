@@ -16,36 +16,9 @@ Rules of the road:
 
 */
 
-const version0_addSchemaVersionTable = `
--- The schemaVersion table holds the current database schema version.
+import { readFileSync } from 'fs';
+import { join } from 'path';
 
-create table schemaVersion (
-  version int
-);
+const get = (name: string) => readFileSync(join(__dirname, 'migrations', name), { encoding: 'utf8' });
 
-insert into schemaVersion values (0);
-`;
-
-const version1_addEntityTable = `
--- The entity table supports hierarchical, tagged storage with optional TTL.
--- It is used to store integrations, connectors, identities, integration instances, as well as async operations
--- but is extensible to other categories of things that are simple key value things.
-
-create table entity (
-  accountId varchar not null,
-  subscriptionId varchar not null,
-  categoryId int not null,
-  entityId varchar not null,
-  tags jsonb,
-  expires bigint,
-  etag varchar,
-  data jsonb not null
-);
- 
-alter table entity 
-add constraint entity_pri_key primary key (accountId, subscriptionId, categoryId, entityId);
-
-create index entity_tags_idx on entity using gin (tags);
-`;
-
-export default [version0_addSchemaVersionTable, version1_addEntityTable];
+export default [get('v0-addSchemaVersionTable.sql'), get('v1-addEntityTable.sql')];
