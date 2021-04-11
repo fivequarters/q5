@@ -197,7 +197,8 @@
       "lib/server/runas",
       "tool/cicd/actions",
       "lib/runtime/pkg-manager",
-      "lib/runtime/pkg-integration"
+      "lib/runtime/pkg-integration",
+      "lib/runtime/pkg-oauth-connector"
     ]
   }
 }

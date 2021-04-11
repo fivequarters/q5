@@ -26,7 +26,22 @@ class FusebitRouter extends Router {
       { name: path }
     );
   }
-}
-type Context = Router.RouterContext;
 
-export { FusebitRouter as default, Context };
+  // Typescript yells at me without these...
+  public get(path: any, ...middleware: any[]): Router {
+    return super.get(path, ...middleware);
+  }
+  public delete(path: any, ...middleware: any[]): Router {
+    return super.delete(path, ...middleware);
+  }
+}
+
+interface IFusebitContext {
+  fusebit: any;
+  body: any;
+}
+
+type Context = Router.RouterContext & IFusebitContext;
+type Next = Koa.Next;
+
+export { FusebitRouter as default, Context, Next };

@@ -1,4 +1,4 @@
-import FusebitRouter, { Context } from './FusebitRouter';
-import { Manager } from './Manager';
+import FusebitRouter, { Context, Next } from './FusebitRouter';
+import { FusebitManager } from './Manager';
 
-export { FusebitRouter as default, Manager, Context };
+export { FusebitRouter as default, FusebitManager, Context, Next };

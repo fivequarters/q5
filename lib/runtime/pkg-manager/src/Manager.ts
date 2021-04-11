@@ -2,7 +2,7 @@ import Koa from 'koa';
 import Router from '@koa/router';
 import FusebitRouter, { Context } from './FusebitRouter';
 
-class Manager {
+class FusebitManager {
   private error: any;
 
   // Used for endpoints declared in this object.
@@ -26,10 +26,14 @@ class Manager {
 
     // Add the default routes:
     this.addHttpRoutes();
+
+    // Give everything a chance to be initialized - normally, the cfg object would be specialized per router
+    // object, but will sort that out later.
+    this.invoke('startup', { mgr: this, cfg: {}, router: this.router });
   }
 
   public addHttpRoutes() {
-    this.router.get('/health', async (ctx: Router.RouterContext, next: Koa.Next) => {
+    this.router.get('/api/health', async (ctx: Router.RouterContext, next: Koa.Next) => {
       await next();
 
       // If no status has been set, respond with a basic one.
@@ -79,9 +83,13 @@ class Manager {
         rawBody: fusebitCtx.body,
         params: {},
       },
+      fusebit: {
+        manager: this,
+        config: {},
+      },
     } as unknown) as Router.RouterContext;
     return koaCtx;
   }
 }
 
-export { Manager };
+export { FusebitManager };

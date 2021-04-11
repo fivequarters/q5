@@ -1,5 +1,5 @@
 {
-  "name": "@fusebit-int/pkg-integration",
+  "name": "@fusebit-int/pkg-oauth-connector",
   "version": "1.0.0",
   "description": "",
   "main": "libc/index.js",
@@ -14,6 +14,7 @@
   },
   "keywords": [],
   "dependencies": {
-    "@fusebit-int/pkg-manager": "^1.0.0"
+    "@fusebit-int/pkg-manager": "^1.0.0",
+    "superagent": "6.1.0"
   }
 }
