@@ -27,7 +27,7 @@ class FusebitRouter extends Router {
     );
   }
 
-  // Typescript yells at me without these...
+  // Typescript yells at me without these... I don't know why.
   public get(path: any, ...middleware: any[]): Router {
     return super.get(path, ...middleware);
   }

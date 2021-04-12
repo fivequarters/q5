@@ -1,18 +1,36 @@
+import util from 'util';
 import Koa from 'koa';
 import Router from '@koa/router';
+
+import httpMocks from 'node-mocks-http';
+
+import { IncomingMessage, ServerResponse } from 'http';
 import FusebitRouter, { Context } from './FusebitRouter';
+
+interface IStorage {
+  get: (key: string) => Promise<any>;
+  put: (data: any, key: string) => Promise<void>;
+  delete: (key: string | undefined, flag?: boolean) => Promise<void>;
+}
 
 class FusebitManager {
   private error: any;
 
+  // Used for context creation.
+  public app: Koa;
   // Used for endpoints declared in this object.
   public router: FusebitRouter;
 
-  constructor() {
+  public storage: IStorage;
+
+  constructor(storage: IStorage) {
+    this.app = new Koa();
     this.router = new FusebitRouter();
+    this.storage = storage;
   }
 
-  public setup(vendor?: FusebitRouter, vendorError?: any) {
+  // XXX temp pass in of cfg; normally this would be pulled from wherever.
+  public setup(vendor?: FusebitRouter, vendorError?: any, cfg?: any) {
     if (vendorError) {
       this.error = vendorError;
       return;
@@ -29,7 +47,7 @@ class FusebitManager {
 
     // Give everything a chance to be initialized - normally, the cfg object would be specialized per router
     // object, but will sort that out later.
-    this.invoke('startup', { mgr: this, cfg: {}, router: this.router });
+    this.invoke('startup', { mgr: this, cfg, router: this.router, storage: this.storage });
   }
 
   public addHttpRoutes() {
@@ -60,36 +78,75 @@ class FusebitManager {
   // Need to supply a next, but not sure if it's ever invoked.  Worth looking at the Koa impl at some point.
   protected async execute(ctx: Router.RouterContext) {
     return new Promise(async (resolve) => {
-      await this.router.routes()(ctx as any, resolve as Koa.Next);
-      resolve();
+      try {
+        await this.router.routes()(ctx as any, resolve as Koa.Next);
+        resolve();
+      } catch (e) {
+        console.log(require('util').inspect(e), JSON.stringify(Object.entries(e)));
+      }
     });
   }
 
+  // Derived from the Koa.context.onerror implementation
+  protected onError(ctx: Router.RouterContext, err: any) {
+    if (err == null) {
+      return;
+    }
+
+    // When dealing with cross-globals a normal `instanceof` check doesn't work properly.
+    // See https://github.com/koajs/koa/issues/1466
+    // We can probably remove it once jest fixes https://github.com/facebook/jest/issues/2549.
+    const isNativeError = Object.prototype.toString.call(err) === '[object Error]' || err instanceof Error;
+    if (!isNativeError) {
+      err = new Error(util.format('non-error thrown: %j', err));
+    }
+
+    const { res } = ctx;
+
+    // Set only the headers specified in the error.
+    res.getHeaderNames().forEach((name) => res.removeHeader(name));
+    ctx.set(err.headers);
+
+    // force text/plain
+    ctx.type = 'text';
+
+    let statusCode = err.status || err.statusCode;
+
+    // ENOENT support
+    if (err.code === 'ENOENT') {
+      statusCode = 404;
+    }
+
+    // default to 500
+    if (typeof statusCode !== 'number' || !statuses[statusCode]) {
+      statusCode = 500;
+    }
+
+    // respond
+    const msg = err.expose ? err.message : statusCode;
+    ctx.status = err.status = statusCode;
+    ctx.length = Buffer.byteLength(msg);
+    res.end(msg);
+  }
   public createFusebitResponse(ctx: Router.RouterContext) {
     return {
       body: ctx.body,
-      headers: ctx.headers,
+      header: ctx.response.header,
       statusCode: ctx.status,
     };
   }
 
   public createKoaCtx(fusebitCtx: any): Router.RouterContext {
-    // Do silly things.
-    const koaCtx = ({
+    const req = httpMocks.createRequest({
+      url: fusebitCtx.path,
       method: fusebitCtx.method,
-      path: fusebitCtx.path,
-      request: {
-        body: fusebitCtx.body,
-        rawBody: fusebitCtx.body,
-        params: {},
-      },
-      fusebit: {
-        manager: this,
-        config: {},
-      },
-    } as unknown) as Router.RouterContext;
-    return koaCtx;
+      params: fusebitCtx.params,
+      query: fusebitCtx.query,
+    });
+    const res = httpMocks.createResponse();
+
+    return this.app.createContext(req, res) as any;
   }
 }
 
-export { FusebitManager };
+export { FusebitManager, IStorage };

@@ -1,4 +1,4 @@
-import Router, { Manager, Context } from '../src';
+import FusebitRouter, { FusebitManager, Context, Next } from '../src';
 
 describe('Example', () => {
   it('Example implementation', async () => {
@@ -7,7 +7,7 @@ describe('Example', () => {
     //
     // Implied:
     //   import Router from '@fusebit/slack-connector';
-    const router = new Router();
+    const router = new FusebitRouter();
 
     router.get('/sendMessage', async (ctx: Context) => {
       ctx.body = 'Message Sent';
@@ -32,9 +32,9 @@ describe('Example', () => {
 
     /////////////////////////////////////////////////////////////////////////
     // Owned by Fusebit: @fusebit/slack-connector/index.js
-    class SlackConnector extends Manager {
+    class SlackConnector extends FusebitManager {
       public addHttpRoutes() {
-        this.router.get('/health', async (ctx, next) => {
+        this.router.get('/health', async (ctx: Context, next: Next) => {
           // Example of calling an "event" extension.
           ctx.status = await this.invoke('healthCheck', { lastHealth: 416 });
         });

@@ -64,11 +64,8 @@ interface IOAuthConfig {
   refreshWaitCountLimit: number;
   refreshInitialBackoff: number;
   refreshBackoffIncrement: number;
+
+  mountUrl: string;
 }
 
-interface IStorage {
-  get: (key: string) => Promise<any>;
-  put: (data: any, key: string) => Promise<string>;
-  delete: (key: string | undefined, flag?: boolean) => Promise<any>;
-}
-export { authorize, Sdk, IOAuthConfig, IStorage };
+export { authorize, Sdk, IOAuthConfig };
