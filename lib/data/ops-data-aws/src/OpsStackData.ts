@@ -123,8 +123,9 @@ export class OpsStackData extends DataSource implements IOpsStackData {
         elasticSearch,
         newStack.env
       ),
+      this.getInstanceId(),
       this.cloudWatchAgentForUserData(deploymentName),
-      this.fusebitServiceForUserData(tag),
+      this.fusebitServiceForUserData(tag, deploymentName),
     ].join('\n');
 
     debug('Creating AutoScale Group');
@@ -158,7 +159,12 @@ export class OpsStackData extends DataSource implements IOpsStackData {
 
     return stack;
   }
-
+  // get instance id of deployment
+  private getInstanceId() {
+    return `
+    curl http://169.254.169.254/latest/meta-data/instance-id > /home/ubuntu/instance-id
+    `
+  }
   public async promote(deploymentName: string, region: string, id: number): Promise<IOpsStack> {
     const deployment = await this.deploymentData.get(deploymentName, region);
 
@@ -258,12 +264,17 @@ export class OpsStackData extends DataSource implements IOpsStackData {
 
   private installSshKeysForUserData() {}
 
-  private fusebitServiceForUserData(tag: string) {
+  private fusebitServiceForUserData(tag: string, deploymentName: string) {
     const executeCommandArgs = [
       `-p ${this.config.monoAlbApiPort}:${this.config.monoApiPort}`,
       '--name fusebit',
       '--rm',
+      '--log',
       `--env-file ${this.getEnvFilePath()}`,
+      '--log-driver=awslogs',
+      `--log-opt awslogs-region=${this.config.mainRegion}`,
+      `--log-opt awslogs-group=/fusebit-mono/${deploymentName}`,
+      `--log-opt awslogs-stream=$(cat /home/ubuntu/instanceid)`,
       this.getDockerImagePath(tag),
     ].join(' ');
 
@@ -339,7 +350,6 @@ ${env || ''}
 EOF`
     );
   }
-
   private dockerImageForUserData(tag: string) {
     return `
 # Install docker
@@ -364,6 +374,12 @@ docker pull ${this.getDockerImagePath(tag)}`;
 wget https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb
 dpkg -i -E ./amazon-cloudwatch-agent.deb
 
+# configure AWS Unified Cloud Watch Agent for Docker driver
+cat > /etc/docker/daemon.json << EOF
+{
+  "log-driver": "awslogs"
+}
+EOF
 cat > /opt/aws/amazon-cloudwatch-agent/bin/config.json << EOF
 {
   "logs": {
