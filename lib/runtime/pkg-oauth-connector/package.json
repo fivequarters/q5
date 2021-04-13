@@ -16,5 +16,8 @@
   "dependencies": {
     "@fusebit-int/pkg-manager": "^1.0.0",
     "superagent": "6.1.0"
+  },
+  "devDependencies": {
+    "superagent-mock": "^4.0.0"
   }
 }

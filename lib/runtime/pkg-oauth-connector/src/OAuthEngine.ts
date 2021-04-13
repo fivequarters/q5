@@ -82,6 +82,7 @@ class OAuthEngine {
    * @param {string} redirectUri The redirect_uri value Fusebit used to start the authorization flow.
    */
   public async refreshAccessToken(token: any) {
+    console.log(`refreshAccessToken ${this.cfg.tokenUrl}`);
     const currentRefreshToken = token.refresh_token;
     const response = await superagent
       .post(this.cfg.tokenUrl)

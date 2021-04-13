@@ -2,10 +2,15 @@ import Koa from 'koa';
 
 import Router from '@koa/router';
 
+import { FusebitManager } from './Manager';
+
 const httpMethods = ['HEAD', 'OPTIONS', 'GET', 'PUT', 'PATCH', 'POST', 'DELETE'];
 const fusebitMethods = ['CRON', 'EVENT'];
 
 class FusebitRouter extends Router {
+  public manager?: FusebitManager;
+  public engine?: any;
+
   constructor() {
     super({ methods: [...httpMethods, ...fusebitMethods] });
   }

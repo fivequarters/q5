@@ -22,8 +22,9 @@ import { IOAuthConfig } from './Common';
 //   7. Set up a testing scheme with ngrok involved against a test OAuth server, maybe locally so that it can
 //      be automated.
 
+// It'd be nice to either place the engine/manager inside the router, or put their creation inside the
+// `startup` hook so that it can be overwritten by a specialized variant of the OAuthEngine as necessary.
 const router = new FusebitRouter();
-
 let engine: OAuthEngine;
 let manager: FusebitManager;
 
@@ -60,10 +61,13 @@ router.get('/configure', async (ctx: Context, next: Next) => {
 
 router.get('/callback', async (ctx: Context, next: Next) => {
   // Do we return the code here, or do we just return success?
-  if ((ctx.req as any).params.code) {
-    ctx.body = await engine.convertAccessCodeToToken((ctx.req as any).params.state, (ctx.req as any).params.code);
+  const code = (ctx.req as any).params.code;
+  const state = (ctx.req as any).params.state;
+
+  if (!code) {
+    ctx.throw(403);
   }
-  ctx.throw(403);
+  ctx.body = await engine.convertAccessCodeToToken(state, code);
 });
 
 // Test Endpoints

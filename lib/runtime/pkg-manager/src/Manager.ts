@@ -2,7 +2,9 @@ import util from 'util';
 import Koa from 'koa';
 import Router from '@koa/router';
 
-import httpMocks from 'node-mocks-http';
+import statuses from 'statuses';
+
+import httpMocks, { MockResponse } from 'node-mocks-http';
 
 import { IncomingMessage, ServerResponse } from 'http';
 import FusebitRouter, { Context } from './FusebitRouter';
@@ -80,10 +82,16 @@ class FusebitManager {
     return new Promise(async (resolve) => {
       try {
         await this.router.routes()(ctx as any, resolve as Koa.Next);
-        resolve();
       } catch (e) {
-        console.log(require('util').inspect(e), JSON.stringify(Object.entries(e)));
+        console.log(e);
+        e.expose = true;
+        this.onError(ctx, e);
       }
+      const data = (ctx.res as any)._getData();
+      if (data) {
+        ctx.body = data;
+      }
+      resolve();
     });
   }
 
@@ -118,16 +126,18 @@ class FusebitManager {
     }
 
     // default to 500
-    if (typeof statusCode !== 'number' || !statuses[statusCode]) {
+    if (typeof statusCode !== 'number' || !statuses(statusCode)) {
       statusCode = 500;
     }
 
     // respond
-    const msg = err.expose ? err.message : statusCode;
+    const msg = err.expose ? err.message : `${statusCode}`;
     ctx.status = err.status = statusCode;
     ctx.length = Buffer.byteLength(msg);
+
     res.end(msg);
   }
+
   public createFusebitResponse(ctx: Router.RouterContext) {
     return {
       body: ctx.body,
