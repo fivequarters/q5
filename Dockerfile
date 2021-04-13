@@ -13,8 +13,8 @@ WORKDIR /home/fusebit/
 ADD --chown=fusebit package.json ./
 ADD --chown=fusebit tsconfig.json ./
 ADD --chown=fusebit yarn.lock ./
-ADD .yarnrc ./
-ADD .yarn/releases/yarn-1.21.1.cjs ./.yarn/releases/yarn-1.21.1.cjs
+ADD --chown=fusebit .yarnrc ./
+ADD --chown=fusebit .yarn/releases/yarn-1.21.1.cjs ./.yarn/releases/yarn-1.21.1.cjs
 ADD --chown=fusebit api ./api
 ADD --chown=fusebit lib ./lib
 ADD --chown=fusebit tool ./tool
