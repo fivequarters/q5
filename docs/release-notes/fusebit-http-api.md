@@ -21,7 +21,7 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 
 _Released 04/13/21_
 
-- **Bugfix.** Corrected filesystem filling up from docker logs
+- **Bugfix.** Implement log rotation on the container log to prevent it from overflowing the disk.
 
 ## Version 1.19.0
 

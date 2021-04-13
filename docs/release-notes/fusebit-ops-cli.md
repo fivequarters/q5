@@ -22,7 +22,7 @@ All public releases of the Fusebit Operations CLI are documented here, including
 
 _Released 04/13/21_
 
-- **Bugfix.** Corrected filesystem filling up from docker logs
+- **Bugfix.** Implement log rotation on the container log to prevent it from overflowing the disk.
 
 ## Version 1.25.0
 
