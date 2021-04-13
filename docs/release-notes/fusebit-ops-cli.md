@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.25.1
+
+_Released 04/13/21_
+
+- **Bugfix.** Corrected filesystem filling up from docker logs
+
 ## Version 1.25.0
 
 _Released 03/29/21_
