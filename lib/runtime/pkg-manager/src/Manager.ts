@@ -15,6 +15,13 @@ interface IStorage {
   delete: (key: string | undefined, flag?: boolean) => Promise<void>;
 }
 
+interface IOnStartup {
+  router: FusebitRouter;
+  mgr: FusebitManager;
+  cfg: any;
+  storage: IStorage;
+}
+
 class FusebitManager {
   private error: any;
 
@@ -31,7 +38,6 @@ class FusebitManager {
     this.storage = storage;
   }
 
-  // XXX temp pass in of cfg; normally this would be pulled from wherever.
   public setup(vendor?: FusebitRouter, vendorError?: any, cfg?: any) {
     if (vendorError) {
       this.error = vendorError;
@@ -159,4 +165,4 @@ class FusebitManager {
   }
 }
 
-export { FusebitManager, IStorage };
+export { FusebitManager, IStorage, IOnStartup };

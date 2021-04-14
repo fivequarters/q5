@@ -52,12 +52,12 @@ const Sdk: { debug: (...s: any[]) => void } = { debug: console.log };
 
 interface IOAuthConfig {
   authorizationUrl: string;
-  audience: string;
+  audience?: string;
   tokenUrl: string;
   clientId: string;
   clientSecret: string;
-  vendorPrefix: string;
-  extraParams: string;
+  vendorPrefix?: string;
+  extraParams?: string;
   scope: string;
   accessTokenExpirationBuffer: number;
   refreshErrorLimit: number;

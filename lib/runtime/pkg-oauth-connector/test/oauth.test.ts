@@ -44,6 +44,20 @@ const storage: IStorage = {
   },
 };
 
+const convertToRequest = (location: string) => {
+  const url = new URL(location);
+  const params = [...url.searchParams.keys()].reduce((obj: { [key: string]: string | null }, key: string) => {
+    obj[key] = url.searchParams.get(key);
+    return obj;
+  }, {});
+
+  return request('GET', url.pathname, params);
+};
+
+beforeEach(() => {
+  memStorage = {};
+});
+
 describe('OAuth Engine', () => {
   it('/configure generates a valid redirect', async () => {
     const manager = new FusebitManager(storage);
@@ -64,35 +78,91 @@ describe('OAuth Engine', () => {
     const redirectUri = url.searchParams.get('redirect_uri') as string;
     expect(redirectUri).not.toBeNull();
   });
+});
 
-  it('/callback retrieves a token', async () => {
-    const httpMockEnd = httpMockStart(sampleCfg);
-    const manager = new FusebitManager(storage);
-    manager.setup(router, undefined, sampleCfg);
+describe('Simple OAuth Tests', () => {
+  let httpMockEnd: any;
 
+  beforeAll(() => {
+    httpMockEnd = httpMockStart(sampleCfg);
+  });
+
+  afterAll(() => {
+    httpMockEnd();
+  });
+
+  it('Simple end-to-end flow', async () => {
+    const manager = new FusebitManager(storage); // Start the manager with a pseudo-storage
+    manager.setup(router, undefined, sampleCfg); // Configure the system.
+
+    // Start the process with the browser hitting the connector with a state value.
     let result = await manager.handle(request('GET', '/configure', { state: 'STATE' }));
 
     // Simulate hitting the OAuth server.
     const codeRedirect = await superagent.get(result.header.location);
     expect(codeRedirect.status).toBe(302);
 
-    // Extract the search parameters out of the URL from the OAuth server
-    const url = new URL(codeRedirect.header.location);
-    const params = [...url.searchParams.keys()].reduce((obj: { [key: string]: string | null }, key: string) => {
-      obj[key] = url.searchParams.get(key);
-      return obj;
-    }, {});
-
-    // Simulate the callback from the OAuth server back to Fusebit
-    result = await manager.handle(request('GET', url.pathname, params));
+    // Simulate the browser hitting the connector; the connector then calls into the OAuth server to convert
+    // the code into an access token.
+    result = await manager.handle(convertToRequest(codeRedirect.header.location));
     expect(result.statusCode).toBe(200);
-    expect(result.body.access_token).toBe('ACCESSTOKEN');
-    expect(result.body.refresh_token).toBe('REFRESHTOKEN');
-    expect(result.body.token_type).toBe('Bearer');
-    expect(result.body.expires_in).toBe(3600);
+
+    // Validate the result
+    expect(result.body).toMatchObject({
+      access_token: 'ACCESSTOKEN',
+      refresh_token: 'REFRESHTOKEN',
+      token_type: 'Bearer',
+      expires_in: 3600,
+      status: 'authenticated',
+    });
     expect(result.body.expires_at).toBeGreaterThan(1618292158939);
-    expect(result.body.status).toBe('authenticated');
     expect(result.body.timestamp).toBeGreaterThan(1618288558939);
-    httpMockEnd();
+
+    // Validate memStorage
+    expect(memStorage).toEqual({ STATE: result.body });
+  });
+});
+
+describe('Test against mocklab.io', () => {
+  it('example', async () => {
+    const mockCfg: IOAuthConfig = {
+      mountUrl: 'https://BASEURL',
+
+      authorizationUrl: 'https://oauth.mocklab.io/oauth/authorize',
+      tokenUrl: 'https://oauth.mocklab.io/oauth/token',
+      scope: 'email',
+      clientId: 'mocklab_oauth2',
+      clientSecret: 'whatever',
+      accessTokenExpirationBuffer: 500,
+      refreshErrorLimit: 100000,
+      refreshWaitCountLimit: 100000,
+      refreshInitialBackoff: 100000,
+      refreshBackoffIncrement: 100000,
+    };
+
+    const manager = new FusebitManager(storage); // Start the manager with a pseudo-storage
+    manager.setup(router, undefined, mockCfg); // Configure the system.
+
+    // Start the process with the browser hitting the connector with a state value.
+    let result = await manager.handle(request('GET', '/configure', { state: 'STATE' }));
+
+    const res = await superagent
+      .post('https://oauth.mocklab.io/login')
+      .send(
+        `state=STATE&redirectUri=${mockCfg.mountUrl}/callback&cliendId=foo&nonce=bar&email=user@example.com&password=monkey`
+      )
+      .redirects(0)
+      .ok((r: superagent.Response) => r.status < 400);
+    expect(res.status).toBe(302);
+    expect(res.header.location.indexOf(`${mockCfg.mountUrl}/callback`)).toBe(0);
+
+    // Simulate hitting the fusebit callback url
+    result = await manager.handle(convertToRequest(res.header.location));
+
+    expect(result.body.access_token.length).toBeGreaterThan(1);
+    expect(result.body.token_type).toBe('Bearer');
+    expect(result.body.id_token.length).toBeGreaterThan(1);
+    expect(result.body.status).toBe('authenticated');
+    expect(result.body.timestamp).toBeGreaterThan(1);
   });
 });
