@@ -12,6 +12,7 @@ const request = (method: string, path: string, params: any) => {
 
 const sampleCfg: IOAuthConfig = {
   mountUrl: 'https://BASEURL',
+  callbackUrl: 'https://BASEURL/callback',
 
   authorizationUrl: 'http://AUTHURL',
   tokenUrl: 'http://TOKENURL',
@@ -127,6 +128,7 @@ describe('Test against mocklab.io', () => {
   it('example', async () => {
     const mockCfg: IOAuthConfig = {
       mountUrl: 'https://BASEURL',
+      callbackUrl: 'https://BASEURL/callback',
 
       authorizationUrl: 'https://oauth.mocklab.io/oauth/authorize',
       tokenUrl: 'https://oauth.mocklab.io/oauth/token',

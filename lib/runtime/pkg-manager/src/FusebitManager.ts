@@ -1,13 +1,17 @@
 import util from 'util';
 import Koa from 'koa';
-import Router from '@koa/router';
 
 import statuses from 'statuses';
 
-import httpMocks, { MockResponse } from 'node-mocks-http';
+import httpMocks from 'node-mocks-http';
 
-import { IncomingMessage, ServerResponse } from 'http';
-import FusebitRouter, { Context } from './FusebitRouter';
+import FusebitRouter, { Context, Next } from './FusebitRouter';
+
+type VendorModuleError = any;
+type FusebitConfig = any;
+
+type FusebitRequestContext = any;
+type InvokeParameters = any;
 
 interface IStorage {
   get: (key: string) => Promise<any>;
@@ -18,7 +22,7 @@ interface IStorage {
 interface IOnStartup {
   router: FusebitRouter;
   mgr: FusebitManager;
-  cfg: any;
+  cfg: FusebitConfig;
   storage: IStorage;
 }
 
@@ -27,7 +31,8 @@ class FusebitManager {
 
   // Used for context creation.
   public app: Koa;
-  // Used for endpoints declared in this object.
+
+  // Route requests and events to specific endpoint handlers.
   public router: FusebitRouter;
 
   public storage: IStorage;
@@ -38,9 +43,12 @@ class FusebitManager {
     this.storage = storage;
   }
 
-  public setup(vendor?: FusebitRouter, vendorError?: any, cfg?: any) {
+  public setup(vendor?: FusebitRouter, vendorError?: VendorModuleError, cfg?: FusebitConfig) {
     if (vendorError) {
       this.error = vendorError;
+
+      // Add the default routes even when the vendor code hasn't loaded correctly.
+      this.addHttpRoutes();
       return;
     }
 
@@ -50,16 +58,17 @@ class FusebitManager {
       this.router.use(vendor.routes());
     }
 
-    // Add the default routes:
-    this.addHttpRoutes();
-
     // Give everything a chance to be initialized - normally, the cfg object would be specialized per router
     // object, but will sort that out later.
     this.invoke('startup', { mgr: this, cfg, router: this.router, storage: this.storage });
+
+    // Add the default routes - these will get overruled by any routes added by the vendor or during the
+    // startup phase.
+    this.addHttpRoutes();
   }
 
   public addHttpRoutes() {
-    this.router.get('/api/health', async (ctx: Router.RouterContext, next: Koa.Next) => {
+    this.router.get('/api/health', async (ctx: Context, next: Next) => {
       await next();
 
       // If no status has been set, respond with a basic one.
@@ -69,30 +78,39 @@ class FusebitManager {
     });
   }
 
-  public async handle(fusebitCtx: any) {
-    const ctx = this.createKoaCtx(fusebitCtx);
+  // Accept a Fusebit Function event, convert it into a routable context, and execute it through the router.
+  // Return a valid Fusebit response from the Context.
+  public async handle(fusebitCtx: FusebitRequestContext) {
+    const ctx = this.createRouteableContext(fusebitCtx);
     await this.execute(ctx);
     return this.createFusebitResponse(ctx);
   }
 
-  // Used to call, RPC style, an event function mounted on the router.
-  public async invoke(event: string, parameters: any) {
-    const ctx = this.createKoaCtx({ method: 'EVENT', path: event, request: { body: {}, rawBody: '', params: {} } });
-    (ctx as any).event = { parameters: { ...parameters, ctx } };
+  // Used to call, RPC style, an event function mounted via `.on()`
+  public async invoke(event: string, parameters: InvokeParameters) {
+    const ctx = this.createRouteableContext({
+      method: 'EVENT',
+      path: event,
+      request: { body: {}, rawBody: '', params: {} },
+    });
+    ctx.event = { parameters: { ...parameters, ctx } };
     await this.execute(ctx);
     return ctx.body;
   }
 
-  // Need to supply a next, but not sure if it's ever invoked.  Worth looking at the Koa impl at some point.
-  protected async execute(ctx: Router.RouterContext) {
+  // Find the matching route for a Context and send it down the middleware chain to be handled.
+  protected async execute(ctx: Context) {
     return new Promise(async (resolve) => {
       try {
+        // TODO: Need to supply a next, but not sure if it's ever invoked.  Worth looking at the Koa impl at some point.
         await this.router.routes()(ctx as any, resolve as Koa.Next);
       } catch (e) {
         console.log(e);
         e.expose = true;
         this.onError(ctx, e);
       }
+
+      // Extract any data from the response, and specify that in the body.
       const data = (ctx.res as any)._getData();
       if (data) {
         ctx.body = data;
@@ -101,8 +119,8 @@ class FusebitManager {
     });
   }
 
-  // Derived from the Koa.context.onerror implementation
-  protected onError(ctx: Router.RouterContext, err: any) {
+  // Derived from the Koa.context.onerror implementation - do intelligent things when errors happen.
+  protected onError(ctx: Context, err: any) {
     if (err == null) {
       return;
     }
@@ -144,15 +162,8 @@ class FusebitManager {
     res.end(msg);
   }
 
-  public createFusebitResponse(ctx: Router.RouterContext) {
-    return {
-      body: ctx.body,
-      header: ctx.response.header,
-      statusCode: ctx.status,
-    };
-  }
-
-  public createKoaCtx(fusebitCtx: any): Router.RouterContext {
+  // Convert from a Fusebit Function context into a routable context.
+  public createRouteableContext(fusebitCtx: FusebitRequestContext): Context {
     const req = httpMocks.createRequest({
       url: fusebitCtx.path,
       method: fusebitCtx.method,
@@ -162,6 +173,15 @@ class FusebitManager {
     const res = httpMocks.createResponse();
 
     return this.app.createContext(req, res) as any;
+  }
+
+  // Convert the routable context into a response that the Fusebit Function expects.
+  public createFusebitResponse(ctx: Context) {
+    return {
+      body: ctx.body,
+      header: ctx.response.header,
+      statusCode: ctx.status,
+    };
   }
 }
 

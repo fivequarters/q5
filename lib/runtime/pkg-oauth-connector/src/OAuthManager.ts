@@ -1,6 +1,5 @@
-import FusebitRouter, { FusebitManager, Context, Next, IStorage, IOnStartup } from '@fusebit-int/pkg-manager';
+import FusebitRouter, { FusebitManager, Context, Next, IOnStartup } from '@fusebit-int/pkg-manager';
 import { OAuthEngine } from './OAuthEngine';
-import { IOAuthConfig } from './Common';
 
 // Tasks:
 //   1. Normalize the configuration element names (remove vendor_oauth)
@@ -15,8 +14,8 @@ import { IOAuthConfig } from './Common';
 //         3. Validate storage contains expected things.
 //      2. Improve conveyance of configuration; bind to router object?
 //        1. Does a router object duplicate itself on use, or is it a singleton?
-//          * Reset the require cache if multiple of the same object are needed.
-//      4. Clean up typescript shenanigans.
+//          - Reset the require cache if multiple of the same object are needed.
+// ***  4. Clean up typescript shenanigans.
 //   5. Implement also a BasicAuthEngine so it's n>1 within a given connector
 //   6. Set up an oauth-connector that steals all of the logic from the app.js and stuff to declare the necessary
 //      routes.
@@ -43,44 +42,35 @@ router.on('startup', async ({ mgr, cfg, router: rtr, storage }: IOnStartup, next
 
 // Internal Endpoints
 router.delete('/', async (ctx: Context, next: Next) => {
-  return manager.invoke('uninstall', {});
+  await manager.invoke('uninstall', {});
+  return next();
 });
 
-router.get('/:userId/health', async (ctx: Context, next: Next) => {
+router.get('/:lookupKey/health', async (ctx: Context) => {
   ctx.body = 200;
 });
 
-router.get('/:userId/token', async (ctx: Context) => {
-  ctx.body = await engine.ensureAccessToken(ctx.params.userId);
+router.get('/:lookupKey/token', async (ctx: Context) => {
+  ctx.body = await engine.ensureAccessToken(ctx.params.lookupKey);
 });
 
-router.delete('/:userId', async (ctx: Context, next: Next) => {
-  ctx.body = await engine.deleteUser(ctx.params.userId);
+router.delete('/:lookupKey', async (ctx: Context) => {
+  ctx.body = await engine.deleteUser(ctx.params.lookupKey);
 });
 
 // OAuth Flow Endpoints
-router.get('/configure', async (ctx: Context, next: Next) => {
-  ctx.redirect(await engine.getAuthorizationUrl((ctx.req as any).params.state));
+router.get('/configure', async (ctx: Context) => {
+  ctx.redirect(await engine.getAuthorizationUrl(ctx.params.state));
 });
 
-router.get('/callback', async (ctx: Context, next: Next) => {
-  // Do we return the code here, or do we just return success?
-  const code = (ctx.req as any).params.code;
-  const state = (ctx.req as any).params.state;
+router.get('/callback', async (ctx: Context) => {
+  const state = ctx.params.state;
+  const code = ctx.params.code;
 
   if (!code) {
     ctx.throw(403);
   }
   ctx.body = await engine.convertAccessCodeToToken(state, code);
-});
-
-// Test Endpoints
-router.get('/test', async (ctx: Context, next: Next) => {
-  // Return the self-/configure url to test things.
-});
-
-router.get('/test-callback', async (ctx: Context, next: Next) => {
-  // Return the self-/configure url to test things.
 });
 
 export { router as default };
