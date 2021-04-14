@@ -14,7 +14,7 @@ const emailRegex = /^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\
 const googleSheetUrl =
   'https://script.google.com/macros/s/AKfycbwvCP7_RW163ccBtVR5T6WRwkCHPE-3NO-D7-lyoG5Ce1DB9lc/exec';
 const placeHolderDefault = 'Enter Your Email';
-const buttonTextDefault = 'Get started';
+const buttonTextDefault = 'Join waitlist';
 const errorTextDefault = 'Valid Email Required';
 const gaCategoryDefault = 'CTA';
 const gaActionDefault = 'Clicked send email form';
