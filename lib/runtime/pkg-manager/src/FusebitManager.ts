@@ -7,6 +7,8 @@ import httpMocks from 'node-mocks-http';
 
 import FusebitRouter, { Context, Next } from './FusebitRouter';
 
+import FusebitIntegrationManager from './FusebitIntegrationManager';
+
 type VendorModuleError = any;
 type FusebitConfig = any;
 
@@ -44,6 +46,9 @@ class FusebitManager {
   }
 
   public setup(vendor?: FusebitRouter, vendorError?: VendorModuleError, cfg?: FusebitConfig) {
+    // Load the configuration for the integrations
+    FusebitIntegrationManager.setup(cfg.integration);
+
     if (vendorError) {
       this.error = vendorError;
 

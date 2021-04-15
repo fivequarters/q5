@@ -1,7 +1,7 @@
-import FusebitRouter, { FusebitManager, Context, Next } from '../src';
+import FusebitRouter, { FusebitManager, Context, Next, IStorage } from '../src';
 
 describe('Example', () => {
-  it('Example implementation', async () => {
+  it.skip('Example implementation', async () => {
     /////////////////////////////////////////////////////////////////////////
     // Vendor's Code: @vendor/slack7/index.js
     //
@@ -46,7 +46,8 @@ describe('Example', () => {
     //
     // Implied:
     //   const router = require('@vendor/slack7');
-    const manager = new SlackConnector();
+    const storage: any = {};
+    const manager = new FusebitManager(storage);
     manager.setup(router, undefined);
 
     /////////////////////////////////////////////////////////////////////////
