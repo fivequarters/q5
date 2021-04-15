@@ -13,7 +13,7 @@ describe('Integration', () => {
     const config = {
       integration: {
         slack1: {
-          package: '../test/oauth-connector',
+          package: './examples/oauth-connector',
           config: {
             authority: 'https://dev.us-west-1.dev.fusebit.io/v1/run/sub-0095d2ffa3d1424a/benn/oauth-connector',
           },

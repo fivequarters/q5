@@ -1,5 +1,4 @@
-import { Context } from '../src';
-import { IIntegrationConfig } from '../src/FusebitIntegrationManager';
+import { Context, IIntegrationConfig } from '..';
 
 class OAuthIntegration {
   public config: IIntegrationConfig;
