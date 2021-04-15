@@ -167,12 +167,16 @@ class FusebitManager {
     const req = httpMocks.createRequest({
       url: fusebitCtx.path,
       method: fusebitCtx.method,
-      params: fusebitCtx.params,
-      query: fusebitCtx.query,
+      headers: fusebitCtx.headers,
     });
+
     const res = httpMocks.createResponse();
 
-    return this.app.createContext(req, res) as any;
+    const ctx = this.app.createContext(req, res) as any;
+    // NOTE: this may glitch non-utf-8 encodings; for blame, see koa/lib/request.js's casual use of stringify.
+    ctx.query = fusebitCtx.query;
+    ctx.params = fusebitCtx.params;
+    return ctx;
   }
 
   // Convert the routable context into a response that the Fusebit Function expects.

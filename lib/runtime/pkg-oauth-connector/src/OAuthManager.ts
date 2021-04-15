@@ -60,12 +60,12 @@ router.delete('/:lookupKey', async (ctx: Context) => {
 
 // OAuth Flow Endpoints
 router.get('/configure', async (ctx: Context) => {
-  ctx.redirect(await engine.getAuthorizationUrl(ctx.params.state));
+  ctx.redirect(await engine.getAuthorizationUrl(ctx.query.state));
 });
 
 router.get('/callback', async (ctx: Context) => {
-  const state = ctx.params.state;
-  const code = ctx.params.code;
+  const state = ctx.query.state;
+  const code = ctx.query.code;
 
   if (!code) {
     ctx.throw(403);

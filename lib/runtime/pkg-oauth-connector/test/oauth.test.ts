@@ -2,13 +2,9 @@ import superagent from 'superagent';
 
 import { FusebitManager, IStorage } from '@fusebit-int/pkg-manager';
 import router from '../src/OAuthManager';
-import { IOAuthConfig } from '../src/Common';
+import { IOAuthConfig } from '../src/OAuthTypes';
 
 import { httpMockStart } from './server';
-
-const request = (method: string, path: string, params: any) => {
-  return { body: {}, headers: {}, method, path, params };
-};
 
 const sampleCfg: IOAuthConfig = {
   mountUrl: 'https://BASEURL',
@@ -45,14 +41,18 @@ const storage: IStorage = {
   },
 };
 
+const request = (method: string, path: string, query: any) => {
+  return { body: {}, headers: {}, method, path, query };
+};
+
 const convertToRequest = (location: string) => {
   const url = new URL(location);
-  const params = [...url.searchParams.keys()].reduce((obj: { [key: string]: string | null }, key: string) => {
+  const query = [...url.searchParams.keys()].reduce((obj: { [key: string]: string | null }, key: string) => {
     obj[key] = url.searchParams.get(key);
     return obj;
   }, {});
 
-  return request('GET', url.pathname, params);
+  return request('GET', url.pathname, query);
 };
 
 beforeEach(() => {
