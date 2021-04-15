@@ -21,7 +21,7 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 
 _Release 04.13.21_
 
-- **Bugfix** Proper handling of lambda hard timeout
+- **Bugfix** Changed AWS SDK timeout.
 
 ## Version 1.19.2
 

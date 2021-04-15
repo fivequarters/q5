@@ -56,7 +56,7 @@ describe('Execution', () => {
     expect(response.data).toEqual('function');
     expect(response.headers['x-fx-response-source']).toEqual('function');
   }, 15000);
-  test.only('Lambda times out after 2 minutes with proper 504 return code', async () => {
+  test('Lambda times out after 2 minutes with same return code as normal timeouts', async () => {
     const helloWorldThatTimesOut = {
       nodejs: {
          files: {
@@ -69,11 +69,9 @@ describe('Execution', () => {
     }
     const response = await putFunction(account, boundaryId, function1Id, helloWorldThatTimesOut);
     expect(response).toBeHttp({statusCode: 200});
-    const triggerResponse = await request({
-      url: response.data.location
-    });
+    const triggerResponse = await request(response.data.location);
     expect(triggerResponse).toBeHttp({statusCode: 500})
-  }, 360000)
+  }, 140000)
   test('function context APIs work as expected', async () => {
     const reflectContext = {
       nodejs: {
