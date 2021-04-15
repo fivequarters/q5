@@ -211,7 +211,13 @@ export class FunctionService {
     );
   }
 
-  public async getFunctionSpec(path: string, cron?: string, timezone?: string, links?: string[]): Promise<any> {
+  public async getFunctionSpec(
+    path: string,
+    cron?: string,
+    timezone?: string,
+    links?: string[],
+    linkExtensions?: string[]
+  ): Promise<any> {
     const functionSpec: any = { nodejs: { files: {} } };
     const fusebitJson = (await this.getFusebitJson(path)) || {};
 
@@ -260,6 +266,9 @@ export class FunctionService {
         links.reduce((acc: string, link: string) => `${acc}|^node_modules/${link}`, `^node_modules/${links[0]}`)
       );
       const noSubNodeModulesRegex = new RegExp('node_modules.*node_modules');
+      const onlySelectFilesRegex = new RegExp(
+        `node_modules/.*(${linkExtensions ? linkExtensions.join('|') : 'js|json|html|css|xcss'})+$`
+      );
       const packageJsonRegex = new RegExp(
         links.reduce(
           (acc: string, link: string) => `${acc}|^node_modules/${link}/package.json`,
@@ -267,9 +276,11 @@ export class FunctionService {
         )
       );
 
-      // Filter out non-linked modules.
+      // Filter out non-linked modules and submodule directories, and only allow js, json, and html files in the links.
       files = files.filter(
-        (file) => file.indexOf('node_modules') === -1 || (file.match(linksRegex) && !file.match(noSubNodeModulesRegex))
+        (file) =>
+          file.indexOf('node_modules') === -1 ||
+          (file.match(linksRegex) && !file.match(noSubNodeModulesRegex) && file.match(onlySelectFilesRegex))
       );
 
       // Load the dependencies from linked modules, and store them for insertion at the top level.

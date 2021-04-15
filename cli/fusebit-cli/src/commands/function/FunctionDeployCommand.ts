@@ -64,6 +64,17 @@ const command = {
       allowMany: true,
     },
     {
+      name: 'linkExtensions',
+      description: Text.create(
+        'Specify the file extensions to include when linking additional modules. This does not impact the top-level function.',
+        'Specify once for each desired extension.',
+        Text.eol(),
+        'Default value: js, json, html, css, xcss.'
+      ),
+      type: ArgType.string,
+      allowMany: true,
+    },
+    {
       name: 'timezone',
       aliases: ['t'],
       description: [
@@ -105,6 +116,7 @@ export class FunctionDeployCommand extends Command {
     const sourceDir = input.options.dir as string;
     const cron = input.options.cron as string;
     const links = input.options.link as string[];
+    const linkExtensions = input.options.linkExtensions as string[];
     const timezone = input.options.timezone as string;
 
     const functionService = await FunctionService.create(input);
@@ -113,7 +125,7 @@ export class FunctionDeployCommand extends Command {
     await executeService.newLine();
 
     const sourcePath = sourceDir ? join(process.cwd(), sourceDir) : process.cwd();
-    const functionSpec = await functionService.getFunctionSpec(sourcePath, cron, timezone, links);
+    const functionSpec = await functionService.getFunctionSpec(sourcePath, cron, timezone, links, linkExtensions);
 
     await functionService.confirmDeploy(sourcePath, functionSpec, functionId, cron);
 
