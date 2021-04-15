@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.19.3
+
+_Release 04.13.21_
+
+- **Bugfix** Proper handling of lambda hard timeout
+
 ## Version 1.19.2
 
 _Released 04/13/21_
