@@ -20,7 +20,7 @@ const contactUsText1 =
 const contactUsText2 = 'Sign up below and we will get you an early access invite.';
 const sendButtonText = 'Get early access';
 const aboutYouHeading = 'Your needs';
-const aboutYouText = "What issues are you facing with your current integraitons?";
+const aboutYouText = "What issues are you facing with your current integrations?";
 
 // ------------------
 // Internal Functions
