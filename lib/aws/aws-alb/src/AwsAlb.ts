@@ -469,7 +469,7 @@ export class AwsAlb extends AwsBase<typeof ELBv2> {
       Attributes: [
         {
           Key: 'idle_timeout.timeout_seconds',
-          Value: '120',
+          Value: '125',
         },
       ],
     };
