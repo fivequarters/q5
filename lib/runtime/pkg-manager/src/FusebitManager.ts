@@ -21,6 +21,7 @@ type FusebitRequestContext = any;
 type InvokeParameters = any;
 
 interface IStorage {
+  accessToken: string;
   get: (key: string) => Promise<any>;
   put: (data: any, key: string) => Promise<void>;
   delete: (key: string | undefined, flag?: boolean) => Promise<void>;
@@ -91,9 +92,18 @@ class FusebitManager {
   // Accept a Fusebit Function event, convert it into a routable context, and execute it through the router.
   // Return a valid Fusebit response from the Context.
   public async handle(fusebitCtx: FusebitRequestContext) {
+    // Update the security context for this particular call.
+    this.storage.accessToken = fusebitCtx.fusebit ? fusebitCtx.fusebit.functionAccessToken : '';
+
+    // Convert the context and execute.
     const ctx = this.createRouteableContext(fusebitCtx);
     await this.execute(ctx);
-    return this.createFusebitResponse(ctx);
+    const response = this.createFusebitResponse(ctx);
+
+    // Clear the accessToken after handling this call is completed.
+    this.storage.accessToken = '';
+
+    return response;
   }
 
   // Used to call, RPC style, an event function mounted via `.on()`

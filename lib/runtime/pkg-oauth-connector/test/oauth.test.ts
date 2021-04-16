@@ -28,6 +28,7 @@ const sampleCfg: IOAuthConfig = {
 let memStorage: { [key: string]: any } = {};
 
 const storage: IStorage = {
+  accessToken: '',
   get: async (key: string) => memStorage[key],
   put: async (data: any, key: string) => {
     memStorage[key] = data;
@@ -120,7 +121,7 @@ describe('Simple OAuth Tests', () => {
     expect(result.body.timestamp).toBeGreaterThan(1618288558939);
 
     // Validate memStorage
-    expect(memStorage).toEqual({ STATE: result.body });
+    expect(memStorage).toEqual({ STATE: { data: result.body } });
   });
 });
 

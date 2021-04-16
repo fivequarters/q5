@@ -1,3 +1,3 @@
 import router from './OAuthManager';
 
-export { router as default };
+module.exports = router;

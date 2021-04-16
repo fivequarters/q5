@@ -56,7 +56,7 @@ class OAuthEngine {
     token.status = 'authenticated';
     token.timestamp = Date.now();
 
-    this.storage.put(token, lookupKey);
+    await this.storage.put({ data: token }, lookupKey);
 
     return token;
   }
@@ -135,7 +135,7 @@ class OAuthEngine {
     if (token.refresh_token) {
       token.status = 'refreshing';
       try {
-        await this.storage.put(token, lookupKey);
+        await this.storage.put({ data: token }, lookupKey);
 
         token = await this.refreshAccessToken(token.refresh_token);
 
@@ -146,7 +146,7 @@ class OAuthEngine {
         token.status = 'authenticated';
         token.refreshErrorCount = 0;
 
-        await this.storage.put(token, lookupKey);
+        await this.storage.put({ data: token }, lookupKey);
 
         return token;
       } catch (e) {
@@ -158,7 +158,7 @@ class OAuthEngine {
         } else {
           token.refreshErrorCount = (token.refreshErrorCount || 0) + 1;
           token.status = 'refresh_error';
-          await this.storage.put(token, lookupKey);
+          await this.storage.put({ data: token }, lookupKey);
           throw new Error(
             `Error refreshing access token, attempt ${token.refreshErrorCount} out of ${this.cfg.refreshErrorLimit}: ${e.message}`
           );

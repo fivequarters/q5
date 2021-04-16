@@ -1,7 +1,7 @@
 const httpMock = require('superagent-mock');
 import superagent from 'superagent';
 
-import { IOAuthConfig } from '../src/Common';
+import { IOAuthConfig } from '../src/OAuthTypes';
 
 const httpMockStart = (cfg: IOAuthConfig) => {
   const httpMockConfig = [
