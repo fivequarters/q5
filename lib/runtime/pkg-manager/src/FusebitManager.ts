@@ -86,10 +86,6 @@ class FusebitManager {
         ctx.body = this.error ? ctx.throw(501, 'invalid vendor data', { error: this.error }) : { status: 'ok' };
       }
     });
-
-    this.router.use(async (ctx: any, next: any) => {
-      console.log('XXX XXX XXX');
-    });
   }
 
   // Accept a Fusebit Function event, convert it into a routable context, and execute it through the router.

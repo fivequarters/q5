@@ -36,10 +36,13 @@ class FusebitConnectorManager {
     return (cfg.instance = new Connector({ name, ...cfg }));
   }
 
-  public async getByName(ctx: Context, name: string, lookupKey: string) {
-    const cfg = this.connectors[name];
-    const inst = cfg.instance ? cfg.instance : this.loadConnector(name, cfg);
-    return inst.instantiate(ctx, lookupKey);
+  public getByName(name: string, handler: (ctx: Context) => string) {
+    return (ctx: Context) => {
+      const cfg = this.connectors[name];
+      const inst = cfg.instance ? cfg.instance : this.loadConnector(name, cfg);
+
+      return inst.instantiate(ctx, handler(ctx));
+    };
   }
 
   public clear() {

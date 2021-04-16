@@ -1,8 +1,8 @@
 import { FusebitManager, IStorage } from '../src';
-import integration from '../src/FusebitConnectorManager';
+import connectors from '../src/FusebitConnectorManager';
 
 beforeEach(() => {
-  integration.clear();
+  connectors.clear();
 });
 
 describe('Integration Connector', () => {
@@ -25,8 +25,10 @@ describe('Integration Connector', () => {
 
     const ctx: any = {};
 
-    const slack1 = await integration.getByName(ctx, 'slack1', 'LOOKUPKEY');
-    expect(slack1.sendMessage()).toBe(
+    const slack1 = connectors.getByName('slack1', () => 'LOOKUPKEY');
+    const slack = await slack1(ctx);
+
+    expect(slack.sendMessage()).toBe(
       `OAUTH ${config.connectors.slack1.package} => ${config.connectors.slack1.config.authority}/LOOKUPKEY`
     );
   });
