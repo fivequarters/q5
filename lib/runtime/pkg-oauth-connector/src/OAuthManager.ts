@@ -1,5 +1,5 @@
 import FusebitRouter, { FusebitManager, Context, Next, IOnStartup } from '@fusebit-int/pkg-manager';
-import { OAuthEngine } from './OAuthEngine';
+import { OAuthEngine, IOAuthConfig } from './OAuthEngine';
 
 const router = new FusebitRouter();
 
@@ -10,7 +10,7 @@ router.on('startup', async ({ mgr, cfg, router: rtr, storage }: IOnStartup, next
   // Router's already been mounted, so any further additions need to happen here on 'rtr'.
   //
   // Create the engine, now that the configuration has been loaded.
-  engine = new OAuthEngine(cfg, storage, rtr);
+  engine = new OAuthEngine(cfg as IOAuthConfig, storage, rtr);
   manager = mgr;
   return next();
 });

@@ -1,8 +1,8 @@
-import { Context, IIntegrationConfig } from '..';
+import { Context, IConnectorConfig } from '..';
 
-class OAuthIntegration {
-  public config: IIntegrationConfig;
-  constructor(cfg: IIntegrationConfig) {
+class OAuthConnector {
+  public config: IConnectorConfig;
+  constructor(cfg: IConnectorConfig) {
     this.config = cfg;
   }
 
@@ -12,4 +12,4 @@ class OAuthIntegration {
   }
 }
 
-module.exports = OAuthIntegration;
+module.exports = OAuthConnector;

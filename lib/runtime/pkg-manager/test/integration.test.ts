@@ -1,17 +1,17 @@
-import FusebitRouter, { FusebitManager, Context, Next, IStorage } from '../src';
-import integration from '../src/FusebitIntegrationManager';
+import { FusebitManager, IStorage } from '../src';
+import integration from '../src/FusebitConnectorManager';
 
 beforeEach(() => {
   integration.clear();
 });
 
-describe('Integration', () => {
+describe('Integration Connector', () => {
   it('validate routable contexts have correct values', async () => {
     const storage = {};
     const manager = new FusebitManager(storage as IStorage);
 
     const config = {
-      integration: {
+      connectors: {
         slack1: {
           package: './examples/oauth-connector',
           config: {
@@ -21,13 +21,13 @@ describe('Integration', () => {
       },
     };
 
-    manager.setup(undefined, undefined, config);
+    manager.setup(config, undefined, undefined);
 
     const ctx: any = {};
 
     const slack1 = await integration.getByName(ctx, 'slack1', 'LOOKUPKEY');
     expect(slack1.sendMessage()).toBe(
-      `OAUTH ${config.integration.slack1.package} => ${config.integration.slack1.config.authority}/LOOKUPKEY`
+      `OAUTH ${config.connectors.slack1.package} => ${config.connectors.slack1.config.authority}/LOOKUPKEY`
     );
   });
 });

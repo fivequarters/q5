@@ -7,10 +7,15 @@ import httpMocks from 'node-mocks-http';
 
 import FusebitRouter, { Context, Next } from './FusebitRouter';
 
-import FusebitIntegrationManager from './FusebitIntegrationManager';
+import FusebitConnectorManager from './FusebitConnectorManager';
 
 type VendorModuleError = any;
-type FusebitConfig = any;
+interface IIntegrationConfig {
+  connectors: { [connectorName: string]: any };
+}
+type IConnectorConfig = any;
+
+type IFusebitConfig = IIntegrationConfig | IConnectorConfig;
 
 type FusebitRequestContext = any;
 type InvokeParameters = any;
@@ -24,7 +29,7 @@ interface IStorage {
 interface IOnStartup {
   router: FusebitRouter;
   mgr: FusebitManager;
-  cfg: FusebitConfig;
+  cfg: IFusebitConfig;
   storage: IStorage;
 }
 
@@ -45,9 +50,9 @@ class FusebitManager {
     this.storage = storage;
   }
 
-  public setup(vendor?: FusebitRouter, vendorError?: VendorModuleError, cfg?: FusebitConfig) {
+  public setup(cfg: IFusebitConfig, vendor?: FusebitRouter, vendorError?: VendorModuleError) {
     // Load the configuration for the integrations
-    FusebitIntegrationManager.setup(cfg.integration);
+    FusebitConnectorManager.setup(cfg.connectors);
 
     if (vendorError) {
       this.error = vendorError;
@@ -81,6 +86,10 @@ class FusebitManager {
         ctx.body = this.error ? ctx.throw(501, 'invalid vendor data', { error: this.error }) : { status: 'ok' };
       }
     });
+
+    this.router.use(async (ctx: any, next: any) => {
+      console.log('XXX XXX XXX');
+    });
   }
 
   // Accept a Fusebit Function event, convert it into a routable context, and execute it through the router.
@@ -109,8 +118,15 @@ class FusebitManager {
       try {
         // TODO: Need to supply a next, but not sure if it's ever invoked.  Worth looking at the Koa impl at some point.
         await this.router.routes()(ctx as any, resolve as Koa.Next);
+
+        // Peak into the ctx; if it's unserved, throw a 404.
+        if (!(ctx as any).routerPath) {
+          ctx.throw(404);
+        }
       } catch (e) {
-        console.log(e);
+        if (e.status !== 404) {
+          console.log(e);
+        }
         e.expose = true;
         this.onError(ctx, e);
       }
@@ -181,6 +197,10 @@ class FusebitManager {
     // NOTE: this may glitch non-utf-8 encodings; for blame, see koa/lib/request.js's casual use of stringify.
     ctx.query = fusebitCtx.query;
     ctx.params = fusebitCtx.params;
+
+    // Pre-load the status as Not Found
+    ctx.status = 200;
+
     return ctx;
   }
 

@@ -48,7 +48,7 @@ describe('Example', () => {
     //   const router = require('@vendor/slack7');
     const storage: any = {};
     const manager = new FusebitManager(storage);
-    manager.setup(router, undefined);
+    manager.setup({ connectors: {} }, router, undefined);
 
     /////////////////////////////////////////////////////////////////////////
     // Test Calls

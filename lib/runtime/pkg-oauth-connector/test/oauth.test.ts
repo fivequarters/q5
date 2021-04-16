@@ -62,7 +62,7 @@ beforeEach(() => {
 describe('OAuth Engine', () => {
   it('/configure generates a valid redirect', async () => {
     const manager = new FusebitManager(storage);
-    manager.setup(router, undefined, sampleCfg);
+    manager.setup(sampleCfg, router, undefined);
 
     // A request for 'GET /configure':
     const result = await manager.handle(request('GET', '/configure', { state: 'STATE' }));
@@ -94,7 +94,7 @@ describe('Simple OAuth Tests', () => {
 
   it('Simple end-to-end flow', async () => {
     const manager = new FusebitManager(storage); // Start the manager with a pseudo-storage
-    manager.setup(router, undefined, sampleCfg); // Configure the system.
+    manager.setup(sampleCfg, router, undefined); // Configure the system.
 
     // Start the process with the browser hitting the connector with a state value.
     let result = await manager.handle(request('GET', '/configure', { state: 'STATE' }));
@@ -143,7 +143,7 @@ describe('Test against mocklab.io', () => {
     };
 
     const manager = new FusebitManager(storage); // Start the manager with a pseudo-storage
-    manager.setup(router, undefined, mockCfg); // Configure the system.
+    manager.setup(mockCfg, router, undefined); // Configure the system.
 
     // Start the process with the browser hitting the connector with a state value.
     let result = await manager.handle(request('GET', '/configure', { state: 'STATE' }));
