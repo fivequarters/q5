@@ -622,9 +622,9 @@ export class FunctionService {
                   }
                   this.input.io.write(
                     Text.dim(
-                      `[${new Date(parsed.time).toLocaleTimeString()}] ${(parsed.method || '').padStart(
-                        maxHttpMethodLen
-                      )}> `
+                      `[${new Date(parsed.time).toLocaleTimeString()}] ${profile.boundary}/${profile.function} ${(
+                        parsed.method || ''
+                      ).padStart(maxHttpMethodLen)}> `
                     )
                   );
                   this.input.io.writeLineRaw(parsed.level > 30 ? Text.red(parsed.msg).toString() : parsed.msg);
