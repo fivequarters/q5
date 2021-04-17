@@ -20,8 +20,6 @@ export default class OAuthIntegration {
     // Take the responding token, put it into the object below.
     return {
       accessToken: tokenResponse.body.access_token,
-      sendMessage: () =>
-        `OAUTH ${this.config.package} => ${this.config.config.authority}/${lookupKey} => ${tokenResponse.body.access_token}`,
     };
   }
 }

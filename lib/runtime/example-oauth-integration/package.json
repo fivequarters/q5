@@ -1,6 +1,6 @@
 {
   "license": "SEE LICENSE IN LICENSE",
-  "dependencies": {},
+  "dependencies": { "asana": "^0.18.5" },
   "scripts": {
     "build": "cd node_modules/@fusebit-int/pkg-oauth-integration && yarn build",
     "deploy.dev": "fuse function deploy -b benn oauth-integration -d . -l @fusebit-int/pkg-manager -l @fusebit-int/pkg-oauth-integration -q y",
