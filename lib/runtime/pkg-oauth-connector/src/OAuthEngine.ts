@@ -33,7 +33,7 @@ class OAuthEngine {
       response_type: 'code',
       scope: this.cfg.scope,
       state,
-      clientId: this.cfg.clientId,
+      client_id: this.cfg.clientId,
       redirect_uri: this.cfg.callbackUrl,
     });
 
@@ -68,13 +68,14 @@ class OAuthEngine {
    * @param {string} redirectUri The redirect_uri value Fusebit used to start the authorization flow.
    */
   public async getAccessToken(authorizationCode: string, redirectUri: string): Promise<IOAuthToken> {
-    const response = await superagent.post(this.cfg.tokenUrl).type('form').send({
+    const params = {
       grant_type: 'authorization_code',
       code: authorizationCode,
-      clientId: this.cfg.clientId,
-      clientSecret: this.cfg.clientSecret,
+      client_id: this.cfg.clientId,
+      client_secret: this.cfg.clientSecret,
       redirect_uri: redirectUri,
-    });
+    };
+    const response = await superagent.post(this.cfg.tokenUrl).type('form').send(params);
 
     return response.body;
   }
@@ -85,16 +86,15 @@ class OAuthEngine {
    * @param {string} redirectUri The redirect_uri value Fusebit used to start the authorization flow.
    */
   public async refreshAccessToken(refreshToken: string) {
-    const response = await superagent
-      .post(this.cfg.tokenUrl)
-      .type('form')
-      .send({
-        grant_type: 'refresh_token',
-        refresh_token: refreshToken,
-        clientId: this.cfg.clientId,
-        clientSecret: this.cfg.clientSecret,
-        redirect_uri: `${this.cfg.mountUrl}/callback`,
-      });
+    const params = {
+      grant_type: 'refresh_token',
+      refresh_token: refreshToken,
+      client_id: this.cfg.clientId,
+      client_secret: this.cfg.clientSecret,
+      redirect_uri: `${this.cfg.mountUrl}/callback`,
+    };
+
+    const response = await superagent.post(this.cfg.tokenUrl).type('form').send(params);
 
     // Use the current token if a new one isn't supplied.
     return { refresh_token: refreshToken, ...response.body };
@@ -109,6 +109,10 @@ class OAuthEngine {
    */
   public async ensureAccessToken(lookupKey: string) {
     const token: IOAuthToken = await this.storage.get(lookupKey);
+
+    if (!token) {
+      return undefined;
+    }
 
     if (token.status === 'refreshing') {
       // Wait for the currently ongoing refresh operation in a different instance to finish

@@ -67,16 +67,16 @@ describe('OAuth Engine', () => {
 
     // A request for 'GET /configure':
     const result = await manager.handle(request('GET', '/configure', { state: 'STATE' }));
-    expect(result.statusCode).toBe(302);
-    expect(result.header.location).toMatch(/STATE/);
-    expect(result.header.location).toMatch(/AUTHURL/);
-    expect(result.header.location).toMatch(/SCOPES/);
-    expect(result.header.location).toMatch(/CLIENTID/);
-    expect(result.header.location).toMatch(/BASEURL/);
-    expect(result.header.location).toMatch(/callback/);
-    expect(result.header.location).toMatch(new RegExp(encodeURIComponent(sampleCfg.mountUrl)));
+    expect(result.status).toBe(302);
+    expect(result.headers.location).toMatch(/STATE/);
+    expect(result.headers.location).toMatch(/AUTHURL/);
+    expect(result.headers.location).toMatch(/SCOPES/);
+    expect(result.headers.location).toMatch(/CLIENTID/);
+    expect(result.headers.location).toMatch(/BASEURL/);
+    expect(result.headers.location).toMatch(/callback/);
+    expect(result.headers.location).toMatch(new RegExp(encodeURIComponent(sampleCfg.mountUrl)));
 
-    const url = new URL(result.header.location);
+    const url = new URL(result.headers.location);
     const redirectUri = url.searchParams.get('redirect_uri') as string;
     expect(redirectUri).not.toBeNull();
   });
@@ -101,13 +101,13 @@ describe('Simple OAuth Tests', () => {
     let result = await manager.handle(request('GET', '/configure', { state: 'STATE' }));
 
     // Simulate hitting the OAuth server.
-    const codeRedirect = await superagent.get(result.header.location);
+    const codeRedirect = await superagent.get(result.headers.location);
     expect(codeRedirect.status).toBe(302);
 
     // Simulate the browser hitting the connector; the connector then calls into the OAuth server to convert
     // the code into an access token.
     result = await manager.handle(convertToRequest(codeRedirect.header.location));
-    expect(result.statusCode).toBe(200);
+    expect(result.status).toBe(200);
 
     // Validate the result
     expect(result.body).toMatchObject({

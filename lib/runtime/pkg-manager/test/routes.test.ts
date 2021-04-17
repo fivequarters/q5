@@ -19,7 +19,7 @@ describe('Routes', () => {
     const result = await manager.handle(request('GET', '/hello/user'));
 
     expect(result.body).toBe('hellouser');
-    expect(result.statusCode).toBe(200);
+    expect(result.status).toBe(200);
     expect(result.body).toBe('hellouser');
   });
   it('unknown requests return 404', async () => {
@@ -29,6 +29,6 @@ describe('Routes', () => {
 
     const result = await manager.handle(request('GET', '/notfound'));
 
-    expect(result.statusCode).toBe(404);
+    expect(result.status).toBe(404);
   });
 });

@@ -131,7 +131,7 @@ class FusebitManager {
         }
       } catch (e) {
         if (e.status !== 404) {
-          console.log(e);
+          console.log(`FusebitManager::execute error: ${require('util').inspect(e)}`);
         }
         e.expose = true;
         this.onError(ctx, e);
@@ -202,7 +202,9 @@ class FusebitManager {
     const ctx = this.app.createContext(req, res) as any;
     // NOTE: this may glitch non-utf-8 encodings; for blame, see koa/lib/request.js's casual use of stringify.
     ctx.query = fusebitCtx.query;
+
     ctx.params = fusebitCtx.params;
+    ctx.fusebit = fusebitCtx.fusebit;
 
     // Pre-load the status as Not Found
     ctx.status = 200;
@@ -214,8 +216,8 @@ class FusebitManager {
   public createFusebitResponse(ctx: Context) {
     return {
       body: ctx.body,
-      header: ctx.response.header,
-      statusCode: ctx.status,
+      headers: ctx.response.header,
+      status: ctx.status,
     };
   }
 }

@@ -22,11 +22,27 @@ router.delete('/', async (ctx: Context, next: Next) => {
 });
 
 router.get('/:lookupKey/health', async (ctx: Context) => {
-  ctx.body = 200;
+  try {
+    if (!(await engine.ensureAccessToken(ctx.params.lookupKey))) {
+      ctx.throw(404);
+    }
+    ctx.status = 200;
+  } catch (error) {
+    ctx.status = 500;
+    ctx.message = error.message;
+  }
 });
 
 router.get('/:lookupKey/token', async (ctx: Context) => {
-  ctx.body = await engine.ensureAccessToken(ctx.params.lookupKey);
+  try {
+    ctx.body = await engine.ensureAccessToken(ctx.params.lookupKey);
+    if (!ctx.body) {
+      ctx.throw(404);
+    }
+  } catch (error) {
+    ctx.status = 500;
+    ctx.message = error.message;
+  }
 });
 
 router.delete('/:lookupKey', async (ctx: Context) => {

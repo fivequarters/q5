@@ -63,7 +63,7 @@ describe('Example', () => {
     // A request for 'GET /health':
     fusebitEventContext = { body: {}, headers: {}, method: 'GET', path: '/health' };
     result = await manager.handle(fusebitEventContext);
-    expect(result.statusCode).toBe(418);
+    expect(result.status).toBe(418);
 
     // The CRON triggers:
     //
@@ -75,6 +75,6 @@ describe('Example', () => {
     //   }
     fusebitEventContext = { body: {}, headers: {}, method: 'CRON', path: 'default' };
     result = await manager.handle(fusebitEventContext);
-    expect(result.statusCode).toBe(418);
+    expect(result.status).toBe(418);
   });
 });
