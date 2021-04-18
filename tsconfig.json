@@ -140,12 +140,10 @@
       "@5qtrs/registry": ["lib/server/registry/src"],
       "@5qtrs/runas": ["lib/server/runas/src"],
       "@5qtrs/cicd-actions": ["tool/cicd/actions/src"],
-      "@fusebit-int/pkg-manager": ["lib/runtime/pkg-manager/src"],
-      "@fusebit-int/pkg-integration": ["lib/runtime/pkg-integration/src"],
-      "@fusebit-int/pkg-oauth-connector": [
-        "lib/runtime/pkg-oauth-connector/src"
-      ],
-      "@5qtrs/pkg-oauth-integration": ["lib/runtime/pkg-oauth-integration/src"]
+      "@fusebit-int/pkg-manager": ["lib/package/pkg-manager/src"],
+      "@fusebit-int/pkg-integration": ["lib/package/pkg-integration/src"],
+      "@fusebit-int/pkg-oauth-connector": ["lib/package/pkg-oauth-connector/src"],
+      "@fusebit-int/pkg-oauth-integration": ["lib/package/pkg-oauth-integration/src"]
     }
   }
 }
