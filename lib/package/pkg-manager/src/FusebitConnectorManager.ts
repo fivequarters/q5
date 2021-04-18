@@ -1,12 +1,15 @@
 import { Context } from './FusebitRouter';
-import { FusebitConnector } from './FusebitConnector';
+
+interface IConnector {
+  instantiate(lookupKey: string): any;
+}
 
 interface IConnectorConfig {
   package: string;
   config: {
     authority: string;
   };
-  instance?: FusebitConnector;
+  instance?: IConnector;
 }
 
 interface IConnectorConfigMap {
@@ -31,11 +34,14 @@ class FusebitConnectorManager {
     return Object.keys(this.connectors);
   }
 
+  // Create an manager for this connector, and cache it locally.
   public loadConnector(name: string, cfg: IConnectorConfig) {
     const Connector = require(cfg.package);
     return (cfg.instance = new Connector({ name, ...cfg }));
   }
 
+  // Returns a function that accepts a context object so that the connector can be specified once at the top
+  // of an integration, and then invoked with the ctx to create the necessary SDK object within each handler.
   public getByName(name: string, handler: (ctx: Context) => string) {
     return (ctx: Context) => {
       const cfg = this.connectors[name];
@@ -45,6 +51,7 @@ class FusebitConnectorManager {
     };
   }
 
+  // Only used by test routines.
   public clear() {
     this.connectors = {};
   }
@@ -53,4 +60,4 @@ class FusebitConnectorManager {
 const connectors = new FusebitConnectorManager();
 
 export default connectors;
-export { IConnectorConfig, IConnectorConfigMap };
+export { IConnector, IConnectorConfig, IConnectorConfigMap };

@@ -7,15 +7,17 @@ import httpMocks from 'node-mocks-http';
 
 import FusebitRouter, { Context, Next } from './FusebitRouter';
 
-import FusebitConnectorManager from './FusebitConnectorManager';
+import FusebitConnectorManager, { IConnectorConfig } from './FusebitConnectorManager';
+
+import DefaultRoutes from './DefaultRoutes';
 
 type VendorModuleError = any;
-interface IIntegrationConfig {
-  connectors: { [connectorName: string]: any };
+interface IFusebitIntegrationConfig {
+  connectors: { [connectorName: string]: IConnectorConfig };
 }
-type IConnectorConfig = any;
+type IFusebitConnectorConfig = any;
 
-type IFusebitConfig = IIntegrationConfig | IConnectorConfig;
+type IFusebitConfig = IFusebitIntegrationConfig | IFusebitConnectorConfig;
 
 type FusebitRequestContext = any;
 type InvokeParameters = any;
@@ -35,7 +37,8 @@ interface IOnStartup {
 }
 
 class FusebitManager {
-  private error: any;
+  // Error cached from vendor code.
+  public vendorError: any;
 
   // Used for context creation.
   public app: Koa;
@@ -56,10 +59,10 @@ class FusebitManager {
     FusebitConnectorManager.setup(cfg.connectors);
 
     if (vendorError) {
-      this.error = vendorError;
+      this.vendorError = vendorError;
 
       // Add the default routes even when the vendor code hasn't loaded correctly.
-      this.addHttpRoutes();
+      this.router.use(DefaultRoutes.routes());
       return;
     }
 
@@ -70,29 +73,20 @@ class FusebitManager {
     }
 
     // Give everything a chance to be initialized - normally, the cfg object would be specialized per router
-    // object, but will sort that out later.
+    // object to allow for routers to have specialized configuration elements, but we will sort that out
+    // later.
     this.invoke('startup', { mgr: this, cfg, router: this.router, storage: this.storage });
 
     // Add the default routes - these will get overruled by any routes added by the vendor or during the
     // startup phase.
-    this.addHttpRoutes();
-  }
-
-  public addHttpRoutes() {
-    this.router.get('/api/health', async (ctx: Context, next: Next) => {
-      await next();
-
-      // If no status has been set, respond with a basic one.
-      if (!ctx.status) {
-        ctx.body = this.error ? ctx.throw(501, 'invalid vendor data', { error: this.error }) : { status: 'ok' };
-      }
-    });
+    this.router.use(DefaultRoutes.routes());
   }
 
   // Accept a Fusebit Function event, convert it into a routable context, and execute it through the router.
   // Return a valid Fusebit response from the Context.
   public async handle(fusebitCtx: FusebitRequestContext) {
-    // Update the security context for this particular call.
+    // Update the security context for this particular call in the storage object - this is the only object
+    // that's cached between calls, so it gets special treatment.
     this.storage.accessToken = fusebitCtx.fusebit ? fusebitCtx.fusebit.functionAccessToken : '';
 
     // Convert the context and execute.
@@ -195,18 +189,22 @@ class FusebitManager {
       url: fusebitCtx.path,
       method: fusebitCtx.method,
       headers: fusebitCtx.headers,
+      body: fusebitCtx.body,
     });
 
     const res = httpMocks.createResponse();
 
     const ctx = this.app.createContext(req, res) as any;
+
+    // Promote several fusebitCtx members directly into the ctx
+    //
     // NOTE: this may glitch non-utf-8 encodings; for blame, see koa/lib/request.js's casual use of stringify.
     ctx.query = fusebitCtx.query;
 
     ctx.params = fusebitCtx.params;
     ctx.fusebit = fusebitCtx.fusebit;
 
-    // Pre-load the status as Not Found
+    // Pre-load the status as OK
     ctx.status = 200;
 
     return ctx;
