@@ -1,6 +1,6 @@
-import { Context, IConnectorConfig } from '..';
+import { Context, IConnectorConfig } from '../../src';
 
-class OAuthConnector {
+class OAuthSampleConnector {
   public config: IConnectorConfig;
   constructor(cfg: IConnectorConfig) {
     this.config = cfg;
@@ -12,4 +12,4 @@ class OAuthConnector {
   }
 }
 
-module.exports = OAuthConnector;
+module.exports = OAuthSampleConnector;

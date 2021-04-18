@@ -13,7 +13,8 @@ describe('Integration Connector', () => {
     const config = {
       connectors: {
         slack1: {
-          package: './examples/oauth-connector',
+          // From the perspective of the FusebitManager
+          package: '../test/examples/OAuthSampleConnector',
           config: {
             authority: 'https://dev.us-west-1.dev.fusebit.io/v1/run/sub-0095d2ffa3d1424a/benn/oauth-connector',
           },
