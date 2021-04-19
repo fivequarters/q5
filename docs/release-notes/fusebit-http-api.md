@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.19.4
+
+_Release 04/19/21_
+
+- **Bugfix** Normalized stdout logs to be a single line.
+
 ## Version 1.19.3
 
 _Release 04.13.21_
