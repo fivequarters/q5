@@ -26,6 +26,12 @@ For this version to take effect, please re-run `fuse-ops setup` and `fuse-ops de
 
 - **Enhancement.** Support for Aurora PostgreSQL database.
 
+## Version 1.25.1
+
+_Released 04/13/21_
+
+- **Bugfix.** Implement log rotation on the container log to prevent it from overflowing the disk.
+
 ## Version 1.25.0
 
 _Released 03/29/21_
