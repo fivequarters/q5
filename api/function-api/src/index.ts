@@ -8,7 +8,7 @@ const debug = Debug('fusebit');
 debug('Starting');
 
 process.on('uncaughtException', (e: Error) => {
-  debug('UNCAUGHT ERROR:', e.message || e);
+  debug('UNCAUGHT ERROR:', e.stack.split('\n').join(',') || e);
   setTimeout(() => process.exit(1), 100);
 });
 
