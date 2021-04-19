@@ -23,10 +23,11 @@ app.use(function (req, res, next) {
   next(create_error(404));
 });
 app.use(function (err, req, res, next) {
+  console.log("trigged middleware")
   // console.log('ERROR', typeof err, err, err.status, err.statusCode, err.message);
   let status = err.statusCode || err.status || 500;
   if (status == 500) {
-    console.error('ERROR', err.code, err.message);
+    console.error('ERROR', err.message);
   }
 
   res.status(status);
