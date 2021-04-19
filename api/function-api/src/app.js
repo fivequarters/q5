@@ -27,7 +27,7 @@ app.use(function (err, req, res, next) {
   // console.log('ERROR', typeof err, err, err.status, err.statusCode, err.message);
   let status = err.statusCode || err.status || 500;
   if (status == 500) {
-    console.error('ERROR', err.message);
+    console.error('ERROR', err.message, 'stacktrace:', err.stack.split('\n').join(','));
   }
 
   res.status(status);
