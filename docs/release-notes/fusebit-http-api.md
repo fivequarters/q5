@@ -21,7 +21,7 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 
 _Release 04.13.21_
 
-- **Bugfix** Changed AWS SDK timeout.
+- **Bugfix** Changed AWS SDK timeout to allow for 120-second execution.
 
 ## Version 1.19.2
 
