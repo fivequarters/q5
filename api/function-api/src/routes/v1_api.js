@@ -1104,44 +1104,25 @@ function promote_to_name_params(req, res, next) {
 }
 
 router.options(run_route, cors(corsExecutionOptions));
-['post', 'put', 'patch'].forEach((verb) => {
-  router[verb](
-    run_route,
-    analytics.enterHandler(analytics.Modes.Execution),
-    cors(corsExecutionOptions),
-    promote_to_name_params,
-    validate_schema({ params: require('./validation/api_params') }),
-    determine_provider(),
-    parse_body_conditional({
-      condition: (req) => req.provider === 'lambda',
-    }),
-    loadSubscription(subscriptionCache),
-    ratelimit.rateLimit,
-    loadSummary(),
-    checkAuthorization(authorize),
-    execAs(keyStore),
-    addLogging(keyStore),
-    (req, res, next) => provider_handlers[req.provider].execute_function(req, res, next),
-    analytics.finished
-  );
-});
+const functionExecuteHandler = [
+  analytics.enterHandler(analytics.Modes.Execution),
+  cors(corsExecutionOptions),
+  promote_to_name_params,
+  validate_schema({ params: require('./validation/api_params') }),
+  determine_provider(),
+  parse_body_conditional({
+    condition: (req) => ['post', 'put', 'patch'].includes(req.method) && req.provider === 'lambda',
+  }),
+  loadSubscription(subscriptionCache),
+  ratelimit.rateLimit,
+  loadSummary(),
+  checkAuthorization(authorize),
+  execAs(keyStore),
+  addLogging(keyStore),
+  (req, res, next) => provider_handlers[req.provider].execute_function(req, res, next),
+  analytics.finished,
+];
 
-['delete', 'get', 'head'].forEach((verb) => {
-  router[verb](
-    run_route,
-    analytics.enterHandler(analytics.Modes.Execution),
-    cors(corsExecutionOptions),
-    promote_to_name_params,
-    validate_schema({ params: require('./validation/api_params') }),
-    determine_provider(),
-    loadSubscription(subscriptionCache),
-    ratelimit.rateLimit,
-    loadSummary(),
-    checkAuthorization(authorize),
-    execAs(keyStore),
-    addLogging(keyStore),
-    (req, res, next) => provider_handlers[req.provider].execute_function(req, res, next),
-    analytics.finished
-  );
-});
-module.exports = router;
+router.all(run_route, functionExecuteHandler);
+
+module.exports = { router, functionExecuteHandler };

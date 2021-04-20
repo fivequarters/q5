@@ -48,6 +48,8 @@ const patch = (req: Request, res: Response, next: NextFunction) => {
 };
 
 const dispatch = (req: Request, res: Response, next: NextFunction) => {
+  // execute the functionExecuteHandler array in some form by passing it directly to the router object? Except
+  // that's not quite right because pieces have already been extracted ...
   // Load metadata for the component requested
   // Perform any security checks necessary
   // Convert req into a Koa request-compatible data object
