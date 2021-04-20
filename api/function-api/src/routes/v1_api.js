@@ -1144,4 +1144,8 @@ router.options(run_route, cors(corsExecutionOptions));
     analytics.finished
   );
 });
+
+router.get("/500", (req, res, next) => {
+  next(create_error(500, "something went wrong"))
+})
 module.exports = router;

@@ -1,0 +1,12 @@
+name: Create Releases
+on:
+  push:
+    branches:
+      - master
+jobs:
+  tag-all:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Publish - tags
+        run: ./tool/cicd/actions/scripts/publish_fusebit_tags.sh
