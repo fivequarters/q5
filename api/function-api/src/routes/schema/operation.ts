@@ -4,7 +4,7 @@ import * as common from '../middleware/common';
 
 import * as operation from '../handlers/operation';
 
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 
 router.route('/').options(common.cors()).post(common.management({}), operation.post);
 

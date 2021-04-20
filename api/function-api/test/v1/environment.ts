@@ -52,7 +52,6 @@ const newBoundaryId = (wart: string): string => {
 
 const nextBoundary = () => {
   boundaries = [newBoundaryId(getTestWart()), ...boundaries];
-  console.log(`Boundary: ${boundaries[0]}`);
   return boundaries[0];
 };
 

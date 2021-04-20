@@ -7,7 +7,7 @@ import * as component from '../handlers/component';
 
 import { tagged } from './tagged';
 
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 
 router.route('/').options(common.cors()).post(common.management({}), component.post);
 

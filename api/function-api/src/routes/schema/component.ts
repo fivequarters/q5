@@ -8,7 +8,7 @@ import * as session from '../handlers/session';
 
 import { search, tagged } from './tagged';
 
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 
 router.use('/', search);
 router.route('/').options(common.cors()).post(common.management({}), component.post);
@@ -23,11 +23,11 @@ router
 router.use('/:componentId/tag', tagged);
 router.use('/:componentId/api', analytics.setModality(analytics.Modes.Execution), component.dispatch);
 
-router.route('/:componentId/session').options(common.cors()).get(common.management({}), session.getAll);
+router.route('/:componentId/session').options(common.cors()).post(common.management({}), session.create);
 router
   .route('/:componentId/session/:sessionId')
   .options(common.cors())
   .get(common.management({}), session.get)
-  .post(common.management({}), session.post);
+  .put(common.management({}), session.put);
 
 export { router as default };

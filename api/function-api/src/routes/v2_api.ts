@@ -9,7 +9,7 @@ import operation from './schema/operation';
 
 const router = express.Router();
 
-const v2 = express.Router();
+const v2 = express.Router({ mergeParams: true });
 
 // All requests except for dispatched requests to /api are administrative for now.
 v2.use(analytics.setModality(analytics.Modes.Administration));
