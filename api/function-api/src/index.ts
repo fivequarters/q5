@@ -8,7 +8,12 @@ const debug = Debug('fusebit');
 debug('Starting');
 
 process.on('uncaughtException', (e: Error) => {
-  debug('UNCAUGHT ERROR:', e.stack.split('\n').join(',') || e);
+  // when program throws error thats not yet handled
+  if (e.stack) {
+    debug('ERROR: ', e.stack.split('\n').join(','));
+  } else {
+    debug('ERROR: ', e)
+  }
   setTimeout(() => process.exit(1), 100);
 });
 
