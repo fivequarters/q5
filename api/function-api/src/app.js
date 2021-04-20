@@ -27,7 +27,7 @@ app.use(function (err, req, res, next) {
   let status = err.statusCode || err.status || 500;
   if (status == 500) {
     // this is called when an http 500 error code is caused
-    console.error('ERROR: ', err.message, 'stacktrace:', err.stack.split('\n').join(','));
+    console.error('REQUEST ERROR: ', err.message, req.url, 'stacktrace:', err.stack.split('\n').join(','));
   }
 
   res.status(status);

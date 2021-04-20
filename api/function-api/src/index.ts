@@ -10,9 +10,9 @@ debug('Starting');
 process.on('uncaughtException', (e: Error) => {
   // when program throws error thats not yet handled
   if (e.stack) {
-    debug('ERROR: ', e.stack.split('\n').join(','));
+    debug('UNCAUGHT ERROR: ', e.stack.split('\n').join(','));
   } else {
-    debug('ERROR: ', e)
+    debug('UNCAUGHT ERROR: ', e)
   }
   setTimeout(() => process.exit(1), 100);
 });
