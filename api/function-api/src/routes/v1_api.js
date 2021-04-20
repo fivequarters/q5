@@ -1145,7 +1145,4 @@ router.options(run_route, cors(corsExecutionOptions));
   );
 });
 
-router.get("/500", (req, res, next) => {
-  next(create_error(500, "something went wrong"))
-})
 module.exports = router;
