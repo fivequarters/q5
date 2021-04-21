@@ -29,8 +29,6 @@ router.on('slack1.message', async (ctx) => {
   const config = await ctx.Fusebit.GetInstanceConfig(ctx);
 
   await contoso.notifyOnSlackMessage(ctx.body.event);
-
-  ctx.body = { status: 'success' };
 });
 
 /*
