@@ -1,4 +1,5 @@
 const parse_json = require('express').json({ limit: 500 * 1024 });
+const parse_body = require('body-parser').urlencoded({ extended: 'true' });
 const Assert = require('assert');
 
 module.exports = function parse_body_conditional_factory(options) {
@@ -7,6 +8,14 @@ module.exports = function parse_body_conditional_factory(options) {
   Assert.equal(options.condition.length, 1); // req => boolean
 
   return function parse_body_conditional(req, res, next) {
-    return options.condition(req) ? parse_json(req, res, next) : next();
+    if (!options.condition(req)) {
+      return next();
+    }
+    if (req.is('application/json')) {
+      return parse_json(req, res, next);
+    } else if (req.is('application/x-www-form-urlencoded')) {
+      return parse_body(req, res, next);
+    }
+    return next();
   };
 };
