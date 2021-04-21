@@ -8,7 +8,7 @@ const router = new Fusebit.Router();
 router.get('/hello/:tenantId', async (ctx) => {
   const slack = await Fusebit.Connectors.GetClient('slack', ctx.params.tenantId);
 
-  slack.sendMessage(`Hello User ${ctx.params.tenantId}`);
+  await slack.sendMessage(`Hello User ${ctx.params.tenantId}`);
 
   ctx.body = { status: 'success' };
 });
