@@ -21,7 +21,7 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 
 _Release 04/20/21_
 
-- **Bugfix** Allow function execution with x-www-form-encoded payloads as input body.
+- **Enhancement** Implement body parsing for x-www-form-encoded in fusebit functions.
 
 ## Version 1.19.4
 

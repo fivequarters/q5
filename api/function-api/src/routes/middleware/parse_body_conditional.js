@@ -8,12 +8,13 @@ module.exports = function parse_body_conditional_factory(options) {
   Assert.equal(options.condition.length, 1); // req => boolean
 
   return function parse_body_conditional(req, res, next) {
-    if (options.condition(req) && req.is('application/json')) {
-      return parse_json(req, res, next);
-    } else if (options.condition(req) && req.is('application/x-www-form-urlencoded')) {
-      return parse_body(req, res, next);
-    } else {
-      next();
+    if (options.condition(req)) {
+      if (req.is('application/json')) {
+        return parse_json(req, res, next);
+      } else if (req.is('application/x-www-form-urlencoded')) {
+        return parse_body(req, res, next);
+      }
     }
+    next();
   };
 };
