@@ -21,7 +21,7 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 
 _Release 04/20/21_
 
-- **Enhancement** Implement body parsing for x-www-form-encoded in fusebit functions.
+- **Enhancement** Implement body parsing for x-www-form-encoded in Fusebit functions.
 
 ## Version 1.19.4
 

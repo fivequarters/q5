@@ -1,4 +1,3 @@
-import { FusebitProfile } from '@5qtrs/fusebit-profile-sdk';
 import { request } from '@5qtrs/request';
 
 import { putFunction, waitForBuild } from './sdk';
