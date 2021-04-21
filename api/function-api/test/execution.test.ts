@@ -489,7 +489,7 @@ test('function with payload above limit fails (x-www-form-encoded)', async () =>
     method: 'POST',
     url: response.data.location,
     headers: { 'content-type': 'application/x-www-form-urlencoded' },
-    data: params
+    data: params,
   });
   expect(executionResponse.status).toEqual(413);
 }, 180000);
