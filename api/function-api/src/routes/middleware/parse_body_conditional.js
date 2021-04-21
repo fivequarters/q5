@@ -1,5 +1,6 @@
-const parse_json = require('express').json({ limit: 500 * 1024 });
-const parse_body = require('express').urlencoded({ limit: 500 * 1024, extended: 'true' });
+const maxBodySize = 500 * 1024;
+const parse_json = require('express').json({ limit: maxBodySize });
+const parse_body = require('express').urlencoded({ limit: maxBodySize, extended: 'true' });
 const Assert = require('assert');
 
 module.exports = function parse_body_conditional_factory(options) {
