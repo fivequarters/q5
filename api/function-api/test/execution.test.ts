@@ -491,6 +491,5 @@ test('function with payload above limit fails (x-www-form-encoded)', async () =>
     headers: { 'content-type': 'application/x-www-form-urlencoded' },
     data: params
   });
-  await console.log(executionResponse.status)
   expect(executionResponse.status).toEqual(413);
 }, 180000);
