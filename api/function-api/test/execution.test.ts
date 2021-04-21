@@ -1,3 +1,4 @@
+import { FusebitProfile } from '@5qtrs/fusebit-profile-sdk';
 import { request } from '@5qtrs/request';
 
 import { putFunction, waitForBuild } from './sdk';
@@ -444,4 +445,25 @@ describe('Execution', () => {
     expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data).toEqual(account.accountId);
   }, 180000);
+});
+
+test('Function with x-www-form-urlencoded works', async() => {
+  let response = await putFunction(account, boundaryId, function1Id, {
+    nodejs: {
+      files: {
+        'index.js': 'module.exports = (ctx, cb) => cb(null, { body: ctx.body })'
+      },
+    }
+  });
+  expect(response).toBeHttp({ statusCode: 200, status: 'success'})
+  const params = new URLSearchParams();
+  params.append('test', '123');
+
+  response = await request({
+    method: 'POST',
+    url: response.data.location,
+    headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    data: params,
+  })
+  expect(response).toBeHttp({statusCode: 200, data: {"test": "123"}})
 });
