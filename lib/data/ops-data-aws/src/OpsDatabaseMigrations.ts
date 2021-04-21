@@ -19,6 +19,6 @@ Rules of the road:
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
-const get = (name: string) => readFileSync(join(__dirname, 'migrations', name), { encoding: 'utf8' });
+const get = (name: string) => readFileSync(join(__dirname, '..', 'src', 'migrations', name), { encoding: 'utf8' });
 
 export default [get('v0-addSchemaVersionTable.sql'), get('v1-addEntityTable.sql')];
