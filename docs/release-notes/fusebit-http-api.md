@@ -17,6 +17,36 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.19.5
+
+_Release 04/20/21_
+
+- **Enhancement.** Implement body parsing for x-www-form-encoded in Fusebit functions.
+
+## Version 1.19.4
+
+_Release 04/19/21_
+
+- **Bugfix.** Normalized stdout logs to be a single line.
+
+## Version 1.19.3
+
+_Release 04.13.21_
+
+- **Bugfix.** Changed AWS SDK timeout to allow for 120-second execution.
+
+## Version 1.19.2
+
+_Released 04/13/21_
+
+- **Enhancement.** Switched container to run as a service user.
+
+## Version 1.19.1
+
+_Released 04/13/21_
+
+- **Bugfix.** Implement log rotation on the container log to prevent it from overflowing the disk.
+
 ## Version 1.19.0
 
 _Released 04/05/21_

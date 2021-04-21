@@ -158,7 +158,6 @@ export class OpsStackData extends DataSource implements IOpsStackData {
 
     return stack;
   }
-
   public async promote(deploymentName: string, region: string, id: number): Promise<IOpsStack> {
     const deployment = await this.deploymentData.get(deploymentName, region);
 
@@ -264,6 +263,7 @@ export class OpsStackData extends DataSource implements IOpsStackData {
       '--name fusebit',
       '--rm',
       `--env-file ${this.getEnvFilePath()}`,
+      '--log-opt max-size=50m',
       this.getDockerImagePath(tag),
     ].join(' ');
 
@@ -339,7 +339,6 @@ ${env || ''}
 EOF`
     );
   }
-
   private dockerImageForUserData(tag: string) {
     return `
 # Install docker

@@ -56,7 +56,22 @@ describe('Execution', () => {
     expect(response.data).toEqual('function');
     expect(response.headers['x-fx-response-source']).toEqual('function');
   }, 15000);
-
+  test('Lambda times out after 2 minutes with same return code as normal timeouts', async () => {
+    const helloWorldThatTimesOut = {
+      nodejs: {
+        files: {
+          'index.js': 'module.exports = (ctx, cb) => {while(true){}}',
+        },
+      },
+      compute: {
+        timeout: 120,
+      },
+    };
+    const response = await putFunction(account, boundaryId, function1Id, helloWorldThatTimesOut);
+    expect(response).toBeHttp({ statusCode: 200 });
+    const triggerResponse = await request(response.data.location);
+    expect(triggerResponse).toBeHttp({ statusCode: 500 });
+  }, 140000);
   test('function context APIs work as expected', async () => {
     const reflectContext = {
       nodejs: {
@@ -429,4 +444,25 @@ describe('Execution', () => {
     expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data).toEqual(account.accountId);
   }, 180000);
+});
+
+test('Function with x-www-form-urlencoded works', async () => {
+  let response = await putFunction(account, boundaryId, function1Id, {
+    nodejs: {
+      files: {
+        'index.js': 'module.exports = (ctx, cb) => cb(null, { body: ctx.body })',
+      },
+    },
+  });
+  expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+  const params = new URLSearchParams();
+  params.append('test', '123');
+
+  response = await request({
+    method: 'POST',
+    url: response.data.location,
+    headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    data: params,
+  });
+  expect(response).toBeHttp({ statusCode: 200, data: { test: '123' } });
 });
