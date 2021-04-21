@@ -1,4 +1,4 @@
-import Fusebit from '@fusebit-int/pkg-manager';
+import Fusebit from '@fusebit-int/sdk';
 
 const router = new Fusebit.Router();
 
