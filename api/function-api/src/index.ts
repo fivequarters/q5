@@ -8,7 +8,12 @@ const debug = Debug('fusebit');
 debug('Starting');
 
 process.on('uncaughtException', (e: Error) => {
-  debug('UNCAUGHT ERROR:', e.stack || e);
+  // when program throws error thats not yet handled
+  if (e.stack) {
+    debug('UNCAUGHT ERROR: ', e.stack.split('\n').join(','));
+  } else {
+    debug('UNCAUGHT ERROR: ', e)
+  }
   setTimeout(() => process.exit(1), 100);
 });
 
@@ -19,7 +24,7 @@ const server = http.createServer(app);
 // Work-around for the Node 10.15.3 issue
 // See https://shuheikagawa.com/blog/2019/04/25/keep-alive-timeout/
 // See https://github.com/nodejs/node/issues/27363
-// ALB timeout is 120s
+// ALB timeout is 125s
 server.keepAliveTimeout = 130 * 1000;
 server.headersTimeout = 150 * 1000;
 

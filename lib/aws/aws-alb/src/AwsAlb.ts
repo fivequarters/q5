@@ -469,7 +469,8 @@ export class AwsAlb extends AwsBase<typeof ELBv2> {
       Attributes: [
         {
           Key: 'idle_timeout.timeout_seconds',
-          Value: '120',
+          // Prevent accidental timeouts on 120 second function executions with a 5 second buffer.
+          Value: '125',
         },
       ],
     };
