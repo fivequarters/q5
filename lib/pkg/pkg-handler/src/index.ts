@@ -1,7 +1,6 @@
-const FusebitManager = require('@fusebit-int/pkg-manager').FusebitManager;
-const { storage } = require('./fusebitstorage');
-
-const config = require('./config');
+import { FusebitManager } from '@fusebit-int/pkg-manager';
+import { storage } from './fusebitstorage';
+import config from './config';
 
 const manager = new FusebitManager(storage); // Start the manager with a pseudo-storage
 
@@ -15,7 +14,7 @@ try {
 
 manager.setup(config, router, routerError); // Configure the system.
 
-module.exports = async (ctx) => {
+module.exports = async (ctx: any) => {
   let result;
   try {
     result = await manager.handle(ctx);

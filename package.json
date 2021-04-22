@@ -65,10 +65,7 @@
     "yarn": "^1.12.3"
   },
   "workspaces": {
-    "nohoist": [
-      "**/lambda-*",
-      "**/lambda-*/**"
-    ],
+    "nohoist": ["**/lambda-*", "**/lambda-*/**"],
     "packages": [
       "tool/tool-config",
       "tool/workspace",
@@ -199,11 +196,12 @@
       "lib/server/registry",
       "lib/server/runas",
       "tool/cicd/actions",
-      "lib/package/pkg-manager",
-      "lib/package/pkg-integration",
-      "lib/package/pkg-oauth-connector",
-      "lib/package/pkg-oauth-integration",
-      "lib/package/comps"
+      "lib/pkg/pkg-manager",
+      "lib/pkg/pkg-integration",
+      "lib/pkg/pkg-oauth-connector",
+      "lib/pkg/pkg-oauth-integration",
+      "lib/pkg/pkg-handler",
+      "lib/pkg/comps"
     ]
   }
 }
