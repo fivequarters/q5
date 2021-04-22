@@ -29,4 +29,5 @@ export class ActionCommand extends Command {
   private constructor(command: ICommand) {
     super(command);
   }
+
 }
