@@ -13,6 +13,10 @@ const command = {
       description: "The format to display the output: 'pretty', 'json'",
       default: 'pretty',
     },
+    {
+      name: 'region',
+      description: "The region in which you want to list your backups"
+    },
   ],
 };
 
@@ -25,5 +29,14 @@ export class ListBackupCommand extends Command {
     super(command);
   }
 
-  protected async onExecute
+  protected async onExecute(input: IExecuteInput): Promise<any> {
+    await input.io.writeLine();
+    const output = input.options.output as string;
+    const region = input.options.region as string;
+    const backupService = await BackupService.create(input);
+    if (output === 'json') {
+      const backupPlans = await backupService.listBackupPlan();
+      await backupService.displayBackupPlans(backupPlans);
+    }
+  }
 }
