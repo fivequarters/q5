@@ -3,8 +3,7 @@ import { IExecuteInput } from '@5qtrs/cli';
 import { OpsService } from './OpsService';
 import { ExecuteService } from './ExecuteService';
 import { ProfileService } from './ProfileService';
-import { IAwsConfig, AwsCreds } from '@5qtrs/aws-config';
-import { OpsDataAwsContext, OpsDataAwsProvider } from '@5qtrs/ops-data-aws';
+import { AwsCreds } from '@5qtrs/aws-config';
 export class BackupService {
   private opsService: OpsService;
   private executeService: ExecuteService;
@@ -18,6 +17,16 @@ export class BackupService {
     this.opsService = opsSvc;
     this.executeService = execSvc;
     this.input = input;
+  }
+
+  public async getBackupPlan(backupPlanName: string, region: string): Promise<any> {
+    const opsDataContext = await this.opsService.getOpsDataContext();
+    const deploymentData = opsDataContext.deploymentData;
+    const exists = await this.executeService.execute(
+      {
+        
+      }
+    )
   }
 
   public async checkBackupPlanExists(backupPlanName: string, region: string): Promise<string> {
@@ -41,16 +50,31 @@ export class BackupService {
   }
 
   private async checkBackupPlanExistsDriver(backupPlanName: string, region: string): Promise<boolean> {
+    const opsDataContext = await this.opsService.getOpsDataContextImpl();
+    const profileService = await ProfileService.create(this.input);
+    const profile = await profileService.getProfileOrDefaultOrThrow();
+    const userCreds = await this.opsService.getUserCredsForProfile(profile);
+    const config = await opsDataContext.provider.getAwsConfigForMain();
+    const credentials = await (config.creds as AwsCreds).getCredentials();
+
     const params = {
       BackupPlanId: backupPlanName,
     };
 
-    const Backup = new AWS.Backup();
+    const Backup = new AWS.Backup({
+      accessKeyId: credentials.accessKeyId,
+      secretAccessKey: credentials.secretAccessKey,
+      sessionToken: credentials.sessionToken,
+      region,
+    });
     return new Promise(async (res, rej) => {
       await Backup.getBackupPlan(params)
         .promise()
         .then((data) => {
-          return data.BackupPlan === undefined;
+          res(data.BackupPlan === undefined);
+        })
+        .catch((err) => {
+          rej(err);
         });
     });
   }
@@ -69,17 +93,17 @@ export class BackupService {
   }
 
   private async listBackupPlanDriver(region: string) {
-    const opsDataContext = await this.opsService.getOpsDataContextImpl()
-    const profileService = await ProfileService.create(this.input)
-    const profile = await profileService.getProfileOrDefaultOrThrow()
-    const userCreds = await this.opsService.getUserCredsForProfile(profile)
-    const config = await opsDataContext.provider.getAwsConfigForMain()
-    const credentials = await (config.creds as AwsCreds).getCredentials()
+    const opsDataContext = await this.opsService.getOpsDataContextImpl();
+    const profileService = await ProfileService.create(this.input);
+    const profile = await profileService.getProfileOrDefaultOrThrow();
+    const userCreds = await this.opsService.getUserCredsForProfile(profile);
+    const config = await opsDataContext.provider.getAwsConfigForMain();
+    const credentials = await (config.creds as AwsCreds).getCredentials();
     const Backup = new AWS.Backup({
       region: 'us-west-1',
       accessKeyId: credentials.accessKeyId,
       secretAccessKey: credentials.secretAccessKey,
-      sessionToken: credentials.sessionToken
+      sessionToken: credentials.sessionToken,
     });
 
     return Backup.listBackupPlans({}).promise();
@@ -87,7 +111,19 @@ export class BackupService {
 
   public async displayBackupPlans(data: any) {
     if (this.input.options.output === 'json') {
-      this.input.io.writeLine(JSON.stringify(data, null, 2));
+      this.input.io.writeLine(JSON.stringify(await this.sanitizeBackupPlans(data), null, 2));
+    } else if (this.input.options.output === 'pretty') {
+      this.input.io.writeLine('not implemented');
     }
+  }
+
+  public sanitizeBackupPlans(data: any) {
+    if (!data) {
+      return { backups: [] };
+    }
+    if (!data.BackupPlansList) {
+      return { backups: [] };
+    }
+    return { Backup: data.BackupPlansList.map((item: any) => item.BackupPlanId) };
   }
 }
