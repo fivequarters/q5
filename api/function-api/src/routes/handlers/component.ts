@@ -4,6 +4,16 @@ import { Request, Response, NextFunction } from 'express';
 
 // Create a new object of this type.
 const post = (req: Request, res: Response, next: NextFunction) => {
+  // If this is a integration:
+  //  Expect the body to be effectively identical to a Fusebit function spec for now.
+  //  Discard the contents of any index.js, replace with module.exports = require('@fusebit-int/pkg-handler');
+  // If this is a connector:
+  //  Expect only configuration information:
+  //    { package: string, config: any, function?: FusebitFunctionSpec }
+  //  Validate package is in the package.json, or referenced in `packages` to enable link.
+  //
+  //  Write function with config in expected location and a populated package.json
+
   // Process incoming message
   // Create function specification using appropriate dependencies
   //
