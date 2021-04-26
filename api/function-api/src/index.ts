@@ -10,9 +10,19 @@ debug('Starting');
 process.on('uncaughtException', (e: Error) => {
   // when program throws error thats not yet handled
   if (e.stack) {
-    debug('UNCAUGHT ERROR: ', e.stack.split('\n').join(','));
+    debug('UNCAUGHT ERROR: ', process.stdout.isTTY ? e : e.stack.split('\n').join(','));
   } else {
-    debug('UNCAUGHT ERROR: ', e)
+    debug('UNCAUGHT ERROR: ', e);
+  }
+  setTimeout(() => process.exit(1), 100);
+});
+
+process.on('unhandledRejection', (e: Error) => {
+  // when program throws error thats not yet handled
+  if (e.stack) {
+    debug('UNCAUGHT REJECTION: ', process.stdout.isTTY ? e : e.stack.split('\n').join(','));
+  } else {
+    debug('UNCAUGHT REJECTION: ', e);
   }
   setTimeout(() => process.exit(1), 100);
 });
