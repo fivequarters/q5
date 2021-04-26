@@ -26,6 +26,12 @@ For this version to take effect, please re-run `fuse-ops setup` and `fuse-ops de
 
 - **Enhancement.** Support for Aurora PostgreSQL database.
 
+## Version 1.25.2
+
+_Release 04/16/21_
+
+- **Bugfix.** Increased load balancer timeout to 125 seconds to allow 120-second function execution.
+
 ## Version 1.25.1
 
 _Released 04/13/21_
