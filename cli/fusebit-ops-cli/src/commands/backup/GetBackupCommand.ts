@@ -6,12 +6,6 @@ const command = {
   cmd: 'get',
   summary: 'Get a backup plan',
   description: 'Retrive the details of a backup plan in the Fusebit platform',
-  arguments: [
-    {
-      name: 'name',
-      description: 'The name of the backup plan',
-    },
-  ],
   options: [
     {
       name: 'output',
@@ -20,9 +14,9 @@ const command = {
       default: 'pretty',
     },
     {
-      name: 'region',
-      description: 'The region where the backup is stored',
-      default: 'us-west-2',
+      name: 'name',
+      aliases: ['n'],
+      description: 'the name of the backup plan (an UUID)',
     },
   ],
 };
@@ -40,10 +34,12 @@ export class GetBackupCommand extends Command {
     await input.io.writeLine();
     const output = input.options.output as string;
     const region = input.options.region as string;
+    const backupPlanName = input.options.name as string;
     const backupService = await BackupService.create(input);
     if (output === 'json') {
-      const backupPlan = await backupService;
-
+      const backupPlan = await backupService.getBackupPlan(backupPlanName);
+      console.log(backupPlan)
+      await backupService.displayGetBackupPlans(backupPlan)
     }
   }
 }

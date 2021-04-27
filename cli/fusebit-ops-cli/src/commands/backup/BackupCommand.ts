@@ -1,4 +1,5 @@
 import { Command, ICommand } from '@5qtrs/cli';
+import { GetBackupCommand } from './GetBackupCommand';
 import { ListBackupCommand } from './ListBackupCommand';
 
 const command: ICommand = {
@@ -12,6 +13,7 @@ export class BackupCommand extends Command {
   public static async create() {
     const subCommands = [];
     subCommands.push(await ListBackupCommand.create());
+    subCommands.push(await GetBackupCommand.create())
     command.subCommands = subCommands;
     return new BackupCommand(command);
   }
