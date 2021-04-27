@@ -196,7 +196,7 @@ describe('Npm', () => {
     await expect404(manifest.name);
   }, 180000);
 
-  test('unpublish all with *', async () => {
+  test('unpublish all with a wildcard', async () => {
     await publishVersion('1.0.0');
     const manifest: IManifest = await publishVersion('2.0.0');
     await libnpm.unpublish(`${manifest.name}@*`, getOpts(regScope));

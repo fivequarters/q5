@@ -1110,7 +1110,7 @@ router.options(run_route, cors(corsExecutionOptions));
     analytics.enterHandler(analytics.Modes.Execution),
     cors(corsExecutionOptions),
     promote_to_name_params,
-    validate_schema({ params: require('./schemas/api_params') }),
+    validate_schema({ params: require('./validation/api_params') }),
     determine_provider(),
     parse_body_conditional({
       condition: (req) => req.provider === 'lambda',
@@ -1132,7 +1132,7 @@ router.options(run_route, cors(corsExecutionOptions));
     analytics.enterHandler(analytics.Modes.Execution),
     cors(corsExecutionOptions),
     promote_to_name_params,
-    validate_schema({ params: require('./schemas/api_params') }),
+    validate_schema({ params: require('./validation/api_params') }),
     determine_provider(),
     loadSubscription(subscriptionCache),
     ratelimit.rateLimit,

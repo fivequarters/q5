@@ -50,7 +50,7 @@ describe('Storage Set', () => {
       expect(storage.data).toEqual({ etag: '9c05511a31375a8a278a75207331bb1714e69dd1', data: 'hello world' });
     }, 180000);
 
-    test('Setting storage with hierarchy and * character in storageId should fail', async () => {
+    test('Setting storage with hierarchy and wildcard character in storageId should fail', async () => {
       const storageId = `test-${random()}/foo/b*r/baz`;
       const storageData = { data: 'hello world' };
       const storage = await setStorage(account, storageId, storageData);
