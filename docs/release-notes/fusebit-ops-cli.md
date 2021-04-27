@@ -22,7 +22,7 @@ All public releases of the Fusebit Operations CLI are documented here, including
 
 _Release 04/26/21_
 
-- **Bugfix.** Address a couple potential errors in deployment creation.
+- **Bugfix.** Address several potential errors in deployment creation.
 
 ## Version 1.25.2
 
