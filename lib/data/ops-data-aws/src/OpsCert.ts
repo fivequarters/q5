@@ -102,26 +102,26 @@ export class OpsCert extends DataSource {
   }
 
   private async createRecords(certDetails: IAwsCertDetail): Promise<void> {
-    const promises = [];
     const validatingRecords: any = {};
-    for (const validation of certDetails.validations) {
-      if (!validatingRecords[validation.record.name]) {
-        validatingRecords[validation.record.name] = true;
-        promises.push(this.createRecordForValidation(validation));
-      }
-    }
-    await Promise.all(promises);
+    await Promise.all(
+      certDetails.validations.map((validation) => {
+        if (!validatingRecords[validation.record.name]) {
+          validatingRecords[validation.record.name] = true;
+          return this.createRecordForValidation(validation);
+        }
+      })
+    );
   }
 
   private async deleteRecords(certDetails: IAwsCertDetail): Promise<void> {
-    const promises = [];
     const validatingRecords: any = {};
-    for (const validation of certDetails.validations) {
-      if (!validatingRecords[validation.record.name]) {
-        validatingRecords[validation.record.name] = true;
-        promises.push(this.deleteRecordForValidation(validation));
-      }
-    }
-    await Promise.all(promises);
+    await Promise.all(
+      certDetails.validations.map((validation) => {
+        if (!validatingRecords[validation.record.name]) {
+          validatingRecords[validation.record.name] = true;
+          return this.deleteRecordForValidation(validation);
+        }
+      })
+    );
   }
 }
