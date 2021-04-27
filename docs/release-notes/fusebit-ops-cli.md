@@ -19,6 +19,13 @@ All public releases of the Fusebit Operations CLI are documented here, including
 -->
 
 ## Version 1.25.2
+
+_Release 04/26/21_
+
+- **Bugfix.** Address a couple potential errors in deployment creation.
+
+## Version 1.25.2
+
 _Release 04/16/21_
 
 - **Bugfix.** Increased load balancer timeout to 125 seconds to allow 120-second function execution.
