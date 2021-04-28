@@ -1,5 +1,5 @@
 import { DataSource } from '@5qtrs/data';
-import { IAgentData, IAgent, IIdentity, IAccessEntry, Resource } from '@5qtrs/account-data';
+import { IAgentData, IAgent, IIdentity, IAccessEntry, IAccessEntryWithAllow, Resource } from '@5qtrs/account-data';
 import { difference } from '@5qtrs/array';
 import { AccountDataTables } from './AccountDataTables';
 import { AccountDataAwsConfig } from './AccountDataAwsConfig';
@@ -36,7 +36,7 @@ function toAccessEntries(entry: any): IAccessEntry {
   return { action, resource: Resource.normalize(resource) };
 }
 
-function fromAccessEntries(entry: IAccessEntry) {
+function fromAccessEntries(entry: IAccessEntry): IAccessEntryWithAllow {
   const { action, resource } = entry;
   return { action, resource: Resource.normalize(resource), allow: true };
 }
@@ -100,23 +100,24 @@ export class AgentData extends DataSource implements IAgentData {
   public async add(accountId: string, agent: IAgent): Promise<IAgent> {
     const agentId = agent.id as string;
 
-    let accessEntries;
+    const actions: any[] = [];
 
-    await Promise.all([
-      (async () => {
-        if (agent.identities && agent.identities.length) {
-          return this.identityTable.addAllForAgent(accountId, agentId, agent.identities);
-        }
-      })(),
-      (async () => {
-        if (agent.access && agent.access.allow && agent.access.allow.length) {
-          accessEntries = agent.access.allow.map(fromAccessEntries);
-          return this.accessEntryTable.addAll(accountId, agentId, accessEntries);
-        }
-      })(),
-    ]);
+    let accessEntries: IAccessEntryWithAllow[] = [];
 
-    return toAgent(agentId, agent.identities || [], accessEntries || []);
+    if (agent.identities && agent.identities.length) {
+      actions.push(() => this.identityTable.addAllForAgent(accountId, agentId, agent.identities as IIdentity[]));
+    }
+
+    if (agent.access && agent.access.allow && agent.access.allow.length) {
+      accessEntries = agent.access.allow.map(fromAccessEntries);
+      actions.push(() => this.accessEntryTable.addAll(accountId, agentId, accessEntries));
+    }
+
+    // Each of the functions in actions returns a promise or POD; execute here inside of the Promise.all() to
+    // avoid any chance of async races.
+    await Promise.all(actions.map((p) => p()));
+
+    return toAgent(agentId, agent.identities || [], accessEntries);
   }
 
   public async init(accountId: string, agentId: string, jwtSecret: string): Promise<void> {
@@ -158,10 +159,11 @@ export class AgentData extends DataSource implements IAgentData {
 
     const [identities, accessEntries] = await Promise.all([
       this.replaceIdentities(accountId, agentId, agent.identities),
-      (async () => {
-        const entries = agent.access && agent.access.allow ? agent.access.allow.map(fromAccessEntries) : undefined;
-        return this.replaceAccessEntries(accountId, agentId, entries);
-      })(),
+      this.replaceAccessEntries(
+        accountId,
+        agentId,
+        agent.access && agent.access.allow ? agent.access.allow.map(fromAccessEntries) : undefined
+      ),
     ]);
 
     return toAgent(agentId, identities, accessEntries);
