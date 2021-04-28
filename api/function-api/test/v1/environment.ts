@@ -2,6 +2,7 @@ import { FakeAccount, resolveAccount } from './accountResolver';
 
 let account = FakeAccount;
 let accountToken: string;
+let accountId: string;
 let boundaries: string[] = [];
 
 const function1Id = 'test-function-1';
@@ -59,10 +60,12 @@ const getAllBoundaries = () => boundaries;
 
 const initializeEnvironment = async () => {
   account = await resolveAccount();
+  accountId = account.accountId;
   accountToken = account.accessToken;
 };
 
 const resetEnvironment = () => {
+  account.accountId = accountId;
   account.accessToken = accountToken;
 };
 

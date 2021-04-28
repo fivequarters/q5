@@ -28,7 +28,22 @@ function accountGet() {
   };
 }
 
+function accountDelete() {
+  return (req, res) => {
+    getAccountContext().then((accountContext) => {
+      const resolvedAgent = req.resolvedAgent;
+      const accountId = req.params.accountId;
+
+      accountContext.account
+        .update(resolvedAgent, { id: accountId, disabled: true })
+        .then((result) => res.json(result))
+        .catch(errorHandler(res));
+    });
+  };
+}
+
 module.exports = {
   accountPost,
   accountGet,
+  accountDelete,
 };

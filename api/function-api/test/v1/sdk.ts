@@ -34,6 +34,7 @@ const testClients: string[] = [];
 const testIssuers: string[] = [];
 const testHostedIssuers: string[] = [];
 const testStorage: string[] = [];
+const testAccounts: string[] = [];
 
 const hostedIssuersBoundary = nextBoundary();
 
@@ -131,6 +132,29 @@ export interface ITestIssuer {
   jsonKeysUrl: string;
   keys: IKeyPair[];
   getAccessToken: (index: number, subject: string) => Promise<string>;
+}
+
+export interface IOptions {
+  authzAccountId: string;
+}
+
+export interface INewAccount {
+  displayName?: string;
+  primaryEmail?: string;
+}
+
+export interface INewSubscription {
+  displayName?: string;
+}
+
+export interface INewUser {
+  firstName?: string;
+  lastName?: string;
+  primaryEmail?: string;
+  access?: {
+    allow: { action: string; resource: string }[];
+  };
+  identities: { issuerId: string; subject: string }[];
 }
 
 // ------------------
@@ -415,13 +439,14 @@ export async function deleteAllFunctions(account: IAccount, boundaryId?: string)
   );
 }
 
-export async function addIssuer(account: IAccount, issuerId: string, data: any) {
+export async function addIssuer(account: IAccount, issuerId: string, data: any, options?: IOptions) {
   const response = await request({
     method: 'POST',
     headers: {
       Authorization: `Bearer ${account.accessToken}`,
       'Content-Type': 'application/json',
       'user-agent': account.userAgent,
+      ...(options && options.authzAccountId ? { 'Authorization-Account-Id': options.authzAccountId } : {}),
     },
     url: `${account.baseUrl}/v1/account/${account.accountId}/issuer/${encodeURIComponent(issuerId)}`,
     data: JSON.stringify(data),
@@ -507,13 +532,14 @@ export async function cleanUpIssuers(account: IAccount) {
   }
 }
 
-export async function addUser(account: IAccount, data: any) {
+export async function addUser(account: IAccount, data: any, options?: IOptions) {
   const response = await request({
     method: 'POST',
     headers: {
       Authorization: `Bearer ${account.accessToken}`,
       'Content-Type': 'application/json',
       'user-agent': account.userAgent,
+      ...(options && options.authzAccountId ? { 'Authorization-Account-Id': options.authzAccountId } : {}),
     },
     url: `${account.baseUrl}/v1/account/${account.accountId}/user`,
     data: JSON.stringify(data),
@@ -1133,5 +1159,70 @@ export async function getMe(account: IAccount, accessToken?: string) {
       'user-agent': account.userAgent,
     },
     url: `${account.baseUrl}/v1/account/${account.accountId}/me`,
+  });
+}
+
+export async function addAccount(account: IAccount, newAccount: INewAccount) {
+  const response = await request({
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${account.accessToken}`,
+      'Content-Type': 'application/json',
+      'user-agent': account.userAgent,
+      'Authorization-Account-Id': account.accountId,
+    },
+    url: `${account.baseUrl}/v1/account/`,
+    data: JSON.stringify(newAccount),
+  });
+
+  if (response.status === 200) {
+    testAccounts.push(response.data.id);
+  }
+  return response;
+}
+
+export async function removeAccount(account: IAccount, accountId: string) {
+  return request({
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${account.accessToken}`,
+      'Content-Type': 'application/json',
+      'user-agent': account.userAgent,
+      'Authorization-Account-Id': account.accountId,
+    },
+    url: `${account.baseUrl}/v1/account/${accountId}`,
+  });
+}
+
+export async function getAccount(account: IAccount, accountId: string) {
+  return request({
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${account.accessToken}`,
+      'user-agent': account.userAgent,
+      'Authorization-Account-Id': account.accountId,
+    },
+    url: `${account.baseUrl}/v1/account/${accountId}`,
+  });
+}
+
+export async function cleanUpAccounts(account: IAccount) {
+  while (testAccounts.length) {
+    const toRemove = testAccounts.splice(0, 5);
+    await Promise.all(toRemove.map((accountId) => removeAccount(account, accountId)));
+  }
+}
+
+export async function addSubscription(account: IAccount, newSubscription: INewSubscription, options: IOptions) {
+  return request({
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${account.accessToken}`,
+      'user-agent': account.userAgent,
+      ...(options && options.authzAccountId ? { 'Authorization-Account-Id': options.authzAccountId } : {}),
+    },
+    url: `${account.baseUrl}/v1/account/${account.accountId}/subscription`,
+    data: JSON.stringify(newSubscription),
   });
 }

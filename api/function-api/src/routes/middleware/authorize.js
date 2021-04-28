@@ -21,12 +21,14 @@ module.exports = function authorize_factory(options) {
       return next(create_error(403, 'Unauthorized'));
     }
 
+    const accountId = req.headers['authorization-account-id'] || req.params.accountId;
+
     if (options.resolve) {
       req.token = token;
       if (req.body && req.body.accessToken) {
         if (req.body.protocol === 'oauth') {
           try {
-            req.body.decodedAccessToken = await validateAccessToken(req.params.accountId, req.body.accessToken);
+            req.body.decodedAccessToken = await validateAccessToken(accountId, req.body.accessToken);
             if (!req.body.decodedAccessToken) {
               throw new Error('Unauthorized');
             }
@@ -49,14 +51,12 @@ module.exports = function authorize_factory(options) {
       return next();
     }
 
-    const accountId = req.params.accountId;
-
     try {
       const resolvedAgent = await getResolvedAgent(accountId, token);
 
       req.resolvedAgent = resolvedAgent;
       if (options && options.operation) {
-        const resource = req.path;
+        const resource = options.resource || req.path;
         const action = options.operation;
         const { issuerId, subject } = resolvedAgent.identities[0];
 

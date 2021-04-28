@@ -122,7 +122,7 @@ router.post(
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
   validate_schema({ params: require('./validation/api_params') }),
-  authorize({ operation: AccountActions.addAccount }),
+  authorize({ operation: AccountActions.addAccount, resource: '/' }),
   express.json(),
   validate_schema({ body: require('./validation/account') }),
   account.accountPost(),
@@ -137,6 +137,15 @@ router.get(
   validate_schema({ params: require('./validation/api_params') }),
   authorize({ operation: AccountActions.getAccount }),
   account.accountGet(),
+  analytics.finished
+);
+router.delete(
+  '/account/:accountId',
+  analytics.enterHandler(analytics.Modes.Administration),
+  cors(corsManagementOptions),
+  validate_schema({ params: require('./validation/api_params') }),
+  authorize({ operation: AccountActions.deleteAccount, resource: '/' }),
+  account.accountDelete(),
   analytics.finished
 );
 

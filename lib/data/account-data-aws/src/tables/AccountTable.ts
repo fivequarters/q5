@@ -30,6 +30,8 @@ function toItem(account: IAccount) {
   const item: any = toKey(account.id);
   item.displayName = account.displayName ? { S: account.displayName } : undefined;
   item.primaryEmail = account.primaryEmail ? { S: account.primaryEmail } : undefined;
+  item.disabled = account.disabled ? { BOOL: account.disabled } : { BOOL: false };
+  item.disabledOn = account.disabledOn ? { S: account.disabledOn } : undefined;
   return item;
 }
 
@@ -38,6 +40,8 @@ function fromItem(item: any): IAccount {
     id: item.accountId.S,
     displayName: item.displayName ? item.displayName.S : undefined,
     primaryEmail: item.primaryEmail ? item.primaryEmail.S : undefined,
+    disabled: item.disabled ? item.disabled.BOOL : false,
+    disabledOn: item.disabledOn ? item.disabledOn.S : undefined,
   };
 }
 
@@ -64,6 +68,8 @@ export interface IAccount {
   id: string;
   displayName?: string;
   primaryEmail?: string;
+  disabled?: boolean;
+  disabledOn?: string;
 }
 
 export interface IListAccountsOptions {
@@ -139,6 +145,13 @@ export class AccountTable extends AwsDynamoTable {
     if (account.primaryEmail) {
       sets.push('primaryEmail = :primaryEmail');
       expressionValues[':primaryEmail'] = { S: account.primaryEmail };
+    }
+
+    if (account.disabled) {
+      sets.push('disabled = :disabled');
+      expressionValues[':disabled'] = { BOOL: account.disabled };
+      sets.push('disabledOn = :disabledOn');
+      expressionValues[':disabledOn'] = account.disabled ? { S: new Date().toISOString() } : { S: '' };
     }
 
     const options = {
