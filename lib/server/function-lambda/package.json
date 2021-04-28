@@ -15,7 +15,7 @@
   "dependencies": {
     "@5qtrs/bq-metering": "^0.0.1",
     "async": "^2.6.1",
-    "aws-sdk": "^2.397.0",
+    "aws-sdk": "^2.895.0",
     "bunyan": "^1.8.12",
     "cron-parser": "^2.7.3",
     "http-errors": "^1.7.1",

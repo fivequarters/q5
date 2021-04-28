@@ -5,7 +5,7 @@ interface ISourceStream {
   finished: boolean;
   buffered: {
     chunk: any;
-    encoding: string;
+    encoding: BufferEncoding;
   }[];
 }
 
@@ -41,7 +41,7 @@ export class MergeStream {
   public createSourceStream() {
     const stream = new Writable();
     const sourceStream = {
-      buffered: new Array<{ chunk: any; encoding: string }>(),
+      buffered: new Array<{ chunk: any; encoding: BufferEncoding }>(),
       finished: false,
       stream,
     };

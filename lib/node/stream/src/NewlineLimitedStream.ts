@@ -33,7 +33,7 @@ export class NewlineLimitedStream extends PassThrough {
     }
   }
 
-  public push(chunk: any, encoding?: string): boolean {
+  public push(chunk: any, encoding?: BufferEncoding): boolean {
     if (this.Enabled && chunk) {
       const decoder = new StringDecoder(encoding);
       let text = decoder.write(chunk);
@@ -76,7 +76,7 @@ export class NewlineLimitedStream extends PassThrough {
 
         text = text.substr(end + 1);
       }
-      chunk = Buffer.from(lines.join(''), encoding as BufferEncoding);
+      chunk = Buffer.from(lines.join(''), encoding);
     }
     return super.push(chunk, encoding);
   }
