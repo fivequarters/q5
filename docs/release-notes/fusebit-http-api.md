@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.19.6
+
+_Release 04/21/21_
+
+- **Enhancement.** Implement body size limit for x-www-form-encoded Fusebit functions.
+
 ## Version 1.19.5
 
 _Release 04/20/21_
