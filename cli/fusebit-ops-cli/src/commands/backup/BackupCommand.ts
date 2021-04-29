@@ -10,6 +10,7 @@ const command: ICommand = {
   description: 'Add and list Backups',
 };
 
+// maps the backup commands
 export class BackupCommand extends Command {
   public static async create() {
     const subCommands = [];

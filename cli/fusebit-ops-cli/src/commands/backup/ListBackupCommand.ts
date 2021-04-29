@@ -25,6 +25,7 @@ export class ListBackupCommand extends Command {
     super(command);
   }
 
+  // handles the backup ls command
   protected async onExecute(input: IExecuteInput): Promise<any> {
     await input.io.writeLine();
     const output = input.options.output as string;

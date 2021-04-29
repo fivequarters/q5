@@ -28,7 +28,8 @@ export class DeleteBackupCommand extends Command {
   private constructor() {
     super(command);
   }
-
+  
+  // handles the backup delete commands
   protected async onExecute(input: IExecuteInput): Promise<any> {
     await input.io.writeLine();
     const output = input.options.output as string;

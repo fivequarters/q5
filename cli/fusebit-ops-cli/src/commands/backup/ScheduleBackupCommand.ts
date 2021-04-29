@@ -28,6 +28,7 @@ const command = {
   ],
 };
 
+// handles the backup schedule command
 export class ScheduleBackupCommand extends Command {
   public static async create() {
     return new ScheduleBackupCommand();
