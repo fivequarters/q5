@@ -4,6 +4,7 @@ import { OpsService } from './OpsService';
 import { ExecuteService } from './ExecuteService';
 import { ProfileService } from './ProfileService';
 import { AwsCreds } from '@5qtrs/aws-config';
+
 export class BackupService {
   private opsService: OpsService;
   private executeService: ExecuteService;
@@ -13,12 +14,14 @@ export class BackupService {
     const execSvc = await ExecuteService.create(input);
     return new BackupService(opsSvc, execSvc, input);
   }
+
   private constructor(opsSvc: OpsService, execSvc: ExecuteService, input: IExecuteInput) {
     this.opsService = opsSvc;
     this.executeService = execSvc;
     this.input = input;
   }
 
+  // the code that gets a backup plan from AWS Backup, triggered by GetBackupCommand.ts
   public async getBackupPlan(backupPlanName: string) {
     const opsDataContext = await this.opsService.getOpsDataContext();
     const deploymentData = opsDataContext.deploymentData;
@@ -32,6 +35,8 @@ export class BackupService {
     );
     return info;
   }
+
+  // the actual backend driver for get backup plan, triggered by getBackupPlan
   public async getBackupPlanDriver(backupPlanName: string): Promise<any> {
     const opsDataContext = await this.opsService.getOpsDataContextImpl();
     const profileService = await ProfileService.create(this.input);
@@ -45,7 +50,8 @@ export class BackupService {
     });
   }
 
-  public async CreateBackupPlan(backupPlanName: string, backupPlanSchedule: string, failureSnsTopicArn?: string) {
+  // the code that creates a backup plan from AWS Backup, triggered by ScheduleBackupCommand.ts
+  public async createBackupPlan(backupPlanName: string, backupPlanSchedule: string, failureSnsTopicArn?: string) {
     const opsDataContext = await this.opsService.getOpsDataContext();
     const deploymentData = opsDataContext.deploymentData;
     const info = await this.executeService.execute(
@@ -54,12 +60,13 @@ export class BackupService {
         message: 'creating the backup plan in every region where the Fusebit platform is deployed',
         errorHeader: 'Creation of Backup Plans Failed',
       },
-      () => this.CreateBackupPlanDriver(backupPlanName, backupPlanSchedule, failureSnsTopicArn)
+      () => this.createBackupPlanDriver(backupPlanName, backupPlanSchedule, failureSnsTopicArn)
     );
     return info;
   }
 
-  private async CreateBackupPlanDriver(
+  // the actual backend driver for creating backup plan, triggered by createBackupPlan
+  private async createBackupPlanDriver(
     backupPlanName: string,
     backupPlanSchedule: string,
     failureSnsTopicArn?: string
@@ -79,11 +86,13 @@ export class BackupService {
       });
       await Backup.createBackupVault({
         BackupVaultName: backupPlanName,
+        BackupVaultTags: {
+          account: config.account,
+          region,
+        },
       })
         .promise()
-        .catch((err) => {
-          console.log(err);
-        });
+        .catch((err) => {});
       await Backup.createBackupPlan({
         BackupPlan: {
           BackupPlanName: backupPlanName,
@@ -94,6 +103,10 @@ export class BackupService {
               ScheduleExpression: `cron(${backupPlanSchedule})`,
             },
           ],
+        },
+        BackupPlanTags: {
+          account: config.account,
+          region,
         },
       })
         .promise()
@@ -112,7 +125,6 @@ export class BackupService {
               ],
             },
           }).promise();
-          console.log(failureSnsTopicArn);
           if (failureSnsTopicArn) {
             await Backup.putBackupVaultNotifications({
               BackupVaultName: backupPlanName,
@@ -120,9 +132,7 @@ export class BackupService {
               SNSTopicArn: failureSnsTopicArn,
             })
               .promise()
-              .then((data) => {
-                console.log(data);
-              });
+              .then(() => {});
           }
         })
         .catch((err) => {
@@ -131,6 +141,7 @@ export class BackupService {
     }
   }
 
+  // deletes a backup plan from AWS Backup, triggered by DeleteBackupCommand.ts
   public async deleteBackupPlan(backupPlanName: string) {
     const opsDataContext = await this.opsService.getOpsDataContext();
     const deploymentData = opsDataContext.deploymentData;
@@ -144,6 +155,8 @@ export class BackupService {
     );
     return info;
   }
+
+  // the actual driver for delete Backup plan, deletes backup plan from AWS Backup, triggered by deleteBackupPlan()
   private async deleteBackupPlanDriver(backupPlanName: string) {
     const opsDataContext = await this.opsService.getOpsDataContextImpl();
     const profileService = await ProfileService.create(this.input);
@@ -181,9 +194,16 @@ export class BackupService {
         await Backup.deleteBackupPlan({
           BackupPlanId: BackupPlanIdIfExists as string,
         }).promise();
+        await Backup.deleteBackupVault({
+          BackupVaultName: backupPlanName as string,
+        })
+          .promise()
+          .catch((err) => {});
       }
     }
   }
+
+  // helper function, get backup plan id by the friendly name of the backup plan
   private async getBackupIdByName(credentials: any, config: any, region: string, BackupName: string): Promise<string> {
     const backup = new AWS.Backup({
       region,
@@ -205,6 +225,7 @@ export class BackupService {
     return new Promise((res, _) => res(result as string));
   }
 
+  // list backup plans available in all AWS regions, triggered by GetBackupCommand.ts
   public async listBackupPlan(): Promise<any> {
     const region = this.input.options.region as string;
     const listing = await this.executeService.execute(
@@ -218,6 +239,7 @@ export class BackupService {
     return listing;
   }
 
+  // the actual driver for backup plan, trigged by listBackupPlan()
   private async listBackupPlanDriver() {
     const opsDataContext = await this.opsService.getOpsDataContextImpl();
     const profileService = await ProfileService.create(this.input);
@@ -229,7 +251,7 @@ export class BackupService {
     const regions = await this.findAllRegionsWithDeployments(credentials, config);
     const backupPlans: any = { BackupPlansList: [] };
     for (const i of regions) {
-      let Backup = new AWS.Backup({
+      const Backup = new AWS.Backup({
         region: i,
         accessKeyId: credentials.accessKeyId,
         secretAccessKey: credentials.secretAccessKey,
@@ -244,11 +266,12 @@ export class BackupService {
           ];
         });
     }
-    return new Promise((res, rej) => {
+    return new Promise((res, _) => {
       res(backupPlans);
     });
   }
 
+  // display driver for showing backup plans
   public async displayBackupPlans(data: any) {
     if (this.input.options.output === 'json') {
       this.input.io.writeLine(JSON.stringify(await this.sanitizeBackupPlans(data), null, 2));
@@ -257,6 +280,7 @@ export class BackupService {
     }
   }
 
+  // sanitize the backup plans result from listBackupPlan()
   public sanitizeBackupPlans(data: any) {
     if (!data) {
       return { backups: [] };
@@ -267,13 +291,14 @@ export class BackupService {
     return { Backup: data.BackupPlansList.map((item: any) => item.BackupPlanId) };
   }
 
-  public async findAllRegionsWithDeployments(AwsCreds: any, Config: any): Promise<string[]> {
+  // helper function: find all regions that have deployments and the region of ops tables
+  public async findAllRegionsWithDeployments(credentials: any, config: any): Promise<string[]> {
     const region: string[] = [];
     const ddb = new AWS.DynamoDB({
-      region: Config.region,
-      accessKeyId: AwsCreds.accessKeyId,
-      secretAccessKey: AwsCreds.secretAccessKey,
-      sessionToken: AwsCreds.sessionToken,
+      region: config.region,
+      accessKeyId: credentials.accessKeyId,
+      secretAccessKey: credentials.secretAccessKey,
+      sessionToken: credentials.sessionToken,
       apiVersion: '2012-08-10',
     });
     const scanParams = {
@@ -294,19 +319,20 @@ export class BackupService {
           throw new Error('no deployment found');
         }
         for (const i of data.Items) {
-          if (!region.includes(i.regionStackId.S?.split('::')[0] as string)) {
+          if (!region.includes((i.regionStackId.S as string).split('::')[0] as string)) {
             region.push((i.regionStackId.S as string).split('::')[0]);
           }
         }
       });
-    if (!region.includes(Config.region)) {
-      region.push(Config.region);
+    if (!region.includes(config.region)) {
+      region.push(config.region);
     }
     return new Promise((res, rej) => {
       res(region);
     });
   }
 
+  // find the region of the specified deployment
   public async findRegionWithDeployment(credentials: any, config: any, backupId: string) {
     const regions = await this.findAllRegionsWithDeployments(credentials, config);
     let result;
@@ -328,6 +354,8 @@ export class BackupService {
     }
     return result;
   }
+
+  // display driver for getting specific backup plan
   public async displayGetBackupPlans(backupPlan: any) {
     if (this.input.options.output === 'json') {
       await this.input.io.writeLine(JSON.stringify(await this.sanitizeGetBackupPlans(backupPlan), null, 2));
@@ -336,6 +364,7 @@ export class BackupService {
     }
   }
 
+  // sanitize the result of getBackupPlan for the display driver
   private async sanitizeGetBackupPlans(backupPlan: any) {
     if (!backupPlan) {
       return {};
