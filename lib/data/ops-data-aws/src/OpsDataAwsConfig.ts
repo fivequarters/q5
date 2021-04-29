@@ -33,7 +33,7 @@ const defaultAnalyticsRoleName = 'fusebit-analytics';
 const defaultBuilderRoleName = 'fusebit-builder';
 const defaultFunctionRoleName = 'fusebit-function';
 const defaultGovCloud = false;
-
+const defaultBackupRoleName = 'fusebit-backup-role';
 // ----------------
 // Exported Classes
 // ----------------
@@ -75,7 +75,9 @@ export class OpsDataAwsConfig implements IConfig {
     }
     return value as string;
   }
-
+  public get backupRoleName(): string {
+    return (this.config.value('backupRoleName') as string) || defaultBackupRoleName;
+  }
   public get mainRegion(): string {
     return (this.config.value('mainRegion') as string) || (this.govCloud ? defaultGovCloudRegion : defaultRegion);
   }

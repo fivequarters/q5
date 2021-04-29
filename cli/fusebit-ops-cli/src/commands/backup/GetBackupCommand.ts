@@ -38,8 +38,9 @@ export class GetBackupCommand extends Command {
     const backupService = await BackupService.create(input);
     if (output === 'json') {
       const backupPlan = await backupService.getBackupPlan(backupPlanName);
-      console.log(backupPlan)
-      await backupService.displayGetBackupPlans(backupPlan)
+      await backupService.displayGetBackupPlans(backupPlan);
+    } else {
+      const backupPlan = await backupService.getBackupPlan(backupPlanName);
     }
   }
 }

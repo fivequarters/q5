@@ -22,7 +22,7 @@ export class BackupService {
   public async getBackupPlan(backupPlanName: string) {
     const opsDataContext = await this.opsService.getOpsDataContext();
     const deploymentData = opsDataContext.deploymentData;
-    const exists = await this.executeService.execute(
+    const info = await this.executeService.execute(
       {
         header: 'Get Backup Plan',
         message: `Get the information of the ${backupPlanName} backup plan`,
@@ -30,8 +30,9 @@ export class BackupService {
       },
       () => this.getBackupPlanDriver(backupPlanName)
     );
+    return info;
   }
-  public async getBackupPlanDriver(backupPlanName: string) {
+  public async getBackupPlanDriver(backupPlanName: string): Promise<any> {
     const opsDataContext = await this.opsService.getOpsDataContextImpl();
     const profileService = await ProfileService.create(this.input);
     const profile = await profileService.getProfileOrDefaultOrThrow();
@@ -39,57 +40,169 @@ export class BackupService {
     const config = await opsDataContext.provider.getAwsConfigForMain();
     const credentials = await (config.creds as AwsCreds).getCredentials();
     const results = await this.findRegionWithDeployment(credentials, config, backupPlanName);
-    console.log(results)
-    return results
-  }
-  public async checkBackupPlanExists(backupPlanName: string, region: string): Promise<string> {
-    const opsDataContext = await this.opsService.getOpsDataContext();
-    const deploymentData = opsDataContext.deploymentData;
-    const exists = await this.executeService.execute(
-      {
-        header: 'Backup Plan Check',
-        message: `Determining if the ${backupPlanName} backup plan exists`,
-        errorHeader: 'Backup plan error',
-      },
-      () => this.checkBackupPlanExistsDriver(backupPlanName, region)
-    );
-    if (exists) {
-      this.executeService.warning('Backup Plan Exists', `${backupPlanName} does exists`);
-      throw new Error('Backup plan already exists');
-    }
-    return new Promise((res, _) => {
-      res(backupPlanName);
+    return new Promise((res, rej) => {
+      res(results);
     });
   }
 
-  private async checkBackupPlanExistsDriver(backupPlanName: string, region: string): Promise<boolean> {
+  public async CreateBackupPlan(backupPlanName: string, backupPlanSchedule: string, failureSnsTopicArn?: string) {
+    const opsDataContext = await this.opsService.getOpsDataContext();
+    const deploymentData = opsDataContext.deploymentData;
+    const info = await this.executeService.execute(
+      {
+        header: 'Creating Backup Plan',
+        message: 'creating the backup plan in every region where the Fusebit platform is deployed',
+        errorHeader: 'Creation of Backup Plans Failed',
+      },
+      () => this.CreateBackupPlanDriver(backupPlanName, backupPlanSchedule, failureSnsTopicArn)
+    );
+    return info;
+  }
+
+  private async CreateBackupPlanDriver(
+    backupPlanName: string,
+    backupPlanSchedule: string,
+    failureSnsTopicArn?: string
+  ) {
     const opsDataContext = await this.opsService.getOpsDataContextImpl();
     const profileService = await ProfileService.create(this.input);
     const profile = await profileService.getProfileOrDefaultOrThrow();
-    const userCreds = await this.opsService.getUserCredsForProfile(profile);
     const config = await opsDataContext.provider.getAwsConfigForMain();
     const credentials = await (config.creds as AwsCreds).getCredentials();
+    const regions = await this.findAllRegionsWithDeployments(credentials, config);
+    for (const region of regions) {
+      const Backup = new AWS.Backup({
+        region,
+        accessKeyId: credentials.accessKeyId,
+        secretAccessKey: credentials.secretAccessKey,
+        sessionToken: credentials.sessionToken,
+      });
+      await Backup.createBackupVault({
+        BackupVaultName: backupPlanName,
+      })
+        .promise()
+        .catch((err) => {
+          console.log(err);
+        });
+      await Backup.createBackupPlan({
+        BackupPlan: {
+          BackupPlanName: backupPlanName,
+          Rules: [
+            {
+              RuleName: 'FusebitBackupPlan',
+              TargetBackupVaultName: backupPlanName,
+              ScheduleExpression: `cron(${backupPlanSchedule})`,
+            },
+          ],
+        },
+      })
+        .promise()
+        .then(async (data) => {
+          await Backup.createBackupSelection({
+            BackupPlanId: data.BackupPlanId as string,
+            BackupSelection: {
+              IamRoleArn: `arn:aws:iam::${config.account}:role/fusebit-backup-role`,
+              SelectionName: 'DynamoDB',
+              ListOfTags: [
+                {
+                  ConditionKey: 'account',
+                  ConditionType: 'STRINGEQUALS',
+                  ConditionValue: config.account,
+                },
+              ],
+            },
+          }).promise();
+          console.log(failureSnsTopicArn);
+          if (failureSnsTopicArn) {
+            await Backup.putBackupVaultNotifications({
+              BackupVaultName: backupPlanName,
+              BackupVaultEvents: ['BACKUP_JOB_COMPLETED'],
+              SNSTopicArn: failureSnsTopicArn,
+            })
+              .promise()
+              .then((data) => {
+                console.log(data);
+              });
+          }
+        })
+        .catch((err) => {
+          throw Error(err);
+        });
+    }
+  }
 
-    const params = {
-      BackupPlanId: backupPlanName,
-    };
-
-    const Backup = new AWS.Backup({
+  public async deleteBackupPlan(backupPlanName: string) {
+    const opsDataContext = await this.opsService.getOpsDataContext();
+    const deploymentData = opsDataContext.deploymentData;
+    const info = this.executeService.execute(
+      {
+        header: 'deleting Backup Plans',
+        message: `deleting backup plans ${backupPlanName}`,
+        errorHeader: `something went wrong during deletion`,
+      },
+      () => this.deleteBackupPlanDriver(backupPlanName)
+    );
+    return info;
+  }
+  private async deleteBackupPlanDriver(backupPlanName: string) {
+    const opsDataContext = await this.opsService.getOpsDataContextImpl();
+    const profileService = await ProfileService.create(this.input);
+    const profile = await profileService.getProfileOrDefaultOrThrow();
+    const config = await opsDataContext.provider.getAwsConfigForMain();
+    const credentials = await (config.creds as AwsCreds).getCredentials();
+    const regions = await this.findAllRegionsWithDeployments(credentials, config);
+    for (const region of regions) {
+      const BackupPlanIdIfExists = await this.getBackupIdByName(credentials, config, region, backupPlanName);
+      if (BackupPlanIdIfExists === undefined) {
+        continue;
+      } else {
+        const Backup = new AWS.Backup({
+          region,
+          accessKeyId: credentials.accessKeyId,
+          secretAccessKey: credentials.secretAccessKey,
+          sessionToken: credentials.sessionToken,
+        });
+        await Backup.listBackupSelections({
+          BackupPlanId: BackupPlanIdIfExists as string,
+        })
+          .promise()
+          .then(async (data) => {
+            for (const i of data.BackupSelectionsList as AWS.Backup.BackupSelectionsList) {
+              await Backup.deleteBackupSelection({
+                BackupPlanId: BackupPlanIdIfExists as string,
+                SelectionId: i.SelectionId as string,
+              }).promise();
+            }
+          });
+        await Backup.deleteBackupSelection({
+          BackupPlanId: BackupPlanIdIfExists as string,
+          SelectionId: 'DynamoDB',
+        });
+        await Backup.deleteBackupPlan({
+          BackupPlanId: BackupPlanIdIfExists as string,
+        }).promise();
+      }
+    }
+  }
+  private async getBackupIdByName(credentials: any, config: any, region: string, BackupName: string): Promise<string> {
+    const backup = new AWS.Backup({
+      region,
       accessKeyId: credentials.accessKeyId,
       secretAccessKey: credentials.secretAccessKey,
       sessionToken: credentials.sessionToken,
-      region,
     });
-    return new Promise(async (res, rej) => {
-      await Backup.getBackupPlan(params)
-        .promise()
-        .then((data) => {
-          res(data.BackupPlan === undefined);
-        })
-        .catch((err) => {
-          rej(err);
-        });
-    });
+    let result: string | undefined;
+    await backup
+      .listBackupPlans()
+      .promise()
+      .then((data) => {
+        for (const i of data.BackupPlansList as AWS.Backup.BackupPlansList) {
+          if (i.BackupPlanName === BackupName) {
+            result = i.BackupPlanId;
+          }
+        }
+      });
+    return new Promise((res, _) => res(result as string));
   }
 
   public async listBackupPlan(): Promise<any> {
@@ -186,6 +299,9 @@ export class BackupService {
           }
         }
       });
+    if (!region.includes(Config.region)) {
+      region.push(Config.region);
+    }
     return new Promise((res, rej) => {
       res(region);
     });
@@ -203,12 +319,14 @@ export class BackupService {
       });
       await Backup.getBackupPlan({
         BackupPlanId: backupId,
-      }).promise().then((data) => {
-        result = data;
-      }).catch((err) => {})
+      })
+        .promise()
+        .then((data) => {
+          result = data;
+        })
+        .catch((err) => {});
     }
-    console.log(result)
-    return result
+    return result;
   }
   public async displayGetBackupPlans(backupPlan: any) {
     if (this.input.options.output === 'json') {
@@ -219,13 +337,12 @@ export class BackupService {
   }
 
   private async sanitizeGetBackupPlans(backupPlan: any) {
-    console.log(backupPlan)
     if (!backupPlan) {
-      return {}
+      return {};
     }
     return {
       BackupPlan: backupPlan.BackupPlan.BackupPlanName,
-      Rules: [...backupPlan.BackupPlan.Rules]
-    }
+      Rules: [...backupPlan.BackupPlan.Rules],
+    };
   }
 }
