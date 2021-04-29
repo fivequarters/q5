@@ -166,7 +166,7 @@ export async function createDatabase(
     const storeDatabaseCredentials = async (cluster: AWS.RDS.DBCluster): Promise<string> => {
       const name = getSecretName();
       const params = {
-        Name: `${name}-${randomBytes(10).toString('hex')}`,
+        Name: `rds-db-credentials/${name}-${randomBytes(10).toString('hex')}`,
         Description: `DB Credentials for Aurora cluster ${getClusterIdentifier()}`,
         SecretString: JSON.stringify({
           dbInstanceIdentifier: cluster.DBClusterIdentifier,
@@ -249,6 +249,7 @@ export async function createDatabase(
         debug('ROLLBACK MIGRATION ERROR', n, error);
         throw e;
       }
+      throw error;
     };
 
     const runMigration = async (n: number): Promise<void> => {

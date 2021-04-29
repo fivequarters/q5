@@ -1,5 +1,18 @@
 require('dotenv').config();
 
+// https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/node-configuring-maxsockets.html
+// var AWS = require('aws-sdk');
+// var https = require('https');
+// var agent = new https.Agent({
+//   maxSockets: 5,
+// });
+
+// AWS.config.update({
+//   httpOptions: {
+//     agent: agent,
+//   },
+// });
+
 var create_error = require('http-errors');
 var express = require('express');
 var logger = require('morgan');
