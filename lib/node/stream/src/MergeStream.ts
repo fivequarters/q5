@@ -51,7 +51,7 @@ export class MergeStream {
       this.currentSourceStream = this.sourceStreams.shift();
     }
 
-    stream._write = (chunk, encoding, callback) => {
+    stream._write = (chunk, encoding: BufferEncoding, callback) => {
       if (!this.sinkClosed) {
         if (sourceStream === this.currentSourceStream) {
           this.sinkStream.write(chunk, encoding, callback);
