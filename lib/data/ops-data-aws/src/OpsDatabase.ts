@@ -54,6 +54,7 @@ export async function createDatabase(
   const getCommonTags = () => [
     { Key: 'fuseopsVersion', Value: process.env.FUSEOPS_VERSION },
     { Key: 'fusebitDeployment', Value: deployment.deploymentName },
+    { Key: 'account', Value: awsConfig.account },
   ];
 
   const tryGetAuroraCluster = async (): Promise<AWS.RDS.DBCluster | undefined> => {
