@@ -44,12 +44,12 @@ const rateLimit = (req: IRequest, res: Response, next: NextFunction) => {
 
   // Hook on the end of the function to adjust the utilization metric.
   const end = res.end;
-  res.end = (chunk?: any, encodingOrCb?: string | (() => void), callback?: () => void) => {
+  res.end = (chunk?: any, encodingOrCb?: BufferEncoding | (() => void), callback?: () => void) => {
     current[rateKey] = current[rateKey] - 1;
 
     // Propagate the response.
     res.end = end;
-    res.end(chunk, encodingOrCb as string, callback);
+    res.end(chunk, encodingOrCb as BufferEncoding, callback);
   };
 
   current[rateKey] = current[rateKey] + 1;

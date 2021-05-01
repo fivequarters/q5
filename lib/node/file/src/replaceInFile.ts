@@ -39,7 +39,7 @@ export async function replaceInFile(
     replace: string;
   }[],
   options: {
-    encoding?: string;
+    encoding?: BufferEncoding;
     errorIfNotExist?: boolean;
   } = {}
 ): Promise<void> {
