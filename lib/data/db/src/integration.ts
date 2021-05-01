@@ -31,7 +31,7 @@ export async function getIntegration(params: Model.IEntityKey): Promise<Model.II
  * @returns Returns true if the integration was deleted or false if it did not exist.
  */
 export async function deleteIntegration(params: Model.IEntityKey, options?: Model.IStatementOptions): Promise<boolean> {
-  return await deleteEntity({ entityType: EntityType.Integration }, params, options);
+  return deleteEntity({ entityType: EntityType.Integration }, params, options);
 }
 
 /**
@@ -57,7 +57,7 @@ export async function createIntegration(
  * @returns List of integrations and the `next` continuation token if there is more data to get.
  */
 export async function listIntegrations(params: Model.IListRequest): Promise<Model.IListResponse> {
-  return await listEntities({ entityType: EntityType.Integration }, params);
+  return listEntities({ entityType: EntityType.Integration }, params);
 }
 
 /**
@@ -85,7 +85,7 @@ export async function updateIntegration(
  * @returns Integration tags and version or undefined if no matching integration found.
  */
 export async function getIntegrationTags(params: Model.IEntityKey): Promise<Model.ITagsWithVersion | undefined> {
-  return await getEntityTags({ entityType: EntityType.Integration }, params);
+  return getEntityTags({ entityType: EntityType.Integration }, params);
 }
 
 /**
@@ -102,7 +102,7 @@ export async function setIntegrationTags(
   tags: Model.ITagsWithVersion,
   options?: Model.IStatementOptions
 ): Promise<Model.ITagsWithVersion | undefined> {
-  return await updateEntityTags({ entityType: EntityType.Integration }, params, tags, options);
+  return updateEntityTags({ entityType: EntityType.Integration }, params, tags, options);
 }
 
 /**
@@ -123,7 +123,7 @@ export async function setIntegrationTag(
   version?: number,
   options?: Model.IStatementOptions
 ): Promise<Model.ITagsWithVersion | undefined> {
-  return await setEntityTag({ entityType: EntityType.Integration }, params, key, value, version, options);
+  return setEntityTag({ entityType: EntityType.Integration }, params, key, value, version, options);
 }
 
 /**
@@ -142,5 +142,5 @@ export async function deleteIntegrationTag(
   version?: number,
   options?: Model.IStatementOptions
 ): Promise<Model.ITagsWithVersion | undefined> {
-  return await setEntityTag({ entityType: EntityType.Integration }, params, key, undefined, version, options);
+  return setEntityTag({ entityType: EntityType.Integration }, params, key, undefined, version, options);
 }

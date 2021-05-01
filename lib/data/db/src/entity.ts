@@ -1,5 +1,6 @@
 import * as Model from './model';
 import * as AWS from 'aws-sdk';
+import { version } from '@babel/core';
 
 const defaultAuroraDatabaseName = 'fusebit';
 const defaultPurgeInterval = 10 * 60 * 1000;
@@ -11,6 +12,8 @@ let purgeInterval;
 //--------------------------------
 // General
 //--------------------------------
+
+export const defaultListLimit = 100;
 
 async function purgeExpiredItems() {
   try {
@@ -102,10 +105,8 @@ export async function rollbackTransaction(transactionId: string): Promise<string
 export const EntityType = {
   Integration: 1,
   Connector: 2,
-  Identity: 3,
-  IntegrationIntance: 4,
-  Operation: 5,
-  Storage: 6,
+  Operation: 3,
+  Storage: 4,
 };
 
 //--------------------------------
@@ -141,17 +142,37 @@ function sqlToTagsWithVersion(record: any): Model.ITagsWithVersion {
   };
 }
 
+function escape(s: string) {
+  return s.replace(/'/g, "''");
+}
+
+function primaryClause(entityType: number, params: { accountId: string; subscriptionId: string }) {
+  return `where categoryId=${entityType} 
+    and accountId='${escape(params.accountId)}' 
+    and subscriptionId='${escape(params.subscriptionId)}'`;
+}
+
+function expiredClause(filterExpired?: boolean) {
+  return `${filterExpired ? `and (expires is null or expires > ${Date.now()})` : ''}`;
+}
+
+function versionClause(version?: number) {
+  return `${version !== undefined ? `and version = ${version}` : ''}`;
+}
+
+function idClause(id: string) {
+  return `and entityId = '${escape(id)}'`;
+}
+
 export async function getEntity(
   { entityType, filterExpired }: IQueryOptions,
   params: Model.IEntityKey
 ): Promise<Model.IEntity | undefined> {
   const [rds, credentials] = await ensureRds();
   const sql = `select * from entity 
-    where categoryId=${entityType} 
-    and accountId='${params.accountId}' 
-    and subscriptionId='${params.subscriptionId}'
-    and entityId='${params.id}'
-    ${filterExpired ? `and (expires is null or expires > ${Date.now()})` : ''}`;
+    ${primaryClause(entityType, params)}
+    and entityId='${escape(params.id)}'
+    ${expiredClause(filterExpired)}`;
   const result = await rds
     .executeStatement({
       ...credentials,
@@ -173,11 +194,9 @@ export async function getEntityTags(
 ): Promise<Model.ITagsWithVersion | undefined> {
   const [rds, credentials] = await ensureRds();
   const sql = `select tags, version from entity 
-    where categoryId=${entityType} 
-    and accountId='${params.accountId}' 
-    and subscriptionId='${params.subscriptionId}'
-    and entityId='${params.id}'
-    ${filterExpired ? `and (expires is null or expires > ${Date.now()})` : ''}`;
+    ${primaryClause(entityType, params)}
+    ${idClause(params.id)}
+    ${expiredClause(filterExpired)}`;
   const result = await rds
     .executeStatement({
       ...credentials,
@@ -198,15 +217,13 @@ export async function listEntities(
   params: Model.IListRequest
 ): Promise<Model.IListResponse> {
   const [rds, credentials] = await ensureRds();
-  const limit = Math.min(Math.max(params.limit || 100, 1), 100);
+  const limit = Math.min(Math.max(params.limit || defaultListLimit, 1), defaultListLimit);
   const offset = (params.next && parseInt(params.next, 16)) || undefined;
   const sql = `select entityId, version, tags, expires from entity 
-    where categoryId=${entityType} 
-    and accountId='${params.accountId}' 
-    and subscriptionId='${params.subscriptionId}'
-    ${params.idPrefix ? `and entityId like '${params.idPrefix}%'` : ''}
-    ${params.tags ? `and tags @> '${JSON.stringify(params.tags)}'::jsonb` : ''}
-    ${filterExpired ? `and (expires is null or expires > ${Date.now()})` : ''}
+    ${primaryClause(entityType, params)}
+    ${params.idPrefix ? `and entityId like '${escape(params.idPrefix)}%'` : ''}
+    ${params.tags ? `and tags @> '${escape(JSON.stringify(params.tags))}'::jsonb` : ''}
+    ${expiredClause(filterExpired)}
     order by entityId
     ${offset ? `offset ${offset}` : ''}
     limit ${limit + 1}`;
@@ -243,11 +260,9 @@ export async function deleteEntity(
 ): Promise<boolean> {
   const [rds, credentials] = await ensureRds();
   const sql = `delete from entity 
-    where categoryId=${entityType} 
-    and accountId='${params.accountId}' 
-    and subscriptionId='${params.subscriptionId}'
-    and ${prefixMatchId ? `entityId like '${params.id}%'` : `entityId='${params.id}'`}
-    ${filterExpired ? `and (expires is null or expires > ${Date.now()})` : ''}`;
+    ${primaryClause(entityType, params)}
+    and ${prefixMatchId ? `entityId like '${escape(params.id)}%'` : `entityId='${escape(params.id)}'`}
+    ${expiredClause(filterExpired)}`;
   const result = await rds
     .executeStatement({
       ...credentials,
@@ -267,20 +282,20 @@ export async function createEntity(
   let upsertClause = '';
   if (upsert) {
     upsertClause = `on conflict on constraint entity_pri_key do update set  
-      data = '${JSON.stringify(params.data)}'::jsonb,
-      tags = '${JSON.stringify(params.tags)}'::jsonb,
+      data = '${escape(JSON.stringify(params.data))}'::jsonb,
+      tags = '${escape(JSON.stringify(params.tags))}'::jsonb,
       expires = ${params.expires !== undefined ? params.expires : 'null'},
       version = entity.version + 1
       ${params.version !== undefined ? `where entity.version = ${params.version}` : ''}`;
   }
   const sql = `insert into entity values (
     ${entityType},
-    '${params.accountId}',
-    '${params.subscriptionId}',
-    '${params.id}',
+    '${escape(params.accountId)}',
+    '${escape(params.subscriptionId)}',
+    '${escape(params.id)}',
     1,
-    '${JSON.stringify(params.data)}'::jsonb,
-    '${JSON.stringify(params.tags)}'::jsonb,
+    '${escape(JSON.stringify(params.data))}'::jsonb,
+    '${escape(JSON.stringify(params.tags))}'::jsonb,
     ${params.expires !== undefined ? params.expires : 'null'})
     ${upsertClause}
     returning *;`;
@@ -319,16 +334,14 @@ export async function updateEntity(
       ...credentials,
       ...options,
       sql: `update entity set
-        data = '${JSON.stringify(params.data)}'::jsonb,
-        tags = '${JSON.stringify(params.tags)}'::jsonb,
+        data = '${escape(JSON.stringify(params.data))}'::jsonb,
+        tags = '${escape(JSON.stringify(params.tags))}'::jsonb,
         expires = ${params.expires !== undefined ? params.expires : 'null'},
         version = version + 1
-        where categoryId = ${entityType}
-        and accountId = '${params.accountId}'
-        and subscriptionId = '${params.subscriptionId}'
-        and entityId = '${params.id}'
-        ${params.version !== undefined ? `and version = ${params.version}` : ''}
-        ${filterExpired ? `and (expires is null or expires > ${Date.now()})` : ''}
+        ${primaryClause(entityType, params)}
+        ${idClause(params.id)}
+        ${versionClause(params.version)}
+        ${expiredClause(filterExpired)}
         returning *;`,
     })
     .promise();
@@ -352,14 +365,12 @@ export async function updateEntityTags(
       ...credentials,
       ...options,
       sql: `update entity set
-        tags = '${JSON.stringify(tags.tags)}'::jsonb,
+        tags = '${escape(JSON.stringify(tags.tags))}'::jsonb,
         version = version + 1
-        where categoryId = ${entityType}
-        and accountId = '${params.accountId}'
-        and subscriptionId = '${params.subscriptionId}'
-        and entityId = '${params.id}'
-        ${tags.version !== undefined ? `and version = ${tags.version}` : ''}
-        ${filterExpired ? `and (expires is null or expires > ${Date.now()})` : ''}
+        ${primaryClause(entityType, params)}
+        ${idClause(params.id)}
+        ${versionClause(tags.version)}
+        ${expiredClause(filterExpired)}
         returning tags, version;`,
     })
     .promise();
@@ -381,14 +392,14 @@ export async function setEntityTag(
 ): Promise<Model.ITagsWithVersion | undefined> {
   const [rds, credentials] = await ensureRds();
   const sql = `update entity set
-    tags = ${value !== undefined ? `jsonb_set(tags, '{${key}}', '"${value}"')` : `tags - '${key}'`},
+    tags = ${
+      value !== undefined ? `jsonb_set(tags, '{${escape(key)}}', '"${escape(value)}"')` : `tags - '${escape(key)}'`
+    },
     version = version + 1
-    where categoryId = ${entityType}
-    and accountId = '${params.accountId}'
-    and subscriptionId = '${params.subscriptionId}'
-    and entityId = '${params.id}'
-    ${version !== undefined ? `and version = ${version}` : ''}
-    ${filterExpired ? `and (expires is null or expires > ${Date.now()})` : ''}
+    ${primaryClause(entityType, params)}
+    ${idClause(params.id)}
+    ${versionClause(version)}
+    ${expiredClause(filterExpired)}
     returning tags, version;`;
   const result = await rds
     .executeStatement({

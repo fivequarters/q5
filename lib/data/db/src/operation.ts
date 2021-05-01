@@ -35,7 +35,7 @@ export async function getOperation(params: Model.IEntityKey): Promise<Model.IOpe
  * @returns True if the operation was deleted or false if it did not exist.
  */
 export async function deleteOperation(params: Model.IEntityKey, options?: Model.IStatementOptions): Promise<boolean> {
-  return await deleteEntity({ entityType: EntityType.Operation }, params, options);
+  return deleteEntity({ entityType: EntityType.Operation }, params, options);
 }
 
 /**

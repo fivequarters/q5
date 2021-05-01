@@ -36,7 +36,7 @@ export async function deleteStorage(
   recursive?: boolean,
   options?: Model.IStatementOptions
 ): Promise<boolean> {
-  return await deleteEntity({ entityType: EntityType.Storage, prefixMatchId: !!recursive }, params, options);
+  return deleteEntity({ entityType: EntityType.Storage, prefixMatchId: !!recursive }, params, options);
 }
 
 /**
@@ -60,7 +60,7 @@ export async function putStorage(
  * @returns List of storage items and the `next` continuation token if there is more data to get.
  */
 export async function listStorage(params: Model.IListRequest): Promise<Model.IListResponse> {
-  return await listEntities({ entityType: EntityType.Storage, filterExpired: true }, params);
+  return listEntities({ entityType: EntityType.Storage, filterExpired: true }, params);
 }
 
 /**
@@ -69,7 +69,7 @@ export async function listStorage(params: Model.IListRequest): Promise<Model.ILi
  * @returns Storage item tags and version or undefined if no matching storage item found.
  */
 export async function getStorageTags(params: Model.IEntityKey): Promise<Model.ITagsWithVersion | undefined> {
-  return await getEntityTags({ entityType: EntityType.Storage, filterExpired: true }, params);
+  return getEntityTags({ entityType: EntityType.Storage, filterExpired: true }, params);
 }
 
 /**
@@ -86,7 +86,7 @@ export async function setStorageTags(
   tags: Model.ITagsWithVersion,
   options?: Model.IStatementOptions
 ): Promise<Model.ITagsWithVersion | undefined> {
-  return await updateEntityTags({ entityType: EntityType.Storage, filterExpired: true }, params, tags, options);
+  return updateEntityTags({ entityType: EntityType.Storage, filterExpired: true }, params, tags, options);
 }
 
 /**
@@ -107,14 +107,7 @@ export async function setStorageTag(
   version?: number,
   options?: Model.IStatementOptions
 ): Promise<Model.ITagsWithVersion | undefined> {
-  return await setEntityTag(
-    { entityType: EntityType.Storage, filterExpired: true },
-    params,
-    key,
-    value,
-    version,
-    options
-  );
+  return setEntityTag({ entityType: EntityType.Storage, filterExpired: true }, params, key, value, version, options);
 }
 
 /**
@@ -133,7 +126,7 @@ export async function deleteStorageTag(
   version?: number,
   options?: Model.IStatementOptions
 ): Promise<Model.ITagsWithVersion | undefined> {
-  return await setEntityTag(
+  return setEntityTag(
     { entityType: EntityType.Storage, filterExpired: true },
     params,
     key,

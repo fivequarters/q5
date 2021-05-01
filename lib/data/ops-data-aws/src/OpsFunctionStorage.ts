@@ -2,6 +2,7 @@ import * as AWS from 'aws-sdk';
 import { OpsDataAwsConfig } from './OpsDataAwsConfig';
 import { IAwsConfig, AwsCreds } from '@5qtrs/aws-config';
 import { IOpsDeployment } from '@5qtrs/ops-data';
+import { VolumeId } from 'aws-sdk/clients/storagegateway';
 
 const Async = require('async');
 
@@ -21,7 +22,7 @@ export async function createFunctionStorage(
     sessionToken: credentials.sessionToken,
   });
 
-  return new Promise((resolve, reject) => {
+  return new Promise<void>((resolve, reject) => {
     return Async.series(
       [
         (cb: any) => ensureS3Bucket(cb),
@@ -30,7 +31,7 @@ export async function createFunctionStorage(
         (cb: any) => configureLifecycle(cb),
       ],
       (e: any) => {
-        return e ? reject(e) : resolve(undefined);
+        return e ? reject(e) : resolve();
       }
     );
   });

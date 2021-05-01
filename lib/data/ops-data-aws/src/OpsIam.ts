@@ -144,7 +144,6 @@ export class OpsIam implements IDataSource {
       [
         `${this.config.arnPrefix}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole`,
         `${this.config.arnPrefix}:iam::aws:policy/AmazonESFullAccess`,
-        `${this.config.arnPrefix}:iam::aws:policy/AmazonRDSDataFullAccess`,
         `${this.config.arnPrefix}:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole`,
       ],
       {

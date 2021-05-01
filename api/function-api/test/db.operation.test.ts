@@ -84,8 +84,7 @@ describe('DB operation', () => {
     };
     const result = await Db.putOperation(op);
     expect(result).toMatchObject(op);
-    const op1 = { ...op, data: { foo: 'baz' }, expires: undefined };
-    delete op1.expires;
+    const op1 = { ...op, data: { foo: 'baz' } };
     const result1 = await Db.putOperation(op1);
     expect(result1).toMatchObject(op1);
     expect(result1.expires).toBeGreaterThan(result.expires || 0);

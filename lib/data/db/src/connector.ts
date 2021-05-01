@@ -31,7 +31,7 @@ export async function getConnector(params: Model.IEntityKey): Promise<Model.ICon
  * @returns Returns true if the connector was deleted or false if it did not exist.
  */
 export async function deleteConnector(params: Model.IEntityKey, options?: Model.IStatementOptions): Promise<boolean> {
-  return await deleteEntity({ entityType: EntityType.Connector }, params, options);
+  return deleteEntity({ entityType: EntityType.Connector }, params, options);
 }
 
 /**
@@ -57,7 +57,7 @@ export async function createConnector(
  * @returns List of connectors and the `next` continuation token if there is more data to get.
  */
 export async function listConnectors(params: Model.IListRequest): Promise<Model.IListResponse> {
-  return await listEntities({ entityType: EntityType.Connector }, params);
+  return listEntities({ entityType: EntityType.Connector }, params);
 }
 
 /**
@@ -85,7 +85,7 @@ export async function updateConnector(
  * @returns Connector tags and version or undefined if no matching connector found.
  */
 export async function getConnectorTags(params: Model.IEntityKey): Promise<Model.ITagsWithVersion | undefined> {
-  return await getEntityTags({ entityType: EntityType.Connector }, params);
+  return getEntityTags({ entityType: EntityType.Connector }, params);
 }
 
 /**
@@ -102,7 +102,7 @@ export async function setConnectorTags(
   tags: Model.ITagsWithVersion,
   options?: Model.IStatementOptions
 ): Promise<Model.ITagsWithVersion | undefined> {
-  return await updateEntityTags({ entityType: EntityType.Connector }, params, tags, options);
+  return updateEntityTags({ entityType: EntityType.Connector }, params, tags, options);
 }
 
 /**
@@ -123,7 +123,7 @@ export async function setConnectorTag(
   version?: number,
   options?: Model.IStatementOptions
 ): Promise<Model.ITagsWithVersion | undefined> {
-  return await setEntityTag({ entityType: EntityType.Connector }, params, key, value, version, options);
+  return setEntityTag({ entityType: EntityType.Connector }, params, key, value, version, options);
 }
 
 /**
@@ -142,5 +142,5 @@ export async function deleteConnectorTag(
   version?: number,
   options?: Model.IStatementOptions
 ): Promise<Model.ITagsWithVersion | undefined> {
-  return await setEntityTag({ entityType: EntityType.Connector }, params, key, undefined, version, options);
+  return setEntityTag({ entityType: EntityType.Connector }, params, key, undefined, version, options);
 }

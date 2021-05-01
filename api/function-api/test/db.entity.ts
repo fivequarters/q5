@@ -81,26 +81,23 @@ const createEntityTests = (delegates: IEntityDelegates) => {
   test('Create then get works', async () => {
     const id = 'slack';
     const data = { foo: 'bar' };
-    await delegates.create({
+    const createRequest = {
       accountId,
       subscriptionId,
       id,
       data,
       tags: {},
-    });
+    };
+    await delegates.create(createRequest);
     const result = (await delegates.get({
       accountId,
       subscriptionId,
       id,
     })) as Db.IEntity;
-    expect(result).toBeDefined();
-    expect(result.data).toMatchObject(data);
-    expect(result.tags).toMatchObject({});
-    expect(result.accountId).toBe(accountId);
-    expect(result.subscriptionId).toBe(subscriptionId);
-    expect(result.id).toBe(id);
-    expect(result.version).toBe(1);
-    expect(Object.keys(result).length).toBe(6);
+    expect(result).toStrictEqual({
+      ...createRequest,
+      version: 1,
+    });
   }, 10000);
 
   test('Get returns undefined if not found', async () => {
@@ -145,23 +142,21 @@ const createEntityTests = (delegates: IEntityDelegates) => {
     const id = 'slack';
     const data = { foo: 'bar' };
     const newData = { foo: 'baz' };
-    let result = await delegates.create({
+    const createRequest = {
       accountId,
       subscriptionId,
       id,
       data,
       tags: {},
-    });
+    };
+    let result = await delegates.create(createRequest);
     result.data = newData;
     result = (await delegates.update(result)) as Db.IEntity;
-    expect(result).toBeDefined();
-    expect(result.data).toMatchObject(newData);
-    expect(result.tags).toMatchObject({});
-    expect(result.accountId).toBe(accountId);
-    expect(result.subscriptionId).toBe(subscriptionId);
-    expect(result.id).toBe(id);
-    expect(result.version).toBe(2);
-    expect(Object.keys(result).length).toBe(6);
+    expect(result).toStrictEqual({
+      ...createRequest,
+      data: newData,
+      version: 2,
+    });
   }, 10000);
 
   !delegates.upsertSemantics &&
@@ -195,17 +190,15 @@ const createEntityTests = (delegates: IEntityDelegates) => {
 
   test('Listing works', async () => {
     const records = [1, 2, 3];
-    await Promise.all(
-      records.map((n) =>
-        delegates.create({
-          accountId,
-          subscriptionId,
-          id: `slack-${n}`,
-          data: { foo: n },
-          tags: {},
-        })
-      )
-    );
+    const createRequest = (n: number, noData?: boolean) =>
+      ({
+        accountId,
+        subscriptionId,
+        id: `slack-${n}`,
+        ...(noData ? {} : { data: { foo: n } }),
+        tags: {},
+      } as Db.IEntity);
+    await Promise.all(records.map((n) => delegates.create(createRequest(n))));
     let result = await delegates.list({
       accountId,
       subscriptionId,
@@ -215,12 +208,9 @@ const createEntityTests = (delegates: IEntityDelegates) => {
     expect(result.items.length).toBe(3);
     expect(result.next).toBeUndefined();
     records.forEach((r, i) =>
-      expect(result.items[i]).toMatchObject({
-        accountId,
-        subscriptionId,
-        id: `slack-${r}`,
+      expect(result.items[i]).toStrictEqual({
+        ...createRequest(r, true),
         version: 1,
-        tags: {},
       })
     );
   }, 10000);
@@ -247,14 +237,14 @@ const createEntityTests = (delegates: IEntityDelegates) => {
     expect(Array.isArray(result.items)).toBe(true);
     expect(result.items.length).toBe(2);
     expect(result.next).toBeUndefined();
-    expect(result.items[0]).toMatchObject({
+    expect(result.items[0]).toStrictEqual({
       accountId,
       subscriptionId,
       id: `slack-1`,
       version: 1,
       tags: { serviceLevel: 'silver', foo: 'bar' },
     });
-    expect(result.items[1]).toMatchObject({
+    expect(result.items[1]).toStrictEqual({
       accountId,
       subscriptionId,
       id: `slack-3`,

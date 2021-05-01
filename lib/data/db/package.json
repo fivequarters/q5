@@ -15,7 +15,7 @@
   },
   "keywords": [],
   "dependencies": {
-    "aws-sdk": "^2.883.0"
+    "aws-sdk": "^2.895.0"
   },
   "devServer": {
     "port": 9512

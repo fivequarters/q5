@@ -114,20 +114,6 @@ export async function createDatabase(
       VpcId: network.existingVpcId || network.vpcId,
     };
     const data1 = await ec2.createSecurityGroup(params1).promise();
-    // FUTURE: if we need TCP access to PostgresSQL, we will need to allow ingress on port 5432
-    // const params2 = {
-    //   GroupId: data1.GroupId as string,
-    //   IpPermissions: [
-    //     {
-    //       FromPort: 5432,
-    //       ToPort: 5432,
-    //       IpProtocol: 'tcp',
-    //       IpRanges: [{ CidrIp: '0.0.0.0/0' }],
-    //       Ipv6Ranges: [{ CidrIpv6: '::/0' }],
-    //     },
-    //   ],
-    // };
-    // await ec2.authorizeSecurityGroupIngress(params2);
     const params3 = {
       Resources: [data1.GroupId as string],
       Tags: [...getCommonTags(), { Key: 'Name', Value: getSecurityGroupName() }],
@@ -196,17 +182,19 @@ export async function createDatabase(
       if (!cluster || cluster.Status === 'creating') {
         await new Promise((resolve) => setTimeout(() => resolve(undefined), 30000));
         return await waitForCluster(n - 1);
-      } else if (cluster.Status === 'available') {
+      }
+
+      if (cluster.Status === 'available') {
         const secretArn = await storeDatabaseCredentials(cluster);
         return {
           resourceArn: cluster.DBClusterArn as string,
           secretArn,
         };
-      } else {
-        throw new Error(
-          `Error creating Aurora cluster. Expected status of 'available' but arrived at '${cluster.Status}'.`
-        );
       }
+
+      throw new Error(
+        `Error creating Aurora cluster. Expected status of 'available' but arrived at '${cluster.Status}'.`
+      );
     };
 
     return await waitForCluster(20);
@@ -219,7 +207,7 @@ export async function createDatabase(
     };
     const params: AWS.RDSDataService.ExecuteStatementRequest = {
       ...commonParams,
-      sql: 'select * from schemaVersion;',
+      sql: 'select version from schemaVersion;',
     };
     let data: AWS.RDSDataService.ExecuteStatementResponse;
     let currentSchemaVersion = -1;
@@ -259,8 +247,11 @@ export async function createDatabase(
         params.sql = Migrations[n];
         params.transactionId = transactionId as string;
         const data = await rdsData.executeStatement(params).promise();
-        params.sql = `update schemaVersion set version = ${n};`;
-        await rdsData.executeStatement(params).promise();
+        params.sql = `update schemaVersion set version = ${n} where version = ${n - 1};`;
+        const result = await rdsData.executeStatement(params).promise();
+        if (result.numberOfRecordsUpdated !== 1) {
+          throw new Error(`Unable to persist the database schema version ${n}`);
+        }
         debug('MIGRATION EXECUTION SUCCESS', n, data && JSON.stringify(data, null, 2));
       } catch (e) {
         debug('MIGRATION EXECUTION ERROR', n, e);
