@@ -5,10 +5,11 @@
     "outDir": "libc",
     "module": "CommonJS",
     "allowJs": true,
-    "declaration": false,
-    "declarationMap": false,
+    "declaration": true,
+    "declarationMap": true,
     "composite": false,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "typeRoots": ["src"]
   },
   "include": ["src"],
   "references": [

@@ -1,8 +1,12 @@
 import express from 'express';
+import ConnectorDao from '../../../../daos/components/ConnectorDao';
 
-const identityRootRouter = express.Router({ mergeParams: true });
+const router = (ConnectorDao: ConnectorDao) => {
+  const identityRootRouter = express.Router({ mergeParams: true });
 
-// Create new identity
-identityRootRouter.post('/', async (req, res, next) => {});
+  // Create new identity
+  identityRootRouter.post('/', async (req, res, next) => {});
+  return identityRootRouter;
+};
 
-export default identityRootRouter;
+export default router;

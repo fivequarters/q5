@@ -1,26 +1,29 @@
 import express from 'express';
 import * as common from '../../../middleware/common';
-import ConnectorHandler from '../../../handlers/connector';
+import ComponentDao from '../../../types/ComponentDao';
 
-const connectorRouter = express.Router({ mergeParams: true });
+const router = (ComponentDao: ComponentDao) => {
+  const componentRouter = express.Router({ mergeParams: true });
 
-connectorRouter.use(common.cors());
+  componentRouter.use(common.cors());
 
-connectorRouter
-  .route('/')
-  .get(async (req, res, next) => {
-    if (typeof req.query.tag === 'string' && req.query.tag.length) {
-      const [tagKey, tagValue] = req.query.tag.split('=');
-      const connectors = ConnectorHandler.searchByTag(tagKey, tagValue);
-      res.json(connectors);
-    } else {
-      const connectors = ConnectorHandler.getAll();
-      res.json(connectors);
-    }
-  })
-  .post(async (req, res, next) => {
-    const connector = ConnectorHandler.createNew(req.body.data);
-    res.json(connector);
-  });
+  componentRouter
+    .route('/')
+    .get(async (req, res, next) => {
+      if (typeof req.query.tag === 'string' && req.query.tag.length) {
+        const [tagKey, tagValue] = req.query.tag.split('=');
+        const components = ComponentDao.searchByTag(tagKey, tagValue);
+        res.json(components);
+      } else {
+        const components = ComponentDao.getAll();
+        res.json(components);
+      }
+    })
+    .post(async (req, res, next) => {
+      const component = ComponentDao.createNew(req.body.data);
+      res.json(component);
+    });
+  return componentRouter;
+};
 
-export default connectorRouter;
+export default router;

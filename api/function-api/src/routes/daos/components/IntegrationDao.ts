@@ -1,7 +1,7 @@
 import ComponentDao from './ComponentDao';
 import Integration from '../../types/Integration';
 import Converter from '../../types/Converter';
-import IntegrationConverter from '../../converters/IntegrationConverter';
+import { IntegrationConverter } from '../../converters';
 
 class IntegrationDao extends ComponentDao<Integration> {
   constructor() {

@@ -1,27 +1,31 @@
-import ConnectorHandler from '../../../handlers/connector';
 import express from 'express';
+import ComponentDao from '../../../types/ComponentDao';
 
-const connectorTagRouter = express.Router({ mergeParams: true });
+const router = (ComponentDao: ComponentDao) => {
+  const componentTagRouter = express.Router({ mergeParams: true });
 
-connectorTagRouter.get('/', async (req, res, next) => {
-  const connector = ConnectorHandler.getInstanceTags(req.params.connectorId);
-  res.json(connector);
-});
-
-connectorTagRouter
-  .route('/:key')
-  .get(async (req, res, next) => {
-    const tags = ConnectorHandler.getInstanceTagValues(req.params.connectorId, req.params.key);
-    res.json(tags);
-  })
-  .delete(async (req, res, next) => {
-    const connector = ConnectorHandler.removeTagFromInstance(req.params.connectorId, req.params.key);
-    res.json(connector);
+  componentTagRouter.get('/', async (req, res, next) => {
+    const component = ComponentDao.getInstanceTags(req.params.componentId);
+    res.json(component);
   });
 
-connectorTagRouter.put('/:key/:value', async (req, res, next) => {
-  const connector = ConnectorHandler.applyTagToInstance(req.params.connectorId, req.params.key, req.params.value);
-  res.json(connector);
-});
+  componentTagRouter
+    .route('/:key')
+    .get(async (req, res, next) => {
+      const tags = ComponentDao.getInstanceTagValues(req.params.componentId, req.params.key);
+      res.json(tags);
+    })
+    .delete(async (req, res, next) => {
+      const component = ComponentDao.removeTagFromInstance(req.params.componentId, req.params.key);
+      res.json(component);
+    });
 
-export default connectorTagRouter;
+  componentTagRouter.put('/:key/:value', async (req, res, next) => {
+    const component = ComponentDao.applyTagToInstance(req.params.componentId, req.params.key, req.params.value);
+    res.json(component);
+  });
+
+  return componentTagRouter;
+};
+
+export default router;

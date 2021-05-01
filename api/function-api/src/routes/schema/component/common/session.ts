@@ -1,11 +1,15 @@
 import express from 'express';
+import ComponentDao from '../../../types/ComponentDao';
 
-const connectorSessionRouter = express.Router({ mergeParams: true });
+const router = (EntityType: ComponentDao) => {
+  const componentSessionRouter = express.Router({ mergeParams: true });
 
-// Create new session
-connectorSessionRouter.post('/', async (req, res, next) => {});
+  // Create new session
+  componentSessionRouter.post('/', async (req, res, next) => {});
 
-// Get value of session
-connectorSessionRouter.get('/:sessionId', async (req, res, next) => {});
+  // Get value of session
+  componentSessionRouter.get('/:sessionId', async (req, res, next) => {});
+  return componentSessionRouter;
+};
 
-export default connectorSessionRouter;
+export default router;

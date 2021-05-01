@@ -22,20 +22,19 @@ export default abstract class ComponentDao<T extends Component> extends BaseDao 
   // Once the implementation is added and they are no longer stubs, the ! should be removed.
   searchByTag!: (tagKey: string, tagValue: string) => Promise<T[]>;
   createNew!: (data: object) => Promise<T>;
-  getById!: (componentId: string) => Promise<T>;
-  getInstance!: (componentId: string) => Promise<T>;
-  updateInstance!: (componentId: string, data: object) => Promise<T>;
-  deleteInstance!: (componentId: string) => Promise<boolean>;
-  applyTagToInstance!: (componentId: string, tagKey: string, tagValue: string) => Promise<T>;
-  getInstanceTagValues!: (componentId: string, tagKey: string) => Promise<T>;
-  getInstanceTags!: (componentId: string) => Promise<Tag[]>;
-  removeTagFromInstance!: (componentId: string, tagKey: string) => Promise<T>;
+  get!: (componentId: string) => Promise<T>;
+  update!: (componentId: string, data: object) => Promise<T>;
+  delete!: (componentId: string) => Promise<boolean>;
+  applyTag!: (componentId: string, tagKey: string, tagValue: string) => Promise<T>;
+  getTagValues!: (componentId: string, tagKey: string) => Promise<T>;
+  getTags!: (componentId: string) => Promise<Tag[]>;
+  removeTag!: (componentId: string, tagKey: string) => Promise<T>;
   health!: (componentId: string) => Promise<boolean>;
   dispatch!: (req: Request, res: Response, next: NextFunction) => Promise<any>;
   //{
   // execute the functionExecuteHandler array in some form by passing it directly to the router object? Except
   // that's not quite right because pieces have already been extracted ...
-  // Load metadata for the component requested
+  // Load metadata for the components requested
   // Perform any security checks necessary
   // Convert req into a Koa request-compatible data object
   // Dispatch to lambda to be routed internal to the function

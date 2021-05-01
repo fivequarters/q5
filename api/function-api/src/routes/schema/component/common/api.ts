@@ -1,14 +1,16 @@
 import express from 'express';
-import ConnectorHandler from '../../../handlers/connector';
+import ComponentDao from '../../../types/ComponentDao';
 
-const connectorApiRouter = express.Router({ mergeParams: true });
+const router = (ComponentDao: ComponentDao) => {
+  const componentApiRouter = express.Router({ mergeParams: true });
 
-connectorApiRouter.get('/health', async (req, res) => {
-  const healthResponse = ConnectorHandler.health(req.params.connectorId);
-  res.json(healthResponse);
-});
+  componentApiRouter.get('/health', async (req, res) => {
+    const healthResponse = ComponentDao.health(req.params.componentId);
+    res.json(healthResponse);
+  });
 
-// Customer custom endpoints - is this still needed or are we locking it down?
-connectorApiRouter.use(ConnectorHandler.dispatch);
-
-export default connectorApiRouter;
+  // Customer custom endpoints - is this still needed for connectors or are we locking it down?
+  componentApiRouter.use(ComponentDao.dispatch);
+  return componentApiRouter;
+};
+export default router;

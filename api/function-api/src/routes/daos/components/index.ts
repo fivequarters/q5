@@ -1,7 +1,2 @@
-import ConnectorDao from './ConnectorDao';
-import IntegrationDao from './IntegrationDao';
-
-export default {
-  ConnectorDao,
-  IntegrationDao,
-};
+export { default as ConnectorDao } from './ConnectorDao';
+export { default as IntegrationDao } from './IntegrationDao';

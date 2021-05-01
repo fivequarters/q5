@@ -1,27 +1,24 @@
-import ConnectorHandler from '../../../handlers/connector';
-import ConnectorTagRouter from './tag';
-import ConnectorApiRouter from './api';
 import express from 'express';
+import ComponentDao from '../../../types/ComponentDao';
 
-const connectorInstanceRouter = express.Router({ mergeParams: true });
+const router = (ComponentDao: ComponentDao) => {
+  const componentInstanceRouter = express.Router({ mergeParams: true });
 
-connectorInstanceRouter
-  .route('/')
-  .get(async (req, res, next) => {
-    try {
-      const connector = await ConnectorHandler.getInstance(req.params.connectorId);
-      res.json(connector);
-    } catch (e) {
-      res.json(error);
-    }
-  })
-  .put(async (req, res, next) => {
-    const connector = ConnectorHandler.updateInstance(req.params.connectorId, req.body.data);
-    res.json(connector);
-  })
-  .delete(async (req, res, next) => {
-    const connector = ConnectorHandler.deleteInstance(req.params.connectorId);
-    res.json(connector);
-  });
+  componentInstanceRouter
+    .route('/')
+    .get(async (req, res, next) => {
+      const component = await ComponentDao.get(req.params.componentId);
+      res.json(component);
+    })
+    .put(async (req, res, next) => {
+      const component = ComponentDao.update(req.params.componentId, req.body.data);
+      res.json(component);
+    })
+    .delete(async (req, res, next) => {
+      const component = ComponentDao.delete(req.params.componentId);
+      res.json(component);
+    });
+  return componentInstanceRouter;
+};
 
-export default connectorInstanceRouter;
+export default router;

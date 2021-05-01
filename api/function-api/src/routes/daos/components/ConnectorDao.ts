@@ -1,7 +1,7 @@
 import ComponentDao from './ComponentDao';
 import Connector from '../../types/Connector';
 import Converter from '../../types/Converter';
-import ConnectorConverter from '../../converters/ConnectorConverter';
+import { ConnectorConverter } from '../../converters';
 
 class ConnectorDao extends ComponentDao<Connector> {
   constructor() {
