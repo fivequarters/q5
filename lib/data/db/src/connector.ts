@@ -16,11 +16,11 @@ import {
 //--------------------------------
 
 /**
- * Gets a connector.
+ * Gets a connector. Throws NotFoundError if the connector is not found.
  * @param params Primary keys.
- * @returns Connector definition or undefined if no matching connector found.
+ * @returns Connector definition.
  */
-export async function getConnector(params: Model.IEntityKey): Promise<Model.IConnector | undefined> {
+export async function getConnector(params: Model.IEntityKey): Promise<Model.IConnector> {
   return (await getEntity({ entityType: EntityType.Connector }, params)) as Model.IConnector;
 }
 
@@ -64,6 +64,7 @@ export async function listConnectors(params: Model.IListRequest): Promise<Model.
  * Updates existing connector. If you want conflict detection, do specify params.version which must match
  * the current version in the database (it gets returned from the get... method so it is easy to roundtrip by default).
  * If you want to forcefully override the persisted version, make sure params.version is undefined.
+ * Throws NotFoundError if the connector is not found, and ConflictError if the expected version does not match the database version.
  * @param params New connector definiton.
  * @param options SQL options.
  * @returns Updated connector instance or undefined in case the connector was deleted or modified since last read.
@@ -71,7 +72,7 @@ export async function listConnectors(params: Model.IListRequest): Promise<Model.
 export async function updateConnector(
   params: Model.IConnectorCreateRequest,
   options?: Model.IStatementOptions
-): Promise<Model.IConnector | undefined> {
+): Promise<Model.IConnector> {
   return (await updateEntity(
     { entityType: EntityType.Connector },
     { ...params, expires: undefined },
@@ -81,10 +82,11 @@ export async function updateConnector(
 
 /**
  * Gets connector tags.
+ * Throws NotFoundError if the connector is not found.
  * @param params Primary keys.
  * @returns Connector tags and version or undefined if no matching connector found.
  */
-export async function getConnectorTags(params: Model.IEntityKey): Promise<Model.ITagsWithVersion | undefined> {
+export async function getConnectorTags(params: Model.IEntityKey): Promise<Model.ITagsWithVersion> {
   return getEntityTags({ entityType: EntityType.Connector }, params);
 }
 
@@ -92,16 +94,17 @@ export async function getConnectorTags(params: Model.IEntityKey): Promise<Model.
  * Updates tags of an existing connector. If you want conflict detection, do specify tags.version which must match
  * the current connector version in the database (it gets returned from the get... method so it is easy to roundtrip by default).
  * If you want to forcefully override the persisted version, make sure tags.version is undefined.
+ * Throws NotFoundError if the connector is not found, and ConflictError if the expected version does not match the database version.
  * @param params Primary keys.
  * @param tags New connector tags and expected version.
  * @param options SQL options.
- * @returns Updated connector tags and version or undefined in case the connector was deleted or modified since last read.
+ * @returns Updated connector tags and version.
  */
 export async function setConnectorTags(
   params: Model.IEntityKey,
   tags: Model.ITagsWithVersion,
   options?: Model.IStatementOptions
-): Promise<Model.ITagsWithVersion | undefined> {
+): Promise<Model.ITagsWithVersion> {
   return updateEntityTags({ entityType: EntityType.Connector }, params, tags, options);
 }
 
@@ -109,12 +112,13 @@ export async function setConnectorTags(
  * Updates or sets a single tag of an existing connector. If you want conflict detection, do specify
  * version which must match the current connector version in the database. If you want to forcefully override
  * the persisted version, make sure version is undefined.
+ * Throws NotFoundError if the connector is not found, and ConflictError if the expected version does not match the database version.
  * @param params Primary keys.
  * @param key Tag key.
  * @param value Tag value.
  * @param version Expected connector version.
  * @param options SQL options.
- * @returns Updated connector tags and version or undefined in case the connector was deleted or modified since last read.
+ * @returns Updated connector tags and version.
  */
 export async function setConnectorTag(
   params: Model.IEntityKey,
@@ -122,7 +126,7 @@ export async function setConnectorTag(
   value: string,
   version?: number,
   options?: Model.IStatementOptions
-): Promise<Model.ITagsWithVersion | undefined> {
+): Promise<Model.ITagsWithVersion> {
   return setEntityTag({ entityType: EntityType.Connector }, params, key, value, version, options);
 }
 
@@ -130,17 +134,18 @@ export async function setConnectorTag(
  * Deletes a single tag of an existing connector. If you want conflict detection, do specify
  * version which must match the current connector version in the database. If you want to forcefully override
  * the persisted version, make sure version is undefined.
+ * Throws NotFoundError if the connector is not found, and ConflictError if the expected version does not match the database version.
  * @param params Primary keys.
  * @param key Tag key.
  * @param version Expected connector version.
  * @param options SQL options.
- * @returns Updated connector tags and version or undefined in case the connector was deleted or modified since last read.
+ * @returns Updated connector tags and version.
  */
 export async function deleteConnectorTag(
   params: Model.IEntityKey,
   key: string,
   version?: number,
   options?: Model.IStatementOptions
-): Promise<Model.ITagsWithVersion | undefined> {
+): Promise<Model.ITagsWithVersion> {
   return setEntityTag({ entityType: EntityType.Connector }, params, key, undefined, version, options);
 }

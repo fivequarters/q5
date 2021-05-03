@@ -104,7 +104,6 @@ export class OpsIam implements IDataSource {
       [
         `${this.config.arnPrefix}:iam::aws:policy/AmazonDynamoDBReadOnlyAccess`,
         `${this.config.arnPrefix}:iam::aws:policy/AmazonS3ReadOnlyAccess`,
-        `${this.config.arnPrefix}:iam::aws:policy/AmazonRDSDataFullAccess`,
         `${this.config.arnPrefix}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole`,
       ],
       undefined,

@@ -17,10 +17,11 @@ import {
 
 /**
  * Gets an integration.
+ * Throws NotFoundError if the integration is not found.
  * @param params Primary keys.
- * @returns Integration definition or undefined if no matching integration found.
+ * @returns Integration definition.
  */
-export async function getIntegration(params: Model.IEntityKey): Promise<Model.IIntegration | undefined> {
+export async function getIntegration(params: Model.IEntityKey): Promise<Model.IIntegration> {
   return (await getEntity({ entityType: EntityType.Integration }, params)) as Model.IIntegration;
 }
 
@@ -64,14 +65,15 @@ export async function listIntegrations(params: Model.IListRequest): Promise<Mode
  * Updates existing integration. If you want conflict detection, do specify params.version which must match
  * the current version in the database (it gets returned from the get... method so it is easy to roundtrip by default).
  * If you want to forcefully override the persisted version, make sure params.version is undefined.
+ * Throws NotFoundError if the integration is not found, and ConflictError if the expected version does not match the database version.
  * @param params New integration definiton.
  * @param options SQL options.
- * @returns Updated integration instance or undefined in case the integration was deleted or modified since last read.
+ * @returns Updated integration instance.
  */
 export async function updateIntegration(
   params: Model.IIntegrationCreateRequest,
   options?: Model.IStatementOptions
-): Promise<Model.IIntegration | undefined> {
+): Promise<Model.IIntegration> {
   return (await updateEntity(
     { entityType: EntityType.Integration },
     { ...params, expires: undefined },
@@ -81,10 +83,11 @@ export async function updateIntegration(
 
 /**
  * Gets integration tags.
+ * Throws NotFoundError if the integration is not found.
  * @param params Primary keys.
  * @returns Integration tags and version or undefined if no matching integration found.
  */
-export async function getIntegrationTags(params: Model.IEntityKey): Promise<Model.ITagsWithVersion | undefined> {
+export async function getIntegrationTags(params: Model.IEntityKey): Promise<Model.ITagsWithVersion> {
   return getEntityTags({ entityType: EntityType.Integration }, params);
 }
 
@@ -92,16 +95,17 @@ export async function getIntegrationTags(params: Model.IEntityKey): Promise<Mode
  * Updates tags of an existing integration. If you want conflict detection, do specify tags.version which must match
  * the current integration version in the database (it gets returned from the get... method so it is easy to roundtrip by default).
  * If you want to forcefully override the persisted version, make sure tags.version is undefined.
+ * Throws NotFoundError if the integration is not found, and ConflictError if the expected version does not match the database version.
  * @param params Primary keys.
  * @param tags New integration tags and expected version.
  * @param options SQL options.
- * @returns Updated integration tags and version or undefined in case the integration was deleted or modified since last read.
+ * @returns Updated integration tags and version.
  */
 export async function setIntegrationTags(
   params: Model.IEntityKey,
   tags: Model.ITagsWithVersion,
   options?: Model.IStatementOptions
-): Promise<Model.ITagsWithVersion | undefined> {
+): Promise<Model.ITagsWithVersion> {
   return updateEntityTags({ entityType: EntityType.Integration }, params, tags, options);
 }
 
@@ -109,12 +113,13 @@ export async function setIntegrationTags(
  * Updates or sets a single tag of an existing integration. If you want conflict detection, do specify
  * version which must match the current integration version in the database. If you want to forcefully override
  * the persisted version, make sure version is undefined.
+ * Throws NotFoundError if the integration is not found, and ConflictError if the expected version does not match the database version.
  * @param params Primary keys.
  * @param key Tag key.
  * @param value Tag value.
  * @param version Expected integration version.
  * @param options SQL options.
- * @returns Updated integration tags and version or undefined in case the integration was deleted or modified since last read.
+ * @returns Updated integration tags and version.
  */
 export async function setIntegrationTag(
   params: Model.IEntityKey,
@@ -122,7 +127,7 @@ export async function setIntegrationTag(
   value: string,
   version?: number,
   options?: Model.IStatementOptions
-): Promise<Model.ITagsWithVersion | undefined> {
+): Promise<Model.ITagsWithVersion> {
   return setEntityTag({ entityType: EntityType.Integration }, params, key, value, version, options);
 }
 
@@ -130,17 +135,18 @@ export async function setIntegrationTag(
  * Deletes a single tag of an existing integration. If you want conflict detection, do specify
  * version which must match the current integration version in the database. If you want to forcefully override
  * the persisted version, make sure version is undefined.
+ * Throws NotFoundError if the integration is not found, and ConflictError if the expected version does not match the database version.
  * @param params Primary keys.
  * @param key Tag key.
  * @param version Expected integration version.
  * @param options SQL options.
- * @returns Updated integration tags and version or undefined in case the integration was deleted or modified since last read.
+ * @returns Updated integration tags and version.
  */
 export async function deleteIntegrationTag(
   params: Model.IEntityKey,
   key: string,
   version?: number,
   options?: Model.IStatementOptions
-): Promise<Model.ITagsWithVersion | undefined> {
+): Promise<Model.ITagsWithVersion> {
   return setEntityTag({ entityType: EntityType.Integration }, params, key, undefined, version, options);
 }

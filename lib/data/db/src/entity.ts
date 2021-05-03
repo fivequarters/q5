@@ -4,6 +4,7 @@ import { version } from '@babel/core';
 
 const defaultAuroraDatabaseName = 'fusebit';
 const defaultPurgeInterval = 10 * 60 * 1000;
+export const defaultListLimit = 100;
 
 let rds: AWS.RDSDataService;
 let rdsCredentials: Model.IRdsCredentials;
@@ -12,8 +13,6 @@ let purgeInterval;
 //--------------------------------
 // General
 //--------------------------------
-
-export const defaultListLimit = 100;
 
 async function purgeExpiredItems() {
   try {
@@ -28,6 +27,20 @@ async function purgeExpiredItems() {
     console.log('SUCCESS purging expired entities from Aurora. Purged entities:', result.numberOfRecordsUpdated);
   } catch (e) {
     console.log('ERROR purging expired entities from Aurora:', e);
+  }
+}
+
+export class ConflictError extends Error {
+  public statusCode = 409;
+  constructor() {
+    super('Conflict');
+  }
+}
+
+export class NotFoundError extends Error {
+  public statusCode = 404;
+  constructor() {
+    super('Not found');
   }
 }
 
@@ -120,7 +133,7 @@ interface IQueryOptions {
   upsert?: boolean;
 }
 
-function sqlToIEntity(record: any): Model.IEntity {
+function sqlToIEntity(record: AWS.RDSDataService.FieldList): Model.IEntity {
   let result: Model.IEntity = {
     accountId: record[1].stringValue as string,
     subscriptionId: record[2].stringValue as string,
@@ -135,7 +148,7 @@ function sqlToIEntity(record: any): Model.IEntity {
   return result;
 }
 
-function sqlToTagsWithVersion(record: any): Model.ITagsWithVersion {
+function sqlToTagsWithVersion(record: AWS.RDSDataService.FieldList): Model.ITagsWithVersion {
   return {
     tags: JSON.parse(record[0].stringValue as string),
     version: record[1].longValue as number,
@@ -156,10 +169,6 @@ function expiredClause(filterExpired?: boolean) {
   return `${filterExpired ? `and (expires is null or expires > ${Date.now()})` : ''}`;
 }
 
-function versionClause(version?: number) {
-  return `${version !== undefined ? `and version = ${version}` : ''}`;
-}
-
 function idClause(id: string) {
   return `and entityId = '${escape(id)}'`;
 }
@@ -167,7 +176,7 @@ function idClause(id: string) {
 export async function getEntity(
   { entityType, filterExpired }: IQueryOptions,
   params: Model.IEntityKey
-): Promise<Model.IEntity | undefined> {
+): Promise<Model.IEntity> {
   const [rds, credentials] = await ensureRds();
   const sql = `select * from entity 
     ${primaryClause(entityType, params)}
@@ -180,7 +189,7 @@ export async function getEntity(
     })
     .promise();
   if (!result || !result.records || result.records.length === 0) {
-    return undefined;
+    throw new NotFoundError();
   }
   if (result.records.length > 1) {
     throw new Error(`Expected exactly 1 matching database record, got ${result.records.length}.`);
@@ -191,7 +200,7 @@ export async function getEntity(
 export async function getEntityTags(
   { entityType, filterExpired }: IQueryOptions,
   params: Model.IEntityKey
-): Promise<Model.ITagsWithVersion | undefined> {
+): Promise<Model.ITagsWithVersion> {
   const [rds, credentials] = await ensureRds();
   const sql = `select tags, version from entity 
     ${primaryClause(entityType, params)}
@@ -204,7 +213,7 @@ export async function getEntityTags(
     })
     .promise();
   if (!result || !result.records || result.records.length === 0) {
-    return undefined;
+    throw new NotFoundError();
   }
   if (result.records.length > 1) {
     throw new Error(`Expected exactly 1 matching database record, got ${result.records.length}.`);
@@ -277,7 +286,7 @@ export async function createEntity(
   { entityType, upsert }: IQueryOptions,
   params: Model.IEntity,
   options?: Model.IStatementOptions
-): Promise<Model.IEntity | undefined> {
+): Promise<Model.IEntity> {
   const [rds, credentials] = await ensureRds();
   let upsertClause = '';
   if (upsert) {
@@ -285,8 +294,7 @@ export async function createEntity(
       data = '${escape(JSON.stringify(params.data))}'::jsonb,
       tags = '${escape(JSON.stringify(params.tags))}'::jsonb,
       expires = ${params.expires !== undefined ? params.expires : 'null'},
-      version = entity.version + 1
-      ${params.version !== undefined ? `where entity.version = ${params.version}` : ''}`;
+      version = ${params.version === undefined ? 'entity.version + 1' : params.version + 1}`;
   }
   const sql = `insert into entity values (
     ${entityType},
@@ -299,13 +307,18 @@ export async function createEntity(
     ${params.expires !== undefined ? params.expires : 'null'})
     ${upsertClause}
     returning *;`;
-  const result = await rds
-    .executeStatement({
-      ...credentials,
-      ...options,
-      sql,
-    })
-    .promise();
+  let result;
+  try {
+    result = await rds
+      .executeStatement({
+        ...credentials,
+        ...options,
+        sql,
+      })
+      .promise();
+  } catch (e) {
+    throw e.message.match(/version_conflict/) ? new ConflictError() : e;
+  }
   if (upsert) {
     if (!result || !result.records || result.records.length > 1) {
       throw new Error(
@@ -313,7 +326,7 @@ export async function createEntity(
       );
     }
     if (result.records.length === 0) {
-      return undefined;
+      throw new NotFoundError();
     }
   } else if (!result || !result.records || result.records.length !== 1) {
     throw new Error(
@@ -329,28 +342,35 @@ export async function updateEntity(
   options?: Model.IStatementOptions
 ): Promise<Model.IEntity | undefined> {
   const [rds, credentials] = await ensureRds();
-  const result = await rds
-    .executeStatement({
-      ...credentials,
-      ...options,
-      sql: `update entity set
+  let result;
+  try {
+    result = await rds
+      .executeStatement({
+        ...credentials,
+        ...options,
+        sql: `update entity set
         data = '${escape(JSON.stringify(params.data))}'::jsonb,
         tags = '${escape(JSON.stringify(params.tags))}'::jsonb,
-        expires = ${params.expires !== undefined ? params.expires : 'null'},
-        version = version + 1
+        expires = ${params.expires === undefined ? 'null' : params.expires},
+        version = ${params.version === undefined ? 'version + 1' : params.version + 1}
         ${primaryClause(entityType, params)}
         ${idClause(params.id)}
-        ${versionClause(params.version)}
         ${expiredClause(filterExpired)}
         returning *;`,
-    })
-    .promise();
+      })
+      .promise();
+  } catch (e) {
+    throw e.message.match(/version_conflict/) ? new ConflictError() : e;
+  }
   if (!result || !result.records || result.records.length > 1) {
     throw new Error(
       `Expected zero or one database record updated, got ${result && result.records ? result.records.length : 'N/A'}.`
     );
   }
-  return result.records.length === 0 ? undefined : sqlToIEntity(result.records[0]);
+  if (result.records.length === 0) {
+    throw new NotFoundError();
+  }
+  return sqlToIEntity(result.records[0]);
 }
 
 export async function updateEntityTags(
@@ -358,28 +378,35 @@ export async function updateEntityTags(
   params: Model.IEntityKey,
   tags: Model.ITagsWithVersion,
   options?: Model.IStatementOptions
-): Promise<Model.ITagsWithVersion | undefined> {
+): Promise<Model.ITagsWithVersion> {
   const [rds, credentials] = await ensureRds();
-  const result = await rds
-    .executeStatement({
-      ...credentials,
-      ...options,
-      sql: `update entity set
+  let result;
+  try {
+    result = await rds
+      .executeStatement({
+        ...credentials,
+        ...options,
+        sql: `update entity set
         tags = '${escape(JSON.stringify(tags.tags))}'::jsonb,
-        version = version + 1
+        version = ${tags.version === undefined ? 'version + 1' : tags.version + 1}
         ${primaryClause(entityType, params)}
         ${idClause(params.id)}
-        ${versionClause(tags.version)}
         ${expiredClause(filterExpired)}
         returning tags, version;`,
-    })
-    .promise();
+      })
+      .promise();
+  } catch (e) {
+    throw e.message.match(/version_conflict/) ? new ConflictError() : e;
+  }
   if (!result || !result.records || result.records.length > 1) {
     throw new Error(
       `Expected zero or one database record updated, got ${result && result.records ? result.records.length : 'N/A'}.`
     );
   }
-  return result.records.length === 0 ? undefined : sqlToTagsWithVersion(result.records[0]);
+  if (result.records.length === 0) {
+    throw new NotFoundError();
+  }
+  return sqlToTagsWithVersion(result.records[0]);
 }
 
 export async function setEntityTag(
@@ -389,29 +416,36 @@ export async function setEntityTag(
   value?: string,
   version?: number,
   options?: Model.IStatementOptions
-): Promise<Model.ITagsWithVersion | undefined> {
+): Promise<Model.ITagsWithVersion> {
   const [rds, credentials] = await ensureRds();
   const sql = `update entity set
     tags = ${
       value !== undefined ? `jsonb_set(tags, '{${escape(key)}}', '"${escape(value)}"')` : `tags - '${escape(key)}'`
     },
-    version = version + 1
+    version = ${version === undefined ? 'version + 1' : version + 1}
     ${primaryClause(entityType, params)}
     ${idClause(params.id)}
-    ${versionClause(version)}
     ${expiredClause(filterExpired)}
     returning tags, version;`;
-  const result = await rds
-    .executeStatement({
-      ...credentials,
-      ...options,
-      sql,
-    })
-    .promise();
+  let result;
+  try {
+    result = await rds
+      .executeStatement({
+        ...credentials,
+        ...options,
+        sql,
+      })
+      .promise();
+  } catch (e) {
+    throw e.message.match(/version_conflict/) ? new ConflictError() : e;
+  }
   if (!result || !result.records || result.records.length > 1) {
     throw new Error(
       `Expected zero or one database record updated, got ${result && result.records ? result.records.length : 'N/A'}.`
     );
   }
-  return result.records.length === 0 ? undefined : sqlToTagsWithVersion(result.records[0]);
+  if (result.records.length === 0) {
+    throw new NotFoundError();
+  }
+  return sqlToTagsWithVersion(result.records[0]);
 }
