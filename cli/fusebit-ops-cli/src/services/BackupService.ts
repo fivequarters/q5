@@ -36,6 +36,47 @@ export class BackupService {
     return info;
   }
 
+  // the code that gets all protected tables from AWS Backup, triggered by ListBackupProtectedResource.ts
+  public async listBackupProtectedTable(backupPlanName: string) {
+    const opsDataContext = await this.opsService.getOpsDataContext();
+    const deploymentData = opsDataContext.deploymentData;
+    const info = await this.executeService.execute(
+      {
+        header: 'List Backup Protected Table',
+        message: 'List the backup plan protected tables',
+        errorHeader: 'List Backup Plan protected resource failed',
+      },
+      () => this.listBackupProtectedTableDriver(backupPlanName)
+    );
+    return info;
+  }
+
+  // the actual backend driver for listBackupProtectedTable, triggered by listBackupProtectedTable()
+  public async listBackupProtectedTableDriver(backupPlanName: string) {
+    const opsDataContext = await this.opsService.getOpsDataContextImpl();
+    const profileService = await ProfileService.create(this.input);
+    const profile = await profileService.getProfileOrDefaultOrThrow();
+    const userCreds = await this.opsService.getUserCredsForProfile(profile);
+    const config = await opsDataContext.provider.getAwsConfigForMain();
+    const credentials = await (config.creds as AwsCreds).getCredentials();
+    const regions = await this.findAllRegionsWithDeployments(credentials, config);
+    for (const region of regions) {
+      const Backup = new AWS.Backup({
+        accessKeyId: credentials.accessKeyId,
+        secretAccessKey: credentials.secretAccessKey,
+        sessionToken: credentials.sessionToken,
+        region,
+      });
+      await Backup.listRecoveryPointsByBackupVault({
+        BackupVaultName: backupPlanName,
+      })
+        .promise()
+        .then((data) => {
+          console.log(data);
+        });
+    }
+  }
+
   // the actual backend driver for get backup plan, triggered by getBackupPlan
   public async getBackupPlanDriver(backupPlanName: string): Promise<any> {
     const opsDataContext = await this.opsService.getOpsDataContextImpl();
