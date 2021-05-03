@@ -145,7 +145,6 @@
       "@fusebit-int/pkg-integration": ["lib/pkg/pkg-integration/src"],
       "@fusebit-int/pkg-oauth-connector": ["lib/pkg/pkg-oauth-connector/src"],
       "@fusebit-int/pkg-oauth-integration": ["lib/pkg/pkg-oauth-integration/src"],
-      "@fusebit-int/pkg-form": ["lib/pkg/pkg-form/src"],
       "@5qtrs/comps": ["lib/pkg/comps/src"]
     }
   }
