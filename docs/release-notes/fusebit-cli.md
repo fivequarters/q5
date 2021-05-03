@@ -16,18 +16,25 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- prettier-ignore -->
 <!-- 1. TOC
 {:toc} -->
-## Version 1.8.13
 
-_Released 03/29/21_
+## Version 1.9.1
 
-- **Bugfix.** Fixed argument slice range for `npm exec` command.
-- **Enhancement.** Function publishes now ignore the `node_modules` directory in the event that an `npm install` command was run.
+_Released 4/28/21_
+
+- **Bugfix.** Correctly handle error in erroneous log message parsing.
 
 ## Version 1.9.0
 
 _Released 3/29/21_
 
 - **Enhancement.** Remove the specified `"engine": "10"` clause from the default function template.
+
+## Version 1.8.13
+
+_Released 03/29/21_
+
+- **Bugfix.** Fixed argument slice range for `npm exec` command.
+- **Enhancement.** Function publishes now ignore the `node_modules` directory in the event that an `npm install` command was run.
 
 ## Version 1.8.12
 
