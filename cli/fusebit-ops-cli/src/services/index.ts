@@ -10,3 +10,4 @@ export { DeploymentService } from './DeploymentService';
 export { StackService } from './StackService';
 export { VersionService } from './VersionService';
 export { BackupService } from './BackupService';
+export { RestoreService } from './RestoreService';
