@@ -1,20 +1,20 @@
-import FusebitRouter, { Context, Next } from './FusebitRouter';
-import { FusebitManager, IStorage, IOnStartup } from './FusebitManager';
-import connectors, { IConnectorConfig } from './FusebitConnectorManager';
-import { Form } from './FusebitForm';
+import { Router, Context, Next } from './Router';
+import { Manager, IStorage, IOnStartup } from './Manager';
+import { connectorManager, IInstanceConnectorConfig } from './ConnectorManager';
+import { Form } from './Form';
 
 // Placeholder object until we have better logging in place.
 const Sdk: { debug: (...s: any[]) => void } = { debug: console.log };
 
 export {
-  FusebitRouter as default,
+  Router,
   Form,
-  connectors,
-  FusebitManager,
+  connectorManager as connectors,
+  Manager,
   Context,
   Next,
   IStorage,
   IOnStartup,
   Sdk,
-  IConnectorConfig,
+  IInstanceConnectorConfig,
 };

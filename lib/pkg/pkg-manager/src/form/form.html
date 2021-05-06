@@ -44,13 +44,13 @@
         const [data, setData] = useState(##data##);
 
         const submitForm = () => {
-          const target = ##submit_url##;
+          const target = ##submitUrl##;
           console.log(`Sending ${JSON.stringify(data)} to ${target} from ${window.location.href}`);
           postForm(target, data);
         }
 
         const cancelForm = () => {
-          const target = ##cancel_url##;
+          const target = ##cancelUrl##;
           console.log(`Sending ${JSON.stringify(data)} to ${target} from ${window.location.href}`);
              postForm(target, {});
         }

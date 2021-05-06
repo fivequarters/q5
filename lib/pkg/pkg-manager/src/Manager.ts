@@ -5,23 +5,33 @@ import statuses from 'statuses';
 
 import httpMocks from 'node-mocks-http';
 
-import FusebitRouter, { Context, Next } from './FusebitRouter';
+import { Router, Context } from './Router';
 
-import FusebitConnectorManager, { IConnectorConfig } from './FusebitConnectorManager';
+import { connectorManager, IInstanceConnectorConfigMap } from './ConnectorManager';
 
 import DefaultRoutes from './DefaultRoutes';
 
+/** The vendor module failed to load with this error */
 type VendorModuleError = any;
-interface IFusebitIntegrationConfig {
-  connectors: { [connectorName: string]: IConnectorConfig };
+
+/** The configuration for this integration. */
+interface IIntegrationConfig {
+  connectors: IInstanceConnectorConfigMap;
 }
-type IFusebitConnectorConfig = any;
 
-type IFusebitConfig = IFusebitIntegrationConfig | IFusebitConnectorConfig;
+/** The configuration for this connector. */
+type IConnectorConfig = any;
 
-type FusebitRequestContext = any;
+/** The Manager will handle either integration or connector configurations. */
+type IConfig = IIntegrationConfig | IConnectorConfig;
+
+/** The internal Fusebit request context. passed in through the lambda. */
+type RequestContext = any;
+
+/** Parameters supplied for an internal event invocation. */
 type InvokeParameters = any;
 
+/** Placeholder interface for accessing storage. */
 interface IStorage {
   accessToken: string;
   get: (key: string) => Promise<any>;
@@ -29,34 +39,47 @@ interface IStorage {
   delete: (key: string | undefined, flag?: boolean) => Promise<void>;
 }
 
+/** Type for the OnStartup event parameters. */
 interface IOnStartup {
-  router: FusebitRouter;
-  mgr: FusebitManager;
-  cfg: IFusebitConfig;
+  router: Router;
+  mgr: Manager;
+  cfg: IConfig;
   storage: IStorage;
 }
 
-class FusebitManager {
-  // Error cached from vendor code.
+/**
+ * Manager
+ *
+ * The Manager class is responsible for setting up both integration and connector instances within a Fusebit
+ * environment.  It sets up the routing tables and event hooking system.
+ *
+ * The Manager is created by Fusebit, and is not usually invoked directly by an integration except when it's
+ * necessary to invoke specific events.
+ */
+class Manager {
+  /** Error cached from vendor code. */
   public vendorError: any;
 
-  // Used for context creation.
+  /** @private Used for context creation. */
   public app: Koa;
 
-  // Route requests and events to specific endpoint handlers.
-  public router: FusebitRouter;
+  /** @private Route requests and events to specific endpoint handlers. */
+  public router: Router;
 
+  /** @private Internal storage handler. */
   public storage: IStorage;
 
+  /** Create a new Manager, using the supplied storage interface as a persistance backend. */
   constructor(storage: IStorage) {
     this.app = new Koa();
-    this.router = new FusebitRouter();
+    this.router = new Router();
     this.storage = storage;
   }
 
-  public setup(cfg: IFusebitConfig, vendor?: FusebitRouter, vendorError?: VendorModuleError) {
+  /** Configure the Manager with the vendor object and error, if any. */
+  public setup(cfg: IConfig, vendor?: Router, vendorError?: VendorModuleError) {
     // Load the configuration for the integrations
-    FusebitConnectorManager.setup(cfg.connectors);
+    connectorManager.setup(cfg.connectors);
 
     if (vendorError) {
       this.vendorError = vendorError;
@@ -82,9 +105,11 @@ class FusebitManager {
     this.router.use(DefaultRoutes.routes());
   }
 
-  // Accept a Fusebit Function event, convert it into a routable context, and execute it through the router.
-  // Return a valid Fusebit response from the Context.
-  public async handle(fusebitCtx: FusebitRequestContext) {
+  /**
+   * Accept a Fusebit event, convert it into a routable context, and execute it through the router.
+   * @return the response, in Fusebit format, from executing this event.
+   */
+  public async handle(fusebitCtx: RequestContext) {
     // Update the security context for this particular call in the storage object - this is the only object
     // that's cached between calls, so it gets special treatment.
     this.storage.accessToken = fusebitCtx.fusebit ? fusebitCtx.fusebit.functionAccessToken : '';
@@ -92,7 +117,7 @@ class FusebitManager {
     // Convert the context and execute.
     const ctx = this.createRouteableContext(fusebitCtx);
     await this.execute(ctx);
-    const response = this.createFusebitResponse(ctx);
+    const response = this.createResponse(ctx);
 
     // Clear the accessToken after handling this call is completed.
     this.storage.accessToken = '';
@@ -100,7 +125,12 @@ class FusebitManager {
     return response;
   }
 
-  // Used to call, RPC style, an event function mounted via `.on()`
+  /**
+   * Used to call, RPC style, an event function mounted via `.on()`
+   * @param event The name of the event to invoke.
+   * @param parameters: The set of parameters the event is expecting.
+   * @return the body of the response.
+   */
   public async invoke(event: string, parameters: InvokeParameters) {
     const ctx = this.createRouteableContext({
       method: 'EVENT',
@@ -112,7 +142,10 @@ class FusebitManager {
     return ctx.body;
   }
 
-  // Find the matching route for a Context and send it down the middleware chain to be handled.
+  /**
+   * Execute a Koa-like context through the Router, and return the payload.
+   * @param ctx A Koa-like context
+   */
   protected async execute(ctx: Context) {
     return new Promise(async (resolve) => {
       try {
@@ -125,7 +158,7 @@ class FusebitManager {
         }
       } catch (e) {
         if (e.status !== 404) {
-          console.log(`FusebitManager::execute error: ${require('util').inspect(e)}`);
+          console.log(`Manager::execute error: ${require('util').inspect(e)}`);
         }
         e.expose = true;
         this.onError(ctx, e);
@@ -140,7 +173,7 @@ class FusebitManager {
     });
   }
 
-  // Derived from the Koa.context.onerror implementation - do intelligent things when errors happen.
+  /** Derived from the Koa.context.onerror implementation - do intelligent things when errors happen. */
   protected onError(ctx: Context, err: any) {
     if (err == null) {
       return;
@@ -183,8 +216,8 @@ class FusebitManager {
     res.end(msg);
   }
 
-  // Convert from a Fusebit Function context into a routable context.
-  public createRouteableContext(fusebitCtx: FusebitRequestContext): Context {
+  /** Convert from a Fusebit function context into a routable context. */
+  public createRouteableContext(fusebitCtx: RequestContext): Context {
     const req = httpMocks.createRequest({
       url: fusebitCtx.path,
       method: fusebitCtx.method,
@@ -210,8 +243,8 @@ class FusebitManager {
     return ctx;
   }
 
-  // Convert the routable context into a response that the Fusebit Function expects.
-  public createFusebitResponse(ctx: Context) {
+  /** Convert the routable context into a response that the Fusebit function expects. */
+  public createResponse(ctx: Context) {
     const result = {
       body: ctx.body,
       headers: ctx.response.header,
@@ -223,4 +256,4 @@ class FusebitManager {
   }
 }
 
-export { FusebitManager, IStorage, IOnStartup };
+export { Manager, IStorage, IOnStartup };

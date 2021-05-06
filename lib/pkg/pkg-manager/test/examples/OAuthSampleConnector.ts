@@ -1,8 +1,8 @@
-import { Context, IConnectorConfig } from '../../src';
+import { Context, IInstanceConnectorConfig } from '../../src';
 
 class OAuthSampleConnector {
-  public config: IConnectorConfig;
-  constructor(cfg: IConnectorConfig) {
+  public config: IInstanceConnectorConfig;
+  constructor(cfg: IInstanceConnectorConfig) {
     this.config = cfg;
   }
 
