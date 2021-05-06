@@ -1,7 +1,23 @@
 import * as AWS from 'aws-sdk';
 import * as Model from './model';
+import { RDSDataService } from 'aws-sdk';
+import { SqlRecords } from 'aws-sdk/clients/rdsdataservice';
+import { PromiseResult } from 'aws-sdk/lib/request';
 
 class RDS {
+  NotFoundError = class extends Error {
+    public statusCode = 404;
+    constructor() {
+      super('Not found');
+    }
+  };
+  ConflictError = class extends Error {
+    public statusCode = 409;
+    constructor() {
+      super('Conflict');
+    }
+  };
+
   private rdsSdk!: AWS.RDSDataService;
   private rdsCredentials!: Model.IRdsCredentials;
   private purgeInterval!: NodeJS.Timeout;
@@ -67,6 +83,71 @@ class RDS {
     return { rdsSdk: this.rdsSdk, rdsCredentials: this.rdsCredentials };
   };
 
+  executeStatement: (
+    sql: string,
+    objectParameters?: { [key: string]: any },
+    statementOptions?: Model.IStatementOptions
+  ) => Promise<PromiseResult<RDSDataService.ExecuteStatementResponse, AWS.AWSError>> = async (
+    sql,
+    objectParameters = {},
+    statementOptions = {}
+  ) => {
+    const { rdsSdk, rdsCredentials } = await this.ensureConnection();
+
+    const parameters = this.createParameterArray(objectParameters);
+
+    try {
+      return await rdsSdk
+        .executeStatement({
+          ...rdsCredentials,
+          sql,
+          parameters,
+          ...statementOptions,
+        })
+        .promise();
+    } catch (e) {
+      throw e.message.match(/version_conflict/) ? new this.ConflictError() : e;
+    }
+  };
+
+  createParameterArray: (parameters: { [key: string]: any }) => RDSDataService.SqlParametersList = (parameters) => {
+    return Object.keys(parameters).map((key) => {
+      let valueKey;
+      let value = parameters[key];
+      switch (typeof value) {
+        case 'object':
+          if (value instanceof Date) {
+            valueKey = 'dateValue';
+          } else {
+            valueKey = 'blobValue';
+          }
+          break;
+        case 'string':
+          valueKey = 'stringValue';
+          break;
+        case 'boolean':
+          valueKey = 'booleanValue';
+          break;
+        case 'number':
+          if ((value as number) % 1 === 0) {
+            valueKey = 'longValue';
+          } else {
+            valueKey = 'doubleValue';
+          }
+          break;
+        default:
+          valueKey = 'isNull';
+          value = true;
+      }
+      return {
+        name: key,
+        value: {
+          [valueKey]: value,
+        },
+      };
+    });
+  };
+
   createTransaction: () => Promise<string> = async () => {
     const { rdsSdk, rdsCredentials } = await this.ensureConnection();
     const result = await rdsSdk.beginTransaction(rdsCredentials).promise();
@@ -111,3 +192,11 @@ class RDS {
 const RDSSingleton = new RDS();
 
 export default RDSSingleton;
+
+export const ensureRecords: (
+  result: RDSDataService.ExecuteStatementResponse
+) => asserts result is RDSDataService.ExecuteStatementResponse & { records: SqlRecords } = (result) => {
+  if (!result || !result.records || result.records.length === 0) {
+    throw new RDSSingleton.NotFoundError();
+  }
+};

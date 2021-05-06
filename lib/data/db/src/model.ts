@@ -60,7 +60,19 @@ export interface IConnector extends IEntity {
 
 export interface IStorageItem extends IEntity {}
 
-export interface IOperation extends IEntityKey {
+export interface IOperation extends IEntity {
   data: object;
   expires?: number;
+}
+
+export interface IQueryOptions {
+  filterExpired?: boolean;
+  prefixMatchId?: boolean;
+  upsert?: boolean;
+}
+
+export interface ITagParams {
+  key: string;
+  value?: string;
+  version?: number;
 }
