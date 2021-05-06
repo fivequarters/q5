@@ -1,5 +1,5 @@
 import { Command, ICommand } from '@5qtrs/cli';
-import { ListRestoreCommand } from './ListRestoreCommand';
+import { StartRestoreCommand } from './StartRestoreCommand';
 
 // ------------------
 // Internal Constants
@@ -27,7 +27,7 @@ const command: ICommand = {
 export class RestoreCommand extends Command {
   public static async create() {
     const subCommands = [];
-    subCommands.push(await ListRestoreCommand.create())
+    subCommands.push(await StartRestoreCommand.create())
     command.subCommands = subCommands;
     return new RestoreCommand(command); 
   }
