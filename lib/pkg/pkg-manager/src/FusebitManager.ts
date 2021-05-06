@@ -212,11 +212,14 @@ class FusebitManager {
 
   // Convert the routable context into a response that the Fusebit Function expects.
   public createFusebitResponse(ctx: Context) {
-    return {
+    const result = {
       body: ctx.body,
       headers: ctx.response.header,
       status: ctx.status,
+      ...(typeof ctx.body === 'string' ? { bodyEncoding: 'utf8' } : {}),
     };
+
+    return result;
   }
 }
 

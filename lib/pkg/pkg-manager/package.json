@@ -11,7 +11,7 @@
     "coverage": "jest --colors --coverage",
     "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x} test/{,**/}*.ts{,x}",
     "clean": "rm -r -f libc; rm -r -f coverage",
-    "copy-files": "cp -r src/form libc/form"
+    "copy-files": "cp -r src/form libc"
   },
   "keywords": [],
   "dependencies": {

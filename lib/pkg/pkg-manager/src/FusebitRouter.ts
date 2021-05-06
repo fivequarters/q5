@@ -13,6 +13,8 @@ interface IFusebitContext {
 type Context = Router.RouterContext & IFusebitContext;
 type Next = Koa.Next;
 
+type Handler = (ctx: Context, next: Next) => Promise<any>;
+
 const httpMethods = ['HEAD', 'OPTIONS', 'GET', 'PUT', 'PATCH', 'POST', 'DELETE'];
 const fusebitMethods = ['CRON', 'EVENT'];
 
