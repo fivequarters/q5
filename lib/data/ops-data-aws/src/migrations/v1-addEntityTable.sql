@@ -18,3 +18,13 @@ add constraint entity_pri_key primary key (categoryId, accountId, subscriptionId
 
 create index entity_tags_idx on entity using gin (tags);
 create index entity_expires_idx on entity (expires);
+
+create function version_conflict() returns trigger as $$
+begin
+	raise exception 'version_conflict' using errcode = '22000';
+end;
+$$ language plpgsql;
+
+create trigger version_check before update of version on entity for each row
+when (NEW.version != (OLD.version + 1))
+execute procedure version_conflict();

@@ -7,24 +7,23 @@ import { EntityType, getEntity, createEntity, deleteEntity } from './entity';
 
 const defaultOperationExpiry = 10 * 60 * 1000;
 
-function entityToOperation(entity?: Model.IEntity): Model.IOperation | undefined {
-  return entity
-    ? {
-        accountId: entity.accountId,
-        subscriptionId: entity.subscriptionId,
-        id: entity.id,
-        data: entity.data,
-        expires: entity.expires,
-      }
-    : undefined;
+function entityToOperation(entity: Model.IEntity): Model.IOperation {
+  return {
+    accountId: entity.accountId,
+    subscriptionId: entity.subscriptionId,
+    id: entity.id,
+    data: entity.data,
+    expires: entity.expires,
+  };
 }
 
 /**
  * Returns an async operation description.
+ * Throws NotFoundError if the operation is not found.
  * @param params Primary key.
  * @returns Async operation description or undefined if the async operation does not exist or expired.
  */
-export async function getOperation(params: Model.IEntityKey): Promise<Model.IOperation | undefined> {
+export async function getOperation(params: Model.IEntityKey): Promise<Model.IOperation> {
   return entityToOperation(await getEntity({ entityType: EntityType.Operation, filterExpired: true }, params));
 }
 

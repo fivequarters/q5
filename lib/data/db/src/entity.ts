@@ -6,6 +6,19 @@ import { IStatementOptions } from './model';
 //--------------------------------
 // Internal
 //--------------------------------
+export class ConflictError extends Error {
+  public statusCode = 409;
+  constructor() {
+    super('Conflict');
+  }
+}
+
+export class NotFoundError extends Error {
+  public statusCode = 404;
+  constructor() {
+    super('Not found');
+  }
+}
 
 export abstract class Entity<EntityType extends Model.IEntity> {
   protected abstract readonly entityType: Entity.EntityType;
@@ -58,7 +71,7 @@ export abstract class Entity<EntityType extends Model.IEntity> {
     return `and entityId = '${escape(id)}'`;
   };
 
-  getEntity: (params: Model.IEntityKey, { filterExpired }: IQueryOptions) => Promise<EntityType | undefined> = async (
+  getEntity: (params: Model.IEntityKey, { filterExpired }: IQueryOptions) => Promise<EntityType> = async (
     params,
     options = {}
   ) => {
@@ -74,7 +87,7 @@ export abstract class Entity<EntityType extends Model.IEntity> {
       })
       .promise();
     if (!result || !result.records || result.records.length === 0) {
-      return undefined;
+      throw new NotFoundError();
     }
     if (result.records.length > 1) {
       throw new Error(`Expected exactly 1 matching database record, got ${result.records.length}.`);
@@ -85,7 +98,7 @@ export abstract class Entity<EntityType extends Model.IEntity> {
   getEntityTags: (
     params: Model.IEntityKey,
     { filterExpired }: IQueryOptions
-  ) => Promise<Model.ITagsWithVersion | undefined> = async (params, options = {}) => {
+  ) => Promise<Model.ITagsWithVersion> = async (params, options = {}) => {
     const { rdsSdk, rdsCredentials } = await RDS.ensureConnection();
     const sql = `select tags, version from entity 
     ${this.primaryClause(this.entityType, params)}
@@ -98,7 +111,7 @@ export abstract class Entity<EntityType extends Model.IEntity> {
       })
       .promise();
     if (!result || !result.records || result.records.length === 0) {
-      return undefined;
+      throw new NotFoundError();
     }
     if (result.records.length > 1) {
       throw new Error(`Expected exactly 1 matching database record, got ${result.records.length}.`);
@@ -171,7 +184,7 @@ export abstract class Entity<EntityType extends Model.IEntity> {
     params: EntityType,
     queryOptions: IQueryOptions,
     statementOptions: IStatementOptions
-  ) => Promise<EntityType | undefined> = async (params, queryOptions = {}, statementOptions = {}) => {
+  ) => Promise<EntityType> = async (params, queryOptions = {}, statementOptions = {}) => {
     const { rdsCredentials, rdsSdk } = await RDS.ensureConnection();
     let upsertClause = '';
     if (queryOptions.upsert) {
@@ -179,8 +192,7 @@ export abstract class Entity<EntityType extends Model.IEntity> {
       data = '${escape(JSON.stringify(params.data))}'::jsonb,
       tags = '${escape(JSON.stringify(params.tags))}'::jsonb,
       expires = ${params.expires !== undefined ? params.expires : 'null'},
-      version = entity.version + 1
-      ${params.version !== undefined ? `where entity.version = ${params.version}` : ''}`;
+      version = ${params.version === undefined ? 'entity.version + 1' : params.version + 1}`;
     }
     const sql = `insert into entity values (
     ${this.entityType},
@@ -193,13 +205,18 @@ export abstract class Entity<EntityType extends Model.IEntity> {
     ${params.expires !== undefined ? params.expires : 'null'})
     ${upsertClause}
     returning *;`;
-    const result = await rdsSdk
-      .executeStatement({
-        ...rdsCredentials,
-        ...statementOptions,
-        sql,
-      })
-      .promise();
+    let result;
+    try {
+      result = await rdsSdk
+        .executeStatement({
+          ...rdsCredentials,
+          ...statementOptions,
+          sql,
+        })
+        .promise();
+    } catch (e) {
+      throw e.message.match(/version_conflict/) ? new ConflictError() : e;
+    }
     if (queryOptions.upsert) {
       if (!result || !result.records || result.records.length > 1) {
         throw new Error(
@@ -209,7 +226,7 @@ export abstract class Entity<EntityType extends Model.IEntity> {
         );
       }
       if (result.records.length === 0) {
-        return undefined;
+        throw new NotFoundError();
       }
     } else if (!result || !result.records || result.records.length !== 1) {
       throw new Error(
@@ -223,30 +240,37 @@ export abstract class Entity<EntityType extends Model.IEntity> {
     params: EntityType,
     queryOptions: IQueryOptions,
     statementOptions: Model.IStatementOptions
-  ) => Promise<EntityType | undefined> = async (params, queryOptions = {}, statementOptions = {}) => {
+  ) => Promise<EntityType> = async (params, queryOptions = {}, statementOptions = {}) => {
     const { rdsCredentials, rdsSdk } = await RDS.ensureConnection();
-    const result = await rdsSdk
-      .executeStatement({
-        ...rdsCredentials,
-        ...statementOptions,
-        sql: `update entity set
+    let result;
+    try {
+      result = await rdsSdk
+        .executeStatement({
+          ...rdsCredentials,
+          ...statementOptions,
+          sql: `update entity set
         data = '${escape(JSON.stringify(params.data))}'::jsonb,
         tags = '${escape(JSON.stringify(params.tags))}'::jsonb,
-        expires = ${params.expires !== undefined ? params.expires : 'null'},
-        version = version + 1
+        expires = ${params.expires === undefined ? 'null' : params.expires},
+        version = ${params.version === undefined ? 'version + 1' : params.version + 1}
         ${this.primaryClause(this.entityType, params)}
         ${this.idClause(params.id)}
-        ${this.versionClause(params.version)}
         ${this.expiredClause(queryOptions.filterExpired)}
         returning *;`,
-      })
-      .promise();
+        })
+        .promise();
+    } catch (e) {
+      throw e.message.match(/version_conflict/) ? new ConflictError() : e;
+    }
     if (!result || !result.records || result.records.length > 1) {
       throw new Error(
         `Expected zero or one database record updated, got ${result && result.records ? result.records.length : 'N/A'}.`
       );
     }
-    return result.records.length === 0 ? undefined : this.sqlToIEntity(result.records[0]);
+    if (result.records.length === 0) {
+      throw new NotFoundError();
+    }
+    return this.sqlToIEntity(result.records[0]);
   };
 
   updateEntityTags: (
@@ -254,13 +278,15 @@ export abstract class Entity<EntityType extends Model.IEntity> {
     tags: Model.ITagsWithVersion,
     queryOptions: IQueryOptions,
     statementOptions: Model.IStatementOptions
-  ) => Promise<Model.ITagsWithVersion | undefined> = async (params, tags, queryOptions = {}, statementOptions = {}) => {
+  ) => Promise<Model.ITagsWithVersion> = async (params, tags, queryOptions = {}, statementOptions = {}) => {
     const { rdsCredentials, rdsSdk } = await RDS.ensureConnection();
-    const result = await rdsSdk
-      .executeStatement({
-        ...rdsCredentials,
-        ...statementOptions,
-        sql: `update entity set
+    let result;
+    try {
+      result = await rdsSdk
+        .executeStatement({
+          ...rdsCredentials,
+          ...statementOptions,
+          sql: `update entity set
         tags = '${escape(JSON.stringify(tags.tags))}'::jsonb,
         version = version + 1
         ${this.primaryClause(this.entityType, params)}
@@ -268,14 +294,20 @@ export abstract class Entity<EntityType extends Model.IEntity> {
         ${this.versionClause(tags.version)}
         ${this.expiredClause(queryOptions.filterExpired)}
         returning tags, version;`,
-      })
-      .promise();
+        })
+        .promise();
+    } catch (e) {
+      throw e.message.match(/version_conflict/) ? new ConflictError() : e;
+    }
     if (!result || !result.records || result.records.length > 1) {
       throw new Error(
         `Expected zero or one database record updated, got ${result && result.records ? result.records.length : 'N/A'}.`
       );
     }
-    return result.records.length === 0 ? undefined : this.sqlToTagsWithVersion(result.records[0]);
+    if (result.records.length === 0) {
+      throw new NotFoundError();
+    }
+    return this.sqlToTagsWithVersion(result.records[0]);
   };
 
   setEntityTag: (
@@ -283,7 +315,7 @@ export abstract class Entity<EntityType extends Model.IEntity> {
     tagParams: ITagParams,
     queryOptions: IQueryOptions,
     statementOptions: Model.IStatementOptions
-  ) => Promise<Model.ITagsWithVersion | undefined> = async (params, tagParams, queryOptions, statementOptions) => {
+  ) => Promise<Model.ITagsWithVersion> = async (params, tagParams, queryOptions, statementOptions) => {
     const { rdsCredentials, rdsSdk } = await RDS.ensureConnection();
     const sql = `update entity set
     tags = ${
@@ -291,25 +323,32 @@ export abstract class Entity<EntityType extends Model.IEntity> {
         ? `jsonb_set(tags, '{${escape(tagParams.key)}}', '"${escape(tagParams.value)}"')`
         : `tags - '${escape(tagParams.key)}'`
     },
-    version = version + 1
+    version = ${tagParams.version === undefined ? 'version + 1' : tagParams.version + 1}
     ${this.primaryClause(this.entityType, params)}
     ${this.idClause(params.id)}
-    ${this.versionClause(tagParams.version)}
     ${this.expiredClause(queryOptions.filterExpired)}
     returning tags, version;`;
-    const result = await rdsSdk
-      .executeStatement({
-        ...rdsCredentials,
-        ...statementOptions,
-        sql,
-      })
-      .promise();
+    let result;
+    try {
+      result = await rdsSdk
+        .executeStatement({
+          ...rdsCredentials,
+          ...statementOptions,
+          sql,
+        })
+        .promise();
+    } catch (e) {
+      throw e.message.match(/version_conflict/) ? new ConflictError() : e;
+    }
     if (!result || !result.records || result.records.length > 1) {
       throw new Error(
         `Expected zero or one database record updated, got ${result && result.records ? result.records.length : 'N/A'}.`
       );
     }
-    return result.records.length === 0 ? undefined : this.sqlToTagsWithVersion(result.records[0]);
+    if (result.records.length === 0) {
+      throw new NotFoundError();
+    }
+    return this.sqlToTagsWithVersion(result.records[0]);
   };
 }
 

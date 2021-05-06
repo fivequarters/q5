@@ -16,10 +16,11 @@ import {
 
 /**
  * Gets a storage item.
+ * Throws NotFoundError if not found.
  * @param params Primary keys.
  * @returns Storage item undefined if no matching storage item found.
  */
-export async function getStorage(params: Model.IEntityKey): Promise<Model.IStorageItem | undefined> {
+export async function getStorage(params: Model.IEntityKey): Promise<Model.IStorageItem> {
   return (await getEntity({ entityType: EntityType.Storage }, params)) as Model.IStorageItem;
 }
 
@@ -43,14 +44,15 @@ export async function deleteStorage(
  * Upserts storage item. If you want conflict detection, do specify params.version which must match
  * the current version in the database (it gets returned from the get... method so it is easy to roundtrip by default).
  * If you want to forcefully override the persisted version, make sure params.version is undefined.
+ * Throws NotFoundError if the storage item is not found, and ConflictError if the expected version does not match the database version.
  * @param params Storage item.
  * @param options SQL options.
- * @returns Upserted storage item or undefined in case the storage item was modified since last read.
+ * @returns Upserted storage item.
  */
 export async function putStorage(
   params: Model.IStorageItem,
   options?: Model.IStatementOptions
-): Promise<Model.IStorageItem | undefined> {
+): Promise<Model.IStorageItem> {
   return (await createEntity({ entityType: EntityType.Storage, upsert: true }, params, options)) as Model.IStorageItem;
 }
 
@@ -65,10 +67,11 @@ export async function listStorage(params: Model.IListRequest): Promise<Model.ILi
 
 /**
  * Gets storage item tags.
+ * Throws NotFoundError if the storage item is not found.
  * @param params Primary keys.
  * @returns Storage item tags and version or undefined if no matching storage item found.
  */
-export async function getStorageTags(params: Model.IEntityKey): Promise<Model.ITagsWithVersion | undefined> {
+export async function getStorageTags(params: Model.IEntityKey): Promise<Model.ITagsWithVersion> {
   return getEntityTags({ entityType: EntityType.Storage, filterExpired: true }, params);
 }
 
@@ -76,16 +79,17 @@ export async function getStorageTags(params: Model.IEntityKey): Promise<Model.IT
  * Updates tags of an existing storage item. If you want conflict detection, do specify tags.version which must match
  * the current storage item version in the database (it gets returned from the get... method so it is easy to roundtrip by default).
  * If you want to forcefully override the persisted version, make sure tags.version is undefined.
+ * Throws NotFoundError if the storage item is not found, and ConflictError if the expected version does not match the database version.
  * @param params Primary keys.
  * @param tags New storage item tags and expected version.
  * @param options SQL options.
- * @returns Updated storage item tags and version or undefined in case the storage item was deleted, expired, or modified since last read.
+ * @returns Updated storage item tags and version.
  */
 export async function setStorageTags(
   params: Model.IEntityKey,
   tags: Model.ITagsWithVersion,
   options?: Model.IStatementOptions
-): Promise<Model.ITagsWithVersion | undefined> {
+): Promise<Model.ITagsWithVersion> {
   return updateEntityTags({ entityType: EntityType.Storage, filterExpired: true }, params, tags, options);
 }
 
@@ -93,12 +97,13 @@ export async function setStorageTags(
  * Updates or sets a single tag of an existing storage item. If you want conflict detection, do specify
  * version which must match the current storage item version in the database. If you want to forcefully override
  * the persisted version, make sure version is undefined.
+ * Throws NotFoundError if the storage item is not found, and ConflictError if the expected version does not match the database version.
  * @param params Primary keys.
  * @param key Tag key.
  * @param value Tag value.
  * @param version Expected storage item version.
  * @param options SQL options.
- * @returns Updated storage item tags and version or undefined in case the storage item was deleted, expired, or modified since last read.
+ * @returns Updated storage item tags and version.
  */
 export async function setStorageTag(
   params: Model.IEntityKey,
@@ -106,7 +111,7 @@ export async function setStorageTag(
   value: string,
   version?: number,
   options?: Model.IStatementOptions
-): Promise<Model.ITagsWithVersion | undefined> {
+): Promise<Model.ITagsWithVersion> {
   return setEntityTag({ entityType: EntityType.Storage, filterExpired: true }, params, key, value, version, options);
 }
 
@@ -114,18 +119,19 @@ export async function setStorageTag(
  * Deletes a single tag of an existing storage item. If you want conflict detection, do specify
  * version which must match the current connector version in the database. If you want to forcefully override
  * the persisted version, make sure version is undefined.
+ * Throws NotFoundError if the storage item is not found, and ConflictError if the expected version does not match the database version.
  * @param params Primary keys.
  * @param key Tag key.
  * @param version Expected storage item version.
  * @param options SQL options.
- * @returns Updated storage item tags and version or undefined in case the storage item was deleted, modified, or modified since last read.
+ * @returns Updated storage item tags and version.
  */
 export async function deleteStorageTag(
   params: Model.IEntityKey,
   key: string,
   version?: number,
   options?: Model.IStatementOptions
-): Promise<Model.ITagsWithVersion | undefined> {
+): Promise<Model.ITagsWithVersion> {
   return setEntityTag(
     { entityType: EntityType.Storage, filterExpired: true },
     params,

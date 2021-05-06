@@ -71,8 +71,7 @@ describe('DB operation', () => {
     const result = await Db.putOperation(op);
     expect(result).toMatchObject(op);
     await new Promise((r) => setTimeout(() => r(undefined), 100));
-    const result1 = await Db.getOperation(key);
-    expect(result1).toBeUndefined();
+    await expect(Db.getOperation(key)).rejects.toThrowError(Db.NotFoundError);
   }, 10000);
 
   test('Upsert works', async () => {

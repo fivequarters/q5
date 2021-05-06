@@ -39,8 +39,7 @@ describe('DB transaction', () => {
     };
     const result1 = await Db.putStorage(storage, sqlOptions);
     expect(result1).toMatchObject(storage);
-    const result2 = await Db.getStorage(keys);
-    expect(result2).toBeUndefined();
+    await expect(Db.getStorage(keys)).rejects.toThrowError(Db.NotFoundError);
     await Db.commitTransaction(sqlOptions.transactionId);
     const result3 = await Db.getStorage(keys);
     expect(result3).toMatchObject(storage);
@@ -62,10 +61,8 @@ describe('DB transaction', () => {
     };
     const result1 = await Db.putStorage(storage, sqlOptions);
     expect(result1).toMatchObject(storage);
-    const result2 = await Db.getStorage(keys);
-    expect(result2).toBeUndefined();
+    await expect(Db.getStorage(keys)).rejects.toThrowError(Db.NotFoundError);
     await Db.rollbackTransaction(sqlOptions.transactionId);
-    const result3 = await Db.getStorage(keys);
-    expect(result3).toBeUndefined();
+    await expect(Db.getStorage(keys)).rejects.toThrowError(Db.NotFoundError);
   }, 10000);
 });

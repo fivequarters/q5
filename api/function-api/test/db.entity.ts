@@ -100,14 +100,15 @@ const createEntityTests = (delegates: IEntityDelegates) => {
     });
   }, 10000);
 
-  test('Get returns undefined if not found', async () => {
+  test('Get throws NotFoundError if not found', async () => {
     const id = 'slack';
-    const result = await delegates.get({
-      accountId,
-      subscriptionId,
-      id,
-    });
-    expect(result).toBeUndefined();
+    await expect(
+      delegates.get({
+        accountId,
+        subscriptionId,
+        id,
+      })
+    ).rejects.toThrowError(Db.NotFoundError);
   }, 10000);
 
   test('Deleting non-existing works', async () => {
@@ -160,20 +161,21 @@ const createEntityTests = (delegates: IEntityDelegates) => {
   }, 10000);
 
   !delegates.upsertSemantics &&
-    test('Updating non-existing returns undefined', async () => {
+    test('Updating non-existing throws NotFoundError', async () => {
       const id = 'slack';
       const data = { foo: 'bar' };
-      let result = await delegates.update({
-        accountId,
-        subscriptionId,
-        id,
-        data,
-        tags: {},
-      });
-      expect(result).toBeUndefined();
+      await expect(
+        delegates.update({
+          accountId,
+          subscriptionId,
+          id,
+          data,
+          tags: {},
+        })
+      ).rejects.toThrowError(Db.NotFoundError);
     }, 10000);
 
-  test('Updating conflicting returns undefined', async () => {
+  test('Updating conflicting throws ConflictError', async () => {
     const id = 'slack';
     const data = { foo: 'bar' };
     let result = await delegates.create({
@@ -184,8 +186,7 @@ const createEntityTests = (delegates: IEntityDelegates) => {
       tags: {},
     });
     await delegates.update(result); // "concurrent" update
-    result = (await delegates.update(result)) as Db.IEntity;
-    expect(result).toBeUndefined();
+    await expect(delegates.update(result)).rejects.toThrowError(Db.ConflictError);
   }, 10000);
 
   test('Listing works', async () => {
@@ -476,7 +477,7 @@ const createEntityTests = (delegates: IEntityDelegates) => {
     expect(Object.keys(result).length).toBe(2);
   }, 10000);
 
-  test('Set tags with conflicting version returns undefined', async () => {
+  test('Set tags with conflicting version throws ConflictError', async () => {
     const id = 'slack';
     const data = { foo: 'bar' };
     const tags = { level: 'gold', billing: 'annual' };
@@ -488,18 +489,19 @@ const createEntityTests = (delegates: IEntityDelegates) => {
       data,
       tags,
     });
-    const result = (await delegates.setTags(
-      {
-        accountId,
-        subscriptionId,
-        id,
-      },
-      {
-        tags: tags1,
-        version: 666,
-      }
-    )) as Db.ITagsWithVersion;
-    expect(result).toBeUndefined();
+    await expect(
+      delegates.setTags(
+        {
+          accountId,
+          subscriptionId,
+          id,
+        },
+        {
+          tags: tags1,
+          version: 666,
+        }
+      )
+    ).rejects.toThrowError(Db.ConflictError);
   }, 10000);
 
   test('Update single tag without version works', async () => {
@@ -557,7 +559,7 @@ const createEntityTests = (delegates: IEntityDelegates) => {
     expect(Object.keys(result).length).toBe(2);
   }, 10000);
 
-  test('Update single tag with conflicting version returns undefined', async () => {
+  test('Update single tag with conflicting version throws ConflictError', async () => {
     const id = 'slack';
     const data = { foo: 'bar' };
     const tags = { level: 'gold', billing: 'annual' };
@@ -569,17 +571,18 @@ const createEntityTests = (delegates: IEntityDelegates) => {
       data,
       tags,
     });
-    const result = (await delegates.setTag(
-      {
-        accountId,
-        subscriptionId,
-        id,
-      },
-      'level',
-      tags1.level,
-      666
-    )) as Db.ITagsWithVersion;
-    expect(result).toBeUndefined();
+    await expect(
+      delegates.setTag(
+        {
+          accountId,
+          subscriptionId,
+          id,
+        },
+        'level',
+        tags1.level,
+        666
+      )
+    ).rejects.toThrowError(Db.ConflictError);
   }, 10000);
 
   test('Delete single tag works', async () => {
@@ -637,7 +640,7 @@ const createEntityTests = (delegates: IEntityDelegates) => {
     expect(Object.keys(result).length).toBe(2);
   }, 10000);
 
-  test('Delete single tag with conflicting version returns undefined', async () => {
+  test('Delete single tag with conflicting version throws ConflictError', async () => {
     const id = 'slack';
     const data = { foo: 'bar' };
     const tags = { level: 'gold', billing: 'annual' };
@@ -649,16 +652,17 @@ const createEntityTests = (delegates: IEntityDelegates) => {
       data,
       tags,
     });
-    const result = (await delegates.deleteTag(
-      {
-        accountId,
-        subscriptionId,
-        id,
-      },
-      'level',
-      666
-    )) as Db.ITagsWithVersion;
-    expect(result).toBeUndefined();
+    await expect(
+      delegates.deleteTag(
+        {
+          accountId,
+          subscriptionId,
+          id,
+        },
+        'level',
+        666
+      )
+    ).rejects.toThrowError(Db.ConflictError);
   }, 10000);
 
   test('Delete nonexisting tag works', async () => {
