@@ -1,23 +1,11 @@
-import { EntityConstructorArgument } from './entity';
-
 export interface IRdsCredentials {
   resourceArn: string;
   secretArn: string;
 }
 
-export interface IStatementOptions {
-  transactionId?: string;
-}
-
-export interface ITags {
-  [key: string]: string;
-}
-
-export interface ITagsWithVersion {
-  tags: ITags;
-  version?: number;
-}
-
+//--------------------------------
+// EntityKey Components
+//--------------------------------
 export interface IEntityKey {
   accountId: string;
   subscriptionId: string;
@@ -35,9 +23,24 @@ export interface IEntityKeyMetadata {
   expires?: Date;
 }
 
+export interface IEntityKeyPrefix extends Omit<IEntityKey, 'id'> {
+  id?: string;
+  idPrefix?: string;
+}
+
+export interface ITags {
+  [key: string]: string;
+}
+
+export interface ITagsWithVersion {
+  tags: ITags;
+  version?: number;
+}
+//--------------------------------
+// EntityKey Generic Interfaces
+//--------------------------------
 export interface IEntityKeyGet extends IEntityKey {}
 export interface IEntityKeyList extends IEntityKeyPrefix, IEntityKeyMetadata {
-  limit?: number;
   next?: string;
 }
 export interface IEntityKeyDelete extends Omit<Partial<IEntity>, keyof IEntityKeyPrefix>, IEntityKeyPrefix {}
@@ -55,6 +58,9 @@ export interface IEntityKeyTag
   tagValue?: string;
 }
 
+//--------------------------------
+// EntityKey Params
+//--------------------------------
 export type PartialApply<T, U> = Partial<Omit<T, keyof U>> & U;
 
 export type EntityKeyGet<T extends IEntity> = PartialApply<T, IEntityKeyGet>;
@@ -73,17 +79,14 @@ export type EntityKeyParams<T extends IEntity> =
   | EntityKeyTags<T>
   | EntityKeyTag<T>;
 
-export interface IEntityKeyPrefix extends Omit<IEntityKey, 'id'> {
-  id?: string;
-  idPrefix?: string;
-}
-
 export interface IListResponse<T extends IEntity> {
   items: T[];
   next?: string;
 }
 
-export interface IIntegrationCreateRequest extends IEntity {}
+//--------------------------------
+// IEntity Extensions
+//--------------------------------
 
 export interface IIntegration extends IEntity {
   version: number;
@@ -99,16 +102,86 @@ export interface IStorageItem extends IEntity {}
 
 export interface IOperation extends IEntity {}
 
-export interface IQueryOptions {
-  filterExpired?: boolean;
-  prefixMatchId?: boolean;
-  upsert?: boolean;
-}
+//--------------------------------
+// Utilities
+//--------------------------------
 
 type OptionalKeysList<T> = {
   [K in keyof T]-?: undefined extends { [K2 in keyof T]: K2 }[K] ? K : never;
 }[keyof T];
 
+type RequiredKeysList<T> = {
+  [K in keyof T]-?: undefined extends { [K2 in keyof T]: K2 }[K] ? never : K;
+}[keyof T];
+
 export type OptionalKeysOnly<T> = {
-  [K in OptionalKeysList<EntityConstructorArgument>]-?: NonNullable<EntityConstructorArgument[K]>;
+  [K in OptionalKeysList<T>]-?: NonNullable<T[K]>;
 };
+
+export type RequiredKeysOnly<T> = {
+  [K in RequiredKeysList<T>]: NonNullable<T[K]>;
+};
+
+//--------------------------------
+// Entity Constructors Arguments, and Mergeables
+//--------------------------------
+
+export interface EntityConstructorArgument
+  extends DefaultQueryOptions,
+    DefaultStatementOptions,
+    DefaultParameterOptions {
+  entityType: EntityType;
+}
+
+export interface EntityConstructorArgumentWithDefaults
+  extends defaultConstructorArguments,
+    Omit<EntityConstructorArgument, keyof defaultConstructorArguments> {}
+
+export interface DefaultQueryOptions {
+  upsert?: boolean;
+  filterExpired?: boolean;
+  prefixMatchId?: boolean;
+  listLimit?: number;
+}
+export interface MergedQueryOptions
+  extends Pick<defaultConstructorArguments, keyof DefaultQueryOptions>,
+    Partial<Omit<OptionalKeysOnly<DefaultQueryOptions>, keyof defaultConstructorArguments>>,
+    RequiredKeysOnly<DefaultQueryOptions> {}
+export interface InputQueryOptions extends Partial<DefaultQueryOptions> {}
+export interface FinalQueryOptions extends Omit<InputQueryOptions, keyof MergedQueryOptions>, MergedQueryOptions {}
+
+export interface DefaultStatementOptions {}
+export interface MergedStatementOptions /*
+ uncomment the below line once `defaultConstructorArguments` includes an item from `DefaultStatementOptions`
+  // Pick<defaultConstructorArguments, keyof DefaultStatementOptions>,
+ */
+  extends Partial<Omit<OptionalKeysOnly<DefaultStatementOptions>, keyof defaultConstructorArguments>>,
+    RequiredKeysOnly<DefaultStatementOptions> {}
+export interface InputStatementOptions extends Partial<DefaultStatementOptions> {}
+export interface FinalStatementOptions
+  extends Omit<InputStatementOptions, keyof MergedStatementOptions>,
+    MergedStatementOptions {}
+
+export interface DefaultParameterOptions {
+  expires?: number;
+}
+export interface MergedParameterOptions /*
+ uncomment the below line once `defaultConstructorArguments` includes an item from `DefaultParameterOptions`
+  // Pick<defaultConstructorArguments, keyof DefaultParameterOptions>,
+ */
+  extends Partial<Omit<OptionalKeysOnly<DefaultParameterOptions>, keyof defaultConstructorArguments>>,
+    RequiredKeysOnly<DefaultParameterOptions> {}
+
+export interface defaultConstructorArguments {
+  upsert: boolean;
+  filterExpired: boolean;
+  prefixMatchId: boolean;
+  listLimit: number;
+}
+
+export enum EntityType {
+  Integration = 'integration',
+  Connector = 'connector',
+  Operation = 'operation',
+  Storage = 'storage',
+}

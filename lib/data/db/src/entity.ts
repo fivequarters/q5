@@ -1,44 +1,53 @@
 import * as Model from './model';
 import RDS, { ensureRecords } from './rds';
 import { RDSDataService } from 'aws-sdk';
-import { IQueryOptions, IStatementOptions, OptionalKeysOnly } from './model';
+import {
+  defaultConstructorArguments,
+  EntityConstructorArgument,
+  EntityConstructorArgumentWithDefaults,
+  FinalQueryOptions,
+  FinalStatementOptions,
+  InputQueryOptions,
+  InputStatementOptions,
+  MergedParameterOptions,
+  MergedQueryOptions,
+  MergedStatementOptions,
+  EntityType,
+} from './model';
 
 //--------------------------------
 // Internal
 //--------------------------------
 
-export type EntityConstructorArgument = {
-  entityType: Entity.EntityType;
-  defaultUpsert?: boolean;
-  defaultFilterExpired?: boolean;
-  defaultPrefixMatchId?: boolean;
-  defaultListLimit?: number;
-};
-
-const defaultEntityConstructorArgument: OptionalKeysOnly<EntityConstructorArgument> = {
-  defaultUpsert: true,
-  defaultFilterExpired: true,
-  defaultPrefixMatchId: false,
-  defaultListLimit: 100,
+const defaultEntityConstructorArgument: defaultConstructorArguments = {
+  upsert: true,
+  filterExpired: true,
+  prefixMatchId: false,
+  listLimit: 100,
 };
 
 export abstract class Entity<ET extends Model.IEntity> {
   protected constructor(config: EntityConstructorArgument) {
-    const entityConfig: Required<EntityConstructorArgument> = {
+    const entityConfig: EntityConstructorArgumentWithDefaults = {
       ...defaultEntityConstructorArgument,
       ...config,
     };
     this.entityType = entityConfig.entityType;
-    this.defaultUpsert = entityConfig.defaultUpsert;
-    this.defaultFilterExpired = entityConfig.defaultFilterExpired;
-    this.defaultPrefixMatchId = entityConfig.defaultPrefixMatchId;
-    this.defaultListLimit = entityConfig.defaultListLimit;
+    this.defaultQueryOptions = {
+      filterExpired: entityConfig.filterExpired,
+      listLimit: entityConfig.listLimit,
+      prefixMatchId: entityConfig.prefixMatchId,
+      upsert: entityConfig.upsert,
+    };
+    this.defaultStatementOptions = {};
+    this.defaultParameterOptions = {
+      expires: entityConfig.expires,
+    };
   }
-  protected readonly entityType: Entity.EntityType;
-  protected readonly defaultUpsert: boolean;
-  protected readonly defaultFilterExpired: boolean;
-  protected readonly defaultPrefixMatchId: boolean;
-  protected readonly defaultListLimit: number;
+  protected readonly entityType: EntityType;
+  protected readonly defaultQueryOptions: MergedQueryOptions;
+  protected readonly defaultStatementOptions: MergedStatementOptions;
+  protected readonly defaultParameterOptions: MergedParameterOptions;
   sqlToIEntity: (record: RDSDataService.FieldList) => ET = (record) => {
     let result: ET = {
       accountId: record[1].stringValue as string,
@@ -55,27 +64,30 @@ export abstract class Entity<ET extends Model.IEntity> {
   };
 
   protected applyDefaultsTo: <EKP extends Model.EntityKeyParams<ET>, T>(
-    func: (params: EKP, queryOptions: Required<IQueryOptions>, statementOptions: IStatementOptions) => T
-  ) => (params: EKP, queryOptions: IQueryOptions, statementOptions?: IStatementOptions) => T = <
+    func: (params: EKP, queryOptions: FinalQueryOptions, statementOptions: FinalStatementOptions) => T
+  ) => (params: EKP, queryOptions: InputQueryOptions, statementOptions?: InputStatementOptions) => T = <
     EKP extends Model.EntityKeyParams<ET>,
     T
   >(
-    func: (params: EKP, queryOptions: Required<IQueryOptions>, statementOptions: IStatementOptions) => T
+    func: (params: EKP, queryOptions: FinalQueryOptions, statementOptions: FinalStatementOptions) => T
   ) => {
-    return (params: EKP, queryOptions: IQueryOptions, statementOptions: IStatementOptions = {}) => {
+    return (params: EKP, queryOptions: InputQueryOptions, statementOptions: InputStatementOptions = {}) => {
       // default params set here
       const paramsWithDefaults: EKP = {
+        ...this.defaultParameterOptions,
         ...params,
       };
       // default query options set here
-      const queryOptionsWithDefaults: Required<IQueryOptions> = {
-        upsert: this.defaultUpsert,
-        filterExpired: this.defaultFilterExpired,
-        prefixMatchId: this.defaultPrefixMatchId,
+      const queryOptionsWithDefaults: FinalQueryOptions = {
+        ...this.defaultQueryOptions,
         ...queryOptions,
+        listLimit: queryOptions.listLimit
+          ? Math.min(queryOptions.listLimit, this.defaultQueryOptions.listLimit)
+          : this.defaultQueryOptions.listLimit,
       };
       // default statement options set here
-      const statementOptionsWithDefaults: IStatementOptions = {
+      const statementOptionsWithDefaults: FinalStatementOptions = {
+        ...this.defaultStatementOptions,
         ...statementOptions,
       };
       return func(paramsWithDefaults, queryOptionsWithDefaults, statementOptionsWithDefaults);
@@ -91,8 +103,8 @@ export abstract class Entity<ET extends Model.IEntity> {
 
   getEntity: (
     params: Model.EntityKeyGet<ET>,
-    queryOptions: IQueryOptions,
-    statementOptions: IStatementOptions
+    queryOptions: InputQueryOptions,
+    statementOptions: InputStatementOptions
   ) => Promise<ET> = this.applyDefaultsTo(async (params, queryOptions, statementOptions) => {
     const sql = `select * from entity
         where categoryId = :entityType
@@ -107,16 +119,16 @@ export abstract class Entity<ET extends Model.IEntity> {
       entityId: params.id,
       filterExpired: queryOptions.filterExpired,
     };
-    const result = await RDS.executeStatement(sql, parameters);
+    const result = await RDS.executeStatement(sql, parameters, statementOptions);
     ensureRecords(result);
     return this.sqlToIEntity(result.records[0]);
   });
 
   getEntityTags: (
     params: Model.EntityKeyGet<ET>,
-    queryOptions: IQueryOptions,
-    statementOptions: IStatementOptions
-  ) => Promise<Model.ITagsWithVersion> = this.applyDefaultsTo(async (params, queryOptions) => {
+    queryOptions: InputQueryOptions,
+    statementOptions: InputStatementOptions
+  ) => Promise<Model.ITagsWithVersion> = this.applyDefaultsTo(async (params, queryOptions, statementOptions) => {
     const sql = `select tags, version from entity
       where categoryId = :entityType
       and accountId = :accountId
@@ -130,15 +142,15 @@ export abstract class Entity<ET extends Model.IEntity> {
       entityId: params.id,
       filterExpired: queryOptions.filterExpired,
     };
-    const result = await RDS.executeStatement(sql, parameters);
+    const result = await RDS.executeStatement(sql, parameters, statementOptions);
     ensureRecords(result);
     return this.sqlToTagsWithVersion(result.records[0]);
   });
 
   listEntities: (
     params: Model.EntityKeyList<ET>,
-    queryOptions: IQueryOptions
-  ) => Promise<Model.IListResponse<ET>> = this.applyDefaultsTo(async (params, queryOptions) => {
+    queryOptions: InputQueryOptions
+  ) => Promise<Model.IListResponse<ET>> = this.applyDefaultsTo(async (params, queryOptions, statementOptions) => {
     const sql = `select entityId, version, tags, expires from entity
       where categoryId = :entityType
       and accountId = :accountId
@@ -149,7 +161,6 @@ export abstract class Entity<ET extends Model.IEntity> {
       order by entityId
       offset :offset
       limit :limit + 1;`;
-    const limit = params.limit ? Math.min(params.limit, this.defaultListLimit) : this.defaultListLimit;
     const offset = params.next ? parseInt(params.next, 16) : 0;
     const parameters = {
       entityType: this.entityType,
@@ -160,26 +171,26 @@ export abstract class Entity<ET extends Model.IEntity> {
       prefixMatchId: queryOptions.prefixMatchId,
       filterExpired: queryOptions.filterExpired,
       offset,
-      limit,
+      limit: queryOptions.listLimit,
     };
-    const result = await RDS.executeStatement(sql, parameters);
+    const result = await RDS.executeStatement(sql, parameters, statementOptions);
     ensureRecords(result);
     let data: Model.IListResponse<ET> = {
       items: result.records.map(this.sqlToIEntity),
     };
     // Limit of the query was set to `limit + 1` in order to grab 1 additional element.
     // This helps to determine whether there are yet more items that need to be retrieved.
-    if (data.items.length === limit + 1) {
+    if (data.items.length === queryOptions.listLimit + 1) {
       data.items.splice(-1);
-      data.next = ((offset || 0) + limit).toString(16);
+      data.next = ((offset || 0) + queryOptions.listLimit).toString(16);
     }
     return data;
   });
 
   deleteEntity: (
     params: Model.EntityKeyDelete<ET>,
-    queryOptions: IQueryOptions,
-    statementOptions: Model.IStatementOptions
+    queryOptions: InputQueryOptions,
+    statementOptions: InputStatementOptions
   ) => Promise<boolean> = this.applyDefaultsTo(async (params, queryOptions, statementOptions) => {
     const sql = `delete from entity
       where categoryId = :entityType
@@ -203,8 +214,8 @@ export abstract class Entity<ET extends Model.IEntity> {
 
   createEntity: (
     params: Model.EntityKeyCreate<ET>,
-    queryOptions: IQueryOptions,
-    statementOptions: IStatementOptions
+    queryOptions: InputQueryOptions,
+    statementOptions: InputStatementOptions
   ) => Promise<ET> = this.applyDefaultsTo(async (params, queryOptions, statementOptions) => {
     const sql = `insert into entity values (
         :entityType,
@@ -264,8 +275,8 @@ export abstract class Entity<ET extends Model.IEntity> {
 
   updateEntity: (
     params: Model.EntityKeyUpdate<ET>,
-    queryOptions: IQueryOptions,
-    statementOptions: Model.IStatementOptions
+    queryOptions: InputQueryOptions,
+    statementOptions: InputStatementOptions
   ) => Promise<ET> = this.applyDefaultsTo(async (params, queryOptions, statementOptions) => {
     const sql = `update entity set
       data = :data::jsonb
@@ -297,8 +308,8 @@ export abstract class Entity<ET extends Model.IEntity> {
 
   updateEntityTags: (
     params: Model.EntityKeyTags<ET>,
-    queryOptions: IQueryOptions,
-    statementOptions: Model.IStatementOptions,
+    queryOptions: InputQueryOptions,
+    statementOptions: InputStatementOptions,
     tags: Model.ITagsWithVersion
   ) => Promise<Model.ITagsWithVersion> = this.applyDefaultsTo(async (params, queryOptions, statementOptions) => {
     const sql = `update entity set
@@ -327,8 +338,8 @@ export abstract class Entity<ET extends Model.IEntity> {
 
   setEntityTag: (
     params: Model.EntityKeyTag<ET>,
-    queryOptions: IQueryOptions,
-    statementOptions: Model.IStatementOptions
+    queryOptions: InputQueryOptions,
+    statementOptions: InputStatementOptions
   ) => Promise<Model.ITagsWithVersion> = this.applyDefaultsTo(async (params, queryOptions, statementOptions) => {
     const sql = `update entity set
       tags = jsonb_set(tags, format('{%s}', :tagKey), :tagValue)
@@ -356,8 +367,8 @@ export abstract class Entity<ET extends Model.IEntity> {
 
   deleteEntityTag: (
     params: Model.EntityKeyTag<ET>,
-    queryOptions: IQueryOptions,
-    statementOptions: IStatementOptions
+    queryOptions: InputQueryOptions,
+    statementOptions: InputStatementOptions
   ) => Promise<Model.ITagsWithVersion> = this.applyDefaultsTo(async (params, queryOptions, statementOptions) => {
     const sql = `update entity set
       tags = tags - :tagKey
@@ -381,15 +392,6 @@ export abstract class Entity<ET extends Model.IEntity> {
     ensureRecords(result);
     return this.sqlToTagsWithVersion(result.records[0]);
   });
+  static readonly EntityType = EntityType;
 }
-
-export namespace Entity {
-  export enum EntityType {
-    Integration = 'integration',
-    Connector = 'connector',
-    Operation = 'operation',
-    Storage = 'storage',
-  }
-}
-
 export default Entity;

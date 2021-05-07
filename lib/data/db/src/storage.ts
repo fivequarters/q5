@@ -1,6 +1,5 @@
 import * as Model from './model';
 import Entity from './entity';
-import EntityType = Entity.EntityType;
 
 //--------------------------------
 // Storage
@@ -9,7 +8,9 @@ import EntityType = Entity.EntityType;
 class Storage extends Entity<Model.IStorageItem> {
   constructor() {
     super({
-      entityType: EntityType.Storage,
+      entityType: Entity.EntityType.Storage,
+      upsert: true,
+      filterExpired: true,
     });
   }
 }

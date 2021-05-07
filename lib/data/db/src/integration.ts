@@ -1,6 +1,5 @@
 import * as Model from './model';
 import Entity from './entity';
-import EntityType = Entity.EntityType;
 
 //--------------------------------
 // Integrations
@@ -9,7 +8,7 @@ import EntityType = Entity.EntityType;
 class Integration extends Entity<Model.IIntegration> {
   constructor() {
     super({
-      entityType: EntityType.Integration,
+      entityType: Entity.EntityType.Integration,
     });
   }
 }

@@ -1,6 +1,5 @@
 import * as Model from './model';
 import Entity from './entity';
-import EntityType = Entity.EntityType;
 
 //--------------------------------
 // Connectors
@@ -9,7 +8,7 @@ import EntityType = Entity.EntityType;
 class Connector extends Entity<Model.IConnector> {
   constructor() {
     super({
-      entityType: EntityType.Connector,
+      entityType: Entity.EntityType.Connector,
     });
   }
 }

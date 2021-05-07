@@ -3,6 +3,7 @@ import * as Model from './model';
 import { RDSDataService } from 'aws-sdk';
 import { SqlRecords } from 'aws-sdk/clients/rdsdataservice';
 import { PromiseResult } from 'aws-sdk/lib/request';
+import { FinalStatementOptions } from './model';
 
 class RDS {
   NotFoundError = class extends Error {
@@ -85,12 +86,12 @@ class RDS {
 
   executeStatement: (
     sql: string,
-    objectParameters?: { [key: string]: any },
-    statementOptions?: Model.IStatementOptions
+    objectParameters: { [key: string]: any },
+    statementOptions?: FinalStatementOptions
   ) => Promise<PromiseResult<RDSDataService.ExecuteStatementResponse, AWS.AWSError>> = async (
     sql,
-    objectParameters = {},
-    statementOptions = {}
+    objectParameters,
+    statementOptions?
   ) => {
     const { rdsSdk, rdsCredentials } = await this.ensureConnection();
 
