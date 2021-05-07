@@ -27,12 +27,12 @@ const command: ICommand = {
 export class RestoreCommand extends Command {
   public static async create() {
     const subCommands = [];
-    subCommands.push(await StartRestoreCommand.create())
+    subCommands.push(await StartRestoreCommand.create());
     command.subCommands = subCommands;
-    return new RestoreCommand(command); 
+    return new RestoreCommand(command);
   }
 
   private constructor(command: ICommand) {
-    super(command)
+    super(command);
   }
 }

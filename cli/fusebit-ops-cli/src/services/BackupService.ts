@@ -222,7 +222,7 @@ export class BackupService {
           }
         }
       });
-    return new Promise((res, _) => res(result as string));
+    return result as string;
   }
 
   // list backup plans available in all AWS regions, triggered by GetBackupCommand.ts
@@ -266,9 +266,7 @@ export class BackupService {
           ];
         });
     }
-    return new Promise((res, _) => {
-      res(backupPlans);
-    });
+    return backupPlans;
   }
 
   // display driver for showing backup plans
@@ -327,9 +325,7 @@ export class BackupService {
     if (!region.includes(config.region)) {
       region.push(config.region);
     }
-    return new Promise((res, rej) => {
-      res(region);
-    });
+    return region;
   }
 
   // find the region of the specified deployment

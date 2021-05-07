@@ -41,6 +41,14 @@ export class RestoreService {
     this.awsBackupRestoreRateLimit = this.input.options['restore-rate-limit'] as number;
   }
 
+  /**
+   * restore from backup magic
+   *
+   * @param {boolean} forceRemove
+   * @param {string} deploymentName
+   * @param {string} backupPlanName
+   * @memberof RestoreService
+   */
   public async restoreFromBackup(forceRemove: boolean, deploymentName: string, backupPlanName: string) {
     const opsDataContext = await this.opsService.getOpsDataContext();
     const info = await this.executeService.execute(
@@ -52,6 +60,7 @@ export class RestoreService {
       () => this.restorefromBackupDriver(forceRemove, deploymentName, backupPlanName)
     );
   }
+
   /**
    * This function drives a full restore
    *
@@ -91,23 +100,65 @@ export class RestoreService {
         backupPlanName,
         region as string
       );
-      const Backup = new AWS.Backup({
-        accessKeyId: credentials.accessKeyId,
-        secretAccessKey: credentials.secretAccessKey,
-        sessionToken: credentials.sessionToken,
-        region: region as string,
-      });
-      await Backup.startRestoreJob({
-        IamRoleArn: `arn:aws:iam::${config.account}:role/fusebit-backup-role`,
-        RecoveryPointArn: restorePoint.RecoveryPointArn,
-        ResourceType: 'DynamoDB',
-        Metadata: {
-          targetTableName: `${deploymentName}.${tableSuffix}`
-        },
-      }).promise();
+      await this.startRestoreJobAndMakeSureItFinishes(
+        restorePoint.RecoveryPointArn,
+        tableName,
+        credentials,
+        config,
+        region as string
+      );
     }
   }
 
+  /**
+   * start a restore job and make sure the job finishes
+   *
+   * @private
+   * @param {string} restorePointArn
+   * @param {string} tableName
+   * @param {IAwsCredentials} credentials
+   * @param {IAwsConfig} config
+   * @param {string} region
+   * @memberof RestoreService
+   */
+  private async startRestoreJobAndMakeSureItFinishes(
+    restorePointArn: string,
+    tableName: string,
+    credentials: IAwsCredentials,
+    config: IAwsConfig,
+    region: string
+  ) {
+    const DynamoDB = new AWS.DynamoDB({
+      accessKeyId: credentials.accessKeyId,
+      secretAccessKey: credentials.secretAccessKey,
+      sessionToken: credentials.sessionToken,
+      region,
+      apiVersion: '2012-08-10',
+    });
+    let success: boolean = false;
+    while (!success) {
+      await DynamoDB.restoreTableFromBackup({
+        BackupArn: restorePointArn,
+        TargetTableName: tableName,
+      })
+        .promise()
+        .then((data) => {
+          success = true;
+        })
+        .catch(async (err) => {
+          await setTimeout(() => {}, 10000);
+        });
+    }
+  }
+  /**
+   * delete all existing ddb table
+   *
+   * @private
+   * @param {string} deploymentName
+   * @param {IAwsConfig} config
+   * @param {IAwsCredentials} credentials
+   * @memberof RestoreService
+   */
   private async deleteAllExistingDynamoDBTable(
     deploymentName: string,
     config: IAwsConfig,
@@ -126,10 +177,21 @@ export class RestoreService {
         .deleteTable({
           TableName: table,
         })
-        .promise();
+        .promise()
+        .catch((data) => {});
     }
   }
-
+  
+  /**
+   * finds the region in which the deployment resides
+   *
+   * @private
+   * @param {string} deploymentName
+   * @param {IAwsConfig} config
+   * @param {IAwsCredentials} credentials
+   * @return {*} 
+   * @memberof RestoreService
+   */
   private async findRegionFromDeploymentName(deploymentName: string, config: IAwsConfig, credentials: IAwsCredentials) {
     const dynamoDB = new AWS.DynamoDB({
       accessKeyId: credentials.accessKeyId,
@@ -152,6 +214,16 @@ export class RestoreService {
     return undefined;
   }
 
+  /**
+   * filter restore points search by table name and backup vault name
+   *
+   * @private
+   * @param {string} tableName
+   * @param {string} backupVaultName
+   * @param {AWS.Backup.RecoveryPointByBackupVaultList} restorePointList
+   * @return {*}  {Promise<AWS.Backup.RecoveryPointByBackupVault[]>}
+   * @memberof RestoreService
+   */
   private async filterRestorePointsByTableNameAndBackupVaultName(
     tableName: string,
     backupVaultName: string,
@@ -169,6 +241,17 @@ export class RestoreService {
     return result;
   }
 
+  /**
+   * find the latest restore point of a table
+   *
+   * @private
+   * @param {IAwsCredentials} credentials
+   * @param {string} tableName
+   * @param {string} backupPlanName
+   * @param {string} deploymentRegion
+   * @return {*}  {(Promise<any | undefined>)}
+   * @memberof RestoreService
+   */
   private async findLatestRecoveryPointOfTable(
     credentials: IAwsCredentials,
     tableName: string,
@@ -207,6 +290,14 @@ export class RestoreService {
     }
   }
 
+  /**
+   * returns the lastest date given a list of date
+   *
+   * @private
+   * @param {Date[]} recoveryPointDates
+   * @return {*}  {Promise<Date>}
+   * @memberof RestoreService
+   */
   private async returnLatestDate(recoveryPointDates: Date[]): Promise<Date> {
     if (recoveryPointDates.length === 1) {
       return recoveryPointDates[0];
@@ -220,6 +311,17 @@ export class RestoreService {
     return newest;
   }
 
+  /**
+   * check all tables exists
+   *
+   * @private
+   * @param {string} deploymentName
+   * @param {IAwsCredentials} credentials
+   * @param {string} backupPlanName
+   * @param {string} deploymentRegion
+   * @return {*}  {Promise<boolean>}
+   * @memberof RestoreService
+   */
   private async checkAllTablesExist(
     deploymentName: string,
     credentials: IAwsCredentials,
