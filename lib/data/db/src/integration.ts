@@ -8,10 +8,10 @@ import EntityType = Entity.EntityType;
 
 class Integration extends Entity<Model.IIntegration> {
   constructor() {
-    super();
-    this.entityType = EntityType.Integration;
+    super({
+      entityType: EntityType.Integration,
+    });
   }
-  protected readonly entityType: Entity.EntityType;
 }
 
 export default Integration;

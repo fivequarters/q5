@@ -8,8 +8,8 @@ import EntityType = Entity.EntityType;
 
 class Storage extends Entity<Model.IStorageItem> {
   constructor() {
-    super();
-    this.entityType = EntityType.Storage;
+    super({
+      entityType: EntityType.Storage,
+    });
   }
-  protected readonly entityType: Entity.EntityType;
 }

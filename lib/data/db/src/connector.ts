@@ -8,10 +8,10 @@ import EntityType = Entity.EntityType;
 
 class Connector extends Entity<Model.IConnector> {
   constructor() {
-    super();
-    this.entityType = EntityType.Connector;
+    super({
+      entityType: EntityType.Connector,
+    });
   }
-  protected readonly entityType: Entity.EntityType;
 }
 
 export default Connector;
