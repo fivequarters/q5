@@ -14,3 +14,5 @@ class Storage extends Entity<Model.IStorageItem> {
     });
   }
 }
+
+export default Storage;

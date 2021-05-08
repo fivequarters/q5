@@ -18,9 +18,9 @@ export interface IEntity extends IEntityKeyWithMetadata {
   data: object;
 }
 export interface IEntityKeyMetadata {
-  tags: ITags;
+  tags?: ITags;
   version?: number;
-  expires?: Date;
+  expires?: number;
 }
 
 export interface IEntityKeyPrefix extends Omit<IEntityKey, 'id'> {
@@ -50,26 +50,32 @@ export interface IEntityKeyTags
   extends Omit<Partial<IEntity>, keyof IEntityKey | keyof IEntityKeyMetadata>,
     IEntityKey,
     IEntityKeyWithMetadata {}
-export interface IEntityKeyTag
+export interface IEntityKeyTagsUpdate
+  extends Omit<Partial<IEntity>, keyof IEntityKey | keyof IEntityKeyMetadata>,
+    IEntityKey,
+    IEntityKeyWithMetadata {
+  tags: ITags;
+}
+export interface IEntityKeyTagSet
   extends Omit<Partial<IEntity>, keyof IEntityKey | keyof IEntityKeyMetadata>,
     IEntityKey,
     IEntityKeyWithMetadata {
   tagKey: string;
   tagValue?: string;
 }
-
 //--------------------------------
 // EntityKey Params
 //--------------------------------
-export type PartialApply<T, U> = Partial<Omit<T, keyof U>> & U;
+export type Combine<T, U> = Omit<T, keyof U> & U;
 
-export type EntityKeyGet<T extends IEntity> = PartialApply<T, IEntityKeyGet>;
-export type EntityKeyList<T extends IEntity> = PartialApply<T, IEntityKeyList>;
-export type EntityKeyDelete<T extends IEntity> = PartialApply<T, IEntityKeyDelete>;
-export type EntityKeyCreate<T extends IEntity> = PartialApply<T, IEntityKeyCreate>;
-export type EntityKeyUpdate<T extends IEntity> = PartialApply<T, IEntityKeyUpdate>;
-export type EntityKeyTags<T extends IEntity> = PartialApply<T, IEntityKeyTags>;
-export type EntityKeyTag<T extends IEntity> = PartialApply<T, IEntityKeyTag>;
+export type EntityKeyGet<T extends IEntity> = Combine<Partial<T>, IEntityKeyGet>;
+export type EntityKeyList<T extends IEntity> = Combine<Partial<T>, IEntityKeyList>;
+export type EntityKeyDelete<T extends IEntity> = Combine<Partial<T>, IEntityKeyDelete>;
+export type EntityKeyCreate<T extends IEntity> = Combine<T, IEntityKeyCreate>;
+export type EntityKeyUpdate<T extends IEntity> = Combine<Partial<T>, IEntityKeyUpdate>;
+export type EntityKeyTags<T extends IEntity> = Combine<Partial<T>, IEntityKeyTags>;
+export type EntityKeyTagSet<T extends IEntity> = Combine<Partial<T>, IEntityKeyTagSet>;
+export type EntityKeyTagsUpdate<T extends IEntity> = Combine<Partial<T>, IEntityKeyTagsUpdate>;
 export type EntityKeyParams<T extends IEntity> =
   | EntityKeyGet<T>
   | EntityKeyList<T>
@@ -77,7 +83,8 @@ export type EntityKeyParams<T extends IEntity> =
   | EntityKeyCreate<T>
   | EntityKeyUpdate<T>
   | EntityKeyTags<T>
-  | EntityKeyTag<T>;
+  | EntityKeyTagSet<T>
+  | EntityKeyTagsUpdate<T>;
 
 export interface IListResponse<T extends IEntity> {
   items: T[];
@@ -101,6 +108,8 @@ export interface IConnector extends IEntity {
 export interface IStorageItem extends IEntity {}
 
 export interface IOperation extends IEntity {}
+
+export type EntityGeneric = IIntegration | IConnector;
 
 //--------------------------------
 // Utilities
@@ -180,8 +189,8 @@ export interface defaultConstructorArguments {
 }
 
 export enum EntityType {
-  Integration = 'integration',
-  Connector = 'connector',
-  Operation = 'operation',
-  Storage = 'storage',
+  Integration, //= 'integration',
+  Connector, // = 'connector',
+  Operation, //= 'operation',
+  Storage, //= 'storage',
 }

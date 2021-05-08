@@ -104,6 +104,7 @@ class RDS {
           sql,
           parameters,
           ...statementOptions,
+          includeResultMetadata: true,
         })
         .promise();
     } catch (e) {
