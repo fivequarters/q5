@@ -15,9 +15,13 @@
   },
   "keywords": [],
   "dependencies": {
-    "aws-sdk": "^2.895.0"
+    "aws-sdk": "^2.895.0",
+    "moment": "^2.29.1"
   },
   "devServer": {
     "port": 9512
+  },
+  "devDependencies": {
+    "@types/moment": "^2.13.0"
   }
 }

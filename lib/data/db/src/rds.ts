@@ -27,8 +27,9 @@ class RDS {
 
   purgeExpiredItems = async () => {
     try {
+      //TODO parameterize
       const { rdsSdk, rdsCredentials } = await this.ensureConnection();
-      const sql = `delete from entity where expires < (extract(epoch from now()) * 1000)`;
+      const sql = `delete from entity where expires < now()`;
       const result = await rdsSdk
         .executeStatement({
           ...rdsCredentials,

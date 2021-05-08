@@ -1,6 +1,7 @@
 import { Model, RDS, Operation } from '@5qtrs/db';
 import createEntityTests, { EntityAssertions } from './db.entity';
 import { random } from '@5qtrs/random';
+import moment from 'moment';
 
 const entityAssertions: EntityAssertions<Model.IIntegration> = {
   create: (arg) => arg,
@@ -63,7 +64,7 @@ describe('DB operation unique tests', () => {
     expect(result1).toBeDefined();
     expect(result1).toMatchObject(op);
     expect(result1.expires).toBeDefined();
-    expect(result1.expires).toBe(result.expires);
+    expect(result1.expires?.format()).toBe(result.expires?.format());
   }, 10000);
 
   test('Expiry works', async () => {
@@ -75,11 +76,12 @@ describe('DB operation unique tests', () => {
     const op = {
       ...key,
       data: { foo: 'bar' },
-      expires: 50 + Date.now(),
+      expiresDuration: moment.duration(100, 'millisecond'),
     };
     const result = await entity.createEntity(entityAssertions.create(op));
+    delete op.expiresDuration;
     expect(result).toMatchObject(op);
-    await new Promise((r) => setTimeout(() => r(undefined), 100));
+    await new Promise((r) => setTimeout(() => r(undefined), 200));
     await expect(entity.getEntity(entityAssertions.get(key))).rejects.toThrowError(RDS.NotFoundError);
   }, 10000);
 
@@ -93,8 +95,9 @@ describe('DB operation unique tests', () => {
     const result = await entity.createEntity(entityAssertions.update(op));
     expect(result).toMatchObject(op);
     const op1 = { ...op, data: { foo: 'baz' } };
+    await new Promise((res) => setTimeout(res, 1000));
     const result1 = await entity.createEntity(entityAssertions.create(op1));
     expect(result1).toMatchObject(op1);
-    expect(result1.expires).toBeGreaterThan(result.expires || 0);
+    expect(result1.expires?.isAfter(result.expires)).toBeTruthy();
   }, 10000);
 });

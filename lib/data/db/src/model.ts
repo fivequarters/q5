@@ -1,3 +1,5 @@
+import moment from 'moment';
+
 export interface IRdsCredentials {
   resourceArn: string;
   secretArn: string;
@@ -20,7 +22,8 @@ export interface IEntity extends IEntityKeyWithMetadata {
 export interface IEntityKeyMetadata {
   tags?: ITags;
   version?: number;
-  expires?: number;
+  expires?: moment.Moment;
+  expiresDuration?: moment.Duration;
 }
 
 export interface IEntityKeyPrefix extends Omit<IEntityKey, 'id'> {
@@ -172,7 +175,8 @@ export interface FinalStatementOptions
     MergedStatementOptions {}
 
 export interface DefaultParameterOptions {
-  expires?: number;
+  expires?: moment.Moment;
+  expiresDuration?: moment.Duration;
 }
 export interface MergedParameterOptions /*
  uncomment the below line once `defaultConstructorArguments` includes an item from `DefaultParameterOptions`
@@ -189,8 +193,8 @@ export interface defaultConstructorArguments {
 }
 
 export enum EntityType {
-  Integration, //= 'integration',
-  Connector, // = 'connector',
-  Operation, //= 'operation',
-  Storage, //= 'storage',
+  Integration = 'integration',
+  Connector = 'connector',
+  Operation = 'operation',
+  Storage = 'storage',
 }
