@@ -1,16 +1,17 @@
-import * as Db from '@5qtrs/db';
-import * as Entity from './db.entity';
+import { Model, Integration } from '@5qtrs/db';
+import createEntityTests, { EntityAssertions } from './db.entity';
+
+const entityAssertions: EntityAssertions<Model.IIntegration> = {
+  create: (arg) => arg,
+  delete: (arg) => arg,
+  get: (arg) => arg,
+  list: (arg) => arg,
+  tags: { get: (arg) => arg, set: (arg) => arg, update: (arg) => arg },
+  update: (arg) => arg,
+};
 
 describe('DB integration', () => {
-  Entity.createEntityTests({
-    get: Db.getIntegration as Entity.GetFunc,
-    create: Db.createIntegration as Entity.CreateFunc,
-    update: Db.updateIntegration as Entity.UpdateFunc,
-    delete: Db.deleteIntegration as Entity.DeleteFunc,
-    list: Db.listIntegrations as Entity.ListFunc,
-    getTags: Db.getIntegrationTags as Entity.GetTagsFunc,
-    setTags: Db.setIntegrationTags as Entity.SetTagsFunc,
-    setTag: Db.setIntegrationTag as Entity.SetTagFunc,
-    deleteTag: Db.deleteIntegrationTag as Entity.DeleteTagFunc,
-  });
+  //Entity.createEntityTests();
+  const entity = new Integration();
+  createEntityTests<Model.IIntegration>(entity, entityAssertions);
 });
