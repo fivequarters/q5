@@ -23,6 +23,10 @@ interface IFormSpecification {
   submitUrl: string;
   /** Send the user to the cancelUrl on cancellation. */
   cancelUrl: string;
+  /** Title of the dialog surrounding the form. */
+  dialogTitle: string;
+  /** Title of the window in the browser. */
+  windowTitle: string;
   /**
    * Optional HTML template that contains the following artifacts to be replaced by other values in the
    * IFormSpecification:
@@ -30,6 +34,8 @@ interface IFormSpecification {
    *   - ##uischema##
    *   - ##data##
    *   - ##state##
+   *   - ##dialogTitle##
+   *   - ##windowTitle##
    *   - ##submitUrl##
    *   - ##cancelUrl##
    */
@@ -44,6 +50,8 @@ const Form = (spec: IFormSpecification) => {
     .replace('##schema##', JSON.stringify(spec.schema))
     .replace('##uischema##', JSON.stringify(spec.uiSchema))
     .replace('##data##', JSON.stringify(spec.data))
+    .replace('##windowTitle##', spec.windowTitle)
+    .replace('##dialogTitle##', spec.dialogTitle)
     .replace('##state##', JSON.stringify(spec.state))
     .replace('##submitUrl##', `"${spec.submitUrl}"`)
     .replace('##cancelUrl##', `"${spec.cancelUrl}"`);

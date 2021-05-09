@@ -131,4 +131,7 @@ describe('Routes', () => {
     expect(result.body).toBe('HELLO 1');
     expect(result.status).toBe(200);
   });
+
+  it('Default route healthcheck returns success', async () => {});
+  it('Default route healthcheck returns failure', async () => {});
 });

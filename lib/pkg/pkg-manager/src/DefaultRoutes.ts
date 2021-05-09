@@ -18,10 +18,9 @@ router.get('/api/health', async (ctx: Context, next: Next) => {
   await next();
 
   // If no status has been set, respond with a basic one.
-  if (!ctx.status) {
-    ctx.body = manager.vendorError
-      ? ctx.throw(501, 'invalid vendor data', { error: manager.vendorError })
-      : { status: 'ok' };
+  if (ctx.status === 200 && manager.vendorError) {
+    // TODO: The ctx.throw doesn't seem to support an optional parameter, or it gets stripped out later.
+    ctx.body = manager.vendorError ? ctx.throw(501, `invalid vendor data: ${manager.vendorError}`) : { status: 'ok' };
   }
 });
 

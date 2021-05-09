@@ -86,7 +86,6 @@ class Manager {
 
       // Add the default routes even when the vendor code hasn't loaded correctly.
       this.router.use(DefaultRoutes.routes());
-      return;
     }
 
     // Add vendor routes prior to the defaults, to allow for the vendor to add middleware or override default
@@ -102,7 +101,9 @@ class Manager {
 
     // Add the default routes - these will get overruled by any routes added by the vendor or during the
     // startup phase.
-    this.router.use(DefaultRoutes.routes());
+    if (!vendorError) {
+      this.router.use(DefaultRoutes.routes());
+    }
   }
 
   /**

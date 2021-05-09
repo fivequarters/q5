@@ -1,6 +1,6 @@
 import superagent from 'superagent';
 
-import { Context, IConnectorConfig } from '@fusebit-int/pkg-manager';
+import { Context, IInstanceConnectorConfig } from '@fusebit-int/pkg-manager';
 
 /*
  * An example class that pairs with the pkg-oauth-connector/OAuthConnector.  Many such classes may pair with
@@ -8,8 +8,8 @@ import { Context, IConnectorConfig } from '@fusebit-int/pkg-manager';
  * need for them to derive from this particular instance.
  */
 export default class OAuthIntegration {
-  public config: IConnectorConfig;
-  constructor(cfg: IConnectorConfig) {
+  public config: IInstanceConnectorConfig;
+  constructor(cfg: IInstanceConnectorConfig) {
     this.config = cfg;
   }
 
