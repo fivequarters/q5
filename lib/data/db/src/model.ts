@@ -1,4 +1,43 @@
 import moment from 'moment';
+import * as AWS from 'aws-sdk';
+import { PromiseResult } from 'aws-sdk/lib/request';
+import { RDSDataService } from 'aws-sdk';
+import { SqlRecords } from 'aws-sdk/clients/rdsdataservice';
+
+class CustomError extends Error {
+  constructor(message?: string) {
+    super(message);
+    Object.setPrototypeOf(this, new.target.prototype);
+  }
+}
+
+export interface IRds {
+  NotFoundError: typeof CustomError;
+  ConflictError: typeof CustomError;
+  purgeExpiredItems: () => Promise<boolean>;
+  ensureConnection: () => Promise<{ rdsSdk: AWS.RDSDataService; rdsCredentials: IRdsCredentials }>;
+  executeStatement: (
+    sql: string,
+    objectParameters?: { [key: string]: any },
+    statementOptions?: FinalStatementOptions
+  ) => Promise<PromiseResult<RDSDataService.ExecuteStatementResponse, AWS.AWSError>>;
+  createParameterArray: (parameters: { [key: string]: any }) => RDSDataService.SqlParametersList;
+  createTransaction: () => Promise<string>;
+  commitTransaction: (transactionId: string) => Promise<string>;
+  rollbackTransaction: (transactionId: string) => Promise<string>;
+  inTransaction: <T>(func: (daoCollection: IDaoCollection, rollback: () => Promise<string>) => T) => Promise<T>;
+  ensureRecords: (
+    result: RDSDataService.ExecuteStatementResponse
+  ) => asserts result is RDSDataService.ExecuteStatementResponse & { records: SqlRecords };
+  DAO: IDaoCollection;
+}
+
+export interface IDaoCollection {
+  Connector: IEntityDao<IConnector>;
+  Integration: IEntityDao<IIntegration>;
+  Storage: IEntityDao<IStorageItem>;
+  Operation: IEntityDao<IOperation>;
+}
 
 export interface IRdsCredentials {
   resourceArn: string;
@@ -143,6 +182,8 @@ export interface EntityConstructorArgument
     DefaultStatementOptions,
     DefaultParameterOptions {
   entityType: EntityType;
+  RDS: IRds;
+  transactionId?: string;
 }
 
 export interface EntityConstructorArgumentWithDefaults
@@ -168,7 +209,9 @@ export interface MergedStatementOptions /*
   // Pick<defaultConstructorArguments, keyof DefaultStatementOptions>,
  */
   extends Partial<Omit<OptionalKeysOnly<DefaultStatementOptions>, keyof defaultConstructorArguments>>,
-    RequiredKeysOnly<DefaultStatementOptions> {}
+    RequiredKeysOnly<DefaultStatementOptions> {
+  transactionId?: string;
+}
 export interface InputStatementOptions extends Partial<DefaultStatementOptions> {}
 export interface FinalStatementOptions
   extends Omit<InputStatementOptions, keyof MergedStatementOptions>,
@@ -197,4 +240,58 @@ export enum EntityType {
   Connector = 'connector',
   Operation = 'operation',
   Storage = 'storage',
+}
+
+//--------------------------------
+// DAO Class Definitions
+//--------------------------------
+
+export interface IDAO {
+  createTransactional: (transactionId?: string) => this;
+}
+
+export interface IEntityDao<ET extends IEntity> extends IDAO {
+  sqlToIEntity: (record: RDSDataService.FieldList) => ET;
+  sqlToTagsWithVersion: (record: RDSDataService.FieldList) => ITagsWithVersion;
+  getEntity: (
+    params: EntityKeyGet<ET>,
+    queryOptions?: InputQueryOptions,
+    statementOptions?: InputStatementOptions
+  ) => Promise<ET>;
+  getEntityTags: (
+    params: EntityKeyTags<ET>,
+    queryOptions?: InputQueryOptions,
+    statementOptions?: InputStatementOptions
+  ) => Promise<ITagsWithVersion>;
+  listEntities: (params: EntityKeyList<ET>, queryOptions?: InputQueryOptions) => Promise<IListResponse<ET>>;
+  deleteEntity: (
+    params: EntityKeyDelete<ET>,
+    queryOptions?: InputQueryOptions,
+    statementOptions?: InputStatementOptions
+  ) => Promise<boolean>;
+  createEntity: (
+    params: EntityKeyCreate<ET>,
+    queryOptions?: InputQueryOptions,
+    statementOptions?: InputStatementOptions
+  ) => Promise<ET>;
+  updateEntity: (
+    params: EntityKeyUpdate<ET>,
+    queryOptions?: InputQueryOptions,
+    statementOptions?: InputStatementOptions
+  ) => Promise<ET>;
+  updateEntityTags: (
+    params: EntityKeyTags<ET>,
+    queryOptions?: InputQueryOptions,
+    statementOptions?: InputStatementOptions
+  ) => Promise<ITagsWithVersion>;
+  setEntityTag: (
+    params: EntityKeyTagSet<ET>,
+    queryOptions?: InputQueryOptions,
+    statementOptions?: InputStatementOptions
+  ) => Promise<ITagsWithVersion>;
+  deleteEntityTag: (
+    params: EntityKeyTagSet<ET>,
+    queryOptions?: InputQueryOptions,
+    statementOptions?: InputStatementOptions
+  ) => Promise<ITagsWithVersion>;
 }

@@ -3,9 +3,13 @@ import * as Model from './model';
 import { RDSDataService } from 'aws-sdk';
 import { SqlRecords } from 'aws-sdk/clients/rdsdataservice';
 import { PromiseResult } from 'aws-sdk/lib/request';
-import { FinalStatementOptions } from './model';
+import { FinalStatementOptions, IDaoCollection, IRds, IRdsCredentials } from './model';
+import Connector from './daos/connector';
+import Integration from './daos/integration';
+import Storage from './daos/storage';
+import Operation from './daos/operation';
 
-class RDS {
+class RDS implements IRds {
   NotFoundError = class extends Error {
     public statusCode = 404;
     constructor() {
@@ -25,9 +29,8 @@ class RDS {
   private readonly defaultAuroraDatabaseName = 'fusebit';
   private readonly defaultPurgeInterval = 10 * 60 * 1000;
 
-  purgeExpiredItems = async () => {
+  purgeExpiredItems: () => Promise<boolean> = async () => {
     try {
-      //TODO parameterize
       const { rdsSdk, rdsCredentials } = await this.ensureConnection();
       const sql = `delete from entity where expires < now()`;
       const result = await rdsSdk
@@ -37,14 +40,16 @@ class RDS {
         })
         .promise();
       console.log('SUCCESS purging expired entities from Aurora. Purged entities:', result.numberOfRecordsUpdated);
+      return true;
     } catch (e) {
       console.log('ERROR purging expired entities from Aurora:', e);
+      return false;
     }
   };
 
-  ensureConnection: () => Promise<{ rdsSdk: AWS.RDSDataService; rdsCredentials: Model.IRdsCredentials }> = async () => {
+  ensureConnection: () => Promise<{ rdsSdk: AWS.RDSDataService; rdsCredentials: IRdsCredentials }> = async () => {
     if (!this.rdsSdk) {
-      const secretsmanager = new AWS.SecretsManager({
+      const secretsManager = new AWS.SecretsManager({
         apiVersion: '2017-10-17',
       });
       const params = {
@@ -53,7 +58,7 @@ class RDS {
           { Key: 'tag-value', Values: [process.env.DEPLOYMENT_KEY as string] },
         ],
       };
-      const data = await secretsmanager.listSecrets(params).promise();
+      const data = await secretsManager.listSecrets(params).promise();
       if (!data.SecretList || data.SecretList.length !== 1) {
         throw new Error(
           `Cannot find a unique secret to access Aurora cluster in the Secrets Manager. Expected 1 matching secret, found ${
@@ -87,11 +92,11 @@ class RDS {
 
   executeStatement: (
     sql: string,
-    objectParameters: { [key: string]: any },
+    objectParameters?: { [key: string]: any },
     statementOptions?: FinalStatementOptions
   ) => Promise<PromiseResult<RDSDataService.ExecuteStatementResponse, AWS.AWSError>> = async (
     sql,
-    objectParameters,
+    objectParameters = {},
     statementOptions?
   ) => {
     const { rdsSdk, rdsCredentials } = await this.ensureConnection();
@@ -179,10 +184,23 @@ class RDS {
     return result.transactionStatus as string;
   };
 
-  inTransaction: <T>(func: () => Promise<T> | T) => Promise<T> = async (func) => {
+  inTransaction: <T>(
+    func: (transactionalDaos: IDaoCollection, rollback: () => Promise<string>) => T
+  ) => Promise<T> = async (func) => {
     const transactionId = await this.createTransaction();
     try {
-      const result = await func();
+      const rollback = async () => {
+        throw 'Force Rollback';
+      };
+      const result = await func(
+        {
+          Connector: this.DAO.Connector.createTransactional(transactionId),
+          Integration: this.DAO.Integration.createTransactional(transactionId),
+          Storage: this.DAO.Storage.createTransactional(transactionId),
+          Operation: this.DAO.Operation.createTransactional(transactionId),
+        },
+        rollback
+      );
       await this.commitTransaction(transactionId);
       return result;
     } catch (e) {
@@ -190,16 +208,23 @@ class RDS {
       throw e;
     }
   };
+
+  public readonly DAO: IDaoCollection = {
+    Connector: new Connector(this),
+    Integration: new Integration(this),
+    Storage: new Storage(this),
+    Operation: new Operation(this),
+  };
+
+  ensureRecords: (
+    result: RDSDataService.ExecuteStatementResponse
+  ) => asserts result is RDSDataService.ExecuteStatementResponse & { records: SqlRecords } = (result) => {
+    if (!result || !result.records || result.records.length === 0) {
+      throw new RDSSingleton.NotFoundError();
+    }
+  };
 }
 
-const RDSSingleton = new RDS();
+const RDSSingleton: IRds = new RDS();
 
 export default RDSSingleton;
-
-export const ensureRecords: (
-  result: RDSDataService.ExecuteStatementResponse
-) => asserts result is RDSDataService.ExecuteStatementResponse & { records: SqlRecords } = (result) => {
-  if (!result || !result.records || result.records.length === 0) {
-    throw new RDSSingleton.NotFoundError();
-  }
-};

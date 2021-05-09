@@ -20,6 +20,7 @@ async function execute() {
 
   // Store the version in the environment so it can be recorded in a variety of places.
   process.env.FUSEOPS_VERSION = await getVersion();
+  console.log('FUSE_OPS_VERSION: ' + process.env.FUSEOPS_VERSION);
 
   const exitCode = await fusebitOpsCli.execute(args, io);
   process.exit(exitCode);

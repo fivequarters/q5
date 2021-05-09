@@ -148,7 +148,7 @@ export async function createDatabase(
       VpcSecurityGroupIds: securityGroups,
       Tags: getCommonTags(),
     };
-    const data = await rds.createDBCluster(params).promise();
+    await rds.createDBCluster(params).promise();
 
     const storeDatabaseCredentials = async (cluster: AWS.RDS.DBCluster): Promise<string> => {
       const name = getSecretName();
@@ -208,12 +208,14 @@ export async function createDatabase(
     };
     const params: AWS.RDSDataService.ExecuteStatementRequest = {
       ...commonParams,
-      sql: 'select version from schemaVersion;',
+      sql: 'select max(version) from schemaVersion ;',
     };
     let data: AWS.RDSDataService.ExecuteStatementResponse;
     let currentSchemaVersion = -1;
     try {
       data = await rdsData.executeStatement(params).promise();
+      debug('schemaVersion Response: ');
+      debug(JSON.stringify(data));
       if (!data.records || !data.records[0] || !data.records[0][0] || data.records[0][0].longValue === undefined) {
         throw new Error('Unable to determine the schema version of the Aurora database.');
       }
@@ -248,7 +250,12 @@ export async function createDatabase(
         params.sql = Migrations[n];
         params.transactionId = transactionId as string;
         const data = await rdsData.executeStatement(params).promise();
-        params.sql = `update schemaVersion set version = ${n} where version = ${n - 1};`;
+
+        params.sql = `insert into schemaVersion (version, fuse_ops_version, ran_at) values (:schemaVersion, :fuseOpsVersion, now());`;
+        params.parameters = [
+          { name: 'schemaVersion', value: { longValue: n } },
+          { name: 'fuseOpsVersion', value: { stringValue: process.env.FUSEOPS_VERSION || '' } },
+        ];
         const result = await rdsData.executeStatement(params).promise();
         if (result.numberOfRecordsUpdated !== 1) {
           throw new Error(`Unable to persist the database schema version ${n}`);

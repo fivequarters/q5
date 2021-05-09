@@ -1,4 +1,4 @@
-import { Model, Connector } from '@5qtrs/db';
+import RDS, { Model } from '@5qtrs/db';
 import createEntityTests, { EntityAssertions } from './db.entity';
 
 const entityAssertions: EntityAssertions<Model.IConnector> = {
@@ -11,7 +11,5 @@ const entityAssertions: EntityAssertions<Model.IConnector> = {
 };
 
 describe('DB connector', () => {
-  //Entity.createEntityTests();
-  const entity = new Connector();
-  createEntityTests<Model.IConnector>(entity, entityAssertions);
+  createEntityTests<Model.IConnector>(RDS.DAO.Connector, entityAssertions);
 });

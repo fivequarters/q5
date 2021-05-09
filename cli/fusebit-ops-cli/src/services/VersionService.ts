@@ -24,7 +24,7 @@ export class VersionService {
   public async getVersion() {
     let version;
     try {
-      version = await getVersion();
+      version = getVersion();
     } catch (error) {
       if (!this.input.options.quiet) {
         const header = 'Version Error';

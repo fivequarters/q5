@@ -1,68 +1,62 @@
-import * as Db from '@5qtrs/db';
+import RDS, { Model } from '@5qtrs/db';
 import { random } from '@5qtrs/random';
-import * as AWS from 'aws-sdk';
 
 const accountId = `acc-0000000000000000`;
 
 describe('DB transaction', () => {
-  let rds: AWS.RDSDataService;
-  let credentials: Db.IRdsCredentials;
   let subscriptionId: string;
 
   beforeAll(async () => {
-    [rds, credentials] = await Db.ensureRds();
+    await RDS.ensureConnection();
     subscriptionId = `sub-${random({ lengthInBytes: 16 })}`;
   });
 
   afterEach(async () => {
-    await rds
-      .executeStatement({
-        ...credentials,
-        sql: `delete from entity where accountId = '${accountId}' and subscriptionId = '${subscriptionId}';`,
-      })
-      .promise();
+    await RDS.executeStatement(
+      `delete from entity where accountId = '${accountId}' and subscriptionId = '${subscriptionId}';`
+    );
   }, 5000);
 
   test('Commit works', async () => {
-    const sqlOptions = {
-      transactionId: await Db.createTransaction(),
-    };
-    const keys = {
+    const storage = {
+      data: { foo: 'bar' },
+      tags: {},
       accountId,
       subscriptionId,
       id: 'storage-1',
     };
-    const storage = {
-      ...keys,
-      data: { foo: 'bar' },
-      tags: {},
-    };
-    const result1 = await Db.putStorage(storage, sqlOptions);
-    expect(result1).toMatchObject(storage);
-    await expect(Db.getStorage(keys)).rejects.toThrowError(Db.NotFoundError);
-    await Db.commitTransaction(sqlOptions.transactionId);
-    const result3 = await Db.getStorage(keys);
+    await RDS.inTransaction(async (daoCollection) => {
+      const result1 = await daoCollection.Storage.createEntity(storage);
+      expect(result1).toMatchObject(storage);
+      // Calling with non-transactional DAO
+      await expect(RDS.DAO.Storage.getEntity(storage)).rejects.toThrowError(RDS.NotFoundError);
+    });
+
+    const result3 = await RDS.DAO.Storage.getEntity(storage);
     expect(result3).toMatchObject(storage);
-  }, 10000);
+  }, 1000000000);
 
   test('Rollback works', async () => {
-    const sqlOptions = {
-      transactionId: await Db.createTransaction(),
-    };
-    const keys = {
+    const storage = {
       accountId,
       subscriptionId,
       id: 'storage-1',
-    };
-    const storage = {
-      ...keys,
       data: { foo: 'bar' },
       tags: {},
     };
-    const result1 = await Db.putStorage(storage, sqlOptions);
-    expect(result1).toMatchObject(storage);
-    await expect(Db.getStorage(keys)).rejects.toThrowError(Db.NotFoundError);
-    await Db.rollbackTransaction(sqlOptions.transactionId);
-    await expect(Db.getStorage(keys)).rejects.toThrowError(Db.NotFoundError);
+    try {
+      await RDS.inTransaction(async (daoCollection, rollback) => {
+        const result1 = await daoCollection.Storage.createEntity(storage);
+        expect(result1).toMatchObject(storage);
+        // Calling with non-transactional DAO
+        await expect(RDS.DAO.Storage.getEntity(storage)).rejects.toThrowError(RDS.NotFoundError);
+        // Forcing a rollback bubbles the error up.
+        await rollback();
+      });
+    } catch (e) {
+      expect(e).toEqual('Force Rollback');
+    }
+
+    await expect(RDS.DAO.Storage.getEntity(storage)).rejects.toThrowError(RDS.NotFoundError);
   }, 10000);
 });

@@ -1,4 +1,4 @@
-import { Model, Integration } from '@5qtrs/db';
+import RDS, { Model } from '@5qtrs/db';
 import createEntityTests, { EntityAssertions } from './db.entity';
 
 const entityAssertions: EntityAssertions<Model.IIntegration> = {
@@ -11,7 +11,5 @@ const entityAssertions: EntityAssertions<Model.IIntegration> = {
 };
 
 describe('DB integration', () => {
-  //Entity.createEntityTests();
-  const entity = new Integration();
-  createEntityTests<Model.IIntegration>(entity, entityAssertions);
+  createEntityTests<Model.IIntegration>(RDS.DAO.Integration, entityAssertions);
 });

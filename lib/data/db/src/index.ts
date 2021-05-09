@@ -1,8 +1,5 @@
 import * as Model from './model';
+import RDS from './rds';
+
 export { Model };
-export { default as Entity } from './entity';
-export { default as Operation } from './operation';
-export { default as Storage } from './storage';
-export { default as Integration } from './integration';
-export { default as Connector } from './connector';
-export { default as RDS } from './rds';
+export default RDS;

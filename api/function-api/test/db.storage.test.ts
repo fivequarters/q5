@@ -1,4 +1,4 @@
-import { Model, Storage } from '@5qtrs/db';
+import RDS, { Model } from '@5qtrs/db';
 import createEntityTests, { EntityAssertions } from './db.entity';
 
 const entityAssertions: EntityAssertions<Model.IStorageItem> = {
@@ -11,7 +11,5 @@ const entityAssertions: EntityAssertions<Model.IStorageItem> = {
 };
 
 describe('DB storage', () => {
-  //Entity.createEntityTests();
-  const entity = new Storage();
-  createEntityTests<Model.IStorageItem>(entity, entityAssertions);
+  createEntityTests<Model.IStorageItem>(RDS.DAO.Storage, entityAssertions);
 });

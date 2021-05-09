@@ -1,6 +1,5 @@
-import * as Model from './model';
-import RDS, { ensureRecords } from './rds';
 import { RDSDataService } from 'aws-sdk';
+import moment from 'moment';
 import {
   defaultConstructorArguments,
   EntityConstructorArgument,
@@ -13,8 +12,20 @@ import {
   MergedQueryOptions,
   MergedStatementOptions,
   EntityType,
-} from './model';
-import moment from 'moment';
+  ITagsWithVersion,
+  EntityKeyGet,
+  IEntity,
+  EntityKeyParams,
+  EntityKeyTags,
+  EntityKeyList,
+  IListResponse,
+  EntityKeyDelete,
+  EntityKeyCreate,
+  EntityKeyUpdate,
+  EntityKeyTagSet,
+  IEntityDao,
+  IRds,
+} from '../model';
 
 //--------------------------------
 // Internal
@@ -27,8 +38,20 @@ const defaultEntityConstructorArgument: defaultConstructorArguments = {
   listLimit: 100,
 };
 
-export abstract class Entity<ET extends Model.IEntity> {
+export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
+  // private readonly passToTransactional: <E extends Entity<ET>>(
+  //   construct: EntityDao<ET>,
+  //   transactionalId: string
+  // ) => IEntityDao<ET> = (construct: EntityDao<ET>, transactionalId) => {
+  //   return new construct(this.RDS, transactionalId);
+  // };
+
+  public readonly createTransactional: (transactionId?: string) => this = (transactionId) => {
+    return Reflect.construct(this.constructor, [this.RDS, transactionId]);
+  };
+
   protected constructor(config: EntityConstructorArgument) {
+    this.RDS = config.RDS;
     const entityConfig: EntityConstructorArgumentWithDefaults = {
       ...defaultEntityConstructorArgument,
       ...config,
@@ -40,16 +63,20 @@ export abstract class Entity<ET extends Model.IEntity> {
       prefixMatchId: entityConfig.prefixMatchId,
       upsert: entityConfig.upsert,
     };
-    this.defaultStatementOptions = {};
+    this.defaultStatementOptions = {
+      transactionId: config.transactionId,
+    };
     this.defaultParameterOptions = {
       expires: entityConfig.expires,
       expiresDuration: entityConfig.expiresDuration,
     };
   }
+  protected readonly RDS: IRds;
   protected readonly entityType: EntityType;
   protected readonly defaultQueryOptions: MergedQueryOptions;
   protected readonly defaultStatementOptions: MergedStatementOptions;
   protected readonly defaultParameterOptions: MergedParameterOptions;
+
   sqlToIEntity: (record: RDSDataService.FieldList) => ET = (record) => {
     let result: ET = {
       accountId: record[2].stringValue as string,
@@ -65,10 +92,10 @@ export abstract class Entity<ET extends Model.IEntity> {
     return result;
   };
 
-  protected applyDefaultsTo: <EKP extends Model.EntityKeyParams<ET>, T>(
+  protected applyDefaultsTo: <EKP extends EntityKeyParams<ET>, T>(
     func: (params: EKP, queryOptions: FinalQueryOptions, statementOptions: FinalStatementOptions) => T
   ) => (params: EKP, queryOptions?: InputQueryOptions, statementOptions?: InputStatementOptions) => T = <
-    EKP extends Model.EntityKeyParams<ET>,
+    EKP extends EntityKeyParams<ET>,
     T
   >(
     func: (params: EKP, queryOptions: FinalQueryOptions, statementOptions: FinalStatementOptions) => T
@@ -82,6 +109,7 @@ export abstract class Entity<ET extends Model.IEntity> {
       const dynamicExpires: moment.Moment | undefined = params.expiresDuration
         ? applyDuration(params.expiresDuration)
         : applyDuration(this.defaultParameterOptions.expiresDuration);
+      // default params set here
       const paramsWithDefaults: EKP = {
         ...this.defaultParameterOptions,
         expires: staticExpires || dynamicExpires,
@@ -104,7 +132,7 @@ export abstract class Entity<ET extends Model.IEntity> {
     };
   };
 
-  sqlToTagsWithVersion: (record: RDSDataService.FieldList) => Model.ITagsWithVersion = (record) => {
+  sqlToTagsWithVersion: (record: RDSDataService.FieldList) => ITagsWithVersion = (record) => {
     return {
       tags: JSON.parse(record[0].stringValue as string),
       version: record[1].longValue as number,
@@ -112,7 +140,7 @@ export abstract class Entity<ET extends Model.IEntity> {
   };
 
   getEntity: (
-    params: Model.EntityKeyGet<ET>,
+    params: EntityKeyGet<ET>,
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
   ) => Promise<ET> = this.applyDefaultsTo(async (params, queryOptions, statementOptions) => {
@@ -129,16 +157,16 @@ export abstract class Entity<ET extends Model.IEntity> {
       entityId: params.id,
       filterExpired: queryOptions.filterExpired,
     };
-    const result = await RDS.executeStatement(sql, parameters, statementOptions);
-    ensureRecords(result);
+    const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
+    this.RDS.ensureRecords(result);
     return this.sqlToIEntity(result.records[0]);
   });
 
   getEntityTags: (
-    params: Model.EntityKeyTags<ET>,
+    params: EntityKeyTags<ET>,
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
-  ) => Promise<Model.ITagsWithVersion> = this.applyDefaultsTo(async (params, queryOptions, statementOptions) => {
+  ) => Promise<ITagsWithVersion> = this.applyDefaultsTo(async (params, queryOptions, statementOptions) => {
     const sql = `select tags, version from entity
       where entityType = :entityType::entity_type
       and accountId = :accountId
@@ -152,15 +180,15 @@ export abstract class Entity<ET extends Model.IEntity> {
       entityId: params.id,
       filterExpired: queryOptions.filterExpired,
     };
-    const result = await RDS.executeStatement(sql, parameters, statementOptions);
-    ensureRecords(result);
+    const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
+    this.RDS.ensureRecords(result);
     return this.sqlToTagsWithVersion(result.records[0]);
   });
 
   listEntities: (
-    params: Model.EntityKeyList<ET>,
+    params: EntityKeyList<ET>,
     queryOptions?: InputQueryOptions
-  ) => Promise<Model.IListResponse<ET>> = this.applyDefaultsTo(async (params, queryOptions, statementOptions) => {
+  ) => Promise<IListResponse<ET>> = this.applyDefaultsTo(async (params, queryOptions, statementOptions) => {
     const sql = `select * from entity
       where entityType = :entityType::entity_type
       and accountId = :accountId
@@ -183,10 +211,10 @@ export abstract class Entity<ET extends Model.IEntity> {
       offset,
       limit: queryOptions.listLimit,
     };
-    const result = await RDS.executeStatement(sql, parameters, statementOptions);
-    ensureRecords(result);
-    let data: Model.IListResponse<ET> = {
-      items: result.records.map(this.sqlToIEntity),
+    const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
+    this.RDS.ensureRecords(result);
+    let data: IListResponse<ET> = {
+      items: result.records.map(this.sqlToIEntity.bind(this)),
     };
     // Limit of the query was set to `limit + 1` in order to grab 1 additional element.
     // This helps to determine whether there are yet more items that need to be retrieved.
@@ -198,7 +226,7 @@ export abstract class Entity<ET extends Model.IEntity> {
   });
 
   deleteEntity: (
-    params: Model.EntityKeyDelete<ET>,
+    params: EntityKeyDelete<ET>,
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
   ) => Promise<boolean> = this.applyDefaultsTo(async (params, queryOptions, statementOptions) => {
@@ -218,12 +246,12 @@ export abstract class Entity<ET extends Model.IEntity> {
       prefixMatchId: queryOptions.prefixMatchId,
       filterExpired: queryOptions.filterExpired,
     };
-    const result = await RDS.executeStatement(sql, parameters, statementOptions);
+    const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
     return result.numberOfRecordsUpdated !== undefined && result.numberOfRecordsUpdated > 0;
   });
 
   createEntity: (
-    params: Model.EntityKeyCreate<ET>,
+    params: EntityKeyCreate<ET>,
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
   ) => Promise<ET> = this.applyDefaultsTo(async (params, queryOptions, statementOptions) => {
@@ -277,9 +305,9 @@ export abstract class Entity<ET extends Model.IEntity> {
     } else {
       selectedInsert = sql;
     }
-    const result = await RDS.executeStatement(selectedInsert, parameters, statementOptions);
+    const result = await this.RDS.executeStatement(selectedInsert, parameters, statementOptions);
 
-    ensureRecords(result);
+    this.RDS.ensureRecords(result);
     if (result.records.length !== 1) {
       throw new Error(`Expected exactly 1 database record inserted, got ${result.records.length}.`);
     }
@@ -287,7 +315,7 @@ export abstract class Entity<ET extends Model.IEntity> {
   });
 
   updateEntity: (
-    params: Model.EntityKeyUpdate<ET>,
+    params: EntityKeyUpdate<ET>,
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
   ) => Promise<ET> = this.applyDefaultsTo(async (params, queryOptions, statementOptions) => {
@@ -314,16 +342,16 @@ export abstract class Entity<ET extends Model.IEntity> {
       expires: params.expires?.format(),
       version: params.version,
     };
-    const result = await RDS.executeStatement(sql, parameters, statementOptions);
-    ensureRecords(result);
+    const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
+    this.RDS.ensureRecords(result);
     return this.sqlToIEntity(result.records[0]);
   });
 
   updateEntityTags: (
-    params: Model.EntityKeyTags<ET>,
+    params: EntityKeyTags<ET>,
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
-  ) => Promise<Model.ITagsWithVersion> = this.applyDefaultsTo(async (params, queryOptions, statementOptions) => {
+  ) => Promise<ITagsWithVersion> = this.applyDefaultsTo(async (params, queryOptions, statementOptions) => {
     const sql = `update entity set
       version = coalesce(:version, entity.version) + 1,
       tags = :tags::jsonb
@@ -342,16 +370,16 @@ export abstract class Entity<ET extends Model.IEntity> {
       tags: JSON.stringify(params.tags || {}),
       filterExpired: queryOptions.filterExpired,
     };
-    const result = await RDS.executeStatement(sql, parameters, statementOptions);
-    ensureRecords(result);
+    const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
+    this.RDS.ensureRecords(result);
     return this.sqlToTagsWithVersion(result.records[0]);
   });
 
   setEntityTag: (
-    params: Model.EntityKeyTagSet<ET>,
+    params: EntityKeyTagSet<ET>,
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
-  ) => Promise<Model.ITagsWithVersion> = this.applyDefaultsTo(async (params, queryOptions, statementOptions) => {
+  ) => Promise<ITagsWithVersion> = this.applyDefaultsTo(async (params, queryOptions, statementOptions) => {
     const sql = `update entity set
       tags = jsonb_set(tags, format('{%s}', :tagKey)::text[], to_jsonb(:tagValue)),
       version = coalesce(:version, version) + 1
@@ -371,16 +399,16 @@ export abstract class Entity<ET extends Model.IEntity> {
       version: params.version,
       filterExpired: queryOptions.filterExpired,
     };
-    const result = await RDS.executeStatement(sql, parameters, statementOptions);
-    ensureRecords(result);
+    const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
+    this.RDS.ensureRecords(result);
     return this.sqlToTagsWithVersion(result.records[0]);
   });
 
   deleteEntityTag: (
-    params: Model.EntityKeyTagSet<ET>,
+    params: EntityKeyTagSet<ET>,
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
-  ) => Promise<Model.ITagsWithVersion> = this.applyDefaultsTo(async (params, queryOptions, statementOptions) => {
+  ) => Promise<ITagsWithVersion> = this.applyDefaultsTo(async (params, queryOptions, statementOptions) => {
     const sql = `update entity set
       tags = tags - :tagKey,
       version = coalesce(:version, version) + 1
@@ -399,8 +427,8 @@ export abstract class Entity<ET extends Model.IEntity> {
       version: params.version,
       filterExpired: queryOptions.filterExpired,
     };
-    const result = await RDS.executeStatement(sql, parameters, statementOptions);
-    ensureRecords(result);
+    const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
+    this.RDS.ensureRecords(result);
     return this.sqlToTagsWithVersion(result.records[0]);
   });
   static readonly EntityType = EntityType;
