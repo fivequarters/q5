@@ -9,7 +9,11 @@
   "license": "MIT",
   "author": "https://fusebit.io",
   "packageAs": "@fusebit/cli",
-  "packageAssets": ["template", "README.md", "LICENSE"],
+  "packageAssets": [
+    "template",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "tsc -b",
     "test": "jest --colors",
@@ -24,6 +28,7 @@
     "@5qtrs/base64": "^0.0.1",
     "@5qtrs/cli": "^0.0.1",
     "@5qtrs/clone": "^0.0.1",
+    "@5qtrs/constants": "^0.0.1",
     "@5qtrs/event-stream": "^0.0.1",
     "@5qtrs/file": "^0.0.1",
     "@5qtrs/fusebit-profile-sdk": "^0.0.1",
@@ -31,9 +36,9 @@
     "@5qtrs/random": "^0.0.1",
     "@5qtrs/request": "^0.0.1",
     "@types/open": "^6.0.0",
+    "localtunnel": "^2.0.1",
     "open": "^6.0.0",
-    "qrcode-terminal": "^0.12.0",
-    "@5qtrs/constants": "^0.0.1"
+    "qrcode-terminal": "^0.12.0"
   },
   "devDependencies": {
     "@types/opn": "^5.5.0"
