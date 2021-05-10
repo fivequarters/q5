@@ -2,7 +2,6 @@ import * as AWS from 'aws-sdk';
 import { OpsDataAwsConfig } from './OpsDataAwsConfig';
 import { IAwsConfig, AwsCreds } from '@5qtrs/aws-config';
 import { IOpsDeployment } from '@5qtrs/ops-data';
-import { VolumeId } from 'aws-sdk/clients/storagegateway';
 
 const Async = require('async');
 

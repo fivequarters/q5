@@ -4,16 +4,7 @@ import { PromiseResult } from 'aws-sdk/lib/request';
 import { RDSDataService } from 'aws-sdk';
 import { Metadata, SqlRecords } from 'aws-sdk/clients/rdsdataservice';
 
-class CustomError extends Error {
-  constructor(message?: string) {
-    super(message);
-    Object.setPrototypeOf(this, new.target.prototype);
-  }
-}
-
 export interface IRds {
-  NotFoundError: typeof CustomError;
-  ConflictError: typeof CustomError;
   purgeExpiredItems: () => Promise<boolean>;
   ensureConnection: () => Promise<{ rdsSdk: AWS.RDSDataService; rdsCredentials: IRdsCredentials }>;
   executeStatement: (

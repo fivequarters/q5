@@ -1,8 +1,8 @@
 import * as AWS from 'aws-sdk';
 import * as Model from './model';
 import { RDSDataService } from 'aws-sdk';
-import { Metadata, SqlRecords } from 'aws-sdk/clients/rdsdataservice';
 import { PromiseResult } from 'aws-sdk/lib/request';
+import httpError from 'http-errors';
 import { FinalStatementOptions, IDaoCollection, IRds, IRdsCredentials } from './model';
 import Connector from './daos/connector';
 import Integration from './daos/integration';
@@ -10,19 +10,6 @@ import Storage from './daos/storage';
 import Operation from './daos/operation';
 
 class RDS implements IRds {
-  NotFoundError = class extends Error {
-    public statusCode = 404;
-    constructor() {
-      super('Not found');
-    }
-  };
-  ConflictError = class extends Error {
-    public statusCode = 409;
-    constructor() {
-      super('Conflict');
-    }
-  };
-
   private rdsSdk!: AWS.RDSDataService;
   private rdsCredentials!: Model.IRdsCredentials;
   private purgeInterval!: NodeJS.Timeout;
@@ -39,10 +26,8 @@ class RDS implements IRds {
           sql,
         })
         .promise();
-      console.log('SUCCESS purging expired entities from Aurora. Purged entities:', result.numberOfRecordsUpdated);
       return true;
     } catch (e) {
-      console.log('ERROR purging expired entities from Aurora:', e);
       return false;
     }
   };
@@ -114,7 +99,7 @@ class RDS implements IRds {
         })
         .promise();
     } catch (e) {
-      throw e.message.match(/version_conflict/) ? new this.ConflictError() : e;
+      throw e.message.match(/version_conflict/) ? new httpError.Conflict() : e;
     }
   };
 
@@ -215,7 +200,7 @@ class RDS implements IRds {
     columnMetadata: NonNullable<any>;
   } = (result) => {
     if (!result || !result.records || result.records.length === 0 || !result.columnMetadata) {
-      throw new RDSSingleton.NotFoundError();
+      throw new httpError.NotFound();
     }
   };
 }
