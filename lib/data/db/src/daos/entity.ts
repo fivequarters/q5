@@ -35,7 +35,13 @@ const defaultEntityConstructorArgument: DefaultConstructorArguments = {
 };
 
 export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET> {
-  public readonly createTransactional: (transactionId?: string) => this = (transactionId) => {
+  /**
+   * Clones the existing subclassed Entity with a transactionId.
+   * All calls using the cloned object will be wrapped within that transaction.
+   *
+   * @param element The HTML element (typically a div) within which to create the status panel..
+   */
+  public readonly createTransactional: (transactionId: string) => this = (transactionId) => {
     return Reflect.construct(this.constructor, [this.RDS, transactionId]);
   };
 
@@ -167,7 +173,8 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
         and accountId = :accountId
         and subscriptionId = :subscriptionId
         and entityId = :entityId
-        and (not :filterExpired or expires is null or expires > now());`;
+        and (not :filterExpired or expires is null or expires > now())
+        limit 1;`;
     const parameters = {
       entityType: this.entityType,
       accountId: params.accountId,

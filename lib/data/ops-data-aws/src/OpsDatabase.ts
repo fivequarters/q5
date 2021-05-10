@@ -208,14 +208,12 @@ export async function createDatabase(
     };
     const params: AWS.RDSDataService.ExecuteStatementRequest = {
       ...commonParams,
-      sql: 'select max(version) from schemaVersion ;',
+      sql: 'select version from schemaVersion ;',
     };
     let data: AWS.RDSDataService.ExecuteStatementResponse;
     let currentSchemaVersion = -1;
     try {
       data = await rdsData.executeStatement(params).promise();
-      debug('schemaVersion Response: ');
-      debug(JSON.stringify(data));
       if (!data.records || !data.records[0] || !data.records[0][0] || data.records[0][0].longValue === undefined) {
         throw new Error('Unable to determine the schema version of the Aurora database.');
       }
@@ -251,7 +249,7 @@ export async function createDatabase(
         params.transactionId = transactionId as string;
         const data = await rdsData.executeStatement(params).promise();
 
-        params.sql = `insert into schemaVersion (version, fuse_ops_version, ran_at) values (:schemaVersion, :fuseOpsVersion, now());`;
+        params.sql = `update schemaVersion set version = :schemaVersion, fuse_ops_version = :fuseOpsVersion where version = :schemaVersion;`;
         params.parameters = [
           { name: 'schemaVersion', value: { longValue: n } },
           { name: 'fuseOpsVersion', value: { stringValue: process.env.FUSEOPS_VERSION || '' } },

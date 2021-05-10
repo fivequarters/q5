@@ -181,7 +181,7 @@ export enum EntityType {
 //--------------------------------
 
 export interface IDAO {
-  createTransactional: (transactionId?: string) => this;
+  createTransactional: (transactionId: string) => this;
 }
 
 export interface IEntityDao<ET extends IEntity> extends IDAO {
