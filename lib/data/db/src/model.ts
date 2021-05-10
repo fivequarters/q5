@@ -117,22 +117,9 @@ export interface IEntityGeneric extends IIntegration, IConnector, IStorageItem, 
 // Utilities
 //--------------------------------
 
-export type OptionalKeysOnly<T> = {
-  [K in keyof { [key in keyof T]: T[key] extends undefined ? T[K] : never }]: T[K];
-};
 export type RequiredKeysOnly<T> = {
   [K in keyof { [key in keyof T]: T[key] extends undefined ? never : T[K] }]: T[K];
 };
-export type ExcludeIfExists<T, K> = Pick<T, Exclude<keyof T, keyof K>>;
-export type PickIfExists<T, K> = Pick<T, Extract<keyof T, keyof K>>;
-export type OptionalIntersection<T, K> = PickIfExists<OptionalKeysOnly<T>, OptionalKeysOnly<K>>;
-export type RequiredIntersection<T, K> = PickIfExists<RequiredKeysOnly<T>, Required<K>> &
-  PickIfExists<RequiredKeysOnly<K>, Required<T>>;
-export type Intersection<T, K> = OptionalIntersection<T, K> & RequiredIntersection<T, K>;
-export type MergeInner<T, K> = Intersection<T, K>;
-export type MergeOuter<T, K> = Intersection<T, K> & ExcludeIfExists<K, T> & ExcludeIfExists<T, K>;
-export type MergeRight<T, K> = Intersection<T, K> & ExcludeIfExists<T, K>;
-export type MergeLeft<T, K> = Intersection<T, K> & ExcludeIfExists<K, T>;
 
 //--------------------------------
 // Entity Constructors Arguments
@@ -144,22 +131,34 @@ export interface DefaultQueryOptions {
   filterExpired?: boolean;
   listLimit?: number;
 }
-export interface MergedQueryOptions extends MergeLeft<DefaultConstructorArguments, DefaultQueryOptions> {}
-export interface InputQueryOptions extends Partial<DefaultQueryOptions> {}
-export interface FinalQueryOptions extends MergeOuter<InputQueryOptions, MergedQueryOptions> {}
+export interface MergedQueryOptions extends DefaultQueryOptions {
+  upsert: boolean;
+  filterExpired: boolean;
+  listLimit: number;
+}
+export interface InputQueryOptionsWithDefaults extends DefaultQueryOptions {}
+export interface InputQueryOptionsWithoutDefaults {}
+export interface InputQueryOptions extends InputQueryOptionsWithDefaults, InputQueryOptionsWithoutDefaults {}
+export interface FinalQueryOptions extends InputQueryOptionsWithoutDefaults, MergedQueryOptions {}
 
 // Statements
 export interface DefaultStatementOptions {}
-export interface MergedStatementOptions extends MergeLeft<DefaultConstructorArguments, DefaultStatementOptions> {}
-export interface InputStatementOptions extends Partial<DefaultStatementOptions> {}
-export interface FinalStatementOptions extends MergeOuter<InputStatementOptions, MergedStatementOptions> {}
+export interface MergedStatementOptions extends DefaultStatementOptions {
+  transactionId?: string;
+}
+export interface InputStatementOptionsWithDefaults extends DefaultStatementOptions {}
+export interface InputStatementOptionsWithoutDefaults {}
+export interface InputStatementOptions
+  extends InputStatementOptionsWithDefaults,
+    InputStatementOptionsWithoutDefaults {}
+export interface FinalStatementOptions extends InputStatementOptionsWithoutDefaults, MergedStatementOptions {}
 
 // Parameters
 export interface DefaultParameterOptions {
   expires?: moment.Moment;
   expiresDuration?: moment.Duration;
 }
-export interface MergedParameterOptions extends MergeLeft<DefaultConstructorArguments, DefaultParameterOptions> {}
+export interface MergedParameterOptions extends DefaultParameterOptions {}
 
 // Constructors
 export interface DefaultOptions extends DefaultQueryOptions, DefaultParameterOptions, DefaultStatementOptions {}
@@ -173,8 +172,11 @@ export interface InputConstructorArguments extends DefaultOptions {
   RDS: IRds;
   transactionId?: string;
 }
-export interface MergedConstructorArguments
-  extends MergeOuter<DefaultConstructorArguments, InputConstructorArguments> {}
+export interface MergedConstructorArguments extends DefaultConstructorArguments, InputConstructorArguments {
+  upsert: boolean;
+  filterExpired: boolean;
+  listLimit: number;
+}
 
 export enum EntityType {
   Integration = 'integration',
