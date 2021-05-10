@@ -200,7 +200,8 @@
       "lib/pkg/pkg-integration",
       "lib/pkg/pkg-oauth-connector",
       "lib/pkg/pkg-oauth-integration",
-      "lib/pkg/pkg-handler"
+      "lib/pkg/pkg-handler",
+      "lib/data/db"
     ]
   }
 }

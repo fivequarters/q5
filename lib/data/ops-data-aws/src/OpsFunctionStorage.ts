@@ -21,7 +21,7 @@ export async function createFunctionStorage(
     sessionToken: credentials.sessionToken,
   });
 
-  return new Promise((resolve, reject) => {
+  return new Promise<void>((resolve, reject) => {
     return Async.series(
       [
         (cb: any) => ensureS3Bucket(cb),

@@ -18,6 +18,14 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.26.0
+
+_Released 04/08/21_
+
+For this version to take effect, please re-run `fuse-ops setup` and `fuse-ops deployment add` on your deployment.
+
+- **Enhancement.** Support for Aurora PostgreSQL database.
+
 ## Version 1.25.2
 
 _Release 04/26/21_

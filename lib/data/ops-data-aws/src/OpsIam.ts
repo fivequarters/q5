@@ -120,6 +120,7 @@ export class OpsIam implements IDataSource {
         `${this.config.arnPrefix}:iam::${awsConfig.account}:policy/${this.config.lambdaExecutionRoleName}`,
         `${this.config.arnPrefix}:iam::aws:policy/CloudWatchFullAccess`,
         `${this.config.arnPrefix}:iam::aws:policy/AmazonS3ReadOnlyAccess`,
+        `${this.config.arnPrefix}:iam::aws:policy/AmazonRDSDataFullAccess`,
         `${this.config.arnPrefix}:iam::aws:policy/service-role/AWSLambdaSQSQueueExecutionRole`,
       ],
       undefined,
@@ -164,6 +165,7 @@ export class OpsIam implements IDataSource {
       [
         `${this.config.arnPrefix}:iam::aws:policy/AmazonSQSFullAccess`,
         `${this.config.arnPrefix}:iam::aws:policy/AmazonS3FullAccess`,
+        `${this.config.arnPrefix}:iam::aws:policy/AmazonRDSDataFullAccess`,
         `${this.config.arnPrefix}:iam::aws:policy/CloudWatchLogsFullAccess`,
         `${this.config.arnPrefix}:iam::aws:policy/AmazonDynamoDBFullAccess`,
       ],
@@ -212,6 +214,7 @@ export class OpsIam implements IDataSource {
         `${this.config.arnPrefix}:iam::aws:policy/AmazonS3FullAccess`,
         `${this.config.arnPrefix}:iam::aws:policy/CloudWatchAgentServerPolicy`,
         `${this.config.arnPrefix}:iam::aws:policy/AmazonDynamoDBFullAccess`,
+        `${this.config.arnPrefix}:iam::aws:policy/AmazonRDSDataFullAccess`,
       ],
       {
         Version: '2012-10-17',
