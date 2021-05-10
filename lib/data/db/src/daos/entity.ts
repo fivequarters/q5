@@ -107,43 +107,48 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
     });
   };
 
-  protected applyDefaultsTo: <EKP extends EntityKeyParams, R>(
-    func: (params: EKP, queryOptions: FinalQueryOptions, statementOptions: FinalStatementOptions) => Promise<R>
-  ) => (params: EKP, queryOptions?: InputQueryOptions, statementOptions?: InputStatementOptions) => Promise<R> = <
-    EKP extends EntityKeyParams,
-    R
+  protected applyDefaultsTo: <EKP extends EntityKeyParams>(
+    params: EKP,
+    queryOptions?: InputQueryOptions,
+    statementOptions?: InputStatementOptions
+  ) => { params: EKP; queryOptions: FinalQueryOptions; statementOptions: FinalStatementOptions } = <
+    EKP extends EntityKeyParams
   >(
-    func: (params: EKP, queryOptions: FinalQueryOptions, statementOptions: FinalStatementOptions) => Promise<R>
+    params: EKP,
+    queryOptions: InputQueryOptions = {},
+    statementOptions: InputStatementOptions = {}
   ) => {
-    return (params: EKP, queryOptions: InputQueryOptions = {}, statementOptions: InputStatementOptions = {}) => {
-      // default params set here
-      const applyDuration: (duration?: moment.Duration) => moment.Moment | undefined = (duration) => {
-        return duration && moment().add(duration);
-      };
-      const staticExpires: moment.Moment | undefined = params.expires || this.defaultParameterOptions.expires;
-      const dynamicExpires: moment.Moment | undefined = params.expiresDuration
-        ? applyDuration(params.expiresDuration)
-        : applyDuration(this.defaultParameterOptions.expiresDuration);
-      // default params set here
-      const paramsWithDefaults: EKP = {
-        ...this.defaultParameterOptions,
-        expires: staticExpires || dynamicExpires,
-        ...cleanObj(params),
-      };
-      // default query options set here
-      const queryOptionsWithDefaults: FinalQueryOptions = {
-        ...this.defaultQueryOptions,
-        ...cleanObj(queryOptions),
-        listLimit: queryOptions.listLimit
-          ? Math.min(queryOptions.listLimit, this.defaultQueryOptions.listLimit)
-          : this.defaultQueryOptions.listLimit,
-      };
-      // default statement options set here
-      const statementOptionsWithDefaults: FinalStatementOptions = {
-        ...this.defaultStatementOptions,
-        ...cleanObj(statementOptions),
-      };
-      return func(paramsWithDefaults, queryOptionsWithDefaults, statementOptionsWithDefaults);
+    // default params set here
+    const applyDuration: (duration?: moment.Duration) => moment.Moment | undefined = (duration) => {
+      return duration && moment().add(duration);
+    };
+    const staticExpires: moment.Moment | undefined = params.expires || this.defaultParameterOptions.expires;
+    const dynamicExpires: moment.Moment | undefined = params.expiresDuration
+      ? applyDuration(params.expiresDuration)
+      : applyDuration(this.defaultParameterOptions.expiresDuration);
+    // default params set here
+    const paramsWithDefaults: EKP = {
+      ...this.defaultParameterOptions,
+      expires: staticExpires || dynamicExpires,
+      ...cleanObj(params),
+    };
+    // default query options set here
+    const queryOptionsWithDefaults: FinalQueryOptions = {
+      ...this.defaultQueryOptions,
+      ...cleanObj(queryOptions),
+      listLimit: queryOptions.listLimit
+        ? Math.min(queryOptions.listLimit, this.defaultQueryOptions.listLimit)
+        : this.defaultQueryOptions.listLimit,
+    };
+    // default statement options set here
+    const statementOptionsWithDefaults: FinalStatementOptions = {
+      ...this.defaultStatementOptions,
+      ...cleanObj(statementOptions),
+    };
+    return {
+      params: paramsWithDefaults,
+      queryOptions: queryOptionsWithDefaults,
+      statementOptions: statementOptionsWithDefaults,
     };
   };
 
@@ -151,7 +156,12 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
     params: IEntityId,
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
-  ) => Promise<ET> = this.applyDefaultsTo(async (params, queryOptions, statementOptions) => {
+  ) => Promise<ET> = async (inputParams, inputQueryOptions, inputStatementOptions) => {
+    const { params, queryOptions, statementOptions } = this.applyDefaultsTo(
+      inputParams,
+      inputQueryOptions,
+      inputStatementOptions
+    );
     const sql = `select * from entity
         where entityType = :entityType::entity_type
         and accountId = :accountId
@@ -167,13 +177,18 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
     };
     const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
     return this.sqlToIEntity<ET>(result)[0];
-  });
+  };
 
   getEntityTags: (
     params: IEntityId,
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
-  ) => Promise<ITagsWithVersion> = this.applyDefaultsTo(async (params, queryOptions, statementOptions) => {
+  ) => Promise<ITagsWithVersion> = async (inputParams, inputQueryOptions, inputStatementOptions) => {
+    const { params, queryOptions, statementOptions } = this.applyDefaultsTo(
+      inputParams,
+      inputQueryOptions,
+      inputStatementOptions
+    );
     const sql = `select tags, version from entity
       where entityType = :entityType::entity_type
       and accountId = :accountId
@@ -189,12 +204,13 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
     };
     const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
     return this.sqlToIEntity<ITagsWithVersion>(result)[0];
-  });
+  };
 
-  listEntities: (
-    params: IEntityPrefix,
-    queryOptions?: InputQueryOptions
-  ) => Promise<IListResponse<ET>> = this.applyDefaultsTo(async (params, queryOptions, statementOptions) => {
+  listEntities: (params: IEntityPrefix, queryOptions?: InputQueryOptions) => Promise<IListResponse<ET>> = async (
+    inputParams,
+    inputQueryOptions
+  ) => {
+    const { params, queryOptions, statementOptions } = this.applyDefaultsTo(inputParams, inputQueryOptions);
     const sql = `select * from entity
       where entityType = :entityType::entity_type
       and accountId = :accountId
@@ -228,13 +244,18 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
       data.next = ((offset || 0) + queryOptions.listLimit).toString(16);
     }
     return data;
-  });
+  };
 
   deleteEntity: (
     params: IEntityPrefix,
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
-  ) => Promise<boolean> = this.applyDefaultsTo(async (params, queryOptions, statementOptions) => {
+  ) => Promise<boolean> = async (inputParams, inputQueryOptions, inputStatementOptions) => {
+    const { params, queryOptions, statementOptions } = this.applyDefaultsTo(
+      inputParams,
+      inputQueryOptions,
+      inputStatementOptions
+    );
     const sql = `delete from entity
       where entityType = :entityType::entity_type
       and accountId = :accountId
@@ -253,13 +274,18 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
     };
     const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
     return result.numberOfRecordsUpdated !== undefined && result.numberOfRecordsUpdated > 0;
-  });
+  };
 
   createEntity: (
     params: IEntity,
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
-  ) => Promise<ET> = this.applyDefaultsTo(async (params, queryOptions, statementOptions) => {
+  ) => Promise<ET> = async (inputParams, inputQueryOptions, inputStatementOptions) => {
+    const { params, queryOptions, statementOptions } = this.applyDefaultsTo(
+      inputParams,
+      inputQueryOptions,
+      inputStatementOptions
+    );
     const sql = `insert into entity
       (entityType, accountId, subscriptionId, entityId, version, data, tags, expires)  
       values (
@@ -317,13 +343,18 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
       throw new Error(`Expected exactly 1 database record inserted, got ${result.records.length}.`);
     }
     return this.sqlToIEntity<ET>(result)[0];
-  });
+  };
 
   updateEntity: (
     params: IEntity,
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
-  ) => Promise<ET> = this.applyDefaultsTo(async (params, queryOptions, statementOptions) => {
+  ) => Promise<ET> = async (inputParams, inputQueryOptions, inputStatementOptions) => {
+    const { params, queryOptions, statementOptions } = this.applyDefaultsTo(
+      inputParams,
+      inputQueryOptions,
+      inputStatementOptions
+    );
     const sql = `update entity set
       data = :data::jsonb,
       tags = :tags::jsonb,
@@ -349,13 +380,18 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
     };
     const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
     return this.sqlToIEntity<ET>(result)[0];
-  });
+  };
 
   updateEntityTags: (
     params: IEntityId,
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
-  ) => Promise<ITagsWithVersion> = this.applyDefaultsTo(async (params, queryOptions, statementOptions) => {
+  ) => Promise<ITagsWithVersion> = async (inputParams, inputQueryOptions, inputStatementOptions) => {
+    const { params, queryOptions, statementOptions } = this.applyDefaultsTo(
+      inputParams,
+      inputQueryOptions,
+      inputStatementOptions
+    );
     const sql = `update entity set
       version = coalesce(:version, entity.version) + 1,
       tags = :tags::jsonb
@@ -376,13 +412,18 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
     };
     const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
     return this.sqlToIEntity<ITagsWithVersion>(result)[0];
-  });
+  };
 
   setEntityTag: (
     params: IEntityKeyTagSet,
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
-  ) => Promise<ITagsWithVersion> = this.applyDefaultsTo(async (params, queryOptions, statementOptions) => {
+  ) => Promise<ITagsWithVersion> = async (inputParams, inputQueryOptions, inputStatementOptions) => {
+    const { params, queryOptions, statementOptions } = this.applyDefaultsTo(
+      inputParams,
+      inputQueryOptions,
+      inputStatementOptions
+    );
     const sql = `update entity set
       tags = jsonb_set(tags, format('{%s}', :tagKey)::text[], to_jsonb(:tagValue)),
       version = coalesce(:version, version) + 1
@@ -404,13 +445,18 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
     };
     const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
     return this.sqlToIEntity<ITagsWithVersion>(result)[0];
-  });
+  };
 
   deleteEntityTag: (
     params: IEntityKeyTagSet,
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
-  ) => Promise<ITagsWithVersion> = this.applyDefaultsTo(async (params, queryOptions, statementOptions) => {
+  ) => Promise<ITagsWithVersion> = async (inputParams, inputQueryOptions, inputStatementOptions) => {
+    const { params, queryOptions, statementOptions } = this.applyDefaultsTo(
+      inputParams,
+      inputQueryOptions,
+      inputStatementOptions
+    );
     const sql = `update entity set
       tags = tags - :tagKey,
       version = coalesce(:version, version) + 1
@@ -431,7 +477,7 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
     };
     const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
     return this.sqlToIEntity<ITagsWithVersion>(result)[0];
-  });
+  };
   static readonly EntityType = EntityType;
 }
 
