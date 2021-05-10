@@ -9,6 +9,10 @@ export interface IAccessEntry {
   action: string;
 }
 
+export interface IAccessEntryWithAllow extends IAccessEntry {
+  allow: boolean;
+}
+
 export interface IIdentity {
   issuerId: string;
   subject: string;

@@ -16,7 +16,7 @@
   "dependencies": {
     "@5qtrs/clone": "^0.0.1",
     "@5qtrs/base64": "^0.0.1",
-    "aws-sdk": "^2.413.0",
+    "aws-sdk": "^2.895.0",
     "@5qtrs/promise": "^0.0.1"
   }
 }

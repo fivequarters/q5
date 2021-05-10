@@ -72,10 +72,10 @@ export class ClientData extends DataSource implements IClientData {
   }
 
   public async get(accountId: string, clientId: string): Promise<IClient> {
-    const clientPromise = this.clientTable.get(accountId, clientId);
-    const agentPromise = this.agentData.getWithAgentId(accountId, clientId);
-    const client = await clientPromise;
-    const agent = await agentPromise;
+    const [client, agent] = await Promise.all([
+      this.clientTable.get(accountId, clientId),
+      this.agentData.getWithAgentId(accountId, clientId),
+    ]);
     return toClient(client, agent);
   }
 
@@ -98,18 +98,15 @@ export class ClientData extends DataSource implements IClientData {
       throw AccountDataException.idRequired('client', 'update');
     }
 
-    const clientPromise = this.clientTable.update(accountId, client as IClientWithId);
-    const agentPromise = this.agentData.update(accountId, client);
-    const updatedClient = await clientPromise;
-    const agent = await agentPromise;
+    const [updatedClient, agent] = await Promise.all([
+      this.clientTable.update(accountId, client as IClientWithId),
+      this.agentData.update(accountId, client),
+    ]);
     return toClient(updatedClient, agent);
   }
 
   public async delete(accountId: string, clientId: string): Promise<void> {
-    const clientPromise = this.clientTable.delete(accountId, clientId);
-    const agentPromise = this.agentData.delete(accountId, clientId);
-    await clientPromise;
-    await agentPromise;
+    await Promise.all([this.clientTable.delete(accountId, clientId), this.agentData.delete(accountId, clientId)]);
   }
 
   private async tryGetIssuerSubject(accountId: string, options: IListClientsOptions): Promise<IListClientsResult> {

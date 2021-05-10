@@ -1,17 +1,6 @@
 require('dotenv').config();
 
-// https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/node-configuring-maxsockets.html
-// var AWS = require('aws-sdk');
-// var https = require('https');
-// var agent = new https.Agent({
-//   maxSockets: 5,
-// });
-
-// AWS.config.update({
-//   httpOptions: {
-//     agent: agent,
-//   },
-// });
+process.stdout.isTTY = process.env.API_STACK_VERSION === 'dev' ? true : process.stdout.isTTY;
 
 var create_error = require('http-errors');
 var express = require('express');
@@ -23,6 +12,7 @@ var app = express();
 logger.token('url', (req, res) =>
   req.query && req.query.token ? req.url.replace(/token=[^\&]+/, 'token={removed}') : req.url
 );
+
 app.use(logger(process.stdout.isTTY ? 'dev' : 'combined'));
 
 //app.use(captureRequest);
@@ -40,7 +30,13 @@ app.use(function (err, req, res, next) {
   let status = err.statusCode || err.status || 500;
   if (status == 500) {
     // this is called when an http 500 error code is caused
-    console.error('REQUEST ERROR: ', err.message, req.url, 'stacktrace:', err.stack.split('\n').join(','));
+    console.error(
+      'REQUEST ERROR: ',
+      err.message,
+      req.url,
+      'stacktrace:',
+      process.stdout.isTTY ? err : err.stack.split('\n').join(',')
+    );
   }
 
   res.status(status);

@@ -9,7 +9,7 @@ export class TextCaptureStream extends PassThrough {
     this.text = '';
   }
 
-  public push(chunk: any, encoding?: string): boolean {
+  public push(chunk: any, encoding?: BufferEncoding): boolean {
     if (chunk) {
       const decoder = new StringDecoder(encoding);
       this.text += decoder.write(chunk);

@@ -16,7 +16,7 @@
   "dependencies": {
     "@5qtrs/aws-base": "^0.0.1",
     "@5qtrs/aws-network": "^0.0.1",
-    "aws-sdk": "^2.446.0",
+    "aws-sdk": "^2.895.0",
     "@5qtrs/exception": "^0.0.1"
   }
 }

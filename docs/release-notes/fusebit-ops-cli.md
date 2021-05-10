@@ -28,6 +28,12 @@ For this version to take effect, please re-run `fuse-ops setup` and `fuse-ops de
 
 ## Version 1.25.2
 
+_Release 04/26/21_
+
+- **Bugfix.** Address several potential errors in deployment creation.
+
+## Version 1.25.2
+
 _Release 04/16/21_
 
 - **Bugfix.** Increased load balancer timeout to 125 seconds to allow 120-second function execution.
