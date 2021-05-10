@@ -2,6 +2,7 @@ import RDS, { Model } from '@5qtrs/db';
 import createEntityTests from './db.entity';
 import { random } from '@5qtrs/random';
 import moment from 'moment';
+import httpError from 'http-errors';
 
 const DAO = RDS.DAO.Operation;
 
@@ -73,7 +74,7 @@ describe('DB operation unique tests', () => {
     delete op.expiresDuration;
     expect(result).toMatchObject(op);
     await new Promise((r) => setTimeout(() => r(undefined), 200));
-    await expect(DAO.getEntity(key)).rejects.toThrowError(RDS.NotFoundError);
+    await expect(DAO.getEntity(key)).rejects.toThrowError(new httpError.NotFound());
   }, 10000);
 
   test('Upsert works', async () => {

@@ -1,5 +1,6 @@
 import { random } from '@5qtrs/random';
 import RDS, { Model } from '@5qtrs/db';
+import httpError from 'http-errors';
 
 const createEntityTests = <T extends Model.IEntity>(DAO: Model.IEntityDao<T>, entityType: string) => {
   const accountId = `acc-0000000000000000`;
@@ -41,7 +42,7 @@ const createEntityTests = <T extends Model.IEntity>(DAO: Model.IEntityDao<T>, en
 
   test('Get throws NotFoundError if not found', async () => {
     const id = 'slack';
-    await expect(DAO.getEntity({ accountId, subscriptionId, id })).rejects.toThrowError(RDS.NotFoundError);
+    await expect(DAO.getEntity({ accountId, subscriptionId, id })).rejects.toThrowError(new httpError.NotFound());
   }, 10000);
 
   test('Deleting non-existing works', async () => {
@@ -85,7 +86,7 @@ const createEntityTests = <T extends Model.IEntity>(DAO: Model.IEntityDao<T>, en
     const data = { foo: 'bar' };
     await expect(
       DAO.updateEntity({ accountId, subscriptionId, id, data, tags: {} }, { upsert: true })
-    ).rejects.toThrowError(RDS.NotFoundError);
+    ).rejects.toThrowError(new httpError.NotFound());
   }, 10000);
 
   test('Updating conflicting throws ConflictError', async () => {
@@ -93,7 +94,7 @@ const createEntityTests = <T extends Model.IEntity>(DAO: Model.IEntityDao<T>, en
     const data = { foo: 'bar' };
     const result = await DAO.createEntity({ accountId, subscriptionId, id, data, tags: {} });
     await DAO.updateEntity(result); // "concurrent" update
-    await expect(DAO.updateEntity(result)).rejects.toThrowError(RDS.ConflictError);
+    await expect(DAO.updateEntity(result)).rejects.toThrowError(new httpError.Conflict());
   }, 10000);
 
   test('Listing works', async () => {
@@ -377,7 +378,7 @@ const createEntityTests = <T extends Model.IEntity>(DAO: Model.IEntityDao<T>, en
         tags: tags1,
         version: 666,
       })
-    ).rejects.toThrowError(RDS.ConflictError);
+    ).rejects.toThrowError(new httpError.Conflict());
   }, 10000);
 
   test('Update single tag without version works', async () => {
@@ -452,7 +453,7 @@ const createEntityTests = <T extends Model.IEntity>(DAO: Model.IEntityDao<T>, en
         tagValue: tags1.level,
         version: 666,
       })
-    ).rejects.toThrowError(RDS.ConflictError);
+    ).rejects.toThrowError(new httpError.Conflict());
   }, 10000);
 
   test('Delete single tag works', async () => {
@@ -525,7 +526,7 @@ const createEntityTests = <T extends Model.IEntity>(DAO: Model.IEntityDao<T>, en
         tagKey: 'level',
         version: 666,
       })
-    ).rejects.toThrowError(RDS.ConflictError);
+    ).rejects.toThrowError(new httpError.Conflict());
   }, 10000);
 
   test('Delete nonexisting tag works', async () => {

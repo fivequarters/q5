@@ -1,5 +1,6 @@
 import RDS, { Model } from '@5qtrs/db';
 import { random } from '@5qtrs/random';
+import httpError from 'http-errors';
 
 const accountId = `acc-0000000000000000`;
 
@@ -29,7 +30,7 @@ describe('DB transaction', () => {
       const result1 = await daoCollection.Storage.createEntity(storage);
       expect(result1).toMatchObject(storage);
       // Calling with non-transactional DAO
-      await expect(RDS.DAO.Storage.getEntity(storage)).rejects.toThrowError(RDS.NotFoundError);
+      await expect(RDS.DAO.Storage.getEntity(storage)).rejects.toThrowError(new httpError.NotFound());
     });
 
     const result3 = await RDS.DAO.Storage.getEntity(storage);
@@ -49,7 +50,7 @@ describe('DB transaction', () => {
         const result1 = await daoCollection.Storage.createEntity(storage);
         expect(result1).toMatchObject(storage);
         // Calling with non-transactional DAO
-        await expect(RDS.DAO.Storage.getEntity(storage)).rejects.toThrowError(RDS.NotFoundError);
+        await expect(RDS.DAO.Storage.getEntity(storage)).rejects.toThrowError(new httpError.NotFound());
         // Forcing a rollback bubbles the error up.
         throw 'Force Rollback';
       });
@@ -57,6 +58,6 @@ describe('DB transaction', () => {
       expect(e).toEqual('Force Rollback');
     }
 
-    await expect(RDS.DAO.Storage.getEntity(storage)).rejects.toThrowError(RDS.NotFoundError);
+    await expect(RDS.DAO.Storage.getEntity(storage)).rejects.toThrowError(new httpError.NotFound());
   }, 10000);
 });
