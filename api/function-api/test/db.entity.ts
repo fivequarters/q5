@@ -1,61 +1,7 @@
 import { random } from '@5qtrs/random';
 import RDS, { Model } from '@5qtrs/db';
 
-export interface EntityAssertions<T extends Model.IEntity> {
-  create: (arg: {
-    accountId: string;
-    subscriptionId: string;
-    id: string;
-    data: object;
-    tags?: Model.ITags;
-  }) => Model.EntityKeyCreate<T>;
-  get: (arg: { accountId: string; subscriptionId: string; id: string }) => Model.EntityKeyGet<T>;
-  delete: (arg: { accountId: string; subscriptionId: string; id: string }) => Model.EntityKeyDelete<T>;
-  update: (arg: {
-    accountId: string;
-    subscriptionId: string;
-    id: string;
-    data: object;
-    tags?: Model.ITags;
-  }) => Model.EntityKeyUpdate<T>;
-  list: (arg: {
-    accountId: string;
-    subscriptionId: string;
-    tags?: Model.ITags;
-    idPrefix?: string;
-    limit?: number;
-    next?: string;
-  }) => Model.EntityKeyList<T>;
-  tags: {
-    set: (arg: {
-      accountId: string;
-      subscriptionId: string;
-      id: string;
-      tagKey: string;
-      tagValue?: string;
-      version?: number;
-    }) => Model.EntityKeyTagSet<T>;
-    update: (arg: {
-      accountId: string;
-      subscriptionId: string;
-      id: string;
-      tags: Model.ITags;
-      version?: number;
-    }) => Model.EntityKeyTagsUpdate<T>;
-    get: (arg: {
-      accountId: string;
-      subscriptionId: string;
-      id: string;
-      tags?: Model.ITags;
-      version?: number;
-    }) => Model.EntityKeyTags<T>;
-  };
-}
-
-const createEntityTests = <T extends Model.IEntity>(
-  DAO: Model.IEntityDao<T>,
-  entityAssertions: EntityAssertions<T>
-) => {
+const createEntityTests = <T extends Model.IEntity>(DAO: Model.IEntityDao<T>, entityType: string) => {
   const accountId = `acc-0000000000000000`;
   let subscriptionId: string;
 
@@ -74,41 +20,41 @@ const createEntityTests = <T extends Model.IEntity>(
     const id = 'slack';
     const data = { foo: 'bar' };
 
-    const createRequest = entityAssertions.create({ accountId, subscriptionId, id, data, tags: {} });
+    const createRequest = { accountId, subscriptionId, id, data, tags: {} };
     const response: T = await DAO.createEntity(createRequest);
     delete response.expires;
     expect(response).toStrictEqual({
       ...createRequest,
       version: 1,
+      entityType,
     });
 
-    const getRequest = entityAssertions.get({ accountId, subscriptionId, id });
+    const getRequest = { accountId, subscriptionId, id };
     const result = await DAO.getEntity(getRequest);
     delete result.expires;
     expect(result).toStrictEqual({
       ...createRequest,
       version: 1,
+      entityType,
     });
   }, 10000);
 
   test('Get throws NotFoundError if not found', async () => {
     const id = 'slack';
-    await expect(DAO.getEntity(entityAssertions.get({ accountId, subscriptionId, id }))).rejects.toThrowError(
-      RDS.NotFoundError
-    );
+    await expect(DAO.getEntity({ accountId, subscriptionId, id })).rejects.toThrowError(RDS.NotFoundError);
   }, 10000);
 
   test('Deleting non-existing works', async () => {
     const id = 'slack';
-    const result = await DAO.deleteEntity(entityAssertions.delete({ accountId, subscriptionId, id }));
+    const result = await DAO.deleteEntity({ accountId, subscriptionId, id });
     expect(result).toBe(false);
   }, 10000);
 
   test('Deleting existing works', async () => {
     const id = 'slack';
     const data = { foo: 'bar' };
-    await DAO.createEntity(entityAssertions.create({ accountId, subscriptionId, id, data, tags: {} }));
-    const result = await DAO.deleteEntity(entityAssertions.delete({ accountId, subscriptionId, id }));
+    await DAO.createEntity({ accountId, subscriptionId, id, data, tags: {} });
+    const result = await DAO.deleteEntity({ accountId, subscriptionId, id });
     expect(result).toBe(true);
   }, 10000);
 
@@ -123,12 +69,8 @@ const createEntityTests = <T extends Model.IEntity>(
       data,
       tags: {},
     };
-    const firstResult = await DAO.createEntity(
-      entityAssertions.create({ accountId, subscriptionId, id, data, tags: {} })
-    );
-    const secondResult = await DAO.updateEntity(
-      entityAssertions.update({ accountId, subscriptionId, id, data: newData, tags: {} })
-    );
+    const firstResult = await DAO.createEntity({ accountId, subscriptionId, id, data, tags: {} });
+    const secondResult = await DAO.updateEntity({ accountId, subscriptionId, id, data: newData, tags: {} });
     delete firstResult.expires;
     delete secondResult.expires;
     expect(secondResult).toStrictEqual({
@@ -142,31 +84,30 @@ const createEntityTests = <T extends Model.IEntity>(
     const id = 'slack';
     const data = { foo: 'bar' };
     await expect(
-      DAO.updateEntity(entityAssertions.update({ accountId, subscriptionId, id, data, tags: {} }), { upsert: true })
+      DAO.updateEntity({ accountId, subscriptionId, id, data, tags: {} }, { upsert: true })
     ).rejects.toThrowError(RDS.NotFoundError);
   }, 10000);
 
   test('Updating conflicting throws ConflictError', async () => {
     const id = 'slack';
     const data = { foo: 'bar' };
-    const result = await DAO.createEntity(entityAssertions.create({ accountId, subscriptionId, id, data, tags: {} }));
+    const result = await DAO.createEntity({ accountId, subscriptionId, id, data, tags: {} });
     await DAO.updateEntity(result); // "concurrent" update
     await expect(DAO.updateEntity(result)).rejects.toThrowError(RDS.ConflictError);
   }, 10000);
 
   test('Listing works', async () => {
     const records = [1, 2, 3];
-    const createRequest = (n: number) =>
-      entityAssertions.create({
-        accountId,
-        subscriptionId,
-        id: `slack-${n}`,
-        data: { foo: n },
-        tags: {},
-      });
+    const createRequest = (n: number) => ({
+      accountId,
+      subscriptionId,
+      id: `slack-${n}`,
+      data: { foo: n },
+      tags: {},
+    });
 
     await Promise.all(records.map((n) => DAO.createEntity(createRequest(n))));
-    const result = await DAO.listEntities(entityAssertions.list({ accountId, subscriptionId }));
+    const result = await DAO.listEntities({ accountId, subscriptionId });
     expect(result).toBeDefined();
     expect(Array.isArray(result.items)).toBe(true);
     result.items.forEach((item) => delete item.expires);
@@ -174,6 +115,7 @@ const createEntityTests = <T extends Model.IEntity>(
     expect(result.next).toBeUndefined();
     records.forEach((r, i) =>
       expect(result.items[i]).toStrictEqual({
+        entityType,
         ...createRequest(r),
         version: 1,
       })
@@ -182,75 +124,65 @@ const createEntityTests = <T extends Model.IEntity>(
 
   test('Listing by one tag works', async () => {
     const records = [1, 2, 3];
-    const makeRecord: (n: number) => Model.EntityKeyCreate<T> = (n) =>
-      entityAssertions.create({
-        accountId,
-        subscriptionId,
-        id: `slack-${n}`,
-        data: { foo: n },
-        tags: { serviceLevel: n == 2 ? 'gold' : 'silver', foo: 'bar' },
-      });
+    const makeRecord: (n: number) => Model.IEntityId = (n) => ({
+      accountId,
+      subscriptionId,
+      id: `slack-${n}`,
+      data: { foo: n },
+      tags: { serviceLevel: n == 2 ? 'gold' : 'silver', foo: 'bar' },
+    });
     await Promise.all(records.map((n) => DAO.createEntity(makeRecord(n))));
-    let result = await DAO.listEntities(
-      entityAssertions.list({ accountId, subscriptionId, tags: { serviceLevel: 'silver' } })
-    );
+    let result = await DAO.listEntities({ accountId, subscriptionId, tags: { serviceLevel: 'silver' } });
     expect(result).toBeDefined();
     expect(Array.isArray(result.items)).toBe(true);
     expect(result.items.length).toBe(2);
     expect(result.next).toBeUndefined();
     result.items.forEach((item) => delete item.expires);
-    expect(result.items[0]).toStrictEqual({ ...makeRecord(1), version: 1 });
-    expect(result.items[1]).toStrictEqual({ ...makeRecord(3), version: 1 });
+    expect(result.items[0]).toStrictEqual({ ...makeRecord(1), version: 1, entityType });
+    expect(result.items[1]).toStrictEqual({ ...makeRecord(3), version: 1, entityType });
   }, 10000);
 
   test('Listing by two tags works', async () => {
     const records = [1, 2, 3];
-    const makeRecord: (n: number) => Model.EntityKeyCreate<T> = (n) =>
-      entityAssertions.create({
-        accountId,
-        subscriptionId,
-        id: `slack-${n}`,
-        data: { foo: n },
-        tags: { serviceLevel: n == 2 ? 'gold' : 'silver', billing: n === 1 ? 'annual' : 'monthly' },
-      });
+    const makeRecord: (n: number) => Model.IEntityId = (n) => ({
+      accountId,
+      subscriptionId,
+      id: `slack-${n}`,
+      data: { foo: n },
+      tags: { serviceLevel: n == 2 ? 'gold' : 'silver', billing: n === 1 ? 'annual' : 'monthly' },
+    });
     await Promise.all(records.map((n) => DAO.createEntity(makeRecord(n))));
-    let result = await DAO.listEntities(
-      entityAssertions.list({
-        accountId,
-        subscriptionId,
-        tags: { serviceLevel: 'silver', billing: 'monthly' },
-      })
-    );
+    let result = await DAO.listEntities({
+      accountId,
+      subscriptionId,
+      tags: { serviceLevel: 'silver', billing: 'monthly' },
+    });
     expect(result).toBeDefined();
     expect(Array.isArray(result.items)).toBe(true);
     expect(result.items.length).toBe(1);
     expect(result.next).toBeUndefined();
     result.items.forEach((item) => delete item.expires);
-    expect(result.items[0]).toStrictEqual({ ...makeRecord(3), version: 1 });
+    expect(result.items[0]).toStrictEqual({ ...makeRecord(3), version: 1, entityType });
   }, 10000);
 
   test('Listing by id prefix works', async () => {
     const records = ['/foo/bar/', '/foobar/baz/', '/foo/baz/', '/baz/foo/'];
     await Promise.all(
       records.map((id) =>
-        DAO.createEntity(
-          entityAssertions.create({
-            accountId,
-            subscriptionId,
-            id,
-            data: { key: id },
-            tags: {},
-          })
-        )
+        DAO.createEntity({
+          accountId,
+          subscriptionId,
+          id,
+          data: { key: id },
+          tags: {},
+        })
       )
     );
-    let result = await DAO.listEntities(
-      entityAssertions.list({
-        accountId,
-        subscriptionId,
-        idPrefix: '/foo/',
-      })
-    );
+    let result = await DAO.listEntities({
+      accountId,
+      subscriptionId,
+      idPrefix: '/foo/',
+    });
     expect(result).toBeDefined();
     expect(Array.isArray(result.items)).toBe(true);
     expect(result.items.length).toBe(2);
@@ -275,22 +207,20 @@ const createEntityTests = <T extends Model.IEntity>(
     const records = [1, 2, 3, 4];
     await Promise.all(
       records.map((n) =>
-        DAO.createEntity(
-          entityAssertions.create({
-            accountId,
-            subscriptionId,
-            id: `${n}`,
-            data: { foo: n },
-            tags: {},
-          })
-        )
+        DAO.createEntity({
+          accountId,
+          subscriptionId,
+          id: `${n}`,
+          data: { foo: n },
+          tags: {},
+        })
       )
     );
     let result = await DAO.listEntities(
-      entityAssertions.list({
+      {
         accountId,
         subscriptionId,
-      }),
+      },
       { listLimit: 2 }
     );
     expect(result).toBeDefined();
@@ -300,11 +230,11 @@ const createEntityTests = <T extends Model.IEntity>(
     expect(result.items[0].id).toBe(`1`);
     expect(result.items[1].id).toBe(`2`);
     result = await DAO.listEntities(
-      entityAssertions.list({
+      {
         accountId,
         subscriptionId,
         next: result.next,
-      }),
+      },
       { listLimit: 2 }
     );
     expect(result).toBeDefined();
@@ -319,22 +249,20 @@ const createEntityTests = <T extends Model.IEntity>(
     const records = [1, 2, 3];
     await Promise.all(
       records.map((n) =>
-        DAO.createEntity(
-          entityAssertions.create({
-            accountId,
-            subscriptionId,
-            id: `${n}`,
-            data: { foo: n },
-            tags: {},
-          })
-        )
+        DAO.createEntity({
+          accountId,
+          subscriptionId,
+          id: `${n}`,
+          data: { foo: n },
+          tags: {},
+        })
       )
     );
     let result = await DAO.listEntities(
-      entityAssertions.list({
+      {
         accountId,
         subscriptionId,
-      }),
+      },
       { listLimit: 2 }
     );
     expect(result).toBeDefined();
@@ -344,11 +272,11 @@ const createEntityTests = <T extends Model.IEntity>(
     expect(result.items[0].id).toBe(`1`);
     expect(result.items[1].id).toBe(`2`);
     result = await DAO.listEntities(
-      entityAssertions.list({
+      {
         accountId,
         subscriptionId,
         next: result.next,
-      }),
+      },
       { listLimit: 2 }
     );
     expect(result).toBeDefined();
@@ -362,22 +290,18 @@ const createEntityTests = <T extends Model.IEntity>(
     const id = 'slack';
     const data = { foo: 'bar' };
     const tags = { level: 'gold', billing: 'annual' };
-    await DAO.createEntity(
-      entityAssertions.create({
-        accountId,
-        subscriptionId,
-        id,
-        data,
-        tags,
-      })
-    );
-    const result = await DAO.getEntityTags(
-      entityAssertions.tags.get({
-        accountId,
-        subscriptionId,
-        id,
-      })
-    );
+    await DAO.createEntity({
+      accountId,
+      subscriptionId,
+      id,
+      data,
+      tags,
+    });
+    const result = await DAO.getEntityTags({
+      accountId,
+      subscriptionId,
+      id,
+    });
     expect(result).toBeDefined();
     expect(result.version).toBe(1);
     expect(result.tags).toMatchObject(tags);
@@ -389,23 +313,19 @@ const createEntityTests = <T extends Model.IEntity>(
     const data = { foo: 'bar' };
     const tags = { level: 'gold', billing: 'annual' };
     const tags1 = { level: 'silver', billing: 'annual', tenant: 'contoso' };
-    await DAO.createEntity(
-      entityAssertions.create({
-        accountId,
-        subscriptionId,
-        id,
-        data,
-        tags,
-      })
-    );
-    const result = await DAO.updateEntityTags(
-      entityAssertions.tags.update({
-        accountId,
-        subscriptionId,
-        id,
-        tags: tags1,
-      })
-    );
+    await DAO.createEntity({
+      accountId,
+      subscriptionId,
+      id,
+      data,
+      tags,
+    });
+    const result = await DAO.updateEntityTags({
+      accountId,
+      subscriptionId,
+      id,
+      tags: tags1,
+    });
     expect(result).toBeDefined();
     expect(result.version).toBe(2);
     expect(result.tags).toMatchObject(tags1);
@@ -417,24 +337,20 @@ const createEntityTests = <T extends Model.IEntity>(
     const data = { foo: 'bar' };
     const tags = { level: 'gold', billing: 'annual' };
     const tags1 = { level: 'silver', billing: 'annual', tenant: 'contoso' };
-    const integration = await DAO.createEntity(
-      entityAssertions.create({
-        accountId,
-        subscriptionId,
-        id,
-        data,
-        tags,
-      })
-    );
-    const result = await DAO.updateEntityTags(
-      entityAssertions.tags.update({
-        accountId,
-        subscriptionId,
-        id,
-        tags: tags1,
-        version: integration.version,
-      })
-    );
+    const integration = await DAO.createEntity({
+      accountId,
+      subscriptionId,
+      id,
+      data,
+      tags,
+    });
+    const result = await DAO.updateEntityTags({
+      accountId,
+      subscriptionId,
+      id,
+      tags: tags1,
+      version: integration.version,
+    });
     expect(result).toBeDefined();
     expect(result.version).toBe(2);
     expect(result.tags).toMatchObject(tags1);
@@ -446,25 +362,21 @@ const createEntityTests = <T extends Model.IEntity>(
     const data = { foo: 'bar' };
     const tags = { level: 'gold', billing: 'annual' };
     const tags1 = { level: 'silver', billing: 'annual', tenant: 'contoso' };
-    await DAO.createEntity(
-      entityAssertions.create({
+    await DAO.createEntity({
+      accountId,
+      subscriptionId,
+      id,
+      data,
+      tags,
+    });
+    await expect(
+      DAO.updateEntityTags({
         accountId,
         subscriptionId,
         id,
-        data,
-        tags,
+        tags: tags1,
+        version: 666,
       })
-    );
-    await expect(
-      DAO.updateEntityTags(
-        entityAssertions.tags.update({
-          accountId,
-          subscriptionId,
-          id,
-          tags: tags1,
-          version: 666,
-        })
-      )
     ).rejects.toThrowError(RDS.ConflictError);
   }, 10000);
 
@@ -473,24 +385,20 @@ const createEntityTests = <T extends Model.IEntity>(
     const data = { foo: 'bar' };
     const tags = { level: 'gold', billing: 'annual' };
     const tags1 = { level: 'silver', billing: 'annual' };
-    const integration = await DAO.createEntity(
-      entityAssertions.create({
-        accountId,
-        subscriptionId,
-        id,
-        data,
-        tags,
-      })
-    );
-    const result = await DAO.setEntityTag(
-      entityAssertions.tags.set({
-        accountId,
-        subscriptionId,
-        id,
-        tagKey: 'level',
-        tagValue: tags1.level,
-      })
-    );
+    await DAO.createEntity({
+      accountId,
+      subscriptionId,
+      id,
+      data,
+      tags,
+    });
+    const result = await DAO.setEntityTag({
+      accountId,
+      subscriptionId,
+      id,
+      tagKey: 'level',
+      tagValue: tags1.level,
+    });
     expect(result).toBeDefined();
     expect(result.version).toBe(2);
     expect(result.tags).toMatchObject(tags1);
@@ -502,25 +410,21 @@ const createEntityTests = <T extends Model.IEntity>(
     const data = { foo: 'bar' };
     const tags = { level: 'gold', billing: 'annual' };
     const tags1 = { level: 'silver', billing: 'annual' };
-    const integration = await DAO.createEntity(
-      entityAssertions.create({
-        accountId,
-        subscriptionId,
-        id,
-        data,
-        tags,
-      })
-    );
-    const result = await DAO.setEntityTag(
-      entityAssertions.tags.set({
-        accountId,
-        subscriptionId,
-        id,
-        tagKey: 'level',
-        tagValue: tags1.level,
-        version: integration.version,
-      })
-    );
+    const integration = await DAO.createEntity({
+      accountId,
+      subscriptionId,
+      id,
+      data,
+      tags,
+    });
+    const result = await DAO.setEntityTag({
+      accountId,
+      subscriptionId,
+      id,
+      tagKey: 'level',
+      tagValue: tags1.level,
+      version: integration.version,
+    });
     expect(result).toBeDefined();
     expect(result.version).toBe(2);
     expect(result.tags).toMatchObject(tags1);
@@ -532,26 +436,22 @@ const createEntityTests = <T extends Model.IEntity>(
     const data = { foo: 'bar' };
     const tags = { level: 'gold', billing: 'annual' };
     const tags1 = { level: 'silver', billing: 'annual' };
-    await DAO.createEntity(
-      entityAssertions.create({
+    await DAO.createEntity({
+      accountId,
+      subscriptionId,
+      id,
+      data,
+      tags,
+    });
+    await expect(
+      DAO.setEntityTag({
         accountId,
         subscriptionId,
         id,
-        data,
-        tags,
+        tagKey: 'level',
+        tagValue: tags1.level,
+        version: 666,
       })
-    );
-    await expect(
-      DAO.setEntityTag(
-        entityAssertions.tags.set({
-          accountId,
-          subscriptionId,
-          id,
-          tagKey: 'level',
-          tagValue: tags1.level,
-          version: 666,
-        })
-      )
     ).rejects.toThrowError(RDS.ConflictError);
   }, 10000);
 
@@ -560,27 +460,23 @@ const createEntityTests = <T extends Model.IEntity>(
     const data = { foo: 'bar' };
     const tags = { level: 'gold', billing: 'annual' };
     const tags1 = { level: 'silver', billing: 'annual' };
-    const integration = await DAO.createEntity(
-      entityAssertions.create({
-        accountId,
-        subscriptionId,
-        id,
-        data,
-        tags,
-      })
-    );
-    const result = await DAO.deleteEntityTag(
-      entityAssertions.tags.set({
-        accountId,
-        subscriptionId,
-        id,
-        tagKey: 'level',
-      })
-    );
+    await DAO.createEntity({
+      accountId,
+      subscriptionId,
+      id,
+      data,
+      tags,
+    });
+    const result = await DAO.deleteEntityTag({
+      accountId,
+      subscriptionId,
+      id,
+      tagKey: 'level',
+    });
     expect(result).toBeDefined();
     expect(result.version).toBe(2);
     expect(result.tags).toMatchObject({ billing: 'annual' });
-    expect(Object.keys(result.tags).length).toBe(1);
+    expect(Object.keys(result.tags!).length).toBe(1);
     expect(Object.keys(result).length).toBe(2);
   }, 10000);
 
@@ -589,28 +485,24 @@ const createEntityTests = <T extends Model.IEntity>(
     const data = { foo: 'bar' };
     const tags = { level: 'gold', billing: 'annual' };
     const tags1 = { level: 'silver', billing: 'annual' };
-    const integration = await DAO.createEntity(
-      entityAssertions.create({
-        accountId,
-        subscriptionId,
-        id,
-        data,
-        tags,
-      })
-    );
-    const result = await DAO.deleteEntityTag(
-      entityAssertions.tags.set({
-        accountId,
-        subscriptionId,
-        id,
-        tagKey: 'level',
-        version: integration.version,
-      })
-    );
+    const integration = await DAO.createEntity({
+      accountId,
+      subscriptionId,
+      id,
+      data,
+      tags,
+    });
+    const result = await DAO.deleteEntityTag({
+      accountId,
+      subscriptionId,
+      id,
+      tagKey: 'level',
+      version: integration.version,
+    });
     expect(result).toBeDefined();
     expect(result.version).toBe(2);
     expect(result.tags).toMatchObject({ billing: 'annual' });
-    expect(Object.keys(result.tags).length).toBe(1);
+    expect(Object.keys(result.tags!).length).toBe(1);
     expect(Object.keys(result).length).toBe(2);
   }, 10000);
 
@@ -618,25 +510,21 @@ const createEntityTests = <T extends Model.IEntity>(
     const id = 'slack';
     const data = { foo: 'bar' };
     const tags = { level: 'gold', billing: 'annual' };
-    await DAO.createEntity(
-      entityAssertions.create({
+    await DAO.createEntity({
+      accountId,
+      subscriptionId,
+      id,
+      data,
+      tags,
+    });
+    await expect(
+      DAO.deleteEntityTag({
         accountId,
         subscriptionId,
         id,
-        data,
-        tags,
+        tagKey: 'level',
+        version: 666,
       })
-    );
-    await expect(
-      DAO.deleteEntityTag(
-        entityAssertions.tags.set({
-          accountId,
-          subscriptionId,
-          id,
-          tagKey: 'level',
-          version: 666,
-        })
-      )
     ).rejects.toThrowError(RDS.ConflictError);
   }, 10000);
 
@@ -644,27 +532,23 @@ const createEntityTests = <T extends Model.IEntity>(
     const id = 'slack';
     const data = { foo: 'bar' };
     const tags = { level: 'gold', billing: 'annual' };
-    await DAO.createEntity(
-      entityAssertions.create({
-        accountId,
-        subscriptionId,
-        id,
-        data,
-        tags,
-      })
-    );
-    const result = await DAO.deleteEntityTag(
-      entityAssertions.tags.set({
-        accountId,
-        subscriptionId,
-        id,
-        tagKey: 'nonexisting',
-      })
-    );
+    await DAO.createEntity({
+      accountId,
+      subscriptionId,
+      id,
+      data,
+      tags,
+    });
+    const result = await DAO.deleteEntityTag({
+      accountId,
+      subscriptionId,
+      id,
+      tagKey: 'nonexisting',
+    });
     expect(result).toBeDefined();
     expect(result.version).toBe(2);
     expect(result.tags).toMatchObject(tags);
-    expect(Object.keys(result.tags).length).toBe(2);
+    expect(Object.keys(result.tags!).length).toBe(2);
     expect(Object.keys(result).length).toBe(2);
   }, 10000);
 };

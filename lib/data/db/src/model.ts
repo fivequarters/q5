@@ -2,7 +2,7 @@ import moment from 'moment';
 import * as AWS from 'aws-sdk';
 import { PromiseResult } from 'aws-sdk/lib/request';
 import { RDSDataService } from 'aws-sdk';
-import { SqlRecords } from 'aws-sdk/clients/rdsdataservice';
+import { Metadata, SqlRecords } from 'aws-sdk/clients/rdsdataservice';
 
 class CustomError extends Error {
   constructor(message?: string) {
@@ -25,10 +25,13 @@ export interface IRds {
   createTransaction: () => Promise<string>;
   commitTransaction: (transactionId: string) => Promise<string>;
   rollbackTransaction: (transactionId: string) => Promise<string>;
-  inTransaction: <T>(func: (daoCollection: IDaoCollection, rollback: () => Promise<string>) => T) => Promise<T>;
+  inTransaction: <T>(func: (daoCollection: IDaoCollection) => T) => Promise<T>;
   ensureRecords: (
     result: RDSDataService.ExecuteStatementResponse
-  ) => asserts result is RDSDataService.ExecuteStatementResponse & { records: SqlRecords };
+  ) => asserts result is RDSDataService.ExecuteStatementResponse & {
+    records: SqlRecords;
+    columnMetadata: Metadata;
+  };
   DAO: IDaoCollection;
 }
 
@@ -47,28 +50,6 @@ export interface IRdsCredentials {
 //--------------------------------
 // EntityKey Components
 //--------------------------------
-export interface IEntityKey {
-  accountId: string;
-  subscriptionId: string;
-  id: string;
-}
-
-export interface IEntityKeyWithMetadata extends IEntityKey, IEntityKeyMetadata {}
-
-export interface IEntity extends IEntityKeyWithMetadata {
-  data: object;
-}
-export interface IEntityKeyMetadata {
-  tags?: ITags;
-  version?: number;
-  expires?: moment.Moment;
-  expiresDuration?: moment.Duration;
-}
-
-export interface IEntityKeyPrefix extends Omit<IEntityKey, 'id'> {
-  id?: string;
-  idPrefix?: string;
-}
 
 export interface ITags {
   [key: string]: string;
@@ -78,55 +59,44 @@ export interface ITagsWithVersion {
   tags: ITags;
   version?: number;
 }
-//--------------------------------
-// EntityKey Generic Interfaces
-//--------------------------------
-export interface IEntityKeyGet extends IEntityKey {}
-export interface IEntityKeyList extends IEntityKeyPrefix, IEntityKeyMetadata {
+
+// Data needed for any request
+export interface IEntityCore {
+  accountId: string;
+  subscriptionId: string;
+}
+
+// Data needed for selects and deletes
+interface IEntitySelectAbstract extends IEntityCore {
+  tags?: ITags;
+  version?: number;
   next?: string;
 }
-export interface IEntityKeyDelete extends Omit<Partial<IEntity>, keyof IEntityKeyPrefix>, IEntityKeyPrefix {}
-export interface IEntityKeyCreate extends IEntity {}
-export interface IEntityKeyUpdate extends IEntity {}
-export interface IEntityKeyTags
-  extends Omit<Partial<IEntity>, keyof IEntityKey | keyof IEntityKeyMetadata>,
-    IEntityKey,
-    IEntityKeyWithMetadata {}
-export interface IEntityKeyTagsUpdate
-  extends Omit<Partial<IEntity>, keyof IEntityKey | keyof IEntityKeyMetadata>,
-    IEntityKey,
-    IEntityKeyWithMetadata {
-  tags: ITags;
+export interface IEntityId extends IEntitySelectAbstract {
+  id: string;
 }
-export interface IEntityKeyTagSet
-  extends Omit<Partial<IEntity>, keyof IEntityKey | keyof IEntityKeyMetadata>,
-    IEntityKey,
-    IEntityKeyWithMetadata {
+export interface IEntityPrefix extends IEntitySelectAbstract {
+  id?: string;
+  idPrefix?: string;
+}
+
+// Data needed for inserts
+export interface IEntity extends IEntityId {
+  tags?: ITags;
+  data?: object;
+  expires?: moment.Moment;
+  expiresDuration?: moment.Duration;
+}
+export interface IEntityKeyTagSet extends IEntityId {
   tagKey: string;
   tagValue?: string;
 }
-//--------------------------------
-// EntityKey Params
-//--------------------------------
-export type Combine<T, U> = Omit<T, keyof U> & U;
 
-export type EntityKeyGet<T extends IEntity> = Combine<Partial<T>, IEntityKeyGet>;
-export type EntityKeyList<T extends IEntity> = Combine<Partial<T>, IEntityKeyList>;
-export type EntityKeyDelete<T extends IEntity> = Combine<Partial<T>, IEntityKeyDelete>;
-export type EntityKeyCreate<T extends IEntity> = Combine<T, IEntityKeyCreate>;
-export type EntityKeyUpdate<T extends IEntity> = Combine<Partial<T>, IEntityKeyUpdate>;
-export type EntityKeyTags<T extends IEntity> = Combine<Partial<T>, IEntityKeyTags>;
-export type EntityKeyTagSet<T extends IEntity> = Combine<Partial<T>, IEntityKeyTagSet>;
-export type EntityKeyTagsUpdate<T extends IEntity> = Combine<Partial<T>, IEntityKeyTagsUpdate>;
-export type EntityKeyParams<T extends IEntity> =
-  | EntityKeyGet<T>
-  | EntityKeyList<T>
-  | EntityKeyDelete<T>
-  | EntityKeyCreate<T>
-  | EntityKeyUpdate<T>
-  | EntityKeyTags<T>
-  | EntityKeyTagSet<T>
-  | EntityKeyTagsUpdate<T>;
+export interface EntityKeyParams
+  extends Partial<IEntity>,
+    Partial<IEntityId>,
+    Partial<IEntityPrefix>,
+    Partial<IEntityKeyTagSet> {}
 
 export interface IListResponse<T extends IEntity> {
   items: T[];
@@ -137,103 +107,74 @@ export interface IListResponse<T extends IEntity> {
 // IEntity Extensions
 //--------------------------------
 
-export interface IIntegration extends IEntity {
-  version: number;
-}
-
-export interface IConnectorCreateRequest extends IEntity {}
-
-export interface IConnector extends IEntity {
-  version: number;
-}
-
+export interface IIntegration extends IEntity {}
+export interface IConnector extends IEntity {}
 export interface IStorageItem extends IEntity {}
-
 export interface IOperation extends IEntity {}
-
-export type EntityGeneric = IIntegration | IConnector;
+export interface IEntityGeneric extends IIntegration, IConnector, IStorageItem, IOperation {}
 
 //--------------------------------
 // Utilities
 //--------------------------------
 
-type OptionalKeysList<T> = {
-  [K in keyof T]-?: undefined extends { [K2 in keyof T]: K2 }[K] ? K : never;
-}[keyof T];
-
-type RequiredKeysList<T> = {
-  [K in keyof T]-?: undefined extends { [K2 in keyof T]: K2 }[K] ? never : K;
-}[keyof T];
-
 export type OptionalKeysOnly<T> = {
-  [K in OptionalKeysList<T>]-?: NonNullable<T[K]>;
+  [K in keyof { [key in keyof T]: T[key] extends undefined ? T[K] : never }]: T[K];
 };
-
 export type RequiredKeysOnly<T> = {
-  [K in RequiredKeysList<T>]: NonNullable<T[K]>;
+  [K in keyof { [key in keyof T]: T[key] extends undefined ? never : T[K] }]: T[K];
 };
+export type ExcludeIfExists<T, K> = Pick<T, Exclude<keyof T, keyof K>>;
+export type PickIfExists<T, K> = Pick<T, Extract<keyof T, keyof K>>;
+export type OptionalIntersection<T, K> = PickIfExists<OptionalKeysOnly<T>, OptionalKeysOnly<K>>;
+export type RequiredIntersection<T, K> = PickIfExists<RequiredKeysOnly<T>, Required<K>> &
+  PickIfExists<RequiredKeysOnly<K>, Required<T>>;
+export type Intersection<T, K> = OptionalIntersection<T, K> & RequiredIntersection<T, K>;
+export type MergeInner<T, K> = Intersection<T, K>;
+export type MergeOuter<T, K> = Intersection<T, K> & ExcludeIfExists<K, T> & ExcludeIfExists<T, K>;
+export type MergeRight<T, K> = Intersection<T, K> & ExcludeIfExists<T, K>;
+export type MergeLeft<T, K> = Intersection<T, K> & ExcludeIfExists<K, T>;
 
 //--------------------------------
-// Entity Constructors Arguments, and Mergeables
+// Entity Constructors Arguments
 //--------------------------------
 
-export interface EntityConstructorArgument
-  extends DefaultQueryOptions,
-    DefaultStatementOptions,
-    DefaultParameterOptions {
-  entityType: EntityType;
-  RDS: IRds;
-  transactionId?: string;
-}
-
-export interface EntityConstructorArgumentWithDefaults
-  extends defaultConstructorArguments,
-    Omit<EntityConstructorArgument, keyof defaultConstructorArguments> {}
-
+// Queries
 export interface DefaultQueryOptions {
   upsert?: boolean;
   filterExpired?: boolean;
-  prefixMatchId?: boolean;
   listLimit?: number;
 }
-export interface MergedQueryOptions
-  extends Pick<defaultConstructorArguments, keyof DefaultQueryOptions>,
-    Partial<Omit<OptionalKeysOnly<DefaultQueryOptions>, keyof defaultConstructorArguments>>,
-    RequiredKeysOnly<DefaultQueryOptions> {}
+export interface MergedQueryOptions extends MergeLeft<DefaultConstructorArguments, DefaultQueryOptions> {}
 export interface InputQueryOptions extends Partial<DefaultQueryOptions> {}
-export interface FinalQueryOptions extends Omit<InputQueryOptions, keyof MergedQueryOptions>, MergedQueryOptions {}
+export interface FinalQueryOptions extends MergeOuter<InputQueryOptions, MergedQueryOptions> {}
 
+// Statements
 export interface DefaultStatementOptions {}
-export interface MergedStatementOptions /*
- uncomment the below line once `defaultConstructorArguments` includes an item from `DefaultStatementOptions`
-  // Pick<defaultConstructorArguments, keyof DefaultStatementOptions>,
- */
-  extends Partial<Omit<OptionalKeysOnly<DefaultStatementOptions>, keyof defaultConstructorArguments>>,
-    RequiredKeysOnly<DefaultStatementOptions> {
-  transactionId?: string;
-}
+export interface MergedStatementOptions extends MergeLeft<DefaultConstructorArguments, DefaultStatementOptions> {}
 export interface InputStatementOptions extends Partial<DefaultStatementOptions> {}
-export interface FinalStatementOptions
-  extends Omit<InputStatementOptions, keyof MergedStatementOptions>,
-    MergedStatementOptions {}
+export interface FinalStatementOptions extends MergeOuter<InputStatementOptions, MergedStatementOptions> {}
 
+// Parameters
 export interface DefaultParameterOptions {
   expires?: moment.Moment;
   expiresDuration?: moment.Duration;
 }
-export interface MergedParameterOptions /*
- uncomment the below line once `defaultConstructorArguments` includes an item from `DefaultParameterOptions`
-  // Pick<defaultConstructorArguments, keyof DefaultParameterOptions>,
- */
-  extends Partial<Omit<OptionalKeysOnly<DefaultParameterOptions>, keyof defaultConstructorArguments>>,
-    RequiredKeysOnly<DefaultParameterOptions> {}
+export interface MergedParameterOptions extends MergeLeft<DefaultConstructorArguments, DefaultParameterOptions> {}
 
-export interface defaultConstructorArguments {
+// Constructors
+export interface DefaultOptions extends DefaultQueryOptions, DefaultParameterOptions, DefaultStatementOptions {}
+export interface DefaultConstructorArguments extends DefaultOptions {
   upsert: boolean;
   filterExpired: boolean;
-  prefixMatchId: boolean;
   listLimit: number;
 }
+export interface InputConstructorArguments extends DefaultOptions {
+  entityType: EntityType;
+  RDS: IRds;
+  transactionId?: string;
+}
+export interface MergedConstructorArguments
+  extends MergeOuter<DefaultConstructorArguments, InputConstructorArguments> {}
 
 export enum EntityType {
   Integration = 'integration',
@@ -251,46 +192,45 @@ export interface IDAO {
 }
 
 export interface IEntityDao<ET extends IEntity> extends IDAO {
-  sqlToIEntity: (record: RDSDataService.FieldList) => ET;
-  sqlToTagsWithVersion: (record: RDSDataService.FieldList) => ITagsWithVersion;
+  sqlToIEntity: <T>(result: RDSDataService.ExecuteStatementResponse) => T[];
   getEntity: (
-    params: EntityKeyGet<ET>,
+    params: IEntityId,
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
   ) => Promise<ET>;
   getEntityTags: (
-    params: EntityKeyTags<ET>,
+    params: IEntityId,
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
   ) => Promise<ITagsWithVersion>;
-  listEntities: (params: EntityKeyList<ET>, queryOptions?: InputQueryOptions) => Promise<IListResponse<ET>>;
+  listEntities: (params: IEntityPrefix, queryOptions?: InputQueryOptions) => Promise<IListResponse<ET>>;
   deleteEntity: (
-    params: EntityKeyDelete<ET>,
+    params: IEntityPrefix,
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
   ) => Promise<boolean>;
   createEntity: (
-    params: EntityKeyCreate<ET>,
+    params: IEntity,
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
   ) => Promise<ET>;
   updateEntity: (
-    params: EntityKeyUpdate<ET>,
+    params: IEntity,
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
   ) => Promise<ET>;
   updateEntityTags: (
-    params: EntityKeyTags<ET>,
+    params: IEntityId,
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
   ) => Promise<ITagsWithVersion>;
   setEntityTag: (
-    params: EntityKeyTagSet<ET>,
+    params: IEntityKeyTagSet,
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
   ) => Promise<ITagsWithVersion>;
   deleteEntityTag: (
-    params: EntityKeyTagSet<ET>,
+    params: IEntityKeyTagSet,
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
   ) => Promise<ITagsWithVersion>;

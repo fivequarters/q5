@@ -1,9 +1,7 @@
-import { RDSDataService } from 'aws-sdk';
 import moment from 'moment';
 import {
-  defaultConstructorArguments,
-  EntityConstructorArgument,
-  EntityConstructorArgumentWithDefaults,
+  InputConstructorArguments,
+  MergedConstructorArguments,
   FinalQueryOptions,
   FinalStatementOptions,
   InputQueryOptions,
@@ -12,55 +10,46 @@ import {
   MergedQueryOptions,
   MergedStatementOptions,
   EntityType,
-  ITagsWithVersion,
-  EntityKeyGet,
   IEntity,
   EntityKeyParams,
-  EntityKeyTags,
-  EntityKeyList,
   IListResponse,
-  EntityKeyDelete,
-  EntityKeyCreate,
-  EntityKeyUpdate,
-  EntityKeyTagSet,
   IEntityDao,
   IRds,
+  DefaultConstructorArguments,
+  RequiredKeysOnly,
+  IEntityGeneric,
+  ITagsWithVersion,
+  IEntityId,
+  IEntityPrefix,
+  IEntityKeyTagSet,
 } from '../model';
 
 //--------------------------------
 // Internal
 //--------------------------------
 
-const defaultEntityConstructorArgument: defaultConstructorArguments = {
+const defaultEntityConstructorArgument: DefaultConstructorArguments = {
   upsert: true,
   filterExpired: true,
-  prefixMatchId: false,
   listLimit: 100,
 };
 
-export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
-  // private readonly passToTransactional: <E extends Entity<ET>>(
-  //   construct: EntityDao<ET>,
-  //   transactionalId: string
-  // ) => IEntityDao<ET> = (construct: EntityDao<ET>, transactionalId) => {
-  //   return new construct(this.RDS, transactionalId);
-  // };
-
+export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET> {
   public readonly createTransactional: (transactionId?: string) => this = (transactionId) => {
     return Reflect.construct(this.constructor, [this.RDS, transactionId]);
   };
 
-  protected constructor(config: EntityConstructorArgument) {
+  protected constructor(config: InputConstructorArguments) {
     this.RDS = config.RDS;
-    const entityConfig: EntityConstructorArgumentWithDefaults = {
+    const entityConfig: MergedConstructorArguments = {
       ...defaultEntityConstructorArgument,
-      ...config,
+      ...cleanObj(config),
     };
     this.entityType = entityConfig.entityType;
+
     this.defaultQueryOptions = {
       filterExpired: entityConfig.filterExpired,
       listLimit: entityConfig.listLimit,
-      prefixMatchId: entityConfig.prefixMatchId,
       upsert: entityConfig.upsert,
     };
     this.defaultStatementOptions = {
@@ -77,28 +66,54 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
   protected readonly defaultStatementOptions: MergedStatementOptions;
   protected readonly defaultParameterOptions: MergedParameterOptions;
 
-  sqlToIEntity: (record: RDSDataService.FieldList) => ET = (record) => {
-    let result: ET = {
-      accountId: record[2].stringValue as string,
-      subscriptionId: record[3].stringValue as string,
-      id: record[4].stringValue as string,
-      version: record[5].longValue as number,
-      data: JSON.parse(record[6].stringValue as string),
-      tags: JSON.parse(record[7].stringValue as string),
-    } as ET;
-    if (record[8].stringValue !== undefined) {
-      result.expires = moment(record[8].stringValue);
-    }
-    return result;
+  protected readonly IGNORE = 'ignore';
+  protected readonly fieldCapitalizationMap: { [key: string]: string } = {
+    accountid: 'accountId',
+    entityid: 'id',
+    entitytype: 'entityType',
+    subscriptionid: 'subscriptionId',
+    id: this.IGNORE,
   };
 
-  protected applyDefaultsTo: <EKP extends EntityKeyParams<ET>, T>(
-    func: (params: EKP, queryOptions: FinalQueryOptions, statementOptions: FinalStatementOptions) => T
-  ) => (params: EKP, queryOptions?: InputQueryOptions, statementOptions?: InputStatementOptions) => T = <
-    EKP extends EntityKeyParams<ET>,
-    T
+  sqlToIEntity: <T>(result: AWS.RDSDataService.ExecuteStatementResponse) => T[] = <T>(
+    result: AWS.RDSDataService.ExecuteStatementResponse
+  ) => {
+    this.RDS.ensureRecords(result);
+    return result.records.map((r) => {
+      let obj: { [key: string]: any } = {};
+      r.map((v, i) => {
+        const columnName = result.columnMetadata[i].name;
+        if (columnName === undefined) {
+          return;
+        }
+        const name: string = this.fieldCapitalizationMap[columnName] || columnName;
+        if (name === this.IGNORE) {
+          return;
+        }
+
+        let value = Object.values(v)[0];
+
+        if (result.columnMetadata[i].typeName?.startsWith('json')) {
+          value = JSON.parse(value);
+        } else if (Object.keys(v)[0] === 'isNull') {
+          value = undefined;
+        } else if (result.columnMetadata[i].typeName?.startsWith('time')) {
+          value = moment(value);
+        }
+
+        obj[name] = value;
+      });
+      return obj as T;
+    });
+  };
+
+  protected applyDefaultsTo: <EKP extends EntityKeyParams, R>(
+    func: (params: EKP, queryOptions: FinalQueryOptions, statementOptions: FinalStatementOptions) => Promise<R>
+  ) => (params: EKP, queryOptions?: InputQueryOptions, statementOptions?: InputStatementOptions) => Promise<R> = <
+    EKP extends EntityKeyParams,
+    R
   >(
-    func: (params: EKP, queryOptions: FinalQueryOptions, statementOptions: FinalStatementOptions) => T
+    func: (params: EKP, queryOptions: FinalQueryOptions, statementOptions: FinalStatementOptions) => Promise<R>
   ) => {
     return (params: EKP, queryOptions: InputQueryOptions = {}, statementOptions: InputStatementOptions = {}) => {
       // default params set here
@@ -113,12 +128,12 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
       const paramsWithDefaults: EKP = {
         ...this.defaultParameterOptions,
         expires: staticExpires || dynamicExpires,
-        ...params,
+        ...cleanObj(params),
       };
       // default query options set here
       const queryOptionsWithDefaults: FinalQueryOptions = {
         ...this.defaultQueryOptions,
-        ...queryOptions,
+        ...cleanObj(queryOptions),
         listLimit: queryOptions.listLimit
           ? Math.min(queryOptions.listLimit, this.defaultQueryOptions.listLimit)
           : this.defaultQueryOptions.listLimit,
@@ -126,21 +141,14 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
       // default statement options set here
       const statementOptionsWithDefaults: FinalStatementOptions = {
         ...this.defaultStatementOptions,
-        ...statementOptions,
+        ...cleanObj(statementOptions),
       };
       return func(paramsWithDefaults, queryOptionsWithDefaults, statementOptionsWithDefaults);
     };
   };
 
-  sqlToTagsWithVersion: (record: RDSDataService.FieldList) => ITagsWithVersion = (record) => {
-    return {
-      tags: JSON.parse(record[0].stringValue as string),
-      version: record[1].longValue as number,
-    };
-  };
-
   getEntity: (
-    params: EntityKeyGet<ET>,
+    params: IEntityId,
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
   ) => Promise<ET> = this.applyDefaultsTo(async (params, queryOptions, statementOptions) => {
@@ -159,11 +167,11 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
     };
     const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
     this.RDS.ensureRecords(result);
-    return this.sqlToIEntity(result.records[0]);
+    return this.sqlToIEntity<ET>(result)[0];
   });
 
   getEntityTags: (
-    params: EntityKeyTags<ET>,
+    params: IEntityId,
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
   ) => Promise<ITagsWithVersion> = this.applyDefaultsTo(async (params, queryOptions, statementOptions) => {
@@ -182,11 +190,11 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
     };
     const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
     this.RDS.ensureRecords(result);
-    return this.sqlToTagsWithVersion(result.records[0]);
+    return this.sqlToIEntity<ITagsWithVersion>(result)[0];
   });
 
   listEntities: (
-    params: EntityKeyList<ET>,
+    params: IEntityPrefix,
     queryOptions?: InputQueryOptions
   ) => Promise<IListResponse<ET>> = this.applyDefaultsTo(async (params, queryOptions, statementOptions) => {
     const sql = `select * from entity
@@ -214,7 +222,7 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
     const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
     this.RDS.ensureRecords(result);
     let data: IListResponse<ET> = {
-      items: result.records.map(this.sqlToIEntity.bind(this)),
+      items: this.sqlToIEntity(result),
     };
     // Limit of the query was set to `limit + 1` in order to grab 1 additional element.
     // This helps to determine whether there are yet more items that need to be retrieved.
@@ -226,7 +234,7 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
   });
 
   deleteEntity: (
-    params: EntityKeyDelete<ET>,
+    params: IEntityPrefix,
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
   ) => Promise<boolean> = this.applyDefaultsTo(async (params, queryOptions, statementOptions) => {
@@ -243,7 +251,7 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
       subscriptionId: params.subscriptionId,
       entityId: params.id,
       entityIdPrefix: params.idPrefix,
-      prefixMatchId: queryOptions.prefixMatchId,
+      prefixMatchId: !!params.idPrefix,
       filterExpired: queryOptions.filterExpired,
     };
     const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
@@ -251,7 +259,7 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
   });
 
   createEntity: (
-    params: EntityKeyCreate<ET>,
+    params: IEntity,
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
   ) => Promise<ET> = this.applyDefaultsTo(async (params, queryOptions, statementOptions) => {
@@ -311,11 +319,11 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
     if (result.records.length !== 1) {
       throw new Error(`Expected exactly 1 database record inserted, got ${result.records.length}.`);
     }
-    return this.sqlToIEntity(result.records[0]);
+    return this.sqlToIEntity<ET>(result)[0];
   });
 
   updateEntity: (
-    params: EntityKeyUpdate<ET>,
+    params: IEntity,
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
   ) => Promise<ET> = this.applyDefaultsTo(async (params, queryOptions, statementOptions) => {
@@ -344,11 +352,11 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
     };
     const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
     this.RDS.ensureRecords(result);
-    return this.sqlToIEntity(result.records[0]);
+    return this.sqlToIEntity<ET>(result)[0];
   });
 
   updateEntityTags: (
-    params: EntityKeyTags<ET>,
+    params: IEntityId,
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
   ) => Promise<ITagsWithVersion> = this.applyDefaultsTo(async (params, queryOptions, statementOptions) => {
@@ -372,11 +380,11 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
     };
     const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
     this.RDS.ensureRecords(result);
-    return this.sqlToTagsWithVersion(result.records[0]);
+    return this.sqlToIEntity<ITagsWithVersion>(result)[0];
   });
 
   setEntityTag: (
-    params: EntityKeyTagSet<ET>,
+    params: IEntityKeyTagSet,
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
   ) => Promise<ITagsWithVersion> = this.applyDefaultsTo(async (params, queryOptions, statementOptions) => {
@@ -401,11 +409,11 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
     };
     const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
     this.RDS.ensureRecords(result);
-    return this.sqlToTagsWithVersion(result.records[0]);
+    return this.sqlToIEntity<ITagsWithVersion>(result)[0];
   });
 
   deleteEntityTag: (
-    params: EntityKeyTagSet<ET>,
+    params: IEntityKeyTagSet,
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
   ) => Promise<ITagsWithVersion> = this.applyDefaultsTo(async (params, queryOptions, statementOptions) => {
@@ -429,8 +437,22 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
     };
     const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
     this.RDS.ensureRecords(result);
-    return this.sqlToTagsWithVersion(result.records[0]);
+    return this.sqlToIEntity<ITagsWithVersion>(result)[0];
   });
   static readonly EntityType = EntityType;
 }
+
+const cleanObj: <T extends { [key: string]: any }>(obj: T) => RequiredKeysOnly<T> = <T extends { [key: string]: any }>(
+  obj: T
+) => {
+  const removeUndefined: (o: T) => asserts o is RequiredKeysOnly<T> = (o) =>
+    Object.entries(o).forEach((e) => {
+      if (e[1] === undefined) {
+        delete o[e[0]];
+      }
+    });
+  removeUndefined(obj);
+  return obj;
+};
+
 export default Entity;

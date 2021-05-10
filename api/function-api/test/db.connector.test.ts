@@ -1,15 +1,6 @@
 import RDS, { Model } from '@5qtrs/db';
-import createEntityTests, { EntityAssertions } from './db.entity';
-
-const entityAssertions: EntityAssertions<Model.IConnector> = {
-  create: (arg) => arg,
-  delete: (arg) => arg,
-  get: (arg) => arg,
-  list: (arg) => arg,
-  tags: { get: (arg) => arg, set: (arg) => arg, update: (arg) => arg },
-  update: (arg) => arg,
-};
+import createEntityTests from './db.entity';
 
 describe('DB connector', () => {
-  createEntityTests<Model.IConnector>(RDS.DAO.Connector, entityAssertions);
+  createEntityTests<Model.IConnector>(RDS.DAO.Connector, 'connector');
 });

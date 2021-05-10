@@ -1,7 +1,7 @@
 import * as AWS from 'aws-sdk';
 import * as Model from './model';
 import { RDSDataService } from 'aws-sdk';
-import { SqlRecords } from 'aws-sdk/clients/rdsdataservice';
+import { Metadata, SqlRecords } from 'aws-sdk/clients/rdsdataservice';
 import { PromiseResult } from 'aws-sdk/lib/request';
 import { FinalStatementOptions, IDaoCollection, IRds, IRdsCredentials } from './model';
 import Connector from './daos/connector';
@@ -184,23 +184,15 @@ class RDS implements IRds {
     return result.transactionStatus as string;
   };
 
-  inTransaction: <T>(
-    func: (transactionalDaos: IDaoCollection, rollback: () => Promise<string>) => T
-  ) => Promise<T> = async (func) => {
+  inTransaction: <T>(func: (transactionalDaos: IDaoCollection) => T) => Promise<T> = async (func) => {
     const transactionId = await this.createTransaction();
     try {
-      const rollback = async () => {
-        throw 'Force Rollback';
-      };
-      const result = await func(
-        {
-          Connector: this.DAO.Connector.createTransactional(transactionId),
-          Integration: this.DAO.Integration.createTransactional(transactionId),
-          Storage: this.DAO.Storage.createTransactional(transactionId),
-          Operation: this.DAO.Operation.createTransactional(transactionId),
-        },
-        rollback
-      );
+      const result = await func({
+        Connector: this.DAO.Connector.createTransactional(transactionId),
+        Integration: this.DAO.Integration.createTransactional(transactionId),
+        Storage: this.DAO.Storage.createTransactional(transactionId),
+        Operation: this.DAO.Operation.createTransactional(transactionId),
+      });
       await this.commitTransaction(transactionId);
       return result;
     } catch (e) {
@@ -218,8 +210,11 @@ class RDS implements IRds {
 
   ensureRecords: (
     result: RDSDataService.ExecuteStatementResponse
-  ) => asserts result is RDSDataService.ExecuteStatementResponse & { records: SqlRecords } = (result) => {
-    if (!result || !result.records || result.records.length === 0) {
+  ) => asserts result is RDSDataService.ExecuteStatementResponse & {
+    records: NonNullable<any>;
+    columnMetadata: NonNullable<any>;
+  } = (result) => {
+    if (!result || !result.records || result.records.length === 0 || !result.columnMetadata) {
       throw new RDSSingleton.NotFoundError();
     }
   };
