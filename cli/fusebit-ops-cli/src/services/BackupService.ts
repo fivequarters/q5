@@ -3,7 +3,8 @@ import { IExecuteInput } from '@5qtrs/cli';
 import { OpsService } from './OpsService';
 import { ExecuteService } from './ExecuteService';
 import { ProfileService } from './ProfileService';
-import { AwsCreds } from '@5qtrs/aws-config';
+import { AwsCreds, IAwsConfig } from '@5qtrs/aws-config';
+import { IAwsCredentials } from '@5qtrs/aws-cred';
 
 export class BackupService {
   private opsService: OpsService;
@@ -24,7 +25,6 @@ export class BackupService {
   // the code that gets a backup plan from AWS Backup, triggered by GetBackupCommand.ts
   public async getBackupPlan(backupPlanName: string) {
     const opsDataContext = await this.opsService.getOpsDataContext();
-    const deploymentData = opsDataContext.deploymentData;
     const info = await this.executeService.execute(
       {
         header: 'Get Backup Plan',
@@ -37,23 +37,19 @@ export class BackupService {
   }
 
   // the actual backend driver for get backup plan, triggered by getBackupPlan
-  public async getBackupPlanDriver(backupPlanName: string): Promise<any> {
+  public async getBackupPlanDriver(backupPlanName: string): Promise<AWS.Backup.GetBackupPlanOutput | undefined> {
     const opsDataContext = await this.opsService.getOpsDataContextImpl();
     const profileService = await ProfileService.create(this.input);
     const profile = await profileService.getProfileOrDefaultOrThrow();
-    const userCreds = await this.opsService.getUserCredsForProfile(profile);
     const config = await opsDataContext.provider.getAwsConfigForMain();
     const credentials = await (config.creds as AwsCreds).getCredentials();
     const results = await this.findRegionWithDeployment(credentials, config, backupPlanName);
-    return new Promise((res, rej) => {
-      res(results);
-    });
+    return results;
   }
 
   // the code that creates a backup plan from AWS Backup, triggered by ScheduleBackupCommand.ts
   public async createBackupPlan(backupPlanName: string, backupPlanSchedule: string, failureSnsTopicArn?: string) {
     const opsDataContext = await this.opsService.getOpsDataContext();
-    const deploymentData = opsDataContext.deploymentData;
     const info = await this.executeService.execute(
       {
         header: 'Creating Backup Plan',
@@ -72,8 +68,6 @@ export class BackupService {
     failureSnsTopicArn?: string
   ) {
     const opsDataContext = await this.opsService.getOpsDataContextImpl();
-    const profileService = await ProfileService.create(this.input);
-    const profile = await profileService.getProfileOrDefaultOrThrow();
     const config = await opsDataContext.provider.getAwsConfigForMain();
     const credentials = await (config.creds as AwsCreds).getCredentials();
     const regions = await this.findAllRegionsWithDeployments(credentials, config);
@@ -204,7 +198,7 @@ export class BackupService {
   }
 
   // helper function, get backup plan id by the friendly name of the backup plan
-  private async getBackupIdByName(credentials: any, config: any, region: string, BackupName: string): Promise<string> {
+  private async getBackupIdByName(credentials: IAwsCredentials, config: IAwsConfig, region: string, BackupName: string): Promise<string> {
     const backup = new AWS.Backup({
       region,
       accessKeyId: credentials.accessKeyId,
@@ -226,7 +220,7 @@ export class BackupService {
   }
 
   // list backup plans available in all AWS regions, triggered by GetBackupCommand.ts
-  public async listBackupPlan(): Promise<any> {
+  public async listBackupPlan() {
     const region = this.input.options.region as string;
     const listing = await this.executeService.execute(
       {
@@ -242,9 +236,6 @@ export class BackupService {
   // the actual driver for backup plan, trigged by listBackupPlan()
   private async listBackupPlanDriver() {
     const opsDataContext = await this.opsService.getOpsDataContextImpl();
-    const profileService = await ProfileService.create(this.input);
-    const profile = await profileService.getProfileOrDefaultOrThrow();
-    const userCreds = await this.opsService.getUserCredsForProfile(profile);
     const config = await opsDataContext.provider.getAwsConfigForMain();
     const credentials = await (config.creds as AwsCreds).getCredentials();
 
@@ -290,7 +281,7 @@ export class BackupService {
   }
 
   // helper function: find all regions that have deployments and the region of ops tables
-  public async findAllRegionsWithDeployments(credentials: any, config: any): Promise<string[]> {
+  public async findAllRegionsWithDeployments(credentials: IAwsCredentials, config: IAwsConfig): Promise<string[]> {
     const region: string[] = [];
     const ddb = new AWS.DynamoDB({
       region: config.region,
@@ -329,9 +320,12 @@ export class BackupService {
   }
 
   // find the region of the specified deployment
-  public async findRegionWithDeployment(credentials: any, config: any, backupId: string) {
+  public async findRegionWithDeployment(
+    credentials: IAwsCredentials,
+    config: IAwsConfig,
+    backupId: string
+  ): Promise<AWS.Backup.GetBackupPlanOutput | undefined> {
     const regions = await this.findAllRegionsWithDeployments(credentials, config);
-    let result;
     for (const i of regions) {
       const Backup = new AWS.Backup({
         region: i,
@@ -344,11 +338,12 @@ export class BackupService {
       })
         .promise()
         .then((data) => {
-          result = data;
+          return data
         })
         .catch((err) => {});
     }
-    return result;
+
+    return undefined
   }
 
   // display driver for getting specific backup plan
