@@ -16,6 +16,7 @@ const cors = require('cors');
 const create_error = require('http-errors');
 const health = require('./handlers/health');
 const { get_function_location } = require('@5qtrs/constants');
+const redirect = require('./handlers/redirect');
 
 const { AccountActions } = require('@5qtrs/account');
 const account = require('./handlers/account');
@@ -565,6 +566,50 @@ router.get(
   check_agent_version(),
   determine_provider(),
   (req, res, next) => provider_handlers[req.provider].get_location(req, res, next),
+  analytics.finished
+);
+
+router.options(
+  '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/redirect',
+  cors(corsManagementOptions)
+);
+router.get(
+  '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/redirect',
+  analytics.enterHandler(analytics.Modes.Administration),
+  cors(corsManagementOptions),
+  validate_schema({ params: require('./validation/api_params') }),
+  authorize({ operation: 'function:get' }),
+  user_agent(),
+  check_agent_version(),
+  determine_provider(),
+  loadSummary(),
+  redirect.get(),
+  analytics.finished
+);
+router.post(
+  '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/redirect',
+  analytics.enterHandler(analytics.Modes.Administration),
+  cors(corsManagementOptions),
+  validate_schema({ params: require('./validation/api_params') }),
+  authorize({ operation: 'function:redirect' }),
+  user_agent(),
+  check_agent_version(),
+  determine_provider(),
+  express.json(),
+  validate_schema({ body: require('./validation/redirect') }),
+  redirect.post(),
+  analytics.finished
+);
+router.delete(
+  '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/redirect',
+  analytics.enterHandler(analytics.Modes.Administration),
+  cors(corsManagementOptions),
+  validate_schema({ params: require('./validation/api_params') }),
+  authorize({ operation: 'function:redirect' }),
+  user_agent(),
+  check_agent_version(),
+  determine_provider(),
+  redirect.delete(),
   analytics.finished
 );
 

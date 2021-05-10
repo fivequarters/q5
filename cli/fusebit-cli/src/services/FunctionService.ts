@@ -11,6 +11,24 @@ import { ProfileService } from './ProfileService';
 import { VersionService } from './VersionService';
 import { request } from '@5qtrs/request';
 
+import { startTunnel, startHttpServer } from './TunnelService';
+
+import readline from 'readline';
+
+function askQuestion(query: string) {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  return new Promise((resolve) =>
+    rl.question(query, (ans) => {
+      rl.close();
+      resolve(ans);
+    })
+  );
+}
+
 // ------------------
 // Internal Constants
 // ------------------
@@ -767,6 +785,93 @@ export class FunctionService {
     );
   }
 
+  public async serveFunction(path: string, functionId: string): Promise<void> {
+    const profile = await this.getFunctionExecutionProfile(true, functionId, process.cwd());
+
+    await this.executeService.info('Starting Service', 'Starting the local server.');
+    const functionServer = startHttpServer(9993);
+    functionServer.service = await functionServer.listen();
+
+    functionServer.app.use(async (req: any, res: any) => {
+      try {
+        delete require.cache[require.resolve(path)];
+        const module = require(path);
+        console.log(`START ${req.body.method} ${req.body.url}`);
+        const result = await module(req.body);
+        console.log(`FINISH ${JSON.stringify(result)}`);
+        return res.json(result);
+      } catch (e) {
+        res.json({ status: 501, body: `${e}` });
+      }
+    });
+
+    await this.executeService.info('Building Tunnel', 'Establishing tunnel to Fusebit.');
+    const tunnel = await startTunnel(9993);
+    try {
+      await this.executeService.info('Redirecting', `Redirecting traffic for ${profile.boundary}/${functionId}`);
+      const result = await this.executeService.executeRequest(
+        {
+          header: 'Redirect',
+          message: Text.create(
+            "Redirecting traffic for '",
+            Text.bold(`${profile.function}`),
+            "' in boundary '",
+            Text.bold(`${profile.boundary}`),
+            "'..."
+          ),
+          errorHeader: 'Redirect Function Error',
+          errorMessage: Text.create(
+            "Unable to redirect function '",
+            Text.bold(`${profile.function}`),
+            "' in boundary '",
+            Text.bold(`${profile.boundary}`),
+            "'"
+          ),
+        },
+        {
+          method: 'POST',
+          url: `${profile.baseUrl}/v1/account/${profile.account}/subscription/${profile.subscription}/boundary/${profile.boundary}/function/${profile.function}/redirect`,
+          headers: {
+            Authorization: `Bearer ${profile.accessToken}`,
+          },
+          data: { redirectUrl: `https://${tunnel.subdomain}.tunnel.dev.fusebit.io` },
+        }
+      );
+
+      await this.executeService.info('Serving', 'Ready to serve requests.');
+
+      await askQuestion('Press enter to quit...\n');
+    } finally {
+      const result = await this.executeService.executeRequest(
+        {
+          header: 'Release',
+          message: Text.create(
+            "Releasing traffic for '",
+            Text.bold(`${profile.function}`),
+            "' in boundary '",
+            Text.bold(`${profile.boundary}`),
+            "'..."
+          ),
+          errorHeader: 'Release Function Error',
+          errorMessage: Text.create(
+            "Unable to release function '",
+            Text.bold(`${profile.function}`),
+            "' in boundary '",
+            Text.bold(`${profile.boundary}`),
+            "'"
+          ),
+        },
+        {
+          method: 'DELETE',
+          url: `${profile.baseUrl}/v1/account/${profile.account}/subscription/${profile.subscription}/boundary/${profile.boundary}/function/${profile.function}/redirect`,
+          headers: {
+            Authorization: `Bearer ${profile.accessToken}`,
+          },
+        }
+      );
+    }
+  }
+
   public async deployFunction(path: string | undefined, functionId: string, functionSpec?: any): Promise<string> {
     const profile = await this.getFunctionExecutionProfile(true, functionId, path);
 
@@ -1076,12 +1181,18 @@ export class FunctionService {
         Text.eol(),
         Text.dim('Function: '),
         functionData.id,
-        Text.eol(),
-        Text.eol(),
-        Text.dim('Tags'),
       ];
 
       if (functionData.runtime && functionData.runtime.tags) {
+        const redirect = functionData.runtime.tags['ephemeral.redirect'];
+        delete functionData.runtime.tags['ephemeral.redirect'];
+
+        if (redirect) {
+          details.push(Text.eol(), Text.eol(), Text.bold('Redirected to: '), Text.red(redirect));
+        }
+
+        details.push(Text.eol(), Text.eol(), Text.dim('Tags'));
+
         details.push(
           Text.create(
             Object.keys(functionData.runtime.tags).map((key: string) =>
