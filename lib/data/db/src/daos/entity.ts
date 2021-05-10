@@ -166,7 +166,6 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
       filterExpired: queryOptions.filterExpired,
     };
     const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
-    this.RDS.ensureRecords(result);
     return this.sqlToIEntity<ET>(result)[0];
   });
 
@@ -189,7 +188,6 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
       filterExpired: queryOptions.filterExpired,
     };
     const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
-    this.RDS.ensureRecords(result);
     return this.sqlToIEntity<ITagsWithVersion>(result)[0];
   });
 
@@ -220,7 +218,6 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
       limit: queryOptions.listLimit,
     };
     const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
-    this.RDS.ensureRecords(result);
     let data: IListResponse<ET> = {
       items: this.sqlToIEntity(result),
     };
@@ -351,7 +348,6 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
       version: params.version,
     };
     const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
-    this.RDS.ensureRecords(result);
     return this.sqlToIEntity<ET>(result)[0];
   });
 
@@ -379,7 +375,6 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
       filterExpired: queryOptions.filterExpired,
     };
     const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
-    this.RDS.ensureRecords(result);
     return this.sqlToIEntity<ITagsWithVersion>(result)[0];
   });
 
@@ -408,7 +403,6 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
       filterExpired: queryOptions.filterExpired,
     };
     const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
-    this.RDS.ensureRecords(result);
     return this.sqlToIEntity<ITagsWithVersion>(result)[0];
   });
 
@@ -436,7 +430,6 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
       filterExpired: queryOptions.filterExpired,
     };
     const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
-    this.RDS.ensureRecords(result);
     return this.sqlToIEntity<ITagsWithVersion>(result)[0];
   });
   static readonly EntityType = EntityType;

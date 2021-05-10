@@ -45,13 +45,13 @@ describe('DB transaction', () => {
       tags: {},
     };
     try {
-      await RDS.inTransaction(async (daoCollection, rollback) => {
+      await RDS.inTransaction(async (daoCollection) => {
         const result1 = await daoCollection.Storage.createEntity(storage);
         expect(result1).toMatchObject(storage);
         // Calling with non-transactional DAO
         await expect(RDS.DAO.Storage.getEntity(storage)).rejects.toThrowError(RDS.NotFoundError);
         // Forcing a rollback bubbles the error up.
-        await rollback();
+        throw 'Force Rollback';
       });
     } catch (e) {
       expect(e).toEqual('Force Rollback');
