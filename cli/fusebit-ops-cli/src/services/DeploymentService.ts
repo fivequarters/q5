@@ -34,7 +34,7 @@ export class DeploymentService {
     return new DeploymentService(input, opsService, executeService);
   }
 
-  public async checkDeploymentExists(deployment: IOpsDeploymentParameters): Promise<IOpsDeployment> {
+  public async checkDeploymentExists(deployment: IOpsDeploymentParameters): Promise<[IOpsDeployment, boolean]> {
     const opsDataContext = await this.opsService.getOpsDataContext();
     const deploymentData = opsDataContext.deploymentData;
 
@@ -52,10 +52,9 @@ export class DeploymentService {
         'Deployment Exists',
         `'${Text.bold(deployment.deploymentName)}' has been updated with the supplied parameters.`
       );
-      throw new Error('Deployment already Exists');
     }
 
-    return deployment as IOpsDeployment;
+    return [deployment as IOpsDeployment, !!exists];
   }
 
   public async getElasticSearchTemplate(deployment: IOpsDeploymentParameters, outFile: string) {

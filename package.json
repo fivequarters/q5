@@ -195,7 +195,8 @@
       "lib/server/npm",
       "lib/server/registry",
       "lib/server/runas",
-      "tool/cicd/actions"
+      "tool/cicd/actions",
+      "lib/data/db"
     ]
   }
 }
