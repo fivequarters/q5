@@ -39,7 +39,7 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
    * Clones the existing subclassed Entity with a transactionId.
    * All calls using the cloned object will be wrapped within that transaction.
    *
-   * @param element The HTML element (typically a div) within which to create the status panel..
+   * @param transactionId the id of the transaction to be wrapped in, provided by aurora
    */
   public readonly createTransactional: (transactionId: string) => this = (transactionId) => {
     return Reflect.construct(this.constructor, [this.RDS, transactionId]);
