@@ -267,9 +267,12 @@ export class BackupService {
   // display driver for showing backup plans
   public async displayBackupPlans(data: any) {
     if (this.input.options.output === 'json') {
+      this.input.io.writeLine(JSON.stringify(data))
       this.input.io.writeLine(JSON.stringify(await this.sanitizeBackupPlans(data), null, 2));
     } else if (this.input.options.output === 'pretty') {
-      this.input.io.writeLine('not implemented');
+      for (const backupPlan of data.Backup) {
+        //await this.input.io.writeLine(`${backupPlan.}`)
+      }
     }
   }
 
