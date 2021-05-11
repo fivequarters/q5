@@ -31,7 +31,7 @@ const npm = require('@5qtrs/npm');
 const { clear_built_module } = require('@5qtrs/function-lambda');
 const { AwsRegistry } = require('@5qtrs/registry');
 const Constants = require('@5qtrs/constants');
-const { RDS } = require('@5qtrs/db');
+const RDS = require('@5qtrs/db').default;
 
 const {
   execAs,

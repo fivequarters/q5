@@ -883,7 +883,8 @@ export async function removeStorage(account: IAccount, storageId: string, etag?:
 export async function cleanUpStorage(account: IAccount) {
   while (testStorage.length) {
     const toRemove = testStorage.splice(0, 5);
-    await Promise.all(toRemove.map((storageId) => removeStorage(account, storageId)));
+    const results = await Promise.all(toRemove.map((storageId) => removeStorage(account, storageId)));
+    console.log(results.map((result) => result.status));
   }
 }
 

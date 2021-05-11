@@ -208,7 +208,7 @@ export async function createDatabase(
     };
     const params: AWS.RDSDataService.ExecuteStatementRequest = {
       ...commonParams,
-      sql: 'select version from schemaVersion ;',
+      sql: 'SELECT version FROM schemaVersion;',
     };
     let data: AWS.RDSDataService.ExecuteStatementResponse;
     let currentSchemaVersion = -1;
@@ -247,40 +247,40 @@ export async function createDatabase(
       try {
         params.sql = Migrations[n];
         params.transactionId = transactionId as string;
-        const data = await rdsData.executeStatement(params).promise();
+        const updateResult = await rdsData.executeStatement(params).promise();
 
-        params.sql = `update schemaVersion set version = :schemaVersion, fuse_ops_version = :fuseOpsVersion where version = :schemaVersion;`;
+        params.sql = `UPDATE schemaVersion SET version = :schemaVersion, fuse_ops_version = :fuseOpsVersion WHERE version = :schemaVersion - 1;`;
         params.parameters = [
           { name: 'schemaVersion', value: { longValue: n } },
           { name: 'fuseOpsVersion', value: { stringValue: process.env.FUSEOPS_VERSION || '' } },
         ];
         const result = await rdsData.executeStatement(params).promise();
         if (result.numberOfRecordsUpdated !== 1) {
-          throw new Error(`Unable to persist the database schema version ${n}`);
+          throw new Error(`Mismatched schema version when updating to ${n}`);
         }
-        debug('MIGRATION EXECUTION SUCCESS', n, data && JSON.stringify(data, null, 2));
+        debug('MIGRATION EXECUTION SUCCESS', n, updateResult && JSON.stringify(updateResult, null, 2));
       } catch (e) {
         debug('MIGRATION EXECUTION ERROR', n, e);
-        return await migrationError(n, transactionId as string, e);
+        return migrationError(n, transactionId as string, e);
       }
       await rdsData.commitTransaction({ ...dbCredentials, transactionId: params.transactionId as string }).promise();
       debug('COMMITED MIGRATION', n);
-      return Migrations[n + 1] === undefined ? undefined : await runMigration(n + 1);
+      return Migrations[n + 1] === undefined ? undefined : runMigration(n + 1);
     };
 
-    return await runMigration(currentSchemaVersion + 1);
+    return runMigration(currentSchemaVersion + 1);
   };
 
-  const updateAuroraCluster = async (cluster: AWS.RDS.DBCluster): Promise<IDatabaseCredentials> => {
-    debug('IN UPDATE CLUSTER', cluster);
-    // FUTURE: this is where versioning of Aurora cluster configuration happens, informed by cluster.Tags['fuseopsVersion']
+  const updateAuroraCluster = async (dbCluster: AWS.RDS.DBCluster): Promise<IDatabaseCredentials> => {
+    debug('IN UPDATE CLUSTER', dbCluster);
+    // FUTURE: this is where versioning of Aurora cluster configuration happens, informed by
+    // cluster.Tags['fuseopsVersion'].
     // For now, do nothing and return current configuration.
-    const dbCredentials = await getDatabaseCredentials(awsConfig, deployment.deploymentName);
-    return dbCredentials;
+    return getDatabaseCredentials(awsConfig, deployment.deploymentName);
   };
 
-  const cluster = await tryGetAuroraCluster();
-  const dbCredentials = cluster ? await updateAuroraCluster(cluster) : await createAuroraCluster();
+  const auroraCluster = await tryGetAuroraCluster();
+  const dbCredentials = auroraCluster ? await updateAuroraCluster(auroraCluster) : await createAuroraCluster();
   await runDatabaseMigrations(dbCredentials);
 
   return dbCredentials;
