@@ -21,12 +21,13 @@ Rules of the road:
 */
 
 import { readFileSync, readdirSync } from 'fs';
-import { join } from 'path';
+import { join, resolve } from 'path';
 
-const get = (name: string) => readFileSync(join(__dirname, '..', 'src', 'migrations', name), { encoding: 'utf8' });
+const get = (name: string) =>
+  readFileSync(resolve(join(__dirname, '..', 'src', 'migrations', name)), { encoding: 'utf8' });
 
 const getAllFiles: () => string[] = () => {
-  const files = readdirSync(join(__dirname, '..', 'src', 'migrations'));
+  const files = readdirSync(resolve(join(__dirname, '..', 'src', 'migrations')));
   return files.map(get);
 };
 
