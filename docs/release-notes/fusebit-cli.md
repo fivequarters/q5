@@ -21,7 +21,7 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 
 _Released 5/11/21_
 
-- **Enhancement.** The `fuse functiond deploy` now allows specification of files or directories to ignore using the `--ignore` option. Also, `.git` and `.gitignore` are ignored by default.
+- **Enhancement.** The `fuse function deploy` now allows specification of files or directories to ignore using the `--ignore` option. Also, `.git` and `.gitignore` are ignored by default.
 
 ## Version 1.9.1
 
