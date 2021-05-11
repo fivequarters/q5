@@ -43,8 +43,7 @@ export class BackupService {
     const profile = await profileService.getProfileOrDefaultOrThrow();
     const config = await opsDataContext.provider.getAwsConfigForMain();
     const credentials = await (config.creds as AwsCreds).getCredentials();
-    const results = await this.findRegionWithDeployment(credentials, config, backupPlanName);
-    return results;
+    return this.findRegionWithDeployment(credentials, config, backupPlanName);
   }
 
   // the code that creates a backup plan from AWS Backup, triggered by ScheduleBackupCommand.ts
@@ -198,7 +197,12 @@ export class BackupService {
   }
 
   // helper function, get backup plan id by the friendly name of the backup plan
-  private async getBackupIdByName(credentials: IAwsCredentials, config: IAwsConfig, region: string, BackupName: string): Promise<string> {
+  private async getBackupIdByName(
+    credentials: IAwsCredentials,
+    config: IAwsConfig,
+    region: string,
+    BackupName: string
+  ): Promise<string> {
     const backup = new AWS.Backup({
       region,
       accessKeyId: credentials.accessKeyId,
@@ -277,7 +281,7 @@ export class BackupService {
     if (!data.BackupPlansList) {
       return { backups: [] };
     }
-    return { Backup: data.BackupPlansList.map((item: any) => item.BackupPlanId) };
+    return { Backup: data.BackupPlansList.map((item: any) => item.BackupPlanName + ' ' + item.BackupPlanId) };
   }
 
   // helper function: find all regions that have deployments and the region of ops tables
@@ -333,25 +337,25 @@ export class BackupService {
         secretAccessKey: credentials.secretAccessKey,
         sessionToken: credentials.sessionToken,
       });
-      await Backup.getBackupPlan({
-        BackupPlanId: backupId,
-      })
-        .promise()
-        .then((data) => {
-          return data
-        })
-        .catch((err) => {});
+      try {
+        return await Backup.getBackupPlan({
+          BackupPlanId: backupId,
+        }).promise();
+      } catch (e) {
+        continue;
+      }
     }
-
-    return undefined
+    return undefined;
   }
 
   // display driver for getting specific backup plan
   public async displayGetBackupPlans(backupPlan: any) {
     if (this.input.options.output === 'json') {
       await this.input.io.writeLine(JSON.stringify(await this.sanitizeGetBackupPlans(backupPlan), null, 2));
-    } else if (this.input.options.output === 'pretty') {
-      this.input.io.writeLine('not implemented');
+    } else {
+      await this.input.io.writeLine(
+        `backup plan name: ${backupPlan.BackupPlan.backupPlanName}, the schedule its running on is ${backupPlan.BackupPlan.Rules[0].ScheduleExpression}`
+      );
     }
   }
 

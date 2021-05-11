@@ -33,15 +33,9 @@ export class GetBackupCommand extends Command {
   // handles the backup get command
   protected async onExecute(input: IExecuteInput): Promise<any> {
     await input.io.writeLine();
-    const output = input.options.output as string;
-    const region = input.options.region as string;
     const backupPlanName = input.options.name as string;
     const backupService = await BackupService.create(input);
-    if (output === 'json') {
-      const backupPlan = await backupService.getBackupPlan(backupPlanName);
-      await backupService.displayGetBackupPlans(backupPlan);
-    } else {
-      const backupPlan = await backupService.getBackupPlan(backupPlanName);
-    }
+    const backupPlan = await backupService.getBackupPlan(backupPlanName);
+    await backupService.displayGetBackupPlans(backupPlan);
   }
 }

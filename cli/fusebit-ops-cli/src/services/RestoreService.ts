@@ -26,8 +26,6 @@ export class RestoreService {
     'user',
   ];
 
-  private awsBackupRestoreRateLimit: number;
-
   public static async create(input: IExecuteInput) {
     const opsSvc = await OpsService.create(input);
     const execSvc = await ExecuteService.create(input);
@@ -38,7 +36,6 @@ export class RestoreService {
     this.opsService = opsSvc;
     this.executeService = execSvc;
     this.input = input;
-    this.awsBackupRestoreRateLimit = this.input.options['restore-rate-limit'] as number;
   }
 
   /**
@@ -342,4 +339,5 @@ export class RestoreService {
     }
     return true;
   }
+
 }

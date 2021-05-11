@@ -30,9 +30,8 @@ export class ListBackupCommand extends Command {
     await input.io.writeLine();
     const output = input.options.output as string;
     const backupService = await BackupService.create(input);
-    if (output === 'json') {
-      const backupPlans = await backupService.listBackupPlan();
-      await backupService.displayBackupPlans(backupPlans);
-    }
+
+    const backupPlans = await backupService.listBackupPlan();
+    await backupService.displayBackupPlans(backupPlans);
   }
 }
