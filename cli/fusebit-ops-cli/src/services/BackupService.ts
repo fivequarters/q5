@@ -271,7 +271,7 @@ export class BackupService {
     } else if (this.input.options.output === 'pretty') {
       const sanitized = await this.sanitizeBackupPlans(data);
       for (const backupPlan of sanitized.Backup) {
-        await this.input.io.writeLine(`Backup Exists in Fusebit Platform: ${backupPlan}`)
+        await this.input.io.writeLine(`Backup Exists in Fusebit Platform: ${backupPlan}`);
       }
     }
   }

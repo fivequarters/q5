@@ -178,7 +178,7 @@ export class RestoreService {
         .catch((data) => {});
     }
   }
-  
+
   /**
    * finds the region in which the deployment resides
    *
@@ -186,7 +186,7 @@ export class RestoreService {
    * @param {string} deploymentName
    * @param {IAwsConfig} config
    * @param {IAwsCredentials} credentials
-   * @return {*} 
+   * @return {*}
    * @memberof RestoreService
    */
   private async findRegionFromDeploymentName(deploymentName: string, config: IAwsConfig, credentials: IAwsCredentials) {
@@ -339,5 +339,4 @@ export class RestoreService {
     }
     return true;
   }
-
 }
