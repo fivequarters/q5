@@ -20,6 +20,22 @@
           }
         },
         {
+          "id": "fusebot-prod",
+          "displayName": "Fusebot",
+          "baseUrl": "https://go.us-west-2.fusebot.io",
+          "account": "acc-7c761f47b3e44b5a",
+          "subscription": "sub-af5f271f798a4980",
+          "catalog": "/catalog-empty.json",
+          "oauth": {
+            "webAuthorizationUrl": "https://fusebit.auth0.com/authorize",
+            "webClientId": "hSgWIXmbluQMADuWhDnRTpWyKptJe6LB",
+            "webLogoutUrl": "https://fusebit.auth0.com/v2/logout?client_id=hSgWIXmbluQMADuWhDnRTpWyKptJe6LB&returnTo=https://portal.fusebit.io",
+            "deviceAuthorizationUrl": "https://fusebit.auth0.com/oauth/device/code",
+            "deviceClientId": "VFOtrBCVHEm7I9UNv7rFwu1ID1hTEueF",
+            "tokenUrl": "https://fusebit.auth0.com/oauth/token"
+          }
+        },
+        {
           "id": "stage-eu-portal-dev",
           "displayName": "Stage EU (portal-dev)",
           "icon": "https://cdn.fusebit.io/assets/images/eu.png",
