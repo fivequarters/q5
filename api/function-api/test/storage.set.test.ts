@@ -16,7 +16,7 @@ afterEach(async () => {
 
 describe('Storage Set', () => {
   describe('Set', () => {
-    test('Setting storage with no etag and no storage path should work', async () => {
+    test.only('Setting storage with no etag and no storage path should work', async () => {
       const storageId = `test-${random()}`;
       const storageData = { data: 'hello world' };
       const storage = await setStorage(account, storageId, storageData);

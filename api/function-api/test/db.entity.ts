@@ -12,7 +12,7 @@ const createEntityTests = <T extends Model.IEntity>(DAO: Model.IEntityDao<T>, en
 
   afterEach(async () => {
     await RDS.executeStatement(
-      `delete from entity where accountId = :accountId and subscriptionId = :subscriptionId;`,
+      `DELETE FROM entity WHERE accountId = :accountId AND subscriptionId = :subscriptionId;`,
       { accountId, subscriptionId }
     );
   }, 5000);
