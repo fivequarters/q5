@@ -1,10 +1,10 @@
-import FusebitRouter, { FusebitManager, Context, Next, IOnStartup } from '@fusebit-int/pkg-manager';
+import { Context, IOnStartup, Manager, Next, Router } from '@fusebit-int/pkg-manager';
 import { OAuthEngine, IOAuthConfig } from './OAuthEngine';
 
-const router = new FusebitRouter();
+const router = new Router();
 
 let engine: OAuthEngine;
-let manager: FusebitManager;
+let manager: Manager;
 
 router.on('startup', async ({ mgr, cfg, router: rtr, storage }: IOnStartup, next: Next) => {
   // Router's already been mounted, so any further additions need to happen here on 'rtr'.

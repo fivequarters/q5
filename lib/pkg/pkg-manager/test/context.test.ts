@@ -1,9 +1,9 @@
-import FusebitRouter, { FusebitManager, Context, Next, IStorage } from '../src';
+import { Router, Manager, Context, Next, IStorage } from '../src';
 
 describe('Context', () => {
   it('validate routable contexts have correct values', async () => {
     const storage = {};
-    const manager = new FusebitManager(storage as IStorage);
+    const manager = new Manager(storage as IStorage);
 
     const fctx = {
       path: '/PATH',

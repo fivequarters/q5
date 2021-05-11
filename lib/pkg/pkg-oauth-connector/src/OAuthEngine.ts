@@ -1,14 +1,14 @@
 import superagent from 'superagent';
-import FusebitRouter, { Context, Next, IStorage } from '@fusebit-int/pkg-manager';
+import { Router, Context, Next, IStorage } from '@fusebit-int/pkg-manager';
 
 import { IOAuthConfig, IOAuthToken } from './OAuthTypes';
 
 class OAuthEngine {
   public cfg: IOAuthConfig;
   public storage: IStorage;
-  public router: FusebitRouter;
+  public router: Router;
 
-  constructor(cfg: IOAuthConfig, storage: IStorage, router: FusebitRouter) {
+  constructor(cfg: IOAuthConfig, storage: IStorage, router: Router) {
     this.cfg = cfg;
     this.storage = storage;
     this.router = router;

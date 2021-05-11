@@ -1,5 +1,5 @@
 import { DataSource } from '@5qtrs/data';
-import { IAgentData, IAgent, IIdentity, IAccessEntry, Resource } from '@5qtrs/account-data';
+import { IAgentData, IAgent, IIdentity, IAccessEntry, IAccessEntryWithAllow, Resource } from '@5qtrs/account-data';
 import { difference } from '@5qtrs/array';
 import { AccountDataTables } from './AccountDataTables';
 import { AccountDataAwsConfig } from './AccountDataAwsConfig';
@@ -36,7 +36,7 @@ function toAccessEntries(entry: any): IAccessEntry {
   return { action, resource: Resource.normalize(resource) };
 }
 
-function fromAccessEntries(entry: IAccessEntry) {
+function fromAccessEntries(entry: IAccessEntry): IAccessEntryWithAllow {
   const { action, resource } = entry;
   return { action, resource: Resource.normalize(resource), allow: true };
 }
@@ -99,21 +99,25 @@ export class AgentData extends DataSource implements IAgentData {
 
   public async add(accountId: string, agent: IAgent): Promise<IAgent> {
     const agentId = agent.id as string;
-    let identitiesPromise;
+
+    const actions: any[] = [];
+
+    let accessEntries: IAccessEntryWithAllow[] = [];
+
     if (agent.identities && agent.identities.length) {
-      identitiesPromise = this.identityTable.addAllForAgent(accountId, agentId, agent.identities);
+      actions.push(() => this.identityTable.addAllForAgent(accountId, agentId, agent.identities as IIdentity[]));
     }
 
-    let accessEntries;
-    let accessEntryPromise;
     if (agent.access && agent.access.allow && agent.access.allow.length) {
       accessEntries = agent.access.allow.map(fromAccessEntries);
-      accessEntryPromise = this.accessEntryTable.addAll(accountId, agentId, accessEntries);
+      actions.push(() => this.accessEntryTable.addAll(accountId, agentId, accessEntries));
     }
 
-    await identitiesPromise;
-    await accessEntryPromise;
-    return toAgent(agentId, agent.identities || [], accessEntries || []);
+    // Each of the functions in actions returns a promise or POD; execute here inside of the Promise.all() to
+    // avoid any chance of async races.
+    await Promise.all(actions.map((p) => p()));
+
+    return toAgent(agentId, agent.identities || [], accessEntries);
   }
 
   public async init(accountId: string, agentId: string, jwtSecret: string): Promise<void> {
@@ -136,11 +140,10 @@ export class AgentData extends DataSource implements IAgentData {
   }
 
   public async getWithAgentId(accountId: string, agentId: string): Promise<IAgent> {
-    const identitiesPromise = this.identityTable.getAllForAgent(accountId, agentId);
-    const accessEntryPromise = this.accessEntryTable.listAll(agentId);
-
-    const identities = await identitiesPromise;
-    const accessEntries = await accessEntryPromise;
+    const [identities, accessEntries] = await Promise.all([
+      this.identityTable.getAllForAgent(accountId, agentId),
+      this.accessEntryTable.listAll(agentId),
+    ]);
 
     return toAgent(agentId, identities, accessEntries);
   }
@@ -153,28 +156,26 @@ export class AgentData extends DataSource implements IAgentData {
 
   public async update(accountId: string, agent: IAgent): Promise<IAgent> {
     const agentId = agent.id as string;
-    const identitiesPromise = this.replaceIdentities(accountId, agentId, agent.identities);
 
-    const entries = agent.access && agent.access.allow ? agent.access.allow.map(fromAccessEntries) : undefined;
-    const accessEntryPromise = this.replaceAccessEntries(accountId, agentId, entries);
+    const [identities, accessEntries] = await Promise.all([
+      this.replaceIdentities(accountId, agentId, agent.identities),
+      this.replaceAccessEntries(
+        accountId,
+        agentId,
+        agent.access && agent.access.allow ? agent.access.allow.map(fromAccessEntries) : undefined
+      ),
+    ]);
 
-    const identities = await identitiesPromise;
-    const accessEntries = await accessEntryPromise;
     return toAgent(agentId, identities, accessEntries);
   }
 
   public async delete(accountId: string, agentId: string): Promise<void> {
-    const identitiesPromise = this.identityTable.deleteAllForAgent(accountId, agentId);
-    const accessEntryPromise = this.accessEntryTable.deleteAll(agentId);
+    const deletedIdentities = await this.identityTable.deleteAllForAgent(accountId, agentId);
 
-    const deletedIdentities = await identitiesPromise;
-    const promises = [];
-    for (const identity of deletedIdentities) {
-      promises.push(this.deleteCliIdentityIssuer(accountId, agentId, identity));
-    }
-
-    await accessEntryPromise;
-    await Promise.all(promises);
+    await Promise.all([
+      this.accessEntryTable.deleteAll(agentId),
+      ...deletedIdentities.map((identity) => this.deleteCliIdentityIssuer(accountId, agentId, identity)),
+    ]);
   }
 
   public async replaceIdentities(accountId: string, agentId: string, identities?: IIdentity[]): Promise<IIdentity[]> {
@@ -186,14 +187,10 @@ export class AgentData extends DataSource implements IAgentData {
     const toAdd = difference(identities, existingIdentities, identityEquality);
     const toRemove = difference(existingIdentities, identities, identityEquality);
 
-    const promises = [];
-    if (toAdd.length) {
-      promises.push(this.identityTable.addAllForAgent(accountId, agentId, toAdd));
-    }
-    if (toRemove.length) {
-      promises.push(this.identityTable.deleteAllForAgent(accountId, agentId, toRemove));
-    }
-    await Promise.all(promises);
+    await Promise.all([
+      this.identityTable.addAllForAgent(accountId, agentId, toAdd),
+      this.identityTable.deleteAllForAgent(accountId, agentId, toRemove),
+    ]);
 
     const actual = difference(existingIdentities, toRemove);
     actual.push(...toAdd);
@@ -226,7 +223,7 @@ export class AgentData extends DataSource implements IAgentData {
   private async deleteCliIdentityIssuer(accountId: string, agentId: string, identity: IIdentity): Promise<void> {
     const issuerId = identity.issuerId;
     if (isCliIssuer(issuerId, agentId)) {
-      const remainingIdentities = await this.identityTable.list(accountId, { issuerId: issuerId });
+      const remainingIdentities = await this.identityTable.list(accountId, { issuerId });
       if (remainingIdentities.items.length === 0) {
         await this.issuerTable.delete(accountId, issuerId);
       }

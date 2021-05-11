@@ -7,15 +7,22 @@ import app from './app';
 const debug = Debug('fusebit');
 debug('Starting');
 
-process.on('uncaughtException', (e: Error) => {
+const handleUncaught = (type: string, e: Error) => {
   // when program throws error thats not yet handled
   if (e.stack) {
-    debug('UNCAUGHT ERROR: ', e.stack.split('\n').join(','));
+    debug(`${type} ERROR: `, process.stdout.isTTY ? e : e.stack.split('\n').join(','));
   } else {
-    debug('UNCAUGHT ERROR: ', e)
+    debug(`${type} ERROR: `, e);
   }
-  setTimeout(() => process.exit(1), 100);
-});
+
+  // Only exit when this is running in a developer environment
+  if (process.stdout.isTTY) {
+    setTimeout(() => process.exit(1), 100);
+  }
+};
+
+process.on('uncaughtException', (e: Error) => handleUncaught('EXCEPTION', e));
+process.on('unhandledRejection', (e: Error) => handleUncaught('REJECTION', e));
 
 const normalizedPort = normalizePort(process.env.PORT || 3001);
 app.set('port', normalizedPort);

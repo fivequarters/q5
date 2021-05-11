@@ -1,5 +1,4 @@
-import { FusebitManager, IStorage } from '../src';
-import connectors from '../src/FusebitConnectorManager';
+import { Manager, IStorage, connectors } from '../src';
 
 beforeEach(() => {
   connectors.clear();
@@ -8,7 +7,7 @@ beforeEach(() => {
 describe('Integration Connector', () => {
   it('validate routable contexts have correct values', async () => {
     const storage = {};
-    const manager = new FusebitManager(storage as IStorage);
+    const manager = new Manager(storage as IStorage);
 
     const config = {
       connectors: {

@@ -545,7 +545,7 @@ export class FunctionService {
             headers: { 'User-Agent': `fusebit-cli/${version}` },
             onEnd: resolve,
             onError: reject,
-            onMessage: (message: IEventMessage) => {
+            onMessage: async (message: IEventMessage) => {
               if (message.name === 'log' && ready) {
                 if (isJson) {
                   this.input.io.writeLineRaw(message.data);
@@ -554,7 +554,7 @@ export class FunctionService {
                   try {
                     parsed = JSON.parse(message.data);
                   } catch (error) {
-                    this.executeService.error(
+                    await this.executeService.error(
                       'Function Log Error',
                       'There was an error parsing the function logs',
                       error

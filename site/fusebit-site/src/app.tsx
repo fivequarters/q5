@@ -19,15 +19,20 @@ const App = () => {
   const [modalShow, setModalShow] = useState(false);
   const [modalGaLabel, setModalGaLabel] = useState('');
   const [email, setEmail] = useState('');
+  const [contactUs, setContactUs] = useState<{ contact: Boolean; returnUrl?: string } | undefined>(undefined);
 
   function onReady() {
     setReady(true);
   }
 
   function onModalClose() {
-    setEmail('');
-    setModalGaLabel('');
-    setModalShow(false);
+    if (contactUs && contactUs.returnUrl) {
+      window.location.href = contactUs.returnUrl;
+    } else {
+      setEmail('');
+      setModalGaLabel('');
+      setModalShow(false);
+    }
   }
 
   function onLetsTalkClicked() {
@@ -46,6 +51,19 @@ const App = () => {
   function renderHome() {
     return <Home onEmailSubmit={onEmailSubmit} />;
   }
+
+  React.useEffect(() => {
+    if (contactUs === undefined) {
+      const params = new URLSearchParams(window.location.hash.substring(1));
+      setContactUs({
+        contact: params.get('contact') !== null,
+        returnUrl: params.get('returnUrl') || undefined,
+      });
+    } else if (contactUs.contact) {
+      setContactUs({ ...contactUs, contact: false });
+      onLetsTalkClicked();
+    }
+  });
 
   return (
     <Body fonts={[fusebitFonts]} onReady={onReady}>

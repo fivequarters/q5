@@ -18,7 +18,7 @@ export async function writeFile(
   path: string,
   data: any,
   options: {
-    encoding?: string;
+    encoding?: BufferEncoding;
     mode?: number;
     ensurePath?: boolean;
     errorIfExists?: boolean;

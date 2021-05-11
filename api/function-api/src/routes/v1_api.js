@@ -31,6 +31,7 @@ const npm = require('@5qtrs/npm');
 const { clear_built_module } = require('@5qtrs/function-lambda');
 const { AwsRegistry } = require('@5qtrs/registry');
 const Constants = require('@5qtrs/constants');
+const { RDS } = require('@5qtrs/db');
 
 const {
   execAs,
@@ -106,7 +107,8 @@ router.get(
   '/health',
   health.getHealth(
     async () => keyStore.healthCheck(),
-    async () => subscriptionCache.healthCheck()
+    async () => subscriptionCache.healthCheck(),
+    async () => RDS.ensureConnection()
   )
 );
 
@@ -1104,25 +1106,44 @@ function promote_to_name_params(req, res, next) {
 }
 
 router.options(run_route, cors(corsExecutionOptions));
-const functionExecuteHandler = [
-  analytics.enterHandler(analytics.Modes.Execution),
-  cors(corsExecutionOptions),
-  promote_to_name_params,
-  validate_schema({ params: require('./validation/api_params') }),
-  determine_provider(),
-  parse_body_conditional({
-    condition: (req) => ['post', 'put', 'patch'].includes(req.method) && req.provider === 'lambda',
-  }),
-  loadSubscription(subscriptionCache),
-  ratelimit.rateLimit,
-  loadSummary(),
-  checkAuthorization(authorize),
-  execAs(keyStore),
-  addLogging(keyStore),
-  (req, res, next) => provider_handlers[req.provider].execute_function(req, res, next),
-  analytics.finished,
-];
+['post', 'put', 'patch'].forEach((verb) => {
+  router[verb](
+    run_route,
+    analytics.enterHandler(analytics.Modes.Execution),
+    cors(corsExecutionOptions),
+    promote_to_name_params,
+    validate_schema({ params: require('./validation/api_params') }),
+    determine_provider(),
+    parse_body_conditional({
+      condition: (req) => req.provider === 'lambda',
+    }),
+    loadSubscription(subscriptionCache),
+    ratelimit.rateLimit,
+    loadSummary(),
+    checkAuthorization(authorize),
+    execAs(keyStore),
+    addLogging(keyStore),
+    (req, res, next) => provider_handlers[req.provider].execute_function(req, res, next),
+    analytics.finished
+  );
+});
 
-router.all(run_route, functionExecuteHandler);
-
-module.exports = { router, functionExecuteHandler };
+['delete', 'get', 'head'].forEach((verb) => {
+  router[verb](
+    run_route,
+    analytics.enterHandler(analytics.Modes.Execution),
+    cors(corsExecutionOptions),
+    promote_to_name_params,
+    validate_schema({ params: require('./validation/api_params') }),
+    determine_provider(),
+    loadSubscription(subscriptionCache),
+    ratelimit.rateLimit,
+    loadSummary(),
+    checkAuthorization(authorize),
+    execAs(keyStore),
+    addLogging(keyStore),
+    (req, res, next) => provider_handlers[req.provider].execute_function(req, res, next),
+    analytics.finished
+  );
+});
+module.exports = router;

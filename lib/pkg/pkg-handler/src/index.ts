@@ -1,8 +1,8 @@
-import { FusebitManager } from '@fusebit-int/pkg-manager';
+import { Manager } from '@fusebit-int/pkg-manager';
 import { storage } from './fusebitstorage';
 import config from './config';
 
-const manager = new FusebitManager(storage); // Start the manager with a pseudo-storage
+const manager = new Manager(storage); // Start the manager with a pseudo-storage
 
 let router;
 let routerError;
