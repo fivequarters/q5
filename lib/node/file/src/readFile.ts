@@ -14,7 +14,7 @@ const readFileAsync = promisify(fs.readFile);
 export async function readFile(
   path: string,
   options: {
-    encoding?: string;
+    encoding?: BufferEncoding;
     mode?: number;
     errorIfNotExist?: boolean;
   } = {}

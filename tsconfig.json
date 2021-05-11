@@ -139,7 +139,8 @@
       "@5qtrs/npm": ["lib/server/npm/src"],
       "@5qtrs/registry": ["lib/server/registry/src"],
       "@5qtrs/runas": ["lib/server/runas/src"],
-      "@5qtrs/cicd-actions": ["tool/cicd/actions/src"]
+      "@5qtrs/cicd-actions": ["tool/cicd/actions/src"],
+      "@5qtrs/db": ["lib/data/db/src"]
     }
   }
 }

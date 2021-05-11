@@ -73,10 +73,10 @@ export class UserData extends DataSource implements IUserData {
   }
 
   public async get(accountId: string, userId: string): Promise<IUser> {
-    const userPromise = this.userTable.get(accountId, userId);
-    const agentPromise = this.agentData.getWithAgentId(accountId, userId);
-    const user = await userPromise;
-    const agent = await agentPromise;
+    const [user, agent] = await Promise.all([
+      this.userTable.get(accountId, userId),
+      this.agentData.getWithAgentId(accountId, userId),
+    ]);
     return toUser(user, agent);
   }
 
@@ -98,18 +98,15 @@ export class UserData extends DataSource implements IUserData {
     if (!user.id) {
       throw AccountDataException.idRequired('user', 'update');
     }
-    const userPromise = this.userTable.update(accountId, user as IUserWithId);
-    const agentPromise = this.agentData.update(accountId, user);
-    const updatedUser = await userPromise;
-    const agent = await agentPromise;
+    const [updatedUser, agent] = await Promise.all([
+      this.userTable.update(accountId, user as IUserWithId),
+      this.agentData.update(accountId, user),
+    ]);
     return toUser(updatedUser, agent);
   }
 
   public async delete(accountId: string, userId: string): Promise<void> {
-    const userPromise = this.userTable.delete(accountId, userId);
-    const agentPromise = this.agentData.delete(accountId, userId);
-    await userPromise;
-    await agentPromise;
+    await Promise.all([this.userTable.delete(accountId, userId), this.agentData.delete(accountId, userId)]);
   }
 
   private async tryGetIssuerSubject(accountId: string, options: IListUsersOptions): Promise<IListUsersResult> {
@@ -177,11 +174,10 @@ export class UserData extends DataSource implements IUserData {
     let moreFromUsers = true;
     let moreFromAgents = true;
     while (agentIds.length < limit && (moreFromUsers || moreFromAgents)) {
-      const usersPromise = moreFromUsers ? this.userTable.list(accountId, usersOptions) : Promise.resolve(undefined);
-      const agentPromise = moreFromAgents
-        ? this.agentData.listAgentIds(accountId, agentOptions)
-        : Promise.resolve(undefined);
-      const [usersResult, agentsResult] = await Promise.all([usersPromise, agentPromise]);
+      const [usersResult, agentsResult] = await Promise.all([
+        moreFromUsers ? this.userTable.list(accountId, usersOptions) : undefined,
+        moreFromAgents ? this.agentData.listAgentIds(accountId, agentOptions) : undefined,
+      ]);
 
       if (!usersResult || !usersResult.next) {
         moreFromUsers = false;

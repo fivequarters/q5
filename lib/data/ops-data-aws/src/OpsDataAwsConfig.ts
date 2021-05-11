@@ -34,6 +34,8 @@ const defaultBuilderRoleName = 'fusebit-builder';
 const defaultFunctionRoleName = 'fusebit-function';
 const defaultGovCloud = false;
 const defaultBackupRoleName = 'fusebit-backup-role';
+const defaultAuroraDatabaseName = 'fusebit';
+const defaultAuroraMasterUsername = 'fusebit';
 // ----------------
 // Exported Classes
 // ----------------
@@ -46,6 +48,14 @@ export class OpsDataAwsConfig implements IConfig {
 
   private constructor(config: IConfig) {
     this.config = config;
+  }
+
+  public get auroraMasterUsername(): string {
+    return (this.config.value('auroraMasterUsername') as string) || defaultAuroraMasterUsername;
+  }
+
+  public get auroraDatabaseName(): string {
+    return (this.config.value('auroraDatabaseName') as string) || defaultAuroraDatabaseName;
   }
 
   public get userAccountEnabled(): boolean {

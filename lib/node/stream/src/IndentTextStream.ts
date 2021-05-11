@@ -31,7 +31,7 @@ export class IndentTextStream extends PassThrough {
     }
   }
 
-  public push(chunk: any, encoding?: string): boolean {
+  public push(chunk: any, encoding?: BufferEncoding): boolean {
     if (chunk) {
       const decoder = new StringDecoder(encoding);
       let text = decoder.write(chunk);

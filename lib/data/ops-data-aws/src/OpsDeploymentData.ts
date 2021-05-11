@@ -20,6 +20,7 @@ import { OpsDataAwsProvider } from './OpsDataAwsProvider';
 import { OpsDataAwsConfig } from './OpsDataAwsConfig';
 import { OpsAlb } from './OpsAlb';
 import { createFunctionStorage } from './OpsFunctionStorage';
+import { createDatabase } from './OpsDatabase';
 import { createAnalyticsPipeline } from './OpsAnalytics';
 import { createCron } from './OpsCron';
 import { createDwhExport } from './OpsDwh';
@@ -33,6 +34,7 @@ import {
   getDefaultElasticSearchConfig,
   createElasticSearch,
 } from './OpsElasticSearch';
+import { OpsNetworkData } from './OpsNetworkData';
 
 // ----------------
 // Exported Classes
@@ -322,6 +324,11 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
     }
 
     await createFunctionStorage(this.config, awsConfig, deployment);
+
+    const networkData = await OpsNetworkData.create(this.config, this.provider, this.tables);
+    const network = await networkData.get(deployment.networkName, deployment.region);
+    const dbCredentials = await createDatabase(this.config, awsConfig, deployment, network);
+    debug('AURORA CREDENTIALS', dbCredentials);
 
     const accountDataFactory = await AccountDataAwsContextFactory.create(awsConfig);
     const accountData = await accountDataFactory.create(this.config);
