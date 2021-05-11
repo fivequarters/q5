@@ -7,7 +7,7 @@
   "author": "FiveQuarters.io",
   "scripts": {
     "build": "tsc -b && yarn copy-files",
-    "copy-files": "cp -r src/migrations libc/migrations",
+    "copy-files": "cp -r src/migrations libc",
     "test": "jest --colors",
     "coverage": "jest --colors --coverage",
     "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x} test/{,**/}*.ts{,x}",
