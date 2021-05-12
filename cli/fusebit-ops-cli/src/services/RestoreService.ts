@@ -54,7 +54,7 @@ export class RestoreService {
         message: `start restore on deployment ${deploymentName}`,
         errorHeader: 'something went wrong during restore',
       },
-      () => this.restorefromBackupDriver(forceRemove, deploymentName, backupPlanName)
+      () => this.restoreFromBackupDriver(forceRemove, deploymentName, backupPlanName)
     );
   }
 
@@ -66,7 +66,7 @@ export class RestoreService {
    * @param {string} backupPlanName
    * @memberof RestoreService
    */
-  public async restorefromBackupDriver(forceRemove: boolean, deploymentName: string, backupPlanName: string) {
+  public async restoreFromBackupDriver(forceRemove: boolean, deploymentName: string, backupPlanName: string) {
     const opsDataContext = await this.opsService.getOpsDataContextImpl();
     const profileService = await ProfileService.create(this.input);
     const profile = await profileService.getProfileOrDefaultOrThrow();
