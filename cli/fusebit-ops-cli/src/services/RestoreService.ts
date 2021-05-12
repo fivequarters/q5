@@ -165,7 +165,7 @@ export class RestoreService {
       }
     }
   }
-  
+
   /**
    * delete all existing ddb table
    *

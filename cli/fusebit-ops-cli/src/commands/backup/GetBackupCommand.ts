@@ -5,7 +5,7 @@ const command = {
   name: 'Get Backup Plan',
   cmd: 'get',
   summary: 'Get a backup plan',
-  description: 'Retrive the details of a backup plan in the Fusebit platform',
+  description: 'Retrieve the details of a backup plan on the Fusebit platform',
   options: [
     {
       name: 'output',
