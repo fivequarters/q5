@@ -41,7 +41,7 @@ export class DeleteBackupCommand extends Command {
       });
     } else {
       await backupService.deleteBackupPlan(name).then(() => {
-        input.io.writeLine('success');
+        input.io.writeLine(`successfully deleted backup plan ${name}`);
       });
     }
   }

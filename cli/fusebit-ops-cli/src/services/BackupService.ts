@@ -35,6 +35,16 @@ export class BackupService {
     this.input = input;
   }
 
+  // Get AWS Backup
+  private async getAwsBackupClient(region: string) {
+    return new AWS.Backup({
+      accessKeyId: this.credentials.accessKeyId,
+      secretAccessKey: this.credentials.secretAccessKey,
+      sessionToken: this.credentials.sessionToken,
+      region
+    })
+  }
+
   // the code that gets a backup plan from AWS Backup, triggered by GetBackupCommand.ts
   public async getBackupPlan(backupPlanName: string) {
     const opsDataContext = await this.opsService.getOpsDataContext();
@@ -76,13 +86,7 @@ export class BackupService {
   ) {
     const regions = await this.findAllRegionsWithDeployments(this.credentials, this.config);
     for (const region of regions) {
-      const Backup = new AWS.Backup({
-        region,
-        accessKeyId: this.credentials.accessKeyId,
-        secretAccessKey: this.credentials.secretAccessKey,
-        sessionToken: this.credentials.sessionToken,
-      });
-
+      const Backup = await this.getAwsBackupClient(region)
       try {
         await Backup.createBackupVault({
           BackupVaultName: backupPlanName,
@@ -162,12 +166,7 @@ export class BackupService {
       if (BackupPlanIdIfExists === undefined) {
         continue;
       }
-      const Backup = new AWS.Backup({
-        region,
-        accessKeyId: this.credentials.accessKeyId,
-        secretAccessKey: this.credentials.secretAccessKey,
-        sessionToken: this.credentials.sessionToken,
-      });
+      const Backup = await this.getAwsBackupClient(region)
       await Backup.listBackupSelections({
         BackupPlanId: BackupPlanIdIfExists as string,
       })
@@ -199,21 +198,16 @@ export class BackupService {
 
   // helper function, get backup plan id by the friendly name of the backup plan
   private async getBackupIdByName(credentials: IAwsCredentials, region: string, BackupName: string): Promise<string> {
-    const backup = new AWS.Backup({
-      region,
-      accessKeyId: credentials.accessKeyId,
-      secretAccessKey: credentials.secretAccessKey,
-      sessionToken: credentials.sessionToken,
-    });
-    let result: string | undefined;
+    const Backup = await this.getAwsBackupClient(region)
 
-    const listResult = await backup.listBackupPlans().promise();
+    const listResult = await Backup.listBackupPlans().promise();
 
     for (const i of listResult.BackupPlansList as AWS.Backup.BackupPlansList) {
       if (i.BackupPlanName === BackupName) {
-        return i.BackupPlanId;
+        return i.BackupPlanId as string;
       }
     }
+    return '';
   }
 
   // list backup plans available in all AWS regions, triggered by GetBackupCommand.ts
@@ -235,14 +229,9 @@ export class BackupService {
     const regions = await this.findAllRegionsWithDeployments(this.credentials, this.config);
     const backupPlans: any = { BackupPlansList: [] };
     for (const i of regions) {
-      const Backup = new AWS.Backup({
-        region: i,
-        accessKeyId: this.credentials.accessKeyId,
-        secretAccessKey: this.credentials.secretAccessKey,
-        sessionToken: this.credentials.sessionToken,
-      });
+      const Backup = await this.getAwsBackupClient(i)
       try {
-        const backupPlansResult = await Backup.listBackupPlans({}).promise();
+        const backupPlansResult = await Backup.listBackupPlans().promise();
 
         backupPlans.BackupPlansList = [
           ...(backupPlansResult.BackupPlansList as AWS.Backup.BackupPlansList),
@@ -325,12 +314,7 @@ export class BackupService {
   ): Promise<AWS.Backup.GetBackupPlanOutput | undefined> {
     const regions = await this.findAllRegionsWithDeployments(credentials, config);
     for (const i of regions) {
-      const Backup = new AWS.Backup({
-        region: i,
-        accessKeyId: credentials.accessKeyId,
-        secretAccessKey: credentials.secretAccessKey,
-        sessionToken: credentials.sessionToken,
-      });
+      const Backup = await this.getAwsBackupClient(i)
       try {
         return await Backup.getBackupPlan({
           BackupPlanId: backupId,

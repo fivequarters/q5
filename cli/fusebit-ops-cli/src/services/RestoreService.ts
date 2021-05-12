@@ -89,22 +89,26 @@ export class RestoreService {
     const region = await this.findRegionFromDeploymentName(deploymentName, config, credentials);
     // The end of the world.
     await this.deleteAllExistingDynamoDBTable(deploymentName, config, credentials);
+    const promises: any = [];
     for (const tableSuffix of this.dynamoTableSuffix) {
       const tableName: string = `${deploymentName}.${tableSuffix}`;
-      const restorePoint = await this.findLatestRecoveryPointOfTable(
+      const restorePoint = (await this.findLatestRecoveryPointOfTable(
         credentials,
         tableName,
         backupPlanName,
         region as string
-      );
-      await this.startRestoreJobAndMakeSureItFinishes(
-        restorePoint.RecoveryPointArn,
-        tableName,
-        credentials,
-        config,
-        region as string
+      )) as AWS.Backup.RecoveryPointByBackupVault;
+      promises.push(
+        this.startRestoreJobAndWait(
+          restorePoint.RecoveryPointArn as string,
+          tableName,
+          credentials,
+          config,
+          region as string
+        )
       );
     }
+    await Promise.all(promises);
   }
 
   /**
@@ -118,7 +122,7 @@ export class RestoreService {
    * @param {string} region
    * @memberof RestoreService
    */
-  private async startRestoreJobAndMakeSureItFinishes(
+  private async startRestoreJobAndWait(
     restorePointArn: string,
     tableName: string,
     credentials: IAwsCredentials,
@@ -133,18 +137,30 @@ export class RestoreService {
       apiVersion: '2012-08-10',
     });
     let success: boolean = false;
+    let finished: boolean = false;
     while (!success) {
-      await DynamoDB.restoreTableFromBackup({
-        BackupArn: restorePointArn,
-        TargetTableName: tableName,
-      })
-        .promise()
-        .then((data) => {
-          success = true;
-        })
-        .catch(async (err) => {
-          await setTimeout(() => {}, 10000);
-        });
+      try {
+        const results = await DynamoDB.restoreTableFromBackup({
+          BackupArn: restorePointArn,
+          TargetTableName: tableName,
+        }).promise();
+        success = true;
+      } catch (e) {
+        await setTimeout(() => {}, 5000);
+      }
+    }
+    while (!finished) {
+      try {
+        const results = await DynamoDB.describeTable({
+          TableName: tableName,
+        }).promise();
+        if (results.Table?.TableStatus !== 'CREATING') {
+          finished = true;
+          await this.input.io.writeLine(`${tableName} finished restoring`);
+        }
+      } catch (_) {
+        continue;
+      }
     }
   }
   /**
@@ -221,7 +237,7 @@ export class RestoreService {
    * @return {*}  {Promise<AWS.Backup.RecoveryPointByBackupVault[]>}
    * @memberof RestoreService
    */
-  private async filterRestorePointsByTableNameAndBackupVaultName(
+  private async filterRestorePoints(
     tableName: string,
     backupVaultName: string,
     restorePointList: AWS.Backup.RecoveryPointByBackupVaultList
@@ -254,7 +270,7 @@ export class RestoreService {
     tableName: string,
     backupPlanName: string,
     deploymentRegion: string
-  ): Promise<any | undefined> {
+  ): Promise<AWS.Backup.RecoveryPointByBackupVault | undefined> {
     const Backup = new AWS.Backup({
       accessKeyId: credentials.accessKeyId,
       secretAccessKey: credentials.secretAccessKey,
@@ -267,7 +283,7 @@ export class RestoreService {
     if ((availableRestorePoints.RecoveryPoints as AWS.Backup.RecoveryPointByBackupVaultList).length === 0) {
       return undefined;
     }
-    const restorePoints = await this.filterRestorePointsByTableNameAndBackupVaultName(
+    const restorePoints = await this.filterRestorePoints(
       tableName,
       backupPlanName,
       availableRestorePoints.RecoveryPoints as AWS.Backup.RecoveryPointByBackupVaultList
