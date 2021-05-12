@@ -45,10 +45,10 @@ describe('Storage List', () => {
     test('Listing storage with hierarchy from storageId should work', async () => {
       const storageIdPrefix = `test-${random()}`;
       await Promise.all([
-        setStorage(account, `${storageIdPrefix}`, { data: 'hello world /' }),
-        setStorage(account, `${storageIdPrefix}/foo`, { data: 'hello world /foo' }),
-        setStorage(account, `${storageIdPrefix}/bar`, { data: 'hello world /bar' }),
-        setStorage(account, `${storageIdPrefix}/foo/bar`, { data: 'hello world /foo/bar' }),
+        setStorage(account, `${storageIdPrefix}`, { data: 'hello world' }),
+        setStorage(account, `${storageIdPrefix}/foo`, { data: 'hello world' }),
+        setStorage(account, `${storageIdPrefix}/bar`, { data: 'hello world' }),
+        setStorage(account, `${storageIdPrefix}/foo/bar`, { data: 'hello world' }),
       ]);
       let result = await listStorage(account, { storageId: `${storageIdPrefix}/*` });
       expect(result).toBeHttp({ statusCode: 200 });
