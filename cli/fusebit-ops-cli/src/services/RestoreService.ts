@@ -147,6 +147,7 @@ export class RestoreService {
         success = true;
       } catch (e) {
         if (e.code === 'LimitExceededException' || e.code === 'TableAlreadyExistsException') {
+          // If it is rate limited or AWS is giving out eventual consistency issues, it throws these errors. For now we are just sleeping and retry.
           await setTimeout(() => {}, 5000);
           continue;
         }
@@ -164,6 +165,7 @@ export class RestoreService {
       }
     }
   }
+  
   /**
    * delete all existing ddb table
    *

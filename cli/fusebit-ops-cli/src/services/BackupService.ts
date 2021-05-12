@@ -1,8 +1,7 @@
-import AWS, { Config } from 'aws-sdk';
+import AWS from 'aws-sdk';
 import { IExecuteInput } from '@5qtrs/cli';
 import { OpsService } from './OpsService';
 import { ExecuteService } from './ExecuteService';
-import { ProfileService } from './ProfileService';
 import { AwsCreds, IAwsConfig } from '@5qtrs/aws-config';
 import { IAwsCredentials } from '@5qtrs/aws-cred';
 
