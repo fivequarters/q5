@@ -23,7 +23,6 @@ export class OpsIam implements IDataSource {
 
   public async setup(): Promise<void> {
     const awsConfig = await this.provider.getAwsConfigForMain();
-    // Create AWS Backup policy
     // Create an AWSLambdaFullAccess policy replacement; unspecialized, used to handle the deprecation of the
     // role in 01/2021.
     await createPolicy(
