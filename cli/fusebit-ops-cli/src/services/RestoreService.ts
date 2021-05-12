@@ -313,7 +313,7 @@ export class RestoreService {
   }
 
   /**
-   * returns the lastest date given a list of date
+   * returns the latest date given a list of date
    *
    * @private
    * @param {Date[]} recoveryPointDates
