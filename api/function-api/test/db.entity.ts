@@ -59,6 +59,55 @@ const createEntityTests = <T extends Model.IEntity>(DAO: Model.IEntityDao<T>, en
     expect(result).toBe(true);
   }, 10000);
 
+  test('Deleting by prefix works', async () => {
+    const id = 'slack';
+    const data = { foo: 'bar' };
+    await DAO.createEntity({ accountId, subscriptionId, id: 'slac', data, tags: {} });
+    await DAO.createEntity({ accountId, subscriptionId, id: id + '1', data, tags: {} });
+    await DAO.createEntity({ accountId, subscriptionId, id: id + '2', data, tags: {} });
+    await DAO.createEntity({ accountId, subscriptionId, id: id + '3', data, tags: {} });
+    await DAO.createEntity({ accountId, subscriptionId, id: id + '4', data, tags: {} });
+    const result = await DAO.deleteEntity({ accountId, subscriptionId, idPrefix: id });
+    expect(result).toBe(true);
+    for (let i = 1; i < 5; i++) {
+      await expect(DAO.getEntity({ accountId, subscriptionId, id: id + `${i}` })).rejects.toThrowError(
+        new httpError.NotFound()
+      );
+    }
+    const foundEntity = await DAO.getEntity({ accountId, subscriptionId, id: 'slac' });
+    expect(foundEntity.id).toBe('slac');
+  }, 10000);
+
+  test('Deleting by prefix recurses', async () => {
+    const id = 'slack';
+    const data = { foo: 'bar' };
+    await DAO.createEntity({ accountId, subscriptionId, id: 'slac', data, tags: {} });
+    const result = await DAO.deleteEntity({ accountId, subscriptionId, id });
+    expect(result).toBe(false);
+    const foundEntity = await DAO.getEntity({ accountId, subscriptionId, id: 'slac' });
+    expect(foundEntity.id).toBe('slac');
+  }, 10000);
+
+  test('Deleting prefix without prefixkey removes no entries', async () => {
+    await DAO.createEntity({ accountId, subscriptionId, id: 'slack', data: { foo: 'bar' }, tags: {} });
+    expect(await DAO.deleteEntity({ accountId, subscriptionId })).toBe(false);
+    const foundEntity = await DAO.getEntity({ accountId, subscriptionId, id: 'slack' });
+    expect(foundEntity.id).toBe('slack');
+  }, 10000);
+
+  test('Safety check, deleting prefix with very short key is rejected', async () => {
+    await DAO.createEntity({ accountId, subscriptionId, id: 'slack', data: { foo: 'bar' }, tags: {} });
+    expect(DAO.deleteEntity({ accountId, subscriptionId, idPrefix: '' })).resolves.toBe(false);
+    expect(DAO.deleteEntity({ accountId, subscriptionId, idPrefix: 's' })).rejects.toThrowError(
+      new Error('Delete prefix match must be 3 characters or greater')
+    );
+    expect(DAO.deleteEntity({ accountId, subscriptionId, idPrefix: 'sl' })).rejects.toThrowError(
+      new Error('Delete prefix match must be 3 characters or greater')
+    );
+    const foundEntity = await DAO.getEntity({ accountId, subscriptionId, id: 'slack' });
+    expect(foundEntity.id).toBe('slack');
+  }, 10000);
+
   test('Updating existing works', async () => {
     const id = 'slack';
     const data = { foo: 'bar' };

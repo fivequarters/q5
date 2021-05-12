@@ -9,40 +9,41 @@ const storageDb = RDS.DAO.Storage;
 
 type IExtendedRequest = Request & { resolvedAgent: any };
 
-function compare(lhs: any, rhs: any) {
-  return JSON.stringify(lhs) !== JSON.stringify(rhs);
+function normalize(e: any) {
+  return { ...e.data, etag: `${e.version}` };
 }
 
-const makeRequest = (req: IExtendedRequest, version?: string) => ({
+const makeRequest = (req: IExtendedRequest, version?: number) => ({
   accountId: req.params.accountId,
   subscriptionId: req.params.subscriptionId,
   id: req.params.storageId,
-  ...(version ? { version: parseInt(version, 10) } : {}),
+  ...(version ? { version } : {}),
 });
 
 function storageGet() {
-  return async (req: IExtendedRequest, res: Response) => {
+  return async (req: IExtendedRequest, res: Response, next: NextFunction) => {
     let result: any;
     let resultDb: any;
     try {
       [result, resultDb] = await Promise.all([
         (async () => {
+          /*
           return (await getStorageContext()).storage.get(
             req.resolvedAgent,
             req.params.accountId,
             req.params.subscriptionId,
             req.params.storageId
           );
+        */
         })(),
-        storageDb.getEntity(makeRequest(req)),
+        (async () => normalize(await storageDb.getEntity(makeRequest(req))))(),
       ]);
     } catch (err) {
-      return errorHandler(res)(err);
+      return next(err);
     }
 
-    if (compare(result, resultDb)) {
-      console.log(`ERROR: Inconsistent storage: ${req.params.storageId}`);
-    }
+    result = resultDb;
+
     if (result && result.etag) {
       res.set('Etag', `W/"${result.etag}"`);
     }
@@ -51,16 +52,18 @@ function storageGet() {
 }
 
 function storageList() {
-  return async (req: IExtendedRequest, res: Response) => {
+  return async (req: IExtendedRequest, res: Response, next: NextFunction) => {
     let result: any;
     let resultDb: any;
     const options = {
       limit: req.query.count,
       next: req.query.next,
     };
+
     try {
       [result, resultDb] = await Promise.all([
         (async () => {
+          /*
           return (await getStorageContext()).storage.list(
             req.resolvedAgent,
             req.params.accountId,
@@ -68,16 +71,28 @@ function storageList() {
             req.params.storageId,
             options
           );
+         */
         })(),
-        storageDb.listEntities(makeRequest(req)),
+        (async () => {
+          const list = await storageDb.listEntities(
+            {
+              ...makeRequest(req),
+              idPrefix: req.params.storageId,
+              next: req.query.next as string,
+            },
+            {
+              listLimit: Number(req.query.count),
+            }
+          );
+          list.items = list.items.map((e) => ({ storageId: e.id })) as any;
+          return list;
+        })(),
       ]);
     } catch (err) {
-      return errorHandler(res)(err);
+      return next(err);
     }
 
-    if (compare(result, resultDb)) {
-      console.log(`ERROR: Inconsistent storage: ${req.params.storageId}`);
-    }
+    result = resultDb;
 
     res.json(result);
   };
@@ -88,16 +103,28 @@ function storagePut() {
     let result: any;
     let resultDb: any;
     const storage = req.body;
-    const etag = req.header('If-Match');
+    let etag = req.header('If-Match');
+
+    if (!req.body.data) {
+      return next(create_error(400, `No data was provided for '${req.params.storageId}'`));
+    }
 
     if (storage.etag && etag && storage.etag !== etag) {
       const message = `The etag in the body '${storage.etag}' does not match the etag in the If-Match header '${etag}'`;
       return next(create_error(400, message));
-    } else {
-      delete storage.etag;
+    } else if (storage.etag) {
+      etag = storage.etag;
     }
 
-    const version = etag ? etag.replace('W/', '') : undefined;
+    delete storage.etag;
+
+    let version;
+    if (etag) {
+      version = Number(etag.replace('W/', ''));
+      if (Number.isNaN(version)) {
+        return next(create_error(400, 'invalid etag'));
+      }
+    }
 
     try {
       [result, resultDb] = await Promise.all([
@@ -110,17 +137,13 @@ function storagePut() {
             storage
           );
         })(),
-        storageDb.createEntity({ ...makeRequest(req, version), data: storage }),
+        (async () => normalize(await storageDb.createEntity({ ...makeRequest(req, version), data: storage })))(),
       ]);
     } catch (err) {
-      return errorHandler(res)(err);
+      return next(err);
     }
 
-    console.log(`${JSON.stringify(result)} == ${JSON.stringify(resultDb)}`);
-
-    if (compare(result, resultDb)) {
-      console.log(`ERROR: Inconsistent storage: ${req.params.storageId}`);
-    }
+    result = resultDb;
 
     if (result && result.etag) {
       res.set('Etag', `W/"${result.etag}"`);
@@ -130,12 +153,38 @@ function storagePut() {
 }
 
 function storageDelete() {
-  return async (req: IExtendedRequest, res: Response) => {
+  return async (req: IExtendedRequest, res: Response, next: NextFunction) => {
     let result: any;
     let resultDb: any;
+
+    console.log(`storageDelete: `, req.params);
+
+    const etag = req.header('If-Match');
+    let version;
+
+    if (etag) {
+      version = Number(etag.replace('W/', ''));
+      if (Number.isNaN(version)) {
+        return next(create_error(400, 'invalid etag'));
+      }
+    }
+
+    const params: any = {
+      accountId: req.params.accountId,
+      subscriptionId: req.params.subscriptionId,
+      ...(version ? { version } : {}),
+    };
+
+    if (req.params.recursive) {
+      params.idPrefix = req.params.storageId;
+    } else {
+      params.id = req.params.storageId;
+    }
+
     try {
       [result, resultDb] = await Promise.all([
         (async () => {
+          /*
           return (await getStorageContext()).storage.delete(
             req.resolvedAgent,
             req.params.accountId,
@@ -144,17 +193,23 @@ function storageDelete() {
             req.params.recursive,
             req.header('If-Match')
           );
+        */
         })(),
-        storageDb.deleteEntity(makeRequest(req)),
+        storageDb.deleteEntity(params),
       ]);
     } catch (err) {
-      return errorHandler(res)(err);
+      // Exceptions only get generated when versioning is involved, otherwise it updates with a 0 record
+      // changed result and returns false.
+      if (err.message.indexOf('conflict') !== -1) {
+        return next(create_error(409, 'Version mismatch'));
+      }
+      if (err.message.indexOf('not_found') !== -1) {
+        return next(create_error(409));
+      }
+      return next(err);
     }
 
-    if (compare(result, resultDb)) {
-      console.log(`ERROR: Inconsistent storage: ${req.params.storageId}`);
-    }
-    res.status(204).end();
+    res.status(resultDb || req.params.recursive ? 204 : 404).end();
   };
 }
 

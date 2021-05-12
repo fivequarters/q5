@@ -27,7 +27,7 @@ describe('Storage Remove', () => {
       expect(removedStorage.data).toBeUndefined();
 
       const noSuchStorage = await getStorage(account, storageId);
-      expect(noSuchStorage).toBeStorageNotFound(storageId);
+      expect(noSuchStorage).toBeHttp({ statusCode: 404 });
     }, 180000);
 
     test('Removing storage with hierarchy should work', async () => {
@@ -41,7 +41,7 @@ describe('Storage Remove', () => {
       expect(removedStorage.data).toBeUndefined();
 
       const noSuchStorage = await getStorage(account, storageId);
-      expect(noSuchStorage).toBeStorageNotFound(storageId);
+      expect(noSuchStorage).toBeHttp({ statusCode: 404 });
     }, 180000);
 
     test('Removing storage with hierarchy recursively should work', async () => {
@@ -61,11 +61,11 @@ describe('Storage Remove', () => {
       expect(removedStorage.data).toBeUndefined();
 
       let noSuchStorage = await getStorage(account, `${storageIdPrefix}/foo`);
-      expect(noSuchStorage).toBeStorageNotFound(`${storageIdPrefix}/foo`);
+      expect(noSuchStorage).toBeHttp({ statusCode: 404 });
       noSuchStorage = await getStorage(account, `${storageIdPrefix}/bar/baz`);
-      expect(noSuchStorage).toBeStorageNotFound(`${storageIdPrefix}/bar/baz`);
+      expect(noSuchStorage).toBeHttp({ statusCode: 404 });
       noSuchStorage = await getStorage(account, `${storageIdPrefix}/bar`);
-      expect(noSuchStorage).toBeStorageNotFound(`${storageIdPrefix}/bar`);
+      expect(noSuchStorage).toBeHttp({ statusCode: 404 });
       // Recursive removal of "foo/*" does not remove "foo" itself:
       storage = await getStorage(account, `${storageIdPrefix}`);
       expect(storage).toBeHttp({ statusCode: 200 });
@@ -97,8 +97,8 @@ describe('Storage Remove', () => {
       expect(retrievedStorage).toBeHttp({ statusCode: 200 });
       retrievedStorage = await getStorage(account, `${storageIdPrefix}/bar/baz`);
       expect(retrievedStorage).toBeHttp({ statusCode: 200 });
-      let noSuchStorage = await getStorage(account, `${storageIdPrefix}/bar`);
-      expect(noSuchStorage).toBeStorageNotFound(`${storageIdPrefix}/bar`);
+      const noSuchStorage = await getStorage(account, `${storageIdPrefix}/bar`);
+      expect(noSuchStorage).toBeHttp({ statusCode: 404 });
     }, 180000);
 
     test('Removing storage with a valid etag in the header and no storage path should work', async () => {
@@ -107,14 +107,12 @@ describe('Storage Remove', () => {
       const storage = await setStorage(account, storageId, storageData);
       expect(storage).toBeHttp({ statusCode: 200 });
 
-      const etag = storage.data.etag;
-
-      const removedStorage = await removeStorage(account, storageId, etag);
+      const removedStorage = await removeStorage(account, storageId, storage.data.etag);
       expect(removedStorage).toBeHttp({ statusCode: 204 });
       expect(removedStorage.data).toBeUndefined();
 
       const noSuchStorage = await getStorage(account, storageId);
-      expect(noSuchStorage).toBeStorageNotFound(storageId);
+      expect(noSuchStorage).toBeHttp({ statusCode: 404 });
     }, 180000);
 
     test('Removing storage with an invalid etag in the header should return an error', async () => {
@@ -122,16 +120,17 @@ describe('Storage Remove', () => {
       const storageData = { data: 'hello world' };
       const storage = await setStorage(account, storageId, storageData);
       expect(storage).toBeHttp({ statusCode: 200 });
-      const etag = storage.data.etag + 'abc';
+      const etag = storage.data.etag + '555';
 
       const removedStorage = await removeStorage(account, storageId, etag);
-      expect(removedStorage).toBeStorageConflict(storageId, etag, false);
+      expect(removedStorage).toBeHttp({ statusCode: 409 });
     }, 180000);
 
+    // XXX Probably should be a 204 actually.
     test('Removing storage that does not exist should return an error', async () => {
       const storageId = `test-${random()}`;
-      const removedStorage = await removeStorage(account, storageId);
-      expect(removedStorage).toBeStorageNotFound(storageId);
+      const noSuchStorage = await removeStorage(account, storageId);
+      expect(noSuchStorage).toBeHttp({ statusCode: 404 });
     }, 180000);
 
     test('Removing storage that does not exist with an etag should return an error', async () => {
@@ -146,7 +145,7 @@ describe('Storage Remove', () => {
       expect(removedStorage).toBeHttp({ statusCode: 204 });
 
       const removedAgainStorage = await removeStorage(account, storageId, etag);
-      expect(removedAgainStorage).toBeStorageConflict(storageId, etag, false);
+      expect(removedAgainStorage).toBeHttp({ statusCode: 409 });
     }, 180000);
 
     test('Removing storage with a malformed account id should return an error', async () => {

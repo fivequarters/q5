@@ -164,13 +164,10 @@ function toBeStorageConflict(
   if (storagePath) {
     storagePath = storagePath[0] === '/' ? storagePath : `/${storagePath}`;
   }
-  const storagePathMessage = storagePath ? `with a storage path of '${storagePath}' ` : '';
   return toBeHttpError(
     received,
     409,
-    `The storage for '${storageId}' ${storagePathMessage}could not be ${
-      isUpdate ? 'updated' : 'deleted'
-    } because the provided etag value of '${etag}' dose not match the current etag value`
+    `The storage for could not be updated because the provided etag value does not match the current etag value`
   );
 }
 

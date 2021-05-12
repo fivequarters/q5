@@ -24,9 +24,11 @@ import {
   IEntityKeyTagSet,
 } from '../model';
 
-//--------------------------------
+// --------------------------------
 // Internal
-//--------------------------------
+// --------------------------------
+
+const DELETE_SAFETY_PREFIX_LEN = 3;
 
 const defaultEntityConstructorArgument: DefaultConstructorArguments = {
   upsert: true,
@@ -240,6 +242,7 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
       offset,
       limit: queryOptions.listLimit,
     };
+
     const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
     const data: IListResponse<ET> = {
       items: this.sqlToIEntity(result),
@@ -263,13 +266,20 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
       inputQueryOptions,
       inputStatementOptions
     );
-    const sql = `DELETE FROM entity
+
+    const sqlPlain = `DELETE FROM entity
       WHERE entityType = :entityType::entity_type
       AND accountId = :accountId
       AND subscriptionId = :subscriptionId
-      AND (NOT :prefixMatchId OR entityId = :entityId)
-      AND (:prefixMatchId OR entityId LIKE FORMAT('%s%%',:entityIdPrefix::text))
+      AND (:prefixMatchId OR entityId = :entityId)
+      AND (NOT :prefixMatchId OR entityId LIKE FORMAT('%s%%',:entityIdPrefix::text))
       AND (NOT :filterExpired OR expires IS NULL OR expires > NOW());`;
+
+    const sqlWithVersion = `
+      SELECT delete_on_version(:entityType::entity_type, :accountId, :subscriptionId, :prefixMatchId::BOOLEAN,
+				:entityId, :entityIdPrefix, :filterExpired::BOOLEAN, :version::BIGINT) as deletedRows;
+      `;
+
     const parameters = {
       entityType: this.entityType,
       accountId: params.accountId,
@@ -278,9 +288,23 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
       entityIdPrefix: params.idPrefix,
       prefixMatchId: !!params.idPrefix,
       filterExpired: queryOptions.filterExpired,
+      ...(params.version ? { version: params.version } : {}),
     };
+
+    const sql = params.version ? sqlWithVersion : sqlPlain;
+
+    if (
+      parameters.prefixMatchId &&
+      parameters.entityIdPrefix &&
+      parameters.entityIdPrefix.length < DELETE_SAFETY_PREFIX_LEN
+    ) {
+      throw new Error(`Delete prefix match must be ${DELETE_SAFETY_PREFIX_LEN} characters or greater`);
+    }
+
     const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
-    return result.numberOfRecordsUpdated !== undefined && result.numberOfRecordsUpdated > 0;
+    const numDeleted =
+      params.version && result.records ? result.records[0][0].longValue : result.numberOfRecordsUpdated;
+    return numDeleted !== undefined && numDeleted > 0;
   };
 
   public createEntity: (
@@ -338,6 +362,7 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
       version: params.version,
     };
     const selectedInsert = queryOptions.upsert ? sqlUpsert : sql;
+
     const result = await this.RDS.executeStatement(selectedInsert, parameters, statementOptions);
 
     this.RDS.ensureRecords(result);
@@ -361,7 +386,7 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
       data = :data::jsonb,
       tags = :tags::jsonb,
       expires = :expires::timestamptz,
-      version = coalesce(:version, version) + 1
+      version = COALESCE(:version, version) + 1
       WHERE entityType = :entityType::entity_type
       AND accountId = :accountId
       AND subscriptionId = :subscriptionId
@@ -461,7 +486,7 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
     );
     const sql = `UPDATE entity SET
       tags = tags - :tagKey,
-      version = coalesce(:version, version) + 1
+      version = COALESCE(:version, version) + 1
       WHERE entityType = :entityType::entity_type
       AND accountId = :accountId
       AND subscriptionId = :subscriptionId
