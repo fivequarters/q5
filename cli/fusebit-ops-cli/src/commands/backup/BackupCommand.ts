@@ -4,6 +4,7 @@ import { ListBackupCommand } from './ListBackupCommand';
 import { ScheduleBackupCommand } from './ScheduleBackupCommand';
 import { DeleteBackupCommand } from './DeleteBackupCommand';
 import { StartRestoreCommand } from './StartRestoreCommand';
+
 const command: ICommand = {
   name: 'Backup',
   cmd: 'backup',
@@ -11,7 +12,6 @@ const command: ICommand = {
   description: 'list, get, schedule and delete backup plans.',
 };
 
-// maps the backup commands
 export class BackupCommand extends Command {
   public static async create() {
     const subCommands = [];

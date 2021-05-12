@@ -29,11 +29,7 @@ export class GetBackupCommand extends Command {
   private constructor() {
     super(command);
   }
-/**
- * Handles the execution of fuse-ops backup get.
- *
- * @memberof GetBackupCommand
- */
+
   protected async onExecute(input: IExecuteInput): Promise<any> {
     await input.io.writeLine();
     const backupPlanName = input.options.name as string;

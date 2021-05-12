@@ -187,12 +187,18 @@ export class RestoreService {
 
     for (const tableSuffix of this.dynamoTableSuffix) {
       const table = `${deploymentName}.${tableSuffix}`;
-      await dynamoDB
-        .deleteTable({
-          TableName: table,
-        })
-        .promise()
-        .catch((data) => {});
+      try {
+        await dynamoDB
+          .deleteTable({
+            TableName: table,
+          })
+          .promise();
+      } catch (e) {
+        if (e === 'ResourceNotFoundException') {
+          continue;
+        }
+        throw Error(e);
+      }
     }
   }
 

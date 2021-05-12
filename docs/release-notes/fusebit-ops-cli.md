@@ -18,6 +18,14 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.27.0
+
+_Released 05/12/21_
+
+For this version to take effect, please re-run `fuse-ops setup`.
+
+- **Enhancement.** Add backup/restore deployment support.
+
 ## Version 1.26.0
 
 _Released 04/08/21_
