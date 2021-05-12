@@ -2,8 +2,8 @@ import { Command, IExecuteInput } from '@5qtrs/cli';
 import { RestoreService } from '../../services';
 
 const command = {
-  name: 'Start Restore',
-  cmd: 'start',
+  name: 'Restore',
+  cmd: 'restore',
   summary: 'Starts a Full Table Restore',
   description: 'Starts a full table restore on a deployment with backups',
   options: [

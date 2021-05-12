@@ -41,8 +41,8 @@ export class BackupService {
       accessKeyId: this.credentials.accessKeyId,
       secretAccessKey: this.credentials.secretAccessKey,
       sessionToken: this.credentials.sessionToken,
-      region
-    })
+      region,
+    });
   }
 
   // the code that gets a backup plan from AWS Backup, triggered by GetBackupCommand.ts
@@ -86,7 +86,7 @@ export class BackupService {
   ) {
     const regions = await this.findAllRegionsWithDeployments(this.credentials, this.config);
     for (const region of regions) {
-      const Backup = await this.getAwsBackupClient(region)
+      const Backup = await this.getAwsBackupClient(region);
       try {
         await Backup.createBackupVault({
           BackupVaultName: backupPlanName,
@@ -166,7 +166,7 @@ export class BackupService {
       if (BackupPlanIdIfExists === undefined) {
         continue;
       }
-      const Backup = await this.getAwsBackupClient(region)
+      const Backup = await this.getAwsBackupClient(region);
       await Backup.listBackupSelections({
         BackupPlanId: BackupPlanIdIfExists as string,
       })
@@ -198,7 +198,7 @@ export class BackupService {
 
   // helper function, get backup plan id by the friendly name of the backup plan
   private async getBackupIdByName(credentials: IAwsCredentials, region: string, BackupName: string): Promise<string> {
-    const Backup = await this.getAwsBackupClient(region)
+    const Backup = await this.getAwsBackupClient(region);
 
     const listResult = await Backup.listBackupPlans().promise();
 
@@ -229,7 +229,7 @@ export class BackupService {
     const regions = await this.findAllRegionsWithDeployments(this.credentials, this.config);
     const backupPlans: any = { BackupPlansList: [] };
     for (const i of regions) {
-      const Backup = await this.getAwsBackupClient(i)
+      const Backup = await this.getAwsBackupClient(i);
       try {
         const backupPlansResult = await Backup.listBackupPlans().promise();
 
@@ -314,7 +314,7 @@ export class BackupService {
   ): Promise<AWS.Backup.GetBackupPlanOutput | undefined> {
     const regions = await this.findAllRegionsWithDeployments(credentials, config);
     for (const i of regions) {
-      const Backup = await this.getAwsBackupClient(i)
+      const Backup = await this.getAwsBackupClient(i);
       try {
         return await Backup.getBackupPlan({
           BackupPlanId: backupId,

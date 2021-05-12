@@ -3,6 +3,7 @@ import { GetBackupCommand } from './GetBackupCommand';
 import { ListBackupCommand } from './ListBackupCommand';
 import { ScheduleBackupCommand } from './ScheduleBackupCommand';
 import { DeleteBackupCommand } from './DeleteBackupCommand';
+import { StartRestoreCommand } from './StartRestoreCommand';
 const command: ICommand = {
   name: 'Backup',
   cmd: 'backup',
@@ -18,6 +19,7 @@ export class BackupCommand extends Command {
     subCommands.push(await GetBackupCommand.create());
     subCommands.push(await ScheduleBackupCommand.create());
     subCommands.push(await DeleteBackupCommand.create());
+    subCommands.push(await StartRestoreCommand.create());
     command.subCommands = subCommands;
     return new BackupCommand();
   }

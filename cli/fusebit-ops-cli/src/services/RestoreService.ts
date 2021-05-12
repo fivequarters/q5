@@ -146,20 +146,21 @@ export class RestoreService {
         }).promise();
         success = true;
       } catch (e) {
-        await setTimeout(() => {}, 5000);
+        if (e.code === 'LimitExceededException' || e.code === 'TableAlreadyExistsException') {
+          await setTimeout(() => {}, 5000);
+          continue;
+        }
+        throw Error(e);
       }
     }
     while (!finished) {
-      try {
-        const results = await DynamoDB.describeTable({
-          TableName: tableName,
-        }).promise();
-        if (results.Table?.TableStatus !== 'CREATING') {
-          finished = true;
-          await this.input.io.writeLine(`${tableName} finished restoring`);
-        }
-      } catch (_) {
-        continue;
+      // there is a super super edge case error, if it happens, simply re run restore command. (AWS' infrastructure's eventual consistency is annoying :()
+      const results = await DynamoDB.describeTable({
+        TableName: tableName,
+      }).promise();
+      if (results.Table?.TableStatus !== 'CREATING') {
+        finished = true;
+        await this.input.io.writeLine(`${tableName} finished restoring`);
       }
     }
   }
