@@ -4,8 +4,8 @@ import { RestoreService } from '../../services';
 const command = {
   name: 'Start Restore',
   cmd: 'start',
-  summary: 'Start a full Table Restore',
-  description: 'Start a full table restore on a deployment with backups',
+  summary: 'Starts a Full Table Restore',
+  description: 'Starts a full table restore on a deployment with backups',
   options: [
     {
       name: 'output',
@@ -16,17 +16,17 @@ const command = {
     {
       name: 'force',
       aliases: ['f'],
-      description: 'force a restore, could break the platform, no promises',
+      description: 'Force a restore, could break the platform, no promises.',
     },
     {
       name: 'deployment-name',
       aliases: ['d'],
-      description: 'the deployment name you want to restore',
+      description: 'The name of the deployment you want to restore.',
     },
     {
       name: 'backup-plan-name',
       aliases: ['b'],
-      description: 'the backup plan you want to use to restore to',
+      description: 'The backup plan you want to use to restore from.',
     },
   ],
 };
@@ -41,7 +41,6 @@ export class StartRestoreCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<any> {
-    await input.io.writeLine();
     const output = input.options.output as string;
     const deploymentName = input.options['deployment-name'] as string;
     const backupPlanName = input.options['backup-plan-name'] as string;

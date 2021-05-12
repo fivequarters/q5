@@ -7,7 +7,7 @@ const command: ICommand = {
   name: 'Backup',
   cmd: 'backup',
   summary: 'Manage Backup Plans',
-  description: 'Add and list Backups',
+  description: 'list, get, schedule and delete backup plans.',
 };
 
 // maps the backup commands

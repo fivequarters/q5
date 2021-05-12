@@ -16,7 +16,7 @@ const command = {
     {
       name: 'name',
       aliases: ['n'],
-      description: 'the name of the backup plan (an UUID)',
+      description: 'The name of the backup plan (an UUID)',
     },
   ],
 };
@@ -29,13 +29,16 @@ export class GetBackupCommand extends Command {
   private constructor() {
     super(command);
   }
-
-  // handles the backup get command
+/**
+ * Handles the execution of fuse-ops backup get.
+ *
+ * @memberof GetBackupCommand
+ */
   protected async onExecute(input: IExecuteInput): Promise<any> {
     await input.io.writeLine();
     const backupPlanName = input.options.name as string;
     const backupService = await BackupService.create(input);
     const backupPlan = await backupService.getBackupPlan(backupPlanName);
-    await backupService.displayGetBackupPlans(backupPlan);
+    await backupService.displayGetBackupPlan(backupPlan);
   }
 }

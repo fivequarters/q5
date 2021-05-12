@@ -44,14 +44,7 @@ export class ScheduleBackupCommand extends Command {
     const name = input.options.name as string;
     const snsTopicArn = input.options['sns-topic-arn'] as string | undefined;
     const backupService = await BackupService.create(input);
-    if (output === 'json') {
-      await backupService.createBackupPlan(name, schedule, snsTopicArn).then(() => {
-        input.io.writeLine(JSON.stringify({ status: 'success' }));
-      });
-    } else {
-      await backupService.createBackupPlan(name, schedule, snsTopicArn).then(() => {
-        input.io.writeLine('success');
-      });
-    }
+    await backupService.createBackupPlan(name, schedule, snsTopicArn);
+    await input.io.writeLine('success');
   }
 }

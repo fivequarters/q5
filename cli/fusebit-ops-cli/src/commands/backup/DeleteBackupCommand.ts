@@ -5,7 +5,7 @@ const command = {
   name: 'Delete Backup Plans',
   cmd: 'rm',
   summary: 'Delete Backup Plans',
-  description: 'List Backup Plans/Schedules in the Fusebit platform',
+  description: 'Deletes backup plan in the Fusebit platform.',
   options: [
     {
       name: 'output',
@@ -15,7 +15,7 @@ const command = {
     },
     {
       name: 'name',
-      description: 'The name of the backup plans',
+      description: 'The name of the backup plan',
     },
   ],
 };
