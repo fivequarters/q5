@@ -1225,6 +1225,15 @@ paths:
       operationId: getSubscriptionFunctionList
       parameters:
         - in: query
+          name: include
+          required: false
+          description: |
+            Optional switch to include all tags of the functions in the response.
+          schema:
+            type: string
+            enum:
+              - all
+        - in: query
           name: next
           required: false
           description: Opaque token to start returning results from
@@ -1324,6 +1333,15 @@ paths:
         Use query string parameters to filter the list of functions. All query filters are combined with a logical AND operator.
       operationId: getFunctionList
       parameters:
+        - in: query
+          name: include
+          required: false
+          description: |
+            Optional switch to include all tags of the functions in the response.
+          schema:
+            type: string
+            enum:
+              - all
         - in: query
           name: next
           required: false
@@ -3225,6 +3243,18 @@ components:
           type: string
           description: The URL for executing the function
           example: 'https://domain.com/function-abc'
+        runtime:
+          $ref: '#/components/schemas/FunctionRuntime'
+
+    FunctionRuntime:
+      type: object
+      required:
+        - tags
+      properties:
+        tags:
+          type: object
+          description: User-specified and synthetic tags of a function
+          additionalProperties: true
 
     Function:
       allOf:

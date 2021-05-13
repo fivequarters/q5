@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.19.8
+
+_Release 05/13/21_
+
+- **Enhanement.** Function list APIs now support returning function tags when `include=all` query parameter is specified.
+
 ## Version 1.19.7
 
 _Release 04/26/21_
