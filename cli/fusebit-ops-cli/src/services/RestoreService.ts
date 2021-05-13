@@ -38,21 +38,13 @@ export class RestoreService {
     this.input = input;
   }
 
-  /**
-   * restore from backup magic
-   *
-   * @param {boolean} forceRemove
-   * @param {string} deploymentName
-   * @param {string} backupPlanName
-   * @memberof RestoreService
-   */
   public async restoreFromBackup(forceRemove: boolean, deploymentName: string, backupPlanName: string) {
     const opsDataContext = await this.opsService.getOpsDataContext();
     const info = await this.executeService.execute(
       {
-        header: 'starting a restore job',
-        message: `start restore on deployment ${deploymentName}`,
-        errorHeader: 'something went wrong during restore',
+        header: 'Start a restore job',
+        message: `Starting restore on deployment ${deploymentName}.`,
+        errorHeader: 'Something went wrong during restore.',
       },
       () => this.restoreFromBackupDriver(forceRemove, deploymentName, backupPlanName)
     );
@@ -98,17 +90,35 @@ export class RestoreService {
         backupPlanName,
         region as string
       )) as AWS.Backup.RecoveryPointByBackupVault;
-      promises.push(
-        this.startRestoreJobAndWait(
-          restorePoint.RecoveryPointArn as string,
-          tableName,
-          credentials,
-          config,
-          region as string
-        )
-      );
     }
+    await Promise.all(
+      this.dynamoTableSuffix.map((tableSuffix) =>
+        this.restoreTable(credentials, tableSuffix, deploymentName, backupPlanName, region as string)
+      )
+    );
     await Promise.all(promises);
+  }
+
+  private async restoreTable(
+    credentials: IAwsCredentials,
+    tableSuffix: string,
+    deploymentName: string,
+    backupPlanName: string,
+    region: string
+  ) {
+    const restorePoint = (await this.findLatestRecoveryPointOfTable(
+      credentials,
+      `${deploymentName}.${tableSuffix}`,
+      backupPlanName,
+      region as string
+    )) as AWS.Backup.RecoveryPointByBackupVault;
+    await this.startRestoreJobAndWait(
+      restorePoint.RecoveryPointArn as string,
+      deploymentName,
+      tableSuffix,
+      credentials,
+      region
+    );
   }
 
   /**
@@ -124,11 +134,12 @@ export class RestoreService {
    */
   private async startRestoreJobAndWait(
     restorePointArn: string,
-    tableName: string,
+    deploymentName: string,
+    tableSuffix: string,
     credentials: IAwsCredentials,
-    config: IAwsConfig,
     region: string
   ) {
+    const tableName = `${deploymentName}.${tableSuffix}`;
     const DynamoDB = new AWS.DynamoDB({
       accessKeyId: credentials.accessKeyId,
       secretAccessKey: credentials.secretAccessKey,

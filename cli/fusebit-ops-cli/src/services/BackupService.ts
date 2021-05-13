@@ -4,6 +4,7 @@ import { OpsService } from './OpsService';
 import { ExecuteService } from './ExecuteService';
 import { AwsCreds, IAwsConfig } from '@5qtrs/aws-config';
 import { IAwsCredentials } from '@5qtrs/aws-cred';
+import { dynamoScanTable } from '@5qtrs/constants';
 
 export class BackupService {
   private opsService: OpsService;
@@ -133,10 +134,10 @@ export class BackupService {
         }
       } catch (e) {
         if (e && e === 'ResourceAlreadyExistsException') {
-          throw new Error(`Backup plan ${backupPlanName} already exists`);
-        } else {
-          throw Error(e);
+          await this.deleteBackupPlanDriver(backupPlanName);
+          await this.createBackupPlanDriver(backupPlanName, backupPlanSchedule, failureSnsTopicArn);
         }
+        throw Error(e);
       }
     }
   }
@@ -146,9 +147,9 @@ export class BackupService {
     const opsDataContext = await this.opsService.getOpsDataContext();
     const info = this.executeService.execute(
       {
-        header: 'deleting Backup Plans',
-        message: `deleting backup plans ${backupPlanName}`,
-        errorHeader: `something went wrong during deletion`,
+        header: 'Deleting Backup Plans',
+        message: `Deleting backup plans ${backupPlanName}.`,
+        errorHeader: `Something went wrong during deletion.`,
       },
       () => this.deleteBackupPlanDriver(backupPlanName)
     );
@@ -224,16 +225,13 @@ export class BackupService {
     const backupPlans: any = { BackupPlansList: [] };
     for (const i of regions) {
       const Backup = await this.getAwsBackupClient(i);
-      try {
-        const backupPlansResult = await Backup.listBackupPlans().promise();
 
-        backupPlans.BackupPlansList = [
-          ...(backupPlansResult.BackupPlansList as AWS.Backup.BackupPlansList),
-          ...backupPlans.BackupPlansList,
-        ];
-      } catch (e) {
-        throw Error(e);
-      }
+      const backupPlansResult = await Backup.listBackupPlans().promise();
+
+      backupPlans.BackupPlansList = [
+        ...(backupPlansResult.BackupPlansList as AWS.Backup.BackupPlansList),
+        ...backupPlans.BackupPlansList,
+      ];
     }
     return backupPlans;
   }
@@ -244,8 +242,9 @@ export class BackupService {
       this.input.io.writeLine(JSON.stringify(await this.sanitizeBackupPlans(data), null, 2));
     } else if (this.input.options.output === 'pretty') {
       const sanitized = await this.sanitizeBackupPlans(data);
+      await this.input.io.writeLine("Backups on the Fusebit platform: ")
       for (const backupPlan of sanitized.Backup) {
-        await this.input.io.writeLine(`Backup Exists in Fusebit Platform: ${backupPlan}`);
+        await this.input.io.writeLine(backupPlan);
       }
     }
   }
@@ -274,18 +273,18 @@ export class BackupService {
     const scanParams = {
       TableName: 'ops.stack',
     };
-    const results = await ddb.scan(scanParams).promise();
+    const results = await dynamoScanTable(ddb, scanParams);
     if (!results) {
       throw Error('can not find ops.stack table');
     }
-    if (!results.Items) {
+    if (!results) {
       throw Error("can't find items in ops.stack table");
     }
 
-    if ((results.Items?.length as number) === 0) {
+    if ((results.length as number) === 0) {
       throw new Error('no deployment found');
     }
-    for (const i of results.Items) {
+    for (const i of results) {
       if (!region.includes((i.regionStackId.S as string).split('::')[0] as string)) {
         region.push((i.regionStackId.S as string).split('::')[0]);
       }
@@ -310,20 +309,21 @@ export class BackupService {
           BackupPlanId: backupId,
         }).promise();
       } catch (e) {
-        continue;
+        if (e.code === 'ERROR_2202') {
+          continue;
+        }
+        throw Error(e);
       }
     }
     return undefined;
   }
 
   // Display driver for getting specific backup plan.
-  public async displayGetBackupPlan(backupPlan: any) {
+  public async displayGetBackupPlan(backupPlan: any): Promise<string> {
     if (this.input.options.output === 'json') {
-      await this.input.io.writeLine(JSON.stringify(await this.sanitizeGetBackupPlans(backupPlan), null, 2));
+      return JSON.stringify(await this.sanitizeGetBackupPlans(backupPlan), null, 2);
     } else {
-      await this.input.io.writeLine(
-        `backup plan name: ${backupPlan.BackupPlan.backupPlanName}, the schedule its running on is ${backupPlan.BackupPlan.Rules[0].ScheduleExpression}`
-      );
+      return `backup plan name: ${backupPlan.BackupPlan.backupPlanName}, the schedule its running on is ${backupPlan.BackupPlan.Rules[0].ScheduleExpression}`;
     }
   }
 
