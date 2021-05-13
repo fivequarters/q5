@@ -242,7 +242,7 @@ export class BackupService {
       this.input.io.writeLine(JSON.stringify(await this.sanitizeBackupPlans(data), null, 2));
     } else if (this.input.options.output === 'pretty') {
       const sanitized = await this.sanitizeBackupPlans(data);
-      await this.input.io.writeLine("Backups on the Fusebit platform: ")
+      await this.input.io.writeLine('Backups on the Fusebit platform: ');
       for (const backupPlan of sanitized.Backup) {
         await this.input.io.writeLine(backupPlan);
       }

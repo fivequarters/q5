@@ -36,6 +36,6 @@ export class GetBackupCommand extends Command {
     const backupService = await BackupService.create(input);
     const backupPlan = await backupService.getBackupPlan(backupPlanName);
     const output = await backupService.displayGetBackupPlan(backupPlan);
-    await input.io.write
+    await input.io.write(output);
   }
 }
