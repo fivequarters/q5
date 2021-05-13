@@ -81,22 +81,11 @@ export class RestoreService {
     const region = await this.findRegionFromDeploymentName(deploymentName, config, credentials);
     // The end of the world.
     await this.deleteAllExistingDynamoDBTable(deploymentName, config, credentials);
-    const promises: any = [];
-    for (const tableSuffix of this.dynamoTableSuffix) {
-      const tableName: string = `${deploymentName}.${tableSuffix}`;
-      const restorePoint = (await this.findLatestRecoveryPointOfTable(
-        credentials,
-        tableName,
-        backupPlanName,
-        region as string
-      )) as AWS.Backup.RecoveryPointByBackupVault;
-    }
     await Promise.all(
       this.dynamoTableSuffix.map((tableSuffix) =>
         this.restoreTable(credentials, tableSuffix, deploymentName, backupPlanName, region as string)
       )
     );
-    await Promise.all(promises);
   }
 
   private async restoreTable(
