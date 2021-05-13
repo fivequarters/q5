@@ -1,28 +1,53 @@
 import express from 'express';
-import ComponentDao from '../../../types/ComponentDao';
+import { BaseComponentService } from '../../../service';
+import pathParams from '../../../handlers/pathParams';
 
-const router = (ComponentDao: ComponentDao) => {
+const router = (ComponentService: BaseComponentService<any>) => {
   const componentTagRouter = express.Router({ mergeParams: true });
 
   componentTagRouter.get('/', async (req, res, next) => {
-    const component = ComponentDao.getInstanceTags(req.params.componentId);
-    res.json(component);
+    try {
+      const response = await ComponentService.dao.getEntityTags({
+        ...pathParams.EntityById(req),
+      });
+      res.json(response);
+    } catch (e) {
+      next(e);
+    }
   });
 
   componentTagRouter
-    .route('/:key')
+    .route('/:tagKey')
     .get(async (req, res, next) => {
-      const tags = ComponentDao.getInstanceTagValues(req.params.componentId, req.params.key);
-      res.json(tags);
+      try {
+        const response = await ComponentService.getEntityTag({
+          ...pathParams.EntityTagKey(req),
+        });
+        res.json(response);
+      } catch (e) {
+        next(e);
+      }
     })
     .delete(async (req, res, next) => {
-      const component = ComponentDao.removeTagFromInstance(req.params.componentId, req.params.key);
-      res.json(component);
+      try {
+        const response = await ComponentService.dao.deleteEntityTag({
+          ...pathParams.EntityTagKey(req),
+        });
+        res.json(response);
+      } catch (e) {
+        next(e);
+      }
     });
 
-  componentTagRouter.put('/:key/:value', async (req, res, next) => {
-    const component = ComponentDao.applyTagToInstance(req.params.componentId, req.params.key, req.params.value);
-    res.json(component);
+  componentTagRouter.put('/:tagKey/:tagValue', async (req, res, next) => {
+    try {
+      const component = await ComponentService.dao.setEntityTag({
+        ...pathParams.EntityTagKeyValue(req),
+      });
+      res.json(component);
+    } catch (e) {
+      next(e);
+    }
   });
 
   return componentTagRouter;

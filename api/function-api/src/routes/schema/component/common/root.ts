@@ -1,8 +1,11 @@
 import express from 'express';
 import * as common from '../../../middleware/common';
-import ComponentDao from '../../../types/ComponentDao';
+import { BaseComponentService } from '../../../service';
+import query from '../../../handlers/query';
+import body from '../../../handlers/body';
+import pathParams from '../../../handlers/pathParams';
 
-const router = (ComponentDao: ComponentDao) => {
+const router = (ComponentService: BaseComponentService<any>) => {
   const componentRouter = express.Router({ mergeParams: true });
 
   componentRouter.use(common.cors());
@@ -10,18 +13,26 @@ const router = (ComponentDao: ComponentDao) => {
   componentRouter
     .route('/')
     .get(async (req, res, next) => {
-      if (typeof req.query.tag === 'string' && req.query.tag.length) {
-        const [tagKey, tagValue] = req.query.tag.split('=');
-        const components = ComponentDao.searchByTag(tagKey, tagValue);
-        res.json(components);
-      } else {
-        const components = ComponentDao.getAll();
-        res.json(components);
+      try {
+        const response = await ComponentService.dao.listEntities({
+          ...pathParams.accountAndSubscription(req),
+          ...query.tags(req),
+        });
+        res.json(response);
+      } catch (e) {
+        next(e);
       }
     })
     .post(async (req, res, next) => {
-      const component = ComponentDao.createNew(req.body.data);
-      res.json(component);
+      try {
+        const response = ComponentService.dao.createEntity({
+          ...pathParams.accountAndSubscription(req),
+          ...body.entity(req),
+        });
+        res.json(response);
+      } catch (e) {
+        next(e);
+      }
     });
   return componentRouter;
 };

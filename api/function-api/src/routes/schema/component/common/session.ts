@@ -1,14 +1,22 @@
 import express from 'express';
-import ComponentDao from '../../../types/ComponentDao';
+import { BaseComponentService } from '../../../service';
+import query from '../../../handlers/query';
 
-const router = (EntityType: ComponentDao) => {
+const router = (ComponentService: BaseComponentService<any>) => {
   const componentSessionRouter = express.Router({ mergeParams: true });
 
-  // Create new session
-  componentSessionRouter.post('/', async (req, res, next) => {});
+  componentSessionRouter.post('/', async (req, res, next) => {
+    const sessionRedirect = query.sessionRedirect(req);
+    // create new session, return session id
+    // redirect to {baseUrl}/ui/initialization/{sessionId}
+  });
 
   // Get value of session
-  componentSessionRouter.get('/:sessionId', async (req, res, next) => {});
+  componentSessionRouter
+    .route('/:sessionId')
+    .get(async (req, res, next) => {})
+    .put(async (req, res, next) => {});
+
   return componentSessionRouter;
 };
 

@@ -1,7 +1,7 @@
 import express from 'express';
-import ConnectorDao from '../../../../daos/components/ConnectorDao';
+import ConnectorService from '../../../../service/components/ConnectorService';
 
-const router = (ConnectorDao: ConnectorDao) => {
+const router = (ConnectorService: ConnectorService) => {
   const identityApiRouter = express.Router({ mergeParams: true });
 
   identityApiRouter.get('/health', async (req, res, next) => {});

@@ -1,23 +1,23 @@
 import express from 'express';
 
-import CommonInstanceRouter from '../../common/instance';
+import CommonCrudRouter from '../../common/crud';
 import CommonTagRouter from '../../common/tag';
 
-import IdentityInstanceRootRouter from './root';
+import IdentityCrudRootRouter from './root';
 import IdentityApiRouter from './api';
 
 import * as analytics from '../../../../middleware/analytics';
-import ConnectorDao from '../../../../daos/components/ConnectorDao';
+import ConnectorService from '../../../../service/components/ConnectorService';
 
-const router = (ConnectorDao: ConnectorDao) => {
+const router = (ConnectorService: ConnectorService) => {
   const router = express.Router({ mergeParams: true });
 
-  router.use('/:identityId/api', IdentityApiRouter(ConnectorDao));
+  router.use('/:identityId/api', IdentityApiRouter(ConnectorService));
 
   router.use(analytics.setModality(analytics.Modes.Administration));
-  router.use('/:identityId/tag', CommonTagRouter(ConnectorDao));
-  router.use('/:identityId', CommonInstanceRouter(ConnectorDao));
-  router.use('/', IdentityInstanceRootRouter(ConnectorDao));
+  router.use('/:identityId/tag', CommonTagRouter(ConnectorService));
+  router.use('/:identityId', CommonCrudRouter(ConnectorService));
+  router.use('/', IdentityCrudRootRouter(ConnectorService));
   return router;
 };
 

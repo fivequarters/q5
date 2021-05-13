@@ -267,8 +267,8 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
       where entityType = :entityType::entity_type
       and accountId = :accountId
       and subscriptionId = :subscriptionId
-      and (not :prefixMatchId or entityId = :entityId)
-      and (:prefixMatchId or entityId like format('%s%%',:entityIdPrefix::text))
+      and (:prefixMatchId or entityId = :entityId)
+      and (not :prefixMatchId or entityId like format('%s%%',:entityIdPrefix::text))
       and (not :filterExpired or expires is null or expires > now());`;
     const parameters = {
       entityType: this.entityType,

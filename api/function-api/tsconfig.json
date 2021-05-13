@@ -8,8 +8,7 @@
     "declaration": true,
     "declarationMap": true,
     "composite": false,
-    "esModuleInterop": true,
-    "typeRoots": ["src"]
+    "esModuleInterop": true
   },
   "include": ["src"],
   "references": [
