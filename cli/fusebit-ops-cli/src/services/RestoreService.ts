@@ -42,7 +42,7 @@ export class RestoreService {
     const opsDataContext = await this.opsService.getOpsDataContext();
     const info = await this.executeService.execute(
       {
-        header: 'Start a restore job',
+        header: 'Start a Restore Job',
         message: `Starting restore on deployment ${deploymentName}.`,
         errorHeader: 'Something went wrong during restore.',
       },

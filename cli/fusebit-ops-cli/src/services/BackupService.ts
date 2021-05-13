@@ -70,7 +70,7 @@ export class BackupService {
     const info = await this.executeService.execute(
       {
         header: 'Creating Backup Plan',
-        message: 'creating the backup plan in every region where the Fusebit platform is deployed',
+        message: 'Creating the backup plan in every region where the Fusebit platform is deployed',
         errorHeader: 'Creation of Backup Plans Failed',
       },
       () => this.createBackupPlanDriver(backupPlanName, backupPlanSchedule, failureSnsTopicArn)
