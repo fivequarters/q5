@@ -124,6 +124,7 @@ function storageDelete() {
     // Convert the etag into a version specification
     let version;
     if (!passthrough) {
+      // Passthrough ignores all versioning; by this point Dynamo has already succeeded.
       try {
         version = etagToVersion(etag);
       } catch (err) {
@@ -153,6 +154,9 @@ function storageDelete() {
       }
       if (err.message.indexOf('not_found') !== -1) {
         return next(create_error(409));
+      }
+      if (passthrough) {
+        throw err;
       }
       return next(err);
     }

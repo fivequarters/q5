@@ -90,10 +90,15 @@ function storageDelete() {
       storageContext.storage
         .delete(resolvedAgent, accountId, subscriptionId, storageId, recursive, etag)
         .then(() => {
-          RDS.storageDelete()(req, res, next, true).then(() => {
-            res.status(204);
-            res.end();
-          });
+          RDS.storageDelete()(req, res, next, true)
+            .then(() => {
+              res.status(204);
+              res.end();
+            })
+            .catch((err) => {
+              // Record database errors; generally these will be operational not logical in nature.
+              console.log(`DELETE ERROR: ${err}`);
+            });
         })
         .catch(errorHandler(res));
     });
