@@ -105,6 +105,23 @@ class RDS implements IRds {
     }
   };
 
+  public executeBatchStatement = async (
+    sql: string,
+    objectParameterArray: { [key: string]: any }[]
+  ): Promise<PromiseResult<AWS.RDSDataService.ExecuteStatementResponse, AWS.AWSError>> => {
+    const { rdsSdk, rdsCredentials } = await this.ensureConnection();
+
+    const parameters = objectParameterArray.map(this.createParameterArray);
+
+    return rdsSdk
+      .batchExecuteStatement({
+        ...rdsCredentials,
+        sql,
+        parameterSets: parameters,
+      })
+      .promise();
+  };
+
   public createParameterArray: (parameters: { [key: string]: any }) => AWS.RDSDataService.SqlParametersList = (
     parameters
   ) => {

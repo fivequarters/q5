@@ -12,6 +12,10 @@ export interface IRds {
     objectParameters?: { [key: string]: any },
     statementOptions?: FinalStatementOptions
   ) => Promise<PromiseResult<RDSDataService.ExecuteStatementResponse, AWS.AWSError>>;
+  executeBatchStatement: (
+    sql: string,
+    objectParameterArray: { [key: string]: any }[]
+  ) => Promise<PromiseResult<RDSDataService.BatchExecuteStatementResponse, AWS.AWSError>>;
   createParameterArray: (parameters: { [key: string]: any }) => RDSDataService.SqlParametersList;
   createTransaction: () => Promise<string>;
   commitTransaction: (transactionId: string) => Promise<string>;
