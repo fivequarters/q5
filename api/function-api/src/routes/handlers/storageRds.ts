@@ -8,7 +8,7 @@ import RDS from '@5qtrs/db';
 const storageDb = RDS.DAO.Storage;
 
 function normalize(e: any) {
-  return { ...e.data, etag: `${e.version}` };
+  return { data: e.data, etag: `${e.version}` };
 }
 
 function etagToVersion(etag?: string) {
@@ -101,7 +101,7 @@ function storagePut() {
     }
 
     try {
-      result = normalize(await storageDb.createEntity({ ...makeRequest(req, version), data: storage }));
+      result = normalize(await storageDb.createEntity({ ...makeRequest(req, version), data: storage.data }));
     } catch (err) {
       return next(err);
     }
@@ -153,7 +153,7 @@ function storageDelete() {
         return next(create_error(409, 'Version mismatch'));
       }
       if (err.message.indexOf('not_found') !== -1) {
-        return next(create_error(409));
+        return next(create_error(404));
       }
       if (passthrough) {
         throw err;
