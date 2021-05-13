@@ -323,7 +323,7 @@ export class BackupService {
     if (this.input.options.output === 'json') {
       return JSON.stringify(await this.sanitizeGetBackupPlans(backupPlan), null, 2);
     } else {
-      return `backup plan name: ${backupPlan.BackupPlan.backupPlanName}, the schedule its running on is ${backupPlan.BackupPlan.Rules[0].ScheduleExpression}`;
+      return `backup plan name: ${backupPlan.BackupPlan.BackupPlanName}, the schedule its running on is ${backupPlan.BackupPlan.Rules[0].ScheduleExpression}`;
     }
   }
 
