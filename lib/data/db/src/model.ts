@@ -61,7 +61,6 @@ export interface IEntityCore {
 interface IEntitySelectAbstract extends IEntityCore {
   tags?: ITags;
   version?: number;
-  next?: string;
 }
 export interface IEntityId extends IEntitySelectAbstract {
   id: string;
@@ -128,7 +127,9 @@ export interface MergedQueryOptions extends DefaultQueryOptions {
   listLimit: number;
 }
 export interface InputQueryOptionsWithDefaults extends DefaultQueryOptions {}
-export interface InputQueryOptionsWithoutDefaults {}
+export interface InputQueryOptionsWithoutDefaults {
+  next?: string;
+}
 export interface InputQueryOptions extends InputQueryOptionsWithDefaults, InputQueryOptionsWithoutDefaults {}
 export interface FinalQueryOptions extends InputQueryOptionsWithoutDefaults, MergedQueryOptions {}
 

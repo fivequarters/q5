@@ -20,7 +20,7 @@ const router = (ComponentService: BaseComponentService<any>) => {
     })
     .put(async (req, res, next) => {
       try {
-        const response = ComponentService.dao.updateEntity({
+        const response = await ComponentService.dao.updateEntity({
           ...pathParams.EntityById(req),
           ...body.entity(req),
         });
@@ -31,7 +31,7 @@ const router = (ComponentService: BaseComponentService<any>) => {
     })
     .delete(async (req, res, next) => {
       try {
-        const response = ComponentService.dao.deleteEntity({
+        const response = await ComponentService.dao.deleteEntity({
           ...pathParams.EntityById(req),
         });
         res.json(response);

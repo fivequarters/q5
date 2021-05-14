@@ -14,10 +14,16 @@ const router = (ComponentService: BaseComponentService<any>) => {
     .route('/')
     .get(async (req, res, next) => {
       try {
-        const response = await ComponentService.dao.listEntities({
-          ...pathParams.accountAndSubscription(req),
-          ...query.tags(req),
-        });
+        const response = await ComponentService.dao.listEntities(
+          {
+            ...pathParams.accountAndSubscription(req),
+            ...query.tags(req),
+            ...query.prefix(req),
+          },
+          {
+            ...query.paginated(req),
+          }
+        );
         res.json(response);
       } catch (e) {
         next(e);
@@ -25,7 +31,7 @@ const router = (ComponentService: BaseComponentService<any>) => {
     })
     .post(async (req, res, next) => {
       try {
-        const response = ComponentService.dao.createEntity({
+        const response = await ComponentService.dao.createEntity({
           ...pathParams.accountAndSubscription(req),
           ...body.entity(req),
         });
