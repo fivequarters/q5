@@ -14,4 +14,14 @@ const sessionRedirect = (req: Request) => {
   return { redirectUrl };
 };
 
-export default { tags, sessionRedirect };
+const paginated = (req: Request) => {
+  const { limit, next } = req.query;
+  return { listLimit: Number(limit), next: next as string | undefined };
+};
+
+const prefix = (req: Request) => {
+  const { idPrefix } = req.query;
+  return { idPrefix: idPrefix as string | undefined };
+};
+
+export default { tags, sessionRedirect, paginated, prefix };
