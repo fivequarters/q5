@@ -23,7 +23,6 @@ export class OpsIam implements IDataSource {
 
   public async setup(): Promise<void> {
     const awsConfig = await this.provider.getAwsConfigForMain();
-
     // Create an AWSLambdaFullAccess policy replacement; unspecialized, used to handle the deprecation of the
     // role in 01/2021.
     await createPolicy(
@@ -202,7 +201,26 @@ export class OpsIam implements IDataSource {
       undefined,
       this.config.iamPermissionsBoundary
     );
-
+    await createRole(
+      awsConfig,
+      this.config.backupRoleName,
+      ['arn:aws:iam::aws:policy/service-role/AWSBackupServiceRolePolicyForBackup',
+      'arn:aws:iam::aws:policy/service-role/AWSBackupServiceRolePolicyForRestores'],
+      undefined,
+      {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Effect": "Allow",
+            "Principal": {
+              "Service": "backup.amazonaws.com"
+            },
+            "Action": "sts:AssumeRole"
+          }
+        ]
+      },
+      this.config.iamPermissionsBoundary
+    )
     // Ensure the instance profile and role for the VMs are created
 
     await createInstanceProfile(

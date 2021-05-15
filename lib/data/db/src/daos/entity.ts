@@ -81,12 +81,12 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
     id: this.IGNORE,
   };
 
-  sqlToIEntity: <T>(result: AWS.RDSDataService.ExecuteStatementResponse) => T[] = <T>(
+  public sqlToIEntity: <T>(result: AWS.RDSDataService.ExecuteStatementResponse) => T[] = <T>(
     result: AWS.RDSDataService.ExecuteStatementResponse
   ) => {
     this.RDS.ensureRecords(result);
     return result.records.map((r) => {
-      let obj: { [key: string]: any } = {};
+      const obj: { [key: string]: any } = {};
       r.map((v, i) => {
         const columnName = result.columnMetadata[i].name;
         if (columnName === undefined) {
@@ -158,7 +158,7 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
     };
   };
 
-  getEntity: (
+  public getEntity: (
     params: IEntityId,
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
@@ -168,13 +168,13 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
       inputQueryOptions,
       inputStatementOptions
     );
-    const sql = `select * from entity
-        where entityType = :entityType::entity_type
-        and accountId = :accountId
-        and subscriptionId = :subscriptionId
-        and entityId = :entityId
-        and (not :filterExpired or expires is null or expires > now())
-        limit 1;`;
+    const sql = `SELECT * FROM entity
+        WHERE entityType = :entityType::entity_type
+        AND accountId = :accountId
+        AND subscriptionId = :subscriptionId
+        AND entityId = :entityId
+        AND (NOT :filterExpired OR expires IS NULL OR expires > NOW())
+        LIMIT 1;`;
     const parameters = {
       entityType: this.entityType,
       accountId: params.accountId,
@@ -186,7 +186,7 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
     return this.sqlToIEntity<ET>(result)[0];
   };
 
-  getEntityTags: (
+  public getEntityTags: (
     params: IEntityId,
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
@@ -196,12 +196,12 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
       inputQueryOptions,
       inputStatementOptions
     );
-    const sql = `select tags, version from entity
-      where entityType = :entityType::entity_type
-      and accountId = :accountId
-      and subscriptionId = :subscriptionId
-      and entityId = :entityId
-      and (not :filterExpired or expires is null or expires > now());`;
+    const sql = `SELECT tags, version FROM entity
+      WHERE entityType = :entityType::entity_type
+      AND accountId = :accountId
+      AND subscriptionId = :subscriptionId
+      AND entityId = :entityId
+      AND (NOT :filterExpired OR expires IS NULL OR expires > NOW());`;
     const parameters = {
       entityType: this.entityType,
       accountId: params.accountId,
@@ -213,22 +213,22 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
     return this.sqlToIEntity<ITagsWithVersion>(result)[0];
   };
 
-  listEntities: (params: IEntityPrefix, queryOptions?: InputQueryOptions) => Promise<IListResponse<ET>> = async (
+  public listEntities: (params: IEntityPrefix, queryOptions?: InputQueryOptions) => Promise<IListResponse<ET>> = async (
     inputParams,
     inputQueryOptions
   ) => {
     const { params, queryOptions, statementOptions } = this.applyDefaultsTo(inputParams, inputQueryOptions);
-    const sql = `select * from entity
-      where entityType = :entityType::entity_type
-      and accountId = :accountId
-      and subscriptionId = :subscriptionId
-      and (not :prefixMatchId::boolean or entityId like format('%s%%',:entityIdPrefix::text))
-      and (:tags::text is null or tags @> :tags::jsonb)
-      and (not :filterExpired::boolean or expires is null or expires > now())
-      order by entityId
-      offset :offset
-      limit :limit::integer + 1;`;
-    const offset = queryOptions.next ? parseInt(queryOptions.next, 16) : 0;
+    const sql = `SELECT * FROM entity
+      WHERE entityType = :entityType::entity_type
+      AND accountId = :accountId
+      AND subscriptionId = :subscriptionId
+      AND (NOT :prefixMatchId::boolean OR entityId LIKE FORMAT('%s%%',:entityIdPrefix::text))
+      AND (:tags::text IS NULL OR tags @> :tags::jsonb)
+      AND (NOT :filterExpired::boolean OR expires IS NULL OR expires > NOW())
+      ORDER BY entityId
+      OFFSET :offset
+      LIMIT :limit + 1;`;
+    const offset = params.next ? parseInt(params.next, 16) : 0;
     const parameters = {
       entityType: this.entityType,
       accountId: params.accountId,
@@ -241,7 +241,7 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
       limit: queryOptions.listLimit,
     };
     const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
-    let data: IListResponse<ET> = {
+    const data: IListResponse<ET> = {
       items: this.sqlToIEntity(result),
     };
     // Limit of the query was set to `limit + 1` in order to grab 1 additional element.
@@ -253,7 +253,7 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
     return data;
   };
 
-  deleteEntity: (
+  public deleteEntity: (
     params: IEntityPrefix,
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
@@ -263,13 +263,13 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
       inputQueryOptions,
       inputStatementOptions
     );
-    const sql = `delete from entity
-      where entityType = :entityType::entity_type
-      and accountId = :accountId
-      and subscriptionId = :subscriptionId
-      and (:prefixMatchId or entityId = :entityId)
-      and (not :prefixMatchId or entityId like format('%s%%',:entityIdPrefix::text))
-      and (not :filterExpired or expires is null or expires > now());`;
+    const sql = `DELETE FROM entity
+      WHERE entityType = :entityType::entity_type
+      AND accountId = :accountId
+      AND subscriptionId = :subscriptionId
+      AND (NOT :prefixMatchId OR entityId = :entityId)
+      AND (:prefixMatchId OR entityId LIKE FORMAT('%s%%',:entityIdPrefix::text))
+      AND (NOT :filterExpired OR expires IS NULL OR expires > NOW());`;
     const parameters = {
       entityType: this.entityType,
       accountId: params.accountId,
@@ -283,7 +283,7 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
     return result.numberOfRecordsUpdated !== undefined && result.numberOfRecordsUpdated > 0;
   };
 
-  createEntity: (
+  public createEntity: (
     params: IEntity,
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
@@ -293,9 +293,9 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
       inputQueryOptions,
       inputStatementOptions
     );
-    const sql = `insert into entity
+    const sql = `INSERT INTO entity
       (entityType, accountId, subscriptionId, entityId, version, data, tags, expires)  
-      values (
+      VALUES (
         :entityType::entity_type,
         :accountId,
         :subscriptionId,
@@ -305,11 +305,11 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
         :tags::jsonb,
         :expires::timestamptz
       )
-      returning *;`;
+      RETURNING *;`;
 
-    const sqlUpsert = `insert into entity
+    const sqlUpsert = `INSERT INTO entity
       (entityType, accountId, subscriptionId, entityId, version, data, tags, expires) 
-      values (
+      VALUES (
         :entityType::entity_type,
         :accountId,
         :subscriptionId,
@@ -319,13 +319,13 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
         :tags::jsonb,
         :expires::timestamptz
       )
-      on conflict (entityType, accountId, subscriptionId, entityId) do
-      update set
+      ON CONFLICT (entityType, accountId, subscriptionId, entityId) DO
+      UPDATE SET
       data = :data::jsonb,
       tags = :tags::jsonb,
       expires = :expires::timestamptz,
-      version = coalesce(:version, entity.version) + 1
-      returning *;`;
+      version = COALESCE(:version, entity.version) + 1
+      RETURNING *;`;
 
     const parameters = {
       entityType: this.entityType,
@@ -337,12 +337,7 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
       expires: params.expires?.format(),
       version: params.version,
     };
-    let selectedInsert;
-    if (queryOptions.upsert) {
-      selectedInsert = sqlUpsert;
-    } else {
-      selectedInsert = sql;
-    }
+    const selectedInsert = queryOptions.upsert ? sqlUpsert : sql;
     const result = await this.RDS.executeStatement(selectedInsert, parameters, statementOptions);
 
     this.RDS.ensureRecords(result);
@@ -352,7 +347,7 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
     return this.sqlToIEntity<ET>(result)[0];
   };
 
-  updateEntity: (
+  public updateEntity: (
     params: IEntity,
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
@@ -362,17 +357,17 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
       inputQueryOptions,
       inputStatementOptions
     );
-    const sql = `update entity set
+    const sql = `UPDATE entity SET
       data = :data::jsonb,
       tags = :tags::jsonb,
       expires = :expires::timestamptz,
       version = coalesce(:version, version) + 1
-      where entityType = :entityType::entity_type
-      and accountId = :accountId
-      and subscriptionId = :subscriptionId
-      and entityId = :entityId
-      and (not :filterExpired or expires is null or expires > now())
-      returning *`;
+      WHERE entityType = :entityType::entity_type
+      AND accountId = :accountId
+      AND subscriptionId = :subscriptionId
+      AND entityId = :entityId
+      AND (NOT :filterExpired OR expires IS NULL OR expires > NOW())
+      RETURNING *`;
 
     const parameters = {
       entityType: this.entityType,
@@ -389,7 +384,7 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
     return this.sqlToIEntity<ET>(result)[0];
   };
 
-  updateEntityTags: (
+  public updateEntityTags: (
     params: IEntityId,
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
@@ -399,15 +394,15 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
       inputQueryOptions,
       inputStatementOptions
     );
-    const sql = `update entity set
-      version = coalesce(:version, entity.version) + 1,
+    const sql = `UPDATE entity SET
+      version = COALESCE(:version, entity.version) + 1,
       tags = :tags::jsonb
-      where entityType = :entityType::entity_type
-      and accountId = :accountId
-      and subscriptionId = :subscriptionId
-      and entityId = :entityId
-      and (not :filterExpired or expires is null or expires > now())
-      returning tags, version;`;
+      WHERE entityType = :entityType::entity_type
+      AND accountId = :accountId
+      AND subscriptionId = :subscriptionId
+      AND entityId = :entityId
+      AND (NOT :filterExpired OR expires IS NULL OR expires > NOW())
+      RETURNING tags, version;`;
     const parameters = {
       entityType: this.entityType,
       accountId: params.accountId,
@@ -421,7 +416,7 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
     return this.sqlToIEntity<ITagsWithVersion>(result)[0];
   };
 
-  setEntityTag: (
+  public setEntityTag: (
     params: IEntityKeyTagSet,
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
@@ -431,15 +426,15 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
       inputQueryOptions,
       inputStatementOptions
     );
-    const sql = `update entity set
+    const sql = `UPDATE entity SET
       tags = jsonb_set(tags, format('{%s}', :tagKey)::text[], to_jsonb(:tagValue)),
-      version = coalesce(:version, version) + 1
-      where entityType = :entityType::entity_type
-      and accountId = :accountId
-      and subscriptionId = :subscriptionId
-      and entityId = :entityId
-      and (not :filterExpired or expires is null or expires > now())
-      returning tags, version;`;
+      version = COALESCE(:version, version) + 1
+      WHERE entityType = :entityType::entity_type
+      AND accountId = :accountId
+      AND subscriptionId = :subscriptionId
+      AND entityId = :entityId
+      AND (NOT :filterExpired OR expires IS NULL OR expires > NOW())
+      RETURNING tags, version;`;
     const parameters = {
       entityType: this.entityType,
       accountId: params.accountId,
@@ -454,7 +449,7 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
     return this.sqlToIEntity<ITagsWithVersion>(result)[0];
   };
 
-  deleteEntityTag: (
+  public deleteEntityTag: (
     params: IEntityKeyTagSet,
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
@@ -464,15 +459,15 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
       inputQueryOptions,
       inputStatementOptions
     );
-    const sql = `update entity set
+    const sql = `UPDATE entity SET
       tags = tags - :tagKey,
       version = coalesce(:version, version) + 1
-      where entityType = :entityType::entity_type
-      and accountId = :accountId
-      and subscriptionId = :subscriptionId
-      and entityId = :entityId
-      and (:filterExpired is null or expires is null or expires > now())
-      returning tags, version;`;
+      WHERE entityType = :entityType::entity_type
+      AND accountId = :accountId
+      AND subscriptionId = :subscriptionId
+      AND entityId = :entityId
+      AND (:filterExpired IS NULL OR expires IS NULL OR expires > NOW())
+      RETURNING tags, version;`;
     const parameters = {
       entityType: this.entityType,
       accountId: params.accountId,
@@ -485,7 +480,7 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
     const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
     return this.sqlToIEntity<ITagsWithVersion>(result)[0];
   };
-  static readonly EntityType = EntityType;
+  public static readonly EntityType = EntityType;
 }
 
 const cleanObj: <T extends { [key: string]: any }>(obj: T) => RequiredKeysOnly<T> = <T extends { [key: string]: any }>(

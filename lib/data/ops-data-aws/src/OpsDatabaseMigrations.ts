@@ -1,6 +1,6 @@
 /*
 
-This module defines the schema of the Aurora PostgresSQL databse and provides a mechanism for versioning this schema, 
+This module defines the schema of the Aurora PostgresSQL database and provides a mechanism for versioning this schema,
 including making necessary data migrations. 
 
 The default export of this module specifies an array with a sequence of SQL scripts to be executed in the database. 
@@ -23,10 +23,10 @@ Rules of the road:
 import { readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
 
-const get = (name: string) => readFileSync(join(__dirname, '..', 'src', 'migrations', name), { encoding: 'utf8' });
+const get = (name: string) => readFileSync(join(__dirname, 'migrations', name), { encoding: 'utf8' });
 
 const getAllFiles: () => string[] = () => {
-  const files = readdirSync(join(__dirname, '..', 'src', 'migrations'));
+  const files = readdirSync(join(__dirname, 'migrations'));
   return files.map(get);
 };
 

@@ -1,12 +1,12 @@
 -- The schemaVersion table holds the current database schema version.
 
-create table schemaVersion (
-    onerow_id bool primary key default true,
-    version int,
-    fuse_ops_version varchar(30),
-    constraint onerow_uni check (onerow_id)
+CREATE TABLE schemaVersion (
+    onerow_id BOOL PRIMARY KEY DEFAULT TRUE,
+    version INT,
+    fuse_ops_version VARCHAR(30),
+    CONSTRAINT onerow_uni CHECK (onerow_id)
 );
 
-revoke delete, truncate on schemaVersion from public;
+REVOKE DELETE, TRUNCATE ON schemaVersion FROM public;
 
-insert into schemaVersion values (true, -1);
+INSERT INTO schemaVersion VALUES(true, -1, '');
