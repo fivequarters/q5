@@ -90,8 +90,9 @@ class RDS implements IRds {
 
     const parameters = this.createParameterArray(objectParameters);
 
+    console.log(sql, parameters);
     try {
-      return await rdsSdk
+      const result = await rdsSdk
         .executeStatement({
           ...rdsCredentials,
           sql,
@@ -100,8 +101,17 @@ class RDS implements IRds {
           includeResultMetadata: true,
         })
         .promise();
+      console.log(`RESULT: `, result);
+      return result;
     } catch (e) {
-      throw e.message.match(/version_conflict/) ? new httpError.Conflict() : e;
+      console.log(`EXCEPTION ${e.message}`);
+      if (e.message.match(/conflict_data/)) {
+        throw new httpError.Conflict();
+      }
+      if (e.message.match(/not_found/)) {
+        throw new httpError.NotFound();
+      }
+      throw new httpError.InternalServerError(e.message);
     }
   };
 

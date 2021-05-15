@@ -42,9 +42,9 @@ export interface IRdsCredentials {
   secretArn: string;
 }
 
-//--------------------------------
+// --------------------------------
 // EntityKey Components
-//--------------------------------
+// --------------------------------
 
 export interface ITags {
   [key: string]: string;
@@ -52,7 +52,7 @@ export interface ITags {
 
 export interface ITagsWithVersion {
   tags: ITags;
-  version?: number;
+  version?: string;
 }
 
 // Data needed for any request
@@ -64,7 +64,7 @@ export interface IEntityCore {
 // Data needed for selects and deletes
 interface IEntitySelectAbstract extends IEntityCore {
   tags?: ITags;
-  version?: number;
+  version?: string;
   next?: string;
 }
 export interface IEntityId extends IEntitySelectAbstract {
@@ -98,9 +98,9 @@ export interface IListResponse<T extends IEntity> {
   next?: string;
 }
 
-//--------------------------------
+// --------------------------------
 // IEntity Extensions
-//--------------------------------
+// --------------------------------
 
 export interface IIntegration extends IEntity {}
 export interface IConnector extends IEntity {}
@@ -108,17 +108,17 @@ export interface IStorageItem extends IEntity {}
 export interface IOperation extends IEntity {}
 export interface IEntityGeneric extends IIntegration, IConnector, IStorageItem, IOperation {}
 
-//--------------------------------
+// --------------------------------
 // Utilities
-//--------------------------------
+// --------------------------------
 
 export type RequiredKeysOnly<T> = {
   [K in keyof { [key in keyof T]: T[key] extends undefined ? never : T[K] }]: T[K];
 };
 
-//--------------------------------
+// --------------------------------
 // Entity Constructors Arguments
-//--------------------------------
+// --------------------------------
 
 // Queries
 export interface DefaultQueryOptions {
@@ -180,9 +180,9 @@ export enum EntityType {
   Storage = 'storage',
 }
 
-//--------------------------------
+// --------------------------------
 // DAO Class Definitions
-//--------------------------------
+// --------------------------------
 
 export interface IDAO {
   createTransactional: (transactionId: string) => this;

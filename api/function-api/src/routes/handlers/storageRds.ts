@@ -11,19 +11,7 @@ function normalize(e: any) {
   return { data: e.data, etag: `${e.version}` };
 }
 
-function etagToVersion(etag?: string) {
-  // Convert the etag into a version specification
-  let version;
-  if (etag) {
-    version = Number(etag.replace('W/', ''));
-    if (Number.isNaN(version)) {
-      throw new Error('invalid etag');
-    }
-  }
-  return version;
-}
-
-const makeRequest = (req: Request, version?: number) => ({
+const makeRequest = (req: Request, version?: string) => ({
   accountId: req.params.accountId,
   subscriptionId: req.params.subscriptionId,
   id: req.params.storageId,
@@ -93,11 +81,7 @@ function storagePut() {
     // Convert the etag into a version specification
     let version;
     if (!passthrough) {
-      try {
-        version = etagToVersion(etag);
-      } catch (err) {
-        return next(create_error(400, err.message));
-      }
+      version = etag;
     }
 
     try {
@@ -125,11 +109,7 @@ function storageDelete() {
     let version;
     if (!passthrough) {
       // Passthrough ignores all versioning; by this point Dynamo has already succeeded.
-      try {
-        version = etagToVersion(etag);
-      } catch (err) {
-        return next(create_error(400, err.message));
-      }
+      version = etag;
     }
 
     const params: any = {
@@ -147,13 +127,14 @@ function storageDelete() {
     try {
       result = await storageDb.deleteEntity(params);
     } catch (err) {
-      // Exceptions only get generated when versioning is involved, otherwise it updates with a 0 record
-      // changed result and returns false.
-      if (err.message.indexOf('conflict') !== -1) {
-        return next(create_error(409, 'Version mismatch'));
-      }
-      if (err.message.indexOf('not_found') !== -1) {
-        return next(create_error(404));
+      console.log(
+        `XXX in Exception Handling... ${err.status}, ${req.params.recursive}, ${err.status}, ${err.status === 404}`
+      );
+      if (err.status === 404 && req.params.recursive) {
+        // Treat recursive 404's as 204's.
+        if (!passthrough) {
+          return res.status(204).end();
+        }
       }
       if (passthrough) {
         throw err;

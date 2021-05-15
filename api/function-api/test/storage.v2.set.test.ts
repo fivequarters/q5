@@ -10,6 +10,8 @@ beforeEach(() => {
   ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
 });
 
+const INVALID_UUID = '00000000-0000-4000-8000-000000000000';
+
 afterEach(async () => {
   await cleanUpStorage(account);
 }, 180000);
@@ -21,8 +23,9 @@ describe('Storage Set', () => {
       const storageData = { data: 'hello world' };
       const storage = await setStorage(account, storageId, storageData);
       expect(storage).toBeHttp({ statusCode: 200 });
-      expect(storage.headers.etag).toBe('W/"1"');
-      expect(storage.data).toEqual({ etag: '1', data: 'hello world' });
+      expect(storage.headers.etag).toBeWeakUUID();
+      expect(storage.data.data).toEqual('hello world');
+      expect(storage.data.etag).toBeUUID();
     }, 180000);
 
     test('Setting storage with hierarchy should work', async () => {
@@ -30,8 +33,9 @@ describe('Storage Set', () => {
       const storageData = { data: 'hello world' };
       const storage = await setStorage(account, storageId, storageData);
       expect(storage).toBeHttp({ statusCode: 200 });
-      expect(storage.headers.etag).toBe('W/"1"');
-      expect(storage.data).toEqual({ etag: '1', data: 'hello world' });
+      expect(storage.headers.etag).toBeWeakUUID();
+      expect(storage.data.data).toEqual('hello world');
+      expect(storage.data.etag).toBeUUID();
     }, 180000);
 
     test('Setting storage with hierarchy without leading slash should fail', async () => {
@@ -46,8 +50,9 @@ describe('Storage Set', () => {
       const storageData = { data: 'hello world' };
       const storage = await setStorage(account, storageId, storageData);
       expect(storage).toBeHttp({ statusCode: 200 });
-      expect(storage.headers.etag).toBe('W/"1"');
-      expect(storage.data).toEqual({ etag: '1', data: 'hello world' });
+      expect(storage.headers.etag).toBeWeakUUID();
+      expect(storage.data.data).toEqual('hello world');
+      expect(storage.data.etag).toBeUUID();
     }, 180000);
 
     test('Setting storage with hierarchy and * character in storageId should fail', async () => {
@@ -61,19 +66,24 @@ describe('Storage Set', () => {
       const storageId = `test-${random()}`;
       const storageData = { data: 'hello world' };
       const storage = await setStorage(account, storageId, storageData);
+      expect(storage).toBeHttp({ statusCode: 200 });
       const updatedData = storage.data;
       updatedData.data = updatedData.data + ' - updated';
 
       const storageUpdated = await setStorage(account, storageId, updatedData);
       expect(storageUpdated).toBeHttp({ statusCode: 200 });
-      expect(storageUpdated.headers.etag).toBe('W/"2"');
-      expect(storageUpdated.data).toEqual({ etag: '2', data: 'hello world - updated' });
+      expect(storageUpdated.headers.etag).not.toBe(storage.headers.etag);
+      expect(storageUpdated.headers.etag).toBe(`W/"${storageUpdated.data.etag}"`);
+      expect(storageUpdated.headers.etag).toBeWeakUUID();
+      expect(storageUpdated.data.etag).toBeUUID();
+      expect(storageUpdated.data.data).toEqual('hello world - updated');
     }, 180000);
 
     test('Setting storage with a valid etag in the header and no storage path should work', async () => {
       const storageId = `test-${random()}`;
       const storageData = { data: 'hello world' };
       const storage = await setStorage(account, storageId, storageData);
+      expect(storage).toBeHttp({ statusCode: 200 });
       const updatedData = storage.data;
       const etag = updatedData.etag;
       updatedData.data = updatedData.data + ' - updated';
@@ -81,33 +91,40 @@ describe('Storage Set', () => {
 
       const storageUpdated = await setStorage(account, storageId, updatedData, etag);
       expect(storageUpdated).toBeHttp({ statusCode: 200 });
-      expect(storageUpdated.headers.etag).toBe('W/"2"');
-      expect(storageUpdated.data).toEqual({ etag: '2', data: 'hello world - updated' });
+      expect(storageUpdated.headers.etag).not.toBe(storage.headers.etag);
+      expect(storageUpdated.headers.etag).toBe(`W/"${storageUpdated.data.etag}"`);
+      expect(storageUpdated.headers.etag).toBeWeakUUID();
+      expect(storageUpdated.data.etag).toBeUUID();
+      expect(storageUpdated.data.data).toEqual('hello world - updated');
     }, 180000);
 
     test('Setting storage with a valid etag in the header and body and no storage path should work', async () => {
       const storageId = `test-${random()}`;
       const storageData = { data: 'hello world' };
       const storage = await setStorage(account, storageId, storageData);
+      expect(storage).toBeHttp({ statusCode: 200 });
       const updatedData = storage.data;
       const etag = updatedData.etag;
       updatedData.data = updatedData.data + ' - updated';
 
       const storageUpdated = await setStorage(account, storageId, updatedData, etag);
       expect(storageUpdated).toBeHttp({ statusCode: 200 });
-      expect(storageUpdated.headers.etag).toBe('W/"2"');
-      expect(storageUpdated.data).toEqual({ etag: '2', data: 'hello world - updated' });
+      expect(storageUpdated.headers.etag).not.toBe(storage.headers.etag);
+      expect(storageUpdated.headers.etag).toBe(`W/"${storageUpdated.data.etag}"`);
+      expect(storageUpdated.headers.etag).toBeWeakUUID();
+      expect(storageUpdated.data.etag).toBeUUID();
+      expect(storageUpdated.data.data).toEqual('hello world - updated');
     }, 180000);
 
-    test('Setting storage with an invalid etag in the header and no storage path should return an error', async () => {
+    test('Setting storage with an invalid etag in the header and no storage path should error', async () => {
       const storageId = `test-${random()}`;
       const storageData = { data: 'hello world' };
       const storage = await setStorage(account, storageId, storageData);
+      expect(storage).toBeHttp({ statusCode: 200 });
       const updatedData = storage.data;
-      const etag = updatedData.etag;
       updatedData.data = updatedData.data + ' - updated';
       updatedData.etag = undefined;
-      const invalidEtag = etag + '555';
+      const invalidEtag = INVALID_UUID;
 
       const storageUpdated = await setStorage(account, storageId, updatedData, invalidEtag);
       expect(storageUpdated).toBeHttp({ statusCode: 409 });
@@ -117,9 +134,10 @@ describe('Storage Set', () => {
       const storageId = `test-${random()}`;
       const storageData = { data: 'hello world' };
       const storage = await setStorage(account, storageId, storageData);
+      expect(storage).toBeHttp({ statusCode: 200 });
       const updatedData = storage.data;
       updatedData.data = updatedData.data + ' - updated';
-      updatedData.etag = updatedData.etag + '555';
+      updatedData.etag = INVALID_UUID;
 
       const storageUpdated = await setStorage(account, storageId, updatedData);
       expect(storageUpdated).toBeHttp({ statusCode: 409 });
@@ -129,14 +147,15 @@ describe('Storage Set', () => {
       const storageId = `test-${random()}`;
       const storageData = { data: 'hello world' };
       const storage = await setStorage(account, storageId, storageData);
+      expect(storage).toBeHttp({ statusCode: 200 });
       const updatedData = storage.data;
       const etag = updatedData.etag;
       updatedData.data = updatedData.data + ' - updated';
 
-      const storageUpdated = await setStorage(account, storageId, updatedData, etag + '555');
+      const storageUpdated = await setStorage(account, storageId, updatedData, INVALID_UUID);
       expect(storageUpdated).toBeHttpError(
         400,
-        ["The etag in the body '1' does not match", "the etag in the If-Match header '1555'"].join(' ')
+        [`The etag in the body '${etag}' does not match`, `the etag in the If-Match header '${INVALID_UUID}'`].join(' ')
       );
     }, 180000);
 

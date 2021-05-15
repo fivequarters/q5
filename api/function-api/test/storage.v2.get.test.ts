@@ -24,8 +24,9 @@ describe('Storage Get', () => {
 
       const retrievedStorage = await getStorage(account, storageId);
       expect(retrievedStorage).toBeHttp({ statusCode: 200 });
-      expect(retrievedStorage.headers.etag).toBe('W/"1"');
-      expect(retrievedStorage.data).toEqual({ etag: '1', data: 'hello world' });
+      expect(retrievedStorage.headers.etag).toBeWeakUUID();
+      expect(retrievedStorage.data.data).toEqual('hello world');
+      expect(retrievedStorage.data.etag).toBeUUID();
     }, 180000);
 
     test('Getting storage with hierarchy should work', async () => {
@@ -36,8 +37,9 @@ describe('Storage Get', () => {
 
       const retrievedStorage = await getStorage(account, storageId);
       expect(retrievedStorage).toBeHttp({ statusCode: 200 });
-      expect(retrievedStorage.headers.etag).toBe('W/"1"');
-      expect(retrievedStorage.data).toEqual({ etag: '1', data: 'hello world' });
+      expect(retrievedStorage.headers.etag).toBeWeakUUID();
+      expect(retrievedStorage.data.data).toEqual('hello world');
+      expect(retrievedStorage.data.etag).toBeUUID();
     }, 180000);
 
     test('Getting storage with hierarchy and funky characters should work', async () => {
@@ -48,8 +50,9 @@ describe('Storage Get', () => {
 
       const retrievedStorage = await getStorage(account, storageId);
       expect(retrievedStorage).toBeHttp({ statusCode: 200 });
-      expect(retrievedStorage.headers.etag).toBe('W/"1"');
-      expect(retrievedStorage.data).toEqual({ etag: '1', data: 'hello world' });
+      expect(retrievedStorage.headers.etag).toBeWeakUUID();
+      expect(retrievedStorage.data.data).toEqual('hello world');
+      expect(retrievedStorage.data.etag).toBeUUID();
     }, 180000);
 
     test('Getting storage that does not exist should return an error', async () => {

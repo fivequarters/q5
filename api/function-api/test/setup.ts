@@ -182,6 +182,16 @@ function toBeStorageNotFound(received: any, storageId: string, storagePath?: str
   return toBeHttpError(received, 404, `The storage for '${storageId}' ${storagePathMessage}does not exist`);
 }
 
+function toBeUUID(received: string) {
+  const pass = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(received);
+  return { message: `Not a valid UUID: ${received}`, pass };
+}
+
+function toBeWeakUUID(received: string) {
+  const pass = /^W\/\"[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}\"$/i.test(received);
+  return { message: `Not a valid Weak UUID: ${received}`, pass };
+}
+
 const matchers = {
   toBeHttp,
   toBeHttpError,
@@ -191,6 +201,8 @@ const matchers = {
   toBeUnauthorizedToGrantError,
   toBeStorageConflict,
   toBeStorageNotFound,
+  toBeUUID,
+  toBeWeakUUID,
 };
 
 declare global {
@@ -204,6 +216,8 @@ declare global {
       toBeUnauthorizedToGrantError: (userId: string, action: string, resource: string) => R;
       toBeStorageConflict: (storageId: string, etag: string, isUpdate?: boolean, storagePath?: string) => R;
       toBeStorageNotFound: (storageId: string, storagePath?: string) => R;
+      toBeUUID: () => R;
+      toBeWeakUUID: () => R;
     }
   }
 }

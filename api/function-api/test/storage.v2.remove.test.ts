@@ -145,7 +145,7 @@ describe('Storage Remove', () => {
       expect(removedStorage).toBeHttp({ statusCode: 204 });
 
       const removedAgainStorage = await removeStorage(account, storageId, etag);
-      expect(removedAgainStorage).toBeHttp({ statusCode: 409 });
+      expect(removedAgainStorage).toBeHttp({ statusCode: 404 });
     }, 180000);
 
     test('Removing storage with a malformed account id should return an error', async () => {
