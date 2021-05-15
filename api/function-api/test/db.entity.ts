@@ -296,14 +296,7 @@ const createEntityTests = <T extends Model.IEntity>(DAO: Model.IEntityDao<T>, en
     expect(result.next).toBeDefined();
     expect(result.items[0].id).toBe(`1`);
     expect(result.items[1].id).toBe(`2`);
-    result = await DAO.listEntities(
-      {
-        accountId,
-        subscriptionId,
-        next: result.next,
-      },
-      { listLimit: 2 }
-    );
+    result = await DAO.listEntities({ accountId, subscriptionId }, { next: result.next, listLimit: 2 });
     expect(result).toBeDefined();
     expect(Array.isArray(result.items)).toBe(true);
     expect(result.items.length).toBe(2);
@@ -338,14 +331,7 @@ const createEntityTests = <T extends Model.IEntity>(DAO: Model.IEntityDao<T>, en
     expect(result.next).toBeDefined();
     expect(result.items[0].id).toBe(`1`);
     expect(result.items[1].id).toBe(`2`);
-    result = await DAO.listEntities(
-      {
-        accountId,
-        subscriptionId,
-        next: result.next,
-      },
-      { listLimit: 2 }
-    );
+    result = await DAO.listEntities({ accountId, subscriptionId }, { next: result.next, listLimit: 2 });
     expect(result).toBeDefined();
     expect(Array.isArray(result.items)).toBe(true);
     expect(result.items.length).toBe(1);

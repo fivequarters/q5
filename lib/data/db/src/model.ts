@@ -65,7 +65,6 @@ export interface IEntityCore {
 interface IEntitySelectAbstract extends IEntityCore {
   tags?: ITags;
   version?: string;
-  next?: string;
 }
 export interface IEntityId extends IEntitySelectAbstract {
   id: string;
@@ -125,6 +124,7 @@ export interface DefaultQueryOptions {
   upsert?: boolean;
   filterExpired?: boolean;
   listLimit?: number;
+  next?: string;
 }
 export interface MergedQueryOptions extends DefaultQueryOptions {
   upsert: boolean;

@@ -90,7 +90,7 @@ class RDS implements IRds {
 
     const parameters = this.createParameterArray(objectParameters);
 
-    console.log(sql, parameters);
+    // console.log(sql, parameters);
     try {
       const result = await rdsSdk
         .executeStatement({
@@ -101,10 +101,10 @@ class RDS implements IRds {
           includeResultMetadata: true,
         })
         .promise();
-      console.log(`RESULT: `, result);
+      // console.log(`RESULT: `, result);
       return result;
     } catch (e) {
-      console.log(`EXCEPTION ${e.message}`);
+      // console.log(`EXCEPTION ${e.message}`);
       if (e.message.match(/conflict_data/)) {
         throw new httpError.Conflict();
       }

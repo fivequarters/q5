@@ -44,10 +44,10 @@ function storageList() {
         {
           ...makeRequest(req),
           idPrefix: req.params.storageId,
-          next: req.query.next as string,
         },
         {
           listLimit: Number(req.query.count),
+          next: req.query.next as string,
         }
       );
       result.items = result.items.map((e: any) => ({ storageId: e.id })) as any;
@@ -127,9 +127,6 @@ function storageDelete() {
     try {
       result = await storageDb.deleteEntity(params);
     } catch (err) {
-      console.log(
-        `XXX in Exception Handling... ${err.status}, ${req.params.recursive}, ${err.status}, ${err.status === 404}`
-      );
       if (err.status === 404 && req.params.recursive) {
         // Treat recursive 404's as 204's.
         if (!passthrough) {

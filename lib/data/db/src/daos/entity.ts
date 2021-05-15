@@ -115,17 +115,11 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
     });
   };
 
-  protected applyDefaultsTo: <EKP extends EntityKeyParams>(
-    params: EKP,
-    queryOptions?: InputQueryOptions,
-    statementOptions?: InputStatementOptions
-  ) => { params: EKP; queryOptions: FinalQueryOptions; statementOptions: FinalStatementOptions } = <
-    EKP extends EntityKeyParams
-  >(
+  protected applyDefaultsTo<EKP extends EntityKeyParams>(
     params: EKP,
     queryOptions: InputQueryOptions = {},
     statementOptions: InputStatementOptions = {}
-  ) => {
+  ): { params: EKP; queryOptions: FinalQueryOptions; statementOptions: FinalStatementOptions } {
     // default params set here
     const applyDuration: (duration?: moment.Duration) => moment.Moment | undefined = (duration) => {
       return duration && moment().add(duration);
@@ -134,6 +128,7 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
     const dynamicExpires: moment.Moment | undefined = params.expiresDuration
       ? applyDuration(params.expiresDuration)
       : applyDuration(this.defaultParameterOptions.expiresDuration);
+
     // default params set here
     const paramsWithDefaults: EKP = {
       ...this.defaultParameterOptions,
@@ -158,13 +153,13 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
       queryOptions: queryOptionsWithDefaults,
       statementOptions: statementOptionsWithDefaults,
     };
-  };
+  }
 
-  public getEntity: (
-    params: IEntityId,
-    queryOptions?: InputQueryOptions,
-    statementOptions?: InputStatementOptions
-  ) => Promise<ET> = async (inputParams, inputQueryOptions, inputStatementOptions) => {
+  public async getEntity(
+    inputParams: IEntityId,
+    inputQueryOptions?: InputQueryOptions,
+    inputStatementOptions?: InputStatementOptions
+  ): Promise<ET> {
     const { params, queryOptions, statementOptions } = this.applyDefaultsTo(
       inputParams,
       inputQueryOptions,
@@ -186,13 +181,13 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
     };
     const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
     return this.sqlToIEntity<ET>(result)[0];
-  };
+  }
 
-  public getEntityTags: (
-    params: IEntityId,
-    queryOptions?: InputQueryOptions,
-    statementOptions?: InputStatementOptions
-  ) => Promise<ITagsWithVersion> = async (inputParams, inputQueryOptions, inputStatementOptions) => {
+  public async getEntityTags(
+    inputParams: IEntityId,
+    inputQueryOptions?: InputQueryOptions,
+    inputStatementOptions?: InputStatementOptions
+  ): Promise<ITagsWithVersion> {
     const { params, queryOptions, statementOptions } = this.applyDefaultsTo(
       inputParams,
       inputQueryOptions,
@@ -213,13 +208,14 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
     };
     const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
     return this.sqlToIEntity<ITagsWithVersion>(result)[0];
-  };
+  }
 
-  public listEntities: (params: IEntityPrefix, queryOptions?: InputQueryOptions) => Promise<IListResponse<ET>> = async (
-    inputParams,
-    inputQueryOptions
-  ) => {
+  public async listEntities(
+    inputParams: IEntityPrefix,
+    inputQueryOptions?: InputQueryOptions
+  ): Promise<IListResponse<ET>> {
     const { params, queryOptions, statementOptions } = this.applyDefaultsTo(inputParams, inputQueryOptions);
+
     const sql = `SELECT * FROM entity
       WHERE entityType = :entityType::entity_type
       AND accountId = :accountId
@@ -230,7 +226,8 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
       ORDER BY entityId
       OFFSET :offset
       LIMIT :limit + 1;`;
-    const offset = params.next ? parseInt(params.next, 16) : 0;
+
+    const offset = queryOptions.next ? parseInt(queryOptions.next, 16) : 0;
     const parameters = {
       entityType: this.entityType,
       accountId: params.accountId,
@@ -254,13 +251,13 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
       data.next = ((offset || 0) + queryOptions.listLimit).toString(16);
     }
     return data;
-  };
+  }
 
-  public deleteEntity: (
-    params: IEntityPrefix,
-    queryOptions?: InputQueryOptions,
-    statementOptions?: InputStatementOptions
-  ) => Promise<boolean> = async (inputParams, inputQueryOptions, inputStatementOptions) => {
+  public async deleteEntity(
+    inputParams: IEntityPrefix,
+    inputQueryOptions?: InputQueryOptions,
+    inputStatementOptions?: InputStatementOptions
+  ): Promise<boolean> {
     const { params, queryOptions, statementOptions } = this.applyDefaultsTo(
       inputParams,
       inputQueryOptions,
@@ -293,13 +290,13 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
     const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
     const numDeleted = result.records ? result.records[0][0].longValue : 0;
     return numDeleted !== undefined && numDeleted > 0;
-  };
+  }
 
-  public createEntity: (
-    params: IEntity,
-    queryOptions?: InputQueryOptions,
-    statementOptions?: InputStatementOptions
-  ) => Promise<ET> = async (inputParams, inputQueryOptions, inputStatementOptions) => {
+  public async createEntity(
+    inputParams: IEntity,
+    inputQueryOptions?: InputQueryOptions,
+    inputStatementOptions?: InputStatementOptions
+  ): Promise<ET> {
     const { params, queryOptions, statementOptions } = this.applyDefaultsTo(
       inputParams,
       inputQueryOptions,
@@ -344,13 +341,13 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
       throw new Error(`Expected exactly 1 database record inserted, got ${result.records.length}.`);
     }
     return this.sqlToIEntity<ET>(result)[0];
-  };
+  }
 
-  public updateFullEntity = async <ReturnType = ET>(
+  public async updateFullEntity(
     inputParams: IEntity,
     inputQueryOptions?: InputQueryOptions,
     inputStatementOptions?: InputStatementOptions
-  ): Promise<ReturnType> => {
+  ): Promise<ET> {
     const { params, queryOptions, statementOptions } = this.applyDefaultsTo(
       inputParams,
       inputQueryOptions,
@@ -378,31 +375,35 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
     };
 
     const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
-    return this.sqlToIEntity<ReturnType>(result)[0];
-  };
+    return this.sqlToIEntity<ET>(result)[0];
+  }
 
-  public updateEntity = async (
+  public async updateEntity(
     inputParams: IEntity,
     inputQueryOptions?: InputQueryOptions,
     inputStatementOptions?: InputStatementOptions
-  ): Promise<ET> => {
-    return this.updateFullEntity<ET>(inputParams, inputQueryOptions, inputStatementOptions);
-  };
+  ): Promise<ET> {
+    return this.updateFullEntity(inputParams, inputQueryOptions, inputStatementOptions);
+  }
 
-  public updateEntityTags = async (
+  public async updateEntityTags(
     inputParams: IEntity,
     inputQueryOptions?: InputQueryOptions,
     inputStatementOptions?: InputStatementOptions
-  ): Promise<ITagsWithVersion> => {
-    const result = await this.updateFullEntity<ITagsWithVersion>(inputParams, inputQueryOptions, inputStatementOptions);
+  ): Promise<ITagsWithVersion> {
+    const result = (await this.updateFullEntity(
+      inputParams,
+      inputQueryOptions,
+      inputStatementOptions
+    )) as ITagsWithVersion;
     return { tags: result.tags, version: result.version };
-  };
+  }
 
-  public setEntityTag: (
-    params: IEntityKeyTagSet,
-    queryOptions?: InputQueryOptions,
-    statementOptions?: InputStatementOptions
-  ) => Promise<ITagsWithVersion> = async (inputParams, inputQueryOptions, inputStatementOptions) => {
+  public async setEntityTag(
+    inputParams: IEntityKeyTagSet,
+    inputQueryOptions?: InputQueryOptions,
+    inputStatementOptions?: InputStatementOptions
+  ): Promise<ITagsWithVersion> {
     const { params, queryOptions, statementOptions } = this.applyDefaultsTo(
       inputParams,
       inputQueryOptions,
@@ -427,13 +428,13 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
     };
     const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
     return this.sqlToIEntity<ITagsWithVersion>(result)[0];
-  };
+  }
 
-  public deleteEntityTag: (
-    params: IEntityKeyTagSet,
-    queryOptions?: InputQueryOptions,
-    statementOptions?: InputStatementOptions
-  ) => Promise<ITagsWithVersion> = async (inputParams, inputQueryOptions, inputStatementOptions) => {
+  public async deleteEntityTag(
+    inputParams: IEntityKeyTagSet,
+    inputQueryOptions?: InputQueryOptions,
+    inputStatementOptions?: InputStatementOptions
+  ): Promise<ITagsWithVersion> {
     const { params, queryOptions, statementOptions } = this.applyDefaultsTo(
       inputParams,
       inputQueryOptions,
@@ -458,13 +459,11 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
     };
     const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
     return this.sqlToIEntity<ITagsWithVersion>(result)[0];
-  };
+  }
   public static readonly EntityType = EntityType;
 }
 
-const cleanObj: <T extends { [key: string]: any }>(obj: T) => RequiredKeysOnly<T> = <T extends { [key: string]: any }>(
-  obj: T
-) => {
+const cleanObj = <T extends { [key: string]: any }>(obj: T): RequiredKeysOnly<T> => {
   const removeUndefined: (o: T) => asserts o is RequiredKeysOnly<T> = (o) =>
     Object.entries(o).forEach((e) => {
       if (e[1] === undefined) {
