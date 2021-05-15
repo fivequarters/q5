@@ -11,7 +11,7 @@ import { FusebitFooter } from '@5qtrs/fusebit-footer';
 import { fusebitFonts } from '@5qtrs/fusebit-text';
 import '@5qtrs/fusebit-favicon';
 
-import { Home, About, Support, Legal, Blog, Privacy, Terms, Route } from './page';
+import { Home, About, Support, Legal, Blog, Privacy, Terms, Route, Contact } from './page';
 
 const App = () => {
   const [ready, setReady] = useState(true);
@@ -86,6 +86,7 @@ const App = () => {
           <Route path="/blog/:year?/:month?/:day?/:postId?" component={Blog} />
           <Route path="/legal" component={Legal} />
           <Route path="/support" component={Support} />
+          <Route path="/contact" component={Contact} />
           <Route path="/privacy" component={Privacy} />
           <Route path="/terms" component={Terms} />
           <Route
