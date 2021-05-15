@@ -18,11 +18,17 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
-## Version 1.26.1
+## Version 1.27.1
 
 _Released 05/12/21_
 
 - **Enhancement.** Migration tool to move data from DynamoDB storage to Aurora.
+
+## Version 1.27.0
+
+_Released 05/12/21_
+
+- **Enhancement.** Add backup/restore deployment support.
 
 ## Version 1.26.0
 

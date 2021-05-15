@@ -368,7 +368,8 @@ export async function listFunctions(
   cron?: boolean,
   count?: number,
   search?: string | string[],
-  next?: string | string[]
+  next?: string | string[],
+  includeTags?: boolean
 ) {
   let url = boundaryId
     ? `${account.baseUrl}/v1/account/${account.accountId}/subscription/${account.subscriptionId}/boundary/${boundaryId}/function`
@@ -391,6 +392,9 @@ export async function listFunctions(
       next = [next];
     }
     next.forEach((n) => query.push(`next=${n}`));
+  }
+  if (includeTags) {
+    query.push('include=all');
   }
   if (query.length > 0) {
     url += `?${query.join('&')}`;

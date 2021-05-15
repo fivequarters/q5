@@ -35,6 +35,13 @@ const command = {
       defaultText: 'current directory',
     },
     {
+      name: 'ignore',
+      aliases: ['i'],
+      description: 'A file or directory to ignore; you can specify this option multiple times',
+      type: ArgType.string,
+      allowMany: true,
+    },
+    {
       name: 'cron',
       aliases: ['c'],
       description: Text.create(
