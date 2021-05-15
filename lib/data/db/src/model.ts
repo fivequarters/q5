@@ -20,7 +20,7 @@ export interface IRds {
   createTransaction: () => Promise<string>;
   commitTransaction: (transactionId: string) => Promise<string>;
   rollbackTransaction: (transactionId: string) => Promise<string>;
-  inTransaction: <T>(func: (daoCollection: IDaoCollection) => T) => Promise<T>;
+  inTransaction: <T>(func: (daoCollection: IDaoCollection) => Promise<T>) => Promise<T>;
   ensureRecords: (
     result: RDSDataService.ExecuteStatementResponse
   ) => asserts result is RDSDataService.ExecuteStatementResponse & {
