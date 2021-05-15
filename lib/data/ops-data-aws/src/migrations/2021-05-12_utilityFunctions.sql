@@ -1,23 +1,14 @@
 -- Reference for later: https://stackoverflow.com/questions/8605174/postgresql-error-42601-a-column-definition-list-is-required-for-functions-ret
-DROP FUNCTION IF EXISTS check_if_version(entity_type,character varying,character varying,character varying,character,jsonb,character,jsonb);
-DROP FUNCTION IF EXISTS check_if_version(entity_type,character varying,character varying,character varying,character,jsonb);
-DROP FUNCTION IF EXISTS check_if_version(entity_type,character varying,character varying,character varying,character,jsonb,jsonb);
-DROP FUNCTION IF EXISTS check_if_version(entity_type,character varying,character varying,character varying,character,boolean, boolean, character varying,char);
-DROP FUNCTION IF EXISTS check_if_version(entity_type,character varying,character varying,character varying,character,boolean, boolean, char);
-DROP FUNCTION IF EXISTS update_if_version(entity_type,character varying,character varying,character varying,character,jsonb,character,jsonb);
-DROP FUNCTION IF EXISTS update_if_version(entity_type,character varying,character varying,character varying,jsonb,jsonb,character);
-DROP FUNCTION IF EXISTS update_if_version(entity_type,character varying,character varying,character varying,jsonb,jsonb,timestamptz,character);
-DROP FUNCTION IF EXISTS update_if_version(entity_type,character varying,character varying,character varying,jsonb,jsonb,timestamptz,character);
-DROP FUNCTION IF EXISTS update_if_version(entity_type,VARCHAR,VARCHAR,VARCHAR,BOOLEAN,BOOLEAN,JSONB,JSONB,timestamptz,CHAR(36));
 
--- UPDATE data or tags with version check
+-- Fetch the first row; if it's not present, raise an exception for not_found.  If the version parameter is
+-- supplied, then check the version and raise a conflict_data exception if it doesn't match.
 CREATE OR REPLACE FUNCTION check_if_version(
   eType entity_type, aId VARCHAR, sId VARCHAR, eId VARCHAR,
   filterExpired BOOLEAN, prefixMatchId BOOLEAN,
   versionParam CHAR(36))
     RETURNS REFCURSOR AS $$
 DECLARE
-  actioncursor CURSOR FOR
+  action_cursor CURSOR FOR
     SELECT * FROM entity
     WHERE
       entityType = eType
@@ -29,8 +20,8 @@ DECLARE
   targetEntity entity%ROWTYPE;
   error BOOLEAN;
 BEGIN
-  OPEN actioncursor;
-  FETCH FIRST FROM actioncursor INTO targetEntity;
+  OPEN action_cursor;
+  FETCH FIRST FROM action_cursor INTO targetEntity;
 
   IF NOT FOUND THEN
     RAISE EXCEPTION 'not_found' USING errcode = '22001';
@@ -39,11 +30,12 @@ BEGIN
     RAISE EXCEPTION 'conflict_data' USING errcode = '22002';
   END IF;
 
-  RETURN actioncursor;
+  RETURN action_cursor;
 END;
 $$ LANGUAGE PLPGSQL;
 
-
+-- Update the record, if it's present and the versions match. If it's not present, either report not_found or
+-- (if upsert is true), perform an insertion.
 CREATE OR REPLACE FUNCTION update_if_version(
   eType entity_type, aId VARCHAR, sId VARCHAR, eId VARCHAR,
   filterExpired BOOLEAN, prefixMatchId BOOLEAN, upsert BOOLEAN,
@@ -51,7 +43,7 @@ CREATE OR REPLACE FUNCTION update_if_version(
   versionParam CHAR(36) DEFAULT NULL)
     RETURNS SETOF entity AS $$
 DECLARE
-  actioncursor REFCURSOR;
+  action_cursor REFCURSOR;
   resultRow entity%ROWTYPE;
 BEGIN
   IF upsert AND filterExpired THEN
@@ -59,7 +51,7 @@ BEGIN
   END IF;
   SELECT * FROM check_if_version(
     eType, aId, sId, eId, filterExpired, prefixMatchId, versionParam)
-  INTO actioncursor;
+  INTO action_cursor;
 
   RETURN QUERY UPDATE entity
     SET
@@ -67,40 +59,41 @@ BEGIN
       tags = COALESCE(tagsParam, entity.tags),
       expires = COALESCE(expiresParam, entity.expires),
       version = gen_random_uuid()
-    WHERE CURRENT OF actioncursor
+    WHERE CURRENT OF action_cursor
     RETURNING entity.*;
 
   EXCEPTION WHEN SQLSTATE '22001' THEN
     IF NOT upsert THEN
       RAISE EXCEPTION 'not_found' USING errcode = '22001';
     END IF;
-		RETURN QUERY INSERT INTO entity(entityType, accountId, subscriptionId, entityId, data, tags, version, expires) 
-			VALUES ( eType, aId, sId, eId, dataParam, tagsParam, gen_random_uuid(), expiresParam) RETURNING *;
+    RETURN QUERY INSERT INTO entity(entityType, accountId, subscriptionId, entityId, data, tags, version, expires) 
+      VALUES ( eType, aId, sId, eId, dataParam, tagsParam, gen_random_uuid(), expiresParam) RETURNING *;
 END;
 $$ LANGUAGE PLPGSQL;
 
+-- Search for the targetted rows, and delete if the version matches.  Return the number of rows deleted.
 CREATE OR REPLACE FUNCTION delete_if_version(
   eType entity_type, aId VARCHAR, sId VARCHAR, eId VARCHAR,
   filterExpired BOOLEAN, prefixMatchId BOOLEAN,
   versionParam CHAR(36) DEFAULT NULL)
     RETURNS INTEGER AS $$
 DECLARE
-  actioncursor REFCURSOR;
+  action_cursor REFCURSOR;
   action_cnt INTEGER;
   row_cnt INTEGER;
   action_rec RECORD;
 BEGIN
   SELECT * FROM check_if_version(
     eType, aId, sId, eId, filterExpired, prefixMatchId, versionParam)
-  INTO actioncursor;
+  INTO action_cursor;
 
   row_cnt := 0;
 
   LOOP
-    DELETE FROM entity WHERE CURRENT OF actioncursor;
+    DELETE FROM entity WHERE CURRENT OF action_cursor;
     GET DIAGNOSTICS action_cnt = ROW_COUNT;
     row_cnt := row_cnt + action_cnt;
-    FETCH NEXT FROM actioncursor INTO action_rec;
+    FETCH NEXT FROM action_cursor INTO action_rec;
     EXIT WHEN action_rec IS NULL;
   END LOOP;
 
@@ -108,6 +101,8 @@ BEGIN
 END;
 $$ LANGUAGE PLPGSQL;
 
+-- Set the value of a specific tag in an entity if it matches the criteria.  Return the new version and the
+-- new tags.
 CREATE OR REPLACE FUNCTION update_tag_if_version(
   eType entity_type, aId VARCHAR, sId VARCHAR, eId VARCHAR,
   filterExpired BOOLEAN, prefixMatchId BOOLEAN,
@@ -115,27 +110,28 @@ CREATE OR REPLACE FUNCTION update_tag_if_version(
   versionParam CHAR(36) DEFAULT NULL)
     RETURNS SETOF entity AS $$
 DECLARE
-  actioncursor REFCURSOR;
+  action_cursor REFCURSOR;
   resultRow entity%ROWTYPE;
   action_rec RECORD;
 BEGIN
   SELECT * FROM check_if_version(
     eType, aId, sId, eId, filterExpired, prefixMatchId, versionParam)
-  INTO actioncursor;
+  INTO action_cursor;
 
   LOOP
     RETURN QUERY UPDATE entity
       SET
         tags = jsonb_set(tags, FORMAT('{%s}', tagKey)::text[], to_jsonb(tagValue)),
         version = gen_random_uuid()
-      WHERE CURRENT OF actioncursor
+      WHERE CURRENT OF action_cursor
       RETURNING entity.*;
-    FETCH NEXT FROM actioncursor INTO action_rec;
+    FETCH NEXT FROM action_cursor INTO action_rec;
     EXIT WHEN action_rec IS NULL;
   END LOOP;
 END;
 $$ LANGUAGE PLPGSQL;
 
+-- Delete a specific tag from an entity if it matches the criteria.  Return the new version and the new tags.
 CREATE OR REPLACE FUNCTION delete_tag_if_version(
   eType entity_type, aId VARCHAR, sId VARCHAR, eId VARCHAR,
   filterExpired BOOLEAN, prefixMatchId BOOLEAN,
@@ -143,22 +139,22 @@ CREATE OR REPLACE FUNCTION delete_tag_if_version(
   versionParam CHAR(36) DEFAULT NULL)
     RETURNS SETOF entity AS $$
 DECLARE
-  actioncursor REFCURSOR;
+  action_cursor REFCURSOR;
   resultRow entity%ROWTYPE;
   action_rec RECORD;
 BEGIN
   SELECT * FROM check_if_version(
     eType, aId, sId, eId, filterExpired, prefixMatchId, versionParam)
-  INTO actioncursor;
+  INTO action_cursor;
 
   LOOP
     RETURN QUERY UPDATE entity
       SET
         tags = tags - tagKey,
         version = gen_random_uuid()
-      WHERE CURRENT OF actioncursor
+      WHERE CURRENT OF action_cursor
       RETURNING entity.*;
-    FETCH NEXT FROM actioncursor INTO action_rec;
+    FETCH NEXT FROM action_cursor INTO action_rec;
     EXIT WHEN action_rec IS NULL;
   END LOOP;
 END;
