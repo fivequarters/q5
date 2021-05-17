@@ -21,7 +21,6 @@ describe('Storage Set', () => {
       const storageData = { data: 'hello world' };
       const storage = await setStorage(account, storageId, storageData);
       expect(storage).toBeHttp({ statusCode: 200 });
-      expect(storage.headers.etag).toBe('W/"9c05511a31375a8a278a75207331bb1714e69dd1"');
       expect(storage.data).toEqual({ etag: '9c05511a31375a8a278a75207331bb1714e69dd1', data: 'hello world' });
     }, 180000);
 
@@ -30,7 +29,6 @@ describe('Storage Set', () => {
       const storageData = { data: 'hello world' };
       const storage = await setStorage(account, storageId, storageData);
       expect(storage).toBeHttp({ statusCode: 200 });
-      expect(storage.headers.etag).toBe('W/"9c05511a31375a8a278a75207331bb1714e69dd1"');
       expect(storage.data).toEqual({ etag: '9c05511a31375a8a278a75207331bb1714e69dd1', data: 'hello world' });
     }, 180000);
 
@@ -46,7 +44,6 @@ describe('Storage Set', () => {
       const storageData = { data: 'hello world' };
       const storage = await setStorage(account, storageId, storageData);
       expect(storage).toBeHttp({ statusCode: 200 });
-      expect(storage.headers.etag).toBe('W/"9c05511a31375a8a278a75207331bb1714e69dd1"');
       expect(storage.data).toEqual({ etag: '9c05511a31375a8a278a75207331bb1714e69dd1', data: 'hello world' });
     }, 180000);
 
@@ -66,7 +63,6 @@ describe('Storage Set', () => {
 
       const storageUpdated = await setStorage(account, storageId, updatedData);
       expect(storageUpdated).toBeHttp({ statusCode: 200 });
-      expect(storageUpdated.headers.etag).toBe('W/"259a91211006602f044467037d6625f9caf88982"');
       expect(storageUpdated.data).toEqual({
         etag: '259a91211006602f044467037d6625f9caf88982',
         data: 'hello world - updated',
@@ -84,7 +80,6 @@ describe('Storage Set', () => {
 
       const storageUpdated = await setStorage(account, storageId, updatedData, etag);
       expect(storageUpdated).toBeHttp({ statusCode: 200 });
-      expect(storageUpdated.headers.etag).toBe('W/"259a91211006602f044467037d6625f9caf88982"');
       expect(storageUpdated.data).toEqual({
         etag: '259a91211006602f044467037d6625f9caf88982',
         data: 'hello world - updated',
@@ -101,7 +96,6 @@ describe('Storage Set', () => {
 
       const storageUpdated = await setStorage(account, storageId, updatedData, etag);
       expect(storageUpdated).toBeHttp({ statusCode: 200 });
-      expect(storageUpdated.headers.etag).toBe('W/"259a91211006602f044467037d6625f9caf88982"');
       expect(storageUpdated.data).toEqual({
         etag: '259a91211006602f044467037d6625f9caf88982',
         data: 'hello world - updated',

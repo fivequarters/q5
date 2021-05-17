@@ -14,9 +14,6 @@ function storageGet() {
       storageContext.storage
         .get(resolvedAgent, accountId, subscriptionId, storageId)
         .then((result) => {
-          if (result && result.etag) {
-            res.set('Etag', `W/"${result.etag}"`);
-          }
           res.json(result);
         })
         .catch(errorHandler(res));
@@ -66,9 +63,6 @@ function storagePut() {
         .set(resolvedAgent, accountId, subscriptionId, storageId, storage)
         .then((result) => {
           RDS.storagePut()(req, res, next, true).then(() => {
-            if (result && result.etag) {
-              res.set('Etag', `W/"${result.etag}"`);
-            }
             res.json(result);
           });
         })
@@ -98,6 +92,8 @@ function storageDelete() {
             .catch((err) => {
               // Record database errors; generally these will be operational not logical in nature.
               console.log(`DELETE ERROR: ${err}`);
+              res.status(204);
+              res.end();
             });
         })
         .catch(errorHandler(res));

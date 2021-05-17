@@ -45,7 +45,7 @@ const {
 const { addLogging } = require('@5qtrs/runtime-common');
 
 const { StorageActions } = require('@5qtrs/storage');
-const storage = require('./handlers/storageRds');
+const storage = require('./handlers/storage');
 
 var corsManagementOptions = {
   origins: '*',

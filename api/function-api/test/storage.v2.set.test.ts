@@ -23,7 +23,6 @@ describe('Storage Set', () => {
       const storageData = { data: 'hello world' };
       const storage = await setStorage(account, storageId, storageData);
       expect(storage).toBeHttp({ statusCode: 200 });
-      expect(storage.headers.etag).toBeWeakUUID();
       expect(storage.data.data).toEqual('hello world');
       expect(storage.data.etag).toBeUUID();
     }, 180000);
@@ -33,7 +32,6 @@ describe('Storage Set', () => {
       const storageData = { data: 'hello world' };
       const storage = await setStorage(account, storageId, storageData);
       expect(storage).toBeHttp({ statusCode: 200 });
-      expect(storage.headers.etag).toBeWeakUUID();
       expect(storage.data.data).toEqual('hello world');
       expect(storage.data.etag).toBeUUID();
     }, 180000);
@@ -50,7 +48,6 @@ describe('Storage Set', () => {
       const storageData = { data: 'hello world' };
       const storage = await setStorage(account, storageId, storageData);
       expect(storage).toBeHttp({ statusCode: 200 });
-      expect(storage.headers.etag).toBeWeakUUID();
       expect(storage.data.data).toEqual('hello world');
       expect(storage.data.etag).toBeUUID();
     }, 180000);
@@ -73,8 +70,6 @@ describe('Storage Set', () => {
       const storageUpdated = await setStorage(account, storageId, updatedData);
       expect(storageUpdated).toBeHttp({ statusCode: 200 });
       expect(storageUpdated.headers.etag).not.toBe(storage.headers.etag);
-      expect(storageUpdated.headers.etag).toBe(`W/"${storageUpdated.data.etag}"`);
-      expect(storageUpdated.headers.etag).toBeWeakUUID();
       expect(storageUpdated.data.etag).toBeUUID();
       expect(storageUpdated.data.data).toEqual('hello world - updated');
     }, 180000);
@@ -92,8 +87,6 @@ describe('Storage Set', () => {
       const storageUpdated = await setStorage(account, storageId, updatedData, etag);
       expect(storageUpdated).toBeHttp({ statusCode: 200 });
       expect(storageUpdated.headers.etag).not.toBe(storage.headers.etag);
-      expect(storageUpdated.headers.etag).toBe(`W/"${storageUpdated.data.etag}"`);
-      expect(storageUpdated.headers.etag).toBeWeakUUID();
       expect(storageUpdated.data.etag).toBeUUID();
       expect(storageUpdated.data.data).toEqual('hello world - updated');
     }, 180000);
@@ -110,8 +103,6 @@ describe('Storage Set', () => {
       const storageUpdated = await setStorage(account, storageId, updatedData, etag);
       expect(storageUpdated).toBeHttp({ statusCode: 200 });
       expect(storageUpdated.headers.etag).not.toBe(storage.headers.etag);
-      expect(storageUpdated.headers.etag).toBe(`W/"${storageUpdated.data.etag}"`);
-      expect(storageUpdated.headers.etag).toBeWeakUUID();
       expect(storageUpdated.data.etag).toBeUUID();
       expect(storageUpdated.data.data).toEqual('hello world - updated');
     }, 180000);

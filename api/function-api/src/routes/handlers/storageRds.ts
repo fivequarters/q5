@@ -28,9 +28,6 @@ function storageGet() {
       return next(err);
     }
 
-    if (result && result.etag) {
-      res.set('Etag', `W/"${result.etag}"`);
-    }
     res.json(result);
   };
 }
@@ -91,9 +88,6 @@ function storagePut() {
     }
 
     if (!passthrough) {
-      if (result && result.etag) {
-        res.set('Etag', `W/"${result.etag}"`);
-      }
       res.json(result);
     }
   };

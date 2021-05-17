@@ -24,7 +24,6 @@ describe('Storage Get', () => {
 
       const retrievedStorage = await getStorage(account, storageId);
       expect(retrievedStorage).toBeHttp({ statusCode: 200 });
-      expect(retrievedStorage.headers.etag).toBeWeakUUID();
       expect(retrievedStorage.data.data).toEqual('hello world');
       expect(retrievedStorage.data.etag).toBeUUID();
     }, 180000);
@@ -37,7 +36,6 @@ describe('Storage Get', () => {
 
       const retrievedStorage = await getStorage(account, storageId);
       expect(retrievedStorage).toBeHttp({ statusCode: 200 });
-      expect(retrievedStorage.headers.etag).toBeWeakUUID();
       expect(retrievedStorage.data.data).toEqual('hello world');
       expect(retrievedStorage.data.etag).toBeUUID();
     }, 180000);
@@ -50,7 +48,6 @@ describe('Storage Get', () => {
 
       const retrievedStorage = await getStorage(account, storageId);
       expect(retrievedStorage).toBeHttp({ statusCode: 200 });
-      expect(retrievedStorage.headers.etag).toBeWeakUUID();
       expect(retrievedStorage.data.data).toEqual('hello world');
       expect(retrievedStorage.data.etag).toBeUUID();
     }, 180000);

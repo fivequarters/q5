@@ -24,7 +24,6 @@ describe('Storage Get', () => {
 
       const retrievedStorage = await getStorage(account, storageId);
       expect(retrievedStorage).toBeHttp({ statusCode: 200 });
-      expect(retrievedStorage.headers.etag).toBe('W/"9c05511a31375a8a278a75207331bb1714e69dd1"');
       expect(retrievedStorage.data).toEqual({ etag: '9c05511a31375a8a278a75207331bb1714e69dd1', data: 'hello world' });
     }, 180000);
 
@@ -36,7 +35,6 @@ describe('Storage Get', () => {
 
       const retrievedStorage = await getStorage(account, storageId);
       expect(retrievedStorage).toBeHttp({ statusCode: 200 });
-      expect(retrievedStorage.headers.etag).toBe('W/"9c05511a31375a8a278a75207331bb1714e69dd1"');
       expect(retrievedStorage.data).toEqual({ etag: '9c05511a31375a8a278a75207331bb1714e69dd1', data: 'hello world' });
     }, 180000);
 
@@ -48,7 +46,6 @@ describe('Storage Get', () => {
 
       const retrievedStorage = await getStorage(account, storageId);
       expect(retrievedStorage).toBeHttp({ statusCode: 200 });
-      expect(retrievedStorage.headers.etag).toBe('W/"9c05511a31375a8a278a75207331bb1714e69dd1"');
       expect(retrievedStorage.data).toEqual({ etag: '9c05511a31375a8a278a75207331bb1714e69dd1', data: 'hello world' });
     }, 180000);
 
