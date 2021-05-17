@@ -228,7 +228,7 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
       ORDER BY entityId
       OFFSET :offset
       LIMIT :limit + 1;`;
-    const offset = params.next ? parseInt(params.next, 16) : 0;
+    const offset = queryOptions.next ? parseInt(queryOptions.next, 16) : 0;
     const parameters = {
       entityType: this.entityType,
       accountId: params.accountId,

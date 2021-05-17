@@ -120,6 +120,7 @@ export interface DefaultQueryOptions {
   upsert?: boolean;
   filterExpired?: boolean;
   listLimit?: number;
+  next?: string;
 }
 export interface MergedQueryOptions extends DefaultQueryOptions {
   upsert: boolean;
