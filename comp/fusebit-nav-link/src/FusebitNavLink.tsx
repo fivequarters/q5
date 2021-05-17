@@ -49,6 +49,7 @@ export enum FusebitNavLinkType {
   blog = 'Blog',
   terms = 'Terms of Use',
   privacy = 'Privacy Policy',
+  contact = 'Contact',
   copyRight = '© 2019-2021 Fusebit - All Rights Reserved',
 }
 
@@ -127,6 +128,17 @@ export function FusebitNavLink({
       to = '/privacy';
       gaCategory = gaCategoryDefault;
       gaAction = 'Clicked privacy nav';
+      gaLabel = gaLabelDefault;
+      break;
+    case FusebitNavLinkType.contact:
+      color = color || opacity(FusebitColor.white, 0.4);
+      hover = hover || FusebitColor.white;
+      type = type || FusebitTextType.bodySmall;
+      styledHover = false;
+      noHover = true;
+      to = '/contact';
+      gaCategory = gaCategoryDefault;
+      gaAction = 'Clicked contact nav';
       gaLabel = gaLabelDefault;
       break;
     case FusebitNavLinkType.terms:

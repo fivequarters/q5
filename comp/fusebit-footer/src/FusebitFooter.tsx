@@ -49,6 +49,7 @@ function NonMobileVersion({ maxWidth, ...rest }: FusebitFooterProps) {
           <Box right middle expand minWidth={400} height={60} noWrap>
             <FusebitNavLink marginLeft={30} linkType={FusebitNavLinkType.privacy} />
             <FusebitNavLink marginLeft={30} linkType={FusebitNavLinkType.terms} />
+            {/* <FusebitNavLink marginLeft={30} linkType={FusebitNavLinkType.contact} /> */}
             <FusebitSocialButton marginLeft={30} noOutline type={FusebitSocialType.linkedIn} small />
             <FusebitSocialButton marginLeft={30} noOutline type={FusebitSocialType.twitter} small />
           </Box>
