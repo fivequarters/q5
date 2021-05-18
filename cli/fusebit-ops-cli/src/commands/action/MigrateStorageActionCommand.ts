@@ -85,7 +85,6 @@ export class MigrateStorageActionCommand extends Command {
       accountId,
       subscriptionId,
       entityId,
-      version: 1,
       data: JSON.stringify({ data }),
       tags: '{}',
     };
@@ -181,7 +180,7 @@ export class MigrateStorageActionCommand extends Command {
       INSERT INTO entity
           (entityType, accountId, subscriptionId, entityId, version, data, tags)
         VALUES (:entityType::entity_type, :accountId, :subscriptionId,
-          :entityId, 1, :data::jsonb, :tags::jsonb)
+          :entityId, gen_random_uuid(), :data::jsonb, :tags::jsonb)
           ON CONFLICT DO NOTHING
           RETURNING 1`;
 
