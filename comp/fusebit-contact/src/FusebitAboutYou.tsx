@@ -10,7 +10,7 @@ import { FusebitTextField, FusebitTextArea, FusebitTextFieldProps } from '@5qtrs
 // ------------------
 
 const googleSheetUrl =
-  'https://script.google.com/macros/s/AKfycbwvCP7_RW163ccBtVR5T6WRwkCHPE-3NO-D7-lyoG5Ce1DB9lc/exec';
+  'https://script.google.com/macros/s/AKfycbxsDBujbHEaLzSOo7SgiHj-WH0pX5gepDzolWdr2GZ3XlbPlBIwX9QibJre3iIHo1Rx/exec';
 const nameDefault = 'Your Name';
 const companyDefault = 'Your Company';
 const titleDefault = 'Your Title';
@@ -72,7 +72,9 @@ export function AboutYou({
     } else {
       request({
         method: 'POST',
-        url: `${googleSheetUrl}?Email=${email}&Name=${name}&Company=${company}&Title=${title}&Message=${message}`,
+        url: `${googleSheetUrl}?Email=${email}&Name=${name}&Company=${company}&Title=${title}&Message=${message}&Url=${encodeURIComponent(
+          window.location.href
+        )}&Referrer=${encodeURIComponent(document.referrer || '')}`,
       });
       if (onFormSubmit) {
         onFormSubmit({ name, company, title, message });

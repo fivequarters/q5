@@ -1,6 +1,5 @@
 import * as AWS from 'aws-sdk';
 import * as Model from './model';
-import { RDSDataService } from 'aws-sdk';
 import { PromiseResult } from 'aws-sdk/lib/request';
 import httpError from 'http-errors';
 import { FinalStatementOptions, IDaoCollection, IRds, IRdsCredentials } from './model';
@@ -16,10 +15,10 @@ class RDS implements IRds {
   private readonly defaultAuroraDatabaseName = 'fusebit';
   private readonly defaultPurgeInterval = 10 * 60 * 1000;
 
-  purgeExpiredItems: () => Promise<boolean> = async () => {
+  public async purgeExpiredItems(): Promise<boolean> {
     try {
       const { rdsSdk, rdsCredentials } = await this.ensureConnection();
-      const sql = `delete from entity where expires < now()`;
+      const sql = `DELETE FROM entity WHERE expires < NOW()`;
       const result = await rdsSdk
         .executeStatement({
           ...rdsCredentials,
@@ -30,9 +29,12 @@ class RDS implements IRds {
     } catch (e) {
       return false;
     }
-  };
+  }
 
-  ensureConnection: () => Promise<{ rdsSdk: AWS.RDSDataService; rdsCredentials: IRdsCredentials }> = async () => {
+  public async ensureConnection(): Promise<{
+    rdsSdk: AWS.RDSDataService;
+    rdsCredentials: IRdsCredentials;
+  }> {
     if (!this.rdsSdk) {
       const secretsManager = new AWS.SecretsManager({
         apiVersion: '2017-10-17',
@@ -73,23 +75,20 @@ class RDS implements IRds {
       }
     }
     return { rdsSdk: this.rdsSdk, rdsCredentials: this.rdsCredentials };
-  };
+  }
 
-  executeStatement: (
+  public async executeStatement(
     sql: string,
-    objectParameters?: { [key: string]: any },
+    objectParameters: { [key: string]: any } = {},
     statementOptions?: FinalStatementOptions
-  ) => Promise<PromiseResult<RDSDataService.ExecuteStatementResponse, AWS.AWSError>> = async (
-    sql,
-    objectParameters = {},
-    statementOptions?
-  ) => {
+  ): Promise<PromiseResult<AWS.RDSDataService.ExecuteStatementResponse, AWS.AWSError>> {
     const { rdsSdk, rdsCredentials } = await this.ensureConnection();
 
     const parameters = this.createParameterArray(objectParameters);
 
+    // console.log(sql, parameters);
     try {
-      return await rdsSdk
+      const result = await rdsSdk
         .executeStatement({
           ...rdsCredentials,
           sql,
@@ -98,22 +97,44 @@ class RDS implements IRds {
           includeResultMetadata: true,
         })
         .promise();
+      // console.log(`RESULT: `, result);
+      return result;
     } catch (e) {
-      throw e.message.match(/version_conflict/) ? new httpError.Conflict() : e;
+      // console.log(`EXCEPTION ${e.message}`);
+      if (e.message.match(/conflict_data/)) {
+        throw new httpError.Conflict();
+      }
+      if (e.message.match(/not_found/)) {
+        throw new httpError.NotFound();
+      }
+      throw new httpError.InternalServerError(e.message);
     }
-  };
+  }
 
-  createParameterArray: (parameters: { [key: string]: any }) => RDSDataService.SqlParametersList = (parameters) => {
+  public async executeBatchStatement(
+    sql: string,
+    objectParameterArray: { [key: string]: any }[]
+  ): Promise<PromiseResult<AWS.RDSDataService.ExecuteStatementResponse, AWS.AWSError>> {
+    const { rdsSdk, rdsCredentials } = await this.ensureConnection();
+
+    const parameters = objectParameterArray.map(this.createParameterArray);
+
+    return rdsSdk
+      .batchExecuteStatement({
+        ...rdsCredentials,
+        sql,
+        parameterSets: parameters,
+      })
+      .promise();
+  }
+
+  public createParameterArray(parameters: { [key: string]: any }): AWS.RDSDataService.SqlParametersList {
     return Object.keys(parameters).map((key) => {
       let valueKey;
       let value = parameters[key];
       switch (typeof value) {
         case 'object':
-          if (value instanceof Date) {
-            valueKey = 'dateValue';
-          } else {
-            valueKey = 'blobValue';
-          }
+          valueKey = value instanceof Date ? (valueKey = 'dateValue') : (valueKey = 'blobValue');
           break;
         case 'string':
           valueKey = 'stringValue';
@@ -122,11 +143,7 @@ class RDS implements IRds {
           valueKey = 'booleanValue';
           break;
         case 'number':
-          if ((value as number) % 1 === 0) {
-            valueKey = 'longValue';
-          } else {
-            valueKey = 'doubleValue';
-          }
+          valueKey = (value as number) % 1 === 0 ? (valueKey = 'longValue') : (valueKey = 'doubleValue');
           break;
         default:
           valueKey = 'isNull';
@@ -139,15 +156,15 @@ class RDS implements IRds {
         },
       };
     });
-  };
+  }
 
-  createTransaction: () => Promise<string> = async () => {
+  public async createTransaction(): Promise<string> {
     const { rdsSdk, rdsCredentials } = await this.ensureConnection();
     const result = await rdsSdk.beginTransaction(rdsCredentials).promise();
     return result.transactionId as string;
-  };
+  }
 
-  commitTransaction: (transactionId: string) => Promise<string> = async (transactionId: string) => {
+  public async commitTransaction(transactionId: string): Promise<string> {
     const { rdsSdk, rdsCredentials } = await this.ensureConnection();
     const result = await rdsSdk
       .commitTransaction({
@@ -156,9 +173,9 @@ class RDS implements IRds {
       })
       .promise();
     return result.transactionStatus as string;
-  };
+  }
 
-  rollbackTransaction: (transactionId: string) => Promise<string> = async (transactionId: string) => {
+  public async rollbackTransaction(transactionId: string): Promise<string> {
     const { rdsSdk, rdsCredentials } = await this.ensureConnection();
     const result = await rdsSdk
       .rollbackTransaction({
@@ -167,9 +184,9 @@ class RDS implements IRds {
       })
       .promise();
     return result.transactionStatus as string;
-  };
+  }
 
-  inTransaction: <T>(func: (transactionalDaos: IDaoCollection) => T) => Promise<T> = async (func) => {
+  public async inTransaction<T>(func: (transactionalDaos: IDaoCollection) => Promise<T>): Promise<T> {
     const transactionId = await this.createTransaction();
     try {
       const result = await func({
@@ -184,7 +201,7 @@ class RDS implements IRds {
       await this.rollbackTransaction(transactionId);
       throw e;
     }
-  };
+  }
 
   public readonly DAO: IDaoCollection = {
     Connector: new Connector(this),
@@ -193,16 +210,16 @@ class RDS implements IRds {
     Operation: new Operation(this),
   };
 
-  ensureRecords: (
-    result: RDSDataService.ExecuteStatementResponse
-  ) => asserts result is RDSDataService.ExecuteStatementResponse & {
+  public ensureRecords(
+    result: AWS.RDSDataService.ExecuteStatementResponse
+  ): asserts result is AWS.RDSDataService.ExecuteStatementResponse & {
     records: NonNullable<any>;
     columnMetadata: NonNullable<any>;
-  } = (result) => {
+  } {
     if (!result || !result.records || result.records.length === 0 || !result.columnMetadata) {
       throw new httpError.NotFound();
     }
-  };
+  }
 }
 
 const RDSSingleton: IRds = new RDS();

@@ -15,6 +15,7 @@
     { "path": "../../lib/aws/aws-cert" },
     { "path": "../../lib/constants" },
     { "path": "../../lib/server/function-tags" },
-    { "path": "../../lib/server/registry" }
+    { "path": "../../lib/server/registry" },
+    { "path": "../../lib/data/db" }
   ]
 }

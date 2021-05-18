@@ -24,9 +24,11 @@ import {
   IEntityKeyTagSet,
 } from '../model';
 
-//--------------------------------
+// --------------------------------
 // Internal
-//--------------------------------
+// --------------------------------
+
+const DELETE_SAFETY_PREFIX_LEN = 3;
 
 const defaultEntityConstructorArgument: DefaultConstructorArguments = {
   upsert: true,
@@ -113,17 +115,11 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
     });
   };
 
-  protected applyDefaultsTo: <EKP extends EntityKeyParams>(
-    params: EKP,
-    queryOptions?: InputQueryOptions,
-    statementOptions?: InputStatementOptions
-  ) => { params: EKP; queryOptions: FinalQueryOptions; statementOptions: FinalStatementOptions } = <
-    EKP extends EntityKeyParams
-  >(
+  protected applyDefaultsTo<EKP extends EntityKeyParams>(
     params: EKP,
     queryOptions: InputQueryOptions = {},
     statementOptions: InputStatementOptions = {}
-  ) => {
+  ): { params: EKP; queryOptions: FinalQueryOptions; statementOptions: FinalStatementOptions } {
     // default params set here
     const applyDuration: (duration?: moment.Duration) => moment.Moment | undefined = (duration) => {
       return duration && moment().add(duration);
@@ -132,6 +128,7 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
     const dynamicExpires: moment.Moment | undefined = params.expiresDuration
       ? applyDuration(params.expiresDuration)
       : applyDuration(this.defaultParameterOptions.expiresDuration);
+
     // default params set here
     const paramsWithDefaults: EKP = {
       ...this.defaultParameterOptions,
@@ -156,13 +153,13 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
       queryOptions: queryOptionsWithDefaults,
       statementOptions: statementOptionsWithDefaults,
     };
-  };
+  }
 
-  public getEntity: (
-    params: IEntityId,
-    queryOptions?: InputQueryOptions,
-    statementOptions?: InputStatementOptions
-  ) => Promise<ET> = async (inputParams, inputQueryOptions, inputStatementOptions) => {
+  public async getEntity(
+    inputParams: IEntityId,
+    inputQueryOptions?: InputQueryOptions,
+    inputStatementOptions?: InputStatementOptions
+  ): Promise<ET> {
     const { params, queryOptions, statementOptions } = this.applyDefaultsTo(
       inputParams,
       inputQueryOptions,
@@ -184,13 +181,13 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
     };
     const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
     return this.sqlToIEntity<ET>(result)[0];
-  };
+  }
 
-  public getEntityTags: (
-    params: IEntityId,
-    queryOptions?: InputQueryOptions,
-    statementOptions?: InputStatementOptions
-  ) => Promise<ITagsWithVersion> = async (inputParams, inputQueryOptions, inputStatementOptions) => {
+  public async getEntityTags(
+    inputParams: IEntityId,
+    inputQueryOptions?: InputQueryOptions,
+    inputStatementOptions?: InputStatementOptions
+  ): Promise<ITagsWithVersion> {
     const { params, queryOptions, statementOptions } = this.applyDefaultsTo(
       inputParams,
       inputQueryOptions,
@@ -211,13 +208,14 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
     };
     const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
     return this.sqlToIEntity<ITagsWithVersion>(result)[0];
-  };
+  }
 
-  public listEntities: (params: IEntityPrefix, queryOptions?: InputQueryOptions) => Promise<IListResponse<ET>> = async (
-    inputParams,
-    inputQueryOptions
-  ) => {
+  public async listEntities(
+    inputParams: IEntityPrefix,
+    inputQueryOptions?: InputQueryOptions
+  ): Promise<IListResponse<ET>> {
     const { params, queryOptions, statementOptions } = this.applyDefaultsTo(inputParams, inputQueryOptions);
+
     const sql = `SELECT * FROM entity
       WHERE entityType = :entityType::entity_type
       AND accountId = :accountId
@@ -228,6 +226,7 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
       ORDER BY entityId
       OFFSET :offset
       LIMIT :limit + 1;`;
+
     const offset = queryOptions.next ? parseInt(queryOptions.next, 16) : 0;
     const parameters = {
       entityType: this.entityType,
@@ -240,6 +239,7 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
       offset,
       limit: queryOptions.listLimit,
     };
+
     const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
     const data: IListResponse<ET> = {
       items: this.sqlToIEntity(result),
@@ -251,81 +251,76 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
       data.next = ((offset || 0) + queryOptions.listLimit).toString(16);
     }
     return data;
-  };
+  }
 
-  public deleteEntity: (
-    params: IEntityPrefix,
-    queryOptions?: InputQueryOptions,
-    statementOptions?: InputStatementOptions
-  ) => Promise<boolean> = async (inputParams, inputQueryOptions, inputStatementOptions) => {
+  public async deleteEntity(
+    inputParams: IEntityPrefix,
+    inputQueryOptions?: InputQueryOptions,
+    inputStatementOptions?: InputStatementOptions
+  ): Promise<boolean> {
     const { params, queryOptions, statementOptions } = this.applyDefaultsTo(
       inputParams,
       inputQueryOptions,
       inputStatementOptions
     );
-    const sql = `DELETE FROM entity
-      WHERE entityType = :entityType::entity_type
-      AND accountId = :accountId
-      AND subscriptionId = :subscriptionId
-      AND (NOT :prefixMatchId OR entityId = :entityId)
-      AND (:prefixMatchId OR entityId LIKE FORMAT('%s%%',:entityIdPrefix::text))
-      AND (NOT :filterExpired OR expires IS NULL OR expires > NOW());`;
+
+    const prefixMatchId = !!params.idPrefix;
+
+    if (prefixMatchId && params.idPrefix && params.idPrefix.length < DELETE_SAFETY_PREFIX_LEN) {
+      throw new Error(`Delete prefix match must be ${DELETE_SAFETY_PREFIX_LEN} characters or greater`);
+    }
+
+    const sql = `
+      SELECT * FROM delete_if_version(
+        :entityType::entity_type, :accountId, :subscriptionId, :entityId,
+        :filterExpired::BOOLEAN, :prefixMatchId::BOOLEAN,
+        :version);
+      `;
+
     const parameters = {
       entityType: this.entityType,
       accountId: params.accountId,
       subscriptionId: params.subscriptionId,
-      entityId: params.id,
-      entityIdPrefix: params.idPrefix,
-      prefixMatchId: !!params.idPrefix,
+      entityId: prefixMatchId ? params.idPrefix : params.id,
+      prefixMatchId,
       filterExpired: queryOptions.filterExpired,
+      version: params.version,
     };
-    const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
-    return result.numberOfRecordsUpdated !== undefined && result.numberOfRecordsUpdated > 0;
-  };
 
-  public createEntity: (
-    params: IEntity,
-    queryOptions?: InputQueryOptions,
-    statementOptions?: InputStatementOptions
-  ) => Promise<ET> = async (inputParams, inputQueryOptions, inputStatementOptions) => {
+    const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
+    const numDeleted = result.records ? result.records[0][0].longValue : 0;
+    return numDeleted !== undefined && numDeleted > 0;
+  }
+
+  public async createEntity(
+    inputParams: IEntity,
+    inputQueryOptions?: InputQueryOptions,
+    inputStatementOptions?: InputStatementOptions
+  ): Promise<ET> {
     const { params, queryOptions, statementOptions } = this.applyDefaultsTo(
       inputParams,
       inputQueryOptions,
       inputStatementOptions
     );
     const sql = `INSERT INTO entity
-      (entityType, accountId, subscriptionId, entityId, version, data, tags, expires)  
+      (entityType, accountId, subscriptionId, entityId, data, tags, version, expires)  
       VALUES (
         :entityType::entity_type,
         :accountId,
         :subscriptionId,
         :entityId,
-        1,
         :data::jsonb,
         :tags::jsonb,
+        gen_random_uuid(),
         :expires::timestamptz
       )
       RETURNING *;`;
 
-    const sqlUpsert = `INSERT INTO entity
-      (entityType, accountId, subscriptionId, entityId, version, data, tags, expires) 
-      VALUES (
-        :entityType::entity_type,
-        :accountId,
-        :subscriptionId,
-        :entityId,
-        1,
-        :data::jsonb,
-        :tags::jsonb,
-        :expires::timestamptz
-      )
-      ON CONFLICT (entityType, accountId, subscriptionId, entityId) DO
-      UPDATE SET
-      data = :data::jsonb,
-      tags = :tags::jsonb,
-      expires = :expires::timestamptz,
-      version = COALESCE(:version, entity.version) + 1
-      RETURNING *;`;
+    const sqlUpsert = `
+        SELECT * FROM update_if_version(
+          :entityType::entity_type, :accountId, :subscriptionId, :entityId,
+          FALSE, FALSE, TRUE,
+          :data::jsonb, :tags::jsonb, :expires::timestamptz, :version);`;
 
     const parameters = {
       entityType: this.entityType,
@@ -338,6 +333,7 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
       version: params.version,
     };
     const selectedInsert = queryOptions.upsert ? sqlUpsert : sql;
+
     const result = await this.RDS.executeStatement(selectedInsert, parameters, statementOptions);
 
     this.RDS.ensureRecords(result);
@@ -345,29 +341,25 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
       throw new Error(`Expected exactly 1 database record inserted, got ${result.records.length}.`);
     }
     return this.sqlToIEntity<ET>(result)[0];
-  };
+  }
 
-  public updateEntity: (
-    params: IEntity,
-    queryOptions?: InputQueryOptions,
-    statementOptions?: InputStatementOptions
-  ) => Promise<ET> = async (inputParams, inputQueryOptions, inputStatementOptions) => {
+  public async updateFullEntity(
+    inputParams: IEntity,
+    inputQueryOptions?: InputQueryOptions,
+    inputStatementOptions?: InputStatementOptions
+  ): Promise<ET> {
     const { params, queryOptions, statementOptions } = this.applyDefaultsTo(
       inputParams,
       inputQueryOptions,
       inputStatementOptions
     );
-    const sql = `UPDATE entity SET
-      data = :data::jsonb,
-      tags = :tags::jsonb,
-      expires = :expires::timestamptz,
-      version = coalesce(:version, version) + 1
-      WHERE entityType = :entityType::entity_type
-      AND accountId = :accountId
-      AND subscriptionId = :subscriptionId
-      AND entityId = :entityId
-      AND (NOT :filterExpired OR expires IS NULL OR expires > NOW())
-      RETURNING *`;
+
+    const sql = `
+      SELECT * FROM update_if_version(
+        :entityType::entity_type, :accountId, :subscriptionId, :entityId,
+        :filterExpired::BOOLEAN, :prefixMatchId::BOOLEAN, FALSE,
+        :data::jsonb, :tags::jsonb, :expires::timestamptz, :version);
+      `;
 
     const parameters = {
       entityType: this.entityType,
@@ -375,117 +367,103 @@ export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET
       subscriptionId: params.subscriptionId,
       entityId: params.id,
       filterExpired: queryOptions.filterExpired,
-      data: JSON.stringify(params.data),
-      tags: JSON.stringify(params.tags || {}),
+      prefixMatchId: false,
+      data: params.data ? JSON.stringify(params.data) : undefined,
+      tags: params.tags ? JSON.stringify(params.tags) : undefined,
       expires: params.expires?.format(),
       version: params.version,
     };
+
     const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
     return this.sqlToIEntity<ET>(result)[0];
-  };
+  }
 
-  public updateEntityTags: (
-    params: IEntityId,
-    queryOptions?: InputQueryOptions,
-    statementOptions?: InputStatementOptions
-  ) => Promise<ITagsWithVersion> = async (inputParams, inputQueryOptions, inputStatementOptions) => {
+  public async updateEntity(
+    inputParams: IEntity,
+    inputQueryOptions?: InputQueryOptions,
+    inputStatementOptions?: InputStatementOptions
+  ): Promise<ET> {
+    return this.updateFullEntity(inputParams, inputQueryOptions, inputStatementOptions);
+  }
+
+  public async updateEntityTags(
+    inputParams: IEntity,
+    inputQueryOptions?: InputQueryOptions,
+    inputStatementOptions?: InputStatementOptions
+  ): Promise<ITagsWithVersion> {
+    const result = (await this.updateFullEntity(
+      inputParams,
+      inputQueryOptions,
+      inputStatementOptions
+    )) as ITagsWithVersion;
+    return { tags: result.tags, version: result.version };
+  }
+
+  public async setEntityTag(
+    inputParams: IEntityKeyTagSet,
+    inputQueryOptions?: InputQueryOptions,
+    inputStatementOptions?: InputStatementOptions
+  ): Promise<ITagsWithVersion> {
     const { params, queryOptions, statementOptions } = this.applyDefaultsTo(
       inputParams,
       inputQueryOptions,
       inputStatementOptions
     );
-    const sql = `UPDATE entity SET
-      version = COALESCE(:version, entity.version) + 1,
-      tags = :tags::jsonb
-      WHERE entityType = :entityType::entity_type
-      AND accountId = :accountId
-      AND subscriptionId = :subscriptionId
-      AND entityId = :entityId
-      AND (NOT :filterExpired OR expires IS NULL OR expires > NOW())
-      RETURNING tags, version;`;
+
+    const sql = `
+      SELECT tags, version FROM update_tag_if_version(
+        :entityType::entity_type, :accountId, :subscriptionId, :entityId,
+        :filterExpired::boolean, FALSE,
+        :tagKey, :tagValue::jsonb, :version);
+      `;
     const parameters = {
       entityType: this.entityType,
       accountId: params.accountId,
       subscriptionId: params.subscriptionId,
       entityId: params.id,
-      version: params.version,
-      tags: JSON.stringify(params.tags || {}),
       filterExpired: queryOptions.filterExpired,
-    };
-    const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
-    return this.sqlToIEntity<ITagsWithVersion>(result)[0];
-  };
-
-  public setEntityTag: (
-    params: IEntityKeyTagSet,
-    queryOptions?: InputQueryOptions,
-    statementOptions?: InputStatementOptions
-  ) => Promise<ITagsWithVersion> = async (inputParams, inputQueryOptions, inputStatementOptions) => {
-    const { params, queryOptions, statementOptions } = this.applyDefaultsTo(
-      inputParams,
-      inputQueryOptions,
-      inputStatementOptions
-    );
-    const sql = `UPDATE entity SET
-      tags = jsonb_set(tags, format('{%s}', :tagKey)::text[], to_jsonb(:tagValue)),
-      version = COALESCE(:version, version) + 1
-      WHERE entityType = :entityType::entity_type
-      AND accountId = :accountId
-      AND subscriptionId = :subscriptionId
-      AND entityId = :entityId
-      AND (NOT :filterExpired OR expires IS NULL OR expires > NOW())
-      RETURNING tags, version;`;
-    const parameters = {
-      entityType: this.entityType,
-      accountId: params.accountId,
-      subscriptionId: params.subscriptionId,
-      entityId: params.id,
       tagKey: params.tagKey,
-      tagValue: params.tagValue,
+      tagValue: JSON.stringify(params.tagValue),
       version: params.version,
-      filterExpired: queryOptions.filterExpired,
     };
     const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
     return this.sqlToIEntity<ITagsWithVersion>(result)[0];
-  };
+  }
 
-  public deleteEntityTag: (
-    params: IEntityKeyTagSet,
-    queryOptions?: InputQueryOptions,
-    statementOptions?: InputStatementOptions
-  ) => Promise<ITagsWithVersion> = async (inputParams, inputQueryOptions, inputStatementOptions) => {
+  public async deleteEntityTag(
+    inputParams: IEntityKeyTagSet,
+    inputQueryOptions?: InputQueryOptions,
+    inputStatementOptions?: InputStatementOptions
+  ): Promise<ITagsWithVersion> {
     const { params, queryOptions, statementOptions } = this.applyDefaultsTo(
       inputParams,
       inputQueryOptions,
       inputStatementOptions
     );
-    const sql = `UPDATE entity SET
-      tags = tags - :tagKey,
-      version = coalesce(:version, version) + 1
-      WHERE entityType = :entityType::entity_type
-      AND accountId = :accountId
-      AND subscriptionId = :subscriptionId
-      AND entityId = :entityId
-      AND (:filterExpired IS NULL OR expires IS NULL OR expires > NOW())
-      RETURNING tags, version;`;
+
+    const sql = `
+      SELECT tags, version FROM delete_tag_if_version(
+        :entityType::entity_type, :accountId, :subscriptionId, :entityId,
+        :filterExpired::boolean, FALSE,
+        :tagKey, :version);
+      `;
+
     const parameters = {
       entityType: this.entityType,
       accountId: params.accountId,
       subscriptionId: params.subscriptionId,
       entityId: params.id,
+      filterExpired: queryOptions.filterExpired,
       tagKey: params.tagKey,
       version: params.version,
-      filterExpired: queryOptions.filterExpired,
     };
     const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
     return this.sqlToIEntity<ITagsWithVersion>(result)[0];
-  };
+  }
   public static readonly EntityType = EntityType;
 }
 
-const cleanObj: <T extends { [key: string]: any }>(obj: T) => RequiredKeysOnly<T> = <T extends { [key: string]: any }>(
-  obj: T
-) => {
+const cleanObj = <T extends { [key: string]: any }>(obj: T): RequiredKeysOnly<T> => {
   const removeUndefined: (o: T) => asserts o is RequiredKeysOnly<T> = (o) =>
     Object.entries(o).forEach((e) => {
       if (e[1] === undefined) {
