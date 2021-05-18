@@ -12,11 +12,15 @@ export interface IRds {
     objectParameters?: { [key: string]: any },
     statementOptions?: FinalStatementOptions
   ) => Promise<PromiseResult<RDSDataService.ExecuteStatementResponse, AWS.AWSError>>;
+  executeBatchStatement: (
+    sql: string,
+    objectParameterArray: { [key: string]: any }[]
+  ) => Promise<PromiseResult<RDSDataService.BatchExecuteStatementResponse, AWS.AWSError>>;
   createParameterArray: (parameters: { [key: string]: any }) => RDSDataService.SqlParametersList;
   createTransaction: () => Promise<string>;
   commitTransaction: (transactionId: string) => Promise<string>;
   rollbackTransaction: (transactionId: string) => Promise<string>;
-  inTransaction: <T>(func: (daoCollection: IDaoCollection) => T) => Promise<T>;
+  inTransaction: <T>(func: (daoCollection: IDaoCollection) => Promise<T>) => Promise<T>;
   ensureRecords: (
     result: RDSDataService.ExecuteStatementResponse
   ) => asserts result is RDSDataService.ExecuteStatementResponse & {
@@ -38,9 +42,9 @@ export interface IRdsCredentials {
   secretArn: string;
 }
 
-//--------------------------------
+// --------------------------------
 // EntityKey Components
-//--------------------------------
+// --------------------------------
 
 export interface ITags {
   [key: string]: string;
@@ -48,7 +52,7 @@ export interface ITags {
 
 export interface ITagsWithVersion {
   tags: ITags;
-  version?: number;
+  version?: string;
 }
 
 // Data needed for any request
@@ -60,8 +64,7 @@ export interface IEntityCore {
 // Data needed for selects and deletes
 interface IEntitySelectAbstract extends IEntityCore {
   tags?: ITags;
-  version?: number;
-  next?: string;
+  version?: string;
 }
 export interface IEntityId extends IEntitySelectAbstract {
   id: string;
@@ -94,9 +97,9 @@ export interface IListResponse<T extends IEntity> {
   next?: string;
 }
 
-//--------------------------------
+// --------------------------------
 // IEntity Extensions
-//--------------------------------
+// --------------------------------
 
 export interface IIntegration extends IEntity {}
 export interface IConnector extends IEntity {}
@@ -104,23 +107,24 @@ export interface IStorageItem extends IEntity {}
 export interface IOperation extends IEntity {}
 export interface IEntityGeneric extends IIntegration, IConnector, IStorageItem, IOperation {}
 
-//--------------------------------
+// --------------------------------
 // Utilities
-//--------------------------------
+// --------------------------------
 
 export type RequiredKeysOnly<T> = {
   [K in keyof { [key in keyof T]: T[key] extends undefined ? never : T[K] }]: T[K];
 };
 
-//--------------------------------
+// --------------------------------
 // Entity Constructors Arguments
-//--------------------------------
+// --------------------------------
 
 // Queries
 export interface DefaultQueryOptions {
   upsert?: boolean;
   filterExpired?: boolean;
   listLimit?: number;
+  next?: string;
 }
 export interface MergedQueryOptions extends DefaultQueryOptions {
   upsert: boolean;
@@ -176,9 +180,9 @@ export enum EntityType {
   Storage = 'storage',
 }
 
-//--------------------------------
+// --------------------------------
 // DAO Class Definitions
-//--------------------------------
+// --------------------------------
 
 export interface IDAO {
   createTransactional: (transactionId: string) => this;

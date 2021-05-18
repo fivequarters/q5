@@ -39,7 +39,7 @@ function errorHandler(res) {
       status = 403;
       message = 'Unauthorized';
       log = false;
-    } else if (error.code && error.code === 'storageConflict') {
+    } else if ((error.code && error.code === 'storageConflict') || error.message === 'Conflict') {
       status = 409;
       message = error.message;
       log = false;

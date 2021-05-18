@@ -24,8 +24,8 @@ describe('Storage Get', () => {
 
       const retrievedStorage = await getStorage(account, storageId);
       expect(retrievedStorage).toBeHttp({ statusCode: 200 });
-      expect(retrievedStorage.headers.etag).toBe('W/"9c05511a31375a8a278a75207331bb1714e69dd1"');
-      expect(retrievedStorage.data).toEqual({ etag: '9c05511a31375a8a278a75207331bb1714e69dd1', data: 'hello world' });
+      expect(retrievedStorage.data.data).toEqual('hello world');
+      expect(retrievedStorage.data.etag).toBeUUID();
     }, 180000);
 
     test('Getting storage with hierarchy should work', async () => {
@@ -36,8 +36,8 @@ describe('Storage Get', () => {
 
       const retrievedStorage = await getStorage(account, storageId);
       expect(retrievedStorage).toBeHttp({ statusCode: 200 });
-      expect(retrievedStorage.headers.etag).toBe('W/"9c05511a31375a8a278a75207331bb1714e69dd1"');
-      expect(retrievedStorage.data).toEqual({ etag: '9c05511a31375a8a278a75207331bb1714e69dd1', data: 'hello world' });
+      expect(retrievedStorage.data.data).toEqual('hello world');
+      expect(retrievedStorage.data.etag).toBeUUID();
     }, 180000);
 
     test('Getting storage with hierarchy and funky characters should work', async () => {
@@ -48,14 +48,14 @@ describe('Storage Get', () => {
 
       const retrievedStorage = await getStorage(account, storageId);
       expect(retrievedStorage).toBeHttp({ statusCode: 200 });
-      expect(retrievedStorage.headers.etag).toBe('W/"9c05511a31375a8a278a75207331bb1714e69dd1"');
-      expect(retrievedStorage.data).toEqual({ etag: '9c05511a31375a8a278a75207331bb1714e69dd1', data: 'hello world' });
+      expect(retrievedStorage.data.data).toEqual('hello world');
+      expect(retrievedStorage.data.etag).toBeUUID();
     }, 180000);
 
     test('Getting storage that does not exist should return an error', async () => {
       const storageId = `test-${random()}`;
       const retrievedStorage = await getStorage(account, storageId);
-      expect(retrievedStorage).toBeStorageNotFound(storageId);
+      expect(retrievedStorage).toBeHttp({ statusCode: 404 });
     }, 180000);
 
     test('Getting storage with a malformed account id should return an error', async () => {

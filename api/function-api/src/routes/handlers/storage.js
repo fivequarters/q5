@@ -1,6 +1,8 @@
 const { getStorageContext, errorHandler } = require('../storage');
 const create_error = require('http-errors');
 
+const RDS = require('./storageRds');
+
 function storageGet() {
   return (req, res) => {
     getStorageContext().then((storageContext) => {
@@ -12,9 +14,6 @@ function storageGet() {
       storageContext.storage
         .get(resolvedAgent, accountId, subscriptionId, storageId)
         .then((result) => {
-          if (result && result.etag) {
-            res.set('Etag', `W/"${result.etag}"`);
-          }
           res.json(result);
         })
         .catch(errorHandler(res));
@@ -63,10 +62,9 @@ function storagePut() {
       storageContext.storage
         .set(resolvedAgent, accountId, subscriptionId, storageId, storage)
         .then((result) => {
-          if (result && result.etag) {
-            res.set('Etag', `W/"${result.etag}"`);
-          }
-          res.json(result);
+          RDS.storagePut()(req, res, next, true).then(() => {
+            res.json(result);
+          });
         })
         .catch(errorHandler(res));
     });
@@ -74,7 +72,7 @@ function storagePut() {
 }
 
 function storageDelete() {
-  return (req, res) => {
+  return (req, res, next) => {
     getStorageContext().then((storageContext) => {
       const resolvedAgent = req.resolvedAgent;
       const accountId = req.params.accountId;
@@ -86,8 +84,17 @@ function storageDelete() {
       storageContext.storage
         .delete(resolvedAgent, accountId, subscriptionId, storageId, recursive, etag)
         .then(() => {
-          res.status(204);
-          res.end();
+          RDS.storageDelete()(req, res, next, true)
+            .then(() => {
+              res.status(204);
+              res.end();
+            })
+            .catch((err) => {
+              // Record database errors; generally these will be operational not logical in nature.
+              console.log(`DELETE ERROR: ${err}`);
+              res.status(204);
+              res.end();
+            });
         })
         .catch(errorHandler(res));
     });
