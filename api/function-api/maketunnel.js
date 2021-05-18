@@ -1,5 +1,5 @@
 const http = require('http');
-const localtunnel = require('localtunnel');
+const localtunnel = require('fusetunnel');
 
 const serverPort = 3001;
 const inspectionPort = 4040;
