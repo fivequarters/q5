@@ -40,7 +40,7 @@ const createConnectorTest = async (connector: Model.IEntity = ConnectorDefinitio
   return listResponse.data.items[0];
 };
 
-describe('Connector', () => {
+describe.skip('Connector', () => {
   afterEach(async () => {
     const connectorService = new ConnectorService();
     try {

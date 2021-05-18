@@ -42,7 +42,7 @@ const createIntegrationTest = async (integration: Model.IEntity = IntegrationDef
   return listResponse.data.items[0];
 };
 
-describe('Integration', () => {
+describe.skip('Integration', () => {
   afterEach(async () => {
     const integrationService = new IntegrationService();
     try {
