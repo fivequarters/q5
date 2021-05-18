@@ -37,6 +37,7 @@ const runTest = async (
 ) => {
   let response = await createFunction(authentication, authorization);
 
+  console.log(`LOCATION: ${response.data.location}`);
   if (!requestParams) {
     response = await callFunction(token, response.data.location);
   } else {
