@@ -85,7 +85,7 @@ export class MigrateStorageActionCommand extends Command {
       accountId,
       subscriptionId,
       entityId,
-      data: JSON.stringify({ data }),
+      data, // Already stringified json in dynamodb.
       tags: '{}',
     };
   }
