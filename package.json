@@ -1,5 +1,5 @@
 {
-  "version": "1.19.8",
+  "version": "1.19.9",
   "private": true,
   "org": "5qtrs",
   "engines": {
@@ -196,6 +196,11 @@
       "lib/server/registry",
       "lib/server/runas",
       "tool/cicd/actions",
+      "lib/pkg/pkg-manager",
+      "lib/pkg/pkg-integration",
+      "lib/pkg/pkg-oauth-connector",
+      "lib/pkg/pkg-oauth-integration",
+      "lib/pkg/pkg-handler",
       "lib/data/db"
     ]
   }

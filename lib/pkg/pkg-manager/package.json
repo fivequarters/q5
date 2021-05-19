@@ -1,0 +1,31 @@
+{
+  "name": "@fusebit-int/pkg-manager",
+  "version": "1.0.0",
+  "description": "",
+  "main": "libc/index.js",
+  "license": "SEE LICENSE IN LICENSE",
+  "author": "Fusebit, Inc.",
+  "scripts": {
+    "build": "tsc -b && yarn copy-files",
+    "test": "jest --colors",
+    "coverage": "jest --colors --coverage",
+    "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x} test/{,**/}*.ts{,x}",
+    "clean": "rm -r -f libc; rm -r -f coverage",
+    "copy-files": "cp -r src/form libc"
+  },
+  "keywords": [],
+  "dependencies": {
+    "@koa/router": "^10.0.0",
+    "@vendia/serverless-express": "^4.3.4",
+    "http-errors": "^1.8.0",
+    "koa": "^2.13.1",
+    "node-mocks-http": "^1.10.1",
+    "statuses": "^2.0.1"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.73",
+    "@types/koa": "^2.13.1",
+    "@types/koa__router": "^8.0.4",
+    "@types/statuses": "^2.0.0"
+  }
+}

@@ -5,9 +5,13 @@
     "outDir": "libc",
     "module": "CommonJS",
     "allowJs": true,
-    "declaration": false,
-    "declarationMap": false,
-    "composite": false
+    "declaration": true,
+    "declarationMap": true,
+    "composite": false,
+    "esModuleInterop": true,
+    "lib": [
+      "es2019"
+    ]
   },
   "include": ["src"],
   "references": [

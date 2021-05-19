@@ -7,6 +7,8 @@ var express = require('express');
 var logger = require('morgan');
 const { captureRequest, logActiveRequests } = require('./logRequests');
 
+const routes = require('./routes');
+
 var app = express();
 // Sanitize logged URLs
 logger.token('url', (req, res) =>
@@ -18,13 +20,20 @@ app.use(logger(process.stdout.isTTY ? 'dev' : 'combined'));
 //app.use(captureRequest);
 //logActiveRequests();
 
-app.use('/v1/', require('./routes/v1_api'));
+// Expose the v2 API
+app.use('/v2/', routes.v2);
+
+// Expose the v1 API
+app.use('/v1/', routes.v1);
+
 if (process.env.API_EXPOSE_DOCS) {
-  app.use('/', require('./routes/api_docs'));
+  app.use('/', routes.api_docs);
 }
+
 app.use(function (req, res, next) {
   next(create_error(404));
 });
+
 app.use(function (err, req, res, next) {
   // console.log('ERROR', typeof err, err, err.status, err.statusCode, err.message);
   let status = err.statusCode || err.status || 500;

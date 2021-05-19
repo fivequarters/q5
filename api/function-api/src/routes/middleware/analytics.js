@@ -50,7 +50,7 @@ exports.enterHandler = (modality) => {
         functionId: reqProps.params.functionId,
         deploymentKey: process.env.DEPLOYMENT_KEY,
         mode: 'request',
-        modality,
+        modality: req.analyticsModality || modality,
       };
 
       // Create a copy of params to avoid accidental side effects.
@@ -75,6 +75,11 @@ exports.enterHandler = (modality) => {
     };
     next();
   };
+};
+
+exports.setModality = (modality) => (req, res, next) => {
+  req.analyticsModality = modality;
+  return next();
 };
 
 exports.finished = (err, req, res, next) => {

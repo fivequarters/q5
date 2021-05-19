@@ -54,6 +54,8 @@
     "@5qtrs/request": "^0.0.1",
     "@npm/types": "^1.0.1",
     "@reportportal/agent-js-jest": "bennbollay/agent-js-jest#patch-1",
+    "@types/aws-sdk": "^2.7.0",
+    "@types/cors": "^2.8.10",
     "@types/debug": "^4.1.2",
     "@types/pem-jwk": "^1.5.0",
     "aws-sdk": "^2.895.0",

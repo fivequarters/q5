@@ -1,0 +1,9 @@
+{
+  "license": "SEE LICENSE IN LICENSE",
+  "dependencies": {},
+  "scripts": {
+    "build": "cd node_modules/@fusebit-int/pkg-oauth-connector && yarn build",
+    "deploy.dev": "fuse function deploy -b benn oauth-connector -d . -l @fusebit-int/pkg-manager -l @fusebit-int/pkg-oauth-connector -l @fusebit-int/pkg-handler -q y",
+    "test": "./test.sh"
+  }
+}

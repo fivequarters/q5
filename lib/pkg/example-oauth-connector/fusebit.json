@@ -1,0 +1,13 @@
+{
+  "fuseVersion": "1.9.0",
+  "security": {
+    "functionPermissions": {
+      "allow": [
+        {
+          "action": "storage:*",
+          "resource": "/account/{{accountId}}/subscription/{{subscriptionId}}/storage/{{boundaryId}}/"
+        }
+      ]
+    }
+  }
+}
