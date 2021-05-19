@@ -7,7 +7,7 @@ const analytics = require('./middleware/analytics');
 const determine_provider = require('./middleware/determine_provider');
 const parse_body_conditional = require('./middleware/parse_body_conditional');
 const provider_handlers = require('./handlers/provider_handlers');
-const { createFunction } = require('./functions');
+const { initFunctions } = require('./functions');
 const validate_schema = require('./middleware/validate_schema');
 const authorize = require('./middleware/authorize');
 const user_agent = require('./middleware/user_agent');
@@ -78,6 +78,9 @@ keyStore.rekey();
 // Create and load a cache with the current subscription->account mapping
 const subscriptionCache = new SubscriptionCache({});
 subscriptionCache.refresh();
+
+// Register the globals with various consumers
+initFunctions(keyStore, subscriptionCache);
 
 // Utility functions
 const NotImplemented = (_, __, next) => next(create_error(501, 'Not implemented'));
@@ -504,19 +507,11 @@ router.put(
   check_agent_version(),
   determine_provider(),
   npmRegistry(),
-  async (req, res, next) => {
-    let result;
-    try {
-      result = await createFunction(req.params, req.body, keyStore, req.resolvedAgent, req.registry);
-    } catch (e) {
-      return next(e);
-    }
-    res.status(result.code);
-    if (result.body) {
-      return res.json(result.body);
-    }
-    return res.end();
+  (req, res, next) => {
+    req.keyStore = keyStore;
+    next();
   },
+  (req, res, next) => provider_handlers[req.provider].put_function(req, res, next),
   analytics.finished
 );
 router.delete(
