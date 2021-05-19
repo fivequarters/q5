@@ -11,7 +11,7 @@ const BANNER = [
   '',
 ].join('\n');
 
-const publishAll = ['publish_function_api', 'publish_fusebit_cli', 'publish_fusebit_editor', 'publish_fusebit_ops_cli'];
+const publishAll = ['publish_function_api', 'publish_fusebit_cli', 'publish_fusebit_editor', 'publish_fusebit_ops_cli', 'publish_fusetunnel', 'publish_fusetunnel-server'];
 const fullBuild = ['setup_env', 'full_build'];
 
 const specs = [
