@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.19.10
+
+_Release 05/18/21_
+
+- **Enhancement.** Move storage to RDS and away from DynamoDB.
+
 ## Version 1.19.9
 
 _Release 05/18/21_
