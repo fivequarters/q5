@@ -80,7 +80,7 @@ jobs:
         run: ./tool/cicd/actions/scripts/publish_fusebit_editor.sh
       - name: Publish - fusebit-ops-cli
         run: ./tool/cicd/actions/scripts/publish_fusebit_ops_cli.sh
-      - name: Publish - fusetunnel
+      - name: Publish - Fusetunnel
         run: ./tool/cicd/actions/scripts/publish_fusetunnel.sh
-      - name: Publish - fusetunnel-server
+      - name: Publish - Fusetunnel-server
         run: ./tool/cicd/actions/scripts/publish_fusetunnel-server.sh
