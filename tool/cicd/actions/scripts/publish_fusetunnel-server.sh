@@ -14,7 +14,7 @@ AWS_PROFILE=${AWS_PROFILE:=default}
 VERSION=${VERSION_FUSEBIT_CLI:=`jq -r '.version' ./tunnel-server/package.json`}
 
 echoerr "Deploying to npm (ignoring error on republish of same version)"
-cd tunnel/
+cd tunnel-server/
 npm publish 1>&2 || true
 
 echoerr "Testing installation"
