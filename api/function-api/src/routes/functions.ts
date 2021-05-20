@@ -10,6 +10,8 @@ import * as provider_handlers from './handlers/provider_handlers';
 import * as ratelimit from './middleware/ratelimit';
 import { getResolvedAgent } from './account';
 
+const BUILD_POLL_DELAY = 1000;
+
 interface IParams {
   accountId: string;
   subscriptionId: string;
@@ -30,18 +32,18 @@ interface IFunctionSpecification {
   configuration?: any;
   configurationSerialized?: string;
   nodejs: {
-    files: { [key: string]: string };
+    files: { [key: string]: string | object };
   };
   metadata?: any;
   compute?: {
-    memorySize: number;
-    timeout: number;
-    staticIp: boolean;
+    memorySize?: number;
+    timeout?: number;
+    staticIp?: boolean;
   };
   computeSerialized?: string;
   schedule?: {
-    cron: string;
-    timezone: string;
+    cron?: string;
+    timezone?: string;
   };
   scheduleSerialized?: string;
   security?: {
@@ -49,6 +51,28 @@ interface IFunctionSpecification {
     authorization: any;
     functionPermissions: any;
   };
+}
+
+interface ICreateFunction {
+  code: number;
+  status?: string;
+  subscriptionId?: string;
+  boundaryId?: string;
+  functionId?: string;
+  location?: string;
+  buildId?: string;
+}
+
+interface IExecuteFunction {
+  body: any;
+  bodyEncoding?: string;
+  code: number;
+  error?: any;
+  headers?: any;
+}
+
+interface IWaitForFunction {
+  code: number;
 }
 
 interface IResult {
@@ -97,7 +121,7 @@ const asyncDispatch = async (req: any, handler: any): Promise<any> => {
         return resolve(result);
       },
     };
-    handler(req, result, reject);
+    handler(req, result, (err: any) => (err ? reject(err) : resolve()));
   });
   return res;
 };
@@ -107,7 +131,7 @@ const createFunction = async (
   spec: IFunctionSpecification,
   resolvedAgent: IAgent,
   registry: IRegistryStore
-): Promise<any> => {
+): Promise<ICreateFunction> => {
   const url = new URL(process.env.API_SERVER as string);
   const req = {
     protocol: url.protocol.replace(':', ''),
@@ -123,6 +147,31 @@ const createFunction = async (
     return { code: res.code, ...res.body };
   }
   return { code: res.code };
+};
+
+const waitForFunctionBuild = async (
+  params: IParams,
+  buildId: string,
+  noLongerThan: number
+): Promise<IWaitForFunction> => {
+  const startTime = Date.now();
+  const req = {
+    params: { ...params, buildId },
+  };
+
+  do {
+    const res = await asyncDispatch(req, provider_handlers.lambda.get_function_build);
+    if (res.code === 200) {
+      return { code: res.code };
+    }
+    if (res.code === 201) {
+      await new Promise((resolve) => setTimeout(resolve, BUILD_POLL_DELAY));
+      continue;
+    }
+    throw create_error(res.code);
+  } while (Date.now() < startTime + noLongerThan);
+
+  throw create_error(408);
 };
 
 const deleteFunction = async (params: IParams): Promise<any> => {
@@ -167,7 +216,7 @@ const executeFunction = async (
     headers?: any;
     query?: any;
   } = {}
-): Promise<any> => {
+): Promise<IExecuteFunction> => {
   let sub;
   try {
     sub = await subscriptionCache.find(params.subscriptionId);
@@ -221,4 +270,4 @@ const executeFunction = async (
   }
 };
 
-export { createFunction, deleteFunction, executeFunction, checkAuthorization, initFunctions };
+export { createFunction, deleteFunction, executeFunction, checkAuthorization, initFunctions, waitForFunctionBuild };
