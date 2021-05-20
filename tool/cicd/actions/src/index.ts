@@ -34,7 +34,7 @@ const specs = [
   },
   {
     name: 'Publish Fusetunnel',
-    inputs: ['publish_fusetunnel', 'publish_fusetunnel-server'],
+    inputs: ['checkout', 'publish_fusetunnel', 'publish_fusetunnel-server'],
     output: 'publish_fusetunnel',
   }
 ];
