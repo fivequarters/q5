@@ -1485,15 +1485,14 @@
   dependencies:
     "@fortawesome/fontawesome-common-types" "^0.2.25"
 
-"@fusebit/tunnel@^3.2.2":
-  version "3.2.2"
-  resolved "https://registry.yarnpkg.com/@fusebit/tunnel/-/tunnel-3.2.2.tgz#f90758ed8523e3f9ec217b485279c92fcac65477"
-  integrity sha512-7bJhM8tvgv5DvYedjVsSSdIWbZhHlfesMBjn/oazKtvtFwcOofHAwtUrrbQ8DcleLivsfwybYytk5/gyfZhWjA==
+"@fusebit/tunnel@^3.2.3":
+  version "3.2.3"
+  resolved "https://registry.yarnpkg.com/@fusebit/tunnel/-/tunnel-3.2.3.tgz#c4c3c705a47edb87120b6117e29d27fdb021dc35"
+  integrity sha512-v+rQetsefGgI7BPUAdZf6wk3zCQFR9yjEYetEqPnKLSmNoWk7Fj7yOswrTElZzj4tPk39Kzs3bXeE3lqrqesxA==
   dependencies:
     axios "0.21.1"
     debug "4.3.1"
     openurl "1.1.1"
-    prettier "^2.3.0"
     yargs "16.2.0"
 
 "@google-cloud/bigquery@^3.0.0":
@@ -13272,11 +13271,6 @@ prettier@^2.0.5:
   version "2.0.5"
   resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.0.5.tgz#d6d56282455243f2f92cc1716692c08aa31522d4"
   integrity sha512-7PtVymN48hGcO4fGjybyBSIWDsLU4H4XlvOHfq91pz9kkGlonzwTfYkaIEwiRg/dAJF9YlbsduBAgtYLi+8cFg==
-
-prettier@^2.3.0:
-  version "2.3.0"
-  resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.3.0.tgz#b6a5bf1284026ae640f17f7ff5658a7567fc0d18"
-  integrity sha512-kXtO4s0Lz/DW/IJ9QdWhAf7/NmPWQXkFr/r/WkR3vyI+0v8amTDxiaQSLzs8NBlytfLWX/7uQUMIW677yLKl4w==
 
 pretty-bytes@^5.1.0:
   version "5.3.0"
