@@ -9,6 +9,7 @@ import Storage from './daos/storage';
 import Operation from './daos/operation';
 import Session from './daos/session';
 import Identity from './daos/identity';
+import Instance from './daos/instance';
 
 class RDS implements IRds {
   private rdsSdk!: AWS.RDSDataService;
@@ -212,7 +213,7 @@ class RDS implements IRds {
     Operation: new Operation(this),
     Session: new Session(this),
     Identity: new Identity(this),
-    Instance: new Identity(this),
+    Instance: new Instance(this),
   };
 
   public ensureRecords(

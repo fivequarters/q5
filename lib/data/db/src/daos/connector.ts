@@ -1,9 +1,9 @@
 import Entity from './entity';
-import { IConnector, IEntityDao, IRds } from '../model';
+import { IConnector, IRds } from '../model';
 
-//--------------------------------
+// --------------------------------
 // Connectors
-//--------------------------------
+// --------------------------------
 
 class Connector extends Entity<IConnector> {
   constructor(RDS: IRds, transactionId?: string) {

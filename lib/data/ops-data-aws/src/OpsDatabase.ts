@@ -251,6 +251,14 @@ export async function createDatabase(
       const isTransactional = Migrations[n].split('\n')[0] !== '-- No Transaction';
       debug(`Migration is ${isTransactional ? '' : 'NOT'} in a transaction`);
       let transactionId;
+
+      // Certain migrations might require that they be run outside of a transaction.
+      // The primary culprit being updates to existing enum values
+      //
+      // If the first line of a migration file is the commented line `-- No Transaction`,
+      // we will run the migration without the transactional wrapper.
+      //
+      // This should only be used when absolutely necessary.
       if (isTransactional) {
         transactionId = (await rdsData.beginTransaction(commonParams).promise()).transactionId;
         params.transactionId = transactionId as string;
