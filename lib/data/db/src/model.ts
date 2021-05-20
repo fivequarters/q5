@@ -35,6 +35,9 @@ export interface IDaoCollection {
   Integration: IEntityDao<IIntegration>;
   Storage: IEntityDao<IStorageItem>;
   Operation: IEntityDao<IOperation>;
+  Session: IEntityDao<ISession>;
+  Identity: IEntityDao<IIdentity>;
+  Instance: IEntityDao<IInstance>;
 }
 
 export interface IRdsCredentials {
@@ -105,6 +108,9 @@ export interface IIntegration extends IEntity {}
 export interface IConnector extends IEntity {}
 export interface IStorageItem extends IEntity {}
 export interface IOperation extends IEntity {}
+export interface IIdentity extends IEntity {}
+export interface IInstance extends IEntity {}
+export interface ISession extends IEntity {}
 export interface IEntityGeneric extends IIntegration, IConnector, IStorageItem, IOperation {}
 
 // --------------------------------
@@ -180,6 +186,9 @@ export enum EntityType {
   Connector = 'connector',
   Operation = 'operation',
   Storage = 'storage',
+  Instance = 'instance',
+  Identity = 'identity',
+  Session = 'session',
 }
 
 // --------------------------------

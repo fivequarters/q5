@@ -1,18 +1,18 @@
 import Entity from './entity';
-import { IConnector, IRds } from '../model';
+import { IInstance, IRds } from '../model';
 
 // --------------------------------
-// Connectors
+// Instances
 // --------------------------------
 
-class Connector extends Entity<IConnector> {
+class Instance extends Entity<IInstance> {
   constructor(RDS: IRds, transactionId?: string) {
     super({
       RDS,
-      entityType: Entity.EntityType.Connector,
+      entityType: Entity.EntityType.Instance,
       transactionId,
     });
   }
 }
 
-export default Connector;
+export default Instance;

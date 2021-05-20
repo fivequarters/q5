@@ -230,7 +230,11 @@ export async function createDatabase(
       return undefined;
     }
 
-    const migrationError = async (n: number, transactionId: string, error: any) => {
+    const migrationError = async (n: number, transactionId: string | false, error: any) => {
+      if (!transactionId) {
+        debug('NON TRANSACTIONAL MIGRATION ERROR', n);
+        return;
+      }
       try {
         await rdsData.rollbackTransaction({ ...dbCredentials, transactionId }).promise();
         debug('ROLLBACK MIGRATION SUCCESS', n);
@@ -243,10 +247,25 @@ export async function createDatabase(
 
     const runMigration = async (n: number): Promise<void> => {
       debug('STARTING MIGRATION', n);
-      const { transactionId } = await rdsData.beginTransaction(commonParams).promise();
+
+      const isTransactional = Migrations[n].split('\n')[0] !== '-- No Transaction';
+      debug(`Migration is ${isTransactional ? '' : 'NOT'} in a transaction`);
+      let transactionId;
+
+      // Certain migrations might require that they be run outside of a transaction.
+      // The primary culprit being updates to existing enum values
+      //
+      // If the first line of a migration file is the commented line `-- No Transaction`,
+      // we will run the migration without the transactional wrapper.
+      //
+      // This should only be used when absolutely necessary.
+      if (isTransactional) {
+        transactionId = (await rdsData.beginTransaction(commonParams).promise()).transactionId;
+        params.transactionId = transactionId as string;
+      }
+
       try {
         params.sql = Migrations[n];
-        params.transactionId = transactionId as string;
         const updateResult = await rdsData.executeStatement(params).promise();
 
         params.sql = `UPDATE schemaVersion SET version = :schemaVersion, fuse_ops_version = :fuseOpsVersion WHERE version = :schemaVersion - 1;`;
@@ -261,9 +280,11 @@ export async function createDatabase(
         debug('MIGRATION EXECUTION SUCCESS', n, updateResult && JSON.stringify(updateResult, null, 2));
       } catch (e) {
         debug('MIGRATION EXECUTION ERROR', n, e);
-        return migrationError(n, transactionId as string, e);
+        return migrationError(n, isTransactional && (transactionId as string), e);
       }
-      await rdsData.commitTransaction({ ...dbCredentials, transactionId: params.transactionId as string }).promise();
+      if (isTransactional) {
+        await rdsData.commitTransaction({ ...dbCredentials, transactionId: params.transactionId as string }).promise();
+      }
       debug('COMMITED MIGRATION', n);
       return Migrations[n + 1] === undefined ? undefined : runMigration(n + 1);
     };
