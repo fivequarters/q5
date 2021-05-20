@@ -7,6 +7,8 @@ import Connector from './daos/connector';
 import Integration from './daos/integration';
 import Storage from './daos/storage';
 import Operation from './daos/operation';
+import Session from './daos/session';
+import Identity from './daos/identity';
 
 class RDS implements IRds {
   private rdsSdk!: AWS.RDSDataService;
@@ -189,12 +191,12 @@ class RDS implements IRds {
   public async inTransaction<T>(func: (transactionalDaos: IDaoCollection) => Promise<T>): Promise<T> {
     const transactionId = await this.createTransaction();
     try {
-      const result = await func({
-        Connector: this.DAO.Connector.createTransactional(transactionId),
-        Integration: this.DAO.Integration.createTransactional(transactionId),
-        Storage: this.DAO.Storage.createTransactional(transactionId),
-        Operation: this.DAO.Operation.createTransactional(transactionId),
-      });
+      const daoKeys = Object.keys(this.DAO) as (keyof IDaoCollection)[];
+      const transactionalDaos = daoKeys.reduce((acc: Partial<IDaoCollection>, cur: keyof IDaoCollection) => {
+        acc[cur] = this.DAO[cur].createTransactional(transactionId);
+        return acc;
+      }, {}) as IDaoCollection;
+      const result = await func(transactionalDaos);
       await this.commitTransaction(transactionId);
       return result;
     } catch (e) {
@@ -208,6 +210,9 @@ class RDS implements IRds {
     Integration: new Integration(this),
     Storage: new Storage(this),
     Operation: new Operation(this),
+    Session: new Session(this),
+    Identity: new Identity(this),
+    Instance: new Identity(this),
   };
 
   public ensureRecords(
