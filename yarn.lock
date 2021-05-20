@@ -1485,14 +1485,15 @@
   dependencies:
     "@fortawesome/fontawesome-common-types" "^0.2.25"
 
-"@fusebit/tunnel@^3.2.1":
-  version "3.2.1"
-  resolved "https://registry.yarnpkg.com/@fusebit/tunnel/-/tunnel-3.2.1.tgz#5f798c749412f2bdf9c7fe746d0e9b11ac1474f9"
-  integrity sha512-Cds6Ef/oJ/NVN+TRgjULDs3XH6ehDwOXQzGXq0LNr+LOlRIZDaqwpFluB7Uu1iD0PH5iQKNgW67z9CcVz56s2Q==
+"@fusebit/tunnel@^3.2.2":
+  version "3.2.2"
+  resolved "https://registry.yarnpkg.com/@fusebit/tunnel/-/tunnel-3.2.2.tgz#f90758ed8523e3f9ec217b485279c92fcac65477"
+  integrity sha512-7bJhM8tvgv5DvYedjVsSSdIWbZhHlfesMBjn/oazKtvtFwcOofHAwtUrrbQ8DcleLivsfwybYytk5/gyfZhWjA==
   dependencies:
     axios "0.21.1"
     debug "4.3.1"
     openurl "1.1.1"
+    prettier "^2.3.0"
     yargs "16.2.0"
 
 "@google-cloud/bigquery@^3.0.0":
@@ -3680,6 +3681,21 @@ aws-sdk@*:
   version "2.906.0"
   resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.906.0.tgz#c85ebb6257865b97d6a88c6d89aeb9b6075744df"
   integrity sha512-u/kmVILew/9HFpHwVrc3VMK24m+XrazXEooMxkzbWXEBvtVm1xTYv8xPmdgiYvogWIkWTkeIF9ME4LBeHenYkw==
+  dependencies:
+    buffer "4.9.2"
+    events "1.1.1"
+    ieee754 "1.1.13"
+    jmespath "0.15.0"
+    querystring "0.2.0"
+    sax "1.2.1"
+    url "0.10.3"
+    uuid "3.3.2"
+    xml2js "0.4.19"
+
+aws-sdk@^2.895.0:
+  version "2.911.0"
+  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.911.0.tgz#dcdeb01e2c1fcedbfcd06e09b8559981f0e649b0"
+  integrity sha512-4tmQQXFWGIsH59rJdgpkqAm4GHB16OOpz8b93VyUjWl0WZl9VqBy/3Jo88fhCoirzjgjEhTPnZ/I9pUYlXEyHg==
   dependencies:
     buffer "4.9.2"
     events "1.1.1"
@@ -13256,6 +13272,11 @@ prettier@^2.0.5:
   version "2.0.5"
   resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.0.5.tgz#d6d56282455243f2f92cc1716692c08aa31522d4"
   integrity sha512-7PtVymN48hGcO4fGjybyBSIWDsLU4H4XlvOHfq91pz9kkGlonzwTfYkaIEwiRg/dAJF9YlbsduBAgtYLi+8cFg==
+
+prettier@^2.3.0:
+  version "2.3.0"
+  resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.3.0.tgz#b6a5bf1284026ae640f17f7ff5658a7567fc0d18"
+  integrity sha512-kXtO4s0Lz/DW/IJ9QdWhAf7/NmPWQXkFr/r/WkR3vyI+0v8amTDxiaQSLzs8NBlytfLWX/7uQUMIW677yLKl4w==
 
 pretty-bytes@^5.1.0:
   version "5.3.0"
