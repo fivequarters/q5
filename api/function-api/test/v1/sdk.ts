@@ -350,15 +350,19 @@ export async function getFunctionLocation(account: IAccount, boundaryId: string,
   });
 }
 
-export async function callFunction(token: string, url: string) {
+export async function callFunction(token: string, url: string, method: string = 'GET', data?: any) {
   return request({
-    method: 'GET',
-    headers: token
-      ? {
-          Authorization: `Bearer ${token}`,
-        }
-      : {},
+    method,
+    headers: {
+      ...(token
+        ? {
+            Authorization: `Bearer ${token}`,
+          }
+        : {}),
+      ...(data ? { 'Content-Type': 'application/json' } : {}),
+    },
     url,
+    data,
   });
 }
 

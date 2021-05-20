@@ -7,6 +7,7 @@ const analytics = require('./middleware/analytics');
 const determine_provider = require('./middleware/determine_provider');
 const parse_body_conditional = require('./middleware/parse_body_conditional');
 const provider_handlers = require('./handlers/provider_handlers');
+const { initFunctions } = require('./functions');
 const validate_schema = require('./middleware/validate_schema');
 const authorize = require('./middleware/authorize');
 const user_agent = require('./middleware/user_agent');
@@ -77,6 +78,9 @@ keyStore.rekey();
 // Create and load a cache with the current subscription->account mapping
 const subscriptionCache = new SubscriptionCache({});
 subscriptionCache.refresh();
+
+// Register the globals with various consumers
+initFunctions(keyStore, subscriptionCache);
 
 // Utility functions
 const NotImplemented = (_, __, next) => next(create_error(501, 'Not implemented'));

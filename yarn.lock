@@ -17291,6 +17291,11 @@ ws@^7.0.0:
   resolved "https://registry.yarnpkg.com/ws/-/ws-7.4.4.tgz#383bc9742cb202292c9077ceab6f6047b17f2d59"
   integrity sha512-Qm8k8ojNQIMx7S+Zp8u/uHOx7Qazv3Yv4q68MiWWWOJhiwG5W3x7iqmRtJo8xxrciZUY4vRxUTJCKuRnF28ZZw==
 
+wtfnode@^0.8.4:
+  version "0.8.4"
+  resolved "https://registry.yarnpkg.com/wtfnode/-/wtfnode-0.8.4.tgz#91ecf78a40ce222a73a063f26d72bea52357efcc"
+  integrity sha512-64GEKtMt/MUBuAm+8kHqP74ojjafzu00aT0JKsmkIwYmjRQ/odO0yhbzKLm+Z9v1gMla+8dwITRKzTAlHsB+Og==
+
 xdg-basedir@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/xdg-basedir/-/xdg-basedir-3.0.0.tgz#496b2cc109eca8dbacfe2dc72b603c17c5870ad4"

@@ -26,10 +26,30 @@ const rateLimit = (req: IRequest, res: Response, next: NextFunction) => {
   requireSubscriptionRequest(req, res, next);
 
   const rateKey: string = req.params.subscriptionId;
-  const limit: number = req.subscription.limits ? req.subscription.limits.concurrency : -1;
+
+  try {
+    const releaseRate = checkRateLimit(req.subscription, rateKey);
+
+    // Hook on the end of the function to adjust the utilization metric.
+    const end = res.end;
+    res.end = (chunk?: any, encodingOrCb?: BufferEncoding | (() => void) | string, callback?: () => void) => {
+      releaseRate();
+
+      // Propagate the response.
+      res.end = end;
+      res.end(chunk, encodingOrCb as BufferEncoding, callback);
+    };
+  } catch (err) {
+    return next(err);
+  }
+  next();
+};
+
+const checkRateLimit = (subscription: any, rateKey: string) => {
+  const limit: number = subscription.limits ? subscription.limits.concurrency : -1;
 
   if (!rateKey) {
-    return next();
+    return () => {};
   }
 
   if (!(rateKey in current)) {
@@ -39,25 +59,17 @@ const rateLimit = (req: IRequest, res: Response, next: NextFunction) => {
 
   // Enforce hard limit on concurrency; -1 is unlimited, and 0 denies all requests.
   if (limit >= 0 && limit <= current[rateKey]) {
-    return next(create_error(429, 'Subscription has exceeded concurrency throttle'));
+    throw create_error(429, 'Subscription has exceeded concurrency throttle');
   }
-
-  // Hook on the end of the function to adjust the utilization metric.
-  const end = res.end;
-  res.end = (chunk?: any, encodingOrCb?: BufferEncoding | (() => void), callback?: () => void) => {
-    current[rateKey] = current[rateKey] - 1;
-
-    // Propagate the response.
-    res.end = end;
-    res.end(chunk, encodingOrCb as BufferEncoding, callback);
-  };
 
   current[rateKey] = current[rateKey] + 1;
   maximum[rateKey] = Math.max(current[rateKey], maximum[rateKey]);
 
-  next();
+  return () => {
+    current[rateKey] = current[rateKey] - 1;
+  };
 };
 
 const getMetrics = () => ({ concurrency: { current, maximums: maximum } });
 
-export { rateLimit, getMetrics };
+export { rateLimit, getMetrics, checkRateLimit };
