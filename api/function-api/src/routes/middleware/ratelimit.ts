@@ -32,7 +32,7 @@ const rateLimit = (req: IRequest, res: Response, next: NextFunction) => {
 
     // Hook on the end of the function to adjust the utilization metric.
     const end = res.end;
-    res.end = (chunk?: any, encodingOrCb?: BufferEncoding | (() => void), callback?: () => void) => {
+    res.end = (chunk?: any, encodingOrCb?: BufferEncoding | (() => void) | string, callback?: () => void) => {
       releaseRate();
 
       // Propagate the response.
