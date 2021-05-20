@@ -11,7 +11,7 @@ const BANNER = [
   '',
 ].join('\n');
 
-const publishAll = ['publish_function_api', 'publish_fusebit_cli', 'publish_fusebit_editor', 'publish_fusebit_ops_cli', 'publish_fusetunnel', 'publish_fusetunnel-server'];
+const publishAll = ['publish_function_api', 'publish_fusebit_cli', 'publish_fusebit_editor', 'publish_fusebit_ops_cli'];
 const fullBuild = ['setup_env', 'full_build'];
 
 const specs = [
@@ -32,6 +32,11 @@ const specs = [
     inputs: ['checkout', ...fullBuild, 'publish_website'],
     output: 'publish_website',
   },
+  {
+    name: 'Publish Fusetunnel',
+    inputs: ['publish_fusetunnel', 'publish_fusetunnel-server'],
+    output: 'publish_fusetunnel',
+  }
 ];
 
 function buildSpec(name: string, inputs: string[], output: string, options: any = {}) {
