@@ -10,7 +10,7 @@ export FUSEBIT_DEBUG=
 git clone https://github.com/fusebit/tunnel
 
 AWS_PROFILE=${AWS_PROFILE:=default}
-TUNNEL_VERSION=${jq -r '.version' ./tunnel/package.json}
+TUNNEL_VERSION=$(jq -r '.version' ./tunnel/package.json)
 
 echoerr "Deploying to npm (ignoring error on republish of same version)"
 cd tunnel/
