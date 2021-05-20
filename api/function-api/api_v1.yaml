@@ -3445,14 +3445,16 @@ components:
             subscriptionId:
               $ref: '#/components/schemas/SubscriptionId'
             status:
-              type: 'string'
+              type: string
               enum:
                 - 'pending'
                 - 'building'
                 - 'success'
                 - 'failure'
             error:
-              type: 'object'
+              type: object
+            version:
+              type: number
             transitions:
               type: 'object'
         - $ref: '#/components/schemas/FunctionLocation'
