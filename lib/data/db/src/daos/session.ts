@@ -1,18 +1,18 @@
 import Entity from './entity';
-import { IConnector, IRds } from '../model';
+import { ISession, IRds } from '../model';
 
 // --------------------------------
-// Connectors
+// Sessions
 // --------------------------------
 
-class Connector extends Entity<IConnector> {
+class Session extends Entity<ISession> {
   constructor(RDS: IRds, transactionId?: string) {
     super({
       RDS,
-      entityType: Entity.EntityType.Connector,
+      entityType: Entity.EntityType.Session,
       transactionId,
     });
   }
 }
 
-export default Connector;
+export default Session;

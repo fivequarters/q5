@@ -3,9 +3,9 @@ import Entity from './entity';
 import moment from 'moment';
 import { IRds } from '../model';
 
-//--------------------------------
+// --------------------------------
 // Operation
-//--------------------------------
+// --------------------------------
 
 export default class Operation extends Entity<Model.IOperation> {
   constructor(RDS: IRds, transactionId?: string) {

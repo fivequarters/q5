@@ -32,6 +32,11 @@ const specs = [
     inputs: ['checkout', ...fullBuild, 'publish_website'],
     output: 'publish_website',
   },
+  {
+    name: 'Publish Fusetunnel',
+    inputs: ['checkout', 'setup_env', 'publish_fusetunnel', 'publish_fusetunnel-server'],
+    output: 'publish_fusetunnel',
+  }
 ];
 
 function buildSpec(name: string, inputs: string[], output: string, options: any = {}) {
