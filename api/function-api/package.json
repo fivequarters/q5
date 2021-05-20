@@ -33,7 +33,6 @@
     "@5qtrs/storage": "^0.0.1",
     "@5qtrs/storage-data": "^0.0.1",
     "@5qtrs/storage-data-aws": "^0.0.1",
-    "@fusebit/tunnel": "^3.2.1",
     "@types/moment": "^2.13.0",
     "aws4": "^1.10.0",
     "cors": "^2.8.5",
@@ -53,7 +52,7 @@
   "devDependencies": {
     "@5qtrs/fusebit-profile-sdk": "^0.0.1",
     "@5qtrs/request": "^0.0.1",
-    "@fusebit/tunnel": "^3.2.1",
+    "@fusebit/tunnel": "^3.2.3",
     "@npm/types": "^1.0.1",
     "@reportportal/agent-js-jest": "bennbollay/agent-js-jest#patch-1",
     "@types/aws-sdk": "^2.7.0",
