@@ -1485,10 +1485,10 @@
   dependencies:
     "@fortawesome/fontawesome-common-types" "^0.2.25"
 
-"@fusebit/tunnel@^3.2.1":
-  version "3.2.1"
-  resolved "https://registry.yarnpkg.com/@fusebit/tunnel/-/tunnel-3.2.1.tgz#5f798c749412f2bdf9c7fe746d0e9b11ac1474f9"
-  integrity sha512-Cds6Ef/oJ/NVN+TRgjULDs3XH6ehDwOXQzGXq0LNr+LOlRIZDaqwpFluB7Uu1iD0PH5iQKNgW67z9CcVz56s2Q==
+"@fusebit/tunnel@^3.2.3":
+  version "3.2.3"
+  resolved "https://registry.yarnpkg.com/@fusebit/tunnel/-/tunnel-3.2.3.tgz#c4c3c705a47edb87120b6117e29d27fdb021dc35"
+  integrity sha512-v+rQetsefGgI7BPUAdZf6wk3zCQFR9yjEYetEqPnKLSmNoWk7Fj7yOswrTElZzj4tPk39Kzs3bXeE3lqrqesxA==
   dependencies:
     axios "0.21.1"
     debug "4.3.1"
@@ -3680,6 +3680,21 @@ aws-sdk@*:
   version "2.906.0"
   resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.906.0.tgz#c85ebb6257865b97d6a88c6d89aeb9b6075744df"
   integrity sha512-u/kmVILew/9HFpHwVrc3VMK24m+XrazXEooMxkzbWXEBvtVm1xTYv8xPmdgiYvogWIkWTkeIF9ME4LBeHenYkw==
+  dependencies:
+    buffer "4.9.2"
+    events "1.1.1"
+    ieee754 "1.1.13"
+    jmespath "0.15.0"
+    querystring "0.2.0"
+    sax "1.2.1"
+    url "0.10.3"
+    uuid "3.3.2"
+    xml2js "0.4.19"
+
+aws-sdk@^2.895.0:
+  version "2.911.0"
+  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.911.0.tgz#dcdeb01e2c1fcedbfcd06e09b8559981f0e649b0"
+  integrity sha512-4tmQQXFWGIsH59rJdgpkqAm4GHB16OOpz8b93VyUjWl0WZl9VqBy/3Jo88fhCoirzjgjEhTPnZ/I9pUYlXEyHg==
   dependencies:
     buffer "4.9.2"
     events "1.1.1"
