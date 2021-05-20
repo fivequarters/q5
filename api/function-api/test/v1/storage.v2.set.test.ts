@@ -52,7 +52,7 @@ describe('Storage Set', () => {
       expect(storage.data.etag).toBeUUID();
     }, 180000);
 
-    test('Setting storage with hierarchy and * character in storageId should fail', async () => {
+    test('Setting storage with hierarchy and star character in storageId should fail', async () => {
       const storageId = `test-${random()}/foo/b*r/baz`;
       const storageData = { data: 'hello world' };
       const storage = await setStorage(account, storageId, storageData);
