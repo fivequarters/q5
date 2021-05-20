@@ -20,6 +20,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 
 ## Version 1.27.2
 
+_Released 05/19/21_
+
+- **Enhancement.** Support new types in RDS.
+
+## Version 1.27.2
+
 _Released 05/18/21_
 
 - **Bugfix.** Further RDS tooling support.
