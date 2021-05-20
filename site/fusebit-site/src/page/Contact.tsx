@@ -1,40 +1,26 @@
-import React from 'react';
-import { Box, BoxProps } from '@5qtrs/box';
-import { FusebitText as Text, FusebitTextType as TextType, FusebitTextWeight as TextWeight } from '@5qtrs/fusebit-text';
-import { FusebitColor as Color } from '@5qtrs/fusebit-color';
-import { FusebitLink as Link } from '@5qtrs/fusebit-link';
-import {
-  FusebitPage as Page,
-  FusebitSection as Section,
-  FusebitQuote as Quote,
-  FusebitBreak as Break,
-} from '@5qtrs/fusebit-page';
-import { MediaQuery, MediaType } from '@5qtrs/media-query';
-import { FusebitText, FusebitTextType, FusebitTextWeight } from '@5qtrs/fusebit-text';
-import {
-  PuzzleIcon,
-  EmptyTagIcon,
-  FourBoxesIcon,
-  ShieldIcon,
-  NetworkFileIcon,
-  OrgChartIcon,
-} from '@5qtrs/fusebit-icon';
+import { Box } from '@5qtrs/box';
 import { FusebitColor } from '@5qtrs/fusebit-color';
-import { FusebitSection } from '@5qtrs/fusebit-page';
+import { DiscordIcon, MailIcon, SlackIcon } from '@5qtrs/fusebit-icon';
+import { FusebitLink as Link } from '@5qtrs/fusebit-link';
+import { FusebitPage as Page, FusebitSection } from '@5qtrs/fusebit-page';
+import { FusebitText } from '@5qtrs/fusebit-text';
+import { MediaQuery, MediaType } from '@5qtrs/media-query';
+import React from 'react';
 
 // ------------------
 // Internal Constants
 // ------------------
 
-function ContactOption({ icon, heading, children }: any) {
+function ContactOption({ icon, heading, href, children }: any) {
   return (
     <>
       <Box center middle noWrap marginBottom={20}>
-        <Box center middle background={FusebitColor.red} padding={12} borderRadius={10}>
-          {icon}
-        </Box>
+        <Link openTab href={href}>
+          <Box center middle background={FusebitColor.red} padding={24} borderRadius={20}>
+            {icon}
+          </Box>
+        </Link>
       </Box>
-      {/* <FusebitText type={FusebitTextType.bodyLarge}>{children}</FusebitText> */}
       {children}
     </>
   );
@@ -42,7 +28,7 @@ function ContactOption({ icon, heading, children }: any) {
 
 function SlackContactOption() {
   return (
-    <ContactOption icon={<PuzzleIcon size={52} />}>
+    <ContactOption icon={<SlackIcon size={104} />} href={'https://fusebitio.slack.com/'}>
       <FusebitText>
         <Link openTab href="https://fusebitio.slack.com/">
           Slack
@@ -52,8 +38,8 @@ function SlackContactOption() {
         {/* Regenerate the invite link every 2000ppl who join Slack */}(
         <Link openTab href="https://join.slack.com/t/fusebitio/shared_invite/zt-qe7uidtf-4cs6OgaomFVgAF_fQZubfg">
           get invited
-        </Link>{' '}
-        first)
+        </Link>
+        )
       </FusebitText>
     </ContactOption>
   );
@@ -61,7 +47,7 @@ function SlackContactOption() {
 
 function DiscordContactOption() {
   return (
-    <ContactOption icon={<PuzzleIcon size={52} />}>
+    <ContactOption icon={<DiscordIcon size={104} />} href={'https://discord.gg/kbw63AmWP9'}>
       <FusebitText>
         <Link openTab href="https://discord.gg/kbw63AmWP9">
           Discord
@@ -73,7 +59,7 @@ function DiscordContactOption() {
 
 function EmailContactOption() {
   return (
-    <ContactOption icon={<PuzzleIcon size={52} />}>
+    <ContactOption icon={<MailIcon size={104} />} href={'mailto:contact@fusebit.io'}>
       <FusebitText>
         <Link href="mailto:contact@fusebit.io">contact@fusebit.io</Link>
       </FusebitText>
