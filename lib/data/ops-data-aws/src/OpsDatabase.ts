@@ -258,7 +258,6 @@ export async function createDatabase(
 
       try {
         params.sql = Migrations[n];
-        console.log(params.sql);
         const updateResult = await rdsData.executeStatement(params).promise();
 
         params.sql = `UPDATE schemaVersion SET version = :schemaVersion, fuse_ops_version = :fuseOpsVersion WHERE version = :schemaVersion - 1;`;
