@@ -28,6 +28,16 @@ const specs = [
     output: 'publish',
   },
   {
+    name: 'Publish fuse-ops cli',
+    inputs: ['checkout', ...fullBuild, 'publish_fusebit_ops_cli'],
+    output: 'publish_fuse-ops_cli',
+  },
+  {
+    name: 'Publish fuse cli',
+    inputs: ['checkout', ...fullBuild, 'publish_fusebit_cli'],
+    output: 'publish_fuse_cli',
+  },
+  {
     name: 'Publish the Website',
     inputs: ['checkout', ...fullBuild, 'publish_website'],
     output: 'publish_website',
