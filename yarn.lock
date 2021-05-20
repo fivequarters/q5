@@ -1485,6 +1485,16 @@
   dependencies:
     "@fortawesome/fontawesome-common-types" "^0.2.25"
 
+"@fusebit/tunnel@^3.2.1":
+  version "3.2.1"
+  resolved "https://registry.yarnpkg.com/@fusebit/tunnel/-/tunnel-3.2.1.tgz#5f798c749412f2bdf9c7fe746d0e9b11ac1474f9"
+  integrity sha512-Cds6Ef/oJ/NVN+TRgjULDs3XH6ehDwOXQzGXq0LNr+LOlRIZDaqwpFluB7Uu1iD0PH5iQKNgW67z9CcVz56s2Q==
+  dependencies:
+    axios "0.21.1"
+    debug "4.3.1"
+    openurl "1.1.1"
+    yargs "16.2.0"
+
 "@google-cloud/bigquery@^3.0.0":
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/@google-cloud/bigquery/-/bigquery-3.0.0.tgz#aaf7883bfcf5146f9f04783d0d10b80253fb49a9"
@@ -7313,15 +7323,6 @@ functional-red-black-tree@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/functional-red-black-tree/-/functional-red-black-tree-1.0.1.tgz#1b0ab3bd553b2a0d6399d29c0e3ea0b252078327"
   integrity sha1-GwqzvVU7Kg1jmdKcDj6gslIHgyc=
-
-fusetunnel@fusebit/tunnel#master:
-  version "3.2.1"
-  resolved "https://codeload.github.com/fusebit/tunnel/tar.gz/4eba3d1344797949fa16b1098bb151627559b4a5"
-  dependencies:
-    axios "0.21.1"
-    debug "4.3.1"
-    openurl "1.1.1"
-    yargs "16.2.0"
 
 gauge@~2.7.3:
   version "2.7.4"
