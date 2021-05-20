@@ -15,7 +15,7 @@ VERSION=${VERSION_FUSEBIT_CLI:=`jq -r '.version' ./tunnel/package.json`}
 
 echoerr "Deploying to npm (ignoring error on republish of same version)"
 cd tunnel/
-npm publish 1>&2 || true
+npm publish --access public 1>&2 || true
 
 echoerr "Testing installation"
 npm install -g @fusebit/tunnel@${VERSION} 1>&2
