@@ -2,9 +2,8 @@ import { Box } from '@5qtrs/box';
 import { FusebitColor } from '@5qtrs/fusebit-color';
 import { DiscordIcon, MailIcon, SlackIcon } from '@5qtrs/fusebit-icon';
 import { FusebitLink as Link } from '@5qtrs/fusebit-link';
-import { FusebitPage as Page, FusebitSection } from '@5qtrs/fusebit-page';
-import { FusebitText } from '@5qtrs/fusebit-text';
-import { MediaQuery, MediaType } from '@5qtrs/media-query';
+import { FusebitBreak, FusebitPage as Page, FusebitSection } from '@5qtrs/fusebit-page';
+import { FusebitText, FusebitTextType, FusebitTextWeight } from '@5qtrs/fusebit-text';
 import React from 'react';
 
 // ------------------
@@ -14,32 +13,34 @@ import React from 'react';
 function ContactOption({ icon, heading, href, children }: any) {
   return (
     <>
-      <Box center middle noWrap marginBottom={20}>
+      <Box middle noWrap marginBottom={20}>
         <Link openTab href={href}>
-          <Box center middle background={FusebitColor.red} padding={24} borderRadius={20}>
+          <Box background={FusebitColor.red} padding={12} marginRight={20} borderRadius={5}>
             {icon}
           </Box>
         </Link>
+        <FusebitText type={FusebitTextType.body} weight={FusebitTextWeight.bold}>
+          {children}
+        </FusebitText>
       </Box>
-      {children}
     </>
   );
 }
 
 function SlackContactOption() {
   return (
-    <ContactOption icon={<SlackIcon size={104} />} href={'https://fusebitio.slack.com/'}>
+    <ContactOption icon={<SlackIcon />} href={'https://fusebitio.slack.com/'}>
       <FusebitText>
         <Link openTab href="https://fusebitio.slack.com/">
-          Slack
+          Fusebit Community Slack
         </Link>
       </FusebitText>
       <FusebitText>
-        {/* Regenerate the invite link every 2000ppl who join Slack */}(
+        Request invitation&nbsp;
+        {/* Regenerate the invite link every 2000ppl who join Slack */}
         <Link openTab href="https://join.slack.com/t/fusebitio/shared_invite/zt-qe7uidtf-4cs6OgaomFVgAF_fQZubfg">
-          get invited
+          here
         </Link>
-        )
       </FusebitText>
     </ContactOption>
   );
@@ -47,10 +48,10 @@ function SlackContactOption() {
 
 function DiscordContactOption() {
   return (
-    <ContactOption icon={<DiscordIcon size={104} />} href={'https://discord.gg/kbw63AmWP9'}>
+    <ContactOption icon={<DiscordIcon />} href={'https://discord.gg/kbw63AmWP9'}>
       <FusebitText>
         <Link openTab href="https://discord.gg/kbw63AmWP9">
-          Discord
+          Discord Community
         </Link>
       </FusebitText>
     </ContactOption>
@@ -59,43 +60,11 @@ function DiscordContactOption() {
 
 function EmailContactOption() {
   return (
-    <ContactOption icon={<MailIcon size={104} />} href={'mailto:contact@fusebit.io'}>
+    <ContactOption icon={<MailIcon />} href={'mailto:contact@fusebit.io'}>
       <FusebitText>
         <Link href="mailto:contact@fusebit.io">contact@fusebit.io</Link>
       </FusebitText>
     </ContactOption>
-  );
-}
-
-function MobileVersion() {
-  return (
-    <Box>
-      <Box center middle marginTop={30} marginBottom={20} vertical>
-        <SlackContactOption />
-      </Box>
-      <Box center middle marginTop={30} marginBottom={20} vertical>
-        <DiscordContactOption />
-      </Box>
-      <Box center middle marginTop={30} marginBottom={20} vertical>
-        <EmailContactOption />
-      </Box>
-    </Box>
-  );
-}
-
-function NonMobileVersion() {
-  return (
-    <Box gap={30}>
-      <Box center middle marginTop={20} marginRight={20} vertical expand minWidth={260} maxWidth={400}>
-        <SlackContactOption />
-      </Box>
-      <Box center middle marginTop={20} marginRight={20} vertical expand minWidth={260} maxWidth={400}>
-        <DiscordContactOption />
-      </Box>
-      <Box center middle marginTop={20} marginRight={20} vertical expand minWidth={260} maxWidth={400}>
-        <EmailContactOption />
-      </Box>
-    </Box>
   );
 }
 
@@ -105,14 +74,29 @@ function NonMobileVersion() {
 
 export function Contact() {
   return (
-    <Page header="Get in touch">
-      <FusebitSection maxWidth={1200}>
-        <MediaQuery mediaType={MediaType.mobile}>
-          <MobileVersion />
-        </MediaQuery>
-        <MediaQuery mediaType={MediaType.allExceptMobile}>
-          <NonMobileVersion />
-        </MediaQuery>
+    <Page header="Get In Touch">
+      <FusebitSection marginBottom={60}>
+        <Box width="100%" marginBottom={80}>
+          <Box expand={1} marginRight={40} minWidth={300} marginBottom={40}>
+            We love hearing feedback from customers - that's you! Please use your preferred method to reach out.
+            <FusebitBreak />
+            Even better, we would love for you to be part of our community. We are on Slack and Discord 24/7, happy to
+            talk integrations.
+            <FusebitBreak />
+            We are looking forward to hearing from you!
+          </Box>
+          <Box expand width="100%" minWidth={300}>
+            <Box middle marginRight={20} vertical expand minWidth={260} maxWidth={400}>
+              <SlackContactOption />
+            </Box>
+            <Box middle marginTop={20} marginRight={20} vertical expand minWidth={260} maxWidth={400}>
+              <DiscordContactOption />
+            </Box>
+            <Box middle marginTop={20} marginRight={20} vertical expand minWidth={260} maxWidth={400}>
+              <EmailContactOption />
+            </Box>
+          </Box>
+        </Box>
       </FusebitSection>
     </Page>
   );
