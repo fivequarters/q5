@@ -7,16 +7,18 @@ export default abstract class BaseComponentService<E extends Model.IEntity> {
   }
   public readonly dao: Model.IEntityDao<E>;
 
-  getEntityTag = async (entityKey: Model.IEntityKeyTagSet): Promise<string> => {
+  public createEntity = async (entity: Model.IEntity) => this.dao.createEntity(entity);
+
+  public getEntityTag = async (entityKey: Model.IEntityKeyTagSet): Promise<string> => {
     const response = await this.dao.getEntityTags(entityKey);
     return response.tags[entityKey.tagKey];
   };
 
-  dispatch = async (req: Request, res: Response, next: NextFunction) => {
+  public dispatch = async (req: Request, res: Response, next: NextFunction) => {
     return;
   };
 
-  health = ({ id }: { id: string }): Promise<Boolean> => {
+  public health = ({ id }: { id: string }): Promise<boolean> => {
     return Promise.resolve(false);
   };
 }

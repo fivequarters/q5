@@ -31,7 +31,7 @@ const router = (ComponentService: BaseComponentService<any>) => {
     })
     .post(async (req, res, next) => {
       try {
-        const response = await ComponentService.dao.createEntity({
+        const response = await ComponentService.createEntity({
           ...pathParams.accountAndSubscription(req),
           ...body.entity(req),
         });

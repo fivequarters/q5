@@ -1,6 +1,6 @@
 import { ApiRequestMap } from './sdk';
 
-import { getEnv } from './setup';
+import { getEnv } from '../v1/setup';
 import { IntegrationService } from '../../src/routes/service';
 import { Model } from '@5qtrs/db';
 
