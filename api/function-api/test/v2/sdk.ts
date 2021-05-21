@@ -3,6 +3,14 @@ import { request } from '@5qtrs/request';
 import { Model } from '@5qtrs/db';
 import * as querystring from 'querystring';
 
+const testEntitiesCreated: { entityType: string; id: string }[] = [];
+
+export const cleanupEntities = async (account: IAccount) => {
+  await (Promise as any).allSettled(
+    testEntitiesCreated.map(({ entityType, id }) => (ApiRequestMap as any)[entityType].delete(account, id))
+  );
+};
+
 export const ApiRequestMap = {
   connector: {
     get: async (account: IAccount, connectorId: string) => {
@@ -21,8 +29,10 @@ export const ApiRequestMap = {
       });
       return v2Request(account, { method: 'GET', uri: `/connector?${querystring.stringify(queryParams)}` });
     },
-    post: async (account: IAccount, body: Model.IEntity) =>
-      v2Request(account, { method: 'POST', uri: '/connector', body }),
+    post: async (account: IAccount, body: Model.IEntity) => {
+      testEntitiesCreated.push({ entityType: 'connector', id: body.id });
+      return v2Request(account, { method: 'POST', uri: '/connector', body });
+    },
     put: async (account: IAccount, connectorId: string, body: Model.IEntity) =>
       v2Request(account, { method: 'PUT', uri: `/connector/${encodeURI(connectorId)}`, body }),
     delete: async (account: IAccount, connectorId: string) =>
@@ -53,8 +63,10 @@ export const ApiRequestMap = {
       });
       return v2Request(account, { method: 'GET', uri: `/integration?${querystring.stringify(queryParams)}` });
     },
-    post: async (account: IAccount, body: Model.IEntity) =>
-      v2Request(account, { method: 'POST', uri: '/integration', body }),
+    post: async (account: IAccount, body: Model.IEntity) => {
+      testEntitiesCreated.push({ entityType: 'Integration', id: body.id });
+      return v2Request(account, { method: 'POST', uri: '/integration', body });
+    },
     put: async (account: IAccount, integrationId: string, body: Model.IEntity) =>
       v2Request(account, { method: 'PUT', uri: `/integration/${encodeURI(integrationId)}`, body }),
     delete: async (account: IAccount, integrationId: string) =>
@@ -86,17 +98,6 @@ export const v2Request = async (account: IAccount, requestOptions: RequestOption
     data: requestOptions.body,
   });
 };
-
-export async function listConnectors(account: IAccount) {
-  return request({
-    method: 'GET',
-    headers: {
-      Authorization: `Bearer ${account.accessToken}`,
-      'user-agent': account.userAgent,
-    },
-    url: `${account.baseUrl}/v2/account/${account.accountId}/subscription/${account.subscriptionId}/connector`,
-  });
-}
 
 type SessionModes = 'integration' | 'connector';
 
