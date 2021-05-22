@@ -5,7 +5,7 @@ import create_error from 'http-errors';
 
 import RDS from '@5qtrs/db';
 
-const storageDb = RDS.DAO.Storage;
+const storageDb = RDS.DAO.storage;
 
 function normalize(e: any) {
   return { data: e.data, etag: `${e.version}` };

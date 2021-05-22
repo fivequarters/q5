@@ -35,6 +35,7 @@ const router = (ComponentService: BaseComponentService<any>) => {
           ...pathParams.accountAndSubscription(req),
           ...body.entity(req),
         });
+        console.log(`POST response: ${JSON.stringify(response)}`);
         res.json(response);
       } catch (e) {
         next(e);

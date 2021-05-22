@@ -9,7 +9,7 @@ class Instance extends Entity<IInstance> {
   constructor(RDS: IRds, transactionId?: string) {
     super({
       RDS,
-      entityType: Entity.EntityType.Instance,
+      entityType: Entity.EntityType.instance,
       transactionId,
     });
   }

@@ -10,7 +10,7 @@ class Integration extends Entity<Model.IIntegration> {
   constructor(RDS: IRds, transactionId?: string) {
     super({
       RDS,
-      entityType: Entity.EntityType.Integration,
+      entityType: Entity.EntityType.integration,
       transactionId,
     });
   }

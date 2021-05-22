@@ -3,7 +3,7 @@ import RDS, { Model } from '@5qtrs/db';
 
 class IntegrationService extends BaseComponentService<Model.IIntegration> {
   constructor() {
-    super(RDS.DAO.Integration);
+    super(RDS.DAO.integration);
   }
 }
 

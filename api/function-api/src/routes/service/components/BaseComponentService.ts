@@ -7,7 +7,9 @@ export default abstract class BaseComponentService<E extends Model.IEntity> {
   }
   public readonly dao: Model.IEntityDao<E>;
 
-  public createEntity = async (entity: Model.IEntity) => this.dao.createEntity(entity);
+  public createEntity = async (entity: Model.IEntity): Promise<any> => this.dao.createEntity(entity);
+  public updateEntity = async (entity: Model.IEntity): Promise<any> => this.dao.updateEntity(entity);
+  public deleteEntity = async (entity: Model.IEntity): Promise<any> => this.dao.deleteEntity(entity);
 
   public getEntityTag = async (entityKey: Model.IEntityKeyTagSet): Promise<string> => {
     const response = await this.dao.getEntityTags(entityKey);

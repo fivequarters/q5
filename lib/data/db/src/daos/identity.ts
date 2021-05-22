@@ -9,7 +9,7 @@ class Identity extends Entity<IIdentity> {
   constructor(RDS: IRds, transactionId?: string) {
     super({
       RDS,
-      entityType: Entity.EntityType.Identity,
+      entityType: Entity.EntityType.identity,
       transactionId,
     });
   }

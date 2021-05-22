@@ -34,6 +34,7 @@ const remVersion = (connector: IConnectorRequestBody) => {
 const createConnectorTest = async (connector: Model.IEntity) => {
   const createResponse = await ApiRequestMap.connector.post(account, connector);
   expect(createResponse).toBeHttp({ statusCode: 200 });
+  const operation = await ApiRequestMap.operation.waitForCompletion(account, createResponse.data.operationId);
   const listResponse = await ApiRequestMap.connector.list(account, getIdPrefix());
   expect(listResponse).toBeHttp({ statusCode: 200 });
   expect(listResponse.data).toBeDefined();
@@ -70,7 +71,7 @@ describe('Connector', () => {
       data: { newData: 'abc' },
       tags: { newTag: 'efg' },
     };
-    const updateResponse = await ApiRequestMap.connector.put(account, connectorOne.id, connectorOneUpdated);
+    const updateResponse = await ApiRequestMap.connector.putAndWait(account, connectorOne.id, connectorOneUpdated);
     expect(updateResponse).toBeHttp({ statusCode: 200 });
     const getResponse = await ApiRequestMap.connector.get(account, connectorOne.id);
     expect(getResponse.data).toBeDefined();
@@ -87,13 +88,13 @@ describe('Connector', () => {
       tags: { newTag: 'efg' },
       id: 'invalid id',
     };
-    const updateResponse = await ApiRequestMap.connector.put(account, connectorOne.id, connectorOneUpdated);
+    const updateResponse = await ApiRequestMap.connector.putAndWait(account, connectorOne.id, connectorOneUpdated);
     expect(updateResponse).toBeHttp({ statusCode: 404 });
   });
 
   test('Delete Connector', async () => {
     const connectorOne = await createConnectorTest(makeConnector());
-    const deleteResponse = await ApiRequestMap.connector.delete(account, connectorOne.id);
+    const deleteResponse = await ApiRequestMap.connector.deleteAndWait(account, connectorOne.id);
     expect(deleteResponse).toBeHttp({ statusCode: 200 });
     expect(deleteResponse.data).toBeTruthy();
     const getResponse = await ApiRequestMap.connector.get(account, connectorOne.id);
@@ -101,7 +102,7 @@ describe('Connector', () => {
   });
 
   test('Delete Connector returns Not Found', async () => {
-    const deleteResponse = await ApiRequestMap.connector.delete(account, makeConnector().id);
+    const deleteResponse = await ApiRequestMap.connector.deleteAndWait(account, makeConnector().id);
     expect(deleteResponse).toBeHttp({ statusCode: 404 });
   });
 
@@ -129,7 +130,7 @@ describe('Connector', () => {
           id: newId('Mapped-Connector'),
         };
       });
-    await Promise.all(Connectors.map(async (connector) => ApiRequestMap.connector.post(account, connector)));
+    await Promise.all(Connectors.map(async (connector) => ApiRequestMap.connector.postAndWait(account, connector)));
     const fullListResponse = await ApiRequestMap.connector.list(account, getIdPrefix());
     expect(fullListResponse).toBeHttp({ statusCode: 200 });
     expect(fullListResponse.data.items).toHaveLength(connectorCount);
@@ -191,7 +192,7 @@ describe('Connector', () => {
           id: `${boundaryId}-${sectionsByConnectorIndex[index].prefix}`,
         };
       });
-    await Promise.all(Connectors.map(async (connector) => ApiRequestMap.connector.post(account, connector)));
+    await Promise.all(Connectors.map(async (connector) => ApiRequestMap.connector.postAndWait(account, connector)));
     const fullListResponse = await ApiRequestMap.connector.list(account, getIdPrefix());
     expect(fullListResponse).toBeHttp({ statusCode: 200 });
     expect(fullListResponse.data.items).toHaveLength(connectorCount);
@@ -270,7 +271,7 @@ describe('Connector', () => {
       },
       {}
     );
-    await Promise.all(Connectors.map(async (connector) => ApiRequestMap.connector.post(account, connector)));
+    await Promise.all(Connectors.map(async (connector) => ApiRequestMap.connector.postAndWait(account, connector)));
 
     const fullListResponse = await ApiRequestMap.connector.list(account, getIdPrefix());
     expect(fullListResponse).toBeHttp({ statusCode: 200 });
