@@ -271,4 +271,12 @@ const executeFunction = async (
   }
 };
 
-export { createFunction, deleteFunction, executeFunction, checkAuthorization, initFunctions, waitForFunctionBuild };
+export {
+  createFunction,
+  deleteFunction,
+  executeFunction,
+  checkAuthorization,
+  initFunctions,
+  waitForFunctionBuild,
+  IFunctionSpecification,
+};

@@ -31,12 +31,11 @@ const router = (ComponentService: BaseComponentService<any>) => {
     })
     .post(async (req, res, next) => {
       try {
-        const response = await ComponentService.createEntity({
+        const [code, response] = await ComponentService.createEntity({
           ...pathParams.accountAndSubscription(req),
           ...body.entity(req),
         });
-        console.log(`POST response: ${JSON.stringify(response)}`);
-        res.json(response);
+        res.status(code).json(response);
       } catch (e) {
         next(e);
       }

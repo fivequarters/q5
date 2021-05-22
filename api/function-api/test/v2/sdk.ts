@@ -3,6 +3,10 @@ import { request } from '@5qtrs/request';
 import { Model } from '@5qtrs/db';
 import * as querystring from 'querystring';
 
+import { getEnv } from '../v1/setup';
+
+let { function5Id } = getEnv();
+
 const testEntitiesCreated: { entityType: Model.EntityType; id: string }[] = [];
 
 export const cleanupEntities = async (account: IAccount) => {
@@ -45,18 +49,21 @@ export const ApiRequestMap: { [key: string]: any } = {
     },
     postAndWait: async (account: IAccount, body: Model.IEntity) => {
       const op = await ApiRequestMap.connector.post(account, body);
+      expect(op).toBeHttp({ statusCode: 202 });
       return ApiRequestMap.operation.waitForCompletion(account, op.data.operationId);
     },
     put: async (account: IAccount, connectorId: string, body: Model.IEntity) =>
       v2Request(account, { method: 'PUT', uri: `/connector/${encodeURI(connectorId)}`, body }),
     putAndWait: async (account: IAccount, connectorId: string, body: Model.IEntity) => {
       const op = await ApiRequestMap.connector.put(account, connectorId, body);
+      expect(op).toBeHttp({ statusCode: 202 });
       return ApiRequestMap.operation.waitForCompletion(account, op.data.operationId);
     },
     delete: async (account: IAccount, connectorId: string) =>
       v2Request(account, { method: 'DELETE', uri: `/connector/${connectorId}` }),
     deleteAndWait: async (account: IAccount, entityId: string) => {
       const op = await ApiRequestMap.connector.delete(account, entityId);
+      expect(op).toBeHttp({ statusCode: 202 });
       return ApiRequestMap.operation.waitForCompletion(account, op.data.operationId, false);
     },
     tags: {
@@ -91,18 +98,21 @@ export const ApiRequestMap: { [key: string]: any } = {
     },
     postAndWait: async (account: IAccount, body: Model.IEntity) => {
       const op = await ApiRequestMap.integration.post(account, body);
+      expect(op).toBeHttp({ statusCode: 202 });
       return ApiRequestMap.operation.waitForCompletion(account, op.data.operationId);
     },
     put: async (account: IAccount, integrationId: string, body: Model.IEntity) =>
       v2Request(account, { method: 'PUT', uri: `/integration/${encodeURI(integrationId)}`, body }),
     putAndWait: async (account: IAccount, integrationId: string, body: Model.IEntity) => {
       const op = await ApiRequestMap.integration.put(account, integrationId, body);
+      expect(op).toBeHttp({ statusCode: 202 });
       return ApiRequestMap.operation.waitForCompletion(account, op.data.operationId);
     },
     delete: async (account: IAccount, integrationId: string) =>
       v2Request(account, { method: 'DELETE', uri: `/integration/${integrationId}` }),
     deleteAndWait: async (account: IAccount, entityId: string) => {
       const op = await ApiRequestMap.integration.delete(account, entityId);
+      expect(op).toBeHttp({ statusCode: 202 });
       return ApiRequestMap.operation.waitForCompletion(account, op.data.operationId, false);
     },
     tags: {

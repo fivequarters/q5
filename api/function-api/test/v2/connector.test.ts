@@ -1,8 +1,9 @@
+import { Model } from '@5qtrs/db';
+
 import { cleanupEntities, ApiRequestMap } from './sdk';
+import { callFunction, getFunctionLocation } from '../v1/sdk';
 
 import { getEnv } from '../v1/setup';
-import { ConnectorService } from '../../src/routes/service';
-import { Model } from '@5qtrs/db';
 
 let { account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv();
 beforeEach(() => {
@@ -33,8 +34,9 @@ const remVersion = (connector: IConnectorRequestBody) => {
 
 const createConnectorTest = async (connector: Model.IEntity) => {
   const createResponse = await ApiRequestMap.connector.post(account, connector);
-  expect(createResponse).toBeHttp({ statusCode: 200 });
+  expect(createResponse).toBeHttp({ statusCode: 202 });
   const operation = await ApiRequestMap.operation.waitForCompletion(account, createResponse.data.operationId);
+  expect(operation).toBeHttp({ statusCode: 200 });
   const listResponse = await ApiRequestMap.connector.list(account, getIdPrefix());
   expect(listResponse).toBeHttp({ statusCode: 200 });
   expect(listResponse.data).toBeDefined();
@@ -249,7 +251,7 @@ describe('Connector', () => {
             ...(section.tagOne && tagOne(index)),
             ...(section.tagTwo && tagTwo(index)),
             ...(section.tagThree && tagThree(index)),
-            id: `${boundaryId}-${sectionId}_${index}`,
+            id: `${boundaryId}-${sectionId}-${index}`,
           }))
     );
     // map of tag count, to verify expected results; {tagKey: {tagValue: count} }
@@ -271,7 +273,10 @@ describe('Connector', () => {
       },
       {}
     );
-    await Promise.all(Connectors.map(async (connector) => ApiRequestMap.connector.postAndWait(account, connector)));
+    const creates = await Promise.all(
+      Connectors.map(async (connector) => ApiRequestMap.connector.postAndWait(account, connector))
+    );
+    creates.forEach((e) => expect(e).toBeHttp({ statusCode: 200 }));
 
     const fullListResponse = await ApiRequestMap.connector.list(account, getIdPrefix());
     expect(fullListResponse).toBeHttp({ statusCode: 200 });
@@ -389,4 +394,12 @@ describe('Connector', () => {
     const setTagResponse = await ApiRequestMap.connector.tags.put(account, 'bad connector Id', tagKey, tagValue);
     expect(setTagResponse).toBeHttp({ statusCode: 404 });
   });
+
+  test('Invoke Connector', async () => {
+    const connector = await createConnectorTest(makeConnector());
+    const location = await getFunctionLocation(account, 'connector', connector.id);
+    expect(location).toBeHttp({ statusCode: 200 });
+    const call = await callFunction('', location.data.location);
+    expect(call).toBeHttp({ statusCode: 200, data: 'hello' });
+  }, 10000);
 });
