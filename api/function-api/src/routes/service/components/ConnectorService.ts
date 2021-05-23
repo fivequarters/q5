@@ -1,5 +1,3 @@
-import { v4 as uuidv4 } from 'uuid';
-
 import RDS, { Model } from '@5qtrs/db';
 import { IAgent } from '@5qtrs/account-data';
 import { AwsRegistry } from '@5qtrs/registry';
@@ -10,7 +8,7 @@ import { IOperationResult, operationService } from './OperationService';
 import * as Function from '../../functions';
 
 const boundaryId = 'connector';
-const standardConnectorFunctionSpecification: Function.IFunctionSpecification = {
+const standardFunctionSpecification: Function.IFunctionSpecification = {
   nodejs: {
     files: {
       'index.js': 'module.exports = (ctx, cb) => cb(null, { body: "hello" });',
@@ -31,7 +29,7 @@ class ConnectorService extends BaseComponentService<Model.IConnector> {
 
   public createFunctionSpecification = async (entity: Model.IEntity): Promise<Function.IFunctionSpecification> => {
     return {
-      ...standardConnectorFunctionSpecification,
+      ...standardFunctionSpecification,
       ...entity.data,
       id: entity.id,
     };

@@ -410,3 +410,7 @@ const performTests = (testEntityType: string) => {
 describe('Connector', () => {
   performTests('connector');
 });
+
+describe('Integration', () => {
+  performTests('integration');
+});
