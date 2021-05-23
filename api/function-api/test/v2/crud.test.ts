@@ -25,7 +25,7 @@ const remVersion = (entity: IEntityRequestBody) => {
 
 afterAll(async () => {
   await cleanupEntities(account);
-});
+}, 30000);
 
 const performTests = (testEntityType: string) => {
   const makeEntity = (): IEntityRequestBody => ({
@@ -154,7 +154,7 @@ const performTests = (testEntityType: string) => {
     }
 
     expect(receivedIds.sort()).toEqual(Entitys.map((c: any) => c.id).sort());
-  });
+  }, 10000);
 
   test('List Entitys by prefix', async () => {
     const entityCount = 10;

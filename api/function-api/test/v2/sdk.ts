@@ -13,6 +13,7 @@ export const cleanupEntities = async (account: IAccount) => {
   await (Promise as any).allSettled(
     testEntitiesCreated.map(({ entityType, id }) => (ApiRequestMap as any)[entityType].deleteAndWait(account, id))
   );
+  testEntitiesCreated.length = 0; // Clear the array.
 };
 
 interface IWaitForCompletionParams {
@@ -62,9 +63,14 @@ export const ApiRequestMap: { [key: string]: any } = {
     delete: async (account: IAccount, connectorId: string) =>
       v2Request(account, { method: 'DELETE', uri: `/connector/${connectorId}` }),
     deleteAndWait: async (account: IAccount, entityId: string) => {
-      const op = await ApiRequestMap.connector.delete(account, entityId);
-      expect(op).toBeHttp({ statusCode: 202 });
-      return ApiRequestMap.operation.waitForCompletion(account, op.data.operationId, false);
+      let wait: any;
+      do {
+        const op = await ApiRequestMap.connector.delete(account, entityId);
+        expect(op).toBeHttp({ statusCode: 202 });
+        wait = await ApiRequestMap.operation.waitForCompletion(account, op.data.operationId, false);
+      } while (wait.status === 428);
+
+      return wait;
     },
     tags: {
       get: async (account: IAccount, connectorId: string, tagKey: string = '') =>
