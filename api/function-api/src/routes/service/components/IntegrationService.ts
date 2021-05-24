@@ -2,8 +2,8 @@ import RDS, { Model } from '@5qtrs/db';
 import { IAgent } from '@5qtrs/account-data';
 import { AwsRegistry } from '@5qtrs/registry';
 
-import BaseComponentService from './BaseComponentService';
-import { IOperationResult, operationService } from './OperationService';
+import BaseComponentService, { IServiceResult } from './BaseComponentService';
+import { operationService } from './OperationService';
 
 import * as Function from '../../functions';
 
@@ -35,7 +35,7 @@ class IntegrationService extends BaseComponentService<Model.IIntegration> {
     };
   };
 
-  public createEntity = async (entity: Model.IEntity) => {
+  public createEntity = async (entity: Model.IEntity): Promise<IServiceResult> => {
     // TODO: Validate the data matches the expected Joi schema (to be eventually promoted) (especially that
     // the payload contents for accountId match the url parameters).
 
@@ -51,7 +51,7 @@ class IntegrationService extends BaseComponentService<Model.IIntegration> {
         const params = {
           accountId: entity.accountId,
           subscriptionId: entity.subscriptionId,
-          boundaryId, // XXX Move to Constants
+          boundaryId,
           functionId: entity.id,
         };
 
@@ -71,7 +71,7 @@ class IntegrationService extends BaseComponentService<Model.IIntegration> {
     );
   };
 
-  public updateEntity = async (entity: Model.IEntity): Promise<IOperationResult> => {
+  public updateEntity = async (entity: Model.IEntity): Promise<IServiceResult> => {
     // TODO: Validate the data matches the expected Joi schema (to be eventually promoted) (especially that
     // the payload contents for accountId match the url parameters).
 
@@ -94,7 +94,7 @@ class IntegrationService extends BaseComponentService<Model.IIntegration> {
     );
   };
 
-  public deleteEntity = async (entity: Model.IEntity): Promise<IOperationResult> => {
+  public deleteEntity = async (entity: Model.IEntity): Promise<IServiceResult> => {
     // TODO: Validate the data matches the expected Joi schema (to be eventually promoted) (especially that
     // the payload contents for accountId match the url parameters).
 

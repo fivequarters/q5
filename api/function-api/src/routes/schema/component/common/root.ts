@@ -31,11 +31,11 @@ const router = (ComponentService: BaseComponentService<any>) => {
     })
     .post(async (req, res, next) => {
       try {
-        const [code, response] = await ComponentService.createEntity({
+        const { statusCode, result } = await ComponentService.createEntity({
           ...pathParams.accountAndSubscription(req),
           ...body.entity(req),
         });
-        res.status(code).json(response);
+        res.status(statusCode).json(result);
       } catch (e) {
         next(e);
       }

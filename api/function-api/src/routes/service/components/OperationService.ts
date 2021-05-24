@@ -2,11 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import RDS, { Model } from '@5qtrs/db';
 
-interface IOperationStatus {
-  operationId: string;
-}
-
-type IOperationResult = [number, IOperationStatus];
+import { IServiceResult } from './BaseComponentService';
 
 interface IOperationParam {
   verb: 'creating' | 'updating' | 'deleting';
@@ -32,7 +28,7 @@ class OperationService {
     entity: Model.IEntity,
     status: IOperationParam,
     op: IOperationAction
-  ): Promise<IOperationResult> => {
+  ): Promise<IServiceResult> => {
     // Get the entity
 
     // Create operation with the status
@@ -75,13 +71,13 @@ class OperationService {
           operationEntity.data.message ? `: ${operationEntity.data.message}` : ''
         }`
       );
-      const result = await this.dao.updateEntity(operationEntity);
+      await this.dao.updateEntity(operationEntity);
     });
 
     // Return operation with operationId populated
-    return [202, { operationId }];
+    return { statusCode: 202, result: { operationId } };
   };
 }
 
 const operationService = new OperationService();
-export { IOperationResult, IOperationData, IOperationAction, operationService };
+export { IOperationData, IOperationAction, operationService };

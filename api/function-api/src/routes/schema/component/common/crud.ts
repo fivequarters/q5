@@ -20,21 +20,21 @@ const router = (ComponentService: BaseComponentService<any>) => {
     })
     .put(async (req, res, next) => {
       try {
-        const [code, response] = await ComponentService.updateEntity({
+        const { statusCode, result } = await ComponentService.updateEntity({
           ...pathParams.EntityById(req),
           ...body.entity(req),
         });
-        res.status(code).json(response);
+        res.status(statusCode).json(result);
       } catch (e) {
         next(e);
       }
     })
     .delete(async (req, res, next) => {
       try {
-        const [code, response] = await ComponentService.deleteEntity({
+        const { statusCode, result } = await ComponentService.deleteEntity({
           ...pathParams.EntityById(req),
         });
-        res.status(code).json(response);
+        res.status(statusCode).json(result);
       } catch (e) {
         next(e);
       }
