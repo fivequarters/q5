@@ -19,9 +19,9 @@ try {
   builderVersion = require(Path.join(__dirname, '..', '..', '..', 'package.json')).version;
 } catch (_) {}
 
-const valid_boundary_name = /^[a-z0-9\-]{1,63}$/;
+const valid_boundary_name = /^[A-Za-z0-9\-]{1,63}$/;
 
-const valid_function_name = /^[a-z0-9\-]{1,64}$/;
+const valid_function_name = /^[A-Za-z0-9\-]{1,64}$/;
 
 // Stores status of a function build (async operation)
 // This prefix has 1 day TTL in S3

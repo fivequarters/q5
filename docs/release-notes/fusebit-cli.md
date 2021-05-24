@@ -17,6 +17,12 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.9.3
+
+_Released 5/22/21_
+
+- **Enhancement.** Relax function name restrictions to allow capital letters.
+
 ## Version 1.9.2
 
 _Released 5/11/21_

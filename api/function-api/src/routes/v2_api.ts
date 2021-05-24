@@ -3,7 +3,7 @@ import express from 'express';
 import * as common from './middleware/common';
 import schema from './schema';
 
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 
 const v2 = express.Router({ mergeParams: true });
 

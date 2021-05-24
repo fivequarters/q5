@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.19.12
+
+_Release 05/22/21_
+
+- **Enhancement.** Relax function name restrictions to allow capital letters.
+
 ## Version 1.19.11
 
 _Release 05/19/21_

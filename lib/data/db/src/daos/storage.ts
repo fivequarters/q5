@@ -10,7 +10,7 @@ class Storage extends Entity<Model.IStorageItem> {
   constructor(RDS: IRds, transactionId?: string) {
     super({
       RDS,
-      entityType: Entity.EntityType.Storage,
+      entityType: Entity.EntityType.storage,
       upsert: true,
       filterExpired: true,
       transactionId,
