@@ -22,7 +22,7 @@ interface IWaitForCompletionParams {
 }
 
 const DefaultWaitForCompletionParams: IWaitForCompletionParams = {
-  waitMs: 10000,
+  waitMs: 30000,
   pollMs: 100,
 };
 
@@ -48,26 +48,39 @@ export const ApiRequestMap: { [key: string]: any } = {
       testEntitiesCreated.push({ entityType: Model.EntityType.connector, id: body.id });
       return v2Request(account, { method: 'POST', uri: '/connector', body });
     },
-    postAndWait: async (account: IAccount, body: Model.IEntity) => {
+    postAndWait: async (
+      account: IAccount,
+      body: Model.IEntity,
+      options: IWaitForCompletionParams = DefaultWaitForCompletionParams
+    ) => {
       const op = await ApiRequestMap.connector.post(account, body);
       expect(op).toBeHttp({ statusCode: 202 });
-      return ApiRequestMap.operation.waitForCompletion(account, op.data.operationId);
+      return ApiRequestMap.operation.waitForCompletion(account, op.data.operationId, options);
     },
     put: async (account: IAccount, connectorId: string, body: Model.IEntity) =>
       v2Request(account, { method: 'PUT', uri: `/connector/${encodeURI(connectorId)}`, body }),
-    putAndWait: async (account: IAccount, connectorId: string, body: Model.IEntity) => {
+    putAndWait: async (
+      account: IAccount,
+      connectorId: string,
+      body: Model.IEntity,
+      options: IWaitForCompletionParams = DefaultWaitForCompletionParams
+    ) => {
       const op = await ApiRequestMap.connector.put(account, connectorId, body);
       expect(op).toBeHttp({ statusCode: 202 });
-      return ApiRequestMap.operation.waitForCompletion(account, op.data.operationId);
+      return ApiRequestMap.operation.waitForCompletion(account, op.data.operationId, options);
     },
     delete: async (account: IAccount, connectorId: string) =>
       v2Request(account, { method: 'DELETE', uri: `/connector/${connectorId}` }),
-    deleteAndWait: async (account: IAccount, entityId: string) => {
+    deleteAndWait: async (
+      account: IAccount,
+      entityId: string,
+      options: IWaitForCompletionParams = DefaultWaitForCompletionParams
+    ) => {
       let wait: any;
       do {
         const op = await ApiRequestMap.connector.delete(account, entityId);
         expect(op).toBeHttp({ statusCode: 202 });
-        wait = await ApiRequestMap.operation.waitForCompletion(account, op.data.operationId, false);
+        wait = await ApiRequestMap.operation.waitForCompletion(account, op.data.operationId, false, options);
       } while (wait.status === 428);
 
       return wait;
@@ -102,24 +115,37 @@ export const ApiRequestMap: { [key: string]: any } = {
       testEntitiesCreated.push({ entityType: Model.EntityType.integration, id: body.id });
       return v2Request(account, { method: 'POST', uri: '/integration', body });
     },
-    postAndWait: async (account: IAccount, body: Model.IEntity) => {
+    postAndWait: async (
+      account: IAccount,
+      body: Model.IEntity,
+      options: IWaitForCompletionParams = DefaultWaitForCompletionParams
+    ) => {
       const op = await ApiRequestMap.integration.post(account, body);
       expect(op).toBeHttp({ statusCode: 202 });
-      return ApiRequestMap.operation.waitForCompletion(account, op.data.operationId);
+      return ApiRequestMap.operation.waitForCompletion(account, op.data.operationId, options);
     },
     put: async (account: IAccount, integrationId: string, body: Model.IEntity) =>
       v2Request(account, { method: 'PUT', uri: `/integration/${encodeURI(integrationId)}`, body }),
-    putAndWait: async (account: IAccount, integrationId: string, body: Model.IEntity) => {
+    putAndWait: async (
+      account: IAccount,
+      integrationId: string,
+      body: Model.IEntity,
+      options: IWaitForCompletionParams = DefaultWaitForCompletionParams
+    ) => {
       const op = await ApiRequestMap.integration.put(account, integrationId, body);
       expect(op).toBeHttp({ statusCode: 202 });
-      return ApiRequestMap.operation.waitForCompletion(account, op.data.operationId);
+      return ApiRequestMap.operation.waitForCompletion(account, op.data.operationId, options);
     },
     delete: async (account: IAccount, integrationId: string) =>
       v2Request(account, { method: 'DELETE', uri: `/integration/${integrationId}` }),
-    deleteAndWait: async (account: IAccount, entityId: string) => {
+    deleteAndWait: async (
+      account: IAccount,
+      entityId: string,
+      options: IWaitForCompletionParams = DefaultWaitForCompletionParams
+    ) => {
       const op = await ApiRequestMap.integration.delete(account, entityId);
       expect(op).toBeHttp({ statusCode: 202 });
-      return ApiRequestMap.operation.waitForCompletion(account, op.data.operationId, false);
+      return ApiRequestMap.operation.waitForCompletion(account, op.data.operationId, false, options);
     },
     tags: {
       get: async (account: IAccount, integrationId: string, tagKey: string = '') =>
@@ -142,6 +168,7 @@ export const ApiRequestMap: { [key: string]: any } = {
     ) => {
       const startTime = Date.now();
       let response: any;
+      options = { ...DefaultWaitForCompletionParams, ...options };
       do {
         response = await ApiRequestMap.operation.get(account, operationId);
         if (response.status === 200) {

@@ -8,13 +8,6 @@ import { operationService } from './OperationService';
 import * as Function from '../../functions';
 
 const boundaryId = 'connector';
-const standardFunctionSpecification: Function.IFunctionSpecification = {
-  nodejs: {
-    files: {
-      'index.js': 'module.exports = (ctx, cb) => cb(null, { body: "hello" });',
-    },
-  },
-};
 
 const rejectPermissionAgent = {
   checkPermissionSubset: () => {
@@ -27,11 +20,24 @@ class ConnectorService extends BaseComponentService<Model.IConnector> {
     super(RDS.DAO.connector);
   }
 
-  public createFunctionSpecification = async (entity: Model.IEntity): Promise<Function.IFunctionSpecification> => {
+  public createFunctionSpecification = (entity: Model.IEntity): Function.IFunctionSpecification => {
     return {
-      ...standardFunctionSpecification,
-      ...entity.data,
       id: entity.id,
+      nodejs: {
+        files: {
+          'package.json': JSON.stringify({
+            dependencies: {
+              '@fusebit-int/pkg-handler': '*',
+              '@fusebit-int/pkg-oauth-connector': '*',
+            },
+          }),
+          'index.js': `module.exports = require('@fusebit-int/pkg-handler');`,
+          'config.json': `module.exports = ${JSON.stringify({
+            ...entity.data,
+            package: '@fusebit-int/pkg-oauth-connector',
+          })};`,
+        },
+      },
     };
   };
 
@@ -57,7 +63,7 @@ class ConnectorService extends BaseComponentService<Model.IConnector> {
 
         const result = await Function.createFunction(
           params,
-          await this.createFunctionSpecification(entity),
+          this.createFunctionSpecification(entity),
           rejectPermissionAgent as IAgent,
           AwsRegistry.create({ ...entity, registryId: 'default' })
         );

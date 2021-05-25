@@ -24,10 +24,10 @@ const remVersion = (entity: IEntityRequestBody) => {
 };
 
 afterAll(async () => {
-  await cleanupEntities(account);
+  // await cleanupEntities(account);
 }, 30000);
 
-const performTests = (testEntityType: string) => {
+const performTests = (testEntityType: string, sampleData: any[]) => {
   const makeEntity = (): IEntityRequestBody => ({
     accountId: account.accountId,
     data: { testData: '123' },
@@ -57,7 +57,7 @@ const performTests = (testEntityType: string) => {
 
   test('Create Entity', async () => {
     await createEntityTest(makeEntity());
-  });
+  }, 30000);
 
   test('Create Entity returns 400 on conflict', async () => {
     const entity = makeEntity();
@@ -398,19 +398,27 @@ const performTests = (testEntityType: string) => {
     expect(setTagResponse).toBeHttp({ statusCode: 404 });
   });
 
-  test('Invoke Entity', async () => {
+  test.only('Invoke Entity', async () => {
     const entity = await createEntityTest(makeEntity());
     const location = await getFunctionLocation(account, testEntityType, entity.id);
     expect(location).toBeHttp({ statusCode: 200 });
-    const call = await callFunction('', location.data.location);
+    const call = await callFunction('', location.data.location + '/api/health');
     expect(call).toBeHttp({ statusCode: 200, data: 'hello' });
-  }, 10000);
+  }, 60000);
 };
 
-describe('Connector', () => {
-  performTests('connector');
+describe.only('Connector', () => {
+  const dataBase = { package: '@fusebit-int/pkg-oauth-connector' };
+  performTests('connector', [
+    { ...dataBase, testData: '123' },
+    { ...dataBase, newData: 'abc' },
+  ]);
 });
 
 describe('Integration', () => {
-  performTests('integration');
+  const dataBase = { package: './integration' };
+  performTests('integration', [
+    { ...dataBase, testData: '123' },
+    { ...dataBase, newData: 'abc' },
+  ]);
 });
