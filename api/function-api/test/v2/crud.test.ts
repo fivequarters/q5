@@ -53,18 +53,18 @@ const performTests = (testEntityType: string, sampleData: any[]) => {
   test('List Entitys returns 404 when none exist', async () => {
     const response = await ApiRequestMap[testEntityType].list(account, getIdPrefix());
     expect(response).toBeHttp({ statusCode: 404 });
-  });
+  }, 180000);
 
   test('Create Entity', async () => {
     await createEntityTest(makeEntity());
-  }, 30000);
+  }, 180000);
 
   test('Create Entity returns 400 on conflict', async () => {
     const entity = makeEntity();
     await createEntityTest(entity);
     const createResponseConflict = await ApiRequestMap[testEntityType].post(account, entity);
     expect(createResponseConflict).toBeHttp({ status: 400 });
-  });
+  }, 180000);
 
   test('Update Entity', async () => {
     const entityOne = await createEntityTest(makeEntity());
@@ -80,7 +80,7 @@ const performTests = (testEntityType: string, sampleData: any[]) => {
     expect(getResponse.data).toMatchObject(remVersion(entityOneUpdated));
     expect(getResponse.data.version).toBeUUID();
     expect(getResponse.data.version).not.toBe(entityOne.id);
-  });
+  }, 180000);
 
   test('Update Entity returns 404 if entity not found', async () => {
     const entityOne = await createEntityTest(makeEntity());
@@ -92,7 +92,7 @@ const performTests = (testEntityType: string, sampleData: any[]) => {
     };
     const updateResponse = await ApiRequestMap[testEntityType].putAndWait(account, entityOne.id, entityOneUpdated);
     expect(updateResponse).toBeHttp({ statusCode: 404 });
-  });
+  }, 180000);
 
   test('Delete Entity', async () => {
     const entityOne = await createEntityTest(makeEntity());
@@ -101,24 +101,24 @@ const performTests = (testEntityType: string, sampleData: any[]) => {
     expect(deleteResponse.data).toBeTruthy();
     const getResponse = await ApiRequestMap[testEntityType].get(account, entityOne.id);
     expect(getResponse).toBeHttp({ statusCode: 404 });
-  }, 10000);
+  }, 180000);
 
   test('Delete Entity returns Not Found', async () => {
     const deleteResponse = await ApiRequestMap[testEntityType].deleteAndWait(account, makeEntity().id);
     expect(deleteResponse).toBeHttp({ statusCode: 404 });
-  });
+  }, 180000);
 
   test('Get Entity', async () => {
     const entityOne = await createEntityTest(makeEntity());
     const getResponse = await ApiRequestMap[testEntityType].get(account, entityOne.id);
     expect(getResponse).toBeHttp({ statusCode: 200 });
     expect(getResponse.data).toMatchObject(entityOne);
-  });
+  }, 180000);
 
   test('Get Entity returns 404 when not found', async () => {
     const getResponse = await ApiRequestMap[testEntityType].get(account, 'Bad Id');
     expect(getResponse).toBeHttp({ statusCode: 404 });
-  });
+  }, 180000);
 
   test('List Entitys, Paginated', async () => {
     const entityCount = 10;
@@ -154,7 +154,7 @@ const performTests = (testEntityType: string, sampleData: any[]) => {
     }
 
     expect(receivedIds.sort()).toEqual(Entitys.map((c: any) => c.id).sort());
-  }, 10000);
+  }, 180000);
 
   test('List Entitys by prefix', async () => {
     const entityCount = 10;
@@ -213,7 +213,7 @@ const performTests = (testEntityType: string, sampleData: any[]) => {
         );
       })
     );
-  });
+  }, 180000);
 
   test('List Entitys By Tags', async () => {
     const entityBase = makeEntity();
@@ -307,7 +307,7 @@ const performTests = (testEntityType: string, sampleData: any[]) => {
         );
       })
     );
-  });
+  }, 180000);
 
   test('Get Entity Tags', async () => {
     const entityOne = await createEntityTest(makeEntity());
@@ -315,12 +315,12 @@ const performTests = (testEntityType: string, sampleData: any[]) => {
     expect(entityTags).toBeHttp({ statusCode: 200 });
     expect(entityTags.data).toBeDefined();
     expect(entityTags.data.tags).toEqual(entityOne.tags);
-  });
+  }, 180000);
 
   test('Get Entity Tags returns 404 on not found', async () => {
     const entityTags = await ApiRequestMap[testEntityType].tags.get(account, 'bad id');
     expect(entityTags).toBeHttp({ statusCode: 404 });
-  });
+  }, 180000);
 
   test('Get Entity Tag Value', async () => {
     const entityOne = await createEntityTest(makeEntity());
@@ -332,14 +332,14 @@ const performTests = (testEntityType: string, sampleData: any[]) => {
         expect(String(tagValue.data)).toEqual(entityOne.tags[tagKey]);
       })
     );
-  });
+  }, 180000);
 
   test('Get Entity Tag Value returns undefined on unset tag', async () => {
     const entityOne = await createEntityTest(makeEntity());
     const tagValue = await ApiRequestMap[testEntityType].tags.get(account, entityOne.id, 'bad tag key');
     expect(tagValue).toBeHttp({ statusCode: 200 });
     expect(tagValue.data).toBeUndefined();
-  });
+  }, 180000);
 
   test('Delete Entity Tag', async () => {
     const entityOne = await createEntityTest(makeEntity());
@@ -359,7 +359,7 @@ const performTests = (testEntityType: string, sampleData: any[]) => {
       expect(deleteTagResponse.data).toBeDefined();
       expect(deleteTagResponse.data.tags).toEqual(ExpectedTags);
     }
-  });
+  }, 180000);
 
   test('Delete Entity Tag with invalid tag key has no impact on tags', async () => {
     const entityOne = await createEntityTest(makeEntity());
@@ -371,7 +371,7 @@ const performTests = (testEntityType: string, sampleData: any[]) => {
     const deleteTagResponse = await ApiRequestMap[testEntityType].tags.delete(account, entityOne.id, 'bad tag key');
     expect(deleteTagResponse).toBeHttp({ statusCode: 200 });
     expect(deleteTagResponse.data).toMatchObject({ ...remVersion(entityTags.data) });
-  });
+  }, 180000);
 
   test('Update Entity Tag', async () => {
     const entityOne = await createEntityTest(makeEntity());
@@ -389,25 +389,25 @@ const performTests = (testEntityType: string, sampleData: any[]) => {
       ...remVersion(entityOne),
       tags: { ...entityOne.tags, [tagKey]: tagValue },
     });
-  });
+  }, 180000);
 
   test('Update Entity Tag returns 404 on not found', async () => {
     const tagKey = 'tag key to insert';
     const tagValue = 'tag value to insert';
     const setTagResponse = await ApiRequestMap[testEntityType].tags.put(account, 'bad entity Id', tagKey, tagValue);
     expect(setTagResponse).toBeHttp({ statusCode: 404 });
-  });
+  }, 180000);
 
-  test.only('Invoke Entity', async () => {
+  test('Invoke Entity', async () => {
     const entity = await createEntityTest(makeEntity());
     const location = await getFunctionLocation(account, testEntityType, entity.id);
     expect(location).toBeHttp({ statusCode: 200 });
     const call = await callFunction('', location.data.location + '/api/health');
-    expect(call).toBeHttp({ statusCode: 200, data: 'hello' });
-  }, 60000);
+    expect(call).toBeHttp({ statusCode: 200 });
+  }, 180000);
 };
 
-describe.only('Connector', () => {
+describe('Connector', () => {
   const dataBase = { package: '@fusebit-int/pkg-oauth-connector' };
   performTests('connector', [
     { ...dataBase, testData: '123' },
