@@ -1485,10 +1485,10 @@
   dependencies:
     "@fortawesome/fontawesome-common-types" "^0.2.25"
 
-"@fusebit/tunnel@^3.2.4":
-  version "3.2.4"
-  resolved "https://registry.yarnpkg.com/@fusebit/tunnel/-/tunnel-3.2.4.tgz#4bca83756c529ebcdac4f68929a1a0991a42f549"
-  integrity sha512-kDsrKOlseJVO29wYtrAWV1rsaU2e4Qy2P3VCqpwKFspFKmG1JY0d/eJ+w9MPvkdatZYXZDlbTT1vcaAFWQcVyQ==
+"@fusebit/tunnel@^3.2.5":
+  version "3.2.5"
+  resolved "https://registry.yarnpkg.com/@fusebit/tunnel/-/tunnel-3.2.5.tgz#a70945fd14d0218ef404ffd8456c6baa1e1a7217"
+  integrity sha512-7eSw2Gi25y4m3ezRHtVvGFCdSLez7XH0UhEZ4rgyjd+efI+bmNnVGukMftyL3OvZdOhBJZz+dOHQJ6Vh0PtwNw==
   dependencies:
     axios "0.21.1"
     debug "4.3.1"

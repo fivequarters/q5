@@ -9,11 +9,7 @@
   "license": "MIT",
   "author": "https://fusebit.io",
   "packageAs": "@fusebit/cli",
-  "packageAssets": [
-    "template",
-    "README.md",
-    "LICENSE"
-  ],
+  "packageAssets": ["template", "README.md", "LICENSE"],
   "scripts": {
     "build": "tsc -b",
     "test": "jest --colors",
@@ -35,7 +31,7 @@
     "@5qtrs/jwt": "^0.0.1",
     "@5qtrs/random": "^0.0.1",
     "@5qtrs/request": "^0.0.1",
-    "@fusebit/tunnel": "^3.2.4",
+    "@fusebit/tunnel": "^3.2.5",
     "@types/open": "^6.0.0",
     "express": "^4.17.1",
     "open": "^6.0.0",

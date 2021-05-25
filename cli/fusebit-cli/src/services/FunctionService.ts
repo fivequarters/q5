@@ -794,7 +794,7 @@ export class FunctionService {
 
     functionServer.app.use(async (req: any, res: any) => {
       try {
-        delete require.cache[require.resolve(path)];
+        Object.keys(require.cache).forEach((r) => delete require.cache[r]);
         const module = require(path);
         console.log(`START ${req.body.method} ${req.body.url}`);
         const result = await module(req.body);

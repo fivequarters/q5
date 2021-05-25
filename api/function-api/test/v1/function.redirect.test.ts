@@ -135,7 +135,7 @@ describe('Function Redirect', () => {
   }, 120000);
 });
 
-describe.only('Function Redirection', () => {
+describe('Function Redirection', () => {
   const port = 52682;
   let httpServer: any;
   let tunnel: any;
@@ -175,7 +175,7 @@ describe.only('Function Redirection', () => {
     expect(called).toBe(true);
   }, 120000);
 
-  test.only('headers are returned', async () => {
+  test('headers are returned', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
     expect(response).toBeHttp({ statusCode: 200 });
     const location = response.data.location;
