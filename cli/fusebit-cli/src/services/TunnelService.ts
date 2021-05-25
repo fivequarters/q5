@@ -1,8 +1,8 @@
 import express from 'express';
-const localtunnel = require('localtunnel');
+const fusetunnel = require('@fusebit/tunnel');
 
 const startTunnel = async (serverPort: number, lastDomain?: string) => {
-  const tunnel = await localtunnel({
+  const tunnel = await fusetunnel({
     port: serverPort,
     host: 'https://tunnel.dev.fusebit.io',
     ...(lastDomain ? { subdomain: lastDomain } : {}),

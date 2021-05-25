@@ -1485,10 +1485,10 @@
   dependencies:
     "@fortawesome/fontawesome-common-types" "^0.2.25"
 
-"@fusebit/tunnel@^3.2.3":
-  version "3.2.3"
-  resolved "https://registry.yarnpkg.com/@fusebit/tunnel/-/tunnel-3.2.3.tgz#c4c3c705a47edb87120b6117e29d27fdb021dc35"
-  integrity sha512-v+rQetsefGgI7BPUAdZf6wk3zCQFR9yjEYetEqPnKLSmNoWk7Fj7yOswrTElZzj4tPk39Kzs3bXeE3lqrqesxA==
+"@fusebit/tunnel@^3.2.4":
+  version "3.2.4"
+  resolved "https://registry.yarnpkg.com/@fusebit/tunnel/-/tunnel-3.2.4.tgz#4bca83756c529ebcdac4f68929a1a0991a42f549"
+  integrity sha512-kDsrKOlseJVO29wYtrAWV1rsaU2e4Qy2P3VCqpwKFspFKmG1JY0d/eJ+w9MPvkdatZYXZDlbTT1vcaAFWQcVyQ==
   dependencies:
     axios "0.21.1"
     debug "4.3.1"
@@ -10583,16 +10583,6 @@ loader-utils@^0.2.16:
     emojis-list "^2.0.0"
     json5 "^0.5.0"
     object-assign "^4.0.1"
-
-localtunnel@^2.0.1:
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/localtunnel/-/localtunnel-2.0.1.tgz#8f7c593f3005647f7675e6e69af9bf746571a631"
-  integrity sha512-LiaI5wZdz0xFkIQpXbNI62ZnNn8IMsVhwxHmhA+h4vj8R9JG/07bQHWwQlyy7b95/5fVOCHJfIHv+a5XnkvaJA==
-  dependencies:
-    axios "0.21.1"
-    debug "4.3.1"
-    openurl "1.1.1"
-    yargs "16.2.0"
 
 locate-path@^2.0.0:
   version "2.0.0"
