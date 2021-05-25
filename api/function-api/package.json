@@ -52,7 +52,7 @@
   "devDependencies": {
     "@5qtrs/fusebit-profile-sdk": "^0.0.1",
     "@5qtrs/request": "^0.0.1",
-    "@fusebit/tunnel": "^3.2.3",
+    "@fusebit/tunnel": "^3.2.5",
     "@npm/types": "^1.0.1",
     "@reportportal/agent-js-jest": "bennbollay/agent-js-jest#patch-1",
     "@types/aws-sdk": "^2.7.0",

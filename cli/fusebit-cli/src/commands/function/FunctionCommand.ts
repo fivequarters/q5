@@ -6,6 +6,7 @@ import { FunctionGetCommand } from './FunctionGetCommand';
 import { FunctionRemoveCommand } from './FunctionRemoveCommand';
 import { FunctionDeployCommand } from './FunctionDeployCommand';
 import { FunctionEditCommand } from './FunctionEditCommand';
+import { FunctionServeCommand } from './FunctionServeCommand';
 import { FunctionInitCommand } from './FunctionInitCommand';
 import { FunctionUrlCommand } from './FunctionUrlCommand';
 import { FunctionRebuildCommand } from './FunctionRebuildCommand';
@@ -56,6 +57,7 @@ async function getSubCommands() {
   subCommands.push(await FunctionGetCommand.create());
   subCommands.push(await FunctionUrlCommand.create());
   subCommands.push(await FunctionDeployCommand.create());
+  subCommands.push(await FunctionServeCommand.create());
   subCommands.push(await FunctionRebuildCommand.create());
   subCommands.push(await FunctionRemoveCommand.create());
   subCommands.push(await FunctionLogCommand.create());

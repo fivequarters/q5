@@ -263,6 +263,8 @@ const executeFunction = async (
 
       keyStore,
       resolvedAgent: options.resolvedAgent,
+
+      functionSummary,
     };
     const res = await asyncDispatch(req, provider_handlers.lambda.execute_function);
     return { body: res.body, bodyEncoding: res.bodyEncoding, code: res.code, error: res.error, headers: res.headers };
