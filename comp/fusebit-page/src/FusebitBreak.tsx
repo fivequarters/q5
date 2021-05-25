@@ -12,5 +12,5 @@ export type FusebitBreakProps = {} & BoxProps;
 // -------------------
 
 export function FusebitBreak({ height, ...rest }: FusebitBreakProps) {
-  return <Box height={20} {...rest} />;
+  return <Box height={20} width="100%" {...rest} />;
 }
