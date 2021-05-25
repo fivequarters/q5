@@ -268,10 +268,10 @@ export class FunctionService {
       filesOnly: true,
       joinPaths: false,
       recursive: true,
-      ignore: ['node_modules'],
+      ignore: ['node_modules', '.git', '.gitignore'].concat((this.input.options.ignore as string[]) || []),
     });
     for (const file of files) {
-      if (file !== '.gitignore' && file !== 'fusebit.json') {
+      if (file !== 'fusebit.json') {
         const content = await readFile(join(path, file));
         const contentString = content ? content.toString() : undefined;
         if (contentString) {
@@ -376,7 +376,7 @@ export class FunctionService {
 
     const editorHtml = this.getEditorHtml(profile, theme, functionSpec);
     const startServer = (port: number) => {
-      return new Promise((resolve, reject) => {
+      return new Promise<void>((resolve, reject) => {
         createServer((req, res) => {
           if (req.method === 'GET') {
             res.writeHead(200, { 'Content-Type': 'text/html' });

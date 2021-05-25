@@ -7,10 +7,14 @@ var express = require('express');
 var logger = require('morgan');
 const { captureRequest, logActiveRequests } = require('./logRequests');
 
+const routes = require('./routes');
+
 var app = express();
 // Sanitize logged URLs
-logger.token('url', (req, res) =>
-  req.query && req.query.token ? req.url.replace(/token=[^\&]+/, 'token={removed}') : req.url
+logger.token(
+  'url',
+  (req, res) =>
+    `${req.baseUrl}${req.query && req.query.token ? req.url.replace(/token=[^\&]+/, 'token={removed}') : req.url}`
 );
 
 app.use(logger(process.stdout.isTTY ? 'dev' : 'combined'));
@@ -19,13 +23,13 @@ app.use(logger(process.stdout.isTTY ? 'dev' : 'combined'));
 //logActiveRequests();
 
 // Expose the v2 API
-app.use('/v2/', require('./routes/v2_api'));
+app.use('/v2/', routes.v2);
 
 // Expose the v1 API
-app.use('/v1/', require('./routes/v1_api'));
+app.use('/v1/', routes.v1);
 
 if (process.env.API_EXPOSE_DOCS) {
-  app.use('/', require('./routes/api_docs'));
+  app.use('/', routes.api_docs);
 }
 
 app.use(function (req, res, next) {

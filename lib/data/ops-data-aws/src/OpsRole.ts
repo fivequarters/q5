@@ -55,7 +55,7 @@ export async function createInstanceProfile(
       (e: any) => {
         if (e) return reject(e);
         debug(`INSTANCE PROFILE ${instanceProfileName} CREATED AND CONFIGURED`);
-        resolve();
+        resolve(undefined);
       }
     );
   });
@@ -154,7 +154,7 @@ export async function createRole(
       (e: any) => {
         if (e) return reject(e);
         debug(`ROLE ${roleName} CREATED AND CONFIGURED`);
-        resolve();
+        resolve(undefined);
       }
     );
   });

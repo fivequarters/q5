@@ -12,7 +12,7 @@ import { FusebitColor } from '@5qtrs/fusebit-color';
 
 const emailRegex = /^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i; // tslint:disable-line
 const googleSheetUrl =
-  'https://script.google.com/macros/s/AKfycbwvCP7_RW163ccBtVR5T6WRwkCHPE-3NO-D7-lyoG5Ce1DB9lc/exec';
+  'https://script.google.com/macros/s/AKfycbxsDBujbHEaLzSOo7SgiHj-WH0pX5gepDzolWdr2GZ3XlbPlBIwX9QibJre3iIHo1Rx/exec';
 const placeHolderDefault = 'Enter Your Email';
 const buttonTextDefault = 'Join waitlist';
 const errorTextDefault = 'Valid Email Required';
@@ -27,7 +27,9 @@ const gaLabelDefault = location.pathname;
 function sendEmail(email: string) {
   request({
     method: 'POST',
-    url: `${googleSheetUrl}?Email=${email}`,
+    url: `${googleSheetUrl}?Email=${email}&Url=${encodeURIComponent(
+      window.location.href
+    )}&Referrer=${encodeURIComponent(document.referrer || '')}`,
   });
 }
 

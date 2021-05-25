@@ -1485,6 +1485,16 @@
   dependencies:
     "@fortawesome/fontawesome-common-types" "^0.2.25"
 
+"@fusebit/tunnel@^3.2.3":
+  version "3.2.3"
+  resolved "https://registry.yarnpkg.com/@fusebit/tunnel/-/tunnel-3.2.3.tgz#c4c3c705a47edb87120b6117e29d27fdb021dc35"
+  integrity sha512-v+rQetsefGgI7BPUAdZf6wk3zCQFR9yjEYetEqPnKLSmNoWk7Fj7yOswrTElZzj4tPk39Kzs3bXeE3lqrqesxA==
+  dependencies:
+    axios "0.21.1"
+    debug "4.3.1"
+    openurl "1.1.1"
+    yargs "16.2.0"
+
 "@google-cloud/bigquery@^3.0.0":
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/@google-cloud/bigquery/-/bigquery-3.0.0.tgz#aaf7883bfcf5146f9f04783d0d10b80253fb49a9"
@@ -2237,6 +2247,13 @@
   resolved "https://registry.yarnpkg.com/@types/aws-lambda/-/aws-lambda-8.10.75.tgz#93b4e688db8a45755018561a3212e7766c0fef57"
   integrity sha512-orOKSsIVUMsAbKgbSX2ST3FwQt9pxinHVCAIAVl4SmmTxmki2Gu+cGqobMD3eYwDV5FV0YNtaXyxnvE9pLrKTw==
 
+"@types/aws-sdk@^2.7.0":
+  version "2.7.0"
+  resolved "https://registry.yarnpkg.com/@types/aws-sdk/-/aws-sdk-2.7.0.tgz#83588b3d14ebdca1d4ce5e023387577568ce82f3"
+  integrity sha1-g1iLPRTr3KHUzl4CM4dXdWjOgvM=
+  dependencies:
+    aws-sdk "*"
+
 "@types/babel__core@^7.0.5", "@types/babel__core@^7.1.0":
   version "7.1.3"
   resolved "https://registry.yarnpkg.com/@types/babel__core/-/babel__core-7.1.3.tgz#e441ea7df63cd080dfcd02ab199e6d16a735fc30"
@@ -2464,7 +2481,7 @@
   resolved "https://registry.yarnpkg.com/@types/http-assert/-/http-assert-1.5.1.tgz#d775e93630c2469c2f980fc27e3143240335db3b"
   integrity sha512-PGAK759pxyfXE78NbKxyfRcWYA/KwW17X290cNev/qAsn9eQIxkH4shoNBafH37wewhDG/0p1cHPbK6+SzZjWQ==
 
-"@types/http-errors@*":
+"@types/http-errors@*", "@types/http-errors@^1.8.0":
   version "1.8.0"
   resolved "https://registry.yarnpkg.com/@types/http-errors/-/http-errors-1.8.0.tgz#682477dbbbd07cd032731cb3b0e7eaee3d026b69"
   integrity sha512-2aoSC4UUbHDj2uCsCxcG/vRMXey/m17bC7UwitVm5hn22nI8O8Y9iDpA76Orc+DWkQ4zZrOKEshCqR/jSuXAHA==
@@ -2635,6 +2652,13 @@
   version "3.0.3"
   resolved "https://registry.yarnpkg.com/@types/minimatch/-/minimatch-3.0.3.tgz#3dca0e3f33b200fc7d1139c0cd96c1268cadfd9d"
   integrity sha512-tHq6qdbT9U1IRSGf14CL0pUlULksvY9OZ+5eEgl1N7t+OA3tGvNpxJCzuKQlsNgCVwbAs670L1vcVQi8j9HjnA==
+
+"@types/moment@^2.13.0":
+  version "2.13.0"
+  resolved "https://registry.yarnpkg.com/@types/moment/-/moment-2.13.0.tgz#604ebd189bc3bc34a1548689404e61a2a4aac896"
+  integrity sha1-YE69GJvDvDShVIaJQE5hoqSqyJY=
+  dependencies:
+    moment "*"
 
 "@types/morgan@*", "@types/morgan@^1.7.35":
   version "1.7.37"
@@ -3652,10 +3676,25 @@ autoprefixer@^9.6.1:
     postcss "^7.0.23"
     postcss-value-parser "^4.0.2"
 
+aws-sdk@*:
+  version "2.906.0"
+  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.906.0.tgz#c85ebb6257865b97d6a88c6d89aeb9b6075744df"
+  integrity sha512-u/kmVILew/9HFpHwVrc3VMK24m+XrazXEooMxkzbWXEBvtVm1xTYv8xPmdgiYvogWIkWTkeIF9ME4LBeHenYkw==
+  dependencies:
+    buffer "4.9.2"
+    events "1.1.1"
+    ieee754 "1.1.13"
+    jmespath "0.15.0"
+    querystring "0.2.0"
+    sax "1.2.1"
+    url "0.10.3"
+    uuid "3.3.2"
+    xml2js "0.4.19"
+
 aws-sdk@^2.895.0:
-  version "2.895.0"
-  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.895.0.tgz#71b8ded8f972ca869b1310eebd2924695b009ec3"
-  integrity sha512-f8lkEcItfGaYPhJkdbymLth8K0aZ6aMiuoSr/0r2GaFFLq9neg2WUL0dgqSmVUGf55ZMDbwjcBurhJPrcBbDbw==
+  version "2.911.0"
+  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.911.0.tgz#dcdeb01e2c1fcedbfcd06e09b8559981f0e649b0"
+  integrity sha512-4tmQQXFWGIsH59rJdgpkqAm4GHB16OOpz8b93VyUjWl0WZl9VqBy/3Jo88fhCoirzjgjEhTPnZ/I9pUYlXEyHg==
   dependencies:
     buffer "4.9.2"
     events "1.1.1"
@@ -10545,16 +10584,6 @@ loader-utils@^0.2.16:
     json5 "^0.5.0"
     object-assign "^4.0.1"
 
-localtunnel@^2.0.1:
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/localtunnel/-/localtunnel-2.0.1.tgz#8f7c593f3005647f7675e6e69af9bf746571a631"
-  integrity sha512-LiaI5wZdz0xFkIQpXbNI62ZnNn8IMsVhwxHmhA+h4vj8R9JG/07bQHWwQlyy7b95/5fVOCHJfIHv+a5XnkvaJA==
-  dependencies:
-    axios "0.21.1"
-    debug "4.3.1"
-    openurl "1.1.1"
-    yargs "16.2.0"
-
 locate-path@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/locate-path/-/locate-path-2.0.0.tgz#2b568b265eec944c6d9c0de9c3dbbbca0354cd8e"
@@ -11204,6 +11233,11 @@ moment-timezone@^0.5.25:
   integrity sha512-EIKQs7h5sAsjhPCqN6ggx6cEbs94GK050254TIJySD1bzoM5JTYDwAU1IoVOeTOL6Gm27kYJ51/uuvq1kIlrbw==
   dependencies:
     moment ">= 2.9.0"
+
+moment@*, moment@^2.29.1:
+  version "2.29.1"
+  resolved "https://registry.yarnpkg.com/moment/-/moment-2.29.1.tgz#b2be769fa31940be9eeea6469c075e35006fa3d3"
+  integrity sha512-kHmoybcPV8Sqy59DwNDY3Jefr64lK/by/da0ViFcuA4DH0vQg5Q6Ze5VimxkfQNSC+Mls/Kx53s7TjP1RhFEDQ==
 
 "moment@>= 2.9.0", moment@^2.10.6:
   version "2.24.0"
@@ -17256,6 +17290,11 @@ ws@^7.0.0:
   version "7.4.4"
   resolved "https://registry.yarnpkg.com/ws/-/ws-7.4.4.tgz#383bc9742cb202292c9077ceab6f6047b17f2d59"
   integrity sha512-Qm8k8ojNQIMx7S+Zp8u/uHOx7Qazv3Yv4q68MiWWWOJhiwG5W3x7iqmRtJo8xxrciZUY4vRxUTJCKuRnF28ZZw==
+
+wtfnode@^0.8.4:
+  version "0.8.4"
+  resolved "https://registry.yarnpkg.com/wtfnode/-/wtfnode-0.8.4.tgz#91ecf78a40ce222a73a063f26d72bea52357efcc"
+  integrity sha512-64GEKtMt/MUBuAm+8kHqP74ojjafzu00aT0JKsmkIwYmjRQ/odO0yhbzKLm+Z9v1gMla+8dwITRKzTAlHsB+Og==
 
 xdg-basedir@^3.0.0:
   version "3.0.0"

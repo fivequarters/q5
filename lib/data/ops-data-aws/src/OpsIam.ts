@@ -23,7 +23,6 @@ export class OpsIam implements IDataSource {
 
   public async setup(): Promise<void> {
     const awsConfig = await this.provider.getAwsConfigForMain();
-
     // Create an AWSLambdaFullAccess policy replacement; unspecialized, used to handle the deprecation of the
     // role in 01/2021.
     await createPolicy(
@@ -120,6 +119,7 @@ export class OpsIam implements IDataSource {
         `${this.config.arnPrefix}:iam::${awsConfig.account}:policy/${this.config.lambdaExecutionRoleName}`,
         `${this.config.arnPrefix}:iam::aws:policy/CloudWatchFullAccess`,
         `${this.config.arnPrefix}:iam::aws:policy/AmazonS3ReadOnlyAccess`,
+        `${this.config.arnPrefix}:iam::aws:policy/AmazonRDSDataFullAccess`,
         `${this.config.arnPrefix}:iam::aws:policy/service-role/AWSLambdaSQSQueueExecutionRole`,
       ],
       undefined,
@@ -164,6 +164,7 @@ export class OpsIam implements IDataSource {
       [
         `${this.config.arnPrefix}:iam::aws:policy/AmazonSQSFullAccess`,
         `${this.config.arnPrefix}:iam::aws:policy/AmazonS3FullAccess`,
+        `${this.config.arnPrefix}:iam::aws:policy/AmazonRDSDataFullAccess`,
         `${this.config.arnPrefix}:iam::aws:policy/CloudWatchLogsFullAccess`,
         `${this.config.arnPrefix}:iam::aws:policy/AmazonDynamoDBFullAccess`,
       ],
@@ -200,7 +201,26 @@ export class OpsIam implements IDataSource {
       undefined,
       this.config.iamPermissionsBoundary
     );
-
+    await createRole(
+      awsConfig,
+      this.config.backupRoleName,
+      ['arn:aws:iam::aws:policy/service-role/AWSBackupServiceRolePolicyForBackup',
+      'arn:aws:iam::aws:policy/service-role/AWSBackupServiceRolePolicyForRestores'],
+      undefined,
+      {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Effect": "Allow",
+            "Principal": {
+              "Service": "backup.amazonaws.com"
+            },
+            "Action": "sts:AssumeRole"
+          }
+        ]
+      },
+      this.config.iamPermissionsBoundary
+    )
     // Ensure the instance profile and role for the VMs are created
 
     await createInstanceProfile(
@@ -212,6 +232,7 @@ export class OpsIam implements IDataSource {
         `${this.config.arnPrefix}:iam::aws:policy/AmazonS3FullAccess`,
         `${this.config.arnPrefix}:iam::aws:policy/CloudWatchAgentServerPolicy`,
         `${this.config.arnPrefix}:iam::aws:policy/AmazonDynamoDBFullAccess`,
+        `${this.config.arnPrefix}:iam::aws:policy/AmazonRDSDataFullAccess`,
       ],
       {
         Version: '2012-10-17',

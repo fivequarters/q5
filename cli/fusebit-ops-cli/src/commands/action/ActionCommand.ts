@@ -1,6 +1,7 @@
 import { Command, ICommand } from '@5qtrs/cli';
 import { RegenerateTagsActionCommand } from './RegenerateTagsActionCommand';
 import { ClearTagsActionCommand } from './ClearTagsActionCommand';
+import { MigrateStorageActionCommand } from './MigrateStorageActionCommand';
 
 // ------------------
 // Internal Constants
@@ -22,6 +23,7 @@ export class ActionCommand extends Command {
     const subCommands = [];
     subCommands.push(await RegenerateTagsActionCommand.create());
     subCommands.push(await ClearTagsActionCommand.create());
+    subCommands.push(await MigrateStorageActionCommand.create());
     commands.subCommands = subCommands;
     return new ActionCommand(commands);
   }

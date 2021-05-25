@@ -11,7 +11,7 @@ import { FusebitFooter } from '@5qtrs/fusebit-footer';
 import { fusebitFonts } from '@5qtrs/fusebit-text';
 import '@5qtrs/fusebit-favicon';
 
-import { Home, About, Support, Legal, Blog, Privacy, Terms, Route } from './page';
+import { Home, About, Support, Legal, Blog, Privacy, Terms, Route, Contact } from './page';
 
 const App = () => {
   const [ready, setReady] = useState(true);
@@ -19,15 +19,20 @@ const App = () => {
   const [modalShow, setModalShow] = useState(false);
   const [modalGaLabel, setModalGaLabel] = useState('');
   const [email, setEmail] = useState('');
+  const [contactUs, setContactUs] = useState<{ contact: Boolean; returnUrl?: string } | undefined>(undefined);
 
   function onReady() {
     setReady(true);
   }
 
   function onModalClose() {
-    setEmail('');
-    setModalGaLabel('');
-    setModalShow(false);
+    if (contactUs && contactUs.returnUrl) {
+      window.location.href = contactUs.returnUrl;
+    } else {
+      setEmail('');
+      setModalGaLabel('');
+      setModalShow(false);
+    }
   }
 
   function onLetsTalkClicked() {
@@ -46,6 +51,19 @@ const App = () => {
   function renderHome() {
     return <Home onEmailSubmit={onEmailSubmit} />;
   }
+
+  React.useEffect(() => {
+    if (contactUs === undefined) {
+      const params = new URLSearchParams(window.location.hash.substring(1));
+      setContactUs({
+        contact: params.get('contact') !== null,
+        returnUrl: params.get('returnUrl') || undefined,
+      });
+    } else if (contactUs.contact) {
+      setContactUs({ ...contactUs, contact: false });
+      onLetsTalkClicked();
+    }
+  });
 
   return (
     <Body fonts={[fusebitFonts]} onReady={onReady}>
@@ -68,6 +86,7 @@ const App = () => {
           <Route path="/blog/:year?/:month?/:day?/:postId?" component={Blog} />
           <Route path="/legal" component={Legal} />
           <Route path="/support" component={Support} />
+          <Route path="/contact" component={Contact} />
           <Route path="/privacy" component={Privacy} />
           <Route path="/terms" component={Terms} />
           <Route

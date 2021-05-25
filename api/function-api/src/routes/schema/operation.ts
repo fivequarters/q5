@@ -14,4 +14,8 @@ router
   .get(common.management({}), operation.get)
   .put(common.management({}), operation.put);
 
+<<<<<<< HEAD
 export { router as default };
+=======
+export default router;
+>>>>>>> master

@@ -5,10 +5,13 @@
     "outDir": "libc",
     "module": "CommonJS",
     "allowJs": true,
-    "declaration": false,
-    "declarationMap": false,
+    "declaration": true,
+    "declarationMap": true,
     "composite": false,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "lib": [
+      "es2019"
+    ]
   },
   "include": ["src"],
   "references": [
@@ -27,6 +30,7 @@
     { "path": "../../lib/server/function-tags" },
     { "path": "../../lib/server/npm" },
     { "path": "../../lib/server/registry" },
-    { "path": "../../lib/server/runas" }
+    { "path": "../../lib/server/runas" },
+    { "path": "../../lib/data/db" }
   ]
 }

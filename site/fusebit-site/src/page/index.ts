@@ -6,3 +6,4 @@ export { Support } from './Support';
 export { Privacy } from './Privacy';
 export { Terms } from './Terms';
 export { Route } from './Route';
+export { Contact } from './Contact';

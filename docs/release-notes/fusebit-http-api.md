@@ -17,6 +17,36 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.19.12
+
+_Release 05/22/21_
+
+- **Enhancement.** Relax function name restrictions to allow capital letters.
+
+## Version 1.19.11
+
+_Release 05/19/21_
+
+- **Enhancement.** Additional storage and RDS improvements.
+
+## Version 1.19.10
+
+_Release 05/18/21_
+
+- **Enhancement.** Move storage to RDS and away from DynamoDB.
+
+## Version 1.19.9
+
+_Release 05/18/21_
+
+- **Enhancement.** Rough-in support for new endpoints around integrations and connectors.
+
+## Version 1.19.8
+
+_Release 05/13/21_
+
+- **Enhancement.** Function list APIs now support returning function tags when `include=all` query parameter is specified.
+
 ## Version 1.19.7
 
 _Release 04/26/21_

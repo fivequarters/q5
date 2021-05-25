@@ -15,3 +15,6 @@ export { LinkedInIcon, LinkedInIconProps } from './LinkedInIcon';
 export { AccoladeOneIcon, AccoladeOneIconProps } from './AccoladeOneIcon';
 export { AccoladeTwoIcon, AccoladeTwoIconProps } from './AccoladeTwoIcon';
 export { AccoladeThreeIcon, AccoladeThreeIconProps } from './AccoladeThreeIcon';
+export { SlackIcon, SlackIconProps } from './SlackIcon';
+export { DiscordIcon, DiscordIconProps } from './DiscordIcon';
+export { MailIcon, MailIconProps } from './MailIcon';

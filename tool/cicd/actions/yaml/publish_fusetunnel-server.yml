@@ -1,0 +1,4 @@
+# Publish fusebit-cli
+steps:
+- name: Publish - Fusetunnel-server
+  run: ./tool/cicd/actions/scripts/publish_fusetunnel-server.sh

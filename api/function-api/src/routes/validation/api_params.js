@@ -12,7 +12,7 @@ module.exports = Joi.object().keys({
   initId: Joi.string().regex(/^int-[a-g0-9]{16}$/),
   subscriptionId: Joi.string().regex(/^sub-[a-g0-9]{16}$/),
   boundaryId: Joi.string().regex(/^[a-z0-9\-]{1,63}$/),
-  functionId: Joi.string().regex(/^[a-z0-9\-]{1,64}$/),
+  functionId: Joi.string().regex(/^[A-Za-z0-9\-]{1,64}$/),
   storageId: Joi.string()
     .regex(/^[^\/\*]+(?:\/[^\/\*]+)*\/?$/)
     .allow(''),

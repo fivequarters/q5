@@ -14,7 +14,7 @@ afterEach(async () => {
   await cleanUpStorage(account);
 }, 180000);
 
-describe('Storage Remove', () => {
+describe.skip('Storage Remove', () => {
   describe('Remove', () => {
     test('Removing storage with no etag and no storage path should work', async () => {
       const storageId = `test-${random()}`;
@@ -97,7 +97,7 @@ describe('Storage Remove', () => {
       expect(retrievedStorage).toBeHttp({ statusCode: 200 });
       retrievedStorage = await getStorage(account, `${storageIdPrefix}/bar/baz`);
       expect(retrievedStorage).toBeHttp({ statusCode: 200 });
-      let noSuchStorage = await getStorage(account, `${storageIdPrefix}/bar`);
+      const noSuchStorage = await getStorage(account, `${storageIdPrefix}/bar`);
       expect(noSuchStorage).toBeStorageNotFound(`${storageIdPrefix}/bar`);
     }, 180000);
 

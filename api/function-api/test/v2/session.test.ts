@@ -9,7 +9,11 @@ beforeEach(() => {
   ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
 });
 
+<<<<<<< HEAD
 describe('Sessions', () => {
+=======
+describe.skip('Sessions', () => {
+>>>>>>> master
   test('Test Simple Sessions', async () => {
     const integId = boundaryId; // Guaranteed not to conflict
     let response = await postSession(account, 'integration', integId, { foo: 1 });

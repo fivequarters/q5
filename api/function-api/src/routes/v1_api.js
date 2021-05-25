@@ -7,6 +7,7 @@ const analytics = require('./middleware/analytics');
 const determine_provider = require('./middleware/determine_provider');
 const parse_body_conditional = require('./middleware/parse_body_conditional');
 const provider_handlers = require('./handlers/provider_handlers');
+const { initFunctions } = require('./functions');
 const validate_schema = require('./middleware/validate_schema');
 const authorize = require('./middleware/authorize');
 const user_agent = require('./middleware/user_agent');
@@ -32,6 +33,7 @@ const npm = require('@5qtrs/npm');
 const { clear_built_module } = require('@5qtrs/function-lambda');
 const { AwsRegistry } = require('@5qtrs/registry');
 const Constants = require('@5qtrs/constants');
+const RDS = require('@5qtrs/db').default;
 
 const {
   execAs,
@@ -45,7 +47,7 @@ const {
 const { addLogging } = require('@5qtrs/runtime-common');
 
 const { StorageActions } = require('@5qtrs/storage');
-const storage = require('./handlers/storage');
+const storage = require('./handlers/storageRds');
 
 var corsManagementOptions = {
   origins: '*',
@@ -78,6 +80,9 @@ keyStore.rekey();
 const subscriptionCache = new SubscriptionCache({});
 subscriptionCache.refresh();
 
+// Register the globals with various consumers
+initFunctions(keyStore, subscriptionCache);
+
 // Utility functions
 const NotImplemented = (_, __, next) => next(create_error(501, 'Not implemented'));
 
@@ -107,7 +112,8 @@ router.get(
   '/health',
   health.getHealth(
     async () => keyStore.healthCheck(),
-    async () => subscriptionCache.healthCheck()
+    async () => subscriptionCache.healthCheck(),
+    async () => RDS.ensureConnection()
   )
 );
 

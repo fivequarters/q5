@@ -1,0 +1,26 @@
+{
+  "name": "@5qtrs/db",
+  "version": "0.0.1",
+  "description": "",
+  "main": "libc/index.js",
+  "sideEffects": false,
+  "license": "UNLICENSED",
+  "author": "fusebit.io",
+  "scripts": {
+    "build": "tsc -b",
+    "test": "jest --colors",
+    "coverage": "jest --colors --coverage",
+    "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x} test/{,**/}*.ts{,x}",
+    "clean": "rm -r -f libc; rm -r -f coverage"
+  },
+  "keywords": [],
+  "dependencies": {
+    "aws-sdk": "^2.895.0",
+    "http-errors": "^1.8.0",
+    "moment": "^2.29.1"
+  },
+  "devDependencies": {
+    "@types/http-errors": "^1.8.0",
+    "@types/moment": "^2.13.0"
+  }
+}

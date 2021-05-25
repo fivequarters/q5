@@ -17,6 +17,18 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.9.3
+
+_Released 5/22/21_
+
+- **Enhancement.** Relax function name restrictions to allow capital letters.
+
+## Version 1.9.2
+
+_Released 5/11/21_
+
+- **Enhancement.** The `fuse function deploy` now allows specification of files or directories to ignore using the `--ignore` option. Also, `.git` and `.gitignore` are ignored by default.
+
 ## Version 1.9.1
 
 _Released 4/28/21_

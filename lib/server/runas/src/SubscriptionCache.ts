@@ -149,4 +149,4 @@ class SubscriptionCache {
   }
 }
 
-export { SubscriptionCache, loadSubscription, refreshSubscription };
+export { SubscriptionCache, loadSubscription, refreshSubscription, ISubscription };

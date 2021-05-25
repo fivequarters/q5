@@ -18,6 +18,38 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.27.3
+
+_Released 05/19/21_
+
+- **Enhancement.** Support new types in RDS.
+
+## Version 1.27.2
+
+_Released 05/18/21_
+
+- **Bugfix.** Further RDS tooling support.
+
+## Version 1.27.1
+
+_Released 05/12/21_
+
+- **Enhancement.** Migration tool to move data from DynamoDB storage to Aurora.
+
+## Version 1.27.0
+
+_Released 05/12/21_
+
+- **Enhancement.** Add backup/restore deployment support.
+
+## Version 1.26.0
+
+_Released 04/08/21_
+
+For this version to take effect, please re-run `fuse-ops setup` and `fuse-ops deployment add` on your deployment.
+
+- **Enhancement.** Support for Aurora PostgreSQL database.
+
 ## Version 1.25.2
 
 _Release 04/26/21_

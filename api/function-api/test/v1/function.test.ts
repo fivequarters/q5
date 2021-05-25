@@ -698,6 +698,43 @@ describe('Function', () => {
     );
   }, 120000);
 
+  test('LIST on boundary with inclue=all retrieves the list of all functions with tags', async () => {
+    let response = await putFunction(account, boundaryId, function1Id, helloWorld);
+    expect(response).toBeHttp({ statusCode: 200 });
+    response = await putFunction(account, boundaryId, function2Id, helloWorldWithCron);
+    expect(response).toBeHttp({ statusCode: 200 });
+    response = await listFunctions(account, boundaryId, undefined, undefined, undefined, undefined, true);
+    expect(response).toBeHttp({ statusCode: 200 });
+    expect(response.data).toEqual({ items: expect.any(Array) });
+    expect(response.data.items).toHaveLength(2);
+    expect(response.data.items).toEqual(
+      expect.arrayContaining([
+        {
+          boundaryId,
+          functionId: function1Id,
+          schedule: {},
+          location: (await getFunctionLocation(account, boundaryId, function1Id)).data.location,
+          runtime: {
+            tags: expect.objectContaining({
+              'fusebit.functionId': function1Id,
+            }),
+          },
+        },
+        {
+          boundaryId,
+          functionId: function2Id,
+          schedule: helloWorldWithCron.schedule,
+          location: (await getFunctionLocation(account, boundaryId, function2Id)).data.location,
+          runtime: {
+            tags: expect.objectContaining({
+              'fusebit.functionId': function2Id,
+            }),
+          },
+        },
+      ])
+    );
+  }, 120000);
+
   test('LIST on boundary with paging works', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
     expect(response).toBeHttp({ statusCode: 200 });
@@ -850,6 +887,43 @@ describe('Function', () => {
           functionId: function2Id,
           schedule: helloWorldWithCron.schedule,
           location: (await getFunctionLocation(account, boundaryId, function2Id)).data.location,
+        },
+      ])
+    );
+  }, 120000);
+
+  test('LIST on subscription with include=all retrieves the list of all functions with tags', async () => {
+    let response = await putFunction(account, boundaryId, function1Id, helloWorld);
+    expect(response).toBeHttp({ statusCode: 200 });
+    response = await putFunction(account, boundaryId, function2Id, helloWorldWithCron);
+    expect(response).toBeHttp({ statusCode: 200 });
+    response = await listFunctions(account, undefined, undefined, undefined, undefined, undefined, true);
+    expect(response).toBeHttp({ statusCode: 200 });
+    expect(response.data).toMatchObject({ items: expect.any(Array) });
+    expect(response.data.items.length).toBeGreaterThanOrEqual(2);
+    expect(response.data.items).toEqual(
+      expect.arrayContaining([
+        {
+          boundaryId,
+          functionId: function1Id,
+          schedule: {},
+          location: (await getFunctionLocation(account, boundaryId, function1Id)).data.location,
+          runtime: {
+            tags: expect.objectContaining({
+              'fusebit.functionId': function1Id,
+            }),
+          },
+        },
+        {
+          boundaryId,
+          functionId: function2Id,
+          schedule: helloWorldWithCron.schedule,
+          location: (await getFunctionLocation(account, boundaryId, function2Id)).data.location,
+          runtime: {
+            tags: expect.objectContaining({
+              'fusebit.functionId': function2Id,
+            }),
+          },
         },
       ])
     );
