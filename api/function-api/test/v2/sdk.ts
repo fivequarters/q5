@@ -1,11 +1,3 @@
-<<<<<<< HEAD
-import { IAccount } from '../v1/accountResolver';
-import { request } from '@5qtrs/request';
-
-export async function listConnectors(account: IAccount) {
-  return request({
-    method: 'GET',
-=======
 import { IAccount } from './accountResolver';
 import { request } from '@5qtrs/request';
 import { Model } from '@5qtrs/db';
@@ -178,22 +170,15 @@ export interface IRequestOptions {
 }
 export const v2Request = async (account: IAccount, requestOptions: IRequestOptions) => {
   return request({
->>>>>>> master
     headers: {
       Authorization: `Bearer ${account.accessToken}`,
       'user-agent': account.userAgent,
     },
-<<<<<<< HEAD
-    url: `${account.baseUrl}/v2/account/${account.accountId}/subscription/${account.subscriptionId}/connector`,
-  });
-}
-=======
     url: `${account.baseUrl}/v2/account/${account.accountId}/subscription/${account.subscriptionId}${requestOptions.uri}`,
     method: requestOptions.method,
     data: requestOptions.body,
   });
 };
->>>>>>> master
 
 type SessionModes = 'integration' | 'connector';
 
