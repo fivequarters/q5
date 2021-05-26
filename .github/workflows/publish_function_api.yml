@@ -41,6 +41,8 @@ jobs:
             ${{ runner.os }}-yarn-
       - name: Checkout
         uses: actions/checkout@v2
+      - name: Publish - function-api
+        run: ./tool/cicd/actions/scripts/publish_function_api.sh
       - name: Version
         id: package-versions
         run: ./tool/cicd/actions/scripts/export_versions.sh
