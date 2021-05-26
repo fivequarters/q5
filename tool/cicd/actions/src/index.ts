@@ -28,6 +28,11 @@ const specs = [
     output: 'publish',
   },
   {
+    name: 'Publish function-api',
+    inputs: ['checkout', ...fullBuild, 'publish_function_api'],
+    output: 'publish_function_api',
+  },
+  {
     name: 'Publish the Website',
     inputs: ['checkout', ...fullBuild, 'publish_website'],
     output: 'publish_website',
