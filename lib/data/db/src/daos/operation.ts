@@ -12,7 +12,7 @@ export default class Operation extends Entity<Model.IOperation> {
     super({
       RDS,
       filterExpired: true,
-      entityType: Entity.EntityType.Operation,
+      entityType: Entity.EntityType.operation,
       expiresDuration: moment.duration(10, 'hours'),
       transactionId,
     });

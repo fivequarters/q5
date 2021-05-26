@@ -73,6 +73,7 @@ interface IExecuteFunction {
 
 interface IWaitForFunction {
   code: number;
+  version: number;
 }
 
 interface IResult {
@@ -162,7 +163,7 @@ const waitForFunctionBuild = async (
   do {
     const res = await asyncDispatch(req, provider_handlers.lambda.get_function_build);
     if (res.code === 200) {
-      return { code: res.code };
+      return { code: res.code, version: res.body.version };
     }
     if (res.code === 201) {
       await new Promise((resolve) => setTimeout(resolve, BUILD_POLL_DELAY));
@@ -262,6 +263,8 @@ const executeFunction = async (
 
       keyStore,
       resolvedAgent: options.resolvedAgent,
+
+      functionSummary,
     };
     const res = await asyncDispatch(req, provider_handlers.lambda.execute_function);
     return { body: res.body, bodyEncoding: res.bodyEncoding, code: res.code, error: res.error, headers: res.headers };
@@ -270,4 +273,12 @@ const executeFunction = async (
   }
 };
 
-export { createFunction, deleteFunction, executeFunction, checkAuthorization, initFunctions, waitForFunctionBuild };
+export {
+  createFunction,
+  deleteFunction,
+  executeFunction,
+  checkAuthorization,
+  initFunctions,
+  waitForFunctionBuild,
+  IFunctionSpecification,
+};

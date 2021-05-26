@@ -11,8 +11,10 @@ const routes = require('./routes');
 
 var app = express();
 // Sanitize logged URLs
-logger.token('url', (req, res) =>
-  req.query && req.query.token ? req.url.replace(/token=[^\&]+/, 'token={removed}') : req.url
+logger.token(
+  'url',
+  (req, res) =>
+    `${req.baseUrl}${req.query && req.query.token ? req.url.replace(/token=[^\&]+/, 'token={removed}') : req.url}`
 );
 
 app.use(logger(process.stdout.isTTY ? 'dev' : 'combined'));

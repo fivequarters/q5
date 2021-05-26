@@ -94,6 +94,7 @@ describe('Function Utilities', () => {
       subscriptionId: params.subscriptionId,
       boundaryId: params.boundaryId,
       functionId: function1Id,
+      version: 1,
     });
   }, 5000);
 
@@ -118,6 +119,7 @@ describe('Function Utilities', () => {
       subscriptionId: params.subscriptionId,
       boundaryId: params.boundaryId,
       functionId: function1Id,
+      version: 2,
     });
   }, 5000);
 
@@ -171,7 +173,7 @@ describe('Function Utilities', () => {
     expect(create).toMatchObject({ code: 201 });
 
     const build = await FunctionUtilities.waitForFunctionBuild(params, create.buildId as string, 10000);
-    expect(build).toMatchObject({ code: 200 });
+    expect(build).toMatchObject({ code: 200, version: 1 });
   }, 15000);
 
   test('Create a function with a short timeout fails', async () => {

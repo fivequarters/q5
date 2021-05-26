@@ -21,6 +21,15 @@ DIST=lib/client/fusebit-editor/dist
 CSS_FILES="lib/client/fusebit-editor/src/fusebit-light.css lib/client/fusebit-editor/src/fusebit-dark.css"
 JS_FILES="${DIST}/fusebit-editor.js ${DIST}/fusebit-editor.js.map ${DIST}/fusebit-editor.min.js ${DIST}/fusebit-editor.min.js.map"
 
+# -- Is this the HEAD of this artifact?
+VER_WART=editor
+git tag --points-at HEAD | grep ${VER_WART}-${VERSION} > /dev/null;
+TAG_TEST=$?;
+if [ ${TAG_TEST} -ne 0 ]; then
+  echoerr "Not publishing ${VERSION} - HEAD is not tagged ${VER_WART}-${VERSION}";
+  exit 0;
+fi
+
 # -- Script --
 echoerr "Building package"
 rm -rf lib/client/fusebit-editor/dist/
