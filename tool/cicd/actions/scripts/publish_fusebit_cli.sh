@@ -10,6 +10,15 @@ export FUSEBIT_DEBUG=
 AWS_PROFILE=${AWS_PROFILE:=default}
 VERSION=${VERSION_FUSEBIT_CLI:=`jq -r '.version' ./cli/fusebit-cli/package.json`}
 
+# -- Is this the HEAD of this artifact?
+VER_WART=cli
+git tag --points-at HEAD | grep ${VER_WART}-${VERSION} > /dev/null;
+TAG_TEST=$?;
+if [ ${TAG_TEST} -ne 0 ]; then
+  echoerr "Not publishing ${VERSION} - HEAD is not tagged ${VER_WART}-${VERSION}";
+  exit 0;
+fi
+
 # -- Script --
 echoerr "Building package"
 rm -rf cli/fusebit-cli/package
