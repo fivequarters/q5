@@ -7,10 +7,19 @@ FUSEOPS="node cli/fusebit-ops-cli/libc/index.js"
 export FUSEBIT_DEBUG=
 
 # -- Optional Parameters --
-IMG_VER=${VERSION_FUNCTION_API:=`jq -r '.version' ./package.json`}
+VERSION=${VERSION_FUNCTION_API:=`jq -r '.version' ./package.json`}
+
+# -- Is this the HEAD of this artifact?
+VER_WART=api
+git tag --points-at HEAD | grep ${VER_WART}-${VERSION} > /dev/null;
+TAG_TEST=$?;
+if [ ${TAG_TEST} -ne 0 ]; then
+  echoerr "Not publishing ${VERSION} - HEAD is not tagged ${VER_WART}-${VERSION}";
+  exit 0;
+fi
 
 # -- Script --
-${FUSEOPS} image publish ${IMG_VER} 1>&2
+${FUSEOPS} image publish ${VERSION} 1>&2
 
 echoerr "Completed successfully:"
-echo { \"version\": \"${IMG_VER}\" }
+echo { \"version\": \"${VERSION}\" }

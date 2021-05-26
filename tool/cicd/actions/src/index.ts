@@ -28,25 +28,15 @@ const specs = [
     output: 'publish',
   },
   {
-    name: 'Publish fuse-ops cli',
-    inputs: ['checkout', ...fullBuild, 'publish_fusebit_ops_cli'],
-    output: 'publish_fuse-ops_cli',
-  },
-  {
-    name: 'Publish fuse cli',
-    inputs: ['checkout', ...fullBuild, 'publish_fusebit_cli'],
-    output: 'publish_fuse_cli',
+    name: 'Publish function-api',
+    inputs: ['checkout', ...fullBuild, 'publish_function_api'],
+    output: 'publish_function_api',
   },
   {
     name: 'Publish the Website',
     inputs: ['checkout', ...fullBuild, 'publish_website'],
     output: 'publish_website',
   },
-  {
-    name: 'Publish Fusetunnel',
-    inputs: ['checkout', 'setup_env', 'publish_fusetunnel', 'publish_fusetunnel-server'],
-    output: 'publish_fusetunnel',
-  }
 ];
 
 function buildSpec(name: string, inputs: string[], output: string, options: any = {}) {
