@@ -13,20 +13,13 @@ const rejectPermissionAgent = {
   },
 };
 
-interface IConnectorEntity {
-  configuration: {
-    package: string;
-  };
-  files: { [fileName: string]: string };
-}
-
 class ConnectorService extends BaseComponentService<Model.IConnector> {
   constructor() {
-    super(RDS.DAO.connector, 'connector');
+    super(RDS.DAO.connector, Model.EntityType.connector);
   }
 
-  public sanitizeEntity = (entity: Model.IEntity): IConnectorEntity => {
-    const data: IConnectorEntity = entity.data;
+  public sanitizeEntity = (entity: Model.IEntity): Model.IConnector => {
+    const data = entity.data;
     data.files = data.files || {};
     data.configuration = data.configuration || { package: '@fusebit-int/pkg-oauth-connector' };
 

@@ -20,7 +20,7 @@ export interface IDispatchParams {
 
 export default abstract class BaseComponentService<E extends Model.IEntity> {
   public readonly boundaryId: string;
-  protected constructor(dao: Model.IEntityDao<E>, boundaryId: string) {
+  protected constructor(dao: Model.IEntityDao<E>, boundaryId: Model.EntityType) {
     this.boundaryId = boundaryId;
     this.dao = dao;
   }

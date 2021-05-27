@@ -108,14 +108,30 @@ export interface IListResponse<T extends IEntity> {
 // IEntity Extensions
 // --------------------------------
 
-export interface IIntegration extends IEntity {}
-export interface IConnector extends IEntity {}
+export interface IIntegration extends IEntity {
+  data: {
+    configuration?: {
+      package: string;
+      connectors: { [name: string]: { package: string; config?: any } };
+    };
+    files?: { [fileName: string]: string };
+  };
+}
+
+export interface IConnector extends IEntity {
+  data: {
+    configuration: {
+      package: string;
+    };
+    files: { [fileName: string]: string };
+  };
+}
+
 export interface IStorageItem extends IEntity {}
 export interface IOperation extends IEntity {}
 export interface IIdentity extends IEntity {}
 export interface IInstance extends IEntity {}
 export interface ISession extends IEntity {}
-export interface IEntityGeneric extends IIntegration, IConnector, IStorageItem, IOperation {}
 
 // --------------------------------
 // Utilities

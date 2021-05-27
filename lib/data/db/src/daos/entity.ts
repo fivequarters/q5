@@ -17,7 +17,6 @@ import {
   IRds,
   DefaultConstructorArguments,
   RequiredKeysOnly,
-  IEntityGeneric,
   ITagsWithVersion,
   IEntityId,
   IEntityPrefix,
@@ -36,7 +35,7 @@ const defaultEntityConstructorArgument: DefaultConstructorArguments = {
   listLimit: 100,
 };
 
-export abstract class Entity<ET extends IEntityGeneric> implements IEntityDao<ET> {
+export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
   /**
    * Clones the existing subclassed Entity with a transactionId.
    * All calls using the cloned object will be wrapped within that transaction.
