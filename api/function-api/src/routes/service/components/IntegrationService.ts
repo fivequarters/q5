@@ -7,8 +7,6 @@ import { operationService } from './OperationService';
 
 import * as Function from '../../functions';
 
-const boundaryId = 'integration';
-
 const rejectPermissionAgent = {
   checkPermissionSubset: () => {
     throw new Error('permissions are unsupported');
@@ -34,7 +32,7 @@ const defaultIntegration = [
   '',
   'const router = new Router();',
   '',
-  "router.get('/', async (ctx) => {",
+  "router.get('/api/', async (ctx) => {",
   "  ctx.body = 'Hello World';",
   '});',
   '',
@@ -43,7 +41,7 @@ const defaultIntegration = [
 
 class IntegrationService extends BaseComponentService<Model.IIntegration> {
   constructor() {
-    super(RDS.DAO.integration);
+    super(RDS.DAO.integration, 'integration');
   }
 
   public sanitizeEntity = (entity: Model.IEntity): void => {
@@ -136,7 +134,7 @@ class IntegrationService extends BaseComponentService<Model.IIntegration> {
     const params = {
       accountId: entity.accountId,
       subscriptionId: entity.subscriptionId,
-      boundaryId,
+      boundaryId: this.boundaryId,
       functionId: entity.id,
     };
 
@@ -197,7 +195,7 @@ class IntegrationService extends BaseComponentService<Model.IIntegration> {
         await Function.deleteFunction({
           accountId: entity.accountId,
           subscriptionId: entity.subscriptionId,
-          boundaryId,
+          boundaryId: this.boundaryId,
           functionId: entity.id,
         });
 

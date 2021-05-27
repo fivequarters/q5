@@ -85,6 +85,13 @@ export const ApiRequestMap: { [key: string]: any } = {
 
       return wait;
     },
+    dispatch: async (
+      account: IAccount,
+      entityId: string,
+      method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
+      path: string,
+      options: { body?: string | object; contentType?: string }
+    ) => v2Request(account, { method, uri: `/connector/${entityId}${path}`, ...options }),
     tags: {
       get: async (account: IAccount, connectorId: string, tagKey: string = '') =>
         v2Request(account, { method: 'GET', uri: `/connector/${connectorId}/tag/${tagKey}` }),
@@ -147,6 +154,13 @@ export const ApiRequestMap: { [key: string]: any } = {
       expect(op).toBeHttp({ statusCode: 202 });
       return ApiRequestMap.operation.waitForCompletion(account, op.data.operationId, false, options);
     },
+    dispatch: async (
+      account: IAccount,
+      entityId: string,
+      method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
+      path: string,
+      options: { body?: string | object; contentType?: string }
+    ) => v2Request(account, { method, uri: `/integration/${entityId}${path}`, ...options }),
     tags: {
       get: async (account: IAccount, integrationId: string, tagKey: string = '') =>
         v2Request(account, { method: 'GET', uri: `/integration/${integrationId}/tag/${tagKey}` }),
@@ -193,13 +207,15 @@ export const ApiRequestMap: { [key: string]: any } = {
 export interface IRequestOptions {
   uri: string;
   method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
-  body?: object;
+  contentType?: string;
+  body?: string | object;
 }
 export const v2Request = async (account: IAccount, requestOptions: IRequestOptions) => {
   return request({
     headers: {
       Authorization: `Bearer ${account.accessToken}`,
       'user-agent': account.userAgent,
+      ...(requestOptions.contentType ? { 'content-type': requestOptions.contentType } : {}),
     },
     url: `${account.baseUrl}/v2/account/${account.accountId}/subscription/${account.subscriptionId}${requestOptions.uri}`,
     method: requestOptions.method,

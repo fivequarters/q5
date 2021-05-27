@@ -8,17 +8,17 @@ import * as analytics from '../../../middleware/analytics';
 import { BaseComponentService } from '../../../service';
 
 const router = (ComponentService: BaseComponentService<any>) => {
-  const router = express.Router({ mergeParams: true });
+  const r = express.Router({ mergeParams: true });
 
-  router.use('/:componentId/api', componentApiRouter(ComponentService));
+  r.use('/:componentId/api', componentApiRouter(ComponentService));
 
-  router.use(analytics.setModality(analytics.Modes.Administration));
-  router.use('/:componentId/session', componentSessionRouter(ComponentService));
-  router.use('/:componentId/tag', componentTagRouter(ComponentService));
-  router.use('/:componentId', componentCrudRouter(ComponentService));
-  router.use('/', componentRootRouter(ComponentService));
+  r.use(analytics.setModality(analytics.Modes.Administration));
+  r.use('/:componentId/session', componentSessionRouter(ComponentService));
+  r.use('/:componentId/tag', componentTagRouter(ComponentService));
+  r.use('/:componentId', componentCrudRouter(ComponentService));
+  r.use('/', componentRootRouter(ComponentService));
 
-  return router;
+  return r;
 };
 
 export default router;

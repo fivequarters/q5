@@ -266,6 +266,7 @@ const executeFunction = async (
 
       functionSummary,
     };
+
     const res = await asyncDispatch(req, provider_handlers.lambda.execute_function);
     return { body: res.body, bodyEncoding: res.bodyEncoding, code: res.code, error: res.error, headers: res.headers };
   } finally {
@@ -281,4 +282,5 @@ export {
   initFunctions,
   waitForFunctionBuild,
   IFunctionSpecification,
+  IExecuteFunction,
 };

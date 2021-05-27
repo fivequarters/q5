@@ -24,31 +24,34 @@ const remVersion = (entity: IEntityRequestBody) => {
 };
 
 afterAll(async () => {
-  // await cleanupEntities(account);
+  await cleanupEntities(account);
 }, 30000);
 
-const performTests = (testEntityType: string, sampleData: any[]) => {
-  const makeEntity = (): IEntityRequestBody => ({
-    accountId: account.accountId,
-    data: { testData: '123' },
-    id: newId('Test'),
-    subscriptionId: account.subscriptionId,
-    tags: { [`oneTag`]: 'one value', [`twoTags`]: 'two values' },
-    entityType: testEntityType,
-  });
+const toIEntity = (testEntityType: string): IEntityRequestBody => ({
+  accountId: account.accountId,
+  data: { testData: '123' },
+  id: newId('Test'),
+  subscriptionId: account.subscriptionId,
+  tags: { [`oneTag`]: 'one value', [`twoTags`]: 'two values' },
+  entityType: testEntityType,
+});
 
-  const createEntityTest = async (entity: Model.IEntity) => {
-    const createResponse = await ApiRequestMap[testEntityType].post(account, entity);
-    expect(createResponse).toBeHttp({ statusCode: 202 });
-    const operation = await ApiRequestMap.operation.waitForCompletion(account, createResponse.data.operationId);
-    expect(operation).toBeHttp({ statusCode: 200 });
-    const listResponse = await ApiRequestMap[testEntityType].list(account, getIdPrefix());
-    expect(listResponse).toBeHttp({ statusCode: 200 });
-    expect(listResponse.data).toBeDefined();
-    expect(listResponse.data.items).toMatchObject([entity]);
-    expect(listResponse.data.items[0].version).toBeUUID();
-    return listResponse.data.items[0];
-  };
+const createEntity = async (testEntityType: string, entity: Model.IEntity) => {
+  const createResponse = await ApiRequestMap[testEntityType].post(account, entity);
+  expect(createResponse).toBeHttp({ statusCode: 202 });
+  const operation = await ApiRequestMap.operation.waitForCompletion(account, createResponse.data.operationId);
+  expect(operation).toBeHttp({ statusCode: 200 });
+  const listResponse = await ApiRequestMap[testEntityType].list(account, getIdPrefix());
+  expect(listResponse).toBeHttp({ statusCode: 200 });
+  expect(listResponse.data).toBeDefined();
+  expect(listResponse.data.items).toMatchObject([entity]);
+  expect(listResponse.data.items[0].version).toBeUUID();
+  return listResponse.data.items[0];
+};
+
+const performTests = (testEntityType: string) => {
+  const makeEntity = () => toIEntity(testEntityType);
+  const createEntityTest = (entity: Model.IEntity) => createEntity(testEntityType, entity);
 
   test('List Entitys returns 404 when none exist', async () => {
     const response = await ApiRequestMap[testEntityType].list(account, getIdPrefix());
@@ -398,27 +401,88 @@ const performTests = (testEntityType: string, sampleData: any[]) => {
     expect(setTagResponse).toBeHttp({ statusCode: 404 });
   }, 180000);
 
-  test.only('Invoke Entity', async () => {
+  test('Invoke Entity Function', async () => {
     const entity = await createEntityTest(makeEntity());
     const location = await getFunctionLocation(account, testEntityType, entity.id);
     expect(location).toBeHttp({ statusCode: 200 });
     const call = await callFunction('', location.data.location + '/api/health');
     expect(call).toBeHttp({ statusCode: 200 });
   }, 180000);
+
+  test('Invoke Entity Dispatch', async () => {
+    const entity = await createEntityTest(makeEntity());
+    const invokeResponse = await ApiRequestMap[testEntityType].dispatch(account, entity.id, 'GET', '/api/health');
+    expect(invokeResponse).toBeHttp({ statusCode: 200 });
+  }, 180000);
 };
 
 describe('Connector', () => {
-  const dataBase = { package: '@fusebit-int/pkg-oauth-connector' };
-  performTests('connector', [
-    { ...dataBase, testData: '123' },
-    { ...dataBase, newData: 'abc' },
-  ]);
+  performTests('connector');
 });
 
 describe('Integration', () => {
-  const dataBase = { package: './integration' };
-  performTests('integration', [
-    { ...dataBase, testData: '123' },
-    { ...dataBase, newData: 'abc' },
-  ]);
+  const testEntityType = 'integration';
+  performTests(testEntityType);
+  test('Invoke Entity GET', async () => {
+    const entity = await createEntity(testEntityType, toIEntity(testEntityType));
+    const invokeResponse = await ApiRequestMap[testEntityType].dispatch(account, entity.id, 'GET', '/api/');
+    expect(invokeResponse).toBeHttp({ statusCode: 200, data: 'Hello World' });
+  }, 180000);
+
+  test('Update Entity and Dispatch', async () => {
+    const entity = await createEntity(testEntityType, toIEntity(testEntityType));
+    const entityUpdated = {
+      ...entity,
+      data: { ...entity.data },
+    };
+    entityUpdated.data.files = {
+      ...entity.data.files,
+      'integration.js': [
+        "const { Router, Manager, Form } = require('@fusebit-int/pkg-manager');",
+        "const connectors = require('@fusebit-int/pkg-manager').connectors;",
+        '',
+        'const router = new Router();',
+        '',
+        "router.get('/api/', async (ctx) => {",
+        "  ctx.body = 'Hello Monkeys';",
+        '});',
+        '',
+        'module.exports = router;',
+      ].join('\n'),
+    };
+    const updateResponse = await ApiRequestMap[testEntityType].putAndWait(account, entity.id, entityUpdated);
+    expect(updateResponse).toBeHttp({ statusCode: 200 });
+    const invokeResponse = await ApiRequestMap[testEntityType].dispatch(account, entity.id, 'GET', '/api/');
+    expect(invokeResponse).toBeHttp({ statusCode: 200, data: 'Hello Monkeys' });
+  }, 180000);
+
+  test('Update Entity and POST', async () => {
+    const entity = await createEntity(testEntityType, toIEntity(testEntityType));
+    const entityUpdated = {
+      ...entity,
+      data: { ...entity.data },
+    };
+    entityUpdated.data.files = {
+      ...entity.data.files,
+      'integration.js': [
+        "const { Router, Manager, Form } = require('@fusebit-int/pkg-manager');",
+        "const connectors = require('@fusebit-int/pkg-manager').connectors;",
+        '',
+        'const router = new Router();',
+        '',
+        "router.post('/api/', async (ctx) => {",
+        '  console.log(ctx);',
+        '  ctx.body = ctx.req.body;',
+        '});',
+        '',
+        'module.exports = router;',
+      ].join('\n'),
+    };
+    const updateResponse = await ApiRequestMap[testEntityType].putAndWait(account, entity.id, entityUpdated);
+    expect(updateResponse).toBeHttp({ statusCode: 200 });
+    const invokeResponse = await ApiRequestMap[testEntityType].dispatch(account, entity.id, 'POST', '/api/', {
+      body: { hello: 'world' },
+    });
+    expect(invokeResponse).toBeHttp({ statusCode: 200, data: { hello: 'world' } });
+  }, 180000);
 });

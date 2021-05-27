@@ -7,8 +7,6 @@ import { operationService } from './OperationService';
 
 import * as Function from '../../functions';
 
-const boundaryId = 'connector';
-
 const rejectPermissionAgent = {
   checkPermissionSubset: () => {
     throw new Error('permissions are unsupported');
@@ -17,7 +15,7 @@ const rejectPermissionAgent = {
 
 class ConnectorService extends BaseComponentService<Model.IConnector> {
   constructor() {
-    super(RDS.DAO.connector);
+    super(RDS.DAO.connector, 'connector');
   }
 
   public createFunctionSpecification = (entity: Model.IEntity): Function.IFunctionSpecification => {
@@ -66,7 +64,7 @@ class ConnectorService extends BaseComponentService<Model.IConnector> {
     const params = {
       accountId: entity.accountId,
       subscriptionId: entity.subscriptionId,
-      boundaryId,
+      boundaryId: this.boundaryId,
       functionId: entity.id,
     };
 
@@ -120,7 +118,7 @@ class ConnectorService extends BaseComponentService<Model.IConnector> {
         await Function.deleteFunction({
           accountId: entity.accountId,
           subscriptionId: entity.subscriptionId,
-          boundaryId,
+          boundaryId: this.boundaryId,
           functionId: entity.id,
         });
 

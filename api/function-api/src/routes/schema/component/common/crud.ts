@@ -39,6 +39,30 @@ const router = (ComponentService: BaseComponentService<any>) => {
         next(e);
       }
     });
+
+  componentCrudRouter.all(['/api', '/api/:subPath(*)'], async (req, res, next) => {
+    let result;
+
+    try {
+      result = await ComponentService.dispatch(pathParams.EntityById(req), req.method, req.params.subPath || '', {
+        headers: req.headers,
+        body: req.body,
+        query: req.query,
+        originalUrl: req.originalUrl,
+      });
+    } catch (e) {
+      return next(e);
+    }
+
+    if (result.error) {
+      return next(result.error);
+    }
+
+    res.set(result.headers);
+    res.status(result.code);
+    res.send(result.body);
+  });
+
   return componentCrudRouter;
 };
 
