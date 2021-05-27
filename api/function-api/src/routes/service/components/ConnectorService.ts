@@ -13,29 +13,49 @@ const rejectPermissionAgent = {
   },
 };
 
+interface IConnectorEntity {
+  configuration: {
+    package: string;
+  };
+  files: { [fileName: string]: string };
+}
+
 class ConnectorService extends BaseComponentService<Model.IConnector> {
   constructor() {
     super(RDS.DAO.connector, 'connector');
   }
+
+  public sanitizeEntity = (entity: Model.IEntity): IConnectorEntity => {
+    const data: IConnectorEntity = entity.data;
+    data.files = data.files || {};
+    data.configuration = data.configuration || { package: '@fusebit-int/pkg-oauth-connector' };
+
+    const pkg = {
+      dependencies: {},
+      ...(data.files && data.files['package.json'] ? JSON.parse(data.files['package.json']) : {}),
+    };
+
+    pkg.dependencies['@fusebit-int/pkg-handler'] = pkg.dependencies['@fusebit-int/pkg-handler'] || '*';
+    pkg.dependencies['@fusebit-int/pkg-manager'] = pkg.dependencies['@fusebit-int/pkg-manager'] || '*';
+
+    // Make sure package mentioned in the `package` block is also included.
+    pkg.dependencies[data.configuration.package] = pkg.dependencies[data.configuration.package] || '*';
+
+    data.files['package.json'] = JSON.stringify(pkg);
+
+    return data;
+  };
 
   public createFunctionSpecification = (entity: Model.IEntity): Function.IFunctionSpecification => {
     return {
       id: entity.id,
       nodejs: {
         files: {
-          'package.json': JSON.stringify({
-            dependencies: {
-              '@fusebit-int/pkg-handler': '*',
-              '@fusebit-int/pkg-oauth-connector': '*',
-            },
-          }),
-          'index.js': `
-            const config = ${JSON.stringify({
-              ...entity.data,
-              package: '@fusebit-int/pkg-oauth-connector', // XXX Needs to be parameterized
-            })};
-            module.exports = require('@fusebit-int/pkg-handler')(config);
-          `,
+          ...entity.data.files,
+          'index.js': [
+            `const config = ${JSON.stringify(entity.data.configuration)};`,
+            `module.exports = require('@fusebit-int/pkg-handler')(config);`,
+          ].join('\n'),
         },
       },
     };
@@ -67,6 +87,8 @@ class ConnectorService extends BaseComponentService<Model.IConnector> {
       boundaryId: this.boundaryId,
       functionId: entity.id,
     };
+
+    entity.data = this.sanitizeEntity(entity);
 
     const result = await Function.createFunction(
       params,
