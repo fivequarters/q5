@@ -7,7 +7,6 @@ let engine: OAuthEngine;
 let manager: Manager;
 
 router.on('startup', async ({ mgr, cfg, router: rtr, storage }: IOnStartup, next: Next) => {
-  console.log(`in pkg-oauth-connector startup, cool`);
   // Router's already been mounted, so any further additions need to happen here on 'rtr'.
   //
   // Create the engine, now that the configuration has been loaded.

@@ -8,7 +8,6 @@ let manager: Manager;
  * On startup, save the manager object for use in other routes.
  */
 router.on('startup', async ({ mgr, cfg, router: rtr, storage }: IOnStartup, next: Next) => {
-  console.log(`in Default Routes startup`);
   manager = mgr;
 });
 
@@ -25,7 +24,9 @@ router.get('/api/health', async (ctx: Context, next: Next) => {
   // If no status has been set, respond with a basic one.
   if (ctx.status === 200 && manager.vendorError) {
     // TODO: The ctx.throw doesn't seem to support an optional parameter, or it gets stripped out later.
-    ctx.body = manager.vendorError ? ctx.throw(501, `invalid vendor data: ${manager.vendorError}`) : { status: 'ok' };
+    ctx.body = manager.vendorError
+      ? ctx.throw(501, { message: `invalid code: ${manager.vendorError}`, backtrace: manager.vendorError.stack })
+      : { status: 'ok' };
   }
 });
 

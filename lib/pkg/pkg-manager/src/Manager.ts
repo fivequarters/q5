@@ -98,7 +98,6 @@ class Manager {
     // Give everything a chance to be initialized - normally, the cfg object would be specialized per router
     // object to allow for routers to have specialized configuration elements, but we will sort that out
     // later.
-    console.log(`invoking startup`);
     this.invoke('startup', { mgr: this, cfg, router: this.router, storage: this.storage });
   }
 

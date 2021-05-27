@@ -795,12 +795,13 @@ export class FunctionService {
     functionServer.app.use(async (req: any, res: any) => {
       try {
         Object.keys(require.cache).forEach((r) => delete require.cache[r]);
-        const module = require(path);
-        console.log(`START ${req.body.method} ${req.body.url}`);
-        const result = await module(req.body);
-        console.log(`FINISH ${JSON.stringify(result)}`);
+        const func = require(path);
+        console.log(`> ${req.body.method} ${req.body.url}`);
+        const result = await func(req.body);
+        console.log(`< ${JSON.stringify(result)}`);
         return res.json(result);
       } catch (e) {
+        console.log(`E: `, e);
         res.json({ status: 501, body: `${e}` });
       }
     });

@@ -398,7 +398,7 @@ const performTests = (testEntityType: string, sampleData: any[]) => {
     expect(setTagResponse).toBeHttp({ statusCode: 404 });
   }, 180000);
 
-  test('Invoke Entity', async () => {
+  test.only('Invoke Entity', async () => {
     const entity = await createEntityTest(makeEntity());
     const location = await getFunctionLocation(account, testEntityType, entity.id);
     expect(location).toBeHttp({ statusCode: 200 });

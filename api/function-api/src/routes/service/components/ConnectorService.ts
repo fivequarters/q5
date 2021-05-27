@@ -31,11 +31,13 @@ class ConnectorService extends BaseComponentService<Model.IConnector> {
               '@fusebit-int/pkg-oauth-connector': '*',
             },
           }),
-          'index.js': `module.exports = require('@fusebit-int/pkg-handler');`,
-          'config.json': `module.exports = ${JSON.stringify({
-            ...entity.data,
-            package: '@fusebit-int/pkg-oauth-connector',
-          })};`,
+          'index.js': `
+            const config = ${JSON.stringify({
+              ...entity.data,
+              package: '@fusebit-int/pkg-oauth-connector', // XXX Needs to be parameterized
+            })};
+            module.exports = require('@fusebit-int/pkg-handler')(config);
+          `,
         },
       },
     };
@@ -49,32 +51,35 @@ class ConnectorService extends BaseComponentService<Model.IConnector> {
       Model.EntityType.connector,
       entity,
       { verb: 'creating', type: 'connector' },
-      async (operationId: string) => {
-        operationId = operationId;
-        // Do update things - create functions, collect their versions, and update the entity.data object
-        // appropriately.
-
-        const params = {
-          accountId: entity.accountId,
-          subscriptionId: entity.subscriptionId,
-          boundaryId,
-          functionId: entity.id,
-        };
-
-        const result = await Function.createFunction(
-          params,
-          this.createFunctionSpecification(entity),
-          rejectPermissionAgent as IAgent,
-          AwsRegistry.create({ ...entity, registryId: 'default' })
-        );
-
-        if (result.code === 201 && result.buildId) {
-          await Function.waitForFunctionBuild(params, result.buildId, 100000);
-        }
-
+      async (_: Model.IEntity, operationId: string) => {
+        await this.createEntityOperation(entity, operationId);
         await this.dao.createEntity(entity);
       }
     );
+  };
+
+  public createEntityOperation = async (entity: Model.IEntity, operationId: string) => {
+    operationId = operationId;
+    // Do update things - create functions, collect their versions, and update the entity.data object
+    // appropriately.
+
+    const params = {
+      accountId: entity.accountId,
+      subscriptionId: entity.subscriptionId,
+      boundaryId,
+      functionId: entity.id,
+    };
+
+    const result = await Function.createFunction(
+      params,
+      this.createFunctionSpecification(entity),
+      rejectPermissionAgent as IAgent,
+      AwsRegistry.create({ ...entity, registryId: 'default' })
+    );
+
+    if (result.code === 201 && result.buildId) {
+      await Function.waitForFunctionBuild(params, result.buildId, 100000);
+    }
   };
 
   public updateEntity = async (entity: Model.IEntity): Promise<IServiceResult> => {
@@ -85,14 +90,14 @@ class ConnectorService extends BaseComponentService<Model.IConnector> {
       Model.EntityType.connector,
       entity,
       { verb: 'updating', type: 'connector' },
-      async (operationId: string) => {
+      async (_: Model.IEntity, operationId: string) => {
         operationId = operationId;
-        // Do update things - create functions, collect their versions, and update the entity.data object
-        // appropriately.
 
-        // Delta between the two
-        // Create a new function specification
-        // Publish the function
+        // Make sure the entity already exists.
+        await this.dao.getEntity(entity);
+
+        // Delegate to the normal create code to recreate the function.
+        await this.createEntityOperation(entity, operationId);
 
         // Update it.
         await this.dao.updateEntity(entity);
@@ -108,7 +113,7 @@ class ConnectorService extends BaseComponentService<Model.IConnector> {
       Model.EntityType.connector,
       entity,
       { verb: 'deleting', type: 'connector' },
-      async (operationId: string) => {
+      async (_: Model.IEntity, operationId: string) => {
         operationId = operationId;
         // Do delete things - create functions, collect their versions, and update the entity.data object
         // appropriately.
