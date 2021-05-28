@@ -15,7 +15,11 @@ const rejectPermissionAgent = {
 
 class ConnectorService extends BaseComponentService<Model.IConnector> {
   constructor() {
-    super(RDS.DAO.connector, Model.EntityType.connector);
+    super(RDS.DAO.connector);
+  }
+
+  public get entityType(): Model.EntityType {
+    return Model.EntityType.connector;
   }
 
   public sanitizeEntity = (entity: Model.IEntity): Model.IConnector => {
@@ -62,22 +66,21 @@ class ConnectorService extends BaseComponentService<Model.IConnector> {
       Model.EntityType.connector,
       entity,
       { verb: 'creating', type: 'connector' },
-      async (_: Model.IEntity, operationId: string) => {
-        await this.createEntityOperation(entity, operationId);
+      async () => {
+        await this.createEntityOperation(entity);
         await this.dao.createEntity(entity);
       }
     );
   };
 
-  public createEntityOperation = async (entity: Model.IEntity, operationId: string) => {
-    operationId = operationId;
+  public createEntityOperation = async (entity: Model.IEntity) => {
     // Do update things - create functions, collect their versions, and update the entity.data object
     // appropriately.
 
     const params = {
       accountId: entity.accountId,
       subscriptionId: entity.subscriptionId,
-      boundaryId: this.boundaryId,
+      boundaryId: this.entityType,
       functionId: entity.id,
     };
 
@@ -103,14 +106,12 @@ class ConnectorService extends BaseComponentService<Model.IConnector> {
       Model.EntityType.connector,
       entity,
       { verb: 'updating', type: 'connector' },
-      async (_: Model.IEntity, operationId: string) => {
-        operationId = operationId;
-
+      async () => {
         // Make sure the entity already exists.
         await this.dao.getEntity(entity);
 
         // Delegate to the normal create code to recreate the function.
-        await this.createEntityOperation(entity, operationId);
+        await this.createEntityOperation(entity);
 
         // Update it.
         await this.dao.updateEntity(entity);
@@ -126,14 +127,13 @@ class ConnectorService extends BaseComponentService<Model.IConnector> {
       Model.EntityType.connector,
       entity,
       { verb: 'deleting', type: 'connector' },
-      async (_: Model.IEntity, operationId: string) => {
-        operationId = operationId;
+      async () => {
         // Do delete things - create functions, collect their versions, and update the entity.data object
         // appropriately.
         await Function.deleteFunction({
           accountId: entity.accountId,
           subscriptionId: entity.subscriptionId,
-          boundaryId: this.boundaryId,
+          boundaryId: this.entityType,
           functionId: entity.id,
         });
 

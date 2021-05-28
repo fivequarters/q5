@@ -28,7 +28,11 @@ const defaultIntegration = [
 
 class IntegrationService extends BaseComponentService<Model.IIntegration> {
   constructor() {
-    super(RDS.DAO.integration, Model.EntityType.integration);
+    super(RDS.DAO.integration);
+  }
+
+  public get entityType(): Model.EntityType {
+    return Model.EntityType.integration;
   }
 
   public sanitizeEntity = (entity: Model.IIntegration): void => {
@@ -70,10 +74,8 @@ class IntegrationService extends BaseComponentService<Model.IIntegration> {
 
     // Make sure packages mentioned in the cfg.connectors block are also included.
     if (data.configuration) {
-      const connectors = data.configuration.connectors;
-      Object.keys(data.configuration.connectors).forEach((k: string) => {
-        const packageName = connectors[k].package;
-        pkg.dependencies[packageName] = pkg.dependencies[packageName] || '*';
+      Object.values(data.configuration.connectors).forEach((c: { package: string }) => {
+        pkg.dependencies[c.package] = pkg.dependencies[c.package] || '*';
       });
     }
 
@@ -113,22 +115,22 @@ class IntegrationService extends BaseComponentService<Model.IIntegration> {
       Model.EntityType.integration,
       entity,
       { verb: 'creating', type: 'integration' },
-      async (_: Model.IEntity, operationId: string) => {
+      async () => {
         this.sanitizeEntity(entity as Model.IIntegration);
-        await this.createEntityOperation(entity, operationId);
+        await this.createEntityOperation(entity);
         await this.dao.createEntity(entity);
       }
     );
   };
 
-  public createEntityOperation = async (entity: Model.IEntity, _: string) => {
+  public createEntityOperation = async (entity: Model.IEntity) => {
     // Do update things - create functions, collect their versions, and update the entity.data object
     // appropriately.
 
     const params = {
       accountId: entity.accountId,
       subscriptionId: entity.subscriptionId,
-      boundaryId: this.boundaryId,
+      boundaryId: this.entityType,
       functionId: entity.id,
     };
 
@@ -157,16 +159,14 @@ class IntegrationService extends BaseComponentService<Model.IIntegration> {
       Model.EntityType.integration,
       entity,
       { verb: 'updating', type: 'integration' },
-      async (_: Model.IEntity, operationId: string) => {
-        operationId = operationId;
-
+      async () => {
         // Make sure the entity already exists.
         await this.dao.getEntity(entity);
 
         this.sanitizeEntity(entity as Model.IIntegration);
 
         // Delegate to the normal create code to recreate the function.
-        await this.createEntityOperation(entity, operationId);
+        await this.createEntityOperation(entity);
 
         // Update it.
         await this.dao.updateEntity(entity);
@@ -182,14 +182,13 @@ class IntegrationService extends BaseComponentService<Model.IIntegration> {
       Model.EntityType.integration,
       entity,
       { verb: 'deleting', type: 'integration' },
-      async (_: Model.IEntity, operationId: string) => {
-        operationId = operationId;
+      async () => {
         // Do delete things - create functions, collect their versions, and update the entity.data object
         // appropriately.
         await Function.deleteFunction({
           accountId: entity.accountId,
           subscriptionId: entity.subscriptionId,
-          boundaryId: this.boundaryId,
+          boundaryId: this.entityType,
           functionId: entity.id,
         });
 

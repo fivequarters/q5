@@ -19,9 +19,8 @@ export interface IDispatchParams {
 }
 
 export default abstract class BaseComponentService<E extends Model.IEntity> {
-  public readonly boundaryId: string;
-  protected constructor(dao: Model.IEntityDao<E>, boundaryId: Model.EntityType) {
-    this.boundaryId = boundaryId;
+  abstract get entityType(): Model.EntityType;
+  protected constructor(dao: Model.IEntityDao<E>) {
     this.dao = dao;
   }
   public readonly dao: Model.IEntityDao<E>;
@@ -51,7 +50,7 @@ export default abstract class BaseComponentService<E extends Model.IEntity> {
     elements: IDispatchParams
   ): Promise<Functions.IExecuteFunction> => {
     return Functions.executeFunction(
-      { ...entity, boundaryId: this.boundaryId, functionId: entity.id, version: undefined },
+      { ...entity, boundaryId: this.entityType, functionId: entity.id, version: undefined },
       method,
       `/api/${path}`,
       elements

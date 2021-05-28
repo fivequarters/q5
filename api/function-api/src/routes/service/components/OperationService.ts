@@ -15,7 +15,7 @@ interface IOperationData extends IOperationParam {
   location: { accountId: string; subscriptionId: string; entityId: string; entityType: Model.EntityType };
 }
 
-type IOperationAction = (entity: Model.IEntity, operationId: string) => Promise<void>;
+type IOperationAction = (operationId: string) => Promise<void>;
 
 class OperationService {
   protected dao: Model.IEntityDao<Model.IOperation>;
@@ -56,7 +56,7 @@ class OperationService {
     // Queue up the operation to occur during the next event cycle, clearing the operation when done.
     setImmediate(async () => {
       try {
-        await op(entity, operationId);
+        await op(operationId);
 
         operationEntity.data.code = 200;
       } catch (err) {
