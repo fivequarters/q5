@@ -1,5 +1,9 @@
 import express from 'express';
+
+import * as common from '../../../middleware/common';
+
 import { BaseComponentService } from '../../../service';
+
 import pathParams from '../../../handlers/pathParams';
 import body from '../../../handlers/body';
 
@@ -8,37 +12,47 @@ const router = (ComponentService: BaseComponentService<any>) => {
 
   componentCrudRouter
     .route('/')
-    .get(async (req, res, next) => {
-      try {
-        const response = await ComponentService.dao.getEntity({
-          ...pathParams.EntityById(req),
-        });
-        res.json(response);
-      } catch (e) {
-        next(e);
+    .options(common.cors())
+    .get(
+      common.management({ authorize: { operation: `${ComponentService.boundaryId}:get` } }),
+      async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+        try {
+          const response = await ComponentService.dao.getEntity({
+            ...pathParams.EntityById(req),
+          });
+          res.json(response);
+        } catch (e) {
+          next(e);
+        }
       }
-    })
-    .put(async (req, res, next) => {
-      try {
-        const { statusCode, result } = await ComponentService.updateEntity({
-          ...pathParams.EntityById(req),
-          ...body.entity(req),
-        });
-        res.status(statusCode).json(result);
-      } catch (e) {
-        next(e);
+    )
+    .put(
+      common.management({ authorize: { operation: `${ComponentService.boundaryId}:put` } }),
+      async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+        try {
+          const { statusCode, result } = await ComponentService.updateEntity({
+            ...pathParams.EntityById(req),
+            ...body.entity(req),
+          });
+          res.status(statusCode).json(result);
+        } catch (e) {
+          next(e);
+        }
       }
-    })
-    .delete(async (req, res, next) => {
-      try {
-        const { statusCode, result } = await ComponentService.deleteEntity({
-          ...pathParams.EntityById(req),
-        });
-        res.status(statusCode).json(result);
-      } catch (e) {
-        next(e);
+    )
+    .delete(
+      common.management({ authorize: { operation: `${ComponentService.boundaryId}:delete` } }),
+      async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+        try {
+          const { statusCode, result } = await ComponentService.deleteEntity({
+            ...pathParams.EntityById(req),
+          });
+          res.status(statusCode).json(result);
+        } catch (e) {
+          next(e);
+        }
       }
-    });
+    );
 
   const dispatchToFunction = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     let result;

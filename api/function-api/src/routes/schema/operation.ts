@@ -12,6 +12,6 @@ router
   .route('/:operationId')
   .options(common.cors())
   .get(common.management({}), operation.get)
-  .put(common.management({}), operation.put);
+  .put(common.management({ authorize: { operation: 'operation:put' } }), operation.put);
 
 export default router;
