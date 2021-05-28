@@ -1,12 +1,25 @@
 import { NextFunction, Request, Response } from 'express';
+import { IncomingHttpHeaders } from 'http';
+
 import { Model } from '@5qtrs/db';
+
+import * as Functions from '../../functions';
 
 export interface IServiceResult {
   statusCode: number;
+  contentType?: string;
   result: any;
 }
 
+export interface IDispatchParams {
+  headers: IncomingHttpHeaders;
+  body?: string | object;
+  query?: object;
+  originalUrl: string;
+}
+
 export default abstract class BaseComponentService<E extends Model.IEntity> {
+  public abstract readonly entityType: Model.EntityType;
   protected constructor(dao: Model.IEntityDao<E>) {
     this.dao = dao;
   }
@@ -30,8 +43,18 @@ export default abstract class BaseComponentService<E extends Model.IEntity> {
     return response.tags[entityKey.tagKey];
   };
 
-  public dispatch = async (req: Request, res: Response, next: NextFunction) => {
-    return;
+  public dispatch = async (
+    entity: Model.IEntity,
+    method: string,
+    path: string,
+    elements: IDispatchParams
+  ): Promise<Functions.IExecuteFunction> => {
+    return Functions.executeFunction(
+      { ...entity, boundaryId: this.entityType, functionId: entity.id, version: undefined },
+      method,
+      path,
+      elements
+    );
   };
 
   public health = ({ id }: { id: string }): Promise<boolean> => {

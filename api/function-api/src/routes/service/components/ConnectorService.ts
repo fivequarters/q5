@@ -7,15 +7,6 @@ import { operationService } from './OperationService';
 
 import * as Function from '../../functions';
 
-const boundaryId = 'connector';
-const standardFunctionSpecification: Function.IFunctionSpecification = {
-  nodejs: {
-    files: {
-      'index.js': 'module.exports = (ctx, cb) => cb(null, { body: "hello" });',
-    },
-  },
-};
-
 const rejectPermissionAgent = {
   checkPermissionSubset: () => {
     throw new Error('permissions are unsupported');
@@ -23,15 +14,45 @@ const rejectPermissionAgent = {
 };
 
 class ConnectorService extends BaseComponentService<Model.IConnector> {
+  public readonly entityType: Model.EntityType;
   constructor() {
     super(RDS.DAO.connector);
+    this.entityType = Model.EntityType.connector;
   }
 
-  public createFunctionSpecification = async (entity: Model.IEntity): Promise<Function.IFunctionSpecification> => {
+  public sanitizeEntity = (entity: Model.IEntity): Model.IConnector => {
+    const data = entity.data;
+    data.files = data.files || {};
+    data.configuration = data.configuration || { package: '@fusebit-int/pkg-oauth-connector' };
+
+    const pkg = {
+      dependencies: {},
+      ...(data.files && data.files['package.json'] ? JSON.parse(data.files['package.json']) : {}),
+    };
+
+    pkg.dependencies['@fusebit-int/pkg-handler'] = pkg.dependencies['@fusebit-int/pkg-handler'] || '*';
+    pkg.dependencies['@fusebit-int/pkg-manager'] = pkg.dependencies['@fusebit-int/pkg-manager'] || '*';
+
+    // Make sure package mentioned in the `package` block is also included.
+    pkg.dependencies[data.configuration.package] = pkg.dependencies[data.configuration.package] || '*';
+
+    data.files['package.json'] = JSON.stringify(pkg);
+
+    return data;
+  };
+
+  public createFunctionSpecification = (entity: Model.IEntity): Function.IFunctionSpecification => {
     return {
-      ...standardFunctionSpecification,
-      ...entity.data,
       id: entity.id,
+      nodejs: {
+        files: {
+          ...entity.data.files,
+          'index.js': [
+            `const config = ${JSON.stringify(entity.data.configuration)};`,
+            `module.exports = require('@fusebit-int/pkg-handler')(config);`,
+          ].join('\n'),
+        },
+      },
     };
   };
 
@@ -43,32 +64,36 @@ class ConnectorService extends BaseComponentService<Model.IConnector> {
       Model.EntityType.connector,
       entity,
       { verb: 'creating', type: 'connector' },
-      async (operationId: string) => {
-        operationId = operationId;
-        // Do update things - create functions, collect their versions, and update the entity.data object
-        // appropriately.
-
-        const params = {
-          accountId: entity.accountId,
-          subscriptionId: entity.subscriptionId,
-          boundaryId,
-          functionId: entity.id,
-        };
-
-        const result = await Function.createFunction(
-          params,
-          await this.createFunctionSpecification(entity),
-          rejectPermissionAgent as IAgent,
-          AwsRegistry.create({ ...entity, registryId: 'default' })
-        );
-
-        if (result.code === 201 && result.buildId) {
-          await Function.waitForFunctionBuild(params, result.buildId, 100000);
-        }
-
+      async () => {
+        await this.createEntityOperation(entity);
         await this.dao.createEntity(entity);
       }
     );
+  };
+
+  public createEntityOperation = async (entity: Model.IEntity) => {
+    // Do update things - create functions, collect their versions, and update the entity.data object
+    // appropriately.
+
+    const params = {
+      accountId: entity.accountId,
+      subscriptionId: entity.subscriptionId,
+      boundaryId: this.entityType,
+      functionId: entity.id,
+    };
+
+    entity.data = this.sanitizeEntity(entity);
+
+    const result = await Function.createFunction(
+      params,
+      this.createFunctionSpecification(entity),
+      rejectPermissionAgent as IAgent,
+      AwsRegistry.create({ ...entity, registryId: 'default' })
+    );
+
+    if (result.code === 201 && result.buildId) {
+      await Function.waitForFunctionBuild(params, result.buildId, 100000);
+    }
   };
 
   public updateEntity = async (entity: Model.IEntity): Promise<IServiceResult> => {
@@ -79,14 +104,12 @@ class ConnectorService extends BaseComponentService<Model.IConnector> {
       Model.EntityType.connector,
       entity,
       { verb: 'updating', type: 'connector' },
-      async (operationId: string) => {
-        operationId = operationId;
-        // Do update things - create functions, collect their versions, and update the entity.data object
-        // appropriately.
+      async () => {
+        // Make sure the entity already exists.
+        await this.dao.getEntity(entity);
 
-        // Delta between the two
-        // Create a new function specification
-        // Publish the function
+        // Delegate to the normal create code to recreate the function.
+        await this.createEntityOperation(entity);
 
         // Update it.
         await this.dao.updateEntity(entity);
@@ -102,14 +125,13 @@ class ConnectorService extends BaseComponentService<Model.IConnector> {
       Model.EntityType.connector,
       entity,
       { verb: 'deleting', type: 'connector' },
-      async (operationId: string) => {
-        operationId = operationId;
+      async () => {
         // Do delete things - create functions, collect their versions, and update the entity.data object
         // appropriately.
         await Function.deleteFunction({
           accountId: entity.accountId,
           subscriptionId: entity.subscriptionId,
-          boundaryId,
+          boundaryId: this.entityType,
           functionId: entity.id,
         });
 

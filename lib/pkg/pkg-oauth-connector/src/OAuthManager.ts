@@ -21,7 +21,7 @@ router.delete('/', async (ctx: Context, next: Next) => {
   return next();
 });
 
-router.get('/:lookupKey/health', async (ctx: Context) => {
+router.get('/api/:lookupKey/health', async (ctx: Context) => {
   try {
     if (!(await engine.ensureAccessToken(ctx.params.lookupKey))) {
       ctx.throw(404);
@@ -33,7 +33,7 @@ router.get('/:lookupKey/health', async (ctx: Context) => {
   }
 });
 
-router.get('/:lookupKey/token', async (ctx: Context) => {
+router.get('/api/:lookupKey/token', async (ctx: Context) => {
   try {
     ctx.body = await engine.ensureAccessToken(ctx.params.lookupKey);
     if (!ctx.body) {
@@ -45,16 +45,16 @@ router.get('/:lookupKey/token', async (ctx: Context) => {
   }
 });
 
-router.delete('/:lookupKey', async (ctx: Context) => {
+router.delete('/api/:lookupKey', async (ctx: Context) => {
   ctx.body = await engine.deleteUser(ctx.params.lookupKey);
 });
 
 // OAuth Flow Endpoints
-router.get('/configure', async (ctx: Context) => {
+router.get('/api/configure', async (ctx: Context) => {
   ctx.redirect(await engine.getAuthorizationUrl(ctx.query.state));
 });
 
-router.get('/callback', async (ctx: Context) => {
+router.get('/api/callback', async (ctx: Context) => {
   const state = ctx.query.state;
   const code = ctx.query.code;
 
