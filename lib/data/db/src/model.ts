@@ -122,6 +122,7 @@ export interface IConnector extends IEntity {
   data: {
     configuration: {
       package: string;
+      muxIntegration: IEntityId;
     };
     files: { [fileName: string]: string };
   };

@@ -40,16 +40,26 @@ const router = (ComponentService: BaseComponentService<any>) => {
       }
     });
 
-  componentCrudRouter.all(['/api', '/api/:subPath(*)'], async (req, res, next) => {
+  const dispatchToFunction = async (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction,
+    urlPrefix: string = ''
+  ) => {
     let result;
 
     try {
-      result = await ComponentService.dispatch(pathParams.EntityById(req), req.method, req.params.subPath || '', {
-        headers: req.headers,
-        body: req.body,
-        query: req.query,
-        originalUrl: req.originalUrl,
-      });
+      result = await ComponentService.dispatch(
+        pathParams.EntityById(req),
+        req.method,
+        `${urlPrefix}/${req.params.subPath || ''}`,
+        {
+          headers: req.headers,
+          body: req.body,
+          query: req.query,
+          originalUrl: req.originalUrl,
+        }
+      );
     } catch (e) {
       return next(e);
     }
@@ -61,7 +71,13 @@ const router = (ComponentService: BaseComponentService<any>) => {
     res.set(result.headers);
     res.status(result.code);
     res.send(result.body);
-  });
+  };
+
+  componentCrudRouter.all(['/api', '/api/:subPath(*)'], (req, res, next) => dispatchToFunction(req, res, next, '/api'));
+
+  // Restrictive permissions to be added later.
+  // body: {event: string, parameters: any}
+  componentCrudRouter.post('/:subPath(event)', dispatchToFunction);
 
   return componentCrudRouter;
 };

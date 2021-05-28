@@ -2,15 +2,6 @@ import { Router, Manager, Context, Next, IOnStartup } from './';
 
 const router = new Router();
 
-let manager: Manager;
-
-/**
- * On startup, save the manager object for use in other routes.
- */
-router.on('startup', async ({ mgr, cfg, router: rtr, storage }: IOnStartup, next: Next) => {
-  manager = mgr;
-});
-
 /**
  * Annotate the health status with information on whether the vendor code loaded correctly.
  */
@@ -22,12 +13,20 @@ router.get('/api/health', async (ctx: Context, next: Next) => {
   }
 
   // If no status has been set, respond with a basic one.
-  if (ctx.status === 200 && manager.vendorError) {
+  if (ctx.status === 200 && ctx.state.manager.vendorError) {
     // TODO: The ctx.throw doesn't seem to support an optional parameter, or it gets stripped out later.
-    ctx.body = manager.vendorError
-      ? ctx.throw(501, { message: `invalid code: ${manager.vendorError}`, backtrace: manager.vendorError.stack })
+    ctx.body = ctx.state.manager.vendorError
+      ? ctx.throw(501, {
+          message: `invalid code: ${ctx.state.manager.vendorError}`,
+          backtrace: ctx.state.manager.vendorError.stack,
+        })
       : { status: 'ok' };
   }
+});
+
+router.post('/event', async (ctx: Context, next: Next) => {
+  const result = await ctx.state.manager.invoke(ctx.req.body.event, ctx.req.body.parameters);
+  ctx.body = result;
 });
 
 export default router;
