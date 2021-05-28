@@ -14,7 +14,7 @@ const router = (ComponentService: BaseComponentService<any>) => {
     .route('/')
     .options(common.cors())
     .get(
-      common.management({ authorize: { operation: `${ComponentService.boundaryId}:get` } }),
+      common.management({ authorize: { operation: `${ComponentService.entityType}:get` } }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {
           const response = await ComponentService.dao.getEntity({
@@ -27,7 +27,7 @@ const router = (ComponentService: BaseComponentService<any>) => {
       }
     )
     .put(
-      common.management({ authorize: { operation: `${ComponentService.boundaryId}:put` } }),
+      common.management({ authorize: { operation: `${ComponentService.entityType}:put` } }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {
           const { statusCode, result } = await ComponentService.updateEntity({
@@ -41,7 +41,7 @@ const router = (ComponentService: BaseComponentService<any>) => {
       }
     )
     .delete(
-      common.management({ authorize: { operation: `${ComponentService.boundaryId}:delete` } }),
+      common.management({ authorize: { operation: `${ComponentService.entityType}:delete` } }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {
           const { statusCode, result } = await ComponentService.deleteEntity({
