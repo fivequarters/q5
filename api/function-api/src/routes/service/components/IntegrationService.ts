@@ -27,12 +27,10 @@ const defaultIntegration = [
 ].join('\n');
 
 class IntegrationService extends BaseComponentService<Model.IIntegration> {
+  public readonly entityType: Model.EntityType;
   constructor() {
     super(RDS.DAO.integration);
-  }
-
-  public get entityType(): Model.EntityType {
-    return Model.EntityType.integration;
+    this.entityType = Model.EntityType.integration;
   }
 
   public sanitizeEntity = (entity: Model.IIntegration): void => {

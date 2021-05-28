@@ -19,7 +19,7 @@ export interface IDispatchParams {
 }
 
 export default abstract class BaseComponentService<E extends Model.IEntity> {
-  abstract get entityType(): Model.EntityType;
+  public abstract readonly entityType: Model.EntityType;
   protected constructor(dao: Model.IEntityDao<E>) {
     this.dao = dao;
   }

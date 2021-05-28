@@ -14,12 +14,10 @@ const rejectPermissionAgent = {
 };
 
 class ConnectorService extends BaseComponentService<Model.IConnector> {
+  public readonly entityType: Model.EntityType;
   constructor() {
     super(RDS.DAO.connector);
-  }
-
-  public get entityType(): Model.EntityType {
-    return Model.EntityType.connector;
+    this.entityType = Model.EntityType.connector;
   }
 
   public sanitizeEntity = (entity: Model.IEntity): Model.IConnector => {
