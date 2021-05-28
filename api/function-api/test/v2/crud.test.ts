@@ -422,7 +422,9 @@ describe('Connector', () => {
 
 describe('Integration', () => {
   const testEntityType = 'integration';
+
   performTests(testEntityType);
+
   test('Invoke Entity GET', async () => {
     const entity = await createEntity(testEntityType, toIEntity(testEntityType));
     const invokeResponse = await ApiRequestMap[testEntityType].dispatch(account, entity.id, 'GET', '/api/');
