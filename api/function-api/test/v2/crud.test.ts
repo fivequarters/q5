@@ -422,7 +422,9 @@ describe('Connector', () => {
 
 describe('Integration', () => {
   const testEntityType = 'integration';
+
   performTests(testEntityType);
+
   test('Invoke Entity GET', async () => {
     const entity = await createEntity(testEntityType, toIEntity(testEntityType));
     const invokeResponse = await ApiRequestMap[testEntityType].dispatch(account, entity.id, 'GET', '/api/');
@@ -471,7 +473,6 @@ describe('Integration', () => {
         'const router = new Router();',
         '',
         "router.post('/api/', async (ctx) => {",
-        '  console.log(ctx);',
         '  ctx.body = ctx.req.body;',
         '});',
         '',
@@ -484,5 +485,32 @@ describe('Integration', () => {
       body: { hello: 'world' },
     });
     expect(invokeResponse).toBeHttp({ statusCode: 200, data: { hello: 'world' } });
+  }, 180000);
+
+  test('Invoke Entity Event', async () => {
+    const entity = await createEntity(testEntityType, toIEntity(testEntityType));
+    entity.data.files['integration.js'] = [
+      "const { Router, Manager, Form } = require('@fusebit-int/pkg-manager');",
+      "const connectors = require('@fusebit-int/pkg-manager').connectors;",
+      '',
+      'const router = new Router();',
+      '',
+      "router.on('/testEvent', async ({tasty}) => {",
+      '  return { answer: tasty + " and mango"};',
+      '});',
+      '',
+      'module.exports = router;',
+    ].join('\n');
+
+    let result = await ApiRequestMap[testEntityType].putAndWait(account, entity.id, entity);
+    expect(result).toBeHttp({ statusCode: 200 });
+    result = await ApiRequestMap[testEntityType].dispatch(account, entity.id, 'POST', '/event', {
+      body: {
+        event: '/testEvent',
+        parameters: { tasty: 'banana' },
+      },
+      contentType: 'application/json',
+    });
+    expect(result).toBeHttp({ statusCode: 200, data: { answer: 'banana and mango' } });
   }, 180000);
 });

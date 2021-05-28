@@ -232,6 +232,7 @@ class Manager {
 
     ctx.params = fusebitCtx.params;
     ctx.fusebit = fusebitCtx.fusebit;
+    ctx.state.manager = this;
 
     // Pre-load the status as OK
     ctx.status = 200;

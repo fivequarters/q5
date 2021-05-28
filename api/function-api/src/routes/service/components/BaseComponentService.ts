@@ -52,7 +52,7 @@ export default abstract class BaseComponentService<E extends Model.IEntity> {
     return Functions.executeFunction(
       { ...entity, boundaryId: this.entityType, functionId: entity.id, version: undefined },
       method,
-      `/api/${path}`,
+      path,
       elements
     );
   };
