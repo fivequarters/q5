@@ -12,34 +12,40 @@ const router = (ComponentService: BaseComponentService<any>) => {
 
   componentRouter
     .route('/')
-    .get(async (req, res, next) => {
-      try {
-        const response = await ComponentService.dao.listEntities(
-          {
+    .get(
+      common.management({ authorize: { operation: `${ComponentService.entityType}:get` } }),
+      async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+        try {
+          const response = await ComponentService.dao.listEntities(
+            {
+              ...pathParams.accountAndSubscription(req),
+              ...query.tags(req),
+              ...query.prefix(req),
+            },
+            {
+              ...query.paginated(req),
+            }
+          );
+          res.json(response);
+        } catch (e) {
+          next(e);
+        }
+      }
+    )
+    .post(
+      common.management({ authorize: { operation: `${ComponentService.entityType}:put` } }),
+      async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+        try {
+          const { statusCode, result } = await ComponentService.createEntity({
             ...pathParams.accountAndSubscription(req),
-            ...query.tags(req),
-            ...query.prefix(req),
-          },
-          {
-            ...query.paginated(req),
-          }
-        );
-        res.json(response);
-      } catch (e) {
-        next(e);
+            ...body.entity(req),
+          });
+          res.status(statusCode).json(result);
+        } catch (e) {
+          next(e);
+        }
       }
-    })
-    .post(async (req, res, next) => {
-      try {
-        const { statusCode, result } = await ComponentService.createEntity({
-          ...pathParams.accountAndSubscription(req),
-          ...body.entity(req),
-        });
-        res.status(statusCode).json(result);
-      } catch (e) {
-        next(e);
-      }
-    });
+    );
   return componentRouter;
 };
 
