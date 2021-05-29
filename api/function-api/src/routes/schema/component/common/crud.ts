@@ -7,14 +7,18 @@ import { BaseComponentService } from '../../../service';
 import pathParams from '../../../handlers/pathParams';
 import body from '../../../handlers/body';
 
+import Validation from '../../../validation/component';
+
 const router = (ComponentService: BaseComponentService<any>) => {
   const componentCrudRouter = express.Router({ mergeParams: true });
-
   componentCrudRouter
     .route('/')
     .options(common.cors())
     .get(
-      common.management({ authorize: { operation: `${ComponentService.entityType}:get` } }),
+      common.management({
+        validate: { params: Validation.EntityIdParams },
+        authorize: { operation: `${ComponentService.entityType}:get` },
+      }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {
           const response = await ComponentService.dao.getEntity({
@@ -27,7 +31,10 @@ const router = (ComponentService: BaseComponentService<any>) => {
       }
     )
     .put(
-      common.management({ authorize: { operation: `${ComponentService.entityType}:put` } }),
+      common.management({
+        validate: { params: Validation.EntityIdParams, body: Validation[ComponentService.entityType].Entity },
+        authorize: { operation: `${ComponentService.entityType}:put` },
+      }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {
           const { statusCode, result } = await ComponentService.updateEntity({
@@ -41,7 +48,10 @@ const router = (ComponentService: BaseComponentService<any>) => {
       }
     )
     .delete(
-      common.management({ authorize: { operation: `${ComponentService.entityType}:delete` } }),
+      common.management({
+        authorize: { operation: `${ComponentService.entityType}:delete` },
+        validate: { params: Validation.EntityIdParams },
+      }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {
           const { statusCode, result } = await ComponentService.deleteEntity({
@@ -77,19 +87,31 @@ const router = (ComponentService: BaseComponentService<any>) => {
     res.send(result.body);
   };
 
-  componentCrudRouter.all(['/api', '/api/:subPath(*)'], (req, res, next) => {
-    // Touch up subPath to make sure it has the right prefix.
-    req.params.subPath = `/api/${req.params.subPath || ''}`;
-    return dispatchToFunction(req, res, next);
-  });
+  componentCrudRouter.all(
+    ['/api', '/api/:subPath(*)'],
+    common.management({
+      validate: { params: Validation.EntityIdParams },
+    }),
+    (req: express.Request, res: express.Response, next: express.NextFunction) => {
+      // Touch up subPath to make sure it has the right prefix.
+      req.params.subPath = `/api/${req.params.subPath || ''}`;
+      return dispatchToFunction(req, res, next);
+    }
+  );
 
   // Restrictive permissions to be added later.
   // body: {event: string, parameters: any}
-  componentCrudRouter.post('/:subPath(event)', (req, res, next) => {
-    // Touch up subPath to make sure it has the right prefix.
-    req.params.subPath = `/${req.params.subPath || ''}`;
-    return dispatchToFunction(req, res, next);
-  });
+  componentCrudRouter.post(
+    '/:subPath(event)',
+    common.management({
+      validate: { params: Validation.EntityIdParams },
+    }),
+    (req: express.Request, res: express.Response, next: express.NextFunction) => {
+      // Touch up subPath to make sure it has the right prefix.
+      req.params.subPath = `/${req.params.subPath || ''}`;
+      return dispatchToFunction(req, res, next);
+    }
+  );
 
   return componentCrudRouter;
 };

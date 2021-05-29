@@ -5,6 +5,8 @@ import query from '../../../handlers/query';
 import body from '../../../handlers/body';
 import pathParams from '../../../handlers/pathParams';
 
+import Validation from '../../../validation/component';
+
 const router = (ComponentService: BaseComponentService<any>) => {
   const componentRouter = express.Router({ mergeParams: true });
 
@@ -13,7 +15,10 @@ const router = (ComponentService: BaseComponentService<any>) => {
   componentRouter
     .route('/')
     .get(
-      common.management({ authorize: { operation: `${ComponentService.entityType}:get` } }),
+      common.management({
+        validate: { params: Validation.EntityIdParams, query: Validation.PrefixEntityIdQuery },
+        authorize: { operation: `${ComponentService.entityType}:get` },
+      }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {
           const response = await ComponentService.dao.listEntities(
@@ -33,7 +38,10 @@ const router = (ComponentService: BaseComponentService<any>) => {
       }
     )
     .post(
-      common.management({ authorize: { operation: `${ComponentService.entityType}:put` } }),
+      common.management({
+        validate: { params: Validation.EntityIdParams, body: Validation[ComponentService.entityType].Entity },
+        authorize: { operation: `${ComponentService.entityType}:put` },
+      }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {
           const { statusCode, result } = await ComponentService.createEntity({

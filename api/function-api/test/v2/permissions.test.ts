@@ -1,7 +1,6 @@
 import { Model } from '@5qtrs/db';
 
-import { cleanupEntities, ApiRequestMap } from './sdk';
-import { callFunction, getFunctionLocation } from '../v1/sdk';
+import { ApiRequestMap } from './sdk';
 
 import { getEnv } from '../v1/setup';
 
@@ -10,25 +9,25 @@ beforeEach(() => {
   ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
 });
 
-const crudPermissions = (entityType: Model.EntityType, authz: string) => {
-  expect(ApiRequestMap[entityType].get(account, 'inv', { authz })).resolves.toBeHttp({ statusCode: 403 });
-  expect(ApiRequestMap[entityType].list(account, undefined, { authz })).resolves.toBeHttp({ statusCode: 403 });
-  expect(ApiRequestMap[entityType].post(account, { id: 'inv' }, { authz })).resolves.toBeHttp({
+const crudPermissions = async (entityType: Model.EntityType, authz: string) => {
+  await expect(ApiRequestMap[entityType].get(account, 'inv', { authz })).resolves.toBeHttp({ statusCode: 403 });
+  await expect(ApiRequestMap[entityType].list(account, undefined, { authz })).resolves.toBeHttp({ statusCode: 403 });
+  await expect(ApiRequestMap[entityType].post(account, { id: 'inv' }, { authz })).resolves.toBeHttp({
     statusCode: 403,
   });
-  expect(ApiRequestMap[entityType].put(account, 'inv', { id: 'inv' }, { authz })).resolves.toBeHttp({
+  await expect(ApiRequestMap[entityType].put(account, 'inv', { id: 'inv' }, { authz })).resolves.toBeHttp({
     statusCode: 403,
   });
-  expect(ApiRequestMap[entityType].delete(account, 'inv', { authz })).resolves.toBeHttp({ statusCode: 403 });
+  await expect(ApiRequestMap[entityType].delete(account, 'inv', { authz })).resolves.toBeHttp({ statusCode: 403 });
 };
 
 const authzTests = (entityType: Model.EntityType) => {
   test('No auth causes rejection', async () => {
-    crudPermissions(entityType, '');
+    await crudPermissions(entityType, '');
   }, 180000);
 
   test('Bad auth causes rejection', async () => {
-    crudPermissions(entityType, 'invalidjwt');
+    await crudPermissions(entityType, 'invalidjwt');
   }, 180000);
 };
 

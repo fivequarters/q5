@@ -21,7 +21,7 @@ class ConnectorService extends BaseComponentService<Model.IConnector> {
   }
 
   public sanitizeEntity = (entity: Model.IEntity): Model.IConnector => {
-    const data = entity.data;
+    const data = (entity.data = entity.data || {});
     data.files = data.files || {};
     data.configuration = data.configuration || { package: '@fusebit-int/pkg-oauth-connector' };
 
