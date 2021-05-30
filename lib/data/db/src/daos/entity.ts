@@ -215,12 +215,14 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
   ): Promise<IListResponse<ET>> {
     const { params, queryOptions, statementOptions } = this.applyDefaultsTo(inputParams, inputQueryOptions);
 
+    // Note the doubled '?' to escape the '?' in the '?&' operator.
     const sql = `SELECT * FROM entity
       WHERE entityType = :entityType::entity_type
       AND accountId = :accountId
       AND subscriptionId = :subscriptionId
       AND (NOT :prefixMatchId::boolean OR entityId LIKE FORMAT('%s%%',:entityIdPrefix::text))
-      AND (:tags::text IS NULL OR tags @> :tags::jsonb)
+      AND (:tagValues::text IS NULL OR tags @> :tagValues::jsonb)
+      AND (:tagKeys::text IS NULL OR tags ??& :tagKeys::text[])
       AND (NOT :filterExpired::boolean OR expires IS NULL OR expires > NOW())
       ORDER BY entityId
       OFFSET :offset
@@ -231,7 +233,16 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
       entityType: this.entityType,
       accountId: params.accountId,
       subscriptionId: params.subscriptionId,
-      tags: JSON.stringify(params.tags || {}),
+      tagValues: params.tags ? JSON.stringify(params.tags) : '{}',
+      // Create a text array
+      tagKeys: params.tags
+        ? '{' +
+          Object.entries(params.tags)
+            .filter(([k, v]) => !v)
+            .map((e) => `"${e[0]}"`)
+            .join(',') +
+          '}'
+        : '{}',
       entityIdPrefix: params.idPrefix,
       prefixMatchId: !!params.idPrefix,
       filterExpired: queryOptions.filterExpired,

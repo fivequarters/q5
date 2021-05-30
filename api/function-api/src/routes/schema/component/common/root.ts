@@ -1,11 +1,15 @@
 import express from 'express';
+
+import { Model } from '@5qtrs/db';
+
+import Validation from '../../../validation/component';
+
 import * as common from '../../../middleware/common';
-import { BaseComponentService } from '../../../service';
 import query from '../../../handlers/query';
 import body from '../../../handlers/body';
 import pathParams from '../../../handlers/pathParams';
 
-import Validation from '../../../validation/component';
+import { BaseComponentService } from '../../../service';
 
 const router = (ComponentService: BaseComponentService<any>) => {
   const componentRouter = express.Router({ mergeParams: true });
@@ -31,6 +35,7 @@ const router = (ComponentService: BaseComponentService<any>) => {
               ...query.paginated(req),
             }
           );
+          response.items = response.items.map((entity) => Model.entityToSdk(entity));
           res.json(response);
         } catch (e) {
           next(e);

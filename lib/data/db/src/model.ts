@@ -104,6 +104,26 @@ export interface IListResponse<T extends IEntity> {
   next?: string;
 }
 
+// The Entity returned by the SDK, sans various internal parameters.
+export interface ISdkEntity {
+  id: string;
+  tags?: ITags;
+  data?: any;
+  expires?: moment.Moment;
+  expiresDuration?: moment.Duration;
+  version?: string;
+}
+
+// Remove any extra fields returned as part of the entity.
+export const entityToSdk = (entity: IEntity): ISdkEntity => ({
+  id: entity.id,
+  data: entity.data,
+  tags: entity.tags,
+  expires: entity.expires,
+  expiresDuration: entity.expiresDuration,
+  version: entity.version,
+});
+
 // --------------------------------
 // IEntity Extensions
 // --------------------------------

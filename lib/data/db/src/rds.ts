@@ -88,8 +88,9 @@ class RDS implements IRds {
     const { rdsSdk, rdsCredentials } = await this.ensureConnection();
 
     const parameters = this.createParameterArray(objectParameters);
+    // console.log(`parameters: `, parameters);
+    // console.log(`sql: `, sql);
 
-    // console.log(sql, parameters);
     try {
       const result = await rdsSdk
         .executeStatement({

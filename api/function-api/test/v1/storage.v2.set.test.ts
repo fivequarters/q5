@@ -1,7 +1,7 @@
 import { random } from '@5qtrs/random';
 
 import { getMalformedAccount, getNonExistingAccount } from './accountResolver';
-import { setStorage, getStorage, cleanUpStorage } from './sdk';
+import { setStorage, getStorage, cleanUpStorage, INVALID_UUID } from './sdk';
 
 import { getEnv } from './setup';
 
@@ -9,8 +9,6 @@ let { account, boundaryId, function1Id, function2Id, function3Id, function4Id, f
 beforeEach(() => {
   ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
 });
-
-const INVALID_UUID = '00000000-0000-4000-8000-000000000000';
 
 afterEach(async () => {
   await cleanUpStorage(account);

@@ -44,8 +44,23 @@ const crudValidation = async (entityType: Model.EntityType) => {
     });
   }, 180000);
 
-  test('delete validation', async () => {
+  test('Delete validation', async () => {
     await expect(ApiRequestMap[entityType].delete(account, 'invalid id')).resolves.toBeHttp({ statusCode: 400 });
+  }, 180000);
+
+  test('Delete version validation', async () => {
+    await expect(ApiRequestMap[entityType].delete(account, 'id?version=abcd')).resolves.toBeHttp({ statusCode: 400 });
+  }, 180000);
+
+  test('List tag character validation', async () => {
+    const invalidCharacters = ['?', '!', '+', '"', '}', '{', `\'`, '<', '>'];
+    await Promise.all(
+      invalidCharacters.map((ch) =>
+        expect(ApiRequestMap[entityType].list(account, { tag: { tagKey: ch, tagValue: '1' } })).resolves.toBeHttp({
+          statusCode: 400,
+        })
+      )
+    );
   }, 180000);
 };
 

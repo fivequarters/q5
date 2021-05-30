@@ -1,12 +1,14 @@
 const Joi = require('joi');
 
 const entityId = Joi.string().regex(/^[A-Za-z0-9\-]{1,64}$/);
-
+const tagValue = /^[a-zA-Z0-9_\-\.]*$/;
+const tagNameValues = Joi.string().regex(/^[a-zA-Z0-9_\-\.=&%]*$/);
 const validateEntity = (data: any) =>
   Joi.object().keys({
     id: entityId,
     data,
-    tags: Joi.object().optional(),
+    tags: Joi.object().pattern(tagValue, Joi.string().regex(tagValue)),
+    version: Joi.string().guid(),
     expires: Joi.string(),
     expiresDuration: Joi.string(),
   });
@@ -27,7 +29,7 @@ const EntityIdQuery = Joi.object().keys({
   idPrefix: entityId.optional(),
   limit: Joi.number(),
   next: Joi.string(),
-  tag: Joi.string(),
+  tag: Joi.alternatives().try(tagNameValues, Joi.array().items(tagNameValues)),
 });
 
 const Files = Joi.object();

@@ -7,14 +7,6 @@ import { getEnv } from '../v1/setup';
 
 let { function5Id } = getEnv();
 
-export interface ISdkEntity {
-  id: string;
-  tags?: Model.ITags;
-  data?: any;
-  expires?: moment.Moment;
-  expiresDuration?: moment.Duration;
-}
-
 export interface IRequestOptions {
   uri: string;
   method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
@@ -63,14 +55,14 @@ export const ApiRequestMap: { [key: string]: any } = {
       return v2Request(account, { method: 'GET', uri: `/connector?${querystring.stringify(queryParams)}`, ...options });
     },
 
-    post: async (account: IAccount, body: ISdkEntity, options?: IRequestOptions) => {
+    post: async (account: IAccount, body: Model.ISdkEntity, options?: IRequestOptions) => {
       testEntitiesCreated.push({ entityType: Model.EntityType.connector, id: body.id });
       return v2Request(account, { method: 'POST', uri: '/connector', body, ...options });
     },
 
     postAndWait: async (
       account: IAccount,
-      body: ISdkEntity,
+      body: Model.ISdkEntity,
       waitOptions: IWaitForCompletionParams = DefaultWaitForCompletionParams,
       options?: IRequestOptions
     ) => {
@@ -79,13 +71,13 @@ export const ApiRequestMap: { [key: string]: any } = {
       return ApiRequestMap.operation.waitForCompletion(account, op.data.operationId, waitOptions, options);
     },
 
-    put: async (account: IAccount, connectorId: string, body: ISdkEntity, options?: IRequestOptions) =>
+    put: async (account: IAccount, connectorId: string, body: Model.ISdkEntity, options?: IRequestOptions) =>
       v2Request(account, { method: 'PUT', uri: `/connector/${encodeURI(connectorId)}`, body, ...options }),
 
     putAndWait: async (
       account: IAccount,
       connectorId: string,
-      body: ISdkEntity,
+      body: Model.ISdkEntity,
       waitOptions: IWaitForCompletionParams = DefaultWaitForCompletionParams,
       options?: IRequestOptions
     ) => {
@@ -168,14 +160,14 @@ export const ApiRequestMap: { [key: string]: any } = {
       });
     },
 
-    post: async (account: IAccount, body: ISdkEntity, options?: IRequestOptions) => {
+    post: async (account: IAccount, body: Model.ISdkEntity, options?: IRequestOptions) => {
       testEntitiesCreated.push({ entityType: Model.EntityType.integration, id: body.id });
       return v2Request(account, { method: 'POST', uri: '/integration', body, ...options });
     },
 
     postAndWait: async (
       account: IAccount,
-      body: ISdkEntity,
+      body: Model.ISdkEntity,
       waitOptions: IWaitForCompletionParams = DefaultWaitForCompletionParams,
       options?: IRequestOptions
     ) => {
@@ -184,12 +176,12 @@ export const ApiRequestMap: { [key: string]: any } = {
       return ApiRequestMap.operation.waitForCompletion(account, op.data.operationId, waitOptions, options);
     },
 
-    put: async (account: IAccount, integrationId: string, body: ISdkEntity, options?: IRequestOptions) =>
+    put: async (account: IAccount, integrationId: string, body: Model.ISdkEntity, options?: IRequestOptions) =>
       v2Request(account, { method: 'PUT', uri: `/integration/${encodeURI(integrationId)}`, body, ...options }),
     putAndWait: async (
       account: IAccount,
       integrationId: string,
-      body: ISdkEntity,
+      body: Model.ISdkEntity,
       waitOptions: IWaitForCompletionParams = DefaultWaitForCompletionParams,
       options?: IRequestOptions
     ) => {

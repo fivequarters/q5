@@ -1,6 +1,8 @@
 import express from 'express';
 const Joi = require('joi');
 
+import { Model } from '@5qtrs/db';
+
 import * as common from '../../../middleware/common';
 
 import { BaseComponentService } from '../../../service';
@@ -32,9 +34,11 @@ const router = (ComponentService: BaseComponentService<any>) => {
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {
-          const response = await ComponentService.dao.getEntity({
-            ...pathParams.EntityById(req),
-          });
+          const response = Model.entityToSdk(
+            await ComponentService.dao.getEntity({
+              ...pathParams.EntityById(req),
+            })
+          );
           res.json(response);
         } catch (e) {
           next(e);
@@ -43,7 +47,10 @@ const router = (ComponentService: BaseComponentService<any>) => {
     )
     .put(
       common.management({
-        validate: { params: Validation.EntityIdParams, body: Validation[ComponentService.entityType].Entity },
+        validate: {
+          params: Validation.EntityIdParams,
+          body: Validation[ComponentService.entityType].Entity,
+        },
         authorize: { operation: `${ComponentService.entityType}:put` },
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -61,12 +68,16 @@ const router = (ComponentService: BaseComponentService<any>) => {
     .delete(
       common.management({
         authorize: { operation: `${ComponentService.entityType}:delete` },
-        validate: { params: Validation.EntityIdParams },
+        validate: {
+          params: Validation.EntityIdParams,
+          query: Joi.object().keys({ version: Joi.string().guid().optional() }),
+        },
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {
           const { statusCode, result } = await ComponentService.deleteEntity({
             ...pathParams.EntityById(req),
+            ...(req.query.version ? { version: req.query.version as string } : {}),
           });
           res.status(statusCode).json(result);
         } catch (e) {

@@ -9,6 +9,8 @@ import { nextBoundary } from './setup';
 
 import ms from 'ms';
 
+export const INVALID_UUID = '00000000-0000-4000-8000-000000000000';
+
 // ------------------
 // Validate running environment
 // ------------------
