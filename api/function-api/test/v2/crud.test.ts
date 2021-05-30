@@ -1,6 +1,6 @@
 import { Model } from '@5qtrs/db';
 
-import { cleanupEntities, ApiRequestMap } from './sdk';
+import { ISdkEntity, cleanupEntities, ApiRequestMap } from './sdk';
 import { callFunction, getFunctionLocation } from '../v1/sdk';
 
 import { getEnv } from '../v1/setup';
@@ -10,33 +10,35 @@ beforeEach(() => {
   ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
 });
 
-interface IEntityRequestBody extends Model.IEntity {
-  entityType: string;
-}
-
 const newId = (wart: string): string => `${boundaryId}-${wart}-${Math.floor(Math.random() * 99999999).toString(8)}`;
 
 const getIdPrefix = () => ({ idPrefix: boundaryId });
 
-const remVersion = (entity: IEntityRequestBody) => {
+const remVersion = (entity: any) => {
   const { version, ...newEntity } = entity;
   return newEntity;
 };
+
+// Remove any extra fields returned as part of the entity.
+const cleanEntity = (entity: any): ISdkEntity => ({
+  id: entity.id,
+  data: entity.data,
+  tags: entity.tags,
+  expires: entity.expires,
+  expiresDuration: entity.expiresDuration,
+});
 
 afterAll(async () => {
   await cleanupEntities(account);
 }, 30000);
 
-const toIEntity = (testEntityType: string): IEntityRequestBody => ({
-  accountId: account.accountId,
-  data: { testData: '123' },
+const sampleEntity = () => ({
+  data: {},
   id: newId('Test'),
-  subscriptionId: account.subscriptionId,
   tags: { [`oneTag`]: 'one value', [`twoTags`]: 'two values' },
-  entityType: testEntityType,
 });
 
-const createEntity = async (testEntityType: string, entity: Model.IEntity) => {
+const createEntity = async (testEntityType: string, entity: ISdkEntity) => {
   const createResponse = await ApiRequestMap[testEntityType].post(account, entity);
   expect(createResponse).toBeHttp({ statusCode: 202 });
   const operation = await ApiRequestMap.operation.waitForCompletion(account, createResponse.data.operationId);
@@ -50,8 +52,7 @@ const createEntity = async (testEntityType: string, entity: Model.IEntity) => {
 };
 
 const performTests = (testEntityType: string) => {
-  const makeEntity = () => toIEntity(testEntityType);
-  const createEntityTest = (entity: Model.IEntity) => createEntity(testEntityType, entity);
+  const createEntityTest = (entity: ISdkEntity) => createEntity(testEntityType, entity);
 
   test('List Entitys returns 404 when none exist', async () => {
     const response = await ApiRequestMap[testEntityType].list(account, getIdPrefix());
@@ -59,46 +60,46 @@ const performTests = (testEntityType: string) => {
   }, 180000);
 
   test('Create Entity', async () => {
-    await createEntityTest(makeEntity());
+    await createEntityTest(sampleEntity());
   }, 180000);
 
   test('Create Entity returns 400 on conflict', async () => {
-    const entity = makeEntity();
+    const entity = sampleEntity();
     await createEntityTest(entity);
     const createResponseConflict = await ApiRequestMap[testEntityType].post(account, entity);
     expect(createResponseConflict).toBeHttp({ status: 400 });
   }, 180000);
 
   test('Update Entity', async () => {
-    const entityOne = await createEntityTest(makeEntity());
+    const entityOne = await createEntityTest(sampleEntity());
     const entityOneUpdated = {
-      ...entityOne,
-      data: { newData: 'abc' },
+      ...cleanEntity(entityOne),
+      data: {},
       tags: { newTag: 'efg' },
     };
     const updateResponse = await ApiRequestMap[testEntityType].putAndWait(account, entityOne.id, entityOneUpdated);
     expect(updateResponse).toBeHttp({ statusCode: 200 });
     const getResponse = await ApiRequestMap[testEntityType].get(account, entityOne.id);
     expect(getResponse.data).toBeDefined();
-    expect(getResponse.data).toMatchObject(remVersion(entityOneUpdated));
+    expect(getResponse.data.tags).toMatchObject(entityOneUpdated.tags);
     expect(getResponse.data.version).toBeUUID();
     expect(getResponse.data.version).not.toBe(entityOne.id);
   }, 180000);
 
   test('Update Entity returns 404 if entity not found', async () => {
-    const entityOne = await createEntityTest(makeEntity());
+    const entityOne = await createEntityTest(sampleEntity());
     const entityOneUpdated = {
-      ...entityOne,
-      data: { newData: 'abc' },
+      ...cleanEntity(entityOne),
+      data: {},
       tags: { newTag: 'efg' },
-      id: 'invalid id',
+      id: 'invalid-id',
     };
     const updateResponse = await ApiRequestMap[testEntityType].putAndWait(account, entityOne.id, entityOneUpdated);
     expect(updateResponse).toBeHttp({ statusCode: 404 });
   }, 180000);
 
   test('Delete Entity', async () => {
-    const entityOne = await createEntityTest(makeEntity());
+    const entityOne = await createEntityTest(sampleEntity());
     const deleteResponse = await ApiRequestMap[testEntityType].deleteAndWait(account, entityOne.id);
     expect(deleteResponse).toBeHttp({ statusCode: 200 });
     expect(deleteResponse.data).toBeTruthy();
@@ -107,19 +108,19 @@ const performTests = (testEntityType: string) => {
   }, 180000);
 
   test('Delete Entity returns Not Found', async () => {
-    const deleteResponse = await ApiRequestMap[testEntityType].deleteAndWait(account, makeEntity().id);
+    const deleteResponse = await ApiRequestMap[testEntityType].deleteAndWait(account, sampleEntity().id);
     expect(deleteResponse).toBeHttp({ statusCode: 404 });
   }, 180000);
 
   test('Get Entity', async () => {
-    const entityOne = await createEntityTest(makeEntity());
+    const entityOne = await createEntityTest(sampleEntity());
     const getResponse = await ApiRequestMap[testEntityType].get(account, entityOne.id);
     expect(getResponse).toBeHttp({ statusCode: 200 });
     expect(getResponse.data).toMatchObject(entityOne);
   }, 180000);
 
   test('Get Entity returns 404 when not found', async () => {
-    const getResponse = await ApiRequestMap[testEntityType].get(account, 'Bad Id');
+    const getResponse = await ApiRequestMap[testEntityType].get(account, 'invalid-id');
     expect(getResponse).toBeHttp({ statusCode: 404 });
   }, 180000);
 
@@ -131,7 +132,7 @@ const performTests = (testEntityType: string) => {
       .fill(undefined)
       .map(() => {
         return {
-          ...makeEntity(),
+          ...sampleEntity(),
           id: newId('Mapped-Entity'),
         };
       });
@@ -161,7 +162,7 @@ const performTests = (testEntityType: string) => {
 
   test('List Entitys by prefix', async () => {
     const entityCount = 10;
-    const entityBase = makeEntity();
+    const entityBase = sampleEntity();
     const sections = [
       {
         prefix: (index?: number) => `prefix1-${index || ''}`,
@@ -219,7 +220,7 @@ const performTests = (testEntityType: string) => {
   }, 180000);
 
   test('List Entitys By Tags', async () => {
-    const entityBase = makeEntity();
+    const entityBase = sampleEntity();
     const sections = [
       {
         size: 1,
@@ -245,7 +246,7 @@ const performTests = (testEntityType: string) => {
     const tagThree = (index: number) => ({ tagThree: index });
     const entityCount = sections.reduce((acc, cur) => acc + cur.size, 0);
 
-    const Entitys: Model.IEntity[] = sections.flatMap(
+    const Entitys: ISdkEntity[] = sections.flatMap(
       (section: { size: number; tagOne?: boolean; tagTwo?: boolean; tagThree?: boolean }, sectionId: number) =>
         Array(section.size)
           .fill(undefined)
@@ -257,9 +258,10 @@ const performTests = (testEntityType: string) => {
             id: `${boundaryId}-${sectionId}-${index}`,
           }))
     );
+
     // map of tag count, to verify expected results; {tagKey: {tagValue: count} }
     const TagCountMap: { [key: string]: { [key: string]: number } } = Entitys.reduce(
-      (acc: { [key: string]: { [key: string]: number } }, cur: Model.IEntity) => {
+      (acc: { [key: string]: { [key: string]: number } }, cur: ISdkEntity) => {
         if (typeof cur.tags === 'undefined') {
           return acc;
         }
@@ -277,7 +279,7 @@ const performTests = (testEntityType: string) => {
       {}
     );
     const creates = await Promise.all(
-      Entitys.map(async (entity) => ApiRequestMap[testEntityType].postAndWait(account, entity))
+      Entitys.map(async (entity) => ApiRequestMap[testEntityType].postAndWait(account, cleanEntity(entity)))
     );
     creates.forEach((e) => expect(e).toBeHttp({ statusCode: 200 }));
 
@@ -313,7 +315,7 @@ const performTests = (testEntityType: string) => {
   }, 180000);
 
   test('Get Entity Tags', async () => {
-    const entityOne = await createEntityTest(makeEntity());
+    const entityOne = await createEntityTest(sampleEntity());
     const entityTags = await ApiRequestMap[testEntityType].tags.get(account, entityOne.id);
     expect(entityTags).toBeHttp({ statusCode: 200 });
     expect(entityTags.data).toBeDefined();
@@ -326,7 +328,7 @@ const performTests = (testEntityType: string) => {
   }, 180000);
 
   test('Get Entity Tag Value', async () => {
-    const entityOne = await createEntityTest(makeEntity());
+    const entityOne = await createEntityTest(sampleEntity());
     await Promise.all(
       Object.keys(entityOne.tags).map(async (tagKey) => {
         const tagValue = await ApiRequestMap[testEntityType].tags.get(account, entityOne.id, tagKey);
@@ -338,14 +340,14 @@ const performTests = (testEntityType: string) => {
   }, 180000);
 
   test('Get Entity Tag Value returns undefined on unset tag', async () => {
-    const entityOne = await createEntityTest(makeEntity());
+    const entityOne = await createEntityTest(sampleEntity());
     const tagValue = await ApiRequestMap[testEntityType].tags.get(account, entityOne.id, 'bad tag key');
     expect(tagValue).toBeHttp({ statusCode: 200 });
     expect(tagValue.data).toBeUndefined();
   }, 180000);
 
   test('Delete Entity Tag', async () => {
-    const entityOne = await createEntityTest(makeEntity());
+    const entityOne = await createEntityTest(sampleEntity());
     await Promise.all(
       Object.keys(entityOne.tags).map(async (tagKey) => {
         const tagValue = await ApiRequestMap[testEntityType].tags.get(account, entityOne.id, tagKey);
@@ -365,7 +367,7 @@ const performTests = (testEntityType: string) => {
   }, 180000);
 
   test('Delete Entity Tag with invalid tag key has no impact on tags', async () => {
-    const entityOne = await createEntityTest(makeEntity());
+    const entityOne = await createEntityTest(sampleEntity());
     const entityTags = await ApiRequestMap[testEntityType].tags.get(account, entityOne.id);
     expect(entityTags).toBeHttp({ statusCode: 200 });
     expect(entityTags.data).toBeDefined();
@@ -377,7 +379,7 @@ const performTests = (testEntityType: string) => {
   }, 180000);
 
   test('Update Entity Tag', async () => {
-    const entityOne = await createEntityTest(makeEntity());
+    const entityOne = await createEntityTest(sampleEntity());
     const tagKey = 'tag key to insert';
     const tagValue = 'tag value to insert';
     const setTagResponse = await ApiRequestMap[testEntityType].tags.put(account, entityOne.id, tagKey, tagValue);
@@ -402,7 +404,7 @@ const performTests = (testEntityType: string) => {
   }, 180000);
 
   test('Invoke Entity Function', async () => {
-    const entity = await createEntityTest(makeEntity());
+    const entity = await createEntityTest(sampleEntity());
     const location = await getFunctionLocation(account, testEntityType, entity.id);
     expect(location).toBeHttp({ statusCode: 200 });
     const call = await callFunction('', location.data.location + '/api/health');
@@ -410,7 +412,7 @@ const performTests = (testEntityType: string) => {
   }, 180000);
 
   test('Invoke Entity Dispatch', async () => {
-    const entity = await createEntityTest(makeEntity());
+    const entity = await createEntityTest(sampleEntity());
     const invokeResponse = await ApiRequestMap[testEntityType].dispatch(account, entity.id, 'GET', '/api/health');
     expect(invokeResponse).toBeHttp({ statusCode: 200 });
   }, 180000);
@@ -426,15 +428,15 @@ describe('Integration', () => {
   performTests(testEntityType);
 
   test('Invoke Entity GET', async () => {
-    const entity = await createEntity(testEntityType, toIEntity(testEntityType));
+    const entity = await createEntity(testEntityType, sampleEntity());
     const invokeResponse = await ApiRequestMap[testEntityType].dispatch(account, entity.id, 'GET', '/api/');
     expect(invokeResponse).toBeHttp({ statusCode: 200, data: 'Hello World' });
   }, 180000);
 
   test('Update Entity and Dispatch', async () => {
-    const entity = await createEntity(testEntityType, toIEntity(testEntityType));
+    const entity = await createEntity(testEntityType, sampleEntity());
     const entityUpdated = {
-      ...entity,
+      ...cleanEntity(entity),
       data: { ...entity.data },
     };
     entityUpdated.data.files = {
@@ -459,9 +461,9 @@ describe('Integration', () => {
   }, 180000);
 
   test('Update Entity and POST', async () => {
-    const entity = await createEntity(testEntityType, toIEntity(testEntityType));
+    const entity = await createEntity(testEntityType, sampleEntity());
     const entityUpdated = {
-      ...entity,
+      ...cleanEntity(entity),
       data: { ...entity.data },
     };
     entityUpdated.data.files = {
@@ -488,7 +490,7 @@ describe('Integration', () => {
   }, 180000);
 
   test('Invoke Entity Event', async () => {
-    const entity = await createEntity(testEntityType, toIEntity(testEntityType));
+    const entity = await createEntity(testEntityType, sampleEntity());
     entity.data.files['integration.js'] = [
       "const { Router, Manager, Form } = require('@fusebit-int/pkg-manager');",
       "const connectors = require('@fusebit-int/pkg-manager').connectors;",
@@ -502,7 +504,7 @@ describe('Integration', () => {
       'module.exports = router;',
     ].join('\n');
 
-    let result = await ApiRequestMap[testEntityType].putAndWait(account, entity.id, entity);
+    let result = await ApiRequestMap[testEntityType].putAndWait(account, entity.id, cleanEntity(entity));
     expect(result).toBeHttp({ statusCode: 200 });
     result = await ApiRequestMap[testEntityType].dispatch(account, entity.id, 'POST', '/event', {
       body: {

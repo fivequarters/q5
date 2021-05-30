@@ -16,7 +16,7 @@ const router = (ComponentService: BaseComponentService<any>) => {
     .route('/')
     .get(
       common.management({
-        validate: { params: Validation.EntityIdParams, query: Validation.PrefixEntityIdQuery },
+        validate: { params: Validation.EntityIdParams, query: Validation.EntityIdQuery },
         authorize: { operation: `${ComponentService.entityType}:get` },
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {

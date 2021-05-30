@@ -1,4 +1,5 @@
 import express from 'express';
+const Joi = require('joi');
 
 import * as common from '../../../middleware/common';
 
@@ -8,6 +9,16 @@ import pathParams from '../../../handlers/pathParams';
 import body from '../../../handlers/body';
 
 import Validation from '../../../validation/component';
+
+const debugLogEvent = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.log(
+    `DEBUG: ${req.method} ${req.url}\n` +
+      `DEBUG: Headers: ${JSON.stringify(req.headers)}\n` +
+      `DEBUG: Params:  ${JSON.stringify(req.params)}\n` +
+      `DEBUG: Body:    ${JSON.stringify(req.body)}\n`
+  );
+  return next();
+};
 
 const router = (ComponentService: BaseComponentService<any>) => {
   const componentCrudRouter = express.Router({ mergeParams: true });
@@ -90,7 +101,7 @@ const router = (ComponentService: BaseComponentService<any>) => {
   componentCrudRouter.all(
     ['/api', '/api/:subPath(*)'],
     common.management({
-      validate: { params: Validation.EntityIdParams },
+      validate: { params: Validation.EntityIdParams.keys({ '0': Joi.string(), subPath: Joi.string() }) },
     }),
     (req: express.Request, res: express.Response, next: express.NextFunction) => {
       // Touch up subPath to make sure it has the right prefix.
@@ -104,7 +115,7 @@ const router = (ComponentService: BaseComponentService<any>) => {
   componentCrudRouter.post(
     '/:subPath(event)',
     common.management({
-      validate: { params: Validation.EntityIdParams },
+      validate: { params: Validation.EntityIdParams.keys({ '0': Joi.string(), subPath: Joi.string() }) },
     }),
     (req: express.Request, res: express.Response, next: express.NextFunction) => {
       // Touch up subPath to make sure it has the right prefix.
