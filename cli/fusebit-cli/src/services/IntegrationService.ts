@@ -3,12 +3,13 @@ import moment from 'moment';
 import globby from 'globby';
 
 import { readFile, readDirectory, exists, copyDirectory, writeFile } from '@5qtrs/file';
-import { IExecuteInput } from '@5qtrs/cli';
+import { request, IHttpResponse } from '@5qtrs/request';
 
+import { Text } from '@5qtrs/text';
+import { IFusebitExecutionProfile } from '@5qtrs/fusebit-profile-sdk';
+import { IExecuteInput, Confirm } from '@5qtrs/cli';
 import { ProfileService } from './ProfileService';
 import { ExecuteService } from './ExecuteService';
-
-import { FunctionService } from './FunctionService';
 
 const FusebitStateFile = '.fusebit-state';
 const FusebitMetadataFile = 'fusebit.json';
@@ -30,6 +31,16 @@ interface IIntegrationSpec {
   version?: string;
   expires?: moment.Moment;
   expiresDuration?: moment.Duration;
+}
+
+export interface IFusebitIntegrationListOptions {
+  next?: string;
+  count?: number;
+}
+
+export interface IFusebitIntegrationListResult {
+  items: IIntegrationSpec[];
+  next?: string;
 }
 
 export class IntegrationService {
@@ -127,5 +138,219 @@ export class IntegrationService {
     fusebit.expires = spec.expires;
     fusebit.expiresDuration = spec.expiresDuration;
     await writeFile(join(cwd, FusebitMetadataFile), JSON.stringify(fusebit));
+  }
+
+  public async confirmDeploy(path: string, integrationSpec: any, integrationId: string): Promise<void> {
+    if (!this.input.options.quiet) {
+      const files = integrationSpec.data.files || [];
+      if (files.length) {
+        const confirmPrompt = await Confirm.create({
+          header: 'Deploy?',
+          message: Text.create("Deploy the integration in the '", Text.bold(path), "' directory?"),
+        });
+        const confirmed = await confirmPrompt.prompt(this.input.io);
+        if (!confirmed) {
+          await this.executeService.warning(
+            'Deploy Canceled',
+            Text.create("Deploying the '", Text.bold(integrationId), "' integration was canceled")
+          );
+          throw new Error('Deploy Canceled');
+        }
+      }
+    }
+  }
+
+  public getUrl(profile: IFusebitExecutionProfile, integrationId: string = ''): string {
+    return `${profile.baseUrl}/v2/account/${profile.account}/subscription/${profile.subscription}/integration/${integrationId}`;
+  }
+
+  public async getIntegration(profile: IFusebitExecutionProfile, integrationId: string): Promise<IHttpResponse> {
+    return request({
+      method: 'GET',
+      url: this.getUrl(profile, integrationId),
+      headers: {
+        Authorization: `Bearer ${profile.accessToken}`,
+      },
+    });
+  }
+
+  public async fetchIntegration(integrationId: string): Promise<IIntegrationSpec> {
+    const profile = await this.profileService.getExecutionProfile(['account', 'subscription']);
+    return this.executeService.executeRequest(
+      {
+        header: 'Getting Integration',
+        message: Text.create("Getting existing integration '", Text.bold(`${integrationId}`), "'..."),
+        errorHeader: 'Get Integration Error',
+        errorMessage: Text.create("Unable to get integration '", Text.bold(`${integrationId}`), "'"),
+      },
+      {
+        method: 'GET',
+        url: this.getUrl(profile, integrationId),
+        headers: {
+          Authorization: `Bearer ${profile.accessToken}`,
+        },
+      }
+    );
+  }
+
+  public async deployIntegration(integrationId: string, integrationSpec: IIntegrationSpec) {
+    const profile = await this.profileService.getExecutionProfile(['account', 'subscription']);
+
+    let method: string = 'POST';
+    let url: string = this.getUrl(profile);
+
+    integrationSpec.id = integrationId;
+
+    await this.executeService.execute(
+      {
+        header: 'Checking Integration',
+        message: Text.create("Checking existing integration '", Text.bold(`${integrationId}`), "'..."),
+        errorHeader: 'Check Integration Error',
+        errorMessage: Text.create("Unable to check integration '", Text.bold(`${integrationId}`), "'"),
+      },
+      async () => {
+        const response = await this.getIntegration(profile, integrationId);
+        if (response.status === 200) {
+          method = 'PUT';
+          url = this.getUrl(profile, integrationId);
+          return;
+        } else if (response.status === 404) {
+          return;
+        }
+        throw new Error(`Unexpected response ${response.status}`);
+      }
+    );
+
+    return this.executeService.executeRequest(
+      {
+        header: 'Deploy Integration',
+        message: Text.create("Deploying integration '", Text.bold(`${integrationId}`), "'..."),
+        errorHeader: 'Deploy Integration Error',
+        errorMessage: Text.create("Unable to deploy integration '", Text.bold(`${integrationId}`), "'"),
+      },
+      {
+        method,
+        url,
+        headers: {
+          Authorization: `Bearer ${profile.accessToken}`,
+        },
+        data: integrationSpec,
+      }
+    );
+  }
+
+  public async listIntegrations(options: IFusebitIntegrationListOptions): Promise<IFusebitIntegrationListResult> {
+    const profile = await this.profileService.getExecutionProfile(['subscription']);
+    const query = [];
+    if (options.count) {
+      query.push(`count=${options.count}`);
+    }
+    if (options.next) {
+      query.push(`next=${options.next}`);
+    }
+    const queryString = `?${query.join('&')}`;
+
+    const result = await this.executeService.executeRequest(
+      {
+        header: 'List Integrations',
+        message: Text.create('Listing integrations...'),
+        errorHeader: 'List Integrations Error',
+        errorMessage: Text.create('Unable to list integrations'),
+      },
+      {
+        method: 'GET',
+        url: `${this.getUrl(profile)}${queryString}`,
+        headers: { Authorization: `bearer ${profile.accessToken}` },
+      }
+    );
+
+    return result;
+  }
+
+  public async confirmListMore(): Promise<boolean> {
+    const result = await this.input.io.prompt({ prompt: 'Get More Integrations?', yesNo: true });
+    return result.length > 0;
+  }
+
+  public async displayIntegrations(items: IIntegrationSpec[], firstDisplay: boolean) {
+    if (!items.length) {
+      await this.executeService.info('No Integrations', `No ${firstDisplay ? '' : 'more '}integrations to list`);
+      return;
+    }
+
+    for (const item of items) {
+      const tagSummary = ['Tags:', Text.eol()];
+
+      Object.keys(item.tags).forEach((tagKey) => {
+        tagSummary.push(Text.dim('• '));
+        tagSummary.push(tagKey);
+        tagSummary.push(Text.dim(': '));
+        tagSummary.push(item.tags[tagKey]);
+        tagSummary.push(Text.eol());
+      });
+
+      // const itemList = Text.join(functions, Text.eol());
+      await this.executeService.message(
+        Text.bold(item.id),
+        Text.create([
+          `Package: `,
+          Text.bold(item.data.configuration.package || ''),
+          Text.eol(),
+          Text.eol(),
+          ...tagSummary,
+          Text.eol(),
+          'Version',
+          Text.dim(': '),
+          item.version || 'unknown',
+          Text.eol(),
+        ])
+      );
+    }
+  }
+
+  public async confirmRemove(integrationId: string): Promise<void> {
+    if (!this.input.options.quiet) {
+      const confirmPrompt = await Confirm.create({
+        header: 'Remove?',
+        message: Text.create("Permanently remove the '", Text.bold(integrationId), "' integration?"),
+      });
+      const confirmed = await confirmPrompt.prompt(this.input.io);
+      if (!confirmed) {
+        await this.executeService.warning(
+          'Remove Canceled',
+          Text.create("Removing the '", Text.bold(integrationId), "' integration was canceled")
+        );
+        throw new Error('Remove Canceled');
+      }
+    }
+  }
+
+  public async removeIntegration(integrationId: string): Promise<void> {
+    const profile = await this.profileService.getExecutionProfile(['account', 'subscription']);
+
+    await this.executeService.executeRequest(
+      {
+        header: 'Remove Integration',
+        message: Text.create("Removing integration '", Text.bold(`${integrationId}`), "'..."),
+        errorHeader: 'Remove Integration Error',
+        errorMessage: Text.create(
+          "Unable to remove integration '",
+          Text.bold(`${profile.integration}`),
+          "' in boundary '",
+          Text.bold(`${profile.boundary}`),
+          "'"
+        ),
+      },
+      {
+        method: 'DELETE',
+        url: this.getUrl(profile, integrationId),
+        headers: { Authorization: `bearer ${profile.accessToken}` },
+      }
+    );
+
+    await this.executeService.result(
+      'Integration Removed',
+      Text.create("Integration '", Text.bold(`${integrationId}`), "' was successfully removed")
+    );
   }
 }

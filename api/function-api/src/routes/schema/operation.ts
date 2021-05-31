@@ -6,7 +6,10 @@ import * as operation from '../handlers/operation';
 
 const router = express.Router({ mergeParams: true });
 
-router.route('/').options(common.cors()).post(common.management({}), operation.post);
+router
+  .route('/')
+  .options(common.cors())
+  .post(common.management({ authorize: { operation: 'operation:put' } }), operation.post);
 
 router
   .route('/:operationId')

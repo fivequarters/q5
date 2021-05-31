@@ -39,7 +39,7 @@ export class OperationService {
       'Operation Finished',
       Text.create(
         `Operation '`,
-        Text.bold(operation.data.id),
+        Text.bold(operation.data.operationId),
         `' completed with `,
         operation.data.message ? `message: ${operation.data.message}.` : `status: ${operation.status}.`
       )

@@ -24,6 +24,7 @@ class ConnectorService extends BaseComponentService<Model.IConnector> {
     const data = entity.data || {};
     data.files = data.files || {};
     data.configuration = data.configuration || { package: '@fusebit-int/pkg-oauth-connector' };
+    data.configuration.package = data.configuration.package || '@fusebit-int/pkg-oauth-connector';
 
     const pkg = {
       dependencies: {},
@@ -36,7 +37,7 @@ class ConnectorService extends BaseComponentService<Model.IConnector> {
     // Make sure package mentioned in the `package` block is also included.
     pkg.dependencies[data.configuration.package] = pkg.dependencies[data.configuration.package] || '*';
 
-    data.files['package.json'] = JSON.stringify(pkg);
+    data.files['package.json'] = JSON.stringify(pkg, null, 2);
 
     return data;
   };

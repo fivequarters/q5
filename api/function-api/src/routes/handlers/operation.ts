@@ -5,6 +5,10 @@ import { Request, Response, NextFunction } from 'express';
 
 import RDS, { Model } from '@5qtrs/db';
 
+/*
+ * XXX Why is this a separate file than the other services?
+ */
+
 // Create an async operation with the initial status represented by the JSON payload of the request.
 const post = async (req: Request, res: Response, next: NextFunction) => {
   const operationId = uuidv4();
@@ -29,7 +33,7 @@ const get = async (req: Request, res: Response, next: NextFunction) => {
       subscriptionId: req.params.subscriptionId,
       id: req.params.operationId,
     });
-    return res.status(operation.data.code).json(operation.data);
+    return res.status(operation.data.code).json({ ...operation.data, operationId: req.params.operationId });
   } catch (error) {
     return next(error);
   }

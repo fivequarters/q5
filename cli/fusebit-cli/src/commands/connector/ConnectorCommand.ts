@@ -2,6 +2,9 @@ import { EOL } from 'os';
 import { Command, ICommand } from '@5qtrs/cli';
 
 import { ConnectorDeployCommand } from './ConnectorDeployCommand';
+import { ConnectorGetCommand } from './ConnectorGetCommand';
+import { ConnectorListCommand } from './ConnectorListCommand';
+import { ConnectorRemoveCommand } from './ConnectorRemoveCommand';
 
 // ------------------
 // Internal Constants
@@ -12,7 +15,7 @@ const command: ICommand = {
   cmd: 'connector',
   summary: 'Manage connectors',
   description: [
-    'Manage and deploy connectors, as well as stream real-time logs.',
+    'Manage and deploy connectors.',
     `${EOL}${EOL}A connector manages authentication with a third-party system.`,
   ].join(' '),
   options: [
@@ -31,7 +34,10 @@ const command: ICommand = {
 
 async function getSubCommands() {
   const subCommands = [];
-  subCommnands.push(await ConnectorDeployCommand.create());
+  subCommands.push(await ConnectorDeployCommand.create());
+  subCommands.push(await ConnectorGetCommand.create());
+  subCommands.push(await ConnectorListCommand.create());
+  subCommands.push(await ConnectorRemoveCommand.create());
   return subCommands;
 }
 
@@ -39,13 +45,13 @@ async function getSubCommands() {
 // Exported Classes
 // ----------------
 
-export class FunctionCommand extends Command {
-  private constructor(command: ICommand) {
-    super(command);
+export class ConnectorCommand extends Command {
+  private constructor(cmd: ICommand) {
+    super(cmd);
   }
 
   public static async create() {
     command.subCommands = await getSubCommands();
-    return new FunctionCommand(command);
+    return new ConnectorCommand(command);
   }
 }

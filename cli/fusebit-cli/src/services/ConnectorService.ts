@@ -3,8 +3,10 @@ import moment from 'moment';
 import globby from 'globby';
 
 import { readFile, readDirectory, exists, copyDirectory, writeFile } from '@5qtrs/file';
+import { request, IHttpResponse } from '@5qtrs/request';
 
 import { Text } from '@5qtrs/text';
+import { IFusebitExecutionProfile } from '@5qtrs/fusebit-profile-sdk';
 import { IExecuteInput, Confirm } from '@5qtrs/cli';
 import { ProfileService } from './ProfileService';
 import { ExecuteService } from './ExecuteService';
@@ -31,6 +33,16 @@ interface IConnectorSpec {
   version?: string;
   expires?: moment.Moment;
   expiresDuration?: moment.Duration;
+}
+
+export interface IFusebitConnectorListOptions {
+  next?: string;
+  count?: number;
+}
+
+export interface IFusebitConnectorListResult {
+  items: IConnectorSpec[];
+  next?: string;
 }
 
 export class ConnectorService {
@@ -78,7 +90,7 @@ export class ConnectorService {
     try {
       const buffer = await readFile(join(cwd, 'package.json'));
       pack = JSON.parse(buffer.toString());
-      entitySpec.data.files['package.json'] = JSON.stringify(pack);
+      entitySpec.data.files['package.json'] = buffer.toString();
     } catch (error) {
       // do nothing
     }
@@ -119,7 +131,7 @@ export class ConnectorService {
     fusebit.tags = spec.tags;
     fusebit.expires = spec.expires;
     fusebit.expiresDuration = spec.expiresDuration;
-    await writeFile(join(cwd, FusebitMetadataFile), JSON.stringify(fusebit));
+    await writeFile(join(cwd, FusebitMetadataFile), JSON.stringify(fusebit, null, 2));
 
     // Write all of the files in the specification
     if (spec.data && spec.data.files) {
@@ -133,8 +145,6 @@ export class ConnectorService {
 
   public async confirmDeploy(path: string, connectorSpec: any, connectorId: string): Promise<void> {
     if (!this.input.options.quiet) {
-      const profile = await this.profileService.getExecutionProfile(['account', 'subscription']);
-
       const files = connectorSpec.data.files || [];
       if (files.length) {
         const confirmPrompt = await Confirm.create({
@@ -153,24 +163,197 @@ export class ConnectorService {
     }
   }
 
+  public getUrl(profile: IFusebitExecutionProfile, connectorId: string = ''): string {
+    return `${profile.baseUrl}/v2/account/${profile.account}/subscription/${profile.subscription}/connector/${connectorId}`;
+  }
+
+  public async getConnector(profile: IFusebitExecutionProfile, connectorId: string): Promise<IHttpResponse> {
+    return request({
+      method: 'GET',
+      url: this.getUrl(profile, connectorId),
+      headers: {
+        Authorization: `Bearer ${profile.accessToken}`,
+      },
+    });
+  }
+
+  public async fetchConnector(connectorId: string): Promise<IConnectorSpec> {
+    const profile = await this.profileService.getExecutionProfile(['account', 'subscription']);
+    return this.executeService.executeRequest(
+      {
+        header: 'Getting Connector',
+        message: Text.create("Getting existing connector '", Text.bold(`${connectorId}`), "'..."),
+        errorHeader: 'Get Connector Error',
+        errorMessage: Text.create("Unable to get connector '", Text.bold(`${connectorId}`), "'"),
+      },
+      {
+        method: 'GET',
+        url: this.getUrl(profile, connectorId),
+        headers: {
+          Authorization: `Bearer ${profile.accessToken}`,
+        },
+      }
+    );
+  }
+
   public async deployConnector(connectorId: string, connectorSpec: IConnectorSpec) {
     const profile = await this.profileService.getExecutionProfile(['account', 'subscription']);
+
+    let method: string = 'POST';
+    let url: string = this.getUrl(profile);
+
+    connectorSpec.id = connectorId;
+
+    await this.executeService.execute(
+      {
+        header: 'Checking Connector',
+        message: Text.create("Checking existing connector '", Text.bold(`${connectorId}`), "'..."),
+        errorHeader: 'Check Connector Error',
+        errorMessage: Text.create("Unable to check connector '", Text.bold(`${connectorId}`), "'"),
+      },
+      async () => {
+        const response = await this.getConnector(profile, connectorId);
+        if (response.status === 200) {
+          method = 'PUT';
+          url = this.getUrl(profile, connectorId);
+          return;
+        } else if (response.status === 404) {
+          return;
+        }
+        throw new Error(`Unexpected response ${response.status}`);
+      }
+    );
 
     return this.executeService.executeRequest(
       {
         header: 'Deploy Connector',
-        message: Text.create("Deploying connector '", Text.bold(`${profile.function}`), "'..."),
+        message: Text.create("Deploying connector '", Text.bold(`${connectorId}`), "'..."),
         errorHeader: 'Deploy Connector Error',
-        errorMessage: Text.create("Unable to deploy connector '", Text.bold(`${profile.function}`), "'"),
+        errorMessage: Text.create("Unable to deploy connector '", Text.bold(`${connectorId}`), "'"),
       },
       {
-        method: 'POST', // XXX How do we figure out this is a PUT?
-        url: `${profile.baseUrl}/v2/account/${profile.account}/subscription/${profile.subscription}/connector/${connectorId}`,
+        method,
+        url,
         headers: {
           Authorization: `Bearer ${profile.accessToken}`,
         },
         data: connectorSpec,
       }
+    );
+  }
+
+  public async listConnectors(options: IFusebitConnectorListOptions): Promise<IFusebitConnectorListResult> {
+    const profile = await this.profileService.getExecutionProfile(['subscription']);
+    const query = [];
+    if (options.count) {
+      query.push(`count=${options.count}`);
+    }
+    if (options.next) {
+      query.push(`next=${options.next}`);
+    }
+    const queryString = `?${query.join('&')}`;
+
+    const result = await this.executeService.executeRequest(
+      {
+        header: 'List Connectors',
+        message: Text.create('Listing connectors...'),
+        errorHeader: 'List Connectors Error',
+        errorMessage: Text.create('Unable to list connectors'),
+      },
+      {
+        method: 'GET',
+        url: `${this.getUrl(profile)}${queryString}`,
+        headers: { Authorization: `bearer ${profile.accessToken}` },
+      }
+    );
+
+    return result;
+  }
+
+  public async confirmListMore(): Promise<boolean> {
+    const result = await this.input.io.prompt({ prompt: 'Get More Connectors?', yesNo: true });
+    return result.length > 0;
+  }
+
+  public async displayConnectors(items: IConnectorSpec[], firstDisplay: boolean) {
+    if (!items.length) {
+      await this.executeService.info('No Connectors', `No ${firstDisplay ? '' : 'more '}connectors to list`);
+      return;
+    }
+
+    for (const item of items) {
+      const tagSummary = ['Tags:', Text.eol()];
+
+      Object.keys(item.tags).forEach((tagKey) => {
+        tagSummary.push(Text.dim('• '));
+        tagSummary.push(tagKey);
+        tagSummary.push(Text.dim(': '));
+        tagSummary.push(item.tags[tagKey]);
+        tagSummary.push(Text.eol());
+      });
+
+      // const itemList = Text.join(functions, Text.eol());
+      await this.executeService.message(
+        Text.bold(item.id),
+        Text.create([
+          `Package: `,
+          Text.bold(item.data.configuration.package || ''),
+          Text.eol(),
+          Text.eol(),
+          ...tagSummary,
+          Text.eol(),
+          'Version',
+          Text.dim(': '),
+          item.version || 'unknown',
+          Text.eol(),
+        ])
+      );
+    }
+  }
+
+  public async confirmRemove(connectorId: string): Promise<void> {
+    if (!this.input.options.quiet) {
+      const confirmPrompt = await Confirm.create({
+        header: 'Remove?',
+        message: Text.create("Permanently remove the '", Text.bold(connectorId), "' connector?"),
+      });
+      const confirmed = await confirmPrompt.prompt(this.input.io);
+      if (!confirmed) {
+        await this.executeService.warning(
+          'Remove Canceled',
+          Text.create("Removing the '", Text.bold(connectorId), "' connector was canceled")
+        );
+        throw new Error('Remove Canceled');
+      }
+    }
+  }
+
+  public async removeConnector(connectorId: string): Promise<void> {
+    const profile = await this.profileService.getExecutionProfile(['account', 'subscription']);
+
+    await this.executeService.executeRequest(
+      {
+        header: 'Remove Connector',
+        message: Text.create("Removing connector '", Text.bold(`${connectorId}`), "'..."),
+        errorHeader: 'Remove Connector Error',
+        errorMessage: Text.create(
+          "Unable to remove connector '",
+          Text.bold(`${profile.connector}`),
+          "' in boundary '",
+          Text.bold(`${profile.boundary}`),
+          "'"
+        ),
+      },
+      {
+        method: 'DELETE',
+        url: this.getUrl(profile, connectorId),
+        headers: { Authorization: `bearer ${profile.accessToken}` },
+      }
+    );
+
+    await this.executeService.result(
+      'Connector Removed',
+      Text.create("Connector '", Text.bold(`${connectorId}`), "' was successfully removed")
     );
   }
 }

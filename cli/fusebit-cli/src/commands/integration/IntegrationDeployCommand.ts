@@ -1,5 +1,5 @@
 import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
-import { ExecuteService, ConnectorService, OperationService } from '../../services';
+import { ExecuteService, IntegrationService, OperationService } from '../../services';
 import { join } from 'path';
 import { Text } from '@5qtrs/text';
 
@@ -8,14 +8,14 @@ import { Text } from '@5qtrs/text';
 // ------------------
 
 const command = {
-  name: 'Deploy Connector',
+  name: 'Deploy Integration',
   cmd: 'deploy',
-  summary: 'Deploy a connector',
-  description: Text.create('Builds and deploys a connector using the project files in the given directory.'),
+  summary: 'Deploy a integration',
+  description: Text.create('Builds and deploys a integration using the project files in the given directory.'),
   arguments: [
     {
-      name: 'connector',
-      description: 'The id of the connector to deploy',
+      name: 'integration',
+      description: 'The id of the integration to deploy',
       required: true,
     },
   ],
@@ -23,7 +23,7 @@ const command = {
     {
       name: 'dir',
       aliases: ['d'],
-      description: 'A path to the directory with the connector source code to deploy',
+      description: 'A path to the directory with the integration source code to deploy',
       defaultText: 'current directory',
     },
     {
@@ -36,7 +36,7 @@ const command = {
     {
       name: 'fast',
       aliases: ['f'],
-      description: 'If set to true, does not wait for the connector to initialize.',
+      description: 'If set to true, does not wait for the integration to initialize.',
       type: ArgType.boolean,
       default: 'false',
     },
@@ -60,34 +60,34 @@ const command = {
 // Exported Classes
 // ----------------
 
-export class ConnectorDeployCommand extends Command {
+export class IntegrationDeployCommand extends Command {
   private constructor() {
     super(command);
   }
 
   public static async create() {
-    return new ConnectorDeployCommand();
+    return new IntegrationDeployCommand();
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    const connectorId = input.arguments[0] as string;
+    const integrationId = input.arguments[0] as string;
     const sourceDir = input.options.dir as string;
     const fast = input.options.fast as boolean;
 
-    const connectorService = await ConnectorService.create(input);
+    const integrationService = await IntegrationService.create(input);
     const operationService = await OperationService.create(input);
     const executeService = await ExecuteService.create(input);
 
     await executeService.newLine();
 
     const sourcePath = sourceDir ? join(process.cwd(), sourceDir) : process.cwd();
-    const connectorSpec = await connectorService.loadDirectory(sourcePath);
+    const integrationSpec = await integrationService.loadDirectory(sourcePath);
 
-    console.log(connectorSpec);
+    console.log(integrationSpec);
 
-    await connectorService.confirmDeploy(sourcePath, connectorSpec, connectorId);
+    await integrationService.confirmDeploy(sourcePath, integrationSpec, integrationId);
 
-    const operation = await connectorService.deployConnector(connectorId, connectorSpec);
+    const operation = await integrationService.deployIntegration(integrationId, integrationSpec);
     console.log(operation);
     if (!fast) {
       const result = await operationService.waitForCompletion(operation.operationId);

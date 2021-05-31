@@ -27,7 +27,7 @@ const EntityId = Joi.object().keys({
 
 const EntityIdQuery = Joi.object().keys({
   idPrefix: entityId.optional(),
-  limit: Joi.number(),
+  count: Joi.number(),
   next: Joi.string(),
   tag: Joi.alternatives().try(tagNameValues, Joi.array().items(tagNameValues)),
 });
