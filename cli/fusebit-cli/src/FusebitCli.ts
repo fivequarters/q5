@@ -10,6 +10,8 @@ import {
   UserCommand,
   VersionCommand,
   NpmCommand,
+  ConnectorCommand,
+  IntegrationCommand,
 } from './commands';
 
 // ------------------
@@ -47,6 +49,8 @@ async function getSubCommands() {
   subCommands.push(await ClientCommand.create());
   subCommands.push(await IssuerCommand.create());
   subCommands.push(await VersionCommand.create());
+  subCommands.push(await ConnectorCommand.create());
+  subCommands.push(await IntegrationCommand.create());
   return subCommands;
 }
 
@@ -66,28 +70,30 @@ export class FusebitCli extends Command {
 
   protected async onSubCommandError(command: Command, input: IExecuteInput, error: Error) {
     const verbose = (input.options.verbose as boolean) || process.env.FUSEBIT_DEBUG;
-    if (verbose) {
-      try {
-        input.io.writeRaw(
-          Text.create(
-            Text.red('[ Unhandled Error ] ').bold(),
-            Text.eol(),
-            Text.eol(),
-            Text.bold('Message'),
-            Text.eol(),
-            error.message,
-            Text.eol(),
-            Text.eol(),
-            Text.bold('Stack Trace'),
-            Text.eol(),
-            error.stack || '<No Stack Trace>',
-            Text.eol(),
-            Text.eol()
-          )
-        );
-      } catch (__) {
-        console.log(error);
-      }
+    try {
+      input.io.writeRaw(
+        Text.create(
+          Text.red('[ Unhandled Error ] ').bold(),
+          Text.eol(),
+          Text.eol(),
+          Text.bold('Message'),
+          Text.eol(),
+          error.message,
+          ...(verbose
+            ? [
+                Text.eol(),
+                Text.eol(),
+                Text.bold('Stack Trace'),
+                Text.eol(),
+                error.stack || '<No Stack Trace>',
+                Text.eol(),
+                Text.eol(),
+              ]
+            : [])
+        )
+      );
+    } catch (__) {
+      console.log(error);
     }
     return 1;
   }

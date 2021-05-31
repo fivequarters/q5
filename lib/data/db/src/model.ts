@@ -148,8 +148,21 @@ export interface IConnector extends IEntity {
   };
 }
 
+export interface IOperationParam {
+  verb: 'creating' | 'updating' | 'deleting';
+  type: 'connector' | 'integration';
+}
+
+export interface IOperationData extends IOperationParam {
+  code: number; // HTTP status codes
+  message?: string;
+  location: { accountId: string; subscriptionId: string; entityId: string; entityType: EntityType };
+}
+export interface IOperation extends IEntity {
+  data: IOperationData;
+}
+
 export interface IStorageItem extends IEntity {}
-export interface IOperation extends IEntity {}
 export interface IIdentity extends IEntity {}
 export interface IInstance extends IEntity {}
 export interface ISession extends IEntity {}

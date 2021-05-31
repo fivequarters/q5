@@ -839,9 +839,9 @@ export class FunctionService {
         }
       );
 
-      await this.executeService.info('Serving', 'Ready to serve requests.');
+      await this.executeService.info('Serving', 'Ready to serve requests. Press Ctrl-C to quit.');
 
-      await askQuestion('Press enter to quit...\n');
+      await new Promise(() => {});
     } finally {
       const result = await this.executeService.executeRequest(
         {

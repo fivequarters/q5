@@ -4,3 +4,6 @@ export { IssuerService } from './IssuerService';
 export { FunctionService } from './FunctionService';
 export { AgentService } from './AgentService';
 export { VersionService } from './VersionService';
+export { ConnectorService } from './ConnectorService';
+export { IntegrationService } from './IntegrationService';
+export { OperationService } from './OperationService';

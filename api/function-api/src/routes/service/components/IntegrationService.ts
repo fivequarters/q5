@@ -26,6 +26,11 @@ const defaultIntegration = [
   'module.exports = router;',
 ].join('\n');
 
+const defaultPackage = {
+  dependencies: {},
+  files: ['./integration.js'], // Make sure the default file is included, if nothing else.
+};
+
 class IntegrationService extends BaseComponentService<Model.IIntegration> {
   public readonly entityType: Model.EntityType;
   constructor() {
@@ -64,7 +69,7 @@ class IntegrationService extends BaseComponentService<Model.IIntegration> {
     // Create the package.json, making sure pkg-handler and pkg-manager are present, and any packages
     // referenced in the connectors block.
     const pkg = {
-      dependencies: {},
+      ...defaultPackage,
       ...(data.files && data.files['package.json'] ? JSON.parse(data.files['package.json']) : {}),
     };
     pkg.dependencies['@fusebit-int/pkg-handler'] = pkg.dependencies['@fusebit-int/pkg-handler'] || '*';
