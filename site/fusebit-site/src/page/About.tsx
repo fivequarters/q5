@@ -153,6 +153,26 @@ export function About() {
         <Box width="100%">
           <Box vertical center expand minWidth={260} marginBottom={60}>
             <Box overlay height={220} width={0}>
+              <Image offsetX={-110} src={Lindsey} width={220} style={{ filter: 'grayscale(100%)' }} />
+            </Box>
+            <Box vertical center marginTop={10}>
+              <FusebitText center type={FusebitTextType.body} weight={FusebitTextWeight.bold}>
+                Lindsey Thorne
+              </FusebitText>
+              <FusebitText center>Head of Talent</FusebitText>
+              <Box marginTop={10}>
+                <FusebitSocialButton
+                  type={FusebitSocialType.linkedIn}
+                  href="https://www.linkedin.com/in/lindseythorne/"
+                  small
+                  invertColor
+                />
+              </Box>
+            </Box>
+          </Box>
+          <Box width={30} height={0} />
+          <Box vertical center expand minWidth={260} marginBottom={60}>
+            <Box overlay height={220} width={0}>
               <Image offsetX={-110} src={Duke} width={220} style={{ filter: 'grayscale(100%)' }} />
             </Box>
             <Box vertical center marginTop={10}>
@@ -171,26 +191,6 @@ export function About() {
                   type={FusebitSocialType.twitter}
                   href="https://twitter.com/chrisdukelow"
                   marginLeft={10}
-                  small
-                  invertColor
-                />
-              </Box>
-            </Box>
-          </Box>
-          <Box width={30} height={0} />
-          <Box vertical center expand minWidth={260} marginBottom={60}>
-            <Box overlay height={220} width={0}>
-              <Image offsetX={-110} src={Lindsey} width={220} style={{ filter: 'grayscale(100%)' }} />
-            </Box>
-            <Box vertical center marginTop={10}>
-              <FusebitText center type={FusebitTextType.body} weight={FusebitTextWeight.bold}>
-                Lindsey Thorne
-              </FusebitText>
-              <FusebitText center>Head of Talent</FusebitText>
-              <Box marginTop={10}>
-                <FusebitSocialButton
-                  type={FusebitSocialType.linkedIn}
-                  href="https://www.linkedin.com/in/lindseythorne/"
                   small
                   invertColor
                 />
