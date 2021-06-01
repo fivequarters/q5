@@ -50,7 +50,7 @@ const command = {
     {
       name: 'output',
       aliases: ['o'],
-      description: "The format to display the output: 'pretty', 'json', 'raw'",
+      description: "The format to display the output: 'pretty', 'json'",
       default: 'pretty',
     },
   ],
@@ -83,12 +83,9 @@ export class ConnectorDeployCommand extends Command {
     const sourcePath = sourceDir ? join(process.cwd(), sourceDir) : process.cwd();
     const connectorSpec = await connectorService.loadDirectory(sourcePath);
 
-    console.log(connectorSpec);
-
     await connectorService.confirmDeploy(sourcePath, connectorSpec, connectorId);
 
     const operation = await connectorService.deployConnector(connectorId, connectorSpec);
-    console.log(operation);
     if (!fast) {
       const result = await operationService.waitForCompletion(operation.operationId);
       await operationService.displayOperationResults(result);

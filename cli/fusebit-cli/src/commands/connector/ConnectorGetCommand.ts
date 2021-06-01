@@ -56,7 +56,6 @@ export class ConnectorGetCommand extends Command {
     const destPath = destDir ? join(process.cwd(), destDir) : process.cwd();
 
     const connector = await connectorService.fetchConnector(connectorId);
-    console.log(connector);
 
     await connectorService.writeDirectory(destPath, connector);
 

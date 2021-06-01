@@ -1,5 +1,5 @@
-import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
-import { ExecuteService, IntegrationService, OperationService } from '../../services';
+import { Command, IExecuteInput } from '@5qtrs/cli';
+import { ExecuteService, IntegrationService } from '../../services';
 import { join } from 'path';
 import { Text } from '@5qtrs/text';
 
@@ -45,10 +45,8 @@ export class IntegrationGetCommand extends Command {
   protected async onExecute(input: IExecuteInput): Promise<number> {
     const integrationId = input.arguments[0] as string;
     const destDir = input.options.dir as string;
-    const fast = input.options.fast as boolean;
 
     const integrationService = await IntegrationService.create(input);
-    const operationService = await OperationService.create(input);
     const executeService = await ExecuteService.create(input);
 
     await executeService.newLine();
@@ -56,7 +54,6 @@ export class IntegrationGetCommand extends Command {
     const destPath = destDir ? join(process.cwd(), destDir) : process.cwd();
 
     const integration = await integrationService.fetchIntegration(integrationId);
-    console.log(integration);
 
     await integrationService.writeDirectory(destPath, integration);
 

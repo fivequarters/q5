@@ -624,7 +624,7 @@ export class FunctionService {
   }
 
   public async listFunctions(options: IFusebitFunctionListOptions): Promise<IFusebitFunctionListResult> {
-    let profile = await this.profileService.getExecutionProfile(['subscription']);
+    const profile = await this.profileService.getExecutionProfile(['subscription']);
     let cronMessage = '';
 
     const query = [];
