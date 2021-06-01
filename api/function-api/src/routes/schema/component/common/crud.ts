@@ -12,16 +12,6 @@ import body from '../../../handlers/body';
 
 import Validation from '../../../validation/component';
 
-const debugLogEvent = (req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.log(
-    `DEBUG: ${req.method} ${req.url}\n` +
-      `DEBUG: Headers: ${JSON.stringify(req.headers)}\n` +
-      `DEBUG: Params:  ${JSON.stringify(req.params)}\n` +
-      `DEBUG: Body:    ${JSON.stringify(req.body)}\n`
-  );
-  return next();
-};
-
 const router = (ComponentService: BaseComponentService<any>) => {
   const componentCrudRouter = express.Router({ mergeParams: true });
   componentCrudRouter

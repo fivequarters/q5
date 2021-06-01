@@ -14,7 +14,7 @@ const newId = (wart: string): string => `${boundaryId}-${wart}-${Math.floor(Math
 
 const getIdPrefix = () => ({ idPrefix: boundaryId });
 
-const remVersion = (entity: any) => {
+const remVersion = (entity: Model.IEntity) => {
   const { version, ...newEntity } = entity;
   return newEntity;
 };
@@ -199,7 +199,7 @@ const performTests = (testEntityType: string) => {
     const sectionsByEntityIndex = sections.flatMap((section: any) =>
       Array(section.size)
         .fill(section)
-        .map((_, index) => ({
+        .map((item, index) => ({
           ...section,
           prefix: section.prefix(index),
         }))
@@ -207,7 +207,7 @@ const performTests = (testEntityType: string) => {
     expect(sections.reduce((acc, cur) => acc + cur.size, 0)).toEqual(entityCount);
     const Entitys = Array(entityCount)
       .fill(undefined)
-      .map((_, index) => {
+      .map((item, index) => {
         return {
           ...entityBase,
           id: `${boundaryId}-${sectionsByEntityIndex[index].prefix}`,
@@ -228,7 +228,7 @@ const performTests = (testEntityType: string) => {
         expect(prefixResponse.data.items).toMatchObject(
           Array(section.size)
             .fill(undefined)
-            .map((_, index) => ({ ...entityBase, id: `${boundaryId}-${section.prefix(index)}` }))
+            .map((item, index) => ({ ...entityBase, id: `${boundaryId}-${section.prefix(index)}` }))
         );
       })
     );
@@ -266,7 +266,7 @@ const performTests = (testEntityType: string) => {
         Array(section.size)
           .fill(undefined)
           .map(
-            (_, index): Model.ISdkEntity =>
+            (item, index): Model.ISdkEntity =>
               ({
                 ...entityBase,
                 tags: {
@@ -386,7 +386,7 @@ const performTests = (testEntityType: string) => {
     }
   }, 180000);
 
-  test('Delete Entity Tag with invalid tag key has no impact on tags', async () => {
+  test.only('Delete Entity Tag with invalid tag key has no impact on tags', async () => {
     const entityOne = await createEntityTest(sampleEntity());
     const entityTags = await ApiRequestMap[testEntityType].tags.get(account, entityOne.id);
     expect(entityTags).toBeHttp({ statusCode: 200 });
