@@ -20,7 +20,7 @@ const remVersion = (entity: any) => {
 };
 
 afterAll(async () => {
-  // await cleanupEntities(account);
+  await cleanupEntities(account);
 }, 30000);
 
 const sampleEntity = () => ({
