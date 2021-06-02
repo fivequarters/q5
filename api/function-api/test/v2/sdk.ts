@@ -15,6 +15,12 @@ export interface IRequestOptions {
   authz?: string;
 }
 
+export interface IDispatchOptions {
+  contentType?: string;
+  body?: string | object;
+  authz?: string;
+}
+
 interface IWaitForCompletionParams {
   waitMs: number;
   pollMs: number;
@@ -116,7 +122,7 @@ export const ApiRequestMap: { [key: string]: any } = {
       entityId: string,
       method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
       path: string,
-      options: IRequestOptions
+      options: IDispatchOptions
     ) => v2Request(account, { method, uri: `/connector/${entityId}${path}`, ...options }),
 
     tags: {
@@ -209,7 +215,7 @@ export const ApiRequestMap: { [key: string]: any } = {
       entityId: string,
       method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
       path: string,
-      options: IRequestOptions
+      options: IDispatchOptions
     ) => v2Request(account, { method, uri: `/integration/${entityId}${path}`, ...options }),
 
     tags: {

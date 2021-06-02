@@ -386,7 +386,7 @@ const performTests = (testEntityType: string) => {
     }
   }, 180000);
 
-  test.only('Delete Entity Tag with invalid tag key has no impact on tags', async () => {
+  test('Delete Entity Tag with invalid tag key has no impact on tags', async () => {
     const entityOne = await createEntityTest(sampleEntity());
     const entityTags = await ApiRequestMap[testEntityType].tags.get(account, entityOne.id);
     expect(entityTags).toBeHttp({ statusCode: 200 });
