@@ -53,9 +53,10 @@ const performTests = (testEntityType: string) => {
   const makeEntity = () => toIEntity(testEntityType);
   const createEntityTest = (entity: Model.IEntity) => createEntity(testEntityType, entity);
 
-  test('List Entitys returns 404 when none exist', async () => {
+  test('List Entitys returns 200 and an empty list when none exist', async () => {
     const response = await ApiRequestMap[testEntityType].list(account, getIdPrefix());
-    expect(response).toBeHttp({ statusCode: 404 });
+    expect(response).toBeHttp({ statusCode: 200 });
+    expect(response.items.length).toBe(0);
   }, 180000);
 
   test('Create Entity', async () => {
