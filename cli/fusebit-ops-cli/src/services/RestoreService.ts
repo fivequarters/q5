@@ -26,6 +26,8 @@ export class RestoreService {
     'user',
   ];
 
+  private auroraDbPrefix: string = 'fusebit-db-';
+
   public static async create(input: IExecuteInput) {
     const opsSvc = await OpsService.create(input);
     const execSvc = await ExecuteService.create(input);
@@ -108,6 +110,42 @@ export class RestoreService {
       credentials,
       region
     );
+  }
+  private async startDbRestoreJobAndWait(
+    restorePointArn: string,
+    deploymentName: string,
+    credentials: IAwsCredentials,
+    region: string
+  ) {
+    const dbName = `${this.auroraDbPrefix}${deploymentName}`
+    const Aurora = new AWS.RDS({
+      accessKeyId: credentials.accessKeyId,
+      secretAccessKey: credentials.secretAccessKey,
+      sessionToken: credentials.sessionToken,
+      region
+    })
+  }
+
+  private async findVpcOfDeployment(
+    deploymentName: string,
+    config: IAwsConfig,
+    creds: IAwsCredentials
+  ) {
+    const DynamoDB = new AWS.DynamoDB({
+      region: config.region,
+      accessKeyId: creds.accessKeyId,
+      secretAccessKey: creds.secretAccessKey,
+      sessionToken: creds.sessionToken,
+      apiVersion: '2012-08-10'
+    })
+    const results = await DynamoDB.query({
+      TableName: 'ops.deployment',
+      ExpressionAttributeNames: {
+        ":deployment": deploymentName
+      },
+      KeyConditionExpression: 'deploymentName = :deployment',
+    }).promise()
+    const record = results.Items? 
   }
 
   /**
