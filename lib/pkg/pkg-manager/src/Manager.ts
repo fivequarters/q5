@@ -83,9 +83,6 @@ class Manager {
 
     if (vendorError) {
       this.vendorError = vendorError;
-
-      // Add the default routes even when the vendor code hasn't loaded correctly.
-      this.router.use(DefaultRoutes.routes());
     }
 
     // Add vendor routes prior to the defaults, to allow for the vendor to add middleware or override default
@@ -94,16 +91,14 @@ class Manager {
       this.router.use(vendor.routes());
     }
 
+    // Add the default routes - these will get overruled by any routes added by the vendor or during the
+    // startup phase.
+    this.router.use(DefaultRoutes.routes());
+
     // Give everything a chance to be initialized - normally, the cfg object would be specialized per router
     // object to allow for routers to have specialized configuration elements, but we will sort that out
     // later.
     this.invoke('startup', { mgr: this, cfg, router: this.router, storage: this.storage });
-
-    // Add the default routes - these will get overruled by any routes added by the vendor or during the
-    // startup phase.
-    if (!vendorError) {
-      this.router.use(DefaultRoutes.routes());
-    }
   }
 
   /**
@@ -237,6 +232,7 @@ class Manager {
 
     ctx.params = fusebitCtx.params;
     ctx.fusebit = fusebitCtx.fusebit;
+    ctx.state.manager = this;
 
     // Pre-load the status as OK
     ctx.status = 200;

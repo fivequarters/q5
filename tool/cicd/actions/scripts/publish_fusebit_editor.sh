@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 # -- Standard Header --
-set -e
 echoerr() { printf "%s\n" "$*" >&2; }
 
 # -- Parameters --
@@ -23,14 +22,18 @@ JS_FILES="${DIST}/fusebit-editor.js ${DIST}/fusebit-editor.js.map ${DIST}/fusebi
 
 # -- Is this the HEAD of this artifact?
 VER_WART=editor
-git tag --points-at HEAD | grep ${VER_WART}-${VERSION} > /dev/null;
-TAG_TEST=$?;
+git tag --points-at HEAD | grep ${VER_WART}-${VERSION} > /dev/null
+TAG_TEST=$?
 if [ ${TAG_TEST} -ne 0 ]; then
-  echoerr "Not publishing ${VERSION} - HEAD is not tagged ${VER_WART}-${VERSION}";
+  echoerr "Not publishing ${VERSION} - HEAD is not tagged ${VER_WART}-${VERSION}"
+  git tag --points-at HEAD
   exit 0;
+else
+  echoerr "Publishing ${VERSION}"
 fi
 
 # -- Script --
+set -e
 echoerr "Building package"
 rm -rf lib/client/fusebit-editor/dist/
 yarn build

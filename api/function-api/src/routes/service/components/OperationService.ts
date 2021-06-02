@@ -60,6 +60,7 @@ class OperationService {
 
         operationEntity.data.code = 200;
       } catch (err) {
+        console.log(err);
         // Update operation with the error message
         operationEntity.data = { ...status, code: err.status || err.statusCode || 500, message: err.message };
       }

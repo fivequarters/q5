@@ -85,6 +85,9 @@ class ConnectorManager {
   public getByName(name: string, handler: (ctx: Context) => string) {
     return (ctx: Context) => {
       const cfg = this.connectors[name];
+      if (!cfg) {
+        throw new Error(`Unknown connector ${name}; add it to the configuration?`);
+      }
       const inst = cfg.instance ? cfg.instance : this.loadConnector(name, cfg);
 
       return inst.instantiate(ctx, handler(ctx));

@@ -5,6 +5,7 @@
   "main": "libc/index.js",
   "license": "SEE LICENSE IN LICENSE",
   "author": "Fusebit, Inc.",
+  "files": ["libc/*.js", "libc/*.d.ts"],
   "scripts": {
     "build": "tsc -b",
     "test": "jest --colors",
@@ -14,7 +15,8 @@
   },
   "keywords": [],
   "dependencies": {
-    "@fusebit-int/pkg-manager": "^1.0.0"
+    "@fusebit-int/pkg-manager": "^1.0.0",
+    "superagent": "*"
   },
   "devDependencies": {}
 }
