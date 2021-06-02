@@ -85,8 +85,9 @@ export class ConnectorService {
       // do nothing
     }
 
-    // Load package.json, if any.
-    let pack: any;
+    // Load package.json, if any.  Only include the type for the files parameter, as that's all that's used
+    // here.
+    let pack: { files: string[] } | undefined;
     try {
       const buffer = await readFile(join(cwd, 'package.json'));
       pack = JSON.parse(buffer.toString());
