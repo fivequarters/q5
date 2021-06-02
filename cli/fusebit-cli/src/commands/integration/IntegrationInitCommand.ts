@@ -1,6 +1,6 @@
+import { join } from 'path';
 import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
 import { ExecuteService, IntegrationService, OperationService } from '../../services';
-import { join } from 'path';
 import { Text } from '@5qtrs/text';
 
 // ------------------
@@ -8,14 +8,22 @@ import { Text } from '@5qtrs/text';
 // ------------------
 
 const command = {
-  name: 'Deploy Integration',
-  cmd: 'deploy',
-  summary: 'Deploy a integration',
-  description: Text.create('Builds and deploys a integration using the project files in the given directory.'),
+  name: 'Initialize Integration',
+  cmd: 'init',
+  summary: 'Scaffold a new integration in the given directory',
+  description: Text.create(
+    'Scaffolds a new integration in the given directory. ',
+    'If the directory is not specified, working directory is used.',
+    Text.eol(),
+    Text.eol(),
+    "The integration can be later deployed using '",
+    Text.bold('integration deploy'),
+    "' command."
+  ),
   arguments: [
     {
       name: 'integration',
-      description: 'The id of the integration to deploy.',
+      description: 'The id of the integration to initialize.',
       required: true,
     },
   ],
@@ -27,23 +35,9 @@ const command = {
       defaultText: 'current directory',
     },
     {
-      name: 'ignore',
-      aliases: ['i'],
-      description: 'A file or directory to ignore; you can specify this option multiple times.',
-      type: ArgType.string,
-      allowMany: true,
-    },
-    {
-      name: 'fast',
-      aliases: ['f'],
-      description: 'If set to true, does not wait for the integration to initialize.',
-      type: ArgType.boolean,
-      default: 'false',
-    },
-    {
       name: 'quiet',
       aliases: ['q'],
-      description: 'If set to true, does not prompt for confirmation.',
+      description: 'If set to true, does not prompt for confirmation',
       type: ArgType.boolean,
       default: 'false',
     },
@@ -54,25 +48,25 @@ const command = {
       default: 'pretty',
     },
   ],
+  ignoreOptions: ['profile', 'boundary', 'subscription'],
 };
 
 // ----------------
 // Exported Classes
 // ----------------
 
-export class IntegrationDeployCommand extends Command {
+export class IntegrationInitCommand extends Command {
   private constructor() {
     super(command);
   }
 
   public static async create() {
-    return new IntegrationDeployCommand();
+    return new IntegrationInitCommand();
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
     const integrationId = input.arguments[0] as string;
     const sourceDir = input.options.dir as string;
-    const fast = input.options.fast as boolean;
 
     const integrationService = await IntegrationService.create(input);
     const operationService = await OperationService.create(input);
@@ -86,12 +80,12 @@ export class IntegrationDeployCommand extends Command {
     await integrationService.confirmDeploy(sourcePath, integrationSpec, integrationId);
 
     const operation = await integrationService.deployIntegration(integrationId, integrationSpec);
-    if (!fast) {
-      const result = await operationService.waitForCompletion(operation.operationId);
-      await operationService.displayOperationResults(result);
-    } else {
-      await operationService.displayOperation(operation.operationId);
-    }
+    const result = await operationService.waitForCompletion(operation.operationId);
+    await operationService.displayOperationResults(result);
+
+    const integration = await integrationService.fetchIntegration(integrationId);
+
+    await integrationService.writeDirectory(sourcePath, integration);
 
     return 0;
   }

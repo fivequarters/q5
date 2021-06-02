@@ -82,7 +82,8 @@ class IntegrationService extends BaseComponentService<Model.IIntegration> {
       });
     }
 
-    data.files['package.json'] = JSON.stringify(pkg);
+    // Always pretty-print package.json so it's human-readable from the start.
+    data.files['package.json'] = JSON.stringify(pkg, null, 2);
   };
 
   public createFunctionSpecification = async (entity: Model.IEntity): Promise<Function.IFunctionSpecification> => {
@@ -186,14 +187,20 @@ class IntegrationService extends BaseComponentService<Model.IIntegration> {
       entity,
       { verb: 'deleting', type: 'integration' },
       async () => {
-        // Do delete things - create functions, collect their versions, and update the entity.data object
-        // appropriately.
-        await Function.deleteFunction({
-          accountId: entity.accountId,
-          subscriptionId: entity.subscriptionId,
-          boundaryId: this.entityType,
-          functionId: entity.id,
-        });
+        try {
+          // Do delete things - create functions, collect their versions, and update the entity.data object
+          // appropriately.
+          await Function.deleteFunction({
+            accountId: entity.accountId,
+            subscriptionId: entity.subscriptionId,
+            boundaryId: this.entityType,
+            functionId: entity.id,
+          });
+        } catch (err) {
+          if (err.status !== 404) {
+            throw err;
+          }
+        }
 
         // Delete it.
         await this.dao.deleteEntity(entity);

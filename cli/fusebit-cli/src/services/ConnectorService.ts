@@ -2,7 +2,7 @@ import { join } from 'path';
 import moment from 'moment';
 import globby from 'globby';
 
-import { readFile, readDirectory, exists, copyDirectory, writeFile } from '@5qtrs/file';
+import { readFile, writeFile } from '@5qtrs/file';
 import { request, IHttpResponse } from '@5qtrs/request';
 
 import { Text } from '@5qtrs/text';
@@ -10,6 +10,7 @@ import { IFusebitExecutionProfile } from '@5qtrs/fusebit-profile-sdk';
 import { IExecuteInput, Confirm } from '@5qtrs/cli';
 import { ProfileService } from './ProfileService';
 import { ExecuteService } from './ExecuteService';
+import { FunctionService } from './FunctionService';
 
 const FusebitStateFile = '.fusebit-state';
 const FusebitMetadataFile = 'fusebit.json';
@@ -356,5 +357,15 @@ export class ConnectorService {
       'Connector Removed',
       Text.create("Connector '", Text.bold(`${connectorId}`), "' was successfully removed")
     );
+  }
+
+  public async getConnectorLogs(connectorId: string): Promise<void> {
+    const profile = await this.profileService.getExecutionProfile(['account', 'subscription']);
+
+    const functionService = await FunctionService.create(this.input);
+
+    profile.boundary = 'connector';
+    profile.function = connectorId;
+    return functionService.getFunctionLogsByProfile(profile);
   }
 }

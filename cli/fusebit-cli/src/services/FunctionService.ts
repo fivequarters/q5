@@ -528,6 +528,14 @@ export class FunctionService {
   public async getFunctionLogs(path?: string, functionId?: string): Promise<void> {
     const profile = await this.getFunctionExecutionProfile(false, functionId, path);
 
+    if (!profile.boundary) {
+      throw new Error('A boundary must be specified.');
+    }
+
+    return this.getFunctionLogsByProfile(profile);
+  }
+
+  public async getFunctionLogsByProfile(profile: IFusebitExecutionProfile): Promise<void> {
     const isJson = this.input.options.output === 'json';
     const version = await this.versionService.getVersion();
 
@@ -587,7 +595,7 @@ export class FunctionService {
                   );
                   this.input.io.writeLineRaw(parsed.level > 30 ? Text.red(parsed.msg).toString() : parsed.msg);
                   if (parsed.properties) {
-                    let trace = parsed.properties.trace || parsed.properties.stackTrace;
+                    const trace = parsed.properties.trace || parsed.properties.stackTrace;
                     if (trace && Array.isArray(trace)) {
                       trace.forEach((line) => {
                         this.input.io.writeLineRaw(parsed.level > 30 ? Text.red(line).toString() : line);

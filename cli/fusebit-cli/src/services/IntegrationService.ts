@@ -2,7 +2,7 @@ import { join } from 'path';
 import moment from 'moment';
 import globby from 'globby';
 
-import { readFile, readDirectory, exists, copyDirectory, writeFile } from '@5qtrs/file';
+import { readFile, writeFile } from '@5qtrs/file';
 import { request, IHttpResponse } from '@5qtrs/request';
 
 import { Text } from '@5qtrs/text';
@@ -10,6 +10,7 @@ import { IFusebitExecutionProfile } from '@5qtrs/fusebit-profile-sdk';
 import { IExecuteInput, Confirm } from '@5qtrs/cli';
 import { ProfileService } from './ProfileService';
 import { ExecuteService } from './ExecuteService';
+import { FunctionService } from './FunctionService';
 
 const FusebitStateFile = '.fusebit-state';
 const FusebitMetadataFile = 'fusebit.json';
@@ -137,7 +138,7 @@ export class IntegrationService {
     fusebit.tags = spec.tags;
     fusebit.expires = spec.expires;
     fusebit.expiresDuration = spec.expiresDuration;
-    await writeFile(join(cwd, FusebitMetadataFile), JSON.stringify(fusebit));
+    await writeFile(join(cwd, FusebitMetadataFile), JSON.stringify(fusebit, null, 2));
   }
 
   public async confirmDeploy(path: string, integrationSpec: any, integrationId: string): Promise<void> {
@@ -352,5 +353,15 @@ export class IntegrationService {
       'Integration Removed',
       Text.create("Integration '", Text.bold(`${integrationId}`), "' was successfully removed")
     );
+  }
+
+  public async getIntegrationLogs(integrationId: string): Promise<void> {
+    const profile = await this.profileService.getExecutionProfile(['account', 'subscription']);
+
+    const functionService = await FunctionService.create(this.input);
+
+    profile.boundary = 'integration';
+    profile.function = integrationId;
+    return functionService.getFunctionLogsByProfile(profile);
   }
 }
