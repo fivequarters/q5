@@ -99,10 +99,8 @@ class RDS implements IRds {
           includeResultMetadata: true,
         })
         .promise();
-      // console.log(`RESULT: `, result);
       return result;
     } catch (e) {
-      // console.log(`EXCEPTION ${e.message}`);
       if (e.message.match(/conflict_data/)) {
         throw new httpError.Conflict();
       }
@@ -136,7 +134,13 @@ class RDS implements IRds {
       let value = parameters[key];
       switch (typeof value) {
         case 'object':
-          valueKey = value instanceof Date ? (valueKey = 'dateValue') : (valueKey = 'blobValue');
+          if (value instanceof Date) {
+            valueKey = 'stringValue';
+            value = value.toISOString();
+          } else {
+            valueKey = 'stringValue';
+            value = JSON.stringify(value);
+          }
           break;
         case 'string':
           valueKey = 'stringValue';

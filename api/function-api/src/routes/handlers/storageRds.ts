@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
 
-import { getStorageContext, errorHandler } from '../storage';
 import create_error from 'http-errors';
 
 import RDS, { Model } from '@5qtrs/db';
@@ -15,7 +14,7 @@ interface IStorageResult {
 }
 
 function normalize(e: Model.IEntity): IStorageResult {
-  return { data: e.data, etag: `${e.version}`, tags: e.tags, expires: e.expires?.format() };
+  return { data: e.data, etag: `${e.version}`, tags: e.tags, expires: e.expires };
 }
 
 const makeRequest = (req: Request, version?: string) => ({
@@ -60,7 +59,7 @@ function storageList() {
         items: result.items.map((e: Model.IEntity) => ({
           storageId: e.id,
           tags: e.tags,
-          expires: e.expires?.format(),
+          expires: e.expires,
           etag: e.version as string,
         })),
       };
@@ -92,11 +91,17 @@ function storagePut() {
     delete storage.etag;
 
     try {
-      result = normalize(await storageDb.createEntity({ ...makeRequest(req, etag), data: storage.data }));
+      result = normalize(
+        await storageDb.createEntity({
+          ...makeRequest(req, etag),
+          data: storage.data,
+          tags: storage.tags,
+          expires: storage.expires,
+        })
+      );
     } catch (err) {
       return next(err);
     }
-
     res.json(result);
   };
 }
