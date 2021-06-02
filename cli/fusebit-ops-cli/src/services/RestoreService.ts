@@ -1,4 +1,4 @@
-import AWS from 'aws-sdk';
+import AWS, { Credentials } from 'aws-sdk';
 import { IExecuteInput } from '@5qtrs/cli';
 import { OpsService } from './OpsService';
 import { ExecuteService } from './ExecuteService';
@@ -82,12 +82,40 @@ export class RestoreService {
     }
     const region = await this.findRegionFromDeploymentName(deploymentName, config, credentials);
     // The end of the world.
-    await this.deleteAllExistingDynamoDBTable(deploymentName, config, credentials);
-    await Promise.all(
-      this.dynamoTableSuffix.map((tableSuffix) =>
-        this.restoreTable(credentials, tableSuffix, deploymentName, backupPlanName, region as string)
+    // await this.deleteAllExistingDynamoDBTable(deploymentName, config, credentials);
+    // await Promise.all(
+    // this.dynamoTableSuffix.map((tableSuffix) =>
+    // this.restoreTable(credentials, tableSuffix, deploymentName, backupPlanName, region as string)
+    // )
+    // );
+    console.log(
+      await this.findLatestRecoveryPointOfTable(
+        credentials,
+        `${this.auroraDbPrefix}${deploymentName}`,
+        backupPlanName,
+        region as string
       )
     );
+    await this.findVpcOfDeployment(deploymentName, config, credentials, region as string);
+  }
+
+  private async deleteAuroraDb(credentials: IAwsCredentials, deploymentName: string, region: string) {
+    const dbName = `${this.auroraDbPrefix}${deploymentName}`;
+    const RDS = new AWS.RDS({
+      accessKeyId: credentials.accessKeyId,
+      secretAccessKey: credentials.secretAccessKey,
+      sessionToken: credentials.sessionToken,
+      region,
+    });
+    try {
+      await RDS.deleteDBCluster({
+        DBClusterIdentifier: dbName,
+      }).promise();
+    } catch (e) {
+      if (e !== 'ResourceNotFoundException') {
+        throw Error(e);
+      }
+    }
   }
 
   private async restoreTable(
@@ -117,35 +145,53 @@ export class RestoreService {
     credentials: IAwsCredentials,
     region: string
   ) {
-    const dbName = `${this.auroraDbPrefix}${deploymentName}`
+    const dbName = `${this.auroraDbPrefix}${deploymentName}`;
     const Aurora = new AWS.RDS({
       accessKeyId: credentials.accessKeyId,
       secretAccessKey: credentials.secretAccessKey,
       sessionToken: credentials.sessionToken,
-      region
-    })
+      region,
+    });
   }
+
+  private async getRestoreVpcArn(network: string, credentials: IAwsCredentials, region: string) {}
 
   private async findVpcOfDeployment(
     deploymentName: string,
     config: IAwsConfig,
-    creds: IAwsCredentials
+    creds: IAwsCredentials,
+    deploymentRegion: string
   ) {
     const DynamoDB = new AWS.DynamoDB({
       region: config.region,
       accessKeyId: creds.accessKeyId,
       secretAccessKey: creds.secretAccessKey,
       sessionToken: creds.sessionToken,
-      apiVersion: '2012-08-10'
-    })
+      apiVersion: '2012-08-10',
+    });
     const results = await DynamoDB.query({
       TableName: 'ops.deployment',
-      ExpressionAttributeNames: {
-        ":deployment": deploymentName
+      ExpressionAttributeValues: {
+        ':d': { S: deploymentName },
       },
-      KeyConditionExpression: 'deploymentName = :deployment',
-    }).promise()
-    const record = results.Items? 
+      KeyConditionExpression: 'deploymentName = :d',
+    }).promise();
+    let item: any = results.Items as any;
+    let networkName: string = item[0].networkName.S as string;
+    const EC2 = new AWS.EC2({
+      accessKeyId: creds.accessKeyId,
+      secretAccessKey: creds.secretAccessKey,
+      sessionToken: creds.sessionToken,
+      region: deploymentRegion,
+    });
+    const Vpcs = await EC2.describeVpcs({}).promise();
+    for (const Vpc of Vpcs.Vpcs as AWS.EC2.VpcList) {
+      for (const tag of Vpc.Tags as AWS.EC2.TagList) {
+        if (tag.Value === `${networkName}-vpc`) {
+          return Vpc.VpcId as string;
+        }
+      }
+    }
   }
 
   /**
