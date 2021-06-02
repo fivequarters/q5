@@ -12,6 +12,7 @@ import {
   NpmCommand,
   ConnectorCommand,
   IntegrationCommand,
+  StorageCommand,
 } from './commands';
 
 // ------------------
@@ -51,6 +52,7 @@ async function getSubCommands() {
   subCommands.push(await VersionCommand.create());
   subCommands.push(await ConnectorCommand.create());
   subCommands.push(await IntegrationCommand.create());
+  subCommands.push(await StorageCommand.create());
   return subCommands;
 }
 

@@ -30,8 +30,8 @@ interface IIntegrationSpec {
   };
   tags: { [key: string]: string };
   version?: string;
-  expires?: moment.Moment;
-  expiresDuration?: moment.Duration;
+  expires?: string;
+  expiresDuration?: string;
 }
 
 export interface IFusebitIntegrationListOptions {
@@ -241,7 +241,7 @@ export class IntegrationService {
   }
 
   public async listIntegrations(options: IFusebitIntegrationListOptions): Promise<IFusebitIntegrationListResult> {
-    const profile = await this.profileService.getExecutionProfile(['subscription']);
+    const profile = await this.profileService.getExecutionProfile(['account', 'subscription']);
     const query = [];
     if (options.count) {
       query.push(`count=${options.count}`);
@@ -280,7 +280,8 @@ export class IntegrationService {
     }
 
     for (const item of items) {
-      const tagSummary = ['Tags:', Text.eol()];
+      const tagSummary = Object.keys(item.tags).length > 0 ? ['Tags:', Text.eol()] : [];
+      const expiresSummary = item.expires ? ['Expires: ', Text.bold(item.expires), Text.eol(), Text.eol()] : [];
 
       Object.keys(item.tags).forEach((tagKey) => {
         tagSummary.push(Text.dim('• '));
@@ -290,7 +291,10 @@ export class IntegrationService {
         tagSummary.push(Text.eol());
       });
 
-      // const itemList = Text.join(functions, Text.eol());
+      if (tagSummary.length > 0) {
+        tagSummary.push(Text.eol());
+      }
+
       await this.executeService.message(
         Text.bold(item.id),
         Text.create([
@@ -299,7 +303,7 @@ export class IntegrationService {
           Text.eol(),
           Text.eol(),
           ...tagSummary,
-          Text.eol(),
+          ...expiresSummary,
           'Version',
           Text.dim(': '),
           item.version || 'unknown',

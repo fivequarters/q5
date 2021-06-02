@@ -11,7 +11,7 @@ beforeEach(() => {
 });
 
 afterEach(async () => {
-  await cleanUpStorage(account);
+  // await cleanUpStorage(account);
 }, 180000);
 
 describe('Storage Set', () => {

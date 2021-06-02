@@ -9,3 +9,4 @@ export { VersionCommand } from './VersionCommand';
 export { NpmCommand } from './npm/NpmCommand';
 export { ConnectorCommand } from './connector/ConnectorCommand';
 export { IntegrationCommand } from './integration/IntegrationCommand';
+export { StorageCommand } from './storage/StorageCommand';
