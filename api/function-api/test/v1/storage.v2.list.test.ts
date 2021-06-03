@@ -98,6 +98,13 @@ describe('Storage List', () => {
       expect(resultNext.data.items.length).toBeGreaterThanOrEqual(2);
     }, 180000);
 
+    test('Listing storage no entries should return an empty list', async () => {
+      const storageIdPrefix = `test-${random()}`;
+      const result = await listStorage(account, { storageId: `${storageIdPrefix}/*` });
+      expect(result).toBeHttp({ statusCode: 200 });
+      expect(result.data.items.length).toBe(0);
+    }, 180000);
+
     test('Getting storage with a malformed account id should return an error', async () => {
       const malformed = await getMalformedAccount();
       const storage = await listStorage(malformed);
