@@ -278,6 +278,7 @@ export class ConnectorService {
   }
 
   public async displayConnectors(items: IConnectorSpec[], firstDisplay: boolean) {
+    const profile = await this.profileService.getExecutionProfile(['account', 'subscription']);
     if (!items.length) {
       await this.executeService.info('No Connectors', `No ${firstDisplay ? '' : 'more '}connectors to list`);
       return;
@@ -308,6 +309,10 @@ export class ConnectorService {
           Text.dim(': '),
           item.version || 'unknown',
           Text.eol(),
+          Text.eol(),
+          'Base URL',
+          Text.dim(': '),
+          this.getUrl(profile, item.id),
         ])
       );
     }

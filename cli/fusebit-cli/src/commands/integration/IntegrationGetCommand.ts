@@ -23,8 +23,7 @@ const command = {
     {
       name: 'dir',
       aliases: ['d'],
-      description: 'A path to the directory to place the integration code.',
-      defaultText: 'current directory',
+      description: 'A relative path to the directory to place the integration code.',
     },
   ],
 };
@@ -51,12 +50,15 @@ export class IntegrationGetCommand extends Command {
 
     await executeService.newLine();
 
-    const destPath = destDir ? join(process.cwd(), destDir) : process.cwd();
-
     const integration = await integrationService.fetchIntegration(integrationId);
 
-    await integrationService.writeDirectory(destPath, integration);
+    if (destDir) {
+      const destPath = join(process.cwd(), destDir);
 
+      await integrationService.writeDirectory(destPath, integration);
+    } else {
+      await integrationService.displayIntegrations([integration], true);
+    }
     return 0;
   }
 }
