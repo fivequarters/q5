@@ -82,10 +82,15 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
     id: this.IGNORE,
   };
 
-  public sqlToIEntity: <T>(result: AWS.RDSDataService.ExecuteStatementResponse) => T[] = <T>(
-    result: AWS.RDSDataService.ExecuteStatementResponse
-  ) => {
-    this.RDS.ensureRecords(result);
+  public sqlToIEntity = <T>(result: AWS.RDSDataService.ExecuteStatementResponse, allowEmpty: boolean = false): T[] => {
+    try {
+      this.RDS.ensureRecords(result);
+    } catch (error) {
+      if (allowEmpty) {
+        return [];
+      }
+      throw error;
+    }
     return result.records.map((r) => {
       const obj: { [key: string]: any } = {};
       r.map((v, i) => {
@@ -252,7 +257,7 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
 
     const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
     const data: IListResponse<ET> = {
-      items: this.sqlToIEntity(result),
+      items: this.sqlToIEntity(result, true),
     };
     // Limit of the query was set to `limit + 1` in order to grab 1 additional element.
     // This helps to determine whether there are yet more items that need to be retrieved.
