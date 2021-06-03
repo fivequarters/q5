@@ -33,4 +33,8 @@ const EntityTagKeyValue = (req: Request): IEntityTagValueParams => {
   return { ...EntityTagKey(req), tagValue: req.params.tagValue };
 };
 
-export default { accountAndSubscription, EntityById, EntityTagKey, EntityTagKeyValue };
+const SessionId = (req: Request) => {
+  return { ...accountAndSubscription(req), id: req.params.sessionId };
+};
+
+export default { accountAndSubscription, EntityById, EntityTagKey, EntityTagKeyValue, SessionId };

@@ -1,15 +1,21 @@
 import express from 'express';
-import { BaseComponentService } from '../../../service';
+import { IntegrationService } from '../../../service';
 import query from '../../../handlers/query';
 import pathParams from '../../../handlers/pathParams';
 import RDS from '@5qtrs/db';
 import * as url from 'url';
 import body from '../../../handlers/body';
 
-const router = (ComponentService: BaseComponentService<any>) => {
+const router = (IntegrationService: IntegrationService) => {
   const componentSessionRouter = express.Router({ mergeParams: true });
 
   componentSessionRouter.post('/', async (req, res, next) => {
+    // Verify config coalesce
+
+    // Check for InstanceId
+
+    // return session Id
+
     const sessionRedirect = query.sessionRedirect(req);
     // save redirectUrl for final redirect, not here
     const session = await RDS.DAO.Session.createEntity({
