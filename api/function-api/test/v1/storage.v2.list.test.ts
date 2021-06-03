@@ -14,7 +14,7 @@ afterEach(async () => {
   await cleanUpStorage(account);
 }, 180000);
 
-describe.skip('Storage List', () => {
+describe('Storage List', () => {
   describe('List', () => {
     test('Listing storage should work', async () => {
       await Promise.all([
@@ -96,6 +96,13 @@ describe.skip('Storage List', () => {
       const resultNext = await listStorage(account, { next: result.data.next });
       expect(resultNext).toBeHttp({ statusCode: 200 });
       expect(resultNext.data.items.length).toBeGreaterThanOrEqual(2);
+    }, 180000);
+
+    test('Listing storage no entries should return an empty list', async () => {
+      const storageIdPrefix = `test-${random()}`;
+      const result = await listStorage(account, { storageId: `${storageIdPrefix}/*` });
+      expect(result).toBeHttp({ statusCode: 200 });
+      expect(result.data.items.length).toBe(0);
     }, 180000);
 
     test('Getting storage with a malformed account id should return an error', async () => {

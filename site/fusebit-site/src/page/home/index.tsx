@@ -22,12 +22,10 @@ export function Home({ onEmailSubmit, ...rest }: HomeProps) {
   return (
     <FusebitPage>
       <HeroSection {...rest} />
-      <PainSection />
       <SolutionSection />
       <BenefitsSection />
       <CallToActionSection onEmailSubmit={onEmailSubmit} />
       <TestimonialSection />
-      <IndustryInsightsSection />
     </FusebitPage>
   );
 }

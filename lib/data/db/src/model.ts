@@ -30,14 +30,18 @@ export interface IRds {
   DAO: IDaoCollection;
 }
 
-export interface IDaoCollection {
-  Connector: IEntityDao<IConnector>;
-  Integration: IEntityDao<IIntegration>;
-  Storage: IEntityDao<IStorageItem>;
-  Operation: IEntityDao<IOperation>;
-  Session: IEntityDao<ISession>;
-  Identity: IEntityDao<IIdentity>;
-  Instance: IEntityDao<IInstance>;
+type IDaoCollectionIndex = {
+  [key in EntityType]: IEntityDao<any>;
+};
+
+export interface IDaoCollection extends IDaoCollectionIndex {
+  connector: IEntityDao<IConnector>;
+  integration: IEntityDao<IIntegration>;
+  storage: IEntityDao<IStorageItem>;
+  operation: IEntityDao<IOperation>;
+  session: IEntityDao<ISession>;
+  identity: IEntityDao<IIdentity>;
+  instance: IEntityDao<IInstance>;
 }
 
 export interface IRdsCredentials {
@@ -80,7 +84,7 @@ export interface IEntityPrefix extends IEntitySelectAbstract {
 // Data needed for inserts
 export interface IEntity extends IEntityId {
   tags?: ITags;
-  data?: object;
+  data?: any;
   expires?: moment.Moment;
   expiresDuration?: moment.Duration;
 }
@@ -104,14 +108,31 @@ export interface IListResponse<T extends IEntity> {
 // IEntity Extensions
 // --------------------------------
 
-export interface IIntegration extends IEntity {}
-export interface IConnector extends IEntity {}
+export interface IIntegration extends IEntity {
+  data: {
+    configuration?: {
+      package: string;
+      connectors: { [name: string]: { package: string; config?: any } };
+    };
+    files?: { [fileName: string]: string };
+  };
+}
+
+export interface IConnector extends IEntity {
+  data: {
+    configuration: {
+      package: string;
+      muxIntegration: IEntityId;
+    };
+    files: { [fileName: string]: string };
+  };
+}
+
 export interface IStorageItem extends IEntity {}
 export interface IOperation extends IEntity {}
 export interface IIdentity extends IEntity {}
 export interface IInstance extends IEntity {}
 export interface ISession extends IEntity {}
-export interface IEntityGeneric extends IIntegration, IConnector, IStorageItem, IOperation {}
 
 // --------------------------------
 // Utilities
@@ -182,13 +203,13 @@ export interface MergedConstructorArguments extends DefaultConstructorArguments,
 }
 
 export enum EntityType {
-  Integration = 'integration',
-  Connector = 'connector',
-  Operation = 'operation',
-  Storage = 'storage',
-  Instance = 'instance',
-  Identity = 'identity',
-  Session = 'session',
+  integration = 'integration',
+  connector = 'connector',
+  operation = 'operation',
+  storage = 'storage',
+  instance = 'instance',
+  identity = 'identity',
+  session = 'session',
 }
 
 // --------------------------------

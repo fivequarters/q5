@@ -2,7 +2,7 @@ import { request } from '@5qtrs/request';
 
 import { postSession, getSession, putSession } from './sdk';
 
-import { getEnv } from './setup';
+import { getEnv } from '../v1/setup';
 
 let { account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv();
 beforeEach(() => {

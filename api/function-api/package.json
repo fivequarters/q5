@@ -52,6 +52,7 @@
   "devDependencies": {
     "@5qtrs/fusebit-profile-sdk": "^0.0.1",
     "@5qtrs/request": "^0.0.1",
+    "@fusebit/tunnel": "^3.2.5",
     "@npm/types": "^1.0.1",
     "@reportportal/agent-js-jest": "bennbollay/agent-js-jest#patch-1",
     "@types/aws-sdk": "^2.7.0",
@@ -60,11 +61,11 @@
     "@types/pem-jwk": "^1.5.0",
     "aws-sdk": "^2.895.0",
     "libnpm": "^3.0.1",
-    "localtunnel": "^2.0.1",
     "pem-jwk": "^2.0.0",
     "spdx-license-ids": "^3.0.6",
     "ssri": "^8.0.0",
-    "superagent": "^5.2.2"
+    "superagent": "^5.2.2",
+    "wtfnode": "^0.8.4"
   },
   "devServer": {
     "port": 3001

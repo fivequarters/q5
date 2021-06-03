@@ -17,6 +17,30 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.19.15
+
+_Release 06/2/21_
+
+- **Bugfix.** Handle recursive storage list operations without error.
+
+## Version 1.19.13
+
+_Release 05/25/21_
+
+- **Enhancement.** Support serving functions for local development.
+
+## Version 1.19.12
+
+_Release 05/22/21_
+
+- **Enhancement.** Relax function name restrictions to allow capital letters.
+
+## Version 1.19.11
+
+_Release 05/19/21_
+
+- **Enhancement.** Additional storage and RDS improvements.
+
 ## Version 1.19.10
 
 _Release 05/18/21_

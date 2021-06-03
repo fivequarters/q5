@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.27.3
+
+_Released 05/19/21_
+
+- **Enhancement.** Support new types in RDS.
+
 ## Version 1.27.2
 
 _Released 05/18/21_

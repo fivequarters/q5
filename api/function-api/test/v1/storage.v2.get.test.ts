@@ -14,7 +14,7 @@ afterEach(async () => {
   await cleanUpStorage(account);
 }, 180000);
 
-describe.skip('Storage Get', () => {
+describe('Storage Get', () => {
   describe('Get', () => {
     test('Getting storage with no storage path should work', async () => {
       const storageId = `test-${random()}`;

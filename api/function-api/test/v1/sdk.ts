@@ -350,15 +350,19 @@ export async function getFunctionLocation(account: IAccount, boundaryId: string,
   });
 }
 
-export async function callFunction(token: string, url: string) {
+export async function callFunction(token: string, url: string, method: string = 'GET', data?: any) {
   return request({
-    method: 'GET',
-    headers: token
-      ? {
-          Authorization: `Bearer ${token}`,
-        }
-      : {},
+    method,
+    headers: {
+      ...(token
+        ? {
+            Authorization: `Bearer ${token}`,
+          }
+        : {}),
+      ...(data ? { 'Content-Type': 'application/json' } : {}),
+    },
     url,
+    data,
   });
 }
 
@@ -1127,6 +1131,52 @@ export async function createPKIAccessToken(
   };
 
   return signJwt({}, keyPair.privateKey, options);
+}
+
+export async function getFunctionRedirect(account: IAccount, boundaryId: string, functionId: string) {
+  const response = await request({
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${account.accessToken}`,
+      'user-agent': account.userAgent,
+    },
+    url: `${account.baseUrl}/v1/account/${account.accountId}/subscription/${account.subscriptionId}/boundary/${boundaryId}/function/${functionId}/redirect`,
+  });
+
+  return response;
+}
+
+export async function deleteFunctionRedirect(account: IAccount, boundaryId: string, functionId: string) {
+  const response = await request({
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${account.accessToken}`,
+      'user-agent': account.userAgent,
+    },
+    url: `${account.baseUrl}/v1/account/${account.accountId}/subscription/${account.subscriptionId}/boundary/${boundaryId}/function/${functionId}/redirect`,
+  });
+
+  return response;
+}
+
+export async function postFunctionRedirect(
+  account: IAccount,
+  boundaryId: string,
+  functionId: string,
+  redirectUrl: string
+) {
+  const response = await request({
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${account.accessToken}`,
+      'Content-Type': 'application/json',
+      'user-agent': account.userAgent,
+    },
+    url: `${account.baseUrl}/v1/account/${account.accountId}/subscription/${account.subscriptionId}/boundary/${boundaryId}/function/${functionId}/redirect`,
+    data: JSON.stringify({ redirectUrl }),
+  });
+
+  return response;
 }
 
 export async function getMe(account: IAccount, accessToken?: string) {

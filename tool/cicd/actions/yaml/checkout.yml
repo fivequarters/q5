@@ -2,6 +2,8 @@ steps:
 # Checkout the repository
 - name: Checkout
   uses: actions/checkout@v2
+  with:
+    fetch-depth: 0
 
 # Acquire the version of the various packages
 - name: Version

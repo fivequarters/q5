@@ -4,7 +4,7 @@ import { random } from '@5qtrs/random';
 import moment from 'moment';
 import httpError from 'http-errors';
 
-const DAO = RDS.DAO.Operation;
+const DAO = RDS.DAO.operation;
 
 describe('DB operation', () => {
   createEntityTests<Model.IOperation>(DAO, 'operation');

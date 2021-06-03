@@ -7,6 +7,7 @@ const analytics = require('./middleware/analytics');
 const determine_provider = require('./middleware/determine_provider');
 const parse_body_conditional = require('./middleware/parse_body_conditional');
 const provider_handlers = require('./handlers/provider_handlers');
+const { initFunctions } = require('./functions');
 const validate_schema = require('./middleware/validate_schema');
 const authorize = require('./middleware/authorize');
 const user_agent = require('./middleware/user_agent');
@@ -16,6 +17,7 @@ const cors = require('cors');
 const create_error = require('http-errors');
 const health = require('./handlers/health');
 const { get_function_location } = require('@5qtrs/constants');
+const redirect = require('./handlers/redirect');
 
 const { AccountActions } = require('@5qtrs/account');
 const account = require('./handlers/account');
@@ -77,6 +79,9 @@ keyStore.rekey();
 // Create and load a cache with the current subscription->account mapping
 const subscriptionCache = new SubscriptionCache({});
 subscriptionCache.refresh();
+
+// Register the globals with various consumers
+initFunctions(keyStore, subscriptionCache);
 
 // Utility functions
 const NotImplemented = (_, __, next) => next(create_error(501, 'Not implemented'));
@@ -567,6 +572,50 @@ router.get(
   check_agent_version(),
   determine_provider(),
   (req, res, next) => provider_handlers[req.provider].get_location(req, res, next),
+  analytics.finished
+);
+
+router.options(
+  '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/redirect',
+  cors(corsManagementOptions)
+);
+router.get(
+  '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/redirect',
+  analytics.enterHandler(analytics.Modes.Administration),
+  cors(corsManagementOptions),
+  validate_schema({ params: require('./validation/api_params') }),
+  authorize({ operation: 'function:get' }),
+  user_agent(),
+  check_agent_version(),
+  determine_provider(),
+  loadSummary(),
+  redirect.get(),
+  analytics.finished
+);
+router.post(
+  '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/redirect',
+  analytics.enterHandler(analytics.Modes.Administration),
+  cors(corsManagementOptions),
+  validate_schema({ params: require('./validation/api_params') }),
+  authorize({ operation: 'function:redirect' }),
+  user_agent(),
+  check_agent_version(),
+  determine_provider(),
+  express.json(),
+  validate_schema({ body: require('./validation/redirect') }),
+  redirect.post(),
+  analytics.finished
+);
+router.delete(
+  '/account/:accountId/subscription/:subscriptionId/boundary/:boundaryId/function/:functionId/redirect',
+  analytics.enterHandler(analytics.Modes.Administration),
+  cors(corsManagementOptions),
+  validate_schema({ params: require('./validation/api_params') }),
+  authorize({ operation: 'function:redirect' }),
+  user_agent(),
+  check_agent_version(),
+  determine_provider(),
+  redirect.delete(),
   analytics.finished
 );
 

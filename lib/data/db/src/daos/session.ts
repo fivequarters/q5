@@ -9,7 +9,7 @@ class Session extends Entity<ISession> {
   constructor(RDS: IRds, transactionId?: string) {
     super({
       RDS,
-      entityType: Entity.EntityType.Session,
+      entityType: Entity.EntityType.session,
       transactionId,
     });
   }

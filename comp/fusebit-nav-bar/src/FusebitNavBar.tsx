@@ -100,19 +100,13 @@ export function FusebitNavBar({ minWidth, maxWidth, onLetsTalkClicked, ...rest }
           <Box vertical width="100%" marginTop={20} gap={20}>
             <FusebitNavLink
               marginBottom={20}
+              linkType={FusebitNavLinkType.jobs}
+              color={FusebitColor.white}
+              onClick={onMobileNavChange}
+            />
+            <FusebitNavLink
+              marginBottom={20}
               linkType={FusebitNavLinkType.about}
-              color={FusebitColor.white}
-              onClick={onMobileNavChange}
-            />
-            <FusebitNavLink
-              marginBottom={20}
-              linkType={FusebitNavLinkType.blog}
-              color={FusebitColor.white}
-              onClick={onMobileNavChange}
-            />
-            <FusebitNavLink
-              marginBottom={20}
-              linkType={FusebitNavLinkType.docs}
               color={FusebitColor.white}
               onClick={onMobileNavChange}
             />
@@ -146,9 +140,8 @@ export function FusebitNavBar({ minWidth, maxWidth, onLetsTalkClicked, ...rest }
       <Box right middle width="100%" padding={20} maxWidth={maxWidth || 1200}>
         <FusebitLogoLink />
         <Box expand />
+        <FusebitNavLink marginLeft={30} linkType={FusebitNavLinkType.jobs} />
         <FusebitNavLink marginLeft={30} linkType={FusebitNavLinkType.about} />
-        <FusebitNavLink marginLeft={30} linkType={FusebitNavLinkType.blog} />
-        <FusebitNavLink marginLeft={30} linkType={FusebitNavLinkType.docs} />
         <FusebitButton
           marginLeft={30}
           onClick={onLetsTalkClickedWrapped}

@@ -104,6 +104,13 @@ class KeyStore {
       throw new Error('invalid keypair');
     }
   }
+
+  public shutdown() {
+    if (this.keyRefreshTimer) {
+      clearTimeout(this.keyRefreshTimer);
+      this.keyRefreshTimer = undefined;
+    }
+  }
 }
 
 export { KeyStore, IKeyPair, KEYSTORE_MAX_KEY_TTL, KEYSTORE_JWT_VALIDITY, KEYSTORE_DEFAULT_ALG };

@@ -16,9 +16,10 @@
   "keywords": [],
   "dependencies": {
     "@5qtrs/bq-metering": "^0.0.1",
-    "stack-trace": "^0.0.10",
     "@5qtrs/constants": "^0.0.1",
     "@5qtrs/jwt": "^0.0.1",
-    "@5qtrs/runas": "^0.0.1"
+    "@5qtrs/runas": "^0.0.1",
+    "stack-trace": "^0.0.10",
+    "superagent": "^6.1.0"
   }
 }
