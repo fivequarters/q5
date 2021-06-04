@@ -15,8 +15,8 @@ const sessionRedirect = (req: Request) => {
 };
 
 const paginated = (req: Request) => {
-  const { limit, next } = req.query;
-  return { listLimit: Number(limit), next: next as string | undefined };
+  const { count, next } = req.query;
+  return { listLimit: Number(count), next: next as string | undefined };
 };
 
 const prefix = (req: Request) => {

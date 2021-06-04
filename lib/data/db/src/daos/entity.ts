@@ -1,4 +1,3 @@
-import moment from 'moment';
 import {
   InputConstructorArguments,
   MergedConstructorArguments,
@@ -62,10 +61,7 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
     this.defaultStatementOptions = {
       transactionId: config.transactionId,
     };
-    this.defaultParameterOptions = {
-      expires: entityConfig.expires,
-      expiresDuration: entityConfig.expiresDuration,
-    };
+    this.defaultParameterOptions = {};
   }
   protected readonly RDS: IRds;
   protected readonly entityType: EntityType;
@@ -109,8 +105,6 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
           value = JSON.parse(value);
         } else if (Object.keys(v)[0] === 'isNull') {
           value = undefined;
-        } else if (result.columnMetadata[i].typeName?.startsWith('time')) {
-          value = moment(value);
         }
 
         obj[name] = value;
@@ -125,18 +119,9 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
     statementOptions: InputStatementOptions = {}
   ): { params: EKP; queryOptions: FinalQueryOptions; statementOptions: FinalStatementOptions } {
     // default params set here
-    const applyDuration: (duration?: moment.Duration) => moment.Moment | undefined = (duration) => {
-      return duration && moment().add(duration);
-    };
-    const staticExpires: moment.Moment | undefined = params.expires || this.defaultParameterOptions.expires;
-    const dynamicExpires: moment.Moment | undefined = params.expiresDuration
-      ? applyDuration(params.expiresDuration)
-      : applyDuration(this.defaultParameterOptions.expiresDuration);
-
     // default params set here
     const paramsWithDefaults: EKP = {
       ...this.defaultParameterOptions,
-      expires: staticExpires || dynamicExpires,
       ...cleanObj(params),
     };
     // default query options set here
@@ -169,7 +154,7 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
       inputQueryOptions,
       inputStatementOptions
     );
-    const sql = `SELECT * FROM entity
+    const sql = `SELECT *, to_json(expires)#>>'{}' as expires FROM entity
         WHERE entityType = :entityType::entity_type
         AND accountId = :accountId
         AND subscriptionId = :subscriptionId
@@ -220,12 +205,14 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
   ): Promise<IListResponse<ET>> {
     const { params, queryOptions, statementOptions } = this.applyDefaultsTo(inputParams, inputQueryOptions);
 
-    const sql = `SELECT * FROM entity
+    // Note the doubled '?' to escape the '?' in the '?&' operator.
+    const sql = `SELECT *, to_json(expires)#>>'{}' as expires FROM entity
       WHERE entityType = :entityType::entity_type
       AND accountId = :accountId
       AND subscriptionId = :subscriptionId
       AND (NOT :prefixMatchId::boolean OR entityId LIKE FORMAT('%s%%',:entityIdPrefix::text))
-      AND (:tags::text IS NULL OR tags @> :tags::jsonb)
+      AND (:tagValues::text IS NULL OR tags @> :tagValues::jsonb)
+      AND (:tagKeys::text IS NULL OR tags ??& :tagKeys::text[])
       AND (NOT :filterExpired::boolean OR expires IS NULL OR expires > NOW())
       ORDER BY entityId
       OFFSET :offset
@@ -236,7 +223,16 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
       entityType: this.entityType,
       accountId: params.accountId,
       subscriptionId: params.subscriptionId,
-      tags: JSON.stringify(params.tags || {}),
+      tagValues: params.tags ? JSON.stringify(params.tags) : '{}',
+      // Create a text array
+      tagKeys: params.tags
+        ? '{' +
+          Object.entries(params.tags)
+            .filter(([k, v]) => !v)
+            .map((e) => `"${e[0]}"`)
+            .join(',') +
+          '}'
+        : '{}',
       entityIdPrefix: params.idPrefix,
       prefixMatchId: !!params.idPrefix,
       filterExpired: queryOptions.filterExpired,
@@ -267,6 +263,11 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
       inputQueryOptions,
       inputStatementOptions
     );
+
+    // Unless the filterExpired was explicitly set, delete expired entries happily.
+    if (!inputQueryOptions || !inputQueryOptions.filterExpired) {
+      queryOptions.filterExpired = false;
+    }
 
     const prefixMatchId = !!params.idPrefix;
 
@@ -318,10 +319,10 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
         gen_random_uuid(),
         :expires::timestamptz
       )
-      RETURNING *;`;
+      RETURNING *, to_json(expires)#>>'{}' as expires;`;
 
     const sqlUpsert = `
-        SELECT * FROM update_if_version(
+        SELECT *, to_json(expires)#>>'{}' as expires FROM update_if_version(
           :entityType::entity_type, :accountId, :subscriptionId, :entityId,
           FALSE, FALSE, TRUE,
           :data::jsonb, :tags::jsonb, :expires::timestamptz, :version);`;
@@ -333,7 +334,7 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
       entityId: params.id,
       data: JSON.stringify(params.data),
       tags: JSON.stringify(params.tags || {}),
-      expires: params.expires?.format(),
+      expires: params.expires,
       version: params.version,
     };
     const selectedInsert = queryOptions.upsert ? sqlUpsert : sql;
@@ -359,7 +360,7 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
     );
 
     const sql = `
-      SELECT * FROM update_if_version(
+      SELECT *, to_json(expires)#>>'{}' as expires FROM update_if_version(
         :entityType::entity_type, :accountId, :subscriptionId, :entityId,
         :filterExpired::BOOLEAN, :prefixMatchId::BOOLEAN, FALSE,
         :data::jsonb, :tags::jsonb, :expires::timestamptz, :version);
@@ -374,7 +375,7 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
       prefixMatchId: false,
       data: params.data ? JSON.stringify(params.data) : undefined,
       tags: params.tags ? JSON.stringify(params.tags) : undefined,
-      expires: params.expires?.format(),
+      expires: params.expires,
       version: params.version,
     };
 
