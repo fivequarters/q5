@@ -5,6 +5,7 @@ import { Box, BoxProps } from '@5qtrs/box';
 import { FusebitLink, FusebitLinkProps } from '@5qtrs/fusebit-link';
 import { FusebitText, FusebitTextProps, FusebitTextType } from '@5qtrs/fusebit-text';
 import { AboutUsIcon, DocsIcon, BlogIcon, AccoladeOneIcon } from '@5qtrs/fusebit-icon';
+import FreeBreakfastOutlinedIcon from '@material-ui/icons/FreeBreakfastOutlined';
 
 const gaCategoryDefault = 'Navigation';
 const gaActionDefault = 'Clicked';
@@ -96,7 +97,7 @@ export function FusebitNavLink({
     case FusebitNavLinkType.jobs:
       color = color || FusebitColor.black;
       hover = hover || FusebitColor.red;
-      icon = <AccoladeOneIcon color={color} />;
+      icon = <FreeBreakfastOutlinedIcon />;
       to = '/careers';
       gaCategory = gaCategoryDefault;
       gaAction = 'Clicked jobs nav';

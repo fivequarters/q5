@@ -119,16 +119,16 @@
         },
         {
           "id": "criipto-poc",
-          "displayName": "Criipto",
+          "displayName": "Criipto POC",
           "icon": "https://cdn.fusebit.io/assets/images/criipto.png",
-          "baseUrl": "https://stage.eu-north-1.fusebit.io",
-          "account": "acc-977f88a34c0f452b",
-          "subscription": "sub-eb7ae6391f194b3f",
+          "baseUrl": "https://api.us-east-1.fusebit.io",
+          "account": "acc-623ce3c83b714e83",
+          "subscription": "sub-9ba7de8cf9054018",
           "catalog": "/catalog-empty.json",
           "oauth": {
             "webAuthorizationUrl": "https://fusebit.auth0.com/authorize",
             "webClientId": "hSgWIXmbluQMADuWhDnRTpWyKptJe6LB",
-            "webLogoutUrl": "https://fusebit.auth0.com/v2/logout?client_id=hSgWIXmbluQMADuWhDnRTpWyKptJe6LB&returnTo=https://portal.fusebit.io",
+            "webLogoutUrl": "https://fusebit.auth0.com/v2/logout?client_id=hSgWIXmbluQMADuWhDnRTpWyKptJe6LB&returnTo=https://criipto.portal.fusebit.io",
             "deviceAuthorizationUrl": "https://fusebit.auth0.com/oauth/device/code",
             "deviceClientId": "VFOtrBCVHEm7I9UNv7rFwu1ID1hTEueF",
             "tokenUrl": "https://fusebit.auth0.com/oauth/token"
@@ -367,11 +367,11 @@
       "profiles": [
         {
           "id": "criipto-poc",
-          "displayName": "Criipto",
+          "displayName": "Criipto POC",
           "icon": "https://cdn.fusebit.io/assets/images/criipto.png",
-          "baseUrl": "https://stage.eu-north-1.fusebit.io",
-          "account": "acc-977f88a34c0f452b",
-          "subscription": "sub-eb7ae6391f194b3f",
+          "baseUrl": "https://api.us-east-1.fusebit.io",
+          "account": "acc-623ce3c83b714e83",
+          "subscription": "sub-9ba7de8cf9054018",
           "catalog": "/catalog-empty.json",
           "oauth": {
             "webAuthorizationUrl": "https://fusebit.auth0.com/authorize",
@@ -383,7 +383,7 @@
           }
         }
       ],
-      "defaultProfile": "hyperproof-poc"
+      "defaultProfile": "criipto-poc"
     },
     "onelogin": {
       "profiles": [
