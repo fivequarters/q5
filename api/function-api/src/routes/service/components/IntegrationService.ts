@@ -26,6 +26,11 @@ const defaultIntegration = [
   'module.exports = router;',
 ].join('\n');
 
+const defaultPackage = {
+  dependencies: {},
+  files: ['./integration.js'], // Make sure the default file is included, if nothing else.
+};
+
 class IntegrationService extends BaseComponentService<Model.IIntegration> {
   public readonly entityType: Model.EntityType;
   constructor() {
@@ -64,7 +69,7 @@ class IntegrationService extends BaseComponentService<Model.IIntegration> {
     // Create the package.json, making sure pkg-handler and pkg-manager are present, and any packages
     // referenced in the connectors block.
     const pkg = {
-      dependencies: {},
+      ...defaultPackage,
       ...(data.files && data.files['package.json'] ? JSON.parse(data.files['package.json']) : {}),
     };
     pkg.dependencies['@fusebit-int/pkg-handler'] = pkg.dependencies['@fusebit-int/pkg-handler'] || '*';
@@ -77,7 +82,8 @@ class IntegrationService extends BaseComponentService<Model.IIntegration> {
       });
     }
 
-    data.files['package.json'] = JSON.stringify(pkg);
+    // Always pretty-print package.json so it's human-readable from the start.
+    data.files['package.json'] = JSON.stringify(pkg, null, 2);
   };
 
   public createFunctionSpecification = async (entity: Model.IEntity): Promise<Function.IFunctionSpecification> => {
@@ -181,14 +187,20 @@ class IntegrationService extends BaseComponentService<Model.IIntegration> {
       entity,
       { verb: 'deleting', type: 'integration' },
       async () => {
-        // Do delete things - create functions, collect their versions, and update the entity.data object
-        // appropriately.
-        await Function.deleteFunction({
-          accountId: entity.accountId,
-          subscriptionId: entity.subscriptionId,
-          boundaryId: this.entityType,
-          functionId: entity.id,
-        });
+        try {
+          // Do delete things - create functions, collect their versions, and update the entity.data object
+          // appropriately.
+          await Function.deleteFunction({
+            accountId: entity.accountId,
+            subscriptionId: entity.subscriptionId,
+            boundaryId: this.entityType,
+            functionId: entity.id,
+          });
+        } catch (err) {
+          if (err.status !== 404) {
+            throw err;
+          }
+        }
 
         // Delete it.
         await this.dao.deleteEntity(entity);

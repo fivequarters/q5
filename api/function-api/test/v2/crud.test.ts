@@ -143,7 +143,7 @@ const performTests = (testEntityType: string) => {
   test('List Entitys, Paginated', async () => {
     const entityCount = 10;
     const pages = 5;
-    const limit = entityCount / pages;
+    const count = entityCount / pages;
     const Entitys = Array(entityCount)
       .fill(undefined)
       .map(() => {
@@ -161,7 +161,7 @@ const performTests = (testEntityType: string) => {
     let pageResponse: any;
     const receivedIds: string[] = [];
     for (let page = 0; page < pages; page++) {
-      pageResponse = await ApiRequestMap[testEntityType].list(account, { ...getIdPrefix(), limit, next });
+      pageResponse = await ApiRequestMap[testEntityType].list(account, { ...getIdPrefix(), count, next });
       expect(pageResponse).toBeHttp({ statusCode: 200 });
       expect(pageResponse.data).toBeDefined();
       expect(pageResponse.data.items).toBeDefined();

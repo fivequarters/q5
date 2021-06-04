@@ -3576,6 +3576,15 @@ components:
       properties:
         storageId:
           $ref: '#/components/schemas/StorageId'
+        tags:
+          type: object
+          description: The tags associated with this object
+        etag:
+          type: string
+          description: An opaque token that represents the state of the stored data
+        expires:
+          type: string
+          description: The expiration time of this object
     StorageList:
       type: object
       required:
@@ -3595,5 +3604,11 @@ components:
         etag:
           type: string
           description: An opaque token that represents the state of the stored data
+        tags:
+          type: object
+          description: The tags associated with this object
+        expires:
+          type: string
+          description: The expiration time of this object
         data:
           description: A JSON value of stored data

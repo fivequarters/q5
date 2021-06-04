@@ -17,6 +17,12 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.9.6
+
+_Released 6/3/21_
+
+- **Enhancement.** Support querying storage values.
+
 ## Version 1.9.4
 
 _Released 5/25/21_
