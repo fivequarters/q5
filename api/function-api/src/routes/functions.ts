@@ -48,8 +48,8 @@ interface IFunctionSpecification {
   scheduleSerialized?: string;
   security?: {
     authentication?: string;
-    authorization: any;
-    functionPermissions: any;
+    authorization?: any;
+    functionPermissions?: any;
   };
 }
 

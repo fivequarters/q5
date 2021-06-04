@@ -22,11 +22,7 @@ interface IConnectorSpec {
   data: {
     configuration: {
       package?: string;
-      muxIntegration?: {
-        accountId?: string;
-        subscriptionId?: string;
-        id?: string;
-      };
+      muxIntegration?: string;
     };
     files: { [fileName: string]: string };
   };
@@ -66,7 +62,7 @@ export class ConnectorService {
   public createEmptySpec(): IConnectorSpec {
     return {
       id: 'unknown id',
-      data: { configuration: { muxIntegration: {} }, files: {} },
+      data: { configuration: {}, files: {} },
       tags: {},
     };
   }
@@ -113,7 +109,7 @@ export class ConnectorService {
     const files = await globby((pack && pack.files) || ['*.js'], { cwd, gitignore: true, ignore: DefaultIgnores });
     await Promise.all(
       files.map(async (filename: string) => {
-        entitySpec.data.files[filename] = (await readFile(filename)).toString();
+        entitySpec.data.files[filename] = (await readFile(join(cwd, filename))).toString();
       })
     );
     return entitySpec;

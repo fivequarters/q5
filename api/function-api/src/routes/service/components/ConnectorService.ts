@@ -9,9 +9,16 @@ import * as Function from '../../functions';
 
 const rejectPermissionAgent = {
   checkPermissionSubset: () => {
-    throw new Error('permissions are unsupported');
+    return new Promise((resolve) => resolve());
+    console.log(`XXX Temporary Grant-all on Permissions Until Finalized`);
+    // XXX throw new Error('permissions are unsupported');
   },
 };
+
+const defaultPackage = (entity: Model.IEntity) => ({
+  scripts: { deploy: `"fuse connector deploy ${entity.id} -d ."`, get: `"fuse connector get ${entity.id} -d ."` },
+  dependencies: {},
+});
 
 class ConnectorService extends BaseComponentService<Model.IConnector> {
   public readonly entityType: Model.EntityType;
@@ -23,11 +30,19 @@ class ConnectorService extends BaseComponentService<Model.IConnector> {
   public sanitizeEntity = (entity: Model.IEntity): Model.IConnector => {
     const data = entity.data || {};
     data.files = data.files || {};
+
+    // Remove any leading . or ..'s from file paths.
+    const cleanFiles: { [key: string]: string } = {};
+    Object.entries(data.files).forEach((entry: any) => {
+      cleanFiles[this.safePath(entry[0])] = entry[1];
+    }, {});
+    data.files = cleanFiles;
+
     data.configuration = data.configuration || { package: '@fusebit-int/pkg-oauth-connector' };
     data.configuration.package = data.configuration.package || '@fusebit-int/pkg-oauth-connector';
 
     const pkg = {
-      dependencies: {},
+      ...defaultPackage(entity),
       ...(data.files && data.files['package.json'] ? JSON.parse(data.files['package.json']) : {}),
     };
 
@@ -44,15 +59,35 @@ class ConnectorService extends BaseComponentService<Model.IConnector> {
   };
 
   public createFunctionSpecification = (entity: Model.IEntity): Function.IFunctionSpecification => {
+    const data = entity.data;
+
+    // Add the baseUrl to the configuration.
+    const config = {
+      ...entity.data.configuration,
+      mountUrl: `/v2/account/${entity.accountId}/subscription/${entity.subscriptionId}/connector/${entity.id}`,
+    };
+
     return {
       id: entity.id,
       nodejs: {
         files: {
-          ...entity.data.files,
+          ...data.files,
+
           'index.js': [
-            `const config = ${JSON.stringify(entity.data.configuration)};`,
+            `const config = ${JSON.stringify(config)};`,
             `module.exports = require('@fusebit-int/pkg-handler')(config);`,
           ].join('\n'),
+        },
+      },
+      security: {
+        functionPermissions: {
+          allow: [
+            {
+              action: 'storage:*',
+              resource:
+                '/account/{{accountId}}/subscription/{{subscriptionId}}/storage/{{boundaryId}}/{{functionId}}/*',
+            },
+          ],
         },
       },
     };

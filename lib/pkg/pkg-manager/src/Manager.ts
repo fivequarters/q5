@@ -5,6 +5,8 @@ import statuses from 'statuses';
 
 import httpMocks from 'node-mocks-http';
 
+import { createStorage } from './Storage';
+
 import { Router, Context } from './Router';
 
 import { connectorManager, IInstanceConnectorConfigMap } from './ConnectorManager';
@@ -44,7 +46,6 @@ interface IOnStartup {
   router: Router;
   mgr: Manager;
   cfg: IConfig;
-  storage: IStorage;
 }
 
 /**
@@ -66,14 +67,10 @@ class Manager {
   /** @private Route requests and events to specific endpoint handlers. */
   public router: Router;
 
-  /** @private Internal storage handler. */
-  public storage: IStorage;
-
   /** Create a new Manager, using the supplied storage interface as a persistance backend. */
-  constructor(storage: IStorage) {
+  constructor() {
     this.app = new Koa();
     this.router = new Router();
-    this.storage = storage;
   }
 
   /** Configure the Manager with the vendor object and error, if any. */
@@ -98,7 +95,7 @@ class Manager {
     // Give everything a chance to be initialized - normally, the cfg object would be specialized per router
     // object to allow for routers to have specialized configuration elements, but we will sort that out
     // later.
-    this.invoke('startup', { mgr: this, cfg, router: this.router, storage: this.storage });
+    this.invoke('startup', { mgr: this, cfg, router: this.router });
   }
 
   /**
@@ -106,17 +103,20 @@ class Manager {
    * @return the response, in Fusebit format, from executing this event.
    */
   public async handle(fusebitCtx: RequestContext) {
-    // Update the security context for this particular call in the storage object - this is the only object
-    // that's cached between calls, so it gets special treatment.
-    this.storage.accessToken = fusebitCtx.fusebit ? fusebitCtx.fusebit.functionAccessToken : '';
-
     // Convert the context and execute.
     const ctx = this.createRouteableContext(fusebitCtx);
+
+    // Add the security context for this particular call to the state.
+    ctx.state.storage =
+      fusebitCtx.fusebit && fusebitCtx.fusebit.functionAccessToken
+        ? createStorage(
+            { accessToken: fusebitCtx.fusebit.functionAccessToken, ...ctx.state.params },
+            `/${ctx.state.params.entityType}/${ctx.state.params.entityId}`
+          )
+        : undefined;
+
     await this.execute(ctx);
     const response = this.createResponse(ctx);
-
-    // Clear the accessToken after handling this call is completed.
-    this.storage.accessToken = '';
 
     return response;
   }
@@ -214,6 +214,7 @@ class Manager {
 
   /** Convert from a Fusebit function context into a routable context. */
   public createRouteableContext(fusebitCtx: RequestContext): Context {
+    console.log(`createRouteableContext`, fusebitCtx);
     const req = httpMocks.createRequest({
       url: fusebitCtx.path,
       method: fusebitCtx.method,
@@ -230,8 +231,20 @@ class Manager {
     // NOTE: this may glitch non-utf-8 encodings; for blame, see koa/lib/request.js's casual use of stringify.
     ctx.query = fusebitCtx.query;
 
-    ctx.params = fusebitCtx.params;
-    ctx.fusebit = fusebitCtx.fusebit;
+    ctx.state.params = {
+      accountId: fusebitCtx.accountId,
+      subscriptionId: fusebitCtx.subscriptionId,
+      entityType: fusebitCtx.boundaryId,
+      entityId: fusebitCtx.functionId,
+      ...(fusebitCtx.fusebit // Not present during initial startup events, for example.
+        ? {
+            endpoint: fusebitCtx.fusebit.endpoint,
+            baseUrl: `${fusebitCtx.fusebit.endpoint}/v2/account/${fusebitCtx.accountId}/subscription/${fusebitCtx.subscriptionId}/${fusebitCtx.boundaryId}/${fusebitCtx.functionId}`,
+            functionAccessToken: fusebitCtx.fusebit.functionAccessToken,
+          }
+        : {}),
+    };
+    ctx.state.fusebit = fusebitCtx.fusebit;
     ctx.state.manager = this;
 
     // Pre-load the status as OK

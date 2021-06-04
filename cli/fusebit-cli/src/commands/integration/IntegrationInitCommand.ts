@@ -85,6 +85,8 @@ export class IntegrationInitCommand extends Command {
 
     const integration = await integrationService.fetchIntegration(integrationId);
 
+    console.log(`IntegrationInitCommand`, integrationSpec);
+    console.log(`IntegrationInitCommand`, integration);
     await integrationService.writeDirectory(sourcePath, integration);
 
     return 0;

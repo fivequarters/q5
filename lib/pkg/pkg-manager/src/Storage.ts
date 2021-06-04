@@ -3,11 +3,11 @@ import superagent from 'superagent';
 const removeLeadingSlash = (s: string) => s.replace(/^\/(.+)$/, '$1');
 const removeTrailingSlash = (s: string) => s.replace(/^(.+)\/$/, '$1');
 
-const createStorageClient = (ctx: any, storageIdPrefix: string) => {
+const createStorage = (params: any, storageIdPrefix: string) => {
   storageIdPrefix = storageIdPrefix ? removeLeadingSlash(removeTrailingSlash(storageIdPrefix)) : '';
-  const functionUrl = new URL(ctx.baseUrl);
-  const storageBaseUrl = `${functionUrl.protocol}//${functionUrl.host}/v1/account/${ctx.accountId}/subscription/${
-    ctx.subscriptionId
+  const functionUrl = new URL(params.baseUrl);
+  const storageBaseUrl = `${functionUrl.protocol}//${functionUrl.host}/v1/account/${params.accountId}/subscription/${
+    params.subscriptionId
   }/storage${storageIdPrefix ? '/' + storageIdPrefix : ''}`;
 
   const getUrl = (storageSubId: string) => {
@@ -16,7 +16,7 @@ const createStorageClient = (ctx: any, storageIdPrefix: string) => {
   };
 
   const storageClient = {
-    accessToken: '',
+    accessToken: params.accessToken,
     get: async (storageSubId?: string) => {
       storageSubId = storageSubId ? removeTrailingSlash(removeLeadingSlash(storageSubId)) : '';
       if (!storageSubId && !storageIdPrefix) {
@@ -71,7 +71,7 @@ const createStorageClient = (ctx: any, storageIdPrefix: string) => {
 
   return storageClient;
 };
-
+/*
 const storage = createStorageClient(
   {
     baseUrl: 'https://dev.us-west-1.dev.fusebit.io/v1/run/sub-0095d2ffa3d1424a/benn/oauth-connector',
@@ -80,5 +80,5 @@ const storage = createStorageClient(
   },
   '/benn/oauth-connector'
 );
-
-export { storage };
+*/
+export { createStorage };

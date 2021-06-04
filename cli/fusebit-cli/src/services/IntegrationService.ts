@@ -109,7 +109,7 @@ export class IntegrationService {
     const files = await globby((pack && pack.files) || ['*.js'], { cwd, gitignore: true, ignore: DefaultIgnores });
     await Promise.all(
       files.map(async (filename: string) => {
-        entitySpec.data.files[filename] = (await readFile(filename)).toString();
+        entitySpec.data.files[filename] = (await readFile(join(cwd, filename))).toString();
       })
     );
     return entitySpec;

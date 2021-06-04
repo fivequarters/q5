@@ -1,5 +1,7 @@
 const Joi = require('joi');
 
+const Common = require('./common');
+
 module.exports = Joi.alternatives().try(
   // current schema
   Joi.object().keys({
@@ -9,11 +11,11 @@ module.exports = Joi.alternatives().try(
         is: Joi.string().valid('oauth'),
         then: Joi.object()
           .keys({
-            id: Joi.string().regex(/^[a-zA-Z0-9\-]{1,64}$/),
+            id: Common.entityId,
             displayName: Joi.string(),
-            subscription: Joi.string().regex(/^sub-[a-g0-9]{16}(?:-[a-g0-9]{4})?$/),
-            boundary: Joi.string().regex(/^[a-z0-9\-]{1,63}$/),
-            function: Joi.string().regex(/^[a-z0-9\-]{1,64}$/),
+            subscription: Common.subscriptionId,
+            boundary: Common.boundaryId,
+            function: Common.entityId,
             oauth: Joi.object()
               .keys({
                 webAuthorizationUrl: Joi.string(),
@@ -30,11 +32,11 @@ module.exports = Joi.alternatives().try(
           .required(),
         otherwise: Joi.object() // protocol === 'pki'
           .keys({
-            id: Joi.string().regex(/^[a-zA-Z0-9\-]{1,64}$/),
+            id: Common.entityId,
             displayName: Joi.string(),
-            subscription: Joi.string().regex(/^sub-[a-g0-9]{16}(?:-[a-g0-9]{4})?$/),
-            boundary: Joi.string().regex(/^[a-z0-9\-]{1,63}$/),
-            function: Joi.string().regex(/^[a-z0-9\-]{1,64}$/),
+            subscription: Common.subscriptionId,
+            boundary: Common.boundaryId,
+            function: Common.entityId,
             oauth: Joi.any().forbidden(),
           })
           .unknown(true)
@@ -44,8 +46,8 @@ module.exports = Joi.alternatives().try(
   }),
   // legacy PKI schema (back-compat only)
   Joi.object().keys({
-    subscriptionId: Joi.string().regex(/^sub-[a-g0-9]{16}(?:-[a-g0-9]{4})?$/),
-    boundaryId: Joi.string().regex(/^[a-z0-9\-]{1,63}$/),
-    functionId: Joi.string().regex(/^[a-z0-9\-]{1,64}$/),
+    subscriptionId: Common.subscriptionId,
+    boundaryId: Common.boundaryId,
+    functionId: Common.entityId,
   })
 );

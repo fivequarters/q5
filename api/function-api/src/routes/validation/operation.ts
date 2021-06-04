@@ -1,5 +1,7 @@
 const Joi = require('joi');
 
+import * as Common from './common';
+
 const OperationValidation = Joi.object().keys({
   verb: Joi.string().required(),
   type: Joi.string().required(),
@@ -7,15 +9,9 @@ const OperationValidation = Joi.object().keys({
   message: Joi.string().optional(),
   location: Joi.object()
     .keys({
-      accountId: Joi.string()
-        .regex(/^acc-[a-g0-9]{16}$/)
-        .required(),
-      subscriptionId: Joi.string()
-        .regex(/^sub-[a-g0-9]{16}$/)
-        .required(),
-      entityId: Joi.string()
-        .regex(/^[A-Za-z0-9\-]{1,64}$/)
-        .required(),
+      accountId: Common.accountId.required(),
+      subscriptionId: Common.subscriptionId.required(),
+      entityId: Common.entityId.required(),
       entityType: Joi.string().required(),
     })
     .required(),

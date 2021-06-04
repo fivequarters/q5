@@ -14,11 +14,12 @@ interface IInstanceConnectorConfig {
   /** Name of the managing npm package for this connector. */
   package: string;
 
+  /** The remote authority for this connector. */
+  authority: string;
+
   /** Configuration of the package, passed in on instantiation. */
-  config: {
-    /** The remote authority for this connector. */
-    authority: string;
-  };
+  config: {};
+
   /** A cached instance object of the initialized package object. */
   instance?: IConnector;
 }

@@ -1,8 +1,7 @@
 import { Manager } from '@fusebit-int/pkg-manager';
-import { storage } from './fusebitstorage';
 
 module.exports = (config: any) => {
-  const manager = new Manager(storage); // Start the manager with a pseudo-storage
+  const manager = new Manager();
 
   let router;
   let routerError;
