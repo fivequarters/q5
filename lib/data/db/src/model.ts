@@ -1,4 +1,3 @@
-import moment from 'moment';
 import * as AWS from 'aws-sdk';
 import { PromiseResult } from 'aws-sdk/lib/request';
 import { RDSDataService } from 'aws-sdk';
@@ -85,8 +84,7 @@ export interface IEntityPrefix extends IEntitySelectAbstract {
 export interface IEntity extends IEntityId {
   tags?: ITags;
   data?: any;
-  expires?: moment.Moment;
-  expiresDuration?: moment.Duration;
+  expires?: string;
 }
 export interface IEntityKeyTagSet extends IEntityId {
   tagKey: string;
@@ -109,8 +107,7 @@ export interface ISdkEntity {
   id: string;
   tags?: ITags;
   data?: any;
-  expires?: moment.Moment;
-  expiresDuration?: moment.Duration;
+  expires?: string;
   version?: string;
 }
 
@@ -120,7 +117,6 @@ export const entityToSdk = (entity: IEntity): ISdkEntity => ({
   data: entity.data,
   tags: entity.tags,
   expires: entity.expires,
-  expiresDuration: entity.expiresDuration,
   version: entity.version,
 });
 
@@ -211,10 +207,7 @@ export interface InputStatementOptions
 export interface FinalStatementOptions extends InputStatementOptionsWithoutDefaults, MergedStatementOptions {}
 
 // Parameters
-export interface DefaultParameterOptions {
-  expires?: moment.Moment;
-  expiresDuration?: moment.Duration;
-}
+export interface DefaultParameterOptions {}
 export interface MergedParameterOptions extends DefaultParameterOptions {}
 
 // Constructors

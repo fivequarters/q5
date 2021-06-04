@@ -3,14 +3,14 @@ const Joi = require('joi');
 const entityId = Joi.string().regex(/^[A-Za-z0-9\-]{1,64}$/);
 const tagValue = /^[a-zA-Z0-9_\-\.]*$/;
 const tagNameValues = Joi.string().regex(/^[a-zA-Z0-9_\-\.=&%]*$/);
+
 const validateEntity = (data: any) =>
   Joi.object().keys({
     id: entityId,
     data,
     tags: Joi.object().pattern(tagValue, Joi.string().regex(tagValue)),
     version: Joi.string().guid(),
-    expires: Joi.string(),
-    expiresDuration: Joi.string(),
+    expires: Joi.date().iso(),
   });
 
 const EntityIdParams = Joi.object().keys({
