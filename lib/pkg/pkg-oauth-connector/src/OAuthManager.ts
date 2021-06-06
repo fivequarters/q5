@@ -42,7 +42,6 @@ router.get('/api/:lookupKey/token', async (ctx: Context) => {
   } catch (error) {
     ctx.throw(500, error.message);
   }
-  console.log(`lookup ctx`, ctx.body);
   if (!ctx.body) {
     ctx.throw(404);
   }
@@ -56,7 +55,6 @@ router.delete('/api/:lookupKey', async (ctx: Context) => {
 // OAuth Flow Endpoints
 router.get('/api/configure', async (ctx: Context) => {
   engine.setMountUrl(ctx.state.params.baseUrl);
-  console.log(`pkg-oauth-connector: url: `, await engine.getAuthorizationUrl(ctx.query.state));
   ctx.redirect(await engine.getAuthorizationUrl(ctx.query.state));
 });
 

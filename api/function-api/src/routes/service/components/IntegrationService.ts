@@ -152,8 +152,6 @@ class IntegrationService extends BaseComponentService<Model.IIntegration> {
     };
 
     try {
-      console.log(`Creating function: `);
-      console.log(this.createFunctionSpecification(entity));
       const result = await Function.createFunction(
         params,
         this.createFunctionSpecification(entity),
@@ -165,7 +163,7 @@ class IntegrationService extends BaseComponentService<Model.IIntegration> {
         await Function.waitForFunctionBuild(params, result.buildId, 100000);
       }
     } catch (e) {
-      console.log(e);
+      console.log(`ERROR: createEntityOperation `, e);
       throw e;
     }
   };

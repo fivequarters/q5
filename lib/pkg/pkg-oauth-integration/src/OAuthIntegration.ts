@@ -24,7 +24,6 @@ export default class OAuthIntegration {
 
     const baseUrl = `${params.endpoint}/v2/account/${params.accountId}/subscription/${params.subscriptionId}/connector/${this.config.connector}`;
 
-    console.log(`pkg-oauth-integration`, baseUrl);
     // Send request to authority/token passing in the lookupKey
     const tokenResponse = await superagent
       .get(`${baseUrl}/api/${lookupKey}/token`)

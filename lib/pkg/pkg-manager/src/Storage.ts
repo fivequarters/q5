@@ -23,7 +23,6 @@ const createStorage = (params: any, storageIdPrefix: string) => {
         return undefined;
       }
 
-      console.log(`storage.get: ${getUrl(storageSubId)}, ${storageClient.accessToken}`);
       const response = await superagent
         .get(getUrl(storageSubId))
         .set('Authorization', `Bearer ${storageClient.accessToken}`)
@@ -37,7 +36,6 @@ const createStorage = (params: any, storageIdPrefix: string) => {
           'Storage objects cannot be stored at the root of the hierarchy. Specify a storageSubId when calling the `put` method, or a storageIdPrefix when creating the storage client.'
         );
       }
-      console.log(`storage.put: ${getUrl(storageSubId)}, ${storageClient.accessToken}`);
       const response = await superagent
         .put(getUrl(storageSubId))
         .set('Authorization', `Bearer ${storageClient.accessToken}`)
@@ -51,7 +49,6 @@ const createStorage = (params: any, storageIdPrefix: string) => {
           'You are attempting to recursively delete all storage objects in the Fusebit subscription. If this is your intent, please pass "true" as the third parameter in the call to delete(storageSubId, recursive, forceRecursive).'
         );
       }
-      console.log(`storage.delete: ${getUrl(storageSubId)}, ${storageClient.accessToken}`);
       await superagent
         .delete(`${getUrl(storageSubId)}${recursive ? '/*' : ''}`)
         .set('Authorization', `Bearer ${storageClient.accessToken}`)
@@ -59,7 +56,6 @@ const createStorage = (params: any, storageIdPrefix: string) => {
       return;
     },
     list: async (storageSubId: string, { count, next }: { count?: number; next?: string } = {}) => {
-      console.log(`storage.list: ${getUrl(storageSubId)}, ${storageClient.accessToken}`);
       const response = await superagent
         .get(`${getUrl(storageSubId)}/*`)
         .query(count && isNaN(count) ? {} : { count: 5 })
@@ -71,14 +67,5 @@ const createStorage = (params: any, storageIdPrefix: string) => {
 
   return storageClient;
 };
-/*
-const storage = createStorageClient(
-  {
-    baseUrl: 'https://dev.us-west-1.dev.fusebit.io/v1/run/sub-0095d2ffa3d1424a/benn/oauth-connector',
-    accountId: 'acc-7e0f8bbc30bc4c34',
-    subscriptionId: 'sub-0095d2ffa3d1424a',
-  },
-  '/benn/oauth-connector'
-);
-*/
+
 export { createStorage };

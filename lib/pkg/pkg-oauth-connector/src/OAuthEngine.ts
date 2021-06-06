@@ -21,7 +21,6 @@ class OAuthEngine {
   }
 
   public setMountUrl(mountUrl: string) {
-    console.log(`Setting mountUrl to ${mountUrl}`);
     this.cfg.mountUrl = mountUrl;
   }
 
@@ -34,7 +33,6 @@ class OAuthEngine {
    * @param {string} state The value of the OAuth state parameter.
    */
   public async getAuthorizationUrl(state: string) {
-    console.log(`${this.cfg.mountUrl}${callbackSuffixUrl}`);
     const params = new URLSearchParams({
       response_type: 'code',
       scope: this.cfg.scope,
@@ -62,7 +60,6 @@ class OAuthEngine {
     token.status = 'authenticated';
     token.timestamp = Date.now();
 
-    console.log(`convertAccessCodeToToken: `, lookupKey);
     await ctx.state.storage.put({ data: token }, lookupKey);
 
     return token;
@@ -120,9 +117,9 @@ class OAuthEngine {
       token = await ctx.state.storage.get(lookupKey);
     } catch (e) {
       console.log(`storage log error`, e);
+      throw e;
     }
 
-    console.log(`post storage get`, token);
     if (!token) {
       return undefined;
     }
@@ -153,7 +150,6 @@ class OAuthEngine {
     if (token.refresh_token) {
       token.status = 'refreshing';
       try {
-        console.log(`ensureLocalAccessToken: `, lookupKey);
         await ctx.state.storage.put({ data: token }, lookupKey);
 
         token = await this.refreshAccessToken(token.refresh_token);
