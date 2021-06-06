@@ -15,8 +15,10 @@
   },
   "keywords": [],
   "dependencies": {
-    "@fusebit-int/pkg-manager": "^1.0.0",
     "superagent": "*"
+  },
+  "peerDependencies": {
+    "@fusebit-int/pkg-manager": "^1.0.0"
   },
   "devDependencies": {}
 }

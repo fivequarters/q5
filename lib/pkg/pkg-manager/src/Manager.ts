@@ -9,7 +9,7 @@ import { createStorage } from './Storage';
 
 import { Router, Context } from './Router';
 
-import { connectorManager, IInstanceConnectorConfigMap } from './ConnectorManager';
+import { ConnectorManager, IInstanceConnectorConfigMap } from './ConnectorManager';
 
 import DefaultRoutes from './DefaultRoutes';
 
@@ -58,7 +58,7 @@ interface IOnStartup {
  * necessary to invoke specific events.
  */
 class Manager {
-  /** Error cached from vendor code. */
+  /** @private Error cached from vendor code. */
   public vendorError: any;
 
   /** @private Used for context creation. */
@@ -67,16 +67,25 @@ class Manager {
   /** @private Route requests and events to specific endpoint handlers. */
   public router: Router;
 
+  /** @public Store the configuration as passed in for other consumers. */
+  public config!: IConfig;
+
+  /** @public Connectors attached to this integration. */
+  public connectors: ConnectorManager;
+
   /** Create a new Manager, using the supplied storage interface as a persistance backend. */
   constructor() {
     this.app = new Koa();
     this.router = new Router();
+    this.connectors = new ConnectorManager();
   }
 
   /** Configure the Manager with the vendor object and error, if any. */
   public setup(cfg: IConfig, vendor?: Router, vendorError?: VendorModuleError) {
+    this.config = cfg;
+
     // Load the configuration for the integrations
-    connectorManager.setup(cfg.connectors);
+    this.connectors.setup(cfg.connectors);
 
     if (vendorError) {
       this.vendorError = vendorError;
@@ -214,7 +223,6 @@ class Manager {
 
   /** Convert from a Fusebit function context into a routable context. */
   public createRouteableContext(fusebitCtx: RequestContext): Context {
-    console.log(`createRouteableContext`, fusebitCtx);
     const req = httpMocks.createRequest({
       url: fusebitCtx.path,
       method: fusebitCtx.method,

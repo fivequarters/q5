@@ -17,7 +17,6 @@ const rejectPermissionAgent = {
 
 const defaultIntegration = [
   "const { Router, Manager, Form } = require('@fusebit-int/pkg-manager');",
-  "const connectors = require('@fusebit-int/pkg-manager').connectors;",
   '',
   'const router = new Router();',
   '',

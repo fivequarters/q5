@@ -84,8 +84,7 @@ class ConnectorService extends BaseComponentService<Model.IConnector> {
           allow: [
             {
               action: 'storage:*',
-              resource:
-                '/account/{{accountId}}/subscription/{{subscriptionId}}/storage/{{boundaryId}}/{{functionId}}/*',
+              resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/storage/{{boundaryId}}/{{functionId}}/',
             },
           ],
         },

@@ -22,7 +22,7 @@ export default class OAuthIntegration {
   public async instantiate(ctx: Context, lookupKey: string) {
     const params = ctx.state.params;
 
-    const baseUrl = `${params.endpoint}/v2/account/${params.accountId}/subscription/${params.subscriptionId}/connector/${this.config.authority}`;
+    const baseUrl = `${params.endpoint}/v2/account/${params.accountId}/subscription/${params.subscriptionId}/connector/${this.config.connector}`;
 
     console.log(`pkg-oauth-integration`, baseUrl);
     // Send request to authority/token passing in the lookupKey
