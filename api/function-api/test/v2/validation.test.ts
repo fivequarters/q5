@@ -16,7 +16,8 @@ const crudValidation = async (entityType: Model.EntityType) => {
 
   test('List validation passes', async () => {
     await expect(ApiRequestMap[entityType].list(account, { idPrefix: boundaryId })).resolves.toBeHttp({
-      statusCode: 404, // Valid, but no entries will match
+      statusCode: 200, // Valid, but empty list
+      data: { items: [] },
     });
   }, 180000);
 
