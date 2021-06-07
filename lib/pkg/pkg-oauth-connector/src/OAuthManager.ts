@@ -7,6 +7,13 @@ const router = new Router();
 
 let engine: OAuthEngine;
 
+router.use(async (ctx: Context, next: Next) => {
+  if (engine) {
+    engine.setMountUrl(ctx.state.params.baseUrl);
+  }
+  return next();
+});
+
 router.on('startup', async ({ mgr, cfg, router: rtr }: IOnStartup, next: Next) => {
   // Router's already been mounted, so any further additions need to happen here on 'rtr'.
   //
@@ -23,7 +30,6 @@ router.delete('/', async (ctx: Context, next: Next) => {
 });
 
 router.get('/api/:lookupKey/health', async (ctx: Context) => {
-  engine.setMountUrl(ctx.state.params.baseUrl);
   try {
     if (!(await engine.ensureAccessToken(ctx, ctx.params.lookupKey))) {
       ctx.throw(404);
@@ -36,7 +42,6 @@ router.get('/api/:lookupKey/health', async (ctx: Context) => {
 });
 
 router.get('/api/:lookupKey/token', async (ctx: Context) => {
-  engine.setMountUrl(ctx.state.params.baseUrl);
   try {
     ctx.body = await engine.ensureAccessToken(ctx, ctx.params.lookupKey);
   } catch (error) {
@@ -48,25 +53,28 @@ router.get('/api/:lookupKey/token', async (ctx: Context) => {
 });
 
 router.delete('/api/:lookupKey', async (ctx: Context) => {
-  engine.setMountUrl(ctx.state.params.baseUrl);
   ctx.body = await engine.deleteUser(ctx, ctx.params.lookupKey);
 });
 
 // OAuth Flow Endpoints
 router.get('/api/configure', async (ctx: Context) => {
-  engine.setMountUrl(ctx.state.params.baseUrl);
   ctx.redirect(await engine.getAuthorizationUrl(ctx.query.state));
 });
 
 router.get(callbackSuffixUrl, async (ctx: Context) => {
-  engine.setMountUrl(ctx.state.params.baseUrl);
   const state = ctx.query.state;
   const code = ctx.query.code;
 
   if (!code) {
     ctx.throw(403);
   }
-  ctx.body = await engine.convertAccessCodeToToken(ctx, state, code);
+
+  try {
+    // Probably should be a redirect to somewhere else after storing the token.
+    ctx.body = await engine.convertAccessCodeToToken(ctx, state, code);
+  } catch (e) {
+    ctx.throw(e.status, e.response.text);
+  }
 });
 
 export { router as default };

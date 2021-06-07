@@ -136,7 +136,7 @@ describe('Function Redirect', () => {
 });
 
 describe('Function Redirection', () => {
-  const port = 52682;
+  let port = 0;
   let httpServer: any;
   let tunnel: any;
   let redirectUrl: string;
@@ -144,6 +144,7 @@ describe('Function Redirection', () => {
   beforeEach(async () => {
     httpServer = startHttpServer(port);
     httpServer.service = await httpServer.listen();
+    port = httpServer.service.address().port;
 
     tunnel = await startTunnel(port);
 

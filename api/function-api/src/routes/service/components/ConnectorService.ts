@@ -9,9 +9,8 @@ import * as Function from '../../functions';
 
 const rejectPermissionAgent = {
   checkPermissionSubset: () => {
-    return new Promise((resolve) => resolve());
     console.log(`XXX Temporary Grant-all on Permissions Until Finalized`);
-    // XXX throw new Error('permissions are unsupported');
+    return new Promise((resolve) => resolve());
   },
 };
 

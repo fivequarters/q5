@@ -10,12 +10,14 @@ let { function5Id } = getEnv();
 export interface IRequestOptions {
   uri: string;
   method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+  maxRedirects?: number;
   contentType?: string;
   body?: string | object;
   authz?: string;
 }
 
 export interface IDispatchOptions {
+  maxRedirects?: number;
   contentType?: string;
   body?: string | object;
   authz?: string;
@@ -288,6 +290,7 @@ export const v2Request = async (account: IAccount, options: IRequestOptions) => 
     url: `${account.baseUrl}/v2/account/${account.accountId}/subscription/${account.subscriptionId}${options.uri}`,
     method: options.method,
     data: options.body,
+    maxRedirects: options.maxRedirects,
   });
 };
 

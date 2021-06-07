@@ -12,7 +12,7 @@ beforeEach(() => {
 });
 
 afterAll(async () => {
-  // await cleanupEntities(account);
+  await cleanupEntities(account);
 }, 30000);
 
 describe('Workflow', () => {
@@ -98,20 +98,16 @@ describe('Workflow', () => {
 
     // Set up the HTTP service
     httpServer.app.get('/authorize', (req: any, res: any) => {
-      console.log(`${req.method} ${req.url}`);
       return res.json({ message: boundaryId + '-authorize-' + req.query.state });
     });
     httpServer.app.post('/token', (req: any, res: any) => {
-      console.log(`${req.method} ${req.url}`);
       return res.json(sampleToken);
     });
 
     // Test the HTTP service
-    console.log(`authorizationUrl`, authorizationUrl);
     response = await request({ method: 'GET', url: authorizationUrl, query: { state } });
     expect(response).toBeHttp({ statusCode: 200 });
 
-    console.log(`tokenUrl`, tokenUrl);
     response = await request({ method: 'POST', url: tokenUrl, query: { state } });
     expect(response).toBeHttp({ statusCode: 200, data: sampleToken });
 
@@ -147,9 +143,8 @@ describe('Workflow', () => {
         access_token: 'EEEE',
         refresh_token: 'FFFF',
         token_type: 'access',
-        message: 'test-workflow-39-547471041-token',
+        message: `${boundaryId}-token`,
         status: 'authenticated',
-        timestamp: 1623015702203,
       },
     });
   }, 180000);
