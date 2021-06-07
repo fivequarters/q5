@@ -1,4 +1,4 @@
-import AWS, { Credentials } from 'aws-sdk';
+import AWS from 'aws-sdk';
 import { IExecuteInput } from '@5qtrs/cli';
 import { OpsService } from './OpsService';
 import { ExecuteService } from './ExecuteService';
