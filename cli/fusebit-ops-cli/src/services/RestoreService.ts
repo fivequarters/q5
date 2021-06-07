@@ -27,7 +27,7 @@ export class RestoreService {
   ];
 
   private auroraDbPrefix: string = 'fusebit-db-';
-
+  private auroraSubnetPrefix: string = 'fusebit-db-subnet-group-';
   public static async create(input: IExecuteInput) {
     const opsSvc = await OpsService.create(input);
     const execSvc = await ExecuteService.create(input);
@@ -120,7 +120,7 @@ export class RestoreService {
       outerloop: while (true) {
         let results = await RDS.describeDBClusters().promise();
         for (const dbCluster of results.DBClusters as AWS.RDS.DBClusterList) {
-          if (dbCluster.DBClusterIdentifier === `fusebit-db-${deploymentName}`) {
+          if (dbCluster.DBClusterIdentifier === `${this.auroraDbPrefix}${deploymentName}`) {
             setTimeout(() => {}, 3000);
             continue outerloop;
           }
@@ -173,12 +173,12 @@ export class RestoreService {
       EngineVersion: '10.7',
       EngineMode: 'serverless',
       SnapshotIdentifier: restorePointArn,
-      DBSubnetGroupName: `fusebit-db-subnet-group-${deploymentName}`,
-      DBClusterIdentifier: `fusebit-db-${deploymentName}`,
+      DBSubnetGroupName: `${this.auroraSubnetPrefix}${deploymentName}`,
+      DBClusterIdentifier: `${this.auroraDbPrefix}${deploymentName}`,
     }).promise();
     while (true) {
       const status = await Aurora.describeDBClusters({
-        DBClusterIdentifier: `fusebit-db-${deploymentName}`,
+        DBClusterIdentifier: `${this.auroraDbPrefix}${deploymentName}`,
       }).promise();
       if (((status.DBClusters as AWS.RDS.DBClusterList)[0].Status as string) === 'available') {
         break;
@@ -187,7 +187,7 @@ export class RestoreService {
     }
     await Aurora.modifyDBCluster({
       EnableHttpEndpoint: true,
-      DBClusterIdentifier: `fusebit-db-${deploymentName}`,
+      DBClusterIdentifier: `${this.auroraDbPrefix}${deploymentName}`,
     }).promise();
   }
 
