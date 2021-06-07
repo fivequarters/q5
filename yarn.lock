@@ -15705,7 +15705,7 @@ superagent-mock@^4.0.0:
   resolved "https://registry.yarnpkg.com/superagent-mock/-/superagent-mock-4.0.0.tgz#6c33457c312c4dc4082220c8b9c4eb0067dc67a9"
   integrity sha512-+xj+q+sL5sJIcFxwmj5Wuq59Kns0ocOd8OrMkbEXEwseWImAVvM7cP8G7raQRZ+vloUN32t/yKosD+YAXa9rcg==
 
-superagent@*, superagent@6.1.0, superagent@^6.1.0:
+superagent@6.1.0, superagent@^6.1.0:
   version "6.1.0"
   resolved "https://registry.yarnpkg.com/superagent/-/superagent-6.1.0.tgz#09f08807bc41108ef164cfb4be293cebd480f4a6"
   integrity sha512-OUDHEssirmplo3F+1HWKUrUjvnQuA+nZI6i/JJBdXb5eq9IyEQwPyPpqND+SSsxf6TygpBEkUjISVRN4/VOpeg==

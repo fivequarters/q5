@@ -25,9 +25,12 @@ export class RestoreService {
     'storage',
     'user',
   ];
-
+  private pollStatusSpeed: number = 3000;
   private auroraDbPrefix: string = 'fusebit-db-';
   private auroraSubnetPrefix: string = 'fusebit-db-subnet-group-';
+  private auroraEngine: string = 'aurora-postgresql';
+  private auroraVer: string = '10.7';
+  private auroraMode: string = 'serverless';
   public static async create(input: IExecuteInput) {
     const opsSvc = await OpsService.create(input);
     const execSvc = await ExecuteService.create(input);
@@ -121,7 +124,7 @@ export class RestoreService {
         let results = await RDS.describeDBClusters().promise();
         for (const dbCluster of results.DBClusters as AWS.RDS.DBClusterList) {
           if (dbCluster.DBClusterIdentifier === `${this.auroraDbPrefix}${deploymentName}`) {
-            setTimeout(() => {}, 3000);
+            await new Promise((resolve) => setTimeout(resolve, this.pollStatusSpeed));
             continue outerloop;
           }
         }
@@ -169,9 +172,9 @@ export class RestoreService {
       region,
     });
     await Aurora.restoreDBClusterFromSnapshot({
-      Engine: 'aurora-postgresql',
-      EngineVersion: '10.7',
-      EngineMode: 'serverless',
+      Engine: this.auroraEngine,
+      EngineVersion: this.auroraVer,
+      EngineMode: this.auroraMode,
       SnapshotIdentifier: restorePointArn,
       DBSubnetGroupName: `${this.auroraSubnetPrefix}${deploymentName}`,
       DBClusterIdentifier: `${this.auroraDbPrefix}${deploymentName}`,
@@ -183,7 +186,7 @@ export class RestoreService {
       if (((status.DBClusters as AWS.RDS.DBClusterList)[0].Status as string) === 'available') {
         break;
       }
-      await setTimeout(() => {}, 3000);
+      await new Promise((resolve) => setTimeout(resolve, this.pollStatusSpeed));
     }
     await Aurora.modifyDBCluster({
       EnableHttpEndpoint: true,
@@ -229,7 +232,7 @@ export class RestoreService {
       } catch (e) {
         if (e.code === 'LimitExceededException' || e.code === 'TableAlreadyExistsException') {
           // If it is rate limited or AWS is giving out eventual consistency issues, it throws these errors. For now we are just sleeping and retry.
-          await setTimeout(() => {}, 5000);
+          await new Promise((resolve) => setTimeout(resolve, this.pollStatusSpeed));
           continue;
         }
         throw Error(e);
