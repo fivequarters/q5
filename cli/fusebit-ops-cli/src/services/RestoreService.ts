@@ -121,15 +121,9 @@ export class RestoreService {
         DBClusterIdentifier: dbName,
         FinalDBSnapshotIdentifier: `${this.finalSnapshotName}${deploymentName}`,
       }).promise();
-      outerloop: while (true) {
+      while (true) {
         let results = await RDS.describeDBClusters().promise();
-        for (const dbCluster of results.DBClusters as AWS.RDS.DBClusterList) {
-          if (dbCluster.DBClusterIdentifier === `${this.auroraDbPrefix}${deploymentName}`) {
-            await new Promise((resolve) => setTimeout(resolve, this.pollStatusSpeed));
-            continue outerloop;
-          }
-        }
-        return;
+        if (results.DBClusters?.filter((cluster) => cluster.DBClusterIdentifier === dbName).length === 0) { break; }
       }
     } catch (e) {
       if (e.message !== 'DBClusterNotFoundFault') {
