@@ -16,11 +16,9 @@
   "keywords": [],
   "dependencies": {
     "aws-sdk": "^2.895.0",
-    "http-errors": "^1.8.0",
-    "moment": "^2.29.1"
+    "http-errors": "^1.8.0"
   },
   "devDependencies": {
-    "@types/http-errors": "^1.8.0",
-    "@types/moment": "^2.13.0"
+    "@types/http-errors": "^1.8.0"
   }
 }

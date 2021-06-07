@@ -73,6 +73,13 @@ export class ExecuteService {
 
     const func = async (): Promise<any> => {
       const response = await sendRequest(request);
+      if (this.input.options.verbose) {
+        console.log('EXECUTE SERVICE REQUEST', request, '\nEXECUTE SERVICE RESPONSE', {
+          status: response.status,
+          headers: response.headers,
+          data: response.data,
+        });
+      }
       if (response.status === 201 && retryOn201) {
         await new Promise((resolve) => setTimeout(resolve, 2000));
         return await func();
