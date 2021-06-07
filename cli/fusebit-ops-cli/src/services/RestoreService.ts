@@ -82,37 +82,53 @@ export class RestoreService {
     }
     const region = await this.findRegionFromDeploymentName(deploymentName, config, credentials);
     // The end of the world.
-    // await this.deleteAllExistingDynamoDBTable(deploymentName, config, credentials);
-    // await Promise.all(
-    // this.dynamoTableSuffix.map((tableSuffix) =>
-    // this.restoreTable(credentials, tableSuffix, deploymentName, backupPlanName, region as string)
-    // )
-    // );
-    console.log(
-      await this.findLatestRecoveryPointOfTable(
-        credentials,
-        `${this.auroraDbPrefix}${deploymentName}`,
-        backupPlanName,
-        region as string
+    await this.deleteAllExistingDynamoDBTable(deploymentName, config, credentials);
+    await Promise.all(
+      this.dynamoTableSuffix.map((tableSuffix) =>
+        this.restoreTable(credentials, tableSuffix, deploymentName, backupPlanName, region as string)
       )
     );
-    await this.findVpcOfDeployment(deploymentName, config, credentials, region as string);
+    await this.deleteAuroraDb(credentials, deploymentName, region as string);
+    const restorePoint = (await this.findLatestRecoveryPointOfTable(
+      credentials,
+      `${this.auroraDbPrefix}${deploymentName}`,
+      backupPlanName,
+      region as string
+    )) as AWS.Backup.RecoveryPointByBackupVault;
+
+    await this.startDbRestoreJobAndWait(
+      restorePoint.RecoveryPointArn as string,
+      deploymentName,
+      credentials,
+      region as string
+    );
   }
 
   private async deleteAuroraDb(credentials: IAwsCredentials, deploymentName: string, region: string) {
     const dbName = `${this.auroraDbPrefix}${deploymentName}`;
     const RDS = new AWS.RDS({
-      accessKeyId: credentials.accessKeyId,
-      secretAccessKey: credentials.secretAccessKey,
-      sessionToken: credentials.sessionToken,
+      accessKeyId: credentials.accessKeyId as string,
+      secretAccessKey: credentials.secretAccessKey as string,
+      sessionToken: credentials.sessionToken as string,
       region,
     });
     try {
       await RDS.deleteDBCluster({
         DBClusterIdentifier: dbName,
+        SkipFinalSnapshot: true,
       }).promise();
+      outerloop: while (true) {
+        let results = await RDS.describeDBClusters().promise();
+        for (const dbCluster of results.DBClusters as AWS.RDS.DBClusterList) {
+          if (dbCluster.DBClusterIdentifier === `fusebit-db-${deploymentName}`) {
+            setTimeout(() => {}, 3000);
+            continue outerloop;
+          }
+        }
+        return;
+      }
     } catch (e) {
-      if (e !== 'ResourceNotFoundException') {
+      if (e.message !== 'DBClusterNotFoundFault') {
         throw Error(e);
       }
     }
@@ -147,51 +163,32 @@ export class RestoreService {
   ) {
     const dbName = `${this.auroraDbPrefix}${deploymentName}`;
     const Aurora = new AWS.RDS({
-      accessKeyId: credentials.accessKeyId,
-      secretAccessKey: credentials.secretAccessKey,
-      sessionToken: credentials.sessionToken,
+      accessKeyId: credentials.accessKeyId as string,
+      secretAccessKey: credentials.secretAccessKey as string,
+      sessionToken: credentials.sessionToken as string,
       region,
     });
-  }
-
-  private async getRestoreVpcArn(network: string, credentials: IAwsCredentials, region: string) {}
-
-  private async findVpcOfDeployment(
-    deploymentName: string,
-    config: IAwsConfig,
-    creds: IAwsCredentials,
-    deploymentRegion: string
-  ) {
-    const DynamoDB = new AWS.DynamoDB({
-      region: config.region,
-      accessKeyId: creds.accessKeyId,
-      secretAccessKey: creds.secretAccessKey,
-      sessionToken: creds.sessionToken,
-      apiVersion: '2012-08-10',
-    });
-    const results = await DynamoDB.query({
-      TableName: 'ops.deployment',
-      ExpressionAttributeValues: {
-        ':d': { S: deploymentName },
-      },
-      KeyConditionExpression: 'deploymentName = :d',
+    await Aurora.restoreDBClusterFromSnapshot({
+      Engine: 'aurora-postgresql',
+      EngineVersion: '10.7',
+      EngineMode: 'serverless',
+      SnapshotIdentifier: restorePointArn,
+      DBSubnetGroupName: `fusebit-db-subnet-group-${deploymentName}`,
+      DBClusterIdentifier: `fusebit-db-${deploymentName}`,
     }).promise();
-    let item: any = results.Items as any;
-    let networkName: string = item[0].networkName.S as string;
-    const EC2 = new AWS.EC2({
-      accessKeyId: creds.accessKeyId,
-      secretAccessKey: creds.secretAccessKey,
-      sessionToken: creds.sessionToken,
-      region: deploymentRegion,
-    });
-    const Vpcs = await EC2.describeVpcs({}).promise();
-    for (const Vpc of Vpcs.Vpcs as AWS.EC2.VpcList) {
-      for (const tag of Vpc.Tags as AWS.EC2.TagList) {
-        if (tag.Value === `${networkName}-vpc`) {
-          return Vpc.VpcId as string;
-        }
+    while (true) {
+      const status = await Aurora.describeDBClusters({
+        DBClusterIdentifier: `fusebit-db-${deploymentName}`,
+      }).promise();
+      if (((status.DBClusters as AWS.RDS.DBClusterList)[0].Status as string) === 'available') {
+        break;
       }
+      await setTimeout(() => {}, 3000);
     }
+    await Aurora.modifyDBCluster({
+      EnableHttpEndpoint: true,
+      DBClusterIdentifier: `fusebit-db-${deploymentName}`,
+    }).promise();
   }
 
   /**
@@ -214,9 +211,9 @@ export class RestoreService {
   ) {
     const tableName = `${deploymentName}.${tableSuffix}`;
     const DynamoDB = new AWS.DynamoDB({
-      accessKeyId: credentials.accessKeyId,
-      secretAccessKey: credentials.secretAccessKey,
-      sessionToken: credentials.sessionToken,
+      accessKeyId: credentials.accessKeyId as string,
+      secretAccessKey: credentials.secretAccessKey as string,
+      sessionToken: credentials.sessionToken as string,
       region,
       apiVersion: '2012-08-10',
     });
@@ -265,10 +262,10 @@ export class RestoreService {
     credentials: IAwsCredentials
   ) {
     const dynamoDB = new AWS.DynamoDB({
-      accessKeyId: credentials.accessKeyId,
-      secretAccessKey: credentials.secretAccessKey,
-      sessionToken: credentials.sessionToken,
-      region: await this.findRegionFromDeploymentName(deploymentName, config, credentials),
+      accessKeyId: credentials.accessKeyId as string,
+      secretAccessKey: credentials.secretAccessKey as string,
+      sessionToken: credentials.sessionToken as string,
+      region: (await this.findRegionFromDeploymentName(deploymentName, config, credentials)) as string,
     });
 
     for (const tableSuffix of this.dynamoTableSuffix) {
@@ -300,9 +297,9 @@ export class RestoreService {
    */
   private async findRegionFromDeploymentName(deploymentName: string, config: IAwsConfig, credentials: IAwsCredentials) {
     const dynamoDB = new AWS.DynamoDB({
-      accessKeyId: credentials.accessKeyId,
-      secretAccessKey: credentials.secretAccessKey,
-      sessionToken: credentials.sessionToken,
+      accessKeyId: credentials.accessKeyId as string,
+      secretAccessKey: credentials.secretAccessKey as string,
+      sessionToken: credentials.sessionToken as string,
       region: config.region,
       apiVersion: '2012-08-10',
     });
@@ -365,9 +362,9 @@ export class RestoreService {
     deploymentRegion: string
   ): Promise<AWS.Backup.RecoveryPointByBackupVault | undefined> {
     const Backup = new AWS.Backup({
-      accessKeyId: credentials.accessKeyId,
-      secretAccessKey: credentials.secretAccessKey,
-      sessionToken: credentials.sessionToken,
+      accessKeyId: credentials.accessKeyId as string,
+      secretAccessKey: credentials.secretAccessKey as string,
+      sessionToken: credentials.sessionToken as string,
       region: deploymentRegion,
     });
     const availableRestorePoints = await Backup.listRecoveryPointsByBackupVault({
