@@ -31,6 +31,7 @@ export class RestoreService {
   private auroraEngine: string = 'aurora-postgresql';
   private auroraVer: string = '10.7';
   private auroraMode: string = 'serverless';
+  private finalSnapshotName: string = 'final-snapshot-';
   public static async create(input: IExecuteInput) {
     const opsSvc = await OpsService.create(input);
     const execSvc = await ExecuteService.create(input);
@@ -118,7 +119,7 @@ export class RestoreService {
     try {
       await RDS.deleteDBCluster({
         DBClusterIdentifier: dbName,
-        SkipFinalSnapshot: true,
+        FinalDBSnapshotIdentifier: `${this.finalSnapshotName}${deploymentName}`,
       }).promise();
       outerloop: while (true) {
         let results = await RDS.describeDBClusters().promise();
