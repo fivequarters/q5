@@ -26,6 +26,16 @@ const options = {
         '  createObserver();\n' +
         '}' +
         '</script>',
+      bodySnippet: `<!-- Twitter universal website tag code -->
+        <script>
+        !function(e,t,n,s,u,a){e.twq||(s=e.twq=function(){s.exe?s.exe.apply(s,arguments):s.queue.push(arguments);
+        },s.version='1.1',s.queue=[],u=t.createElement(n),u.async=!0,u.src='//static.ads-twitter.com/uwt.js',
+        a=t.getElementsByTagName(n)[0],a.parentNode.insertBefore(u,a))}(window,document,'script');
+        // Insert Twitter Pixel ID and Standard Event data below
+        twq('init','o662d');
+        twq('track','PageView');
+        </script>
+        <!-- End Twitter universal website tag code -->`,
     },
   },
 };
@@ -35,9 +45,17 @@ for (const path in html) {
   const pathHtml = html[path];
   const meta = [
     { property: 'og:title', content: 'Fusebit: a powerful integration platform built for developers' },
-    { property: 'og:description', content: 'With Fusebit, quickly integrate your application to other SaaS applications using flexible API building blocks. Fusebit provides connectors to popular APIs and hosts your integrations at scale.' },
+    {
+      property: 'og:description',
+      content:
+        'With Fusebit, quickly integrate your application to other SaaS applications using flexible API building blocks. Fusebit provides connectors to popular APIs and hosts your integrations at scale.',
+    },
     { property: 'twitter:title', content: 'Fusebit: a powerful integration platform built for developers' },
-    { property: 'twitter:description', content: 'With Fusebit, quickly integrate your application to other SaaS applications using flexible API building blocks. Fusebit provides connectors to popular APIs and hosts your integrations at scale.' },
+    {
+      property: 'twitter:description',
+      content:
+        'With Fusebit, quickly integrate your application to other SaaS applications using flexible API building blocks. Fusebit provides connectors to popular APIs and hosts your integrations at scale.',
+    },
     { property: 'og:type', content: 'website' },
     { property: 'og:site_name', content: 'Fusebit' },
     { property: 'og:locale', content: 'en' },
