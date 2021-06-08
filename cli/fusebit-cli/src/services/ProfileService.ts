@@ -23,22 +23,6 @@ const QR = require('qrcode-terminal');
 const profileOptions = ['account', 'subscription', 'boundary', 'function'];
 const notSet = Text.dim(Text.italic('<not set>'));
 
-// ------------------
-// Internal Functions
-// ------------------
-
-function getDateString(date: Date) {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const dateOnly = new Date(date.valueOf());
-  dateOnly.setHours(0, 0, 0, 0);
-
-  const dateOnlyMs = dateOnly.valueOf();
-  const [dateString, timeString] = date.toLocaleString().split(',');
-  return dateOnlyMs === today.valueOf() ? timeString.trim() : dateString.trim();
-}
-
 // -------------------
 // Exported Interfaces
 // -------------------
@@ -803,13 +787,7 @@ export class ProfileService {
     }
 
     details.push(
-      ...[
-        Text.dim('Created: '),
-        getDateString(new Date(profile.created)),
-        Text.dim(' • '),
-        Text.dim('Last Updated: '),
-        getDateString(new Date(profile.updated)),
-      ]
+      ...[Text.dim('Created: '), profile.created, Text.dim(' • '), Text.dim('Last Updated: '), profile.updated]
     );
 
     if (agentDetails) {

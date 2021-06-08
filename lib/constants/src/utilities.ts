@@ -1,3 +1,5 @@
+import * as path from 'path';
+
 const DYNAMO_BACKOFF_TRIES_MAX = 5;
 const DYNAMO_BACKOFF_DELAY = 300;
 
@@ -69,4 +71,21 @@ function duplicate(dst: any, src: any) {
   return dst;
 }
 
-export { dynamoScanTable, expBackoff, asyncPool, duplicate };
+const safePath = (filename: string): string => {
+  const parsed = path.parse(path.normalize(filename));
+
+  if (parsed.dir.startsWith('..') || parsed.dir.startsWith('/')) {
+    throw new Error(`Invalid filename path: ${filename}`);
+  }
+  return parsed.dir === '' ? `${filename}` : `${parsed.dir}/${parsed.base}`;
+};
+
+const safePathMap = (files: { [key: string]: string }): { [key: string]: string } => {
+  const cleanFiles: { [key: string]: string } = {};
+  Object.entries(files).forEach((entry: any) => {
+    cleanFiles[safePath(entry[0])] = entry[1];
+  }, {});
+  return cleanFiles;
+};
+
+export { dynamoScanTable, expBackoff, asyncPool, duplicate, safePath, safePathMap };

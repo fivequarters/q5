@@ -17,6 +17,25 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.20.2
+
+_Release 06/8/21_
+
+- **Enhancement.** Support for fusebit-authorization-account-id request header specifying the accountId to use when resolving the caller credentials
+
+## Version 1.20.1
+
+_Release 06/5/21_
+
+- **Enhancement.** Further v2 development.
+- **Enhancement.** Additional characteristics and parameters are returned from storage queries.
+
+## Version 1.19.15
+
+_Release 06/2/21_
+
+- **Bugfix.** Handle recursive storage list operations without error.
+
 ## Version 1.19.13
 
 _Release 05/25/21_

@@ -14,7 +14,6 @@ interface IOAuthConfig {
   refreshBackoffIncrement: number;
 
   mountUrl: string;
-  callbackUrl: string;
 }
 
 interface IOAuthToken {

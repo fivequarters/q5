@@ -4,7 +4,6 @@ import { FusebitText, FusebitTextType, FusebitTextWeight } from '@5qtrs/fusebit-
 import { Image } from '@5qtrs/image';
 import { FusebitCard } from '@5qtrs/fusebit-card';
 import { FusebitColor } from '@5qtrs/fusebit-color';
-import { FusebitLink as Link } from '@5qtrs/fusebit-link';
 import { FusebitSocialButton, FusebitSocialType } from '@5qtrs/fusebit-social';
 import { AccoladeOneIcon, AccoladeTwoIcon, AccoladeThreeIcon } from '@5qtrs/fusebit-icon';
 import { FusebitPage, FusebitSection, FusebitBreak } from '@5qtrs/fusebit-page';
@@ -14,6 +13,9 @@ import Benn from '../../assets/img/benn-full.png';
 import Chris from '../../assets/img/chris-full.png';
 import Duke from '../../assets/img/duke-full.png';
 import Jake from '../../assets/img/jake-full.png';
+import Lindsey from '../../assets/img/lindsey-full.png';
+import Daria from '../../assets/img/daria-full.png';
+import { FusebitButton } from '@5qtrs/fusebit-button';
 
 // -------------------
 // Exported Components
@@ -65,7 +67,7 @@ export function About() {
                   <circle cx={50} cy={50} r={30} fill={FusebitColor.red} />
                 </svg>
               </Box>
-              <Image offsetX={-100} src={Tomek} width={216} />
+              <Image offsetX={-100} src={Tomek} width={216} style={{ filter: 'grayscale(100%)' }} />
             </Box>
             <Box vertical center marginTop={10}>
               <FusebitText center type={FusebitTextType.body} weight={FusebitTextWeight.bold}>
@@ -97,7 +99,7 @@ export function About() {
                   <circle cx={50} cy={50} r={30} fill={FusebitColor.orange} />
                 </svg>
               </Box>
-              <Image offsetX={-120} src={Yavor} width={220} />
+              <Image offsetX={-120} src={Yavor} width={220} style={{ filter: 'grayscale(100%)' }} />
             </Box>
             <Box vertical center marginTop={10}>
               <FusebitText center type={FusebitTextType.body} weight={FusebitTextWeight.bold}>
@@ -129,7 +131,7 @@ export function About() {
                   <circle cx={50} cy={50} r={30} fill={FusebitColor.cyan} />
                 </svg>
               </Box>
-              <Image offsetX={-110} src={Benn} width={220} />
+              <Image offsetX={-110} src={Benn} width={220} style={{ filter: 'grayscale(100%)' }} />
             </Box>
             <Box vertical center marginTop={10}>
               <FusebitText center type={FusebitTextType.body} weight={FusebitTextWeight.bold}>
@@ -151,7 +153,27 @@ export function About() {
         <Box width="100%">
           <Box vertical center expand minWidth={260} marginBottom={60}>
             <Box overlay height={220} width={0}>
-              <Image offsetX={-110} src={Duke} width={220} />
+              <Image offsetX={-110} src={Lindsey} width={220} style={{ filter: 'grayscale(100%)' }} />
+            </Box>
+            <Box vertical center marginTop={10}>
+              <FusebitText center type={FusebitTextType.body} weight={FusebitTextWeight.bold}>
+                Lindsey Thorne
+              </FusebitText>
+              <FusebitText center>Head of Talent</FusebitText>
+              <Box marginTop={10}>
+                <FusebitSocialButton
+                  type={FusebitSocialType.linkedIn}
+                  href="https://www.linkedin.com/in/lindseythorne/"
+                  small
+                  invertColor
+                />
+              </Box>
+            </Box>
+          </Box>
+          <Box width={30} height={0} />
+          <Box vertical center expand minWidth={260} marginBottom={60}>
+            <Box overlay height={220} width={0}>
+              <Image offsetX={-110} src={Duke} width={220} style={{ filter: 'grayscale(100%)' }} />
             </Box>
             <Box vertical center marginTop={10}>
               <FusebitText center type={FusebitTextType.body} weight={FusebitTextWeight.bold}>
@@ -178,7 +200,7 @@ export function About() {
           <Box width={30} height={0} />
           <Box vertical center expand minWidth={260} marginBottom={60}>
             <Box overlay height={220} width={0}>
-              <Image offsetX={-120} src={Chris} width={220} />
+              <Image offsetX={-120} src={Chris} width={220} style={{ filter: 'grayscale(100%)' }} />
             </Box>
             <Box vertical center marginTop={10}>
               <FusebitText center type={FusebitTextType.body} weight={FusebitTextWeight.bold}>
@@ -203,9 +225,31 @@ export function About() {
             </Box>
           </Box>
           <Box width={30} height={0} />
+        </Box>
+        <Box width="100%">
           <Box vertical center expand minWidth={260} marginBottom={60}>
             <Box overlay height={220} width={0}>
-              <Image offsetX={-120} src={Jake} width={220} />
+              <Image offsetX={-120} src={Daria} width={220} style={{ filter: 'grayscale(100%)' }} />
+            </Box>
+            <Box vertical center marginTop={10}>
+              <FusebitText center type={FusebitTextType.body} weight={FusebitTextWeight.bold}>
+                Daria Goncharenko
+              </FusebitText>
+              <FusebitText center>UI/UX Project Manager</FusebitText>
+              <Box marginTop={10}>
+                <FusebitSocialButton
+                  type={FusebitSocialType.linkedIn}
+                  href="https://www.linkedin.com/in/daria-goncharenko/"
+                  small
+                  invertColor
+                />
+              </Box>
+            </Box>
+          </Box>
+          <Box width={30} height={0} />
+          <Box vertical center expand minWidth={260} marginBottom={60}>
+            <Box overlay height={220} width={0}>
+              <Image offsetX={-120} src={Jake} width={220} style={{ filter: 'grayscale(100%)' }} />
             </Box>
             <Box vertical center marginTop={10}>
               <FusebitText center type={FusebitTextType.body} weight={FusebitTextWeight.bold}>
@@ -222,15 +266,25 @@ export function About() {
               </Box>
             </Box>
           </Box>
-          <Box width={30} height={0} />
+          {/* <Box width={30} height={0} /> */}
         </Box>
         <Box width="100%">
           <Box vertical center expand minWidth={260} marginBottom={60}>
             <Box vertical center marginTop={10}>
-              <FusebitText center type={FusebitTextType.body} weight={FusebitTextWeight.bold}>
+              {/* <FusebitText center type={FusebitTextType.body} weight={FusebitTextWeight.bold}>
                 YOU!
               </FusebitText>
-              <Link href="https://angel.co/company/fusebitio/jobs">Our job postings</Link>
+              <Link href="https://angel.co/company/fusebitio/jobs">Our job postings</Link> */}
+              <FusebitButton
+                outline
+                marginLeft={30}
+                to={'/careers'}
+                gaCategory="CTA"
+                gaAction="Clicked jobs button"
+                gaLabel={location.pathname}
+              >
+                We are hiring!
+              </FusebitButton>
             </Box>
           </Box>
           <Box width={30} height={0} />

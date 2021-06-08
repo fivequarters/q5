@@ -596,6 +596,7 @@ export class Command implements ICommand {
         options[option.name] = parsed;
       }
     }
+    options.verbose = options.verbose || !!process.env.FUSEBIT_DEBUG;
 
     const input: IExecuteInput = {
       terms: command.terms,

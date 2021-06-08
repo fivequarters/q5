@@ -1,6 +1,8 @@
 const Joi = require('joi');
 const user = require('./user');
 
+const Common = require('./common');
+
 module.exports = user.keys({
-  id: Joi.string().regex(/^usr-[a-g0-9]{16}$/),
+  id: Common.userId,
 });

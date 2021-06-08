@@ -13,8 +13,8 @@ function getAxiosRequest(httpRequest: IHttpRequest, httpAgent: any, httpsAgent: 
     params: httpRequest.query || {},
     transformResponse: undefined,
     validateStatus: () => true,
+    maxRedirects: httpRequest.maxRedirects === undefined ? 5 : httpRequest.maxRedirects,
   };
-
   if (httpRequest.keepAlive !== false) {
     if (httpAgent) {
       axiosRequest.httpAgent = httpAgent;
@@ -74,6 +74,7 @@ export interface IHttpRequest {
   data?: any;
   parseJson?: boolean;
   keepAlive?: boolean;
+  maxRedirects?: number;
   validStatus?: (status: number) => boolean;
 }
 
@@ -96,7 +97,7 @@ export async function request(
   const httpRequest = typeof urlOrRequest === 'string' ? { url: urlOrRequest } : urlOrRequest;
   const axiosRequest = getAxiosRequest(httpRequest, httpAgent, httpsAgent);
 
-  let axiosResponse = undefined;
+  let axiosResponse;
   let retry = 0;
   while (!axiosResponse) {
     try {

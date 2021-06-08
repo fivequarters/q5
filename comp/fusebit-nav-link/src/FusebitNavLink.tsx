@@ -4,7 +4,8 @@ import { FusebitColor, opacity } from '@5qtrs/fusebit-color';
 import { Box, BoxProps } from '@5qtrs/box';
 import { FusebitLink, FusebitLinkProps } from '@5qtrs/fusebit-link';
 import { FusebitText, FusebitTextProps, FusebitTextType } from '@5qtrs/fusebit-text';
-import { AboutUsIcon, DocsIcon, BlogIcon } from '@5qtrs/fusebit-icon';
+import { AboutUsIcon, DocsIcon, BlogIcon, AccoladeOneIcon } from '@5qtrs/fusebit-icon';
+import FreeBreakfastOutlinedIcon from '@material-ui/icons/FreeBreakfastOutlined';
 
 const gaCategoryDefault = 'Navigation';
 const gaActionDefault = 'Clicked';
@@ -51,6 +52,7 @@ export enum FusebitNavLinkType {
   privacy = 'Privacy Policy',
   contact = 'Contact',
   copyRight = '© 2019-2021 Fusebit - All Rights Reserved',
+  jobs = 'We are hiring',
 }
 
 export type FusebitNavLinkProps = {
@@ -92,6 +94,15 @@ export function FusebitNavLink({
   to = to || '/';
 
   switch (linkType) {
+    case FusebitNavLinkType.jobs:
+      color = color || FusebitColor.black;
+      hover = hover || FusebitColor.red;
+      icon = <FreeBreakfastOutlinedIcon />;
+      to = '/careers';
+      gaCategory = gaCategoryDefault;
+      gaAction = 'Clicked jobs nav';
+      gaLabel = gaLabelDefault;
+      break;
     case FusebitNavLinkType.about:
       color = color || FusebitColor.black;
       hover = hover || FusebitColor.red;

@@ -1,14 +1,20 @@
 import { Request, Response, NextFunction } from 'express';
 
-import { getStorageContext, errorHandler } from '../storage';
 import create_error from 'http-errors';
 
-import RDS from '@5qtrs/db';
+import RDS, { Model } from '@5qtrs/db';
 
 const storageDb = RDS.DAO.storage;
 
-function normalize(e: any) {
-  return { data: e.data, etag: `${e.version}` };
+interface IStorageResult {
+  data?: string;
+  etag: string;
+  tags: any;
+  expires?: string;
+}
+
+function normalize(e: Model.IEntity): IStorageResult {
+  return { data: e.data, etag: `${e.version}`, tags: e.tags, expires: e.expires };
 }
 
 const makeRequest = (req: Request, version?: string) => ({
@@ -20,7 +26,7 @@ const makeRequest = (req: Request, version?: string) => ({
 
 function storageGet() {
   return async (req: Request, res: Response, next: NextFunction) => {
-    let result: any;
+    let result: IStorageResult;
 
     try {
       result = normalize(await storageDb.getEntity(makeRequest(req)));
@@ -34,7 +40,8 @@ function storageGet() {
 
 function storageList() {
   return async (req: Request, res: Response, next: NextFunction) => {
-    let result: any;
+    let result: { items: Model.IEntity[] };
+    let output: { items: IStorageResult[] };
 
     try {
       result = await storageDb.listEntities(
@@ -47,17 +54,25 @@ function storageList() {
           next: req.query.next as string,
         }
       );
-      result.items = result.items.map((e: any) => ({ storageId: e.id })) as any;
+      output = {
+        ...result,
+        items: result.items.map((e: Model.IEntity) => ({
+          storageId: e.id,
+          tags: e.tags,
+          expires: e.expires,
+          etag: e.version as string,
+        })),
+      };
     } catch (err) {
       return next(err);
     }
 
-    res.json(result);
+    res.json(output);
   };
 }
 
 function storagePut() {
-  return async (req: Request, res: Response, next: NextFunction, passthrough: boolean = false) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
     let result: any;
     const storage = req.body;
     let etag = req.header('If-Match');
@@ -75,41 +90,32 @@ function storagePut() {
 
     delete storage.etag;
 
-    // Convert the etag into a version specification
-    let version;
-    if (!passthrough) {
-      version = etag;
-    }
-
     try {
-      result = normalize(await storageDb.createEntity({ ...makeRequest(req, version), data: storage.data }));
+      result = normalize(
+        await storageDb.createEntity({
+          ...makeRequest(req, etag),
+          data: storage.data,
+          tags: storage.tags,
+          expires: storage.expires,
+        })
+      );
     } catch (err) {
       return next(err);
     }
-
-    if (!passthrough) {
-      res.json(result);
-    }
+    res.json(result);
   };
 }
 
 function storageDelete() {
-  return async (req: Request, res: Response, next: NextFunction, passthrough: boolean = false) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
     let result: any;
 
     const etag = req.header('If-Match');
 
-    // Convert the etag into a version specification
-    let version;
-    if (!passthrough) {
-      // Passthrough ignores all versioning; by this point Dynamo has already succeeded.
-      version = etag;
-    }
-
     const params: any = {
       accountId: req.params.accountId,
       subscriptionId: req.params.subscriptionId,
-      ...(version ? { version } : {}),
+      ...(etag ? { version: etag } : {}),
     };
 
     if (req.params.recursive) {
@@ -123,19 +129,12 @@ function storageDelete() {
     } catch (err) {
       if (err.status === 404 && req.params.recursive) {
         // Treat recursive 404's as 204's.
-        if (!passthrough) {
-          return res.status(204).end();
-        }
-      }
-      if (passthrough) {
-        throw err;
+        return res.status(204).end();
       }
       return next(err);
     }
 
-    if (!passthrough) {
-      res.status(result || req.params.recursive ? 204 : 404).end();
-    }
+    res.status(result || req.params.recursive ? 204 : 404).end();
   };
 }
 

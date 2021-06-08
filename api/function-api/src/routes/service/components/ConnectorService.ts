@@ -1,3 +1,4 @@
+import { safePathMap } from '@5qtrs/constants';
 import RDS, { Model } from '@5qtrs/db';
 import { IAgent } from '@5qtrs/account-data';
 import { AwsRegistry } from '@5qtrs/registry';
@@ -9,9 +10,15 @@ import * as Function from '../../functions';
 
 const rejectPermissionAgent = {
   checkPermissionSubset: () => {
-    throw new Error('permissions are unsupported');
+    console.log(`XXX Temporary Grant-all on Permissions Until Finalized`);
+    return Promise.resolve();
   },
 };
+
+const defaultPackage = (entity: Model.IEntity) => ({
+  scripts: { deploy: `"fuse connector deploy ${entity.id} -d ."`, get: `"fuse connector get ${entity.id} -d ."` },
+  dependencies: {},
+});
 
 class ConnectorService extends BaseComponentService<Model.IConnector> {
   public readonly entityType: Model.EntityType;
@@ -21,36 +28,60 @@ class ConnectorService extends BaseComponentService<Model.IConnector> {
   }
 
   public sanitizeEntity = (entity: Model.IEntity): Model.IConnector => {
-    const data = entity.data;
+    const data = entity.data || {};
     data.files = data.files || {};
+
+    // Remove any leading . or ..'s from file paths.
+    data.files = safePathMap(data.files);
+
     data.configuration = data.configuration || { package: '@fusebit-int/pkg-oauth-connector' };
+    data.configuration.package = data.configuration.package || '@fusebit-int/pkg-oauth-connector';
 
     const pkg = {
-      dependencies: {},
+      ...defaultPackage(entity),
       ...(data.files && data.files['package.json'] ? JSON.parse(data.files['package.json']) : {}),
     };
 
-    pkg.dependencies['@fusebit-int/pkg-handler'] = pkg.dependencies['@fusebit-int/pkg-handler'] || '*';
-    pkg.dependencies['@fusebit-int/pkg-manager'] = pkg.dependencies['@fusebit-int/pkg-manager'] || '*';
+    pkg.dependencies['@fusebit-int/pkg-manager'] = pkg.dependencies['@fusebit-int/pkg-manager'] || '^2.0.0';
 
     // Make sure package mentioned in the `package` block is also included.
     pkg.dependencies[data.configuration.package] = pkg.dependencies[data.configuration.package] || '*';
 
-    data.files['package.json'] = JSON.stringify(pkg);
+    // Always pretty-print package.json so it's human-readable from the start.
+    data.files['package.json'] = JSON.stringify(pkg, null, 2);
 
     return data;
   };
 
   public createFunctionSpecification = (entity: Model.IEntity): Function.IFunctionSpecification => {
+    const data = entity.data;
+
+    // Add the baseUrl to the configuration.
+    const config = {
+      ...entity.data.configuration,
+      mountUrl: `/v2/account/${entity.accountId}/subscription/${entity.subscriptionId}/connector/${entity.id}`,
+    };
+
     return {
       id: entity.id,
       nodejs: {
         files: {
-          ...entity.data.files,
+          ...data.files,
+
           'index.js': [
-            `const config = ${JSON.stringify(entity.data.configuration)};`,
-            `module.exports = require('@fusebit-int/pkg-handler')(config);`,
+            `const config = ${JSON.stringify(config)};`,
+            `module.exports = require('@fusebit-int/pkg-manager').Handler(config);`,
           ].join('\n'),
+        },
+      },
+      security: {
+        functionPermissions: {
+          allow: [
+            {
+              action: 'storage:*',
+              resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/storage/{{boundaryId}}/{{functionId}}/',
+            },
+          ],
         },
       },
     };
@@ -126,14 +157,20 @@ class ConnectorService extends BaseComponentService<Model.IConnector> {
       entity,
       { verb: 'deleting', type: 'connector' },
       async () => {
-        // Do delete things - create functions, collect their versions, and update the entity.data object
-        // appropriately.
-        await Function.deleteFunction({
-          accountId: entity.accountId,
-          subscriptionId: entity.subscriptionId,
-          boundaryId: this.entityType,
-          functionId: entity.id,
-        });
+        try {
+          // Do delete things - create functions, collect their versions, and update the entity.data object
+          // appropriately.
+          await Function.deleteFunction({
+            accountId: entity.accountId,
+            subscriptionId: entity.subscriptionId,
+            boundaryId: this.entityType,
+            functionId: entity.id,
+          });
+        } catch (err) {
+          if (err.status !== 404) {
+            throw err;
+          }
+        }
 
         // Delete it.
         await this.dao.deleteEntity(entity);

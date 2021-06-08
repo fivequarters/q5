@@ -22,6 +22,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 
 - **Enhancement.** Support backup/restore for RDS.
 
+## Version 1.27.5
+
+_Released 06/08/21_
+
+- **Bugfix.** Don't remove Route53 validation records after the certificate is issued during a `fuse-ops domain add`.
+
 ## Version 1.27.3
 
 _Released 05/19/21_

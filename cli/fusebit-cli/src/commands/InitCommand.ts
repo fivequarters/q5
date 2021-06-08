@@ -239,10 +239,19 @@ export class InitCommand extends Command {
           token,
           initResolve as IFusebitInitResolve
         );
+        if (input.options.verbose) {
+          console.log('RESOLVED AGENT', agent);
+        }
 
         const agentDetails = await agentService.getAgentDetails(agent, true);
+        if (input.options.verbose) {
+          console.log('AGENT DETAILS', agentDetails);
+        }
         await profileService.displayProfile(addedProfile, agentDetails);
       } catch (e) {
+        if (input.options.verbose) {
+          console.log('INIT ERROR', e);
+        }
         await profileService.removeProfile(profileName);
         throw e;
       }

@@ -141,7 +141,6 @@
       "@5qtrs/runas": ["lib/server/runas/src"],
       "@5qtrs/cicd-actions": ["tool/cicd/actions/src"],
       "@fusebit-int/pkg-manager": ["lib/pkg/pkg-manager/src"],
-      "@fusebit-int/pkg-handler": ["lib/pkg/pkg-handler/src"],
       "@fusebit-int/pkg-integration": ["lib/pkg/pkg-integration/src"],
       "@fusebit-int/pkg-oauth-connector": ["lib/pkg/pkg-oauth-connector/src"],
       "@fusebit-int/pkg-oauth-integration": ["lib/pkg/pkg-oauth-integration/src"],
