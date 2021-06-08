@@ -18,7 +18,7 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
-## Version 1.27.5
+## Version 1.27.6
 
 - **Enhancement.** Support backup/restore for RDS.
 
