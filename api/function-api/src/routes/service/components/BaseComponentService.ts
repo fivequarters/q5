@@ -118,6 +118,21 @@ export default abstract class BaseComponentService<E extends Model.IEntity> {
 
   public createSession = async (sessionIdParams: ISessionIdParams, config: ISessionConfig): Promise<any> => {
     const entity = await this.dao.getEntity({ ...sessionIdParams, id: config.entityId });
+    const steps: ISessionStep[] = [];
+    if (config.steps) {
+      steps.concat(config.steps);
+    }
+    if (entity.data.configuration?.steps) {
+      (entity.data.configuration.steps as ISessionStep[]).forEach((step) => {
+        if (!steps.some((s) => s.name === step.name)) {
+          steps.push(step);
+        }
+      });
+    }
+    steps.forEach((step) => {
+      step.status = SessionStepStatus.TODO;
+    });
+
     await RDS.DAO.session.createEntity({
       id: uuidv4(),
       accountId: sessionIdParams.accountId,
@@ -127,6 +142,7 @@ export default abstract class BaseComponentService<E extends Model.IEntity> {
         configuration: {
           ...entity.data.configuration,
           ...config,
+          steps,
         },
       },
     });

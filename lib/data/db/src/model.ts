@@ -113,6 +113,7 @@ export interface ISessionConfig {
   url?: string;
   connectors?: { [key: string]: { package: string; config?: ISessionConfig } };
   forms?: { [key: string]: { config?: ISessionConfig } };
+  steps?: ISessionStep[];
 }
 
 export interface IIntegration extends IEntity {
