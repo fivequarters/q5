@@ -109,7 +109,7 @@ export class IntegrationService {
     const files = await globby((pack && pack.files) || ['*.js'], { cwd, gitignore: true, ignore: DefaultIgnores });
     await Promise.all(
       files.map(async (filename: string) => {
-        entitySpec.data.files[filename] = (await readFile(filename)).toString();
+        entitySpec.data.files[filename] = (await readFile(join(cwd, filename))).toString();
       })
     );
     return entitySpec;
@@ -274,6 +274,7 @@ export class IntegrationService {
   }
 
   public async displayIntegrations(items: IIntegrationSpec[], firstDisplay: boolean) {
+    const profile = await this.profileService.getExecutionProfile(['account', 'subscription']);
     if (!items.length) {
       await this.executeService.info('No Integrations', `No ${firstDisplay ? '' : 'more '}integrations to list`);
       return;
@@ -308,6 +309,10 @@ export class IntegrationService {
           Text.dim(': '),
           item.version || 'unknown',
           Text.eol(),
+          Text.eol(),
+          'Base URL',
+          Text.dim(': '),
+          this.getUrl(profile, item.id),
         ])
       );
     }

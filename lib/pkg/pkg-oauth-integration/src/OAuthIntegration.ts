@@ -20,10 +20,14 @@ export default class OAuthIntegration {
    * For now, just return the accessToken for the caller to do with as they please.
    */
   public async instantiate(ctx: Context, lookupKey: string) {
+    const params = ctx.state.params;
+
+    const baseUrl = `${params.endpoint}/v2/account/${params.accountId}/subscription/${params.subscriptionId}/connector/${this.config.connector}`;
+
     // Send request to authority/token passing in the lookupKey
     const tokenResponse = await superagent
-      .get(`${this.config.config.authority}/${lookupKey}/token`)
-      .set('Authorization', `Bearer ${ctx.fusebit.functionAccessToken}`);
+      .get(`${baseUrl}/api/${lookupKey}/token`)
+      .set('Authorization', `Bearer ${ctx.state.fusebit.functionAccessToken}`);
 
     // Take the responding token, put it into the object below.
     return {

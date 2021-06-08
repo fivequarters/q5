@@ -71,7 +71,8 @@ export class OpsCert extends DataSource {
 
     await this.createRecords(certDetails);
     await awsCert.waitForCert(certDetails.arn);
-    await this.deleteRecords(certDetails);
+
+    // Leave the DNS records in place so that ACM can continue to renew the certificate.
     return certDetails;
   }
 

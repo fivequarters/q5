@@ -23,8 +23,7 @@ const command = {
     {
       name: 'dir',
       aliases: ['d'],
-      description: 'A path to the directory to place the connector code.',
-      defaultText: 'current directory',
+      description: 'A relative path to the directory to place the connector code.',
     },
   ],
 };
@@ -45,19 +44,21 @@ export class ConnectorGetCommand extends Command {
   protected async onExecute(input: IExecuteInput): Promise<number> {
     const connectorId = input.arguments[0] as string;
     const destDir = input.options.dir as string;
-    const fast = input.options.fast as boolean;
 
     const connectorService = await ConnectorService.create(input);
-    const operationService = await OperationService.create(input);
     const executeService = await ExecuteService.create(input);
 
     await executeService.newLine();
 
-    const destPath = destDir ? join(process.cwd(), destDir) : process.cwd();
-
     const connector = await connectorService.fetchConnector(connectorId);
 
-    await connectorService.writeDirectory(destPath, connector);
+    if (destDir) {
+      const destPath = join(process.cwd(), destDir);
+
+      await connectorService.writeDirectory(destPath, connector);
+    } else {
+      await connectorService.displayConnectors([connector], true);
+    }
 
     return 0;
   }

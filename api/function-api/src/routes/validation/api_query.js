@@ -1,13 +1,13 @@
 const Joi = require('joi');
 
-const { RUNAS_SYSTEM_ISSUER_SUFFIX } = require('@5qtrs/constants');
+const Common = require('./common');
 
 module.exports = Joi.object().keys({
   next: Joi.string(),
   count: Joi.number().integer(),
   name: Joi.string(),
   email: Joi.string(),
-  issuerId: Joi.string().regex(new RegExp(`^((?!${RUNAS_SYSTEM_ISSUER_SUFFIX}$).)*$`)),
+  issuerId: Common.issuerId,
   subject: Joi.string(),
   include: Joi.string().valid('all'),
   cron: Joi.string().valid('true', 'false', '1', '0'),

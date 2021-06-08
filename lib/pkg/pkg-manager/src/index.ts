@@ -1,15 +1,18 @@
 import { Router, Context, Next } from './Router';
 import { Manager, IStorage, IOnStartup } from './Manager';
-import { connectorManager, IInstanceConnectorConfig } from './ConnectorManager';
+import { ConnectorManager, IInstanceConnectorConfig } from './ConnectorManager';
 import { Form } from './Form';
+
+import { Handler } from './Handler';
 
 // Placeholder object until we have better logging in place.
 const Sdk: { debug: (...s: any[]) => void } = { debug: console.log };
 
 export {
+  Handler,
   Router,
   Form,
-  connectorManager as connectors,
+  ConnectorManager,
   Manager,
   Context,
   Next,

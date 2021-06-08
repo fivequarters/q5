@@ -1,4 +1,3 @@
-import { NextFunction, Request, Response } from 'express';
 import { IncomingHttpHeaders } from 'http';
 
 import { Model } from '@5qtrs/db';
@@ -46,13 +45,13 @@ export default abstract class BaseComponentService<E extends Model.IEntity> {
   public dispatch = async (
     entity: Model.IEntity,
     method: string,
-    path: string,
+    location: string,
     elements: IDispatchParams
   ): Promise<Functions.IExecuteFunction> => {
     return Functions.executeFunction(
       { ...entity, boundaryId: this.entityType, functionId: entity.id, version: undefined },
       method,
-      path,
+      location,
       elements
     );
   };

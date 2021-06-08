@@ -3,25 +3,29 @@ import { Router, Context, Next, IStorage } from '@fusebit-int/pkg-manager';
 
 import { IOAuthConfig, IOAuthToken } from './OAuthTypes';
 
+import { callbackSuffixUrl } from './OAuthConstants';
+
 class OAuthEngine {
   public cfg: IOAuthConfig;
-  public storage: IStorage;
   public router: Router;
 
-  constructor(cfg: IOAuthConfig, storage: IStorage, router: Router) {
+  constructor(cfg: IOAuthConfig, router: Router) {
     this.cfg = cfg;
-    this.storage = storage;
     this.router = router;
 
     router.on('uninstall', async (ctx: Context, next: Next) => {
       // Delete all of the storage associated with this object.
-      await this.storage.delete(undefined, true);
+      await ctx.state.storage.delete(undefined, true);
       return next();
     });
   }
 
-  public async deleteUser(lookupKey: string) {
-    return this.storage.delete(lookupKey);
+  public setMountUrl(mountUrl: string) {
+    this.cfg.mountUrl = mountUrl;
+  }
+
+  public async deleteUser(ctx: Context, lookupKey: string) {
+    return ctx.state.storage.delete(lookupKey);
   }
 
   /**
@@ -34,7 +38,7 @@ class OAuthEngine {
       scope: this.cfg.scope,
       state,
       client_id: this.cfg.clientId,
-      redirect_uri: this.cfg.callbackUrl,
+      redirect_uri: this.cfg.mountUrl + callbackSuffixUrl,
     });
 
     if (this.cfg.audience) {
@@ -47,8 +51,8 @@ class OAuthEngine {
   /**
    * Convert the successful callback into a token via getAccessToken.
    */
-  public async convertAccessCodeToToken(lookupKey: string, code: string) {
-    const token = await this.getAccessToken(code, this.cfg.callbackUrl);
+  public async convertAccessCodeToToken(ctx: Context, lookupKey: string, code: string) {
+    const token = await this.getAccessToken(code, this.cfg.mountUrl + callbackSuffixUrl);
     if (!isNaN(token.expires_in)) {
       token.expires_at = Date.now() + +token.expires_in * 1000;
     }
@@ -56,7 +60,7 @@ class OAuthEngine {
     token.status = 'authenticated';
     token.timestamp = Date.now();
 
-    await this.storage.put({ data: token }, lookupKey);
+    await ctx.state.storage.put({ data: token }, lookupKey);
 
     return token;
   }
@@ -91,7 +95,7 @@ class OAuthEngine {
       refresh_token: refreshToken,
       client_id: this.cfg.clientId,
       client_secret: this.cfg.clientSecret,
-      redirect_uri: `${this.cfg.mountUrl}/callback`,
+      redirect_uri: `${this.cfg.mountUrl}${callbackSuffixUrl}`,
     };
 
     const response = await superagent.post(this.cfg.tokenUrl).type('form').send(params);
@@ -107,8 +111,14 @@ class OAuthEngine {
    * access token cannot be returned, an exception is thrown.
    * @param {*} userContext The vendor user context
    */
-  public async ensureAccessToken(lookupKey: string) {
-    const token: IOAuthToken = await this.storage.get(lookupKey);
+  public async ensureAccessToken(ctx: Context, lookupKey: string) {
+    let token: IOAuthToken | undefined;
+    try {
+      token = await ctx.state.storage.get(lookupKey);
+    } catch (e) {
+      console.log(`storage log error`, e);
+      throw e;
+    }
 
     if (!token) {
       return undefined;
@@ -117,18 +127,19 @@ class OAuthEngine {
     if (token.status === 'refreshing') {
       // Wait for the currently ongoing refresh operation in a different instance to finish
       return this.waitForRefreshedAccessToken(
+        ctx,
         lookupKey,
         this.cfg.refreshWaitCountLimit,
         this.cfg.refreshInitialBackoff
       );
     } else {
       // Get access token for "this" OAuth connector
-      return this.ensureLocalAccessToken(lookupKey);
+      return this.ensureLocalAccessToken(ctx, lookupKey);
     }
   }
 
-  protected async ensureLocalAccessToken(lookupKey: string) {
-    let token: IOAuthToken = await this.storage.get(lookupKey);
+  protected async ensureLocalAccessToken(ctx: Context, lookupKey: string) {
+    let token: IOAuthToken = await ctx.state.storage.get(lookupKey);
     if (
       token.access_token &&
       (token.expires_at === undefined || token.expires_at > Date.now() + this.cfg.accessTokenExpirationBuffer)
@@ -139,7 +150,7 @@ class OAuthEngine {
     if (token.refresh_token) {
       token.status = 'refreshing';
       try {
-        await this.storage.put({ data: token }, lookupKey);
+        await ctx.state.storage.put({ data: token }, lookupKey);
 
         token = await this.refreshAccessToken(token.refresh_token);
 
@@ -150,19 +161,19 @@ class OAuthEngine {
         token.status = 'authenticated';
         token.refreshErrorCount = 0;
 
-        await this.storage.put({ data: token }, lookupKey);
+        await ctx.state.storage.put({ data: token }, lookupKey);
 
         return token;
       } catch (e) {
         if (token.refreshErrorCount > this.cfg.refreshErrorLimit) {
-          await this.storage.delete(lookupKey);
+          await ctx.state.storage.delete(lookupKey);
           throw new Error(
             `Error refreshing access token. Maximum number of attempts exceeded, identity ${lookupKey} has been deleted: ${e.message}`
           );
         } else {
           token.refreshErrorCount = (token.refreshErrorCount || 0) + 1;
           token.status = 'refresh_error';
-          await this.storage.put({ data: token }, lookupKey);
+          await ctx.state.storage.put({ data: token }, lookupKey);
           throw new Error(
             `Error refreshing access token, attempt ${token.refreshErrorCount} out of ${this.cfg.refreshErrorLimit}: ${e.message}`
           );
@@ -171,11 +182,11 @@ class OAuthEngine {
     }
 
     // Access token expired, but no refresh token; deleting.
-    await this.storage.delete(lookupKey);
+    await ctx.state.storage.delete(lookupKey);
     throw new Error(`Access token is expired and cannot be refreshed because the refresh token is not present.`);
   }
 
-  protected async waitForRefreshedAccessToken(lookupKey: string, count: number, backoff: number) {
+  protected async waitForRefreshedAccessToken(ctx: Context, lookupKey: string, count: number, backoff: number) {
     if (count <= 0) {
       throw new Error(
         `Error refreshing access token. Waiting for the access token to be refreshed exceeded the maximum time`
@@ -186,7 +197,7 @@ class OAuthEngine {
       setTimeout(async () => {
         let token: IOAuthToken;
         try {
-          token = await this.storage.get(lookupKey);
+          token = await ctx.state.storage.get(lookupKey);
           if (!token || token.status === 'refresh_error') {
             throw new Error(`Concurrent access token refresh operation failed`);
           }
@@ -199,6 +210,7 @@ class OAuthEngine {
         let result;
         try {
           result = await this.waitForRefreshedAccessToken(
+            ctx,
             lookupKey,
             count - 1,
             Math.floor(backoff * this.cfg.refreshBackoffIncrement)

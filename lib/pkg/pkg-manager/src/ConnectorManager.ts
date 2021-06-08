@@ -14,11 +14,12 @@ interface IInstanceConnectorConfig {
   /** Name of the managing npm package for this connector. */
   package: string;
 
+  /** The remote entity ID for this connector. */
+  connector: string;
+
   /** Configuration of the package, passed in on instantiation. */
-  config: {
-    /** The remote authority for this connector. */
-    authority: string;
-  };
+  config: {};
+
   /** A cached instance object of the initialized package object. */
   instance?: IConnector;
 }
@@ -86,7 +87,11 @@ class ConnectorManager {
     return (ctx: Context) => {
       const cfg = this.connectors[name];
       if (!cfg) {
-        throw new Error(`Unknown connector ${name}; add it to the configuration?`);
+        throw new Error(
+          `Unknown connector ${name}; add it to the configuration (known: ${JSON.stringify(
+            Object.keys(this.connectors)
+          )})?`
+        );
       }
       const inst = cfg.instance ? cfg.instance : this.loadConnector(name, cfg);
 
@@ -100,9 +105,4 @@ class ConnectorManager {
   }
 }
 
-/**
- * A singleton ConnectorManager, initialized by the Manager, to manage and cache connector packages.
- */
-const connectorManager = new ConnectorManager();
-
-export { connectorManager, IConnector, IInstanceConnectorConfig, IInstanceConnectorConfigMap };
+export { ConnectorManager, IConnector, IInstanceConnectorConfig, IInstanceConnectorConfigMap };

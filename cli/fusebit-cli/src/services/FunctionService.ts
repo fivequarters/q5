@@ -797,7 +797,7 @@ export class FunctionService {
     const profile = await this.getFunctionExecutionProfile(true, functionId, process.cwd());
 
     await this.executeService.info('Starting Service', 'Starting the local server.');
-    const functionServer = startHttpServer(9993);
+    const functionServer = startHttpServer(0);
     functionServer.service = await functionServer.listen();
 
     functionServer.app.use(async (req: any, res: any) => {
@@ -814,8 +814,11 @@ export class FunctionService {
       }
     });
 
-    await this.executeService.info('Building Tunnel', 'Establishing tunnel to Fusebit.');
-    const tunnel = await startTunnel(9993);
+    await this.executeService.info(
+      'Building Tunnel',
+      `Establishing tunnel to Fusebit (port ${functionServer.service.address().port})`
+    );
+    const tunnel = await startTunnel(functionServer.service.address().port);
     try {
       await this.executeService.info('Redirecting', `Redirecting traffic for ${profile.boundary}/${functionId}`);
       const result = await this.executeService.executeRequest(

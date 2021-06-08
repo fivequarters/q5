@@ -1,3 +1,4 @@
+import { safePathMap } from '@5qtrs/constants';
 import RDS, { Model } from '@5qtrs/db';
 import { IAgent } from '@5qtrs/account-data';
 import { AwsRegistry } from '@5qtrs/registry';
@@ -15,7 +16,6 @@ const rejectPermissionAgent = {
 
 const defaultIntegration = [
   "const { Router, Manager, Form } = require('@fusebit-int/pkg-manager');",
-  "const connectors = require('@fusebit-int/pkg-manager').connectors;",
   '',
   'const router = new Router();',
   '',
@@ -26,10 +26,11 @@ const defaultIntegration = [
   'module.exports = router;',
 ].join('\n');
 
-const defaultPackage = {
+const defaultPackage = (entity: Model.IIntegration) => ({
+  scripts: { deploy: `"fuse integration deploy ${entity.id} -d ."`, get: `"fuse integration get ${entity.id} -d ."` },
   dependencies: {},
   files: ['./integration.js'], // Make sure the default file is included, if nothing else.
-};
+});
 
 class IntegrationService extends BaseComponentService<Model.IIntegration> {
   public readonly entityType: Model.EntityType;
@@ -46,7 +47,11 @@ class IntegrationService extends BaseComponentService<Model.IIntegration> {
     }
 
     // Get the list of javascript files
-    data.files = data.files || {};
+    data.files = data.files || { ['integration.js']: defaultIntegration };
+
+    // Remove any leading . or ..'s from file paths.
+    data.files = safePathMap(data.files);
+
     const nonPackageFiles = Object.keys(data.files).filter((f) => f.match(/\.js$/));
     if (nonPackageFiles.length > 1) {
       // Many files present; key must be specified.
@@ -55,7 +60,7 @@ class IntegrationService extends BaseComponentService<Model.IIntegration> {
       }
     } else if (nonPackageFiles.length === 1) {
       // One file present; use that file as the integration.
-      data.configuration = { connectors: {}, ...data.configuration, package: `./${nonPackageFiles[0]}` };
+      data.configuration = { connectors: {}, package: `./${nonPackageFiles[0]}`, ...data.configuration };
     } else {
       // New integration, no files present, create some placeholders.
       data.files['integration.js'] = defaultIntegration;
@@ -69,11 +74,10 @@ class IntegrationService extends BaseComponentService<Model.IIntegration> {
     // Create the package.json, making sure pkg-handler and pkg-manager are present, and any packages
     // referenced in the connectors block.
     const pkg = {
-      ...defaultPackage,
+      ...defaultPackage(entity),
       ...(data.files && data.files['package.json'] ? JSON.parse(data.files['package.json']) : {}),
     };
-    pkg.dependencies['@fusebit-int/pkg-handler'] = pkg.dependencies['@fusebit-int/pkg-handler'] || '*';
-    pkg.dependencies['@fusebit-int/pkg-manager'] = pkg.dependencies['@fusebit-int/pkg-manager'] || '*';
+    pkg.dependencies['@fusebit-int/pkg-manager'] = pkg.dependencies['@fusebit-int/pkg-manager'] || '^2.0.0';
 
     // Make sure packages mentioned in the cfg.connectors block are also included.
     if (data.configuration) {
@@ -86,10 +90,13 @@ class IntegrationService extends BaseComponentService<Model.IIntegration> {
     data.files['package.json'] = JSON.stringify(pkg, null, 2);
   };
 
-  public createFunctionSpecification = async (entity: Model.IEntity): Promise<Function.IFunctionSpecification> => {
+  public createFunctionSpecification = (entity: Model.IEntity): Function.IFunctionSpecification => {
     const data = entity.data;
-    const cfg = {
+
+    // Add the baseUrl to the configuration.
+    const config = {
       ...data.configuration,
+      mountUrl: `/v2/account/${entity.accountId}/subscription/${entity.subscriptionId}/integration/${entity.id}`,
     };
 
     const spec = {
@@ -100,8 +107,8 @@ class IntegrationService extends BaseComponentService<Model.IIntegration> {
 
           // Don't allow the index.js to be overwritten.
           'index.js': [
-            `const config = ${JSON.stringify(cfg)};`,
-            "config.package = config.package[0] === '.' ? `${__dirname}/${config.package}`: config.package",
+            `const config = ${JSON.stringify(config)};`,
+            "config.package = config.package[0] === '.' ? `${__dirname}/${config.package}`: config.package;",
             `module.exports = require('@fusebit-int/pkg-handler')(config);`,
           ].join('\n'),
         },
@@ -141,7 +148,7 @@ class IntegrationService extends BaseComponentService<Model.IIntegration> {
     try {
       const result = await Function.createFunction(
         params,
-        await this.createFunctionSpecification(entity),
+        this.createFunctionSpecification(entity),
         rejectPermissionAgent as IAgent,
         AwsRegistry.create({ ...entity, registryId: 'default' })
       );
@@ -150,7 +157,7 @@ class IntegrationService extends BaseComponentService<Model.IIntegration> {
         await Function.waitForFunctionBuild(params, result.buildId, 100000);
       }
     } catch (e) {
-      console.log(e);
+      console.log(`ERROR: createEntityOperation `, e);
       throw e;
     }
   };

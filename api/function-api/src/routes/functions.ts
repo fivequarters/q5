@@ -48,8 +48,8 @@ interface IFunctionSpecification {
   scheduleSerialized?: string;
   security?: {
     authentication?: string;
-    authorization: any;
-    functionPermissions: any;
+    authorization?: any;
+    functionPermissions?: any;
   };
 }
 
@@ -169,7 +169,8 @@ const waitForFunctionBuild = async (
       await new Promise((resolve) => setTimeout(resolve, BUILD_POLL_DELAY));
       continue;
     }
-    throw create_error(res.code);
+
+    throw create_error(res.code, res.body.message);
   } while (Date.now() < startTime + noLongerThan);
 
   throw create_error(408);

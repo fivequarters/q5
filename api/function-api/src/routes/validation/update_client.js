@@ -1,6 +1,8 @@
 const Joi = require('joi');
 const client = require('./client');
 
+const Common = require('./common');
+
 module.exports = client.keys({
-  id: Joi.string().regex(/^clt-[a-g0-9]{16}$/),
+  id: Common.clientId,
 });
