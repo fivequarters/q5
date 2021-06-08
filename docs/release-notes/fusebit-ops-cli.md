@@ -22,7 +22,7 @@ All public releases of the Fusebit Operations CLI are documented here, including
 
 _Released 06/08/21_
 
-- **Bugfix.** Don't remove Route53 validation records after the certificate is issued.
+- **Bugfix.** Don't remove Route53 validation records after the certificate is issued during a `fuse-ops domain add`.
 
 ## Version 1.27.3
 
