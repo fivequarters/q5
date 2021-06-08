@@ -25,7 +25,13 @@ export class RestoreService {
     'storage',
     'user',
   ];
-
+  private pollStatusSpeed: number = 3000;
+  private auroraDbPrefix: string = 'fusebit-db-';
+  private auroraSubnetPrefix: string = 'fusebit-db-subnet-group-';
+  private auroraEngine: string = 'aurora-postgresql';
+  private auroraVer: string = '10.7';
+  private auroraMode: string = 'serverless';
+  private finalSnapshotName: string = 'final-snapshot-';
   public static async create(input: IExecuteInput) {
     const opsSvc = await OpsService.create(input);
     const execSvc = await ExecuteService.create(input);
@@ -86,6 +92,44 @@ export class RestoreService {
         this.restoreTable(credentials, tableSuffix, deploymentName, backupPlanName, region as string)
       )
     );
+    await this.deleteAuroraDb(credentials, deploymentName, region as string);
+    const restorePoint = (await this.findLatestRecoveryPointOfTable(
+      credentials,
+      `${this.auroraDbPrefix}${deploymentName}`,
+      backupPlanName,
+      region as string
+    )) as AWS.Backup.RecoveryPointByBackupVault;
+
+    await this.startDbRestoreJobAndWait(
+      restorePoint.RecoveryPointArn as string,
+      deploymentName,
+      credentials,
+      region as string
+    );
+  }
+
+  private async deleteAuroraDb(credentials: IAwsCredentials, deploymentName: string, region: string) {
+    const dbName = `${this.auroraDbPrefix}${deploymentName}`;
+    const RDS = new AWS.RDS({
+      accessKeyId: credentials.accessKeyId as string,
+      secretAccessKey: credentials.secretAccessKey as string,
+      sessionToken: credentials.sessionToken as string,
+      region,
+    });
+    try {
+      await RDS.deleteDBCluster({
+        DBClusterIdentifier: dbName,
+        FinalDBSnapshotIdentifier: `${this.finalSnapshotName}${deploymentName}-${Date.now()}`,
+      }).promise();
+      while (true) {
+        let results = await RDS.describeDBClusters().promise();
+        if (results.DBClusters?.filter((cluster) => cluster.DBClusterIdentifier === dbName).length === 0) { break; }
+      }
+    } catch (e) {
+      if (e.message !== 'DBClusterNotFoundFault') {
+        throw Error(e);
+      }
+    }
   }
 
   private async restoreTable(
@@ -109,6 +153,41 @@ export class RestoreService {
       region
     );
   }
+  private async startDbRestoreJobAndWait(
+    restorePointArn: string,
+    deploymentName: string,
+    credentials: IAwsCredentials,
+    region: string
+  ) {
+    const dbName = `${this.auroraDbPrefix}${deploymentName}`;
+    const Aurora = new AWS.RDS({
+      accessKeyId: credentials.accessKeyId as string,
+      secretAccessKey: credentials.secretAccessKey as string,
+      sessionToken: credentials.sessionToken as string,
+      region,
+    });
+    await Aurora.restoreDBClusterFromSnapshot({
+      Engine: this.auroraEngine,
+      EngineVersion: this.auroraVer,
+      EngineMode: this.auroraMode,
+      SnapshotIdentifier: restorePointArn,
+      DBSubnetGroupName: `${this.auroraSubnetPrefix}${deploymentName}`,
+      DBClusterIdentifier: `${this.auroraDbPrefix}${deploymentName}`,
+    }).promise();
+    while (true) {
+      const status = await Aurora.describeDBClusters({
+        DBClusterIdentifier: `${this.auroraDbPrefix}${deploymentName}`,
+      }).promise();
+      if (((status.DBClusters as AWS.RDS.DBClusterList)[0].Status as string) === 'available') {
+        break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, this.pollStatusSpeed));
+    }
+    await Aurora.modifyDBCluster({
+      EnableHttpEndpoint: true,
+      DBClusterIdentifier: `${this.auroraDbPrefix}${deploymentName}`,
+    }).promise();
+  }
 
   /**
    * start a restore job and make sure the job finishes
@@ -130,9 +209,9 @@ export class RestoreService {
   ) {
     const tableName = `${deploymentName}.${tableSuffix}`;
     const DynamoDB = new AWS.DynamoDB({
-      accessKeyId: credentials.accessKeyId,
-      secretAccessKey: credentials.secretAccessKey,
-      sessionToken: credentials.sessionToken,
+      accessKeyId: credentials.accessKeyId as string,
+      secretAccessKey: credentials.secretAccessKey as string,
+      sessionToken: credentials.sessionToken as string,
       region,
       apiVersion: '2012-08-10',
     });
@@ -148,7 +227,7 @@ export class RestoreService {
       } catch (e) {
         if (e.code === 'LimitExceededException' || e.code === 'TableAlreadyExistsException') {
           // If it is rate limited or AWS is giving out eventual consistency issues, it throws these errors. For now we are just sleeping and retry.
-          await setTimeout(() => {}, 5000);
+          await new Promise((resolve) => setTimeout(resolve, this.pollStatusSpeed));
           continue;
         }
         throw Error(e);
@@ -181,10 +260,10 @@ export class RestoreService {
     credentials: IAwsCredentials
   ) {
     const dynamoDB = new AWS.DynamoDB({
-      accessKeyId: credentials.accessKeyId,
-      secretAccessKey: credentials.secretAccessKey,
-      sessionToken: credentials.sessionToken,
-      region: await this.findRegionFromDeploymentName(deploymentName, config, credentials),
+      accessKeyId: credentials.accessKeyId as string,
+      secretAccessKey: credentials.secretAccessKey as string,
+      sessionToken: credentials.sessionToken as string,
+      region: (await this.findRegionFromDeploymentName(deploymentName, config, credentials)) as string,
     });
 
     for (const tableSuffix of this.dynamoTableSuffix) {
@@ -216,9 +295,9 @@ export class RestoreService {
    */
   private async findRegionFromDeploymentName(deploymentName: string, config: IAwsConfig, credentials: IAwsCredentials) {
     const dynamoDB = new AWS.DynamoDB({
-      accessKeyId: credentials.accessKeyId,
-      secretAccessKey: credentials.secretAccessKey,
-      sessionToken: credentials.sessionToken,
+      accessKeyId: credentials.accessKeyId as string,
+      secretAccessKey: credentials.secretAccessKey as string,
+      sessionToken: credentials.sessionToken as string,
       region: config.region,
       apiVersion: '2012-08-10',
     });
@@ -281,9 +360,9 @@ export class RestoreService {
     deploymentRegion: string
   ): Promise<AWS.Backup.RecoveryPointByBackupVault | undefined> {
     const Backup = new AWS.Backup({
-      accessKeyId: credentials.accessKeyId,
-      secretAccessKey: credentials.secretAccessKey,
-      sessionToken: credentials.sessionToken,
+      accessKeyId: credentials.accessKeyId as string,
+      secretAccessKey: credentials.secretAccessKey as string,
+      sessionToken: credentials.sessionToken as string,
       region: deploymentRegion,
     });
     const availableRestorePoints = await Backup.listRecoveryPointsByBackupVault({
