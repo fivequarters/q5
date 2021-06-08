@@ -119,7 +119,7 @@ export class RestoreService {
     try {
       await RDS.deleteDBCluster({
         DBClusterIdentifier: dbName,
-        FinalDBSnapshotIdentifier: `${this.finalSnapshotName}${deploymentName}`,
+        FinalDBSnapshotIdentifier: `${this.finalSnapshotName}${deploymentName}-${Date.now()}`,
       }).promise();
       while (true) {
         let results = await RDS.describeDBClusters().promise();
