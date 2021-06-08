@@ -1,3 +1,4 @@
+import { safePathMap } from '@5qtrs/constants';
 import RDS, { Model } from '@5qtrs/db';
 import { IAgent } from '@5qtrs/account-data';
 import { AwsRegistry } from '@5qtrs/registry';
@@ -10,7 +11,7 @@ import * as Function from '../../functions';
 const rejectPermissionAgent = {
   checkPermissionSubset: () => {
     console.log(`XXX Temporary Grant-all on Permissions Until Finalized`);
-    return new Promise((resolve) => resolve());
+    return Promise.resolve();
   },
 };
 
@@ -31,11 +32,7 @@ class ConnectorService extends BaseComponentService<Model.IConnector> {
     data.files = data.files || {};
 
     // Remove any leading . or ..'s from file paths.
-    const cleanFiles: { [key: string]: string } = {};
-    Object.entries(data.files).forEach((entry: any) => {
-      cleanFiles[this.safePath(entry[0])] = entry[1];
-    }, {});
-    data.files = cleanFiles;
+    data.files = safePathMap(data.files);
 
     data.configuration = data.configuration || { package: '@fusebit-int/pkg-oauth-connector' };
     data.configuration.package = data.configuration.package || '@fusebit-int/pkg-oauth-connector';

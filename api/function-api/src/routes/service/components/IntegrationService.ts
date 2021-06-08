@@ -1,5 +1,4 @@
-import * as path from 'path';
-
+import { safePathMap } from '@5qtrs/constants';
 import RDS, { Model } from '@5qtrs/db';
 import { IAgent } from '@5qtrs/account-data';
 import { AwsRegistry } from '@5qtrs/registry';
@@ -51,11 +50,7 @@ class IntegrationService extends BaseComponentService<Model.IIntegration> {
     data.files = data.files || { ['integration.js']: defaultIntegration };
 
     // Remove any leading . or ..'s from file paths.
-    const cleanFiles: { [key: string]: string } = {};
-    Object.entries(data.files).forEach((entry: any) => {
-      cleanFiles[this.safePath(entry[0])] = entry[1];
-    }, {});
-    data.files = cleanFiles;
+    data.files = safePathMap(data.files);
 
     const nonPackageFiles = Object.keys(data.files).filter((f) => f.match(/\.js$/));
     if (nonPackageFiles.length > 1) {

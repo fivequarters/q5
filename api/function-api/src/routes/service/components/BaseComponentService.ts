@@ -1,6 +1,3 @@
-import * as path from 'path';
-
-import { NextFunction, Request, Response } from 'express';
 import { IncomingHttpHeaders } from 'http';
 
 import { Model } from '@5qtrs/db';
@@ -26,15 +23,6 @@ export default abstract class BaseComponentService<E extends Model.IEntity> {
     this.dao = dao;
   }
   public readonly dao: Model.IEntityDao<E>;
-
-  public safePath = (filename: string): string => {
-    const parsed = path.parse(path.normalize(filename));
-
-    if (parsed.dir.startsWith('..') || parsed.dir.startsWith('/')) {
-      throw new Error(`Invalid filename path: ${filename}`);
-    }
-    return parsed.dir === '' ? `${filename}` : `${parsed.dir}/${parsed.base}`;
-  };
 
   public createEntity = async (entity: Model.IEntity): Promise<IServiceResult> => ({
     statusCode: 200,
