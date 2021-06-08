@@ -1,6 +1,6 @@
-import { Manager } from '@fusebit-int/pkg-manager';
+import { Manager } from './Manager';
 
-module.exports = (config: any) => {
+export const Handler = (config: any) => {
   const manager = new Manager();
 
   let router;

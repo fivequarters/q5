@@ -1,6 +1,6 @@
 {
   "name": "@fusebit-int/pkg-manager",
-  "version": "1.0.2",
+  "version": "2.0.0",
   "description": "",
   "main": "libc/index.js",
   "files": ["libc/*.js", "libc/*.d.ts", "libc/form/*.html"],
