@@ -1,6 +1,6 @@
 {
   "name": "@fusebit-int/pkg-oauth-integration",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "",
   "main": "libc/index.js",
   "files": ["libc/*.js", "libc/*.d.ts"],

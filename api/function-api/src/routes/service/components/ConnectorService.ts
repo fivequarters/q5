@@ -42,8 +42,8 @@ class ConnectorService extends BaseComponentService<Model.IConnector> {
       ...(data.files && data.files['package.json'] ? JSON.parse(data.files['package.json']) : {}),
     };
 
-    pkg.dependencies['@fusebit-int/pkg-handler'] = pkg.dependencies['@fusebit-int/pkg-handler'] || '*';
-    pkg.dependencies['@fusebit-int/pkg-manager'] = pkg.dependencies['@fusebit-int/pkg-manager'] || '*';
+    pkg.dependencies['@fusebit-int/pkg-handler'] = pkg.dependencies['@fusebit-int/pkg-handler'] || '^1.0.0';
+    pkg.dependencies['@fusebit-int/pkg-manager'] = pkg.dependencies['@fusebit-int/pkg-manager'] || '^1.0.0';
 
     // Make sure package mentioned in the `package` block is also included.
     pkg.dependencies[data.configuration.package] = pkg.dependencies[data.configuration.package] || '*';

@@ -77,8 +77,8 @@ class IntegrationService extends BaseComponentService<Model.IIntegration> {
       ...defaultPackage(entity),
       ...(data.files && data.files['package.json'] ? JSON.parse(data.files['package.json']) : {}),
     };
-    pkg.dependencies['@fusebit-int/pkg-handler'] = pkg.dependencies['@fusebit-int/pkg-handler'] || '*';
-    pkg.dependencies['@fusebit-int/pkg-manager'] = pkg.dependencies['@fusebit-int/pkg-manager'] || '*';
+    pkg.dependencies['@fusebit-int/pkg-handler'] = pkg.dependencies['@fusebit-int/pkg-handler'] || '^1.0.0';
+    pkg.dependencies['@fusebit-int/pkg-manager'] = pkg.dependencies['@fusebit-int/pkg-manager'] || '^1.0.0';
 
     // Make sure packages mentioned in the cfg.connectors block are also included.
     if (data.configuration) {
