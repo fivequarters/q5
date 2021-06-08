@@ -49,7 +49,7 @@ module.exports = function authorize_factory(options) {
       return next();
     }
 
-    const accountId = req.params.accountId;
+    const accountId = req.headers['fusebit-authorization-account-id'] || req.params.accountId;
 
     try {
       const resolvedAgent = await getResolvedAgent(accountId, token);
