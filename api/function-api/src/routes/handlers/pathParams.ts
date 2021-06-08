@@ -1,8 +1,16 @@
 import { Request } from 'express';
 
-interface IAccountParams {
+export interface IAccountParams {
   accountId: string;
   subscriptionId: string;
+}
+
+export interface ISessionIdParams extends IAccountParams {
+  parentSessionId?: string;
+}
+
+export interface ISessionStepParams extends ISessionIdParams {
+  stepName: string;
 }
 
 interface IEntityParams extends IAccountParams {
@@ -34,7 +42,12 @@ const EntityTagKeyValue = (req: Request): IEntityTagValueParams => {
 };
 
 const SessionId = (req: Request) => {
-  return { ...accountAndSubscription(req), id: req.params.sessionId };
+  const entityParams = EntityById(req);
+  return { ...entityParams, componentId: entityParams.id, id: req.params.sessionId };
 };
 
-export default { accountAndSubscription, EntityById, EntityTagKey, EntityTagKeyValue, SessionId };
+const SessionStep = (req: Request) => {
+  return { ...SessionId(req), stepName: req.params.stepName };
+};
+
+export default { accountAndSubscription, EntityById, EntityTagKey, EntityTagKeyValue, SessionId, SessionStep };

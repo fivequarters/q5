@@ -1,49 +1,87 @@
 import express from 'express';
 import { BaseComponentService } from '../../../service';
-import query from '../../../handlers/query';
 import pathParams from '../../../handlers/pathParams';
-import RDS from '@5qtrs/db';
-import * as url from 'url';
-import body from '../../../handlers/body';
+import queryString from 'querystring';
+import query from '../../../handlers/query';
 
 const router = (ComponentService: BaseComponentService<any>) => {
-  const componentSessionRouter = express.Router({ mergeParams: true });
+  const sessionRouter = express.Router({ mergeParams: true });
 
-  componentSessionRouter.post('/', async (req, res, next) => {
-    const sessionRedirect = query.sessionRedirect(req);
-    // save redirectUrl for final redirect, not here
-    const session = await RDS.DAO.Session.createEntity({
-      ...pathParams.EntityById(req),
-      ...body.entity(req),
-    });
-    const redirectUrl = url.format({
-      pathname: sessionRedirect.redirectUrl as string,
-      query: {
-        sessionId: session.id,
-      },
-    });
-    // return as json, not redirect
-    res.redirect(redirectUrl);
+  sessionRouter.post('/', async (req, res, next) => {
+    try {
+      const PathParams = pathParams.EntityById(req);
+      const session = await ComponentService.createSession(
+        {
+          accountId: PathParams.accountId,
+          subscriptionId: PathParams.subscriptionId,
+        },
+        { entityId: PathParams.id, ...req.body }
+      );
+      return res.json({ sessionId: session.id });
+    } catch (e) {
+      next(e);
+    }
   });
 
   // Get value of session
-  componentSessionRouter
-    .route('/:sessionId')
-    .get(async (req, res, next) => {
-      const session = await RDS.DAO.Session.getEntity({
-        ...pathParams.SessionId(req),
-      });
-      res.json(session);
-    })
-    .put(async (req, res, next) => {
-      const session = await RDS.DAO.Session.updateEntity({
-        ...pathParams.SessionId(req),
-        ...body.entity(req),
-      });
-      res.json(session);
-    });
+  sessionRouter.route('/:sessionId').get(async (req, res, next) => {
+    try {
+      const sessionParams = pathParams.SessionId(req);
+      const sessionWithNextStep = await ComponentService.getNextSessionStep(sessionParams);
 
-  return componentSessionRouter;
+      if (sessionWithNextStep.nextStep) {
+        // redirect to next step
+        const redirectUrl = `${req.url}/${sessionWithNextStep.nextStep}`;
+        return res.redirect(302, redirectUrl);
+      } else {
+        // redirect to callback url with sessionId encoded as parameter
+        const queryParams = queryString.stringify(query.encodeSessionStep(sessionWithNextStep.id));
+        const redirectUrl = `${sessionWithNextStep.data.redirectUrl}?${queryParams}`;
+        return res.redirect(302, redirectUrl);
+      }
+    } catch (e) {
+      next(e);
+    }
+  });
+
+  sessionRouter.route('/:sessionId/callback').get(async (req, res, next) => {
+    try {
+      const sessionParams = pathParams.SessionId(req);
+      const { sessionId } = query.decodeSessionStep(req);
+      // mark step complete, if sessionId provided
+      if (sessionId) {
+        await ComponentService.completeSessionStep({ ...sessionParams, stepSessionId: sessionId });
+      }
+      const urlArray = req.url.split('/');
+      urlArray.pop();
+      const redirectUrl = urlArray.join('/');
+      res.redirect(302, redirectUrl);
+    } catch (e) {
+      next(e);
+    }
+  });
+
+  sessionRouter.route('/:sessionId/:stepName').get(async (req, res, next) => {
+    try {
+      const sessionParams = pathParams.SessionStep(req);
+
+      if (sessionParams.stepName.split(':')[0].toLowerCase() === ComponentService.entityType) {
+        // delegate to integration/connector, passing the redirect URL as follows:
+        const session = await ComponentService.getSession(sessionParams);
+        const redirectUrl = session.data.redirectUrl;
+        // TODO
+      } else {
+        // get sub-session and redirect to it
+        const sessionStep = await ComponentService.getSessionStep(sessionParams);
+        const redirectUrl = `${sessionStep.config.url}/${sessionStep.id}`;
+        return res.redirect(302, redirectUrl);
+      }
+    } catch (e) {
+      next(e);
+    }
+  });
+
+  return sessionRouter;
 };
 
 export default router;

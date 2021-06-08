@@ -108,11 +108,19 @@ export interface IListResponse<T extends IEntity> {
 // IEntity Extensions
 // --------------------------------
 
+export interface ISessionConfig {
+  entityId: string;
+  url?: string;
+  connectors?: { [key: string]: { package: string; config?: ISessionConfig } };
+  forms?: { [key: string]: { config?: ISessionConfig } };
+}
+
 export interface IIntegration extends IEntity {
   data: {
     configuration?: {
       package: string;
-      connectors: { [name: string]: { package: string; config?: any } };
+      connectors?: { [name: string]: { package: string; config?: ISessionConfig } };
+      forms?: { [name: string]: ISessionConfig };
     };
     files?: { [fileName: string]: string };
   };
@@ -132,7 +140,30 @@ export interface IStorageItem extends IEntity {}
 export interface IOperation extends IEntity {}
 export interface IIdentity extends IEntity {}
 export interface IInstance extends IEntity {}
-export interface ISession extends IEntity {}
+
+export enum SessionStepStatus {
+  COMPLETE = 'COMPLETE',
+  TODO = 'TODO',
+  IN_PROGRESS = 'IN_PROGRESS',
+}
+export enum SessionStepType {
+  CONNECTOR = 'CONNECTOR',
+  FORM = 'FORM',
+}
+export interface ISessionStep {
+  status: SessionStepStatus;
+  name: string;
+  id?: string;
+  config: ISessionConfig;
+}
+export interface ISession extends IEntity {
+  data: {
+    steps: ISessionStep[];
+    type: SessionStepType;
+    redirectUrl: string;
+  };
+  nextStep?: ISessionStep;
+}
 
 // --------------------------------
 // Utilities

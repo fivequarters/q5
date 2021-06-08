@@ -24,4 +24,18 @@ const prefix = (req: Request) => {
   return { idPrefix: idPrefix as string | undefined };
 };
 
-export default { tags, sessionRedirect, paginated, prefix };
+const decodeSessionStep = (req: Request) => {
+  const { state } = req.query;
+  return { sessionId: Buffer.from(state as string, 'base64').toString() };
+};
+
+const encodeSessionStep = (sessionId: string) => {
+  const state = Buffer.from(
+    JSON.stringify({
+      sessionId,
+    })
+  ).toString('base64');
+  return { state };
+};
+
+export default { tags, sessionRedirect, paginated, prefix, decodeSessionStep, encodeSessionStep };
