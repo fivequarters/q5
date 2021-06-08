@@ -17,12 +17,18 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.9.7
+
+_Released 6/4/21_
+
+- **Enhancement.** Support querying storage values.
+
 ## Version 1.9.6
 
 _Released 6/4/21_
 
 - **Enhancement.** Added more verbose output for diagnostics.
-- **Bugfix** Fixed formatting of dates to be locale-agnostic.
+- **Bugfix.** Fixed formatting of dates to be locale-agnostic.
 
 ## Version 1.9.4
 

@@ -9,6 +9,8 @@ import { nextBoundary } from './setup';
 
 import ms from 'ms';
 
+export const INVALID_UUID = '00000000-0000-4000-8000-000000000000';
+
 // ------------------
 // Validate running environment
 // ------------------
@@ -830,7 +832,6 @@ export async function listStorage(account: IAccount, options?: IListStorageOptio
 }
 
 export async function getStorage(account: IAccount, storageId: string) {
-  const storage = storageId;
   return request({
     method: 'GET',
     headers: {
@@ -838,7 +839,7 @@ export async function getStorage(account: IAccount, storageId: string) {
       'Content-Type': 'application/json',
       'user-agent': account.userAgent,
     },
-    url: `${account.baseUrl}/v1/account/${account.accountId}/subscription/${account.subscriptionId}/storage/${storage}`,
+    url: `${account.baseUrl}/v1/account/${account.accountId}/subscription/${account.subscriptionId}/storage/${storageId}`,
   });
 }
 
@@ -849,7 +850,6 @@ export async function setStorage(
   etag?: string,
   skipLeadingSlash?: boolean
 ) {
-  const storage = storageId;
   const headers: any = {
     Authorization: `Bearer ${account.accessToken}`,
     'Content-Type': 'application/json',
@@ -866,13 +866,12 @@ export async function setStorage(
     headers,
     url: `${account.baseUrl}/v1/account/${account.accountId}/subscription/${account.subscriptionId}/storage${
       skipLeadingSlash ? '' : '/'
-    }${storage}`,
+    }${storageId}`,
     data: JSON.stringify(data),
   });
 }
 
 export async function removeStorage(account: IAccount, storageId: string, etag?: string) {
-  const storage = storageId;
   const headers: any = {
     Authorization: `Bearer ${account.accessToken}`,
     'Content-Type': 'application/json',
@@ -884,7 +883,7 @@ export async function removeStorage(account: IAccount, storageId: string, etag?:
   return request({
     method: 'DELETE',
     headers,
-    url: `${account.baseUrl}/v1/account/${account.accountId}/subscription/${account.subscriptionId}/storage/${storage}`,
+    url: `${account.baseUrl}/v1/account/${account.accountId}/subscription/${account.subscriptionId}/storage/${storageId}`,
   });
 }
 

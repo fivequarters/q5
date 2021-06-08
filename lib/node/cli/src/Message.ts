@@ -48,7 +48,7 @@ export class Message {
 
   public async write(io: ICommandIO) {
     const header = await this.getHeaderText();
-    const firstColumn = this.flex ? { flexShrink: 0, flexGrow: 0 } : { min: 12, max: 12 };
+    const firstColumn = this.flex ? { flexShrink: 0, flexGrow: 0 } : { min: 16, max: 16 };
     const columns: any = [firstColumn, { flexShrink: 1, flexGrow: 1 }];
     if (!header.length) {
       columns.shift();
