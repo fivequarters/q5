@@ -1,7 +1,7 @@
 ###################################################################
 # Auto-created by the cicd-actions tool
 on: workflow_dispatch
-name: Publish All Artifacts
+name: Publish API Documentation
 jobs:
   deploy:
     name: Deploy
@@ -72,15 +72,5 @@ jobs:
         run: node cli/fusebit-ops-cli/libc/index.js stack ls
       - name: Qualify - fuse works
         run: node cli/fusebit-cli/libc/index.js function ls
-      - name: Yarn - image
-        run: yarn image
-      - name: Publish - function-api
-        run: ./tool/cicd/actions/scripts/publish_function_api.sh
-      - name: Publish - fusebit-cli
-        run: ./tool/cicd/actions/scripts/publish_fusebit_cli.sh
-      - name: Publish - fusebit-editor
-        run: ./tool/cicd/actions/scripts/publish_fusebit_editor.sh
-      - name: Publish - fusebit-ops-cli
-        run: ./tool/cicd/actions/scripts/publish_fusebit_ops_cli.sh
       - name: Publish - API Docs
         run: ./tool/cicd/actions/scripts/publish_api_docs.sh

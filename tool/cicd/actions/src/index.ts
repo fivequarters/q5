@@ -11,7 +11,13 @@ const BANNER = [
   '',
 ].join('\n');
 
-const publishAll = ['publish_function_api', 'publish_fusebit_cli', 'publish_fusebit_editor', 'publish_fusebit_ops_cli'];
+const publishAll = [
+  'publish_function_api',
+  'publish_fusebit_cli',
+  'publish_fusebit_editor',
+  'publish_fusebit_ops_cli',
+  'publish_api_docs',
+];
 const fullBuild = ['setup_env', 'full_build'];
 
 const specs = [
@@ -36,6 +42,11 @@ const specs = [
     name: 'Publish the Website',
     inputs: ['checkout', ...fullBuild, 'publish_website'],
     output: 'publish_website',
+  },
+  {
+    name: 'Publish API Documentation',
+    inputs: ['checkout', ...fullBuild, 'publish_api_docs'],
+    output: 'publish_api_docs',
   },
 ];
 
