@@ -1,6 +1,6 @@
 import superagent from 'superagent';
 
-import { Context, IInstanceConnectorConfig } from '@fusebit-int/pkg-manager';
+import { Context, IInstanceConnectorConfig } from '@fusebit-int/framework';
 
 /*
  * An example class that pairs with the pkg-oauth-connector/OAuthConnector.  Many such classes may pair with

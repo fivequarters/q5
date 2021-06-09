@@ -1,5 +1,5 @@
 import superagent from 'superagent';
-import { Router, Context, Next, IStorage } from '@fusebit-int/pkg-manager';
+import { Router, Context, Next, IStorage } from '@fusebit-int/framework';
 
 import { IOAuthConfig, IOAuthToken } from './OAuthTypes';
 

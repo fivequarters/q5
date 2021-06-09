@@ -69,6 +69,29 @@ export class IntegrationService {
     };
   }
 
+  public createNewSpec(): IIntegrationSpec {
+    return {
+      id: 'default',
+      tags: {},
+      data: {
+        configuration: { package: './integration', connectors: {} },
+        files: {
+          './integration.js': [
+            `const { Router } = require('@fusebit-int/pkg-manager');`,
+            ``,
+            `const router = new Router();`,
+            ``,
+            `router.get('/api/', async (ctx) => {`,
+            `  ctx.body = 'Hello World';`,
+            `});`,
+            ``,
+            `module.exports = router;`,
+          ].join('\n'),
+        },
+      },
+    };
+  }
+
   public async loadDirectory(path: string): Promise<IIntegrationSpec> {
     const entitySpec: IIntegrationSpec = this.createEmptySpec();
 

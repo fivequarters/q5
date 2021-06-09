@@ -18,9 +18,10 @@
     "superagent": "6.1.0"
   },
   "peerDependencies": {
-    "@fusebit-int/pkg-manager": "^1.0.0"
+    "@fusebit-int/framework": "^1.0.0"
   },
   "devDependencies": {
+    "@fusebit-int/framework": "^1.0.0",
     "superagent-mock": "^4.0.0"
   }
 }

@@ -126,8 +126,8 @@ export const entityToSdk = (entity: IEntity): ISdkEntity => ({
 
 export interface IIntegration extends IEntity {
   data: {
+    handler: string;
     configuration?: {
-      package: string;
       connectors: { [name: string]: { package: string; config?: any } };
     };
     files?: { [fileName: string]: string };
@@ -136,8 +136,8 @@ export interface IIntegration extends IEntity {
 
 export interface IConnector extends IEntity {
   data: {
+    handler: string;
     configuration: {
-      package: string;
       muxIntegration: IEntityId;
     };
     files: { [fileName: string]: string };

@@ -1,4 +1,4 @@
-import { Context, IOnStartup, Manager, Next, Router } from '@fusebit-int/pkg-manager';
+import { Context, IOnStartup, Manager, Next, Router } from '@fusebit-int/framework';
 import { OAuthEngine, IOAuthConfig } from './OAuthEngine';
 
 import { callbackSuffixUrl } from './OAuthConstants';

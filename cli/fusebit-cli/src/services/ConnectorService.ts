@@ -67,6 +67,17 @@ export class ConnectorService {
     };
   }
 
+  public createNewSpec(): IConnectorSpec {
+    return {
+      id: 'default',
+      tags: {},
+      data: {
+        configuration: { package: '@fusebit-int/pkg-oauth-connector' },
+        files: {},
+      },
+    };
+  }
+
   public async loadDirectory(path: string): Promise<IConnectorSpec> {
     const entitySpec: IConnectorSpec = this.createEmptySpec();
 

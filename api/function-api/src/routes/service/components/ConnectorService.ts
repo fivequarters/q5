@@ -34,18 +34,18 @@ class ConnectorService extends BaseComponentService<Model.IConnector> {
     // Remove any leading . or ..'s from file paths.
     data.files = safePathMap(data.files);
 
-    data.configuration = data.configuration || { package: '@fusebit-int/pkg-oauth-connector' };
-    data.configuration.package = data.configuration.package || '@fusebit-int/pkg-oauth-connector';
+    data.handler = data.handler || '@fusebit-int/pkg-oauth-connector';
+    data.configuration = data.configuration || {};
 
     const pkg = {
       ...defaultPackage(entity),
       ...(data.files && data.files['package.json'] ? JSON.parse(data.files['package.json']) : {}),
     };
 
-    pkg.dependencies['@fusebit-int/pkg-manager'] = pkg.dependencies['@fusebit-int/pkg-manager'] || '^2.0.0';
+    pkg.dependencies['@fusebit-int/framework'] = pkg.dependencies['@fusebit-int/framework'] || '^2.0.0';
 
-    // Make sure package mentioned in the `package` block is also included.
-    pkg.dependencies[data.configuration.package] = pkg.dependencies[data.configuration.package] || '*';
+    // Make sure package mentioned in the `handler` block is also included.
+    pkg.dependencies[data.handler] = pkg.dependencies[data.handler] || '*';
 
     // Always pretty-print package.json so it's human-readable from the start.
     data.files['package.json'] = JSON.stringify(pkg, null, 2);
@@ -70,7 +70,8 @@ class ConnectorService extends BaseComponentService<Model.IConnector> {
 
           'index.js': [
             `const config = ${JSON.stringify(config)};`,
-            `module.exports = require('@fusebit-int/pkg-manager').Handler(config);`,
+            `const handler = '${data.handler}';`,
+            `module.exports = require('@fusebit-int/framework').Handler(handler, config);`,
           ].join('\n'),
         },
       },

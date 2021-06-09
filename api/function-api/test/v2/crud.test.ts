@@ -484,8 +484,8 @@ describe('Integration', () => {
     entityUpdated.data.files = {
       ...entity.data.files,
       'integration.js': [
-        "const { Router, Manager, Form } = require('@fusebit-int/pkg-manager');",
-        "const connectors = require('@fusebit-int/pkg-manager').connectors;",
+        "const { Router, Manager, Form } = require('@fusebit-int/framework');",
+        "const connectors = require('@fusebit-int/framework').connectors;",
         '',
         'const router = new Router();',
         '',
@@ -511,8 +511,8 @@ describe('Integration', () => {
     entityUpdated.data.files = {
       ...entity.data.files,
       'integration.js': [
-        "const { Router, Manager, Form } = require('@fusebit-int/pkg-manager');",
-        "const connectors = require('@fusebit-int/pkg-manager').connectors;",
+        "const { Router, Manager, Form } = require('@fusebit-int/framework');",
+        "const connectors = require('@fusebit-int/framework').connectors;",
         '',
         'const router = new Router();',
         '',
@@ -534,8 +534,8 @@ describe('Integration', () => {
   test('Invoke Entity Event', async () => {
     const entity = await createEntity(testEntityType, sampleEntity());
     entity.data.files['integration.js'] = [
-      "const { Router, Manager, Form } = require('@fusebit-int/pkg-manager');",
-      "const connectors = require('@fusebit-int/pkg-manager').connectors;",
+      "const { Router, Manager, Form } = require('@fusebit-int/framework');",
+      "const connectors = require('@fusebit-int/framework').connectors;",
       '',
       'const router = new Router();',
       '',

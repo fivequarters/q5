@@ -94,7 +94,11 @@ class Manager {
     // Add vendor routes prior to the defaults, to allow for the vendor to add middleware or override default
     // handlers.
     if (vendor) {
-      this.router.use(vendor.routes());
+      try {
+        this.router.use(vendor.routes());
+      } catch (err) {
+        this.vendorError = err;
+      }
     }
 
     // Add the default routes - these will get overruled by any routes added by the vendor or during the

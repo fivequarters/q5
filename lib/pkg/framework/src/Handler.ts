@@ -1,12 +1,12 @@
 import { Manager } from './Manager';
 
-export const Handler = (config: any) => {
+export const Handler = (handler: string, config: any) => {
   const manager = new Manager();
 
   let router;
   let routerError;
   try {
-    router = require(config.package);
+    router = require(handler);
   } catch (e) {
     routerError = e;
   }

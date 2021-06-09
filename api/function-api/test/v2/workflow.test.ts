@@ -64,33 +64,37 @@ describe('Workflow', () => {
       conn: { package: '@fusebit-int/pkg-oauth-integration', connector: conn.id },
     };
     integ.data.files['integration.js'] = [
-      `const { Router, Manager, Form } = require('@fusebit-int/pkg-manager');`,
+      `const { Router, Manager, Form } = require('@fusebit-int/framework');`,
       `const router = new Router();`,
       ``,
       `router.get('/api/', async (ctx) => { ctx.body = 'banana'; });`,
       ``,
-      `router.get('/api/:tenantId', async (ctx) => {`,
+      `router.get('/api/lookup/:tenantId', async (ctx) => {`,
       `  const oauth = await ctx.state.manager.connectors.getByName('conn', (ctx) => ctx.params.tenantId)(ctx);`,
       `  ctx.body = oauth.accessToken;`,
       `});`,
+      '',
+      'module.exports = router;',
     ].join('\n');
 
     response = await ApiRequestMap.integration.putAndWait(account, integ.id, integ);
     expect(response).toBeHttp({ statusCode: 200 });
 
     // Prime connector
-    conn.data.configuration = {
-      package: '@fusebit-int/pkg-oauth-connector',
-      scope: '',
-      authorizationUrl,
-      tokenUrl,
-      clientId: 'BBBB',
-      clientSecret: 'AAAA',
-      refreshErrorLimit: 100000,
-      refreshInitialBackoff: 100000,
-      refreshWaitCountLimit: 100000,
-      refreshBackoffIncrement: 100000,
-      accessTokenExpirationBuffer: 500,
+    conn.data = {
+      handler: '@fusebit-int/pkg-oauth-connector',
+      configuration: {
+        scope: '',
+        authorizationUrl,
+        tokenUrl,
+        clientId: 'BBBB',
+        clientSecret: 'AAAA',
+        refreshErrorLimit: 100000,
+        refreshInitialBackoff: 100000,
+        refreshWaitCountLimit: 100000,
+        refreshBackoffIncrement: 100000,
+        accessTokenExpirationBuffer: 500,
+      },
     };
 
     response = await ApiRequestMap.connector.putAndWait(account, conn.id, conn);
@@ -110,6 +114,13 @@ describe('Workflow', () => {
 
     response = await request({ method: 'POST', url: tokenUrl, query: { state } });
     expect(response).toBeHttp({ statusCode: 200, data: sampleToken });
+
+    // Test the health of the connector and integrations.
+    response = await ApiRequestMap.connector.dispatch(account, conn.id, 'GET', `/api/health`);
+    expect(response).toBeHttp({ statusCode: 200 });
+
+    response = await ApiRequestMap.integration.dispatch(account, integ.id, 'GET', `/api/health`);
+    expect(response).toBeHttp({ statusCode: 200 });
 
     // Invoke flow
     response = await ApiRequestMap.connector.dispatch(account, conn.id, 'GET', `/api/configure?state=${state}`, {

@@ -15,7 +15,7 @@ const rejectPermissionAgent = {
 };
 
 const defaultIntegration = [
-  "const { Router, Manager, Form } = require('@fusebit-int/pkg-manager');",
+  "const { Router, Manager, Form } = require('@fusebit-int/framework');",
   '',
   'const router = new Router();',
   '',
@@ -43,7 +43,7 @@ class IntegrationService extends BaseComponentService<Model.IIntegration> {
     let data = entity.data;
 
     if (!data) {
-      data = entity.data = {};
+      data = entity.data = { handler: './integration' };
     }
 
     // Get the list of javascript files
@@ -55,29 +55,31 @@ class IntegrationService extends BaseComponentService<Model.IIntegration> {
     const nonPackageFiles = Object.keys(data.files).filter((f) => f.match(/\.js$/));
     if (nonPackageFiles.length > 1) {
       // Many files present; key must be specified.
-      if (!data.configuration || data.configuration.package === undefined) {
-        throw new Error(`A 'package' must be specified in the configuration`);
+      if (!data.configuration || data.handler === undefined) {
+        throw new Error(`A 'handler' must be specified for the integration`);
       }
     } else if (nonPackageFiles.length === 1) {
       // One file present; use that file as the integration.
-      data.configuration = { connectors: {}, package: `./${nonPackageFiles[0]}`, ...data.configuration };
+      data.handler = `./${nonPackageFiles[0]}`;
+      data.configuration = { connectors: {}, ...data.configuration };
     } else {
       // New integration, no files present, create some placeholders.
       data.files['integration.js'] = defaultIntegration;
-      data.configuration = { connectors: {}, ...data.configuration, package: './integration' };
+      data.handler = './integration';
+      data.configuration = { connectors: {}, ...data.configuration };
     }
 
     if (!data.configuration.connectors) {
       data.configuration.connectors = {};
     }
 
-    // Create the package.json, making sure pkg-handler and pkg-manager are present, and any packages
-    // referenced in the connectors block.
+    // Create the package.json, making sure the framework is present, and any packages referenced in the
+    // connectors block.
     const pkg = {
       ...defaultPackage(entity),
       ...(data.files && data.files['package.json'] ? JSON.parse(data.files['package.json']) : {}),
     };
-    pkg.dependencies['@fusebit-int/pkg-manager'] = pkg.dependencies['@fusebit-int/pkg-manager'] || '^2.0.0';
+    pkg.dependencies['@fusebit-int/framework'] = pkg.dependencies['@fusebit-int/framework'] || '^2.0.0';
 
     // Make sure packages mentioned in the cfg.connectors block are also included.
     if (data.configuration) {
@@ -108,8 +110,9 @@ class IntegrationService extends BaseComponentService<Model.IIntegration> {
           // Don't allow the index.js to be overwritten.
           'index.js': [
             `const config = ${JSON.stringify(config)};`,
-            "config.package = config.package[0] === '.' ? `${__dirname}/${config.package}`: config.package;",
-            `module.exports = require('@fusebit-int/pkg-handler')(config);`,
+            `let handler = '${data.handler}';`,
+            "handler = handler[0] === '.' ? `${__dirname}/${handler}`: handler;",
+            `module.exports = require('@fusebit-int/framework').Handler(handler, config);`,
           ].join('\n'),
         },
       },
