@@ -112,7 +112,7 @@ export interface ISessionConfig {
   entityId: string;
   entityType?: EntityType;
   steps?: ISessionStep[];
-  redirectUrl: string;
+  redirectUrl?: string;
 }
 
 export interface IIntegration extends IEntity {

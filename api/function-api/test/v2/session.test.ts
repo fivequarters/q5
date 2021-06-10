@@ -3,6 +3,7 @@ import { ApiRequestMap, getSession, postSession, putSession } from './sdk';
 import { getEnv } from '../v1/setup';
 import { ConnectorService, IntegrationService } from '../../src/routes/service';
 import { EntityType, IConnector, IIntegration, ISessionConfig, SessionStepStatus } from '@5qtrs/db/libc/model';
+import { Model } from '@5qtrs/db';
 
 const integrationService = new IntegrationService();
 const connectorService = new ConnectorService();
@@ -14,19 +15,33 @@ beforeEach(() => {
 const integrations: IIntegration[] = [];
 const connectors: IConnector[] = [];
 
+const getIdPrefix = () => ({ idPrefix: boundaryId });
+const createEntity = async (testEntityType: EntityType, entity: Model.IEntity) => {
+  const createResponse = await ApiRequestMap[testEntityType].post(account, entity);
+  expect(createResponse).toBeHttp({ statusCode: 202 });
+  const operation = await ApiRequestMap.operation.waitForCompletion(account, createResponse.data.operationId);
+  expect(operation).toBeHttp({ statusCode: 200 });
+  const listResponse = await ApiRequestMap[testEntityType].list(account, getIdPrefix());
+  expect(listResponse).toBeHttp({ statusCode: 200 });
+  expect(listResponse.data).toBeDefined();
+  expect(listResponse.data.items).toMatchObject([entity]);
+  expect(listResponse.data.items[0].version).toBeUUID();
+  return listResponse.data.items[0];
+};
+
 describe.skip('Sessions', () => {
   beforeEach(async () => {
     integrations.length = 0;
     connectors.length = 0;
     integrations.push(
-      await integrationService.dao.createEntity({
+      await createEntity(EntityType.integration, {
         accountId: account.accountId,
         id: 'session_test_integration',
         subscriptionId: account.subscriptionId,
       })
     );
     connectors.push(
-      await connectorService.dao.createEntity({
+      await createEntity(EntityType.integration, {
         accountId: account.accountId,
         id: 'session_test_connector_1',
         subscriptionId: account.subscriptionId,
@@ -34,24 +49,12 @@ describe.skip('Sessions', () => {
     );
 
     connectors.push(
-      await connectorService.dao.createEntity({
+      await createEntity(EntityType.connector, {
         accountId: account.accountId,
         id: 'session_test_connector_2',
         subscriptionId: account.subscriptionId,
       })
     );
-  });
-  test('Test Simple Sessions', async () => {
-    const integId = boundaryId; // Guaranteed not to conflict
-    let response = await postSession(account, EntityType.integration, { entityId: integrations[0].id });
-    expect(response).toBeHttp({ statusCode: 200, has: ['session'] });
-    const sessionId = response.data.session;
-    response = await getSession(account, 'integration', integId, sessionId);
-    expect(response).toBeHttp({ statusCode: 200, data: { foo: 1 } });
-    response = await putSession(account, 'integration', integId, sessionId, { foo: 9 });
-    expect(response).toBeHttp({ statusCode: 200 });
-    response = await getSession(account, 'integration', integId, sessionId);
-    expect(response).toBeHttp({ statusCode: 200, data: { foo: 9 } });
   });
 
   const createIntegrationSession = async (config: ISessionConfig) => {
