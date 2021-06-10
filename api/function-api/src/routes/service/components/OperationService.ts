@@ -28,7 +28,7 @@ class OperationService {
     entity: Model.IEntity,
     status: IOperationParam,
     op: IOperationAction
-  ): Promise<IServiceResult> => {
+  ): Promise<IServiceResult<{ operationId: string }>> => {
     // Get the entity
 
     // Create operation with the status

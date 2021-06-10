@@ -105,7 +105,7 @@ class IntegrationService extends BaseComponentService<Model.IIntegration> {
     return spec;
   };
 
-  public createEntity = async (entity: Model.IEntity): Promise<IServiceResult> => {
+  public createEntity = async (entity: Model.IEntity): Promise<IServiceResult<{ operationId: string }>> => {
     // TODO: Validate the data matches the expected Joi schema (to be eventually promoted) (especially that
     // the payload contents for accountId match the url parameters).
 
@@ -149,7 +149,7 @@ class IntegrationService extends BaseComponentService<Model.IIntegration> {
     }
   };
 
-  public updateEntity = async (entity: Model.IEntity): Promise<IServiceResult> => {
+  public updateEntity = async (entity: Model.IEntity): Promise<IServiceResult<{ operationId: string }>> => {
     // TODO: Validate the data matches the expected Joi schema (to be eventually promoted) (especially that
     // the payload contents for accountId match the url parameters).
 
@@ -172,7 +172,7 @@ class IntegrationService extends BaseComponentService<Model.IIntegration> {
     );
   };
 
-  public deleteEntity = async (entity: Model.IEntity): Promise<IServiceResult> => {
+  public deleteEntity = async (entity: Model.IEntity): Promise<IServiceResult<{ operationId: string }>> => {
     // TODO: Validate the data matches the expected Joi schema (to be eventually promoted) (especially that
     // the payload contents for accountId match the url parameters).
 

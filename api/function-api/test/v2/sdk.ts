@@ -4,6 +4,8 @@ import { Model } from '@5qtrs/db';
 import * as querystring from 'querystring';
 
 import { getEnv } from '../v1/setup';
+import { EntityType, ISessionConfig } from '@5qtrs/db/libc/model';
+import { v2 } from '../../src/routes';
 
 let { function5Id } = getEnv();
 
@@ -100,6 +102,18 @@ export const ApiRequestMap: { [key: string]: any } = {
       put: async (account: IAccount, connectorId: string, tagKey: string, tagValue: string) =>
         v2Request(account, { method: 'PUT', uri: `/connector/${connectorId}/tag/${tagKey}/${tagValue}` }),
     },
+    session: {
+      post: async (account: IAccount, sessionConfigPayload: ISessionConfig) =>
+        v2Request(account, {
+          method: 'POST',
+          uri: `/connector/${sessionConfigPayload.entityId}/session`,
+          body: sessionConfigPayload,
+        }),
+      get: async (account: IAccount, connectorId: string, sessionId: string) =>
+        v2Request(account, { method: 'GET', uri: `/connector/${connectorId}/session/${sessionId}` }),
+      getNext: async (account: IAccount, connectorId: string, sessionId: string) =>
+        v2Request(account, { method: 'GET', uri: `/connector/${connectorId}/session/${sessionId}/next` }),
+    },
   },
   integration: {
     get: async (account: IAccount, integrationId: string) => {
@@ -169,6 +183,29 @@ export const ApiRequestMap: { [key: string]: any } = {
       put: async (account: IAccount, integrationId: string, tagKey: string, tagValue: string) =>
         v2Request(account, { method: 'PUT', uri: `/integration/${integrationId}/tag/${tagKey}/${tagValue}` }),
     },
+    session: {
+      post: async (account: IAccount, sessionConfigPayload: ISessionConfig) =>
+        v2Request(account, {
+          method: 'POST',
+          uri: `/integration/${sessionConfigPayload.entityId}/session`,
+          body: sessionConfigPayload,
+        }),
+      get: async (account: IAccount, integrationId: string, sessionId: string) =>
+        v2Request(account, { method: 'GET', uri: `/integration/${integrationId}/session/${sessionId}` }),
+      getNext: async (account: IAccount, integrationId: string, sessionId: string) =>
+        v2Request(account, { method: 'GET', uri: `/integration/${integrationId}/session/${sessionId}/next` }),
+      callback: async (account: IAccount, integrationId: string, sessionId: string, subSessionId: string) =>
+        v2Request(account, {
+          method: 'GET',
+          uri: `/integration/${integrationId}/session/${sessionId}/next?${querystring.stringify({
+            state: Buffer.from(
+              JSON.stringify({
+                subSessionId,
+              })
+            ).toString('base64'),
+          })}`,
+        }),
+    },
   },
   operation: {
     get: async (account: IAccount, operationId: string) => {
@@ -223,9 +260,9 @@ export const v2Request = async (account: IAccount, requestOptions: IRequestOptio
   });
 };
 
-type SessionModes = 'integration' | 'connector';
+type SessionModes = EntityType.integration | EntityType.connector;
 
-export async function postSession(account: IAccount, mode: SessionModes, modeId: string, payload: any) {
+export async function postSession(account: IAccount, mode: SessionModes, payload: ISessionConfig) {
   return request({
     method: 'POST',
     headers: {
@@ -233,18 +270,12 @@ export async function postSession(account: IAccount, mode: SessionModes, modeId:
       'Content-Type': 'application/json',
       'User-Agent': account.userAgent,
     },
-    url: `${account.baseUrl}/v2/account/${account.accountId}/subscription/${account.subscriptionId}/${mode}/${modeId}/session`,
+    url: `${account.baseUrl}/v2/account/${account.accountId}/subscription/${account.subscriptionId}/${mode}/${payload.entityId}/session`,
     data: payload,
   });
 }
 
-export async function putSession(
-  account: IAccount,
-  mode: SessionModes,
-  modeId: string,
-  sessionId: string,
-  payload: any
-) {
+export async function putSession(account: IAccount, mode: SessionModes, sessionId: string, payload: ISessionConfig) {
   return request({
     method: 'PUT',
     headers: {
@@ -252,7 +283,7 @@ export async function putSession(
       'Content-Type': 'application/json',
       'User-Agent': account.userAgent,
     },
-    url: `${account.baseUrl}/v2/account/${account.accountId}/subscription/${account.subscriptionId}/${mode}/${modeId}/session/${sessionId}`,
+    url: `${account.baseUrl}/v2/account/${account.accountId}/subscription/${account.subscriptionId}/${mode}/${payload.entityId}/session/${sessionId}`,
     data: payload,
   });
 }

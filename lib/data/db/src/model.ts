@@ -110,16 +110,16 @@ export interface IListResponse<T extends IEntity> {
 
 export interface ISessionConfig {
   entityId: string;
-  url?: string;
-  connectors?: { [key: string]: { package: string; config?: ISessionConfig } };
-  forms?: { [key: string]: { config?: ISessionConfig } };
+  entityType?: EntityType;
   steps?: ISessionStep[];
+  redirectUrl: string;
 }
 
 export interface IIntegration extends IEntity {
   data: {
     configuration?: {
       package: string;
+      steps?: ISessionStep[];
       connectors?: { [name: string]: { package: string; config?: ISessionConfig } };
       forms?: { [name: string]: ISessionConfig };
     };
@@ -146,10 +146,11 @@ export enum SessionStepStatus {
   COMPLETE = 'COMPLETE',
   TODO = 'TODO',
   IN_PROGRESS = 'IN_PROGRESS',
+  SKIP = 'SKIP',
 }
 export enum SessionStepType {
   CONNECTOR = 'CONNECTOR',
-  FORM = 'FORM',
+  INTEGRATION = 'INTEGRATION',
 }
 export interface ISessionStep {
   status: SessionStepStatus;

@@ -56,7 +56,7 @@ class ConnectorService extends BaseComponentService<Model.IConnector> {
     };
   };
 
-  public createEntity = async (entity: Model.IEntity): Promise<IServiceResult> => {
+  public createEntity = async (entity: Model.IEntity): Promise<IServiceResult<{ operationId: string }>> => {
     // TODO: Validate the data matches the expected Joi schema (to be eventually promoted) (especially that
     // the payload contents for accountId match the url parameters).
 
@@ -96,7 +96,7 @@ class ConnectorService extends BaseComponentService<Model.IConnector> {
     }
   };
 
-  public updateEntity = async (entity: Model.IEntity): Promise<IServiceResult> => {
+  public updateEntity = async (entity: Model.IEntity): Promise<IServiceResult<{ operationId: string }>> => {
     // TODO: Validate the data matches the expected Joi schema (to be eventually promoted) (especially that
     // the payload contents for accountId match the url parameters).
 
@@ -117,7 +117,7 @@ class ConnectorService extends BaseComponentService<Model.IConnector> {
     );
   };
 
-  public deleteEntity = async (entity: Model.IEntity): Promise<IServiceResult> => {
+  public deleteEntity = async (entity: Model.IEntity): Promise<IServiceResult<{ operationId: string }>> => {
     // TODO: Validate the data matches the expected Joi schema (to be eventually promoted) (especially that
     // the payload contents for accountId match the url parameters).
 

@@ -5,15 +5,15 @@ import RDS, { Model } from '@5qtrs/db';
 import * as Functions from '../../functions';
 import { isArray } from '@5qtrs/type';
 import createError from 'http-errors';
-import { ISessionConfig, ISession, ISessionStep, SessionStepStatus } from '@5qtrs/db/libc/model';
+import { ISessionConfig, ISession, ISessionStep, SessionStepStatus, EntityType } from '@5qtrs/db/libc/model';
 import { ISessionIdParams } from '../../handlers/pathParams';
 import uuidv4 from 'uuid/v4';
-import superagent from 'superagent';
+import assert from 'assert';
 
-export interface IServiceResult {
+export interface IServiceResult<T> {
   statusCode: number;
   contentType?: string;
-  result: any;
+  result: T;
 }
 
 export interface IDispatchParams {
@@ -40,15 +40,15 @@ export default abstract class BaseComponentService<E extends Model.IEntity> {
   }
   public readonly dao: Model.IEntityDao<E>;
 
-  public createEntity = async (entity: Model.IEntity): Promise<IServiceResult> => ({
+  public createEntity = async (entity: Model.IEntity): Promise<IServiceResult<E | { operationId: string }>> => ({
     statusCode: 200,
     result: await this.dao.createEntity(entity),
   });
-  public updateEntity = async (entity: Model.IEntity): Promise<IServiceResult> => ({
+  public updateEntity = async (entity: Model.IEntity): Promise<IServiceResult<E | { operationId: string }>> => ({
     statusCode: 200,
     result: await this.dao.updateEntity(entity),
   });
-  public deleteEntity = async (entity: Model.IEntity): Promise<IServiceResult> => ({
+  public deleteEntity = async (entity: Model.IEntity): Promise<IServiceResult<boolean | { operationId: string }>> => ({
     statusCode: 200,
     result: await this.dao.deleteEntity(entity),
   });
@@ -87,7 +87,7 @@ export default abstract class BaseComponentService<E extends Model.IEntity> {
     return { ...session, nextStep };
   };
 
-  public getSessionStep = async (entity: IEntityWithStep): Promise<ISessionStep> => {
+  public getSessionStep = async (entity: IEntityWithStep, redirectUrl: string): Promise<ISessionStep> => {
     const session = await RDS.DAO.session.getEntity(entity);
     if (
       session.data &&
@@ -101,11 +101,27 @@ export default abstract class BaseComponentService<E extends Model.IEntity> {
     const sessionStep = session.data.steps.find((step) => step.name === entity.stepName) as ISessionStep;
 
     if (!sessionStep.id) {
-      const sessionCreateResponse = await superagent.post(sessionStep.config.url).send(sessionStep.config);
+      const [subsessionEntityType, subsessionEntityId] = sessionStep.name.split(':');
+      if (!(<any>Object).values(EntityType).includes(subsessionEntityType)) {
+        throw createError(500, `${subsessionEntityType} does not match any entity types`);
+      }
+      assert((<any>Object).values(EntityType).includes(subsessionEntityType));
+      const subSession = await this.createSession(
+        {
+          accountId: entity.accountId,
+          subscriptionId: entity.subscriptionId,
+          parentSessionId: session.id,
+        },
+        {
+          entityId: subsessionEntityId,
+          entityType: subsessionEntityType as EntityType,
+          redirectUrl,
+        }
+      );
       await this.beginSessionStep({
         ...session,
         stepName: sessionStep.name,
-        stepSessionId: sessionCreateResponse.body.sessionId,
+        stepSessionId: subSession.id,
       });
     }
 
@@ -117,7 +133,12 @@ export default abstract class BaseComponentService<E extends Model.IEntity> {
   };
 
   public createSession = async (sessionIdParams: ISessionIdParams, config: ISessionConfig): Promise<any> => {
-    const entity = await this.dao.getEntity({ ...sessionIdParams, id: config.entityId });
+    let entity;
+    if (config.entityType) {
+      entity = await RDS.DAO[config.entityType].getEntity({ ...sessionIdParams, id: config.entityType });
+    } else {
+      entity = await this.dao.getEntity({ ...sessionIdParams, id: config.entityId });
+    }
     const steps: ISessionStep[] = [];
     if (config.steps) {
       steps.concat(config.steps);

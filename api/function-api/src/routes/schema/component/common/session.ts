@@ -27,11 +27,24 @@ const router = (ComponentService: BaseComponentService<any>) => {
   sessionRouter.route('/:sessionId').get(async (req, res, next) => {
     try {
       const sessionParams = pathParams.SessionId(req);
+      const session = await ComponentService.getSession(sessionParams);
+      return res.json(session);
+    } catch (e) {
+      next(e);
+    }
+  });
+
+  sessionRouter.route('/:sessionId/next').get(async (req, res, next) => {
+    try {
+      const sessionParams = pathParams.SessionId(req);
       const sessionWithNextStep = await ComponentService.getNextSessionStep(sessionParams);
 
       if (sessionWithNextStep.nextStep) {
         // redirect to next step
-        const redirectUrl = `${req.url}/${sessionWithNextStep.nextStep}`;
+        const redirectUrlArray = req.url.split('/');
+        redirectUrlArray.pop();
+        redirectUrlArray.push(sessionWithNextStep.nextStep.name);
+        const redirectUrl = redirectUrlArray.join('/');
         return res.redirect(302, redirectUrl);
       } else {
         // redirect to callback url with sessionId encoded as parameter
@@ -54,6 +67,7 @@ const router = (ComponentService: BaseComponentService<any>) => {
       }
       const urlArray = req.url.split('/');
       urlArray.pop();
+      urlArray.push('next');
       const redirectUrl = urlArray.join('/');
       res.redirect(302, redirectUrl);
     } catch (e) {
@@ -70,10 +84,22 @@ const router = (ComponentService: BaseComponentService<any>) => {
         const session = await ComponentService.getSession(sessionParams);
         const redirectUrl = session.data.redirectUrl;
         // TODO
+        // Returning teapot for testing current status
+        res.status(418);
+        res.end();
+        return;
       } else {
         // get sub-session and redirect to it
-        const sessionStep = await ComponentService.getSessionStep(sessionParams);
-        const redirectUrl = `${sessionStep.config.url}/${sessionStep.id}`;
+        const subSessionRedirectUrlArray = req.url.split('/');
+        subSessionRedirectUrlArray.pop();
+        subSessionRedirectUrlArray.push('/callback');
+        const subSessionRedirectUrl = subSessionRedirectUrlArray.join('/');
+        const sessionStep = await ComponentService.getSessionStep(sessionParams, subSessionRedirectUrl);
+
+        const urlArray = req.url.split('/');
+        urlArray.splice(urlArray.length - 4, 4);
+        urlArray.push(...sessionStep.name.split(':'), <string>sessionStep.id);
+        const redirectUrl = urlArray.join('/');
         return res.redirect(302, redirectUrl);
       }
     } catch (e) {
