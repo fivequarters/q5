@@ -42,6 +42,22 @@ export const cleanupEntities = async (account: IAccount) => {
   testEntitiesCreated.length = 0; // Clear the array.
 };
 
+export const v2Request = async (account: IAccount, options: IRequestOptions) => {
+  return request({
+    headers: {
+      ...(options.authz === ''
+        ? {}
+        : { Authorization: `Bearer ${options.authz ? options.authz : account.accessToken}` }),
+      'user-agent': account.userAgent,
+      ...(options.contentType ? { 'content-type': options.contentType } : {}),
+    },
+    url: `${account.baseUrl}/v2/account/${account.accountId}/subscription/${account.subscriptionId}${options.uri}`,
+    method: options.method,
+    data: options.body,
+    maxRedirects: options.maxRedirects,
+  });
+};
+
 export const ApiRequestMap: { [key: string]: any } = {
   connector: {
     get: async (account: IAccount, connectorId: string, options?: IRequestOptions) => {
@@ -145,6 +161,28 @@ export const ApiRequestMap: { [key: string]: any } = {
     },
   },
   integration: {
+    session: {
+      post: async (
+        account: IAccount,
+        entityId: string,
+        body: Model.ISessionParameters | Model.IStep,
+        options?: IRequestOptions
+      ) => {
+        return v2Request(account, {
+          method: 'POST',
+          uri: `/integration/${encodeURI(entityId)}/session/`,
+          body,
+          ...options,
+        });
+      },
+      getResult: {},
+      get: {},
+      put: {},
+      postSession: {},
+      start: {},
+      callback: {},
+    },
+
     get: async (account: IAccount, integrationId: string, options?: IRequestOptions) => {
       return v2Request(account, { method: 'GET', uri: `/integration/${encodeURI(integrationId)}`, ...options });
     },
@@ -277,65 +315,3 @@ export const ApiRequestMap: { [key: string]: any } = {
     },
   },
 };
-
-export const v2Request = async (account: IAccount, options: IRequestOptions) => {
-  return request({
-    headers: {
-      ...(options.authz === ''
-        ? {}
-        : { Authorization: `Bearer ${options.authz ? options.authz : account.accessToken}` }),
-      'user-agent': account.userAgent,
-      ...(options.contentType ? { 'content-type': options.contentType } : {}),
-    },
-    url: `${account.baseUrl}/v2/account/${account.accountId}/subscription/${account.subscriptionId}${options.uri}`,
-    method: options.method,
-    data: options.body,
-    maxRedirects: options.maxRedirects,
-  });
-};
-
-type SessionModes = 'integration' | 'connector';
-
-export async function postSession(account: IAccount, mode: SessionModes, modeId: string, payload: any) {
-  return request({
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${account.accessToken}`,
-      'Content-Type': 'application/json',
-      'User-Agent': account.userAgent,
-    },
-    url: `${account.baseUrl}/v2/account/${account.accountId}/subscription/${account.subscriptionId}/${mode}/${modeId}/session`,
-    data: payload,
-  });
-}
-
-export async function putSession(
-  account: IAccount,
-  mode: SessionModes,
-  modeId: string,
-  sessionId: string,
-  payload: any
-) {
-  return request({
-    method: 'PUT',
-    headers: {
-      Authorization: `Bearer ${account.accessToken}`,
-      'Content-Type': 'application/json',
-      'User-Agent': account.userAgent,
-    },
-    url: `${account.baseUrl}/v2/account/${account.accountId}/subscription/${account.subscriptionId}/${mode}/${modeId}/session/${sessionId}`,
-    data: payload,
-  });
-}
-
-export async function getSession(account: IAccount, mode: SessionModes, modeId: string, sessionId: string) {
-  return request({
-    method: 'GET',
-    headers: {
-      Authorization: `Bearer ${account.accessToken}`,
-      'Content-Type': 'application/json',
-      'User-Agent': account.userAgent,
-    },
-    url: `${account.baseUrl}/v2/account/${account.accountId}/subscription/${account.subscriptionId}/${mode}/${modeId}/session/${sessionId}`,
-  });
-}

@@ -179,6 +179,13 @@ export interface IOperation extends IEntity {
   };
 }
 
+export interface ISessionParameters {
+  steps?: string[];
+  tags?: ITags;
+  input?: { [stepName: string]: any };
+  redirectUrl: string;
+}
+
 export interface ILeafSession extends IStep {
   mode: 'leaf';
   meta: {

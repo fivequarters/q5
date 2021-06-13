@@ -3,26 +3,6 @@ import RDS, { Model } from '@5qtrs/db';
 
 import BaseComponentService, { IServiceResult } from './BaseComponentService';
 
-interface ISessionDetails {
-  steps?: string[];
-  tags?: Model.ITags;
-  input?: { [stepName: string]: any };
-  redirectUrl: string;
-}
-
-// TODO:
-//  IIntegrationEntity:
-//    // When does the integration code actually persist this into an instance? Probably just on the final
-//    // callback after the commits for all of the steps have been performed. Need to incorporate a way to
-//    // extract out the results of things like forms. Maybe anything without a commit url?
-//    // Also, need to include in the top level the id of any artifacts created, so the top level integration
-//    // code has a chance to associate.
-//
-//  On creation, allow for targeted override of the input object.
-//
-//  Call the commit url with an operationId so it can track rollback if necessary.
-//  Record all of the results in the operation, key'ed off of the stepName.
-//
 export default abstract class SessionedComponentService<E extends Model.IEntity> extends BaseComponentService<E> {
   private readonly sessionDao: Model.IEntityDao<Model.ISession>;
 
@@ -40,7 +20,7 @@ export default abstract class SessionedComponentService<E extends Model.IEntity>
 
   public createSession = async (
     entity: Model.IEntity,
-    sessionDetails: ISessionDetails | Model.IStep
+    sessionDetails: Model.ISessionParameters | Model.IStep
   ): Promise<IServiceResult> => {
     if ('target' in sessionDetails) {
       // Explicit step session creation.
