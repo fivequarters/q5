@@ -29,10 +29,11 @@ const router = (ComponentService: BaseComponentService<any>) => {
             {
               ...pathParams.accountAndSubscription(req),
               ...query.tags(req),
-              ...query.prefix(req),
+              idPrefix: req.query.idPrefix as string | undefined,
             },
             {
-              ...query.paginated(req),
+              listLimit: Number(req.query.count),
+              next: req.query.next as string | undefined,
             }
           );
           response.items = response.items.map((entity) => Model.entityToSdk(entity));

@@ -19,19 +19,22 @@ export interface IDispatchParams {
 
 export default abstract class BaseComponentService<E extends Model.IEntity> {
   public abstract readonly entityType: Model.EntityType;
+  public readonly dao: Model.IEntityDao<E>;
+
   protected constructor(dao: Model.IEntityDao<E>) {
     this.dao = dao;
   }
-  public readonly dao: Model.IEntityDao<E>;
 
   public createEntity = async (entity: Model.IEntity): Promise<IServiceResult> => ({
     statusCode: 200,
     result: await this.dao.createEntity(entity),
   });
+
   public updateEntity = async (entity: Model.IEntity): Promise<IServiceResult> => ({
     statusCode: 200,
     result: await this.dao.updateEntity(entity),
   });
+
   public deleteEntity = async (entity: Model.IEntity): Promise<IServiceResult> => ({
     statusCode: 200,
     result: await this.dao.deleteEntity(entity),
@@ -54,9 +57,5 @@ export default abstract class BaseComponentService<E extends Model.IEntity> {
       location,
       elements
     );
-  };
-
-  public health = ({ id }: { id: string }): Promise<boolean> => {
-    return Promise.resolve(false);
   };
 }

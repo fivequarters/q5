@@ -3,7 +3,8 @@ import RDS, { Model } from '@5qtrs/db';
 import { IAgent } from '@5qtrs/account-data';
 import { AwsRegistry } from '@5qtrs/registry';
 
-import BaseComponentService, { IServiceResult } from './BaseComponentService';
+import { IServiceResult } from './BaseComponentService';
+import SessionedComponentService from './SessionedComponentService';
 import { operationService } from './OperationService';
 
 import * as Function from '../../functions';
@@ -32,7 +33,7 @@ const defaultPackage = (entity: Model.IIntegration) => ({
   files: ['./integration.js'], // Make sure the default file is included, if nothing else.
 });
 
-class IntegrationService extends BaseComponentService<Model.IIntegration> {
+class IntegrationService extends SessionedComponentService<Model.IIntegration> {
   public readonly entityType: Model.EntityType;
   constructor() {
     super(RDS.DAO.integration);

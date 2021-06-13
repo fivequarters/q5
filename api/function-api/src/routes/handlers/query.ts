@@ -1,27 +1,12 @@
 import { Request } from 'express';
 
 const tags = (req: Request) => {
-  const tags: { [key: string]: string } = {};
+  const results: { [key: string]: string } = {};
   if (typeof req.query.tag === 'string' && req.query.tag.length) {
     const [tagKey, tagValue] = req.query.tag.split('=');
-    tags[tagKey] = tagValue;
+    results[tagKey] = tagValue;
   }
-  return { tags };
+  return { tags: results };
 };
 
-const sessionRedirect = (req: Request) => {
-  const { redirectUrl } = req.query;
-  return { redirectUrl };
-};
-
-const paginated = (req: Request) => {
-  const { count, next } = req.query;
-  return { listLimit: Number(count), next: next as string | undefined };
-};
-
-const prefix = (req: Request) => {
-  const { idPrefix } = req.query;
-  return { idPrefix: idPrefix as string | undefined };
-};
-
-export default { tags, sessionRedirect, paginated, prefix };
+export default { tags };

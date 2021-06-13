@@ -37,6 +37,7 @@ const createEntity = async (testEntityType: string, entity: Model.ISdkEntity) =>
   const listResponse = await ApiRequestMap[testEntityType].list(account, getIdPrefix());
   expect(listResponse).toBeHttp({ statusCode: 200 });
   expect(listResponse.data).toBeDefined();
+  expect(listResponse.data.items.length).toBe(1);
   expect(listResponse.data.items).toMatchObject([entity]);
   expect(listResponse.data.items[0].version).toBeUUID();
   return listResponse.data.items[0];

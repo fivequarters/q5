@@ -3,7 +3,9 @@ import RDS, { Model } from '@5qtrs/db';
 import { IAgent } from '@5qtrs/account-data';
 import { AwsRegistry } from '@5qtrs/registry';
 
-import BaseComponentService, { IServiceResult } from './BaseComponentService';
+import { IServiceResult } from './BaseComponentService';
+import SessionedComponentService from './SessionedComponentService';
+
 import { operationService } from './OperationService';
 
 import * as Function from '../../functions';
@@ -20,7 +22,7 @@ const defaultPackage = (entity: Model.IEntity) => ({
   dependencies: {},
 });
 
-class ConnectorService extends BaseComponentService<Model.IConnector> {
+class ConnectorService extends SessionedComponentService<Model.IConnector> {
   public readonly entityType: Model.EntityType;
   constructor() {
     super(RDS.DAO.connector);

@@ -124,11 +124,36 @@ export const entityToSdk = (entity: IEntity): ISdkEntity => ({
 // IEntity Extensions
 // --------------------------------
 
+export interface IStep {
+  stepName: string;
+  input?: any;
+  output?: any;
+  uses?: string[];
+  target:
+    | {
+        type: 'generic';
+        handlers: {
+          step?: string;
+          commit?: string;
+        };
+      }
+    | {
+        type: EntityType.connector;
+        accountId?: string;
+        subscriptionId?: string;
+        entityId: string;
+      };
+}
+
 export interface IIntegration extends IEntity {
   data: {
     handler: string;
     configuration?: {
       connectors: { [name: string]: { package: string; config?: any } };
+    };
+    creation?: {
+      tags?: ITags;
+      steps: { [stepName: string]: IStep };
     };
     files?: { [fileName: string]: string };
   };
@@ -144,24 +169,53 @@ export interface IConnector extends IEntity {
   };
 }
 
-export interface IOperationParam {
-  verb: 'creating' | 'updating' | 'deleting';
-  type: 'connector' | 'integration';
-}
-
-export interface IOperationData extends IOperationParam {
-  code: number; // HTTP status codes
-  message?: string;
-  location: { accountId: string; subscriptionId: string; entityId: string; entityType: EntityType };
-}
 export interface IOperation extends IEntity {
-  data: IOperationData;
+  data: {
+    verb: 'creating' | 'updating' | 'deleting';
+    type: 'connector' | 'integration';
+    code: number; // HTTP status codes
+    message?: string;
+    location: { accountId: string; subscriptionId: string; entityId: string; entityType: EntityType };
+  };
 }
 
-export interface IStorageItem extends IEntity {}
-export interface IIdentity extends IEntity {}
-export interface IInstance extends IEntity {}
-export interface ISession extends IEntity {}
+export interface ILeafSession extends IStep {
+  mode: 'leaf';
+  meta: {
+    parentId?: string;
+    redirectUrl?: string;
+  };
+}
+
+export type IStepSessionSteps = (IStep & { childSessionId?: string })[];
+export interface IStepSession {
+  mode: 'step';
+  input?: never;
+  output?: never;
+
+  meta: {
+    parentId?: string;
+    redirectUrl?: string;
+  };
+
+  steps: IStepSessionSteps;
+}
+
+export interface ISession extends IEntity {
+  data: ILeafSession | IStepSession;
+}
+
+export interface IStorageItem extends IEntity {
+  data: any;
+}
+
+export interface IIdentity extends IEntity {
+  data: any;
+}
+
+export interface IInstance extends IEntity {
+  data: any;
+}
 
 // --------------------------------
 // Utilities
