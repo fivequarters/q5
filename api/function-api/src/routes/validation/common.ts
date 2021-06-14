@@ -11,3 +11,9 @@ export const issuerId = Joi.string().regex(new RegExp(`^((?!${RUNAS_SYSTEM_ISSUE
 export const initId = Joi.string().regex(/^int-[a-g0-9]{16}$/);
 export const userId = Joi.string().regex(/^usr-[a-g0-9]{16}$/);
 export const npmPackageName = Joi.string().regex(/^(@[a-z0-9-~][a-z0-9-._~]*\/)?[a-z0-9-~][a-z0-9-._~]*$/);
+
+export const tagValue = /^[a-zA-Z0-9_\-\.]*$/;
+export const tagNameValues = Joi.string().regex(/^[a-zA-Z0-9_\-\.=&%]*$/);
+export const tagQuery = Joi.alternatives().try(tagNameValues, Joi.array().items(tagNameValues));
+
+export const tags = Joi.object().pattern(tagValue, Joi.string().regex(tagValue));

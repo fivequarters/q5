@@ -150,10 +150,10 @@ export interface IIntegration extends IEntity {
     handler: string;
     configuration?: {
       connectors: { [name: string]: { package: string; config?: any } };
-    };
-    creation?: {
-      tags?: ITags;
-      steps: { [stepName: string]: IStep };
+      creation?: {
+        tags?: ITags;
+        steps: { [stepName: string]: IStep };
+      };
     };
     files?: { [fileName: string]: string };
   };
@@ -201,6 +201,7 @@ export interface IStepSession {
   output?: never;
 
   meta: {
+    // Must have either parentId or redirectUrl present.
     parentId?: string;
     redirectUrl?: string;
   };

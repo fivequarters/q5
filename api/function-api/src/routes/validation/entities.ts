@@ -2,14 +2,11 @@ const Joi = require('joi');
 
 import * as Common from './common';
 
-const tagValue = /^[a-zA-Z0-9_\-\.]*$/;
-const tagNameValues = Joi.string().regex(/^[a-zA-Z0-9_\-\.=&%]*$/);
-
 const validateEntity = (data: any) =>
   Joi.object().keys({
     id: Common.entityId,
     data,
-    tags: Joi.object().pattern(tagValue, Joi.string().regex(tagValue)),
+    tags: Common.tags,
     version: Joi.string().guid(),
     expires: Joi.date().iso(),
   });
@@ -30,7 +27,7 @@ const EntityIdQuery = Joi.object().keys({
   idPrefix: Common.entityId.optional(),
   count: Joi.number(),
   next: Joi.string(),
-  tag: Joi.alternatives().try(tagNameValues, Joi.array().items(tagNameValues)),
+  tag: Common.tagQuery,
 });
 
 const Files = Joi.object();

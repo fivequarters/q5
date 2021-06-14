@@ -60,6 +60,46 @@ export const v2Request = async (account: IAccount, options: IRequestOptions) => 
 
 export const ApiRequestMap: { [key: string]: any } = {
   connector: {
+    session: {
+      post: async (
+        account: IAccount,
+        entityId: string,
+        body: Model.ISessionParameters | Model.IStep,
+        options?: IRequestOptions
+      ) => {
+        return v2Request(account, {
+          method: 'POST',
+          uri: `/connector/${encodeURI(entityId)}/session/`,
+          body,
+          ...options,
+        });
+      },
+      getResult: async (account: IAccount, entityId: string, sessionId: string, options?: IRequestOptions) => {
+        return v2Request(account, {
+          method: 'GET',
+          uri: `/connector/${encodeURI(entityId)}/session/result/${sessionId}`,
+          ...options,
+        });
+      },
+      get: async (account: IAccount, entityId: string, sessionId: string, options?: IRequestOptions) => {
+        return v2Request(account, {
+          method: 'GET',
+          uri: `/connector/${encodeURI(entityId)}/session/${sessionId}`,
+          ...options,
+        });
+      },
+      put: async (account: IAccount, entityId: string, sessionId: string, body: any, options?: IRequestOptions) => {
+        return v2Request(account, {
+          method: 'PUT',
+          uri: `/connector/${encodeURI(entityId)}/session/${sessionId}`,
+          body,
+          ...options,
+        });
+      },
+      postSession: {},
+      start: {},
+      callback: {},
+    },
     get: async (account: IAccount, connectorId: string, options?: IRequestOptions) => {
       return v2Request(account, { method: 'GET', uri: `/connector/${encodeURI(connectorId)}`, ...options });
     },
@@ -175,11 +215,37 @@ export const ApiRequestMap: { [key: string]: any } = {
           ...options,
         });
       },
-      getResult: {},
-      get: {},
-      put: {},
+      getResult: async (account: IAccount, entityId: string, sessionId: string, options?: IRequestOptions) => {
+        return v2Request(account, {
+          method: 'GET',
+          uri: `/integration/${encodeURI(entityId)}/session/result/${sessionId}`,
+          ...options,
+        });
+      },
+      get: async (account: IAccount, entityId: string, sessionId: string, options?: IRequestOptions) => {
+        return v2Request(account, {
+          method: 'GET',
+          uri: `/integration/${encodeURI(entityId)}/session/${sessionId}`,
+          ...options,
+        });
+      },
+      put: async (account: IAccount, entityId: string, sessionId: string, body: any, options?: IRequestOptions) => {
+        return v2Request(account, {
+          method: 'PUT',
+          uri: `/integration/${encodeURI(entityId)}/session/${sessionId}`,
+          body,
+          ...options,
+        });
+      },
       postSession: {},
-      start: {},
+      start: async (account: IAccount, entityId: string, sessionId: string, options?: IRequestOptions) => {
+        return v2Request(account, {
+          method: 'GET',
+          uri: `/integration/${encodeURI(entityId)}/session/${sessionId}/start`,
+          maxRedirects: 0,
+          ...options,
+        });
+      },
       callback: {},
     },
 
