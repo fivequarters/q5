@@ -86,7 +86,7 @@ export class RestoreService {
     }
     const region = await this.findRegionFromDeploymentName(deploymentName, config, credentials);
     // The end of the world.
-    
+
     await this.deleteAllExistingDynamoDBTable(deploymentName, config, credentials);
     await Promise.all(
       this.dynamoTableSuffix.map((tableSuffix) =>
@@ -107,7 +107,7 @@ export class RestoreService {
       credentials,
       region as string
     );
-    await this.updateSecretsManager(credentials, region as string, deploymentName, ids[1], ids[0], ids[2])
+    await this.updateSecretsManager(credentials, region as string, deploymentName, ids[1], ids[0], ids[2]);
   }
 
   private async deleteAuroraDb(credentials: IAwsCredentials, deploymentName: string, region: string) {
@@ -120,12 +120,14 @@ export class RestoreService {
     });
     try {
       await RDS.deleteDBCluster({
-        DBClusterIdentifier: dbName,    
+        DBClusterIdentifier: dbName,
         FinalDBSnapshotIdentifier: `${this.finalSnapshotName}${deploymentName}-${Date.now()}`,
       }).promise();
       while (true) {
         let results = await RDS.describeDBClusters().promise();
-        if (results.DBClusters?.filter((cluster) => cluster.DBClusterIdentifier === dbName).length === 0) { break; }
+        if (results.DBClusters?.filter((cluster) => cluster.DBClusterIdentifier === dbName).length === 0) {
+          break;
+        }
       }
     } catch (e) {
       if (e.message !== 'DBClusterNotFoundFault') {
@@ -168,48 +170,30 @@ export class RestoreService {
       accessKeyId: credentials.accessKeyId as string,
       secretAccessKey: credentials.secretAccessKey as string,
       sessionToken: credentials.sessionToken as string,
-      region
-    })
-    const secrets = await secretsManager.listSecrets().promise()
+      region,
+    });
+    const secrets = await secretsManager.listSecrets().promise();
     let secret: AWS.SecretsManager.SecretListEntry | undefined;
     for (const potentialSecret of secrets.SecretList as AWS.SecretsManager.SecretListType) {
       if ((potentialSecret.Name as string).includes(deploymentName)) {
-        secret = potentialSecret
+        secret = potentialSecret;
       }
     }
-    const currentSecret = await secretsManager.getSecretValue({
-      SecretId: secret?.ARN as string
-    }).promise()
-    let secretString = JSON.parse(currentSecret.SecretString as string)
-    secretString.host = host
-    secretString.resourceId = resourceId
-    try {
-      await secretsManager.deleteSecret({
+
+    const currentSecret = await secretsManager
+      .getSecretValue({
         SecretId: secret?.ARN as string,
-        ForceDeleteWithoutRecovery: true
-      }).promise()
-    }
-    catch (e) {
-      if (e.code !== "ResourceNotFoundException") {
-        throw Error(e)
-      }
-    }
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    while (true) {
-      try {
-        await secretsManager.createSecret({
-          Name: currentSecret.Name as string,
-          SecretString: JSON.stringify(secretString),
-          Description: `DB Credentials for Aurora cluster ${clusterIdentifier}`,
-          Tags: secret?.Tags as AWS.SecretsManager.TagListType
-        }).promise()
-      } catch (e) {
-        await new Promise((resolve) => setTimeout(resolve, this.pollStatusSpeed));
-        continue
-      }
-      break
-    }
-    
+      })
+      .promise();
+    let secretString = JSON.parse(currentSecret.SecretString as string);
+    secretString.host = host;
+    secretString.resourceId = resourceId;
+    await secretsManager
+      .updateSecret({
+        SecretId: secret?.ARN as string,
+        SecretString: JSON.stringify(secretString),
+      })
+      .promise();
   }
 
   private async startDbRestoreJobAndWait(
@@ -233,8 +217,8 @@ export class RestoreService {
       DBSubnetGroupName: `${this.auroraSubnetPrefix}${deploymentName}`,
       DBClusterIdentifier: `${this.auroraDbPrefix}${deploymentName}`,
     }).promise();
-    const clusterHostname = results.DBCluster?.Endpoint as string
-    const clusterResourceId = results.DBCluster?.DbClusterResourceId as string
+    const clusterHostname = results.DBCluster?.Endpoint as string;
+    const clusterResourceId = results.DBCluster?.DbClusterResourceId as string;
     while (true) {
       const status = await Aurora.describeDBClusters({
         DBClusterIdentifier: `${this.auroraDbPrefix}${deploymentName}`,
@@ -246,9 +230,9 @@ export class RestoreService {
     }
     await Aurora.modifyDBCluster({
       EnableHttpEndpoint: true,
-      DBClusterIdentifier: results.DBCluster?.DBClusterIdentifier as string
+      DBClusterIdentifier: results.DBCluster?.DBClusterIdentifier as string,
     }).promise();
-    return [clusterHostname, clusterResourceId, results.DBCluster?.DBClusterIdentifier as string]
+    return [clusterHostname, clusterResourceId, results.DBCluster?.DBClusterIdentifier as string];
   }
 
   /**
