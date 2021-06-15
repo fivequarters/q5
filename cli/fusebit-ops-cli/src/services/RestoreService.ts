@@ -157,14 +157,21 @@ export class RestoreService {
       region
     );
   }
-
+  /**
+   * 
+   * @param credentials
+   * @param region 
+   * @param deploymentName 
+   * @param resourceId 
+   * @param host 
+   * Updates the Secrets Manager hostname and id for Aurora
+   */
   private async updateSecretsManager(
     credentials: IAwsCredentials,
     region: string,
     deploymentName: string,
     resourceId: string,
     host: string,
-    clusterIdentifier: string
   ) {
     const secretsManager = new AWS.SecretsManager({
       accessKeyId: credentials.accessKeyId as string,
@@ -179,7 +186,6 @@ export class RestoreService {
         secret = potentialSecret;
       }
     }
-
     const currentSecret = await secretsManager
       .getSecretValue({
         SecretId: secret?.ARN as string,
@@ -490,3 +496,4 @@ export class RestoreService {
     return true;
   }
 }
+u
