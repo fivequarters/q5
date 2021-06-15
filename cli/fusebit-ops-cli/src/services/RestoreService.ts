@@ -185,7 +185,7 @@ export class RestoreService {
     secretString.resourceId = resourceId
     try {
       await secretsManager.deleteSecret({
-        SecretId: currentSecret.ARN as string,
+        SecretId: secret?.ARN as string,
         ForceDeleteWithoutRecovery: true
       }).promise()
     }
@@ -194,24 +194,22 @@ export class RestoreService {
         throw Error(e)
       }
     }
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     while (true) {
       try {
-        await secretsManager.describeSecret({
-          SecretId: currentSecret.Name as string
+        await secretsManager.createSecret({
+          Name: currentSecret.Name as string,
+          SecretString: JSON.stringify(secretString),
+          Description: `DB Credentials for Aurora cluster ${clusterIdentifier}`,
+          Tags: secret?.Tags as AWS.SecretsManager.TagListType
         }).promise()
       } catch (e) {
-        if (e === "ResourceNotFoundException") {
-          break;
-        }
+        await new Promise((resolve) => setTimeout(resolve, this.pollStatusSpeed));
+        continue
       }
-      await new Promise((resolve) => setTimeout(resolve, this.pollStatusSpeed));
+      break
     }
-    await secretsManager.createSecret({
-      Name: currentSecret.Name as string,
-      SecretString: JSON.stringify(secretString),
-      Description: `DB Credentials for Aurora cluster ${clusterIdentifier}`,
-      Tags: secret?.Tags as AWS.SecretsManager.TagListType
-    }).promise()
+    
   }
 
   private async startDbRestoreJobAndWait(
@@ -248,7 +246,7 @@ export class RestoreService {
     }
     await Aurora.modifyDBCluster({
       EnableHttpEndpoint: true,
-      DBClusterIdentifier: `${this.auroraDbPrefix}${deploymentName}`,
+      DBClusterIdentifier: results.DBCluster?.DBClusterIdentifier as string
     }).promise();
     return [clusterHostname, clusterResourceId, results.DBCluster?.DBClusterIdentifier as string]
   }
