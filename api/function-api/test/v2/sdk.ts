@@ -96,9 +96,23 @@ export const ApiRequestMap: { [key: string]: any } = {
           ...options,
         });
       },
+      start: async (account: IAccount, entityId: string, sessionId: string, options?: IRequestOptions) => {
+        return v2Request(account, {
+          method: 'GET',
+          uri: `/connector/${encodeURI(entityId)}/session/${sessionId}/start`,
+          maxRedirects: 0,
+          ...options,
+        });
+      },
+      callback: async (account: IAccount, entityId: string, sessionId: string, options?: IRequestOptions) => {
+        return v2Request(account, {
+          method: 'GET',
+          uri: `/connector/${encodeURI(entityId)}/session/${sessionId}/callback`,
+          maxRedirects: 0,
+          ...options,
+        });
+      },
       postSession: {},
-      start: {},
-      callback: {},
     },
     get: async (account: IAccount, connectorId: string, options?: IRequestOptions) => {
       return v2Request(account, { method: 'GET', uri: `/connector/${encodeURI(connectorId)}`, ...options });
@@ -237,7 +251,6 @@ export const ApiRequestMap: { [key: string]: any } = {
           ...options,
         });
       },
-      postSession: {},
       start: async (account: IAccount, entityId: string, sessionId: string, options?: IRequestOptions) => {
         return v2Request(account, {
           method: 'GET',
@@ -246,7 +259,15 @@ export const ApiRequestMap: { [key: string]: any } = {
           ...options,
         });
       },
-      callback: {},
+      callback: async (account: IAccount, entityId: string, sessionId: string, options?: IRequestOptions) => {
+        return v2Request(account, {
+          method: 'GET',
+          uri: `/integration/${encodeURI(entityId)}/session/${sessionId}/callback`,
+          maxRedirects: 0,
+          ...options,
+        });
+      },
+      postSession: {},
     },
 
     get: async (account: IAccount, integrationId: string, options?: IRequestOptions) => {

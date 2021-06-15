@@ -1,3 +1,5 @@
+import http_error from 'http-errors';
+
 import { v4 as uuidv4 } from 'uuid';
 import RDS, { Model } from '@5qtrs/db';
 
@@ -43,14 +45,14 @@ export default abstract class SessionedComponentService<E extends Model.IEntity>
 
   public createSession = async (
     entity: Model.IEntity,
-    sessionDetails: Model.ISessionParameters | Model.IStep
+    sessionDetails: Model.ISessionParameters | (Model.IStep & { redirectUrl: string })
   ): Promise<IServiceResult> => {
     if ('target' in sessionDetails) {
       console.log(`createSession stepSession`, { ...entity, entityType: this.entityType, componentId: entity.id });
       // Explicit step session creation.
       return this.createStepSession(
         { ...entity, entityType: this.entityType, componentId: entity.id },
-        undefined,
+        { redirectUrl: sessionDetails.redirectUrl },
         sessionDetails
       );
     }
@@ -94,6 +96,12 @@ export default abstract class SessionedComponentService<E extends Model.IEntity>
       stepList = stepList.filter((stepName) => sessionDetails.steps?.includes(stepName));
     }
 
+    console.log(`createSession mid`, steps, stepList, sessionDetails.steps);
+
+    if (!stepList.length) {
+      throw http_error(400, 'No matching steps found');
+    }
+
     // If there's any additional input or uses parameters, include those in the specification.
     if (sessionDetails.input) {
       Object.keys(sessionDetails.input).forEach((stepName: string) => {
@@ -113,7 +121,7 @@ export default abstract class SessionedComponentService<E extends Model.IEntity>
       dagSteps.push(stepName);
       steps[stepName].uses?.forEach((usesStep) => {
         if (!dagSteps.includes(usesStep)) {
-          throw new Error(`Ordering violation: 'uses' in '${stepName}' for '${usesStep}' before declaration.`);
+          throw http_error(400, `Ordering violation: 'uses' in '${stepName}' for '${usesStep}' before declaration.`);
         }
       });
     });
@@ -142,14 +150,15 @@ export default abstract class SessionedComponentService<E extends Model.IEntity>
 
   public createStepSession = async (
     params: { accountId: string; subscriptionId: string; entityType: string; componentId: string },
-    reference: { redirectUrl: string } | { parentId: string } | undefined,
+    reference: { redirectUrl: string; parentId?: never } | { redirectUrl?: never; parentId: string; stepName: string },
     step: Model.IStep
   ): Promise<IServiceResult> => {
+    const sessionId = uuidv4();
     // Create a new session.
     const session: Model.ISession = {
       accountId: params.accountId,
       subscriptionId: params.subscriptionId,
-      id: this.createSessionId({ ...params, sessionId: uuidv4() }),
+      id: this.createSessionId({ ...params, sessionId }),
       data: {
         mode: 'leaf',
         stepName: step.stepName,
@@ -163,6 +172,20 @@ export default abstract class SessionedComponentService<E extends Model.IEntity>
     console.log(`createStepSession`, JSON.stringify(session, null, 2));
 
     await this.sessionDao.createEntity(session);
+
+    if (reference?.parentId) {
+      const parentSession = await this.sessionDao.getEntity({ ...params, id: reference.parentId });
+      console.log(`stepSession parentId`, parentSession);
+      if (parentSession.data.mode === 'step') {
+        const matchingStep = parentSession.data.steps.find((pstep) => pstep.stepName === reference.stepName);
+        if (!matchingStep) {
+          throw http_error(400, `Invalid step name: ${reference.stepName}`);
+        }
+
+        matchingStep.childSessionId = session.id;
+        await this.sessionDao.updateEntity(parentSession);
+      }
+    }
 
     return { statusCode: 200, result: session };
   };
@@ -207,7 +230,7 @@ export default abstract class SessionedComponentService<E extends Model.IEntity>
           ? { entityType: 'connector', componentId: step.target.entityId }
           : { entityType: this.entityType, componentId: this.extractComponentId(session.id) }),
       },
-      { parentId: this.extractSessionId(session.id) },
+      { parentId: session.id, stepName: step.stepName },
       step
     );
 
@@ -216,12 +239,56 @@ export default abstract class SessionedComponentService<E extends Model.IEntity>
     return { statusCode: 302, result: this.getTargetUrl(stepSession.result, stepSession.result.data) };
   };
 
-  // XXX undone below
   public finishSession = async (entity: Model.IEntity): Promise<IServiceResult> => {
-    // Return a 302 back to the parentId or the redirectUri if no parentId.
-    return { statusCode: 200, result: {} };
+    // Load the session
+    const session = await this.sessionDao.getEntity(entity);
+
+    // If the meta points at a redirectUrl, send it.
+    if (session.data.meta.redirectUrl) {
+      return { statusCode: 302, result: session.data.meta.redirectUrl };
+    }
+
+    // Load the parent object.
+    if (!session.data.meta.parentId) {
+      throw http_error(500, `Missing parent ID on session ${entity.id}`);
+    }
+
+    const parentSession = await this.sessionDao.getEntity({ ...entity, id: session.data.meta.parentId });
+
+    // Find the step.
+    if (parentSession.data.mode !== 'step') {
+      throw http_error(500, `Parent session is the wrong type for ${entity.id}`);
+    }
+    const stepIndex = parentSession.data.steps.findIndex((step) => step.childSessionId === entity.id);
+
+    if (stepIndex < 0) {
+      throw http_error(500, `Parent session is missing session id in step for ${entity.id}`);
+    }
+
+    // If there's a further step, start a new step session and redirect.
+    if (stepIndex + 1 < parentSession.data.steps.length) {
+      const step = parentSession.data.steps[stepIndex + 1];
+      const stepSession = await this.createStepSession(
+        {
+          accountId: session.accountId,
+          subscriptionId: session.subscriptionId,
+          ...(step.target.type === 'connector'
+            ? { entityType: 'connector', componentId: step.target.entityId }
+            : { entityType: this.entityType, componentId: this.extractComponentId(session.id) }),
+        },
+        { parentId: parentSession.id, stepName: step.stepName },
+        step
+      );
+
+      // Return a 302 to the new session target
+      return { statusCode: 302, result: this.getTargetUrl(stepSession.result, stepSession.result.data) };
+    }
+
+    // If there's no further steps, redirect to the redirectUrl.
+    return { statusCode: 302, result: parentSession.data.meta.redirectUrl };
   };
 
+  // XXX undone below
   public postSession = async (entity: Model.IEntity): Promise<IServiceResult> => {
     // Return an operation for creating all of the subsidiary objects.
     return { statusCode: 200, result: {} };

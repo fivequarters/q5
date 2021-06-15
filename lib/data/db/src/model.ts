@@ -188,10 +188,15 @@ export interface ISessionParameters {
 
 export interface ILeafSession extends IStep {
   mode: 'leaf';
-  meta: {
-    parentId?: string;
-    redirectUrl?: string;
-  };
+  meta:
+    | {
+        parentId: string;
+        redirectUrl?: never;
+      }
+    | {
+        parentId?: never;
+        redirectUrl: string;
+      };
 }
 
 export type IStepSessionSteps = (IStep & { childSessionId?: string })[];
@@ -201,9 +206,9 @@ export interface IStepSession {
   output?: never;
 
   meta: {
-    // Must have either parentId or redirectUrl present.
-    parentId?: string;
-    redirectUrl?: string;
+    // Must have a redirectUrl present for the final callback.
+    redirectUrl: string;
+    parentId?: never;
   };
 
   steps: IStepSessionSteps;

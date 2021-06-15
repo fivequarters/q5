@@ -43,6 +43,23 @@ const createPair = async (integConfig?: any) => {
   return { connectorId: conn.id, integrationId: integ.id };
 };
 
+const getElementsFromUrl = (url: string) => {
+  const decomp = new URL(url);
+  const comps = decomp.pathname.match(new RegExp('/v2/account/([^/]*)/subscription/([^/]*)/([^/]*)/([^/]*).*'));
+
+  if (!comps) {
+    throw new Error(`invalid url: ${decomp.pathname}`);
+  }
+
+  return {
+    accountId: comps[1],
+    subscriptionId: comps[2],
+    entityType: comps[3],
+    entityId: comps[4],
+    sessionId: decomp.searchParams.get('session'),
+  };
+};
+
 describe('Sessions', () => {
   test('Creating a session on a missing integration returns 404', async () => {
     const response = await ApiRequestMap.integration.session.post(account, 'foobarbah', {
@@ -176,22 +193,23 @@ describe('Sessions', () => {
     });
   }, 180000);
 
-  test.skip('GETting the step session includes a supplied input object', async () => {
-    // foo
-    const { integrationId } = await createPair();
-    /* XXX XXX XXX create a step session here. */
+  test('GETting the step session includes a supplied input object', async () => {
+    const { integrationId, connectorId } = await createPair();
+
     let response = await ApiRequestMap.integration.session.post(account, integrationId, {
       redirectUrl: demoRedirectUrl,
       input: { 'connector:conn': { iguana: 'mango' } },
     });
     expect(response).toBeHttp({ statusCode: 200 });
 
-    response = await ApiRequestMap.integration.session.put(account, integrationId, response.data.id, {
-      monkey: 'banana',
-    });
-    expect(response).toBeHttp({ statusCode: 200, has: ['id'], hasNot: ['output'] });
+    const parentSessionId = response.data.id;
 
-    response = await ApiRequestMap.integration.session.get(account, integrationId, response.data.id);
+    response = await ApiRequestMap.integration.session.start(account, integrationId, parentSessionId);
+    expect(response).toBeHttp({ statusCode: 302 });
+    const location = new URL(response.headers.location);
+    const stepSessionId = location.searchParams.get('session');
+
+    response = await ApiRequestMap.connector.session.get(account, connectorId, stepSessionId);
     expect(response).toBeHttp({
       statusCode: 200,
       has: ['id'],
@@ -266,6 +284,7 @@ describe('Sessions', () => {
         type: 'connector',
         entityId: 'gecko',
       },
+      redirectUrl: demoRedirectUrl,
     });
     expect(response).toBeHttp({ statusCode: 200 });
 
@@ -285,7 +304,6 @@ describe('Sessions', () => {
   }, 180000);
 
   test('Start a session and get a 302 redirect with a new sessionId', async () => {
-    // foo
     const { integrationId, connectorId } = await createPair();
     let response = await ApiRequestMap.integration.session.post(account, integrationId, {
       redirectUrl: demoRedirectUrl,
@@ -305,22 +323,54 @@ describe('Sessions', () => {
   }, 180000);
 
   test('Create a session on an integration with steplist in the request', async () => {
-    // foo
+    const { integrationId, connectorId } = await createPair();
+    let response = await ApiRequestMap.integration.session.post(account, integrationId, {
+      redirectUrl: demoRedirectUrl,
+      steps: ['connector:conn'],
+    });
+    expect(response).toBeHttp({ statusCode: 200 });
+
+    // Start the session to make sure it starts correctly.
+    response = await ApiRequestMap.integration.session.start(account, integrationId, response.data.id);
+    expect(response).toBeHttp({ statusCode: 302 });
+    expect(
+      response.headers.location.indexOf(
+        `${process.env.API_SERVER}/v2/account/${account.accountId}/subscription/${account.subscriptionId}/connector/${connectorId}/api/start?session=`
+      )
+    ).toBe(0);
   }, 180000);
-  test('Create a session on an integration with steplist in the request that fails DAG', async () => {
-    // foo
+
+  test('Create a session on an integration with non-matching steplist', async () => {
+    const { integrationId, connectorId } = await createPair();
+    const response = await ApiRequestMap.integration.session.post(account, integrationId, {
+      redirectUrl: demoRedirectUrl,
+      steps: ['connector:monkey'],
+    });
+    expect(response).toBeHttp({ statusCode: 400 });
   }, 180000);
 
   test('Full result session on a step includes output and no ids', async () => {
     // foo
+    // The id's are hidden underneath the step parameters, no way for them ever to be leaked like that.
   }, 180000);
 
-  test('The input parameter in integration is found in step session', async () => {
-    // foo
-  }, 180000);
   test('The /callback endpoint of a step session redirects to the parent', async () => {
-    // foo
+    const { integrationId, connectorId } = await createPair();
+    let response = await ApiRequestMap.integration.session.post(account, integrationId, {
+      redirectUrl: demoRedirectUrl,
+    });
+    expect(response).toBeHttp({ statusCode: 200 });
+
+    // Start the session to make sure it starts correctly.
+    response = await ApiRequestMap.integration.session.start(account, integrationId, response.data.id);
+    expect(response).toBeHttp({ statusCode: 302 });
+    const loc = getElementsFromUrl(response.headers.location);
+
+    // Call the callback
+    response = await ApiRequestMap[loc.entityType].session.callback(account, loc.entityId, loc.sessionId);
+    expect(response).toBeHttp({ statusCode: 302, headers: { location: 'http://monkey' } });
   }, 180000);
+
   test('Finish a session and get a 302 redirect to final redirectUrl', async () => {
     // foo
   }, 180000);
@@ -340,6 +390,9 @@ describe('Sessions', () => {
     // foo
   }, 180000);
   test('Validate parameter validation (various)', async () => {
+    // foo
+  }, 180000);
+  test('Create a session on an integration with steplist in the request that fails DAG', async () => {
     // foo
   }, 180000);
 });
