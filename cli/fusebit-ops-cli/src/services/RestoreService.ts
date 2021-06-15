@@ -6,6 +6,11 @@ import { ProfileService } from './ProfileService';
 import { AwsCreds, IAwsConfig } from '@5qtrs/aws-config';
 import { IAwsCredentials } from '@5qtrs/aws-cred';
 
+interface ISecretsManagerInput {
+  hostname: string;
+  resourceId: string;
+}
+
 export class RestoreService {
   private opsService: OpsService;
   private executeService: ExecuteService;
@@ -171,8 +176,7 @@ export class RestoreService {
     credentials: IAwsCredentials,
     region: string,
     deploymentName: string,
-    resourceId: string,
-    host: string
+    identifier: ISecretsManagerInput
   ) {
     const secretsManager = new AWS.SecretsManager({
       accessKeyId: credentials.accessKeyId as string,
@@ -193,8 +197,8 @@ export class RestoreService {
       })
       .promise();
     let secretString = JSON.parse(currentSecret.SecretString as string);
-    secretString.host = host;
-    secretString.resourceId = resourceId;
+    secretString.host = identifier.hostname;
+    secretString.resourceId = identifier.resourceId;
     await secretsManager
       .updateSecret({
         SecretId: secret?.ARN as string,
@@ -208,7 +212,7 @@ export class RestoreService {
     deploymentName: string,
     credentials: IAwsCredentials,
     region: string
-  ) {
+  ): Promise<ISecretsManagerInput> {
     const dbName = `${this.auroraDbPrefix}${deploymentName}`;
     const Aurora = new AWS.RDS({
       accessKeyId: credentials.accessKeyId as string,
@@ -239,7 +243,7 @@ export class RestoreService {
       EnableHttpEndpoint: true,
       DBClusterIdentifier: results.DBCluster?.DBClusterIdentifier as string,
     }).promise();
-    return [clusterHostname, clusterResourceId, results.DBCluster?.DBClusterIdentifier as string];
+    return { hostname: clusterHostname, resourceId: clusterResourceId };
   }
 
   /**
