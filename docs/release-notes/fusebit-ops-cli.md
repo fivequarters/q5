@@ -18,6 +18,11 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.27.7
+
+- **Enhancement.** Add Encryption On EC2 Disks.
+- **Bugfix.** Aurora Backup Now Properly Updates Secrets Manager. 
+
 ## Version 1.27.6
 
 - **Enhancement.** Support backup/restore for RDS.
