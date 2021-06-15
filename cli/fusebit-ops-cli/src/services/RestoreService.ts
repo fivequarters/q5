@@ -86,13 +86,14 @@ export class RestoreService {
     }
     const region = await this.findRegionFromDeploymentName(deploymentName, config, credentials);
     // The end of the world.
-
+    /**
     await this.deleteAllExistingDynamoDBTable(deploymentName, config, credentials);
     await Promise.all(
       this.dynamoTableSuffix.map((tableSuffix) =>
         this.restoreTable(credentials, tableSuffix, deploymentName, backupPlanName, region as string)
       )
     );
+    */
     await this.deleteAuroraDb(credentials, deploymentName, region as string);
     const restorePoint = (await this.findLatestRecoveryPointOfTable(
       credentials,
@@ -107,7 +108,7 @@ export class RestoreService {
       credentials,
       region as string
     );
-    await this.updateSecretsManager(credentials, region as string, deploymentName, ids[1], ids[0], ids[2]);
+    await this.updateSecretsManager(credentials, region as string, deploymentName, ids[1], ids[0]);
   }
 
   private async deleteAuroraDb(credentials: IAwsCredentials, deploymentName: string, region: string) {
@@ -158,12 +159,12 @@ export class RestoreService {
     );
   }
   /**
-   * 
+   *
    * @param credentials
-   * @param region 
-   * @param deploymentName 
-   * @param resourceId 
-   * @param host 
+   * @param region
+   * @param deploymentName
+   * @param resourceId
+   * @param host
    * Updates the Secrets Manager hostname and id for Aurora
    */
   private async updateSecretsManager(
@@ -171,7 +172,7 @@ export class RestoreService {
     region: string,
     deploymentName: string,
     resourceId: string,
-    host: string,
+    host: string
   ) {
     const secretsManager = new AWS.SecretsManager({
       accessKeyId: credentials.accessKeyId as string,
@@ -182,7 +183,7 @@ export class RestoreService {
     const secrets = await secretsManager.listSecrets().promise();
     let secret: AWS.SecretsManager.SecretListEntry | undefined;
     for (const potentialSecret of secrets.SecretList as AWS.SecretsManager.SecretListType) {
-      if ((potentialSecret.Name as string).includes(deploymentName)) {
+      if (!(potentialSecret.Name as string).match(`^rds-db-credentials/fusebit-db-secret-${deploymentName}`)) {
         secret = potentialSecret;
       }
     }
@@ -496,4 +497,3 @@ export class RestoreService {
     return true;
   }
 }
-u
