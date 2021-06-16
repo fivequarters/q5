@@ -70,8 +70,8 @@ router.get(callbackSuffixUrl, async (ctx: Context) => {
   }
 
   try {
-    // Probably should be a redirect to somewhere else after storing the token.
     ctx.body = await engine.convertAccessCodeToToken(ctx, state, code);
+    return await engine.redirectToCallback(ctx);
   } catch (e) {
     ctx.throw(e.status, e.response.text);
   }

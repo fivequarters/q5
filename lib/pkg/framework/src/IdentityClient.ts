@@ -16,6 +16,7 @@ class IdentityClient {
   private readonly params: any;
   private readonly identityIdPrefix: string;
   private readonly baseUrl: string;
+  private readonly connectorUrl: string;
   private readonly functionUrl: URL;
   private readonly accessToken: string;
 
@@ -23,9 +24,8 @@ class IdentityClient {
     this.params = params;
     this.identityIdPrefix = this.cleanId(identityIdPrefix);
     this.functionUrl = new URL(params.baseUrl);
-    this.baseUrl = `${this.functionUrl.protocol}//${this.functionUrl.host}/v2/account/${
-      params.accountId
-    }/subscription/${params.subscriptionId}/integration/${params.entityId}/identity/${this.identityIdPrefix || ''}`;
+    this.connectorUrl = `${this.functionUrl.protocol}//${this.functionUrl.host}/v2/account/${params.accountId}/subscription/${params.subscriptionId}/connector/${params.entityId}`;
+    this.baseUrl = `${this.connectorUrl}/identity/${this.identityIdPrefix || ''}`;
     this.accessToken = params.accessToken;
   }
 
@@ -92,6 +92,17 @@ class IdentityClient {
     query.idPrefix = this.identityIdPrefix ? `${this.identityIdPrefix}/${identitySubId}` : identitySubId;
     const response = await superagent.get(this.baseUrl).query(query).set('Authorization', `Bearer ${this.accessToken}`);
     return response.body;
+  };
+
+  public getCallbackUrl = async (state: string): Promise<string> => {
+    const sessionId = state.split('/').pop();
+    const sessionUrl = `${this.connectorUrl}/session/${sessionId}`;
+    const sessionResponse = await superagent
+      .get(sessionUrl)
+      .set('Authorization', `Bearer ${this.accessToken}`)
+      .ok((res) => res.status === 404 || res.status === 204);
+    //TODO: Is this where the callbackurl is being stored?  Not sure with benn's changes
+    return sessionResponse.body.callbackUrl;
   };
 }
 

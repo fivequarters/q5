@@ -66,6 +66,14 @@ class OAuthEngine {
   }
 
   /**
+   * Fetches callback url from session that is managing the connector
+   */
+  public async redirectToCallback(ctx: ICtxWithState) {
+    const callbackUrl = await ctx.state.identityClient!.getCallbackUrl(ctx.query.state);
+    ctx.redirect(callbackUrl);
+  }
+
+  /**
    * Exchanges the OAuth authorization code for the access and refresh tokens.
    * @param {string} authorizationCode The authorization_code supplied to the OAuth callback upon successful
    *                                   authorization flow.
