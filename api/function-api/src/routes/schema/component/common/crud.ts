@@ -11,6 +11,8 @@ import pathParams from '../../../handlers/pathParams';
 import body from '../../../handlers/body';
 
 import Validation from '../../../validation/component';
+import { EntityType } from '@5qtrs/db/libc/model';
+import query from '../../../handlers/query';
 
 const router = (ComponentService: BaseComponentService<any>) => {
   const componentCrudRouter = express.Router({ mergeParams: true });
@@ -47,7 +49,7 @@ const router = (ComponentService: BaseComponentService<any>) => {
         try {
           const { statusCode, result } = await ComponentService.updateEntity({
             ...pathParams.EntityById(req),
-            ...body.entity(req),
+            ...body.entity(req, ComponentService.entityType),
           });
           res.status(statusCode).json(result);
         } catch (e) {
@@ -67,7 +69,7 @@ const router = (ComponentService: BaseComponentService<any>) => {
         try {
           const { statusCode, result } = await ComponentService.deleteEntity({
             ...pathParams.EntityById(req),
-            ...(req.query.version ? { version: req.query.version as string } : {}),
+            ...query.version(req),
           });
           res.status(statusCode).json(result);
         } catch (e) {

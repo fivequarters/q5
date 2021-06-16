@@ -10,6 +10,7 @@ import body from '../../../handlers/body';
 import pathParams from '../../../handlers/pathParams';
 
 import { BaseComponentService } from '../../../service';
+import { EntityType } from '@5qtrs/db/libc/model';
 
 const router = (ComponentService: BaseComponentService<any>) => {
   const componentRouter = express.Router({ mergeParams: true });
@@ -24,16 +25,19 @@ const router = (ComponentService: BaseComponentService<any>) => {
         authorize: { operation: `${ComponentService.entityType}:get` },
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+        if (ComponentService.entityType === EntityType.identity) {
+          return next();
+        }
+
         try {
           const response = await ComponentService.dao.listEntities(
             {
               ...pathParams.accountAndSubscription(req),
               ...query.tags(req),
-              idPrefix: req.query.idPrefix as string | undefined,
+              ...query.idPrefix(req),
             },
             {
-              listLimit: Number(req.query.count),
-              next: req.query.next as string | undefined,
+              ...query.listPagination(req),
             }
           );
           response.items = response.items.map((entity) => Model.entityToSdk(entity));
@@ -52,7 +56,7 @@ const router = (ComponentService: BaseComponentService<any>) => {
         try {
           const { statusCode, result } = await ComponentService.createEntity({
             ...pathParams.accountAndSubscription(req),
-            ...body.entity(req),
+            ...body.entity(req, ComponentService.entityType),
           });
           res.status(statusCode).json(result);
         } catch (e) {

@@ -5,13 +5,14 @@ import statuses from 'statuses';
 
 import httpMocks from 'node-mocks-http';
 
-import { createStorage } from './Storage';
+import IdentityClient from './IdentityClient';
 
 import { Router, Context } from './Router';
 
 import { ConnectorManager, IInstanceConnectorConfigMap } from './ConnectorManager';
 
 import DefaultRoutes from './DefaultRoutes';
+import { ICtxWithState } from './models/contextWithState';
 
 /** The vendor module failed to load with this error */
 type VendorModuleError = any;
@@ -73,6 +74,8 @@ class Manager {
   /** @public Connectors attached to this integration. */
   public connectors: ConnectorManager;
 
+  private storage: IStorage | undefined;
+
   /** Create a new Manager, using the supplied storage interface as a persistance backend. */
   constructor() {
     this.app = new Koa();
@@ -120,18 +123,16 @@ class Manager {
     const ctx = this.createRouteableContext(fusebitCtx);
 
     // Add the security context for this particular call to the state.
-    ctx.state.storage =
+    ctx.state.identityClient =
       fusebitCtx.fusebit && fusebitCtx.fusebit.functionAccessToken
-        ? createStorage(
+        ? new IdentityClient(
             { accessToken: fusebitCtx.fusebit.functionAccessToken, ...ctx.state.params },
             `/${ctx.state.params.entityType}/${ctx.state.params.entityId}`
           )
         : undefined;
 
     await this.execute(ctx);
-    const response = this.createResponse(ctx);
-
-    return response;
+    return this.createResponse(ctx);
   }
 
   /**
@@ -155,7 +156,7 @@ class Manager {
    * Execute a Koa-like context through the Router, and return the payload.
    * @param ctx A Koa-like context
    */
-  protected async execute(ctx: Context) {
+  protected async execute(ctx: ICtxWithState) {
     return new Promise(async (resolve) => {
       try {
         // TODO: Need to supply a next, but not sure if it's ever invoked.  Worth looking at the Koa impl at some point.
@@ -246,6 +247,7 @@ class Manager {
     ctx.state.params = {
       accountId: fusebitCtx.accountId,
       subscriptionId: fusebitCtx.subscriptionId,
+      //FIXME
       entityType: fusebitCtx.boundaryId,
       entityId: fusebitCtx.functionId,
       ...(fusebitCtx.fusebit // Not present during initial startup events, for example.
@@ -266,7 +268,7 @@ class Manager {
   }
 
   /** Convert the routable context into a response that the Fusebit function expects. */
-  public createResponse(ctx: Context) {
+  public createResponse(ctx: ICtxWithState) {
     const result = {
       body: ctx.body,
       headers: ctx.response.header,

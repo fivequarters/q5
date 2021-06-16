@@ -2,6 +2,7 @@ import { Router, Context, Next } from './Router';
 import { Manager, IStorage, IOnStartup } from './Manager';
 import { ConnectorManager, IInstanceConnectorConfig } from './ConnectorManager';
 import { Form } from './Form';
+import { ICtxWithState } from './models/contextWithState';
 
 import { Handler } from './Handler';
 
@@ -22,4 +23,5 @@ export {
   IOnStartup,
   Sdk,
   IInstanceConnectorConfig,
+  ICtxWithState,
 };
