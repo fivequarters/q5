@@ -134,12 +134,17 @@ const createSessionRouter = (SessionService: SessionedComponentService<any>) => 
     // Finish a session and get the final redirect url.
     .get('/:sessionId/callback', async (req, res, next) => {
       try {
-        const { result: redirectUrl } = await SessionService.finishSession({
+        const { result } = await SessionService.finishSession({
           accountId: req.params.accountId,
           subscriptionId: req.params.subscriptionId,
           id: SessionService.createSessionId(req.params as any),
         });
-        return res.redirect(redirectUrl);
+        if (typeof result === 'string') {
+          return res.redirect(result);
+        } else {
+          const redirectUrl = `${process.env.API_SERVER}/v2/account/${result.accountId}/subscription/${result.subscriptionId}/${result.entityType}/${result.entityId}/api/start?session=${result.sessionId}`;
+          return res.redirect(redirectUrl);
+        }
       } catch (error) {
         console.log(error);
         return next(error);

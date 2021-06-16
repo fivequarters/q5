@@ -5,11 +5,14 @@ import IdentityRouter from './connector/identity';
 import InstanceRouter from './integration/instance';
 import * as analytics from '../../middleware/analytics';
 
-const router = () => {
+const componentRouter = () => {
   const router = express.Router({ mergeParams: true });
 
   const connectorService = new ConnectorService();
   const integrationService = new IntegrationService();
+
+  connectorService.addService(integrationService);
+  integrationService.addService(connectorService);
 
   router.use('/connector', common(connectorService));
   router.use('/integration', common(integrationService));
@@ -20,4 +23,4 @@ const router = () => {
 
   return router;
 };
-export default router;
+export default componentRouter;

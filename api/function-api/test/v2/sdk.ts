@@ -24,11 +24,13 @@ export interface IDispatchOptions {
 }
 
 interface IWaitForCompletionParams {
+  getAfter: boolean;
   waitMs: number;
   pollMs: number;
 }
 
 const DefaultWaitForCompletionParams: IWaitForCompletionParams = {
+  getAfter: true,
   waitMs: 30000,
   pollMs: 100,
 };
@@ -112,7 +114,26 @@ export const ApiRequestMap: { [key: string]: any } = {
           ...options,
         });
       },
-      postSession: {},
+      postSession: async (
+        account: IAccount,
+        entityId: string,
+        sessionId: string,
+        waitOptions: IWaitForCompletionParams = DefaultWaitForCompletionParams,
+        options?: IRequestOptions
+      ) => {
+        const op = await v2Request(account, {
+          method: 'POST',
+          uri: `/connector/${encodeURI(entityId)}/session/${sessionId}`,
+          ...options,
+        });
+        expect(op).toBeHttp({ statusCode: 202 });
+        return ApiRequestMap.operation.waitForCompletion(
+          account,
+          op.data.operationId,
+          { ...waitOptions, getAfter: false },
+          options
+        );
+      },
     },
     get: async (account: IAccount, connectorId: string, options?: IRequestOptions) => {
       return v2Request(account, { method: 'GET', uri: `/connector/${encodeURI(connectorId)}`, ...options });
@@ -180,8 +201,7 @@ export const ApiRequestMap: { [key: string]: any } = {
         wait = await ApiRequestMap.operation.waitForCompletion(
           account,
           op.data.operationId,
-          false,
-          waitOptions,
+          { ...waitOptions, getAfter: false },
           options
         );
       } while (wait.status === 428);
@@ -267,7 +287,26 @@ export const ApiRequestMap: { [key: string]: any } = {
           ...options,
         });
       },
-      postSession: {},
+      postSession: async (
+        account: IAccount,
+        entityId: string,
+        sessionId: string,
+        waitOptions: IWaitForCompletionParams = DefaultWaitForCompletionParams,
+        options?: IRequestOptions
+      ) => {
+        const op = await v2Request(account, {
+          method: 'POST',
+          uri: `/integration/${encodeURI(entityId)}/session/${sessionId}`,
+          ...options,
+        });
+        expect(op).toBeHttp({ statusCode: 202 });
+        return ApiRequestMap.operation.waitForCompletion(
+          account,
+          op.data.operationId,
+          { ...waitOptions, getAfter: false },
+          options
+        );
+      },
     },
 
     get: async (account: IAccount, integrationId: string, options?: IRequestOptions) => {
@@ -334,7 +373,12 @@ export const ApiRequestMap: { [key: string]: any } = {
     ) => {
       const op = await ApiRequestMap.integration.delete(account, entityId);
       expect(op).toBeHttp({ statusCode: 202 });
-      return ApiRequestMap.operation.waitForCompletion(account, op.data.operationId, false, waitOptions, options);
+      return ApiRequestMap.operation.waitForCompletion(
+        account,
+        op.data.operationId,
+        { ...waitOptions, getAfter: false },
+        options
+      );
     },
 
     dispatch: async (
@@ -374,7 +418,6 @@ export const ApiRequestMap: { [key: string]: any } = {
     waitForCompletion: async (
       account: IAccount,
       operationId: string,
-      getAfter: boolean = false,
       waitOptions: IWaitForCompletionParams = DefaultWaitForCompletionParams,
       options?: IRequestOptions
     ) => {
@@ -384,7 +427,7 @@ export const ApiRequestMap: { [key: string]: any } = {
       do {
         response = await ApiRequestMap.operation.get(account, operationId, options);
         if (response.status === 200) {
-          if (getAfter) {
+          if (waitOptions.getAfter) {
             response = await ApiRequestMap[response.data.location.entityType].get(
               account,
               response.data.location.entityId,

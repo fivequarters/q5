@@ -4,14 +4,19 @@ import { v4 as uuidv4 } from 'uuid';
 import RDS, { Model } from '@5qtrs/db';
 
 import BaseComponentService, { IServiceResult } from './BaseComponentService';
+import { operationService } from './OperationService';
 
 export default abstract class SessionedComponentService<E extends Model.IEntity> extends BaseComponentService<E> {
   private readonly sessionDao: Model.IEntityDao<Model.ISession>;
+  protected integrationService!: SessionedComponentService<any>;
+  protected connectorService!: SessionedComponentService<any>;
 
   constructor(dao: Model.IEntityDao<E>) {
     super(dao);
     this.sessionDao = RDS.DAO.session;
   }
+
+  public abstract addService(service: SessionedComponentService<any>): void;
 
   // Note: members are only optional because req.params needs them to be.
   public createSessionId = (params: { entityType: string; componentId: string; sessionId: string }) => {
@@ -93,7 +98,7 @@ export default abstract class SessionedComponentService<E extends Model.IEntity>
 
     // If there's a specific order or subset specified, use that instead of the full list.
     if (sessionDetails.steps) {
-      stepList = stepList.filter((stepName) => sessionDetails.steps?.includes(stepName));
+      stepList = sessionDetails.steps;
     }
 
     console.log(`createSession mid`, steps, stepList, sessionDetails.steps);
@@ -119,6 +124,9 @@ export default abstract class SessionedComponentService<E extends Model.IEntity>
     const dagSteps: string[] = [];
     stepList.forEach((stepName) => {
       dagSteps.push(stepName);
+      if (!steps[stepName]) {
+        throw http_error(400, `Unknown step '${stepName}'`);
+      }
       steps[stepName].uses?.forEach((usesStep) => {
         if (!dagSteps.includes(usesStep)) {
           throw http_error(400, `Ordering violation: 'uses' in '${stepName}' for '${usesStep}' before declaration.`);
@@ -175,7 +183,7 @@ export default abstract class SessionedComponentService<E extends Model.IEntity>
 
     if (reference?.parentId) {
       const parentSession = await this.sessionDao.getEntity({ ...params, id: reference.parentId });
-      console.log(`stepSession parentId`, parentSession);
+      console.log(`stepSession parentId`, JSON.stringify(parentSession, null, 2));
       if (parentSession.data.mode === 'step') {
         const matchingStep = parentSession.data.steps.find((pstep) => pstep.stepName === reference.stepName);
         if (!matchingStep) {
@@ -242,10 +250,12 @@ export default abstract class SessionedComponentService<E extends Model.IEntity>
   public finishSession = async (entity: Model.IEntity): Promise<IServiceResult> => {
     // Load the session
     const session = await this.sessionDao.getEntity(entity);
+    const sessionId = this.extractSessionId(session.id);
 
     // If the meta points at a redirectUrl, send it.
     if (session.data.meta.redirectUrl) {
-      return { statusCode: 302, result: session.data.meta.redirectUrl };
+      console.log(`XXX finishSession ${JSON.stringify(session.data.meta)}`);
+      return { statusCode: 302, result: `${session.data.meta.redirectUrl}?session=${sessionId}` };
     }
 
     // Load the parent object.
@@ -280,24 +290,91 @@ export default abstract class SessionedComponentService<E extends Model.IEntity>
         step
       );
 
+      console.log(
+        `finishSession next step`,
+        JSON.stringify(this.getTargetUrl(stepSession.result, stepSession.result.data))
+      );
       // Return a 302 to the new session target
       return { statusCode: 302, result: this.getTargetUrl(stepSession.result, stepSession.result.data) };
     }
 
+    const parentSessionId = this.extractSessionId(parentSession.id);
     // If there's no further steps, redirect to the redirectUrl.
-    return { statusCode: 302, result: parentSession.data.meta.redirectUrl };
+    return { statusCode: 302, result: `${parentSession.data.meta.redirectUrl}?session=${parentSessionId}` };
   };
 
-  // XXX undone below
   public postSession = async (entity: Model.IEntity): Promise<IServiceResult> => {
     // Return an operation for creating all of the subsidiary objects.
-    return { statusCode: 200, result: {} };
+    return operationService.inOperation(
+      Model.EntityType.session,
+      entity,
+      { verb: 'creating', type: Model.EntityType.session },
+      async () => {
+        return this.persistSession(entity);
+      }
+    );
+  };
+
+  protected persistSession = async (entity: Model.IEntity): Promise<IServiceResult> => {
+    const session = await this.sessionDao.getEntity(entity);
+    if (session.data.mode === 'step') {
+      return this.persistStepSession(session);
+    }
+
+    return this.persistLeafSession(session);
+  };
+
+  protected persistStepSession = async (session: Model.ISession): Promise<IServiceResult> => {
+    const entity: Model.IEntity = {
+      accountId: session.accountId,
+      subscriptionId: session.subscriptionId,
+      id: session.id,
+    };
+
+    // Get the list of sub sessions
+    if (session.data.mode === 'leaf') {
+      return this.persistLeafSession(session);
+    }
+
+    const stepSessions = session.data.steps.map((step) => step.childSessionId);
+
+    // Persist each session.
+    const results = await (Promise as any).allSettled(
+      stepSessions.map((stepId?: string) => this.persistSession({ ...entity, id: stepId as string }))
+    );
+    console.log(`postSession results`, results);
+    return { statusCode: 200, result: results };
+  };
+
+  protected persistLeafSession = async (session: Model.ISession): Promise<IServiceResult> => {
+    // Thanks typescript...
+    if (session.data.mode === 'step') {
+      return this.persistStepSession(session);
+    }
+
+    if (session.data.target.type === Model.EntityType.connector) {
+      return this.connectorService.instantiateSession(session);
+    }
+    return this.instantiateGenericService(session);
+  };
+
+  protected instantiateGenericService = async (session: Model.ISession): Promise<IServiceResult> => {
+    // Thanks typescript...
+    if (session.data.mode === 'step') {
+      return this.persistStepSession(session);
+    }
+
+    return { statusCode: 200, result: { message: `instantiateGeneric ${session.data.stepName}` } };
   };
 
   // Called on multiple different SessionedComponentService objects to instantiate sub-sessions as necessary,
   // with each individual session data packet supplied as the entity.
-  public instantiateSession = async (entity: Model.IEntity): Promise<IServiceResult> => {
+  public /* XXX abstract */ instantiateSession = async (session: Model.ISession): Promise<IServiceResult> => {
+    // Thanks typescript...
+    if (session.data.mode === 'step') {
+      return this.persistStepSession(session);
+    }
     // Create a new instance/identity based on the data included in entity.data.
-    return { statusCode: 200, result: {} };
+    return { statusCode: 200, result: { message: `instantiate${this.entityType} ${session.data.stepName}` } };
   };
 }

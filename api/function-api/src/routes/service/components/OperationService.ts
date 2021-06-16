@@ -6,7 +6,7 @@ import { IServiceResult } from './BaseComponentService';
 
 interface IOperationParam {
   verb: 'creating' | 'updating' | 'deleting';
-  type: 'connector' | 'integration';
+  type: Model.EntityType.connector | Model.EntityType.integration | Model.EntityType.session;
 }
 
 interface IOperationData extends IOperationParam {
@@ -15,7 +15,7 @@ interface IOperationData extends IOperationParam {
   location: { accountId: string; subscriptionId: string; entityId: string; entityType: Model.EntityType };
 }
 
-type IOperationAction = (operationId: string) => Promise<void>;
+type IOperationAction = (operationId: string) => Promise<IServiceResult | void>;
 
 class OperationService {
   protected dao: Model.IEntityDao<Model.IOperation>;
@@ -56,9 +56,14 @@ class OperationService {
     // Queue up the operation to occur during the next event cycle, clearing the operation when done.
     setImmediate(async () => {
       try {
-        await op(operationId);
+        const payload = await op(operationId);
 
-        operationEntity.data.code = 200;
+        if (payload) {
+          operationEntity.data.code = payload.statusCode;
+          operationEntity.data.payload = payload.result;
+        } else {
+          operationEntity.data.code = 200;
+        }
       } catch (err) {
         console.log(err);
         // Update operation with the error message

@@ -29,6 +29,10 @@ class ConnectorService extends SessionedComponentService<Model.IConnector> {
     this.entityType = Model.EntityType.connector;
   }
 
+  public addService = (service: SessionedComponentService<any>): void => {
+    this.integrationService = service;
+  };
+
   public sanitizeEntity = (entity: Model.IEntity): Model.IConnector => {
     const data = entity.data || {};
     data.files = data.files || {};
@@ -97,7 +101,7 @@ class ConnectorService extends SessionedComponentService<Model.IConnector> {
     return operationService.inOperation(
       Model.EntityType.connector,
       entity,
-      { verb: 'creating', type: 'connector' },
+      { verb: 'creating', type: Model.EntityType.connector },
       async () => {
         await this.createEntityOperation(entity);
         await this.dao.createEntity(entity);
@@ -137,7 +141,7 @@ class ConnectorService extends SessionedComponentService<Model.IConnector> {
     return operationService.inOperation(
       Model.EntityType.connector,
       entity,
-      { verb: 'updating', type: 'connector' },
+      { verb: 'updating', type: Model.EntityType.connector },
       async () => {
         // Make sure the entity already exists.
         await this.dao.getEntity(entity);
@@ -158,7 +162,7 @@ class ConnectorService extends SessionedComponentService<Model.IConnector> {
     return operationService.inOperation(
       Model.EntityType.connector,
       entity,
-      { verb: 'deleting', type: 'connector' },
+      { verb: 'deleting', type: Model.EntityType.connector },
       async () => {
         try {
           // Do delete things - create functions, collect their versions, and update the entity.data object

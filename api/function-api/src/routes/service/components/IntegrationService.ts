@@ -40,6 +40,10 @@ class IntegrationService extends SessionedComponentService<Model.IIntegration> {
     this.entityType = Model.EntityType.integration;
   }
 
+  public addService = (service: SessionedComponentService<any>): void => {
+    this.connectorService = service;
+  };
+
   public sanitizeEntity = (entity: Model.IIntegration): void => {
     let data = entity.data;
 
@@ -129,7 +133,7 @@ class IntegrationService extends SessionedComponentService<Model.IIntegration> {
     return operationService.inOperation(
       Model.EntityType.integration,
       entity,
-      { verb: 'creating', type: 'integration' },
+      { verb: 'creating', type: Model.EntityType.integration },
       async () => {
         this.sanitizeEntity(entity as Model.IIntegration);
         await this.createEntityOperation(entity);
@@ -173,7 +177,7 @@ class IntegrationService extends SessionedComponentService<Model.IIntegration> {
     return operationService.inOperation(
       Model.EntityType.integration,
       entity,
-      { verb: 'updating', type: 'integration' },
+      { verb: 'updating', type: Model.EntityType.integration },
       async () => {
         // Make sure the entity already exists.
         await this.dao.getEntity(entity);
@@ -196,7 +200,7 @@ class IntegrationService extends SessionedComponentService<Model.IIntegration> {
     return operationService.inOperation(
       Model.EntityType.integration,
       entity,
-      { verb: 'deleting', type: 'integration' },
+      { verb: 'deleting', type: Model.EntityType.integration },
       async () => {
         try {
           // Do delete things - create functions, collect their versions, and update the entity.data object
