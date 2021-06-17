@@ -169,7 +169,8 @@ export class RestoreService {
    * @param deploymentName
    * @param resourceId
    * @param host
-   * Updates the Secrets Manager hostname and id for Aurora
+   * Updates the Secrets Manager with hostname and id for Aurora
+   * Allows Function API to gain access to new Aurora cluster
    */
   private async updateSecretsManager(
     credentials: IAwsCredentials,
