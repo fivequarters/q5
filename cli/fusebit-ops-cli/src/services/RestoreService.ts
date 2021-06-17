@@ -97,7 +97,7 @@ export class RestoreService {
         this.restoreTable(credentials, tableSuffix, deploymentName, backupPlanName, region as string)
       )
     );
-    
+
     await this.deleteAuroraDb(credentials, deploymentName, region as string);
     const restorePoint = (await this.findLatestRecoveryPointOfTable(
       credentials,
@@ -180,7 +180,11 @@ export class RestoreService {
     const secrets = await secretsManager.listSecrets().promise();
     let secret: AWS.SecretsManager.SecretListEntry | undefined;
     for (const potentialSecret of secrets.SecretList as AWS.SecretsManager.SecretListType) {
-      if (!(potentialSecret.Name as string).match(`^rds-db-credentials/fusebit-db-secret-${deploymentName}-[a-zA-Z0-9]{20}$`)) {
+      if (
+        !(potentialSecret.Name as string).match(
+          `^rds-db-credentials/fusebit-db-secret-${deploymentName}-[a-zA-Z0-9]{20}$`
+        )
+      ) {
         secret = potentialSecret;
         break;
       }
