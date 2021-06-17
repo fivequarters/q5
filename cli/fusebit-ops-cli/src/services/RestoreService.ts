@@ -91,7 +91,6 @@ export class RestoreService {
     }
     const region = await this.findRegionFromDeploymentName(deploymentName, config, credentials);
     // The end of the world.
-    
     await this.deleteAllExistingDynamoDBTable(deploymentName, config, credentials);
     await Promise.all(
       this.dynamoTableSuffix.map((tableSuffix) =>
