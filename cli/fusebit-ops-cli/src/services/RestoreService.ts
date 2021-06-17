@@ -91,14 +91,14 @@ export class RestoreService {
     }
     const region = await this.findRegionFromDeploymentName(deploymentName, config, credentials);
     // The end of the world.
-    /**
+    
     await this.deleteAllExistingDynamoDBTable(deploymentName, config, credentials);
     await Promise.all(
       this.dynamoTableSuffix.map((tableSuffix) =>
         this.restoreTable(credentials, tableSuffix, deploymentName, backupPlanName, region as string)
       )
     );
-    */
+    
     await this.deleteAuroraDb(credentials, deploymentName, region as string);
     const restorePoint = (await this.findLatestRecoveryPointOfTable(
       credentials,
