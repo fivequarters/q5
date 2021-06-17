@@ -113,7 +113,7 @@ export class RestoreService {
       credentials,
       region as string
     );
-    await this.updateSecretsManager(credentials, region as string, deploymentName, ids[1], ids[0]);
+    await this.updateSecretsManager(credentials, region as string, deploymentName, ids);
   }
 
   private async deleteAuroraDb(credentials: IAwsCredentials, deploymentName: string, region: string) {
