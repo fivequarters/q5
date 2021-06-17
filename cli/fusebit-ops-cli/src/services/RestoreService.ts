@@ -182,6 +182,7 @@ export class RestoreService {
     for (const potentialSecret of secrets.SecretList as AWS.SecretsManager.SecretListType) {
       if (!(potentialSecret.Name as string).match(`^rds-db-credentials/fusebit-db-secret-${deploymentName}-[a-zA-Z0-9]{20}$`)) {
         secret = potentialSecret;
+        break;
       }
     }
     const currentSecret = await secretsManager
