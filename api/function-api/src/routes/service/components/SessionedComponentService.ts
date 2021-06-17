@@ -3,7 +3,7 @@ import http_error from 'http-errors';
 import { v4 as uuidv4 } from 'uuid';
 import RDS, { Model } from '@5qtrs/db';
 
-import BaseComponentService, { IServiceResult } from './BaseComponentService';
+import BaseComponentService, { IServiceResult, ISubordinateId } from './BaseComponentService';
 import { operationService } from './OperationService';
 
 export default abstract class SessionedComponentService<
@@ -21,30 +21,6 @@ export default abstract class SessionedComponentService<
 
   public abstract addService(service: SessionedComponentService<any, any>): void;
 
-  // Note: members are only optional because req.params needs them to be.
-  public createSessionId = (params: { entityType: string; componentId: string; sessionId: string }) => {
-    return `/${params.entityType || this.entityType}/${params.componentId}/${params.sessionId}`;
-  };
-
-  public decomposeSessionId = (id: string): { entityType: string; componentId: string; sessionId: string } => {
-    const split = id.split('/');
-    return {
-      entityType: split[1],
-      componentId: split[2],
-      sessionId: split[3],
-    };
-  };
-
-  public extractSessionId = (id: string): string => {
-    return id.split('/').pop() as string;
-  };
-
-  public extractComponentId = (id: string): string => {
-    const comps = id.split('/');
-    comps.pop();
-    return comps.pop() as string;
-  };
-
   public getTargetUrl = (params: Model.IEntity, step: Model.IStep) => {
     if (step.target.type === 'generic') {
       return step.target.handlers.step;
@@ -53,11 +29,10 @@ export default abstract class SessionedComponentService<
       accountId: params.accountId,
       subscriptionId: params.subscriptionId,
       entityType: 'connector',
-      entityId: this.extractComponentId(params.id),
-      sessionId: this.extractSessionId(params.id),
+      entityId: this.decomposeSubordinateId(params.id).componentId,
+      sessionId: this.decomposeSubordinateId(params.id).subordinateId,
       ...step.target,
     };
-    return step.target;
   };
 
   public createSession = async (
@@ -150,7 +125,12 @@ export default abstract class SessionedComponentService<
     const session: Model.ISession = {
       accountId: entity.accountId,
       subscriptionId: entity.subscriptionId,
-      id: this.createSessionId({ ...entity, entityType: this.entityType, componentId: entity.id, sessionId }),
+      id: this.createSubordinateId({
+        ...entity,
+        entityType: this.entityType,
+        componentId: entity.id,
+        subordinateId: sessionId,
+      }),
       data: {
         mode: 'step',
         steps: stepList.map((stepName: string) => ({ ...steps[stepName], stepName })),
@@ -160,7 +140,6 @@ export default abstract class SessionedComponentService<
       },
     };
 
-    console.log(`createSession`, JSON.stringify(session, null, 2));
     // Write the session object.
     return {
       statusCode: 200,
@@ -178,7 +157,7 @@ export default abstract class SessionedComponentService<
     const session: Model.ISession = {
       accountId: params.accountId,
       subscriptionId: params.subscriptionId,
-      id: this.createSessionId({ ...params, sessionId }),
+      id: this.createSubordinateId({ ...params, subordinateId: sessionId }),
       data: {
         mode: 'leaf',
         stepName: step.stepName,
@@ -219,7 +198,6 @@ export default abstract class SessionedComponentService<
     // Write the contents into the session, return the new session details.
     let session = await this.sessionDao.getEntity(entity);
     session.data.output = outputValues;
-    console.log('putSession', JSON.stringify(session, null, 2));
     session = await this.sessionDao.updateEntity(session);
     return { statusCode: 200, result: session };
   };
@@ -248,7 +226,7 @@ export default abstract class SessionedComponentService<
         subscriptionId: session.subscriptionId,
         ...(step.target.type === 'connector'
           ? { entityType: 'connector', componentId: step.target.entityId }
-          : { entityType: this.entityType, componentId: this.extractComponentId(session.id) }),
+          : { entityType: this.entityType, componentId: this.decomposeSubordinateId(session.id).componentId }),
       },
       { parentId: session.id, stepName: step.stepName },
       step
@@ -262,7 +240,7 @@ export default abstract class SessionedComponentService<
   public finishSession = async (entity: Model.IEntity): Promise<IServiceResult> => {
     // Load the session
     const session = await this.sessionDao.getEntity(entity);
-    const sessionId = this.extractSessionId(session.id);
+    const sessionId = this.decomposeSubordinateId(session.id).subordinateId;
 
     // If the meta points at a redirectUrl, send it.
     if (session.data.meta.redirectUrl) {
@@ -296,7 +274,7 @@ export default abstract class SessionedComponentService<
           subscriptionId: session.subscriptionId,
           ...(step.target.type === 'connector'
             ? { entityType: 'connector', componentId: step.target.entityId }
-            : { entityType: this.entityType, componentId: this.extractComponentId(session.id) }),
+            : { entityType: this.entityType, componentId: this.decomposeSubordinateId(session.id).componentId }),
         },
         { parentId: parentSession.id, stepName: step.stepName },
         step
@@ -310,25 +288,30 @@ export default abstract class SessionedComponentService<
       return { statusCode: 302, result: this.getTargetUrl(stepSession.result, stepSession.result.data) };
     }
 
-    const parentSessionId = this.extractSessionId(parentSession.id);
+    const parentSessionId = this.decomposeSubordinateId(parentSession.id).subordinateId;
     // If there's no further steps, redirect to the redirectUrl.
     return { statusCode: 302, result: `${parentSession.data.meta.redirectUrl}?session=${parentSessionId}` };
   };
 
-  public postSession = async (entity: Model.IEntity): Promise<IServiceResult> => {
+  public postSession = async (entity: Model.IEntity, parentEntity: E): Promise<IServiceResult> => {
     // Return an operation for creating all of the subsidiary objects.
     return operationService.inOperation(
       Model.EntityType.session,
       entity,
       { verb: 'creating', type: Model.EntityType.session },
       async () => {
-        return this.persistSession(entity, this.decomposeSessionId(entity.id).sessionId);
+        return this.persistSession(entity, this.decomposeSubordinateId(entity.id));
       }
     );
   };
 
-  protected persistSession = async (entity: Model.IEntity, masterSessionId: string): Promise<IServiceResult> => {
+  protected persistSession = async (
+    entity: Model.IEntity,
+    masterSessionId: ISubordinateId
+  ): Promise<IServiceResult> => {
+    console.log(`persistSession`, entity);
     const session = await this.sessionDao.getEntity(entity);
+    console.log(`post persistSession`, session);
     if (session.data.mode === 'step') {
       return this.persistStepSession(session, masterSessionId);
     }
@@ -336,7 +319,10 @@ export default abstract class SessionedComponentService<
     return this.persistLeafSession(session, masterSessionId);
   };
 
-  protected persistStepSession = async (session: Model.ISession, masterSessionId: string): Promise<IServiceResult> => {
+  protected persistStepSession = async (
+    session: Model.ISession,
+    masterSessionId: ISubordinateId
+  ): Promise<IServiceResult> => {
     const entity: Model.IEntity = {
       accountId: session.accountId,
       subscriptionId: session.subscriptionId,
@@ -361,7 +347,7 @@ export default abstract class SessionedComponentService<
         const sessionEntity = { ...entity, id: step.childSessionId as string };
         try {
           const result = await this.persistSession(sessionEntity, masterSessionId);
-          const decompStepSessionId = this.decomposeSessionId(sessionEntity.id);
+          const decompStepSessionId = this.decomposeSubordinateId(sessionEntity.id);
           results.succeeded.push({
             statusCode: 200,
             session: { ...sessionEntity, ...decompStepSessionId, ...result },
@@ -369,7 +355,7 @@ export default abstract class SessionedComponentService<
           stepSessionResults[step.stepName] = {
             accountId: entity.accountId,
             subscriptionId: entity.subscriptionId,
-            id: result.result.id,
+            id: this.decomposeSubordinateId(result.result.id).subordinateId,
             tags: result.result.tags,
             componentId: decompStepSessionId.componentId,
             componentType: decompStepSessionId.entityType,
@@ -383,7 +369,7 @@ export default abstract class SessionedComponentService<
               message: e.message,
               session: {
                 ...sessionEntity,
-                ...this.decomposeSessionId(sessionEntity.id),
+                ...this.decomposeSubordinateId(sessionEntity.id),
               },
             },
           });
@@ -391,15 +377,28 @@ export default abstract class SessionedComponentService<
       })
     );
 
+    // TODO: Performance improvement opportunity - replace the double query with a single version of create
+    // that uses a join to construct the id, based on the supplied componentId, rather than doing two queries
+    // to make it happen.
+    const parentEntity = await this.dao.getEntity({
+      accountId: session.accountId,
+      subscriptionId: session.subscriptionId,
+      id: masterSessionId.componentId,
+    });
+
     const instance = await this.subDao.createEntity({
       accountId: session.accountId,
       subscriptionId: session.subscriptionId,
-      id: uuidv4(),
+      id: this.createSubordinateId({
+        entityType: this.entityType,
+        componentId: parentEntity.__databaseId as string,
+        subordinateId: uuidv4(),
+      }),
       data: { output: session.data.output, steps: stepSessionResults },
-      tags: { ...session.tags, 'session.master': masterSessionId },
+      tags: { ...session.tags, 'session.master': masterSessionId.subordinateId },
     });
 
-    const decomposedSessionId = this.decomposeSessionId(session.id);
+    const decomposedSessionId = this.decomposeSubordinateId(session.id);
     // Record the master instance
     stepSessionResults[''] = {
       accountId: session.accountId,
@@ -414,7 +413,10 @@ export default abstract class SessionedComponentService<
     return { statusCode: 200, result: stepSessionResults };
   };
 
-  protected persistLeafSession = async (session: Model.ISession, masterSessionId: string): Promise<IServiceResult> => {
+  protected persistLeafSession = async (
+    session: Model.ISession,
+    masterSessionId: ISubordinateId
+  ): Promise<IServiceResult> => {
     // Thanks typescript...
     if (session.data.mode === 'step') {
       return this.persistStepSession(session, masterSessionId);
@@ -434,7 +436,7 @@ export default abstract class SessionedComponentService<
 
   protected instantiateGenericService = async (
     session: Model.ISession,
-    masterSessionId: string
+    masterSessionId: ISubordinateId
   ): Promise<IServiceResult> => {
     // Thanks typescript...
     if (session.data.mode === 'step') {
@@ -446,18 +448,39 @@ export default abstract class SessionedComponentService<
 
   // Called on multiple different SessionedComponentService objects to instantiate sub-sessions as necessary,
   // with each individual session data packet supplied as the entity.
-  public instantiateSession = async (session: Model.ISession, masterSessionId: string): Promise<IServiceResult> => {
+  public instantiateSession = async (
+    session: Model.ISession,
+    masterSessionId: ISubordinateId
+  ): Promise<IServiceResult> => {
     // Thanks typescript...
     if (session.data.mode === 'step') {
       return this.persistStepSession(session, masterSessionId);
     }
+    // XXX Need to push this type assertion elsewhere.
+    if (session.data.target.type !== Model.EntityType.connector) {
+      throw new Error();
+    }
+
+    // TODO: Performance improvement opportunity - replace the double query with a single version of create
+    // that uses a join to construct the id, based on the supplied componentId, rather than doing two queries
+    // to make it happen.
+    const parentEntity = await this.dao.getEntity({
+      accountId: session.accountId,
+      subscriptionId: session.subscriptionId,
+      id: session.data.target.entityId,
+      ...session.data.target,
+    });
 
     const result = await this.subDao.createEntity({
       accountId: session.accountId,
       subscriptionId: session.subscriptionId,
-      id: uuidv4(),
+      id: this.createSubordinateId({
+        entityType: this.entityType,
+        componentId: parentEntity.__databaseId as string,
+        subordinateId: uuidv4(),
+      }),
       data: session.data.output,
-      tags: { ...session.tags, 'session.master': masterSessionId },
+      tags: { ...session.tags, 'session.master': masterSessionId.subordinateId },
     });
 
     // Don't expose the data in the report.

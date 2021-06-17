@@ -65,6 +65,7 @@ export interface ITagsWithVersion {
 export interface IEntityCore {
   accountId: string;
   subscriptionId: string;
+  __databaseId?: string;
 }
 
 // Data needed for selects and deletes
@@ -176,7 +177,14 @@ export interface IOperation extends IEntity {
     code: number; // HTTP status codes
     message?: string;
     payload?: any;
-    location: { accountId: string; subscriptionId: string; entityId: string; entityType: EntityType };
+    location: {
+      accountId: string;
+      subscriptionId: string;
+      entityId?: string;
+      componentId?: string;
+      subordinateId?: string;
+      entityType: EntityType;
+    };
   };
 }
 

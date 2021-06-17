@@ -76,7 +76,7 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
     entityid: 'id',
     entitytype: 'entityType',
     subscriptionid: 'subscriptionId',
-    id: this.IGNORE,
+    id: '__databaseId',
   };
 
   public getDaoType = (): EntityType => {

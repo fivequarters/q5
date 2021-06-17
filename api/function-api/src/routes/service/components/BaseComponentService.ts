@@ -17,15 +17,47 @@ export interface IDispatchParams {
   originalUrl: string;
 }
 
+export interface ISubordinateId {
+  entityType?: Model.EntityType | string;
+  componentId: string;
+  subordinateId: string;
+}
+
+export const decomposeSubordinateId = (
+  id: string
+): { entityType: Model.EntityType; componentId: string; subordinateId: string } => {
+  const split = id.split('/');
+  return {
+    entityType: split[1] as Model.EntityType,
+    componentId: split[2],
+    subordinateId: split[3],
+  };
+};
+
 export default abstract class BaseComponentService<E extends Model.IEntity, F extends Model.IEntity> {
   public abstract readonly entityType: Model.EntityType;
   public readonly dao: Model.IEntityDao<E>;
   public readonly subDao: Model.IEntityDao<F>;
 
+  public createSubordinateId = (params: {
+    entityType?: Model.EntityType | string;
+    componentId: string;
+    subordinateId: string;
+  }) => {
+    return `/${params.entityType || this.entityType}/${params.componentId}/${params.subordinateId}`;
+  };
+
+  public decomposeSubordinateId = decomposeSubordinateId;
+
   protected constructor(dao: Model.IEntityDao<E>, subDao: Model.IEntityDao<F>) {
     this.dao = dao;
     this.subDao = subDao;
   }
+
+  public getEntity = async (entity: Model.IEntity): Promise<IServiceResult> => ({
+    statusCode: 200,
+    result: await this.dao.getEntity(entity),
+  });
 
   public createEntity = async (entity: Model.IEntity): Promise<IServiceResult> => ({
     statusCode: 200,

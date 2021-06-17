@@ -69,34 +69,51 @@ export const ApiRequestMap: { [key: string]: any } = {
         body: Model.ISessionParameters | Model.IStep,
         options?: IRequestOptions
       ) => {
-        return v2Request(account, {
+        const response = await v2Request(account, {
           method: 'POST',
           uri: `/connector/${encodeURI(entityId)}/session/`,
           body,
           ...options,
         });
+        if (response.status < 300) {
+          expect(response.data.id).not.toMatch('/');
+        }
+        return response;
       },
       getResult: async (account: IAccount, entityId: string, sessionId: string, options?: IRequestOptions) => {
-        return v2Request(account, {
+        const response = await v2Request(account, {
           method: 'GET',
           uri: `/connector/${encodeURI(entityId)}/session/result/${sessionId}`,
           ...options,
         });
+        if (response.status < 300) {
+          expect(response.data.id).not.toMatch('/');
+        }
+        return response;
       },
       get: async (account: IAccount, entityId: string, sessionId: string, options?: IRequestOptions) => {
-        return v2Request(account, {
+        const response = await v2Request(account, {
           method: 'GET',
           uri: `/connector/${encodeURI(entityId)}/session/${sessionId}`,
           ...options,
         });
+        if (response.status < 300) {
+          expect(response.data.id).not.toMatch('/');
+        }
+        return response;
       },
       put: async (account: IAccount, entityId: string, sessionId: string, body: any, options?: IRequestOptions) => {
-        return v2Request(account, {
+        const response = await v2Request(account, {
           method: 'PUT',
           uri: `/connector/${encodeURI(entityId)}/session/${sessionId}`,
           body,
           ...options,
         });
+        console.log(`session put`, response.data);
+        if (response.status < 300) {
+          expect(response.data.id).not.toMatch('/');
+        }
+        return response;
       },
       start: async (account: IAccount, entityId: string, sessionId: string, options?: IRequestOptions) => {
         return v2Request(account, {
@@ -242,34 +259,52 @@ export const ApiRequestMap: { [key: string]: any } = {
         body: Model.ISessionParameters | Model.IStep,
         options?: IRequestOptions
       ) => {
-        return v2Request(account, {
+        const response = await v2Request(account, {
           method: 'POST',
           uri: `/integration/${encodeURI(entityId)}/session/`,
           body,
           ...options,
         });
+        console.log(`session post`, response.data);
+        if (response.status < 300) {
+          expect(response.data.id).not.toMatch('/');
+        }
+        return response;
       },
       getResult: async (account: IAccount, entityId: string, sessionId: string, options?: IRequestOptions) => {
-        return v2Request(account, {
+        const response = await v2Request(account, {
           method: 'GET',
           uri: `/integration/${encodeURI(entityId)}/session/result/${sessionId}`,
           ...options,
         });
+        if (response.status < 300) {
+          expect(response.data.id).not.toMatch('/');
+        }
+        return response;
       },
       get: async (account: IAccount, entityId: string, sessionId: string, options?: IRequestOptions) => {
-        return v2Request(account, {
+        const response = await v2Request(account, {
           method: 'GET',
           uri: `/integration/${encodeURI(entityId)}/session/${sessionId}`,
           ...options,
         });
+        if (response.status < 300) {
+          expect(response.data.id).not.toMatch('/');
+        }
+        return response;
       },
       put: async (account: IAccount, entityId: string, sessionId: string, body: any, options?: IRequestOptions) => {
-        return v2Request(account, {
+        const response = await v2Request(account, {
           method: 'PUT',
           uri: `/integration/${encodeURI(entityId)}/session/${sessionId}`,
           body,
           ...options,
         });
+        console.log(`session put`, response.data);
+        if (response.status < 300) {
+          expect(response.data.id).not.toMatch('/');
+        }
+        return response;
       },
       start: async (account: IAccount, entityId: string, sessionId: string, options?: IRequestOptions) => {
         return v2Request(account, {

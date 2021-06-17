@@ -55,10 +55,12 @@ const createPair = async (integConfig?: any, numConnectors: number = 1) => {
   };
   let response = await ApiRequestMap.integration.postAndWait(account, integEntity);
   expect(response).toBeHttp({ statusCode: 200 });
+  expect(response.data.id).not.toMatch('/');
   const integ = response.data;
 
   response = await ApiRequestMap.connector.postAndWait(account, { id: conId });
   expect(response).toBeHttp({ statusCode: 200 });
+  expect(response.data.id).not.toMatch('/');
   const conn = response.data;
 
   for (let n = 1; n < numConnectors; n++) {
@@ -147,6 +149,7 @@ describe('Sessions', () => {
       redirectUrl: demoRedirectUrl,
     });
     expect(response).toBeHttp({ statusCode: 200 });
+    expect(response.data.id).not.toMatch('/');
 
     // Write data so there's something in the output
     response = await ApiRequestMap.integration.session.put(account, integrationId, response.data.id, {
@@ -496,7 +499,8 @@ describe('Sessions', () => {
         type: 'session',
         verb: 'creating',
         location: {
-          entityId: `/integration/${integrationId}/${parentSessionId}`,
+          componentId: integrationId,
+          subordinateId: parentSessionId,
           accountId: account.accountId,
           entityType: 'session',
           subscriptionId: account.subscriptionId,
