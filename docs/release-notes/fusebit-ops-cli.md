@@ -22,6 +22,7 @@ All public releases of the Fusebit Operations CLI are documented here, including
 
 - **Enhancement.** Add Encryption On EC2 Disks.
 - **Bugfix.** Aurora Backup Now Properly Updates Secrets Manager. 
+- **Enhancement.** Switch EC2 to GP3 volumes.
 
 ## Version 1.27.6
 

@@ -163,14 +163,7 @@ export class RestoreService {
     );
   }
   /**
-   *
-   * @param credentials
-   * @param region
-   * @param deploymentName
-   * @param resourceId
-   * @param host
-   * Updates the Secrets Manager with hostname and id for Aurora
-   * Allows Function API to gain access to new Aurora cluster
+   * Updates Secrets Manager with the new Aurora url.
    */
   private async updateSecretsManager(
     credentials: IAwsCredentials,
@@ -187,7 +180,7 @@ export class RestoreService {
     const secrets = await secretsManager.listSecrets().promise();
     let secret: AWS.SecretsManager.SecretListEntry | undefined;
     for (const potentialSecret of secrets.SecretList as AWS.SecretsManager.SecretListType) {
-      if (!(potentialSecret.Name as string).match(`^rds-db-credentials/fusebit-db-secret-${deploymentName}`)) {
+      if (!(potentialSecret.Name as string).match(`^rds-db-credentials/fusebit-db-secret-${deploymentName}-[a-zA-Z0-9]{20}$`)) {
         secret = potentialSecret;
       }
     }
