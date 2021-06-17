@@ -200,7 +200,8 @@ export interface ILeafSession extends IStep {
       };
 }
 
-export type IStepSessionSteps = (IStep & { childSessionId?: string })[];
+export type IStepSessionStep = IStep & { childSessionId?: string };
+export type IStepSessionSteps = IStepSessionStep[];
 export interface IStepSession {
   mode: 'step';
   input?: never;
@@ -357,4 +358,5 @@ export interface IEntityDao<ET extends IEntity> extends IDAO {
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
   ) => Promise<ITagsWithVersion>;
+  getDaoType: () => string;
 }

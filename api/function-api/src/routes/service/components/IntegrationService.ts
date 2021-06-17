@@ -1,3 +1,5 @@
+import { v4 as uuidv4 } from 'uuid';
+
 import { safePathMap } from '@5qtrs/constants';
 import RDS, { Model } from '@5qtrs/db';
 import { IAgent } from '@5qtrs/account-data';
@@ -33,14 +35,14 @@ const defaultPackage = (entity: Model.IIntegration) => ({
   files: ['./integration.js'], // Make sure the default file is included, if nothing else.
 });
 
-class IntegrationService extends SessionedComponentService<Model.IIntegration> {
+class IntegrationService extends SessionedComponentService<Model.IIntegration, Model.IInstance> {
   public readonly entityType: Model.EntityType;
   constructor() {
-    super(RDS.DAO.integration);
+    super(RDS.DAO.integration, RDS.DAO.instance);
     this.entityType = Model.EntityType.integration;
   }
 
-  public addService = (service: SessionedComponentService<any>): void => {
+  public addService = (service: SessionedComponentService<any, any>): void => {
     this.connectorService = service;
   };
 

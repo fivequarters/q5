@@ -6,21 +6,33 @@ import RDS, { Model } from '@5qtrs/db';
 import BaseComponentService, { IServiceResult } from './BaseComponentService';
 import { operationService } from './OperationService';
 
-export default abstract class SessionedComponentService<E extends Model.IEntity> extends BaseComponentService<E> {
+export default abstract class SessionedComponentService<
+  E extends Model.IEntity,
+  F extends Model.IEntity
+> extends BaseComponentService<E, F> {
   private readonly sessionDao: Model.IEntityDao<Model.ISession>;
-  protected integrationService!: SessionedComponentService<any>;
-  protected connectorService!: SessionedComponentService<any>;
+  protected integrationService!: SessionedComponentService<any, any>;
+  protected connectorService!: SessionedComponentService<any, any>;
 
-  constructor(dao: Model.IEntityDao<E>) {
-    super(dao);
+  constructor(dao: Model.IEntityDao<E>, subDao: Model.IEntityDao<F>) {
+    super(dao, subDao);
     this.sessionDao = RDS.DAO.session;
   }
 
-  public abstract addService(service: SessionedComponentService<any>): void;
+  public abstract addService(service: SessionedComponentService<any, any>): void;
 
   // Note: members are only optional because req.params needs them to be.
   public createSessionId = (params: { entityType: string; componentId: string; sessionId: string }) => {
     return `/${params.entityType || this.entityType}/${params.componentId}/${params.sessionId}`;
+  };
+
+  public decomposeSessionId = (id: string): { entityType: string; componentId: string; sessionId: string } => {
+    const split = id.split('/');
+    return {
+      entityType: split[1],
+      componentId: split[2],
+      sessionId: split[3],
+    };
   };
 
   public extractSessionId = (id: string): string => {
@@ -310,71 +322,148 @@ export default abstract class SessionedComponentService<E extends Model.IEntity>
       entity,
       { verb: 'creating', type: Model.EntityType.session },
       async () => {
-        return this.persistSession(entity);
+        return this.persistSession(entity, this.decomposeSessionId(entity.id).sessionId);
       }
     );
   };
 
-  protected persistSession = async (entity: Model.IEntity): Promise<IServiceResult> => {
+  protected persistSession = async (entity: Model.IEntity, masterSessionId: string): Promise<IServiceResult> => {
     const session = await this.sessionDao.getEntity(entity);
     if (session.data.mode === 'step') {
-      return this.persistStepSession(session);
+      return this.persistStepSession(session, masterSessionId);
     }
 
-    return this.persistLeafSession(session);
+    return this.persistLeafSession(session, masterSessionId);
   };
 
-  protected persistStepSession = async (session: Model.ISession): Promise<IServiceResult> => {
+  protected persistStepSession = async (session: Model.ISession, masterSessionId: string): Promise<IServiceResult> => {
     const entity: Model.IEntity = {
       accountId: session.accountId,
       subscriptionId: session.subscriptionId,
       id: session.id,
     };
 
-    // Get the list of sub sessions
+    // Thanks Typescript...
     if (session.data.mode === 'leaf') {
-      return this.persistLeafSession(session);
+      return this.persistLeafSession(session, masterSessionId);
     }
 
-    const stepSessions = session.data.steps.map((step) => step.childSessionId);
+    // Get the list of sub sessions
+    // const stepSessions = session.data.steps.map((step) => step.childSessionId);
 
+    const results: { succeeded: any[]; failed: any[] } = { succeeded: [], failed: [] };
+    const stepSessionResults: {
+      [stepName: string]: any;
+    } = {};
     // Persist each session.
-    const results = await (Promise as any).allSettled(
-      stepSessions.map((stepId?: string) => this.persistSession({ ...entity, id: stepId as string }))
+    await (Promise as any).allSettled(
+      Object.values(session.data.steps).map(async (step: Model.IStepSessionStep) => {
+        const sessionEntity = { ...entity, id: step.childSessionId as string };
+        try {
+          const result = await this.persistSession(sessionEntity, masterSessionId);
+          const decompStepSessionId = this.decomposeSessionId(sessionEntity.id);
+          results.succeeded.push({
+            statusCode: 200,
+            session: { ...sessionEntity, ...decompStepSessionId, ...result },
+          });
+          stepSessionResults[step.stepName] = {
+            accountId: entity.accountId,
+            subscriptionId: entity.subscriptionId,
+            id: result.result.id,
+            tags: result.result.tags,
+            componentId: decompStepSessionId.componentId,
+            componentType: decompStepSessionId.entityType,
+            entityType: result.result.entityType,
+          };
+          delete stepSessionResults[step.stepName].sessionId;
+        } catch (e) {
+          results.failed.push({
+            result: {
+              statusCode: 400,
+              message: e.message,
+              session: {
+                ...sessionEntity,
+                ...this.decomposeSessionId(sessionEntity.id),
+              },
+            },
+          });
+        }
+      })
     );
-    console.log(`postSession results`, results);
-    return { statusCode: 200, result: results };
+
+    const instance = await this.subDao.createEntity({
+      accountId: session.accountId,
+      subscriptionId: session.subscriptionId,
+      id: uuidv4(),
+      data: { output: session.data.output, steps: stepSessionResults },
+      tags: { ...session.tags, 'session.master': masterSessionId },
+    });
+
+    const decomposedSessionId = this.decomposeSessionId(session.id);
+    // Record the master instance
+    stepSessionResults[''] = {
+      accountId: session.accountId,
+      subscriptionId: session.subscriptionId,
+      componentId: decomposedSessionId.componentId,
+      componentType: decomposedSessionId.entityType,
+      id: instance.id,
+      entityType: this.subDao.getDaoType(),
+      tags: instance.tags,
+    };
+    delete stepSessionResults[''].sessionId;
+    return { statusCode: 200, result: stepSessionResults };
   };
 
-  protected persistLeafSession = async (session: Model.ISession): Promise<IServiceResult> => {
+  protected persistLeafSession = async (session: Model.ISession, masterSessionId: string): Promise<IServiceResult> => {
     // Thanks typescript...
     if (session.data.mode === 'step') {
-      return this.persistStepSession(session);
+      return this.persistStepSession(session, masterSessionId);
     }
 
+    let result;
     if (session.data.target.type === Model.EntityType.connector) {
-      return this.connectorService.instantiateSession(session);
+      result = await this.connectorService.instantiateSession(session, masterSessionId);
+      result.result.entityType = this.connectorService.subDao.getDaoType();
+      return result;
+    } else {
+      result = await this.instantiateGenericService(session, masterSessionId);
+      result.result.entityType = this.subDao.getDaoType();
     }
-    return this.instantiateGenericService(session);
+    return result;
   };
 
-  protected instantiateGenericService = async (session: Model.ISession): Promise<IServiceResult> => {
+  protected instantiateGenericService = async (
+    session: Model.ISession,
+    masterSessionId: string
+  ): Promise<IServiceResult> => {
     // Thanks typescript...
     if (session.data.mode === 'step') {
-      return this.persistStepSession(session);
+      return this.persistStepSession(session, masterSessionId);
     }
 
-    return { statusCode: 200, result: { message: `instantiateGeneric ${session.data.stepName}` } };
+    return { statusCode: 418, result: { message: `Not Yet Implemented: ${session.data.stepName}` } };
   };
 
   // Called on multiple different SessionedComponentService objects to instantiate sub-sessions as necessary,
   // with each individual session data packet supplied as the entity.
-  public /* XXX abstract */ instantiateSession = async (session: Model.ISession): Promise<IServiceResult> => {
+  public instantiateSession = async (session: Model.ISession, masterSessionId: string): Promise<IServiceResult> => {
     // Thanks typescript...
     if (session.data.mode === 'step') {
-      return this.persistStepSession(session);
+      return this.persistStepSession(session, masterSessionId);
     }
+
+    const result = await this.subDao.createEntity({
+      accountId: session.accountId,
+      subscriptionId: session.subscriptionId,
+      id: uuidv4(),
+      data: session.data.output,
+      tags: { ...session.tags, 'session.master': masterSessionId },
+    });
+
+    // Don't expose the data in the report.
+    delete result.data;
+
     // Create a new instance/identity based on the data included in entity.data.
-    return { statusCode: 200, result: { message: `instantiate${this.entityType} ${session.data.stepName}` } };
+    return { statusCode: 200, result };
   };
 }

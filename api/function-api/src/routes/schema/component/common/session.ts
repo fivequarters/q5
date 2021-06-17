@@ -4,7 +4,7 @@ import * as common from '../../../middleware/common';
 import { SessionedComponentService } from '../../../service/components/';
 import * as Validation from '../../../validation/session';
 
-const createSessionRouter = (SessionService: SessionedComponentService<any>) => {
+const createSessionRouter = (SessionService: SessionedComponentService<any, any>) => {
   const router = express.Router({ mergeParams: true });
 
   router.post(

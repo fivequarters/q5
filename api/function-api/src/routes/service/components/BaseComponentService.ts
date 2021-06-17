@@ -17,12 +17,14 @@ export interface IDispatchParams {
   originalUrl: string;
 }
 
-export default abstract class BaseComponentService<E extends Model.IEntity> {
+export default abstract class BaseComponentService<E extends Model.IEntity, F extends Model.IEntity> {
   public abstract readonly entityType: Model.EntityType;
   public readonly dao: Model.IEntityDao<E>;
+  public readonly subDao: Model.IEntityDao<F>;
 
-  protected constructor(dao: Model.IEntityDao<E>) {
+  protected constructor(dao: Model.IEntityDao<E>, subDao: Model.IEntityDao<F>) {
     this.dao = dao;
+    this.subDao = subDao;
   }
 
   public createEntity = async (entity: Model.IEntity): Promise<IServiceResult> => ({

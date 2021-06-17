@@ -92,7 +92,7 @@ const getElementsFromUrl = (url: string) => {
 
 describe('Sessions', () => {
   test('Creating a session on a missing integration returns 404', async () => {
-    const response = await ApiRequestMap.integration.session.post(account, 'foobarbah', {
+    const response = await ApiRequestMap.integration.session.post(account, 'invalid-integration', {
       redirectUrl: demoRedirectUrl,
     });
     expect(response).toBeHttp({ statusCode: 404 });
@@ -463,7 +463,7 @@ describe('Sessions', () => {
 
   test('POSTing a integration session creates appropriate artifacts', async () => {
     // foo
-    const { integrationId } = await createPair();
+    const { integrationId, connectorId } = await createPair();
     let response = await ApiRequestMap.integration.session.post(account, integrationId, {
       redirectUrl: demoRedirectUrl,
     });
@@ -473,6 +473,7 @@ describe('Sessions', () => {
     response = await ApiRequestMap.integration.session.start(account, integrationId, response.data.id);
     expect(response).toBeHttp({ statusCode: 302 });
     const loc = getElementsFromUrl(response.headers.location);
+    const stepSessionId = loc.sessionId;
 
     // Write data so there's something in the output
     response = await ApiRequestMap[loc.entityType].session.put(account, loc.entityId, loc.sessionId, {
@@ -486,12 +487,32 @@ describe('Sessions', () => {
 
     // POST the parent session
     response = await ApiRequestMap.integration.session.postSession(account, integrationId, parentSessionId);
-    console.log(JSON.stringify(response.data, null, 2));
+
     // Returns the identity and instance id's.
-    // Validate the identity is created
-    // Validate the identity has the appropriate tags
-    // Validate the instance is created
-    // Validate the instance has the appropriate tags
+    expect(response).toBeHttp({
+      statusCode: 200,
+      data: {
+        code: 200,
+        type: 'session',
+        verb: 'creating',
+        location: {
+          entityId: `/integration/${integrationId}/${parentSessionId}`,
+          accountId: account.accountId,
+          entityType: 'session',
+          subscriptionId: account.subscriptionId,
+        },
+      },
+    });
+    expect(Object.keys(response.data.payload)).toEqual(['', 'connector:conn']);
+    // Future: could exhaustively validate parameters here.
+
+    // Future: Validate the identity is created
+
+    // Future: Validate the identity has the appropriate tags
+
+    // Future: Validate the instance is created
+
+    // Future: Validate the instance has the appropriate tags
   }, 180000);
   test('POSTing an session with the target supplied creates appropriate artifacts', async () => {
     // foo

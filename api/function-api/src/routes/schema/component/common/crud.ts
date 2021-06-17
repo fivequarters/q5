@@ -12,7 +12,7 @@ import body from '../../../handlers/body';
 
 import Validation from '../../../validation/component';
 
-const router = (ComponentService: BaseComponentService<any>) => {
+const router = (ComponentService: BaseComponentService<any, any>) => {
   const componentCrudRouter = express.Router({ mergeParams: true });
   componentCrudRouter
     .route('/')
