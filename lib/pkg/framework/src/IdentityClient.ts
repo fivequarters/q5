@@ -1,6 +1,17 @@
 import superagent from 'superagent';
 import { ObjectEntries } from './Utilities';
-import { IOAuthToken } from '@fusebit-int/pkg-oauth-connector/libc/OAuthTypes';
+
+interface IOAuthToken {
+  access_token: string;
+  token_type: string;
+  expires_in: number;
+  refresh_token: string;
+  scope: string;
+  expires_at: number;
+  status: string;
+  timestamp: number;
+  refreshErrorCount: number;
+}
 
 const removeLeadingSlash = (s: string) => s.replace(/^\/(.+)$/, '$1');
 const removeTrailingSlash = (s: string) => s.replace(/^(.+)\/$/, '$1');
@@ -40,17 +51,13 @@ class IdentityClient {
     return `${this.baseUrl}/${identityId}`;
   };
 
-  public get = async (identityId?: string) => {
+  public getToken = async (identityId: string) => {
     identityId = this.cleanId(identityId);
-    if (!identityId) {
-      return undefined;
-    }
-
     const response = await superagent
       .get(this.getUrl(identityId))
       .set('Authorization', `Bearer ${this.accessToken}`)
       .ok((res) => res.status < 300 || res.status === 404);
-    return response.status === 404 ? undefined : response.body.data;
+    return response.status === 404 ? undefined : response.body.data.token;
   };
 
   public saveTokenToSession = async (token: IOAuthToken, sessionId: string) => {
@@ -58,7 +65,17 @@ class IdentityClient {
     const response = await superagent
       .put(`${this.connectorUrl}/session/${sessionId}`)
       .set('Authorization', `Bearer ${this.accessToken}`)
-      .send({ token, identityId: sessionId });
+      .send({ token });
+    return response.body;
+  };
+
+  public updateToken = async (token: IOAuthToken, lookup: string) => {
+    console.log('saving token to identity');
+    lookup = this.cleanId(lookup);
+    const response = await superagent
+      .put(this.getUrl(lookup))
+      .set('Authorization', `Bearer ${this.accessToken}`)
+      .send({ token });
     return response.body;
   };
 

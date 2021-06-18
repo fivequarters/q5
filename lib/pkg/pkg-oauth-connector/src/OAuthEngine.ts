@@ -120,9 +120,8 @@ class OAuthEngine {
   public async ensureAccessToken(ctx: ICtxWithState, lookupKey: string) {
     let token: IOAuthToken | undefined;
     try {
-      token = await ctx.state.identityClient?.get(lookupKey);
+      token = await ctx.state.identityClient?.getToken(lookupKey);
     } catch (e) {
-      console.log(`storage log error`, e);
       throw e;
     }
 
@@ -145,18 +144,17 @@ class OAuthEngine {
   }
 
   protected async ensureLocalAccessToken(ctx: ICtxWithState, lookupKey: string) {
-    let token: IOAuthToken = await ctx.state.identityClient?.get(lookupKey);
+    let token: IOAuthToken = await ctx.state.identityClient?.getToken(lookupKey);
     if (
       token.access_token &&
       (token.expires_at === undefined || token.expires_at > Date.now() + this.cfg.accessTokenExpirationBuffer)
     ) {
       return token;
     }
-
     if (token.refresh_token) {
       token.status = 'refreshing';
       try {
-        await ctx.state.identityClient?.saveTokenToSession(token, lookupKey);
+        await ctx.state.identityClient?.updateToken(token, lookupKey);
 
         token = await this.refreshAccessToken(token.refresh_token);
 
@@ -167,7 +165,7 @@ class OAuthEngine {
         token.status = 'authenticated';
         token.refreshErrorCount = 0;
 
-        await ctx.state.identityClient?.saveTokenToSession(token, lookupKey);
+        await ctx.state.identityClient?.updateToken(token, lookupKey);
 
         return token;
       } catch (e) {
@@ -179,7 +177,7 @@ class OAuthEngine {
         } else {
           token.refreshErrorCount = (token.refreshErrorCount || 0) + 1;
           token.status = 'refresh_error';
-          await ctx.state.identityClient?.saveTokenToSession(token, lookupKey);
+          await ctx.state.identityClient?.updateToken(token, lookupKey);
           throw new Error(
             `Error refreshing access token, attempt ${token.refreshErrorCount} out of ${this.cfg.refreshErrorLimit}: ${e.message}`
           );
@@ -203,7 +201,7 @@ class OAuthEngine {
       setTimeout(async () => {
         let token: IOAuthToken;
         try {
-          token = await ctx.state.identityClient?.get(lookupKey);
+          token = await ctx.state.identityClient?.getToken(lookupKey);
           if (!token || token.status === 'refresh_error') {
             throw new Error(`Concurrent access token refresh operation failed`);
           }

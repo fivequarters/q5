@@ -34,10 +34,10 @@ export const decomposeSubordinateId = (
   };
 };
 
-export default abstract class BaseComponentService<E extends Model.IEntity, F extends Model.IEntity> {
+export default abstract class BaseComponentService<E extends Model.IEntity, F extends Model.IEntity | E> {
   public abstract readonly entityType: Model.EntityType;
   public readonly dao: Model.IEntityDao<E>;
-  public readonly subDao: Model.IEntityDao<F>;
+  public readonly subDao?: Model.IEntityDao<F>;
 
   public createSubordinateId = (params: {
     entityType?: Model.EntityType | string;
@@ -49,7 +49,7 @@ export default abstract class BaseComponentService<E extends Model.IEntity, F ex
 
   public decomposeSubordinateId = decomposeSubordinateId;
 
-  protected constructor(dao: Model.IEntityDao<E>, subDao: Model.IEntityDao<F>) {
+  protected constructor(dao: Model.IEntityDao<E>, subDao?: Model.IEntityDao<F>) {
     this.dao = dao;
     this.subDao = subDao;
   }

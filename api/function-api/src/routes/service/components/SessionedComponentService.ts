@@ -237,15 +237,10 @@ export default abstract class SessionedComponentService<
     return { statusCode: 302, result: this.getTargetUrl(stepSession.result, stepSession.result.data) };
   };
 
-  protected abstract saveSessionOutput: (session: Model.ISession, entityId: string) => Promise<any>;
-
   public finishSession = async (entity: Model.IEntity): Promise<IServiceResult> => {
     // Load the session
     const session = await this.sessionDao.getEntity(entity);
     const sessionId = this.decomposeSubordinateId(session.id).subordinateId;
-
-    // Save session output
-    await this.saveSessionOutput(session, entity.id);
 
     // If the meta points at a redirectUrl, send it.
     if (session.data.meta.redirectUrl) {
@@ -404,7 +399,7 @@ export default abstract class SessionedComponentService<
     };
 
     console.log(`persistStepSession ${JSON.stringify(stepSession, null, 2)}`);
-    const instance = await this.subDao.createEntity(stepSession);
+    const instance = await this.subDao!.createEntity(stepSession);
 
     const decomposedSessionId = this.decomposeSubordinateId(session.id);
     // Record the master instance
@@ -414,7 +409,7 @@ export default abstract class SessionedComponentService<
       componentId: decomposedSessionId.componentId,
       componentType: decomposedSessionId.entityType,
       id: this.decomposeSubordinateId(instance.id).subordinateId,
-      entityType: this.subDao.getDaoType(),
+      entityType: this.subDao!.getDaoType(),
       tags: instance.tags,
     };
 
@@ -434,11 +429,11 @@ export default abstract class SessionedComponentService<
     let result;
     if (session.data.target.type === Model.EntityType.connector) {
       result = await this.connectorService.instantiateSession(session, masterSessionId);
-      result.result.entityType = this.connectorService.subDao.getDaoType();
+      result.result.entityType = this.connectorService.subDao!.getDaoType();
       return result;
     } else {
       result = await this.instantiateGenericService(session, masterSessionId);
-      result.result.entityType = this.subDao.getDaoType();
+      result.result.entityType = this.subDao!.getDaoType();
     }
     return result;
   };
@@ -493,7 +488,7 @@ export default abstract class SessionedComponentService<
     };
 
     console.log(`instantiateService leafEntity ${JSON.stringify(leafEntity, null, 2)}`);
-    const result = await this.subDao.createEntity(leafEntity);
+    const result = await this.subDao!.createEntity(leafEntity);
 
     // Don't expose the data in the report.
     delete result.data;

@@ -2,13 +2,13 @@ import express from 'express';
 import { BaseComponentService } from '../../../service';
 import pathParams from '../../../handlers/pathParams';
 
-const router = (ComponentService: BaseComponentService<any, any>) => {
+const router = (ComponentService: BaseComponentService<any, any>, idParamName?: string) => {
   const componentTagRouter = express.Router({ mergeParams: true });
 
   componentTagRouter.get('/', async (req, res, next) => {
     try {
       const response = await ComponentService.dao.getEntityTags({
-        ...pathParams.EntityById(req),
+        ...pathParams.EntityById(req, idParamName),
       });
       res.json(response);
     } catch (e) {
@@ -21,7 +21,7 @@ const router = (ComponentService: BaseComponentService<any, any>) => {
     .get(async (req, res, next) => {
       try {
         const response = await ComponentService.getEntityTag({
-          ...pathParams.EntityTagKey(req),
+          ...pathParams.EntityTagKey(req, idParamName),
         });
         res.json(response);
       } catch (e) {
@@ -31,7 +31,7 @@ const router = (ComponentService: BaseComponentService<any, any>) => {
     .delete(async (req, res, next) => {
       try {
         const response = await ComponentService.dao.deleteEntityTag({
-          ...pathParams.EntityTagKey(req),
+          ...pathParams.EntityTagKey(req, idParamName),
         });
         res.json(response);
       } catch (e) {
@@ -42,7 +42,7 @@ const router = (ComponentService: BaseComponentService<any, any>) => {
   componentTagRouter.put('/:tagKey/:tagValue', async (req, res, next) => {
     try {
       const component = await ComponentService.dao.setEntityTag({
-        ...pathParams.EntityTagKeyValue(req),
+        ...pathParams.EntityTagKeyValue(req, idParamName),
       });
       res.json(component);
     } catch (e) {

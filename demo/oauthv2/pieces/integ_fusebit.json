@@ -1,0 +1,12 @@
+{
+  "configuration": {
+    "package": "./integration",
+    "connectors": {
+      "oauth1": {
+        "package": "@fusebit-int/pkg-oauth-integration",
+        "connector": "asanaconnector"
+      }
+    }
+  },
+  "tags": {}
+}

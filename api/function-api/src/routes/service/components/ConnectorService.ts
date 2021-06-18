@@ -185,18 +185,6 @@ class ConnectorService extends SessionedComponentService<Model.IConnector, Model
       }
     );
   };
-
-  protected saveSessionOutput = async (session: ISession, entityId: string) => {
-    return await RDS.DAO.identity.createEntity({
-      accountId: session.accountId,
-      subscriptionId: session.subscriptionId,
-      id: session.data.output.identityId,
-      data: {
-        token: session.data.output.token,
-        connectorId: entityId,
-      },
-    });
-  };
 }
 
 export default ConnectorService;

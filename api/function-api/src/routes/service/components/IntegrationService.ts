@@ -225,18 +225,6 @@ class IntegrationService extends SessionedComponentService<Model.IIntegration, M
       }
     );
   };
-
-  protected saveSessionOutput = async (session: ISession, entityId: string) => {
-    return await RDS.DAO.instance.createEntity({
-      accountId: session.accountId,
-      subscriptionId: session.subscriptionId,
-      id: session.data.output.instanceId,
-      data: {
-        // session output information should go here
-        integrationId: entityId,
-      },
-    });
-  };
 }
 
 export default IntegrationService;

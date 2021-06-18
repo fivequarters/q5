@@ -18,8 +18,8 @@ const componentRouter = () => {
   router.use('/integration', common(integrationService));
 
   router.use(analytics.setModality(analytics.Modes.Administration));
-  router.use('/connector/identity', IdentityRouter(connectorService));
-  router.use('/integration/instance', InstanceRouter(integrationService));
+  router.use('/connector/:componentId/identity', IdentityRouter());
+  router.use('/integration/:componentId/instance', InstanceRouter());
 
   return router;
 };

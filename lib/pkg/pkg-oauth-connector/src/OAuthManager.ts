@@ -58,7 +58,7 @@ router.delete('/api/:lookupKey', async (ctx: Context) => {
 
 // OAuth Flow Endpoints
 router.get('/api/configure', async (ctx: Context) => {
-  ctx.redirect(await engine.getAuthorizationUrl(ctx.query.state));
+  ctx.redirect(await engine.getAuthorizationUrl(ctx.query.session));
 });
 
 router.get(callbackSuffixUrl, async (ctx: Context) => {
