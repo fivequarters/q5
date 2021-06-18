@@ -125,10 +125,7 @@ class Manager {
     // Add the security context for this particular call to the state.
     ctx.state.identityClient =
       fusebitCtx.fusebit && fusebitCtx.fusebit.functionAccessToken
-        ? new IdentityClient(
-            { accessToken: fusebitCtx.fusebit.functionAccessToken, ...ctx.state.params },
-            `/${ctx.state.params.entityType}/${ctx.state.params.entityId}`
-          )
+        ? new IdentityClient({ accessToken: fusebitCtx.fusebit.functionAccessToken, ...ctx.state.params })
         : undefined;
 
     await this.execute(ctx);

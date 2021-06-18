@@ -247,10 +247,15 @@ export default abstract class SessionedComponentService<E extends Model.IEntity>
     return { statusCode: 302, result: this.getTargetUrl(stepSession.result, stepSession.result.data) };
   };
 
+  protected abstract saveSessionOutput: (session: Model.ISession, entityId: string) => Promise<any>;
+
   public finishSession = async (entity: Model.IEntity): Promise<IServiceResult> => {
     // Load the session
     const session = await this.sessionDao.getEntity(entity);
     const sessionId = this.extractSessionId(session.id);
+
+    // Save session output
+    await this.saveSessionOutput(session, entity.id);
 
     // If the meta points at a redirectUrl, send it.
     if (session.data.meta.redirectUrl) {

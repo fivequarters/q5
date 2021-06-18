@@ -9,6 +9,7 @@ import SessionedComponentService from './SessionedComponentService';
 import { operationService } from './OperationService';
 
 import * as Function from '../../functions';
+import { ISession } from '@5qtrs/db/libc/model';
 
 const rejectPermissionAgent = {
   checkPermissionSubset: () => {
@@ -183,6 +184,18 @@ class ConnectorService extends SessionedComponentService<Model.IConnector> {
         await this.dao.deleteEntity(entity);
       }
     );
+  };
+
+  protected saveSessionOutput = async (session: ISession, entityId: string) => {
+    return await RDS.DAO.identity.createEntity({
+      accountId: session.accountId,
+      subscriptionId: session.subscriptionId,
+      id: session.data.output.identityId,
+      data: {
+        token: session.data.output.token,
+        connectorId: entityId,
+      },
+    });
   };
 }
 

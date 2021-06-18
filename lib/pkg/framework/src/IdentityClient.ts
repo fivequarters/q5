@@ -1,4 +1,6 @@
 import superagent from 'superagent';
+import { ObjectEntries } from './Utilities';
+import { IOAuthToken } from '@fusebit-int/pkg-oauth-connector/libc/OAuthTypes';
 
 const removeLeadingSlash = (s: string) => s.replace(/^\/(.+)$/, '$1');
 const removeTrailingSlash = (s: string) => s.replace(/^(.+)\/$/, '$1');
@@ -14,18 +16,18 @@ interface Params {
 
 class IdentityClient {
   private readonly params: any;
-  private readonly identityIdPrefix: string;
   private readonly baseUrl: string;
   private readonly connectorUrl: string;
   private readonly functionUrl: URL;
   private readonly accessToken: string;
+  private readonly connectorId: string;
 
-  constructor(params: Params, identityIdPrefix: string) {
+  constructor(params: Params) {
     this.params = params;
-    this.identityIdPrefix = this.cleanId(identityIdPrefix);
     this.functionUrl = new URL(params.baseUrl);
-    this.connectorUrl = `${this.functionUrl.protocol}//${this.functionUrl.host}/v2/account/${params.accountId}/subscription/${params.subscriptionId}/connector/${params.entityId}`;
-    this.baseUrl = `${this.connectorUrl}/identity/${this.identityIdPrefix || ''}`;
+    this.connectorId = params.entityId;
+    this.connectorUrl = `${this.functionUrl.protocol}//${this.functionUrl.host}/v2/account/${params.accountId}/subscription/${params.subscriptionId}/connector/${this.connectorId}`;
+    this.baseUrl = `${this.connectorUrl}/identity`;
     this.accessToken = params.accessToken;
   }
 
@@ -33,76 +35,54 @@ class IdentityClient {
     return id ? removeTrailingSlash(removeLeadingSlash(id)) : '';
   };
 
-  private getUrl = (identitySubId: string) => {
-    identitySubId = this.cleanId(identitySubId);
-    //TODO: Verify `/` as delimiter.  Url encode?
-    return `${this.baseUrl}${identitySubId ? '/' + identitySubId : ''}`;
+  private getUrl = (identityId: string) => {
+    identityId = this.cleanId(identityId);
+    return `${this.baseUrl}/${identityId}`;
   };
 
-  public get = async (identitySubId?: string) => {
-    identitySubId = this.cleanId(identitySubId);
-    if (!identitySubId && !this.identityIdPrefix) {
+  public get = async (identityId?: string) => {
+    identityId = this.cleanId(identityId);
+    if (!identityId) {
       return undefined;
     }
 
     const response = await superagent
-      .get(this.getUrl(identitySubId))
+      .get(this.getUrl(identityId))
       .set('Authorization', `Bearer ${this.accessToken}`)
       .ok((res) => res.status < 300 || res.status === 404);
     return response.status === 404 ? undefined : response.body.data;
   };
 
-  public put = async (data: any, identitySubId?: string) => {
-    identitySubId = this.cleanId(identitySubId);
-    if (!identitySubId && !this.identityIdPrefix) {
-      throw new Error(
-        'IdentityClient objects cannot be stored at the root of the hierarchy. Specify a identitySubId when calling the `put` method, or a identityIdPrefix when creating the IdentityClient client.'
-      );
-    }
+  public saveTokenToSession = async (token: IOAuthToken, sessionId: string) => {
+    sessionId = this.cleanId(sessionId);
     const response = await superagent
-      .put(this.getUrl(identitySubId))
+      .put(`${this.connectorUrl}/session/${sessionId}`)
       .set('Authorization', `Bearer ${this.accessToken}`)
-      .send(data);
+      .send({ token, identityId: sessionId });
     return response.body;
   };
 
-  public delete = async (identitySubId?: string, recursive?: boolean, forceRecursive?: boolean) => {
-    identitySubId = identitySubId ? removeLeadingSlash(removeTrailingSlash(identitySubId)) : '';
-    if (!identitySubId && !this.identityIdPrefix && !recursive) {
-      throw new Error(
-        'You are attempting to recursively delete all Identities in this Fusebit subscription. If this is your intent, please pass "true" as the second parameter in the call to delete(identitySubId, recursive).'
-      );
-    }
-    //TODO: Recursive delete missing in v2.  Add it
+  public delete = async (identityId: string) => {
+    identityId = this.cleanId(identityId);
     await superagent
-      .delete(`${this.getUrl(identitySubId)}${recursive ? '/*' : ''}`)
+      .delete(this.getUrl(identityId))
       .set('Authorization', `Bearer ${this.accessToken}`)
       .ok((res) => res.status === 404 || res.status === 204);
     return;
   };
 
-  public list = async (identitySubId: string, queryInput: { count?: number; next?: string } = {}) => {
-    const query: { count?: number; next?: string; idPrefix?: string } = { ...queryInput };
-    if (query.count === undefined) {
-      delete query.count;
-    }
-    if (query.next === undefined) {
-      delete query.next;
-    }
-    query.idPrefix = this.identityIdPrefix ? `${this.identityIdPrefix}/${identitySubId}` : identitySubId;
+  public list = async (query: { count?: number; next?: string; idPrefix?: string } = {}) => {
+    ObjectEntries(query).forEach((entry) => {
+      if (entry[1] === undefined) {
+        delete query[entry[0]];
+      }
+    });
     const response = await superagent.get(this.baseUrl).query(query).set('Authorization', `Bearer ${this.accessToken}`);
     return response.body;
   };
 
-  public getCallbackUrl = async (state: string): Promise<string> => {
-    const sessionId = state.split('/').pop();
-    const sessionUrl = `${this.connectorUrl}/session/${sessionId}`;
-    const sessionResponse = await superagent
-      .get(sessionUrl)
-      .set('Authorization', `Bearer ${this.accessToken}`)
-      .ok((res) => res.status === 404 || res.status === 204);
-    //TODO: Is this where the callbackurl is being stored?  Not sure with benn's changes
-    return sessionResponse.body.callbackUrl;
+  public getCallbackUrl = async (sessionId: string): Promise<string> => {
+    return `${this.connectorUrl}/session/${sessionId}/callback`;
   };
 }
 

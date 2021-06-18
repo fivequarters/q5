@@ -14,8 +14,6 @@ class OAuthEngine {
     this.router = router;
 
     router.on('uninstall', async (ctx: ICtxWithState, next: Next) => {
-      // Delete all of the storage associated with this object.
-      await ctx.state.identityClient?.delete(undefined, true);
       return next();
     });
   }
@@ -60,7 +58,7 @@ class OAuthEngine {
     token.status = 'authenticated';
     token.timestamp = Date.now();
 
-    await ctx.state.identityClient?.put({ data: token }, lookupKey);
+    await ctx.state.identityClient?.saveTokenToSession(token, lookupKey);
 
     return token;
   }
@@ -158,7 +156,7 @@ class OAuthEngine {
     if (token.refresh_token) {
       token.status = 'refreshing';
       try {
-        await ctx.state.identityClient?.put({ data: token }, lookupKey);
+        await ctx.state.identityClient?.saveTokenToSession(token, lookupKey);
 
         token = await this.refreshAccessToken(token.refresh_token);
 
@@ -169,7 +167,7 @@ class OAuthEngine {
         token.status = 'authenticated';
         token.refreshErrorCount = 0;
 
-        await ctx.state.identityClient?.put({ data: token }, lookupKey);
+        await ctx.state.identityClient?.saveTokenToSession(token, lookupKey);
 
         return token;
       } catch (e) {
@@ -181,7 +179,7 @@ class OAuthEngine {
         } else {
           token.refreshErrorCount = (token.refreshErrorCount || 0) + 1;
           token.status = 'refresh_error';
-          await ctx.state.identityClient?.put({ data: token }, lookupKey);
+          await ctx.state.identityClient?.saveTokenToSession(token, lookupKey);
           throw new Error(
             `Error refreshing access token, attempt ${token.refreshErrorCount} out of ${this.cfg.refreshErrorLimit}: ${e.message}`
           );
