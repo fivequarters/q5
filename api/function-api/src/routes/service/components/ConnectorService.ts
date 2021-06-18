@@ -23,14 +23,14 @@ const defaultPackage = (entity: Model.IEntity) => ({
   dependencies: {},
 });
 
-class ConnectorService extends SessionedComponentService<Model.IConnector> {
+class ConnectorService extends SessionedComponentService<Model.IConnector, Model.IIdentity> {
   public readonly entityType: Model.EntityType;
   constructor() {
-    super(RDS.DAO.connector);
+    super(RDS.DAO.connector, RDS.DAO.identity);
     this.entityType = Model.EntityType.connector;
   }
 
-  public addService = (service: SessionedComponentService<any>): void => {
+  public addService = (service: SessionedComponentService<any, any>): void => {
     this.integrationService = service;
   };
 

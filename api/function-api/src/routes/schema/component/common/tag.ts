@@ -2,7 +2,7 @@ import express from 'express';
 import { BaseComponentService } from '../../../service';
 import pathParams from '../../../handlers/pathParams';
 
-const router = (ComponentService: BaseComponentService<any>) => {
+const router = (ComponentService: BaseComponentService<any, any>) => {
   const componentTagRouter = express.Router({ mergeParams: true });
 
   componentTagRouter.get('/', async (req, res, next) => {

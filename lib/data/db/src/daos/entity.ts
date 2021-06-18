@@ -63,6 +63,7 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
     };
     this.defaultParameterOptions = {};
   }
+
   protected readonly RDS: IRds;
   protected readonly entityType: EntityType;
   protected readonly defaultQueryOptions: MergedQueryOptions;
@@ -75,7 +76,11 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
     entityid: 'id',
     entitytype: 'entityType',
     subscriptionid: 'subscriptionId',
-    id: this.IGNORE,
+    id: '__databaseId',
+  };
+
+  public getDaoType = (): EntityType => {
+    return this.entityType;
   };
 
   public sqlToIEntity = <T>(result: AWS.RDSDataService.ExecuteStatementResponse, allowEmpty: boolean = false): T[] => {

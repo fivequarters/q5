@@ -55,10 +55,12 @@ const createPair = async (integConfig?: any, numConnectors: number = 1) => {
   };
   let response = await ApiRequestMap.integration.postAndWait(account, integEntity);
   expect(response).toBeHttp({ statusCode: 200 });
+  expect(response.data.id).not.toMatch('/');
   const integ = response.data;
 
   response = await ApiRequestMap.connector.postAndWait(account, { id: conId });
   expect(response).toBeHttp({ statusCode: 200 });
+  expect(response.data.id).not.toMatch('/');
   const conn = response.data;
 
   for (let n = 1; n < numConnectors; n++) {
@@ -92,7 +94,7 @@ const getElementsFromUrl = (url: string) => {
 
 describe('Sessions', () => {
   test('Creating a session on a missing integration returns 404', async () => {
-    const response = await ApiRequestMap.integration.session.post(account, 'foobarbah', {
+    const response = await ApiRequestMap.integration.session.post(account, 'invalid-integration', {
       redirectUrl: demoRedirectUrl,
     });
     expect(response).toBeHttp({ statusCode: 404 });
@@ -147,6 +149,7 @@ describe('Sessions', () => {
       redirectUrl: demoRedirectUrl,
     });
     expect(response).toBeHttp({ statusCode: 200 });
+    expect(response.data.id).not.toMatch('/');
 
     // Write data so there's something in the output
     response = await ApiRequestMap.integration.session.put(account, integrationId, response.data.id, {
@@ -345,7 +348,7 @@ describe('Sessions', () => {
     expect(response).toBeHttp({ statusCode: 302 });
     expect(
       response.headers.location.indexOf(
-        `${process.env.API_SERVER}/v2/account/${account.accountId}/subscription/${account.subscriptionId}/connector/${connectorId}/api/start?session=`
+        `${process.env.API_SERVER}/v2/account/${account.accountId}/subscription/${account.subscriptionId}/connector/${connectorId}/api/configure?session=`
       )
     ).toBe(0);
     const location = new URL(response.headers.location);
@@ -365,7 +368,7 @@ describe('Sessions', () => {
     expect(response).toBeHttp({ statusCode: 302 });
     expect(
       response.headers.location.indexOf(
-        `${process.env.API_SERVER}/v2/account/${account.accountId}/subscription/${account.subscriptionId}/connector/${connectorId}/api/start?session=`
+        `${process.env.API_SERVER}/v2/account/${account.accountId}/subscription/${account.subscriptionId}/connector/${connectorId}/api/configure?session=`
       )
     ).toBe(0);
   }, 180000);
@@ -461,9 +464,8 @@ describe('Sessions', () => {
     });
   }, 180000);
 
-  test('POSTing a integration session creates appropriate artifacts', async () => {
-    // foo
-    const { integrationId } = await createPair();
+  test.only('POSTing a integration session creates appropriate artifacts', async () => {
+    const { integrationId, connectorId } = await createPair();
     let response = await ApiRequestMap.integration.session.post(account, integrationId, {
       redirectUrl: demoRedirectUrl,
     });
@@ -473,6 +475,7 @@ describe('Sessions', () => {
     response = await ApiRequestMap.integration.session.start(account, integrationId, response.data.id);
     expect(response).toBeHttp({ statusCode: 302 });
     const loc = getElementsFromUrl(response.headers.location);
+    const stepSessionId = loc.sessionId;
 
     // Write data so there's something in the output
     response = await ApiRequestMap[loc.entityType].session.put(account, loc.entityId, loc.sessionId, {
@@ -486,12 +489,42 @@ describe('Sessions', () => {
 
     // POST the parent session
     response = await ApiRequestMap.integration.session.postSession(account, integrationId, parentSessionId);
-    console.log(JSON.stringify(response.data, null, 2));
+
     // Returns the identity and instance id's.
-    // Validate the identity is created
-    // Validate the identity has the appropriate tags
-    // Validate the instance is created
-    // Validate the instance has the appropriate tags
+    expect(response).toBeHttp({
+      statusCode: 200,
+      data: {
+        code: 200,
+        type: 'session',
+        verb: 'creating',
+        location: {
+          componentId: integrationId,
+          subordinateId: parentSessionId,
+          accountId: account.accountId,
+          entityType: 'session',
+          subscriptionId: account.subscriptionId,
+        },
+      },
+    });
+    expect(Object.keys(response.data.payload)).toEqual(['', 'connector:conn']);
+    const identity = response.data.payload['connector:conn'];
+    const instance = response.data.payload[''];
+    expect(identity.id).not.toMatch('/');
+    expect(instance.id).not.toMatch('/');
+
+    // Future: Validate the identity is created
+    response = await ApiRequestMap.identity.get(account, identity.componentId, identity.id);
+    expect(response).toBeHttp({ statusCode: 200 });
+    console.log(`identity`, response.data);
+
+    // Future: Validate the identity has the appropriate tags
+
+    // Future: Validate the instance is created
+    response = await ApiRequestMap.instance.get(account, instance.componentId, instance.id);
+    expect(response).toBeHttp({ statusCode: 200 });
+    console.log(`instance`, response.data);
+
+    // Future: Validate the instance has the appropriate tags
   }, 180000);
   test('POSTing an session with the target supplied creates appropriate artifacts', async () => {
     // foo

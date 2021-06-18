@@ -12,7 +12,7 @@ import pathParams from '../../../handlers/pathParams';
 import { BaseComponentService } from '../../../service';
 import { EntityType } from '@5qtrs/db/libc/model';
 
-const router = (ComponentService: BaseComponentService<any>) => {
+const router = (ComponentService: BaseComponentService<any, any>) => {
   const componentRouter = express.Router({ mergeParams: true });
 
   componentRouter.use(common.cors());

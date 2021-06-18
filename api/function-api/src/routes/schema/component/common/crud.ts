@@ -14,7 +14,7 @@ import Validation from '../../../validation/component';
 import { EntityType } from '@5qtrs/db/libc/model';
 import query from '../../../handlers/query';
 
-const router = (ComponentService: BaseComponentService<any>) => {
+const router = (ComponentService: BaseComponentService<any, any>) => {
   const componentCrudRouter = express.Router({ mergeParams: true });
   componentCrudRouter
     .route('/')
@@ -26,12 +26,8 @@ const router = (ComponentService: BaseComponentService<any>) => {
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {
-          const response = Model.entityToSdk(
-            await ComponentService.dao.getEntity({
-              ...pathParams.EntityById(req),
-            })
-          );
-          res.json(response);
+          const { statusCode, result } = await ComponentService.getEntity(pathParams.EntityById(req));
+          res.status(statusCode).json(Model.entityToSdk(result));
         } catch (e) {
           next(e);
         }
