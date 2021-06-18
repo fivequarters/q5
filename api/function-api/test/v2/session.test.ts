@@ -348,7 +348,7 @@ describe('Sessions', () => {
     expect(response).toBeHttp({ statusCode: 302 });
     expect(
       response.headers.location.indexOf(
-        `${process.env.API_SERVER}/v2/account/${account.accountId}/subscription/${account.subscriptionId}/connector/${connectorId}/api/start?session=`
+        `${process.env.API_SERVER}/v2/account/${account.accountId}/subscription/${account.subscriptionId}/connector/${connectorId}/api/configure?session=`
       )
     ).toBe(0);
     const location = new URL(response.headers.location);
@@ -368,7 +368,7 @@ describe('Sessions', () => {
     expect(response).toBeHttp({ statusCode: 302 });
     expect(
       response.headers.location.indexOf(
-        `${process.env.API_SERVER}/v2/account/${account.accountId}/subscription/${account.subscriptionId}/connector/${connectorId}/api/start?session=`
+        `${process.env.API_SERVER}/v2/account/${account.accountId}/subscription/${account.subscriptionId}/connector/${connectorId}/api/configure?session=`
       )
     ).toBe(0);
   }, 180000);
@@ -464,8 +464,7 @@ describe('Sessions', () => {
     });
   }, 180000);
 
-  test('POSTing a integration session creates appropriate artifacts', async () => {
-    // foo
+  test.only('POSTing a integration session creates appropriate artifacts', async () => {
     const { integrationId, connectorId } = await createPair();
     let response = await ApiRequestMap.integration.session.post(account, integrationId, {
       redirectUrl: demoRedirectUrl,
@@ -508,13 +507,22 @@ describe('Sessions', () => {
       },
     });
     expect(Object.keys(response.data.payload)).toEqual(['', 'connector:conn']);
-    // Future: could exhaustively validate parameters here.
+    const identity = response.data.payload['connector:conn'];
+    const instance = response.data.payload[''];
+    expect(identity.id).not.toMatch('/');
+    expect(instance.id).not.toMatch('/');
 
     // Future: Validate the identity is created
+    response = await ApiRequestMap.identity.get(account, identity.componentId, identity.id);
+    expect(response).toBeHttp({ statusCode: 200 });
+    console.log(`identity`, response.data);
 
     // Future: Validate the identity has the appropriate tags
 
     // Future: Validate the instance is created
+    response = await ApiRequestMap.instance.get(account, instance.componentId, instance.id);
+    expect(response).toBeHttp({ statusCode: 200 });
+    console.log(`instance`, response.data);
 
     // Future: Validate the instance has the appropriate tags
   }, 180000);

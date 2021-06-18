@@ -386,7 +386,7 @@ export default abstract class SessionedComponentService<
       id: masterSessionId.componentId,
     });
 
-    const instance = await this.subDao.createEntity({
+    const stepSession = {
       accountId: session.accountId,
       subscriptionId: session.subscriptionId,
       id: this.createSubordinateId({
@@ -396,7 +396,10 @@ export default abstract class SessionedComponentService<
       }),
       data: { output: session.data.output, steps: stepSessionResults },
       tags: { ...session.tags, 'session.master': masterSessionId.subordinateId },
-    });
+    };
+
+    console.log(`persistStepSession ${JSON.stringify(stepSession, null, 2)}`);
+    const instance = await this.subDao.createEntity(stepSession);
 
     const decomposedSessionId = this.decomposeSubordinateId(session.id);
     // Record the master instance
@@ -405,10 +408,11 @@ export default abstract class SessionedComponentService<
       subscriptionId: session.subscriptionId,
       componentId: decomposedSessionId.componentId,
       componentType: decomposedSessionId.entityType,
-      id: instance.id,
+      id: this.decomposeSubordinateId(instance.id).subordinateId,
       entityType: this.subDao.getDaoType(),
       tags: instance.tags,
     };
+
     delete stepSessionResults[''].sessionId;
     return { statusCode: 200, result: stepSessionResults };
   };
@@ -471,7 +475,7 @@ export default abstract class SessionedComponentService<
       ...session.data.target,
     });
 
-    const result = await this.subDao.createEntity({
+    const leafEntity = {
       accountId: session.accountId,
       subscriptionId: session.subscriptionId,
       id: this.createSubordinateId({
@@ -481,7 +485,10 @@ export default abstract class SessionedComponentService<
       }),
       data: session.data.output,
       tags: { ...session.tags, 'session.master': masterSessionId.subordinateId },
-    });
+    };
+
+    console.log(`instantiateService leafEntity ${JSON.stringify(leafEntity, null, 2)}`);
+    const result = await this.subDao.createEntity(leafEntity);
 
     // Don't expose the data in the report.
     delete result.data;

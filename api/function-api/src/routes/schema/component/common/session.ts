@@ -145,7 +145,7 @@ const createSessionRouter = (SessionService: SessionedComponentService<any, any>
         if (typeof result === 'string') {
           return res.redirect(result);
         } else {
-          const redirectUrl = `${process.env.API_SERVER}/v2/account/${result.accountId}/subscription/${result.subscriptionId}/${result.entityType}/${result.entityId}/api/start?session=${result.sessionId}`;
+          const redirectUrl = `${process.env.API_SERVER}/v2/account/${result.accountId}/subscription/${result.subscriptionId}/${result.entityType}/${result.entityId}/api/configure?session=${result.sessionId}`;
           return res.redirect(redirectUrl);
         }
       } catch (error) {

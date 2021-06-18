@@ -479,4 +479,46 @@ export const ApiRequestMap: { [key: string]: any } = {
       return response;
     },
   },
+  instance: {
+    get: async (account: IAccount, entityId: string, subordinateId: string, options?: IRequestOptions) => {
+      const response = await v2Request(account, {
+        method: 'GET',
+        uri: `/integration/${encodeURI(entityId)}/instance/${subordinateId}`,
+        ...options,
+      });
+      if (response.status < 300) {
+        expect(response.data.id).not.toMatch('/');
+      }
+      return response;
+    },
+    delete: async (account: IAccount, entityId: string, subordinateId: string, options?: IRequestOptions) => {
+      const response = await v2Request(account, {
+        method: 'DELETE',
+        uri: `/integration/${encodeURI(entityId)}/instance/${subordinateId}`,
+        ...options,
+      });
+      return response;
+    },
+  },
+  identity: {
+    get: async (account: IAccount, entityId: string, subordinateId: string, options?: IRequestOptions) => {
+      const response = await v2Request(account, {
+        method: 'GET',
+        uri: `/connector/${encodeURI(entityId)}/identity/${subordinateId}`,
+        ...options,
+      });
+      if (response.status < 300) {
+        expect(response.data.id).not.toMatch('/');
+      }
+      return response;
+    },
+    delete: async (account: IAccount, entityId: string, subordinateId: string, options?: IRequestOptions) => {
+      const response = await v2Request(account, {
+        method: 'DELETE',
+        uri: `/connector/${encodeURI(entityId)}/identity/${subordinateId}`,
+        ...options,
+      });
+      return response;
+    },
+  },
 };
