@@ -321,7 +321,7 @@ export default abstract class SessionedComponentService<
       tags: { ...session.tags, 'session.master': masterSessionId.subordinateId },
     };
 
-    await this.subDao.createEntity(instance);
+    await this.subDao!.createEntity(instance);
 
     const decomposedSessionId = this.decomposeSubordinateId(session.id);
 
@@ -383,7 +383,7 @@ export default abstract class SessionedComponentService<
       tags: { ...session.tags, 'session.master': masterSessionId.subordinateId },
     };
 
-    const result = await this.subDao.createEntity(leafEntity);
+    const result = await this.subDao!.createEntity(leafEntity);
 
     // Don't expose the data in the report.
     delete result.data;
