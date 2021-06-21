@@ -1,3 +1,5 @@
+import http_error from 'http-errors';
+
 import { v4 as uuidv4 } from 'uuid';
 
 import { safePathMap } from '@5qtrs/constants';
@@ -13,7 +15,7 @@ import * as Function from '../../functions';
 
 const rejectPermissionAgent = {
   checkPermissionSubset: () => {
-    throw new Error('permissions are unsupported');
+    throw http_error(400, 'permissions are unsupported');
   },
 };
 
@@ -31,7 +33,7 @@ const defaultIntegration = [
 
 const defaultPackage = (entity: Model.IIntegration) => ({
   scripts: { deploy: `"fuse integration deploy ${entity.id} -d ."`, get: `"fuse integration get ${entity.id} -d ."` },
-  dependencies: {},
+  dependencies: { ['@fusebit-int/framework']: '^2.0.0' },
   files: ['./integration.js'], // Make sure the default file is included, if nothing else.
 });
 
@@ -47,53 +49,73 @@ class IntegrationService extends SessionedComponentService<Model.IIntegration, M
   };
 
   public sanitizeEntity = (entity: Model.IIntegration): void => {
-    let data = entity.data;
+    const data = entity.data;
 
     if (!data) {
-      data = entity.data = { handler: './integration' };
+      // Default entity.data:
+      entity.data = {
+        handler: './integration',
+        files: {
+          ['integration.js']: defaultIntegration,
+          ['package.json']: JSON.stringify(defaultPackage(entity), null, 2),
+        },
+        configuration: { connectors: {}, creation: { tags: {}, steps: {}, autoStep: true } },
+      };
+
+      return;
     }
 
-    // Get the list of javascript files
-    data.files = data.files || { ['integration.js']: defaultIntegration };
+    // Steps are not present; deduce from connectors.
+    if (!data.configuration.creation) {
+      data.configuration.creation = { tags: {}, steps: {}, autoStep: true };
+    }
+
+    if (!data.configuration.creation.steps || data.configuration.creation.autoStep) {
+      console.log(`createIntegration rebuilding steps ${JSON.stringify(data.configuration.creation.steps)}`);
+      data.configuration.creation.steps = {};
+
+      Object.keys(data.configuration.connectors).forEach((connectorLabel) => {
+        const connectorId = data.configuration.connectors[connectorLabel].connector;
+        const stepName = connectorLabel;
+        data.configuration.creation.steps[stepName] = {
+          stepName,
+          target: {
+            type: Model.EntityType.connector,
+            accountId: entity.accountId,
+            subscriptionId: entity.subscriptionId,
+            entityId: connectorId,
+          },
+        };
+      });
+    }
+
+    // Validate DAG of 'uses' parameters, if any.
+    const dagSteps: string[] = [];
+    Object.entries(data.configuration.creation.steps).forEach((step) => {
+      dagSteps.push(step[0]);
+      step[1].uses?.forEach((usesStep) => {
+        if (!dagSteps.includes(usesStep)) {
+          throw http_error(400, `Ordering violation: 'uses' in '${step[0]}' for '${usesStep}' before declaration.`);
+        }
+      });
+    });
 
     // Remove any leading . or ..'s from file paths.
     data.files = safePathMap(data.files);
 
-    const nonPackageFiles = Object.keys(data.files).filter((f) => f.match(/\.js$/));
-    if (nonPackageFiles.length > 1) {
-      // Many files present; key must be specified.
-      if (!data.configuration || data.handler === undefined) {
-        throw new Error(`A 'handler' must be specified for the integration`);
-      }
-    } else if (nonPackageFiles.length === 1) {
-      // One file present; use that file as the integration.
-      data.handler = `./${nonPackageFiles[0]}`;
-      data.configuration = { connectors: {}, ...data.configuration };
-    } else {
-      // New integration, no files present, create some placeholders.
-      data.files['integration.js'] = defaultIntegration;
-      data.handler = './integration';
-      data.configuration = { connectors: {}, ...data.configuration };
-    }
-
-    if (!data.configuration.connectors) {
-      data.configuration.connectors = {};
-    }
-
-    // Create the package.json, making sure the framework is present, and any packages referenced in the
-    // connectors block.
+    // Create the package.json.
     const pkg = {
       ...defaultPackage(entity),
-      ...(data.files && data.files['package.json'] ? JSON.parse(data.files['package.json']) : {}),
+      ...(data.files['package.json'] ? JSON.parse(data.files['package.json']) : defaultPackage(entity)),
     };
+
+    // Enforce @fusebit-int/framework as a dependency.
     pkg.dependencies['@fusebit-int/framework'] = pkg.dependencies['@fusebit-int/framework'] || '^2.0.0';
 
     // Make sure packages mentioned in the cfg.connectors block are also included.
-    if (data.configuration) {
-      Object.values(data.configuration.connectors).forEach((c: { package: string }) => {
-        pkg.dependencies[c.package] = pkg.dependencies[c.package] || '*';
-      });
-    }
+    Object.values(data.configuration.connectors).forEach((c: { package: string }) => {
+      pkg.dependencies[c.package] = pkg.dependencies[c.package] || '*';
+    });
 
     // Always pretty-print package.json so it's human-readable from the start.
     data.files['package.json'] = JSON.stringify(pkg, null, 2);
@@ -129,9 +151,6 @@ class IntegrationService extends SessionedComponentService<Model.IIntegration, M
   };
 
   public createEntity = async (entity: Model.IEntity): Promise<IServiceResult> => {
-    // TODO: Validate the data matches the expected Joi schema (to be eventually promoted) (especially that
-    // the payload contents for accountId match the url parameters).
-
     return operationService.inOperation(
       Model.EntityType.integration,
       entity,

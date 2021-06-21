@@ -149,14 +149,15 @@ export interface IStep {
 export interface IIntegration extends IEntity {
   data: {
     handler: string;
-    configuration?: {
-      connectors: { [name: string]: { package: string; config?: any } };
-      creation?: {
-        tags?: ITags;
+    configuration: {
+      connectors: { [name: string]: { connector: string; package: string; config?: any } };
+      creation: {
+        tags: ITags;
         steps: { [stepName: string]: IStep };
+        autoStep: boolean;
       };
     };
-    files?: { [fileName: string]: string };
+    files: { [fileName: string]: string };
   };
 }
 
@@ -195,38 +196,34 @@ export interface ISessionParameters {
   redirectUrl: string;
 }
 
-export interface ILeafSession extends IStep {
+export interface ILeafSessionData extends IStep {
   mode: 'leaf';
-  meta:
-    | {
-        parentId: string;
-        redirectUrl?: never;
-      }
-    | {
-        parentId?: never;
-        redirectUrl: string;
-      };
+  meta: {
+    parentId: string;
+  };
 }
 
-export type IStepSessionStep = IStep & { childSessionId?: string };
-export type IStepSessionSteps = IStepSessionStep[];
-export interface IStepSession {
-  mode: 'step';
-  input?: never;
-  output?: never;
+export type ITrunkSessionStep = IStep & { childSessionId?: string };
+export type ITrunkSessionSteps = ITrunkSessionStep[];
+export interface ITrunkSessionData {
+  mode: 'trunk';
 
   meta: {
-    // Must have a redirectUrl present for the final callback.
     redirectUrl: string;
-    parentId?: never;
   };
 
-  steps: IStepSessionSteps;
+  steps: ITrunkSessionSteps;
 }
 
-export interface ISession extends IEntity {
-  data: ILeafSession | IStepSession;
+export interface ILeafSession extends IEntity {
+  data: ILeafSessionData;
 }
+
+export interface ITrunkSession extends IEntity {
+  data: ITrunkSessionData;
+}
+
+export type ISession = ITrunkSession | ILeafSession;
 
 export interface IStorageItem extends IEntity {
   data: any;

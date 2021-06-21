@@ -1,5 +1,6 @@
 import { request } from '@5qtrs/request';
 
+import { Model } from '@5qtrs/db';
 import { cleanupEntities, ApiRequestMap } from './sdk';
 
 import { getEnv } from '../v1/setup';
@@ -48,8 +49,18 @@ const createPair = async (integConfig?: any, numConnectors: number = 1) => {
           },
           ...conns,
         },
-        ...(numConnectors > 1 ? { creation: { steps } } : {}),
+        ...(numConnectors > 1 ? { creation: { steps, autoStep: false } } : {}),
         ...integConfig,
+      },
+
+      handler: './integration',
+      files: {
+        ['integration.js']: [
+          "const { Router, Manager, Form } = require('@fusebit-int/framework');",
+          'const router = new Router();',
+          "router.get('/api/', async (ctx) => { });",
+          'module.exports = router;',
+        ].join('\n'),
       },
     },
   };
@@ -112,7 +123,7 @@ describe('Sessions', () => {
           meta: {
             redirectUrl: demoRedirectUrl,
           },
-          mode: 'step',
+          mode: 'trunk',
           steps: [
             {
               target: {
@@ -121,7 +132,7 @@ describe('Sessions', () => {
                 accountId: account.accountId,
                 subscriptionId: account.subscriptionId,
               },
-              stepName: 'connector:conn',
+              stepName: 'conn',
             },
           ],
         },
@@ -197,7 +208,7 @@ describe('Sessions', () => {
     const { integrationId, connectorId } = await createPair();
     const response = await ApiRequestMap.integration.session.post(account, integrationId, {
       redirectUrl: demoRedirectUrl,
-      input: { 'connector:conn': { iguana: 'mango' } },
+      input: { conn: { iguana: 'mango' } },
     });
     expect(response).toBeHttp({
       statusCode: 200,
@@ -206,10 +217,10 @@ describe('Sessions', () => {
           meta: {
             redirectUrl: demoRedirectUrl,
           },
-          mode: 'step',
+          mode: 'trunk',
           steps: [
             {
-              stepName: 'connector:conn',
+              stepName: 'conn',
               target: {
                 type: 'connector',
                 entityId: connectorId,
@@ -231,7 +242,7 @@ describe('Sessions', () => {
 
     let response = await ApiRequestMap.integration.session.post(account, integrationId, {
       redirectUrl: demoRedirectUrl,
-      input: { 'connector:conn': { iguana: 'mango' } },
+      input: { conn: { iguana: 'mango' } },
     });
     expect(response).toBeHttp({ statusCode: 200 });
 
@@ -256,19 +267,13 @@ describe('Sessions', () => {
   }, 180000);
 
   test('Specified inputs for unknown steps are ignored', async () => {
-    const { integrationId } = await createPair({
-      creation: {
-        steps: {
-          'connector:lizard': { stepName: 'connector:lizard', target: { type: 'connector', entityId: 'lizard' } },
-        },
-      },
-    });
+    const { integrationId } = await createPair();
 
     const response = await ApiRequestMap.integration.session.post(account, integrationId, {
       redirectUrl: demoRedirectUrl,
-      input: { 'connector:conn': { iguana: 'mango' } },
+      input: { 'connector:lizard': { iguana: 'mango' } },
     });
-    expect(response).toBeHttp({ statusCode: 200 });
+    expect(response).toBeHttp({ statusCode: 400 });
   }, 180000);
 
   test('Create a session on an integration with a creation steplist', async () => {
@@ -277,6 +282,7 @@ describe('Sessions', () => {
         steps: {
           'connector:lizard': { stepName: 'connector:lizard', target: { type: 'connector', entityId: 'lizard' } },
         },
+        autoStep: false,
       },
     });
 
@@ -308,34 +314,6 @@ describe('Sessions', () => {
     });
   }, 180000);
 
-  test('Create a session on an integration with target in the request', async () => {
-    const { integrationId } = await createPair();
-
-    let response = await ApiRequestMap.integration.session.post(account, integrationId, {
-      stepName: 'connector:gecko',
-      target: {
-        type: 'connector',
-        entityId: 'gecko',
-      },
-      redirectUrl: demoRedirectUrl,
-    });
-    expect(response).toBeHttp({ statusCode: 200 });
-
-    response = await ApiRequestMap.integration.session.getResult(account, integrationId, response.data.id);
-    expect(response).toBeHttp({
-      statusCode: 200,
-      has: ['id'],
-      hasNot: ['output'],
-      data: {
-        target: {
-          type: 'connector',
-          entityId: 'gecko',
-        },
-        stepName: 'connector:gecko',
-      },
-    });
-  }, 180000);
-
   test('Start a session and get a 302 redirect with a new sessionId', async () => {
     const { integrationId, connectorId } = await createPair();
     let response = await ApiRequestMap.integration.session.post(account, integrationId, {
@@ -359,7 +337,7 @@ describe('Sessions', () => {
     const { integrationId, connectorId } = await createPair();
     let response = await ApiRequestMap.integration.session.post(account, integrationId, {
       redirectUrl: demoRedirectUrl,
-      steps: ['connector:conn'],
+      steps: ['conn'],
     });
     expect(response).toBeHttp({ statusCode: 200 });
 
@@ -464,7 +442,7 @@ describe('Sessions', () => {
     });
   }, 180000);
 
-  test.only('POSTing a integration session creates appropriate artifacts', async () => {
+  test('POSTing a integration session creates appropriate artifacts', async () => {
     const { integrationId, connectorId } = await createPair();
     let response = await ApiRequestMap.integration.session.post(account, integrationId, {
       redirectUrl: demoRedirectUrl,
@@ -506,8 +484,8 @@ describe('Sessions', () => {
         },
       },
     });
-    expect(Object.keys(response.data.payload)).toEqual(['', 'connector:conn']);
-    const identity = response.data.payload['connector:conn'];
+    expect(Object.keys(response.data.payload)).toEqual(['', 'conn']);
+    const identity = response.data.payload['conn'];
     const instance = response.data.payload[''];
     expect(identity.id).not.toMatch('/');
     expect(instance.id).not.toMatch('/');
