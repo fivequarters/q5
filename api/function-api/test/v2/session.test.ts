@@ -11,7 +11,7 @@ beforeEach(() => {
 });
 
 afterAll(async () => {
-  // await cleanupEntities(account);
+  await cleanupEntities(account);
 }, 30000);
 
 const demoRedirectUrl = 'http://monkey';
@@ -443,7 +443,7 @@ describe('Sessions', () => {
   }, 180000);
 
   test('POSTing a integration session creates appropriate artifacts', async () => {
-    const { integrationId, connectorId } = await createPair();
+    const { integrationId } = await createPair();
     let response = await ApiRequestMap.integration.session.post(account, integrationId, {
       redirectUrl: demoRedirectUrl,
     });
@@ -453,7 +453,6 @@ describe('Sessions', () => {
     response = await ApiRequestMap.integration.session.start(account, integrationId, response.data.id);
     expect(response).toBeHttp({ statusCode: 302 });
     const loc = getElementsFromUrl(response.headers.location);
-    const stepSessionId = loc.sessionId;
 
     // Write data so there's something in the output
     response = await ApiRequestMap[loc.entityType].session.put(account, loc.entityId, loc.sessionId, {
@@ -485,7 +484,7 @@ describe('Sessions', () => {
       },
     });
     expect(Object.keys(response.data.payload)).toEqual(['', 'conn']);
-    const identity = response.data.payload['conn'];
+    const identity = response.data.payload.conn;
     const instance = response.data.payload[''];
     expect(identity.id).not.toMatch('/');
     expect(instance.id).not.toMatch('/');
