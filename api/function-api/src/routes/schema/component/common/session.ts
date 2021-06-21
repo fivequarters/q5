@@ -110,19 +110,15 @@ const createSessionRouter = (SessionService: SessionedComponentService<any, any>
     // Commit the session, creating all of the appropriate artifacts
     .post(async (req, res, next) => {
       try {
-        const { result: parentEntity } = await SessionService.getEntity(pathParams.EntityById(req));
-        const operation = await SessionService.postSession(
-          {
-            accountId: req.params.accountId,
-            subscriptionId: req.params.subscriptionId,
-            // Sessions use the non-unique component name, but instances and identities use the database id.
-            id: SessionService.createSubordinateId({
-              componentId: req.params.componentId,
-              subordinateId: req.params.sessionId,
-            }),
-          },
-          parentEntity
-        );
+        const operation = await SessionService.postSession({
+          accountId: req.params.accountId,
+          subscriptionId: req.params.subscriptionId,
+          // Sessions use the non-unique component name, but instances and identities use the database id.
+          id: SessionService.createSubordinateId({
+            componentId: req.params.componentId,
+            subordinateId: req.params.sessionId,
+          }),
+        });
         res.status(operation.statusCode).json(operation.result);
       } catch (error) {
         console.log(error);
