@@ -36,8 +36,8 @@ const crud = (
     .options(common.cors())
     .get(
       common.management({
-        //validate: { params: Validation.EntityIdParams },
-        //authorize: { operation: `${ComponentService.entityType}:get` },
+        validate: { params: Validation.EntityIdParams },
+        // authorize: { operation: `${ComponentService.entityType}:get` },
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {

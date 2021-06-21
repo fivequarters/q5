@@ -23,17 +23,6 @@ export interface ISubordinateId {
   subordinateId: string;
 }
 
-export const decomposeSubordinateId = (
-  id: string
-): { entityType: Model.EntityType; componentId: string; subordinateId: string } => {
-  const split = id.split('/');
-  return {
-    entityType: split[1] as Model.EntityType,
-    componentId: split[2],
-    subordinateId: split[3],
-  };
-};
-
 export default abstract class BaseComponentService<E extends Model.IEntity, F extends Model.IEntity | E> {
   public abstract readonly entityType: Model.EntityType;
   public readonly dao: Model.IEntityDao<E>;
@@ -47,7 +36,7 @@ export default abstract class BaseComponentService<E extends Model.IEntity, F ex
     return `/${params.entityType || this.entityType}/${params.componentId}/${params.subordinateId}`;
   };
 
-  public decomposeSubordinateId = decomposeSubordinateId;
+  public decomposeSubordinateId = Model.decomposeSubordinateId;
 
   protected constructor(dao: Model.IEntityDao<E>, subDao?: Model.IEntityDao<F>) {
     this.dao = dao;
