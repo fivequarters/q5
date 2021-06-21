@@ -20,6 +20,26 @@ CUR_HEAD=`git log -1 --format='%H'`
 echo "Tags in the current head ${CUR_HEAD}: "
 git tag --points-at ${CUR_HEAD}
 
+VER_WART=testtag
+VERSION=1.2.4
+git tag --points-at HEAD | grep ${VER_WART}-${VERSION} > /dev/null
+TAG_TEST=$?
+if [ ${TAG_TEST} -ne 0 ]; then
+  echoerr "Not publishing ${VERSION} - HEAD is not tagged ${VER_WART}-${VERSION}"
+  git tag --points-at HEAD
+else
+  echoerr "Publishing ${VERSION}"
+fi
+
+git tag --points-at ${CUR_HEAD} | grep ${VER_WART}-${VERSION} > /dev/null
+TAG_TEST=$?
+if [ ${TAG_TEST} -ne 0 ]; then
+  echoerr "Not publishing ${VERSION} - HEAD is not tagged ${VER_WART}-${VERSION}"
+  git tag --points-at HEAD
+else
+  echoerr "Publishing ${VERSION}"
+fi
+
 echoerr "Versions: function_api/${VERSION_FUNCTION_API} fuse-cli/${VERSION_FUSEBIT_CLI} fuse-ops/${VERSION_FUSEBIT_OPS_CLI}"
 echo { \
   \"function_api\": \"${VERSION_FUNCTION_API}\", \
