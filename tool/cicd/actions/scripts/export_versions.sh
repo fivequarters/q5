@@ -20,8 +20,8 @@ CUR_HEAD=`git log -1 --format='%H'`
 echo "Tags in the current head ${CUR_HEAD}: "
 git tag --points-at ${CUR_HEAD}
 
-VER_WART=testtag
-VERSION=1.2.4
+VER_WART=cli
+VERSION=1.9.8.1
 git tag --points-at HEAD | grep ${VER_WART}-${VERSION} > /dev/null
 TAG_TEST=$?
 if [ ${TAG_TEST} -ne 0 ]; then
