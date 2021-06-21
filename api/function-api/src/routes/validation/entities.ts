@@ -15,6 +15,8 @@ const EntityIdParams = Joi.object().keys({
   accountId: Common.accountId,
   subscriptionId: Common.subscriptionId,
   componentId: Common.entityId,
+  instanceId: Joi.string().guid(),
+  identityId: Joi.string().guid(),
 });
 
 const EntityId = Joi.object().keys({

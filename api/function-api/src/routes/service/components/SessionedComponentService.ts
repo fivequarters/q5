@@ -383,7 +383,7 @@ export default abstract class SessionedComponentService<
       tags: { ...session.tags, 'session.master': masterSessionId.subordinateId },
     };
 
-    const result = await this.subDao.createEntity(leafEntity);
+    const result = await service.subDao.createEntity(leafEntity);
 
     // Don't expose the data in the report.
     delete result.data;
