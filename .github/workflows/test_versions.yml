@@ -1,7 +1,7 @@
 ###################################################################
 # Auto-created by the cicd-actions tool
 on: workflow_dispatch
-name: Publish All Artifacts
+name: Test version checking
 jobs:
   deploy:
     name: Deploy
