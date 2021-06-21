@@ -109,7 +109,6 @@ export const ApiRequestMap: { [key: string]: any } = {
           body,
           ...options,
         });
-        console.log(`session put`, response.data);
         if (response.status < 300) {
           expect(response.data.id).not.toMatch('/');
         }
@@ -265,7 +264,6 @@ export const ApiRequestMap: { [key: string]: any } = {
           body,
           ...options,
         });
-        console.log(`session post`, response.data);
         if (response.status < 300) {
           expect(response.data.id).not.toMatch('/');
         }
@@ -300,7 +298,6 @@ export const ApiRequestMap: { [key: string]: any } = {
           body,
           ...options,
         });
-        console.log(`session put`, response.data);
         if (response.status < 300) {
           expect(response.data.id).not.toMatch('/');
         }

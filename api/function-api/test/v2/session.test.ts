@@ -493,14 +493,12 @@ describe('Sessions', () => {
     // Future: Validate the identity is created
     response = await ApiRequestMap.identity.get(account, identity.componentId, identity.id);
     expect(response).toBeHttp({ statusCode: 200 });
-    console.log(`identity`, response.data);
 
     // Future: Validate the identity has the appropriate tags
 
     // Future: Validate the instance is created
     response = await ApiRequestMap.instance.get(account, instance.componentId, instance.id);
     expect(response).toBeHttp({ statusCode: 200 });
-    console.log(`instance`, response.data);
 
     // Future: Validate the instance has the appropriate tags
   }, 180000);

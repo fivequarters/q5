@@ -51,7 +51,7 @@ class IntegrationService extends SessionedComponentService<Model.IIntegration, M
   public sanitizeEntity = (entity: Model.IIntegration): void => {
     const data = entity.data;
 
-    if (!data) {
+    if (!data || Object.keys(data).length === 0) {
       // Default entity.data:
       entity.data = {
         handler: './integration',
@@ -71,7 +71,6 @@ class IntegrationService extends SessionedComponentService<Model.IIntegration, M
     }
 
     if (!data.configuration.creation.steps || data.configuration.creation.autoStep) {
-      console.log(`createIntegration rebuilding steps ${JSON.stringify(data.configuration.creation.steps)}`);
       data.configuration.creation.steps = {};
 
       Object.keys(data.configuration.connectors).forEach((connectorLabel) => {

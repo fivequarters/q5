@@ -125,6 +125,11 @@ export const entityToSdk = (entity: IEntity): ISdkEntity => ({
 // IEntity Extensions
 // --------------------------------
 
+export enum SessionMode {
+  trunk = 'trunk',
+  leaf = 'leaf',
+}
+
 export interface IStep {
   stepName: string;
   input?: any;
@@ -150,14 +155,14 @@ export interface IIntegration extends IEntity {
   data: {
     handler: string;
     configuration: {
-      connectors: { [name: string]: { connector: string; package: string; config?: any } };
+      connectors: Record<string, { connector: string; package: string; config?: any }>;
       creation: {
         tags: ITags;
-        steps: { [stepName: string]: IStep };
+        steps: Record<string, IStep>;
         autoStep: boolean;
       };
     };
-    files: { [fileName: string]: string };
+    files: Record<string, string>;
   };
 }
 
@@ -167,7 +172,7 @@ export interface IConnector extends IEntity {
     configuration: {
       muxIntegration: IEntityId;
     };
-    files: { [fileName: string]: string };
+    files: Record<string, string>;
   };
 }
 
@@ -192,13 +197,14 @@ export interface IOperation extends IEntity {
 export interface ISessionParameters {
   steps?: string[];
   tags?: ITags;
-  input?: { [stepName: string]: any };
+  input?: Record<string, any>;
   redirectUrl: string;
 }
 
 export interface ILeafSessionData extends IStep {
-  mode: 'leaf';
+  mode: SessionMode.leaf;
   meta: {
+    stepName: string;
     parentId: string;
   };
 }
@@ -206,7 +212,7 @@ export interface ILeafSessionData extends IStep {
 export type ITrunkSessionStep = IStep & { childSessionId?: string };
 export type ITrunkSessionSteps = ITrunkSessionStep[];
 export interface ITrunkSessionData {
-  mode: 'trunk';
+  mode: SessionMode.trunk;
 
   meta: {
     redirectUrl: string;
