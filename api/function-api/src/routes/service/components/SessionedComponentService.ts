@@ -33,15 +33,23 @@ export default abstract class SessionedComponentService<
     };
   };
 
-  public ensureSessionLeaf(session: Model.ISession, msg: string): asserts session is Model.ILeafSession {
+  public ensureSessionLeaf(
+    session: Model.ISession,
+    msg: string,
+    statusCode: number = 500
+  ): asserts session is Model.ILeafSession {
     if (session.data.mode !== Model.SessionMode.leaf) {
-      throw http_error(500, `Invalid session type '${session.data.mode}' for '${session.id}': ${msg}`);
+      throw http_error(statusCode, `Invalid session type '${session.data.mode}' for '${session.id}': ${msg}`);
     }
   }
 
-  public ensureSessionTrunk(session: Model.ISession, msg: string): asserts session is Model.ITrunkSession {
+  public ensureSessionTrunk(
+    session: Model.ISession,
+    msg: string,
+    statusCode: number = 500
+  ): asserts session is Model.ITrunkSession {
     if (session.data.mode !== Model.SessionMode.trunk) {
-      throw http_error(500, `Invalid session type '${session.data.mode}' for '${session.id}': ${msg}`);
+      throw http_error(statusCode, `Invalid session type '${session.data.mode}' for '${session.id}': ${msg}`);
     }
   }
 
@@ -162,19 +170,19 @@ export default abstract class SessionedComponentService<
   };
 
   public putSession = async (entity: Model.IEntity, outputValues: any): Promise<IServiceResult> => {
-    // Write the contents into the session, return the new session details.
-    const session = (await this.sessionDao.getEntity(entity)) as Model.ILeafSession;
+    const session = await this.sessionDao.getEntity(entity);
+    this.ensureSessionLeaf(session, 'cannot PUT a non-in-progress session', 400);
+
+    // Update the output and the object.
     session.data.output = outputValues;
     await this.sessionDao.updateEntity(session);
+
     return { statusCode: 200, result: session };
   };
 
   public startSession = async (entity: Model.IEntity): Promise<IServiceResult> => {
-    // Get the specified session.
-    const parentSession = (await this.sessionDao.getEntity(entity)) as Model.ITrunkSession;
-
-    // Validate it's the right type of session.
-    this.ensureSessionTrunk(parentSession, 'cannot start a session in progress');
+    const parentSession = await this.sessionDao.getEntity(entity);
+    this.ensureSessionTrunk(parentSession, 'cannot start a session in progress', 400);
 
     // Get the first step
     const step = parentSession.data.steps[0];
@@ -189,7 +197,7 @@ export default abstract class SessionedComponentService<
   public finishSession = async (entity: Model.IEntity): Promise<IServiceResult> => {
     // Load the session
     const session = await this.sessionDao.getEntity(entity);
-    this.ensureSessionLeaf(session, 'cannot finish a non-leaf session');
+    this.ensureSessionLeaf(session, 'cannot finish a non-in-progress session', 400);
 
     // Load the parent object.
     const parentSession = await this.sessionDao.getEntity({
@@ -231,7 +239,7 @@ export default abstract class SessionedComponentService<
       { verb: 'creating', type: Model.EntityType.session },
       async () => {
         const session = await this.sessionDao.getEntity(entity);
-        this.ensureSessionTrunk(session, 'cannot post non-master session');
+        this.ensureSessionTrunk(session, 'cannot post non-master session', 400);
 
         return this.persistTrunkSession(session, this.decomposeSubordinateId(entity.id));
       }
@@ -247,6 +255,10 @@ export default abstract class SessionedComponentService<
       subscriptionId: session.subscriptionId,
       id: session.id,
     };
+
+    if (this.entityType !== Model.EntityType.integration) {
+      throw http_error(500, `Invalid entity type '${this.entityType}' for ${masterSessionId}`);
+    }
 
     const results: { succeeded: any[]; failed: any[] } = { succeeded: [], failed: [] };
     const leafSessionResults: {
@@ -293,10 +305,6 @@ export default abstract class SessionedComponentService<
     );
 
     // Create a new `instance` object.
-    if (this.entityType !== Model.EntityType.integration) {
-      throw http_error(500, `Invalid entity type '${this.entityType}' for ${masterSessionId}`);
-    }
-
     // Get the integration, to get the database id out of.
     const parentEntity = await this.dao.getEntity({
       accountId: session.accountId,
@@ -331,7 +339,7 @@ export default abstract class SessionedComponentService<
       tags: instance.tags,
     };
 
-    return { statusCode: 200, result: leafSessionResults };
+    return { statusCode: results.failed.length === 0 ? 200 : 500, result: leafSessionResults };
   };
 
   protected persistLeafSession = async (

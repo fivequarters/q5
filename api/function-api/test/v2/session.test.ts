@@ -10,8 +10,8 @@ beforeEach(() => {
   ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
 });
 
-afterAll(async () => {
-  // await cleanupEntities(account);
+afterEach(async () => {
+  await cleanupEntities(account);
 }, 30000);
 
 const demoRedirectUrl = 'http://monkey';
@@ -156,7 +156,7 @@ describe('Sessions', () => {
     expect(response).toBeHttp({ statusCode: 400 });
   }, 180000);
 
-  test('Getting the session does not return output object', async () => {
+  test('Writing to the output of the parent session is rejected', async () => {
     const { integrationId } = await createPair();
     let response = await ApiRequestMap.integration.session.post(account, integrationId, {
       redirectUrl: demoRedirectUrl,
@@ -168,31 +168,7 @@ describe('Sessions', () => {
     response = await ApiRequestMap.integration.session.put(account, integrationId, response.data.id, {
       monkey: 'banana',
     });
-    expect(response).toBeHttp({ statusCode: 200, has: ['id'], hasNot: ['output'] });
-
-    response = await ApiRequestMap.integration.session.get(account, integrationId, response.data.id);
-    expect(response).toBeHttp({ statusCode: 200, has: ['id'], hasNot: ['output'] });
-  }, 180000);
-
-  test('Full result session returns output object', async () => {
-    const { integrationId } = await createPair();
-    let response = await ApiRequestMap.integration.session.post(account, integrationId, {
-      redirectUrl: demoRedirectUrl,
-    });
-    expect(response).toBeHttp({ statusCode: 200 });
-
-    // Write data so there's something in the output
-    response = await ApiRequestMap.integration.session.put(account, integrationId, response.data.id, {
-      monkey: 'banana',
-    });
-    expect(response).toBeHttp({ statusCode: 200, has: ['id'], hasNot: ['output'] });
-
-    response = await ApiRequestMap.integration.session.getResult(account, integrationId, response.data.id);
-    expect(response).toBeHttp({
-      statusCode: 200,
-      has: ['id'],
-      data: { output: { monkey: 'banana' } },
-    });
+    expect(response).toBeHttp({ statusCode: 400 });
   }, 180000);
 
   test('Accessing a session id on a different entity returns 404', async () => {
@@ -228,6 +204,7 @@ describe('Sessions', () => {
                 entityId: connectorId,
                 accountId: account.accountId,
                 subscriptionId: account.subscriptionId,
+                path: '/api/configure',
               },
               input: {
                 iguana: 'mango',
@@ -308,6 +285,7 @@ describe('Sessions', () => {
             target: {
               entityType: 'connector',
               entityId: 'lizard',
+              path: '/api/configure',
             },
             stepName: 'connector:lizard',
           },
@@ -460,7 +438,11 @@ describe('Sessions', () => {
     response = await ApiRequestMap[loc.entityType].session.put(account, loc.entityId, loc.sessionId, {
       monkey: 'banana',
     });
-    expect(response).toBeHttp({ statusCode: 200 });
+    expect(response).toBeHttp({ statusCode: 200, hasNot: ['output'] });
+
+    // Getting a session with data in it doesn't return the output.
+    response = await ApiRequestMap[loc.entityType].session.get(account, loc.entityId, loc.sessionId);
+    expect(response).toBeHttp({ statusCode: 200, hasNot: ['output'] });
 
     // Finish the session
     response = await ApiRequestMap[loc.entityType].session.callback(account, loc.entityId, loc.sessionId);
@@ -490,6 +472,8 @@ describe('Sessions', () => {
     const instance = response.data.payload[''];
     expect(identity.id).not.toMatch('/');
     expect(instance.id).not.toMatch('/');
+    expect(identity).not.toContain('output');
+    expect(instance).not.toContain('output');
 
     // Validate the identity is created
     response = await ApiRequestMap.identity.get(account, identity.componentId, identity.id);
@@ -525,7 +509,7 @@ describe('Sessions', () => {
     expect(response).toBeHttp({ statusCode: 400, data: { message: "Missing 'path' from step 'form'" } });
   }, 180000);
 
-  test.only('Specifying a integration with integration steps respects path', async () => {
+  test('Specifying a integration with integration steps respects path', async () => {
     const integId = `${boundaryId}-integ`;
     const { integrationId } = await createPair({
       creation: {

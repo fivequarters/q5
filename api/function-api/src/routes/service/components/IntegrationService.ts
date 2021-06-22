@@ -1,23 +1,11 @@
 import http_error from 'http-errors';
 
-import { v4 as uuidv4 } from 'uuid';
-
 import { safePathMap } from '@5qtrs/constants';
 import RDS, { Model } from '@5qtrs/db';
-import { IAgent } from '@5qtrs/account-data';
-import { AwsRegistry } from '@5qtrs/registry';
 
-import { IServiceResult } from './BaseComponentService';
 import SessionedComponentService from './SessionedComponentService';
-import { operationService } from './OperationService';
 
 import * as Function from '../../functions';
-
-const rejectPermissionAgent = {
-  checkPermissionSubset: () => {
-    throw http_error(400, 'permissions are unsupported');
-  },
-};
 
 const defaultIntegration = [
   "const { Router, Manager, Form } = require('@fusebit-int/framework');",
@@ -31,7 +19,7 @@ const defaultIntegration = [
   'module.exports = router;',
 ].join('\n');
 
-const defaultPackage = (entity: Model.IIntegration) => ({
+const defaultPackage = (entity: Model.IEntity) => ({
   scripts: { deploy: `"fuse integration deploy ${entity.id} -d ."`, get: `"fuse integration get ${entity.id} -d ."` },
   dependencies: { ['@fusebit-int/framework']: '^2.0.0' },
   files: ['./integration.js'], // Make sure the default file is included, if nothing else.
@@ -50,7 +38,8 @@ class IntegrationService extends SessionedComponentService<Model.IIntegration, M
     this.connectorService = service;
   };
 
-  public sanitizeEntity = (entity: Model.IIntegration): void => {
+  public sanitizeEntity = (ent: Model.IEntity): void => {
+    const entity = ent as Model.IIntegration;
     const data = entity.data;
 
     if (!data || Object.keys(data).length === 0) {
@@ -158,100 +147,6 @@ class IntegrationService extends SessionedComponentService<Model.IIntegration, M
     };
 
     return spec;
-  };
-
-  public createEntity = async (entity: Model.IEntity): Promise<IServiceResult> => {
-    return operationService.inOperation(
-      Model.EntityType.integration,
-      entity,
-      { verb: 'creating', type: Model.EntityType.integration },
-      async () => {
-        this.sanitizeEntity(entity as Model.IIntegration);
-        await this.createEntityOperation(entity);
-        await this.dao.createEntity(entity);
-      }
-    );
-  };
-
-  public createEntityOperation = async (entity: Model.IEntity) => {
-    // Do update things - create functions, collect their versions, and update the entity.data object
-    // appropriately.
-
-    const params = {
-      accountId: entity.accountId,
-      subscriptionId: entity.subscriptionId,
-      boundaryId: this.entityType,
-      functionId: entity.id,
-    };
-
-    try {
-      const result = await Function.createFunction(
-        params,
-        this.createFunctionSpecification(entity),
-        rejectPermissionAgent as IAgent,
-        AwsRegistry.create({ ...entity, registryId: 'default' })
-      );
-
-      if (result.code === 201 && result.buildId) {
-        await Function.waitForFunctionBuild(params, result.buildId, 100000);
-      }
-    } catch (e) {
-      console.log(`ERROR: createEntityOperation `, e);
-      throw e;
-    }
-  };
-
-  public updateEntity = async (entity: Model.IEntity): Promise<IServiceResult> => {
-    // TODO: Validate the data matches the expected Joi schema (to be eventually promoted) (especially that
-    // the payload contents for accountId match the url parameters).
-
-    return operationService.inOperation(
-      Model.EntityType.integration,
-      entity,
-      { verb: 'updating', type: Model.EntityType.integration },
-      async () => {
-        // Make sure the entity already exists.
-        await this.dao.getEntity(entity);
-
-        this.sanitizeEntity(entity as Model.IIntegration);
-
-        // Delegate to the normal create code to recreate the function.
-        await this.createEntityOperation(entity);
-
-        // Update it.
-        await this.dao.updateEntity(entity);
-      }
-    );
-  };
-
-  public deleteEntity = async (entity: Model.IEntity): Promise<IServiceResult> => {
-    // TODO: Validate the data matches the expected Joi schema (to be eventually promoted) (especially that
-    // the payload contents for accountId match the url parameters).
-
-    return operationService.inOperation(
-      Model.EntityType.integration,
-      entity,
-      { verb: 'deleting', type: Model.EntityType.integration },
-      async () => {
-        try {
-          // Do delete things - create functions, collect their versions, and update the entity.data object
-          // appropriately.
-          await Function.deleteFunction({
-            accountId: entity.accountId,
-            subscriptionId: entity.subscriptionId,
-            boundaryId: this.entityType,
-            functionId: entity.id,
-          });
-        } catch (err) {
-          if (err.status !== 404) {
-            throw err;
-          }
-        }
-
-        // Delete it.
-        await this.dao.deleteEntity(entity);
-      }
-    );
   };
 }
 

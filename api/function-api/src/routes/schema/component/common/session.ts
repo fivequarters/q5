@@ -160,6 +160,12 @@ const createSessionRouter = (SessionService: SessionedComponentService<any, any>
             subordinateId: req.params.sessionId,
           }),
         });
+
+        if (typeof result === 'string') {
+          // Session is complete - send to final redirectUrl.
+          return res.redirect(result);
+        }
+
         // Send the browser to start the next session.
         const redirectUrl = `${process.env.API_SERVER}/v2/account/${result.accountId}/subscription/${result.subscriptionId}/${result.entityType}/${result.entityId}/api/start?session=${result.sessionId}`;
         return res.redirect(redirectUrl);

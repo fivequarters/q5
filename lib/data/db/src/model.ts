@@ -172,7 +172,7 @@ export interface IConnector extends IEntity {
 export interface IOperation extends IEntity {
   data: {
     verb: 'creating' | 'updating' | 'deleting';
-    type: EntityType.connector | EntityType.integration | EntityType.session;
+    type: EntityType;
     code: number; // HTTP status codes
     message?: string;
     payload?: any;

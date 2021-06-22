@@ -459,21 +459,21 @@ describe('Integration', () => {
     const entity = await createEntity(testEntityType, sampleEntity());
     entity.data.files['../../passwords'] = 'invalid file';
     const updateResponse = await ApiRequestMap[testEntityType].putAndWait(account, entity.id, entity);
-    expect(updateResponse).toBeHttp({ statusCode: 500 });
+    expect(updateResponse).toBeHttp({ statusCode: 400 });
   }, 180000);
 
   test('Invoke Entity GET with invalid absolute paths fails', async () => {
     const entity = await createEntity(testEntityType, sampleEntity());
     entity.data.files['/foo/bar/../../../passwords'] = 'invalid file';
     const updateResponse = await ApiRequestMap[testEntityType].putAndWait(account, entity.id, entity);
-    expect(updateResponse).toBeHttp({ statusCode: 500 });
+    expect(updateResponse).toBeHttp({ statusCode: 400 });
   }, 180000);
 
   test('Invoke Entity GET with absolute paths fails', async () => {
     const entity = await createEntity(testEntityType, sampleEntity());
     entity.data.files['/foo/bar/passwords'] = 'invalid file';
     const updateResponse = await ApiRequestMap[testEntityType].putAndWait(account, entity.id, entity);
-    expect(updateResponse).toBeHttp({ statusCode: 500 });
+    expect(updateResponse).toBeHttp({ statusCode: 400 });
   }, 180000);
 
   test('Update Entity and Dispatch', async () => {
