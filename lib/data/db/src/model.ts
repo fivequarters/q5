@@ -321,6 +321,8 @@ export interface IDAO {
 
 export interface IEntityDao<ET extends IEntity> extends IDAO {
   sqlToIEntity: <T>(result: RDSDataService.ExecuteStatementResponse) => T[];
+  getDaoType: () => EntityType;
+
   getEntity: (
     params: IEntityId,
     queryOptions?: InputQueryOptions,
@@ -362,5 +364,4 @@ export interface IEntityDao<ET extends IEntity> extends IDAO {
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
   ) => Promise<ITagsWithVersion>;
-  getDaoType: () => string;
 }

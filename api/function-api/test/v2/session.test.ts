@@ -10,7 +10,7 @@ beforeEach(() => {
   ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
 });
 
-afterEach(async () => {
+afterAll(async () => {
   await cleanupEntities(account);
 }, 30000);
 

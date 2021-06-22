@@ -2,7 +2,7 @@ const Joi = require('joi');
 
 import * as Common from './common';
 
-const OperationValidation = Joi.object().keys({
+export const OperationEntry = Joi.object().keys({
   verb: Joi.string().required(),
   type: Joi.string().required(),
   code: Joi.number().required(),
@@ -17,4 +17,8 @@ const OperationValidation = Joi.object().keys({
     .required(),
 });
 
-export default OperationValidation;
+export const OperationParameters = Joi.object().keys({
+  accountId: Common.accountId,
+  subscriptionId: Common.subscriptionId,
+  operationId: Common.operationId,
+});

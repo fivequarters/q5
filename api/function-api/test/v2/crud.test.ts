@@ -345,7 +345,7 @@ const performTests = (testEntityType: string) => {
   }, 180000);
 
   test('Get Entity Tags returns 404 on not found', async () => {
-    const entityTags = await ApiRequestMap[testEntityType].tags.get(account, 'bad id');
+    const entityTags = await ApiRequestMap[testEntityType].tags.get(account, 'invalid-id');
     expect(entityTags).toBeHttp({ statusCode: 404 });
   }, 180000);
 
@@ -363,7 +363,7 @@ const performTests = (testEntityType: string) => {
 
   test('Get Entity Tag Value returns undefined on unset tag', async () => {
     const entityOne = await createEntityTest(sampleEntity());
-    const tagValue = await ApiRequestMap[testEntityType].tags.get(account, entityOne.id, 'bad tag key');
+    const tagValue = await ApiRequestMap[testEntityType].tags.get(account, entityOne.id, 'unknown-tag-key');
     expect(tagValue).toBeHttp({ statusCode: 200 });
     expect(tagValue.data).toBeUndefined();
   }, 180000);
@@ -395,15 +395,15 @@ const performTests = (testEntityType: string) => {
     expect(entityTags.data).toBeDefined();
     expect(entityTags.data.tags).toEqual(entityOne.tags);
 
-    const deleteTagResponse = await ApiRequestMap[testEntityType].tags.delete(account, entityOne.id, 'bad tag key');
+    const deleteTagResponse = await ApiRequestMap[testEntityType].tags.delete(account, entityOne.id, 'unknown-tag-key');
     expect(deleteTagResponse).toBeHttp({ statusCode: 200 });
     expect(deleteTagResponse.data).toMatchObject({ ...remVersion(entityTags.data) });
   }, 180000);
 
   test('Update Entity Tag', async () => {
     const entityOne = await createEntityTest(sampleEntity());
-    const tagKey = 'tag key to insert';
-    const tagValue = 'tag value to insert';
+    const tagKey = 'tagkeytoinsert';
+    const tagValue = 'tagvaluetoinsert';
     const setTagResponse = await ApiRequestMap[testEntityType].tags.put(account, entityOne.id, tagKey, tagValue);
     expect(setTagResponse).toBeHttp({ statusCode: 200 });
     expect(setTagResponse.data).toBeDefined();
@@ -419,9 +419,9 @@ const performTests = (testEntityType: string) => {
   }, 180000);
 
   test('Update Entity Tag returns 404 on not found', async () => {
-    const tagKey = 'tag key to insert';
-    const tagValue = 'tag value to insert';
-    const setTagResponse = await ApiRequestMap[testEntityType].tags.put(account, 'bad entity Id', tagKey, tagValue);
+    const tagKey = 'tagkeytoinsert';
+    const tagValue = 'tagvaluetoinsert';
+    const setTagResponse = await ApiRequestMap[testEntityType].tags.put(account, 'unknown-entity-id', tagKey, tagValue);
     expect(setTagResponse).toBeHttp({ statusCode: 404 });
   }, 180000);
 

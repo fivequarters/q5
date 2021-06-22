@@ -1,5 +1,7 @@
 const Joi = require('joi');
 
+import * as Entities from './entities';
+
 import * as Common from './common';
 
 export const SessionParameters = Joi.object().keys({
@@ -27,3 +29,7 @@ export const SessionCreate = Joi.alternatives().try(
   SessionParameters,
   Step.keys({ redirectUrl: Joi.string().required() })
 );
+
+export const SessionPut = Joi.object();
+
+export const EntityIdParams = Entities.EntityIdParams;
