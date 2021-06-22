@@ -37,6 +37,8 @@ const defaultPackage = (entity: Model.IIntegration) => ({
   files: ['./integration.js'], // Make sure the default file is included, if nothing else.
 });
 
+const defaultConnectorPath = '/api/configure';
+
 class IntegrationService extends SessionedComponentService<Model.IIntegration, Model.IInstance> {
   public readonly entityType: Model.EntityType;
   constructor() {
@@ -79,19 +81,28 @@ class IntegrationService extends SessionedComponentService<Model.IIntegration, M
         data.configuration.creation.steps[stepName] = {
           stepName,
           target: {
-            type: Model.EntityType.connector,
+            entityType: Model.EntityType.connector,
             accountId: entity.accountId,
             subscriptionId: entity.subscriptionId,
             entityId: connectorId,
+            path: defaultConnectorPath,
           },
         };
       });
     }
 
-    // Validate DAG of 'uses' parameters, if any.
+    // Validate DAG of 'uses' parameters, if any, and populate the path for targets.
     const dagSteps: string[] = [];
     Object.entries(data.configuration.creation.steps).forEach((step) => {
       dagSteps.push(step[0]);
+      if (!step[1].target.path) {
+        if (step[1].target.entityType === Model.EntityType.connector) {
+          step[1].target.path = defaultConnectorPath;
+        } else {
+          throw http_error(400, `Missing 'path' from step '${step[0]}'`);
+        }
+      }
+
       step[1].uses?.forEach((usesStep) => {
         if (!dagSteps.includes(usesStep)) {
           throw http_error(400, `Ordering violation: 'uses' in '${step[0]}' for '${usesStep}' before declaration.`);

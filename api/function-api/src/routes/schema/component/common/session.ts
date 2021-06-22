@@ -138,12 +138,10 @@ const createSessionRouter = (SessionService: SessionedComponentService<any, any>
             subordinateId: req.params.sessionId,
           }),
         });
-        if (typeof result === 'string') {
-          return res.redirect(result);
-        } else {
-          const redirectUrl = `${process.env.API_SERVER}/v2/account/${result.accountId}/subscription/${result.subscriptionId}/${result.entityType}/${result.entityId}/api/configure?session=${result.sessionId}`;
-          return res.redirect(redirectUrl);
-        }
+
+        // Send the browser to the configured handler url with the sessionid as a query parameter
+        const redirectUrl = `${process.env.API_SERVER}/v2/account/${result.accountId}/subscription/${result.subscriptionId}/${result.entityType}/${result.entityId}${result.path}?session=${result.sessionId}`;
+        return res.redirect(redirectUrl);
       } catch (error) {
         console.log(error);
         return next(error);
@@ -151,7 +149,7 @@ const createSessionRouter = (SessionService: SessionedComponentService<any, any>
     });
 
   router
-    // Finish a session and get the final redirect url.
+    // Finish a session and get the next component's redirect url.
     .get('/:sessionId/callback', async (req, res, next) => {
       try {
         const { result } = await SessionService.finishSession({
@@ -162,12 +160,9 @@ const createSessionRouter = (SessionService: SessionedComponentService<any, any>
             subordinateId: req.params.sessionId,
           }),
         });
-        if (typeof result === 'string') {
-          return res.redirect(result);
-        } else {
-          const redirectUrl = `${process.env.API_SERVER}/v2/account/${result.accountId}/subscription/${result.subscriptionId}/${result.entityType}/${result.entityId}/api/start?session=${result.sessionId}`;
-          return res.redirect(redirectUrl);
-        }
+        // Send the browser to start the next session.
+        const redirectUrl = `${process.env.API_SERVER}/v2/account/${result.accountId}/subscription/${result.subscriptionId}/${result.entityType}/${result.entityId}/api/start?session=${result.sessionId}`;
+        return res.redirect(redirectUrl);
       } catch (error) {
         console.log(error);
         return next(error);

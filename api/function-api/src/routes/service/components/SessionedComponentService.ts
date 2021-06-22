@@ -24,15 +24,11 @@ export default abstract class SessionedComponentService<
   public abstract addService(service: SessionedComponentService<any, any>): void;
 
   public getTargetUrl = (params: Model.IEntity, step: Model.IStep) => {
-    if (step.target.type === 'generic') {
-      return step.target.handlers.step;
-    }
     return {
       accountId: params.accountId,
       subscriptionId: params.subscriptionId,
-      entityType: 'connector',
-      entityId: this.decomposeSubordinateId(params.id).componentId,
       sessionId: this.decomposeSubordinateId(params.id).subordinateId,
+      // Provides entityType, entityId, and path.
       ...step.target,
     };
   };
@@ -128,9 +124,8 @@ export default abstract class SessionedComponentService<
     const sessionId = uuidv4();
 
     const params = {
-      ...(step.target.type === Model.EntityType.connector
-        ? { entityType: Model.EntityType.connector, componentId: step.target.entityId }
-        : { entityType: this.entityType, componentId: this.decomposeSubordinateId(parentSession.id).componentId }),
+      entityType: Model.EntityType.connector,
+      componentId: step.target.entityId,
     };
 
     // Create a new session.
@@ -349,10 +344,8 @@ export default abstract class SessionedComponentService<
     result = await this.instantiateLeafSession(
       session,
       masterSessionId,
-      session.data.target.type === Model.EntityType.connector ? this.connectorService : this.integrationService,
-      session.data.target.type === Model.EntityType.connector
-        ? session.data.target.entityId
-        : masterSessionId.componentId
+      session.data.target.entityType === Model.EntityType.connector ? this.connectorService : this.integrationService,
+      session.data.target.entityId
     );
 
     return result;

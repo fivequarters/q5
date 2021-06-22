@@ -135,20 +135,13 @@ export interface IStep {
   input?: any;
   output?: any;
   uses?: string[];
-  target:
-    | {
-        type: 'generic';
-        handlers: {
-          step?: string;
-          commit?: string;
-        };
-      }
-    | {
-        type: EntityType.connector;
-        accountId?: string;
-        subscriptionId?: string;
-        entityId: string;
-      };
+  target: {
+    entityType: EntityType.connector | EntityType.integration;
+    accountId?: string;
+    subscriptionId?: string;
+    entityId: string;
+    path?: string;
+  };
 }
 
 export interface IIntegration extends IEntity {

@@ -14,21 +14,13 @@ export const Step = Joi.object().keys({
   input: Joi.object().optional(),
   output: Joi.any().forbidden(),
   uses: Joi.array().items(Joi.string()).optional(),
-  target: Joi.alternatives().try(
-    Joi.object().keys({
-      type: Joi.string().valid('generic').required(),
-      handlers: Joi.object().keys({
-        step: Joi.string(),
-        commit: Joi.string().optional(),
-      }),
-    }),
-    Joi.object().keys({
-      type: Joi.string().valid('connector').required(),
-      accountId: Joi.string(),
-      subscriptionId: Joi.string(),
-      entityId: Joi.string().required(),
-    })
-  ),
+  target: Joi.object().keys({
+    entityType: Joi.string().valid(['connector', 'integration']).required(),
+    accountId: Joi.string(),
+    subscriptionId: Joi.string(),
+    entityId: Joi.string().optional(), // Optional only if entityType is integration.
+    path: Joi.string().optional(),
+  }),
 });
 
 export const SessionCreate = Joi.alternatives().try(

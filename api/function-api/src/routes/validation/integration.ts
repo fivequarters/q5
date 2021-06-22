@@ -6,7 +6,6 @@ import * as Session from './session';
 import * as Common from './common';
 
 const Data = Joi.alternatives().try(
-  Joi.object().keys({}),
   Joi.object().keys({
     handler: Joi.string().required(),
     configuration: Joi.object()
@@ -28,7 +27,8 @@ const Data = Joi.alternatives().try(
       .unknown(true),
 
     files: EntityCommon.Files.required(),
-  })
+  }),
+  Joi.object().keys({})
 );
 
 const Entity = EntityCommon.validateEntity(Data);
