@@ -135,7 +135,8 @@ export class AwsAutoScale extends AwsBase<typeof AutoScaling> {
             DeviceName: '/dev/sda1',
             Ebs: {
               VolumeSize: settings.volumeSize || defaultVolumeSize,
-              VolumeType: 'gp2',
+              VolumeType: 'gp3',
+              Encrypted: true
             },
           },
         ],

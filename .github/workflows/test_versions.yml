@@ -1,0 +1,53 @@
+###################################################################
+# Auto-created by the cicd-actions tool
+on: workflow_dispatch
+name: Test version checks
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Upgrade aws-cli
+        run: >
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o
+          "awscliv2.zip"
+
+          unzip awscliv2.zip >/dev/null
+
+          sudo ./aws/install --update
+
+          /usr/local/bin/aws --version
+
+          aws --version
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.16.0
+      - name: Cache Node.js modules
+        uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.OS }}-node
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+      - name: Cache yarn modules
+        uses: actions/cache@v2
+        id: yarn-cache
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Version
+        id: package-versions
+        run: ./tool/cicd/actions/scripts/export_versions.sh
+      - name: Discovered versions
+        run: >
+          echo "Versions: function_api/${{env.VERSION_FUNCTION_API}}
+          fuse-cli/${{env.VERSION_FUSEBIT_CLI}}
+          fuse-ops/${{env.VERSION_FUSEBIT_OPS_CLI}}"
