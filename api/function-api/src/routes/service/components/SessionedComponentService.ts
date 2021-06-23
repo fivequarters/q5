@@ -58,19 +58,23 @@ export default abstract class SessionedComponentService<
     sessionDetails: Model.ISessionParameters
   ): Promise<IServiceResult> => {
     // Load the entity from entity.entityId
-    const component = await this.dao.getEntity(entity);
+    const component = (await this.dao.getEntity(entity)) as Model.IIntegration;
 
-    // Get the steps, or intuit them based on connectors specified.
-    let stepList: string[];
-    let steps: { [stepName: string]: Model.IStep } = {};
+    // Get the steps
+    let stepList: Model.IStep[];
     let tags: Model.ITags;
     const sessionId = uuidv4();
 
-    // Present in the component; use as specified.
-    steps = component.data.configuration.creation.steps;
-
     // If there's a specific order or subset specified, use that instead of the full list.
-    stepList = sessionDetails.steps ? sessionDetails.steps : Object.keys(steps);
+    stepList = sessionDetails.steps
+      ? sessionDetails.steps.map((name) => {
+          const step = component.data.configuration.creation.steps.find((s) => s.name === name);
+          if (!step) {
+            throw http_error(400, `Unknown step '${name}'`);
+          }
+          return step;
+        })
+      : component.data.configuration.creation.steps;
 
     if (!stepList.length) {
       throw http_error(400, 'No matching steps found');
@@ -82,24 +86,23 @@ export default abstract class SessionedComponentService<
 
     // Validate DAG of 'uses' parameters, if any - this should happen also in component creation.
     const dagSteps: string[] = [];
-    stepList.forEach((stepName) => {
-      dagSteps.push(stepName);
-      if (!steps[stepName]) {
-        throw http_error(400, `Unknown step '${stepName}'`);
-      }
-      steps[stepName].uses?.forEach((usesStep) => {
+    stepList.forEach((step) => {
+      dagSteps.push(step.name);
+
+      step.uses?.forEach((usesStep) => {
         if (!dagSteps.includes(usesStep)) {
-          throw http_error(400, `Ordering violation: 'uses' in '${stepName}' for '${usesStep}' before declaration.`);
+          throw http_error(400, `Ordering violation: 'uses' in '${step.name}' for '${usesStep}' before declaration.`);
         }
       });
     });
 
     // If there's any additional input or uses parameters, include those in the specification.
-    Object.entries(sessionDetails.input || {}).forEach((entry: [string, object]) => {
-      if (!steps[entry[0]]) {
-        throw http_error(400, `Unknown step '${entry[0]}'`);
+    Object.entries(sessionDetails.input || {}).forEach(([inputName, inputVal]) => {
+      const step = stepList.find((s) => s.name === inputName);
+      if (!step) {
+        throw http_error(400, `Unknown step '${inputName}'`);
       }
-      steps[entry[0]].input = entry[1];
+      step.input = inputVal;
     });
 
     // Create a session object that's structured appropriately.
@@ -114,7 +117,7 @@ export default abstract class SessionedComponentService<
       }),
       data: {
         mode: Model.SessionMode.trunk,
-        steps: stepList.map((stepName: string) => ({ ...steps[stepName], stepName })),
+        steps: stepList,
         meta: {
           redirectUrl: sessionDetails.redirectUrl,
         },
@@ -132,7 +135,7 @@ export default abstract class SessionedComponentService<
     const sessionId = uuidv4();
 
     const params = {
-      entityType: Model.EntityType.connector,
+      entityType: step.target.entityType,
       componentId: step.target.entityId,
     };
 
@@ -143,17 +146,17 @@ export default abstract class SessionedComponentService<
       id: this.createSubordinateId({ ...params, subordinateId: sessionId }),
       data: {
         mode: Model.SessionMode.leaf,
-        stepName: step.stepName,
+        name: step.name,
         input: step.input,
         output: step.output,
         target: step.target,
-        meta: { stepName: step.stepName, parentId: parentSession.id },
+        meta: { parentId: parentSession.id },
       },
     };
 
-    const matchingStep = parentSession.data.steps.find((pstep) => pstep.stepName === step.stepName);
+    const matchingStep = parentSession.data.steps.find((pstep) => pstep.name === step.name);
     if (!matchingStep) {
-      throw http_error(400, `Invalid step name: ${step.stepName}`);
+      throw http_error(400, `Invalid step name: ${step.name}`);
     }
 
     matchingStep.childSessionId = session.id;
@@ -262,7 +265,7 @@ export default abstract class SessionedComponentService<
 
     const results: { succeeded: any[]; failed: any[] } = { succeeded: [], failed: [] };
     const leafSessionResults: {
-      [stepName: string]: any;
+      [name: string]: any;
     } = {};
 
     let instance: any;
@@ -289,9 +292,9 @@ export default abstract class SessionedComponentService<
             const decompStepSessionId = this.decomposeSubordinateId(sessionEntity.id);
             results.succeeded.push({
               statusCode: 200,
-              stepName: step.stepName,
+              name: step.name,
             });
-            leafSessionResults[step.stepName] = {
+            leafSessionResults[step.name] = {
               accountId: entity.accountId,
               subscriptionId: entity.subscriptionId,
               id: this.decomposeSubordinateId(result.result.id).subordinateId,
@@ -301,11 +304,12 @@ export default abstract class SessionedComponentService<
               entityType: result.result.entityType,
             };
           } catch (e) {
+            console.log(e);
             results.failed.push({
               result: {
                 statusCode: 400,
                 message: e.message,
-                stepName: step.stepName,
+                name: step.name,
               },
             });
           }
@@ -314,7 +318,7 @@ export default abstract class SessionedComponentService<
 
       // Create a new `instance` object.
       // Get the integration, to get the database id out of.
-      const parentEntity = await this.dao.getEntity({
+      const parentEntity = await daos[this.entityType].getEntity({
         accountId: session.accountId,
         subscriptionId: session.subscriptionId,
         id: masterSessionId.componentId,
@@ -378,7 +382,7 @@ export default abstract class SessionedComponentService<
         componentId: parentEntity.__databaseId as string,
         subordinateId: uuidv4(),
       }),
-      data: session.data.output,
+      data: session.data.output || {},
       tags: { ...session.tags, 'session.master': masterSessionId.subordinateId },
     };
 

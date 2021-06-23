@@ -58,7 +58,7 @@ router.delete('/api/:lookupKey', async (ctx: Context) => {
 
 // OAuth Flow Endpoints
 router.get('/api/configure', async (ctx: Context) => {
-  ctx.redirect(await engine.getAuthorizationUrl(ctx.query.state));
+  ctx.redirect(await engine.getAuthorizationUrl(ctx.query.session));
 });
 
 router.get(callbackSuffixUrl, async (ctx: Context) => {
@@ -66,14 +66,15 @@ router.get(callbackSuffixUrl, async (ctx: Context) => {
   const code = ctx.query.code;
 
   if (!code) {
-    ctx.throw(403);
+    ctx.throw(419, 'Missing code query parameter');
   }
 
   try {
     // Probably should be a redirect to somewhere else after storing the token.
-    ctx.body = await engine.convertAccessCodeToToken(ctx, state, code);
+    await engine.convertAccessCodeToToken(ctx, state, code);
+    ctx.redirect(`${engine.cfg.mountUrl}/session/${state}/callback`);
   } catch (e) {
-    ctx.throw(e.status, e.response.text);
+    ctx.throw(e.status, `${e.response.text} - ${e.stack}`);
   }
 });
 

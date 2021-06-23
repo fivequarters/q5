@@ -131,7 +131,7 @@ export enum SessionMode {
 }
 
 export interface IStep {
-  stepName: string;
+  name: string;
   input?: any;
   output?: any;
   uses?: string[];
@@ -151,7 +151,7 @@ export interface IIntegration extends IEntity {
       connectors: Record<string, { connector: string; package: string; config?: any }>;
       creation: {
         tags: ITags;
-        steps: Record<string, IStep>;
+        steps: IStep[];
         autoStep: boolean;
       };
     };
@@ -197,7 +197,6 @@ export interface ISessionParameters {
 export interface ILeafSessionData extends IStep {
   mode: SessionMode.leaf;
   meta: {
-    stepName: string;
     parentId: string;
   };
 }

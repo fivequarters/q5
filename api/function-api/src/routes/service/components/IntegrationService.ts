@@ -27,6 +27,8 @@ const defaultPackage = (entity: Model.IEntity) => ({
 
 const defaultConnectorPath = '/api/configure';
 
+const selfEntityIdReplacement = '{{integration}}';
+
 class IntegrationService extends SessionedComponentService<Model.IIntegration, Model.IInstance> {
   public readonly entityType: Model.EntityType;
   constructor() {
@@ -35,10 +37,11 @@ class IntegrationService extends SessionedComponentService<Model.IIntegration, M
   }
 
   public addService = (service: SessionedComponentService<any, any>): void => {
+    this.integrationService = this;
     this.connectorService = service;
   };
 
-  public sanitizeEntity = (ent: Model.IEntity): void => {
+  public sanitizeEntity = (ent: Model.IEntity): Model.IEntity => {
     const entity = ent as Model.IIntegration;
     const data = entity.data;
 
@@ -50,25 +53,29 @@ class IntegrationService extends SessionedComponentService<Model.IIntegration, M
           ['integration.js']: defaultIntegration,
           ['package.json']: JSON.stringify(defaultPackage(entity), null, 2),
         },
-        configuration: { connectors: {}, creation: { tags: {}, steps: {}, autoStep: true } },
+        configuration: { connectors: {}, creation: { tags: {}, steps: [], autoStep: true } },
       };
 
-      return;
+      return entity;
     }
 
     // Steps are not present; deduce from connectors.
     if (!data.configuration.creation) {
-      data.configuration.creation = { tags: {}, steps: {}, autoStep: true };
+      data.configuration.creation = { tags: {}, steps: [], autoStep: true };
     }
 
-    if (!data.configuration.creation.steps || data.configuration.creation.autoStep) {
-      data.configuration.creation.steps = {};
+    if (
+      !data.configuration.creation.steps ||
+      data.configuration.creation.steps.length === 0 ||
+      data.configuration.creation.autoStep
+    ) {
+      data.configuration.creation.steps = [];
 
-      Object.keys(data.configuration.connectors).forEach((connectorLabel) => {
-        const connectorId = data.configuration.connectors[connectorLabel].connector;
-        const stepName = connectorLabel;
-        data.configuration.creation.steps[stepName] = {
-          stepName,
+      Object.entries(data.configuration.connectors).forEach(([connectorLabel, conn]) => {
+        const connectorId = conn.connector;
+        const name = connectorLabel;
+        data.configuration.creation.steps.push({
+          name,
           target: {
             entityType: Model.EntityType.connector,
             accountId: entity.accountId,
@@ -76,25 +83,29 @@ class IntegrationService extends SessionedComponentService<Model.IIntegration, M
             entityId: connectorId,
             path: defaultConnectorPath,
           },
-        };
+        });
       });
     }
 
     // Validate DAG of 'uses' parameters, if any, and populate the path for targets.
     const dagSteps: string[] = [];
-    Object.entries(data.configuration.creation.steps).forEach((step) => {
-      dagSteps.push(step[0]);
-      if (!step[1].target.path) {
-        if (step[1].target.entityType === Model.EntityType.connector) {
-          step[1].target.path = defaultConnectorPath;
+    data.configuration.creation.steps.forEach((step) => {
+      dagSteps.push(step.name);
+      if (!step.target.path) {
+        if (step.target.entityType === Model.EntityType.connector) {
+          step.target.path = defaultConnectorPath;
         } else {
-          throw http_error(400, `Missing 'path' from step '${step[0]}'`);
+          throw http_error(400, `Missing 'path' from step '${step.name}'`);
         }
       }
 
-      step[1].uses?.forEach((usesStep) => {
+      if (step.target.entityId === selfEntityIdReplacement) {
+        step.target.entityId = entity.id;
+      }
+
+      step.uses?.forEach((usesStep) => {
         if (!dagSteps.includes(usesStep)) {
-          throw http_error(400, `Ordering violation: 'uses' in '${step[0]}' for '${usesStep}' before declaration.`);
+          throw http_error(400, `Ordering violation: 'uses' in '${step.name}' for '${usesStep}' before declaration.`);
         }
       });
     });
@@ -118,6 +129,8 @@ class IntegrationService extends SessionedComponentService<Model.IIntegration, M
 
     // Always pretty-print package.json so it's human-readable from the start.
     data.files['package.json'] = JSON.stringify(pkg, null, 2);
+
+    return entity;
   };
 
   public createFunctionSpecification = (entity: Model.IEntity): Function.IFunctionSpecification => {
@@ -142,6 +155,24 @@ class IntegrationService extends SessionedComponentService<Model.IIntegration, M
             "handler = handler[0] === '.' ? `${__dirname}/${handler}`: handler;",
             `module.exports = require('@fusebit-int/framework').Handler(handler, config);`,
           ].join('\n'),
+        },
+      },
+      security: {
+        functionPermissions: {
+          allow: [
+            {
+              action: 'storage:*',
+              resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/storage/integration/{{functionId}}/',
+            },
+            {
+              action: 'session:put',
+              resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/integration/{{functionId}}/session/',
+            },
+            {
+              action: 'session:get',
+              resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/integration/{{functionId}}/session/',
+            },
+          ],
         },
       },
     };

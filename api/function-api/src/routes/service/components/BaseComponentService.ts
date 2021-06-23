@@ -64,7 +64,7 @@ export default abstract class BaseComponentService<E extends Model.IEntity, F ex
     this.subDao = subDao;
   }
 
-  public abstract sanitizeEntity(entity: Model.IEntity): void;
+  public abstract sanitizeEntity(entity: Model.IEntity): Model.IEntity;
   public abstract createFunctionSpecification(entity: Model.IEntity): Function.IFunctionSpecification;
 
   public getEntity = async (entity: Model.IEntity): Promise<IServiceResult> => ({
@@ -78,7 +78,7 @@ export default abstract class BaseComponentService<E extends Model.IEntity, F ex
       entity,
       { verb: 'creating', type: this.entityType },
       async () => {
-        this.sanitizeEntity(entity);
+        entity = this.sanitizeEntity(entity);
         await this.createEntityOperation(entity);
         await this.dao.createEntity(entity);
       }
@@ -114,7 +114,7 @@ export default abstract class BaseComponentService<E extends Model.IEntity, F ex
         // Make sure the entity already exists.
         await this.dao.getEntity(entity);
 
-        this.sanitizeEntity(entity);
+        entity = this.sanitizeEntity(entity);
 
         // Delegate to the normal create code to recreate the function.
         await this.createEntityOperation(entity);

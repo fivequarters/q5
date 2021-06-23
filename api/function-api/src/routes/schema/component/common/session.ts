@@ -174,7 +174,7 @@ const createSessionRouter = (SessionService: SessionedComponentService<any, any>
           });
 
           // Send the browser to the configured handler url with the sessionid as a query parameter
-          const redirectUrl = `${process.env.API_SERVER}/v2/account/${result.accountId}/subscription/${result.subscriptionId}/${result.entityType}/${result.entityId}${result.path}?session=${result.sessionId}`;
+          const redirectUrl = `${process.env.API_SERVER}/v2/account/${result.accountId}/subscription/${result.subscriptionId}/${result.entityType}/${result.entityId}${result.path}?session=${result.sessionId}&redirect_uri=${process.env.API_SERVER}/v2/account/${result.accountId}/subscription/${result.subscriptionId}/${result.entityType}/${result.entityId}/session/${result.sessionId}/callback`;
           return res.redirect(redirectUrl);
         } catch (error) {
           console.log(error);
@@ -209,7 +209,7 @@ const createSessionRouter = (SessionService: SessionedComponentService<any, any>
           }
 
           // Send the browser to start the next session.
-          const redirectUrl = `${process.env.API_SERVER}/v2/account/${result.accountId}/subscription/${result.subscriptionId}/${result.entityType}/${result.entityId}/api/start?session=${result.sessionId}`;
+          const redirectUrl = `${process.env.API_SERVER}/v2/account/${result.accountId}/subscription/${result.subscriptionId}/${result.entityType}/${result.entityId}${result.path}?session=${result.sessionId}`;
           return res.redirect(redirectUrl);
         } catch (error) {
           console.log(error);

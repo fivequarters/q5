@@ -10,17 +10,19 @@ const Data = Joi.alternatives().try(
     handler: Joi.string().required(),
     configuration: Joi.object()
       .keys({
-        connectors: Joi.object().pattern(
-          Common.entityId,
-          Joi.object().keys({
-            package: Common.npmPackageName,
-            connector: Common.entityId,
-          })
-        ),
+        connectors: Joi.object()
+          .pattern(
+            Common.entityId,
+            Joi.object().keys({
+              package: Common.npmPackageName,
+              connector: Common.entityId,
+            })
+          )
+          .max(10), // Arbitrary
         creation: Joi.object().keys({
           tags: Common.tags,
-          steps: Joi.object().pattern(/^/, Session.Step),
-          autoStep: Joi.boolean().optional().default(true),
+          steps: Joi.array().items(Session.Step).max(10), // Arbitrary
+          autoStep: Joi.boolean().optional().default(false),
         }),
       })
       .required()

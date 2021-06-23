@@ -19,9 +19,10 @@ class ConnectorService extends SessionedComponentService<Model.IConnector, Model
 
   public addService = (service: SessionedComponentService<any, any>): void => {
     this.integrationService = service;
+    this.connectorService = this;
   };
 
-  public sanitizeEntity = (entity: Model.IEntity): void => {
+  public sanitizeEntity = (entity: Model.IEntity): Model.IEntity => {
     const data = entity.data || {};
     data.files = data.files || {};
 
@@ -45,6 +46,8 @@ class ConnectorService extends SessionedComponentService<Model.IConnector, Model
     data.files['package.json'] = JSON.stringify(pkg, null, 2);
 
     entity.data = data;
+
+    return entity;
   };
 
   public createFunctionSpecification = (entity: Model.IEntity): Function.IFunctionSpecification => {
@@ -74,7 +77,15 @@ class ConnectorService extends SessionedComponentService<Model.IConnector, Model
           allow: [
             {
               action: 'storage:*',
-              resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/storage/{{boundaryId}}/{{functionId}}/',
+              resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/storage/connector/{{functionId}}/',
+            },
+            {
+              action: 'session:put',
+              resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/integration/{{functionId}}/session/',
+            },
+            {
+              action: 'session:get',
+              resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/integration/{{functionId}}/session/',
             },
           ],
         },
