@@ -70,7 +70,6 @@ class IdentityClient {
   };
 
   public updateToken = async (token: IOAuthToken, lookup: string) => {
-    console.log('saving token to identity');
     lookup = this.cleanId(lookup);
     const response = await superagent
       .put(this.getUrl(lookup))

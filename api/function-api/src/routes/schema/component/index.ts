@@ -14,12 +14,9 @@ const componentRouter = () => {
   connectorService.addService(integrationService);
   integrationService.addService(connectorService);
 
-  router.use('/connector', common(connectorService));
-  router.use('/integration', common(integrationService));
-
   router.use(analytics.setModality(analytics.Modes.Administration));
-  router.use('/connector/:componentId/identity', IdentityRouter());
-  router.use('/integration/:componentId/instance', InstanceRouter());
+  router.use('/connector', common(connectorService), IdentityRouter());
+  router.use('/integration', common(integrationService), InstanceRouter());
 
   return router;
 };

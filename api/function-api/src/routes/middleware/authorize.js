@@ -79,7 +79,6 @@ module.exports = function authorize_factory(options) {
         }
       }
     } catch (error) {
-      console.log(error);
       if (options.failByCallback) {
         return next(error);
       }

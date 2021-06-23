@@ -9,7 +9,6 @@ import SessionedComponentService from './SessionedComponentService';
 import { operationService } from './OperationService';
 
 import * as Function from '../../functions';
-import { ISession } from '@5qtrs/db/libc/model';
 
 const rejectPermissionAgent = {
   checkPermissionSubset: () => {

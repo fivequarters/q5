@@ -21,7 +21,6 @@
     "@fusebit-int/framework": "^2.0.0"
   },
   "devDependencies": {
-    "@fusebit-int/framework": "^2.0.0",
     "superagent-mock": "^4.0.0"
   }
 }

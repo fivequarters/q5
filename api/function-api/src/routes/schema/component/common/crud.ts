@@ -14,22 +14,22 @@ import Validation from '../../../validation/component';
 import { EntityType } from '@5qtrs/db/libc/model';
 import query from '../../../handlers/query';
 
-const router = (ComponentService: BaseComponentService<any, any>, paramIdName: string = 'componentId') => {
+const router = (ComponentService: BaseComponentService<any, any>, paramIdNames: string[] = ['componentId']) => {
   const componentCrudRouter = express.Router({ mergeParams: true });
   componentCrudRouter
     .route('/')
     .options(common.cors())
     .get(
       common.management({
-        //validate: { params: Validation.EntityIdParams },
-        //authorize: { operation: `${ComponentService.entityType}:get` },
+        validate: { params: Validation.EntityIdParams },
+        authorize: { operation: `${ComponentService.entityType}:get` },
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
-        console.log('hit get route');
         try {
-          console.log(JSON.stringify(pathParams.EntityById(req, paramIdName)));
-          console.log(JSON.stringify(req.params));
-          const { statusCode, result } = await ComponentService.getEntity(pathParams.EntityById(req, paramIdName));
+          const entity = await ComponentService.loadDependentEntities(
+            ...paramIdNames.map((paramIdName) => pathParams.EntityById(req, paramIdName))
+          );
+          const { statusCode, result } = await ComponentService.getEntity(entity);
           res.status(statusCode).json(Model.entityToSdk(result));
         } catch (e) {
           next(e);
@@ -46,10 +46,13 @@ const router = (ComponentService: BaseComponentService<any, any>, paramIdName: s
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {
-          const { statusCode, result } = await ComponentService.updateEntity({
-            ...pathParams.EntityById(req, paramIdName),
+          const entity = {
+            ...(await ComponentService.loadDependentEntities(
+              ...paramIdNames.map((paramIdName) => pathParams.EntityById(req, paramIdName))
+            )),
             ...body.entity(req, ComponentService.entityType),
-          });
+          };
+          const { statusCode, result } = await ComponentService.updateEntity(entity);
           res.status(statusCode).json(result);
         } catch (e) {
           next(e);
@@ -66,10 +69,13 @@ const router = (ComponentService: BaseComponentService<any, any>, paramIdName: s
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {
-          const { statusCode, result } = await ComponentService.deleteEntity({
-            ...pathParams.EntityById(req, paramIdName),
+          const entity = {
+            ...(await ComponentService.loadDependentEntities(
+              ...paramIdNames.map((paramIdName) => pathParams.EntityById(req, paramIdName))
+            )),
             ...query.version(req),
-          });
+          };
+          const { statusCode, result } = await ComponentService.deleteEntity(entity);
           res.status(statusCode).json(result);
         } catch (e) {
           next(e);
@@ -82,7 +88,7 @@ const router = (ComponentService: BaseComponentService<any, any>, paramIdName: s
 
     try {
       result = await ComponentService.dispatch(
-        pathParams.EntityById(req, paramIdName),
+        pathParams.EntityById(req, paramIdNames[paramIdNames.length - 1]),
         req.method,
         req.params.subPath,
         {

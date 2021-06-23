@@ -43,6 +43,10 @@ export default abstract class BaseComponentService<E extends Model.IEntity, F ex
     this.subDao = subDao;
   }
 
+  public loadDependentEntities = async (...args: Model.IEntity[]): Promise<Model.IEntity> => {
+    return args[0];
+  };
+
   public getEntity = async (entity: Model.IEntity): Promise<IServiceResult> => ({
     statusCode: 200,
     result: await this.dao.getEntity(entity),
@@ -61,6 +65,21 @@ export default abstract class BaseComponentService<E extends Model.IEntity, F ex
   public deleteEntity = async (entity: Model.IEntity): Promise<IServiceResult> => ({
     statusCode: 200,
     result: await this.dao.deleteEntity(entity),
+  });
+
+  public getEntityTags = async (entity: Model.IEntity): Promise<IServiceResult> => ({
+    statusCode: 200,
+    result: await this.dao.getEntityTags(entity),
+  });
+
+  public deleteEntityTag = async (taggedEntity: Model.IEntityKeyTagSet): Promise<IServiceResult> => ({
+    statusCode: 200,
+    result: await this.dao.deleteEntityTag(taggedEntity),
+  });
+
+  public setEntityTag = async (taggedEntity: Model.IEntityKeyTagSet): Promise<IServiceResult> => ({
+    statusCode: 200,
+    result: await this.dao.setEntityTag(taggedEntity),
   });
 
   public getEntityTag = async (entityKey: Model.IEntityKeyTagSet): Promise<string> => {

@@ -19,8 +19,5 @@
   },
   "peerDependencies": {
     "@fusebit-int/framework": "^2.0.0"
-  },
-  "devDependencies": {
-    "@fusebit-int/framework": "^2.0.0"
   }
 }
