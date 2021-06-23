@@ -126,7 +126,7 @@ export const decomposeSubordinateId = (
 // Remove any extra fields returned as part of the entity.
 export const entityToSdk = (entity: IEntity): ISdkEntity => {
   return {
-    id: entity.id.indexOf('/') >= 0 ? decomposeSubordinateId(entity.id).subordinateId : entity.id,
+    id: entity.id && entity.id.indexOf('/') >= 0 ? decomposeSubordinateId(entity.id).subordinateId : entity.id,
     data: entity.data,
     tags: entity.tags,
     expires: entity.expires,
@@ -144,24 +144,17 @@ export enum SessionMode {
 }
 
 export interface IStep {
-  stepName: string;
+  name: string;
   input?: any;
   output?: any;
   uses?: string[];
-  target:
-    | {
-        type: 'generic';
-        handlers: {
-          step?: string;
-          commit?: string;
-        };
-      }
-    | {
-        type: EntityType.connector;
-        accountId?: string;
-        subscriptionId?: string;
-        entityId: string;
-      };
+  target: {
+    entityType: EntityType.connector | EntityType.integration;
+    accountId?: string;
+    subscriptionId?: string;
+    entityId: string;
+    path?: string;
+  };
 }
 
 export interface IIntegration extends IEntity {
@@ -171,7 +164,7 @@ export interface IIntegration extends IEntity {
       connectors: Record<string, { connector: string; package: string; config?: any }>;
       creation: {
         tags: ITags;
-        steps: Record<string, IStep>;
+        steps: IStep[];
         autoStep: boolean;
       };
     };
@@ -192,7 +185,7 @@ export interface IConnector extends IEntity {
 export interface IOperation extends IEntity {
   data: {
     verb: 'creating' | 'updating' | 'deleting';
-    type: EntityType.connector | EntityType.integration | EntityType.session;
+    type: EntityType;
     code: number; // HTTP status codes
     message?: string;
     payload?: any;
@@ -217,7 +210,6 @@ export interface ISessionParameters {
 export interface ILeafSessionData extends IStep {
   mode: SessionMode.leaf;
   meta: {
-    stepName: string;
     parentId: string;
   };
 }
@@ -341,6 +333,8 @@ export interface IDAO {
 
 export interface IEntityDao<ET extends IEntity> extends IDAO {
   sqlToIEntity: <T>(result: RDSDataService.ExecuteStatementResponse) => T[];
+  getDaoType: () => EntityType;
+
   getEntity: (
     params: IEntityId,
     queryOptions?: InputQueryOptions,
@@ -382,5 +376,4 @@ export interface IEntityDao<ET extends IEntity> extends IDAO {
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
   ) => Promise<ITagsWithVersion>;
-  getDaoType: () => string;
 }

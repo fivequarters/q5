@@ -142,7 +142,7 @@ export class NpmLoginCommand extends Command {
   private async addScopedRegistry(scope: string, url: string, targetFile?: string): Promise<number> {
     const config: string[] = targetFile ? ['config', '--userconfig', targetFile] : ['config'];
     const args: string[] = config.concat(['set', `${scope}:registry`, url]);
-    const child = spawn('npm', args, { stdio: 'inherit', env: { ...process.env } });
+    const child = spawn('npm', args, { shell: true, stdio: 'inherit', env: { ...process.env } });
 
     const exitCode: number = await new Promise((resolve, reject) => {
       child.on('close', resolve);
@@ -154,7 +154,7 @@ export class NpmLoginCommand extends Command {
   private async addRegistryToken(url: string, token: string, targetFile?: string): Promise<number> {
     const config: string[] = targetFile ? ['config', '--userconfig', targetFile] : ['config'];
     const args: string[] = config.concat(['set', `${getProtoUrl(url)}:_authToken`, token]);
-    const child = spawn('npm', args, { stdio: 'inherit', env: { ...process.env } });
+    const child = spawn('npm', args, { shell: true, stdio: 'inherit', env: { ...process.env } });
 
     const exitCode: number = await new Promise((resolve, reject) => {
       child.on('close', resolve);

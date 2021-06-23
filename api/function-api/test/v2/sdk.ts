@@ -130,26 +130,6 @@ export const ApiRequestMap: { [key: string]: any } = {
           ...options,
         });
       },
-      postSession: async (
-        account: IAccount,
-        entityId: string,
-        sessionId: string,
-        waitOptions: IWaitForCompletionParams = DefaultWaitForCompletionParams,
-        options?: IRequestOptions
-      ) => {
-        const op = await v2Request(account, {
-          method: 'POST',
-          uri: `/connector/${encodeURI(entityId)}/session/${sessionId}`,
-          ...options,
-        });
-        expect(op).toBeHttp({ statusCode: 202 });
-        return ApiRequestMap.operation.waitForCompletion(
-          account,
-          op.data.operationId,
-          { ...waitOptions, getAfter: false },
-          options
-        );
-      },
     },
     get: async (account: IAccount, connectorId: string, options?: IRequestOptions) => {
       return v2Request(account, { method: 'GET', uri: `/connector/${encodeURI(connectorId)}`, ...options });
@@ -518,4 +498,98 @@ export const ApiRequestMap: { [key: string]: any } = {
       return response;
     },
   },
+};
+
+export const createPair = async (
+  account: IAccount,
+  boundaryId: string,
+  integConfig?: any,
+  connConfig?: any,
+  numConnectors: number = 1
+) => {
+  const integId = `${boundaryId}-integ`;
+  const connName = 'conn';
+  const conId = `${boundaryId}-con`;
+
+  const conns: any = {};
+  const steps: Model.IStep[] = [
+    {
+      name: connName,
+      target: { entityType: Model.EntityType.connector, entityId: conId },
+    },
+  ];
+
+  for (let n = 1; n < numConnectors; n++) {
+    conns[`${connName}${n}`] = { package: '@fusebit-int/pkg-oauth-integration', connector: `${conId}${n}` };
+    steps.push({
+      name: `${connName}${n}`,
+      target: { entityType: Model.EntityType.connector, entityId: `${conId}${n}` },
+      ...(n > 1 ? { uses: [`${connName}${n - 1}`] } : {}),
+    });
+  }
+
+  const integEntity = {
+    id: integId,
+    data: {
+      configuration: {
+        connectors: {
+          conn: {
+            package: '@fusebit-int/pkg-oauth-integration',
+            connector: conId,
+          },
+          ...conns,
+        },
+        ...(numConnectors > 1 ? { creation: { steps, autoStep: false } } : {}),
+        ...integConfig,
+      },
+
+      handler: './integration',
+      files: {
+        ['integration.js']: [
+          "const { Router, Manager, Form } = require('@fusebit-int/framework');",
+          'const router = new Router();',
+          "router.get('/api/', async (ctx) => { });",
+          'module.exports = router;',
+        ].join('\n'),
+      },
+    },
+  };
+
+  let response = await ApiRequestMap.integration.postAndWait(account, integEntity);
+  expect(response).toBeHttp({ statusCode: 200 });
+  expect(response.data.id).not.toMatch('/');
+  const integ = response.data;
+
+  response = await ApiRequestMap.connector.postAndWait(account, { id: conId, data: connConfig });
+  expect(response).toBeHttp({ statusCode: 200 });
+  expect(response.data.id).not.toMatch('/');
+  const conn = response.data;
+
+  for (let n = 1; n < numConnectors; n++) {
+    response = await ApiRequestMap.connector.postAndWait(account, { id: `${conId}${n}`, data: connConfig });
+    expect(response).toBeHttp({ statusCode: 200 });
+  }
+
+  return {
+    connectorId: conn.id,
+    integrationId: integ.id,
+    steps: Object.keys(integEntity.data.configuration.connectors),
+  };
+};
+
+export const getElementsFromUrl = (url: string) => {
+  const decomp = new URL(url);
+  const comps = decomp.pathname.match(new RegExp('/v2/account/([^/]*)/subscription/([^/]*)/([^/]*)/([^/]*).*'));
+
+  if (!comps) {
+    throw new Error(`invalid url: ${decomp.pathname}`);
+  }
+
+  return {
+    accountId: comps[1],
+    subscriptionId: comps[2],
+    entityType: comps[3],
+    entityId: comps[4],
+    sessionId: decomp.searchParams.get('session'),
+  };
 };

@@ -1,6 +1,8 @@
 import express from 'express';
 const Joi = require('joi');
 
+import { v2Permissions } from '@5qtrs/constants';
+
 import { Model } from '@5qtrs/db';
 
 import * as common from '../../../middleware/common';
@@ -11,18 +13,21 @@ import pathParams from '../../../handlers/pathParams';
 import body from '../../../handlers/body';
 
 import Validation from '../../../validation/component';
-import { EntityType } from '@5qtrs/db/libc/model';
 import query from '../../../handlers/query';
 
-const router = (ComponentService: BaseComponentService<any, any>, paramIdNames: string[] = ['componentId']) => {
+const router = (
+  ComponentService: BaseComponentService<Model.IEntity, Model.IEntity>,
+  paramIdNames: string[] = ['componentId']
+) => {
   const componentCrudRouter = express.Router({ mergeParams: true });
+
   componentCrudRouter
     .route('/')
     .options(common.cors())
     .get(
       common.management({
         validate: { params: Validation.EntityIdParams },
-        authorize: { operation: `${ComponentService.entityType}:get` },
+        authorize: { operation: v2Permissions[ComponentService.entityType].get },
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {
@@ -42,7 +47,7 @@ const router = (ComponentService: BaseComponentService<any, any>, paramIdNames: 
           params: Validation.EntityIdParams,
           body: Validation[ComponentService.entityType].Entity,
         },
-        authorize: { operation: `${ComponentService.entityType}:put` },
+        authorize: { operation: v2Permissions[ComponentService.entityType].put },
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {
@@ -61,11 +66,11 @@ const router = (ComponentService: BaseComponentService<any, any>, paramIdNames: 
     )
     .delete(
       common.management({
-        authorize: { operation: `${ComponentService.entityType}:delete` },
         validate: {
           params: Validation.EntityIdParams,
           query: Joi.object().keys({ version: Joi.string().guid().optional() }),
         },
+        authorize: { operation: v2Permissions[ComponentService.entityType].delete },
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {

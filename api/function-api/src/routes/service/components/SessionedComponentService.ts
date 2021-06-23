@@ -24,28 +24,38 @@ export default abstract class SessionedComponentService<
   public abstract addService(service: SessionedComponentService<any, any>): void;
 
   public getTargetUrl = (params: Model.IEntity, step: Model.IStep) => {
-    if (step.target.type === 'generic') {
-      return step.target.handlers.step;
-    }
     return {
       accountId: params.accountId,
       subscriptionId: params.subscriptionId,
-      entityType: 'connector',
-      entityId: this.decomposeSubordinateId(params.id).componentId,
       sessionId: this.decomposeSubordinateId(params.id).subordinateId,
+      // Provides entityType, entityId, and path.
       ...step.target,
     };
   };
 
-  public ensureSessionLeaf(session: Model.ISession, msg: string): asserts session is Model.ILeafSession {
+  public ensureSessionLeaf(
+    session: Model.ISession,
+    msg: string,
+    statusCode: number = 500
+  ): asserts session is Model.ILeafSession {
     if (session.data.mode !== Model.SessionMode.leaf) {
-      throw http_error(500, `Invalid session type '${session.data.mode}' for '${session.id}': ${msg}`);
+      throw http_error(statusCode, `Invalid session type '${session.data.mode}' for '${session.id}': ${msg}`);
     }
   }
 
-  public ensureSessionTrunk(session: Model.ISession, msg: string): asserts session is Model.ITrunkSession {
+  public ensureSessionTrunk(
+    session: Model.ISession,
+    msg: string,
+    statusCode: number = 500
+  ): asserts session is Model.ITrunkSession {
     if (session.data.mode !== Model.SessionMode.trunk) {
-      throw http_error(500, `Invalid session type '${session.data.mode}' for '${session.id}': ${msg}`);
+      throw http_error(statusCode, `Invalid session type '${session.data.mode}' for '${session.id}': ${msg}`);
+    }
+  }
+
+  public ensureIntegration(dao: Model.IEntityDao<E>, entity: Model.IEntity): asserts entity is Model.IIntegration {
+    if (dao.getDaoType() !== Model.EntityType.integration) {
+      throw http_error(400, `Invalid entity '${entity.id}' for session request`);
     }
   }
 
@@ -54,19 +64,24 @@ export default abstract class SessionedComponentService<
     sessionDetails: Model.ISessionParameters
   ): Promise<IServiceResult> => {
     // Load the entity from entity.entityId
-    const component = await this.dao.getEntity(entity);
+    const component = (await this.dao.getEntity(entity)) as Model.IIntegration;
+    this.ensureIntegration(this.dao, component);
 
-    // Get the steps, or intuit them based on connectors specified.
-    let stepList: string[];
-    let steps: { [stepName: string]: Model.IStep } = {};
+    // Get the steps
+    let stepList: Model.IStep[];
     let tags: Model.ITags;
     const sessionId = uuidv4();
 
-    // Present in the component; use as specified.
-    steps = component.data.configuration.creation.steps;
-
     // If there's a specific order or subset specified, use that instead of the full list.
-    stepList = sessionDetails.steps ? sessionDetails.steps : Object.keys(steps);
+    stepList = sessionDetails.steps
+      ? sessionDetails.steps.map((name) => {
+          const step = component.data.configuration.creation.steps.find((s) => s.name === name);
+          if (!step) {
+            throw http_error(400, `Unknown step '${name}'`);
+          }
+          return step;
+        })
+      : component.data.configuration.creation.steps;
 
     if (!stepList.length) {
       throw http_error(400, 'No matching steps found');
@@ -78,24 +93,23 @@ export default abstract class SessionedComponentService<
 
     // Validate DAG of 'uses' parameters, if any - this should happen also in component creation.
     const dagSteps: string[] = [];
-    stepList.forEach((stepName) => {
-      dagSteps.push(stepName);
-      if (!steps[stepName]) {
-        throw http_error(400, `Unknown step '${stepName}'`);
-      }
-      steps[stepName].uses?.forEach((usesStep) => {
+    stepList.forEach((step) => {
+      dagSteps.push(step.name);
+
+      step.uses?.forEach((usesStep) => {
         if (!dagSteps.includes(usesStep)) {
-          throw http_error(400, `Ordering violation: 'uses' in '${stepName}' for '${usesStep}' before declaration.`);
+          throw http_error(400, `Ordering violation: 'uses' in '${step.name}' for '${usesStep}' before declaration.`);
         }
       });
     });
 
     // If there's any additional input or uses parameters, include those in the specification.
-    Object.entries(sessionDetails.input || {}).forEach((entry: [string, object]) => {
-      if (!steps[entry[0]]) {
-        throw http_error(400, `Unknown step '${entry[0]}'`);
+    Object.entries(sessionDetails.input || {}).forEach(([inputName, inputVal]) => {
+      const step = stepList.find((s) => s.name === inputName);
+      if (!step) {
+        throw http_error(400, `Unknown step '${inputName}'`);
       }
-      steps[entry[0]].input = entry[1];
+      step.input = inputVal;
     });
 
     // Create a session object that's structured appropriately.
@@ -110,7 +124,7 @@ export default abstract class SessionedComponentService<
       }),
       data: {
         mode: Model.SessionMode.trunk,
-        steps: stepList.map((stepName: string) => ({ ...steps[stepName], stepName })),
+        steps: stepList,
         meta: {
           redirectUrl: sessionDetails.redirectUrl,
         },
@@ -128,9 +142,8 @@ export default abstract class SessionedComponentService<
     const sessionId = uuidv4();
 
     const params = {
-      ...(step.target.type === Model.EntityType.connector
-        ? { entityType: Model.EntityType.connector, componentId: step.target.entityId }
-        : { entityType: this.entityType, componentId: this.decomposeSubordinateId(parentSession.id).componentId }),
+      entityType: step.target.entityType,
+      componentId: step.target.entityId,
     };
 
     // Create a new session.
@@ -140,17 +153,17 @@ export default abstract class SessionedComponentService<
       id: this.createSubordinateId({ ...params, subordinateId: sessionId }),
       data: {
         mode: Model.SessionMode.leaf,
-        stepName: step.stepName,
+        name: step.name,
         input: step.input,
         output: step.output,
         target: step.target,
-        meta: { stepName: step.stepName, parentId: parentSession.id },
+        meta: { parentId: parentSession.id },
       },
     };
 
-    const matchingStep = parentSession.data.steps.find((pstep) => pstep.stepName === step.stepName);
+    const matchingStep = parentSession.data.steps.find((pstep) => pstep.name === step.name);
     if (!matchingStep) {
-      throw http_error(400, `Invalid step name: ${step.stepName}`);
+      throw http_error(400, `Invalid step name: ${step.name}`);
     }
 
     matchingStep.childSessionId = session.id;
@@ -167,19 +180,19 @@ export default abstract class SessionedComponentService<
   };
 
   public putSession = async (entity: Model.IEntity, outputValues: any): Promise<IServiceResult> => {
-    // Write the contents into the session, return the new session details.
-    const session = (await this.sessionDao.getEntity(entity)) as Model.ILeafSession;
+    const session = await this.sessionDao.getEntity(entity);
+    this.ensureSessionLeaf(session, 'cannot PUT a non-in-progress session', 400);
+
+    // Update the output and the object.
     session.data.output = outputValues;
     await this.sessionDao.updateEntity(session);
+
     return { statusCode: 200, result: session };
   };
 
   public startSession = async (entity: Model.IEntity): Promise<IServiceResult> => {
-    // Get the specified session.
-    const parentSession = (await this.sessionDao.getEntity(entity)) as Model.ITrunkSession;
-
-    // Validate it's the right type of session.
-    this.ensureSessionTrunk(parentSession, 'cannot start a session in progress');
+    const parentSession = await this.sessionDao.getEntity(entity);
+    this.ensureSessionTrunk(parentSession, 'cannot start a session in progress', 400);
 
     // Get the first step
     const step = parentSession.data.steps[0];
@@ -194,7 +207,7 @@ export default abstract class SessionedComponentService<
   public finishSession = async (entity: Model.IEntity): Promise<IServiceResult> => {
     // Load the session
     const session = await this.sessionDao.getEntity(entity);
-    this.ensureSessionLeaf(session, 'cannot finish a non-leaf session');
+    this.ensureSessionLeaf(session, 'cannot finish a non-in-progress session', 400);
 
     // Load the parent object.
     const parentSession = await this.sessionDao.getEntity({
@@ -215,9 +228,12 @@ export default abstract class SessionedComponentService<
       // If there's no further steps, redirect to the redirectUrl.
       return {
         statusCode: 302,
-        result: `${parentSession.data.meta.redirectUrl}?session=${
-          this.decomposeSubordinateId(parentSession.id).subordinateId
-        }`,
+        result: {
+          mode: 'url',
+          url: `${parentSession.data.meta.redirectUrl}?session=${
+            this.decomposeSubordinateId(parentSession.id).subordinateId
+          }`,
+        },
       };
     }
 
@@ -225,7 +241,10 @@ export default abstract class SessionedComponentService<
     const stepSession = await this.createLeafSession(parentSession, step);
 
     // Return a 302 to the new session target
-    return { statusCode: 302, result: this.getTargetUrl(stepSession.result, stepSession.result.data) };
+    return {
+      statusCode: 302,
+      result: { mode: 'target', ...this.getTargetUrl(stepSession.result, stepSession.result.data) },
+    };
   };
 
   public postSession = async (entity: Model.IEntity): Promise<IServiceResult> => {
@@ -236,7 +255,7 @@ export default abstract class SessionedComponentService<
       { verb: 'creating', type: Model.EntityType.session },
       async () => {
         const session = await this.sessionDao.getEntity(entity);
-        this.ensureSessionTrunk(session, 'cannot post non-master session');
+        this.ensureSessionTrunk(session, 'cannot post non-master session', 400);
 
         return this.persistTrunkSession(session, this.decomposeSubordinateId(entity.id));
       }
@@ -253,77 +272,90 @@ export default abstract class SessionedComponentService<
       id: session.id,
     };
 
-    const results: { succeeded: any[]; failed: any[] } = { succeeded: [], failed: [] };
-    const leafSessionResults: {
-      [stepName: string]: any;
-    } = {};
-
-    // Persist each session.
-    await (Promise as any).allSettled(
-      Object.values(session.data.steps).map(async (step: Model.ITrunkSessionStep) => {
-        try {
-          const sessionEntity = await this.sessionDao.getEntity({
-            ...entity,
-            id: step.childSessionId as string,
-          });
-          this.ensureSessionLeaf(sessionEntity, 'invalid session entry in step');
-
-          const result = await this.persistLeafSession(sessionEntity, masterSessionId);
-
-          // Store the results.
-          const decompStepSessionId = this.decomposeSubordinateId(sessionEntity.id);
-          results.succeeded.push({
-            statusCode: 200,
-            stepName: step.stepName,
-          });
-          leafSessionResults[step.stepName] = {
-            accountId: entity.accountId,
-            subscriptionId: entity.subscriptionId,
-            id: this.decomposeSubordinateId(result.result.id).subordinateId,
-            tags: result.result.tags,
-            componentId: decompStepSessionId.componentId,
-            componentType: decompStepSessionId.entityType,
-            entityType: result.result.entityType,
-          };
-        } catch (e) {
-          results.failed.push({
-            result: {
-              statusCode: 400,
-              message: e.message,
-              stepName: step.stepName,
-            },
-          });
-        }
-      })
-    );
-
-    // Create a new `instance` object.
     if (this.entityType !== Model.EntityType.integration) {
       throw http_error(500, `Invalid entity type '${this.entityType}' for ${masterSessionId}`);
     }
 
-    // Get the integration, to get the database id out of.
-    const parentEntity = await this.dao.getEntity({
-      accountId: session.accountId,
-      subscriptionId: session.subscriptionId,
-      id: masterSessionId.componentId,
+    const results: { succeeded: any[]; failed: any[] } = { succeeded: [], failed: [] };
+    const leafSessionResults: {
+      [name: string]: any;
+    } = {};
+
+    let instance: any;
+
+    await RDS.inTransaction(async (daos) => {
+      // Persist each session.
+      await (Promise as any).allSettled(
+        Object.values(session.data.steps).map(async (step: Model.ITrunkSessionStep) => {
+          try {
+            const sessionEntity = await this.sessionDao.getEntity({
+              ...entity,
+              id: step.childSessionId as string,
+            });
+            this.ensureSessionLeaf(sessionEntity, 'invalid session entry in step');
+
+            const result = await this.instantiateLeafSession(
+              daos,
+              sessionEntity,
+              masterSessionId,
+              sessionEntity.data.target.entityId
+            );
+
+            // Store the results.
+            const decompStepSessionId = this.decomposeSubordinateId(sessionEntity.id);
+            results.succeeded.push({
+              statusCode: 200,
+              name: step.name,
+            });
+            leafSessionResults[step.name] = {
+              accountId: entity.accountId,
+              subscriptionId: entity.subscriptionId,
+              id: this.decomposeSubordinateId(result.result.id).subordinateId,
+              tags: result.result.tags,
+              componentId: decompStepSessionId.componentId,
+              componentType: decompStepSessionId.entityType,
+              entityType: result.result.entityType,
+            };
+          } catch (e) {
+            console.log(e);
+            results.failed.push({
+              result: {
+                statusCode: 400,
+                message: e.message,
+                name: step.name,
+              },
+            });
+          }
+        })
+      );
+
+      // Create a new `instance` object.
+      // Get the integration, to get the database id out of.
+      const parentEntity = await daos[this.entityType].getEntity({
+        accountId: session.accountId,
+        subscriptionId: session.subscriptionId,
+        id: masterSessionId.componentId,
+      });
+
+      instance = {
+        accountId: session.accountId,
+        subscriptionId: session.subscriptionId,
+        id: this.createSubordinateId({
+          entityType: this.entityType,
+          componentId: parentEntity.__databaseId as string,
+          subordinateId: uuidv4(),
+        }),
+        data: { output: leafSessionResults },
+        tags: { ...session.tags, 'session.master': masterSessionId.subordinateId },
+      };
+
+      await daos[this.subDao!.getDaoType()].createEntity(instance);
     });
-
-    const instance = {
-      accountId: session.accountId,
-      subscriptionId: session.subscriptionId,
-      id: this.createSubordinateId({
-        entityType: this.entityType,
-        componentId: parentEntity.__databaseId as string,
-        subordinateId: uuidv4(),
-      }),
-      data: { output: leafSessionResults },
-      tags: { ...session.tags, 'session.master': masterSessionId.subordinateId },
-    };
-
-    await this.subDao!.createEntity(instance);
-
     const decomposedSessionId = this.decomposeSubordinateId(session.id);
+
+    if (!instance) {
+      return { statusCode: 500, result: leafSessionResults };
+    }
 
     // Record the master instance
     leafSessionResults[MasterSessionStepName] = {
@@ -336,36 +368,20 @@ export default abstract class SessionedComponentService<
       tags: instance.tags,
     };
 
-    return { statusCode: 200, result: leafSessionResults };
-  };
-
-  protected persistLeafSession = async (
-    session: Model.ILeafSession,
-    masterSessionId: ISubordinateId
-  ): Promise<IServiceResult> => {
-    this.ensureSessionLeaf(session, 'invalid master session in step');
-
-    let result;
-    result = await this.instantiateLeafSession(
-      session,
-      masterSessionId,
-      session.data.target.type === Model.EntityType.connector ? this.connectorService : this.integrationService,
-      session.data.target.type === Model.EntityType.connector
-        ? session.data.target.entityId
-        : masterSessionId.componentId
-    );
-
-    return result;
+    return { statusCode: results.failed.length === 0 ? 200 : 500, result: leafSessionResults };
   };
 
   public instantiateLeafSession = async (
+    daos: Model.IDaoCollection,
     session: Model.ILeafSession,
     masterSessionId: ISubordinateId,
-    service: BaseComponentService<any, any>,
     serviceEntityId: string
   ): Promise<IServiceResult> => {
+    const service =
+      session.data.target.entityType === Model.EntityType.connector ? this.connectorService : this.integrationService;
+
     // Get the database ID to hang this subordinate object off of.
-    const parentEntity = await service.dao.getEntity({
+    const parentEntity = await daos[service.dao.getDaoType()].getEntity({
       accountId: session.accountId,
       subscriptionId: session.subscriptionId,
       id: serviceEntityId,
@@ -379,11 +395,11 @@ export default abstract class SessionedComponentService<
         componentId: parentEntity.__databaseId as string,
         subordinateId: uuidv4(),
       }),
-      data: session.data.output,
+      data: session.data.output || {},
       tags: { ...session.tags, 'session.master': masterSessionId.subordinateId },
     };
 
-    const result = await service.subDao!.createEntity(leafEntity);
+    const result = await daos[service.subDao!.getDaoType()].createEntity(leafEntity);
 
     // Don't expose the data in the report.
     delete result.data;

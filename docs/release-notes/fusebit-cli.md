@@ -17,6 +17,12 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.9.8
+
+_Released 6/21/21_
+
+- **Bugfix.** Fix an bug on logging in to the fuse npm service on Windows.
+
 ## Version 1.9.7
 
 _Released 6/4/21_

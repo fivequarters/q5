@@ -11,9 +11,10 @@ const router = () => {
   const identityService = new IdentityService();
   const idParamNames = ['componentId', 'identityId'];
   const createPath = (endpoint?: string) => {
-    return `${idParamNames[0]}/identity/${idParamNames[1]}${endpoint}`;
+    return `/:${idParamNames[0]}/identity/:${idParamNames[1]}${endpoint || ''}`;
   };
 
+  console.log(`identity createPath `, createPath());
   router.use(analytics.setModality(analytics.Modes.Administration));
   router.use(createPath('/tag'), CommonTagRouter(identityService, idParamNames));
   router.use(createPath(), CommonCrudRouter(identityService, idParamNames));
