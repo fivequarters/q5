@@ -203,9 +203,9 @@ const createSessionRouter = (SessionService: SessionedComponentService<any, any>
             }),
           });
 
-          if (typeof result === 'string') {
+          if (result.mode === 'url') {
             // Session is complete - send to final redirectUrl.
-            return res.redirect(result);
+            return res.redirect(result.url);
           }
 
           // Send the browser to start the next session.

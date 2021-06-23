@@ -53,12 +53,19 @@ export default abstract class SessionedComponentService<
     }
   }
 
+  public ensureIntegration(dao: Model.IEntityDao<E>, entity: Model.IEntity): asserts entity is Model.IIntegration {
+    if (dao.getDaoType() !== Model.EntityType.integration) {
+      throw http_error(400, `Invalid entity '${entity.id}' for session request`);
+    }
+  }
+
   public createSession = async (
     entity: Model.IEntity,
     sessionDetails: Model.ISessionParameters
   ): Promise<IServiceResult> => {
     // Load the entity from entity.entityId
     const component = (await this.dao.getEntity(entity)) as Model.IIntegration;
+    this.ensureIntegration(this.dao, component);
 
     // Get the steps
     let stepList: Model.IStep[];
@@ -221,9 +228,12 @@ export default abstract class SessionedComponentService<
       // If there's no further steps, redirect to the redirectUrl.
       return {
         statusCode: 302,
-        result: `${parentSession.data.meta.redirectUrl}?session=${
-          this.decomposeSubordinateId(parentSession.id).subordinateId
-        }`,
+        result: {
+          mode: 'url',
+          url: `${parentSession.data.meta.redirectUrl}?session=${
+            this.decomposeSubordinateId(parentSession.id).subordinateId
+          }`,
+        },
       };
     }
 
@@ -231,7 +241,10 @@ export default abstract class SessionedComponentService<
     const stepSession = await this.createLeafSession(parentSession, step);
 
     // Return a 302 to the new session target
-    return { statusCode: 302, result: this.getTargetUrl(stepSession.result, stepSession.result.data) };
+    return {
+      statusCode: 302,
+      result: { mode: 'target', ...this.getTargetUrl(stepSession.result, stepSession.result.data) },
+    };
   };
 
   public postSession = async (entity: Model.IEntity): Promise<IServiceResult> => {
