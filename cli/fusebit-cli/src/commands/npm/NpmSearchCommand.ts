@@ -63,7 +63,7 @@ export class NpmSearchCommand extends Command {
       ? ['search', '--userconfig', '.'].concat('--long')
       : ['search', '--userconfig', '.']
     ).concat([input.arguments[0] as string]);
-    const child = spawn('npm', args, { stdio: 'inherit', env: { ...process.env, ...env } });
+    const child = spawn('npm', args, { shell: true, stdio: 'inherit', env: { ...process.env, ...env } });
 
     const exitCode: number = await new Promise((resolve, reject) => {
       child.on('close', resolve);

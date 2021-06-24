@@ -1,6 +1,7 @@
 import express from 'express';
 
 import { Model } from '@5qtrs/db';
+import { v2Permissions } from '@5qtrs/constants';
 
 import Validation from '../../../validation/component';
 
@@ -22,7 +23,7 @@ const router = (ComponentService: BaseComponentService<any, any>) => {
     .get(
       common.management({
         validate: { params: Validation.EntityIdParams, query: Validation.EntityIdQuery },
-        authorize: { operation: `${ComponentService.entityType}:get` },
+        authorize: { operation: v2Permissions[ComponentService.entityType].get },
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {
@@ -46,7 +47,7 @@ const router = (ComponentService: BaseComponentService<any, any>) => {
     .post(
       common.management({
         validate: { params: Validation.EntityIdParams, body: Validation[ComponentService.entityType].Entity },
-        authorize: { operation: `${ComponentService.entityType}:put` },
+        authorize: { operation: v2Permissions[ComponentService.entityType].put },
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {

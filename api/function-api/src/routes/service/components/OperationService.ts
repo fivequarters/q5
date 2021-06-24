@@ -6,7 +6,7 @@ import { IServiceResult } from './BaseComponentService';
 
 interface IOperationParam {
   verb: 'creating' | 'updating' | 'deleting';
-  type: Model.EntityType.connector | Model.EntityType.integration | Model.EntityType.session;
+  type: Model.EntityType;
 }
 
 interface IOperationData extends IOperationParam {

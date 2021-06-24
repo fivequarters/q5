@@ -17,6 +17,10 @@ const EntityIdParams = Joi.object().keys({
   componentId: Common.entityId,
   instanceId: Joi.string().guid(),
   identityId: Joi.string().guid(),
+  operationId: Joi.string().guid(),
+  sessionId: Joi.string().guid(),
+  tagKey: Common.tagValue,
+  tagValue: Common.tagValue,
 });
 
 const EntityId = Joi.object().keys({
@@ -34,5 +38,4 @@ const EntityIdQuery = Joi.object().keys({
 
 const Files = Joi.object();
 
-export default validateEntity;
 export { validateEntity, EntityId, EntityIdParams, Files, EntityIdQuery };

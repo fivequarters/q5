@@ -67,14 +67,14 @@ router.get(callbackSuffixUrl, async (ctx: Context) => {
   const code = ctx.query.code;
 
   if (!code) {
-    ctx.throw(403);
+    ctx.throw(400, 'Missing code query parameter');
   }
 
   try {
-    ctx.body = await engine.convertAccessCodeToToken(ctx, state, code);
+    await engine.convertAccessCodeToToken(ctx, state, code);
     return await engine.redirectToCallback(ctx);
   } catch (e) {
-    ctx.throw(e.status, e.response.text);
+    ctx.throw(e.status, `${e.response.text} - ${e.stack}`);
   }
 });
 

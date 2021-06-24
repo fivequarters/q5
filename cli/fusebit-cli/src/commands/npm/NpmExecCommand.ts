@@ -56,6 +56,7 @@ export class NpmExecCommand extends Command {
     const env = createEnv(profile, registries);
 
     const child = spawn('npm', args, {
+      shell: true,
       stdio: 'inherit',
       env: {
         ...process.env,

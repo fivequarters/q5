@@ -1,6 +1,9 @@
+import http_error from 'http-errors';
+
 import RDS, { Model } from '@5qtrs/db';
 import BaseComponentService from './BaseComponentService';
-import { IEntity } from '@5qtrs/db/libc/model';
+
+import * as Function from '../../functions';
 
 class IdentityService extends BaseComponentService<Model.IIdentity, Model.IIdentity> {
   public readonly entityType: Model.EntityType;
@@ -9,7 +12,18 @@ class IdentityService extends BaseComponentService<Model.IIdentity, Model.IIdent
     this.entityType = Model.EntityType.identity;
   }
 
-  public loadDependentEntities = async (connectorArg: IEntity, identityArg: IEntity): Promise<IEntity> => {
+  public sanitizeEntity = (entity: Model.IEntity): Model.IEntity => {
+    return entity;
+  };
+
+  public createFunctionSpecification = (entity: Model.IEntity): Function.IFunctionSpecification => {
+    throw http_error(500, 'invalid function creation');
+  };
+
+  public loadDependentEntities = async (
+    connectorArg: Model.IEntity,
+    identityArg: Model.IEntity
+  ): Promise<Model.IEntity> => {
     const connector = await RDS.DAO.connector.getEntity(connectorArg);
     return {
       ...identityArg,

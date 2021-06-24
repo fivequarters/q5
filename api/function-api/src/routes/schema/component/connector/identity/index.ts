@@ -11,7 +11,7 @@ const router = () => {
   const identityService = new IdentityService();
   const idParamNames = ['componentId', 'identityId'];
   const createPath = (endpoint: string = '') => {
-    return `/:${idParamNames[0]}/identity/:${idParamNames[1]}${endpoint}`;
+    return `/:${idParamNames[0]}/identity/:${idParamNames[1]}${endpoint || ''}`;
   };
 
   router.use(analytics.setModality(analytics.Modes.Administration));
