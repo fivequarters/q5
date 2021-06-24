@@ -7,13 +7,12 @@ const requestToEntity = async (
   paramIdNames: string[],
   req: express.Request,
   ...additionalAttributes: Record<string, any>[]
-) => {
-  return {
-    ...(await ComponentService.loadDependentEntities(
+) =>
+  Object.assign(
+    await ComponentService.loadDependentEntities(
       ...paramIdNames.map((paramIdName) => pathParams.EntityById(req, paramIdName))
-    )),
-    ...additionalAttributes,
-  };
-};
+    ),
+    ...additionalAttributes
+  );
 
 export default requestToEntity;
