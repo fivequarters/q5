@@ -68,6 +68,7 @@ export const v2Permissions: Record<any, any> = {
   sessionPost: 'session:post',
   sessionPut: 'session:put',
   sessionGet: 'session:get',
+  sessionResult: 'session:result',
   sessionCommit: 'session:commit',
 };
 

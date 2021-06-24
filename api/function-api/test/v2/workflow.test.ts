@@ -99,6 +99,15 @@ describe('Workflow', () => {
       "  const response = await superagent.get(`${ctx.state.params.baseUrl}/session/${ctx.query.session}`).set('Authorization', `Bearer ${ctx.state.params.functionAccessToken}`);",
       '  ctx.body = response.body;',
       '});',
+      "router.get('/api/testSession', async (ctx) => {",
+      "  let response = await superagent.put(`${ctx.state.params.baseUrl}/session/${ctx.query.session}`).set('Authorization', `Bearer ${ctx.state.params.functionAccessToken}`).send({ hello: 'world'});",
+      '  const result = {};',
+      "  response = await superagent.get(`${ctx.state.params.baseUrl}/session/${ctx.query.session}`).set('Authorization', `Bearer ${ctx.state.params.functionAccessToken}`);",
+      '  result.get = response.body;',
+      "  response = await superagent.get(`${ctx.state.params.baseUrl}/session/result/${ctx.query.session}`).set('Authorization', `Bearer ${ctx.state.params.functionAccessToken}`);",
+      '  result.getResult = response.body;',
+      '  ctx.body = result;',
+      '});',
       "router.get('/api/getToken', async (ctx) => {",
       "  const response = await superagent.get(`${ctx.state.params.baseUrl}/session/${ctx.query.session}`).set('Authorization', `Bearer ${ctx.state.params.functionAccessToken}`);",
       '  ctx.body = response.body;',
@@ -207,6 +216,44 @@ describe('Workflow', () => {
       },
     });
 
+    // Use the session in a different way
+    response = await request({
+      url: `${baseUrl}/integration/${integrationId}/api/testSession?session=${formSessionId}`,
+      maxRedirects: 0,
+    });
+    expect(response).toBeHttp({
+      statusCode: 200,
+      data: {
+        get: {
+          id: formSessionId,
+          uses: {
+            conn1: {
+              entityType: 'connector',
+              componentId: connectorId,
+              subordinateId: connectorSessionId,
+            },
+          },
+        },
+        getResult: {
+          id: formSessionId,
+          uses: {
+            conn1: {
+              entityType: 'connector',
+              componentId: connectorId,
+              subordinateId: connectorSessionId,
+            },
+          },
+          output: {
+            hello: 'world',
+          },
+          target: {
+            path: '/api/aForm',
+            entityId: integrationId,
+            entityType: 'integration',
+          },
+        },
+      },
+    });
     // Call the session endpoint to complete this session.
     response = await request({ url: completeLocation, maxRedirects: 0 });
     expect(response).toBeHttp({ statusCode: 302 });

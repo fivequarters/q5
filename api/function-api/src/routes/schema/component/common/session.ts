@@ -42,7 +42,7 @@ const createSessionRouter = (SessionService: SessionedComponentService<any, any>
   router.route('/result/:sessionId').get(
     common.management({
       validate: { params: Validation.EntityIdParams },
-      authorize: { operation: v2Permissions.sessionPost },
+      authorize: { operation: v2Permissions.sessionResult },
     }),
     async (req: express.Request, res: express.Response, next: express.NextFunction) => {
       try {
@@ -65,7 +65,8 @@ const createSessionRouter = (SessionService: SessionedComponentService<any, any>
           result = {
             ...result,
             target: session.result.data.target,
-            stepName: session.result.data.stepName,
+            name: session.result.data.stepName,
+            uses: session.result.data.uses,
           };
         }
         res.status(session.statusCode).json(result);
