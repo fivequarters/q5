@@ -61,11 +61,14 @@ const makePermissionSet = (prefix: string) => ({
 
 export const v2Permissions: Record<any, any> = {
   ...makePermissionSet('integration'),
+  ...makePermissionSet('instance'),
   ...makePermissionSet('connector'),
+  ...makePermissionSet('identity'),
   operationPut: 'operation:put',
   sessionPost: 'session:post',
   sessionPut: 'session:put',
   sessionGet: 'session:get',
+  sessionResult: 'session:result',
   sessionCommit: 'session:commit',
 };
 

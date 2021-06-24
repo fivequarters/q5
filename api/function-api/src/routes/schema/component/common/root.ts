@@ -11,6 +11,7 @@ import body from '../../../handlers/body';
 import pathParams from '../../../handlers/pathParams';
 
 import { BaseComponentService } from '../../../service';
+import { EntityType } from '@5qtrs/db/libc/model';
 
 const router = (ComponentService: BaseComponentService<any, any>) => {
   const componentRouter = express.Router({ mergeParams: true });
@@ -30,11 +31,10 @@ const router = (ComponentService: BaseComponentService<any, any>) => {
             {
               ...pathParams.accountAndSubscription(req),
               ...query.tags(req),
-              idPrefix: req.query.idPrefix as string | undefined,
+              ...query.idPrefix(req),
             },
             {
-              listLimit: Number(req.query.count),
-              next: req.query.next as string | undefined,
+              ...query.listPagination(req),
             }
           );
           response.items = response.items.map((entity) => Model.entityToSdk(entity));
@@ -53,7 +53,7 @@ const router = (ComponentService: BaseComponentService<any, any>) => {
         try {
           const { statusCode, result } = await ComponentService.createEntity({
             ...pathParams.accountAndSubscription(req),
-            ...body.entity(req),
+            ...body.entity(req, ComponentService.entityType),
           });
           res.status(statusCode).json(result);
         } catch (e) {

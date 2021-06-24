@@ -1,0 +1,11 @@
+{
+  "scripts": {
+    "deploy": "\"fuse integration deploy bennsintegration -d .\"",
+    "get": "\"fuse integration get bennsintegration -d .\""
+  },
+  "dependencies": {
+    "@fusebit-int/framework": "*",
+    "asana": "*"
+  },
+  "files": ["./integration.js"]
+}

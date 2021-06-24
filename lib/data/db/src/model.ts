@@ -112,14 +112,27 @@ export interface ISdkEntity {
   version?: string;
 }
 
+export const decomposeSubordinateId = (
+  id: string
+): { entityType: EntityType; componentId: string; subordinateId: string } => {
+  const split = id.split('/');
+  return {
+    entityType: split[1] as EntityType,
+    componentId: split[2],
+    subordinateId: split[3],
+  };
+};
+
 // Remove any extra fields returned as part of the entity.
-export const entityToSdk = (entity: IEntity): ISdkEntity => ({
-  id: entity.id,
-  data: entity.data,
-  tags: entity.tags,
-  expires: entity.expires,
-  version: entity.version,
-});
+export const entityToSdk = (entity: IEntity): ISdkEntity => {
+  return {
+    id: entity.id && entity.id.indexOf('/') >= 0 ? decomposeSubordinateId(entity.id).subordinateId : entity.id,
+    data: entity.data,
+    tags: entity.tags,
+    expires: entity.expires,
+    version: entity.version,
+  };
+};
 
 // --------------------------------
 // IEntity Extensions
@@ -194,8 +207,9 @@ export interface ISessionParameters {
   redirectUrl: string;
 }
 
-export interface ILeafSessionData extends IStep {
+export interface ILeafSessionData extends Omit<IStep, 'uses'> {
   mode: SessionMode.leaf;
+  uses: Record<string, object>;
   meta: {
     parentId: string;
   };

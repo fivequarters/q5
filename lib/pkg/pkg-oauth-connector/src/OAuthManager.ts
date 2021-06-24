@@ -1,7 +1,8 @@
-import { Context, IOnStartup, Manager, Next, Router } from '@fusebit-int/framework';
+import { Context, IOnStartup, Next, Router } from '@fusebit-int/framework';
 import { OAuthEngine, IOAuthConfig } from './OAuthEngine';
 
 import { callbackSuffixUrl } from './OAuthConstants';
+import IdentityClient from './IdentityClient';
 
 const router = new Router();
 
@@ -10,6 +11,10 @@ let engine: OAuthEngine;
 router.use(async (ctx: Context, next: Next) => {
   if (engine) {
     engine.setMountUrl(ctx.state.params.baseUrl);
+    ctx.state.identityClient = new IdentityClient({
+      accessToken: ctx.fusebit.functionAccessToken,
+      ...ctx.state.params,
+    });
   }
   return next();
 });
@@ -41,6 +46,17 @@ router.get('/api/:lookupKey/health', async (ctx: Context) => {
   }
 });
 
+router.get('/api/session/:lookupKey/token', async (ctx: Context) => {
+  try {
+    ctx.body = await engine.ensureAccessToken(ctx, ctx.params.lookupKey, false);
+  } catch (error) {
+    ctx.throw(500, error.message);
+  }
+  if (!ctx.body) {
+    ctx.throw(404);
+  }
+});
+
 router.get('/api/:lookupKey/token', async (ctx: Context) => {
   try {
     ctx.body = await engine.ensureAccessToken(ctx, ctx.params.lookupKey);
@@ -66,13 +82,12 @@ router.get(callbackSuffixUrl, async (ctx: Context) => {
   const code = ctx.query.code;
 
   if (!code) {
-    ctx.throw(419, 'Missing code query parameter');
+    ctx.throw(400, 'Missing code query parameter');
   }
 
   try {
-    // Probably should be a redirect to somewhere else after storing the token.
     await engine.convertAccessCodeToToken(ctx, state, code);
-    ctx.redirect(`${engine.cfg.mountUrl}/session/${state}/callback`);
+    return await engine.redirectToCallback(ctx);
   } catch (e) {
     ctx.throw(e.status, `${e.response.text} - ${e.stack}`);
   }

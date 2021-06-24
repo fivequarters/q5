@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import RDS, { Model } from '@5qtrs/db';
 
-import { decomposeSubordinateId, IServiceResult } from './BaseComponentService';
+import { IServiceResult } from './BaseComponentService';
 
 interface IOperationParam {
   verb: 'creating' | 'updating' | 'deleting';
@@ -46,7 +46,7 @@ class OperationService {
       location: {
         accountId: entity.accountId,
         subscriptionId: entity.subscriptionId,
-        ...(entity.id.indexOf('/') >= 0 ? decomposeSubordinateId(entity.id) : { entityId: entity.id }),
+        ...(entity.id.indexOf('/') >= 0 ? Model.decomposeSubordinateId(entity.id) : { entityId: entity.id }),
         entityType,
       },
     };

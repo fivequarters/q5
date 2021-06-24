@@ -13,9 +13,15 @@ import pathParams from '../../../handlers/pathParams';
 import body from '../../../handlers/body';
 
 import Validation from '../../../validation/component';
+import query from '../../../handlers/query';
+import requestToEntity from '../../../handlers/requestToEntity';
 
-const router = (ComponentService: BaseComponentService<Model.IEntity, Model.IEntity>) => {
+const router = (
+  ComponentService: BaseComponentService<Model.IEntity, Model.IEntity>,
+  paramIdNames: string[] = ['componentId']
+) => {
   const componentCrudRouter = express.Router({ mergeParams: true });
+
   componentCrudRouter
     .route('/')
     .options(common.cors())
@@ -26,7 +32,8 @@ const router = (ComponentService: BaseComponentService<Model.IEntity, Model.IEnt
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {
-          const { statusCode, result } = await ComponentService.getEntity(pathParams.EntityById(req));
+          const entity = await requestToEntity(ComponentService, paramIdNames, req);
+          const { statusCode, result } = await ComponentService.getEntity(entity);
           res.status(statusCode).json(Model.entityToSdk(result));
         } catch (e) {
           next(e);
@@ -43,10 +50,13 @@ const router = (ComponentService: BaseComponentService<Model.IEntity, Model.IEnt
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {
-          const { statusCode, result } = await ComponentService.updateEntity({
-            ...pathParams.EntityById(req),
-            ...body.entity(req),
-          });
+          const entity = await requestToEntity(
+            ComponentService,
+            paramIdNames,
+            req,
+            body.entity(req, ComponentService.entityType)
+          );
+          const { statusCode, result } = await ComponentService.updateEntity(entity);
           res.status(statusCode).json(result);
         } catch (e) {
           next(e);
@@ -63,10 +73,8 @@ const router = (ComponentService: BaseComponentService<Model.IEntity, Model.IEnt
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {
-          const { statusCode, result } = await ComponentService.deleteEntity({
-            ...pathParams.EntityById(req),
-            ...(req.query.version ? { version: req.query.version as string } : {}),
-          });
+          const entity = await requestToEntity(ComponentService, paramIdNames, req, query.version(req));
+          const { statusCode, result } = await ComponentService.deleteEntity(entity);
           res.status(statusCode).json(result);
         } catch (e) {
           next(e);
@@ -78,12 +86,17 @@ const router = (ComponentService: BaseComponentService<Model.IEntity, Model.IEnt
     let result;
 
     try {
-      result = await ComponentService.dispatch(pathParams.EntityById(req), req.method, req.params.subPath, {
-        headers: req.headers,
-        body: req.body,
-        query: req.query,
-        originalUrl: req.originalUrl,
-      });
+      result = await ComponentService.dispatch(
+        pathParams.EntityById(req, paramIdNames[paramIdNames.length - 1]),
+        req.method,
+        req.params.subPath,
+        {
+          headers: req.headers,
+          body: req.body,
+          query: req.query,
+          originalUrl: req.originalUrl,
+        }
+      );
     } catch (e) {
       return next(e);
     }

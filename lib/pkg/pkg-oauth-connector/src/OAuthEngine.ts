@@ -1,5 +1,5 @@
 import superagent from 'superagent';
-import { Router, Context, Next, IStorage } from '@fusebit-int/framework';
+import { Router, Context, Next } from '@fusebit-int/framework';
 
 import { IOAuthConfig, IOAuthToken } from './OAuthTypes';
 
@@ -14,8 +14,6 @@ class OAuthEngine {
     this.router = router;
 
     router.on('uninstall', async (ctx: Context, next: Next) => {
-      // Delete all of the storage associated with this object.
-      await ctx.state.storage.delete(undefined, true);
       return next();
     });
   }
@@ -25,7 +23,7 @@ class OAuthEngine {
   }
 
   public async deleteUser(ctx: Context, lookupKey: string) {
-    return ctx.state.storage.delete(lookupKey);
+    return ctx.state.identityClient?.delete(lookupKey);
   }
 
   /**
@@ -60,9 +58,17 @@ class OAuthEngine {
     token.status = 'authenticated';
     token.timestamp = Date.now();
 
-    await ctx.state.storage.put({ data: token }, lookupKey);
+    await ctx.state.identityClient?.saveTokenToSession(token, lookupKey);
 
     return token;
+  }
+
+  /**
+   * Fetches callback url from session that is managing the connector
+   */
+  public async redirectToCallback(ctx: Context) {
+    const callbackUrl = await ctx.state.identityClient!.getCallbackUrl(ctx.query.state);
+    ctx.redirect(callbackUrl);
   }
 
   /**
@@ -111,12 +117,23 @@ class OAuthEngine {
    * access token cannot be returned, an exception is thrown.
    * @param {*} userContext The vendor user context
    */
-  public async ensureAccessToken(ctx: Context, lookupKey: string) {
+  public async ensureAccessToken(ctx: Context, lookupKey: string, identity: boolean = true) {
     let token: IOAuthToken | undefined;
+    const tokenRw = identity
+      ? {
+          get: ctx.state.identityClient!.getToken,
+          put: ctx.state.identityClient!.updateToken,
+          delete: ctx.state.identityClient!.delete,
+        }
+      : {
+          get: ctx.state.identityClient!.loadTokenFromSession,
+          put: ctx.state.identityClient!.saveTokenToSession,
+          delete: () => {},
+        };
+
     try {
-      token = await ctx.state.storage.get(lookupKey);
+      token = await tokenRw.get(lookupKey);
     } catch (e) {
-      console.log(`storage log error`, e);
       throw e;
     }
 
@@ -130,27 +147,27 @@ class OAuthEngine {
         ctx,
         lookupKey,
         this.cfg.refreshWaitCountLimit,
-        this.cfg.refreshInitialBackoff
+        this.cfg.refreshInitialBackoff,
+        tokenRw
       );
     } else {
       // Get access token for "this" OAuth connector
-      return this.ensureLocalAccessToken(ctx, lookupKey);
+      return this.ensureLocalAccessToken(ctx, lookupKey, tokenRw);
     }
   }
 
-  protected async ensureLocalAccessToken(ctx: Context, lookupKey: string) {
-    let token: IOAuthToken = await ctx.state.storage.get(lookupKey);
+  protected async ensureLocalAccessToken(ctx: Context, lookupKey: string, tokenRw: any) {
+    let token: IOAuthToken = await tokenRw.get(lookupKey);
     if (
       token.access_token &&
       (token.expires_at === undefined || token.expires_at > Date.now() + this.cfg.accessTokenExpirationBuffer)
     ) {
       return token;
     }
-
     if (token.refresh_token) {
       token.status = 'refreshing';
       try {
-        await ctx.state.storage.put({ data: token }, lookupKey);
+        await tokenRw.put(token, lookupKey);
 
         token = await this.refreshAccessToken(token.refresh_token);
 
@@ -161,19 +178,19 @@ class OAuthEngine {
         token.status = 'authenticated';
         token.refreshErrorCount = 0;
 
-        await ctx.state.storage.put({ data: token }, lookupKey);
+        await tokenRw.put(token, lookupKey);
 
         return token;
       } catch (e) {
         if (token.refreshErrorCount > this.cfg.refreshErrorLimit) {
-          await ctx.state.storage.delete(lookupKey);
+          await ctx.state.identityClient?.delete(lookupKey);
           throw new Error(
             `Error refreshing access token. Maximum number of attempts exceeded, identity ${lookupKey} has been deleted: ${e.message}`
           );
         } else {
           token.refreshErrorCount = (token.refreshErrorCount || 0) + 1;
           token.status = 'refresh_error';
-          await ctx.state.storage.put({ data: token }, lookupKey);
+          await tokenRw.put(token, lookupKey);
           throw new Error(
             `Error refreshing access token, attempt ${token.refreshErrorCount} out of ${this.cfg.refreshErrorLimit}: ${e.message}`
           );
@@ -182,11 +199,17 @@ class OAuthEngine {
     }
 
     // Access token expired, but no refresh token; deleting.
-    await ctx.state.storage.delete(lookupKey);
+    await tokenRw.delete(lookupKey);
     throw new Error(`Access token is expired and cannot be refreshed because the refresh token is not present.`);
   }
 
-  protected async waitForRefreshedAccessToken(ctx: Context, lookupKey: string, count: number, backoff: number) {
+  protected async waitForRefreshedAccessToken(
+    ctx: Context,
+    lookupKey: string,
+    count: number,
+    backoff: number,
+    tokenRw: any
+  ) {
     if (count <= 0) {
       throw new Error(
         `Error refreshing access token. Waiting for the access token to be refreshed exceeded the maximum time`
@@ -197,7 +220,7 @@ class OAuthEngine {
       setTimeout(async () => {
         let token: IOAuthToken;
         try {
-          token = await ctx.state.storage.get(lookupKey);
+          token = await tokenRw.get(lookupKey);
           if (!token || token.status === 'refresh_error') {
             throw new Error(`Concurrent access token refresh operation failed`);
           }
@@ -213,7 +236,8 @@ class OAuthEngine {
             ctx,
             lookupKey,
             count - 1,
-            Math.floor(backoff * this.cfg.refreshBackoffIncrement)
+            Math.floor(backoff * this.cfg.refreshBackoffIncrement),
+            tokenRw
           );
         } catch (e) {
           return reject(e);

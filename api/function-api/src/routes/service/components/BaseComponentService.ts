@@ -26,17 +26,6 @@ export interface ISubordinateId {
   subordinateId: string;
 }
 
-export const decomposeSubordinateId = (
-  id: string
-): { entityType: Model.EntityType; componentId: string; subordinateId: string } => {
-  const split = id.split('/');
-  return {
-    entityType: split[1] as Model.EntityType,
-    componentId: split[2],
-    subordinateId: split[3],
-  };
-};
-
 const rejectPermissionAgent = {
   checkPermissionSubset: () => {
     console.log(`XXX Temporary Grant-all on Permissions Until Finalized`);
@@ -44,10 +33,10 @@ const rejectPermissionAgent = {
   },
 };
 
-export default abstract class BaseComponentService<E extends Model.IEntity, F extends Model.IEntity> {
+export default abstract class BaseComponentService<E extends Model.IEntity, F extends Model.IEntity | E> {
   public abstract readonly entityType: Model.EntityType;
   public readonly dao: Model.IEntityDao<E>;
-  public readonly subDao: Model.IEntityDao<F>;
+  public readonly subDao?: Model.IEntityDao<F>;
 
   public createSubordinateId = (params: {
     entityType?: Model.EntityType;
@@ -57,12 +46,16 @@ export default abstract class BaseComponentService<E extends Model.IEntity, F ex
     return `/${params.entityType || this.entityType}/${params.componentId}/${params.subordinateId}`;
   };
 
-  public decomposeSubordinateId = decomposeSubordinateId;
+  public decomposeSubordinateId = Model.decomposeSubordinateId;
 
-  protected constructor(dao: Model.IEntityDao<E>, subDao: Model.IEntityDao<F>) {
+  protected constructor(dao: Model.IEntityDao<E>, subDao?: Model.IEntityDao<F>) {
     this.dao = dao;
     this.subDao = subDao;
   }
+
+  public loadDependentEntities = async (...args: Model.IEntity[]): Promise<Model.IEntity> => {
+    return args[0];
+  };
 
   public abstract sanitizeEntity(entity: Model.IEntity): Model.IEntity;
   public abstract createFunctionSpecification(entity: Model.IEntity): Function.IFunctionSpecification;
@@ -151,6 +144,21 @@ export default abstract class BaseComponentService<E extends Model.IEntity, F ex
       }
     );
   };
+
+  public getEntityTags = async (entity: Model.IEntity): Promise<IServiceResult> => ({
+    statusCode: 200,
+    result: await this.dao.getEntityTags(entity),
+  });
+
+  public deleteEntityTag = async (taggedEntity: Model.IEntityKeyTagSet): Promise<IServiceResult> => ({
+    statusCode: 200,
+    result: await this.dao.deleteEntityTag(taggedEntity),
+  });
+
+  public setEntityTag = async (taggedEntity: Model.IEntityKeyTagSet): Promise<IServiceResult> => ({
+    statusCode: 200,
+    result: await this.dao.setEntityTag(taggedEntity),
+  });
 
   public getEntityTag = async (entityKey: Model.IEntityKeyTagSet): Promise<string> => {
     const response = await this.dao.getEntityTags(entityKey);

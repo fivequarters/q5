@@ -1,15 +1,14 @@
 import express from 'express';
 
 import { v2Permissions } from '@5qtrs/constants';
+import { Model } from '@5qtrs/db';
+import requestToEntity from '../../../handlers/requestToEntity';
 
 import * as common from '../../../middleware/common';
 import * as Validation from '../../../validation/tags';
-
-import pathParams from '../../../handlers/pathParams';
-
 import { BaseComponentService } from '../../../service';
 
-const router = (ComponentService: BaseComponentService<any, any>) => {
+const router = (ComponentService: BaseComponentService<any, any>, paramIdNames: string[] = ['componentId']) => {
   const componentTagRouter = express.Router({ mergeParams: true });
 
   componentTagRouter.get(
@@ -20,10 +19,9 @@ const router = (ComponentService: BaseComponentService<any, any>) => {
     }),
     async (req: express.Request, res: express.Response, next: express.NextFunction) => {
       try {
-        const response = await ComponentService.dao.getEntityTags({
-          ...pathParams.EntityById(req),
-        });
-        res.json(response);
+        const entity = await requestToEntity(ComponentService, paramIdNames, req);
+        const { statusCode, result } = await ComponentService.getEntityTags(entity);
+        res.status(statusCode).json(Model.entityToSdk(result));
       } catch (e) {
         next(e);
       }
@@ -39,9 +37,8 @@ const router = (ComponentService: BaseComponentService<any, any>) => {
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {
-          const response = await ComponentService.getEntityTag({
-            ...pathParams.EntityTagKey(req),
-          });
+          const entity = await requestToEntity(ComponentService, paramIdNames, req);
+          const response = await ComponentService.getEntityTag({ ...entity, tagKey: req.params.tagKey });
           res.json(response);
         } catch (e) {
           next(e);
@@ -55,10 +52,13 @@ const router = (ComponentService: BaseComponentService<any, any>) => {
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {
-          const response = await ComponentService.dao.deleteEntityTag({
-            ...pathParams.EntityTagKey(req),
+          const entity = await requestToEntity(ComponentService, paramIdNames, req);
+          const { statusCode, result } = await ComponentService.deleteEntityTag({
+            ...entity,
+            tagKey: req.params.tagKey,
+            tagValue: req.params.tagValue,
           });
-          res.json(response);
+          res.status(statusCode).json(result);
         } catch (e) {
           next(e);
         }
@@ -73,10 +73,13 @@ const router = (ComponentService: BaseComponentService<any, any>) => {
     }),
     async (req: express.Request, res: express.Response, next: express.NextFunction) => {
       try {
-        const component = await ComponentService.dao.setEntityTag({
-          ...pathParams.EntityTagKeyValue(req),
+        const entity = await requestToEntity(ComponentService, paramIdNames, req);
+        const { statusCode, result } = await ComponentService.setEntityTag({
+          ...entity,
+          tagKey: req.params.tagKey,
+          tagValue: req.params.tagValue,
         });
-        res.json(component);
+        res.status(statusCode).json(result);
       } catch (e) {
         next(e);
       }

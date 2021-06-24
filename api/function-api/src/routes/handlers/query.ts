@@ -9,4 +9,19 @@ const tags = (req: Request) => {
   return { tags: results };
 };
 
-export default { tags };
+const idPrefix = (req: Request): { idPrefix?: string } => {
+  return { idPrefix: req.query.idPrefix as string | undefined };
+};
+
+const listPagination = (req: Request) => {
+  return { listLimit: Number(req.query.count), next: req.query.next as string | undefined };
+};
+
+const version = (req: Request) => {
+  if (req.query.version) {
+    return { version: req.query.version as string };
+  }
+  return {};
+};
+
+export default { tags, idPrefix, listPagination, version };

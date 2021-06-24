@@ -21,16 +21,16 @@ const accountAndSubscription = (req: Request): IAccountParams => {
   return { accountId: req.params.accountId, subscriptionId: req.params.subscriptionId };
 };
 
-const EntityById = (req: Request): IEntityParams => {
-  return { ...accountAndSubscription(req), id: req.params.componentId };
+const EntityById = (req: Request, paramIdName: string = 'componentId'): IEntityParams => {
+  return { ...accountAndSubscription(req), id: req.params[paramIdName] };
 };
 
-const EntityTagKey = (req: Request): IEntityTagParams => {
-  return { ...EntityById(req), tagKey: req.params.tagKey };
+const EntityTagKey = (req: Request, paramIdName: string = 'componentId'): IEntityTagParams => {
+  return { ...EntityById(req, paramIdName), tagKey: req.params.tagKey };
 };
 
-const EntityTagKeyValue = (req: Request): IEntityTagValueParams => {
-  return { ...EntityTagKey(req), tagValue: req.params.tagValue };
+const EntityTagKeyValue = (req: Request, paramIdName: string = 'componentId'): IEntityTagValueParams => {
+  return { ...EntityTagKey(req, paramIdName), tagValue: req.params.tagValue };
 };
 
 export default { accountAndSubscription, EntityById, EntityTagKey, EntityTagKeyValue };

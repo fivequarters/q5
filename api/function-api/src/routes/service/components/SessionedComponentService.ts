@@ -138,13 +138,35 @@ export default abstract class SessionedComponentService<
     };
   };
 
-  public createLeafSession = async (parentSession: Model.ITrunkSession, step: Model.IStep): Promise<IServiceResult> => {
+  public createLeafSession = async (
+    parentSession: Model.ITrunkSession,
+    step: Model.ITrunkSessionStep
+  ): Promise<IServiceResult> => {
+    if (step.childSessionId) {
+      const childEntity = await this.sessionDao.getEntity({
+        accountId: parentSession.accountId,
+        subscriptionId: parentSession.subscriptionId,
+        id: step.childSessionId,
+      });
+      return { statusCode: 200, result: childEntity };
+    }
+
     const sessionId = uuidv4();
 
     const params = {
       entityType: step.target.entityType,
       componentId: step.target.entityId,
     };
+
+    // Calculate 'uses' based on previous session ids
+    const uses =
+      step.uses?.reduce((acc: Record<string, object>, stepName: string) => {
+        acc[stepName] = Model.decomposeSubordinateId(
+          (parentSession.data.steps.find((s) => s.name === stepName) as Model.ITrunkSessionStep)
+            .childSessionId as string
+        );
+        return acc;
+      }, {}) || {};
 
     // Create a new session.
     const session: Model.ILeafSession = {
@@ -157,19 +179,17 @@ export default abstract class SessionedComponentService<
         input: step.input,
         output: step.output,
         target: step.target,
+        uses,
         meta: { parentId: parentSession.id },
       },
     };
 
-    const matchingStep = parentSession.data.steps.find((pstep) => pstep.name === step.name);
-    if (!matchingStep) {
-      throw http_error(400, `Invalid step name: ${step.name}`);
-    }
+    step.childSessionId = session.id;
 
-    matchingStep.childSessionId = session.id;
-
-    await this.sessionDao.createEntity(session);
-    await this.sessionDao.updateEntity(parentSession);
+    await RDS.inTransaction(async (daos) => {
+      await daos.session.createEntity(session);
+      await daos.session.updateEntity(parentSession);
+    });
 
     return { statusCode: 200, result: session };
   };
@@ -349,7 +369,7 @@ export default abstract class SessionedComponentService<
         tags: { ...session.tags, 'session.master': masterSessionId.subordinateId },
       };
 
-      await daos[this.subDao.getDaoType()].createEntity(instance);
+      await daos[this.subDao!.getDaoType()].createEntity(instance);
     });
     const decomposedSessionId = this.decomposeSubordinateId(session.id);
 
@@ -364,7 +384,7 @@ export default abstract class SessionedComponentService<
       componentId: decomposedSessionId.componentId,
       componentType: decomposedSessionId.entityType,
       id: this.decomposeSubordinateId(instance.id).subordinateId,
-      entityType: this.subDao.getDaoType(),
+      entityType: this.subDao!.getDaoType(),
       tags: instance.tags,
     };
 
@@ -399,7 +419,7 @@ export default abstract class SessionedComponentService<
       tags: { ...session.tags, 'session.master': masterSessionId.subordinateId },
     };
 
-    const result = await daos[service.subDao.getDaoType()].createEntity(leafEntity);
+    const result = await daos[service.subDao!.getDaoType()].createEntity(leafEntity);
 
     // Don't expose the data in the report.
     delete result.data;
