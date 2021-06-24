@@ -207,8 +207,9 @@ export interface ISessionParameters {
   redirectUrl: string;
 }
 
-export interface ILeafSessionData extends IStep {
+export interface ILeafSessionData extends Omit<IStep, 'uses'> {
   mode: SessionMode.leaf;
+  uses: Record<string, object>;
   meta: {
     parentId: string;
   };

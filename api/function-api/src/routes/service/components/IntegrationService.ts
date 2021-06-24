@@ -169,6 +169,11 @@ class IntegrationService extends SessionedComponentService<Model.IIntegration, M
               resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/integration/{{functionId}}/session/',
             },
             {
+              action: 'session:result',
+              resource:
+                '/account/{{accountId}}/subscription/{{subscriptionId}}/integration/{{functionId}}/session/result/',
+            },
+            {
               action: 'session:get',
               resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/integration/{{functionId}}/session/',
             },

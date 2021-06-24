@@ -67,6 +67,14 @@ class IdentityClient {
     return response.body;
   };
 
+  public loadTokenFromSession = async (sessionId: string) => {
+    sessionId = this.cleanId(sessionId);
+    const response = await superagent
+      .get(`${this.connectorUrl}/session/result/${sessionId}`)
+      .set('Authorization', `Bearer ${this.accessToken}`);
+    return response.body;
+  };
+
   public updateToken = async (token: IOAuthToken, lookup: string) => {
     lookup = this.cleanId(lookup);
     const response = await superagent
