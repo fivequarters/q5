@@ -138,7 +138,19 @@ export default abstract class SessionedComponentService<
     };
   };
 
-  public createLeafSession = async (parentSession: Model.ITrunkSession, step: Model.IStep): Promise<IServiceResult> => {
+  public createLeafSession = async (
+    parentSession: Model.ITrunkSession,
+    step: Model.ITrunkSessionStep
+  ): Promise<IServiceResult> => {
+    if (step.childSessionId) {
+      const childEntity = await this.sessionDao.getEntity({
+        accountId: parentSession.accountId,
+        subscriptionId: parentSession.subscriptionId,
+        id: step.childSessionId,
+      });
+      return { statusCode: 200, result: childEntity };
+    }
+
     const sessionId = uuidv4();
 
     const params = {
@@ -146,6 +158,7 @@ export default abstract class SessionedComponentService<
       componentId: step.target.entityId,
     };
 
+    // Calculate 'uses' based on previous session ids
     const uses =
       step.uses?.reduce((acc: Record<string, object>, stepName: string) => {
         acc[stepName] = Model.decomposeSubordinateId(
@@ -171,15 +184,12 @@ export default abstract class SessionedComponentService<
       },
     };
 
-    const matchingStep = parentSession.data.steps.find((pstep) => pstep.name === step.name);
-    if (!matchingStep) {
-      throw http_error(400, `Invalid step name: ${step.name}`);
-    }
+    step.childSessionId = session.id;
 
-    matchingStep.childSessionId = session.id;
-
-    await this.sessionDao.createEntity(session);
-    await this.sessionDao.updateEntity(parentSession);
+    await RDS.inTransaction(async (daos) => {
+      await daos.session.createEntity(session);
+      await daos.session.updateEntity(parentSession);
+    });
 
     return { statusCode: 200, result: session };
   };

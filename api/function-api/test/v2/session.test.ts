@@ -222,6 +222,30 @@ describe('Sessions', () => {
     expect(location.searchParams.get('session')).not.toBe(parentSessionId);
   }, 180000);
 
+  test('Repeatedly start a session and get the same session id', async () => {
+    const { integrationId, connectorId } = await createPair(account, boundaryId);
+    let response = await ApiRequestMap.integration.session.post(account, integrationId, {
+      redirectUrl: demoRedirectUrl,
+    });
+    expect(response).toBeHttp({ statusCode: 200 });
+    const parentSessionId = response.data.id;
+
+    response = await ApiRequestMap.integration.session.start(account, integrationId, parentSessionId);
+    expect(response).toBeHttp({ statusCode: 302 });
+    expect(
+      response.headers.location.indexOf(
+        `${process.env.API_SERVER}/v2/account/${account.accountId}/subscription/${account.subscriptionId}/connector/${connectorId}/api/configure?session=`
+      )
+    ).toBe(0);
+    let location = new URL(response.headers.location);
+    const lastSessionId = location.searchParams.get('session');
+
+    response = await ApiRequestMap.integration.session.start(account, integrationId, parentSessionId);
+    expect(response).toBeHttp({ statusCode: 302 });
+    location = new URL(response.headers.location);
+    expect(lastSessionId).toBe(location.searchParams.get('session'));
+  }, 180000);
+
   test('Create a session on an integration with steplist in the request', async () => {
     const { integrationId, connectorId } = await createPair(account, boundaryId);
     let response = await ApiRequestMap.integration.session.post(account, integrationId, {
@@ -303,6 +327,36 @@ describe('Sessions', () => {
       statusCode: 302,
       headers: { location: `${demoRedirectUrl}?session=${parentSessionId}` },
     });
+  }, 180000);
+
+  test('Calling the callback for a previous session gives the same next session id', async () => {
+    const numConnectors = 5;
+    const { integrationId, connectorId } = await createPair(account, boundaryId, {}, {}, numConnectors);
+    let response = await ApiRequestMap.integration.session.post(account, integrationId, {
+      redirectUrl: demoRedirectUrl,
+    });
+    expect(response).toBeHttp({ statusCode: 200 });
+
+    // Start the session
+    response = await ApiRequestMap.integration.session.start(account, integrationId, response.data.id);
+    expect(response).toBeHttp({ statusCode: 302 });
+    const loc = getElementsFromUrl(response.headers.location);
+    expect(loc.entityId).toBe(connectorId);
+
+    // Finish the first step, get the location of the next step
+    response = await ApiRequestMap[loc.entityType].session.callback(account, loc.entityId, loc.sessionId);
+    expect(response).toBeHttp({ statusCode: 302 });
+    const nextLoc = getElementsFromUrl(response.headers.location);
+
+    // Validate that the callback gives back the same session id each time
+    response = await ApiRequestMap[loc.entityType].session.callback(account, loc.entityId, loc.sessionId);
+    expect(response).toBeHttp({ statusCode: 302 });
+    expect(nextLoc).toEqual(getElementsFromUrl(response.headers.location));
+
+    // Once more, for good measure.
+    response = await ApiRequestMap[loc.entityType].session.callback(account, loc.entityId, loc.sessionId);
+    expect(response).toBeHttp({ statusCode: 302 });
+    expect(nextLoc).toEqual(getElementsFromUrl(response.headers.location));
   }, 180000);
 
   test('Create a session on an integration with steplist in the request that fails DAG', async () => {
