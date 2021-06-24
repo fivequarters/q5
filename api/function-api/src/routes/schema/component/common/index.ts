@@ -4,9 +4,9 @@ import componentRootRouter from './root';
 import componentTagRouter from './tag';
 import componentSessionRouter from './session';
 import * as analytics from '../../../middleware/analytics';
-import { BaseComponentService } from '../../../service';
+import { SessionedComponentService } from '../../../service';
 
-const router = (ComponentService: BaseComponentService<any>) => {
+const router = (ComponentService: SessionedComponentService<any, any>) => {
   const r = express.Router({ mergeParams: true });
 
   r.use(analytics.setModality(analytics.Modes.Administration));

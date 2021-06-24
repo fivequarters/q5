@@ -24,11 +24,13 @@ export interface IDispatchOptions {
 }
 
 interface IWaitForCompletionParams {
+  getAfter: boolean;
   waitMs: number;
   pollMs: number;
 }
 
 const DefaultWaitForCompletionParams: IWaitForCompletionParams = {
+  getAfter: true,
   waitMs: 30000,
   pollMs: 100,
 };
@@ -42,8 +44,93 @@ export const cleanupEntities = async (account: IAccount) => {
   testEntitiesCreated.length = 0; // Clear the array.
 };
 
+export const v2Request = async (account: IAccount, options: IRequestOptions) => {
+  return request({
+    headers: {
+      ...(options.authz === ''
+        ? {}
+        : { Authorization: `Bearer ${options.authz ? options.authz : account.accessToken}` }),
+      'user-agent': account.userAgent,
+      ...(options.contentType ? { 'content-type': options.contentType } : {}),
+    },
+    url: `${account.baseUrl}/v2/account/${account.accountId}/subscription/${account.subscriptionId}${options.uri}`,
+    method: options.method,
+    data: options.body,
+    maxRedirects: options.maxRedirects,
+  });
+};
+
 export const ApiRequestMap: { [key: string]: any } = {
   connector: {
+    session: {
+      post: async (
+        account: IAccount,
+        entityId: string,
+        body: Model.ISessionParameters | Model.IStep,
+        options?: IRequestOptions
+      ) => {
+        const response = await v2Request(account, {
+          method: 'POST',
+          uri: `/connector/${encodeURI(entityId)}/session/`,
+          body,
+          ...options,
+        });
+        if (response.status < 300) {
+          expect(response.data.id).not.toMatch('/');
+        }
+        return response;
+      },
+      getResult: async (account: IAccount, entityId: string, sessionId: string, options?: IRequestOptions) => {
+        const response = await v2Request(account, {
+          method: 'GET',
+          uri: `/connector/${encodeURI(entityId)}/session/result/${sessionId}`,
+          ...options,
+        });
+        if (response.status < 300) {
+          expect(response.data.id).not.toMatch('/');
+        }
+        return response;
+      },
+      get: async (account: IAccount, entityId: string, sessionId: string, options?: IRequestOptions) => {
+        const response = await v2Request(account, {
+          method: 'GET',
+          uri: `/connector/${encodeURI(entityId)}/session/${sessionId}`,
+          ...options,
+        });
+        if (response.status < 300) {
+          expect(response.data.id).not.toMatch('/');
+        }
+        return response;
+      },
+      put: async (account: IAccount, entityId: string, sessionId: string, body: any, options?: IRequestOptions) => {
+        const response = await v2Request(account, {
+          method: 'PUT',
+          uri: `/connector/${encodeURI(entityId)}/session/${sessionId}`,
+          body,
+          ...options,
+        });
+        if (response.status < 300) {
+          expect(response.data.id).not.toMatch('/');
+        }
+        return response;
+      },
+      start: async (account: IAccount, entityId: string, sessionId: string, options?: IRequestOptions) => {
+        return v2Request(account, {
+          method: 'GET',
+          uri: `/connector/${encodeURI(entityId)}/session/${sessionId}/start`,
+          maxRedirects: 0,
+          ...options,
+        });
+      },
+      callback: async (account: IAccount, entityId: string, sessionId: string, options?: IRequestOptions) => {
+        return v2Request(account, {
+          method: 'GET',
+          uri: `/connector/${encodeURI(entityId)}/session/${sessionId}/callback`,
+          maxRedirects: 0,
+          ...options,
+        });
+      },
+    },
     get: async (account: IAccount, connectorId: string, options?: IRequestOptions) => {
       return v2Request(account, { method: 'GET', uri: `/connector/${encodeURI(connectorId)}`, ...options });
     },
@@ -110,8 +197,7 @@ export const ApiRequestMap: { [key: string]: any } = {
         wait = await ApiRequestMap.operation.waitForCompletion(
           account,
           op.data.operationId,
-          false,
-          waitOptions,
+          { ...waitOptions, getAfter: false },
           options
         );
       } while (wait.status === 428);
@@ -145,6 +231,96 @@ export const ApiRequestMap: { [key: string]: any } = {
     },
   },
   integration: {
+    session: {
+      post: async (
+        account: IAccount,
+        entityId: string,
+        body: Model.ISessionParameters | Model.IStep,
+        options?: IRequestOptions
+      ) => {
+        const response = await v2Request(account, {
+          method: 'POST',
+          uri: `/integration/${encodeURI(entityId)}/session/`,
+          body,
+          ...options,
+        });
+        if (response.status < 300) {
+          expect(response.data.id).not.toMatch('/');
+        }
+        return response;
+      },
+      getResult: async (account: IAccount, entityId: string, sessionId: string, options?: IRequestOptions) => {
+        const response = await v2Request(account, {
+          method: 'GET',
+          uri: `/integration/${encodeURI(entityId)}/session/result/${sessionId}`,
+          ...options,
+        });
+        if (response.status < 300) {
+          expect(response.data.id).not.toMatch('/');
+        }
+        return response;
+      },
+      get: async (account: IAccount, entityId: string, sessionId: string, options?: IRequestOptions) => {
+        const response = await v2Request(account, {
+          method: 'GET',
+          uri: `/integration/${encodeURI(entityId)}/session/${sessionId}`,
+          ...options,
+        });
+        if (response.status < 300) {
+          expect(response.data.id).not.toMatch('/');
+        }
+        return response;
+      },
+      put: async (account: IAccount, entityId: string, sessionId: string, body: any, options?: IRequestOptions) => {
+        const response = await v2Request(account, {
+          method: 'PUT',
+          uri: `/integration/${encodeURI(entityId)}/session/${sessionId}`,
+          body,
+          ...options,
+        });
+        if (response.status < 300) {
+          expect(response.data.id).not.toMatch('/');
+        }
+        return response;
+      },
+      start: async (account: IAccount, entityId: string, sessionId: string, options?: IRequestOptions) => {
+        return v2Request(account, {
+          method: 'GET',
+          uri: `/integration/${encodeURI(entityId)}/session/${sessionId}/start`,
+          maxRedirects: 0,
+          ...options,
+        });
+      },
+      callback: async (account: IAccount, entityId: string, sessionId: string, options?: IRequestOptions) => {
+        return v2Request(account, {
+          method: 'GET',
+          uri: `/integration/${encodeURI(entityId)}/session/${sessionId}/callback`,
+          maxRedirects: 0,
+          ...options,
+        });
+      },
+      postSession: async (
+        account: IAccount,
+        entityId: string,
+        sessionId: string,
+        waitOptions: IWaitForCompletionParams = DefaultWaitForCompletionParams,
+        options?: IRequestOptions
+      ) => {
+        const op = await v2Request(account, {
+          method: 'POST',
+          uri: `/integration/${encodeURI(entityId)}/session/${sessionId}`,
+          ...options,
+        });
+        expect(op).toBeHttp({ statusCode: 202 });
+        return ApiRequestMap.operation.waitForCompletion(
+          account,
+          op.data.operationId,
+          { ...waitOptions, getAfter: false },
+          options
+        );
+      },
+    },
+
     get: async (account: IAccount, integrationId: string, options?: IRequestOptions) => {
       return v2Request(account, { method: 'GET', uri: `/integration/${encodeURI(integrationId)}`, ...options });
     },
@@ -209,7 +385,12 @@ export const ApiRequestMap: { [key: string]: any } = {
     ) => {
       const op = await ApiRequestMap.integration.delete(account, entityId);
       expect(op).toBeHttp({ statusCode: 202 });
-      return ApiRequestMap.operation.waitForCompletion(account, op.data.operationId, false, waitOptions, options);
+      return ApiRequestMap.operation.waitForCompletion(
+        account,
+        op.data.operationId,
+        { ...waitOptions, getAfter: false },
+        options
+      );
     },
 
     dispatch: async (
@@ -249,7 +430,6 @@ export const ApiRequestMap: { [key: string]: any } = {
     waitForCompletion: async (
       account: IAccount,
       operationId: string,
-      getAfter: boolean = false,
       waitOptions: IWaitForCompletionParams = DefaultWaitForCompletionParams,
       options?: IRequestOptions
     ) => {
@@ -259,7 +439,7 @@ export const ApiRequestMap: { [key: string]: any } = {
       do {
         response = await ApiRequestMap.operation.get(account, operationId, options);
         if (response.status === 200) {
-          if (getAfter) {
+          if (waitOptions.getAfter) {
             response = await ApiRequestMap[response.data.location.entityType].get(
               account,
               response.data.location.entityId,
@@ -276,66 +456,140 @@ export const ApiRequestMap: { [key: string]: any } = {
       return response;
     },
   },
+  instance: {
+    get: async (account: IAccount, entityId: string, subordinateId: string, options?: IRequestOptions) => {
+      const response = await v2Request(account, {
+        method: 'GET',
+        uri: `/integration/${encodeURI(entityId)}/instance/${subordinateId}`,
+        ...options,
+      });
+      if (response.status < 300) {
+        expect(response.data.id).not.toMatch('/');
+      }
+      return response;
+    },
+    delete: async (account: IAccount, entityId: string, subordinateId: string, options?: IRequestOptions) => {
+      const response = await v2Request(account, {
+        method: 'DELETE',
+        uri: `/integration/${encodeURI(entityId)}/instance/${subordinateId}`,
+        ...options,
+      });
+      return response;
+    },
+  },
+  identity: {
+    get: async (account: IAccount, entityId: string, subordinateId: string, options?: IRequestOptions) => {
+      const response = await v2Request(account, {
+        method: 'GET',
+        uri: `/connector/${encodeURI(entityId)}/identity/${subordinateId}`,
+        ...options,
+      });
+      if (response.status < 300) {
+        expect(response.data.id).not.toMatch('/');
+      }
+      return response;
+    },
+    delete: async (account: IAccount, entityId: string, subordinateId: string, options?: IRequestOptions) => {
+      const response = await v2Request(account, {
+        method: 'DELETE',
+        uri: `/connector/${encodeURI(entityId)}/identity/${subordinateId}`,
+        ...options,
+      });
+      return response;
+    },
+  },
 };
 
-export const v2Request = async (account: IAccount, options: IRequestOptions) => {
-  return request({
-    headers: {
-      ...(options.authz === ''
-        ? {}
-        : { Authorization: `Bearer ${options.authz ? options.authz : account.accessToken}` }),
-      'user-agent': account.userAgent,
-      ...(options.contentType ? { 'content-type': options.contentType } : {}),
-    },
-    url: `${account.baseUrl}/v2/account/${account.accountId}/subscription/${account.subscriptionId}${options.uri}`,
-    method: options.method,
-    data: options.body,
-    maxRedirects: options.maxRedirects,
-  });
-};
-
-type SessionModes = 'integration' | 'connector';
-
-export async function postSession(account: IAccount, mode: SessionModes, modeId: string, payload: any) {
-  return request({
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${account.accessToken}`,
-      'Content-Type': 'application/json',
-      'User-Agent': account.userAgent,
-    },
-    url: `${account.baseUrl}/v2/account/${account.accountId}/subscription/${account.subscriptionId}/${mode}/${modeId}/session`,
-    data: payload,
-  });
-}
-
-export async function putSession(
+export const createPair = async (
   account: IAccount,
-  mode: SessionModes,
-  modeId: string,
-  sessionId: string,
-  payload: any
-) {
-  return request({
-    method: 'PUT',
-    headers: {
-      Authorization: `Bearer ${account.accessToken}`,
-      'Content-Type': 'application/json',
-      'User-Agent': account.userAgent,
-    },
-    url: `${account.baseUrl}/v2/account/${account.accountId}/subscription/${account.subscriptionId}/${mode}/${modeId}/session/${sessionId}`,
-    data: payload,
-  });
-}
+  boundaryId: string,
+  integConfig?: any,
+  connConfig?: any,
+  numConnectors: number = 1
+) => {
+  const integId = `${boundaryId}-integ`;
+  const connName = 'conn';
+  const conId = `${boundaryId}-con`;
 
-export async function getSession(account: IAccount, mode: SessionModes, modeId: string, sessionId: string) {
-  return request({
-    method: 'GET',
-    headers: {
-      Authorization: `Bearer ${account.accessToken}`,
-      'Content-Type': 'application/json',
-      'User-Agent': account.userAgent,
+  const conns: any = {};
+  const steps: Model.IStep[] = [
+    {
+      name: connName,
+      target: { entityType: Model.EntityType.connector, entityId: conId },
     },
-    url: `${account.baseUrl}/v2/account/${account.accountId}/subscription/${account.subscriptionId}/${mode}/${modeId}/session/${sessionId}`,
-  });
-}
+  ];
+
+  for (let n = 1; n < numConnectors; n++) {
+    conns[`${connName}${n}`] = { package: '@fusebit-int/pkg-oauth-integration', connector: `${conId}${n}` };
+    steps.push({
+      name: `${connName}${n}`,
+      target: { entityType: Model.EntityType.connector, entityId: `${conId}${n}` },
+      ...(n > 1 ? { uses: [`${connName}${n - 1}`] } : {}),
+    });
+  }
+
+  const integEntity = {
+    id: integId,
+    data: {
+      configuration: {
+        connectors: {
+          conn: {
+            package: '@fusebit-int/pkg-oauth-integration',
+            connector: conId,
+          },
+          ...conns,
+        },
+        ...(numConnectors > 1 ? { creation: { steps, autoStep: false } } : {}),
+        ...integConfig,
+      },
+
+      handler: './integration',
+      files: {
+        ['integration.js']: [
+          "const { Router, Manager, Form } = require('@fusebit-int/framework');",
+          'const router = new Router();',
+          "router.get('/api/', async (ctx) => { });",
+          'module.exports = router;',
+        ].join('\n'),
+      },
+    },
+  };
+
+  let response = await ApiRequestMap.integration.postAndWait(account, integEntity);
+  expect(response).toBeHttp({ statusCode: 200 });
+  expect(response.data.id).not.toMatch('/');
+  const integ = response.data;
+
+  response = await ApiRequestMap.connector.postAndWait(account, { id: conId, data: connConfig });
+  expect(response).toBeHttp({ statusCode: 200 });
+  expect(response.data.id).not.toMatch('/');
+  const conn = response.data;
+
+  for (let n = 1; n < numConnectors; n++) {
+    response = await ApiRequestMap.connector.postAndWait(account, { id: `${conId}${n}`, data: connConfig });
+    expect(response).toBeHttp({ statusCode: 200 });
+  }
+
+  return {
+    connectorId: conn.id,
+    integrationId: integ.id,
+    steps: Object.keys(integEntity.data.configuration.connectors),
+  };
+};
+
+export const getElementsFromUrl = (url: string) => {
+  const decomp = new URL(url);
+  const comps = decomp.pathname.match(new RegExp('/v2/account/([^/]*)/subscription/([^/]*)/([^/]*)/([^/]*).*'));
+
+  if (!comps) {
+    throw new Error(`invalid url: ${decomp.pathname}`);
+  }
+
+  return {
+    accountId: comps[1],
+    subscriptionId: comps[2],
+    entityType: comps[3],
+    entityId: comps[4],
+    sessionId: decomp.searchParams.get('session'),
+  };
+};

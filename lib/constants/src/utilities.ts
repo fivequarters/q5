@@ -1,4 +1,5 @@
 import * as path from 'path';
+import http_error from 'http-errors';
 
 const DYNAMO_BACKOFF_TRIES_MAX = 5;
 const DYNAMO_BACKOFF_DELAY = 300;
@@ -75,7 +76,7 @@ const safePath = (filename: string): string => {
   const parsed = path.parse(path.normalize(filename));
 
   if (parsed.dir.startsWith('..') || parsed.dir.startsWith('/')) {
-    throw new Error(`Invalid filename path: ${filename}`);
+    throw http_error(400, `Invalid filename path: ${filename}`);
   }
   return parsed.dir === '' ? `${filename}` : `${parsed.dir}/${parsed.base}`;
 };

@@ -65,6 +65,7 @@ export interface ITagsWithVersion {
 export interface IEntityCore {
   accountId: string;
   subscriptionId: string;
+  __databaseId?: string;
 }
 
 // Data needed for selects and deletes
@@ -111,57 +112,142 @@ export interface ISdkEntity {
   version?: string;
 }
 
+export const decomposeSubordinateId = (
+  id: string
+): { entityType: EntityType; componentId: string; subordinateId: string } => {
+  const split = id.split('/');
+  return {
+    entityType: split[1] as EntityType,
+    componentId: split[2],
+    subordinateId: split[3],
+  };
+};
+
 // Remove any extra fields returned as part of the entity.
-export const entityToSdk = (entity: IEntity): ISdkEntity => ({
-  id: entity.id,
-  data: entity.data,
-  tags: entity.tags,
-  expires: entity.expires,
-  version: entity.version,
-});
+export const entityToSdk = (entity: IEntity): ISdkEntity => {
+  return {
+    id: entity.id && entity.id.indexOf('/') >= 0 ? decomposeSubordinateId(entity.id).subordinateId : entity.id,
+    data: entity.data,
+    tags: entity.tags,
+    expires: entity.expires,
+    version: entity.version,
+  };
+};
 
 // --------------------------------
 // IEntity Extensions
 // --------------------------------
 
+export enum SessionMode {
+  trunk = 'trunk',
+  leaf = 'leaf',
+}
+
+export interface IStep {
+  name: string;
+  input?: any;
+  output?: any;
+  uses?: string[];
+  target: {
+    entityType: EntityType.connector | EntityType.integration;
+    accountId?: string;
+    subscriptionId?: string;
+    entityId: string;
+    path?: string;
+  };
+}
+
 export interface IIntegration extends IEntity {
   data: {
-    configuration?: {
-      package: string;
-      connectors: { [name: string]: { package: string; config?: any } };
+    handler: string;
+    configuration: {
+      connectors: Record<string, { connector: string; package: string; config?: any }>;
+      creation: {
+        tags: ITags;
+        steps: IStep[];
+        autoStep: boolean;
+      };
     };
-    files?: { [fileName: string]: string };
+    files: Record<string, string>;
   };
 }
 
 export interface IConnector extends IEntity {
   data: {
+    handler: string;
     configuration: {
-      package: string;
       muxIntegration: IEntityId;
     };
-    files: { [fileName: string]: string };
+    files: Record<string, string>;
   };
 }
 
-export interface IOperationParam {
-  verb: 'creating' | 'updating' | 'deleting';
-  type: 'connector' | 'integration';
-}
-
-export interface IOperationData extends IOperationParam {
-  code: number; // HTTP status codes
-  message?: string;
-  location: { accountId: string; subscriptionId: string; entityId: string; entityType: EntityType };
-}
 export interface IOperation extends IEntity {
-  data: IOperationData;
+  data: {
+    verb: 'creating' | 'updating' | 'deleting';
+    type: EntityType;
+    code: number; // HTTP status codes
+    message?: string;
+    payload?: any;
+    location: {
+      accountId: string;
+      subscriptionId: string;
+      entityId?: string;
+      componentId?: string;
+      subordinateId?: string;
+      entityType: EntityType;
+    };
+  };
 }
 
-export interface IStorageItem extends IEntity {}
-export interface IIdentity extends IEntity {}
-export interface IInstance extends IEntity {}
-export interface ISession extends IEntity {}
+export interface ISessionParameters {
+  steps?: string[];
+  tags?: ITags;
+  input?: Record<string, any>;
+  redirectUrl: string;
+}
+
+export interface ILeafSessionData extends Omit<IStep, 'uses'> {
+  mode: SessionMode.leaf;
+  uses: Record<string, object>;
+  meta: {
+    parentId: string;
+  };
+}
+
+export type ITrunkSessionStep = IStep & { childSessionId?: string };
+export type ITrunkSessionSteps = ITrunkSessionStep[];
+export interface ITrunkSessionData {
+  mode: SessionMode.trunk;
+
+  meta: {
+    redirectUrl: string;
+  };
+
+  steps: ITrunkSessionSteps;
+}
+
+export interface ILeafSession extends IEntity {
+  data: ILeafSessionData;
+}
+
+export interface ITrunkSession extends IEntity {
+  data: ITrunkSessionData;
+}
+
+export type ISession = ITrunkSession | ILeafSession;
+
+export interface IStorageItem extends IEntity {
+  data: any;
+}
+
+export interface IIdentity extends IEntity {
+  data: any;
+}
+
+export interface IInstance extends IEntity {
+  data: any;
+}
 
 // --------------------------------
 // Utilities
@@ -248,6 +334,8 @@ export interface IDAO {
 
 export interface IEntityDao<ET extends IEntity> extends IDAO {
   sqlToIEntity: <T>(result: RDSDataService.ExecuteStatementResponse) => T[];
+  getDaoType: () => EntityType;
+
   getEntity: (
     params: IEntityId,
     queryOptions?: InputQueryOptions,

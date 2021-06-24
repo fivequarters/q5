@@ -11,6 +11,8 @@ const Sdk: { debug: (...s: any[]) => void } = { debug: console.log };
 export {
   Handler,
   Router,
+  Router as Integration,
+  Router as Connector,
   Form,
   ConnectorManager,
   Manager,

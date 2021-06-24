@@ -11,6 +11,11 @@ beforeEach(() => {
 
 const INVALID_UUID = '00000000-0000-4000-8000-000000000000';
 
+const cleanForStrict = (response: any) => {
+  delete response.version;
+  delete response.__databaseId;
+};
+
 const createEntityTests = <T extends Model.IEntity>(DAO: Model.IEntityDao<T>, entityType: string) => {
   const accountId = `acc-0000000000000000`;
   let subscriptionId: string;
@@ -34,7 +39,7 @@ const createEntityTests = <T extends Model.IEntity>(DAO: Model.IEntityDao<T>, en
     const response: T = await DAO.createEntity(createRequest);
     delete response.expires;
     expect(response.version).toBeUUID();
-    delete response.version;
+    cleanForStrict(response);
     expect(response).toStrictEqual({
       ...createRequest,
       entityType,
@@ -44,7 +49,7 @@ const createEntityTests = <T extends Model.IEntity>(DAO: Model.IEntityDao<T>, en
     const result = await DAO.getEntity(getRequest);
     delete result.expires;
     expect(result.version).toBeUUID();
-    delete result.version;
+    cleanForStrict(result);
     expect(result).toStrictEqual({
       ...createRequest,
       entityType,
@@ -128,8 +133,8 @@ const createEntityTests = <T extends Model.IEntity>(DAO: Model.IEntityDao<T>, en
     expect(secondResult.version).toBeUUID();
     delete firstResult.expires;
     delete secondResult.expires;
-    delete firstResult.version;
-    delete secondResult.version;
+    cleanForStrict(firstResult);
+    cleanForStrict(secondResult);
     expect(secondResult).toStrictEqual({
       ...firstResult,
       data: newData,
@@ -171,6 +176,7 @@ const createEntityTests = <T extends Model.IEntity>(DAO: Model.IEntityDao<T>, en
     expect(result.next).toBeUndefined();
     records.forEach((r, i) => {
       delete result.items[i].version;
+      cleanForStrict(result.items[i]);
       expect(result.items[i]).toStrictEqual({
         entityType,
         ...createRequest(r),
@@ -196,7 +202,7 @@ const createEntityTests = <T extends Model.IEntity>(DAO: Model.IEntityDao<T>, en
     result.items.forEach((item) => {
       delete item.expires;
       expect(item.version).toBeUUID();
-      delete item.version;
+      cleanForStrict(item);
     });
     expect(result.items[0]).toStrictEqual({ ...makeRecord(1), entityType });
     expect(result.items[1]).toStrictEqual({ ...makeRecord(3), entityType });
@@ -224,7 +230,7 @@ const createEntityTests = <T extends Model.IEntity>(DAO: Model.IEntityDao<T>, en
     result.items.forEach((item) => {
       delete item.expires;
       expect(item.version).toBeUUID();
-      delete item.version;
+      cleanForStrict(item);
     });
     expect(result.items[0]).toStrictEqual({ ...makeRecord(3), entityType });
   }, 10000);

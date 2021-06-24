@@ -1,5 +1,5 @@
 {
-  "name": "@fusebit-int/pkg-manager",
+  "name": "@fusebit-int/framework",
   "version": "2.0.0",
   "description": "",
   "main": "libc/index.js",

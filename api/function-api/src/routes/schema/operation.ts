@@ -3,12 +3,13 @@ import ms from 'ms';
 
 import { v4 as uuidv4 } from 'uuid';
 
-import RDS, { Model } from '@5qtrs/db';
+import { v2Permissions } from '@5qtrs/constants';
+import RDS from '@5qtrs/db';
 
 import * as common from '../middleware/common';
 
 import Validation from '../validation/component';
-import OperationValidation from '../validation/operation';
+import * as OperationValidation from '../validation/operation';
 
 const DefaultOperationExpiration = '10h';
 
@@ -19,7 +20,7 @@ router
   .options(common.cors())
   .post(
     common.management({
-      authorize: { operation: 'operation:put' },
+      authorize: { operation: v2Permissions.operationPut },
       validate: { params: Validation.EntityIdParams, body: OperationValidation.OperationEntry },
     }),
     async (req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -42,21 +43,27 @@ router
 router
   .route('/:operationId')
   .options(common.cors())
-  .get(common.management({}), async (req: express.Request, res: express.Response, next: express.NextFunction) => {
-    try {
-      const operation = await RDS.DAO.operation.getEntity({
-        accountId: req.params.accountId,
-        subscriptionId: req.params.subscriptionId,
-        id: req.params.operationId,
-      });
-      return res.status(operation.data.code).json({ ...operation.data, operationId: req.params.operationId });
-    } catch (error) {
-      return next(error);
+  .get(
+    common.management({
+      // No auth requirements so that no-privledge callers can get status updates on an operation.
+      validate: { params: OperationValidation.OperationParameters },
+    }),
+    async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+      try {
+        const operation = await RDS.DAO.operation.getEntity({
+          accountId: req.params.accountId,
+          subscriptionId: req.params.subscriptionId,
+          id: req.params.operationId,
+        });
+        return res.status(operation.data.code).json({ ...operation.data, operationId: req.params.operationId });
+      } catch (error) {
+        return next(error);
+      }
     }
-  })
+  )
   .put(
     common.management({
-      authorize: { operation: 'operation:put' },
+      authorize: { operation: v2Permissions.operationPut },
       validate: { params: Validation.EntityIdParams, body: OperationValidation.OperationEntry },
     }),
     async (req: express.Request, res: express.Response, next: express.NextFunction) => {

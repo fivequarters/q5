@@ -1,18 +1,22 @@
 import express from 'express';
 
 import * as analytics from '../../../../middleware/analytics';
-import { IntegrationService } from '../../../../service';
+import { InstanceService } from '../../../../service';
 import CommonTagRouter from '../../common/tag';
 import CommonCrudRouter from '../../common/crud';
-import InstanceRootRouter from './root';
 
-const router = (IntegrationService: IntegrationService) => {
+const router = () => {
   const router = express.Router({ mergeParams: true });
 
+  const instanceService = new InstanceService();
+  const idParamNames = ['componentId', 'instanceId'];
+  const createPath = (endpoint: string = '') => {
+    return `/:${idParamNames[0]}/instance/:${idParamNames[1]}${endpoint}`;
+  };
+
   router.use(analytics.setModality(analytics.Modes.Administration));
-  router.use('/:identityId/tag', CommonTagRouter(IntegrationService));
-  router.use('/:identityId', CommonCrudRouter(IntegrationService));
-  router.use('/', InstanceRootRouter(IntegrationService));
+  router.use(createPath('/tag'), CommonTagRouter(instanceService, idParamNames));
+  router.use(createPath(), CommonCrudRouter(instanceService, idParamNames));
   return router;
 };
 

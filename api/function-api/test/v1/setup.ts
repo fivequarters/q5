@@ -15,6 +15,7 @@ import {
 // ------------------
 
 function toBeHttp(response: IHttpResponse, { statusCode, data, headers, has, hasNot, tests }: any) {
+  let keyValueMsg;
   try {
     if (statusCode) {
       if (typeof statusCode === 'object') {
@@ -27,32 +28,40 @@ function toBeHttp(response: IHttpResponse, { statusCode, data, headers, has, has
     if (data) {
       if (typeof data === 'object') {
         for (const [key, value] of Object.entries(data)) {
+          keyValueMsg = `on data '${key}', expecting ${JSON.stringify(value)}`;
           expect(response.data[key]).toEqual(value);
         }
       } else {
         expect(response.data).toEqual(data);
       }
     }
+    keyValueMsg = '';
 
     if (has) {
       expect(response.data).toBeDefined();
       has.forEach((h: string) => {
+        keyValueMsg = `expecting data.${h}`;
         expect(response.data[h]).toBeDefined();
       });
     }
+    keyValueMsg = '';
 
     if (hasNot) {
       expect(response.data).toBeDefined();
       hasNot.forEach((h: string) => {
+        keyValueMsg = `not expecting data.${h}`;
         expect(response.data[h]).toBeUndefined();
       });
     }
+    keyValueMsg = '';
 
     if (headers) {
       for (const [key, value] of Object.entries(headers)) {
+        keyValueMsg = `on header['${key}'], expecting ${JSON.stringify(value)}`;
         expect(response.headers[key]).toEqual(value);
       }
     }
+    keyValueMsg = '';
 
     if (tests) {
       for (const test of tests) {
@@ -61,13 +70,13 @@ function toBeHttp(response: IHttpResponse, { statusCode, data, headers, has, has
     }
   } catch (err) {
     const { account } = getEnv();
-    const msg = `${err.message}\n\nfailing request:\n${response.status} ${response.request.method.toUpperCase()} ${
-      response.request.url
-    } - headers: ${JSON.stringify(response.headers, null, 2)} - data: ${JSON.stringify(
-      response.data,
+    const msg = `${err.message} ${keyValueMsg}\n\nfailing request:\n${
+      response.status
+    } ${response.request.method.toUpperCase()} ${response.request.url} - headers: ${JSON.stringify(
+      response.headers,
       null,
       2
-    )} - account: ${JSON.stringify(account)}`;
+    )} - data: ${JSON.stringify(response.data, null, 2)} - account: ${JSON.stringify(account)}`;
     return { message: () => msg, pass: false };
   }
   return { message: () => '', pass: true };

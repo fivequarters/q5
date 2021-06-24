@@ -1,6 +1,6 @@
 import superagent from 'superagent';
 
-import { FusebitManager, IStorage } from '@fusebit-int/pkg-manager';
+import { FusebitManager, IStorage } from '@fusebit-int/framework';
 import router from '../src/OAuthManager';
 import { IOAuthConfig } from '../src/OAuthTypes';
 

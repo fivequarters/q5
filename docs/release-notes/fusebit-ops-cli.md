@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.27.8
+
+_Released 06/24/21_
+
+- **Enhancement.** Further v2 development.
+
 ## Version 1.27.7
 
 - **Enhancement.** Add Encryption On EC2 Disks.

@@ -1,6 +1,8 @@
 import express from 'express';
 const Joi = require('joi');
 
+import { v2Permissions } from '@5qtrs/constants';
+
 import { Model } from '@5qtrs/db';
 
 import * as common from '../../../middleware/common';
@@ -11,25 +13,28 @@ import pathParams from '../../../handlers/pathParams';
 import body from '../../../handlers/body';
 
 import Validation from '../../../validation/component';
+import query from '../../../handlers/query';
+import requestToEntity from '../../../handlers/requestToEntity';
 
-const router = (ComponentService: BaseComponentService<any>) => {
+const router = (
+  ComponentService: BaseComponentService<Model.IEntity, Model.IEntity>,
+  paramIdNames: string[] = ['componentId']
+) => {
   const componentCrudRouter = express.Router({ mergeParams: true });
+
   componentCrudRouter
     .route('/')
     .options(common.cors())
     .get(
       common.management({
         validate: { params: Validation.EntityIdParams },
-        authorize: { operation: `${ComponentService.entityType}:get` },
+        authorize: { operation: v2Permissions[ComponentService.entityType].get },
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {
-          const response = Model.entityToSdk(
-            await ComponentService.dao.getEntity({
-              ...pathParams.EntityById(req),
-            })
-          );
-          res.json(response);
+          const entity = await requestToEntity(ComponentService, paramIdNames, req);
+          const { statusCode, result } = await ComponentService.getEntity(entity);
+          res.status(statusCode).json(Model.entityToSdk(result));
         } catch (e) {
           next(e);
         }
@@ -41,14 +46,17 @@ const router = (ComponentService: BaseComponentService<any>) => {
           params: Validation.EntityIdParams,
           body: Validation[ComponentService.entityType].Entity,
         },
-        authorize: { operation: `${ComponentService.entityType}:put` },
+        authorize: { operation: v2Permissions[ComponentService.entityType].put },
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {
-          const { statusCode, result } = await ComponentService.updateEntity({
-            ...pathParams.EntityById(req),
-            ...body.entity(req),
-          });
+          const entity = await requestToEntity(
+            ComponentService,
+            paramIdNames,
+            req,
+            body.entity(req, ComponentService.entityType)
+          );
+          const { statusCode, result } = await ComponentService.updateEntity(entity);
           res.status(statusCode).json(result);
         } catch (e) {
           next(e);
@@ -57,18 +65,16 @@ const router = (ComponentService: BaseComponentService<any>) => {
     )
     .delete(
       common.management({
-        authorize: { operation: `${ComponentService.entityType}:delete` },
         validate: {
           params: Validation.EntityIdParams,
           query: Joi.object().keys({ version: Joi.string().guid().optional() }),
         },
+        authorize: { operation: v2Permissions[ComponentService.entityType].delete },
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {
-          const { statusCode, result } = await ComponentService.deleteEntity({
-            ...pathParams.EntityById(req),
-            ...(req.query.version ? { version: req.query.version as string } : {}),
-          });
+          const entity = await requestToEntity(ComponentService, paramIdNames, req, query.version(req));
+          const { statusCode, result } = await ComponentService.deleteEntity(entity);
           res.status(statusCode).json(result);
         } catch (e) {
           next(e);
@@ -80,12 +86,17 @@ const router = (ComponentService: BaseComponentService<any>) => {
     let result;
 
     try {
-      result = await ComponentService.dispatch(pathParams.EntityById(req), req.method, req.params.subPath, {
-        headers: req.headers,
-        body: req.body,
-        query: req.query,
-        originalUrl: req.originalUrl,
-      });
+      result = await ComponentService.dispatch(
+        pathParams.EntityById(req, paramIdNames[paramIdNames.length - 1]),
+        req.method,
+        req.params.subPath,
+        {
+          headers: req.headers,
+          body: req.body,
+          query: req.query,
+          originalUrl: req.originalUrl,
+        }
+      );
     } catch (e) {
       return next(e);
     }

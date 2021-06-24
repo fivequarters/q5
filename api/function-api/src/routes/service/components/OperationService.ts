@@ -6,16 +6,23 @@ import { IServiceResult } from './BaseComponentService';
 
 interface IOperationParam {
   verb: 'creating' | 'updating' | 'deleting';
-  type: 'connector' | 'integration';
+  type: Model.EntityType;
 }
 
 interface IOperationData extends IOperationParam {
   code: number; // HTTP status codes
   message?: string;
-  location: { accountId: string; subscriptionId: string; entityId: string; entityType: Model.EntityType };
+  location: {
+    accountId: string;
+    subscriptionId: string;
+    entityId?: string;
+    componentId?: string;
+    subordinateId?: string;
+    entityType: Model.EntityType;
+  };
 }
 
-type IOperationAction = (operationId: string) => Promise<void>;
+type IOperationAction = (operationId: string) => Promise<IServiceResult | void>;
 
 class OperationService {
   protected dao: Model.IEntityDao<Model.IOperation>;
@@ -39,7 +46,7 @@ class OperationService {
       location: {
         accountId: entity.accountId,
         subscriptionId: entity.subscriptionId,
-        entityId: entity.id,
+        ...(entity.id.indexOf('/') >= 0 ? Model.decomposeSubordinateId(entity.id) : { entityId: entity.id }),
         entityType,
       },
     };
@@ -56,9 +63,14 @@ class OperationService {
     // Queue up the operation to occur during the next event cycle, clearing the operation when done.
     setImmediate(async () => {
       try {
-        await op(operationId);
+        const payload = await op(operationId);
 
-        operationEntity.data.code = 200;
+        if (payload) {
+          operationEntity.data.code = payload.statusCode;
+          operationEntity.data.payload = payload.result;
+        } else {
+          operationEntity.data.code = 200;
+        }
       } catch (err) {
         console.log(err);
         // Update operation with the error message

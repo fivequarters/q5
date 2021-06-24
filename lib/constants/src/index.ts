@@ -8,7 +8,7 @@ interface IModuleSpec {
   version: string;
 }
 
-import { isSpecialized, Permissions, RestrictedPermissions, UserPermissions } from './permissions';
+import { isSpecialized, Permissions, RestrictedPermissions, UserPermissions, v2Permissions } from './permissions';
 
 const API_PUBLIC_ENDPOINT = process.env.LOGS_HOST
   ? `https://${process.env.LOGS_HOST}`
@@ -271,6 +271,7 @@ export {
   get_fusebit_tag_key,
   get_security_tag_key,
   Permissions,
+  v2Permissions,
   RestrictedPermissions,
   UserPermissions,
   isSpecialized,

@@ -50,6 +50,28 @@ export enum Permissions {
   putRegistry = 'registry:put',
 }
 
+const makePermissionSet = (prefix: string) => ({
+  [prefix]: {
+    get: `${prefix}:get`,
+    put: `${prefix}:put`,
+    delete: `${prefix}:delete`,
+    putTag: `${prefix}:put-tag`,
+  },
+});
+
+export const v2Permissions: Record<any, any> = {
+  ...makePermissionSet('integration'),
+  ...makePermissionSet('instance'),
+  ...makePermissionSet('connector'),
+  ...makePermissionSet('identity'),
+  operationPut: 'operation:put',
+  sessionPost: 'session:post',
+  sessionPut: 'session:put',
+  sessionGet: 'session:get',
+  sessionResult: 'session:result',
+  sessionCommit: 'session:commit',
+};
+
 // Deployment Administrator Permissions
 export const RestrictedPermissions: string[] = [
   Permissions.allPermissions,
