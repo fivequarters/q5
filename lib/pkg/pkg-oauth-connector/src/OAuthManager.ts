@@ -2,6 +2,7 @@ import { Context, IOnStartup, Next, Router } from '@fusebit-int/framework';
 import { OAuthEngine, IOAuthConfig } from './OAuthEngine';
 
 import { callbackSuffixUrl } from './OAuthConstants';
+import IdentityClient from './IdentityClient';
 
 const router = new Router();
 
@@ -10,7 +11,10 @@ let engine: OAuthEngine;
 router.use(async (ctx: Context, next: Next) => {
   if (engine) {
     engine.setMountUrl(ctx.state.params.baseUrl);
-    engine.createIdentityClient(ctx);
+    ctx.state.identityClient = new IdentityClient({
+      accessToken: ctx.fusebit.functionAccessToken,
+      ...ctx.state.params,
+    });
   }
   return next();
 });

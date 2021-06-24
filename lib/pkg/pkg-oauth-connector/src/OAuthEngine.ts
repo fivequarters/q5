@@ -4,12 +4,10 @@ import { Router, Context, Next } from '@fusebit-int/framework';
 import { IOAuthConfig, IOAuthToken } from './OAuthTypes';
 
 import { callbackSuffixUrl } from './OAuthConstants';
-import IdentityClient from './IdentityClient';
 
 class OAuthEngine {
   public cfg: IOAuthConfig;
   public router: Router;
-  public identityClient?: IdentityClient;
 
   constructor(cfg: IOAuthConfig, router: Router) {
     this.cfg = cfg;
@@ -20,17 +18,12 @@ class OAuthEngine {
     });
   }
 
-  public createIdentityClient(ctx: Context) {
-    this.identityClient =
-      this.identityClient || new IdentityClient({ accessToken: ctx.fusebit.functionAccessToken, ...ctx.state.params });
-  }
-
   public setMountUrl(mountUrl: string) {
     this.cfg.mountUrl = mountUrl;
   }
 
   public async deleteUser(ctx: Context, lookupKey: string) {
-    return this.identityClient?.delete(lookupKey);
+    return ctx.state.identityClient?.delete(lookupKey);
   }
 
   /**
@@ -65,7 +58,7 @@ class OAuthEngine {
     token.status = 'authenticated';
     token.timestamp = Date.now();
 
-    await this.identityClient?.saveTokenToSession(token, lookupKey);
+    await ctx.state.identityClient?.saveTokenToSession(token, lookupKey);
 
     return token;
   }
@@ -74,7 +67,7 @@ class OAuthEngine {
    * Fetches callback url from session that is managing the connector
    */
   public async redirectToCallback(ctx: Context) {
-    const callbackUrl = await this.identityClient!.getCallbackUrl(ctx.query.state);
+    const callbackUrl = await ctx.state.identityClient!.getCallbackUrl(ctx.query.state);
     ctx.redirect(callbackUrl);
   }
 
@@ -127,7 +120,7 @@ class OAuthEngine {
   public async ensureAccessToken(ctx: Context, lookupKey: string) {
     let token: IOAuthToken | undefined;
     try {
-      token = await this.identityClient?.getToken(lookupKey);
+      token = await ctx.state.identityClient?.getToken(lookupKey);
     } catch (e) {
       throw e;
     }
@@ -151,7 +144,7 @@ class OAuthEngine {
   }
 
   protected async ensureLocalAccessToken(ctx: Context, lookupKey: string) {
-    let token: IOAuthToken = await this.identityClient?.getToken(lookupKey);
+    let token: IOAuthToken = await ctx.state.identityClient?.getToken(lookupKey);
     if (
       token.access_token &&
       (token.expires_at === undefined || token.expires_at > Date.now() + this.cfg.accessTokenExpirationBuffer)
@@ -161,7 +154,7 @@ class OAuthEngine {
     if (token.refresh_token) {
       token.status = 'refreshing';
       try {
-        await this.identityClient?.updateToken(token, lookupKey);
+        await ctx.state.identityClient?.updateToken(token, lookupKey);
 
         token = await this.refreshAccessToken(token.refresh_token);
 
@@ -172,19 +165,19 @@ class OAuthEngine {
         token.status = 'authenticated';
         token.refreshErrorCount = 0;
 
-        await this.identityClient?.updateToken(token, lookupKey);
+        await ctx.state.identityClient?.updateToken(token, lookupKey);
 
         return token;
       } catch (e) {
         if (token.refreshErrorCount > this.cfg.refreshErrorLimit) {
-          await this.identityClient?.delete(lookupKey);
+          await ctx.state.identityClient?.delete(lookupKey);
           throw new Error(
             `Error refreshing access token. Maximum number of attempts exceeded, identity ${lookupKey} has been deleted: ${e.message}`
           );
         } else {
           token.refreshErrorCount = (token.refreshErrorCount || 0) + 1;
           token.status = 'refresh_error';
-          await this.identityClient?.updateToken(token, lookupKey);
+          await ctx.state.identityClient?.updateToken(token, lookupKey);
           throw new Error(
             `Error refreshing access token, attempt ${token.refreshErrorCount} out of ${this.cfg.refreshErrorLimit}: ${e.message}`
           );
@@ -193,7 +186,7 @@ class OAuthEngine {
     }
 
     // Access token expired, but no refresh token; deleting.
-    await this.identityClient?.delete(lookupKey);
+    await ctx.state.identityClient?.delete(lookupKey);
     throw new Error(`Access token is expired and cannot be refreshed because the refresh token is not present.`);
   }
 
@@ -208,7 +201,7 @@ class OAuthEngine {
       setTimeout(async () => {
         let token: IOAuthToken;
         try {
-          token = await this.identityClient?.getToken(lookupKey);
+          token = await ctx.state.identityClient?.getToken(lookupKey);
           if (!token || token.status === 'refresh_error') {
             throw new Error(`Concurrent access token refresh operation failed`);
           }
