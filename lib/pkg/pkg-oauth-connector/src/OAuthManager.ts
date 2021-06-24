@@ -41,6 +41,17 @@ router.get('/api/:lookupKey/health', async (ctx: Context) => {
   }
 });
 
+router.get('/api/session/:lookupKey/token', async (ctx: Context) => {
+  try {
+    ctx.body = await engine.ensureAccessToken(ctx, ctx.params.lookupKey, false);
+  } catch (error) {
+    ctx.throw(500, error.message);
+  }
+  if (!ctx.body) {
+    ctx.throw(404);
+  }
+});
+
 router.get('/api/:lookupKey/token', async (ctx: Context) => {
   try {
     ctx.body = await engine.ensureAccessToken(ctx, ctx.params.lookupKey);

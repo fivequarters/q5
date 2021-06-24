@@ -94,7 +94,7 @@ const createSessionRouter = (SessionService: SessionedComponentService<any, any>
               subordinateId: req.params.sessionId,
             }),
           });
-          const result = { id: req.params.sessionId, input: session.result.data.input };
+          const result = { id: req.params.sessionId, input: session.result.data.input, uses: session.result.data.uses };
           res.status(session.statusCode).json(result);
         } catch (error) {
           console.log(error);

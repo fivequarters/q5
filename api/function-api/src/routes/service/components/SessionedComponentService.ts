@@ -146,6 +146,15 @@ export default abstract class SessionedComponentService<
       componentId: step.target.entityId,
     };
 
+    const uses =
+      step.uses?.reduce((acc: Record<string, object>, stepName: string) => {
+        acc[stepName] = Model.decomposeSubordinateId(
+          (parentSession.data.steps.find((s) => s.name === stepName) as Model.ITrunkSessionStep)
+            .childSessionId as string
+        );
+        return acc;
+      }, {}) || {};
+
     // Create a new session.
     const session: Model.ILeafSession = {
       accountId: parentSession.accountId,
@@ -157,6 +166,7 @@ export default abstract class SessionedComponentService<
         input: step.input,
         output: step.output,
         target: step.target,
+        uses,
         meta: { parentId: parentSession.id },
       },
     };

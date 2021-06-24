@@ -81,11 +81,11 @@ class ConnectorService extends SessionedComponentService<Model.IConnector, Model
             },
             {
               action: 'session:put',
-              resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/integration/{{functionId}}/session/',
+              resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/connector/{{functionId}}/session/',
             },
             {
               action: 'session:get',
-              resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/integration/{{functionId}}/session/',
+              resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/connector/{{functionId}}/session/',
             },
           ],
         },

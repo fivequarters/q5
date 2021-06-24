@@ -36,7 +36,7 @@ describe('Workflow', () => {
     tunnel.tunnel.close();
   });
 
-  test.only('Create a connector and an integration and use a session', async () => {
+  test('Create a connector and an integration and use a session', async () => {
     // Constants
     const authorizationUrl = `${redirectUrl}/authorize`;
     const tokenUrl = `${redirectUrl}/token`;
@@ -95,9 +95,17 @@ describe('Workflow', () => {
       "const superagent = require('superagent');",
       "const { Router, Manager, Form } = require('@fusebit-int/framework');",
       'const router = new Router();',
+      "router.get('/api/getSession', async (ctx) => {",
+      "  const response = await superagent.get(`${ctx.state.params.baseUrl}/session/${ctx.query.session}`).set('Authorization', `Bearer ${ctx.state.params.functionAccessToken}`);",
+      '  ctx.body = response.body;',
+      '});',
+      "router.get('/api/getToken', async (ctx) => {",
+      "  const response = await superagent.get(`${ctx.state.params.baseUrl}/session/${ctx.query.session}`).set('Authorization', `Bearer ${ctx.state.params.functionAccessToken}`);",
+      '  ctx.body = response.body;',
+      '});',
       "router.get('/api/aForm', async (ctx) => {",
-      // TODO: Add credentials to the superagent call so that it succeeds - currently it 403's.
-      "  try { await superagent.put(`${ctx.state.params.baseUrl}/session/${ctx.query.session}`, { form: 'value'}); } catch (e) {};",
+      "  const response = await superagent.get(`${ctx.state.params.baseUrl}/session/${ctx.query.session}`).set('Authorization', `Bearer ${ctx.state.params.functionAccessToken}`);",
+      '  console.log(response.data);',
       '  ctx.redirect(`${ctx.state.params.baseUrl}/session/${ctx.query.session}/callback`);',
       '});',
       "router.get('/api/doASessionThing/:sessionId', async (ctx) => { ctx.body = 'doASessionThing'; });",
@@ -129,6 +137,7 @@ describe('Workflow', () => {
     expect(url.searchParams.get('redirect_uri')).toBe(
       `${baseUrl}/connector/${connectorId}/session/${url.searchParams.get('session')}/callback`
     );
+    const connectorSessionId = url.searchParams.get('session');
 
     // Load the connector/api/configure
     response = await request({ url: response.headers.location, maxRedirects: 0 });
@@ -177,9 +186,29 @@ describe('Workflow', () => {
     expect(
       response.headers.location.indexOf(`/integration/${integrationId}/session/${formSessionId}/callback`)
     ).toBeGreaterThan(0);
+    const completeLocation = response.headers.location;
+
+    // Test the integration mid-form-session to see if it can get the connector token.
+    response = await request({
+      url: `${baseUrl}/integration/${integrationId}/api/getSession?session=${formSessionId}`,
+      maxRedirects: 0,
+    });
+    expect(response).toBeHttp({
+      statusCode: 200,
+      data: {
+        id: formSessionId,
+        uses: {
+          conn1: {
+            entityType: 'connector',
+            componentId: connectorId,
+            subordinateId: connectorSessionId,
+          },
+        },
+      },
+    });
 
     // Call the session endpoint to complete this session.
-    response = await request({ url: response.headers.location, maxRedirects: 0 });
+    response = await request({ url: completeLocation, maxRedirects: 0 });
     expect(response).toBeHttp({ statusCode: 302 });
 
     // Success, finished with the finalUrl.

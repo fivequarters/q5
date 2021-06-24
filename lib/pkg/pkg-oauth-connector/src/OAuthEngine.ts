@@ -117,10 +117,22 @@ class OAuthEngine {
    * access token cannot be returned, an exception is thrown.
    * @param {*} userContext The vendor user context
    */
-  public async ensureAccessToken(ctx: ICtxWithState, lookupKey: string) {
+  public async ensureAccessToken(ctx: ICtxWithState, lookupKey: string, identity: boolean = true) {
     let token: IOAuthToken | undefined;
+    const tokenRw = identity
+      ? {
+          get: ctx.state.identityClient!.getToken,
+          put: ctx.state.identityClient!.updateToken,
+          delete: ctx.state.identityClient!.delete,
+        }
+      : {
+          get: ctx.state.identityClient!.loadTokenFromSession,
+          put: ctx.state.identityClient!.saveTokenToSession,
+          delete: () => {},
+        };
+
     try {
-      token = await ctx.state.identityClient?.getToken(lookupKey);
+      token = await tokenRw.get(lookupKey);
     } catch (e) {
       throw e;
     }
@@ -135,16 +147,17 @@ class OAuthEngine {
         ctx,
         lookupKey,
         this.cfg.refreshWaitCountLimit,
-        this.cfg.refreshInitialBackoff
+        this.cfg.refreshInitialBackoff,
+        tokenRw
       );
     } else {
       // Get access token for "this" OAuth connector
-      return this.ensureLocalAccessToken(ctx, lookupKey);
+      return this.ensureLocalAccessToken(ctx, lookupKey, tokenRw);
     }
   }
 
-  protected async ensureLocalAccessToken(ctx: ICtxWithState, lookupKey: string) {
-    let token: IOAuthToken = await ctx.state.identityClient?.getToken(lookupKey);
+  protected async ensureLocalAccessToken(ctx: ICtxWithState, lookupKey: string, tokenRw: any) {
+    let token: IOAuthToken = await tokenRw.get(lookupKey);
     if (
       token.access_token &&
       (token.expires_at === undefined || token.expires_at > Date.now() + this.cfg.accessTokenExpirationBuffer)
@@ -154,7 +167,7 @@ class OAuthEngine {
     if (token.refresh_token) {
       token.status = 'refreshing';
       try {
-        await ctx.state.identityClient?.updateToken(token, lookupKey);
+        await tokenRw.put(token, lookupKey);
 
         token = await this.refreshAccessToken(token.refresh_token);
 
@@ -165,7 +178,7 @@ class OAuthEngine {
         token.status = 'authenticated';
         token.refreshErrorCount = 0;
 
-        await ctx.state.identityClient?.updateToken(token, lookupKey);
+        await tokenRw.put(token, lookupKey);
 
         return token;
       } catch (e) {
@@ -177,7 +190,7 @@ class OAuthEngine {
         } else {
           token.refreshErrorCount = (token.refreshErrorCount || 0) + 1;
           token.status = 'refresh_error';
-          await ctx.state.identityClient?.updateToken(token, lookupKey);
+          await tokenRw.put(token, lookupKey);
           throw new Error(
             `Error refreshing access token, attempt ${token.refreshErrorCount} out of ${this.cfg.refreshErrorLimit}: ${e.message}`
           );
@@ -186,11 +199,17 @@ class OAuthEngine {
     }
 
     // Access token expired, but no refresh token; deleting.
-    await ctx.state.identityClient?.delete(lookupKey);
+    await tokenRw.delete(lookupKey);
     throw new Error(`Access token is expired and cannot be refreshed because the refresh token is not present.`);
   }
 
-  protected async waitForRefreshedAccessToken(ctx: ICtxWithState, lookupKey: string, count: number, backoff: number) {
+  protected async waitForRefreshedAccessToken(
+    ctx: ICtxWithState,
+    lookupKey: string,
+    count: number,
+    backoff: number,
+    tokenRw: any
+  ) {
     if (count <= 0) {
       throw new Error(
         `Error refreshing access token. Waiting for the access token to be refreshed exceeded the maximum time`
@@ -201,7 +220,7 @@ class OAuthEngine {
       setTimeout(async () => {
         let token: IOAuthToken;
         try {
-          token = await ctx.state.identityClient?.getToken(lookupKey);
+          token = await tokenRw.get(lookupKey);
           if (!token || token.status === 'refresh_error') {
             throw new Error(`Concurrent access token refresh operation failed`);
           }
@@ -217,7 +236,8 @@ class OAuthEngine {
             ctx,
             lookupKey,
             count - 1,
-            Math.floor(backoff * this.cfg.refreshBackoffIncrement)
+            Math.floor(backoff * this.cfg.refreshBackoffIncrement),
+            tokenRw
           );
         } catch (e) {
           return reject(e);
