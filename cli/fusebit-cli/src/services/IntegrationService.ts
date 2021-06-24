@@ -20,8 +20,8 @@ const DefaultIgnores = ['node_modules', FusebitStateFile];
 interface IIntegrationSpec {
   id: string;
   data: {
+    handler: string;
     configuration: {
-      package?: string;
       connectors: {
         [name: string]: { package: string; config?: any };
       };
@@ -64,7 +64,7 @@ export class IntegrationService {
   public createEmptySpec(): IIntegrationSpec {
     return {
       id: 'unknown id',
-      data: { configuration: { connectors: {} }, files: {} },
+      data: { handler: './integration', configuration: { connectors: {} }, files: {} },
       tags: {},
     };
   }
@@ -74,7 +74,8 @@ export class IntegrationService {
       id: 'default',
       tags: {},
       data: {
-        configuration: { package: './integration', connectors: {} },
+        handler: './integration',
+        configuration: { connectors: {} },
         files: {
           './integration.js': [
             `const { Router } = require('@fusebit-int/pkg-manager');`,
@@ -110,6 +111,7 @@ export class IntegrationService {
     try {
       const buffer = await readFile(join(cwd, FusebitMetadataFile));
       const config = JSON.parse(buffer.toString());
+      entitySpec.data.handler = config.handler;
       entitySpec.data.configuration = config.configuration;
       entitySpec.tags = config.tags;
       entitySpec.expires = config.expires;
@@ -157,6 +159,7 @@ export class IntegrationService {
 
     // Reconstruct the fusebit.json file
     const fusebit: any = {};
+    fusebit.handler = (spec.data && spec.data.handler) || '';
     fusebit.configuration = (spec.data && spec.data.configuration) || {};
     fusebit.tags = spec.tags;
     fusebit.expires = spec.expires;
@@ -322,8 +325,8 @@ export class IntegrationService {
       await this.executeService.message(
         Text.bold(item.id),
         Text.create([
-          `Package: `,
-          Text.bold(item.data.configuration.package || ''),
+          `Handler: `,
+          Text.bold(item.data.handler || ''),
           Text.eol(),
           Text.eol(),
           ...tagSummary,
