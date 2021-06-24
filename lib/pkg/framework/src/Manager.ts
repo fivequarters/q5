@@ -71,8 +71,6 @@ class Manager {
   /** @public Connectors attached to this integration. */
   public connectors: ConnectorManager;
 
-  private storage: IStorage | undefined;
-
   /** Create a new Manager, using the supplied storage interface as a persistance backend. */
   constructor() {
     this.app = new Koa();
@@ -234,7 +232,6 @@ class Manager {
     ctx.state.params = {
       accountId: fusebitCtx.accountId,
       subscriptionId: fusebitCtx.subscriptionId,
-      //FIXME
       entityType: fusebitCtx.boundaryId,
       entityId: fusebitCtx.functionId,
       ...(fusebitCtx.fusebit // Not present during initial startup events, for example.

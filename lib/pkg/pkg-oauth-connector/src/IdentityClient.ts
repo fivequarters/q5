@@ -86,9 +86,9 @@ class IdentityClient {
   };
 
   public list = async (query: { count?: number; next?: string; idPrefix?: string } = {}) => {
-    ObjectEntries(query).forEach((entry) => {
-      if (entry[1] === undefined) {
-        delete query[entry[0]];
+    ObjectEntries(query).forEach(([key, value]) => {
+      if (value === undefined) {
+        delete query[key];
       }
     });
     const response = await superagent.get(this.baseUrl).query(query).set('Authorization', `Bearer ${this.accessToken}`);
