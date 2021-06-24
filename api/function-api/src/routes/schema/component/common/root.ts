@@ -25,10 +25,6 @@ const router = (ComponentService: BaseComponentService<any, any>) => {
         authorize: { operation: `${ComponentService.entityType}:get` },
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
-        if (ComponentService.entityType === EntityType.identity) {
-          return next();
-        }
-
         try {
           const response = await ComponentService.dao.listEntities(
             {

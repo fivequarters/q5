@@ -1,29 +1,36 @@
 import superagent from 'superagent';
-import { Router, ICtxWithState, Next } from '@fusebit-int/framework';
+import { Router, Context, Next } from '@fusebit-int/framework';
 
 import { IOAuthConfig, IOAuthToken } from './OAuthTypes';
 
 import { callbackSuffixUrl } from './OAuthConstants';
+import IdentityClient from './IdentityClient';
 
 class OAuthEngine {
   public cfg: IOAuthConfig;
   public router: Router;
+  public identityClient?: IdentityClient;
 
   constructor(cfg: IOAuthConfig, router: Router) {
     this.cfg = cfg;
     this.router = router;
 
-    router.on('uninstall', async (ctx: ICtxWithState, next: Next) => {
+    router.on('uninstall', async (ctx: Context, next: Next) => {
       return next();
     });
+  }
+
+  public createIdentityClient(ctx: Context) {
+    this.identityClient =
+      this.identityClient || new IdentityClient({ accessToken: ctx.fusebit.functionAccessToken, ...ctx.state.params });
   }
 
   public setMountUrl(mountUrl: string) {
     this.cfg.mountUrl = mountUrl;
   }
 
-  public async deleteUser(ctx: ICtxWithState, lookupKey: string) {
-    return ctx.state.identityClient?.delete(lookupKey);
+  public async deleteUser(ctx: Context, lookupKey: string) {
+    return this.identityClient?.delete(lookupKey);
   }
 
   /**
@@ -49,7 +56,7 @@ class OAuthEngine {
   /**
    * Convert the successful callback into a token via getAccessToken.
    */
-  public async convertAccessCodeToToken(ctx: ICtxWithState, lookupKey: string, code: string) {
+  public async convertAccessCodeToToken(ctx: Context, lookupKey: string, code: string) {
     const token = await this.getAccessToken(code, this.cfg.mountUrl + callbackSuffixUrl);
     if (!isNaN(token.expires_in)) {
       token.expires_at = Date.now() + +token.expires_in * 1000;
@@ -58,7 +65,7 @@ class OAuthEngine {
     token.status = 'authenticated';
     token.timestamp = Date.now();
 
-    await ctx.state.identityClient?.saveTokenToSession(token, lookupKey);
+    await this.identityClient?.saveTokenToSession(token, lookupKey);
 
     return token;
   }
@@ -66,8 +73,8 @@ class OAuthEngine {
   /**
    * Fetches callback url from session that is managing the connector
    */
-  public async redirectToCallback(ctx: ICtxWithState) {
-    const callbackUrl = await ctx.state.identityClient!.getCallbackUrl(ctx.query.state);
+  public async redirectToCallback(ctx: Context) {
+    const callbackUrl = await this.identityClient!.getCallbackUrl(ctx.query.state);
     ctx.redirect(callbackUrl);
   }
 
@@ -117,10 +124,10 @@ class OAuthEngine {
    * access token cannot be returned, an exception is thrown.
    * @param {*} userContext The vendor user context
    */
-  public async ensureAccessToken(ctx: ICtxWithState, lookupKey: string) {
+  public async ensureAccessToken(ctx: Context, lookupKey: string) {
     let token: IOAuthToken | undefined;
     try {
-      token = await ctx.state.identityClient?.getToken(lookupKey);
+      token = await this.identityClient?.getToken(lookupKey);
     } catch (e) {
       throw e;
     }
@@ -143,8 +150,8 @@ class OAuthEngine {
     }
   }
 
-  protected async ensureLocalAccessToken(ctx: ICtxWithState, lookupKey: string) {
-    let token: IOAuthToken = await ctx.state.identityClient?.getToken(lookupKey);
+  protected async ensureLocalAccessToken(ctx: Context, lookupKey: string) {
+    let token: IOAuthToken = await this.identityClient?.getToken(lookupKey);
     if (
       token.access_token &&
       (token.expires_at === undefined || token.expires_at > Date.now() + this.cfg.accessTokenExpirationBuffer)
@@ -154,7 +161,7 @@ class OAuthEngine {
     if (token.refresh_token) {
       token.status = 'refreshing';
       try {
-        await ctx.state.identityClient?.updateToken(token, lookupKey);
+        await this.identityClient?.updateToken(token, lookupKey);
 
         token = await this.refreshAccessToken(token.refresh_token);
 
@@ -165,19 +172,19 @@ class OAuthEngine {
         token.status = 'authenticated';
         token.refreshErrorCount = 0;
 
-        await ctx.state.identityClient?.updateToken(token, lookupKey);
+        await this.identityClient?.updateToken(token, lookupKey);
 
         return token;
       } catch (e) {
         if (token.refreshErrorCount > this.cfg.refreshErrorLimit) {
-          await ctx.state.identityClient?.delete(lookupKey);
+          await this.identityClient?.delete(lookupKey);
           throw new Error(
             `Error refreshing access token. Maximum number of attempts exceeded, identity ${lookupKey} has been deleted: ${e.message}`
           );
         } else {
           token.refreshErrorCount = (token.refreshErrorCount || 0) + 1;
           token.status = 'refresh_error';
-          await ctx.state.identityClient?.updateToken(token, lookupKey);
+          await this.identityClient?.updateToken(token, lookupKey);
           throw new Error(
             `Error refreshing access token, attempt ${token.refreshErrorCount} out of ${this.cfg.refreshErrorLimit}: ${e.message}`
           );
@@ -186,11 +193,11 @@ class OAuthEngine {
     }
 
     // Access token expired, but no refresh token; deleting.
-    await ctx.state.identityClient?.delete(lookupKey);
+    await this.identityClient?.delete(lookupKey);
     throw new Error(`Access token is expired and cannot be refreshed because the refresh token is not present.`);
   }
 
-  protected async waitForRefreshedAccessToken(ctx: ICtxWithState, lookupKey: string, count: number, backoff: number) {
+  protected async waitForRefreshedAccessToken(ctx: Context, lookupKey: string, count: number, backoff: number) {
     if (count <= 0) {
       throw new Error(
         `Error refreshing access token. Waiting for the access token to be refreshed exceeded the maximum time`
@@ -201,7 +208,7 @@ class OAuthEngine {
       setTimeout(async () => {
         let token: IOAuthToken;
         try {
-          token = await ctx.state.identityClient?.getToken(lookupKey);
+          token = await this.identityClient?.getToken(lookupKey);
           if (!token || token.status === 'refresh_error') {
             throw new Error(`Concurrent access token refresh operation failed`);
           }

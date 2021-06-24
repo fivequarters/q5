@@ -1,4 +1,4 @@
-import { Context, IOnStartup, Manager, Next, Router } from '@fusebit-int/framework';
+import { Context, IOnStartup, Next, Router } from '@fusebit-int/framework';
 import { OAuthEngine, IOAuthConfig } from './OAuthEngine';
 
 import { callbackSuffixUrl } from './OAuthConstants';
@@ -10,6 +10,7 @@ let engine: OAuthEngine;
 router.use(async (ctx: Context, next: Next) => {
   if (engine) {
     engine.setMountUrl(ctx.state.params.baseUrl);
+    engine.createIdentityClient(ctx);
   }
   return next();
 });

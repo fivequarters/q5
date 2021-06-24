@@ -5,14 +5,11 @@ import statuses from 'statuses';
 
 import httpMocks from 'node-mocks-http';
 
-import IdentityClient from './IdentityClient';
-
 import { Router, Context } from './Router';
 
 import { ConnectorManager, IInstanceConnectorConfigMap } from './ConnectorManager';
 
 import DefaultRoutes from './DefaultRoutes';
-import { ICtxWithState } from './models/contextWithState';
 
 /** The vendor module failed to load with this error */
 type VendorModuleError = any;
@@ -121,13 +118,6 @@ class Manager {
   public async handle(fusebitCtx: RequestContext) {
     // Convert the context and execute.
     const ctx = this.createRouteableContext(fusebitCtx);
-
-    // Add the security context for this particular call to the state.
-    ctx.state.identityClient =
-      fusebitCtx.fusebit && fusebitCtx.fusebit.functionAccessToken
-        ? new IdentityClient({ accessToken: fusebitCtx.fusebit.functionAccessToken, ...ctx.state.params })
-        : undefined;
-
     await this.execute(ctx);
     return this.createResponse(ctx);
   }
@@ -153,7 +143,7 @@ class Manager {
    * Execute a Koa-like context through the Router, and return the payload.
    * @param ctx A Koa-like context
    */
-  protected async execute(ctx: ICtxWithState) {
+  protected async execute(ctx: Context) {
     return new Promise(async (resolve) => {
       try {
         // TODO: Need to supply a next, but not sure if it's ever invoked.  Worth looking at the Koa impl at some point.
@@ -265,7 +255,7 @@ class Manager {
   }
 
   /** Convert the routable context into a response that the Fusebit function expects. */
-  public createResponse(ctx: ICtxWithState) {
+  public createResponse(ctx: Context) {
     const result = {
       body: ctx.body,
       headers: ctx.response.header,

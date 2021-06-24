@@ -14,7 +14,6 @@ interface IOAuthToken {
 }
 
 const removeLeadingSlash = (s: string) => s.replace(/^\/(.+)$/, '$1');
-const removeTrailingSlash = (s: string) => s.replace(/^(.+)\/$/, '$1');
 
 interface Params {
   subscriptionId: string;
@@ -22,7 +21,6 @@ interface Params {
   baseUrl: string;
   entityId: string;
   accessToken: string;
-  [key: string]: string | number | undefined;
 }
 
 class IdentityClient {
@@ -43,7 +41,7 @@ class IdentityClient {
   }
 
   private cleanId = (id?: string) => {
-    return id ? removeTrailingSlash(removeLeadingSlash(id)) : '';
+    return id ? removeLeadingSlash(id) : '';
   };
 
   private getUrl = (identityId: string) => {
