@@ -3,7 +3,6 @@ import express from 'express';
 import { Model } from '@5qtrs/db';
 import { v2Permissions } from '@5qtrs/constants';
 
-import pathParams from '../../../handlers/pathParams';
 import * as common from '../../../middleware/common';
 import { SessionedComponentService } from '../../../service/components/';
 import * as Validation from '../../../validation/session';

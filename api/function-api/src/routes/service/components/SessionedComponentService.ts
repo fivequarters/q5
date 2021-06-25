@@ -206,7 +206,6 @@ export default abstract class SessionedComponentService<
     // Update the output and the object.
     session.data.output = outputValues;
     await this.sessionDao.updateEntity(session);
-
     return { statusCode: 200, result: session };
   };
 

@@ -12,7 +12,7 @@ router.use(async (ctx: Context, next: Next) => {
   if (engine) {
     engine.setMountUrl(ctx.state.params.baseUrl);
     ctx.state.identityClient = new IdentityClient({
-      accessToken: ctx.fusebit.functionAccessToken,
+      accessToken: ctx.state.fusebit.functionAccessToken,
       ...ctx.state.params,
     });
   }
@@ -59,6 +59,8 @@ router.get('/api/session/:lookupKey/token', async (ctx: Context) => {
 
 router.get('/api/:lookupKey/token', async (ctx: Context) => {
   try {
+    console.log('in manager');
+    console.log(ctx.params.lookupKey);
     ctx.body = await engine.ensureAccessToken(ctx, ctx.params.lookupKey);
   } catch (error) {
     ctx.throw(500, error.message);

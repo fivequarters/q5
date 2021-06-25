@@ -4,6 +4,7 @@ import RDS, { Model } from '@5qtrs/db';
 import BaseComponentService from './BaseComponentService';
 
 import * as Function from '../../functions';
+import { IEntity } from '@5qtrs/db/libc/model';
 
 class InstanceService extends BaseComponentService<Model.IInstance, Model.IInstance> {
   public readonly entityType: Model.EntityType;
@@ -28,6 +29,20 @@ class InstanceService extends BaseComponentService<Model.IInstance, Model.IInsta
     return {
       ...instanceArg,
       id: `/integration/${integration.__databaseId}/${instanceArg.id}`,
+    };
+  };
+
+  public updateEntity = async (entity: IEntity) => {
+    return {
+      statusCode: 200,
+      result: await this.dao.updateEntity(entity),
+    };
+  };
+
+  public createEntity = async (entity: IEntity) => {
+    return {
+      statusCode: 200,
+      result: await this.dao.createEntity(entity),
     };
   };
 }
