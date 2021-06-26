@@ -1,23 +1,22 @@
 import express from 'express';
 
-import CommonCrudRouter from '../../common/crud';
-import CommonTagRouter from '../../common/tag';
-
-import IdentityCrudRootRouter from './root';
-import IdentityApiRouter from './api';
-
 import * as analytics from '../../../../middleware/analytics';
-import ConnectorService from '../../../../service/components/ConnectorService';
+import IdentityService from '../../../../service/components/IdentityService';
+import CommonTagRouter from '../../common/tag';
+import CommonCrudRouter from '../../common/crud';
 
-const router = (ConnectorService: ConnectorService) => {
+const router = () => {
   const router = express.Router({ mergeParams: true });
 
-  router.use('/:identityId/api', IdentityApiRouter(ConnectorService));
+  const identityService = new IdentityService();
+  const idParamNames = ['componentId', 'identityId'];
+  const createPath = (endpoint: string = '') => {
+    return `/:${idParamNames[0]}/identity/:${idParamNames[1]}${endpoint || ''}`;
+  };
 
   router.use(analytics.setModality(analytics.Modes.Administration));
-  router.use('/:identityId/tag', CommonTagRouter(ConnectorService));
-  router.use('/:identityId', CommonCrudRouter(ConnectorService));
-  router.use('/', IdentityCrudRootRouter(ConnectorService));
+  router.use(createPath('/tag'), CommonTagRouter(identityService, idParamNames));
+  router.use(createPath(), CommonCrudRouter(identityService, idParamNames));
   return router;
 };
 

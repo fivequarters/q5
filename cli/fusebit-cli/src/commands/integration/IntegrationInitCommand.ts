@@ -20,13 +20,7 @@ const command = {
     Text.bold('integration deploy'),
     "' command."
   ),
-  arguments: [
-    {
-      name: 'integration',
-      description: 'The id of the integration to initialize.',
-      required: true,
-    },
-  ],
+  arguments: [],
   options: [
     {
       name: 'dir',
@@ -65,27 +59,18 @@ export class IntegrationInitCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    const integrationId = input.arguments[0] as string;
     const sourceDir = input.options.dir as string;
 
     const integrationService = await IntegrationService.create(input);
-    const operationService = await OperationService.create(input);
     const executeService = await ExecuteService.create(input);
 
     await executeService.newLine();
 
     const sourcePath = sourceDir ? join(process.cwd(), sourceDir) : process.cwd();
-    const integrationSpec = await integrationService.loadDirectory(sourcePath);
-
-    await integrationService.confirmDeploy(sourcePath, integrationSpec, integrationId);
-
-    const operation = await integrationService.deployIntegration(integrationId, integrationSpec);
-    const result = await operationService.waitForCompletion(operation.operationId);
-    await operationService.displayOperationResults(result);
-
-    const integration = await integrationService.fetchIntegration(integrationId);
-
+    const integration = integrationService.createNewSpec();
     await integrationService.writeDirectory(sourcePath, integration);
+
+    await integrationService.displayIntegrations([integration], true);
 
     return 0;
   }

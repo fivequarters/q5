@@ -5,8 +5,6 @@ import statuses from 'statuses';
 
 import httpMocks from 'node-mocks-http';
 
-import { createStorage } from './Storage';
-
 import { Router, Context } from './Router';
 
 import { ConnectorManager, IInstanceConnectorConfigMap } from './ConnectorManager';
@@ -94,7 +92,11 @@ class Manager {
     // Add vendor routes prior to the defaults, to allow for the vendor to add middleware or override default
     // handlers.
     if (vendor) {
-      this.router.use(vendor.routes());
+      try {
+        this.router.use(vendor.routes());
+      } catch (err) {
+        this.vendorError = err;
+      }
     }
 
     // Add the default routes - these will get overruled by any routes added by the vendor or during the
@@ -114,20 +116,8 @@ class Manager {
   public async handle(fusebitCtx: RequestContext) {
     // Convert the context and execute.
     const ctx = this.createRouteableContext(fusebitCtx);
-
-    // Add the security context for this particular call to the state.
-    ctx.state.storage =
-      fusebitCtx.fusebit && fusebitCtx.fusebit.functionAccessToken
-        ? createStorage(
-            { accessToken: fusebitCtx.fusebit.functionAccessToken, ...ctx.state.params },
-            `/${ctx.state.params.entityType}/${ctx.state.params.entityId}`
-          )
-        : undefined;
-
     await this.execute(ctx);
-    const response = this.createResponse(ctx);
-
-    return response;
+    return this.createResponse(ctx);
   }
 
   /**

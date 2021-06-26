@@ -5,9 +5,9 @@ import * as EntityCommon from './entities';
 import * as Common from './common';
 
 const Data = Joi.object().keys({
+  handler: Common.npmPackageName,
   configuration: Joi.object()
     .keys({
-      package: Common.npmPackageName,
       muxIntegration: Common.entityId,
     })
     .unknown(true),

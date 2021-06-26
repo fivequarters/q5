@@ -1,21 +1,14 @@
+import http_error from 'http-errors';
+
 import { safePathMap } from '@5qtrs/constants';
 import RDS, { Model } from '@5qtrs/db';
-import { IAgent } from '@5qtrs/account-data';
-import { AwsRegistry } from '@5qtrs/registry';
 
-import BaseComponentService, { IServiceResult } from './BaseComponentService';
-import { operationService } from './OperationService';
+import SessionedComponentService from './SessionedComponentService';
 
 import * as Function from '../../functions';
 
-const rejectPermissionAgent = {
-  checkPermissionSubset: () => {
-    throw new Error('permissions are unsupported');
-  },
-};
-
 const defaultIntegration = [
-  "const { Router, Manager, Form } = require('@fusebit-int/pkg-manager');",
+  "const { Router, Manager, Form } = require('@fusebit-int/framework');",
   '',
   'const router = new Router();',
   '',
@@ -26,68 +19,118 @@ const defaultIntegration = [
   'module.exports = router;',
 ].join('\n');
 
-const defaultPackage = (entity: Model.IIntegration) => ({
+const defaultPackage = (entity: Model.IEntity) => ({
   scripts: { deploy: `"fuse integration deploy ${entity.id} -d ."`, get: `"fuse integration get ${entity.id} -d ."` },
-  dependencies: {},
+  dependencies: { ['@fusebit-int/framework']: '^2.0.0' },
   files: ['./integration.js'], // Make sure the default file is included, if nothing else.
 });
 
-class IntegrationService extends BaseComponentService<Model.IIntegration> {
+const defaultConnectorPath = '/api/configure';
+
+const selfEntityIdReplacement = '{{integration}}';
+
+class IntegrationService extends SessionedComponentService<Model.IIntegration, Model.IInstance> {
   public readonly entityType: Model.EntityType;
   constructor() {
-    super(RDS.DAO.integration);
+    super(RDS.DAO.integration, RDS.DAO.instance);
     this.entityType = Model.EntityType.integration;
   }
 
-  public sanitizeEntity = (entity: Model.IIntegration): void => {
-    let data = entity.data;
+  public addService = (service: SessionedComponentService<any, any>): void => {
+    this.integrationService = this;
+    this.connectorService = service;
+  };
 
-    if (!data) {
-      data = entity.data = {};
+  public sanitizeEntity = (ent: Model.IEntity): Model.IEntity => {
+    const entity = ent as Model.IIntegration;
+    const data = entity.data;
+
+    if (!data || Object.keys(data).length === 0) {
+      // Default entity.data:
+      entity.data = {
+        handler: './integration',
+        files: {
+          ['integration.js']: defaultIntegration,
+          ['package.json']: JSON.stringify(defaultPackage(entity), null, 2),
+        },
+        configuration: { connectors: {}, creation: { tags: {}, steps: [], autoStep: true } },
+      };
+
+      return entity;
     }
 
-    // Get the list of javascript files
-    data.files = data.files || { ['integration.js']: defaultIntegration };
+    // Steps are not present; deduce from connectors.
+    if (!data.configuration.creation) {
+      data.configuration.creation = { tags: {}, steps: [], autoStep: true };
+    }
+
+    if (
+      !data.configuration.creation.steps ||
+      data.configuration.creation.steps.length === 0 ||
+      data.configuration.creation.autoStep
+    ) {
+      data.configuration.creation.steps = [];
+
+      Object.entries(data.configuration.connectors).forEach(([connectorLabel, conn]) => {
+        const connectorId = conn.connector;
+        const name = connectorLabel;
+        data.configuration.creation.steps.push({
+          name,
+          target: {
+            entityType: Model.EntityType.connector,
+            accountId: entity.accountId,
+            subscriptionId: entity.subscriptionId,
+            entityId: connectorId,
+            path: defaultConnectorPath,
+          },
+        });
+      });
+    }
+
+    // Validate DAG of 'uses' parameters, if any, and populate the path for targets.
+    const dagSteps: string[] = [];
+    data.configuration.creation.steps.forEach((step) => {
+      dagSteps.push(step.name);
+      if (!step.target.path) {
+        if (step.target.entityType === Model.EntityType.connector) {
+          step.target.path = defaultConnectorPath;
+        } else {
+          throw http_error(400, `Missing 'path' from step '${step.name}'`);
+        }
+      }
+
+      if (step.target.entityId === selfEntityIdReplacement) {
+        step.target.entityId = entity.id;
+      }
+
+      step.uses?.forEach((usesStep) => {
+        if (!dagSteps.includes(usesStep)) {
+          throw http_error(400, `Ordering violation: 'uses' in '${step.name}' for '${usesStep}' before declaration.`);
+        }
+      });
+    });
 
     // Remove any leading . or ..'s from file paths.
     data.files = safePathMap(data.files);
 
-    const nonPackageFiles = Object.keys(data.files).filter((f) => f.match(/\.js$/));
-    if (nonPackageFiles.length > 1) {
-      // Many files present; key must be specified.
-      if (!data.configuration || data.configuration.package === undefined) {
-        throw new Error(`A 'package' must be specified in the configuration`);
-      }
-    } else if (nonPackageFiles.length === 1) {
-      // One file present; use that file as the integration.
-      data.configuration = { connectors: {}, package: `./${nonPackageFiles[0]}`, ...data.configuration };
-    } else {
-      // New integration, no files present, create some placeholders.
-      data.files['integration.js'] = defaultIntegration;
-      data.configuration = { connectors: {}, ...data.configuration, package: './integration' };
-    }
-
-    if (!data.configuration.connectors) {
-      data.configuration.connectors = {};
-    }
-
-    // Create the package.json, making sure pkg-handler and pkg-manager are present, and any packages
-    // referenced in the connectors block.
+    // Create the package.json.
     const pkg = {
       ...defaultPackage(entity),
-      ...(data.files && data.files['package.json'] ? JSON.parse(data.files['package.json']) : {}),
+      ...(data.files['package.json'] ? JSON.parse(data.files['package.json']) : defaultPackage(entity)),
     };
-    pkg.dependencies['@fusebit-int/pkg-manager'] = pkg.dependencies['@fusebit-int/pkg-manager'] || '^2.0.0';
+
+    // Enforce @fusebit-int/framework as a dependency.
+    pkg.dependencies['@fusebit-int/framework'] = pkg.dependencies['@fusebit-int/framework'] || '^2.0.0';
 
     // Make sure packages mentioned in the cfg.connectors block are also included.
-    if (data.configuration) {
-      Object.values(data.configuration.connectors).forEach((c: { package: string }) => {
-        pkg.dependencies[c.package] = pkg.dependencies[c.package] || '*';
-      });
-    }
+    Object.values(data.configuration.connectors).forEach((c: { package: string }) => {
+      pkg.dependencies[c.package] = pkg.dependencies[c.package] || '*';
+    });
 
     // Always pretty-print package.json so it's human-readable from the start.
     data.files['package.json'] = JSON.stringify(pkg, null, 2);
+
+    return entity;
   };
 
   public createFunctionSpecification = (entity: Model.IEntity): Function.IFunctionSpecification => {
@@ -108,111 +151,38 @@ class IntegrationService extends BaseComponentService<Model.IIntegration> {
           // Don't allow the index.js to be overwritten.
           'index.js': [
             `const config = ${JSON.stringify(config)};`,
-            "config.package = config.package[0] === '.' ? `${__dirname}/${config.package}`: config.package;",
-            `module.exports = require('@fusebit-int/pkg-handler')(config);`,
+            `let handler = '${data.handler}';`,
+            "handler = handler[0] === '.' ? `${__dirname}/${handler}`: handler;",
+            `module.exports = require('@fusebit-int/framework').Handler(handler, config);`,
           ].join('\n'),
+        },
+      },
+      security: {
+        functionPermissions: {
+          allow: [
+            {
+              action: 'storage:*',
+              resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/storage/integration/{{functionId}}/',
+            },
+            {
+              action: 'session:put',
+              resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/integration/{{functionId}}/session/',
+            },
+            {
+              action: 'session:result',
+              resource:
+                '/account/{{accountId}}/subscription/{{subscriptionId}}/integration/{{functionId}}/session/result/',
+            },
+            {
+              action: 'session:get',
+              resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/integration/{{functionId}}/session/',
+            },
+          ],
         },
       },
     };
 
     return spec;
-  };
-
-  public createEntity = async (entity: Model.IEntity): Promise<IServiceResult> => {
-    // TODO: Validate the data matches the expected Joi schema (to be eventually promoted) (especially that
-    // the payload contents for accountId match the url parameters).
-
-    return operationService.inOperation(
-      Model.EntityType.integration,
-      entity,
-      { verb: 'creating', type: 'integration' },
-      async () => {
-        this.sanitizeEntity(entity as Model.IIntegration);
-        await this.createEntityOperation(entity);
-        await this.dao.createEntity(entity);
-      }
-    );
-  };
-
-  public createEntityOperation = async (entity: Model.IEntity) => {
-    // Do update things - create functions, collect their versions, and update the entity.data object
-    // appropriately.
-
-    const params = {
-      accountId: entity.accountId,
-      subscriptionId: entity.subscriptionId,
-      boundaryId: this.entityType,
-      functionId: entity.id,
-    };
-
-    try {
-      const result = await Function.createFunction(
-        params,
-        this.createFunctionSpecification(entity),
-        rejectPermissionAgent as IAgent,
-        AwsRegistry.create({ ...entity, registryId: 'default' })
-      );
-
-      if (result.code === 201 && result.buildId) {
-        await Function.waitForFunctionBuild(params, result.buildId, 100000);
-      }
-    } catch (e) {
-      console.log(`ERROR: createEntityOperation `, e);
-      throw e;
-    }
-  };
-
-  public updateEntity = async (entity: Model.IEntity): Promise<IServiceResult> => {
-    // TODO: Validate the data matches the expected Joi schema (to be eventually promoted) (especially that
-    // the payload contents for accountId match the url parameters).
-
-    return operationService.inOperation(
-      Model.EntityType.integration,
-      entity,
-      { verb: 'updating', type: 'integration' },
-      async () => {
-        // Make sure the entity already exists.
-        await this.dao.getEntity(entity);
-
-        this.sanitizeEntity(entity as Model.IIntegration);
-
-        // Delegate to the normal create code to recreate the function.
-        await this.createEntityOperation(entity);
-
-        // Update it.
-        await this.dao.updateEntity(entity);
-      }
-    );
-  };
-
-  public deleteEntity = async (entity: Model.IEntity): Promise<IServiceResult> => {
-    // TODO: Validate the data matches the expected Joi schema (to be eventually promoted) (especially that
-    // the payload contents for accountId match the url parameters).
-
-    return operationService.inOperation(
-      Model.EntityType.integration,
-      entity,
-      { verb: 'deleting', type: 'integration' },
-      async () => {
-        try {
-          // Do delete things - create functions, collect their versions, and update the entity.data object
-          // appropriately.
-          await Function.deleteFunction({
-            accountId: entity.accountId,
-            subscriptionId: entity.subscriptionId,
-            boundaryId: this.entityType,
-            functionId: entity.id,
-          });
-        } catch (err) {
-          if (err.status !== 404) {
-            throw err;
-          }
-        }
-
-        // Delete it.
-        await this.dao.deleteEntity(entity);
-      }
-    );
   };
 }
 

@@ -20,13 +20,7 @@ const command = {
     Text.bold('connector deploy'),
     "' command."
   ),
-  arguments: [
-    {
-      name: 'connector',
-      description: 'The id of the connector to initialize.',
-      required: true,
-    },
-  ],
+  arguments: [],
   options: [
     {
       name: 'dir',
@@ -65,27 +59,19 @@ export class ConnectorInitCommand extends Command {
   }
 
   protected async onExecute(input: IExecuteInput): Promise<number> {
-    const connectorId = input.arguments[0] as string;
     const sourceDir = input.options.dir as string;
 
     const connectorService = await ConnectorService.create(input);
-    const operationService = await OperationService.create(input);
     const executeService = await ExecuteService.create(input);
 
     await executeService.newLine();
 
     const sourcePath = sourceDir ? join(process.cwd(), sourceDir) : process.cwd();
-    const connectorSpec = await connectorService.loadDirectory(sourcePath);
 
-    await connectorService.confirmDeploy(sourcePath, connectorSpec, connectorId);
-
-    const operation = await connectorService.deployConnector(connectorId, connectorSpec);
-    const result = await operationService.waitForCompletion(operation.operationId);
-    await operationService.displayOperationResults(result);
-
-    const connector = await connectorService.fetchConnector(connectorId);
-
+    const connector = connectorService.createNewSpec();
     await connectorService.writeDirectory(sourcePath, connector);
+
+    await connectorService.displayConnectors([connector], true);
 
     return 0;
   }

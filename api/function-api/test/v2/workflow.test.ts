@@ -1,6 +1,6 @@
 import { request } from '@5qtrs/request';
 
-import { cleanupEntities, ApiRequestMap } from './sdk';
+import { cleanupEntities, ApiRequestMap, createPair, getElementsFromUrl } from './sdk';
 
 import { startTunnel, startHttpServer } from '../v1/tunnel';
 
@@ -36,10 +36,12 @@ describe('Workflow', () => {
     tunnel.tunnel.close();
   });
 
-  test('Create a connector and an integration and associate the two', async () => {
+  test('Create a connector and an integration and use a session', async () => {
     // Constants
     const authorizationUrl = `${redirectUrl}/authorize`;
     const tokenUrl = `${redirectUrl}/token`;
+    const finalUrl = `${redirectUrl}/final`;
+    const baseUrl = `${process.env.API_SERVER}/v2/account/${account.accountId}/subscription/${account.subscriptionId}`;
 
     const sampleToken = {
       access_token: 'EEEE',
@@ -50,102 +52,254 @@ describe('Workflow', () => {
 
     const state = 'CCCC';
 
-    // Set up integration and connector
-    let response = await ApiRequestMap.integration.postAndWait(account, { id: `${boundaryId}-integ` });
-    expect(response).toBeHttp({ statusCode: 200 });
-    const integ = response.data;
+    // Create the various artifacts
+    const { integrationId, connectorId } = await createPair(
+      account,
+      boundaryId,
+      {
+        creation: {
+          steps: [
+            {
+              name: 'conn1',
+              target: { entityType: 'connector', entityId: `${boundaryId}-con` },
+            },
+            {
+              name: 'form',
+              target: { entityType: 'integration', path: '/api/aForm', entityId: '{{integration}}' },
+              uses: ['conn1'],
+            },
+          ],
+        },
+      },
+      {
+        handler: '@fusebit-int/pkg-oauth-connector',
+        configuration: {
+          scope: '',
+          authorizationUrl,
+          tokenUrl,
+          clientId: 'BBBB',
+          clientSecret: 'AAAA',
+          refreshErrorLimit: 100000,
+          refreshInitialBackoff: 100000,
+          refreshWaitCountLimit: 100000,
+          refreshBackoffIncrement: 100000,
+          accessTokenExpirationBuffer: 500,
+        },
+      }
+    );
 
-    response = await ApiRequestMap.connector.postAndWait(account, { id: `${boundaryId}-conn` });
-    expect(response).toBeHttp({ statusCode: 200 });
-    const conn = response.data;
-
-    // Prime integration.
-    integ.data.configuration.connectors = {
-      conn: { package: '@fusebit-int/pkg-oauth-integration', connector: conn.id },
-    };
-    integ.data.files['integration.js'] = [
-      `const { Router, Manager, Form } = require('@fusebit-int/pkg-manager');`,
-      `const router = new Router();`,
-      ``,
-      `router.get('/api/', async (ctx) => { ctx.body = 'banana'; });`,
-      ``,
-      `router.get('/api/:tenantId', async (ctx) => {`,
-      `  const oauth = await ctx.state.manager.connectors.getByName('conn', (ctx) => ctx.params.tenantId)(ctx);`,
-      `  ctx.body = oauth.accessToken;`,
-      `});`,
+    // Add the new file for the integration (get, and then add one with /api/aForm)
+    let integration = await ApiRequestMap.integration.get(account, integrationId);
+    expect(integration).toBeHttp({ statusCode: 200 });
+    integration.data.data.files['integration.js'] = [
+      "const superagent = require('superagent');",
+      "const { Router, Manager, Form } = require('@fusebit-int/framework');",
+      'const router = new Router();',
+      "router.get('/api/getSession', async (ctx) => {",
+      "  const response = await superagent.get(`${ctx.state.params.baseUrl}/session/${ctx.query.session}`).set('Authorization', `Bearer ${ctx.state.params.functionAccessToken}`);",
+      '  ctx.body = response.body;',
+      '});',
+      "router.get('/api/testSession', async (ctx) => {",
+      "  let response = await superagent.put(`${ctx.state.params.baseUrl}/session/${ctx.query.session}`).set('Authorization', `Bearer ${ctx.state.params.functionAccessToken}`).send({ hello: 'world'});",
+      '  const result = {};',
+      "  response = await superagent.get(`${ctx.state.params.baseUrl}/session/${ctx.query.session}`).set('Authorization', `Bearer ${ctx.state.params.functionAccessToken}`);",
+      '  result.get = response.body;',
+      "  response = await superagent.get(`${ctx.state.params.baseUrl}/session/result/${ctx.query.session}`).set('Authorization', `Bearer ${ctx.state.params.functionAccessToken}`);",
+      '  result.getResult = response.body;',
+      '  ctx.body = result;',
+      '});',
+      "router.get('/api/getToken', async (ctx) => {",
+      "  const response = await superagent.get(`${ctx.state.params.baseUrl}/session/${ctx.query.session}`).set('Authorization', `Bearer ${ctx.state.params.functionAccessToken}`);",
+      '  ctx.body = response.body;',
+      '});',
+      "router.get('/api/aForm', async (ctx) => {",
+      "  const response = await superagent.get(`${ctx.state.params.baseUrl}/session/${ctx.query.session}`).set('Authorization', `Bearer ${ctx.state.params.functionAccessToken}`);",
+      '  console.log(response.data);',
+      '  ctx.redirect(`${ctx.state.params.baseUrl}/session/${ctx.query.session}/callback`);',
+      '});',
+      "router.get('/api/doASessionThing/:sessionId', async (ctx) => { ctx.body = 'doASessionThing'; });",
+      "router.get('/api/doAThing/:instanceId', async (ctx) => { ctx.body = 'doAThing'; });",
+      'module.exports = router;',
     ].join('\n');
+    const pkgJson = JSON.parse(integration.data.data.files['package.json']);
+    pkgJson.dependencies.superagent = '*';
+    integration.data.data.files['package.json'] = JSON.stringify(pkgJson);
 
-    response = await ApiRequestMap.integration.putAndWait(account, integ.id, integ);
+    integration = await ApiRequestMap.integration.putAndWait(account, integrationId, integration.data);
+    expect(integration).toBeHttp({ statusCode: 200 });
+    // Create a session
+
+    let response = await ApiRequestMap.integration.session.post(account, integrationId, {
+      redirectUrl: finalUrl,
+    });
     expect(response).toBeHttp({ statusCode: 200 });
 
-    // Prime connector
-    conn.data.configuration = {
-      package: '@fusebit-int/pkg-oauth-connector',
-      scope: '',
-      authorizationUrl,
-      tokenUrl,
-      clientId: 'BBBB',
-      clientSecret: 'AAAA',
-      refreshErrorLimit: 100000,
-      refreshInitialBackoff: 100000,
-      refreshWaitCountLimit: 100000,
-      refreshBackoffIncrement: 100000,
-      accessTokenExpirationBuffer: 500,
-    };
+    const parentSessionId = response.data.id;
 
-    response = await ApiRequestMap.connector.putAndWait(account, conn.id, conn);
-    expect(response).toBeHttp({ statusCode: 200 });
+    // Start the "browser" on the session
+    response = await ApiRequestMap.integration.session.start(account, integrationId, parentSessionId);
+    expect(response).toBeHttp({ statusCode: 302 });
+
+    // Validate that it goes to connector/api/configure
+    expect(response.headers.location.indexOf(`${baseUrl}/connector/${connectorId}/api/configure?session=`)).toBe(0);
+    let url = new URL(response.headers.location);
+    expect(url.searchParams.get('redirect_uri')).toBe(
+      `${baseUrl}/connector/${connectorId}/session/${url.searchParams.get('session')}/callback`
+    );
+    const connectorSessionId = url.searchParams.get('session');
+
+    // Load the connector/api/configure
+    response = await request({ url: response.headers.location, maxRedirects: 0 });
+    expect(response).toBeHttp({ statusCode: 302 });
+
+    // Validate that it goes to the redirectUrl/authorize
+    expect(response.headers.location.indexOf(`${redirectUrl}/authorize`)).toBe(0);
 
     // Set up the HTTP service
+    let oauthSessionId;
     httpServer.app.get('/authorize', (req: any, res: any) => {
-      return res.json({ message: boundaryId + '-authorize-' + req.query.state });
+      oauthSessionId = req.query.state;
+      return res.redirect(`${req.query.redirect_uri}?state=${req.query.state}&code=EEEE`);
     });
     httpServer.app.post('/token', (req: any, res: any) => {
       return res.json(sampleToken);
     });
 
-    // Test the HTTP service
-    response = await request({ method: 'GET', url: authorizationUrl, query: { state } });
-    expect(response).toBeHttp({ statusCode: 200 });
+    // Load the authorization url
+    response = await request({ url: response.headers.location, maxRedirects: 0 });
+    expect(response).toBeHttp({ statusCode: 302 });
+    expect(response.headers.location.indexOf(`/connector/${connectorId}/api/callback?state=`)).toBeGreaterThan(0);
 
-    response = await request({ method: 'POST', url: tokenUrl, query: { state } });
-    expect(response).toBeHttp({ statusCode: 200, data: sampleToken });
+    // Call the connector callback url to complete the OAuth exchange (connector writes to session in this
+    // transaction).
+    response = await request({ url: response.headers.location, maxRedirects: 0 });
+    expect(response).toBeHttp({ statusCode: 302 });
+    expect(
+      response.headers.location.indexOf(`/connector/${connectorId}/session/${oauthSessionId}/callback`)
+    ).toBeGreaterThan(0);
 
-    // Invoke flow
-    response = await ApiRequestMap.connector.dispatch(account, conn.id, 'GET', `/api/configure?state=${state}`, {
+    // Call the session endpoint to complete this session.
+    response = await request({ url: response.headers.location, maxRedirects: 0 });
+
+    // Expect the form url
+    expect(response).toBeHttp({ statusCode: 302 });
+    expect(response.headers.location.indexOf(`/integration/${integrationId}/api/aForm?session=`)).toBeGreaterThan(0);
+    url = new URL(response.headers.location);
+    const formSessionId = url.searchParams.get('session');
+
+    // Load the 'form' url.
+    response = await request({ url: response.headers.location, maxRedirects: 0 });
+    expect(response).toBeHttp({ statusCode: 302 });
+
+    // Expect to be redirected to close the session out.
+    expect(
+      response.headers.location.indexOf(`/integration/${integrationId}/session/${formSessionId}/callback`)
+    ).toBeGreaterThan(0);
+    const completeLocation = response.headers.location;
+
+    // Test the integration mid-form-session to see if it can get the connector token.
+    response = await request({
+      url: `${baseUrl}/integration/${integrationId}/api/getSession?session=${formSessionId}`,
       maxRedirects: 0,
     });
-    expect(response).toBeHttp({ statusCode: 302 });
-    const loc = response.headers.location;
-    const uri = new URL(loc);
-
-    // Test location to make sure it contains the tunnel address
-    expect(loc).toMatch(new RegExp(`^${authorizationUrl}`));
-
-    expect(uri.searchParams.get('redirect_uri')).toMatch(new RegExp(`^https://${process.env.LOGS_HOST}`));
-
-    // Request the tunnel addresss authorizationUrl
-    response = await request({ method: 'GET', url: loc });
-    expect(response.data).toEqual({ message: boundaryId + '-authorize-' + state });
-
-    // Call the redirect_uri with the expected parameters.
-    response = await request({
-      method: 'GET',
-      url: uri.searchParams.get('redirect_uri') as string,
-      query: { state: uri.searchParams.get('state'), code: 'DDDD' },
-    });
-
-    // Right now it returns the actual token.  In the "real world", this would be biased through a session,
-    // and this check would load the session contents and validate they match what's expected.
     expect(response).toBeHttp({
       statusCode: 200,
       data: {
-        access_token: 'EEEE',
-        refresh_token: 'FFFF',
-        token_type: 'access',
-        message: `${boundaryId}-token`,
-        status: 'authenticated',
+        id: formSessionId,
+        uses: {
+          conn1: {
+            entityType: 'connector',
+            componentId: connectorId,
+            subordinateId: connectorSessionId,
+          },
+        },
       },
     });
+
+    // Use the session in a different way
+    response = await request({
+      url: `${baseUrl}/integration/${integrationId}/api/testSession?session=${formSessionId}`,
+      maxRedirects: 0,
+    });
+    expect(response).toBeHttp({
+      statusCode: 200,
+      data: {
+        get: {
+          id: formSessionId,
+          uses: {
+            conn1: {
+              entityType: 'connector',
+              componentId: connectorId,
+              subordinateId: connectorSessionId,
+            },
+          },
+        },
+        getResult: {
+          id: formSessionId,
+          uses: {
+            conn1: {
+              entityType: 'connector',
+              componentId: connectorId,
+              subordinateId: connectorSessionId,
+            },
+          },
+          output: {
+            hello: 'world',
+          },
+          target: {
+            path: '/api/aForm',
+            entityId: integrationId,
+            entityType: 'integration',
+          },
+        },
+      },
+    });
+    // Call the session endpoint to complete this session.
+    response = await request({ url: completeLocation, maxRedirects: 0 });
+    expect(response).toBeHttp({ statusCode: 302 });
+
+    // Success, finished with the finalUrl.
+    expect(response.headers.location.indexOf(`${finalUrl}?session=`)).toBe(0);
+    url = new URL(response.headers.location);
+    expect(url.searchParams.get('session')).toBe(parentSessionId);
+
+    // POST to the session to instantiate the instances/identities.
+    response = await ApiRequestMap.integration.session.postSession(account, integrationId, parentSessionId);
+    expect(response).toBeHttp({
+      statusCode: 200,
+      data: { code: 200, type: 'session', verb: 'creating' },
+      has: ['payload'],
+    });
+
+    // Validate the contents of the instances/identies is as expected
+    const payload = response.data.payload;
+    expect(payload).toHaveProperty(['', 'accountId'], account.accountId);
+    expect(payload).toHaveProperty(['', 'subscriptionId'], account.subscriptionId);
+    expect(payload).toHaveProperty(['', 'entityType'], 'instance');
+    expect(payload).toHaveProperty(['', 'componentType'], 'integration');
+    expect(payload).toHaveProperty(['', 'componentId'], integrationId);
+    expect(payload).toHaveProperty(['', 'id']);
+    expect(payload).toHaveProperty(['', 'tags', 'session.master'], parentSessionId);
+
+    expect(payload).toHaveProperty(['form', 'accountId'], account.accountId);
+    expect(payload).toHaveProperty(['form', 'subscriptionId'], account.subscriptionId);
+    expect(payload).toHaveProperty(['form', 'entityType'], 'instance');
+    expect(payload).toHaveProperty(['form', 'componentType'], 'integration');
+    expect(payload).toHaveProperty(['form', 'componentId'], integrationId);
+    expect(payload).toHaveProperty(['form', 'id']);
+    expect(payload).toHaveProperty(['form', 'tags', 'session.master'], parentSessionId);
+
+    expect(payload).toHaveProperty(['conn1', 'accountId'], account.accountId);
+    expect(payload).toHaveProperty(['conn1', 'subscriptionId'], account.subscriptionId);
+    expect(payload).toHaveProperty(['conn1', 'entityType'], 'identity');
+    expect(payload).toHaveProperty(['conn1', 'componentType'], 'connector');
+    expect(payload).toHaveProperty(['conn1', 'componentId'], connectorId);
+    expect(payload).toHaveProperty(['conn1', 'id']);
+    expect(payload).toHaveProperty(['conn1', 'tags', 'session.master'], parentSessionId);
+
+    // TODO: Modify the form page to query the connector with the contents of the session's 'uses' field, and
+    //       related sessionId, and ensure that it gets back a valid token.
+    //         Requires the connector to support looking up the contents by a sessionId instead of by a
+    //         instanceId.
   }, 180000);
 });
