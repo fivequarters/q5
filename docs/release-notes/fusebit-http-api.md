@@ -21,8 +21,7 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 
 _Release 06/22/21_
 
-- **Enhancement.** Patch image on docker build.
-- **Enhancement.** Patch EC2 instances on user-data.
+- **Enhancement.** Patch fusebit mono docker image during docker build.
 
 ## Version 1.20.2
 
