@@ -74,7 +74,7 @@ router
           id: req.params.operationId,
           data: req.body,
         });
-        return res.json(operation.data);
+        return res.json({ ...operation.data, operationId: req.params.operationId });
       } catch (error) {
         return next(error);
       }
