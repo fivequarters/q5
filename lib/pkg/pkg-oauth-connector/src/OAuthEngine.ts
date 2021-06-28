@@ -118,8 +118,6 @@ class OAuthEngine {
    * @param {*} userContext The vendor user context
    */
   public async ensureAccessToken(ctx: Context, lookupKey: string, identity: boolean = true) {
-    console.log('lk', lookupKey);
-    console.log('i', identity);
     let token: IOAuthToken | undefined;
     const tokenRw = identity
       ? {

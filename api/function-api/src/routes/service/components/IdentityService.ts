@@ -4,7 +4,6 @@ import RDS, { Model } from '@5qtrs/db';
 import BaseComponentService from './BaseComponentService';
 
 import * as Function from '../../functions';
-import { IEntity } from '@5qtrs/db/libc/model';
 
 class IdentityService extends BaseComponentService<Model.IIdentity, Model.IIdentity> {
   public readonly entityType: Model.EntityType;
@@ -32,14 +31,14 @@ class IdentityService extends BaseComponentService<Model.IIdentity, Model.IIdent
     };
   };
 
-  public updateEntity = async (entity: IEntity) => {
+  public updateEntity = async (entity: Model.IEntity) => {
     return {
       statusCode: 200,
       result: await this.dao.updateEntity(entity),
     };
   };
 
-  public createEntity = async (entity: IEntity) => {
+  public createEntity = async (entity: Model.IEntity) => {
     return {
       statusCode: 200,
       result: await this.dao.createEntity(entity),
