@@ -5,6 +5,7 @@ import RDS, { Model } from '@5qtrs/db';
 
 import BaseComponentService, { IServiceResult, ISubordinateId } from './BaseComponentService';
 import { operationService } from './OperationService';
+import { IEntity } from '@5qtrs/db/libc/model';
 
 const MasterSessionStepName = '';
 
@@ -123,6 +124,7 @@ export default abstract class SessionedComponentService<
         subordinateId: sessionId,
       }),
       data: {
+        replacementTargetId: sessionDetails.replacementTargetId,
         mode: Model.SessionMode.trunk,
         steps: stepList,
         meta: {
@@ -336,7 +338,6 @@ export default abstract class SessionedComponentService<
               entityType: result.result.entityType,
             };
           } catch (e) {
-            console.log(e);
             results.failed.push({
               result: {
                 statusCode: 400,
@@ -359,16 +360,22 @@ export default abstract class SessionedComponentService<
       instance = {
         accountId: session.accountId,
         subscriptionId: session.subscriptionId,
-        id: this.createSubordinateId({
-          entityType: this.entityType,
-          componentId: parentEntity.__databaseId as string,
-          subordinateId: uuidv4(),
-        }),
         data: { output: leafSessionResults },
         tags: { ...session.tags, 'session.master': masterSessionId.subordinateId },
       };
 
-      await daos[this.subDao!.getDaoType()].createEntity(instance);
+      const subDao = daos[this.subDao!.getDaoType()];
+      if (!!session.data.replacementTargetId) {
+        instance.id = session.data.replacementTargetId;
+        await subDao.updateEntity(instance);
+      } else {
+        instance.id = this.createSubordinateId({
+          entityType: this.entityType,
+          componentId: parentEntity.__databaseId as string,
+          subordinateId: uuidv4(),
+        });
+        await subDao.createEntity(instance);
+      }
     });
     const decomposedSessionId = this.decomposeSubordinateId(session.id);
 
@@ -406,19 +413,26 @@ export default abstract class SessionedComponentService<
       id: serviceEntityId,
     });
 
-    const leafEntity = {
+    const leafEntity: any = {
       accountId: session.accountId,
       subscriptionId: session.subscriptionId,
-      id: this.createSubordinateId({
-        entityType: service.entityType,
-        componentId: parentEntity.__databaseId as string,
-        subordinateId: uuidv4(),
-      }),
       data: session.data.output || {},
       tags: { ...session.tags, 'session.master': masterSessionId.subordinateId },
     };
 
-    const result = await daos[service.subDao!.getDaoType()].createEntity(leafEntity);
+    const subDao = daos[service.subDao!.getDaoType()];
+    let result: IEntity;
+    if (!!session.data.replacementTargetId) {
+      leafEntity.id = session.data.replacementTargetId;
+      result = await subDao.updateEntity(leafEntity);
+    } else {
+      leafEntity.id = this.createSubordinateId({
+        entityType: service.entityType,
+        componentId: parentEntity.__databaseId as string,
+        subordinateId: uuidv4(),
+      });
+      result = await subDao.createEntity(leafEntity);
+    }
 
     // Don't expose the data in the report.
     delete result.data;

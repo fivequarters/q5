@@ -143,9 +143,14 @@ export enum SessionMode {
   leaf = 'leaf',
 }
 
+export interface ISessionInput extends Record<string, ISessionStepInput> {}
+export interface ISessionStepInput extends Record<string, any> {
+  replacementTargetId?: string;
+}
+
 export interface IStep {
   name: string;
-  input?: any;
+  input?: ISessionStepInput;
   output?: any;
   uses?: string[];
   target: {
@@ -203,11 +208,14 @@ export interface IOperation extends IEntity {
 export interface ISessionParameters {
   steps?: string[];
   tags?: ITags;
-  input?: Record<string, any>;
+  input?: ISessionInput;
   redirectUrl: string;
+  replacementTargetId?: string;
 }
 
 export interface ILeafSessionData extends Omit<IStep, 'uses'> {
+  replacementTargetId?: string;
+  operationId?: string;
   mode: SessionMode.leaf;
   uses: Record<string, object>;
   meta: {
@@ -218,12 +226,11 @@ export interface ILeafSessionData extends Omit<IStep, 'uses'> {
 export type ITrunkSessionStep = IStep & { childSessionId?: string };
 export type ITrunkSessionSteps = ITrunkSessionStep[];
 export interface ITrunkSessionData {
+  replacementTargetId?: string;
   mode: SessionMode.trunk;
-
   meta: {
     redirectUrl: string;
   };
-
   steps: ITrunkSessionSteps;
 }
 
