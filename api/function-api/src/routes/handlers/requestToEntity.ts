@@ -7,12 +7,20 @@ const requestToEntity = async (
   paramIdNames: string[],
   req: express.Request,
   ...additionalAttributes: Record<string, any>[]
-) =>
-  Object.assign(
+) => {
+  const stripUndefined = (obj: Record<string, any>) => {
+    Object.entries(obj).forEach(([key, value]) => {
+      if (value === undefined) {
+        delete obj[key];
+      }
+    });
+  };
+  return Object.assign(
     await ComponentService.loadDependentEntities(
       ...paramIdNames.map((paramIdName) => pathParams.EntityById(req, paramIdName))
     ),
-    ...additionalAttributes
+    ...additionalAttributes.map(stripUndefined)
   );
+};
 
 export default requestToEntity;

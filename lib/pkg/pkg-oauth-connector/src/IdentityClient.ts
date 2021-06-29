@@ -14,6 +14,7 @@ interface IOAuthToken {
 }
 
 const removeLeadingSlash = (s: string) => s.replace(/^\/(.+)$/, '$1');
+const removeTrailingSlash = (s: string) => s.replace(/^(.+)\/$/, '$1');
 
 interface Params {
   subscriptionId: string;
@@ -41,7 +42,7 @@ class IdentityClient {
   }
 
   private cleanId = (id?: string) => {
-    return id ? removeLeadingSlash(id) : '';
+    return id ? removeTrailingSlash(removeLeadingSlash(id)) : '';
   };
 
   private getUrl = (identityId: string) => {
@@ -51,6 +52,10 @@ class IdentityClient {
 
   public getToken = async (identityId: string) => {
     identityId = this.cleanId(identityId);
+    console.log('accesstoken:');
+    console.log(this.accessToken);
+    console.log('identityId', identityId);
+    console.log('url', this.getUrl(identityId));
     const response = await superagent
       .get(this.getUrl(identityId))
       .set('Authorization', `Bearer ${this.accessToken}`)
@@ -72,7 +77,7 @@ class IdentityClient {
     const response = await superagent
       .get(`${this.connectorUrl}/session/result/${sessionId}`)
       .set('Authorization', `Bearer ${this.accessToken}`);
-    return response.body;
+    return response.body.output.token;
   };
 
   public updateToken = async (token: IOAuthToken, lookup: string) => {

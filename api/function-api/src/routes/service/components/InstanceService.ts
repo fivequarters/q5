@@ -30,6 +30,20 @@ class InstanceService extends BaseComponentService<Model.IInstance, Model.IInsta
       id: `/integration/${integration.__databaseId}/${instanceArg.id}`,
     };
   };
+
+  public updateEntity = async (entity: Model.IEntity) => {
+    return {
+      statusCode: 200,
+      result: await this.dao.updateEntity(entity),
+    };
+  };
+
+  public createEntity = async (entity: Model.IEntity) => {
+    return {
+      statusCode: 200,
+      result: await this.dao.createEntity(entity),
+    };
+  };
 }
 
 export default InstanceService;

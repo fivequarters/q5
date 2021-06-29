@@ -5,7 +5,8 @@
   },
   "dependencies": {
     "@fusebit-int/framework": "*",
-    "asana": "*"
+    "asana": "*",
+    "superagent": "*"
   },
   "files": ["./integration.js"]
 }

@@ -30,6 +30,20 @@ class IdentityService extends BaseComponentService<Model.IIdentity, Model.IIdent
       id: `/connector/${connector.__databaseId}/${identityArg.id}`,
     };
   };
+
+  public updateEntity = async (entity: Model.IEntity) => {
+    return {
+      statusCode: 200,
+      result: await this.dao.updateEntity(entity),
+    };
+  };
+
+  public createEntity = async (entity: Model.IEntity) => {
+    return {
+      statusCode: 200,
+      result: await this.dao.createEntity(entity),
+    };
+  };
 }
 
 export default IdentityService;
