@@ -46,7 +46,9 @@ class OperationService {
       location: {
         accountId: entity.accountId,
         subscriptionId: entity.subscriptionId,
-        ...(entity.id.indexOf('/') >= 0 ? Model.decomposeSubordinateId(entity.id) : { entityId: entity.id }),
+        ...(entity.id && entity.id.indexOf('/') >= 0
+          ? Model.decomposeSubordinateId(entity.id)
+          : { entityId: entity.id }),
         entityType,
       },
     };
