@@ -208,6 +208,7 @@ export interface ISessionParameters {
 }
 
 export interface ILeafSessionData extends Omit<IStep, 'uses'> {
+  operationId?: string;
   mode: SessionMode.leaf;
   uses: Record<string, object>;
   meta: {
@@ -218,12 +219,11 @@ export interface ILeafSessionData extends Omit<IStep, 'uses'> {
 export type ITrunkSessionStep = IStep & { childSessionId?: string };
 export type ITrunkSessionSteps = ITrunkSessionStep[];
 export interface ITrunkSessionData {
+  operationId?: string;
   mode: SessionMode.trunk;
-
   meta: {
     redirectUrl: string;
   };
-
   steps: ITrunkSessionSteps;
 }
 
