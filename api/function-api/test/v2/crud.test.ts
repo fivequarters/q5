@@ -438,10 +438,21 @@ const performTests = (testEntityType: string) => {
     const invokeResponse = await ApiRequestMap[testEntityType].dispatch(account, entity.id, 'GET', '/api/health');
     expect(invokeResponse).toBeHttp({ statusCode: 200 });
   }, 180000);
+
+  test('Entity Empty POST', async () => {
+    const createResponse = await ApiRequestMap[testEntityType].post(account, {});
+    expect(createResponse).toBeHttp({ statusCode: 400 });
+  }, 180000);
+
+  test('Entity Empty POST with ID', async () => {
+    const createResponse = await ApiRequestMap[testEntityType].postAndWait(account, { id: newId('Test') });
+    expect(createResponse).toBeHttp({ statusCode: 200 });
+  }, 180000);
 };
 
 describe('Connector', () => {
-  performTests('connector');
+  const testEntityType = 'connector';
+  performTests(testEntityType);
 });
 
 describe('Integration', () => {

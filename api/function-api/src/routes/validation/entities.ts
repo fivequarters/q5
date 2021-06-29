@@ -4,7 +4,7 @@ import * as Common from './common';
 
 const validateEntity = (data: any) =>
   Joi.object().keys({
-    id: Common.entityId,
+    id: Common.entityId.required(),
     data,
     tags: Common.tags,
     version: Joi.string().guid(),
