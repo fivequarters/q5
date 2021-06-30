@@ -153,7 +153,7 @@ paths:
       summary: Create a new object of the specified type
       operationId: postConnector
       requestBody:
-        $ref: '#/components/requestBodies/PostCommonBody'
+        $ref: '#/components/requestBodies/PostConnectorBody'
       responses:
         200:
           description: The created object
@@ -199,7 +199,7 @@ paths:
       summary: Update a component
       operationId: putConnector
       requestBody:
-        $ref: '#/components/requestBodies/PostCommonBody'
+        $ref: '#/components/requestBodies/PostConnectorBody'
       responses:
         200:
           description: The requested object
@@ -268,7 +268,7 @@ paths:
       summary: Update a component
       operationId: putIdentity
       requestBody:
-        $ref: '#/components/requestBodies/PostCommonBody'
+        $ref: '#/components/requestBodies/PostIdentityBody'
       responses:
         200:
           description: The requested object
@@ -310,7 +310,7 @@ paths:
       summary: Create a new object of the specified type
       operationId: postIntegration
       parameters:
-        - $ref: '#/components/requestBodies/PostCommonBody'
+        - $ref: '#/components/requestBodies/PostIntegrationBody'
       responses:
         200:
           description: The created object
@@ -350,7 +350,7 @@ paths:
       summary: Update a component
       operationId: putIntegration
       requestBody:
-        $ref: '#/components/requestBodies/PostCommonBody'
+        $ref: '#/components/requestBodies/PostIntegrationBody'
       responses:
         200:
           description: The requested object
@@ -419,7 +419,7 @@ paths:
       summary: Update a component
       operationId: putInstance
       requestBody:
-        $ref: '#/components/requestBodies/PostCommonBody'
+        $ref: '#/components/requestBodies/PostInstanceBody'
       responses:
         200:
           description: The requested object
@@ -483,24 +483,33 @@ components:
         type: string
 
   requestBodies:
-    PostCommonBody:
+    PostConnectorBody:
       description: Upload a new object
       content:
         application/json:
           schema:
-            type: object
-            properties:
-              id:
-                type: string
-              data:
-                type: object
-              tags:
-                type: object
-              version:
-                type: string
-                format: uuid
-              expires:
-                type: string
+            $ref: '#/components/schemas/ConnectorEntity'
+
+    PostIdentityBody:
+      description: Upload a new object
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/IdentityEntity'
+
+    PostIntegrationBody:
+      description: Upload a new object
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/IntegrationEntity'
+
+    PostInstanceBody:
+      description: Upload a new object
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/InstanceEntity'
 
   schemas:
     AccountId:
