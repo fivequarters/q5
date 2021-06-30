@@ -16,11 +16,8 @@ function addAwsCredentials() {
       if (new Date() - new Date(creds.Credentials.Expiration) > 10 * 60000) {
         // Only used cashed session token if valid for more than 10 mins
         creds = undefined;
-        console.log('cached creds expired');
       }
-    } catch (_) {
-      console.log(_);
-    }
+    } catch (_) {}
   }
 
   if (!creds && !process.env.EC2) {

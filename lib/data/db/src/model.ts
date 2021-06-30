@@ -130,10 +130,6 @@ export interface ISubordinateId {
   subordinateId: string;
 }
 
-export const composeSubordinateId = (subordinateId: ISubordinateId): string => {
-  return `${subordinateId.entityType}/${subordinateId.componentId}/${subordinateId.subordinateId}`;
-};
-
 // Remove any extra fields returned as part of the entity.
 export const entityToSdk = (entity: IEntity): ISdkEntity => {
   return {

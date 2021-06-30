@@ -390,11 +390,6 @@ export default abstract class SessionedComponentService<
     return { statusCode: results.failed.length === 0 ? 200 : 500, result: leafSessionResults };
   };
 
-  protected persistFromSession = async (dao: Model.IEntityDao<E>, replacementIntegrationId?: string) => {
-    if (!!replacementIntegrationId) {
-    }
-  };
-
   public instantiateLeafSession = async (
     daos: Model.IDaoCollection,
     session: Model.ILeafSession,
