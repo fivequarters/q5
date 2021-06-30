@@ -125,7 +125,7 @@ async function executeFunction(ctx: any) {
     ctx.boundaryId,
     ctx.functionId
   );
-  
+
   // Execute, and record the results.
   await new Promise((resolve, reject) =>
     Common.invoke_function(request, (error: any, response: any, meta: any) => {
