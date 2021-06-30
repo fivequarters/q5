@@ -23,6 +23,7 @@ All public releases of the Fusebit Operations CLI are documented here, including
 _Released 06/30/21_
 
 - **Bugfix.** Attach function summary to cron based functions.
+
 ## Version 1.27.8
 
 _Released 06/24/21_
