@@ -16,6 +16,7 @@ module.exports = function authorize_factory(options) {
     if (!token && options.getToken) {
       token = options.getToken(req);
     }
+    console.log('token', token);
 
     if (!token) {
       return next(create_error(403, 'Unauthorized'));
@@ -31,15 +32,18 @@ module.exports = function authorize_factory(options) {
               throw new Error('Unauthorized');
             }
           } catch (_) {
+            console.log(_);
             return next(create_error(403, 'Unauthorized'));
           }
         } else if (req.body.protocol === 'pki' && req.body.publicKey) {
           try {
             req.body.decodedAccessToken = await validateAccessTokenSignature(req.body.accessToken, req.body.publicKey);
             if (!req.body.decodedAccessToken) {
+              console.log('decodedAccessToke');
               throw new Error('Unauthorized');
             }
           } catch (_) {
+            console.log(_);
             return next(create_error(403, 'Unauthorized'));
           }
         } else {
@@ -83,6 +87,8 @@ module.exports = function authorize_factory(options) {
         }
       }
     } catch (error) {
+      console.log('final catch');
+      console.log(error);
       if (options.failByCallback) {
         return next(error);
       }

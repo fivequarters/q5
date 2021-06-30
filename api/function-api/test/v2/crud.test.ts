@@ -23,13 +23,31 @@ afterAll(async () => {
   await cleanupEntities(account);
 }, 30000);
 
-const sampleEntity = () => ({
-  data: {},
-  id: newId('Test'),
-  tags: { [`oneTag`]: 'one-value', [`twoTags`]: 'two-values' },
-});
+type TestableEntityTypes = Extract<Model.EntityType, Model.EntityType.connector | Model.EntityType.integration>;
 
-const createEntity = async (testEntityType: string, entity: Model.ISdkEntity) => {
+const sampleEntities: Record<TestableEntityTypes, () => Model.ISdkEntity> = {
+  [Model.EntityType.connector]: () => ({
+    data: {
+      handler: '@fusebit-int/pkg-oauth-connector',
+      files: {},
+    },
+    id: newId('Test'),
+    tags: { [`oneTag`]: 'one-value', [`twoTags`]: 'two-values' },
+  }),
+  [Model.EntityType.integration]: () => ({
+    data: {
+      handler: '@fusebit-int/pkg-oauth-integration',
+      files: {},
+      configuration: {
+        autoStep: true,
+      },
+    },
+    id: newId('Test'),
+    tags: { [`oneTag`]: 'one-value', [`twoTags`]: 'two-values' },
+  }),
+};
+
+const createEntity = async (testEntityType: TestableEntityTypes, entity: Model.ISdkEntity) => {
   const createResponse = await ApiRequestMap[testEntityType].post(account, entity);
   expect(createResponse).toBeHttp({ statusCode: 202 });
   const operation = await ApiRequestMap.operation.waitForCompletion(account, createResponse.data.operationId);
@@ -43,8 +61,9 @@ const createEntity = async (testEntityType: string, entity: Model.ISdkEntity) =>
   return listResponse.data.items[0];
 };
 
-const performTests = (testEntityType: string) => {
+const performTests = (testEntityType: TestableEntityTypes) => {
   const createEntityTest = (entity: Model.ISdkEntity) => createEntity(testEntityType, entity);
+  const sampleEntity = sampleEntities[testEntityType];
 
   test('List Entities returns 200 and an empty list when none exist', async () => {
     const response = await ApiRequestMap[testEntityType].list(account, getIdPrefix());
@@ -451,12 +470,12 @@ const performTests = (testEntityType: string) => {
 };
 
 describe('Connector', () => {
-  const testEntityType = 'connector';
-  performTests(testEntityType);
+  performTests(Model.EntityType.connector);
 });
 
 describe('Integration', () => {
-  const testEntityType = 'integration';
+  const testEntityType = Model.EntityType.integration;
+  const sampleEntity = sampleEntities[testEntityType];
 
   performTests(testEntityType);
 

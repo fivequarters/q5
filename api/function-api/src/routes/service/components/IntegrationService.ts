@@ -64,13 +64,13 @@ class IntegrationService extends SessionedComponentService<Model.IIntegration, M
       data.configuration.creation = { tags: {}, steps: [], autoStep: true };
     }
 
+    data.configuration.creation.steps = [];
     if (
-      !data.configuration.creation.steps ||
-      data.configuration.creation.steps.length === 0 ||
-      data.configuration.creation.autoStep
+      (!data.configuration.creation.steps ||
+        data.configuration.creation.steps.length === 0 ||
+        data.configuration.creation.autoStep) &&
+      data.configuration.connectors
     ) {
-      data.configuration.creation.steps = [];
-
       Object.entries(data.configuration.connectors).forEach(([connectorLabel, conn]) => {
         const connectorId = conn.connector;
         const name = connectorLabel;
@@ -123,9 +123,11 @@ class IntegrationService extends SessionedComponentService<Model.IIntegration, M
     pkg.dependencies['@fusebit-int/framework'] = pkg.dependencies['@fusebit-int/framework'] || '^2.0.0';
 
     // Make sure packages mentioned in the cfg.connectors block are also included.
-    Object.values(data.configuration.connectors).forEach((c: { package: string }) => {
-      pkg.dependencies[c.package] = pkg.dependencies[c.package] || '*';
-    });
+    if (data.configuration.connectors) {
+      Object.values(data.configuration.connectors).forEach((c: { package: string }) => {
+        pkg.dependencies[c.package] = pkg.dependencies[c.package] || '*';
+      });
+    }
 
     // Always pretty-print package.json so it's human-readable from the start.
     data.files['package.json'] = JSON.stringify(pkg, null, 2);
