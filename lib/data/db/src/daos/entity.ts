@@ -251,7 +251,6 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
       limit: queryOptions.listLimit,
     };
 
-    console.log(`listEntities`, parameters);
     const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
 
     // This is expensive but convienent; prime target for caching at some point.

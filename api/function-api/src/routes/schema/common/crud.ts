@@ -31,7 +31,6 @@ const router = (
         authorize: { operation: v2Permissions[ComponentService.entityType].get },
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
-        console.log(`crud / get`);
         try {
           const entity = await requestToEntity(ComponentService, paramIdNames, req);
           const { statusCode, result } = await ComponentService.getEntity(entity);

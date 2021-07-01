@@ -84,7 +84,7 @@ const subcomponentRouter = (
             tags: { ...req.body.tags },
           };
           const { statusCode, result } = await service.createEntity(leafEntity);
-          res.status(statusCode).json(result);
+          res.status(statusCode).json(Model.entityToSdk(result));
         } catch (e) {
           next(e);
         }

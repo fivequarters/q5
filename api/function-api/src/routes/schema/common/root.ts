@@ -25,7 +25,6 @@ const router = (ComponentService: BaseComponentService<any, any>) => {
         authorize: { operation: v2Permissions[ComponentService.entityType].get },
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
-        console.log('root get /');
         try {
           const response = await ComponentService.dao.listEntities(
             {
@@ -37,7 +36,7 @@ const router = (ComponentService: BaseComponentService<any, any>) => {
               ...query.listPagination(req),
             }
           );
-          // response.items = response.items.map((entity) => Model.entityToSdk(entity));
+          response.items = response.items.map((entity) => Model.entityToSdk(entity));
           res.json(response);
         } catch (e) {
           next(e);
