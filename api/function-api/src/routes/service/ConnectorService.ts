@@ -92,6 +92,14 @@ class ConnectorService extends SessionedComponentService<Model.IConnector, Model
               action: 'session:get',
               resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/connector/{{functionId}}/session/',
             },
+            {
+              action: 'identity:get',
+              resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/connector/{{functionId}}/identity/',
+            },
+            {
+              action: 'identity:put',
+              resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/connector/{{functionId}}/identity/',
+            },
           ],
         },
       },

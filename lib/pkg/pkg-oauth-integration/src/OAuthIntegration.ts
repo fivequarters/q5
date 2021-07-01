@@ -27,7 +27,7 @@ export default class OAuthIntegration {
     // Send request to authority/token passing in the lookupKey
     const tokenResponse = await superagent
       .get(`${baseUrl}/api/${lookupKey}/token`)
-      .set('Authorization', `Bearer ${ctx.state.fusebit.functionAccessToken}`);
+      .set('Authorization', `Bearer ${params.functionAccessToken}`);
 
     // Take the responding token, put it into the object below.
     return {

@@ -12,7 +12,7 @@ router.use(async (ctx: Context, next: Next) => {
   if (engine) {
     engine.setMountUrl(ctx.state.params.baseUrl);
     ctx.state.identityClient = new IdentityClient({
-      accessToken: ctx.state.fusebit.functionAccessToken,
+      accessToken: ctx.state.params.functionAccessToken,
       ...ctx.state.params,
     });
   }
