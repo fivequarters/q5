@@ -25,9 +25,10 @@ afterAll(async () => {
 }, 30000);
 
 type TestableEntityTypes = Extract<Model.EntityType, Model.EntityType.connector | Model.EntityType.integration>;
-type ITestableEntity = Model.IIntegration | Model.IConnector;
+type TestableEntity = Model.IIntegration | Model.IConnector;
+type SampleEntityMap = Record<TestableEntityTypes, (entity?: Model.ISdkEntity) => Model.ISdkEntity>;
 
-const sampleEntitiesWithData: Record<TestableEntityTypes, () => Model.ISdkEntity> = {
+const sampleEntitiesWithData: SampleEntityMap = {
   [Model.EntityType.connector]: () => ({
     data: {
       handler: '@fusebit-int/pkg-oauth-connector',
@@ -49,9 +50,9 @@ const sampleEntitiesWithData: Record<TestableEntityTypes, () => Model.ISdkEntity
           dependencies: {
             ['@fusebit-int/framework']: '^2.0.0',
           },
-          files: ['./integration.js'],
+          files: ['./integrationTest.js'],
         }),
-        ['integration.js']: [
+        ['integrationTest.js']: [
           "const { Router, Manager, Form } = require('@fusebit-int/framework');",
           '',
           'const router = new Router();',
@@ -76,11 +77,11 @@ const sampleEntitiesWithData: Record<TestableEntityTypes, () => Model.ISdkEntity
   }),
 };
 
-const sampleEntitiesWithoutData = (Object as any).fromEntries(
+const sampleEntitiesWithoutData: SampleEntityMap = (Object as any).fromEntries(
   Object.entries(sampleEntitiesWithData).map(([key, value]) => [key, () => ({ ...value(), data: undefined })])
 );
 
-const updateSampleEntities: Record<TestableEntityTypes, (entity: Model.ISdkEntity) => Model.ISdkEntity> = {
+const updateSampleEntities: SampleEntityMap = {
   [Model.EntityType.connector]: (connector: Model.ISdkEntity) => {
     connector.data = connector.data || {};
     connector.data.configuration = connector.data.configuration || {};
@@ -98,6 +99,13 @@ const updateSampleEntities: Record<TestableEntityTypes, (entity: Model.ISdkEntit
   },
 };
 
+const modifyPackageJsonFiles = (entity: Model.ISdkEntity, files: string[]): Model.ISdkEntity => {
+  entity.data.files['package.json'] = JSON.stringify({
+    ...JSON.parse(entity.data.files['package.json']),
+    files,
+  });
+};
+
 const createEntity = async (testEntityType: TestableEntityTypes, entity: Model.ISdkEntity) => {
   const createResponse = await ApiRequestMap[testEntityType].post(account, entity);
   expect(createResponse).toBeHttp({ statusCode: 202 });
@@ -112,12 +120,9 @@ const createEntity = async (testEntityType: TestableEntityTypes, entity: Model.I
   return listResponse.data.items[0];
 };
 
-const performTests = (
-  testEntityType: TestableEntityTypes,
-  sampleEntityMap: Record<TestableEntityTypes, () => Model.ISdkEntity>
-) => {
+const performTests = (testEntityType: TestableEntityTypes, sampleEntityMap: SampleEntityMap) => {
   const createEntityTest = (entity: Model.ISdkEntity) => createEntity(testEntityType, entity);
-  const updateEntity = (entity: Model.ISdkEntity & ITestableEntity) => updateSampleEntities[testEntityType](entity);
+  const updateEntity = (entity: Model.ISdkEntity & TestableEntity) => updateSampleEntities[testEntityType](entity);
   const sampleEntity = sampleEntityMap[testEntityType];
 
   test('List Entities returns 200 and an empty list when none exist', async () => {
@@ -527,7 +532,7 @@ describe('Connector without Data', () => {
   performTests(Model.EntityType.connector, sampleEntitiesWithoutData);
 });
 
-const performIntegrationTest = (sampleEntitiesMap: Record<TestableEntityTypes, () => Model.ISdkEntity>) => {
+const performIntegrationTest = (sampleEntitiesMap: SampleEntityMap) => {
   const testEntityType = Model.EntityType.integration;
   const sampleEntity = sampleEntitiesMap[testEntityType];
 
@@ -581,6 +586,7 @@ const performIntegrationTest = (sampleEntitiesMap: Record<TestableEntityTypes, (
         'module.exports = router;',
       ].join('\n'),
     };
+    modifyPackageJsonFiles(entityUpdated, ['integration.js']);
     const updateResponse = await ApiRequestMap[testEntityType].putAndWait(account, entity.id, entityUpdated);
     expect(updateResponse).toBeHttp({ statusCode: 200 });
     const invokeResponse = await ApiRequestMap[testEntityType].dispatch(account, entity.id, 'GET', '/api/');
@@ -608,6 +614,7 @@ const performIntegrationTest = (sampleEntitiesMap: Record<TestableEntityTypes, (
         'module.exports = router;',
       ].join('\n'),
     };
+    modifyPackageJsonFiles(entity, ['integration.js']);
     const updateResponse = await ApiRequestMap[testEntityType].putAndWait(account, entity.id, entityUpdated);
     expect(updateResponse).toBeHttp({ statusCode: 200 });
     const invokeResponse = await ApiRequestMap[testEntityType].dispatch(account, entity.id, 'POST', '/api/', {
@@ -630,6 +637,7 @@ const performIntegrationTest = (sampleEntitiesMap: Record<TestableEntityTypes, (
       '',
       'module.exports = router;',
     ].join('\n');
+    modifyPackageJsonFiles(entity, ['integration.js']);
 
     let result = await ApiRequestMap[testEntityType].putAndWait(account, entity.id, entity);
     expect(result).toBeHttp({ statusCode: 200 });
