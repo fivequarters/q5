@@ -3,15 +3,14 @@ import express from 'express';
 import { Model } from '@5qtrs/db';
 import { v2Permissions } from '@5qtrs/constants';
 
-import Validation from '../../../validation/component';
+import Validation from '../../validation/component';
 
-import * as common from '../../../middleware/common';
-import query from '../../../handlers/query';
-import body from '../../../handlers/body';
-import pathParams from '../../../handlers/pathParams';
+import * as common from '../../middleware/common';
+import query from '../../handlers/query';
+import body from '../../handlers/body';
+import pathParams from '../../handlers/pathParams';
 
-import { BaseComponentService } from '../../../service';
-import { EntityType } from '@5qtrs/db/libc/model';
+import { BaseComponentService } from '../../service';
 
 const router = (ComponentService: BaseComponentService<any, any>) => {
   const componentRouter = express.Router({ mergeParams: true });
@@ -26,6 +25,7 @@ const router = (ComponentService: BaseComponentService<any, any>) => {
         authorize: { operation: v2Permissions[ComponentService.entityType].get },
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+        console.log('root get /');
         try {
           const response = await ComponentService.dao.listEntities(
             {
@@ -37,7 +37,7 @@ const router = (ComponentService: BaseComponentService<any, any>) => {
               ...query.listPagination(req),
             }
           );
-          response.items = response.items.map((entity) => Model.entityToSdk(entity));
+          // response.items = response.items.map((entity) => Model.entityToSdk(entity));
           res.json(response);
         } catch (e) {
           next(e);

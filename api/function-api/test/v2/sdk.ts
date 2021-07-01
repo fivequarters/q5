@@ -476,6 +476,44 @@ export const ApiRequestMap: { [key: string]: any } = {
       });
       return response;
     },
+    post: async (
+      account: IAccount,
+      entityId: string,
+      body: {
+        tags?: Model.ITags;
+        data?: any;
+        expires?: string;
+        version?: string;
+      },
+      options?: IRequestOptions
+    ) => {
+      const response = await v2Request(account, {
+        method: 'POST',
+        uri: `/integration/${encodeURI(entityId)}/instance/`,
+        body,
+        ...options,
+      });
+      return response;
+    },
+    list: async (
+      account: IAccount,
+      entityId: string,
+      query?: { tag?: { tagKey: string; tagValue?: string }; limit?: number; next?: string; idPrefix?: string },
+      options?: IRequestOptions
+    ) => {
+      const tagString = query?.tag?.tagValue ? `${query.tag.tagKey}=${query.tag.tagValue}` : query?.tag?.tagKey;
+      const queryParams: { [key: string]: any } = { ...query, tag: tagString };
+      Object.keys(queryParams).forEach((key) => {
+        if (queryParams[key] === undefined) {
+          delete queryParams[key];
+        }
+      });
+      return v2Request(account, {
+        method: 'GET',
+        uri: `/integration/${entityId}/instance/?${querystring.stringify(queryParams)}`,
+        ...options,
+      });
+    },
   },
   identity: {
     get: async (account: IAccount, entityId: string, subordinateId: string, options?: IRequestOptions) => {
@@ -496,6 +534,44 @@ export const ApiRequestMap: { [key: string]: any } = {
         ...options,
       });
       return response;
+    },
+    post: async (
+      account: IAccount,
+      entityId: string,
+      body: {
+        tags?: Model.ITags;
+        data?: any;
+        expires?: string;
+        version?: string;
+      },
+      options?: IRequestOptions
+    ) => {
+      const response = await v2Request(account, {
+        method: 'POST',
+        uri: `/connector/${encodeURI(entityId)}/identity/`,
+        body,
+        ...options,
+      });
+      return response;
+    },
+    list: async (
+      account: IAccount,
+      entityId: string,
+      query?: { tag?: { tagKey: string; tagValue?: string }; limit?: number; next?: string; idPrefix?: string },
+      options?: IRequestOptions
+    ) => {
+      const tagString = query?.tag?.tagValue ? `${query.tag.tagKey}=${query.tag.tagValue}` : query?.tag?.tagKey;
+      const queryParams: { [key: string]: any } = { ...query, tag: tagString };
+      Object.keys(queryParams).forEach((key) => {
+        if (queryParams[key] === undefined) {
+          delete queryParams[key];
+        }
+      });
+      return v2Request(account, {
+        method: 'GET',
+        uri: `/connector/${entityId}/identity/?${querystring.stringify(queryParams)}`,
+        ...options,
+      });
     },
   },
 };

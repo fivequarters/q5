@@ -234,7 +234,7 @@ paths:
 
   #############################################################################
   # Identity
-  /v2/account/{accountId}/subscription/{subscriptionId}/integration/{integrationId}/identity/{identityId}:
+  /v2/account/{accountId}/subscription/{subscriptionId}/connector/{connectorId}/identity/{identityId}:
     parameters:
       - $ref: '#/components/parameters/Account'
       - $ref: '#/components/parameters/Subscription'

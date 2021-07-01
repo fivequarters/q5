@@ -3,7 +3,7 @@ import http_error from 'http-errors';
 import RDS, { Model } from '@5qtrs/db';
 import BaseComponentService from './BaseComponentService';
 
-import * as Function from '../../functions';
+import * as Function from '../functions';
 
 class InstanceService extends BaseComponentService<Model.IInstance, Model.IInstance> {
   public readonly entityType: Model.EntityType;

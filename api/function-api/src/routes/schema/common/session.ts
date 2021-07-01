@@ -3,9 +3,9 @@ import express from 'express';
 import { Model } from '@5qtrs/db';
 import { v2Permissions } from '@5qtrs/constants';
 
-import * as common from '../../../middleware/common';
-import { SessionedComponentService } from '../../../service/components/';
-import * as Validation from '../../../validation/session';
+import * as common from '../../middleware/common';
+import { SessionedComponentService } from '../../service';
+import * as Validation from '../../validation/session';
 
 const createSessionRouter = (SessionService: SessionedComponentService<any, any>) => {
   const router = express.Router({ mergeParams: true });
@@ -48,7 +48,8 @@ const createSessionRouter = (SessionService: SessionedComponentService<any, any>
         const session = await SessionService.getSession({
           accountId: req.params.accountId,
           subscriptionId: req.params.subscriptionId,
-          id: SessionService.createSubordinateId({
+          id: Model.createSubordinateId({
+            entityType: Model.EntityType.session,
             componentId: req.params.componentId,
             subordinateId: req.params.sessionId,
           }),
@@ -89,7 +90,8 @@ const createSessionRouter = (SessionService: SessionedComponentService<any, any>
           const session = await SessionService.getSession({
             accountId: req.params.accountId,
             subscriptionId: req.params.subscriptionId,
-            id: SessionService.createSubordinateId({
+            id: Model.createSubordinateId({
+              entityType: Model.EntityType.session,
               componentId: req.params.componentId,
               subordinateId: req.params.sessionId,
             }),
@@ -114,7 +116,8 @@ const createSessionRouter = (SessionService: SessionedComponentService<any, any>
             {
               accountId: req.params.accountId,
               subscriptionId: req.params.subscriptionId,
-              id: SessionService.createSubordinateId({
+              id: Model.createSubordinateId({
+                entityType: Model.EntityType.session,
                 componentId: req.params.componentId,
                 subordinateId: req.params.sessionId,
               }),
@@ -141,7 +144,8 @@ const createSessionRouter = (SessionService: SessionedComponentService<any, any>
             accountId: req.params.accountId,
             subscriptionId: req.params.subscriptionId,
             // Sessions use the non-unique component name, but instances and identities use the database id.
-            id: SessionService.createSubordinateId({
+            id: Model.createSubordinateId({
+              entityType: Model.EntityType.session,
               componentId: req.params.componentId,
               subordinateId: req.params.sessionId,
             }),
@@ -167,7 +171,8 @@ const createSessionRouter = (SessionService: SessionedComponentService<any, any>
           const { result } = await SessionService.startSession({
             accountId: req.params.accountId,
             subscriptionId: req.params.subscriptionId,
-            id: SessionService.createSubordinateId({
+            id: Model.createSubordinateId({
+              entityType: Model.EntityType.session,
               componentId: req.params.componentId,
               subordinateId: req.params.sessionId,
             }),
@@ -197,7 +202,8 @@ const createSessionRouter = (SessionService: SessionedComponentService<any, any>
           const { result } = await SessionService.finishSession({
             accountId: req.params.accountId,
             subscriptionId: req.params.subscriptionId,
-            id: SessionService.createSubordinateId({
+            id: Model.createSubordinateId({
+              entityType: Model.EntityType.session,
               componentId: req.params.componentId,
               subordinateId: req.params.sessionId,
             }),

@@ -5,7 +5,7 @@ import RDS, { Model } from '@5qtrs/db';
 
 import SessionedComponentService from './SessionedComponentService';
 
-import * as Function from '../../functions';
+import * as Function from '../functions';
 
 const defaultIntegration = [
   "const { Router, Manager, Form } = require('@fusebit-int/framework');",
