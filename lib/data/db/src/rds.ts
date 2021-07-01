@@ -114,7 +114,7 @@ class RDS implements IRds {
   public async executeBatchStatement(
     sql: string,
     objectParameterArray: { [key: string]: any }[]
-  ): Promise<PromiseResult<AWS.RDSDataService.ExecuteStatementResponse, AWS.AWSError>> {
+  ): Promise<PromiseResult<AWS.RDSDataService.BatchExecuteStatementResponse, AWS.AWSError>> {
     const { rdsSdk, rdsCredentials } = await this.ensureConnection();
 
     const parameters = objectParameterArray.map(this.createParameterArray);
@@ -216,13 +216,13 @@ class RDS implements IRds {
   }
 
   public readonly DAO: IDaoCollection = {
-    connector: new Connector(this),
-    integration: new Integration(this),
-    storage: new Storage(this),
-    operation: new Operation(this),
-    session: new Session(this),
-    identity: new Identity(this),
-    instance: new Instance(this),
+    connector: new Connector(this as IRds),
+    integration: new Integration(this as IRds),
+    storage: new Storage(this as IRds),
+    operation: new Operation(this as IRds),
+    session: new Session(this as IRds),
+    identity: new Identity(this as IRds),
+    instance: new Instance(this as IRds),
   };
 
   public ensureRecords(

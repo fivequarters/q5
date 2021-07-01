@@ -196,6 +196,48 @@ function toBeUUID(received: string) {
   return { message: `Not a valid UUID: ${received}`, pass };
 }
 
+const toExtend = <T>(received: T, expected: T): jest.CustomMatcherResult => {
+  return { pass: deepComparison(received, expected), message: () => 'Deep Comparison Failure' };
+};
+
+const deepComparison = <T>(a: T, b: T): boolean => {
+  if (b === undefined || b === {} || (Array.isArray(b) && b.length === 0)) {
+    return true;
+  }
+  if (a === b) {
+    return true;
+  }
+
+  if (typeof a === 'object' && typeof b === 'string') {
+    const bString: string = b;
+    expect(() => JSON.parse(bString)).not.toThrowError();
+    b = JSON.parse(b);
+  }
+
+  if (typeof a === 'string' && typeof b === 'object') {
+    const aString: string = a;
+    expect(() => JSON.parse(aString)).not.toThrowError();
+    a = JSON.parse(a);
+  }
+
+  if (Array.isArray(a) && Array.isArray(b)) {
+    const maxLength = a.length > b.length ? a.length : b.length;
+    const aArray: any[] = a;
+    const bArray: any[] = b;
+    return Array(maxLength)
+      .fill(undefined)
+      .every((_, index) => deepComparison(aArray[index], bArray[index]));
+  }
+
+  if (typeof a === 'object' && typeof b === 'object') {
+    const allKeys = Object.keys({ ...a, ...b });
+    return allKeys.every((key) => deepComparison((<Record<string, any>>a)[key], (<Record<string, any>>b)[key]));
+  }
+
+  expect(a).toEqual(b);
+  return false;
+};
+
 const matchers = {
   toBeHttp,
   toBeHttpError,
@@ -206,6 +248,7 @@ const matchers = {
   toBeStorageConflict,
   toBeStorageNotFound,
   toBeUUID,
+  toExtend,
 };
 
 declare global {
@@ -220,6 +263,7 @@ declare global {
       toBeStorageConflict: (storageId: string, etag: string, isUpdate?: boolean, storagePath?: string) => R;
       toBeStorageNotFound: (storageId: string, storagePath?: string) => R;
       toBeUUID: () => R;
+      toExtend: (expected: T) => R;
     }
   }
 }

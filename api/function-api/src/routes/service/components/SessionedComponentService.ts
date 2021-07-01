@@ -188,6 +188,7 @@ export default abstract class SessionedComponentService<
 
     await RDS.inTransaction(async (daos) => {
       await daos.session.createEntity(session);
+      // FIXME: is this update necessary?
       await daos.session.updateEntity(parentSession);
     });
 
@@ -388,6 +389,11 @@ export default abstract class SessionedComponentService<
     };
 
     return { statusCode: results.failed.length === 0 ? 200 : 500, result: leafSessionResults };
+  };
+
+  protected persistFromSession = async (dao: Model.IEntityDao<E>, replacementIntegrationId?: string) => {
+    if (!!replacementIntegrationId) {
+    }
   };
 
   public instantiateLeafSession = async (

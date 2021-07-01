@@ -8,35 +8,23 @@ import * as Common from './common';
 
 const Data = Joi.object().keys({
   handler: Common.npmPackageName,
-  configuration: Joi.object().keys({
-    muxIntegration: Common.entityId,
-    configuration: Joi.object().keys({
-      creation: Joi.object().keys({
-        tags: tags,
-        steps: Joi.array().items(
-          Joi.object().keys({
-            name: Joi.string(),
-            target: Joi.object({
-              entityType: Joi.string(),
-              entityId: Joi.string(),
-            }),
-          })
-        ),
-        autoStep: Joi.boolean(),
-      }),
-    }),
-    connectors: Joi.object().pattern(
-      Joi.string(),
-      Joi.object(
-        {
-          package: Common.npmPackageName,
-          connector: Joi.string(),
-        },
-        { fallthrough: true }
-      )
-    ),
-  }),
+  configuration: Joi.object()
+    .keys({
+      muxIntegration: Common.entityId,
+      scope: Joi.string(),
+      package: Common.npmPackageName,
+      clientId: Joi.string(),
+      tokenUrl: Joi.string(),
+      clientSecret: Joi.string(),
+      authorizationUrl: Joi.string(),
+      refreshErrorLimit: Joi.number(),
+      refreshWaitCountLimit: Joi.number(),
+      refreshBackOffIncrement: Joi.number(),
+      accessTokenExpirationBuffer: Joi.number(),
+    })
+    .unknown(true),
   files: EntityCommon.Files.optional(),
+  tags: tags,
 });
 
 const Entity = EntityCommon.validateEntity(Data);

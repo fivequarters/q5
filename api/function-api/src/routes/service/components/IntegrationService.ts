@@ -41,24 +41,35 @@ class IntegrationService extends SessionedComponentService<Model.IIntegration, M
     this.connectorService = service;
   };
 
-  public sanitizeEntity = (ent: Model.IEntity): Model.IEntity => {
+  public sanitizeEntity = (ent: Model.IIntegration): Model.IEntity => {
     const entity = ent as Model.IIntegration;
-    const data = entity.data;
+    const originalData = JSON.parse(JSON.stringify(entity.data || {}));
 
-    if (!data || Object.keys(data).length === 0) {
-      // Default entity.data:
-      entity.data = {
+    entity.data = {
+      ...{
         handler: './integration',
-        files: {
-          ['integration.js']: defaultIntegration,
-          ['package.json']: JSON.stringify(defaultPackage(entity), null, 2),
+        configuration: {
+          connectors: {},
+          creation: {
+            tags: {},
+            steps: [],
+            autoStep: true,
+          },
         },
-        configuration: { connectors: {}, creation: { tags: {}, steps: [], autoStep: true } },
-      };
+      },
+      ...originalData,
+      files: {
+        ['integration.js']: defaultIntegration,
+        ['package.json']: JSON.stringify(defaultPackage(entity), null, 2),
+        ...originalData.files,
+      },
+    };
 
+    if (Object.keys(originalData).length === 0) {
       return entity;
     }
 
+    const data = entity.data;
     // Steps are not present; deduce from connectors.
     if (!data.configuration.creation) {
       data.configuration.creation = { tags: {}, steps: [], autoStep: true };
@@ -114,10 +125,13 @@ class IntegrationService extends SessionedComponentService<Model.IIntegration, M
     data.files = safePathMap(data.files);
 
     // Create the package.json.
-    const pkg = {
-      ...defaultPackage(entity),
-      ...(data.files['package.json'] ? JSON.parse(data.files['package.json']) : defaultPackage(entity)),
-    };
+    const pkg: Record<string, any> = defaultPackage(entity);
+    if (!!data.files['package.json']) {
+      if (typeof data.files['package.json'] === 'string') {
+        data.files['package.json'] = JSON.parse(data.files['package.json']);
+      }
+      Object.assign(pkg, data.files['package.json']);
+    }
 
     // Enforce @fusebit-int/framework as a dependency.
     pkg.dependencies['@fusebit-int/framework'] = pkg.dependencies['@fusebit-int/framework'] || '^2.0.0';
