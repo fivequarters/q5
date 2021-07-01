@@ -216,13 +216,13 @@ class RDS implements IRds {
   }
 
   public readonly DAO: IDaoCollection = {
-    connector: new Connector(this as IRds),
-    integration: new Integration(this as IRds),
-    storage: new Storage(this as IRds),
-    operation: new Operation(this as IRds),
-    session: new Session(this as IRds),
-    identity: new Identity(this as IRds),
-    instance: new Instance(this as IRds),
+    connector: new Connector(this),
+    integration: new Integration(this),
+    storage: new Storage(this),
+    operation: new Operation(this),
+    session: new Session(this),
+    identity: new Identity(this),
+    instance: new Instance(this),
   };
 
   public ensureRecords(

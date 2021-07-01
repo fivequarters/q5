@@ -11,20 +11,9 @@ const Data = Joi.object().keys({
   configuration: Joi.object()
     .keys({
       muxIntegration: Common.entityId,
-      scope: Joi.string(),
-      package: Common.npmPackageName,
-      clientId: Joi.string(),
-      tokenUrl: Joi.string(),
-      clientSecret: Joi.string(),
-      authorizationUrl: Joi.string(),
-      refreshErrorLimit: Joi.number(),
-      refreshWaitCountLimit: Joi.number(),
-      refreshBackOffIncrement: Joi.number(),
-      accessTokenExpirationBuffer: Joi.number(),
     })
     .unknown(true),
   files: EntityCommon.Files.optional(),
-  tags: tags,
 });
 
 const Entity = EntityCommon.validateEntity(Data);

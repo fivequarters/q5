@@ -78,8 +78,8 @@ const updateSampleEntities: SampleEntityMap<Model.ISdkEntity> = {
   [Model.EntityType.connector]: (connector: Model.ISdkEntity) => {
     connector.data = connector.data || {};
     connector.data.configuration = connector.data.configuration || {};
-    connector.data.configuration.scope = randomValue('scope');
-    connector.tags = { newTag: randomValue('newTag') };
+    connector.data.configuration.scope = newId('scope');
+    connector.tags = { newTag: newId('newTag') };
     return connector;
   },
   [Model.EntityType.integration]: (integration: Model.ISdkEntity) => {
@@ -87,15 +87,13 @@ const updateSampleEntities: SampleEntityMap<Model.ISdkEntity> = {
     integration.data.configuration = integration.data.configuration || {};
     integration.data.configuration.creation = integration.data.configuration.creation || {};
     integration.data.configuration.creation.autoStep = !integration.data.configuration.creation.autoStep;
-    integration.tags = { newTag: randomValue('newTag') };
+    integration.tags = { newTag: newId('newTag') };
     return integration;
   },
 };
 
 // Utility Functions
 const newId = (wart: string): string => `${boundaryId}-${wart}-${Math.floor(Math.random() * 99999999).toString(8)}`;
-
-const randomValue = (wart: string): string => `${wart}--${Math.floor(Math.random() * 99999999).toString(8)}`;
 
 const getIdPrefix = () => ({ idPrefix: boundaryId });
 

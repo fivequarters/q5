@@ -196,6 +196,24 @@ function toBeUUID(received: string) {
   return { message: `Not a valid UUID: ${received}`, pass };
 }
 
+/*
+ * toExtend usage: expect(received).toExtend(expected);
+ *
+ * `toExtend` is similar to `toMatchObject` with a few improvements.
+ *
+ * Similar to `toMatchObject`, `toExtend` recursively checks objects and verifies both their shape and values.
+ * `received` is expected to have the same shape/values as `expected`, but is allowed to have additional attributes
+ * not found on `expected`.
+ *
+ * There are 2 main improvements that `toExtend` provides beyond the capabilities of `toMatchObject`:
+ *  1. `toMatchObject` will demand that 2 arrays have identical sizes.  `received` is only permitted to have attributes
+ *      added to objects it contains.  `toExtend`, however, will pass it's test as long as every array provided by
+ *      `received` contains *at least* the same entries as the array provided by expected`.
+ *  2. `toExtend` also attempts to match stringified json values, by parsing them before comparing.  This is valuable
+ *      to allow for the same recursive patterns applied to the rest of the object, and also to account for the
+ *      potential for 2 stringified objects to be functionally identical, but with differing whitespace or order of
+ *      attributes.
+ */
 const toExtend = <T extends string | object, R extends string | object>(
   received: T,
   expected: R
