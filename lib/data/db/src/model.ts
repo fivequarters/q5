@@ -128,6 +128,12 @@ export const decomposeSubordinateId = (
   };
 };
 
+export interface ISubordinateId {
+  entityType?: EntityType | string;
+  componentId: string;
+  subordinateId: string;
+}
+
 // Remove any extra fields returned as part of the entity.
 export const entityToSdk = (entity: IEntity): ISdkEntity => {
   return {
@@ -182,6 +188,7 @@ export interface IConnector extends IEntity {
     handler: string;
     configuration: {
       muxIntegration: IEntityId;
+      [key: string]: any;
     };
     files: Record<string, string>;
   };

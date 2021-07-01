@@ -3,7 +3,7 @@ import http_error from 'http-errors';
 import { v4 as uuidv4 } from 'uuid';
 import RDS, { Model } from '@5qtrs/db';
 
-import BaseComponentService, { IServiceResult, ISubordinateId } from './BaseComponentService';
+import BaseComponentService, { IServiceResult } from './BaseComponentService';
 import { operationService } from './OperationService';
 
 const MasterSessionStepName = '';
@@ -283,7 +283,7 @@ export default abstract class SessionedComponentService<
 
   protected persistTrunkSession = async (
     session: Model.ITrunkSession,
-    masterSessionId: ISubordinateId
+    masterSessionId: Model.ISubordinateId
   ): Promise<IServiceResult> => {
     const entity: Model.IEntity = {
       accountId: session.accountId,
@@ -393,7 +393,7 @@ export default abstract class SessionedComponentService<
   public instantiateLeafSession = async (
     daos: Model.IDaoCollection,
     session: Model.ILeafSession,
-    masterSessionId: ISubordinateId,
+    masterSessionId: Model.ISubordinateId,
     serviceEntityId: string
   ): Promise<IServiceResult> => {
     const service =
