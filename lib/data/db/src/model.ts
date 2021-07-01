@@ -2,7 +2,6 @@ import * as AWS from 'aws-sdk';
 import { PromiseResult } from 'aws-sdk/lib/request';
 import { RDSDataService } from 'aws-sdk';
 import { Metadata, SqlRecords } from 'aws-sdk/clients/rdsdataservice';
-import { Model } from './index';
 
 export interface IRds {
   purgeExpiredItems: () => Promise<boolean>;
@@ -125,7 +124,7 @@ export const decomposeSubordinateId = (
 };
 
 export interface ISubordinateId {
-  entityType?: Model.EntityType | string;
+  entityType?: EntityType | string;
   componentId: string;
   subordinateId: string;
 }

@@ -26,9 +26,7 @@ const Data = Joi.alternatives().try(
             autoStep: Joi.boolean().optional().default(false),
           }),
         })
-        .required()
-        .unknown(true),
-
+        .required(),
       files: EntityCommon.Files.required(),
     })
     .unknown(true),

@@ -188,7 +188,6 @@ export default abstract class SessionedComponentService<
 
     await RDS.inTransaction(async (daos) => {
       await daos.session.createEntity(session);
-      // FIXME: is this update necessary?
       await daos.session.updateEntity(parentSession);
     });
 

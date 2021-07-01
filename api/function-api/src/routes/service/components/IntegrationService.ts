@@ -41,35 +41,24 @@ class IntegrationService extends SessionedComponentService<Model.IIntegration, M
     this.connectorService = service;
   };
 
-  public sanitizeEntity = (ent: Model.IIntegration): Model.IEntity => {
+  public sanitizeEntity = (ent: Model.IEntity): Model.IEntity => {
     const entity = ent as Model.IIntegration;
-    const originalData = JSON.parse(JSON.stringify(entity.data || {}));
+    const data = entity.data;
 
-    entity.data = {
-      ...{
+    if (!data || Object.keys(data).length === 0) {
+      // Default entity.data:
+      entity.data = {
         handler: './integration',
-        configuration: {
-          connectors: {},
-          creation: {
-            tags: {},
-            steps: [],
-            autoStep: true,
-          },
+        files: {
+          ['integration.js']: defaultIntegration,
+          ['package.json']: JSON.stringify(defaultPackage(entity), null, 2),
         },
-      },
-      ...originalData,
-      files: {
-        ['integration.js']: defaultIntegration,
-        ['package.json']: JSON.stringify(defaultPackage(entity), null, 2),
-        ...originalData.files,
-      },
-    };
+        configuration: { connectors: {}, creation: { tags: {}, steps: [], autoStep: true } },
+      };
 
-    if (Object.keys(originalData).length === 0) {
       return entity;
     }
 
-    const data = entity.data;
     // Steps are not present; deduce from connectors.
     if (!data.configuration.creation) {
       data.configuration.creation = { tags: {}, steps: [], autoStep: true };
@@ -81,7 +70,8 @@ class IntegrationService extends SessionedComponentService<Model.IIntegration, M
       data.configuration.creation.autoStep
     ) {
       data.configuration.creation.steps = [];
-      Object.entries(data.configuration.connectors || {}).forEach(([connectorLabel, conn]) => {
+
+      Object.entries(data.configuration.connectors).forEach(([connectorLabel, conn]) => {
         const connectorId = conn.connector;
         const name = connectorLabel;
         data.configuration.creation.steps.push({
@@ -124,23 +114,18 @@ class IntegrationService extends SessionedComponentService<Model.IIntegration, M
     data.files = safePathMap(data.files);
 
     // Create the package.json.
-    const pkg: Record<string, any> = defaultPackage(entity);
-    if (!!data.files['package.json']) {
-      if (typeof data.files['package.json'] === 'string') {
-        data.files['package.json'] = JSON.parse(data.files['package.json']);
-      }
-      Object.assign(pkg, data.files['package.json']);
-    }
+    const pkg = {
+      ...defaultPackage(entity),
+      ...(data.files['package.json'] ? JSON.parse(data.files['package.json']) : defaultPackage(entity)),
+    };
 
     // Enforce @fusebit-int/framework as a dependency.
     pkg.dependencies['@fusebit-int/framework'] = pkg.dependencies['@fusebit-int/framework'] || '^2.0.0';
 
     // Make sure packages mentioned in the cfg.connectors block are also included.
-    if (data.configuration.connectors) {
-      Object.values(data.configuration.connectors).forEach((c: { package: string }) => {
-        pkg.dependencies[c.package] = pkg.dependencies[c.package] || '*';
-      });
-    }
+    Object.values(data.configuration.connectors).forEach((c: { package: string }) => {
+      pkg.dependencies[c.package] = pkg.dependencies[c.package] || '*';
+    });
 
     // Always pretty-print package.json so it's human-readable from the start.
     data.files['package.json'] = JSON.stringify(pkg, null, 2);
