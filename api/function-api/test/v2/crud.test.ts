@@ -99,22 +99,23 @@ const updateSampleEntities: SampleEntityMap<Model.ISdkEntity> = {
   },
 };
 
-const setFiles = (entity: Model.ISdkEntity, files: Record<string, string>, handler?: string): Model.ISdkEntity => {
-  if (!!handler && !Object.keys(files).includes(handler)) {
+const setFiles = (entity: Model.ISdkEntity, newFiles: Record<string, string>, handler?: string): Model.ISdkEntity => {
+  const updatedEntity = entity;
+  if (!!handler && !Object.keys(newFiles).includes(handler)) {
     throw 'Cannot set handler to a file that is not included';
   } else if (handler) {
     entity.data.handler = handler;
   }
 
-  entity.data.files['package.json'] = JSON.parse(entity.data.files['package.json']);
-  entity.data.files['package.json'].files = [];
-  Object.entries(files).forEach(([key, value]) => {
-    entity.data.files['package.json'].files.push(key);
-    entity.data.files[key] = value;
+  const packageJson = JSON.parse(updatedEntity.data.files['package.json']);
+  const packageFiles: string[] = [];
+  Object.entries(newFiles).forEach(([key, value]) => {
+    packageFiles.push(key);
+    updatedEntity.data.files[key] = value;
   });
-
-  entity.data.files['package.json'] = JSON.stringify(entity.data.files['package.json']);
-  return entity;
+  packageJson.files = packageFiles;
+  updatedEntity.data.files['package.json'] = JSON.stringify(packageJson);
+  return updatedEntity;
 };
 
 const createEntity = async (testEntityType: TestableEntityTypes, entity: Model.ISdkEntity) => {
@@ -584,7 +585,7 @@ const performIntegrationTest = (sampleEntitiesMap: SampleEntityMap) => {
     };
     const newFiles = {
       ...entity.data.files,
-      'integration.js': [
+      './integration.js': [
         "const { Router, Manager, Form } = require('@fusebit-int/framework');",
         "const connectors = require('@fusebit-int/framework').connectors;",
         '',
@@ -597,7 +598,7 @@ const performIntegrationTest = (sampleEntitiesMap: SampleEntityMap) => {
         'module.exports = router;',
       ].join('\n'),
     };
-    setFiles(entityUpdated, newFiles, 'integration.js');
+    Object.assign(entityUpdated, setFiles(entityUpdated, newFiles, './integration.js'));
     const updateResponse = await ApiRequestMap[testEntityType].putAndWait(account, entity.id, entityUpdated);
     expect(updateResponse).toBeHttp({ statusCode: 200 });
     const invokeResponse = await ApiRequestMap[testEntityType].dispatch(account, entity.id, 'GET', '/api/');
@@ -613,7 +614,7 @@ const performIntegrationTest = (sampleEntitiesMap: SampleEntityMap) => {
 
     const newFiles = {
       ...entity.data.files,
-      'integration.js': [
+      './integration.js': [
         "const { Router, Manager, Form } = require('@fusebit-int/framework');",
         "const connectors = require('@fusebit-int/framework').connectors;",
         '',
@@ -626,7 +627,8 @@ const performIntegrationTest = (sampleEntitiesMap: SampleEntityMap) => {
         'module.exports = router;',
       ].join('\n'),
     };
-    setFiles(entityUpdated, newFiles, 'integration.js');
+
+    Object.assign(entityUpdated, setFiles(entityUpdated, newFiles, './integration.js'));
     const updateResponse = await ApiRequestMap[testEntityType].putAndWait(account, entity.id, entityUpdated);
     expect(updateResponse).toBeHttp({ statusCode: 200 });
     const invokeResponse = await ApiRequestMap[testEntityType].dispatch(account, entity.id, 'POST', '/api/', {
@@ -639,7 +641,7 @@ const performIntegrationTest = (sampleEntitiesMap: SampleEntityMap) => {
     const entity = await createEntity(testEntityType, sampleEntity());
     const newFiles = {
       ...entity.data.files,
-      'integration.js': [
+      './integration.js': [
         "const { Router, Manager, Form } = require('@fusebit-int/framework');",
         "const connectors = require('@fusebit-int/framework').connectors;",
         '',
@@ -652,7 +654,7 @@ const performIntegrationTest = (sampleEntitiesMap: SampleEntityMap) => {
         'module.exports = router;',
       ].join('\n'),
     };
-    setFiles(entity, newFiles, 'integration.js');
+    Object.assign(entity, setFiles(entity, newFiles, './integration.js'));
 
     let result = await ApiRequestMap[testEntityType].putAndWait(account, entity.id, entity);
     expect(result).toBeHttp({ statusCode: 200 });
