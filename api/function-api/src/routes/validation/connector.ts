@@ -1,5 +1,3 @@
-import { tags } from './common';
-
 const Joi = require('joi');
 
 import * as EntityCommon from './entities';
