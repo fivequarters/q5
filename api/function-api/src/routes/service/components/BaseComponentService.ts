@@ -20,12 +20,6 @@ export interface IDispatchParams {
   originalUrl: string;
 }
 
-export interface ISubordinateId {
-  entityType?: Model.EntityType | string;
-  componentId: string;
-  subordinateId: string;
-}
-
 const rejectPermissionAgent = {
   checkPermissionSubset: () => {
     console.log(`XXX Temporary Grant-all on Permissions Until Finalized`);

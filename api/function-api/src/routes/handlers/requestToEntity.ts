@@ -14,6 +14,7 @@ const requestToEntity = async (
         delete obj[key];
       }
     });
+    return obj;
   };
   return Object.assign(
     await ComponentService.loadDependentEntities(

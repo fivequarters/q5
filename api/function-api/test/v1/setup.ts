@@ -196,6 +196,81 @@ function toBeUUID(received: string) {
   return { message: `Not a valid UUID: ${received}`, pass };
 }
 
+/*
+ * toExtend usage: expect(received).toExtend(expected);
+ *
+ * `toExtend` is similar to `toMatchObject` with a few improvements.
+ *
+ * Similar to `toMatchObject`, `toExtend` recursively checks objects and verifies both their shape and values.
+ * `received` is expected to have the same shape/values as `expected`, but is allowed to have additional attributes
+ * not found on `expected`.
+ *
+ * There are 2 main improvements that `toExtend` provides beyond the capabilities of `toMatchObject`:
+ *  1. `toMatchObject` will demand that 2 arrays have identical sizes.  `received` is only permitted to have attributes
+ *      added to objects it contains.  `toExtend`, however, will pass it's test as long as every array provided by
+ *      `received` contains *at least* the same entries as the array provided by expected`.
+ *  2. `toExtend` also attempts to match stringified json values, by parsing them before comparing.  This is valuable
+ *      to allow for the same recursive patterns applied to the rest of the object, and also to account for the
+ *      potential for 2 stringified objects to be functionally identical, but with differing whitespace or order of
+ *      attributes.
+ */
+const toExtend = <T extends string | object, R extends string | object>(
+  received: T,
+  expected: R
+): jest.CustomMatcherResult => {
+  return { pass: deepComparison(received, expected), message: () => 'Deep Comparison Failure' };
+};
+
+const deepComparison = <T extends string | object, R extends string | object>(a: T, b: R): boolean => {
+  if (b === undefined) {
+    return true;
+  }
+  if (b === {} && typeof a === 'object' && !Array.isArray(a)) {
+    return true;
+  }
+  if (Array.isArray(b) && b.length === 0 && Array.isArray(a)) {
+    return true;
+  }
+  if (typeof a === typeof b && a.toString() === b.toString()) {
+    return true;
+  }
+
+  if (typeof a === 'object' && typeof b === 'string') {
+    const bString: string = b;
+    expect(() => JSON.parse(bString)).not.toThrowError();
+    b = JSON.parse(b);
+  }
+
+  if (typeof a === 'string' && typeof b === 'object') {
+    const aString: string = a;
+    expect(() => JSON.parse(aString)).not.toThrowError();
+    a = JSON.parse(a);
+  }
+
+  if (Array.isArray(a) && Array.isArray(b)) {
+    const maxLength = a.length > b.length ? a.length : b.length;
+    const aArray: any[] = a;
+    const bArray: any[] = b;
+    return Array(maxLength)
+      .fill(undefined)
+      .every((_, index) => deepComparison(aArray[index], bArray[index]));
+  }
+
+  if (typeof a === 'object' && typeof b === 'object') {
+    const allKeys = Object.keys({ ...(<object>a), ...(<object>b) });
+    return allKeys.every((key) => deepComparison((<Record<string, any>>a)[key], (<Record<string, any>>b)[key]));
+  }
+
+  try {
+    a = JSON.parse(<string>a);
+  } catch (e) {}
+  try {
+    b = JSON.parse(<string>a);
+  } catch (e) {}
+  expect(a).toMatchObject(b);
+  return false;
+};
+
 const matchers = {
   toBeHttp,
   toBeHttpError,
@@ -206,6 +281,7 @@ const matchers = {
   toBeStorageConflict,
   toBeStorageNotFound,
   toBeUUID,
+  toExtend,
 };
 
 declare global {
@@ -220,6 +296,7 @@ declare global {
       toBeStorageConflict: (storageId: string, etag: string, isUpdate?: boolean, storagePath?: string) => R;
       toBeStorageNotFound: (storageId: string, storagePath?: string) => R;
       toBeUUID: () => R;
+      toExtend: (expected: T) => R;
     }
   }
 }
