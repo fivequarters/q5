@@ -2,10 +2,21 @@ const Joi = require('joi');
 
 import * as Common from './common';
 
+// id is required but data is optional
 const validateEntity = (data: any) =>
   Joi.object().keys({
     id: Common.entityId.required(),
     data,
+    tags: Common.tags,
+    version: Joi.string().guid(),
+    expires: Joi.date().iso(),
+  });
+
+// id is optional, but data is required.
+const validatePostEntity = (data: any) =>
+  Joi.object().keys({
+    id: Common.entityId,
+    data: data.required(),
     tags: Common.tags,
     version: Joi.string().guid(),
     expires: Joi.date().iso(),
@@ -38,4 +49,4 @@ const EntityIdQuery = Joi.object().keys({
 
 const Files = Joi.object();
 
-export { validateEntity, EntityId, EntityIdParams, Files, EntityIdQuery };
+export { validateEntity, validatePostEntity, EntityId, EntityIdParams, Files, EntityIdQuery };

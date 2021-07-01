@@ -1,5 +1,3 @@
-import { request } from '@5qtrs/request';
-
 import { Model } from '@5qtrs/db';
 import { cleanupEntities, ApiRequestMap, createPair } from './sdk';
 
@@ -11,10 +9,13 @@ beforeEach(() => {
 });
 
 afterAll(async () => {
-  // await cleanupEntities(account);
+  await cleanupEntities(account);
 }, 30000);
 
-const performTests = (entityType: Model.EntityType, getParentId: any) => {
+const performTests = (
+  entityType: Model.EntityType,
+  getParentId: (pair: { connectorId: string; integrationId: string }) => string
+) => {
   test('Entities require data', async () => {
     const pair = await createPair(account, boundaryId);
     const response = await ApiRequestMap[entityType].post(account, getParentId(pair));
