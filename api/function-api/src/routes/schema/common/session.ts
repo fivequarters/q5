@@ -49,7 +49,7 @@ const createSessionRouter = (SessionService: SessionedComponentService<any, any>
           accountId: req.params.accountId,
           subscriptionId: req.params.subscriptionId,
           id: Model.createSubordinateId({
-            entityType: Model.EntityType.session,
+            entityType: SessionService.entityType,
             componentId: req.params.componentId,
             subordinateId: req.params.sessionId,
           }),
@@ -91,7 +91,7 @@ const createSessionRouter = (SessionService: SessionedComponentService<any, any>
             accountId: req.params.accountId,
             subscriptionId: req.params.subscriptionId,
             id: Model.createSubordinateId({
-              entityType: Model.EntityType.session,
+              entityType: SessionService.entityType,
               componentId: req.params.componentId,
               subordinateId: req.params.sessionId,
             }),
@@ -117,7 +117,7 @@ const createSessionRouter = (SessionService: SessionedComponentService<any, any>
               accountId: req.params.accountId,
               subscriptionId: req.params.subscriptionId,
               id: Model.createSubordinateId({
-                entityType: Model.EntityType.session,
+                entityType: SessionService.entityType,
                 componentId: req.params.componentId,
                 subordinateId: req.params.sessionId,
               }),
@@ -145,7 +145,7 @@ const createSessionRouter = (SessionService: SessionedComponentService<any, any>
             subscriptionId: req.params.subscriptionId,
             // Sessions use the non-unique component name, but instances and identities use the database id.
             id: Model.createSubordinateId({
-              entityType: Model.EntityType.session,
+              entityType: SessionService.entityType,
               componentId: req.params.componentId,
               subordinateId: req.params.sessionId,
             }),
@@ -172,7 +172,7 @@ const createSessionRouter = (SessionService: SessionedComponentService<any, any>
             accountId: req.params.accountId,
             subscriptionId: req.params.subscriptionId,
             id: Model.createSubordinateId({
-              entityType: Model.EntityType.session,
+              entityType: SessionService.entityType,
               componentId: req.params.componentId,
               subordinateId: req.params.sessionId,
             }),
@@ -203,7 +203,7 @@ const createSessionRouter = (SessionService: SessionedComponentService<any, any>
             accountId: req.params.accountId,
             subscriptionId: req.params.subscriptionId,
             id: Model.createSubordinateId({
-              entityType: Model.EntityType.session,
+              entityType: SessionService.entityType,
               componentId: req.params.componentId,
               subordinateId: req.params.sessionId,
             }),

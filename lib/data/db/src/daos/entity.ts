@@ -173,6 +173,7 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
       entityId: params.id,
       filterExpired: queryOptions.filterExpired,
     };
+
     const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
     return this.sqlToIEntity<ET>(result)[0];
   }
