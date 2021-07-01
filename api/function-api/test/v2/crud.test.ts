@@ -4,7 +4,6 @@ import { cleanupEntities, ApiRequestMap } from './sdk';
 import { callFunction, getFunctionLocation, INVALID_UUID } from '../v1/sdk';
 
 import { getEnv } from '../v1/setup';
-import { EntityType, ISdkEntity } from '@5qtrs/db/libc/model';
 
 let { account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv();
 beforeEach(() => {
@@ -81,15 +80,15 @@ const sampleEntitiesWithoutData = (Object as any).fromEntries(
   Object.entries(sampleEntitiesWithData).map(([key, value]) => [key, () => ({ ...value(), data: undefined })])
 );
 
-const updateSampleEntities: Record<TestableEntityTypes, (entity: ISdkEntity) => ISdkEntity> = {
-  [EntityType.connector]: (connector: Model.ISdkEntity) => {
+const updateSampleEntities: Record<TestableEntityTypes, (entity: Model.ISdkEntity) => Model.ISdkEntity> = {
+  [Model.EntityType.connector]: (connector: Model.ISdkEntity) => {
     connector.data = connector.data || {};
     connector.data.configuration = connector.data.configuration || {};
     connector.data.configuration.scope = randomValue('scope');
     connector.tags = { newTag: randomValue('newTag') };
     return connector;
   },
-  [EntityType.integration]: (integration: Model.ISdkEntity) => {
+  [Model.EntityType.integration]: (integration: Model.ISdkEntity) => {
     integration.data = integration.data || {};
     integration.data.configuration = integration.data.configuration || {};
     integration.data.configuration.creation = integration.data.configuration.creation || {};
