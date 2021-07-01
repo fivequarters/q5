@@ -4,6 +4,7 @@ import { cleanupEntities, ApiRequestMap } from './sdk';
 import { callFunction, getFunctionLocation, INVALID_UUID } from '../v1/sdk';
 
 import { getEnv } from '../v1/setup';
+import { EntityType, ISdkEntity } from '@5qtrs/db/libc/model';
 
 let { account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv();
 beforeEach(() => {
@@ -11,6 +12,7 @@ beforeEach(() => {
 });
 
 const newId = (wart: string): string => `${boundaryId}-${wart}-${Math.floor(Math.random() * 99999999).toString(8)}`;
+const randomValue = (wart: string): string => `${wart}--${Math.floor(Math.random() * 99999999).toString(8)}`;
 
 const getIdPrefix = () => ({ idPrefix: boundaryId });
 
@@ -24,6 +26,7 @@ afterAll(async () => {
 }, 30000);
 
 type TestableEntityTypes = Extract<Model.EntityType, Model.EntityType.connector | Model.EntityType.integration>;
+type ITestableEntity = Model.IIntegration | Model.IConnector;
 
 const sampleEntitiesWithData: Record<TestableEntityTypes, () => Model.ISdkEntity> = {
   [Model.EntityType.connector]: () => ({
@@ -42,12 +45,13 @@ const sampleEntitiesWithData: Record<TestableEntityTypes, () => Model.ISdkEntity
     data: {
       handler: './integration.js',
       files: {
-        ['package.json']: {
+        ['package.json']: JSON.stringify({
+          scripts: {},
           dependencies: {
             ['@fusebit-int/framework']: '^2.0.0',
           },
           files: ['./integration.js'],
-        },
+        }),
         ['integration.js']: [
           "const { Router, Manager, Form } = require('@fusebit-int/framework');",
           '',
@@ -64,7 +68,8 @@ const sampleEntitiesWithData: Record<TestableEntityTypes, () => Model.ISdkEntity
         ].join('\n'),
       },
       configuration: {
-        autoStep: true,
+        connectors: {},
+        creation: { tags: {}, steps: [], autoStep: true },
       },
     },
     id: newId('Test'),
@@ -75,6 +80,24 @@ const sampleEntitiesWithData: Record<TestableEntityTypes, () => Model.ISdkEntity
 const sampleEntitiesWithoutData = (Object as any).fromEntries(
   Object.entries(sampleEntitiesWithData).map(([key, value]) => [key, () => ({ ...value(), data: undefined })])
 );
+
+const updateSampleEntities: Record<TestableEntityTypes, (entity: ISdkEntity) => ISdkEntity> = {
+  [EntityType.connector]: (connector: Model.ISdkEntity) => {
+    connector.data = connector.data || {};
+    connector.data.configuration = connector.data.configuration || {};
+    connector.data.configuration.scope = randomValue('scope');
+    connector.tags = { newTag: randomValue('newTag') };
+    return connector;
+  },
+  [EntityType.integration]: (integration: Model.ISdkEntity) => {
+    integration.data = integration.data || {};
+    integration.data.configuration = integration.data.configuration || {};
+    integration.data.configuration.creation = integration.data.configuration.creation || {};
+    integration.data.configuration.creation.autoStep = !integration.data.configuration.creation.autoStep;
+    integration.tags = { newTag: randomValue('newTag') };
+    return integration;
+  },
+};
 
 const createEntity = async (testEntityType: TestableEntityTypes, entity: Model.ISdkEntity) => {
   const createResponse = await ApiRequestMap[testEntityType].post(account, entity);
@@ -95,6 +118,7 @@ const performTests = (
   sampleEntityMap: Record<TestableEntityTypes, () => Model.ISdkEntity>
 ) => {
   const createEntityTest = (entity: Model.ISdkEntity) => createEntity(testEntityType, entity);
+  const updateEntity = (entity: Model.ISdkEntity & ITestableEntity) => updateSampleEntities[testEntityType](entity);
   const sampleEntity = sampleEntityMap[testEntityType];
 
   test('List Entities returns 200 and an empty list when none exist', async () => {
@@ -116,22 +140,13 @@ const performTests = (
 
   test('Update Entity', async () => {
     const entityOne = await createEntityTest(sampleEntity());
-    const entityOneUpdated = {
-      ...entityOne,
-      data: {
-        ...entityOne.data,
-        configuration: {
-          scope: 'new scope',
-        },
-      },
-      tags: { newTag: 'efg' },
-    };
+    const entityOneUpdated = updateEntity(entityOne);
     const updateResponse = await ApiRequestMap[testEntityType].putAndWait(account, entityOne.id, entityOneUpdated);
     expect(updateResponse).toBeHttp({ statusCode: 200 });
     const getResponse = await ApiRequestMap[testEntityType].get(account, entityOne.id);
     expect({ ...getResponse.data, version: undefined }).toExtend({ ...entityOneUpdated, version: undefined });
     expect(getResponse.data).toBeDefined();
-    expect(getResponse.data.tags).toMatchObject(entityOneUpdated.tags);
+    expect(getResponse.data.tags).toMatchObject(entityOneUpdated.tags || {});
     expect(getResponse.data.version).toBeUUID();
     expect(getResponse.data.version).not.toBe(entityOne.id);
   }, 180000);
@@ -139,14 +154,7 @@ const performTests = (
   test('Update Entity returns 404 if entity not found', async () => {
     const entityOne = await createEntityTest(sampleEntity());
     const entityOneUpdated = {
-      ...entityOne,
-      data: {
-        ...entityOne.data,
-        configuration: {
-          scope: 'new scope',
-        },
-      },
-      tags: { newTag: 'efg' },
+      ...updateEntity(entityOne),
       id: 'invalid-id',
     };
     const updateResponse = await ApiRequestMap[testEntityType].putAndWait(account, entityOne.id, entityOneUpdated);

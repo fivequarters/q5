@@ -183,6 +183,8 @@ export interface IConnector extends IEntity {
     handler: string;
     configuration: {
       muxIntegration: IEntityId;
+      scope: string;
+      [key: string]: any;
     };
     files: Record<string, string>;
   };

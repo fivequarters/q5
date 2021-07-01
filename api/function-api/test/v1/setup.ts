@@ -196,15 +196,24 @@ function toBeUUID(received: string) {
   return { message: `Not a valid UUID: ${received}`, pass };
 }
 
-const toExtend = <T>(received: T, expected: T): jest.CustomMatcherResult => {
+const toExtend = <T extends string | object, R extends string | object>(
+  received: T,
+  expected: R
+): jest.CustomMatcherResult => {
   return { pass: deepComparison(received, expected), message: () => 'Deep Comparison Failure' };
 };
 
-const deepComparison = <T>(a: T, b: T): boolean => {
-  if (b === undefined || b === {} || (Array.isArray(b) && b.length === 0)) {
+const deepComparison = <T extends string | object, R extends string | object>(a: T, b: R): boolean => {
+  if (b === undefined) {
     return true;
   }
-  if (a === b) {
+  if (b === {} && typeof a === 'object' && !Array.isArray(a)) {
+    return true;
+  }
+  if (Array.isArray(b) && b.length === 0 && Array.isArray(a)) {
+    return true;
+  }
+  if (typeof a === typeof b && a.toString() === b.toString()) {
     return true;
   }
 
@@ -230,11 +239,17 @@ const deepComparison = <T>(a: T, b: T): boolean => {
   }
 
   if (typeof a === 'object' && typeof b === 'object') {
-    const allKeys = Object.keys({ ...a, ...b });
+    const allKeys = Object.keys({ ...(<object>a), ...(<object>b) });
     return allKeys.every((key) => deepComparison((<Record<string, any>>a)[key], (<Record<string, any>>b)[key]));
   }
 
-  expect(a).toEqual(b);
+  try {
+    a = JSON.parse(<string>a);
+  } catch (e) {}
+  try {
+    b = JSON.parse(<string>a);
+  } catch (e) {}
+  expect(a).toMatchObject(b);
   return false;
 };
 
