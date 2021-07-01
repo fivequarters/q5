@@ -75,14 +75,13 @@ class IntegrationService extends SessionedComponentService<Model.IIntegration, M
       data.configuration.creation = { tags: {}, steps: [], autoStep: true };
     }
 
-    data.configuration.creation.steps = [];
     if (
-      (!data.configuration.creation.steps ||
-        data.configuration.creation.steps.length === 0 ||
-        data.configuration.creation.autoStep) &&
-      data.configuration.connectors
+      !data.configuration.creation.steps ||
+      data.configuration.creation.steps.length === 0 ||
+      data.configuration.creation.autoStep
     ) {
-      Object.entries(data.configuration.connectors).forEach(([connectorLabel, conn]) => {
+      data.configuration.creation.steps = [];
+      Object.entries(data.configuration.connectors || {}).forEach(([connectorLabel, conn]) => {
         const connectorId = conn.connector;
         const name = connectorLabel;
         data.configuration.creation.steps.push({
