@@ -26,7 +26,7 @@ afterAll(async () => {
 
 type TestableEntityTypes = Extract<Model.EntityType, Model.EntityType.connector | Model.EntityType.integration>;
 type TestableEntity = Model.IIntegration | Model.IConnector;
-type SampleEntityMap = Record<TestableEntityTypes, (entity?: Model.ISdkEntity) => Model.ISdkEntity>;
+type SampleEntityMap<T = void> = Record<TestableEntityTypes, (...entity: T[]) => Model.ISdkEntity>;
 
 const sampleEntitiesWithData: SampleEntityMap = {
   [Model.EntityType.connector]: () => ({
@@ -81,7 +81,7 @@ const sampleEntitiesWithoutData: SampleEntityMap = (Object as any).fromEntries(
   Object.entries(sampleEntitiesWithData).map(([key, value]) => [key, () => ({ ...value(), data: undefined })])
 );
 
-const updateSampleEntities: SampleEntityMap = {
+const updateSampleEntities: SampleEntityMap<Model.ISdkEntity> = {
   [Model.EntityType.connector]: (connector: Model.ISdkEntity) => {
     connector.data = connector.data || {};
     connector.data.configuration = connector.data.configuration || {};
@@ -104,6 +104,7 @@ const modifyPackageJsonFiles = (entity: Model.ISdkEntity, files: string[]): Mode
     ...JSON.parse(entity.data.files['package.json']),
     files,
   });
+  return entity;
 };
 
 const createEntity = async (testEntityType: TestableEntityTypes, entity: Model.ISdkEntity) => {
@@ -120,7 +121,7 @@ const createEntity = async (testEntityType: TestableEntityTypes, entity: Model.I
   return listResponse.data.items[0];
 };
 
-const performTests = (testEntityType: TestableEntityTypes, sampleEntityMap: SampleEntityMap) => {
+const performTests = (testEntityType: TestableEntityTypes, sampleEntityMap: SampleEntityMap<any>) => {
   const createEntityTest = (entity: Model.ISdkEntity) => createEntity(testEntityType, entity);
   const updateEntity = (entity: Model.ISdkEntity & TestableEntity) => updateSampleEntities[testEntityType](entity);
   const sampleEntity = sampleEntityMap[testEntityType];
@@ -532,7 +533,7 @@ describe('Connector without Data', () => {
   performTests(Model.EntityType.connector, sampleEntitiesWithoutData);
 });
 
-const performIntegrationTest = (sampleEntitiesMap: SampleEntityMap) => {
+const performIntegrationTest = (sampleEntitiesMap: SampleEntityMap<any>) => {
   const testEntityType = Model.EntityType.integration;
   const sampleEntity = sampleEntitiesMap[testEntityType];
 
