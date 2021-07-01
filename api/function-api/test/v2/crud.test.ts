@@ -9,25 +9,18 @@ let { account, boundaryId, function1Id, function2Id, function3Id, function4Id, f
 beforeEach(() => {
   ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
 });
-
-const newId = (wart: string): string => `${boundaryId}-${wart}-${Math.floor(Math.random() * 99999999).toString(8)}`;
-const randomValue = (wart: string): string => `${wart}--${Math.floor(Math.random() * 99999999).toString(8)}`;
-
-const getIdPrefix = () => ({ idPrefix: boundaryId });
-
-const remVersion = (entity: Model.IEntity) => {
-  const { version, ...newEntity } = entity;
-  return newEntity;
-};
-
 afterAll(async () => {
   await cleanupEntities(account);
 }, 30000);
 
+// Types
 type TestableEntityTypes = Extract<Model.EntityType, Model.EntityType.connector | Model.EntityType.integration>;
+
 type TestableEntity = Model.IIntegration | Model.IConnector;
+
 type SampleEntityMap<T = any> = Record<TestableEntityTypes, (...entity: T[]) => Model.ISdkEntity>;
 
+// SampleEntityMaps
 const sampleEntitiesWithData: SampleEntityMap = {
   [Model.EntityType.connector]: () => ({
     data: {
@@ -99,6 +92,18 @@ const updateSampleEntities: SampleEntityMap<Model.ISdkEntity> = {
   },
 };
 
+// Utility Functions
+const newId = (wart: string): string => `${boundaryId}-${wart}-${Math.floor(Math.random() * 99999999).toString(8)}`;
+
+const randomValue = (wart: string): string => `${wart}--${Math.floor(Math.random() * 99999999).toString(8)}`;
+
+const getIdPrefix = () => ({ idPrefix: boundaryId });
+
+const remVersion = (entity: Model.IEntity) => {
+  const { version, ...newEntity } = entity;
+  return newEntity;
+};
+
 const setFiles = (entity: Model.ISdkEntity, newFiles: Record<string, string>, handler?: string): Model.ISdkEntity => {
   const updatedEntity = entity;
   if (!!handler && !Object.keys(newFiles).includes(handler)) {
@@ -132,6 +137,7 @@ const createEntity = async (testEntityType: TestableEntityTypes, entity: Model.I
   return listResponse.data.items[0];
 };
 
+// Test Collections
 const performTests = (testEntityType: TestableEntityTypes, sampleEntityMap: SampleEntityMap) => {
   const createEntityTest = (entity: Model.ISdkEntity) => createEntity(testEntityType, entity);
   const updateEntity = (entity: Model.ISdkEntity & TestableEntity) => updateSampleEntities[testEntityType](entity);
@@ -536,14 +542,6 @@ const performTests = (testEntityType: TestableEntityTypes, sampleEntityMap: Samp
   }, 180000);
 };
 
-describe('Connector with Data', () => {
-  performTests(Model.EntityType.connector, sampleEntitiesWithData);
-});
-
-describe('Connector without Data', () => {
-  performTests(Model.EntityType.connector, sampleEntitiesWithoutData);
-});
-
 const performIntegrationTest = (sampleEntitiesMap: SampleEntityMap) => {
   const testEntityType = Model.EntityType.integration;
   const sampleEntity = sampleEntitiesMap[testEntityType];
@@ -669,5 +667,8 @@ const performIntegrationTest = (sampleEntitiesMap: SampleEntityMap) => {
   }, 180000);
 };
 
+// Test Executions
+describe('Connector with Data', () => performTests(Model.EntityType.connector, sampleEntitiesWithData));
+describe('Connector without Data', () => performTests(Model.EntityType.connector, sampleEntitiesWithoutData));
 describe('Integration with Data', () => performIntegrationTest(sampleEntitiesWithData));
 describe('Integration without Data', () => performIntegrationTest(sampleEntitiesWithoutData));
