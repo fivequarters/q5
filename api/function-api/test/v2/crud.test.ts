@@ -26,7 +26,7 @@ afterAll(async () => {
 
 type TestableEntityTypes = Extract<Model.EntityType, Model.EntityType.connector | Model.EntityType.integration>;
 type TestableEntity = Model.IIntegration | Model.IConnector;
-type SampleEntityMap<T = void> = Record<TestableEntityTypes, (...entity: T[]) => Model.ISdkEntity>;
+type SampleEntityMap<T = any> = Record<TestableEntityTypes, (...entity: T[]) => Model.ISdkEntity>;
 
 const sampleEntitiesWithData: SampleEntityMap = {
   [Model.EntityType.connector]: () => ({
@@ -43,7 +43,7 @@ const sampleEntitiesWithData: SampleEntityMap = {
   }),
   [Model.EntityType.integration]: () => ({
     data: {
-      handler: './integration.js',
+      handler: './integrationTest.js',
       files: {
         ['package.json']: JSON.stringify({
           scripts: {},
@@ -99,11 +99,21 @@ const updateSampleEntities: SampleEntityMap<Model.ISdkEntity> = {
   },
 };
 
-const modifyPackageJsonFiles = (entity: Model.ISdkEntity, files: string[]): Model.ISdkEntity => {
-  entity.data.files['package.json'] = JSON.stringify({
-    ...JSON.parse(entity.data.files['package.json']),
-    files,
+const setFiles = (entity: Model.ISdkEntity, files: Record<string, string>, handler?: string): Model.ISdkEntity => {
+  if (!!handler && !Object.keys(files).includes(handler)) {
+    throw 'Cannot set handler to a file that is not included';
+  } else if (handler) {
+    entity.data.handler = handler;
+  }
+
+  entity.data.files['package.json'] = JSON.parse(entity.data.files['package.json']);
+  entity.data.files['package.json'].files = [];
+  Object.entries(files).forEach(([key, value]) => {
+    entity.data.files['package.json'].files.push(key);
+    entity.data.files[key] = value;
   });
+
+  entity.data.files['package.json'] = JSON.stringify(entity.data.files['package.json']);
   return entity;
 };
 
@@ -121,7 +131,7 @@ const createEntity = async (testEntityType: TestableEntityTypes, entity: Model.I
   return listResponse.data.items[0];
 };
 
-const performTests = (testEntityType: TestableEntityTypes, sampleEntityMap: SampleEntityMap<any>) => {
+const performTests = (testEntityType: TestableEntityTypes, sampleEntityMap: SampleEntityMap) => {
   const createEntityTest = (entity: Model.ISdkEntity) => createEntity(testEntityType, entity);
   const updateEntity = (entity: Model.ISdkEntity & TestableEntity) => updateSampleEntities[testEntityType](entity);
   const sampleEntity = sampleEntityMap[testEntityType];
@@ -533,7 +543,7 @@ describe('Connector without Data', () => {
   performTests(Model.EntityType.connector, sampleEntitiesWithoutData);
 });
 
-const performIntegrationTest = (sampleEntitiesMap: SampleEntityMap<any>) => {
+const performIntegrationTest = (sampleEntitiesMap: SampleEntityMap) => {
   const testEntityType = Model.EntityType.integration;
   const sampleEntity = sampleEntitiesMap[testEntityType];
 
@@ -572,7 +582,7 @@ const performIntegrationTest = (sampleEntitiesMap: SampleEntityMap<any>) => {
       ...entity,
       data: { ...entity.data },
     };
-    entityUpdated.data.files = {
+    const newFiles = {
       ...entity.data.files,
       'integration.js': [
         "const { Router, Manager, Form } = require('@fusebit-int/framework');",
@@ -587,7 +597,7 @@ const performIntegrationTest = (sampleEntitiesMap: SampleEntityMap<any>) => {
         'module.exports = router;',
       ].join('\n'),
     };
-    modifyPackageJsonFiles(entityUpdated, ['integration.js']);
+    setFiles(entityUpdated, newFiles, 'integration.js');
     const updateResponse = await ApiRequestMap[testEntityType].putAndWait(account, entity.id, entityUpdated);
     expect(updateResponse).toBeHttp({ statusCode: 200 });
     const invokeResponse = await ApiRequestMap[testEntityType].dispatch(account, entity.id, 'GET', '/api/');
@@ -600,7 +610,8 @@ const performIntegrationTest = (sampleEntitiesMap: SampleEntityMap<any>) => {
       ...entity,
       data: { ...entity.data },
     };
-    entityUpdated.data.files = {
+
+    const newFiles = {
       ...entity.data.files,
       'integration.js': [
         "const { Router, Manager, Form } = require('@fusebit-int/framework');",
@@ -615,7 +626,7 @@ const performIntegrationTest = (sampleEntitiesMap: SampleEntityMap<any>) => {
         'module.exports = router;',
       ].join('\n'),
     };
-    modifyPackageJsonFiles(entity, ['integration.js']);
+    setFiles(entityUpdated, newFiles, 'integration.js');
     const updateResponse = await ApiRequestMap[testEntityType].putAndWait(account, entity.id, entityUpdated);
     expect(updateResponse).toBeHttp({ statusCode: 200 });
     const invokeResponse = await ApiRequestMap[testEntityType].dispatch(account, entity.id, 'POST', '/api/', {
@@ -626,19 +637,22 @@ const performIntegrationTest = (sampleEntitiesMap: SampleEntityMap<any>) => {
 
   test('Invoke Entity Event', async () => {
     const entity = await createEntity(testEntityType, sampleEntity());
-    entity.data.files['integration.js'] = [
-      "const { Router, Manager, Form } = require('@fusebit-int/framework');",
-      "const connectors = require('@fusebit-int/framework').connectors;",
-      '',
-      'const router = new Router();',
-      '',
-      "router.on('/testEvent', async ({tasty}) => {",
-      '  return { answer: tasty + " and mango"};',
-      '});',
-      '',
-      'module.exports = router;',
-    ].join('\n');
-    modifyPackageJsonFiles(entity, ['integration.js']);
+    const newFiles = {
+      ...entity.data.files,
+      'integration.js': [
+        "const { Router, Manager, Form } = require('@fusebit-int/framework');",
+        "const connectors = require('@fusebit-int/framework').connectors;",
+        '',
+        'const router = new Router();',
+        '',
+        "router.on('/testEvent', async ({tasty}) => {",
+        '  return { answer: tasty + " and mango"};',
+        '});',
+        '',
+        'module.exports = router;',
+      ].join('\n'),
+    };
+    setFiles(entity, newFiles, 'integration.js');
 
     let result = await ApiRequestMap[testEntityType].putAndWait(account, entity.id, entity);
     expect(result).toBeHttp({ statusCode: 200 });
