@@ -101,6 +101,7 @@ export interface EntityKeyParams
 export interface IListResponse<T extends IEntity> {
   items: T[];
   next?: string;
+  total: number;
 }
 
 // The Entity returned by the SDK, sans various internal parameters.
@@ -111,6 +112,10 @@ export interface ISdkEntity {
   expires?: string;
   version?: string;
 }
+
+export const createSubordinateId = (params: { entityType: EntityType; componentId: string; subordinateId: string }) => {
+  return `/${params.entityType}/${params.componentId}/${params.subordinateId}`;
+};
 
 export const decomposeSubordinateId = (
   id: string

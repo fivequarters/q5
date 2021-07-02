@@ -3,7 +3,7 @@ import RDS, { Model } from '@5qtrs/db';
 
 import SessionedComponentService from './SessionedComponentService';
 
-import * as Function from '../../functions';
+import * as Function from '../functions';
 
 const defaultPackage = (entity: Model.IEntity) => ({
   scripts: { deploy: `"fuse connector deploy ${entity.id} -d ."`, get: `"fuse connector get ${entity.id} -d ."` },

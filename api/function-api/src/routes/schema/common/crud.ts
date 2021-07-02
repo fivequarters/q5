@@ -5,16 +5,16 @@ import { v2Permissions } from '@5qtrs/constants';
 
 import { Model } from '@5qtrs/db';
 
-import * as common from '../../../middleware/common';
+import * as common from '../../middleware/common';
 
-import { BaseComponentService } from '../../../service';
+import { BaseComponentService } from '../../service';
 
-import pathParams from '../../../handlers/pathParams';
-import body from '../../../handlers/body';
+import pathParams from '../../handlers/pathParams';
+import body from '../../handlers/body';
 
-import Validation from '../../../validation/component';
-import query from '../../../handlers/query';
-import requestToEntity from '../../../handlers/requestToEntity';
+import Validation from '../../validation/component';
+import query from '../../handlers/query';
+import requestToEntity from '../../handlers/requestToEntity';
 
 const router = (
   ComponentService: BaseComponentService<Model.IEntity, Model.IEntity>,

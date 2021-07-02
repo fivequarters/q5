@@ -234,11 +234,39 @@ paths:
 
   #############################################################################
   # Identity
-  /v2/account/{accountId}/subscription/{subscriptionId}/integration/{integrationId}/identity/{identityId}:
+  /v2/account/{accountId}/subscription/{subscriptionId}/connector/{connectorId}/identity/:
     parameters:
       - $ref: '#/components/parameters/Account'
       - $ref: '#/components/parameters/Subscription'
-      - name: integrationId
+      - name: connectorId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/EntityId'
+    get:
+      tags:
+        - Identity
+      summary: Get all identities for a given connector
+      operationId: searchIdentities
+      parameters:
+        - $ref: '#/components/parameters/SearchCount'
+        - $ref: '#/components/parameters/SearchNext'
+        - $ref: '#/components/parameters/SearchTag'
+      responses:
+        200:
+          description: A list of the objects found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdentityList'
+      security:
+        - AccessToken: []
+
+  /v2/account/{accountId}/subscription/{subscriptionId}/connector/{connectorId}/identity/{identityId}:
+    parameters:
+      - $ref: '#/components/parameters/Account'
+      - $ref: '#/components/parameters/Subscription'
+      - name: connectorId
         in: path
         required: true
         schema:
@@ -385,6 +413,34 @@ paths:
 
   #############################################################################
   # Instance
+  /v2/account/{accountId}/subscription/{subscriptionId}/integration/{integrationId}/instance/:
+    parameters:
+      - $ref: '#/components/parameters/Account'
+      - $ref: '#/components/parameters/Subscription'
+      - name: integrationId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/EntityId'
+    get:
+      tags:
+        - Instance
+      summary: Get all instances for a given integration
+      operationId: searchInstances
+      parameters:
+        - $ref: '#/components/parameters/SearchCount'
+        - $ref: '#/components/parameters/SearchNext'
+        - $ref: '#/components/parameters/SearchTag'
+      responses:
+        200:
+          description: A list of the objects found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InstanceList'
+      security:
+        - AccessToken: []
+
   /v2/account/{accountId}/subscription/{subscriptionId}/integration/{integrationId}/instance/{instanceId}:
     parameters:
       - $ref: '#/components/parameters/Account'
@@ -636,6 +692,10 @@ components:
           type: string
           description:
             The key to use when accessing the next block of entries
+        total:
+          type: number
+          description:
+            The total number of entities of this type.
 
     IdentityEntity:
       type: object
@@ -652,6 +712,24 @@ components:
           format: uuid
         expires:
           type: string
+
+    IdentityList:
+      type: object
+      properties:
+        items:
+          type: array
+          description:
+            An array of the matching objects of this component type
+          items:
+            $ref: '#/components/schemas/IdentityEntity'
+        next:
+          type: string
+          description:
+            The key to use when accessing the next block of entries
+        total:
+          type: number
+          description:
+            The total number of entities of this type.
 
     IntegrationData:
       type: object
@@ -713,6 +791,10 @@ components:
           type: string
           description:
             The key to use when accessing the next block of entries
+        total:
+          type: number
+          description:
+            The total number of entities of this type.
 
     InstanceEntity:
       type: object
@@ -729,3 +811,21 @@ components:
           format: uuid
         expires:
           type: string
+
+    InstanceList:
+      type: object
+      properties:
+        items:
+          type: array
+          description:
+            An array of the matching objects of this component type
+          items:
+            $ref: '#/components/schemas/InstanceEntity'
+        next:
+          type: string
+          description:
+            The key to use when accessing the next block of entries
+        total:
+          type: number
+          description:
+            The total number of entities of this type.

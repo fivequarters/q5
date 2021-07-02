@@ -116,7 +116,7 @@ export default abstract class SessionedComponentService<
     const session: Model.ISession = {
       accountId: entity.accountId,
       subscriptionId: entity.subscriptionId,
-      id: this.createSubordinateId({
+      id: Model.createSubordinateId({
         ...entity,
         entityType: this.entityType,
         componentId: entity.id,
@@ -172,7 +172,7 @@ export default abstract class SessionedComponentService<
     const session: Model.ILeafSession = {
       accountId: parentSession.accountId,
       subscriptionId: parentSession.subscriptionId,
-      id: this.createSubordinateId({ ...params, subordinateId: sessionId }),
+      id: Model.createSubordinateId({ ...params, subordinateId: sessionId }),
       data: {
         mode: Model.SessionMode.leaf,
         name: step.name,
@@ -359,7 +359,7 @@ export default abstract class SessionedComponentService<
       instance = {
         accountId: session.accountId,
         subscriptionId: session.subscriptionId,
-        id: this.createSubordinateId({
+        id: Model.createSubordinateId({
           entityType: this.entityType,
           componentId: parentEntity.__databaseId as string,
           subordinateId: uuidv4(),
@@ -409,7 +409,7 @@ export default abstract class SessionedComponentService<
     const leafEntity = {
       accountId: session.accountId,
       subscriptionId: session.subscriptionId,
-      id: this.createSubordinateId({
+      id: Model.createSubordinateId({
         entityType: service.entityType,
         componentId: parentEntity.__databaseId as string,
         subordinateId: uuidv4(),
