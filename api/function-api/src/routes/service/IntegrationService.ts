@@ -20,7 +20,7 @@ const defaultIntegration = [
 ].join('\n');
 
 const defaultPackage = (entity: Model.IEntity) => ({
-  scripts: { deploy: `"fuse integration deploy ${entity.id} -d ."`, get: `"fuse integration get ${entity.id} -d ."` },
+  scripts: { deploy: `fuse integration deploy ${entity.id} -d .`, get: `fuse integration get ${entity.id} -d .` },
   dependencies: { ['@fusebit-int/framework']: '^2.0.0' },
   files: ['./integration.js'], // Make sure the default file is included, if nothing else.
 });
