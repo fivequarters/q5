@@ -52,6 +52,11 @@ class OperationService {
         entityType,
       },
     };
+
+    // Avoid leaking subordinateId's wherever possible.  If this becomes needed, introduce an authz version of
+    // the operation status endpoint that doesn't redact the information.
+    delete operation.location.subordinateId;
+
     let operationEntity: Model.IOperation = {
       accountId: entity.accountId,
       subscriptionId: entity.subscriptionId,

@@ -196,6 +196,15 @@ export default abstract class SessionedComponentService<
 
   public getSession = async (entity: Model.IEntity): Promise<IServiceResult> => {
     const session = await this.sessionDao.getEntity(entity);
+    if (session.data.mode === Model.SessionMode.trunk) {
+      session.data.steps = session.data.steps.map((step) => ({
+        ...step,
+        childSessionId: step.childSessionId
+          ? this.decomposeSubordinateId(step.childSessionId).subordinateId
+          : undefined,
+      }));
+    }
+
     return { statusCode: 200, result: session };
   };
 
@@ -276,39 +285,32 @@ export default abstract class SessionedComponentService<
         const session = await this.sessionDao.getEntity(entity);
         this.ensureSessionTrunk(session, 'cannot post non-master session', 400);
 
-        return this.persistTrunkSession(session, this.decomposeSubordinateId(entity.id));
+        await this.persistTrunkSession(session);
       }
     );
   };
 
-  protected persistTrunkSession = async (
-    session: Model.ITrunkSession,
-    masterSessionId: Model.ISubordinateId
-  ): Promise<IServiceResult> => {
-    const entity: Model.IEntity = {
-      accountId: session.accountId,
-      subscriptionId: session.subscriptionId,
-      id: session.id,
-    };
+  protected persistTrunkSession = async (session: Model.ITrunkSession): Promise<IServiceResult> => {
+    const masterSessionId = this.decomposeSubordinateId(session.id);
 
     if (this.entityType !== Model.EntityType.integration) {
       throw http_error(500, `Invalid entity type '${this.entityType}' for ${masterSessionId}`);
     }
 
-    const results: { succeeded: any[]; failed: any[] } = { succeeded: [], failed: [] };
-    const leafSessionResults: {
-      [name: string]: any;
-    } = {};
+    if (session.data.output) {
+      return { statusCode: 200, result: 'completed' };
+    }
 
-    let instance: any;
+    const leafSessionResults: Record<string, any> = {};
 
     await RDS.inTransaction(async (daos) => {
       // Persist each session.
-      await (Promise as any).allSettled(
+      await (Promise as any).all(
         Object.values(session.data.steps).map(async (step: Model.ITrunkSessionStep) => {
           try {
             const sessionEntity = await this.sessionDao.getEntity({
-              ...entity,
+              accountId: session.accountId,
+              subscriptionId: session.subscriptionId,
               id: step.childSessionId as string,
             });
             this.ensureSessionLeaf(sessionEntity, 'invalid session entry in step');
@@ -321,34 +323,17 @@ export default abstract class SessionedComponentService<
             );
 
             // Store the results.
-            const decompStepSessionId = this.decomposeSubordinateId(sessionEntity.id);
-            results.succeeded.push({
-              statusCode: 200,
-              name: step.name,
-            });
-            leafSessionResults[step.name] = {
-              accountId: entity.accountId,
-              subscriptionId: entity.subscriptionId,
-              id: this.decomposeSubordinateId(result.result.id).subordinateId,
-              tags: result.result.tags,
-              componentId: decompStepSessionId.componentId,
-              componentType: decompStepSessionId.entityType,
-              entityType: result.result.entityType,
-            };
+            leafSessionResults[step.name] = result.result;
           } catch (e) {
             console.log(e);
-            results.failed.push({
-              result: {
-                statusCode: 400,
-                message: e.message,
-                name: step.name,
-              },
-            });
+            // Force the transaction to fail.
+            throw e;
           }
         })
       );
 
       // Create a new `instance` object.
+      //
       // Get the integration, to get the database id out of.
       const parentEntity = await daos[this.entityType].getEntity({
         accountId: session.accountId,
@@ -356,74 +341,89 @@ export default abstract class SessionedComponentService<
         id: masterSessionId.componentId,
       });
 
-      instance = {
+      const instanceId = {
+        entityType: this.entityType,
+        componentId: parentEntity.__databaseId as string,
+        subordinateId: uuidv4(),
+      };
+
+      const instance = {
         accountId: session.accountId,
         subscriptionId: session.subscriptionId,
-        id: Model.createSubordinateId({
-          entityType: this.entityType,
-          componentId: parentEntity.__databaseId as string,
-          subordinateId: uuidv4(),
-        }),
-        data: { output: leafSessionResults },
+        id: Model.createSubordinateId(instanceId),
+        data: { ...leafSessionResults },
         tags: { ...session.tags, 'session.master': masterSessionId.subordinateId },
       };
 
       await daos[this.subDao!.getDaoType()].createEntity(instance);
+
+      // Record the successfully created instance in the master session.
+      session.data.output = {
+        accountId: session.accountId,
+        subscriptionId: session.subscriptionId,
+        id: instanceId.subordinateId,
+        tags: instance.tags,
+        componentId: masterSessionId.componentId,
+        componentType: instanceId.entityType,
+        entityType: this.subDao!.getDaoType(),
+      };
+      await daos[Model.EntityType.session].updateEntity(session);
     });
-    const decomposedSessionId = this.decomposeSubordinateId(session.id);
 
-    if (!instance) {
-      return { statusCode: 500, result: leafSessionResults };
-    }
-
-    // Record the master instance
-    leafSessionResults[MasterSessionStepName] = {
-      accountId: session.accountId,
-      subscriptionId: session.subscriptionId,
-      componentId: decomposedSessionId.componentId,
-      componentType: decomposedSessionId.entityType,
-      id: this.decomposeSubordinateId(instance.id).subordinateId,
-      entityType: this.subDao!.getDaoType(),
-      tags: instance.tags,
-    };
-
-    return { statusCode: results.failed.length === 0 ? 200 : 500, result: leafSessionResults };
+    return { statusCode: 200, result: 'success' };
   };
 
   public instantiateLeafSession = async (
     daos: Model.IDaoCollection,
     session: Model.ILeafSession,
     masterSessionId: Model.ISubordinateId,
-    serviceEntityId: string
+    parentEntityId: string
   ): Promise<IServiceResult> => {
-    const service =
-      session.data.target.entityType === Model.EntityType.connector ? this.connectorService : this.integrationService;
+    if (session.data.target.entityType === Model.EntityType.integration) {
+      // Form output is supplied directly to the master instance, since it will be used by the integration
+      // directly.
+      //
+      // This must change if forms from other integrations require their own isolation boundaries, but that's
+      // not yet supported.
+      return { statusCode: 200, result: session.data.output };
+    }
+
+    const service = this.connectorService;
 
     // Get the database ID to hang this subordinate object off of.
     const parentEntity = await daos[service.dao.getDaoType()].getEntity({
       accountId: session.accountId,
       subscriptionId: session.subscriptionId,
-      id: serviceEntityId,
+      id: parentEntityId,
     });
+
+    const leafId = {
+      entityType: service.entityType,
+      componentId: parentEntity.__databaseId as string,
+      subordinateId: uuidv4(),
+    };
 
     const leafEntity = {
       accountId: session.accountId,
       subscriptionId: session.subscriptionId,
-      id: Model.createSubordinateId({
-        entityType: service.entityType,
-        componentId: parentEntity.__databaseId as string,
-        subordinateId: uuidv4(),
-      }),
+      id: Model.createSubordinateId(leafId),
       data: session.data.output || {},
       tags: { ...session.tags, 'session.master': masterSessionId.subordinateId },
     };
 
-    const result = await daos[service.subDao!.getDaoType()].createEntity(leafEntity);
+    await daos[service.subDao!.getDaoType()].createEntity(leafEntity);
 
-    // Don't expose the data in the report.
-    delete result.data;
-
-    // Create a new instance/identity based on the data included in entity.data.
-    return { statusCode: 200, result };
+    return {
+      statusCode: 200,
+      result: {
+        accountId: session.accountId,
+        subscriptionId: session.subscriptionId,
+        id: leafId.subordinateId,
+        tags: leafEntity.tags,
+        componentId: parentEntityId,
+        componentType: leafId.entityType,
+        entityType: service.subDao!.getDaoType(),
+      },
+    };
   };
 }

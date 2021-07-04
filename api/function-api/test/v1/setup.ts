@@ -29,7 +29,11 @@ function toBeHttp(response: IHttpResponse, { statusCode, data, headers, has, has
       if (typeof data === 'object') {
         for (const [key, value] of Object.entries(data)) {
           keyValueMsg = `on data '${key}', expecting ${JSON.stringify(value)}`;
-          expect(response.data[key]).toEqual(value);
+          if (typeof value === 'object' && value !== null) {
+            expect(response.data[key]).toMatchObject(value);
+          } else {
+            expect(response.data[key]).toEqual(value);
+          }
         }
       } else {
         expect(response.data).toEqual(data);
@@ -192,8 +196,9 @@ function toBeStorageNotFound(received: any, storageId: string, storagePath?: str
 }
 
 function toBeUUID(received: string) {
-  const pass = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(received);
-  return { message: `Not a valid UUID: ${received}`, pass };
+  const pass: boolean = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(received);
+
+  return { message: () => `Not a valid UUID: ${received}`, pass };
 }
 
 /*

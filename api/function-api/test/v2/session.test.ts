@@ -386,7 +386,7 @@ describe('Sessions', () => {
   }, 180000);
 
   test('POSTing a integration session creates appropriate artifacts', async () => {
-    const { integrationId } = await createPair(account, boundaryId);
+    const { integrationId, connectorId } = await createPair(account, boundaryId);
     let response = await ApiRequestMap.integration.session.post(account, integrationId, {
       redirectUrl: demoRedirectUrl,
     });
@@ -423,32 +423,66 @@ describe('Sessions', () => {
         verb: 'creating',
         location: {
           componentId: integrationId,
-          subordinateId: parentSessionId,
           accountId: account.accountId,
           entityType: 'session',
           subscriptionId: account.subscriptionId,
         },
       },
     });
-    expect(Object.keys(response.data.payload)).toEqual(['', 'conn']);
-    const identity = response.data.payload.conn;
-    const instance = response.data.payload[''];
-    expect(identity.id).not.toMatch('/');
-    expect(instance.id).not.toMatch('/');
-    expect(identity).not.toContain('output');
-    expect(instance).not.toContain('output');
+    expect(response).not.toHaveProperty('data.location.subordinateId');
+    expect(response).not.toHaveProperty('data.payload');
 
-    // Validate the identity is created
-    response = await ApiRequestMap.identity.get(account, identity.componentId, identity.id);
-    expect(response).toBeHttp({ statusCode: 200 });
+    response = await ApiRequestMap.integration.session.getResult(account, integrationId, parentSessionId);
+    expect(response).toBeHttp({
+      statusCode: 200,
+      data: {
+        id: parentSessionId,
+        output: {
+          tags: {
+            'session.master': parentSessionId,
+          },
+          accountId: account.accountId,
+          entityType: Model.EntityType.instance,
+          componentId: integrationId,
+          componentType: Model.EntityType.integration,
+          subscriptionId: account.subscriptionId,
+        },
+        steps: [
+          {
+            name: 'conn',
+            target: {
+              path: '/api/configure',
+              entityId: connectorId,
+              entityType: Model.EntityType.connector,
+            },
+          },
+        ],
+      },
+    });
+    expect(response.data.output.id).toBeUUID();
 
-    // Future: Validate the identity has the appropriate tags
+    expect(response.data.steps[0].childSessionId).toBeUUID();
+    expect(response.data.steps[0]).not.toHaveProperty('output');
+
+    const instance = response.data.output;
 
     // Validate the instance is created
     response = await ApiRequestMap.instance.get(account, instance.componentId, instance.id);
-    expect(response).toBeHttp({ statusCode: 200 });
+    expect(response).toBeHttp({ statusCode: 200, data: { tags: { 'session.master': parentSessionId } } });
 
-    // Future: Validate the instance has the appropriate tags
+    const identity = response.data.data.conn;
+
+    // Validate the identity is created
+    response = await ApiRequestMap.identity.get(account, identity.componentId, identity.id);
+    expect(response).toBeHttp({
+      statusCode: 200,
+      data: {
+        data: {
+          monkey: 'banana',
+        },
+        tags: { 'session.master': parentSessionId },
+      },
+    });
   }, 180000);
 
   test('Not specifying a path on an integration step errors', async () => {

@@ -237,6 +237,17 @@ export interface ITrunkSessionData {
   };
 
   steps: ITrunkSessionSteps;
+
+  // Instance created as a result of a session POST.
+  output?: {
+    accountId: string;
+    subscriptionId: string;
+    componentId: string;
+    componentType: EntityType;
+    entityType: EntityType;
+    id: string;
+    tags: ITags;
+  };
 }
 
 export interface ILeafSession extends IEntity {
