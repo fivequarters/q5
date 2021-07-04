@@ -149,37 +149,21 @@ export const entityToSdk = (entity: IEntity): ISdkEntity => {
 // IEntity Extensions
 // --------------------------------
 
-export enum SessionMode {
-  trunk = 'trunk',
-  leaf = 'leaf',
-}
-
-export interface IStep {
-  name: string;
-  input?: any;
-  output?: any;
-  uses?: string[];
-  target: {
-    entityType: EntityType.connector | EntityType.integration;
-    accountId?: string;
-    subscriptionId?: string;
-    entityId: string;
-    path?: string;
-  };
-}
-
 export interface IIntegration extends IEntity {
   data: {
-    handler: string;
-    configuration: {
-      connectors: Record<string, { connector: string; package: string; config?: any }>;
-      creation: {
-        tags: ITags;
-        steps: IStep[];
-        autoStep: boolean;
-      };
-    };
     files: Record<string, string>;
+    handler: string;
+    configuration: Record<string, any>;
+    componentTags: Record<string, string>;
+    components: {
+      name: string;
+      componentId: string;
+      componentType: EntityType.integration | EntityType.connector;
+      skip?: boolean;
+      path?: string;
+      dependsOn?: string[];
+      package?: string;
+    }[];
   };
 }
 
@@ -212,6 +196,11 @@ export interface IOperation extends IEntity {
   };
 }
 
+export enum SessionMode {
+  trunk = 'trunk',
+  leaf = 'leaf',
+}
+
 export interface ISessionParameters {
   steps?: string[];
   tags?: ITags;
@@ -224,6 +213,20 @@ export interface ILeafSessionData extends Omit<IStep, 'uses'> {
   uses: Record<string, object>;
   meta: {
     parentId: string;
+  };
+}
+
+export interface IStep {
+  name: string;
+  input?: any;
+  output?: any;
+  uses?: string[];
+  target: {
+    entityType: EntityType.connector | EntityType.integration;
+    accountId?: string;
+    subscriptionId?: string;
+    entityId: string;
+    path?: string;
   };
 }
 
