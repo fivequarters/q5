@@ -4,7 +4,6 @@ import * as yaml from 'js-yaml';
 const OUTPUT_DIR = '../../../.github/workflows';
 const INPUT_DIR = './yaml';
 const BASE_YML = 'base';
-const BASE_PUBLISH_YML = 'base_publish'
 const BANNER = [
   '###################################################################',
   '# Auto-created by the cicd-actions tool',
@@ -53,9 +52,6 @@ const specs = [
 
 function buildSpec(name: string, inputs: string[], output: string, on_trigger?: any) {
   let base = yaml.load(fs.readFileSync(`${INPUT_DIR}/${BASE_YML}.yml`, 'utf8')) as any;
-  if (name === "Publish All Artifacts" ) {
-    base = yaml.load(fs.readFileSync(`${INPUT_DIR}/${BASE_PUBLISH_YML}.yml`, 'utf8')) as any;
-  }
   base.name = name;
   if (on_trigger) {
     base.on = on_trigger;
