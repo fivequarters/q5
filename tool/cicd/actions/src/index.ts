@@ -30,8 +30,9 @@ const specs = [
   },
   {
     name: 'Publish All Artifacts',
-    inputs: ['checkout', 'publish_release', ...fullBuild, ...publishAll],
+    inputs: [ 'checkout', 'publish_release', ...fullBuild, ...publishAll],
     output: 'publish',
+    on_trigger: {push: {branches: ["master"]}}
   },
   {
     name: 'Publish function-api',
@@ -50,14 +51,14 @@ const specs = [
   },
 ];
 
-function buildSpec(name: string, inputs: string[], output: string, options: any = {}) {
+function buildSpec(name: string, inputs: string[], output: string, on_trigger?: any) {
   let base = yaml.load(fs.readFileSync(`${INPUT_DIR}/${BASE_YML}.yml`, 'utf8')) as any;
   if (name === "Publish All Artifacts" ) {
     base = yaml.load(fs.readFileSync(`${INPUT_DIR}/${BASE_PUBLISH_YML}.yml`, 'utf8')) as any;
   }
   base.name = name;
-  if (options.on_trigger) {
-    base.on = options.on_trigger;
+  if (on_trigger) {
+    base.on = on_trigger;
   }
 
   inputs.forEach((f) => {
@@ -68,4 +69,4 @@ function buildSpec(name: string, inputs: string[], output: string, options: any 
   fs.writeFileSync(`${OUTPUT_DIR}/${output}.yml`, BANNER + yaml.dump(base, { noCompatMode: true }));
 }
 
-specs.forEach((spec) => buildSpec(spec.name, spec.inputs, spec.output));
+specs.forEach((spec) => buildSpec(spec.name, spec.inputs, spec.output, spec.on_trigger));

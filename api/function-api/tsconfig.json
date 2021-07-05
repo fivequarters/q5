@@ -11,7 +11,7 @@
     "esModuleInterop": true,
     "lib": ["es2019"]
   },
-  "include": ["src"],
+  "include": ["src", "test/reporter.js"],
   "references": [
     { "path": "../../lib/node/jwt" },
     { "path": "../../lib/shared/request" },

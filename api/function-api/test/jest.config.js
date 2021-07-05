@@ -34,9 +34,8 @@ module.exports = {
                 },
               ],
             },
-            './test/reporter.ts'
           ],
-          
+          './test/reporter.js'
         ],
       }
     : {}),
