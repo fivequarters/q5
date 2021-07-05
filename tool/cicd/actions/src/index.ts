@@ -29,7 +29,7 @@ const specs = [
   },
   {
     name: 'Publish All Artifacts',
-    inputs: [ 'checkout', 'publish_release', ...fullBuild, ...publishAll],
+    inputs: [ 'checkout', 'publish_tags', ...fullBuild, ...publishAll],
     output: 'publish',
     on_trigger: {push: {branches: ["master"]}}
   },
