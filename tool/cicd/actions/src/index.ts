@@ -4,6 +4,7 @@ import * as yaml from 'js-yaml';
 const OUTPUT_DIR = '../../../.github/workflows';
 const INPUT_DIR = './yaml';
 const BASE_YML = 'base';
+
 const BANNER = [
   '###################################################################',
   '# Auto-created by the cicd-actions tool',
