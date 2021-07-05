@@ -1,5 +1,7 @@
+import http_error from 'http-errors';
 import { v4 as uuidv4 } from 'uuid';
 
+import { isUuid } from '@5qtrs/constants';
 import RDS, { Model } from '@5qtrs/db';
 
 import { IServiceResult } from './BaseComponentService';
@@ -16,8 +18,6 @@ interface IOperationData extends IOperationParam {
     accountId: string;
     subscriptionId: string;
     entityId?: string;
-    componentId?: string;
-    subordinateId?: string;
     entityType: Model.EntityType;
   };
 }
@@ -40,22 +40,28 @@ class OperationService {
 
     // Create operation with the status
     const operationId = uuidv4();
+    const entityId =
+      entity.id && entity.id.indexOf('/') >= 0 ? Model.decomposeSubordinateId(entity.id).parentEntityId : entity.id;
+
+    // Is it a non-empty actual number? If so, it's probably a database id - don't use it. This continues the
+    // efforts of trying to avoid exposing session, identity, instance, and database id's out through these APIs.
+    if (entity.id.indexOf('/') >= 0 && (!isNaN(+entityId) || !isNaN(parseFloat(entityId)) || isUuid(entityId))) {
+      console.log(
+        `Invalid: ${entity.id}, ${entityId}, ${isNaN(+entityId)}, ${isNaN(parseFloat(entityId))}, ${isUuid(entityId)}`
+      );
+      throw http_error(500, 'Invalid entityId detected');
+    }
+
     const operation: IOperationData = {
       ...status,
       code: 202,
       location: {
         accountId: entity.accountId,
         subscriptionId: entity.subscriptionId,
-        ...(entity.id && entity.id.indexOf('/') >= 0
-          ? Model.decomposeSubordinateId(entity.id)
-          : { entityId: entity.id }),
+        entityId,
         entityType,
       },
     };
-
-    // Avoid leaking subordinateId's wherever possible.  If this becomes needed, introduce an authz version of
-    // the operation status endpoint that doesn't redact the information.
-    delete operation.location.subordinateId;
 
     let operationEntity: Model.IOperation = {
       accountId: entity.accountId,

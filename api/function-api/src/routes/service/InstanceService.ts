@@ -16,6 +16,10 @@ class InstanceService extends BaseComponentService<Model.IInstance, Model.IInsta
     return entity;
   };
 
+  public getFunctionSecuritySpecification(): any {
+    throw http_error(500, 'invalid function creation');
+  }
+
   public createFunctionSpecification = (entity: Model.IEntity): Function.IFunctionSpecification => {
     throw http_error(500, 'invalid function creation');
   };

@@ -22,7 +22,7 @@ type SampleEntityMap<T = any> = Record<TestableEntityTypes, (...entity: T[]) => 
 
 // SampleEntityMaps
 const sampleEntitiesWithData: SampleEntityMap = {
-  [Model.EntityType.connector]: () => ({
+  [Model.EntityType.connector]: (): { id: string; tags: Model.ITags; data: Model.IConnectorData } => ({
     data: {
       handler: '@fusebit-int/pkg-oauth-connector',
       files: {},
@@ -34,7 +34,7 @@ const sampleEntitiesWithData: SampleEntityMap = {
     id: newId('Test'),
     tags: { [`oneTag`]: 'one-value', [`twoTags`]: 'two-values' },
   }),
-  [Model.EntityType.integration]: () => ({
+  [Model.EntityType.integration]: (): { id: string; tags: Model.ITags; data: Model.IIntegrationData } => ({
     data: {
       handler: './integrationTest.js',
       files: {
@@ -60,10 +60,9 @@ const sampleEntitiesWithData: SampleEntityMap = {
           'module.exports = router;',
         ].join('\n'),
       },
-      configuration: {
-        connectors: {},
-        creation: { tags: {}, steps: [], autoStep: true },
-      },
+      configuration: {},
+      components: [],
+      componentTags: {},
     },
     id: newId('Test'),
     tags: { [`oneTag`]: 'one-value', [`twoTags`]: 'two-values' },
@@ -105,7 +104,7 @@ const remVersion = (entity: Model.IEntity) => {
 const setFiles = (entity: Model.ISdkEntity, newFiles: Record<string, string>, handler?: string): Model.ISdkEntity => {
   const updatedEntity = entity;
   if (!!handler && !Object.keys(newFiles).includes(handler)) {
-    throw 'Cannot set handler to a file that is not included';
+    throw new Error('Cannot set handler to a file that is not included');
   } else if (handler) {
     entity.data.handler = handler;
   }
@@ -288,7 +287,7 @@ const performTests = (testEntityType: TestableEntityTypes, sampleEntityMap: Samp
       },
     ];
 
-    const sectionsByEntityIndex: any[] = (<any>sections).flatMap((section: any) =>
+    const sectionsByEntityIndex: any[] = (sections as any).flatMap((section: any) =>
       Array(section.size)
         .fill(section)
         .map((item, index) => ({
@@ -348,26 +347,25 @@ const performTests = (testEntityType: TestableEntityTypes, sampleEntityMap: Samp
         size: 1,
       },
     ];
-    const tagOne = (index: number) => ({ tagOne: `${index}` });
-    const tagTwo = (index: number) => ({ tagTwo: `${index}` });
-    const tagThree = (index: number) => ({ tagThree: `${index}` });
+    const tagOne = (index: number): Model.ITags => ({ tagOne: `${index}` });
+    const tagTwo = (index: number): Model.ITags => ({ tagTwo: `${index}` });
+    const tagThree = (index: number): Model.ITags => ({ tagThree: `${index}` });
     const entityCount = sections.reduce((acc, cur) => acc + cur.size, 0);
 
-    const Entitys: Model.ISdkEntity[] = (<any>sections).flatMap(
+    const Entitys: Model.ISdkEntity[] = (sections as any).flatMap(
       (section: { size: number; tagOne?: boolean; tagTwo?: boolean; tagThree?: boolean }, sectionId: number) =>
         Array(section.size)
           .fill(undefined)
           .map(
-            (item, index): Model.ISdkEntity =>
-              ({
-                ...entityBase,
-                tags: {
-                  ...(section.tagOne && tagOne(index)),
-                  ...(section.tagTwo && tagTwo(index)),
-                  ...(section.tagThree && tagThree(index)),
-                },
-                id: `${boundaryId}-${sectionId}-${index}`,
-              } as Model.ISdkEntity)
+            (item, index): Model.ISdkEntity => ({
+              ...entityBase,
+              tags: {
+                ...(section.tagOne ? tagOne(index) : {}),
+                ...(section.tagTwo ? tagTwo(index) : {}),
+                ...(section.tagThree ? tagThree(index) : {}),
+              },
+              id: `${boundaryId}-${sectionId}-${index}`,
+            })
           )
     );
 
@@ -650,6 +648,7 @@ const performIntegrationTest = (sampleEntitiesMap: SampleEntityMap) => {
         'module.exports = router;',
       ].join('\n'),
     };
+
     Object.assign(entity, setFiles(entity, newFiles, './integration.js'));
 
     let result = await ApiRequestMap[testEntityType].putAndWait(account, entity.id, entity);

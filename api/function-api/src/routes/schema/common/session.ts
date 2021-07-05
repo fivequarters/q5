@@ -6,6 +6,7 @@ import { v2Permissions } from '@5qtrs/constants';
 import * as common from '../../middleware/common';
 import { SessionedComponentService } from '../../service';
 import * as Validation from '../../validation/session';
+import * as ValidationCommon from '../../validation/entities';
 
 const createSessionRouter = (SessionService: SessionedComponentService<any, any>) => {
   const router = express.Router({ mergeParams: true });
@@ -13,7 +14,7 @@ const createSessionRouter = (SessionService: SessionedComponentService<any, any>
   router.post(
     '/',
     common.management({
-      validate: { params: Validation.EntityIdParams, body: Validation.SessionCreate },
+      validate: { params: ValidationCommon.EntityIdParams, body: Validation.SessionCreate },
       authorize: { operation: v2Permissions.sessionPost },
     }),
     async (req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -22,13 +23,13 @@ const createSessionRouter = (SessionService: SessionedComponentService<any, any>
           {
             accountId: req.params.accountId,
             subscriptionId: req.params.subscriptionId,
-            id: req.params.componentId,
+            id: req.params.entityId,
           },
           req.body
         );
         res.status(session.statusCode).json({
           ...Model.entityToSdk(session.result),
-          id: SessionService.decomposeSubordinateId(session.result.id).subordinateId,
+          id: Model.decomposeSubordinateId(session.result.id).entityId,
         });
       } catch (error) {
         console.log(error);
@@ -40,7 +41,7 @@ const createSessionRouter = (SessionService: SessionedComponentService<any, any>
   //  Get full value of session.
   router.route('/result/:sessionId').get(
     common.management({
-      validate: { params: Validation.EntityIdParams },
+      validate: { params: ValidationCommon.EntityIdParams },
       authorize: { operation: v2Permissions.sessionResult },
     }),
     async (req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -48,17 +49,13 @@ const createSessionRouter = (SessionService: SessionedComponentService<any, any>
         const session = await SessionService.getSession({
           accountId: req.params.accountId,
           subscriptionId: req.params.subscriptionId,
-          id: Model.createSubordinateId({
-            entityType: SessionService.entityType,
-            componentId: req.params.componentId,
-            subordinateId: req.params.sessionId,
-          }),
+          id: Model.createSubordinateId(SessionService.entityType, req.params.entityId, req.params.sessionId),
         });
         let result: any = {
           id: req.params.sessionId,
           input: session.result.data.input,
           output: session.result.data.output,
-          steps: session.result.data.steps,
+          components: session.result.data.components,
         };
 
         if (session.result.data.mode === 'leaf') {
@@ -66,7 +63,7 @@ const createSessionRouter = (SessionService: SessionedComponentService<any, any>
             ...result,
             target: session.result.data.target,
             name: session.result.data.stepName,
-            uses: session.result.data.uses,
+            dependsOn: session.result.data.dependsOn,
           };
         }
         res.status(session.statusCode).json(result);
@@ -82,7 +79,7 @@ const createSessionRouter = (SessionService: SessionedComponentService<any, any>
     // Get 'public' value of session
     .get(
       common.management({
-        validate: { params: Validation.EntityIdParams },
+        validate: { params: ValidationCommon.EntityIdParams },
         authorize: { operation: v2Permissions.sessionGet },
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -90,13 +87,13 @@ const createSessionRouter = (SessionService: SessionedComponentService<any, any>
           const session = await SessionService.getSession({
             accountId: req.params.accountId,
             subscriptionId: req.params.subscriptionId,
-            id: Model.createSubordinateId({
-              entityType: SessionService.entityType,
-              componentId: req.params.componentId,
-              subordinateId: req.params.sessionId,
-            }),
+            id: Model.createSubordinateId(SessionService.entityType, req.params.entityId, req.params.sessionId),
           });
-          const result = { id: req.params.sessionId, input: session.result.data.input, uses: session.result.data.uses };
+          const result = {
+            id: req.params.sessionId,
+            input: session.result.data.input,
+            dependsOn: session.result.data.dependsOn,
+          };
           res.status(session.statusCode).json(result);
         } catch (error) {
           console.log(error);
@@ -107,7 +104,7 @@ const createSessionRouter = (SessionService: SessionedComponentService<any, any>
     // Write to the 'output' of the session.
     .put(
       common.management({
-        validate: { params: Validation.EntityIdParams, body: Validation.SessionPut },
+        validate: { params: ValidationCommon.EntityIdParams, body: Validation.SessionPut },
         authorize: { operation: v2Permissions.sessionPut },
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -116,11 +113,7 @@ const createSessionRouter = (SessionService: SessionedComponentService<any, any>
             {
               accountId: req.params.accountId,
               subscriptionId: req.params.subscriptionId,
-              id: Model.createSubordinateId({
-                entityType: SessionService.entityType,
-                componentId: req.params.componentId,
-                subordinateId: req.params.sessionId,
-              }),
+              id: Model.createSubordinateId(SessionService.entityType, req.params.entityId, req.params.sessionId),
             },
             req.body
           );
@@ -135,7 +128,7 @@ const createSessionRouter = (SessionService: SessionedComponentService<any, any>
     // Commit the session, creating all of the appropriate artifacts
     .post(
       common.management({
-        validate: { params: Validation.EntityIdParams },
+        validate: { params: ValidationCommon.EntityIdParams },
         authorize: { operation: v2Permissions.sessionCommit },
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -144,11 +137,7 @@ const createSessionRouter = (SessionService: SessionedComponentService<any, any>
             accountId: req.params.accountId,
             subscriptionId: req.params.subscriptionId,
             // Sessions use the non-unique component name, but instances and identities use the database id.
-            id: Model.createSubordinateId({
-              entityType: SessionService.entityType,
-              componentId: req.params.componentId,
-              subordinateId: req.params.sessionId,
-            }),
+            id: Model.createSubordinateId(SessionService.entityType, req.params.entityId, req.params.sessionId),
           });
           res.status(operation.statusCode).json(operation.result);
         } catch (error) {
@@ -163,7 +152,7 @@ const createSessionRouter = (SessionService: SessionedComponentService<any, any>
     .get(
       '/:sessionId/start',
       common.management({
-        validate: { params: Validation.EntityIdParams },
+        validate: { params: ValidationCommon.EntityIdParams },
         // No auth: called by the browser to start a session, and be redirected to the next endpoint.
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -171,11 +160,7 @@ const createSessionRouter = (SessionService: SessionedComponentService<any, any>
           const { result } = await SessionService.startSession({
             accountId: req.params.accountId,
             subscriptionId: req.params.subscriptionId,
-            id: Model.createSubordinateId({
-              entityType: SessionService.entityType,
-              componentId: req.params.componentId,
-              subordinateId: req.params.sessionId,
-            }),
+            id: Model.createSubordinateId(SessionService.entityType, req.params.entityId, req.params.sessionId),
           });
 
           // Send the browser to the configured handler url with the sessionid as a query parameter
@@ -193,7 +178,7 @@ const createSessionRouter = (SessionService: SessionedComponentService<any, any>
     .get(
       '/:sessionId/callback',
       common.management({
-        validate: { params: Validation.EntityIdParams },
+        validate: { params: ValidationCommon.EntityIdParams },
         // No auth: called by the browser to indicate completion of a session, and to be dispatched to the next
         // endpoint.
       }),
@@ -202,11 +187,7 @@ const createSessionRouter = (SessionService: SessionedComponentService<any, any>
           const { result } = await SessionService.finishSession({
             accountId: req.params.accountId,
             subscriptionId: req.params.subscriptionId,
-            id: Model.createSubordinateId({
-              entityType: SessionService.entityType,
-              componentId: req.params.componentId,
-              subordinateId: req.params.sessionId,
-            }),
+            id: Model.createSubordinateId(SessionService.entityType, req.params.entityId, req.params.sessionId),
           });
 
           if (result.mode === 'url') {

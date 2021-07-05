@@ -8,7 +8,7 @@ import * as common from '../../middleware/common';
 import * as Validation from '../../validation/tags';
 import { BaseComponentService } from '../../service';
 
-const router = (ComponentService: BaseComponentService<any, any>, paramIdNames: string[] = ['componentId']) => {
+const router = (ComponentService: BaseComponentService<any, any>, paramIdNames: string[] = ['entityId']) => {
   const componentTagRouter = express.Router({ mergeParams: true });
 
   componentTagRouter.get(

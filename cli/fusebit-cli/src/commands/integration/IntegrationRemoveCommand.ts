@@ -57,7 +57,7 @@ export class IntegrationRemoveCommand extends Command {
 
     await integrationService.confirmRemove(integrationId);
 
-    await integrationService.removeIntegration(integrationId);
+    await integrationService.removeEntity(integrationId);
 
     return 0;
   }

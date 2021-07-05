@@ -10,9 +10,9 @@ const router = (ComponentService: SessionedComponentService<any, any>) => {
   const r = express.Router({ mergeParams: true });
 
   r.use(analytics.setModality(analytics.Modes.Administration));
-  r.use('/:componentId/session', componentSessionRouter(ComponentService));
-  r.use('/:componentId/tag', componentTagRouter(ComponentService));
-  r.use('/:componentId', componentCrudRouter(ComponentService));
+  r.use('/:entityId/session', componentSessionRouter(ComponentService));
+  r.use('/:entityId/tag', componentTagRouter(ComponentService));
+  r.use('/:entityId', componentCrudRouter(ComponentService));
   r.use('/', componentRootRouter(ComponentService));
 
   return r;

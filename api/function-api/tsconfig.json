@@ -29,6 +29,7 @@
     { "path": "../../lib/server/npm" },
     { "path": "../../lib/server/registry" },
     { "path": "../../lib/server/runas" },
-    { "path": "../../lib/data/db" }
+    { "path": "../../lib/data/db" },
+    { "path": "../../lib/data/schema" }
   ]
 }

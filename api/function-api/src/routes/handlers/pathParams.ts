@@ -21,15 +21,15 @@ const accountAndSubscription = (req: Request): IAccountParams => {
   return { accountId: req.params.accountId, subscriptionId: req.params.subscriptionId };
 };
 
-const EntityById = (req: Request, paramIdName: string = 'componentId'): IEntityParams => {
+const EntityById = (req: Request, paramIdName: string = 'entityId'): IEntityParams => {
   return { ...accountAndSubscription(req), id: req.params[paramIdName] };
 };
 
-const EntityTagKey = (req: Request, paramIdName: string = 'componentId'): IEntityTagParams => {
+const EntityTagKey = (req: Request, paramIdName: string = 'entityId'): IEntityTagParams => {
   return { ...EntityById(req, paramIdName), tagKey: req.params.tagKey };
 };
 
-const EntityTagKeyValue = (req: Request, paramIdName: string = 'componentId'): IEntityTagValueParams => {
+const EntityTagKeyValue = (req: Request, paramIdName: string = 'entityId'): IEntityTagValueParams => {
   return { ...EntityTagKey(req, paramIdName), tagValue: req.params.tagValue };
 };
 

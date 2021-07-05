@@ -18,7 +18,7 @@ import requestToEntity from '../../handlers/requestToEntity';
 
 const router = (
   ComponentService: BaseComponentService<Model.IEntity, Model.IEntity>,
-  paramIdNames: string[] = ['componentId']
+  paramIdNames: string[] = ['entityId']
 ) => {
   const componentCrudRouter = express.Router({ mergeParams: true });
 

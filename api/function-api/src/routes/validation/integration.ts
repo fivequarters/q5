@@ -15,19 +15,24 @@ const Data = Joi.alternatives().try(
       .items(
         Joi.object().keys({
           name: Joi.string().required(),
-          componentId: Joi.string().required(),
-          componentType: Joi.valid('integration', 'connector'),
+          entityId: Joi.string().required(),
+          entityType: Joi.valid('integration', 'connector'),
           skip: Joi.boolean().optional().default(false),
-          path: Joi.string().when('componentType', { is: 'connector', then: Joi.never(), otherwise: Joi.required() }),
-          package: Joi.string().when('componentType', {
+          path: Joi.string().when('entityType', {
+            is: 'connector',
+            then: Joi.default('/api/configure'),
+            otherwise: Joi.required(),
+          }),
+          package: Joi.string().when('entityType', {
             is: 'integration',
-            then: Joi.never(),
+            then: Joi.forbidden(),
             otherwise: Joi.required(),
           }),
           dependsOn: Joi.array().items(Joi.string()).unique(),
         })
       )
-      .unique((a: { name: string }, b: { name: string }) => a.name === b.name),
+      .unique((a: { name: string }, b: { name: string }) => a.name === b.name)
+      .default([]),
   }),
   Joi.object().keys({})
 );

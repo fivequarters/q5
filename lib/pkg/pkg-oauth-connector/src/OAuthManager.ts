@@ -23,7 +23,7 @@ router.on('startup', async ({ mgr, cfg, router: rtr }: IOnStartup, next: Next) =
   // Router's already been mounted, so any further additions need to happen here on 'rtr'.
   //
   // Create the engine, now that the configuration has been loaded.
-  engine = new OAuthEngine(cfg as IOAuthConfig, rtr);
+  engine = new OAuthEngine(cfg.configuration as IOAuthConfig, rtr);
 
   return next();
 });

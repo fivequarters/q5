@@ -67,10 +67,10 @@ export class IntegrationInitCommand extends Command {
     await executeService.newLine();
 
     const sourcePath = sourceDir ? join(process.cwd(), sourceDir) : process.cwd();
-    const integration = integrationService.createNewSpec();
+    const integration = await integrationService.createNewSpec();
     await integrationService.writeDirectory(sourcePath, integration);
 
-    await integrationService.displayIntegrations([integration], true);
+    await integrationService.displayEntities([integration], true);
 
     return 0;
   }

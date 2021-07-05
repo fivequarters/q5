@@ -65,7 +65,10 @@
     "yarn": "^1.12.3"
   },
   "workspaces": {
-    "nohoist": ["**/lambda-*", "**/lambda-*/**"],
+    "nohoist": [
+      "**/lambda-*",
+      "**/lambda-*/**"
+    ],
     "packages": [
       "tool/tool-config",
       "tool/workspace",
@@ -200,7 +203,8 @@
       "lib/pkg/pkg-integration",
       "lib/pkg/pkg-oauth-connector",
       "lib/pkg/pkg-oauth-integration",
-      "lib/data/db"
+      "lib/data/db",
+      "lib/data/schema"
     ]
   }
 }

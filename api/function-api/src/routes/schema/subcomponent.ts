@@ -28,7 +28,7 @@ const subcomponentRouter = (
 
   router.use(analytics.setModality(analytics.Modes.Administration));
   router
-    .route(`/:componentId/${service.entityType}`)
+    .route(`/:entityId/${service.entityType}`)
     .get(
       common.management({
         validate: { params: Validation.EntityIdParams, query: Validation.EntityIdQuery },
@@ -40,7 +40,7 @@ const subcomponentRouter = (
           const parentEntity = await RDS.DAO[parentEntityType].getEntity({
             accountId: req.params.accountId,
             subscriptionId: req.params.subscriptionId,
-            id: req.params.componentId,
+            id: req.params.entityId,
           });
 
           const response = await service.dao.listEntities(
@@ -70,16 +70,12 @@ const subcomponentRouter = (
           const parentEntity = await RDS.DAO[parentEntityType].getEntity({
             accountId: req.params.accountId,
             subscriptionId: req.params.subscriptionId,
-            id: req.params.componentId,
+            id: req.params.entityId,
           });
           const leafEntity = {
             accountId: req.params.accountId,
             subscriptionId: req.params.subscriptionId,
-            id: Model.createSubordinateId({
-              entityType: parentEntityType,
-              componentId: parentEntity.__databaseId as string,
-              subordinateId: uuidv4(),
-            }),
+            id: Model.createSubordinateId(parentEntityType, parentEntity.__databaseId as string, uuidv4()),
             data: req.body.data,
             tags: { ...req.body.tags },
           };

@@ -63,7 +63,7 @@ export class IntegrationListCommand extends Command {
     const integrationService = await IntegrationService.create(input);
 
     if (output === 'json') {
-      const result = await integrationService.listIntegrations(options);
+      const result = await integrationService.listEntities(options);
       result.items = result.items.map((item) => {
         delete item.data.files;
         return item;
@@ -77,8 +77,8 @@ export class IntegrationListCommand extends Command {
       let result;
       let firstDisplay = true;
       while (getMore) {
-        result = await integrationService.listIntegrations(options);
-        await integrationService.displayIntegrations(result.items, firstDisplay);
+        result = await integrationService.listEntities(options);
+        await integrationService.displayEntities(result.items, firstDisplay);
         firstDisplay = false;
         getMore = result.next ? await integrationService.confirmListMore() : false;
         if (getMore) {

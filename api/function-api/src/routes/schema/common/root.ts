@@ -10,9 +10,9 @@ import query from '../../handlers/query';
 import body from '../../handlers/body';
 import pathParams from '../../handlers/pathParams';
 
-import { BaseComponentService } from '../../service';
+import { SessionedComponentService } from '../../service';
 
-const router = (ComponentService: BaseComponentService<any, any>) => {
+const router = (ComponentService: SessionedComponentService<any, any>) => {
   const componentRouter = express.Router({ mergeParams: true });
 
   componentRouter.use(common.cors());
@@ -26,6 +26,24 @@ const router = (ComponentService: BaseComponentService<any, any>) => {
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {
+          if (req.query.defaults) {
+            // Return the default values for the various types, for the CLI and for the GUI.
+            return res.json({
+              items: [
+                {
+                  name: ComponentService.entityType,
+                  template: ComponentService.sanitizeEntity({
+                    accountId: req.params.accountId,
+                    subscriptionId: req.params.subscriptionId,
+                    id: '',
+                    data: {},
+                    tags: {},
+                  }),
+                },
+              ],
+              total: 1,
+            });
+          }
           const response = await ComponentService.dao.listEntities(
             {
               ...pathParams.accountAndSubscription(req),

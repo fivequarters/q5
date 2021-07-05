@@ -64,12 +64,12 @@ export const v2Permissions: Record<any, any> = {
   ...makePermissionSet('instance'),
   ...makePermissionSet('connector'),
   ...makePermissionSet('identity'),
-  operationPut: 'operation:put',
-  sessionPost: 'session:post',
-  sessionPut: 'session:put',
-  sessionGet: 'session:get',
-  sessionResult: 'session:result',
-  sessionCommit: 'session:commit',
+  putOperation: 'operation:put',
+  postSession: 'session:post',
+  putSession: 'session:put',
+  getSeession: 'session:get',
+  getSessionResult: 'session:result',
+  commitSession: 'session:commit',
 };
 
 // Deployment Administrator Permissions

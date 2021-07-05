@@ -7,6 +7,8 @@ import { AwsRegistry } from '@5qtrs/registry';
 import { operationService } from './OperationService';
 import * as Function from '../functions';
 
+export const defaultFrameworkSemver = '^2.0.0';
+
 export interface IServiceResult {
   statusCode: number;
   contentType?: string;
@@ -32,8 +34,6 @@ export default abstract class BaseComponentService<E extends Model.IEntity, F ex
   public readonly dao: Model.IEntityDao<E>;
   public readonly subDao?: Model.IEntityDao<F>;
 
-  public decomposeSubordinateId = Model.decomposeSubordinateId;
-
   protected constructor(dao: Model.IEntityDao<E>, subDao?: Model.IEntityDao<F>) {
     this.dao = dao;
     this.subDao = subDao;
@@ -44,7 +44,39 @@ export default abstract class BaseComponentService<E extends Model.IEntity, F ex
   };
 
   public abstract sanitizeEntity(entity: Model.IEntity): Model.IEntity;
-  public abstract createFunctionSpecification(entity: Model.IEntity): Function.IFunctionSpecification;
+  public abstract getFunctionSecuritySpecification(): any;
+
+  public createFunctionSpecification = (entity: Model.IEntity): Function.IFunctionSpecification => {
+    // Make a copy of data so the files can be removed.
+    const functionConfig = { ...entity.data };
+    delete functionConfig.files;
+
+    // Add the baseUrl to the configuration.
+    const config = {
+      ...functionConfig,
+      mountUrl: `/v2/account/${entity.accountId}/subscription/${entity.subscriptionId}/integration/${entity.id}`,
+    };
+
+    const spec = {
+      id: entity.id,
+      nodejs: {
+        files: {
+          ...entity.data.files,
+
+          // Don't allow the index.js to be overwritten.
+          'index.js': [
+            `const config = ${JSON.stringify(config)};`,
+            `let handler = '${functionConfig.handler}';`,
+            "handler = handler[0] === '.' ? `${__dirname}/${handler}`: handler;",
+            `module.exports = require('@fusebit-int/framework').Handler(handler, config);`,
+          ].join('\n'),
+        },
+      },
+      security: this.getFunctionSecuritySpecification(),
+    };
+
+    return spec;
+  };
 
   public getEntity = async (entity: Model.IEntity): Promise<IServiceResult> => ({
     statusCode: 200,

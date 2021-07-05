@@ -1,13 +1,12 @@
 import http_error from 'http-errors';
 
-import { safePathMap } from '@5qtrs/constants';
+import { Permissions, v2Permissions, safePathMap } from '@5qtrs/constants';
 import RDS, { Model } from '@5qtrs/db';
 
 import SessionedComponentService from './SessionedComponentService';
+import { defaultFrameworkSemver } from './BaseComponentService';
 
-import * as Function from '../functions';
-
-const defaultIntegration = [
+const defaultIntegrationJs = [
   "const { Router, Manager, Form } = require('@fusebit-int/framework');",
   '',
   'const router = new Router();',
@@ -19,13 +18,22 @@ const defaultIntegration = [
   'module.exports = router;',
 ].join('\n');
 
-const defaultPackage = (entity: Model.IEntity) => ({
-  scripts: { deploy: `fuse integration deploy ${entity.id} -d .`, get: `fuse integration get ${entity.id} -d .` },
-  dependencies: { ['@fusebit-int/framework']: '^2.0.0' },
+const defaultPackageJson = (entityId: string) => ({
+  scripts: { deploy: `fuse integration deploy ${entityId} -d .`, get: `fuse integration get ${entityId} -d .` },
+  dependencies: { ['@fusebit-int/framework']: defaultFrameworkSemver },
   files: ['./integration.js'], // Make sure the default file is included, if nothing else.
 });
 
-const defaultConnectorPath = '/api/configure';
+const defaultIntegration: Model.IIntegrationData = {
+  files: {
+    ['integration.js']: defaultIntegrationJs,
+    ['package.json']: JSON.stringify(defaultPackageJson('sampleIntegration'), null, 2),
+  },
+  handler: './integration',
+  configuration: {},
+  componentTags: {},
+  components: [],
+};
 
 const selfEntityIdReplacement = '{{integration}}';
 
@@ -46,85 +54,46 @@ class IntegrationService extends SessionedComponentService<Model.IIntegration, M
     const data = entity.data;
 
     if (!data || Object.keys(data).length === 0) {
-      // Default entity.data:
-      entity.data = {
-        handler: './integration',
-        files: {
-          ['integration.js']: defaultIntegration,
-          ['package.json']: JSON.stringify(defaultPackage(entity), null, 2),
-        },
-        configuration: { connectors: {}, creation: { tags: {}, steps: [], autoStep: true } },
-      };
+      // Default entity.data, for the GET /?defaults=true path.
+      entity.data = defaultIntegration;
 
       return entity;
     }
 
-    // Steps are not present; deduce from connectors.
-    if (!data.configuration.creation) {
-      data.configuration.creation = { tags: {}, steps: [], autoStep: true };
-    }
-
-    if (
-      !data.configuration.creation.steps ||
-      data.configuration.creation.steps.length === 0 ||
-      data.configuration.creation.autoStep
-    ) {
-      data.configuration.creation.steps = [];
-
-      Object.entries(data.configuration.connectors).forEach(([connectorLabel, conn]) => {
-        const connectorId = conn.connector;
-        const name = connectorLabel;
-        data.configuration.creation.steps.push({
-          name,
-          target: {
-            entityType: Model.EntityType.connector,
-            accountId: entity.accountId,
-            subscriptionId: entity.subscriptionId,
-            entityId: connectorId,
-            path: defaultConnectorPath,
-          },
-        });
-      });
-    }
-
-    // Validate DAG of 'uses' parameters, if any, and populate the path for targets.
-    const dagSteps: string[] = [];
-    data.configuration.creation.steps.forEach((step) => {
-      dagSteps.push(step.name);
-      if (!step.target.path) {
-        if (step.target.entityType === Model.EntityType.connector) {
-          step.target.path = defaultConnectorPath;
-        } else {
-          throw http_error(400, `Missing 'path' from step '${step.name}'`);
-        }
-      }
-
-      if (step.target.entityId === selfEntityIdReplacement) {
-        step.target.entityId = entity.id;
-      }
-
-      step.uses?.forEach((usesStep) => {
-        if (!dagSteps.includes(usesStep)) {
-          throw http_error(400, `Ordering violation: 'uses' in '${step.name}' for '${usesStep}' before declaration.`);
-        }
-      });
-    });
-
     // Remove any leading . or ..'s from file paths.
+    // TODO: Figure out how to move this into the validation phase instead of here.
     data.files = safePathMap(data.files);
 
     // Create the package.json.
     const pkg = {
-      ...defaultPackage(entity),
-      ...(data.files['package.json'] ? JSON.parse(data.files['package.json']) : defaultPackage(entity)),
+      ...defaultPackageJson(entity.id),
+      ...(data.files['package.json'] ? JSON.parse(data.files['package.json']) : {}),
     };
 
     // Enforce @fusebit-int/framework as a dependency.
-    pkg.dependencies['@fusebit-int/framework'] = pkg.dependencies['@fusebit-int/framework'] || '^2.0.0';
+    pkg.dependencies['@fusebit-int/framework'] = pkg.dependencies['@fusebit-int/framework'] || defaultFrameworkSemver;
 
-    // Make sure packages mentioned in the cfg.connectors block are also included.
-    Object.values(data.configuration.connectors).forEach((c: { package: string }) => {
-      pkg.dependencies[c.package] = pkg.dependencies[c.package] || '*';
+    // Validate the components in the integration, and adjust the dependencies in the package.json if
+    // necessary.
+    const dagList: { [key: string]: boolean } = {};
+    data.components.forEach((comp: Model.IIntegrationComponent) => {
+      dagList[comp.name] = true;
+      // Validate DAG of 'dependsOn' parameters.
+      comp.dependsOn.forEach((dep: string) => {
+        if (!dagList[dep]) {
+          throw http_error(400, `Ordering violation: 'uses' in '${comp.name}' for '${dep}' before declaration.`);
+        }
+      });
+
+      // Make sure packages mentioned in the cfg.connectors block are also included.
+      if (comp.package) {
+        pkg.dependencies[comp.package] = pkg.dependencies[comp.package] || '*';
+      }
+
+      // Substitute the selfEntityIdReplacement for the current integration id.
+      if (comp.entityId === selfEntityIdReplacement) {
+        comp.entityId = entity.id;
+      }
     });
 
     // Always pretty-print package.json so it's human-readable from the start.
@@ -133,57 +102,29 @@ class IntegrationService extends SessionedComponentService<Model.IIntegration, M
     return entity;
   };
 
-  public createFunctionSpecification = (entity: Model.IEntity): Function.IFunctionSpecification => {
-    const data = entity.data;
-
-    // Add the baseUrl to the configuration.
-    const config = {
-      ...data.configuration,
-      mountUrl: `/v2/account/${entity.accountId}/subscription/${entity.subscriptionId}/integration/${entity.id}`,
-    };
-
-    const spec = {
-      id: entity.id,
-      nodejs: {
-        files: {
-          ...data.files,
-
-          // Don't allow the index.js to be overwritten.
-          'index.js': [
-            `const config = ${JSON.stringify(config)};`,
-            `let handler = '${data.handler}';`,
-            "handler = handler[0] === '.' ? `${__dirname}/${handler}`: handler;",
-            `module.exports = require('@fusebit-int/framework').Handler(handler, config);`,
-          ].join('\n'),
+  public getFunctionSecuritySpecification = () => ({
+    functionPermissions: {
+      allow: [
+        {
+          action: Permissions.allStorage,
+          resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/storage/{{boundaryId}/{{functionId}}/',
         },
-      },
-      security: {
-        functionPermissions: {
-          allow: [
-            {
-              action: 'storage:*',
-              resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/storage/integration/{{functionId}}/',
-            },
-            {
-              action: 'session:put',
-              resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/integration/{{functionId}}/session/',
-            },
-            {
-              action: 'session:result',
-              resource:
-                '/account/{{accountId}}/subscription/{{subscriptionId}}/integration/{{functionId}}/session/result/',
-            },
-            {
-              action: 'session:get',
-              resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/integration/{{functionId}}/session/',
-            },
-          ],
+        {
+          action: v2Permissions.putSession,
+          resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/{{boundaryId}/{{functionId}}/session/',
         },
-      },
-    };
-
-    return spec;
-  };
+        {
+          action: v2Permissions.getSessionResult,
+          resource:
+            '/account/{{accountId}}/subscription/{{subscriptionId}}/{{boundaryId}/{{functionId}}/session/result/',
+        },
+        {
+          action: v2Permissions.getSession,
+          resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/{{boundaryId}/{{functionId}}/session/',
+        },
+      ],
+    },
+  });
 }
 
 export default IntegrationService;

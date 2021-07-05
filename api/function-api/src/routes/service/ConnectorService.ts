@@ -1,14 +1,26 @@
-import { safePathMap } from '@5qtrs/constants';
+import { Permissions, v2Permissions, safePathMap } from '@5qtrs/constants';
 import RDS, { Model } from '@5qtrs/db';
 
 import SessionedComponentService from './SessionedComponentService';
+import { defaultFrameworkSemver } from './BaseComponentService';
 
-import * as Function from '../functions';
+const defaultPkgOAuthConnectorSemver = '^1.0.1';
 
-const defaultPackage = (entity: Model.IEntity) => ({
-  scripts: { deploy: `"fuse connector deploy ${entity.id} -d ."`, get: `"fuse connector get ${entity.id} -d ."` },
-  dependencies: {},
+const defaultPackage = (entityId: string) => ({
+  scripts: { deploy: `"fuse connector deploy ${entityId} -d ."`, get: `"fuse connector get ${entityId} -d ."` },
+  dependencies: {
+    '@fusebit-int/pkg-oauth-connector': defaultPkgOAuthConnectorSemver,
+    '@fusebit-int/framework': defaultFrameworkSemver,
+  },
 });
+
+const defaultConnector: Model.IConnectorData = {
+  handler: '@fusebit-int/pkg-oauth-connector',
+  configuration: {},
+  files: {
+    'package.json': JSON.stringify(defaultPackage('sampleConnector'), null, 2),
+  },
+};
 
 class ConnectorService extends SessionedComponentService<Model.IConnector, Model.IIdentity> {
   public readonly entityType: Model.EntityType;
@@ -22,8 +34,17 @@ class ConnectorService extends SessionedComponentService<Model.IConnector, Model
     this.connectorService = this;
   };
 
-  public sanitizeEntity = (entity: Model.IEntity): Model.IEntity => {
-    const data = entity.data || {};
+  public sanitizeEntity = (ent: Model.IEntity): Model.IEntity => {
+    const entity = ent as Model.IConnector;
+    const data = entity.data;
+
+    if (!data || Object.keys(data).length === 0) {
+      // Default entity.data, for the GET /?defaults=true path.
+      entity.data = defaultConnector;
+
+      return entity;
+    }
+
     data.files = data.files || {};
 
     // Remove any leading . or ..'s from file paths.
@@ -33,11 +54,11 @@ class ConnectorService extends SessionedComponentService<Model.IConnector, Model
     data.configuration = data.configuration || {};
 
     const pkg = {
-      ...defaultPackage(entity),
+      ...defaultPackage(entity.id),
       ...(data.files && data.files['package.json'] ? JSON.parse(data.files['package.json']) : {}),
     };
 
-    pkg.dependencies['@fusebit-int/framework'] = pkg.dependencies['@fusebit-int/framework'] || '^2.0.0';
+    pkg.dependencies['@fusebit-int/framework'] = pkg.dependencies['@fusebit-int/framework'] || defaultFrameworkSemver;
 
     // Make sure package mentioned in the `handler` block is also included.
     pkg.dependencies[data.handler] = pkg.dependencies[data.handler] || '*';
@@ -50,61 +71,37 @@ class ConnectorService extends SessionedComponentService<Model.IConnector, Model
     return entity;
   };
 
-  public createFunctionSpecification = (entity: Model.IEntity): Function.IFunctionSpecification => {
-    const data = entity.data;
-
-    // Add the baseUrl to the configuration.
-    const config = {
-      ...entity.data.configuration,
-      mountUrl: `/v2/account/${entity.accountId}/subscription/${entity.subscriptionId}/connector/${entity.id}`,
-    };
-
-    return {
-      id: entity.id,
-      nodejs: {
-        files: {
-          ...data.files,
-
-          'index.js': [
-            `const config = ${JSON.stringify(config)};`,
-            `const handler = '${data.handler}';`,
-            `module.exports = require('@fusebit-int/framework').Handler(handler, config);`,
-          ].join('\n'),
+  public getFunctionSecuritySpecification = () => ({
+    functionPermissions: {
+      allow: [
+        {
+          action: Permissions.allStorage,
+          resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/storage/{{boundaryId}/{{functionId}}/',
         },
-      },
-      security: {
-        functionPermissions: {
-          allow: [
-            {
-              action: 'storage:*',
-              resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/storage/connector/{{functionId}}/',
-            },
-            {
-              action: 'session:put',
-              resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/connector/{{functionId}}/session/',
-            },
-            {
-              action: 'session:result',
-              resource:
-                '/account/{{accountId}}/subscription/{{subscriptionId}}/connector/{{functionId}}/session/result/',
-            },
-            {
-              action: 'session:get',
-              resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/connector/{{functionId}}/session/',
-            },
-            {
-              action: 'identity:get',
-              resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/connector/{{functionId}}/identity/',
-            },
-            {
-              action: 'identity:put',
-              resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/connector/{{functionId}}/identity/',
-            },
-          ],
+        {
+          action: v2Permissions.putSession,
+          resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/{{boundaryId}/{{functionId}}/session/',
         },
-      },
-    };
-  };
+        {
+          action: v2Permissions.getSessionResult,
+          resource:
+            '/account/{{accountId}}/subscription/{{subscriptionId}}/{{boundaryId}/{{functionId}}/session/result/',
+        },
+        {
+          action: v2Permissions.getSession,
+          resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/{{boundaryId}/{{functionId}}/session/',
+        },
+        {
+          action: v2Permissions.identity.get,
+          resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/connector/{{functionId}}/identity/',
+        },
+        {
+          action: v2Permissions.identity.put,
+          resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/connector/{{functionId}}/identity/',
+        },
+      ],
+    },
+  });
 }
 
 export default ConnectorService;

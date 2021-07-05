@@ -50,14 +50,14 @@ export class IntegrationGetCommand extends Command {
 
     await executeService.newLine();
 
-    const integration = await integrationService.fetchIntegration(integrationId);
+    const integration = await integrationService.fetchEntity(integrationId);
 
     if (destDir) {
       const destPath = join(process.cwd(), destDir);
 
       await integrationService.writeDirectory(destPath, integration);
     } else {
-      await integrationService.displayIntegrations([integration], true);
+      await integrationService.displayEntities([integration], true);
     }
     return 0;
   }
