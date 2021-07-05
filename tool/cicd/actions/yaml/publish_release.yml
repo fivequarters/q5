@@ -1,0 +1,3 @@
+    steps:
+      - name: Publish - tags
+        run: ./tool/cicd/actions/scripts/publish_fusebit_tags.sh
