@@ -1,0 +1,4 @@
+# Change AWS Credentials To Dev
+steps:
+- name: Change Credentials
+  run: ./tool/cicd/actions/scripts/rename_vars.sh
