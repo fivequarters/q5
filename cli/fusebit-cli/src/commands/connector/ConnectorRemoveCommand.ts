@@ -57,7 +57,7 @@ export class ConnectorRemoveCommand extends Command {
 
     await connectorService.confirmRemove(connectorId);
 
-    await connectorService.removeConnector(connectorId);
+    await connectorService.removeEntity(connectorId);
 
     return 0;
   }

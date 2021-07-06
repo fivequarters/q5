@@ -6,21 +6,21 @@ import requestToEntity from '../../handlers/requestToEntity';
 
 import * as common from '../../middleware/common';
 import * as Validation from '../../validation/tags';
-import { BaseComponentService } from '../../service';
+import { BaseEntityService } from '../../service';
 
-const router = (ComponentService: BaseComponentService<any, any>, paramIdNames: string[] = ['componentId']) => {
+const router = (EntityService: BaseEntityService<any, any>, paramIdNames: string[] = ['entityId']) => {
   const componentTagRouter = express.Router({ mergeParams: true });
 
   componentTagRouter.get(
     '/',
     common.management({
       validate: { params: Validation.EntityIdParams },
-      authorize: { operation: v2Permissions[ComponentService.entityType].get },
+      authorize: { operation: v2Permissions[EntityService.entityType].get },
     }),
     async (req: express.Request, res: express.Response, next: express.NextFunction) => {
       try {
-        const entity = await requestToEntity(ComponentService, paramIdNames, req);
-        const { statusCode, result } = await ComponentService.getEntityTags(entity);
+        const entity = await requestToEntity(EntityService, paramIdNames, req);
+        const { statusCode, result } = await EntityService.getEntityTags(entity);
         res.status(statusCode).json(Model.entityToSdk(result));
       } catch (e) {
         next(e);
@@ -33,12 +33,12 @@ const router = (ComponentService: BaseComponentService<any, any>, paramIdNames: 
     .get(
       common.management({
         validate: { params: Validation.EntityIdParams },
-        authorize: { operation: v2Permissions[ComponentService.entityType].get },
+        authorize: { operation: v2Permissions[EntityService.entityType].get },
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {
-          const entity = await requestToEntity(ComponentService, paramIdNames, req);
-          const response = await ComponentService.getEntityTag({ ...entity, tagKey: req.params.tagKey });
+          const entity = await requestToEntity(EntityService, paramIdNames, req);
+          const response = await EntityService.getEntityTag({ ...entity, tagKey: req.params.tagKey });
           res.json(response);
         } catch (e) {
           next(e);
@@ -48,12 +48,12 @@ const router = (ComponentService: BaseComponentService<any, any>, paramIdNames: 
     .delete(
       common.management({
         validate: { params: Validation.EntityIdParams },
-        authorize: { operation: v2Permissions[ComponentService.entityType].putTag },
+        authorize: { operation: v2Permissions[EntityService.entityType].putTag },
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {
-          const entity = await requestToEntity(ComponentService, paramIdNames, req);
-          const { statusCode, result } = await ComponentService.deleteEntityTag({
+          const entity = await requestToEntity(EntityService, paramIdNames, req);
+          const { statusCode, result } = await EntityService.deleteEntityTag({
             ...entity,
             tagKey: req.params.tagKey,
             tagValue: req.params.tagValue,
@@ -69,12 +69,12 @@ const router = (ComponentService: BaseComponentService<any, any>, paramIdNames: 
     '/:tagKey/:tagValue',
     common.management({
       validate: { params: Validation.EntityIdParams },
-      authorize: { operation: v2Permissions[ComponentService.entityType].putTag },
+      authorize: { operation: v2Permissions[EntityService.entityType].putTag },
     }),
     async (req: express.Request, res: express.Response, next: express.NextFunction) => {
       try {
-        const entity = await requestToEntity(ComponentService, paramIdNames, req);
-        const { statusCode, result } = await ComponentService.setEntityTag({
+        const entity = await requestToEntity(EntityService, paramIdNames, req);
+        const { statusCode, result } = await EntityService.setEntityTag({
           ...entity,
           tagKey: req.params.tagKey,
           tagValue: req.params.tagValue,

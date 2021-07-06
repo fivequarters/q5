@@ -11,14 +11,15 @@ interface IConnector {
  * ConnectorManager.
  */
 interface IInstanceConnectorConfig {
+  name: string;
+  path: string;
+
   /** Name of the managing npm package for this connector. */
   package: string;
 
   /** The remote entity ID for this connector. */
-  connector: string;
-
-  /** Configuration of the package, passed in on instantiation. */
-  config: {};
+  entityId: string;
+  entityType: string;
 
   /** A cached instance object of the initialized package object. */
   instance?: IConnector;
@@ -45,12 +46,16 @@ class ConnectorManager {
   /**
    * Set up the configuration manager with a collection of connector configurations.
    */
-  public setup(cfg: IInstanceConnectorConfigMap) {
+  public setup(cfg?: IInstanceConnectorConfig[]) {
     if (!cfg) {
       return;
     }
 
-    Object.keys(cfg).forEach((name: string) => (this.connectors[name] = cfg[name]));
+    cfg.forEach((connector: IInstanceConnectorConfig) => {
+      if (connector.entityType === 'connector') {
+        this.connectors[connector.name] = connector;
+      }
+    });
   }
 
   /**

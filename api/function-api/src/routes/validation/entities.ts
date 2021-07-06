@@ -25,7 +25,7 @@ const validatePostEntity = (data: any) =>
 const EntityIdParams = Joi.object().keys({
   accountId: Common.accountId,
   subscriptionId: Common.subscriptionId,
-  componentId: Common.entityId,
+  entityId: Common.entityId,
   instanceId: Joi.string().guid(),
   identityId: Joi.string().guid(),
   operationId: Joi.string().guid(),
@@ -45,8 +45,11 @@ const EntityIdQuery = Joi.object().keys({
   count: Joi.number(),
   next: Joi.string(),
   tag: Common.tagQuery,
+  defaults: Joi.boolean(),
 });
 
+// Add validation that the filename can't start with leading '.'... how to make sure it's safe for windows,
+// too?
 const Files = Joi.object();
 
 export { validateEntity, validatePostEntity, EntityId, EntityIdParams, Files, EntityIdQuery };

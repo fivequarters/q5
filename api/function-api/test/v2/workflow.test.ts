@@ -52,26 +52,27 @@ describe('Workflow', () => {
       message: boundaryId + '-token',
     };
 
-    const state = 'CCCC';
-
     // Create the various artifacts
     const { integrationId, connectorId } = await createPair(
       account,
       boundaryId,
       {
-        creation: {
-          steps: [
-            {
-              name: 'conn1',
-              target: { entityType: 'connector', entityId: `${boundaryId}-con` },
-            },
-            {
-              name: 'form',
-              target: { entityType: 'integration', path: '/api/aForm', entityId: '{{integration}}' },
-              uses: ['conn1'],
-            },
-          ],
-        },
+        components: [
+          {
+            name: 'conn1',
+            package: '@fusebit-int/pkg-oauth-integration',
+            entityType: Model.EntityType.connector,
+            entityId: `${boundaryId}-con`,
+            dependsOn: [],
+          },
+          {
+            name: 'form',
+            entityType: Model.EntityType.integration,
+            path: '/api/aForm',
+            entityId: '{{integration}}',
+            dependsOn: ['conn1'],
+          },
+        ],
       },
       {
         handler: '@fusebit-int/pkg-oauth-connector',
@@ -116,7 +117,6 @@ describe('Workflow', () => {
       '});',
       "router.get('/api/aForm', async (ctx) => {",
       "  const response = await superagent.get(`${ctx.state.params.baseUrl}/session/${ctx.query.session}`).set('Authorization', `Bearer ${ctx.state.params.functionAccessToken}`);",
-      '  console.log(response.data);',
       '  ctx.redirect(`${ctx.state.params.baseUrl}/session/${ctx.query.session}/callback`);',
       '});',
       "router.get('/api/doASessionThing/:sessionId', async (ctx) => { ctx.body = 'doASessionThing'; });",
@@ -158,7 +158,7 @@ describe('Workflow', () => {
     expect(response.headers.location.indexOf(`${redirectUrl}/authorize`)).toBe(0);
 
     // Set up the HTTP service
-    let oauthSessionId;
+    let oauthSessionId: string = '';
     httpServer.app.get('/authorize', (req: any, res: any) => {
       oauthSessionId = req.query.state;
       return res.redirect(`${req.query.redirect_uri}?state=${req.query.state}&code=EEEE`);
@@ -208,11 +208,11 @@ describe('Workflow', () => {
       statusCode: 200,
       data: {
         id: formSessionId,
-        uses: {
+        dependsOn: {
           conn1: {
-            entityType: 'connector',
-            componentId: connectorId,
-            subordinateId: connectorSessionId,
+            parentEntityType: 'connector',
+            parentEntityId: connectorId,
+            entityId: connectorSessionId,
           },
         },
       },
@@ -228,30 +228,25 @@ describe('Workflow', () => {
       data: {
         get: {
           id: formSessionId,
-          uses: {
+          dependsOn: {
             conn1: {
-              entityType: 'connector',
-              componentId: connectorId,
-              subordinateId: connectorSessionId,
+              parentEntityType: 'connector',
+              parentEntityId: connectorId,
+              entityId: connectorSessionId,
             },
           },
         },
         getResult: {
           id: formSessionId,
-          uses: {
+          dependsOn: {
             conn1: {
-              entityType: 'connector',
-              componentId: connectorId,
-              subordinateId: connectorSessionId,
+              parentEntityType: 'connector',
+              parentEntityId: connectorId,
+              entityId: connectorSessionId,
             },
           },
           output: {
             hello: 'world',
-          },
-          target: {
-            path: '/api/aForm',
-            entityId: integrationId,
-            entityType: 'integration',
           },
         },
       },
@@ -285,37 +280,33 @@ describe('Workflow', () => {
           },
           accountId: account.accountId,
           entityType: Model.EntityType.instance,
-          componentId: integrationId,
-          componentType: Model.EntityType.integration,
+          parentEntityId: integrationId,
+          parentEntityType: Model.EntityType.integration,
           subscriptionId: account.subscriptionId,
         },
-        steps: [
+        components: [
           {
             name: 'conn1',
-            target: {
-              path: '/api/configure',
-              entityId: connectorId,
-              entityType: Model.EntityType.connector,
-            },
+            path: '/api/configure',
+            entityId: connectorId,
+            entityType: Model.EntityType.connector,
           },
           {
             name: 'form',
-            uses: ['conn1'],
-            target: {
-              path: '/api/aForm',
-              entityId: integrationId,
-              entityType: Model.EntityType.integration,
-            },
+            dependsOn: ['conn1'],
+            path: '/api/aForm',
+            entityId: integrationId,
+            entityType: Model.EntityType.integration,
           },
         ],
       },
     });
-    expect(response.data.steps[0].childSessionId).toBeUUID();
-    expect(response.data.steps[1].childSessionId).toBeUUID();
+    expect(response.data.components[0].childSessionId).toBeUUID();
+    expect(response.data.components[1].childSessionId).toBeUUID();
 
-    expect(response.data.output.id).toBeUUID();
+    expect(response.data.output.entityId).toBeUUID();
 
-    const instanceId = response.data.output.id;
+    const instanceId = response.data.output.entityId;
 
     response = await ApiRequestMap.instance.get(account, integrationId, instanceId);
     expect(response).toBeHttp({
@@ -332,8 +323,8 @@ describe('Workflow', () => {
             },
             accountId: account.accountId,
             entityType: Model.EntityType.identity,
-            componentId: connectorId,
-            componentType: Model.EntityType.connector,
+            parentEntityId: connectorId,
+            parentEntityType: Model.EntityType.connector,
             subscriptionId: account.subscriptionId,
           },
         },
@@ -342,6 +333,6 @@ describe('Workflow', () => {
         },
       },
     });
-    expect(response.data.data.conn1.id).toBeUUID();
+    expect(response.data.data.conn1.entityId).toBeUUID();
   }, 180000);
 });

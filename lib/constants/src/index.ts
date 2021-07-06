@@ -1,7 +1,7 @@
 import Crypto from 'crypto';
 import Path from 'path';
 
-import { dynamoScanTable, expBackoff, asyncPool, duplicate, safePath, safePathMap } from './utilities';
+import { dynamoScanTable, expBackoff, asyncPool, duplicate, safePath, safePathMap, isUuid } from './utilities';
 
 interface IModuleSpec {
   registry: string;
@@ -300,4 +300,5 @@ export {
   IModuleSpec,
   safePath,
   safePathMap,
+  isUuid,
 };
