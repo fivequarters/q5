@@ -1,6 +1,6 @@
 {
   "name": "@5qtrs/fusebit-cli",
-  "version": "1.9.11",
+  "version": "1.9.12",
   "description": "",
   "main": "libc/index.js",
   "bin": {
@@ -41,5 +41,6 @@
   },
   "devDependencies": {
     "@types/opn": "^5.5.0"
-  }
+  },
+  "bundledDependencies": ["@fusebit/schema"]
 }
