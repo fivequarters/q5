@@ -29,7 +29,7 @@ const rejectPermissionAgent = {
   },
 };
 
-export default abstract class BaseComponentService<E extends Model.IEntity, F extends Model.IEntity | E> {
+export default abstract class BaseEntityService<E extends Model.IEntity, F extends Model.IEntity | E> {
   public abstract readonly entityType: Model.EntityType;
   public readonly dao: Model.IEntityDao<E>;
   public readonly subDao?: Model.IEntityDao<F>;

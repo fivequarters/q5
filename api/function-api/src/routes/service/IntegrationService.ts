@@ -3,8 +3,8 @@ import http_error from 'http-errors';
 import { Permissions, v2Permissions, safePathMap } from '@5qtrs/constants';
 import RDS, { Model } from '@5qtrs/db';
 
-import SessionedComponentService from './SessionedComponentService';
-import { defaultFrameworkSemver } from './BaseComponentService';
+import SessionedEntityService from './SessionedEntityService';
+import { defaultFrameworkSemver } from './BaseEntityService';
 
 const defaultIntegrationJs = [
   "const { Router, Manager, Form } = require('@fusebit-int/framework');",
@@ -37,14 +37,14 @@ const defaultIntegration: Model.IIntegrationData = {
 
 const selfEntityIdReplacement = '{{integration}}';
 
-class IntegrationService extends SessionedComponentService<Model.IIntegration, Model.IInstance> {
+class IntegrationService extends SessionedEntityService<Model.IIntegration, Model.IInstance> {
   public readonly entityType: Model.EntityType;
   constructor() {
     super(RDS.DAO.integration, RDS.DAO.instance);
     this.entityType = Model.EntityType.integration;
   }
 
-  public addService = (service: SessionedComponentService<any, any>): void => {
+  public addService = (service: SessionedEntityService<any, any>): void => {
     this.integrationService = this;
     this.connectorService = service;
   };

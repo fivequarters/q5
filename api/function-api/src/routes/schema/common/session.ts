@@ -4,11 +4,11 @@ import { Model } from '@5qtrs/db';
 import { v2Permissions } from '@5qtrs/constants';
 
 import * as common from '../../middleware/common';
-import { SessionedComponentService } from '../../service';
+import { SessionedEntityService } from '../../service';
 import * as Validation from '../../validation/session';
 import * as ValidationCommon from '../../validation/entities';
 
-const createSessionRouter = (SessionService: SessionedComponentService<any, any>) => {
+const createSessionRouter = (SessionService: SessionedEntityService<any, any>) => {
   const router = express.Router({ mergeParams: true });
 
   router.post(

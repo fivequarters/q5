@@ -12,7 +12,7 @@ import { IFusebitExecutionProfile } from '@5qtrs/fusebit-profile-sdk';
 
 import { FunctionService } from './FunctionService';
 
-import { ISdkEntity, IIntegrationData, IConnectorData } from '@fusebit/schema';
+import { EntityType, ISdkEntity, IIntegrationData, IConnectorData } from '@fusebit/schema';
 
 const FusebitStateFile = '.fusebit-state';
 const FusebitMetadataFile = 'fusebit.json';
@@ -44,7 +44,7 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
   protected executeService: ExecuteService;
   protected input: IExecuteInput;
 
-  protected abstract entityType: string;
+  protected abstract entityType: EntityType;
 
   constructor(profileService: ProfileService, executeService: ExecuteService, input: IExecuteInput) {
     this.input = input;
@@ -142,16 +142,23 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
     delete spec.data.files;
 
     // Reconstruct the fusebit.json file
-    const config: any = {};
-    config.id = spec.id;
-    config.tags = spec.tags;
-    config.expires = spec.expires;
+    const config = {
+      id: spec.id,
+      tags: spec.tags,
+      expires: spec.expires,
+      ...spec.data,
+    };
 
-    Object.assign(config, spec.data);
     await writeFile(join(cwd, FusebitMetadataFile), JSON.stringify(config, null, 2));
   }
 
-  public async confirmDeploy(path: string, entitySpec: any, entityId: string): Promise<void> {
+  // Right now the entitySpec is left as mostly abstract to try to minimize the unnecessary breakage if
+  // additional fields are added to the entity specification.
+  public async confirmDeploy(
+    path: string,
+    entitySpec: { data: { files: { [fileName: string]: string } } },
+    entityId: string
+  ): Promise<void> {
     if (!this.input.options.quiet) {
       const files = entitySpec.data.files || [];
       if (files.length) {

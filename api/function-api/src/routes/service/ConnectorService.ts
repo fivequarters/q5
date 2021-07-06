@@ -1,8 +1,8 @@
 import { Permissions, v2Permissions, safePathMap } from '@5qtrs/constants';
 import RDS, { Model } from '@5qtrs/db';
 
-import SessionedComponentService from './SessionedComponentService';
-import { defaultFrameworkSemver } from './BaseComponentService';
+import SessionedEntityService from './SessionedEntityService';
+import { defaultFrameworkSemver } from './BaseEntityService';
 
 const defaultPkgOAuthConnectorSemver = '^1.0.1';
 
@@ -22,14 +22,14 @@ const defaultConnector: Model.IConnectorData = {
   },
 };
 
-class ConnectorService extends SessionedComponentService<Model.IConnector, Model.IIdentity> {
+class ConnectorService extends SessionedEntityService<Model.IConnector, Model.IIdentity> {
   public readonly entityType: Model.EntityType;
   constructor() {
     super(RDS.DAO.connector, RDS.DAO.identity);
     this.entityType = Model.EntityType.connector;
   }
 
-  public addService = (service: SessionedComponentService<any, any>): void => {
+  public addService = (service: SessionedEntityService<any, any>): void => {
     this.integrationService = service;
     this.connectorService = this;
   };

@@ -4,18 +4,18 @@ import { ProfileService } from './ProfileService';
 import { ExecuteService } from './ExecuteService';
 import { IBaseComponentType, BaseComponentService } from './BaseComponentService';
 
-import { IIntegrationData } from '@fusebit/schema';
+import { IIntegrationData, EntityType } from '@fusebit/schema';
 
 interface IIntegration extends IBaseComponentType {
   data: IIntegrationData;
 }
 
 export class IntegrationService extends BaseComponentService<IIntegration> {
-  protected entityType: string;
+  protected entityType: EntityType;
 
   private constructor(profileService: ProfileService, executeService: ExecuteService, input: IExecuteInput) {
     super(profileService, executeService, input);
-    this.entityType = 'integration';
+    this.entityType = EntityType.integration;
   }
 
   public static async create(input: IExecuteInput) {
@@ -45,11 +45,7 @@ export class IntegrationService extends BaseComponentService<IIntegration> {
 
       if (item.tags) {
         Object.entries(item.tags).forEach(([tagKey, tagValue]: [string, string]) => {
-          tagSummary.push(Text.dim('• '));
-          tagSummary.push(tagKey);
-          tagSummary.push(Text.dim(': '));
-          tagSummary.push(tagValue);
-          tagSummary.push(Text.eol());
+          tagSummary.push(Text.dim('• '), tagKey, Text.dim(': '), tagValue, Text.eol());
         });
       }
 

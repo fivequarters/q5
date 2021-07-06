@@ -5,18 +5,18 @@ import { ExecuteService } from './ExecuteService';
 
 import { IBaseComponentType, BaseComponentService } from './BaseComponentService';
 
-import { IConnectorData } from '@fusebit/schema';
+import { IConnectorData, EntityType } from '@fusebit/schema';
 
 interface IConnector extends IBaseComponentType {
   data: IConnectorData;
 }
 
 export class ConnectorService extends BaseComponentService<IConnector> {
-  protected entityType: string;
+  protected entityType: EntityType;
 
   private constructor(profileService: ProfileService, executeService: ExecuteService, input: IExecuteInput) {
     super(profileService, executeService, input);
-    this.entityType = 'connector';
+    this.entityType = EntityType.connector;
   }
 
   public static async create(input: IExecuteInput) {
@@ -45,11 +45,7 @@ export class ConnectorService extends BaseComponentService<IConnector> {
 
       if (item.tags) {
         Object.entries(item.tags).forEach(([tagKey, tagValue]: [string, string]) => {
-          tagSummary.push(Text.dim('• '));
-          tagSummary.push(tagKey);
-          tagSummary.push(Text.dim(': '));
-          tagSummary.push(tagValue);
-          tagSummary.push(Text.eol());
+          tagSummary.push(Text.dim('• '), tagKey, Text.dim(': '), tagValue, Text.eol());
         });
       }
 

@@ -11,12 +11,12 @@ import Validation from '../validation/component';
 
 import query from '../handlers/query';
 
-import { BaseComponentService } from '../service';
+import { BaseEntityService } from '../service';
 import CommonTagRouter from './common/tag';
 import CommonCrudRouter from './common/crud';
 
 const subcomponentRouter = (
-  service: BaseComponentService<any, any>,
+  service: BaseEntityService<any, any>,
   idParamNames: [string, string],
   parentEntityType: Model.EntityType
 ) => {

@@ -3,23 +3,23 @@ import http_error from 'http-errors';
 import { v4 as uuidv4 } from 'uuid';
 import RDS, { Model } from '@5qtrs/db';
 
-import BaseComponentService, { IServiceResult } from './BaseComponentService';
+import BaseEntityService, { IServiceResult } from './BaseEntityService';
 import { operationService } from './OperationService';
 
-export default abstract class SessionedComponentService<
+export default abstract class SessionedEntityService<
   E extends Model.IEntity,
   F extends Model.IEntity
-> extends BaseComponentService<E, F> {
+> extends BaseEntityService<E, F> {
   private readonly sessionDao: Model.IEntityDao<Model.ISession>;
-  public integrationService!: SessionedComponentService<any, any>;
-  public connectorService!: SessionedComponentService<any, any>;
+  public integrationService!: SessionedEntityService<any, any>;
+  public connectorService!: SessionedEntityService<any, any>;
 
   constructor(dao: Model.IEntityDao<E>, subDao: Model.IEntityDao<F>) {
     super(dao, subDao);
     this.sessionDao = RDS.DAO.session;
   }
 
-  public abstract addService(service: SessionedComponentService<any, any>): void;
+  public abstract addService(service: SessionedEntityService<any, any>): void;
 
   public getTargetElements = (params: Model.IEntity, step: Model.IStep) => {
     return {
@@ -73,24 +73,26 @@ export default abstract class SessionedComponentService<
 
     // If there's a specific order or subset specified, use that instead of the full list.
     const dagCheck: { [step: string]: boolean } = {};
-    stepList = sessionDetails.components
-      ? sessionDetails.components.map((name) => {
-          const step = entity.data.components.find((comp: Model.IIntegrationComponent) => comp.name === name);
-          if (!step) {
-            throw http_error(400, `Unknown component '${name}'`);
+    if (sessionDetails.components) {
+      stepList = sessionDetails.components.map((name) => {
+        const step = entity.data.components.find((comp: Model.IIntegrationComponent) => comp.name === name);
+        if (!step) {
+          throw http_error(400, `Unknown component '${name}'`);
+        }
+        // Validate DAG of 'dependsOn' parameters.
+        step.dependsOn.forEach((s: string) => {
+          if (!dagCheck[s]) {
+            throw http_error(400, `Ordering violation: 'uses' in '${step.name}' for '${s}' before declaration.`);
           }
-          // Validate DAG of 'dependsOn' parameters.
-          step.dependsOn.forEach((s: string) => {
-            if (!dagCheck[s]) {
-              throw http_error(400, `Ordering violation: 'uses' in '${step.name}' for '${s}' before declaration.`);
-            }
-          });
+        });
 
-          dagCheck[step.name] = true;
+        dagCheck[step.name] = true;
 
-          return step;
-        })
-      : entity.data.components.filter((comp: Model.IIntegrationComponent) => !comp.skip);
+        return step;
+      });
+    } else {
+      stepList = entity.data.components.filter((comp: Model.IIntegrationComponent) => !comp.skip);
+    }
 
     if (!stepList.length) {
       throw http_error(400, 'No matching components found');
@@ -141,18 +143,22 @@ export default abstract class SessionedComponentService<
     const sessionId = uuidv4();
 
     // Calculate 'dependsOn' based on previous session ids
-    const dependsOn = step.dependsOn.reduce((acc: Record<string, object>, stepName: string) => {
-      const match = parentSession.data.components.find((comp: Model.IStep) => comp.name === stepName);
-      if (!match) {
-        throw http_error(500, `Unknown component '${stepName}' required by '${step.name}'`);
-      }
-      if (!match.childSessionId) {
-        throw http_error(500, `Component '${stepName}' not configured in '${step.name}'`);
-      }
-
-      acc[stepName] = Model.decomposeSubordinateId(match.childSessionId);
-      return acc;
-    }, {});
+    const dependsOn = step.dependsOn
+      .map((stepName: string) => {
+        // Validate it's correct for typesafety.
+        const match = parentSession.data.components.find((comp: Model.IStep) => comp.name === stepName);
+        if (!match) {
+          throw http_error(500, `Unknown component '${stepName}' required by '${step.name}'`);
+        }
+        if (!match.childSessionId) {
+          throw http_error(500, `Component '${stepName}' not configured in '${step.name}'`);
+        }
+        return { stepName, childSessionId: match.childSessionId };
+      })
+      .reduce((acc: Record<string, object>, { stepName, childSessionId }) => {
+        acc[stepName] = Model.decomposeSubordinateId(childSessionId);
+        return acc;
+      }, {});
 
     // Create a new session.
     const session: Model.ILeafSession = {

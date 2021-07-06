@@ -74,11 +74,12 @@ export const createSubordinateId = (
 };
 
 export const decomposeSubordinateId = (id: string): Schema.ISubordinateId => {
-  const split = id.split('/');
+  const [parentEntityType, parentEntityId, entityId] = id.split('/').slice(1);
+
   return {
-    parentEntityType: split[1] as Schema.EntityType,
-    parentEntityId: split[2],
-    entityId: split[3],
+    parentEntityType: parentEntityType as Schema.EntityType,
+    parentEntityId,
+    entityId,
   };
 };
 

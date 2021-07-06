@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { isUuid } from '@5qtrs/constants';
 import RDS, { Model } from '@5qtrs/db';
 
-import { IServiceResult } from './BaseComponentService';
+import { IServiceResult } from './BaseEntityService';
 
 interface IOperationParam {
   verb: 'creating' | 'updating' | 'deleting';
@@ -40,15 +40,13 @@ class OperationService {
 
     // Create operation with the status
     const operationId = uuidv4();
-    const entityId =
-      entity.id && entity.id.indexOf('/') >= 0 ? Model.decomposeSubordinateId(entity.id).parentEntityId : entity.id;
+    const isCompositeId = entity.id && entity.id.includes('/');
+
+    const entityId = isCompositeId ? Model.decomposeSubordinateId(entity.id).parentEntityId : entity.id;
 
     // Is it a non-empty actual number? If so, it's probably a database id - don't use it. This continues the
     // efforts of trying to avoid exposing session, identity, instance, and database id's out through these APIs.
-    if (entity.id.indexOf('/') >= 0 && (!isNaN(+entityId) || !isNaN(parseFloat(entityId)) || isUuid(entityId))) {
-      console.log(
-        `Invalid: ${entity.id}, ${entityId}, ${isNaN(+entityId)}, ${isNaN(parseFloat(entityId))}, ${isUuid(entityId)}`
-      );
+    if (isCompositeId && (!isNaN(+entityId) || !isNaN(parseFloat(entityId)) || isUuid(entityId))) {
       throw http_error(500, 'Invalid entityId detected');
     }
 

@@ -7,7 +7,7 @@ import { Model } from '@5qtrs/db';
 
 import * as common from '../../middleware/common';
 
-import { BaseComponentService } from '../../service';
+import { BaseEntityService } from '../../service';
 
 import pathParams from '../../handlers/pathParams';
 import body from '../../handlers/body';
@@ -17,7 +17,7 @@ import query from '../../handlers/query';
 import requestToEntity from '../../handlers/requestToEntity';
 
 const router = (
-  ComponentService: BaseComponentService<Model.IEntity, Model.IEntity>,
+  EntityService: BaseEntityService<Model.IEntity, Model.IEntity>,
   paramIdNames: string[] = ['entityId']
 ) => {
   const componentCrudRouter = express.Router({ mergeParams: true });
@@ -28,12 +28,12 @@ const router = (
     .get(
       common.management({
         validate: { params: Validation.EntityIdParams },
-        authorize: { operation: v2Permissions[ComponentService.entityType].get },
+        authorize: { operation: v2Permissions[EntityService.entityType].get },
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {
-          const entity = await requestToEntity(ComponentService, paramIdNames, req);
-          const { statusCode, result } = await ComponentService.getEntity(entity);
+          const entity = await requestToEntity(EntityService, paramIdNames, req);
+          const { statusCode, result } = await EntityService.getEntity(entity);
           res.status(statusCode).json(Model.entityToSdk(result));
         } catch (e) {
           next(e);
@@ -44,19 +44,19 @@ const router = (
       common.management({
         validate: {
           params: Validation.EntityIdParams,
-          body: Validation[ComponentService.entityType].Entity,
+          body: Validation[EntityService.entityType].Entity,
         },
-        authorize: { operation: v2Permissions[ComponentService.entityType].put },
+        authorize: { operation: v2Permissions[EntityService.entityType].put },
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {
           const entity = await requestToEntity(
-            ComponentService,
+            EntityService,
             paramIdNames,
             req,
-            body.entity(req, ComponentService.entityType)
+            body.entity(req, EntityService.entityType)
           );
-          const { statusCode, result } = await ComponentService.updateEntity(entity);
+          const { statusCode, result } = await EntityService.updateEntity(entity);
           res.status(statusCode).json(result);
         } catch (e) {
           next(e);
@@ -69,12 +69,12 @@ const router = (
           params: Validation.EntityIdParams,
           query: Joi.object().keys({ version: Joi.string().guid().optional() }),
         },
-        authorize: { operation: v2Permissions[ComponentService.entityType].delete },
+        authorize: { operation: v2Permissions[EntityService.entityType].delete },
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {
-          const entity = await requestToEntity(ComponentService, paramIdNames, req, query.version(req));
-          const { statusCode, result } = await ComponentService.deleteEntity(entity);
+          const entity = await requestToEntity(EntityService, paramIdNames, req, query.version(req));
+          const { statusCode, result } = await EntityService.deleteEntity(entity);
           res.status(statusCode).json(result);
         } catch (e) {
           next(e);
@@ -86,7 +86,7 @@ const router = (
     let result;
 
     try {
-      result = await ComponentService.dispatch(
+      result = await EntityService.dispatch(
         pathParams.EntityById(req, paramIdNames[paramIdNames.length - 1]),
         req.method,
         req.params.subPath,

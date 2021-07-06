@@ -1,11 +1,11 @@
 import http_error from 'http-errors';
 
 import RDS, { Model } from '@5qtrs/db';
-import BaseComponentService from './BaseComponentService';
+import BaseEntityService from './BaseEntityService';
 
 import * as Function from '../functions';
 
-class InstanceService extends BaseComponentService<Model.IInstance, Model.IInstance> {
+class InstanceService extends BaseEntityService<Model.IInstance, Model.IInstance> {
   public readonly entityType: Model.EntityType;
   constructor() {
     super(RDS.DAO.instance);
