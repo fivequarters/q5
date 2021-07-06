@@ -54,11 +54,6 @@ const specs = [
     inputs: ['checkout', ...fullBuild, 'publish_api_docs'],
     output: 'publish_api_docs',
   },
-  {
-    name: "Publish Function API on Dev",
-    inputs: ['checkout', ...fullBuild, 'rename_vars', 'publish_function_api'],
-    output: 'publish_function_api_dev'
-  }
 ];
 
 function buildSpec(name: string, inputs: string[], output: string, options: any = {}) {
