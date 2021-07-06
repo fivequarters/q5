@@ -29,18 +29,25 @@ export interface IRds {
   DAO: IDaoCollection;
 }
 
+// --------------------------------
+// EntityKey Components
+// --------------------------------
+
+import * as Schema from '@fusebit/schema';
+export * from '@fusebit/schema';
+
 type IDaoCollectionIndex = {
-  [key in EntityType]: IEntityDao<any>;
+  [key in Schema.EntityType]: IEntityDao<any>;
 };
 
 export interface IDaoCollection extends IDaoCollectionIndex {
-  connector: IEntityDao<IConnector>;
-  integration: IEntityDao<IIntegration>;
-  storage: IEntityDao<IStorageItem>;
-  operation: IEntityDao<IOperation>;
-  session: IEntityDao<ISession>;
-  identity: IEntityDao<IIdentity>;
-  instance: IEntityDao<IInstance>;
+  connector: IEntityDao<Schema.IConnector>;
+  integration: IEntityDao<Schema.IIntegration>;
+  storage: IEntityDao<Schema.IStorageItem>;
+  operation: IEntityDao<Schema.IOperation>;
+  session: IEntityDao<Schema.ISession>;
+  identity: IEntityDao<Schema.IIdentity>;
+  instance: IEntityDao<Schema.IInstance>;
 }
 
 export interface IRdsCredentials {
@@ -49,224 +56,42 @@ export interface IRdsCredentials {
 }
 
 // --------------------------------
-// EntityKey Components
-// --------------------------------
-
-export interface ITags {
-  [key: string]: string;
-}
-
-export interface ITagsWithVersion {
-  tags: ITags;
-  version?: string;
-}
-
-// Data needed for any request
-export interface IEntityCore {
-  accountId: string;
-  subscriptionId: string;
-  __databaseId?: string;
-}
-
-// Data needed for selects and deletes
-interface IEntitySelectAbstract extends IEntityCore {
-  tags?: ITags;
-  version?: string;
-}
-export interface IEntityId extends IEntitySelectAbstract {
-  id: string;
-}
-export interface IEntityPrefix extends IEntitySelectAbstract {
-  id?: string;
-  idPrefix?: string;
-}
-
-// Data needed for inserts
-export interface IEntity extends IEntityId {
-  tags?: ITags;
-  data?: any;
-  expires?: string;
-}
-export interface IEntityKeyTagSet extends IEntityId {
-  tagKey: string;
-  tagValue?: string;
-}
-
-export interface EntityKeyParams
-  extends Partial<IEntity>,
-    Partial<IEntityId>,
-    Partial<IEntityPrefix>,
-    Partial<IEntityKeyTagSet> {}
-
-export interface IListResponse<T extends IEntity> {
-  items: T[];
-  next?: string;
-  total: number;
-}
-
-// The Entity returned by the SDK, sans various internal parameters.
-export interface ISdkEntity {
-  id: string;
-  tags?: ITags;
-  data?: any;
-  expires?: string;
-  version?: string;
-}
-
-export const createSubordinateId = (params: { entityType: EntityType; componentId: string; subordinateId: string }) => {
-  return `/${params.entityType}/${params.componentId}/${params.subordinateId}`;
-};
-
-export const decomposeSubordinateId = (
-  id: string
-): { entityType: EntityType; componentId: string; subordinateId: string } => {
-  const split = id.split('/');
-  return {
-    entityType: split[1] as EntityType,
-    componentId: split[2],
-    subordinateId: split[3],
-  };
-};
-
-export interface ISubordinateId {
-  entityType?: EntityType | string;
-  componentId: string;
-  subordinateId: string;
-}
-
-// Remove any extra fields returned as part of the entity.
-export const entityToSdk = (entity: IEntity): ISdkEntity => {
-  return {
-    id: entity.id && entity.id.indexOf('/') >= 0 ? decomposeSubordinateId(entity.id).subordinateId : entity.id,
-    data: entity.data,
-    tags: entity.tags,
-    expires: entity.expires,
-    version: entity.version,
-  };
-};
-
-// --------------------------------
-// IEntity Extensions
-// --------------------------------
-
-export enum SessionMode {
-  trunk = 'trunk',
-  leaf = 'leaf',
-}
-
-export interface IStep {
-  name: string;
-  input?: any;
-  output?: any;
-  uses?: string[];
-  target: {
-    entityType: EntityType.connector | EntityType.integration;
-    accountId?: string;
-    subscriptionId?: string;
-    entityId: string;
-    path?: string;
-  };
-}
-
-export interface IIntegration extends IEntity {
-  data: {
-    handler: string;
-    configuration: {
-      connectors: Record<string, { connector: string; package: string; config?: any }>;
-      creation: {
-        tags: ITags;
-        steps: IStep[];
-        autoStep: boolean;
-      };
-    };
-    files: Record<string, string>;
-  };
-}
-
-export interface IConnector extends IEntity {
-  data: {
-    handler: string;
-    configuration: {
-      muxIntegration: IEntityId;
-      [key: string]: any;
-    };
-    files: Record<string, string>;
-  };
-}
-
-export interface IOperation extends IEntity {
-  data: {
-    verb: 'creating' | 'updating' | 'deleting';
-    type: EntityType;
-    code: number; // HTTP status codes
-    message?: string;
-    payload?: any;
-    location: {
-      accountId: string;
-      subscriptionId: string;
-      entityId?: string;
-      componentId?: string;
-      subordinateId?: string;
-      entityType: EntityType;
-    };
-  };
-}
-
-export interface ISessionParameters {
-  steps?: string[];
-  tags?: ITags;
-  input?: Record<string, any>;
-  redirectUrl: string;
-}
-
-export interface ILeafSessionData extends Omit<IStep, 'uses'> {
-  mode: SessionMode.leaf;
-  uses: Record<string, object>;
-  meta: {
-    parentId: string;
-  };
-}
-
-export type ITrunkSessionStep = IStep & { childSessionId?: string };
-export type ITrunkSessionSteps = ITrunkSessionStep[];
-export interface ITrunkSessionData {
-  mode: SessionMode.trunk;
-
-  meta: {
-    redirectUrl: string;
-  };
-
-  steps: ITrunkSessionSteps;
-}
-
-export interface ILeafSession extends IEntity {
-  data: ILeafSessionData;
-}
-
-export interface ITrunkSession extends IEntity {
-  data: ITrunkSessionData;
-}
-
-export type ISession = ITrunkSession | ILeafSession;
-
-export interface IStorageItem extends IEntity {
-  data: any;
-}
-
-export interface IIdentity extends IEntity {
-  data: any;
-}
-
-export interface IInstance extends IEntity {
-  data: any;
-}
-
-// --------------------------------
 // Utilities
 // --------------------------------
 
 export type RequiredKeysOnly<T> = {
   [K in keyof { [key in keyof T]: T[key] extends undefined ? never : T[K] }]: T[K];
+};
+
+// Capture the parent entity type to prevent a sessionId created under an integration from being accessed
+// under a connector, and thus bypassing security checks.
+export const createSubordinateId = (
+  parentEntityType: Schema.EntityType,
+  parentEntityId: string,
+  entityId: string
+): string => {
+  return `/${parentEntityType}/${parentEntityId}/${entityId}`;
+};
+
+export const decomposeSubordinateId = (id: string): Schema.ISubordinateId => {
+  const [parentEntityType, parentEntityId, entityId] = id.split('/').slice(1);
+
+  return {
+    parentEntityType: parentEntityType as Schema.EntityType,
+    parentEntityId,
+    entityId,
+  };
+};
+
+// Remove any extra fields returned as part of the entity.
+export const entityToSdk = (entity: Schema.IEntity): Schema.ISdkEntity => {
+  return {
+    id: entity.id && entity.id.indexOf('/') >= 0 ? decomposeSubordinateId(entity.id).entityId : entity.id,
+    data: entity.data,
+    tags: entity.tags,
+    expires: entity.expires,
+    version: entity.version,
+  };
 };
 
 // --------------------------------
@@ -316,7 +141,7 @@ export interface DefaultConstructorArguments extends DefaultOptions {
   listLimit: number;
 }
 export interface InputConstructorArguments extends DefaultOptions {
-  entityType: EntityType;
+  entityType: Schema.EntityType;
   RDS: IRds;
   transactionId?: string;
 }
@@ -324,16 +149,6 @@ export interface MergedConstructorArguments extends DefaultConstructorArguments,
   upsert: boolean;
   filterExpired: boolean;
   listLimit: number;
-}
-
-export enum EntityType {
-  integration = 'integration',
-  connector = 'connector',
-  operation = 'operation',
-  storage = 'storage',
-  instance = 'instance',
-  identity = 'identity',
-  session = 'session',
 }
 
 // --------------------------------
@@ -344,49 +159,49 @@ export interface IDAO {
   createTransactional: (transactionId: string) => this;
 }
 
-export interface IEntityDao<ET extends IEntity> extends IDAO {
+export interface IEntityDao<ET extends Schema.IEntity> extends IDAO {
   sqlToIEntity: <T>(result: RDSDataService.ExecuteStatementResponse) => T[];
-  getDaoType: () => EntityType;
+  getDaoType: () => Schema.EntityType;
 
   getEntity: (
-    params: IEntityId,
+    params: Schema.IEntityId,
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
   ) => Promise<ET>;
   getEntityTags: (
-    params: IEntityId,
+    params: Schema.IEntityId,
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
-  ) => Promise<ITagsWithVersion>;
-  listEntities: (params: IEntityPrefix, queryOptions?: InputQueryOptions) => Promise<IListResponse<ET>>;
+  ) => Promise<Schema.ITagsWithVersion>;
+  listEntities: (params: Schema.IEntityPrefix, queryOptions?: InputQueryOptions) => Promise<Schema.IListResponse<ET>>;
   deleteEntity: (
-    params: IEntityPrefix,
+    params: Schema.IEntityPrefix,
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
   ) => Promise<boolean>;
   createEntity: (
-    params: IEntity,
+    params: Schema.IEntity,
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
   ) => Promise<ET>;
   updateEntity: (
-    params: IEntity,
+    params: Schema.IEntity,
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
   ) => Promise<ET>;
   updateEntityTags: (
-    params: IEntityId,
+    params: Schema.IEntityId,
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
-  ) => Promise<ITagsWithVersion>;
+  ) => Promise<Schema.ITagsWithVersion>;
   setEntityTag: (
-    params: IEntityKeyTagSet,
+    params: Schema.IEntityKeyTagSet,
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
-  ) => Promise<ITagsWithVersion>;
+  ) => Promise<Schema.ITagsWithVersion>;
   deleteEntityTag: (
-    params: IEntityKeyTagSet,
+    params: Schema.IEntityKeyTagSet,
     queryOptions?: InputQueryOptions,
     statementOptions?: InputStatementOptions
-  ) => Promise<ITagsWithVersion>;
+  ) => Promise<Schema.ITagsWithVersion>;
 }

@@ -48,7 +48,7 @@ export class ConnectorLogCommand extends Command {
 
     await executeService.newLine();
 
-    await connectorService.getConnectorLogs(connectorId);
+    await connectorService.getEntityLogs(connectorId);
 
     return 0;
   }

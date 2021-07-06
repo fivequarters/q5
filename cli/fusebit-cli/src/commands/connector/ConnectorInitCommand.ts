@@ -1,6 +1,6 @@
 import { join } from 'path';
 import { Command, ArgType, IExecuteInput } from '@5qtrs/cli';
-import { ExecuteService, ConnectorService, OperationService } from '../../services';
+import { ExecuteService, ConnectorService } from '../../services';
 import { Text } from '@5qtrs/text';
 
 // ------------------
@@ -68,10 +68,10 @@ export class ConnectorInitCommand extends Command {
 
     const sourcePath = sourceDir ? join(process.cwd(), sourceDir) : process.cwd();
 
-    const connector = connectorService.createNewSpec();
+    const connector = await connectorService.createNewSpec();
     await connectorService.writeDirectory(sourcePath, connector);
 
-    await connectorService.displayConnectors([connector], true);
+    await connectorService.displayEntities([connector], true);
 
     return 0;
   }

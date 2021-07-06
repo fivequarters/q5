@@ -48,7 +48,7 @@ export class IntegrationLogCommand extends Command {
 
     await executeService.newLine();
 
-    await integrationService.getIntegrationLogs(integrationId);
+    await integrationService.getEntityLogs(integrationId);
 
     return 0;
   }

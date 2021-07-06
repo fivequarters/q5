@@ -13,6 +13,7 @@
     { "path": "../../lib/node/jwt" },
     { "path": "../../lib/shared/key-value" },
     { "path": "../../lib/shared/event-stream" },
-    { "path": "../../lib/constants" }
+    { "path": "../../lib/constants" },
+    { "path": "../../lib/data/schema" }
   ]
 }

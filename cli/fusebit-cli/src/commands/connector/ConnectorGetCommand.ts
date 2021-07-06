@@ -50,14 +50,14 @@ export class ConnectorGetCommand extends Command {
 
     await executeService.newLine();
 
-    const connector = await connectorService.fetchConnector(connectorId);
+    const connector = await connectorService.fetchEntity(connectorId);
 
     if (destDir) {
       const destPath = join(process.cwd(), destDir);
 
       await connectorService.writeDirectory(destPath, connector);
     } else {
-      await connectorService.displayConnectors([connector], true);
+      await connectorService.displayEntities([connector], true);
     }
 
     return 0;

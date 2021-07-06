@@ -1,5 +1,7 @@
 import { request } from '@5qtrs/request';
 
+import { Model } from '@5qtrs/db';
+
 import { cleanupEntities, ApiRequestMap, createPair, getElementsFromUrl } from './sdk';
 
 import { startTunnel, startHttpServer } from '../v1/tunnel';
@@ -50,26 +52,27 @@ describe('Workflow', () => {
       message: boundaryId + '-token',
     };
 
-    const state = 'CCCC';
-
     // Create the various artifacts
     const { integrationId, connectorId } = await createPair(
       account,
       boundaryId,
       {
-        creation: {
-          steps: [
-            {
-              name: 'conn1',
-              target: { entityType: 'connector', entityId: `${boundaryId}-con` },
-            },
-            {
-              name: 'form',
-              target: { entityType: 'integration', path: '/api/aForm', entityId: '{{integration}}' },
-              uses: ['conn1'],
-            },
-          ],
-        },
+        components: [
+          {
+            name: 'conn1',
+            package: '@fusebit-int/pkg-oauth-integration',
+            entityType: Model.EntityType.connector,
+            entityId: `${boundaryId}-con`,
+            dependsOn: [],
+          },
+          {
+            name: 'form',
+            entityType: Model.EntityType.integration,
+            path: '/api/aForm',
+            entityId: '{{integration}}',
+            dependsOn: ['conn1'],
+          },
+        ],
       },
       {
         handler: '@fusebit-int/pkg-oauth-connector',
@@ -114,7 +117,6 @@ describe('Workflow', () => {
       '});',
       "router.get('/api/aForm', async (ctx) => {",
       "  const response = await superagent.get(`${ctx.state.params.baseUrl}/session/${ctx.query.session}`).set('Authorization', `Bearer ${ctx.state.params.functionAccessToken}`);",
-      '  console.log(response.data);',
       '  ctx.redirect(`${ctx.state.params.baseUrl}/session/${ctx.query.session}/callback`);',
       '});',
       "router.get('/api/doASessionThing/:sessionId', async (ctx) => { ctx.body = 'doASessionThing'; });",
@@ -156,7 +158,7 @@ describe('Workflow', () => {
     expect(response.headers.location.indexOf(`${redirectUrl}/authorize`)).toBe(0);
 
     // Set up the HTTP service
-    let oauthSessionId;
+    let oauthSessionId: string = '';
     httpServer.app.get('/authorize', (req: any, res: any) => {
       oauthSessionId = req.query.state;
       return res.redirect(`${req.query.redirect_uri}?state=${req.query.state}&code=EEEE`);
@@ -206,11 +208,11 @@ describe('Workflow', () => {
       statusCode: 200,
       data: {
         id: formSessionId,
-        uses: {
+        dependsOn: {
           conn1: {
-            entityType: 'connector',
-            componentId: connectorId,
-            subordinateId: connectorSessionId,
+            parentEntityType: 'connector',
+            parentEntityId: connectorId,
+            entityId: connectorSessionId,
           },
         },
       },
@@ -226,30 +228,25 @@ describe('Workflow', () => {
       data: {
         get: {
           id: formSessionId,
-          uses: {
+          dependsOn: {
             conn1: {
-              entityType: 'connector',
-              componentId: connectorId,
-              subordinateId: connectorSessionId,
+              parentEntityType: 'connector',
+              parentEntityId: connectorId,
+              entityId: connectorSessionId,
             },
           },
         },
         getResult: {
           id: formSessionId,
-          uses: {
+          dependsOn: {
             conn1: {
-              entityType: 'connector',
-              componentId: connectorId,
-              subordinateId: connectorSessionId,
+              parentEntityType: 'connector',
+              parentEntityId: connectorId,
+              entityId: connectorSessionId,
             },
           },
           output: {
             hello: 'world',
-          },
-          target: {
-            path: '/api/aForm',
-            entityId: integrationId,
-            entityType: 'integration',
           },
         },
       },
@@ -268,38 +265,74 @@ describe('Workflow', () => {
     expect(response).toBeHttp({
       statusCode: 200,
       data: { code: 200, type: 'session', verb: 'creating' },
-      has: ['payload'],
+      hasNot: ['payload'],
     });
 
-    // Validate the contents of the instances/identies is as expected
-    const payload = response.data.payload;
-    expect(payload).toHaveProperty(['', 'accountId'], account.accountId);
-    expect(payload).toHaveProperty(['', 'subscriptionId'], account.subscriptionId);
-    expect(payload).toHaveProperty(['', 'entityType'], 'instance');
-    expect(payload).toHaveProperty(['', 'componentType'], 'integration');
-    expect(payload).toHaveProperty(['', 'componentId'], integrationId);
-    expect(payload).toHaveProperty(['', 'id']);
-    expect(payload).toHaveProperty(['', 'tags', 'session.master'], parentSessionId);
+    // Get the completed session with the output details
+    response = await ApiRequestMap.integration.session.getResult(account, integrationId, parentSessionId);
+    expect(response).toBeHttp({
+      statusCode: 200,
+      data: {
+        id: parentSessionId,
+        output: {
+          tags: {
+            'session.master': parentSessionId,
+          },
+          accountId: account.accountId,
+          entityType: Model.EntityType.instance,
+          parentEntityId: integrationId,
+          parentEntityType: Model.EntityType.integration,
+          subscriptionId: account.subscriptionId,
+        },
+        components: [
+          {
+            name: 'conn1',
+            path: '/api/configure',
+            entityId: connectorId,
+            entityType: Model.EntityType.connector,
+          },
+          {
+            name: 'form',
+            dependsOn: ['conn1'],
+            path: '/api/aForm',
+            entityId: integrationId,
+            entityType: Model.EntityType.integration,
+          },
+        ],
+      },
+    });
+    expect(response.data.components[0].childSessionId).toBeUUID();
+    expect(response.data.components[1].childSessionId).toBeUUID();
 
-    expect(payload).toHaveProperty(['form', 'accountId'], account.accountId);
-    expect(payload).toHaveProperty(['form', 'subscriptionId'], account.subscriptionId);
-    expect(payload).toHaveProperty(['form', 'entityType'], 'instance');
-    expect(payload).toHaveProperty(['form', 'componentType'], 'integration');
-    expect(payload).toHaveProperty(['form', 'componentId'], integrationId);
-    expect(payload).toHaveProperty(['form', 'id']);
-    expect(payload).toHaveProperty(['form', 'tags', 'session.master'], parentSessionId);
+    expect(response.data.output.entityId).toBeUUID();
 
-    expect(payload).toHaveProperty(['conn1', 'accountId'], account.accountId);
-    expect(payload).toHaveProperty(['conn1', 'subscriptionId'], account.subscriptionId);
-    expect(payload).toHaveProperty(['conn1', 'entityType'], 'identity');
-    expect(payload).toHaveProperty(['conn1', 'componentType'], 'connector');
-    expect(payload).toHaveProperty(['conn1', 'componentId'], connectorId);
-    expect(payload).toHaveProperty(['conn1', 'id']);
-    expect(payload).toHaveProperty(['conn1', 'tags', 'session.master'], parentSessionId);
+    const instanceId = response.data.output.entityId;
 
-    // TODO: Modify the form page to query the connector with the contents of the session's 'uses' field, and
-    //       related sessionId, and ensure that it gets back a valid token.
-    //         Requires the connector to support looking up the contents by a sessionId instead of by a
-    //         instanceId.
+    response = await ApiRequestMap.instance.get(account, integrationId, instanceId);
+    expect(response).toBeHttp({
+      statusCode: 200,
+      data: {
+        id: instanceId,
+        data: {
+          form: {
+            hello: 'world',
+          },
+          conn1: {
+            tags: {
+              'session.master': parentSessionId,
+            },
+            accountId: account.accountId,
+            entityType: Model.EntityType.identity,
+            parentEntityId: connectorId,
+            parentEntityType: Model.EntityType.connector,
+            subscriptionId: account.subscriptionId,
+          },
+        },
+        tags: {
+          'session.master': parentSessionId,
+        },
+      },
+    });
+    expect(response.data.data.conn1.entityId).toBeUUID();
   }, 180000);
 });
