@@ -24,7 +24,8 @@ fi
 set -e
 for OPS_PROFILE in github-automation.321 github-automation.749; do
   ${FUSEOPS} profile default ${OPS_PROFILE}
-  ${FUSEOPS} image publish ${VERSION} 1>&2
+  # ${FUSEOPS} image publish ${VERSION} 1>&2
+  echo $(${FUSEOPS} profile ls)
 done
 
 echoerr "Completed successfully:"
