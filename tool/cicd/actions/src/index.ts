@@ -57,7 +57,7 @@ const specs = [
 ];
 
 function buildSpec(name: string, inputs: string[], output: string, options: any = {}) {
-  let base = yaml.load(fs.readFileSync(`${INPUT_DIR}/${BASE_YML}.yml`, 'utf8')) as any;
+  const base = yaml.load(fs.readFileSync(`${INPUT_DIR}/${BASE_YML}.yml`, 'utf8')) as any;
   base.name = name;
   if (options.on_trigger) {
     base.on = options.on_trigger;
