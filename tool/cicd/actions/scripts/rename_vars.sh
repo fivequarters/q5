@@ -16,7 +16,7 @@ unset AWS_ACCESS_KEY_ID
 unset AWS_SESSION_TOKEN
 
 # Verify caller
-ACCOUNT=$(aws sts get-caller-identity --profile dev | jq .Account)
+ACCOUNT=$(aws sts get-caller-identity | jq .Account)
 
 if [ $ACCOUNT = "\"749775346857\"" ]; then
   return 0
