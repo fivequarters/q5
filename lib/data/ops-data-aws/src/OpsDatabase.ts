@@ -332,7 +332,7 @@ export async function getDatabaseCredentials(
   debug('LIST SECRETS RESPONSE', data);
   if (!data.SecretList || data.SecretList.length !== 1) {
     throw new Error(
-      `Cannot find a unique secret to access Aurora cluster. Expected 1 matching secret, found ${data.SecretList && data.SecretList.length > 0 ? data.SecretList.length : "0 Maybe try deleting Aurora cluster and recreating it in fuse-ops can help."
+      `Cannot find a unique secret to access Aurora cluster. Expected 1 matching secret, found ${data.SecretList && data.SecretList.length > 0 ? data.SecretList.length : "0 Maybe try deleting Aurora cluster and recreating it in fuse-ops can help."}`
     );
   }
   const dbArnTag = data.SecretList[0].Tags?.find((t) => t.Key === 'dbArn');
