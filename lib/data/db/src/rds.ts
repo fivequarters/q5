@@ -53,7 +53,7 @@ class RDS implements IRds {
         throw new Error(
           `Cannot find a unique secret to access Aurora cluster in the Secrets Manager. Expected 1 matching secret, found ${
             data.SecretList ? data.SecretList.length : 0
-          } ${!data.SecretList? "Maybe try deleting Aurora cluster and recreating it in fuse-ops can help.": ""}`
+          } ${!data.SecretList? ". Maybe try deleting Aurora cluster and recreating it in fuse-ops can help.": ""}`
         );
       }
       const dbArnTag = data.SecretList[0].Tags?.find((t) => t.Key === 'dbArn');
