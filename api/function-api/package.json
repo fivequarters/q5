@@ -35,7 +35,6 @@
     "@5qtrs/storage": "^0.0.1",
     "@5qtrs/storage-data": "^0.0.1",
     "@5qtrs/storage-data-aws": "^0.0.1",
-    "@fusebit/schema": "^1.0.0",
     "aws4": "^1.10.0",
     "cors": "^2.8.5",
     "debug": "^4.1.1",
@@ -48,9 +47,9 @@
     "ms": "^2.1.3",
     "semver": "^7.3.2",
     "swagger-ui-express": "^4.0.2",
-    "tsc-watch": "^4.4.0",
     "uuid": "^7.0.3",
-    "yamljs": "^0.3.0"
+    "yamljs": "^0.3.0",
+    "@fusebit/schema": "^1.0.0"
   },
   "devDependencies": {
     "@5qtrs/fusebit-profile-sdk": "^0.0.1",
@@ -68,6 +67,7 @@
     "spdx-license-ids": "^3.0.6",
     "ssri": "^8.0.0",
     "superagent": "^5.2.2",
+    "tsc-watch": "^4.4.0",
     "wtfnode": "^0.8.4"
   },
   "devServer": {
