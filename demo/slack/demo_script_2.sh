@@ -3,8 +3,8 @@
 
 set -ex
 
-FUSEPROFILE=dev.local
-BASEURL=http://localhost:3001/v2/account/acc-7e0f8bbc30bc4c34/subscription/sub-0095d2ffa3d1424a
+FUSEPROFILE=dev
+BASEURL=https://dev.us-west-1.dev.fusebit.io/v2/account/acc-5e58f2ccd79444e4/subscription/sub-9239585cf84c450a
 INTEG_NAME=slack-integration
 TOKEN=`fuse token -o raw`
 

@@ -8,7 +8,8 @@
       "name": "conn1",
       "package": "@fusebit-int/pkg-oauth-integration",
       "entityType": "connector",
-      "entityId": "slack-connector"
+      "entityId": "slack-connector",
+      "dependsOn": []
     }
   ]
 }
