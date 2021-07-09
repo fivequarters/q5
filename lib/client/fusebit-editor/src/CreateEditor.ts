@@ -1,3 +1,5 @@
+import * as Model from '@fusebit/schema';
+
 import { createActionPanel } from './CreateActionPanel';
 import { createEditorPanel } from './CreateEditorPanel';
 import { createLogsPanel } from './CreateLogsPanel';
@@ -7,6 +9,8 @@ import * as Events from './Events';
 import * as Options from './Options';
 import { IEditorOptions } from './Options';
 import { Server, IAccount, AccountResolver } from './Server';
+import { FunctionServer } from './FunctionServer';
+import { EntityServer } from './EntityServer';
 import { EditorContext } from './EditorContext';
 import { IFunctionSpecification } from './FunctionSpecification';
 import { resizable, height, width } from './Resizable';
@@ -23,6 +27,11 @@ export interface ICreateEditorOptions {
    * Options that control the presentation and bahvior of the editor.
    */
   editor?: IEditorOptions;
+
+  /**
+   * The type of object being edited.
+   */
+  entityType?: Model.EntityType;
 }
 
 /**
@@ -36,7 +45,7 @@ export interface ICreateEditorOptions {
  * @param account Account information to use when calling Fusebit HTTP APIs.
  * @param options Editor creation options.
  */
-export function createEditor(
+export async function createEditor(
   element: HTMLElement,
   boundaryId: string,
   functionId: string,
@@ -48,9 +57,21 @@ export function createEditor(
   if (!functionId) throw new Error('functionId must be specified.');
   if (!account) throw new Error('account must be specified.');
 
-  let server = typeof account === 'function' ? new Server(<AccountResolver>account) : Server.create(<IAccount>account);
+  let server: Server;
 
-  return server.loadEditorContext(boundaryId, functionId, options).then((editorContext) => {
+  if (options && options.entityType) {
+    server =
+      typeof account === 'function'
+        ? new EntityServer(options.entityType, account as AccountResolver)
+        : await EntityServer.create(options.entityType, account as IAccount);
+  } else {
+    server =
+      typeof account === 'function'
+        ? new FunctionServer(account as AccountResolver)
+        : FunctionServer.create(account as IAccount);
+  }
+
+  return server.loadEditorContext(boundaryId, functionId, options).then((editorContext: EditorContext) => {
     createEditorImpl(editorContext);
     let selectedFile = editorContext.selectedFileName;
     editorContext.selectedFileName = undefined;
@@ -61,7 +82,7 @@ export function createEditor(
   });
 
   function createEditorImpl(editorContext: EditorContext) {
-    let opts = editorContext._ensureFusebitMetadata().editor;
+    let opts = editorContext.getMetadata().editor;
     if (opts.navigationPanel === false && opts.logsPanel === false && opts.actionPanel !== false) {
       (opts.actionPanel as Options.IActionPanelOptions).enableCodeOnlyToggle = false;
     }

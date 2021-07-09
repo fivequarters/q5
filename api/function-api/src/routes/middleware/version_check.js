@@ -8,7 +8,7 @@ const supportedClientVersion = {
       `Your @fusebit/cli version ${agent.version} is out of date (required: ${supportedClientVersion.client.v}). Please run 'npm install -g @fusebit/cli' to update.`,
   },
   editor: {
-    v: '^1.4.5',
+    v: '>1.4.5',
     m: (agent) =>
       `Your editor version ${agent.version} is out of date (required: ${supportedClientVersion.editor.v}). Please notify your administrator.`,
   },

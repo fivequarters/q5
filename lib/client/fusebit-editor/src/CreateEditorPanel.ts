@@ -13,8 +13,9 @@ import { updateFusebitContextTypings, addStaticTypings, updateNodejsTypings, upd
  * @param options Editor panel creation options.
  */
 export function createEditorPanel(element: HTMLElement, editorContext: EditorContext, options?: IEditorPanelOptions) {
-  let theme = (options && options.theme) || 'light';
+  const theme = options?.theme || 'light';
   let monacoTheme: any;
+
   switch (theme) {
     case 'dark':
       monacoTheme = {
@@ -185,7 +186,9 @@ export function createEditorPanel(element: HTMLElement, editorContext: EditorCon
   return editorContext;
 
   function captureViewState() {
-    if (activeCategory === Events.FileSelected && !editedFileName) return;
+    if (activeCategory === Events.FileSelected && !editedFileName) {
+      return;
+    }
     let key = activeCategory === Events.FileSelected ? `${activeCategory}:${editedFileName}` : activeCategory;
     viewStates[key] = editor.saveViewState() as Monaco.editor.ICodeEditorViewState;
   }

@@ -1,4 +1,6 @@
 import { join } from 'path';
+import { createServer } from 'http';
+import open from 'open';
 import { request, IHttpResponse } from '@5qtrs/request';
 
 import globby from 'globby';
@@ -17,6 +19,7 @@ import { EntityType, ISdkEntity, IIntegrationData, IConnectorData } from '@fuseb
 const FusebitStateFile = '.fusebit-state';
 const FusebitMetadataFile = 'fusebit.json';
 const DefaultIgnores = ['node_modules', FusebitStateFile];
+const EditorIp = process.env.FUSEBIT_EDITOR_IP || '127.0.0.1';
 
 export interface ITags {
   [key: string]: string;
@@ -335,5 +338,145 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
     profile.boundary = this.entityType;
     profile.function = entityId;
     return functionService.getFunctionLogsByProfile(profile);
+  }
+
+  public async startEditServer(entityId: string, theme: string = 'dark', functionSpec?: any) {
+    const profile = await this.profileService.getExecutionProfile(['account', 'subscription']);
+    profile.function = entityId;
+    profile.boundary = this.entityType;
+
+    if (theme !== 'light' && theme !== 'dark') {
+      await this.executeService.error('Edit Function Error', Text.create('Unsupported value of the theme parameter'));
+    }
+
+    const editorHtml = this.getEditorHtml(profile, theme, functionSpec);
+    const startServer = (listenPort: number) => {
+      return new Promise<void>((resolve, reject) => {
+        createServer((req, res) => {
+          if (req.method === 'GET') {
+            res.writeHead(200, { 'Content-Type': 'text/html' });
+            return res.end(editorHtml);
+          } else {
+            res.writeHead(404);
+            return res.end();
+          }
+        })
+          .on('error', reject)
+          .listen(listenPort, resolve);
+      });
+    };
+
+    let attempts = 0;
+    const startServerWithRetry = async (): Promise<number> => {
+      try {
+        attempts++;
+        const tryPort = 8000 + Math.floor(Math.random() * 100);
+        await startServer(tryPort);
+        open(`http://${EditorIp}:${tryPort}`);
+        return tryPort;
+      } catch (error) {
+        if (attempts >= 10) {
+          return 0;
+        }
+        await startServerWithRetry();
+      }
+
+      return 0;
+    };
+
+    const port = await startServerWithRetry();
+
+    if (!port) {
+      await this.executeService.error(
+        'Edit Function Error',
+        'Unable to find a free port in the 80xx range to host a local service. Please try again.'
+      );
+    }
+
+    await this.executeService.result(
+      'Edit Function',
+      Text.create(
+        "Editing the '",
+        Text.bold(`${profile.function}`),
+        "' function in boundary '",
+        Text.bold(`${profile.boundary}`),
+        "'.",
+        Text.eol(),
+        Text.eol(),
+        'Hosting the Fusebit editor at ',
+        Text.bold(`http://${EditorIp}:${port}`),
+        Text.eol(),
+        'If the browser does not open automatically, navigate to this URL.',
+        Text.eol(),
+        Text.eol(),
+        'Ctrl-C to terminate...'
+      )
+    );
+
+    await new Promise(() => {});
+  }
+  private getEditorHtml(profile: IFusebitExecutionProfile, theme: string, functionSpec?: any): string {
+    const template = functionSpec || {};
+    const editorSettings = (functionSpec &&
+      functionSpec.metadata &&
+      functionSpec.metadata.fusebit &&
+      functionSpec.metadata.fusebit.editor) || {
+      theme,
+      actionPanel: {
+        enableRun: false,
+      },
+      navigationPanel: {
+        hideScheduleSettings: true,
+        hideRunnerTool: true,
+      },
+    };
+
+    const fusebitEditorUrl =
+      process.env.FUSEBIT_EDITOR_URL || 'https://cdn.fusebit.io/fusebit/js/fusebit-editor/latest/fusebit-editor.min.js';
+
+    return `<!doctype html>
+  <html lang="en">
+  <head>
+    <meta charset="utf-8" />
+  
+      <link rel="icon" type="image/png" sizes="32x32" href="https://fusebit.io/favicon-32x32.png" />
+      <link rel="icon" type="image/png" sizes="16x16" href="https://fusebit.io/favicon-16x16.png" />
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  
+      <title>${profile.function}</title>
+  
+      <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0' name='viewport' />
+      <meta name="viewport" content="width=device-width" />
+  
+      <style>
+          html,body {
+              width: 95%;
+              height: 95%;
+          }
+      </style>
+  
+  </head>
+  <body>
+      <div id="editor" style="width:800px;height:500px;margin-top:30px;margin-left:auto;margin-right:auto">
+  </body>
+  
+  <script src="${fusebitEditorUrl}"></script>
+  <script type="text/javascript">
+    fusebit.createEditor(document.getElementById('editor'), '${profile.boundary}', '${profile.function}', {
+        accountId: '${profile.account}',
+        subscriptionId: '${profile.subscription}',
+        baseUrl: '${profile.baseUrl}',
+        accessToken: '${profile.accessToken}',
+    }, {
+        template: ${JSON.stringify(template, null, 2)},
+        editor: ${JSON.stringify(editorSettings, null, 2)},
+        entityType: '${this.entityType}',
+    }).then(editorContext => {
+        editorContext.setFullScreen(true);
+    });
+  </script>
+  
+  </html>  
+  `;
   }
 }
