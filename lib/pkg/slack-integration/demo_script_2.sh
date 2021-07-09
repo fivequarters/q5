@@ -31,5 +31,5 @@ GET_INSTANCE_RESULT=`curl -s -H 'Content-Type: application/json' -H "Authorizati
 echo ${GET_INSTANCE_RESULT} | python3 -mjson.tool
 IDENTITY_ID=`echo ${GET_INSTANCE_RESULT} | jq -r '.data.conn1.entityId'`
 
-echo Open the following url:
-echo   ${BASEURL}/integration/slack-integration/api/message
+echo  \# Execute the following command:
+echo curl -d "'"'{ "message": "Fusebit rocks :the_horns:"}'"'" -H "'"'Content-Type: application/json'"'" -X POST ${BASEURL}/integration/slack-integration/api/message/${IDENTITY_ID}
