@@ -83,7 +83,7 @@ export class EntityServer extends Server<IIntegrationSpecification> {
         ...(createIfNotExist && createIfNotExist.editor),
         version: require('../package.json').version,
       };
-      console.log(`loadEditorContext `, JSON.stringify(editorOptions));
+
       Object.keys(defaultEditorOptions).forEach((k) => {
         // @ts-ignore
         if (editorOptions[k] !== false && typeof editorOptions[k] !== 'string') {
@@ -99,7 +99,7 @@ export class EntityServer extends Server<IIntegrationSpecification> {
       if (!specification) {
         throw new Error('Specification required right now');
       }
-      console.log(`loadEditorContext2 `, JSON.stringify(editorOptions));
+
       const editorContext = new IntegrationEditorContext(this, specification);
       editorContext.getMetadata().editor = editorOptions;
       return editorContext;
@@ -118,7 +118,6 @@ export class EntityServer extends Server<IIntegrationSpecification> {
         return editorContext;
       })
       .catch((error) => {
-        console.log(error);
         throw new Error(
           `Fusebit editor failed to load ${this.entityType} ${id} because it does not exist, and IEditorCreationOptions were not specified. Specify IEditorCreationOptions to allow a function to be created if one does not exist.`
         );
@@ -168,7 +167,6 @@ export class EntityServer extends Server<IIntegrationSpecification> {
         .then((res) => {
           if (res.status === 200) {
             // success
-            console.log(`finished with the build`, res.body);
             build.status = 'completed';
             editorContext.buildFinished(build);
             return build;
@@ -176,7 +174,6 @@ export class EntityServer extends Server<IIntegrationSpecification> {
             // wait some more
             return waitForBuild(res.body);
           } else {
-            console.log(`build error`, res.body.error);
             // failure
             editorContext.buildError((res.body.error || res.body) as IError);
             throw new BuildError(res.body.error || res.body);
@@ -210,7 +207,6 @@ export class EntityServer extends Server<IIntegrationSpecification> {
         return waitForBuild(build);
       })
       .catch((err) => {
-        console.log(`some other err`, err);
         if (!(err instanceof BuildError)) {
           editorContext.buildError(err);
         }

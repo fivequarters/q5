@@ -380,7 +380,6 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
         open(`http://${EditorIp}:${tryPort}`);
         return tryPort;
       } catch (error) {
-        console.log(error);
         if (attempts >= 10) {
           return 0;
         }
@@ -476,7 +475,7 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
     }, {
         template: ${JSON.stringify(template, null, 2)},
         editor: ${JSON.stringify(editorSettings, null, 2)},
-        entityType: 'integration',
+        entityType: '${this.entityType}',
     }).then(editorContext => {
         editorContext.setFullScreen(true);
     });

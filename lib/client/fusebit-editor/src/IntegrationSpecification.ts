@@ -1,4 +1,3 @@
-import { INodejsFileSettings } from './SpecificationTypes';
 import * as Model from '@fusebit/schema';
 
 /**

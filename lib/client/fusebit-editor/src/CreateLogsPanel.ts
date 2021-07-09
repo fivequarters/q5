@@ -39,7 +39,7 @@ export function createLogsPanel(element: HTMLElement, editorContext: EditorConte
   editorContext.on(Events.Events.LogsAttached, (e) => {
     if (!logsAttachedOnce) {
       logsAttachedOnce = true;
-      append('XAttached to real-time logs...');
+      append('Attached to real-time logs...');
     }
   });
 

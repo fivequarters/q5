@@ -58,14 +58,13 @@ export async function createEditor(
   if (!functionId) throw new Error('functionId must be specified.');
   if (!account) throw new Error('account must be specified.');
 
-  console.log(`options: ${JSON.stringify(options)}`);
   let server: Server<any>;
 
   if (options && options.entityType) {
     server =
       typeof account === 'function'
-        ? new EntityServer((options && options.entityType) || 'integration', account as AccountResolver)
-        : await EntityServer.create((options && options.entityType) || 'integration', account as IAccount);
+        ? new EntityServer((options && options.entityType) || options.entityType, account as AccountResolver)
+        : await EntityServer.create((options && options.entityType) || options.entityType, account as IAccount);
   } else {
     server =
       typeof account === 'function'
