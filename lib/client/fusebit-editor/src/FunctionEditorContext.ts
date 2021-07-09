@@ -77,7 +77,12 @@ export class FunctionEditorContext extends EditorContext<IFunctionSpecification>
    * @param specification
    * @ignore Not relevant for MVP
    */
-  constructor(server: Server, boundaryId?: string, id?: string, specification?: IFunctionSpecification) {
+  constructor(
+    server: Server<IFunctionSpecification>,
+    boundaryId?: string,
+    id?: string,
+    specification?: IFunctionSpecification
+  ) {
     super(server, boundaryId || '', id || '', specification || {});
 
     if (!this.specification.nodejs) {

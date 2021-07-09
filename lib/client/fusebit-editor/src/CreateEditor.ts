@@ -9,6 +9,7 @@ import * as Events from './Events';
 import * as Options from './Options';
 import { IEditorOptions } from './Options';
 import { Server, IAccount, AccountResolver } from './Server';
+import { FunctionServer } from './FunctionServer';
 import { EntityServer } from './EntityServer';
 import { EditorContext } from './EditorContext';
 import { IFunctionSpecification } from './FunctionSpecification';
@@ -58,10 +59,19 @@ export async function createEditor(
   if (!account) throw new Error('account must be specified.');
 
   console.log(`options: ${JSON.stringify(options)}`);
-  const server =
-    typeof account === 'function'
-      ? new EntityServer((options && options.entityType) || 'integration', account as AccountResolver)
-      : await EntityServer.create((options && options.entityType) || 'integration', account as IAccount);
+  let server: Server<any>;
+
+  if (options && options.entityType) {
+    server =
+      typeof account === 'function'
+        ? new EntityServer((options && options.entityType) || 'integration', account as AccountResolver)
+        : await EntityServer.create((options && options.entityType) || 'integration', account as IAccount);
+  } else {
+    server =
+      typeof account === 'function'
+        ? new FunctionServer(account as AccountResolver)
+        : FunctionServer.create(account as IAccount);
+  }
 
   return server.loadEditorContext(boundaryId, functionId, options).then((editorContext: EditorContext<any>) => {
     createEditorImpl(editorContext);

@@ -53,7 +53,7 @@ export abstract class EditorContext<ISpecType> extends EventEmitter {
    * Not relevant for MVP
    * @ignore
    */
-  public server: Server;
+  public server: Server<any>;
 
   public specification: ISpecType;
 
@@ -74,7 +74,7 @@ export abstract class EditorContext<ISpecType> extends EventEmitter {
   public abstract getScheduleSettings(): string;
   public abstract getFileFromSpecification(fileName: string): string | object;
 
-  constructor(server: Server, boundaryId: string, id: string, specification: ISpecType) {
+  constructor(server: Server<any>, boundaryId: string, id: string, specification: ISpecType) {
     super();
 
     this.specification = specification;

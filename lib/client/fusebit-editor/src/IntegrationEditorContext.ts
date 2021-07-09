@@ -12,7 +12,7 @@ export class IntegrationEditorContext extends EditorContext<IIntegrationSpecific
    * @ignore Not relevant for MVP
    */
   constructor(server: EntityServer, specification: IIntegrationSpecification) {
-    super(server as Server, 'integration', specification.id, specification);
+    super(server as Server<IIntegrationSpecification>, 'integration', specification.id, specification);
 
     if (this.specification.data.files) {
       const fileToSelect = 'integration.js';
