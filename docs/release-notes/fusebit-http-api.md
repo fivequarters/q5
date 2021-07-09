@@ -21,7 +21,8 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 
 _Released 07/09/21_
 
-- **Security** Update Axios for security patching.
+- **Security** Update Axios for security patching against CVE-2020-28168.
+
 ## Version 1.20.13
 
 _Released 07/07/21_
