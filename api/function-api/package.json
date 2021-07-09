@@ -7,12 +7,13 @@
   "author": "FiveQuarters.io",
   "scripts": {
     "build": "tsc -b",
-    "dev": "node createEnv.js && tsc-watch --build --onSuccess \"node --trace-warnings libc/index.js\"",
-    "test": "node createEnv.js && jest --colors",
+    "create-env": "node createEnv.js",
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "test": "yarn create-env && jest --colors",
     "coverage": "jest --colors --coverage --detectOpenHandles",
     "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x} test/{,**/}*.ts{,x}",
     "clean": "rm -r -f libc",
-    "start": "node createEnv.js && node --trace-warnings libc/index.js",
+    "start": "yarn create-env && node --trace-warnings libc/index.js",
     "ngrok": "ngrok http 3001",
     "tunnel": "node ./maketunnel.js",
     "doc": "npx redoc-cli bundle api_v1.yaml -o index.html --title \"Fusebit HTTP API\" --options.theme.colors.primary.main=#fb310a --options.expandResponses=200,201,204",
@@ -67,7 +68,7 @@
     "spdx-license-ids": "^3.0.6",
     "ssri": "^8.0.0",
     "superagent": "^5.2.2",
-    "tsc-watch": "^4.4.0",
+    "ts-node-dev": "^1.1.8",
     "wtfnode": "^0.8.4"
   },
   "devServer": {

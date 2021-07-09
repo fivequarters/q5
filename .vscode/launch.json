@@ -5,10 +5,11 @@
       "type": "node",
       "request": "launch",
       "name": "function-api debug mode",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run-script", "dev"],
+      "runtimeExecutable": "yarn",
+      "runtimeArgs": ["dev"],
       "port": 9229,
       "skipFiles": ["<node_internals>/**"],
+      "console": "integratedTerminal",
       "outputCapture": "std", // Necessary to be able to see logging in the debug console
       "restart": true,
       "cwd": "${workspaceFolder}/api/function-api/"
