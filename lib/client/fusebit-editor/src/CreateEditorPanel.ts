@@ -12,8 +12,12 @@ import { updateFusebitContextTypings, addStaticTypings, updateNodejsTypings, upd
  * @param editorContext A pre-existing editor context to associate the editor panel with.
  * @param options Editor panel creation options.
  */
-export function createEditorPanel(element: HTMLElement, editorContext: EditorContext, options?: IEditorPanelOptions) {
-  let theme = (options && options.theme) || 'light';
+export function createEditorPanel(
+  element: HTMLElement,
+  editorContext: EditorContext<any>,
+  options?: IEditorPanelOptions
+) {
+  const theme = (options && options.theme) || 'light';
   let monacoTheme: any;
   switch (theme) {
     case 'dark':
@@ -52,11 +56,11 @@ export function createEditorPanel(element: HTMLElement, editorContext: EditorCon
     },
   };
 
-  const editor = (editorContext._monaco = Monaco.editor.create(element, monacoOptions));
+  const editor = (editorContext.monaco = Monaco.editor.create(element, monacoOptions));
   let suppressNextChangeEvent: boolean;
   let editedFileName: string | undefined;
   let activeCategory: Events = Events.FileSelected;
-  let viewStates: { [property: string]: Monaco.editor.ICodeEditorViewState } = {};
+  const viewStates: { [property: string]: Monaco.editor.ICodeEditorViewState } = {};
 
   // When a file is selected in the editor context, update editor content and language
   editorContext.on(Events.FileSelected, (e: FileSelectedEvent) => {
@@ -67,7 +71,7 @@ export function createEditorPanel(element: HTMLElement, editorContext: EditorCon
     editor.setValue(editorContext.getSelectedFileContent() || '');
     const model = editor.getModel();
     const language = editorContext.getSelectedFileLanguage();
-    let packageJson: any = editorContext.getPackageJson();
+    const packageJson: any = editorContext.getPackageJson();
     updateNodejsTypings(editorContext.getNodeVersion(packageJson));
     updateDependencyTypings(editorContext.getDependencies(packageJson));
     if (model && language) {
@@ -185,13 +189,15 @@ export function createEditorPanel(element: HTMLElement, editorContext: EditorCon
   return editorContext;
 
   function captureViewState() {
-    if (activeCategory === Events.FileSelected && !editedFileName) return;
-    let key = activeCategory === Events.FileSelected ? `${activeCategory}:${editedFileName}` : activeCategory;
+    if (activeCategory === Events.FileSelected && !editedFileName) {
+      return;
+    }
+    const key = activeCategory === Events.FileSelected ? `${activeCategory}:${editedFileName}` : activeCategory;
     viewStates[key] = editor.saveViewState() as Monaco.editor.ICodeEditorViewState;
   }
 
   function restoreViewState(event: string, fileName?: string) {
-    let key = event === Events.FileSelected ? `${event}:${fileName}` : event;
+    const key = event === Events.FileSelected ? `${event}:${fileName}` : event;
     if (viewStates[key]) {
       editor.restoreViewState(viewStates[key]);
     } else {

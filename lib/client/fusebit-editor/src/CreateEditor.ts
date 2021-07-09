@@ -1,3 +1,5 @@
+import * as Model from '@fusebit/schema';
+
 import { createActionPanel } from './CreateActionPanel';
 import { createEditorPanel } from './CreateEditorPanel';
 import { createLogsPanel } from './CreateLogsPanel';
@@ -7,6 +9,7 @@ import * as Events from './Events';
 import * as Options from './Options';
 import { IEditorOptions } from './Options';
 import { Server, IAccount, AccountResolver } from './Server';
+import { EntityServer } from './EntityServer';
 import { EditorContext } from './EditorContext';
 import { IFunctionSpecification } from './FunctionSpecification';
 import { resizable, height, width } from './Resizable';
@@ -23,12 +26,18 @@ export interface ICreateEditorOptions {
    * Options that control the presentation and bahvior of the editor.
    */
   editor?: IEditorOptions;
+
+  /**
+   * The type of object being edited.
+   */
+  entityType?: Model.EntityType;
 }
 
 /**
  * Loads or creates a function and initializes the function editor within the specified HTML element.
- * If the specified function does not exist but _options.template_ is specified, a new function is created using this template.
- * On successful intialization of the editor, [[EditorContext]] is returned which can be used to subscribe to events and manipulate the editor.
+ * If the specified function does not exist but _options.template_ is specified, a new function is created
+ * using this template.  On successful intialization of the editor, [[EditorContext]] is returned which can be
+ * used to subscribe to events and manipulate the editor.
  *
  * @param element The HTML element (typically a div) within which to create the function editor.
  * @param boundaryId The boundaryId of the function.
@@ -36,23 +45,27 @@ export interface ICreateEditorOptions {
  * @param account Account information to use when calling Fusebit HTTP APIs.
  * @param options Editor creation options.
  */
-export function createEditor(
+export async function createEditor(
   element: HTMLElement,
   boundaryId: string,
   functionId: string,
   account: IAccount | AccountResolver,
   options?: ICreateEditorOptions
-): Promise<EditorContext> {
+): Promise<EditorContext<any>> {
   if (!element) throw new Error('element must be specified.');
   if (!boundaryId) throw new Error('boundaryId must be specified.');
   if (!functionId) throw new Error('functionId must be specified.');
   if (!account) throw new Error('account must be specified.');
 
-  let server = typeof account === 'function' ? new Server(<AccountResolver>account) : Server.create(<IAccount>account);
+  console.log(`options: ${JSON.stringify(options)}`);
+  const server =
+    typeof account === 'function'
+      ? new EntityServer((options && options.entityType) || 'integration', account as AccountResolver)
+      : await EntityServer.create((options && options.entityType) || 'integration', account as IAccount);
 
-  return server.loadEditorContext(boundaryId, functionId, options).then((editorContext) => {
+  return server.loadEditorContext(boundaryId, functionId, options).then((editorContext: EditorContext<any>) => {
     createEditorImpl(editorContext);
-    let selectedFile = editorContext.selectedFileName;
+    const selectedFile = editorContext.selectedFileName;
     editorContext.selectedFileName = undefined;
     if (selectedFile) {
       editorContext.selectFile(selectedFile);
@@ -60,8 +73,8 @@ export function createEditor(
     return editorContext;
   });
 
-  function createEditorImpl(editorContext: EditorContext) {
-    let opts = editorContext._ensureFusebitMetadata().editor;
+  function createEditorImpl(editorContext: EditorContext<any>) {
+    const opts = editorContext.getMetadata().editor;
     if (opts.navigationPanel === false && opts.logsPanel === false && opts.actionPanel !== false) {
       (opts.actionPanel as Options.IActionPanelOptions).enableCodeOnlyToggle = false;
     }

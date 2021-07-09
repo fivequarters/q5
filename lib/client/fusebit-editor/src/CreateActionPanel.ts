@@ -9,7 +9,11 @@ import { EditorContext } from './EditorContext';
  * @param editorContext A pre-existing editor context to associate the action panel with.
  * @param options Action panel creation options.
  */
-export function createActionPanel(element: HTMLElement, editorContext: EditorContext, options?: IActionPanelOptions) {
+export function createActionPanel(
+  element: HTMLElement,
+  editorContext: EditorContext<any>,
+  options?: IActionPanelOptions
+) {
   const defaultOptions = new ActionPanelOptions();
   const opts = {
     ...defaultOptions,

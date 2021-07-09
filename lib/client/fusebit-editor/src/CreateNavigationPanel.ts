@@ -13,7 +13,7 @@ import { modalConfirmCancelQuestion } from './Modal';
  */
 export function createNavigationPanel(
   element: HTMLElement,
-  editorContext: EditorContext,
+  editorContext: EditorContext<any>,
   options?: INavigationPanelOptions,
   mainEditorElement?: HTMLElement
 ) {
@@ -32,19 +32,17 @@ export function createNavigationPanel(
 
   let isDeletingFile: string | undefined;
 
-  let html: string[] = [];
+  const html: string[] = [];
   html.push(`<div id="${treeId}" class="fusebit-nav">`);
   if (!effectiveOptions.hideCode) {
     html.push(
       `<div id="${codeCategoryId}" class="fusebit-nav-category">Code`,
       `<button id="${addButtonId}" class="fusebit-code-action-add-btn"><i class="fa fa-plus"></i></button></div>`
     );
-    if (editorContext.functionSpecification && editorContext.functionSpecification.nodejs) {
-      const fileNames = Object.keys(editorContext.functionSpecification.nodejs.files).sort();
-      for (const fileName of fileNames) {
-        if ((effectiveOptions.hideFiles as string[]).indexOf(fileName) < 0) {
-          html.push(createFileNameNavigationItemHtml(fileName));
-        }
+    const fileNames = Object.keys(editorContext.getFiles()).sort();
+    for (const fileName of fileNames) {
+      if ((effectiveOptions.hideFiles as string[]).indexOf(fileName) < 0) {
+        html.push(createFileNameNavigationItemHtml(fileName));
       }
     }
     html.push(
@@ -189,16 +187,19 @@ export function createNavigationPanel(
     };
   }
 
+  function normalizeFilename(fileName: string) {
+    return fileName[0] === '.' && fileName[1] === '/' ? fileName.substring(2) : fileName;
+  }
+
   function createFileNameNavigationItemHtml(fileName: string) {
-    let html = [
+    return [
       `<div class="fusebit-nav-item fusebit-nav-file" data-type="file" data-file="${fileName}">`,
-      `<span><span class="fusebit-nav-icon"><i class="fa fa-file"></i></span>${fileName}</span>`,
+      `<span><span class="fusebit-nav-icon"><i class="fa fa-file"></i></span>${normalizeFilename(fileName)}</span>`,
       fileName === 'index.js'
         ? `<span></span>`
         : `<button class="fusebit-code-action-delete-btn"><i class="fa fa-trash"></i></button>`,
       `</div>`,
-    ];
-    return html.join('');
+    ].join('');
   }
 
   function attachFileNameNavigationItemEvents(element: HTMLElement) {
@@ -264,9 +265,9 @@ export function createNavigationPanel(
     newFileElement.style.display = 'none';
     cancelDetectionOfClickOutsideElement();
     if (fileName) {
-      if (editorContext.functionSpecification.nodejs && editorContext.functionSpecification.nodejs.files[fileName]) {
+      if (editorContext.fileExistsInSpecification(fileName)) {
         // file exists, select it
-        let element = findFileNameNavigationItemElement(fileName);
+        const element = findFileNameNavigationItemElement(fileName);
         if (element) {
           selectNavigationItem(element);
         }

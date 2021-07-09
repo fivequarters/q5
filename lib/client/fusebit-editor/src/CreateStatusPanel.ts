@@ -10,7 +10,11 @@ import { EditorContext } from './EditorContext';
  * @param editorContext A pre-existing editor context to associate the status panel with.
  * @param options Status panel creation options.
  */
-export function createStatusPanel(element: HTMLElement, editorContext: EditorContext, options?: IStatusPanelOptions) {
+export function createStatusPanel(
+  element: HTMLElement,
+  editorContext: EditorContext<any>,
+  options?: IStatusPanelOptions
+) {
   const id = `fusebit-status-${Math.floor(99999999 * Math.random()).toString(26)}`;
   element.innerHTML = `<div id="${id}" class="fusebit-status">Powered by Fusebit.io</div>`;
   const statusElement = document.getElementById(id) as HTMLElement;

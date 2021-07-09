@@ -1,11 +1,10 @@
 import { ServerResponse } from 'http';
 import * as Superagent from 'superagent';
 import { EditorContext } from './EditorContext';
-import { FunctionEditorContext } from './FunctionEditorContext';
+import { IntegrationEditorContext } from './IntegrationEditorContext';
 
 import * as Options from './Options';
 import { ICreateEditorOptions } from './CreateEditor';
-import { IFunctionSpecification } from './FunctionSpecification';
 import { IIntegrationSpecification } from './IntegrationSpecification';
 
 import { IError } from './Events';
@@ -108,22 +107,15 @@ const logsMaxBackoff = 60000;
  * are known ahead of time and will not change during the time the user interacts with the editor.
  * @ignore Reducing MVP surface area
  */
-export class Server {
-  /**
-   * Creates an instance of the _Server_ using static Fusebit HTTP API credentials. This is used in situations where the
-   * access token is known ahead of time and will not change during the user's session with the editor.
-   * @param account Static credentials to the Fusebit HTTP APIs.
-   */
-  public static create(account: IAccount): Server {
-    return new Server((currentAccount) => Promise.resolve(account));
-  }
+export class EntityServer {
   /**
    * Current credentials used by the _Server_ to call Fusebit HTTP APIs.
    */
-  public account: IAccount | undefined;
+  public account?: IAccount;
+
   /**
-   * Maximum amount of time in milliseconds the [[buildFunction]] method is going to wait for a function build to complete
-   * before timing out.
+   * Maximum amount of time in milliseconds the [[buildFunction]] method is going to wait for a function build
+   * to complete before timing out.
    */
   public buildTimeout: number = 60000;
   /**
@@ -147,13 +139,28 @@ export class Server {
    */
   public logsTimeout?: number = undefined;
 
+  public entityType: string;
+
   /**
    * Creates an instance of the _Server_ using a dynamic [[AsyncResolver]] callback to resolve credentials.
    * This is used in situations where the access token is expected to change and must be refreshed during
    * the lifetime of the end user's interaction with the editor, for example due to expiry.
-   * @param accountResolver The callback _Server_ will invoke before every Fusebit HTTP API call to ensure it has fresh credentials.
+   * @param accountResolver The callback _Server_ will invoke before every Fusebit HTTP API call to ensure it
+   * has fresh credentials.
    */
-  constructor(public accountResolver: AccountResolver) {}
+  constructor(entityType: string, public accountResolver: AccountResolver) {
+    this.entityType = entityType;
+  }
+
+  /**
+   * Creates an instance of the _Server_ using static Fusebit HTTP API credentials. This is used in situations where the
+   * access token is known ahead of time and will not change during the user's session with the editor.
+   * @param account Static credentials to the Fusebit HTTP APIs.
+   */
+  public static async create(entityType: string, account: IAccount): Promise<EntityServer> {
+    // TODO: Support re-resolving credentials, which may or may not have originally worked...
+    return new EntityServer(entityType, (currentAccount) => Promise.resolve(account));
+  }
 
   /**
    * @ignore
@@ -170,19 +177,9 @@ export class Server {
    * @param boundaryId The name of the function boundary.
    * @param id The name of the function.
    */
-  public getFunctionUrl(boundaryId: string, id: string): Promise<string> {
-    return this.accountResolver(this.account)
-      .then((newAccount) => {
-        this.account = this._normalizeAccount(newAccount);
-        const url = `${this.account.baseUrl}v1/account/${this.account.accountId}/subscription/${this.account.subscriptionId}/boundary/${boundaryId}/function/${id}/location`;
-        return Superagent.get(url)
-          .set('Authorization', `Bearer ${this.account.accessToken}`)
-          .set('x-user-agent', userAgent)
-          .timeout(this.requestTimeout);
-      })
-      .then((res) => {
-        return res.body.location;
-      });
+  public async getFunctionUrl(boundaryId: string, id: string): Promise<string> {
+    const account = await this.accountResolver(this.account);
+    return `${account.baseUrl}v2/account/${account.accountId}/subscription/${account.subscriptionId}/${this.entityType}/${id}`;
   }
 
   /**
@@ -195,47 +192,19 @@ export class Server {
    * @param id The name of the function.
    * @param createIfNotExist A template of a function to create if one does not yet exist.
    */
-  public loadEditorContext(
+  public loadEditorContext = async (
     boundaryId: string,
     id: string,
     createIfNotExist?: ICreateEditorOptions
-  ): Promise<EditorContext<IFunctionSpecification>> {
-    const self = this;
-    return this.accountResolver(this.account)
-      .then((newAccount) => {
-        this.account = this._normalizeAccount(newAccount);
-        const url = `${this.account.baseUrl}v1/account/${this.account.accountId}/subscription/${this.account.subscriptionId}/boundary/${boundaryId}/function/${id}?include=all`;
-        return Superagent.get(url)
-          .set('Authorization', `Bearer ${this.account.accessToken}`)
-          .set('x-user-agent', userAgent)
-          .timeout(this.requestTimeout);
-      })
-      .then((res) => {
-        const editorContext = createEditorContext(res.body);
-        return editorContext;
-      })
-      .catch((error) => {
-        if (!createIfNotExist) {
-          throw new Error(
-            `Fusebit editor failed to load function ${boundaryId}/${id} because it does not exist, and IEditorCreationOptions were not specified. Specify IEditorCreationOptions to allow a function to be created if one does not exist.`
-          );
-        }
-        const editorContext = createEditorContext(createIfNotExist.template);
-        if (createIfNotExist.editor && createIfNotExist.editor.ensureFunctionExists) {
-          return this.buildFunction(editorContext).then((_) => editorContext);
-        } else {
-          editorContext.setDirtyState(true);
-          return editorContext;
-        }
-      });
-
-    function createEditorContext(functionSpecification?: IFunctionSpecification) {
+  ): Promise<EditorContext<IIntegrationSpecification>> => {
+    const createEditorContext = (specification?: IIntegrationSpecification) => {
       const defaultEditorOptions = new Options.EditorOptions();
       const editorOptions = {
         ...defaultEditorOptions,
         ...(createIfNotExist && createIfNotExist.editor),
         version: require('../package.json').version,
       };
+      console.log(`loadEditorContext `, JSON.stringify(editorOptions));
       Object.keys(defaultEditorOptions).forEach((k) => {
         // @ts-ignore
         if (editorOptions[k] !== false && typeof editorOptions[k] !== 'string') {
@@ -248,18 +217,35 @@ export class Server {
           };
         }
       });
-      const editorContext = new FunctionEditorContext(self, boundaryId, id, functionSpecification);
-      if ((createIfNotExist && createIfNotExist.editor) || !editorContext._ensureFusebitMetadata().editor) {
-        editorContext._ensureFusebitMetadata(true).editor = editorOptions;
+      if (!specification) {
+        throw new Error('Specification required right now');
       }
+      console.log(`loadEditorContext2 `, JSON.stringify(editorOptions));
+      const editorContext = new IntegrationEditorContext(this, specification);
+      editorContext.getMetadata().editor = editorOptions;
       return editorContext;
-    }
-  }
+    };
+    return this.accountResolver(this.account)
+      .then((newAccount) => {
+        this.account = this._normalizeAccount(newAccount);
+        const url = `${this.account.baseUrl}v2/account/${this.account.accountId}/subscription/${this.account.subscriptionId}/${this.entityType}/${id}`;
+        return Superagent.get(url)
+          .set('Authorization', `Bearer ${this.account.accessToken}`)
+          .set('x-user-agent', userAgent)
+          .timeout(this.requestTimeout);
+      })
+      .then((res) => {
+        const editorContext = createEditorContext(res.body);
+        return editorContext;
+      })
+      .catch((error) => {
+        console.log(error);
+        throw new Error(
+          `Fusebit editor failed to load ${this.entityType} ${id} because it does not exist, and IEditorCreationOptions were not specified. Specify IEditorCreationOptions to allow a function to be created if one does not exist.`
+        );
+      });
+  };
 
-  /**
-   * Not needed for MVP - builds can only be initiated from editor
-   * @param editorContext
-   */
   public saveFunction(editorContext: EditorContext<any>): Promise<IBuildStatus> {
     editorContext.setDirtyState(false);
     editorContext.setReadOnly(true);
@@ -278,14 +264,8 @@ export class Server {
       });
   }
 
-  /**
-   * Not needed for MVP - builds can only be initiated from editor
-   * @param editorContext
-   */
-  public buildFunction(editorContext: EditorContext<any>): Promise<IBuildStatus> {
+  public buildFunction = (editorContext: EditorContext<any>): Promise<IBuildStatus> => {
     let startTime: number;
-    let self = this;
-
     const waitForBuild = (build: IBuildStatus): Promise<IBuildStatus> => {
       const elapsed = Date.now() - startTime;
       build.progress = Math.min(elapsed / this.buildTimeout, 1);
@@ -296,14 +276,11 @@ export class Server {
       return new Promise((resolve) => setTimeout(resolve, this.buildStatusCheckInterval))
         .then(() => {
           // @ts-ignore
-          const url = `${this.account.baseUrl}v1/account/${self.account.accountId}/subscription/${
-            // @ts-ignore
-            self.account.subscriptionId
-          }/boundary/${editorContext.boundaryId}/function/${editorContext.functionId}/build/${build.buildId}`;
+          const url = `${this.account.baseUrl}v2/account/${this.account.accountId}/subscription/${this.account.subscriptionId}/operation/${build.buildId}`;
           return (
             Superagent.get(url)
               // @ts-ignore
-              .set('Authorization', `Bearer ${self.account.accessToken}`)
+              .set('Authorization', `Bearer ${this.account.accessToken}`)
               .set('x-user-agent', userAgent)
               .ok((res) => true)
               .timeout(this.requestTimeout)
@@ -312,12 +289,15 @@ export class Server {
         .then((res) => {
           if (res.status === 200) {
             // success
-            editorContext.buildFinished(res.body);
-            return res.body;
+            console.log(`finished with the build`, res.body);
+            build.status = 'completed';
+            editorContext.buildFinished(build);
+            return build;
           } else if (res.status === 201) {
             // wait some more
             return waitForBuild(res.body);
           } else {
+            console.log(`build error`, res.body.error);
             // failure
             editorContext.buildError((res.body.error || res.body) as IError);
             throw new BuildError(res.body.error || res.body);
@@ -330,18 +310,9 @@ export class Server {
     return this.accountResolver(this.account)
       .then((newAccount) => {
         this.account = this._normalizeAccount(newAccount);
-        const url = `${this.account.baseUrl}v1/account/${this.account.accountId}/subscription/${this.account.subscriptionId}/boundary/${editorContext.boundaryId}/function/${editorContext.functionId}`;
+        const url = `${this.account.baseUrl}v2/account/${this.account.accountId}/subscription/${this.account.subscriptionId}/${this.entityType}/${editorContext.functionId}`;
         startTime = Date.now();
-        let params: any = {
-          environment: 'nodejs',
-          provider: 'lambda',
-          configurationSerialized: editorContext.getConfigurationSettings(),
-          computeSerialized: editorContext.getComputeSettings(),
-          scheduleSerialized: editorContext.getScheduleSettings(),
-          nodejs: editorContext.getSpecification().nodejs,
-          metadata: editorContext.getSpecification().metadata,
-          security: editorContext.getSpecification().security,
-        };
+        const params = editorContext.getSpecification();
         return Superagent.put(url)
           .set('Authorization', `Bearer ${this.account.accessToken}`)
           .set('x-user-agent', userAgent)
@@ -350,90 +321,37 @@ export class Server {
           .send(params);
       })
       .then((res) => {
-        let build = res.body as IBuildStatus;
-        if (res.status === 204) {
-          // No changes
-          build = {
-            status: 'unchanged',
-            subscriptionId: (this.account as IAccount).subscriptionId,
-            boundaryId: editorContext.boundaryId,
-            functionId: editorContext.functionId,
-          };
-          editorContext.buildFinished(build);
-          return build;
-        } else if (res.status === 200) {
-          // Completed synchronously
-          editorContext.buildFinished(build);
-          return build;
-        } else if (res.status === 201) {
-          return waitForBuild(build);
-        } else {
-          editorContext.buildError((res.body.error || res.body) as IError);
-          throw new BuildError(build);
-        }
+        const build: IBuildStatus = {
+          buildId: res.body.operationId,
+          subscriptionId: this.account!.subscriptionId,
+          boundaryId: this.entityType,
+          functionId: editorContext.functionId,
+          status: 'building',
+        };
+        return waitForBuild(build);
       })
       .catch((err) => {
+        console.log(`some other err`, err);
         if (!(err instanceof BuildError)) {
           editorContext.buildError(err);
         }
         throw err;
       });
+  };
+
+  public async runFunction(editorContext: EditorContext<any>): Promise<ServerResponse> {
+    const response = { statusCode: 200, statusMessage: 'Not yet implemented' };
+    return response as ServerResponse;
   }
 
-  /**
-   * Not needed for MVP - function can only be run from editor
-   * @param editorContext
-   * @ignore
-   */
-  public runFunction(editorContext: EditorContext<any>): Promise<ServerResponse> {
-    return this.accountResolver(this.account)
-      .then((newAccount) => {
-        this.account = this._normalizeAccount(newAccount);
-        if (editorContext.location) {
-          return editorContext.location;
-        } else {
-          return this.getFunctionUrl(editorContext.boundaryId, editorContext.functionId);
-        }
-      })
-      .then((url) => {
-        editorContext.location = url;
-        editorContext.startRun(url);
-
-        function runnerFactory(ctx: object) {
-          const Superagent = Superagent1; // tslint:disable-line
-          return eval(editorContext.getRunnerContent())(ctx); // tslint:disable-line
-        }
-
-        const runnerPromise = runnerFactory({
-          url,
-          configuration: editorContext.getConfiguration(),
-        });
-
-        return runnerPromise;
-      })
-      .catch((error) => {
-        editorContext.finishRun(error);
-        throw error;
-      })
-      .then((res) => {
-        editorContext.finishRun(undefined, res);
-        return res;
-      });
-  }
-
-  /**
-   * Not needed for MVP - logs can only be attached to from editor
-   * @param editorContext
-   * @ignore
-   */
-  public attachServerLogs(editorContext: EditorContext<any>): Promise<Server> {
+  public attachServerLogs(editorContext: EditorContext<any>): Promise<EntityServer> {
     if (this.sse) {
       return Promise.resolve(this);
     } else {
       clearTimeout(this.logsTimeout);
       return this.accountResolver(this.account).then((newAccount) => {
         this.account = this._normalizeAccount(newAccount);
-        const url = `${this.account.baseUrl}v1/account/${this.account.accountId}/subscription/${this.account.subscriptionId}/boundary/${editorContext.boundaryId}/function/${editorContext.functionId}/log?token=${this.account.accessToken}`;
+        const url = `${this.account.baseUrl}v1/account/${this.account.accountId}/subscription/${this.account.subscriptionId}/boundary/${this.entityType}/function/${editorContext.functionId}/log?token=${this.account.accessToken}`;
 
         this.sse = new EventSource(url);
         if (this.logsBackoff === 0) {
@@ -470,11 +388,6 @@ export class Server {
     }
   }
 
-  /**
-   * Not needed for MVP - logs can only be detached from by the editor
-   * @param editorContext
-   * @ignore
-   */
   public detachServerLogs(editorContext: EditorContext<any>, error?: Error) {
     clearTimeout(this.logsTimeout);
     this.logsTimeout = undefined;

@@ -5,7 +5,9 @@
   "main": "libm/index.js",
   "browser": "libm/index.js",
   "module": "libm/index.js",
-  "sideEffects": ["*.css"],
+  "sideEffects": [
+    "*.css"
+  ],
   "license": "UNLICENSED",
   "author": "fusebit.io",
   "scripts": {
@@ -16,13 +18,15 @@
     "bundle:dev": "webpack --env dev",
     "bundle:prod": "webpack --env build",
     "bundle": "webpack --env dev && webpack --env build",
-    "doc": "typedoc --disableSources"
+    "doc": "typedoc --disableSources",
+    "serve": "cd dist && python3 -m http.server 8099 --bind 127.0.0.1"
   },
   "keywords": [],
   "dependencies": {
     "monaco-editor": "^0.15.6",
     "superagent": "^5.2.2",
-    "@5qtrs/event": "^0.0.1"
+    "@5qtrs/event": "^0.0.1",
+    "@fusebit/schema": "^1.0.0"
   },
   "devDependencies": {
     "@fortawesome/fontawesome-svg-core": "^1.2.9",

@@ -6,6 +6,7 @@ import { IntegrationGetCommand } from './IntegrationGetCommand';
 import { IntegrationListCommand } from './IntegrationListCommand';
 import { IntegrationLogCommand } from './IntegrationLogCommand';
 import { IntegrationRemoveCommand } from './IntegrationRemoveCommand';
+import { IntegrationEditCommand } from './IntegrationEditCommand';
 
 // ------------------
 // Internal Constants
@@ -35,6 +36,7 @@ async function getSubCommands() {
   subCommands.push(await IntegrationInitCommand.create());
   subCommands.push(await IntegrationGetCommand.create());
   subCommands.push(await IntegrationDeployCommand.create());
+  subCommands.push(await IntegrationEditCommand.create());
   subCommands.push(await IntegrationListCommand.create());
   subCommands.push(await IntegrationLogCommand.create());
   subCommands.push(await IntegrationRemoveCommand.create());

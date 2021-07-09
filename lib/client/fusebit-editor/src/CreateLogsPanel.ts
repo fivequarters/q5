@@ -9,7 +9,7 @@ import { EditorContext } from './EditorContext';
  * @param editorContext A pre-existing editor context to associate the logs panel with.
  * @param options Logs panel creation options.
  */
-export function createLogsPanel(element: HTMLElement, editorContext: EditorContext, options?: ILogsPanelOptions) {
+export function createLogsPanel(element: HTMLElement, editorContext: EditorContext<any>, options?: ILogsPanelOptions) {
   const id = `fusebit-logs-${Math.floor(99999999 * Math.random()).toString(26)}`;
   element.innerHTML = [
     `<div class="fusebit-logs-inner-container">`,
@@ -39,7 +39,7 @@ export function createLogsPanel(element: HTMLElement, editorContext: EditorConte
   editorContext.on(Events.Events.LogsAttached, (e) => {
     if (!logsAttachedOnce) {
       logsAttachedOnce = true;
-      append('Attached to real-time logs...');
+      append('XAttached to real-time logs...');
     }
   });
 

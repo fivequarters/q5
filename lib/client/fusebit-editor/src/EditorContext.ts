@@ -2,65 +2,8 @@ import { EventEmitter } from '@5qtrs/event';
 import { ServerResponse } from 'http';
 import * as Events from './Events';
 import { IFunctionSpecification } from './FunctionSpecification';
+import { IIntegrationSpecification } from './IntegrationSpecification';
 import { IBuildStatus, Server } from './Server';
-
-const RunnerPlaceholder = `// Return a function that evaluates to a Superagent request promise
-
-ctx => Superagent.get(ctx.url);
-
-// Simple POST request
-// ctx => Superagent.post(ctx.url)
-//     .send({ hello: 'world' });
-
-// POST request with Authorization header using function's application settings
-// ctx => Superagent.post(ctx.url)
-//     .set('Authorization', \`Bearer \${ctx.configuration.MY_API_KEY}\`)
-//     .send({ hello: 'world' });
-`;
-
-const SettingsConfigurationPlaceholder = `# Configuration settings are available within function code
-
-# KEY1=VALUE1
-# KEY2=VALUE2`;
-
-const SettingsComputePlaceholder = `# Compute settings control resources available to the executing function
-
-# memorySize=128
-# timeout=30
-# staticIp=false`;
-
-const SettingsCronPlaceholder = `# Set the 'cron' value to execute this function on a schedule
-
-# Check available timezone identifiers at https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-# Default is UTC.
-# timezone=US/Pacific
-
-# Design a CRON schedule at https://crontab.guru/
-
-# Every day at midnight
-# cron=0 0 * * *
-
-# Every day at 5am
-# cron=0 5 * * *
-
-# Every hour
-# cron=0 */1 * * *
-
-# Every 15 minutes
-# cron=*/15 * * * *
-
-# At 10pm every Friday
-# cron=0 22 * * Fri
-`;
-
-const IndexPlaceholder = `/**
-* @param ctx {FusebitContext}
-* @param cb {FusebitCallback}
-*/
-module.exports = (ctx, cb) => {
-    cb(null, { body: "Hello" });
-};
-`;
 
 /**
  * The _EditorContext_ class class represents client side state of a single function, including its files,
@@ -71,14 +14,14 @@ module.exports = (ctx, cb) => {
  * The _EditorContext_ is an _EventEmitter_ that emits events on changes in the function specification and interactions
  * with the Fusebit HTTP APIs. For the full list of of events that can be subscribed to, see [[Events]].
  */
-export class EditorContext extends EventEmitter {
+export abstract class EditorContext<ISpecType> extends EventEmitter {
   /**
    * Name of the function, unique within the boundary.
    */
   public functionId: string = '';
   /**
-   * Isolation boundary within which this function executes. Functions running in different boundaries are guaranteed to be isolated.
-   * Functions running in the same boundary may or may not be isolated.
+   * Isolation boundary within which this function executes. Functions running in different boundaries are
+   * guaranteed to be isolated.  Functions running in the same boundary may or may not be isolated.
    */
   public boundaryId: string = '';
   /**
@@ -99,98 +42,55 @@ export class EditorContext extends EventEmitter {
    * Indicates whether the editor has any unsaved changes.
    */
   public dirtyState: boolean = false;
-  /**
-   * The current state of the in-memory specification of the function. Do not modify this property directly,
-   * treat it as read only.
-   */
-  public functionSpecification: IFunctionSpecification = {};
 
   /**
    * Not relevant for MVP
    * @ignore
    */
-  public _monaco: any;
+  public monaco: any;
 
   /**
    * Not relevant for MVP
    * @ignore
    */
-  public _server: Server;
+  public server: Server;
 
-  /**
-   * Creates a _EditorContext_ given the optional function specification. If you do not provide a function specification,
-   * the default is a boilerplate "hello, world" function.
-   * @param functionSpecification
-   * @ignore Not relevant for MVP
-   */
-  constructor(server: Server, boundaryId?: string, id?: string, functionSpecification?: IFunctionSpecification) {
+  public specification: ISpecType;
+
+  public metadata: any;
+
+  public abstract addFileToSpecification(fileName: string, content: string, overwrite: boolean): void;
+  public abstract deleteFileFromSpecification(fileName: string): void;
+  public abstract fileExistsInSpecification(fileName: string): boolean;
+  public abstract getFiles(): { [fileName: string]: string | object };
+  public abstract setRunnerContent(content: string): void;
+  public abstract setSettingsCompute(content: string): void;
+  public abstract setSettingsConfiguration(settings: string): void;
+  public abstract setSettingsSchedule(settings: string): void;
+  public abstract getRunnerContent(): string;
+  public abstract getComputeSettings(): string;
+  public abstract getConfigurationSettings(): string;
+  public abstract getConfiguration(): { [index: string]: string | number };
+  public abstract getScheduleSettings(): string;
+  public abstract getFileFromSpecification(fileName: string): string | object;
+
+  constructor(server: Server, boundaryId: string, id: string, specification: ISpecType) {
     super();
-    this._server = server;
+
+    this.specification = specification;
+    this.server = server;
+    this.metadata = { editor: {}, fusebit: {} };
+
     if (boundaryId) {
       this.boundaryId = boundaryId;
     }
     if (id) {
       this.functionId = id;
     }
-    if (functionSpecification) {
-      this.functionSpecification = functionSpecification;
-    }
-    if (!this.functionSpecification.nodejs) {
-      this.functionSpecification.nodejs = {
-        files: {
-          'index.js': IndexPlaceholder,
-          'package.json': {
-            dependencies: {},
-          },
-        },
-      };
-    }
-    if (!this.functionSpecification.computeSerialized) {
-      this.functionSpecification.computeSerialized = SettingsComputePlaceholder;
-    }
-    if (!this.functionSpecification.configurationSerialized) {
-      this.functionSpecification.configurationSerialized = SettingsConfigurationPlaceholder;
-    }
-    if (!this.functionSpecification.scheduleSerialized) {
-      this.functionSpecification.scheduleSerialized = SettingsCronPlaceholder;
-    }
-    if (!this._ensureFusebitMetadata().runner) {
-      this._ensureFusebitMetadata(true).runner = RunnerPlaceholder;
-    }
-    if (this.functionSpecification.nodejs.files) {
-      const metadata = this._ensureFusebitMetadata();
-      let fileToSelect = 'index.js';
-      let hideFiles: any[] = [];
-      if (metadata.editor && typeof metadata.editor.navigationPanel === 'object') {
-        hideFiles = metadata.editor.navigationPanel.hideFiles || hideFiles;
-        fileToSelect = metadata.editor.navigationPanel.selectFile || fileToSelect;
-      }
-      if (this.functionSpecification.nodejs.files[fileToSelect] && hideFiles.indexOf(fileToSelect) < 0) {
-        this.selectFile(fileToSelect);
-      } else {
-        let foundFileSelect = false;
-        for (var name in this.functionSpecification.nodejs.files) {
-          if (hideFiles.indexOf(name) < 0) {
-            this.selectFile(name);
-            foundFileSelect = true;
-            break;
-          }
-        }
-        if (!foundFileSelect) {
-          throw new Error('At least one non-hidden file must be provided in functionSpecification.nodejs.files.');
-        }
-      }
-    } else {
-      throw new Error('The functionSpecification.nodejs.files must be provided.');
-    }
   }
 
-  /**
-   * Not relevant for MVP
-   * @ignore
-   */
   public attachServerLogs() {
-    this._server.attachServerLogs(this);
+    this.server.attachServerLogs(this);
   }
 
   /**
@@ -198,7 +98,7 @@ export class EditorContext extends EventEmitter {
    * its progress through events emitted from this _EditorContext_ instance.
    */
   public saveFunction() {
-    this._server.saveFunction(this).catch((_) => {});
+    this.server.saveFunction(this).catch((_) => {});
   }
 
   /**
@@ -206,13 +106,9 @@ export class EditorContext extends EventEmitter {
    * its progress through events emitted from this _EditorContext_ instance.
    */
   public runFunction() {
-    this._server.runFunction(this).catch((_) => {});
+    this.server.runFunction(this).catch((_) => {});
   }
 
-  /**
-   * Not relevant for MVP
-   * @ignore
-   */
   public setReadOnly(value: boolean) {
     if (value !== this.readOnly) {
       this.readOnly = value;
@@ -221,36 +117,10 @@ export class EditorContext extends EventEmitter {
     }
   }
 
-  /**
-   * Not relevant for MVP
-   * @ignore
-   */
   public _ensureWritable() {
     if (this.readOnly) {
       throw new Error('Operation not permitted while the editor context is in read-only state.');
     }
-  }
-
-  /**
-   * Not relevant for MVP
-   * @ignore
-   */
-  public _ensureFusebitMetadata(create?: boolean): { [property: string]: any } {
-    if (!this.functionSpecification.metadata) {
-      if (create) {
-        this.functionSpecification.metadata = {};
-      } else {
-        return {};
-      }
-    }
-    if (!this.functionSpecification.metadata.fusebit) {
-      if (create) {
-        this.functionSpecification.metadata.fusebit = {};
-      } else {
-        return {};
-      }
-    }
-    return this.functionSpecification.metadata.fusebit;
   }
 
   /**
@@ -262,10 +132,6 @@ export class EditorContext extends EventEmitter {
     this.emit(event);
   }
 
-  /**
-   * Not relevant for MVP
-   * @ignore
-   */
   public selectSettingsCompute() {
     this.selectedFileName = undefined;
     const event = new Events.SettingsComputeSelectedEvent();
@@ -290,35 +156,23 @@ export class EditorContext extends EventEmitter {
     this.emit(event);
   }
 
-  /**
-   * Not relevant to MVP
-   * @ignore
-   */
   public addFile(fileName: string) {
-    if (!this.functionSpecification.nodejs) {
-      this.functionSpecification.nodejs = { files: {} };
-    }
-    if (this.functionSpecification.nodejs.files[fileName]) {
-      throw new Error(`File ${fileName} cannot be added because it already exists.`);
-    }
     let content: string = `# ${fileName}`;
     if (fileName.match(/\.js$/)) {
       content = `module.exports = () => {};`;
     } else if (fileName.match(/\.json$/)) {
       content = `{}`;
     }
-    this.functionSpecification.nodejs.files[fileName] = content;
+
+    this.addFileToSpecification(fileName, content, false);
+
     const event = new Events.FileAddedEvent(fileName);
     this.emit(event);
     this.setDirtyState(true);
   }
 
-  /**
-   * Not relevant to MVP
-   * @ignore
-   */
   public deleteFile(fileName: string) {
-    if (!this.functionSpecification.nodejs || !this.functionSpecification.nodejs.files[fileName]) {
+    if (!this.fileExistsInSpecification(fileName)) {
       throw new Error(`File ${fileName} does not exist.`);
     }
     const event = new Events.FileDeletedEvent(fileName);
@@ -327,18 +181,19 @@ export class EditorContext extends EventEmitter {
     if (this.selectedFileName === fileName) {
       this.selectedFileName = undefined;
     }
-    delete this.functionSpecification.nodejs.files[fileName];
+
+    this.deleteFileFromSpecification(fileName);
   }
 
   /**
-   * Navigates to edit a specific file. The file name must exist in the [[functionSpecification]].
+   * Navigates to edit a specific file. The file name must exist in the [[specification]].
    * @param fileName The name of the file to edit.
    */
   public selectFile(fileName: string) {
     if (fileName === this.selectedFileName) {
       return;
     }
-    if (!this.functionSpecification.nodejs || !this.functionSpecification.nodejs.files[fileName]) {
+    if (!this.fileExistsInSpecification(fileName)) {
       throw new Error(`File ${fileName} does not exist in the function specification.`);
     }
     this.selectedFileName = fileName;
@@ -346,31 +201,15 @@ export class EditorContext extends EventEmitter {
     this.emit(event);
   }
 
-  /**
-   * Not relevant to MVP
-   * @ignore
-   */
   public setSelectedFileContent(content: string) {
-    if (!this.selectedFileName || !this.functionSpecification.nodejs) {
+    if (!this.selectedFileName) {
       throw new Error('Cannot set selected file content because no file is selected.');
     }
-    this.functionSpecification.nodejs.files[this.selectedFileName] = content;
+
+    this.addFileToSpecification(this.selectedFileName, content, true);
     this.setDirtyState(true);
   }
 
-  /**
-   * Not relevant to MVP
-   * @ignore
-   */
-  public setRunnerContent(content: string) {
-    this._ensureFusebitMetadata(true).runner = content;
-    this.setDirtyState(true);
-  }
-
-  /**
-   * Not relevant to MVP
-   * @ignore
-   */
   public setDirtyState(state: boolean) {
     if (this.dirtyState !== state) {
       this.dirtyState = state;
@@ -379,59 +218,12 @@ export class EditorContext extends EventEmitter {
     }
   }
 
-  /**
-   * Not relevant to MVP
-   * @ignore
-   */
-  public setSettingsCompute(settings: string) {
-    const isDirty = !this.dirtyState && this.functionSpecification.computeSerialized !== settings;
-    this.functionSpecification.computeSerialized = settings;
-    if (isDirty) {
-      this.setDirtyState(true);
-    }
-  }
-
-  /**
-   * Not relevant to MVP
-   * @ignore
-   */
-  public setSettingsConfiguration(settings: string) {
-    const isDirty = !this.dirtyState && this.functionSpecification.configurationSerialized !== settings;
-    this.functionSpecification.configurationSerialized = settings;
-    if (isDirty) {
-      this.setDirtyState(true);
-    }
-  }
-
-  /**
-   * Not relevant to MVP
-   * @ignore
-   */
-  public setSettingsSchedule(settings: string) {
-    const isDirty = !this.dirtyState && this.functionSpecification.scheduleSerialized !== settings;
-    this.functionSpecification.scheduleSerialized = settings;
-    if (isDirty) {
-      this.setDirtyState(true);
-    }
-  }
-
-  /**
-   * Not relevant to MVP
-   * @ignore
-   */
-  public getRunnerContent() {
-    return this._ensureFusebitMetadata().runner;
-  }
-
-  /**
-   * Not relevant to MVP
-   * @ignore
-   */
   public getSelectedFileContent() {
     if (!this.selectedFileName) {
       return undefined;
     }
-    const content = this.functionSpecification.nodejs && this.functionSpecification.nodejs.files[this.selectedFileName];
+    const content = this.getFileFromSpecification(this.selectedFileName);
+
     if (typeof content === 'string') {
       return content;
     } else if (content && typeof content === 'object') {
@@ -441,10 +233,6 @@ export class EditorContext extends EventEmitter {
     }
   }
 
-  /**
-   * Not relevant to MVP
-   * @ignore
-   */
   public getSelectedFileLanguage() {
     if (!this.selectedFileName) {
       return undefined;
@@ -458,28 +246,16 @@ export class EditorContext extends EventEmitter {
     }
   }
 
-  /**
-   * Not relevant to MVP
-   * @ignore
-   */
   public startBuild() {
     const event = new Events.BuildStartedEvent();
     this.emit(event);
   }
 
-  /**
-   * Not relevant to MVP
-   * @ignore
-   */
   public buildProgress(status: IBuildStatus) {
     const event = new Events.BuildProgressEvent(status);
     this.emit(event);
   }
 
-  /**
-   * Not relevant to MVP
-   * @ignore
-   */
   public buildFinished(status: IBuildStatus) {
     if (status.location) {
       this.location = status.location;
@@ -491,64 +267,36 @@ export class EditorContext extends EventEmitter {
     this.emit(event);
   }
 
-  /**
-   * Not relevant to MVP
-   * @ignore
-   */
   public buildError(error: Events.IError) {
     const event = new Events.BuildErrorEvent(error);
     this.emit(event);
   }
 
-  /**
-   * Not relevant to MVP
-   * @ignore
-   */
   public startRun(url: string) {
     const event = new Events.RunnerStartedEvent(url);
     this.emit(event);
   }
 
-  /**
-   * Not relevant to MVP
-   * @ignore
-   */
   public finishRun(error?: Error, res?: ServerResponse) {
     const event = new Events.RunnerFinishedEvent(error, res);
     this.emit(event);
   }
 
-  /**
-   * Not relevant to MVP
-   * @ignore
-   */
   public updateLogsState(state: boolean) {
     const event = new Events.LogsStateChangedEvent(state);
     this.emit(event);
   }
 
-  /**
-   * Not relevant to MVP
-   * @ignore
-   */
   public updateNavState(state: boolean) {
     const event = new Events.NavStateChangedEvent(state);
     this.emit(event);
   }
 
-  /**
-   * Not relevant to MVP
-   * @ignore
-   */
   public setFullScreen(state: boolean) {
     const event = new Events.FullScreenChangedEvent(state);
     this.emit(event);
   }
 
-  /**
-   * Not relevant to MVP
-   * @ignore
-   */
   public close() {
     const event = new Events.ClosedEvent();
     this.emit(event);
@@ -558,78 +306,30 @@ export class EditorContext extends EventEmitter {
    * Disposes the editor resources when the editor is no longer needed.
    */
   public dispose() {
-    if (this._monaco) {
-      this._monaco.getModel().dispose();
-      this._monaco.dispose();
-      this._monaco = undefined;
+    if (this.monaco) {
+      this.monaco.getModel().dispose();
+      this.monaco.dispose();
+      this.monaco = undefined;
     }
   }
 
-  /**
-   * Not relevant to MVP
-   * @ignore
-   */
   public serverLogsAttached() {
     const event = new Events.LogsAttachedEvent();
     this.emit(event);
   }
 
-  /**
-   * Not relevant to MVP
-   * @ignore
-   */
   public serverLogsDetached(error?: Error) {
     const event = new Events.LogsDetachedEvent(error);
     this.emit(event);
   }
 
-  /**
-   * Not relevant to MVP
-   * @ignore
-   */
   public serverLogsEntry(data: string) {
     const event = new Events.LogsEntryEvent(data);
     this.emit(event);
   }
 
-  /**
-   * Not relevant to MVP
-   * @ignore
-   */
-  public getComputeSettings(): string {
-    return this.functionSpecification.computeSerialized || '';
-  }
-
-  /**
-   * Not relevant to MVP
-   * @ignore
-   */
-  public getConfigurationSettings(): string {
-    return this.functionSpecification.configurationSerialized || '';
-  }
-
-  /**
-   * Not relevant to MVP
-   * @ignore
-   */
-  public getConfiguration(): { [index: string]: string | number } {
-    return parseKeyValue(this.functionSpecification.configurationSerialized || '');
-  }
-
-  /**
-   * Not relevant to MVP
-   * @ignore
-   */
-  public getScheduleSettings(): string {
-    return this.functionSpecification.scheduleSerialized || '';
-  }
-
-  /**
-   * Not relevant to MVP
-   * @ignore
-   */
   public getPackageJson(): any {
-    let packageJson: any = this.functionSpecification.nodejs && this.functionSpecification.nodejs.files['package.json'];
+    let packageJson: any = this.getFileFromSpecification('package.json');
     if (packageJson) {
       if (typeof packageJson === 'string') {
         try {
@@ -641,41 +341,22 @@ export class EditorContext extends EventEmitter {
     }
     return packageJson;
   }
-  /**
-   * Not relevant to MVP
-   * @ignore
-   */
-  getNodeVersion(pj: any): string {
-    let packageJson: any = pj || this.getPackageJson();
+
+  public getNodeVersion(pj: any): string {
+    const packageJson: any = pj || this.getPackageJson();
     return (packageJson && packageJson.engines && packageJson.engines.node) || '14';
   }
 
-  /**
-   * Not relevant to MVP
-   * @ignore
-   */
-  getDependencies(pj: any): { [property: string]: string } {
-    let packageJson: any = pj || this.getPackageJson();
-    return (pj && pj.dependencies) || {};
+  public getDependencies(pj: any): { [property: string]: string } {
+    const packageJson: any = pj || this.getPackageJson();
+    return (packageJson && packageJson.dependencies) || {};
   }
-}
 
-function parseKeyValue(data: string) {
-  try {
-    const param = /^\s*([^=]+?)\s*=\s*(.*?)\s*$/;
-    const value: { [property: string]: string | number } = {};
-    const lines = data.split(/[\r\n]+/);
-    lines.forEach((line) => {
-      if (/^\s*\#/.test(line)) {
-        return;
-      }
-      const match = line.match(param);
-      if (match) {
-        value[match[1]] = match[2];
-      }
-    });
-    return value;
-  } catch (__) {
-    return {};
+  public getSpecification(): ISpecType {
+    return this.specification;
+  }
+
+  public getMetadata(): any {
+    return this.metadata;
   }
 }
