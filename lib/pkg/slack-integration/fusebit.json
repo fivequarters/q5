@@ -1,0 +1,14 @@
+{
+  "tags": {},
+  "handler": "./integration",
+  "configuration": {},
+  "componentTags": {},
+  "components": [
+    {
+      "name": "conn1",
+      "package": "@fusebit-int/pkg-oauth-integration",
+      "entityType": "connector",
+      "entityId": "slack-connector"
+    }
+  ]
+}
