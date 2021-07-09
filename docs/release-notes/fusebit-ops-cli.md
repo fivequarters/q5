@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.27.13
+
+_Released 07/09/21_
+
+- **Security** Update Axios for security patching.
+
 ## Version 1.27.10
 
 _Released 07/07/21_
