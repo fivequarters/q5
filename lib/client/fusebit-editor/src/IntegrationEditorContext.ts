@@ -6,42 +6,21 @@ import { EditorContext } from './EditorContext';
 
 export class IntegrationEditorContext extends EditorContext<IIntegrationSpecification> {
   /**
-   * Creates a _EditorContext_ given the optional function specification. If you do not provide a function
-   * specification, the default is a boilerplate "hello, world" function.
+   * Creates an _IntegrationEditorContext_ given the optional integrationspecification. If you do not provide
+   * a function specification, the default is a boilerplate "hello, world" function.
    * @param specification
    * @ignore Not relevant for MVP
    */
   constructor(server: EntityServer, specification: IIntegrationSpecification) {
     super(server as Server<IIntegrationSpecification>, 'integration', specification.id, specification);
 
-    if (this.specification.data.files) {
-      const fileToSelect = 'integration.js';
-      const hideFiles: any[] = [];
-
-      if (this.specification.data.files[fileToSelect] && hideFiles.indexOf(fileToSelect) < 0) {
-        this.selectFile(fileToSelect);
-      } else {
-        let foundFileSelect = false;
-        for (const name in this.specification.data.files) {
-          if (hideFiles.indexOf(name) < 0) {
-            this.selectFile(name);
-            foundFileSelect = true;
-            break;
-          }
-        }
-        if (!foundFileSelect) {
-          throw new Error('At least one non-hidden file must be provided in specification.data.files.');
-        }
-      }
-    } else {
+    if (!this.specification.data.files) {
       throw new Error('The specification.data.files must be provided.');
     }
+
+    this.selectFile('./integration.js');
   }
 
-  /**
-   * Not relevant to MVP
-   * @ignore
-   */
   public addFileToSpecification(fileName: string, content: string, overwrite: boolean): void {
     if (!overwrite && this.specification.data.files[fileName]) {
       throw new Error(`File ${fileName} cannot be added because it already exists.`);

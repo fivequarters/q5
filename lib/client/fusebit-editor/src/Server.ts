@@ -180,10 +180,79 @@ export abstract class Server<IFuncSpec> {
   ): Promise<EditorContext<any>>;
 
   public abstract runFunction(editorContext: EditorContext<any>): Promise<ServerResponse>;
+  public abstract getServerLogUrl(account: IAccount, editorContext: EditorContext<any>): string;
+  public abstract buildFunction(editorContext: EditorContext<any>): Promise<IBuildStatus>;
 
-  public abstract attachServerLogs(editorContext: EditorContext<any>): Promise<Server<IFuncSpec>>;
+  public attachServerLogs(editorContext: EditorContext<any>): Promise<Server<IFuncSpec>> {
+    if (this.sse) {
+      return Promise.resolve(this);
+    } else {
+      clearTimeout(this.logsTimeout);
+      return this.accountResolver(this.account).then((newAccount) => {
+        this.account = this._normalizeAccount(newAccount);
+        const url = this.getServerLogUrl(this.account, editorContext);
 
-  public abstract detachServerLogs(editorContext: EditorContext<any>, error?: Error): void;
+        this.sse = new EventSource(url);
+        if (this.logsBackoff === 0) {
+          this.logsBackoff = logsInitialBackoff;
+        }
+        this.sse.addEventListener('log', (e) => {
+          // @ts-ignore
+          if (e && e.data) {
+            // @ts-ignore
+            editorContext.serverLogsEntry(e.data);
+          }
+        });
+        this.sse.onopen = () => editorContext.serverLogsAttached();
+        this.sse.onerror = (e) => {
+          const backoff = this.logsBackoff;
+          const msg =
+            'Server logs detached due to error. Re-attempting connection in ' + Math.floor(backoff / 1000) + 's.';
+          console.error(msg, e);
+          this.detachServerLogs(editorContext, new Error(msg));
+          this.logsBackoff = Math.min(backoff * logsExponentialBackoff, logsMaxBackoff);
+          // @ts-ignore
+          this.logsTimeout = setTimeout(() => this.attachServerLogs(editorContext), backoff);
+        };
 
-  public abstract saveFunction(editorContext: EditorContext<any>): Promise<IBuildStatus>;
+        // Re-connect to logs every 5 minutes
+        // @ts-ignore
+        this.logsTimeout = setTimeout(() => {
+          this.detachServerLogs(editorContext);
+          this.attachServerLogs(editorContext);
+        }, 5 * 60 * 1000);
+
+        return Promise.resolve(this);
+      });
+    }
+  }
+
+  public detachServerLogs(editorContext: EditorContext<any>, error?: Error) {
+    clearTimeout(this.logsTimeout);
+    this.logsTimeout = undefined;
+    this.logsBackoff = 0;
+    if (this.sse) {
+      this.sse.close();
+      this.sse = undefined;
+      editorContext.serverLogsDetached(error);
+    }
+  }
+
+  public saveFunction(editorContext: EditorContext<any>): Promise<IBuildStatus> {
+    editorContext.setDirtyState(false);
+    editorContext.setReadOnly(true);
+    return this.buildFunction(editorContext)
+      .then((build) => {
+        editorContext.setReadOnly(false);
+        if (build.error) {
+          editorContext.setDirtyState(true);
+        }
+        return build;
+      })
+      .catch((e) => {
+        editorContext.setReadOnly(false);
+        editorContext.setDirtyState(true);
+        throw e;
+      });
+  }
 }

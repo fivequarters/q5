@@ -62,21 +62,16 @@ module.exports = (ctx, cb) => {
 `;
 
 /**
- * The _EditorContext_ class class represents client side state of a single function, including its files,
- * configuration settings, schedule of execution (in case of a CRON job), and metadata.
+ * The _FunctionEditorContext_ class class represents client side state of a single function, including its
+ * files, configuration settings, schedule of execution (in case of a CRON job), and metadata.
  * It exposes methods to manipulate this in-memory state, and emits events other components can subscribe to when
  * that state changes.
  *
- * The _EditorContext_ is an _EventEmitter_ that emits events on changes in the function specification and interactions
- * with the Fusebit HTTP APIs. For the full list of of events that can be subscribed to, see [[Events]].
+ * The _FunctionEditorContext_ is an _EventEmitter_ that emits events on changes in the function specification
+ * and interactions with the Fusebit HTTP APIs. For the full list of of events that can be subscribed to, see
+ * [[Events]].
  */
 export class FunctionEditorContext extends EditorContext<IFunctionSpecification> {
-  /**
-   * Creates a _EditorContext_ given the optional function specification. If you do not provide a function
-   * specification, the default is a boilerplate "hello, world" function.
-   * @param specification
-   * @ignore Not relevant for MVP
-   */
   constructor(
     server: Server<IFunctionSpecification>,
     boundaryId?: string,

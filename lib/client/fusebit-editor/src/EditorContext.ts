@@ -74,6 +74,12 @@ export abstract class EditorContext<ISpecType> extends EventEmitter {
   public abstract getScheduleSettings(): string;
   public abstract getFileFromSpecification(fileName: string): string | object;
 
+  /**
+   * Creates a _EditorContext_ given the optional function specification. If you do not provide a function
+   * specification, the default is a boilerplate "hello, world" function.
+   * @param specification
+   * @ignore Not relevant for MVP
+   */
   constructor(server: Server<any>, boundaryId: string, id: string, specification: ISpecType) {
     super();
 

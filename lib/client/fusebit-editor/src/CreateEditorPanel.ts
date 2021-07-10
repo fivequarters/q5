@@ -17,8 +17,9 @@ export function createEditorPanel(
   editorContext: EditorContext<any>,
   options?: IEditorPanelOptions
 ) {
-  const theme = (options && options.theme) || 'light';
+  const theme = options?.theme || 'light';
   let monacoTheme: any;
+
   switch (theme) {
     case 'dark':
       monacoTheme = {

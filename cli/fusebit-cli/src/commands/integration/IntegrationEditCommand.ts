@@ -8,13 +8,13 @@ import { ExecuteService, IntegrationService } from '../../services';
 const command = {
   name: 'Edit Integration',
   cmd: 'edit',
-  summary: 'Edit a integration in the Fusebit editor',
-  description: ['Opens the Fusebit Editor in your default browser to edit a integration.'].join(' '),
+  summary: 'Edit an integration in the Fusebit editor',
+  description: ['Opens the Fusebit Editor in your default browser to edit an integration.'].join(' '),
   arguments: [
     {
       name: 'integration',
       description: 'The id of the integration to edit',
-      required: false,
+      required: true,
     },
   ],
   options: [
