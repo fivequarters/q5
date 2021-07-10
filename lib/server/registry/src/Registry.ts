@@ -40,6 +40,7 @@ interface IRegistryStore {
   search(keyword: string, count: number, next: string | undefined): Promise<any>;
   configPut(config: IRegistryConfig): Promise<void>;
   configGet(): Promise<IRegistryConfig>;
+  refreshGlobal(): Promise<void>;
 }
 
 interface IRegistryEvents {
