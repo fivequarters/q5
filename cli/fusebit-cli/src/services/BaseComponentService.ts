@@ -309,10 +309,10 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
     }
   }
 
-  public async removeEntity(entityId: string): Promise<void> {
+  public async removeEntity(entityId: string) {
     const profile = await this.profileService.getExecutionProfile(['account', 'subscription']);
 
-    await this.executeService.executeRequest(
+    return this.executeService.executeRequest(
       {
         header: 'Remove Entity',
         message: Text.create(`Removing ${this.entityType} '`, Text.bold(entityId), "'..."),
@@ -324,11 +324,6 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
         url: this.getUrl(profile, entityId),
         headers: { Authorization: `bearer ${profile.accessToken}` },
       }
-    );
-
-    await this.executeService.result(
-      'Entity Removed',
-      Text.create("Entity '", Text.bold(entityId), "' was successfully removed")
     );
   }
 
