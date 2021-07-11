@@ -1,4 +1,5 @@
 import create_error from 'http-errors';
+import { IncomingHttpHeaders } from 'http';
 
 import { AwsKeyStore, loadFunctionSummary, mintJwtForPermissions } from '@5qtrs/runas';
 import { IRegistryStore } from '@5qtrs/registry';
@@ -61,6 +62,14 @@ interface ICreateFunction {
   functionId?: string;
   location?: string;
   buildId?: string;
+}
+
+export interface IExecuteFunctionOptions {
+  token?: string;
+  headers?: IncomingHttpHeaders;
+  body?: string | object;
+  query?: object;
+  originalUrl?: string;
 }
 
 interface IExecuteFunction {
@@ -184,7 +193,12 @@ const deleteFunction = async (params: IParams): Promise<any> => {
   return { code: res.code };
 };
 
-const checkAuthorization = async (accountId: string, functionSummary: string, authToken: string, operation: any) => {
+const checkAuthorization = async (
+  accountId: string,
+  functionSummary: string,
+  authToken: string | undefined,
+  operation: any
+) => {
   const authentication = Constants.getFunctionAuthentication(functionSummary);
   if (!authentication || authentication === 'none' || (authentication === 'optional' && !authToken)) {
     return undefined;
@@ -195,13 +209,14 @@ const checkAuthorization = async (accountId: string, functionSummary: string, au
   if (operation) {
     const resource = operation.path;
     const action = operation.operation;
-    const { issuerId, subject } = resolvedAgent.identities[0];
 
     await resolvedAgent.ensureAuthorized(action, resource);
   }
 
   const functionAuthz = Constants.getFunctionAuthorization(functionSummary);
   await resolvedAgent.checkPermissionSubset({ allow: functionAuthz });
+
+  return resolvedAgent;
 };
 
 /*
@@ -212,12 +227,7 @@ const executeFunction = async (
   params: IParams,
   method: string,
   url: string = '',
-  options: {
-    resolvedAgent?: any; // await getResolvedAgent(accountId, jwt);
-    body?: any;
-    headers?: any;
-    query?: any;
-  } = {}
+  options: IExecuteFunctionOptions = {}
 ): Promise<IExecuteFunction> => {
   let sub;
   try {
@@ -234,9 +244,7 @@ const executeFunction = async (
   // the releaseRate function.
   const releaseRate = ratelimit.checkRateLimit(sub, params.subscriptionId);
   try {
-    if (options.resolvedAgent) {
-      await options.resolvedAgent.checkPermissionSubset({ allow: functionAuthz });
-    }
+    const resolvedAgent = await checkAuthorization(params.accountId, functionSummary, options.token, undefined);
 
     // execute
     const baseUrl = Constants.get_function_location({}, params.subscriptionId, params.boundaryId, params.functionId);
@@ -263,7 +271,7 @@ const executeFunction = async (
       baseUrl: '/v1',
 
       keyStore,
-      resolvedAgent: options.resolvedAgent,
+      resolvedAgent,
 
       functionSummary,
     };

@@ -244,7 +244,9 @@ export class ResolvedAgent implements IAgent {
   }
 
   public async checkPermissionSubset(permissions: any) {
-    return Promise.all(permissions.allow.map((entry: any) => this.ensureAuthorized(entry.action, entry.resource)));
+    if (permissions.allow) {
+      return Promise.all(permissions.allow.map((entry: any) => this.ensureAuthorized(entry.action, entry.resource)));
+    }
   }
 
   public get id() {

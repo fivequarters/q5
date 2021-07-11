@@ -86,11 +86,18 @@ const router = (
     let result;
 
     try {
+      let match;
+      if (req.headers.authorization) {
+        match = req.headers.authorization.match(/^\ *bearer\ +(.+)$/i);
+      }
+
+      const token = match ? match[1] : undefined;
       result = await EntityService.dispatch(
         pathParams.EntityById(req, paramIdNames[paramIdNames.length - 1]),
         req.method,
         req.params.subPath,
         {
+          token,
           headers: req.headers,
           body: req.body,
           query: req.query,

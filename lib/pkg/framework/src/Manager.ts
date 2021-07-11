@@ -226,6 +226,7 @@ class Manager {
     // NOTE: this may glitch non-utf-8 encodings; for blame, see koa/lib/request.js's casual use of stringify.
     ctx.query = fusebitCtx.query;
 
+    // TODO: These parameters need a review and some intent.
     ctx.state.params = {
       accountId: fusebitCtx.accountId,
       subscriptionId: fusebitCtx.subscriptionId,
@@ -235,11 +236,12 @@ class Manager {
         ? {
             endpoint: fusebitCtx.fusebit.endpoint,
             baseUrl: `${fusebitCtx.fusebit.endpoint}/v2/account/${fusebitCtx.accountId}/subscription/${fusebitCtx.subscriptionId}/${fusebitCtx.boundaryId}/${fusebitCtx.functionId}`,
+            resourcePath: `/account/${fusebitCtx.accountId}/subscription/${fusebitCtx.subscriptionId}/${fusebitCtx.boundaryId}/${fusebitCtx.functionId}${fusebitCtx.path}`,
             functionAccessToken: fusebitCtx.fusebit.functionAccessToken,
           }
         : {}),
     };
-    ctx.state.fusebit = fusebitCtx.fusebit;
+    ctx.state.fusebit = { ...fusebitCtx.fusebit, caller: fusebitCtx.caller };
     ctx.state.manager = this;
 
     // Pre-load the status as OK
