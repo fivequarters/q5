@@ -11,10 +11,6 @@ import { IError } from './Events';
 
 import { BaseServer, AccountResolver, IBuildStatus, userAgent, BuildError, IAccount } from './server';
 
-const logsExponentialBackoff = 1.5;
-const logsInitialBackoff = 5000;
-const logsMaxBackoff = 60000;
-
 export class EntityServer extends BaseServer<IIntegrationSpecification> {
   public entityType: string;
 
