@@ -309,7 +309,7 @@ export abstract class BaseComponentService<IComponentType extends IBaseComponent
     }
   }
 
-  public async removeEntity(entityId: string) {
+  public async removeEntity(entityId: string): Promise<{ operationId: string }> {
     const profile = await this.profileService.getExecutionProfile(['account', 'subscription']);
 
     return this.executeService.executeRequest(
