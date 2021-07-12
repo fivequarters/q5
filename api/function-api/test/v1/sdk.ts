@@ -646,8 +646,8 @@ export async function addAccount(account: IAccount) {
     },
     url: `${account.baseUrl}/v1/account`,
     data: JSON.stringify({
-      displayName: 'Bruno Simões Krebs',
-      primaryEmail: 'bruno.krebs@fusebit.io',
+      displayName: `fusebit-test-account-${Date.now()}`,
+      primaryEmail: 'we-are-@fusebit.io',
     }),
   });
   if (response.status === 200) {
