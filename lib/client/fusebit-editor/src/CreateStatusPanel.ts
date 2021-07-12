@@ -24,7 +24,6 @@ export function createStatusPanel(element: HTMLElement, editorContext: EditorCon
   });
 
   editorContext.on(Events.Events.BuildFinished, (e: Events.BuildFinishedEvent) => {
-    console.log(`buildfinished event: ${JSON.stringify(e)}`);
     if (e.status.location) {
       setStatus(`Build successful: ${e.status.location}`);
     } else {

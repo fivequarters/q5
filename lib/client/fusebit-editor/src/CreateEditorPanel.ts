@@ -189,7 +189,7 @@ export function createEditorPanel(element: HTMLElement, editorContext: EditorCon
     if (activeCategory === Events.FileSelected && !editedFileName) {
       return;
     }
-    const key = activeCategory === Events.FileSelected ? `${activeCategory}:${editedFileName}` : activeCategory;
+    let key = activeCategory === Events.FileSelected ? `${activeCategory}:${editedFileName}` : activeCategory;
     viewStates[key] = editor.saveViewState() as Monaco.editor.ICodeEditorViewState;
   }
 
