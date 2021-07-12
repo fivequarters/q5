@@ -173,6 +173,7 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
       entityId: params.id,
       filterExpired: queryOptions.filterExpired,
     };
+
     const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
     return this.sqlToIEntity<ET>(result)[0];
   }
@@ -211,17 +212,23 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
     const { params, queryOptions, statementOptions } = this.applyDefaultsTo(inputParams, inputQueryOptions);
 
     // Note the doubled '?' to escape the '?' in the '?&' operator.
-    const sql = `SELECT *, to_json(expires)#>>'{}' as expires FROM entity
+    const sqlBody = `
       WHERE entityType = :entityType::entity_type
       AND accountId = :accountId
       AND subscriptionId = :subscriptionId
       AND (NOT :prefixMatchId::boolean OR entityId LIKE FORMAT('%s%%',:entityIdPrefix::text))
       AND (:tagValues::text IS NULL OR tags @> :tagValues::jsonb)
       AND (:tagKeys::text IS NULL OR tags ??& :tagKeys::text[])
-      AND (NOT :filterExpired::boolean OR expires IS NULL OR expires > NOW())
+      AND (NOT :filterExpired::boolean OR expires IS NULL OR expires > NOW())`;
+
+    const sqlTail = `
       ORDER BY entityId
       OFFSET :offset
       LIMIT :limit + 1;`;
+
+    const sql = `SELECT *, to_json(expires)#>>'{}' as expires FROM entity` + sqlBody + sqlTail;
+
+    const sqlCount = `SELECT COUNT(*) FROM entity` + sqlBody;
 
     const offset = queryOptions.next ? parseInt(queryOptions.next, 16) : 0;
     const parameters = {
@@ -246,9 +253,14 @@ export abstract class Entity<ET extends IEntity> implements IEntityDao<ET> {
     };
 
     const result = await this.RDS.executeStatement(sql, parameters, statementOptions);
+
+    // This is expensive but convienent; prime target for caching at some point.
+    const resultTotal = await this.RDS.executeStatement(sqlCount, parameters, statementOptions);
     const data: IListResponse<ET> = {
       items: this.sqlToIEntity(result, true),
+      total: resultTotal.records![0][0].longValue as number,
     };
+
     // Limit of the query was set to `limit + 1` in order to grab 1 additional element.
     // This helps to determine whether there are yet more items that need to be retrieved.
     if (data.items.length === queryOptions.listLimit + 1) {

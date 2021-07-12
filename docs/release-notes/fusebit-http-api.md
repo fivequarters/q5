@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.20.5
+
+_Release 06/26/21_
+
+- **Enhancement.** Patch fusebit mono docker image during docker build.
+
 ## Version 1.20.4
 
 _Release 06/24/21_

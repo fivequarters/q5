@@ -1,0 +1,12 @@
+{
+  "scripts": {
+    "deploy": "fuse integration deploy testintegration -d .",
+    "get": "fuse integration get testintegration -d ."
+  },
+  "dependencies": {
+    "@fusebit-int/framework": "*",
+    "asana": "*",
+    "superagent": "*"
+  },
+  "files": ["./integration.js"]
+}

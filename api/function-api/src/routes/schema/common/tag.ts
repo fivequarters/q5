@@ -2,11 +2,11 @@ import express from 'express';
 
 import { v2Permissions } from '@5qtrs/constants';
 import { Model } from '@5qtrs/db';
-import requestToEntity from '../../../handlers/requestToEntity';
+import requestToEntity from '../../handlers/requestToEntity';
 
-import * as common from '../../../middleware/common';
-import * as Validation from '../../../validation/tags';
-import { BaseComponentService } from '../../../service';
+import * as common from '../../middleware/common';
+import * as Validation from '../../validation/tags';
+import { BaseComponentService } from '../../service';
 
 const router = (ComponentService: BaseComponentService<any, any>, paramIdNames: string[] = ['componentId']) => {
   const componentTagRouter = express.Router({ mergeParams: true });

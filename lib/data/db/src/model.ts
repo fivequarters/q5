@@ -101,6 +101,7 @@ export interface EntityKeyParams
 export interface IListResponse<T extends IEntity> {
   items: T[];
   next?: string;
+  total: number;
 }
 
 // The Entity returned by the SDK, sans various internal parameters.
@@ -112,6 +113,10 @@ export interface ISdkEntity {
   version?: string;
 }
 
+export const createSubordinateId = (params: { entityType: EntityType; componentId: string; subordinateId: string }) => {
+  return `/${params.entityType}/${params.componentId}/${params.subordinateId}`;
+};
+
 export const decomposeSubordinateId = (
   id: string
 ): { entityType: EntityType; componentId: string; subordinateId: string } => {
@@ -122,6 +127,12 @@ export const decomposeSubordinateId = (
     subordinateId: split[3],
   };
 };
+
+export interface ISubordinateId {
+  entityType?: EntityType | string;
+  componentId: string;
+  subordinateId: string;
+}
 
 // Remove any extra fields returned as part of the entity.
 export const entityToSdk = (entity: IEntity): ISdkEntity => {
@@ -182,6 +193,7 @@ export interface IConnector extends IEntity {
     handler: string;
     configuration: {
       muxIntegration: IEntityId;
+      [key: string]: any;
     };
     files: Record<string, string>;
   };

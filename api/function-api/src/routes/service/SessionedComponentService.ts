@@ -3,7 +3,7 @@ import http_error from 'http-errors';
 import { v4 as uuidv4 } from 'uuid';
 import RDS, { Model } from '@5qtrs/db';
 
-import BaseComponentService, { IServiceResult, ISubordinateId } from './BaseComponentService';
+import BaseComponentService, { IServiceResult } from './BaseComponentService';
 import { operationService } from './OperationService';
 import { IEntity } from '@5qtrs/db/libc/model';
 
@@ -117,7 +117,7 @@ export default abstract class SessionedComponentService<
     const session: Model.ISession = {
       accountId: entity.accountId,
       subscriptionId: entity.subscriptionId,
-      id: this.createSubordinateId({
+      id: Model.createSubordinateId({
         ...entity,
         entityType: this.entityType,
         componentId: entity.id,
@@ -174,7 +174,7 @@ export default abstract class SessionedComponentService<
     const session: Model.ILeafSession = {
       accountId: parentSession.accountId,
       subscriptionId: parentSession.subscriptionId,
-      id: this.createSubordinateId({ ...params, subordinateId: sessionId }),
+      id: Model.createSubordinateId({ ...params, subordinateId: sessionId }),
       data: {
         mode: Model.SessionMode.leaf,
         name: step.name,
@@ -285,7 +285,7 @@ export default abstract class SessionedComponentService<
 
   protected persistTrunkSession = async (
     session: Model.ITrunkSession,
-    masterSessionId: ISubordinateId
+    masterSessionId: Model.ISubordinateId
   ): Promise<IServiceResult> => {
     const entity: Model.IEntity = {
       accountId: session.accountId,
@@ -360,6 +360,11 @@ export default abstract class SessionedComponentService<
       instance = {
         accountId: session.accountId,
         subscriptionId: session.subscriptionId,
+        id: Model.createSubordinateId({
+          entityType: this.entityType,
+          componentId: parentEntity.__databaseId as string,
+          subordinateId: uuidv4(),
+        }),
         data: { output: leafSessionResults },
         tags: { ...session.tags, 'session.master': masterSessionId.subordinateId },
       };
@@ -400,7 +405,7 @@ export default abstract class SessionedComponentService<
   public instantiateLeafSession = async (
     daos: Model.IDaoCollection,
     session: Model.ILeafSession,
-    masterSessionId: ISubordinateId,
+    masterSessionId: Model.ISubordinateId,
     serviceEntityId: string
   ): Promise<IServiceResult> => {
     const service =
@@ -426,7 +431,7 @@ export default abstract class SessionedComponentService<
       leafEntity.id = session.data.replacementTargetId;
       result = await subDao.updateEntity(leafEntity);
     } else {
-      leafEntity.id = this.createSubordinateId({
+      leafEntity.id =Model.createSubordinateId({
         entityType: service.entityType,
         componentId: parentEntity.__databaseId as string,
         subordinateId: uuidv4(),

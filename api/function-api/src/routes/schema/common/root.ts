@@ -3,15 +3,14 @@ import express from 'express';
 import { Model } from '@5qtrs/db';
 import { v2Permissions } from '@5qtrs/constants';
 
-import Validation from '../../../validation/component';
+import Validation from '../../validation/component';
 
-import * as common from '../../../middleware/common';
-import query from '../../../handlers/query';
-import body from '../../../handlers/body';
-import pathParams from '../../../handlers/pathParams';
+import * as common from '../../middleware/common';
+import query from '../../handlers/query';
+import body from '../../handlers/body';
+import pathParams from '../../handlers/pathParams';
 
-import { BaseComponentService } from '../../../service';
-import { EntityType } from '@5qtrs/db/libc/model';
+import { BaseComponentService } from '../../service';
 
 const router = (ComponentService: BaseComponentService<any, any>) => {
   const componentRouter = express.Router({ mergeParams: true });

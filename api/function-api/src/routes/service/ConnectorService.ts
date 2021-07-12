@@ -3,7 +3,7 @@ import RDS, { Model } from '@5qtrs/db';
 
 import SessionedComponentService from './SessionedComponentService';
 
-import * as Function from '../../functions';
+import * as Function from '../functions';
 
 const defaultPackage = (entity: Model.IEntity) => ({
   scripts: { deploy: `"fuse connector deploy ${entity.id} -d ."`, get: `"fuse connector get ${entity.id} -d ."` },
@@ -91,6 +91,14 @@ class ConnectorService extends SessionedComponentService<Model.IConnector, Model
             {
               action: 'session:get',
               resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/connector/{{functionId}}/session/',
+            },
+            {
+              action: 'identity:get',
+              resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/connector/{{functionId}}/identity/',
+            },
+            {
+              action: 'identity:put',
+              resource: '/account/{{accountId}}/subscription/{{subscriptionId}}/connector/{{functionId}}/identity/',
             },
           ],
         },

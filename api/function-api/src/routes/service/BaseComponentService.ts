@@ -5,7 +5,7 @@ import { Model } from '@5qtrs/db';
 import { AwsRegistry } from '@5qtrs/registry';
 
 import { operationService } from './OperationService';
-import * as Function from '../../functions';
+import * as Function from '../functions';
 
 export interface IServiceResult {
   statusCode: number;
@@ -20,12 +20,6 @@ export interface IDispatchParams {
   originalUrl: string;
 }
 
-export interface ISubordinateId {
-  entityType?: Model.EntityType | string;
-  componentId: string;
-  subordinateId: string;
-}
-
 const rejectPermissionAgent = {
   checkPermissionSubset: () => {
     console.log(`XXX Temporary Grant-all on Permissions Until Finalized`);
@@ -37,14 +31,6 @@ export default abstract class BaseComponentService<E extends Model.IEntity, F ex
   public abstract readonly entityType: Model.EntityType;
   public readonly dao: Model.IEntityDao<E>;
   public readonly subDao?: Model.IEntityDao<F>;
-
-  public createSubordinateId = (params: {
-    entityType?: Model.EntityType;
-    componentId: string;
-    subordinateId: string;
-  }) => {
-    return `/${params.entityType || this.entityType}/${params.componentId}/${params.subordinateId}`;
-  };
 
   public decomposeSubordinateId = Model.decomposeSubordinateId;
 
