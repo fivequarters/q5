@@ -5,13 +5,14 @@ import { AwsRegistry, IRegistryConfig, IRegistryGlobalConfig } from '@5qtrs/regi
 
 import * as Constants from '@5qtrs/constants';
 
-export async function getConfig(account: IAccount) {
+export async function getConfig(account: IAccount, authorizationAccount?: IAccount['accountId']) {
   return (
     await request({
       method: 'GET',
       headers: {
         Authorization: `Bearer ${account.accessToken}`,
         'user-agent': account.userAgent,
+        'fusebit-authorization-account-id': authorizationAccount || account.accountId,
       },
       url: `${account.baseUrl}/v1/account/${account.accountId}/registry/${Constants.REGISTRY_DEFAULT}`,
     })

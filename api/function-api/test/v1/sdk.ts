@@ -635,6 +635,40 @@ export async function cleanUpUsers(account: IAccount) {
   }
 }
 
+export async function addAccount(account: IAccount) {
+  const response = await request({
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${account.accessToken}`,
+      'Content-Type': 'application/json',
+      'user-agent': account.userAgent,
+      'fusebit-authorization-account-id': account.accountId,
+    },
+    url: `${account.baseUrl}/v1/account`,
+    data: JSON.stringify({
+      displayName: 'Bruno Simões Krebs',
+      primaryEmail: 'bruno.krebs@fusebit.io',
+    }),
+  });
+  if (response.status === 200) {
+    testClients.push(response.data.id);
+  }
+  return response;
+}
+
+export async function getAccount(account: IAccount, accountId: string) {
+  return request({
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${account.accessToken}`,
+      'Content-Type': 'application/json',
+      'user-agent': account.userAgent,
+      'fusebit-authorization-account-id': account.accountId,
+    },
+    url: `${account.baseUrl}/v1/account/${accountId}`,
+  });
+}
+
 export async function addClient(account: IAccount, data: any) {
   const response = await request({
     method: 'POST',
