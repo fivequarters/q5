@@ -3049,7 +3049,7 @@ components:
       type: string
       description: |
         A single-use initialization token in JWT format. If unused, the token expires in eight hours. The `profile`
-        paramater of the JWT payload contains the information specified in the `profile` parameter of the request
+        parameter of the JWT payload contains the information specified in the `profile` parameter of the request
         as well as additional information for consumption by the intended recipient of the token.
 
     InitResolveRequest:

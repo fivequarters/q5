@@ -23,6 +23,12 @@ _Release 06/16/21_
 
 - **Enhancement.** Update Fusebit to node v14.17.2.
 
+## Version 1.20.13
+
+_Released 07/07/21_
+
+- **Enhancement** Make Aurora error slightly less cryptic.
+
 ## Version 1.20.5
 
 _Release 06/26/21_

@@ -28,7 +28,7 @@ const Data = Joi.alternatives().try(
             then: Joi.forbidden(),
             otherwise: Joi.required(),
           }),
-          dependsOn: Joi.array().items(Joi.string()).unique(),
+          dependsOn: Joi.array().items(Joi.string()).unique().default([]),
         })
       )
       .unique((a: { name: string }, b: { name: string }) => a.name === b.name)

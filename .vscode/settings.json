@@ -3,9 +3,6 @@
   "editor.formatOnSave": true,
   "editor.tabSize": 2,
   "files.exclude": {
-    ".gitignore": true,
-    ".vscode/**": true,
-    ".yarnrc": true,
     "**/*.tsbuildinfo": true,
     "**/devServer.js": true,
     "**/imports.d.ts": true,
@@ -14,5 +11,6 @@
     "**/prettier.config.js": true,
     "**/tslint.json": true
   },
-  "typescript.disableAutomaticTypeAcquisition": true
+  "typescript.disableAutomaticTypeAcquisition": true,
+  "typescript.tsdk": "node_modules/typescript/lib"
 }
