@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.20.18
+
+_Released 07/13/21_
+
+- **Bugfix.** Resolved missing Master Settings in Registry for new accounts.
+
 ## Version 1.20.17
 
 _Released 07/12/21_
