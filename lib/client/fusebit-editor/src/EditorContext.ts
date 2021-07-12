@@ -41,6 +41,11 @@ export abstract class BaseEditorContext<ISpecType> extends EventEmitter {
    * Indicates whether the editor has any unsaved changes.
    */
   public dirtyState: boolean = false;
+  /**
+   * The current state of the in-memory specification of the function. Do not modify this property directly,
+   * treat it as read only.
+   */
+  public specification: ISpecType;
 
   /**
    * Not relevant for MVP
@@ -53,8 +58,6 @@ export abstract class BaseEditorContext<ISpecType> extends EventEmitter {
    * @ignore
    */
   public _server: Server;
-
-  public specification: ISpecType;
 
   public metadata: any;
 
@@ -74,9 +77,9 @@ export abstract class BaseEditorContext<ISpecType> extends EventEmitter {
   public abstract getFileFromSpecification(fileName: string): string | object;
 
   /**
-   * Creates a _EditorContext_ given the optional function specification. If you do not provide a function
-   * specification, the default is a boilerplate "hello, world" function.
-   * @param specification
+   * Creates a _EditorContext_ given the optional function specification. If you do not provide a function specification,
+   * the default is a boilerplate "hello, world" function.
+   * @param functionSpecification
    * @ignore Not relevant for MVP
    */
   constructor(server: Server, boundaryId: string, id: string, specification: ISpecType) {
@@ -130,6 +133,10 @@ export abstract class BaseEditorContext<ISpecType> extends EventEmitter {
     }
   }
 
+  /**
+   * Not relevant for MVP
+   * @ignore
+   */
   public _ensureWritable() {
     if (this.readOnly) {
       throw new Error('Operation not permitted while the editor context is in read-only state.');
@@ -174,7 +181,7 @@ export abstract class BaseEditorContext<ISpecType> extends EventEmitter {
   }
 
   /**
-   * Not relevant for MVP
+   * Not relevant to MVP
    * @ignore
    */
   public addFile(fileName: string) {
@@ -193,7 +200,7 @@ export abstract class BaseEditorContext<ISpecType> extends EventEmitter {
   }
 
   /**
-   * Not relevant for MVP
+   * Not relevant to MVP
    * @ignore
    */
   public deleteFile(fileName: string) {
@@ -227,7 +234,7 @@ export abstract class BaseEditorContext<ISpecType> extends EventEmitter {
   }
 
   /**
-   * Not relevant for MVP
+   * Not relevant to MVP
    * @ignore
    */
   public setSelectedFileContent(content: string) {
@@ -240,7 +247,7 @@ export abstract class BaseEditorContext<ISpecType> extends EventEmitter {
   }
 
   /**
-   * Not relevant for MVP
+   * Not relevant to MVP
    * @ignore
    */
   public setDirtyState(state: boolean) {
@@ -252,7 +259,7 @@ export abstract class BaseEditorContext<ISpecType> extends EventEmitter {
   }
 
   /**
-   * Not relevant for MVP
+   * Not relevant to MVP
    * @ignore
    */
   public getSelectedFileContent() {
@@ -271,7 +278,7 @@ export abstract class BaseEditorContext<ISpecType> extends EventEmitter {
   }
 
   /**
-   * Not relevant for MVP
+   * Not relevant to MVP
    * @ignore
    */
   public getSelectedFileLanguage() {
@@ -288,7 +295,7 @@ export abstract class BaseEditorContext<ISpecType> extends EventEmitter {
   }
 
   /**
-   * Not relevant for MVP
+   * Not relevant to MVP
    * @ignore
    */
   public startBuild() {
@@ -297,7 +304,7 @@ export abstract class BaseEditorContext<ISpecType> extends EventEmitter {
   }
 
   /**
-   * Not relevant for MVP
+   * Not relevant to MVP
    * @ignore
    */
   public buildProgress(status: IBuildStatus) {
@@ -306,7 +313,7 @@ export abstract class BaseEditorContext<ISpecType> extends EventEmitter {
   }
 
   /**
-   * Not relevant for MVP
+   * Not relevant to MVP
    * @ignore
    */
   public buildFinished(status: IBuildStatus) {
@@ -321,7 +328,7 @@ export abstract class BaseEditorContext<ISpecType> extends EventEmitter {
   }
 
   /**
-   * Not relevant for MVP
+   * Not relevant to MVP
    * @ignore
    */
   public buildError(error: Events.IError) {
@@ -330,7 +337,7 @@ export abstract class BaseEditorContext<ISpecType> extends EventEmitter {
   }
 
   /**
-   * Not relevant for MVP
+   * Not relevant to MVP
    * @ignore
    */
   public startRun(url: string) {
@@ -339,7 +346,7 @@ export abstract class BaseEditorContext<ISpecType> extends EventEmitter {
   }
 
   /**
-   * Not relevant for MVP
+   * Not relevant to MVP
    * @ignore
    */
   public finishRun(error?: Error, res?: ServerResponse) {
@@ -348,7 +355,7 @@ export abstract class BaseEditorContext<ISpecType> extends EventEmitter {
   }
 
   /**
-   * Not relevant for MVP
+   * Not relevant to MVP
    * @ignore
    */
   public updateLogsState(state: boolean) {
@@ -357,7 +364,7 @@ export abstract class BaseEditorContext<ISpecType> extends EventEmitter {
   }
 
   /**
-   * Not relevant for MVP
+   * Not relevant to MVP
    * @ignore
    */
   public updateNavState(state: boolean) {
@@ -366,7 +373,7 @@ export abstract class BaseEditorContext<ISpecType> extends EventEmitter {
   }
 
   /**
-   * Not relevant for MVP
+   * Not relevant to MVP
    * @ignore
    */
   public setFullScreen(state: boolean) {
@@ -375,7 +382,7 @@ export abstract class BaseEditorContext<ISpecType> extends EventEmitter {
   }
 
   /**
-   * Not relevant for MVP
+   * Not relevant to MVP
    * @ignore
    */
   public close() {
@@ -395,7 +402,7 @@ export abstract class BaseEditorContext<ISpecType> extends EventEmitter {
   }
 
   /**
-   * Not relevant for MVP
+   * Not relevant to MVP
    * @ignore
    */
   public serverLogsAttached() {
@@ -404,7 +411,7 @@ export abstract class BaseEditorContext<ISpecType> extends EventEmitter {
   }
 
   /**
-   * Not relevant for MVP
+   * Not relevant to MVP
    * @ignore
    */
   public serverLogsDetached(error?: Error) {
@@ -413,7 +420,7 @@ export abstract class BaseEditorContext<ISpecType> extends EventEmitter {
   }
 
   /**
-   * Not relevant for MVP
+   * Not relevant to MVP
    * @ignore
    */
   public serverLogsEntry(data: string) {
@@ -422,7 +429,7 @@ export abstract class BaseEditorContext<ISpecType> extends EventEmitter {
   }
 
   /**
-   * Not relevant for MVP
+   * Not relevant to MVP
    * @ignore
    */
   public getPackageJson(): any {
@@ -440,7 +447,7 @@ export abstract class BaseEditorContext<ISpecType> extends EventEmitter {
   }
 
   /**
-   * Not relevant for MVP
+   * Not relevant to MVP
    * @ignore
    */
   public getNodeVersion(pj: any): string {
@@ -449,7 +456,7 @@ export abstract class BaseEditorContext<ISpecType> extends EventEmitter {
   }
 
   /**
-   * Not relevant for MVP
+   * Not relevant to MVP
    * @ignore
    */
   public getDependencies(pj: any): { [property: string]: string } {
@@ -458,7 +465,7 @@ export abstract class BaseEditorContext<ISpecType> extends EventEmitter {
   }
 
   /**
-   * Not relevant for MVP
+   * Not relevant to MVP
    * @ignore
    */
   public getSpecification(): ISpecType {
@@ -466,7 +473,7 @@ export abstract class BaseEditorContext<ISpecType> extends EventEmitter {
   }
 
   /**
-   * Not relevant for MVP
+   * Not relevant to MVP
    * @ignore
    */
   public getMetadata(): any {

@@ -38,7 +38,7 @@ export interface ICreateEditorOptions {
  * Loads or creates a function and initializes the function editor within the specified HTML element.
  * If the specified function does not exist but _options.template_ is specified, a new function is created using this template.
  * On successful intialization of the editor, [[EditorContext]] is returned which can be used to subscribe to events and manipulate the editor.
- * used to subscribe to events and manipulate the editor.
+ *
  * @param element The HTML element (typically a div) within which to create the function editor.
  * @param boundaryId The boundaryId of the function.
  * @param functionId The function name.
