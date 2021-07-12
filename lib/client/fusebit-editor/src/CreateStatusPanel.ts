@@ -10,11 +10,7 @@ import { EditorContext } from './EditorContext';
  * @param editorContext A pre-existing editor context to associate the status panel with.
  * @param options Status panel creation options.
  */
-export function createStatusPanel(
-  element: HTMLElement,
-  editorContext: EditorContext<any>,
-  options?: IStatusPanelOptions
-) {
+export function createStatusPanel(element: HTMLElement, editorContext: EditorContext, options?: IStatusPanelOptions) {
   const id = `fusebit-status-${Math.floor(99999999 * Math.random()).toString(26)}`;
   element.innerHTML = `<div id="${id}" class="fusebit-status">Powered by Fusebit.io</div>`;
   const statusElement = document.getElementById(id) as HTMLElement;
@@ -28,6 +24,7 @@ export function createStatusPanel(
   });
 
   editorContext.on(Events.Events.BuildFinished, (e: Events.BuildFinishedEvent) => {
+    console.log(`buildfinished event: ${JSON.stringify(e)}`);
     if (e.status.location) {
       setStatus(`Build successful: ${e.status.location}`);
     } else {

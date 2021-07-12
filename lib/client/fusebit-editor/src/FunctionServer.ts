@@ -1,6 +1,6 @@
 import { ServerResponse } from 'http';
 import * as Superagent from 'superagent';
-import { EditorContext } from './EditorContext';
+import { EditorContext, BaseEditorContext } from './EditorContext';
 import { FunctionEditorContext } from './FunctionEditorContext';
 
 import * as Options from './Options';
@@ -10,16 +10,16 @@ import { IFunctionSpecification } from './FunctionSpecification';
 import { IError } from './Events';
 const Superagent1 = Superagent;
 
-import { Server, AccountResolver, IBuildStatus, userAgent, BuildError, IAccount } from './server';
+import { BaseServer, AccountResolver, IBuildStatus, userAgent, BuildError, IAccount } from './server';
 
-export class FunctionServer extends Server<IFunctionSpecification> {
+export class FunctionServer extends BaseServer<IFunctionSpecification> {
   /**
    * Creates an instance of the _FunctionServer_ using static Fusebit HTTP API credentials. This is used in
    * situations where the access token is known ahead of time and will not change during the user's session
    * with the editor.
    * @param account Static credentials to the Fusebit HTTP APIs.
    */
-  public static create(account: IAccount): Server<IFunctionSpecification> {
+  public static create(account: IAccount): BaseServer<IFunctionSpecification> {
     return new FunctionServer((currentAccount) => Promise.resolve(account));
   }
 
@@ -53,7 +53,7 @@ export class FunctionServer extends Server<IFunctionSpecification> {
     boundaryId: string,
     id: string,
     createIfNotExist?: ICreateEditorOptions
-  ): Promise<EditorContext<IFunctionSpecification>> {
+  ): Promise<BaseEditorContext<IFunctionSpecification>> {
     const self = this;
     return this.accountResolver(this.account)
       .then((newAccount) => {
@@ -110,7 +110,7 @@ export class FunctionServer extends Server<IFunctionSpecification> {
     }
   }
 
-  public buildFunction(editorContext: EditorContext<any>): Promise<IBuildStatus> {
+  public buildFunction(editorContext: EditorContext): Promise<IBuildStatus> {
     let startTime: number;
     let self = this;
 
@@ -208,7 +208,7 @@ export class FunctionServer extends Server<IFunctionSpecification> {
       });
   }
 
-  public runFunction(editorContext: EditorContext<any>): Promise<ServerResponse> {
+  public runFunction(editorContext: EditorContext): Promise<ServerResponse> {
     return this.accountResolver(this.account)
       .then((newAccount) => {
         this.account = this._normalizeAccount(newAccount);
@@ -244,7 +244,7 @@ export class FunctionServer extends Server<IFunctionSpecification> {
       });
   }
 
-  public getServerLogUrl = (account: IAccount, editorContext: EditorContext<any>): string => {
+  public getServerLogUrl = (account: IAccount, editorContext: EditorContext): string => {
     return `${account.baseUrl}v1/account/${account.accountId}/subscription/${account.subscriptionId}/boundary/${editorContext.boundaryId}/function/${editorContext.functionId}/log?token=${account.accessToken}`;
   };
 }

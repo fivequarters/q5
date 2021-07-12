@@ -1,10 +1,10 @@
 import { IIntegrationSpecification } from './IntegrationSpecification';
 import { EntityServer } from './EntityServer';
-import { Server } from './Server';
+import { BaseServer } from './Server';
 
-import { EditorContext } from './EditorContext';
+import { BaseEditorContext } from './EditorContext';
 
-export class IntegrationEditorContext extends EditorContext<IIntegrationSpecification> {
+export class IntegrationEditorContext extends BaseEditorContext<IIntegrationSpecification> {
   /**
    * Creates an _IntegrationEditorContext_ given the optional integrationspecification. If you do not provide
    * a function specification, the default is a boilerplate "hello, world" function.
@@ -12,7 +12,7 @@ export class IntegrationEditorContext extends EditorContext<IIntegrationSpecific
    * @ignore Not relevant for MVP
    */
   constructor(server: EntityServer, specification: IIntegrationSpecification) {
-    super(server as Server<IIntegrationSpecification>, 'integration', specification.id, specification);
+    super(server as BaseServer<IIntegrationSpecification>, 'integration', specification.id, specification);
 
     if (!this.specification.data.files) {
       throw new Error('The specification.data.files must be provided.');

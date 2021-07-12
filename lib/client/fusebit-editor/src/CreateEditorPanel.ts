@@ -12,11 +12,7 @@ import { updateFusebitContextTypings, addStaticTypings, updateNodejsTypings, upd
  * @param editorContext A pre-existing editor context to associate the editor panel with.
  * @param options Editor panel creation options.
  */
-export function createEditorPanel(
-  element: HTMLElement,
-  editorContext: EditorContext<any>,
-  options?: IEditorPanelOptions
-) {
+export function createEditorPanel(element: HTMLElement, editorContext: EditorContext, options?: IEditorPanelOptions) {
   const theme = options?.theme || 'light';
   let monacoTheme: any;
 
@@ -57,11 +53,11 @@ export function createEditorPanel(
     },
   };
 
-  const editor = (editorContext.monaco = Monaco.editor.create(element, monacoOptions));
+  const editor = (editorContext._monaco = Monaco.editor.create(element, monacoOptions));
   let suppressNextChangeEvent: boolean;
   let editedFileName: string | undefined;
   let activeCategory: Events = Events.FileSelected;
-  const viewStates: { [property: string]: Monaco.editor.ICodeEditorViewState } = {};
+  let viewStates: { [property: string]: Monaco.editor.ICodeEditorViewState } = {};
 
   // When a file is selected in the editor context, update editor content and language
   editorContext.on(Events.FileSelected, (e: FileSelectedEvent) => {
@@ -72,7 +68,7 @@ export function createEditorPanel(
     editor.setValue(editorContext.getSelectedFileContent() || '');
     const model = editor.getModel();
     const language = editorContext.getSelectedFileLanguage();
-    const packageJson: any = editorContext.getPackageJson();
+    let packageJson: any = editorContext.getPackageJson();
     updateNodejsTypings(editorContext.getNodeVersion(packageJson));
     updateDependencyTypings(editorContext.getDependencies(packageJson));
     if (model && language) {
@@ -198,7 +194,7 @@ export function createEditorPanel(
   }
 
   function restoreViewState(event: string, fileName?: string) {
-    const key = event === Events.FileSelected ? `${event}:${fileName}` : event;
+    let key = event === Events.FileSelected ? `${event}:${fileName}` : event;
     if (viewStates[key]) {
       editor.restoreViewState(viewStates[key]);
     } else {

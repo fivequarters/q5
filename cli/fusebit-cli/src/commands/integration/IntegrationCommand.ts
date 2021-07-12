@@ -24,6 +24,11 @@ const command: ICommand = {
       description: 'The name of the profile to use when executing the command',
       defaultText: 'default profile',
     },
+    {
+      name: 'subscription',
+      description: 'The subscription id to use when executing the command',
+      defaultText: 'profile value',
+    },
   ],
 };
 

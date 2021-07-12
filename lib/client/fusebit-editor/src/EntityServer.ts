@@ -1,6 +1,6 @@
 import { ServerResponse } from 'http';
 import * as Superagent from 'superagent';
-import { EditorContext } from './EditorContext';
+import { EditorContext, BaseEditorContext } from './EditorContext';
 import { IntegrationEditorContext } from './IntegrationEditorContext';
 
 import * as Options from './Options';
@@ -9,13 +9,13 @@ import { IIntegrationSpecification } from './IntegrationSpecification';
 
 import { IError } from './Events';
 
-import { Server, AccountResolver, IBuildStatus, userAgent, BuildError, IAccount } from './server';
+import { BaseServer, AccountResolver, IBuildStatus, userAgent, BuildError, IAccount } from './server';
 
 const logsExponentialBackoff = 1.5;
 const logsInitialBackoff = 5000;
 const logsMaxBackoff = 60000;
 
-export class EntityServer extends Server<IIntegrationSpecification> {
+export class EntityServer extends BaseServer<IIntegrationSpecification> {
   public entityType: string;
 
   constructor(entityType: string, public accountResolver: AccountResolver) {
@@ -29,7 +29,7 @@ export class EntityServer extends Server<IIntegrationSpecification> {
    * with the editor.
    * @param account Static credentials to the Fusebit HTTP APIs.
    */
-  public static async create(entityType: string, account: IAccount): Promise<Server<IIntegrationSpecification>> {
+  public static async create(entityType: string, account: IAccount): Promise<BaseServer<IIntegrationSpecification>> {
     // TODO: Support re-resolving credentials, which may or may not have originally worked...
     return new EntityServer(entityType, (currentAccount) => Promise.resolve(account));
   }
@@ -43,7 +43,7 @@ export class EntityServer extends Server<IIntegrationSpecification> {
     boundaryId: string,
     id: string,
     createIfNotExist?: ICreateEditorOptions
-  ): Promise<EditorContext<IIntegrationSpecification>> => {
+  ): Promise<BaseEditorContext<IIntegrationSpecification>> => {
     const createEditorContext = (specification?: IIntegrationSpecification) => {
       const defaultEditorOptions = new Options.EditorOptions();
       const editorOptions = {
@@ -86,13 +86,11 @@ export class EntityServer extends Server<IIntegrationSpecification> {
         return editorContext;
       })
       .catch((error) => {
-        throw new Error(
-          `Fusebit editor failed to load ${this.entityType} ${id} because it does not exist, and IEditorCreationOptions were not specified. Specify IEditorCreationOptions to allow a function to be created if one does not exist.`
-        );
+        throw new Error(`Fusebit editor failed to load ${this.entityType} ${id} because it does not exist.`);
       });
   };
 
-  public buildFunction = (editorContext: EditorContext<any>): Promise<IBuildStatus> => {
+  public buildFunction = (editorContext: EditorContext): Promise<IBuildStatus> => {
     let startTime: number;
     const waitForBuild = (build: IBuildStatus): Promise<IBuildStatus> => {
       const elapsed = Date.now() - startTime;
@@ -118,6 +116,7 @@ export class EntityServer extends Server<IIntegrationSpecification> {
           if (res.status === 200) {
             // success
             build.status = 'completed';
+            build.location = `${this.entityType}/${editorContext.functionId}`;
             editorContext.buildFinished(build);
             return build;
           } else if (res.status === 201) {
@@ -164,12 +163,12 @@ export class EntityServer extends Server<IIntegrationSpecification> {
       });
   };
 
-  public async runFunction(editorContext: EditorContext<any>): Promise<ServerResponse> {
+  public async runFunction(editorContext: EditorContext): Promise<ServerResponse> {
     const response = { statusCode: 200, statusMessage: 'Not yet implemented' };
     return response as ServerResponse;
   }
 
-  public getServerLogUrl = (account: IAccount, editorContext: EditorContext<any>): string => {
+  public getServerLogUrl = (account: IAccount, editorContext: EditorContext): string => {
     return `${account.baseUrl}v1/account/${account.accountId}/subscription/${account.subscriptionId}/boundary/${this.entityType}/function/${editorContext.functionId}/log?token=${account.accessToken}`;
   };
 }

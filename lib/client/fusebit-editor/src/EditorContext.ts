@@ -14,7 +14,7 @@ import { IBuildStatus, Server } from './Server';
  * The _EditorContext_ is an _EventEmitter_ that emits events on changes in the function specification and interactions
  * with the Fusebit HTTP APIs. For the full list of of events that can be subscribed to, see [[Events]].
  */
-export abstract class EditorContext<ISpecType> extends EventEmitter {
+export abstract class BaseEditorContext<ISpecType> extends EventEmitter {
   /**
    * Name of the function, unique within the boundary.
    */
@@ -47,13 +47,13 @@ export abstract class EditorContext<ISpecType> extends EventEmitter {
    * Not relevant for MVP
    * @ignore
    */
-  public monaco: any;
+  public _monaco: any;
 
   /**
    * Not relevant for MVP
    * @ignore
    */
-  public server: Server<any>;
+  public _server: Server;
 
   public specification: ISpecType;
 
@@ -80,11 +80,11 @@ export abstract class EditorContext<ISpecType> extends EventEmitter {
    * @param specification
    * @ignore Not relevant for MVP
    */
-  constructor(server: Server<any>, boundaryId: string, id: string, specification: ISpecType) {
+  constructor(server: Server, boundaryId: string, id: string, specification: ISpecType) {
     super();
 
     this.specification = specification;
-    this.server = server;
+    this._server = server;
     this.metadata = { editor: {}, fusebit: {} };
 
     if (boundaryId) {
@@ -96,7 +96,7 @@ export abstract class EditorContext<ISpecType> extends EventEmitter {
   }
 
   public attachServerLogs() {
-    this.server.attachServerLogs(this);
+    this._server.attachServerLogs(this);
   }
 
   /**
@@ -104,7 +104,7 @@ export abstract class EditorContext<ISpecType> extends EventEmitter {
    * its progress through events emitted from this _EditorContext_ instance.
    */
   public saveFunction() {
-    this.server.saveFunction(this).catch((_) => {});
+    this._server.saveFunction(this).catch((_) => {});
   }
 
   /**
@@ -112,7 +112,7 @@ export abstract class EditorContext<ISpecType> extends EventEmitter {
    * its progress through events emitted from this _EditorContext_ instance.
    */
   public runFunction() {
-    this.server.runFunction(this).catch((_) => {});
+    this._server.runFunction(this).catch((_) => {});
   }
 
   public setReadOnly(value: boolean) {
@@ -312,10 +312,10 @@ export abstract class EditorContext<ISpecType> extends EventEmitter {
    * Disposes the editor resources when the editor is no longer needed.
    */
   public dispose() {
-    if (this.monaco) {
-      this.monaco.getModel().dispose();
-      this.monaco.dispose();
-      this.monaco = undefined;
+    if (this._monaco) {
+      this._monaco.getModel().dispose();
+      this._monaco.dispose();
+      this._monaco = undefined;
     }
   }
 
@@ -366,3 +366,5 @@ export abstract class EditorContext<ISpecType> extends EventEmitter {
     return this.metadata;
   }
 }
+
+export type EditorContext = BaseEditorContext<any>;

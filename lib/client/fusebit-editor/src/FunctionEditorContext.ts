@@ -1,7 +1,7 @@
 import { IFunctionSpecification } from './FunctionSpecification';
-import { Server } from './Server';
+import { BaseServer } from './Server';
 
-import { EditorContext } from './EditorContext';
+import { BaseEditorContext } from './EditorContext';
 
 const RunnerPlaceholder = `// Return a function that evaluates to a Superagent request promise
 
@@ -71,9 +71,9 @@ module.exports = (ctx, cb) => {
  * and interactions with the Fusebit HTTP APIs. For the full list of of events that can be subscribed to, see
  * [[Events]].
  */
-export class FunctionEditorContext extends EditorContext<IFunctionSpecification> {
+export class FunctionEditorContext extends BaseEditorContext<IFunctionSpecification> {
   constructor(
-    server: Server<IFunctionSpecification>,
+    server: BaseServer<IFunctionSpecification>,
     boundaryId?: string,
     id?: string,
     specification?: IFunctionSpecification

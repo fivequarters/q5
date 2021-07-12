@@ -52,19 +52,19 @@ export async function createEditor(
   functionId: string,
   account: IAccount | AccountResolver,
   options?: ICreateEditorOptions
-): Promise<EditorContext<any>> {
+): Promise<EditorContext> {
   if (!element) throw new Error('element must be specified.');
   if (!boundaryId) throw new Error('boundaryId must be specified.');
   if (!functionId) throw new Error('functionId must be specified.');
   if (!account) throw new Error('account must be specified.');
 
-  let server: Server<any>;
+  let server: Server;
 
   if (options && options.entityType) {
     server =
       typeof account === 'function'
-        ? new EntityServer((options && options.entityType) || options.entityType, account as AccountResolver)
-        : await EntityServer.create((options && options.entityType) || options.entityType, account as IAccount);
+        ? new EntityServer(options.entityType, account as AccountResolver)
+        : await EntityServer.create(options.entityType, account as IAccount);
   } else {
     server =
       typeof account === 'function'
@@ -72,7 +72,7 @@ export async function createEditor(
         : FunctionServer.create(account as IAccount);
   }
 
-  return server.loadEditorContext(boundaryId, functionId, options).then((editorContext: EditorContext<any>) => {
+  return server.loadEditorContext(boundaryId, functionId, options).then((editorContext: EditorContext) => {
     createEditorImpl(editorContext);
     const selectedFile = editorContext.selectedFileName;
     editorContext.selectedFileName = undefined;
@@ -82,7 +82,7 @@ export async function createEditor(
     return editorContext;
   });
 
-  function createEditorImpl(editorContext: EditorContext<any>) {
+  function createEditorImpl(editorContext: EditorContext) {
     const opts = editorContext.getMetadata().editor;
     if (opts.navigationPanel === false && opts.logsPanel === false && opts.actionPanel !== false) {
       (opts.actionPanel as Options.IActionPanelOptions).enableCodeOnlyToggle = false;

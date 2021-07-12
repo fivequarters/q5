@@ -1,13 +1,7 @@
 import { ServerResponse } from 'http';
-import * as Superagent from 'superagent';
 import { EditorContext } from './EditorContext';
-import { FunctionEditorContext } from './FunctionEditorContext';
 
-import * as Options from './Options';
 import { ICreateEditorOptions } from './CreateEditor';
-
-import { IError } from './Events';
-const Superagent1 = Superagent;
 
 export const userAgent = `fusebit-editor/${require('../package.json').version} ${navigator.userAgent}`;
 
@@ -44,12 +38,13 @@ export interface IAccount {
  * to request current access credentials to the Fusebit HTTP APIs. The callback is called before every API call
  * the editor initiates, so the implementation is responsible for any cashing if appropriate.
  *
- * The last value of [[IAccount]] returned from the _AccountResolver_ is provided to it as input on subsequent invocation.
- * It is therefore a convenient place to store any additional context beyond what [[IAccount]] requires.
+ * The last value of [[IAccount]] returned from the _AccountResolver_ is provided to it as input on subsequent
+ * invocation.  It is therefore a convenient place to store any additional context beyond what [[IAccount]]
+ * requires.
  *
  * In a typical use case, _AccountResolver_ would call an authenticated API on the application's own backend to obtain
- * a new access token for Fusebit HTTP APIs, or initiate an authorization flow with a third party authorization service to
- * obtain such token.
+ * a new access token for Fusebit HTTP APIs, or initiate an authorization flow with a third party
+ * authorization service to obtain such token.
  */
 export type AccountResolver = (account: IAccount | undefined) => Promise<IAccount>;
 
@@ -106,15 +101,15 @@ const logsMaxBackoff = 60000;
  * are known ahead of time and will not change during the time the user interacts with the editor.
  * @ignore Reducing MVP surface area
  */
-export abstract class Server<IFuncSpec> {
+export abstract class BaseServer<IFuncSpec> {
   /**
    * Current credentials used by the _Server_ to call Fusebit HTTP APIs.
    */
   public account: IAccount | undefined;
 
   /**
-   * Maximum amount of time in milliseconds the [[buildFunction]] method is going to wait for a function build to complete
-   * before timing out.
+   * Maximum amount of time in milliseconds the [[buildFunction]] method is going to wait for a function build
+   * to complete before timing out.
    */
   public buildTimeout: number = 60000;
   /**
@@ -142,7 +137,8 @@ export abstract class Server<IFuncSpec> {
    * Creates an instance of the _Server_ using a dynamic [[AsyncResolver]] callback to resolve credentials.
    * This is used in situations where the access token is expected to change and must be refreshed during
    * the lifetime of the end user's interaction with the editor, for example due to expiry.
-   * @param accountResolver The callback _Server_ will invoke before every Fusebit HTTP API call to ensure it has fresh credentials.
+   * @param accountResolver The callback _Server_ will invoke before every Fusebit HTTP API call to ensure it
+   * has fresh credentials.
    */
   constructor(public accountResolver: AccountResolver) {}
 
@@ -177,13 +173,13 @@ export abstract class Server<IFuncSpec> {
     boundaryId: string,
     id: string,
     createIfNotExist?: ICreateEditorOptions
-  ): Promise<EditorContext<any>>;
+  ): Promise<EditorContext>;
 
-  public abstract runFunction(editorContext: EditorContext<any>): Promise<ServerResponse>;
-  public abstract getServerLogUrl(account: IAccount, editorContext: EditorContext<any>): string;
-  public abstract buildFunction(editorContext: EditorContext<any>): Promise<IBuildStatus>;
+  public abstract runFunction(editorContext: EditorContext): Promise<ServerResponse>;
+  public abstract getServerLogUrl(account: IAccount, editorContext: EditorContext): string;
+  public abstract buildFunction(editorContext: EditorContext): Promise<IBuildStatus>;
 
-  public attachServerLogs(editorContext: EditorContext<any>): Promise<Server<IFuncSpec>> {
+  public attachServerLogs(editorContext: EditorContext): Promise<BaseServer<IFuncSpec>> {
     if (this.sse) {
       return Promise.resolve(this);
     } else {
@@ -227,7 +223,7 @@ export abstract class Server<IFuncSpec> {
     }
   }
 
-  public detachServerLogs(editorContext: EditorContext<any>, error?: Error) {
+  public detachServerLogs(editorContext: EditorContext, error?: Error) {
     clearTimeout(this.logsTimeout);
     this.logsTimeout = undefined;
     this.logsBackoff = 0;
@@ -238,7 +234,7 @@ export abstract class Server<IFuncSpec> {
     }
   }
 
-  public saveFunction(editorContext: EditorContext<any>): Promise<IBuildStatus> {
+  public saveFunction(editorContext: EditorContext): Promise<IBuildStatus> {
     editorContext.setDirtyState(false);
     editorContext.setReadOnly(true);
     return this.buildFunction(editorContext)
@@ -256,3 +252,5 @@ export abstract class Server<IFuncSpec> {
       });
   }
 }
+
+export type Server = BaseServer<any>;

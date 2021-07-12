@@ -13,7 +13,7 @@ import { modalConfirmCancelQuestion } from './Modal';
  */
 export function createNavigationPanel(
   element: HTMLElement,
-  editorContext: EditorContext<any>,
+  editorContext: EditorContext,
   options?: INavigationPanelOptions,
   mainEditorElement?: HTMLElement
 ) {
@@ -32,7 +32,7 @@ export function createNavigationPanel(
 
   let isDeletingFile: string | undefined;
 
-  const html: string[] = [];
+  let html: string[] = [];
   html.push(`<div id="${treeId}" class="fusebit-nav">`);
   if (!effectiveOptions.hideCode) {
     html.push(
@@ -267,7 +267,7 @@ export function createNavigationPanel(
     if (fileName) {
       if (editorContext.fileExistsInSpecification(fileName)) {
         // file exists, select it
-        const element = findFileNameNavigationItemElement(fileName);
+        let element = findFileNameNavigationItemElement(fileName);
         if (element) {
           selectNavigationItem(element);
         }
