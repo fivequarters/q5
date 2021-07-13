@@ -344,19 +344,19 @@ export async function getDatabaseCredentials(
   }
 
   debug('LIST SECRETS RESPONSE', data);
-  if (!data.SecretList || data.SecretList.length !== 1) {
+  if (filteredSecrets.length !== 1) {
     throw new Error(
       `Cannot find a unique secret to access Aurora cluster in the Secrets Manager. Expected 1 matching secret, found ${
         filteredSecrets.length !== 0 ? filteredSecrets.length : '0. Delete the Aurora cluster and try again'
       }`
     );
   }
-  const dbArnTag = data.SecretList[0].Tags?.find((t) => t.Key === 'dbArn');
+  const dbArnTag = filteredSecrets[0].Tags?.find((t) => t.Key === 'dbArn');
   if (!dbArnTag) {
     throw new Error(`The secret to access Aurora cluster does not specify the database ARN.`);
   }
   return {
     resourceArn: dbArnTag.Value as string,
-    secretArn: data.SecretList[0].ARN as string,
+    secretArn: filteredSecrets[0].ARN as string,
   };
 }
