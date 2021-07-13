@@ -1,19 +1,26 @@
 import * as Constants from '@5qtrs/constants';
+import { IAccount as IAccountAPI } from '@5qtrs/account-data';
 
 import { IAccount } from './accountResolver';
 import * as Registry from './registry';
 import { addAccount, getAccount } from './sdk';
 import { getEnv } from './setup';
 
-let { account } = getEnv();
+let { account, boundaryId } = getEnv();
 
 beforeEach(() => {
-  ({ account } = getEnv());
+  ({ account, boundaryId } = getEnv());
 });
 
 describe('Account Management', () => {
   test('Add', async () => {
-    const res = await addAccount(account);
+    const newAccount: IAccountAPI = {
+      displayName: boundaryId,
+      primaryEmail: 'we-are@fusebit.io',
+    };
+
+    const res = await addAccount(account, newAccount);
+    expect(res).toBeHttp({ statusCode: 200 });
 
     const { data: accountCreated } = await getAccount(account, res.data.id);
 
@@ -28,7 +35,7 @@ describe('Account Management', () => {
     const reservedScopeCount = scopes.filter(
       (scope: string) => scope.indexOf(Constants.REGISTRY_RESERVED_SCOPE_PREFIX) === 0
     );
-    expect(reservedScopeCount).toHaveLength(1);
+    expect(reservedScopeCount.length).toBeGreaterThanOrEqual(1);
 
     const isAccountIdInNPMURL = url.includes(accountCreatedLocalProfile.accountId);
     expect(isAccountIdInNPMURL).toBe(true);

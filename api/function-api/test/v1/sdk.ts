@@ -8,6 +8,7 @@ import { pem2jwk } from 'pem-jwk';
 import { nextBoundary } from './setup';
 
 import ms from 'ms';
+import { IAccount as IAccountAPI } from '@5qtrs/account-data';
 
 export const INVALID_UUID = '00000000-0000-4000-8000-000000000000';
 
@@ -635,40 +636,35 @@ export async function cleanUpUsers(account: IAccount) {
   }
 }
 
-export async function addAccount(account: IAccount) {
-  const response = await request({
+export async function addAccount(authzAccount: IAccount, newAccount: IAccountAPI): Promise<IHttpResponse> {
+  return request({
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${account.accessToken}`,
+      Authorization: `Bearer ${authzAccount.accessToken}`,
       'Content-Type': 'application/json',
-      'user-agent': account.userAgent,
-      'fusebit-authorization-account-id': account.accountId,
+      'user-agent': authzAccount.userAgent,
+      'fusebit-authorization-account-id': authzAccount.accountId,
     },
-    url: `${account.baseUrl}/v1/account`,
-    data: JSON.stringify({
-      displayName: `fusebit-test-account-${Date.now()}`,
-      primaryEmail: 'we-are-@fusebit.io',
-    }),
+    url: `${authzAccount.baseUrl}/v1/account`,
+    data: JSON.stringify(newAccount),
   });
-  expect(response).toBeHttp({ statusCode: 200 });
-  return response;
 }
 
-export async function getAccount(account: IAccount, accountId: string) {
+export async function getAccount(account: IAccount, authzAccountId?: string): Promise<IHttpResponse> {
   const headers: IHttpRequest['headers'] = {
     Authorization: `Bearer ${account.accessToken}`,
     'Content-Type': 'application/json',
     'user-agent': account.userAgent,
   };
 
-  if (accountId) {
+  if (authzAccountId) {
     headers['fusebit-authorization-account-id'] = account.accountId;
   }
 
   return request({
     method: 'GET',
     headers,
-    url: `${account.baseUrl}/v1/account/${accountId || account.accountId}`,
+    url: `${account.baseUrl}/v1/account/${authzAccountId || account.accountId}`,
   });
 }
 
