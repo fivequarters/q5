@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.20.15
+
+_Released 07/12/21_
+
+- **Security** Update jest and react-scripts against critical yarn audit report.
+
 ## Version 1.20.13
 
 _Released 07/07/21_
