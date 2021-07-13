@@ -29,7 +29,7 @@ Fusebit HTTP API <code>v1.20+</code> - <a href="{{ site.baseurl }}{% link releas
 Fusebit Portal <code>v1.0+</code> - <a href="{{ site.baseurl }}{% link release-notes/fusebit-portal.md %}">release notes</a>
 </li>
 <li>
-Fusebit Ops CLI <code>v1.26+</code> - <a href="{{ site.baseurl }}{% link release-notes/fusebit-ops-cli.md %}">release notes</a></li>
+Fusebit Ops CLI <code>v1.27+</code> - <a href="{{ site.baseurl }}{% link release-notes/fusebit-ops-cli.md %}">release notes</a></li>
 </ul>
 </td>
 <td style="width:30%">
