@@ -342,7 +342,6 @@ export async function getDatabaseCredentials(
       filteredSecrets.push(secret);
     }
   }
-  console.log(filteredSecrets);
 
   debug('LIST SECRETS RESPONSE', data);
   if (!data.SecretList || data.SecretList.length !== 1) {
