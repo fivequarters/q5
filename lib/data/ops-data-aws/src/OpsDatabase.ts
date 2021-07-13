@@ -338,7 +338,7 @@ export async function getDatabaseCredentials(
   let filteredSecrets: AWS.SecretsManager.SecretListEntry[] = [];
 
   for (const secret of data.SecretList) {
-    if (secret.Name?.match(`^rds-db-credentials/fusebit-db-secret-${process.env.DEPLOYMENT_KEY}-[a-zA-Z0-9]{20}$`)) {
+    if (secret.Name?.match(`^rds-db-credentials/fusebit-db-secret-${deploymentName}-[a-zA-Z0-9]{20}$`)) {
       filteredSecrets.push(secret);
     }
   }
