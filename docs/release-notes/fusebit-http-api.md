@@ -21,7 +21,7 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 
 _Released 07/12/21_
 
-- **Bugfix** Make Aurora properly look for secrets.
+- **Bugfix** Fix an issue with multiple deployments using similar prefixes causing deployment failure.
 
 ## Version 1.20.13
 
