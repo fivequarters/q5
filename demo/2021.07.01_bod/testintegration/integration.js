@@ -44,7 +44,11 @@ const FormData = {};
 
 const getTokens = async (ctx) => {
   const response = await superagent
-    .get(`${ctx.state.params.baseUrl}/session/result/${ctx.params.sessionId || ctx.query.session}`)
+    .get(
+      `${ctx.state.params.baseUrl}/session/result/${
+        ctx.params.sessionId || ctx.query.session
+      }`
+    )
     .set("Authorization", `Bearer ${ctx.state.params.functionAccessToken}`);
 
   const connectorUrlArray = ctx.state.params.baseUrl.split("/");
@@ -58,7 +62,11 @@ const getTokens = async (ctx) => {
   const tokens = {};
   await Promise.all(
     Object.entries(response.body.uses).map(async ([key, value]) => {
-      tokens[key] = (await superagent.get(createConnectorUrl(value.componentId, value.subordinateId))).body;
+      tokens[key] = (
+        await superagent.get(
+          createConnectorUrl(value.componentId, value.subordinateId)
+        )
+      ).body;
     })
   );
   return { tokens, output: response.body.output };
@@ -133,7 +141,10 @@ router.get("/api/session/:sessionId", async (ctx) => {
 
 router.get("/api/asana/:tenantId", async (ctx) => {
   try {
-    const oauth = await ctx.state.manager.connectors.getByName("oauth1", (ctx) => ctx.params.tenantId)(ctx);
+    const oauth = await ctx.state.manager.connectors.getByName(
+      "oauth1",
+      (ctx) => ctx.params.tenantId
+    )(ctx);
     // Example usage with Asana
     const Asana = require("asana");
     const asana = await Asana.Client.create().useOauth({

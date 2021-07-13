@@ -16,11 +16,11 @@ import { FusebitEmail, FusebitAboutYou, FusebitAboutYouForm } from '@5qtrs/fuseb
 
 const contactUsHeading = 'Join waitlist';
 const contactUsText1 =
-  "We are excited to support your integration needs with the Fusebit platform. We are hard at work on a new self-service product made for developers.";
+  'We are excited to support your integration needs with the Fusebit platform. We are hard at work on a new self-service product made for developers.';
 const contactUsText2 = 'Sign up below and we will get you an early access invite.';
 const sendButtonText = 'Get early access';
 const aboutYouHeading = 'Your needs';
-const aboutYouText = "What issues are you facing with your current integrations?";
+const aboutYouText = 'What issues are you facing with your current integrations?';
 
 // ------------------
 // Internal Functions
