@@ -330,35 +330,25 @@ export async function getDatabaseCredentials(
   };
   const data = await secretsmanager.listSecrets(params).promise();
 
-  if (!data.SecretList || data.SecretList?.length === 0) {
+  if (!data.SecretList) {
     throw new Error(
-      `Cannot find a unique secret to access Aurora cluster in the Secrets Manager. Expected 1 matching secret, found ${
-        data.SecretList ? data.SecretList.length : '0. Delete the Aurora cluster and try again.'
-      }`
+      `Cannot find a unique secret to access Aurora cluster in the Secrets Manager. Expected 1 matching secret, found 0. Delete the Aurora cluster and try again.`
     );
   }
   let filteredSecrets: AWS.SecretsManager.SecretListEntry[] = [];
 
-  data.SecretList.map((secret) => {
-    if (secret.ARN?.match(`^rds-db-credentials/fusebit-db-secret-${process.env.DEPLOYMENT_KEY}-[a-zA-Z0-9]{20}$`)) {
+  for (const secret of data.SecretList) {
+    if (secret.Name?.match(`^rds-db-credentials/fusebit-db-secret-${process.env.DEPLOYMENT_KEY}-[a-zA-Z0-9]{20}$`)) {
       filteredSecrets.push(secret);
     }
-  });
-  if (filteredSecrets.length !== 1) {
-    throw new Error(
-      `Cannot find a unique secret to access Aurora cluster in the Secrets Manager. Expected 1 matching secret, found ${
-        data.SecretList ? data.SecretList.length : '0. Delete the Aurora cluster and try again.'
-      }`
-    );
   }
+  console.log(filteredSecrets);
 
   debug('LIST SECRETS RESPONSE', data);
   if (!data.SecretList || data.SecretList.length !== 1) {
     throw new Error(
-      `Cannot find a unique secret to access Aurora cluster. Expected 1 matching secret, found ${
-        data.SecretList && data.SecretList.length > 0
-          ? data.SecretList.length
-          : '0. Delete the Aurora cluster and try again.'
+      `Cannot find a unique secret to access Aurora cluster in the Secrets Manager. Expected 1 matching secret, found ${
+        filteredSecrets.length === 0 ? filteredSecrets.length : '0. Delete the Aurora cluster and try again'
       }`
     );
   }
