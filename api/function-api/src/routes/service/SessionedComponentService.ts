@@ -363,7 +363,7 @@ export default abstract class SessionedComponentService<
         id: Model.createSubordinateId({
           entityType: this.entityType,
           componentId: parentEntity.__databaseId as string,
-          subordinateId: uuidv4(),
+          subordinateId: session.data.replacementTargetId || uuidv4(),
         }),
         data: { output: leafSessionResults },
         tags: { ...session.tags, 'session.master': masterSessionId.subordinateId },
@@ -371,14 +371,8 @@ export default abstract class SessionedComponentService<
 
       const subDao = daos[this.subDao!.getDaoType()];
       if (!!session.data.replacementTargetId) {
-        instance.id = session.data.replacementTargetId;
         await subDao.updateEntity(instance);
       } else {
-        instance.id = this.createSubordinateId({
-          entityType: this.entityType,
-          componentId: parentEntity.__databaseId as string,
-          subordinateId: uuidv4(),
-        });
         await subDao.createEntity(instance);
       }
     });
@@ -423,19 +417,18 @@ export default abstract class SessionedComponentService<
       subscriptionId: session.subscriptionId,
       data: session.data.output || {},
       tags: { ...session.tags, 'session.master': masterSessionId.subordinateId },
+      id: Model.createSubordinateId({
+        entityType: service.entityType,
+        componentId: parentEntity.__databaseId as string,
+        subordinateId: session.data.input?.replacementTargetId || uuidv4(),
+      }),
     };
 
     const subDao = daos[service.subDao!.getDaoType()];
     let result: IEntity;
-    if (!!session.data.replacementTargetId) {
-      leafEntity.id = session.data.replacementTargetId;
+    if (!!session.data.input?.replacementTargetId) {
       result = await subDao.updateEntity(leafEntity);
     } else {
-      leafEntity.id =Model.createSubordinateId({
-        entityType: service.entityType,
-        componentId: parentEntity.__databaseId as string,
-        subordinateId: uuidv4(),
-      });
       result = await subDao.createEntity(leafEntity);
     }
 

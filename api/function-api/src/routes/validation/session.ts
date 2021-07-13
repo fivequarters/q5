@@ -9,6 +9,7 @@ export const SessionParameters = Joi.object().keys({
   tags: Common.tags.optional(),
   input: Joi.object().optional(),
   redirectUrl: Joi.string().required(),
+  replacementTargetId: Joi.string(),
 });
 
 export const Step = Joi.object().keys({

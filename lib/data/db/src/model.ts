@@ -226,7 +226,6 @@ export interface ISessionParameters {
 }
 
 export interface ILeafSessionData extends Omit<IStep, 'uses'> {
-  replacementTargetId?: string;
   operationId?: string;
   mode: SessionMode.leaf;
   uses: Record<string, object>;
