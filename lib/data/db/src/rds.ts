@@ -50,7 +50,6 @@ class RDS implements IRds {
       };
       const data = await secretsManager.listSecrets(params).promise();
       if (!data.SecretList) {
-        console.log('hello');
         throw new Error(
           `Cannot find a unique secret to access Aurora cluster in the Secrets Manager. Expected 1 matching secret, found 0. Delete the Aurora cluster and try again.`
         );
@@ -64,7 +63,6 @@ class RDS implements IRds {
           filteredSecrets.push(secret);
         }
       }
-      console.log(filteredSecrets);
       if (filteredSecrets.length !== 1) {
         throw new Error(
           `Cannot find a unique secret to access Aurora cluster in the Secrets Manager. Expected 1 matching secret, found ${
