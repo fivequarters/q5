@@ -12,7 +12,7 @@ beforeEach(() => {
 });
 
 describe('Account Management', () => {
-  it('Add', async () => {
+  test('Add', async () => {
     const res = await addAccount(account);
 
     const { data: accountCreated } = await getAccount(account, res.data.id);
@@ -30,7 +30,7 @@ describe('Account Management', () => {
     );
     expect(reservedScopeCount).toHaveLength(1);
 
-    const indexOfAccountIdInNPMURL = url.indexOf(accountCreatedLocalProfile.accountId);
-    expect(indexOfAccountIdInNPMURL).toBeGreaterThan(0);
+    const isAccountIdInNPMURL = url.includes(accountCreatedLocalProfile.accountId);
+    expect(isAccountIdInNPMURL).toBe(true);
   }, 180000);
 });

@@ -1,5 +1,5 @@
 import { IAccount } from './accountResolver';
-import { request, IHttpResponse } from '@5qtrs/request';
+import { request, IHttpResponse, IHttpRequest } from '@5qtrs/request';
 import { random } from '@5qtrs/random';
 import { signJwt } from '@5qtrs/jwt';
 import { createKeyPair, IKeyPairResult } from '@5qtrs/key-pair';
@@ -650,22 +650,25 @@ export async function addAccount(account: IAccount) {
       primaryEmail: 'we-are-@fusebit.io',
     }),
   });
-  if (response.status === 200) {
-    testClients.push(response.data.id);
-  }
+  expect(response).toBeHttp({ statusCode: 200 });
   return response;
 }
 
 export async function getAccount(account: IAccount, accountId: string) {
+  const headers: IHttpRequest['headers'] = {
+    Authorization: `Bearer ${account.accessToken}`,
+    'Content-Type': 'application/json',
+    'user-agent': account.userAgent,
+  };
+
+  if (accountId) {
+    headers['fusebit-authorization-account-id'] = account.accountId;
+  }
+
   return request({
     method: 'GET',
-    headers: {
-      Authorization: `Bearer ${account.accessToken}`,
-      'Content-Type': 'application/json',
-      'user-agent': account.userAgent,
-      'fusebit-authorization-account-id': account.accountId,
-    },
-    url: `${account.baseUrl}/v1/account/${accountId}`,
+    headers,
+    url: `${account.baseUrl}/v1/account/${accountId || account.accountId}`,
   });
 }
 

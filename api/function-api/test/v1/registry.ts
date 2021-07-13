@@ -1,4 +1,4 @@
-import { IHttpResponse, request } from '@5qtrs/request';
+import { request, IHttpRequest } from '@5qtrs/request';
 import { IAccount } from './accountResolver';
 
 import { AwsRegistry, IRegistryConfig, IRegistryGlobalConfig } from '@5qtrs/registry';
@@ -6,14 +6,19 @@ import { AwsRegistry, IRegistryConfig, IRegistryGlobalConfig } from '@5qtrs/regi
 import * as Constants from '@5qtrs/constants';
 
 export async function getConfig(account: IAccount, authorizationAccount?: IAccount['accountId']) {
+  const headers: IHttpRequest['headers'] = {
+    Authorization: `Bearer ${account.accessToken}`,
+    'user-agent': account.userAgent,
+  };
+
+  if (authorizationAccount) {
+    headers['fusebit-authorization-account-id'] = authorizationAccount;
+  }
+
   return (
     await request({
       method: 'GET',
-      headers: {
-        Authorization: `Bearer ${account.accessToken}`,
-        'user-agent': account.userAgent,
-        'fusebit-authorization-account-id': authorizationAccount || account.accountId,
-      },
+      headers,
       url: `${account.baseUrl}/v1/account/${account.accountId}/registry/${Constants.REGISTRY_DEFAULT}`,
     })
   ).data;
