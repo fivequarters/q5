@@ -8,7 +8,7 @@
   "scripts": {
     "build": "tsc -b",
     "create-env": "node createEnv.js",
-    "dev": "node --inspect=9229 --trace-warnings libc/index.js",
+    "dev": "yarn build && node --inspect=9229 --trace-warnings libc/index.js",
     "test": "yarn create-env && jest --colors",
     "coverage": "jest --colors --coverage --detectOpenHandles",
     "lint": "tslint --fix -t stylish src/{,**/}*.ts{,x} test/{,**/}*.ts{,x}",
