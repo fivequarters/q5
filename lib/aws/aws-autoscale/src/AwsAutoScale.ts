@@ -136,7 +136,7 @@ export class AwsAutoScale extends AwsBase<typeof AutoScaling> {
             Ebs: {
               VolumeSize: settings.volumeSize || defaultVolumeSize,
               VolumeType: 'gp3',
-              Encrypted: true
+              Encrypted: true,
             },
           },
         ],

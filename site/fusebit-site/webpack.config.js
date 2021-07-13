@@ -13,7 +13,7 @@ const options = {
         "<script>window.dataLayer = window.dataLayer || []; if (MutationObserver) { new MutationObserver(function(){ dataLayer.push({'event': 'optimize.activate'}); }).observe(document.body, {subtree: true, attributes: true, characterData: true}); }</script>",
     },
   },
-  devServer: {disableHostCheck: true}
+  devServer: { disableHostCheck: true },
 };
 
 for (const path in html) {
@@ -21,9 +21,17 @@ for (const path in html) {
   const pathHtml = html[path];
   const meta = [
     { property: 'og:title', content: 'Fusebit: a powerful integration platform built for developers' },
-    { property: 'og:description', content: 'With Fusebit, quickly integrate your application to other SaaS applications using flexible API building blocks. Fusebit provides connectors to popular APIs and hosts your integrations at scale.' },
+    {
+      property: 'og:description',
+      content:
+        'With Fusebit, quickly integrate your application to other SaaS applications using flexible API building blocks. Fusebit provides connectors to popular APIs and hosts your integrations at scale.',
+    },
     { property: 'twitter:title', content: 'Fusebit: a powerful integration platform built for developers' },
-    { property: 'twitter:description', content: 'With Fusebit, quickly integrate your application to other SaaS applications using flexible API building blocks. Fusebit provides connectors to popular APIs and hosts your integrations at scale.' },
+    {
+      property: 'twitter:description',
+      content:
+        'With Fusebit, quickly integrate your application to other SaaS applications using flexible API building blocks. Fusebit provides connectors to popular APIs and hosts your integrations at scale.',
+    },
     { property: 'og:type', content: 'website' },
     { property: 'og:site_name', content: 'Fusebit' },
     { property: 'og:locale', content: 'en' },

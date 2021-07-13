@@ -1,21 +1,23 @@
-const { Router } = require('@fusebit-int/framework');
+const { Router } = require("@fusebit-int/framework");
 const superagent = require("superagent");
-const { WebClient } = require('@slack/web-api');
-
+const { WebClient } = require("@slack/web-api");
 
 const router = new Router();
 
-router.get('/api/', async (ctx) => {
-  ctx.body = 'It works';
+router.get("/api/", async (ctx) => {
+  ctx.body = "It works";
 });
 
-router.post('/api/message/:identityId', async (ctx) => {
+router.post("/api/message/:identityId", async (ctx) => {
   const identityId = ctx.params.identityId;
-  const connectorBaseUrl = ctx.state.params.baseUrl.replace(/integration/g, 'connector');
+  const connectorBaseUrl = ctx.state.params.baseUrl.replace(
+    /integration/g,
+    "connector"
+  );
   const message = ctx.req.body && ctx.req.body.message;
 
-  if(!message) {
-    ctx.throw(400,'Expected message');
+  if (!message) {
+    ctx.throw(400, "Expected message");
   }
 
   const createConnectorUrl = () => {
@@ -27,7 +29,7 @@ router.post('/api/message/:identityId', async (ctx) => {
   const web = new WebClient(access_token);
   await web.chat.postMessage({
     text: message,
-    channel: 'example-slack-connector-v2',
+    channel: "example-slack-connector-v2",
   });
 
   ctx.status = 201;
@@ -54,7 +56,11 @@ router.get("/api/session/:sessionId", async (ctx) => {
 
 const getTokens = async (ctx) => {
   const response = await superagent
-    .get(`${ctx.state.params.baseUrl}/session/result/${ctx.params.sessionId || ctx.query.session}`)
+    .get(
+      `${ctx.state.params.baseUrl}/session/result/${
+        ctx.params.sessionId || ctx.query.session
+      }`
+    )
     .set("Authorization", `Bearer ${ctx.state.params.functionAccessToken}`);
 
   const connectorUrlArray = ctx.state.params.baseUrl.split("/");
@@ -68,7 +74,11 @@ const getTokens = async (ctx) => {
   const tokens = {};
   await Promise.all(
     Object.entries(response.body.uses).map(async ([key, value]) => {
-      tokens[key] = (await superagent.get(createConnectorUrl(value.componentId, value.subordinateId))).body;
+      tokens[key] = (
+        await superagent.get(
+          createConnectorUrl(value.componentId, value.subordinateId)
+        )
+      ).body;
     })
   );
   return { tokens, output: response.body.output };

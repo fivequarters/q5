@@ -66,13 +66,13 @@ brew install zip
 3. Install the supported version of **nodeJS**:
 
 ```
-nvm install 14.16.0
+nvm install 14.17.2
 ```
 
 4. Select the latest version of **nodeJS** to use:
 
 ```
-nvm use 14.16.0
+nvm use 14.17.2
 ```
 
 5. Install the **yarn** node module globally, and lock the version to the supported version:

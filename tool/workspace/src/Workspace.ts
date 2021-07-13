@@ -164,7 +164,10 @@ export default class Workspace {
     const npmModules: { [index: string]: string } = {};
     const bundledDependencies: string[] = [];
     for (const dependencyName in dependencies) {
-      if (dependencyName.startsWith(`@${org}/`) || (packageJson.bundledDependencies && packageJson.bundledDependencies.includes(dependencyName))) {
+      if (
+        dependencyName.startsWith(`@${org}/`) ||
+        (packageJson.bundledDependencies && packageJson.bundledDependencies.includes(dependencyName))
+      ) {
         const dependency = await this.project.GetWorkspace(dependencyName);
         if (dependency) {
           bundledDependencies.push(dependencyName);
