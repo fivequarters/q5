@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.27.14
+
+_Released 07/12/21_
+
+- **Bugfix** Fix an issue with multiple deployments using similar prefixes causing deployment failure.
+
 ## Version 1.27.13
 
 _Released 07/09/21_
@@ -45,7 +51,7 @@ _Released 06/24/21_
 ## Version 1.27.7
 
 - **Enhancement.** Add Encryption On EC2 Disks.
-- **Bugfix.** Aurora Backup Now Properly Updates Secrets Manager. 
+- **Bugfix.** Aurora Backup Now Properly Updates Secrets Manager.
 - **Enhancement.** Switch EC2 to GP3 volumes.
 
 ## Version 1.27.6
