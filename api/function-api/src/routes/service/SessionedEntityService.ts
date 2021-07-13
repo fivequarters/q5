@@ -5,7 +5,6 @@ import RDS, { Model } from '@5qtrs/db';
 
 import BaseEntityService, { IServiceResult } from './BaseEntityService';
 import { operationService } from './OperationService';
-import { IEntity } from '@5qtrs/db/libc/model';
 
 export default abstract class SessionedEntityService<
   E extends Model.IEntity,
@@ -350,8 +349,6 @@ export default abstract class SessionedEntityService<
       } else {
         await subDao.createEntity(instance);
       }
-    });
-    const decomposedSessionId = this.decomposeSubordinateId(session.id);
 
       // Record the successfully created instance in the master session.
       session.data.output = {
@@ -404,7 +401,7 @@ export default abstract class SessionedEntityService<
     };
 
     const subDao = daos[service.subDao!.getDaoType()];
-    let result: IEntity;
+    let result: Model.IEntity;
     if (!!session.data.input?.replacementTargetId) {
       result = await subDao.updateEntity(leafEntity);
     } else {
