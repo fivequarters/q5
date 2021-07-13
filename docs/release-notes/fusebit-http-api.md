@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.20.14
+
+_Released 07/12/21_
+
+- **Bugfix** Make Aurora properly look for secrets.
+
 ## Version 1.20.13
 
 _Released 07/07/21_
