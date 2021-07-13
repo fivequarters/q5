@@ -13,7 +13,19 @@ beforeEach(() => {
 });
 
 describe('Account Management', () => {
-  test('Add', async () => {
+  test('Add new', async () => {
+    // Existing account must have at least one reserved scope.
+    const existingAccountConfig = await Registry.getConfig(account);
+    expect(existingAccountConfig).toBeDefined();
+    expect(existingAccountConfig.scopes).toBeDefined();
+    expect(existingAccountConfig.url).toBeDefined();
+
+    const reservedScopeCountInExistingAccount = existingAccountConfig.scopes.filter(
+      (scope: string) => scope.indexOf(Constants.REGISTRY_RESERVED_SCOPE_PREFIX) === 0
+    );
+    expect(reservedScopeCountInExistingAccount.length).toBeGreaterThanOrEqual(1);
+
+    // Adding new account must work (http 200)
     const newAccount: IAccountAPI = {
       displayName: boundaryId,
       primaryEmail: 'we-are@fusebit.io',
@@ -24,20 +36,26 @@ describe('Account Management', () => {
 
     const { data: accountCreated } = await getAccount(account, res.data.id);
 
+    // Reserved scope must be set on new account as well
     const accountCreatedLocalProfile: IAccount = {
       ...account,
       accountId: accountCreated.id,
       userAgent: 'fusebit-test',
     };
 
-    const { scopes, url } = await Registry.getConfig(accountCreatedLocalProfile, account.accountId);
+    const newAccountConfig = await Registry.getConfig(accountCreatedLocalProfile, account.accountId);
 
-    const reservedScopeCount = scopes.filter(
+    expect(newAccountConfig).toBeDefined();
+    expect(newAccountConfig.scopes).toBeDefined();
+    expect(newAccountConfig.url).toBeDefined();
+
+    const reservedScopeCount = newAccountConfig.scopes.filter(
       (scope: string) => scope.indexOf(Constants.REGISTRY_RESERVED_SCOPE_PREFIX) === 0
     );
+    expect(reservedScopeCount).toBeDefined();
     expect(reservedScopeCount.length).toBeGreaterThanOrEqual(1);
 
-    const isAccountIdInNPMURL = url.includes(accountCreatedLocalProfile.accountId);
+    const isAccountIdInNPMURL = newAccountConfig.url.includes(accountCreatedLocalProfile.accountId);
     expect(isAccountIdInNPMURL).toBe(true);
   }, 180000);
 });
