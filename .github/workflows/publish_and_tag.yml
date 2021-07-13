@@ -1,0 +1,91 @@
+###################################################################
+# Auto-created by the cicd-actions tool
+on:
+  push:
+    branches:
+      - master
+name: Publish And Tag All Artifacts
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Upgrade aws-cli
+        run: >
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o
+          "awscliv2.zip"
+
+          unzip awscliv2.zip >/dev/null
+
+          sudo ./aws/install --update
+
+          /usr/local/bin/aws --version
+
+          aws --version
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.17.2
+      - name: Cache Node.js modules
+        uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.OS }}-node
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+      - name: Cache yarn modules
+        uses: actions/cache@v2
+        id: yarn-cache
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Version
+        id: package-versions
+        run: ./tool/cicd/actions/scripts/export_versions.sh
+      - name: Discovered versions
+        run: >
+          echo "Versions: function_api/${{env.VERSION_FUNCTION_API}}
+          fuse-cli/${{env.VERSION_FUSEBIT_CLI}}
+          fuse-ops/${{env.VERSION_FUSEBIT_OPS_CLI}}"
+      - name: Publish - tags
+        run: ./tool/cicd/actions/scripts/publish_fusebit_tags.sh
+      - name: Setup Environments and Profiles
+        env:
+          SECRET_FUSEBIT_PROFILE: ${{secrets.FUSEBIT_STAGE_US_WEST_2}}
+          SECRET_NPM_TOKEN: ${{secrets.NPM_PUBLISH_TOKEN}}
+          SECRET_GC_BQ_KEY_BASE64: ${{secrets.FUSEBIT_GC_BQ_KEY_BASE64}}
+        run: ./tool/cicd/actions/scripts/create_env_files.sh
+      - name: Qualify - aws-cli works
+        run: aws s3 ls
+      - name: Qualify - npm works
+        run: npm whoami
+      - name: Pre-Build Summary
+        run: |
+          echo function-api: ${VERSION_FUNCTION_API}
+          echo fusebit-cli: ${VERSION_FUSEBIT_CLI}
+          echo fusebit-ops-cli: ${VERSION_FUSEBIT_OPS_CLI}
+      - name: Build
+        run: ./tool/cicd/actions/scripts/build_tree.sh
+      - name: Qualify - fuse-ops works
+        run: node cli/fusebit-ops-cli/libc/index.js stack ls
+      - name: Qualify - fuse works
+        run: node cli/fusebit-cli/libc/index.js function ls
+      - name: Yarn - image
+        run: yarn image
+      - name: Publish - function-api
+        run: ./tool/cicd/actions/scripts/publish_function_api.sh
+      - name: Publish - fusebit-cli
+        run: ./tool/cicd/actions/scripts/publish_fusebit_cli.sh
+      - name: Publish - fusebit-editor
+        run: ./tool/cicd/actions/scripts/publish_fusebit_editor.sh
+      - name: Publish - fusebit-ops-cli
+        run: ./tool/cicd/actions/scripts/publish_fusebit_ops_cli.sh
+      - name: Publish - API Docs
+        run: ./tool/cicd/actions/scripts/publish_api_docs.sh

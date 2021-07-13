@@ -151,11 +151,23 @@ export default class Workspace {
     await removeDirectory(packagePath, { recursive: true });
     await copyDirectory(libcPath, sourcePath, { ensurePath: true, recursive: true });
 
+    const packageJsonPath = join(location, 'package.json');
+    let packageJson;
+    try {
+      const contents = await readFile(packageJsonPath);
+      packageJson = JSON.parse(contents.toString());
+    } catch (error) {
+      throw new Error(`Error reading '${packageJsonPath}'; File not found`);
+    }
+
     const dependencies = await this.GetAllDescendantDependencies();
     const npmModules: { [index: string]: string } = {};
     const bundledDependencies: string[] = [];
     for (const dependencyName in dependencies) {
-      if (dependencyName.startsWith(`@${org}/`)) {
+      if (
+        dependencyName.startsWith(`@${org}/`) ||
+        (packageJson.bundledDependencies && packageJson.bundledDependencies.includes(dependencyName))
+      ) {
         const dependency = await this.project.GetWorkspace(dependencyName);
         if (dependency) {
           bundledDependencies.push(dependencyName);
@@ -169,15 +181,6 @@ export default class Workspace {
       } else if (!dependencyName.startsWith(`@types/`)) {
         npmModules[dependencyName] = dependencies[dependencyName];
       }
-    }
-
-    const packageJsonPath = join(location, 'package.json');
-    let packageJson;
-    try {
-      const contents = await readFile(packageJsonPath);
-      packageJson = JSON.parse(contents.toString());
-    } catch (error) {
-      throw new Error(`Error reading '${packageJsonPath}'; File not found`);
     }
 
     packageJson.dependencies = npmModules;

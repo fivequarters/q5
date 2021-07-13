@@ -738,30 +738,31 @@ components:
           type: string
         configuration:
           type: object
-          properties:
-            connectors:
-              type: object
-              properties:
-                connectorName:
-                  type: object
-                  properties:
-                    package:
-                      type: string
-                    connector:
-                      $ref: '#/components/schemas/EntityId'
-            creation:
-              type: object
-              properties:
-                tags:
-                  $ref: '#/components/schemas/EntityTags'
-                steps:
-                  type: array
-                  items:
-                    type: object
-                autoStep:
-                  type: boolean
         files:
           type: object
+        componentTags:
+          type: object
+        components:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              entityType:
+                type: string
+              entityId:
+                $ref: '#/components/schemas/EntityId'
+              skip:
+                type: boolean
+              path:
+                type: string
+              dependsOn:
+                type: array
+                items:
+                  type: string
+              package:
+                type: string
 
     IntegrationEntity:
       type: object

@@ -22,7 +22,10 @@ fi
 
 # -- Script --
 set -e
-${FUSEOPS} image publish ${VERSION} 1>&2
+for OPS_PROFILE in github-automation.321 github-automation.749; do
+  ${FUSEOPS} profile default ${OPS_PROFILE}
+  ${FUSEOPS} image publish ${VERSION} 1>&2
+done
 
 echoerr "Completed successfully:"
 echo { \"version\": \"${VERSION}\" }

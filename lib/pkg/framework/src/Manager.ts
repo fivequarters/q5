@@ -7,23 +7,20 @@ import httpMocks from 'node-mocks-http';
 
 import { Router, Context } from './Router';
 
-import { ConnectorManager, IInstanceConnectorConfigMap } from './ConnectorManager';
+import { ConnectorManager, IInstanceConnectorConfig } from './ConnectorManager';
 
 import DefaultRoutes from './DefaultRoutes';
 
 /** The vendor module failed to load with this error */
 type VendorModuleError = any;
 
-/** The configuration for this integration. */
-interface IIntegrationConfig {
-  connectors: IInstanceConnectorConfigMap;
-}
-
-/** The configuration for this connector. */
-type IConnectorConfig = any;
-
 /** The Manager will handle either integration or connector configurations. */
-type IConfig = IIntegrationConfig | IConnectorConfig;
+interface IConfig {
+  handler: string;
+  components?: IInstanceConnectorConfig[];
+  configuration: any;
+  mountUrl: string;
+}
 
 /** The internal Fusebit request context. passed in through the lambda. */
 type RequestContext = any;
@@ -83,7 +80,7 @@ class Manager {
     this.config = cfg;
 
     // Load the configuration for the integrations
-    this.connectors.setup(cfg.connectors);
+    this.connectors.setup(cfg.components);
 
     if (vendorError) {
       this.vendorError = vendorError;

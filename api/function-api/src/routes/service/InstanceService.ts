@@ -1,11 +1,11 @@
 import http_error from 'http-errors';
 
 import RDS, { Model } from '@5qtrs/db';
-import BaseComponentService from './BaseComponentService';
+import BaseEntityService from './BaseEntityService';
 
 import * as Function from '../functions';
 
-class InstanceService extends BaseComponentService<Model.IInstance, Model.IInstance> {
+class InstanceService extends BaseEntityService<Model.IInstance, Model.IInstance> {
   public readonly entityType: Model.EntityType;
   constructor() {
     super(RDS.DAO.instance);
@@ -15,6 +15,10 @@ class InstanceService extends BaseComponentService<Model.IInstance, Model.IInsta
   public sanitizeEntity = (entity: Model.IEntity): Model.IEntity => {
     return entity;
   };
+
+  public getFunctionSecuritySpecification(): any {
+    throw http_error(500, 'invalid function creation');
+  }
 
   public createFunctionSpecification = (entity: Model.IEntity): Function.IFunctionSpecification => {
     throw http_error(500, 'invalid function creation');

@@ -85,7 +85,7 @@ export class ConnectorDeployCommand extends Command {
 
     await connectorService.confirmDeploy(sourcePath, connectorSpec, connectorId);
 
-    const operation = await connectorService.deployConnector(connectorId, connectorSpec);
+    const operation = await connectorService.deployEntity(connectorId, connectorSpec);
     if (!fast) {
       const result = await operationService.waitForCompletion(operation.operationId);
       await operationService.displayOperationResults(result);

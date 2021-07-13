@@ -34,6 +34,12 @@ const specs = [
     output: 'publish',
   },
   {
+    name: 'Publish And Tag All Artifacts',
+    inputs: ['checkout', 'publish_tags', ...fullBuild, ...publishAll],
+    output: 'publish_and_tag',
+    options: { on_trigger: { push: { branches: ['master'] } } },
+  },
+  {
     name: 'Publish function-api',
     inputs: ['checkout', ...fullBuild, 'publish_function_api'],
     output: 'publish_function_api',
@@ -66,4 +72,4 @@ function buildSpec(name: string, inputs: string[], output: string, options: any 
   fs.writeFileSync(`${OUTPUT_DIR}/${output}.yml`, BANNER + yaml.dump(base, { noCompatMode: true }));
 }
 
-specs.forEach((spec) => buildSpec(spec.name, spec.inputs, spec.output));
+specs.forEach((spec) => buildSpec(spec.name, spec.inputs, spec.output, spec.options));

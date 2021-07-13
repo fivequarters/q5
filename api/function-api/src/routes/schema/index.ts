@@ -21,12 +21,12 @@ router.use(analytics.setModality(analytics.Modes.Administration));
 router.use(
   '/connector',
   common(connectorService),
-  SubcomponentRouter(new IdentityService(), ['componentId', 'identityId'], Model.EntityType.connector)
+  SubcomponentRouter(new IdentityService(), ['entityId', 'identityId'], Model.EntityType.connector)
 );
 router.use(
   '/integration',
   common(integrationService),
-  SubcomponentRouter(new InstanceService(), ['componentId', 'instanceId'], Model.EntityType.integration)
+  SubcomponentRouter(new InstanceService(), ['entityId', 'instanceId'], Model.EntityType.integration)
 );
 router.use('/operation', operation);
 

@@ -17,6 +17,30 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.20.17
+
+_Released 07/12/21_
+
+- **Bugfix** Fix an issue with multiple deployments using similar prefixes causing deployment failure.
+
+## Version 1.20.16
+
+_Released 07/09/21_
+
+- **Security** Update Axios for security patching against CVE-2020-28168.
+
+## Version 1.20.15
+
+_Release 06/16/21_
+
+- **Enhancement.** Update Fusebit to node v14.17.2.
+
+## Version 1.20.13
+
+_Released 07/07/21_
+
+- **Enhancement** Make Aurora error slightly less cryptic.
+
 ## Version 1.20.5
 
 _Release 06/26/21_

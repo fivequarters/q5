@@ -85,7 +85,7 @@ export class IntegrationDeployCommand extends Command {
 
     await integrationService.confirmDeploy(sourcePath, integrationSpec, integrationId);
 
-    const operation = await integrationService.deployIntegration(integrationId, integrationSpec);
+    const operation = await integrationService.deployEntity(integrationId, integrationSpec);
     if (!fast) {
       const result = await operationService.waitForCompletion(operation.operationId);
       await operationService.displayOperationResults(result);

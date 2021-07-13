@@ -204,23 +204,25 @@ export class OpsIam implements IDataSource {
     await createRole(
       awsConfig,
       this.config.backupRoleName,
-      ['arn:aws:iam::aws:policy/service-role/AWSBackupServiceRolePolicyForBackup',
-      'arn:aws:iam::aws:policy/service-role/AWSBackupServiceRolePolicyForRestores'],
+      [
+        'arn:aws:iam::aws:policy/service-role/AWSBackupServiceRolePolicyForBackup',
+        'arn:aws:iam::aws:policy/service-role/AWSBackupServiceRolePolicyForRestores',
+      ],
       undefined,
       {
-        "Version": "2012-10-17",
-        "Statement": [
+        Version: '2012-10-17',
+        Statement: [
           {
-            "Effect": "Allow",
-            "Principal": {
-              "Service": "backup.amazonaws.com"
+            Effect: 'Allow',
+            Principal: {
+              Service: 'backup.amazonaws.com',
             },
-            "Action": "sts:AssumeRole"
-          }
-        ]
+            Action: 'sts:AssumeRole',
+          },
+        ],
       },
       this.config.iamPermissionsBoundary
-    )
+    );
     // Ensure the instance profile and role for the VMs are created
 
     await createInstanceProfile(

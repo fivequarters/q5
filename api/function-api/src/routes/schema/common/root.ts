@@ -10,9 +10,9 @@ import query from '../../handlers/query';
 import body from '../../handlers/body';
 import pathParams from '../../handlers/pathParams';
 
-import { BaseComponentService } from '../../service';
+import { SessionedEntityService } from '../../service';
 
-const router = (ComponentService: BaseComponentService<any, any>) => {
+const router = (EntityService: SessionedEntityService<any, any>) => {
   const componentRouter = express.Router({ mergeParams: true });
 
   componentRouter.use(common.cors());
@@ -22,11 +22,29 @@ const router = (ComponentService: BaseComponentService<any, any>) => {
     .get(
       common.management({
         validate: { params: Validation.EntityIdParams, query: Validation.EntityIdQuery },
-        authorize: { operation: v2Permissions[ComponentService.entityType].get },
+        authorize: { operation: v2Permissions[EntityService.entityType].get },
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {
-          const response = await ComponentService.dao.listEntities(
+          if (req.query.defaults) {
+            // Return the default values for the various types, for the CLI and for the GUI.
+            return res.json({
+              items: [
+                {
+                  name: EntityService.entityType,
+                  template: EntityService.sanitizeEntity({
+                    accountId: req.params.accountId,
+                    subscriptionId: req.params.subscriptionId,
+                    id: '',
+                    data: {},
+                    tags: {},
+                  }),
+                },
+              ],
+              total: 1,
+            });
+          }
+          const response = await EntityService.dao.listEntities(
             {
               ...pathParams.accountAndSubscription(req),
               ...query.tags(req),
@@ -45,14 +63,14 @@ const router = (ComponentService: BaseComponentService<any, any>) => {
     )
     .post(
       common.management({
-        validate: { params: Validation.EntityIdParams, body: Validation[ComponentService.entityType].Entity },
-        authorize: { operation: v2Permissions[ComponentService.entityType].put },
+        validate: { params: Validation.EntityIdParams, body: Validation[EntityService.entityType].Entity },
+        authorize: { operation: v2Permissions[EntityService.entityType].put },
       }),
       async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {
-          const { statusCode, result } = await ComponentService.createEntity({
+          const { statusCode, result } = await EntityService.createEntity({
             ...pathParams.accountAndSubscription(req),
-            ...body.entity(req, ComponentService.entityType),
+            ...body.entity(req, EntityService.entityType),
           });
           res.status(statusCode).json(result);
         } catch (e) {
