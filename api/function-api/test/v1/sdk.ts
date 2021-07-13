@@ -650,21 +650,21 @@ export async function addAccount(authzAccount: IAccount, newAccount: IAccountAPI
   });
 }
 
-export async function getAccount(account: IAccount, authzAccountId?: string): Promise<IHttpResponse> {
+export async function getAccount(account: IAccount, accountId?: string) {
   const headers: IHttpRequest['headers'] = {
     Authorization: `Bearer ${account.accessToken}`,
     'Content-Type': 'application/json',
     'user-agent': account.userAgent,
   };
 
-  if (authzAccountId) {
+  if (accountId) {
     headers['fusebit-authorization-account-id'] = account.accountId;
   }
 
   return request({
     method: 'GET',
     headers,
-    url: `${account.baseUrl}/v1/account/${authzAccountId || account.accountId}`,
+    url: `${account.baseUrl}/v1/account/${accountId || account.accountId}`,
   });
 }
 
