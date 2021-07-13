@@ -66,7 +66,7 @@ class RDS implements IRds {
       if (filteredSecrets.length !== 1) {
         throw new Error(
           `Cannot find a unique secret to access Aurora cluster in the Secrets Manager. Expected 1 matching secret, found ${
-            filteredSecrets.length === 0 ? filteredSecrets.length : '0. Delete the Aurora cluster and try again'
+            filteredSecrets.length !== 0 ? filteredSecrets.length : '0. Delete the Aurora cluster and try again'
           }`
         );
       }
