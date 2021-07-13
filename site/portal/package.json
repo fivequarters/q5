@@ -24,7 +24,7 @@
     "react-dom": "^16.11.0",
     "react-json-view": "^1.19.1",
     "react-router-dom": "^5.1.2",
-    "react-scripts": "3.2.0",
+    "react-scripts": "4.0.3",
     "recharts": "^1.8.5",
     "superagent": "^5.2.2",
     "url-parse": "^1.4.7"
