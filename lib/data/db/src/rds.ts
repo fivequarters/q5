@@ -49,14 +49,28 @@ class RDS implements IRds {
         ],
       };
       const data = await secretsManager.listSecrets(params).promise();
-      if (!data.SecretList || data.SecretList.length !== 1) {
+      if (!data.SecretList || data.SecretList?.length === 0) {
         throw new Error(
           `Cannot find a unique secret to access Aurora cluster in the Secrets Manager. Expected 1 matching secret, found ${
-            data.SecretList ? data.SecretList.length : "0. Delete the Aurora cluster and try again."
+            data.SecretList ? data.SecretList.length : '0. Delete the Aurora cluster and try again.'
           }`
         );
       }
-      const dbArnTag = data.SecretList[0].Tags?.find((t) => t.Key === 'dbArn');
+      let filteredSecrets: AWS.SecretsManager.SecretListEntry[] = [];
+
+      data.SecretList.map((secret) => {
+        if (secret.ARN?.match(`^rds-db-credentials/fusebit-db-secret-${process.env.DEPLOYMENT_KEY}-[a-zA-Z0-9]{20}$`)) {
+          filteredSecrets.push(secret);
+        }
+      });
+      if (filteredSecrets.length !== 1) {
+        throw new Error(
+          `Cannot find a unique secret to access Aurora cluster in the Secrets Manager. Expected 1 matching secret, found ${
+            data.SecretList ? data.SecretList.length : '0. Delete the Aurora cluster and try again.'
+          }`
+        );
+      }
+      const dbArnTag = filteredSecrets[0].Tags?.find((t) => t.Key === 'dbArn');
       if (!dbArnTag) {
         throw new Error(
           `The secret to access Aurora cluster found in the Secrets Manager does not specify the database ARN.`
@@ -70,7 +84,7 @@ class RDS implements IRds {
       });
       this.rdsCredentials = {
         resourceArn: dbArnTag.Value as string,
-        secretArn: data.SecretList[0].ARN as string,
+        secretArn: filteredSecrets[0].ARN as string,
       };
       if (process.env.API_STACK_VERSION !== 'dev') {
         this.purgeInterval = setInterval(() => this.purgeExpiredItems(), this.defaultPurgeInterval).unref();
