@@ -224,6 +224,8 @@ export class ResolvedAgent implements IAgent {
   }
 
   public async ensureAuthorized(action: string, resource: string): Promise<void> {
+    if (!action || !resource) throw AccountDataException.unauthorized(this.id as string, action, resource);
+
     resource = Resource.normalize(resource);
     const authorized = this.isAuthorized(action, resource);
     await this.addAuditEntry(action, resource, authorized);
