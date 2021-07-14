@@ -1,3 +1,4 @@
+import { JWT_PERMISSION_CLAIM } from '@5qtrs/constants';
 import { random } from '@5qtrs/random';
 import { request } from '@5qtrs/request';
 import { signJwt } from '@5qtrs/jwt';
@@ -45,6 +46,43 @@ describe('Authentication', () => {
       url: `${account.baseUrl}/v1/account/${account.accountId}/user`,
     });
     expect(response).toBeHttp({ statusCode: 200 });
+  }, 180000);
+
+  test.only('A request with an invalid inline permissions config should return 403', async () => {
+    const testIssuer = await createTestJwksIssuer(account);
+    const subject = `sub-${random({ lengthInBytes: 8 })}`;
+    await addUser(account, {
+      identities: [{ issuerId: testIssuer.issuerId, subject }],
+      access: { allow: [{ action: 'user:*', resource: `/account/${account.accountId}` }] },
+    });
+
+    const options = {
+      algorithm: 'RS256',
+      expiresIn: 600,
+      audience: account.audience,
+      issuer: testIssuer.issuerId,
+      subject,
+      keyid: testIssuer.keys[0].keyId,
+      header: {
+        jwtId: random(),
+      },
+    };
+
+    const jwt = await signJwt(
+      {
+        [JWT_PERMISSION_CLAIM]: {
+          allow: [{ action: 'some-action', storageResource: 'some-resource' }],
+        },
+      },
+      testIssuer.keys[0].privateKey,
+      options
+    );
+    const response = await request({
+      method: 'GET',
+      headers: { Authorization: `Bearer ${jwt}`, 'Content-Type': 'application/json' },
+      url: `${account.baseUrl}/v1/account/${account.accountId}/user`,
+    });
+    expect(response).toBeHttp({ statusCode: 403 });
   }, 180000);
 
   test('A request with no auth header should return 403', async () => {
