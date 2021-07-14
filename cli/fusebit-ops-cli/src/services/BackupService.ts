@@ -232,14 +232,14 @@ export class BackupService {
   private async listBackupPlanDriver() {
     const regions = await this.findAllRegionsWithDeployments(this.credentials, this.config);
     let backupPlans: listBackupPlansOutput = { backupPlans: [] };
-    for (const i of regions) {
-      const Backup = await this.getAwsBackupClient(i);
+    for (const region of regions) {
+      const Backup = await this.getAwsBackupClient(region);
 
       const backupPlansResult = await Backup.listBackupPlans().promise();
       for (const backupPlan of backupPlansResult.BackupPlansList as AWS.Backup.BackupPlansList) {
         backupPlans.backupPlans.push({
           backupPlanInfo: backupPlan,
-          region: i,
+          region,
         });
       }
     }
