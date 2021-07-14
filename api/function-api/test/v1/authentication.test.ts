@@ -48,7 +48,7 @@ describe('Authentication', () => {
     expect(response).toBeHttp({ statusCode: 200 });
   }, 180000);
 
-  test.only('A request with an invalid inline permissions config should return 403', async () => {
+  test('A request with an invalid inline permissions config should return 403', async () => {
     const testIssuer = await createTestJwksIssuer(account);
     const subject = `sub-${random({ lengthInBytes: 8 })}`;
     await addUser(account, {
