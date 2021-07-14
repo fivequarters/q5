@@ -22,7 +22,7 @@ All public releases of the Fusebit Operations CLI are documented here, including
 
 _Released 07/13/21_
 
-- **Enhancement** Change Fuse-ops backup ls command to include the region of the backup.
+- **Enhancement** Change fuse-ops backup ls command to include the region of the backup.
 
 ## Version 1.27.14
 
