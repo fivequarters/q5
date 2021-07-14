@@ -234,7 +234,6 @@ export class BackupService {
     let backupPlans: listBackupPlansOutput = { backupPlans: [] };
     for (const region of regions) {
       const Backup = await this.getAwsBackupClient(region);
-
       const backupPlansResult = await Backup.listBackupPlans().promise();
       for (const backupPlan of backupPlansResult.BackupPlansList as AWS.Backup.BackupPlansList) {
         backupPlans.backupPlans.push({
