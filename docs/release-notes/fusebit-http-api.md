@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.20.19
+
+_Released 07/14/21_
+
+- **Bugfix.** Resolved HTTP 500 on malformed inline permissions.
+
 ## Version 1.20.18
 
 _Released 07/13/21_
