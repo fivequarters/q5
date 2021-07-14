@@ -196,8 +196,8 @@ const deleteFunction = async (params: IParams): Promise<any> => {
 const checkAuthorization = async (
   accountId: string,
   functionSummary: string,
-  authToken: string | undefined,
-  operation: any
+  authToken?: string | undefined,
+  operation?: { operation: string; path: string }
 ) => {
   const authentication = Constants.getFunctionAuthentication(functionSummary);
   if (!authentication || authentication === 'none' || (authentication === 'optional' && !authToken)) {
@@ -287,7 +287,6 @@ export {
   createFunction,
   deleteFunction,
   executeFunction,
-  checkAuthorization,
   initFunctions,
   waitForFunctionBuild,
   IFunctionSpecification,

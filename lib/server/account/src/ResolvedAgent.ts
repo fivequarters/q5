@@ -82,11 +82,13 @@ function doesResourceAuthorize(grantedResource: string, requestedResource: strin
 }
 
 function doesActionAuthorize(grantedAction: string, requestedAction: string) {
-  const grantedSegments = grantedAction.split(':');
-  const requestedSegments = requestedAction.split(':');
   if (grantedAction === requestedAction) {
     return true;
   }
+
+  const grantedSegments = grantedAction.split(':');
+  const requestedSegments = requestedAction.split(':');
+
   for (let i = 0; i < requestedSegments.length; i++) {
     if (grantedSegments[i]) {
       if (grantedSegments[i] === '*') {

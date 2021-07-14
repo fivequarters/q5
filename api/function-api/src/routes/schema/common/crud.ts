@@ -1,7 +1,7 @@
 import express from 'express';
 const Joi = require('joi');
 
-import { v2Permissions } from '@5qtrs/constants';
+import { v2Permissions, getAuthToken } from '@5qtrs/constants';
 
 import { Model } from '@5qtrs/db';
 
@@ -86,10 +86,7 @@ const router = (
     let result;
 
     try {
-      let match;
-      if (req.headers.authorization) {
-        match = req.headers.authorization.match(/^\ *bearer\ +(.+)$/i);
-      }
+      const match = getAuthToken(req);
 
       const token = match ? match[1] : undefined;
       result = await EntityService.dispatch(
