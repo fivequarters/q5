@@ -105,7 +105,6 @@ export class RestoreService {
       backupPlanName,
       region as string
     )) as AWS.Backup.RecoveryPointByBackupVault;
-
     const ids = await this.startDbRestoreJobAndWait(
       restorePoint.RecoveryPointArn as string,
       deploymentName,
@@ -135,7 +134,7 @@ export class RestoreService {
         }
       }
     } catch (e) {
-      if (e.message !== 'DBClusterNotFoundFault') {
+      if (e.code !== 'DBClusterNotFoundFault') {
         throw Error(e);
       }
     }
