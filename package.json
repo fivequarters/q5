@@ -205,5 +205,8 @@
       "lib/data/db",
       "lib/data/schema"
     ]
+  },
+  "resolutions": {
+    "**/@types/node": "14.17.2"
   }
 }
