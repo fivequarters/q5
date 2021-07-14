@@ -528,8 +528,13 @@ describe('Workflow', () => {
     // Start the "browser" on the session
     response = await ApiRequestMap.integration.session.start(account, integrationId, replacementParentSessionId);
     expect(response).toBeHttp({ statusCode: 302 });
-
     nextUrl = response.headers.location;
+
+    // verify that new session is populated with token from previous session
+    response = await ApiRequestMap.integration.session.getResult(account, integrationId, replacementParentSessionId);
+    const identitySessionId = response.data.components[0].childSessionId;
+    response = await ApiRequestMap.connector.session.getResult(account, connectorId, identitySessionId);
+    expect(response.data.output.token.access_token).toBe('original token');
     // Load the connector/api/configure
     nextUrl = await nextSessionStep(nextUrl);
     // Load the authorization url
@@ -553,7 +558,7 @@ describe('Workflow', () => {
     await ApiRequestMap.integration.session.postSession(account, integrationId, replacementParentSessionId);
 
     // Get the completed session with the output details
-    response = await ApiRequestMap.integration.session.getResult(account, integrationId, parentSessionId);
+    response = await ApiRequestMap.integration.session.getResult(account, integrationId, replacementParentSessionId);
 
     expect(response.data.output.entityId).toBe(instanceId);
 
