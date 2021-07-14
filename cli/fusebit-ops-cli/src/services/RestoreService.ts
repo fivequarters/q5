@@ -105,6 +105,7 @@ export class RestoreService {
       backupPlanName,
       region as string
     )) as AWS.Backup.RecoveryPointByBackupVault;
+
     const ids = await this.startDbRestoreJobAndWait(
       restorePoint.RecoveryPointArn as string,
       deploymentName,
