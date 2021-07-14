@@ -94,11 +94,12 @@ const isUuid = (str: string) => {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(str);
 };
 
-const getAuthToken = (req: express.Request) => {
+const getAuthToken = (req: express.Request): string | undefined => {
   if (!req.headers.authorization) {
     return undefined;
   }
-  return req.headers.authorization.match(/^\ *bearer\ +(.+)$/i);
+  const match = req.headers.authorization.match(/^\ *bearer\ +(.+)$/i);
+  return match ? match[1] : undefined;
 };
 
 export { dynamoScanTable, expBackoff, asyncPool, duplicate, safePath, safePathMap, isUuid, getAuthToken };

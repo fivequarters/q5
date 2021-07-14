@@ -86,9 +86,8 @@ const router = (
     let result;
 
     try {
-      const match = getAuthToken(req);
+      const token = getAuthToken(req);
 
-      const token = match ? match[1] : undefined;
       result = await EntityService.dispatch(
         pathParams.EntityById(req, paramIdNames[paramIdNames.length - 1]),
         req.method,

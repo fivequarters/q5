@@ -9,9 +9,8 @@ const meteringEnabled = process.env.METERING_ENABLED === 'false' ? false : true;
 
 module.exports = function authorize_factory(options) {
   return async function authorize(req, res, next) {
-    const match = Constants.getAuthToken(req);
+    const token = Constants.getAuthToken(req);
 
-    let token = match ? match[1] : undefined;
     if (!token && options.getToken) {
       token = options.getToken(req);
     }
