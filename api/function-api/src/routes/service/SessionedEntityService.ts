@@ -162,6 +162,7 @@ export default abstract class SessionedEntityService<
       }, {});
 
     let replacementTargetId: string | undefined = undefined;
+    let output = step.output;
     if (!!parentSession.data.replacementTargetId) {
       const parentIntegrationParams = {
         accountId: parentSession.accountId,
@@ -174,22 +175,36 @@ export default abstract class SessionedEntityService<
         parentIntegration.__databaseId as string,
         parentSession.data.replacementTargetId
       );
+      const instanceParams = {
+        id: instanceId,
+        accountId: parentSession.accountId,
+        subscriptionId: parentSession.subscriptionId,
+      };
+      const instance = await this.integrationService.subDao!.getEntity(instanceParams);
 
       if (step.entityType === Model.EntityType.integration) {
         replacementTargetId = instanceId;
+        output = instance.data;
       } else {
-        const instanceParams = {
-          id: instanceId,
+        const [stepName, stepEntity]: [string, Model.ISubordinateId] = (Object.entries(
+          (instance.data as Record<string, Model.ISubordinateId>) || {}
+        ).find(([name, component]: [string, any]) => name === step.name) || []) as [string, Model.ISubordinateId];
+        replacementTargetId = stepEntity.entityId;
+        const connector = await this.connectorService.dao.getEntity({
+          id: stepEntity.parentEntityId,
           accountId: parentSession.accountId,
           subscriptionId: parentSession.subscriptionId,
-        };
-        const entity = await this.integrationService.subDao!.getEntity(instanceParams);
-        const [stepName, stepEntity] =
-          Object.entries((entity.data as { [key: string]: { entityId: string } }) || {}).find(
-            ([name, component]: [string, any]) => name === step.name
-          ) || [];
-        replacementTargetId = stepEntity?.entityId;
-        // let output = stepEntity.data.output;
+        });
+        const identity = await this.connectorService.subDao!.getEntity({
+          id: Model.createSubordinateId(
+            Model.EntityType.connector,
+            connector.__databaseId as string,
+            replacementTargetId
+          ),
+          accountId: parentSession.accountId,
+          subscriptionId: parentSession.subscriptionId,
+        });
+        output = identity.data;
       }
     }
 
@@ -203,7 +218,7 @@ export default abstract class SessionedEntityService<
         mode: Model.SessionMode.leaf,
         name: step.name,
         input: step.input,
-        output: step.output,
+        output,
         dependsOn,
         parentId: parentSession.id,
         replacementTargetId,
