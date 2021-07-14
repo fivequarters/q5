@@ -171,6 +171,14 @@ export class ResolvedAgent implements IAgent {
     }
   }
 
+  private static prevalidateInlinePermissions(inlinePermissions: IAccessEntry[]) {
+    inlinePermissions?.forEach((inlinePermission: IAccessEntry) => {
+      if (!inlinePermission?.action || !inlinePermission?.resource) {
+        throw AccountDataException.invalidJwt(new Error('Malformed inline permission'));
+      }
+    });
+  }
+
   private static prevalidateAccessToken(jwt: string) {
     const decodedJwtPayload = decodeJwt(jwt);
     if (!decodedJwtPayload) {
@@ -181,6 +189,9 @@ export class ResolvedAgent implements IAgent {
     }
     if (!decodedJwtPayload.sub) {
       throw AccountDataException.invalidJwt(new Error("JWT does not have 'sub' claim"));
+    }
+    if (decodedJwtPayload[JWT_PERMISSION_CLAIM]?.allow) {
+      ResolvedAgent.prevalidateInlinePermissions(decodedJwtPayload[JWT_PERMISSION_CLAIM]?.allow);
     }
     return decodedJwtPayload;
   }
