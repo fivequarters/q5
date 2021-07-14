@@ -6,7 +6,6 @@
     { "path": "../../constants" },
     { "path": "../../data/account-data" },
     { "path": "../../node/jwt" },
-    { "path": "../../node/key-pair" },
     { "path": "../../shared/exception" },
     { "path": "../../shared/promise" },
     { "path": "../../shared/random" },
