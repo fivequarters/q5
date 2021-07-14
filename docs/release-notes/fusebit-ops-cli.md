@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.27.16
+
+_Released 07/13/21_
+
+- **Bugfix** Fuse-ops backup restore no longer fails when the cluster is not found.
+
 ## Version 1.27.15
 
 _Released 07/13/21_
