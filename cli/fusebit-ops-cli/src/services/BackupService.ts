@@ -4,7 +4,7 @@ import { OpsService } from './OpsService';
 import { ExecuteService } from './ExecuteService';
 import { AwsCreds, IAwsConfig } from '@5qtrs/aws-config';
 import { IAwsCredentials } from '@5qtrs/aws-cred';
-import { dynamoScanTable, isSystemIssuer } from '@5qtrs/constants';
+import { dynamoScanTable } from '@5qtrs/constants';
 
 interface backupPlanListItem {
   backupPlanInfo: AWS.Backup.BackupPlansListMember;
