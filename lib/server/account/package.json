@@ -15,6 +15,7 @@
   "keywords": [],
   "dependencies": {
     "@5qtrs/account-data": "^0.0.1",
+    "@5qtrs/constants": "^0.0.1",
     "@5qtrs/jwt": "^0.0.1",
     "@5qtrs/exception": "^0.0.1",
     "@5qtrs/promise": "^0.0.1",
