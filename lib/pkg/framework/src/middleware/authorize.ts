@@ -10,7 +10,7 @@ const normalizeResource = (resource: string) => {
   const delimiter = '/';
   const rootSlash = resource[0] === delimiter ? '' : delimiter;
   const endingSlash = resource[resource.length - 1] === delimiter ? '' : delimiter;
-  return endingSlash || rootSlash ? `${rootSlash}${resource}${endingSlash}` : resource;
+  return `${rootSlash}${resource}${endingSlash}`;
 };
 
 function doesResourceAuthorize(grantedResource: string, requestedResource: string) {
