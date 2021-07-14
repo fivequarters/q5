@@ -10,7 +10,7 @@ export const SessionParameters = Joi.object().keys({
   extendTags: Joi.boolean().default(true),
   input: Joi.object().optional(),
   redirectUrl: Joi.string().required(),
-  replacementTargetId: Joi.string(),
+  instanceId: Joi.string(),
 });
 
 export const SessionCreate = SessionParameters;

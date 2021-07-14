@@ -356,13 +356,171 @@ describe('Workflow', () => {
       },
     });
     expect(response.data.data.conn1.entityId).toBeUUID();
+  }, 180000000);
+
+  test('Overwrite existing instance and identity', async () => {
+    // Constants
+    const authorizationUrl = `${redirectUrl}/authorize`;
+    const tokenUrl = `${redirectUrl}/token`;
+    const finalUrl = `${redirectUrl}/final`;
+    const baseUrl = `${process.env.API_SERVER}/v2/account/${account.accountId}/subscription/${account.subscriptionId}`;
+
+    const sampleToken = {
+      access_token: 'original token',
+      refresh_token: 'FFFF',
+      token_type: 'access',
+      message: boundaryId + '-token',
+    };
+
+    // Set up the HTTP service
+    let oauthSessionId: string = '';
+    httpServer.app.get('/authorize', (req: any, res: any) => {
+      oauthSessionId = req.query.state;
+      return res.redirect(`${req.query.redirect_uri}?state=${req.query.state}&code=EEEE`);
+    });
+    httpServer.app.post('/token', express.urlencoded({ extended: true }), (req: any, res: any) => {
+      if (req.body.code === '1234') {
+        return res.json({ ...sampleToken, access_token: 'replacement token' });
+      } else {
+        return res.json(sampleToken);
+      }
+    });
+
+    // Create the various artifacts
+    const { integrationId, connectorId } = await createPair(
+      account,
+      boundaryId,
+      {
+        components: [
+          {
+            name: 'conn1',
+            package: '@fusebit-int/pkg-oauth-integration',
+            entityType: Model.EntityType.connector,
+            entityId: `${boundaryId}-con`,
+            dependsOn: [],
+          },
+          {
+            name: 'form',
+            entityType: Model.EntityType.integration,
+            path: '/api/aForm',
+            entityId: '{{integration}}',
+            dependsOn: ['conn1'],
+          },
+        ],
+      },
+      {
+        handler: '@fusebit-int/pkg-oauth-connector',
+        configuration: {
+          scope: '',
+          authorizationUrl,
+          tokenUrl,
+          clientId: 'BBBB',
+          clientSecret: 'AAAA',
+          refreshErrorLimit: 100000,
+          refreshInitialBackoff: 100000,
+          refreshWaitCountLimit: 100000,
+          refreshBackoffIncrement: 100000,
+          accessTokenExpirationBuffer: 500,
+        },
+      }
+    );
+
+    // Add the new file for the integration (get, and then add one with /api/aForm)
+    let integration = await ApiRequestMap.integration.get(account, integrationId);
+    expect(integration).toBeHttp({ statusCode: 200 });
+    integration.data.data.files['integration.js'] = [
+      "const superagent = require('superagent');",
+      "const { Router, Manager, Form } = require('@fusebit-int/framework');",
+      'const router = new Router();',
+      "router.get('/api/getSession', async (ctx) => {",
+      "  const response = await superagent.get(`${ctx.state.params.baseUrl}/session/${ctx.query.session}`).set('Authorization', `Bearer ${ctx.state.params.functionAccessToken}`);",
+      '  ctx.body = response.body;',
+      '});',
+      "router.get('/api/testSession', async (ctx) => {",
+      "  let response = await superagent.put(`${ctx.state.params.baseUrl}/session/${ctx.query.session}`).set('Authorization', `Bearer ${ctx.state.params.functionAccessToken}`).send({ hello: 'world'});",
+      '  const result = {};',
+      "  response = await superagent.get(`${ctx.state.params.baseUrl}/session/${ctx.query.session}`).set('Authorization', `Bearer ${ctx.state.params.functionAccessToken}`);",
+      '  result.get = response.body;',
+      "  response = await superagent.get(`${ctx.state.params.baseUrl}/session/result/${ctx.query.session}`).set('Authorization', `Bearer ${ctx.state.params.functionAccessToken}`);",
+      '  result.getResult = response.body;',
+      '  ctx.body = result;',
+      '});',
+      "router.get('/api/getToken', async (ctx) => {",
+      "  const response = await superagent.get(`${ctx.state.params.baseUrl}/session/${ctx.query.session}`).set('Authorization', `Bearer ${ctx.state.params.functionAccessToken}`);",
+      '  ctx.body = response.body;',
+      '});',
+      "router.get('/api/aForm', async (ctx) => {",
+      "  const response = await superagent.get(`${ctx.state.params.baseUrl}/session/${ctx.query.session}`).set('Authorization', `Bearer ${ctx.state.params.functionAccessToken}`);",
+      '  ctx.redirect(`${ctx.state.params.baseUrl}/session/${ctx.query.session}/callback`);',
+      '});',
+      "router.get('/api/doASessionThing/:sessionId', async (ctx) => { ctx.body = 'doASessionThing'; });",
+      "router.get('/api/doAThing/:instanceId', async (ctx) => { ctx.body = 'doAThing'; });",
+      'module.exports = router;',
+    ].join('\n');
+    const pkgJson = JSON.parse(integration.data.data.files['package.json']);
+    pkgJson.dependencies.superagent = '*';
+    integration.data.data.files['package.json'] = JSON.stringify(pkgJson);
+
+    integration = await ApiRequestMap.integration.putAndWait(account, integrationId, integration.data);
+    expect(integration).toBeHttp({ statusCode: 200 });
+
+    const nextSessionStep = async (url: string): Promise<string> => {
+      const response = await request({ url, maxRedirects: 0 });
+      expect(response).toBeHttp({ statusCode: 302 });
+      return response.headers.location;
+    };
 
     // create new session to replace values in instance/identity
+    let response = await ApiRequestMap.integration.session.post(account, integrationId, {
+      redirectUrl: finalUrl,
+      extendTags: true,
+    });
+    expect(response).toBeHttp({ statusCode: 200 });
+    const parentSessionId = response.data.id;
+    // Start the "browser" on the session
+    response = await ApiRequestMap.integration.session.start(account, integrationId, parentSessionId);
+    expect(response).toBeHttp({ statusCode: 302 });
+
+    let nextUrl = response.headers.location;
+    // Load the connector/api/configure
+    nextUrl = await nextSessionStep(nextUrl);
+    // Load the authorization url
+    nextUrl = await nextSessionStep(nextUrl);
+    // Call the connector callback url to complete the OAuth exchange (connector writes to session in this
+    // transaction).
+    nextUrl = await nextSessionStep(nextUrl);
+    // Call the session endpoint to complete this session.
+    nextUrl = await nextSessionStep(nextUrl);
+    // Load the 'form' url.
+    nextUrl = await nextSessionStep(nextUrl);
+    // Call the session endpoint to complete this session.
+    await nextSessionStep(nextUrl);
+
+    // POST to the session to instantiate the instances/identities.
+    await ApiRequestMap.integration.session.postSession(account, integrationId, parentSessionId);
+
+    // Get the completed session with the output details
+    response = await ApiRequestMap.integration.session.getResult(account, integrationId, parentSessionId);
+    const instanceId = response.data.output.entityId;
+
+    response = await ApiRequestMap.instance.get(account, integrationId, instanceId);
+    const identityId = response.data.data.conn1.entityId;
+
+    //verify identity is healthy
+    response = await ApiRequestMap.connector.dispatch(account, connectorId, 'GET', `/api/${identityId}/health`, {});
+    expect(response).toBeHttp({ statusCode: 200 });
+
+    //verify identity is healthy
+    response = await ApiRequestMap.connector.dispatch(account, connectorId, 'GET', `/api/${identityId}/token`, {});
+    expect(response).toBeHttp({ statusCode: 200 });
+    expect(response.data.access_token).toBe('original token');
+
+    // REDO SESSION TO CHANGE EXISTING ENTRIES
 
     // Create a session
     response = await ApiRequestMap.integration.session.post(account, integrationId, {
       redirectUrl: finalUrl,
-      replacementTargetId: instanceId,
+      instanceId,
       extendTags: true,
     });
     expect(response).toBeHttp({ statusCode: 200 });
@@ -371,12 +529,7 @@ describe('Workflow', () => {
     response = await ApiRequestMap.integration.session.start(account, integrationId, replacementParentSessionId);
     expect(response).toBeHttp({ statusCode: 302 });
 
-    let nextUrl = response.headers.location;
-    const nextSessionStep = async (url: string): Promise<string> => {
-      const response = await request({ url, maxRedirects: 0 });
-      expect(response).toBeHttp({ statusCode: 302 });
-      return response.headers.location;
-    };
+    nextUrl = response.headers.location;
     // Load the connector/api/configure
     nextUrl = await nextSessionStep(nextUrl);
     // Load the authorization url
