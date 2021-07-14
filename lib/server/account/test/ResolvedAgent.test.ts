@@ -2,9 +2,8 @@ import fs from 'fs';
 import { ResolvedAgent } from '../src';
 import { signJwt } from '@5qtrs/jwt';
 import { JWT_PERMISSION_CLAIM } from '@5qtrs/constants';
+import { createKeyPair } from '@5qtrs/key-pair';
 
-const publicKey = fs.readFileSync(`${__dirname}/keys/pub`).toString();
-const privateKey = fs.readFileSync(`${__dirname}/keys/pri`).toString();
 const signJwtOptions = {
   algorithm: 'RS256',
   expiresIn: 600,
@@ -15,62 +14,67 @@ const signJwtOptions = {
 
 describe('ResolvedAgent', () => {
   it('should validate access token', async () => {
-    const jwt = await signJwt({}, privateKey, signJwtOptions);
-    const decodedJwtPayload = await ResolvedAgent.validateAccessTokenSignature(jwt, publicKey);
+    const keyPair = await createKeyPair();
+    const jwt = await signJwt({}, keyPair.privateKey, signJwtOptions);
+    const decodedJwtPayload = await ResolvedAgent.validateAccessTokenSignature(jwt, keyPair.publicKey);
     expect(decodedJwtPayload).toBeDefined();
   });
 
   it('should validate access token with valid inline permissions', async () => {
+    const keyPair = await createKeyPair();
     const jwt = await signJwt(
       {
         [JWT_PERMISSION_CLAIM]: {
           allow: [{ action: 'some-action', resource: 'some-resource' }],
         },
       },
-      privateKey,
+      keyPair.privateKey,
       signJwtOptions
     );
-    const decodedJwtPayload = await ResolvedAgent.validateAccessTokenSignature(jwt, publicKey);
+    const decodedJwtPayload = await ResolvedAgent.validateAccessTokenSignature(jwt, keyPair.publicKey);
     expect(decodedJwtPayload).toBeDefined();
   });
 
   it('should validate access token with empty inline permissions', async () => {
+    const keyPair = await createKeyPair();
+
     const jwt = await signJwt(
       {
         [JWT_PERMISSION_CLAIM]: {
           allow: [],
         },
       },
-      privateKey,
+      keyPair.privateKey,
       signJwtOptions
     );
-    const decodedJwt = await ResolvedAgent.validateAccessTokenSignature(jwt, publicKey);
+    const decodedJwt = await ResolvedAgent.validateAccessTokenSignature(jwt, keyPair.publicKey);
     expect(decodedJwt).toBeDefined();
 
     const anotherJwt = await signJwt(
       {
         [JWT_PERMISSION_CLAIM]: {},
       },
-      privateKey,
+      keyPair.privateKey,
       signJwtOptions
     );
-    const anotherDecodedJwt = await ResolvedAgent.validateAccessTokenSignature(anotherJwt, publicKey);
+    const anotherDecodedJwt = await ResolvedAgent.validateAccessTokenSignature(anotherJwt, keyPair.publicKey);
     expect(anotherDecodedJwt).toBeDefined();
   });
 
   it('should fail on invalid inline permissions (invalid resource property)', async () => {
+    const keyPair = await createKeyPair();
     const jwt = await signJwt(
       {
         [JWT_PERMISSION_CLAIM]: {
           allow: [{ action: 'some-action', functionResource: 'some-resource' }],
         },
       },
-      privateKey,
+      keyPair.privateKey,
       signJwtOptions
     );
 
     try {
-      await ResolvedAgent.validateAccessTokenSignature(jwt, publicKey);
+      await ResolvedAgent.validateAccessTokenSignature(jwt, keyPair.publicKey);
       fail('Expected an exception');
     } catch (err) {
       expect(err).toBeDefined();
@@ -82,18 +86,19 @@ describe('ResolvedAgent', () => {
   });
 
   it('should fail on invalid inline permissions (invalid action property)', async () => {
+    const keyPair = await createKeyPair();
     const jwt = await signJwt(
       {
         [JWT_PERMISSION_CLAIM]: {
           allow: [{ actionZ: 'some-action', resource: 'some-resource' }],
         },
       },
-      privateKey,
+      keyPair.privateKey,
       signJwtOptions
     );
 
     try {
-      await ResolvedAgent.validateAccessTokenSignature(jwt, publicKey);
+      await ResolvedAgent.validateAccessTokenSignature(jwt, keyPair.publicKey);
       fail('Expected an exception');
     } catch (err) {
       expect(err).toBeDefined();
