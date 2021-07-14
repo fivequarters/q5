@@ -140,13 +140,8 @@ export interface ISessionParameters {
   components?: string[];
   tags?: ITags;
   extendTags: boolean;
-  input?: ISessionInput;
+  input?: Record<string, any>;
   redirectUrl: string;
-  replacementTargetId?: string;
-}
-
-export interface ISessionInput extends Record<string, ISessionStepInput> {}
-export interface ISessionStepInput extends Record<string, any> {
   replacementTargetId?: string;
 }
 
@@ -187,6 +182,7 @@ export interface ITrunkSession extends IEntity {
 }
 
 export interface ILeafSessionData extends Omit<IStep, 'uses' | 'childSessionId' | 'dependsOn'> {
+  replacementTargetId?: string;
   mode: SessionMode.leaf;
   dependsOn: Record<string, object>;
   parentId: string;

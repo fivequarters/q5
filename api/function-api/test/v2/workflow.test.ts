@@ -48,7 +48,7 @@ describe('Workflow', () => {
     const baseUrl = `${process.env.API_SERVER}/v2/account/${account.accountId}/subscription/${account.subscriptionId}`;
 
     const sampleToken = {
-      access_token: 'EEEE',
+      access_token: 'original token',
       refresh_token: 'FFFF',
       token_type: 'access',
       message: boundaryId + '-token',
@@ -273,9 +273,6 @@ describe('Workflow', () => {
       data: { code: 200, type: 'session', verb: 'creating' },
       hasNot: ['payload'],
     });
-    const payload = response.data.payload;
-    const identityId = payload.conn1.id;
-    const instanceId = payload[''].id;
 
     // Get the completed session with the output details
     response = await ApiRequestMap.integration.session.getResult(account, integrationId, parentSessionId);
@@ -314,6 +311,11 @@ describe('Workflow', () => {
     expect(response.data.components[1].childSessionId).toBeUUID();
 
     expect(response.data.output.entityId).toBeUUID();
+    const instanceId = response.data.output.entityId;
+
+    response = await ApiRequestMap.instance.get(account, integrationId, instanceId);
+    const identityId = response.data.data.conn1.entityId;
+    let instance = await ApiRequestMap.identity.get(account, connectorId, identityId);
 
     //verify identity is healthy
     response = await ApiRequestMap.connector.dispatch(account, connectorId, 'GET', `/api/${identityId}/health`, {});
@@ -322,67 +324,7 @@ describe('Workflow', () => {
     // check value of saved token
     response = await ApiRequestMap.connector.dispatch(account, connectorId, 'GET', `/api/${identityId}/token`, {});
     expect(response).toBeHttp({ statusCode: 200 });
-    expect(response.data.access_token).toBe('EEEE');
-
-    // create new session to replace values in instance/identity
-
-    // Create a session
-    response = await ApiRequestMap.integration.session.post(account, integrationId, {
-      redirectUrl: finalUrl,
-      replacementTargetId: instanceId,
-      input: {
-        conn1: {
-          replacementTargetId: identityId,
-        },
-      },
-    });
-    expect(response).toBeHttp({ statusCode: 200 });
-    const replacementParentSessionId = response.data.id;
-    // Start the "browser" on the session
-    response = await ApiRequestMap.integration.session.start(account, integrationId, replacementParentSessionId);
-    expect(response).toBeHttp({ statusCode: 302 });
-
-    let nextUrl = response.headers.location;
-    const nextSessionStep = async (url: string): Promise<string> => {
-      const response = await request({ url, maxRedirects: 0 });
-      expect(response).toBeHttp({ statusCode: 302 });
-      return response.headers.location;
-    };
-    // Load the connector/api/configure
-    nextUrl = await nextSessionStep(nextUrl);
-    // Load the authorization url
-    nextUrl = await nextSessionStep(nextUrl);
-    // Call the connector callback url to complete the OAuth exchange (connector writes to session in this
-    // transaction).
-    //
-    // modifying the code to pull a new token
-    let params = new URLSearchParams(new URL(nextUrl).search);
-    params.set('code', '1234');
-    nextUrl = nextUrl.split('?')[0] + '?' + params.toString();
-    nextUrl = await nextSessionStep(nextUrl);
-    // Call the session endpoint to complete this session.
-    nextUrl = await nextSessionStep(nextUrl);
-    // Load the 'form' url.
-    nextUrl = await nextSessionStep(nextUrl);
-    // Call the session endpoint to complete this session.
-    nextUrl = await nextSessionStep(nextUrl);
-
-    // POST to the session to instantiate the instances/identities.
-    response = await ApiRequestMap.integration.session.postSession(account, integrationId, replacementParentSessionId);
-    expect(response).toBeHttp({
-      statusCode: 200,
-      data: { code: 200, type: 'session', verb: 'creating' },
-      has: ['payload'],
-    });
-
-    //verify identity is healthy
-    response = await ApiRequestMap.connector.dispatch(account, connectorId, 'GET', `/api/${identityId}/health`, {});
-    expect(response).toBeHttp({ statusCode: 200 });
-
-    //verify identity is healthy
-    response = await ApiRequestMap.connector.dispatch(account, connectorId, 'GET', `/api/${identityId}/token`, {});
-    expect(response).toBeHttp({ statusCode: 200 });
-    expect(response.data.access_token).toBe('replacement token');
+    expect(response.data.access_token).toBe('original token');
 
     // TODO: Modify the form page to query the connector with the contents of the session's 'uses' field, and
     //       related sessionId, and ensure that it gets back a valid token.
@@ -414,5 +356,64 @@ describe('Workflow', () => {
       },
     });
     expect(response.data.data.conn1.entityId).toBeUUID();
-  }, 180000);
+
+    // create new session to replace values in instance/identity
+
+    // Create a session
+    response = await ApiRequestMap.integration.session.post(account, integrationId, {
+      redirectUrl: finalUrl,
+      replacementTargetId: instanceId,
+      extendTags: true,
+    });
+    expect(response).toBeHttp({ statusCode: 200 });
+    const replacementParentSessionId = response.data.id;
+    // Start the "browser" on the session
+    response = await ApiRequestMap.integration.session.start(account, integrationId, replacementParentSessionId);
+    expect(response).toBeHttp({ statusCode: 302 });
+
+    let nextUrl = response.headers.location;
+    const nextSessionStep = async (url: string): Promise<string> => {
+      const response = await request({ url, maxRedirects: 0 });
+      expect(response).toBeHttp({ statusCode: 302 });
+      return response.headers.location;
+    };
+    // Load the connector/api/configure
+    nextUrl = await nextSessionStep(nextUrl);
+    // Load the authorization url
+    nextUrl = await nextSessionStep(nextUrl);
+    // Call the connector callback url to complete the OAuth exchange (connector writes to session in this
+    // transaction).
+    //
+    // modifying the code to pull a new token
+    let params = new URLSearchParams(new URL(nextUrl).search);
+    params.set('code', '1234');
+    nextUrl = nextUrl.split('?')[0] + '?' + params.toString();
+    nextUrl = await nextSessionStep(nextUrl);
+    // Call the session endpoint to complete this session.
+    nextUrl = await nextSessionStep(nextUrl);
+    // Load the 'form' url.
+    nextUrl = await nextSessionStep(nextUrl);
+    // Call the session endpoint to complete this session.
+    await nextSessionStep(nextUrl);
+
+    // POST to the session to instantiate the instances/identities.
+    await ApiRequestMap.integration.session.postSession(account, integrationId, replacementParentSessionId);
+
+    // Get the completed session with the output details
+    response = await ApiRequestMap.integration.session.getResult(account, integrationId, parentSessionId);
+
+    expect(response.data.output.entityId).toBe(instanceId);
+
+    response = await ApiRequestMap.instance.get(account, integrationId, instanceId);
+    expect(response.data.data.conn1.entityId).toBe(identityId);
+
+    //verify identity is healthy
+    response = await ApiRequestMap.connector.dispatch(account, connectorId, 'GET', `/api/${identityId}/health`, {});
+    expect(response).toBeHttp({ statusCode: 200 });
+
+    //verify identity is healthy
+    response = await ApiRequestMap.connector.dispatch(account, connectorId, 'GET', `/api/${identityId}/token`, {});
+    expect(response).toBeHttp({ statusCode: 200 });
+    expect(response.data.access_token).toBe('replacement token');
+  }, 180000000);
 });

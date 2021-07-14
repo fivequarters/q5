@@ -161,6 +161,37 @@ export default abstract class SessionedEntityService<
         return acc;
       }, {});
 
+    let replacementTargetId: string | undefined = undefined;
+    if (!!parentSession.data.replacementTargetId) {
+      const parentIntegrationParams = {
+        accountId: parentSession.accountId,
+        subscriptionId: parentSession.subscriptionId,
+        id: Model.decomposeSubordinateId(parentSession.id).parentEntityId,
+      };
+      const parentIntegration = await this.integrationService.dao.getEntity(parentIntegrationParams);
+      const instanceId = Model.createSubordinateId(
+        Model.EntityType.integration,
+        parentIntegration.__databaseId as string,
+        parentSession.data.replacementTargetId
+      );
+
+      if (step.entityType === Model.EntityType.integration) {
+        replacementTargetId = instanceId;
+      } else {
+        const instanceParams = {
+          id: instanceId,
+          accountId: parentSession.accountId,
+          subscriptionId: parentSession.subscriptionId,
+        };
+        const entity = await this.integrationService.subDao!.getEntity(instanceParams);
+        const [stepName, stepEntity] =
+          Object.entries((entity.data as { [key: string]: { entityId: string } }) || {}).find(
+            ([name, component]: [string, any]) => name === step.name
+          ) || [];
+        replacementTargetId = stepEntity?.entityId;
+      }
+    }
+
     // Create a new session.
     const session: Model.ILeafSession = {
       accountId: parentSession.accountId,
@@ -174,6 +205,7 @@ export default abstract class SessionedEntityService<
         output: step.output,
         dependsOn,
         parentId: parentSession.id,
+        replacementTargetId,
       },
     };
 
@@ -307,7 +339,7 @@ export default abstract class SessionedEntityService<
             });
             this.ensureSessionLeaf(sessionEntity, 'invalid session entry in step');
 
-            const result = await this.instantiateLeafSession(
+            const result = await this.persistLeafSession(
               daos,
               sessionEntity,
               masterSessionId,
@@ -366,7 +398,7 @@ export default abstract class SessionedEntityService<
     return { statusCode: 200, result: 'success' };
   };
 
-  public instantiateLeafSession = async (
+  public persistLeafSession = async (
     daos: Model.IDaoCollection,
     session: Model.ILeafSession,
     masterSessionId: Model.ISubordinateId,
@@ -390,7 +422,7 @@ export default abstract class SessionedEntityService<
       id: parentEntityId,
     });
 
-    const leafId = session.data.input?.replacementTargetId || uuidv4();
+    const leafId = session.data.replacementTargetId || uuidv4();
 
     const leafEntity: any = {
       accountId: session.accountId,
@@ -401,15 +433,11 @@ export default abstract class SessionedEntityService<
     };
 
     const subDao = daos[service.subDao!.getDaoType()];
-    let result: Model.IEntity;
-    if (!!session.data.input?.replacementTargetId) {
-      result = await subDao.updateEntity(leafEntity);
+    if (!!session.data.replacementTargetId) {
+      await subDao.updateEntity(leafEntity);
     } else {
-      result = await subDao.createEntity(leafEntity);
+      await subDao.createEntity(leafEntity);
     }
-
-    // Don't expose the data in the report.
-    delete result.data;
 
     return {
       statusCode: 200,
