@@ -21,8 +21,5 @@
     "@5qtrs/promise": "^0.0.1",
     "@5qtrs/random": "^0.0.1",
     "@5qtrs/runas": "^0.0.1"
-  },
-  "devDependencies": {
-    "@5qtrs/key-pair": "^0.0.1"
   }
 }
