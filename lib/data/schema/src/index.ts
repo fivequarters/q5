@@ -142,7 +142,7 @@ export interface ISessionParameters {
   extendTags: boolean;
   input?: Record<string, any>;
   redirectUrl: string;
-  replacementTargetId?: string;
+  instanceId?: string;
 }
 
 export interface IStep extends IIntegrationComponent {

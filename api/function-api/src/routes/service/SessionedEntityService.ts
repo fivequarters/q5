@@ -117,7 +117,7 @@ export default abstract class SessionedEntityService<
       subscriptionId: entity.subscriptionId,
       id: Model.createSubordinateId(this.entityType, entity.id, sessionId),
       data: {
-        replacementTargetId: sessionDetails.replacementTargetId,
+        replacementTargetId: sessionDetails.instanceId,
         mode: Model.SessionMode.trunk,
         components: stepList,
         redirectUrl: sessionDetails.redirectUrl,
@@ -189,6 +189,7 @@ export default abstract class SessionedEntityService<
             ([name, component]: [string, any]) => name === step.name
           ) || [];
         replacementTargetId = stepEntity?.entityId;
+        // let output = stepEntity.data.output;
       }
     }
 
