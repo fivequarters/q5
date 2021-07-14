@@ -131,7 +131,11 @@ export default abstract class SessionedEntityService<
     };
   };
 
-  public createLeafSession = async (parentSession: Model.ITrunkSession, step: Model.IStep): Promise<IServiceResult> => {
+  public createLeafSession = async (
+    parentSession: Model.ITrunkSession,
+    step: Model.IStep,
+    instance?: Model.IInstance
+  ): Promise<IServiceResult> => {
     if (step.childSessionId) {
       const childEntity = await this.sessionDao.getEntity({
         accountId: parentSession.accountId,
@@ -162,34 +166,15 @@ export default abstract class SessionedEntityService<
       }, {});
 
     let replacementTargetId: string | undefined = undefined;
-    let output = step.output;
-    if (!!parentSession.data.replacementTargetId) {
-      const parentIntegrationParams = {
-        accountId: parentSession.accountId,
-        subscriptionId: parentSession.subscriptionId,
-        id: Model.decomposeSubordinateId(parentSession.id).parentEntityId,
-      };
-      const parentIntegration = await this.integrationService.dao.getEntity(parentIntegrationParams);
-      const instanceId = Model.createSubordinateId(
-        Model.EntityType.integration,
-        parentIntegration.__databaseId as string,
-        parentSession.data.replacementTargetId
-      );
-      const instanceParams = {
-        id: instanceId,
-        accountId: parentSession.accountId,
-        subscriptionId: parentSession.subscriptionId,
-      };
-      const instance = await this.integrationService.subDao!.getEntity(instanceParams);
-
+    let previousOutput;
+    if (!!parentSession.data.replacementTargetId && !!instance) {
       if (step.entityType === Model.EntityType.integration) {
-        replacementTargetId = instanceId;
-        output = instance.data;
+        replacementTargetId = instance.id;
+        previousOutput = instance.data[step.name];
       } else {
-        const [stepName, stepEntity]: [string, Model.ISubordinateId] = (Object.entries(
-          (instance.data as Record<string, Model.ISubordinateId>) || {}
-        ).find(([name, component]: [string, any]) => name === step.name) || []) as [string, Model.ISubordinateId];
+        const stepEntity = instance.data[step.name];
         replacementTargetId = stepEntity.entityId;
+
         const connector = await this.connectorService.dao.getEntity({
           id: stepEntity.parentEntityId,
           accountId: parentSession.accountId,
@@ -199,12 +184,12 @@ export default abstract class SessionedEntityService<
           id: Model.createSubordinateId(
             Model.EntityType.connector,
             connector.__databaseId as string,
-            replacementTargetId
+            replacementTargetId as string
           ),
           accountId: parentSession.accountId,
           subscriptionId: parentSession.subscriptionId,
         });
-        output = identity.data;
+        previousOutput = identity.data;
       }
     }
 
@@ -218,7 +203,7 @@ export default abstract class SessionedEntityService<
         mode: Model.SessionMode.leaf,
         name: step.name,
         input: step.input,
-        output,
+        output: step.output || previousOutput,
         dependsOn,
         parentId: parentSession.id,
         replacementTargetId,
@@ -257,15 +242,41 @@ export default abstract class SessionedEntityService<
     return { statusCode: 200, result: session };
   };
 
+  private getSessionInstance = async (trunkSession: Model.ITrunkSession): Promise<Model.IInstance | undefined> => {
+    if (!trunkSession.data.replacementTargetId) {
+      return undefined;
+    }
+    const parentIntegrationParams = {
+      accountId: trunkSession.accountId,
+      subscriptionId: trunkSession.subscriptionId,
+      id: Model.decomposeSubordinateId(trunkSession.id).parentEntityId,
+    };
+    const parentIntegration = await this.integrationService.dao.getEntity(parentIntegrationParams);
+    const instanceId = Model.createSubordinateId(
+      Model.EntityType.integration,
+      parentIntegration.__databaseId as string,
+      trunkSession.data.replacementTargetId as string
+    );
+    const instanceParams = {
+      id: instanceId,
+      accountId: trunkSession.accountId,
+      subscriptionId: trunkSession.subscriptionId,
+    };
+    const instance = await this.integrationService.subDao!.getEntity(instanceParams);
+    return instance;
+  };
+
   public startSession = async (entity: Model.IEntity): Promise<IServiceResult> => {
     const parentSession = await this.sessionDao.getEntity(entity);
     this.ensureSessionTrunk(parentSession, 'cannot start a session in progress', 400);
 
+    // Get instance if needed
+    const instance = await this.getSessionInstance(parentSession);
     // Get the first step
     const step = parentSession.data.components[0];
 
     // Create a session
-    const leafSession = await this.createLeafSession(parentSession, step);
+    const leafSession = await this.createLeafSession(parentSession, step, instance);
 
     // Return a 302 to the new session target
     return { statusCode: 302, result: this.getTargetElements(leafSession.result, leafSession.result.data) };
@@ -302,8 +313,10 @@ export default abstract class SessionedEntityService<
       };
     }
 
+    // Get instance if needed
+    const instance = await this.getSessionInstance(parentSession);
     // Start a new step session and redirect.
-    const stepSession = await this.createLeafSession(parentSession, step);
+    const stepSession = await this.createLeafSession(parentSession, step, instance);
 
     // Return a 302 to the new session target
     return {
@@ -440,7 +453,7 @@ export default abstract class SessionedEntityService<
 
     const leafId = session.data.replacementTargetId || uuidv4();
 
-    const leafEntity: any = {
+    const leafEntity: Model.IEntity = {
       accountId: session.accountId,
       subscriptionId: session.subscriptionId,
       id: Model.createSubordinateId(service.entityType, parentEntity.__databaseId as string, leafId),
