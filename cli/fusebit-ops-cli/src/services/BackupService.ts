@@ -4,7 +4,16 @@ import { OpsService } from './OpsService';
 import { ExecuteService } from './ExecuteService';
 import { AwsCreds, IAwsConfig } from '@5qtrs/aws-config';
 import { IAwsCredentials } from '@5qtrs/aws-cred';
-import { dynamoScanTable } from '@5qtrs/constants';
+import { dynamoScanTable, isSystemIssuer } from '@5qtrs/constants';
+
+interface backupPlanListItem {
+  backupPlanInfo: AWS.Backup.BackupPlansListMember;
+  region: string;
+}
+
+interface listBackupPlansOutput {
+  backupPlans: backupPlanListItem[];
+}
 
 export class BackupService {
   private opsService: OpsService;
@@ -222,16 +231,17 @@ export class BackupService {
   // The actual driver for backup plan, trigged by listBackupPlan().
   private async listBackupPlanDriver() {
     const regions = await this.findAllRegionsWithDeployments(this.credentials, this.config);
-    const backupPlans: any = { BackupPlansList: [] };
+    let backupPlans: listBackupPlansOutput = { backupPlans: [] };
     for (const i of regions) {
       const Backup = await this.getAwsBackupClient(i);
 
       const backupPlansResult = await Backup.listBackupPlans().promise();
-
-      backupPlans.BackupPlansList = [
-        ...(backupPlansResult.BackupPlansList as AWS.Backup.BackupPlansList),
-        ...backupPlans.BackupPlansList,
-      ];
+      for (const backupPlan of backupPlansResult.BackupPlansList as AWS.Backup.BackupPlansList) {
+        backupPlans.backupPlans.push({
+          backupPlanInfo: backupPlan,
+          region: i,
+        });
+      }
     }
     return backupPlans;
   }
@@ -254,10 +264,14 @@ export class BackupService {
     if (!data) {
       return { backups: [] };
     }
-    if (!data.BackupPlansList) {
+    if (!data.backupPlans) {
       return { backups: [] };
     }
-    return { Backup: data.BackupPlansList.map((item: any) => item.BackupPlanName + ' ' + item.BackupPlanId) };
+    return {
+      Backup: data.backupPlans.map(
+        (item: any) => item.backupPlanInfo.BackupPlanName + ' ' + item.backupPlanInfo.BackupPlanId + ' ' + item.region
+      ),
+    };
   }
 
   // Helper function: find all regions that have deployments and the region of ops tables.
