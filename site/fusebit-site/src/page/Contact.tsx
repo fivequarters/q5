@@ -48,9 +48,9 @@ function SlackContactOption() {
 
 function DiscordContactOption() {
   return (
-    <ContactOption icon={<DiscordIcon />} href={'https://discord.gg/kbw63AmWP9'}>
+    <ContactOption icon={<DiscordIcon />} href={'https://discord.gg/gphkyNZbHv'}>
       <FusebitText>
-        <Link openTab href="https://discord.gg/kbw63AmWP9">
+        <Link openTab href="https://discord.gg/gphkyNZbHv">
           Discord Community
         </Link>
       </FusebitText>
