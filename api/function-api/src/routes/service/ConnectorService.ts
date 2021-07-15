@@ -72,6 +72,7 @@ class ConnectorService extends SessionedEntityService<Model.IConnector, Model.II
   };
 
   public getFunctionSecuritySpecification = () => ({
+    authentication: 'optional',
     functionPermissions: {
       allow: [
         {

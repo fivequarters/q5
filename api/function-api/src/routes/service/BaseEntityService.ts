@@ -1,5 +1,3 @@
-import { IncomingHttpHeaders } from 'http';
-
 import { IAgent } from '@5qtrs/account-data';
 import { Model } from '@5qtrs/db';
 import { AwsRegistry } from '@5qtrs/registry';
@@ -13,13 +11,6 @@ export interface IServiceResult {
   statusCode: number;
   contentType?: string;
   result: any;
-}
-
-export interface IDispatchParams {
-  headers: IncomingHttpHeaders;
-  body?: string | object;
-  query?: object;
-  originalUrl: string;
 }
 
 const rejectPermissionAgent = {
@@ -187,7 +178,7 @@ export default abstract class BaseEntityService<E extends Model.IEntity, F exten
     entity: Model.IEntity,
     method: string,
     location: string,
-    elements: IDispatchParams
+    elements: Function.IExecuteFunctionOptions
   ): Promise<Function.IExecuteFunction> => {
     return Function.executeFunction(
       { ...entity, boundaryId: this.entityType, functionId: entity.id, version: undefined },

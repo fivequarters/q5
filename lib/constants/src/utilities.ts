@@ -1,5 +1,6 @@
 import * as path from 'path';
 import http_error from 'http-errors';
+import * as express from 'express';
 
 const DYNAMO_BACKOFF_TRIES_MAX = 5;
 const DYNAMO_BACKOFF_DELAY = 300;
@@ -93,4 +94,12 @@ const isUuid = (str: string) => {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(str);
 };
 
-export { dynamoScanTable, expBackoff, asyncPool, duplicate, safePath, safePathMap, isUuid };
+const getAuthToken = (req: express.Request): string | undefined => {
+  if (!req.headers.authorization) {
+    return undefined;
+  }
+  const match = req.headers.authorization.match(/^\ *bearer\ +(.+)$/i);
+  return match ? match[1] : undefined;
+};
+
+export { dynamoScanTable, expBackoff, asyncPool, duplicate, safePath, safePathMap, isUuid, getAuthToken };

@@ -1,7 +1,7 @@
 import express from 'express';
 const Joi = require('joi');
 
-import { v2Permissions } from '@5qtrs/constants';
+import { v2Permissions, getAuthToken } from '@5qtrs/constants';
 
 import { Model } from '@5qtrs/db';
 
@@ -86,11 +86,14 @@ const router = (
     let result;
 
     try {
+      const token = getAuthToken(req);
+
       result = await EntityService.dispatch(
         pathParams.EntityById(req, paramIdNames[paramIdNames.length - 1]),
         req.method,
         req.params.subPath,
         {
+          token,
           headers: req.headers,
           body: req.body,
           query: req.query,

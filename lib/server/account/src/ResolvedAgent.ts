@@ -82,11 +82,13 @@ function doesResourceAuthorize(grantedResource: string, requestedResource: strin
 }
 
 function doesActionAuthorize(grantedAction: string, requestedAction: string) {
-  const grantedSegments = grantedAction.split(':');
-  const requestedSegments = requestedAction.split(':');
   if (grantedAction === requestedAction) {
     return true;
   }
+
+  const grantedSegments = grantedAction.split(':');
+  const requestedSegments = requestedAction.split(':');
+
   for (let i = 0; i < requestedSegments.length; i++) {
     if (grantedSegments[i]) {
       if (grantedSegments[i] === '*') {
@@ -244,7 +246,9 @@ export class ResolvedAgent implements IAgent {
   }
 
   public async checkPermissionSubset(permissions: any) {
-    return Promise.all(permissions.allow.map((entry: any) => this.ensureAuthorized(entry.action, entry.resource)));
+    if (permissions.allow) {
+      return Promise.all(permissions.allow.map((entry: any) => this.ensureAuthorized(entry.action, entry.resource)));
+    }
   }
 
   public get id() {

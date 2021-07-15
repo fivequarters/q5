@@ -103,6 +103,7 @@ class IntegrationService extends SessionedEntityService<Model.IIntegration, Mode
   };
 
   public getFunctionSecuritySpecification = () => ({
+    authentication: 'optional',
     functionPermissions: {
       allow: [
         {
