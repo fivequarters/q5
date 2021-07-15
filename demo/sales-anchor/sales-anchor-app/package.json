@@ -28,7 +28,7 @@
     "react-google-login": "^5.0.2",
     "styled-components": "^4.1.3",
     "superagent": "^4.1.0",
-    "@5qtrs/fusebit-editor": "^1.0.0",
+    "@5qtrs/fusebit-editor": "^2.0.0",
     "@5qtrs/box": "^0.0.1"
   },
   "devDependencies": {
