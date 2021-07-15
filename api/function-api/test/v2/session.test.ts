@@ -211,6 +211,96 @@ describe('Sessions', () => {
     expect(response).toBeHttp({ statusCode: 400 });
   }, 180000);
 
+  test('Create a session with an instanceId to pull existing data', async () => {
+    const { integrationId, connectorId, steps } = await createPair(account, boundaryId, {
+      components: [
+        {
+          name: 'conn',
+          entityType: Model.EntityType.connector,
+          entityId: `${boundaryId}-con`,
+          dependsOn: [],
+          package: '@fusebit-int/pkg-oauth-integration',
+          path: '/api/configure',
+        },
+        {
+          name: 'form',
+          entityType: Model.EntityType.integration,
+          entityId: `${boundaryId}-integ`,
+          dependsOn: ['conn'],
+          path: '/api/configure',
+        },
+      ],
+    });
+
+    const instanceTestData = { testData: 'instance' };
+    const identityTestData = { testData: 'identity' };
+
+    // create identity
+    const createIdentityResponse = await ApiRequestMap.identity.post(account, connectorId, { data: identityTestData });
+    expect(createIdentityResponse).toBeHttp({
+      statusCode: 200,
+      data: {
+        data: identityTestData,
+      },
+    });
+    // create instance, with identity pre-attached
+    const createInstanceResponse = await ApiRequestMap.instance.post(account, integrationId, {
+      data: {
+        [steps[0]]: {
+          entityId: createIdentityResponse.data.id,
+          parentEntityId: connectorId,
+        },
+        [steps[1]]: instanceTestData,
+      },
+    });
+    expect(createInstanceResponse).toBeHttp({
+      statusCode: 200,
+      data: {
+        data: {
+          [steps[0]]: {
+            entityId: createIdentityResponse.data.id,
+            parentEntityId: connectorId,
+          },
+          [steps[1]]: instanceTestData,
+        },
+      },
+    });
+    const instance = createInstanceResponse.data;
+
+    let response = await ApiRequestMap.integration.session.post(account, integrationId, {
+      redirectUrl: demoRedirectUrl,
+      instanceId: instance.id,
+    });
+    expect(response).toBeHttp({ statusCode: 200 });
+    const parentSessionId = response.data.id;
+
+    // Start the session to make sure it starts correctly.
+    response = await ApiRequestMap.integration.session.start(account, integrationId, parentSessionId);
+    expect(response).toBeHttp({ statusCode: 302 });
+    const loc = getElementsFromUrl(response.headers.location);
+    // Call the callback to move to the next step
+    response = await ApiRequestMap[loc.entityType].session.callback(account, loc.entityId, loc.sessionId);
+    expect(response).toBeHttp(200);
+
+    // get session results to verify current data matches data on instance/identity
+    response = await ApiRequestMap.integration.session.getResult(account, integrationId, parentSessionId);
+    const identitySessionId = response.data.components[0].childSessionId;
+    const instanceSessionId = response.data.components[1].childSessionId;
+
+    const identitySessionResponse = await ApiRequestMap.connector.session.getResult(
+      account,
+      connectorId,
+      identitySessionId
+    );
+    const instanceSessionResponse = await ApiRequestMap.integration.session.getResult(
+      account,
+      integrationId,
+      instanceSessionId
+    );
+    expect(identitySessionResponse).toBeHttp({ statusCode: 200, data: { output: identityTestData } });
+    expect(instanceSessionResponse).toBeHttp({ statusCode: 200, data: { output: instanceTestData } });
+  }, 1800000);
+
   test('Full result session on a step includes output and no ids', async () => {
     // foo
     // The id's are hidden underneath the step parameters, no way for them ever to be leaked like that.

@@ -203,7 +203,7 @@ export default abstract class SessionedEntityService<
         mode: Model.SessionMode.leaf,
         name: step.name,
         input: step.input,
-        output: step.output || previousOutput,
+        output: previousOutput,
         dependsOn,
         parentId: parentSession.id,
         replacementTargetId,
