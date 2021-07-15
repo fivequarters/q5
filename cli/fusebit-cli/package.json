@@ -1,6 +1,6 @@
 {
   "name": "@5qtrs/fusebit-cli",
-  "version": "1.9.14",
+  "version": "1.9.15",
   "description": "",
   "main": "libc/index.js",
   "bin": {
