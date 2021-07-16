@@ -142,6 +142,7 @@ export interface ISessionParameters {
   extendTags: boolean;
   input?: Record<string, any>;
   redirectUrl: string;
+  instanceId?: string;
 }
 
 export interface IStep extends IIntegrationComponent {
@@ -162,6 +163,8 @@ export interface ITrunkSessionData {
 
   components: IStep[];
 
+  replacementTargetId?: string;
+
   // Instance created as a result of a session POST.
   output?: {
     accountId: string;
@@ -179,6 +182,7 @@ export interface ITrunkSession extends IEntity {
 }
 
 export interface ILeafSessionData extends Omit<IStep, 'uses' | 'childSessionId' | 'dependsOn'> {
+  replacementTargetId?: string;
   mode: SessionMode.leaf;
   dependsOn: Record<string, object>;
   parentId: string;

@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.27.17
+
+_Released 07/16/21_
+
+- **Enhancement** Integration Sessions can now be ran against an existing set of Instances and Identities in order to update their values
+
 ## Version 1.27.16
 
 _Released 07/13/21_

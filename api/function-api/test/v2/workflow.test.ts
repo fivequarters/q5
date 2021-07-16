@@ -2,11 +2,13 @@ import { request } from '@5qtrs/request';
 
 import { Model } from '@5qtrs/db';
 
-import { cleanupEntities, ApiRequestMap, createPair, getElementsFromUrl } from './sdk';
+import { cleanupEntities, ApiRequestMap, createPair } from './sdk';
 
 import { startTunnel, startHttpServer } from '../v1/tunnel';
 
 import { getEnv } from '../v1/setup';
+import express from 'express';
+import { URL, URLSearchParams } from 'url';
 
 let { account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv();
 beforeEach(() => {
@@ -46,7 +48,7 @@ describe('Workflow', () => {
     const baseUrl = `${process.env.API_SERVER}/v2/account/${account.accountId}/subscription/${account.subscriptionId}`;
 
     const sampleToken = {
-      access_token: 'EEEE',
+      access_token: 'original token',
       refresh_token: 'FFFF',
       token_type: 'access',
       message: boundaryId + '-token',
@@ -163,8 +165,12 @@ describe('Workflow', () => {
       oauthSessionId = req.query.state;
       return res.redirect(`${req.query.redirect_uri}?state=${req.query.state}&code=EEEE`);
     });
-    httpServer.app.post('/token', (req: any, res: any) => {
-      return res.json(sampleToken);
+    httpServer.app.post('/token', express.urlencoded({ extended: true }), (req: any, res: any) => {
+      if (req.body.code === '1234') {
+        return res.json({ ...sampleToken, access_token: 'replacement token' });
+      } else {
+        return res.json(sampleToken);
+      }
     });
 
     // Load the authorization url
@@ -305,9 +311,25 @@ describe('Workflow', () => {
     expect(response.data.components[1].childSessionId).toBeUUID();
 
     expect(response.data.output.entityId).toBeUUID();
-
     const instanceId = response.data.output.entityId;
 
+    response = await ApiRequestMap.instance.get(account, integrationId, instanceId);
+    const identityId = response.data.data.conn1.entityId;
+    let instance = await ApiRequestMap.identity.get(account, connectorId, identityId);
+
+    //verify identity is healthy
+    response = await ApiRequestMap.connector.dispatch(account, connectorId, 'GET', `/api/${identityId}/health`, {});
+    expect(response).toBeHttp({ statusCode: 200 });
+
+    // check value of saved token
+    response = await ApiRequestMap.connector.dispatch(account, connectorId, 'GET', `/api/${identityId}/token`, {});
+    expect(response).toBeHttp({ statusCode: 200 });
+    expect(response.data.access_token).toBe('original token');
+
+    // TODO: Modify the form page to query the connector with the contents of the session's 'uses' field, and
+    //       related sessionId, and ensure that it gets back a valid token.
+    //         Requires the connector to support looking up the contents by a sessionId instead of by a
+    //         instanceId.
     response = await ApiRequestMap.instance.get(account, integrationId, instanceId);
     expect(response).toBeHttp({
       statusCode: 200,
@@ -334,5 +356,70 @@ describe('Workflow', () => {
       },
     });
     expect(response.data.data.conn1.entityId).toBeUUID();
-  }, 180000);
+
+    // REDO SESSION TO CHANGE EXISTING ENTRIES
+
+    // Create a session
+    response = await ApiRequestMap.integration.session.post(account, integrationId, {
+      redirectUrl: finalUrl,
+      instanceId,
+      extendTags: true,
+    });
+    expect(response).toBeHttp({ statusCode: 200 });
+    const replacementParentSessionId = response.data.id;
+
+    const nextSessionStep = async (url: string): Promise<string> => {
+      const response = await request({ url, maxRedirects: 0 });
+      expect(response).toBeHttp({ statusCode: 302 });
+      return response.headers.location;
+    };
+    // Start the "browser" on the session
+    response = await ApiRequestMap.integration.session.start(account, integrationId, replacementParentSessionId);
+    expect(response).toBeHttp({ statusCode: 302 });
+    let nextUrl = response.headers.location;
+
+    // verify that new session is populated with token from previous session
+    response = await ApiRequestMap.integration.session.getResult(account, integrationId, replacementParentSessionId);
+    const identitySessionId = response.data.components[0].childSessionId;
+    response = await ApiRequestMap.connector.session.getResult(account, connectorId, identitySessionId);
+    expect(response.data.output.token.access_token).toBe('original token');
+    // Load the connector/api/configure
+    nextUrl = await nextSessionStep(nextUrl);
+    // Load the authorization url
+    nextUrl = await nextSessionStep(nextUrl);
+    // Call the connector callback url to complete the OAuth exchange (connector writes to session in this
+    // transaction).
+    //
+    // modifying the code to pull a new token
+    let params = new URLSearchParams(new URL(nextUrl).search);
+    params.set('code', '1234');
+    nextUrl = nextUrl.split('?')[0] + '?' + params.toString();
+    nextUrl = await nextSessionStep(nextUrl);
+    // Call the session endpoint to complete this session.
+    nextUrl = await nextSessionStep(nextUrl);
+    // Load the 'form' url.
+    nextUrl = await nextSessionStep(nextUrl);
+    // Call the session endpoint to complete this session.
+    await nextSessionStep(nextUrl);
+
+    // POST to the session to instantiate the instances/identities.
+    await ApiRequestMap.integration.session.postSession(account, integrationId, replacementParentSessionId);
+
+    // Get the completed session with the output details
+    response = await ApiRequestMap.integration.session.getResult(account, integrationId, replacementParentSessionId);
+
+    expect(response.data.output.entityId).toBe(instanceId);
+
+    response = await ApiRequestMap.instance.get(account, integrationId, instanceId);
+    expect(response.data.data.conn1.entityId).toBe(identityId);
+
+    //verify identity is healthy
+    response = await ApiRequestMap.connector.dispatch(account, connectorId, 'GET', `/api/${identityId}/health`, {});
+    expect(response).toBeHttp({ statusCode: 200 });
+
+    //verify identity is healthy
+    response = await ApiRequestMap.connector.dispatch(account, connectorId, 'GET', `/api/${identityId}/token`, {});
+    expect(response).toBeHttp({ statusCode: 200 });
+    expect(response.data.access_token).toBe('replacement token');
+  }, 180000000);
 });
