@@ -234,7 +234,7 @@ describe('Sessions', () => {
 
     // create identity
     const createIdentityResponse = await ApiRequestMap.identity.post(account, connectorId, { data: {} });
-    expect(createIdentityResponse).toBeHttp(200);
+    expect(createIdentityResponse).toBeHttp({ statusCode: 200 });
     const identityId = createIdentityResponse.data.id;
     // create instance, with identity pre-attached
     const createInstanceResponse = await ApiRequestMap.instance.post(account, integrationId, {
@@ -271,7 +271,7 @@ describe('Sessions', () => {
     const loc = getElementsFromUrl(response.headers.location);
     // Call the callback to move to the next step
     response = await ApiRequestMap[loc.entityType].session.callback(account, loc.entityId, loc.sessionId);
-    expect(response).toBeHttp(200);
+    expect(response).toBeHttp({ statusCode: 200 });
 
     // get session results to verify current data matches data on instance/identity
     response = await ApiRequestMap.integration.session.getResult(account, integrationId, parentSessionId);
@@ -282,9 +282,9 @@ describe('Sessions', () => {
     const instanceData = { newData: 'for instance' };
     const identityData = { newData: 'for identity' };
     response = await ApiRequestMap.integration.session.put(account, integrationId, instanceSessionId, instanceData);
-    expect(response).toBeHttp(200);
+    expect(response).toBeHttp({ statusCode: 200 });
     response = await ApiRequestMap.connector.session.put(account, connectorId, identitySessionId, identityData);
-    expect(response).toBeHttp(200);
+    expect(response).toBeHttp({ statusCode: 200 });
 
     // finalize session to write session data to entities
     response = await ApiRequestMap.integration.session.postSession(account, integrationId, parentSessionId);
@@ -365,7 +365,7 @@ describe('Sessions', () => {
     const loc = getElementsFromUrl(response.headers.location);
     // Call the callback to move to the next step
     response = await ApiRequestMap[loc.entityType].session.callback(account, loc.entityId, loc.sessionId);
-    expect(response).toBeHttp(200);
+    expect(response).toBeHttp({ statusCode: 200 });
 
     // get session results to verify current data matches data on instance/identity
     response = await ApiRequestMap.integration.session.getResult(account, integrationId, parentSessionId);
