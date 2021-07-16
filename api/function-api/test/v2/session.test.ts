@@ -211,7 +211,7 @@ describe('Sessions', () => {
     expect(response).toBeHttp({ statusCode: 400 });
   }, 180000);
 
-  test('Overwrite an existing instance and entity', async () => {
+  test('Overwrite an existing instance and identity', async () => {
     const { integrationId, connectorId, steps } = await createPair(account, boundaryId, {
       components: [
         {
@@ -306,13 +306,6 @@ describe('Sessions', () => {
           dependsOn: [],
           path: '/api/configure',
         },
-        {
-          name: 'formTwo',
-          entityType: Model.EntityType.integration,
-          entityId: `${boundaryId}-integ`,
-          dependsOn: [],
-          path: '/api/configure',
-        },
       ],
     });
 
@@ -365,7 +358,7 @@ describe('Sessions', () => {
     response = await ApiRequestMap.integration.session.postSession(account, integrationId, parentSessionId);
     expect(response).toBeHttp({ statusCode: 200 });
 
-    // verify that pre-existing identity and instance have been updated
+    // verify that pre-existing instance has been updated while preserving skipped formTwo data
     response = await ApiRequestMap.instance.get(account, integrationId, instanceId);
     expect(response).toBeHttp({
       statusCode: 200,

@@ -406,6 +406,8 @@ export default abstract class SessionedEntityService<
 
       const subDao = daos[this.subDao!.getDaoType()];
       if (!!session.data.replacementTargetId) {
+        const existingEntity = await subDao.getEntity(instance);
+        instance.data = { ...existingEntity.data, ...instance.data };
         await subDao.updateEntity(instance);
       } else {
         await subDao.createEntity(instance);
