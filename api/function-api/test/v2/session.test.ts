@@ -271,7 +271,7 @@ describe('Sessions', () => {
     const loc = getElementsFromUrl(response.headers.location);
     // Call the callback to move to the next step
     response = await ApiRequestMap[loc.entityType].session.callback(account, loc.entityId, loc.sessionId);
-    expect(response).toBeHttp({ statusCode: 200 });
+    expect(response).toBeHttp({ statusCode: 302 });
 
     // get session results to verify current data matches data on instance/identity
     response = await ApiRequestMap.integration.session.getResult(account, integrationId, parentSessionId);
@@ -294,6 +294,83 @@ describe('Sessions', () => {
     expect(response).toBeHttp({ statusCode: 200, data: { data: { form: instanceData } } });
     response = await ApiRequestMap.identity.get(account, connectorId, identityId);
     expect(response).toBeHttp({ statusCode: 200, data: { data: identityData } });
+  }, 180000);
+
+  test('Overwrite 1 of 2 forms', async () => {
+    const { integrationId } = await createPair(account, boundaryId, {
+      components: [
+        {
+          name: 'formOne',
+          entityType: Model.EntityType.integration,
+          entityId: `${boundaryId}-integ`,
+          dependsOn: [],
+          path: '/api/configure',
+        },
+        {
+          name: 'formTwo',
+          entityType: Model.EntityType.integration,
+          entityId: `${boundaryId}-integ`,
+          dependsOn: [],
+          path: '/api/configure',
+        },
+      ],
+    });
+
+    const formOneInitialData = { initialData: 'formOne' };
+    const formTwoInitialData = { intiialData: 'formTwo' };
+
+    // create instance, with identity pre-attached
+    const createInstanceResponse = await ApiRequestMap.instance.post(account, integrationId, {
+      data: {
+        formOne: formOneInitialData,
+        formTwo: formTwoInitialData,
+      },
+    });
+    expect(createInstanceResponse).toBeHttp({
+      statusCode: 200,
+      data: {
+        data: {
+          formOne: formOneInitialData,
+          formTwo: formTwoInitialData,
+        },
+      },
+    });
+    const instanceId = createInstanceResponse.data.id;
+
+    let response = await ApiRequestMap.integration.session.post(account, integrationId, {
+      redirectUrl: demoRedirectUrl,
+      instanceId,
+    });
+    expect(response).toBeHttp({ statusCode: 200 });
+    const parentSessionId = response.data.id;
+
+    // Start the session to make sure it starts correctly.
+    response = await ApiRequestMap.integration.session.start(account, integrationId, parentSessionId);
+    expect(response).toBeHttp({ statusCode: 302 });
+    const loc = getElementsFromUrl(response.headers.location);
+    // Call the callback to move to the next step
+    response = await ApiRequestMap[loc.entityType].session.callback(account, loc.entityId, loc.sessionId);
+    expect(response).toBeHttp({ statusCode: 302 });
+
+    // get session results to verify current data matches data on instance/identity
+    response = await ApiRequestMap.integration.session.getResult(account, integrationId, parentSessionId);
+    const formOneSessionId = response.data.components[0].childSessionId;
+
+    // put new data to sessions
+    const formOneNewData = { newData: 'form one is updated' };
+    response = await ApiRequestMap.integration.session.put(account, integrationId, formOneSessionId, formOneNewData);
+    expect(response).toBeHttp({ statusCode: 200 });
+
+    // finalize session
+    response = await ApiRequestMap.integration.session.postSession(account, integrationId, parentSessionId);
+    expect(response).toBeHttp({ statusCode: 200 });
+
+    // verify that pre-existing identity and instance have been updated
+    response = await ApiRequestMap.instance.get(account, integrationId, instanceId);
+    expect(response).toBeHttp({
+      statusCode: 200,
+      data: { data: { formOne: formOneNewData, formTwo: formTwoInitialData } },
+    });
   }, 180000);
 
   test('Create a session with an instanceId to pull existing data', async () => {
@@ -365,7 +442,7 @@ describe('Sessions', () => {
     const loc = getElementsFromUrl(response.headers.location);
     // Call the callback to move to the next step
     response = await ApiRequestMap[loc.entityType].session.callback(account, loc.entityId, loc.sessionId);
-    expect(response).toBeHttp({ statusCode: 200 });
+    expect(response).toBeHttp({ statusCode: 302 });
 
     // get session results to verify current data matches data on instance/identity
     response = await ApiRequestMap.integration.session.getResult(account, integrationId, parentSessionId);
