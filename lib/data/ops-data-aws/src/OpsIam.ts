@@ -201,6 +201,16 @@ export class OpsIam implements IDataSource {
       undefined,
       this.config.iamPermissionsBoundary
     );
+
+    await createRole(
+      awsConfig,
+      this.config.functionPermissionlessRoleName,
+      undefined,
+      undefined,
+      undefined,
+      this.config.iamPermissionsBoundary
+    );
+
     await createRole(
       awsConfig,
       this.config.backupRoleName,
@@ -223,8 +233,8 @@ export class OpsIam implements IDataSource {
       },
       this.config.iamPermissionsBoundary
     );
-    // Ensure the instance profile and role for the VMs are created
 
+    // Ensure the instance profile and role for the VMs are created
     await createInstanceProfile(
       awsConfig,
       this.config.monoInstanceProfileName,
