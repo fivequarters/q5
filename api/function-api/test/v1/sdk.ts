@@ -1,5 +1,5 @@
 import { IAccount } from './accountResolver';
-import { request, IHttpResponse } from '@5qtrs/request';
+import { request, IHttpResponse, IHttpRequest } from '@5qtrs/request';
 import { random } from '@5qtrs/random';
 import { signJwt } from '@5qtrs/jwt';
 import { createKeyPair, IKeyPairResult } from '@5qtrs/key-pair';
@@ -8,6 +8,7 @@ import { pem2jwk } from 'pem-jwk';
 import { nextBoundary } from './setup';
 
 import ms from 'ms';
+import { IAccount as IAccountAPI } from '@5qtrs/account-data';
 
 export const INVALID_UUID = '00000000-0000-4000-8000-000000000000';
 
@@ -633,6 +634,38 @@ export async function cleanUpUsers(account: IAccount) {
     const toRemove = testUsers.splice(0, 5);
     await Promise.all(toRemove.map((userId) => removeUser(account, userId)));
   }
+}
+
+export async function addAccount(authzAccount: IAccount, newAccount: IAccountAPI): Promise<IHttpResponse> {
+  return request({
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${authzAccount.accessToken}`,
+      'Content-Type': 'application/json',
+      'user-agent': authzAccount.userAgent,
+      'fusebit-authorization-account-id': authzAccount.accountId,
+    },
+    url: `${authzAccount.baseUrl}/v1/account`,
+    data: JSON.stringify(newAccount),
+  });
+}
+
+export async function getAccount(account: IAccount, accountId?: string) {
+  const headers: IHttpRequest['headers'] = {
+    Authorization: `Bearer ${account.accessToken}`,
+    'Content-Type': 'application/json',
+    'user-agent': account.userAgent,
+  };
+
+  if (accountId) {
+    headers['fusebit-authorization-account-id'] = account.accountId;
+  }
+
+  return request({
+    method: 'GET',
+    headers,
+    url: `${account.baseUrl}/v1/account/${accountId || account.accountId}`,
+  });
 }
 
 export async function addClient(account: IAccount, data: any) {

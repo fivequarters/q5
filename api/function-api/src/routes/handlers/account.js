@@ -1,30 +1,41 @@
 const { getAccountContext, errorHandler } = require('../account');
+const { AwsRegistry } = require('@5qtrs/registry');
+const { REGISTRY_DEFAULT } = require('@5qtrs/constants');
 
 function accountPost() {
-  return (req, res) => {
-    getAccountContext().then((accountContext) => {
-      const resolvedAgent = req.resolvedAgent;
-      const newAccount = req.body;
+  return async (req, res) => {
+    const accountContext = await getAccountContext();
+    const resolvedAgent = req.resolvedAgent;
+    const newAccount = req.body;
 
-      accountContext.account
-        .add(resolvedAgent, newAccount)
-        .then((result) => res.json(result))
-        .catch(errorHandler(res));
-    });
+    try {
+      const account = await accountContext.account.add(resolvedAgent, newAccount);
+      const awsRegistry = AwsRegistry.create({
+        accountId: account.id,
+        registryId: REGISTRY_DEFAULT,
+      });
+      await awsRegistry.refreshGlobal();
+      res.json(account);
+    } catch (err) {
+      const handleError = errorHandler(res);
+      handleError(err);
+    }
   };
 }
 
 function accountGet() {
-  return (req, res) => {
-    getAccountContext().then((accountContext) => {
-      const resolvedAgent = req.resolvedAgent;
-      const accountId = req.params.accountId;
+  return async (req, res) => {
+    const accountContext = await getAccountContext();
+    const resolvedAgent = req.resolvedAgent;
+    const accountId = req.params.accountId;
 
-      accountContext.account
-        .get(resolvedAgent, accountId)
-        .then((result) => res.json(result))
-        .catch(errorHandler(res));
-    });
+    try {
+      const result = await accountContext.account.get(resolvedAgent, accountId);
+      res.json(result);
+    } catch (err) {
+      const handleError = errorHandler(res);
+      handleError(err);
+    }
   };
 }
 

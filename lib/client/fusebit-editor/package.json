@@ -1,6 +1,6 @@
 {
   "name": "@5qtrs/fusebit-editor",
-  "version": "1.5.0",
+  "version": "2.0.0",
   "description": "",
   "main": "libm/index.js",
   "browser": "libm/index.js",
@@ -16,13 +16,16 @@
     "bundle:dev": "webpack --env dev",
     "bundle:prod": "webpack --env build",
     "bundle": "webpack --env dev && webpack --env build",
-    "doc": "typedoc --disableSources"
+    "doc": "typedoc --disableSources",
+    "serve": "cd dist && python3 -m http.server 8099 --bind 127.0.0.1"
   },
   "keywords": [],
   "dependencies": {
+    "@5qtrs/event": "^0.0.1",
     "monaco-editor": "^0.15.6",
     "superagent": "^5.2.2",
-    "@5qtrs/event": "^0.0.1"
+    "@5qtrs/event": "^0.0.1",
+    "@fusebit/schema": "^1.0.0"
   },
   "devDependencies": {
     "@fortawesome/fontawesome-svg-core": "^1.2.9",
@@ -30,7 +33,6 @@
     "@fortawesome/free-regular-svg-icons": "^5.6.0",
     "@fortawesome/free-solid-svg-icons": "^5.6.0",
     "@types/jquery": "^3.3.22",
-    "@types/node": "^10.12.9",
     "@types/superagent": "^4.1.7",
     "css-loader": "^1.0.1",
     "jsdom": "11.11.0",

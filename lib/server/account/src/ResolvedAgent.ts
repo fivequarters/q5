@@ -82,11 +82,13 @@ function doesResourceAuthorize(grantedResource: string, requestedResource: strin
 }
 
 function doesActionAuthorize(grantedAction: string, requestedAction: string) {
-  const grantedSegments = grantedAction.split(':');
-  const requestedSegments = requestedAction.split(':');
   if (grantedAction === requestedAction) {
     return true;
   }
+
+  const grantedSegments = grantedAction.split(':');
+  const requestedSegments = requestedAction.split(':');
+
   for (let i = 0; i < requestedSegments.length; i++) {
     if (grantedSegments[i]) {
       if (grantedSegments[i] === '*') {
@@ -171,6 +173,14 @@ export class ResolvedAgent implements IAgent {
     }
   }
 
+  private static prevalidateInlinePermissions(inlinePermissions: IAccessEntry[]) {
+    inlinePermissions?.forEach((inlinePermission: IAccessEntry) => {
+      if (!inlinePermission?.action || !inlinePermission?.resource) {
+        throw AccountDataException.invalidJwt(new Error('Malformed inline permission'));
+      }
+    });
+  }
+
   private static prevalidateAccessToken(jwt: string) {
     const decodedJwtPayload = decodeJwt(jwt);
     if (!decodedJwtPayload) {
@@ -181,6 +191,9 @@ export class ResolvedAgent implements IAgent {
     }
     if (!decodedJwtPayload.sub) {
       throw AccountDataException.invalidJwt(new Error("JWT does not have 'sub' claim"));
+    }
+    if (decodedJwtPayload[JWT_PERMISSION_CLAIM]?.allow) {
+      ResolvedAgent.prevalidateInlinePermissions(decodedJwtPayload[JWT_PERMISSION_CLAIM]?.allow);
     }
     return decodedJwtPayload;
   }
@@ -233,7 +246,9 @@ export class ResolvedAgent implements IAgent {
   }
 
   public async checkPermissionSubset(permissions: any) {
-    return Promise.all(permissions.allow.map((entry: any) => this.ensureAuthorized(entry.action, entry.resource)));
+    if (permissions.allow) {
+      return Promise.all(permissions.allow.map((entry: any) => this.ensureAuthorized(entry.action, entry.resource)));
+    }
   }
 
   public get id() {

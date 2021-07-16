@@ -17,11 +17,29 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
-## Version 1.20.18
+## Version 1.20.23
 
 _Released 07/16/21_
 
 - **Enhancement** Integration Sessions can now be ran against an existing set of Instances and Identities in order to update their values
+
+## Version 1.20.22
+
+_Released 07/15/21_
+
+- **Bugfix.** Change the allowed editor version to support >1.4.6 only.
+
+## Version 1.20.19
+
+_Released 07/14/21_
+
+- **Bugfix.** Resolved HTTP 500 on malformed inline permissions.
+
+## Version 1.20.18
+
+_Released 07/13/21_
+
+- **Bugfix.** Resolved missing Master Settings in Registry for new accounts.
 
 ## Version 1.20.17
 

@@ -1,4 +1,4 @@
-import { Context, IOnStartup, Next, Router } from '@fusebit-int/framework';
+import { Context, IOnStartup, Next, Router, Middleware } from '@fusebit-int/framework';
 import { OAuthEngine, IOAuthConfig } from './OAuthEngine';
 
 import { callbackSuffixUrl } from './OAuthConstants';
@@ -75,6 +75,95 @@ router.delete('/api/:lookupKey', async (ctx: Context) => {
 // OAuth Flow Endpoints
 router.get('/api/configure', async (ctx: Context) => {
   ctx.redirect(await engine.getAuthorizationUrl(ctx.query.session));
+});
+
+router.get('/api/form', Middleware.authorize('connector:put'), async (ctx: Context) => {
+  ctx.body = {
+    data: ctx.state.manager.config.configuration,
+    schema: {
+      type: 'object',
+      properties: {
+        scope: {
+          title: 'Comma separated scopes to request from the OAuth server',
+          type: 'string',
+        },
+        clientId: {
+          title: 'The client ID issued by the OAuth server',
+          type: 'string',
+        },
+        tokenUrl: {
+          type: 'string',
+        },
+        clientSecret: {
+          type: 'string',
+        },
+        authorizationUrl: {
+          type: 'string',
+        },
+        refreshErrorLimit: {
+          type: 'integer',
+        },
+        refreshInitialBackoff: {
+          type: 'integer',
+        },
+        refreshWaitCountLimit: {
+          type: 'integer',
+        },
+        refreshBackoffIncrement: {
+          type: 'integer',
+        },
+        accessTokenExpirationBuffer: {
+          type: 'integer',
+        },
+      },
+      required: ['scope', 'clientId', 'clientSecret', 'tokenUrl', 'authorizationUrl'],
+    },
+    uischema: {
+      type: 'VerticalLayout',
+      elements: [
+        {
+          type: 'Control',
+          scope: '#/properties/scope',
+        },
+        {
+          type: 'Control',
+          scope: '#/properties/clientId',
+        },
+        {
+          type: 'Control',
+          scope: '#/properties/tokenUrl',
+        },
+        {
+          type: 'Control',
+          scope: '#/properties/clientSecret',
+        },
+        {
+          type: 'Control',
+          scope: '#/properties/authorizationUrl',
+        },
+        {
+          type: 'Control',
+          scope: '#/properties/refreshErrorLimit',
+        },
+        {
+          type: 'Control',
+          scope: '#/properties/refreshInitialBackoff',
+        },
+        {
+          type: 'Control',
+          scope: '#/properties/refreshWaitCountLimit',
+        },
+        {
+          type: 'Control',
+          scope: '#/properties/refreshBackoffIncrement',
+        },
+        {
+          type: 'Control',
+          scope: '#/properties/accessTokenExpirationBuffer',
+        },
+      ],
+    },
+  };
 });
 
 router.get(callbackSuffixUrl, async (ctx: Context) => {
