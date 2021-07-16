@@ -105,6 +105,11 @@ const initFunctions = (ks: AwsKeyStore, sc: SubscriptionCache) => {
   subscriptionCache = sc;
 };
 
+const getComponents = () => ({
+  subscriptionCache,
+  keyStore,
+});
+
 const asyncDispatch = async (req: any, handler: any): Promise<any> => {
   const res: IResult = await new Promise((resolve, reject) => {
     const result: IResult = {
@@ -298,4 +303,5 @@ export {
   waitForFunctionBuild,
   IFunctionSpecification,
   IExecuteFunction,
+  getComponents,
 };

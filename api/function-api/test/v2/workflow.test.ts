@@ -131,8 +131,8 @@ describe('Workflow', () => {
 
     integration = await ApiRequestMap.integration.putAndWait(account, integrationId, integration.data);
     expect(integration).toBeHttp({ statusCode: 200 });
-    // Create a session
 
+    // Create a session
     let response = await ApiRequestMap.integration.session.post(account, integrationId, {
       redirectUrl: finalUrl,
     });

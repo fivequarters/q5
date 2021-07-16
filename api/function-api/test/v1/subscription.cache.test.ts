@@ -59,7 +59,6 @@ describe('Subscription', () => {
     await Defaults.set(dynamo, Constants.DEFAULTS_SUBSCRIPTION, { fruit: 'mango', and: {} });
     await refreshSubscriptionCache(account);
     cacheSub = await getSubscription(account, account.subscriptionId, 'cache');
-    console.log(cacheSub.data);
     expect(cacheSub).toBeHttp({ statusCode: 200, data: { fruit: 'mango', and: {} } });
   }, 180000);
 

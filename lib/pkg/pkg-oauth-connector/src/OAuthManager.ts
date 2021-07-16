@@ -178,7 +178,7 @@ router.get(callbackSuffixUrl, async (ctx: Context) => {
     await engine.convertAccessCodeToToken(ctx, state, code);
     return await engine.redirectToCallback(ctx);
   } catch (e) {
-    ctx.throw(e.status, `${e.response.text} - ${e.stack}`);
+    ctx.throw(e.status, `${e.response?.text} - ${e.stack}`);
   }
 });
 
