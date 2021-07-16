@@ -14,6 +14,7 @@
     "test": "yarn-tool yarn test",
     "lint": "yarn-tool yarn lint",
     "clean": "yarn-tool yarn clean",
+    "clean-dev": "zx ./bin/clean-dev.mjs",
     "new": "yarn-tool new",
     "move": "yarn-tool move",
     "package": "yarn-tool package",
@@ -62,7 +63,8 @@
     "webpack": "4.41.0",
     "webpack-cli": "^3.2.1",
     "webpack-dev-server": "^3.9.0",
-    "yarn": "^1.12.3"
+    "yarn": "^1.12.3",
+    "zx": "^2.0.0"
   },
   "workspaces": {
     "nohoist": ["**/lambda-*", "**/lambda-*/**"],
