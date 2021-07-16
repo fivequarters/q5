@@ -10,7 +10,7 @@ import { IFunctionSpecification } from './FunctionSpecification';
 import { IError } from './Events';
 const Superagent1 = Superagent;
 
-import { BaseServer, AccountResolver, IBuildStatus, userAgent, BuildError, IAccount } from './server';
+import { BaseServer, AccountResolver, IBuildStatus, userAgent, BuildError, IAccount } from './Server';
 
 export class FunctionServer extends BaseServer<IFunctionSpecification> {
   /**

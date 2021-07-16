@@ -9,7 +9,7 @@ import { IIntegrationSpecification } from './IntegrationSpecification';
 
 import { IError } from './Events';
 
-import { BaseServer, AccountResolver, IBuildStatus, userAgent, BuildError, IAccount } from './server';
+import { BaseServer, AccountResolver, IBuildStatus, userAgent, BuildError, IAccount } from './Server';
 
 export class EntityServer extends BaseServer<IIntegrationSpecification> {
   public entityType: string;
