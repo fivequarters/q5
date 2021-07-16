@@ -211,6 +211,91 @@ describe('Sessions', () => {
     expect(response).toBeHttp({ statusCode: 400 });
   }, 180000);
 
+  test('Overwrite an existing instance and entity', async () => {
+    const { integrationId, connectorId, steps } = await createPair(account, boundaryId, {
+      components: [
+        {
+          name: 'conn',
+          entityType: Model.EntityType.connector,
+          entityId: `${boundaryId}-con`,
+          dependsOn: [],
+          package: '@fusebit-int/pkg-oauth-integration',
+          path: '/api/configure',
+        },
+        {
+          name: 'form',
+          entityType: Model.EntityType.integration,
+          entityId: `${boundaryId}-integ`,
+          dependsOn: ['conn'],
+          path: '/api/configure',
+        },
+      ],
+    });
+
+    // create identity
+    const createIdentityResponse = await ApiRequestMap.identity.post(account, connectorId, { data: {} });
+    expect(createIdentityResponse).toBeHttp(200);
+    const identityId = createIdentityResponse.data.id;
+    // create instance, with identity pre-attached
+    const createInstanceResponse = await ApiRequestMap.instance.post(account, integrationId, {
+      data: {
+        [steps[0]]: {
+          entityId: createIdentityResponse.data.id,
+          parentEntityId: connectorId,
+        },
+      },
+    });
+    expect(createInstanceResponse).toBeHttp({
+      statusCode: 200,
+      data: {
+        data: {
+          [steps[0]]: {
+            entityId: createIdentityResponse.data.id,
+            parentEntityId: connectorId,
+          },
+        },
+      },
+    });
+    const instanceId = createInstanceResponse.data.id;
+
+    let response = await ApiRequestMap.integration.session.post(account, integrationId, {
+      redirectUrl: demoRedirectUrl,
+      instanceId,
+    });
+    expect(response).toBeHttp({ statusCode: 200 });
+    const parentSessionId = response.data.id;
+
+    // Start the session to make sure it starts correctly.
+    response = await ApiRequestMap.integration.session.start(account, integrationId, parentSessionId);
+    expect(response).toBeHttp({ statusCode: 302 });
+    const loc = getElementsFromUrl(response.headers.location);
+    // Call the callback to move to the next step
+    response = await ApiRequestMap[loc.entityType].session.callback(account, loc.entityId, loc.sessionId);
+    expect(response).toBeHttp(200);
+
+    // get session results to verify current data matches data on instance/identity
+    response = await ApiRequestMap.integration.session.getResult(account, integrationId, parentSessionId);
+    const identitySessionId = response.data.components[0].childSessionId;
+    const instanceSessionId = response.data.components[1].childSessionId;
+
+    // put new data to sessions
+    const instanceData = { newData: 'for instance' };
+    const identityData = { newData: 'for identity' };
+    response = await ApiRequestMap.integration.session.put(account, integrationId, instanceSessionId, instanceData);
+    expect(response).toBeHttp(200);
+    response = await ApiRequestMap.connector.session.put(account, connectorId, identitySessionId, identityData);
+    expect(response).toBeHttp(200);
+
+    // finalize session to write session data to entities
+    response = await ApiRequestMap.integration.session.postSession(account, integrationId, parentSessionId);
+
+    // verify that pre-existing identity and instance have been updated
+    response = await ApiRequestMap.instance.get(account, integrationId, instanceId);
+    expect(response).toBeHttp({ statusCode: 200, data: { data: { form: instanceData } } });
+    response = await ApiRequestMap.identity.get(account, connectorId, identityId);
+    expect(response).toBeHttp({ statusCode: 200, data: { data: identityData } });
+  }, 180000);
+
   test('Create a session with an instanceId to pull existing data', async () => {
     const { integrationId, connectorId, steps } = await createPair(account, boundaryId, {
       components: [
