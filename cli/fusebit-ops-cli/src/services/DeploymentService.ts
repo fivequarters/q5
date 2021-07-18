@@ -552,10 +552,17 @@ export class DeploymentService {
       Object.entries(subscription.limits).forEach((e: [string, number]) => {
         details.push(Text.eol(), Text.dim(`Limit '${e[0]}': `), `${e[1]}`);
       });
-      await this.executeService.message(
-        Text.bold((subscription.subscriptionName || subscription.subscription) as string),
-        Text.create(details)
-      );
     }
+
+    if (subscription.flags) {
+      Object.entries(subscription.flags).forEach((e) => {
+        details.push(Text.eol(), Text.dim(`Flag '${e[0]}': `), `${e[1]}`);
+      });
+    }
+
+    await this.executeService.message(
+      Text.bold((subscription.subscriptionName || subscription.subscription) as string),
+      Text.create(details)
+    );
   }
 }
