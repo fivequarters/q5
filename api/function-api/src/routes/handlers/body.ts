@@ -1,5 +1,5 @@
 import { Request } from 'express';
-import { EntityType } from '@5qtrs/db/libc/model';
+import { Model } from '@5qtrs/db';
 
 interface IBaseEntityBody {
   id: string;
@@ -18,15 +18,15 @@ interface IInstanceBody extends IBaseEntityBody {
 
 type IEntityBody = IBaseEntityBody | IIdentityBody | IInstanceBody;
 
-const entity = (req: Request, entityType?: EntityType): IEntityBody => {
+const entity = (req: Request, entityType?: Model.EntityType): IEntityBody => {
   const { id, tags, data, expires } = req.body;
   let entityBody: IEntityBody = { id, tags, data, expires };
 
-  if (entityType === EntityType.identity) {
+  if (entityType === Model.EntityType.identity) {
     return { ...entityBody, connectorId: req.body.connectorId };
   }
 
-  if (entityType === EntityType.instance) {
+  if (entityType === Model.EntityType.instance) {
     return { ...entityBody, integrationId: req.body.integration };
   }
 

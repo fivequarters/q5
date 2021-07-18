@@ -10,8 +10,8 @@ import { Text } from '@5qtrs/text';
 const command = {
   name: 'Deploy Integration',
   cmd: 'deploy',
-  summary: 'Deploy a integration',
-  description: Text.create('Builds and deploys a integration using the project files in the given directory.'),
+  summary: 'Deploy an integration',
+  description: Text.create('Builds and deploys an integration using the project files in the given directory.'),
   arguments: [
     {
       name: 'integration',
@@ -85,7 +85,7 @@ export class IntegrationDeployCommand extends Command {
 
     await integrationService.confirmDeploy(sourcePath, integrationSpec, integrationId);
 
-    const operation = await integrationService.deployIntegration(integrationId, integrationSpec);
+    const operation = await integrationService.deployEntity(integrationId, integrationSpec);
     if (!fast) {
       const result = await operationService.waitForCompletion(operation.operationId);
       await operationService.displayOperationResults(result);

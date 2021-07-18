@@ -10,8 +10,8 @@ import { Text } from '@5qtrs/text';
 const command = {
   name: 'Get Integration',
   cmd: 'get',
-  summary: 'Get a integration',
-  description: Text.create('Get a integration and place it into the target directory.'),
+  summary: 'Get an integration',
+  description: Text.create('Get an integration and place it into the target directory.'),
   arguments: [
     {
       name: 'integration',
@@ -50,14 +50,14 @@ export class IntegrationGetCommand extends Command {
 
     await executeService.newLine();
 
-    const integration = await integrationService.fetchIntegration(integrationId);
+    const integration = await integrationService.fetchEntity(integrationId);
 
     if (destDir) {
       const destPath = join(process.cwd(), destDir);
 
       await integrationService.writeDirectory(destPath, integration);
     } else {
-      await integrationService.displayIntegrations([integration], true);
+      await integrationService.displayEntities([integration], true);
     }
     return 0;
   }

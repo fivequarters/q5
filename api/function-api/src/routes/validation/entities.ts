@@ -2,10 +2,21 @@ const Joi = require('joi');
 
 import * as Common from './common';
 
+// id is required but data is optional
 const validateEntity = (data: any) =>
   Joi.object().keys({
-    id: Common.entityId,
+    id: Common.entityId.required(),
     data,
+    tags: Common.tags,
+    version: Joi.string().guid(),
+    expires: Joi.date().iso(),
+  });
+
+// id is optional, but data is required.
+const validatePostEntity = (data: any) =>
+  Joi.object().keys({
+    id: Common.entityId,
+    data: data.required(),
     tags: Common.tags,
     version: Joi.string().guid(),
     expires: Joi.date().iso(),
@@ -14,7 +25,7 @@ const validateEntity = (data: any) =>
 const EntityIdParams = Joi.object().keys({
   accountId: Common.accountId,
   subscriptionId: Common.subscriptionId,
-  componentId: Common.entityId,
+  entityId: Common.entityId,
   instanceId: Joi.string().guid(),
   identityId: Joi.string().guid(),
   operationId: Joi.string().guid(),
@@ -34,8 +45,11 @@ const EntityIdQuery = Joi.object().keys({
   count: Joi.number(),
   next: Joi.string(),
   tag: Common.tagQuery,
+  defaults: Joi.boolean(),
 });
 
+// Add validation that the filename can't start with leading '.'... how to make sure it's safe for windows,
+// too?
 const Files = Joi.object();
 
-export { validateEntity, EntityId, EntityIdParams, Files, EntityIdQuery };
+export { validateEntity, validatePostEntity, EntityId, EntityIdParams, Files, EntityIdQuery };

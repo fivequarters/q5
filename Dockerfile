@@ -1,13 +1,16 @@
-FROM node:14.16.0-alpine3.13
-# install dependencies first
+FROM node:14.17.2-alpine3.13
+# Patch container
+RUN apk --update-cache upgrade
+
+# Install dependencies first
 RUN apk add zip
 RUN apk add libcap
-# give nodejs ability to listen to port 80
+# Give nodejs ability to listen to port 80
 RUN setcap 'cap_net_bind_service=+ep' /usr/local/bin/node
-# add service user
+# Add service user
 RUN adduser fusebit -D
 USER fusebit
-# set working directory
+# Set working directory
 WORKDIR /home/fusebit/
 
 ADD --chown=fusebit package.json ./

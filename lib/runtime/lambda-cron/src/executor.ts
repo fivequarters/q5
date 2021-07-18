@@ -116,6 +116,7 @@ async function executeFunction(ctx: any) {
     params: ctx,
     requestId: uuidv4(),
     startTime,
+    functionSummary: functionSummary,
   };
 
   request.params.baseUrl = Constants.get_function_location(

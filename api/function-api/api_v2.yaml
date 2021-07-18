@@ -1,16 +1,22 @@
 openapi: 3.0.0
+security:
+  - AccessToken: []
 
 servers:
   - url: https://api.{region}.fusebit.io
     description: Production
     variables:
       region:
-        description: The region where the API is deployed, for example `'us-east-1'`
+        description: |
+          The region where the API is deployed, for example `'us-east-1'`
+        default: 'us-east-1'
 
 info:
-  description: 'Fusebit HTTP API for the management and execution of Fusebit accounts, users, functions and more'
+  description:
+    Fusebit HTTP API for the management and execution of Fusebit accounts,
+    users, functions and more
   version: '1.0.0'
-  title: 'Fusebit HTTP API'
+  title: 'Fusebit HTTP API - v2'
   contact:
     email: contact@fusebit.io
   license:
@@ -18,50 +24,809 @@ info:
     url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
 
 tags:
+  - name: Operation
+    description: Active operations tracking an asynchronous action
+  - name: Session
+    description: An active configuration phase for a customer
   - name: Connector
-    description: Connectors
+    description: Management for external credentials
+  - name: Identity
+    description: |
+      A managed credential for a remote service, on behalf of a customer
+  - name: Integration
+    description: The logic necessary to integrate between two services
+  - name: Instance
+    description: A fully configured integration for a customer
 
 paths:
-  /v1/account/{accountId}/subscription/{subscriptionId}/connector:
+  #############################################################################
+  # Operation
+  /v2/account/{accountId}/subscription/{subscriptionId}/operation:
     parameters:
-      - in: path
-        name: accountId
+      - $ref: '#/components/parameters/Account'
+      - $ref: '#/components/parameters/Subscription'
+    post:
+      tags:
+        - Operation
+      summary: Create a new operation
+      operationId: postNewOperation
+      description: |
+        Creates a new operation using the payload as the operation status.
+      requestBody:
+        description: The operation parameters
         required: true
-        description: Account id
-        schema:
-          type: string
-      - in: path
-        name: subscriptionId
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Operation'
+      responses:
+        200:
+          description: An operation was successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationIdResponse'
+      security:
+        - AccessToken: []
+
+  /v2/account/{accountId}/subscription/{subscriptionId}/operation/{operationId}:
+    parameters:
+      - $ref: '#/components/parameters/Account'
+      - $ref: '#/components/parameters/Subscription'
+      - name: operationId
+        in: path
         required: true
-        description: Subscription id
+        description: Operation id
         schema:
-          type: string
+          $ref: '#/components/schemas/OperationId'
+    get:
+      tags:
+        - Operation
+      summary: Get the status of an operation
+      operationId: getOperation
+      description: |
+        Get the status of an operation, with the HTTP response code as the
+        response code of the operation.
+      responses:
+        200:
+          description:
+            The contents of the operation.  The resposne code will vary as to
+            the current status of the operation itself.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Operation'
+      security:
+        - AccessToken: []
+    put:
+      tags:
+        - Operation
+      summary: Update the status of an operation
+      operationId: getOperation
+      description: |
+        Update the status of the operation.
+      requestBody:
+        description: The operation parameters
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Operation'
+      responses:
+        200:
+          description: The contents of the operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Operation'
+      security:
+        - AccessToken: []
+
+  #############################################################################
+  # Connector
+  /v2/account/{accountId}/subscription/{subscriptionId}/connector:
+    parameters:
+      - $ref: '#/components/parameters/Account'
+      - $ref: '#/components/parameters/Subscription'
     get:
       tags:
         - Connector
-      summary: Get all connectors
-      operationId: getAllConnectors
-      description: |
-        Returns details about all connectors
+      summary: Search for and retrieve objects of the specified type
+      operationId: searchConnectors
+      parameters:
+        - $ref: '#/components/parameters/SearchIdPrefix'
+        - $ref: '#/components/parameters/SearchCount'
+        - $ref: '#/components/parameters/SearchNext'
+        - $ref: '#/components/parameters/SearchTag'
       responses:
         200:
-          description: The connectors
+          description: A list of the objects found
           content:
             application/json:
               schema:
-                type: object
-        418:
-          description: You are a Teapot
-          content:
-            application/json:
-              schema:
-                type: object
+                $ref: '#/components/schemas/ConnectorList'
       security:
         - AccessToken: []
+    post:
+      tags:
+        - Connector
+      summary: Create a new object of the specified type
+      operationId: postConnector
+      requestBody:
+        $ref: '#/components/requestBodies/PostConnectorBody'
+      responses:
+        200:
+          description: The created object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectorEntity'
+        202:
+          description: The object creation is in progress
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationIdResponse'
+      security:
+        - AccessToken: []
+
+  /v2/account/{accountId}/subscription/{subscriptionId}/connector/{connectorId}:
+    parameters:
+      - $ref: '#/components/parameters/Account'
+      - $ref: '#/components/parameters/Subscription'
+      - name: connectorId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/EntityId'
+    get:
+      tags:
+        - Connector
+      summary: Get a component
+      operationId: getConnector
+      responses:
+        200:
+          description: The requested object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectorEntity'
+      security:
+        - AccessToken: []
+    put:
+      tags:
+        - Connector
+      summary: Update a component
+      operationId: putConnector
+      requestBody:
+        $ref: '#/components/requestBodies/PostConnectorBody'
+      responses:
+        200:
+          description: The requested object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectorEntity'
+        202:
+          description: The object update is in progress
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationIdResponse'
+      security:
+        - AccessToken: []
+    delete:
+      tags:
+        - Connector
+      summary: Delete a component
+      operationId: deleteConnector
+      responses:
+        200:
+          description: The object deletion succeeded
+        202:
+          description: The object deletion is in progress
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationIdResponse'
+      security:
+        - AccessToken: []
+
+  #############################################################################
+  # Identity
+  /v2/account/{accountId}/subscription/{subscriptionId}/connector/{connectorId}/identity/:
+    parameters:
+      - $ref: '#/components/parameters/Account'
+      - $ref: '#/components/parameters/Subscription'
+      - name: connectorId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/EntityId'
+    get:
+      tags:
+        - Identity
+      summary: Get all identities for a given connector
+      operationId: searchIdentities
+      parameters:
+        - $ref: '#/components/parameters/SearchCount'
+        - $ref: '#/components/parameters/SearchNext'
+        - $ref: '#/components/parameters/SearchTag'
+      responses:
+        200:
+          description: A list of the objects found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdentityList'
+      security:
+        - AccessToken: []
+
+  /v2/account/{accountId}/subscription/{subscriptionId}/connector/{connectorId}/identity/{identityId}:
+    parameters:
+      - $ref: '#/components/parameters/Account'
+      - $ref: '#/components/parameters/Subscription'
+      - name: connectorId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/EntityId'
+      - name: identityId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/IdentityId'
+    get:
+      tags:
+        - Identity
+      summary: Get an identity
+      operationId: getIdentity
+      responses:
+        200:
+          description: The requested object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdentityEntity'
+      security:
+        - AccessToken: []
+    put:
+      tags:
+        - Identity
+      summary: Update a component
+      operationId: putIdentity
+      requestBody:
+        $ref: '#/components/requestBodies/PostIdentityBody'
+      responses:
+        200:
+          description: The requested object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdentityEntity'
+      security:
+        - AccessToken: []
+
+  #############################################################################
+  # Integration
+  /v2/account/{accountId}/subscription/{subscriptionId}/integration:
+    parameters:
+      - $ref: '#/components/parameters/Account'
+      - $ref: '#/components/parameters/Subscription'
+    get:
+      tags:
+        - Integration
+      summary: Search for and retrieve objects of the specified type
+      operationId: searchIntegrations
+      parameters:
+        - $ref: '#/components/parameters/SearchIdPrefix'
+        - $ref: '#/components/parameters/SearchCount'
+        - $ref: '#/components/parameters/SearchNext'
+        - $ref: '#/components/parameters/SearchTag'
+      responses:
+        200:
+          description: A list of the objects found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntegrationList'
+      security:
+        - AccessToken: []
+    post:
+      tags:
+        - Integration
+      summary: Create a new object of the specified type
+      operationId: postIntegration
+      parameters:
+        - $ref: '#/components/requestBodies/PostIntegrationBody'
+      responses:
+        200:
+          description: The created object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntegrationEntity'
+      security:
+        - AccessToken: []
+
+  /v2/account/{accountId}/subscription/{subscriptionId}/integration/{integrationId}:
+    parameters:
+      - $ref: '#/components/parameters/Account'
+      - $ref: '#/components/parameters/Subscription'
+      - name: integrationId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/EntityId'
+    get:
+      tags:
+        - Integration
+      summary: Get a component
+      operationId: getIntegration
+      responses:
+        200:
+          description: The requested object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntegrationEntity'
+      security:
+        - AccessToken: []
+    put:
+      tags:
+        - Integration
+      summary: Update a component
+      operationId: putIntegration
+      requestBody:
+        $ref: '#/components/requestBodies/PostIntegrationBody'
+      responses:
+        200:
+          description: The requested object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntegrationEntity'
+        202:
+          description: The object update is in progress
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationIdResponse'
+      security:
+        - AccessToken: []
+    delete:
+      tags:
+        - Integration
+      summary: Delete a component
+      operationId: deleteIntegration
+      responses:
+        200:
+          description: The object deletion succeeded
+        202:
+          description: The object deletion is in progress
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationIdResponse'
+      security:
+        - AccessToken: []
+
+  #############################################################################
+  # Instance
+  /v2/account/{accountId}/subscription/{subscriptionId}/integration/{integrationId}/instance/:
+    parameters:
+      - $ref: '#/components/parameters/Account'
+      - $ref: '#/components/parameters/Subscription'
+      - name: integrationId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/EntityId'
+    get:
+      tags:
+        - Instance
+      summary: Get all instances for a given integration
+      operationId: searchInstances
+      parameters:
+        - $ref: '#/components/parameters/SearchCount'
+        - $ref: '#/components/parameters/SearchNext'
+        - $ref: '#/components/parameters/SearchTag'
+      responses:
+        200:
+          description: A list of the objects found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InstanceList'
+      security:
+        - AccessToken: []
+
+  /v2/account/{accountId}/subscription/{subscriptionId}/integration/{integrationId}/instance/{instanceId}:
+    parameters:
+      - $ref: '#/components/parameters/Account'
+      - $ref: '#/components/parameters/Subscription'
+      - name: integrationId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/EntityId'
+      - name: instanceId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/InstanceId'
+    get:
+      tags:
+        - Instance
+      summary: Get an instance
+      operationId: getInstance
+      responses:
+        200:
+          description: The requested object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InstanceEntity'
+      security:
+        - AccessToken: []
+    put:
+      tags:
+        - Instance
+      summary: Update a component
+      operationId: putInstance
+      requestBody:
+        $ref: '#/components/requestBodies/PostInstanceBody'
+      responses:
+        200:
+          description: The requested object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InstanceEntity'
+      security:
+        - AccessToken: []
+
+#############################################################################
+# Components
+
 components:
   securitySchemes:
     AccessToken:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      description: For a description of the access token format, see [this doc](../../integrator-guide/authz-model).
+      description:
+        For a description of the access token format, see
+        [this doc](../../integrator-guide/authz-model).
+
+  parameters:
+    Account:
+      name: accountId
+      in: path
+      required: true
+      description: Account id
+      schema:
+        $ref: '#/components/schemas/AccountId'
+    Subscription:
+      name: subscriptionId
+      in: path
+      required: true
+      description: Subscription id
+      schema:
+        $ref: '#/components/schemas/SubscriptionId'
+    SearchIdPrefix:
+      name: idPrefix
+      in: query
+      schema:
+        type: string
+    SearchCount:
+      name: count
+      in: query
+      description: The maximum number of entries to return
+      schema:
+        type: number
+    SearchNext:
+      name: next
+      in: query
+      description: The key to use to retrieve the next set of results
+      schema:
+        type: string
+    SearchTag:
+      name: tag
+      in: query
+      description: A tag or tag=value to search for
+      schema:
+        type: string
+
+  requestBodies:
+    PostConnectorBody:
+      description: Upload a new object
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ConnectorEntity'
+
+    PostIdentityBody:
+      description: Upload a new object
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/IdentityEntity'
+
+    PostIntegrationBody:
+      description: Upload a new object
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/IntegrationEntity'
+
+    PostInstanceBody:
+      description: Upload a new object
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/InstanceEntity'
+
+  schemas:
+    AccountId:
+      type: string
+      description: Account id
+      example: 'acc-5555555555555555'
+
+    SubscriptionId:
+      type: string
+      description: Subscription id
+      example: 'sub-5555555555555555'
+
+    EntityId:
+      type: string
+      description: |
+        The name of an entity, matches: `/^[A-Za-z0-9\-]{1,64}$/)`
+
+    InstanceId:
+      type: string
+      format: uuid
+
+    IdentityId:
+      type: string
+      format: uuid
+
+    EntityType:
+      type: string
+      example: connector
+
+    EntityTags:
+      type: object
+      description: An object containing tags set on this entity
+
+    OperationId:
+      type: string
+      format: uuid
+      example: 00000000-0000-0000-0000-000000000000
+
+    Operation:
+      type: object
+      required:
+        - verb
+        - type
+        - code
+      properties:
+        verb:
+          type: string
+          description: The human-readable verb for the action being performed
+          example: creating
+        type:
+          type: string
+          description: The type of the object being worked upon
+          example: connector
+        code:
+          type: number
+          description:
+            An HTTP status code indicating the current status of the
+            operation
+          example: 200
+        message:
+          type: string
+          description:
+            An arbitrary message to be passed on to the user concerning the
+            state of the operation
+          example: The operation completed successfully
+        location:
+          $ref: '#/components/schemas/EntityLocation'
+        operationId:
+          $ref: '#/components/schemas/OperationId'
+
+    EntityLocation:
+      type: object
+      required:
+        - accountId
+        - subscriptionId
+        - entityId
+        - entityType
+      description:
+        The location of a particular object.
+      properties:
+        accountId:
+          $ref: '#/components/schemas/AccountId'
+        subscriptionId:
+          $ref: '#/components/schemas/SubscriptionId'
+        entityId:
+          $ref: '#/components/schemas/EntityId'
+        entityType:
+          $ref: '#/components/schemas/EntityType'
+
+    OperationIdResponse:
+      type: object
+      required:
+        - operationId
+      description: A valid operation id for this operation.
+      properties:
+        operationId:
+          $ref: '#/components/schemas/OperationId'
+
+    ConnectorEntity:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/EntityId'
+        data:
+          type: object
+        tags:
+          type: object
+        version:
+          type: string
+          format: uuid
+        expires:
+          type: string
+
+    ConnectorList:
+      type: object
+      properties:
+        items:
+          type: array
+          description:
+            An array of the matching objects of this component type
+          items:
+            $ref: '#/components/schemas/ConnectorEntity'
+        next:
+          type: string
+          description:
+            The key to use when accessing the next block of entries
+        total:
+          type: number
+          description:
+            The total number of entities of this type.
+
+    IdentityEntity:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        data:
+          type: object
+        tags:
+          type: object
+        version:
+          type: string
+          format: uuid
+        expires:
+          type: string
+
+    IdentityList:
+      type: object
+      properties:
+        items:
+          type: array
+          description:
+            An array of the matching objects of this component type
+          items:
+            $ref: '#/components/schemas/IdentityEntity'
+        next:
+          type: string
+          description:
+            The key to use when accessing the next block of entries
+        total:
+          type: number
+          description:
+            The total number of entities of this type.
+
+    IntegrationData:
+      type: object
+      properties:
+        handler:
+          type: string
+        configuration:
+          type: object
+        files:
+          type: object
+        componentTags:
+          type: object
+        components:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              entityType:
+                type: string
+              entityId:
+                $ref: '#/components/schemas/EntityId'
+              skip:
+                type: boolean
+              path:
+                type: string
+              dependsOn:
+                type: array
+                items:
+                  type: string
+              package:
+                type: string
+
+    IntegrationEntity:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/EntityId'
+        data:
+          $ref: '#/components/schemas/IntegrationData'
+        tags:
+          type: object
+        version:
+          type: string
+          format: uuid
+        expires:
+          type: string
+
+    IntegrationList:
+      type: object
+      properties:
+        items:
+          type: array
+          description:
+            An array of the matching objects of this component type
+          items:
+            $ref: '#/components/schemas/IntegrationEntity'
+        next:
+          type: string
+          description:
+            The key to use when accessing the next block of entries
+        total:
+          type: number
+          description:
+            The total number of entities of this type.
+
+    InstanceEntity:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        data:
+          type: object
+        tags:
+          type: object
+        version:
+          type: string
+          format: uuid
+        expires:
+          type: string
+
+    InstanceList:
+      type: object
+      properties:
+        items:
+          type: array
+          description:
+            An array of the matching objects of this component type
+          items:
+            $ref: '#/components/schemas/InstanceEntity'
+        next:
+          type: string
+          description:
+            The key to use when accessing the next block of entries
+        total:
+          type: number
+          description:
+            The total number of entities of this type.

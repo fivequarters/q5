@@ -7,23 +7,20 @@ import httpMocks from 'node-mocks-http';
 
 import { Router, Context } from './Router';
 
-import { ConnectorManager, IInstanceConnectorConfigMap } from './ConnectorManager';
+import { ConnectorManager, IInstanceConnectorConfig } from './ConnectorManager';
 
 import DefaultRoutes from './DefaultRoutes';
 
 /** The vendor module failed to load with this error */
 type VendorModuleError = any;
 
-/** The configuration for this integration. */
-interface IIntegrationConfig {
-  connectors: IInstanceConnectorConfigMap;
-}
-
-/** The configuration for this connector. */
-type IConnectorConfig = any;
-
 /** The Manager will handle either integration or connector configurations. */
-type IConfig = IIntegrationConfig | IConnectorConfig;
+interface IConfig {
+  handler: string;
+  components?: IInstanceConnectorConfig[];
+  configuration: any;
+  mountUrl: string;
+}
 
 /** The internal Fusebit request context. passed in through the lambda. */
 type RequestContext = any;
@@ -83,7 +80,7 @@ class Manager {
     this.config = cfg;
 
     // Load the configuration for the integrations
-    this.connectors.setup(cfg.connectors);
+    this.connectors.setup(cfg.components);
 
     if (vendorError) {
       this.vendorError = vendorError;
@@ -229,6 +226,7 @@ class Manager {
     // NOTE: this may glitch non-utf-8 encodings; for blame, see koa/lib/request.js's casual use of stringify.
     ctx.query = fusebitCtx.query;
 
+    // TODO: These parameters need a review and some intent.
     ctx.state.params = {
       accountId: fusebitCtx.accountId,
       subscriptionId: fusebitCtx.subscriptionId,
@@ -238,11 +236,12 @@ class Manager {
         ? {
             endpoint: fusebitCtx.fusebit.endpoint,
             baseUrl: `${fusebitCtx.fusebit.endpoint}/v2/account/${fusebitCtx.accountId}/subscription/${fusebitCtx.subscriptionId}/${fusebitCtx.boundaryId}/${fusebitCtx.functionId}`,
+            resourcePath: `/account/${fusebitCtx.accountId}/subscription/${fusebitCtx.subscriptionId}/${fusebitCtx.boundaryId}/${fusebitCtx.functionId}${fusebitCtx.path}`,
             functionAccessToken: fusebitCtx.fusebit.functionAccessToken,
           }
         : {}),
     };
-    ctx.state.fusebit = fusebitCtx.fusebit;
+    ctx.state.fusebit = { ...fusebitCtx.fusebit, caller: fusebitCtx.caller };
     ctx.state.manager = this;
 
     // Pre-load the status as OK

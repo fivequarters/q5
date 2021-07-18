@@ -476,6 +476,44 @@ export const ApiRequestMap: { [key: string]: any } = {
       });
       return response;
     },
+    post: async (
+      account: IAccount,
+      entityId: string,
+      body: {
+        tags?: Model.ITags;
+        data?: any;
+        expires?: string;
+        version?: string;
+      },
+      options?: IRequestOptions
+    ) => {
+      const response = await v2Request(account, {
+        method: 'POST',
+        uri: `/integration/${encodeURI(entityId)}/instance/`,
+        body,
+        ...options,
+      });
+      return response;
+    },
+    list: async (
+      account: IAccount,
+      entityId: string,
+      query?: { tag?: { tagKey: string; tagValue?: string }; limit?: number; next?: string; idPrefix?: string },
+      options?: IRequestOptions
+    ) => {
+      const tagString = query?.tag?.tagValue ? `${query.tag.tagKey}=${query.tag.tagValue}` : query?.tag?.tagKey;
+      const queryParams: { [key: string]: any } = { ...query, tag: tagString };
+      Object.keys(queryParams).forEach((key) => {
+        if (queryParams[key] === undefined) {
+          delete queryParams[key];
+        }
+      });
+      return v2Request(account, {
+        method: 'GET',
+        uri: `/integration/${entityId}/instance/?${querystring.stringify(queryParams)}`,
+        ...options,
+      });
+    },
   },
   identity: {
     get: async (account: IAccount, entityId: string, subordinateId: string, options?: IRequestOptions) => {
@@ -497,14 +535,64 @@ export const ApiRequestMap: { [key: string]: any } = {
       });
       return response;
     },
+    post: async (
+      account: IAccount,
+      entityId: string,
+      body: {
+        tags?: Model.ITags;
+        data?: any;
+        expires?: string;
+        version?: string;
+      },
+      options?: IRequestOptions
+    ) => {
+      const response = await v2Request(account, {
+        method: 'POST',
+        uri: `/connector/${encodeURI(entityId)}/identity/`,
+        body,
+        ...options,
+      });
+      return response;
+    },
+    list: async (
+      account: IAccount,
+      entityId: string,
+      query?: { tag?: { tagKey: string; tagValue?: string }; limit?: number; next?: string; idPrefix?: string },
+      options?: IRequestOptions
+    ) => {
+      const tagString = query?.tag?.tagValue ? `${query.tag.tagKey}=${query.tag.tagValue}` : query?.tag?.tagKey;
+      const queryParams: { [key: string]: any } = { ...query, tag: tagString };
+      Object.keys(queryParams).forEach((key) => {
+        if (queryParams[key] === undefined) {
+          delete queryParams[key];
+        }
+      });
+      return v2Request(account, {
+        method: 'GET',
+        uri: `/connector/${entityId}/identity/?${querystring.stringify(queryParams)}`,
+        ...options,
+      });
+    },
   },
 };
 
 export const createPair = async (
   account: IAccount,
   boundaryId: string,
-  integConfig?: any,
-  connConfig?: any,
+  integConfig?: {
+    files?: Record<string, string>;
+    handler?: string;
+    configuration?: Record<string, any>;
+    componentTags?: Record<string, string>;
+    components?: Model.IIntegrationComponent[];
+  },
+  connConfig?: {
+    handler?: string;
+    configuration?: {
+      muxIntegration?: Model.IEntityId;
+      [key: string]: any;
+    };
+  },
   numConnectors: number = 1
 ) => {
   const integId = `${boundaryId}-integ`;
@@ -512,36 +600,34 @@ export const createPair = async (
   const conId = `${boundaryId}-con`;
 
   const conns: any = {};
-  const steps: Model.IStep[] = [
+  const components: Model.IIntegrationComponent[] = [
     {
       name: connName,
-      target: { entityType: Model.EntityType.connector, entityId: conId },
+      entityType: Model.EntityType.connector,
+      entityId: conId,
+      dependsOn: [],
+      package: '@fusebit-int/pkg-oauth-integration',
     },
   ];
 
   for (let n = 1; n < numConnectors; n++) {
     conns[`${connName}${n}`] = { package: '@fusebit-int/pkg-oauth-integration', connector: `${conId}${n}` };
-    steps.push({
+    components.push({
       name: `${connName}${n}`,
-      target: { entityType: Model.EntityType.connector, entityId: `${conId}${n}` },
-      ...(n > 1 ? { uses: [`${connName}${n - 1}`] } : {}),
+      entityType: Model.EntityType.connector,
+      entityId: `${conId}${n}`,
+      package: '@fusebit-int/pkg-oauth-integration',
+      dependsOn: [],
+      ...(n > 1 ? { dependsOn: [`${connName}${n - 1}`] } : {}),
     });
   }
 
-  const integEntity = {
+  const integEntity: { id: string; data: Model.IIntegrationData } = {
     id: integId,
     data: {
-      configuration: {
-        connectors: {
-          conn: {
-            package: '@fusebit-int/pkg-oauth-integration',
-            connector: conId,
-          },
-          ...conns,
-        },
-        ...(numConnectors > 1 ? { creation: { steps, autoStep: false } } : {}),
-        ...integConfig,
-      },
+      components,
+      componentTags: {},
+      configuration: {},
 
       handler: './integration',
       files: {
@@ -552,6 +638,8 @@ export const createPair = async (
           'module.exports = router;',
         ].join('\n'),
       },
+
+      ...integConfig,
     },
   };
 
@@ -573,7 +661,7 @@ export const createPair = async (
   return {
     connectorId: conn.id,
     integrationId: integ.id,
-    steps: Object.keys(integEntity.data.configuration.connectors),
+    steps: integEntity.data.components.map((comp: Model.IIntegrationComponent) => comp.name),
   };
 };
 

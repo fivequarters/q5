@@ -1,9 +1,9 @@
-import { BaseComponentService } from '../service';
+import { BaseEntityService } from '../service';
 import express from 'express';
 import pathParams from './pathParams';
 
 const requestToEntity = async (
-  ComponentService: BaseComponentService<any, any>,
+  EntityService: BaseEntityService<any, any>,
   paramIdNames: string[],
   req: express.Request,
   ...additionalAttributes: Record<string, any>[]
@@ -14,9 +14,10 @@ const requestToEntity = async (
         delete obj[key];
       }
     });
+    return obj;
   };
   return Object.assign(
-    await ComponentService.loadDependentEntities(
+    await EntityService.loadDependentEntities(
       ...paramIdNames.map((paramIdName) => pathParams.EntityById(req, paramIdName))
     ),
     ...additionalAttributes.map(stripUndefined)

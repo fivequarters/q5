@@ -63,7 +63,7 @@ export class ConnectorListCommand extends Command {
     const connectorService = await ConnectorService.create(input);
 
     if (output === 'json') {
-      const result = await connectorService.listConnectors(options);
+      const result = await connectorService.listEntities(options);
       result.items = result.items.map((item) => {
         delete item.data.files;
         return item;
@@ -77,8 +77,8 @@ export class ConnectorListCommand extends Command {
       let result;
       let firstDisplay = true;
       while (getMore) {
-        result = await connectorService.listConnectors(options);
-        await connectorService.displayConnectors(result.items, firstDisplay);
+        result = await connectorService.listEntities(options);
+        await connectorService.displayEntities(result.items, firstDisplay);
         firstDisplay = false;
         getMore = result.next ? await connectorService.confirmListMore() : false;
         if (getMore) {

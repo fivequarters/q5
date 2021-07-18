@@ -1,5 +1,6 @@
 #!/usr/bin/env -S node --no-warnings
 
+const assert = require("assert");
 const fs = require("fs");
 const path = require("path");
 const homedir = require("os").homedir();
@@ -7,7 +8,7 @@ const homedir = require("os").homedir();
 const userProfileRoot = `${homedir}/.fusebit`;
 const userProfileName = "github-action-stage-us-west-2";
 const opsProfileRoot = `${homedir}/.fusebit-ops`;
-const opsProfileName = "github-automation";
+const opsProfileNames = ["github-automation.321", "github-automation.749"];
 
 const renderUserProfile = () => {
   const settings = JSON.parse(
@@ -43,11 +44,15 @@ const renderOpsProfile = () => {
   );
   const output = {
     settings: {
-      profiles: { [opsProfileName]: settings.profiles[opsProfileName] },
-      defaults: { profile: opsProfileName },
+      profiles: {},
+      defaults: { profile: opsProfileNames[0] },
     },
-    profileName: opsProfileName,
+    profileName: opsProfileNames[0],
   };
+  opsProfileNames.forEach((name) => {
+    assert(settings.profiles[name], `missing profile ${name}`);
+    output.settings.profiles[name] = settings.profiles[name];
+  });
   return output;
 };
 

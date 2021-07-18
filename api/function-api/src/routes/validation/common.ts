@@ -18,4 +18,4 @@ export const tagValue = /^[a-zA-Z0-9_\-\.]*$/;
 export const tagNameValues = Joi.string().regex(/^[a-zA-Z0-9_\-\.=&%]*$/);
 export const tagQuery = Joi.alternatives().try(tagNameValues, Joi.array().items(tagNameValues));
 
-export const tags = Joi.object().pattern(tagValue, Joi.string().regex(tagValue));
+export const tags = Joi.object().pattern(tagValue, Joi.string().regex(tagValue)).default({});

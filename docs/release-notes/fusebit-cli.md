@@ -17,6 +17,12 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.9.13
+
+_Released 07/09/21_
+
+- **Security** Update Axios for security patching against CVE-2020-28168.
+
 ## Version 1.9.9
 
 _Released 6/24/21_

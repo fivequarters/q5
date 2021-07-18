@@ -17,6 +17,12 @@ All public releases of the Fusebit editor are documented here, including notable
 <!-- 1. TOC
 {:toc} -->
 
+## Version 2.0.1
+
+_Released 7/9/21_
+
+- **Enhancement.** Support for v2 component editing.
+
 ## Version 1.5.0
 
 _Released 3/29/21_

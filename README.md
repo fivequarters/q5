@@ -35,26 +35,44 @@ To get setup, simply follow the few easy steps below:
 
 1. Install **nvm** (Node Version Manager):
 
+**Using curl**
+
 ```
 curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.34.0/install.sh | bash
 ```
 
+**Using Homebrew**
+
+```
+brew install nvm
+```
+
+Take into account that you need to add the NVM directory to your path, the instructions appears after you install nvm.
+
 2. Install **zip** using whatever package manager comes with the platform.
+
+**Ubuntu or Debian linux**
 
 ```
 sudo apt install zip
 ```
 
+**OSX**
+
+```
+brew install zip
+```
+
 3. Install the supported version of **nodeJS**:
 
 ```
-nvm install 14.16.0
+nvm install 14.17.2
 ```
 
 4. Select the latest version of **nodeJS** to use:
 
 ```
-nvm use 14.16.0
+nvm use 14.17.2
 ```
 
 5. Install the **yarn** node module globally, and lock the version to the supported version:
@@ -64,21 +82,19 @@ npm i -g yarn
 yarn set version 1.21.1
 ```
 
-6. Install the **ngrok** tool from [here](https://ngrok.com/download) and put the executable someplace on the PATH.
-
-7. Install `typedoc` tool and plugins by running
+6. Install `typedoc` tool and plugins by running
 
 ```
 npm i -g typedoc
 ```
 
-8. At the root of this repo, run the **setup** cmd:
+7. At the root of this repo, run the **setup** cmd:
 
 ```
 yarn setup
 ```
 
-9. And lastly, build everything in the repo with the **build** cmd:
+8. And lastly, build everything in the repo with the **build** cmd:
 
 ```
 yarn build

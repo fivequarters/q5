@@ -22,7 +22,7 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v1
         with:
-          node-version: 14.16.0
+          node-version: 14.17.2
       - name: Cache Node.js modules
         uses: actions/cache@v2
         with:
@@ -74,3 +74,21 @@ jobs:
         run: node cli/fusebit-cli/libc/index.js function ls
       - name: Publish - API Docs
         run: ./tool/cicd/actions/scripts/publish_api_docs.sh
+      - name: Notify slack success
+        if: success()
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
+        uses: voxmedia/github-action-slack-notify-build@v1
+        with:
+          channel: pr-review
+          status: SUCCESS
+          color: good
+      - name: Notify slack fail
+        if: failure()
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
+        uses: voxmedia/github-action-slack-notify-build@v1
+        with:
+          channel: pr-review
+          status: FAILED
+          color: danger

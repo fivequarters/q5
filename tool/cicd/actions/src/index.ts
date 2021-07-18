@@ -21,31 +21,37 @@ const publishAll = [
 const fullBuild = ['setup_env', 'full_build'];
 
 const specs = [
-  { name: 'Checkout the project', inputs: ['checkout'], output: 'checkout' },
-  { name: 'Full build', inputs: ['checkout', ...fullBuild], output: 'full_build' },
+  { name: 'Checkout the project', inputs: ['checkout', 'publish_slack'], output: 'checkout' },
+  { name: 'Full build', inputs: ['checkout', ...fullBuild, 'publish_slack'], output: 'full_build' },
   {
     name: 'Deploy to us-west-2/stage and Test',
-    inputs: ['checkout', ...fullBuild, 'publish_function_api', 'deploy_test'],
+    inputs: ['checkout', ...fullBuild, 'publish_function_api', 'deploy_test', 'publish_slack'],
     output: 'build_test',
   },
   {
     name: 'Publish All Artifacts',
-    inputs: ['checkout', ...fullBuild, ...publishAll],
+    inputs: ['checkout', ...fullBuild, ...publishAll, 'publish_slack'],
     output: 'publish',
   },
   {
+    name: 'Publish And Tag All Artifacts',
+    inputs: ['checkout', 'publish_tags', ...fullBuild, ...publishAll, 'publish_slack'],
+    output: 'publish_and_tag',
+    options: { on_trigger: { push: { branches: ['master'] } } },
+  },
+  {
     name: 'Publish function-api',
-    inputs: ['checkout', ...fullBuild, 'publish_function_api'],
+    inputs: ['checkout', ...fullBuild, 'publish_function_api', 'publish_slack'],
     output: 'publish_function_api',
   },
   {
     name: 'Publish the Website',
-    inputs: ['checkout', ...fullBuild, 'publish_website'],
+    inputs: ['checkout', ...fullBuild, 'publish_website', 'publish_slack'],
     output: 'publish_website',
   },
   {
     name: 'Publish API Documentation',
-    inputs: ['checkout', ...fullBuild, 'publish_api_docs'],
+    inputs: ['checkout', ...fullBuild, 'publish_api_docs', 'publish_slack'],
     output: 'publish_api_docs',
   },
 ];
@@ -66,4 +72,4 @@ function buildSpec(name: string, inputs: string[], output: string, options: any 
   fs.writeFileSync(`${OUTPUT_DIR}/${output}.yml`, BANNER + yaml.dump(base, { noCompatMode: true }));
 }
 
-specs.forEach((spec) => buildSpec(spec.name, spec.inputs, spec.output));
+specs.forEach((spec) => buildSpec(spec.name, spec.inputs, spec.output, spec.options));

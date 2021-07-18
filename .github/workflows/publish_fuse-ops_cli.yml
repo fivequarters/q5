@@ -72,3 +72,21 @@ jobs:
         run: node cli/fusebit-cli/libc/index.js function ls
       - name: Publish - fusebit-ops-cli
         run: ./tool/cicd/actions/scripts/publish_fusebit_ops_cli.sh
+      - name: Notify slack success
+        if: success()
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
+        uses: voxmedia/github-action-slack-notify-build@v1
+        with:
+          channel: pr-review
+          status: SUCCESS
+          color: good
+      - name: Notify slack fail
+        if: failure()
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_NOTIFICATIONS_BOT_TOKEN }}
+        uses: voxmedia/github-action-slack-notify-build@v1
+        with:
+          channel: pr-review
+          status: FAILED
+          color: danger

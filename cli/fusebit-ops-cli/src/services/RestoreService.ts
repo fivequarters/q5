@@ -135,7 +135,7 @@ export class RestoreService {
         }
       }
     } catch (e) {
-      if (e.message !== 'DBClusterNotFoundFault') {
+      if (e.code !== 'DBClusterNotFoundFault') {
         throw Error(e);
       }
     }

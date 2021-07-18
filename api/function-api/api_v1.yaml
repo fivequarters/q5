@@ -1,4 +1,6 @@
 openapi: 3.0.0
+security:
+  - AccessToken: []
 
 servers:
   - url: https://api.{region}.fusebit.io
@@ -6,11 +8,12 @@ servers:
     variables:
       region:
         description: The region where the API is deployed, for example `'us-east-1'`
+        default: 'us-east-1'
 
 info:
   description: 'Fusebit HTTP API for the management and execution of Fusebit accounts, users, functions and more'
   version: '1.0.0'
-  title: 'Fusebit HTTP API'
+  title: 'Fusebit HTTP API - v1'
   contact:
     email: contact@fusebit.io
   license:
@@ -2400,7 +2403,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Registry/Get'
+                $ref: '#/components/schemas/RegistryGet'
         403:
           description: Not authorized
           content:
@@ -2428,7 +2431,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Registry/Put'
+              $ref: '#/components/schemas/RegistryPut'
       responses:
         200:
           description: Registry successfully updated
@@ -3012,16 +3015,13 @@ components:
           properties:
             subscription:
               description: The default subscription id the caller should use
-              schema:
-                $ref: '#/components/schemas/SubscriptionId'
+              $ref: '#/components/schemas/SubscriptionId'
             boundary:
               description: The default boundary id the caller should use
-              schema:
-                $ref: '#/components/schemas/BoundaryId'
+              $ref: '#/components/schemas/BoundaryId'
             function:
               description: The default function id the caller should use
-              schema:
-                $ref: '#/components/schemas/FunctionId'
+              $ref: '#/components/schemas/FunctionId'
             oauth:
               type: object
               description: Parameters the caller should use when obtaining an access token from an OAuth identity provider
@@ -3049,7 +3049,7 @@ components:
       type: string
       description: |
         A single-use initialization token in JWT format. If unused, the token expires in eight hours. The `profile`
-        paramater of the JWT payload contains the information specified in the `profile` parameter of the request
+        parameter of the JWT payload contains the information specified in the `profile` parameter of the request
         as well as additional information for consumption by the intended recipient of the token.
 
     InitResolveRequest:
@@ -3389,13 +3389,12 @@ components:
                 description. If a token is not present, not valid, or fails the authorization check, the function executes
                 as an unauthenticated user. This authentication option allows you to use Fusebit authorization for certain
                 paths in your function, while implementing your own authorization for other paths.
-              schema:
-                type: string
-                enum:
-                  - none
-                  - optional
-                  - required
-                default: 'none'
+              type: string
+              enum:
+                - none
+                - optional
+                - required
+              default: 'none'
             functionPermissions:
               type: object
               description: |
@@ -3459,31 +3458,30 @@ components:
               type: 'object'
         - $ref: '#/components/schemas/FunctionLocation'
 
-    Registry:
-      Get:
-        type: object
-        properties:
-          scopes:
-            type: array
-            description: A list of the npm package scopes reserved in this registry
-            items:
-              type: string
-              description: An npm package scope, such as '@internal'
-              example: '@internal'
-          url:
+    RegistryGet:
+      type: object
+      properties:
+        scopes:
+          type: array
+          description: A list of the npm package scopes reserved in this registry
+          items:
             type: string
-            description: The URL for the npm endpoint for this registry
-            example: 'https://api.{region}.fusebit.io/v1/account/{accountId}/registry/default/npm'
-      Put:
-        type: object
-        properties:
-          scopes:
-            type: array
-            description: A list of the npm package scopes reserved in this registry
-            items:
-              type: string
-              description: An npm package scope, such as '@internal'
-              example: '@internal'
+            description: An npm package scope, such as '@internal'
+            example: '@internal'
+        url:
+          type: string
+          description: The URL for the npm endpoint for this registry
+          example: 'https://api.{region}.fusebit.io/v1/account/{accountId}/registry/default/npm'
+    RegistryPut:
+      type: object
+      properties:
+        scopes:
+          type: array
+          description: A list of the npm package scopes reserved in this registry
+          items:
+            type: string
+            description: An npm package scope, such as '@internal'
+            example: '@internal'
 
     #    Statistics:
     #      HistogramEntry:

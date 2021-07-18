@@ -1,5 +1,7 @@
 const create_error = require('http-errors');
 
+const Constants = require('@5qtrs/constants');
+
 const { getResolvedAgent, validateAccessToken, validateAccessTokenSignature, errorHandler } = require('../account');
 const { meterApiCall } = require('@5qtrs/bq-metering');
 
@@ -7,12 +9,8 @@ const meteringEnabled = process.env.METERING_ENABLED === 'false' ? false : true;
 
 module.exports = function authorize_factory(options) {
   return async function authorize(req, res, next) {
-    let match;
-    if (req.headers['authorization']) {
-      match = req.headers['authorization'].match(/^\ *bearer\ +(.+)$/i);
-    }
+    let token = Constants.getAuthToken(req);
 
-    let token = match ? match[1] : undefined;
     if (!token && options.getToken) {
       token = options.getToken(req);
     }

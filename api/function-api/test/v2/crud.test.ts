@@ -9,7 +9,89 @@ let { account, boundaryId, function1Id, function2Id, function3Id, function4Id, f
 beforeEach(() => {
   ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
 });
+afterAll(async () => {
+  await cleanupEntities(account);
+}, 30000);
 
+// Types
+type TestableEntityTypes = Extract<Model.EntityType, Model.EntityType.connector | Model.EntityType.integration>;
+
+type TestableEntity = Model.IIntegration | Model.IConnector;
+
+type SampleEntityMap<T = any> = Record<TestableEntityTypes, (...entity: T[]) => Model.ISdkEntity>;
+
+// SampleEntityMaps
+const sampleEntitiesWithData: SampleEntityMap = {
+  [Model.EntityType.connector]: (): { id: string; tags: Model.ITags; data: Model.IConnectorData } => ({
+    data: {
+      handler: '@fusebit-int/pkg-oauth-connector',
+      files: {},
+      configuration: {
+        scope: 'test scope',
+        accessTokenExpirationBuffer: 123,
+      },
+    },
+    id: newId('Test'),
+    tags: { [`oneTag`]: 'one-value', [`twoTags`]: 'two-values' },
+  }),
+  [Model.EntityType.integration]: (): { id: string; tags: Model.ITags; data: Model.IIntegrationData } => ({
+    data: {
+      handler: './integrationTest.js',
+      files: {
+        ['package.json']: JSON.stringify({
+          scripts: {},
+          dependencies: {
+            ['@fusebit-int/framework']: '^2.0.0',
+          },
+          files: ['./integrationTest.js'],
+        }),
+        ['integrationTest.js']: [
+          "const { Router, Manager, Form } = require('@fusebit-int/framework');",
+          '',
+          'const router = new Router();',
+          '',
+          "router.get('/api/', async (ctx) => {",
+          "  ctx.body = 'Hello World';",
+          '});',
+          '',
+          "router.get('/api/sillyrabbit', async (ctx) => {",
+          "  ctx.body = 'trix are for kids';",
+          '});',
+          'module.exports = router;',
+        ].join('\n'),
+      },
+      configuration: {},
+      components: [],
+      componentTags: {},
+    },
+    id: newId('Test'),
+    tags: { [`oneTag`]: 'one-value', [`twoTags`]: 'two-values' },
+  }),
+};
+
+const sampleEntitiesWithoutData: SampleEntityMap = (Object as any).fromEntries(
+  Object.entries(sampleEntitiesWithData).map(([key, value]) => [key, () => ({ ...value(), data: undefined })])
+);
+
+const updateSampleEntities: SampleEntityMap<Model.ISdkEntity> = {
+  [Model.EntityType.connector]: (connector: Model.ISdkEntity) => {
+    connector.data = connector.data || {};
+    connector.data.configuration = connector.data.configuration || {};
+    connector.data.configuration.scope = newId('scope');
+    connector.tags = { newTag: newId('newTag') };
+    return connector;
+  },
+  [Model.EntityType.integration]: (integration: Model.ISdkEntity) => {
+    integration.data = integration.data || {};
+    integration.data.configuration = integration.data.configuration || {};
+    integration.data.configuration.creation = integration.data.configuration.creation || {};
+    integration.data.configuration.creation.autoStep = !integration.data.configuration.creation.autoStep;
+    integration.tags = { newTag: newId('newTag') };
+    return integration;
+  },
+};
+
+// Utility Functions
 const newId = (wart: string): string => `${boundaryId}-${wart}-${Math.floor(Math.random() * 99999999).toString(8)}`;
 
 const getIdPrefix = () => ({ idPrefix: boundaryId });
@@ -19,17 +101,26 @@ const remVersion = (entity: Model.IEntity) => {
   return newEntity;
 };
 
-afterAll(async () => {
-  await cleanupEntities(account);
-}, 30000);
+const setFiles = (entity: Model.ISdkEntity, newFiles: Record<string, string>, handler?: string): Model.ISdkEntity => {
+  const updatedEntity = entity;
+  if (!!handler && !Object.keys(newFiles).includes(handler)) {
+    throw new Error('Cannot set handler to a file that is not included');
+  } else if (handler) {
+    entity.data.handler = handler;
+  }
 
-const sampleEntity = () => ({
-  data: {},
-  id: newId('Test'),
-  tags: { [`oneTag`]: 'one-value', [`twoTags`]: 'two-values' },
-});
+  const packageJson = JSON.parse(updatedEntity.data.files['package.json']);
+  const packageFiles: string[] = [];
+  Object.entries(newFiles).forEach(([key, value]) => {
+    packageFiles.push(key);
+    updatedEntity.data.files[key] = value;
+  });
+  packageJson.files = packageFiles;
+  updatedEntity.data.files['package.json'] = JSON.stringify(packageJson);
+  return updatedEntity;
+};
 
-const createEntity = async (testEntityType: string, entity: Model.ISdkEntity) => {
+const createEntity = async (testEntityType: TestableEntityTypes, entity: Model.ISdkEntity) => {
   const createResponse = await ApiRequestMap[testEntityType].post(account, entity);
   expect(createResponse).toBeHttp({ statusCode: 202 });
   const operation = await ApiRequestMap.operation.waitForCompletion(account, createResponse.data.operationId);
@@ -38,13 +129,16 @@ const createEntity = async (testEntityType: string, entity: Model.ISdkEntity) =>
   expect(listResponse).toBeHttp({ statusCode: 200 });
   expect(listResponse.data).toBeDefined();
   expect(listResponse.data.items.length).toBe(1);
-  expect(listResponse.data.items).toMatchObject([entity]);
+  expect(listResponse.data.items[0]).toExtend(entity);
   expect(listResponse.data.items[0].version).toBeUUID();
   return listResponse.data.items[0];
 };
 
-const performTests = (testEntityType: string) => {
+// Test Collections
+const performTests = (testEntityType: TestableEntityTypes, sampleEntityMap: SampleEntityMap) => {
   const createEntityTest = (entity: Model.ISdkEntity) => createEntity(testEntityType, entity);
+  const updateEntity = (entity: Model.ISdkEntity & TestableEntity) => updateSampleEntities[testEntityType](entity);
+  const sampleEntity = sampleEntityMap[testEntityType];
 
   test('List Entities returns 200 and an empty list when none exist', async () => {
     const response = await ApiRequestMap[testEntityType].list(account, getIdPrefix());
@@ -65,16 +159,13 @@ const performTests = (testEntityType: string) => {
 
   test('Update Entity', async () => {
     const entityOne = await createEntityTest(sampleEntity());
-    const entityOneUpdated = {
-      ...entityOne,
-      data: {},
-      tags: { newTag: 'efg' },
-    };
+    const entityOneUpdated = updateEntity(entityOne);
     const updateResponse = await ApiRequestMap[testEntityType].putAndWait(account, entityOne.id, entityOneUpdated);
     expect(updateResponse).toBeHttp({ statusCode: 200 });
     const getResponse = await ApiRequestMap[testEntityType].get(account, entityOne.id);
+    expect({ ...getResponse.data, version: undefined }).toExtend({ ...entityOneUpdated, version: undefined });
     expect(getResponse.data).toBeDefined();
-    expect(getResponse.data.tags).toMatchObject(entityOneUpdated.tags);
+    expect(getResponse.data.tags).toMatchObject(entityOneUpdated.tags || {});
     expect(getResponse.data.version).toBeUUID();
     expect(getResponse.data.version).not.toBe(entityOne.id);
   }, 180000);
@@ -82,9 +173,7 @@ const performTests = (testEntityType: string) => {
   test('Update Entity returns 404 if entity not found', async () => {
     const entityOne = await createEntityTest(sampleEntity());
     const entityOneUpdated = {
-      ...entityOne,
-      data: {},
-      tags: { newTag: 'efg' },
+      ...updateEntity(entityOne),
       id: 'invalid-id',
     };
     const updateResponse = await ApiRequestMap[testEntityType].putAndWait(account, entityOne.id, entityOneUpdated);
@@ -133,7 +222,7 @@ const performTests = (testEntityType: string) => {
     const entityOne = await createEntityTest(sampleEntity());
     const getResponse = await ApiRequestMap[testEntityType].get(account, entityOne.id);
     expect(getResponse).toBeHttp({ statusCode: 200 });
-    expect(getResponse.data).toMatchObject(entityOne);
+    expect(getResponse.data).toExtend(entityOne);
   }, 180000);
 
   test('Get Entity returns 404 when not found', async () => {
@@ -180,7 +269,7 @@ const performTests = (testEntityType: string) => {
   test('List Entitys by prefix', async () => {
     const entityCount = 10;
     const entityBase = sampleEntity();
-    const sections = [
+    const sections: Array<any> = [
       {
         prefix: (index?: number) => `prefix1-${index || ''}`,
         size: 1,
@@ -198,7 +287,7 @@ const performTests = (testEntityType: string) => {
       },
     ];
 
-    const sectionsByEntityIndex = sections.flatMap((section: any) =>
+    const sectionsByEntityIndex: any[] = (sections as any).flatMap((section: any) =>
       Array(section.size)
         .fill(section)
         .map((item, index) => ({
@@ -227,7 +316,7 @@ const performTests = (testEntityType: string) => {
         });
         expect(prefixResponse).toBeHttp({ statusCode: 200 });
         expect(prefixResponse.data.items).toHaveLength(section.size);
-        expect(prefixResponse.data.items).toMatchObject(
+        expect(prefixResponse.data.items).toExtend(
           Array(section.size)
             .fill(undefined)
             .map((item, index) => ({ ...entityBase, id: `${boundaryId}-${section.prefix(index)}` }))
@@ -258,26 +347,25 @@ const performTests = (testEntityType: string) => {
         size: 1,
       },
     ];
-    const tagOne = (index: number) => ({ tagOne: `${index}` });
-    const tagTwo = (index: number) => ({ tagTwo: `${index}` });
-    const tagThree = (index: number) => ({ tagThree: `${index}` });
+    const tagOne = (index: number): Model.ITags => ({ tagOne: `${index}` });
+    const tagTwo = (index: number): Model.ITags => ({ tagTwo: `${index}` });
+    const tagThree = (index: number): Model.ITags => ({ tagThree: `${index}` });
     const entityCount = sections.reduce((acc, cur) => acc + cur.size, 0);
 
-    const Entitys: Model.ISdkEntity[] = sections.flatMap(
+    const Entitys: Model.ISdkEntity[] = (sections as any).flatMap(
       (section: { size: number; tagOne?: boolean; tagTwo?: boolean; tagThree?: boolean }, sectionId: number) =>
         Array(section.size)
           .fill(undefined)
           .map(
-            (item, index): Model.ISdkEntity =>
-              ({
-                ...entityBase,
-                tags: {
-                  ...(section.tagOne && tagOne(index)),
-                  ...(section.tagTwo && tagTwo(index)),
-                  ...(section.tagThree && tagThree(index)),
-                },
-                id: `${boundaryId}-${sectionId}-${index}`,
-              } as Model.ISdkEntity)
+            (item, index): Model.ISdkEntity => ({
+              ...entityBase,
+              tags: {
+                ...(section.tagOne ? tagOne(index) : {}),
+                ...(section.tagTwo ? tagTwo(index) : {}),
+                ...(section.tagThree ? tagThree(index) : {}),
+              },
+              id: `${boundaryId}-${sectionId}-${index}`,
+            })
           )
     );
 
@@ -412,7 +500,7 @@ const performTests = (testEntityType: string) => {
     const getEntityResponse = await ApiRequestMap[testEntityType].get(account, entityOne.id);
     expect(getEntityResponse).toBeHttp({ statusCode: 200 });
     expect(getEntityResponse.data).toBeDefined();
-    expect(getEntityResponse.data).toMatchObject({
+    expect(getEntityResponse.data).toExtend({
       ...remVersion(entityOne),
       tags: { ...entityOne.tags, [tagKey]: tagValue },
     });
@@ -438,16 +526,23 @@ const performTests = (testEntityType: string) => {
     const invokeResponse = await ApiRequestMap[testEntityType].dispatch(account, entity.id, 'GET', '/api/health');
     expect(invokeResponse).toBeHttp({ statusCode: 200 });
   }, 180000);
+
+  test('Entity Empty POST', async () => {
+    const createResponse = await ApiRequestMap[testEntityType].post(account, {});
+    expect(createResponse).toBeHttp({ statusCode: 400 });
+  }, 180000);
+
+  test('Entity Empty POST with ID', async () => {
+    const createResponse = await ApiRequestMap[testEntityType].postAndWait(account, { id: newId('Test') });
+    expect(createResponse).toBeHttp({ statusCode: 200 });
+  }, 180000);
 };
 
-describe('Connector', () => {
-  performTests('connector');
-});
+const performIntegrationTest = (sampleEntitiesMap: SampleEntityMap) => {
+  const testEntityType = Model.EntityType.integration;
+  const sampleEntity = sampleEntitiesMap[testEntityType];
 
-describe('Integration', () => {
-  const testEntityType = 'integration';
-
-  performTests(testEntityType);
+  performTests(testEntityType, sampleEntitiesMap);
 
   test('Invoke Entity GET', async () => {
     const entity = await createEntity(testEntityType, sampleEntity());
@@ -482,9 +577,9 @@ describe('Integration', () => {
       ...entity,
       data: { ...entity.data },
     };
-    entityUpdated.data.files = {
+    const newFiles = {
       ...entity.data.files,
-      'integration.js': [
+      './integration.js': [
         "const { Router, Manager, Form } = require('@fusebit-int/framework');",
         "const connectors = require('@fusebit-int/framework').connectors;",
         '',
@@ -497,6 +592,7 @@ describe('Integration', () => {
         'module.exports = router;',
       ].join('\n'),
     };
+    Object.assign(entityUpdated, setFiles(entityUpdated, newFiles, './integration.js'));
     const updateResponse = await ApiRequestMap[testEntityType].putAndWait(account, entity.id, entityUpdated);
     expect(updateResponse).toBeHttp({ statusCode: 200 });
     const invokeResponse = await ApiRequestMap[testEntityType].dispatch(account, entity.id, 'GET', '/api/');
@@ -509,9 +605,10 @@ describe('Integration', () => {
       ...entity,
       data: { ...entity.data },
     };
-    entityUpdated.data.files = {
+
+    const newFiles = {
       ...entity.data.files,
-      'integration.js': [
+      './integration.js': [
         "const { Router, Manager, Form } = require('@fusebit-int/framework');",
         "const connectors = require('@fusebit-int/framework').connectors;",
         '',
@@ -524,6 +621,8 @@ describe('Integration', () => {
         'module.exports = router;',
       ].join('\n'),
     };
+
+    Object.assign(entityUpdated, setFiles(entityUpdated, newFiles, './integration.js'));
     const updateResponse = await ApiRequestMap[testEntityType].putAndWait(account, entity.id, entityUpdated);
     expect(updateResponse).toBeHttp({ statusCode: 200 });
     const invokeResponse = await ApiRequestMap[testEntityType].dispatch(account, entity.id, 'POST', '/api/', {
@@ -534,18 +633,23 @@ describe('Integration', () => {
 
   test('Invoke Entity Event', async () => {
     const entity = await createEntity(testEntityType, sampleEntity());
-    entity.data.files['integration.js'] = [
-      "const { Router, Manager, Form } = require('@fusebit-int/framework');",
-      "const connectors = require('@fusebit-int/framework').connectors;",
-      '',
-      'const router = new Router();',
-      '',
-      "router.on('/testEvent', async ({tasty}) => {",
-      '  return { answer: tasty + " and mango"};',
-      '});',
-      '',
-      'module.exports = router;',
-    ].join('\n');
+    const newFiles = {
+      ...entity.data.files,
+      './integration.js': [
+        "const { Router, Manager, Form } = require('@fusebit-int/framework');",
+        "const connectors = require('@fusebit-int/framework').connectors;",
+        '',
+        'const router = new Router();',
+        '',
+        "router.on('/testEvent', async ({tasty}) => {",
+        '  return { answer: tasty + " and mango"};',
+        '});',
+        '',
+        'module.exports = router;',
+      ].join('\n'),
+    };
+
+    Object.assign(entity, setFiles(entity, newFiles, './integration.js'));
 
     let result = await ApiRequestMap[testEntityType].putAndWait(account, entity.id, entity);
     expect(result).toBeHttp({ statusCode: 200 });
@@ -558,4 +662,10 @@ describe('Integration', () => {
     });
     expect(result).toBeHttp({ statusCode: 200, data: { answer: 'banana and mango' } });
   }, 180000);
-});
+};
+
+// Test Executions
+describe('Connector with Data', () => performTests(Model.EntityType.connector, sampleEntitiesWithData));
+describe('Connector without Data', () => performTests(Model.EntityType.connector, sampleEntitiesWithoutData));
+describe('Integration with Data', () => performIntegrationTest(sampleEntitiesWithData));
+describe('Integration without Data', () => performIntegrationTest(sampleEntitiesWithoutData));

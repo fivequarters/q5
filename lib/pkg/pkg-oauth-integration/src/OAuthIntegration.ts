@@ -22,12 +22,12 @@ export default class OAuthIntegration {
   public async instantiate(ctx: Context, lookupKey: string) {
     const params = ctx.state.params;
 
-    const baseUrl = `${params.endpoint}/v2/account/${params.accountId}/subscription/${params.subscriptionId}/connector/${this.config.connector}`;
+    const baseUrl = `${params.endpoint}/v2/account/${params.accountId}/subscription/${params.subscriptionId}/connector/${this.config.entityId}`;
 
     // Send request to authority/token passing in the lookupKey
     const tokenResponse = await superagent
-      .get(`${baseUrl}/api/${lookupKey}/token`)
-      .set('Authorization', `Bearer ${ctx.state.fusebit.functionAccessToken}`);
+      .get(`${baseUrl}/${this.config.path}/${lookupKey}`)
+      .set('Authorization', `Bearer ${params.functionAccessToken}`);
 
     // Take the responding token, put it into the object below.
     return {

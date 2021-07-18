@@ -7,28 +7,32 @@ import * as Common from './common';
 
 const Data = Joi.alternatives().try(
   Joi.object().keys({
-    handler: Joi.string().required(),
-    configuration: Joi.object()
-      .keys({
-        connectors: Joi.object()
-          .pattern(
-            Common.entityId,
-            Joi.object().keys({
-              package: Common.npmPackageName,
-              connector: Common.entityId,
-            })
-          )
-          .max(10), // Arbitrary
-        creation: Joi.object().keys({
-          tags: Common.tags,
-          steps: Joi.array().items(Session.Step).max(10), // Arbitrary
-          autoStep: Joi.boolean().optional().default(false),
-        }),
-      })
-      .required()
-      .unknown(true),
-
     files: EntityCommon.Files.required(),
+    handler: Joi.string().required(),
+    configuration: Joi.object().default({}),
+    componentTags: Common.tags,
+    components: Joi.array()
+      .items(
+        Joi.object().keys({
+          name: Joi.string().required(),
+          entityId: Joi.string().required(),
+          entityType: Joi.valid('integration', 'connector'),
+          skip: Joi.boolean().optional().default(false),
+          path: Joi.string().when('entityType', {
+            is: 'connector',
+            then: Joi.default('/api/configure'),
+            otherwise: Joi.required(),
+          }),
+          package: Joi.string().when('entityType', {
+            is: 'integration',
+            then: Joi.forbidden(),
+            otherwise: Joi.required(),
+          }),
+          dependsOn: Joi.array().items(Joi.string()).unique().default([]),
+        })
+      )
+      .unique((a: { name: string }, b: { name: string }) => a.name === b.name)
+      .default([]),
   }),
   Joi.object().keys({})
 );
