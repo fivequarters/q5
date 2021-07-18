@@ -10,7 +10,7 @@ const command = {
   cmd: 'set-flags',
   summary: 'Sets flags on the subscription.',
   description:
-    'Sets flags on the subscription. This command will not override previous values unless they are explicitly set.',
+    'Sets flags on the subscription. This command will not overwrite flags set previously unless they are explicitly set here.',
   arguments: [
     {
       name: 'deployment',
