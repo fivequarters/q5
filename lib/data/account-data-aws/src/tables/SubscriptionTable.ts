@@ -31,6 +31,7 @@ function toItem(subscription: ISubscription, accountId: string) {
   const item: any = toKey(subscription.id, accountId);
   item.displayName = { S: subscription.displayName } || undefined;
   item.limits = { S: JSON.stringify(subscription.limits || {}) };
+  item.flags = { S: JSON.stringify(subscription.flags || {}) };
   return item;
 }
 
@@ -39,6 +40,7 @@ function fromItem(item: any): ISubscription {
     id: item.subscriptionId.S,
     displayName: item.displayName.S,
     limits: JSON.parse(item.limits ? item.limits.S : '{}'),
+    flags: JSON.parse(item.flags ? item.flags.S : '{}'),
   };
 }
 
