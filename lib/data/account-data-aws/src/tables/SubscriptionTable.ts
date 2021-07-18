@@ -66,6 +66,7 @@ export interface ISubscription {
   archived?: boolean;
   displayName?: string;
   limits?: ISubscriptionLimits;
+  flags?: ISubscriptionFlags;
 }
 
 export interface IListSubscriptionsOptions {
@@ -81,6 +82,10 @@ export interface IListSubscriptionsResult {
 
 export interface ISubscriptionLimits {
   concurrency: number;
+}
+
+export interface ISubscriptionFlags {
+  staticIp?: boolean;
 }
 
 // ----------------
@@ -139,6 +144,11 @@ export class SubscriptionTable extends AwsDynamoTable {
     if (subscription.limits !== undefined) {
       sets.push('limits = :limits');
       expressionValues[':limits'] = { S: JSON.stringify(subscription.limits) };
+    }
+
+    if (subscription.flags !== undefined) {
+      sets.push('flags = :flags');
+      expressionValues[':flags'] = { S: JSON.stringify(subscription.flags) };
     }
 
     const options = {

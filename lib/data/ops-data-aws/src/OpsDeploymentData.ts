@@ -191,6 +191,22 @@ export class OpsDeploymentData extends DataSource implements IOpsDeploymentData 
     await accountData.subscriptionData.update(account, currentSubscription);
   }
 
+  public async setFlags(account: string, subscription: IFusebitSubscription): Promise<void> {
+    debug('SET SUBSCRIPTION FLAGS', subscription);
+    const awsConfig = await this.provider.getAwsConfigForDeployment(subscription.deploymentName, subscription.region);
+
+    const accountDataFactory = await AccountDataAwsContextFactory.create(awsConfig);
+    const accountData = await accountDataFactory.create(this.config);
+
+    const currentSubscription = await accountData.subscriptionData.get(account, subscription.subscription as string);
+    currentSubscription.flags = {
+      ...currentSubscription.flags,
+      ...subscription.flags,
+    };
+
+    await accountData.subscriptionData.update(account, currentSubscription);
+  }
+
   public async get(deploymentName: string, region: string): Promise<IOpsDeployment> {
     return this.tables.deploymentTable.get(deploymentName, region);
   }

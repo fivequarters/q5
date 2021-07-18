@@ -72,7 +72,7 @@ export class SetSubscriptionFlagsCommand extends Command {
       flags: { staticIp },
     };
 
-    await deploymentService.setSubscriptionFlag(subscription);
+    await deploymentService.setSubscriptionFlags(subscription);
 
     await deploymentService.displaySubscription(subscription);
 
