@@ -8,6 +8,7 @@ import {
   IListOpsDeploymentOptions,
   IListOpsDeploymentResult,
   IFusebitSubscription,
+  IFusebitSubscriptionFlags,
   IFusebitAccount,
   IInitAdmin,
 } from '@5qtrs/ops-data';
@@ -214,6 +215,35 @@ export class DeploymentService {
       `Limit applied to '${Text.bold(subscription.subscription as string)}'.  Issue a '${Text.bold(
         '/v1/refresh'
       )}' request to each instance in the stack to apply the new limit.`
+    );
+  }
+
+  public async setSubscriptionFlags(subscription: IFusebitSubscription): Promise<void> {
+    if (!subscription.flags) {
+      return;
+    }
+
+    const opsDataContext = await this.opsService.getOpsDataContext();
+    const deploymentData = opsDataContext.deploymentData;
+
+    const keys = Object.keys(subscription.flags) as Array<keyof IFusebitSubscriptionFlags>;
+    const values = keys.map((key) => (subscription.flags ? subscription.flags[key] : null));
+
+    const boldListOfKeys = Text.bold(keys.join(', '));
+    const boldListOfValues = Text.bold(values.join(', '));
+
+    await this.executeService.execute(
+      {
+        header: 'Set Subscription Flags',
+        message: `Setting the ${boldListOfKeys} flag(s) to ${boldListOfValues}, respectively.`,
+        errorHeader: 'Subscription Error',
+      },
+      () => deploymentData.setFlags(subscription.account as string, subscription)
+    );
+
+    this.executeService.result(
+      'Subscription Flags Set',
+      `The ${boldListOfKeys} flag(s) were set to ${boldListOfValues}, respectively.`
     );
   }
 
