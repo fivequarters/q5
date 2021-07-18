@@ -157,6 +157,8 @@ export enum SessionMode {
 }
 
 export interface ITrunkSessionData {
+  operationId?: string;
+
   mode: SessionMode.trunk;
 
   redirectUrl: string;
@@ -182,6 +184,7 @@ export interface ITrunkSession extends IEntity {
 }
 
 export interface ILeafSessionData extends Omit<IStep, 'uses' | 'childSessionId' | 'dependsOn'> {
+  operationId?: string;
   replacementTargetId?: string;
   mode: SessionMode.leaf;
   dependsOn: Record<string, object>;

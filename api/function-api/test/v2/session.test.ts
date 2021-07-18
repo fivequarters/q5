@@ -436,6 +436,32 @@ describe('Sessions', () => {
     });
   }, 180000);
 
+  test('Finish a session and receive operationId', async () => {
+    const { integrationId } = await createPair(account, boundaryId);
+    let response = await ApiRequestMap.integration.session.post(account, integrationId, {
+      redirectUrl: demoRedirectUrl,
+    });
+    const parentSessionId = response.data.id;
+
+    // Start the session to make sure it starts correctly.
+    response = await ApiRequestMap.integration.session.start(account, integrationId, parentSessionId);
+    const loc = getElementsFromUrl(response.headers.location);
+
+    // Call the callback
+    response = await ApiRequestMap[loc.entityType].session.callback(account, loc.entityId, loc.sessionId);
+
+    // Post to finish
+    response = await ApiRequestMap.integration.session.postSession(account, integrationId, parentSessionId);
+    expect(response).toBeHttp({ statusCode: 200 });
+
+    // Verify Operation Id
+    const operationId = response.data.operationId;
+    expect(operationId).toBeDefined();
+    response = await ApiRequestMap.operation.get(account, operationId);
+    expect(response).toBeHttp({ statusCode: 200 });
+    // Fetch
+  }, 180000);
+
   test('The /callback endpoint of a step session redirects to the next entry', async () => {
     const numConnectors = 5;
     const { integrationId, connectorId } = await createPair(account, boundaryId, undefined, undefined, numConnectors);

@@ -331,8 +331,9 @@ export default abstract class SessionedEntityService<
       Model.EntityType.session,
       entity,
       { verb: 'creating', type: Model.EntityType.session },
-      async () => {
+      async (operationId) => {
         const session = await this.sessionDao.getEntity(entity);
+        session.data.operationId = operationId;
         this.ensureSessionTrunk(session, 'cannot post non-master session', 400);
 
         await this.persistTrunkSession(session);
