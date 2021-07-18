@@ -1,0 +1,7 @@
+{
+  "metadata": {
+    "runner": "// Return a function that evaluates to a Superagent request promise\n\nctx => Superagent.get(ctx.url);\n\n// Simple POST request\n// ctx => Superagent.post(ctx.url)\n//     .send({ hello: 'world' });\n\n// POST request with Authorization header using function's application settings\n// ctx => Superagent.post(ctx.url)\n//     .set('Authorization', `Bearer ${ctx.configuration.MY_API_KEY}`)\n//     .send({ hello: 'world' });\n"
+  },
+  "scheduleSerialized": "# Set the 'cron' value to execute this function on a schedule\n\n# Check available timezone identifiers at https://en.wikipedia.org/wiki/List_of_tz_database_time_zones\n# Default is UTC.\n# timezone=US/Pacific\n# cron=*/5 * * * * *\n\n# Design a CRON schedule at https://crontab.guru/\n\n# Every day at midnight\n# cron=0 0 * * *\n\n# Every day at 5am\n# cron=0 5 * * *\n\n# Every hour\n# cron=0 */1 * * *\n\n# Every 15 minutes\n# cron=*/15 * * * *\n\n# At 10pm every Friday\n# cron=0 22 * * Fri\n",
+  "fuseVersion": "1.9.16"
+}
