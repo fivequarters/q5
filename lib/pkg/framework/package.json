@@ -1,9 +1,15 @@
 {
   "name": "@fusebit-int/framework",
-  "version": "2.0.0",
+  "version": "2.0.2",
   "description": "",
   "main": "libc/index.js",
-  "files": ["libc/*.js", "libc/*.d.ts", "libc/form/*.html", "libc/middleware/*.js", "libc/middleware/*.d.ts"],
+  "files": [
+    "libc/*.js",
+    "libc/*.d.ts",
+    "libc/form/*.html",
+    "libc/middleware/*.js",
+    "libc/middleware/*.d.ts"
+  ],
   "license": "SEE LICENSE IN LICENSE",
   "author": "Fusebit, Inc.",
   "scripts": {

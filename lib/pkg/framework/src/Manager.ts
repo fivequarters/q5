@@ -10,6 +10,7 @@ import { Router, Context } from './Router';
 import { ConnectorManager, IInstanceConnectorConfig } from './ConnectorManager';
 
 import DefaultRoutes from './DefaultRoutes';
+import SDK from './SDK';
 
 /** The vendor module failed to load with this error */
 type VendorModuleError = any;
@@ -68,11 +69,15 @@ class Manager {
   /** @public Connectors attached to this integration. */
   public connectors: ConnectorManager;
 
+  /** @public SDK attached to this integration. */
+  public sdk: SDK;
+
   /** Create a new Manager, using the supplied storage interface as a persistance backend. */
   constructor() {
     this.app = new Koa();
     this.router = new Router();
     this.connectors = new ConnectorManager();
+    this.sdk = new SDK();
   }
 
   /** Configure the Manager with the vendor object and error, if any. */
@@ -81,6 +86,8 @@ class Manager {
 
     // Load the configuration for the integrations
     this.connectors.setup(cfg.components);
+
+    //
 
     if (vendorError) {
       this.vendorError = vendorError;
@@ -242,6 +249,12 @@ class Manager {
         : {}),
     };
     ctx.state.fusebit = { ...fusebitCtx.fusebit, caller: fusebitCtx.caller };
+    if (fusebitCtx.fusebit) {
+      this.sdk.initialize(
+        fusebitCtx.fusebit.functionAccessToken,
+        `${fusebitCtx.fusebit.endpoint}/v2/account/${fusebitCtx.accountId}/subscription/${fusebitCtx.subscriptionId}`
+      );
+    }
     ctx.state.manager = this;
 
     // Pre-load the status as OK
