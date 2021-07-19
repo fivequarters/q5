@@ -98,6 +98,9 @@ class SubscriptionCache {
       // Deserialize the limits field, if present
       result.limits = result.limits && JSON.parse(result.limits);
 
+      // Deserialize the flags field, if present
+      result.flags = result.flags && JSON.parse(result.flags);
+
       return result;
     });
 
