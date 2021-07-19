@@ -16,7 +16,6 @@ import { OpsNetworkData } from './OpsNetworkData';
 import { OpsDataAwsProvider } from './OpsDataAwsProvider';
 import { OpsDataAwsConfig } from './OpsDataAwsConfig';
 import { OpsAccountData } from './OpsAccountData';
-import { random } from '@5qtrs/random';
 import { parseElasticSearchUrl } from './OpsElasticSearch';
 import { debug } from './OpsDebug';
 
@@ -314,6 +313,9 @@ SERVICE_ROLE=${this.config.arnPrefix}:iam::${account}:role/${this.config.monoIns
 LAMBDA_BUILDER_ROLE=${this.config.arnPrefix}:iam::${account}:role/${this.config.builderRoleName}
 LAMBDA_MODULE_BUILDER_ROLE=${this.config.arnPrefix}:iam::${account}:role/${this.config.builderRoleName}
 LAMBDA_USER_FUNCTION_ROLE=${this.config.arnPrefix}:iam::${account}:role/${this.config.functionRoleName}
+LAMBDA_USER_FUNCTION_PERMISSIONLESS_ROLE=${this.config.arnPrefix}:iam::${account}:role/${
+      this.config.functionPermissionlessRoleName
+    }
 LAMBDA_VPC_SUBNETS=${subnetIds.join(',')}
 LAMBDA_VPC_SECURITY_GROUPS=${securityGroupIds.join(',')}
 CRON_QUEUE_URL=https://sqs.${region}.amazonaws.com/${account}/${deploymentName}-cron
