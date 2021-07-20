@@ -1,7 +1,6 @@
 import create_error from 'http-errors';
 
 import { IAgent } from '@5qtrs/account-data';
-import { SubscriptionCache } from '@5qtrs/runas';
 import { AwsRegistry } from '@5qtrs/registry';
 import { terminate_garbage_collection } from '@5qtrs/function-lambda';
 import * as FunctionUtilities from '../../src/routes/functions';
@@ -142,14 +141,5 @@ describe('Function Utilities', () => {
     expect(exec.body.method).toBe('POST');
     expect(exec.body.body).toEqual(body);
     expect(base.data.body).toEqual(body);
-  }, 120000);
-
-  test('Create a function that requires a build', async () => {
-    const params = getParams(function1Id, account, boundaryId);
-    const create = await FunctionUtilities.createFunction(params, asyncFunction, fakeAgent as IAgent, registry);
-    expect(create).toMatchObject({ code: 200 });
-
-    const build = await FunctionUtilities.waitForFunctionBuild(params, create.buildId as string, 10000);
-    expect(build).toMatchObject({ code: 200, version: 1 });
   }, 120000);
 });

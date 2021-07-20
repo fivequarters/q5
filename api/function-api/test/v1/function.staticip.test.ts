@@ -37,7 +37,7 @@ afterAll(() => {
 test('Create a function that requires a build', async () => {
   const params = getParams(function1Id, account, boundaryId);
   const create = await FunctionUtilities.createFunction(params, asyncFunction, fakeAgent as IAgent, registry);
-  expect(create).toMatchObject({ code: 200 });
+  expect(create).toMatchObject({ code: 201 });
 
   const build = await FunctionUtilities.waitForFunctionBuild(params, create.buildId as string, 10000);
   expect(build).toMatchObject({ code: 200, version: 1 });
@@ -46,7 +46,7 @@ test('Create a function that requires a build', async () => {
 test('Create a function with a short timeout fails', async () => {
   const params = getParams(function1Id, account, boundaryId);
   const create = await FunctionUtilities.createFunction(params, asyncFunction, fakeAgent as IAgent, registry);
-  expect(create).toMatchObject({ code: 200 });
+  expect(create).toMatchObject({ code: 201 });
 
   expect(FunctionUtilities.waitForFunctionBuild(params, create.buildId as string, 1)).rejects.toEqual(
     create_error(408)
