@@ -10,14 +10,23 @@ import Operation from './daos/operation';
 import Session from './daos/session';
 import Identity from './daos/identity';
 import Instance from './daos/instance';
-
+import { random } from '@5qtrs/random';
 class RDS implements IRds {
   private rdsSdk!: AWS.RDSDataService;
   private rdsCredentials!: Model.IRdsCredentials;
   private purgeInterval!: NodeJS.Timeout;
   private readonly defaultAuroraDatabaseName = 'fusebit';
   private readonly defaultPurgeInterval = 10 * 60 * 1000;
-
+  private lastHealth = 'healthy';
+  public readonly DAO: IDaoCollection = {
+    connector: new Connector(this),
+    integration: new Integration(this),
+    storage: new Storage(this),
+    operation: new Operation(this),
+    session: new Session(this),
+    identity: new Identity(this),
+    instance: new Instance(this),
+  };
   public async purgeExpiredItems(): Promise<boolean> {
     try {
       const { rdsSdk, rdsCredentials } = await this.ensureConnection();
@@ -92,6 +101,39 @@ class RDS implements IRds {
       }
     }
     return { rdsSdk: this.rdsSdk, rdsCredentials: this.rdsCredentials };
+  }
+  
+  public async updateHealth() {
+    const entity = {
+      accountId: 'acc-000000000000',
+      subscriptionId: 'sub-000000000000',
+      id: `/v1/health-${random({ lengthInBytes: 8 })}`,
+      data: { checked: Date.now() },
+      expires: new Date(Date.now() + 5000).toISOString(),
+    };
+    try {
+      const update = await this.DAO.storage.createEntity(entity);
+      const get = await this.DAO.storage.getEntity(entity);
+      if (!update.data || !get.data || update.data.checked != get.data.checked) {
+        this.lastHealth = 'unhealthy'
+      } else {
+        this.lastHealth = 'healthy'
+      }
+      console.log("updateHealth executed")
+      return setTimeout(this.updateHealth, 10000)
+    } catch (e) {
+      console.log(e)
+      return setTimeout(this.updateHealth, 10000)
+    }
+    
+  }
+
+  public async getExecutionHealth() {
+    if (this.lastHealth === 'healthy') {
+      return 'healthy'
+    } else {
+      throw new Error('Last execution failed.')
+    }
   }
 
   public async executeStatement(
@@ -229,15 +271,7 @@ class RDS implements IRds {
     }
   }
 
-  public readonly DAO: IDaoCollection = {
-    connector: new Connector(this),
-    integration: new Integration(this),
-    storage: new Storage(this),
-    operation: new Operation(this),
-    session: new Session(this),
-    identity: new Identity(this),
-    instance: new Instance(this),
-  };
+  
 
   public ensureRecords(
     result: AWS.RDSDataService.ExecuteStatementResponse

@@ -83,13 +83,17 @@ subscriptionCache.refresh();
 // Register the globals with various consumers
 initFunctions(keyStore, subscriptionCache);
 
+// Start health check executor
+setTimeout(RDS.updateHealth, 10000)
+
 // Health and Private Interfaces
 router.get(
   '/health',
   health.getHealth(
     async () => keyStore.healthCheck(),
     async () => subscriptionCache.healthCheck(),
-    async () => RDS.ensureConnection()
+    async () => RDS.ensureConnection(),
+    async () => RDS.getExecutionHealth()
   )
 );
 
