@@ -27,24 +27,6 @@ const ctxFunction = {
   },
 };
 
-const asyncFailedFunction = {
-  nodejs: {
-    files: {
-      'index.js': 'module.exports = (ctx, cb) => cb(null, { body: { ...ctx, configuration: undefined } });',
-      'package.json': { dependencies: { superagent: '=0.0.1' } },
-    },
-  },
-};
-
-const asyncFunction = {
-  nodejs: {
-    files: { 'index.js': 'module.exports = (ctx, cb) => cb(null, { body: { ...ctx, configuration: undefined });' },
-  },
-  compute: {
-    staticIp: true,
-  },
-};
-
 // Register the globals with various consumers
 FunctionUtilities.initFunctions(keyStore, subscriptionCache);
 
