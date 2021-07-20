@@ -93,7 +93,7 @@ router.get(
     async () => keyStore.healthCheck(),
     async () => subscriptionCache.healthCheck(),
     async () => RDS.ensureConnection(),
-    async () => RDS.getExecutionHealth()
+    async () => RDS.getRDSLiveness()
   )
 );
 

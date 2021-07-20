@@ -18,15 +18,6 @@ class RDS implements IRds {
   private readonly defaultAuroraDatabaseName = 'fusebit';
   private readonly defaultPurgeInterval = 10 * 60 * 1000;
   private lastHealth = 'healthy';
-  public readonly DAO: IDaoCollection = {
-    connector: new Connector(this),
-    integration: new Integration(this),
-    storage: new Storage(this),
-    operation: new Operation(this),
-    session: new Session(this),
-    identity: new Identity(this),
-    instance: new Instance(this),
-  };
   public async purgeExpiredItems(): Promise<boolean> {
     try {
       const { rdsSdk, rdsCredentials } = await this.ensureConnection();
@@ -103,11 +94,11 @@ class RDS implements IRds {
     return { rdsSdk: this.rdsSdk, rdsCredentials: this.rdsCredentials };
   }
   
-  public async updateHealth() {
+  public updateHealth = async () => {
     const entity = {
       accountId: 'acc-000000000000',
       subscriptionId: 'sub-000000000000',
-      id: `/v1/health-${random({ lengthInBytes: 8 })}`,
+      id: `health-${random({ lengthInBytes: 8 })}`,
       data: { checked: Date.now() },
       expires: new Date(Date.now() + 5000).toISOString(),
     };
@@ -119,7 +110,6 @@ class RDS implements IRds {
       } else {
         this.lastHealth = 'healthy'
       }
-      console.log("updateHealth executed")
       return setTimeout(this.updateHealth, 10000)
     } catch (e) {
       console.log(e)
@@ -128,9 +118,11 @@ class RDS implements IRds {
     
   }
 
-  public async getExecutionHealth() {
+  public async getRDSLiveness() {
     if (this.lastHealth === 'healthy') {
-      return 'healthy'
+      return {
+        health: 'healthy',
+      }
     } else {
       throw new Error('Last execution failed.')
     }
@@ -271,7 +263,15 @@ class RDS implements IRds {
     }
   }
 
-  
+  public readonly DAO: IDaoCollection = {
+    connector: new Connector(this),
+    integration: new Integration(this),
+    storage: new Storage(this),
+    operation: new Operation(this),
+    session: new Session(this),
+    identity: new Identity(this),
+    instance: new Instance(this),
+  };  
 
   public ensureRecords(
     result: AWS.RDSDataService.ExecuteStatementResponse
