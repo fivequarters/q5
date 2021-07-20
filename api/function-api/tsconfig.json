@@ -15,6 +15,7 @@
   "references": [
     { "path": "../../lib/node/jwt" },
     { "path": "../../lib/node/key-pair" },
+    { "path": "../../lib/shared/random" },
     { "path": "../../lib/shared/request" },
     { "path": "../../sdk/fusebit-profile-sdk" },
     { "path": "../../lib/server/account" },
