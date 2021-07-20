@@ -17,6 +17,12 @@ All public releases of the Fusebit CLI are documented here, including notable ch
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.9.17
+
+_Released 07/09/21_
+
+- **Bugfix** Fixed issue causing `fuse function serve` to not shut down tunnel on exit. 
+
 ## Version 1.9.13
 
 _Released 07/09/21_
