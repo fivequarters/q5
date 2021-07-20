@@ -153,3 +153,42 @@ test('PUT with new compute values and code executes async', async () => {
   expect(response).toBeHttp({ statusCode: 200 });
   expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: true });
 }, 240000);
+
+test('PUT with undefined compute is ignored', async () => {
+  let response = await putFunction(account, boundaryId, function1Id, helloWorldWithStaticIp);
+  response = await waitForBuild(account, response.data, 120, 1000);
+  expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+
+  response = await getFunction(account, boundaryId, function1Id, true);
+
+  expect(response).toBeHttp({ statusCode: 200 });
+  expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: true });
+  expect(response.data.computeSerialized).toBe('staticIp=true\nmemorySize=128\ntimeout=30');
+
+  response.data.compute = undefined;
+  response = await putFunction(account, boundaryId, function1Id, response.data);
+  expect(response.status).toBe(204);
+}, 240000);
+
+test('PUT with new compute values updates compute and computeSerialized', async () => {
+  let response = await putFunction(account, boundaryId, function1Id, helloWorld);
+  expect(response).toBeHttp({ statusCode: 200 });
+
+  response = await getFunction(account, boundaryId, function1Id, true);
+  expect(response).toBeHttp({ statusCode: 200 });
+
+  const data = response.data;
+  expect(data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: false });
+  expect(data.computeSerialized).toBe('memorySize=128\ntimeout=30\nstaticIp=false');
+
+  data.compute.staticIp = true;
+  response = await putFunction(account, boundaryId, function1Id, data);
+  expect(response).toBeHttp({ statusCode: 201 });
+  response = await waitForBuild(account, response.data, 120, 1000);
+  expect(response).toBeHttp({ statusCode: 200 });
+
+  response = await getFunction(account, boundaryId, function1Id, true);
+  expect(response).toBeHttp({ statusCode: 200 });
+  expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: true });
+  expect(response.data.computeSerialized).toBe('memorySize=128\ntimeout=30\nstaticIp=true');
+}, 240000);
