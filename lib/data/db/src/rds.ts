@@ -19,7 +19,7 @@ class RDS implements IRds {
   private readonly defaultAuroraDatabaseName = 'fusebit';
   private readonly defaultPurgeInterval = 10 * 60 * 1000;
   private lastHealth = 'healthy';
-  private lastHealthExecution: Date = new Date(Date.now());
+  private lastHealthExecution: Date = new Date(0);
 
   public async purgeExpiredItems(): Promise<boolean> {
     try {
