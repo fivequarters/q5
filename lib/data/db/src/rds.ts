@@ -25,6 +25,7 @@ class RDS implements IRds {
   private readonly RDS_HEALTH_TEST_SUB_ID = 'sub-000000000000';
   private readonly RDS_HEALTH_ENT_ID_PREFIX = 'health-';
   private readonly RDS_HEALTH_MAX_ACCEPTABLE_TTL = 13;
+
   public async purgeExpiredItems(): Promise<boolean> {
     try {
       const { rdsSdk, rdsCredentials } = await this.ensureConnection();
