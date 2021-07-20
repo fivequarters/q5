@@ -107,6 +107,7 @@ class RDS implements IRds {
     try {
       const update = await this.DAO.storage.createEntity(entity);
       const get = await this.DAO.storage.getEntity(entity);
+      console.log('executed')
       if (!update.data || !get.data || update.data.checked != get.data.checked) {
         this.lastHealth = 'unhealthy'
       } else {

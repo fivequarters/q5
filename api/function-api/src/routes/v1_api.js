@@ -84,7 +84,7 @@ subscriptionCache.refresh();
 initFunctions(keyStore, subscriptionCache);
 
 // Start health check executor
-setTimeout(RDS.updateHealth, 10000)
+RDS.updateHealth()
 
 // Health and Private Interfaces
 router.get(
