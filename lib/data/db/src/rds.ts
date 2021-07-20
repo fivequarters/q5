@@ -18,9 +18,13 @@ class RDS implements IRds {
   private purgeInterval!: NodeJS.Timeout;
   private readonly defaultAuroraDatabaseName = 'fusebit';
   private readonly defaultPurgeInterval = 10 * 60 * 1000;
-  private lastHealth = 'healthy';
+  private lastHealth = false;
   private lastHealthExecution: Date = new Date(0);
-
+  private readonly RDS_HEALTH_CHECK_TTL = 10;
+  private readonly RDS_HEALTH_TEST_ACC_ID = 'acc-000000000000';
+  private readonly RDS_HEALTH_TEST_SUB_ID = 'sub-000000000000';
+  private readonly RDS_HEALTH_ENT_ID_PREFIX = 'health-';
+  private readonly RDS_HEALTH_MAX_ACCEPTABLE_TTL = 13;
   public async purgeExpiredItems(): Promise<boolean> {
     try {
       const { rdsSdk, rdsCredentials } = await this.ensureConnection();
@@ -99,9 +103,9 @@ class RDS implements IRds {
 
   public updateHealth = async () => {
     const entity = {
-      accountId: 'acc-000000000000',
-      subscriptionId: 'sub-000000000000',
-      id: `health-${random({ lengthInBytes: 8 })}`,
+      accountId: this.RDS_HEALTH_TEST_ACC_ID,
+      subscriptionId: this.RDS_HEALTH_TEST_SUB_ID,
+      id: `${this.RDS_HEALTH_ENT_ID_PREFIX}${random({ lengthInBytes: 8 })}`,
       data: { checked: Date.now() },
       expires: new Date(Date.now() + 5000).toISOString(),
     };
@@ -109,24 +113,20 @@ class RDS implements IRds {
       const update = await this.DAO.storage.createEntity(entity);
       const get = await this.DAO.storage.getEntity(entity);
       if (!update.data || !get.data || update.data.checked != get.data.checked) {
-        this.lastHealth = 'unhealthy';
+        this.lastHealth = false;
       } else {
-        this.lastHealth = 'healthy';
-        this.lastHealthExecution = new Date(Date.now());
+        this.lastHealth = true;
+        this.lastHealthExecution = new Date(get.data.checked);
       }
     } catch (e) {
-      console.log(e);
-      this.lastHealth = 'unhealthy';
+      this.lastHealth = false;
     }
-    return setTimeout(this.updateHealth, 10000);
+    return setTimeout(this.updateHealth, this.RDS_HEALTH_CHECK_TTL * 1000);
   };
 
   public async ensureRDSLiveliness() {
-    if (
-      this.lastHealth === 'healthy' &&
-      this.lastHealthExecution &&
-      (new Date(Date.now()).getTime() - this.lastHealthExecution.getTime()) / 1000 < 13
-    ) {
+    const timeDifference = (new Date(Date.now()).getTime() - this.lastHealthExecution.getTime()) / 1000;
+    if (this.lastHealth && this.lastHealthExecution && timeDifference < this.RDS_HEALTH_MAX_ACCEPTABLE_TTL) {
       return {
         health: 'healthy',
       };
