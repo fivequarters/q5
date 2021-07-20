@@ -121,7 +121,7 @@ class RDS implements IRds {
     return setTimeout(this.updateHealth, 10000);
   };
 
-  public async getRDSLiveness() {
+  public async ensureRDSLiveliness() {
     if (
       this.lastHealth === 'healthy' &&
       this.lastHealthExecution &&
