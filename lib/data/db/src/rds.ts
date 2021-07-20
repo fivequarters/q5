@@ -115,12 +115,11 @@ class RDS implements IRds {
     try {
       const update = await this.DAO.storage.createEntity(entity);
       const get = await this.DAO.storage.getEntity(entity);
-      if (!update.data || !get.data || update.data.checked != get.data.checked) {
-        this.lastHealth = false;
-      } else {
+      if (update.data && get.data && update.data.checked == get.data.checked) {
         this.lastHealth = true;
         this.lastHealthExecution = get.data.checked;
       }
+      throw new Error('RDS failure was detected when trying to insert entity.');
     } catch (e) {
       this.healthError = e;
       this.lastHealth = false;
@@ -130,11 +129,7 @@ class RDS implements IRds {
 
   public async ensureRDSLiveliness() {
     const timeDifference = Date.now() - this.lastHealthExecution;
-    if (this.lastHealth && this.lastHealthExecution && timeDifference < this.RDS_HEALTH_MAX_ACCEPTABLE_TTL) {
-      return {
-        health: true,
-      };
-    } else {
+    if (!this.lastHealth || !this.lastHealthExecution || timeDifference > this.RDS_HEALTH_MAX_ACCEPTABLE_TTL) {
       throw new Error(this.healthError);
     }
   }
