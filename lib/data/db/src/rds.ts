@@ -119,6 +119,7 @@ class RDS implements IRds {
         this.lastHealthExecution = new Date(get.data.checked);
       }
     } catch (e) {
+      console.log(e);
       this.lastHealth = false;
     }
     return setTimeout(this.updateHealth, this.RDS_HEALTH_CHECK_TTL * 1000);
@@ -128,7 +129,7 @@ class RDS implements IRds {
     const timeDifference = (new Date(Date.now()).getTime() - this.lastHealthExecution.getTime()) / 1000;
     if (this.lastHealth && this.lastHealthExecution && timeDifference < this.RDS_HEALTH_MAX_ACCEPTABLE_TTL) {
       return {
-        health: 'healthy',
+        health: true,
       };
     } else {
       throw new Error('Last execution failed.');
