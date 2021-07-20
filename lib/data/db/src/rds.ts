@@ -19,6 +19,7 @@ class RDS implements IRds {
   private readonly defaultAuroraDatabaseName = 'fusebit';
   private readonly defaultPurgeInterval = 10 * 60 * 1000;
   private lastHealth = 'healthy';
+  private lastHealthExecution: Date;
 
   public async purgeExpiredItems(): Promise<boolean> {
     try {
@@ -111,17 +112,16 @@ class RDS implements IRds {
         this.lastHealth = 'unhealthy'
       } else {
         this.lastHealth = 'healthy'
+        this.lastHealthExecution = new Date(Date.now())
       }
-      return setTimeout(this.updateHealth, 10000)
     } catch (e) {
       console.log(e)
-      return setTimeout(this.updateHealth, 10000)
     }
-    
+    return setTimeout(this.updateHealth, 10000)
   }
 
   public async getRDSLiveness() {
-    if (this.lastHealth === 'healthy') {
+    if (this.lastHealth === 'healthy' && this.lastHealthExecution && ((new Date(Date.now()).getTime() - this.lastHealthExecution.getTime()) / 1000 )> 10) {
       return {
         health: 'healthy',
       }
