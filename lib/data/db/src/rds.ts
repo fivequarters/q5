@@ -11,6 +11,7 @@ import Session from './daos/session';
 import Identity from './daos/identity';
 import Instance from './daos/instance';
 import { random } from '@5qtrs/random';
+
 class RDS implements IRds {
   private rdsSdk!: AWS.RDSDataService;
   private rdsCredentials!: Model.IRdsCredentials;
@@ -18,6 +19,7 @@ class RDS implements IRds {
   private readonly defaultAuroraDatabaseName = 'fusebit';
   private readonly defaultPurgeInterval = 10 * 60 * 1000;
   private lastHealth = 'healthy';
+
   public async purgeExpiredItems(): Promise<boolean> {
     try {
       const { rdsSdk, rdsCredentials } = await this.ensureConnection();
@@ -271,7 +273,7 @@ class RDS implements IRds {
     session: new Session(this),
     identity: new Identity(this),
     instance: new Instance(this),
-  };  
+  };
 
   public ensureRecords(
     result: AWS.RDSDataService.ExecuteStatementResponse
