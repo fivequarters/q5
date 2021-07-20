@@ -22,6 +22,7 @@
   "keywords": [],
   "dependencies": {
     "@5qtrs/account": "^0.0.1",
+    "@5qtrs/account-data": "^0.0.1",
     "@5qtrs/account-data-aws": "^0.0.1",
     "@5qtrs/aws-config": "^0.0.1",
     "@5qtrs/bq-metering": "^0.0.1",
