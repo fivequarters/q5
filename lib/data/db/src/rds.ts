@@ -24,13 +24,9 @@ class RDS implements IRds {
   private readonly RDS_HEALTH_TEST_ACC_ID = 'acc-000000000000';
   private readonly RDS_HEALTH_TEST_SUB_ID = 'sub-000000000000';
   private readonly RDS_HEALTH_ENT_ID_PREFIX = 'health-';
-<<<<<<< HEAD
-  private readonly RDS_HEALTH_MAX_ACCEPTABLE_TTL = this.RDS_HEALTH_CHECK_TTL + 3;
-=======
   private readonly RDS_HEALTH_MAX_ACCEPTABLE_TTL = this.RDS_HEALTH_CHECK_TTL + 3 * 1000;
   private readonly RDS_HEALTH_ENTITY_EXPIRE = 5 * 1000;
   private healthError: any;
->>>>>>> 8204afd7 (xd)
 
   public async purgeExpiredItems(): Promise<boolean> {
     try {
