@@ -29,9 +29,9 @@ app.use('/v2/', routes.v2);
 app.use('/v1/', routes.v1);
 
 if (process.env.API_EXPOSE_DOCS) {
-  
+  app.use('/', routes.api_docs);
 }
-app.use('/', routes.api_docs);
+
 app.use(function (req, res, next) {
   next(create_error(404));
 });
