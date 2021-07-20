@@ -5,10 +5,15 @@ import * as FunctionUtilities from '../../src/routes/functions';
 import { getEnv } from './setup';
 import { getParams, fakeAgent, createRegistry, keyStore, subscriptionCache } from './function.utils';
 import { terminate_garbage_collection } from '@5qtrs/function-lambda';
+import { putFunction, waitForBuild, getFunction, disableFunctionUsageRestriction } from './sdk';
 
 let { account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv();
 beforeEach(() => {
   ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
+
+  // Tests here don't invoke functions, or if they do they don't care about the result, so the usage
+  // restriction doesn't apply
+  disableFunctionUsageRestriction();
 });
 
 FunctionUtilities.initFunctions(keyStore, subscriptionCache);
@@ -18,6 +23,36 @@ const registry = createRegistry(account, boundaryId);
 const asyncFunction = {
   nodejs: {
     files: { 'index.js': 'module.exports = (ctx, cb) => cb(null, { body: { ...ctx, configuration: undefined });' },
+  },
+  compute: {
+    staticIp: true,
+  },
+};
+
+const helloWorld = {
+  nodejs: {
+    files: {
+      'index.js': 'module.exports = (ctx, cb) => cb(null, { body: "hello" });',
+    },
+  },
+};
+
+const helloWorldWithStaticIp = {
+  nodejs: {
+    files: {
+      'index.js': 'module.exports = (ctx, cb) => cb(null, { body: "hello" });',
+    },
+  },
+  compute: {
+    staticIp: true,
+  },
+};
+
+const helloWorldUpdatedWithStaticIp = {
+  nodejs: {
+    files: {
+      'index.js': 'module.exports = (ctx, cb) => cb(null, { body: "hello - Updated" });',
+    },
   },
   compute: {
     staticIp: true,
@@ -52,3 +87,69 @@ test('Create a function with a short timeout fails', async () => {
     create_error(408)
   );
 }, 120000);
+
+test('PUT supports setting staticIP=true', async () => {
+  let response = await putFunction(account, boundaryId, function1Id, helloWorldWithStaticIp);
+  expect(response).toBeHttp({ statusCode: 201 });
+  response = await waitForBuild(account, response.data, 120, 1000);
+  expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
+  response = await getFunction(account, boundaryId, function1Id);
+  expect(response.status).toBe(200);
+  expect(response.data.compute).toEqual({ staticIp: true, memorySize: 128, timeout: 30 });
+}, 240000);
+
+test('PUT multiple times on the same function', async () => {
+  let response = await putFunction(account, boundaryId, function1Id, helloWorld);
+  expect(response).toBeHttp({ statusCode: 200 });
+
+  response = await putFunction(account, boundaryId, function1Id, helloWorldWithStaticIp);
+  expect(response).toBeHttp({ statusCode: 201 });
+
+  // Instead of waiting for the function to complete it's build, try again and see what happens.
+  response = await putFunction(account, boundaryId, function1Id, helloWorld);
+  expect(response).toBeHttp({ statusCode: 204 }); // Lies, but unsurprising if not waiting for the build to complete.
+
+  response = await putFunction(account, boundaryId, function1Id, helloWorldUpdatedWithStaticIp);
+  expect(response).toBeHttp({ statusCode: 201 });
+}, 120000);
+
+test('PUT with new compute values updates compute', async () => {
+  let response = await putFunction(account, boundaryId, function1Id, helloWorld);
+  expect(response).toBeHttp({ statusCode: 200 });
+
+  response = await getFunction(account, boundaryId, function1Id);
+  expect(response).toBeHttp({ statusCode: 200 });
+
+  const data = response.data;
+  expect(data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: false });
+
+  data.compute.staticIp = true;
+  response = await putFunction(account, boundaryId, function1Id, data);
+  expect(response).toBeHttp({ statusCode: 201 });
+  response = await waitForBuild(account, response.data, 120, 1000);
+  expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
+
+  response = await getFunction(account, boundaryId, function1Id);
+  expect(response).toBeHttp({ statusCode: 200 });
+  expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: true });
+}, 240000);
+
+test('PUT with new compute values and code executes async', async () => {
+  let response = await putFunction(account, boundaryId, function1Id, helloWorld);
+  expect(response).toBeHttp({ statusCode: 200 });
+
+  response = await getFunction(account, boundaryId, function1Id);
+  expect(response).toBeHttp({ statusCode: 200 });
+
+  const data = response.data;
+  expect(data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: false });
+
+  response = await putFunction(account, boundaryId, function1Id, helloWorldUpdatedWithStaticIp);
+  expect(response).toBeHttp({ statusCode: 201 });
+  response = await waitForBuild(account, response.data, 120, 1000);
+  expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
+
+  response = await getFunction(account, boundaryId, function1Id);
+  expect(response).toBeHttp({ statusCode: 200 });
+  expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: true });
+}, 240000);
