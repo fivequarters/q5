@@ -21,7 +21,7 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 
 _Released 07/20/21_
 
-- **Enhancement** Improves /v1/health to also check for the liveness of RDS.
+- **Enhancement** Improves /v1/health to also check for the liveliness of RDS.
 
 ## Version 1.20.24
 
