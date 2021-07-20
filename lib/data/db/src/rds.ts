@@ -271,7 +271,7 @@ class RDS implements IRds {
     session: new Session(this),
     identity: new Identity(this),
     instance: new Instance(this),
-  };  
+  };
 
   public ensureRecords(
     result: AWS.RDSDataService.ExecuteStatementResponse
