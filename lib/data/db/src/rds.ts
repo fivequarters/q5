@@ -96,7 +96,7 @@ class RDS implements IRds {
     }
     return { rdsSdk: this.rdsSdk, rdsCredentials: this.rdsCredentials };
   }
-  
+
   public updateHealth = async () => {
     const entity = {
       accountId: 'acc-000000000000',
@@ -109,24 +109,29 @@ class RDS implements IRds {
       const update = await this.DAO.storage.createEntity(entity);
       const get = await this.DAO.storage.getEntity(entity);
       if (!update.data || !get.data || update.data.checked != get.data.checked) {
-        this.lastHealth = 'unhealthy'
+        this.lastHealth = 'unhealthy';
       } else {
-        this.lastHealth = 'healthy'
-        this.lastHealthExecution = new Date(Date.now())
+        this.lastHealth = 'healthy';
+        this.lastHealthExecution = new Date(Date.now());
       }
     } catch (e) {
-      console.log(e)
+      console.log(e);
+      this.lastHealth = 'unhealthy';
     }
-    return setTimeout(this.updateHealth, 10000)
-  }
+    return setTimeout(this.updateHealth, 10000);
+  };
 
   public async getRDSLiveness() {
-    if (this.lastHealth === 'healthy' && this.lastHealthExecution && ((new Date(Date.now()).getTime() - this.lastHealthExecution.getTime()) / 1000 )> 10) {
+    if (
+      this.lastHealth === 'healthy' &&
+      this.lastHealthExecution &&
+      (new Date(Date.now()).getTime() - this.lastHealthExecution.getTime()) / 1000 > 10
+    ) {
       return {
         health: 'healthy',
-      }
+      };
     } else {
-      throw new Error('Last execution failed.')
+      throw new Error('Last execution failed.');
     }
   }
 
