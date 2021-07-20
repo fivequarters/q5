@@ -19,12 +19,18 @@ class RDS implements IRds {
   private readonly defaultAuroraDatabaseName = 'fusebit';
   private readonly defaultPurgeInterval = 10 * 60 * 1000;
   private lastHealth = false;
-  private lastHealthExecution: Date = new Date(0);
-  private readonly RDS_HEALTH_CHECK_TTL = 10;
+  private lastHealthExecution: number = new Date(0).getTime();
+  private readonly RDS_HEALTH_CHECK_TTL = 10 * 1000;
   private readonly RDS_HEALTH_TEST_ACC_ID = 'acc-000000000000';
   private readonly RDS_HEALTH_TEST_SUB_ID = 'sub-000000000000';
   private readonly RDS_HEALTH_ENT_ID_PREFIX = 'health-';
+<<<<<<< HEAD
   private readonly RDS_HEALTH_MAX_ACCEPTABLE_TTL = this.RDS_HEALTH_CHECK_TTL + 3;
+=======
+  private readonly RDS_HEALTH_MAX_ACCEPTABLE_TTL = this.RDS_HEALTH_CHECK_TTL + 3 * 1000;
+  private readonly RDS_HEALTH_ENTITY_EXPIRE = 5 * 1000;
+  private healthError: any;
+>>>>>>> 8204afd7 (xd)
 
   public async purgeExpiredItems(): Promise<boolean> {
     try {
@@ -108,7 +114,7 @@ class RDS implements IRds {
       subscriptionId: this.RDS_HEALTH_TEST_SUB_ID,
       id: `${this.RDS_HEALTH_ENT_ID_PREFIX}${random({ lengthInBytes: 8 })}`,
       data: { checked: Date.now() },
-      expires: new Date(Date.now() + 5000).toISOString(),
+      expires: new Date(Date.now() + this.RDS_HEALTH_ENTITY_EXPIRE).toISOString(),
     };
     try {
       const update = await this.DAO.storage.createEntity(entity);
@@ -117,23 +123,23 @@ class RDS implements IRds {
         this.lastHealth = false;
       } else {
         this.lastHealth = true;
-        this.lastHealthExecution = new Date(get.data.checked);
+        this.lastHealthExecution = get.data.checked;
       }
     } catch (e) {
-      console.log(e);
+      this.healthError = e;
       this.lastHealth = false;
     }
-    return setTimeout(this.updateHealth, this.RDS_HEALTH_CHECK_TTL * 1000);
+    return setTimeout(this.updateHealth, this.RDS_HEALTH_CHECK_TTL);
   };
 
   public async ensureRDSLiveliness() {
-    const timeDifference = (new Date(Date.now()).getTime() - this.lastHealthExecution.getTime()) / 1000;
+    const timeDifference = Date.now() - this.lastHealthExecution;
     if (this.lastHealth && this.lastHealthExecution && timeDifference < this.RDS_HEALTH_MAX_ACCEPTABLE_TTL) {
       return {
         health: true,
       };
     } else {
-      throw new Error('Last execution failed.');
+      throw new Error(this.healthError);
     }
   }
 
