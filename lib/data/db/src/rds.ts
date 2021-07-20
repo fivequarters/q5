@@ -115,11 +115,14 @@ class RDS implements IRds {
     try {
       const update = await this.DAO.storage.createEntity(entity);
       const get = await this.DAO.storage.getEntity(entity);
+      console.log(update.data);
+      console.log(get.data);
       if (update.data && get.data && update.data.checked == get.data.checked) {
         this.lastHealth = true;
         this.lastHealthExecution = get.data.checked;
+      } else {
+        throw new Error('RDS failure was detected when trying to insert entity.');
       }
-      throw new Error('RDS failure was detected when trying to insert entity.');
     } catch (e) {
       this.healthError = e;
       this.lastHealth = false;
