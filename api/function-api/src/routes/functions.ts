@@ -143,6 +143,7 @@ const createFunction = async (
   registry: IRegistryStore
 ): Promise<ICreateFunction> => {
   const url = new URL(process.env.API_SERVER as string);
+  const subscription = await subscriptionCache.find(params.subscriptionId);
   const req = {
     protocol: url.protocol.replace(':', ''),
     headers: { host: url.host },
@@ -151,6 +152,7 @@ const createFunction = async (
     keyStore,
     resolvedAgent,
     registry,
+    subscription,
   };
   const res = await asyncDispatch(req, provider_handlers.lambda.put_function);
   if (res.body && typeof res.body === 'object') {
