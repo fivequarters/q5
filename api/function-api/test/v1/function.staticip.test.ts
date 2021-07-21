@@ -71,17 +71,16 @@ afterAll(() => {
 describe('Subscription with staticIp=true', () => {
   beforeAll(async () => {
     ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
-
-    const subscription = (await subscriptionCache.find(account.subscriptionId)) as ISubscription;
-
-    await setSubscriptionStaticIpFlag(subscription, true);
   });
 
-  beforeEach(() => {
+  beforeEach(async () => {
     ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
 
     // Tests here don't invoke the functions, so usage restrictions don't apply.
     disableFunctionUsageRestriction();
+
+    const subscription = (await subscriptionCache.find(account.subscriptionId)) as ISubscription;
+    await setSubscriptionStaticIpFlag(subscription, true);
   });
 
   test('Create a function that requires a build', async () => {
@@ -93,7 +92,7 @@ describe('Subscription with staticIp=true', () => {
     expect(build).toMatchObject({ code: 200, version: 1 });
   }, 120000);
 
-  test.skip('Create a function with a short timeout fails', async () => {
+  test('Create a function with a short timeout fails', async () => {
     const params = getParams(function1Id, account, boundaryId);
     const create = await FunctionUtilities.createFunction(params, asyncFunction, fakeAgent as IAgent, registry);
     expect(create).toMatchObject({ code: 201 });
@@ -103,7 +102,7 @@ describe('Subscription with staticIp=true', () => {
     );
   }, 120000);
 
-  test.skip('PUT supports setting staticIP=true', async () => {
+  test('PUT supports setting staticIP=true', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithStaticIp);
     expect(response).toBeHttp({ statusCode: 201 });
     response = await waitForBuild(account, response.data, 120, 1000);
@@ -113,7 +112,7 @@ describe('Subscription with staticIp=true', () => {
     expect(response.data.compute).toEqual({ staticIp: true, memorySize: 128, timeout: 30 });
   }, 240000);
 
-  test.skip('PUT multiple times on the same function', async () => {
+  test('PUT multiple times on the same function', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
     expect(response).toBeHttp({ statusCode: 200 });
 
@@ -128,7 +127,7 @@ describe('Subscription with staticIp=true', () => {
     expect(response).toBeHttp({ statusCode: 201 });
   }, 120000);
 
-  test.skip('PUT with new compute values updates compute', async () => {
+  test('PUT with new compute values updates compute', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
     expect(response).toBeHttp({ statusCode: 200 });
 
@@ -149,7 +148,7 @@ describe('Subscription with staticIp=true', () => {
     expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: true });
   }, 240000);
 
-  test.skip('PUT with new compute values and code executes async', async () => {
+  test('PUT with new compute values and code executes async', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
     expect(response).toBeHttp({ statusCode: 200 });
 
@@ -169,7 +168,7 @@ describe('Subscription with staticIp=true', () => {
     expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: true });
   }, 240000);
 
-  test.skip('PUT with undefined compute is ignored', async () => {
+  test('PUT with undefined compute is ignored', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithStaticIp);
     response = await waitForBuild(account, response.data, 120, 1000);
     expect(response).toBeHttp({ statusCode: 200, status: 'success' });
@@ -185,7 +184,7 @@ describe('Subscription with staticIp=true', () => {
     expect(response.status).toBe(204);
   }, 240000);
 
-  test.skip('PUT with new compute values updates compute and computeSerialized', async () => {
+  test('PUT with new compute values updates compute and computeSerialized', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
     expect(response).toBeHttp({ statusCode: 200 });
 
@@ -218,7 +217,7 @@ describe('Subscription with staticIp=false', () => {
 
     const subscription = (await subscriptionCache.find(account.subscriptionId)) as ISubscription;
 
-    await setSubscriptionStaticIpFlag(subscription, true);
+    await setSubscriptionStaticIpFlag(subscription, false);
   });
 
   test('Static IP should be false if flag on subscription is false', async () => {
