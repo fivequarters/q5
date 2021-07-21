@@ -273,16 +273,6 @@ describe('Subscription with staticIp=false', () => {
     expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: false });
     expect(response.data.computeSerialized).toBe('staticIp=false\nmemorySize=128\ntimeout=30');
   }, 120000);
-
-  test('Static IP should be false if flag on subscription is false', async () => {
-    let response = await putFunction(account, boundaryId, function1Id, helloWorldWithStaticIp);
-    expect(response).toBeHttp({ statusCode: 200 });
-
-    response = await getFunction(account, boundaryId, function1Id, true);
-    expect(response).toBeHttp({ statusCode: 200 });
-    expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: false });
-    expect(response.data.computeSerialized).toBe('staticIp=false\nmemorySize=128\ntimeout=30');
-  }, 120000);
 });
 
 async function setSubscriptionStaticIpFlag(subscription: ISubscription, staticIp: boolean) {
