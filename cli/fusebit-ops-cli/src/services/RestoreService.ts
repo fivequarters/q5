@@ -78,7 +78,7 @@ export class RestoreService {
     forceRemove: boolean,
     deploymentName: string,
     backupPlanName: string,
-    deploymentRegion: string
+    deploymentRegionFromInput: string
   ) {
     const opsDataContext = await this.opsService.getOpsDataContextImpl();
     const profileService = await ProfileService.create(this.input);
@@ -86,12 +86,17 @@ export class RestoreService {
     const userCreds = await this.opsService.getUserCredsForProfile(profile);
     const config = await opsDataContext.provider.getAwsConfigForMain();
     const credentials = await (config.creds as AwsCreds).getCredentials();
+    let deploymentRegion: string = deploymentRegionFromInput;
+    if (deploymentRegionFromInput === '') {
+      deploymentRegion = (await this.findRegionFromDeploymentName(deploymentName, config, credentials)) as string;
+    }
     if (!forceRemove) {
       if (!this.checkAllTablesExist(deploymentName, credentials, backupPlanName, deploymentRegion)) {
         await this.input.io.write("can't find a valid backup for all tables, use --force to proceed");
         return;
       }
     }
+
     const auroraRestorePoint = (await this.findLatestRecoveryPointOfTable(
       credentials,
       `${this.auroraDbPrefix}${deploymentName}`,
@@ -345,6 +350,42 @@ export class RestoreService {
         throw Error(e);
       }
     }
+  }
+
+  /**
+   * finds the region in which the deployment resides
+   *
+   * @private
+   * @param {string} deploymentName
+   * @param {IAwsConfig} config
+   * @param {IAwsCredentials} credentials
+   * @return {*}
+   * @memberof RestoreService
+   */
+  private async findRegionFromDeploymentName(deploymentName: string, config: IAwsConfig, credentials: IAwsCredentials) {
+    const dynamoDB = new AWS.DynamoDB({
+      accessKeyId: credentials.accessKeyId as string,
+      secretAccessKey: credentials.secretAccessKey as string,
+      sessionToken: credentials.sessionToken as string,
+      region: config.region,
+      apiVersion: '2012-08-10',
+    });
+    let matchingDeployment = undefined;
+    const results = await dynamoDB
+      .scan({
+        TableName: 'ops.deployment',
+      })
+      .promise();
+    for (const item of results.Items as AWS.DynamoDB.ItemList) {
+      if (item.deploymentName.S === deploymentName && matchingDeployment === undefined) {
+        if (matchingDeployment === undefined) {
+          matchingDeployment = item.deploymentName.S as string;
+        } else {
+          throw new Error('Deployment name overlap detected, please manually specify the region of the deployment.');
+        }
+      }
+    }
+    return matchingDeployment;
   }
 
   /**
