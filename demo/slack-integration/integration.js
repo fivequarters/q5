@@ -8,7 +8,7 @@ router.get("/api/", async (ctx) => {
 
 router.post("/api/message/:identityId", async (ctx) => {
   const identityId = ctx.params.identityId;
-  const message = ctx.req.body && ctx.req.body.message;
+  const message = ctx.req.body?.message;
 
   if (!message) {
     ctx.throw(400, "Expected message");

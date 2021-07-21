@@ -2,6 +2,10 @@
   "javascript.preferences.quoteStyle": "single",
   "editor.formatOnSave": true,
   "editor.tabSize": 2,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
   "files.exclude": {
     "**/*.tsbuildinfo": true,
     "**/devServer.js": true,

@@ -2,7 +2,7 @@ import superagent from 'superagent';
 
 import { Context, IInstanceConnectorConfig } from '@fusebit-int/framework';
 
-const { WebClient } = require("@slack/web-api");
+const { WebClient } = require('@slack/web-api');
 
 /*
  * An example class that pairs with the pkg-oauth-connector/OAuthConnector.  Many such classes may pair with
@@ -27,9 +27,7 @@ export default class SlackIntegration {
     const tokenResponse = await superagent
       .get(`${baseUrl}/api/${lookupKey}/token`)
       .set('Authorization', `Bearer ${params.functionAccessToken}`);
-      
-    return {
-      slackClient: new WebClient(tokenResponse.body.access_token),
-    };
+    const slackClient = new WebClient(tokenResponse.body.access_token);
+    return { slackClient };
   }
 }
