@@ -398,7 +398,7 @@ export class RestoreService {
    * @param {string} tableName
    * @param {string} backupVaultName
    * @param {AWS.Backup.RecoveryPointByBackupVaultList} restorePointList
-   * @return {*}  {se<AWS.Backup.RecoveryPointByBackupVault[]>}
+   * @return {*}  {Promise<AWS.Backup.RecoveryPointByBackupVault[]>}
    * @memberof RestoreService
    */
   private async filterRestorePoints(
