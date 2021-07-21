@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.27.18
+
+_Released 07/21/21_
+
+- **Bugfix** Fuse-ops will no longer break if there are deployments of the same name in different regions.
+
 ## Version 1.27.17
 
 _Released 07/16/21_

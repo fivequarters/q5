@@ -28,6 +28,11 @@ const command = {
       aliases: ['b'],
       description: 'The backup plan you want to use to restore from.',
     },
+    {
+      name: 'deployment-region',
+      aliases: ['r'],
+      description: 'The region of the deployment.',
+    },
   ],
 };
 
@@ -44,8 +49,9 @@ export class StartRestoreCommand extends Command {
     const output = input.options.output as string;
     const deploymentName = input.options['deployment-name'] as string;
     const backupPlanName = input.options['backup-plan-name'] as string;
+    const deploymentRegion = input.options['deployment-region'] as string;
     const force = input.options.force as boolean;
     const restoreService = await RestoreService.create(input);
-    await restoreService.restoreFromBackup(force, deploymentName, backupPlanName);
+    await restoreService.restoreFromBackup(force, deploymentName, backupPlanName, deploymentRegion);
   }
 }
