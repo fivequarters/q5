@@ -249,7 +249,7 @@ describe('Subscription with staticIp=true', () => {
     expect(functionConfig.VpcConfig?.VpcId).toBeDefined();
   }, 240000);
 
-  test('Changing from staticIp=false to staticIp=true should set VPC', async () => {
+  test('VPC must be set only when staticIp is true', async () => {
     // create the new function
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
     expect(response).toBeHttp({ statusCode: 200 });
@@ -278,7 +278,6 @@ describe('Subscription with staticIp=true', () => {
     response = await waitForBuild(account, response.data, 120, 1000);
     expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
     response = await getFunction(account, boundaryId, function1Id);
-    expect(response.status).toBe(200);
     expect(response.data.compute).toEqual({ staticIp: true, memorySize: 128, timeout: 30 });
 
     // validate that VPC is properly set
@@ -288,6 +287,22 @@ describe('Subscription with staticIp=true', () => {
     expect(functionConfig.VpcConfig?.SubnetIds).toBeDefined();
     expect(functionConfig.VpcConfig?.SecurityGroupIds).toBeDefined();
     expect(functionConfig.VpcConfig?.VpcId).toBeDefined();
+
+    // revert to static IP false
+    response = await putFunction(account, boundaryId, function1Id, helloWorld);
+    expect(response).toBeHttp({ statusCode: 201 });
+
+    // wait till it finishes building
+    response = await waitForBuild(account, response.data, 120, 1000);
+    expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
+    response = await getFunction(account, boundaryId, function1Id);
+    expect(response.data.compute).toEqual({ staticIp: false, memorySize: 128, timeout: 30 });
+
+    // check if VPC was unset (or, more specifically, an almost-empty object)
+    functionConfig = await lambda.getFunctionConfiguration({ FunctionName: functionName }).promise();
+    expect(functionConfig).toBeDefined();
+    expect(functionConfig.VpcConfig).toBeDefined();
+    expect(functionConfig.VpcConfig).toMatchObject({ SecurityGroupIds: [], SubnetIds: [], VpcId: '' });
   }, 120000);
 });
 
