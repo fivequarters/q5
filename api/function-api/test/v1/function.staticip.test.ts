@@ -71,16 +71,16 @@ afterAll(() => {
 describe('Subscription with staticIp=true', () => {
   beforeAll(async () => {
     ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
+
+    const subscription = (await subscriptionCache.find(account.subscriptionId)) as ISubscription;
+    await setSubscriptionStaticIpFlag(subscription, true);
   });
 
-  beforeEach(async () => {
+  beforeEach(() => {
     ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
 
     // Tests here don't invoke the functions, so usage restrictions don't apply.
     disableFunctionUsageRestriction();
-
-    const subscription = (await subscriptionCache.find(account.subscriptionId)) as ISubscription;
-    await setSubscriptionStaticIpFlag(subscription, true);
   });
 
   test('Create a function that requires a build', async () => {
@@ -209,15 +209,17 @@ describe('Subscription with staticIp=true', () => {
 });
 
 describe('Subscription with staticIp=false', () => {
-  beforeEach(async () => {
+  beforeAll(async () => {
+    const subscription = (await subscriptionCache.find(account.subscriptionId)) as ISubscription;
+
+    await setSubscriptionStaticIpFlag(subscription, false);
+  });
+
+  beforeEach(() => {
     ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
 
     // Tests here don't invoke the functions, so usage restrictions don't apply.
     disableFunctionUsageRestriction();
-
-    const subscription = (await subscriptionCache.find(account.subscriptionId)) as ISubscription;
-
-    await setSubscriptionStaticIpFlag(subscription, false);
   });
 
   test('Static IP should be false if flag on subscription is false', async () => {
