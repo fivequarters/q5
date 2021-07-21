@@ -1,4 +1,4 @@
-import { DynamoDB } from 'aws-sdk';
+import { DynamoDB, Lambda } from 'aws-sdk';
 import create_error from 'http-errors';
 import * as superagent from 'superagent';
 import { IAgent, ISubscription } from '@5qtrs/account-data';
@@ -8,7 +8,7 @@ import * as FunctionUtilities from '../../src/routes/functions';
 import { getEnv } from './setup';
 import { getParams, fakeAgent, createRegistry, keyStore, subscriptionCache } from './function.utils';
 import { terminate_garbage_collection } from '@5qtrs/function-lambda';
-import { putFunction, waitForBuild, getFunction, disableFunctionUsageRestriction } from './sdk';
+import { putFunction, waitForBuild, getFunction, disableFunctionUsageRestriction, callFunction } from './sdk';
 
 let { account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv();
 
@@ -17,6 +17,7 @@ FunctionUtilities.initFunctions(keyStore, subscriptionCache);
 const registry = createRegistry(account, boundaryId);
 
 const dynamo = new DynamoDB({ apiVersion: '2012-08-10' });
+const lambda = new Lambda({ apiVersion: '2015-03-31' });
 const subscriptionTableName = Constants.get_subscription_table_name(process.env.DEPLOYMENT_KEY as string);
 
 const asyncFunction = {
@@ -110,6 +111,20 @@ describe('Subscription with staticIp=true', () => {
     response = await getFunction(account, boundaryId, function1Id);
     expect(response.status).toBe(200);
     expect(response.data.compute).toEqual({ staticIp: true, memorySize: 128, timeout: 30 });
+
+    // validate that VPC is properly set
+    const options = {
+      subscriptionId: response.data.subscriptionId,
+      boundaryId: response.data.boundaryId,
+      functionId: response.data.id,
+    };
+    const functionName = Constants.get_user_function_name(options);
+    const functionConfig = await lambda.getFunctionConfiguration({ FunctionName: functionName }).promise();
+    expect(functionConfig).toBeDefined();
+    expect(functionConfig.VpcConfig).toBeDefined();
+    expect(functionConfig.VpcConfig?.SubnetIds).toBeDefined();
+    expect(functionConfig.VpcConfig?.SecurityGroupIds).toBeDefined();
+    expect(functionConfig.VpcConfig?.VpcId).toBeDefined();
   }, 240000);
 
   test('PUT multiple times on the same function', async () => {
@@ -206,6 +221,33 @@ describe('Subscription with staticIp=true', () => {
     expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: true });
     expect(response.data.computeSerialized).toBe('memorySize=128\ntimeout=30\nstaticIp=true');
   }, 240000);
+
+  test('Changing from staticIp=true to staticIp=false should clear VPC', async () => {
+    // create the staticIp=true function and wait till it is ready
+    let response = await putFunction(account, boundaryId, function1Id, helloWorldWithStaticIp);
+    expect(response).toBeHttp({ statusCode: 201 });
+    response = await waitForBuild(account, response.data, 120, 1000);
+    expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
+
+    // get the function details
+    response = await getFunction(account, boundaryId, function1Id);
+    expect(response.status).toBe(200);
+    expect(response.data.compute).toEqual({ staticIp: true, memorySize: 128, timeout: 30 });
+
+    // validate that the initial VPC is properly set
+    const options = {
+      subscriptionId: response.data.subscriptionId,
+      boundaryId: response.data.boundaryId,
+      functionId: response.data.id,
+    };
+    const functionName = Constants.get_user_function_name(options);
+    const functionConfig = await lambda.getFunctionConfiguration({ FunctionName: functionName }).promise();
+    expect(functionConfig).toBeDefined();
+    expect(functionConfig.VpcConfig).toBeDefined();
+    expect(functionConfig.VpcConfig?.SubnetIds).toBeDefined();
+    expect(functionConfig.VpcConfig?.SecurityGroupIds).toBeDefined();
+    expect(functionConfig.VpcConfig?.VpcId).toBeDefined();
+  }, 240000);
 });
 
 describe('Subscription with staticIp=false', () => {
@@ -221,6 +263,16 @@ describe('Subscription with staticIp=false', () => {
     // Tests here don't invoke the functions, so usage restrictions don't apply.
     disableFunctionUsageRestriction();
   });
+
+  test('Static IP should be false if flag on subscription is false', async () => {
+    let response = await putFunction(account, boundaryId, function1Id, helloWorldWithStaticIp);
+    expect(response).toBeHttp({ statusCode: 200 });
+
+    response = await getFunction(account, boundaryId, function1Id, true);
+    expect(response).toBeHttp({ statusCode: 200 });
+    expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: false });
+    expect(response.data.computeSerialized).toBe('staticIp=false\nmemorySize=128\ntimeout=30');
+  }, 120000);
 
   test('Static IP should be false if flag on subscription is false', async () => {
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithStaticIp);
