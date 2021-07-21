@@ -249,7 +249,7 @@ describe('Subscription with staticIp=true', () => {
     expect(functionConfig.VpcConfig?.VpcId).toBeDefined();
   }, 240000);
 
-  test.only('Changing from staticIp=false to staticIp=true should set VPC', async () => {
+  test('Changing from staticIp=false to staticIp=true should set VPC', async () => {
     // create the new function
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
     expect(response).toBeHttp({ statusCode: 200 });
