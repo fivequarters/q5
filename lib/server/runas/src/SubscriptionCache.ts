@@ -10,7 +10,9 @@ import { IFunctionApiRequest } from './Request';
 
 // Unless overwritten by the env var, it won't refresh more often than once a minute.
 // The env var can be useful on integrated tests.
-const MAX_CACHE_REFRESH_RATE = Number(process.env.MAX_CACHE_REFRESH_RATE) || 60 * 1000;
+const MAX_CACHE_REFRESH_RATE = process.env.MAX_CACHE_REFRESH_RATE
+  ? Number(process.env.MAX_CACHE_REFRESH_RATE)
+  : 60 * 1000;
 
 interface ISubscription {
   accountId: string;
