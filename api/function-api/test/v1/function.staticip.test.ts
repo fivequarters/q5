@@ -1,5 +1,8 @@
+import { DynamoDB } from 'aws-sdk';
 import create_error from 'http-errors';
-import { IAgent } from '@5qtrs/account-data';
+import * as superagent from 'superagent';
+import { IAgent, ISubscription } from '@5qtrs/account-data';
+import * as Constants from '@5qtrs/constants';
 
 import * as FunctionUtilities from '../../src/routes/functions';
 import { getEnv } from './setup';
@@ -8,17 +11,13 @@ import { terminate_garbage_collection } from '@5qtrs/function-lambda';
 import { putFunction, waitForBuild, getFunction, disableFunctionUsageRestriction } from './sdk';
 
 let { account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv();
-beforeEach(() => {
-  ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
-
-  // Tests here don't invoke functions, or if they do they don't care about the result, so the usage
-  // restriction doesn't apply
-  disableFunctionUsageRestriction();
-});
 
 FunctionUtilities.initFunctions(keyStore, subscriptionCache);
 
 const registry = createRegistry(account, boundaryId);
+
+const dynamo = new DynamoDB({ apiVersion: '2012-08-10' });
+const subscriptionTableName = Constants.get_subscription_table_name(process.env.DEPLOYMENT_KEY as string);
 
 const asyncFunction = {
   nodejs: {
@@ -70,12 +69,27 @@ afterAll(() => {
 });
 
 describe('Subscription with staticIp=true', () => {
+  beforeAll(async () => {
+    ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
+
+    const subscription = (await subscriptionCache.find(account.subscriptionId)) as ISubscription;
+
+    await setSubscriptionStaticIpFlag(subscription, true);
+  });
+
+  beforeEach(() => {
+    ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
+
+    // Tests here don't invoke the functions, so usage restrictions don't apply.
+    disableFunctionUsageRestriction();
+  });
+
   test('Create a function that requires a build', async () => {
     const params = getParams(function1Id, account, boundaryId);
     const create = await FunctionUtilities.createFunction(params, asyncFunction, fakeAgent as IAgent, registry);
     expect(create).toMatchObject({ code: 201 });
 
-    const build = await FunctionUtilities.waitForFunctionBuild(params, create.buildId as string, 10000);
+    const build = await FunctionUtilities.waitForFunctionBuild(params, create.buildId as string, 120000);
     expect(build).toMatchObject({ code: 200, version: 1 });
   }, 120000);
 
@@ -194,3 +208,52 @@ describe('Subscription with staticIp=true', () => {
     expect(response.data.computeSerialized).toBe('memorySize=128\ntimeout=30\nstaticIp=true');
   }, 240000);
 });
+
+describe('Subscription with staticIp=false', () => {
+  beforeAll(async () => {
+    ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
+
+    // Tests here don't invoke functions, or if they do they don't care about the result, so the usage
+    // restriction doesn't apply
+    disableFunctionUsageRestriction();
+
+    const subscription = (await subscriptionCache.find(account.subscriptionId)) as ISubscription;
+
+    await setSubscriptionStaticIpFlag(subscription, false);
+  });
+
+  beforeEach(() => {
+    // Tests here don't invoke the functions, so usage restrictions don't apply.
+    disableFunctionUsageRestriction();
+  });
+
+  test('test', async () => {
+    const subscription = await subscriptionCache.find(account.subscriptionId);
+    expect(subscription).toBeDefined();
+
+    subscriptionCache.refresh();
+    const subscriptionUpdated = await subscriptionCache.find(account.subscriptionId);
+    expect(subscriptionUpdated?.flags.staticIp).toBe(false);
+  }, 120000);
+});
+
+async function setSubscriptionStaticIpFlag(subscription: ISubscription, staticIp: boolean) {
+  const flags = subscription.flags || {};
+  flags.staticIp = staticIp;
+
+  const params: DynamoDB.UpdateItemInput = {
+    TableName: subscriptionTableName,
+    Key: {
+      accountId: { S: account.accountId },
+      subscriptionId: { S: account.subscriptionId },
+    },
+    UpdateExpression: 'SET flags = :flags',
+    ExpressionAttributeValues: {
+      ':flags': { S: JSON.stringify(flags) },
+    },
+  };
+  await dynamo.updateItem(params).promise();
+
+  const refreshUrl = `${account.baseUrl}/v1/refresh`;
+  await superagent.get(refreshUrl);
+}
