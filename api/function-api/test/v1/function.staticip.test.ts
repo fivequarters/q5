@@ -248,6 +248,47 @@ describe('Subscription with staticIp=true', () => {
     expect(functionConfig.VpcConfig?.SecurityGroupIds).toBeDefined();
     expect(functionConfig.VpcConfig?.VpcId).toBeDefined();
   }, 240000);
+
+  test.only('Changing from staticIp=false to staticIp=true should set VPC', async () => {
+    // create the new function
+    let response = await putFunction(account, boundaryId, function1Id, helloWorld);
+    expect(response).toBeHttp({ statusCode: 200 });
+
+    // get new function details
+    response = await getFunction(account, boundaryId, function1Id, true);
+    expect(response).toBeHttp({ statusCode: 200 });
+    expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: false });
+    expect(response.data.computeSerialized).toBe('memorySize=128\ntimeout=30\nstaticIp=false');
+
+    // validate that the VPC is not set
+    const options = {
+      subscriptionId: response.data.subscriptionId,
+      boundaryId: response.data.boundaryId,
+      functionId: response.data.id,
+    };
+    const functionName = Constants.get_user_function_name(options);
+    let functionConfig = await lambda.getFunctionConfiguration({ FunctionName: functionName }).promise();
+    expect(functionConfig).toBeDefined();
+    expect(functionConfig.VpcConfig).toBeUndefined();
+
+    // update it to use static IP
+    response = await putFunction(account, boundaryId, function1Id, helloWorldWithStaticIp);
+    expect(response).toBeHttp({ statusCode: 201 });
+
+    response = await waitForBuild(account, response.data, 120, 1000);
+    expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
+    response = await getFunction(account, boundaryId, function1Id);
+    expect(response.status).toBe(200);
+    expect(response.data.compute).toEqual({ staticIp: true, memorySize: 128, timeout: 30 });
+
+    // validate that VPC is properly set
+    functionConfig = await lambda.getFunctionConfiguration({ FunctionName: functionName }).promise();
+    expect(functionConfig).toBeDefined();
+    expect(functionConfig.VpcConfig).toBeDefined();
+    expect(functionConfig.VpcConfig?.SubnetIds).toBeDefined();
+    expect(functionConfig.VpcConfig?.SecurityGroupIds).toBeDefined();
+    expect(functionConfig.VpcConfig?.VpcId).toBeDefined();
+  }, 120000);
 });
 
 describe('Subscription with staticIp=false', () => {
@@ -272,6 +313,17 @@ describe('Subscription with staticIp=false', () => {
     expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: false });
     expect(response.data.computeSerialized).toBe('staticIp=false\nmemorySize=128\ntimeout=30');
+
+    // validate that the VPC is not set
+    const options = {
+      subscriptionId: response.data.subscriptionId,
+      boundaryId: response.data.boundaryId,
+      functionId: response.data.id,
+    };
+    const functionName = Constants.get_user_function_name(options);
+    const functionConfig = await lambda.getFunctionConfiguration({ FunctionName: functionName }).promise();
+    expect(functionConfig).toBeDefined();
+    expect(functionConfig.VpcConfig).toBeUndefined();
   }, 120000);
 });
 
