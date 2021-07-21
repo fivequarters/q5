@@ -29,8 +29,7 @@ const command = {
       description: 'The backup plan you want to use to restore from.',
     },
     {
-      name: 'deployment-region',
-      aliases: ['r'],
+      name: 'region',
       description: 'The region of the deployment.',
     },
   ],

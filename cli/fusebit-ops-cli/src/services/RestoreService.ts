@@ -87,7 +87,7 @@ export class RestoreService {
     const config = await opsDataContext.provider.getAwsConfigForMain();
     const credentials = await (config.creds as AwsCreds).getCredentials();
     let deploymentRegion: string = deploymentRegionFromInput;
-    if (deploymentRegionFromInput === '') {
+    if (deploymentRegionFromInput === undefined) {
       deploymentRegion = (await this.findRegionFromDeploymentName(deploymentName, config, credentials)) as string;
     }
     if (!forceRemove) {
@@ -379,11 +379,14 @@ export class RestoreService {
     for (const item of results.Items as AWS.DynamoDB.ItemList) {
       if (item.deploymentName.S === deploymentName && matchingDeployment === undefined) {
         if (matchingDeployment === undefined) {
-          matchingDeployment = item.deploymentName.S as string;
+          matchingDeployment = item.region.S as string;
         } else {
           throw new Error('Deployment name overlap detected, please manually specify the region of the deployment.');
         }
       }
+    }
+    if (matchingDeployment === undefined) {
+      throw new Error('Deployment not found.');
     }
     return matchingDeployment;
   }
@@ -395,7 +398,7 @@ export class RestoreService {
    * @param {string} tableName
    * @param {string} backupVaultName
    * @param {AWS.Backup.RecoveryPointByBackupVaultList} restorePointList
-   * @return {*}  {Promise<AWS.Backup.RecoveryPointByBackupVault[]>}
+   * @return {*}  {se<AWS.Backup.RecoveryPointByBackupVault[]>}
    * @memberof RestoreService
    */
   private async filterRestorePoints(
