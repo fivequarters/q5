@@ -48,7 +48,7 @@ export class StartRestoreCommand extends Command {
     const output = input.options.output as string;
     const deploymentName = input.options['deployment-name'] as string;
     const backupPlanName = input.options['backup-plan-name'] as string;
-    const deploymentRegion = input.options['deployment-region'] as string;
+    const deploymentRegion = input.options['region'] as string;
     const force = input.options.force as boolean;
     const restoreService = await RestoreService.create(input);
     await restoreService.restoreFromBackup(force, deploymentName, backupPlanName, deploymentRegion);
