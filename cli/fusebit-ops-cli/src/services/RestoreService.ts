@@ -377,7 +377,7 @@ export class RestoreService {
       })
       .promise();
     for (const item of results.Items as AWS.DynamoDB.ItemList) {
-      if (item.deploymentName.S === deploymentName && matchingDeployment === undefined) {
+      if (item.deploymentName.S === deploymentName) {
         if (matchingDeployment === undefined) {
           matchingDeployment = item.region.S as string;
         } else {
