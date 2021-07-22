@@ -64,6 +64,28 @@ const helloWorldUpdatedWithStaticIp = {
   },
 };
 
+async function setSubscriptionStaticIpFlag(subscription: ISubscription, staticIp: string) {
+  const flags = subscription.flags || {};
+  flags.staticIp = staticIp;
+
+  const params: DynamoDB.UpdateItemInput = {
+    TableName: subscriptionTableName,
+    Key: {
+      accountId: { S: account.accountId },
+      subscriptionId: { S: account.subscriptionId },
+    },
+    UpdateExpression: 'SET flags = :flags',
+    ExpressionAttributeValues: {
+      ':flags': { S: JSON.stringify(flags) },
+    },
+  };
+  await dynamo.updateItem(params).promise();
+
+  const refreshUrl = `${account.baseUrl}/v1/refresh`;
+  await superagent.get(refreshUrl);
+  subscriptionCache.refresh();
+}
+
 beforeAll(async () => {
   return keyStore.rekey();
 });
@@ -339,25 +361,3 @@ describe('Subscription with staticIp=false', () => {
     expect(functionConfig.Role).toBe(process.env.LAMBDA_USER_FUNCTION_PERMISSIONLESS_ROLE);
   }, 120000);
 });
-
-async function setSubscriptionStaticIpFlag(subscription: ISubscription, staticIp: string) {
-  const flags = subscription.flags || {};
-  flags.staticIp = staticIp;
-
-  const params: DynamoDB.UpdateItemInput = {
-    TableName: subscriptionTableName,
-    Key: {
-      accountId: { S: account.accountId },
-      subscriptionId: { S: account.subscriptionId },
-    },
-    UpdateExpression: 'SET flags = :flags',
-    ExpressionAttributeValues: {
-      ':flags': { S: JSON.stringify(flags) },
-    },
-  };
-  await dynamo.updateItem(params).promise();
-
-  const refreshUrl = `${account.baseUrl}/v1/refresh`;
-  await superagent.get(refreshUrl);
-  subscriptionCache.refresh();
-}
