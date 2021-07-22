@@ -61,7 +61,7 @@ const specs = [
     options: {
       on_trigger: {
         pull_request: {
-          types: 'syncronize',
+          types: ['syncronize'],
         },
       },
     },

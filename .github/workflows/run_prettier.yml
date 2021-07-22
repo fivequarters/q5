@@ -2,7 +2,8 @@
 # Auto-created by the cicd-actions tool
 on:
   pull_request:
-    types: syncronize
+    types:
+      - syncronize
 name: Run Prettier
 jobs:
   deploy:
