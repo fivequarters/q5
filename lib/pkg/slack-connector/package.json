@@ -1,11 +1,12 @@
 {
   "name": "@fusebit-int/slack-connector",
-  "version": "1.0.2",
+  "version": "1.1.7",
   "description": "",
   "main": "libc/index.js",
   "files": [
     "libc/*.js",
-    "libc/*.d.ts"
+    "libc/*.d.ts",
+    "libc/form"
   ],
   "license": "SEE LICENSE IN LICENSE",
   "author": "Fusebit, Inc.",
