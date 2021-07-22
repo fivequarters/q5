@@ -12,7 +12,7 @@ echo "Yarn install dependencies: "
 yarn --frozen-lockfile install
 
 echo "Run Prettier: "
-git ls-tree -r ${GITHUB_REF##*/} --name-only | grep -E \"\\.[tj]?sx?$\" | grep -v assets | xargs -P 1 prettier --write
+git ls-tree -r ${GITHUB_REF##*/} --name-only | grep -E \"\\.[tj]?sx?$\" | grep -v assets | xargs -P 1 npx prettier --write
 
 echo "Check if tree changed"
 git diff --exit-code
