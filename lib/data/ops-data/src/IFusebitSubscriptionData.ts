@@ -30,7 +30,7 @@ export interface IFusebitSubscriptionLimits {
 }
 
 export interface IFusebitSubscriptionFlags {
-  staticIp?: boolean;
+  [key: string]: any;
 }
 
 export interface IFusebitSubscriptionDetails {

@@ -74,7 +74,7 @@ describe('Subscription with staticIp=true', () => {
     ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
 
     const subscription = (await subscriptionCache.find(account.subscriptionId)) as ISubscription;
-    await setSubscriptionStaticIpFlag(subscription, true);
+    await setSubscriptionStaticIpFlag(subscription, 'true');
   });
 
   beforeEach(() => {
@@ -300,7 +300,7 @@ describe('Subscription with staticIp=false', () => {
   beforeAll(async () => {
     const subscription = (await subscriptionCache.find(account.subscriptionId)) as ISubscription;
 
-    await setSubscriptionStaticIpFlag(subscription, false);
+    await setSubscriptionStaticIpFlag(subscription, 'false');
   });
 
   beforeEach(() => {
@@ -338,7 +338,7 @@ describe('Subscription with staticIp=false', () => {
   }, 120000);
 });
 
-async function setSubscriptionStaticIpFlag(subscription: ISubscription, staticIp: boolean) {
+async function setSubscriptionStaticIpFlag(subscription: ISubscription, staticIp: string) {
   const flags = subscription.flags || {};
   flags.staticIp = staticIp;
 

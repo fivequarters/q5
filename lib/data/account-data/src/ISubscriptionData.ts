@@ -27,7 +27,7 @@ export interface ISubscriptionLimits {
 }
 
 export interface ISubscriptionFlags {
-  staticIp?: boolean;
+  [key: string]: any;
 }
 
 export interface ISubscriptionData extends IDataSource {
