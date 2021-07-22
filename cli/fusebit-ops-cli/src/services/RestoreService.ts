@@ -88,7 +88,7 @@ export class RestoreService {
     const credentials = await (config.creds as AwsCreds).getCredentials();
     let deploymentRegion: string = deploymentRegionFromInput;
     if (deploymentRegionFromInput === undefined) {
-      deploymentRegion = (await this.findRegionFromDeploymentName(deploymentName, config, credentials)) as string;
+      deploymentRegion = await this.findRegionFromDeploymentName(deploymentName, config, credentials);
     }
     if (!forceRemove) {
       if (!this.checkAllTablesExist(deploymentName, credentials, backupPlanName, deploymentRegion)) {
@@ -110,11 +110,11 @@ export class RestoreService {
     await this.deleteAllExistingDynamoDBTable(deploymentName, config, credentials, deploymentRegion);
     await Promise.all(
       this.dynamoTableSuffix.map((tableSuffix) =>
-        this.restoreTable(credentials, tableSuffix, deploymentName, backupPlanName, deploymentRegion as string)
+        this.restoreTable(credentials, tableSuffix, deploymentName, backupPlanName, deploymentRegion)
       )
     );
 
-    await this.deleteAuroraDb(credentials, deploymentName, deploymentRegion as string);
+    await this.deleteAuroraDb(credentials, deploymentName, deploymentRegion);
 
     const ids = await this.startDbRestoreJobAndWait(
       auroraRestorePoint.RecoveryPointArn as string,
