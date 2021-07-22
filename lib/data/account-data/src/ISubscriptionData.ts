@@ -27,7 +27,7 @@ export interface ISubscriptionLimits {
 }
 
 export interface ISubscriptionFlags {
-  [key: string]: any;
+  [key: string]: string;
 }
 
 export interface ISubscriptionData extends IDataSource {

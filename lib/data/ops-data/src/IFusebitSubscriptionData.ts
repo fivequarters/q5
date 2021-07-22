@@ -30,7 +30,7 @@ export interface IFusebitSubscriptionLimits {
 }
 
 export interface IFusebitSubscriptionFlags {
-  [key: string]: any;
+  [key: string]: string;
 }
 
 export interface IFusebitSubscriptionDetails {
