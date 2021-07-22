@@ -1,3 +1,2 @@
-import router from './OAuthManager';
-
-module.exports = router;
+import Setup from './Setup';
+export default Setup;

@@ -15,7 +15,7 @@ import DefaultRoutes from './DefaultRoutes';
 type VendorModuleError = any;
 
 /** The Manager will handle either integration or connector configurations. */
-interface IConfig {
+export interface IConfig {
   handler: string;
   components?: IInstanceConnectorConfig[];
   configuration: any;
@@ -26,7 +26,7 @@ interface IConfig {
 type RequestContext = any;
 
 /** Parameters supplied for an internal event invocation. */
-type InvokeParameters = any;
+export type InvokeParameters = any;
 
 /** Placeholder interface for accessing storage. */
 interface IStorage {

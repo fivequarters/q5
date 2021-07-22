@@ -73,7 +73,8 @@ class ConnectorManager {
    * @param cfg The configuration object used to initialize the managing package
    */
   public loadConnector(name: string, cfg: IInstanceConnectorConfig) {
-    const Connector = require(cfg.package);
+    const connectorPackage = cfg.package || `@fuxebit-int/${cfg.entityId}`;
+    const { Connector } = require(connectorPackage);
     return (cfg.instance = new Connector({ name, ...cfg }));
   }
 

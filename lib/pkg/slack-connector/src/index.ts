@@ -1,21 +1,43 @@
 /**
  * Fusebit, Inc. Slack Connector
+ *
+ * Alternate ways to consume "Setup" ->
+ *
+ * Option 1: Default usage (keep default config/sdkHandler)
+ *
+ * const { Connector, router } = Setup();
+ * export default router;
+ * export { Connector };
+ *
+ *
+ * Option 2: Split usage of `setup` into 2 files, one for integration/connector fusebit.json
+ *
+ * ########################### "@fusebit-int/slack-connector" ###########################
+ *
+ * const { WebClient } = require('@slack/web-api');
+ *
+ * const sdkHandler = (access_token: string) => {
+ *  return new WebClient(access_token);
+ * };
+ * const { Connector } = Setup({ sdkHandler });
+ *
+ * ########################### "@fusebit-int/slack-integration" ###########################
+ * const config = {
+ *   tokenUrl: 'https://slack.com/api/oauth.v2.access',
+ *   authorizationUrl: 'https://slack.com/oauth/v2/authorize',
+ * };
+ * const { router } = Setup({config});
+ * export default router;
  */
-import { IOnStartup, Next, Router } from '@fusebit-int/framework'; // TODO: Export this from the oauth connector
-const OAuthConnectorRouter = require('@fusebit-int/pkg-oauth-connector');
-
-import superagent from 'superagent';
+import Setup from '@fusebit-int/pkg-oauth-connector';
 const { WebClient } = require('@slack/web-api');
-
-const router = new Router();
-// 1. Inject common configuration values for consuming slack sdk.
-
-router.on('startup', async ({ mgr, cfg, router: rtr }: IOnStartup, next: Next) => {
-  cfg.configuration.channel = 'example-slack-connector-v2';
-  cfg.configuration.scope = 'chat:write';
-  cfg.configuration.tokenUrl = 'https://slack.com/api/oauth.v2.access';
-  cfg.configuration.authorizationUrl = 'https://slack.com/oauth/v2/authorize';
-  return next();
-});
-router.use(OAuthConnectorRouter.routes());
-module.exports = router;
+const config = {
+  tokenUrl: 'https://slack.com/api/oauth.v2.access',
+  authorizationUrl: 'https://slack.com/oauth/v2/authorize',
+};
+const sdkHandler = (access_token: string) => {
+  return new WebClient(access_token);
+};
+const { Connector, router } = Setup({ config, sdkHandler });
+export default router;
+export { Connector };

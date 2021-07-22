@@ -1,5 +1,5 @@
 import { Router, Context, Next } from './Router';
-import { Manager, IStorage, IOnStartup } from './Manager';
+import { Manager, IStorage, IOnStartup, IConfig, InvokeParameters } from './Manager';
 import { ConnectorManager, IInstanceConnectorConfig } from './ConnectorManager';
 import { Form } from './Form';
 
@@ -22,6 +22,8 @@ export {
   Next,
   IStorage,
   IOnStartup,
+  IConfig,
+  InvokeParameters,
   Sdk,
   IInstanceConnectorConfig,
   Middleware,
