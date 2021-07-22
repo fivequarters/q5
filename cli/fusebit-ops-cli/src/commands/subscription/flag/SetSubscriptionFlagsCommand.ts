@@ -1,5 +1,5 @@
 import { Command, IExecuteInput, ArgType } from '@5qtrs/cli';
-import { DeploymentService } from '../../services';
+import { DeploymentService } from '../../../services';
 
 // ------------------
 // Internal Constants
@@ -7,10 +7,10 @@ import { DeploymentService } from '../../services';
 
 const command = {
   name: 'Set subscription flags',
-  cmd: 'set-flags',
-  summary: 'Sets flags on the subscription.',
+  cmd: 'set',
+  summary: 'Sets flags on a subscription.',
   description:
-    'Sets flags on the subscription. This command will not overwrite flags set previously unless they are explicitly set here.',
+    'Sets flags on a subscription. This command will not overwrite flags set previously unless they are explicitly set here.',
   arguments: [
     {
       name: 'deployment',
