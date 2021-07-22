@@ -472,6 +472,15 @@ describe('Sessions', () => {
     // Verify Operation Id matches an existing operation
     response = await ApiRequestMap.operation.get(account, operationId);
     expect(response).toBeHttp({ statusCode: 200 });
+
+    // New call to `postSession` results in new operationId, but new operation
+    // does an update on the same instance with contents of session
+    await ApiRequestMap.integration.session.postSession(account, integrationId, parentSessionId);
+    response = await ApiRequestMap.integration.session.getResult(account, integrationId, parentSessionId);
+    const idempotentReplacementTargetId = response.data.replacementTargetId;
+    const idempotentInstanceId = response.data.output.entityId;
+    expect(idempotentReplacementTargetId).toBe(replacementTargetId);
+    expect(idempotentInstanceId).toBe(instanceId);
   }, 180000);
 
   test('The /callback endpoint of a step session redirects to the next entry', async () => {
