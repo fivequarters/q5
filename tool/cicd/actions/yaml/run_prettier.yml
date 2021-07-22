@@ -1,0 +1,4 @@
+# Run prettier
+steps:
+  - name: Prettier
+    run: ./tool/cicd/actions/scripts/run_prettier.sh

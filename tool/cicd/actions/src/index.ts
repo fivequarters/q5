@@ -54,6 +54,18 @@ const specs = [
     inputs: ['checkout', ...fullBuild, 'publish_api_docs', 'publish_slack'],
     output: 'publish_api_docs',
   },
+  {
+    name: 'Run Prettier',
+    inputs: ['checkout', 'run_prettier', 'publish_slack'],
+    output: 'run_prettier',
+    options: {
+      on_trigger: {
+        pull_request: {
+          types: 'syncronize',
+        },
+      },
+    },
+  },
 ];
 
 function buildSpec(name: string, inputs: string[], output: string, options: any = {}) {
