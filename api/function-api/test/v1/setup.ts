@@ -290,12 +290,12 @@ const matchers = {
 };
 
 export interface IToBeHttp {
-  statusCode: number;
-  data: any;
-  headers: Record<string, string>;
-  tests: (() => any)[];
-  has: string[];
-  hasNot: string[];
+  statusCode?: number;
+  data?: any;
+  headers?: Record<string, string>;
+  tests?: (() => any)[];
+  has?: string[];
+  hasNot?: string[];
 }
 
 declare global {

@@ -436,7 +436,7 @@ describe('Sessions', () => {
     });
   }, 180000);
 
-  test('Finish a session and receive operationId', async () => {
+  test('Finish a session and receive operationId, and session gains replacementTargetId', async () => {
     const { integrationId } = await createPair(account, boundaryId);
     let response = await ApiRequestMap.integration.session.post(account, integrationId, {
       redirectUrl: demoRedirectUrl,
@@ -447,19 +447,31 @@ describe('Sessions', () => {
     response = await ApiRequestMap.integration.session.start(account, integrationId, parentSessionId);
     const loc = getElementsFromUrl(response.headers.location);
 
+    // Verify replacementTargetId and operationId are undefined
+    response = await ApiRequestMap.integration.session.get(account, integrationId, parentSessionId);
+    expect(response.data.operationId).toBeUndefined();
+    expect(response.data.replacementTargetId).toBeUndefined();
+
     // Call the callback
     response = await ApiRequestMap[loc.entityType].session.callback(account, loc.entityId, loc.sessionId);
 
     // Post to finish
     response = await ApiRequestMap.integration.session.postSession(account, integrationId, parentSessionId);
     expect(response).toBeHttp({ statusCode: 200 });
-
     // Verify Operation Id
     const operationId = response.data.operationId;
-    expect(operationId).toBeDefined();
+    response = await ApiRequestMap.integration.session.getResult(account, integrationId, parentSessionId);
+    const sessionOperationId = response.data.operationId;
+    expect(sessionOperationId).toBe(operationId);
+
+    // Verify replacementTargetId matches created instance, to impose idempotence
+    const replacementTargetId = response.data.replacementTargetId;
+    const instanceId = response.data.output.entityId;
+    expect(replacementTargetId).toBe(instanceId);
+
+    // Verify Operation Id matches an existing operation
     response = await ApiRequestMap.operation.get(account, operationId);
     expect(response).toBeHttp({ statusCode: 200 });
-    // Fetch
   }, 180000);
 
   test('The /callback endpoint of a step session redirects to the next entry', async () => {

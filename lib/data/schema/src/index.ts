@@ -184,7 +184,6 @@ export interface ITrunkSession extends IEntity {
 }
 
 export interface ILeafSessionData extends Omit<IStep, 'uses' | 'childSessionId' | 'dependsOn'> {
-  operationId?: string;
   replacementTargetId?: string;
   mode: SessionMode.leaf;
   dependsOn: Record<string, object>;
