@@ -1,9 +1,6 @@
 ###################################################################
 # Auto-created by the cicd-actions tool
-on:
-  pull_request:
-    types:
-      - syncronize
+on: pull_request
 name: Run Prettier
 jobs:
   deploy:

@@ -59,11 +59,7 @@ const specs = [
     inputs: ['checkout', 'run_prettier', 'publish_slack'],
     output: 'run_prettier',
     options: {
-      on_trigger: {
-        pull_request: {
-          types: ['syncronize'],
-        },
-      },
+      on_trigger: 'pull_request',
     },
   },
 ];
