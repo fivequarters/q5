@@ -125,6 +125,10 @@ describe('Subscription with staticIp=true', () => {
     expect(functionConfig.VpcConfig?.SubnetIds).toBeDefined();
     expect(functionConfig.VpcConfig?.SecurityGroupIds).toBeDefined();
     expect(functionConfig.VpcConfig?.VpcId).toBeDefined();
+
+    // validate the execution role is the one with VPC permissions
+    expect(functionConfig.Role).toBeDefined();
+    expect(functionConfig.Role).toBe(process.env.LAMBDA_USER_FUNCTION_ROLE);
   }, 240000);
 
   test('PUT multiple times on the same function', async () => {
@@ -222,45 +226,18 @@ describe('Subscription with staticIp=true', () => {
     expect(response.data.computeSerialized).toBe('memorySize=128\ntimeout=30\nstaticIp=true');
   }, 240000);
 
-  test('Changing from staticIp=true to staticIp=false should clear VPC', async () => {
-    // create the staticIp=true function and wait till it is ready
-    let response = await putFunction(account, boundaryId, function1Id, helloWorldWithStaticIp);
-    expect(response).toBeHttp({ statusCode: 201 });
-    response = await waitForBuild(account, response.data, 120, 1000);
-    expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
-
-    // get the function details
-    response = await getFunction(account, boundaryId, function1Id);
-    expect(response.status).toBe(200);
-    expect(response.data.compute).toEqual({ staticIp: true, memorySize: 128, timeout: 30 });
-
-    // validate that the initial VPC is properly set
-    const options = {
-      subscriptionId: response.data.subscriptionId,
-      boundaryId: response.data.boundaryId,
-      functionId: response.data.id,
-    };
-    const functionName = Constants.get_user_function_name(options);
-    const functionConfig = await lambda.getFunctionConfiguration({ FunctionName: functionName }).promise();
-    expect(functionConfig).toBeDefined();
-    expect(functionConfig.VpcConfig).toBeDefined();
-    expect(functionConfig.VpcConfig?.SubnetIds).toBeDefined();
-    expect(functionConfig.VpcConfig?.SecurityGroupIds).toBeDefined();
-    expect(functionConfig.VpcConfig?.VpcId).toBeDefined();
-  }, 240000);
-
-  test('VPC must be set only when staticIp is true', async () => {
-    // create the new function
+  test('Check VPC and Execution Role when changing back and forth between staticIp true and false', async () => {
+    // create the new function without asking for static ip
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
     expect(response).toBeHttp({ statusCode: 200 });
 
-    // get new function details
+    // confirms that the correct settings were applied
     response = await getFunction(account, boundaryId, function1Id, true);
     expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data.compute).toEqual({ timeout: 30, memorySize: 128, staticIp: false });
     expect(response.data.computeSerialized).toBe('memorySize=128\ntimeout=30\nstaticIp=false');
 
-    // validate that the VPC is not set
+    // confirms that the VPC config is empty
     const options = {
       subscriptionId: response.data.subscriptionId,
       boundaryId: response.data.boundaryId,
@@ -271,16 +248,21 @@ describe('Subscription with staticIp=true', () => {
     expect(functionConfig).toBeDefined();
     expect(functionConfig.VpcConfig).toBeUndefined();
 
-    // update it to use static IP
+    // validate the execution role is the permissionless one
+    expect(functionConfig.Role).toBeDefined();
+    expect(functionConfig.Role).toBe(process.env.LAMBDA_USER_FUNCTION_PERMISSIONLESS_ROLE);
+
+    // update the function to use static IP
     response = await putFunction(account, boundaryId, function1Id, helloWorldWithStaticIp);
     expect(response).toBeHttp({ statusCode: 201 });
 
+    // confirms that the correct settings were applied
     response = await waitForBuild(account, response.data, 120, 1000);
     expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
     response = await getFunction(account, boundaryId, function1Id);
     expect(response.data.compute).toEqual({ staticIp: true, memorySize: 128, timeout: 30 });
 
-    // validate that VPC is properly set
+    // confirms that the VPC config is properly set
     functionConfig = await lambda.getFunctionConfiguration({ FunctionName: functionName }).promise();
     expect(functionConfig).toBeDefined();
     expect(functionConfig.VpcConfig).toBeDefined();
@@ -288,15 +270,17 @@ describe('Subscription with staticIp=true', () => {
     expect(functionConfig.VpcConfig?.SecurityGroupIds).toBeDefined();
     expect(functionConfig.VpcConfig?.VpcId).toBeDefined();
 
-    // revert to static IP false
+    // validate the execution role is the one with permissions
+    expect(functionConfig.Role).toBeDefined();
+    expect(functionConfig.Role).toBe(process.env.LAMBDA_USER_FUNCTION_ROLE);
+
+    // revert back to static IP false
     response = await putFunction(account, boundaryId, function1Id, helloWorld);
     expect(response).toBeHttp({ statusCode: 201 });
-
-    // wait till it finishes building
     response = await waitForBuild(account, response.data, 120, 1000);
     expect(response).toBeHttp({ statusCode: 200, data: { status: 'success' } });
 
-    // check the config after updating it
+    // confirms that the correct settings were applied
     response = await getFunction(account, boundaryId, function1Id);
     expect(response.data.compute).toEqual({ staticIp: false, memorySize: 128, timeout: 30 });
 
@@ -305,6 +289,10 @@ describe('Subscription with staticIp=true', () => {
     expect(functionConfig).toBeDefined();
     expect(functionConfig.VpcConfig).toBeDefined();
     expect(functionConfig.VpcConfig).toMatchObject({ SecurityGroupIds: [], SubnetIds: [], VpcId: '' });
+
+    // validate the execution role is the permissionless one
+    expect(functionConfig.Role).toBeDefined();
+    expect(functionConfig.Role).toBe(process.env.LAMBDA_USER_FUNCTION_PERMISSIONLESS_ROLE);
   }, 120000);
 });
 
