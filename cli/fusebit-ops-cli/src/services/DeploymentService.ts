@@ -226,25 +226,32 @@ export class DeploymentService {
     const opsDataContext = await this.opsService.getOpsDataContext();
     const deploymentData = opsDataContext.deploymentData;
 
-    const keys = Object.keys(subscription.flags) as Array<keyof IFusebitSubscriptionFlags>;
+    const keys = Object.keys(subscription.flags);
     const values = keys.map((key) => (subscription.flags ? subscription.flags[key] : null));
 
     const boldListOfKeys = Text.bold(keys.join(', '));
     const boldListOfValues = Text.bold(values.join(', '));
 
+    const flagsAndValues = Object.entries(subscription.flags).map(([key, value]) =>
+      Text.create(Text.eol(), Text.dim('• '), key, Text.dim(': '), `${value}`)
+    );
+    const executeMessage = Text.create(['Setting the following flags on the subscription:', ...flagsAndValues]);
+
     await this.executeService.execute(
       {
         header: 'Set Subscription Flags',
-        message: `Setting the ${boldListOfKeys} flag(s) to ${boldListOfValues}, respectively.`,
+        message: executeMessage,
         errorHeader: 'Subscription Error',
       },
       () => deploymentData.setFlags(subscription.account as string, subscription)
     );
 
-    this.executeService.result(
-      'Subscription Flags Set',
-      `The ${boldListOfKeys} flag(s) were set to ${boldListOfValues}, respectively.`
-    );
+    const executedMessage = Text.create([
+      'The following flags were successfully configured on the subscription:',
+      ...flagsAndValues,
+    ]);
+
+    this.executeService.result('Subscription Flags Set', executedMessage);
   }
 
   public async initAdmin(deployment: IOpsDeployment, init: IInitAdmin): Promise<IInitAdmin> {
