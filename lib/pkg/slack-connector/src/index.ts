@@ -19,7 +19,7 @@
  * const sdkHandler = (access_token: string) => {
  *  return new WebClient(access_token);
  * };
- * const { Connector } = Setup({ sdkHandler });
+ * export const { Connector } = Setup({ sdkHandler });
  *
  * ########################### "@fusebit-int/slack-integration" ###########################
  * const config = {
