@@ -229,9 +229,6 @@ export class DeploymentService {
     const keys = Object.keys(subscription.flags);
     const values = keys.map((key) => (subscription.flags ? subscription.flags[key] : null));
 
-    const boldListOfKeys = Text.bold(keys.join(', '));
-    const boldListOfValues = Text.bold(values.join(', '));
-
     const flagsAndValues = Object.entries(subscription.flags).map(([key, value]) =>
       Text.create(Text.eol(), Text.dim('• '), key, Text.dim(': '), `${value}`)
     );
