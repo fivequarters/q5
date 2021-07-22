@@ -1,16 +1,21 @@
 import { DynamoDB, Lambda } from 'aws-sdk';
 import create_error from 'http-errors';
 import * as superagent from 'superagent';
+
 import { IAgent, ISubscription } from '@5qtrs/account-data';
 import * as Constants from '@5qtrs/constants';
+import { terminate_garbage_collection } from '@5qtrs/function-lambda';
 
 import * as FunctionUtilities from '../../src/routes/functions';
-import { getEnv } from './setup';
 import { getParams, fakeAgent, createRegistry, keyStore, subscriptionCache } from './function.utils';
-import { terminate_garbage_collection } from '@5qtrs/function-lambda';
-import { putFunction, waitForBuild, getFunction, disableFunctionUsageRestriction, callFunction } from './sdk';
+import { putFunction, waitForBuild, getFunction, disableFunctionUsageRestriction } from './sdk';
+
+import { getEnv } from './setup';
 
 let { account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv();
+beforeEach(() => {
+  ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
+});
 
 FunctionUtilities.initFunctions(keyStore, subscriptionCache);
 
@@ -71,17 +76,9 @@ afterAll(() => {
 
 describe('Subscription with staticIp=true', () => {
   beforeAll(async () => {
-    ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
-
+    ({ account } = getEnv());
     const subscription = (await subscriptionCache.find(account.subscriptionId)) as ISubscription;
     await setSubscriptionStaticIpFlag(subscription, 'true');
-  });
-
-  beforeEach(() => {
-    ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
-
-    // Tests here don't invoke the functions, so usage restrictions don't apply.
-    disableFunctionUsageRestriction();
   });
 
   test('Create a function that requires a build', async () => {
@@ -132,6 +129,8 @@ describe('Subscription with staticIp=true', () => {
   }, 240000);
 
   test('PUT multiple times on the same function', async () => {
+    disableFunctionUsageRestriction();
+
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
     expect(response).toBeHttp({ statusCode: 200 });
 
@@ -147,6 +146,8 @@ describe('Subscription with staticIp=true', () => {
   }, 120000);
 
   test('PUT with new compute values updates compute', async () => {
+    disableFunctionUsageRestriction();
+
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
     expect(response).toBeHttp({ statusCode: 200 });
 
@@ -168,6 +169,8 @@ describe('Subscription with staticIp=true', () => {
   }, 240000);
 
   test('PUT with new compute values and code executes async', async () => {
+    disableFunctionUsageRestriction();
+
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
     expect(response).toBeHttp({ statusCode: 200 });
 
@@ -188,6 +191,8 @@ describe('Subscription with staticIp=true', () => {
   }, 240000);
 
   test('PUT with undefined compute is ignored', async () => {
+    disableFunctionUsageRestriction();
+
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithStaticIp);
     response = await waitForBuild(account, response.data, 120, 1000);
     expect(response).toBeHttp({ statusCode: 200, status: 'success' });
@@ -204,6 +209,8 @@ describe('Subscription with staticIp=true', () => {
   }, 240000);
 
   test('PUT with new compute values updates compute and computeSerialized', async () => {
+    disableFunctionUsageRestriction();
+
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
     expect(response).toBeHttp({ statusCode: 200 });
 
@@ -227,6 +234,8 @@ describe('Subscription with staticIp=true', () => {
   }, 240000);
 
   test('Check VPC and Execution Role when changing back and forth between staticIp true and false', async () => {
+    disableFunctionUsageRestriction();
+
     // create the new function without asking for static ip
     let response = await putFunction(account, boundaryId, function1Id, helloWorld);
     expect(response).toBeHttp({ statusCode: 200 });
@@ -301,13 +310,6 @@ describe('Subscription with staticIp=false', () => {
     const subscription = (await subscriptionCache.find(account.subscriptionId)) as ISubscription;
 
     await setSubscriptionStaticIpFlag(subscription, 'false');
-  });
-
-  beforeEach(() => {
-    ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
-
-    // Tests here don't invoke the functions, so usage restrictions don't apply.
-    disableFunctionUsageRestriction();
   });
 
   test('Static IP should be false if flag on subscription is false', async () => {
