@@ -54,6 +54,7 @@ class SubscriptionCache {
   protected cache: ISubscriptionCache = {};
   protected allowRefreshAfter: number;
   protected dynamo: DynamoDB;
+  protected lastTimeRefreshed: number;
 
   constructor(options: any) {
     this.dynamo =
@@ -66,6 +67,7 @@ class SubscriptionCache {
         maxRetries: 3,
       });
     this.allowRefreshAfter = 0;
+    this.lastTimeRefreshed = 0;
   }
 
   public async find(key: string): Promise<ISubscription | undefined> {
@@ -119,7 +121,8 @@ class SubscriptionCache {
 
     console.log(`CACHE: Subscription cache refreshed: ${results.length} subscriptions loaded`);
 
-    this.allowRefreshAfter = Date.now() + MAX_CACHE_REFRESH_RATE;
+    this.lastTimeRefreshed = Date.now();
+    this.allowRefreshAfter = this.lastTimeRefreshed + MAX_CACHE_REFRESH_RATE;
 
     return this.allowRefreshAfter;
   }
@@ -148,7 +151,7 @@ class SubscriptionCache {
       ).text;
     } catch (e) {}
 
-    res.json({ cache: when, who: instanceId }).send();
+    res.json({ cache: when, who: instanceId, lastTimeRefreshed: this.lastTimeRefreshed }).send();
   }
 }
 

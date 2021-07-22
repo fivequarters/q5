@@ -82,7 +82,15 @@ async function setSubscriptionStaticIpFlag(subscription: ISubscription, staticIp
   await dynamo.updateItem(params).promise();
 
   const refreshUrl = `${account.baseUrl}/v1/refresh`;
-  await superagent.get(refreshUrl);
+  const timeBeforeRefreshRequest = Date.now();
+  const refreshResponse = await superagent.get(refreshUrl);
+  const { lastTimeRefreshed } = refreshResponse.body;
+
+  if (lastTimeRefreshed < timeBeforeRefreshRequest) {
+    // It should have refreshed the subscription cache but, probably due to the refresh rate limit, it didn't
+    process.exit(1);
+  }
+
   subscriptionCache.refresh();
 }
 
