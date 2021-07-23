@@ -8,6 +8,7 @@ import {
   IListOpsDeploymentOptions,
   IListOpsDeploymentResult,
   IFusebitSubscription,
+  IFusebitSubscriptionFlags,
   IFusebitAccount,
   IInitAdmin,
 } from '@5qtrs/ops-data';
@@ -215,6 +216,39 @@ export class DeploymentService {
         '/v1/refresh'
       )}' request to each instance in the stack to apply the new limit.`
     );
+  }
+
+  public async setSubscriptionFlags(subscription: IFusebitSubscription): Promise<void> {
+    if (!subscription.flags) {
+      return;
+    }
+
+    const opsDataContext = await this.opsService.getOpsDataContext();
+    const deploymentData = opsDataContext.deploymentData;
+
+    const keys = Object.keys(subscription.flags);
+    const values = keys.map((key) => (subscription.flags ? subscription.flags[key] : null));
+
+    const flagsAndValues = Object.entries(subscription.flags).map(([key, value]) =>
+      Text.create(Text.eol(), Text.dim('• '), key, Text.dim(': '), `${value}`)
+    );
+    const executeMessage = Text.create(['Setting the following flags on the subscription:', ...flagsAndValues]);
+
+    await this.executeService.execute(
+      {
+        header: 'Set Subscription Flags',
+        message: executeMessage,
+        errorHeader: 'Subscription Error',
+      },
+      () => deploymentData.setFlags(subscription.account as string, subscription)
+    );
+
+    const executedMessage = Text.create([
+      'The following flags were successfully configured on the subscription:',
+      ...flagsAndValues,
+    ]);
+
+    this.executeService.result('Subscription Flags Set', executedMessage);
   }
 
   public async initAdmin(deployment: IOpsDeployment, init: IInitAdmin): Promise<IInitAdmin> {
@@ -522,10 +556,17 @@ export class DeploymentService {
       Object.entries(subscription.limits).forEach((e: [string, number]) => {
         details.push(Text.eol(), Text.dim(`Limit '${e[0]}': `), `${e[1]}`);
       });
-      await this.executeService.message(
-        Text.bold((subscription.subscriptionName || subscription.subscription) as string),
-        Text.create(details)
-      );
     }
+
+    if (subscription.flags) {
+      Object.entries(subscription.flags).forEach(([key, value]) => {
+        details.push(Text.eol(), Text.dim(`Flag '${key}': `), `${value}`);
+      });
+    }
+
+    await this.executeService.message(
+      Text.bold((subscription.subscriptionName || subscription.subscription) as string),
+      Text.create(details)
+    );
   }
 }

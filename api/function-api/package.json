@@ -22,6 +22,7 @@
   "keywords": [],
   "dependencies": {
     "@5qtrs/account": "^0.0.1",
+    "@5qtrs/account-data": "^0.0.1",
     "@5qtrs/account-data-aws": "^0.0.1",
     "@5qtrs/aws-config": "^0.0.1",
     "@5qtrs/bq-metering": "^0.0.1",
@@ -55,6 +56,7 @@
   "devDependencies": {
     "@5qtrs/fusebit-profile-sdk": "^0.0.1",
     "@5qtrs/key-pair": "^0.0.1",
+    "@5qtrs/random": "^0.0.1",
     "@5qtrs/request": "^0.0.1",
     "@fusebit/tunnel": "^3.2.5",
     "@npm/types": "^1.0.1",

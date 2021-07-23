@@ -8,6 +8,7 @@ export interface ISubscription {
   id?: string;
   displayName?: string;
   limits?: ISubscriptionLimits;
+  flags?: ISubscriptionFlags;
 }
 
 export interface IListSubscriptionsOptions {
@@ -23,6 +24,10 @@ export interface IListSubscriptionsResult {
 
 export interface ISubscriptionLimits {
   concurrency: number;
+}
+
+export interface ISubscriptionFlags {
+  [key: string]: string;
 }
 
 export interface ISubscriptionData extends IDataSource {

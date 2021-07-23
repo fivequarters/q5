@@ -488,6 +488,7 @@ router.put(
   check_agent_version(),
   determine_provider(),
   npmRegistry(),
+  loadSubscription(subscriptionCache),
   (req, res, next) => {
     req.keyStore = keyStore;
     next();
