@@ -1,5 +1,5 @@
 {
-  "version": "1.20.24",
+  "version": "1.20.25",
   "private": true,
   "org": "5qtrs",
   "engines": {
@@ -65,7 +65,10 @@
     "yarn": "^1.12.3"
   },
   "workspaces": {
-    "nohoist": ["**/lambda-*", "**/lambda-*/**"],
+    "nohoist": [
+      "**/lambda-*",
+      "**/lambda-*/**"
+    ],
     "packages": [
       "tool/tool-config",
       "tool/workspace",
@@ -200,6 +203,8 @@
       "lib/pkg/pkg-integration",
       "lib/pkg/pkg-oauth-connector",
       "lib/pkg/pkg-oauth-integration",
+      "lib/pkg/slack-connector",
+      "lib/pkg/slack-integration",
       "lib/data/db",
       "lib/data/schema"
     ]
