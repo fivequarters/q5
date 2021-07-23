@@ -559,8 +559,8 @@ export class DeploymentService {
     }
 
     if (subscription.flags) {
-      Object.entries(subscription.flags).forEach((e) => {
-        details.push(Text.eol(), Text.dim(`Flag '${e[0]}': `), `${e[1]}`);
+      Object.entries(subscription.flags).forEach(([key, value]) => {
+        details.push(Text.eol(), Text.dim(`Flag '${key}': `), `${value}`);
       });
     }
 

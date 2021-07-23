@@ -2,7 +2,6 @@ import create_error from 'http-errors';
 
 import { IAgent } from '@5qtrs/account-data';
 import { AwsRegistry } from '@5qtrs/registry';
-import { terminate_garbage_collection } from '@5qtrs/function-lambda';
 import * as FunctionUtilities from '../../src/routes/functions';
 
 import { disableFunctionUsageRestriction, callFunction, getFunctionLocation, waitForBuild } from './sdk';
@@ -32,15 +31,6 @@ FunctionUtilities.initFunctions(keyStore, subscriptionCache);
 
 // Create a registry object
 const registry = AwsRegistry.create({ ...getParams('', account, boundaryId), registryId: 'default' }, {});
-
-beforeAll(async () => {
-  return keyStore.rekey();
-});
-afterAll(() => {
-  console.log(`Shutting down keyStore`);
-  keyStore.shutdown();
-  terminate_garbage_collection();
-});
 
 describe('Function Utilities', () => {
   test('Create simple function', async () => {

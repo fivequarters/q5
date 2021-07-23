@@ -32,7 +32,7 @@ const command = {
       defaultText: 'deployment region',
     },
   ],
-  acceptsUknownArguments: true,
+  acceptsUnknownArguments: true,
 };
 
 // ----------------

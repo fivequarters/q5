@@ -4,7 +4,6 @@ import * as superagent from 'superagent';
 
 import { IAgent, ISubscription } from '@5qtrs/account-data';
 import * as Constants from '@5qtrs/constants';
-import { terminate_garbage_collection } from '@5qtrs/function-lambda';
 
 import * as FunctionUtilities from '../../src/routes/functions';
 import { getParams, fakeAgent, createRegistry, keyStore, subscriptionCache } from './function.utils';
@@ -80,36 +79,33 @@ async function setSubscriptionStaticIpFlag(subscription: ISubscription, staticIp
     },
   };
   await dynamo.updateItem(params).promise();
+  subscriptionCache.refresh();
 
   const refreshUrl = `${account.baseUrl}/v1/refresh`;
-  const timeBeforeRefreshRequest = Date.now();
-  const refreshResponse = await superagent.get(refreshUrl);
-  const { lastTimeRefreshed } = refreshResponse.body;
+  const MAX_TEST_DELAY = Constants.MAX_CACHE_REFRESH_RATE * 5;
+  const startTime = Date.now();
+  do {
+    const timeBeforeRefreshRequest = Date.now();
+    const refreshResponse = await superagent.get(refreshUrl);
+    const { at } = refreshResponse.body;
+    if (at > timeBeforeRefreshRequest) {
+      return;
+    }
+    //
+    console.log("Stale cache due to refresh rate, let's wait and try to refresh again.");
+    await new Promise((resolve) => setTimeout(resolve, Constants.MAX_CACHE_REFRESH_RATE));
+  } while (Date.now() < startTime + MAX_TEST_DELAY);
 
-  if (lastTimeRefreshed < timeBeforeRefreshRequest) {
-    // It should have refreshed the subscription cache but, probably due to the refresh rate limit, it didn't
-    process.exit(1);
-  }
-
-  subscriptionCache.refresh();
+  // tslint:disable-next-line: no-console
+  console.log(`ERROR: Unable to refresh the subscription: ${account.subscriptionId}. Tests will fail.`);
 }
-
-beforeAll(async () => {
-  return keyStore.rekey();
-});
-
-afterAll(() => {
-  console.log(`Shutting down keyStore`);
-  keyStore.shutdown();
-  terminate_garbage_collection();
-});
 
 describe('Subscription with staticIp=true', () => {
   beforeAll(async () => {
     ({ account } = getEnv());
     const subscription = (await subscriptionCache.find(account.subscriptionId)) as ISubscription;
     await setSubscriptionStaticIpFlag(subscription, 'true');
-  });
+  }, 120000);
 
   test('Create a function that requires a build', async () => {
     const params = getParams(function1Id, account, boundaryId);
@@ -340,7 +336,7 @@ describe('Subscription with staticIp=false', () => {
     const subscription = (await subscriptionCache.find(account.subscriptionId)) as ISubscription;
 
     await setSubscriptionStaticIpFlag(subscription, 'false');
-  });
+  }, 120000);
 
   test('Static IP should be false if flag on subscription is false', async () => {
     // create a new function, asking for static ip

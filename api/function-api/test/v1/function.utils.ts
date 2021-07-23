@@ -1,6 +1,7 @@
 import { IAccount } from './accountResolver';
 import { AwsRegistry } from '@5qtrs/registry';
 import { AwsKeyStore, SubscriptionCache } from '@5qtrs/runas';
+import { terminate_garbage_collection } from '@5qtrs/function-lambda';
 
 export const createRegistry = (account: IAccount, boundaryId: string) => {
   return AwsRegistry.create({ ...getParams('', account, boundaryId), registryId: 'default' }, {});
@@ -22,3 +23,12 @@ export const keyStore = new AwsKeyStore({});
 // Create and load a cache with the current subscription->account mapping
 export const subscriptionCache = new SubscriptionCache({});
 subscriptionCache.refresh();
+
+beforeAll(async () => {
+  return keyStore.rekey();
+});
+afterAll(() => {
+  console.log(`Shutting down keyStore`);
+  keyStore.shutdown();
+  terminate_garbage_collection();
+});
