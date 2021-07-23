@@ -91,13 +91,13 @@ async function setSubscriptionStaticIpFlag(subscription: ISubscription, staticIp
     if (at > timeBeforeRefreshRequest) {
       return;
     }
-    //
+    // tslint:disable-next-line: no-console
     console.log("Stale cache due to refresh rate, let's wait and try to refresh again.");
-    await new Promise((resolve) => setTimeout(resolve, Constants.MAX_CACHE_REFRESH_RATE));
+
+    await new Promise((resolve) => setTimeout(resolve, Constants.MAX_CACHE_REFRESH_RATE - (Date.now() - at)));
   } while (Date.now() < startTime + MAX_TEST_DELAY);
 
-  // tslint:disable-next-line: no-console
-  console.log(`ERROR: Unable to refresh the subscription: ${account.subscriptionId}. Tests will fail.`);
+  throw new Error(`ERROR: Unable to refresh the subscription: ${account.subscriptionId}. Tests will fail.`);
 }
 
 describe('Subscription with staticIp=true', () => {
