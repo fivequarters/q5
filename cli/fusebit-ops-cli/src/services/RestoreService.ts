@@ -1,4 +1,4 @@
-import AWS from 'aws-sdk';
+import AWS, { config } from 'aws-sdk';
 import { IExecuteInput } from '@5qtrs/cli';
 import { OpsService } from './OpsService';
 import { ExecuteService } from './ExecuteService';
@@ -110,7 +110,7 @@ export class RestoreService {
     await this.deleteAllExistingDynamoDBTable(deploymentName, config, credentials, deploymentRegion);
     await Promise.all(
       this.dynamoTableSuffix.map((tableSuffix) =>
-        this.restoreTable(credentials, tableSuffix, deploymentName, backupPlanName, deploymentRegion)
+        this.restoreTable(credentials, tableSuffix, deploymentName, backupPlanName, deploymentRegion, config)
       )
     );
 
@@ -120,7 +120,8 @@ export class RestoreService {
       auroraRestorePoint.RecoveryPointArn as string,
       deploymentName,
       credentials,
-      deploymentRegion
+      deploymentRegion,
+      config
     );
     await this.updateSecretsManager(credentials, deploymentRegion as string, deploymentName, ids);
   }
@@ -156,7 +157,8 @@ export class RestoreService {
     tableSuffix: string,
     deploymentName: string,
     backupPlanName: string,
-    region: string
+    region: string,
+    config: IAwsConfig
   ) {
     const restorePoint = (await this.findLatestRecoveryPointOfTable(
       credentials,
@@ -172,7 +174,8 @@ export class RestoreService {
       deploymentName,
       tableSuffix,
       credentials,
-      region
+      region,
+      config
     );
   }
   /**
@@ -222,7 +225,8 @@ export class RestoreService {
     restorePointArn: string,
     deploymentName: string,
     credentials: IAwsCredentials,
-    region: string
+    region: string,
+    config: IAwsConfig
   ): Promise<ISecretsManagerInput> {
     const dbName = `${this.auroraDbPrefix}${deploymentName}`;
     const Aurora = new AWS.RDS({
@@ -238,6 +242,16 @@ export class RestoreService {
       SnapshotIdentifier: restorePointArn,
       DBSubnetGroupName: `${this.auroraSubnetPrefix}${deploymentName}`,
       DBClusterIdentifier: `${this.auroraDbPrefix}${deploymentName}`,
+      Tags: [
+        {
+          Key: 'fusebitDeployment',
+          Value: deploymentName,
+        },
+        {
+          Key: 'account',
+          Value: config.account,
+        },
+      ],
     }).promise();
     const clusterHostname = results.DBCluster?.Endpoint as string;
     const clusterResourceId = results.DBCluster?.DbClusterResourceId as string;
@@ -273,7 +287,8 @@ export class RestoreService {
     deploymentName: string,
     tableSuffix: string,
     credentials: IAwsCredentials,
-    region: string
+    region: string,
+    config: IAwsConfig
   ) {
     const tableName = `${deploymentName}.${tableSuffix}`;
     const DynamoDB = new AWS.DynamoDB({
@@ -311,6 +326,24 @@ export class RestoreService {
         await this.input.io.writeLine(`${tableName} finished restoring`);
       }
     }
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+    await DynamoDB.tagResource({
+      ResourceArn: `arn:aws:dynamodb:${region}:${config.account}:table/${deploymentName}.${tableSuffix}`,
+      Tags: [
+        {
+          Key: 'prefix',
+          Value: deploymentName,
+        },
+        {
+          Key: 'region',
+          Value: region,
+        },
+        {
+          Key: 'account',
+          Value: config.account,
+        },
+      ],
+    }).promise();
   }
 
   /**
