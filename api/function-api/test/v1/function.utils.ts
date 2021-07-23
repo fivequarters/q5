@@ -28,7 +28,6 @@ beforeAll(async () => {
   return keyStore.rekey();
 });
 afterAll(() => {
-  console.log(`Shutting down keyStore`);
   keyStore.shutdown();
   terminate_garbage_collection();
 });
