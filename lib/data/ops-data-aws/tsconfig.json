@@ -21,6 +21,7 @@
     { "path": "../../shared/random" },
     { "path": "../../node/jwt" },
     { "path": "../../runtime/ops-lambda-set" },
-    { "path": "../../constants" }
+    { "path": "../../constants" },
+    { "path": "../../server/account" }
   ]
 }

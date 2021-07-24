@@ -8,10 +8,12 @@ import {
   IListOpsDeploymentOptions,
   IListOpsDeploymentResult,
   IFusebitSubscription,
-  IFusebitSubscriptionFlags,
   IFusebitAccount,
   IInitAdmin,
 } from '@5qtrs/ops-data';
+
+import { Defaults } from '@5qtrs/account';
+import * as Constants from '@5qtrs/constants';
 import { ExecuteService } from './ExecuteService';
 
 // ----------------
@@ -354,6 +356,49 @@ export class DeploymentService {
     return result as IOpsDeployment[];
   }
 
+  public async displayDefaults(deployment: IOpsDeployment): Promise<void> {
+    const opsDataContext = await this.opsService.getOpsDataContext();
+    const deploymentData = opsDataContext.deploymentData;
+
+    const result: (Text | string)[] = [];
+    for (const entry of Defaults.Keys) {
+      const defaults = await deploymentData.getDefaults(deployment, entry.key);
+      result.push(
+        ...[Text.dim(`${entry.name}: `), Text.eol(), JSON.stringify(defaults, null, 2), Text.eol(), Text.eol()]
+      );
+    }
+
+    await this.executeService.message('All Defaults', Text.create(result));
+  }
+
+  public findDefaultKey(key: string): { key: string; name: string } {
+    const defaultKey = Defaults.Keys.find((entry: { name: string }) => entry.name.toLowerCase() === key.toLowerCase());
+    if (!defaultKey) {
+      throw new Error('Invalid defaults key provided');
+    }
+    return defaultKey;
+  }
+
+  public async setDefaults(deployment: IOpsDeployment, key: string, defaults: any): Promise<void> {
+    const opsDataContext = await this.opsService.getOpsDataContext();
+    const deploymentData = opsDataContext.deploymentData;
+
+    const defaultKey = this.findDefaultKey(key);
+
+    await deploymentData.setDefaults(deployment, defaultKey.key, defaults);
+    await this.executeService.message(`Updating ${defaultKey.name}`, Text.create(JSON.stringify(defaults, null, 2)));
+  }
+
+  public async unsetDefaults(deployment: IOpsDeployment, key: string, dotKey: string): Promise<void> {
+    const opsDataContext = await this.opsService.getOpsDataContext();
+    const deploymentData = opsDataContext.deploymentData;
+
+    const defaultKey = this.findDefaultKey(key);
+
+    await deploymentData.unsetDefaults(deployment, defaultKey.key, dotKey);
+    await this.executeService.message(`Unset ${defaultKey.name}`, Text.create(dotKey));
+  }
+
   public async listAllSubscriptions(deployment: IOpsDeployment): Promise<IFusebitAccount[]> {
     const opsDataContext = await this.opsService.getOpsDataContext();
     const deploymentData = opsDataContext.deploymentData;
@@ -397,7 +442,7 @@ export class DeploymentService {
       return;
     }
 
-    if (accounts.length == 0) {
+    if (accounts.length === 0) {
       await this.executeService.warning(
         'No Fusebit Accounts',
         `There are no fusebit accounts on the ${deployment.deploymentName} deployment`
@@ -470,7 +515,7 @@ export class DeploymentService {
       return;
     }
 
-    if (deployments.length == 0) {
+    if (deployments.length === 0) {
       await this.executeService.warning('No Deployments', 'There are no deployments on the Fusebit platform');
       return;
     }
@@ -503,7 +548,7 @@ export class DeploymentService {
       deployment.networkName,
       Text.eol(),
       Text.dim('Default Size: '),
-      deployment.size != undefined ? deployment.size.toString() : '',
+      deployment.size !== undefined ? deployment.size.toString() : '',
       Text.eol(),
       Text.dim('Elastic Search: '),
       deployment.elasticSearch ? deployment.elasticSearch.toString() : '',

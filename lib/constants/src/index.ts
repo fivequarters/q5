@@ -10,6 +10,7 @@ import {
   safePathMap,
   isUuid,
   getAuthToken,
+  mergeDeep,
 } from './utilities';
 
 interface IModuleSpec {
@@ -59,13 +60,16 @@ const REGISTRY_CATEGORY_CONFIG = 'registry-npm-config';
 const REGISTRY_DEFAULT = 'default';
 const REGISTRY_GLOBAL = 'registry-global';
 
+const DEFAULTS_CATEGORY = 'deployment-defaults';
+const DEFAULTS_SUBSCRIPTION = 'subscription-defaults';
+
 const REGISTRY_RESERVED_SCOPE_PREFIX = '@fuse';
 
 const MODULE_PUBLIC_REGISTRY = 'public';
 
 const RUNAS_ISSUER = 'runas-system-issuer';
 
-const MAX_CACHE_REFRESH_RATE = 60 * 1000;
+const MAX_CACHE_REFRESH_RATE = 10 * 1000;
 
 // Changes to this variable will also require changing AgentTooltip.tsx in Portal.
 const RUNAS_SYSTEM_ISSUER_SUFFIX = 'system.fusebit.io';
@@ -297,6 +301,8 @@ export {
   REGISTRY_CATEGORY_CONFIG,
   REGISTRY_DEFAULT,
   REGISTRY_GLOBAL,
+  DEFAULTS_CATEGORY,
+  DEFAULTS_SUBSCRIPTION,
   MODULE_PUBLIC_REGISTRY,
   RUNAS_ISSUER,
   RUNAS_KID_LEN,
@@ -314,4 +320,5 @@ export {
   safePathMap,
   isUuid,
   getAuthToken,
+  mergeDeep,
 };

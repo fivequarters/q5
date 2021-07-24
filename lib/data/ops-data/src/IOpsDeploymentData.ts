@@ -50,6 +50,9 @@ export interface IOpsDeploymentData extends IDataSource {
   addSubscription(subscription: IFusebitSubscription): Promise<void>;
   limitSubscription(account: string, subscription: IFusebitSubscription): Promise<void>;
   setFlags(account: string, subscription: IFusebitSubscription): Promise<void>;
+  setDefaults(deployment: IOpsDeployment, defaultKey: string, defaults: any): Promise<void>;
+  unsetDefaults(deployment: IOpsDeployment, defaultKey: string, dotKey: string): Promise<void>;
+  getDefaults(deployment: IOpsDeployment, defaultKey: string): Promise<any>;
   get(deploymentName: string, region: string): Promise<IOpsDeployment>;
   list(options?: IListOpsDeploymentOptions): Promise<IListOpsDeploymentResult>;
   listAll(deploymentName?: string): Promise<IOpsDeployment[]>;
