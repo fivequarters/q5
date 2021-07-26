@@ -87,11 +87,11 @@ export class RestoreService {
     const userCreds = await this.opsService.getUserCredsForProfile(profile);
     const config = await opsDataContext.provider.getAwsConfigForMain();
     const credentials = await (config.creds as AwsCreds).getCredentials();
+    const awsConfig = await OpsDataAwsConfig.create(opsDataContext.config);
     let deploymentRegion: string = deploymentRegionFromInput;
     if (deploymentRegionFromInput === undefined) {
       deploymentRegion = await this.findRegionFromDeploymentName(deploymentName, config, credentials);
     }
-    const awsConfig = await OpsDataAwsConfig.create(opsDataContext.config);
     if (!forceRemove) {
       if (!this.checkAllTablesExist(deploymentName, credentials, backupPlanName, deploymentRegion)) {
         await this.input.io.write("can't find a valid backup for all tables, use --force to proceed");
