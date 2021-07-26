@@ -20,7 +20,7 @@ All public releases of the Fusebit Operations CLI are documented here, including
 
 ## Version 1.28.0
 
-_Released 07/16/23_
+_Released 07/23/21_
 
 - **Enhancement** Introduces the ability to set a feature flag on subscriptions to either block or allow them to use the static IP feature on Fusebit function.
 
