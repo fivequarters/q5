@@ -328,7 +328,9 @@ export class RestoreService {
     }
     await new Promise((resolve) => setTimeout(resolve, 5000));
     await DynamoDB.tagResource({
-      ResourceArn: `arn:aws:dynamodb:${region}:${config.account}:table/${deploymentName}.${tableSuffix}`,
+      ResourceArn: `${config.govCloud ? 'arn:aws-us-gov' : 'arn:aws'}:dynamodb:${region}:${
+        config.account
+      }:table/${deploymentName}.${tableSuffix}`,
       Tags: [
         {
           Key: 'prefix',
