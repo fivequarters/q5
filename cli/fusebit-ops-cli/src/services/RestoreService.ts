@@ -5,6 +5,7 @@ import { ExecuteService } from './ExecuteService';
 import { ProfileService } from './ProfileService';
 import { AwsCreds, IAwsConfig } from '@5qtrs/aws-config';
 import { IAwsCredentials } from '@5qtrs/aws-cred';
+import { OpsDataAwsConfig } from '@5qtrs/ops-data-aws';
 
 interface ISecretsManagerInput {
   hostname: string;
@@ -90,6 +91,8 @@ export class RestoreService {
     if (deploymentRegionFromInput === undefined) {
       deploymentRegion = await this.findRegionFromDeploymentName(deploymentName, config, credentials);
     }
+    const awsConfig = await OpsDataAwsConfig.create(opsDataContext.config);
+    console.log(awsConfig.arnPrefix);
     if (!forceRemove) {
       if (!this.checkAllTablesExist(deploymentName, credentials, backupPlanName, deploymentRegion)) {
         await this.input.io.write("can't find a valid backup for all tables, use --force to proceed");
@@ -110,7 +113,7 @@ export class RestoreService {
     await this.deleteAllExistingDynamoDBTable(deploymentName, config, credentials, deploymentRegion);
     await Promise.all(
       this.dynamoTableSuffix.map((tableSuffix) =>
-        this.restoreTable(credentials, tableSuffix, deploymentName, backupPlanName, deploymentRegion, config)
+        this.restoreTable(credentials, tableSuffix, deploymentName, backupPlanName, deploymentRegion, config, awsConfig)
       )
     );
 
@@ -158,7 +161,8 @@ export class RestoreService {
     deploymentName: string,
     backupPlanName: string,
     region: string,
-    config: IAwsConfig
+    config: IAwsConfig,
+    awsDataConfig: OpsDataAwsConfig
   ) {
     const restorePoint = (await this.findLatestRecoveryPointOfTable(
       credentials,
@@ -175,7 +179,8 @@ export class RestoreService {
       tableSuffix,
       credentials,
       region,
-      config
+      config,
+      awsDataConfig
     );
   }
   /**
@@ -288,7 +293,8 @@ export class RestoreService {
     tableSuffix: string,
     credentials: IAwsCredentials,
     region: string,
-    config: IAwsConfig
+    config: IAwsConfig,
+    awsDataConfig: OpsDataAwsConfig
   ) {
     const tableName = `${deploymentName}.${tableSuffix}`;
     const DynamoDB = new AWS.DynamoDB({
@@ -326,11 +332,10 @@ export class RestoreService {
         await this.input.io.writeLine(`${tableName} finished restoring`);
       }
     }
+    // This is nessersary here because it was observed that DynamoDB describeTable requests are consistent where sometimes it can show as being done creating while requests after it show it is still creating.
     await new Promise((resolve) => setTimeout(resolve, 5000));
     await DynamoDB.tagResource({
-      ResourceArn: `${config.govCloud ? 'arn:aws-us-gov' : 'arn:aws'}:dynamodb:${region}:${
-        config.account
-      }:table/${deploymentName}.${tableSuffix}`,
+      ResourceArn: `${awsDataConfig.arnPrefix}:dynamodb:${region}:${config.account}:table/${deploymentName}.${tableSuffix}`,
       Tags: [
         {
           Key: 'prefix',
