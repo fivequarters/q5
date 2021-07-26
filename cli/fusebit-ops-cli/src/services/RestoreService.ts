@@ -331,7 +331,7 @@ export class RestoreService {
         await this.input.io.writeLine(`${tableName} finished restoring`);
       }
     }
-    // This is nessersary here because it was observed that DynamoDB describeTable requests are consistent where sometimes it can show as being done creating while requests after it show it is still creating.
+    // This is nessersary here because it was observed that DynamoDB describeTable requests are inconsistent where sometimes it can show as being done creating while requests after it show it is still creating.
     await new Promise((resolve) => setTimeout(resolve, 5000));
     await DynamoDB.tagResource({
       ResourceArn: `${awsDataConfig.arnPrefix}:dynamodb:${region}:${config.account}:table/${deploymentName}.${tableSuffix}`,
