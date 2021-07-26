@@ -92,7 +92,6 @@ export class RestoreService {
       deploymentRegion = await this.findRegionFromDeploymentName(deploymentName, config, credentials);
     }
     const awsConfig = await OpsDataAwsConfig.create(opsDataContext.config);
-    console.log(awsConfig.arnPrefix);
     if (!forceRemove) {
       if (!this.checkAllTablesExist(deploymentName, credentials, backupPlanName, deploymentRegion)) {
         await this.input.io.write("can't find a valid backup for all tables, use --force to proceed");
