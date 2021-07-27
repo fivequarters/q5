@@ -331,10 +331,10 @@ export default abstract class SessionedEntityService<
       Model.EntityType.session,
       entity,
       { verb: 'creating', type: Model.EntityType.session },
-      async () => {
+      async (operationId) => {
         const session = await this.sessionDao.getEntity(entity);
         this.ensureSessionTrunk(session, 'cannot post non-master session', 400);
-
+        session.data.operationId = operationId;
         await this.persistTrunkSession(session);
       }
     );
@@ -415,6 +415,7 @@ export default abstract class SessionedEntityService<
 
       // Record the successfully created instance in the master session.
       session.data.output = {
+        ...session.data.output,
         accountId: session.accountId,
         subscriptionId: session.subscriptionId,
         parentEntityType: this.entityType,
@@ -423,6 +424,7 @@ export default abstract class SessionedEntityService<
         entityId: instanceId,
         tags: instance.tags,
       };
+      session.data.replacementTargetId = instanceId;
       await daos[Model.EntityType.session].updateEntity(session);
     });
 

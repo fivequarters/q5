@@ -157,6 +157,8 @@ export enum SessionMode {
 }
 
 export interface ITrunkSessionData {
+  operationId?: string;
+
   mode: SessionMode.trunk;
 
   redirectUrl: string;

@@ -14,7 +14,7 @@ import {
 // Internal Functions
 // ------------------
 
-function toBeHttp(response: IHttpResponse, { statusCode, data, headers, has, hasNot, tests }: any) {
+function toBeHttp(response: IHttpResponse, { statusCode, data, headers, has, hasNot, tests }: IToBeHttp) {
   let keyValueMsg;
   try {
     if (statusCode) {
@@ -289,10 +289,19 @@ const matchers = {
   toExtend,
 };
 
+export interface IToBeHttp {
+  statusCode?: number;
+  data?: any;
+  headers?: Record<string, string>;
+  tests?: (() => any)[];
+  has?: string[];
+  hasNot?: string[];
+}
+
 declare global {
   namespace jest {
     interface Matchers<R, T> {
-      toBeHttp: ({ statusCode, data, headers, tests }: any) => R;
+      toBeHttp: ({ statusCode, data, headers, tests }: IToBeHttp) => R;
       toBeHttpError: (status: number, message: string) => R;
       toBeMalformedAccountError: (malformedAccountId: string) => R;
       toBeUnauthorizedError: () => R;

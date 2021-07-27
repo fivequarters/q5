@@ -56,6 +56,8 @@ const createSessionRouter = (SessionService: SessionedEntityService<any, any>) =
           input: session.result.data.input,
           output: session.result.data.output,
           components: session.result.data.components,
+          replacementTargetId: session.result.data.replacementTargetId,
+          operationId: session.result.data.operationId,
         };
 
         if (session.result.data.mode === 'leaf') {
