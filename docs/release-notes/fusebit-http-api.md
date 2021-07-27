@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+# Version 1.20.27
+
+_Released 7/26/21_
+
+- **Enhancement** OperationId corresponding to processing of session into instances and identities is now saved to sessions. 
+
 ## Version 1.20.26
 
 _Released 07/23/21_
