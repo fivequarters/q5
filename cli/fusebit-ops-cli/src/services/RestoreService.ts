@@ -333,7 +333,7 @@ export class RestoreService {
     }
     /**
      * Aws DynamoDB misbehaves in that it inconsistently returns CREATING and ACTIVE during describeTable, causing tagResource to fail.
-     * As there isn't an obvious fix, so for now there is a hard 5-second wait.
+     * Since there isn't an obvious fix, for now we use a 5 second hard wait.
      */
     await new Promise((resolve) => setTimeout(resolve, 5000));
     await DynamoDB.tagResource({
