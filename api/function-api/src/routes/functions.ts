@@ -2,8 +2,9 @@ import create_error from 'http-errors';
 import { IncomingHttpHeaders } from 'http';
 
 import { AwsKeyStore, loadFunctionSummary, mintJwtForPermissions } from '@5qtrs/runas';
-import { IRegistryStore } from '@5qtrs/registry';
+import { AwsRegistry } from '@5qtrs/registry';
 import { IAgent } from '@5qtrs/account-data';
+import { SubscriptionCache } from '@5qtrs/account';
 import * as Constants from '@5qtrs/constants';
 import { createLoggingCtx } from '@5qtrs/runtime-common';
 
@@ -97,9 +98,9 @@ interface IResult {
 }
 
 let keyStore: AwsKeyStore;
-let subscriptionCache: any;
+let subscriptionCache: SubscriptionCache;
 
-const initFunctions = (ks: AwsKeyStore, sc: any) => {
+const initFunctions = (ks: AwsKeyStore, sc: SubscriptionCache) => {
   keyStore = ks;
   subscriptionCache = sc;
 };
@@ -139,11 +140,15 @@ const asyncDispatch = async (req: any, handler: any): Promise<any> => {
 const createFunction = async (
   params: IParams,
   spec: IFunctionSpecification,
-  resolvedAgent: IAgent,
-  registry: IRegistryStore
+  resolvedAgent: IAgent
 ): Promise<ICreateFunction> => {
   const url = new URL(process.env.API_SERVER as string);
-  const subscription = await subscriptionCache.find(params.subscriptionId);
+  const subscription = await subscriptionCache.get(params.accountId, params.subscriptionId);
+  if (!subscription) {
+    throw create_error(400, `Unknown account/subscription: ${params.accountId}/${params.subscriptionId}`);
+  }
+
+  const registry = AwsRegistry.create({ accountId: params.accountId, registryId: 'default' });
   const req = {
     protocol: url.protocol.replace(':', ''),
     headers: { host: url.host },
@@ -151,8 +156,8 @@ const createFunction = async (
     body: spec,
     keyStore,
     resolvedAgent,
-    registry,
     subscription,
+    registry,
   };
   const res = await asyncDispatch(req, provider_handlers.lambda.put_function);
   if (res.body && typeof res.body === 'object') {

@@ -1,6 +1,7 @@
 import { IAccount } from './accountResolver';
 import { AwsRegistry } from '@5qtrs/registry';
-import { AwsKeyStore, SubscriptionCache } from '@5qtrs/runas';
+import { AwsKeyStore } from '@5qtrs/runas';
+import { SubscriptionCache } from '@5qtrs/account';
 import { terminate_garbage_collection } from '@5qtrs/function-lambda';
 
 export const createRegistry = (account: IAccount, boundaryId: string) => {

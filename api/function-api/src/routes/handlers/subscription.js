@@ -15,8 +15,18 @@ function subscriptionPost() {
   };
 }
 
-function subscriptionGet() {
-  return (req, res) => {
+function subscriptionGet(subscriptionCache) {
+  return async (req, res) => {
+    if (req.query.include === 'cache') {
+      try {
+        const subscription = await subscriptionCache.get(req.params.accountId, req.params.subscriptionId);
+        res.json(subscription);
+      } catch (error) {
+        errorHandler(res)(error);
+      }
+      return;
+    }
+
     getAccountContext().then((accountContext) => {
       const resolvedAgent = req.resolvedAgent;
       const accountId = req.params.accountId;

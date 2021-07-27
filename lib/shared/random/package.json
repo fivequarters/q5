@@ -17,12 +17,12 @@
   },
   "keywords": [],
   "dependencies": {
-    "uuid": "^3.3.2"
+    "uuid": "^7.0.3"
   },
   "devServer": {
     "port": 9506
   },
   "devDependencies": {
-    "@types/uuid": "^3.4.4"
+    "@types/uuid": "^7.0.3"
   }
 }

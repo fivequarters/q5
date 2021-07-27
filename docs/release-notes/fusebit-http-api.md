@@ -17,6 +17,12 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+# Version 1.20.28
+
+_Released 7/27/21_
+
+- **Enhancement** Subscriptions now support default values supplied via global configuration elements.
+
 # Version 1.20.27
 
 _Released 7/26/21_

@@ -20,7 +20,7 @@ beforeEach(() => {
 const regScope = '@package';
 
 const masterAccount = 'acc-00000000';
-const masterScope = '@fuse-int';
+const masterScope = '@fusebit-int';
 
 const VALID_PKG = '/mock/sample-npm.tgz';
 const BROKEN_PKG = '/mock/sample-broken-npm.tgz';

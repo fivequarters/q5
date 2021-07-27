@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.28.2
+
+_Released 07/27/21_
+
+- **Enhancement** Subscriptions now support default values supplied via global configuration elements.
+
 ## Version 1.28.1
 
 _Released 07/23/21_

@@ -12,6 +12,7 @@ const validate_schema = require('./middleware/validate_schema');
 const authorize = require('./middleware/authorize');
 const user_agent = require('./middleware/user_agent');
 const ratelimit = require('./middleware/ratelimit');
+const subCache = require('./middleware/subscription');
 const { check_agent_version } = require('./middleware/version_check');
 const cors = require('cors');
 const create_error = require('http-errors');
@@ -19,7 +20,7 @@ const health = require('./handlers/health');
 const { get_function_location } = require('@5qtrs/constants');
 const redirect = require('./handlers/redirect');
 
-const { AccountActions } = require('@5qtrs/account');
+const { AccountActions, SubscriptionCache } = require('@5qtrs/account');
 const account = require('./handlers/account');
 const subscription = require('./handlers/subscription');
 const issuer = require('./handlers/issuer');
@@ -35,14 +36,7 @@ const { AwsRegistry } = require('@5qtrs/registry');
 const Constants = require('@5qtrs/constants');
 const RDS = require('@5qtrs/db').default;
 
-const {
-  execAs,
-  loadSummary,
-  loadSubscription,
-  AwsKeyStore,
-  SubscriptionCache,
-  checkAuthorization,
-} = require('@5qtrs/runas');
+const { execAs, loadSummary, AwsKeyStore, checkAuthorization } = require('@5qtrs/runas');
 
 const { addLogging } = require('@5qtrs/runtime-common');
 
@@ -99,7 +93,7 @@ router.get(
 
 router.get('/metrics', (req, res) => res.json({ rateLimits: ratelimit.getMetrics() }).send());
 
-router.get('/refresh', (req, res, next) => subscriptionCache.requestRefresh(req, res, next));
+router.get('/refresh', subCache.refresh(subscriptionCache));
 
 // Accounts
 
@@ -230,9 +224,9 @@ router.get(
   '/account/:accountId/subscription/:subscriptionId',
   analytics.enterHandler(analytics.Modes.Administration),
   cors(corsManagementOptions),
-  validate_schema({ params: require('./validation/api_params') }),
+  validate_schema({ params: require('./validation/api_params'), query: require('./validation/api_query') }),
   authorize({ operation: AccountActions.getSubscription }),
-  subscription.subscriptionGet(),
+  subscription.subscriptionGet(subscriptionCache),
   analytics.finished
 );
 
@@ -488,7 +482,7 @@ router.put(
   check_agent_version(),
   determine_provider(),
   npmRegistry(),
-  loadSubscription(subscriptionCache),
+  subCache.get(subscriptionCache),
   (req, res, next) => {
     req.keyStore = keyStore;
     next();
@@ -1147,7 +1141,7 @@ router.options(run_route, cors(corsExecutionOptions));
     parse_body_conditional({
       condition: (req) => req.provider === 'lambda',
     }),
-    loadSubscription(subscriptionCache),
+    subCache.find(subscriptionCache),
     ratelimit.rateLimit,
     loadSummary(),
     checkAuthorization(authorize),
@@ -1166,7 +1160,7 @@ router.options(run_route, cors(corsExecutionOptions));
     promote_to_name_params,
     validate_schema({ params: require('./validation/api_params') }),
     determine_provider(),
-    loadSubscription(subscriptionCache),
+    subCache.find(subscriptionCache),
     ratelimit.rateLimit,
     loadSummary(),
     checkAuthorization(authorize),

@@ -4,7 +4,7 @@ import { IAgent } from '@5qtrs/account-data';
 import { AwsRegistry } from '@5qtrs/registry';
 import * as FunctionUtilities from '../../src/routes/functions';
 
-import { disableFunctionUsageRestriction, callFunction, getFunctionLocation, waitForBuild } from './sdk';
+import { disableFunctionUsageRestriction, callFunction } from './sdk';
 
 import { getEnv } from './setup';
 import { getParams, keyStore, subscriptionCache, fakeAgent } from './function.utils';
@@ -35,7 +35,7 @@ const registry = AwsRegistry.create({ ...getParams('', account, boundaryId), reg
 describe('Function Utilities', () => {
   test('Create simple function', async () => {
     const params = getParams(function1Id, account, boundaryId);
-    const res = await FunctionUtilities.createFunction(params, helloWorld, fakeAgent as IAgent, registry);
+    const res = await FunctionUtilities.createFunction(params, helloWorld, fakeAgent as IAgent);
     expect(res).toMatchObject({
       code: 200,
       status: 'success',
@@ -49,18 +49,18 @@ describe('Function Utilities', () => {
   test('Update simple function with no change', async () => {
     disableFunctionUsageRestriction();
     const params = getParams(function1Id, account, boundaryId);
-    let res = await FunctionUtilities.createFunction(params, helloWorld, fakeAgent as IAgent, registry);
+    let res = await FunctionUtilities.createFunction(params, helloWorld, fakeAgent as IAgent);
     expect(res).toMatchObject({ code: 200 });
-    res = await FunctionUtilities.createFunction(params, helloWorld, fakeAgent as IAgent, registry);
+    res = await FunctionUtilities.createFunction(params, helloWorld, fakeAgent as IAgent);
     expect(res).toMatchObject({ code: 204 });
   }, 120000);
 
   test('Update simple function with change', async () => {
     disableFunctionUsageRestriction();
     const params = getParams(function1Id, account, boundaryId);
-    let res = await FunctionUtilities.createFunction(params, helloWorld, fakeAgent as IAgent, registry);
+    let res = await FunctionUtilities.createFunction(params, helloWorld, fakeAgent as IAgent);
     expect(res).toMatchObject({ code: 200 });
-    res = await FunctionUtilities.createFunction(params, helloWorldUpdated, fakeAgent as IAgent, registry);
+    res = await FunctionUtilities.createFunction(params, helloWorldUpdated, fakeAgent as IAgent);
     expect(res).toMatchObject({
       code: 200,
       status: 'success',
@@ -73,7 +73,7 @@ describe('Function Utilities', () => {
 
   test('Create and delete a function', async () => {
     const params = getParams(function1Id, account, boundaryId);
-    let res = await FunctionUtilities.createFunction(params, helloWorld, fakeAgent as IAgent, registry);
+    let res = await FunctionUtilities.createFunction(params, helloWorld, fakeAgent as IAgent);
     expect(res).toMatchObject({ code: 200 });
     res = await FunctionUtilities.deleteFunction(params);
     expect(res).toMatchObject({ code: 204 });
@@ -86,7 +86,7 @@ describe('Function Utilities', () => {
 
   test('Create and invoke a function', async () => {
     const params = getParams(function1Id, account, boundaryId);
-    const create = await FunctionUtilities.createFunction(params, ctxFunction, fakeAgent as IAgent, registry);
+    const create = await FunctionUtilities.createFunction(params, ctxFunction, fakeAgent as IAgent);
     expect(create).toMatchObject({ code: 200 });
 
     const exec = await FunctionUtilities.executeFunction(params, 'GET', '');
@@ -103,7 +103,7 @@ describe('Function Utilities', () => {
 
   test('Invoke a function with a body payload', async () => {
     const params = getParams(function1Id, account, boundaryId);
-    const create = await FunctionUtilities.createFunction(params, ctxFunction, fakeAgent as IAgent, registry);
+    const create = await FunctionUtilities.createFunction(params, ctxFunction, fakeAgent as IAgent);
     expect(create).toMatchObject({ code: 200 });
 
     const body = { hello: 'world' };
