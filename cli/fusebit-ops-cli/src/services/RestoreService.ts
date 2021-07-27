@@ -331,7 +331,10 @@ export class RestoreService {
         await this.input.io.writeLine(`${tableName} finished restoring`);
       }
     }
-    // This is nessersary here because it was observed that DynamoDB describeTable requests are inconsistent where sometimes it can show as being done creating while requests after it show it is still creating.
+    /**
+     * Aws DynamoDB misbehaves in that it inconsistently returns CREATING and ACTIVE during describeTable, causing tagResource to fail.
+     * As there isn't an obvious fix, so for now there is a hard 5-second wait.
+     */
     await new Promise((resolve) => setTimeout(resolve, 5000));
     await DynamoDB.tagResource({
       ResourceArn: `${awsDataConfig.arnPrefix}:dynamodb:${region}:${config.account}:table/${deploymentName}.${tableSuffix}`,
