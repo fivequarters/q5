@@ -1,7 +1,6 @@
 import http_error from 'http-errors';
 
 import RDS from '@5qtrs/db';
-import { SubscriptionCache } from '@5qtrs/account';
 
 export const get = async <OAuthConfig>(
   name: string,
@@ -30,7 +29,7 @@ export const set = async <OAuthConfig>(
     throw http_error(500, `Proxy ${name} is not configured.`);
   }
 
-  // Set the secrets and configuration from the proxy master account.
+  // Write the secrets and configuration to storage in the master account.
   const cfg = await RDS.DAO.storage.createEntity(
     {
       accountId: params.accountId,

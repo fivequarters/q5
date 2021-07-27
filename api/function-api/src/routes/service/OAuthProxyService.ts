@@ -16,8 +16,8 @@ import RDS, { Model } from '@5qtrs/db';
  * specified or determined by the connector identified by the request url.
  */
 
-// The length of time to store the ephemeral 'code', created during the initial authorization.
-const DEFAULT_OAUTH_CODE_TTL = 60 * 1000; // 1 hr
+// The length of time to store the ephemeral 'code' used during the initial authorization.
+const DEFAULT_OAUTH_CODE_TTL = 60 * 60 * 1000; // 1 hr
 
 // Declare a general interface to support future specialization, if a specific OAuth server needs
 // specialization.

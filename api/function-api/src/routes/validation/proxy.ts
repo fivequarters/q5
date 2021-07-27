@@ -2,12 +2,16 @@ const Joi = require('joi');
 
 import * as Common from './common';
 
-export const AuthorizeRequest = {
+const commonParams = {
   params: Joi.object().keys({
     accountId: Common.accountId.required(),
     subscriptionId: Common.subscriptionId.required(),
     entityId: Common.entityId.required(),
   }),
+};
+
+export const AuthorizeRequest = {
+  ...commonParams,
   query: Joi.object()
     .keys({
       client_id: Joi.string().required(),
@@ -18,11 +22,7 @@ export const AuthorizeRequest = {
 };
 
 export const CallbackRequest = {
-  params: Joi.object().keys({
-    accountId: Common.accountId.required(),
-    subscriptionId: Common.subscriptionId.required(),
-    entityId: Common.entityId.required(),
-  }),
+  ...commonParams,
   query: Joi.object()
     .keys({
       state: Common.sessionId.required(),
@@ -32,11 +32,7 @@ export const CallbackRequest = {
 };
 
 export const TokenRequest = {
-  params: Joi.object().keys({
-    accountId: Common.accountId.required(),
-    subscriptionId: Common.subscriptionId.required(),
-    entityId: Common.entityId.required(),
-  }),
+  ...commonParams,
   body: Joi.alternatives().try(
     Joi.object()
       .keys({
@@ -60,11 +56,7 @@ export const TokenRequest = {
 };
 
 export const RevokeRequest = {
-  params: Joi.object().keys({
-    accountId: Common.accountId.required(),
-    subscriptionId: Common.subscriptionId.required(),
-    entityId: Common.entityId.required(),
-  }),
+  ...commonParams,
   body: Joi.object()
     .keys({
       // Not every revocation authenticates the same way, so consider this entry a placeholder for the moment.

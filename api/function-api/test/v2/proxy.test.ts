@@ -57,7 +57,6 @@ describe('Proxy', () => {
   let httpServer: any;
   let tunnel: any;
   let redirectUrl: string;
-  let oauthSessionId: string;
   let connectorUrl: string;
 
   let baseUrl: string;
@@ -148,7 +147,6 @@ describe('Proxy', () => {
 
     httpServer.app.get('/authorize', (req: express.Request, res: express.Response) => {
       httpLog.push({ req, res });
-      oauthSessionId = req.query.state as string;
       return res.redirect(`${req.query.redirect_uri}?state=${req.query.state}&code=EEEE`);
     });
 
@@ -531,8 +529,4 @@ describe('Proxy', () => {
     expect(httpLog.length).toBe(1);
     expect(httpLog[0].req.body.token).toBe(validCode);
   }, 180000);
-  //     With a valid client_id, the target url is called with the request
-
-  // Add a workflow.proxy.test.ts that uses a proxy for end-to-end (basically what I'm starting to build
-  // above)
 });

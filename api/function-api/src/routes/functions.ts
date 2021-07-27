@@ -1,13 +1,13 @@
 import create_error from 'http-errors';
 import { IncomingHttpHeaders } from 'http';
 
-import { AwsKeyStore, loadFunctionSummary, mintJwtForPermissions } from '@5qtrs/runas';
+import { loadFunctionSummary, mintJwtForPermissions } from '@5qtrs/runas';
 import { AwsRegistry } from '@5qtrs/registry';
 import { IAgent } from '@5qtrs/account-data';
-import { SubscriptionCache } from '@5qtrs/account';
 import * as Constants from '@5qtrs/constants';
 import { createLoggingCtx } from '@5qtrs/runtime-common';
 
+import { keyStore, subscriptionCache } from './globals';
 import * as provider_handlers from './handlers/provider_handlers';
 import * as ratelimit from './middleware/ratelimit';
 import { getResolvedAgent } from './account';
@@ -96,19 +96,6 @@ interface IResult {
   set: (key: string, value: string) => void;
   end: (body?: string, bodyEncoding?: string) => void;
 }
-
-let keyStore: AwsKeyStore;
-let subscriptionCache: SubscriptionCache;
-
-const initFunctions = (ks: AwsKeyStore, sc: SubscriptionCache) => {
-  keyStore = ks;
-  subscriptionCache = sc;
-};
-
-const getComponents = () => ({
-  subscriptionCache,
-  keyStore,
-});
 
 const asyncDispatch = async (req: any, handler: any): Promise<any> => {
   const res: IResult = await new Promise((resolve, reject) => {
@@ -299,9 +286,7 @@ export {
   createFunction,
   deleteFunction,
   executeFunction,
-  initFunctions,
   waitForFunctionBuild,
   IFunctionSpecification,
   IExecuteFunction,
-  getComponents,
 };

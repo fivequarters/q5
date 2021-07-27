@@ -1,10 +1,9 @@
-import http_error from 'http-errors';
 import express from 'express';
 
 import { Model } from '@5qtrs/db';
-import { SubscriptionCache } from '@5qtrs/account';
 
-import { getComponents } from '../functions';
+import { subscriptionCache } from '../globals';
+
 import common from './common';
 import { IdentityService, InstanceService, ConnectorService, IntegrationService } from '../service';
 import operation from './operation';
@@ -24,7 +23,7 @@ integrationService.addService(connectorService);
 
 router.use(analytics.setModality(analytics.Modes.Administration));
 
-router.use('/connector/:entityId/proxy/slack/oauth', createProxyRouter('slack', getComponents().subscriptionCache));
+router.use('/connector/:entityId/proxy/slack/oauth', createProxyRouter('slack', subscriptionCache));
 
 router.use(
   '/connector',

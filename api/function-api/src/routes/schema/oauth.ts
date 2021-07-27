@@ -112,9 +112,13 @@ export const createProxyRouter = (name: string, subscriptionCache: SubscriptionC
         return next(http_error(403));
       }
 
-      // Save the returned authorization code in the system, bound to the client_id and client_secret that
-      // this connector is configured with.
-      await req.proxy.doPeerCallback(req.query.code);
+      try {
+        // Save the returned authorization code in the system, bound to the client_id and client_secret that
+        // this connector is configured with.
+        await req.proxy.doPeerCallback(req.query.code);
+      } catch (error) {
+        return next(error);
+      }
 
       // Send the browser on to the original connector.
       return res.redirect(req.proxy.createPeerCallbackUrl(req.query));
@@ -142,13 +146,17 @@ export const createProxyRouter = (name: string, subscriptionCache: SubscriptionC
         return next(http_error(403));
       }
 
-      const response = await req.proxy.doTokenRequest(req.body, code);
+      try {
+        const response = await req.proxy.doTokenRequest(req.body, code);
 
-      // Send the result back with the correct content type.
-      res.status(response.status);
-      res.set('content-type', response.header['content-type']);
-      res.send(response.body);
-      res.end();
+        // Send the result back with the correct content type.
+        res.status(response.status);
+        res.set('content-type', response.header['content-type']);
+        res.send(response.body);
+        res.end();
+      } catch (error) {
+        return next(error);
+      }
     }
   );
 

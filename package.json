@@ -205,7 +205,6 @@
       "lib/pkg/pkg-oauth-integration",
       "lib/pkg/slack-connector",
       "lib/pkg/slack-integration",
-      "lib/pkg/oauth-proxy",
       "lib/data/db",
       "lib/data/schema",
       "catalog"

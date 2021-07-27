@@ -76,7 +76,7 @@ function toBeHttp(response: IHttpResponse, { statusCode, data, headers, has, has
     const { account } = getEnv();
     const msg = `${err.message} ${keyValueMsg}\n\nfailing request:\n${
       response.status
-    } ${response.request.method.toUpperCase()} ${response.request.url} - headers: ${JSON.stringify(
+    } ${response.request?.method.toUpperCase()} ${response.request?.url} - headers: ${JSON.stringify(
       response.headers,
       null,
       2
@@ -290,7 +290,7 @@ const matchers = {
 };
 
 export interface IToBeHttp {
-  statusCode?: number;
+  statusCode?: number | number[];
   data?: any;
   headers?: Record<string, string>;
   tests?: (() => any)[];

@@ -7,7 +7,6 @@ const analytics = require('./middleware/analytics');
 const determine_provider = require('./middleware/determine_provider');
 const parse_body_conditional = require('./middleware/parse_body_conditional');
 const provider_handlers = require('./handlers/provider_handlers');
-const { initFunctions } = require('./functions');
 const validate_schema = require('./middleware/validate_schema');
 const authorize = require('./middleware/authorize');
 const user_agent = require('./middleware/user_agent');
@@ -20,7 +19,7 @@ const health = require('./handlers/health');
 const { get_function_location } = require('@5qtrs/constants');
 const redirect = require('./handlers/redirect');
 
-const { AccountActions, SubscriptionCache } = require('@5qtrs/account');
+const { AccountActions } = require('@5qtrs/account');
 const account = require('./handlers/account');
 const subscription = require('./handlers/subscription');
 const issuer = require('./handlers/issuer');
@@ -36,11 +35,14 @@ const { AwsRegistry } = require('@5qtrs/registry');
 const Constants = require('@5qtrs/constants');
 const RDS = require('@5qtrs/db').default;
 
-const { execAs, loadSummary, AwsKeyStore, checkAuthorization } = require('@5qtrs/runas');
+const { execAs, loadSummary, checkAuthorization } = require('@5qtrs/runas');
 
 const { addLogging } = require('@5qtrs/runtime-common');
 
 const { StorageActions } = require('@5qtrs/storage');
+
+const { keyStore, subscriptionCache } = require('./globals');
+
 const storage = require('./handlers/storageRds');
 
 var corsManagementOptions = {
@@ -65,17 +67,6 @@ const npmRegistry = () =>
     // Clear built modules from S3 when a version is put to force a rebuild
     onNewPackage: async (name, ver, registry) => clear_built_module(name, { version: ver, registry }),
   });
-
-// Create the keystore and guarantee an initial key
-const keyStore = new AwsKeyStore({});
-keyStore.rekey();
-
-// Create and load a cache with the current subscription->account mapping
-const subscriptionCache = new SubscriptionCache({});
-subscriptionCache.refresh();
-
-// Register the globals with various consumers
-initFunctions(keyStore, subscriptionCache);
 
 // Start health check executor
 RDS.updateHealth();
