@@ -26,7 +26,7 @@ _Released 07/23/21_
 
 ## Version 1.28.0
 
-_Released 07/16/21_
+_Released 07/23/21_
 
 - **Enhancement** Introduces the ability to set a feature flag on subscriptions to either block or allow them to use the static IP feature on Fusebit function.
 
