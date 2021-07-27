@@ -18,6 +18,12 @@ All public releases of the Fusebit Operations CLI are documented here, including
 {:toc}
 -->
 
+## Version 1.28.1
+
+_Released 07/23/21_
+
+- **Bugfix** Fuse-ops now properly tags restored resources.
+
 ## Version 1.28.0
 
 _Released 07/23/21_
