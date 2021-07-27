@@ -20,6 +20,7 @@ export { IOpsStackData, IOpsNewStack, IOpsStack, IListOpsStackOptions, IListOpsS
 export { OpsDataException, OpsDataExceptionCode } from './OpsDataException';
 export {
   IFusebitSubscription,
+  IFusebitSubscriptionFlags,
   IFusebitAccount,
   IFusebitSubscriptionDetails,
   IInitAdmin,

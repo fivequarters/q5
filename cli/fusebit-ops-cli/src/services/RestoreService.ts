@@ -49,7 +49,12 @@ export class RestoreService {
     this.input = input;
   }
 
-  public async restoreFromBackup(forceRemove: boolean, deploymentName: string, backupPlanName: string) {
+  public async restoreFromBackup(
+    forceRemove: boolean,
+    deploymentName: string,
+    backupPlanName: string,
+    deploymentRegion: string
+  ) {
     const opsDataContext = await this.opsService.getOpsDataContext();
     const info = await this.executeService.execute(
       {
@@ -57,7 +62,7 @@ export class RestoreService {
         message: `Starting restore on deployment ${deploymentName}.`,
         errorHeader: 'Something went wrong during restore.',
       },
-      () => this.restoreFromBackupDriver(forceRemove, deploymentName, backupPlanName)
+      () => this.restoreFromBackupDriver(forceRemove, deploymentName, backupPlanName, deploymentRegion)
     );
   }
 
@@ -69,50 +74,55 @@ export class RestoreService {
    * @param {string} backupPlanName
    * @memberof RestoreService
    */
-  public async restoreFromBackupDriver(forceRemove: boolean, deploymentName: string, backupPlanName: string) {
+  public async restoreFromBackupDriver(
+    forceRemove: boolean,
+    deploymentName: string,
+    backupPlanName: string,
+    deploymentRegionFromInput: string
+  ) {
     const opsDataContext = await this.opsService.getOpsDataContextImpl();
     const profileService = await ProfileService.create(this.input);
     const profile = await profileService.getProfileOrDefaultOrThrow();
     const userCreds = await this.opsService.getUserCredsForProfile(profile);
     const config = await opsDataContext.provider.getAwsConfigForMain();
     const credentials = await (config.creds as AwsCreds).getCredentials();
+    let deploymentRegion: string = deploymentRegionFromInput;
+    if (deploymentRegionFromInput === undefined) {
+      deploymentRegion = await this.findRegionFromDeploymentName(deploymentName, config, credentials);
+    }
     if (!forceRemove) {
-      if (
-        !this.checkAllTablesExist(
-          deploymentName,
-          credentials,
-          backupPlanName,
-          (await this.findRegionFromDeploymentName(deploymentName, config, credentials)) as string
-        )
-      ) {
+      if (!this.checkAllTablesExist(deploymentName, credentials, backupPlanName, deploymentRegion)) {
         await this.input.io.write("can't find a valid backup for all tables, use --force to proceed");
         return;
       }
     }
-    const region = await this.findRegionFromDeploymentName(deploymentName, config, credentials);
-    // The end of the world.
-    await this.deleteAllExistingDynamoDBTable(deploymentName, config, credentials);
-    await Promise.all(
-      this.dynamoTableSuffix.map((tableSuffix) =>
-        this.restoreTable(credentials, tableSuffix, deploymentName, backupPlanName, region as string)
-      )
-    );
 
-    await this.deleteAuroraDb(credentials, deploymentName, region as string);
-    const restorePoint = (await this.findLatestRecoveryPointOfTable(
+    const auroraRestorePoint = (await this.findLatestRecoveryPointOfTable(
       credentials,
       `${this.auroraDbPrefix}${deploymentName}`,
       backupPlanName,
-      region as string
+      deploymentRegion
     )) as AWS.Backup.RecoveryPointByBackupVault;
+    if (!auroraRestorePoint) {
+      throw new Error('Aurora restore point found.');
+    }
+    // The end of the world.
+    await this.deleteAllExistingDynamoDBTable(deploymentName, config, credentials, deploymentRegion);
+    await Promise.all(
+      this.dynamoTableSuffix.map((tableSuffix) =>
+        this.restoreTable(credentials, tableSuffix, deploymentName, backupPlanName, deploymentRegion)
+      )
+    );
+
+    await this.deleteAuroraDb(credentials, deploymentName, deploymentRegion);
 
     const ids = await this.startDbRestoreJobAndWait(
-      restorePoint.RecoveryPointArn as string,
+      auroraRestorePoint.RecoveryPointArn as string,
       deploymentName,
       credentials,
-      region as string
+      deploymentRegion
     );
-    await this.updateSecretsManager(credentials, region as string, deploymentName, ids);
+    await this.updateSecretsManager(credentials, deploymentRegion as string, deploymentName, ids);
   }
 
   private async deleteAuroraDb(credentials: IAwsCredentials, deploymentName: string, region: string) {
@@ -154,6 +164,9 @@ export class RestoreService {
       backupPlanName,
       region as string
     )) as AWS.Backup.RecoveryPointByBackupVault;
+    if (!restorePoint) {
+      throw new Error(`No restore found for table: ${deploymentName}.${tableSuffix}`);
+    }
     await this.startRestoreJobAndWait(
       restorePoint.RecoveryPointArn as string,
       deploymentName,
@@ -312,13 +325,14 @@ export class RestoreService {
   private async deleteAllExistingDynamoDBTable(
     deploymentName: string,
     config: IAwsConfig,
-    credentials: IAwsCredentials
+    credentials: IAwsCredentials,
+    deploymentRegion: string
   ) {
     const dynamoDB = new AWS.DynamoDB({
       accessKeyId: credentials.accessKeyId as string,
       secretAccessKey: credentials.secretAccessKey as string,
       sessionToken: credentials.sessionToken as string,
-      region: (await this.findRegionFromDeploymentName(deploymentName, config, credentials)) as string,
+      region: deploymentRegion,
     });
 
     for (const tableSuffix of this.dynamoTableSuffix) {
@@ -356,7 +370,7 @@ export class RestoreService {
       region: config.region,
       apiVersion: '2012-08-10',
     });
-
+    let matchingDeployment = undefined;
     const results = await dynamoDB
       .scan({
         TableName: 'ops.deployment',
@@ -364,10 +378,17 @@ export class RestoreService {
       .promise();
     for (const item of results.Items as AWS.DynamoDB.ItemList) {
       if (item.deploymentName.S === deploymentName) {
-        return item.region.S as string;
+        if (matchingDeployment === undefined) {
+          matchingDeployment = item.region.S as string;
+        } else {
+          throw new Error('Deployment name overlap detected, please manually specify the region of the deployment.');
+        }
       }
     }
-    return undefined;
+    if (matchingDeployment === undefined) {
+      throw new Error('Deployment not found.');
+    }
+    return matchingDeployment;
   }
 
   /**

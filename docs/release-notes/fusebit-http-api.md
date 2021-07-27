@@ -17,11 +17,23 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 <!-- 1. TOC
 {:toc} -->
 
+## Version 1.20.26
+
+_Released 07/16/23_
+
+- **Enhancement** Restricts access to the static IP feature of Fusebit Functions to subscriptions that contain the `staticIp` flag set to `"true"`.
+
+## Version 1.20.25
+
+_Released 07/20/21_
+
+- **Enhancement** Improves /v1/health to also check for the liveliness of RDS.
+
 ## Version 1.20.24
 
 _Released 07/16/21_
 
-- **Enhancement** Integration Sessions can now be ran against an existing set of Instances and Identities in order to update their values
+- **Enhancement** Integration Sessions can now be ran against an existing set of Instances and Identities in order to update their values.
 
 ## Version 1.20.23
 

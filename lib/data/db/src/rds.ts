@@ -10,6 +10,7 @@ import Operation from './daos/operation';
 import Session from './daos/session';
 import Identity from './daos/identity';
 import Instance from './daos/instance';
+import { random } from '@5qtrs/random';
 
 class RDS implements IRds {
   private rdsSdk!: AWS.RDSDataService;
@@ -17,6 +18,15 @@ class RDS implements IRds {
   private purgeInterval!: NodeJS.Timeout;
   private readonly defaultAuroraDatabaseName = 'fusebit';
   private readonly defaultPurgeInterval = 10 * 60 * 1000;
+  private lastHealth = false;
+  private lastHealthExecution: number = new Date(0).getTime();
+  private readonly RDS_HEALTH_CHECK_TTL = 10 * 1000;
+  private readonly RDS_HEALTH_TEST_ACC_ID = 'acc-000000000000';
+  private readonly RDS_HEALTH_TEST_SUB_ID = 'sub-000000000000';
+  private readonly RDS_HEALTH_ENT_ID_PREFIX = 'health-';
+  private readonly RDS_HEALTH_MAX_ACCEPTABLE_TTL = this.RDS_HEALTH_CHECK_TTL + 3 * 1000;
+  private readonly RDS_HEALTH_ENTITY_EXPIRE = 5 * 1000;
+  private healthError: any;
 
   public async purgeExpiredItems(): Promise<boolean> {
     try {
@@ -92,6 +102,37 @@ class RDS implements IRds {
       }
     }
     return { rdsSdk: this.rdsSdk, rdsCredentials: this.rdsCredentials };
+  }
+
+  public updateHealth = async () => {
+    const entity = {
+      accountId: this.RDS_HEALTH_TEST_ACC_ID,
+      subscriptionId: this.RDS_HEALTH_TEST_SUB_ID,
+      id: `${this.RDS_HEALTH_ENT_ID_PREFIX}${random({ lengthInBytes: 8 })}`,
+      data: { checked: Date.now() },
+      expires: new Date(Date.now() + this.RDS_HEALTH_ENTITY_EXPIRE).toISOString(),
+    };
+    try {
+      const update = await this.DAO.storage.createEntity(entity);
+      const get = await this.DAO.storage.getEntity(entity);
+      if (update.data && get.data && update.data.checked == get.data.checked) {
+        this.lastHealth = true;
+        this.lastHealthExecution = get.data.checked;
+      } else {
+        throw new Error('RDS failure was detected when trying to insert entity.');
+      }
+    } catch (e) {
+      this.healthError = e;
+      this.lastHealth = false;
+    }
+    return setTimeout(this.updateHealth, this.RDS_HEALTH_CHECK_TTL);
+  };
+
+  public async ensureRDSLiveliness() {
+    const timeDifference = Date.now() - this.lastHealthExecution;
+    if (!this.lastHealth || !this.lastHealthExecution || timeDifference > this.RDS_HEALTH_MAX_ACCEPTABLE_TTL) {
+      throw new Error(this.healthError);
+    }
   }
 
   public async executeStatement(

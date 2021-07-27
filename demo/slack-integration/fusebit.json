@@ -1,0 +1,16 @@
+{
+  "id": "",
+  "tags": {},
+  "handler": "./integration",
+  "configuration": {},
+  "componentTags": {},
+  "components": [
+    {
+      "name": "slack1",
+      "package": "@fusebit-int/slack-integration",
+      "entityType": "connector",
+      "entityId": "slack-connector",
+      "dependsOn": []
+    }
+  ]
+}

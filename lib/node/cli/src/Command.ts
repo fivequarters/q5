@@ -141,6 +141,7 @@ export interface ICommand {
   options?: IOption[];
   ignoreOptions?: string[];
   arguments?: IArgument[];
+  acceptsUnknownArguments?: boolean;
   modes?: string[];
   subCommands?: ICommand[];
   delegate?: boolean;
@@ -173,6 +174,7 @@ export class Command implements ICommand {
   private optionsProp: Option[];
   private ignoreOptionsProp: string[];
   private argumentsProp: Argument[];
+  private acceptsUnknownArgumentsProp?: boolean;
   private subCommandsProp: Command[];
   private delegateProp: boolean;
   private modesProp: string[];
@@ -188,6 +190,7 @@ export class Command implements ICommand {
     this.summaryProp = ensureText(command.summary);
     this.optionsProp = ensureOptions(command.options);
     this.argumentsProp = ensureArguments(command.arguments);
+    this.acceptsUnknownArgumentsProp = command.acceptsUnknownArguments;
     this.modesProp = ensureArray(command.modes);
     this.subCommandsProp = ensureSubCommands(command.subCommands);
     this.delegateProp = command.delegate || false;
@@ -504,7 +507,7 @@ export class Command implements ICommand {
     const options: IOptionsSet = {};
     const argsAsOptions = [];
 
-    if (executeArguments.length > command.arguments.length) {
+    if (!command.acceptsUnknownArgumentsProp && executeArguments.length > command.arguments.length) {
       const unknownArguments = executeArguments.slice(command.arguments.length);
       await this.onUnknownArguments(parsedArgs, command, unknownArguments, io);
       return undefined;

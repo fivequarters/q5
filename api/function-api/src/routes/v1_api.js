@@ -83,13 +83,17 @@ subscriptionCache.refresh();
 // Register the globals with various consumers
 initFunctions(keyStore, subscriptionCache);
 
+// Start health check executor
+RDS.updateHealth();
+
 // Health and Private Interfaces
 router.get(
   '/health',
   health.getHealth(
     async () => keyStore.healthCheck(),
     async () => subscriptionCache.healthCheck(),
-    async () => RDS.ensureConnection()
+    async () => RDS.ensureConnection(),
+    async () => RDS.ensureRDSLiveliness()
   )
 );
 
@@ -484,6 +488,7 @@ router.put(
   check_agent_version(),
   determine_provider(),
   npmRegistry(),
+  loadSubscription(subscriptionCache),
   (req, res, next) => {
     req.keyStore = keyStore;
     next();

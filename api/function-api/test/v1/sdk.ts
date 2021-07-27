@@ -28,6 +28,11 @@ if (!process.env.LOGS_HOST) {
   }
 }
 
+if (!process.env.LAMBDA_USER_FUNCTION_PERMISSIONLESS_ROLE) {
+  console.log('Missing LAMBDA_USER_FUNCTION_PERMISSIONLESS_ROLE');
+  process.exit(-1);
+}
+
 // ------------------
 // Internal Constants
 // ------------------

@@ -795,6 +795,35 @@ export class FunctionService {
 
   public async serveFunction(path: string, functionId: string): Promise<void> {
     const profile = await this.getFunctionExecutionProfile(true, functionId, process.cwd());
+    const cleanup = async () => {
+      const result = await this.executeService.executeRequest(
+        {
+          header: 'Release',
+          message: Text.create(
+            "Releasing traffic for '",
+            Text.bold(`${profile.function}`),
+            "' in boundary '",
+            Text.bold(`${profile.boundary}`),
+            "'..."
+          ),
+          errorHeader: 'Release Function Error',
+          errorMessage: Text.create(
+            "Unable to release function '",
+            Text.bold(`${profile.function}`),
+            "' in boundary '",
+            Text.bold(`${profile.boundary}`),
+            "'"
+          ),
+        },
+        {
+          method: 'DELETE',
+          url: `${profile.baseUrl}/v1/account/${profile.account}/subscription/${profile.subscription}/boundary/${profile.boundary}/function/${profile.function}/redirect`,
+          headers: {
+            Authorization: `Bearer ${profile.accessToken}`,
+          },
+        }
+      );
+    };
 
     await this.executeService.info('Starting Service', 'Starting the local server.');
     const functionServer = startHttpServer(0);
@@ -852,35 +881,13 @@ export class FunctionService {
 
       await this.executeService.info('Serving', 'Ready to serve requests. Press Ctrl-C to quit.');
 
+      process.on('SIGINT', async () => {
+        await cleanup();
+        process.exit();
+      });
       await new Promise(() => {});
     } finally {
-      const result = await this.executeService.executeRequest(
-        {
-          header: 'Release',
-          message: Text.create(
-            "Releasing traffic for '",
-            Text.bold(`${profile.function}`),
-            "' in boundary '",
-            Text.bold(`${profile.boundary}`),
-            "'..."
-          ),
-          errorHeader: 'Release Function Error',
-          errorMessage: Text.create(
-            "Unable to release function '",
-            Text.bold(`${profile.function}`),
-            "' in boundary '",
-            Text.bold(`${profile.boundary}`),
-            "'"
-          ),
-        },
-        {
-          method: 'DELETE',
-          url: `${profile.baseUrl}/v1/account/${profile.account}/subscription/${profile.subscription}/boundary/${profile.boundary}/function/${profile.function}/redirect`,
-          headers: {
-            Authorization: `Bearer ${profile.accessToken}`,
-          },
-        }
-      );
+      await cleanup();
     }
   }
 
