@@ -5,6 +5,7 @@ import { ExecuteService } from './ExecuteService';
 import { ProfileService } from './ProfileService';
 import { AwsCreds, IAwsConfig } from '@5qtrs/aws-config';
 import { IAwsCredentials } from '@5qtrs/aws-cred';
+import { OpsDataAwsConfig } from '@5qtrs/ops-data-aws';
 
 interface ISecretsManagerInput {
   hostname: string;
@@ -86,6 +87,7 @@ export class RestoreService {
     const userCreds = await this.opsService.getUserCredsForProfile(profile);
     const config = await opsDataContext.provider.getAwsConfigForMain();
     const credentials = await (config.creds as AwsCreds).getCredentials();
+    const awsConfig = await OpsDataAwsConfig.create(opsDataContext.config);
     let deploymentRegion: string = deploymentRegionFromInput;
     if (deploymentRegionFromInput === undefined) {
       deploymentRegion = await this.findRegionFromDeploymentName(deploymentName, config, credentials);
@@ -110,7 +112,7 @@ export class RestoreService {
     await this.deleteAllExistingDynamoDBTable(deploymentName, config, credentials, deploymentRegion);
     await Promise.all(
       this.dynamoTableSuffix.map((tableSuffix) =>
-        this.restoreTable(credentials, tableSuffix, deploymentName, backupPlanName, deploymentRegion)
+        this.restoreTable(credentials, tableSuffix, deploymentName, backupPlanName, deploymentRegion, config, awsConfig)
       )
     );
 
@@ -120,7 +122,8 @@ export class RestoreService {
       auroraRestorePoint.RecoveryPointArn as string,
       deploymentName,
       credentials,
-      deploymentRegion
+      deploymentRegion,
+      config
     );
     await this.updateSecretsManager(credentials, deploymentRegion as string, deploymentName, ids);
   }
@@ -156,7 +159,9 @@ export class RestoreService {
     tableSuffix: string,
     deploymentName: string,
     backupPlanName: string,
-    region: string
+    region: string,
+    config: IAwsConfig,
+    awsDataConfig: OpsDataAwsConfig
   ) {
     const restorePoint = (await this.findLatestRecoveryPointOfTable(
       credentials,
@@ -172,7 +177,9 @@ export class RestoreService {
       deploymentName,
       tableSuffix,
       credentials,
-      region
+      region,
+      config,
+      awsDataConfig
     );
   }
   /**
@@ -222,7 +229,8 @@ export class RestoreService {
     restorePointArn: string,
     deploymentName: string,
     credentials: IAwsCredentials,
-    region: string
+    region: string,
+    config: IAwsConfig
   ): Promise<ISecretsManagerInput> {
     const dbName = `${this.auroraDbPrefix}${deploymentName}`;
     const Aurora = new AWS.RDS({
@@ -238,6 +246,16 @@ export class RestoreService {
       SnapshotIdentifier: restorePointArn,
       DBSubnetGroupName: `${this.auroraSubnetPrefix}${deploymentName}`,
       DBClusterIdentifier: `${this.auroraDbPrefix}${deploymentName}`,
+      Tags: [
+        {
+          Key: 'fusebitDeployment',
+          Value: deploymentName,
+        },
+        {
+          Key: 'account',
+          Value: config.account,
+        },
+      ],
     }).promise();
     const clusterHostname = results.DBCluster?.Endpoint as string;
     const clusterResourceId = results.DBCluster?.DbClusterResourceId as string;
@@ -273,7 +291,9 @@ export class RestoreService {
     deploymentName: string,
     tableSuffix: string,
     credentials: IAwsCredentials,
-    region: string
+    region: string,
+    config: IAwsConfig,
+    awsDataConfig: OpsDataAwsConfig
   ) {
     const tableName = `${deploymentName}.${tableSuffix}`;
     const DynamoDB = new AWS.DynamoDB({
@@ -311,6 +331,28 @@ export class RestoreService {
         await this.input.io.writeLine(`${tableName} finished restoring`);
       }
     }
+    /**
+     * Aws DynamoDB misbehaves in that it inconsistently returns CREATING and ACTIVE during describeTable, causing tagResource to fail.
+     * Since there isn't an obvious fix, for now we use a 5 second hard wait.
+     */
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+    await DynamoDB.tagResource({
+      ResourceArn: `${awsDataConfig.arnPrefix}:dynamodb:${region}:${config.account}:table/${deploymentName}.${tableSuffix}`,
+      Tags: [
+        {
+          Key: 'prefix',
+          Value: deploymentName,
+        },
+        {
+          Key: 'region',
+          Value: region,
+        },
+        {
+          Key: 'account',
+          Value: config.account,
+        },
+      ],
+    }).promise();
   }
 
   /**

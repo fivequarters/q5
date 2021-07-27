@@ -19,7 +19,7 @@ All public releases of the Fusebit HTTP API are documented here, including notab
 
 ## Version 1.20.26
 
-_Released 07/16/23_
+_Released 07/23/21_
 
 - **Enhancement** Restricts access to the static IP feature of Fusebit Functions to subscriptions that contain the `staticIp` flag set to `"true"`.
 
