@@ -1,0 +1,17 @@
+{
+  "id": "<%this.id%>",
+  "tags": {},
+  "handler": "@fusebit-int/pkg-oauth-connector",
+  "configuration": {
+    "scope": "",
+    "tokenUrl": "<%global.fusebit.endpoint%>/connector/proxy/api/token",
+    "authorizationUrl": "<%global.fusebit.endpoint%>/connector/proxy/api/configure",
+    "clientId": "<%global.random%>",
+    "clientSecret": "<%global.random%>",
+    "refreshErrorLimit": 100000,
+    "refreshInitialBackoff": 100000,
+    "refreshWaitCountLimit": 100000,
+    "refreshBackoffIncrement": 100000,
+    "accessTokenExpirationBuffer": 500
+  }
+}
