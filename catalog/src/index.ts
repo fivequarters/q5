@@ -13,16 +13,6 @@ const DefaultIgnores = ['node_modules', FusebitStateFile];
 const loadDirectory = async (dirName: string, entitySpec: any) => {
   const cwd = dirName || process.cwd();
 
-  // Grab the version from the .fusebit-state file, if present.
-  try {
-    const buffer = await readFile(join(cwd, FusebitStateFile));
-    const version = JSON.parse(buffer.toString());
-
-    entitySpec.version = version.version;
-  } catch (error) {
-    // do nothing
-  }
-
   // Load package.json, if any.  Only include the type for the files parameter, as that's all that's used
   // here.
   let pack: { files: string[] } | undefined;
