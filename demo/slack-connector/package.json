@@ -5,6 +5,6 @@
   },
   "dependencies": {
     "@fusebit-int/framework": "^2.0.0",
-    "@fusebit-int/slack-connector": "^1.1.7"
+    "@fusebit-int/slack-connector": "^1.1.9"
   }
 }

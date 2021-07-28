@@ -9,6 +9,59 @@ const router = new Router();
 const TOKEN_URL = 'https://slack.com/api/oauth.v2.access';
 const AUTHORIZATION_URL = 'https://slack.com/oauth/v2/authorize';
 
+interface ISettings {
+  scope: string;
+  clientId: string;
+  clientSecret: string;
+}
+
+interface IAdvancedSettings {
+  refreshErrorLimit: number;
+  refreshInitialBackoff: number;
+  refreshWaitCountLimit: number;
+  refreshBackoffIncrement: number;
+  accessTokenExpirationBuffer: number;
+  tokenUrl: string;
+  authorizationUrl: string;
+}
+
+interface IConfigurationSettings {
+  settings: ISettings;
+  advanced: IAdvancedSettings;
+}
+
+// TODO: Probably we can define better abstractions to deal with Form schema.
+const mapConfiguration = (configuration: any): IConfigurationSettings => {
+  const {
+    scope,
+    clientId,
+    clientSecret,
+    refreshErrorLimit,
+    refreshInitialBackoff,
+    refreshWaitCountLimit,
+    refreshBackoffIncrement,
+    accessTokenExpirationBuffer,
+    tokenUrl,
+    authorizationUrl,
+  } = configuration;
+  return {
+    settings: {
+      scope,
+      clientId,
+      clientSecret,
+    },
+    advanced: {
+      refreshErrorLimit,
+      refreshInitialBackoff,
+      refreshWaitCountLimit,
+      refreshBackoffIncrement,
+      accessTokenExpirationBuffer,
+      tokenUrl,
+      authorizationUrl,
+    },
+  };
+};
+
 router.on('startup', async ({ mgr, cfg, router: rtr }: IOnStartup, next: Next) => {
   cfg.configuration.tokenUrl = TOKEN_URL;
   cfg.configuration.authorizationUrl = AUTHORIZATION_URL;
@@ -17,7 +70,7 @@ router.on('startup', async ({ mgr, cfg, router: rtr }: IOnStartup, next: Next) =
 
 router.get('/api/configure', async (ctx: Context) => {
   ctx.body = {
-    data: ctx.state.manager.config.configuration,
+    data: mapConfiguration(ctx.state.manager.config.configuration),
     schema: FormSchema,
     uischema: FormUI,
   };
