@@ -1,0 +1,19 @@
+{
+  "name": "@5qtrs/catalog",
+  "version": "0.0.1",
+  "description": "",
+  "main": "libc/index.js",
+  "sideEffects": false,
+  "license": "UNLICENSED",
+  "author": "FiveQuarters.io",
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "rm -r -f libc; rm -r -f libm; rm -r -f coverage",
+    "catalog": "node libc/index.js"
+  },
+  "keywords": [],
+  "dependencies": {
+    "@5qtrs/file": "^0.0.1",
+    "globby": "^11.0.3"
+  }
+}

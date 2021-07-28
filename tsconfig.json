@@ -150,7 +150,8 @@
       "@5qtrs/db": ["lib/data/db/src"],
       "@fusebit/schema": ["lib/data/schema/src"],
       "@5qtrs/slack-connector": ["lib/pkg/slack-connector/src"],
-      "@5qtrs/slack-integration": ["lib/pkg/slack-integration/src"]
+      "@5qtrs/slack-integration": ["lib/pkg/slack-integration/src"],
+      "@5qtrs/catalog": ["catalog/src"]
     }
   }
 }
