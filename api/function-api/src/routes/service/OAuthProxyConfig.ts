@@ -6,10 +6,6 @@ export const get = async <OAuthConfig>(
   name: string,
   params: { accountId: string; subscriptionId: string }
 ): Promise<OAuthConfig> => {
-  if (!params?.accountId || !params?.subscriptionId) {
-    throw http_error(500, `Proxy ${name} is not configured.`);
-  }
-
   // Get the secrets and configuration from the proxy master account.
   const cfg = await RDS.DAO.storage.getEntity({
     accountId: params.accountId,
@@ -22,13 +18,9 @@ export const get = async <OAuthConfig>(
 
 export const set = async <OAuthConfig>(
   name: string,
-  params: { accountId?: string; subscriptionId?: string },
+  params: { accountId: string; subscriptionId: string },
   config: OAuthConfig
 ): Promise<OAuthConfig> => {
-  if (!params.accountId || !params.subscriptionId) {
-    throw http_error(500, `Proxy ${name} is not configured.`);
-  }
-
   // Write the secrets and configuration to storage in the master account.
   const cfg = await RDS.DAO.storage.createEntity(
     {
