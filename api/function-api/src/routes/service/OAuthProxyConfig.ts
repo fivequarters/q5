@@ -22,7 +22,7 @@ export const get = async <OAuthConfig>(
 
 export const set = async <OAuthConfig>(
   name: string,
-  params: { accountId: string; subscriptionId: string },
+  params: { accountId?: string; subscriptionId?: string },
   config: OAuthConfig
 ): Promise<OAuthConfig> => {
   if (!params?.accountId || !params?.subscriptionId) {
