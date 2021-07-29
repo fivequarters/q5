@@ -22,10 +22,15 @@ export interface IFusebitSubscription {
   subscriptionName?: string;
   subscription?: string;
   limits?: IFusebitSubscriptionLimits;
+  flags?: IFusebitSubscriptionFlags;
 }
 
 export interface IFusebitSubscriptionLimits {
   concurrency: number;
+}
+
+export interface IFusebitSubscriptionFlags {
+  [key: string]: string;
 }
 
 export interface IFusebitSubscriptionDetails {

@@ -26,9 +26,11 @@ const startTunnel = async () => {
     console.log(new Date().toString(), info.method, info.path);
   });
 
-  tunnel.on('error', () => {
-    // Restart
-    startTunnel();
+  tunnel.on('error', (e) => {
+    console.log(`error before restart: ${e}`);
+    // Restart after a second.
+    tunnel.close();
+    return setTimeout(startTunnel, 1000);
   });
 };
 

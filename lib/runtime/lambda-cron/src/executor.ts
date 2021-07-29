@@ -1,9 +1,7 @@
-import * as Async from 'async';
 import * as AWS from 'aws-sdk';
-import * as Cron from 'cron-parser';
+import Cron from 'cron-parser';
 import { v4 as uuidv4 } from 'uuid';
 
-import { Constants as Tags } from '@5qtrs/function-tags';
 import * as Constants from '@5qtrs/constants';
 import * as Common from '@5qtrs/runtime-common';
 
@@ -12,9 +10,8 @@ const s3 = new AWS.S3({
   signatureVersion: 'v4',
 });
 
-import { mintJwtForPermissions, loadFunctionSummary, AwsKeyStore, SubscriptionCache } from '@5qtrs/runas';
+import { mintJwtForPermissions, loadFunctionSummary, AwsKeyStore } from '@5qtrs/runas';
 
-const maxParallelLookup = 20; // Only lookup 20 functions at a time from Dynamo
 const concurrentExecutionLimit = +(process.env.CRON_CONCURRENT_EXECUTION_LIMIT as string) || 5;
 
 // Create the keystore and guarantee an initial key
@@ -28,7 +25,7 @@ const keyStore = new AwsKeyStore({
 });
 let keyStoreHealth: Promise<any>;
 
-export async function executor(event: any, context: any) {
+export async function executor(event: any) {
   if (keyStoreHealth === undefined) {
     keyStoreHealth = keyStore.rekey();
   }
@@ -116,7 +113,7 @@ async function executeFunction(ctx: any) {
     params: ctx,
     requestId: uuidv4(),
     startTime,
-    functionSummary: functionSummary,
+    functionSummary,
   };
 
   request.params.baseUrl = Constants.get_function_location(

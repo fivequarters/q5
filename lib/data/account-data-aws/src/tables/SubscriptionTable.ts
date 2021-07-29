@@ -31,6 +31,7 @@ function toItem(subscription: ISubscription, accountId: string) {
   const item: any = toKey(subscription.id, accountId);
   item.displayName = { S: subscription.displayName } || undefined;
   item.limits = { S: JSON.stringify(subscription.limits || {}) };
+  item.flags = { S: JSON.stringify(subscription.flags || {}) };
   return item;
 }
 
@@ -39,6 +40,7 @@ function fromItem(item: any): ISubscription {
     id: item.subscriptionId.S,
     displayName: item.displayName.S,
     limits: JSON.parse(item.limits ? item.limits.S : '{}'),
+    flags: JSON.parse(item.flags ? item.flags.S : '{}'),
   };
 }
 
@@ -66,6 +68,7 @@ export interface ISubscription {
   archived?: boolean;
   displayName?: string;
   limits?: ISubscriptionLimits;
+  flags?: ISubscriptionFlags;
 }
 
 export interface IListSubscriptionsOptions {
@@ -81,6 +84,10 @@ export interface IListSubscriptionsResult {
 
 export interface ISubscriptionLimits {
   concurrency: number;
+}
+
+export interface ISubscriptionFlags {
+  [key: string]: string;
 }
 
 // ----------------
@@ -139,6 +146,11 @@ export class SubscriptionTable extends AwsDynamoTable {
     if (subscription.limits !== undefined) {
       sets.push('limits = :limits');
       expressionValues[':limits'] = { S: JSON.stringify(subscription.limits) };
+    }
+
+    if (subscription.flags !== undefined) {
+      sets.push('flags = :flags');
+      expressionValues[':flags'] = { S: JSON.stringify(subscription.flags) };
     }
 
     const options = {

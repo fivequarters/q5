@@ -102,4 +102,46 @@ const getAuthToken = (req: express.Request): string | undefined => {
   return match ? match[1] : undefined;
 };
 
-export { dynamoScanTable, expBackoff, asyncPool, duplicate, safePath, safePathMap, isUuid, getAuthToken };
+const mergeDeep = (lhs: any, source: any, isMergingArrays: boolean = false) => {
+  const target = ((obj) => {
+    let cloneObj;
+    try {
+      cloneObj = JSON.parse(JSON.stringify(obj));
+    } catch (err) {
+      throw new Error('Circular references not supported in mergeDeep');
+    }
+    return cloneObj;
+  })(lhs);
+
+  const isObject = (obj: any) => obj && typeof obj === 'object';
+
+  if (!isObject(target) || !isObject(source)) {
+    return source;
+  }
+
+  Object.keys(source).forEach((key: any) => {
+    const targetValue = target[key];
+    const sourceValue = source[key];
+
+    if (Array.isArray(targetValue) && Array.isArray(sourceValue)) {
+      if (isMergingArrays) {
+        target[key] = targetValue.map((x, i) =>
+          sourceValue.length <= i ? x : mergeDeep(x, sourceValue[i], isMergingArrays)
+        );
+        if (sourceValue.length > targetValue.length) {
+          target[key] = target[key].concat(sourceValue.slice(targetValue.length));
+        }
+      } else {
+        target[key] = targetValue.concat(sourceValue);
+      }
+    } else if (isObject(targetValue) && isObject(sourceValue)) {
+      target[key] = mergeDeep({ ...targetValue }, sourceValue, isMergingArrays);
+    } else {
+      target[key] = sourceValue;
+    }
+  });
+
+  return target;
+};
+
+export { dynamoScanTable, expBackoff, asyncPool, duplicate, safePath, safePathMap, isUuid, getAuthToken, mergeDeep };

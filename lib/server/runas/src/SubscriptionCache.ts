@@ -8,8 +8,6 @@ import * as Constants from '@5qtrs/constants';
 
 import { IFunctionApiRequest } from './Request';
 
-const MAX_CACHE_REFRESH_RATE = 60 * 1000; // Don't refresh more often than once a minute.
-
 interface ISubscription {
   accountId: string;
   displayName: string;
@@ -54,6 +52,7 @@ class SubscriptionCache {
   protected cache: ISubscriptionCache = {};
   protected allowRefreshAfter: number;
   protected dynamo: DynamoDB;
+  protected refreshedAt: number;
 
   constructor(options: any) {
     this.dynamo =
@@ -66,6 +65,7 @@ class SubscriptionCache {
         maxRetries: 3,
       });
     this.allowRefreshAfter = 0;
+    this.refreshedAt = 0;
   }
 
   public async find(key: string): Promise<ISubscription | undefined> {
@@ -98,6 +98,9 @@ class SubscriptionCache {
       // Deserialize the limits field, if present
       result.limits = result.limits && JSON.parse(result.limits);
 
+      // Deserialize the flags field, if present
+      result.flags = result.flags && JSON.parse(result.flags);
+
       return result;
     });
 
@@ -116,7 +119,8 @@ class SubscriptionCache {
 
     console.log(`CACHE: Subscription cache refreshed: ${results.length} subscriptions loaded`);
 
-    this.allowRefreshAfter = Date.now() + MAX_CACHE_REFRESH_RATE;
+    this.refreshedAt = Date.now();
+    this.allowRefreshAfter = this.refreshedAt + Constants.MAX_CACHE_REFRESH_RATE;
 
     return this.allowRefreshAfter;
   }
@@ -145,7 +149,7 @@ class SubscriptionCache {
       ).text;
     } catch (e) {}
 
-    res.json({ cache: when, who: instanceId }).send();
+    res.json({ cache: when, who: instanceId, at: this.refreshedAt }).send();
   }
 }
 

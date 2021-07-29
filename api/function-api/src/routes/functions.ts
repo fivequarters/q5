@@ -1,12 +1,13 @@
 import create_error from 'http-errors';
 import { IncomingHttpHeaders } from 'http';
 
-import { AwsKeyStore, loadFunctionSummary, mintJwtForPermissions } from '@5qtrs/runas';
-import { IRegistryStore } from '@5qtrs/registry';
+import { loadFunctionSummary, mintJwtForPermissions } from '@5qtrs/runas';
+import { AwsRegistry } from '@5qtrs/registry';
 import { IAgent } from '@5qtrs/account-data';
 import * as Constants from '@5qtrs/constants';
 import { createLoggingCtx } from '@5qtrs/runtime-common';
 
+import { keyStore, subscriptionCache } from './globals';
 import * as provider_handlers from './handlers/provider_handlers';
 import * as ratelimit from './middleware/ratelimit';
 import { getResolvedAgent } from './account';
@@ -96,14 +97,6 @@ interface IResult {
   end: (body?: string, bodyEncoding?: string) => void;
 }
 
-let keyStore: AwsKeyStore;
-let subscriptionCache: any;
-
-const initFunctions = (ks: AwsKeyStore, sc: any) => {
-  keyStore = ks;
-  subscriptionCache = sc;
-};
-
 const asyncDispatch = async (req: any, handler: any): Promise<any> => {
   const res: IResult = await new Promise((resolve, reject) => {
     const result: IResult = {
@@ -139,10 +132,15 @@ const asyncDispatch = async (req: any, handler: any): Promise<any> => {
 const createFunction = async (
   params: IParams,
   spec: IFunctionSpecification,
-  resolvedAgent: IAgent,
-  registry: IRegistryStore
+  resolvedAgent: IAgent
 ): Promise<ICreateFunction> => {
   const url = new URL(process.env.API_SERVER as string);
+  const subscription = await subscriptionCache.get(params.accountId, params.subscriptionId);
+  if (!subscription) {
+    throw create_error(400, `Unknown account/subscription: ${params.accountId}/${params.subscriptionId}`);
+  }
+
+  const registry = AwsRegistry.create({ accountId: params.accountId, registryId: 'default' });
   const req = {
     protocol: url.protocol.replace(':', ''),
     headers: { host: url.host },
@@ -150,6 +148,7 @@ const createFunction = async (
     body: spec,
     keyStore,
     resolvedAgent,
+    subscription,
     registry,
   };
   const res = await asyncDispatch(req, provider_handlers.lambda.put_function);
@@ -287,7 +286,6 @@ export {
   createFunction,
   deleteFunction,
   executeFunction,
-  initFunctions,
   waitForFunctionBuild,
   IFunctionSpecification,
   IExecuteFunction,

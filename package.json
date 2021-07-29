@@ -1,5 +1,5 @@
 {
-  "version": "1.20.24",
+  "version": "1.20.29",
   "private": true,
   "org": "5qtrs",
   "engines": {
@@ -200,8 +200,11 @@
       "lib/pkg/pkg-integration",
       "lib/pkg/pkg-oauth-connector",
       "lib/pkg/pkg-oauth-integration",
+      "lib/pkg/slack-connector",
+      "lib/pkg/slack-integration",
       "lib/data/db",
-      "lib/data/schema"
+      "lib/data/schema",
+      "catalog"
     ]
   }
 }

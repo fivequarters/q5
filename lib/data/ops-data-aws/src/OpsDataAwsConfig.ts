@@ -32,6 +32,7 @@ const defaultCronSchedulerRoleName = 'fusebit-cron-scheduler';
 const defaultAnalyticsRoleName = 'fusebit-analytics';
 const defaultBuilderRoleName = 'fusebit-builder';
 const defaultFunctionRoleName = 'fusebit-function';
+const defaultFunctionPermissionlessRoleName = 'fusebit-function-permissionless';
 const defaultGovCloud = false;
 const defaultBackupRoleName = 'fusebit-backup-role';
 const defaultAuroraDatabaseName = 'fusebit';
@@ -166,6 +167,10 @@ export class OpsDataAwsConfig implements IConfig {
 
   public get functionRoleName(): string {
     return (this.config.value('functionRoleName') as string) || defaultFunctionRoleName;
+  }
+
+  public get functionPermissionlessRoleName(): string {
+    return (this.config.value('functionPermissionlessRoleName') as string) || defaultFunctionPermissionlessRoleName;
   }
 
   public get monoInstanceProfileName(): string {

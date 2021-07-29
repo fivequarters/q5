@@ -8,3 +8,7 @@ export { User } from './User';
 export { Client } from './Client';
 export { Init } from './Init';
 export { Audit } from './Audit';
+import * as Defaults from './Defaults';
+import SubscriptionCache, * as SubscriptionCacheTypes from './SubscriptionCache';
+
+export { Defaults, SubscriptionCache, SubscriptionCacheTypes };

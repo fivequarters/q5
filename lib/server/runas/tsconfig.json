@@ -4,6 +4,7 @@
   "include": ["src"],
   "references": [
     { "path": "../function-tags" },
+    { "path": "../../../lib/constants" },
     { "path": "../../node/jwt" },
     { "path": "../../node/key-pair" },
     { "path": "../../data/account-data" }
