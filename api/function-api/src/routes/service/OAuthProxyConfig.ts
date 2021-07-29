@@ -22,10 +22,10 @@ export const get = async <OAuthConfig>(
 
 export const set = async <OAuthConfig>(
   name: string,
-  params: { accountId: string; subscriptionId: string },
+  params: { accountId?: string; subscriptionId?: string },
   config: OAuthConfig
 ): Promise<OAuthConfig> => {
-  if (!params?.accountId || !params?.subscriptionId) {
+  if (!params.accountId || !params.subscriptionId) {
     throw http_error(500, `Proxy ${name} is not configured.`);
   }
 
