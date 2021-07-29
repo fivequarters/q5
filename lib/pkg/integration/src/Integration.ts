@@ -1,5 +1,4 @@
 import { Router, Storage, IStorageClient, Context, IListOption } from '@fusebit-int/framework';
-import superagent from 'superagent';
 import { accountId, subscriptionId } from '@5qtrs/function-api/libc/routes/validation/common';
 
 enum HTTPMethod {
@@ -33,7 +32,6 @@ class Integration {
   private readonly functionUrl: URL;
   private readonly storageClient: IStorageClient;
 
-
   readonly storage = {
     setData: async (dataKey: string, data: any) => this.storageClient.put(data, dataKey),
     getData: async (dataKey: string) => this.storageClient.get(dataKey),
@@ -66,18 +64,16 @@ class Integration {
 }
 export default Integration;
 
-
-
-private v2Request = async (method: HTTPMethod = HTTPMethod.GET, uri: string, body?: any) => {
-  const request = superagent[method](`${this.baseUrl}/v2/account/${accountId}/subscriptions/${subscriptionId}/${uri}`)
-    .set('Content-Type', 'application/json')
-    .set('Authorization', `Bearer ${this.accessToken}`)
-    .set('Accept', 'application/json')
-    .ok((res) => res.status < 300 || res.status === 404);
-
-  if (![HTTPMethod.GET, HTTPMethod.DELETE].includes(method)) {
-    return request.send(body);
-  } else {
-    return request;
-  }
-};
+// private v2Request = async (method: HTTPMethod = HTTPMethod.GET, uri: string, body?: any) => {
+//   const request = superagent[method](`${this.baseUrl}/v2/account/${accountId}/subscriptions/${subscriptionId}/${uri}`)
+//     .set('Content-Type', 'application/json')
+//     .set('Authorization', `Bearer ${this.accessToken}`)
+//     .set('Accept', 'application/json')
+//     .ok((res) => res.status < 300 || res.status === 404);
+//
+//   if (![HTTPMethod.GET, HTTPMethod.DELETE].includes(method)) {
+//     return request.send(body);
+//   } else {
+//     return request;
+//   }
+// };

@@ -6,7 +6,7 @@ export const Handler = (handler: string, config: any) => {
   let router;
   let routerError;
   try {
-    router = require(handler);
+    router = require(handler).router;
   } catch (e) {
     routerError = e;
   }
