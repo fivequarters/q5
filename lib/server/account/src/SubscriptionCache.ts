@@ -146,16 +146,12 @@ export default class SubscriptionCache {
 
     await this.refreshDefaults();
 
-    console.log(`CACHE: Subscription cache refreshed: ${results.length} subscriptions loaded`);
-
     return this.allowRefreshAfter;
   }
 
   public async refreshDefaults() {
     try {
       this.defaults = await Defaults.get(this.dynamo, Constants.DEFAULTS_SUBSCRIPTION);
-
-      console.log(`CACHE: Subscription defaults refreshed: ${JSON.stringify(this.defaults)}`);
     } catch (e) {
       console.log(`CACHE: Subscription defaults not loaded: ${e}`);
     }

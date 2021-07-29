@@ -5,10 +5,11 @@ import { IAgent, ISubscription } from '@5qtrs/account-data';
 import * as Constants from '@5qtrs/constants';
 
 import * as FunctionUtilities from '../../src/routes/functions';
-import { getParams, fakeAgent, createRegistry, keyStore, subscriptionCache } from './function.utils';
+import { getParams, fakeAgent, subscriptionCache } from './function.utils';
 import {
   putFunction,
   refreshSubscriptionCache,
+  getSubscription,
   waitForBuild,
   getFunction,
   disableFunctionUsageRestriction,
@@ -20,8 +21,6 @@ let { account, boundaryId, function1Id, function2Id, function3Id, function4Id, f
 beforeEach(() => {
   ({ account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv());
 });
-
-FunctionUtilities.initFunctions(keyStore, subscriptionCache);
 
 const dynamo = new DynamoDB({ apiVersion: '2012-08-10' });
 const lambda = new Lambda({ apiVersion: '2015-03-31' });
@@ -81,6 +80,7 @@ async function setSubscriptionStaticIpFlag(subscription: ISubscription, staticIp
       ':flags': { S: JSON.stringify(flags) },
     },
   };
+
   await dynamo.updateItem(params).promise();
   subscriptionCache.refresh();
 
@@ -208,7 +208,7 @@ describe('Subscription with staticIp=true', () => {
 
     let response = await putFunction(account, boundaryId, function1Id, helloWorldWithStaticIp);
     response = await waitForBuild(account, response.data, 120, 1000);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
 
     response = await getFunction(account, boundaryId, function1Id, true);
 

@@ -23,7 +23,7 @@ describe('Execution', () => {
         },
       },
     });
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
     response = await request(response.data.location);
     expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data).toEqual('hello');
@@ -49,7 +49,7 @@ describe('Execution', () => {
     expect(response).toBeHttp({ statusCode: [200, 201] });
     if (response.status === 201) {
       response = await waitForBuild(account, response.data, 15, 1000);
-      expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+      expect(response).toBeHttp({ statusCode: 200 });
     }
     response = await request(response.data.location);
     expect(response).toBeHttp({ statusCode: 200 });
@@ -85,7 +85,7 @@ describe('Execution', () => {
     };
 
     let response = await putFunction(account, boundaryId, function1Id, reflectContext);
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
     response = await request({
       method: 'POST',
       url: response.data.location,
@@ -116,7 +116,7 @@ describe('Execution', () => {
         },
       },
     });
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
     response = await request(response.data.location);
     expect(response.status).toEqual(418);
     expect(response.data).toEqual('teapot');
@@ -131,7 +131,7 @@ describe('Execution', () => {
         },
       },
     });
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
     response = await request(response.data.location);
     expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data).toEqual('teapot');
@@ -148,7 +148,7 @@ describe('Execution', () => {
         },
       },
     });
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
     response = await request(response.data.location);
     expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data).toEqual(undefined);
@@ -163,7 +163,7 @@ describe('Execution', () => {
         },
       },
     });
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
     response = await request(response.data.location);
     expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data).toEqual(undefined);
@@ -209,7 +209,7 @@ describe('Execution', () => {
         },
       },
     });
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
     response = await request(response.data.location);
     expect(response.status).toEqual(500);
     expect(response.headers['x-fx-response-source']).toEqual('provider');
@@ -233,7 +233,7 @@ describe('Execution', () => {
         },
       },
     });
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
     response = await request(response.data.location);
     expect(response.status).toEqual(500);
     expect(response.headers['x-fx-response-source']).toEqual('provider');
@@ -257,7 +257,7 @@ describe('Execution', () => {
         },
       },
     });
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
     response = await request(response.data.location);
     expect(response.status).toEqual(500);
     expect(response.headers['x-fx-response-source']).toEqual('provider');
@@ -281,7 +281,7 @@ describe('Execution', () => {
         },
       },
     });
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
     response = await request(response.data.location);
     expect(response.status).toEqual(500);
     expect(response.headers['x-fx-response-source']).toEqual('provider');
@@ -313,7 +313,7 @@ describe('Execution', () => {
         },
       },
     });
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
     response = await request(response.data.location);
     expect(response.status).toEqual(500);
     expect(response.headers['x-fx-response-source']).toEqual('provider');
@@ -342,7 +342,7 @@ describe('Execution', () => {
         },
       },
     });
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
     response = await request({
       method: 'POST',
       url: response.data.location,
@@ -372,7 +372,7 @@ describe('Execution', () => {
         },
       },
     });
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
     response = await request({
       method: 'POST',
       url: response.data.location,
@@ -391,7 +391,7 @@ describe('Execution', () => {
         },
       },
     });
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
     response = await request(response.data.location);
     expect(response.status).toEqual(500);
     expect(response.headers['x-fx-response-source']).toEqual('provider');
@@ -423,7 +423,7 @@ describe('Execution', () => {
         },
       },
     });
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
     response = await request(response.data.location);
     expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data).toEqual('hello');
@@ -439,7 +439,7 @@ describe('Execution', () => {
         },
       },
     });
-    expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+    expect(response).toBeHttp({ statusCode: 200 });
     response = await request(response.data.location);
     expect(response).toBeHttp({ statusCode: 200 });
     expect(response.data).toEqual(account.accountId);
@@ -454,7 +454,7 @@ test('Function with x-www-form-urlencoded works', async () => {
       },
     },
   });
-  expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+  expect(response).toBeHttp({ statusCode: 200 });
   const params = new URLSearchParams();
   params.append('test', '123');
 
@@ -482,7 +482,7 @@ test('function with payload above limit fails (x-www-form-encoded)', async () =>
       },
     },
   });
-  expect(response).toBeHttp({ statusCode: 200, status: 'success' });
+  expect(response).toBeHttp({ statusCode: 200 });
   const params = new URLSearchParams();
   params.append('test', '.'.repeat(520 * 1024));
   const executionResponse = await request({
