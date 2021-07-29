@@ -6,7 +6,7 @@ export const get = async <OAuthConfig>(
   name: string,
   params: { accountId: string; subscriptionId: string }
 ): Promise<OAuthConfig> => {
-  if (!params || !params.accountId || !params.subscriptionId) {
+  if (!params?.accountId || !params?.subscriptionId) {
     throw http_error(500, `Proxy ${name} is not configured.`);
   }
 
@@ -25,7 +25,7 @@ export const set = async <OAuthConfig>(
   params: { accountId: string; subscriptionId: string },
   config: OAuthConfig
 ): Promise<OAuthConfig> => {
-  if (!params || !params.accountId || !params.subscriptionId) {
+  if (!params?.accountId || !params?.subscriptionId) {
     throw http_error(500, `Proxy ${name} is not configured.`);
   }
 

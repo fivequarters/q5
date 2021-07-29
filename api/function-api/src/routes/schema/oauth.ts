@@ -33,9 +33,21 @@ type ProxyCallbackRequest = express.Request & {
 };
 
 // Some Typescript type assertions
-function isProxyRequest(req: express.Request): asserts req is ProxiedRequest {}
-function isAuthorizeRequest(req: ProxyRequest): asserts req is ProxyAuthorizeRequest {}
-function isProxyCallback(req: ProxyRequest): asserts req is ProxyCallbackRequest {}
+function isProxiedRequest(req: express.Request): asserts req is ProxiedRequest {
+  if (!(req as ProxyRequest).proxy) {
+    throw new Error('Invalid request');
+  }
+}
+function isProxyAuthorizeRequest(req: ProxyRequest): asserts req is ProxyAuthorizeRequest {
+  if (!req.proxy || !req.query.client_id || !req.query.state || !req.query.redirect_uri) {
+    throw new Error('Invalid request');
+  }
+}
+function isProxyCallbackRequest(req: ProxyRequest): asserts req is ProxyCallbackRequest {
+  if (!req.proxy || !req.query.state || !req.query.code) {
+    throw new Error('Invalid request');
+  }
+}
 
 // Create a router for this type of OAuth Proxy.
 export const createProxyRouter = (name: string, subscriptionCache: SubscriptionCache): express.Router => {
@@ -47,6 +59,14 @@ export const createProxyRouter = (name: string, subscriptionCache: SubscriptionC
       return next(http_error(500, 'Missing subscription for request'));
     }
 
+    if (!req.subscription.proxy?.accountId || !req.subscription.proxy?.subscriptionId) {
+      return next(http_error(500, 'Proxy is not configured'));
+    }
+
+    /*
+     * Use the subscription configuration to get the accountId and subscriptionId to pull the proxy
+     * constants from.
+     */
     try {
       req.proxy = new OAuthProxyService(
         req.params.accountId,
@@ -54,8 +74,8 @@ export const createProxyRouter = (name: string, subscriptionCache: SubscriptionC
         req.params.entityId,
         name,
         await OAuthProxyConfig.get<IOAuthProxyConfiguration>(name, {
-          accountId: req.params.accountId,
-          subscriptionId: req.params.subscriptionId,
+          accountId: req.subscription.proxy.accountId,
+          subscriptionId: req.subscription.proxy.subscriptionId,
         })
       );
     } catch (error) {
@@ -71,11 +91,10 @@ export const createProxyRouter = (name: string, subscriptionCache: SubscriptionC
     Subscription.get(subscriptionCache),
     useProxy,
     async (req: ProxyRequest, res: express.Response, next: express.NextFunction) => {
-      isAuthorizeRequest(req);
-
       // Validate the redirect_uri is as expected, so that it doesn't need to be cached in a new state or
       // anything for the duration of the request.
       try {
+        isProxyAuthorizeRequest(req);
         req.proxy.validatePeerCallbackUrl(req.query.redirect_uri);
       } catch (error) {
         return next(http_error(403));
@@ -103,10 +122,9 @@ export const createProxyRouter = (name: string, subscriptionCache: SubscriptionC
     useProxy,
     common.management({ validate: { ...Validation.CallbackRequest } }),
     async (req: ProxyRequest, res: express.Response, next: express.NextFunction) => {
-      isProxyCallback(req);
-
       // Validate that the session is a valid session
       try {
+        isProxyCallbackRequest(req);
         await req.proxy.validateSessionId(req.query.state);
       } catch (error) {
         return next(http_error(403));
@@ -131,11 +149,11 @@ export const createProxyRouter = (name: string, subscriptionCache: SubscriptionC
     useProxy,
     common.management({ validate: { ...Validation.TokenRequest } }),
     async (req: ProxyRequest, res: express.Response, next: express.NextFunction) => {
-      isProxyRequest(req);
-
       let code: string;
       // Validation
       try {
+        isProxiedRequest(req);
+
         const result = await Promise.all([
           req.proxy.validateSecuredRequest(req.body.client_id, req.body.client_secret),
           req.proxy.loadCode(req.body.client_id, req.body.client_secret, req.body.code || req.body.refresh_token),
@@ -166,11 +184,15 @@ export const createProxyRouter = (name: string, subscriptionCache: SubscriptionC
     useProxy,
     common.management({ validate: { ...Validation.RevokeRequest } }),
     async (req: ProxyRequest, res: express.Response) => {
-      isProxyRequest(req);
+      try {
+        isProxiedRequest(req);
 
-      // No 'await' here since it doesn't impact the result, and doTokenRevocation explicitly catches all
-      // exceptions silently.
-      req.proxy.doTokenRevocation(req.body);
+        // No 'await' here since it doesn't impact the result, and doTokenRevocation explicitly catches all
+        // exceptions silently.
+        req.proxy.doTokenRevocation(req.body);
+      } catch (error) {
+        // Silently eat errors.
+      }
 
       return res.status(200).end();
     }

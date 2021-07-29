@@ -24,7 +24,7 @@ let masterScope = '@fusebit-int';
 
 beforeAll(async () => {
   const cfg = await Registry.getGlobal();
-  if (!cfg || !cfg.params || !cfg.params.accountId) {
+  if (!cfg?.params || !cfg?.params.accountId) {
     throw new Error('Set a master account on the registries before running unit tests.');
   }
   masterAccount = cfg.params.accountId;
