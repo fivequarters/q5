@@ -3,7 +3,7 @@
  */
 import { Context, IOnStartup, Middleware, Next, Router, Form } from '@fusebit-int/framework';
 const OAuthConnectorRouter = require('@fusebit-int/pkg-oauth-connector');
-import { FormUI, FormSchema } from './form';
+import { schema, uischema } from './form';
 
 const router = new Router();
 const TOKEN_URL = 'https://slack.com/api/oauth.v2.access';
@@ -68,11 +68,11 @@ router.on('startup', async ({ mgr, cfg, router: rtr }: IOnStartup, next: Next) =
   return next();
 });
 
-router.get('/api/configure', async (ctx: Context) => {
+router.get('/api/configure', Middleware.authorize('connector:put'), async (ctx: Context) => {
   ctx.body = {
     data: mapConfiguration(ctx.state.manager.config.configuration),
-    schema: FormSchema,
-    uischema: FormUI,
+    schema,
+    uischema,
   };
 });
 

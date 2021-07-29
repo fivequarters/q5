@@ -1,4 +1,4 @@
-const FormUI = require('./FormUI.json');
-const FormSchema = require('./FormSchema.json');
+const uischema = require('./uischema.json');
+const schema = require('./schema.json');
 
-export { FormSchema, FormUI };
+export { uischema, schema };
