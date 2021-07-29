@@ -143,9 +143,7 @@
       "@fusebit-int/framework": ["lib/pkg/framework/src"],
       "@fusebit-int/pkg-integration": ["lib/pkg/pkg-integration/src"],
       "@fusebit-int/pkg-oauth-connector": ["lib/pkg/pkg-oauth-connector/src"],
-      "@fusebit-int/pkg-oauth-integration": [
-        "lib/pkg/pkg-oauth-integration/src"
-      ],
+      "@fusebit-int/pkg-oauth-integration": ["lib/pkg/pkg-oauth-integration/src"],
       "@5qtrs/comps": ["lib/pkg/comps/src"],
       "@5qtrs/db": ["lib/data/db/src"],
       "@fusebit/schema": ["lib/data/schema/src"],

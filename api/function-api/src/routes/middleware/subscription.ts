@@ -9,7 +9,7 @@ import { SubscriptionCache, SubscriptionCacheTypes } from '@5qtrs/account';
 const MAX_METADATA_TIMEOUT = 1000;
 
 interface IRequest extends Request {
-  subscription: SubscriptionCacheTypes.ISubscription;
+  subscription?: SubscriptionCacheTypes.ISubscription;
   params: {
     accountId: string;
     subscriptionId: string;

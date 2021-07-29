@@ -13,14 +13,10 @@ export interface ISubscription {
   displayName: string;
 
   // Defaults and overrides
-  registry?: {
-    scopes: string[];
-    params: {
-      accountId: string;
-      registryId: string;
-    };
+  proxy?: {
+    accountId: string;
+    subscriptionId: string;
   };
-  [key: string]: any;
 }
 
 interface ISubscriptionCache {
@@ -56,6 +52,8 @@ export default class SubscriptionCache {
   };
 
   public compose(subscription?: ISubscription): ISubscription | undefined {
+    // Merge the subscription on top of the defaults, so anything that's in the subscription overwrites
+    // what's present in the defaults.
     return subscription ? Constants.mergeDeep(this.defaults, subscription) : undefined;
   }
 
