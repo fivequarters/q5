@@ -3,8 +3,30 @@ import superagent from 'superagent';
 const removeLeadingSlash = (s: string) => s.replace(/^\/(.+)$/, '$1');
 const removeTrailingSlash = (s: string) => s.replace(/^(.+)\/$/, '$1');
 
-const createStorage = (params: any, storageIdPrefix: string) => {
-  storageIdPrefix = storageIdPrefix ? removeLeadingSlash(removeTrailingSlash(storageIdPrefix)) : '';
+export interface IStorageResponse {}
+
+export interface IStorageClient {
+  accessToken: string;
+  get: (storageSubId?: string) => Promise<string | undefined>;
+  put: (data: any, storageSubId?: string) => Promise<IStorageResponse>;
+  delete: (storageSubId?: string, recursive?: boolean, forceRecursive?: boolean) => Promise<void>;
+  list: (storageSubId: string, { count, next }?: IListOption) => Promise<IStorageResponse>;
+}
+export interface IListOption {
+  count?: number;
+  next?: string;
+}
+
+export interface IStorageParam {
+  baseUrl: string;
+  accountId: string;
+  subscriptionId: string;
+  accessToken: string;
+  storageIdPrefix?: string;
+}
+
+export const createStorage = (params: IStorageParam): IStorageClient => {
+  const storageIdPrefix = params.storageIdPrefix ? removeLeadingSlash(removeTrailingSlash(params.storageIdPrefix)) : '';
   const functionUrl = new URL(params.baseUrl);
   const storageBaseUrl = `${functionUrl.protocol}//${functionUrl.host}/v1/account/${params.accountId}/subscription/${
     params.subscriptionId
@@ -15,9 +37,9 @@ const createStorage = (params: any, storageIdPrefix: string) => {
     return `${storageBaseUrl}${storageSubId ? '/' + storageSubId : ''}`;
   };
 
-  const storageClient = {
+  const storageClient: IStorageClient = {
     accessToken: params.accessToken,
-    get: async (storageSubId?: string) => {
+    get: async (storageSubId?: string, storageId?: string) => {
       storageSubId = storageSubId ? removeTrailingSlash(removeLeadingSlash(storageSubId)) : '';
       if (!storageSubId && !storageIdPrefix) {
         return undefined;
@@ -55,7 +77,7 @@ const createStorage = (params: any, storageIdPrefix: string) => {
         .ok((res) => res.status === 404 || res.status === 204);
       return;
     },
-    list: async (storageSubId: string, { count, next }: { count?: number; next?: string } = {}) => {
+    list: async (storageSubId: string, { count, next }: IListOption = {}) => {
       const response = await superagent
         .get(`${getUrl(storageSubId)}/*`)
         .query(count && isNaN(count) ? {} : { count: 5 })
@@ -67,5 +89,3 @@ const createStorage = (params: any, storageIdPrefix: string) => {
 
   return storageClient;
 };
-
-export { createStorage };

@@ -88,7 +88,7 @@ class ConnectorManager {
    * @param handler A function that converts a Context into a unique string that the connector can use as a
    * key to look up identities.
    */
-  public getByName(name: string, handler: (ctx: Context) => string) {
+  public getByName(name: string, handler: (ctx: Context) => string): any {
     return (ctx: Context) => {
       const cfg = this.connectors[name];
       if (!cfg) {
@@ -101,6 +101,15 @@ class ConnectorManager {
       const inst = cfg.instance ? cfg.instance : this.loadConnector(name, cfg);
 
       return inst.instantiate(ctx, handler(ctx));
+    };
+  }
+
+  public getByNames(names: string[], handler: (ctx: Context) => string): Record<string, any> {
+    return (ctx: Context) => {
+      return names.reduce<Record<string, any>>((acc, cur) => {
+        acc[name] = this.getByName(name, handler)(ctx);
+        return acc;
+      }, {});
     };
   }
 
