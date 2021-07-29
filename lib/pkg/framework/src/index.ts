@@ -5,6 +5,7 @@ import * as Storage from './Storage';
 import { Form } from './Form';
 import { Handler } from './Handler';
 import * as Middleware from './middleware';
+import IntegrationActivator from './IntegrationActivator';
 
 // Types
 export * from './Storage';
@@ -23,4 +24,5 @@ export {
   IInstanceConnectorConfig,
   Middleware,
   Storage,
+  IntegrationActivator,
 };
