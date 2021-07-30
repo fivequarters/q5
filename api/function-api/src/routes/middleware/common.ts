@@ -34,7 +34,7 @@ const management = (options: ICommonOptions): Middleware[] => {
   ].filter((x) => x) as Middleware[];
 };
 
-const cors = () => [Cors(corsManagementOptions)];
+const cors = () => Cors(corsManagementOptions);
 
 const final = () => {
   return [analytics.finished];
