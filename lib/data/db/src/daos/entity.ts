@@ -29,7 +29,7 @@ import {
 const DELETE_SAFETY_PREFIX_LEN = 3;
 
 const defaultEntityConstructorArgument: DefaultConstructorArguments = {
-  upsert: true,
+  upsert: false,
   filterExpired: true,
   listLimit: 100,
 };

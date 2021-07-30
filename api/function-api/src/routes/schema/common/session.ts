@@ -11,6 +11,7 @@ import * as ValidationCommon from '../../validation/entities';
 const createSessionRouter = (SessionService: SessionedEntityService<any, any>) => {
   const router = express.Router({ mergeParams: true });
 
+  router.options('/', common.cors());
   router.post(
     '/',
     common.management({
@@ -39,7 +40,8 @@ const createSessionRouter = (SessionService: SessionedEntityService<any, any>) =
   );
 
   //  Get full value of session.
-  router.route('/result/:sessionId').get(
+  router.options('/:sessionId/result', common.cors());
+  router.route('/:sessionId/result').get(
     common.management({
       validate: { params: ValidationCommon.EntityIdParams },
       authorize: { operation: v2Permissions.sessionResult },
@@ -78,6 +80,7 @@ const createSessionRouter = (SessionService: SessionedEntityService<any, any>) =
 
   router
     .route('/:sessionId')
+    .options(common.cors())
     // Get 'public' value of session
     .get(
       common.management({
@@ -149,6 +152,7 @@ const createSessionRouter = (SessionService: SessionedEntityService<any, any>) =
       }
     );
 
+  router.options('/:sessionId/start', common.cors());
   router
     // Get a new session and a 302 redirect url for the first step.
     .get(
@@ -175,6 +179,7 @@ const createSessionRouter = (SessionService: SessionedEntityService<any, any>) =
       }
     );
 
+  router.options('/:sessionId/callback', common.cors());
   router
     // Finish a session and get the next component's redirect url.
     .get(

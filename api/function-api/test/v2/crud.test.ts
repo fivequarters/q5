@@ -154,7 +154,8 @@ const performTests = (testEntityType: TestableEntityTypes, sampleEntityMap: Samp
     const entity = sampleEntity();
     await createEntityTest(entity);
     const createResponseConflict = await ApiRequestMap[testEntityType].post(account, entity);
-    expect(createResponseConflict).toBeHttp({ status: 400 });
+    const operation = await ApiRequestMap.operation.waitForCompletion(account, createResponseConflict.data.operationId);
+    expect(operation).toBeHttp({ statusCode: 400 });
   }, 180000);
 
   test('Update Entity', async () => {

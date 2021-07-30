@@ -83,7 +83,7 @@ export const ApiRequestMap: { [key: string]: any } = {
       getResult: async (account: IAccount, entityId: string, sessionId: string, options?: IRequestOptions) => {
         const response = await v2Request(account, {
           method: 'GET',
-          uri: `/connector/${encodeURI(entityId)}/session/result/${sessionId}`,
+          uri: `/connector/${encodeURI(entityId)}/session/${sessionId}/result`,
           ...options,
         });
         if (response.status < 300) {
@@ -252,7 +252,7 @@ export const ApiRequestMap: { [key: string]: any } = {
       getResult: async (account: IAccount, entityId: string, sessionId: string, options?: IRequestOptions) => {
         const response = await v2Request(account, {
           method: 'GET',
-          uri: `/integration/${encodeURI(entityId)}/session/result/${sessionId}`,
+          uri: `/integration/${encodeURI(entityId)}/session/${sessionId}/result`,
           ...options,
         });
         if (response.status < 300) {

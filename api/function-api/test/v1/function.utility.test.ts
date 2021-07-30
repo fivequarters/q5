@@ -1,13 +1,12 @@
 import create_error from 'http-errors';
 
 import { IAgent } from '@5qtrs/account-data';
-import { AwsRegistry } from '@5qtrs/registry';
 import * as FunctionUtilities from '../../src/routes/functions';
 
 import { disableFunctionUsageRestriction, callFunction } from './sdk';
 
 import { getEnv } from './setup';
-import { getParams, keyStore, subscriptionCache, fakeAgent } from './function.utils';
+import { getParams, fakeAgent } from './function.utils';
 
 let { account, boundaryId, function1Id, function2Id, function3Id, function4Id, function5Id } = getEnv();
 beforeEach(() => {
@@ -25,12 +24,6 @@ const ctxFunction = {
     files: { 'index.js': 'module.exports = (ctx, cb) => cb(null, { body: { ...ctx, configuration: undefined } });' },
   },
 };
-
-// Register the globals with various consumers
-FunctionUtilities.initFunctions(keyStore, subscriptionCache);
-
-// Create a registry object
-const registry = AwsRegistry.create({ ...getParams('', account, boundaryId), registryId: 'default' }, {});
 
 describe('Function Utilities', () => {
   test('Create simple function', async () => {

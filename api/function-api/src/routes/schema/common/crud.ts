@@ -127,6 +127,7 @@ const router = (
 
   // Restrictive permissions to be added later.
   // body: {event: string, parameters: any}
+  componentCrudRouter.options('/:subPath(event)', common.cors());
   componentCrudRouter.post(
     '/:subPath(event)',
     common.management({
