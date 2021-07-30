@@ -85,6 +85,7 @@ export const createProxyRouter = (name: string, subscriptionCache: SubscriptionC
   };
 
   // Router endpoints
+  router.options('/authorize', common.cors());
   router.get(
     '/authorize',
     common.management({ validate: { ...Validation.AuthorizeRequest } }),
@@ -116,6 +117,7 @@ export const createProxyRouter = (name: string, subscriptionCache: SubscriptionC
     }
   );
 
+  router.options('/callback', common.cors());
   router.get(
     '/callback',
     Subscription.get(subscriptionCache),
@@ -143,6 +145,7 @@ export const createProxyRouter = (name: string, subscriptionCache: SubscriptionC
     }
   );
 
+  router.options('/token', common.cors());
   router.post(
     '/token',
     Subscription.get(subscriptionCache),
@@ -178,6 +181,7 @@ export const createProxyRouter = (name: string, subscriptionCache: SubscriptionC
     }
   );
 
+  router.options('/revoke', common.cors());
   router.post(
     '/revoke',
     Subscription.get(subscriptionCache),

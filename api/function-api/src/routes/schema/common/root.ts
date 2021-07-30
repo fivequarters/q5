@@ -19,6 +19,7 @@ const router = (EntityService: SessionedEntityService<any, any>) => {
 
   componentRouter
     .route('/')
+    .options(common.cors())
     .get(
       common.management({
         validate: { params: Validation.EntityIdParams, query: Validation.EntityIdQuery },

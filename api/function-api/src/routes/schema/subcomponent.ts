@@ -29,6 +29,7 @@ const subcomponentRouter = (
   router.use(analytics.setModality(analytics.Modes.Administration));
   router
     .route(`/:entityId/${service.entityType}`)
+    .options(common.cors())
     .get(
       common.management({
         validate: { params: Validation.EntityIdParams, query: Validation.EntityIdQuery },
