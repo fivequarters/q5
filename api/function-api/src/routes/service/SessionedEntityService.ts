@@ -122,6 +122,7 @@ export default abstract class SessionedEntityService<
         components: stepList,
         redirectUrl: sessionDetails.redirectUrl,
       },
+      tags,
     };
 
     // Write the session object.
@@ -208,6 +209,7 @@ export default abstract class SessionedEntityService<
         parentId: parentSession.id,
         replacementTargetId,
       },
+      tags: parentSession.tags,
     };
 
     step.childSessionId = session.id;

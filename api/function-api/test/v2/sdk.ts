@@ -592,6 +592,7 @@ export const createPair = async (
       muxIntegration?: Model.IEntityId;
       [key: string]: any;
     };
+    componentTags?: Record<string, string>;
   },
   numConnectors: number = 1
 ) => {
