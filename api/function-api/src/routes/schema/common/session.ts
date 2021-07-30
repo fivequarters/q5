@@ -40,8 +40,8 @@ const createSessionRouter = (SessionService: SessionedEntityService<any, any>) =
   );
 
   //  Get full value of session.
-  router.options('/result/:sessionId', common.cors());
-  router.route('/result/:sessionId').get(
+  router.options('/:sessionId/result', common.cors());
+  router.route('/:sessionId/result').get(
     common.management({
       validate: { params: ValidationCommon.EntityIdParams },
       authorize: { operation: v2Permissions.sessionResult },

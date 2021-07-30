@@ -75,7 +75,7 @@ class IdentityClient {
   public loadTokenFromSession = async (sessionId: string) => {
     sessionId = this.cleanId(sessionId);
     const response = await superagent
-      .get(`${this.connectorUrl}/session/result/${sessionId}`)
+      .get(`${this.connectorUrl}/session/${sessionId}/result`)
       .set('Authorization', `Bearer ${this.accessToken}`);
     return response.body.output.token;
   };
