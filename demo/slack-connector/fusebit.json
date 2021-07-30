@@ -3,6 +3,7 @@
   "tags": {},
   "handler": "@fusebit-int/slack-connector",
   "configuration": {
+    "scope": "chat:write",
     "package": "@fusebit-int/slack-connector",
     "clientId": "457394426995.2278816147488",
     "clientSecret": "a6bc9f55ceb49571d70a6382b21866d4",

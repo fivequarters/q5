@@ -4,7 +4,7 @@
     "get": "fuse connector get slack-connector -d ."
   },
   "dependencies": {
-    "@fusebit-int/slack-connector": "^1.0.2",
-    "@fusebit-int/framework": "^2.0.0"
+    "@fusebit-int/framework": "^2.0.0",
+    "@fusebit-int/slack-connector": "^1.1.9"
   }
 }
