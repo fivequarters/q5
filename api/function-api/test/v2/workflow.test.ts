@@ -109,7 +109,7 @@ describe('Workflow', () => {
       '  const result = {};',
       "  response = await superagent.get(`${ctx.state.params.baseUrl}/session/${ctx.query.session}`).set('Authorization', `Bearer ${ctx.state.params.functionAccessToken}`);",
       '  result.get = response.body;',
-      "  response = await superagent.get(`${ctx.state.params.baseUrl}/session/result/${ctx.query.session}`).set('Authorization', `Bearer ${ctx.state.params.functionAccessToken}`);",
+      "  response = await superagent.get(`${ctx.state.params.baseUrl}/session/${ctx.query.session}/result`).set('Authorization', `Bearer ${ctx.state.params.functionAccessToken}`);",
       '  result.getResult = response.body;',
       '  ctx.body = result;',
       '});',
